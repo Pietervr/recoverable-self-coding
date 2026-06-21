@@ -1,0 +1,4 @@
+numpy>=1.24
+matplotlib>=3.7
+# Empirical fetchers additionally require the GitHub CLI (`gh`, authenticated)
+# for PR data, and download the public Wikipedia mediawiki_history dumps.

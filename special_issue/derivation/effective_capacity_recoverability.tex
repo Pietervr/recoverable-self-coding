@@ -1,0 +1,179 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{microtype}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newtheorem{result}{Result}
+\newcommand{\Rself}{R_{\mathrm{self}}}
+\newcommand{\Cself}{C_{\mathrm{self}}}
+\newcommand{\CR}{\mathrm{CR}}
+\newcommand{\SR}{\mathrm{SR}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+
+\title{Effective Capacity and the Recoverability Boundary\\[2pt]
+\large A working derivation note --- check the math before any of it enters the manuscript}
+\author{RSC programme (SI \texttt{adaptive\_agency\_special\_issue}; bears on \texttt{ai\_dissipative} Claim~1)}
+\date{2026-06-18}
+
+\begin{document}
+\maketitle
+
+\noindent\textbf{Purpose.} The hostile review's deepest fair charge is that RSC's information-theoretic
+framing is decorative and the content is ``queueing in costume.'' This note tests Pieter's
+counter: the connection between Shannon's $R<C$ and queue stability is a \emph{rigorous, published}
+bridge --- effective bandwidth (Chang; Kelly) and effective capacity (Wu--Negi) --- grounded in the
+large-deviations theory of the single-server queue (Glynn--Whitt). If the RSC quantities map onto it
+cleanly, then (a) the rate--capacity framing is literally correct rather than analogical, and (b) the
+large-deviation rate function that RSC Claim~1 has been missing is \emph{already in the literature}.
+This note works the mapping and checks it against the paper's existing simulation results. \textbf{It is
+not for submission};\ the goal is to verify correctness first.
+
+\section{The RSC certification queue}
+Commitments requiring certification arrive at rate $\lambda=\Rself$. A certification ``server'' clears
+them; its capacity (max sustainable certification rate) is $\Cself$, so the utilisation is exactly the
+capacity ratio
+\[
+\rho \;=\; \frac{\lambda}{\Cself} \;=\; \frac{\Rself}{\Cself} \;=\; \CR .
+\]
+Let $T$ be the steady-state sojourn (queueing delay $+$ service) of a commitment. A commitment is
+\emph{certified} --- traceable, hence locally invertible, hence recoverable --- iff it clears within the
+certification deadline $\Delta t$:
+\[
+\text{certified} \iff T\le \Delta t,
+\qquad
+\text{recoverability } P_c \;=\; \Prob(T\le\Delta t),
+\qquad
+\SR \;=\; \frac{\dot N_{\mathrm{uncert}}}{\dot N_{\mathrm{cert}}}
+      \;=\; \frac{1-P_c}{P_c}.
+\]
+The last identity is exact in steady state: arrivals split into certified/uncertified with probabilities
+$P_c,\,1-P_c$, so the \emph{rate} ratio equals the \emph{probability} ratio. (This already tightens the
+manuscript, which argues $\SR\sim \CR/(1-\CR)$ from the \emph{mean backlog} $L=\rho/(1-\rho)$ --- a looser
+step that conflates backlog with the count ratio. The count ratio $\SR=(1-P_c)/P_c$ is what the
+simulation actually computes.)
+
+\section{Classical results invoked (all published)}
+\begin{itemize}
+\item \textbf{Loynes (1962):} a stationary sojourn distribution exists iff $\rho<1$. So $\CR<1$ is not an
+analogy to the Shannon limit --- it \emph{is} the stability boundary of the certification queue.
+\item \textbf{Glynn--Whitt (1994):} for a general single-server (GI/G/1) queue the steady-state
+waiting/sojourn tail obeys a large-deviation principle,
+\[
+\Prob(T>x)\;\asymp\; e^{-\theta^\star x}\qquad(x\to\infty),
+\]
+where $\theta^\star>0$ is the queue's \emph{QoS / decay exponent}.
+\item \textbf{Effective bandwidth (Kelly 1996; Chang 1994)} and \textbf{effective capacity (Wu--Negi 2003):}
+$\theta^\star$ is fixed by a log-moment-generating-function balance between arrivals and service. With
+$\Lambda_A(\theta)=\lim_t \tfrac1t\ln\E e^{\theta A(0,t)}$ (arrivals) and the Wu--Negi effective capacity
+\[
+E_c(\theta)\;=\;-\frac{1}{\theta}\,\lim_{t\to\infty}\frac1t\,\ln \E\!\left[e^{-\theta\,S(0,t)}\right]
+\]
+of the service (certification) process, the operating exponent solves the effective-bandwidth $=$
+effective-capacity balance, and the admissible arrival rate under exponent $\theta$ is $\lambda<E_c(\theta)$.
+\end{itemize}
+
+\section{Recoverability and $\SR$ in terms of the decay exponent}
+Combining $P_c=\Prob(T\le\Delta t)=1-e^{-\theta^\star\Delta t}$ (Glynn--Whitt, exact for $M/M/1$ below) with
+$\SR=(1-P_c)/P_c$,
+\begin{equation}
+\boxed{\;P_c \;=\; 1-e^{-\theta^\star\Delta t},
+\qquad
+\SR \;=\; \frac{e^{-\theta^\star\Delta t}}{1-e^{-\theta^\star\Delta t}}\;}
+\label{eq:srtheta}
+\end{equation}
+So recoverability and the stability ratio are \emph{both explicit functions of the single QoS exponent
+$\theta^\star$ and the deadline $\Delta t$}. The invertibility/recoverability ``valve'' is $\theta^\star$:
+a large decay exponent (steep tail) means commitments clear well inside the deadline; $\theta^\star\to0$
+means the tail flattens and the deadline is routinely missed.
+
+\section{The boundary law, derived (not asserted)}
+\paragraph{Exact $M/M/1$.} The sojourn is exponential with rate $\mu-\lambda=\Cself(1-\CR)$, so
+\[
+\theta^\star \;=\; \Cself\,(1-\CR),
+\qquad
+\Prob(T>\Delta t)=e^{-\Cself(1-\CR)\Delta t}.
+\]
+Hence $\CR\to1 \iff \theta^\star\to0$, and from \eqref{eq:srtheta}, for $\theta^\star\Delta t\ll1$,
+\[
+\SR \;\approx\; \frac{1}{\theta^\star\Delta t}\;=\;\frac{1}{\Cself\,\Delta t\,(1-\CR)}
+\;\Longrightarrow\;
+\SR\sim(1-\CR)^{-1},
+\qquad
+\SR\cdot(1-\CR)\to \frac{1}{\Cself\,\Delta t}.
+\]
+With $\Cself=\mu=1$ this gives $\SR\cdot(1-\CR)\to 1/\Delta t$.
+
+\paragraph{General GI/G/1 (heavy traffic).} The sojourn is asymptotically exponential with mean
+$\E[T]\approx \tfrac{c_a^2+c_s^2}{2}\,\tfrac{\rho}{1-\rho}\,\tfrac1\mu$ (Kingman), so
+$\theta^\star\approx 1/\E[T]\to \dfrac{2\mu(1-\CR)}{c_a^2+c_s^2}$, and
+\begin{equation}
+\boxed{\;\SR\cdot(1-\CR)\;\xrightarrow{\;\CR\to1^-\;}\;\frac{c_a^2+c_s^2}{2\mu\,\Delta t}\;}
+\label{eq:prefactor}
+\end{equation}
+which for $\mu=1$ is exactly the manuscript's prefactor $(c_a^2+c_s^2)/(2\Delta t)$ (Eq.~prefactor) and,
+for $M/M/1$ ($c_a^2=c_s^2=1$), recovers $\theta^\star=\mu(1-\CR)$ above. \textbf{The effective-capacity /
+large-deviation route reproduces the paper's universal exponent and prefactor --- but now from the decay
+exponent $\theta^\star$ rather than a heavy-traffic mean, i.e.\ with the full tail, not just the average.}
+
+\section{The sharp recoverability bound (this is the genuinely new statement)}
+Demand un-recoverability at most $\varepsilon$ at deadline $\Delta t$: $e^{-\theta^\star\Delta t}\le\varepsilon$,
+i.e.\ $\theta^\star\ge \theta_\varepsilon:=-\ln\varepsilon/\Delta t$. The maximum induced flux sustaining this is
+\begin{equation}
+\boxed{\;\Rself \;<\; E_c(\theta_\varepsilon),\qquad \theta_\varepsilon=-\frac{\ln\varepsilon}{\Delta t}\;}
+\label{eq:sharp}
+\end{equation}
+the Wu--Negi effective capacity of the certification process at the deadline-set exponent. Because
+$E_c(\theta)$ is decreasing in $\theta$ with $E_c(0)=\E[\Cself]$, the coarse bound $\Rself<\Cself$ is the
+\emph{$\Delta t\to\infty$ (no-deadline) limit}; any finite recoverability deadline makes the admissible
+rate \emph{strictly smaller}. This is precisely the deadline-aware tightening of $R<C$ that effective
+capacity was built to express --- now read as a recoverability criterion.
+
+\section{What this buys, stated carefully}
+\begin{enumerate}
+\item \textbf{Answers ``decorative info-theory'' at the root.} $\CR<1$ is the Loynes stability boundary;
+$\SR$ is an explicit function of the QoS exponent $\theta^\star$; the recoverability bound is the Wu--Negi
+effective capacity. The rate--capacity language is then \emph{literally} the effective-bandwidth bridge,
+not an analogy. We cite Chang/Kelly/Wu--Negi/Glynn--Whitt and stop apologising for $R<C$.
+\item \textbf{Bears directly on Claim~1.} The large-deviation rate function for the uncertified-commitment
+backlog that Claim~1 has sought \emph{is} $\theta^\star$ (Glynn--Whitt for the single server; Chang/Kelly for
+networks). This may close the single-server boundary law rigorously without the stalled bespoke derivation.
+\item \textbf{Tightens the manuscript.} It replaces the loose ``$\SR\sim\CR/(1-\CR)$ via mean backlog'' step
+with the exact $\SR=(1-P_c)/P_c$ and $P_c=1-e^{-\theta^\star\Delta t}$ --- which is what the simulation
+already computes, so theory and code finally agree by derivation, not coincidence.
+\end{enumerate}
+
+\section{Caveats / to verify before it enters a paper}
+\begin{enumerate}
+\item \textbf{The interpretive seam remains.} Effective-bandwidth theory makes the \emph{queue} rigorous
+and the rate--capacity language correct \emph{for the queue}. The claim ``certification of a commitment
+$=$ reliable decoding over a channel of capacity $\Cself$'' is still the RSC modelling choice. We may
+claim a rigorous queueing/LDP core; we may \emph{not} claim effective capacity makes substrate-independence
+rigorous.
+\item \textbf{Finite $\Delta t$.} $\Prob(T>\Delta t)\asymp e^{-\theta^\star\Delta t}$ is exact for $M/M/1$
+but asymptotic ($\Delta t$ large) for general GI/G/1; the Glynn--Whitt constant prefactor (the $\asymp$)
+should be carried, and finite-$\Delta t$ corrections checked numerically against the existing
+\texttt{rsc\_engine.py} runs.
+\item \textbf{Does it \emph{fully} close Claim~1?} It gives the LDP for one server under a stationary
+ergodic service process. The foundational paper may want more (networked decoders; the driven-Ising
+equivalence). Honest statement: it closes the \emph{single-server} boundary law; the broader claim needs
+the network extension (Chang's network effective bandwidths are the candidate).
+\item \textbf{Numerical check to run:} fit $\theta^\star$ from the simulated sojourn tails, confirm
+$\theta^\star=\mu(1-\CR)$ ($M/M/1$) and $\theta^\star\to 2\mu(1-\CR)/(c_a^2+c_s^2)$ (GI/G/1), and confirm
+$\SR=(1-P_c)/P_c$ from \eqref{eq:srtheta} matches the measured $\SR$ across the whole $\CR$ range, not just
+near the boundary.
+\end{enumerate}
+
+\begin{thebibliography}{9}
+\bibitem{loynes1962} R.~M. Loynes, ``The stability of a queue with non-independent inter-arrival and service times,'' \emph{Proc. Cambridge Philos. Soc.} \textbf{58} (1962) 497--520.
+\bibitem{lindley1952} D.~V. Lindley, ``The theory of queues with a single server,'' \emph{Proc. Cambridge Philos. Soc.} \textbf{48}(2) (1952) 277--289.
+\bibitem{kingman1961} J.~F.~C. Kingman, ``The single server queue in heavy traffic,'' \emph{Proc. Cambridge Philos. Soc.} \textbf{57}(4) (1961) 902--904.
+\bibitem{glynnwhitt1994} P.~W. Glynn and W. Whitt, ``Logarithmic asymptotics for steady-state tail probabilities in a single-server queue,'' \emph{J. Appl. Probab.} \textbf{31A} (1994) 131--156.
+\bibitem{chang1994} C.-S. Chang, ``Stability, queue length, and delay of deterministic and stochastic queueing networks,'' \emph{IEEE Trans. Autom. Control} \textbf{39}(5) (1994) 913--931.
+\bibitem{kelly1996} F.~P. Kelly, ``Notes on effective bandwidths,'' in \emph{Stochastic Networks: Theory and Applications}, Oxford Univ. Press (1996) 141--168.
+\bibitem{wunegi2003} D. Wu and R. Negi, ``Effective capacity: a wireless link model for support of quality of service,'' \emph{IEEE Trans. Wireless Commun.} \textbf{2}(4) (2003) 630--643.
+\bibitem{dembozeitouni} A. Dembo and O. Zeitouni, \emph{Large Deviations Techniques and Applications}, 2nd ed., Springer (1998).
+\end{thebibliography}
+
+\end{document}
