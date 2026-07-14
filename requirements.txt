@@ -1,4 +1,6 @@
 numpy>=1.24
 matplotlib>=3.7
+pandas>=2.0          # proceedings/cself/ (the Synthea + MIMIC-IV demo pipelines)
+# pyyaml is optional — only csself_estimator.py's --config CLI path imports it.
 # Empirical fetchers additionally require the GitHub CLI (`gh`, authenticated)
 # for PR data, and download the public Wikipedia mediawiki_history dumps.

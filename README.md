@@ -27,11 +27,16 @@ special_issue/
   figures/      figure scripts for the SI (rsc_*.py, fig_*.py) + per-figure README
   empirical/    the two operational substrates: GitHub review queues, Wikipedia edits
   derivation/   the effective-capacity derivation note + the invertibility-axis model
-proceedings/figures/   proceedings figure scripts
+proceedings/
+  figures/    proceedings figure scripts
+  cself/      the physiological pipeline: the C_self/R_self estimator + both cohort
+              drivers (Synthea -> Figure 1; MIMIC-IV demo -> the Section 3 estimates)
 poster/figures/        poster figure scripts
 ```
 
-`special_issue/figures/README.md` maps each script to its figure and result.
+`special_issue/figures/README.md` maps each script to its figure and result;
+`proceedings/cself/README.md` documents the physiological pipeline and how to
+reproduce its published numbers.
 
 ## Running
 
@@ -58,6 +63,23 @@ from public sources, then the figure scripts read pinned snapshots from `/tmp`
 
 Then `fig_github.py`, `fig_wikipedia.py`, `fig_earlywarning.py`, and the
 `analyze_*.py` probes read those snapshots.
+
+## Physiological data (proceedings Section 3 / Figure 1)
+
+Both cohorts are **openly available** and neither is redistributed here:
+
+- **Synthea** 10k COVID-19 synthetic cohort — no registration.
+  `proceedings/cself/synthea_to_cself.py --data <unzipped dir>` regenerates
+  `proceedings/figures/cself_measured_synthea.csv` (the Figure 1 input): 1,898
+  units on the regime map, 90.3% below the feasibility boundary.
+- **MIMIC-IV Clinical Database Demo** (100 ICU patients) — Open Data Commons
+  ODbL, **no credentialing and no DUA**. `proceedings/cself/mimic_demo_cself.py
+  --download` fetches it and prints the Section 3 aggregates: 78/100 units on
+  the regime map, 44.9% below the boundary, median CR 1.023.
+
+The estimator is identical for both cohorts; only the reference bands differ
+(textbook ranges for Synthea, MIMIC's own per-assay bands for MIMIC). The full,
+credentialed MIMIC-IV database is not used. See `proceedings/cself/README.md`.
 
 ## Honest-scoping notes (recorded with the code)
 
