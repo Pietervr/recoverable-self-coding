@@ -152,6 +152,27 @@ for kind, pred in (("MD1", 0.5), ("MM1", 1.0), ("H2M1", 2.5)):
 print("  spread H2/M/1 : M/D/1 = %.1fx  (Kingman 5.0x)"
       % (series["H2M1"][top].mean() / series["MD1"][top].mean()))
 
+# =====================================================================
+# Robustness: is the panel-(a) collapse an artefact of Dt = H = 4?
+# Recompute recoverability at CR = 0.5 and 0.94 for Dt = H in {2, 4, 8}.
+# =====================================================================
+rng_r = np.random.default_rng(31)
+print()
+print("robustness of the recoverability collapse to the horizon")
+print("  Dt=H    recov(CR=0.5)   recov(CR=0.94)   collapse factor")
+for horizon in (2.0, 4.0, 8.0):
+    out = {}
+    for rho in (0.5, 0.94):
+        lam = rho * mu
+        interarr = rng_r.exponential(1.0 / lam, N)
+        service = rng_r.exponential(1.0 / mu, N)
+        sojourn = lindley(interarr, service) + service
+        Pc = (sojourn <= horizon).mean()
+        corr = rng_r.exponential(1.0 / (mu - lam), N)
+        out[rho] = Pc * (corr <= horizon).mean()
+    print(f"  {horizon:>4.0f}    {out[0.5]:.3f}           {out[0.94]:.3f}"
+          f"            {out[0.5]/max(out[0.94],1e-9):.0f}x")
+
 # ---- figure ----
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.2, 3.2))
 
