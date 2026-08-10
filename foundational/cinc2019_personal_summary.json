@@ -1,0 +1,24 @@
+{
+  "n_cohort": 36896,
+  "R_day_p5_p95": [
+    5.79,
+    20.0
+  ],
+  "C_day_p5_p95": [
+    7.38,
+    24.0
+  ],
+  "pearson_RC": 0.563,
+  "band_R_day": [
+    11.03,
+    13.26
+  ],
+  "band_n": 7391,
+  "band_C_day_p5_p95": [
+    10.0,
+    21.82
+  ],
+  "band_C_spread_x": 2.18,
+  "band_C_day_median_sepsis": 12.39,
+  "band_C_day_median_non": 13.71
+}
