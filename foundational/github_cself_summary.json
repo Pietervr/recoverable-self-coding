@@ -1,0 +1,11 @@
+{
+  "n": 138,
+  "window_days": 365,
+  "since": "2025-08-10",
+  "feasible_k": 53,
+  "feasible_frac": 0.3841,
+  "CR_median": 1.0583,
+  "drain_months_median": 7.77,
+  "drain_months_median_CR_lt_1": 3.97,
+  "drain_months_median_CR_ge_1": 11.17
+}
