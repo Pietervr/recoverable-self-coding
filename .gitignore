@@ -19,5 +19,8 @@ venv/
 # OS / editor
 .DS_Store
 
+# exemplar raw downloads (openly re-pullable; see exemplar/DESIGN.md)
+exemplar/data/
+
 # CinC-2019 raw data (CC-BY, fetched by foundational/fetch_cinc2019.py; not redistributed here)
 foundational/data/
