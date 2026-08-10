@@ -191,14 +191,20 @@ def main() -> None:
     }
     (out / "cinc2019_results.json").write_text(json.dumps(res, indent=2))
 
-    # aggregate histograms (small-cell suppression at 10)
+    # per-patient table stays LOCAL (data/ is gitignored); aggregates only below
+    m.to_parquet(data / "cinc2019_metrics.parquet")
+
+    # aggregate histograms (small-cell suppression at 10), incl. sepsis split
+    groups = {"cohort": m, "sepsis": m[m.sepsis == 1], "non_sepsis": m[m.sepsis == 0]}
     hists = []
     for col in ("CR", "SR", "R_self", "C_self"):
-        counts, edges = np.histogram(m[col], bins=60)
-        counts = np.where(counts < 10, 0, counts)
-        hists.append(pd.DataFrame({
-            "quantity": col, "bin_center": (edges[:-1] + edges[1:]) / 2,
-            "count": counts}))
+        rng = (float(m[col].quantile(0.001)), float(m[col].quantile(0.999)))
+        for gname, gdf in groups.items():
+            counts, edges = np.histogram(gdf[col], bins=60, range=rng)
+            counts = np.where(counts < 10, 0, counts)
+            hists.append(pd.DataFrame({
+                "quantity": col, "group": gname,
+                "bin_center": (edges[:-1] + edges[1:]) / 2, "count": counts}))
     pd.concat(hists).to_csv(out / "cinc2019_regime_hist.csv", index=False)
 
     # SR vs CR binned (queue-law comparison, sub-boundary bins only)

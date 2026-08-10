@@ -1,0 +1,88 @@
+{
+  "data_source": "PhysioNet/CinC Challenge 2019 training data v1.0.0 (CC-BY 4.0), 8 vitals + 26 labs, hourly",
+  "estimator": "proceedings/cself/csself_estimator.py excursion/restore logic; ICU adaptations per cinc2019_cself.py docstring",
+  "panel_size": 32,
+  "cohort": {
+    "n": 36896,
+    "feasible_k": 26358,
+    "feasible_frac": 0.7144,
+    "feasible_ci": [
+      0.7098,
+      0.719
+    ],
+    "CR_median": 0.8893,
+    "SR_median": 1.413,
+    "R_self_median_per_yr": 4383.0,
+    "C_self_median_per_yr": 5357.0,
+    "censored_frac": 0.1122,
+    "span_days_median": 1.62
+  },
+  "by_set": {
+    "A": {
+      "n": 18963,
+      "feasible_k": 12473,
+      "feasible_frac": 0.6578,
+      "feasible_ci": [
+        0.651,
+        0.6645
+      ],
+      "CR_median": 0.9123,
+      "SR_median": 1.4444,
+      "R_self_median_per_yr": 4383.0,
+      "C_self_median_per_yr": 5259.6,
+      "censored_frac": 0.123,
+      "span_days_median": 1.62
+    },
+    "B": {
+      "n": 17933,
+      "feasible_k": 13885,
+      "feasible_frac": 0.7743,
+      "feasible_ci": [
+        0.7681,
+        0.7803
+      ],
+      "CR_median": 0.87,
+      "SR_median": 1.3889,
+      "R_self_median_per_yr": 4383.0,
+      "C_self_median_per_yr": 5454.4,
+      "censored_frac": 0.1006,
+      "span_days_median": 1.62
+    }
+  },
+  "by_sepsis": {
+    "sepsis": {
+      "n": 2437,
+      "feasible_k": 1130,
+      "feasible_frac": 0.4637,
+      "feasible_ci": [
+        0.444,
+        0.4835
+      ],
+      "CR_median": 1.0116,
+      "SR_median": 2.1026,
+      "R_self_median_per_yr": 5089.9,
+      "C_self_median_per_yr": 5259.6,
+      "censored_frac": 0.1056,
+      "span_days_median": 2.0
+    },
+    "non_sepsis": {
+      "n": 34459,
+      "feasible_k": 25228,
+      "feasible_frac": 0.7321,
+      "feasible_ci": [
+        0.7274,
+        0.7368
+      ],
+      "CR_median": 0.88,
+      "SR_median": 1.3864,
+      "R_self_median_per_yr": 4383.0,
+      "C_self_median_per_yr": 5366.9,
+      "censored_frac": 0.1132,
+      "span_days_median": 1.58
+    }
+  },
+  "sepsis_discrimination": {
+    "CR_auc_sepsis_gt_nonsepsis": 0.6725,
+    "SR_auc_sepsis_gt_nonsepsis": 0.6985
+  }
+}
