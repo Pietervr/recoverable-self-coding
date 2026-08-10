@@ -1,0 +1,16 @@
+{
+  "thin": {
+    "stay": "p000141.psv",
+    "R_day": 11.6,
+    "C_day": 11.11,
+    "CR": 1.044,
+    "span_days": 2.5
+  },
+  "reserve": {
+    "stay": "p016393.psv",
+    "R_day": 12.18,
+    "C_day": 18.73,
+    "CR": 0.65,
+    "span_days": 2.79
+  }
+}
