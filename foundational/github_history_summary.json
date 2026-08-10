@@ -1,0 +1,12 @@
+{
+  "n_repos": 42,
+  "n_repo_years": 311,
+  "n_repos_fit": 25,
+  "C_norm_median_age5": 2.07,
+  "C_norm_median_age10": 1.9,
+  "growth_slope_median": 0.0741,
+  "rank_corr_slope_vs_infeasible": -0.112,
+  "growth_slope_median_low_infeas": 0.0992,
+  "growth_slope_median_high_infeas": 0.0372,
+  "infeasible_share_split": 0.8
+}
