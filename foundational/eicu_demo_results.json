@@ -1,0 +1,27 @@
+{
+  "n": 2104,
+  "feasible_frac": 0.6283,
+  "feasible_ci": [
+    0.6075,
+    0.6487
+  ],
+  "CR_median": 0.9442,
+  "SR_median": 1.832,
+  "span_days_median": 3.35,
+  "n_expired": 109,
+  "n_alive": 1995,
+  "CR_median_expired": 0.9973,
+  "CR_median_alive": 0.9374,
+  "feasible_frac_expired": 0.5229,
+  "feasible_ci_expired": [
+    0.43,
+    0.6143
+  ],
+  "feasible_frac_alive": 0.6341,
+  "feasible_ci_alive": [
+    0.6127,
+    0.6549
+  ],
+  "auc_CR_expired": 0.5961,
+  "auc_SR_expired": 0.6282
+}
