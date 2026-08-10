@@ -73,10 +73,10 @@ microstate→macrostate figure; the full runnable pipeline stays here.
 ## Status
 
 - [x] Design (this file)
-- [ ] Synthea 10k cohort downloaded (`data/`)
-- [ ] `schema.py` + `microstate.py`
-- [ ] `estimate.py` (static + Gamma–Poisson filter)
-- [ ] `gates.py` + `stitch.py`
+- [x] Synthea 10k cohort downloaded (`data/`)
+- [x] `schema.py` (microstate builder pending)
+- [x] `estimate.py` (static + Gamma–Poisson filter)
+- [x] `gates.py` + `stitch.py` (+ `make_journey_figure.py`; stitch_index.json committed)
 - [ ] eICU demo pulled; robustness pass
 - [ ] Journey + phenotype figures
 - [ ] Paper section

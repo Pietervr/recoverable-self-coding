@@ -108,10 +108,21 @@ def _discounted_busy(busy: list[tuple[float, float]], t: float,
     return acc
 
 
+# posterior tail probabilities the gates consume: name -> (op, threshold)
+GATE_PROBS: dict[str, tuple[str, float]] = {
+    "p_escalate":   (">", 0.7),   # P(CR > 0.7)
+    "p_infeasible": (">", 1.0),   # P(CR > 1)
+    "p_recovered":  ("<", 0.8),   # P(CR < 0.8)
+}
+
+
 def filter_trajectory(u: UnitEvents, grid: np.ndarray,
-                      half_life_days: float = 14.0) -> pd.DataFrame:
+                      half_life_days: float = 14.0,
+                      probs: dict[str, tuple[str, float]] | None = None,
+                      ) -> pd.DataFrame:
     """Posterior over (R, C, CR, M) on a time grid (days, unit clock)."""
     lam = np.log(2.0) / half_life_days
+    probs = GATE_PROBS if probs is None else probs
     rows = []
     for t in grid:
         rel_o = u.onsets[u.onsets <= t]
@@ -124,7 +135,7 @@ def filter_trajectory(u: UnitEvents, grid: np.ndarray,
         gc = RNG.gamma(A0 + n_c, 1.0 / (B0 + e_c), MC)
         cr = gr / gc
         m = gc - gr
-        rows.append(dict(
+        row = dict(
             t=t,
             R_mean=(A0 + n_r) / (B0 + e_r),
             C_mean=(A0 + n_c) / (B0 + e_c),
@@ -134,8 +145,11 @@ def filter_trajectory(u: UnitEvents, grid: np.ndarray,
             M_med=float(np.median(m)),
             M_lo=float(np.quantile(m, 0.1)),
             M_hi=float(np.quantile(m, 0.9)),
-            p_infeasible=float((cr > 1.0).mean()),
-        ))
+        )
+        for name, (op, theta) in probs.items():
+            row[name] = float((cr > theta).mean() if op == ">"
+                              else (cr < theta).mean())
+        rows.append(row)
     return pd.DataFrame(rows)
 
 

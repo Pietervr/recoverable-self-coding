@@ -1,0 +1,24 @@
+{
+  "deceased": {
+    "patient": "dbd13a93-3f4c-4aad-8585-5e8af7fe436c",
+    "stay": "p000009.psv",
+    "t_adm": 220.464,
+    "icu_span": 10.75,
+    "gates": {
+      "g1_escalate": 220.631,
+      "g2_admit": 220.631,
+      "g3_discharge": null
+    }
+  },
+  "survivor": {
+    "patient": "0b330870-5a8e-442c-b9c4-cb060a53ac82",
+    "stay": "p000038.psv",
+    "t_adm": 159.774,
+    "icu_span": 1.667,
+    "gates": {
+      "g1_escalate": 160.0,
+      "g2_admit": 160.233,
+      "g3_discharge": 168.441
+    }
+  }
+}
