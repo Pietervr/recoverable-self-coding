@@ -21,6 +21,7 @@ venv/
 
 # exemplar raw downloads (openly re-pullable; see exemplar/DESIGN.md)
 exemplar/data/
+exemplar/journey_*.parquet
 
 # CinC-2019 raw data (CC-BY, fetched by foundational/fetch_cinc2019.py; not redistributed here)
 foundational/data/
