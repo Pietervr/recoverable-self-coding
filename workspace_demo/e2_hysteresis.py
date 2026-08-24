@@ -138,9 +138,12 @@ def run_session(
         q = step_question(item, words)
         prompt = transcript + q
 
-        sl = c.slice(prompt, top_n=top_k, max_seq_len=4096)
-        qs, qe = question_span_last(sl)
-        view = span_view(sl, qs, qe)
+        # tail=160 caps the readout to the last positions (covers the K=48
+        # hold-sentence + the fact line) — the memory fix for the OOM kills.
+        sl = c.slice(prompt, top_n=top_k, max_seq_len=4096, tail=160)
+        off = sl.get("pos_offset", 0)
+        qs_g, qe_g = question_span_last(sl)  # global indices via token_strs
+        view = span_view(sl, max(0, qs_g - off), qe_g - off)
         cert = certified(view, [item["intermediate"]], band, top_k)
         occ = occupancy_of(view, words, band, top_k) if words else 0
         text = c.generate(prompt, max_tokens=10)

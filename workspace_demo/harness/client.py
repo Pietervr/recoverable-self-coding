@@ -55,11 +55,21 @@ class JLensClient:
             raise RuntimeError(f"not the n=1000 lens: {info}")
         return info
 
-    def slice(self, prompt: str, top_n: int = 10, max_seq_len: int = 512) -> dict:
-        return self._post(
-            "/api/slice",
-            {"prompt": prompt, "top_n": top_n, "max_seq_len": max_seq_len},
-        )
+    def slice(
+        self,
+        prompt: str,
+        top_n: int = 10,
+        max_seq_len: int = 512,
+        tail: int | None = None,
+    ) -> dict:
+        """tail: readout only the last N positions (local serve.py patch —
+        caps the [layers x positions x vocab] logits transient that OOM'd
+        the Mac on long E2 transcripts, 2026-08-24). Response carries
+        pos_offset = global index of the first readout position."""
+        payload: dict = {"prompt": prompt, "top_n": top_n, "max_seq_len": max_seq_len}
+        if tail is not None:
+            payload["tail"] = tail
+        return self._post("/api/slice", payload)
 
     def generate(self, prompt: str, max_tokens: int = 8, temp: float = 0.0) -> str:
         return self._post(
