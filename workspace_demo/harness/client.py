@@ -97,18 +97,12 @@ class JLensClient:
             payload["positions"] = positions
         return self._post("/api/intervene", payload)
 
-    def tokenize(self, prompt: str) -> dict:
-        return self._post("/api/tokenize", {"prompt": prompt})
+    def tokenize(self, text: str) -> dict:
+        """serve.py TokenizeRequest: {text} ->
+        {text, tokens: [{id, text, display}]}"""
+        return self._post("/api/tokenize", {"text": text})
 
     def n_pieces(self, text: str) -> int:
         """Number of tokenizer pieces for `text` (used to filter the battery
         to single-token determinants — the lens's vocabulary limitation)."""
-        r = self.tokenize(text)
-        for key in ("ids", "input_ids", "tokens", "token_ids"):
-            if key in r and isinstance(r[key], list):
-                seq = r[key]
-                # possibly nested [[...]]
-                if seq and isinstance(seq[0], list):
-                    seq = seq[0]
-                return len(seq)
-        raise RuntimeError(f"unrecognised tokenize response keys: {sorted(r)}")
+        return len(self.tokenize(text)["tokens"])
