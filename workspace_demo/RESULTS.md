@@ -1,4 +1,4 @@
-# Overnight results — 2026-08-24 (first data night)
+# Results — 2026-08-24 (overnight P0/P1/E1 + the daytime E2 completion)
 
 Model: Qwen3.6-27B 4-bit (MLX) · Lens: Neuronpedia n=1000 · Band: L23–57 of 63
 · Hardware: M4 Max/128 GB, local. All runs resumable from `runs/*.jsonl`.
@@ -33,20 +33,51 @@ Question-span position discipline (v1 was echo-contaminated; superseded).
   channel stresses retention, not routing. **Margin exhaustion needs a drive
   that contests the inference path — that is E2's feedback closure.**
 
-## E2 — hysteresis pilot: protocol validated, run pending
-First (Q/A-framed) attempt provoked `<think>` blocks every step — caught by
-the 6-step sanity gate, reframed as a flat fact stream matching the
-P0/P1/E1 surface. The relaunched pilot's first 6 steps are clean: correct
-answers, rank-1 certification, and the α=1 arm visibly re-ingesting the
-model's own continuation junk (the drive works). The full pilot
-(3 sessions × both arms, ramp K 0→48→0 + probes + reset) was interrupted by
-a host-side task stop ~04:22 and awaits relaunch:
+## E2 — feedback closure: COMPLETE (10 sessions × both arms, 380 steps)
+Run 2026-08-24 ~13:16–14:20 under the tail-160 readout patch (~1 h wall).
+Arms are item-matched (same per-session stream and held-word seeds) and
+length-matched (padding audit: α=0 context never shorter, 0/190 pairs), so
+each (session, step) is a matched pair differing only in re-entrant
+CONTENT. Raw data `runs/e2_hysteresis.jsonl`; analysis `e2_analyze.py`;
+per-cell means `runs/e2_summary.json`.
 
-    python3 e2_hysteresis.py --sessions 3 --kmax 48 --kstep 8 --probe-k 16
+1. **The α-drive effect (the headline): ungated re-entry degrades
+   performance.** α=1 (raw model output re-enters the transcript) accuracy
+   **0.784** vs α=0 (gated correct-answer channel) **0.842**; discordant
+   pairs **14 α=0-only-correct vs 3 α=1-only-correct — exact McNemar
+   p ≈ 0.013**. Under load the gap widens: loaded probe block 0.867 (α=1)
+   vs 0.967 (α=0). This is RSC's ungated-re-entry claim measured on an
+   open-weight model with the workspace instrument.
+2. **"Reset restores only what is archived" — confirmed exactly.** The
+   loaded-context arm gap (0.867 vs 0.967) vanishes on context reset: both
+   arms land on IDENTICAL post-reset probe accuracy (0.767) and identical
+   occupancy (1.67). The entire drive-induced difference lived in the
+   operating state (context); none reached the archive (weights + lens).
+   (Probe vs reset-probe absolute levels use different stream items —
+   cross-block absolutes carry item effects; the arm-convergence comparison
+   is the item-matched, valid one.)
+3. **No α-dependent hysteresis (pre-registered negative).** Down-branch
+   accuracy sits ~0.033 below up-branch in BOTH arms (α=1 0.783→0.750,
+   α=0 0.850→0.817) — an arm-independent context-accumulation effect, not
+   the predicted α=1-specific down<up loop. At K≤48 with this drive the
+   system stays in the recoverable regime.
+4. **Certification is load- AND drive-invariant; every error is
+   certified-but-wrong.** 374/380 steps certified; all 6 failures are one
+   battery item (birthstone-emerald-month), every one answered CORRECTLY —
+   the model produces the month number without staging the month name in
+   the band (item artifact, not load). Hence all ~71 errors had their
+   determinants present in the workspace: routing never failed; failures
+   are retention/readout. **E3's determinant-absence signature was not
+   reached** — the collapse boundary lies beyond K=48 under this drive, so
+   the ignition-β̂/collapse test needs a harder drive (higher K,
+   adversarial fillers, or multi-hop chains). That is E2b/E3 territory.
 
-(resumable; server stays up under nohup — check `/api/lens` first).
-
-## Fixes of the night (all committed)
+## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response
 (`intervened.text`) · E1 occupancy echo → question-span discipline ·
-E2 Q/A framing → flat fact stream · load pool 64→96 nouns.
+E2 Q/A framing → flat fact stream · load pool 64→96 nouns ·
+**serve.py tail-readout patch** (`patches/serve_tail_readout.patch` — caps
+the [layers × positions × vocab] logits transient that OOM'd the Mac;
+side-effect: ~5× faster steps) · **atomic-session resume** (a mid-session
+kill re-runs the session; summary dedups last-record-per-step) ·
+`start_server.sh` idempotent server launch.
