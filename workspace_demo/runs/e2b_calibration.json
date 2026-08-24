@@ -1,0 +1,129 @@
+{
+ "keep": [
+  "3hop-eiffel",
+  "3hop-versailles",
+  "3hop-colosseum",
+  "3hop-kremlin",
+  "3hop-stbasil",
+  "3hop-bigben",
+  "3hop-towerbridge",
+  "3hop-sagrada",
+  "3hop-brandenburg",
+  "3hop-acropolis",
+  "3hop-giza",
+  "3hop-shibuya",
+  "3hop-bluemosque",
+  "3hop-mermaid"
+ ],
+ "detail": [
+  {
+   "name": "3hop-eiffel",
+   "ok": true,
+   "rank_city": 1,
+   "rank_country": 1,
+   "text": " French.\nQuestion: What langua"
+  },
+  {
+   "name": "3hop-versailles",
+   "ok": true,
+   "rank_city": 2,
+   "rank_country": 1,
+   "text": " French.\nQuestion: What langua"
+  },
+  {
+   "name": "3hop-colosseum",
+   "ok": true,
+   "rank_city": 1,
+   "rank_country": 1,
+   "text": " Italian.\nQuestion: What langu"
+  },
+  {
+   "name": "3hop-kremlin",
+   "ok": true,
+   "rank_city": 2,
+   "rank_country": 2,
+   "text": " Russian.\nQuestion: What langu"
+  },
+  {
+   "name": "3hop-stbasil",
+   "ok": true,
+   "rank_city": 1,
+   "rank_country": 2,
+   "text": " Russian.\nQuestion: What is th"
+  },
+  {
+   "name": "3hop-bigben",
+   "ok": true,
+   "rank_city": 1,
+   "rank_country": 1,
+   "text": " English.\nQuestion: What is th"
+  },
+  {
+   "name": "3hop-towerbridge",
+   "ok": true,
+   "rank_city": 1,
+   "rank_country": 2,
+   "text": " English.\nQuestion: What is th"
+  },
+  {
+   "name": "3hop-sagrada",
+   "ok": true,
+   "rank_city": 1,
+   "rank_country": 1,
+   "text": " Spanish.\nQuestion: What is th"
+  },
+  {
+   "name": "3hop-brandenburg",
+   "ok": true,
+   "rank_city": 1,
+   "rank_country": 2,
+   "text": " German.\nQuestion: What langua"
+  },
+  {
+   "name": "3hop-acropolis",
+   "ok": true,
+   "rank_city": 1,
+   "rank_country": 2,
+   "text": " Greek.\nQuestion: What languag"
+  },
+  {
+   "name": "3hop-giza",
+   "ok": true,
+   "rank_city": 2,
+   "rank_country": 1,
+   "text": " Arabic.\nQuestion: What langua"
+  },
+  {
+   "name": "3hop-shibuya",
+   "ok": true,
+   "rank_city": 1,
+   "rank_country": 2,
+   "text": " Japanese.\nQuestion: What is t"
+  },
+  {
+   "name": "3hop-forbidden",
+   "ok": false,
+   "rank_city": 1,
+   "rank_country": 2,
+   "text": " Mandarin.\nQuestion: What is t"
+  },
+  {
+   "name": "3hop-bluemosque",
+   "ok": true,
+   "rank_city": 1,
+   "rank_country": 2,
+   "text": " Turkish.\nQuestion: What langu"
+  },
+  {
+   "name": "3hop-mermaid",
+   "ok": true,
+   "rank_city": 1,
+   "rank_country": 3,
+   "text": " Danish.\nQuestion: What langua"
+  },
+  {
+   "name": "3hop-wawel",
+   "drop": "multi-token intermediate"
+  }
+ ]
+}

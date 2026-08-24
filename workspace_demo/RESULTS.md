@@ -72,6 +72,43 @@ per-cell means `runs/e2_summary.json`.
    the ignition-β̂/collapse test needs a harder drive (higher K,
    adversarial fillers, or multi-hop chains). That is E2b/E3 territory.
 
+## E2b — collapse boundary, interrogated load × depth: BOTH FALSIFIERS FIRED
+10 sessions × both arms, 280 steps (~50 min). Ladder L=0,2,4,6,8 liable
+watch-list words; 2-hop + echo-free 3-hop chains certified per intermediate
+at top-25 readout. Calibration: 14/16 three-hop survivors, both
+intermediates rank 1–3 at baseline (no shortcut). Raw data
+`runs/e2b_collapse.jsonl`; analysis `e2b_analyze.py`.
+
+- **F1: certification flat at ceiling** — 199/200 fact steps certified at
+  every L and both depths (the single exception a rank-11–25 crowding case).
+  Liable load + depth-3 chains cannot displace the live inference's
+  determinants any more than E1's passive load could.
+- **F4: the interrogation never bound.** Watch queries are 100% correct at
+  every L (even 8), with the queried word summoned to rank ~1 in the band —
+  while during unrelated inference the watch list's band occupancy sits at
+  only 0.15–0.75 of L. **The load is not maintained in the workspace between
+  queries; it is retrieved from context on demand** (the paper's top-down
+  summoning, observed operating as a defense). Context functions as an
+  external store with cheap random access; the workspace stages only the
+  live computation — so context-borne load, passive or liable, cannot
+  exhaust it.
+- P2/P3 moot in-regime (no decline to fit; errors remain
+  certified-but-wrong, err|certified 0.11–0.15).
+- **Arm sanity:** 0/140 discordant answers despite genuinely divergent
+  transcripts (29/140 continuations differ; junk re-entered on 12 α=1
+  error steps). At ~450–600-token contexts the α poisoning that cost
+  0.058 accuracy in E2's ~1000-token sessions has no measurable effect —
+  consistent with a dose effect of accumulated junk, not an artifact.
+
+**Synthesis after E1+E2+E2b:** three levels, not two — weights (archive) /
+context (persistent, resettable store with cheap random access) / workspace
+band (per-forward-pass staging). Sequential drives load the STORE, and the
+store cannot saturate the STAGE: routing is architecturally protected,
+summoning is on-demand, and the only sequential lever that moved
+performance is CONTENT poisoning of the store (E2's α effect). If a
+capacity collapse boundary exists, it must be induced IN-PASS — 
+simultaneous staging demand inside one forward pass. That is E2c.
+
 ## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response
 (`intervened.text`) · E1 occupancy echo → question-span discipline ·

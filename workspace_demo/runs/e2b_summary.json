@@ -1,0 +1,170 @@
+{
+ "(0, 0, 'fact2')": {
+  "n": 10,
+  "cert_rate": 0.9,
+  "accuracy": 0.9,
+  "mean_ctx": 52.0
+ },
+ "(0, 0, 'fact3')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 1.0,
+  "mean_ctx": 76.0
+ },
+ "(0, 2, 'fact2')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 0.8,
+  "mean_ctx": 120.0
+ },
+ "(0, 2, 'fact3')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 1.0,
+  "mean_ctx": 144.0
+ },
+ "(0, 2, 'query')": {
+  "n": 10,
+  "cert_rate": null,
+  "accuracy": 1.0,
+  "mean_ctx": 164.0
+ },
+ "(0, 4, 'fact2')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 0.9,
+  "mean_ctx": 213.0
+ },
+ "(0, 4, 'fact3')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 0.9,
+  "mean_ctx": 236.0
+ },
+ "(0, 4, 'query')": {
+  "n": 10,
+  "cert_rate": null,
+  "accuracy": 1.0,
+  "mean_ctx": 256.0
+ },
+ "(0, 6, 'fact2')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 0.5,
+  "mean_ctx": 311.0
+ },
+ "(0, 6, 'fact3')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 1.0,
+  "mean_ctx": 337.0
+ },
+ "(0, 6, 'query')": {
+  "n": 10,
+  "cert_rate": null,
+  "accuracy": 1.0,
+  "mean_ctx": 357.0
+ },
+ "(0, 8, 'fact2')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 0.8,
+  "mean_ctx": 412.0
+ },
+ "(0, 8, 'fact3')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 1.0,
+  "mean_ctx": 439.0
+ },
+ "(0, 8, 'query')": {
+  "n": 10,
+  "cert_rate": null,
+  "accuracy": 1.0,
+  "mean_ctx": 459.0
+ },
+ "(1, 0, 'fact2')": {
+  "n": 10,
+  "cert_rate": 0.9,
+  "accuracy": 0.9,
+  "mean_ctx": 52.0
+ },
+ "(1, 0, 'fact3')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 1.0,
+  "mean_ctx": 74.0
+ },
+ "(1, 2, 'fact2')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 0.8,
+  "mean_ctx": 118.0
+ },
+ "(1, 2, 'fact3')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 1.0,
+  "mean_ctx": 142.0
+ },
+ "(1, 2, 'query')": {
+  "n": 10,
+  "cert_rate": null,
+  "accuracy": 1.0,
+  "mean_ctx": 162.0
+ },
+ "(1, 4, 'fact2')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 0.9,
+  "mean_ctx": 212.0
+ },
+ "(1, 4, 'fact3')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 0.9,
+  "mean_ctx": 234.0
+ },
+ "(1, 4, 'query')": {
+  "n": 10,
+  "cert_rate": null,
+  "accuracy": 1.0,
+  "mean_ctx": 254.0
+ },
+ "(1, 6, 'fact2')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 0.5,
+  "mean_ctx": 310.0
+ },
+ "(1, 6, 'fact3')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 1.0,
+  "mean_ctx": 333.0
+ },
+ "(1, 6, 'query')": {
+  "n": 10,
+  "cert_rate": null,
+  "accuracy": 1.0,
+  "mean_ctx": 353.0
+ },
+ "(1, 8, 'fact2')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 0.8,
+  "mean_ctx": 408.0
+ },
+ "(1, 8, 'fact3')": {
+  "n": 10,
+  "cert_rate": 1.0,
+  "accuracy": 1.0,
+  "mean_ctx": 432.0
+ },
+ "(1, 8, 'query')": {
+  "n": 10,
+  "cert_rate": null,
+  "accuracy": 1.0,
+  "mean_ctx": 452.0
+ }
+}
