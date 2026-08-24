@@ -211,7 +211,15 @@ def main() -> int:
     print(f"profile: {profile} + probes(k={args.probe_k}) + reset probes")
 
     log = RunLog(args.out)
-    done = {(r.get("alpha"), r.get("session")) for r in log.records()}
+    # A session is atomic: it counts as done only when ALL its steps are
+    # logged. A mid-session kill cannot be resumed — the transcript depends
+    # on generated text the log does not keep — so partial sessions re-run
+    # in full, and the summary keeps only the last record per step.
+    n_steps = len(profile) + 6  # + 3 probes + 3 reset probes
+    counts: dict[tuple, int] = defaultdict(int)
+    for r in log.records():
+        counts[(r.get("alpha"), r.get("session"))] += 1
+    done = {key for key, n in counts.items() if n >= n_steps}
 
     for s in range(args.sessions):
         if (1, s) not in done:
@@ -228,11 +236,16 @@ def main() -> int:
                 lens_a1 or None,
             )
 
-    # summary: per (alpha, branch, k)
-    agg: dict[tuple, list[dict]] = defaultdict(list)
+    # summary: per (alpha, branch, k) — last record per (alpha, session,
+    # step) wins, so a re-run of a previously partial session supersedes
+    # its fragment instead of double-counting it
+    latest: dict[tuple, dict] = {}
     for r in log.records():
         if r.get("exp") == "e2":
-            agg[(r["alpha"], r["branch"], r["k"])].append(r)
+            latest[(r["alpha"], r["session"], r["step"])] = r
+    agg: dict[tuple, list[dict]] = defaultdict(list)
+    for r in latest.values():
+        agg[(r["alpha"], r["branch"], r["k"])].append(r)
     summary = {}
     for key in sorted(agg, key=str):
         rs = agg[key]
