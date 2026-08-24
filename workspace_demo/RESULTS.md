@@ -127,9 +127,47 @@ gate passed). Raw data `runs/e2c_parallel.jsonl`.
   chain at its own answer token (nothing is ever simultaneous). Hence the
   **v2 commitment-position refinement** (pre-registered, commit `6da6cff`):
   rank over the final 3 prompt positions only — where the first answer
-  must be ready. P4c: staged-at-commit declines with M (E1's ~3 binds
-  there). P5c: unstaged chains are NOT less accurate (re-summoning rescues
-  them); a reversal = the determinant-absence signature at the bottleneck.
+  must be ready.
+
+## E2c v2 — the commitment stage is SERIAL (the day's sharpest structural find)
+Same seeded compositions, plus `rank_commit` = best rank over the final 3
+prompt positions. Raw data `runs/e2c_parallel_v2.jsonl`.
+
+- **P4c CONFIRMED, stronger than predicted: staged-per-trial ≈ 1, not 3.**
+  Staging at the commitment position collapses from 1.000 (M=1) to
+  0.20–0.26 (M=4–6) while staged-per-trial stays pinned at 1.0–1.4;
+  absent-at-commit grows linearly (85/120 at M=6); mean commit rank
+  degrades 1.75 → 5–6. The slot control shows what is staged: **the
+  imminent commitment — 94% of commit-staged chains are slot 1** (the
+  "(1)" cue), all other slots at 3–10%. The action-point workspace holds
+  approximately ONE live commitment at a time, independent of M.
+- **P5c: the pooled reversal (err 0.099 staged vs 0.164 unstaged, M≥3) is
+  confounded with slot position** and the within-slot contrasts are
+  underpowered: slot 1 shows err|staged 0.09 (n=75) vs err|not-staged 0.40
+  (n=5) — directionally the determinant-absence signature, but n=5.
+  Slots>1: 0.125 (n=16) vs 0.159 (n=264), no effect. Verdict: suggestive
+  only. The definitive test needs GENERATION-TIME readout (certify at each
+  slot's own emission step) — /api/slice reads the prompt span only; noted
+  as the instrument upgrade.
+
+## Synthesis — the measured architecture (one model, 4-bit, one day)
+Four experiments cohere into a three-stage picture:
+- **Store (context):** random-access; content summoned to band rank ~1 on
+  demand (E2b) with near-zero inter-query occupancy; cannot saturate any
+  stage; erased exactly by reset (E2); its one vulnerability is CONTENT —
+  ungated re-entry degrades performance dose-dependently (E2, p ≈ 0.013).
+- **Encoding stage (prompt span):** position-parallel; ≥6 simultaneous
+  chains staged at rank ~1 with flat accuracy (E2c v1); never saturated.
+- **Commitment stage (action point):** SERIAL, width ≈ 1 (E2c v2); holds
+  the imminent commitment only and is re-staged per emission token. E1's
+  occupancy ~3 was passive persistence, not this width.
+RSC reading: recoverability is architecturally enforced — load queues in
+the store or parallelizes in encoding and never contests the width-1
+commitment stage, so the SR/collapse channel stays closed at every drive
+we could construct; the RSC dynamics that DO manifest live at the
+agentic-loop level (the α content effect on the store). The open collapse
+frontier: much longer α=1 horizons (store poisoning at dose), and
+generation-time certification at the serial bottleneck.
 
 ## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response

@@ -1,0 +1,62 @@
+{
+ "1": {
+  "n": 20,
+  "cert_rate": 1.0,
+  "accuracy": 0.8,
+  "mean_rank": 1.05,
+  "absent": 0,
+  "parse_rate": 1.0,
+  "commit_staged_rate": 1.0,
+  "mean_staged_per_trial": 1.0
+ },
+ "2": {
+  "n": 40,
+  "cert_rate": 1.0,
+  "accuracy": 0.825,
+  "mean_rank": 1.18,
+  "absent": 0,
+  "parse_rate": 1.0,
+  "commit_staged_rate": 0.5,
+  "mean_staged_per_trial": 1.0
+ },
+ "3": {
+  "n": 60,
+  "cert_rate": 1.0,
+  "accuracy": 0.817,
+  "mean_rank": 1.02,
+  "absent": 0,
+  "parse_rate": 1.0,
+  "commit_staged_rate": 0.367,
+  "mean_staged_per_trial": 1.1
+ },
+ "4": {
+  "n": 80,
+  "cert_rate": 1.0,
+  "accuracy": 0.887,
+  "mean_rank": 1.14,
+  "absent": 0,
+  "parse_rate": 1.0,
+  "commit_staged_rate": 0.263,
+  "mean_staged_per_trial": 1.05
+ },
+ "5": {
+  "n": 100,
+  "cert_rate": 1.0,
+  "accuracy": 0.85,
+  "mean_rank": 1.11,
+  "absent": 0,
+  "parse_rate": 0.95,
+  "commit_staged_rate": 0.2,
+  "mean_staged_per_trial": 1.0
+ },
+ "6": {
+  "n": 120,
+  "cert_rate": 1.0,
+  "accuracy": 0.85,
+  "mean_rank": 1.06,
+  "absent": 0,
+  "parse_rate": 1.0,
+  "commit_staged_rate": 0.233,
+  "mean_staged_per_trial": 1.4
+ }
+}
