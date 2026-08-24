@@ -1,0 +1,50 @@
+{
+ "0": {
+  "n": 45,
+  "cert_rate": 0.978,
+  "accuracy": 0.889,
+  "mean_occupancy": 0.0,
+  "occ_frac_of_K": 0.0,
+  "sr_proxy": 0.023
+ },
+ "4": {
+  "n": 45,
+  "cert_rate": 0.978,
+  "accuracy": 0.822,
+  "mean_occupancy": 1.51,
+  "occ_frac_of_K": 0.378,
+  "sr_proxy": 0.023
+ },
+ "8": {
+  "n": 45,
+  "cert_rate": 0.978,
+  "accuracy": 0.844,
+  "mean_occupancy": 1.82,
+  "occ_frac_of_K": 0.228,
+  "sr_proxy": 0.023
+ },
+ "16": {
+  "n": 45,
+  "cert_rate": 0.978,
+  "accuracy": 0.822,
+  "mean_occupancy": 1.82,
+  "occ_frac_of_K": 0.114,
+  "sr_proxy": 0.023
+ },
+ "32": {
+  "n": 45,
+  "cert_rate": 0.978,
+  "accuracy": 0.778,
+  "mean_occupancy": 2.67,
+  "occ_frac_of_K": 0.083,
+  "sr_proxy": 0.023
+ },
+ "48": {
+  "n": 45,
+  "cert_rate": 0.978,
+  "accuracy": 0.8,
+  "mean_occupancy": 2.93,
+  "occ_frac_of_K": 0.061,
+  "sr_proxy": 0.023
+ }
+}
