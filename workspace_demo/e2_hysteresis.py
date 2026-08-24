@@ -48,10 +48,13 @@ from harness.runlog import RunLog
 
 HERE = Path(__file__).parent
 
+# Flat fact-stream framing: bare completions, no Q/A labels. The Q/A chat
+# shape provoked Qwen3.6 <think> blocks on every step (caught by the sanity
+# gate, 2026-08-24 04:19); the "Fact: ... is" completion surface used by
+# P0/P1/E1 does not.
 INSTR = (
-    "You are answering a stream of quick factual questions. Answer each "
-    "question briefly and keep earlier material in mind; it may be "
-    "referenced again.\n\n"
+    "A running list of quick facts. Keep earlier lines in mind; they may "
+    "be referenced again.\n\n"
 )
 
 FILLER = (
@@ -71,7 +74,7 @@ def step_question(item: dict, words: list[str]) -> str:
     q = ""
     if words:
         q += "Hold these words in mind: " + ", ".join(words) + ".\n"
-    q += item["prompt"].strip()
+    q += item["prompt"].rstrip()  # ends with "... is" — bare completion form
     return q
 
 
@@ -133,18 +136,19 @@ def run_session(
         item = stream[t % len(stream)]
         words = held_words(c, k, seed=hash((session_id, t)) & 0xFFFF)
         q = step_question(item, words)
-        prompt = transcript + f"Q{t + 1}: {q}\nA{t + 1}:"
+        prompt = transcript + q
 
         sl = c.slice(prompt, top_n=top_k, max_seq_len=4096)
         qs, qe = question_span_last(sl)
         view = span_view(sl, qs, qe)
         cert = certified(view, [item["intermediate"]], band, top_k)
         occ = occupancy_of(view, words, band, top_k) if words else 0
-        text = c.generate(prompt, max_tokens=16)
+        text = c.generate(prompt, max_tokens=10)
         ok = graded(item, text)
 
-        # feedback closure
-        raw = text.split("\n")[0][:120]
+        # feedback closure: what re-enters the transcript as the fact line's
+        # completion
+        raw = " " + text.strip().split("\n")[0][:120] if text.strip() else " ..."
         if alpha == 1:
             appended = raw
         else:
