@@ -34,6 +34,11 @@ LOAD_POOL = [
     "shovel", "ticket", "urn", "valley", "window", "yarn", "zipper",
     "bridge", "castle", "desert", "elbow", "flag", "glove", "harbor",
     "ink", "jewel", "knife", "lemon", "meadow", "napkin", "onion", "pearl",
+    "arrow", "button", "cactus", "dolphin", "ember", "fountain", "goose",
+    "hinge", "igloo", "jar", "kite", "lobster", "mustard", "nut", "oven",
+    "parrot", "quartz", "raft", "sponge", "trumpet", "unicorn", "vase",
+    "whale", "xylophone", "yacht", "zinc", "badge", "cloak", "dice",
+    "envelope", "fern", "grape",
 ]
 
 
