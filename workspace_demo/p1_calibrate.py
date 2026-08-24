@@ -117,14 +117,16 @@ def main() -> int:
                 token=it["intermediate"], target=it["swap_to"],
                 alpha=2.0, max_tokens=8,
             )
-            text = r.get("text", "")
+            # /api/intervene returns {baseline:{text}, intervened:{text}, ...}
+            text = r.get("intervened", {}).get("text", "")
+            base_text = r.get("baseline", {}).get("text", "")
             flip = it["swap_answer"].strip().lower() in text[:48].strip().lower()
             tried += 1
             flips += flip
             log.write({"phase": "validate", "item": name, "layer": layer,
-                       "flip": flip, "text": text[:60]})
+                       "flip": flip, "text": text[:60], "base_text": base_text[:60]})
             print(f"  swap {it['intermediate']}->{it['swap_to']} @L{layer}: "
-                  f"flip={int(flip)}  {text[:32]!r}")
+                  f"flip={int(flip)}  base={base_text[:24]!r} int={text[:24]!r}")
         if tried:
             print(f"VALIDATION: {flips}/{tried} single-layer swaps flipped the answer")
 
