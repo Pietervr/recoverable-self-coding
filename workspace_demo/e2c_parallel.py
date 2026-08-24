@@ -28,8 +28,24 @@ Pre-registered predictions (P) and falsifiers (F):
 Format gate: parse success (numbered-slot markers recovered) must be ≥0.8
 at M≤2, else abort — a format failure is not a workspace result.
 
+COMMITMENT-POSITION refinement (added after the span-aggregated v1 run
+fired F1c at cert=1.000 for all M — pre-registered before the v2 run):
+span-aggregated certification permits POSITION-PARALLEL staging (each
+chain staged at its own clause's positions), so it cannot see a
+bottleneck. v2 additionally reads each chain's best rank over the FINAL 3
+prompt positions (`rank_commit`) — the moment the first answer must be
+ready. Predictions:
+  P4c commitment-position staging declines with M (the E1 capacity ~3
+      binds at the bottleneck position) even though span staging does not.
+  P5c chains unstaged at commitment are NOT less accurate — autoregressive
+      emission re-summons each chain at its own answer token (the
+      serialization defense, demonstrated end-to-end). A P5c REVERSAL
+      (unstaged chains err more) would instead be the E3
+      determinant-absence signature at the commitment bottleneck.
+
 Run:  python3 e2c_parallel.py [--trials 20] [--mmax 6]
-Logs: runs/e2c_parallel.jsonl + runs/e2c_summary.json
+Logs: runs/e2c_parallel.jsonl + runs/e2c_summary.json  (v1, span-only)
+      runs/e2c_parallel_v2.jsonl + runs/e2c_v2_summary.json  (with commit)
 """
 
 from __future__ import annotations
@@ -99,7 +115,7 @@ def main() -> int:
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--trials", type=int, default=20)
     ap.add_argument("--mmax", type=int, default=6)
-    ap.add_argument("--out", default=str(HERE / "runs" / "e2c_parallel.jsonl"))
+    ap.add_argument("--out", default=str(HERE / "runs" / "e2c_parallel_v2.jsonl"))
     args = ap.parse_args()
 
     c = JLensClient(port=args.port)
@@ -140,37 +156,47 @@ def main() -> int:
 
             prompt = composite_prompt(chosen)
             sl = c.slice(prompt, top_n=25, max_seq_len=1024, tail=300)
-            off = sl.get("pos_offset", 0)
             view = {
                 "cells": {
                     layer: {"top_tokens": cell["top_tokens"]}
                     for layer, cell in sl["cells"].items()
                 }
             }
+            # commitment view: the final 3 prompt positions only
+            n_pos = len(next(iter(sl["cells"].values()))["top_tokens"])
+            view_end = {
+                "cells": {
+                    layer: {"top_tokens": cell["top_tokens"][max(0, n_pos - 3):]}
+                    for layer, cell in sl["cells"].items()
+                }
+            }
             text = c.generate(prompt, max_tokens=6 * m + 6)
             segs, parsed = parse_slots(text, m)
 
+            n_ok = 0
+            n_commit = 0
             for slot, it in enumerate(chosen):
                 r = certified(view, [it["intermediate"]], band, 25)
+                r_end = certified(view_end, [it["intermediate"]], band, 25)
                 rank = r["best_rank"]
-                seg = segs[slot]
-                ok = it["answer"].strip().lower() in seg.lower()
+                rc = r_end["best_rank"]
+                ok = it["answer"].strip().lower() in segs[slot].lower()
+                n_ok += ok
+                n_commit += rc is not None and rc <= 10
                 log.write(
                     {
                         "exp": "e2c", "m": m, "trial": trial, "slot": slot + 1,
                         "item": it["name"], "rank": rank,
                         "certified": rank is not None and rank <= 10,
+                        "rank_commit": rc,
+                        "commit_staged": rc is not None and rc <= 10,
                         "correct": ok, "parsed": parsed,
                         "ctx_tokens": sl["seq_len"],
                     }
                 )
-            n_ok = sum(
-                1 for slot, it in enumerate(chosen)
-                if it["answer"].strip().lower() in segs[slot].lower()
-            )
             print(
                 f"m={m} trial={trial:>2} parsed={int(parsed)} ok={n_ok}/{m} "
-                f"{text[:36]!r}"
+                f"commit_staged={n_commit}/{m} {text[:30]!r}"
             )
         # format gate after each of the first two levels
         if m <= 2:
@@ -215,7 +241,35 @@ def main() -> int:
             print(f"  err|{label} = {err:.3f} (n={len(rs)})")
         else:
             print(f"  err|{label} : n=0")
-    (HERE / "runs" / "e2c_summary.json").write_text(json.dumps(summary, indent=1))
+
+    print("\nP4c — commitment-position staging vs M (final 3 positions):")
+    for m in sorted({r["m"] for r in recs}):
+        rs = [r for r in recs if r["m"] == m]
+        cs = sum(r["commit_staged"] for r in rs) / len(rs)
+        rcs = [r["rank_commit"] for r in rs if r["rank_commit"] is not None]
+        mr = sum(rcs) / len(rcs) if rcs else float("nan")
+        per_trial = defaultdict(int)
+        for r in rs:
+            per_trial[r["trial"]] += r["commit_staged"]
+        mean_staged = sum(per_trial.values()) / len(per_trial)
+        summary[str(m)]["commit_staged_rate"] = round(cs, 3)
+        summary[str(m)]["mean_staged_per_trial"] = round(mean_staged, 2)
+        print(
+            f"  M={m}: staged_rate={cs:.3f} mean_rank_commit={mr:.2f} "
+            f"staged/trial={mean_staged:.2f} "
+            f"absent_at_commit={sum(1 for r in rs if r['rank_commit'] is None)}"
+        )
+    print("\nP5c — slot error conditional on commitment staging (M>=3):")
+    for label, rs in (
+        ("commit_staged", [r for r in hi if r["commit_staged"]]),
+        ("not_staged", [r for r in hi if not r["commit_staged"]]),
+    ):
+        if rs:
+            err = 1 - sum(r["correct"] for r in rs) / len(rs)
+            print(f"  err|{label} = {err:.3f} (n={len(rs)})")
+        else:
+            print(f"  err|{label} : n=0")
+    (HERE / "runs" / "e2c_v2_summary.json").write_text(json.dumps(summary, indent=1))
     return 0
 
 
