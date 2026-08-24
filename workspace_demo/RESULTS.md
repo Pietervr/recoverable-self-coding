@@ -109,6 +109,28 @@ performance is CONTENT poisoning of the store (E2's α effect). If a
 capacity collapse boundary exists, it must be induced IN-PASS — 
 simultaneous staging demand inside one forward pass. That is E2c.
 
+## E2c — in-pass parallel demand: F1c FIRED (span measure at ceiling to M=6)
+120 trials (20 × M ∈ 1..6), one prompt per trial carrying M simultaneous
+two-hop chains, one ordered continuation; 45 clause-embeddable battery
+items, category-diverse compositions; parse rate ≥0.95 at every M (format
+gate passed). Raw data `runs/e2c_parallel.jsonl`.
+
+- **Span-aggregated certification: 1.000 at every M**, mean best rank
+  1.02–1.18, zero absences; per-slot accuracy flat (0.80–0.89, no decline
+  with M). The model stages SIX simultaneous intermediates, all near rank
+  1, and answers them at ~85% regardless of M. Interference exists at the
+  answer level (perseveration cases like " 4; (2) 4") but does not scale
+  with M.
+- Why the span measure cannot see a bottleneck: it aggregates over
+  positions, so each chain may be staged AT ITS OWN clause's positions
+  (position-parallel staging), and autoregressive emission re-summons each
+  chain at its own answer token (nothing is ever simultaneous). Hence the
+  **v2 commitment-position refinement** (pre-registered, commit `6da6cff`):
+  rank over the final 3 prompt positions only — where the first answer
+  must be ready. P4c: staged-at-commit declines with M (E1's ~3 binds
+  there). P5c: unstaged chains are NOT less accurate (re-summoning rescues
+  them); a reversal = the determinant-absence signature at the bottleneck.
+
 ## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response
 (`intervened.text`) · E1 occupancy echo → question-span discipline ·
