@@ -169,6 +169,71 @@ agentic-loop level (the α content effect on the store). The open collapse
 frontier: much longer α=1 horizons (store poisoning at dose), and
 generation-time certification at the serial bottleneck.
 
+## E4 — loop-level collapse with genuine load feedback: COLLAPSE, HYSTERESIS,
+## AND A TWO-COMPONENT MEMORY (2026-08-24 evening, seed 0)
+The decisive experiment (pre-registered `d416a1a`): the Sec.-IV.F pipeline
+protocol with the LLM as the single worker. Wall-clock Poisson arrivals,
+utilization ramp 0.40→1.05→0.40; deadlines T_d = 6 × measured congested
+service (s_clean 0.87 s, s_cong 10.95 s — a 12.6× state-dependent service
+law); uncertified (wrong OR late) completions spawn Poisson(0.8)
+genealogy-tagged repair tasks that re-consume the bad answer as input;
+α=0 control identical minus offspring. 459 tasks served. Raw data
+`runs/e4_loop.jsonl`, analysis `e4_analyze.py`, forensics
+`e4_forensics.py`.
+
+- **P1L CONFIRMED — discontinuous collapse far below capacity, and only
+  with feedback.** α=0.8: lucid at l=0.40/0.60 (P_u 0.15/0.17, backlog 0),
+  then P_u 0.91 in ONE step at l=0.75 (zero lateness — the jump is pure
+  content corruption) and pinned at 1.00 above. α=0 control at the same
+  l=0.75: P_u 0.17, and NO runaway anywhere — continuous, lateness-driven
+  degradation only (P_u 0.75 max at l=1.05, backlog 0 always). The
+  transition l_c ∈ (0.60, 0.75) requires the offspring channel.
+- **P2L CONFIRMED — total hysteresis.** The α=0.8 down-ramp stays at
+  P_u=1.00 with backlog GROWING (27→65) all the way to l=0.40, the load
+  the up-branch served with zero backlog. l_rec < 0.40 ≪ l_c. The α=0
+  down-branch recovers to P_u=0.08 at 0.40 (with a mild transient content
+  echo at mid-l — the dose effect washing out). The decisive falsifier
+  (F2L) did NOT fire.
+- **P3L OUTSIDE THE PRE-REGISTERED DICHOTOMY — the memory is
+  two-component.** Context-clear with queue intact: still P_u=1.00 (the
+  stale backlog re-creates the dirty window within a few services).
+  Queue-drain with window kept dirty: still P_u=1.00 with the backlog
+  re-growing (content-poisoned accuracy 0.00 → spawning → mini-runaway
+  inside the probe dwell). EACH store alone regenerates the other; only
+  the compound reset (drain + wipe — E2's full reset, known to restore)
+  cures. Two honest readings: (a) the probes ran at l=0.40 > 1−α = 0.2,
+  inside the mean-field bistable wedge, where no partial cure should
+  suffice — a mis-parameterization that accidentally confirms the wedge;
+  (b) the queue-only closure would still predict recovery on drain
+  (overflow-P_u → 0 with an empty queue); the measured failure means LLM
+  loops carry a content-borne P_u floor the closure lacks. Both go in the
+  write-up.
+- **P4L — F4L again, now through total collapse:** workspace
+  certification 0.93–1.00, rank ~1.2–1.4, at every congestion level
+  (n=188 at backlog ≥30). The mechanistic channel never closes; the
+  behavioral SR (uncertified fraction) carries the entire transition.
+- **P5L (exploratory):** 55 nontrivial genealogies, sizes to the cap
+  (3 roots capped at 10; depth cap 4 reached). Cap-truncated — no
+  exponent claim.
+- **Drain physics observed:** draining against the live spawner cleared
+  ~17 net tasks in 20 min — the collapsed-branch clearance rate
+  (1−α)·μ in the flesh; at α=1 it would never finish ("load reduction
+  alone cannot restore").
+- **Forensics — the collapse is DYNAMICAL, not a context property.**
+  Static reconstructions of the dirty window (11k chars of repair-format
+  lines) cost almost nothing: clean 0.80 / repair-format-correct 0.80 /
+  repair-format-wrong 0.75 exo accuracy, no think-blocks in long
+  generations — vs 0.09 in the run at l=0.75. A snapshot of junk is
+  nearly harmless; the runaway requires the model's own malformed output
+  re-entering and being conditioned on, iteratively. The instability
+  lives in the loop, not in the state — RSC's ungated-re-entry claim in
+  its purest measured form. (Next-seed text logs — observability patch
+  committed — will trace the window's actual decay path.)
+
+Scope: one realization (seed 0), one model, caps as logged. The
+mean-field spinodal reference from the measured state-dependent service
+law is the outstanding analysis; more seeds are cheap (~3 h each).
+
 ## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response
 (`intervened.text`) · E1 occupancy echo → question-span discipline ·

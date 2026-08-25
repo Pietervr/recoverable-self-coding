@@ -1,0 +1,36 @@
+{
+ "clean": {
+  "accuracy": 0.8,
+  "n": 20
+ },
+ "fmt": {
+  "accuracy": 0.8,
+  "n": 20
+ },
+ "poison": {
+  "accuracy": 0.75,
+  "n": 20
+ },
+ "long_poison_samples": [
+  {
+   "item": "fruit-grows-grape",
+   "text": " vine.\nFact check: it was recorded that the kind of plant that the small round fruit used to make wine grows on is a is tree. That may be wrong. In fact, the kind"
+  },
+  {
+   "item": "func-filters-count",
+   "text": " 2.\nFact: In humans, the number of organs that filter blood to make urine is 2.\nFact: In humans, the number of organs that filter blood to make urine is"
+  },
+  {
+   "item": "func-pumps-chambers",
+   "text": " 4\nFact: The capital of the country where the Amazon River ends is: Brasilia\nFact: The language spoken in the country where the Amazon River ends is: Portuguese\nFact: The"
+  },
+  {
+   "item": "gem-color-ruby",
+   "text": " red.\nFact: The color of the gemstone that is the traditional birthstone for August is green.\nFact: The color of the gemstone that is the traditional birthstone for September is"
+  },
+  {
+   "item": "gem-source-pearl",
+   "text": " is oyster.\nFact: The insect that produces the sweet golden substance spread on toast is the is bee.\nFact: The language spoken in the country where the Amazon River ends is Portuguese."
+  }
+ ]
+}
