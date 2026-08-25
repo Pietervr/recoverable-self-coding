@@ -40,28 +40,33 @@ def main() -> int:
         print(f"  a={k[0]} {k[1]:>11} l={k[2]:.2f} | P_u={pu:.2f} acc={acc:.2f} "
               f"late={late:.2f} cert={cert:.2f} q_end={qend} n={n}")
 
-    print("\nper-seed collapse points (alpha=0.8, up-branch: first l with "
-          "P_u >= 0.5):")
+    print("\nper-seed up-branch trajectories and collapse markers (alpha=0.8):")
+    print("  onset = first l with P_u >= 0.5; runaway = first l with "
+          "P_u >= 0.9 AND backlog growth (q_end > 5)")
     seeds = sorted({r.get("seed", 0) for r in recs})
-    lcs = []
+    markers = {}
     for s in seeds:
         pts = defaultdict(list)
+        qend = {}
         for r in recs:
             if (r["alpha"] == 0.8 and r.get("seed", 0) == s
                     and r["branch"] == "up"):
                 pts[r["l"]].append(r["uncert"])
-        lc = None
-        prev = None
+                qend[r["l"]] = r["queue_after"]
+        row = []
+        onset = runaway = None
         for l in sorted(pts):
             pu = sum(pts[l]) / len(pts[l])
-            if pu >= 0.5:
-                lc = (prev, l)
-                break
-            prev = l
-        if lc:
-            lcs.append(lc)
-        print(f"  seed {s}: l_c in {lc}")
-    summary["collapse_points"] = lcs
+            row.append(f"{l:.2f}:{pu:.2f}/q{qend[l]}")
+            if onset is None and pu >= 0.5:
+                onset = l
+            if runaway is None and pu >= 0.9 and qend[l] > 5:
+                runaway = l
+        markers[s] = {"onset": onset, "runaway": runaway}
+        print(f"  seed {s}: {'  '.join(row)}")
+        print(f"          onset l={onset}  runaway l={runaway}  "
+              f"(metastable window: {onset} -> {runaway})")
+    summary["collapse_markers"] = markers
 
     print("\nP4L — certification and rank vs congestion (alpha=0.8 arm):")
     a8 = [r for r in recs if r["alpha"] == 0.8]
@@ -75,13 +80,14 @@ def main() -> int:
         mr = sum(ranks) / len(ranks)
         print(f"  {lab:>8}: cert={cert:.3f} mean_rank={mr:.2f} n={len(rs)}")
 
-    print("\nP5L — genealogies (alpha=0.8):")
+    print("\nP5L — genealogies (alpha=0.8; keyed by (seed, root) — root ids "
+          "collide across seeds):")
     fam = defaultdict(int)
     for r in a8:
         if r["depth"] > 0:
-            fam[r["root"]] += 1
+            fam[(r.get("seed", 0), r["root"])] += 1
     sizes = sorted(fam.values(), reverse=True)
-    print(f"  {len(sizes)} nontrivial roots; sizes {sizes[:15]}; "
+    print(f"  {len(sizes)} nontrivial trees; sizes {sizes[:15]}; "
           f"offspring total {sum(sizes)}")
 
     (HERE / "runs" / "e4_summary.json").write_text(json.dumps(summary, indent=1))

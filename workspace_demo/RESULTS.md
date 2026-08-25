@@ -234,6 +234,46 @@ Scope: one realization (seed 0), one model, caps as logged. The
 mean-field spinodal reference from the measured state-dependent service
 law is the outstanding analysis; more seeds are cheap (~3 h each).
 
+### E4 at n=4 (seeds 0–3, 2026-08-25 — 1,809 tasks total)
+All seeds untruncated; text logging active from seed 1. The multi-seed
+picture (analysis `e4_analyze.py`, summary `runs/e4_summary.json`):
+
+- **The collapse reproduces 4/4 with two markers per seed** — onset
+  (P_u ≥ 0.5) and runaway (P_u ≥ 0.9 with backlog growth): seed 0
+  0.75→0.85, seed 1 0.60→0.85, seed 2 0.85→0.95, seed 3 0.40→0.60. Every
+  runaway lies below l=1 (median 0.85); the gap between the markers is a
+  **metastable window** — sustained elevated-uncertified operation with
+  ZERO backlog growth (seed 1 hovered at P_u ≈ 0.5 across three dwells
+  before snapping; seed 2 ran fully lucid to 0.75, partial at 0.85, then
+  ran away). One-sided scatter + hovering below the fold = the
+  fluctuation-escape signature of a metastable branch.
+- **Hysteresis 4/4**: every down-branch pinned at P_u=1.00 with backlog
+  growing to l=0.40. **Partial cures fail 4/4**: reset_ctx pooled
+  P_u=1.00 (n=155); reset_drain pooled P_u=0.85 (n=62), backlog
+  re-growing. **Control 4/4**: α=0 never developed backlog anywhere
+  (q_end=0 in all 44 dwells); its P_u is lateness-driven, continuous, and
+  reversible, with a mild down-branch content echo (~0.3–0.4 mid-l)
+  washing out by l=0.40.
+- **Mechanism, revised by the text logs (an honest correction):** the
+  seed-0 forensic suggested degenerate self-output; seeds 1–3's logged
+  re-entrant text is largely WELL-FORMED — clean answers, many correct,
+  with repair-genealogy perseveration. The collapse closes through TWO
+  coupled channels with seed-dependent mix: timing (late → uncertified →
+  offspring → later) and content (junk → errors → uncertified →
+  offspring); seed 0's l=0.75 dwell was the pure-content extreme (acc
+  0.09, zero lateness), seeds 1–3 lean on timing with moderate content
+  degradation (post-runaway exo accuracy pooled 0.49 vs 0.80 baseline;
+  static-window controls 0.75–0.80). The static-vs-loop contrast stands;
+  the "degeneracy attractor" phrasing does not survive n=4 and is
+  retired.
+- **Certification at ceiling at every congestion level** (0.974–0.996,
+  rank ~1.2, n=1,282 α-arm tasks; n=757 at backlog ≥30). **Genealogies**
+  (keyed per seed): 211 trees, 681 offspring, 14 trees at the 10-cap —
+  cap-truncated, no exponent claim.
+- Figure `workspace_loop.pdf` regenerated at n=4: pooled cycle + faint
+  per-seed up-branch steps; panel-C "closed loop" bar redefined as
+  post-runaway exo accuracy, seed-aligned (0.49).
+
 ## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response
 (`intervened.text`) · E1 occupancy echo → question-span discipline ·

@@ -236,8 +236,18 @@ def fig_loop(out: Path) -> None:
 
     fig, axes = plt.subplots(1, 3, figsize=(10.2, 3.1))
 
-    # (A) the hysteresis loop, pooled over seeds
+    # (A) the hysteresis loop, pooled over seeds; faint per-seed up-branches
+    # show the individual discontinuous steps the pooling smooths over
     ax = axes[0]
+    for s in seeds:
+        pts = defaultdict(list)
+        for r in recs:
+            if (r["alpha"] == 0.8 and r.get("seed", 0) == s
+                    and r["branch"] == "up"):
+                pts[r["l"]].append(r["uncert"])
+        xs = sorted(pts)
+        ax.plot(xs, [sum(pts[l]) / len(pts[l]) for l in xs], "-",
+                color=C1, lw=0.7, alpha=0.35)
     for a, color, lab in ((0.8, C1, r"$\alpha=0.8$"), (0.0, C0, r"$\alpha=0$")):
         for br, ls, mk, mfc in (("up", "-", "o", None), ("down", "--", "o", "none")):
             pts = defaultdict(list)
@@ -288,8 +298,25 @@ def fig_loop(out: Path) -> None:
     # (C) mechanism: static state vs closed loop
     ax = axes[2]
     fx = json.loads((RUNS / "e4_forensics.json").read_text())
-    inloop = [r for r in recs if r["alpha"] == 0.8 and r["branch"] == "up"
-              and r["l"] == 0.75 and r["kind"] == "exo"]
+    # "closed loop" = exo accuracy in post-runaway up-branch dwells,
+    # aligned per seed (runaway = first l with P_u >= 0.9 and q_end > 5)
+    inloop = []
+    for s in seeds:
+        srecs = [r for r in recs if r["alpha"] == 0.8
+                 and r.get("seed", 0) == s and r["branch"] == "up"]
+        by_l = defaultdict(list)
+        for r in srecs:
+            by_l[r["l"]].append(r)
+        runaway = None
+        for l in sorted(by_l):
+            rs = by_l[l]
+            pu = sum(r["uncert"] for r in rs) / len(rs)
+            if pu >= 0.9 and rs[-1]["queue_after"] > 5:
+                runaway = l
+                break
+        if runaway is not None:
+            inloop += [r for r in srecs
+                       if r["l"] >= runaway and r["kind"] == "exo"]
     inloop_acc = sum(r["correct"] for r in inloop) / len(inloop)
     labels = ["clean\nwindow", "repair fmt\n(correct)", "repair fmt\n(wrong)",
               "the closed\nloop"]
@@ -302,7 +329,7 @@ def fig_loop(out: Path) -> None:
     ax.set_xticks(range(4))
     ax.set_xticklabels(labels, fontsize=7.5)
     ax.set_ylim(0, 1.0)
-    ax.set_ylabel(r"two-hop accuracy at $\ell=0.75$", fontsize=9)
+    ax.set_ylabel("two-hop accuracy", fontsize=9)
     ax.tick_params(labelsize=8)
     ax.set_title("(C)  static corruption is nearly harmless;\nthe instability lives in the re-entry",
                  fontsize=9)
