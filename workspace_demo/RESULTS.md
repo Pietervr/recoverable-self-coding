@@ -274,6 +274,42 @@ picture (analysis `e4_analyze.py`, summary `runs/e4_summary.json`):
   per-seed up-branch steps; panel-C "closed loop" bar redefined as
   post-runaway exo accuracy, seed-aligned (0.49).
 
+## Gap 2 CLOSED — the quantitative closure computes E4 (2026-08-25)
+Two-layer analysis, all ingredients measured from statistics disjoint
+from the collapse (`e4_closure.py`, `e4_reduced_model.py`):
+
+- **Measured ingredients:** realized branching b=0.584 (genealogy
+  bookkeeping); service law strongly context-dependent in-run (6.6 s at
+  ctx<500 → 25.2 s at cap; E4's 10.95 s calibration was warm-cache
+  optimistic, so E4's effective deadline depth was θ≈2.7, not 6 — an
+  honest experimental note); content-error law P_err(j) as a logistic in
+  the recent JUNK-DEPOSIT fraction (wrong answers + repair lines
+  contaminate; late-but-correct answers leave no junk — the
+  mechanism-grounded state variable, fitted on 1,769 task pairs).
+- **Stationary skeleton:** the extended two-component self-consistency
+  (content j-loop nested in the load x-loop) has a fold — labeled
+  skeleton only, since the experiment runs 12-arrival transients.
+- **The quantitative test — protocol-faithful reduced model, ZERO
+  parameters fitted to the collapse:** E4's exact ramp simulated with the
+  measured service/window-fill/P_err laws and the design spawn rules
+  verbatim, 200 replicas/arm. Feedback arm: 183/200 collapse, runaway
+  MODE 0.85 = the measured median, support 0.60–1.05 covering all four
+  measured runaways with real mass; down-branch pinning 200/200 (measured
+  4/4). Control: 0/200 collapse (measured 0/4). Stated residual, left
+  untuned: the control's final-dwell P_u over-predicted (0.40 vs 0.17,
+  transient-lateness detail).
+
+## Gap 3 IN FLIGHT — E5, emergent alpha (pre-registered, predict-then-measure)
+`e5_emergent.py`: no injected alpha — a self-verification retry policy
+(model checks its own answer; rejection re-queues one retry, max 2) makes
+the branching ratio b = P(reject) an emergent, congestion-dependent
+property; service-matched no-requeue control; the self-check doubles as
+an endogenous certification gate (coverage q and false alarms measured
+per congestion state). Protocol: calibration (varied-window service +
+clean/junk veto rates) → the reduced-model PREDICTION committed to git →
+then the ramp. P1E–P4E in the docstring; the sub-critical outcome is a
+reportable designable-safety statement.
+
 ## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response
 (`intervened.text`) · E1 occupancy echo → question-span discipline ·
