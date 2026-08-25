@@ -1,0 +1,23 @@
+{
+ "alpha=0.8": {
+  "collapsed": 183,
+  "runaway_dist": {
+   "0.95": 44,
+   "None": 17,
+   "0.85": 57,
+   "0.6": 8,
+   "0.75": 24,
+   "1.05": 50
+  },
+  "median": 0.95,
+  "pinned_at_040": 200
+ },
+ "alpha=0": {
+  "collapsed": 0,
+  "runaway_dist": {
+   "None": 200
+  },
+  "median": null,
+  "pinned_at_040": 0
+ }
+}
