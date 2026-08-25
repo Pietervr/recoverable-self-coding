@@ -112,7 +112,7 @@ def clause_of(item: dict) -> str:
 
 class Task:
     __slots__ = ("tid", "kind", "item", "arrival", "deadline", "parent",
-                 "root", "depth", "prev_answer")
+                 "root", "depth", "prev_answer", "text")
 
     def __init__(self, tid, kind, item, arrival, deadline,
                  parent=None, root=None, depth=0, prev_answer=None):
@@ -121,6 +121,7 @@ class Task:
         self.parent, self.depth = parent, depth
         self.root = root if root is not None else tid
         self.prev_answer = prev_answer
+        self.text = None
 
     def prompt(self) -> str:
         if self.kind == "exo":
@@ -202,6 +203,7 @@ def run_arm(c, band, items, alpha: float, seed: int, log: RunLog,
             "correct": ok, "late": late, "uncert": (late or not ok),
             "service_s": round(dur, 2), "wait_s": round(time.time() - task.arrival - dur, 1),
             "queue_after": qlen, "ctx_tokens": ctx,
+            "text": (task.text or "")[:60],
         })
 
     def serve_one(task, branch, l, step, allow_spawn=True) -> bool:
@@ -209,6 +211,7 @@ def run_arm(c, band, items, alpha: float, seed: int, log: RunLog,
         cert, ok, first, dur, ctx = serve(c, band, window, task)
         late = time.time() > task.deadline
         uncert = late or not ok
+        task.text = first  # logged: the re-entrant line (mode forensics)
         window = (window + task.prompt() + first + "\n")[-WINDOW_CHARS:]
         if uncert and allow_spawn and alpha > 0 and task.depth < MAX_DEPTH:
             have = root_children.get(task.root, 0)
