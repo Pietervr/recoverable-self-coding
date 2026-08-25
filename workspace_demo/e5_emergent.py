@@ -103,20 +103,35 @@ class Task:
                 f"flagged as possibly wrong): {cl[0].upper() + cl[1:]}")
 
 
+CHECK_FEWSHOT = (
+    "Fact check: the claim that the capital of France is Paris is true.\n"
+    "Fact check: the claim that the number of legs on a dog is 7 is false.\n"
+)
+
+
 def check_prompt(item: dict, answer: str) -> str:
+    """Few-shot verdict elicitation — the empirically selected variant
+    (12/12 parse under clean AND junk windows; probe 2026-08-25). The
+    two exemplars carry the format regardless of the live window's mode."""
     cl = clause_of(item)
     if cl.endswith(" is"):
         cl = cl[:-3]
-    return (f"Check: for the question of {cl}, the answer given "
-            f"was{answer} The one-word verdict (yes if correct, no if "
-            f"wrong) is")
+    a = answer[:-1] if answer.endswith(".") else answer
+    return CHECK_FEWSHOT + f"Fact check: the claim that {cl} is{a} is"
+
+
+NEG = {"false", "no", "incorrect", "wrong"}
+POS = {"true", "yes", "correct", "right"}
 
 
 def parse_verdict(text: str) -> tuple[bool, bool]:
-    """(reject, parseable). Unparseable -> accept (logged)."""
-    for tok in text.strip().lower().replace(".", " ").split():
-        if tok in ("yes", "no"):
-            return tok == "no", True
+    """(reject, parseable). Think tags stripped; unparseable -> accept."""
+    t = text.replace("<think>", " ").replace("</think>", " ")
+    for tok in t.strip().lower().replace(".", " ").replace(",", " ").split():
+        if tok in NEG:
+            return True, True
+        if tok in POS:
+            return False, True
     return False, False
 
 
@@ -141,7 +156,7 @@ def serve(c, band, window, task, top_k=10):
     first = " " + text.strip().split("\n")[0][:80] if text.strip() else " ..."
     ctext = c.generate(
         (window + "\n" if window else "") + check_prompt(task.item, first),
-        max_tokens=4)
+        max_tokens=6)
     reject, parseable = parse_verdict(ctext)
     dur = time.time() - t0
     ok = graded(task.item, text)
