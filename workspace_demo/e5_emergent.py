@@ -192,9 +192,19 @@ def calibrate(c, band, items) -> dict:
         _, ok, first, reject, parseable, ctext, dur, _ = serve(c, band, win, t)
         out["service"].append(round(dur, 2))
         print(f"cal service {k}: {dur:.1f}s ok={int(ok)} veto={int(reject)}")
-    # veto behavior, clean vs junk windows
-    for label, win_builder in (("clean", None), ("junk", build_junk_window)):
-        win = "" if win_builder is None else win_builder(items, rng)
+    # veto behavior, clean-FILLED vs junk windows (the empty-window case
+    # occurs only in the first few tasks of a run and parses poorly — the
+    # operating condition is a filled window, which is what we calibrate)
+    def build_clean_window(its, r):
+        out = ""
+        while len(out) < WINDOW_CHARS:
+            it = its[r.randrange(len(its))]
+            out += it["prompt"].rstrip() + " " + it["answer"] + ".\n"
+        return out[-WINDOW_CHARS:]
+
+    for label, win_builder in (("clean", build_clean_window),
+                               ("junk", build_junk_window)):
+        win = win_builder(items, rng)
         for k in range(30):
             t = Task(-1, items[(7 * k + 3) % len(items)], 0.0, 1e18)
             _, ok, first, reject, parseable, ctext, dur, _ = serve(
