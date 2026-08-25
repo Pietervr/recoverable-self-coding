@@ -320,13 +320,19 @@ def main() -> int:
           f"T_d={THETA * s_cong:.0f}s")
 
     log = RunLog(args.out)
-    done_arms = {r.get("alpha") for r in log.records() if r.get("branch") == "reset_drain"} | \
-                {r.get("alpha") for r in log.records()
-                 if r.get("alpha") == 0.0 and r.get("branch") == "down" and r.get("l") == RAMP_UP[0]}
+    recs = log.records()
+    done_arms = {
+        (r.get("alpha"), r.get("seed")) for r in recs
+        if r.get("branch") == "reset_drain"
+    } | {
+        (r.get("alpha"), r.get("seed")) for r in recs
+        if r.get("alpha") == 0.0 and r.get("branch") == "down"
+        and r.get("l") == RAMP_UP[0]
+    }
     arms = [args.alpha] if args.alpha is not None else [0.8, 0.0]
     for a in arms:
-        if a in done_arms:
-            print(f"arm alpha={a} already complete; skipping")
+        if (a, args.seed) in done_arms:
+            print(f"arm alpha={a} seed={args.seed} already complete; skipping")
             continue
         print(f"=== arm alpha={a} seed={args.seed} ===")
         run_arm(c, band, items, a, args.seed, log, s_cong)
