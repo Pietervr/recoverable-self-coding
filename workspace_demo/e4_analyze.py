@@ -40,6 +40,29 @@ def main() -> int:
         print(f"  a={k[0]} {k[1]:>11} l={k[2]:.2f} | P_u={pu:.2f} acc={acc:.2f} "
               f"late={late:.2f} cert={cert:.2f} q_end={qend} n={n}")
 
+    print("\nper-seed collapse points (alpha=0.8, up-branch: first l with "
+          "P_u >= 0.5):")
+    seeds = sorted({r.get("seed", 0) for r in recs})
+    lcs = []
+    for s in seeds:
+        pts = defaultdict(list)
+        for r in recs:
+            if (r["alpha"] == 0.8 and r.get("seed", 0) == s
+                    and r["branch"] == "up"):
+                pts[r["l"]].append(r["uncert"])
+        lc = None
+        prev = None
+        for l in sorted(pts):
+            pu = sum(pts[l]) / len(pts[l])
+            if pu >= 0.5:
+                lc = (prev, l)
+                break
+            prev = l
+        if lc:
+            lcs.append(lc)
+        print(f"  seed {s}: l_c in {lc}")
+    summary["collapse_points"] = lcs
+
     print("\nP4L — certification and rank vs congestion (alpha=0.8 arm):")
     a8 = [r for r in recs if r["alpha"] == 0.8]
     for lo, hi, lab in [(0, 0, "q=0"), (1, 9, "q 1-9"), (10, 29, "q 10-29"),

@@ -215,6 +215,103 @@ def fig_serial(out: Path) -> None:
     plt.close(fig)
 
 
+def load_e4() -> list[dict]:
+    """Complete (alpha, seed) arms only — an in-flight seed must not pool."""
+    latest: dict[tuple, dict] = {}
+    for line in (RUNS / "e4_loop.jsonl").read_text().splitlines():
+        r = json.loads(line)
+        if r.get("exp") == "e4":
+            latest[(r["alpha"], r.get("seed", 0), r["tid"])] = r
+    recs = list(latest.values())
+    complete = {(r["alpha"], r.get("seed", 0)) for r in recs
+                if r["branch"] == "reset_drain"} | \
+               {(r["alpha"], r.get("seed", 0)) for r in recs
+                if r["alpha"] == 0.0 and r["branch"] == "down" and r["l"] == 0.4}
+    return [r for r in recs if (r["alpha"], r.get("seed", 0)) in complete]
+
+
+def fig_loop(out: Path) -> None:
+    recs = load_e4()
+    seeds = sorted({r.get("seed", 0) for r in recs})
+
+    fig, axes = plt.subplots(1, 3, figsize=(10.2, 3.1))
+
+    # (A) the hysteresis loop, pooled over seeds
+    ax = axes[0]
+    for a, color, lab in ((0.8, C1, r"$\alpha=0.8$"), (0.0, C0, r"$\alpha=0$")):
+        for br, ls, mk, mfc in (("up", "-", "o", None), ("down", "--", "o", "none")):
+            pts = defaultdict(list)
+            for r in recs:
+                if r["alpha"] == a and r["branch"] == br:
+                    pts[r["l"]].append(r["uncert"])
+            ls_x = sorted(pts)
+            ls_y = [sum(pts[l]) / len(pts[l]) for l in ls_x]
+            ax.plot(ls_x, ls_y, ls, marker=mk, color=color, ms=5, lw=1.4,
+                    mfc=mfc or color,
+                    label=lab if br == "up" else None)
+    ax.annotate("", xy=(0.66, 0.62), xytext=(0.56, 0.30),
+                arrowprops={"arrowstyle": "->", "color": C1, "lw": 1})
+    ax.annotate("", xy=(0.55, 0.985), xytext=(0.75, 0.985),
+                arrowprops={"arrowstyle": "->", "color": C1, "lw": 1})
+    ax.set_xlabel(r"utilization $\ell$", fontsize=9)
+    ax.set_ylabel(r"uncertified fraction $P_{\mathrm{u}}$", fontsize=9)
+    ax.set_ylim(-0.04, 1.08)
+    ax.tick_params(labelsize=8)
+    ax.set_title(f"(A)  the loop-level hysteresis cycle\n({len(seeds)} seed"
+                 f"{'s' if len(seeds) > 1 else ''}, pooled; solid up, dashed down)",
+                 fontsize=9)
+    ax.legend(fontsize=7, loc="center left", frameon=False)
+
+    # (B) one realization end-to-end: backlog trajectory incl. resets
+    ax = axes[1]
+    s0 = sorted((r for r in recs if r["alpha"] == 0.8 and r.get("seed", 0) == seeds[0]),
+                key=lambda r: r["tid"])
+    ys = [r["queue_after"] for r in s0]
+    ax.plot(range(len(s0)), ys, "-", color=C1, lw=1.2)
+    marks = {}
+    for i, r in enumerate(s0):
+        marks.setdefault(r["branch"], i)
+    for j, (br, lab) in enumerate((("up", "ramp up"), ("down", "ramp down"),
+                                   ("reset_ctx", "ctx clear"),
+                                   ("drain", "drain"),
+                                   ("reset_drain", "probe"))):
+        if br in marks:
+            ax.axvline(marks[br], color=CG, lw=0.6, ls=":")
+            ax.text(marks[br] + 2, max(ys) * (1.0 - 0.08 * (j % 2)), lab,
+                    fontsize=6.5, color=CG, va="top")
+    ax.set_xlabel(f"served tasks (seed {seeds[0]}, whole protocol)", fontsize=9)
+    ax.set_ylabel("backlog (queued tasks)", fontsize=9)
+    ax.tick_params(labelsize=8)
+    ax.set_title("(B)  backlog as the memory: growth,\npinning, and the failed partial cures",
+                 fontsize=9)
+
+    # (C) mechanism: static state vs closed loop
+    ax = axes[2]
+    fx = json.loads((RUNS / "e4_forensics.json").read_text())
+    inloop = [r for r in recs if r["alpha"] == 0.8 and r["branch"] == "up"
+              and r["l"] == 0.75 and r["kind"] == "exo"]
+    inloop_acc = sum(r["correct"] for r in inloop) / len(inloop)
+    labels = ["clean\nwindow", "repair fmt\n(correct)", "repair fmt\n(wrong)",
+              "the closed\nloop"]
+    vals = [fx["clean"]["accuracy"], fx["fmt"]["accuracy"],
+            fx["poison"]["accuracy"], inloop_acc]
+    colors = [CG, CG, CG, C1]
+    ax.bar(range(4), vals, 0.62, color=colors)
+    for i, v in enumerate(vals):
+        ax.text(i, v + 0.025, f"{v:.2f}", ha="center", fontsize=7.5)
+    ax.set_xticks(range(4))
+    ax.set_xticklabels(labels, fontsize=7.5)
+    ax.set_ylim(0, 1.0)
+    ax.set_ylabel(r"two-hop accuracy at $\ell=0.75$", fontsize=9)
+    ax.tick_params(labelsize=8)
+    ax.set_title("(C)  static corruption is nearly harmless;\nthe instability lives in the re-entry",
+                 fontsize=9)
+
+    fig.tight_layout(w_pad=2.2)
+    fig.savefig(out / "workspace_loop.pdf")
+    plt.close(fig)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
@@ -228,7 +325,9 @@ def main() -> int:
     })
     fig_sequential(out)
     fig_serial(out)
-    print(f"wrote {out}/workspace_sequential.pdf and {out}/workspace_serial.pdf")
+    fig_loop(out)
+    print(f"wrote workspace_sequential.pdf, workspace_serial.pdf, "
+          f"workspace_loop.pdf to {out}")
     return 0
 
 
