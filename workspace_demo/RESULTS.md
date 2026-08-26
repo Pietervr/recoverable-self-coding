@@ -310,6 +310,42 @@ clean/junk veto rates) → the reduced-model PREDICTION committed to git →
 then the ramp. P1E–P4E in the docstring; the sub-critical outcome is a
 reportable designable-safety statement.
 
+## Gap 3 CLOSED — E5 emergent alpha: the committed forecast held, and the
+## gate taught something new (2026-08-26, 01:47)
+2 seeds × 2 arms, 529 tasks, ramp 0.40→1.05→0.40, T_d=101 s. The
+prediction (commit `00a619a`, BEFORE the ramp): near-critical but mostly
+sub-critical — modal outcome 0/2 collapses, bounded degradation, control
+never collapses. MEASURED: **0/2 collapses, both arms, both seeds** —
+P_u 0.00–0.33 per dwell, backlog never above 1, zero lateness anywhere,
+workspace certification 0.99 throughout. The predict-then-measure arc is
+complete on BOTH sides of the boundary: the same closure machinery that
+predicted E4's collapse (imposed kernel b=0.584 → collapse below
+capacity, verified 4/4) predicted E5's stability (calibrated emergent
+kernel → sub-critical, verified 2/2). The theory discriminates safe
+from unsafe re-consumption policies, with the stable-side prediction
+committed in advance.
+
+Honest scoring of the forecast: the structural calls all held (0/2
+collapse ✓, control stable ✓, low fixed point ✓); the predicted
+degradation LEVELS were too pessimistic — the model's lateness channel
+(service scaled ×1.34) never materialized (late=0.00 measured), and the
+predicted down-branch echo (P_u ~0.7) appeared only as transient error
+bursts (one dwell at 0.69) that self-recovered without ignition.
+
+**The new finding — live self-verification coverage is ~7×, not 2×,
+worse than benchmarked:** calibration measured coverage 0.50 on planted
+exogenous errors; IN-RUN coverage on the model's OWN errors was
+0.06–0.08 (5 retries fired in 267 policy-on tasks; b_eff ≈ 0.02,
+below even the clean-window calibration). The generator and its
+verifier, sharing weights and window, agree on the same mistakes. The
+offline-benchmarked gate quality q is not the q the loop gets — a
+directly measured instance of the paper's certifier-inherits-the-
+decoder's-constraints point, and a design warning for self-verification
+architectures. (Also: the elicitation itself was fragile — the naive
+verdict prompt parsed 0.00 under a clean fact-window; the few-shot
+anchored form, probe-selected, parsed 0.96–1.00 in-run. Format
+compliance of a certifier is window-mode-dependent.)
+
 ## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response
 (`intervened.text`) · E1 occupancy echo → question-span discipline ·
