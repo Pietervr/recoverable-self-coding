@@ -346,6 +346,34 @@ verdict prompt parsed 0.00 under a clean fact-window; the few-shot
 anchored form, probe-selected, parsed 0.96–1.00 in-run. Format
 compliance of a certifier is window-mode-dependent.)
 
+## E6 IN FLIGHT — the gating-exit threshold (seed 0 partial + diagnosis;
+## corrected seed 1 running)
+Predictions committed pre-run (`2ac26c2`): closed form q* = 0.661;
+protocol-faithful reduced model crossing ~0.78 (content channel drags
+recovery); predicted pattern PINNED/PINNED/PINNED-or-slow/EXIT at
+q = 0.40/0.55/0.70/0.85.
+
+- **Seed 0 (partial — host reset killed the 0.85 phase):** PINNED at
+  0.40 (B 11→27), EXIT at 0.55 (27→17), EXIT at 0.70 (17→10). The
+  measured crossing sits in (0.40, 0.55) — BELOW both predictions. Two
+  protocol caveats recorded: the rig re-ignited only on weak backlog
+  (deviating from the predictor; fixed for seed 1), and the post-hoc
+  as-executed predictor variant still gives 0.55 only a 2% exit — the
+  discrepancy is genuine, not bookkeeping.
+- **Diagnosis (from the banked per-task records):** this realization
+  ignited on the TIMING channel with a clean window — accuracy 0.82–0.87
+  in every phase, so the model's content-poisoned-ignition assumption
+  did not apply; and the stale backlog's offspring budgets were
+  part-exhausted (measured spawn ~0.17/served vs 0.36 modeled). Both
+  effects make the real gate MORE effective than modeled. Precise
+  statement so far: the sharp pin/drain threshold EXISTS (the design-rule
+  structure is real); the load-side exit precedes lucidity (P_u = 1.00
+  from stale-task lateness while draining); the threshold LOCATION is
+  realization-dependent through the ignition channel mix — the
+  content-corrected closure needs the channel composition as a state
+  variable, not a fixed law.
+- Seed 1 (corrected protocol: re-ignite after every EXIT) running.
+
 ## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response
 (`intervened.text`) · E1 occupancy echo → question-span discipline ·
