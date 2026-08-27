@@ -251,8 +251,13 @@ def main() -> int:
         if len(rig.queue) >= 25:
             break
     verdicts = {}
+    need_reignite = False
     for q in Q_SEQ:
-        if len(rig.queue) < 8:
+        # mirror the predictor exactly: re-ignite after every EXIT (or a
+        # weak backlog), so each gate phase starts from a collapsed state.
+        # Seed 0 deviated here (re-ignited only when backlog < 8) — fixed
+        # after the mid-run review; the deviation is recorded in RESULTS.
+        if need_reignite or len(rig.queue) < 8:
             print("=== RE-IGNITION ===")
             for l in REIGNITE_LS:
                 rig.burst_dwell(l)
@@ -261,6 +266,7 @@ def main() -> int:
             print(f"  VERDICT q={q:.2f}: VOID (could not ignite)")
             continue
         verdicts[q] = rig.gate_phase(q)
+        need_reignite = verdicts[q] == "EXIT"
     print("\nE6 VERDICTS:", verdicts)
     print("PREDICTED:  0.40 PINNED / 0.55 PINNED / 0.70 PINNED-or-slow / "
           "0.85 EXIT   (closed form q*=0.661; model crossing ~0.78)")
