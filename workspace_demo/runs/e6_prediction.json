@@ -1,0 +1,30 @@
+{
+ "closed_form_qstar": 0.661,
+ "reduced_model_qstar": 0.85,
+ "exit_curve": {
+  "0.4": {
+   "exit_prob": 0.016,
+   "PINNED": 188,
+   "AMBIG": 9,
+   "EXIT": 3
+  },
+  "0.55": {
+   "exit_prob": 0.061,
+   "PINNED": 155,
+   "AMBIG": 35,
+   "EXIT": 10
+  },
+  "0.7": {
+   "exit_prob": 0.211,
+   "AMBIG": 91,
+   "PINNED": 86,
+   "EXIT": 23
+  },
+  "0.85": {
+   "exit_prob": 0.786,
+   "AMBIG": 83,
+   "EXIT": 92,
+   "PINNED": 25
+  }
+ }
+}
