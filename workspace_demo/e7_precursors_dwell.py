@@ -244,25 +244,44 @@ def main() -> int:
     skip = done_arms(Path(args.out))
 
     # calibration: serve CAL_N tasks against a prefilled window, then fix
-    # lambda and T_d so rho = RHO and theta = THETA in TRUE units
+    # lambda and T_d so rho = RHO and theta = THETA in TRUE units. On a
+    # resume, REUSE the seed's stored calibration — both arms of a seed
+    # must share one (lambda, T_d) for the paired design to hold.
     global T_D, S_MEAS
-    cal = Rig(c, band, items, args.seed, "calibrate", 0.0, log)
-    svcs = []
-    rng_c = random.Random(7700 + args.seed)
-    for _ in range(CAL_N):
-        it = items[rng_c.randrange(len(items))]
-        t = Task(cal.new_tid(), "exo", it, time.time(),
-                 time.time() + 600.0)
-        t0 = time.time()
-        cal.serve_one(t)
-        svcs.append(time.time() - t0)
-    S_MEAS = sorted(svcs)[len(svcs) // 2]
-    T_D = round(THETA * S_MEAS, 1)
-    print(f"calibrated: s_med={S_MEAS:.1f}s -> lambda={RHO / S_MEAS:.4f}/s, "
-          f"T_d={T_D:.1f}s (rho={RHO}, theta={THETA})", flush=True)
-    log.write({"exp": "e7", "seed": args.seed, "calibration": True,
-               "s_med": round(S_MEAS, 2), "t_d": T_D,
-               "services": [round(s, 2) for s in svcs]})
+    stored = None
+    if Path(args.out).exists():
+        for line in Path(args.out).read_text().splitlines():
+            try:
+                r = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if (r.get("exp") == "e7" and r.get("seed") == args.seed
+                    and r.get("calibration")):
+                stored = r
+    if stored:
+        S_MEAS = stored["s_med"]
+        T_D = stored["t_d"]
+        print(f"calibration REUSED from log: s_med={S_MEAS:.1f}s, "
+              f"T_d={T_D:.1f}s", flush=True)
+    else:
+        cal = Rig(c, band, items, args.seed, "calibrate", 0.0, log)
+        svcs = []
+        rng_c = random.Random(7700 + args.seed)
+        for _ in range(CAL_N):
+            it = items[rng_c.randrange(len(items))]
+            t = Task(cal.new_tid(), "exo", it, time.time(),
+                     time.time() + 600.0)
+            t0 = time.time()
+            cal.serve_one(t)
+            svcs.append(time.time() - t0)
+        S_MEAS = sorted(svcs)[len(svcs) // 2]
+        T_D = round(THETA * S_MEAS, 1)
+        print(f"calibrated: s_med={S_MEAS:.1f}s -> "
+              f"lambda={RHO / S_MEAS:.4f}/s, "
+              f"T_d={T_D:.1f}s (rho={RHO}, theta={THETA})", flush=True)
+        log.write({"exp": "e7", "seed": args.seed, "calibration": True,
+                   "s_med": round(S_MEAS, 2), "t_d": T_D,
+                   "services": [round(s, 2) for s in svcs]})
 
     schedule = exo_schedule(items, args.seed)
     print(f"exo schedule: {len(schedule)} arrivals over {WALL:.0f}s (paired)",
