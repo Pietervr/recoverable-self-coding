@@ -346,8 +346,8 @@ verdict prompt parsed 0.00 under a clean fact-window; the few-shot
 anchored form, probe-selected, parsed 0.96–1.00 in-run. Format
 compliance of a certifier is window-mode-dependent.)
 
-## E6 IN FLIGHT — the gating-exit threshold (seed 0 partial + diagnosis;
-## corrected seed 1 running)
+## E6 COMPLETE — the gating-exit threshold (seed 0 as-executed + seed 1
+## protocol-faithful; verdict at the end of this section)
 Predictions committed pre-run (`2ac26c2`): closed form q* = 0.661;
 protocol-faithful reduced model crossing ~0.78 (content channel drags
 recovery); predicted pattern PINNED/PINNED/PINNED-or-slow/EXIT at
@@ -400,6 +400,63 @@ q = 0.40/0.55/0.70/0.85.
   calibration must be state-resolved. Also reproduced in every phase:
   the load-side exit precedes lucidity (P_u = 1.00 from stale lateness
   while draining).
+
+## E11 — RSC ingredient curves in PRODUCTION traces (2026-08-28,
+## observational, plan-first; passes 1 + 2 both committed as-is)
+Data: 16 local Claude Code sessions ≥ 50 tool calls (22,792
+tool_use→tool_result pairs), aggregate-only extraction (no text read).
+Question: are the rig's two collapse ingredients present in production?
+
+- **The feedback kernel: PRESENT.** P(error | previous error) = 0.078 vs
+  P(error | previous ok) = 0.021 — a 3.7× conditional amplification
+  (n = 514 / 22,262 transitions).
+- **Cascades: over-dispersed vs the geometric (iid) null.** Error runs
+  ≥ 2: 29 observed vs 11.7 expected; ≥ 3: 5 observed vs ~0.3 expected.
+- **The service law: PRESENT** (pass-2 corrected measure, LLM step
+  latency via the parentUuid chain): median 3.6 s at < 20k ctx tokens →
+  10.8 s at ≥ 180k (n = 11,726 in the top bin) — the production analog
+  of the rig's 6.6 → 25.2 s law.
+- **Within-session error progression: NULL** (deciles flat ~0.02;
+  late-minus-early positive in 7/16 sessions). Consistent-with (not
+  confirmation of) the theory's GATED regime: these sessions have a
+  human certification gate in the loop, and the gated regime is exactly
+  where junk should not accumulate.
+- Pass-1 design errors reported and corrected in a separately
+  pre-committed pass 2 (I1 absolute-ctx binning confounded by
+  between-session variation; I2 measured tool latency, not LLM step
+  latency). Files: `e11_production_traces.py`, `e11b_production_traces.py`,
+  `runs/e11{,b}_production.json`.
+
+## The 2026-08-28 validation program — designs + committed predictions
+## (rig runs in flight; results land in their own sections)
+- **E7 fluctuation precursors** (the designed protocol the inconclusive
+  e4_precursors pass called for): matched-load presence-vs-absence —
+  feedback arm α = 0.8 vs CONTROL α = 0 (no fold at identical load),
+  both pre-filled to the congested service law, paired exo schedules,
+  confound-proofed statistics (exact-unbiased Bernoulli excess variance;
+  degenerate AC1 windows dropped; primary order parameter = detrended
+  queue length). Committed prediction (b3ba4bf): feedback τ_qvar +0.296,
+  τ_qac1 +0.142, ignition 66%; control τ ≈ 0, ignition 0/200.
+  Mid-run calibration amendment (381f68c, before any arm completed):
+  λ and T_d set from measured service so ρ = 0.45 and θ = 2.62 hold in
+  TRUE units (first launch's 25.2 s planning constant vs 16.5 s measured
+  — the E6 ρ-drift failure mode, now closed structurally).
+- **E8 separatrix** (graded compound shocks from the collapsed state,
+  sequential protocol): committed prediction (23e01ad) P(EXIT|f)
+  0.21/0.18/0.31/0.55/0.95 → separatrix f* = 0.75; two-component
+  ordering window_only 0.15 < backlog_only 0.61 < compound 0.95.
+  Design history: ρ_hold = 0.55 rejected (cures re-ignited 77%).
+- **E9 α×θ cusp map**: three scan generations (time-limit artifact →
+  horizon-dependence lesson → the rig-horizon map, all committed).
+  The committed map (2100 s horizon): the wedge appears between
+  α = 0.15 and 0.20 nearly θ-INDEPENDENTLY (mean-field α* sweeps
+  0.433→0.160 — the content channel holds the wedge open below it);
+  width grows with α and θ as cusp geometry predicts. Rig spot-checks
+  committed (84a74c2): S1/S2 θ-pair (T_d 33 vs 132 at ρ 0.65: IGNITED
+  vs CALM) and S3/S4 α-pair (quench 0.8→0.2 vs keep 0.8 at ρ 0.55:
+  EXIT vs PINNED — the wedge boundary must MOVE with α).
+- **E10 second model** (lens-free E4 replication on a different family):
+  queued; Llama-3.1-8B-Instruct-4bit download in progress.
 
 ## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response
