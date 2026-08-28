@@ -7,7 +7,17 @@ Two arms per seed, identical except the feedback channel:
   CONTROL:  alpha = 0 (no spawning; same load, same drift, no fold)
 Both arms: window PRE-FILLED with clean battery lines to the char cap
 (service starts on the congested law), then CONTINUOUS Poisson exo
-arrivals at lambda = 0.45 / 25.2 s for 3600 s wall-clock.
+arrivals for 3600 s wall-clock.
+
+CALIBRATION AMENDMENT (2026-08-28, before any arm completed): the first
+launch hard-coded lambda = 0.45/25.2 s, but measured service was 16.5 s
+(host load lighter than during E6) -> true utilization 0.30, not the
+designed 0.45 — the E6 rho-drift failure mode. The committed prediction
+is defined in DIMENSIONLESS terms (rho = 0.45, theta = T_d/s = 2.62),
+so the rig now serves CAL_N = 8 calibration tasks against the prefilled
+window first and sets lambda = 0.45 / s_med and T_d = 2.62 * s_med.
+The 15-task miscalibrated partial is archived as
+runs/e7_precursors_attempt1_rho_miscal.jsonl.
 
 Order parameters logged per served task: queue_after (primary), the
 junk-deposit indicator (secondary). Analysis = e7_stats.arm_summary
@@ -40,15 +50,19 @@ from e7_stats import arm_summary
 
 HERE = Path(__file__).parent
 
-T_D = 66.0
 ALPHA_FEEDBACK = 0.8
 MAX_DEPTH = 4
 MAX_PER_ROOT = 10
 WINDOW_CHARS = 11000
 RHO = 0.45
-S_CONG = 25.2
+THETA = 2.62
+CAL_N = 8
 WALL = 3600.0
 ARMS = [("feedback", ALPHA_FEEDBACK), ("control", 0.0)]
+
+# set by calibration in main(); defaults are the planning constants
+T_D = 66.0
+S_MEAS = 25.2
 
 
 def poisson(rng, lam):
@@ -106,9 +120,10 @@ class Task:
 
 def exo_schedule(items, seed):
     """Pre-generated (arrival_offset, item_index) schedule, shared by BOTH
-    arms of a seed (paired design: identical exo stream)."""
+    arms of a seed (paired design: identical exo stream). Uses the
+    calibrated S_MEAS."""
     rng = random.Random(7800 + seed)
-    lam = RHO / S_CONG
+    lam = RHO / S_MEAS
     t, out = 0.0, []
     while t < WALL:
         t += rng.expovariate(lam)
@@ -227,8 +242,31 @@ def main() -> int:
 
     log = RunLog(args.out)
     skip = done_arms(Path(args.out))
+
+    # calibration: serve CAL_N tasks against a prefilled window, then fix
+    # lambda and T_d so rho = RHO and theta = THETA in TRUE units
+    global T_D, S_MEAS
+    cal = Rig(c, band, items, args.seed, "calibrate", 0.0, log)
+    svcs = []
+    rng_c = random.Random(7700 + args.seed)
+    for _ in range(CAL_N):
+        it = items[rng_c.randrange(len(items))]
+        t = Task(cal.new_tid(), "exo", it, time.time(),
+                 time.time() + 600.0)
+        t0 = time.time()
+        cal.serve_one(t)
+        svcs.append(time.time() - t0)
+    S_MEAS = sorted(svcs)[len(svcs) // 2]
+    T_D = round(THETA * S_MEAS, 1)
+    print(f"calibrated: s_med={S_MEAS:.1f}s -> lambda={RHO / S_MEAS:.4f}/s, "
+          f"T_d={T_D:.1f}s (rho={RHO}, theta={THETA})", flush=True)
+    log.write({"exp": "e7", "seed": args.seed, "calibration": True,
+               "s_med": round(S_MEAS, 2), "t_d": T_D,
+               "services": [round(s, 2) for s in svcs]})
+
     schedule = exo_schedule(items, args.seed)
-    print(f"exo schedule: {len(schedule)} arrivals over {WALL:.0f}s (paired)")
+    print(f"exo schedule: {len(schedule)} arrivals over {WALL:.0f}s (paired)",
+          flush=True)
     for arm, alpha in ARMS:
         if (args.seed, arm) in skip:
             print(f"=== {arm.upper()} seed {args.seed}: already done, skip ===")
