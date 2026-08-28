@@ -1,0 +1,44 @@
+{
+ "S1_up_td33": {
+  "kind": "up",
+  "T_d": 33.0,
+  "alpha": 0.8,
+  "rho": 0.65,
+  "IGNITED": 161,
+  "CALM": 39
+ },
+ "S2_up_td132": {
+  "kind": "up",
+  "T_d": 132.0,
+  "alpha": 0.8,
+  "rho": 0.65,
+  "CALM": 169,
+  "IGNITED": 31
+ },
+ "S3_down_quench02": {
+  "kind": "down",
+  "T_d": 66.0,
+  "alpha": 0.2,
+  "rho": 0.55,
+  "EXIT": 172,
+  "VOID": 23,
+  "AMBIG": 4,
+  "PINNED": 1
+ },
+ "S4_down_a08": {
+  "kind": "down",
+  "T_d": 66.0,
+  "alpha": 0.8,
+  "rho": 0.55,
+  "PINNED": 174,
+  "VOID": 23,
+  "EXIT": 2,
+  "AMBIG": 1
+ },
+ "prediction": {
+  "S1_up_td33": "IGNITED",
+  "S2_up_td132": "CALM",
+  "S3_down_quench02": "EXIT",
+  "S4_down_a08": "PINNED"
+ }
+}
