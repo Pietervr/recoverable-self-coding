@@ -1,0 +1,39 @@
+{
+ "feedback": {
+  "rho": 0.45,
+  "wall": 3600.0,
+  "alpha": 0.8,
+  "replicas": 200,
+  "ignited": 132,
+  "censored": 20,
+  "n_median": 70,
+  "tau_qvar_mean": 0.296,
+  "tau_qac1_mean": 0.142,
+  "tau_jxvar_mean": -0.013,
+  "tau_jac1_mean": -0.195
+ },
+ "control": {
+  "rho": 0.45,
+  "wall": 3600.0,
+  "alpha": 0.0,
+  "replicas": 200,
+  "ignited": 0,
+  "censored": 0,
+  "n_median": 64,
+  "tau_qvar_mean": -0.052,
+  "tau_qac1_mean": -0.021,
+  "tau_jxvar_mean": -0.013,
+  "tau_jac1_mean": -0.139
+ },
+ "prediction": {
+  "d_tau_qvar": 0.348,
+  "p_sup_tau_qvar": 0.739,
+  "d_tau_qac1": 0.163,
+  "p_sup_tau_qac1": 0.622,
+  "d_tau_jxvar": 0.0,
+  "p_sup_tau_jxvar": 0.5,
+  "d_tau_jac1": -0.056,
+  "p_sup_tau_jac1": 0.472,
+  "direction": "feedback > control on tau_qvar (primary) and tau_qac1; control taus ~ 0"
+ }
+}
