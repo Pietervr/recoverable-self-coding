@@ -525,6 +525,33 @@ clean).
 - Falsifiers dodged: boundary monotone; no axis shock matched the
   compound. A seed-1 run can recover the 0.75 grid point.
 
+## E9 spot-checks COMPLETE — 2/4 clean confirmations; 2/4 unresolved
+## at drift-shrunk boundary margins (the program's dominant systematic,
+## now named)
+Committed (84a74c2): S1 IGNITED / S2 CALM / S3 EXIT / S4 PINNED
+(modal 81–87%). Measured: IGNITED / IGNITED / PINNED / PINNED.
+
+Coordinate diagnostic (e9_spot_diagnostic.py — the spot rig hard-coded
+λ = ρ_nom/25.2 s; afternoon services ran 24.5–33.0 s):
+- S1 ρ_true 0.70 vs l_up 0.564 → IGNITED on-map ✓ (deep in-region).
+- S4 ρ_true 0.54 vs l_down 0.159 → PINNED on-map ✓ (deep in-region).
+- S2 ρ_true 0.70 vs l_up 0.767 — designed margin 0.12 shrank to 0.07;
+  measured IGNITED. Marginal miss inside boundary noise.
+- S3 ρ_true 0.72 vs l_down(α=0.2) 0.75 — designed margin 0.20 shrank
+  to 0.03(!); measured PINNED. Unresolved: the spot landed ON the
+  predicted α-quenched boundary, where verdicts are coin-flips by
+  definition.
+The α-motion claim (l_down 0.16 → 0.75 as α quenches 0.8 → 0.2) is
+NOT contradicted — S3 sat at the moved boundary's edge rather than
+clear of it — but the designed sharp EXIT/PINNED contrast was eaten by
+drift. Re-run candidate with E7-style live calibration.
+
+**The named systematic:** host service varies ±50% between sessions
+(18.6 s yesterday morning → 33 s this afternoon), moving every ρ
+boundary by ~±0.15. E7 closed it with live calibration; E8's slope
+verdicts were robust to it; E9's fixed-margin spots were not. Every
+future wall-clock rig phase calibrates in-run.
+
 ## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response
 (`intervened.text`) · E1 occupancy echo → question-span discipline ·
