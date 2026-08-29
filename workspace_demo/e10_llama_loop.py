@@ -176,12 +176,18 @@ def main() -> int:
     log = RunLog(args.out)
 
     # calibration: CONGESTED service on a pre-filled clean window (the
-    # transferable anchor — see the amendment in the docstring)
+    # transferable anchor — see the amendment in the docstring).
+    # SECOND amendment: a DIFFERENT window per request — Ollama's prefix
+    # cache made a shared window read 0.30 s ("congested" = cached tail
+    # eval only). In-loop, the cache dies at the window cap (truncation
+    # shifts the prefix -> full re-eval each task), so the honest anchor
+    # is the UNCACHED full-eval service, the regime where the
+    # transition lives.
     svcs = []
     rng_c = random.Random(10700 + args.seed)
-    win_cal = clean_fill(items, random.Random(10800 + args.seed))
-    for _ in range(CAL_N):
+    for k in range(CAL_N):
         it = items[rng_c.randrange(len(items))]
+        win_cal = clean_fill(items, random.Random(10800 + args.seed + k))
         t0 = time.time()
         ollama_generate(win_cal + "\n" + it["prompt"].rstrip())
         svcs.append(time.time() - t0)
