@@ -1,0 +1,11 @@
+{
+ "0": {
+  "compound_0.00": "PINNED",
+  "compound_0.25": "PINNED",
+  "window_only": "PINNED",
+  "compound_0.50": "AMBIG",
+  "compound_0.75": "VOID",
+  "backlog_only": "AMBIG",
+  "compound_1.00": "EXIT"
+ }
+}

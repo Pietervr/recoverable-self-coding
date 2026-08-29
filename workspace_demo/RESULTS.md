@@ -498,6 +498,33 @@ The AC1 secondary scatters across control replicates (−0.16/+0.46/
 +0.13) and is non-discriminating at n = 1 per arm, as the model's
 p_sup = 0.62 foretold.
 
+## E8 COMPLETE — the separatrix measured (seed 0, sequential graded
+## shocks; matches the committed prediction on every scored point)
+Committed (23e01ad): P(EXIT|f) 0.21/0.18/0.31/0.55/0.95 → f* = 0.75;
+ordering window_only 0.15 < backlog_only 0.61 < compound 0.95.
+(Attempt 1 aborted — the MacBook unplugged, hibernated 12.6 h inside a
+verdict phase at 1% battery; archived, restarted fresh 2026-08-29.)
+
+Measured verdicts (E6 slope rule, hold/verdict at ρ = 0.35):
+compound 0.00 PINNED (B 32→39) · 0.25 PINNED (28→34) · window_only
+PINNED (27→31) · 0.50 AMBIG (13→11) · 0.75 VOID (the 0.50 shock +
+hold drained the state below threshold before the shock — the
+sequential design's known self-cure path, ~4% in the model) ·
+backlog_only AMBIG one task from exit (23→0 shock; junky window
+rebuilt to 6, EXIT needed ≤ 5.6) · compound 1.00 EXIT (0→1, stayed
+clean).
+
+- **Monotone boundary** ✓ (PINNED → AMBIG → EXIT along f); crossing
+  bracketed in (0.5, 1.0), consistent with f* = 0.75; the exact
+  crossing point is the one unscored prediction (VOID).
+- **Two-component memory, the predicted ASYMMETRY included** ✓:
+  window-only decisively pinned (backlog regenerates junk),
+  backlog-only nearly exits (junk rebuilds only a trickle at ρ 0.35),
+  compound exits — window_only < backlog_only < compound, exactly the
+  model's 0.15 / 0.61 / 0.95 ordering.
+- Falsifiers dodged: boundary monotone; no axis shock matched the
+  compound. A seed-1 run can recover the 0.75 grid point.
+
 ## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response
 (`intervened.text`) · E1 occupancy echo → question-span discipline ·
