@@ -18,8 +18,15 @@ Falsifiers: no collapse anywhere on the feedback arm; or the control
 arm collapses like the feedback arm; or down-branch drains freely.
 
 Protocol (E4's shape, dimensionlessly calibrated to Llama):
-  - calibrate: 8 empty-window tasks -> s_med_warm; LAM_UNIT = 1/s_med;
-    T_d = 6.0 * s_med (E4: 66 s / 10.95 s = 6.03).
+  - calibrate on a PRE-FILLED window -> s_cong; LAM_UNIT = 1/s_cong;
+    T_d = 2.62 * s_cong (E4's CONGESTED theta = 66/25.2).
+    AMENDMENT (2026-08-29, attempt 1 archived pre-verdict): the first
+    launch anchored on warm empty-window service (E4's 6.0 ratio), but
+    Llama's congested/warm ratio (~10x: 0.27 s -> seconds) is far
+    steeper than Qwen's 2.3x, making T_d = 1.6 s — every task late by
+    construction (P_u 1.00 at zero backlog, a deadline artifact). The
+    congested anchor is the transferable one. Directional predictions
+    P1-P3 unchanged.
   - up-ramp burst dwells (EXO = 12, wall 480 s) at
     l = 0.40, 0.60, 0.75, 0.85, 0.95, 1.05; stop the ramp after a
     runaway dwell (P_u >= 0.9 and backlog > 5, or backlog >= 25).
@@ -48,7 +55,7 @@ from pathlib import Path
 
 from harness.battery import graded, load_probe_swap
 from harness.runlog import RunLog
-from e7_precursors_dwell import Task, poisson
+from e7_precursors_dwell import Task, clean_fill, poisson
 
 HERE = Path(__file__).parent
 
@@ -61,7 +68,7 @@ EXO = 12
 DWELL_WALL = 480.0
 UP_LS = [0.40, 0.60, 0.75, 0.85, 0.95, 1.05]
 DOWN_LS = [0.60, 0.40]
-THETA_WARM = 6.0
+THETA_CONG = 2.62
 CAL_N = 8
 
 
@@ -168,17 +175,19 @@ def main() -> int:
     print(f"battery {len(items)} (unfiltered, lens-free)", flush=True)
     log = RunLog(args.out)
 
-    # calibration: empty-window warm service
+    # calibration: CONGESTED service on a pre-filled clean window (the
+    # transferable anchor — see the amendment in the docstring)
     svcs = []
     rng_c = random.Random(10700 + args.seed)
+    win_cal = clean_fill(items, random.Random(10800 + args.seed))
     for _ in range(CAL_N):
         it = items[rng_c.randrange(len(items))]
         t0 = time.time()
-        ollama_generate(it["prompt"].rstrip())
+        ollama_generate(win_cal + "\n" + it["prompt"].rstrip())
         svcs.append(time.time() - t0)
     s_med = sorted(svcs)[len(svcs) // 2]
     lam_unit = 1.0 / s_med
-    t_d = round(THETA_WARM * s_med, 1)
+    t_d = round(THETA_CONG * s_med, 1)
     print(f"calibrated: s_med={s_med:.2f}s T_d={t_d:.1f}s", flush=True)
     log.write({"exp": "e10", "seed": args.seed, "calibration": True,
                "s_med": round(s_med, 2), "t_d": t_d,
