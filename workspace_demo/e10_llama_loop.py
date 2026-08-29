@@ -73,8 +73,12 @@ CAL_N = 8
 
 
 def ollama_generate(prompt: str) -> str:
+    # raw completion — no chat template. Attempt 3 (archived) showed the
+    # template turns the windowed prompt into an assistant-style reply
+    # ("It seems you've provided a series...") -> every answer wrong.
+    # The jlens rig is raw completion; this is the E4 correspondence.
     body = json.dumps({
-        "model": MODEL, "prompt": prompt, "stream": False,
+        "model": MODEL, "prompt": prompt, "stream": False, "raw": True,
         "keep_alive": "2h",
         "options": {"num_predict": 8, "temperature": 0, "num_ctx": 4096},
     }).encode()
