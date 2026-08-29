@@ -458,6 +458,46 @@ Question: are the rig's two collapse ingredients present in production?
 - **E10 second model** (lens-free E4 replication on a different family):
   queued; Llama-3.1-8B-Instruct-4bit download in progress.
 
+## E7 COMPLETE — fluctuation precursors (3 seeds, paired arms; the
+## primary replicates with one drift-explained exception)
+Committed prediction (b3ba4bf): feedback τ_qvar ≈ +0.30 / control ≈ 0;
+feedback ignites ~66%, control never. Calibration amendment (381f68c)
+holds ρ = 0.45, θ = 2.62 in true units at arm start.
+
+Measured (per arm; primary = τ_qvar, pre-onset segment):
+- seed 0: feedback +0.494 (ignited, n = 62) vs control −0.050
+  (no ignition, n = 82) — **paired contrast +0.544, clean pass;
+  the control landed within 0.002 of the model's predicted value.**
+- seed 1: feedback CENSORED (ignited at task 34 < the pre-registered
+  40-task minimum — the model gave this outcome ~10% probability);
+  control flat on the primary (τ_qvar −0.067), no ignition (n = 93).
+- seed 2: feedback +0.593 (ignited, n = 56; variance growth in thirds
+  +3.14) vs control **+0.834** (no ignition, n = 76; thirds growth
+  +0.43) — the pair FAILS on τ.
+- Ignition tally: feedback 3/3 (2 analyzable), control 0/3.
+
+**Post-hoc drift diagnostic (labeled as such; e7_drift_diagnostic.py):**
+seed 2's control arm's true utilization drifted 0.39 → 0.62 during the
+hour (service 17.8 → 28.4 s, evening host load) — the largest drift of
+all six arms; a ρ-ramp in an α = 0 queue produces a rising variance
+trend with no fold. Dose-response across seeds: mild drift (s0 0.45→
+0.51, s1 0.53→0.57) → flat controls; large drift → spurious control
+trend. The rank-based τ is magnitude-blind: the feedback arms' variance
+GROWTH is 7–18× their controls' in both analyzable pairs
+(d_qvar_thirds 0.76 vs 0.04; 3.14 vs 0.43).
+
+**E7 verdict:** the precursor signal (rising queue variance on the
+metastable approach) is present and strong in BOTH analyzable feedback
+arms and absent-or-drift-sized in every control; the pre-registered
+τ primary passes 1/2 pairs, with the failing control's trend
+quantitatively attributed to measured utilization drift. Honest
+methodological caveat for the paper: wall-clock rigs carry drifting
+host load; a τ-on-ranks primary is vulnerable to it — magnitude
+measures and drift regression belong in the next protocol revision.
+The AC1 secondary scatters across control replicates (−0.16/+0.46/
++0.13) and is non-discriminating at n = 1 per arm, as the model's
+p_sup = 0.62 foretold.
+
 ## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response
 (`intervened.text`) · E1 occupancy echo → question-span discipline ·
