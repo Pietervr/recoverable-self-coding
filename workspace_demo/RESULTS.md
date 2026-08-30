@@ -552,6 +552,43 @@ boundary by ~±0.15. E7 closed it with live calibration; E8's slope
 verdicts were robust to it; E9's fixed-margin spots were not. Every
 future wall-clock rig phase calibrates in-run.
 
+## E10 + E10b COMPLETE — the second architecture (Llama-3.1-8B q4 via
+## Ollama, lens-free): collapse TRANSFERS, and the serving stack's cost
+## model is a control parameter
+Four porting traps found and committed pre-verdict (warm anchor;
+cache-poisoned calibration; chat-template junk-flood; per-arm cache
+regimes) — each archived with its diagnosis.
+
+**E10 attempt 4 (burst protocol, the scored run):** P1 FAILED — no
+load collapse to l = 1.05. Mechanism localized by the service profile:
+post-cap exo tasks served uncached (~6.2 s) but repair offspring rode
+Ollama's prefix cache (sub-second) — the cascade's re-entrant work was
+nearly free, so its branching stayed subcritical. Error-channel
+feedback-specificity confirmed anyway (P_u 0.62–0.95 vs control
+0.08–0.33) plus CONTENT hysteresis without queue hysteresis
+(down-branch P_u 0.95 at l = 0.60 vs 0.62 up).
+
+**E10b (sustained pressure, both arms PRE-CAPPED — which turns out to
+remove the cache globally: truncation shifts the prefix every task;
+repairs 4.82 s ≈ exo 4.47 s; the correct correspondence to the
+always-uncached Qwen rig). Two-branch prediction committed (ce8d242);
+BRANCH A landed:**
+- feedback: RUNAWAY in the FIRST phase — B 0→26, P_u 0.84, at
+  exo-only TRUE ρ = 0.79 (λ 0.177/s × s 4.47 s), driven supercritical
+  (effective ~1.4) by its own offspring;
+- control: NO runaway anywhere — B 0→0/0→0/0→1 at exo true ρ up to
+  0.84, i.e. HIGHER true load than the feedback arm's; P_u ≤ 0.47.
+- Verdict: sub-capacity, feedback-specific collapse on a second model
+  family with no lens and no certification instrument. P1 ✓ P3 ✓
+  (P2/hysteresis not probed in E10b — open follow-up).
+
+**The pair's joint finding:** same model, same feedback law — collapse
+in the uncached regime, none in the cache-subsidized regime. Prefix
+caching suppresses θ_effective for re-entrant work (α_eff(1+θ_rep) < 1)
+— a load-side gate, the dual of certification on the content side. The
+theory predicts its own mitigation, and the two runs measured both
+sides of it.
+
 ## Fixes (all committed)
 tokenize schema (`text` not `prompt`) · intervene response
 (`intervened.text`) · E1 occupancy echo → question-span discipline ·
