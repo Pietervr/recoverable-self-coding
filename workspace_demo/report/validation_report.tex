@@ -1,0 +1,335 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2.6cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+\graphicspath{{../figs/}}
+
+\newcommand{\commit}[1]{\texttt{\small #1}}
+\newcommand{\Pu}{P_{\mathrm{u}}}
+
+\title{\textbf{The RSC Validation Program, Part II:}\\
+Precursors, the Separatrix, the Cusp Map, a Second Architecture,\\
+and Production Traces (E7--E11)}
+\author{Workspace record --- \texttt{Recoverable-Self-Coding/workspace\_demo}\\
+companion to arXiv:2606.24861 v4 (PRE WT10366E, in review)}
+\date{28--30 August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+Between 28 and 30 August 2026 the remaining items of the recorded RSC
+validation menu were run on the local rig (Qwen3.6-27B, 4-bit, with the
+Jacobian-lens workspace instrument) and, for the second-architecture
+test, on Llama-3.1-8B served by Ollama with no lens at all. Every
+experiment was pre-registered: designs and quantitative predictions were
+committed to git before any rig data existed, falsifiers stated in
+advance, and every miss is scored and diagnosed rather than absorbed.
+Headlines: (i)~fluctuation precursors --- rising, detrended queue
+variance on the metastable approach to the fold --- are present in both
+analyzable feedback arms and absent in matched-load $\alpha{=}0$
+controls; (ii)~the separatrix under graded compound shocks is monotone
+with its 50\% crossing where the committed model put it, and the
+two-component memory asymmetry (window-only $\ll$ backlog-only $<$
+compound) lands exactly as predicted; (iii)~the rig-horizon cusp map is
+confirmed at two of four spot-checks, with the other two landing inside
+drift-shrunk boundary noise --- and the $\pm 50\%$ host-service
+systematic is now a named, guarded-against methodology finding;
+(iv)~the collapse \emph{transfers to a second model family, lens-free}:
+sub-capacity, feedback-specific runaway at exogenous true utilization
+$0.79$ while the control stays clean at $0.84$ --- and the paired
+negative shows the serving stack's cost model (prefix caching) is a
+control parameter of the transition, the load-side dual of
+certification; (v)~the collapse ingredients are present in production
+agentic traces: a $3.7\times$ error feedback kernel, cascade
+over-dispersion against the iid null, and a service law rising from
+3.6\,s to 10.8\,s across the context range.
+\end{abstract}
+
+\section{Discipline}
+All experiments follow the protocol of the Part-I program (E1--E6):
+the design and its quantitative prediction are committed to the
+repository \emph{before} the rig runs (commit hashes cited per section);
+protocol deviations and amendments are committed before the affected
+data are scored; failed attempts are archived, never deleted; and every
+prediction miss is either confirmed as a miss or attributed to a
+\emph{measured} confound, with the diagnostic committed alongside.
+
+Two cross-cutting methodology findings emerged and are now standing
+policy:
+\begin{itemize}
+  \item \textbf{The host-service systematic.} Wall-clock service on the
+  rig varies by $\pm 50\%$ between sessions (18.6\,s to 33\,s for the
+  same congested prompt class), moving every utilization boundary by
+  $\sim\!\pm 0.15$. E7 closed it with in-run calibration (dimensionless
+  targets $\rho$, $\theta$ held in \emph{true} units); E8's slope
+  verdicts were robust to it; E9's fixed-margin spot-checks were not.
+  Every future wall-clock phase calibrates in-run.
+  \item \textbf{Serving-stack porting traps.} Porting the loop to a
+  second serving stack surfaced four traps (warm-anchor degeneracy,
+  cache-poisoned calibration, chat-template contamination, per-arm
+  cache-regime asymmetry), each archived with its diagnosis. One of
+  them turned into a physics result (Sec.~\ref{sec:e10}).
+\end{itemize}
+
+\section{E7 --- Fluctuation precursors (the designed protocol)}
+\textbf{Claim.} Approaching the fold, the order parameter's
+fluctuations show rising variance and autocorrelation (critical slowing
+down); away from the fold, no trend. The first attempt on archival E4
+data was honestly inconclusive (no power; mean-drift confound); this is
+the designed replacement.
+
+\textbf{Design} (\commit{b3ba4bf}; calibration amendment
+\commit{381f68c}). Presence-vs-absence at matched load: a feedback arm
+($\alpha{=}0.8$) against an $\alpha{=}0$ control with an \emph{identical
+paired exogenous schedule} --- same arrival times, same items --- both
+pre-filled to the congested service law, at true $\rho=0.45$,
+$\theta=2.62$ held by live calibration. Confound-proofed statistics:
+per-window linear detrend; residual variance and AC1 of the queue
+length (primary); exactly unbiased Bernoulli excess variance
+(secondary); Kendall-$\tau$ trends on the pre-onset segment; censoring
+below 40 tasks. Committed prediction: feedback $\tau_{q\mathrm{var}}
+\approx +0.30$, ignition $\sim\!66\%$; control $\tau \approx 0$,
+ignition $0/200$.
+
+\textbf{Result} (3 seeds; \commit{e760206}). Feedback ignited 3/3
+(one censored-fast, as the model gave $\sim\!10\%$ probability); both
+analyzable feedback arms show the precursor:
+$\tau_{q\mathrm{var}} = +0.49$ and $+0.59$, with last-third variance
+growth $7$--$18\times$ the paired controls. Controls: no ignition in
+any of three arms; primary flat in seeds 0 and 1 ($-0.050$, $-0.067$
+--- the seed-0 value within $0.002$ of the model's prediction). The
+one miss: seed-2's control returned $\tau = +0.83$; the committed
+diagnostic attributes it quantitatively to measured utilization drift
+($\rho$ ramping $0.39 \to 0.62$ over the hour, the largest of all six
+arms, with clean dose-response across seeds), and
+Fig.~\ref{fig:prec} makes the underlying nuance visible: the drifted
+control's \emph{magnitude} stays near-flat while its rank statistic is
+tall --- rank-based $\tau$ is magnitude-blind. Caveat recorded;
+magnitude primaries and drift regression are the next protocol
+revision.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{val_precursors}
+\caption{E7. Left, center: sliding detrended queue variance over the
+pre-onset segment; feedback (red) rises toward ignition (dotted
+line), the matched control (blue) stays flat. Right: Kendall-$\tau$
+per arm against the committed model values (dashed).}
+\label{fig:prec}
+\end{figure}
+
+\section{E8 --- The separatrix under graded compound shocks}
+\textbf{Claim.} Bistability implies a basin boundary in the
+two-component state (backlog $B$, window junk $j$): a shock of size $f$
+(drop fraction $f$ of the backlog \emph{and} clean fraction $f$ of the
+window) either crosses it or falls back.
+
+\textbf{Design} (\commit{23e01ad}). Sequential protocol, state carried
+between arms exactly as on the rig (the E6 lesson); hold at
+$\rho=0.35$, deep in the wedge ($0.55$ was rejected in predictor
+design: cures spontaneously re-ignited 77\% of the time). Committed:
+$P(\mathrm{EXIT}\,|\,f) = 0.21/0.18/0.31/0.55/0.95$ across
+$f = 0/0.25/0.5/0.75/1$, separatrix $f^{*}=0.75$; ordering
+window-only $0.15 <$ backlog-only $0.61 <$ compound $0.95$.
+
+\textbf{Result} (\commit{b0e819c}; Fig.~\ref{fig:sep}). Monotone:
+PINNED, PINNED, AMBIG (backlog shrank, on the curve's rising edge),
+VOID at $0.75$ (the sequential design's known self-cure path,
+$\sim\!4\%$ in the model --- the one unscored point), EXIT at $1.0$
+($B \to 1$, stayed clean). The two-component asymmetry landed exactly:
+window-only decisively PINNED (the backlog regenerates the junk);
+backlog-only missed EXIT by one task ($B\;23 \to 0$ shock; the junky
+window rebuilt only 6); compound EXIT. Both falsifiers dodged. An
+attempt-1 run was lost to a 1\%-battery hibernation mid-phase and is
+archived; a battery monitor now guards long runs.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.62\textwidth]{val_separatrix}
+\caption{E8. The committed model curve with measured verdicts
+($\blacktriangledown$). At $f{=}1$ the vertical spread \emph{is} the
+two-component result: window-only (blue square) pins, backlog-only
+(amber) nearly exits, the compound exits.}
+\label{fig:sep}
+\end{figure}
+
+\section{E9 --- The $\alpha\times\theta$ cusp map and its spot-checks}
+\textbf{Claim.} Mean-field: bistability exists iff
+$\alpha(1+\theta) > 1$, closing on $\alpha^{*} = 1/(1+\theta)$.
+
+\textbf{Map} (\commit{23e01ad}; Fig.~\ref{fig:cusp}). Three scan
+generations taught the honest formulation: the wedge is
+\emph{horizon-dependent} (metastable escape times exceed any fixed
+protocol time deep in the wedge), so the committed map is drawn at the
+rig's own horizon (2100\,s) with E6 slope verdicts and bisection
+crossings. At that horizon the wedge appears between $\alpha = 0.15$
+and $0.20$ nearly $\theta$-independently --- where mean-field
+$\alpha^{*}$ sweeps $0.433 \to 0.160$ --- because the content channel
+holds the wedge open below the mean-field boundary (the E6
+state-resolution lesson, now as a map). Wedge width grows with both
+$\alpha$ and $\theta$, the direction cusp geometry predicts; the
+$\alpha{=}0$ artifact floor is localized at $\rho \gtrsim 0.94$, far
+from the $\alpha \ge 0.2$ wedges.
+
+\textbf{Spot-checks} (\commit{84a74c2} committed IGNITED/CALM/EXIT/
+PINNED at 81--87\% modal; result \commit{e678c7b}). Measured:
+IGNITED\,/\,IGNITED\,/\,PINNED\,/\,PINNED --- two clean confirmations
+(S1, S4, both deep in-region at true coordinates) and two unresolved:
+afternoon services ran 24.5--33\,s against the 25.2\,s planning
+constant, shrinking S2's designed margin from $0.12$ to $0.07$ and
+S3's from $0.20$ to $0.03$ --- inside the boundary's coin-flip band,
+where single-replicate verdicts decide nothing. The $\alpha$-motion
+claim ($l_{\mathrm{down}}$ moving $0.16 \to 0.75$ under an
+$\alpha$-quench $0.8 \to 0.2$) is not contradicted: S3 landed \emph{on}
+the moved boundary rather than clear of it. Re-run with live
+calibration is the recorded follow-up.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{val_cuspmap}
+\caption{E9. $l_{\mathrm{up}}$ (ignition) and $l_{\mathrm{down}}$
+(drain) vs $\alpha$ at three deadlines; shaded region = the bistable
+wedge at the rig horizon; dashed = mean-field $\alpha^{*}$. Stars: the
+four rig spots at their \emph{measured} true utilizations.}
+\label{fig:cusp}
+\end{figure}
+
+\section{E10/E10b --- A second architecture, lens-free}
+\label{sec:e10}
+\textbf{Claim.} The collapse is not an artifact of one model or of the
+lens instrument.
+
+\textbf{Setup.} Llama-3.1-8B-Instruct (4-bit) served by Ollama; no
+lens, no certification instrument --- correctness, lateness, and queue
+dynamics only. Weights came via the Ollama registry after the
+HuggingFace LFS edge throttled to $\sim\!48$\,kB/s. Directional
+predictions committed (\commit{76a111d}): P1 discontinuous collapse at
+some $l_c \le 1.05$ on the feedback arm; P2 down-branch pinning; P3 no
+runaway in the $\alpha{=}0$ control.
+
+\textbf{The scored burst run} (attempt 4, \commit{f80a06f}): P1
+\emph{failed} --- no load collapse to $l = 1.05$. The committed service
+profile localized why: post-cap exogenous tasks served uncached
+($\sim\!6.2$\,s) but repair offspring rode Ollama's prefix cache
+(sub-second) --- the cascade's re-entrant work was nearly free, so its
+branching stayed subcritical. The error channel still separated the
+arms decisively ($\Pu\;0.62$--$0.95$ vs control $0.08$--$0.33$), and
+the down-branch showed \emph{content} hysteresis without queue
+hysteresis ($\Pu = 0.95$ at $l=0.60$ against $0.62$ on the way up).
+
+\textbf{E10b, sustained pressure} (two-branch prediction committed,
+\commit{ce8d242}; result \commit{6754134}; Fig.~\ref{fig:llama}). Both
+arms pre-capped --- which removes the cache globally (truncation shifts
+the prefix every task; repairs $4.82$\,s $\approx$ exo $4.47$\,s), the
+correct correspondence to the always-uncached Qwen rig. Branch~A
+landed: the feedback arm ran away in the \emph{first} phase --- $B\;0
+\to 26$, $\Pu = 0.84$, at exogenous-only true $\rho = 0.79$, driven to
+an effective $\sim\!1.4$ by its own offspring --- while the control
+stayed clean through true $\rho = 0.84$, a \emph{higher} true load
+($B$ ending $0/0/1$; $\Pu \le 0.47$). Sub-capacity, feedback-specific
+collapse on a second model family with no instrument in the loop.
+
+\textbf{The pair's joint finding.} Same model, same feedback law:
+collapse in the uncached regime, none in the cache-subsidized regime.
+Prefix caching suppresses $\theta_{\mathrm{eff}}$ for re-entrant work,
+pushing $\alpha_{\mathrm{eff}}(1+\theta_{\mathrm{rep}})$ below the
+wedge condition --- \emph{a load-side gate, the dual of certification
+on the content side}. The serving stack's cost model is a control
+parameter of the transition; the theory predicts its own mitigation,
+and both sides of it were measured.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.7\textwidth]{val_secondmodel}
+\caption{E10b. Backlog trajectories: feedback (red) runs away within
+$\sim$50 tasks at exogenous true $\rho = 0.79$; the control (blue)
+stays bounded across all three phases up to true $\rho = 0.84$
+(phase boundaries dotted), showing near-critical congestion
+fluctuations but no collapse.}
+\label{fig:llama}
+\end{figure}
+
+\section{E11 --- The ingredients in production traces}
+\textbf{Question} (observational; analysis plan committed before
+running, \commit{c1ac8be}, corrected pass \commit{9a6ef19}; both
+results committed as-is). Are the rig's collapse ingredients present in
+real agentic operation? Data: 16 local Claude Code sessions with
+$\ge 50$ tool calls (22{,}792 tool\_use$\to$tool\_result pairs);
+aggregates only, no message content read.
+
+\textbf{Results} (Fig.~\ref{fig:prod}).
+\begin{itemize}
+  \item \emph{The feedback kernel is present:} $P(\text{error} \mid
+  \text{previous error}) = 0.078$ vs $P(\text{error} \mid \text{previous
+  ok}) = 0.021$ --- a $3.7\times$ conditional amplification
+  ($n = 514/22{,}262$ transitions).
+  \item \emph{Cascades are over-dispersed} against each session's own
+  geometric (iid) null: error runs $\ge 3$: 5 observed vs $\sim\!0.3$
+  expected.
+  \item \emph{The service law is present:} median LLM step latency
+  rises $3.6 \to 10.8$\,s across the context range (top bin
+  $n = 11{,}726$).
+  \item \emph{Honest null:} within-session error accumulation is flat
+  ($\sim\!0.02$ across progression deciles). Consistent with --- not
+  proof of --- the theory's \emph{gated} regime: these sessions have a
+  human certification gate in the loop, exactly where junk should not
+  accumulate. Pass-1 design errors (confounded context binning; tool
+  latency measured instead of LLM step latency) are reported and were
+  corrected in a separately pre-committed second pass.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{val_production}
+\caption{E11. Left: the production service law. Center: the feedback
+kernel. Right: cascade run-length counts against the iid null
+(log scale).}
+\label{fig:prod}
+\end{figure}
+
+\section{Program status and synthesis}
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Experiment & Claim & Verdict & Caveats \\
+\midrule
+E7 precursors & critical slowing down & \textbf{confirmed} (2/2 arms) &
+$\tau$ primary 1/2 pairs; drift-attributed \\
+E8 separatrix & basin boundary, 2-component & \textbf{confirmed} &
+$f{=}0.75$ point VOID (self-cure path) \\
+E9 cusp map & wedge structure in $(\alpha,\theta)$ & 2/4 spots clean &
+2 spots inside drift-shrunk margins \\
+E10b transfer & second architecture & \textbf{confirmed} &
+hysteresis (P2) not yet probed on Llama \\
+E10 pair & caching = load-side gate & \textbf{measured both sides} &
+--- \\
+E11 production & ingredients in the wild & 3 of 4 present &
+observational; gated-regime null \\
+\bottomrule
+\end{tabular}
+\caption{The Part-II program at a glance. Everything pre-registered;
+all data, predictions, diagnostics, and archived failures in the
+workspace repository (through commit \commit{2a1ce3e}).}
+\end{table}
+
+Together with Part I (E1--E6: the measured store/encoding/commitment
+architecture, loop-level collapse with hysteresis and two-component
+memory, the zero-fit quantitative closure, emergent-$\alpha$
+discrimination of re-consumption policies, and the gating threshold as
+state-resolved structure), the framework's load-side physics now has:
+the fold, its precursors, its basin boundary, its control surface, a
+second-architecture replication without the instrument, a measured
+architectural mitigation predicted by the theory itself, and its
+ingredient curves in production traces. The recorded open items ---
+an E9 spot re-run under live calibration, a Llama hysteresis probe,
+E8 seed 1, and independent replication --- are refinements, not gaps in
+the chain of evidence.
+
+\end{document}
