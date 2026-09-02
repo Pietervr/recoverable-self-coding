@@ -1,0 +1,176 @@
+%==============================================================================
+% poster.tex — Entropy 2026 conference poster (LaTeX / beamerposter)
+% 90 x 140 cm PORTRAIT. Official Entropy 2026 banner as the headline.
+% Content aligned to the PSF proceedings (information-theory spine + simulation).
+% Build:  pdflatex poster.tex  (run twice)   ->  poster.pdf (90x140 cm)
+%==============================================================================
+\documentclass[final]{beamer}
+\usepackage[orientation=portrait,size=custom,width=90,height=140,scale=1.10]{beamerposter}
+\usetheme{default}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\usepackage{qrcode}
+\usepackage{ragged2e}
+
+\graphicspath{{figures/}{../rsc_canon/figures/}{../adaptive_agency/figures/}}
+
+\definecolor{rscblue}{HTML}{1F4E79}
+\definecolor{rscred}{HTML}{C00000}
+\definecolor{rscredbg}{HTML}{FBEAEA}
+\definecolor{bargrey}{HTML}{2E5E5A}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{background canvas}{bg=white}
+\setbeamersize{text margin left=1.6cm, text margin right=1.6cm}
+
+% --- conference banner = full-width headline (flush to top) ---
+\setbeamertemplate{headline}{%
+  \includegraphics[width=\paperwidth]{conference_banner.jpg}%
+}
+
+% --- footer bar: conference + preprint priority ---
+\setbeamertemplate{footline}{%
+  \colorbox{bargrey}{\makebox[\paperwidth][c]{\rule{0pt}{2.2cm}%
+    \color{white}\large
+    \textbf{Entropy 2026 — Barcelona, 1--3 July 2026}\hspace{3cm}
+    \texttt{sciforum.net/event/Entropy2026}\hspace{3cm}
+    Preprint \texttt{doi:10.20944/preprints202601.0688}%
+  }}%
+}
+
+% --- block styles (blue framework / red constraint) ---
+\newtcolorbox{rblock}[1]{%
+  enhanced, breakable, colback=white, colframe=rscblue, coltitle=white,
+  fonttitle=\Large\bfseries, title={#1}, boxrule=1.2pt, arc=3mm,
+  left=6mm,right=6mm,top=4mm,bottom=4mm, toptitle=3mm,bottomtitle=3mm,
+  before skip=0mm, after skip=0mm}
+
+\newtcolorbox{constraintblock}{%
+  enhanced, colback=rscredbg, colframe=rscred, coltitle=rscred,
+  fonttitle=\LARGE\bfseries, title={THE RECOVERABILITY CONSTRAINT},
+  boxrule=2.4pt, arc=3mm, left=6mm,right=6mm,top=4mm,bottom=4mm,
+  toptitle=3mm,bottomtitle=3mm, before skip=0mm, after skip=0mm}
+
+\newcommand{\Rself}{R_{\mathrm{self}}}
+\newcommand{\Cself}{C_{\mathrm{self}}}
+\newlength{\colh}\setlength{\colh}{74cm}   % column body height (tune to fill)
+
+\begin{document}
+\begin{frame}[t]{}
+\vspace{0.2cm}
+
+% ---------------- title area ----------------
+\begin{center}
+{\huge\bfseries Entropy, Capacity, and the Continuity of Agency in Human--AI Systems}\\[4mm]
+{\LARGE\color{rscblue}\bfseries Recoverable Self-Coding (RSC): a rate--capacity law for recoverable action}\\[3mm]
+{\large Pieter van Rooyen\quad\textbullet\quad Department of Electrical and Electronic Engineering, Stellenbosch University\quad\textbullet\quad pgwvanrooyen@sun.ac.za}
+\end{center}
+\vspace{0.15cm}
+
+% ---------------- key-finding banner (lead with the result) ----------------
+\begin{center}
+{\Large\color{rscred}\bfseries Key finding: a finite-capacity decoder can stay fully accurate while losing the ability to \emph{undo} what it commits --- and the loss is measurable \emph{before} the irreversible crossing.}
+\end{center}
+\vspace{0.25cm}
+
+% ---------------- full-width essence figure (hero) ----------------
+\begin{center}
+\includegraphics[width=0.84\textwidth]{rsc_scenarios.pdf}\\[1.5mm]
+{\large\itshape The decoupling: above its certification-channel capacity, commitments stay \textbf{accurate yet unrecoverable}. Three levers keep action recoverable --- shape the rate, grow capacity, or \textbf{preserve reversibility (Lever 3), which holds even at $\mathrm{CR}>1$}.}
+\end{center}
+\vspace{0.3cm}
+
+\begin{columns}[t,totalwidth=\textwidth]
+
+% ======================= LEFT COLUMN =======================
+\begin{column}{0.485\textwidth}
+\large\justifying
+\begin{minipage}[t][\colh][t]{\linewidth}
+
+\begin{rblock}{INTRODUCTION \& AIM}
+AI routes ever more consequential decisions through the most efficient node, so oversight becomes \emph{formal rather than substantive} --- approvals still issue, but the ability to \textbf{undo} a commitment before harm erodes. Safety science long named this (migration to the boundary of safe operation; normal accidents), but lacked a \emph{measurable} order parameter for how close the irreversible crossing is.\\[3mm]
+{\color{rscblue}\bfseries A unifying instrument.} Decision tools (expected utility/RL, VaR/CVaR, real options, robust and safe-set control, AI safety), early-warning theory, and the congestion/admission/progressive-delivery levers each own a piece --- all built for the slow-rate regime where recoverability is free. \textbf{RSC unifies them into one rate-sensitive gauge of recoverability for irreversible action}, with a phase boundary and an early warning none supplies alone.\\[3mm]
+{\color{rscblue}\bfseries Shannon $\rightarrow$ recoverability.} Reliable decoding needs rate $<$ capacity. RSC generalizes this to \emph{action}: any \textbf{self-decoder} --- human, institution, or AI --- must hold induced informational flux $\Rself$ below integrative capacity $\Cself$, not for message reliability but for the \textbf{recoverability of irreversible commitments}.\\[3mm]
+AI now drives $\mathrm{CR}=\Rself/\Cself \to 1$ across whole domains at once, so the feasibility boundary $\Gamma$ is increasingly approached or crossed. \textbf{Recoverable Self-Coding (RSC)} is the instrument that gauges it (above).
+\end{rblock}
+
+\vfill
+
+\begin{rblock}{METHOD --- the RSC framework}
+Over a decision horizon $\Delta t$, two operational rates:\\[1.5mm]
+$\bullet$\ \ $\Rself(t)$ --- \textbf{induced informational flux}: the rate of unresolved uncertainty \emph{requiring certification} before commitment (not data rate, FLOPs, or tokens\,s$^{-1}$).\\[1.5mm]
+$\bullet$\ \ $\Cself(t)$ --- \textbf{integrative capacity}: the rate it can be certified and grounded --- throughput, buffering, coherence, validation latency; not just compute.\\[3mm]
+The Shannon condition $R<C$, generalized from message reliability to irreversible action:
+{\color{rscblue}\[ \Rself < \Cself \;\Longleftrightarrow\; \mathrm{CR}=\tfrac{\Rself}{\Cself}<1, \qquad \mathcal{M}=\Cself-\Rself\ge 0. \]}
+\textbf{Recoverability} is a \emph{trajectory} property, not a snapshot --- two identical states can differ in it through hidden certification debt. \textbf{Local invertibility} over $\Delta t$ is a \emph{mutual-information} condition $I(\delta E; Z)\ge\iota>0$: distinct causes stay distinguishable, enforced by a gate $q(t)\in[0,1]$ with bounded $\zeta=\tau_{\mathrm{cert}}/\tau_{\mathrm{upd}}$. Minimal thermodynamic bridge --- each irreversible commitment dissipates $\ge k_BT\ln 2$ per erased bit (Landauer).\\[3mm]
+{\color{rscblue}\bfseries The mathematics is a queue.} The uncertified-commitment backlog is a single-server \textbf{certification queue}; $\mathrm{CR}<1$ is its stability boundary, and Shannon's $R<C$ meets queue stability through the established theory of \textbf{effective bandwidth / effective capacity}. The contribution is the \emph{reframing} --- recoverability of irreversible action as the binding constraint, measurable from counts --- not the queueing mathematics. Under acceleration the dominant failure is \textbf{premature commitment} --- acting while the situation is still unresolved, merely to relieve overload.
+\end{rblock}
+
+\vfill
+
+\begin{constraintblock}
+Irreversible action is admissible \textbf{only if both:}
+\begin{enumerate}
+  \item[\textbf{(i)}] $\mathcal{M}(t)\ge 0$ on the relevant horizon (no sustained overload), \textbf{and}
+  \item[\textbf{(ii)}] local invertibility holds over $\Delta t$.
+\end{enumerate}
+\vspace{2mm}
+If either fails, irreversible action causes \emph{path-dependent contraction of future option space} that later evidence cannot undo. The admissible response is then \textbf{structural}, not ``optimize harder'': \textbf{defer $\cdot$ repeat-first $\cdot$ escalate $\cdot$ suppress}. CR and SR are \emph{diagnostics, not objectives} --- making SR a target games it (Goodhart) without restoring recoverability.
+\end{constraintblock}
+
+\end{minipage}
+\end{column}
+
+% ======================= RIGHT COLUMN =======================
+\begin{column}{0.485\textwidth}
+\large\justifying
+\begin{minipage}[t][\colh][t]{\linewidth}
+
+\begin{rblock}{RESULTS --- accuracy holds, recoverability fails}
+\textbf{Stability ratio} $\mathrm{SR}=\dot N_{\mathrm{uncert}}/\dot N_{\mathrm{cert}}$ --- the uncertified-to-certified commitment ratio, read from counts. In the queue's decay exponent $\theta^\star$ it has the exact closed form $\mathrm{SR}=e^{-\theta^\star\Delta t}/(1-e^{-\theta^\star\Delta t})$, diverging as $(1-\mathrm{CR})^{-1}$ at $\Gamma$ --- the effective-bandwidth heavy-traffic limit, universal across arrival and service distributions.\\[4mm]
+\centering\includegraphics[width=0.80\linewidth]{rsc_early_warning.pdf}\\[2mm]
+\justifying
+\textbf{The early warning.} Fluctuations diverge \emph{faster} than the mean --- $(1-\mathrm{CR})^{-2}$ vs $(1-\mathrm{CR})^{-1}$ --- so the microstate signal (cyan) crosses the alarm \emph{before} the macrostate outcome (navy) does: that gap is the \textbf{lead time} to act (stage / flag / canary). In a simulation driven across $\Gamma$, \textbf{accuracy stays at 0.90 while recoverability collapses $0.75\!\to\!0.05$} --- the decoupling --- both diagnostics read from observable counts.\\[3mm]
+{\color{rscblue}\bfseries From exception to norm.} Sustained overload ($\mathrm{CR}>1$) was a pathological exception --- overwhelm, breakdown, reached only under acute stress. AI makes it the \emph{default}, so the imperative is to measure the \emph{trajectory} toward $\Gamma$ \emph{before} the irreversible crossing.
+\end{rblock}
+
+\vfill
+
+\begin{rblock}{WHAT IT ENABLES}
+{\color{rscblue}\bfseries Admissibility before optimization} --- the hazard is not being wrong but crossing an irreversibility boundary. RSC turns recoverability into:
+\begin{itemize}
+  \item an \textbf{instrument} --- monitor $\mathrm{CR}$, $\mathrm{SR}$ live from observable counts (queue depth, uncertified:certified); early warning before $\Gamma$;
+  \item a \textbf{controller} --- the rate-shaping policy $\{$defer $\cdot$ repeat-first $\cdot$ escalate $\cdot$ suppress$\}$: reduce flux, grow capacity, or gate commitment;
+  \item a complement to \textbf{uncertainty quantification} --- UQ says \emph{how uncertain}; RSC says \emph{whether to act irreversibly} on it.
+\end{itemize}
+\vspace{1mm}
+The instrument applies wherever AI compresses the loop between inference and irreversible action: a \textbf{recoverability governor} for autonomous agents; a \textbf{pacing} criterion for deployment and online learning (hold $\mathrm{CR}<1$ as throughput scales); a \textbf{design principle} of option-preserving architectures. One language for humans, institutions, and AI --- agency erosion under AI is a \emph{structural} feasibility failure, not a personal one.
+\end{rblock}
+
+\vfill
+
+\begin{rblock}{FUTURE WORK \& REFERENCES}
+\begin{minipage}[c]{0.7\linewidth}
+\normalsize
+\textbf{Delivered in the companion Entropy Special Issue.} The boundary law from effective-bandwidth theory; universality of the $(1-\mathrm{CR})^{-1}$ exponent; count-based estimators with an early-warning detector; the independent capacity and invertibility axes; and field signatures consistent with the prediction (honestly scoped) in GitHub and Wikipedia histories.\\[2mm]
+\textbf{Open.} Closed-loop rate-shaping control; estimating the invertibility MI from field data; a controlled regime-transition experiment.\\[2mm]
+\textbf{Preprint / priority:} van Rooyen (2026), \emph{Entropy, Annealing, and the Continuity of Agency in Human--AI Systems}, Preprints.org \texttt{doi:10.20944/preprints202601.0688}. An independent treatment reaching the same thesis (Shu \& Wei, \texttt{arXiv:2605.01415}) appeared \emph{after} this Jan-2026 preprint.
+\end{minipage}\hfill
+\begin{minipage}[c]{0.26\linewidth}
+\centering
+\qrcode[height=4.5cm]{https://raconteur-road.com/papers/}\\[2mm]
+{\normalsize Scan $\rightarrow$ paper, poster \& talk}
+\end{minipage}
+\end{rblock}
+
+\end{minipage}
+\end{column}
+\end{columns}
+\end{frame}
+\end{document}
