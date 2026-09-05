@@ -22,9 +22,16 @@ out of range:
            = sum of excursion durations / T
 
 CR is read from rates and SR from occupancy, so their agreement with the
-queueing law SR = CR/(1-CR) is a genuine test of M/M/1-like structure, not an
-algebraic identity (overlapping excursions push L above the load; independent
-ones do not).
+queueing law SR = CR/(1-CR) would be a genuine test of single-server structure,
+not an algebraic identity (overlapping excursions push L above the load;
+independent ones do not). NOTE (proceedings revision 1, Sep 2026): the
+physiological restoration process is parallel (infinite-server), so the paper
+does NOT apply the single-server law to these data; it uses the RATES only.
+CR here is a descriptive load ratio -- R_self = onsets / observation span,
+C_self = restorations / union-busy time -- and exceeds 1 only when counted
+excursions remain unresolved at series end (its value depends on the
+observation and censoring scheme). R_self = C_self is a reference line, not a
+stability boundary.
 
 Why v2: the earlier SR = N_uncert/N_cert evaluated at a fixed horizon Delta t is
 a survival ratio ~ exp(-mu*Delta t)/(1-...), i.e. Delta-t dependent and not

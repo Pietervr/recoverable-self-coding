@@ -19,21 +19,23 @@ Revision-1 statistical protocol (referee request):
     t-based confidence intervals over replications reported in the figure;
   * the coupled-accuracy parameters (p_hi, p_lo) are no longer two fixed
     numbers: panel (c) sweeps p_lo at fixed p_hi and at two loads, mapping
-    when accuracy falls before/with/after recoverability. The structural
-    finding: coupled accuracy is bounded below by p_lo by construction
-    (accuracy -> Pc*p_hi + (1-Pc)*p_lo >= p_lo), while recoverability
-    collapses toward 0 REGARDLESS of (p_hi, p_lo); the ordering is therefore
-    not an artefact of the chosen probabilities.
+    how the two quantities separate. The structural finding: coupled
+    accuracy is bounded below by p_lo by construction
+    (accuracy -> Pc*p_hi + (1-Pc)*p_lo >= p_lo), while recoverability is set
+    by load alone (independent of p_hi, p_lo by construction). For p_lo>0
+    the floor separates them; for p_lo=0 both vanish at CR=1, accuracy at
+    O(1-CR) and recoverability at O((1-CR)^2) in the stationary limit.
 
 Panel (a) -- the accuracy/recoverability decoupling (independent and coupled
 models, the latter at the reference point p_hi=0.95, p_lo=0.85).
 Panel (b) -- the boundary law SR (mean backlog occupancy via Little's law)
-under three arrival/service laws: the (1-CR)^-1 exponent is distribution-free,
-the Kingman prefactor (c_a^2+c_s^2)/2 is not.
+under three arrival/service laws: the (1-CR)^-1 exponent is shared across the
+finite-variance heavy-traffic class, the Kingman prefactor (c_a^2+c_s^2)/2 is not.
 Panel (c) -- the coupling sweep.
 
 The shaded admissible region in panel (a) is DERIVED from the horizon law:
-per-commitment recoverability Pc = 1-exp(-M*Dt) >= 1/2 iff
+per-commitment FIRST-PASS certification success Pc = 1-exp(-M*Dt) >= 1/2 iff
+(the plotted recoverability is the smaller two-pass quantity Pc*P(corr<=H))
 M >= ln2/Dt, i.e. CR <= 1 - ln2/(mu*Dt) (= 0.827 for mu=1, Dt=4).
 
 Outputs rsc_simulation.pdf next to this file, and prints the summary numbers

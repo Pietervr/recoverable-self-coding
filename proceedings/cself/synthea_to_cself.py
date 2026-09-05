@@ -105,7 +105,7 @@ def main() -> None:
           f"analytes={labs['code'].nunique()}")
     events = build_events(a.data)
     m = est.per_patient_metrics(labs, events, make_config())
-    print(f"units placed on the regime map: {len(m):,}")
+    print(f"units placed on the rate plot: {len(m):,}")
 
     feasible = (m["R_self"] < m["C_self"]).mean()
     m[["C_self", "R_self", "CR", "SR"]].to_csv(a.out, index=False)

@@ -8,10 +8,13 @@ database's OWN per-assay reference bands (labevents.ref_range_lower/upper, taken
 as the median per itemid) rather than the textbook ranges used for Synthea.
 
 Reproduces the numbers in the paper:
-    units on the regime map .......... 78 / 100
+    units on the rate plot ........... 78 / 100
     degenerate in either rate ........ 0
-    below the feasibility boundary ... ~45%   (vs ~90% for ambulatory Synthea)
-    median CR ........................ ~1.02  (the boundary itself)
+    below the R_self = C_self line ... ~45%   (vs ~90% for ambulatory Synthea)
+    median CR ........................ ~1.02  (near the reference line)
+
+CR is a descriptive load ratio here (parallel restoration process); the
+R_self = C_self line is a reference marker, not a stability boundary.
 
 Only aggregates are printed; no patient rows are emitted.
 
@@ -134,12 +137,12 @@ def main() -> None:
     m = m[np.isfinite(m["CR"]) & np.isfinite(m["C_self"]) & np.isfinite(m["R_self"])]
     margin = m["C_self"] - m["R_self"]
 
-    print(f"\nunits on the regime map: {len(m)}")
+    print(f"\nunits on the rate plot: {len(m)}")
     for col in ["R_self", "C_self", "CR"]:
         x = m[col].to_numpy()
         print(f"  {col:7s} median={np.median(x):9.3f}   "
               f"IQR=[{np.percentile(x, 25):.3f}, {np.percentile(x, 75):.3f}]")
-    print(f"  below the feasibility boundary (M >= 0): "
+    print(f"  below the R_self = C_self line (M >= 0): "
           f"{(margin >= 0).mean():.1%}  ({int((margin >= 0).sum())}/{len(m)})")
     print(f"  degenerate (R_self == 0 or C_self == 0): "
           f"{int(((m['R_self'] == 0) | (m['C_self'] == 0)).sum())}")
