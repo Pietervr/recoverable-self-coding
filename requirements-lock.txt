@@ -1,0 +1,8 @@
+# Exact environment that generated every figure and reported number of the
+# proceedings paper at tag proceedings-v2.1 (regenerated 2026-09-05).
+# requirements.txt keeps the minimum-version floors for general use; this file
+# records the versions actually executed, for reproduction of the paper.
+# Python 3.14.2
+numpy==2.4.1
+matplotlib==3.10.8
+pandas==3.0.0

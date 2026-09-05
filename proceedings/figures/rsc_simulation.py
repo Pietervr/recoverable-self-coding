@@ -6,16 +6,17 @@ lambda and must be certified by a single server (rate mu=1); utilization
 rho = lambda/mu = CR. Waiting times follow the Lindley recursion. A commitment is
 *certified* (traceable) if its sojourn (wait+service) falls below the
 certification horizon Dt, and is committed *uncertified* otherwise.
-RECOVERABILITY is the chance an erroneous commitment can still be reversed: it
-must be certified (traceable) AND a correction pass must complete within the
-option-loss window H.
+RECOVERABILITY is the availability of a correction opportunity: the commitment is
+certified (traceable) AND a corrective pass completes within the option-loss
+window H. It is scored independently of whether the commitment proves wrong -- a
+correctness-agnostic, conservative capacity measure.
 
 Revision-1 statistical protocol (referee request):
   * warm-up deletion: the first WARMUP commitments of every replication are
     discarded before any estimate (the queue starts empty; near CR=1 the
     relaxation is slow and retaining the transient biases occupancy downward);
-  * REPS independent replications per load for BOTH panels, with 95% normal
-    confidence intervals over replications reported in the figure;
+  * REPS independent replications per load for BOTH panels, with 95%
+    t-based confidence intervals over replications reported in the figure;
   * the coupled-accuracy parameters (p_hi, p_lo) are no longer two fixed
     numbers: panel (c) sweeps p_lo at fixed p_hi and at two loads, mapping
     when accuracy falls before/with/after recoverability. The structural
@@ -109,8 +110,12 @@ def point_stats(rng, rho, phi=p_hi, plo=p_lo):
 
 
 def ci95(a, axis=0):
+    # Small-sample interval: with REPS=12 replications the estimated-variance
+    # 95% interval uses Student's t, t_{11,0.975}=2.201 (not the normal 1.96).
     a = np.asarray(a)
-    return 1.96 * a.std(axis=axis, ddof=1) / np.sqrt(a.shape[axis])
+    n = a.shape[axis]
+    tcrit = 2.201 if n == 12 else 1.96
+    return tcrit * a.std(axis=axis, ddof=1) / np.sqrt(n)
 
 
 # =====================================================================

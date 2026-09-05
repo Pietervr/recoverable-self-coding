@@ -35,9 +35,9 @@ ax1.grid(alpha=0.25)
 
 # (b) measured feasibility margin M = C_self - R_self
 hi = float(max(C.max(), R.max())) * 1.02
-ax2.fill_between([0, hi], [0, hi], 0, color="#2E7D32", alpha=0.07)   # feasible region R<C
+ax2.fill_between([0, hi], [0, hi], 0, color="#2E7D32", alpha=0.07)   # R<C region (reference, not a stability boundary: infinite-server)
 ax2.scatter(C[feasible], R[feasible], s=6, alpha=0.30, color="#1F4E79",
-            edgecolors="none", label=r"$R_{\mathrm{self}}<C_{\mathrm{self}}$ (feasible)")
+            edgecolors="none", label=r"$R_{\mathrm{self}}<C_{\mathrm{self}}$")
 ax2.scatter(C[~feasible], R[~feasible], s=6, alpha=0.35, color="#C00000",
             edgecolors="none", label=r"$R_{\mathrm{self}}\geq C_{\mathrm{self}}$")
 ax2.plot([0, hi], [0, hi], "-", color="k", lw=1.2, label=r"$R_{\mathrm{self}}=C_{\mathrm{self}}$")
