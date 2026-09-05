@@ -9,7 +9,8 @@ certification horizon Dt, and is committed *uncertified* otherwise.
 RECOVERABILITY is the availability of a correction opportunity: the commitment is
 certified (traceable) AND a corrective pass completes within the option-loss
 window H. It is scored independently of whether the commitment proves wrong -- a
-correctness-agnostic, conservative capacity measure.
+correctness-agnostic opportunity measure, not a bound on recovery conditional
+on error.
 
 Revision-1 statistical protocol (referee request):
   * warm-up deletion: the first WARMUP commitments of every replication are
