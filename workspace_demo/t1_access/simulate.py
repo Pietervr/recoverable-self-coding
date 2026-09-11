@@ -177,8 +177,9 @@ def one_replicate(name: str, kwargs: dict, rep: int, D: int, layers, rho: float,
 
 
 def run_points(points: list, n_rep: int, D: int, layers, rho: float, cfg: A.Config, seed: int, n_jobs: int,
-               out_csv: str, extras: dict | None = None, chunk: int = 32):
-    """Runs every (point, rep) through one_replicate, appending rows to out_csv as chunks complete."""
+               out_csv: str, extras: dict | None = None, chunk: int = 32, on_chunk=None):
+    """Runs every (point, rep) through one_replicate, appending rows to out_csv as chunks complete.
+    on_chunk(out_csv, n_done, n_total, elapsed_seconds) is called after every chunk is written."""
     from joblib import Parallel, delayed
     tasks = [(name, kw, r) for (name, kw) in points for r in range(n_rep)]
     done = set()
@@ -202,6 +203,8 @@ def run_points(points: list, n_rep: int, D: int, layers, rho: float, cfg: A.Conf
                 w.writeheader()
             w.writerows(rows)
         print(f"  {i + len(batch)}/{len(tasks)} done, {(_time.time() - t0) / 60:.1f} min", flush=True)
+        if on_chunk is not None:
+            on_chunk(out_csv, len(done) + i + len(batch), len(done) + len(tasks), _time.time() - t0)
 
 
 # ----------------------------------------------------------------------------------------------
@@ -273,6 +276,25 @@ def calibrate_gain(name: str, target: float, kwargs: dict, lo: float = 0.02, hi:
     return dict(scale=mid, gain=gm, trace=trace, note="bisection limit")
 
 
+GAIN_KWARGS = {"M3": {}, "M3H": dict(tau=0.5), "M3V": {}, "M3L": dict(pi0=0.05)}   # the §10 alternatives' base
+
+
+def _one_gain(name, target, seed, cfg):
+    kw = GAIN_KWARGS[name]
+    r = calibrate_gain(name, target, kw, seed=seed, cfg=cfg)
+    return dict(generator=name, kwargs=kw, target=target, scale=r["scale"], gain=r["gain"],
+                note=r.get("note", ""), trace=r["trace"])
+
+
+def calibrate_all_gains(seed: int, cfg: A.Config, n_jobs: int = 1, names=M.FAMILY_X) -> list:
+    """The twelve §10 gain calibrations (four mixture members x three gains), optionally in parallel."""
+    jobs = [(n, t) for n in names for t in GAINS]
+    if n_jobs > 1:
+        from joblib import Parallel, delayed
+        return Parallel(n_jobs=n_jobs)(delayed(_one_gain)(n, t, seed, cfg) for n, t in jobs)
+    return [_one_gain(n, t, seed, cfg) for n, t in jobs]
+
+
 def power_points(gain_file: str) -> tuple:
     """Alternatives for §10 from a calibrated-gain JSON: [(name, kwargs-with-scale)], extras per point."""
     with open(gain_file) as fh:
@@ -312,18 +334,14 @@ def main():
             print(summarize(a.out, p).to_string())
         return
     if a.task == "gain":
-        out = []
         names = M.FAMILY_X if a.generators is None else tuple(a.generators.split(","))
-        for name in names:
-            kw = dict(tau=0.5) if name == "M3H" else (dict(pi0=0.05) if name == "M3L" else {})
-            for target in GAINS:
-                t0 = _time.time()
-                r = calibrate_gain(name, target, kw, seed=a.seed, cfg=cfg)
-                out.append(dict(generator=name, kwargs=kw, target=target, scale=r["scale"], gain=r["gain"],
-                                note=r.get("note", ""), trace=r["trace"]))
-                print(f"{name} target {target}: scale {r['scale']:.4f} gain {r['gain']:.5f} ({(_time.time()-t0)/60:.1f} min) {r.get('note','')}", flush=True)
-                with open(a.gain_file, "w") as fh:
-                    json.dump(out, fh, indent=1, default=float)
+        t0 = _time.time()
+        out = calibrate_all_gains(a.seed, cfg, n_jobs=min(a.n_jobs, 12), names=names)
+        with open(a.gain_file, "w") as fh:
+            json.dump(out, fh, indent=1, default=float)
+        for e in out:
+            print(f"{e['generator']} target {e['target']}: scale {e['scale']:.4f} gain {e['gain']:.5f} {e['note']}", flush=True)
+        print(f"gain calibration: {(_time.time() - t0) / 60:.1f} min on {min(a.n_jobs, 12)} workers", flush=True)
         return
     if a.task == "recovery":
         points = recovery_points()
