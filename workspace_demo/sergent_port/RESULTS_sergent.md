@@ -185,6 +185,23 @@ as the Methods describe — README D14 for the alternative reading of the script
   Information, which I do not have, so the comparison here is against the paper's prose claim of
   bifurcation dynamics without report, not against a published passive Fig. 3E.
 
+*Supplementary Information check (Entropy session, 2026-09-11; SI downloaded from the article's
+static-content link, 11 pp., saved beside the data as `brain_data/sergent2021/sergent2021_SI.pdf`).*
+**The SI contains no passive model comparison.** Its only passive figure, Supplementary Fig. 4, shows
+group topographies plus the mean and SD profiles of projected activity over temporal electrodes for
+six windows (0–600 ms), with no statistic in the caption; the word "model" occurs in the SI only in
+Supplementary Fig. 2's "Models predictions" panel (active session). Two consequences for the verdicts
+above: (i) the passive **variance burst** in the paper's own figure is small — excess SD of roughly
+0.04–0.08 at −7/−5 dB in the 300–400 ms window, with SEM bands of comparable width — which is the
+same magnitude and direction the port finds (0.05–0.08, maximum at −5/−3 dB), so "not reproduced as a
+significant effect" should read: *consistent with Supplementary Fig. 4 in size and direction; the paper
+reports no test for it, and the port's rmANOVA finds it non-significant*; (ii) the passive **Bayesian
+model comparison is not a non-reproduction but a new result** — the paper never ran or reported it for
+the passive session, and when run it favours the unimodal model. The paper's "bifurcation dynamics
+without report" claim therefore rests on the passive mean/SD profiles and on Fig. 5, not on a model
+comparison; for the Entropy study the active (report) session is the reference condition and the
+passive condition is exploratory.
+
 *Sensitivity to the training level (README D14).* Re-running S11–S20 with the decoder trained on
 level 6 (−5 dB) and the level-7 trials excluded, as the literal script section would have it
 (`results/bms_passive_max6.csv`): the unimodal model still wins every window from 165 to 645 ms
@@ -229,7 +246,7 @@ fits on cross-validated evidence differences of a few tenths of a nat per subjec
 | C6 group BMS, active: null → unimodal → **bifurcation > 0.95 for 250–700 ms** → unimodal 700–900 ms | reproduced (bifurcation 315–645 ms, > 0.95 in 10/12 windows; robust core 315–550 ms) |
 | C7 passive: mean profiles non-linear | reproduced |
 | C7 passive: variance burst shifted to −7/−5 dB | not reproduced as a significant effect (weak, right direction) |
-| C7 passive: bifurcation dynamics without report (model comparison) | **not reproduced** — unimodal model wins 225–645 ms, in both training-level variants |
+| C7 passive: bifurcation dynamics without report (model comparison) | **new result, not a non-reproduction** (SI check: the paper reports no passive model comparison) — when run, the unimodal model wins 225–645 ms, in both training-level variants |
 | C8 robustness of C6 to the decoder solver | core stable; period edges move by 1–2 windows |
 
 ## What I could NOT verify, and why
