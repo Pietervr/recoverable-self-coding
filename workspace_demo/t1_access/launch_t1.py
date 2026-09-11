@@ -40,7 +40,7 @@ def upload_code(s3):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--task", choices=["calibration", "power", "recovery", "gain"])
+    ap.add_argument("--task", choices=["calibration", "power", "recovery", "gain", "bench"])
     ap.add_argument("--n-rep", type=int, default=1000)
     ap.add_argument("--D", type=int, default=4)
     ap.add_argument("--layers", default="41")
@@ -73,7 +73,8 @@ def main():
         ap.error("--task is required")
     results_uri = f"{RESULTS_ROOT}{a.run}/"
     env = {"TASK": a.task, "N_REP": str(a.n_rep), "D": str(a.D), "LAYERS": a.layers, "SEED": str(a.seed),
-           "RESULTS_URI": results_uri, "NPROC": "1"}
+           "RESULTS_URI": results_uri, "NPROC": "1", "OMP_NUM_THREADS": "1", "OPENBLAS_NUM_THREADS": "1",
+           "MKL_NUM_THREADS": "1"}
     if a.generators:
         env["GENERATORS"] = a.generators
     if a.n_jobs:

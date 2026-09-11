@@ -72,6 +72,37 @@ def main():
     cfg = A.Config()
     t0 = time.time()
 
+    if TASK == "bench":
+        # instance benchmark: is one fit single-threaded (CPU == wall)? how does throughput scale with workers?
+        import numpy as np
+        from joblib import Parallel, delayed
+        log(f"env NPROC={os.environ.get('NPROC')} OMP_NUM_THREADS={os.environ.get('OMP_NUM_THREADS')} "
+            f"OPENBLAS_NUM_THREADS={os.environ.get('OPENBLAS_NUM_THREADS')} MKL_NUM_THREADS={os.environ.get('MKL_NUM_THREADS')} cpu_count={os.cpu_count()}")
+        ds = S.make_dataset("M3H", S.generator_theta("M3H", tau=0.5, sep=2.0), n_per_family=8, D=D, layers=(41,), rho=0.9, seed=1)
+        folds = A.stratified_folds(ds.family, 5, seed=1)
+        train_c = np.setdiff1d(np.arange(ds.n_concepts), folds[0])
+        train = A._subset(ds.y[:, 0], ds.k, ds.concept, train_c)
+
+        def one_fit(i, member="M3H"):
+            M.fit(member, train, cfg.n_gh, 1, np.random.default_rng(i), recovery=False)      # warm-up (compile)
+            c0 = os.times(); w0 = time.time()
+            M.fit(member, train, cfg.n_gh, M.N_STARTS, np.random.default_rng(i), recovery=False)
+            w = time.time() - w0; c1 = os.times()
+            return w, (c1.user - c0.user) + (c1.system - c0.system)
+        w, c = one_fit(0)
+        log(f"single process M3H fit: wall {w:.1f} s, cpu {c:.1f} s, ratio {c / w:.2f}")
+        for n in sorted({48, 96, min(192, os.cpu_count()), N_JOBS}):
+            w0 = time.time()
+            res = Parallel(n_jobs=n)(delayed(one_fit)(i) for i in range(n))
+            walls = np.array([r[0] for r in res]); cpus = np.array([r[1] for r in res])
+            log(f"{n} concurrent M3H fits: mean wall {walls.mean():.1f} s (max {walls.max():.1f}), mean cpu {cpus.mean():.1f} s, "
+                f"round wall {time.time() - w0:.1f} s, throughput {n / walls.mean():.3f} fits/s")
+        w0 = time.time()
+        r = A.layer_pipeline(ds.y[:, 0], ds.k, ds.concept, ds.family, folds, cfg, seed=1, layer_tag=41)
+        log(f"one layer of the full §8 procedure, single process: {time.time() - w0:.0f} s, convergence {r['converged'].mean():.3f}")
+        log(f"bench done in {(time.time() - t0) / 60:.1f} min")
+        return
+
     if TASK in ("gain", "power"):
         gain_local = os.path.join(WORK, "gain_calibration.json")
         if s3_download("gain_calibration.json", gain_local):
