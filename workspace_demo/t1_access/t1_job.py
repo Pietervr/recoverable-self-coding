@@ -34,8 +34,10 @@ LAYERS = tuple(int(x) for x in os.environ.get("LAYERS", "41").split(","))
 SEED = int(os.environ.get("SEED", "2026"))
 GENERATORS = os.environ.get("GENERATORS") or None
 N_JOBS = int(os.environ.get("N_JOBS") or os.cpu_count())
+SHARD = int(os.environ.get("SHARD", "0"))          # this job takes every N_SHARDS-th (point, replicate) task
+N_SHARDS = int(os.environ.get("N_SHARDS", "1"))
 RESULTS_URI = os.environ["RESULTS_URI"].rstrip("/") + "/"
-WORK = "/opt/ml/sim_results"
+WORK = "/opt/ml/checkpoints" if os.path.isdir("/opt/ml/checkpoints") else "/opt/ml/sim_results"   # spot: synced to S3 by SageMaker too
 OUT_DIR = "/opt/ml/output/data"
 os.makedirs(WORK, exist_ok=True)
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -64,7 +66,8 @@ def main():
     import analyze as A
     import models as M
     import simulate as S
-    log(f"task={TASK} n_rep={N_REP} D={D} layers={LAYERS} seed={SEED} generators={GENERATORS} n_jobs={N_JOBS}")
+    log(f"task={TASK} n_rep={N_REP} D={D} layers={LAYERS} seed={SEED} generators={GENERATORS} n_jobs={N_JOBS} "
+        f"shard={SHARD}/{N_SHARDS}")
     log(subprocess.run([sys.executable, "-c", "import jax, numpy, scipy, pandas, joblib, platform; "
                         "print('jax', jax.__version__, 'numpy', numpy.__version__, 'scipy', scipy.__version__, "
                         "'pandas', pandas.__version__, 'joblib', joblib.__version__, platform.platform(), platform.machine())"],
@@ -132,6 +135,8 @@ def main():
     if GENERATORS:
         keep = set(GENERATORS.split(","))
         points = [p for p in points if p[0] in keep]
+    if N_SHARDS > 1:
+        csv_name = csv_name.replace(".csv", f".shard{SHARD:02d}of{N_SHARDS:02d}.csv")
 
     out_csv = os.path.join(WORK, csv_name)
     if s3_download(csv_name, out_csv):
@@ -149,7 +154,7 @@ def main():
         log(f"{n_done}/{n_total} rows, {prog['rate_per_hour']} per hour, eta {prog['eta_hours']} h")
 
     S.run_points(points, N_REP, D, LAYERS, S.RHO_LAYERS, cfg, SEED, N_JOBS, out_csv, extras,
-                 chunk=max(N_JOBS, 32), on_chunk=on_chunk)
+                 chunk=N_JOBS, on_chunk=on_chunk, shard=(SHARD, N_SHARDS))
     summ = S.summarize(out_csv)
     summ_path = os.path.join(WORK, csv_name.replace(".csv", "_summary.csv"))
     summ.to_csv(summ_path, index=False)

@@ -82,8 +82,14 @@ N_STARTS = 8
 N_STARTS_RECOVERY = 16
 LBFGSB_OPTIONS = dict(ftol=1e-10, gtol=1e-6, maxiter=2000)
 GH_NODES_DEFAULT = 20            # adaptive GH; provisional until the §7.4 rule is run on CAL/PILOT (10 -> 20 -> 40)
-NEWTON_STEPS = 8                 # damped Newton steps to the per-concept posterior mode (unrolled, differentiable)
+NEWTON_STEPS = 4                 # safeguarded Newton steps from the grid start (unrolled, differentiable); 4 = 6 on the grid
 NEWTON_MAX_STEP = 3.0            # in units of tau, per step
+GRID_POINTS = 9                  # coarse grid start for the mode: 9 points over ±GRID_HALFWIDTH tau (spacing tau)
+GRID_HALFWIDTH = 4.0
+TRAP_POINTS = 96                 # trapezoid rule per concept on [u_hat - TRAP_HALFWIDTH s_hat, u_hat + TRAP_HALFWIDTH s_hat]
+                                 # (2026-09-11 grid check vs dense quadrature: <= 6e-7 nat everywhere but the truncated
+                                 # posteriors of M2H at tau = 2, where 64 points leave 0.6 nat and 96 leave 0.02)
+TRAP_HALFWIDTH = 6.0             # s_hat is floored at tau, so a flat-likelihood concept gets the prior's whole range
 M3V_FLOOR_FRACTION = 0.05
 PAD_MULTIPLE = 512               # trial arrays are padded to a multiple of this so that jit caches are reused
 
@@ -277,7 +283,16 @@ def gh_nodes(n: int):
 
 
 def _agh_centre(member: Member, theta, y, k, cidx, mask, floor, n_concepts: int):
-    """Per-concept mode u_hat and Laplace scale s_hat of the log-posterior in the random effect."""
+    """Per-concept mode u_hat and Laplace scale s_hat of the log-posterior in the random effect.
+
+    The log-likelihood in u is exponential-shaped for a scale effect and logistic-saturating for a
+    threshold effect, so Newton from u = 0 crawls (a step of about one unit per iteration) when a
+    concept's effect sits several tau out — at tau = 2 eight plain steps left errors of tens of nat.
+    Hence: a coarse grid start (GRID_POINTS over ±GRID_HALFWIDTH tau, the argmax per concept), then
+    NEWTON_STEPS safeguarded Newton steps, each taking the best of the full, half and quarter step and
+    staying put if none improves the log-posterior. Everything is `where`-selected, so the gradient of
+    the objective flows through the selected points exactly.
+    """
     tau = jnp.exp(theta[member.re_index])
     prec = 1.0 / tau ** 2
     seg = lambda v: jax.ops.segment_sum(v, cidx, num_segments=n_concepts, indices_are_sorted=True)
@@ -286,6 +301,9 @@ def _agh_centre(member: Member, theta, y, k, cidx, mask, floor, n_concepts: int)
         return jnp.sum(member.loglik(theta, y, k, u_trial, floor) * mask)
     grad_f = jax.grad(f)
 
+    def logpost(u_c):                                              # per-concept log-posterior (unnormalised)
+        return seg(member.loglik(theta, y, k, u_c[cidx], floor) * mask) - 0.5 * u_c ** 2 * prec
+
     def curv(u_c):
         u_trial = u_c[cidx]
         g, h = jax.jvp(grad_f, (u_trial,), (jnp.ones_like(u_trial),))   # h = diag of the (diagonal) Hessian
@@ -293,14 +311,33 @@ def _agh_centre(member: Member, theta, y, k, cidx, mask, floor, n_concepts: int)
         H = jnp.minimum(seg(h) - prec, -prec)                            # never flatter than the prior
         return G, H
 
-    def newton(u_c, _):
+    grid = jnp.linspace(-GRID_HALFWIDTH, GRID_HALFWIDTH, GRID_POINTS) * tau                  # (G,)
+    lp_grid = jax.vmap(lambda g: logpost(jnp.full((n_concepts,), g)))(grid)                    # (G, C)
+    u0 = grid[jnp.argmax(lp_grid, axis=0)]
+    idx = jnp.arange(n_concepts)
+
+    def newton(carry, _):
+        u_c, lp_c = carry
         G, H = curv(u_c)
         step = jnp.clip(-G / H, -NEWTON_MAX_STEP * tau, NEWTON_MAX_STEP * tau)
-        return u_c + step, None
-    u_hat, _ = jax.lax.scan(newton, jnp.zeros(n_concepts), None, length=NEWTON_STEPS)
+        cands = jnp.stack([u_c + step, u_c + 0.5 * step, u_c + 0.25 * step])                  # (3, C)
+        lps = jax.vmap(logpost)(cands)                                                         # (3, C)
+        best = jnp.argmax(lps, axis=0)
+        u_new = cands[best, idx]
+        lp_new = lps[best, idx]
+        improved = lp_new > lp_c
+        return (jnp.where(improved, u_new, u_c), jnp.where(improved, lp_new, lp_c)), None
+    (u_hat, _), _ = jax.lax.scan(newton, (u0, jnp.max(lp_grid, axis=0)), None, length=NEWTON_STEPS)
     _, H = curv(u_hat)
     s_hat = 1.0 / jnp.sqrt(-H)
     return u_hat, s_hat, tau
+
+
+@functools.lru_cache(maxsize=None)
+def gl_nodes(n: int):
+    """Gauss–Legendre on [-1, 1]: nodes and log weights."""
+    x, w = np.polynomial.legendre.leggauss(int(n))
+    return x, np.log(w)          # numpy: constants baked into the jit (a cached jnp array would leak a tracer)
 
 
 def _concept_loglik(member: Member, theta, y, k, cidx, mask, floor, xs, lw, n_concepts: int):
@@ -308,15 +345,26 @@ def _concept_loglik(member: Member, theta, y, k, cidx, mask, floor, xs, lw, n_co
         ll = member.loglik(theta, y, k, 0.0, floor) * mask
         return jax.ops.segment_sum(ll, cidx, num_segments=n_concepts, indices_are_sorted=True)
     u_hat, s_hat, tau = _agh_centre(member, theta, y, k, cidx, mask, floor, n_concepts)
-    u_nodes = u_hat[None, :] + jnp.sqrt(2.0) * s_hat[None, :] * xs[:, None]        # (J, C)
+
     def one_node(u_c):
         ll = member.loglik(theta, y, k, u_c[cidx], floor) * mask
         return jax.ops.segment_sum(ll, cidx, num_segments=n_concepts, indices_are_sorted=True)
-    L = jax.vmap(one_node)(u_nodes)                                                 # (J, C)
-    log_prior = -0.5 * (u_nodes / tau) ** 2 - jnp.log(tau) - LOG_SQRT_2PI
-    # ∫ g(u) du ≈ √2 s Σ_j w_j e^{x_j^2} g(u_hat + √2 s x_j);  lw = log w_j - 0.5 log π, so add back 0.5 log π
-    logw = lw[:, None] + 0.5 * jnp.log(jnp.pi) + xs[:, None] ** 2
-    return logsumexp(L + log_prior + logw, axis=0) + 0.5 * jnp.log(2.0) + jnp.log(s_hat)
+
+    def log_prior(u):
+        return -0.5 * (u / tau) ** 2 - jnp.log(tau) - LOG_SQRT_2PI
+
+    # Trapezoid rule per concept on the adaptive window [u_hat ± TRAP_HALFWIDTH s_hat] (xs, lw unused: the
+    # Gauss–Hermite form is exact only for Gaussian-like posteriors, and a concept whose shifted threshold
+    # lies outside the level range has a flat likelihood in u and a prior-dominated, non-Gaussian posterior
+    # that no node count integrates; the trapezoid rule on a Gaussian-tailed smooth integrand converges
+    # exponentially, and the window follows s_hat, which is floored at tau, so such a concept gets the whole
+    # prior range while a peaked concept gets a fine grid around its mode).
+    n_pts = TRAP_POINTS
+    t = jnp.linspace(-TRAP_HALFWIDTH, TRAP_HALFWIDTH, n_pts)                                       # (N,)
+    u_t = u_hat[None, :] + s_hat[None, :] * t[:, None]                                             # (N, C)
+    h = (2.0 * TRAP_HALFWIDTH / (n_pts - 1)) * s_hat                                               # (C,)
+    logw = jnp.where((jnp.arange(n_pts) == 0) | (jnp.arange(n_pts) == n_pts - 1), jnp.log(0.5), 0.0)
+    return logsumexp(jax.vmap(one_node)(u_t) + log_prior(u_t) + logw[:, None], axis=0) + jnp.log(h)
 
 
 @functools.lru_cache(maxsize=None)
