@@ -1,4 +1,4 @@
-# T1, model side — pre-registration (DRAFT v1.1, 2026-09-11, after review rounds 1 and 2)
+# T1, model side — pre-registration (DRAFT v1.2, 2026-09-11, after review rounds 1 and 2 and the first code pass)
 
 **Freeze rule.** This document becomes v2 — the frozen pre-registration — by a commit whose hash is
 recorded here, made only when every file in the §15 manifest exists and the §7.5/§10 validation
@@ -205,28 +205,42 @@ e^{\delta_1}\,\mathrm{lg}_h(k)$ — strictly above $\mu_{\text{low}}$ at every l
   $\mathrm{lg}_h$; shared $\sigma = e^{s}$.
 - **M3V**: ordered M3 with $A(0)=0$ and component scales $\sigma_{\text{low}} = e^{s_0}$,
   $\sigma_{\text{high}} = e^{s_1}$, each floored at $0.05\,\mathrm{SD}_{\text{train}}(y)$ where the SD is
-  that of the outer training fold (CAL for CAL fits) — never a CONF-wide SD.
+  that of the outer training fold (CAL for CAL fits) — never a CONF-wide SD; implemented as
+  $\sigma = \text{floor} + e^{s}$ (v1.2), the smooth form of the floor.
 - **M3L**: ordered M3 with a free catch-level occupancy $A(0) = \pi_0 = \mathrm{lg}(\theta_0)$ and the
   catch-level high emission $\mu_{\text{high}}(0) = \mu_{\text{low}} + e^{\delta_0}$ (not forced to
   $\mu_{\text{low}}$), so the catch mixture is identifiable whenever $e^{\delta_0}$ is not negligible;
   spontaneous occupancy is read from $\pi_0$ with its CI.
-### 7.4 Fitting
-Multi-start: 8 starts from a declared generator (data moments of the training fold, jittered by a
-seeded $N(0, 0.25)$ in transformed-parameter units; initialisation from the training fold only).
-Nelder–Mead (`xatol=1e-8, fatol=1e-8, maxiter=maxfev=20000, adaptive=True`) followed by L-BFGS-B
-(`ftol=1e-10, gtol=1e-6, maxiter=2000`, numerical gradients) from the NM optimum; a run is *converged*
-if L-BFGS-B reports success or NM did and the polish changed the log-likelihood by < 1e-6. The kept
-solution is the converged run with the highest training log-likelihood; if no run converged, the
-highest-likelihood run is kept and flagged. All likelihoods in log space (`logsumexp` for mixtures).
-Random-effect integrals by Gauss–Hermite in log space; the node count is set on CAL/PILOT by raising
-it (20 → 40 → 80) until every concept's joint log-likelihood changes by < 1e-3 at full cluster size
-($n_c = 6 \times 7 \times D$), then frozen.
+### 7.4 Fitting (v1.2: `models.py`)
+Multi-start: 8 starts from the declared generator in `models.starts_from_moments` — data moments of
+the training fold only (the inherited members keep the inherited moment initialisation; the ordered
+mixtures start at the catch-level mean, the log offsets from the level means, unit slopes and the
+midpoint-crossing level); start 0 unjittered, starts 1–7 jittered by a seeded $N(0, 0.25^2)$ per
+coordinate in the optimiser's own parameter units (the raw vectors of §7.1–7.3). Each start is
+L-BFGS-B (`ftol=1e-10, gtol=1e-6, maxiter=2000`) on the **analytic gradient** (JAX, x64); Nelder–Mead
+is not used — the §14 start count is not computable with derivative-free fits (v1.2). A run is
+*converged* if L-BFGS-B reports success. The kept solution is the converged run with the highest
+training log-likelihood; if no run converged, the highest-likelihood run is kept and flagged. All
+likelihoods in log space (`logsumexp` for mixtures). Random-effect integrals by **adaptive**
+Gauss–Hermite in log space — the nodes of each concept centred on the mode of its log-posterior in
+$u$ and scaled by the Laplace curvature there, the mode found by eight damped Newton steps unrolled
+in the differentiated graph so that the gradient is exact (v1.2: prior-centred Gauss–Hermite does not
+converge at the CONF cluster size, `verify.py` V3 — with 168 trials per concept 80 prior-centred nodes
+still miss by 0.06–0.3 nat per concept, so the v1.1 ladder never terminates). The node count is set
+on CAL/PILOT by raising it (10 → 20 → 40) until every concept's joint log-likelihood changes by
+< 1e-3 at full cluster size ($n_c = 6 \times 7 \times D$), then frozen; on synthetic data at that
+size 10 nodes are within $10^{-8}$ of dense quadrature and 20 within $10^{-12}$.
 ### 7.5 Recovery of the family distinction (before v2; `simulate.py` outputs committed)
 Generators: every member of G and X at CAL/PILOT-fitted parameters and across a frozen grid —
 heterogeneity $\tau, \omega \in \{0, 0.5, 1, 2\}$ (in level units / log-scale units), component
 separation $e^{\delta_0}/\sigma \in \{0.5, 1, 2, 4\}$, catch occupancy $\pi_0 \in \{0, 0.05, 0.2\}$,
-skew $\alpha \in \{0, 1, 3\}$ — 200 replicates each at CONF cluster sizes. The full family decision of
-§8 is run on each. Reported: the family confusion matrix per generator and grid point. **No member is
+skew $\alpha \in \{0, 1, 3\}$ — 48 generator points (`simulate.recovery_points`), 200 replicates each
+at CONF cluster sizes; the first pass (v1.2, `run_sims.sh`) runs 20 replicates per point on one
+synthetic layer, the remaining parameters of every generator at the declared base of `simulate.py`
+(graded: $\mu(0) = -1$, $\mu(8) = +1$, $x_0 = 3$, $\kappa = 1.5$, $\sigma = |0.15\mu + 0.75|$; mixtures:
+$\mu_{\text{low}} = -1$, $\sigma = 0.6$, $A(k) = \mathrm{lg}(1.5(k-3))$, $\mu_{\text{high}}(k) = \mu_{\text{low}} +
+\text{sep}\cdot\sigma + \mathrm{lg}_h(k)$). The full family decision of §8 is run on each. Reported: the
+family confusion matrix per generator and grid point. **No member is
 dropped for being individually unrecoverable**: nested members are expected to coincide at some
 parameters. A member is consolidated only under an explicit rule — its held-out joint score never
 differs from a sibling's by more than 1e-4 nat/trial anywhere on the grid (redundant), or it fails
@@ -255,7 +269,10 @@ class.
 ### 8.2 Uncertainty
 Primary CI: concept-cluster bootstrap of the fixed out-of-fold concept scores $\Delta_c$ — resample
 whole concepts with replacement within each of the eight family strata, 2,000 replicates, carrying
-every layer, level and carrier of a concept together and keeping foil pairs together. This is a
+every layer, level and carrier of a concept together (`analyze.band_bootstrap`). Foil pairs cross
+families, so they cannot be kept together under family strata (v1.2): the primary R1 statistic
+resamples concepts; the paired statistics of §6.4 and §8.5(b) resample foil pairs as the unit,
+unstratified. This is a
 conditional approximation (it does not re-run the density fits); its coverage is validated in §10 by
 simulations that regenerate the data and refit the pipeline. If simulated coverage of the nominal
 95 % interval is below 0.90 under any retained generator, the pipeline-refitting bootstrap (200
@@ -305,8 +322,20 @@ bootstrap, the band mean and the §8.3 rule, the §7.4 convergence handling and 
 on synthetic CONF-sized data at the frozen layer grid, with concept effects and the measured residual
 correlation across layers (from PILOT) generated as declared in `simulate.py`. Nulls: **every retained
 graded member** (M2B, M2H, M2S, M2K) at CAL/PILOT-fitted and grid parameters; alternatives: every
-retained mixture member at per-trial gains 0.003 (the human scale), 0.01 and 0.03 nat. Counts: 1,000
-datasets per generator and setting (Monte-Carlo SE ≈ 0.7 pp at a 5 % rate). Two separate failures:
+retained mixture member at per-trial gains 0.003 (the human scale), 0.01 and 0.03 nat — the gain
+being the expected out-of-sample joint log-score advantage per trial of the generator over the best
+graded member fitted at large sample (256 concepts), reached by scaling both high-state offsets
+(`simulate.calibrate_gain`). Counts: 1,000 datasets per generator and setting (Monte-Carlo SE ≈ 0.7 pp
+at a 5 % rate). The §14 benchmark (v1.2) puts one dataset through the full procedure at 223 s per
+layer on one core, so the full counts on one synthetic layer need ≈ 33 h of this machine per $D$ for
+the nulls and as much again for the alternatives; the first pass (`run_sims.sh`, 2026-09-11) runs
+60 replicates per null and per alternative at $D = 4$ and 40 at $D = 8$ (SE ≈ 3 pp), plus a five-layer
+check on two nulls and two alternatives; the full counts follow on the same code in the week of
+22 Sept, with the layer grid of the simulation then frozen from what the five-layer check shows.
+Until PILOT is read, the cross-layer residual correlation is a declared AR(1) stand-in
+($\rho = 0.9$) and the mixture state is shared across a trial's layers. CI coverage is scored
+against the replicate mean of the point estimate under each generator (the estimand proxy at the
+design size). Two separate failures:
 - **Calibration**: the false-positive rate (mixture support under a graded null) must be ≤ 0.064
   (0.05 + 2 SE) for every null at the chosen $D$, and CI coverage ≥ 0.90. Failure at $D=8$ requires
   revision **before CONF** — permitted changes, frozen here: the bootstrap type (§8.2), the family
@@ -380,7 +409,12 @@ Captures (single pass each, $D=4$): primary 2 × 10,752 + controls 2 × 2,304 + 
 5 outer folds × (4 inner + 1 refit) × 8 starts = 100,800 starts per condition, plus CAL/PILOT, the
 §7.5 recovery and §10 calibration runs; benchmarked on CAL before v2 — if the band cannot be fitted
 within 24 h per condition on this machine, the frozen layer grid becomes stride 2 within each band
-and inner selection uses 4 starts (recorded in v2). Server patch + stimulus bank: week of 15 Sept;
+and inner selection uses 4 starts (recorded in v2). **Benchmark, synthetic CONF size, one core
+(v1.2, `bench.py`, 2026-09-11):** the nine refits at 8 starts take 11.1 s at $D = 4$ (M3H 5.6 s,
+M2H 3.4 s, the rest under 1 s; 17.9 s at $D = 8$), every start converging; one layer of the full §8
+procedure (5 outer folds × 8 members × (4 inner fits + refit), 8 starts throughout) takes 223 s, so
+the 63-layer band is ≈ 3.9 h per condition on one core and well inside the 24 h — every layer and
+8 starts stay. Server patch + stimulus bank: week of 15 Sept;
 CAL, PILOT, recovery and calibration: week of 22 Sept; **v2 freeze by 29 Sept** (with the manifest
 files); CONF captures and fits 30 Sept–6 Oct; H3 and write-up in October.
 
@@ -398,4 +432,5 @@ lists, amplitudes, outcomes); this document.
 |---|---|---|
 | 2026-09-11 | v0 drafted | for second-opinion review |
 | 2026-09-11 | v1: inference unit = concepts; frozen CAL decoder; distractor channel; nine-model family; held-out family log score; outcomes split; power by simulation; H3 via one capture path; no-target-report condition | review round 1 (Codex) |
+| 2026-09-11 | v1.2: `models.py`, `analyze.py`, `simulate.py`, `verify.py`, `bench.py` written and verified (inherited likelihoods equal the numpy originals to 1e-9, gradients to 1e-8, self-refits recover every generator); §7.4: L-BFGS-B on analytic gradients replaces Nelder–Mead, the start generator and its jitter defined, adaptive Gauss–Hermite replaces prior-centred Gauss–Hermite (which does not converge at $n_c = 168$) with the node ladder 10 → 20 → 40; §7.3 M3V floor as $\text{floor} + e^{s}$; §8.2 foil pairs resampled as units only in the paired statistics; §7.5 and §10 generator base and first-pass counts declared, the gain definition made operational; §14 benchmark recorded — every layer and 8 starts kept | first code pass (session Entropy) |
 | 2026-09-11 | v1.1: BACKGROUND concept bank with family-balanced backgrounds identical across target/foil pairs, slot-nested levels, role disjointness, prompt scan; H1 = coherence readout with a pre-declared target bridge (§8.5); one joint concept-scoring definition with training-only within-family selection (equal-weight and M3-vs-M2B as sensitivity); ordered mixture parameterisation, identifiable M3L catch, inherited affine sigma kept, skew-normal parameters named; SciPy option names and solver rule; recovery of the family distinction replaces member-recoverability; post-CONF member loss = primary unavailable; bootstrap defined and validated by refit simulation; calibration vs power failures separated with permitted changes; single-pass active capture with edits inside the answer pass; swap_delta linear dose, per-layer norm matching, rescue amplitude, patch mode; H3 decision rule, polarity, positive-control criterion, smooth-vs-binary check; layer count 64 / lens 0–62 / band 23–57 kept; equal-length instructions; budget recomputed | review round 2 (Codex) |
