@@ -338,13 +338,14 @@ layer on one Mac core, so the full counts on one synthetic layer (12 nulls and 1
 (owner, 11 Sept: it is too slow and not always on). The simulations run as sharded, resumable
 SageMaker training jobs in the cloud (`t1_job.py`, `launch_t1.py`; results under
 `s3://xtenure-cself-pvr/results/t1_access/full/`), $D = 4$ first and $D = 8$ only if the §10 power rule
-asks for it. **Launched 2026-09-11 22:40 UTC:** the $D = 4$ work — the 12 nulls and 12 alternatives
-at 1,000 replicates, the 48 recovery points at 200, and the five-layer check (M2B, M2K nulls and
-M3H, M3V alternatives at 200 on layers 25, 33, 41, 49, 57) — as 60 disjoint shards, shards 0–19
-running as managed-spot jobs on `ml.c8i.2xlarge` (8 vCPU, one replicate per vCPU-hour at four inner
-starts, ≈ 67 h per shard), the remaining 40 shards to follow on spot in two further waves or on
-demand; each shard resumes from S3 after an interruption. The layer grid of the simulation is
-frozen from what the five-layer check shows.
+asks for it. **Launched 2026-09-11 23:00 UTC:** the whole $D = 4$ work — the 12 nulls and 12
+alternatives at 1,000 replicates, the 48 recovery points at 200, and the five-layer check (M2B, M2K
+nulls and M3H, M3V alternatives at 200 on layers 25, 33, 41, 49, 57) — as 160 disjoint shards on 50
+jobs: 20 managed-spot and 22 on-demand `ml.c8i.2xlarge` (8 vCPU, one shard each) and 8 on-demand
+`ml.c8i.48xlarge` (192 vCPU, fifteen shards each); each job resumes from S3 after an interruption
+and uploads its rows after every round, so the run is spot-checked while it goes
+(`spotcheck.py`). Expected to land within ≈ 27 h. The layer grid of the simulation is frozen from
+what the five-layer check shows.
 Until PILOT is read, the cross-layer residual correlation is a declared AR(1) stand-in
 ($\rho = 0.9$) and the mixture state is shared across a trial's layers. CI coverage is scored
 against the replicate mean of the point estimate under each generator (the estimand proxy at the
