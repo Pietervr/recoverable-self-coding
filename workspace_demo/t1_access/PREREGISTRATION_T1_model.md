@@ -221,15 +221,21 @@ L-BFGS-B (`ftol=1e-10, gtol=1e-6, maxiter=2000`) on the **analytic gradient** (J
 is not used — the §14 start count is not computable with derivative-free fits (v1.2). A run is
 *converged* if L-BFGS-B reports success. The kept solution is the converged run with the highest
 training log-likelihood; if no run converged, the highest-likelihood run is kept and flagged. All
-likelihoods in log space (`logsumexp` for mixtures). Random-effect integrals by **adaptive**
-Gauss–Hermite in log space — the nodes of each concept centred on the mode of its log-posterior in
-$u$ and scaled by the Laplace curvature there, the mode found by eight damped Newton steps unrolled
-in the differentiated graph so that the gradient is exact (v1.2: prior-centred Gauss–Hermite does not
-converge at the CONF cluster size, `verify.py` V3 — with 168 trials per concept 80 prior-centred nodes
-still miss by 0.06–0.3 nat per concept, so the v1.1 ladder never terminates). The node count is set
-on CAL/PILOT by raising it (10 → 20 → 40) until every concept's joint log-likelihood changes by
-< 1e-3 at full cluster size ($n_c = 6 \times 7 \times D$), then frozen; on synthetic data at that
-size 10 nodes are within $10^{-8}$ of dense quadrature and 20 within $10^{-12}$.
+likelihoods in log space (`logsumexp` for mixtures). Random-effect integrals per concept by a
+**trapezoid rule on an adaptive window** in log space: the mode $\hat u_c$ of the concept's
+log-posterior in $u$ is found by a nine-point grid over $\pm 4\tau$ and four safeguarded Newton steps
+(unrolled in the differentiated graph, so the gradient is exact), the Laplace SD $\hat s_c$ is taken
+there and floored at $\tau$, and the integral is the trapezoid rule with $P$ points on
+$[\hat u_c - 6\hat s_c, \hat u_c + 6\hat s_c]$ (v1.2). Why not Gauss–Hermite: prior-centred nodes do
+not converge at the CONF cluster size (`verify.py` V3 — with 168 trials per concept 80 nodes still
+miss by 0.06–0.3 nat, so the v1.1 ladder never terminates), and mode-centred nodes fail for the
+concepts whose shifted threshold leaves the level range — a flat likelihood in $u$, a
+truncated-Gaussian posterior that no node count integrates (1–5 nat off at $\tau = 2$). The
+trapezoid rule converges exponentially on the peaked posteriors and covers the prior's range on the
+flat ones: within $6 \times 10^{-7}$ nat of dense quadrature across the $\tau, \omega$ grid at
+$P = 96$, except the truncated M2H posteriors at $\tau = 2$ (0.02 nat, i.e. $10^{-4}$ per trial).
+$P$ is set on CAL/PILOT by raising it (48 → 96 → 192) until every concept's joint log-likelihood
+changes by < 1e-3 at full cluster size ($n_c = 6 \times 7 \times D$), then frozen.
 ### 7.5 Recovery of the family distinction (before v2; `simulate.py` outputs committed)
 Generators: every member of G and X at CAL/PILOT-fitted parameters and across a frozen grid —
 heterogeneity $\tau, \omega \in \{0, 0.5, 1, 2\}$ (in level units / log-scale units), component
@@ -326,16 +332,14 @@ retained mixture member at per-trial gains 0.003 (the human scale), 0.01 and 0.0
 being the expected out-of-sample joint log-score advantage per trial of the generator over the best
 graded member fitted at large sample (256 concepts), reached by scaling both high-state offsets
 (`simulate.calibrate_gain`). Counts: 1,000 datasets per generator and setting (Monte-Carlo SE ≈ 0.7 pp
-at a 5 % rate). The §14 benchmark (v1.2) puts one dataset through the full procedure at 399 s per
-layer on one core, ≈ 100 dataset-layers per hour on this machine's 11 usable workers, so the full
-counts on one synthetic layer need ≈ 5 days per $D$ for the 12 nulls and as much again for the 12
-alternatives — beyond this machine before the freeze. The first pass (`run_sims.sh`, 2026-09-11,
-≈ 27 h) runs 40 replicates per null and per alternative at $D = 4$ and 20 at $D = 8$ (SE ≈ 3.4 pp
-and 4.9 pp at a 5 % rate), 10 per §7.5 grid point, plus a five-layer check on two nulls and two
-alternatives. What follows in the week of 22 Sept is a decision recorded at v2: either 300
-replicates per setting on this machine (SE ≈ 1.3 pp, ≈ 36 h per $D$ for the nulls and the same for
-the alternatives) or the full 1,000 on a rented machine; the layer grid of the simulation is frozen
-from what the five-layer check shows.
+at a 5 % rate). The §14 benchmark (v1.2) puts one dataset through the full procedure at 860 s per
+layer on one Mac core, so the full counts on one synthetic layer (12 nulls and 12 alternatives at
+1,000, the 48 recovery points at 200) are ≈ 8,000 Mac-core-hours per $D$ — not this machine's work
+(owner, 11 Sept: it is too slow and not always on). The simulations run as sharded, resumable
+SageMaker training jobs in the cloud (`t1_job.py`, `launch_t1.py`; results under
+`s3://xtenure-cself-pvr/results/t1_access/`), $D = 4$ first and $D = 8$ only if the §10 power rule
+asks for it; the counts actually run and the instance type are recorded here when the jobs land,
+and the layer grid of the simulation is frozen from what the five-layer check shows.
 Until PILOT is read, the cross-layer residual correlation is a declared AR(1) stand-in
 ($\rho = 0.9$) and the mixture state is shared across a trial's layers. CI coverage is scored
 against the replicate mean of the point estimate under each generator (the estimand proxy at the
@@ -414,13 +418,15 @@ Captures (single pass each, $D=4$): primary 2 × 10,752 + controls 2 × 2,304 + 
 §7.5 recovery and §10 calibration runs; benchmarked on CAL before v2 — if the band cannot be fitted
 within 24 h per condition on this machine, the frozen layer grid becomes stride 2 within each band
 and inner selection uses 4 starts (recorded in v2). **Benchmark, synthetic CONF size, one core
-(v1.2, `bench.py`, 2026-09-11, the process pinned to one XLA thread with `NPROC=1`):** the nine
-refits at 8 starts take 21.1 s at $D = 4$ (M3H 12.8 s, M2H 5.1 s, M2S 1.9 s, the rest under 1 s;
-≈ 1.7× at $D = 8$), every start converging; one layer of the full §8 procedure (5 outer folds × 8
-members × (4 inner fits + refit), 8 starts throughout) takes 399 s, so the 63-layer band is ≈ 7 h per
-condition on one core, ≈ 40 min on the machine's 11 usable workers, well inside the 24 h — every
-layer and 8 starts stay. The machine (Apple M4 Max, 12 performance + 4 efficiency cores, 128 GB)
-takes 11 single-threaded workers before they slow each other. Server patch + stimulus bank: week of 15 Sept;
+(v1.2, `bench.py`, 2026-09-11, the process pinned to one XLA thread with `NPROC=1`, the §7.4
+trapezoid quadrature at $P = 96$):** the nine refits at 8 starts take 41.9 s at $D = 4$ (M3H 31.0 s,
+M2H 6.0 s, M2S 3.7 s, the rest under 1 s; ≈ 1.7× at $D = 8$), every start converging; one layer of
+the full §8 procedure (5 outer folds × 8 members × (4 inner fits + refit), 8 starts throughout) takes
+860 s, so the 63-layer band is ≈ 15 h per condition on one core, ≈ 1.4 h on the machine's 11 usable
+workers, well inside the 24 h — every layer and 8 starts stay. The machine (Apple M4 Max, 12
+performance + 4 efficiency cores, 128 GB) takes 11 single-threaded workers before they slow each
+other; one x86 cloud core (`ml.c7i`, SageMaker) is 0.36 of a Mac core on this code, and a fully
+loaded hyperthread a tenth. Server patch + stimulus bank: week of 15 Sept;
 CAL, PILOT, recovery and calibration: week of 22 Sept; **v2 freeze by 29 Sept** (with the manifest
 files); CONF captures and fits 30 Sept–6 Oct; H3 and write-up in October.
 
@@ -438,5 +444,5 @@ lists, amplitudes, outcomes); this document.
 |---|---|---|
 | 2026-09-11 | v0 drafted | for second-opinion review |
 | 2026-09-11 | v1: inference unit = concepts; frozen CAL decoder; distractor channel; nine-model family; held-out family log score; outcomes split; power by simulation; H3 via one capture path; no-target-report condition | review round 1 (Codex) |
-| 2026-09-11 | v1.2: `models.py`, `analyze.py`, `simulate.py`, `verify.py`, `bench.py` written and verified (inherited likelihoods equal the numpy originals to 1e-9, gradients to 1e-8, self-refits recover every generator); §7.4: L-BFGS-B on analytic gradients replaces Nelder–Mead, the start generator and its jitter defined, adaptive Gauss–Hermite replaces prior-centred Gauss–Hermite (which does not converge at $n_c = 168$) with the node ladder 10 → 20 → 40; §7.3 M3V floor as $\text{floor} + e^{s}$; §8.2 foil pairs resampled as units only in the paired statistics; §7.5 and §10 generator base and first-pass counts declared, the gain definition made operational; §14 benchmark recorded — every layer and 8 starts kept | first code pass (session Entropy) |
+| 2026-09-11 | v1.2: `models.py`, `analyze.py`, `simulate.py`, `verify.py`, `bench.py` written and verified (inherited likelihoods equal the numpy originals to 1e-9, gradients to 1e-8, self-refits recover every generator); §7.4: L-BFGS-B on analytic gradients replaces Nelder–Mead, the start generator and its jitter defined, the random-effect integral becomes a per-concept trapezoid rule on an adaptive window (prior-centred Gauss–Hermite does not converge at $n_c = 168$, mode-centred Gauss–Hermite fails on the truncated posteriors at $\tau = 2$) with the point ladder 48 → 96 → 192; §7.3 M3V floor as $\text{floor} + e^{s}$; §8.2 foil pairs resampled as units only in the paired statistics; §7.5 and §10 generator base and first-pass counts declared, the gain definition made operational; §14 benchmark recorded — every layer and 8 starts kept | first code pass (session Entropy) |
 | 2026-09-11 | v1.1: BACKGROUND concept bank with family-balanced backgrounds identical across target/foil pairs, slot-nested levels, role disjointness, prompt scan; H1 = coherence readout with a pre-declared target bridge (§8.5); one joint concept-scoring definition with training-only within-family selection (equal-weight and M3-vs-M2B as sensitivity); ordered mixture parameterisation, identifiable M3L catch, inherited affine sigma kept, skew-normal parameters named; SciPy option names and solver rule; recovery of the family distinction replaces member-recoverability; post-CONF member loss = primary unavailable; bootstrap defined and validated by refit simulation; calibration vs power failures separated with permitted changes; single-pass active capture with edits inside the answer pass; swap_delta linear dose, per-layer norm matching, rescue amplitude, patch mode; H3 decision rule, polarity, positive-control criterion, smooth-vs-binary check; layer count 64 / lens 0–62 / band 23–57 kept; equal-length instructions; budget recomputed | review round 2 (Codex) |

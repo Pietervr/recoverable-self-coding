@@ -1,5 +1,6 @@
 #!/bin/sh
-# t1_access/run_sims.sh — the first simulation pass (§7.5 recovery grid, §10 calibration and power), sized
+# t1_access/run_sims.sh — LOCAL first pass, superseded 2026-09-11 by the cloud jobs (launch_t1.py); kept as
+# the local runner for spot checks. The first simulation pass (§7.5 recovery grid, §10 calibration and power), sized
 # by bench.py (2026-09-11, single-threaded: one dataset-layer of the full §8 procedure ≈ 7 min on one
 # core at D = 4, 8 starts everywhere; ~1.7x at D = 8). Two chains: A on NJOBS workers, B (the gain
 # calibration) on one. NJOBS defaults to 11: this M4 Max has 12 performance + 4 efficiency cores and
