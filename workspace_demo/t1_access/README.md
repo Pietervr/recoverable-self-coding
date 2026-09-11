@@ -38,10 +38,14 @@ this M4 Max): with 16 single-threaded workers one fit took 2.6x longer than alon
 - **Optimiser.** Nelder–Mead is gone: every start is L-BFGS-B on the exact JAX gradient. The §14
   start count (100,800 per condition) is not computable with derivative-free fits.
 - **Quadrature.** Plain prior-centred Gauss–Hermite does not converge at the CONF cluster size
-  (168 trials per concept): 80 nodes still miss by 0.06–0.3 nat per concept (`verify.py` V3). The
-  joint concept likelihood uses adaptive Gauss–Hermite (nodes centred on each concept's posterior mode
-  with the Laplace scale, the mode found by eight unrolled damped Newton steps so that the gradient is
-  exact); 10 nodes are accurate to 1e-8, 20 to 1e-12. The node rule keeps its form (< 1e-3 change).
+  (168 trials per concept): 80 nodes still miss by 0.06–0.3 nat per concept (`verify.py` V3), and
+  mode-centred Gauss–Hermite fails at tau = 2 for concepts whose shifted threshold leaves the level
+  range (a flat likelihood in u, a truncated-Gaussian posterior: 1–5 nat off at any node count). The
+  joint concept likelihood therefore uses a per-concept trapezoid rule on [mode ± 6 Laplace SD], the
+  mode found by a 9-point grid start and four backtracking Newton steps unrolled in the JAX graph so
+  the gradient stays exact, the SD floored at tau so a flat concept gets the prior's range. 96 points
+  are within 6e-7 nat of dense quadrature across the grid except the truncated M2H posteriors at
+  tau = 2 (0.02 nat). The §7.4 rule keeps its form (raise the point count until < 1e-3 change).
 - **Start generator.** Data moments of the training fold only; start 0 unjittered, starts 1–7 jittered
   by N(0, 0.25²) per coordinate in the optimiser's own parameter units (the raw vectors listed at the
   top of `models.py`); inherited members keep the inherited moment initialisation.

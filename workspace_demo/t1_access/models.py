@@ -23,15 +23,20 @@ A(k) = sigmoid(kA (k - x0)); A(0) = 0 at the catch level for M3H and M3V. The M3
 CONF-wide SD. The floor enters as sigma = floor + e^{s}, a smooth reparameterisation of "floored at".
 
 Joint concept likelihood (§8.1): q_{m,c} = ∫ ∏_i p_m(y_ci | k_ci, u) p_m(u) du, the integral absent for
-non-hierarchical members; ADAPTIVE Gauss–Hermite in log space (§7.4 as amended in v1.2): the nodes of
-each concept are centred on the mode of its log-posterior in u and scaled by the Laplace curvature
-there (Pinheiro & Bates 1995; lme4's nAGQ), the mode found by NEWTON_STEPS damped Newton steps
-unrolled inside the JAX graph so that the gradient of the objective is exact. Plain Gauss–Hermite
-on the prior does not converge at the CONF cluster size (verify.py V3: with 168 trials per concept
-the posterior is far narrower than the prior; 80 prior-centred nodes still miss by 0.06–0.3 nat per
-concept), which is why the §7.4 rule (20 -> 40 -> 80) had to move to the adaptive form. The node
-count is still set on CAL/PILOT by the same < 1e-3 rule (`gh_node_check`, counts 10 -> 20 -> 40);
-GH_NODES_DEFAULT is provisional until then.
+non-hierarchical members. Numerically (§7.4 as amended in v1.2): per concept, the mode u_hat of the
+log-posterior in u is found by a 9-point grid start over ±4 tau and NEWTON_STEPS safeguarded Newton
+steps (all unrolled inside the JAX graph, so the gradient of the objective is exact), the Laplace SD
+s_hat is taken there (floored at tau), and the integral is a TRAP_POINTS trapezoid rule on
+[u_hat ± 6 s_hat] in log space. Why not Gauss–Hermite: prior-centred nodes do not converge at the CONF
+cluster size (168 trials per concept: 80 nodes still miss by 0.06–0.3 nat), and mode-centred
+(adaptive) nodes fail for the concepts whose shifted threshold leaves the level range — their
+likelihood is flat in u and the posterior is a truncated Gaussian that no node count integrates
+(errors of 1–5 nat at tau = 2). The trapezoid rule on the adaptive window converges exponentially
+for the peaked posteriors and covers the prior's range for the flat ones (verify.py V3 and the grid
+check of 2026-09-11: within 6e-7 nat of dense quadrature everywhere but the truncated M2H posteriors at
+tau = 2, where 96 points leave 0.02 nat). The point count is set on CAL/PILOT by the §7.4 rule
+(`gh_node_check`: 48 -> 96 -> 192 until every concept's log q changes by < 1e-3); TRAP_POINTS is
+provisional until then. GH_NODES_DEFAULT and the xs/lw arguments remain only as a plumbing constant.
 
 Fitting (§7.4 as amended in v1.2): 8 starts from the declared generator (`starts_from_moments`: data
 moments of the TRAINING fold only, start 0 unjittered, starts 1..7 jittered by a seeded N(0, 0.25^2)
@@ -590,9 +595,20 @@ def fit(name: str, data: Trials, n_gh: int = GH_NODES_DEFAULT, n_starts: int = N
                      sum(r["nfev"] for r in runs), sum(r["nit"] for r in runs), _time.time() - t0, runs)
 
 
-def gh_node_check(name: str, theta, data: Trials, counts=(10, 20, 40, 80)) -> dict:
-    """§7.4 node rule: per-concept log q at each node count and the max |change| between successive counts."""
-    scores = {n: concept_scores(name, theta, data, n) for n in counts}
+def gh_node_check(name: str, theta, data: Trials, counts=(48, 96, 192)) -> dict:
+    """§7.4 quadrature rule: per-concept log q at each trapezoid point count (TRAP_POINTS) and the max
+    |change| between successive counts; the count is frozen at the first whose change is < 1e-3."""
+    global TRAP_POINTS
+    keep = TRAP_POINTS
+    scores = {}
+    try:
+        for n in counts:
+            TRAP_POINTS = int(n)
+            _compiled_scores.cache_clear()
+            scores[n] = concept_scores(name, theta, data)
+    finally:
+        TRAP_POINTS = keep
+        _compiled_scores.cache_clear()
     changes = {counts[i + 1]: float(np.max(np.abs(scores[counts[i + 1]] - scores[counts[i]])))
                for i in range(len(counts) - 1)}
     return dict(scores=scores, max_change=changes)
