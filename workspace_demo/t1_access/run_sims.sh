@@ -2,9 +2,11 @@
 # t1_access/run_sims.sh — the first simulation pass (§7.5 recovery grid, §10 calibration and power), sized
 # by bench.py (2026-09-11, single-threaded: one dataset-layer of the full §8 procedure ≈ 7 min on one
 # core at D = 4, 8 starts everywhere; ~1.7x at D = 8). Two chains: A on NJOBS workers, B (the gain
-# calibration) on one. At 14 workers the whole script is ≈ 20 h.
+# calibration) on one. NJOBS defaults to 11: this M4 Max has 12 performance + 4 efficiency cores and
+# single-threaded workers beyond the performance cores slow every worker down (measured 2026-09-11:
+# 16 busy workers made one fit 2.6x slower); 11 + the gain job fill the performance cores.
 #
-#   NJOBS=14 nohup sh run_sims.sh > sim_results/logs/run_sims.log 2>&1 &
+#   nohup sh run_sims.sh > sim_results/logs/run_sims.log 2>&1 &
 #
 # Every task appends to its CSV as chunks complete and skips replicates already present, so a killed
 # chain is resumed by running the same command again.
@@ -13,7 +15,7 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 PY="$HERE/.venv/bin/python"
 OUT="$HERE/sim_results"
 LOG="$OUT/logs"
-NJOBS="${NJOBS:-14}"
+NJOBS="${NJOBS:-11}"
 mkdir -p "$LOG"
 cd "$HERE"
 

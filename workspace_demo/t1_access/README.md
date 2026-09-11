@@ -22,7 +22,7 @@ uv pip install --python workspace_demo/t1_access/.venv/bin/python -r workspace_d
 cd workspace_demo/t1_access
 ./.venv/bin/python verify.py            # ~3 min; must print ALL OK
 ./.venv/bin/python bench.py --layer     # the §14 numbers
-NJOBS=13 nohup sh run_sims.sh > sim_results/logs/run_sims.log 2>&1 &
+nohup sh run_sims.sh > sim_results/logs/run_sims.log 2>&1 &      # 11 workers + the gain job
 ./.venv/bin/python simulate.py summary --out sim_results/calibration_D4.csv
 ```
 
@@ -30,7 +30,8 @@ Pinned versions are in `requirements.txt` (jax 0.11.1 CPU, numpy 2.5.3, scipy 1.
 joblib 1.6.0; Python 3.12.14, macOS Apple silicon). Each process is pinned to one XLA thread
 (`models.py` sets `NPROC=1` before importing jax — the XLA CPU client sizes its Eigen pool from
 that variable; the `XLA_FLAGS` thread flags do nothing in this jaxlib); parallelism is per dataset
-through joblib, `NJOBS` workers of one core each.
+through joblib, `NJOBS` workers of one core each — no more than the performance cores (12 on
+this M4 Max): with 16 single-threaded workers one fit took 2.6x longer than alone.
 
 ## What the code decides that the text left open (all recorded as v1.2 amendments)
 

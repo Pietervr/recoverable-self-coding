@@ -83,7 +83,9 @@ def generator_theta(name: str, tau: float = 0.0, omega: float = 0.0, sep: float 
         return np.array(core + [alpha, 0.0])
     s = b["sigma"]
     if name == "M3":
-        return np.array([b["x0"], b["kappa"], b["mu_low"], sep * s * scale, b["sep1"] * scale, b["kappa"], s])
+        # inherited parameterisation: the high mean is ABSOLUTE (L_high lg_h + step), so the offset from
+        # mu_low goes into step: mu_high(k) = mu_low + sep*sigma*scale + sep1*scale*lg_h(k), as for the ordered members
+        return np.array([b["x0"], b["kappa"], b["mu_low"], b["mu_low"] + sep * s * scale, b["sep1"] * scale, b["kappa"], s])
     core = [b["mu_low"], np.log(sep * s * scale), np.log(b["sep1"] * scale), b["kappa"], b["kappa"], b["x0"]]
     if name == "M3H":
         return np.array(core + [np.log(s), np.log(max(tau, 1e-8))])

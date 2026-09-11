@@ -326,12 +326,16 @@ retained mixture member at per-trial gains 0.003 (the human scale), 0.01 and 0.0
 being the expected out-of-sample joint log-score advantage per trial of the generator over the best
 graded member fitted at large sample (256 concepts), reached by scaling both high-state offsets
 (`simulate.calibrate_gain`). Counts: 1,000 datasets per generator and setting (Monte-Carlo SE ≈ 0.7 pp
-at a 5 % rate). The §14 benchmark (v1.2) puts one dataset through the full procedure at 223 s per
-layer on one core, so the full counts on one synthetic layer need ≈ 33 h of this machine per $D$ for
-the nulls and as much again for the alternatives; the first pass (`run_sims.sh`, 2026-09-11) runs
-60 replicates per null and per alternative at $D = 4$ and 40 at $D = 8$ (SE ≈ 3 pp), plus a five-layer
-check on two nulls and two alternatives; the full counts follow on the same code in the week of
-22 Sept, with the layer grid of the simulation then frozen from what the five-layer check shows.
+at a 5 % rate). The §14 benchmark (v1.2) puts one dataset through the full procedure at 399 s per
+layer on one core, ≈ 100 dataset-layers per hour on this machine's 11 usable workers, so the full
+counts on one synthetic layer need ≈ 5 days per $D$ for the 12 nulls and as much again for the 12
+alternatives — beyond this machine before the freeze. The first pass (`run_sims.sh`, 2026-09-11,
+≈ 27 h) runs 40 replicates per null and per alternative at $D = 4$ and 20 at $D = 8$ (SE ≈ 3.4 pp
+and 4.9 pp at a 5 % rate), 10 per §7.5 grid point, plus a five-layer check on two nulls and two
+alternatives. What follows in the week of 22 Sept is a decision recorded at v2: either 300
+replicates per setting on this machine (SE ≈ 1.3 pp, ≈ 36 h per $D$ for the nulls and the same for
+the alternatives) or the full 1,000 on a rented machine; the layer grid of the simulation is frozen
+from what the five-layer check shows.
 Until PILOT is read, the cross-layer residual correlation is a declared AR(1) stand-in
 ($\rho = 0.9$) and the mixture state is shared across a trial's layers. CI coverage is scored
 against the replicate mean of the point estimate under each generator (the estimand proxy at the
@@ -410,11 +414,13 @@ Captures (single pass each, $D=4$): primary 2 × 10,752 + controls 2 × 2,304 + 
 §7.5 recovery and §10 calibration runs; benchmarked on CAL before v2 — if the band cannot be fitted
 within 24 h per condition on this machine, the frozen layer grid becomes stride 2 within each band
 and inner selection uses 4 starts (recorded in v2). **Benchmark, synthetic CONF size, one core
-(v1.2, `bench.py`, 2026-09-11):** the nine refits at 8 starts take 11.1 s at $D = 4$ (M3H 5.6 s,
-M2H 3.4 s, the rest under 1 s; 17.9 s at $D = 8$), every start converging; one layer of the full §8
-procedure (5 outer folds × 8 members × (4 inner fits + refit), 8 starts throughout) takes 223 s, so
-the 63-layer band is ≈ 3.9 h per condition on one core and well inside the 24 h — every layer and
-8 starts stay. Server patch + stimulus bank: week of 15 Sept;
+(v1.2, `bench.py`, 2026-09-11, the process pinned to one XLA thread with `NPROC=1`):** the nine
+refits at 8 starts take 21.1 s at $D = 4$ (M3H 12.8 s, M2H 5.1 s, M2S 1.9 s, the rest under 1 s;
+≈ 1.7× at $D = 8$), every start converging; one layer of the full §8 procedure (5 outer folds × 8
+members × (4 inner fits + refit), 8 starts throughout) takes 399 s, so the 63-layer band is ≈ 7 h per
+condition on one core, ≈ 40 min on the machine's 11 usable workers, well inside the 24 h — every
+layer and 8 starts stay. The machine (Apple M4 Max, 12 performance + 4 efficiency cores, 128 GB)
+takes 11 single-threaded workers before they slow each other. Server patch + stimulus bank: week of 15 Sept;
 CAL, PILOT, recovery and calibration: week of 22 Sept; **v2 freeze by 29 Sept** (with the manifest
 files); CONF captures and fits 30 Sept–6 Oct; H3 and write-up in October.
 
