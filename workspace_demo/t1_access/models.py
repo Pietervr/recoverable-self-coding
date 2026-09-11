@@ -40,15 +40,19 @@ in the parameter units the optimiser works in — the raw vectors above), each r
 kept solution is the converged run with the highest training log-likelihood, else the best run,
 flagged. Recovery (§9): 16 further starts, then 16 at doubled jitter.
 
-Environment: the t1_access venv (Python 3.12, jax CPU, x64). Each process is pinned to one XLA thread
-so that dataset-level parallelism (joblib) owns the cores.
+Environment: the t1_access venv (Python 3.12, jax CPU, x64). Each process is pinned to ONE XLA thread
+so that dataset-level parallelism (joblib) owns the cores: the XLA CPU client sizes its Eigen
+intra-op pool from the NPROC environment variable (checked 2026-09-11 with jax 0.11.1: without it a
+fit burns three cores through the pool's work-stealing, and the XLA_FLAGS thread flags do nothing;
+with NPROC=1 CPU time equals wall time). Set before jax is imported; a shell may override it.
 """
 from __future__ import annotations
 
 import os
 
 os.environ.setdefault("JAX_PLATFORMS", "cpu")
-os.environ.setdefault("XLA_FLAGS", "--xla_cpu_multi_thread_eigen=false intra_op_parallelism_threads=1")
+os.environ.setdefault("NPROC", "1")
+os.environ.setdefault("XLA_FLAGS", "--xla_cpu_multi_thread_eigen=false")
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 
 import functools

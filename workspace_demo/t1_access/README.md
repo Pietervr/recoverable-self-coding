@@ -28,7 +28,9 @@ NJOBS=13 nohup sh run_sims.sh > sim_results/logs/run_sims.log 2>&1 &
 
 Pinned versions are in `requirements.txt` (jax 0.11.1 CPU, numpy 2.5.3, scipy 1.18.1, pandas 3.0.5,
 joblib 1.6.0; Python 3.12.14, macOS Apple silicon). Each process is pinned to one XLA thread
-(`models.py` sets `XLA_FLAGS` before importing jax); parallelism is per dataset through joblib.
+(`models.py` sets `NPROC=1` before importing jax — the XLA CPU client sizes its Eigen pool from
+that variable; the `XLA_FLAGS` thread flags do nothing in this jaxlib); parallelism is per dataset
+through joblib, `NJOBS` workers of one core each.
 
 ## What the code decides that the text left open (all recorded as v1.2 amendments)
 
