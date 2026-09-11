@@ -52,8 +52,13 @@ import os
 
 os.environ.setdefault("JAX_PLATFORMS", "cpu")
 os.environ.setdefault("NPROC", "1")
-os.environ.setdefault("XLA_FLAGS", "--xla_cpu_multi_thread_eigen=false")
+os.environ.setdefault("XLA_FLAGS", "--xla_cpu_multi_thread_eigen=false --xla_cpu_parallel_codegen_split_count=1")
+# BLAS thread caps, all three explicitly: joblib's workers raise any that is UNSET to cores // n_jobs, and
+# OpenBLAS (the Linux numpy wheels) spin-waits on its idle threads — 48 workers on a 192-vCPU instance
+# showed 197 s of CPU per 56 s fit until OPENBLAS_NUM_THREADS was pinned (2026-09-11).
 os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
 
 import functools
 import time as _time
