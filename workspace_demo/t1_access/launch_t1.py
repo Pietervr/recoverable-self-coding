@@ -64,6 +64,7 @@ def main():
     ap.add_argument("--shards", type=int, default=1)
     ap.add_argument("--shard-start", type=int, default=0, help="launch shards shard-start..shard-end-1 (to launch a wave or relaunch a few)")
     ap.add_argument("--shard-end", type=int, default=0, help="exclusive; 0 = shards")
+    ap.add_argument("--shards-per-job", type=int, default=1, help="consecutive shards handled by one job (big instances)")
     ap.add_argument("--run", default="full", help="results subfolder under results/t1_access/")
     ap.add_argument("--profile", default="xtenure-read")
     ap.add_argument("--dry-run", action="store_true")
@@ -110,12 +111,15 @@ def main():
         stopping["MaxWaitTimeInSeconds"] = int(2 * a.max_hours * 3600)
     if not a.dry_run:
         upload_code(sess.client("s3"))
-    for shard in range(a.shard_start, a.shard_end or a.shards):
+    end = a.shard_end or a.shards
+    for shard in range(a.shard_start, end, a.shards_per_job):
         env_s = dict(env)
         tag = ""
         if a.shards > 1:
-            env_s["SHARD"] = str(shard); env_s["N_SHARDS"] = str(a.shards)
-            tag = f"-s{shard:02d}of{a.shards:02d}"
+            last = min(shard + a.shards_per_job, end) - 1
+            env_s["SHARD"] = str(shard) if last == shard else f"{shard}-{last}"
+            env_s["N_SHARDS"] = str(a.shards)
+            tag = f"-s{shard:03d}of{a.shards:03d}" if last == shard else f"-s{shard:03d}-{last:03d}of{a.shards:03d}"
         job = f"t1-{a.task}-d{a.D}-{a.run.replace('_', '-')[:12]}{tag}-{stamp}"
         spec = dict(
             TrainingJobName=job,

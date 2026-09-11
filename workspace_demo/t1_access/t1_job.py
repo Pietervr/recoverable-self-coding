@@ -40,7 +40,20 @@ FIVE_LAYERS = (25, 33, 41, 49, 57)
 SEED = int(os.environ.get("SEED", "2026"))
 GENERATORS = os.environ.get("GENERATORS") or None
 N_JOBS = int(os.environ.get("N_JOBS") or os.cpu_count())
-SHARD = int(os.environ.get("SHARD", "0"))          # this job takes every N_SHARDS-th (point, replicate) task
+def _parse_shards(s: str) -> list:
+    """'3' -> [3]; '80-89' -> [80..89]; '1,5,9' -> [1, 5, 9]."""
+    out = []
+    for part in s.split(","):
+        if "-" in part:
+            a, b = part.split("-")
+            out += list(range(int(a), int(b) + 1))
+        else:
+            out.append(int(part))
+    return out
+
+
+SHARDS = _parse_shards(os.environ.get("SHARD", "0"))   # this job takes the tasks whose index mod N_SHARDS is in SHARDS
+SHARD = SHARDS[0]
 N_SHARDS = int(os.environ.get("N_SHARDS", "1"))
 N_STARTS_INNER = int(os.environ.get("N_STARTS_INNER", "8"))   # §14: 4 if the budget requires (recorded in the pre-registration)
 RESULTS_URI = os.environ["RESULTS_URI"].rstrip("/") + "/"
@@ -70,7 +83,10 @@ def log(msg: str):
 
 
 def shard_name(csv_name: str) -> str:
-    return csv_name.replace(".csv", f".shard{SHARD:02d}of{N_SHARDS:02d}.csv") if N_SHARDS > 1 else csv_name
+    if N_SHARDS <= 1:
+        return csv_name
+    tag = f"{SHARDS[0]:03d}" if len(SHARDS) == 1 else f"{SHARDS[0]:03d}-{SHARDS[-1]:03d}"
+    return csv_name.replace(".csv", f".shard{tag}of{N_SHARDS:03d}.csv")
 
 
 def gain_file(cfg, S) -> str:
@@ -117,7 +133,7 @@ def run_stage(task: str, n_rep: int, layers: tuple, generators, cfg, A, S):
 
     def on_chunk(path, n_done, n_total, elapsed):
         s3_upload(path, csv_name)
-        prog = dict(task=task, D=D, n_rep=n_rep, layers=list(layers), shard=SHARD, n_shards=N_SHARDS,
+        prog = dict(task=task, D=D, n_rep=n_rep, layers=list(layers), shards=SHARDS, n_shards=N_SHARDS,
                     done=n_done, total=n_total, elapsed_min=round(elapsed / 60, 1),
                     rate_per_hour=round(3600 * n_done / max(elapsed, 1), 1),
                     eta_hours=round((n_total - n_done) * elapsed / max(n_done, 1) / 3600, 2), n_jobs=N_JOBS,
@@ -128,7 +144,7 @@ def run_stage(task: str, n_rep: int, layers: tuple, generators, cfg, A, S):
         log(f"{task}: {n_done}/{n_total} rows, {prog['rate_per_hour']} per hour, eta {prog['eta_hours']} h")
 
     S.run_points(points, n_rep, D, layers, S.RHO_LAYERS, cfg, SEED, N_JOBS, out_csv, extras,
-                 chunk=N_JOBS, on_chunk=on_chunk, shard=(SHARD, N_SHARDS))
+                 chunk=N_JOBS, on_chunk=on_chunk, shard=(SHARDS, N_SHARDS))
     if os.path.exists(out_csv):
         summ = S.summarize(out_csv)
         summ_path = out_csv.replace(".csv", "_summary.csv")
@@ -175,7 +191,7 @@ def main():
     import models as M
     import simulate as S
     log(f"task={TASK} n_rep={N_REP}/{N_REP_RECOVERY}/{N_REP_5LAYERS} D={D} layers={LAYERS} seed={SEED} "
-        f"generators={GENERATORS} n_jobs={N_JOBS} shard={SHARD}/{N_SHARDS} inner starts={N_STARTS_INNER} "
+        f"generators={GENERATORS} n_jobs={N_JOBS} shards={SHARDS[0]}..{SHARDS[-1]} of {N_SHARDS} inner starts={N_STARTS_INNER} "
         f"trapezoid points={M.TRAP_POINTS}")
     log(subprocess.run([sys.executable, "-c", "import jax, numpy, scipy, pandas, joblib, platform; "
                         "print('jax', jax.__version__, 'numpy', numpy.__version__, 'scipy', scipy.__version__, "

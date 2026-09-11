@@ -180,11 +180,12 @@ def run_points(points: list, n_rep: int, D: int, layers, rho: float, cfg: A.Conf
                out_csv: str, extras: dict | None = None, chunk: int = 32, on_chunk=None, shard=(0, 1)):
     """Runs every (point, rep) through one_replicate, appending rows to out_csv as chunks complete.
     on_chunk(out_csv, n_done, n_total, elapsed_seconds) is called after every chunk is written.
-    shard=(i, N): take every N-th task starting at i (the seeds are per (point, rep), so shards are disjoint
-    and their CSVs concatenate)."""
+    shard=(i, N) or (ids, N): the tasks whose index modulo N is i / is in ids (the seeds are per
+    (point, rep), so shards are disjoint and their CSVs concatenate)."""
     from joblib import Parallel, delayed
     tasks = [(name, kw, r) for (name, kw) in points for r in range(n_rep)]
-    tasks = tasks[shard[0]::shard[1]]
+    ids = set(shard[0]) if isinstance(shard[0], (list, tuple, set)) else {int(shard[0])}
+    tasks = [t for i, t in enumerate(tasks) if i % int(shard[1]) in ids]
     done = set()
     if os.path.exists(out_csv):
         with open(out_csv) as fh:
