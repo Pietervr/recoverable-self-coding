@@ -1,0 +1,401 @@
+# T1, model side — pre-registration (DRAFT v1.1, 2026-09-11, after review rounds 1 and 2)
+
+**Freeze rule.** This document becomes v2 — the frozen pre-registration — by a commit whose hash is
+recorded here, made only when every file in the §15 manifest exists and the §7.5/§10 validation
+outputs are committed beside them. Until then it is a draft. After v2, changes are dated, committed
+amendments (§15); nothing marked *[frozen]* is changed silently.
+
+**Study.** Access at threshold in brain and language model (Entropy special issue, deadline 31 Oct 2026).
+**Question.** Does the statistical description that separates graded from discontinuous *access* in
+human EEG — the competing-model comparison of Sergent et al. 2021 (Nat Commun 12:1149), reproduced and
+reconciled in `../sergent_port/` (commit e341319) — generalize to a language model's workspace
+representations under a declared, randomized evidence dose?
+**Not claimed.** Consciousness, experience, a first-order law shared by brain and model, entropy
+production, ten model "subjects", a rejection of every graded account (only of the graded predictors
+named in §7).
+**Human reference.** A late active-session preference for the specified two-state mixture over the
+specified heteroscedastic unimodal comparator, modest per-trial gain (~0.003 nat), boundary
+sensitivity; the no-report case open. An assay to transfer, not a standard to meet.
+**Inference statement.** One fixed checkpoint maps randomized clue packets deterministically to
+residual activations. The study compares the conditional distribution of a pre-answer readout across a
+declared stimulus population, then tests whether the readout's content affects the answer. Every
+inference is conditional on this checkpoint and this stimulus population; the statistical clusters
+are **concepts** (stratified by family), not model subjects. The primary readout R1 is a *coherence*
+decoder; "access" is claimed only through the target bridge of §8.5.
+
+---
+
+## 1. Correspondence map
+
+| Human (Sergent 2021) | Model (here) | Status of the correspondence |
+|---|---|---|
+| Vowel in noise; SNR (6–7 levels) | Coherence dose $k/8$: $k$ of eight descriptive clauses describe the target, the rest are a fixed family-balanced background (§3) | a randomized channel setting, not a semantic SNR; distinct-source count falls with $k$ (8, 8, 7, 6, 5, 3, 1) and is part of the manipulation |
+| Time after stimulus (30 ms windows) | Layer depth at a fixed readout position | a computational-stage correspondence, not elapsed time; no requirement that late layers return to graded |
+| Trial | One packet realization (concept × carrier × draw × level) | variability is declared and randomized in the stimulus |
+| Subject ($n=20$), random effect | Concept ($n=64$ in confirmation), stratified by 8 families; carriers fixed (6); draws and levels are repeated observations within concept | the cluster for all uncertainty; ten pre-assigned bundles are a descriptive display only |
+| EEG → CV linear decoder → per-trial distance | Residual stream → **frozen** linear decoder (calibration set) → per-trial decision-function score (R1) | a coherence readout; frozen scale for every confirmatory trial |
+| Report: vowel identity + audibility | Next-token argmax (correct/incorrect) + the target token's log-probability and margin (R3) | no self-rating |
+| Passive session | No-target-report condition: instruction before the packet, equal-length instructions, same marker (§12) | secondary; a challenge condition, not a passive state |
+| M0 / M2B / M3, spm_BMS | The three inherited comparators; a frozen graded family and a frozen mixture family; primary evidence = out-of-sample joint log-score advantage with concept-cluster CIs (§8) | SPM curves kept, not given Bayesian calibration |
+
+## 2. Hypotheses and outcomes
+
+- **H1 (mixture support, coherence readout).** In the workspace band the mixture family predicts
+  held-out concepts better than the graded family on R1: band-mean $\bar\Delta_{\text{ws}} > 0$ with a
+  concept-cluster CI excluding 0 (§8.3).
+- **H1-T (target bridge).** The same comparison on the target–foil projection R2 (§8.5) also gives
+  mixture support, and the R1-assigned state predicts R2 at fixed $k$. "Discontinuous access" is
+  written only if H1 and H1-T both hold; H1 alone is reported as a coherence-readout result.
+- **H1′ (exact transfer).** The historical M3 beats the historical M2B on the two-model contrast in the
+  band. Reported separately; H1 does not require it.
+- **H2 (locality).** $\bar\Delta_{\text{ws}} - \bar\Delta_{\text{early}}$ has a CI excluding 0.
+  "No contrast" is an explicit outcome.
+- **H3 (causal use).** The state assigned by the held-out mixture fit moderates the effect of a
+  target-direction intervention on the target–foil logit contrast (§11).
+- **H0 (graded support).** $\bar\Delta_{\text{ws}} < 0$ with CI excluding 0.
+
+Outcomes (§9): mixture support / graded support / inconclusive / technical assay failure. Family
+heterogeneity, low high-state occupancy, or a mixture confined to some families are **scientific
+results** under whichever outcome the primary statistic gives. A missing target bridge (§8.5) is not a
+technical failure: it limits the interpretation to the coherence readout.
+
+## 3. Stimulus population *[frozen at v2: `stimuli/concepts.json`, `stimuli/clues.json`, `stimuli/background.json`, `stimuli/manifest.csv`]*
+
+**Concepts and roles.** 128 single-token concepts, 16 per family, 8 families (animals, countries,
+tools, foods, vehicles, instruments, body parts, materials); token id frozen per concept in the answer
+context (case and leading-space variants enumerated at build time). Seeded assignment per family:
+4 → **BACKGROUND** (never a target, foil or competitor), 2 → CAL, 2 → PILOT, 8 → CONF. Roles are
+disjoint by construction: a CAL/PILOT/CONF concept's clues appear only in packets of its own split,
+and only as target, foil or competitor clues; background clauses come only from BACKGROUND concepts.
+So a held-out CONF concept's clues are absent from every training packet of the primary set. No
+concept is selected or dropped on model performance; difficulty is a recorded covariate.
+**Clue bank.** 12 descriptive clauses per concept (all 128), 8–14 tokens each, written and audited by
+two readers against a checklist (true of the concept; not containing the concept's name, an
+inflection, or an accepted token variant; not naming the family). Clue identities are kept in every
+record; single-clue difficulty is measured on CAL (§5) as a covariate.
+**Pairs.** Within each split, concepts are paired across families by seed (CAL 8 pairs, PILOT 8,
+CONF 32): each member is the **foil** of the other. A **competitor** (C2) is a third pre-assigned
+concept of the same split from a third family.
+**Background list.** Per (concept, carrier, draw): eight background clauses, exactly one from a
+BACKGROUND concept of each family (the target's own family included), drawn by seed; identical for
+the target packet and its paired foil packet.
+**Packet and nesting.** Eight slots. A draw fixes a slot permutation $\sigma$, a permutation of the
+12 target clues, the same for the foil's clues, and the background list, with background clause $d_j$
+attached to slot $\sigma(j)$. Level $k$ replaces slots $\sigma(1..k)$ with target clues $t_1..t_k$;
+slots $\sigma(k{+}1..8)$ keep their own background clause. Levels are therefore nested by slot, and
+$k=0$ and $k=8$ are matched endpoints. $k=0$ means "no deliberately inserted target clues", not "no
+semantic evidence for the target"; incidental similarity remains possible and is not corrected.
+Levels $k \in \{0,1,2,3,4,6,8\}$ — dense where the transition is expected, sparse above; the pilot may
+move one interior level (§5), recorded.
+**Controls at fixed $k \in \{2,3,4\}$, draw 1 of each (concept, carrier), separate from the primary
+density fitting:**
+- *Foil packets* (C1): slots $\sigma(1..k)$ carry the foil's clues $f_1..f_k$, same background — the
+  target-specificity comparison (§6.4, §8.5).
+- *Competition packets* (C2): $k$ target clues in $\sigma(1..k)$ and $8-k$ clues of the competitor in
+  the other slots (no background) — the one-competitor evidence baseline, explicitly a different
+  structure from the primary channel.
+**Carriers.** Six fixed frames (opening + closing sentences), fixed effects.
+**Prompt scan.** Every assembled prompt (instruction, carrier, all slots, marker, suffix) is scanned
+case-insensitively for the target's and the foil's surface forms and accepted variants; a hit
+regenerates the draw with the next seed (recorded); after ten failures the concept is excluded at
+build time, before any capture, on this string rule (recorded).
+**Size.** Primary set per condition: CONF 64 × 6 × 7 × $D$ ($D=4$: 10,752); CAL and PILOT 16 × 6 × 7 × 4
+= 2,688 each. Controls per condition: C1 64 × 6 × 3 = 1,152; C2 1,152. Overlength prompts (> 160
+packet tokens or beyond the capture limit) are rejected at build time, never truncated.
+
+## 4. Execution contract *[frozen]*
+
+- Model: `mlx-community/Qwen3.6-27B-4bit`, the weights used in E1–E4 and E5–E9 (sha256 in the run
+  log; E10 was Llama). 64 decoder layers (0–63), $d=5120$. Lens: Neuronpedia $n=1000$ Jacobian lens,
+  fitted layers 0–62 (sha256); layer 63 has no Jacobian and reads out through the plain logit lens
+  ($J_{63}=I$). Analysis layer set: 0–62; layer 63 descriptive only. Workspace band: layers 23–57
+  (the E1 prior; the lens metadata's own band, 26–59, is a different definition and is not adopted);
+  early band 3–15; late band 58–62.
+- **One execution path, one pass per trial.** A read-only server addition `POST /api/capture` takes
+  explicit `input_ids` (built by our code from raw text with the model tokenizer, no chat template),
+  runs one `StreamSession.extend` over all ids with `capture_layers` = 0–63, and returns: the post-layer
+  residual `acts[l]` (pre-norm, the tensor the lens transports) at the requested positions for every
+  layer; the final position's logits reduced to `logsumexp`, the logits of a requested token-id list,
+  and the top-1000 (id, logit) pairs; and, when an edit list is supplied, applies it inside that same
+  pass with `StreamSession.set_edits` — at the named layers and global positions, before those layers'
+  residuals are captured, so downstream layers consume the edited stream — logging $\|\Delta h\|$ per
+  layer and position. Edit modes: `steer` (h + λv), `ablate` (`ablate_rows`, λ = removal fraction),
+  `swap_delta` (Δ = patch_swap(h, α=1) − h, then h + λΔ — the linear-dose form; the raw `swap` alpha is
+  not a dose and is not used), `patch` (replace the rows at the positions with supplied fp16 vectors).
+  The legacy `/api/intervene` is not used.
+- Suffix rule: the answer suffix is tokenized separately and its ids concatenated; the build asserts
+  that tokenizing the joined text reproduces the prefix ids exactly, else the item is rejected.
+- Empty-edit parity: a capture with an empty edit list must equal the plain capture bit for bit on 20
+  prompts before any run; an edit with λ=0 must equal the plain capture likewise.
+- Batch size 1; identical kernels and precision; no cache reuse between prompts (a new
+  `StreamSession` per trial); model, lens, runtime and OS versions, and every token id, in the run log.
+- Readout position: the last token of the terminal marker (§12).
+
+## 5. Calibration (CAL) and pilot (PILOT)
+
+**CAL (16 concepts).** Builds the instrument, frozen before CONF is read. Per layer: the R1 decoder
+(§6.1) trained on CAL $k=8$ vs $k=0$ packets. $C$ is chosen by 5-fold concept-disjoint CV on CAL with
+feature standardization fitted inside each training fold; selection metric = mean held-out log-loss;
+ties → the smaller $C$. The decoder and standardization are then refitted on all CAL and frozen,
+together with the affine z-scaling of the decision function (mean/SD of the CAL training scores).
+Also on CAL: single-clue difficulty (target log-prob with one clue + 7 background); the family
+recovery simulations (§7.5); the CAL layer scores for H3 (§11).
+**PILOT (16 other concepts).** Validates the frozen instrument: held-out-concept accuracy at $k=8$ vs
+$k=0$ per layer and per family on PILOT is the number reported (CAL's CV score is a selection score,
+not a validation). Places the dose: the argmax-correct rate must cross 0.5 between $k=1$ and $k=4$; if
+not, one interior level is moved (e.g. $\{0,1,2,3,4,6,8\} \to \{0,1,2,3,4,5,8\}$) and recorded. Supplies
+the variance inputs for §10. Pilot model-comparison numbers are reported as pilot; they decide nothing
+about the outcome.
+
+## 6. Readouts *[frozen]*
+
+### 6.1 R1 (primary assay; a coherence readout)
+Per layer: `sklearn.linear_model.LogisticRegression(penalty="l2", C=C_l, solver="lbfgs", tol=1e-6,
+max_iter=5000)` on standardized `acts[l]` at the readout position; $C_l \in \{10^{-3},\dots,10^{1}\}$
+(9 values, log-spaced) from §5; response = `decision_function`, z-scaled with the CAL constants.
+Trained on the active condition; frozen; applied to every trial at every level. "Distance" means
+this quantity and nothing else.
+### 6.2 R2 (target readout)
+With $v^{(l)}_t = J_l^{\top} W_U[t]$ (the code's `j_lens_vectors_lite`; $J_{63}=I$), the linear
+target–foil projection $r_2 = (v^{(l)}_t - v^{(l)}_f)\cdot h_l = (W_U[t]-W_U[f])\cdot J_l h_l$, and the
+raw target projection $v^{(l)}_t\cdot h_l$. The normalized lens logit $(W_U\,\mathrm{norm}(J_l h_l))[t]$
+is recorded as a secondary readout and never substituted for $r_2$. Endpoint projection
+$\pi = (h - \bar h_{k=0})\cdot u / \|u\|^2$ with $u = \bar h_{k=8} - \bar h_{k=0}$ per (concept, carrier,
+draw) from the matched endpoints; if $\|u\| < 0.05\,\overline{\|h\|}$ the trial is excluded from
+$\pi$ only.
+### 6.3 R3 (behaviour; active condition only)
+From the final position of the active pass: the target token's log-probability
+$\ell_t - \mathrm{logsumexp}$ (always recorded), its margin over the best other token, correct =
+(argmax == target id); the foil's log-probability on every item. No sampling, so no malformed
+outputs. Undefined in the no-target-report condition (no answer is elicited).
+### 6.4 Content diagnostics (reported before H1 is read; §8.5 governs the interpretation)
+On CONF at $k \in \{2,3,4\}$, paired target vs C1 foil packets (same background, same slots):
+(i) R2 separates target from foil: the paired difference has a concept-cluster CI excluding 0 —
+this is the **target-bridge precondition**; (ii) R1 target-vs-foil: a paired equivalence test
+(TOST, margin 0.2 in z units, 90 % CI) per layer, plus the distribution of per-concept absolute
+differences — a diagnostic of what R1 encodes, not a gate; non-significance is not equivalence;
+(iii) R1 on target packets exceeds its $k=0$ value (coherence tracked).
+
+## 7. Models *[frozen finite family after §7.5]*
+
+Response $y$ = R1 score (or R2 projection in §8.5); regressor = level $k$; fits per layer.
+### 7.1 Inherited comparators (ported line by line, `../sergent_port/fit_models.py`)
+M0: $y \sim N(\mu, \sigma^2)$. M2B: $\mu(k) = L\,\mathrm{lg}(k) - L\,\mathrm{lg}(k_{\max}) + \mu_{\max}$
+with $\mathrm{lg}(k) = 1/(1+e^{-\kappa(k-x_0)})$, $\sigma(k) = |a\,\mu(k) + b|$ (affine, as inherited).
+M3: $A(k) = 1/(1+e^{-\kappa(k-x_0)})$ with $A=0$ at the catch level; $\mu_{\text{high}}(k) =
+L_h\,\mathrm{lg}_h(k) + \text{step}$, forced to $\mu_{\text{low}}$ at the catch; $y \sim (1-A)N(\mu_{\text{low}},
+\sigma^2) + A\,N(\mu_{\text{high}}, \sigma^2)$; shared $\sigma$. (In this form "step > 0" does not order
+the components; M3 is kept exactly as inherited and is the historical comparator only.)
+### 7.2 Graded family G
+- **M2B** as above.
+- **M2H**: M2B with a concept random effect on the threshold, $x_0 + u_c$, $u_c \sim N(0, \tau^2)$,
+  $\tau = e^{t}$.
+- **M2S**: M2B with a concept random scale multiplying the signal-dependent base scale,
+  $\sigma_c(k) = |a\,\mu(k)+b|\,e^{v_c}$, $v_c \sim N(0, \omega^2)$, $\omega = e^{w}$.
+- **M2K**: single-state skew-normal $y \sim \mathrm{SN}(\xi(k), \omega(k), \alpha(k))$ with
+  **location** $\xi(k)$ the M2B logistic form, **scale** $\omega(k) = |a\,\xi(k) + b|$, **shape**
+  $\alpha(k) = \alpha_0 + \alpha_1\,\xi(k)$ (Azzalini; the mean is $\xi + \omega\delta\sqrt{2/\pi}$,
+  $\delta = \alpha/\sqrt{1+\alpha^2}$ — location and scale are not mean and SD).
+### 7.3 Mixture family X (ordered parameterisation)
+For every new member: $\mu_{\text{low}}$ free; $\mu_{\text{high}}(k) = \mu_{\text{low}} + e^{\delta_0} +
+e^{\delta_1}\,\mathrm{lg}_h(k)$ — strictly above $\mu_{\text{low}}$ at every level; $A(k) =
+1/(1+e^{-\kappa_A(k-x_0)})$.
+- **M3** as inherited (historical comparator; unordered).
+- **M3H**: ordered M3 with $A(0)=0$ and $u_c \sim N(0,\tau^2)$ on the shared $x_0$ of $A$ and
+  $\mathrm{lg}_h$; shared $\sigma = e^{s}$.
+- **M3V**: ordered M3 with $A(0)=0$ and component scales $\sigma_{\text{low}} = e^{s_0}$,
+  $\sigma_{\text{high}} = e^{s_1}$, each floored at $0.05\,\mathrm{SD}_{\text{train}}(y)$ where the SD is
+  that of the outer training fold (CAL for CAL fits) — never a CONF-wide SD.
+- **M3L**: ordered M3 with a free catch-level occupancy $A(0) = \pi_0 = \mathrm{lg}(\theta_0)$ and the
+  catch-level high emission $\mu_{\text{high}}(0) = \mu_{\text{low}} + e^{\delta_0}$ (not forced to
+  $\mu_{\text{low}}$), so the catch mixture is identifiable whenever $e^{\delta_0}$ is not negligible;
+  spontaneous occupancy is read from $\pi_0$ with its CI.
+### 7.4 Fitting
+Multi-start: 8 starts from a declared generator (data moments of the training fold, jittered by a
+seeded $N(0, 0.25)$ in transformed-parameter units; initialisation from the training fold only).
+Nelder–Mead (`xatol=1e-8, fatol=1e-8, maxiter=maxfev=20000, adaptive=True`) followed by L-BFGS-B
+(`ftol=1e-10, gtol=1e-6, maxiter=2000`, numerical gradients) from the NM optimum; a run is *converged*
+if L-BFGS-B reports success or NM did and the polish changed the log-likelihood by < 1e-6. The kept
+solution is the converged run with the highest training log-likelihood; if no run converged, the
+highest-likelihood run is kept and flagged. All likelihoods in log space (`logsumexp` for mixtures).
+Random-effect integrals by Gauss–Hermite in log space; the node count is set on CAL/PILOT by raising
+it (20 → 40 → 80) until every concept's joint log-likelihood changes by < 1e-3 at full cluster size
+($n_c = 6 \times 7 \times D$), then frozen.
+### 7.5 Recovery of the family distinction (before v2; `simulate.py` outputs committed)
+Generators: every member of G and X at CAL/PILOT-fitted parameters and across a frozen grid —
+heterogeneity $\tau, \omega \in \{0, 0.5, 1, 2\}$ (in level units / log-scale units), component
+separation $e^{\delta_0}/\sigma \in \{0.5, 1, 2, 4\}$, catch occupancy $\pi_0 \in \{0, 0.05, 0.2\}$,
+skew $\alpha \in \{0, 1, 3\}$ — 200 replicates each at CONF cluster sizes. The full family decision of
+§8 is run on each. Reported: the family confusion matrix per generator and grid point. **No member is
+dropped for being individually unrecoverable**: nested members are expected to coincide at some
+parameters. A member is consolidated only under an explicit rule — its held-out joint score never
+differs from a sibling's by more than 1e-4 nat/trial anywhere on the grid (redundant), or it fails
+numerically after the §7.4 recovery (repair first). A graded generator classified as mixture is a
+discrimination failure that §10's calibration must absorb, not a reason to remove the generator.
+The family is frozen after this step.
+
+## 8. Primary analysis *[frozen]*
+
+### 8.1 Joint concept scoring (the one scoring definition)
+Five concept-disjoint outer folds on CONF, stratified by family (8 per family; the same folds for every
+model and layer; `folds.json`); decoders and scaling are frozen from CAL, so nothing in the outer
+split touches decoder training. For member $m$, concept $c$ with trials $i = 1..n_c$ and effect $u$:
+$$q_{m,c} = \int \prod_i p_m(y_{ci} \mid k_{ci}, u)\,p_m(u)\,du,$$
+the integral absent for non-hierarchical members. The primary family predictor is
+**training-only selection**: for each outer fold and layer, the member of each family with the best
+inner 4-fold concept-disjoint (stratified) joint log score on the training concepts is selected,
+refitted on all training concepts, and scores the held-out concepts: $q_{F,c} = q_{m^\ast_F,c}$.
+$$\Delta_c = \frac{\log q_{X,c} - \log q_{G,c}}{n_c}.$$
+Sensitivity predictors, reported alongside: the equal-weight ensemble of joint likelihoods,
+$q_{F,c} = \frac{1}{|F|}\sum_{m \in F} q_{m,c}$ (a mixture over members of the concept-level
+likelihood, not a per-trial average); and the historical pair M3 vs M2B (H1′). The estimand is the
+out-of-sample joint log-score advantage per trial of the training-selected mixture member over the
+training-selected graded member; a positive result rejects those graded predictors, not the graded
+class.
+### 8.2 Uncertainty
+Primary CI: concept-cluster bootstrap of the fixed out-of-fold concept scores $\Delta_c$ — resample
+whole concepts with replacement within each of the eight family strata, 2,000 replicates, carrying
+every layer, level and carrier of a concept together and keeping foil pairs together. This is a
+conditional approximation (it does not re-run the density fits); its coverage is validated in §10 by
+simulations that regenerate the data and refit the pipeline. If simulated coverage of the nominal
+95 % interval is below 0.90 under any retained generator, the pipeline-refitting bootstrap (200
+replicates, all copies of a concept in one fold) replaces it as primary — decided and recorded before
+CONF is read. Per-family (8) summaries with the same CIs.
+### 8.3 Layer summary and criterion
+Band mean $\bar\Delta_{\text{ws}}$ over the frozen layer grid within 23–57 (primary; the grid is every
+layer, or a fixed stride of 2 if the §14 benchmark requires it, frozen at v2), $\bar\Delta_{\text{early}}$
+over 3–15, $\bar\Delta_{\text{late}}$ over 58–62; the band maximum is reported with its location but is
+not the criterion. **Mixture support:** the 95 % CI of $\bar\Delta_{\text{ws}}$ excludes 0 and is
+positive. **Graded support:** excludes 0 and is negative. **Inconclusive:** includes 0. No layer
+selection on CONF.
+### 8.4 Secondary, reported alongside
+The historical SPM curves (spm_BMS on the averaged held-out ML scores, all members and the three
+inherited ones), an inherited assay without Bayesian calibration; H1′; within-family member scores;
+per-family directions (count of families whose $\bar\Delta_{\text{ws}}$ has the pooled sign; no
+threshold); fitted high-state occupancy by level, separation $(\mu_{\text{high}} - \mu_{\text{low}})/\sigma$,
+M3L's $\pi_0$; R2 and $\pi$ profiles by level with CIs; the descriptive ten-bundle display.
+### 8.5 Target bridge (H1-T; an analysis of the same captures)
+(a) The §7–§8.3 comparison run on $y = r_2$ (the target–foil projection, z-scaled with CAL
+constants) instead of R1, same folds, same predictors, same criterion; (b) at fixed $k \in \{2,3,4\}$,
+the R2 mean in R1-assigned high-state trials minus low-state trials (state = posterior of the
+training-selected mixture member at the reference layer of §11, > 0.9 / < 0.1), with a concept-cluster
+CI. H1-T holds if (a) gives mixture support in the band and (b)'s CI excludes 0 in the positive
+direction. Precondition: §6.4(i). If (a) or (b) fails, or §6.4(i) fails, the result is written as a
+coherence-readout result and "discontinuous access" is not used.
+
+## 9. Outcomes and technical failure *[frozen]*
+
+- **Mixture support / graded support / inconclusive** by §8.3 on R1 (primary: active condition,
+  active-trained decoder — one H1). The no-target-report condition (§12) is a secondary analysis with
+  its own pre-declared predictor order (transfer decoder primary, separately trained decoder as
+  sensitivity); it does not offer a second chance at H1.
+- **Technical assay failure** (reported as such, no scientific reading): PILOT held-out decoder
+  accuracy at $k=8$ vs $k=0$ below 0.75 in more than a third of band layers; capture-parity failure;
+  suffix-tokenization failure; a retained member that cannot be scored after the §7.4 recovery
+  (16 further starts, then a doubled jitter) — in which case the **primary comparison is unavailable**
+  and any reduced-family result is a secondary amended analysis, never the H1 result.
+- **Coherence-only reading** (a scientific outcome, not a failure): §6.4(i) or §8.5 fails; H1 is
+  reported on R1, H3 is not run.
+- **Underpowered** (§10) is declared before CONF and reported with the result.
+
+## 10. Calibration and power *[rule frozen; the grid and counts frozen at v2; `simulate.py` outputs committed]*
+
+Simulated: the **full** §8 procedure — outer folds, inner selection, refit, joint scoring, the §8.2
+bootstrap, the band mean and the §8.3 rule, the §7.4 convergence handling and the §9 failure rule —
+on synthetic CONF-sized data at the frozen layer grid, with concept effects and the measured residual
+correlation across layers (from PILOT) generated as declared in `simulate.py`. Nulls: **every retained
+graded member** (M2B, M2H, M2S, M2K) at CAL/PILOT-fitted and grid parameters; alternatives: every
+retained mixture member at per-trial gains 0.003 (the human scale), 0.01 and 0.03 nat. Counts: 1,000
+datasets per generator and setting (Monte-Carlo SE ≈ 0.7 pp at a 5 % rate). Two separate failures:
+- **Calibration**: the false-positive rate (mixture support under a graded null) must be ≤ 0.064
+  (0.05 + 2 SE) for every null at the chosen $D$, and CI coverage ≥ 0.90. Failure at $D=8$ requires
+  revision **before CONF** — permitted changes, frozen here: the bootstrap type (§8.2), the family
+  predictor (selection vs equal-weight), the band summary (mean vs trimmed mean) — recorded as a v2
+  amendment; the underpowered fallback does not apply to a calibration failure.
+- **Power**: draws per (concept, carrier) $D \in \{4, 8\}$ — the smallest $D$ with power ≥ 0.8 at
+  0.01 nat under every mixture alternative; ceiling $D=8$ (21,504 trials per condition). If $D=8$
+  gives power < 0.8 at 0.01 nat, the study is declared underpowered below that scale and proceeds at
+  $D=8$ with that statement in the paper.
+
+## 11. H3 — causal use *[frozen]*
+
+**Layer selection (independent of CONF).** The §8 pipeline is run on CAL with 4 concept-disjoint
+stratified folds (4 concepts each); the three band layers with the largest CAL $\bar\Delta$ are the
+intervention layers; the largest is the **reference layer**. Not cross-fitting — a CAL choice.
+**State.** Per CONF trial: the posterior high-state probability of the training-selected mixture
+member (§8.1) at the reference layer, fitted on the other folds; high if > 0.9, low if < 0.1;
+$k \in \{2,3,4\}$ only; up to 200 high and 200 low trials matched on level, carrier and family (all
+eligible trials if fewer; number reported).
+**Single-pass interventions** (`/api/capture`, edits at the marker positions, joint at the three
+layers in one pass; separate single-layer effects reported as secondary): baseline (empty edit list);
+(i) **swap_delta** target → foil, λ=1 — the primary operation; (ii) **ablate** the target direction
+(`ablate_token_ids=[target]`, λ=1); (iii) **rescue**: steer with $v_t$ at a per-layer amplitude
+$\lambda_l$ frozen on CAL so that $\|\lambda_l v_t\|$ equals the median $\|\Delta h_l\|$ of the swap
+operation on CAL high-state trials — applied to **both** low- and high-state trials (saturation is the
+prediction on high); (iv) **sham**: λ=0 (must equal baseline bit for bit); (v) **off-target**: swap_delta
+between a pre-assigned unrelated pair $(u_1 \to u_2)$ of BACKGROUND single-token concepts from
+families other than the target's and foil's, scaled per layer to $\|\Delta h_l\|$ of the trial's own
+target swap (per-layer norm matching); if $\|\Delta'\| < 10^{-3}\|h\|$ the control is undefined and
+reported; (vi) **positive control**: `patch` the marker-position residuals from the trial's matched
+$k=8$ packet (same draw) at the three layers.
+**Outcomes.** Primary: the reduction of the target–foil logit contrast at the final position,
+effect $= (\ell_t - \ell_f)_{\text{before}} - (\ell_t - \ell_f)_{\text{after}}$ (positive = reduction) for
+swap and ablate; for rescue the increase (sign reversed). Secondary: argmax flips (denominator =
+trials correct at baseline for swap/ablate; all trials for rescue).
+**Decision rule.** The primary contrast is the intervention × state interaction for the joint
+swap: $\bar E_{\text{high}} - \bar E_{\text{low}}$ with its concept-cluster 95 % CI. H3 supported if the
+CI excludes 0 and the point estimate ≥ 0.5 nat (SEOI); "strong" if the CI lower bound ≥ 0.5 nat.
+Controls: sham and off-target effects must satisfy |effect| < 0.25 nat with the 90 % CI inside
+(equivalence); the positive control must increase the contrast on low-state trials with a CI
+excluding 0 — if it does not, the apparatus is insensitive and H3 is reported as **not testable**.
+Ablate and rescue interactions are secondary, with CIs, no correction. The effect is also regressed
+on $\|\Delta h\|$, baseline margin, level, carrier and family (dose regression), and the binary-state
+account is compared with a smooth account (effect linear in the z-scored R1 score) by held-out log
+score; "two-state causal mechanism" is not written if the smooth account predicts as well or better.
+**Reading.** H1 supported and H3 unsupported is "causal use not established by this intervention".
+Secondary downstream task: 100 pre-assigned yes/no property items (`stimuli/properties.json`;
+"Does it fly?"), scored by the log-odds of the correct answer token after the packet and question;
+the same intervention × state contrast, reported with CI.
+
+## 12. Conditions *[frozen]*
+
+**Active (report).** ids = `<instruction A> <carrier open> <8 slots> <carrier close> <terminal
+marker>` + `Answer:`; instruction A = "Read the description below; afterwards, name in one word what
+is described." One pass: residuals at the marker's last token (unaffected by the suffix under the
+causal mask), logits at the final position.
+**No-target-report (challenge).** Instruction B, wording adjusted at build time until it tokenizes to
+**exactly the same number of tokens** as instruction A (asserted in the manifest, so every packet and
+marker position is the same global index in both conditions); same packet, same marker, no suffix;
+residuals at the marker's last token. Called "no-target-report", never "passive". Secondary (§9).
+
+## 13. Exploratory (not confirmatory; deferred unless time allows)
+Token-axis history dependence (dose ramped within one context) with the controls listed in the
+10 Sept consensus; no bistability claim from lag alone.
+
+## 14. Budget and timeline
+Captures (single pass each, $D=4$): primary 2 × 10,752 + controls 2 × 2,304 + CAL/PILOT 2 × 5,376 =
+36,864, at 3–5 s → 31–51 h. Storage per capture: 64 × 5120 fp16 residuals at one position (0.66 MB)
++ logsumexp, requested-token logits and top-1000 (≈ 10 kB) → ≈ 25 GB, gitignored. H3: 400 trials ×
+(baseline + 6 joint + 3 × 3 single-layer) = 6,400 captures ≈ 7 h. Fitting: 8 members × 63 layers ×
+5 outer folds × (4 inner + 1 refit) × 8 starts = 100,800 starts per condition, plus CAL/PILOT, the
+§7.5 recovery and §10 calibration runs; benchmarked on CAL before v2 — if the band cannot be fitted
+within 24 h per condition on this machine, the frozen layer grid becomes stride 2 within each band
+and inner selection uses 4 starts (recorded in v2). Server patch + stimulus bank: week of 15 Sept;
+CAL, PILOT, recovery and calibration: week of 22 Sept; **v2 freeze by 29 Sept** (with the manifest
+files); CONF captures and fits 30 Sept–6 Oct; H3 and write-up in October.
+
+## 15. Freeze manifest for v2 and amendment log
+Frozen at v2 (all committed, hashes in the v2 commit): `stimuli/` (concepts, clues, background,
+pairs, competitors, properties, draws, manifest with token counts and scan results); the level set;
+`capture.py` (ids, suffix assertion, parity tests, run log); `decode_cal.py` outputs (per-layer
+decoders, $C_l$, standardization, scaling); `models.py` (the members, parameterisations, start
+generator, optimizer settings, GH node count); `folds.json`; `analyze.py` (joint scoring, selection,
+bootstrap, band summaries, outcome table, target bridge); `simulate.py` with its §7.5 and §10 outputs
+and the resulting $D$, bootstrap type and layer grid; `h3.py` (CAL layer scores, matching, edit
+lists, amplitudes, outcomes); this document.
+
+| date | change | reason |
+|---|---|---|
+| 2026-09-11 | v0 drafted | for second-opinion review |
+| 2026-09-11 | v1: inference unit = concepts; frozen CAL decoder; distractor channel; nine-model family; held-out family log score; outcomes split; power by simulation; H3 via one capture path; no-target-report condition | review round 1 (Codex) |
+| 2026-09-11 | v1.1: BACKGROUND concept bank with family-balanced backgrounds identical across target/foil pairs, slot-nested levels, role disjointness, prompt scan; H1 = coherence readout with a pre-declared target bridge (§8.5); one joint concept-scoring definition with training-only within-family selection (equal-weight and M3-vs-M2B as sensitivity); ordered mixture parameterisation, identifiable M3L catch, inherited affine sigma kept, skew-normal parameters named; SciPy option names and solver rule; recovery of the family distinction replaces member-recoverability; post-CONF member loss = primary unavailable; bootstrap defined and validated by refit simulation; calibration vs power failures separated with permitted changes; single-pass active capture with edits inside the answer pass; swap_delta linear dose, per-layer norm matching, rescue amplitude, patch mode; H3 decision rule, polarity, positive-control criterion, smooth-vs-binary check; layer count 64 / lens 0–62 / band 23–57 kept; equal-length instructions; budget recomputed | review round 2 (Codex) |
