@@ -53,23 +53,31 @@ def run(session: str, tag: str = "", nsamp: int = 1_000_000, seed: int = 0, alph
         rows.append(row)
     out = pd.DataFrame(rows)
     for m in MODEL_COLS:
-        thr, sig = simes_threshold(1.0 - out[f"pxp_{m}"].to_numpy(), alpha)
-        out[f"simes_sig_{m}"] = sig
+        p = 1.0 - out[f"pxp_{m}"].to_numpy()
+        thr, sig = simes_threshold(p, alpha)
+        out[f"simes_sig_{m}"] = sig                    # conventional BH: p <= largest accepted p
+        # Meyniel's MCP_fromPval_fn('Simes') returns that largest accepted OBSERVED p and the PlotFig
+        # script marks windows with 1 - pxp < thr (strict), which excludes the boundary window itself.
+        out[f"simes_sig_matlab_{m}"] = (p < thr) if not np.isnan(thr) else np.zeros(len(p), dtype=bool)
         out[f"simes_thr_{m}"] = thr
     os.makedirs(FIG_DIR, exist_ok=True)
     out.to_csv(os.path.join(RESULTS_DIR, f"bms_{session}{tag}.csv"), index=False, float_format="%.6g")
     out[["window", "t_ms"] + [f"pxp_{m}" for m in MODEL_COLS] + [f"simes_sig_{m}" for m in MODEL_COLS]
-        + [f"freq_{m}" for m in MODEL_COLS] + ["bor"]].to_csv(
+        + [f"simes_sig_matlab_{m}" for m in MODEL_COLS] + [f"freq_{m}" for m in MODEL_COLS] + ["bor"]].to_csv(
         os.path.join(FIG_DIR, f"fig_b_model_comparison_{session}{tag}.csv"), index=False, float_format="%.6g")
 
-    # ---- figure (the PlotFig layout: pxp time courses, Simes-significant windows as dots at 1.1)
+    # ---- figure (the PlotFig layout: pxp time courses; dots at 1.1 = the MATLAB plot's strict-'<' Simes set,
+    #      open circles at 1.14 = the additional window(s) the conventional BH '<=' rule would include)
     fig, ax = plt.subplots(figsize=(8.5, 5))
     t = out.t_ms.to_numpy()
     for m in MODEL_COLS:
         ax.plot(t, out[f"pxp_{m}"], lw=3, color=MODEL_COLORS[m], label=MODEL_LABELS[m])
-        sig = out[f"simes_sig_{m}"].to_numpy()
+        sig = out[f"simes_sig_matlab_{m}"].to_numpy()
+        extra = out[f"simes_sig_{m}"].to_numpy() & ~sig
         if sig.any():
             ax.plot(t[sig], 1.1 * np.ones(sig.sum()), ".", color=MODEL_COLORS[m], ms=14)
+        if extra.any():
+            ax.plot(t[extra], 1.14 * np.ones(extra.sum()), "o", mfc="none", color=MODEL_COLORS[m], ms=7)
     ax.axhline(1 / 3, color="k", ls=":")
     ax.axvline(0, color="k")
     ax.set_xlim(t[0], t[-1]); ax.set_ylim(-0.07, 1.17)
@@ -91,7 +99,8 @@ def run(session: str, tag: str = "", nsamp: int = 1_000_000, seed: int = 0, alph
     m3 = out.pxp_model3.to_numpy()
     above = t[m3 > 0.95]
     print("windows with pxp(bifurcation) > 0.95 (window centres, ms):", above.astype(int).tolist())
-    print("Simes-significant windows for the bifurcation model:", t[out.simes_sig_model3].astype(int).tolist())
+    print("Simes-significant windows for the bifurcation model, BH '<=':", t[out.simes_sig_model3].astype(int).tolist(),
+          "; MATLAB-literal strict '<':", t[out.simes_sig_matlab_model3].astype(int).tolist())
     return out
 
 
