@@ -53,6 +53,7 @@ def main():
     ap.add_argument("--generators", default="")
     ap.add_argument("--seed", type=int, default=2026)
     ap.add_argument("--n-jobs", type=int, default=0, help="0 = every vCPU")
+    ap.add_argument("--n-starts-inner", type=int, default=8, help="inner-selection starts (§14 allows 4)")
     ap.add_argument("--instance-type", default="ml.c8i.2xlarge")
     ap.add_argument("--max-hours", type=float, default=48.0)
     ap.add_argument("--spot", action="store_true", help="managed spot training (waits up to 2x max-hours for capacity)")
@@ -91,7 +92,7 @@ def main():
     results_uri = f"{RESULTS_ROOT}{a.run}/"
     env = {"TASK": a.task, "N_REP": str(a.n_rep), "D": str(a.D), "LAYERS": a.layers, "SEED": str(a.seed),
            "RESULTS_URI": results_uri, "NPROC": "1", "OMP_NUM_THREADS": "1", "OPENBLAS_NUM_THREADS": "1",
-           "MKL_NUM_THREADS": "1"}
+           "MKL_NUM_THREADS": "1", "N_STARTS_INNER": str(a.n_starts_inner)}
     if a.generators:
         env["GENERATORS"] = a.generators
     if a.n_jobs:

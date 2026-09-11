@@ -36,6 +36,7 @@ GENERATORS = os.environ.get("GENERATORS") or None
 N_JOBS = int(os.environ.get("N_JOBS") or os.cpu_count())
 SHARD = int(os.environ.get("SHARD", "0"))          # this job takes every N_SHARDS-th (point, replicate) task
 N_SHARDS = int(os.environ.get("N_SHARDS", "1"))
+N_STARTS_INNER = int(os.environ.get("N_STARTS_INNER", "8"))   # §14: 4 if the budget requires (recorded in the pre-registration)
 RESULTS_URI = os.environ["RESULTS_URI"].rstrip("/") + "/"
 WORK = "/opt/ml/checkpoints" if os.path.isdir("/opt/ml/checkpoints") else "/opt/ml/sim_results"   # spot: synced to S3 by SageMaker too
 OUT_DIR = "/opt/ml/output/data"
@@ -72,7 +73,8 @@ def main():
                         "print('jax', jax.__version__, 'numpy', numpy.__version__, 'scipy', scipy.__version__, "
                         "'pandas', pandas.__version__, 'joblib', joblib.__version__, platform.platform(), platform.machine())"],
                        capture_output=True, text=True).stdout.strip())
-    cfg = A.Config()
+    cfg = A.Config(n_starts_inner=N_STARTS_INNER)
+    log(f"inner-selection starts: {N_STARTS_INNER}; refit starts: {cfg.n_starts}; trapezoid points: {M.TRAP_POINTS}")
     t0 = time.time()
 
     if TASK == "bench":
