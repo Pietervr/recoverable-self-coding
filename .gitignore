@@ -27,3 +27,5 @@ exemplar/journey_*.parquet
 foundational/data/
 # workspace_demo: upstream clones (re-pullable via workspace_demo/setup_upstream.sh)
 workspace_demo/upstream/
+# brain datasets (openly re-pullable from their repositories; e.g. Sergent et al. 2021, OSF aw3t5, CC0)
+workspace_demo/brain_data/
