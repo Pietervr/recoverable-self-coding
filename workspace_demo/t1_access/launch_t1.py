@@ -3,7 +3,9 @@
 xTenure account, following xTenure-MCED/phase1/launch_*.py: code channel from S3, the prebuilt CPU
 training image, the job execution role, results uploaded by the job to RESULTS_URI, auto-terminating.
 
-  ./.venv/bin/python launch_t1.py --task calibration --n-rep 1000 --D 4 --run full --spot --shards 20
+  # the D = 4 run of 2026-09-11: 40 shards, the first 20 on spot (the spot quota), the rest on demand or later
+  ./.venv/bin/python launch_t1.py --task all --run full --spot --shards 40 --shard-end 20 --n-starts-inner 4 --max-hours 144
+  ./.venv/bin/python launch_t1.py --task all --run full --shards 40 --shard-start 20 --n-starts-inner 4 --max-hours 144   # on demand
   ./.venv/bin/python launch_t1.py --task calibration --n-rep 8 --generators M2B --run smoke --spot --max-hours 2
   ./.venv/bin/python launch_t1.py --status                                                  # our jobs' state
   ./.venv/bin/python launch_t1.py --stop <job-name>                                         # stop one (resumable)
@@ -60,7 +62,8 @@ def main():
     ap.add_argument("--max-hours", type=float, default=48.0)
     ap.add_argument("--spot", action="store_true", help="managed spot training (waits up to 2x max-hours for capacity)")
     ap.add_argument("--shards", type=int, default=1)
-    ap.add_argument("--shard-start", type=int, default=0, help="launch shards shard-start..shards-1 (to relaunch a few)")
+    ap.add_argument("--shard-start", type=int, default=0, help="launch shards shard-start..shard-end-1 (to launch a wave or relaunch a few)")
+    ap.add_argument("--shard-end", type=int, default=0, help="exclusive; 0 = shards")
     ap.add_argument("--run", default="full", help="results subfolder under results/t1_access/")
     ap.add_argument("--profile", default="xtenure-read")
     ap.add_argument("--dry-run", action="store_true")
@@ -107,7 +110,7 @@ def main():
         stopping["MaxWaitTimeInSeconds"] = int(2 * a.max_hours * 3600)
     if not a.dry_run:
         upload_code(sess.client("s3"))
-    for shard in range(a.shard_start, a.shards):
+    for shard in range(a.shard_start, a.shard_end or a.shards):
         env_s = dict(env)
         tag = ""
         if a.shards > 1:
