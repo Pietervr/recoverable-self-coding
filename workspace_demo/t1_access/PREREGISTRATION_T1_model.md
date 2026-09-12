@@ -228,7 +228,7 @@ four safeguarded Newton steps (unrolled in the differentiated graph, so the grad
 Laplace SD $\hat s_c$ is taken there and **capped** at $\tau$ by the curvature safeguard; the peak is
 integrated by a $P$-point trapezoid rule on $[\hat u_c \pm 6\hat s_c]$ and the rest of the prior's
 range, $[-6\tau, \hat u_c - 6\hat s_c]$ and $[\hat u_c + 6\hat s_c, 6\tau]$, by two further trapezoid
-rules with $P/2$ points each and exact endpoints, so that a flat tail or a second mode (M2H's
+rules with $P/3$ points each (32 at $P = 96$) and exact endpoints, so that a flat tail or a second mode (M2H's
 anchored mean returns to $\mu_{\max}$ at both extremes of the shifted threshold) is carried by the
 outer rules. Why not Gauss–Hermite: prior-centred nodes do not converge at the CONF cluster size
 (`verify.py` V3 — with 168 trials per concept 80 nodes still miss by 0.06–0.3 nat, so the v1.1 ladder
@@ -241,8 +241,10 @@ to the other family's data. At $P = 96$ (2026-09-11): max error $3.1 \times 10^{
 generating and fitted case, and $3.6 \times 10^{-3}$ nat in one cross-fit — M3H fitted to M2S data
 at $\omega = 2$, where the fitted slope is so large that the likelihood in the threshold shift is a
 staircase and the trapezoid error falls only linearly with $P$ ($5.4 \times 10^{-3}$ at 64,
-$1.7 \times 10^{-3}$ at 128); its bound on the estimand is the case error over $n_c$, $2 \times 10^{-5}$
-nat per trial, a hundred times below the smallest declared effect. Pass rule: < 1e-3 nat in the
+$1.7 \times 10^{-3}$ at 128). These are observed errors of the likelihood at the audited parameters,
+not a bound on the whole refitting and selection procedure; the case error over $n_c$,
+$2 \times 10^{-5}$ nat per trial, is the size of the per-trial score perturbation at those
+parameters, a hundred times below the smallest declared effect. Pass rule: < 1e-3 nat in the
 generating and fitted cases, < 5e-3 in the cross-fits. $P$ is set on CAL/PILOT by raising it
 (64 → 96 → 128) until every concept's joint log-likelihood changes by < 1e-3 at full cluster size
 ($n_c = 6 \times 7 \times D$), then frozen.
@@ -326,11 +328,12 @@ coherence-readout result and "discontinuous access" is not used.
   accuracy at $k=8$ vs $k=0$ below 0.75 in more than a third of band layers; capture-parity failure;
   suffix-tokenization failure; a retained member that cannot be scored after the §7.4 recovery
   (16 further starts, then a doubled jitter) — in which case the **primary comparison is unavailable**
-  and any reduced-family result is a secondary amended analysis, never the H1 result. The same rule
-  inside the inner selection (v1.2): a member whose inner fit or inner held-out score is not finite
-  after the recovery scores $-\infty$ and cannot be selected, and is recorded; if every member of a
-  family is unscorable in a fold, the primary comparison is unavailable. Inner convergence and the
-  count of non-finite inner scores are reported beside the refit convergence.
+  and any reduced-family result is a secondary amended analysis, never the H1 result. **Amended
+  policy for the inner selection** (v1.2, weaker than the rule above and declared as such): a member
+  whose inner fit or inner held-out score is not finite after the recovery scores $-\infty$ and
+  cannot be selected, and is recorded; if every member of a family is unscorable in a fold, the
+  primary comparison is unavailable. Inner convergence and the count of non-finite inner scores are
+  reported beside the refit convergence, and the simulations of §10 run under this policy.
 - **Coherence-only reading** (a scientific outcome, not a failure): §6.4(i) or §8.5 fails; H1 is
   reported on R1, H3 is not run.
 - **Underpowered** (§10) is declared before CONF and reported with the result.
@@ -345,12 +348,20 @@ graded member** (M2B, M2H, M2S, M2K) at CAL/PILOT-fitted and grid parameters; al
 retained mixture member at per-trial gains 0.003 (the human scale), 0.01 and 0.03 nat — the gain
 being the expected out-of-sample joint log-score advantage per trial of the generator over the best
 graded member fitted at large sample (256 concepts), reached by scaling both high-state offsets
-(`simulate.calibrate_gain`; the truth term is scored under the generating density, and every one of
-the twelve (member, gain) calibrations must exist, converge within 5 % of its target and be confirmed
-by an independent draw with its Monte-Carlo SE, else the power stage does not run — v1.2 after the
-Codex review; "0.003 nat" is a numerical reference scale, the oracle-to-large-sample-graded
+(`simulate.calibrate_gain`; the truth term is scored under the generating density). **Acceptance
+gate** (v1.2 after the Codex re-check; `simulate.gain_gate`, enforced when the gain file is written
+and again when it is loaded): the twelve (member, gain) pairs present exactly once; scale, gain,
+check and check-SE finite; every graded reference fit converged in the calibration draw (8 × 32
+concepts) and in the independent check draw (a fresh seed, 8 × 64 concepts); the check's SE — the
+test-concept variation conditional on the check's own fitted graded reference — at most 20 % of the
+target; and the check within 25 % of the target. A pair that fails is recalibrated with more
+reference simulation or the gain claim for that pair is changed explicitly; the power stage does not
+run on a file that fails. "0.003 nat" is a numerical reference scale, the oracle-to-large-sample-graded
 separation, not the finite-design selected-X-versus-selected-G $\bar\Delta$ nor the human historical
-pair's gain). Counts: 1,000 datasets per generator and setting (Monte-Carlo SE ≈ 0.7 pp at a 5 %
+pair's gain. For run `d4v12b`, whose job code recorded the check without enforcing it, the gate is
+applied to the recorded entries with the check recomputed at 8 × 64 concepts
+(`simulate.revalidate_gain_entries`) before any power result is read; a pair whose scale the gate
+would change has its power replicates and five-layer rows rerun under a new namespace. Counts: 1,000 datasets per generator and setting (Monte-Carlo SE ≈ 0.7 pp at a 5 %
 rate). The §14 benchmark (v1.2) puts one dataset through the full procedure at 900 s per layer on one
 Mac core, so the full counts on one synthetic layer (12 nulls and 12 alternatives at 1,000, the 36
 mixture recovery points at 200, the five-layer pilot) are ≈ 9,000 Mac-core-hours per $D$ — not this
@@ -368,7 +379,12 @@ on the Codex review of v1.2 and its rows discarded. **The corrected run, `d4v12b
 Sept 00:38 UTC** from commit `52267ec` with the same fleet layout, code snapshot
 `code/t1_access/d4v12b/`, results under `results/t1_access/d4v12b/`; at the §14 cost of the
 corrected method (900 s per layer on a Mac core; 83 min per replicate on a loaded small-instance
-vCPU) it is expected to take 45–50 h.
+vCPU) it is expected to take 45–50 h. Runtime: Python 3.12, jax 0.11.1, numpy 2.4.6, scipy 1.18.0,
+pandas 3.0.5, joblib 1.5.3 on x86-64 Linux (logged by every job and written into every row from the
+next snapshot on; the launcher pins them so a resume is the same runtime). Codex's re-check of the
+fixes (17:45 PDT) accepted findings 1–5, 10 and 12 and held finding 7 open until the gain gate above
+existed; its disposition — keep the calibration and recovery stages, hold the power results until
+the twelve entries pass the gate, do not repeat the run — is what is done.
 
 **What the single-layer simulations establish, and what they do not** (v1.2 after the Codex
 review): with one synthetic layer per dataset they calibrate the **per-layer procedure** (inner

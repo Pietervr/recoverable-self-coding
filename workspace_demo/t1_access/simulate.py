@@ -178,7 +178,8 @@ def base_null_points() -> list:
 # ----------------------------------------------------------------------------------------------
 def _row(name, kwargs, rep, D, layers, res, seconds, extra=None, code_hash=""):
     row = dict(generator=name, family=M.MEMBERS[name].family, grid=json.dumps(kwargs, sort_keys=True), rep=rep, D=D,
-               n_layers=len(layers), code_hash=code_hash, failed=int(res["failed"]), failed_reason=res.get("failed_reason", ""),
+               n_layers=len(layers), code_hash=code_hash, runtime=runtime_versions(),
+               failed=int(res["failed"]), failed_reason=res.get("failed_reason", ""),
                convergence=round(res["convergence_rate"], 4), inner_convergence=round(res.get("inner_convergence_rate", np.nan), 4),
                inner_nonfinite=int(res.get("inner_nonfinite", 0)), recovery=round(res["recovery_rate"], 4),
                fit_seconds=round(res["fit_seconds"], 1), wall_seconds=round(seconds, 1))
@@ -254,6 +255,18 @@ def run_points(points: list, n_rep: int, D: int, layers, rho: float, cfg: A.Conf
 # ----------------------------------------------------------------------------------------------
 # summaries
 # ----------------------------------------------------------------------------------------------
+def recovery_merged(recovery_csv: str, calibration_csv: str, n_rep: int = 200) -> "pd.DataFrame":
+    """The §7.5 recovery table: the mixture generators from the recovery stage plus the graded grid points'
+    replicates 0..n_rep-1 from the calibration stage (identical seeds and configuration; not refitted)."""
+    import pandas as pd
+    rec = pd.read_csv(recovery_csv)
+    cal = pd.read_csv(calibration_csv)
+    cal = cal[cal["rep"] < n_rep]
+    if rec["code_hash"].nunique() > 1 or cal["code_hash"].nunique() > 1 or set(rec["code_hash"]) != set(cal["code_hash"]):
+        raise SystemExit("recovery_merged: the two stages carry different code/config hashes")
+    return pd.concat([rec, cal], ignore_index=True)
+
+
 def summarize(out_csv: str, predictor: str = "selection") -> "pd.DataFrame":
     import pandas as pd
     df = pd.read_csv(out_csv)
@@ -330,13 +343,83 @@ def calibrate_gain(name: str, target: float, kwargs: dict, lo: float = 0.02, hi:
         mid = np.sqrt(lo * hi)
         gm = g(mid)
         if abs(gm - target) <= tol * target:
-            chk = expected_gain(name, generator_theta(name, scale=mid, **kwargs), seed=seed + 1000, **gain_kw)
-            return dict(scale=float(mid), gain=float(gm), gain_check=chk["gain"], gain_check_se=chk["se"], trace=trace, note="")
+            # the independent check: a fresh seed and twice the concepts (CHECK_N_PER_FAMILY), its SE being the
+            # test-concept variation conditional on the check's own fitted graded reference
+            chk_kw = dict(gain_kw); chk_kw["n_per_family"] = CHECK_N_PER_FAMILY
+            chk = expected_gain(name, generator_theta(name, scale=mid, **kwargs), seed=seed + 1000, **chk_kw)
+            entry = dict(scale=float(mid), gain=float(gm), gain_check=chk["gain"], gain_check_se=chk["se"],
+                         check_best=chk["best"], check_converged=all(chk["converged"].values()),
+                         calib_converged=all(trace[-1]["converged"].values()), trace=trace, note="")
+            entry["note"] = gain_gate(entry, target)
+            return entry
         if gm < target:
             lo, glo = mid, gm
         else:
             hi, ghi = mid, gm
     return dict(scale=np.nan, gain=float(gm), trace=trace, note=f"bisection limit: {gm:.5f} vs target {target}")
+
+
+CHECK_N_PER_FAMILY = 64          # the independent check draws 8 x 64 concepts (the calibration draws 8 x 32)
+GATE_REL_SE = 0.20               # the check's SE must be <= 20 % of the target (else more reference simulation)
+GATE_REL_AGREE = 0.25            # and |check - target| <= 25 % of the target
+
+
+def gain_gate(entry: dict, target: float) -> str:
+    """The §10 acceptance gate for one (member, target) calibration: '' if it passes, else the reason.
+    Declared rule: finite scale/gain/check/SE; every graded reference fit converged in the calibration draw
+    and in the check draw; check SE <= GATE_REL_SE * target; |check - target| <= GATE_REL_AGREE * target."""
+    for key in ("scale", "gain", "gain_check", "gain_check_se"):
+        v = entry.get(key, np.nan)
+        if v is None or not np.isfinite(v):
+            return f"{key} not finite"
+    if not entry.get("calib_converged", False):
+        return "a graded reference fit did not converge in the calibration draw"
+    if not entry.get("check_converged", False):
+        return "a graded reference fit did not converge in the check draw"
+    if entry["gain_check_se"] > GATE_REL_SE * target:
+        return f"check SE {entry['gain_check_se']:.5f} exceeds {GATE_REL_SE:.0%} of the target {target}"
+    if abs(entry["gain_check"] - target) > GATE_REL_AGREE * target:
+        return f"check {entry['gain_check']:.5f} disagrees with the target {target} by more than {GATE_REL_AGREE:.0%}"
+    return ""
+
+
+def revalidate_gain_entries(entries: list, seed: int, cfg: "A.Config", D: int = 4, n_jobs: int = 1) -> list:
+    """Recompute every entry's independent check at CHECK_N_PER_FAMILY concepts (fresh seed) without touching
+    its scale, then apply the gate — for a gain file produced by code that recorded the check without
+    enforcing it (run d4v12b). Returns the updated entries; `note` carries any failure."""
+    def one(e):
+        e = dict(e)
+        if not np.isfinite(e.get("scale", np.nan)):
+            return e
+        chk = expected_gain(e["generator"], generator_theta(e["generator"], scale=e["scale"], **e["kwargs"]),
+                            seed=seed + 2000, n_per_family=CHECK_N_PER_FAMILY, D=D, cfg=cfg)
+        e.update(gain_check=chk["gain"], gain_check_se=chk["se"], check_best=chk["best"],
+                 check_converged=all(chk["converged"].values()),
+                 calib_converged=e.get("calib_converged", all(e["trace"][-1]["converged"].values()) if e.get("trace") else False))
+        e["note"] = gain_gate(e, float(e["target"]))
+        e["revalidated"] = f"check recomputed at {CHECK_N_PER_FAMILY} concepts per family, seed {seed + 2000}"
+        return e
+    if n_jobs > 1:
+        from joblib import Parallel, delayed
+        return Parallel(n_jobs=n_jobs)(delayed(one)(e) for e in entries)
+    return [one(e) for e in entries]
+
+
+def validate_gain_entries(entries: list, targets=None, names=M.FAMILY_X) -> list:
+    """Every declared (member, target) exactly once, every entry passing gain_gate. Returns the problems."""
+    targets = GAINS if targets is None else tuple(targets)
+    want = {(n, float(t)) for n in names for t in targets}
+    have = [(e["generator"], float(e["target"])) for e in entries if float(e["target"]) in {float(t) for t in targets}]
+    problems = []
+    if sorted(have) != sorted(want):
+        problems.append(f"pairs present {sorted(have)} != declared {sorted(want)}")
+    for e in entries:
+        if float(e["target"]) not in {float(t) for t in targets}:
+            continue
+        why = e.get("note") or gain_gate(e, float(e["target"]))
+        if why:
+            problems.append(f"{e['generator']} at {e['target']}: {why}")
+    return problems
 
 
 GAIN_KWARGS = {"M3": {}, "M3H": dict(tau=0.5), "M3V": {}, "M3L": dict(pi0=0.05)}   # the §10 alternatives' base
@@ -360,10 +443,19 @@ def calibrate_all_gains(seed: int, cfg: A.Config, n_jobs: int = 1, names=M.FAMIL
         entries = Parallel(n_jobs=n_jobs)(delayed(_one_gain)(n, t, seed, cfg, D) for n, t in jobs)
     else:
         entries = [_one_gain(n, t, seed, cfg, D) for n, t in jobs]
-    bad = [f"{e['generator']}@{e['target']}: {e['note']}" for e in entries if e["note"] or not np.isfinite(e["scale"])]
-    if bad:
-        raise RuntimeError("gain calibration incomplete — " + "; ".join(bad))
-    return dict(code_hash=config_hash(cfg, D, layers, seed), D=D, seed=seed, entries=entries)
+    problems = validate_gain_entries(entries, names=names)
+    if problems:
+        raise RuntimeError("gain calibration did not pass the §10 gate — " + "; ".join(problems))
+    return dict(code_hash=config_hash(cfg, D, layers, seed), D=D, seed=seed, runtime=runtime_versions(),
+                gate=dict(check_n_per_family=CHECK_N_PER_FAMILY, rel_se=GATE_REL_SE, rel_agree=GATE_REL_AGREE),
+                entries=entries)
+
+
+def runtime_versions() -> str:
+    import platform
+    import jax, scipy, pandas, joblib
+    return (f"python {platform.python_version()} jax {jax.__version__} numpy {np.__version__} scipy {scipy.__version__} "
+            f"pandas {pandas.__version__} joblib {joblib.__version__} {platform.machine()}")
 
 
 def power_points(gain_file: str, targets=None) -> tuple:
@@ -372,19 +464,17 @@ def power_points(gain_file: str, targets=None) -> tuple:
     with open(gain_file) as fh:
         cal = json.load(fh)
     entries = cal["entries"] if isinstance(cal, dict) else cal
+    problems = validate_gain_entries(entries, targets=targets)
+    if problems:
+        raise SystemExit(f"gain file {gain_file} does not pass the §10 gate: " + "; ".join(problems))
     pts, extras = [], {}
     for entry in entries:
         if targets is not None and float(entry["target"]) not in {float(t) for t in targets}:
             continue
-        if not np.isfinite(entry.get("scale", np.nan)) or entry.get("note"):
-            raise SystemExit(f"gain file {gain_file}: {entry['generator']} at {entry['target']} is unusable ({entry.get('note')})")
         kw = dict(entry["kwargs"]); kw["scale"] = entry["scale"]
         pts.append((entry["generator"], kw))
         extras[(entry["generator"], json.dumps(kw, sort_keys=True))] = dict(
             target_gain=entry["target"], gain=entry["gain"], gain_check=entry.get("gain_check"), gain_check_se=entry.get("gain_check_se"))
-    want = len(M.FAMILY_X) * (len(GAINS) if targets is None else len(targets))
-    if len(pts) != want:
-        raise SystemExit(f"gain file {gain_file}: {len(pts)} usable alternatives, {want} declared")
     return pts, extras
 
 

@@ -61,7 +61,11 @@ def pull(run: str, profile: str, out_dir: str) -> dict:
                 continue
             local = os.path.join(out_dir, name)
             s3.download_file(BUCKET, k, local)
-            frames.append(pd.read_csv(local))
+            part = pd.read_csv(local)
+            missing = [c for c in key_cols + ["selection_decision", "convergence", "failed", "code_hash"] if c not in part.columns]
+            if missing or part["code_hash"].isna().any() or (part["code_hash"].astype(str).str.len() != 12).any():
+                raise SystemExit(f"{name}: not a valid replicate file (missing {missing}; every row must carry a 12-hex code hash)")
+            frames.append(part)
             if k + ".progress.json" in keys:
                 s3.download_file(BUCKET, k + ".progress.json", local + ".progress.json")
                 with open(local + ".progress.json") as fh:
@@ -78,9 +82,25 @@ def pull(run: str, profile: str, out_dir: str) -> dict:
                 raise SystemExit(f"{stage}: rows from more than one code/config hash: {sorted(df['code_hash'].unique())}")
             df.to_csv(os.path.join(out_dir, f"{stage}.csv"), index=False)
             found[stage] = (df, prog)
-    if prefix + "gain_calibration.json" in keys:
-        s3.download_file(BUCKET, prefix + "gain_calibration.json", os.path.join(out_dir, "gain_calibration.json"))
+    for name in ("gain_calibration_D4.json", "gain_calibration_D8.json"):
+        if prefix + name in keys:
+            s3.download_file(BUCKET, prefix + name, os.path.join(out_dir, name))
     return found
+
+
+def check_gain_file(path: str):
+    """Apply the §10 gate to a landed gain file and print the verdict per entry."""
+    import simulate as S
+    with open(path) as fh:
+        cal = json.load(fh)
+    entries = cal["entries"] if isinstance(cal, dict) else cal
+    problems = S.validate_gain_entries(entries)
+    for e in entries:
+        why = e.get("note") or S.gain_gate(e, float(e["target"]))
+        print(f"  {e['generator']:4s} target {e['target']:<6} scale {e.get('scale', float('nan')):.4f} gain {e.get('gain', float('nan')):.5f} "
+              f"check {e.get('gain_check', float('nan')):.5f} ± {e.get('gain_check_se', float('nan')):.5f}  {'PASS' if not why else 'FAIL: ' + why}")
+    print(f"{os.path.basename(path)}: {'passes the §10 gate' if not problems else 'FAILS the §10 gate — ' + '; '.join(problems)}")
+    return problems
 
 
 def report(found: dict, brief: bool):
@@ -126,6 +146,10 @@ def main():
     out_dir = os.path.join(HERE, "sim_results", a.run)
     found = pull(a.run, a.profile, out_dir)
     report(found, a.brief)
+    for name in ("gain_calibration_D4.json", "gain_calibration_D8.json"):
+        p = os.path.join(out_dir, name)
+        if os.path.exists(p):
+            check_gain_file(p)
 
 
 if __name__ == "__main__":

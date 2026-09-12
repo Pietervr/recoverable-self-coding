@@ -33,21 +33,26 @@ BUCKET = "xtenure-cself-pvr"
 CODE_ROOT = "code/t1_access/"            # + <run>/ : one immutable code snapshot per run namespace
 RESULTS_ROOT = f"s3://{BUCKET}/results/t1_access/"
 CODE_FILES = ("models.py", "analyze.py", "simulate.py", "t1_job.py")
-ENTRY = ("pip install -q 'jax==0.11.1' 'scipy>=1.14' pandas joblib boto3 >/dev/null 2>&1; "
-         "python /opt/ml/input/data/code/t1_job.py")
+ENTRY = ("pip install -q 'jax==0.11.1' 'numpy==2.4.6' 'scipy==1.18.0' 'pandas==3.0.5' 'joblib==1.5.3' boto3 >/dev/null 2>&1; "
+         "python /opt/ml/input/data/code/t1_job.py")     # the versions run d4v12b logged; pinned so a resume is the same runtime
 PRICE_USD_H = {"ml.c7i.48xlarge": 11.01, "ml.c7i.24xlarge": 5.50, "ml.c7i.16xlarge": 3.67, "ml.c7i.2xlarge": 0.459,
                "ml.c8i.2xlarge": 0.50, "ml.r6i.4xlarge": 1.30}   # on-demand, eu-north-1 Training; c8i/r6i estimated
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-def upload_code(s3, run: str, resume: bool):
+def upload_code(s3, run: str, resume: bool, from_snapshot: bool = False):
     """One code snapshot per run namespace. A namespace that already holds code is only reused with --resume,
-    and then the local files must be byte-identical to the snapshot (no blending of numerical methods)."""
+    and then the local files must be byte-identical to the snapshot (no blending of numerical methods) —
+    unless --from-snapshot says: run exactly what the snapshot holds, whatever the local files are (a job
+    reads its code from the snapshot, never from this machine)."""
     prefix = f"{CODE_ROOT}{run}/"
     existing = s3.list_objects_v2(Bucket=BUCKET, Prefix=prefix).get("Contents", [])
     if existing:
         if not resume:
             raise SystemExit(f"s3://{BUCKET}/{prefix} already holds a code snapshot: pick a new --run or pass --resume")
+        if from_snapshot:
+            print(f"resuming from the snapshot in s3://{BUCKET}/{prefix} as it is (local files not compared)")
+            return prefix
         for f in CODE_FILES:
             remote = s3.get_object(Bucket=BUCKET, Key=prefix + f)["Body"].read()
             with open(os.path.join(HERE, f), "rb") as fh:
@@ -84,6 +89,7 @@ def main():
     ap.add_argument("--profile", default="xtenure-read")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--resume", action="store_true", help="relaunch into an existing run namespace (same code required)")
+    ap.add_argument("--from-snapshot", action="store_true", help="with --resume: run the snapshot's code even if local files moved on")
     ap.add_argument("--status", action="store_true")
     ap.add_argument("--stop", default=None, metavar="JOB", help="a job name, or a prefix ending in * to stop several")
     a = ap.parse_args()
@@ -127,7 +133,7 @@ def main():
         stopping["MaxWaitTimeInSeconds"] = int(2 * a.max_hours * 3600)
     code_prefix = f"{CODE_ROOT}{a.run}/"
     if not a.dry_run:
-        code_prefix = upload_code(sess.client("s3"), a.run, a.resume)
+        code_prefix = upload_code(sess.client("s3"), a.run, a.resume, a.from_snapshot)
     end = a.shard_end or a.shards
     for shard in range(a.shard_start, end, a.shards_per_job):
         env_s = dict(env)

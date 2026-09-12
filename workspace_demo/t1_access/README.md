@@ -49,7 +49,8 @@ this M4 Max): with 16 single-threaded workers one fit took 2.6x longer than alon
   start), unrolled in the JAX graph so the gradient stays exact; the Laplace SD is capped at tau.
   `audit_quadrature.py` checks it against dense integration at generating, fitted and cross-fitted
   parameters for every hierarchical member at every grid value: pass = max error < 1e-3 nat. The
-  §7.4 rule keeps its form (raise the point count until < 1e-3 change), ladder 32 → 64 → 128.
+  §7.4 rule keeps its form (raise the point count until < 1e-3 change), ladder 64 → 96 → 128 with
+  the outer rules at a third of the fine count.
 - **Start generator.** Data moments of the training fold only; start 0 unjittered, starts 1–7 jittered
   by N(0, 0.25²) per coordinate in the optimiser's own parameter units (the raw vectors listed at the
   top of `models.py`); inherited members keep the inherited moment initialisation.
