@@ -388,7 +388,25 @@ revalidated-artefact path at `fa83301`; **Codex's final verdict (17:56 PDT): on 
 `d4v12b` as the per-layer calibration and recovery run, power results held until the revalidated
 gain artefact passes, band validation a separate post-PILOT stage. The owner funded the run on that
 verdict (12 Sept), with spot checks throughout: the landed rows are read at every stage boundary
-(`spotcheck.py`), not only at the end.
+(`spotcheck.py`), not only at the end. **Calibration stage of `d4v12b`, read 12 Sept 18:30 UTC at 11,923 of
+12,000 rows (every null at $n \ge 958$):** the false-positive rate is 0 of 11,923 under all twelve graded
+nulls (one-sided 95 % upper limit ≈ 0.3 % per setting), convergence 1.000, no failures; the interval coverage
+of $\theta_g$ is below 0.90 for six settings — M2H $\tau = 0.5$ (0.819), $\tau = 2$ (0.894), M2K
+$\alpha = 1$ (0.884), M2S $\omega = 0.5$ (0.848), $\omega = 1$ (0.780), $\omega = 2$ (0.216) — so the
+**§8.2 replacement by the refitting bootstrap is invoked** (coverage below 0.90 under any retained
+generator). Every miss is an interval lying above its target; at $\omega = 2$ the root-mean-square bootstrap
+SE (22.0) matches the replicate SD (23.2), so the failure is tail sampling and interval shape under a
+heavy-tailed held-out loss (one concept in one replicate at $-26{,}627$ nat), not missing fitting variance.
+Disposition (Codex review, 12 Sept): the refitting bootstrap is corrected first (original-concept grouping at
+both fold levels; failed replicates propagated), benchmarked, and the chosen interval validated on new seeds
+with declared counts — the choice is recorded as method development on these rows, never as their
+validation; M2S $\omega = 2$ stays as the declared stress condition; the rows keep their code/config hash
+and an explicit cross-snapshot reuse manifest carries them forward. The power stage did not run: the job-side
+gain calibration failed the gate at M3L, 0.01 nat (`bisection limit: 0.00806 vs target 0.01`), cause under
+diagnosis (a switch of the training-selected reference member $G^*$ scored on test data is the candidate),
+and no power, recovery or five-layer rows exist. The historical M3-versus-M2B contrast, saved with every
+row, returns mixture support in 651 of 1,000 M2H $\tau = 2$ and 337 of 1,000 M2S $\omega = 2$ replicates —
+a simulation demonstration of the inherited pair's vulnerability to omitted heterogeneity.
 
 **What the single-layer simulations establish, and what they do not** (v1.2 after the Codex
 review): with one synthetic layer per dataset they calibrate the **per-layer procedure** (inner
