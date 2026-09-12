@@ -136,13 +136,12 @@ with tempfile.TemporaryDirectory() as d:
     with open(rev, "w") as fh:
         json.dump(good, fh)
     os.remove(raw)
-    try:
-        S.accepted_gain_artefact(raw, rev, 4, None); raise AssertionError("an unverifiable revalidation accepted")
-    except ValueError as e:
-        assert "no job-written file" in str(e)
-    p, info = S.accepted_gain_artefact(raw, rev, 4, H)      # the job, with its expected identity: accepted, source unverified
-    assert p == rev and info["source_verified"] is False
-    print("required provenance, foreign hash beside the source, unverifiable revalidation: refused as they should be OK")
+    for want in (None, H):                                   # review 6: the source is required in EVERY reader — the job too
+        try:
+            S.accepted_gain_artefact(raw, rev, 4, want); raise AssertionError("a revalidation without its source was accepted")
+        except ValueError as e:
+            assert "no job-written file" in str(e)
+    print("required provenance, foreign hash beside the source, revalidation without its source: refused by job and monitor alike OK")
 
     # 7. the job's retrieval contract (resolve_gain_artefact): a retrieval ERROR of a present revalidation holds;
     #    only a verified absence permits the job-written fallback; 'ok' delivers the revalidated file
@@ -169,7 +168,18 @@ with tempfile.TemporaryDirectory() as d:
     with tempfile.TemporaryDirectory() as w:
         p, info = S.resolve_gain_artefact(make_fetch("ok"), w, 4, H)
         assert info["accepted"] == "revalidated" and info["source_verified"] and info["fetch"][os.path.basename(rev)] == "ok"
-    print("job retrieval: an error holds, a verified absence falls back, a delivered revalidation is accepted OK")
+    # the job-written file verifiably ABSENT while the revalidation is delivered: the job holds, as the monitor does
+    def fetch_no_raw(name, local):
+        if name.endswith(".revalidated.json"):
+            shutil.copy(store[name], local); return "ok"
+        return "absent"
+    with tempfile.TemporaryDirectory() as w:
+        try:
+            S.resolve_gain_artefact(fetch_no_raw, w, 4, H); raise AssertionError("a revalidation without its source was accepted by the job")
+        except ValueError as e:
+            assert "no job-written file" in str(e)
+    print("job retrieval: an error holds, a verified absence of the revalidation falls back, a delivered revalidation is accepted, "
+          "a revalidation without its source holds OK")
 
 # 8. review 5, finding 4: a job uploads only what it wrote or changed itself
 with tempfile.TemporaryDirectory() as d:

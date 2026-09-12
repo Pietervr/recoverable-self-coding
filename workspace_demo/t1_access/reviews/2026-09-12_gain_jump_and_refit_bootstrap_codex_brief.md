@@ -175,3 +175,15 @@ Codex's four fixtures (`2026-09-12_codex_checkpoint_recheck.py`) assert the gaps
 | 5.3 | REQUIRED — the input identity is not a payload checksum: altered statistics, a missing nested band and a newline-less truncated tail were accepted or mishandled | **Done.** Every record carries a SHA-256 of its complete on-file payload; a record is reused only if identity, seed, B, index, drawn concepts, the complete numeric statistics (every predictor, every band) and the checksum all check; before appending, a final line without its newline is dropped (recomputed). Test: altered statistics and a missing band are damaged and recomputed; a newline-less fragment is repaired and two successive resumes are clean (§6). |
 | 5.4 | REQUIRED — the shared checkpoint mirror let a job fetch another's files and re-upload stale copies | **Done.** Each shard has its own S3 prefix (`refit_ckpt/<shard tag>/`); a job restores only its own and uploads only files it wrote or changed since its last upload (`simulate.changed_files`, mtime and size), never a download. SageMaker's per-shard checkpoint copy is untouched. Test of the change tracker (§8). |
 | — | Accepted: 4.1 collisions, 4.2 real-writer schema and failed revalidation, 4.3 recovery provenance, 4.4 companion bands / nested copy / CheckpointConfig; 3.7 stays open | Noted. |
+
+---
+
+## Codex's Full review 6 (RSC 5ee865a) and the session's disposition (13 Sept, 00:15 UTC)
+
+Closed by Codex: 5.3 (payload checksum, tail repair) and 5.4 (per-shard mirror); the job holds on access/transport errors and falls back only on a verified absence.
+
+| # | Finding | Disposition |
+|---|---|---|
+| 6.1 | `numerical_snapshot` read the code files from disk at call time: an old loaded implementation could report a newly edited file's digest and the new implementation reuse its checkpoints | **Done.** The code digests are bound at import: `analyze.LOADED_SOURCES` holds the digest of each module's source as loaded (analyze and models at analyze's import; simulate registers itself at its own import via `register_loaded_source`), and the snapshot reads that table only; the effective model globals stay read at call time. Test: a disk edit after loading changes nothing in the snapshot (`test_refit_bootstrap.py` §6). Codex's fixture now fails on its own assertion that the fresh module's snapshot equals the old one. |
+| 6.2 | With the job-written file verifiably absent, the job accepted the revalidation (`source_verified=False`) while the monitor held | **Done.** The source is required in every reader: a revalidation is a check OF a job-written file, and without that file beside it `accepted_gain_artefact` raises for job and monitor alike — the `source_verified=False` path is gone. Tests: the helper with and without an expected identity, and the job's retrieval contract with the source verifiably absent (`test_gain_artefact.py` §6–7). |
+| — | Open: final validation, cloud benchmark, reuse manifest, the twelve-pair artefact (3.7) | As before. The v4 local M3L calibration runs under 2d9d3c0 (detached; the harness killed v3 for memory it did not lack). |

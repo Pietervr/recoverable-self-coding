@@ -7,6 +7,7 @@ import sys
 sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__)))
 import numpy as np
 import analyze as A
+import simulate as _S                      # the runner always has simulate loaded; loading it registers its digest in the snapshot
 
 # 1. no grouping / all-distinct grouping = stratified_folds exactly (same RNG draws)
 fam = np.repeat(np.arange(8), 8)
@@ -139,6 +140,14 @@ with tempfile.TemporaryDirectory() as d:
     a = A.refit_bootstrap(ds, cfg, seed=5, n_rep=6, min_usable=0.5, checkpoint_dir=d)
     snap = A.numerical_snapshot()
     assert set(snap["files"]) == {"models.py", "analyze.py", "simulate.py"} and snap["models"]["TRAP_POINTS"] == A.M.TRAP_POINTS and snap["runtime"]["jax"]
+    # review 6: the code digests are those of the code AS LOADED — an edit of the file on disk after loading changes
+    # nothing (the running implementation is unchanged); the digest matches the file as it was at import
+    assert snap["files"]["simulate.py"] == A.loaded_source_digest(_S.__file__) and snap["files"]["analyze.py"] == A.loaded_source_digest(A.__file__)
+    _before = dict(A.LOADED_SOURCES)
+    A.LOADED_SOURCES["simulate.py"] = "edited-on-disk-after-load"           # what a disk re-read would have picked up
+    assert A.numerical_snapshot()["files"]["simulate.py"] == "edited-on-disk-after-load"   # the snapshot reads the bound table only
+    A.LOADED_SOURCES.update(_before)
+    assert A.numerical_snapshot() == snap
     _tp = A.M.TRAP_POINTS
     A.M.TRAP_POINTS = _tp + 1
     seen.clear()

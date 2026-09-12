@@ -39,6 +39,8 @@ import numpy as np
 import analyze as A
 import models as M
 
+A.register_loaded_source("simulate.py", __file__)      # the snapshot carries THIS loaded code's digest (review 6 finding 1)
+
 
 def config_hash(cfg: "A.Config", D: int, layers, seed: int, rho: float = None) -> str:
     """12 hex digits over the three code files and the run settings: written into every row and into the gain
@@ -876,15 +878,16 @@ def accepted_gain_artefact(raw_path: str | None, revalidated_path: str | None, D
             raise ValueError(f"revalidated artefact is for code/config {h!r}, not this run's {want!r}")
         if int(cal.get("D", -1)) != int(D):
             raise ValueError(f"revalidated artefact is for D={cal.get('D')}, not D={D}")
-        if raw:
-            if not isinstance(raw_cal, dict) or raw_cal.get("code_hash") != h:
-                raise ValueError("revalidated artefact's hash differs from the job-written file beside it")
-            if cal["source_digest"] != file_digest(raw):
-                raise ValueError("revalidated artefact does not match the job-written file beside it (source digest)")
-        elif want is None:
-            raise ValueError("no job-written file to verify the revalidation against and no expected identity given")
+        # the source is REQUIRED in every reader (review 6 finding 2): a revalidation is a check OF a job-written file,
+        # and without that file beside it there is nothing it can be verified against — the job and the monitor hold alike
+        if not raw:
+            raise ValueError("no job-written file to verify the revalidation against: the gain artefact is HELD (both files must be present)")
+        if not isinstance(raw_cal, dict) or raw_cal.get("code_hash") != h:
+            raise ValueError("revalidated artefact's hash differs from the job-written file beside it")
+        if cal["source_digest"] != file_digest(raw):
+            raise ValueError("revalidated artefact does not match the job-written file beside it (source digest)")
         return rev, dict(info, accepted="revalidated", code_hash=h, revalidated_with=cal["revalidated_with"],
-                         problems=cal.get("problems", []), source_verified=bool(raw))
+                         problems=cal.get("problems", []), source_verified=True)
     if raw:
         cal = raw_cal
         if isinstance(cal, dict) and int(cal.get("D", -1)) == int(D) and cal.get("code_hash") and (want is None or cal.get("code_hash") == want):

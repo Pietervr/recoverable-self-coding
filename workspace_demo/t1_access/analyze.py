@@ -432,17 +432,29 @@ NUMERICAL_GLOBALS = ("N_STARTS", "N_STARTS_RECOVERY", "GH_NODES_DEFAULT", "JITTE
                      "PRIOR_HALFWIDTH", "M3V_FLOOR_FRACTION")
 
 
+def loaded_source_digest(path: str) -> str:
+    """The digest of a module's source AS LOADED: computed once, at the module's import, from its own file."""
+    with open(path, "rb") as fh:
+        return hashlib.sha256(fh.read()).hexdigest()[:16]
+
+
+LOADED_SOURCES = {"analyze.py": loaded_source_digest(__file__)}              # this module, bound at import
+LOADED_SOURCES["models.py"] = getattr(M, "LOADED_SOURCE_DIGEST", None) or loaded_source_digest(M.__file__)
+
+
+def register_loaded_source(name: str, path: str):
+    """Called by a module at its own import (simulate.py) so the snapshot carries the digest of the code that was
+    actually loaded, never a later edit of the file on disk (Codex, review 6 finding 1)."""
+    LOADED_SOURCES[name] = loaded_source_digest(path)
+
+
 def numerical_snapshot() -> dict:
-    """The numerical implementation actually executed (Codex, review 5 finding 1): digests of the three code files,
-    the model globals that steer fitting outside the Config (quadrature, Newton, grid, jitter, optimiser options,
-    start counts, the M3V floor), and the runtime — read at call time, so a changed global changes it."""
-    here = os.path.dirname(os.path.abspath(__file__))
-    files = {}
-    for f in ("models.py", "analyze.py", "simulate.py"):
-        p = os.path.join(here, f)
-        if os.path.exists(p):
-            with open(p, "rb") as fh:
-                files[f] = hashlib.sha256(fh.read()).hexdigest()[:16]
+    """The numerical implementation actually executed (Codex, review 5 finding 1, review 6 finding 1): the digests of
+    the three code files AS LOADED (bound at import, so an edit on disk after loading changes nothing until the
+    code is reloaded), the model globals that steer fitting outside the Config (quadrature, Newton, grid, jitter,
+    optimiser options, start counts, the M3V floor) read at call time so a changed effective setting changes it,
+    and the runtime."""
+    files = dict(LOADED_SOURCES)
     globs = {k: getattr(M, k) for k in NUMERICAL_GLOBALS if hasattr(M, k)}
     import platform
     import jax, scipy
