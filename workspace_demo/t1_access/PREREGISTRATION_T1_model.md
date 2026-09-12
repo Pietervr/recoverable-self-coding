@@ -383,8 +383,12 @@ vCPU) it is expected to take 45–50 h. Runtime: Python 3.12, jax 0.11.1, numpy 
 pandas 3.0.5, joblib 1.5.3 on x86-64 Linux (logged by every job and written into every row from the
 next snapshot on; the launcher pins them so a resume is the same runtime). Codex's re-check of the
 fixes (17:45 PDT) accepted findings 1–5, 10 and 12 and held finding 7 open until the gain gate above
-existed; its disposition — keep the calibration and recovery stages, hold the power results until
-the twelve entries pass the gate, do not repeat the run — is what is done.
+existed; two integration slips in the gate commit were fixed at `eae1cb8` with mocked tests, the
+revalidated-artefact path at `fa83301`; **Codex's final verdict (17:56 PDT): on board** — continue
+`d4v12b` as the per-layer calibration and recovery run, power results held until the revalidated
+gain artefact passes, band validation a separate post-PILOT stage. The owner funded the run on that
+verdict (12 Sept), with spot checks throughout: the landed rows are read at every stage boundary
+(`spotcheck.py`), not only at the end.
 
 **What the single-layer simulations establish, and what they do not** (v1.2 after the Codex
 review): with one synthetic layer per dataset they calibrate the **per-layer procedure** (inner
