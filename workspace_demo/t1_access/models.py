@@ -89,12 +89,16 @@ LBFGSB_OPTIONS = dict(ftol=1e-10, gtol=1e-6, maxiter=2000)
 GH_NODES_DEFAULT = 20            # adaptive GH; provisional until the §7.4 rule is run on CAL/PILOT (10 -> 20 -> 40)
 NEWTON_STEPS = 4                 # safeguarded Newton steps from the grid start (unrolled, differentiable); 4 = 6 on the grid
 NEWTON_MAX_STEP = 3.0            # in units of tau, per step
+NEWTON_CANDIDATES = 8            # backtracking fractions 1, 1/2, ..., 1/128 of the Newton step
 GRID_POINTS = 9                  # coarse grid start for the mode: 9 points over ±GRID_HALFWIDTH tau (spacing tau)
 GRID_HALFWIDTH = 4.0
-TRAP_POINTS = 96                 # trapezoid rule per concept on [u_hat - TRAP_HALFWIDTH s_hat, u_hat + TRAP_HALFWIDTH s_hat]
-                                 # (2026-09-11 grid check vs dense quadrature: <= 6e-7 nat everywhere but the truncated
-                                 # posteriors of M2H at tau = 2, where 64 points leave 0.6 nat and 96 leave 0.02)
-TRAP_HALFWIDTH = 6.0             # s_hat is floored at tau, so a flat-likelihood concept gets the prior's whole range
+TRAP_POINTS = 96                 # fine trapezoid rule per concept on [u_hat ± TRAP_HALFWIDTH s_hat] (the peak; for a
+                                 # flat concept s_hat = tau and this window is the whole prior range: 64 left 1.9e-3)
+TRAP_HALFWIDTH = 6.0
+OUTER_POINTS = 32                # trapezoid rule on each outer interval between the fine window and ±PRIOR_HALFWIDTH tau
+PRIOR_HALFWIDTH = 6.0            # the prior's range covered (mass beyond 6 tau: 2e-9); s_hat is CAPPED at tau by the
+                                 # curvature safeguard, so the fine window never exceeds ±6 tau and the outer intervals
+                                 # carry flat tails and second modes (M2H's anchored mean returns to mu_max at both extremes)
 M3V_FLOOR_FRACTION = 0.05
 PAD_MULTIPLE = 512               # trial arrays are padded to a multiple of this so that jit caches are reused
 
@@ -325,8 +329,12 @@ def _agh_centre(member: Member, theta, y, k, cidx, mask, floor, n_concepts: int)
         u_c, lp_c = carry
         G, H = curv(u_c)
         step = jnp.clip(-G / H, -NEWTON_MAX_STEP * tau, NEWTON_MAX_STEP * tau)
-        cands = jnp.stack([u_c + step, u_c + 0.5 * step, u_c + 0.25 * step])                  # (3, C)
-        lps = jax.vmap(logpost)(cands)                                                         # (3, C)
+        # backtracking over a geometric range of step fractions: a peak far narrower than tau (a scale effect
+        # with a large fitted omega) needs fractions well below 1/4, or every candidate overshoots and the
+        # search sticks at its grid start (audit_quadrature.py, M2S omega = 2 at fitted parameters, 2026-09-11)
+        fracs = 2.0 ** -jnp.arange(NEWTON_CANDIDATES)
+        cands = u_c[None, :] + fracs[:, None] * step[None, :]                                    # (K, C)
+        lps = jax.vmap(logpost)(cands)                                                           # (K, C)
         best = jnp.argmax(lps, axis=0)
         u_new = cands[best, idx]
         lp_new = lps[best, idx]
@@ -358,18 +366,33 @@ def _concept_loglik(member: Member, theta, y, k, cidx, mask, floor, xs, lw, n_co
     def log_prior(u):
         return -0.5 * (u / tau) ** 2 - jnp.log(tau) - LOG_SQRT_2PI
 
-    # Trapezoid rule per concept on the adaptive window [u_hat ± TRAP_HALFWIDTH s_hat] (xs, lw unused: the
-    # Gauss–Hermite form is exact only for Gaussian-like posteriors, and a concept whose shifted threshold
-    # lies outside the level range has a flat likelihood in u and a prior-dominated, non-Gaussian posterior
-    # that no node count integrates; the trapezoid rule on a Gaussian-tailed smooth integrand converges
-    # exponentially, and the window follows s_hat, which is floored at tau, so such a concept gets the whole
-    # prior range while a peaked concept gets a fine grid around its mode).
-    n_pts = TRAP_POINTS
-    t = jnp.linspace(-TRAP_HALFWIDTH, TRAP_HALFWIDTH, n_pts)                                       # (N,)
-    u_t = u_hat[None, :] + s_hat[None, :] * t[:, None]                                             # (N, C)
-    h = (2.0 * TRAP_HALFWIDTH / (n_pts - 1)) * s_hat                                               # (C,)
-    logw = jnp.where((jnp.arange(n_pts) == 0) | (jnp.arange(n_pts) == n_pts - 1), jnp.log(0.5), 0.0)
-    return logsumexp(jax.vmap(one_node)(u_t) + log_prior(u_t) + logw[:, None], axis=0) + jnp.log(h)
+    # Two-scale trapezoid rule per concept (xs, lw unused). The fine rule covers the peak, [u_hat ± 6 s_hat];
+    # two outer rules cover the rest of the prior's range, [-6 tau, lo] and [hi, 6 tau], each with exact
+    # endpoints so nothing is counted twice and nothing straddles a boundary. Why: Gauss–Hermite is exact
+    # only for Gaussian-like posteriors; a concept whose shifted threshold lies outside the level range has
+    # a flat likelihood in u (a truncated-Gaussian posterior), and M2H's anchored mean returns to mu_max at
+    # both extremes of the threshold, so such a concept's posterior can have mass at both ends. The trapezoid
+    # rule on a smooth Gaussian-tailed integrand converges exponentially; the outer rules see a smooth
+    # prior-times-plateau integrand at spacing <= 12 tau / (OUTER_POINTS - 1). The independent check against
+    # dense quadrature at generating AND fitted parameters is audit_quadrature.py.
+    def trap(a, b, n_pts):
+        """log ∫_a^b exp(logpost) du by the trapezoid rule with n_pts points, per concept; -inf where b <= a."""
+        t = jnp.linspace(0.0, 1.0, n_pts)
+        u_t = a[None, :] + (b - a)[None, :] * t[:, None]                                            # (N, C)
+        h = (b - a) / (n_pts - 1)
+        logw = jnp.where((jnp.arange(n_pts) == 0) | (jnp.arange(n_pts) == n_pts - 1), jnp.log(0.5), 0.0)
+        val = logsumexp(jax.vmap(one_node)(u_t) + log_prior(u_t) + logw[:, None], axis=0) + jnp.log(jnp.maximum(h, 1e-300))
+        return jnp.where(b > a, val, -jnp.inf)
+
+    lo = u_hat - TRAP_HALFWIDTH * s_hat
+    hi = u_hat + TRAP_HALFWIDTH * s_hat
+    edge = PRIOR_HALFWIDTH * tau
+    lo_c = jnp.clip(lo, -edge, edge)
+    hi_c = jnp.clip(hi, -edge, edge)
+    parts = jnp.stack([trap(lo, hi, TRAP_POINTS),
+                       trap(jnp.full_like(lo, -edge), lo_c, OUTER_POINTS),
+                       trap(hi_c, jnp.full_like(hi, edge), OUTER_POINTS)])                          # (3, C)
+    return logsumexp(parts, axis=0)
 
 
 @functools.lru_cache(maxsize=None)
@@ -595,19 +618,19 @@ def fit(name: str, data: Trials, n_gh: int = GH_NODES_DEFAULT, n_starts: int = N
                      sum(r["nfev"] for r in runs), sum(r["nit"] for r in runs), _time.time() - t0, runs)
 
 
-def gh_node_check(name: str, theta, data: Trials, counts=(48, 96, 192)) -> dict:
-    """§7.4 quadrature rule: per-concept log q at each trapezoid point count (TRAP_POINTS) and the max
-    |change| between successive counts; the count is frozen at the first whose change is < 1e-3."""
-    global TRAP_POINTS
-    keep = TRAP_POINTS
+def gh_node_check(name: str, theta, data: Trials, counts=(64, 96, 128)) -> dict:
+    """§7.4 quadrature rule: per-concept log q at each fine point count (TRAP_POINTS, with OUTER_POINTS at a
+    third of it) and the max |change| between successive counts; frozen at the first whose change is < 1e-3."""
+    global TRAP_POINTS, OUTER_POINTS
+    keep = (TRAP_POINTS, OUTER_POINTS)
     scores = {}
     try:
         for n in counts:
-            TRAP_POINTS = int(n)
+            TRAP_POINTS, OUTER_POINTS = int(n), max(8, int(n) // 3)
             _compiled_scores.cache_clear()
             scores[n] = concept_scores(name, theta, data)
     finally:
-        TRAP_POINTS = keep
+        TRAP_POINTS, OUTER_POINTS = keep
         _compiled_scores.cache_clear()
     changes = {counts[i + 1]: float(np.max(np.abs(scores[counts[i + 1]] - scores[counts[i]])))
                for i in range(len(counts) - 1)}

@@ -89,32 +89,39 @@ def shard_name(csv_name: str) -> str:
     return csv_name.replace(".csv", f".shard{tag}of{N_SHARDS:03d}.csv")
 
 
-def gain_file(cfg, S) -> str:
-    """The §10 gain calibration: reuse RESULTS_URI/gain_calibration.json or compute it (deterministic per seed)."""
-    local = os.path.join(WORK, "gain_calibration.json")
-    if os.path.exists(local) or s3_download("gain_calibration.json", local):
-        log("gain_calibration.json found — reusing it")
-        return local
+def gain_file(cfg, S, layers) -> str:
+    """The §10 gain calibration at this D: reuse RESULTS_URI/gain_calibration_D<D>.json only if it carries this
+    run's code/config hash, else compute it (deterministic per seed; every shard computes the same numbers)."""
+    name = f"gain_calibration_D{D}.json"
+    local = os.path.join(WORK, name)
+    want = S.config_hash(cfg, D, (41,), SEED)
+    if os.path.exists(local) or s3_download(name, local):
+        with open(local) as fh:
+            cal = json.load(fh)
+        if isinstance(cal, dict) and cal.get("code_hash") == want and int(cal.get("D", -1)) == D:
+            log(f"{name} found with code/config {want} — reusing it")
+            return local
+        log(f"{name} found but from another code/config ({cal.get('code_hash') if isinstance(cal, dict) else 'old format'}) — recomputing")
     t0 = time.time()
-    log(f"gain calibration on {min(N_JOBS, 12)} workers")
-    entries = S.calibrate_all_gains(seed=SEED, cfg=cfg, n_jobs=min(N_JOBS, 12))
+    log(f"gain calibration at D={D} on {min(N_JOBS, 12)} workers")
+    cal = S.calibrate_all_gains(seed=SEED, cfg=cfg, n_jobs=min(N_JOBS, 12), D=D, layers=(41,))
     with open(local, "w") as fh:
-        json.dump(entries, fh, indent=1, default=float)
+        json.dump(cal, fh, indent=1, default=float)
     if SHARD == 0:
-        s3_upload(local, "gain_calibration.json")
-    for e in entries:
-        log(f"  {e['generator']} target {e['target']}: scale {e['scale']} gain {e['gain']} {e['note']}")
+        s3_upload(local, name)
+    for e in cal["entries"]:
+        log(f"  {e['generator']} target {e['target']}: scale {e['scale']:.4f} gain {e['gain']:.5f} check {e['gain_check']:.5f} ± {e['gain_check_se']:.5f}")
     log(f"gain calibration done in {(time.time() - t0) / 60:.1f} min")
     shutil.copy(local, OUT_DIR)
     return local
 
 
-def run_stage(task: str, n_rep: int, layers: tuple, generators, cfg, A, S):
+def run_stage(task: str, n_rep: int, layers: tuple, generators, cfg, A, S, points_override=None, targets=None):
     if task == "power":
-        points, extras = S.power_points(gain_file(cfg, S))
+        points, extras = S.power_points(gain_file(cfg, S, layers), targets=targets)
         csv_name = f"power_D{D}{'_5layers' if len(layers) > 1 else ''}.csv"
     elif task == "calibration":
-        points, extras = S.null_points(), None
+        points, extras = (points_override if points_override is not None else S.null_points()), None
         csv_name = f"calibration_D{D}{'_5layers' if len(layers) > 1 else ''}.csv"
     elif task == "recovery":
         points, extras = S.recovery_points(), None
@@ -198,17 +205,22 @@ def main():
                         "'pandas', pandas.__version__, 'joblib', joblib.__version__, platform.platform(), platform.machine())"],
                        capture_output=True, text=True).stdout.strip())
     cfg = A.Config(n_starts_inner=N_STARTS_INNER)
+    log(f"code/config hash for this run: {S.config_hash(cfg, D, LAYERS, SEED)} (five-layer stages: "
+        f"{S.config_hash(cfg, D, FIVE_LAYERS, SEED)})")
     t0 = time.time()
     if TASK == "bench":
         bench(cfg, A, M, S)
     elif TASK == "gain":
-        gain_file(cfg, S)
+        gain_file(cfg, S, LAYERS)
     elif TASK == "all":
         run_stage("calibration", N_REP, LAYERS, GENERATORS, cfg, A, S)
         run_stage("power", N_REP, LAYERS, GENERATORS, cfg, A, S)
-        run_stage("recovery", N_REP_RECOVERY, LAYERS, GENERATORS, cfg, A, S)
-        run_stage("calibration", N_REP_5LAYERS, FIVE_LAYERS, "M2B,M2K", cfg, A, S)
-        run_stage("power", N_REP_5LAYERS, FIVE_LAYERS, "M3H,M3V", cfg, A, S)
+        # the recovery grid's 12 graded points at reps 0..199 are the calibration stage's first 200 replicates
+        # (same seeds, same code/config): reused at analysis, not refitted (Codex, 2026-09-11)
+        run_stage("recovery", N_REP_RECOVERY, LAYERS, GENERATORS or ",".join(M.FAMILY_X), cfg, A, S)
+        # the five-layer computational pilot: every graded member at one grid value, every mixture member at 0.01 nat
+        run_stage("calibration", N_REP_5LAYERS, FIVE_LAYERS, None, cfg, A, S, points_override=S.base_null_points())
+        run_stage("power", N_REP_5LAYERS, FIVE_LAYERS, None, cfg, A, S, targets=(0.01,))
     else:
         run_stage(TASK, N_REP if TASK != "recovery" else N_REP_RECOVERY, LAYERS, GENERATORS, cfg, A, S)
     for f in os.listdir(WORK):

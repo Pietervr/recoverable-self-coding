@@ -137,10 +137,13 @@ def layer_pipeline(y: np.ndarray, k: np.ndarray, concept: np.ndarray, family: np
     n_c = np.bincount(concept, minlength=C).astype(float)
     selected = []
     inner_scores = np.full((len(outer_folds), len(members)), np.nan)
+    inner_conv = np.zeros((len(outer_folds), len(members)), dtype=float)      # fraction of inner fits converged
+    inner_nonfinite = np.zeros((len(outer_folds), len(members)), dtype=bool)   # an inner fit or score was not finite
     converged = np.zeros((len(outer_folds), len(members)), dtype=bool)
     recovery = np.zeros((len(outer_folds), len(members)), dtype=np.int8)
     params = {m: [] for m in members}
     seconds = 0.0
+    failed_reason = ""
     for f, test_c in enumerate(outer_folds):
         train_c = np.setdiff1d(np.arange(C), test_c)
         floor_sd = float(np.std(y[np.isin(concept, train_c)], ddof=1))
@@ -149,26 +152,39 @@ def layer_pipeline(y: np.ndarray, k: np.ndarray, concept: np.ndarray, family: np
         inner = stratified_folds(family[train_c], cfg.n_inner, seed=int(_rng(seed, layer_tag, f, 1).integers(2**31)))
         for m in members:
             j = mi[m]
-            # inner 4-fold selection score (training concepts only)
+            # inner 4-fold selection score (training concepts only). §9: a member whose inner fit or score is
+            # not finite after the §7.4 recovery cannot be selected (score -inf) and is recorded; if every
+            # member of a family is unscorable the primary comparison is unavailable (failed).
             if m in cfg.members_G or m in cfg.members_X:
                 s = 0.0
+                conv = 0
                 for g, held in enumerate(inner):
                     tr_local = np.setdiff1d(np.arange(train_c.size), held)
                     tr_i = _subset(y, k, concept, train_c[tr_local], floor_sd)
                     te_i = _subset(y, k, concept, train_c[held], floor_sd)
                     r = M.fit(m, tr_i, cfg.n_gh, cfg.n_starts_inner, _rng(seed, layer_tag, f, 2, j, g))
                     seconds += r.seconds
-                    s += float(np.sum(M.concept_scores(m, r.theta, te_i, cfg.n_gh)))
+                    conv += int(r.converged)
+                    sc = M.concept_scores(m, r.theta, te_i, cfg.n_gh) if np.all(np.isfinite(r.theta)) else np.array([np.nan])
+                    if not np.all(np.isfinite(sc)):
+                        inner_nonfinite[f, j] = True
+                        s = -np.inf
+                    elif np.isfinite(s):
+                        s += float(np.sum(sc))
                 inner_scores[f, j] = s
+                inner_conv[f, j] = conv / len(inner)
             # refit on all training concepts, score the held-out concepts
             r = M.fit(m, train, cfg.n_gh, cfg.n_starts, _rng(seed, layer_tag, f, 3, j))
             seconds += r.seconds
             converged[f, j] = r.converged
             recovery[f, j] = r.recovery
             params[m].append(r.theta)
-            logq[j, test_c] = M.concept_scores(m, r.theta, test, cfg.n_gh)
+            logq[j, test_c] = (M.concept_scores(m, r.theta, test, cfg.n_gh) if np.all(np.isfinite(r.theta))
+                               else np.nan)
         gsel = max(cfg.members_G, key=lambda m: inner_scores[f, mi[m]])
         xsel = max(cfg.members_X, key=lambda m: inner_scores[f, mi[m]])
+        if not np.isfinite(inner_scores[f, mi[gsel]]) or not np.isfinite(inner_scores[f, mi[xsel]]):
+            failed_reason = f"fold {f}: every member of a family unscorable in inner selection"
         selected.append((gsel, xsel))
     # the three predictors (§8.1)
     delta = {}
@@ -185,9 +201,12 @@ def layer_pipeline(y: np.ndarray, k: np.ndarray, concept: np.ndarray, family: np
         delta["historical"] = (logq[mi["M3"]] - logq[mi["M2B"]]) / n_c
     else:
         delta["historical"] = np.full(C, np.nan)
-    failed = not np.all(np.isfinite(logq[[mi[m] for m in cfg.members_G + cfg.members_X]]))
+    if not np.all(np.isfinite(logq[[mi[m] for m in cfg.members_G + cfg.members_X]])):
+        failed_reason = failed_reason or "a retained member could not be scored on held-out concepts"
+    failed = bool(failed_reason)
     return dict(members=members, logq=logq, n_c=n_c, delta=delta, selected=selected,
-                inner_scores=inner_scores, converged=converged, recovery=recovery, failed=failed,
+                inner_scores=inner_scores, inner_conv=inner_conv, inner_nonfinite=inner_nonfinite,
+                converged=converged, recovery=recovery, failed=failed, failed_reason=failed_reason,
                 params={m: np.array(v) for m, v in params.items()}, fit_seconds=seconds)
 
 
@@ -216,8 +235,11 @@ def run_dataset(ds: Dataset, cfg: Config, seed: int, outer_folds: list | None = 
                n_c=res[0]["n_c"],
                selected=[r["selected"] for r in res],
                converged=np.stack([r["converged"] for r in res]),
+               inner_conv=np.stack([r["inner_conv"] for r in res]),
+               inner_nonfinite=np.stack([r["inner_nonfinite"] for r in res]),
                recovery=np.stack([r["recovery"] for r in res]),
                failed=any(r["failed"] for r in res),
+               failed_reason="; ".join(r["failed_reason"] for r in res if r["failed_reason"]),
                params={m: np.stack([r["params"][m] for r in res]) for m in res[0]["params"]},
                fit_seconds=sum(r["fit_seconds"] for r in res))
     return out
@@ -285,10 +307,13 @@ def analyze_dataset(ds: Dataset, cfg: Config, seed: int, outer_folds: list | Non
                     n_jobs: int = 1, run: dict | None = None) -> dict:
     """The outcome table for one dataset: per predictor, the band statistics, CIs and the §8.3 decision."""
     run = run_dataset(ds, cfg, seed, outer_folds, n_jobs) if run is None else run
-    out = dict(failed=run["failed"], layers=run["layers"].tolist(),
+    out = dict(failed=run["failed"], failed_reason=run.get("failed_reason", ""), layers=run["layers"].tolist(),
                convergence_rate=float(np.mean(run["converged"])),
+               inner_convergence_rate=float(np.mean(run["inner_conv"])),
+               inner_nonfinite=int(np.sum(run["inner_nonfinite"])),
                recovery_rate=float(np.mean(run["recovery"] > 0)),
-               fit_seconds=run["fit_seconds"], predictors={})
+               fit_seconds=run["fit_seconds"], predictors={},
+               delta=run["delta"], logq=run["logq"], members=run["members"], selected=run["selected"])
     for p in PREDICTORS:
         b = band_bootstrap(run["delta"][p], run["layers"], ds.family, cfg.bands, cfg.n_boot, seed)
         if "ws" in b:

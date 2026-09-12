@@ -15,9 +15,9 @@ and no generator whose rows stop growing while its job is InProgress.
 from __future__ import annotations
 
 import argparse
-import glob
 import json
 import os
+import re
 import sys
 
 import boto3
@@ -51,11 +51,13 @@ def pull(run: str, profile: str, out_dir: str) -> dict:
             break
     keys = [k for k in keys if "/" not in k[len(prefix):]]          # top level only
     found = {}
+    key_cols = ["generator", "grid", "rep", "D", "n_layers"]
     for stage in STAGES:
         frames, prog = [], []
+        pat = re.compile(rf"^{re.escape(stage)}\.shard\d{{3}}(-\d{{3}})?of\d{{3}}\.csv$")   # raw shard files only, never *_summary.csv
         for k in keys:
             name = k[len(prefix):]
-            if not (name.startswith(stage + ".shard") and name.endswith(".csv")):
+            if not pat.match(name):
                 continue
             local = os.path.join(out_dir, name)
             s3.download_file(BUCKET, k, local)
@@ -66,6 +68,14 @@ def pull(run: str, profile: str, out_dir: str) -> dict:
                     prog.append(json.load(fh))
         if frames:
             df = pd.concat(frames, ignore_index=True)
+            missing = [c for c in key_cols + ["selection_decision", "convergence", "failed", "code_hash"] if c not in df.columns]
+            if missing:
+                raise SystemExit(f"{stage}: rows lack {missing} — not replicate rows")
+            dup = df.duplicated(subset=key_cols).sum()
+            if dup:
+                raise SystemExit(f"{stage}: {dup} duplicate replicate keys across shard files")
+            if df["code_hash"].nunique() > 1:
+                raise SystemExit(f"{stage}: rows from more than one code/config hash: {sorted(df['code_hash'].unique())}")
             df.to_csv(os.path.join(out_dir, f"{stage}.csv"), index=False)
             found[stage] = (df, prog)
     if prefix + "gain_calibration.json" in keys:

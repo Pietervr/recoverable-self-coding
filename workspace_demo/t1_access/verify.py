@@ -80,11 +80,11 @@ for name, kw in (("M2H", dict(tau=1.0)), ("M2S", dict(omega=0.5)), ("M3H", dict(
                                                    num_segments=data.n_concepts))(jnp.asarray(u))   # (U, C)
     logphi = -0.5 * (u / tau) ** 2 - np.log(tau) - 0.5 * np.log(2 * np.pi)
     dense = np.array(jax.scipy.special.logsumexp(ll_u + jnp.asarray(logphi)[:, None] + np.log(du), axis=0))
-    chk = M.gh_node_check(name, th, data, counts=(5, 10, 20, 40, 80))
+    chk = M.gh_node_check(name, th, data, counts=(64, 96, 128))
     errs = {n: float(np.max(np.abs(chk["scores"][n] - dense))) for n in chk["scores"]}
-    print(f"     V3 {name} tau/omega={tau}: max |AGH - dense| by nodes {', '.join(f'{n}: {e:.2e}' for n, e in errs.items())}; "
+    print(f"     V3 {name} tau/omega={tau}: max |two-scale trapezoid - dense| by fine points {', '.join(f'{n}: {e:.2e}' for n, e in errs.items())}; "
           f"successive max change {', '.join(f'{n}: {e:.2e}' for n, e in chk['max_change'].items())}")
-    check(f"V3 AGH converges {name}", errs[20] < 1e-4, f"20-node error {errs[20]:.2e}")
+    check(f"V3 quadrature converges {name}", errs[96] < 1e-4, f"96-point error {errs[96]:.2e}")
     # the plain prior-centred rule of v1.1, for the record
     xs_, lw_ = M.gh_nodes(80)
     plain = np.array(jax.scipy.special.logsumexp(

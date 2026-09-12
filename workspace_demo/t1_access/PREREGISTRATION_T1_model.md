@@ -222,20 +222,30 @@ is not used — the §14 start count is not computable with derivative-free fits
 *converged* if L-BFGS-B reports success. The kept solution is the converged run with the highest
 training log-likelihood; if no run converged, the highest-likelihood run is kept and flagged. All
 likelihoods in log space (`logsumexp` for mixtures). Random-effect integrals per concept by a
-**trapezoid rule on an adaptive window** in log space: the mode $\hat u_c$ of the concept's
-log-posterior in $u$ is found by a nine-point grid over $\pm 4\tau$ and four safeguarded Newton steps
-(unrolled in the differentiated graph, so the gradient is exact), the Laplace SD $\hat s_c$ is taken
-there and floored at $\tau$, and the integral is the trapezoid rule with $P$ points on
-$[\hat u_c - 6\hat s_c, \hat u_c + 6\hat s_c]$ (v1.2). Why not Gauss–Hermite: prior-centred nodes do
-not converge at the CONF cluster size (`verify.py` V3 — with 168 trials per concept 80 nodes still
-miss by 0.06–0.3 nat, so the v1.1 ladder never terminates), and mode-centred nodes fail for the
-concepts whose shifted threshold leaves the level range — a flat likelihood in $u$, a
-truncated-Gaussian posterior that no node count integrates (1–5 nat off at $\tau = 2$). The
-trapezoid rule converges exponentially on the peaked posteriors and covers the prior's range on the
-flat ones: within $6 \times 10^{-7}$ nat of dense quadrature across the $\tau, \omega$ grid at
-$P = 96$, except the truncated M2H posteriors at $\tau = 2$ (0.02 nat, i.e. $10^{-4}$ per trial).
-$P$ is set on CAL/PILOT by raising it (48 → 96 → 192) until every concept's joint log-likelihood
-changes by < 1e-3 at full cluster size ($n_c = 6 \times 7 \times D$), then frozen.
+**two-scale trapezoid rule** in log space (v1.2, revised after the Codex review of v1.2): the mode
+$\hat u_c$ of the concept's log-posterior in $u$ is found by a nine-point grid over $\pm 4\tau$ and
+four safeguarded Newton steps (unrolled in the differentiated graph, so the gradient is exact); the
+Laplace SD $\hat s_c$ is taken there and **capped** at $\tau$ by the curvature safeguard; the peak is
+integrated by a $P$-point trapezoid rule on $[\hat u_c \pm 6\hat s_c]$ and the rest of the prior's
+range, $[-6\tau, \hat u_c - 6\hat s_c]$ and $[\hat u_c + 6\hat s_c, 6\tau]$, by two further trapezoid
+rules with $P/2$ points each and exact endpoints, so that a flat tail or a second mode (M2H's
+anchored mean returns to $\mu_{\max}$ at both extremes of the shifted threshold) is carried by the
+outer rules. Why not Gauss–Hermite: prior-centred nodes do not converge at the CONF cluster size
+(`verify.py` V3 — with 168 trials per concept 80 nodes still miss by 0.06–0.3 nat, so the v1.1 ladder
+never terminates), and mode-centred nodes fail for the concepts whose shifted threshold leaves the
+level range (a flat likelihood in $u$, a truncated-Gaussian posterior; 1–5 nat off at $\tau = 2$ with
+the counts tried). The independent check is `audit_quadrature.py`: every hierarchical member at
+every grid value against dense quadrature (80,001 points over $\pm 10\tau$) at the generating
+parameters, at the **fitted** parameters on the held-out and training concepts, and under cross-fits
+to the other family's data. At $P = 96$ (2026-09-11): max error $3.1 \times 10^{-4}$ nat over every
+generating and fitted case, and $3.6 \times 10^{-3}$ nat in one cross-fit — M3H fitted to M2S data
+at $\omega = 2$, where the fitted slope is so large that the likelihood in the threshold shift is a
+staircase and the trapezoid error falls only linearly with $P$ ($5.4 \times 10^{-3}$ at 64,
+$1.7 \times 10^{-3}$ at 128); its bound on the estimand is the case error over $n_c$, $2 \times 10^{-5}$
+nat per trial, a hundred times below the smallest declared effect. Pass rule: < 1e-3 nat in the
+generating and fitted cases, < 5e-3 in the cross-fits. $P$ is set on CAL/PILOT by raising it
+(64 → 96 → 128) until every concept's joint log-likelihood changes by < 1e-3 at full cluster size
+($n_c = 6 \times 7 \times D$), then frozen.
 ### 7.5 Recovery of the family distinction (before v2; `simulate.py` outputs committed)
 Generators: every member of G and X at CAL/PILOT-fitted parameters and across a frozen grid —
 heterogeneity $\tau, \omega \in \{0, 0.5, 1, 2\}$ (in level units / log-scale units), component
@@ -316,7 +326,11 @@ coherence-readout result and "discontinuous access" is not used.
   accuracy at $k=8$ vs $k=0$ below 0.75 in more than a third of band layers; capture-parity failure;
   suffix-tokenization failure; a retained member that cannot be scored after the §7.4 recovery
   (16 further starts, then a doubled jitter) — in which case the **primary comparison is unavailable**
-  and any reduced-family result is a secondary amended analysis, never the H1 result.
+  and any reduced-family result is a secondary amended analysis, never the H1 result. The same rule
+  inside the inner selection (v1.2): a member whose inner fit or inner held-out score is not finite
+  after the recovery scores $-\infty$ and cannot be selected, and is recorded; if every member of a
+  family is unscorable in a fold, the primary comparison is unavailable. Inner convergence and the
+  count of non-finite inner scores are reported beside the refit convergence.
 - **Coherence-only reading** (a scientific outcome, not a failure): §6.4(i) or §8.5 fails; H1 is
   reported on R1, H3 is not run.
 - **Underpowered** (§10) is declared before CONF and reported with the result.
@@ -331,25 +345,50 @@ graded member** (M2B, M2H, M2S, M2K) at CAL/PILOT-fitted and grid parameters; al
 retained mixture member at per-trial gains 0.003 (the human scale), 0.01 and 0.03 nat — the gain
 being the expected out-of-sample joint log-score advantage per trial of the generator over the best
 graded member fitted at large sample (256 concepts), reached by scaling both high-state offsets
-(`simulate.calibrate_gain`). Counts: 1,000 datasets per generator and setting (Monte-Carlo SE ≈ 0.7 pp
-at a 5 % rate). The §14 benchmark (v1.2) puts one dataset through the full procedure at 860 s per
-layer on one Mac core, so the full counts on one synthetic layer (12 nulls and 12 alternatives at
-1,000, the 48 recovery points at 200) are ≈ 8,000 Mac-core-hours per $D$ — not this machine's work
-(owner, 11 Sept: it is too slow and not always on). The simulations run as sharded, resumable
-SageMaker training jobs in the cloud (`t1_job.py`, `launch_t1.py`; results under
-`s3://xtenure-cself-pvr/results/t1_access/full/`), $D = 4$ first and $D = 8$ only if the §10 power rule
-asks for it. **Launched 2026-09-11 23:00 UTC:** the whole $D = 4$ work — the 12 nulls and 12
-alternatives at 1,000 replicates, the 48 recovery points at 200, and the five-layer check (M2B, M2K
-nulls and M3H, M3V alternatives at 200 on layers 25, 33, 41, 49, 57) — as 160 disjoint shards on 50
-jobs: 20 managed-spot and 22 on-demand `ml.c8i.2xlarge` (8 vCPU, one shard each) and 8 on-demand
-`ml.c8i.48xlarge` (192 vCPU, fifteen shards each); each job resumes from S3 after an interruption
-and uploads its rows after every round, so the run is spot-checked while it goes
-(`spotcheck.py`). Expected to land within ≈ 27 h. The layer grid of the simulation is frozen from
-what the five-layer check shows.
-Until PILOT is read, the cross-layer residual correlation is a declared AR(1) stand-in
-($\rho = 0.9$) and the mixture state is shared across a trial's layers. CI coverage is scored
-against the replicate mean of the point estimate under each generator (the estimand proxy at the
-design size). Two separate failures:
+(`simulate.calibrate_gain`; the truth term is scored under the generating density, and every one of
+the twelve (member, gain) calibrations must exist, converge within 5 % of its target and be confirmed
+by an independent draw with its Monte-Carlo SE, else the power stage does not run — v1.2 after the
+Codex review; "0.003 nat" is a numerical reference scale, the oracle-to-large-sample-graded
+separation, not the finite-design selected-X-versus-selected-G $\bar\Delta$ nor the human historical
+pair's gain). Counts: 1,000 datasets per generator and setting (Monte-Carlo SE ≈ 0.7 pp at a 5 %
+rate). The §14 benchmark (v1.2) puts one dataset through the full procedure at 860 s per layer on one
+Mac core, so the full counts on one synthetic layer (12 nulls and 12 alternatives at 1,000, the 48
+recovery points at 200) are ≈ 8,000 Mac-core-hours per $D$ — not this machine's work (owner, 11
+Sept: it is too slow and not always on). The simulations run as sharded, resumable SageMaker
+training jobs in the cloud (`t1_job.py`, `launch_t1.py`; results under
+`s3://xtenure-cself-pvr/results/t1_access/<run>/`, one immutable code snapshot and one result
+namespace per numerical configuration, every row and the gain file carrying the code/config hash,
+resumes refused across hashes; per-concept scores and the selected members per layer and fold are
+saved with every replicate for offline re-scoring), $D = 4$ first and $D = 8$ only if the §10 power
+rule asks for it. The recovery grid's twelve graded points at replicates 0–199 are the calibration
+stage's first 200 replicates (same seeds, same configuration) and are reused, not refitted. The run
+launched on 11 Sept 23:00 UTC (160 shards on 50 jobs: 20 managed-spot and 22 on-demand
+`ml.c8i.2xlarge`, 8 on-demand `ml.c8i.48xlarge` with fifteen shards each) was stopped after one hour
+on the Codex review of v1.2 and its rows discarded; the corrected run is recorded here when it goes.
+
+**What the single-layer simulations establish, and what they do not** (v1.2 after the Codex
+review): with one synthetic layer per dataset they calibrate the **per-layer procedure** (inner
+selection, refit, joint scoring, the concept-cluster interval) and establish the family recovery;
+they do not by themselves certify the **35-layer band rule** of §8.3, whose validation needs the
+frozen band grid, the cross-layer heterogeneity and residual correlation measured on PILOT, every
+retained null family, and Monte-Carlo precision adequate to the thresholds. That band validation is
+its own pre-specified stage, run after PILOT with the measured correlation structure, with counts
+declared at v2; its grid is never chosen from the outcome of a pilot. The five-layer stage of the
+present run (every graded member at one grid value — M2B; M2H $\tau = 0.5$; M2S $\omega = 0.5$; M2K
+$\alpha = 1$ — and every mixture member at the 0.01 nat gain, on layers 25, 33, 41, 49, 57, 200
+replicates) is a computational pilot of the layer averaging, not that validation. Until PILOT is
+read, the cross-layer residual correlation is a declared AR(1) stand-in with coefficient $\rho = 0.9$
+**per physical layer** (so $0.9^{8}$ between sampled layers eight apart), the mixture state is
+shared across a trial's layers and the concept effect is shared across layers.
+
+**Coverage estimand** (v1.2): the interval's coverage is assessed for
+$\theta_g(D, L) = E[\bar\Delta_{\text{ws}}]$, the expectation of the complete procedure's band-mean
+held-out score difference under generator $g$ at the design sizes, over the stimulus draws, the folds
+and the optimiser's randomness — an unconditional algorithm-performance target, estimated by the
+replicate mean with its own Monte-Carlo SE reported; coverage is reported among usable intervals and
+failures separately. It is not the oracle gain of `expected_gain`, not the conditional risk of the
+particular fitted predictors, and not the risk after training on all 64 concepts. Two separate
+failures:
 - **Calibration**: the false-positive rate (mixture support under a graded null) must be ≤ 0.064
   (0.05 + 2 SE) for every null at the chosen $D$, and CI coverage ≥ 0.90. Failure at $D=8$ requires
   revision **before CONF** — permitted changes, frozen here: the bootstrap type (§8.2), the family
@@ -455,5 +494,6 @@ lists, amplitudes, outcomes); this document.
 |---|---|---|
 | 2026-09-11 | v0 drafted | for second-opinion review |
 | 2026-09-11 | v1: inference unit = concepts; frozen CAL decoder; distractor channel; nine-model family; held-out family log score; outcomes split; power by simulation; H3 via one capture path; no-target-report condition | review round 1 (Codex) |
+| 2026-09-11 | v1.2 (second entry, after the Codex review of v1.2 — verdict "not on board", `reviews/2026-09-11_v1.2_codex_brief.md`): the first cloud run stopped after 1 h and discarded; §7.4 quadrature rebuilt as the two-scale trapezoid rule with the independent audit at generating, fitted and cross-fitted parameters (`audit_quadrature.py`), the Laplace SD stated as capped; §9 inner-selection failure policy; §10 gain truth term under the generating density, twelve-calibration gate with independent check and D passed, "0.003" named a reference scale, coverage estimand stated, the single-layer run's scope stated and the band validation made its own post-PILOT stage, five-layer pilot with every graded member, correlation per physical layer, recovery reuse of the calibration rows; versioned code snapshots and result namespaces with the code/config hash in every row; per-concept scores saved | Codex review of v1.2 (session Entropy) |
 | 2026-09-11 | v1.2: `models.py`, `analyze.py`, `simulate.py`, `verify.py`, `bench.py` written and verified (inherited likelihoods equal the numpy originals to 1e-9, gradients to 1e-8, self-refits recover every generator); §7.4: L-BFGS-B on analytic gradients replaces Nelder–Mead, the start generator and its jitter defined, the random-effect integral becomes a per-concept trapezoid rule on an adaptive window (prior-centred Gauss–Hermite does not converge at $n_c = 168$, mode-centred Gauss–Hermite fails on the truncated posteriors at $\tau = 2$) with the point ladder 48 → 96 → 192; §7.3 M3V floor as $\text{floor} + e^{s}$; §8.2 foil pairs resampled as units only in the paired statistics; §7.5 and §10 generator base declared, the gain definition made operational; §14 benchmark recorded — every layer kept, inner selection at 4 starts, refits at 8; the simulations moved to sharded SageMaker spot jobs (§10) | first code pass (session Entropy) |
 | 2026-09-11 | v1.1: BACKGROUND concept bank with family-balanced backgrounds identical across target/foil pairs, slot-nested levels, role disjointness, prompt scan; H1 = coherence readout with a pre-declared target bridge (§8.5); one joint concept-scoring definition with training-only within-family selection (equal-weight and M3-vs-M2B as sensitivity); ordered mixture parameterisation, identifiable M3L catch, inherited affine sigma kept, skew-normal parameters named; SciPy option names and solver rule; recovery of the family distinction replaces member-recoverability; post-CONF member loss = primary unavailable; bootstrap defined and validated by refit simulation; calibration vs power failures separated with permitted changes; single-pass active capture with edits inside the answer pass; swap_delta linear dose, per-layer norm matching, rescue amplitude, patch mode; H3 decision rule, polarity, positive-control criterion, smooth-vs-binary check; layer count 64 / lens 0–62 / band 23–57 kept; equal-length instructions; budget recomputed | review round 2 (Codex) |

@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import os
 import time as _time
@@ -38,10 +39,29 @@ import numpy as np
 import analyze as A
 import models as M
 
+
+def config_hash(cfg: "A.Config", D: int, layers, seed: int, rho: float = None) -> str:
+    """12 hex digits over the three code files and the run settings: written into every row and into the gain
+    file, and checked on resume, so rows from two numerical methods can never be blended (Codex, 2026-09-11)."""
+    h = hashlib.sha256()
+    here = os.path.dirname(os.path.abspath(__file__))
+    for f in ("models.py", "analyze.py", "simulate.py"):
+        with open(os.path.join(here, f), "rb") as fh:
+            h.update(fh.read())
+    settings = dict(n_starts=cfg.n_starts, n_starts_inner=cfg.n_starts_inner, n_gh=cfg.n_gh, n_outer=cfg.n_outer,
+                    n_inner=cfg.n_inner, n_boot=cfg.n_boot, members_G=list(cfg.members_G), members_X=list(cfg.members_X),
+                    D=int(D), layers=[int(l) for l in layers], seed=int(seed), rho=RHO_LAYERS if rho is None else rho,
+                    trap=(M.TRAP_POINTS, M.OUTER_POINTS, M.TRAP_HALFWIDTH, M.PRIOR_HALFWIDTH),
+                    newton=(M.NEWTON_STEPS, M.NEWTON_CANDIDATES, M.GRID_POINTS, M.GRID_HALFWIDTH), jitter=M.JITTER_SD,
+                    lbfgsb=M.LBFGSB_OPTIONS)
+    h.update(json.dumps(settings, sort_keys=True, default=str).encode())
+    return h.hexdigest()[:12]
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.join(HERE, "sim_results")
 SIM_LAYERS = (25, 33, 41, 49, 57)     # declared reduced grid inside the workspace band 23–57
-RHO_LAYERS = 0.9                      # stand-in for the PILOT-measured residual correlation across layers
+RHO_LAYERS = 0.9                      # stand-in residual correlation between ADJACENT PHYSICAL layers (PILOT measures it);
+                                      # between sampled layers l1 < l2 the correlation is RHO_LAYERS ** (l2 - l1)
 N_CARRIERS = 6
 GRID = dict(tau=(0.0, 0.5, 1.0, 2.0), omega=(0.0, 0.5, 1.0, 2.0), sep=(0.5, 1.0, 2.0, 4.0),
             pi0=(0.0, 0.05, 0.2), alpha=(0.0, 1.0, 3.0))
@@ -96,11 +116,16 @@ def generator_theta(name: str, tau: float = 0.0, omega: float = 0.0, sep: float 
     raise KeyError(name)
 
 
-def _ar1(rng, n, L, rho):
+def _ar1(rng, n, layers, rho):
+    """Standard-normal noise for n trials at the listed physical layers, AR(1) with coefficient rho per physical
+    layer step: corr(e_l1, e_l2) = rho ** |l2 - l1|."""
+    layers = np.asarray(layers)
+    L = layers.size
     e = np.empty((n, L))
     e[:, 0] = rng.normal(size=n)
     for l in range(1, L):
-        e[:, l] = rho * e[:, l - 1] + np.sqrt(1.0 - rho ** 2) * rng.normal(size=n)
+        r = rho ** abs(int(layers[l]) - int(layers[l - 1]))
+        e[:, l] = r * e[:, l - 1] + np.sqrt(1.0 - r ** 2) * rng.normal(size=n)
     return e
 
 
@@ -115,8 +140,8 @@ def make_dataset(name: str, theta: np.ndarray, n_per_family: int = 8, D: int = 4
     u_c = np.zeros(d["C"])
     if m.hierarchical:
         u_c = rng.normal(0.0, float(np.exp(theta[m.re_index])), size=d["C"])
-    eps = _ar1(rng, n, L, rho)
-    eps2 = _ar1(rng, n, L, rho)
+    eps = _ar1(rng, n, layers, rho)
+    eps2 = _ar1(rng, n, layers, rho)
     unif = rng.uniform(size=n)
     y = np.empty((n, L))
     for l in range(L):
@@ -143,14 +168,20 @@ def null_points() -> list:
     return [p for p in recovery_points() if M.MEMBERS[p[0]].family == "G"]
 
 
+def base_null_points() -> list:
+    """One grid value per graded member (the five-layer check): M2B; M2H tau 0.5; M2S omega 0.5; M2K alpha 1."""
+    return [("M2B", {}), ("M2H", dict(tau=0.5)), ("M2S", dict(omega=0.5)), ("M2K", dict(alpha=1.0))]
+
+
 # ----------------------------------------------------------------------------------------------
 # one replicate through the full §8 procedure -> one CSV row
 # ----------------------------------------------------------------------------------------------
-def _row(name, kwargs, rep, D, layers, res, seconds, extra=None):
+def _row(name, kwargs, rep, D, layers, res, seconds, extra=None, code_hash=""):
     row = dict(generator=name, family=M.MEMBERS[name].family, grid=json.dumps(kwargs, sort_keys=True), rep=rep, D=D,
-               n_layers=len(layers), failed=int(res["failed"]), convergence=round(res["convergence_rate"], 4),
-               recovery=round(res["recovery_rate"], 4), fit_seconds=round(res["fit_seconds"], 1),
-               wall_seconds=round(seconds, 1))
+               n_layers=len(layers), code_hash=code_hash, failed=int(res["failed"]), failed_reason=res.get("failed_reason", ""),
+               convergence=round(res["convergence_rate"], 4), inner_convergence=round(res.get("inner_convergence_rate", np.nan), 4),
+               inner_nonfinite=int(res.get("inner_nonfinite", 0)), recovery=round(res["recovery_rate"], 4),
+               fit_seconds=round(res["fit_seconds"], 1), wall_seconds=round(seconds, 1))
     for p in A.PREDICTORS:
         b = res["predictors"][p]
         row[f"{p}_decision"] = b.get("decision", "")
@@ -159,13 +190,18 @@ def _row(name, kwargs, rep, D, layers, res, seconds, extra=None):
         row[f"{p}_families_pooled_sign"] = b.get("ws_families_with_pooled_sign", np.nan)
     row["selected"] = json.dumps(res["selected_counts"], sort_keys=True)
     row["heldout"] = json.dumps({m: round(v, 5) for m, v in res["heldout_logscore_per_trial"].items()}, sort_keys=True)
+    # per-concept audit detail (Codex, 2026-09-11): the out-of-fold Delta_c of each predictor and every member's
+    # held-out joint log score per concept, per layer — enough to rescore alternative interval rules offline
+    row["delta_per_concept"] = json.dumps({p: np.round(res["delta"][p], 5).tolist() for p in A.PREDICTORS})
+    row["logq_per_concept"] = json.dumps({m: np.round(res["logq"][:, i, :], 4).tolist() for i, m in enumerate(res["members"])})
+    row["selected_per_layer_fold"] = json.dumps(res["selected"])
     if extra:
         row.update(extra)
     return row
 
 
 def one_replicate(name: str, kwargs: dict, rep: int, D: int, layers, rho: float, cfg: A.Config, seed: int,
-                  extra: dict | None = None) -> dict:
+                  extra: dict | None = None, code_hash: str = "") -> dict:
     t0 = _time.time()
     theta = generator_theta(name, **kwargs)
     # deterministic dataset seed: (seed, member index, grid values, rep, D) — never Python's per-process str hash
@@ -173,7 +209,7 @@ def one_replicate(name: str, kwargs: dict, rep: int, D: int, layers, rho: float,
     ds_seed = int(np.random.default_rng([seed, M.ALL_MEMBERS.index(name), grid_tag % (2**31 - 1), rep, D]).integers(2**31))
     ds = make_dataset(name, theta, n_per_family=8, D=D, layers=layers, rho=rho, seed=ds_seed)
     res = A.analyze_dataset(ds, cfg, seed=ds_seed)
-    return _row(name, kwargs, rep, D, layers, res, _time.time() - t0, extra)
+    return _row(name, kwargs, rep, D, layers, res, _time.time() - t0, extra, code_hash)
 
 
 def run_points(points: list, n_rep: int, D: int, layers, rho: float, cfg: A.Config, seed: int, n_jobs: int,
@@ -183,6 +219,7 @@ def run_points(points: list, n_rep: int, D: int, layers, rho: float, cfg: A.Conf
     shard=(i, N) or (ids, N): the tasks whose index modulo N is i / is in ids (the seeds are per
     (point, rep), so shards are disjoint and their CSVs concatenate)."""
     from joblib import Parallel, delayed
+    code_hash = config_hash(cfg, D, layers, seed, rho)
     tasks = [(name, kw, r) for (name, kw) in points for r in range(n_rep)]
     ids = set(shard[0]) if isinstance(shard[0], (list, tuple, set)) else {int(shard[0])}
     tasks = [t for i, t in enumerate(tasks) if i % int(shard[1]) in ids]
@@ -190,15 +227,18 @@ def run_points(points: list, n_rep: int, D: int, layers, rho: float, cfg: A.Conf
     if os.path.exists(out_csv):
         with open(out_csv) as fh:
             for row in csv.DictReader(fh):
+                if row.get("code_hash", "") != code_hash:
+                    raise SystemExit(f"{out_csv} holds rows from code/config {row.get('code_hash')!r}, this run is {code_hash!r}: "
+                                     f"never blend numerical methods — use a new run namespace")
                 done.add((row["generator"], row["grid"], int(row["rep"]), int(row["D"])))
     tasks = [t for t in tasks if (t[0], json.dumps(t[1], sort_keys=True), t[2], D) not in done]
-    print(f"{len(tasks)} replicates to run ({len(done)} already in {out_csv}), n_jobs={n_jobs}", flush=True)
+    print(f"{len(tasks)} replicates to run ({len(done)} already in {out_csv}), n_jobs={n_jobs}, code/config {code_hash}", flush=True)
     os.makedirs(os.path.dirname(out_csv), exist_ok=True)
     t0 = _time.time()
     for i in range(0, len(tasks), chunk):
         batch = tasks[i:i + chunk]
         rows = Parallel(n_jobs=n_jobs)(delayed(one_replicate)(name, kw, r, D, layers, rho, cfg, seed,
-                                                              (extras or {}).get((name, json.dumps(kw, sort_keys=True))))
+                                                              (extras or {}).get((name, json.dumps(kw, sort_keys=True))), code_hash)
                                        for (name, kw, r) in batch)
         new = not os.path.exists(out_csv)
         with open(out_csv, "a", newline="") as fh:
@@ -222,14 +262,20 @@ def summarize(out_csv: str, predictor: str = "selection") -> "pd.DataFrame":
     for (g, grid, D), sub in df.groupby(["generator", "grid", "D"]):
         n = len(sub)
         counts = sub[dec].value_counts()
-        point = sub[f"{predictor}_ws_point"]
-        truth = point.mean()                       # the estimand proxy: the replicate mean of the point estimate
-        cover = np.mean((sub[f"{predictor}_ws_lo"] <= truth) & (truth <= sub[f"{predictor}_ws_hi"]))
+        usable = sub[sub["failed"] == 0]
+        point = usable[f"{predictor}_ws_point"]
+        # the coverage estimand theta_g(D, L) = E[band-mean Delta] over draws, folds and optimiser randomness at the
+        # design sizes, estimated by the replicate mean; its Monte-Carlo SE is reported beside it (pre-reg §10)
+        truth = point.mean()
+        truth_se = point.std(ddof=1) / np.sqrt(len(point)) if len(point) > 1 else np.nan
+        cover = np.mean((usable[f"{predictor}_ws_lo"] <= truth) & (truth <= usable[f"{predictor}_ws_hi"])) if len(usable) else np.nan
         rows.append(dict(generator=g, family=M.MEMBERS[g].family, grid=grid, D=D, n=n,
                          mixture=counts.get("mixture", 0) / n, graded=counts.get("graded", 0) / n,
                          inconclusive=counts.get("inconclusive", 0) / n, failure=counts.get("assay failure", 0) / n,
-                         mean_point=truth, sd_point=point.std(ddof=1) if n > 1 else np.nan, coverage=cover,
-                         mean_se=sub[f"{predictor}_ws_se"].mean(), convergence=sub["convergence"].mean(),
+                         n_usable=len(usable), mean_point=truth, ref_se=truth_se,
+                         sd_point=point.std(ddof=1) if len(point) > 1 else np.nan, coverage=cover,
+                         mean_se=usable[f"{predictor}_ws_se"].mean(), convergence=sub["convergence"].mean(),
+                         inner_convergence=sub["inner_convergence"].mean() if "inner_convergence" in sub else np.nan,
                          mean_fit_s=sub["fit_seconds"].mean()))
     return pd.DataFrame(rows)
 
@@ -240,76 +286,105 @@ def summarize(out_csv: str, predictor: str = "selection") -> "pd.DataFrame":
 def expected_gain(name: str, theta: np.ndarray, seed: int = 0, n_per_family: int = 32, D: int = 4,
                   cfg: A.Config | None = None, graded=M.FAMILY_G) -> dict:
     """E[log q_true - log q_G*] per trial on fresh data, G* = the graded member with the best training
-    joint log-likelihood at large sample (8 x n_per_family concepts)."""
+    joint log-likelihood at large sample (8 x n_per_family concepts). The truth term is scored under the
+    GENERATING density (floor 0 for M3V: the fitting floor belongs to fitted predictors only — Codex 2026-09-11);
+    `se` is the concept-cluster standard error of the per-trial gain."""
     cfg = A.Config() if cfg is None else cfg
     tr = make_dataset(name, theta, n_per_family, D, layers=(41,), rho=0.0, seed=seed)
     te = make_dataset(name, theta, n_per_family, D, layers=(41,), rho=0.0, seed=seed + 1)
     train = M.Trials.build(tr.y[:, 0], tr.k, tr.concept, tr.n_concepts)
     test = M.Trials.build(te.y[:, 0], te.k, te.concept, te.n_concepts, floor_sd=train.floor_sd)
+    truth = M.Trials.build(te.y[:, 0], te.k, te.concept, te.n_concepts, floor_sd=0.0)
     fits = {g: M.fit(g, train, cfg.n_gh, cfg.n_starts, np.random.default_rng([seed, 7, i])) for i, g in enumerate(graded)}
+    if not all(np.isfinite(fits[g].loglik) for g in graded):
+        raise RuntimeError(f"expected_gain({name}): a graded reference fit did not produce a finite likelihood")
     best = max(graded, key=lambda g: fits[g].loglik)
-    lq_true = M.concept_scores(name, theta, test, cfg.n_gh)
-    lq_best = M.concept_scores(best, fits[best].theta, test, cfg.n_gh)
-    n = test.n
-    return dict(gain=float((lq_true.sum() - lq_best.sum()) / n), best=best,
-                gains={g: float((lq_true.sum() - M.concept_scores(g, fits[g].theta, test, cfg.n_gh).sum()) / n) for g in graded},
+    lq_true = M.concept_scores(name, theta, truth, cfg.n_gh)
+    lq_by = {g: M.concept_scores(g, fits[g].theta, test, cfg.n_gh) for g in graded}
+    n_c = test.n_per_concept()
+    per_concept = (lq_true - lq_by[best]) / n_c                     # per-trial gain per concept
+    gain = float((lq_true.sum() - lq_by[best].sum()) / test.n)
+    se = float(np.std(per_concept, ddof=1) / np.sqrt(per_concept.size))
+    return dict(gain=gain, se=se, best=best,
+                gains={g: float((lq_true.sum() - lq_by[g].sum()) / test.n) for g in graded},
                 converged={g: fits[g].converged for g in graded})
 
 
 def calibrate_gain(name: str, target: float, kwargs: dict, lo: float = 0.02, hi: float = 3.0, tol: float = 0.05,
-                   seed: int = 0, **gain_kw) -> dict:
-    """Bisection on `scale` (multiplying both high-state offsets) until expected_gain is within tol
-    (relative) of target. Returns the scale, the achieved gain and the trace."""
+                   seed: int = 0, max_iter: int = 30, **gain_kw) -> dict:
+    """Bisection on `scale` (multiplying both high-state offsets) until expected_gain is within tol (relative)
+    of target; then an independent check of the achieved gain at a fresh seed. Every failure is explicit in
+    `note` (bracket, bisection limit, non-finite) and the caller must refuse such an entry."""
     trace = []
     def g(scale):
         r = expected_gain(name, generator_theta(name, scale=scale, **kwargs), seed=seed, **gain_kw)
         trace.append(dict(scale=scale, **{k: v for k, v in r.items() if k != "gains"}))
         return r["gain"]
     glo, ghi = g(lo), g(hi)
+    if not (np.isfinite(glo) and np.isfinite(ghi)):
+        return dict(scale=np.nan, gain=np.nan, trace=trace, note="non-finite gain at a bracket end")
     if not (glo <= target <= ghi):
-        return dict(scale=np.nan, gain=np.nan, trace=trace, note="target outside the bracket")
-    for _ in range(20):
+        return dict(scale=np.nan, gain=np.nan, trace=trace, note=f"target outside the bracket [{glo:.5f}, {ghi:.5f}]")
+    mid, gm = np.nan, np.nan
+    for _ in range(max_iter):
         mid = np.sqrt(lo * hi)
         gm = g(mid)
         if abs(gm - target) <= tol * target:
-            return dict(scale=mid, gain=gm, trace=trace)
+            chk = expected_gain(name, generator_theta(name, scale=mid, **kwargs), seed=seed + 1000, **gain_kw)
+            return dict(scale=float(mid), gain=float(gm), gain_check=chk["gain"], gain_check_se=chk["se"], trace=trace, note="")
         if gm < target:
             lo, glo = mid, gm
         else:
             hi, ghi = mid, gm
-    return dict(scale=mid, gain=gm, trace=trace, note="bisection limit")
+    return dict(scale=np.nan, gain=float(gm), trace=trace, note=f"bisection limit: {gm:.5f} vs target {target}")
 
 
 GAIN_KWARGS = {"M3": {}, "M3H": dict(tau=0.5), "M3V": {}, "M3L": dict(pi0=0.05)}   # the §10 alternatives' base
 
 
-def _one_gain(name, target, seed, cfg):
+def _one_gain(name, target, seed, cfg, D):
     kw = GAIN_KWARGS[name]
-    r = calibrate_gain(name, target, kw, seed=seed, cfg=cfg)
-    return dict(generator=name, kwargs=kw, target=target, scale=r["scale"], gain=r["gain"],
+    r = calibrate_gain(name, target, kw, seed=seed, cfg=cfg, D=D)
+    return dict(generator=name, kwargs=kw, target=target, D=D, scale=r["scale"], gain=r["gain"],
+                gain_check=r.get("gain_check", np.nan), gain_check_se=r.get("gain_check_se", np.nan),
                 note=r.get("note", ""), trace=r["trace"])
 
 
-def calibrate_all_gains(seed: int, cfg: A.Config, n_jobs: int = 1, names=M.FAMILY_X) -> list:
-    """The twelve §10 gain calibrations (four mixture members x three gains), optionally in parallel."""
+def calibrate_all_gains(seed: int, cfg: A.Config, n_jobs: int = 1, names=M.FAMILY_X, D: int = 4, layers=(41,)) -> dict:
+    """The twelve §10 gain calibrations (four mixture members x three gains) at the design's D, optionally in
+    parallel. Refuses to return a set with a missing or unconverged target: power is claimed 'under every
+    mixture alternative' only when all twelve exist. Returns {code_hash, D, entries}."""
     jobs = [(n, t) for n in names for t in GAINS]
     if n_jobs > 1:
         from joblib import Parallel, delayed
-        return Parallel(n_jobs=n_jobs)(delayed(_one_gain)(n, t, seed, cfg) for n, t in jobs)
-    return [_one_gain(n, t, seed, cfg) for n, t in jobs]
+        entries = Parallel(n_jobs=n_jobs)(delayed(_one_gain)(n, t, seed, cfg, D) for n, t in jobs)
+    else:
+        entries = [_one_gain(n, t, seed, cfg, D) for n, t in jobs]
+    bad = [f"{e['generator']}@{e['target']}: {e['note']}" for e in entries if e["note"] or not np.isfinite(e["scale"])]
+    if bad:
+        raise RuntimeError("gain calibration incomplete — " + "; ".join(bad))
+    return dict(code_hash=config_hash(cfg, D, layers, seed), D=D, seed=seed, entries=entries)
 
 
-def power_points(gain_file: str) -> tuple:
-    """Alternatives for §10 from a calibrated-gain JSON: [(name, kwargs-with-scale)], extras per point."""
+def power_points(gain_file: str, targets=None) -> tuple:
+    """Alternatives for §10 from a calibrated-gain JSON: [(name, kwargs-with-scale)], extras per point.
+    Every declared (member, target) must be present and finite; `targets` restricts to a subset."""
     with open(gain_file) as fh:
         cal = json.load(fh)
+    entries = cal["entries"] if isinstance(cal, dict) else cal
     pts, extras = [], {}
-    for entry in cal:
-        if not np.isfinite(entry.get("scale", np.nan)):
+    for entry in entries:
+        if targets is not None and float(entry["target"]) not in {float(t) for t in targets}:
             continue
+        if not np.isfinite(entry.get("scale", np.nan)) or entry.get("note"):
+            raise SystemExit(f"gain file {gain_file}: {entry['generator']} at {entry['target']} is unusable ({entry.get('note')})")
         kw = dict(entry["kwargs"]); kw["scale"] = entry["scale"]
         pts.append((entry["generator"], kw))
-        extras[(entry["generator"], json.dumps(kw, sort_keys=True))] = dict(target_gain=entry["target"], gain=entry["gain"])
+        extras[(entry["generator"], json.dumps(kw, sort_keys=True))] = dict(
+            target_gain=entry["target"], gain=entry["gain"], gain_check=entry.get("gain_check"), gain_check_se=entry.get("gain_check_se"))
+    want = len(M.FAMILY_X) * (len(GAINS) if targets is None else len(targets))
+    if len(pts) != want:
+        raise SystemExit(f"gain file {gain_file}: {len(pts)} usable alternatives, {want} declared")
     return pts, extras
 
 
@@ -340,11 +415,12 @@ def main():
     if a.task == "gain":
         names = M.FAMILY_X if a.generators is None else tuple(a.generators.split(","))
         t0 = _time.time()
-        out = calibrate_all_gains(a.seed, cfg, n_jobs=min(a.n_jobs, 12), names=names)
+        out = calibrate_all_gains(a.seed, cfg, n_jobs=min(a.n_jobs, 12), names=names, D=a.D, layers=layers)
         with open(a.gain_file, "w") as fh:
             json.dump(out, fh, indent=1, default=float)
-        for e in out:
-            print(f"{e['generator']} target {e['target']}: scale {e['scale']:.4f} gain {e['gain']:.5f} {e['note']}", flush=True)
+        for e in out["entries"]:
+            print(f"{e['generator']} target {e['target']}: scale {e['scale']:.4f} gain {e['gain']:.5f} "
+                  f"check {e['gain_check']:.5f} ± {e['gain_check_se']:.5f}", flush=True)
         print(f"gain calibration: {(_time.time() - t0) / 60:.1f} min on {min(a.n_jobs, 12)} workers", flush=True)
         return
     if a.task == "recovery":

@@ -40,12 +40,16 @@ this M4 Max): with 16 single-threaded workers one fit took 2.6x longer than alon
 - **Quadrature.** Plain prior-centred Gauss–Hermite does not converge at the CONF cluster size
   (168 trials per concept): 80 nodes still miss by 0.06–0.3 nat per concept (`verify.py` V3), and
   mode-centred Gauss–Hermite fails at tau = 2 for concepts whose shifted threshold leaves the level
-  range (a flat likelihood in u, a truncated-Gaussian posterior: 1–5 nat off at any node count). The
-  joint concept likelihood therefore uses a per-concept trapezoid rule on [mode ± 6 Laplace SD], the
-  mode found by a 9-point grid start and four backtracking Newton steps unrolled in the JAX graph so
-  the gradient stays exact, the SD floored at tau so a flat concept gets the prior's range. 96 points
-  are within 6e-7 nat of dense quadrature across the grid except the truncated M2H posteriors at
-  tau = 2 (0.02 nat). The §7.4 rule keeps its form (raise the point count until < 1e-3 change).
+  range (a flat likelihood in u, a truncated-Gaussian posterior; 1–5 nat off with the counts tried).
+  The joint concept likelihood therefore uses a two-scale trapezoid rule per concept: 96 points on
+  [mode ± 6 Laplace SD] for the peak and 32 points on each outer interval up to ±6 tau, with exact
+  endpoints, so flat tails and second modes (M2H's anchored mean returns to mu_max at both extremes)
+  are carried. The mode comes from a 9-point grid start and four Newton steps with eight backtracking
+  fractions (a peak far narrower than tau needs fractions below 1/4, or the search sticks at its
+  start), unrolled in the JAX graph so the gradient stays exact; the Laplace SD is capped at tau.
+  `audit_quadrature.py` checks it against dense integration at generating, fitted and cross-fitted
+  parameters for every hierarchical member at every grid value: pass = max error < 1e-3 nat. The
+  §7.4 rule keeps its form (raise the point count until < 1e-3 change), ladder 32 → 64 → 128.
 - **Start generator.** Data moments of the training fold only; start 0 unjittered, starts 1–7 jittered
   by N(0, 0.25²) per coordinate in the optimiser's own parameter units (the raw vectors listed at the
   top of `models.py`); inherited members keep the inherited moment initialisation.

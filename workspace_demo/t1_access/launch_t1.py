@@ -30,7 +30,7 @@ ACCOUNT, REGION = "763348960464", "eu-north-1"
 EXEC_ROLE = f"arn:aws:iam::{ACCOUNT}:role/xtenure-job-execution-role"
 IMAGE = f"763104351884.dkr.ecr.{REGION}.amazonaws.com/pytorch-training:2.8.0-cpu-py312-ubuntu22.04-sagemaker"
 BUCKET = "xtenure-cself-pvr"
-CODE_PREFIX = "code/t1_access/"
+CODE_ROOT = "code/t1_access/"            # + <run>/ : one immutable code snapshot per run namespace
 RESULTS_ROOT = f"s3://{BUCKET}/results/t1_access/"
 CODE_FILES = ("models.py", "analyze.py", "simulate.py", "t1_job.py")
 ENTRY = ("pip install -q 'jax==0.11.1' 'scipy>=1.14' pandas joblib boto3 >/dev/null 2>&1; "
@@ -40,10 +40,25 @@ PRICE_USD_H = {"ml.c7i.48xlarge": 11.01, "ml.c7i.24xlarge": 5.50, "ml.c7i.16xlar
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-def upload_code(s3):
+def upload_code(s3, run: str, resume: bool):
+    """One code snapshot per run namespace. A namespace that already holds code is only reused with --resume,
+    and then the local files must be byte-identical to the snapshot (no blending of numerical methods)."""
+    prefix = f"{CODE_ROOT}{run}/"
+    existing = s3.list_objects_v2(Bucket=BUCKET, Prefix=prefix).get("Contents", [])
+    if existing:
+        if not resume:
+            raise SystemExit(f"s3://{BUCKET}/{prefix} already holds a code snapshot: pick a new --run or pass --resume")
+        for f in CODE_FILES:
+            remote = s3.get_object(Bucket=BUCKET, Key=prefix + f)["Body"].read()
+            with open(os.path.join(HERE, f), "rb") as fh:
+                if fh.read() != remote:
+                    raise SystemExit(f"{f} differs from the snapshot in {prefix}: a resume must run the same code")
+        print(f"code snapshot in s3://{BUCKET}/{prefix} matches the local files")
+        return prefix
     for f in CODE_FILES:
-        s3.upload_file(os.path.join(HERE, f), BUCKET, CODE_PREFIX + f)
-    print(f"code -> s3://{BUCKET}/{CODE_PREFIX} ({', '.join(CODE_FILES)})")
+        s3.upload_file(os.path.join(HERE, f), BUCKET, prefix + f)
+    print(f"code -> s3://{BUCKET}/{prefix} ({', '.join(CODE_FILES)})")
+    return prefix
 
 
 def main():
@@ -68,6 +83,7 @@ def main():
     ap.add_argument("--run", default="full", help="results subfolder under results/t1_access/")
     ap.add_argument("--profile", default="xtenure-read")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--resume", action="store_true", help="relaunch into an existing run namespace (same code required)")
     ap.add_argument("--status", action="store_true")
     ap.add_argument("--stop", default=None, metavar="JOB", help="a job name, or a prefix ending in * to stop several")
     a = ap.parse_args()
@@ -109,8 +125,9 @@ def main():
     stopping = {"MaxRuntimeInSeconds": int(a.max_hours * 3600)}
     if a.spot:
         stopping["MaxWaitTimeInSeconds"] = int(2 * a.max_hours * 3600)
+    code_prefix = f"{CODE_ROOT}{a.run}/"
     if not a.dry_run:
-        upload_code(sess.client("s3"))
+        code_prefix = upload_code(sess.client("s3"), a.run, a.resume)
     end = a.shard_end or a.shards
     for shard in range(a.shard_start, end, a.shards_per_job):
         env_s = dict(env)
@@ -127,7 +144,7 @@ def main():
                                     "ContainerEntrypoint": ["bash", "-lc", ENTRY]},
             RoleArn=EXEC_ROLE,
             InputDataConfig=[{"ChannelName": "code", "DataSource": {"S3DataSource": {
-                "S3DataType": "S3Prefix", "S3Uri": f"s3://{BUCKET}/{CODE_PREFIX}", "S3DataDistributionType": "FullyReplicated"}}}],
+                "S3DataType": "S3Prefix", "S3Uri": f"s3://{BUCKET}/{code_prefix}", "S3DataDistributionType": "FullyReplicated"}}}],
             OutputDataConfig={"S3OutputPath": f"{RESULTS_ROOT}{a.run}/output/"},
             ResourceConfig={"InstanceType": a.instance_type, "InstanceCount": 1, "VolumeSizeInGB": 30},
             StoppingCondition=stopping,
