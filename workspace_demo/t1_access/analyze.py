@@ -427,11 +427,36 @@ def _band_stats(delta: np.ndarray, masks: dict) -> dict:
     return out
 
 
+NUMERICAL_GLOBALS = ("N_STARTS", "N_STARTS_RECOVERY", "GH_NODES_DEFAULT", "JITTER_SD", "LBFGSB_OPTIONS", "NEWTON_STEPS",
+                     "NEWTON_CANDIDATES", "GRID_POINTS", "GRID_HALFWIDTH", "TRAP_POINTS", "TRAP_HALFWIDTH", "OUTER_POINTS",
+                     "PRIOR_HALFWIDTH", "M3V_FLOOR_FRACTION")
+
+
+def numerical_snapshot() -> dict:
+    """The numerical implementation actually executed (Codex, review 5 finding 1): digests of the three code files,
+    the model globals that steer fitting outside the Config (quadrature, Newton, grid, jitter, optimiser options,
+    start counts, the M3V floor), and the runtime — read at call time, so a changed global changes it."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    files = {}
+    for f in ("models.py", "analyze.py", "simulate.py"):
+        p = os.path.join(here, f)
+        if os.path.exists(p):
+            with open(p, "rb") as fh:
+                files[f] = hashlib.sha256(fh.read()).hexdigest()[:16]
+    globs = {k: getattr(M, k) for k in NUMERICAL_GLOBALS if hasattr(M, k)}
+    import platform
+    import jax, scipy
+    runtime = dict(python=platform.python_version(), jax=jax.__version__, numpy=np.__version__, scipy=scipy.__version__)
+    return dict(files=files, models=globs, runtime=runtime)
+
+
 def dataset_identity(ds: Dataset, cfg: Config, seed: int, n_rep: int, outer_folds: list) -> str:
-    """The complete data-and-procedure identity of a refitting bootstrap (Codex, review 4 finding 1): a digest of
-    the response array, levels, concept and family mappings, group, exact layer ids, the generator metadata, every
-    numerical setting of the Config, the seed, B and the actual outer folds. Two datasets that share a seed (the
-    five-layer stage; two recovery points with a colliding tag) never share an identity."""
+    """The complete data-and-procedure identity of a refitting bootstrap (Codex, review 4 finding 1, review 5
+    finding 1): a digest of the response array, levels, concept and family mappings, group, exact layer ids, the
+    generator metadata, every numerical setting of the Config, the numerical snapshot actually executed (code
+    digests, model globals, runtime), the seed, B and the actual outer folds. Two datasets that share a seed (the
+    five-layer stage; two recovery points with a colliding tag) never share an identity, and neither do two
+    numerical implementations of the same procedure."""
     h = hashlib.sha256()
     for arr in (ds.y, ds.k, ds.concept, ds.family, ds.layers):
         a = np.ascontiguousarray(np.asarray(arr, dtype=np.float64))
@@ -444,8 +469,49 @@ def dataset_identity(ds: Dataset, cfg: Config, seed: int, n_rep: int, outer_fold
                     refit_min_usable=cfg.refit_min_usable, members_G=list(cfg.members_G), members_X=list(cfg.members_X),
                     bands=cfg.bands, fit_M0=cfg.fit_M0, seed=int(seed), n_rep=int(n_rep),
                     folds=[[int(c) for c in f] for f in outer_folds])
-    h.update(json.dumps(dict(meta=meta, settings=settings), sort_keys=True, default=str).encode())
+    h.update(json.dumps(dict(meta=meta, settings=settings, numerical=numerical_snapshot()), sort_keys=True, default=str).encode())
     return h.hexdigest()
+
+
+def _record_sha(rec: dict) -> str:
+    """The checksum of a checkpoint record's complete payload (every field but the checksum itself)."""
+    return hashlib.sha256(json.dumps({k: v for k, v in rec.items() if k != "sha"}, sort_keys=True, default=float).encode()).hexdigest()
+
+
+def _record_ok(d, ident: str, seed: int, n_rep: int, idx: np.ndarray, bands: list) -> bool:
+    """A checkpoint record is reused only if its identity, seed, B, resample index, drawn concepts, complete
+    statistics payload (every predictor, every band, numeric) and checksum all check (Codex, review 5 finding 3)."""
+    try:
+        if not (isinstance(d, dict) and d.get("ident") == ident and d.get("seed") == int(seed) and d.get("n_rep") == int(n_rep)):
+            return False
+        if not (isinstance(d.get("rep"), int) and 0 <= d["rep"] < n_rep and d.get("chosen") == [int(c) for c in idx[d["rep"]]]):
+            return False
+        if not (isinstance(d.get("failed"), bool) and isinstance(d.get("failed_reason"), str) and isinstance(d.get("fit_seconds"), (int, float))):
+            return False
+        st = d.get("stats")
+        if not (isinstance(st, dict) and all(p in st and isinstance(st[p], dict) for p in PREDICTORS)):
+            return False
+        for p in PREDICTORS:
+            for b in bands:
+                v = st[p].get(b)
+                if not isinstance(v, (int, float)) or isinstance(v, bool):
+                    return False
+        return d.get("sha") == _record_sha(d)
+    except Exception:
+        return False
+
+
+def _repair_tail(path: str):
+    """An interrupted write can leave a final line without its newline; appending would glue the next record to that
+    fragment. Drop the fragment before appending (it is recomputed) — review 5 finding 3."""
+    if not os.path.exists(path):
+        return
+    with open(path, "rb") as fh:
+        data = fh.read()
+    if data and not data.endswith(b"\n"):
+        cut = data.rfind(b"\n")
+        with open(path, "wb") as fh:
+            fh.write(data[:cut + 1] if cut >= 0 else b"")
 
 
 def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REFIT, predictor: str = "selection",
@@ -494,6 +560,7 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
         return dict(rep=int(rep), stats=stats, failed=bool(run["failed"]), failed_reason=run.get("failed_reason", ""),
                     fit_seconds=float(run.get("fit_seconds", 0.0)), chosen=[int(c) for c in chosen])
     ident = dataset_identity(ds, cfg, seed, n_rep, base_folds)
+    bands = list(masks) + (["ws_minus_early"] if "ws" in masks and "early" in masks else [])
     if checkpoint_path is None and checkpoint_dir:
         checkpoint_path = os.path.join(checkpoint_dir, f"refit_{ident[:24]}.jsonl")
     done, n_damaged = {}, 0
@@ -504,13 +571,9 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
                     continue
                 try:
                     d = json.loads(line)
-                    ok = (isinstance(d, dict) and d.get("ident") == ident and d.get("seed") == int(seed)
-                          and d.get("n_rep") == int(n_rep) and isinstance(d.get("rep"), int) and 0 <= d["rep"] < n_rep
-                          and d.get("chosen") == [int(c) for c in idx[d["rep"]]] and isinstance(d.get("failed"), bool)
-                          and isinstance(d.get("stats"), dict) and all(p in d["stats"] for p in PREDICTORS))
                 except Exception:
-                    ok = False
-                if ok:
+                    d = None
+                if _record_ok(d, ident, seed, n_rep, idx, bands):
                     done[int(d["rep"])] = d
                 else:
                     n_damaged += 1
@@ -518,9 +581,14 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
     def _save(batch):
         if checkpoint_path:
             os.makedirs(os.path.dirname(checkpoint_path) or ".", exist_ok=True)
+            _repair_tail(checkpoint_path)
             with open(checkpoint_path, "a") as fh:
                 for s in batch:
-                    fh.write(json.dumps(dict(s, ident=ident, seed=int(seed), n_rep=int(n_rep)), default=float) + "\n")
+                    rec = dict(s, ident=ident, seed=int(seed), n_rep=int(n_rep))
+                    rec = json.loads(json.dumps(rec, default=float))          # the checksum is over the on-file representation
+                    rec["sha"] = _record_sha(rec)
+                    fh.write(json.dumps(rec) + "\n")
+                    fh.flush()
     new = []
     if n_jobs > 1:
         from joblib import Parallel, delayed
@@ -539,7 +607,6 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
                failed_reasons=[s["failed_reason"] for s in reps if s["failed"]],
                fit_seconds=float(sum(s["fit_seconds"] for s in reps)), predictors={},
                replicates=[dict(rep=s["rep"], failed=s["failed"], failed_reason=s["failed_reason"], stats=s["stats"]) for s in reps])
-    bands = list(masks) + (["ws_minus_early"] if "ws" in masks and "early" in masks else [])
     for p in PREDICTORS:
         ok = [s for s in reps if not s["failed"] and all(np.isfinite(s["stats"][p][b]) for b in bands)]
         usable = bool(ok) and len(ok) >= min_usable * n_rep

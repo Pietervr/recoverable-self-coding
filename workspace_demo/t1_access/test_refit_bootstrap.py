@@ -131,3 +131,48 @@ with tempfile.TemporaryDirectory() as d:
     a3 = A.refit_bootstrap(ds, cfg, seed=5, n_rep=6, min_usable=0.5, checkpoint_dir=d)
     assert a3["n_damaged"] == 2 and a3["n_resumed"] == 4 and len(seen) == 2 and a3["ws"] == a["ws"]
 print("checkpoint identity: five-layer stage, colliding-seed data, other config/folds never reuse; damaged records recomputed OK")
+
+# 6. review 5: the identity binds the NUMERICAL snapshot (a changed model global or implementation never reuses old
+#    resamples); the payload is checksummed (altered statistics, a missing nested band -> damaged, recomputed); an
+#    interrupted write without its newline is repaired before appending, and two resumes in a row both hold
+with tempfile.TemporaryDirectory() as d:
+    a = A.refit_bootstrap(ds, cfg, seed=5, n_rep=6, min_usable=0.5, checkpoint_dir=d)
+    snap = A.numerical_snapshot()
+    assert set(snap["files"]) == {"models.py", "analyze.py", "simulate.py"} and snap["models"]["TRAP_POINTS"] == A.M.TRAP_POINTS and snap["runtime"]["jax"]
+    _tp = A.M.TRAP_POINTS
+    A.M.TRAP_POINTS = _tp + 1
+    seen.clear()
+    b = A.refit_bootstrap(ds, cfg, seed=5, n_rep=6, min_usable=0.5, checkpoint_dir=d)
+    A.M.TRAP_POINTS = _tp
+    assert b["ident"] != a["ident"] and b["n_resumed"] == 0 and len(seen) == 6, "a changed numerical global reused old resamples"
+    assert A.dataset_identity(ds, cfg, 5, 6, a["outer_folds"]) == a["ident"]          # restored global -> the same identity
+    # altered saved statistics: the checksum catches it
+    with open(a["checkpoint"]) as fh:
+        lines = fh.read().splitlines()
+    recs = [json.loads(l) for l in lines]
+    bad = json.loads(lines[0]); bad["stats"]["selection"]["ws"] = 99.0
+    nokey = json.loads(lines[1]); del nokey["stats"]["selection"]["ws"]
+    with open(a["checkpoint"], "w") as fh:
+        fh.write("\n".join([json.dumps(bad), json.dumps(nokey)] + lines[2:]) + "\n")
+    seen.clear()
+    c2 = A.refit_bootstrap(ds, cfg, seed=5, n_rep=6, min_usable=0.5, checkpoint_dir=d)
+    assert c2["n_damaged"] == 2 and c2["n_resumed"] == 4 and len(seen) == 2 and c2["ws"] == a["ws"] and c2["ws"]["hi"] < 99
+    # an interrupted write: the last line WITHOUT its newline; the repair drops the fragment before appending, the
+    # first resume recomputes exactly that resample, the second resume reuses everything (a clean file first)
+    os.remove(a["checkpoint"])
+    A.refit_bootstrap(ds, cfg, seed=5, n_rep=6, min_usable=0.5, checkpoint_dir=d)
+    with open(a["checkpoint"]) as fh:
+        lines = fh.read().splitlines()
+    assert len(lines) == 6
+    with open(a["checkpoint"], "w") as fh:
+        fh.write("\n".join(lines[:5]) + "\n" + lines[5][:60])
+    seen.clear()
+    r1 = A.refit_bootstrap(ds, cfg, seed=5, n_rep=6, min_usable=0.5, checkpoint_dir=d)
+    assert r1["n_damaged"] == 1 and r1["n_resumed"] == 5 and len(seen) == 1 and r1["ws"] == a["ws"]
+    with open(a["checkpoint"]) as fh:
+        text = fh.read()
+    assert text.endswith("\n") and len(text.splitlines()) == 6 and all(json.loads(l) for l in text.splitlines())
+    seen.clear()
+    r2 = A.refit_bootstrap(ds, cfg, seed=5, n_rep=6, min_usable=0.5, checkpoint_dir=d)
+    assert r2["n_damaged"] == 0 and r2["n_resumed"] == 6 and len(seen) == 0 and r2["ws"] == a["ws"]
+print("checkpoint integrity: numerical snapshot in the identity, payload checksum, tail repair with two clean resumes OK")

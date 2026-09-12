@@ -437,7 +437,12 @@ writer, the job and the monitor share one accepted-artefact contract (`simulate.
 run's hash, D, the source digest and the revalidation identity authenticate a revalidated file, which then holds
 the job exactly as it holds the monitor when its gate failed); every reference start, the §9 recovery batches
 included, carries its initial vector and batch id from where it is generated; every job keeps its checkpoints
-synced to S3 and the row carries every band's companion cluster interval and the bootstrap identity.
+synced to S3 and the row carries every band's companion cluster interval and the bootstrap identity. **After the
+fifth review:** the identity also binds the numerical implementation actually executed (digests of the code
+files, the model globals that steer fitting outside the Config, the runtime), every checkpoint record carries a
+checksum of its complete payload and an interrupted tail is repaired before appending; a revalidated gain
+artefact must carry every identity field and match the job-written file beside it, a retrieval failure is never
+read as an absence (the job holds), and each shard mirrors only its own checkpoints.
 Cost (`bench_refit.py`, one Mac core, one layer, D = 4, M2S $\omega = 0.5$, inner selection at 4 starts): 15.3 min
 per replicate, so 200 replicates ≈ 51 Mac-core-hours per dataset per layer; the cloud cost is **not** established by
 this — the corrected procedure is benchmarked at the intended cloud concurrency before any projection (loaded cloud

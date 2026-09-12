@@ -849,37 +849,87 @@ def accepted_gain_artefact(raw_path: str | None, revalidated_path: str | None, D
     Returns (path or None, info)."""
     raw = raw_path if raw_path and os.path.exists(raw_path) else None
     rev = revalidated_path if revalidated_path and os.path.exists(revalidated_path) else None
-    info = dict(raw=raw, revalidated=rev, accepted=None, reason="")
+    info = dict(raw=raw, revalidated=rev, accepted=None, reason="", source_verified=False)
+    raw_cal = None
+    if raw:
+        try:
+            with open(raw) as fh:
+                raw_cal = json.load(fh)
+        except Exception as e:
+            raise ValueError(f"gain artefact {os.path.basename(raw)} is malformed: {e}")
     if rev:
         try:
             with open(rev) as fh:
                 cal = json.load(fh)
         except Exception as e:
             raise ValueError(f"revalidated artefact {os.path.basename(rev)} is malformed: {e}")
-        if not isinstance(cal, dict) or "entries" not in cal:
-            raise ValueError(f"revalidated artefact {os.path.basename(rev)} has no entries")
-        h = cal.get("code_hash") or cal.get("source_code_hash")
+        if not isinstance(cal, dict):
+            raise ValueError(f"revalidated artefact {os.path.basename(rev)} is not a record")
+        # every identity field is REQUIRED (review 5 finding 2): a revalidation without its provenance is not one
+        for key in ("code_hash", "source_code_hash", "source_digest", "revalidated_with", "D", "entries"):
+            if key not in cal or cal[key] in (None, ""):
+                raise ValueError(f"revalidated artefact lacks the required field {key!r}")
+        h = cal["code_hash"]
+        if cal["source_code_hash"] != h:
+            raise ValueError("revalidated artefact's code_hash and source_code_hash disagree")
         if want is not None and h != want:
             raise ValueError(f"revalidated artefact is for code/config {h!r}, not this run's {want!r}")
         if int(cal.get("D", -1)) != int(D):
             raise ValueError(f"revalidated artefact is for D={cal.get('D')}, not D={D}")
-        if not cal.get("revalidated_with"):
-            raise ValueError("revalidated artefact carries no revalidation identity")
-        if raw and cal.get("source_digest") and cal["source_digest"] != file_digest(raw):
-            raise ValueError("revalidated artefact does not match the job-written file beside it (source digest)")
+        if raw:
+            if not isinstance(raw_cal, dict) or raw_cal.get("code_hash") != h:
+                raise ValueError("revalidated artefact's hash differs from the job-written file beside it")
+            if cal["source_digest"] != file_digest(raw):
+                raise ValueError("revalidated artefact does not match the job-written file beside it (source digest)")
+        elif want is None:
+            raise ValueError("no job-written file to verify the revalidation against and no expected identity given")
         return rev, dict(info, accepted="revalidated", code_hash=h, revalidated_with=cal["revalidated_with"],
-                         problems=cal.get("problems", []))
+                         problems=cal.get("problems", []), source_verified=bool(raw))
     if raw:
-        try:
-            with open(raw) as fh:
-                cal = json.load(fh)
-        except Exception as e:
-            raise ValueError(f"gain artefact {os.path.basename(raw)} is malformed: {e}")
-        if isinstance(cal, dict) and int(cal.get("D", -1)) == int(D) and (want is None or cal.get("code_hash") == want):
-            return raw, dict(info, accepted="raw", code_hash=cal.get("code_hash"))
+        cal = raw_cal
+        if isinstance(cal, dict) and int(cal.get("D", -1)) == int(D) and cal.get("code_hash") and (want is None or cal.get("code_hash") == want):
+            return raw, dict(info, accepted="raw", code_hash=cal.get("code_hash"), source_verified=True)
         info["reason"] = (f"job-written artefact is for code/config {cal.get('code_hash') if isinstance(cal, dict) else 'old format'!r}, "
                           f"D {cal.get('D') if isinstance(cal, dict) else '?'}")
     return None, info
+
+
+def resolve_gain_artefact(fetch, work_dir: str, D: int, want: str | None) -> tuple:
+    """The job's side of the contract (review 5 finding 2): retrieve both artefacts through `fetch(name, local) ->
+    'ok' | 'absent' | 'error'` and decide. A retrieval ERROR of either file is never a verified absence: it holds
+    (raises); only a verified absence of the revalidated file permits the job-written fallback. Files already in
+    `work_dir` are used as they are. Returns (accepted path or None, info with the fetch outcomes)."""
+    name, rev_name = f"gain_calibration_D{D}.json", f"gain_calibration_D{D}.revalidated.json"
+    local, rev_local = os.path.join(work_dir, name), os.path.join(work_dir, rev_name)
+    status = {}
+    for cand, path in ((rev_name, rev_local), (name, local)):
+        if os.path.exists(path):
+            status[cand] = "local"
+            continue
+        status[cand] = fetch(cand, path)
+        if status[cand] not in ("ok", "absent"):
+            raise ValueError(f"could not retrieve {cand} ({status[cand]}) — not a verified absence: the gain artefact is HELD")
+    accepted, info = accepted_gain_artefact(local, rev_local, D, want)
+    info["fetch"] = status
+    return accepted, info
+
+
+def changed_files(directory: str, seen: dict) -> list:
+    """The files under `directory` whose (mtime, size) differ from the last upload recorded in `seen` (updated in
+    place): a job uploads only what it wrote or changed itself, never a foreign download (review 5 finding 4)."""
+    out = []
+    if not os.path.isdir(directory):
+        return out
+    for fname in sorted(os.listdir(directory)):
+        p = os.path.join(directory, fname)
+        if not os.path.isfile(p):
+            continue
+        st = os.stat(p)
+        key = (st.st_mtime_ns, st.st_size)
+        if seen.get(fname) != key:
+            out.append(p)
+            seen[fname] = key
+    return out
 
 
 def power_points(gain_file: str, targets=None) -> tuple:

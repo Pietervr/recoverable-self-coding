@@ -103,3 +103,85 @@ with tempfile.TemporaryDirectory() as d:
     os.remove(rev); os.remove(raw)
     assert S.accepted_gain_artefact(raw, rev, 4, H)[0] is None
     print("mismatched, foreign, wrong-D, malformed and absent artefacts: held or nothing accepted OK")
+
+    # 6. review 5, finding 2: provenance is REQUIRED — a revalidation without its source digest is refused by both; a
+    #    foreign hash beside the job-written file is refused by the monitor too (it takes the expected identity from
+    #    the file beside it); a revalidation with no job-written file and no expected identity is refused
+    FAIL["on"] = False
+    with open(raw, "w") as fh:
+        json.dump(dict(code_hash=H, D=4, seed=2026, entries=entries_ok()), fh)
+    with quiet():
+        C.revalidate("run", 4, d, "profile", seed=1, n_jobs=1)
+    with open(rev) as fh:
+        good = json.load(fh)
+    stripped = dict(good); del stripped["source_digest"]
+    with open(rev, "w") as fh:
+        json.dump(stripped, fh)
+    for want in (H, None):
+        try:
+            S.accepted_gain_artefact(raw, rev, 4, want); raise AssertionError("a revalidation without its source digest was accepted")
+        except ValueError as e:
+            assert "source_digest" in str(e)
+    with quiet():
+        assert C.gain_file_for(d, 4) is None
+    foreign = dict(good, code_hash="zzz", source_code_hash="zzz")
+    with open(rev, "w") as fh:
+        json.dump(foreign, fh)
+    with quiet():
+        assert C.gain_file_for(d, 4) is None                 # the monitor: foreign hash beside the job-written file -> nothing
+    try:
+        S.accepted_gain_artefact(raw, rev, 4, None); raise AssertionError("foreign hash beside the raw file accepted without an expected identity")
+    except ValueError as e:
+        assert "differs from the job-written file" in str(e)
+    with open(rev, "w") as fh:
+        json.dump(good, fh)
+    os.remove(raw)
+    try:
+        S.accepted_gain_artefact(raw, rev, 4, None); raise AssertionError("an unverifiable revalidation accepted")
+    except ValueError as e:
+        assert "no job-written file" in str(e)
+    p, info = S.accepted_gain_artefact(raw, rev, 4, H)      # the job, with its expected identity: accepted, source unverified
+    assert p == rev and info["source_verified"] is False
+    print("required provenance, foreign hash beside the source, unverifiable revalidation: refused as they should be OK")
+
+    # 7. the job's retrieval contract (resolve_gain_artefact): a retrieval ERROR of a present revalidation holds;
+    #    only a verified absence permits the job-written fallback; 'ok' delivers the revalidated file
+    with open(raw, "w") as fh:
+        json.dump(dict(code_hash=H, D=4, seed=2026, entries=entries_ok()), fh)
+    with quiet():
+        C.revalidate("run", 4, d, "profile", seed=1, n_jobs=1)
+    import shutil
+    store = {os.path.basename(raw): raw, os.path.basename(rev): rev}
+    def make_fetch(outcome_for_rev):
+        def fetch(name, local):
+            if name.endswith(".revalidated.json") and outcome_for_rev != "ok":
+                return outcome_for_rev
+            shutil.copy(store[name], local); return "ok"
+        return fetch
+    with tempfile.TemporaryDirectory() as w:
+        try:
+            S.resolve_gain_artefact(make_fetch("error"), w, 4, H); raise AssertionError("a retrieval error fell back to the raw file")
+        except ValueError as e:
+            assert "HELD" in str(e)
+    with tempfile.TemporaryDirectory() as w:
+        p, info = S.resolve_gain_artefact(make_fetch("absent"), w, 4, H)
+        assert info["accepted"] == "raw" and info["fetch"][os.path.basename(rev)] == "absent"
+    with tempfile.TemporaryDirectory() as w:
+        p, info = S.resolve_gain_artefact(make_fetch("ok"), w, 4, H)
+        assert info["accepted"] == "revalidated" and info["source_verified"] and info["fetch"][os.path.basename(rev)] == "ok"
+    print("job retrieval: an error holds, a verified absence falls back, a delivered revalidation is accepted OK")
+
+# 8. review 5, finding 4: a job uploads only what it wrote or changed itself
+with tempfile.TemporaryDirectory() as d:
+    for n in ("a.jsonl", "b.jsonl"):
+        with open(os.path.join(d, n), "w") as fh:
+            fh.write("x\n")
+    seen = {}
+    first = S.changed_files(d, seen)
+    assert sorted(os.path.basename(p) for p in first) == ["a.jsonl", "b.jsonl"] and S.changed_files(d, seen) == []
+    import time as _t
+    _t.sleep(0.01)
+    with open(os.path.join(d, "b.jsonl"), "a") as fh:
+        fh.write("y\n")
+    assert [os.path.basename(p) for p in S.changed_files(d, seen)] == ["b.jsonl"] and S.changed_files(d, seen) == []
+print("checkpoint mirror: only files written or changed by this job are uploaded again OK")

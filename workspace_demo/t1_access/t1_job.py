@@ -76,6 +76,20 @@ def s3_download(name: str, local: str) -> bool:
         return False
 
 
+def s3_fetch(name: str, local: str) -> str:
+    """'ok', a verified 'absent' (the object does not exist), or 'error' (anything else: access, network, I/O) — the
+    gain-artefact contract must never read a retrieval failure as an absence (review 5 finding 2)."""
+    import botocore.exceptions
+    try:
+        s3.download_file(_bucket, _prefix + name, local)
+        return "ok"
+    except botocore.exceptions.ClientError as e:
+        code = str(e.response.get("Error", {}).get("Code", ""))
+        return "absent" if code in ("404", "NoSuchKey", "NotFound") else "error"
+    except Exception:
+        return "error"
+
+
 def s3_upload(local: str, name: str):
     s3.upload_file(local, _bucket, _prefix + name)
 
@@ -85,38 +99,41 @@ def log(msg: str):
 
 
 CKPT_DIR = os.path.join(WORK, "refit_ckpt")      # refitting-bootstrap checkpoints (one file per bootstrap identity)
+SHARD_TAG = ("single" if N_SHARDS <= 1 else
+             (f"s{SHARDS[0]:03d}of{N_SHARDS:03d}" if len(SHARDS) == 1 else f"s{SHARDS[0]:03d}-{SHARDS[-1]:03d}of{N_SHARDS:03d}"))
+CKPT_S3 = _prefix + f"refit_ckpt/{SHARD_TAG}/"   # this shard's OWN mirror: no job ever reads or writes another's (review 5 finding 4)
+_ckpt_uploaded: dict = {}
 
 
 def ckpt_sync_down():
-    """Restore every refit checkpoint file of this run from S3 (on-demand relaunches have no /opt/ml/checkpoints
-    restore; review 4 finding 4). Files already present locally are kept."""
+    """Restore this shard's own refit checkpoint files from its own S3 prefix (an on-demand relaunch of the same shard
+    resumes them; another shard's files are never fetched). Files already present locally are kept."""
     os.makedirs(CKPT_DIR, exist_ok=True)
     n = 0
     try:
-        pages = s3.get_paginator("list_objects_v2").paginate(Bucket=_bucket, Prefix=_prefix + "refit_ckpt/")
+        pages = s3.get_paginator("list_objects_v2").paginate(Bucket=_bucket, Prefix=CKPT_S3)
         for page in pages:
             for obj in page.get("Contents", []):
                 fname = os.path.basename(obj["Key"])
                 local = os.path.join(CKPT_DIR, fname)
                 if fname and not os.path.exists(local):
                     s3.download_file(_bucket, obj["Key"], local); n += 1
+                    st = os.stat(local); _ckpt_uploaded[fname] = (st.st_mtime_ns, st.st_size)   # restored = already on S3
     except Exception as e:
         log(f"refit checkpoint restore failed ({e}); continuing without")
     return n
 
 
 def ckpt_sync_up():
-    """Upload every refit checkpoint file (small JSON-lines files) so an interrupted on-demand job resumes them."""
-    if not os.path.isdir(CKPT_DIR):
-        return 0
+    """Upload only the checkpoint files this job wrote or changed since its last upload, to its own prefix."""
+    import simulate as S
     n = 0
-    for fname in os.listdir(CKPT_DIR):
-        p = os.path.join(CKPT_DIR, fname)
-        if os.path.isfile(p):
-            try:
-                s3.upload_file(p, _bucket, _prefix + "refit_ckpt/" + fname); n += 1
-            except Exception as e:
-                log(f"refit checkpoint upload of {fname} failed ({e})")
+    for p in S.changed_files(CKPT_DIR, _ckpt_uploaded):
+        try:
+            s3.upload_file(p, _bucket, CKPT_S3 + os.path.basename(p)); n += 1
+        except Exception as e:
+            log(f"refit checkpoint upload of {os.path.basename(p)} failed ({e})")
+            _ckpt_uploaded.pop(os.path.basename(p), None)       # retry next time
     return n
 
 
@@ -137,16 +154,15 @@ def gain_file(cfg, S, layers) -> str:
     # (simulate.accepted_gain_artefact; Codex, review 4 finding 2): the revalidated file when it exists and
     # authenticates (hash, D, identity, source digest), else the job-written file; power_points applies the gate to
     # whichever is accepted, so a failed revalidation holds this job exactly as it holds the monitor
-    local, rev_local = os.path.join(WORK, name), os.path.join(WORK, rev_name)
-    for cand, path in ((rev_name, rev_local), (name, local)):
-        if not os.path.exists(path):
-            s3_download(cand, path)
+    local = os.path.join(WORK, name)
     try:
-        accepted, info = S.accepted_gain_artefact(local, rev_local, D, want)
+        accepted, info = S.resolve_gain_artefact(s3_fetch, WORK, D, want)      # a retrieval error holds; only a verified absence falls back
     except ValueError as e:
         raise RuntimeError(f"gain artefact HELD: {e}")
+    log(f"gain artefact retrieval: {info.get('fetch')}")
     if accepted:
-        log(f"{os.path.basename(accepted)} is the accepted gain artefact ({info['accepted']}, code/config {want})")
+        log(f"{os.path.basename(accepted)} is the accepted gain artefact ({info['accepted']}, code/config {want}, "
+            f"source verified {info.get('source_verified')})")
         return accepted
     if info.get("reason"):
         log(info["reason"])
