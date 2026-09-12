@@ -439,7 +439,9 @@ def loaded_source_digest(path: str) -> str:
 
 
 LOADED_SOURCES = {"analyze.py": loaded_source_digest(__file__)}              # this module, bound at import
-LOADED_SOURCES["models.py"] = getattr(M, "LOADED_SOURCE_DIGEST", None) or loaded_source_digest(M.__file__)
+if not getattr(M, "LOADED_SOURCE_DIGEST", None):
+    raise ImportError("models.py must bind LOADED_SOURCE_DIGEST at its own import (no disk fallback — review 7)")
+LOADED_SOURCES["models.py"] = M.LOADED_SOURCE_DIGEST                          # bound by models at ITS load, never re-hashed here
 
 
 def register_loaded_source(name: str, path: str):

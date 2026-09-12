@@ -444,7 +444,10 @@ checksum of its complete payload and an interrupted tail is repaired before appe
 artefact must carry every identity field and match the job-written file beside it, a retrieval failure is never
 read as an absence (the job holds), and each shard mirrors only its own checkpoints. **After the sixth review:**
 the code digests in the identity are those of the code as loaded (bound at import, never re-read from disk), and
-a revalidated artefact without the job-written file beside it is refused by the job as by the monitor.
+a revalidated artefact without the job-written file beside it is refused by the job as by the monitor. **After the
+seventh review:** `models.py` binds its own digest at its own import, and the code/config hash written into every
+row and gain file is computed from the three bound digests, so a row names the implementation that produced it;
+the `d4v12b` rows keep their stored hashes and the reuse manifest (open) maps them.
 Cost (`bench_refit.py`, one Mac core, one layer, D = 4, M2S $\omega = 0.5$, inner selection at 4 starts): 15.3 min
 per replicate, so 200 replicates ≈ 51 Mac-core-hours per dataset per layer; the cloud cost is **not** established by
 this — the corrected procedure is benchmarked at the intended cloud concurrency before any projection (loaded cloud

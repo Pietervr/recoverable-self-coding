@@ -46,10 +46,12 @@ def config_hash(cfg: "A.Config", D: int, layers, seed: int, rho: float = None) -
     """12 hex digits over the three code files and the run settings: written into every row and into the gain
     file, and checked on resume, so rows from two numerical methods can never be blended (Codex, 2026-09-11)."""
     h = hashlib.sha256()
-    here = os.path.dirname(os.path.abspath(__file__))
+    # the three code files AS LOADED (digests bound at each module's import — review 7): a row or gain file names the
+    # implementation that produced it, never the file that happens to be on disk when the hash is computed
     for f in ("models.py", "analyze.py", "simulate.py"):
-        with open(os.path.join(here, f), "rb") as fh:
-            h.update(fh.read())
+        if f not in A.LOADED_SOURCES:
+            raise RuntimeError(f"no loaded-source digest for {f}: the module must register itself at import")
+        h.update(f"{f}:{A.LOADED_SOURCES[f]}".encode())
     settings = dict(n_starts=cfg.n_starts, n_starts_inner=cfg.n_starts_inner, n_gh=cfg.n_gh, n_outer=cfg.n_outer,
                     n_inner=cfg.n_inner, n_boot=cfg.n_boot, members_G=list(cfg.members_G), members_X=list(cfg.members_X),
                     interval=cfg.interval, n_boot_refit=cfg.n_boot_refit, refit_min_usable=cfg.refit_min_usable,

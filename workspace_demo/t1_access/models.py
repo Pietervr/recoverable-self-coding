@@ -53,7 +53,13 @@ with NPROC=1 CPU time equals wall time). Set before jax is imported; a shell may
 """
 from __future__ import annotations
 
+import hashlib
 import os
+
+# the digest of THIS source as loaded, bound at this module's own import — the provenance every checkpoint, row and gain
+# file carries for the model code (Codex, 12 Sept 2026, review 7); never re-read from disk later
+with open(__file__, "rb") as _fh:
+    LOADED_SOURCE_DIGEST = hashlib.sha256(_fh.read()).hexdigest()[:16]
 
 os.environ.setdefault("JAX_PLATFORMS", "cpu")
 os.environ.setdefault("NPROC", "1")

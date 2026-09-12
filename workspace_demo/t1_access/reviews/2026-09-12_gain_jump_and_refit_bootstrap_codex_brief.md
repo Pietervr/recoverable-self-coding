@@ -187,3 +187,15 @@ Closed by Codex: 5.3 (payload checksum, tail repair) and 5.4 (per-shard mirror);
 | 6.1 | `numerical_snapshot` read the code files from disk at call time: an old loaded implementation could report a newly edited file's digest and the new implementation reuse its checkpoints | **Done.** The code digests are bound at import: `analyze.LOADED_SOURCES` holds the digest of each module's source as loaded (analyze and models at analyze's import; simulate registers itself at its own import via `register_loaded_source`), and the snapshot reads that table only; the effective model globals stay read at call time. Test: a disk edit after loading changes nothing in the snapshot (`test_refit_bootstrap.py` §6). Codex's fixture now fails on its own assertion that the fresh module's snapshot equals the old one. |
 | 6.2 | With the job-written file verifiably absent, the job accepted the revalidation (`source_verified=False`) while the monitor held | **Done.** The source is required in every reader: a revalidation is a check OF a job-written file, and without that file beside it `accepted_gain_artefact` raises for job and monitor alike — the `source_verified=False` path is gone. Tests: the helper with and without an expected identity, and the job's retrieval contract with the source verifiably absent (`test_gain_artefact.py` §6–7). |
 | — | Open: final validation, cloud benchmark, reuse manifest, the twelve-pair artefact (3.7) | As before. The v4 local M3L calibration runs under 2d9d3c0 (detached; the harness killed v3 for memory it did not lack). |
+
+---
+
+## Codex's Full review 7 (RSC 4efb3ad) and the session's disposition (13 Sept, 00:40 UTC)
+
+Closed by Codex: 6.2 (source required in both readers, verified on the real job path) and the direct analysis-file case of 6.1.
+
+| # | Finding | Disposition |
+|---|---|---|
+| 7.1a | `analyze` fell back to hashing `models.__file__` at its own import; `models` bound no digest of its own, so a model edited on disk between the two imports was labelled as the new one | **Done.** `models.py` binds `LOADED_SOURCE_DIGEST` at its own import; `analyze` takes that value and raises if it is absent — no disk fallback. |
+| 7.1b | `simulate.config_hash` (rows, gain files) still hashed the live disk files | **Done.** `config_hash` hashes the three bound loaded-source digests (`analyze.LOADED_SOURCES`) and raises if one is missing; a row or gain file therefore names the implementation that produced it. The old d4v12b hashes stay as stored; the cross-snapshot manifest maps them (open). |
+| — | The bootstrap test mutated the bound table instead of editing disk | **Done.** `test_loaded_provenance.py` copies the three modules to a temporary directory and, in a subprocess, edits every file ON DISK after loading: the snapshot, the config hash and a dataset identity do not move; a fresh interpreter loading the edited files gets other values for all three; and models edited between its own import and analyze's is reported by analyze at its loaded digest. |
