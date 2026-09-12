@@ -4,9 +4,11 @@ The bisection for M3L at 0.01 nat collapsed onto scale 0.684661 with the gain al
 0.01097 on either side (steps 16–31 of the trace), the selected graded reference being M2K on both sides. This
 fits the four graded members on the SAME calibration draw at the two bracket ends (seed 2026, 8 x 32 concepts,
 D = 4) and prints, per member, the kept solution and — for the reference member — every start's training
-log-likelihood, convergence and held-out gain, so the jump is attributed to what actually moves: the kept
-local optimum of one member (two basins of near-equal training likelihood with different held-out scores),
-or something else.
+log-likelihood, convergence and held-out gain, so the jump is attributed to what actually moves. Finding
+(12 Sept): the kept M2K solution — the best-found one (loglik −44,543.6) is reached by one start of the batch,
+the other seven end in a basin 155 nat worse whose held-out score is 0.003 nat per trial worse; whether that one
+start lands flips between the exact scales of bisection steps 21 and 22 (1.6e-6 apart in scale, 2.4e-6 relative).
+How often a batch of eight misses the best-found solution is NOT established by these runs (Codex, finding 4).
 
   NPROC=1 ./.venv/bin/python diag_gain_jump.py [--scales 0.684660,0.684662] [--member M2K]
 """

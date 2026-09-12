@@ -405,32 +405,66 @@ and an explicit cross-snapshot reuse manifest carries them forward. **The refitt
 day** (`analyze.refit_bootstrap`, `grouped_stratified_folds`, `Dataset.group`; `test_refit_bootstrap.py`): the
 copies of an original concept share a fold at both levels; the grouped fold maker reduces to the plain one when
 every group is distinct, so the plain analysis and every d4v12b null fit are reproduced bit for bit; the
-analysis's own outer folds are passed in; a failed resample is counted and never averaged in, and the interval is
-unusable below 90 % usable replicates (a new, undeclared threshold, for review). Cost (`bench_refit.py`, one Mac
-core, one layer, D = 4, M2S $\omega = 0.5$, inner selection at 4 starts): 15.3 min per replicate, so 200 replicates
-≈ 51 core-hours per dataset per layer — the validation on new seeds needs declared counts that respect this (at
-1,000 datasets per setting it would be ≈ 51,000 core-hours per setting, out of reach). The power stage did not run: the
+analysis's own outer folds are passed in, each copy staying in its original concept's outer fold (the declared
+fixed-fold specification); a resample whose procedure fails, or whose band scores are not all finite, yields no
+statistic (no `nanmean`), and **the interval is usable only when every replicate is scored** — a lower fraction is an
+explicit amendment with a missing-tail analysis, never a default (Codex re-check). The interval method is a declared
+`Config` choice carried through the runner (`interval = "cluster" | "refit"`, `n_boot_refit`, both in the code/config
+hash and in every row): with `"refit"` the point estimates stay the fixed scores' band means, the cluster interval is
+kept beside, the three predictors and the paired ws − early statistic come from the same refits, and an unusable
+refit interval is an **assay failure**, never an inconclusive reading (`decide` on a non-finite interval returns
+"unavailable"); the per-replicate statistics are returned for persistence and rescoring (`test_interval_path.py`).
+Cost (`bench_refit.py`, one Mac core, one layer, D = 4, M2S $\omega = 0.5$, inner selection at 4 starts): 15.3 min
+per replicate, so 200 replicates ≈ 51 Mac-core-hours per dataset per layer; the cloud cost is **not** established by
+this — the corrected procedure is benchmarked at the intended cloud concurrency before any projection (loaded cloud
+fits ran several times slower than the Mac in `d4v12b`), and the R2/H1-T and declared additional analyses need their
+own accounting. **Validation plan (candidate amendment, Codex re-check):** the interval choice is screened cheaply
+first, then validated on new seeds at declared counts with Monte-Carlo intervals — R = 400 datasets × B = 200
+replicates per setting (Monte-Carlo SE ≈ 1.5 pp at coverage 0.90, 1.1 pp at 0.95; R = 1,000 if the original precision
+is kept) with a pre-declared disposition for estimates too close to 0.90 to resolve; every retained null setting and
+the declared mixture alternatives, not only the six settings that failed; selection and ensemble scored from the
+same bootstrap fits; $\theta_g$ estimated by ordinary-pipeline repetitions without bootstrapping each reference
+dataset (eligible old fits may contribute), its uncertainty mattering most at $\omega = 2$; bookkeeping after Morris,
+White & Crowther (2019, §§5.2–5.3). The power stage did not run: the
 job-side gain calibration failed the gate at M3L, 0.01 nat (`bisection limit: 0.00806 vs target 0.01`), and no
 power, recovery or five-layer rows exist. **Cause, established 12 Sept** (`repro_gain_m3l.py`, `diag_gain_jump.py`;
 outputs in `sim_results/d4v12b/monitor/`): the failure reproduces exactly on one Mac core; at the fixed
 calibration seed the gain is a deterministic but discontinuous function of the scale — 0.00806 just below
 0.684661 and 0.01097 just above — with the selected reference **M2K on both sides**, so not a switch of $G^*$.
-The M2K optimum at 256 concepts (training log-likelihood −44,543.6) is reached by one of the eight pipeline starts;
-the other seven end in a basin 155 nat worse whose held-out score is 0.003 nat per trial worse; at the scale of
-bisection step 21 that one start lands and at the scale of step 22, $2.4 \times 10^{-6}$ further, it slides into
-the shallow basin, both runs reporting convergence. A 5 % search tolerance cannot be met across a 30 % jump, and
-a reference fit at eight starts misses the optimum on most seeds with every start converged. **Amendment
-(calibration side only; `models.py` and the pipeline untouched):** the graded reference fits in `expected_gain`
-use 32 jittered starts, carry the previous evaluation's kept solutions along the bisection path as warm starts,
-add 24 starts when the kept optimum is reached by fewer than two, and record the counts; the bisection also stops
-when the bracket has collapsed to 0.1 % in scale, freezes that scale, re-measures the gain there at twice the
-concepts and a fresh calibration seed, and records the jump; the gate additionally requires the selected
-reference's optimum reproduced by at least two starts in both draws and the calibration-side gain within 25 % of
-the target. Reproduction by two starts does not prove global optimality — the shallow basin is reproduced by all
-eight; the 32 starts and the warm path are what make a miss rare. The twelve-pair artefact is computed once and
-reused by every job (`t1_job.gain_file`). The same fragility sits in the pipeline's own M2K refits (§7.4, eight
-starts): it did not bite under the M2K nulls (FPR 0) and is raised with Codex as a limitation to state or a
-recovery rule for a new snapshot. The historical M3-versus-M2B contrast, saved with every
+The best-found M2K solution at 256 concepts (training log-likelihood −44,543.6) is reached by one start of the
+eight-start batch; the other seven end in a basin 155 nat worse whose held-out score is 0.003 nat per trial worse;
+at the scale of bisection step 21 that one start lands and at the scale of step 22, $1.6 \times 10^{-6}$ further in
+scale ($2.4 \times 10^{-6}$ relative), it slides into the shallow basin, both runs reporting convergence — optimiser
+basin loss within M2K (Codex, 12 Sept: accepted; the $G^*$-switch candidate withdrawn). A 5 % search tolerance
+cannot be met across a 30 % jump. How often a batch of eight misses the best-found solution is **not established**
+by these runs (one batch found it once in eight, a second batch with another seed never; the corrected run's
+evaluation at scale 3 found a better M2K solution in one start of 57). **Amendment (calibration side only;
+`models.py` and the pipeline untouched; `simulate.expected_gain`, `calibrate_gain`, `gain_gate`, after the Codex
+re-check of the same day):** the graded reference fits use 32 jittered cold starts; the distinct basins found
+earlier on the bisection path travel as warm starts (up to six per member, deduplicated); a member whose
+best-found solution is reached by fewer than two DISTINCT cold starts gets 24 more jittered starts from a further
+seed — never the unjittered moment start the cold batch already holds, and mirrored in the skew coordinates on
+every second start so both orientations are tried; every start's source, likelihood and convergence are recorded.
+The bisection also stops when the bracket has collapsed to 0.1 % in scale; both ends are then re-evaluated with the
+full warm set (the evaluated function depends on the search history, so a stale end must not be read as a
+discontinuity); if an end is within tolerance the scale is resolved there, else the scale is frozen at the
+bracket's centre, the gain re-measured there at twice the concepts and a fresh calibration seed as the declared
+fallback (not a further chance to pick a seed), and the jump recorded. The gate additionally requires the selected
+reference's best-found solution reproduced by at least two distinct cold or extra starts in the calibration draw
+and in the check draw (a warm-start discovery never counts as a cold one) and the calibration-side gain within
+25 % of the target; the check is warm-started on its training draw only, its test draw is never fitted; the final
+calibration and check evaluations archive every start's record and the check's parameters. Reproduction by two
+starts is not proof of global optimality: it says the best-found solution was reached independently twice, and
+the rarity of a miss under this scheme is not yet demonstrated. The twelve-pair artefact is computed **once**
+(`TASK=gain`, or locally), validated (`spotcheck --revalidate`) and read by every power job; a power job whose
+namespace lacks it fails closed (`t1_job.gain_file`). Reaching the one failed pair does not approve the other
+eleven. **Open, before v2 (Codex, finding 6):** the same fragility may sit in the pipeline's own refits (§7.4,
+eight starts, at the inner and outer training sizes of ≈ 38 and 51 concepts); FPR 0 under the M2K nulls does not
+show every graded fit was accurate. A numerical-sensitivity audit on declared representative draws, mixture-shaped
+data included, with stronger training-only reference searches, decides whether §7.4 is amended for the new
+snapshot (never a warm start from another CONF fold that holds the current held-out concepts; CAL-derived starts
+and within-training-fold searches are allowed). d4v12b's immutability is a provenance constraint, not a reason
+to keep a demonstrated weakness in the eventual CONF pipeline. The historical M3-versus-M2B contrast, saved with every
 row, returns mixture support in 651 of 1,000 M2H $\tau = 2$ and 337 of 1,000 M2S $\omega = 2$ replicates —
 a simulation demonstration of the inherited pair's vulnerability to omitted heterogeneity.
 
@@ -566,4 +600,4 @@ lists, amplitudes, outcomes); this document.
 | 2026-09-11 | v1.2 (second entry, after the Codex review of v1.2 — verdict "not on board", `reviews/2026-09-11_v1.2_codex_brief.md`): the first cloud run stopped after 1 h and discarded; §7.4 quadrature rebuilt as the two-scale trapezoid rule with the independent audit at generating, fitted and cross-fitted parameters (`audit_quadrature.py`), the Laplace SD stated as capped; §9 inner-selection failure policy; §10 gain truth term under the generating density, twelve-calibration gate with independent check and D passed, "0.003" named a reference scale, coverage estimand stated, the single-layer run's scope stated and the band validation made its own post-PILOT stage, five-layer pilot with every graded member, correlation per physical layer, recovery reuse of the calibration rows; versioned code snapshots and result namespaces with the code/config hash in every row; per-concept scores saved | Codex review of v1.2 (session Entropy) |
 | 2026-09-11 | v1.2: `models.py`, `analyze.py`, `simulate.py`, `verify.py`, `bench.py` written and verified (inherited likelihoods equal the numpy originals to 1e-9, gradients to 1e-8, self-refits recover every generator); §7.4: L-BFGS-B on analytic gradients replaces Nelder–Mead, the start generator and its jitter defined, the random-effect integral becomes a per-concept trapezoid rule on an adaptive window (prior-centred Gauss–Hermite does not converge at $n_c = 168$, mode-centred Gauss–Hermite fails on the truncated posteriors at $\tau = 2$) with the point ladder 48 → 96 → 192; §7.3 M3V floor as $\text{floor} + e^{s}$; §8.2 foil pairs resampled as units only in the paired statistics; §7.5 and §10 generator base declared, the gain definition made operational; §14 benchmark recorded — every layer kept, inner selection at 4 starts, refits at 8; the simulations moved to sharded SageMaker spot jobs (§10) | first code pass (session Entropy) |
 | 2026-09-11 | v1.1: BACKGROUND concept bank with family-balanced backgrounds identical across target/foil pairs, slot-nested levels, role disjointness, prompt scan; H1 = coherence readout with a pre-declared target bridge (§8.5); one joint concept-scoring definition with training-only within-family selection (equal-weight and M3-vs-M2B as sensitivity); ordered mixture parameterisation, identifiable M3L catch, inherited affine sigma kept, skew-normal parameters named; SciPy option names and solver rule; recovery of the family distinction replaces member-recoverability; post-CONF member loss = primary unavailable; bootstrap defined and validated by refit simulation; calibration vs power failures separated with permitted changes; single-pass active capture with edits inside the answer pass; swap_delta linear dose, per-layer norm matching, rescue amplitude, patch mode; H3 decision rule, polarity, positive-control criterion, smooth-vs-binary check; layer count 64 / lens 0–62 / band 23–57 kept; equal-length instructions; budget recomputed | review round 2 (Codex) |
-| 2026-09-12 | v1.2 (third entry, after the d4v12b calibration-stage read): §10 records FPR 0 under all twelve nulls, coverage below 0.90 for six settings and the §8.2 refitting-bootstrap replacement invoked; the refitting bootstrap corrected (copies of a concept in one fold at both levels, the analysis's outer folds, failed resamples propagated, usable-fraction threshold) and benchmarked; the gain-gate failure at M3L 0.01 nat diagnosed (the M2K reference optimum reached by one start in eight; the gain discontinuous in the scale at a fixed seed) and the calibration amended on its own side — 32 reference starts, warm starts along the bisection path, reproduction of the reference optimum required in both draws, bracket-width stop with the jump recorded and a re-measurement at twice the concepts, the calibration-side gain gated; `models.py` and the pipeline unchanged; the corrected code reproduces the d4v12b null fits bit for bit (cross-snapshot reuse manifest to follow) | run d4v12b's calibration read and gain-gate failure; Codex review of the read (session Entropy SI) |
+| 2026-09-12 | v1.2 (third entry, after the d4v12b calibration-stage read and the Codex re-check of the fixes): §10 records FPR 0 under all twelve nulls, coverage below 0.90 for six settings and the §8.2 refitting-bootstrap replacement invoked; the refitting bootstrap corrected (copies of a concept in one fold at both levels, the analysis's outer folds, failed or partially scored resamples never averaged, every replicate required, the interval method a declared Config choice carried through the runner with an unusable interval = assay failure) and benchmarked on the Mac; the gain-gate failure at M3L 0.01 nat diagnosed as optimiser basin loss within the M2K reference (the best-found solution reached by one start of the batch; the gain discontinuous in the scale at a fixed seed) and the calibration amended on its own side — 32 cold reference starts, distinct basins carried as warm starts, an extra batch without the repeated moment start and skew-mirrored, reproduction of the best-found reference by distinct cold starts required in both draws, the collapsed bracket re-evaluated before the jump is read, the declared fallback re-measurement, the calibration-side gain gated, every start archived; the gain artefact computed once and power jobs failing closed without it; the validation plan (R = 400 × B = 200 with Monte-Carlo intervals, every setting) and the pre-v2 pipeline numerical audit recorded; `models.py` and the pipeline unchanged; the corrected code reproduces the d4v12b null fits bit for bit (cross-snapshot reuse manifest to follow, with separate source and analysis hashes) | run d4v12b's calibration read and gain-gate failure; Codex review of the read and of the fixes (session Entropy SI) |

@@ -56,6 +56,8 @@ SHARDS = _parse_shards(os.environ.get("SHARD", "0"))   # this job takes the task
 SHARD = SHARDS[0]
 N_SHARDS = int(os.environ.get("N_SHARDS", "1"))
 N_STARTS_INNER = int(os.environ.get("N_STARTS_INNER", "8"))   # §14: 4 if the budget requires (recorded in the pre-registration)
+INTERVAL = os.environ.get("INTERVAL", "cluster")               # §8.2: cluster (primary) | refit (the declared replacement)
+N_BOOT_REFIT = int(os.environ.get("N_BOOT_REFIT", "200"))
 RESULTS_URI = os.environ["RESULTS_URI"].rstrip("/") + "/"
 WORK = "/opt/ml/checkpoints" if os.path.isdir("/opt/ml/checkpoints") else "/opt/ml/sim_results"   # spot: synced to S3 by SageMaker too
 OUT_DIR = "/opt/ml/output/data"
@@ -101,7 +103,13 @@ def gain_file(cfg, S, layers) -> str:
         if isinstance(cal, dict) and cal.get("code_hash") == want and int(cal.get("D", -1)) == D:
             log(f"{name} found with code/config {want} — reusing it")
             return local
-        log(f"{name} found but from another code/config ({cal.get('code_hash') if isinstance(cal, dict) else 'old format'}) — recomputing")
+        log(f"{name} found but from another code/config ({cal.get('code_hash') if isinstance(cal, dict) else 'old format'})")
+    if TASK != "gain":
+        # fail closed (Codex, 12 Sept 2026, finding 10): the twelve-pair artefact is computed ONCE (TASK=gain, or
+        # locally) and validated (spotcheck --revalidate) before any power job runs; a power/all job never computes
+        # it on its own — run d4v12b's jobs each spent ≈ 4.4 h recomputing a file that then failed the gate
+        raise RuntimeError(f"{name} with code/config {want} is absent from {RESULTS_URI}: precompute and validate the gain "
+                           f"artefact (TASK=gain, then spotcheck.py --revalidate) before launching TASK={TASK}")
     t0 = time.time()
     log(f"gain calibration at D={D} on {min(N_JOBS, 12)} workers")
     cal = S.calibrate_all_gains(seed=SEED, cfg=cfg, n_jobs=min(N_JOBS, 12), D=D, layers=(41,))
@@ -204,7 +212,8 @@ def main():
                         "print('jax', jax.__version__, 'numpy', numpy.__version__, 'scipy', scipy.__version__, "
                         "'pandas', pandas.__version__, 'joblib', joblib.__version__, platform.platform(), platform.machine())"],
                        capture_output=True, text=True).stdout.strip())
-    cfg = A.Config(n_starts_inner=N_STARTS_INNER)
+    cfg = A.Config(n_starts_inner=N_STARTS_INNER, interval=INTERVAL, n_boot_refit=N_BOOT_REFIT)
+    log(f"interval={INTERVAL} n_boot_refit={N_BOOT_REFIT}")
     log(f"code/config hash for this run: {S.config_hash(cfg, D, LAYERS, SEED)} (five-layer stages: "
         f"{S.config_hash(cfg, D, FIVE_LAYERS, SEED)})")
     t0 = time.time()

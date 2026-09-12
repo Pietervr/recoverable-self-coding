@@ -42,7 +42,9 @@ N_FAMILIES = 8
 N_OUTER = 5
 N_INNER = 4
 N_BOOT = 2000
+N_BOOT_REFIT = 200                  # §8.2: the pipeline-refitting bootstrap's replicate count
 PREDICTORS = ("selection", "ensemble", "historical")
+INTERVALS = ("cluster", "refit")    # §8.2 primary (concept-cluster bootstrap of the fixed scores) / its declared replacement
 
 
 @dataclass
@@ -55,6 +57,9 @@ class Config:
     n_outer: int = N_OUTER
     n_inner: int = N_INNER
     n_boot: int = N_BOOT
+    interval: str = "cluster"           # §8.2: "cluster" (primary) or "refit" (the pipeline-refitting replacement, 12 Sept 2026)
+    n_boot_refit: int = N_BOOT_REFIT    # replicates of the refitting bootstrap when interval == "refit"
+    refit_min_usable: float = 1.0       # the fraction of refit replicates that must be scored; 1.0 = every one (Codex, 12 Sept)
     fit_M0: bool = False                # M0 held-out scores for the SPM curves (§8.4)
     bands: dict = field(default_factory=lambda: dict(BANDS))
 
@@ -319,6 +324,9 @@ def band_bootstrap(delta: np.ndarray, layers: np.ndarray, family: np.ndarray, ba
 
 
 def decide(lo: float, hi: float) -> str:
+    """§8.3 on a 95 % interval. A non-finite interval is 'unavailable', never 'inconclusive' (Codex, 12 Sept 2026)."""
+    if not (np.isfinite(lo) and np.isfinite(hi)):
+        return "unavailable"
     if lo > 0:
         return "mixture"
     if hi < 0:
@@ -347,10 +355,40 @@ def analyze_dataset(ds: Dataset, cfg: Config, seed: int, outer_folds: list | Non
                recovery_rate=float(np.mean(run["recovery"] > 0)),
                fit_seconds=run["fit_seconds"], predictors={},
                delta=run["delta"], logq=run["logq"], members=run["members"], selected=run["selected"])
+    # §8.2: the interval method is a declared choice of the Config — the concept-cluster bootstrap of the fixed
+    # out-of-fold scores (primary), or the pipeline-refitting bootstrap (its replacement when the simulated
+    # coverage falls below 0.90). The point estimates are the fixed scores' band means either way; with "refit"
+    # the cluster interval is kept beside the refit interval under "cluster", and an unusable refit interval is an
+    # assay failure, never an inconclusive reading (Codex, 12 Sept 2026, finding 3).
+    if cfg.interval not in INTERVALS:
+        raise ValueError(f"cfg.interval must be one of {INTERVALS}, not {cfg.interval!r}")
+    rb = None
+    if cfg.interval == "refit" and not run["failed"]:
+        rb = refit_bootstrap(ds, cfg, seed, n_rep=cfg.n_boot_refit, n_jobs=n_jobs, outer_folds=run["folds"],
+                             min_usable=cfg.refit_min_usable)
+        out["interval"] = dict(method="refit", n_rep=rb["n_rep"], n_used=rb["n_used"], n_failed=rb["n_failed"],
+                               usable=rb["usable"], policy=rb["policy"], seed=rb["seed"], fit_seconds=rb["fit_seconds"],
+                               failed_reasons=rb["failed_reasons"], replicates=rb["replicates"])
+    elif cfg.interval == "refit":
+        out["interval"] = dict(method="refit", n_rep=cfg.n_boot_refit, n_used=0, n_failed=0, usable=False,
+                               policy="not run: the analysis itself failed", seed=seed, fit_seconds=0.0, failed_reasons=[], replicates=[])
+    else:
+        out["interval"] = dict(method="cluster", n_rep=cfg.n_boot, n_used=cfg.n_boot, n_failed=0, usable=True,
+                               policy="concept-cluster bootstrap of the fixed out-of-fold scores", seed=seed, fit_seconds=0.0)
     for p in PREDICTORS:
         b = band_bootstrap(run["delta"][p], run["layers"], ds.family, cfg.bands, cfg.n_boot, seed)
+        usable = True
+        if cfg.interval == "refit":
+            b["cluster"] = {k: dict(v) for k, v in b.items() if isinstance(v, dict) and "lo" in v}
+            rp = (rb or {}).get("predictors", {}).get(p, {})
+            usable = bool(rp.get("usable", False))
+            for band, stat in b["cluster"].items():
+                v = rp.get("bands", {}).get(band)
+                b[band] = dict(point=stat["point"], lo=v["lo"], hi=v["hi"], se=v["se"]) if (usable and v is not None) \
+                    else dict(point=stat["point"], lo=float("nan"), hi=float("nan"), se=float("nan"))
+            b["usable"] = usable
         if "ws" in b:
-            b["decision"] = "assay failure" if run["failed"] else decide(b["ws"]["lo"], b["ws"]["hi"])
+            b["decision"] = "assay failure" if (run["failed"] or not usable) else decide(b["ws"]["lo"], b["ws"]["hi"])
             b["ws_max"] = band_max(run["delta"][p], run["layers"], cfg.bands["ws"])
         out["predictors"][p] = b
     # selected-member counts over layers x folds
@@ -368,17 +406,34 @@ def analyze_dataset(ds: Dataset, cfg: Config, seed: int, outer_folds: list | Non
 # ----------------------------------------------------------------------------------------------
 # §8.2 fallback: pipeline-refitting bootstrap (all copies of a concept in one fold)
 # ----------------------------------------------------------------------------------------------
-def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = 200, predictor: str = "selection",
-                    n_jobs: int = 1, outer_folds: list | None = None, min_usable: float = 0.9) -> dict:
+def _band_stats(delta: np.ndarray, masks: dict) -> dict:
+    """Band means of a (L, C) score array, strict: a band with any non-finite score is NaN (no nanmean — a partial
+    score array must never produce a usable number; Codex, 12 Sept 2026). ws_minus_early is added when both exist."""
+    out = {}
+    for b, m in masks.items():
+        block = delta[m]
+        out[b] = float(np.mean(block)) if np.all(np.isfinite(block)) else float("nan")
+    if "ws" in out and "early" in out:
+        out["ws_minus_early"] = out["ws"] - out["early"]
+    return out
+
+
+def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REFIT, predictor: str = "selection",
+                    n_jobs: int = 1, outer_folds: list | None = None, min_usable: float = 1.0) -> dict:
     """Resample whole concepts with replacement within family strata and re-run the ENTIRE per-layer procedure
-    (outer folds, inner selection, refit, joint scoring) on every resample; percentile interval of the band means.
+    (outer folds, inner selection, refit, joint scoring) on every resample; percentile intervals of the band means
+    and of ws − early, for EVERY predictor from the same refits (selection, ensemble, historical).
     Every copy of an original concept stays in that concept's outer fold and — through Dataset.group — in one
     inner fold: §8.2's "all copies of a concept in one fold" at both levels (the v1.2 code kept copies together
     only in the outer folds and drew the inner folds over copy ids, so copies of one concept could sit on both
-    sides of an inner split; Codex, 12 Sept 2026). `outer_folds` are the analysis's own folds (folds.json for
-    CONF); None regenerates them as run_dataset does. A resample whose procedure fails (§9) yields no
-    statistic: it is counted in `n_failed`, never averaged in, and the interval is unusable (NaN) when fewer
-    than `min_usable` of the replicates are usable."""
+    sides of an inner split; Codex, 12 Sept 2026). Keeping each copy in its ORIGINAL outer fold is the declared
+    fixed-fold specification. `outer_folds` are the analysis's own folds (folds.json for CONF); None regenerates
+    them as run_dataset does. Failure policy: a resample whose procedure fails (§9), or whose band scores are not
+    all finite for a predictor, yields no statistic for it — it is counted, never averaged in — and a predictor's
+    interval is usable only when at least `min_usable` of the replicates are scored; the default 1.0 means EVERY
+    replicate (Codex, 12 Sept: the missing ones can hold both tails); a lower value is an explicit amendment.
+    The per-replicate statistics are returned (`replicates`) so they can be persisted and rescored.
+    Top-level band entries are those of `predictor` (compatibility); `predictors` holds all three."""
     rng = np.random.default_rng(seed)
     idx = stratified_resample(ds.family, n_rep, rng)
     base_folds = stratified_folds(ds.family, cfg.n_outer, seed) if outer_folds is None else outer_folds
@@ -398,25 +453,36 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = 200, predi
         folds = [f for f in (np.where(fold_of[chosen] == r)[0] for r in range(len(base_folds))) if f.size]
         sub = Dataset(ds.y[rows], ds.k[rows], new_concept, family, ds.layers, group=chosen)
         run = run_dataset(sub, cfg, seed + 1 + rep, outer_folds=folds)
-        stat = {b: float(np.nanmean(run["delta"][predictor][m])) for b, m in masks.items()}
-        return dict(stat=stat, failed=bool(run["failed"]), failed_reason=run.get("failed_reason", ""),
-                    fit_seconds=float(run.get("fit_seconds", 0.0)))
+        stats = {p: _band_stats(np.asarray(run["delta"][p], dtype=float), masks) for p in PREDICTORS}
+        return dict(rep=int(rep), stats=stats, failed=bool(run["failed"]), failed_reason=run.get("failed_reason", ""),
+                    fit_seconds=float(run.get("fit_seconds", 0.0)), chosen=[int(c) for c in chosen])
     if n_jobs > 1:
         from joblib import Parallel, delayed
-        stats = Parallel(n_jobs=n_jobs)(delayed(one)(r) for r in range(n_rep))
+        reps = Parallel(n_jobs=n_jobs)(delayed(one)(r) for r in range(n_rep))
     else:
-        stats = [one(r) for r in range(n_rep)]
-    usable = [s for s in stats if not s["failed"] and all(np.isfinite(v) for v in s["stat"].values())]
-    out = dict(n_rep=int(n_rep), n_used=len(usable), n_failed=int(n_rep - len(usable)),
-               usable=bool(len(usable) >= min_usable * n_rep and usable),
-               failed_reasons=[s["failed_reason"] for s in stats if s["failed"]],
-               fit_seconds=float(sum(s["fit_seconds"] for s in stats)))
-    for b in masks:
-        if out["usable"]:
-            v = np.array([s["stat"][b] for s in usable])
-            out[b] = dict(lo=float(np.percentile(v, 2.5)), hi=float(np.percentile(v, 97.5)), se=float(np.std(v, ddof=1)))
-        else:
-            out[b] = dict(lo=float("nan"), hi=float("nan"), se=float("nan"))
+        reps = [one(r) for r in range(n_rep)]
+    out = dict(method="refit", n_rep=int(n_rep), seed=int(seed), min_usable=float(min_usable),
+               policy=("every replicate scored" if min_usable >= 1.0 else f"at least {min_usable:.0%} of the replicates scored"),
+               outer_folds=[[int(c) for c in f] for f in base_folds],
+               failed_reasons=[s["failed_reason"] for s in reps if s["failed"]],
+               fit_seconds=float(sum(s["fit_seconds"] for s in reps)), predictors={},
+               replicates=[dict(rep=s["rep"], failed=s["failed"], failed_reason=s["failed_reason"], stats=s["stats"]) for s in reps])
+    bands = list(masks) + (["ws_minus_early"] if "ws" in masks and "early" in masks else [])
+    for p in PREDICTORS:
+        ok = [s for s in reps if not s["failed"] and all(np.isfinite(s["stats"][p][b]) for b in bands)]
+        usable = bool(ok) and len(ok) >= min_usable * n_rep
+        pr = dict(n_used=len(ok), n_failed=int(n_rep - len(ok)), usable=usable, bands={})
+        for b in bands:
+            if usable:
+                v = np.array([s["stats"][p][b] for s in ok])
+                pr["bands"][b] = dict(lo=float(np.percentile(v, 2.5)), hi=float(np.percentile(v, 97.5)), se=float(np.std(v, ddof=1)))
+            else:
+                pr["bands"][b] = dict(lo=float("nan"), hi=float("nan"), se=float("nan"))
+        out["predictors"][p] = pr
+    prim = out["predictors"][predictor]
+    out.update(n_used=prim["n_used"], n_failed=prim["n_failed"], usable=prim["usable"])
+    for b in bands:
+        out[b] = dict(prim["bands"][b])
     return out
 
 

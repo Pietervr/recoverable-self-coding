@@ -50,6 +50,7 @@ def config_hash(cfg: "A.Config", D: int, layers, seed: int, rho: float = None) -
             h.update(fh.read())
     settings = dict(n_starts=cfg.n_starts, n_starts_inner=cfg.n_starts_inner, n_gh=cfg.n_gh, n_outer=cfg.n_outer,
                     n_inner=cfg.n_inner, n_boot=cfg.n_boot, members_G=list(cfg.members_G), members_X=list(cfg.members_X),
+                    interval=cfg.interval, n_boot_refit=cfg.n_boot_refit, refit_min_usable=cfg.refit_min_usable,
                     D=int(D), layers=[int(l) for l in layers], seed=int(seed), rho=RHO_LAYERS if rho is None else rho,
                     trap=(M.TRAP_POINTS, M.OUTER_POINTS, M.TRAP_HALFWIDTH, M.PRIOR_HALFWIDTH),
                     newton=(M.NEWTON_STEPS, M.NEWTON_CANDIDATES, M.GRID_POINTS, M.GRID_HALFWIDTH), jitter=M.JITTER_SD,
@@ -182,7 +183,13 @@ def _row(name, kwargs, rep, D, layers, res, seconds, extra=None, code_hash=""):
                failed=int(res["failed"]), failed_reason=res.get("failed_reason", ""),
                convergence=round(res["convergence_rate"], 4), inner_convergence=round(res.get("inner_convergence_rate", np.nan), 4),
                inner_nonfinite=int(res.get("inner_nonfinite", 0)), recovery=round(res["recovery_rate"], 4),
-               fit_seconds=round(res["fit_seconds"], 1), wall_seconds=round(seconds, 1))
+               fit_seconds=round(res["fit_seconds"], 1), wall_seconds=round(seconds, 1),
+               interval_method=res.get("interval", {}).get("method", "cluster"),
+               interval_n_rep=res.get("interval", {}).get("n_rep", np.nan),
+               interval_n_used=res.get("interval", {}).get("n_used", np.nan),
+               interval_n_failed=res.get("interval", {}).get("n_failed", np.nan),
+               interval_usable=int(bool(res.get("interval", {}).get("usable", True))),
+               interval_fit_seconds=round(float(res.get("interval", {}).get("fit_seconds", 0.0)), 1))
     for p in A.PREDICTORS:
         b = res["predictors"][p]
         row[f"{p}_decision"] = b.get("decision", "")
@@ -304,16 +311,24 @@ def expected_gain(name: str, theta: np.ndarray, seed: int = 0, n_per_family: int
     GENERATING density (floor 0 for M3V: the fitting floor belongs to fitted predictors only — Codex 2026-09-11);
     `se` is the concept-cluster standard error of the per-trial gain.
 
-    The reference fit is an ORACLE at large sample, not the pipeline's fit, and it must find the optimum. Run
-    d4v12b (12 Sept 2026, M3L at 0.01 nat): with the pipeline's 8 starts the M2K optimum at 256 concepts was
-    reached by one start in eight — the other seven ended in a basin 155 nat worse in training likelihood and
-    0.003 nat per trial worse held out — and whether that one start landed flipped with the data at the seventh
-    decimal of the scale, so the gain alternated between 0.00806 and 0.01097 and the bisection could not close.
-    Hence (calibration side only; models.py and the pipeline untouched): REF_STARTS jittered starts per graded
-    member; `warm` = the kept solutions of the previous evaluation on the bisection path, run as one further
-    start each, so a basin once found is carried along the path; a member whose kept optimum is reached by
-    fewer than REF_MIN_STARTS_AT_BEST starts gets REF_EXTRA_STARTS more (same data, a further seed); the
-    counts are returned (`starts_at_best`) and the gate reads `ref_reproduced` for the selected reference."""
+    The reference fit is an ORACLE at large sample, not the pipeline's fit, and it must find the best solution
+    there is. Run d4v12b (12 Sept 2026, M3L at 0.01 nat): with the pipeline's 8 starts the best-found M2K
+    solution at 256 concepts was reached by one start of that batch — the other seven ended in a basin 155 nat
+    worse in training likelihood and 0.003 nat per trial worse held out — and whether that one start landed
+    flipped with the data at a relative change of 2.4e-6 in the scale, so the gain alternated between 0.00806
+    and 0.01097 and the bisection could not close. Hence (calibration side only; models.py and the pipeline
+    untouched): REF_STARTS jittered starts per graded member ("cold"); `warm` = {member: [theta, ...]}, the
+    distinct basin candidates found earlier on the bisection path, each run as one further start ("warm"), so
+    a basin once found travels along the path; a member whose best-found solution is reached by fewer than
+    REF_MIN_STARTS_AT_BEST DISTINCT cold starts gets REF_EXTRA_STARTS more ("extra": jittered from a further
+    seed, never the unjittered moment start that the cold batch already holds — Codex, 12 Sept, finding 1 —
+    and mirrored in the skew coordinates on every second start, so both skew orientations are covered). The
+    counts are returned: `starts_at_best` = distinct cold + extra starts within REF_BASIN_TOL of the best
+    converged solution over ALL sources (a cold discovery counts only if it reproduces the best combined
+    solution), `warm_at_best` separately; `ref_reproduced` (read by the gate) uses the cold/extra count of the
+    selected reference. Reproduction is not proof of global optimality: it says the best-found solution was
+    reached independently at least twice. `candidates` = the distinct basins found (best run per likelihood
+    cluster), the warm set for the next evaluation; `runs` = one compact record per start for the archive."""
     cfg = A.Config() if cfg is None else cfg
     n_starts = REF_STARTS if n_starts is None else int(n_starts)
     tr = make_dataset(name, theta, n_per_family, D, layers=(41,), rho=0.0, seed=seed)
@@ -321,29 +336,30 @@ def expected_gain(name: str, theta: np.ndarray, seed: int = 0, n_per_family: int
     train = M.Trials.build(tr.y[:, 0], tr.k, tr.concept, tr.n_concepts)
     test = M.Trials.build(te.y[:, 0], te.k, te.concept, te.n_concepts, floor_sd=train.floor_sd)
     truth = M.Trials.build(te.y[:, 0], te.k, te.concept, te.n_concepts, floor_sd=0.0)
-    fits = {g: M.fit(g, train, cfg.n_gh, n_starts, np.random.default_rng([seed, 7, i])) for i, g in enumerate(graded)}
-    if not all(np.isfinite(fits[g].loglik) for g in graded):
-        raise RuntimeError(f"expected_gain({name}): a graded reference fit did not produce a finite likelihood")
-    extra = {g: 0 for g in graded}
+    fits, runs_by, extra = {}, {}, {g: 0 for g in graded}
     for i, g in enumerate(graded):
-        more_runs, more_nfev, more_nit, more_sec = [], 0, 0, 0.0
-        w = None if warm is None else warm.get(g)
-        if w is not None and np.all(np.isfinite(w)) and np.asarray(w).size == fits[g].theta.size:
+        cold = M.fit(g, train, cfg.n_gh, n_starts, np.random.default_rng([seed, 7, i]))
+        runs = _tag(cold.runs, "cold")
+        secs, nfev, nit = cold.seconds, cold.nfev, cold.nit
+        for w in _warm_list(warm, g, cold.theta.size):
             t0 = _time.time()
-            more_runs += M._run_starts(g, train, np.asarray([w], dtype=float), cfg.n_gh, dict(M.LBFGSB_OPTIONS))
-            more_sec += _time.time() - t0
-        if _starts_at_best(fits[g], extra_runs=more_runs) < REF_MIN_STARTS_AT_BEST:
-            more = M.fit(g, train, cfg.n_gh, REF_EXTRA_STARTS, np.random.default_rng([seed, 7, i, 1]), recovery=False)
-            more_runs += more.runs; more_nfev += more.nfev; more_nit += more.nit; more_sec += more.seconds
+            runs += _tag(M._run_starts(g, train, w[None, :], cfg.n_gh, dict(M.LBFGSB_OPTIONS)), "warm")
+            secs += _time.time() - t0
+        if _starts_at_best(runs) < REF_MIN_STARTS_AT_BEST:
+            t0 = _time.time()
+            starts = _extra_starts(g, train, REF_EXTRA_STARTS, np.random.default_rng([seed, 7, i, 1]))
+            runs += _tag(M._run_starts(g, train, starts, cfg.n_gh, dict(M.LBFGSB_OPTIONS)), "extra")
+            secs += _time.time() - t0
             extra[g] = REF_EXTRA_STARTS
-        if more_runs:
-            runs = fits[g].runs + more_runs
-            kept, n_conv = M._pick(runs)
-            if kept is not None:
-                fits[g] = M.FitResult(g, kept["theta"], kept["loglik"], bool(kept["converged"]), n_conv, len(runs),
-                                      fits[g].recovery, fits[g].nfev + more_nfev, fits[g].nit + more_nit,
-                                      fits[g].seconds + more_sec, runs)
-    starts_at_best = {g: _starts_at_best(fits[g]) for g in graded}
+        kept, n_conv = M._pick(runs)
+        if kept is None or not np.isfinite(kept["loglik"]):
+            raise RuntimeError(f"expected_gain({name}): the {g} reference fit did not produce a finite likelihood")
+        fits[g] = M.FitResult(g, kept["theta"], kept["loglik"], bool(kept["converged"]), n_conv, len(runs), cold.recovery,
+                              nfev + sum(r["nfev"] for r in runs[len(cold.runs):]), nit + sum(r["nit"] for r in runs[len(cold.runs):]),
+                              secs, runs)
+        runs_by[g] = runs
+    starts_at_best = {g: _starts_at_best(runs_by[g]) for g in graded}
+    warm_at_best = {g: _starts_at_best(runs_by[g], sources=("warm",)) for g in graded}
     best = max(graded, key=lambda g: fits[g].loglik)
     lq_true = M.concept_scores(name, theta, truth, cfg.n_gh)
     lq_by = {g: M.concept_scores(g, fits[g].theta, test, cfg.n_gh) for g in graded}
@@ -357,24 +373,65 @@ def expected_gain(name: str, theta: np.ndarray, seed: int = 0, n_per_family: int
                 loglik={g: float(fits[g].loglik) for g in graded},
                 theta={g: [float(v) for v in fits[g].theta] for g in graded},
                 n_starts={g: int(fits[g].n_starts) for g in graded},
-                starts_at_best=starts_at_best, extra_starts=extra,
-                ref_reproduced=bool(starts_at_best[best] >= REF_MIN_STARTS_AT_BEST))
+                starts_at_best=starts_at_best, warm_at_best=warm_at_best, extra_starts=extra,
+                ref_reproduced=bool(starts_at_best[best] >= REF_MIN_STARTS_AT_BEST),
+                candidates={g: _basin_candidates(runs_by[g]) for g in graded},
+                runs={g: [dict(source=r["source"], loglik=round(float(r["loglik"]), 3) if np.isfinite(r["loglik"]) else None,
+                               converged=bool(r["converged"]), nit=int(r["nit"])) for r in runs_by[g]] for g in graded})
 
 
-REF_STARTS = 32                  # jittered starts per graded reference fit (the pipeline's 8 found the M2K optimum once in eight)
-REF_MIN_STARTS_AT_BEST = 2       # the reference optimum must be reached by at least two starts (12 Sept 2026)
-REF_EXTRA_STARTS = 24            # else this many more starts on the same data before the reference is chosen
-REF_BASIN_TOL = 0.5              # a start "reaches" the kept optimum when its loglik is within this (nat, total)
+REF_STARTS = 32                  # jittered "cold" starts per graded reference fit (the pipeline's 8 found the best M2K solution once)
+REF_MIN_STARTS_AT_BEST = 2       # the best-found reference solution must be reached by at least two distinct cold/extra starts
+REF_EXTRA_STARTS = 24            # else this many more jittered starts (no repeated moment start; skew-mirrored on every second)
+REF_BASIN_TOL = 0.5              # a start "reaches" a solution when its loglik is within this (nat, total)
+REF_MAX_CANDIDATES = 4           # distinct basins carried forward as warm starts per member
 
 
-def _starts_at_best(fit: "M.FitResult", tol: float = REF_BASIN_TOL, extra_runs: list = ()) -> int:
-    """How many converged starts ended within tol nat (total training log-likelihood) of the best converged
-    solution among the fit's runs and `extra_runs` together."""
-    runs = [r for r in list(fit.runs) + list(extra_runs) if r["converged"] and np.isfinite(r["loglik"])]
-    if not runs:
+def _tag(runs: list, source: str) -> list:
+    return [dict(r, source=source) for r in runs]
+
+
+def _warm_list(warm: dict | None, member: str, size: int) -> list:
+    """The warm starts for `member` as a list of finite arrays of the right length (a single theta or a list)."""
+    if not warm or warm.get(member) is None:
+        return []
+    arr = np.asarray(warm[member], dtype=float)
+    rows = [arr] if arr.ndim == 1 else list(arr) if arr.ndim == 2 else []
+    return [r for r in rows if r.size == size and np.all(np.isfinite(r))]
+
+
+def _extra_starts(name: str, data: "M.Trials", n: int, rng: np.random.Generator, jitter_sd: float = M.JITTER_SD) -> np.ndarray:
+    """n jittered starts for the extra batch: the unjittered moment start is dropped (the cold batch holds it, and a
+    repeat would count one initial point twice — Codex, 12 Sept 2026), and every second start is mirrored in the
+    member's skew coordinates (parameters named alpha*) so both orientations are tried."""
+    starts = M.starts_from_moments(name, data, n + 1, rng, jitter_sd)[1:]
+    for j, p in enumerate(M.MEMBERS[name].params):
+        if p.startswith("alpha"):
+            starts[1::2, j] *= -1.0
+    return starts
+
+
+def _starts_at_best(runs: list, tol: float = REF_BASIN_TOL, sources: tuple = ("cold", "extra")) -> int:
+    """How many converged runs from `sources` ended within tol nat (total training log-likelihood) of the best
+    converged solution over ALL runs (every source, warm included)."""
+    conv = [r for r in runs if r["converged"] and np.isfinite(r["loglik"])]
+    if not conv:
         return 0
-    top = max(r["loglik"] for r in runs)
-    return int(sum(1 for r in runs if top - r["loglik"] <= tol))
+    top = max(r["loglik"] for r in conv)
+    return int(sum(1 for r in conv if top - r["loglik"] <= tol and r.get("source", "cold") in sources))
+
+
+def _basin_candidates(runs: list, tol: float = REF_BASIN_TOL, k: int = REF_MAX_CANDIDATES) -> list:
+    """The distinct basins among the converged runs — the best run of each likelihood cluster (clusters tol nat
+    apart), best first, at most k — as parameter lists: the warm starts for the next evaluation."""
+    conv = sorted([r for r in runs if r["converged"] and np.isfinite(r["loglik"])], key=lambda r: -r["loglik"])
+    out = []
+    for r in conv:
+        if all(abs(r["loglik"] - c["loglik"]) > tol for c in out):
+            out.append(r)
+        if len(out) >= k:
+            break
+    return [[float(v) for v in r["theta"]] for r in out]
 
 
 MIN_BRACKET_WIDTH = 1e-3         # the bisection stops when hi/lo - 1 is below this (0.1 % in scale)
@@ -385,65 +442,137 @@ def calibrate_gain(name: str, target: float, kwargs: dict, lo: float = 0.02, hi:
     """Geometric bisection on `scale` (multiplying both high-state offsets) until expected_gain at the FIXED
     calibration seed is within tol (relative) of target — or until the bracket has collapsed (hi/lo - 1 <
     min_width). At a fixed seed g(scale) is deterministic but not continuous: the kept reference fit can jump
-    between two local optima of near-equal training likelihood with different held-out scores (run d4v12b,
+    between the best-found solution and a basin far worse in training likelihood (155 nat in run d4v12b,
     12 Sept 2026, M3L at 0.01 nat: 0.00806 below and 0.01097 above scale 0.684661, M2K kept on both sides), and a
-    tolerance tighter than that jump can never be met. On a collapsed bracket the scale is FROZEN at the
-    bracket's geometric centre and the calibration gain is re-measured there with more reference simulation
-    (twice the concepts at a fresh calibration seed — never the check seed), the jump recorded as `gain_jump`.
-    Then, as before, the independent check at a fresh seed and CHECK_N_PER_FAMILY concepts, and the gate.
-    Every failure is explicit in `note` (bracket, bisection limit, non-finite) and the caller must refuse such
-    an entry."""
+    tolerance tighter than that jump can never be met. The distinct basins found along the path travel as warm
+    starts (`warm`, per member), which makes the evaluated function depend on the search history: on a collapsed
+    bracket both ends are therefore RE-EVALUATED with the full warm set before the width or the jump is read
+    (Codex, 12 Sept, finding 5) — if an end is then within tolerance the scale is resolved there; if the target
+    has escaped the re-evaluated bracket (a healed jump moves both ends to one side) the bracket is widened on
+    that side from the evaluations already made, nearest first, each re-evaluated, and the bisection continues;
+    only a jump that survives the re-evaluation freezes the scale at the bracket's geometric centre, where, as
+    the declared fallback (not a further chance to pick a seed), the calibration gain is re-measured at twice
+    the concepts and a fresh calibration seed (seed + 500, never the check seed), the jump recorded as
+    `gain_jump`. Then the independent check at seed + 1000 and
+    CHECK_N_PER_FAMILY concepts (warm-started from the calibration's basins on the check's TRAINING draw only;
+    the check's test draw is never fitted), and the gate. The final calibration and check evaluations keep every
+    start's record (`calib_runs`, `check_runs`) and the check's parameters. Every failure is explicit in `note`
+    (bracket, bisection limit, non-finite) and the caller must refuse such an entry."""
     trace = []
     warm = {}
+    full = {}                       # the last evaluation in full (its per-start records are archived, not traced)
     def g(scale, s, **kw):
         r = expected_gain(name, generator_theta(name, scale=scale, **kwargs), seed=s, warm=warm or None, **{**gain_kw, **kw})
-        warm.update(r.get("theta", {}))
+        for m, cands in r.get("candidates", {}).items():
+            _merge_warm(warm, m, cands)
         trace.append(dict(scale=scale, seed=int(s), n_per_family=int(kw.get("n_per_family", gain_kw.get("n_per_family", 32))),
-                          **{k: v for k, v in r.items() if k != "gains"}))
+                          **{k: v for k, v in r.items() if k not in ("gains", "runs")}))
+        full.clear(); full.update(r)
+        if s == seed and "n_per_family" not in kw:
+            hist.append((float(scale), float(r["gain"])))
         return r["gain"]
+    hist = []                       # every (scale, gain) at the calibration seed — the bracket can be rebuilt from it
+    within = lambda v: abs(v - target) <= tol * target
+    lo0, hi0 = lo, hi
     glo, ghi = g(lo, seed), g(hi, seed)
     if not (np.isfinite(glo) and np.isfinite(ghi)):
         return dict(scale=np.nan, gain=np.nan, trace=trace, note="non-finite gain at a bracket end")
     if not (glo <= target <= ghi):
         return dict(scale=np.nan, gain=np.nan, trace=trace, note=f"target outside the bracket [{glo:.5f}, {ghi:.5f}]")
-    mid, gm, resolved, gain_jump = np.nan, np.nan, False, 0.0
-    for _ in range(max_iter):
+    mid, gm, resolved, gain_jump, reevaluated, fallback = np.nan, np.nan, False, 0.0, False, False
+    budget = max_iter + 12          # calibration-seed evaluations after the two ends, re-evaluations included
+    while len(hist) - 2 < budget and not resolved:
         mid = np.sqrt(lo * hi)
         gm = g(mid, seed)
         if not np.isfinite(gm):
             return dict(scale=np.nan, gain=np.nan, trace=trace, note=f"non-finite gain at scale {mid:.6f}")
-        if abs(gm - target) <= tol * target:
+        if within(gm):
             resolved = True
             break
         if gm < target:
             lo, glo = mid, gm
         else:
             hi, ghi = mid, gm
-        if hi / lo - 1.0 < min_width:
-            break
-    if not resolved:
         if hi / lo - 1.0 >= min_width:
-            return dict(scale=np.nan, gain=float(gm), trace=trace, note=f"bisection limit: {gm:.5f} vs target {target}")
-        # the bracket has collapsed on a discontinuity: freeze the scale, re-measure the gain there with more
-        # reference simulation, record the jump; the gate decides
-        mid = float(np.sqrt(lo * hi))
-        gain_jump = float(ghi - glo)
-        gm = g(mid, seed + 500, n_per_family=2 * int(gain_kw.get("n_per_family", 32)))
-        if not np.isfinite(gm):
-            return dict(scale=np.nan, gain=np.nan, trace=trace, note=f"non-finite gain at the frozen scale {mid:.6f}")
+            continue
+        # the bracket has collapsed: re-evaluate both ends with every basin found on the path, then read them
+        reevaluated = True
+        glo, ghi = g(lo, seed), g(hi, seed)
+        if not (np.isfinite(glo) and np.isfinite(ghi)):
+            return dict(scale=np.nan, gain=np.nan, trace=trace, note="non-finite gain at a re-evaluated bracket end")
+        if within(glo) or within(ghi):
+            mid, gm = (lo, glo) if abs(glo - target) <= abs(ghi - target) else (hi, ghi)
+            resolved = True
+            break
+        if glo <= target <= ghi:
+            # a discontinuity that survives the re-evaluation: freeze the scale, the declared fallback re-measurement
+            fallback = True
+            mid = float(np.sqrt(lo * hi))
+            gain_jump = float(ghi - glo)
+            gm = g(mid, seed + 500, n_per_family=2 * int(gain_kw.get("n_per_family", 32)))
+            if not np.isfinite(gm):
+                return dict(scale=np.nan, gain=np.nan, trace=trace, note=f"non-finite gain at the frozen scale {mid:.6f}")
+            break
+        # the target escaped the re-evaluated bracket (a healed jump moved both ends to one side): widen on that
+        # side from the scales already visited, nearest first, re-evaluating each, and carry on bisecting
+        up = ghi < target
+        outer = (sorted({s for s, v in hist if s > hi and v > target}) or [hi0]) if up else \
+                (sorted({s for s, v in hist if s < lo and v < target}, reverse=True) or [lo0])
+        if up:
+            lo, glo = hi, ghi
+        else:
+            hi, ghi = lo, glo
+        found = False
+        for s in outer:
+            v = g(s, seed)
+            if not np.isfinite(v):
+                return dict(scale=np.nan, gain=np.nan, trace=trace, note=f"non-finite gain at scale {s:.6f}")
+            if within(v):
+                mid, gm, resolved, found = s, v, True, True
+                break
+            if (v > target) == up:
+                found = True
+                if up:
+                    hi, ghi = s, v
+                else:
+                    lo, glo = s, v
+                break
+            if up:
+                lo, glo = s, v
+            else:
+                hi, ghi = s, v
+        if not found:
+            return dict(scale=np.nan, gain=float(gm), trace=trace,
+                        note=f"target escaped the bracket {'upward' if up else 'downward'} after re-evaluation")
+    if not resolved and not fallback:
+        return dict(scale=np.nan, gain=float(gm), trace=trace, note=f"bisection limit: {gm:.5f} vs target {target}")
     # the independent check: a fresh seed and twice the concepts (CHECK_N_PER_FAMILY), its SE being the
     # test-concept variation conditional on the check's own fitted graded reference
     chk_kw = dict(gain_kw); chk_kw["n_per_family"] = CHECK_N_PER_FAMILY
     chk = expected_gain(name, generator_theta(name, scale=mid, **kwargs), seed=seed + 1000, warm=warm or None, **chk_kw)
-    entry = dict(scale=float(mid), gain=float(gm), gain_jump=gain_jump, gain_check=chk["gain"], gain_check_se=chk["se"],
+    last = trace[-1]
+    entry = dict(scale=float(mid), gain=float(gm), gain_jump=gain_jump, bracket_reevaluated=reevaluated,
+                 fallback_remeasured=fallback, gain_check=chk["gain"], gain_check_se=chk["se"],
                  check_best=chk["best"], check_converged=all(chk["converged"].values()),
-                 calib_converged=all(trace[-1]["converged"].values()),
-                 calib_ref_reproduced=bool(trace[-1].get("ref_reproduced", False)),
+                 calib_converged=all(last["converged"].values()),
+                 calib_ref_reproduced=bool(last.get("ref_reproduced", False)),
                  check_ref_reproduced=bool(chk.get("ref_reproduced", False)),
-                 calib_starts_at_best=trace[-1].get("starts_at_best"), check_starts_at_best=chk.get("starts_at_best"),
-                 trace=trace, note="")
+                 calib_starts_at_best=last.get("starts_at_best"), check_starts_at_best=chk.get("starts_at_best"),
+                 calib_warm_at_best=last.get("warm_at_best"), check_warm_at_best=chk.get("warm_at_best"),
+                 calib_runs=full.get("runs"), check_runs=chk.get("runs"), check_theta=chk.get("theta"),
+                 check_loglik=chk.get("loglik"), trace=trace, note="")
     entry["note"] = gain_gate(entry, target)
     return entry
+
+
+def _merge_warm(warm: dict, member: str, cands: list, k: int = REF_MAX_CANDIDATES + 2):
+    """Add basin candidates to the warm set of `member`, newest first, deduplicated to 4 decimals, at most k kept."""
+    have = [list(c) for c in warm.get(member, [])]
+    for c in cands:
+        key = [round(float(v), 4) for v in c]
+        if all([round(float(v), 4) for v in h] != key for h in have):
+            have.insert(0, [float(v) for v in c])
+    warm[member] = have[:k]
 
 
 CHECK_N_PER_FAMILY = 64         # the independent check draws 8 x 64 concepts (the calibration draws 8 x 32)
@@ -591,6 +720,9 @@ def main():
     ap.add_argument("--rho", type=float, default=RHO_LAYERS)
     ap.add_argument("--n-jobs", type=int, default=14)
     ap.add_argument("--n-starts-inner", type=int, default=M.N_STARTS)
+    ap.add_argument("--interval", choices=["cluster", "refit"], default="cluster",
+                    help="§8.2 interval: the concept-cluster bootstrap (primary) or the pipeline-refitting bootstrap (its declared replacement)")
+    ap.add_argument("--n-boot-refit", type=int, default=A.N_BOOT_REFIT)
     ap.add_argument("--n-gh", type=int, default=M.GH_NODES_DEFAULT)
     ap.add_argument("--seed", type=int, default=2026)
     ap.add_argument("--out", default=None)
@@ -598,7 +730,7 @@ def main():
     ap.add_argument("--generators", default=None, help="comma list to restrict the generator set")
     a = ap.parse_args()
     layers = tuple(int(x) for x in a.layers.split(","))
-    cfg = A.Config(n_starts_inner=a.n_starts_inner, n_gh=a.n_gh)
+    cfg = A.Config(n_starts_inner=a.n_starts_inner, n_gh=a.n_gh, interval=a.interval, n_boot_refit=a.n_boot_refit)
     os.makedirs(OUT_DIR, exist_ok=True)
     if a.task == "summary":
         for p in A.PREDICTORS:
