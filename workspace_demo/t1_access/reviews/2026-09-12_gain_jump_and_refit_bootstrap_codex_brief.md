@@ -199,3 +199,18 @@ Closed by Codex: 6.2 (source required in both readers, verified on the real job 
 | 7.1a | `analyze` fell back to hashing `models.__file__` at its own import; `models` bound no digest of its own, so a model edited on disk between the two imports was labelled as the new one | **Done.** `models.py` binds `LOADED_SOURCE_DIGEST` at its own import; `analyze` takes that value and raises if it is absent — no disk fallback. |
 | 7.1b | `simulate.config_hash` (rows, gain files) still hashed the live disk files | **Done.** `config_hash` hashes the three bound loaded-source digests (`analyze.LOADED_SOURCES`) and raises if one is missing; a row or gain file therefore names the implementation that produced it. The old d4v12b hashes stay as stored; the cross-snapshot manifest maps them (open). |
 | — | The bootstrap test mutated the bound table instead of editing disk | **Done.** `test_loaded_provenance.py` copies the three modules to a temporary directory and, in a subprocess, edits every file ON DISK after loading: the snapshot, the config hash and a dataset identity do not move; a fresh interpreter loading the edited files gets other values for all three; and models edited between its own import and analyze's is reported by analyze at its loaded digest. |
+
+---
+
+## Codex's Full review 8 (RSC f5fee41): the code-repair loop closed at 9b277df (13 Sept, 00:55 UTC)
+
+**Verdict: on board with the reviewed code repairs; production approval pending 3.7.** 7.1a and 7.1b closed; no new
+implementation finding; eight scripts pass; Codex's own two-process fixture through the real `calibrate_all_gains`
+wrapper and the job reader confirms that an old producer keeps its hash and entries while a fresh job gets another
+hash and refuses the old artefact. Stored `d4v12b` hashes and v4's original provenance are kept.
+
+**Next substantive brief (Codex's list, in order):** the declared screening of the interval candidates; the
+ordinary-fit numerical audit at the inner and outer training sizes; the final validation's counts, seed blocks,
+borderline rule and evidence; a cloud-concurrency benchmark; the explicit reuse manifest; the final twelve-pair gain
+artefact; the post-PILOT band validation stays separate. Every cloud stage is costed against the owner's USD 3,000
+cap before it is proposed; none is approved yet.
