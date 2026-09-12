@@ -1,37 +1,38 @@
 # Codex review record — Entropy T1, 12 September 2026
 
-This file owns the Codex review findings and restart context for the seven completed
+This file owns the Codex review findings and restart context for the eight completed
 12 September reviews. It records advice sent to `claude:Entropy SI`, not an owner
 decision or authorization to launch work. The publication strategy and current
 operational state remain with Unimog-Projects work item R052 and its owning docs.
 
 ## Current review position
 
-Latest re-check: Recoverable-Self-Coding `71c46fb`; Unimog-Projects `0399cff3`.
+Latest re-check: Recoverable-Self-Coding `9b277df`; Unimog-Projects `2740e12b`.
 Claude requested the re-check through `xs` after recording its disposition of
-Full review 6. All seven reviews are preserved below in chronological order;
-**Full review 7** is the current disposition. The reviewed production files
-were clean at `71c46fb`.
+Full review 7. All eight reviews are preserved below in chronological order;
+**Full review 8** is the current disposition. The reviewed production files
+were clean at `9b277df`.
 
-**Latest verdict: not on board with production yet.** Both readers now require
-the raw source for a revalidation (6.2 closed), and the direct analysis-file edit
-case in 6.1 is fixed. Loaded-code provenance still needs one consistent contract
-(7.1): a preloaded models module is hashed from disk when analyze later imports,
-and the separate row/gain `config_hash` still reads live files. The numerical
-audit, validation design, benchmark and reuse manifest remain open independently.
-The earlier checksum, interrupted-tail, retrieval-error and shard-mirror fixes
-remain accepted.
+**Latest verdict: on board with the reviewed code repairs; production approval
+remains pending 3.7.** Finding 7.1 is closed: models binds its own source digest,
+analyze requires it, and row/gain hashes use the bound digests. The direct disk-edit
+and fresh-process checks pass, including an old gain producer followed by a new
+job reader. No new implementation blocker was found in this bounded re-check.
+The earlier gain-reader, checksum, interrupted-tail, retrieval-error and shard-
+mirror fixes remain accepted. Numerical audit, declared validation, benchmark,
+reuse manifest and the final gain artefact remain outstanding.
 
 The earlier approval of d4v12b was limited to continuing per-layer calibration and
 recovery, with power held behind the revalidated gain gate. It did not approve a
-new production wave or the still-pending 35-layer band validation. The latest
-review supports bounded diagnostics and an owner decision to stop verified jobs
-after their final calibration upload at the known-failing gain stage. Codex has
-performed no AWS operation.
+new production wave or the still-pending 35-layer band validation. The current
+code disposition supports the next declared local diagnostic/screening step;
+scientific acceptance still requires the evidence under 3.7. Codex has performed
+no AWS operation.
 
-The latest re-check passed seven existing test scripts, with an offline AWS SDK
-substitute and fixed response arrays for the new recovery test, and four new
-mocked fixtures. It ran no numerical fit, response simulation or AWS operation.
+The latest re-check passed eight existing test scripts, with an offline AWS SDK
+substitute and fixed response arrays for the recovery test, plus a separate
+two-process gain-wrapper closure fixture. It ran no numerical fit, response
+simulation or AWS operation.
 Codex's changes are this review record, its diagnostic script and the R052 review state.
 The owning session's local calibration processes are outside the review. Its
 reported M3L diagnostic at `a508601` supports the basin-loss diagnosis; no final
@@ -42,7 +43,7 @@ and any launch still requires the owner's go and Codex's explicit disposition.
 ## Resume procedure
 
 1. Read this section and the latest review below. Run `git log` and inspect
-   status in both repos; Claude may have landed fixes since `71c46fb`.
+   status in both repos; Claude may have landed changes since `9b277df`.
 2. Read the current R052 frontmatter and its latest log entries in
    `~/Unimog-Projects/project_knowledge/work/R052-entropy-si-paper-access-at-threshold-brain-vs-la.md`.
    That item belongs to session `Entropy SI`; the reviewer does not take over
@@ -66,15 +67,20 @@ the T1 second-opinion review from the outstanding findings.”
 
 ## Next re-check targets
 
-- Complete loaded-code provenance across checkpoints, rows and gain artefacts
-  (7.1): bind the model's digest at its own load and remove live-file hashing
-  from the output identity. Test models imported before analyze and a source
-  edit between importing simulate and completing the real gain wrapper.
-  A pinned immutable execution copy is an alternative if enforced for the
-  whole run. Keep effective globals and all data/Config/fold identity fields.
-- Freeze and validate the procedure/counts/borderline rule on new seeds across
-  all retained nulls and alternatives; complete the ordinary-fit sensitivity
-  audit, cloud benchmark and explicit cross-snapshot reuse manifest.
+- Declare the screening procedure, settings, counts, seeds and decision rule;
+  complete the ordinary pipeline's numerical sensitivity audit at inner/outer
+  training sizes, including mixture-shaped data (3.7).
+- Supply the final twelve-pair gain artefact with its declared source/analysis
+  provenance and the explicit cross-snapshot reuse manifest. Keep existing
+  hashes and distinguish the running Mac diagnostic from that final artefact.
+- Resolve final validation counts, independent seed blocks, target precision
+  and the borderline rule, then validate across retained nulls and alternatives.
+  Supply the measured cloud benchmark and costed stage plan within the cap.
+  The reduced layer pilot does not replace post-PILOT band validation.
+
+The reviewed code-repair loop is closed at `9b277df`; the next substantive brief
+should carry the outstanding plan or evidence, or identify additional code
+changes requiring review. Mocked tests do not close 3.7.
 
 ## Evidence retained
 
@@ -134,6 +140,11 @@ The seventh review adds [provenance re-check fixtures](2026-09-12_codex_provenan
 for `71c46fb`. They positively verify both direct review-6 cases, then demonstrate
 the preloaded-model and gain-wrapper provenance paths using temporary source
 copies and mocked numerical results. No running diagnostic is modified.
+
+The eighth review uses the production [loaded-provenance test](../test_loaded_provenance.py)
+and adds a [two-process gain-wrapper closure fixture](2026-09-12_codex_provenance_closure.py)
+at `9b277df`. An old producer retains its code identity after the temporary file
+is edited; a fresh job rejects its artefact under the newer identity.
 
 ## Scientific and publication boundaries
 
@@ -844,3 +855,56 @@ proceed with the declared screening/audit/artefact work within its existing
 scope. The final production decision still needs the numerical and statistical
 evidence under 3.7. Further AWS spend remains capped at USD 3,000; no new launch
 is approved here. R052 remains with `Entropy SI`.
+
+## Full review 8 — re-check of 9b277df
+
+Reviewed 12 September 2026 after Claude's 15:39 PDT request. Read the latest
+brief disposition, preregistration §10 changes, the full affected code paths and
+tests, RSC changes through `9b277df` and Unimog through `2740e12b`.
+
+**VERDICT: on board with the reviewed code repairs; production approval remains
+pending 3.7.** Close 7.1a and 7.1b. No new implementation finding in this bounded
+re-check. The next substantive review concerns the outstanding plan and evidence,
+or additional code changes, rather than another repair of these cases.
+
+Eight existing scripts pass: `test_calibrate_gain.py`,
+`test_refit_bootstrap.py`, `test_interval_path.py`, `test_gain_gate.py`,
+`test_gain_gate_integration.py`, `test_launcher_env.py`,
+`test_gain_artefact.py` and `test_loaded_provenance.py`. The offline wrapper
+disables optimizer/AWS calls and replaces the small response-generation call
+with fixed arrays. The provenance test starts subprocesses on temporary source
+copies, edits every file on disk and compares both continuing and fresh
+interpreters. No numerical fit is performed.
+
+The additional
+[2026-09-12_codex_provenance_closure.py](2026-09-12_codex_provenance_closure.py)
+passes through the real `calibrate_all_gains` wrapper and the actual job's
+`s3_fetch/gain_file` functions in two separate interpreter processes. Its
+numerical entries and download client are mocked. After importing the producer,
+the temporary simulate file is edited from mocked scale 0.5 to 0.75. The old
+producer still writes twelve scale-0.5 entries with its original code hash.
+A fresh interpreter produces scale-0.75 entries under a different hash and
+refuses the old artefact through the job reader. This supplies the final
+producer-to-consumer check for 7.1b.
+
+| Finding | Re-check disposition |
+|---|---|
+| 7.1a model identity bound too late | Fixed. `models.py:61` binds its own source digest; `analyze.py:442` requires and copies that value, with no disk fallback. Editing models between its import and analyze's import leaves analyze reporting the loaded digest. |
+| 7.1b live row/gain hash | Fixed for the reviewed process/restart paths. `simulate.config_hash:45` hashes the three registered source digests and refuses a missing registration. A disk edit leaves the old process's snapshot, dataset identity and config hash unchanged; a fresh interpreter differs. The real gain wrapper retains the old hash and the new job refuses it. |
+| Earlier code closures | Carried forward; the eight tests pass, including required gain sources, retrieval failures, bootstrap integrity and interval bookkeeping. |
+| 3.7 numerical and statistical acceptance | Open: ordinary-fit numerical audit, declared screening/final validation, cloud benchmark, explicit reuse manifest, final twelve-pair gain artefact and post-PILOT band validation. |
+
+The hash construction has changed. That is not permission to overwrite old
+`d4v12b` hashes, remove resume checks or declare cross-snapshot equivalence
+without the manifest. The change to models in this commit adds provenance
+metadata; this code review does not establish the full scientific reuse case.
+
+No production source, existing result or running diagnostic was changed by
+Codex. No numerical optimization, response simulation or AWS operation was run;
+Codex did not run `verify.py` or evaluate the v4 Mac diagnostic. The accepted code
+repairs support moving to the declared local diagnostic/screening work. They do
+not establish numerical convergence, interval coverage or power.
+
+The owner's USD 3,000 further-spend cap remains in force. A proposed cloud stage
+still needs a concrete costed plan, the owner's go and an explicit stage
+disposition; no new launch is approved here. R052 remains with `Entropy SI`.
