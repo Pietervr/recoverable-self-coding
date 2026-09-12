@@ -297,20 +297,53 @@ def summarize(out_csv: str, predictor: str = "selection") -> "pd.DataFrame":
 # §10: the per-trial gain of a mixture generator over the best graded member, and its calibration
 # ----------------------------------------------------------------------------------------------
 def expected_gain(name: str, theta: np.ndarray, seed: int = 0, n_per_family: int = 32, D: int = 4,
-                  cfg: A.Config | None = None, graded=M.FAMILY_G) -> dict:
+                  cfg: A.Config | None = None, graded=M.FAMILY_G, n_starts: int | None = None,
+                  warm: dict | None = None) -> dict:
     """E[log q_true - log q_G*] per trial on fresh data, G* = the graded member with the best training
     joint log-likelihood at large sample (8 x n_per_family concepts). The truth term is scored under the
     GENERATING density (floor 0 for M3V: the fitting floor belongs to fitted predictors only — Codex 2026-09-11);
-    `se` is the concept-cluster standard error of the per-trial gain."""
+    `se` is the concept-cluster standard error of the per-trial gain.
+
+    The reference fit is an ORACLE at large sample, not the pipeline's fit, and it must find the optimum. Run
+    d4v12b (12 Sept 2026, M3L at 0.01 nat): with the pipeline's 8 starts the M2K optimum at 256 concepts was
+    reached by one start in eight — the other seven ended in a basin 155 nat worse in training likelihood and
+    0.003 nat per trial worse held out — and whether that one start landed flipped with the data at the seventh
+    decimal of the scale, so the gain alternated between 0.00806 and 0.01097 and the bisection could not close.
+    Hence (calibration side only; models.py and the pipeline untouched): REF_STARTS jittered starts per graded
+    member; `warm` = the kept solutions of the previous evaluation on the bisection path, run as one further
+    start each, so a basin once found is carried along the path; a member whose kept optimum is reached by
+    fewer than REF_MIN_STARTS_AT_BEST starts gets REF_EXTRA_STARTS more (same data, a further seed); the
+    counts are returned (`starts_at_best`) and the gate reads `ref_reproduced` for the selected reference."""
     cfg = A.Config() if cfg is None else cfg
+    n_starts = REF_STARTS if n_starts is None else int(n_starts)
     tr = make_dataset(name, theta, n_per_family, D, layers=(41,), rho=0.0, seed=seed)
     te = make_dataset(name, theta, n_per_family, D, layers=(41,), rho=0.0, seed=seed + 1)
     train = M.Trials.build(tr.y[:, 0], tr.k, tr.concept, tr.n_concepts)
     test = M.Trials.build(te.y[:, 0], te.k, te.concept, te.n_concepts, floor_sd=train.floor_sd)
     truth = M.Trials.build(te.y[:, 0], te.k, te.concept, te.n_concepts, floor_sd=0.0)
-    fits = {g: M.fit(g, train, cfg.n_gh, cfg.n_starts, np.random.default_rng([seed, 7, i])) for i, g in enumerate(graded)}
+    fits = {g: M.fit(g, train, cfg.n_gh, n_starts, np.random.default_rng([seed, 7, i])) for i, g in enumerate(graded)}
     if not all(np.isfinite(fits[g].loglik) for g in graded):
         raise RuntimeError(f"expected_gain({name}): a graded reference fit did not produce a finite likelihood")
+    extra = {g: 0 for g in graded}
+    for i, g in enumerate(graded):
+        more_runs, more_nfev, more_nit, more_sec = [], 0, 0, 0.0
+        w = None if warm is None else warm.get(g)
+        if w is not None and np.all(np.isfinite(w)) and np.asarray(w).size == fits[g].theta.size:
+            t0 = _time.time()
+            more_runs += M._run_starts(g, train, np.asarray([w], dtype=float), cfg.n_gh, dict(M.LBFGSB_OPTIONS))
+            more_sec += _time.time() - t0
+        if _starts_at_best(fits[g], extra_runs=more_runs) < REF_MIN_STARTS_AT_BEST:
+            more = M.fit(g, train, cfg.n_gh, REF_EXTRA_STARTS, np.random.default_rng([seed, 7, i, 1]), recovery=False)
+            more_runs += more.runs; more_nfev += more.nfev; more_nit += more.nit; more_sec += more.seconds
+            extra[g] = REF_EXTRA_STARTS
+        if more_runs:
+            runs = fits[g].runs + more_runs
+            kept, n_conv = M._pick(runs)
+            if kept is not None:
+                fits[g] = M.FitResult(g, kept["theta"], kept["loglik"], bool(kept["converged"]), n_conv, len(runs),
+                                      fits[g].recovery, fits[g].nfev + more_nfev, fits[g].nit + more_nit,
+                                      fits[g].seconds + more_sec, runs)
+    starts_at_best = {g: _starts_at_best(fits[g]) for g in graded}
     best = max(graded, key=lambda g: fits[g].loglik)
     lq_true = M.concept_scores(name, theta, truth, cfg.n_gh)
     lq_by = {g: M.concept_scores(g, fits[g].theta, test, cfg.n_gh) for g in graded}
@@ -320,54 +353,111 @@ def expected_gain(name: str, theta: np.ndarray, seed: int = 0, n_per_family: int
     se = float(np.std(per_concept, ddof=1) / np.sqrt(per_concept.size))
     return dict(gain=gain, se=se, best=best,
                 gains={g: float((lq_true.sum() - lq_by[g].sum()) / test.n) for g in graded},
-                converged={g: fits[g].converged for g in graded})
+                converged={g: fits[g].converged for g in graded},
+                loglik={g: float(fits[g].loglik) for g in graded},
+                theta={g: [float(v) for v in fits[g].theta] for g in graded},
+                n_starts={g: int(fits[g].n_starts) for g in graded},
+                starts_at_best=starts_at_best, extra_starts=extra,
+                ref_reproduced=bool(starts_at_best[best] >= REF_MIN_STARTS_AT_BEST))
+
+
+REF_STARTS = 32                  # jittered starts per graded reference fit (the pipeline's 8 found the M2K optimum once in eight)
+REF_MIN_STARTS_AT_BEST = 2       # the reference optimum must be reached by at least two starts (12 Sept 2026)
+REF_EXTRA_STARTS = 24            # else this many more starts on the same data before the reference is chosen
+REF_BASIN_TOL = 0.5              # a start "reaches" the kept optimum when its loglik is within this (nat, total)
+
+
+def _starts_at_best(fit: "M.FitResult", tol: float = REF_BASIN_TOL, extra_runs: list = ()) -> int:
+    """How many converged starts ended within tol nat (total training log-likelihood) of the best converged
+    solution among the fit's runs and `extra_runs` together."""
+    runs = [r for r in list(fit.runs) + list(extra_runs) if r["converged"] and np.isfinite(r["loglik"])]
+    if not runs:
+        return 0
+    top = max(r["loglik"] for r in runs)
+    return int(sum(1 for r in runs if top - r["loglik"] <= tol))
+
+
+MIN_BRACKET_WIDTH = 1e-3         # the bisection stops when hi/lo - 1 is below this (0.1 % in scale)
 
 
 def calibrate_gain(name: str, target: float, kwargs: dict, lo: float = 0.02, hi: float = 3.0, tol: float = 0.05,
-                   seed: int = 0, max_iter: int = 30, **gain_kw) -> dict:
-    """Bisection on `scale` (multiplying both high-state offsets) until expected_gain is within tol (relative)
-    of target; then an independent check of the achieved gain at a fresh seed. Every failure is explicit in
-    `note` (bracket, bisection limit, non-finite) and the caller must refuse such an entry."""
+                   seed: int = 0, max_iter: int = 30, min_width: float = MIN_BRACKET_WIDTH, **gain_kw) -> dict:
+    """Geometric bisection on `scale` (multiplying both high-state offsets) until expected_gain at the FIXED
+    calibration seed is within tol (relative) of target — or until the bracket has collapsed (hi/lo - 1 <
+    min_width). At a fixed seed g(scale) is deterministic but not continuous: the kept reference fit can jump
+    between two local optima of near-equal training likelihood with different held-out scores (run d4v12b,
+    12 Sept 2026, M3L at 0.01 nat: 0.00806 below and 0.01097 above scale 0.684661, M2K kept on both sides), and a
+    tolerance tighter than that jump can never be met. On a collapsed bracket the scale is FROZEN at the
+    bracket's geometric centre and the calibration gain is re-measured there with more reference simulation
+    (twice the concepts at a fresh calibration seed — never the check seed), the jump recorded as `gain_jump`.
+    Then, as before, the independent check at a fresh seed and CHECK_N_PER_FAMILY concepts, and the gate.
+    Every failure is explicit in `note` (bracket, bisection limit, non-finite) and the caller must refuse such
+    an entry."""
     trace = []
-    def g(scale):
-        r = expected_gain(name, generator_theta(name, scale=scale, **kwargs), seed=seed, **gain_kw)
-        trace.append(dict(scale=scale, **{k: v for k, v in r.items() if k != "gains"}))
+    warm = {}
+    def g(scale, s, **kw):
+        r = expected_gain(name, generator_theta(name, scale=scale, **kwargs), seed=s, warm=warm or None, **{**gain_kw, **kw})
+        warm.update(r.get("theta", {}))
+        trace.append(dict(scale=scale, seed=int(s), n_per_family=int(kw.get("n_per_family", gain_kw.get("n_per_family", 32))),
+                          **{k: v for k, v in r.items() if k != "gains"}))
         return r["gain"]
-    glo, ghi = g(lo), g(hi)
+    glo, ghi = g(lo, seed), g(hi, seed)
     if not (np.isfinite(glo) and np.isfinite(ghi)):
         return dict(scale=np.nan, gain=np.nan, trace=trace, note="non-finite gain at a bracket end")
     if not (glo <= target <= ghi):
         return dict(scale=np.nan, gain=np.nan, trace=trace, note=f"target outside the bracket [{glo:.5f}, {ghi:.5f}]")
-    mid, gm = np.nan, np.nan
+    mid, gm, resolved, gain_jump = np.nan, np.nan, False, 0.0
     for _ in range(max_iter):
         mid = np.sqrt(lo * hi)
-        gm = g(mid)
+        gm = g(mid, seed)
+        if not np.isfinite(gm):
+            return dict(scale=np.nan, gain=np.nan, trace=trace, note=f"non-finite gain at scale {mid:.6f}")
         if abs(gm - target) <= tol * target:
-            # the independent check: a fresh seed and twice the concepts (CHECK_N_PER_FAMILY), its SE being the
-            # test-concept variation conditional on the check's own fitted graded reference
-            chk_kw = dict(gain_kw); chk_kw["n_per_family"] = CHECK_N_PER_FAMILY
-            chk = expected_gain(name, generator_theta(name, scale=mid, **kwargs), seed=seed + 1000, **chk_kw)
-            entry = dict(scale=float(mid), gain=float(gm), gain_check=chk["gain"], gain_check_se=chk["se"],
-                         check_best=chk["best"], check_converged=all(chk["converged"].values()),
-                         calib_converged=all(trace[-1]["converged"].values()), trace=trace, note="")
-            entry["note"] = gain_gate(entry, target)
-            return entry
+            resolved = True
+            break
         if gm < target:
             lo, glo = mid, gm
         else:
             hi, ghi = mid, gm
-    return dict(scale=np.nan, gain=float(gm), trace=trace, note=f"bisection limit: {gm:.5f} vs target {target}")
+        if hi / lo - 1.0 < min_width:
+            break
+    if not resolved:
+        if hi / lo - 1.0 >= min_width:
+            return dict(scale=np.nan, gain=float(gm), trace=trace, note=f"bisection limit: {gm:.5f} vs target {target}")
+        # the bracket has collapsed on a discontinuity: freeze the scale, re-measure the gain there with more
+        # reference simulation, record the jump; the gate decides
+        mid = float(np.sqrt(lo * hi))
+        gain_jump = float(ghi - glo)
+        gm = g(mid, seed + 500, n_per_family=2 * int(gain_kw.get("n_per_family", 32)))
+        if not np.isfinite(gm):
+            return dict(scale=np.nan, gain=np.nan, trace=trace, note=f"non-finite gain at the frozen scale {mid:.6f}")
+    # the independent check: a fresh seed and twice the concepts (CHECK_N_PER_FAMILY), its SE being the
+    # test-concept variation conditional on the check's own fitted graded reference
+    chk_kw = dict(gain_kw); chk_kw["n_per_family"] = CHECK_N_PER_FAMILY
+    chk = expected_gain(name, generator_theta(name, scale=mid, **kwargs), seed=seed + 1000, warm=warm or None, **chk_kw)
+    entry = dict(scale=float(mid), gain=float(gm), gain_jump=gain_jump, gain_check=chk["gain"], gain_check_se=chk["se"],
+                 check_best=chk["best"], check_converged=all(chk["converged"].values()),
+                 calib_converged=all(trace[-1]["converged"].values()),
+                 calib_ref_reproduced=bool(trace[-1].get("ref_reproduced", False)),
+                 check_ref_reproduced=bool(chk.get("ref_reproduced", False)),
+                 calib_starts_at_best=trace[-1].get("starts_at_best"), check_starts_at_best=chk.get("starts_at_best"),
+                 trace=trace, note="")
+    entry["note"] = gain_gate(entry, target)
+    return entry
 
 
-CHECK_N_PER_FAMILY = 64          # the independent check draws 8 x 64 concepts (the calibration draws 8 x 32)
+CHECK_N_PER_FAMILY = 64         # the independent check draws 8 x 64 concepts (the calibration draws 8 x 32)
 GATE_REL_SE = 0.20               # the check's SE must be <= 20 % of the target (else more reference simulation)
-GATE_REL_AGREE = 0.25            # and |check - target| <= 25 % of the target
+GATE_REL_AGREE = 0.25            # and |check - target| <= 25 % of the target — and |gain - target| likewise
 
 
 def gain_gate(entry: dict, target: float) -> str:
     """The §10 acceptance gate for one (member, target) calibration: '' if it passes, else the reason.
     Declared rule: finite scale/gain/check/SE; every graded reference fit converged in the calibration draw
-    and in the check draw; check SE <= GATE_REL_SE * target; |check - target| <= GATE_REL_AGREE * target."""
+    and in the check draw; the selected reference's optimum reached by at least REF_MIN_STARTS_AT_BEST starts
+    in both draws (12 Sept 2026); check SE <= GATE_REL_SE * target; |check - target| <= GATE_REL_AGREE * target;
+    and (12 Sept 2026, with the bracket-width stop) |gain - target| <= GATE_REL_AGREE * target for the
+    calibration side too, since the search tolerance no longer bounds it by itself."""
     for key in ("scale", "gain", "gain_check", "gain_check_se"):
         v = entry.get(key, np.nan)
         if v is None or not np.isfinite(v):
@@ -376,10 +466,16 @@ def gain_gate(entry: dict, target: float) -> str:
         return "a graded reference fit did not converge in the calibration draw"
     if not entry.get("check_converged", False):
         return "a graded reference fit did not converge in the check draw"
+    if not entry.get("calib_ref_reproduced", False):
+        return f"the reference optimum was reached by fewer than {REF_MIN_STARTS_AT_BEST} starts in the calibration draw"
+    if not entry.get("check_ref_reproduced", False):
+        return f"the reference optimum was reached by fewer than {REF_MIN_STARTS_AT_BEST} starts in the check draw"
     if entry["gain_check_se"] > GATE_REL_SE * target:
         return f"check SE {entry['gain_check_se']:.5f} exceeds {GATE_REL_SE:.0%} of the target {target}"
     if abs(entry["gain_check"] - target) > GATE_REL_AGREE * target:
         return f"check {entry['gain_check']:.5f} disagrees with the target {target} by more than {GATE_REL_AGREE:.0%}"
+    if abs(entry["gain"] - target) > GATE_REL_AGREE * target:
+        return f"calibration gain {entry['gain']:.5f} disagrees with the target {target} by more than {GATE_REL_AGREE:.0%}"
     return ""
 
 
@@ -391,11 +487,15 @@ def revalidate_gain_entries(entries: list, seed: int, cfg: "A.Config", D: int = 
         e = dict(e)
         if not np.isfinite(e.get("scale", np.nan)):
             return e
+        warm = (e["trace"][-1].get("theta") if e.get("trace") else None) or None
         chk = expected_gain(e["generator"], generator_theta(e["generator"], scale=e["scale"], **e["kwargs"]),
-                            seed=seed + 2000, n_per_family=CHECK_N_PER_FAMILY, D=D, cfg=cfg)
+                            seed=seed + 2000, n_per_family=CHECK_N_PER_FAMILY, D=D, cfg=cfg, warm=warm)
         e.update(gain_check=chk["gain"], gain_check_se=chk["se"], check_best=chk["best"],
                  check_converged=all(chk["converged"].values()),
-                 calib_converged=e.get("calib_converged", all(e["trace"][-1]["converged"].values()) if e.get("trace") else False))
+                 check_ref_reproduced=bool(chk.get("ref_reproduced", False)), check_starts_at_best=chk.get("starts_at_best"),
+                 calib_converged=e.get("calib_converged", all(e["trace"][-1]["converged"].values()) if e.get("trace") else False),
+                 calib_ref_reproduced=bool(e.get("calib_ref_reproduced",
+                                                 e["trace"][-1].get("ref_reproduced", False) if e.get("trace") else False)))
         e["note"] = gain_gate(e, float(e["target"]))
         e["revalidated"] = f"check recomputed at {CHECK_N_PER_FAMILY} concepts per family, seed {seed + 2000}"
         return e

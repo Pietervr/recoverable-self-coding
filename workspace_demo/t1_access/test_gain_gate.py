@@ -4,7 +4,7 @@ sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(_
 import simulate as S
 
 ok = dict(generator="M3V", target=0.01, scale=0.6027, gain=0.00988, gain_check=0.00823, gain_check_se=0.00069,
-          calib_converged=True, check_converged=True, note="")
+          calib_converged=True, check_converged=True, calib_ref_reproduced=True, check_ref_reproduced=True, note="")
 assert S.gain_gate(ok, 0.01) == "", S.gain_gate(ok, 0.01)
 wide = dict(ok, gain_check_se=0.0025)
 assert "SE" in S.gain_gate(wide, 0.01)
@@ -12,6 +12,12 @@ off = dict(ok, gain_check=0.0070)
 assert "disagrees" in S.gain_gate(off, 0.01)
 unconv = dict(ok, check_converged=False)
 assert "check draw" in S.gain_gate(unconv, 0.01)
+lonely = dict(ok, calib_ref_reproduced=False)
+assert "fewer than" in S.gain_gate(lonely, 0.01) and "calibration draw" in S.gain_gate(lonely, 0.01)
+legacy = dict(ok); del legacy["calib_ref_reproduced"]          # an entry from before 12 Sept: not recorded = not passed
+assert "fewer than" in S.gain_gate(legacy, 0.01)
+calib_off = dict(ok, gain=0.0074)
+assert "calibration gain" in S.gain_gate(calib_off, 0.01)
 entries = [dict(ok, generator=n, target=t, gain=t, gain_check=0.9 * t, gain_check_se=0.1 * t) for n in S.M.FAMILY_X for t in S.GAINS]
 assert S.validate_gain_entries(entries) == []
 dup = entries[:-1] + [dict(entries[0])]            # 12 entries, one pair twice, one missing

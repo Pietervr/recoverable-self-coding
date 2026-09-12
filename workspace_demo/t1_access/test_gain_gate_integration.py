@@ -11,7 +11,8 @@ CFG = A.Config()
 # 1. _one_gain preserves everything calibrate_gain returns
 def fake_calibrate(name, target, kwargs, seed=0, cfg=None, D=4):
     return dict(scale=0.5, gain=target * 1.02, gain_check=target * 0.95, gain_check_se=0.05 * target,
-                check_best="M2K", check_converged=True, calib_converged=True, trace=[{"scale": 0.5}], note="")
+                check_best="M2K", check_converged=True, calib_converged=True, calib_ref_reproduced=True,
+                check_ref_reproduced=True, trace=[{"scale": 0.5}], note="")
 S.calibrate_gain = fake_calibrate
 entries = S.calibrate_all_gains(seed=1, cfg=CFG, n_jobs=1, D=4)["entries"]
 assert len(entries) == 12 and all(e["calib_converged"] and e["check_converged"] for e in entries)
@@ -47,7 +48,8 @@ assert "mixture rate" in buf.getvalue() and "HELD" not in buf.getvalue(), buf.ge
 with tempfile.TemporaryDirectory() as d:
     p = os.path.join(d, "gain_calibration_D4.json")
     bad = [dict(generator=n, kwargs={}, target=t, D=4, scale=0.5, gain=t, gain_check=t, gain_check_se=0.5 * t,
-                calib_converged=True, check_converged=True, note="") for n in S.M.FAMILY_X for t in S.GAINS]
+                calib_converged=True, check_converged=True, calib_ref_reproduced=True, check_ref_reproduced=True, note="")
+           for n in S.M.FAMILY_X for t in S.GAINS]
     json.dump(dict(entries=bad), open(p, "w"))
     with contextlib.redirect_stdout(io.StringIO()):
         problems = C.check_gain_file(p)

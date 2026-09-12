@@ -71,6 +71,9 @@ class Dataset:
     family: np.ndarray     # (C,) 0..N_FAMILIES-1
     layers: np.ndarray     # (n_layers,) layer ids
     meta: dict = field(default_factory=dict)
+    group: np.ndarray | None = None   # (C,) the original concept behind each concept: the copies of one original in
+                                      # a §8.2 refitting-bootstrap resample share a group and stay in ONE fold at
+                                      # both levels; None = every concept its own group (the plain analysis)
 
     @property
     def n_concepts(self) -> int:
@@ -96,6 +99,31 @@ def stratified_folds(family: np.ndarray, n_folds: int, seed: int) -> list:
         rng.shuffle(idx)
         for i, c in enumerate(idx):
             assign[c] = (i + j) % n_folds
+    return [np.where(assign == r)[0] for r in range(n_folds)]
+
+
+def grouped_stratified_folds(family: np.ndarray, group: np.ndarray | None, n_folds: int, seed: int) -> list:
+    """stratified_folds with a grouping: every concept sharing a group id (the copies of one original concept in a
+    refitting-bootstrap resample, §8.2) lands in the same fold. The folds are drawn over one representative per
+    group, stratified by the group's family, and expanded to the copies. With no grouping, or with every group
+    distinct, this IS stratified_folds — the same RNG draws, the same folds — so the plain analysis is untouched."""
+    family = np.asarray(family)
+    if group is None:
+        return stratified_folds(family, n_folds, seed)
+    group = np.asarray(group)
+    if group.size != family.size:
+        raise ValueError(f"group has {group.size} entries for {family.size} concepts")
+    uniq, first = np.unique(group, return_index=True)
+    if uniq.size == group.size:
+        return stratified_folds(family, n_folds, seed)
+    gi = np.searchsorted(uniq, group)                 # each concept's group, as an index into uniq
+    if np.any(family != family[first][gi]):
+        raise ValueError("the copies of one group do not share a family")
+    rep_folds = stratified_folds(family[first], n_folds, seed)
+    fold_of_group = np.full(uniq.size, -1, dtype=np.int64)
+    for r, f in enumerate(rep_folds):
+        fold_of_group[f] = r
+    assign = fold_of_group[gi]
     return [np.where(assign == r)[0] for r in range(n_folds)]
 
 
@@ -128,8 +156,11 @@ def _rng(seed, *tags):
 
 
 def layer_pipeline(y: np.ndarray, k: np.ndarray, concept: np.ndarray, family: np.ndarray,
-                   outer_folds: list, cfg: Config, seed: int, layer_tag: int = 0) -> dict:
-    """§8.1 on one layer's response column. Returns per-concept held-out scores and the three Delta_c."""
+                   outer_folds: list, cfg: Config, seed: int, layer_tag: int = 0,
+                   group: np.ndarray | None = None) -> dict:
+    """§8.1 on one layer's response column. Returns per-concept held-out scores and the three Delta_c.
+    `group` (C,) keeps the copies of one original concept in one INNER fold as well (refitting bootstrap, §8.2);
+    the outer folds are the caller's."""
     C = family.size
     members = cfg.members
     mi = {m: i for i, m in enumerate(members)}
@@ -149,7 +180,8 @@ def layer_pipeline(y: np.ndarray, k: np.ndarray, concept: np.ndarray, family: np
         floor_sd = float(np.std(y[np.isin(concept, train_c)], ddof=1))
         train = _subset(y, k, concept, train_c, floor_sd)
         test = _subset(y, k, concept, test_c, floor_sd)
-        inner = stratified_folds(family[train_c], cfg.n_inner, seed=int(_rng(seed, layer_tag, f, 1).integers(2**31)))
+        inner = grouped_stratified_folds(family[train_c], None if group is None else np.asarray(group)[train_c],
+                                         cfg.n_inner, seed=int(_rng(seed, layer_tag, f, 1).integers(2**31)))
         for m in members:
             j = mi[m]
             # inner 4-fold selection score (training concepts only). §9: a member whose inner fit or score is
@@ -222,7 +254,8 @@ def _logmeanexp(a, axis=0):
 def run_dataset(ds: Dataset, cfg: Config, seed: int, outer_folds: list | None = None, n_jobs: int = 1) -> dict:
     outer_folds = stratified_folds(ds.family, cfg.n_outer, seed) if outer_folds is None else outer_folds
     def one(l):
-        return layer_pipeline(ds.y[:, l], ds.k, ds.concept, ds.family, outer_folds, cfg, seed, layer_tag=int(ds.layers[l]))
+        return layer_pipeline(ds.y[:, l], ds.k, ds.concept, ds.family, outer_folds, cfg, seed, layer_tag=int(ds.layers[l]),
+                              group=ds.group)
     if n_jobs > 1 and ds.n_layers > 1:
         from joblib import Parallel, delayed
         res = Parallel(n_jobs=n_jobs)(delayed(one)(l) for l in range(ds.n_layers))
@@ -336,33 +369,54 @@ def analyze_dataset(ds: Dataset, cfg: Config, seed: int, outer_folds: list | Non
 # §8.2 fallback: pipeline-refitting bootstrap (all copies of a concept in one fold)
 # ----------------------------------------------------------------------------------------------
 def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = 200, predictor: str = "selection",
-                    n_jobs: int = 1) -> dict:
+                    n_jobs: int = 1, outer_folds: list | None = None, min_usable: float = 0.9) -> dict:
+    """Resample whole concepts with replacement within family strata and re-run the ENTIRE per-layer procedure
+    (outer folds, inner selection, refit, joint scoring) on every resample; percentile interval of the band means.
+    Every copy of an original concept stays in that concept's outer fold and — through Dataset.group — in one
+    inner fold: §8.2's "all copies of a concept in one fold" at both levels (the v1.2 code kept copies together
+    only in the outer folds and drew the inner folds over copy ids, so copies of one concept could sit on both
+    sides of an inner split; Codex, 12 Sept 2026). `outer_folds` are the analysis's own folds (folds.json for
+    CONF); None regenerates them as run_dataset does. A resample whose procedure fails (§9) yields no
+    statistic: it is counted in `n_failed`, never averaged in, and the interval is unusable (NaN) when fewer
+    than `min_usable` of the replicates are usable."""
     rng = np.random.default_rng(seed)
     idx = stratified_resample(ds.family, n_rep, rng)
-    base_folds = stratified_folds(ds.family, cfg.n_outer, seed)
-    fold_of = np.empty(ds.n_concepts, dtype=np.int64)
+    base_folds = stratified_folds(ds.family, cfg.n_outer, seed) if outer_folds is None else outer_folds
+    fold_of = np.full(ds.n_concepts, -1, dtype=np.int64)
     for r, f in enumerate(base_folds):
-        fold_of[f] = r
+        fold_of[np.asarray(f)] = r
+    if np.any(fold_of < 0):
+        raise ValueError("outer_folds do not cover every concept")
     rows_by_concept = [np.where(ds.concept == c)[0] for c in range(ds.n_concepts)]
+    masks = {b: m for b, m in band_masks(ds.layers, cfg.bands).items() if m.any()}
+
     def one(rep):
         chosen = idx[rep]
         rows = np.concatenate([rows_by_concept[c] for c in chosen])
         new_concept = np.concatenate([np.full(rows_by_concept[c].size, j) for j, c in enumerate(chosen)])
         family = ds.family[chosen]
-        folds = [np.where(fold_of[chosen] == r)[0] for r in range(cfg.n_outer)]
-        sub = Dataset(ds.y[rows], ds.k[rows], new_concept, family, ds.layers)
+        folds = [f for f in (np.where(fold_of[chosen] == r)[0] for r in range(len(base_folds))) if f.size]
+        sub = Dataset(ds.y[rows], ds.k[rows], new_concept, family, ds.layers, group=chosen)
         run = run_dataset(sub, cfg, seed + 1 + rep, outer_folds=folds)
-        masks = band_masks(ds.layers, cfg.bands)
-        return {b: float(np.nanmean(run["delta"][predictor][m])) for b, m in masks.items() if m.any()}
+        stat = {b: float(np.nanmean(run["delta"][predictor][m])) for b, m in masks.items()}
+        return dict(stat=stat, failed=bool(run["failed"]), failed_reason=run.get("failed_reason", ""),
+                    fit_seconds=float(run.get("fit_seconds", 0.0)))
     if n_jobs > 1:
         from joblib import Parallel, delayed
         stats = Parallel(n_jobs=n_jobs)(delayed(one)(r) for r in range(n_rep))
     else:
         stats = [one(r) for r in range(n_rep)]
-    out = {}
-    for b in stats[0]:
-        v = np.array([s[b] for s in stats])
-        out[b] = dict(lo=float(np.percentile(v, 2.5)), hi=float(np.percentile(v, 97.5)), se=float(np.std(v, ddof=1)))
+    usable = [s for s in stats if not s["failed"] and all(np.isfinite(v) for v in s["stat"].values())]
+    out = dict(n_rep=int(n_rep), n_used=len(usable), n_failed=int(n_rep - len(usable)),
+               usable=bool(len(usable) >= min_usable * n_rep and usable),
+               failed_reasons=[s["failed_reason"] for s in stats if s["failed"]],
+               fit_seconds=float(sum(s["fit_seconds"] for s in stats)))
+    for b in masks:
+        if out["usable"]:
+            v = np.array([s["stat"][b] for s in usable])
+            out[b] = dict(lo=float(np.percentile(v, 2.5)), hi=float(np.percentile(v, 97.5)), se=float(np.std(v, ddof=1)))
+        else:
+            out[b] = dict(lo=float("nan"), hi=float("nan"), se=float("nan"))
     return out
 
 
