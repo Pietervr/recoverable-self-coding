@@ -1,25 +1,25 @@
 # Codex review record — Entropy T1, 12 September 2026
 
-This file owns the Codex review findings and restart context for the four completed
+This file owns the Codex review findings and restart context for the five completed
 12 September reviews. It records advice sent to `claude:Entropy SI`, not an owner
 decision or authorization to launch work. The publication strategy and current
 operational state remain with Unimog-Projects work item R052 and its owning docs.
 
 ## Current review position
 
-Latest re-check: Recoverable-Self-Coding code `8972ba4` and documentation
-`d1ab54f`; Unimog-Projects `84aaa653`. Claude requested the re-check through
-`xs` after recording its disposition of Full review 3. All four reviews are
-preserved below in chronological order; **Full review 4** is the current
-disposition. The reviewed production files were clean at `d1ab54f`.
+Latest re-check: Recoverable-Self-Coding `ce0c034`; Unimog-Projects `a7ad6442`.
+Claude requested the re-check through `xs` after recording its disposition of
+Full review 4. All five reviews are preserved below in chronological order;
+**Full review 5** is the current disposition. The reviewed production files
+were clean at `ce0c034`.
 
-**Latest verdict: not on board with production yet.** The chosen-scale gate,
-launcher interval/B options, failure/coverage bookkeeping, saved refit/H2
-statistics and same-training challenge are accepted. Two integration blockers
-remain: checkpoints can silently supply another dataset's intervals, and jobs
-reject the revalidation writer's schema and fall back to the raw gain file.
-Recovery-start provenance and output durability also need completion. The
-numerical audit, validation design, benchmark and reuse manifest remain open.
+**Latest verdict: not on board with production yet.** The demonstrated
+layer/grid checkpoint collisions, revalidation writer schema, recovery-start
+provenance and companion-band output are fixed. Checkpoint identity still omits
+the numerical implementation and its global settings; gain authentication and
+download-error handling still permit invalid acceptance. Damaged checkpoint
+payloads and stale run-wide uploads also need repair. The numerical audit,
+validation design, benchmark and reuse manifest remain open.
 
 The earlier approval of d4v12b was limited to continuing per-layer calibration and
 recovery, with power held behind the revalidated gain gate. It did not approve a
@@ -28,10 +28,10 @@ review supports bounded diagnostics and an owner decision to stop verified jobs
 after their final calibration upload at the known-failing gain stage. Codex has
 performed no AWS operation.
 
-The latest re-check passed six existing test scripts, with an offline AWS SDK
-substitute for the launcher's actual dry-run, and four new mocked fixtures. It
-ran no numerical fit, simulated response dataset or AWS operation. Codex's
-changes are this review record, its diagnostic script and the R052 review state.
+The latest re-check passed seven existing test scripts, with an offline AWS SDK
+substitute and fixed response arrays for the new recovery test, and four new
+mocked fixtures. It ran no numerical fit, response simulation or AWS operation.
+Codex's changes are this review record, its diagnostic script and the R052 review state.
 The owning session's local calibration processes are outside the review. Its
 reported M3L diagnostic at `a508601` supports the basin-loss diagnosis; no final
 twelve-pair gain artefact or repaired coverage was established here. The owner's
@@ -41,7 +41,7 @@ and any launch still requires the owner's go and Codex's explicit disposition.
 ## Resume procedure
 
 1. Read this section and the latest review below. Run `git log` and inspect
-   status in both repos; Claude may have landed fixes since `8972ba4`/`d1ab54f`.
+   status in both repos; Claude may have landed fixes since `ce0c034`.
 2. Read the current R052 frontmatter and its latest log entries in
    `~/Unimog-Projects/project_knowledge/work/R052-entropy-si-paper-access-at-threshold-brain-vs-la.md`.
    That item belongs to session `Entropy SI`; the reviewer does not take over
@@ -65,19 +65,15 @@ the T1 second-opinion review from the outstanding findings.”
 
 ## Next re-check targets
 
-- Gate the selected calibration evaluation, including when the lower endpoint
-  wins; retain its full diagnostics and refresh endpoints after new discoveries.
-- Carry interval and B through the real cloud launch request, with a mock
-  launch-to-job-to-row check; record the frozen analysis configuration.
-- Separate valid point estimates, primary assay failures and per-predictor
-  interval availability; fix summaries and monitors without conditioning the
-  reference target on successful bootstrap intervals.
-- Save all bands, H2, companion cluster intervals, actual folds/seeds, and
-  per-resample statistics/failure reasons; checkpoint resamples during fitting.
-- Finish the fixed-scale training-only challenge and initial-vector/batch
-  provenance; a new training dataset is a different objective, not that challenge.
-- Use one accepted gain artefact in jobs and monitors; link it to its source
-  checksum and update all diagnostics when revalidating it.
+- Bind checkpoint identity to the numerical implementation and effective
+  global settings as well as the existing data/Config/fold digest (5.1).
+- Require gain provenance in both callers, associate the monitor's accepted
+  identity with the run, and distinguish verified absence from download
+  failure before considering the raw artefact (5.2).
+- Validate and checksum complete checkpoint payloads; repair interrupted
+  tails before appending and test consecutive resumes (5.3).
+- Prevent the shared checkpoint mirror from uploading stale foreign copies
+  over newer completed work; test two-job interleavings offline (5.4).
 - Freeze and validate the procedure/counts/borderline rule on new seeds across
   all retained nulls and alternatives; complete the ordinary-fit sensitivity
   audit, cloud benchmark and explicit cross-snapshot reuse manifest.
@@ -125,6 +121,11 @@ of the production diagnostics were read from
 `../sim_results/d4v12b/monitor/`; neither those outputs nor raw CSVs are
 included with this record. The mocked tests and these
 counterexamples do not establish numerical convergence or statistical coverage.
+
+The fourth review adds [checkpoint/writer fixtures](2026-09-12_codex_checkpoint_recheck.py)
+for `8972ba4`; the fifth adds [integrity fixtures](2026-09-12_codex_integrity_recheck.py)
+for `ce0c034`. Each script documents the behavior at its reviewed snapshot.
+Their defect assertions should fail after the corresponding repair.
 
 ## Scientific and publication boundaries
 
@@ -518,3 +519,139 @@ chosen B with a borderline/precision rule, measured cloud concurrency cost,
 source-to-analysis reuse manifest and eventual 35-layer band validation remain
 open under 3.7. No new AWS launch is approved by this review. R052 remains with
 `Entropy SI`; the owner/session retain the existing-job stop decision.
+
+## Full review 5 — re-check of ce0c034
+
+Reviewed 12 September 2026 after Claude's 14:48 PDT request. Read the latest
+disposition and preregistration changes, the full affected functions and tests,
+RSC changes through `ce0c034` and Unimog changes through `a7ad6442`.
+
+**VERDICT: not on board with production yet.** The specific data collisions,
+real-writer schema and recovery archive are repaired. The contracts still have
+two correctness blockers and two checkpoint integrity/durability gaps below.
+The statistical requirements under 3.7 remain open independently.
+
+All seven existing scripts pass: `test_calibrate_gain.py`,
+`test_refit_bootstrap.py`, `test_interval_path.py`, `test_gain_gate.py`,
+`test_gain_gate_integration.py`, `test_launcher_env.py` and
+`test_gain_artefact.py`. The offline review wrapper prohibits optimizer and AWS
+calls and substitutes fixed arrays for the small `make_dataset` call newly
+added to the calibration test. Four fixtures in
+[2026-09-12_codex_integrity_recheck.py](2026-09-12_codex_integrity_recheck.py)
+reproduce the findings through actual checkpoint functions, the real
+revalidation writer and extracted job functions. All reported fixture values
+are artificial control-flow evidence. No production source or running process
+was changed; no numerical optimization, response simulation or AWS operation
+was performed.
+
+1. **BLOCKING — checkpoint identity omits the numerical implementation.**
+   `analyze.dataset_identity:430–448` hashes the data, metadata and Config
+   fields, but no code/version identity, quadrature/Newton constants,
+   optimizer options or jitter settings stored in `models.py`. These affect
+   fitting outside Config. They are included in `simulate.config_hash`, but
+   that hash is absent from the checkpoint contract.
+
+   Fixture: change only `M.TRAP_POINTS`, keeping the dataset, Config, seed,
+   B and folds identical. The numerical run hash changes; the checkpoint
+   identity does not. All four old resamples are reused, returning CI [1, 1]
+   while a fresh run of the mocked revised numerical procedure gives [2, 2].
+   This matters when interrupted work is resumed after a numerical repair or
+   when the pending numerical audit varies integration settings. Existing CSV
+   hash checks cannot protect resamples saved before the first row completes.
+
+   Bind the checkpoint to the numerical snapshot actually executed, including
+   implementation identity, effective model/optimizer/integration settings and
+   relevant runtime identity. Retain the new data/fold digest. Test changed
+   global settings and changed implementation as well as changed Config; the
+   current tests cover only the latter.
+
+2. **BLOCKING — gain authentication is optional in important paths.** The
+   real writer now emits the required fields, and an ordinary failed
+   revalidation is correctly held: those earlier defects are fixed. However:
+
+   - `simulate.py:868` checks `source_digest` only when it is present. Removing
+     it from a real-writer file lets both job and monitor accept all twelve
+     pairs. Missing required provenance must fail authentication.
+   - `spotcheck.gain_file_for:104` passes `want=None`. A foreign
+     `code_hash/source_code_hash` therefore passes the monitor even when it
+     disagrees with the raw file beside it, while the real job holds it.
+     The fixture preserves the correct source digest and changes those hash
+     fields: job HELD, monitor PASS. The existing test's foreign-hash case
+     exercises only the helper with an explicit expected hash; it does not
+     exercise the monitor's permissive invocation.
+   - `t1_job.s3_download:71–77` returns False on every exception. With the raw
+     file present locally and retrieval of a present revalidation raising a
+     mocked AccessDenied/I/O error, the real `gain_file` path accepts the raw
+     file and all twelve pairs. It cannot distinguish verified absence from
+     failure to retrieve the required check.
+
+   Require the declared identity fields and validate the source link and
+   expected run/reference identities in both callers. The monitor should
+   obtain the expected identity from the run manifest/verified source and
+   associate it with the reported rows, including explicit approved reuse
+   where applicable. Permit raw fallback only after verified revalidation
+   absence; propagate other retrieval failures. Add these cases through the
+   actual job and monitor, not only the shared helper.
+
+3. **REQUIRED — checkpoint payload integrity and interrupted-tail repair are
+   incomplete.** `analyze.py:507–512` validates the input identity and drawn
+   concepts, but only checks the top level of the statistics mapping. The
+   identity is a digest of the inputs; it is not a checksum of saved output.
+   Three cases in the fixture demonstrate the distinction:
+
+   - Change all four saved selection workspace statistics from 1 to 99,
+     leaving their input identities intact: four resamples reused,
+     `n_damaged=0`, usable CI [99, 99]. Output alteration is undetected.
+   - Remove one record's nested workspace band: the record is accepted by
+     the reader and later raises `KeyError('ws')` instead of being counted
+     and recomputed. Other required payload fields are also unchecked.
+   - Truncate the last line without appending a newline, as an interrupted
+     write can do. `_save:518–524` glues the first repaired record to the
+     fragment. The next restart recomputes that completed resample again.
+     The existing truncated-line test adds a newline after the fragment and
+     therefore misses this write/read boundary.
+
+   Validate the complete record schema, store and check a payload digest,
+   handle conflicting duplicate records explicitly, and repair a damaged tail
+   before appending. Preserve a failure record as a failure when its complete
+   payload is valid; this is file integrity, not a policy of retrying failed
+   statistical resamples until they succeed. Test two consecutive resumes.
+
+4. **REQUIRED — the added run-wide checkpoint mirror can overwrite newer
+   work with a stale copy.** `ckpt_sync_down:90–105` downloads every checkpoint
+   in the run into every job; `ckpt_sync_up:108–120` uploads every local file
+   back to that same shared prefix, including unchanged files fetched from
+   other jobs. Fixture using these exact functions and an in-memory store:
+   job A downloads B's one-record checkpoint; B appends a second completed
+   resample remotely; A's next upload replaces it with its stale one-record
+   copy. The shared resume store loses completed work. The fixture does not
+   claim that SageMaker's separate per-shard checkpoint prefix was erased.
+
+   The launcher now supplies `CheckpointConfig` for on-demand as well as spot
+   and copies nested directories at completion: accepted configuration changes.
+   AWS documents upload and startup restore for the configured checkpoint
+   path; that service does not reconcile this additional shared mirror.
+   ([AWS checkpoint documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/model-checkpoints.html))
+   Give the resume store explicit writer ownership or immutable per-resample
+   objects, or use the configured checkpoint route alone. Avoid uploading
+   unchanged foreign downloads. Test the two-job interleaving, failed transfer
+   and restart locally before any cloud smoke test. Actual cloud interruption
+   recovery remains untested by this review.
+
+Disposition against Full review 4:
+
+| Finding | Re-check disposition |
+|---|---|
+| 4.1 data/procedure checkpoint identity | Demonstrated one→five-layer and grid-data collisions fixed; the two named M3H seed tags now differ and null seeds retain the old formula. Numerical implementation identity is still missing (5.1); damaged payload handling remains incomplete (5.3). |
+| 4.2 real writer/reader schema | Fixed for normal passing/failing output from the real writer. Required authentication and failure-to-fetch paths still disagree or fall back (5.2). |
+| 4.3 recovery-start provenance | Fixed in the reviewed production path. `_fit_reference` records vectors/batches as generated through both recovery levels, follows the former start-generation order, and carries them into the final archive. |
+| 4.4 durability and companion outputs | Every companion band and bootstrap identity now survives the row; nested output copying and checkpoint configuration added. Shared mirror can roll back another job's progress (5.4); payload integrity remains open (5.3). |
+| 3.7 numerical audit / final validation / benchmark / reuse | Open. Passing mocked tests provides no numerical or statistical approval. |
+
+Next bounded step: repair these four contract failures and re-check them. Keep
+the declared same-training challenge and the accepted bookkeeping fixes.
+The Mac gain diagnostic remains distinct from the final twelve-pair artefact;
+no new successful final artefact or repaired coverage was established here.
+Declare screening settings/seeds/counts/decision rules and cost any proposed
+spend against the owner's USD 3,000 cap. A paid run still needs the owner's go
+and an explicit Codex disposition. R052 remains with `Entropy SI`.
