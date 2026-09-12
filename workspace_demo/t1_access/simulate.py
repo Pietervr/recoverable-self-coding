@@ -426,11 +426,14 @@ GAIN_KWARGS = {"M3": {}, "M3H": dict(tau=0.5), "M3V": {}, "M3L": dict(pi0=0.05)}
 
 
 def _one_gain(name, target, seed, cfg, D):
+    """One (member, target) entry: everything calibrate_gain returns (the gate reads calib_converged,
+    check_converged, gain_check, gain_check_se) plus the identifying fields."""
     kw = GAIN_KWARGS[name]
     r = calibrate_gain(name, target, kw, seed=seed, cfg=cfg, D=D)
-    return dict(generator=name, kwargs=kw, target=target, D=D, scale=r["scale"], gain=r["gain"],
-                gain_check=r.get("gain_check", np.nan), gain_check_se=r.get("gain_check_se", np.nan),
-                note=r.get("note", ""), trace=r["trace"])
+    entry = dict(generator=name, kwargs=kw, target=target, D=D, scale=np.nan, gain=np.nan,
+                 gain_check=np.nan, gain_check_se=np.nan, calib_converged=False, check_converged=False, note="", trace=[])
+    entry.update(r)
+    return entry
 
 
 def calibrate_all_gains(seed: int, cfg: A.Config, n_jobs: int = 1, names=M.FAMILY_X, D: int = 4, layers=(41,)) -> dict:

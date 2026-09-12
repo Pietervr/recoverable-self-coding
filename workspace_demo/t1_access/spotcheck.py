@@ -103,13 +103,22 @@ def check_gain_file(path: str):
     return problems
 
 
-def report(found: dict, brief: bool):
+def report(found: dict, brief: bool, gain_ok: dict | None = None):
+    """gain_ok: {D: True/False} — the §10 gate verdict per D; a power stage's statistics are shown only when
+    its D's gain file exists and passes, else the stage is reported as HELD (Codex re-check, 2026-09-11)."""
     import simulate as S
+    gain_ok = gain_ok or {}
     if not found:
         print("nothing landed yet")
         return
     for stage, (df, prog) in found.items():
         n = len(df)
+        if stage.startswith("power"):
+            D = int(df["D"].iloc[0])
+            if not gain_ok.get(D, False):
+                print(f"{stage}: {n} rows landed — HELD: the D={D} gain file is missing or fails the §10 gate; "
+                      f"no power statistics are reported until it passes")
+                continue
         conv = df["convergence"].mean()
         fail = df["failed"].mean()
         dec = df["selection_decision"].value_counts()
@@ -145,11 +154,12 @@ def main():
     a = ap.parse_args()
     out_dir = os.path.join(HERE, "sim_results", a.run)
     found = pull(a.run, a.profile, out_dir)
-    report(found, a.brief)
-    for name in ("gain_calibration_D4.json", "gain_calibration_D8.json"):
-        p = os.path.join(out_dir, name)
+    gain_ok = {}
+    for D in (4, 8):
+        p = os.path.join(out_dir, f"gain_calibration_D{D}.json")
         if os.path.exists(p):
-            check_gain_file(p)
+            gain_ok[D] = not check_gain_file(p)
+    report(found, a.brief, gain_ok)
 
 
 if __name__ == "__main__":
