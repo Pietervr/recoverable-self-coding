@@ -1,23 +1,27 @@
 # Codex review record — Entropy T1, 12 September 2026
 
-This file owns the Codex review findings and restart context for the two completed
+This file owns the Codex review findings and restart context for the three completed
 12 September reviews. It records advice sent to `claude:Entropy SI`, not an owner
 decision or authorization to launch work. The publication strategy and current
 operational state remain with Unimog-Projects work item R052 and its owning docs.
 
-## Position at wrap
+## Current review position
 
-Reviewed Recoverable-Self-Coding code commit `a508601` and preregistration/brief
-commit `ea8042d`. The latest review was sent through `xs say` before this wrap.
-The two complete messages are preserved below in chronological order. Earlier
-hypotheses in the first message are historical; use the second message for the
-latest disposition.
+Latest re-check: Recoverable-Self-Coding `44b6d74`, following `a508601` and
+`ea8042d`; Unimog-Projects `7535ed57`, following `4948e820`. The user requested
+the continuation after reading R052 and this record. All three reviews are
+preserved below in chronological order; **Full review 3** is the current
+disposition. The latest code was committed while the reviewer was reading it;
+the reviewed production files were clean at `44b6d74`.
 
-**Latest verdict: not on board with production yet.** The within-M2K basin-loss
-diagnosis and grouping of bootstrap copies at both fold levels are accepted.
-The remaining blockers concern counting duplicate optimizer starts as independent
-reproduction, bootstrap failure handling, connecting the refitting interval to
-the actual runner, and specifying/validating the resulting procedure.
+**Latest verdict: not on board with production yet.** The duplicated moment
+start, partial-NaN bootstrap reduction and default missing-resample policy are
+fixed. Grouping at both fold levels and the within-M2K basin-loss diagnosis remain
+accepted. Refitting now reaches `analyze_dataset`, with original point estimates
+and paired H2 statistics retained in memory. The remaining defects concern the
+wrong endpoint's gain diagnostics, cloud launcher configuration, failure and
+coverage bookkeeping, saved outputs, and inconsistent gain artefact readers.
+The final training-only challenge, numerical audit and validation remain open.
 
 The earlier approval of d4v12b was limited to continuing per-layer calibration and
 recovery, with power held behind the revalidated gain gate. It did not approve a
@@ -26,14 +30,16 @@ review supports bounded diagnostics and an owner decision to stop verified jobs
 after their final calibration upload at the known-failing gain stage. Codex has
 performed no AWS operation.
 
-The read-only reviews are complete; no Codex edit, fit, simulation, or cloud job
-is in flight. This wrap saves their record and diagnostics only. No manuscript,
-preregistration, publication decision, or production code is changed by the wrap.
+The re-check used five existing mocked test scripts and six new deterministic
+review fixtures. It ran no numerical fit, simulated response dataset or AWS
+operation. Codex's changes are this review record, its diagnostic script and the
+R052 review state. The owning session's local calibration processes are outside
+the review; no successful twelve-pair gain artefact was established here.
 
 ## Resume procedure
 
 1. Read this section and the latest review below. Run `git log` and inspect
-   status in both repos; Claude may have landed fixes since `ea8042d`.
+   status in both repos; Claude may have landed fixes since `44b6d74`.
 2. Read the current R052 frontmatter and its latest log entries in
    `~/Unimog-Projects/project_knowledge/work/R052-entropy-si-paper-access-at-threshold-brain-vs-la.md`.
    That item belongs to session `Entropy SI`; the reviewer does not take over
@@ -57,28 +63,22 @@ the T1 second-opinion review from the outstanding findings.”
 
 ## Next re-check targets
 
-- Gain reference gate: unique initial vectors and source/batch provenance;
-  distinct discoveries of the best-found solution on both training draws;
-  independent challenge at the frozen scale; no check-test feedback.
-- Calibration search: retained basin candidates, refreshed bracket endpoints,
-  final frozen-scale checks, all twelve pairs, saved fitting diagnostics.
-  `t1_job.gain_file` must fail closed on a missing approved artefact if
-  orchestration claims that calibration is computed once.
-- Refitting: every required raw score finite; explicit failure policy with no
-  silent conditioning on successful resamples; all original-concept copies
-  grouped at both CV levels; fixed-fold specification tested against the
-  declared target.
-- Production analysis path: explicit interval-method option through
-  `analyze_dataset` and `simulate.one_replicate`; original point estimate
-  retained; unavailable interval becomes assay failure; paired H2
-  workspace-minus-early statistic; method, B, folds and seeds in provenance.
-- Validation: audit ordinary inner/outer fits with training-only stronger
-  searches; freeze the procedure, counts and borderline disposition; new seeds
-  for every retained null and declared alternative; uncertainty in the
-  reference target; benchmark actual cloud concurrency before budget claims.
-- Reuse: immutable source rows and hashes, explicit source-to-analysis manifest,
-  exact eligible fields/keys. Old plain fits can support diagnostics if their
-  path is unchanged; old intervals cannot validate the replacement.
+- Gate the selected calibration evaluation, including when the lower endpoint
+  wins; retain its full diagnostics and refresh endpoints after new discoveries.
+- Carry interval and B through the real cloud launch request, with a mock
+  launch-to-job-to-row check; record the frozen analysis configuration.
+- Separate valid point estimates, primary assay failures and per-predictor
+  interval availability; fix summaries and monitors without conditioning the
+  reference target on successful bootstrap intervals.
+- Save all bands, H2, companion cluster intervals, actual folds/seeds, and
+  per-resample statistics/failure reasons; checkpoint resamples during fitting.
+- Finish the fixed-scale training-only challenge and initial-vector/batch
+  provenance; a new training dataset is a different objective, not that challenge.
+- Use one accepted gain artefact in jobs and monitors; link it to its source
+  checksum and update all diagnostics when revalidating it.
+- Freeze and validate the procedure/counts/borderline rule on new seeds across
+  all retained nulls and alternatives; complete the ordinary-fit sensitivity
+  audit, cloud benchmark and explicit cross-snapshot reuse manifest.
 
 ## Evidence retained
 
@@ -90,7 +90,7 @@ to a later file. Six null settings failed the per-layer .90 coverage rule,
 despite zero primary mixture calls. The full numbers and interpretation are
 in the first review below.
 
-The most recent check ran the existing mocked
+The second review ran the existing mocked
 `test_refit_bootstrap.py`, `test_calibrate_gain.py`,
 `test_gain_gate.py` and `test_gain_gate_integration.py`: all passed.
 Two additional mock counterexamples showed:
@@ -112,10 +112,16 @@ The review scripts are preserved beside this record:
   simulations. It reports the current input checksum/count and checks for
   writes during reading. Output must be interpreted as a dated input snapshot.
 
-Both scripts retain the original Mac paths used in the review. Local outputs
+The third review adds
+[six mocked re-check fixtures](2026-09-12_codex_recheck_counterexamples.py),
+which exercise the actual calibration control flow, analysis-to-row-to-summary
+path and launcher/job functions while replacing numerical fits, response-data
+generation and cloud clients. Their assertions describe defects at `44b6d74`;
+repairs should change those outcomes. The original two scripts retain the Mac
+paths used in their review. Local outputs
 of the production diagnostics were read from
 `../sim_results/d4v12b/monitor/`; neither those outputs nor raw CSVs are
-included in this wrap commit. The four existing mocked tests and these
+included with this record. The mocked tests and these
 counterexamples do not establish numerical convergence or statistical coverage.
 
 ## Scientific and publication boundaries
@@ -209,3 +215,165 @@ Reviewed a508601, the ea8042d preregistration record, both diagnostics and the l
 
 VERDICT: not on board — for production yet. The basin-loss diagnosis and concept-grouping fix are accepted; the reproduction-count bug, bootstrap failure/runner contract, and validation plan remain to be resolved. Bounded diagnostics and stopping the verified failing gain stages are supported.
 
+## Full review 3 — re-check of 44b6d74
+
+Reviewed 12 September 2026, after the user requested continuation. Read R052 and
+this record end-to-end, the complete updated brief and preregistration, the new
+commit and full affected code paths, the launcher, monitor and tests. Latest
+relevant Unimog commit: `7535ed57`; code commit: `44b6d74`. No production code,
+preregistration, manuscript or running process was changed by this review.
+
+**VERDICT: not on board with production yet.** The earlier specific fixes are
+real, but the claim that all three blocking findings are closed is premature.
+Five existing mocked scripts pass. The six fixtures in
+`2026-09-12_codex_recheck_counterexamples.py` reproduce the gaps below; they run
+no optimizer, generated response data or cloud operation. Their small artificial
+values demonstrate control flow, not measured scientific outcomes.
+
+1. **BLOCKING — the calibration gate can certify the wrong endpoint.**
+   `simulate.py:500` selects the lower or upper re-evaluated endpoint when either
+   meets tolerance. If the lower endpoint wins, `last = trace[-1]` at line 554
+   and `full` still describe the upper endpoint. The returned scale and gain
+   therefore use the lower fit while convergence, reproduction and archived
+   runs use the upper fit. Fixture: selected scale 2 has one cold discovery
+   (`ref_reproduced=False`); the last evaluated scale 4 has two; the entry passes
+   with `calib_ref_reproduced=True`. Save each evaluation as a complete object
+   and gate/archive the selected one. Add the lower-endpoint case to the tests;
+   the existing healed-endpoint test exercises the upper endpoint. Also, the
+   second endpoint evaluation can discover a basin absent from the first:
+   refresh affected evaluations before declaring a surviving jump or freezing
+   their reference diagnostics.
+
+2. **BLOCKING FOR A REFIT CLOUD RUN — the launcher still selects cluster.**
+   `t1_job.py:59` can read `INTERVAL` and `N_BOOT_REFIT`, but `launch_t1.py` has
+   neither CLI option and its request `Environment` at line 121 sends neither.
+   Setting these variables in the Mac shell does not transmit them to the
+   container. A fully mocked launcher's real dry-run branch, with host
+   `INTERVAL=refit` and `N_BOOT_REFIT=7`, emits neither field; the job defaults
+   to cluster. Carry the declared method and B through the actual launcher and
+   verify the request, job Config, row and hash together. The local
+   `simulate.py --interval refit` path does work; that does not close the cloud
+   path. This also affects the Config hash of a precomputed gain artefact.
+
+3. **BLOCKING FOR VALIDATION — interval failures remain successes in the
+   failure/coverage bookkeeping.** `analyze.py:351` keeps the original
+   `run['failed']`; it is never updated when refitting makes the primary
+   interval unavailable. `_row` copies it at `simulate.py:183`, while
+   `summarize` at line 287 calls every `failed == 0` row usable and `spotcheck`
+   line 167 uses that flag for its failure rate. Fixture: one failed bootstrap
+   resample produces `selection_decision='assay failure'`, `interval_usable=0`,
+   but `failed=0` and an empty reason; the monitor prints zero failures and the
+   summary reports one usable interval with coverage zero. That interval
+   should be absent from the conditional-coverage denominator. Keep separate
+   flags for valid original fits/points, primary assay availability and each
+   predictor's interval availability. Count all assay failures in monitors;
+   compute coverage among that predictor's finite usable intervals. Retain
+   valid original points for the unconditional procedure target even when
+   their bootstrap fails: simply excluding them would create a different
+   conditioning error. Missingness and its relation to the simulated data are
+   performance results in their own right ([Morris, White & Crowther,
+   §5.1](https://arxiv.org/html/1712.03198v3#S5.SS1)).
+
+4. **BLOCKING FOR THE DECLARED POWER WORKFLOW — jobs and the monitor can
+   disagree about the accepted gain artefact.** The missing-file refusal in
+   `t1_job.gain_file:108` is fixed. But it reads only the raw JSON at line 98;
+   `spotcheck.gain_file_for:95` prefers the revalidated JSON. The updated
+   preregistration explicitly calls for precompute → revalidate → power.
+   Fixture: a same-hash raw file passes all twelve pairs, the revalidated file
+   fails, and the job's path still accepts all twelve while the monitor holds
+   them. Use one explicitly accepted, immutable artefact in both readers, linked
+   to the source checksum, scales, D and reference/analysis configuration; a
+   later failed required check must hold dispatch as well as reporting. The
+   raw file's own gate is still enforced by `power_points`; the defect is
+   disagreement about which validation is authoritative. Also,
+   `revalidate_gain_entries:620` updates check scalars but leaves the newly added
+   `check_runs`, `check_theta` and `check_loglik` from the previous check. A
+   fixture records fresh gain 0.011 alongside old theta 1 although the new
+   check used theta 2. Update all check provenance together, and distinguish
+   this legacy revalidation route from an extra opportunity to find a passing
+   validation seed.
+
+5. **REQUIRED BEFORE A COSTLY REFIT RUN — H2 and audit records are lost at the
+   row boundary.** The helper now computes all three predictors and paired
+   workspace-minus-early correctly in memory. However, `simulate._row:195`
+   writes only workspace point/lo/hi/SE; early, late, H2 and companion cluster
+   intervals disappear. `analyze_dataset:369` drops the helper's actual outer
+   folds; `_row` drops bootstrap seed, policy, failure reasons, per-predictor
+   usable counts and all replicate statistics. `one_replicate` returns only
+   this reduced row. The mock reaches this actual path and confirms the loss.
+   Persist the complete analysis record, with row/sidecar identity and
+   checksums, and checkpoint completed resamples as they finish. Returning
+   them after all B fits is insufficient for resuming a multi-hour dataset.
+   This persistence gap is acknowledged in the brief; it remains open.
+
+6. **REQUIRED BEFORE THE GAIN ARTEFACT — the final training-only challenge
+   is still missing.** The deterministic repeated moment start is removed,
+   and warm runs no longer count as cold discoveries: those defects are fixed.
+   However, extra starts run only when the existing reproduction count is
+   below two (`simulate.py:348`). A batch that repeatedly reaches the same
+   inferior basin gets no challenge. Fixture: 32 distinct cold initial vectors,
+   all mocked into one basin, return `ref_reproduced=True` with zero extra
+   starts. The fresh seed+1000 check changes the training dataset and hence
+   its likelihood objective; it does not challenge the final fit on the same
+   training data. Add a declared independently seeded, stronger search on each
+   final training draw, including starts spanning the observed opposite-skew
+   basins, before evaluating its test scores. Define what happens if it improves
+   the best likelihood; keep all recovery training-only and do not choose among
+   check-test seeds. The run archive currently contains only source, rounded
+   likelihood, convergence and iteration count (`simulate.py:379`), with no
+   initial vectors, batch/seed IDs or final vectors per start. `_starts_at_best`
+   counts rows rather than checking vector identity. Preserve that provenance
+   so distinct discoveries can be audited. No new duplicate under the default
+   Gaussian start generator was demonstrated here. Further, mirroring a
+   zero-centred symmetric Gaussian skew jitter preserves its distribution;
+   it does not guarantee the deliberately separated starting basins sought by
+   the review. This is a reference-quality requirement, not a claim that a
+   finite search proves global optimality.
+
+7. **OPEN BEFORE PRODUCTION/V2 — the numerical audit, validation design and
+   reuse manifest are recorded, not completed.** The proposed R=400/B=200
+   amendment is reasonable to cost, but the count, seed blocks, borderline
+   disposition and target-precision rule still need to be declared. Validate
+   the chosen procedure at its actual B across every retained null and the
+   declared alternatives; keep screening separate. R=400 gives a binomial
+   Monte Carlo SE of 1.5 percentage points at coverage .90, before uncertainty
+   in the estimated target; reporting that uncertainty and choosing repetitions
+   for a stated precision follow [Morris, White & Crowther,
+   §§5.2–5.3](https://arxiv.org/html/1712.03198v3#S5.SS3).
+   The ordinary inner/outer training-only numerical audit, a measured cloud
+   concurrency benchmark and the source-to-analysis reuse manifest remain
+   required. The five-layer computational pilot still cannot validate the
+   eventual 35-layer band. No successful final twelve-pair artefact or evidence
+   that refitting repairs coverage was established by this re-check.
+
+8. **SHOULD FIX — the coverage mechanism is overstated in both owning docs.**
+   Preregistration §10 says the failure is tail sampling/interval shape,
+   "not missing fitting variance"; `rsc_publication_strategy.md:15` attributes
+   that categorical exclusion to Codex. The prior review rejected the claimed
+   factor-of-seven SE deficit and identified extreme held-out losses. It did
+   not establish that fitting/selection variability contributes nothing.
+   Replace the exclusion with: extreme tail losses and interval shape require
+   investigation alongside fitting/selection variability; RMS SE agreement
+   alone does not separate these mechanisms. The within-M2K gain-jump
+   diagnosis is a separate, accepted result.
+
+Disposition against the preceding review:
+
+| Previous finding | Current disposition |
+|---|---|
+| 1: duplicate moment start/reference quality | Duplicate removed and cold/warm separated; final challenge and auditable start identity remain open (3.6). |
+| 2: grouping, partial NaN, missing resamples | Fixed in the helper; default requires every B resample. |
+| 3: runner, failure, H2, provenance | In-memory method/H2 integration fixed; cloud launcher, failure summaries and saved records remain open (3.2, 3.3, 3.5). |
+| 4: gain mechanism and frequency claims | Accepted; best-found/frequency wording repaired in the current preregistration and diagnostic. |
+| 5: bracket history/archive | Re-evaluation and bounded candidate cache added; wrong endpoint can pass the gate (3.1). The capped cache is not a guarantee to retain every earlier basin. |
+| 6: ordinary pipeline sensitivity | Recorded, not performed. |
+| 7: final validation | Candidate amendment recorded, not frozen or validated. |
+| 8: cost/persistence | Unsupported cloud projections withdrawn; benchmark and persistence remain open. |
+| 9: reuse | Manifest still pending; old intervals do not validate refitting. |
+| 10: gain precomputation/stop | Missing raw artefact now fails closed; accepted-file readers disagree (3.4). Stop disposition remains with the owner; no AWS action by this review. |
+
+Next bounded step: repair the evidenced gate/launcher/bookkeeping paths, finish
+the saved-output contract and reference challenge, and re-check those paths
+before committing to the validation run. The fixed-fold refitting candidate
+remains worth a declared screening diagnostic; its statistical adequacy is
+still unknown. R052 remains with `Entropy SI`.
