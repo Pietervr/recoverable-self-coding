@@ -161,9 +161,11 @@ def report(found: dict, brief: bool, gain_ok: dict | None = None):
                       f"no power statistics are reported until it passes")
                 continue
         conv = df["convergence"].mean()
-        fail = df["failed"].mean()
+        fail = df["failed"].mean()                                              # invalid original fits / points
+        assay = (df["selection_decision"] == "assay failure").mean()            # the primary comparison unavailable (fit OR interval)
         dec = df["selection_decision"].value_counts()
-        line = f"{stage}: {n} rows from {df['generator'].nunique()} generators; convergence {conv:.3f}; failures {fail:.3%}; "
+        line = (f"{stage}: {n} rows from {df['generator'].nunique()} generators; convergence {conv:.3f}; "
+                f"fit failures {fail:.3%}; assay failures {assay:.3%}; ")
         nulls = df[df["family"] == "G"]
         if len(nulls):
             fpr = (nulls["selection_decision"] == "mixture").mean()

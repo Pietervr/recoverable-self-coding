@@ -60,6 +60,7 @@ class Config:
     interval: str = "cluster"           # §8.2: "cluster" (primary) or "refit" (the pipeline-refitting replacement, 12 Sept 2026)
     n_boot_refit: int = N_BOOT_REFIT    # replicates of the refitting bootstrap when interval == "refit"
     refit_min_usable: float = 1.0       # the fraction of refit replicates that must be scored; 1.0 = every one (Codex, 12 Sept)
+    refit_checkpoint_dir: str | None = None   # where completed refit resamples are checkpointed (JSON lines, resumable); not a numerical setting
     fit_M0: bool = False                # M0 held-out scores for the SPM curves (§8.4)
     bands: dict = field(default_factory=lambda: dict(BANDS))
 
@@ -364,11 +365,13 @@ def analyze_dataset(ds: Dataset, cfg: Config, seed: int, outer_folds: list | Non
         raise ValueError(f"cfg.interval must be one of {INTERVALS}, not {cfg.interval!r}")
     rb = None
     if cfg.interval == "refit" and not run["failed"]:
+        ckpt = os.path.join(cfg.refit_checkpoint_dir, f"refit_seed{seed}.jsonl") if cfg.refit_checkpoint_dir else None
         rb = refit_bootstrap(ds, cfg, seed, n_rep=cfg.n_boot_refit, n_jobs=n_jobs, outer_folds=run["folds"],
-                             min_usable=cfg.refit_min_usable)
+                             min_usable=cfg.refit_min_usable, checkpoint_path=ckpt)
         out["interval"] = dict(method="refit", n_rep=rb["n_rep"], n_used=rb["n_used"], n_failed=rb["n_failed"],
                                usable=rb["usable"], policy=rb["policy"], seed=rb["seed"], fit_seconds=rb["fit_seconds"],
-                               failed_reasons=rb["failed_reasons"], replicates=rb["replicates"])
+                               failed_reasons=rb["failed_reasons"], replicates=rb["replicates"],
+                               outer_folds=rb["outer_folds"], checkpoint=ckpt)
     elif cfg.interval == "refit":
         out["interval"] = dict(method="refit", n_rep=cfg.n_boot_refit, n_used=0, n_failed=0, usable=False,
                                policy="not run: the analysis itself failed", seed=seed, fit_seconds=0.0, failed_reasons=[], replicates=[])
@@ -387,10 +390,15 @@ def analyze_dataset(ds: Dataset, cfg: Config, seed: int, outer_folds: list | Non
                 b[band] = dict(point=stat["point"], lo=v["lo"], hi=v["hi"], se=v["se"]) if (usable and v is not None) \
                     else dict(point=stat["point"], lo=float("nan"), hi=float("nan"), se=float("nan"))
             b["usable"] = usable
+            b["interval"] = dict(n_used=rp.get("n_used", 0), n_failed=rp.get("n_failed", cfg.n_boot_refit), usable=usable)
         if "ws" in b:
             b["decision"] = "assay failure" if (run["failed"] or not usable) else decide(b["ws"]["lo"], b["ws"]["hi"])
             b["ws_max"] = band_max(run["delta"][p], run["layers"], cfg.bands["ws"])
         out["predictors"][p] = b
+    # three flags, kept apart (review 3, finding 3): `failed` = the original fits / points are invalid;
+    # `primary_available` = the primary comparison can be read (valid points AND a usable primary interval);
+    # each predictor's own `usable` = its interval exists
+    out["primary_available"] = bool(not run["failed"] and out["predictors"]["selection"].get("usable", True))
     # selected-member counts over layers x folds
     sel = {}
     for layer_sel in run["selected"]:
@@ -419,7 +427,8 @@ def _band_stats(delta: np.ndarray, masks: dict) -> dict:
 
 
 def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REFIT, predictor: str = "selection",
-                    n_jobs: int = 1, outer_folds: list | None = None, min_usable: float = 1.0) -> dict:
+                    n_jobs: int = 1, outer_folds: list | None = None, min_usable: float = 1.0,
+                    checkpoint_path: str | None = None) -> dict:
     """Resample whole concepts with replacement within family strata and re-run the ENTIRE per-layer procedure
     (outer folds, inner selection, refit, joint scoring) on every resample; percentile intervals of the band means
     and of ws − early, for EVERY predictor from the same refits (selection, ensemble, historical).
@@ -432,7 +441,9 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
     all finite for a predictor, yields no statistic for it — it is counted, never averaged in — and a predictor's
     interval is usable only when at least `min_usable` of the replicates are scored; the default 1.0 means EVERY
     replicate (Codex, 12 Sept: the missing ones can hold both tails); a lower value is an explicit amendment.
-    The per-replicate statistics are returned (`replicates`) so they can be persisted and rescored.
+    The per-replicate statistics are returned (`replicates`) so they can be persisted and rescored, and with
+    `checkpoint_path` every completed resample is appended as one JSON line as it finishes (per chunk of n_jobs when
+    parallel) and a restart skips the resamples already on file for this seed and n_rep (review 3, finding 5).
     Top-level band entries are those of `predictor` (compatibility); `predictors` holds all three."""
     rng = np.random.default_rng(seed)
     idx = stratified_resample(ds.family, n_rep, rng)
@@ -456,14 +467,35 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
         stats = {p: _band_stats(np.asarray(run["delta"][p], dtype=float), masks) for p in PREDICTORS}
         return dict(rep=int(rep), stats=stats, failed=bool(run["failed"]), failed_reason=run.get("failed_reason", ""),
                     fit_seconds=float(run.get("fit_seconds", 0.0)), chosen=[int(c) for c in chosen])
+    done = {}
+    if checkpoint_path and os.path.exists(checkpoint_path):
+        with open(checkpoint_path) as fh:
+            for line in fh:
+                if line.strip():
+                    d = json.loads(line)
+                    if d.get("seed") == int(seed) and d.get("n_rep") == int(n_rep):
+                        done[int(d["rep"])] = d
+    todo = [r for r in range(n_rep) if r not in done]
+    def _save(batch):
+        if checkpoint_path:
+            os.makedirs(os.path.dirname(checkpoint_path) or ".", exist_ok=True)
+            with open(checkpoint_path, "a") as fh:
+                for s in batch:
+                    fh.write(json.dumps(dict(s, seed=int(seed), n_rep=int(n_rep)), default=float) + "\n")
+    new = []
     if n_jobs > 1:
         from joblib import Parallel, delayed
-        reps = Parallel(n_jobs=n_jobs)(delayed(one)(r) for r in range(n_rep))
+        for i in range(0, len(todo), n_jobs):
+            batch = Parallel(n_jobs=n_jobs)(delayed(one)(r) for r in todo[i:i + n_jobs])
+            _save(batch); new += batch
     else:
-        reps = [one(r) for r in range(n_rep)]
+        for r in todo:
+            s = one(r)
+            _save([s]); new.append(s)
+    reps = sorted(list(done.values()) + new, key=lambda s: s["rep"])
     out = dict(method="refit", n_rep=int(n_rep), seed=int(seed), min_usable=float(min_usable),
                policy=("every replicate scored" if min_usable >= 1.0 else f"at least {min_usable:.0%} of the replicates scored"),
-               outer_folds=[[int(c) for c in f] for f in base_folds],
+               outer_folds=[[int(c) for c in f] for f in base_folds], checkpoint=checkpoint_path, n_resumed=len(done),
                failed_reasons=[s["failed_reason"] for s in reps if s["failed"]],
                fit_seconds=float(sum(s["fit_seconds"] for s in reps)), predictors={},
                replicates=[dict(rep=s["rep"], failed=s["failed"], failed_reason=s["failed_reason"], stats=s["stats"]) for s in reps])

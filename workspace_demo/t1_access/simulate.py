@@ -189,12 +189,26 @@ def _row(name, kwargs, rep, D, layers, res, seconds, extra=None, code_hash=""):
                interval_n_used=res.get("interval", {}).get("n_used", np.nan),
                interval_n_failed=res.get("interval", {}).get("n_failed", np.nan),
                interval_usable=int(bool(res.get("interval", {}).get("usable", True))),
-               interval_fit_seconds=round(float(res.get("interval", {}).get("fit_seconds", 0.0)), 1))
+               interval_fit_seconds=round(float(res.get("interval", {}).get("fit_seconds", 0.0)), 1),
+               interval_seed=res.get("interval", {}).get("seed", np.nan),
+               interval_policy=res.get("interval", {}).get("policy", ""),
+               interval_failed_reasons=json.dumps(res.get("interval", {}).get("failed_reasons", [])),
+               interval_outer_folds=json.dumps(res.get("interval", {}).get("outer_folds", [])),
+               interval_replicates=json.dumps(res.get("interval", {}).get("replicates", []), default=float),
+               primary_available=int(bool(res.get("primary_available", not res["failed"]))))
+    # per predictor: the decision and, for EVERY band and the paired ws - early statistic, point / lo / hi / se; with
+    # the refitting interval also the companion cluster interval and the predictor's own interval availability
+    # (review 3, finding 5: nothing computed in memory is lost at the row boundary)
     for p in A.PREDICTORS:
         b = res["predictors"][p]
         row[f"{p}_decision"] = b.get("decision", "")
-        for key in ("point", "lo", "hi", "se"):
-            row[f"{p}_ws_{key}"] = b["ws"][key] if "ws" in b else np.nan
+        for band in ("ws", "early", "late", "ws_minus_early"):
+            for key in ("point", "lo", "hi", "se"):
+                row[f"{p}_{band}_{key}"] = b[band][key] if band in b else np.nan
+        for key in ("lo", "hi", "se"):
+            row[f"{p}_cluster_ws_{key}"] = b["cluster"]["ws"][key] if "cluster" in b and "ws" in b["cluster"] else np.nan
+        row[f"{p}_interval_usable"] = int(bool(b.get("usable", True)))
+        row[f"{p}_interval_n_used"] = b.get("interval", {}).get("n_used", np.nan)
         row[f"{p}_families_pooled_sign"] = b.get("ws_families_with_pooled_sign", np.nan)
     row["selected"] = json.dumps(res["selected_counts"], sort_keys=True)
     row["heldout"] = json.dumps({m: round(v, 5) for m, v in res["heldout_logscore_per_trial"].items()}, sort_keys=True)
@@ -282,19 +296,29 @@ def summarize(out_csv: str, predictor: str = "selection") -> "pd.DataFrame":
     for (g, grid, D), sub in df.groupby(["generator", "grid", "D"]):
         n = len(sub)
         counts = sub[dec].value_counts()
-        usable = sub[sub["failed"] == 0]
-        point = usable[f"{predictor}_ws_point"]
+        # three separate things (review 3, finding 3): a valid original fit / point (failed == 0) — every one of them
+        # estimates the unconditional procedure target theta_g, whether or not its interval could be built; the
+        # predictor's own interval availability ({p}_interval_usable, finite lo/hi) — the coverage denominator; and
+        # the assay's availability (the decision), counted as a failure rate of its own
+        points = sub[sub["failed"] == 0]
+        point = points[f"{predictor}_ws_point"]
         # the coverage estimand theta_g(D, L) = E[band-mean Delta] over draws, folds and optimiser randomness at the
         # design sizes, estimated by the replicate mean; its Monte-Carlo SE is reported beside it (pre-reg §10)
         truth = point.mean()
         truth_se = point.std(ddof=1) / np.sqrt(len(point)) if len(point) > 1 else np.nan
-        cover = np.mean((usable[f"{predictor}_ws_lo"] <= truth) & (truth <= usable[f"{predictor}_ws_hi"])) if len(usable) else np.nan
+        lo, hi = f"{predictor}_ws_lo", f"{predictor}_ws_hi"
+        iv = points
+        if f"{predictor}_interval_usable" in sub.columns:
+            iv = iv[iv[f"{predictor}_interval_usable"] == 1]
+        iv = iv[np.isfinite(iv[lo].astype(float)) & np.isfinite(iv[hi].astype(float))]
+        cover = np.mean((iv[lo] <= truth) & (truth <= iv[hi])) if len(iv) else np.nan
         rows.append(dict(generator=g, family=M.MEMBERS[g].family, grid=grid, D=D, n=n,
                          mixture=counts.get("mixture", 0) / n, graded=counts.get("graded", 0) / n,
                          inconclusive=counts.get("inconclusive", 0) / n, failure=counts.get("assay failure", 0) / n,
-                         n_usable=len(usable), mean_point=truth, ref_se=truth_se,
+                         n_points=len(points), n_usable=len(iv), n_interval_missing=len(points) - len(iv),
+                         mean_point=truth, ref_se=truth_se,
                          sd_point=point.std(ddof=1) if len(point) > 1 else np.nan, coverage=cover,
-                         mean_se=usable[f"{predictor}_ws_se"].mean(), convergence=sub["convergence"].mean(),
+                         mean_se=iv[f"{predictor}_ws_se"].mean() if len(iv) else np.nan, convergence=sub["convergence"].mean(),
                          inner_convergence=sub["inner_convergence"].mean() if "inner_convergence" in sub else np.nan,
                          mean_fit_s=sub["fit_seconds"].mean()))
     return pd.DataFrame(rows)
@@ -305,7 +329,7 @@ def summarize(out_csv: str, predictor: str = "selection") -> "pd.DataFrame":
 # ----------------------------------------------------------------------------------------------
 def expected_gain(name: str, theta: np.ndarray, seed: int = 0, n_per_family: int = 32, D: int = 4,
                   cfg: A.Config | None = None, graded=M.FAMILY_G, n_starts: int | None = None,
-                  warm: dict | None = None) -> dict:
+                  warm: dict | None = None, challenge: bool = False) -> dict:
     """E[log q_true - log q_G*] per trial on fresh data, G* = the graded member with the best training
     joint log-likelihood at large sample (8 x n_per_family concepts). The truth term is scored under the
     GENERATING density (floor 0 for M3V: the fitting floor belongs to fitted predictors only — Codex 2026-09-11);
@@ -325,10 +349,17 @@ def expected_gain(name: str, theta: np.ndarray, seed: int = 0, n_per_family: int
     and mirrored in the skew coordinates on every second start, so both skew orientations are covered). The
     counts are returned: `starts_at_best` = distinct cold + extra starts within REF_BASIN_TOL of the best
     converged solution over ALL sources (a cold discovery counts only if it reproduces the best combined
-    solution), `warm_at_best` separately; `ref_reproduced` (read by the gate) uses the cold/extra count of the
-    selected reference. Reproduction is not proof of global optimality: it says the best-found solution was
-    reached independently at least twice. `candidates` = the distinct basins found (best run per likelihood
-    cluster), the warm set for the next evaluation; `runs` = one compact record per start for the archive."""
+    solution), `warm_at_best` separately; `ref_reproduced` (read by the gate) uses the cold/extra/challenge
+    count of the selected reference — distinct by INITIAL VECTOR, every run carrying its start (`x0`), batch and
+    final vector so the discoveries can be audited. Reproduction is not proof of global optimality: it says the
+    best-found solution was reached independently at least twice. `challenge=True` (the FINAL evaluation at a
+    frozen scale, and the check): a declared, independently seeded, stronger training-only search on the same
+    training draw — deliberately separated skew starts (alpha coordinates at ±ALPHA_SEP, both orientations) plus
+    jittered starts at twice the jitter — before the test scores are read; if it improves the best likelihood by
+    more than REF_BASIN_TOL the reference IS the improved solution (the gain is scored against it, the
+    improvement recorded in `challenge_improved`, and the reproduction count then refers to that solution). It
+    never touches the test draw. `candidates` = the distinct basins found (best run per likelihood cluster), the
+    warm set for the next evaluation; `runs` = one record per start for the archive."""
     cfg = A.Config() if cfg is None else cfg
     n_starts = REF_STARTS if n_starts is None else int(n_starts)
     tr = make_dataset(name, theta, n_per_family, D, layers=(41,), rho=0.0, seed=seed)
@@ -336,21 +367,31 @@ def expected_gain(name: str, theta: np.ndarray, seed: int = 0, n_per_family: int
     train = M.Trials.build(tr.y[:, 0], tr.k, tr.concept, tr.n_concepts)
     test = M.Trials.build(te.y[:, 0], te.k, te.concept, te.n_concepts, floor_sd=train.floor_sd)
     truth = M.Trials.build(te.y[:, 0], te.k, te.concept, te.n_concepts, floor_sd=0.0)
-    fits, runs_by, extra = {}, {}, {g: 0 for g in graded}
+    fits, runs_by, extra, improved = {}, {}, {g: 0 for g in graded}, {g: 0.0 for g in graded}
     for i, g in enumerate(graded):
         cold = M.fit(g, train, cfg.n_gh, n_starts, np.random.default_rng([seed, 7, i]))
-        runs = _tag(cold.runs, "cold")
+        cold_x0 = M.starts_from_moments(g, train, n_starts, np.random.default_rng([seed, 7, i]), M.JITTER_SD)   # the same draw M.fit made
+        runs = _tag(cold.runs, "cold", cold_x0[:len(cold.runs)] if len(cold.runs) <= len(cold_x0) else None, batch=f"cold:{seed}:{i}")
         secs, nfev, nit = cold.seconds, cold.nfev, cold.nit
-        for w in _warm_list(warm, g, cold.theta.size):
+        for k, w in enumerate(_warm_list(warm, g, cold.theta.size)):
             t0 = _time.time()
-            runs += _tag(M._run_starts(g, train, w[None, :], cfg.n_gh, dict(M.LBFGSB_OPTIONS)), "warm")
+            runs += _tag(M._run_starts(g, train, w[None, :], cfg.n_gh, dict(M.LBFGSB_OPTIONS)), "warm", w[None, :], batch=f"warm:{k}")
             secs += _time.time() - t0
         if _starts_at_best(runs) < REF_MIN_STARTS_AT_BEST:
             t0 = _time.time()
             starts = _extra_starts(g, train, REF_EXTRA_STARTS, np.random.default_rng([seed, 7, i, 1]))
-            runs += _tag(M._run_starts(g, train, starts, cfg.n_gh, dict(M.LBFGSB_OPTIONS)), "extra")
+            runs += _tag(M._run_starts(g, train, starts, cfg.n_gh, dict(M.LBFGSB_OPTIONS)), "extra", starts, batch=f"extra:{seed}:{i}:1")
             secs += _time.time() - t0
             extra[g] = REF_EXTRA_STARTS
+        if challenge:
+            starts = _challenge_starts(g, train, REF_CHALLENGE_STARTS, np.random.default_rng([seed, 7, i, 2]))
+            t0 = _time.time()
+            ch = _tag(M._run_starts(g, train, starts, cfg.n_gh, dict(M.LBFGSB_OPTIONS)), "challenge", starts, batch=f"challenge:{seed}:{i}:2")
+            secs += _time.time() - t0
+            before = max((r["loglik"] for r in runs if r["converged"] and np.isfinite(r["loglik"])), default=-np.inf)
+            after = max((r["loglik"] for r in ch if r["converged"] and np.isfinite(r["loglik"])), default=-np.inf)
+            improved[g] = float(after - before) if after > before + REF_BASIN_TOL else 0.0
+            runs += ch
         kept, n_conv = M._pick(runs)
         if kept is None or not np.isfinite(kept["loglik"]):
             raise RuntimeError(f"expected_gain({name}): the {g} reference fit did not produce a finite likelihood")
@@ -374,21 +415,35 @@ def expected_gain(name: str, theta: np.ndarray, seed: int = 0, n_per_family: int
                 theta={g: [float(v) for v in fits[g].theta] for g in graded},
                 n_starts={g: int(fits[g].n_starts) for g in graded},
                 starts_at_best=starts_at_best, warm_at_best=warm_at_best, extra_starts=extra,
+                challenge=bool(challenge), challenge_improved=improved,
                 ref_reproduced=bool(starts_at_best[best] >= REF_MIN_STARTS_AT_BEST),
                 candidates={g: _basin_candidates(runs_by[g]) for g in graded},
-                runs={g: [dict(source=r["source"], loglik=round(float(r["loglik"]), 3) if np.isfinite(r["loglik"]) else None,
-                               converged=bool(r["converged"]), nit=int(r["nit"])) for r in runs_by[g]] for g in graded})
+                runs={g: [dict(source=r["source"], batch=r.get("batch", ""),
+                               loglik=round(float(r["loglik"]), 3) if np.isfinite(r["loglik"]) else None,
+                               converged=bool(r["converged"]), nit=int(r["nit"]), x0=r.get("x0"),
+                               theta=[round(float(v), 5) for v in r["theta"]] if np.all(np.isfinite(r["theta"])) else None)
+                          for r in runs_by[g]] for g in graded})
 
 
 REF_STARTS = 32                  # jittered "cold" starts per graded reference fit (the pipeline's 8 found the best M2K solution once)
-REF_MIN_STARTS_AT_BEST = 2       # the best-found reference solution must be reached by at least two distinct cold/extra starts
+REF_MIN_STARTS_AT_BEST = 2       # the best-found reference solution must be reached by at least two distinct cold/extra/challenge starts
 REF_EXTRA_STARTS = 24            # else this many more jittered starts (no repeated moment start; skew-mirrored on every second)
+REF_CHALLENGE_STARTS = 32        # the final training-only challenge: separated skew starts + jittered starts at twice the jitter
 REF_BASIN_TOL = 0.5              # a start "reaches" a solution when its loglik is within this (nat, total)
 REF_MAX_CANDIDATES = 4           # distinct basins carried forward as warm starts per member
+ALPHA_SEP = 2.0                  # the challenge's deliberately separated skew starts sit at alpha = ±ALPHA_SEP
+COUNTED_SOURCES = ("cold", "extra", "challenge")   # the sources whose distinct discoveries count for reproduction
 
 
-def _tag(runs: list, source: str) -> list:
-    return [dict(r, source=source) for r in runs]
+def _tag(runs: list, source: str, x0=None, batch: str = "") -> list:
+    """Tag runs with their source and batch, and with their initial vector when the starts array is given."""
+    out = []
+    for j, r in enumerate(runs):
+        d = dict(r, source=source, batch=batch)
+        if x0 is not None and j < len(x0):
+            d["x0"] = [round(float(v), 5) for v in np.asarray(x0)[j]]
+        out.append(d)
+    return out
 
 
 def _warm_list(warm: dict | None, member: str, size: int) -> list:
@@ -411,14 +466,37 @@ def _extra_starts(name: str, data: "M.Trials", n: int, rng: np.random.Generator,
     return starts
 
 
-def _starts_at_best(runs: list, tol: float = REF_BASIN_TOL, sources: tuple = ("cold", "extra")) -> int:
-    """How many converged runs from `sources` ended within tol nat (total training log-likelihood) of the best
-    converged solution over ALL runs (every source, warm included)."""
+def _starts_at_best(runs: list, tol: float = REF_BASIN_TOL, sources: tuple = COUNTED_SOURCES) -> int:
+    """How many DISTINCT initial vectors among the converged runs from `sources` ended within tol nat (total
+    training log-likelihood) of the best converged solution over ALL runs (every source, warm included). Runs
+    without a recorded initial vector count one each."""
     conv = [r for r in runs if r["converged"] and np.isfinite(r["loglik"])]
     if not conv:
         return 0
     top = max(r["loglik"] for r in conv)
-    return int(sum(1 for r in conv if top - r["loglik"] <= tol and r.get("source", "cold") in sources))
+    hits = [r for r in conv if top - r["loglik"] <= tol and r.get("source", "cold") in sources]
+    return len({tuple(r["x0"]) if r.get("x0") is not None else ("row", j) for j, r in enumerate(hits)})
+
+
+def _challenge_starts(name: str, data: "M.Trials", n: int, rng: np.random.Generator,
+                      jitter_sd: float = 2.0 * M.JITTER_SD) -> np.ndarray:
+    """The final training-only challenge batch (Codex, 12 Sept 2026, review 3 finding 6): for a member with skew
+    parameters (alpha*), four starts at the moment start with the skew coordinates set to every sign combination of
+    ±ALPHA_SEP — deliberately separated basins, not a mirrored jitter — then jittered starts at twice the jitter
+    from an independent seed, never the unjittered moment start."""
+    base = M.start_from_moments(name, M.moments(data))
+    idx = [j for j, p in enumerate(M.MEMBERS[name].params) if p.startswith("alpha")]
+    fixed = []
+    if idx:
+        import itertools
+        for signs in itertools.product((1.0, -1.0), repeat=len(idx)):
+            s = np.array(base, dtype=float)
+            for j, sg in zip(idx, signs):
+                s[j] = sg * ALPHA_SEP
+            fixed.append(s)
+    k = max(0, int(n) - len(fixed))
+    jit = M.starts_from_moments(name, data, k + 1, rng, jitter_sd)[1:] if k else np.empty((0, base.size))
+    return np.vstack(fixed + [jit]) if fixed else jit
 
 
 def _basin_candidates(runs: list, tol: float = REF_BASIN_TOL, k: int = REF_MAX_CANDIDATES) -> list:
@@ -462,13 +540,13 @@ def calibrate_gain(name: str, target: float, kwargs: dict, lo: float = 0.02, hi:
     warm = {}
     full = {}                       # the last evaluation in full (its per-start records are archived, not traced)
     def g(scale, s, **kw):
+        npf = int(kw.get("n_per_family", gain_kw.get("n_per_family", 32)))
         r = expected_gain(name, generator_theta(name, scale=scale, **kwargs), seed=s, warm=warm or None, **{**gain_kw, **kw})
         for m, cands in r.get("candidates", {}).items():
             _merge_warm(warm, m, cands)
-        trace.append(dict(scale=scale, seed=int(s), n_per_family=int(kw.get("n_per_family", gain_kw.get("n_per_family", 32))),
-                          **{k: v for k, v in r.items() if k not in ("gains", "runs")}))
-        full.clear(); full.update(r)
-        if s == seed and "n_per_family" not in kw:
+        trace.append(dict(scale=scale, seed=int(s), n_per_family=npf, **{k: v for k, v in r.items() if k not in ("gains", "runs")}))
+        full.clear(); full.update(r); full.update(_scale=float(scale), _seed=int(s), _n_per_family=npf)
+        if s == seed and "n_per_family" not in kw and not kw.get("challenge"):
             hist.append((float(scale), float(r["gain"])))
         return r["gain"]
     hist = []                       # every (scale, gain) at the calibration seed — the bracket can be rebuilt from it
@@ -495,9 +573,14 @@ def calibrate_gain(name: str, target: float, kwargs: dict, lo: float = 0.02, hi:
             hi, ghi = mid, gm
         if hi / lo - 1.0 >= min_width:
             continue
-        # the bracket has collapsed: re-evaluate both ends with every basin found on the path, then read them
+        # the bracket has collapsed: re-evaluate both ends with every basin found on the path, then read them;
+        # if the second end finds a basin the first had not seen, the first is refreshed before the pair is read
         reevaluated = True
-        glo, ghi = g(lo, seed), g(hi, seed)
+        glo = g(lo, seed)
+        snap = json.dumps(warm, sort_keys=True)
+        ghi = g(hi, seed)
+        if json.dumps(warm, sort_keys=True) != snap:
+            glo = g(lo, seed)
         if not (np.isfinite(glo) and np.isfinite(ghi)):
             return dict(scale=np.nan, gain=np.nan, trace=trace, note="non-finite gain at a re-evaluated bracket end")
         if within(glo) or within(ghi):
@@ -505,11 +588,12 @@ def calibrate_gain(name: str, target: float, kwargs: dict, lo: float = 0.02, hi:
             resolved = True
             break
         if glo <= target <= ghi:
-            # a discontinuity that survives the re-evaluation: freeze the scale, the declared fallback re-measurement
+            # a discontinuity that survives the re-evaluation: freeze the scale; the declared fallback re-measurement
+            # is the final evaluation there (twice the concepts, seed + 500), with the training-only challenge
             fallback = True
             mid = float(np.sqrt(lo * hi))
             gain_jump = float(ghi - glo)
-            gm = g(mid, seed + 500, n_per_family=2 * int(gain_kw.get("n_per_family", 32)))
+            gm = g(mid, seed + 500, n_per_family=2 * int(gain_kw.get("n_per_family", 32)), challenge=True)
             if not np.isfinite(gm):
                 return dict(scale=np.nan, gain=np.nan, trace=trace, note=f"non-finite gain at the frozen scale {mid:.6f}")
             break
@@ -546,21 +630,34 @@ def calibrate_gain(name: str, target: float, kwargs: dict, lo: float = 0.02, hi:
                         note=f"target escaped the bracket {'upward' if up else 'downward'} after re-evaluation")
     if not resolved and not fallback:
         return dict(scale=np.nan, gain=float(gm), trace=trace, note=f"bisection limit: {gm:.5f} vs target {target}")
+    # the FINAL calibration evaluation is at the chosen scale, on the calibration training draw, with the declared
+    # training-only challenge; it — never an endpoint evaluated for another purpose — is gated and archived
+    # (Codex, 12 Sept, review 3 finding 1). The fallback evaluation above already is that final evaluation.
+    gain_search = float(gm)
+    if not fallback:
+        gm = g(mid, seed, challenge=True)
+        if not np.isfinite(gm):
+            return dict(scale=np.nan, gain=np.nan, trace=trace, note=f"non-finite gain at the final evaluation, scale {mid:.6f}")
+    chosen = dict(full)
     # the independent check: a fresh seed and twice the concepts (CHECK_N_PER_FAMILY), its SE being the
-    # test-concept variation conditional on the check's own fitted graded reference
+    # test-concept variation conditional on the check's own fitted graded reference; the same challenge on its
+    # own training draw; its test draw is never fitted
     chk_kw = dict(gain_kw); chk_kw["n_per_family"] = CHECK_N_PER_FAMILY
-    chk = expected_gain(name, generator_theta(name, scale=mid, **kwargs), seed=seed + 1000, warm=warm or None, **chk_kw)
-    last = trace[-1]
-    entry = dict(scale=float(mid), gain=float(gm), gain_jump=gain_jump, bracket_reevaluated=reevaluated,
-                 fallback_remeasured=fallback, gain_check=chk["gain"], gain_check_se=chk["se"],
+    chk = expected_gain(name, generator_theta(name, scale=mid, **kwargs), seed=seed + 1000, warm=warm or None, challenge=True, **chk_kw)
+    entry = dict(scale=float(mid), gain=float(gm), gain_search=gain_search, gain_jump=gain_jump,
+                 bracket_reevaluated=reevaluated, fallback_remeasured=fallback,
+                 calib_seed=chosen.get("_seed"), calib_n_per_family=chosen.get("_n_per_family"),
+                 gain_check=chk["gain"], gain_check_se=chk["se"], check_seed=seed + 1000, check_n_per_family=CHECK_N_PER_FAMILY,
                  check_best=chk["best"], check_converged=all(chk["converged"].values()),
-                 calib_converged=all(last["converged"].values()),
-                 calib_ref_reproduced=bool(last.get("ref_reproduced", False)),
+                 calib_converged=all(chosen["converged"].values()),
+                 calib_ref_reproduced=bool(chosen.get("ref_reproduced", False)),
                  check_ref_reproduced=bool(chk.get("ref_reproduced", False)),
-                 calib_starts_at_best=last.get("starts_at_best"), check_starts_at_best=chk.get("starts_at_best"),
-                 calib_warm_at_best=last.get("warm_at_best"), check_warm_at_best=chk.get("warm_at_best"),
-                 calib_runs=full.get("runs"), check_runs=chk.get("runs"), check_theta=chk.get("theta"),
-                 check_loglik=chk.get("loglik"), trace=trace, note="")
+                 calib_starts_at_best=chosen.get("starts_at_best"), check_starts_at_best=chk.get("starts_at_best"),
+                 calib_warm_at_best=chosen.get("warm_at_best"), check_warm_at_best=chk.get("warm_at_best"),
+                 calib_challenge_improved=chosen.get("challenge_improved"), check_challenge_improved=chk.get("challenge_improved"),
+                 calib_runs=chosen.get("runs"), calib_theta=chosen.get("theta"), calib_loglik=chosen.get("loglik"),
+                 check_runs=chk.get("runs"), check_theta=chk.get("theta"), check_loglik=chk.get("loglik"),
+                 trace=trace, note="")
     entry["note"] = gain_gate(entry, target)
     return entry
 
@@ -616,17 +713,24 @@ def revalidate_gain_entries(entries: list, seed: int, cfg: "A.Config", D: int = 
         e = dict(e)
         if not np.isfinite(e.get("scale", np.nan)):
             return e
-        warm = (e["trace"][-1].get("theta") if e.get("trace") else None) or None
+        warm = (e.get("calib_theta") or (e["trace"][-1].get("theta") if e.get("trace") else None)) or None
         chk = expected_gain(e["generator"], generator_theta(e["generator"], scale=e["scale"], **e["kwargs"]),
-                            seed=seed + 2000, n_per_family=CHECK_N_PER_FAMILY, D=D, cfg=cfg, warm=warm)
+                            seed=seed + 2000, n_per_family=CHECK_N_PER_FAMILY, D=D, cfg=cfg, warm=warm, challenge=True)
+        # every check field is replaced together (a stale theta beside a fresh gain is a false record — Codex, review 3)
+        for k in [k for k in e if k.startswith("check_")]:
+            del e[k]
         e.update(gain_check=chk["gain"], gain_check_se=chk["se"], check_best=chk["best"],
+                 check_seed=seed + 2000, check_n_per_family=CHECK_N_PER_FAMILY,
                  check_converged=all(chk["converged"].values()),
                  check_ref_reproduced=bool(chk.get("ref_reproduced", False)), check_starts_at_best=chk.get("starts_at_best"),
+                 check_warm_at_best=chk.get("warm_at_best"), check_challenge_improved=chk.get("challenge_improved"),
+                 check_runs=chk.get("runs"), check_theta=chk.get("theta"), check_loglik=chk.get("loglik"),
                  calib_converged=e.get("calib_converged", all(e["trace"][-1]["converged"].values()) if e.get("trace") else False),
                  calib_ref_reproduced=bool(e.get("calib_ref_reproduced",
                                                  e["trace"][-1].get("ref_reproduced", False) if e.get("trace") else False)))
         e["note"] = gain_gate(e, float(e["target"]))
-        e["revalidated"] = f"check recomputed at {CHECK_N_PER_FAMILY} concepts per family, seed {seed + 2000}"
+        e["revalidated"] = (f"legacy route: the recorded scale kept, ONE declared check recomputed at {CHECK_N_PER_FAMILY} concepts "
+                            f"per family, seed {seed + 2000} — not a search over check seeds")
         return e
     if n_jobs > 1:
         from joblib import Parallel, delayed

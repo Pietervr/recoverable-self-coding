@@ -95,15 +95,20 @@ def gain_file(cfg, S, layers) -> str:
     """The §10 gain calibration at this D: reuse RESULTS_URI/gain_calibration_D<D>.json only if it carries this
     run's code/config hash, else compute it (deterministic per seed; every shard computes the same numbers)."""
     name = f"gain_calibration_D{D}.json"
-    local = os.path.join(WORK, name)
     want = S.config_hash(cfg, D, (41,), SEED)
-    if os.path.exists(local) or s3_download(name, local):
-        with open(local) as fh:
-            cal = json.load(fh)
-        if isinstance(cal, dict) and cal.get("code_hash") == want and int(cal.get("D", -1)) == D:
-            log(f"{name} found with code/config {want} — reusing it")
-            return local
-        log(f"{name} found but from another code/config ({cal.get('code_hash') if isinstance(cal, dict) else 'old format'})")
+    # ONE accepted artefact, the same rule as spotcheck.gain_file_for (review 3, finding 4): the revalidated file is
+    # authoritative when it exists (its gate verdict, whatever it is, is applied by power_points), else the job-written
+    # file; both must carry this run's code/config hash
+    for cand in (f"gain_calibration_D{D}.revalidated.json", name):
+        local = os.path.join(WORK, cand)
+        if os.path.exists(local) or s3_download(cand, local):
+            with open(local) as fh:
+                cal = json.load(fh)
+            if isinstance(cal, dict) and cal.get("code_hash") == want and int(cal.get("D", -1)) == D:
+                log(f"{cand} found with code/config {want} — the accepted artefact")
+                return local
+            log(f"{cand} found but from another code/config ({cal.get('code_hash') if isinstance(cal, dict) else 'old format'})")
+    local = os.path.join(WORK, name)
     if TASK != "gain":
         # fail closed (Codex, 12 Sept 2026, finding 10): the twelve-pair artefact is computed ONCE (TASK=gain, or
         # locally) and validated (spotcheck --revalidate) before any power job runs; a power/all job never computes
@@ -212,8 +217,9 @@ def main():
                         "print('jax', jax.__version__, 'numpy', numpy.__version__, 'scipy', scipy.__version__, "
                         "'pandas', pandas.__version__, 'joblib', joblib.__version__, platform.platform(), platform.machine())"],
                        capture_output=True, text=True).stdout.strip())
-    cfg = A.Config(n_starts_inner=N_STARTS_INNER, interval=INTERVAL, n_boot_refit=N_BOOT_REFIT)
-    log(f"interval={INTERVAL} n_boot_refit={N_BOOT_REFIT}")
+    cfg = A.Config(n_starts_inner=N_STARTS_INNER, interval=INTERVAL, n_boot_refit=N_BOOT_REFIT,
+                   refit_checkpoint_dir=os.path.join(WORK, "refit_ckpt") if INTERVAL == "refit" else None)
+    log(f"interval={INTERVAL} n_boot_refit={N_BOOT_REFIT} refit_checkpoint_dir={cfg.refit_checkpoint_dir}")
     log(f"code/config hash for this run: {S.config_hash(cfg, D, LAYERS, SEED)} (five-layer stages: "
         f"{S.config_hash(cfg, D, FIVE_LAYERS, SEED)})")
     t0 = time.time()

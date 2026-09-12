@@ -30,47 +30,93 @@ def jumpy(name, theta, seed=0, n_per_family=32, D=4, cfg=None, graded=G, warm=No
     """the trace of 12 Sept: 0.00806 just below scale 0.684661, 0.01097 just above, M2K kept on both sides"""
     scale = float(np.exp(theta[2]))
     if seed != 2026:                     # the fallback re-measurement (seed + 500) and the check (seed + 1000)
-        return base(name, theta, seed, n_per_family, warm, 0.0095 if seed == 2526 else 0.0104, 0.0005)
+        return base(name, theta, seed, n_per_family, warm, 0.0095 if seed == 2526 else 0.0104, 0.0005, **kw)
     b = 0.03 * (scale / 0.86) ** 5.2
-    return base(name, theta, seed, n_per_family, warm, b if scale < 0.684661 else b + 0.0029, 7e-4)
+    return base(name, theta, seed, n_per_family, warm, b if scale < 0.684661 else b + 0.0029, 7e-4, **kw)
 
-# 1. continuous: resolved within tolerance, no jump, no re-evaluation, check at seed + 1000 and 64 per family;
-#    the warm set carries every scale visited so far (newest first), the check included
-S.expected_gain = smooth
+challenged = []
+_base = base
+def base(name, theta, seed, n_per_family, warm, gain, se=1e-4, **kw):   # records which calls carried the challenge
+    challenged.append(bool(kw.get("challenge")))
+    return _base(name, theta, seed, n_per_family, warm, gain, se)
+
+# 1. continuous: resolved within tolerance, no jump, no re-evaluation; then the FINAL evaluation at the chosen scale
+#    with the training-only challenge (it is the one gated and archived), then the check at seed + 1000 and 64 per
+#    family, challenged too; the warm set carries every scale visited so far (newest first), the check included
+S.expected_gain = lambda name, theta, seed=0, n_per_family=32, D=4, cfg=None, graded=G, warm=None, **kw: base(
+    name, theta, seed, n_per_family, warm, 0.03 * float(np.exp(theta[2])) ** 5.2, **kw)
 e = S.calibrate_gain("M3L", 0.01, {"pi0": 0.05}, seed=2026, cfg=None, D=4)
 assert e["note"] == "" and e["gain_jump"] == 0.0 and not e["bracket_reevaluated"] and not e["fallback_remeasured"]
-assert abs(e["gain"] - 0.01) <= 0.05 * 0.01, e
+assert abs(e["gain"] - 0.01) <= 0.05 * 0.01 and e["gain_search"] == e["gain"], e
 assert calls[-1][1] == 3026 and calls[-1][2] == 64 and all(c[1] == 2026 for c in calls[:-1])
+assert calls[-2] == (round(e["scale"], 6), 2026, 32) and challenged[-2:] == [True, True] and not any(challenged[:-2])
+assert e["calib_seed"] == 2026 and e["calib_n_per_family"] == 32 and e["check_seed"] == 3026
 assert warms[0] is None and all(w["M2K"][0] == calls[i - 1][0] for i, w in enumerate(warms) if i > 0), warms[:3]
 assert len(warms[-1]["M2K"]) == S.REF_MAX_CANDIDATES + 2, warms[-1]
 assert e["calib_runs"] == {g: [] for g in G} and e["check_runs"] == {g: [] for g in G}, e["calib_runs"]
-assert abs(e["check_theta"]["M2K"][0] - e["scale"]) < 1e-9
-print(f"continuous gain: scale {e['scale']:.5f} in {len(calls) - 1} evaluations, gain {e['gain']:.5f}, "
+assert abs(e["check_theta"]["M2K"][0] - e["scale"]) < 1e-9 and abs(e["calib_theta"]["M2K"][0] - e["scale"]) < 1e-9
+print(f"continuous gain: scale {e['scale']:.5f} in {len(calls) - 2} search evaluations + the challenged final, gain {e['gain']:.5f}, "
       f"warm candidates carried (capped at {S.REF_MAX_CANDIDATES + 2}) OK")
 
-# 2. the jump: the bracket collapses (never within 5 %), both ends are re-evaluated with the warm set (still a jump),
-#    the scale is frozen at 0.68466, jump ≈ 0.0029 recorded, the gain re-measured at seed 2526 with 64 per family
-#    (the declared fallback), the check at 3026, the gate passes
-calls.clear(); warms.clear()
+# 2. the jump: the bracket collapses (never within 5 %), both ends are re-evaluated with the warm set — lo, then hi,
+#    then lo AGAIN because hi's evaluation added a basin to the warm set — still a jump; the scale is frozen at
+#    0.68466, jump ≈ 0.0029 recorded, the gain re-measured at seed 2526 with 64 per family (the declared fallback,
+#    which is the challenged final evaluation), the check at 3026, the gate passes
+calls.clear(); warms.clear(); challenged.clear()
 S.expected_gain = jumpy
 e = S.calibrate_gain("M3L", 0.01, {"pi0": 0.05}, seed=2026, cfg=None, D=4)
 assert e["note"] == "", e["note"]
 assert abs(e["scale"] - 0.684661) < 0.684661 * 1e-3, e["scale"]
 assert e["bracket_reevaluated"] and e["fallback_remeasured"] and abs(e["gain_jump"] - 0.0029) < 2e-4, e["gain_jump"]
-assert e["gain"] == 0.0095 and e["gain_check"] == 0.0104
+assert e["gain"] == 0.0095 and e["gain_check"] == 0.0104 and e["calib_seed"] == 2526 and e["calib_n_per_family"] == 64
 sc = round(e["scale"], 6)
-assert calls[-1] == (sc, 3026, 64) and calls[-2] == (sc, 2526, 64)
-lo_c, hi_c = calls[-4], calls[-3]                 # the re-evaluated bracket ends, both at the calibration seed
-assert lo_c[1] == hi_c[1] == 2026 and lo_c[0] < sc < hi_c[0] and hi_c[0] / lo_c[0] - 1 < S.MIN_BRACKET_WIDTH
-n_bisect = len(calls) - 4
+assert calls[-1] == (sc, 3026, 64) and calls[-2] == (sc, 2526, 64) and challenged[-2:] == [True, True] and not any(challenged[:-2])
+lo_c, hi_c = calls[-4], calls[-3]                 # the re-evaluated bracket ends at the calibration seed (both scales were
+assert lo_c[1] == hi_c[1] == 2026 and lo_c[0] < sc < hi_c[0] and hi_c[0] / lo_c[0] - 1 < S.MIN_BRACKET_WIDTH   # visited before, so no new basin, no refresh)
+n_bisect = len(calls) - 6
 assert n_bisect < 20, n_bisect                       # 0.1 % bracket width from [0.02, 3] takes ≈ 14 steps, not 30
 assert e["trace"][-1]["seed"] == 2526 and e["trace"][-1]["n_per_family"] == 64
+N_COLLAPSE = len(calls) - 4                       # evaluations up to the collapse: 2 ends + the bisection steps
 print(f"jump: scale frozen at {e['scale']:.6f} after {n_bisect} bisection steps + 2 re-evaluations, jump {e['gain_jump']:.5f}, "
       f"gain {e['gain']} check {e['gain_check']} — gate '{e['note'] or 'pass'}' OK")
 
+# 2a. the upper endpoint's re-evaluation finds a basin the lower had not seen: the lower endpoint is refreshed
+#     before the pair is read (review 3, finding 1, second half)
+def new_basin_at_hi(name, theta, seed=0, n_per_family=32, D=4, cfg=None, graded=G, warm=None, **kw):
+    r = jumpy(name, theta, seed, n_per_family, D, cfg, graded, warm, **kw)
+    scale = float(np.exp(theta[2]))
+    if seed == 2026 and len(calls) > N_COLLAPSE and scale >= 0.684661:
+        r["candidates"] = {g: [[scale], [scale + 100.0]] for g in G}     # a second, new basin
+    return r
+calls.clear(); warms.clear(); challenged.clear()
+S.expected_gain = new_basin_at_hi
+e = S.calibrate_gain("M3L", 0.01, {"pi0": 0.05}, seed=2026, cfg=None, D=4)
+tail = calls[N_COLLAPSE:]
+assert [c[1] for c in tail] == [2026, 2026, 2026, 2526, 3026] and tail[0] == tail[2] and tail[0][0] < tail[1][0], tail
+assert warms[N_COLLAPSE + 2]["M2K"][0] == round(tail[1][0] + 100.0, 6)     # the refreshed lo saw the new basin
+assert e["fallback_remeasured"] and e["note"] == ""
+print("new basin at the upper end: lower end refreshed with it before the jump is read OK")
+
+# 2b. the LOWER endpoint wins the re-evaluation and its own final evaluation is not reproduced: the gate must read
+#     the final evaluation at the chosen scale, not the last endpoint evaluated (review 3, finding 1)
+def lower_wins(name, theta, seed=0, n_per_family=32, D=4, cfg=None, graded=G, warm=None, **kw):
+    r = jumpy(name, theta, seed, n_per_family, D, cfg, graded, warm, **kw)
+    scale = float(np.exp(theta[2]))
+    if seed == 2026 and len(calls) > N_COLLAPSE and scale < 0.684661:
+        r["gain"] = r["gain"] + 0.0009            # the lower end, re-evaluated: 0.01007, within tolerance
+        if kw.get("challenge"):
+            r.update(starts_at_best={g: 1 for g in G}, ref_reproduced=False)
+    return r
+calls.clear(); warms.clear(); challenged.clear()
+S.expected_gain = lower_wins
+e = S.calibrate_gain("M3L", 0.01, {"pi0": 0.05}, seed=2026, cfg=None, D=4)
+assert e["scale"] < 0.684661 and e["bracket_reevaluated"] and not e["fallback_remeasured"]
+assert "fewer than 2 starts in the calibration draw" in e["note"], e["note"]
+assert e["calib_starts_at_best"]["M2K"] == 1 and challenged[-2:] == [True, True] and calls[-2] == (round(e["scale"], 6), 2026, 32)
+print(f"lower endpoint wins: the challenged final evaluation at {e['scale']:.6f} is the one gated — '{e['note']}' OK")
+
 # 3a. a jump that the re-evaluation heals AT the bracket end (the warm set finds the better basin there and its
 #     value is within tolerance): resolved at that end, no fallback, no jump recorded
-N_COLLAPSE = len(calls) - 4                       # evaluations up to the collapse in the jumpy path (2 ends + bisection)
 def healing_end(name, theta, seed=0, n_per_family=32, D=4, cfg=None, graded=G, warm=None, **kw):
     r = jumpy(name, theta, seed, n_per_family, D, cfg, graded, warm)
     scale = float(np.exp(theta[2]))
@@ -99,7 +145,7 @@ e = S.calibrate_gain("M3L", 0.01, {"pi0": 0.05}, seed=2026, cfg=None, D=4)
 assert e["note"] == "" and e["bracket_reevaluated"] and not e["fallback_remeasured"] and e["gain_jump"] == 0.0, e["note"]
 assert abs(e["gain"] - 0.01) <= 0.05 * 0.01 and abs(e["scale"] - 0.6963) < 0.01, (e["scale"], e["gain"])
 assert all(c[1] == 2026 for c in calls[:-1]) and calls[-1][1] == 3026
-print(f"healed with escape: bracket widened from the visited scales, resolved at {e['scale']:.4f} after {len(calls) - 1} evaluations OK")
+print(f"healed with escape: bracket widened from the visited scales, resolved at {e['scale']:.4f} after {len(calls) - 2} search evaluations OK")
 
 # 4. the same jump with a fallback re-measurement outside 25 %: the gate refuses on the calibration side
 def jumpy_bad(name, theta, seed=0, n_per_family=32, D=4, cfg=None, graded=G, warm=None, **kw):
@@ -144,6 +190,12 @@ assert S._starts_at_best(runs + [dict(converged=True, loglik=deep, source="warm"
 assert S._starts_at_best(runs + [dict(converged=False, loglik=deep, source="cold", theta=[1.0])]) == 1        # unconverged excluded
 only_shallow = runs[:7]
 assert S._starts_at_best(only_shallow + [dict(converged=True, loglik=deep, source="warm", theta=[1.0])]) == 0   # cold runs do not reach the best combined solution
+assert S._starts_at_best(runs + [dict(converged=True, loglik=deep, source="challenge", theta=[1.0])]) == 2       # an independently seeded challenge discovery counts
+same_x0 = [dict(converged=True, loglik=deep, source="cold", theta=[1.0], x0=[0.1, 0.2])] * 3 + [dict(converged=True, loglik=deep, source="extra", theta=[1.0], x0=[0.1, 0.2])]
+assert S._starts_at_best(same_x0) == 1                                                   # one initial vector, however often it is run
+assert S._starts_at_best(same_x0 + [dict(converged=True, loglik=deep, source="extra", theta=[1.0], x0=[0.3, 0.2])]) == 2
+tagged = S._tag([dict(loglik=1.0, converged=True, theta=[0.0], nit=1)] * 2, "extra", np.array([[1.23456789, 2.0], [3.0, 4.0]]), batch="extra:1:3:1")
+assert tagged[0]["x0"] == [1.23457, 2.0] and tagged[1]["batch"] == "extra:1:3:1" and tagged[0]["source"] == "extra"
 assert S._basin_candidates(runs + [dict(converged=True, loglik=shallow + 0.1, source="cold", theta=[0.5])]) == [[1.0], [0.5]]   # best run per cluster
 w = {}
 S._merge_warm(w, "M2K", [[1.0, 2.0]]); S._merge_warm(w, "M2K", [[1.00001, 2.0], [3.0, 4.0]])
@@ -162,4 +214,17 @@ st = S._extra_starts("M2K", None, 6, np.random.default_rng(0))
 S.M.starts_from_moments = _orig
 assert st.shape == (6, 8) and not any(np.array_equal(r, moment) for r in st)
 assert np.all(st[0::2, 6:] > 0) and np.all(st[1::2, 6:] < 0) and np.all(st[:, :6] > 0)     # alpha0, alpha1 mirrored on rows 1, 3, 5
-print("helpers: distinct cold-start counting by source, basin candidates, warm merge, extra batch without the moment start and skew-mirrored OK")
+
+# 9. the final training-only challenge batch (review 3, finding 6): for a skew member, four deliberately separated
+#    starts at every sign combination of ±ALPHA_SEP in the alpha coordinates, then jittered starts at twice the
+#    jitter, never the unjittered moment start; for a member without skew parameters, jittered starts only
+_om, _sm = S.M.moments, S.M.start_from_moments
+S.M.moments, S.M.start_from_moments, S.M.starts_from_moments = (lambda d: {}), (lambda n, m: moment.copy()), fake_starts
+ch = S._challenge_starts("M2K", None, 8, np.random.default_rng(0))
+assert ch.shape == (8, 8) and sorted(map(tuple, ch[:4, 6:].tolist())) == sorted([(a, b) for a in (2.0, -2.0) for b in (2.0, -2.0)])
+assert np.all(ch[:4, :6] == moment[:6]) and not any(np.array_equal(r, moment) for r in ch[4:])
+ch2 = S._challenge_starts("M2B", None, 5, np.random.default_rng(0))
+assert ch2.shape[0] == 5 and not any(np.array_equal(r, moment) for r in ch2)
+S.M.moments, S.M.start_from_moments, S.M.starts_from_moments = _om, _sm, _orig
+print("helpers: distinct cold-start counting by initial vector and source, basin candidates, warm merge, extra batch without the "
+      "moment start and skew-mirrored, challenge batch with separated skew starts OK")

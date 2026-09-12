@@ -78,6 +78,9 @@ def main():
     ap.add_argument("--seed", type=int, default=2026)
     ap.add_argument("--n-jobs", type=int, default=0, help="0 = every vCPU")
     ap.add_argument("--n-starts-inner", type=int, default=8, help="inner-selection starts (§14 allows 4)")
+    ap.add_argument("--interval", choices=["cluster", "refit"], default="cluster",
+                    help="§8.2 interval method carried into the job's Config (and its code/config hash)")
+    ap.add_argument("--n-boot-refit", type=int, default=200, help="refitting-bootstrap replicates when --interval refit")
     ap.add_argument("--instance-type", default="ml.c8i.2xlarge")
     ap.add_argument("--max-hours", type=float, default=48.0)
     ap.add_argument("--spot", action="store_true", help="managed spot training (waits up to 2x max-hours for capacity)")
@@ -121,7 +124,8 @@ def main():
     env = {"TASK": a.task, "N_REP": str(a.n_rep), "N_REP_RECOVERY": str(a.n_rep_recovery),
            "N_REP_5LAYERS": str(a.n_rep_5layers), "D": str(a.D), "LAYERS": a.layers, "SEED": str(a.seed),
            "RESULTS_URI": results_uri, "NPROC": "1", "OMP_NUM_THREADS": "1", "OPENBLAS_NUM_THREADS": "1",
-           "MKL_NUM_THREADS": "1", "N_STARTS_INNER": str(a.n_starts_inner)}
+           "MKL_NUM_THREADS": "1", "N_STARTS_INNER": str(a.n_starts_inner),
+           "INTERVAL": a.interval, "N_BOOT_REFIT": str(a.n_boot_refit)}      # the declared interval method travels with the job
     if a.generators:
         env["GENERATORS"] = a.generators
     if a.n_jobs:
@@ -159,7 +163,8 @@ def main():
         )
         if a.spot:
             spec["CheckpointConfig"] = {"S3Uri": f"{RESULTS_ROOT}{a.run}/checkpoints{tag}/", "LocalPath": "/opt/ml/checkpoints"}
-        print(f"job {job}: {a.task} n_rep={a.n_rep} D={a.D} layers={a.layers} on {a.instance_type}"
+        print(f"job {job}: {a.task} n_rep={a.n_rep} D={a.D} layers={a.layers} interval={a.interval}"
+              f"{f' B={a.n_boot_refit}' if a.interval == 'refit' else ''} on {a.instance_type}"
               f"{' SPOT' if a.spot else ''} (max {a.max_hours} h{f', at most USD {price * a.max_hours:.0f} on demand' if price else ''})"
               f" -> {results_uri}")
         if a.dry_run:

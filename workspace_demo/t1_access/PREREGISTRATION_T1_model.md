@@ -396,7 +396,10 @@ $\alpha = 1$ (0.884), M2S $\omega = 0.5$ (0.848), $\omega = 1$ (0.780), $\omega 
 **§8.2 replacement by the refitting bootstrap is invoked** (coverage below 0.90 under any retained
 generator). Every miss is an interval lying above its target; at $\omega = 2$ the root-mean-square bootstrap
 SE (22.0) matches the replicate SD (23.2), so the failure is tail sampling and interval shape under a
-heavy-tailed held-out loss (one concept in one replicate at $-26{,}627$ nat), not missing fitting variance.
+heavy-tailed held-out loss (one concept in one replicate at $-26{,}627$ nat): extreme tail losses and the
+percentile interval's shape must be investigated alongside fitting and selection variability — RMS-SE agreement
+alone does not separate these mechanisms (Codex, 12 Sept, review 3), and the categorical exclusion of fitting
+variance is withdrawn.
 Disposition (Codex review, 12 Sept): the refitting bootstrap is corrected first (original-concept grouping at
 both fold levels; failed replicates propagated), benchmarked, and the chosen interval validated on new seeds
 with declared counts — the choice is recorded as method development on these rows, never as their
@@ -414,6 +417,15 @@ hash and in every row): with `"refit"` the point estimates stay the fixed scores
 kept beside, the three predictors and the paired ws − early statistic come from the same refits, and an unusable
 refit interval is an **assay failure**, never an inconclusive reading (`decide` on a non-finite interval returns
 "unavailable"); the per-replicate statistics are returned for persistence and rescoring (`test_interval_path.py`).
+Three flags are kept apart in every row (Codex, third review): `failed` (the original fits and points are
+invalid), `primary_available` (valid points and a usable primary interval) and each predictor's own interval
+availability; every valid point estimates the unconditional target $\theta_g$ whether or not its interval could
+be built, coverage is computed among that predictor's finite usable intervals, and the missing intervals are
+counted and reported as a performance result of their own (Morris, White & Crowther 2019, §5.1). Every band,
+the paired ws − early statistic, the companion cluster interval, the bootstrap's seed, policy, folds, failure
+reasons and per-replicate statistics are written with the row; completed resamples are checkpointed as they
+finish and a restart resumes them. The launcher carries the declared interval method and replicate count into
+the job's environment and hash (`launch_t1.py --interval --n-boot-refit`).
 Cost (`bench_refit.py`, one Mac core, one layer, D = 4, M2S $\omega = 0.5$, inner selection at 4 starts): 15.3 min
 per replicate, so 200 replicates ≈ 51 Mac-core-hours per dataset per layer; the cloud cost is **not** established by
 this — the corrected procedure is benchmarked at the intended cloud concurrency before any projection (loaded cloud
@@ -452,13 +464,24 @@ bracket's centre, the gain re-measured there at twice the concepts and a fresh c
 fallback (not a further chance to pick a seed), and the jump recorded. The gate additionally requires the selected
 reference's best-found solution reproduced by at least two distinct cold or extra starts in the calibration draw
 and in the check draw (a warm-start discovery never counts as a cold one) and the calibration-side gain within
-25 % of the target; the check is warm-started on its training draw only, its test draw is never fitted; the final
-calibration and check evaluations archive every start's record and the check's parameters. Reproduction by two
-starts is not proof of global optimality: it says the best-found solution was reached independently twice, and
-the rarity of a miss under this scheme is not yet demonstrated. The twelve-pair artefact is computed **once**
-(`TASK=gain`, or locally), validated (`spotcheck --revalidate`) and read by every power job; a power job whose
-namespace lacks it fails closed (`t1_job.gain_file`). Reaching the one failed pair does not approve the other
-eleven. **Open, before v2 (Codex, finding 6):** the same fragility may sit in the pipeline's own refits (§7.4,
+25 % of the target; the check is warm-started on its training draw only, its test draw is never fitted. **After Codex's
+third review (same day):** the evaluation that is gated and archived is always the FINAL one, made at the chosen
+scale on the calibration draw (its seed and concept count recorded) — never an endpoint evaluated for another
+purpose; if the second re-evaluated endpoint finds a basin the first had not seen, the first is refreshed before
+the pair is read. That final evaluation, and the check on its own training draw, carry a declared **training-only
+challenge**: an independently seeded batch on the same training data — four starts at the moment start with the
+skew coordinates set to every sign combination of ±2 (deliberately separated basins) and jittered starts at twice
+the jitter — run before any test score is read; if it improves the best likelihood by more than 0.5 nat the
+reference IS the improved solution, the gain is scored against it and the improvement is recorded, and the
+reproduction count then refers to it (an independently seeded challenge discovery counts; a warm start's never).
+Every start's source, batch and seed ids, initial vector and final vector are archived; reproduction counts
+DISTINCT initial vectors. Reproduction by two starts is not proof of global optimality: it says the best-found
+solution was reached independently twice, and the rarity of a miss under this scheme is not yet demonstrated. The
+twelve-pair artefact is computed **once** (`TASK=gain`, or locally), validated (`spotcheck --revalidate`, the
+legacy route: one declared check, never a search over check seeds, every check field rewritten together) and read
+by every power job through the same rule as the monitor's — the revalidated artefact when it exists, else the
+job-written one, both under the run's hash; a power job whose namespace lacks it fails closed (`t1_job.gain_file`).
+Reaching the one failed pair does not approve the other eleven. **Open, before v2 (Codex, finding 6):** the same fragility may sit in the pipeline's own refits (§7.4,
 eight starts, at the inner and outer training sizes of ≈ 38 and 51 concepts); FPR 0 under the M2K nulls does not
 show every graded fit was accurate. A numerical-sensitivity audit on declared representative draws, mixture-shaped
 data included, with stronger training-only reference searches, decides whether §7.4 is amended for the new

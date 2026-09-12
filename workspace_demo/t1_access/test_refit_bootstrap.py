@@ -81,3 +81,22 @@ assert abs(ens["lo"] - 2 * np.percentile(sorted(0.01 * (1 + r) for r in range(10
 assert A.decide(float("nan"), float("nan")) == "unavailable"
 print(f"refit_bootstrap: group carried, outer copies together, {out['n_failed']} failed/partial resamples excluded, "
       f"every-replicate policy by default, three predictors + ws-early from the same refits OK")
+
+# 4. checkpointing (review 3, finding 5): every completed resample is appended as it finishes; a restart skips the
+#    ones on file for this seed and n_rep and gives the same result; a foreign seed's lines are ignored
+import json, os, tempfile
+with tempfile.TemporaryDirectory() as d:
+    ck = os.path.join(d, "refit.jsonl")
+    seen.clear()
+    a = A.refit_bootstrap(ds, cfg, seed=5, n_rep=10, predictor="selection", min_usable=0.7, checkpoint_path=ck)
+    assert a["n_resumed"] == 0 and len(seen) == 10 and sum(1 for _ in open(ck)) == 10
+    seen.clear()
+    b = A.refit_bootstrap(ds, cfg, seed=5, n_rep=10, predictor="selection", min_usable=0.7, checkpoint_path=ck)
+    assert b["n_resumed"] == 10 and len(seen) == 0 and b["ws"] == a["ws"] and b["n_failed"] == a["n_failed"]
+    lines = open(ck).read().splitlines()
+    with open(ck, "w") as fh:
+        fh.write("\n".join(lines[:6] + [json.dumps(dict(json.loads(lines[7]), seed=99))]) + "\n")   # 6 kept, one foreign
+    seen.clear()
+    c = A.refit_bootstrap(ds, cfg, seed=5, n_rep=10, predictor="selection", min_usable=0.7, checkpoint_path=ck)
+    assert c["n_resumed"] == 6 and len(seen) == 4 and c["ws"] == a["ws"] and sum(1 for _ in open(ck)) == 11
+print("refit_bootstrap checkpointing: appended per resample, resumed by seed and n_rep, same interval OK")
