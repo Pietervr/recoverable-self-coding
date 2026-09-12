@@ -481,7 +481,15 @@ twelve-pair artefact is computed **once** (`TASK=gain`, or locally), validated (
 legacy route: one declared check, never a search over check seeds, every check field rewritten together) and read
 by every power job through the same rule as the monitor's — the revalidated artefact when it exists, else the
 job-written one, both under the run's hash; a power job whose namespace lacks it fails closed (`t1_job.gain_file`).
-Reaching the one failed pair does not approve the other eleven. **Open, before v2 (Codex, finding 6):** the same fragility may sit in the pipeline's own refits (§7.4,
+Reaching the one failed pair does not approve the other eleven. **Diagnostic result (12 Sept, one Mac core, the
+first-fix code `a508601`: 32 cold starts, the previous winner as warm start, reproduction ≥ 2, no challenge):**
+M3L at 0.01 nat RESOLVED in ten search evaluations (119 min) — with the deep M2K reference found, the gain is
+continuous and monotone in the scale (0.00537 at 0.627, 0.00770 at 0.678, 0.00916 at 0.705, 0.00997 at 0.719,
+0.01084 at 0.733) and the scale is 0.7188, not the 0.685 the shallow reference had collapsed onto; check 0.01003 ±
+0.00052 (64 per family, fresh seed), gate passed. The deep M2K solution was reached by 2–4 of the 32 cold starts at
+every scale above 0.63 (6 of 32 in the check), so the reproduction rule was met but not by much; the same pair is
+being recomputed under the final code with the training-only challenge and start provenance, and the twelve-pair
+artefact is computed only under that code. This is a diagnostic, not the artefact. **Open, before v2 (Codex, finding 6):** the same fragility may sit in the pipeline's own refits (§7.4,
 eight starts, at the inner and outer training sizes of ≈ 38 and 51 concepts); FPR 0 under the M2K nulls does not
 show every graded fit was accurate. A numerical-sensitivity audit on declared representative draws, mixture-shaped
 data included, with stronger training-only reference searches, decides whether §7.4 is amended for the new
