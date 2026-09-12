@@ -84,6 +84,42 @@ def log(msg: str):
     print(f"[t1_job {time.strftime('%H:%M:%S')}] {msg}", flush=True)
 
 
+CKPT_DIR = os.path.join(WORK, "refit_ckpt")      # refitting-bootstrap checkpoints (one file per bootstrap identity)
+
+
+def ckpt_sync_down():
+    """Restore every refit checkpoint file of this run from S3 (on-demand relaunches have no /opt/ml/checkpoints
+    restore; review 4 finding 4). Files already present locally are kept."""
+    os.makedirs(CKPT_DIR, exist_ok=True)
+    n = 0
+    try:
+        pages = s3.get_paginator("list_objects_v2").paginate(Bucket=_bucket, Prefix=_prefix + "refit_ckpt/")
+        for page in pages:
+            for obj in page.get("Contents", []):
+                fname = os.path.basename(obj["Key"])
+                local = os.path.join(CKPT_DIR, fname)
+                if fname and not os.path.exists(local):
+                    s3.download_file(_bucket, obj["Key"], local); n += 1
+    except Exception as e:
+        log(f"refit checkpoint restore failed ({e}); continuing without")
+    return n
+
+
+def ckpt_sync_up():
+    """Upload every refit checkpoint file (small JSON-lines files) so an interrupted on-demand job resumes them."""
+    if not os.path.isdir(CKPT_DIR):
+        return 0
+    n = 0
+    for fname in os.listdir(CKPT_DIR):
+        p = os.path.join(CKPT_DIR, fname)
+        if os.path.isfile(p):
+            try:
+                s3.upload_file(p, _bucket, _prefix + "refit_ckpt/" + fname); n += 1
+            except Exception as e:
+                log(f"refit checkpoint upload of {fname} failed ({e})")
+    return n
+
+
 def shard_name(csv_name: str) -> str:
     if N_SHARDS <= 1:
         return csv_name
@@ -95,20 +131,25 @@ def gain_file(cfg, S, layers) -> str:
     """The §10 gain calibration at this D: reuse RESULTS_URI/gain_calibration_D<D>.json only if it carries this
     run's code/config hash, else compute it (deterministic per seed; every shard computes the same numbers)."""
     name = f"gain_calibration_D{D}.json"
+    rev_name = f"gain_calibration_D{D}.revalidated.json"
     want = S.config_hash(cfg, D, (41,), SEED)
-    # ONE accepted artefact, the same rule as spotcheck.gain_file_for (review 3, finding 4): the revalidated file is
-    # authoritative when it exists (its gate verdict, whatever it is, is applied by power_points), else the job-written
-    # file; both must carry this run's code/config hash
-    for cand in (f"gain_calibration_D{D}.revalidated.json", name):
-        local = os.path.join(WORK, cand)
-        if os.path.exists(local) or s3_download(cand, local):
-            with open(local) as fh:
-                cal = json.load(fh)
-            if isinstance(cal, dict) and cal.get("code_hash") == want and int(cal.get("D", -1)) == D:
-                log(f"{cand} found with code/config {want} — the accepted artefact")
-                return local
-            log(f"{cand} found but from another code/config ({cal.get('code_hash') if isinstance(cal, dict) else 'old format'})")
-    local = os.path.join(WORK, name)
+    # ONE accepted artefact — the contract shared with the monitor and the revalidation writer
+    # (simulate.accepted_gain_artefact; Codex, review 4 finding 2): the revalidated file when it exists and
+    # authenticates (hash, D, identity, source digest), else the job-written file; power_points applies the gate to
+    # whichever is accepted, so a failed revalidation holds this job exactly as it holds the monitor
+    local, rev_local = os.path.join(WORK, name), os.path.join(WORK, rev_name)
+    for cand, path in ((rev_name, rev_local), (name, local)):
+        if not os.path.exists(path):
+            s3_download(cand, path)
+    try:
+        accepted, info = S.accepted_gain_artefact(local, rev_local, D, want)
+    except ValueError as e:
+        raise RuntimeError(f"gain artefact HELD: {e}")
+    if accepted:
+        log(f"{os.path.basename(accepted)} is the accepted gain artefact ({info['accepted']}, code/config {want})")
+        return accepted
+    if info.get("reason"):
+        log(info["reason"])
     if TASK != "gain":
         # fail closed (Codex, 12 Sept 2026, finding 10): the twelve-pair artefact is computed ONCE (TASK=gain, or
         # locally) and validated (spotcheck --revalidate) before any power job runs; a power/all job never computes
@@ -151,8 +192,13 @@ def run_stage(task: str, n_rep: int, layers: tuple, generators, cfg, A, S, point
     t0 = time.time()
     log(f"stage {task}: n_rep={n_rep} layers={layers} generators={generators} -> {csv_name}")
 
+    if INTERVAL == "refit":
+        log(f"refit checkpoints restored: {ckpt_sync_down()} files")
+
     def on_chunk(path, n_done, n_total, elapsed):
         s3_upload(path, csv_name)
+        if INTERVAL == "refit":
+            ckpt_sync_up()
         prog = dict(task=task, D=D, n_rep=n_rep, layers=list(layers), shards=SHARDS, n_shards=N_SHARDS,
                     done=n_done, total=n_total, elapsed_min=round(elapsed / 60, 1),
                     rate_per_hour=round(3600 * n_done / max(elapsed, 1), 1),
@@ -173,6 +219,8 @@ def run_stage(task: str, n_rep: int, layers: tuple, generators, cfg, A, S, point
         s3_upload(summ_path, os.path.basename(summ_path))
         shutil.copy(out_csv, OUT_DIR)
         shutil.copy(summ_path, OUT_DIR)
+    if INTERVAL == "refit":
+        log(f"refit checkpoints uploaded: {ckpt_sync_up()} files")
     log(f"stage {task} done in {(time.time() - t0) / 3600:.2f} h")
 
 
@@ -218,7 +266,7 @@ def main():
                         "'pandas', pandas.__version__, 'joblib', joblib.__version__, platform.platform(), platform.machine())"],
                        capture_output=True, text=True).stdout.strip())
     cfg = A.Config(n_starts_inner=N_STARTS_INNER, interval=INTERVAL, n_boot_refit=N_BOOT_REFIT,
-                   refit_checkpoint_dir=os.path.join(WORK, "refit_ckpt") if INTERVAL == "refit" else None)
+                   refit_checkpoint_dir=CKPT_DIR if INTERVAL == "refit" else None)
     log(f"interval={INTERVAL} n_boot_refit={N_BOOT_REFIT} refit_checkpoint_dir={cfg.refit_checkpoint_dir}")
     log(f"code/config hash for this run: {S.config_hash(cfg, D, LAYERS, SEED)} (five-layer stages: "
         f"{S.config_hash(cfg, D, FIVE_LAYERS, SEED)})")
@@ -242,6 +290,8 @@ def main():
         p = os.path.join(WORK, f)
         if os.path.isfile(p):
             shutil.copy(p, OUT_DIR)
+        elif os.path.isdir(p):                       # the nested refit_ckpt directory too (review 4 finding 4)
+            shutil.copytree(p, os.path.join(OUT_DIR, f), dirs_exist_ok=True)
     log(f"all done in {(time.time() - t0) / 3600:.2f} h")
 
 

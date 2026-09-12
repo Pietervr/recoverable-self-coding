@@ -195,6 +195,8 @@ def _row(name, kwargs, rep, D, layers, res, seconds, extra=None, code_hash=""):
                interval_failed_reasons=json.dumps(res.get("interval", {}).get("failed_reasons", [])),
                interval_outer_folds=json.dumps(res.get("interval", {}).get("outer_folds", [])),
                interval_replicates=json.dumps(res.get("interval", {}).get("replicates", []), default=float),
+               interval_ident=res.get("interval", {}).get("ident", ""),
+               interval_n_damaged=res.get("interval", {}).get("n_damaged", 0),
                primary_available=int(bool(res.get("primary_available", not res["failed"]))))
     # per predictor: the decision and, for EVERY band and the paired ws - early statistic, point / lo / hi / se; with
     # the refitting interval also the companion cluster interval and the predictor's own interval availability
@@ -205,8 +207,9 @@ def _row(name, kwargs, rep, D, layers, res, seconds, extra=None, code_hash=""):
         for band in ("ws", "early", "late", "ws_minus_early"):
             for key in ("point", "lo", "hi", "se"):
                 row[f"{p}_{band}_{key}"] = b[band][key] if band in b else np.nan
-        for key in ("lo", "hi", "se"):
-            row[f"{p}_cluster_ws_{key}"] = b["cluster"]["ws"][key] if "cluster" in b and "ws" in b["cluster"] else np.nan
+        for band in ("ws", "early", "late", "ws_minus_early"):        # the companion cluster interval of EVERY band
+            for key in ("lo", "hi", "se"):
+                row[f"{p}_cluster_{band}_{key}"] = b["cluster"][band][key] if "cluster" in b and band in b["cluster"] else np.nan
         row[f"{p}_interval_usable"] = int(bool(b.get("usable", True)))
         row[f"{p}_interval_n_used"] = b.get("interval", {}).get("n_used", np.nan)
         row[f"{p}_families_pooled_sign"] = b.get("ws_families_with_pooled_sign", np.nan)
@@ -222,13 +225,24 @@ def _row(name, kwargs, rep, D, layers, res, seconds, extra=None, code_hash=""):
     return row
 
 
+def dataset_seed(name: str, kwargs: dict, rep: int, D: int, seed: int) -> int:
+    """The deterministic dataset seed of a (member, grid point, replicate, D) — never Python's per-process str hash.
+    Grid points with at most one grid value keep the v1.2 weighted tag (the d4v12b null rows depend on it); points
+    with two or more values (M3H, M3L recovery points, every power point) use a digest of the sorted grid, because
+    the weighted tag collided — (tau 0.5, sep 1) and (tau 2, sep 0.5) both gave 3500 (Codex, review 4 finding 1).
+    No row of such a point has landed under the old tag."""
+    if len(kwargs) <= 1:
+        grid_tag = sum((i + 1) * int(round(1000 * float(v))) for i, v in enumerate(kwargs.get(x, 0.0) for x in ("tau", "omega", "sep", "pi0", "alpha", "scale")))
+    else:
+        grid_tag = int(hashlib.sha256(json.dumps({k: float(v) for k, v in kwargs.items()}, sort_keys=True).encode()).hexdigest()[:8], 16)
+    return int(np.random.default_rng([seed, M.ALL_MEMBERS.index(name), grid_tag % (2**31 - 1), rep, D]).integers(2**31))
+
+
 def one_replicate(name: str, kwargs: dict, rep: int, D: int, layers, rho: float, cfg: A.Config, seed: int,
                   extra: dict | None = None, code_hash: str = "") -> dict:
     t0 = _time.time()
     theta = generator_theta(name, **kwargs)
-    # deterministic dataset seed: (seed, member index, grid values, rep, D) — never Python's per-process str hash
-    grid_tag = sum((i + 1) * int(round(1000 * float(v))) for i, v in enumerate(kwargs.get(x, 0.0) for x in ("tau", "omega", "sep", "pi0", "alpha", "scale")))
-    ds_seed = int(np.random.default_rng([seed, M.ALL_MEMBERS.index(name), grid_tag % (2**31 - 1), rep, D]).integers(2**31))
+    ds_seed = dataset_seed(name, kwargs, rep, D, seed)
     ds = make_dataset(name, theta, n_per_family=8, D=D, layers=layers, rho=rho, seed=ds_seed)
     res = A.analyze_dataset(ds, cfg, seed=ds_seed)
     return _row(name, kwargs, rep, D, layers, res, _time.time() - t0, extra, code_hash)
@@ -369,11 +383,11 @@ def expected_gain(name: str, theta: np.ndarray, seed: int = 0, n_per_family: int
     truth = M.Trials.build(te.y[:, 0], te.k, te.concept, te.n_concepts, floor_sd=0.0)
     fits, runs_by, extra, improved = {}, {}, {g: 0 for g in graded}, {g: 0.0 for g in graded}
     for i, g in enumerate(graded):
-        cold = M.fit(g, train, cfg.n_gh, n_starts, np.random.default_rng([seed, 7, i]))
-        cold_x0 = M.starts_from_moments(g, train, n_starts, np.random.default_rng([seed, 7, i]), M.JITTER_SD)   # the same draw M.fit made
-        runs = _tag(cold.runs, "cold", cold_x0[:len(cold.runs)] if len(cold.runs) <= len(cold_x0) else None, batch=f"cold:{seed}:{i}")
-        secs, nfev, nit = cold.seconds, cold.nfev, cold.nit
-        for k, w in enumerate(_warm_list(warm, g, cold.theta.size)):
+        # the cold fit with full provenance: every start (the §9 recovery batches included) carries its initial vector
+        # and batch id from where it was generated — nothing is reconstructed afterwards (Codex, review 4 finding 3)
+        runs, level, secs = _fit_reference(g, train, n_starts, np.random.default_rng([seed, 7, i]), cfg.n_gh, tag=f"{seed}:{i}")
+        size = M.MEMBERS[g].n_params
+        for k, w in enumerate(_warm_list(warm, g, size)):
             t0 = _time.time()
             runs += _tag(M._run_starts(g, train, w[None, :], cfg.n_gh, dict(M.LBFGSB_OPTIONS)), "warm", w[None, :], batch=f"warm:{k}")
             secs += _time.time() - t0
@@ -395,9 +409,8 @@ def expected_gain(name: str, theta: np.ndarray, seed: int = 0, n_per_family: int
         kept, n_conv = M._pick(runs)
         if kept is None or not np.isfinite(kept["loglik"]):
             raise RuntimeError(f"expected_gain({name}): the {g} reference fit did not produce a finite likelihood")
-        fits[g] = M.FitResult(g, kept["theta"], kept["loglik"], bool(kept["converged"]), n_conv, len(runs), cold.recovery,
-                              nfev + sum(r["nfev"] for r in runs[len(cold.runs):]), nit + sum(r["nit"] for r in runs[len(cold.runs):]),
-                              secs, runs)
+        fits[g] = M.FitResult(g, kept["theta"], kept["loglik"], bool(kept["converged"]), n_conv, len(runs), level,
+                              sum(int(r["nfev"]) for r in runs), sum(int(r["nit"]) for r in runs), secs, runs)
         runs_by[g] = runs
     starts_at_best = {g: _starts_at_best(runs_by[g]) for g in graded}
     warm_at_best = {g: _starts_at_best(runs_by[g], sources=("warm",)) for g in graded}
@@ -432,7 +445,31 @@ REF_CHALLENGE_STARTS = 32        # the final training-only challenge: separated 
 REF_BASIN_TOL = 0.5              # a start "reaches" a solution when its loglik is within this (nat, total)
 REF_MAX_CANDIDATES = 4           # distinct basins carried forward as warm starts per member
 ALPHA_SEP = 2.0                  # the challenge's deliberately separated skew starts sit at alpha = ±ALPHA_SEP
-COUNTED_SOURCES = ("cold", "extra", "challenge")   # the sources whose distinct discoveries count for reproduction
+COUNTED_SOURCES = ("cold", "recovery1", "recovery2", "extra", "challenge")   # sources whose distinct discoveries count
+
+
+def _fit_reference(name: str, data: "M.Trials", n_starts: int, rng: np.random.Generator, n_gh: int,
+                   jitter_sd: float = M.JITTER_SD, tag: str = "") -> tuple:
+    """The cold reference fit with full start provenance: models.fit's multi-start and its §9 recovery chain (16 more
+    starts at the jitter when no start converged, then 16 at twice the jitter), drawn from `rng` in the same order
+    as models.fit, every run tagged with its initial vector and batch id where it is generated (Codex, review 4
+    finding 3). Returns (runs, recovery level, seconds)."""
+    opts = dict(M.LBFGSB_OPTIONS)
+    t0 = _time.time()
+    starts = M.starts_from_moments(name, data, n_starts, rng, jitter_sd)
+    runs = _tag(M._run_starts(name, data, starts, n_gh, opts), "cold", starts, batch=f"cold:{tag}")
+    level = 0
+    kept, n_conv = M._pick(runs)
+    if kept is None or n_conv == 0:
+        level = 1
+        more = M.starts_from_moments(name, data, M.N_STARTS_RECOVERY + 1, rng, jitter_sd)[1:]
+        runs += _tag(M._run_starts(name, data, more, n_gh, opts), "recovery1", more, batch=f"recovery1:{tag}")
+        kept, n_conv = M._pick(runs)
+        if kept is None or n_conv == 0:
+            level = 2
+            more = M.starts_from_moments(name, data, M.N_STARTS_RECOVERY + 1, rng, 2.0 * jitter_sd)[1:]
+            runs += _tag(M._run_starts(name, data, more, n_gh, opts), "recovery2", more, batch=f"recovery2:{tag}")
+    return runs, level, _time.time() - t0
 
 
 def _tag(runs: list, source: str, x0=None, batch: str = "") -> list:
@@ -792,6 +829,57 @@ def runtime_versions() -> str:
     import jax, scipy, pandas, joblib
     return (f"python {platform.python_version()} jax {jax.__version__} numpy {np.__version__} scipy {scipy.__version__} "
             f"pandas {pandas.__version__} joblib {joblib.__version__} {platform.machine()}")
+
+
+def file_digest(path: str) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        h.update(fh.read())
+    return h.hexdigest()
+
+
+def accepted_gain_artefact(raw_path: str | None, revalidated_path: str | None, D: int, want: str | None) -> tuple:
+    """ONE contract for the job and the monitor (Codex, review 4 finding 2): which gain artefact is accepted.
+    The revalidated file is authoritative when it exists — it must carry this run's code/config hash (`code_hash`,
+    or `source_code_hash`), this D, a `revalidated_with` identity and, when the job-written file is beside it, a
+    `source_digest` equal to that file's digest; a revalidated file that fails any of these RAISES (the job holds,
+    the monitor reports it), and one whose own gate failed is still the accepted artefact, so that `power_points`
+    refuses it and the monitor prints the same FAIL. Otherwise the job-written file with this hash and D.
+    `want=None` accepts the file's own hash (the monitor, which learns the run's hash from the file).
+    Returns (path or None, info)."""
+    raw = raw_path if raw_path and os.path.exists(raw_path) else None
+    rev = revalidated_path if revalidated_path and os.path.exists(revalidated_path) else None
+    info = dict(raw=raw, revalidated=rev, accepted=None, reason="")
+    if rev:
+        try:
+            with open(rev) as fh:
+                cal = json.load(fh)
+        except Exception as e:
+            raise ValueError(f"revalidated artefact {os.path.basename(rev)} is malformed: {e}")
+        if not isinstance(cal, dict) or "entries" not in cal:
+            raise ValueError(f"revalidated artefact {os.path.basename(rev)} has no entries")
+        h = cal.get("code_hash") or cal.get("source_code_hash")
+        if want is not None and h != want:
+            raise ValueError(f"revalidated artefact is for code/config {h!r}, not this run's {want!r}")
+        if int(cal.get("D", -1)) != int(D):
+            raise ValueError(f"revalidated artefact is for D={cal.get('D')}, not D={D}")
+        if not cal.get("revalidated_with"):
+            raise ValueError("revalidated artefact carries no revalidation identity")
+        if raw and cal.get("source_digest") and cal["source_digest"] != file_digest(raw):
+            raise ValueError("revalidated artefact does not match the job-written file beside it (source digest)")
+        return rev, dict(info, accepted="revalidated", code_hash=h, revalidated_with=cal["revalidated_with"],
+                         problems=cal.get("problems", []))
+    if raw:
+        try:
+            with open(raw) as fh:
+                cal = json.load(fh)
+        except Exception as e:
+            raise ValueError(f"gain artefact {os.path.basename(raw)} is malformed: {e}")
+        if isinstance(cal, dict) and int(cal.get("D", -1)) == int(D) and (want is None or cal.get("code_hash") == want):
+            return raw, dict(info, accepted="raw", code_hash=cal.get("code_hash"))
+        info["reason"] = (f"job-written artefact is for code/config {cal.get('code_hash') if isinstance(cal, dict) else 'old format'!r}, "
+                          f"D {cal.get('D') if isinstance(cal, dict) else '?'}")
+    return None, info
 
 
 def power_points(gain_file: str, targets=None) -> tuple:

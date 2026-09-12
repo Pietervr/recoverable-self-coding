@@ -54,7 +54,7 @@ def fake_run_dataset(sub, cfg_, seed, outer_folds=None, n_jobs=1):
     seen.append(seed)
     rep = seed - 1 - 5
     failed = rep in FAILED
-    delta = {p: np.full((L, sub.n_concepts), 0.01 * (1 + rep) * (1 if p == "selection" else 2)) for p in A.PREDICTORS}
+    delta = {p: np.full((sub.n_layers, sub.n_concepts), 0.01 * (1 + rep) * (1 if p == "selection" else 2)) for p in A.PREDICTORS}
     if failed:
         for p in delta:
             delta[p][:, :] = np.nan
@@ -100,3 +100,34 @@ with tempfile.TemporaryDirectory() as d:
     c = A.refit_bootstrap(ds, cfg, seed=5, n_rep=10, predictor="selection", min_usable=0.7, checkpoint_path=ck)
     assert c["n_resumed"] == 6 and len(seen) == 4 and c["ws"] == a["ws"] and sum(1 for _ in open(ck)) == 11
 print("refit_bootstrap checkpointing: appended per resample, resumed by seed and n_rep, same interval OK")
+
+# 5. checkpoint IDENTITY (review 4, finding 1): a checkpoint is reused only by the same data-and-procedure identity
+with tempfile.TemporaryDirectory() as d:
+    a = A.refit_bootstrap(ds, cfg, seed=5, n_rep=6, min_usable=0.5, checkpoint_dir=d)
+    assert a["n_resumed"] == 0 and len(a["ident"]) == 64 and os.path.exists(a["checkpoint"]) and a["n_damaged"] == 0
+    # (i) the five-layer stage: same seed, another response array -> another identity, nothing reused
+    ds5 = A.Dataset(y=rng.normal(size=(C * per, 5)), k=ds.k, concept=ds.concept, family=fam, layers=np.array([25, 33, 41, 49, 57]))
+    b = A.refit_bootstrap(ds5, cfg, seed=5, n_rep=6, min_usable=0.5, checkpoint_dir=d)
+    assert b["ident"] != a["ident"] and b["n_resumed"] == 0 and b["checkpoint"] != a["checkpoint"]
+    # (ii) two recovery points that share a seed: the data differ -> another identity
+    ds_b = A.Dataset(y=ds.y + 1e-9, k=ds.k, concept=ds.concept, family=fam, layers=layers)
+    c2 = A.refit_bootstrap(ds_b, cfg, seed=5, n_rep=6, min_usable=0.5, checkpoint_dir=d)
+    assert c2["ident"] != a["ident"] and c2["n_resumed"] == 0
+    # (iii) another Config or other folds -> another identity
+    assert A.dataset_identity(ds, A.Config(n_boot_refit=7), 5, 6, a["outer_folds"]) != a["ident"]
+    assert A.dataset_identity(ds, cfg, 5, 6, list(reversed(a["outer_folds"]))) != a["ident"]
+    assert A.dataset_identity(ds, cfg, 5, 6, a["outer_folds"]) == a["ident"]
+    # (iv) the same everything -> every resample reused, the same interval
+    seen.clear()
+    a2 = A.refit_bootstrap(ds, cfg, seed=5, n_rep=6, min_usable=0.5, checkpoint_dir=d)
+    assert a2["n_resumed"] == 6 and len(seen) == 0 and a2["ws"] == a["ws"]
+    # (v) a tampered resample and a truncated last line are damaged: counted, recomputed, never accepted
+    with open(a["checkpoint"]) as fh:
+        lines = fh.read().splitlines()
+    bad = json.loads(lines[1]); bad["chosen"][0] = (bad["chosen"][0] + 1) % 64
+    with open(a["checkpoint"], "w") as fh:
+        fh.write("\n".join(lines[:1] + [json.dumps(bad)] + lines[2:5] + [lines[5][:40]]) + "\n")
+    seen.clear()
+    a3 = A.refit_bootstrap(ds, cfg, seed=5, n_rep=6, min_usable=0.5, checkpoint_dir=d)
+    assert a3["n_damaged"] == 2 and a3["n_resumed"] == 4 and len(seen) == 2 and a3["ws"] == a["ws"]
+print("checkpoint identity: five-layer stage, colliding-seed data, other config/folds never reuse; damaged records recomputed OK")

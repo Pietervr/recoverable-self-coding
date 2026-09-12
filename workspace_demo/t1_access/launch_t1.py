@@ -161,8 +161,9 @@ def main():
             Environment=env_s,
             EnableManagedSpotTraining=bool(a.spot),
         )
-        if a.spot:
-            spec["CheckpointConfig"] = {"S3Uri": f"{RESULTS_ROOT}{a.run}/checkpoints{tag}/", "LocalPath": "/opt/ml/checkpoints"}
+        # every job, spot or on demand, keeps /opt/ml/checkpoints synced to S3 by SageMaker (review 4 finding 4: an
+        # on-demand relaunch must find its rows and refit checkpoints too); the job also uploads them itself
+        spec["CheckpointConfig"] = {"S3Uri": f"{RESULTS_ROOT}{a.run}/checkpoints{tag}/", "LocalPath": "/opt/ml/checkpoints"}
         print(f"job {job}: {a.task} n_rep={a.n_rep} D={a.D} layers={a.layers} interval={a.interval}"
               f"{f' B={a.n_boot_refit}' if a.interval == 'refit' else ''} on {a.instance_type}"
               f"{' SPOT' if a.spot else ''} (max {a.max_hours} h{f', at most USD {price * a.max_hours:.0f} on demand' if price else ''})"

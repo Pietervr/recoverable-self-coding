@@ -27,6 +27,7 @@ the CONF run will drive it on the captured readouts with the frozen folds.json.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import sys
@@ -365,13 +366,13 @@ def analyze_dataset(ds: Dataset, cfg: Config, seed: int, outer_folds: list | Non
         raise ValueError(f"cfg.interval must be one of {INTERVALS}, not {cfg.interval!r}")
     rb = None
     if cfg.interval == "refit" and not run["failed"]:
-        ckpt = os.path.join(cfg.refit_checkpoint_dir, f"refit_seed{seed}.jsonl") if cfg.refit_checkpoint_dir else None
         rb = refit_bootstrap(ds, cfg, seed, n_rep=cfg.n_boot_refit, n_jobs=n_jobs, outer_folds=run["folds"],
-                             min_usable=cfg.refit_min_usable, checkpoint_path=ckpt)
+                             min_usable=cfg.refit_min_usable, checkpoint_dir=cfg.refit_checkpoint_dir)
         out["interval"] = dict(method="refit", n_rep=rb["n_rep"], n_used=rb["n_used"], n_failed=rb["n_failed"],
                                usable=rb["usable"], policy=rb["policy"], seed=rb["seed"], fit_seconds=rb["fit_seconds"],
                                failed_reasons=rb["failed_reasons"], replicates=rb["replicates"],
-                               outer_folds=rb["outer_folds"], checkpoint=ckpt)
+                               outer_folds=rb["outer_folds"], checkpoint=rb["checkpoint"], ident=rb["ident"],
+                               n_resumed=rb["n_resumed"], n_damaged=rb["n_damaged"])
     elif cfg.interval == "refit":
         out["interval"] = dict(method="refit", n_rep=cfg.n_boot_refit, n_used=0, n_failed=0, usable=False,
                                policy="not run: the analysis itself failed", seed=seed, fit_seconds=0.0, failed_reasons=[], replicates=[])
@@ -426,9 +427,30 @@ def _band_stats(delta: np.ndarray, masks: dict) -> dict:
     return out
 
 
+def dataset_identity(ds: Dataset, cfg: Config, seed: int, n_rep: int, outer_folds: list) -> str:
+    """The complete data-and-procedure identity of a refitting bootstrap (Codex, review 4 finding 1): a digest of
+    the response array, levels, concept and family mappings, group, exact layer ids, the generator metadata, every
+    numerical setting of the Config, the seed, B and the actual outer folds. Two datasets that share a seed (the
+    five-layer stage; two recovery points with a colliding tag) never share an identity."""
+    h = hashlib.sha256()
+    for arr in (ds.y, ds.k, ds.concept, ds.family, ds.layers):
+        a = np.ascontiguousarray(np.asarray(arr, dtype=np.float64))
+        h.update(repr(a.shape).encode()); h.update(a.tobytes())
+    if ds.group is not None:
+        h.update(np.ascontiguousarray(np.asarray(ds.group, dtype=np.int64)).tobytes())
+    meta = {k: ds.meta.get(k) for k in ("generator", "theta", "D", "rho", "seed")}
+    settings = dict(n_starts=cfg.n_starts, n_starts_inner=cfg.n_starts_inner, n_gh=cfg.n_gh, n_outer=cfg.n_outer,
+                    n_inner=cfg.n_inner, n_boot=cfg.n_boot, interval=cfg.interval, n_boot_refit=cfg.n_boot_refit,
+                    refit_min_usable=cfg.refit_min_usable, members_G=list(cfg.members_G), members_X=list(cfg.members_X),
+                    bands=cfg.bands, fit_M0=cfg.fit_M0, seed=int(seed), n_rep=int(n_rep),
+                    folds=[[int(c) for c in f] for f in outer_folds])
+    h.update(json.dumps(dict(meta=meta, settings=settings), sort_keys=True, default=str).encode())
+    return h.hexdigest()
+
+
 def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REFIT, predictor: str = "selection",
                     n_jobs: int = 1, outer_folds: list | None = None, min_usable: float = 1.0,
-                    checkpoint_path: str | None = None) -> dict:
+                    checkpoint_path: str | None = None, checkpoint_dir: str | None = None) -> dict:
     """Resample whole concepts with replacement within family strata and re-run the ENTIRE per-layer procedure
     (outer folds, inner selection, refit, joint scoring) on every resample; percentile intervals of the band means
     and of ws − early, for EVERY predictor from the same refits (selection, ensemble, historical).
@@ -442,9 +464,13 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
     interval is usable only when at least `min_usable` of the replicates are scored; the default 1.0 means EVERY
     replicate (Codex, 12 Sept: the missing ones can hold both tails); a lower value is an explicit amendment.
     The per-replicate statistics are returned (`replicates`) so they can be persisted and rescored, and with
-    `checkpoint_path` every completed resample is appended as one JSON line as it finishes (per chunk of n_jobs when
-    parallel) and a restart skips the resamples already on file for this seed and n_rep (review 3, finding 5).
-    Top-level band entries are those of `predictor` (compatibility); `predictors` holds all three."""
+    `checkpoint_dir` (a file named by the identity) or `checkpoint_path` every completed resample is appended as one
+    JSON line as it finishes (per chunk of n_jobs when parallel). A restart reuses only records that carry THIS
+    bootstrap's complete identity (`dataset_identity`: data digest, generator, layers, mappings, Config, seed, B,
+    folds), whose resample indices lie in range and whose drawn concepts equal the ones this run would draw; a
+    damaged line (truncated JSON, wrong identity, wrong resample) is counted in `n_damaged` and recomputed, never
+    accepted (Codex, review 4 finding 1). Top-level band entries are those of `predictor` (compatibility);
+    `predictors` holds all three."""
     rng = np.random.default_rng(seed)
     idx = stratified_resample(ds.family, n_rep, rng)
     base_folds = stratified_folds(ds.family, cfg.n_outer, seed) if outer_folds is None else outer_folds
@@ -467,21 +493,34 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
         stats = {p: _band_stats(np.asarray(run["delta"][p], dtype=float), masks) for p in PREDICTORS}
         return dict(rep=int(rep), stats=stats, failed=bool(run["failed"]), failed_reason=run.get("failed_reason", ""),
                     fit_seconds=float(run.get("fit_seconds", 0.0)), chosen=[int(c) for c in chosen])
-    done = {}
+    ident = dataset_identity(ds, cfg, seed, n_rep, base_folds)
+    if checkpoint_path is None and checkpoint_dir:
+        checkpoint_path = os.path.join(checkpoint_dir, f"refit_{ident[:24]}.jsonl")
+    done, n_damaged = {}, 0
     if checkpoint_path and os.path.exists(checkpoint_path):
         with open(checkpoint_path) as fh:
             for line in fh:
-                if line.strip():
+                if not line.strip():
+                    continue
+                try:
                     d = json.loads(line)
-                    if d.get("seed") == int(seed) and d.get("n_rep") == int(n_rep):
-                        done[int(d["rep"])] = d
+                    ok = (isinstance(d, dict) and d.get("ident") == ident and d.get("seed") == int(seed)
+                          and d.get("n_rep") == int(n_rep) and isinstance(d.get("rep"), int) and 0 <= d["rep"] < n_rep
+                          and d.get("chosen") == [int(c) for c in idx[d["rep"]]] and isinstance(d.get("failed"), bool)
+                          and isinstance(d.get("stats"), dict) and all(p in d["stats"] for p in PREDICTORS))
+                except Exception:
+                    ok = False
+                if ok:
+                    done[int(d["rep"])] = d
+                else:
+                    n_damaged += 1
     todo = [r for r in range(n_rep) if r not in done]
     def _save(batch):
         if checkpoint_path:
             os.makedirs(os.path.dirname(checkpoint_path) or ".", exist_ok=True)
             with open(checkpoint_path, "a") as fh:
                 for s in batch:
-                    fh.write(json.dumps(dict(s, seed=int(seed), n_rep=int(n_rep)), default=float) + "\n")
+                    fh.write(json.dumps(dict(s, ident=ident, seed=int(seed), n_rep=int(n_rep)), default=float) + "\n")
     new = []
     if n_jobs > 1:
         from joblib import Parallel, delayed
@@ -496,6 +535,7 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
     out = dict(method="refit", n_rep=int(n_rep), seed=int(seed), min_usable=float(min_usable),
                policy=("every replicate scored" if min_usable >= 1.0 else f"at least {min_usable:.0%} of the replicates scored"),
                outer_folds=[[int(c) for c in f] for f in base_folds], checkpoint=checkpoint_path, n_resumed=len(done),
+               n_damaged=int(n_damaged), ident=ident,
                failed_reasons=[s["failed_reason"] for s in reps if s["failed"]],
                fit_seconds=float(sum(s["fit_seconds"] for s in reps)), predictors={},
                replicates=[dict(rep=s["rep"], failed=s["failed"], failed_reason=s["failed_reason"], stats=s["stats"]) for s in reps])

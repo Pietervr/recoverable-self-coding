@@ -97,6 +97,20 @@ assert s["n"] == 5 and s["n_points"] == 5 and s["n_usable"] == 4 and s["n_interv
 assert abs(s["mean_point"] - np.mean([r["selection_ws_point"] for r in rows])) < 1e-12        # every valid point estimates theta_g
 assert np.isfinite(s["coverage"]) and 0.0 <= s["coverage"] <= 1.0, s["coverage"]
 assert abs(s["mean_se"] - np.mean([r["selection_ws_se"] for r in rows[:4]])) < 1e-9      # over the four usable intervals only
+# 6. dataset seeds (review 4, finding 1): the two M3H recovery points that collided under the v1.2 weighted tag now
+#    differ; every point with at most one grid value keeps its v1.2 seed (the d4v12b null rows depend on it)
+def old_seed(name, kw, rep, D, seed):
+    tag = sum((i + 1) * int(round(1000 * float(v))) for i, v in enumerate(kw.get(x, 0.0) for x in ("tau", "omega", "sep", "pi0", "alpha", "scale")))
+    return int(np.random.default_rng([seed, S.M.ALL_MEMBERS.index(name), tag % (2**31 - 1), rep, D]).integers(2**31))
+p1, p2 = dict(tau=0.5, sep=1.0), dict(tau=2.0, sep=0.5)
+assert old_seed("M3H", p1, 0, 4, 2026) == old_seed("M3H", p2, 0, 4, 2026)                     # the collision was real
+assert S.dataset_seed("M3H", p1, 0, 4, 2026) != S.dataset_seed("M3H", p2, 0, 4, 2026)
+for name, kw in (("M2B", {}), ("M2H", dict(tau=0.5)), ("M2S", dict(omega=2.0)), ("M2K", dict(alpha=1.0)), ("M3", dict(sep=2.0))):
+    assert S.dataset_seed(name, kw, 7, 4, 2026) == old_seed(name, kw, 7, 4, 2026)
+# 7. the row carries the companion cluster interval of EVERY band and the bootstrap's identity (review 4, finding 4)
+assert all(np.isfinite(row2[f"selection_cluster_{b}_{k}"]) for b in ("ws", "early", "late", "ws_minus_early") for k in ("lo", "hi", "se"))
+assert len(row2["interval_ident"]) == 64 and row2["interval_n_damaged"] == 0
+print("dataset seeds: colliding recovery points separated, null-point seeds unchanged; row carries every companion interval + identity OK")
 print("interval path: cluster unchanged; refit intervals from the refitting bootstrap with the point kept and the cluster CI beside; "
       "a failed resample -> assay failure under the every-replicate policy; row carries every band, H2, cluster CI, flags, seeds, folds, "
       "replicates; summarize keeps valid points in the target and drops unusable intervals from the coverage denominator OK")

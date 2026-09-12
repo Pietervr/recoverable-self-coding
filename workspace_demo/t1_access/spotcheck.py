@@ -93,13 +93,19 @@ def pull(run: str, profile: str, out_dir: str) -> dict:
 
 
 def gain_file_for(out_dir: str, D: int) -> str | None:
-    """The gain artefact the gate is applied to: the revalidated one when it exists (run d4v12b's job-written
-    file predates the gate and never carries the convergence flags), else the job-written file, else None."""
-    for name in (f"gain_calibration_D{D}.revalidated.json", f"gain_calibration_D{D}.json"):
-        p = os.path.join(out_dir, name)
-        if os.path.exists(p):
-            return p
-    return None
+    """The gain artefact the gate is applied to — the same contract as the job's (simulate.accepted_gain_artefact):
+    the revalidated one when it exists and authenticates against the job-written file beside it, else the
+    job-written file; a revalidated file that cannot be authenticated is reported and nothing is accepted (the
+    power statistics stay HELD)."""
+    import simulate as S
+    raw = os.path.join(out_dir, f"gain_calibration_D{D}.json")
+    rev = os.path.join(out_dir, f"gain_calibration_D{D}.revalidated.json")
+    try:
+        path, info = S.accepted_gain_artefact(raw, rev, D, want=None)
+    except ValueError as e:
+        print(f"gain artefact for D={D} NOT accepted: {e}")
+        return None
+    return path
 
 
 def revalidate(run: str, D: int, out_dir: str, profile: str, seed: int, n_jobs: int) -> str:
@@ -116,8 +122,13 @@ def revalidate(run: str, D: int, out_dir: str, profile: str, seed: int, n_jobs: 
     cfg = A.Config(n_starts_inner=4)
     new = S.revalidate_gain_entries(entries, seed=seed, cfg=cfg, D=D, n_jobs=n_jobs)
     problems = S.validate_gain_entries(new)
-    out = dict(source=os.path.basename(src), source_code_hash=cal.get("code_hash") if isinstance(cal, dict) else None,
-               revalidated_with=S.config_hash(cfg, D, (41,), seed), runtime=S.runtime_versions(),
+    # ONE artefact schema shared by this writer, the job (t1_job.gain_file) and the monitor (gain_file_for), all through
+    # simulate.accepted_gain_artefact (Codex, review 4 finding 2): the run's code/config hash under `code_hash` (the
+    # source's), D, the source file's digest, the revalidation's own identity, the scales, the gate verdict
+    src_hash = cal.get("code_hash") if isinstance(cal, dict) else None
+    out = dict(source=os.path.basename(src), code_hash=src_hash, source_code_hash=src_hash, D=int(D), seed=int(seed),
+               source_digest=S.file_digest(src), revalidated_with=S.config_hash(cfg, D, (41,), seed),
+               scales={f"{e['generator']}@{e['target']}": e.get("scale") for e in new}, runtime=S.runtime_versions(),
                gate=dict(check_n_per_family=S.CHECK_N_PER_FAMILY, rel_se=S.GATE_REL_SE, rel_agree=S.GATE_REL_AGREE),
                problems=problems, entries=new)
     dst = os.path.join(out_dir, f"gain_calibration_D{D}.revalidated.json")

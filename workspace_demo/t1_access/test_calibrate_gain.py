@@ -228,3 +228,26 @@ assert ch2.shape[0] == 5 and not any(np.array_equal(r, moment) for r in ch2)
 S.M.moments, S.M.start_from_moments, S.M.starts_from_moments = _om, _sm, _orig
 print("helpers: distinct cold-start counting by initial vector and source, basin candidates, warm merge, extra batch without the "
       "moment start and skew-mirrored, challenge batch with separated skew starts OK")
+
+# 10. the cold reference fit keeps every start's provenance through the §9 recovery chain (review 4, finding 3):
+#     with the optimiser mocked so that no cold start converges and the recovery batch does, all twenty runs carry
+#     their initial vector and batch id, and only the converged recovery discoveries count — as distinct vectors
+import models as M
+tiny = S.make_dataset("M2K", S.generator_theta("M2K", alpha=1.0), n_per_family=1, D=1, layers=(41,), rho=0.0, seed=3)
+train = M.Trials.build(tiny.y[:, 0], tiny.k, tiny.concept, tiny.n_concepts)
+batches = []
+def fake_run_starts(name, data, starts, n_gh, options):
+    batches.append(len(starts))
+    conv = len(batches) > 1                       # the first (cold) batch fails to converge, the recovery batch converges
+    return [dict(start=i, theta=np.asarray(x0, float), loglik=-100.0 - (0.0 if conv else 50.0), converged=conv, nfev=1, nit=1, message="")
+            for i, x0 in enumerate(starts)]
+_rs = S.M._run_starts
+S.M._run_starts = fake_run_starts
+runs, level, secs = S._fit_reference("M2K", train, 4, np.random.default_rng([2026, 7, 3]), 20, tag="t")
+S.M._run_starts = _rs
+assert level == 1 and batches == [4, 16] and len(runs) == 20
+assert all(r.get("x0") is not None and len(r["x0"]) == 8 for r in runs)
+assert [r["batch"] for r in runs[:4]] == ["cold:t"] * 4 and [r["batch"] for r in runs[4:]] == ["recovery1:t"] * 16
+assert len({tuple(r["x0"]) for r in runs}) == 20
+assert S._starts_at_best(runs) == 16 and S._starts_at_best(runs, sources=("cold",)) == 0
+print("reference fit provenance: cold and recovery starts each carry their initial vector and batch; counts are of distinct vectors OK")

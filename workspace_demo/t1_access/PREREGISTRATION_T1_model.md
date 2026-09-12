@@ -425,7 +425,19 @@ counted and reported as a performance result of their own (Morris, White & Crowt
 the paired ws − early statistic, the companion cluster interval, the bootstrap's seed, policy, folds, failure
 reasons and per-replicate statistics are written with the row; completed resamples are checkpointed as they
 finish and a restart resumes them. The launcher carries the declared interval method and replicate count into
-the job's environment and hash (`launch_t1.py --interval --n-boot-refit`).
+the job's environment and hash (`launch_t1.py --interval --n-boot-refit`). **After Codex's fourth review (same
+day):** a checkpoint is keyed by the bootstrap's complete data-and-procedure identity (`analyze.dataset_identity`:
+a digest of the response array, levels, concept and family mappings, group, exact layer ids, generator metadata,
+every numerical setting, the seed, B and the actual outer folds) and a record is reused only when its identity,
+seed, B, resample index and drawn concepts all match — a damaged record is counted and recomputed, never
+accepted; the dataset seed of a grid point with two or more values is a digest of the sorted grid (the v1.2
+weighted tag gave M3H $(\tau = 0.5, \text{sep} = 1)$ and $(\tau = 2, \text{sep} = 0.5)$ the same seed), while every
+point with at most one value keeps its v1.2 seed, so the `d4v12b` null rows are unchanged; the revalidation
+writer, the job and the monitor share one accepted-artefact contract (`simulate.accepted_gain_artefact`: the
+run's hash, D, the source digest and the revalidation identity authenticate a revalidated file, which then holds
+the job exactly as it holds the monitor when its gate failed); every reference start, the §9 recovery batches
+included, carries its initial vector and batch id from where it is generated; every job keeps its checkpoints
+synced to S3 and the row carries every band's companion cluster interval and the bootstrap identity.
 Cost (`bench_refit.py`, one Mac core, one layer, D = 4, M2S $\omega = 0.5$, inner selection at 4 starts): 15.3 min
 per replicate, so 200 replicates ≈ 51 Mac-core-hours per dataset per layer; the cloud cost is **not** established by
 this — the corrected procedure is benchmarked at the intended cloud concurrency before any projection (loaded cloud
