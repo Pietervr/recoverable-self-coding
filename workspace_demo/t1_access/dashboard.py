@@ -65,7 +65,15 @@ def read_status(path: str | None, run: str) -> list[dict]:
             train_h = None
         jobs.append(dict(name=parts[0], status=parts[1], secondary=parts[2], instance=parts[3],
                          train_h=train_h, shard0=s0, shard1=s1))
-    return sorted(jobs, key=lambda j: j["shard0"])
+    # a relaunched shard has two jobs with the same range: keep the newest (the launcher suffixes the name
+    # with a timestamp), so a superseded Failed/Stopped job does not count against the fleet
+    newest = {}
+    for j in jobs:
+        key = (j["shard0"], j["shard1"])
+        stamp = j["name"].rsplit("-", 1)[-1]
+        if key not in newest or stamp > newest[key]["name"].rsplit("-", 1)[-1]:
+            newest[key] = j
+    return sorted(newest.values(), key=lambda j: j["shard0"])
 
 
 def read_starts(path: str | None) -> dict[int, int]:
