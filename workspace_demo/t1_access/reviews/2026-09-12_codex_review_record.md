@@ -1,26 +1,26 @@
 # Codex review record — Entropy T1, 12 September 2026
 
-This file owns the Codex review findings and restart context for the six completed
+This file owns the Codex review findings and restart context for the seven completed
 12 September reviews. It records advice sent to `claude:Entropy SI`, not an owner
 decision or authorization to launch work. The publication strategy and current
 operational state remain with Unimog-Projects work item R052 and its owning docs.
 
 ## Current review position
 
-Latest re-check: Recoverable-Self-Coding `2d9d3c0`; Unimog-Projects `9b4db980`.
+Latest re-check: Recoverable-Self-Coding `71c46fb`; Unimog-Projects `0399cff3`.
 Claude requested the re-check through `xs` after recording its disposition of
-Full review 5. All six reviews are preserved below in chronological order;
-**Full review 6** is the current disposition. The reviewed production files
-were clean at `2d9d3c0`.
+Full review 6. All seven reviews are preserved below in chronological order;
+**Full review 7** is the current disposition. The reviewed production files
+were clean at `71c46fb`.
 
-**Latest verdict: not on board with production yet.** The reported Full review 5
-counterexamples are repaired: effective model globals enter checkpoint identity,
-gain provenance fields are required, retrieval errors hold, checkpoint payloads
-are checked and interrupted tails repaired, and shards mirror their own changes.
-Two narrower cases remain: a running process can stamp old loaded code with a
-newer file digest, and a source-missing revalidation is accepted by the job while
-the monitor holds it. The numerical audit, validation design, benchmark and reuse
-manifest remain open independently.
+**Latest verdict: not on board with production yet.** Both readers now require
+the raw source for a revalidation (6.2 closed), and the direct analysis-file edit
+case in 6.1 is fixed. Loaded-code provenance still needs one consistent contract
+(7.1): a preloaded models module is hashed from disk when analyze later imports,
+and the separate row/gain `config_hash` still reads live files. The numerical
+audit, validation design, benchmark and reuse manifest remain open independently.
+The earlier checksum, interrupted-tail, retrieval-error and shard-mirror fixes
+remain accepted.
 
 The earlier approval of d4v12b was limited to continuing per-layer calibration and
 recovery, with power held behind the revalidated gain gate. It did not approve a
@@ -42,7 +42,7 @@ and any launch still requires the owner's go and Codex's explicit disposition.
 ## Resume procedure
 
 1. Read this section and the latest review below. Run `git log` and inspect
-   status in both repos; Claude may have landed fixes since `2d9d3c0`.
+   status in both repos; Claude may have landed fixes since `71c46fb`.
 2. Read the current R052 frontmatter and its latest log entries in
    `~/Unimog-Projects/project_knowledge/work/R052-entropy-si-paper-access-at-threshold-brain-vs-la.md`.
    That item belongs to session `Entropy SI`; the reviewer does not take over
@@ -66,12 +66,12 @@ the T1 second-opinion review from the outstanding findings.”
 
 ## Next re-check targets
 
-- Bind code provenance to the implementation loaded by the process; an edit
-  to the working tree must not relabel already-loaded code or its checkpoints.
-  Retain the effective global settings and data/Config/fold digest (6.1).
-- Resolve the source-missing revalidation exception consistently in the job
-  and monitor. Require the source file, or provide both callers a trusted
-  manifest pinning the accepted artefact and its source lineage (6.2).
+- Complete loaded-code provenance across checkpoints, rows and gain artefacts
+  (7.1): bind the model's digest at its own load and remove live-file hashing
+  from the output identity. Test models imported before analyze and a source
+  edit between importing simulate and completing the real gain wrapper.
+  A pinned immutable execution copy is an alternative if enforced for the
+  whole run. Keep effective globals and all data/Config/fold identity fields.
 - Freeze and validate the procedure/counts/borderline rule on new seeds across
   all retained nulls and alternatives; complete the ordinary-fit sensitivity
   audit, cloud benchmark and explicit cross-snapshot reuse manifest.
@@ -129,6 +129,11 @@ The sixth review adds [loaded-code and retrieval fixtures](2026-09-12_codex_snap
 for `2d9d3c0`: two remaining counterexamples and positive checks of the actual
 job download and shard-mirror functions. Only temporary source copies are edited;
 numerical outputs and cloud clients are mocked.
+
+The seventh review adds [provenance re-check fixtures](2026-09-12_codex_provenance_recheck.py)
+for `71c46fb`. They positively verify both direct review-6 cases, then demonstrate
+the preloaded-model and gain-wrapper provenance paths using temporary source
+copies and mocked numerical results. No running diagnostic is modified.
 
 ## Scientific and publication boundaries
 
@@ -748,3 +753,94 @@ screen. Preserve the accepted chosen-scale gate, same-training challenge and
 bookkeeping fixes. The USD 3,000 further-spend cap stands; every proposed paid
 stage must be costed and obtain the owner's go plus an explicit Codex
 disposition. This review approves no new AWS launch. R052 stays with `Entropy SI`.
+
+## Full review 7 — re-check of 71c46fb
+
+Reviewed 12 September 2026 after Claude's 15:29 PDT request. Read the updated
+brief and preregistration §10, the relevant source and tests, RSC changes through
+`71c46fb` and Unimog through `0399cff3`. The production source was clean at
+that commit.
+
+**VERDICT: not on board with production yet.** Close 6.2 and the direct
+analysis-file counterexample in 6.1. One provenance contract still spans two
+unrepaired paths (7.1 below). Finding 3.7 remains open independently. This pass
+adds no numerical or statistical validation requirement.
+
+Seven existing scripts pass offline: `test_calibrate_gain.py`,
+`test_refit_bootstrap.py`, `test_interval_path.py`, `test_gain_gate.py`,
+`test_gain_gate_integration.py`, `test_launcher_env.py` and
+`test_gain_artefact.py`. The same wrapper disables optimizer/AWS calls and
+substitutes fixed arrays for response generation. The four fixtures in
+[2026-09-12_codex_provenance_recheck.py](2026-09-12_codex_provenance_recheck.py)
+also pass: two positive re-checks and two remaining counterexamples. All
+statistics are mocked and only temporary source copies are edited. No numerical
+fit, response simulation, AWS operation, production-source edit or intervention
+in the v4 Mac diagnostic was performed. Codex did not run `verify.py`.
+
+1. **REQUIRED before accepting artefacts from an editable checkout — complete
+   the loaded-code identity across all output paths (7.1).** The new bound table
+   fixes the demonstrated analysis-file case: a real temporary disk edit leaves
+   the old analysis snapshot unchanged, the new module gets a different identity,
+   and the new bootstrap resumes zero old records. Effective globals still
+   participate, as required. Two paths retain the same underlying defect.
+
+   **Preloaded models.** `analyze.py:442` uses
+   `M.LOADED_SOURCE_DIGEST` if available, otherwise reads `M.__file__` when
+   analyze imports. The reviewed `models.py` defines no such digest. If models
+   was imported earlier, Python supplies the already-loaded module while the
+   fallback hashes its possibly edited file.
+
+   Fixture `delayed_models_import`: load a temporary real models module with
+   a mocked statistic of 1; edit only its temporary file to return 2; import
+   analyze against the preloaded module. A fresh models/analyze pair then has
+   exactly the same recorded source identity, globals and bootstrap inputs,
+   although its statistic is 2. All four old checkpoints are reused, giving
+   [1, 1] instead of the fresh [2, 2]. This is the models counterpart of 6.1.
+   Bind each module's digest at its own load, with no later disk fallback for
+   an already-loaded module, or enforce an immutable execution snapshot.
+
+   **Rows and gain files.** `simulate.config_hash:45` still reads all three
+   source files from disk. It is separate from `numerical_snapshot` and supplies
+   CSV identities and the job's expected gain identity.
+   `calibrate_all_gains:824` calls it after the complete calibration batch.
+   Thus fixing checkpoint identity alone leaves the gain artefact vulnerable
+   throughout a long run in the shared editable checkout.
+
+   Fixture `gain_file_hash_still_reads_disk` exercises the real batch wrapper,
+   replacing only its numerical `_one_gain` with deterministic passing entries.
+   Import a temporary simulate module returning scale 0.5, edit its source to
+   return 0.75, then call the old loaded wrapper. It still returns twelve
+   scale-0.5 entries but stamps them with the same hash as the new wrapper's
+   scale-0.75 entries. That hash differs from the old module's pre-edit hash.
+   The actual job function using the new module accepts all twelve old entries
+   under the new identity after verified revalidation absence. No gate test
+   failed: it is the implementation label that is wrong.
+
+   Use the same bound implementation provenance for checkpoint, row and gain
+   identities, retaining their respective data/config fields. Alternatively,
+   enforce one pinned immutable code copy for the full run, including workers.
+   Do not retrospectively relabel old CSVs or disable their hash checks; any
+   approved cross-snapshot reuse still needs the explicit mapping under 3.7.
+   These examples do not establish contamination of existing scientific rows
+   or justify stopping the current diagnostic.
+
+The new `test_refit_bootstrap.py` code mutates `A.LOADED_SOURCES` and verifies
+that the snapshot reads it; it does not actually edit a disk file. The positive
+temporary-copy fixture above supplies that missing evidence for analyze.
+Retain it and add the models-first and real gain-wrapper transitions when
+closing the remaining provenance paths.
+
+Disposition against Full review 6:
+
+| Finding | Re-check disposition |
+|---|---|
+| 6.1 loaded-code identity | The direct analysis-file example is fixed. Models imported before analyze and the separate row/gain hash retain the same provenance defect; 7.1 specifies the remaining scope. |
+| 6.2 source-missing revalidation | Fixed. The real writer plus actual job `s3_fetch/gain_file` functions now produce HELD on verified raw-source absence, and the monitor also returns no accepted file. |
+| 5.3 / 5.4 closures | Carried forward; checkpoint payload/tail and per-shard mirror code are unchanged in this repair. |
+| 3.7 numerical audit / final validation / benchmark / reuse | Open, along with the final twelve-pair artefact and post-PILOT band validation. |
+
+Next bounded step: complete 7.1 offline and re-check these transitions, then
+proceed with the declared screening/audit/artefact work within its existing
+scope. The final production decision still needs the numerical and statistical
+evidence under 3.7. Further AWS spend remains capped at USD 3,000; no new launch
+is approved here. R052 remains with `Entropy SI`.
