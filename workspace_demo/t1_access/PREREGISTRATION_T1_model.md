@@ -351,10 +351,10 @@ by an independent draw with its Monte-Carlo SE, else the power stage does not ru
 Codex review; "0.003 nat" is a numerical reference scale, the oracle-to-large-sample-graded
 separation, not the finite-design selected-X-versus-selected-G $\bar\Delta$ nor the human historical
 pair's gain). Counts: 1,000 datasets per generator and setting (Monte-Carlo SE ≈ 0.7 pp at a 5 %
-rate). The §14 benchmark (v1.2) puts one dataset through the full procedure at 860 s per layer on one
-Mac core, so the full counts on one synthetic layer (12 nulls and 12 alternatives at 1,000, the 48
-recovery points at 200) are ≈ 8,000 Mac-core-hours per $D$ — not this machine's work (owner, 11
-Sept: it is too slow and not always on). The simulations run as sharded, resumable SageMaker
+rate). The §14 benchmark (v1.2) puts one dataset through the full procedure at 900 s per layer on one
+Mac core, so the full counts on one synthetic layer (12 nulls and 12 alternatives at 1,000, the 36
+mixture recovery points at 200, the five-layer pilot) are ≈ 9,000 Mac-core-hours per $D$ — not this
+machine's work (owner, 11 Sept: it is too slow and not always on). The simulations run as sharded, resumable SageMaker
 training jobs in the cloud (`t1_job.py`, `launch_t1.py`; results under
 `s3://xtenure-cself-pvr/results/t1_access/<run>/`, one immutable code snapshot and one result
 namespace per numerical configuration, every row and the gain file carrying the code/config hash,
@@ -364,7 +364,11 @@ rule asks for it. The recovery grid's twelve graded points at replicates 0–199
 stage's first 200 replicates (same seeds, same configuration) and are reused, not refitted. The run
 launched on 11 Sept 23:00 UTC (160 shards on 50 jobs: 20 managed-spot and 22 on-demand
 `ml.c8i.2xlarge`, 8 on-demand `ml.c8i.48xlarge` with fifteen shards each) was stopped after one hour
-on the Codex review of v1.2 and its rows discarded; the corrected run is recorded here when it goes.
+on the Codex review of v1.2 and its rows discarded. **The corrected run, `d4v12b`, launched on 12
+Sept 00:38 UTC** from commit `52267ec` with the same fleet layout, code snapshot
+`code/t1_access/d4v12b/`, results under `results/t1_access/d4v12b/`; at the §14 cost of the
+corrected method (900 s per layer on a Mac core; 83 min per replicate on a loaded small-instance
+vCPU) it is expected to take 45–50 h.
 
 **What the single-layer simulations establish, and what they do not** (v1.2 after the Codex
 review): with one synthetic layer per dataset they calibrate the **per-layer procedure** (inner
@@ -464,12 +468,13 @@ Captures (single pass each, $D=4$): primary 2 × 10,752 + controls 2 × 2,304 + 
 within 24 h per condition on this machine, the frozen layer grid becomes stride 2 within each band
 and inner selection uses 4 starts (recorded in v2). **Benchmark, synthetic CONF size, one core
 (v1.2, `bench.py`, 2026-09-11, the process pinned to one XLA thread with `NPROC=1`, the §7.4
-trapezoid quadrature at $P = 96$):** the nine refits at 8 starts take 41.9 s at $D = 4$ (M3H 31.0 s,
-M2H 6.0 s, M2S 3.7 s, the rest under 1 s; ≈ 1.7× at $D = 8$), every start converging; one layer of
-the full §8 procedure (5 outer folds × 8 members × (4 inner fits + refit), 8 starts throughout) takes
-860 s with 8 inner-selection starts and 556 s with 4 (same selections, same $\Delta$ to five
-figures), so the 63-layer band is ≈ 10 h per condition on one core, ≈ 1 h on the machine's 11 usable
-workers, well inside the 24 h — every layer stays. **Inner selection uses 4 starts** (v1.2, the
+two-scale trapezoid quadrature at $P = 96$ with the eight-fraction backtracking search):** the
+nine refits at 8 starts take 74.7 s at $D = 4$ (M3H 55.2 s, M2H 11.4 s, M2S 6.7 s, the rest under
+1 s; ≈ 1.7× at $D = 8$), every start converging; one layer of the full §8 procedure (5 outer folds ×
+8 members × (4 inner fits + refit)) takes 900 s with 4 inner-selection starts (the earlier
+single-window rule gave 860 s with 8 and 556 s with 4; selections and $\Delta$ identical to five
+figures across all three), so the 63-layer band is ≈ 16 h per condition on one core, ≈ 1.5 h on
+the machine's 11 usable workers, well inside the 24 h — every layer stays. **Inner selection uses 4 starts** (v1.2, the
 clause above invoked for the simulation budget rather than the CONF fit: the §10 simulations
 re-run the whole procedure tens of thousands of times, and 4 starts cut a third of the cost); the
 refits keep 8, and CONF is fitted with the same setting so that the simulated procedure is the
