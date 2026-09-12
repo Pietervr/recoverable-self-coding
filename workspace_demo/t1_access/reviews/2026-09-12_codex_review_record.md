@@ -1,25 +1,26 @@
 # Codex review record — Entropy T1, 12 September 2026
 
-This file owns the Codex review findings and restart context for the five completed
+This file owns the Codex review findings and restart context for the six completed
 12 September reviews. It records advice sent to `claude:Entropy SI`, not an owner
 decision or authorization to launch work. The publication strategy and current
 operational state remain with Unimog-Projects work item R052 and its owning docs.
 
 ## Current review position
 
-Latest re-check: Recoverable-Self-Coding `ce0c034`; Unimog-Projects `a7ad6442`.
+Latest re-check: Recoverable-Self-Coding `2d9d3c0`; Unimog-Projects `9b4db980`.
 Claude requested the re-check through `xs` after recording its disposition of
-Full review 4. All five reviews are preserved below in chronological order;
-**Full review 5** is the current disposition. The reviewed production files
-were clean at `ce0c034`.
+Full review 5. All six reviews are preserved below in chronological order;
+**Full review 6** is the current disposition. The reviewed production files
+were clean at `2d9d3c0`.
 
-**Latest verdict: not on board with production yet.** The demonstrated
-layer/grid checkpoint collisions, revalidation writer schema, recovery-start
-provenance and companion-band output are fixed. Checkpoint identity still omits
-the numerical implementation and its global settings; gain authentication and
-download-error handling still permit invalid acceptance. Damaged checkpoint
-payloads and stale run-wide uploads also need repair. The numerical audit,
-validation design, benchmark and reuse manifest remain open.
+**Latest verdict: not on board with production yet.** The reported Full review 5
+counterexamples are repaired: effective model globals enter checkpoint identity,
+gain provenance fields are required, retrieval errors hold, checkpoint payloads
+are checked and interrupted tails repaired, and shards mirror their own changes.
+Two narrower cases remain: a running process can stamp old loaded code with a
+newer file digest, and a source-missing revalidation is accepted by the job while
+the monitor holds it. The numerical audit, validation design, benchmark and reuse
+manifest remain open independently.
 
 The earlier approval of d4v12b was limited to continuing per-layer calibration and
 recovery, with power held behind the revalidated gain gate. It did not approve a
@@ -41,7 +42,7 @@ and any launch still requires the owner's go and Codex's explicit disposition.
 ## Resume procedure
 
 1. Read this section and the latest review below. Run `git log` and inspect
-   status in both repos; Claude may have landed fixes since `ce0c034`.
+   status in both repos; Claude may have landed fixes since `2d9d3c0`.
 2. Read the current R052 frontmatter and its latest log entries in
    `~/Unimog-Projects/project_knowledge/work/R052-entropy-si-paper-access-at-threshold-brain-vs-la.md`.
    That item belongs to session `Entropy SI`; the reviewer does not take over
@@ -65,15 +66,12 @@ the T1 second-opinion review from the outstanding findings.”
 
 ## Next re-check targets
 
-- Bind checkpoint identity to the numerical implementation and effective
-  global settings as well as the existing data/Config/fold digest (5.1).
-- Require gain provenance in both callers, associate the monitor's accepted
-  identity with the run, and distinguish verified absence from download
-  failure before considering the raw artefact (5.2).
-- Validate and checksum complete checkpoint payloads; repair interrupted
-  tails before appending and test consecutive resumes (5.3).
-- Prevent the shared checkpoint mirror from uploading stale foreign copies
-  over newer completed work; test two-job interleavings offline (5.4).
+- Bind code provenance to the implementation loaded by the process; an edit
+  to the working tree must not relabel already-loaded code or its checkpoints.
+  Retain the effective global settings and data/Config/fold digest (6.1).
+- Resolve the source-missing revalidation exception consistently in the job
+  and monitor. Require the source file, or provide both callers a trusted
+  manifest pinning the accepted artefact and its source lineage (6.2).
 - Freeze and validate the procedure/counts/borderline rule on new seeds across
   all retained nulls and alternatives; complete the ordinary-fit sensitivity
   audit, cloud benchmark and explicit cross-snapshot reuse manifest.
@@ -126,6 +124,11 @@ The fourth review adds [checkpoint/writer fixtures](2026-09-12_codex_checkpoint_
 for `8972ba4`; the fifth adds [integrity fixtures](2026-09-12_codex_integrity_recheck.py)
 for `ce0c034`. Each script documents the behavior at its reviewed snapshot.
 Their defect assertions should fail after the corresponding repair.
+
+The sixth review adds [loaded-code and retrieval fixtures](2026-09-12_codex_snapshot_recheck.py)
+for `2d9d3c0`: two remaining counterexamples and positive checks of the actual
+job download and shard-mirror functions. Only temporary source copies are edited;
+numerical outputs and cloud clients are mocked.
 
 ## Scientific and publication boundaries
 
@@ -655,3 +658,93 @@ no new successful final artefact or repaired coverage was established here.
 Declare screening settings/seeds/counts/decision rules and cost any proposed
 spend against the owner's USD 3,000 cap. A paid run still needs the owner's go
 and an explicit Codex disposition. R052 remains with `Entropy SI`.
+
+## Full review 6 — re-check of 2d9d3c0
+
+Reviewed 12 September 2026 after Claude's 15:08 PDT request. Read the updated
+brief and preregistration, the affected functions and tests, RSC changes through
+`2d9d3c0` and Unimog changes through `9b4db980`. The latter records the owning
+session's detached v4 Mac diagnostic; this review neither operated nor evaluated
+that running process.
+
+**VERDICT: not on board with production yet.** The reported Full review 5
+counterexamples are repaired. Two narrower provenance/reader cases remain below;
+the numerical and statistical work under 3.7 remains open independently. Neither
+remaining code case calls for another numerical calibration batch to demonstrate
+the repair.
+
+All seven existing scripts pass: `test_calibrate_gain.py`,
+`test_refit_bootstrap.py`, `test_interval_path.py`, `test_gain_gate.py`,
+`test_gain_gate_integration.py`, `test_launcher_env.py` and
+`test_gain_artefact.py`. The offline wrapper prohibits optimizer and AWS calls
+and replaces the calibration test's small response-generation call with fixed
+arrays. Four fixtures in
+[2026-09-12_codex_snapshot_recheck.py](2026-09-12_codex_snapshot_recheck.py)
+also pass: two remaining counterexamples and two positive integration checks.
+Their interval values are artificial control-flow evidence. No production source
+was edited and no numerical fit, response simulation or AWS operation was run.
+Codex did not run `verify.py`; the request says Claude was rerunning it.
+
+1. **REQUIRED before reusing checkpoints from a mutable checkout — the file
+   digest need not describe the loaded code.** `analyze.numerical_snapshot:435`
+   reads the three source files when called, after Python has loaded the
+   implementation. Changing `M.TRAP_POINTS` now changes the identity: accepted.
+   A different case remains when another session edits a source file while a
+   long process still holds its earlier implementation.
+
+   Fixture `loaded_code_snapshot` loads a temporary copy of the real analysis
+   module with a mocked statistic of 1, edits that temporary file to return 2,
+   and loads the revised module. Both modules now report the revised file's
+   digest. The old module writes four checkpoints stamped with that identity;
+   the new module accepts all four and returns CI [1, 1], whereas a fresh call
+   under the new module returns [2, 2]. Data, Config, globals, runtime, seed,
+   B and folds agree; the executed implementations do not.
+
+   This demonstrates mislabelling under concurrent source edits, not evidence
+   that an existing scientific row is contaminated. An immutable execution
+   directory avoids this condition. Bind provenance to the code snapshot
+   actually loaded, retaining call-time effective globals; for example, run
+   from a pinned immutable copy, or capture implementation identity at load
+   and refuse source drift. An old process must either retain its old identity
+   or stop, never acquire the new code's identity by rereading its files.
+   Include that transition in the offline regression check. Preserve the
+   provenance of the current Mac diagnostic without stopping it as part of
+   this review.
+
+2. **REQUIRED before power dispatch — the source-missing exception still makes
+   the readers disagree.** `simulate.accepted_gain_artefact:841` requires all
+   provenance fields and validates them against the raw file when present.
+   If that file is absent, however, the branch at `simulate.py:884` accepts a
+   revalidation when `want` is supplied. The job supplies its code/config hash;
+   `spotcheck.gain_file_for:95` supplies `None` and holds the same artefact.
+   This exception is explicitly recorded in Claude's disposition, so it is a
+   remaining policy choice, not an overlooked download-error repair.
+
+   Fixture `orphan_revalidation` uses the real revalidation writer with mocked
+   fits, removes only the temporary raw source and gives the actual job's
+   `s3_fetch` a verified `NoSuchKey`. The job accepts all twelve passing pairs
+   with `source_verified=False`; the monitor returns no accepted file. Knowing
+   a code/config hash does not verify the missing file's content digest.
+
+   Require the source file in both callers, or give both an approved manifest
+   that pins the accepted artefact's content and source/reference lineage.
+   Exercise both callers with the same available evidence and require the
+   same gate outcome. This can be resolved by preserving the source alongside
+   its revalidation; it does not require recomputing the independent check.
+
+Disposition against Full review 5:
+
+| Finding | Re-check disposition |
+|---|---|
+| 5.1 numerical identity | The changed-global counterexample is fixed; code digests and runtime are included. Binding the digest to loaded code remains 6.1. |
+| 5.2 provenance / retrieval | Missing required fields, a foreign hash beside the raw source, and retrieval-error fallback are fixed. The fixture runs the actual `s3_fetch` and `gain_file`: AccessDenied and transport errors hold; verified NoSuchKey permits raw fallback. The declared orphan exception remains 6.2. |
+| 5.3 payload integrity / tail repair | Fixed for the reviewed cases: altered statistics and a missing nested band are counted and recomputed; checksums cover complete records; a newline-less fragment is repaired and two successive resumes are clean. |
+| 5.4 shared mirror rollback | Fixed for the reviewed cross-shard case. The actual mirror functions restore only their own prefix, skip unchanged downloads, retry failed uploads and preserve another shard's newer work in an offline interleaving. Real cloud interruption recovery was not tested here. |
+| 3.7 numerical audit / final validation / benchmark / reuse | Open. These code tests establish neither convergence nor coverage; the final twelve-pair artefact and post-PILOT band validation remain outstanding. |
+
+Next bounded step: resolve 6.1 and 6.2 offline, then declare the screening
+procedure, settings, seeds, counts and decision rule before interpreting a
+screen. Preserve the accepted chosen-scale gate, same-training challenge and
+bookkeeping fixes. The USD 3,000 further-spend cap stands; every proposed paid
+stage must be costed and obtain the owner's go plus an explicit Codex
+disposition. This review approves no new AWS launch. R052 stays with `Entropy SI`.
