@@ -101,9 +101,9 @@ back afterwards. Reference target stays the **mean** with its MCSE; bank sizes a
 not extended toward a preferred verdict; each bank reported separately under its own hash, then pooled by
 dataset count after the point procedure's numerical equivalence is recorded.
 
-**Runner change (Codex's condition):** `POINTS` env / `--points` (t1_job.py, launch_t1.py; parser in t1_job.py
-itself, so no new file needs uploading; `CODE_FILES` unchanged; models/analyze/simulate untouched, so the
-numerical hash is unchanged). Validates every named point against the declared grid (typo = error, empty =
+**Runner change (Codex's condition):** `POINTS` env / `--points` (t1_job.py, launch_t1.py; the parser lives in
+`points_filter.py`, added to `CODE_FILES` and uploaded with the job — Codex's recheck confirmed both snapshots
+carry it byte for byte; models/analyze/simulate untouched, so the numerical hash is unchanged). Validates every named point against the declared grid (typo = error, empty =
 error), keeps the grid's order, composes with GENERATORS, records the resolved points in the progress JSON;
 dataset seeds are per (point, rep), so filtering preserves identities. `test_points_filter.py`.
 

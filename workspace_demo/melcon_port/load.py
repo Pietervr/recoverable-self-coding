@@ -6,7 +6,8 @@ with the photodiode timing correction of common.trial_table applied. NO decoding
 Processing (each step is a D-list entry in README.md; defaults mirror the Sergent 2021 OSF
 preprocessing, SoundConsciousEEG_PreProcessing.m, where the two paradigms allow it):
   1. read the BDF (BioSemi ActiveTwo, 144 channels, 1024 Hz), rename the channels by position from
-     channels.tsv (A1..D32 -> 10-20 names, EXG1..4 -> VEOG1/2 HEOG1/2), keep the 128 scalp channels;
+     channels.tsv (A1..D32 -> 10-20 names, EXG1..4 -> VEOG1/2 HEOG1/2), keep the 128 scalp channels and, by
+     default, the four EOG channels (typed 'eog'; 132 channels in X);
   2. high-pass 0.4 Hz (Sergent: FieldTrip hpfreq .4) — needed on BioSemi data, which has no hardware
      high-pass — and a 50 Hz notch (Sergent: dftfilter);
   3. an anti-alias low-pass at LOWPASS_HZ (200 Hz, zero-phase FIR, MNE defaults: transition band 50 Hz, so the
@@ -191,7 +192,12 @@ def load_subject(subject: int, task: str, tmin: float = TMIN, tmax: float = TMAX
     elif reref is not None:
         raw.set_eeg_reference(reref, projection=False, verbose=False)
     events = np.column_stack([samples, np.zeros(len(samples), dtype=int), trials.code.values.astype(int)])
-    # no warning is suppressed here: an aliasing RuntimeWarning from Epochs(decim=) would be a real defect
+    # No warning is suppressed. MNE's Epochs(decim=) guard warns whenever the output rate is below three times
+    # info['lowpass'] (512 < 3 x 200), a conservative cutoff-only heuristic that ignores the transition band; it
+    # therefore fires at BOTH native rates with this filter (Codex, 13 Sept 2026, on artificial RawArrays). The
+    # measured response of the default 200 Hz FIR (50 Hz transition) is about 53 dB down at 256 Hz and 59 dB at
+    # 300 Hz at both rates, which is the anti-alias protection relied on; the warning is left visible as a record
+    # that the heuristic fired, not silenced and not taken as evidence of aliasing.
     epochs = mne.Epochs(raw, events, event_id=None, tmin=tmin, tmax=tmax, baseline=baseline, decim=decim,
                         preload=True, reject=None, flat=None, reject_by_annotation=False, verbose=False)
     n_table = len(trials)

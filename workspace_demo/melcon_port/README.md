@@ -6,10 +6,15 @@ DRAFT pre-registration** for a secondary analysis on a visual near-threshold det
 trial-by-trial intensity covariate (Gabor contrast) and a seen/unseen report on every trial.
 
 **Hard limit (owner, 2026-09-12): no EEG of this dataset has been decoded, averaged, contrasted or
-plotted.** `load.py` reads BDF files into epochs and counts them; `inventory.py` reads only the
-behavioural events tables; nothing here trains a classifier or computes a condition mean. The secondary
-analysis is to be pre-registered (`PREREG_secondary_melcon.md`, DRAFT) and the owner wants the first
-results of the running model-side simulation before any neural analysis is opened.
+plotted.** `load.py` reads BDF files into epochs (128 scalp + 4 EOG channels since 13 Sept, the EOG for the
+artefact rule only) and counts them; `inventory.py` reads only the behavioural events tables; nothing here
+trains a classifier or computes a condition mean. **Order, changed by the owner on 13 Sept 2026:** the method
+work on this dataset proceeds now, independently of the model-side simulations (the earlier condition, first
+T1 results before any neural analysis, is withdrawn); the protocol (`PREREG_secondary_melcon.md`, DRAFT v3)
+and its synthetic battery are frozen before any EEG decoding, neural condition contrast or model result is
+examined. Completed historical loader QC (the epoch-count verification of 12 Sept, 128-channel rows) is
+distinct from the pending revised pipeline, whose all-recording verification replaces
+`results/load_verification.csv` before the freeze.
 
 ## Source and citation
 
