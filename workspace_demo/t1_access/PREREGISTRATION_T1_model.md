@@ -394,7 +394,10 @@ nulls (one-sided 95 % upper limit ≈ 0.3 % per setting), convergence 1.000, no 
 of $\theta_g$ is below 0.90 for six settings — M2H $\tau = 0.5$ (0.819), $\tau = 2$ (0.894), M2K
 $\alpha = 1$ (0.884), M2S $\omega = 0.5$ (0.848), $\omega = 1$ (0.780), $\omega = 2$ (0.216) — so the
 **§8.2 replacement by the refitting bootstrap is invoked** (coverage below 0.90 under any retained
-generator). Every miss is an interval lying above its target; at $\omega = 2$ the root-mean-square bootstrap
+generator). At the strongly graded M2S points the misses are one-sided (intervals above the target: 784 of
+784 at $\omega = 2$, 216 of 220 at $\omega = 1$), but at M2H $\tau = 0.5$ (86 of 181 above) and M2K $\alpha = 1$
+(51 of 115) they fall on both sides — under-dispersion, not a pure shape problem (corrected 13 Sept from the
+offline rescoring; the earlier "every miss above" was true only of $\omega = 2$); at $\omega = 2$ the root-mean-square bootstrap
 SE (22.0) matches the replicate SD (23.2), so the failure is tail sampling and interval shape under a
 heavy-tailed held-out loss (one concept in one replicate at $-26{,}627$ nat): extreme tail losses and the
 percentile interval's shape must be investigated alongside fitting and selection variability — RMS-SE agreement
@@ -459,7 +462,21 @@ is kept) with a pre-declared disposition for estimates too close to 0.90 to reso
 the declared mixture alternatives, not only the six settings that failed; selection and ensemble scored from the
 same bootstrap fits; $\theta_g$ estimated by ordinary-pipeline repetitions without bootstrapping each reference
 dataset (eligible old fits may contribute), its uncertainty mattering most at $\omega = 2$; bookkeeping after Morris,
-White & Crowther (2019, §§5.2–5.3). The power stage did not run: the
+White & Crowther (2019, §§5.2–5.3). **The cheap screening was run on 13 Sept** (`rescore_intervals.py`, on the
+Windows PC, on the 12,000 existing rows — method development, not validation): the percentile, basic, BCa,
+studentised and normal-theory intervals of the SAME fixed out-of-fold scores reach coverage ≥ 0.90 on 6, 6, 7, 9
+and 8 of the twelve nulls respectively, none on all twelve, and the false-positive rate is 0 under every
+candidate. The diagnostic that closes the route: the ratio of the between-replicate SD of the point estimate
+to the mean interval half-width, which should sit near $1/1.96 = 0.51$ for a calibrated 95 % interval, is
+0.53–0.58 at the seven settings that pass and rises with the graded signal — 0.63 (M2K $\alpha = 1$), 0.69 (M2S
+$\omega = 0.5$), 0.71 (M2H $\tau = 0.5$), 1.06 (M2S $\omega = 1$, an interval half as wide as it should be), 4.20
+(M2S $\omega = 2$) — the signature of fit-to-fit variability that a bootstrap holding the fit constant cannot see.
+No reshaping of that distribution restores coverage; the pipeline-refitting bootstrap, which resamples the
+fits, is the declared replacement and stays the candidate. Two records set straight by the same exercise: the
+recorded interval endpoints reproduce from the saved per-concept scores to the storage floor only (the scores
+were written at five decimals; median deviation $2.4 \times 10^{-7}$, a resampling change would move them by
+$2 \times 10^{-4}$), so the reproduction gate is a tolerance of $10^{-5}$ and the next snapshot stores the scores at
+full precision; and the miss direction is setting-dependent as stated above. The power stage did not run: the
 job-side gain calibration failed the gate at M3L, 0.01 nat (`bisection limit: 0.00806 vs target 0.01`), and no
 power, recovery or five-layer rows exist. **Cause, established 12 Sept** (`repro_gain_m3l.py`, `diag_gain_jump.py`;
 outputs in `sim_results/d4v12b/monitor/`): the failure reproduces exactly on one Mac core; at the fixed

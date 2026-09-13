@@ -221,8 +221,10 @@ def _row(name, kwargs, rep, D, layers, res, seconds, extra=None, code_hash=""):
     row["heldout"] = json.dumps({m: round(v, 5) for m, v in res["heldout_logscore_per_trial"].items()}, sort_keys=True)
     # per-concept audit detail (Codex, 2026-09-11): the out-of-fold Delta_c of each predictor and every member's
     # held-out joint log score per concept, per layer — enough to rescore alternative interval rules offline
-    row["delta_per_concept"] = json.dumps({p: np.round(res["delta"][p], 5).tolist() for p in A.PREDICTORS})
-    row["logq_per_concept"] = json.dumps({m: np.round(res["logq"][:, i, :], 4).tolist() for i, m in enumerate(res["members"])})
+    # full precision (13 Sept 2026): the five-decimal rounding of d4v12b left the recorded interval endpoints reproducible
+    # from the saved scores only to ~2e-7, so an offline rescoring could not meet an exact reproduction gate
+    row["delta_per_concept"] = json.dumps({p: res["delta"][p].tolist() for p in A.PREDICTORS})
+    row["logq_per_concept"] = json.dumps({m: res["logq"][:, i, :].tolist() for i, m in enumerate(res["members"])})
     row["selected_per_layer_fold"] = json.dumps(res["selected"])
     if extra:
         row.update(extra)
