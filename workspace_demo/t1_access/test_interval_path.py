@@ -110,6 +110,11 @@ for name, kw in (("M2B", {}), ("M2H", dict(tau=0.5)), ("M2S", dict(omega=2.0)), 
 # 7. the row carries the companion cluster interval of EVERY band and the bootstrap's identity (review 4, finding 4)
 assert all(np.isfinite(row2[f"selection_cluster_{b}_{k}"]) for b in ("ws", "early", "late", "ws_minus_early") for k in ("lo", "hi", "se"))
 assert len(row2["interval_ident"]) == 64 and row2["interval_n_damaged"] == 0
+# 8. the row is self-describing: its Config settings travel as a readable column beside the hash and the runtime
+row_s = S._row("M3", {}, 0, 4, layers.tolist(), c2, 1.0, cfg=A.Config(n_starts_inner=4, interval="refit", n_boot_refit=8))
+st = json.loads(row_s["settings"])
+assert st["n_starts_inner"] == 4 and st["interval"] == "refit" and st["n_boot_refit"] == 8 and st["layers"] == layers.tolist()
+assert row_s["runtime"].startswith("python ") and row2["settings"] == ""      # no cfg given -> empty, never a guess
 print("dataset seeds: colliding recovery points separated, null-point seeds unchanged; row carries every companion interval + identity OK")
 print("interval path: cluster unchanged; refit intervals from the refitting bootstrap with the point kept and the cluster CI beside; "
       "a failed resample -> assay failure under the every-replicate policy; row carries every band, H2, cluster CI, flags, seeds, folds, "
