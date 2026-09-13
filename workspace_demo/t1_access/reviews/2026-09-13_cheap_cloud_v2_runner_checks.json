@@ -1,0 +1,28 @@
+{
+  "control": {
+    "shards": 2,
+    "rows": 10,
+    "rows_per_shard": 5,
+    "requested_dataset_workers": 5,
+    "duplicate_fits": 0,
+    "resumed_without_refitting": true,
+    "dataset_seeds_preserved": true,
+    "no_gain_calls": true
+  },
+  "reference": {
+    "shards": 10,
+    "rows": 1000,
+    "rows_per_shard": 100,
+    "requested_dataset_workers": 8,
+    "duplicate_fits": 0,
+    "resumed_without_refitting": true,
+    "dataset_seeds_preserved": true,
+    "no_gain_calls": true
+  },
+  "ceiling_estimate_at_050_usd_per_hour": {
+    "control": 110,
+    "reference": 300,
+    "combined": 410
+  },
+  "note": "Mocked fits verify dispatch and resume only; no throughput or statistical validation."
+}

@@ -1,0 +1,89 @@
+{
+  "mne_version": "1.13.0",
+  "loader": [
+    {
+      "raw_sfreq": 1024.0,
+      "output_shape": [
+        3,
+        6,
+        769
+      ],
+      "output_fs": 512.0,
+      "ch_types": [
+        "eeg",
+        "eeg",
+        "eog",
+        "eog",
+        "eog",
+        "eog"
+      ],
+      "runtime_warnings": [
+        "The measurement information indicates a low-pass frequency of 200.0 Hz. The decim=2 parameter will result in a sampling frequency of 512.0 Hz, which can cause aliasing artifacts."
+      ],
+      "response_db_at_23_250_256_300_hz": [
+        -0.007671781540537399,
+        -53.77947273625833,
+        -53.633611312630364,
+        -59.262824305096956
+      ]
+    },
+    {
+      "raw_sfreq": 2048.0,
+      "output_shape": [
+        3,
+        6,
+        769
+      ],
+      "output_fs": 512.0,
+      "ch_types": [
+        "eeg",
+        "eeg",
+        "eog",
+        "eog",
+        "eog",
+        "eog"
+      ],
+      "runtime_warnings": [
+        "The measurement information indicates a low-pass frequency of 200.0 Hz. The decim=4 parameter will result in a sampling frequency of 512.0 Hz, which can cause aliasing artifacts."
+      ],
+      "response_db_at_23_250_256_300_hz": [
+        -0.0072261046304041105,
+        -49.846288601806904,
+        -53.439610569159285,
+        -58.80638876859071
+      ]
+    }
+  ],
+  "catch_density_for_pi_0_02_08_1": [
+    0.31225393336676127,
+    0.31225393336676127,
+    0.31225393336676127,
+    0.31225393336676127
+  ],
+  "pooled_zscore_counterexample": {
+    "inner_decoder_offsets": [
+      -2.0,
+      0.0,
+      2.0
+    ],
+    "transformed_group_means": [
+      -1.044465935734187,
+      0.0,
+      1.044465935734187
+    ],
+    "transformed_group_sds": [
+      0.5222329678670935,
+      0.5222329678670935,
+      0.5222329678670935
+    ],
+    "outer_decoder_mean": 0.0,
+    "explanation": "Same pooled z score leaves between-decoder offsets; illustrative, not measured in EEG."
+  },
+  "outcome_counterexample": {
+    "mixture_three_window_run": true,
+    "graded_three_window_run": false,
+    "isolated_graded_threshold_window": true,
+    "explanation": "Clarify whether any opposing window or a full opposing run blocks a family outcome."
+  },
+  "scope": "Artificial signals and algebra only; not pipeline recovery or EEG outcome analysis."
+}

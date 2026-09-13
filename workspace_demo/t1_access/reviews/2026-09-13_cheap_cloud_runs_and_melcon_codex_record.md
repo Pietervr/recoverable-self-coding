@@ -1,6 +1,12 @@
 # Codex second opinion — cheap cloud runs and Melcón, 13 September 2026
 
 Reply to `2026-09-13_cheap_cloud_runs_and_melcon_codex_brief.md`, reviewed at RSC `5afb014`.
+**Current disposition (13 September, continuation at `df81308`):** the owner gave the
+cloud go at 10:18 PDT; both specified development runs are launched. The runner recheck
+passes. Melcón v2 remains a draft with the concrete freeze requirements recorded under
+“Continuation review 2” below. Launch-approval requests in the first review are its
+pre-launch history, not outstanding requests.
+
 Read the complete brief, Melcón draft, README, inventory and loader; the cloud launcher,
 job, simulation and analysis paths; the inherited human decoder, likelihood fitting and
 BMS code; and the previous simulation review. Checked the landed simulation rows,
@@ -422,3 +428,212 @@ specifications with a real cost/runtime ceiling, and revise the Melcón draft ar
 these findings. The recommendation is to proceed with that preparation now; the existing
 owner launch/freeze decision follows a concrete specification. No request here to
 restart the probe, stop the audit, run new neural analyses, or fund the earlier cloud ladder.
+
+## Continuation review 2 — launched runner and Melcón draft v2
+
+13 September 2026, RSC `df81308` (runner `aac9f69`, Melcón `ab2c860`), Unimog
+`b6804cea` plus the wrap acceptance commit `378ed4f0`. Read R052 including its wrap
+entry, the current brief and this record, the revised code and full secondary draft,
+and Claude Entropy SI's turns from 09:36 through the 10:50 monitor report, by session
+ID `a5e468e7`. Its 10:18:33 PDT owner go and the subsequent launches are settled.
+No additional launch, change to a running job, EEG outcome analysis or freeze is
+authorized by this continuation. RSC has no `CLAUDE.md` or per-repo memory index at
+the requested locations; the shared rules and relevant Unimog memory were used.
+
+**Verdict:** on board with the implemented allocation and point filter for the two
+already authorized development runs. Continue their existing monitoring. Melcón v2
+incorporates the main conceptual revisions, but is **not ready to freeze**: its
+likelihood, decoder-scale and outcome contracts still need the following concrete
+completion. This recheck does not reopen the numerical T1 repairs closed by review 8.
+
+### Cloud readback and exercised dispatch
+
+Read-only AWS evidence, **17:51:39 UTC / 10:51:39 PDT**, is saved in
+`2026-09-13_cheap_cloud_live_readback.json`; the same-named Python script reproduces
+the readback with `--out <file>` using the existing `xtenure-read` profile. It only
+lists/describes these runs, reads their logs and S3 objects, and writes its local
+report. It has no launch, stop, upload or retry operation.
+
+| Run | Actual job settings and log | Observed state |
+|---|---|---|
+| `refit_control_aac9f69` | Two on-demand `ml.c8i.2xlarge`; five dataset workers each; M2B, ten datasets total, seed 2027, D4, layer 41, four inner starts, `refit`, B50; 110 h maximum runtime | Both Training; logs say five datasets per shard; numerical hash `fab869c34eb6` |
+| `ref_m2s_omega2_aac9f69` | Ten Spot `ml.c8i.2xlarge`; eight workers each; 100 datasets per shard; POINTS resolves only M2S omega 2; seed 2028, D4, layer 41, four inner starts, `cluster`; 60 h runtime / 120 h wait limits | All ten Training; numerical hash `3575ae74b0fb` |
+
+The five uploaded files in **each** namespace match the working files byte for byte,
+including `points_filter.py`. Runtime logs show JAX 0.11.1, NumPy 2.4.6, SciPy 1.18.0,
+pandas 3.0.5 and joblib 1.5.3. No result objects or refit checkpoints had landed at
+this early check. The service reports about 31–32 minutes of training per job;
+`BillableTimeInSeconds` is absent. The launcher's printed `0.00 h billed` is its
+missing-value fallback, **not evidence of zero spend**. Read actual billable time when
+available; the Managed Spot saving uses its ratio to training time.
+[AWS Managed Spot accounting](https://docs.aws.amazon.com/sagemaker/latest/dg/model-managed-spot-training.html),
+[DescribeTrainingJob fields](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeTrainingJob.html).
+
+`test_points_filter.py` passes. New
+`2026-09-13_cheap_cloud_v2_runner_checks.py` exercises the real launcher dry-run,
+`t1_job.run_stage` and `simulate.run_points`, substituting deterministic rows for fits
+and in-memory stubs for S3. It verifies 2×5 control rows and 10×100 omega-2 rows,
+exact dataset seeds, no duplicate work after a chunk interruption or complete-shard
+resume, the resolved point in progress records, both runtime configurations, and no
+gain-file call. Results are in its JSON companion. It measures dispatch correctness,
+not numerical performance; no simulation fit is executed.
+
+At the launcher's **estimated** USD 0.50 per instance-hour, the existing runtime caps
+imply USD 110 + 300 = **410** for these jobs, before ancillary charges or separately
+launched retries. That is the two-run specification the owner approved, not a hard
+USD 400 cap. Their central estimates sum to **260**, not 300 (the latter includes
+the optional omega-1 bank, which is held). Neither estimate is a verified c8i price.
+No new allocation or retry allowance is added here; the USD 3,000 further-spend cap
+continues to apply.
+
+The **88 h** number remains an extrapolation from ordinary-row timings at a different
+packing. There is still no measured AWS refitting time at this readback. A completed
+resample's `fit_seconds` in the existing checkpoint files will supply the first
+matching timing; examine several workers/resamples and later completed dataset wall
+times before projecting completion and cost. The current serial bootstrap saves
+each completed resample, and SageMaker syncs its checkpoint directory: an interruption
+does not inherently discard all fifty refits. On-demand is the chosen allocation;
+there is no new empirical finding here that Spot is unsuitable.
+
+### M1. Specify actual densities and an identifiable catch sensitivity before freeze
+
+Draft §6 still names `mu_high(x)` without giving its function, says the graded mean
+is both intercept-plus-logistic and fixed-anchor, and gives no explicit graded catch
+density. The sign/positivity constraints for SD linear in the mean, the numerical
+parameter bounds, moment starts/jitter and optimization tolerances are not listed.
+“Declared parameter bounds” cannot stand in for those values. §5 promises staircase
+history nuisance treatment without defining its covariates; block as a sensitivity
+also needs a prediction rule for a held-out, previously unseen block. Freeze formulas,
+parameters and executable configuration together, with the same nuisance structure
+for each compared density and no test-derived anchor.
+
+One specific defect is algebraic: the catch sensitivity frees the mixture proportion
+but retains `mu_high = mu_low` and the common sigma. Then
+
+`(1 - pi_catch) N(mu_low, sigma) + pi_catch N(mu_low, sigma) = N(mu_low, sigma)`.
+
+Its catch likelihood is identical for every `pi_catch`. The synthetic contract check
+demonstrates it for 0, 0.2, 0.8 and 1. Define a distinguishable high-component catch
+distribution for that sensitivity, including how its parameters are constrained by
+training data, or remove the free-occupancy claim. A free parameter alone cannot test
+catch false alarms under the equal-component definition. This is a specification
+problem; no completed Melcón fit is alleged to be wrong.
+
+### M2. The proposed pooled z score does not settle decoder-scale compatibility
+
+The revised outer/inner block separation is accepted as the **intended** split. A
+common affine transform of the pooled inner predictions does not align the three
+two-block decoder score distributions with one another or with the outer three-block
+decoder. For an illustrative case, three unit-SD normal score distributions with
+decoder offsets −2, 0, +2 retain means −1.044, 0, +1.044 and SD 0.522 after that pooled
+z score. The test decoder can meanwhile have one centred normal score distribution.
+This is a counterexample to the proposed normalization being an alignment guarantee,
+not evidence that the EEG has that artifact.
+
+Specify whether normalization is per sample or window, and its order relative to the
+10-Hz smoother. Demonstrate compatibility with the **actual nested decoder** on
+synthetic signal, drift and weak-signal cases at two- versus three-block training sizes.
+The implementation should also pass an isolation check: changing only outer-test
+EEG/labels cannot change its trained decoder, normalization or likelihood parameters.
+If a common scale fails those checks, adopt and declare a calibration design that
+uses matching readouts for likelihood training and test scoring; do not assert that
+pooling alone repaired it.
+
+For the pooled-across-tasks sensitivity, specify held-out blocks across both tasks
+and training-only top-quintile thresholds. A list of sensitivity names is not yet an
+implementable CV protocol.
+
+### M3. Make the outcome rule a total decision function, then test it
+
+§7 says each family meets its rule with three consecutive windows, but the two-state
+outcome also requires that the graded model does not meet the rule “in any window.”
+Consider three mixture windows above 0.95 and one isolated graded window above 0.95.
+If that isolated window blocks the mixture outcome, the text gives no mixed outcome
+because the graded family has no three-window run. If only a full opposing run
+blocks it, say so. Define one Boolean per family's complete persistence rule, then
+classify the four Boolean combinations explicitly. Also state whether a null-model
+run elsewhere overrides a family run; the current “or a null-model win” can overlap.
+
+Define precedence for technical failure versus insufficient sensitivity, the exact
+recording/window denominator after exclusions, and a minimum eligible sample for each
+three-window run. “Median ... in every window” needs a specified axis and aggregation
+over folds. Missing fits can otherwise make neighboring windows compare different
+participant sets. Apply availability rules to the early analysis too.
+
+For the participant bootstrap specify the estimator (mean of participant per-trial
+scores versus a trial-weighted pooled mean), B, seed and interval construction; carry
+each sampled participant's full time course and paired tasks together. A confidence
+interval for an unspecified average cannot be reproduced.
+
+The descriptive BMS interpretation is correctly bounded now. The promised synthetic
+recovery checks still lack generator parameters, replicate counts, seeds and pass/
+revise criteria. Set a bounded **development** battery before running it, retain the
+results and revisions, and do not call a few successful synthetic cases calibrated
+family-error control. The artificial checks accompanying this review do not replace
+that full-pipeline recovery work.
+
+### M4. Keep the filter repair; correct its verification and finish the data contract
+
+The actual loader applies the default 200-Hz FIR to EEG **and** EOG before decimation,
+keeps native-rate onset snapping, and removes the blanket warning suppression around
+epoch creation. The filter has a 50-Hz transition band under the installed MNE; the
+synthetic check finds about **53 dB attenuation at 256 Hz** and **59 dB at 300 Hz** for
+both native sample rates. This supports the default repair.
+
+However, the real `load_subject` path on artificial 1024- and 2048-Hz RawArrays emits
+the decimation RuntimeWarning at **both** rates in MNE 1.13.0. MNE's guard warns when
+the output rate is less than three times `info['lowpass']`: 512 < 600. Its own
+documentation explains that this is a conservative cutoff-only heuristic and a
+steeper transition can make it over-sensitive. Thus neither “no aliasing warning”
+nor the code comment “an aliasing RuntimeWarning ... would be a real defect” describes
+this implementation correctly. Retain the visible warning and document the response
+check; do not suppress it or change a working filter just to silence the message.
+[MNE resampling guidance and warning limitations](https://mne.tools/stable/auto_tutorials/preprocessing/30_filtering_resampling.html#best-practices).
+
+The general `lowpass <= target Nyquist` guard does not check the stopband/transition;
+freeze the actual default filter settings and test any exposed alternative. Likewise,
+“v1 ... aliased the 256–417 Hz band” overstates the original finding: missing protection
+was established, but the amount of aliasing in real EEG was not measured.
+
+The returned channels are **128 EEG plus four individual EOG**, not two already bipolar
+traces. `params['ch_types']` identifies them in memory, but `--cache` does not preserve
+that type list or filter configuration. The new decoder/cache contract must explicitly
+select 128 scalp features, construct VEOG1−VEOG2 and HEOG1−HEOG2 for rejection, and
+authenticate preprocessing so that a pre-repair cache cannot silently return. The
+existing verification CSV mixes two revised 132-channel rows with the earlier
+128-channel rows; it is not an all-recording verification of the revised loader.
+That pre-existing working-file change is preserved for Claude.
+
+The fixed bad-channel rule is a useful specification, not implemented preprocessing.
+Freeze the detect/interpolate/reference order, original sensor-to-montage mapping,
+the denominator for the 20% rule and the final exclusion after the bounded iteration.
+State whether recording-wide QC is intentionally allowed to see outer-test data;
+otherwise learn adaptive channel decisions inside training splits. Continuous
+noncausal filters likewise need a declared block-boundary policy for a strict
+end-to-end holdout claim. Synthetic flat/bad-channel, EOG-only and block-boundary
+checks can establish the intended behavior without opening neural outcomes.
+
+### Small current-state corrections and handoff
+
+- The brief's disposition still says the parser is in `t1_job.py` and `CODE_FILES` is
+  unchanged. The actual, correctly uploaded implementation is `points_filter.py`.
+- The Melcón README still makes the first T1 result a prerequisite for method work;
+  the 13 September owner instruction changes that order. It also describes a
+  128-channel output despite the default now retaining four EOG channels. Preserve
+  the distinction between completed historical loader QC and the pending new pipeline.
+- The draft opening already calls the extension “pre-registered,” while its own §10
+  reserves that label until freeze. Use “planned secondary cross-modal extension”
+  until the freeze is recorded. The final deviation paragraph cannot say likelihood
+  forms are unchanged after declaring new parameterization and catch behavior.
+- Keep the corrected active/report-required Sergent reference and the additional
+  passive analysis, the 300–600 ms main / 0–300 ms early split, continuous log dose,
+  report-unconditioned wording, and within-participant informative-task interpretation.
+
+Evidence: `2026-09-13_melcon_v2_contract_checks.py` and its JSON contain the real-loader
+synthetic filter/warning check and the catch, pooled-scale and outcome counterexamples.
+They read no EEG and fit no decoder or density. The runner fixtures likewise substitute
+rows for fits. Production source and Claude's draft remain unchanged by this review.
+Next: Claude can complete the executable protocol and its declared synthetic battery,
+then return that concrete version for the owner/freeze decision already in the plan.
+R052 retains Entropy SI as holder; no request to relaunch either cloud run or disturb
+the Mac probe or PC audit.
