@@ -1,0 +1,2312 @@
+{
+  "observed_at": "2026-09-13T23:13:29.287234+00:00",
+  "jobs": [
+    {
+      "job": "t1-calibration-d4-refit-contro-s001of002-1789338122",
+      "status": "InProgress",
+      "secondary": "Training",
+      "created": "2026-09-13 15:22:06.589000-07:00",
+      "training_start": "2026-09-13 15:22:40.858000-07:00",
+      "training_seconds": 3035,
+      "billable_seconds": null,
+      "resource": {
+        "InstanceType": "ml.r7i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 396000
+      },
+      "spot": false,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "10",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2027",
+        "GENERATORS": "M2B",
+        "N_JOBS": "5",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "refit",
+        "N_BOOT_REFIT": "50",
+        "SHARD": "1",
+        "N_SHARDS": "2",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/refit_control_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/refit_control_aac9f69/checkpoints-s001of002/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": null,
+      "logs": [
+        {
+          "timestamp": 1789338244199,
+          "message": "[t1_job 22:24:03] task=calibration n_rep=10/200/200 D=4 layers=(41,) seed=2027 generators=M2B n_jobs=5 shards=1..1 of 2 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789338244199,
+          "message": "[t1_job 22:24:03] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789338244199,
+          "message": "[t1_job 22:24:03] interval=refit n_boot_refit=50 refit_checkpoint_dir=/opt/ml/checkpoints/refit_ckpt"
+        },
+        {
+          "timestamp": 1789338244199,
+          "message": "[t1_job 22:24:03] code/config hash for this run: fab869c34eb6 (five-layer stages: 9f39ba5399ff)"
+        },
+        {
+          "timestamp": 1789338244199,
+          "message": "[t1_job 22:24:03] stage calibration: n_rep=10 layers=(41,) generators=M2B -> calibration_D4.shard001of002.csv"
+        },
+        {
+          "timestamp": 1789338244199,
+          "message": "[t1_job 22:24:03] refit checkpoints restored: 0 files"
+        },
+        {
+          "timestamp": 1789338244199,
+          "message": "5 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard001of002.csv), n_jobs=5, code/config fab869c34eb6"
+        }
+      ]
+    },
+    {
+      "job": "t1-calibration-d4-refit-contro-s000of002-1789338122",
+      "status": "InProgress",
+      "secondary": "Training",
+      "created": "2026-09-13 15:22:04.407000-07:00",
+      "training_start": "2026-09-13 15:22:38.180000-07:00",
+      "training_seconds": 3038,
+      "billable_seconds": null,
+      "resource": {
+        "InstanceType": "ml.r7i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 396000
+      },
+      "spot": false,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "10",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2027",
+        "GENERATORS": "M2B",
+        "N_JOBS": "5",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "refit",
+        "N_BOOT_REFIT": "50",
+        "SHARD": "0",
+        "N_SHARDS": "2",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/refit_control_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/refit_control_aac9f69/checkpoints-s000of002/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": null,
+      "logs": [
+        {
+          "timestamp": 1789338241394,
+          "message": "[t1_job 22:23:57] task=calibration n_rep=10/200/200 D=4 layers=(41,) seed=2027 generators=M2B n_jobs=5 shards=0..0 of 2 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789338241394,
+          "message": "[t1_job 22:23:58] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789338241394,
+          "message": "[t1_job 22:23:58] interval=refit n_boot_refit=50 refit_checkpoint_dir=/opt/ml/checkpoints/refit_ckpt"
+        },
+        {
+          "timestamp": 1789338241394,
+          "message": "[t1_job 22:23:58] code/config hash for this run: fab869c34eb6 (five-layer stages: 9f39ba5399ff)"
+        },
+        {
+          "timestamp": 1789338241394,
+          "message": "[t1_job 22:23:58] stage calibration: n_rep=10 layers=(41,) generators=M2B -> calibration_D4.shard000of002.csv"
+        },
+        {
+          "timestamp": 1789338241394,
+          "message": "[t1_job 22:23:58] refit checkpoints restored: 0 files"
+        },
+        {
+          "timestamp": 1789338241394,
+          "message": "5 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard000of002.csv), n_jobs=5, code/config fab869c34eb6"
+        }
+      ]
+    },
+    {
+      "job": "t1-calibration-d4-refit-contro-s001of002-1789319939",
+      "status": "Failed",
+      "secondary": "Failed",
+      "created": "2026-09-13 10:19:05.448000-07:00",
+      "training_start": "2026-09-13 10:19:44.198000-07:00",
+      "training_seconds": 13547,
+      "billable_seconds": 13547,
+      "resource": {
+        "InstanceType": "ml.c8i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 396000
+      },
+      "spot": false,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "10",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2027",
+        "GENERATORS": "M2B",
+        "N_JOBS": "5",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "refit",
+        "N_BOOT_REFIT": "50",
+        "SHARD": "1",
+        "N_SHARDS": "2",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/refit_control_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/refit_control_aac9f69/checkpoints-s001of002/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": "ClientError: Please use an instance type with more memory, or reduce the size of job data processed on an instance.",
+      "logs": [
+        {
+          "timestamp": 1789320057043,
+          "message": "[t1_job 17:20:55] task=calibration n_rep=10/200/200 D=4 layers=(41,) seed=2027 generators=M2B n_jobs=5 shards=1..1 of 2 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789320057043,
+          "message": "[t1_job 17:20:56] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789320057043,
+          "message": "[t1_job 17:20:56] interval=refit n_boot_refit=50 refit_checkpoint_dir=/opt/ml/checkpoints/refit_ckpt"
+        },
+        {
+          "timestamp": 1789320057043,
+          "message": "[t1_job 17:20:56] code/config hash for this run: fab869c34eb6 (five-layer stages: 9f39ba5399ff)"
+        },
+        {
+          "timestamp": 1789320057043,
+          "message": "[t1_job 17:20:56] stage calibration: n_rep=10 layers=(41,) generators=M2B -> calibration_D4.shard001of002.csv"
+        },
+        {
+          "timestamp": 1789320057043,
+          "message": "[t1_job 17:20:56] refit checkpoints restored: 0 files"
+        },
+        {
+          "timestamp": 1789320057043,
+          "message": "5 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard001of002.csv), n_jobs=5, code/config fab869c34eb6"
+        },
+        {
+          "timestamp": 1789333512282,
+          "message": "Traceback (most recent call last):\n  File \"/opt/ml/input/data/code/t1_job.py\", line 323, in <module>\n    main()\n  File \"/opt/ml/input/data/code/t1_job.py\", line 312, in main\n    run_stage(TASK, N_REP if TASK != \"recovery\" else N_REP_RECOVERY, LAYERS, GENERATORS, cfg, A, S)\n  File \"/opt/ml/input/data/code/t1_job.py\", line 236, in run_stage\n    S.run_points(points, n_rep, D, layers, S.RHO_LAYERS, cfg, SEED, N_JOBS, out_csv, extras,\n  File \"/opt/ml/input/data/code/simulate.py\", line 288, in run_points\n    rows = Parallel(n_jobs=n_jobs)(delayed(one_replicate)(name, kw, r, D, layers, rho, cfg, seed,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/joblib/parallel.py\", line 2072, in __call__\n    return output if self.return_generator else list(output)\n                                                ^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/joblib/parallel.py\", line 1682, in _get_outputs\n    yield from self._retrieve()\n  File \"/usr/local/lib/python3.12/site-packages/joblib/parallel.py\", line 1784, in _retrieve\n    self._raise_error_fast()\n  File \"/usr/local/lib/python3.12/site-packages/joblib/parallel.py\", line 1859, in _raise_error_fast\n    error_job.get_result(self.timeout)\n  File \"/usr/local/lib/python3.12/site-packages/joblib/parallel.py\", line 758, in get_result\n    return self._return_or_raise()\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/joblib/parallel.py\", line 773, in _return_or_raise\n    raise self._result"
+        },
+        {
+          "timestamp": 1789333512283,
+          "message": "joblib.externals.loky.process_executor.TerminatedWorkerError: A worker process managed by the executor was unexpectedly terminated. This could be caused by a segmentation fault while calling the function or by an excessive memory usage causing the Operating System to kill the worker."
+        }
+      ]
+    },
+    {
+      "job": "t1-calibration-d4-refit-contro-s000of002-1789319939",
+      "status": "Failed",
+      "secondary": "Failed",
+      "created": "2026-09-13 10:19:04.128000-07:00",
+      "training_start": "2026-09-13 10:19:37.228000-07:00",
+      "training_seconds": 14680,
+      "billable_seconds": 14680,
+      "resource": {
+        "InstanceType": "ml.c8i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 396000
+      },
+      "spot": false,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "10",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2027",
+        "GENERATORS": "M2B",
+        "N_JOBS": "5",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "refit",
+        "N_BOOT_REFIT": "50",
+        "SHARD": "0",
+        "N_SHARDS": "2",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/refit_control_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/refit_control_aac9f69/checkpoints-s000of002/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": "ClientError: Please use an instance type with more memory, or reduce the size of job data processed on an instance.",
+      "logs": [
+        {
+          "timestamp": 1789320049933,
+          "message": "[t1_job 17:20:48] task=calibration n_rep=10/200/200 D=4 layers=(41,) seed=2027 generators=M2B n_jobs=5 shards=0..0 of 2 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789320049933,
+          "message": "[t1_job 17:20:49] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789320049933,
+          "message": "[t1_job 17:20:49] interval=refit n_boot_refit=50 refit_checkpoint_dir=/opt/ml/checkpoints/refit_ckpt"
+        },
+        {
+          "timestamp": 1789320049933,
+          "message": "[t1_job 17:20:49] code/config hash for this run: fab869c34eb6 (five-layer stages: 9f39ba5399ff)"
+        },
+        {
+          "timestamp": 1789320049933,
+          "message": "[t1_job 17:20:49] stage calibration: n_rep=10 layers=(41,) generators=M2B -> calibration_D4.shard000of002.csv"
+        },
+        {
+          "timestamp": 1789320049933,
+          "message": "[t1_job 17:20:49] refit checkpoints restored: 0 files"
+        },
+        {
+          "timestamp": 1789320049933,
+          "message": "5 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard000of002.csv), n_jobs=5, code/config fab869c34eb6"
+        },
+        {
+          "timestamp": 1789334648129,
+          "message": "Traceback (most recent call last):\n  File \"/opt/ml/input/data/code/t1_job.py\", line 323, in <module>\n    main()\n  File \"/opt/ml/input/data/code/t1_job.py\", line 312, in main\n    run_stage(TASK, N_REP if TASK != \"recovery\" else N_REP_RECOVERY, LAYERS, GENERATORS, cfg, A, S)\n  File \"/opt/ml/input/data/code/t1_job.py\", line 236, in run_stage\n    S.run_points(points, n_rep, D, layers, S.RHO_LAYERS, cfg, SEED, N_JOBS, out_csv, extras,\n  File \"/opt/ml/input/data/code/simulate.py\", line 288, in run_points\n    rows = Parallel(n_jobs=n_jobs)(delayed(one_replicate)(name, kw, r, D, layers, rho, cfg, seed,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/joblib/parallel.py\", line 2072, in __call__\n    return output if self.return_generator else list(output)\n                                                ^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/joblib/parallel.py\", line 1682, in _get_outputs\n    yield from self._retrieve()\n  File \"/usr/local/lib/python3.12/site-packages/joblib/parallel.py\", line 1784, in _retrieve\n    self._raise_error_fast()\n  File \"/usr/local/lib/python3.12/site-packages/joblib/parallel.py\", line 1859, in _raise_error_fast\n    error_job.get_result(self.timeout)\n  File \"/usr/local/lib/python3.12/site-packages/joblib/parallel.py\", line 758, in get_result\n    return self._return_or_raise()\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/joblib/parallel.py\", line 773, in _return_or_raise\n    raise self._result"
+        },
+        {
+          "timestamp": 1789334648129,
+          "message": "joblib.externals.loky.process_executor.TerminatedWorkerError: A worker process managed by the executor was unexpectedly terminated. This could be caused by a segmentation fault while calling the function or by an excessive memory usage causing the Operating System to kill the worker."
+        }
+      ]
+    },
+    {
+      "job": "t1-calibration-d4-ref-m2s-omeg-s009of010-1789319954",
+      "status": "InProgress",
+      "secondary": "Training",
+      "created": "2026-09-13 10:19:33.782000-07:00",
+      "training_start": "2026-09-13 10:20:08.401000-07:00",
+      "training_seconds": 21028,
+      "billable_seconds": null,
+      "resource": {
+        "InstanceType": "ml.c8i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 216000,
+        "MaxWaitTimeInSeconds": 432000
+      },
+      "spot": true,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "1000",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2028",
+        "GENERATORS": "M2S",
+        "POINTS": "M2S:omega=2.0",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "cluster",
+        "N_BOOT_REFIT": "200",
+        "SHARD": "9",
+        "N_SHARDS": "10",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s009of010/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": null,
+      "logs": [
+        {
+          "timestamp": 1789320081385,
+          "message": "[t1_job 17:21:19] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=9..9 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789320081385,
+          "message": "[t1_job 17:21:20] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789320081385,
+          "message": "[t1_job 17:21:20] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789320081385,
+          "message": "[t1_job 17:21:20] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789320081385,
+          "message": "[t1_job 17:21:20] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789320081385,
+          "message": "[t1_job 17:21:20] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard009of010.csv"
+        },
+        {
+          "timestamp": 1789320081385,
+          "message": "100 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard009of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        },
+        {
+          "timestamp": 1789330099640,
+          "message": "  8/100 done, 167.0 min"
+        },
+        {
+          "timestamp": 1789330100642,
+          "message": "[t1_job 20:08:19] calibration: 8/100 rows, 2.9 per hour, eta 32.01 h"
+        },
+        {
+          "timestamp": 1789333755350,
+          "message": "[t1_job 21:09:13] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=9..9 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789333755350,
+          "message": "[t1_job 21:09:14] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789333755350,
+          "message": "[t1_job 21:09:14] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789333755350,
+          "message": "[t1_job 21:09:14] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789333755350,
+          "message": "[t1_job 21:09:14] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789333755350,
+          "message": "[t1_job 21:09:14] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard009of010.csv"
+        },
+        {
+          "timestamp": 1789333755350,
+          "message": "92 replicates to run (8 already in /opt/ml/checkpoints/calibration_D4.shard009of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        }
+      ]
+    },
+    {
+      "job": "t1-calibration-d4-ref-m2s-omeg-s008of010-1789319954",
+      "status": "InProgress",
+      "secondary": "Training",
+      "created": "2026-09-13 10:19:31.926000-07:00",
+      "training_start": "2026-09-13 10:20:13.628000-07:00",
+      "training_seconds": 21045,
+      "billable_seconds": null,
+      "resource": {
+        "InstanceType": "ml.c8i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 216000,
+        "MaxWaitTimeInSeconds": 432000
+      },
+      "spot": true,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "1000",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2028",
+        "GENERATORS": "M2S",
+        "POINTS": "M2S:omega=2.0",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "cluster",
+        "N_BOOT_REFIT": "200",
+        "SHARD": "8",
+        "N_SHARDS": "10",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s008of010/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": null,
+      "logs": [
+        {
+          "timestamp": 1789320086509,
+          "message": "[t1_job 17:21:24] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=8..8 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789320086509,
+          "message": "[t1_job 17:21:25] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789320086509,
+          "message": "[t1_job 17:21:25] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789320086509,
+          "message": "[t1_job 17:21:25] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789320086509,
+          "message": "[t1_job 17:21:25] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789320086509,
+          "message": "[t1_job 17:21:25] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard008of010.csv"
+        },
+        {
+          "timestamp": 1789320086509,
+          "message": "100 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard008of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        },
+        {
+          "timestamp": 1789329401139,
+          "message": "  8/100 done, 155.2 min"
+        },
+        {
+          "timestamp": 1789329401139,
+          "message": "[t1_job 19:56:40] calibration: 8/100 rows, 3.1 per hour, eta 29.76 h"
+        },
+        {
+          "timestamp": 1789333805904,
+          "message": "[t1_job 21:10:03] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=8..8 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789333805904,
+          "message": "[t1_job 21:10:04] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789333805904,
+          "message": "[t1_job 21:10:04] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789333805904,
+          "message": "[t1_job 21:10:04] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789333805904,
+          "message": "[t1_job 21:10:04] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789333805904,
+          "message": "[t1_job 21:10:04] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard008of010.csv"
+        },
+        {
+          "timestamp": 1789333805904,
+          "message": "92 replicates to run (8 already in /opt/ml/checkpoints/calibration_D4.shard008of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        }
+      ]
+    },
+    {
+      "job": "t1-calibration-d4-ref-m2s-omeg-s007of010-1789319954",
+      "status": "InProgress",
+      "secondary": "Training",
+      "created": "2026-09-13 10:19:29.881000-07:00",
+      "training_start": "2026-09-13 10:20:22.105000-07:00",
+      "training_seconds": 21176,
+      "billable_seconds": null,
+      "resource": {
+        "InstanceType": "ml.c8i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 216000,
+        "MaxWaitTimeInSeconds": 432000
+      },
+      "spot": true,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "1000",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2028",
+        "GENERATORS": "M2S",
+        "POINTS": "M2S:omega=2.0",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "cluster",
+        "N_BOOT_REFIT": "200",
+        "SHARD": "7",
+        "N_SHARDS": "10",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s007of010/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": null,
+      "logs": [
+        {
+          "timestamp": 1789320095269,
+          "message": "[t1_job 17:21:33] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=7..7 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789320095269,
+          "message": "[t1_job 17:21:34] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789320095269,
+          "message": "[t1_job 17:21:34] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789320095269,
+          "message": "[t1_job 17:21:34] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789320095269,
+          "message": "[t1_job 17:21:34] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789320095269,
+          "message": "[t1_job 17:21:34] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard007of010.csv"
+        },
+        {
+          "timestamp": 1789320095269,
+          "message": "100 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard007of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        },
+        {
+          "timestamp": 1789330569563,
+          "message": "  8/100 done, 174.6 min"
+        },
+        {
+          "timestamp": 1789330569563,
+          "message": "[t1_job 20:16:09] calibration: 8/100 rows, 2.7 per hour, eta 33.46 h"
+        },
+        {
+          "timestamp": 1789339268464,
+          "message": "  16/100 done, 319.6 min"
+        },
+        {
+          "timestamp": 1789339268464,
+          "message": "[t1_job 22:41:07] calibration: 16/100 rows, 3.0 per hour, eta 27.96 h"
+        }
+      ]
+    },
+    {
+      "job": "t1-calibration-d4-ref-m2s-omeg-s006of010-1789319954",
+      "status": "InProgress",
+      "secondary": "Training",
+      "created": "2026-09-13 10:19:28.362000-07:00",
+      "training_start": "2026-09-13 10:20:13.049000-07:00",
+      "training_seconds": 21186,
+      "billable_seconds": null,
+      "resource": {
+        "InstanceType": "ml.c8i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 216000,
+        "MaxWaitTimeInSeconds": 432000
+      },
+      "spot": true,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "1000",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2028",
+        "GENERATORS": "M2S",
+        "POINTS": "M2S:omega=2.0",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "cluster",
+        "N_BOOT_REFIT": "200",
+        "SHARD": "6",
+        "N_SHARDS": "10",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s006of010/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": null,
+      "logs": [
+        {
+          "timestamp": 1789320086137,
+          "message": "[t1_job 17:21:24] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=6..6 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789320086137,
+          "message": "[t1_job 17:21:24] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789320086137,
+          "message": "[t1_job 17:21:24] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789320086137,
+          "message": "[t1_job 17:21:24] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789320086137,
+          "message": "[t1_job 17:21:24] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789320086137,
+          "message": "[t1_job 17:21:25] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard006of010.csv"
+        },
+        {
+          "timestamp": 1789320086137,
+          "message": "100 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard006of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        },
+        {
+          "timestamp": 1789329785571,
+          "message": "  8/100 done, 161.7 min"
+        },
+        {
+          "timestamp": 1789329785571,
+          "message": "[t1_job 20:03:05] calibration: 8/100 rows, 3.0 per hour, eta 30.99 h"
+        },
+        {
+          "timestamp": 1789339010652,
+          "message": "  16/100 done, 315.4 min"
+        },
+        {
+          "timestamp": 1789339011659,
+          "message": "[t1_job 22:36:50] calibration: 16/100 rows, 3.0 per hour, eta 27.6 h"
+        }
+      ]
+    },
+    {
+      "job": "t1-calibration-d4-ref-m2s-omeg-s005of010-1789319954",
+      "status": "InProgress",
+      "secondary": "Training",
+      "created": "2026-09-13 10:19:26.896000-07:00",
+      "training_start": "2026-09-13 10:20:21.335000-07:00",
+      "training_seconds": 21178,
+      "billable_seconds": null,
+      "resource": {
+        "InstanceType": "ml.c8i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 216000,
+        "MaxWaitTimeInSeconds": 432000
+      },
+      "spot": true,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "1000",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2028",
+        "GENERATORS": "M2S",
+        "POINTS": "M2S:omega=2.0",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "cluster",
+        "N_BOOT_REFIT": "200",
+        "SHARD": "5",
+        "N_SHARDS": "10",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s005of010/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": null,
+      "logs": [
+        {
+          "timestamp": 1789320094033,
+          "message": "[t1_job 17:21:32] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=5..5 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789320094033,
+          "message": "[t1_job 17:21:33] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789320094033,
+          "message": "[t1_job 17:21:33] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789320094033,
+          "message": "[t1_job 17:21:33] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789320094033,
+          "message": "[t1_job 17:21:33] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789320094033,
+          "message": "[t1_job 17:21:33] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard005of010.csv"
+        },
+        {
+          "timestamp": 1789320094033,
+          "message": "100 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard005of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        },
+        {
+          "timestamp": 1789329894042,
+          "message": "  8/100 done, 163.3 min"
+        },
+        {
+          "timestamp": 1789329894042,
+          "message": "[t1_job 20:04:53] calibration: 8/100 rows, 2.9 per hour, eta 31.3 h"
+        },
+        {
+          "timestamp": 1789339434074,
+          "message": "  16/100 done, 322.3 min"
+        },
+        {
+          "timestamp": 1789339434074,
+          "message": "[t1_job 22:43:53] calibration: 16/100 rows, 3.0 per hour, eta 28.2 h"
+        }
+      ]
+    },
+    {
+      "job": "t1-calibration-d4-ref-m2s-omeg-s004of010-1789319954",
+      "status": "InProgress",
+      "secondary": "Training",
+      "created": "2026-09-13 10:19:24.796000-07:00",
+      "training_start": "2026-09-13 10:20:01.141000-07:00",
+      "training_seconds": 21198,
+      "billable_seconds": null,
+      "resource": {
+        "InstanceType": "ml.c8i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 216000,
+        "MaxWaitTimeInSeconds": 432000
+      },
+      "spot": true,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "1000",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2028",
+        "GENERATORS": "M2S",
+        "POINTS": "M2S:omega=2.0",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "cluster",
+        "N_BOOT_REFIT": "200",
+        "SHARD": "4",
+        "N_SHARDS": "10",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s004of010/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": null,
+      "logs": [
+        {
+          "timestamp": 1789320074051,
+          "message": "[t1_job 17:21:12] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=4..4 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789320074051,
+          "message": "[t1_job 17:21:13] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789320074051,
+          "message": "[t1_job 17:21:13] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789320074051,
+          "message": "[t1_job 17:21:13] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789320074051,
+          "message": "[t1_job 17:21:13] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789320074051,
+          "message": "[t1_job 17:21:13] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard004of010.csv"
+        },
+        {
+          "timestamp": 1789320074051,
+          "message": "100 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard004of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        },
+        {
+          "timestamp": 1789330540731,
+          "message": "  8/100 done, 174.4 min"
+        },
+        {
+          "timestamp": 1789330540731,
+          "message": "[t1_job 20:15:40] calibration: 8/100 rows, 2.8 per hour, eta 33.43 h"
+        },
+        {
+          "timestamp": 1789339822375,
+          "message": "  16/100 done, 329.1 min"
+        },
+        {
+          "timestamp": 1789339822375,
+          "message": "[t1_job 22:50:22] calibration: 16/100 rows, 2.9 per hour, eta 28.8 h"
+        }
+      ]
+    },
+    {
+      "job": "t1-calibration-d4-ref-m2s-omeg-s003of010-1789319954",
+      "status": "InProgress",
+      "secondary": "Training",
+      "created": "2026-09-13 10:19:23.340000-07:00",
+      "training_start": "2026-09-13 10:20:00.292000-07:00",
+      "training_seconds": 21047,
+      "billable_seconds": null,
+      "resource": {
+        "InstanceType": "ml.c8i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 216000,
+        "MaxWaitTimeInSeconds": 432000
+      },
+      "spot": true,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "1000",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2028",
+        "GENERATORS": "M2S",
+        "POINTS": "M2S:omega=2.0",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "cluster",
+        "N_BOOT_REFIT": "200",
+        "SHARD": "3",
+        "N_SHARDS": "10",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s003of010/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": null,
+      "logs": [
+        {
+          "timestamp": 1789320072953,
+          "message": "[t1_job 17:21:11] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=3..3 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789320072953,
+          "message": "[t1_job 17:21:12] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789320072954,
+          "message": "[t1_job 17:21:12] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789320072954,
+          "message": "[t1_job 17:21:12] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789320072954,
+          "message": "[t1_job 17:21:12] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789320072954,
+          "message": "[t1_job 17:21:12] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard003of010.csv"
+        },
+        {
+          "timestamp": 1789320072954,
+          "message": "100 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard003of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        },
+        {
+          "timestamp": 1789329807515,
+          "message": "  8/100 done, 162.2 min"
+        },
+        {
+          "timestamp": 1789329808516,
+          "message": "[t1_job 20:03:27] calibration: 8/100 rows, 3.0 per hour, eta 31.1 h"
+        },
+        {
+          "timestamp": 1789334451755,
+          "message": "[t1_job 21:20:50] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=3..3 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789334451755,
+          "message": "[t1_job 21:20:50] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789334451755,
+          "message": "[t1_job 21:20:50] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789334451755,
+          "message": "[t1_job 21:20:50] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789334451755,
+          "message": "[t1_job 21:20:50] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789334451755,
+          "message": "[t1_job 21:20:50] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard003of010.csv"
+        },
+        {
+          "timestamp": 1789334451755,
+          "message": "92 replicates to run (8 already in /opt/ml/checkpoints/calibration_D4.shard003of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        }
+      ]
+    },
+    {
+      "job": "t1-calibration-d4-ref-m2s-omeg-s002of010-1789319954",
+      "status": "InProgress",
+      "secondary": "Training",
+      "created": "2026-09-13 10:19:22.113000-07:00",
+      "training_start": "2026-09-13 10:19:57.174000-07:00",
+      "training_seconds": 21203,
+      "billable_seconds": null,
+      "resource": {
+        "InstanceType": "ml.c8i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 216000,
+        "MaxWaitTimeInSeconds": 432000
+      },
+      "spot": true,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "1000",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2028",
+        "GENERATORS": "M2S",
+        "POINTS": "M2S:omega=2.0",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "cluster",
+        "N_BOOT_REFIT": "200",
+        "SHARD": "2",
+        "N_SHARDS": "10",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s002of010/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": null,
+      "logs": [
+        {
+          "timestamp": 1789320070279,
+          "message": "[t1_job 17:21:08] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=2..2 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789320070279,
+          "message": "[t1_job 17:21:09] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789320070279,
+          "message": "[t1_job 17:21:09] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789320070279,
+          "message": "[t1_job 17:21:09] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789320070279,
+          "message": "[t1_job 17:21:09] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789320070279,
+          "message": "[t1_job 17:21:09] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard002of010.csv"
+        },
+        {
+          "timestamp": 1789320070279,
+          "message": "100 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard002of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        },
+        {
+          "timestamp": 1789329472367,
+          "message": "  8/100 done, 156.7 min"
+        },
+        {
+          "timestamp": 1789329473373,
+          "message": "[t1_job 19:57:52] calibration: 8/100 rows, 3.1 per hour, eta 30.04 h"
+        },
+        {
+          "timestamp": 1789338754309,
+          "message": "  16/100 done, 311.4 min"
+        },
+        {
+          "timestamp": 1789338754310,
+          "message": "[t1_job 22:32:33] calibration: 16/100 rows, 3.1 per hour, eta 27.25 h"
+        }
+      ]
+    },
+    {
+      "job": "t1-calibration-d4-ref-m2s-omeg-s001of010-1789319954",
+      "status": "InProgress",
+      "secondary": "Training",
+      "created": "2026-09-13 10:19:20.631000-07:00",
+      "training_start": "2026-09-13 10:20:00.129000-07:00",
+      "training_seconds": 21038,
+      "billable_seconds": null,
+      "resource": {
+        "InstanceType": "ml.c8i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 216000,
+        "MaxWaitTimeInSeconds": 432000
+      },
+      "spot": true,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "1000",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2028",
+        "GENERATORS": "M2S",
+        "POINTS": "M2S:omega=2.0",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "cluster",
+        "N_BOOT_REFIT": "200",
+        "SHARD": "1",
+        "N_SHARDS": "10",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s001of010/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": null,
+      "logs": [
+        {
+          "timestamp": 1789320072957,
+          "message": "[t1_job 17:21:11] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=1..1 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789320072957,
+          "message": "[t1_job 17:21:11] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789320072957,
+          "message": "[t1_job 17:21:11] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789320072957,
+          "message": "[t1_job 17:21:11] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789320072957,
+          "message": "[t1_job 17:21:11] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789320072957,
+          "message": "[t1_job 17:21:12] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard001of010.csv"
+        },
+        {
+          "timestamp": 1789320072957,
+          "message": "100 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard001of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        },
+        {
+          "timestamp": 1789329333086,
+          "message": "  8/100 done, 154.3 min"
+        },
+        {
+          "timestamp": 1789329333086,
+          "message": "[t1_job 19:55:32] calibration: 8/100 rows, 3.1 per hour, eta 29.58 h"
+        },
+        {
+          "timestamp": 1789333759377,
+          "message": "[t1_job 21:09:17] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=1..1 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789333759378,
+          "message": "[t1_job 21:09:18] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789333759378,
+          "message": "[t1_job 21:09:18] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789333759378,
+          "message": "[t1_job 21:09:18] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789333759378,
+          "message": "[t1_job 21:09:18] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789333759378,
+          "message": "[t1_job 21:09:18] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard001of010.csv"
+        },
+        {
+          "timestamp": 1789333759378,
+          "message": "92 replicates to run (8 already in /opt/ml/checkpoints/calibration_D4.shard001of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        }
+      ]
+    },
+    {
+      "job": "t1-calibration-d4-ref-m2s-omeg-s000of010-1789319954",
+      "status": "InProgress",
+      "secondary": "Training",
+      "created": "2026-09-13 10:19:18.531000-07:00",
+      "training_start": "2026-09-13 10:19:52.990000-07:00",
+      "training_seconds": 21208,
+      "billable_seconds": null,
+      "resource": {
+        "InstanceType": "ml.c8i.2xlarge",
+        "InstanceCount": 1,
+        "VolumeSizeInGB": 30
+      },
+      "stopping": {
+        "MaxRuntimeInSeconds": 216000,
+        "MaxWaitTimeInSeconds": 432000
+      },
+      "spot": true,
+      "environment": {
+        "TASK": "calibration",
+        "N_REP": "1000",
+        "D": "4",
+        "LAYERS": "41",
+        "SEED": "2028",
+        "GENERATORS": "M2S",
+        "POINTS": "M2S:omega=2.0",
+        "N_STARTS_INNER": "4",
+        "INTERVAL": "cluster",
+        "N_BOOT_REFIT": "200",
+        "SHARD": "0",
+        "N_SHARDS": "10",
+        "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/",
+        "NPROC": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "checkpoints": {
+        "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s000of010/",
+        "LocalPath": "/opt/ml/checkpoints"
+      },
+      "failure": null,
+      "logs": [
+        {
+          "timestamp": 1789320066091,
+          "message": "[t1_job 17:21:04] task=calibration n_rep=1000/200/200 D=4 layers=(41,) seed=2028 generators=M2S n_jobs=8 shards=0..0 of 10 inner starts=4 trapezoid points=96"
+        },
+        {
+          "timestamp": 1789320066091,
+          "message": "[t1_job 17:21:05] jax 0.11.1 numpy 2.4.6 scipy 1.18.0 pandas 3.0.5 joblib 1.5.3 Linux-6.12.103-127.188.amzn2023.x86_64-x86_64-with-glibc2.35 x86_64"
+        },
+        {
+          "timestamp": 1789320066091,
+          "message": "[t1_job 17:21:05] interval=cluster n_boot_refit=200 refit_checkpoint_dir=None"
+        },
+        {
+          "timestamp": 1789320066091,
+          "message": "[t1_job 17:21:05] code/config hash for this run: 3575ae74b0fb (five-layer stages: a219ecafada4)"
+        },
+        {
+          "timestamp": 1789320066091,
+          "message": "[t1_job 17:21:05] POINTS filter 'M2S:omega=2.0' -> [('M2S', {'omega': 2.0})]"
+        },
+        {
+          "timestamp": 1789320066091,
+          "message": "[t1_job 17:21:05] stage calibration: n_rep=1000 layers=(41,) generators=M2S -> calibration_D4.shard000of010.csv"
+        },
+        {
+          "timestamp": 1789320066091,
+          "message": "100 replicates to run (0 already in /opt/ml/checkpoints/calibration_D4.shard000of010.csv), n_jobs=8, code/config 3575ae74b0fb"
+        },
+        {
+          "timestamp": 1789329289532,
+          "message": "  8/100 done, 153.7 min"
+        },
+        {
+          "timestamp": 1789329289532,
+          "message": "[t1_job 19:54:48] calibration: 8/100 rows, 3.1 per hour, eta 29.46 h"
+        },
+        {
+          "timestamp": 1789338829163,
+          "message": "  16/100 done, 312.7 min"
+        },
+        {
+          "timestamp": 1789338829163,
+          "message": "[t1_job 22:33:48] calibration: 16/100 rows, 3.1 per hour, eta 27.36 h"
+        }
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "run": "refit_control_aac9f69",
+      "code": {
+        "models.py": {
+          "sha256": "c037b5b96fcc730fe33c5d2cf89f4a1d71c437c21bd5a904d8f371dfb03bc3f5",
+          "matches_working_file": true
+        },
+        "analyze.py": {
+          "sha256": "c49c8f744c1dae0cca59fdebe0c6f7134027d6555bb11eb69dcb1ed8c455d219",
+          "matches_working_file": true
+        },
+        "simulate.py": {
+          "sha256": "0832d490f6b2f10749f53f6f5ea69c2079acb240fbf0dce7f1dba7b2f89ab3fb",
+          "matches_working_file": true
+        },
+        "t1_job.py": {
+          "sha256": "4c6840b49703187d8495011dc7165ea6043d9c2325f7885e3b51d6bf0a279296",
+          "matches_working_file": true
+        },
+        "points_filter.py": {
+          "sha256": "9666b3daad3729377063b5658d406234056c430b2404ffbb19af23afaf6df846",
+          "matches_working_file": true
+        }
+      },
+      "objects": [
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s000of002/refit_ckpt/refit_0eb512f58662caa2df12a8e1.jsonl",
+          "size": 1334,
+          "modified": "2026-09-13 20:29:59+00:00"
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s000of002/refit_ckpt/refit_130d955220a759fbf5698838.jsonl",
+          "size": 1338,
+          "modified": "2026-09-13 20:30:56+00:00"
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s000of002/refit_ckpt/refit_7c7664f537f74121324451ee.jsonl",
+          "size": 1339,
+          "modified": "2026-09-13 20:26:55+00:00"
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s000of002/refit_ckpt/refit_a03aa6ce1d62b27ae0a0eade.jsonl",
+          "size": 2008,
+          "modified": "2026-09-13 21:23:22+00:00"
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s000of002/refit_ckpt/refit_f2814006d3b0b50a64ac8a20.jsonl",
+          "size": 1338,
+          "modified": "2026-09-13 20:23:34+00:00"
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s001of002/refit_ckpt/refit_42a58693ee056aba551b621e.jsonl",
+          "size": 1337,
+          "modified": "2026-09-13 20:24:03+00:00"
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s001of002/refit_ckpt/refit_960cadafcea15918d7a3ddd5.jsonl",
+          "size": 1338,
+          "modified": "2026-09-13 20:31:01+00:00"
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s001of002/refit_ckpt/refit_c31df8b335de0055285f88b6.jsonl",
+          "size": 1337,
+          "modified": "2026-09-13 20:40:25+00:00"
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s001of002/refit_ckpt/refit_dc9ab5ff0773cb6719e43a6d.jsonl",
+          "size": 1337,
+          "modified": "2026-09-13 20:34:53+00:00"
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s001of002/refit_ckpt/refit_f86077df4f3629b6abfd5bb1.jsonl",
+          "size": 1333,
+          "modified": "2026-09-13 20:34:02+00:00"
+        }
+      ],
+      "checkpoint_progress": [
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s000of002/refit_ckpt/refit_0eb512f58662caa2df12a8e1.jsonl",
+          "records": 2,
+          "rep_indices": [
+            0,
+            1
+          ],
+          "fit_seconds": [
+            3862.3429939746857,
+            3663.8604729175568
+          ],
+          "failures": 0,
+          "identities": [
+            "0eb512f58662caa2df12a8e12505ced5ffc5eba332fbd2923e955ce9e822e052"
+          ]
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s000of002/refit_ckpt/refit_130d955220a759fbf5698838.jsonl",
+          "records": 2,
+          "rep_indices": [
+            0,
+            1
+          ],
+          "fit_seconds": [
+            3784.0791714191437,
+            3850.1215121746063
+          ],
+          "failures": 0,
+          "identities": [
+            "130d955220a759fbf5698838c57a9ec52308c0af349a188185c56fa1b54d18c9"
+          ]
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s000of002/refit_ckpt/refit_7c7664f537f74121324451ee.jsonl",
+          "records": 2,
+          "rep_indices": [
+            0,
+            1
+          ],
+          "fit_seconds": [
+            3666.871341943741,
+            3830.6384530067444
+          ],
+          "failures": 0,
+          "identities": [
+            "7c7664f537f74121324451eeb6df9cb59b4bad413151a7b7a3ba13bc280bd368"
+          ]
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s000of002/refit_ckpt/refit_a03aa6ce1d62b27ae0a0eade.jsonl",
+          "records": 3,
+          "rep_indices": [
+            0,
+            1,
+            2
+          ],
+          "fit_seconds": [
+            3613.368441104889,
+            3550.0760295391083,
+            3629.2397606372833
+          ],
+          "failures": 0,
+          "identities": [
+            "a03aa6ce1d62b27ae0a0eadef99c0b2dcee3f83c452a2b2d26edba90cfd2b400"
+          ]
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s000of002/refit_ckpt/refit_f2814006d3b0b50a64ac8a20.jsonl",
+          "records": 2,
+          "rep_indices": [
+            0,
+            1
+          ],
+          "fit_seconds": [
+            3688.233371257782,
+            3582.421842813492
+          ],
+          "failures": 0,
+          "identities": [
+            "f2814006d3b0b50a64ac8a2013e60042222ad6ef5bedd2d67582bb51bbb317ff"
+          ]
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s001of002/refit_ckpt/refit_42a58693ee056aba551b621e.jsonl",
+          "records": 2,
+          "rep_indices": [
+            0,
+            1
+          ],
+          "fit_seconds": [
+            3745.220691680908,
+            3702.491774082184
+          ],
+          "failures": 0,
+          "identities": [
+            "42a58693ee056aba551b621ed1bcabcb21df4326851a4f81378b49794fdae08a"
+          ]
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s001of002/refit_ckpt/refit_960cadafcea15918d7a3ddd5.jsonl",
+          "records": 2,
+          "rep_indices": [
+            0,
+            1
+          ],
+          "fit_seconds": [
+            3844.593416929245,
+            3677.045542240143
+          ],
+          "failures": 0,
+          "identities": [
+            "960cadafcea15918d7a3ddd544aba2014391ff25f5c9628ce037c22320dca85c"
+          ]
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s001of002/refit_ckpt/refit_c31df8b335de0055285f88b6.jsonl",
+          "records": 2,
+          "rep_indices": [
+            0,
+            1
+          ],
+          "fit_seconds": [
+            3978.3603036403656,
+            3878.7967879772186
+          ],
+          "failures": 0,
+          "identities": [
+            "c31df8b335de0055285f88b647357754e9e357892b7ee7101f6266064d22e63c"
+          ]
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s001of002/refit_ckpt/refit_dc9ab5ff0773cb6719e43a6d.jsonl",
+          "records": 2,
+          "rep_indices": [
+            0,
+            1
+          ],
+          "fit_seconds": [
+            4154.5026733875275,
+            3722.463015317917
+          ],
+          "failures": 0,
+          "identities": [
+            "dc9ab5ff0773cb6719e43a6dfbd74a7747c6a58c2121b9c96ca9d413919d1ca1"
+          ]
+        },
+        {
+          "key": "results/t1_access/refit_control_aac9f69/checkpoints-s001of002/refit_ckpt/refit_f86077df4f3629b6abfd5bb1.jsonl",
+          "records": 2,
+          "rep_indices": [
+            0,
+            1
+          ],
+          "fit_seconds": [
+            3869.3087120056152,
+            3770.5045742988586
+          ],
+          "failures": 0,
+          "identities": [
+            "f86077df4f3629b6abfd5bb17bb4f93ee87dab9e1ed2c08f4ffb53557d3b3c36"
+          ]
+        }
+      ]
+    },
+    {
+      "run": "ref_m2s_omega2_aac9f69",
+      "code": {
+        "models.py": {
+          "sha256": "c037b5b96fcc730fe33c5d2cf89f4a1d71c437c21bd5a904d8f371dfb03bc3f5",
+          "matches_working_file": true
+        },
+        "analyze.py": {
+          "sha256": "c49c8f744c1dae0cca59fdebe0c6f7134027d6555bb11eb69dcb1ed8c455d219",
+          "matches_working_file": true
+        },
+        "simulate.py": {
+          "sha256": "0832d490f6b2f10749f53f6f5ea69c2079acb240fbf0dce7f1dba7b2f89ab3fb",
+          "matches_working_file": true
+        },
+        "t1_job.py": {
+          "sha256": "4c6840b49703187d8495011dc7165ea6043d9c2325f7885e3b51d6bf0a279296",
+          "matches_working_file": true
+        },
+        "points_filter.py": {
+          "sha256": "9666b3daad3729377063b5658d406234056c430b2404ffbb19af23afaf6df846",
+          "matches_working_file": true
+        }
+      },
+      "objects": [
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard000of010.csv",
+          "size": 256150,
+          "modified": "2026-09-13 22:33:49+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard000of010.csv.progress.json",
+          "size": 339,
+          "modified": "2026-09-13 22:33:49+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard001of010.csv",
+          "size": 129558,
+          "modified": "2026-09-13 19:55:33+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard001of010.csv.progress.json",
+          "size": 338,
+          "modified": "2026-09-13 19:55:33+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard002of010.csv",
+          "size": 256522,
+          "modified": "2026-09-13 22:32:34+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard002of010.csv.progress.json",
+          "size": 339,
+          "modified": "2026-09-13 22:32:34+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard003of010.csv",
+          "size": 129695,
+          "modified": "2026-09-13 20:03:28+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard003of010.csv.progress.json",
+          "size": 337,
+          "modified": "2026-09-13 20:03:28+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard004of010.csv",
+          "size": 256094,
+          "modified": "2026-09-13 22:50:23+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard004of010.csv.progress.json",
+          "size": 338,
+          "modified": "2026-09-13 22:50:23+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard005of010.csv",
+          "size": 255763,
+          "modified": "2026-09-13 22:43:54+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard005of010.csv.progress.json",
+          "size": 338,
+          "modified": "2026-09-13 22:43:54+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard006of010.csv",
+          "size": 256771,
+          "modified": "2026-09-13 22:36:51+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard006of010.csv.progress.json",
+          "size": 338,
+          "modified": "2026-09-13 22:36:51+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard007of010.csv",
+          "size": 256393,
+          "modified": "2026-09-13 22:41:08+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard007of010.csv.progress.json",
+          "size": 339,
+          "modified": "2026-09-13 22:41:08+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard008of010.csv",
+          "size": 129762,
+          "modified": "2026-09-13 19:56:41+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard008of010.csv.progress.json",
+          "size": 338,
+          "modified": "2026-09-13 19:56:41+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard009of010.csv",
+          "size": 129928,
+          "modified": "2026-09-13 20:08:20+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/calibration_D4.shard009of010.csv.progress.json",
+          "size": 338,
+          "modified": "2026-09-13 20:08:20+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s000of010/calibration_D4.shard000of010.csv",
+          "size": 256150,
+          "modified": "2026-09-13 22:33:50+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s000of010/calibration_D4.shard000of010.csv.progress.json",
+          "size": 339,
+          "modified": "2026-09-13 22:33:49+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s001of010/calibration_D4.shard001of010.csv",
+          "size": 129558,
+          "modified": "2026-09-13 19:55:34+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s001of010/calibration_D4.shard001of010.csv.progress.json",
+          "size": 338,
+          "modified": "2026-09-13 19:55:34+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s002of010/calibration_D4.shard002of010.csv",
+          "size": 256522,
+          "modified": "2026-09-13 22:32:34+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s002of010/calibration_D4.shard002of010.csv.progress.json",
+          "size": 339,
+          "modified": "2026-09-13 22:32:34+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s003of010/calibration_D4.shard003of010.csv",
+          "size": 129695,
+          "modified": "2026-09-13 20:03:29+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s003of010/calibration_D4.shard003of010.csv.progress.json",
+          "size": 337,
+          "modified": "2026-09-13 20:03:29+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s004of010/calibration_D4.shard004of010.csv",
+          "size": 256094,
+          "modified": "2026-09-13 22:50:23+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s004of010/calibration_D4.shard004of010.csv.progress.json",
+          "size": 338,
+          "modified": "2026-09-13 22:50:23+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s005of010/calibration_D4.shard005of010.csv",
+          "size": 255763,
+          "modified": "2026-09-13 22:43:54+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s005of010/calibration_D4.shard005of010.csv.progress.json",
+          "size": 338,
+          "modified": "2026-09-13 22:43:54+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s006of010/calibration_D4.shard006of010.csv",
+          "size": 256771,
+          "modified": "2026-09-13 22:36:51+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s006of010/calibration_D4.shard006of010.csv.progress.json",
+          "size": 338,
+          "modified": "2026-09-13 22:36:51+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s007of010/calibration_D4.shard007of010.csv",
+          "size": 256393,
+          "modified": "2026-09-13 22:41:08+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s007of010/calibration_D4.shard007of010.csv.progress.json",
+          "size": 339,
+          "modified": "2026-09-13 22:41:08+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s008of010/calibration_D4.shard008of010.csv",
+          "size": 129762,
+          "modified": "2026-09-13 19:56:42+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s008of010/calibration_D4.shard008of010.csv.progress.json",
+          "size": 338,
+          "modified": "2026-09-13 19:56:42+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s009of010/calibration_D4.shard009of010.csv",
+          "size": 129928,
+          "modified": "2026-09-13 20:08:22+00:00"
+        },
+        {
+          "key": "results/t1_access/ref_m2s_omega2_aac9f69/checkpoints-s009of010/calibration_D4.shard009of010.csv.progress.json",
+          "size": 338,
+          "modified": "2026-09-13 20:08:22+00:00"
+        }
+      ],
+      "checkpoint_progress": [],
+      "row_progress": [
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            0
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 16,
+          "total": 100,
+          "elapsed_min": 312.7,
+          "rate_per_hour": 3.1,
+          "eta_hours": 27.36,
+          "n_jobs": 8,
+          "updated": "2026-09-13 22:33:48"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            1
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 8,
+          "total": 100,
+          "elapsed_min": 154.3,
+          "rate_per_hour": 3.1,
+          "eta_hours": 29.58,
+          "n_jobs": 8,
+          "updated": "2026-09-13 19:55:32"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            2
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 16,
+          "total": 100,
+          "elapsed_min": 311.4,
+          "rate_per_hour": 3.1,
+          "eta_hours": 27.25,
+          "n_jobs": 8,
+          "updated": "2026-09-13 22:32:33"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            3
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 8,
+          "total": 100,
+          "elapsed_min": 162.2,
+          "rate_per_hour": 3.0,
+          "eta_hours": 31.1,
+          "n_jobs": 8,
+          "updated": "2026-09-13 20:03:27"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            4
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 16,
+          "total": 100,
+          "elapsed_min": 329.1,
+          "rate_per_hour": 2.9,
+          "eta_hours": 28.8,
+          "n_jobs": 8,
+          "updated": "2026-09-13 22:50:22"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            5
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 16,
+          "total": 100,
+          "elapsed_min": 322.3,
+          "rate_per_hour": 3.0,
+          "eta_hours": 28.2,
+          "n_jobs": 8,
+          "updated": "2026-09-13 22:43:53"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            6
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 16,
+          "total": 100,
+          "elapsed_min": 315.4,
+          "rate_per_hour": 3.0,
+          "eta_hours": 27.6,
+          "n_jobs": 8,
+          "updated": "2026-09-13 22:36:50"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            7
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 16,
+          "total": 100,
+          "elapsed_min": 319.6,
+          "rate_per_hour": 3.0,
+          "eta_hours": 27.96,
+          "n_jobs": 8,
+          "updated": "2026-09-13 22:41:07"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            8
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 8,
+          "total": 100,
+          "elapsed_min": 155.2,
+          "rate_per_hour": 3.1,
+          "eta_hours": 29.76,
+          "n_jobs": 8,
+          "updated": "2026-09-13 19:56:40"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            9
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 8,
+          "total": 100,
+          "elapsed_min": 167.0,
+          "rate_per_hour": 2.9,
+          "eta_hours": 32.01,
+          "n_jobs": 8,
+          "updated": "2026-09-13 20:08:19"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            0
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 16,
+          "total": 100,
+          "elapsed_min": 312.7,
+          "rate_per_hour": 3.1,
+          "eta_hours": 27.36,
+          "n_jobs": 8,
+          "updated": "2026-09-13 22:33:48"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            1
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 8,
+          "total": 100,
+          "elapsed_min": 154.3,
+          "rate_per_hour": 3.1,
+          "eta_hours": 29.58,
+          "n_jobs": 8,
+          "updated": "2026-09-13 19:55:32"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            2
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 16,
+          "total": 100,
+          "elapsed_min": 311.4,
+          "rate_per_hour": 3.1,
+          "eta_hours": 27.25,
+          "n_jobs": 8,
+          "updated": "2026-09-13 22:32:33"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            3
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 8,
+          "total": 100,
+          "elapsed_min": 162.2,
+          "rate_per_hour": 3.0,
+          "eta_hours": 31.1,
+          "n_jobs": 8,
+          "updated": "2026-09-13 20:03:27"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            4
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 16,
+          "total": 100,
+          "elapsed_min": 329.1,
+          "rate_per_hour": 2.9,
+          "eta_hours": 28.8,
+          "n_jobs": 8,
+          "updated": "2026-09-13 22:50:22"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            5
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 16,
+          "total": 100,
+          "elapsed_min": 322.3,
+          "rate_per_hour": 3.0,
+          "eta_hours": 28.2,
+          "n_jobs": 8,
+          "updated": "2026-09-13 22:43:53"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            6
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 16,
+          "total": 100,
+          "elapsed_min": 315.4,
+          "rate_per_hour": 3.0,
+          "eta_hours": 27.6,
+          "n_jobs": 8,
+          "updated": "2026-09-13 22:36:50"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            7
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 16,
+          "total": 100,
+          "elapsed_min": 319.6,
+          "rate_per_hour": 3.0,
+          "eta_hours": 27.96,
+          "n_jobs": 8,
+          "updated": "2026-09-13 22:41:07"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            8
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 8,
+          "total": 100,
+          "elapsed_min": 155.2,
+          "rate_per_hour": 3.1,
+          "eta_hours": 29.76,
+          "n_jobs": 8,
+          "updated": "2026-09-13 19:56:40"
+        },
+        {
+          "task": "calibration",
+          "D": 4,
+          "n_rep": 1000,
+          "layers": [
+            41
+          ],
+          "shards": [
+            9
+          ],
+          "n_shards": 10,
+          "generators": "M2S",
+          "points": [
+            [
+              "M2S",
+              {
+                "omega": 2.0
+              }
+            ]
+          ],
+          "done": 8,
+          "total": 100,
+          "elapsed_min": 167.0,
+          "rate_per_hour": 2.9,
+          "eta_hours": 32.01,
+          "n_jobs": 8,
+          "updated": "2026-09-13 20:08:19"
+        }
+      ]
+    }
+  ]
+}

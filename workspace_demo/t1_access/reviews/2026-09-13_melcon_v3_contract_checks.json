@@ -1,0 +1,265 @@
+{
+  "scope": "Bounded review evidence for draft v3; no EEG, decoder or likelihood fits.\n\nUses MNE filter coefficients, the real cache writer fed artificial epochs,\npublic channel/event metadata, and explicit algebraic contract examples.\nRun with the repo-root .venv/bin/python. Writes only its JSON companion;\nthe artificial cache is written in a temporary directory and removed.\nThis is not the proposed full-pipeline synthetic recovery battery.\n",
+  "versions": {
+    "mne": "1.13.0",
+    "numpy": "2.5.3"
+  },
+  "source_sha256": {
+    "PREREG_secondary_melcon.md": "bead92e45339a0344015b1b77efc228731d8ff4d94e00df7b08270ab313c64fa",
+    "load.py": "f894778232c417e4ffee09acbe41d40fe59a4fae28f2afeff3a8d6c429024291",
+    "common.py": "9ba0a7351418c3c0f9ff24a0599a4b5455feab478a80cafdb497b71adec1f1b9"
+  },
+  "cache": {
+    "actual_npz_keys": [
+      "X",
+      "block",
+      "code",
+      "contrast",
+      "fsample",
+      "labels",
+      "present",
+      "seen",
+      "subject",
+      "task",
+      "time",
+      "trial"
+    ],
+    "input_had_filter_and_channel_metadata": true,
+    "cache_retains_that_metadata": false
+  },
+  "preprocessing": {
+    "highpass": [
+      {
+        "native_hz": 1024.0,
+        "taps": 8449,
+        "first_to_last_tap_seconds": 8.25,
+        "one_sided_support_seconds": 4.125,
+        "absolute_tap_sum_beyond_one_second": 0.36032054076459563
+      },
+      {
+        "native_hz": 2048.0,
+        "taps": 16897,
+        "first_to_last_tap_seconds": 8.25,
+        "one_sided_support_seconds": 4.125,
+        "absolute_tap_sum_beyond_one_second": 0.36044651742819
+      }
+    ],
+    "channel_names_missing_from_literal_biosemi_montage": [
+      "AF3",
+      "AF4",
+      "AF7",
+      "AF8",
+      "AFF1",
+      "AFF2",
+      "AFF3h",
+      "AFF4h",
+      "AFF5",
+      "AFF5h",
+      "AFF6",
+      "AFF6h",
+      "AFFz",
+      "AFpz",
+      "AFz",
+      "C1h",
+      "C2h",
+      "C3h",
+      "C4h",
+      "C5h",
+      "C6h",
+      "CCP1",
+      "CCP1h",
+      "CCP2",
+      "CCP2h",
+      "CCP3",
+      "CCP4",
+      "CCPz",
+      "CP5",
+      "CP5h",
+      "CP6",
+      "CP6h",
+      "CPP3",
+      "CPP3h",
+      "CPP4",
+      "CPP4h",
+      "CPP5h",
+      "CPP6h",
+      "CPPz",
+      "CPz",
+      "Cz",
+      "F1",
+      "F2",
+      "F5",
+      "F6",
+      "F7",
+      "F8",
+      "FC3",
+      "FC3h",
+      "FC4",
+      "FC4h",
+      "FC5",
+      "FC5h",
+      "FC6",
+      "FC6h",
+      "FCC1",
+      "FCC1h",
+      "FCC2",
+      "FCC2h",
+      "FCz",
+      "FFC1",
+      "FFC2",
+      "FFC3",
+      "FFC3h",
+      "FFC4",
+      "FFC4h",
+      "FFC5h",
+      "FFC6h",
+      "FFCz",
+      "FT7",
+      "FT7h",
+      "FT8",
+      "FT8h",
+      "Fp1",
+      "Fp2",
+      "Fpz",
+      "Fz",
+      "I1",
+      "I2",
+      "Iz",
+      "O1",
+      "O2",
+      "OI1",
+      "OI2",
+      "OIz",
+      "Oz",
+      "P1",
+      "P10",
+      "P2",
+      "P5",
+      "P6",
+      "P7",
+      "P8",
+      "P9",
+      "PO10",
+      "PO10h",
+      "PO3h",
+      "PO4h",
+      "PO7",
+      "PO8",
+      "PO9",
+      "PO9h",
+      "POO5",
+      "POO6",
+      "POOz",
+      "POz",
+      "PPO1",
+      "PPO2",
+      "PPO3",
+      "PPO4",
+      "PPO5",
+      "PPO6",
+      "PPOz",
+      "Pz",
+      "T7",
+      "T7h",
+      "T8",
+      "T8h",
+      "TP7",
+      "TP7h",
+      "TP8",
+      "TP8h"
+    ],
+    "original_bdf_name_to_tsv_rename_covers_all_128": true,
+    "boundary_gap_count": 210,
+    "smallest_onset_gaps": [
+      {
+        "subject": 1,
+        "task": "nocue",
+        "next_block": 3,
+        "onset_gap_s": 2.6429999999999723
+      },
+      {
+        "subject": 20,
+        "task": "nocue",
+        "next_block": 3,
+        "onset_gap_s": 3.394999999999982
+      },
+      {
+        "subject": 30,
+        "task": "nocue",
+        "next_block": 4,
+        "onset_gap_s": 3.411999999999921
+      },
+      {
+        "subject": 3,
+        "task": "nocue",
+        "next_block": 4,
+        "onset_gap_s": 4.128000000000043
+      },
+      {
+        "subject": 18,
+        "task": "nocue",
+        "next_block": 3,
+        "onset_gap_s": 4.216000000000008
+      }
+    ],
+    "median_onset_gap_s": 27.74349999999987,
+    "highpass_coefficient_at_shortest_boundary_onset_gap": 7.232198991605219e-06,
+    "boundary_note": "Onset-to-onset gaps from metadata, not measured filter leakage or pause duration."
+  },
+  "densities": {
+    "single_training_block_gamma_is_intercept_alias": true,
+    "equivalent_graded_max_mean_error": 0.0,
+    "equivalent_graded_max_sd_error": 0.0,
+    "catch_sensitivity": {
+      "S": 1.0,
+      "separation": 0.006737946999085467,
+      "sigma": 5.0,
+      "pi_values": [
+        0.1,
+        0.8
+      ],
+      "total_variation_distance": 0.00037632724327012483,
+      "interpretation": "Structurally distinct densities; practical information is not guaranteed."
+    },
+    "accepted_recording_with_empty_likelihood_catch": {
+      "catches_by_block": [
+        10,
+        0,
+        10,
+        10
+      ],
+      "present_trials": 360,
+      "all_recording_and_half_class_floors_pass": true,
+      "likelihood_training_block_without_catch": 2
+    },
+    "invalid_moment_start_example": {
+      "top_quintile_mean": 1.0,
+      "bottom_quintile_mean": 2.0,
+      "proposed_a1_or_exp_delta0": -1.0,
+      "needs_declared_clipping_or_fallback": true
+    }
+  },
+  "outcomes": {
+    "opposing_isolated_window_now_classified": "two-state",
+    "no_eligible_windows_despite_35_recordings_and_good_auc": "inconclusive/mixed",
+    "note": "Exact prose translation, not an implemented outcome classifier.",
+    "battery_null_failure_counterexample": {
+      "outcomes": [
+        "technical failure",
+        "technical failure",
+        "technical failure"
+      ],
+      "literal_at_most_one_two_state_rule_passes": true
+    },
+    "planned_battery_counts": {
+      "generators": 5,
+      "signal_levels": 2,
+      "drift_levels": 2,
+      "replicates": 3,
+      "recordings_per_replicate": 20,
+      "total_recordings": 1200,
+      "primary_samplewise_decoder_fits_at_769_samples": 1845600,
+      "primary_density_starts_at_40_windows": 4608000
+    }
+  }
+}

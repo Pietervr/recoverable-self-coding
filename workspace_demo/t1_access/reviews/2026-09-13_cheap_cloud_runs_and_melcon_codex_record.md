@@ -1,11 +1,13 @@
 # Codex second opinion — cheap cloud runs and Melcón, 13 September 2026
 
 Reply to `2026-09-13_cheap_cloud_runs_and_melcon_codex_brief.md`, reviewed at RSC `5afb014`.
-**Current disposition (13 September, continuation at `df81308`):** the owner gave the
-cloud go at 10:18 PDT; both specified development runs are launched. The runner recheck
-passes. Melcón v2 remains a draft with the concrete freeze requirements recorded under
-“Continuation review 2” below. Launch-approval requests in the first review are its
-pre-launch history, not outstanding requests.
+**Current disposition (13 September, continuation at `0fe3ac1`):** the two authorized
+development runs continue in Stockholm; both control shards were separately authorized
+and relaunched on 64 GB instances. The accepted point filter/dispatch remains intact.
+The new region selector produces coherent requests, with migration edge cases recorded
+under “Continuation review 3” below. Melcón v3 improves the design but is not freeze-ready;
+the executable pipeline and specific remaining contracts are still owed. Earlier launch
+approval requests are history, not outstanding requests. Claude Entropy SI keeps the pen.
 
 Read the complete brief, Melcón draft, README, inventory and loader; the cloud launcher,
 job, simulation and analysis paths; the inherited human decoder, likelihood fitting and
@@ -637,3 +639,266 @@ Next: Claude can complete the executable protocol and its declared synthetic bat
 then return that concrete version for the owner/freeze decision already in the plan.
 R052 retains Entropy SI as holder; no request to relaunch either cloud run or disturb
 the Mac probe or PC audit.
+
+## Continuation review 3 — Melcón draft v3 and the region change
+
+13 September 2026, RSC `0fe3ac1`, Melcón `f813508`. Read the complete brief and
+639-line preceding record, draft v3, README, loader and `common.py`; inspected all
+production changes since review commit `43e5507`, the current launcher, job, point
+filter, `aws_env.py`, monitor and relevant tests. The Melcón directory still has only
+the loader, common metadata utilities, inventory and download verifier: no
+`preprocess.py`, secondary decoder, likelihood fitter or recovery battery exists yet.
+Read the arXiv consensus record; that completed review is not repeated here. R052's
+current ownership and recent entries, both git logs, shared rules/memory and Claude
+Entropy SI's `e0ca6987` transcript through 16:16 PDT supply the current decisions.
+The prior arXiv message is in `xs chat`, and Claude acknowledged it at 16:07 PDT;
+it was not sent again.
+
+The automatic wrap is independently verified complete: `01a09cfd` →
+`01a09d08-8349-7870-82bd-6fb96eeb9bcd`, exact name **GPT: R052 Entropy paper**,
+matching current session ID and received prompt. R067/R068 remain finished.
+
+**Verdict: support implementing v3 with the corrections below; do not freeze or
+decode yet.** Accept the split-half architecture as the repair for the mismatched
+decoders: each likelihood training/test pair now shares one decoder, fitted on the
+other two blocks. Accept the explicit continuous-dose densities, distinct catch
+flag and displaced catch component as repairs of the preceding algebraic gaps.
+The family-run truth table now handles an isolated opposing window and a separate
+null run; the equal-participant score mean and paired resampling are also clearer.
+Those accepted decisions do not establish that the still-unimplemented pipeline
+passes isolation, numerical or recovery checks.
+
+### V3.1 — the preprocessing boundary claim is false under the actual filter
+
+Draft §3 says the noncausal filters have impulse responses shorter than one second
+and block pauses are much longer. The installed MNE default **0.4 Hz high-pass has
+8.25 seconds of first-to-last-tap support**, ±4.125 seconds about its center:
+8,449 taps at 1024 Hz, 16,897 at 2048 Hz. This is separate from the accepted 200 Hz
+anti-alias repair. Filter duration depends on transition width, not merely its
+cutoff label. [MNE filter specification](https://mne.tools/stable/generated/mne.filter.create_filter.html).
+
+The metadata counterexample is concrete: sub-01 nocue block 2 → 3 has only
+**2.643 seconds between successive trial onsets**; across the 70 included-task
+recordings, the median of 210 boundary onset gaps is 27.7435 seconds, but several
+are below the high-pass's one-sided support. Onset gaps are not pause-duration
+measurements. The high-pass coefficient at the shortest gap is nonzero. Thus a
+perturbation in one block can reach another block's filtered samples; the exact
+EEG-isolation assertion in §4 does not follow from the pauses.
+
+Specify block-local filtering and its padding/edge exclusions, or explicitly bound
+and test the permitted cross-boundary dependence. Recording-wide adaptive QC is
+also deliberately allowed to see all blocks. Label-free QC still depends on EEG:
+changing a held-out block enough to mark a channel bad can alter every other block.
+Either move adaptive choices into the appropriate training data, or state isolation
+**conditional on fixed QC** and disclose the recording-wide preprocessing choice.
+Keep the useful split-half decoder repair; correct the broader isolation claim.
+The causal sensitivity still needs actual filter orders, cutoffs, initialization,
+delays, padding and time alignment before it can support timing statements.
+
+### V3.2 — finish the loader/QC contract rather than describing it as implemented
+
+The real `--cache` writer, exercised with artificial epochs, writes twelve arrays
+but **neither filter configuration nor channel types**. `params` contains those
+fields in memory and is discarded during the save. No secondary decoder exists
+to reject old caches. Draft §3's present-tense claim that both protections already
+work must be changed until the writer, reader and stale-cache rejection test land.
+Authenticate the complete preprocessing configuration/version, not only 200 Hz and
+the presence of a type list; preserve the EEG/EOG feature boundary on cache reload.
+
+`load_subject` currently filters, average-references and epochs before returning.
+The proposed continuous bad-channel detection/interpolation **before** referencing
+cannot simply be added after that return. Provide the preprocessing entry point at
+the correct stage and test it on artificial continuous inputs. For the second
+channel-rule pass, specify its denominator and what happens when it identifies
+additional bad channels or exceeds twelve: retaining a new bad flag without a
+defined final interpolation/reference/rejection action leaves the data ambiguous.
+
+Literal matching of renamed `channels.tsv` labels to MNE's `biosemi128` names
+misses 122 of 128 scalp labels. Retain the original A1…D32 identities, attach their
+positions, then apply the same position-preserving rename used for the data; that
+mapping covers all 128 in the metadata fixture. Do not infer an electrode position
+from an accidentally overlapping name. This checks name plumbing, not the physical
+cap layout independently.
+
+README D6 and the loader's opening docstring still say the earlier decimation
+“aliased” a measured band; the revised preregistration correctly says protection
+was missing and real aliasing was not quantified. Align those remaining statements,
+the README's file-table shape and its CV description. The historical verification
+rows and deliberately modified `load_verification.csv` remain Claude's files.
+
+### V3.3 — remove the empty block sensitivity and finish the numerical recipe
+
+Under §4, every likelihood fit uses **one training block**. Its single shift γ
+cannot be separated from a0, μ_L or μ0. With the proposed test-block shift equal
+to the mean training shift, it is simply that same γ. For the graded family,
+`a0' = a0 + gamma` reproduces both means and SDs exactly; the corresponding
+intercept substitution also reproduces the mixture/null densities. The executable
+algebra check returns zero difference. Any effect of separate bounds would be a
+changed parameter restriction, not an identified drift adjustment.
+
+Remove that sensitivity or specify a nonredundant, training-only way to predict
+drift across the held-out block. Additive hemifield location remains a defensible
+shared covariate, with its limited scope stated; it does not model arbitrary
+side-dependent slopes, spread or history. The draft now explicitly omits staircase
+history, which resolves the earlier unspecified promise. For nocue catch trials,
+the side code is a virtual side from the event mapping, not a displayed hemifield.
+
+The densities are now equations, but the executable parameter recipe is incomplete:
+
+- Define S per fold/window and its source after samplewise normalization, smoothing
+  and windowing; define floors for zero projection SD and zero log-dose SD. Give
+  complete parameter vectors, including starts for δ1, k_A, k_h, θ0 and null σ0.
+- Declare clipping/interior initialization and the bounded-coordinate transform.
+  Top-minus-bottom quintile means can be zero or negative; that cannot directly
+  initialize either positive `exp(delta0)` or an unconstrained jitter transform at
+  a bound. A catch-free likelihood training block is also allowed by current
+  inclusion: catch counts **10, 0, 10, 10** pass the total and decoder-half floors,
+  yet the catch moment start in block 2 is undefined. Specify a fold class floor
+  or a training-only fallback; the decoder-half floor alone does not solve it.
+- Specify finite training/test-density checks and a deterministic retry/unavailable
+  rule. `optimizer.success` alone does not check a finite predictive density. Bounds
+  on s0 do not bound the full graded σ(x) to 0.05S…5S: s1·a1 can span ±20. Exercise
+  those effective extremes or impose and register the intended numerical floor.
+- Keep the catch repair but distinguish structural from practical identifiability.
+  At allowed S=1, δ0=−5 and σ=5, changing π0 from 0.1 to 0.8 changes the catch
+  distribution by total variation only **0.0003763**. Forty catch trials need not
+  identify that occupancy precisely. Declare its interval procedure and include
+  weak-separation cases; do not promise an informative π0 interval from finite δ0.
+- Freeze the actual legacy/quantile sensitivity configuration, including training
+  anchors, catch flags, starts/caps and plotting-versus-fitting quantile edges.
+  “Unchanged” cannot reintroduce the two inherited per-call anchor/catch traps.
+
+### V3.4 — unavailable comparisons still fall through to a substantive outcome
+
+The revised family truth table closes the old isolated-window gap. However, take
+35 recordings that pass inclusion, no hard pipeline exceptions, and median AUC
+0.8. Let unavailable model fits leave **zero eligible main windows**. Because the
+technical rule explicitly excludes failures handled by the unavailable-fold rule,
+neither it nor the AUC gate fires. Both family-run flags are false, so §8 calls
+this **inconclusive/mixed** despite having no usable group comparison.
+
+Add an availability condition before outcomes 1–3 and state the minimum window
+coverage needed to call an analysis interpretable. Distinguish insufficient data
+or fit availability from two available families failing to win. Define consecutive
+windows as adjacent physical time bins with eligibility in each, never adjacency
+after dropping ineligible bins. The chosen per-window participant cohorts may
+vary; report those identities/counts and show a common-cohort sensitivity if using
+a sustained-run interpretation. Define missing/nonfinite AUC behavior too.
+
+The §9 graded-cell criterion has the corresponding loophole: three **technical
+failures** give zero two-state outcomes and pass “at most one.” Require adequate
+fit/window availability and the intended sensitivity status before scoring that
+criterion. These are contract counterexamples, not observed Melcón outcomes.
+
+### V3.5 — complete and cost the development battery before running it
+
+The factorial design and seed are helpful, but G1–G3 still lack complete mean,
+spread and catch laws; X1/X2 lack occupancy/dose curves and temporal envelopes.
+Fix the spatial pattern/covariance, temporal noise/dependence, baseline and sample
+grid, drift application, selected twenty metadata recordings and per-cell seed
+derivation. Define how AUC≈0.6/0.8 is generated or independently calibrated and its
+acceptance tolerance; do not tune it by desired family outcomes. Define the X2
+diagnostics even if a two-state recovery threshold is intentionally not imposed.
+The full continuous preprocessing/QC checks cannot be verified by replacing the
+loader with already-made epochs; give them a separate artificial-raw stage.
+
+The literal design is **1,200 synthetic recordings** (5×2×2×3×20). If it decodes all
+769 samples and fits all forty windows, the primary variant alone entails about
+**1.85 million logistic decoder fits and 4.61 million density starts**, before the
+sensitivities. Those are operation counts, not measured runtime. Call it unbenchmarked,
+not “light”; time one declared fixture on one worker first and stage the remaining
+work around the running Mac probe and PC audit. No battery was launched here.
+
+### V3.6 — retain the bootstrap estimator; specify its remaining outputs
+
+Equal-weight participant means, B=2,000, seed 20260913 and resampling each person's
+whole curve/paired tasks together address the earlier estimand ambiguity. Complete
+the confidence level and percentile endpoints, pointwise versus simultaneous
+interpretation, missing-window rule and separate task/paired-difference estimators.
+The per-half AUC intervals and catch-occupancy interval still need their own
+resampling unit/method and counts. A bootstrap over already-fitted participant
+scores estimates uncertainty in that summary; it is not automatically a refitting
+bootstrap for the entire decoder/fitter. Keep that distinction explicit.
+
+### Runner and live state — preserve accepted runs; guard the new migration paths
+
+`t1_job.py` and `points_filter.py` are unchanged since the accepted runner review;
+all five deployed files in both Stockholm namespaces still byte-match them. The
+current `test_launcher_env.py` and `test_points_filter.py` pass without fits. New
+offline checks exercise the real launcher in default and Oregon mode: image,
+code input, result/output URI and checkpoint URI consistently select the expected
+region/bucket, and the 2×5 refit allocation remains intact. `aws_env.py` need not be
+uploaded with the job: the job takes its bucket from RESULTS_URI and does not
+import that helper. The default at the inspected commit remains eu-north-1.
+AWS requires the input bucket to be in the training region; a dry-run string check
+does not establish actual bucket, image or IAM accessibility.
+[AWS S3 input contract](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_S3DataSource.html).
+
+Two migration cases need correction before relying on same-name cross-region
+resumption or revalidation. They do not require stopping the live Stockholm jobs:
+
+1. **Missing destination snapshot:** `upload_code(..., resume=True,
+   from_snapshot=True)` uploads all five *current local files* when the selected
+   bucket has no snapshot. The fake-S3 fixture demonstrates that branch. Require
+   the requested frozen snapshot and complete manifest to exist; otherwise refuse
+   that resume. Preserve original checkpoint/namespace identities and verify copied
+   bytes. This fallback predates the region change; selecting a new bucket makes
+   its missing-snapshot trigger newly relevant.
+2. **Local cache crosses buckets:** `spotcheck` still uses `sim_results/<run>` for
+   both regions. An empty Oregon listing leaves an earlier Stockholm gain JSON in
+   place, and `--revalidate` begins using that cached source. The fixture intercepts
+   the attempted revalidation before any fit/upload. Bind the local cache to the
+   complete source URI/manifest, use an isolated destination, or reject mismatches
+   and require a verified current source. Do not infer fresh Oregon provenance from
+   an old local file. Keep the live Stockholm monitors explicitly on Stockholm when
+   the default eventually changes; a copied result tree is a dated snapshot while
+   those jobs continue writing.
+
+Fresh read-only AWS evidence is **23:13:29 UTC / 16:13:29 PDT**, in
+`2026-09-13_cheap_cloud_v3_live_readback.json` (reproduced by the existing
+`2026-09-13_cheap_cloud_live_readback.py --out <new-file>`):
+
+- Both `refit_control_aac9f69` replacements, suffix `1789338122`, are Training on
+  `ml.r7i.2xlarge`, five workers each, same numerical hash `fab869c34eb6`, same
+  shard checkpoint URIs and 110 h cap. The two original 16 GB jobs are Failed;
+  their reported billable seconds are 13,547 and 14,680. All running-job billable
+  seconds remain absent, not zero spend.
+- All ten `ref_m2s_omega2_aac9f69` Spot jobs, suffix `1789319954`, are Training,
+  numerical hash `3575ae74b0fb`. Six shards report sixteen rows and four report
+  eight: **128 distinct rows**. Progress JSON appears both at top level and in
+  checkpoint copies; deduplicate by shard. Logs show four shards resuming from
+  eight saved rows after interruption. This is observed checkpoint reuse, not
+  a reason to reject Spot.
+- Ten control checkpoint files contain 21 completed resamples in total (2–3 each),
+  about 3,550–4,155 fit seconds per resample. **Their object timestamps precede
+  the r7i relaunch**, so these are original c8i timings, not measured r7i throughput.
+  No complete control dataset has landed. Neither 88 h nor these retained timings
+  establish replacement-job completion time.
+
+Cloud ownership remains with Claude. The transcript records the owner's earlier
+move/relaunch go and 16:12 “done and approved”; Claude's later 16:15 check reports
+the quota request approved but read-user policies still unsaved, and a single
+waiting script that will copy and launch the bounded smoke once access works.
+This review did not query IAM/quotas or independently verify Oregon, start another
+waiter, copy anything, launch/stop jobs, change policies/limits, flip the default or
+increase spending. No new approval request is introduced. The existing USD 3,000
+further-spend cap and optional omega-1 hold remain.
+
+### Reproducibility and handoff
+
+`2026-09-13_melcon_v3_contract_checks.py` / JSON record the actual cache write,
+MNE coefficients and metadata boundary/name checks, single-block nuisance alias,
+weak catch separation and unavailable-outcome/battery examples. They read no EEG
+samples and fit no decoder/density. `2026-09-13_region_runner_codex_checks.py` /
+JSON exercise the real code with fake AWS and stop before revalidation fitting.
+Source SHA-256 values are saved in both JSON files. These checks substantiate the
+review; they are not the full synthetic-recovery contract or a protocol freeze.
+
+Claude can implement the corrected preprocessing, numerical configuration,
+availability classifier and declared recovery fixtures in its production files.
+The split-half/catch/outcome repairs accepted above need not be redesigned merely
+because the remaining implementation is unfinished. Keep the completed arXiv
+consensus, v4 hold, and active/report-required Sergent versus additional passive
+analysis distinction. The assembled-v1 overreach/render review is still owed when
+that manuscript exists. No manuscript, production source, real EEG outcome or
+running analysis was changed in this continuation; no push.

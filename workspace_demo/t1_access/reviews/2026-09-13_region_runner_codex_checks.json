@@ -1,0 +1,312 @@
+{
+  "scope": "Offline review of 0fe3ac1's region migration, with real launcher/monitor code.\n\nRun with t1_access/.venv/bin/python. Every AWS client is fake; no network,\nlaunch, upload, numerical fit or production output is touched. Writes its JSON\ncompanion. Missing-snapshot and stale-cache cases deliberately expose current\nbehavior, not passing safety guarantees.\n",
+  "source_sha256": {
+    "aws_env.py": "3a6864fb8f9f1ca88c98052d41ac6e289237ab2659cf21c1594ae9517025b1cc",
+    "launch_t1.py": "bf7631fe5017e0169747020b8306cb1258fabda753bba191c960ec9be2a3870c",
+    "spotcheck.py": "f88f5ea12e63236a36e3cd87b41933108e11e8171dda4774e9c3b9d30d003a21",
+    "t1_job.py": "4c6840b49703187d8495011dc7165ea6043d9c2325f7885e3b51d6bf0a279296",
+    "points_filter.py": "9666b3daad3729377063b5658d406234056c430b2404ffbb19af23afaf6df846"
+  },
+  "default_region": "eu-north-1",
+  "default_and_oregon_requests_have_consistent_image_code_output_and_checkpoint_regions": true,
+  "dry_specs": {
+    "stockholm": [
+      {
+        "TrainingJobName": "t1-calibration-d4-region-revie-s000of002-1789341494",
+        "AlgorithmSpecification": {
+          "TrainingImage": "763104351884.dkr.ecr.eu-north-1.amazonaws.com/pytorch-training:2.8.0-cpu-py312-ubuntu22.04-sagemaker",
+          "TrainingInputMode": "File",
+          "ContainerEntrypoint": [
+            "bash",
+            "-lc",
+            "pip install -q 'jax==0.11.1' 'numpy==2.4.6' 'scipy==1.18.0' 'pandas==3.0.5' 'joblib==1.5.3' boto3 >/dev/null 2>&1; python /opt/ml/input/data/code/t1_job.py"
+          ]
+        },
+        "RoleArn": "arn:aws:iam::763348960464:role/xtenure-job-execution-role",
+        "InputDataConfig": [
+          {
+            "ChannelName": "code",
+            "DataSource": {
+              "S3DataSource": {
+                "S3DataType": "S3Prefix",
+                "S3Uri": "s3://xtenure-cself-pvr/code/t1_access/region_review/",
+                "S3DataDistributionType": "FullyReplicated"
+              }
+            }
+          }
+        ],
+        "OutputDataConfig": {
+          "S3OutputPath": "s3://xtenure-cself-pvr/results/t1_access/region_review/output/"
+        },
+        "ResourceConfig": {
+          "InstanceType": "ml.r7i.2xlarge",
+          "InstanceCount": 1,
+          "VolumeSizeInGB": 30
+        },
+        "StoppingCondition": {
+          "MaxRuntimeInSeconds": 396000
+        },
+        "Environment": {
+          "TASK": "calibration",
+          "N_REP": "10",
+          "N_REP_RECOVERY": "200",
+          "N_REP_5LAYERS": "200",
+          "D": "4",
+          "LAYERS": "41",
+          "SEED": "2027",
+          "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/region_review/",
+          "NPROC": "1",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "N_STARTS_INNER": "4",
+          "INTERVAL": "refit",
+          "N_BOOT_REFIT": "50",
+          "GENERATORS": "M2B",
+          "N_JOBS": "5",
+          "SHARD": "0",
+          "N_SHARDS": "2"
+        },
+        "EnableManagedSpotTraining": false,
+        "CheckpointConfig": {
+          "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/region_review/checkpoints-s000of002/",
+          "LocalPath": "/opt/ml/checkpoints"
+        }
+      },
+      {
+        "TrainingJobName": "t1-calibration-d4-region-revie-s001of002-1789341494",
+        "AlgorithmSpecification": {
+          "TrainingImage": "763104351884.dkr.ecr.eu-north-1.amazonaws.com/pytorch-training:2.8.0-cpu-py312-ubuntu22.04-sagemaker",
+          "TrainingInputMode": "File",
+          "ContainerEntrypoint": [
+            "bash",
+            "-lc",
+            "pip install -q 'jax==0.11.1' 'numpy==2.4.6' 'scipy==1.18.0' 'pandas==3.0.5' 'joblib==1.5.3' boto3 >/dev/null 2>&1; python /opt/ml/input/data/code/t1_job.py"
+          ]
+        },
+        "RoleArn": "arn:aws:iam::763348960464:role/xtenure-job-execution-role",
+        "InputDataConfig": [
+          {
+            "ChannelName": "code",
+            "DataSource": {
+              "S3DataSource": {
+                "S3DataType": "S3Prefix",
+                "S3Uri": "s3://xtenure-cself-pvr/code/t1_access/region_review/",
+                "S3DataDistributionType": "FullyReplicated"
+              }
+            }
+          }
+        ],
+        "OutputDataConfig": {
+          "S3OutputPath": "s3://xtenure-cself-pvr/results/t1_access/region_review/output/"
+        },
+        "ResourceConfig": {
+          "InstanceType": "ml.r7i.2xlarge",
+          "InstanceCount": 1,
+          "VolumeSizeInGB": 30
+        },
+        "StoppingCondition": {
+          "MaxRuntimeInSeconds": 396000
+        },
+        "Environment": {
+          "TASK": "calibration",
+          "N_REP": "10",
+          "N_REP_RECOVERY": "200",
+          "N_REP_5LAYERS": "200",
+          "D": "4",
+          "LAYERS": "41",
+          "SEED": "2027",
+          "RESULTS_URI": "s3://xtenure-cself-pvr/results/t1_access/region_review/",
+          "NPROC": "1",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "N_STARTS_INNER": "4",
+          "INTERVAL": "refit",
+          "N_BOOT_REFIT": "50",
+          "GENERATORS": "M2B",
+          "N_JOBS": "5",
+          "SHARD": "1",
+          "N_SHARDS": "2"
+        },
+        "EnableManagedSpotTraining": false,
+        "CheckpointConfig": {
+          "S3Uri": "s3://xtenure-cself-pvr/results/t1_access/region_review/checkpoints-s001of002/",
+          "LocalPath": "/opt/ml/checkpoints"
+        }
+      }
+    ],
+    "oregon": [
+      {
+        "TrainingJobName": "t1-calibration-d4-region-revie-s000of002-1789341494",
+        "AlgorithmSpecification": {
+          "TrainingImage": "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.8.0-cpu-py312-ubuntu22.04-sagemaker",
+          "TrainingInputMode": "File",
+          "ContainerEntrypoint": [
+            "bash",
+            "-lc",
+            "pip install -q 'jax==0.11.1' 'numpy==2.4.6' 'scipy==1.18.0' 'pandas==3.0.5' 'joblib==1.5.3' boto3 >/dev/null 2>&1; python /opt/ml/input/data/code/t1_job.py"
+          ]
+        },
+        "RoleArn": "arn:aws:iam::763348960464:role/xtenure-job-execution-role",
+        "InputDataConfig": [
+          {
+            "ChannelName": "code",
+            "DataSource": {
+              "S3DataSource": {
+                "S3DataType": "S3Prefix",
+                "S3Uri": "s3://xtenure-cself-pvr-usw2/code/t1_access/region_review/",
+                "S3DataDistributionType": "FullyReplicated"
+              }
+            }
+          }
+        ],
+        "OutputDataConfig": {
+          "S3OutputPath": "s3://xtenure-cself-pvr-usw2/results/t1_access/region_review/output/"
+        },
+        "ResourceConfig": {
+          "InstanceType": "ml.r7i.2xlarge",
+          "InstanceCount": 1,
+          "VolumeSizeInGB": 30
+        },
+        "StoppingCondition": {
+          "MaxRuntimeInSeconds": 396000
+        },
+        "Environment": {
+          "TASK": "calibration",
+          "N_REP": "10",
+          "N_REP_RECOVERY": "200",
+          "N_REP_5LAYERS": "200",
+          "D": "4",
+          "LAYERS": "41",
+          "SEED": "2027",
+          "RESULTS_URI": "s3://xtenure-cself-pvr-usw2/results/t1_access/region_review/",
+          "NPROC": "1",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "N_STARTS_INNER": "4",
+          "INTERVAL": "refit",
+          "N_BOOT_REFIT": "50",
+          "GENERATORS": "M2B",
+          "N_JOBS": "5",
+          "SHARD": "0",
+          "N_SHARDS": "2"
+        },
+        "EnableManagedSpotTraining": false,
+        "CheckpointConfig": {
+          "S3Uri": "s3://xtenure-cself-pvr-usw2/results/t1_access/region_review/checkpoints-s000of002/",
+          "LocalPath": "/opt/ml/checkpoints"
+        }
+      },
+      {
+        "TrainingJobName": "t1-calibration-d4-region-revie-s001of002-1789341494",
+        "AlgorithmSpecification": {
+          "TrainingImage": "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.8.0-cpu-py312-ubuntu22.04-sagemaker",
+          "TrainingInputMode": "File",
+          "ContainerEntrypoint": [
+            "bash",
+            "-lc",
+            "pip install -q 'jax==0.11.1' 'numpy==2.4.6' 'scipy==1.18.0' 'pandas==3.0.5' 'joblib==1.5.3' boto3 >/dev/null 2>&1; python /opt/ml/input/data/code/t1_job.py"
+          ]
+        },
+        "RoleArn": "arn:aws:iam::763348960464:role/xtenure-job-execution-role",
+        "InputDataConfig": [
+          {
+            "ChannelName": "code",
+            "DataSource": {
+              "S3DataSource": {
+                "S3DataType": "S3Prefix",
+                "S3Uri": "s3://xtenure-cself-pvr-usw2/code/t1_access/region_review/",
+                "S3DataDistributionType": "FullyReplicated"
+              }
+            }
+          }
+        ],
+        "OutputDataConfig": {
+          "S3OutputPath": "s3://xtenure-cself-pvr-usw2/results/t1_access/region_review/output/"
+        },
+        "ResourceConfig": {
+          "InstanceType": "ml.r7i.2xlarge",
+          "InstanceCount": 1,
+          "VolumeSizeInGB": 30
+        },
+        "StoppingCondition": {
+          "MaxRuntimeInSeconds": 396000
+        },
+        "Environment": {
+          "TASK": "calibration",
+          "N_REP": "10",
+          "N_REP_RECOVERY": "200",
+          "N_REP_5LAYERS": "200",
+          "D": "4",
+          "LAYERS": "41",
+          "SEED": "2027",
+          "RESULTS_URI": "s3://xtenure-cself-pvr-usw2/results/t1_access/region_review/",
+          "NPROC": "1",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "N_STARTS_INNER": "4",
+          "INTERVAL": "refit",
+          "N_BOOT_REFIT": "50",
+          "GENERATORS": "M2B",
+          "N_JOBS": "5",
+          "SHARD": "1",
+          "N_SHARDS": "2"
+        },
+        "EnableManagedSpotTraining": false,
+        "CheckpointConfig": {
+          "S3Uri": "s3://xtenure-cself-pvr-usw2/results/t1_access/region_review/checkpoints-s001of002/",
+          "LocalPath": "/opt/ml/checkpoints"
+        }
+      }
+    ]
+  },
+  "absent_migration_snapshot": {
+    "requested_resume_from_snapshot": true,
+    "remote_snapshot_absent": true,
+    "current_behavior": "uploads current local source instead of refusing",
+    "returned_prefix": "code/t1_access/existing_run/",
+    "simulated_uploads": [
+      {
+        "local": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/models.py",
+        "bucket": "xtenure-cself-pvr-usw2",
+        "key": "code/t1_access/existing_run/models.py"
+      },
+      {
+        "local": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/analyze.py",
+        "bucket": "xtenure-cself-pvr-usw2",
+        "key": "code/t1_access/existing_run/analyze.py"
+      },
+      {
+        "local": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/simulate.py",
+        "bucket": "xtenure-cself-pvr-usw2",
+        "key": "code/t1_access/existing_run/simulate.py"
+      },
+      {
+        "local": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/t1_job.py",
+        "bucket": "xtenure-cself-pvr-usw2",
+        "key": "code/t1_access/existing_run/t1_job.py"
+      },
+      {
+        "local": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/points_filter.py",
+        "bucket": "xtenure-cself-pvr-usw2",
+        "key": "code/t1_access/existing_run/points_filter.py"
+      }
+    ]
+  },
+  "cross_region_local_cache": {
+    "selected_region": "us-west-2",
+    "selected_bucket": "xtenure-cself-pvr-usw2",
+    "destination_has_no_remote_files": true,
+    "previous_bucket_gain_file_retained": true,
+    "revalidation_attempts_previous_cached_source": true,
+    "source_entries_seen": [
+      {
+        "origin": "prior Stockholm cache"
+      }
+    ],
+    "no_fitting_or_upload_performed": true
+  }
+}
