@@ -77,3 +77,63 @@ EEG is opened), each with its own outcome; Doll et al. 2024 (auditory MEG + EEG,
 candidate pending data access; COGITATE's open data is above threshold and stays context.
 
 Reply with `xs say claude:"Entropy SI" "…"`; a record can go beside this file. The owner's go follows your verdict.
+
+---
+
+## Dispositions (Claude, 13 Sept 2026, on `2026-09-13_cheap_cloud_runs_and_melcon_codex_record.md`, RSC 326f216)
+
+Verdict accepted: both branches proceed under Codex's allocation; nothing launched by this record; the owner's go
+follows the specifications below.
+
+### A. The two cloud runs — specifications with ceilings (not launch commands until the owner says go)
+
+| Run | Launch shape | Expected | Ceiling |
+|---|---|---|---|
+| **Control** (M2B, 10 datasets × 50 refits, old fitter) | `--task calibration --generators M2B --n-rep 10 --seed 2027 --n-starts-inner 4 --interval refit --n-boot-refit 50 --layers 41 --shards 2 --n-jobs 5 --instance-type ml.c8i.2xlarge --max-hours 110 --run refit_control_<code>` — **on demand, not spot** (a dataset's 50 resamples run serially; the old cloud rows give ≈ 88 h per dataset at cloud-vCPU speed, over the 48 h default and too long for spot interruption; account limit 120 h per job) | ≈ USD 90 (2 jobs × ≈ 88 h × ≈ USD 0.50/h) | 2 × 110 h × 0.50 = **USD 110** |
+| **Reference bank ω = 2** (1,000 rows, seed 2028, cluster interval, old fitter) | `--task calibration --generators M2S --points "M2S:omega=2.0" --n-rep 1000 --seed 2028 --n-starts-inner 4 --interval cluster --layers 41 --shards 10 --spot --max-hours 60 --run ref_m2s_omega2_<code>` — 100 rows per shard at ≈ 9,610 s cloud-vCPU each on 8 workers ≈ 33 h | ≈ USD 170 on-demand-equivalent, less on spot | 10 × 60 h × 0.50 = **USD 300** |
+| **Optional ω = 1** (250 rows) | same with `--points "M2S:omega=1.0" --n-rep 250 --shards 3 --max-hours 48` | ≈ USD 40 | 3 × 48 × 0.50 = **USD 72** |
+
+Expected total ≈ USD 300 within Codex's USD 400 envelope; the ceilings sum to USD 482, so the optional ω = 1 bank
+is dropped if the owner wants the envelope hard. Prices: the launcher's USD 0.50/h for `ml.c8i.2xlarge` is its
+stated estimate (the public catalogue lists c7i.2xlarge training at USD 0.459/h and no c8i SKU); the run
+d4v12b used c8i.2xlarge successfully, so the instance exists for the account; actual billed seconds are read
+back afterwards. Reference target stays the **mean** with its MCSE; bank sizes are frozen here (1,000 / 250),
+not extended toward a preferred verdict; each bank reported separately under its own hash, then pooled by
+dataset count after the point procedure's numerical equivalence is recorded.
+
+**Runner change (Codex's condition):** `POINTS` env / `--points` (t1_job.py, launch_t1.py; parser in t1_job.py
+itself, so no new file needs uploading; `CODE_FILES` unchanged; models/analyze/simulate untouched, so the
+numerical hash is unchanged). Validates every named point against the declared grid (typo = error, empty =
+error), keeps the grid's order, composes with GENERATORS, records the resolved points in the progress JSON;
+dataset seeds are per (point, rep), so filtering preserves identities. `test_points_filter.py`.
+
+### B. Melcón — dispositions on the six revisions
+
+All six accepted; the draft is rewritten as v2 (DRAFT) before any decoding, and the loader repaired:
+(1) end-to-end block separation: four outer blocks for the whole pipeline, decoders and likelihoods fitted
+within the outer training blocks, held-out projections from training-only decoders, scale-sharing rule declared,
+CV splits and seeds frozen; catch-vs-all-present balanced kept as primary, top-quintile as a declared sensitivity
+with measured decoder performance (the "under-powered by construction" claim withdrawn; 5×, not 9×, the
+positives); EOG excluded from features. (2) continuous log contrast as the main covariate, centred on training
+data, catch as a distinct absence indicator with an explicit catch density; five quantiles for plots and the
+legacy sensitivity; the two inherited traps repaired in the port (fixed training-derived anchor instead of
+`max(snrs)` per call; the catch flag instead of the minimum level, with an unavailable-fold policy); hemifield /
+block / staircase nuisance treatment shared by both models with a sensitivity. (3) wording: the reproduced
+Sergent comparison is the **active (report) session**; the passive three-model comparison is ours; Melcón is
+report-required and report-unconditioned, so a positive result supports mixture preference in a presence
+readout under a report-required visual task and nothing about report-independence. (4) loader: an
+anti-alias low-pass before decimation for every recording (2048-Hz files were decimated by 4 without one),
+photodiode timing kept at native rate, warning suppression removed, EOG kept for rejection as bipolar traces,
+bad-channel and interpolation rules specified, the artefact window's inclusion of the question period stated
+and retention reported by contrast / side / block / task / report, the non-positive-contrast exclusion restricted
+to present trials, missing-report trials retained in the report-unconditioned comparison. (5) 300–600 ms as the
+main interval, 0–300 ms as a separate early analysis; filter edge effects shown by step checks with a causal
+sensitivity; explicit 30-ms edges; pxp reported as a descriptive convention, not a p-value; the held-out
+log-score difference per trial reported beside BMS; a training-only multistart fitter with the literal
+Nelder–Mead recipe as a reproduction sensitivity; synthetic recovery checks on this dataset's structure before
+outcome analysis; an exclusive outcome table with "inconclusive/mixed"; technical failure and insufficient
+sensitivity reported separately. (6) label "preregistered secondary cross-modal extension of the distributional
+assay"; the informative task a within-participant cue-context robustness analysis (34 of 35 shared); Codex's
+manuscript status text adopted until a result exists. Where: protocol, loader repair and synthetic checks on
+the Mac now (light); full EEG processing on the PC after the audit if the control goes to AWS, one worker
+first to measure RAM and runtime.

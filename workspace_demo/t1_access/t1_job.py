@@ -8,7 +8,8 @@ every round, and writes a summary per stage. Launched by launch_t1.py; the code 
 Environment (set by the launcher):
   TASK          all | calibration | power | recovery | gain | bench
   N_REP (1000), N_REP_RECOVERY (200), N_REP_5LAYERS (200), D, LAYERS ("41" or "25,33,41,49,57"), SEED,
-  GENERATORS (optional comma list), N_JOBS, N_STARTS_INNER, SHARD / N_SHARDS
+  GENERATORS (optional comma list), POINTS (optional grid-point list "M2S:omega=2.0,…", validated against the
+  declared grid), N_JOBS, N_STARTS_INNER, SHARD / N_SHARDS
   RESULTS_URI   s3://bucket/results/t1_access/<run>/   (CSVs, gain JSON, progress and summaries land here)
 TASK=all runs, for this shard: calibration -> power (gain calibration first) -> recovery -> the five-layer
 check (calibration on M2B,M2K and power on M3H,M3V at N_REP_5LAYERS). Every stage's CSV carries the
@@ -39,6 +40,8 @@ LAYERS = tuple(int(x) for x in os.environ.get("LAYERS", "41").split(","))
 FIVE_LAYERS = (25, 33, 41, 49, 57)
 SEED = int(os.environ.get("SEED", "2026"))
 GENERATORS = os.environ.get("GENERATORS") or None
+POINTS = os.environ.get("POINTS") or None          # optional grid-point filter, e.g. "M2S:omega=2.0,M2S:omega=1.0" (13 Sept 2026);
+                                                   # parsed and validated by points_filter.select_points (uploaded with the job)
 N_JOBS = int(os.environ.get("N_JOBS") or os.cpu_count())
 def _parse_shards(s: str) -> list:
     """'3' -> [3]; '80-89' -> [80..89]; '1,5,9' -> [1, 5, 9]."""
@@ -201,6 +204,10 @@ def run_stage(task: str, n_rep: int, layers: tuple, generators, cfg, A, S, point
     if generators:
         keep = set(generators.split(","))
         points = [p for p in points if p[0] in keep]
+    if POINTS:
+        from points_filter import select_points
+        points = select_points(points, POINTS)
+        log(f"POINTS filter {POINTS!r} -> {points}")
     csv_name = shard_name(csv_name)
     out_csv = os.path.join(WORK, csv_name)
     if not os.path.exists(out_csv) and s3_download(csv_name, out_csv):
@@ -216,6 +223,7 @@ def run_stage(task: str, n_rep: int, layers: tuple, generators, cfg, A, S, point
         if INTERVAL == "refit":
             ckpt_sync_up()
         prog = dict(task=task, D=D, n_rep=n_rep, layers=list(layers), shards=SHARDS, n_shards=N_SHARDS,
+                    generators=generators, points=[[p[0], p[1]] for p in points],
                     done=n_done, total=n_total, elapsed_min=round(elapsed / 60, 1),
                     rate_per_hour=round(3600 * n_done / max(elapsed, 1), 1),
                     eta_hours=round((n_total - n_done) * elapsed / max(n_done, 1) / 3600, 2), n_jobs=N_JOBS,

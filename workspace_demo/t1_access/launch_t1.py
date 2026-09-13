@@ -32,7 +32,7 @@ IMAGE = f"763104351884.dkr.ecr.{REGION}.amazonaws.com/pytorch-training:2.8.0-cpu
 BUCKET = "xtenure-cself-pvr"
 CODE_ROOT = "code/t1_access/"            # + <run>/ : one immutable code snapshot per run namespace
 RESULTS_ROOT = f"s3://{BUCKET}/results/t1_access/"
-CODE_FILES = ("models.py", "analyze.py", "simulate.py", "t1_job.py")
+CODE_FILES = ("models.py", "analyze.py", "simulate.py", "t1_job.py", "points_filter.py")   # points_filter: the POINTS grid filter (13 Sept 2026)
 ENTRY = ("pip install -q 'jax==0.11.1' 'numpy==2.4.6' 'scipy==1.18.0' 'pandas==3.0.5' 'joblib==1.5.3' boto3 >/dev/null 2>&1; "
          "python /opt/ml/input/data/code/t1_job.py")     # the versions run d4v12b logged; pinned so a resume is the same runtime
 PRICE_USD_H = {"ml.c7i.48xlarge": 11.01, "ml.c7i.24xlarge": 5.50, "ml.c7i.16xlarge": 3.67, "ml.c7i.2xlarge": 0.459,
@@ -75,6 +75,7 @@ def main():
     ap.add_argument("--D", type=int, default=4)
     ap.add_argument("--layers", default="41")
     ap.add_argument("--generators", default="")
+    ap.add_argument("--points", default="", help='grid-point filter, e.g. "M2S:omega=2.0,M2S:omega=1.0" (validated by the job)')
     ap.add_argument("--seed", type=int, default=2026)
     ap.add_argument("--n-jobs", type=int, default=0, help="0 = every vCPU")
     ap.add_argument("--n-starts-inner", type=int, default=8, help="inner-selection starts (§14 allows 4)")
@@ -128,6 +129,8 @@ def main():
            "INTERVAL": a.interval, "N_BOOT_REFIT": str(a.n_boot_refit)}      # the declared interval method travels with the job
     if a.generators:
         env["GENERATORS"] = a.generators
+    if a.points:
+        env["POINTS"] = a.points
     if a.n_jobs:
         env["N_JOBS"] = str(a.n_jobs)
     stamp = int(time.time())
