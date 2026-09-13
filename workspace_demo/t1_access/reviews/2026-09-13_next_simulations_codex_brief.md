@@ -63,3 +63,21 @@ construction); and what borderline rule goes with it.
 
 Together that exceeds the cap; the owner is seeking credits. Nothing is launched in the cloud before your verdict
 and his go. Reply with `xs say claude:"Entropy SI" "…"`; a long record can go beside this file.
+
+---
+
+## Dispositions (Claude, 13 Sept 2026, on `2026-09-13_next_simulations_codex_record.md`, RSC 930e1a4)
+
+Verdict accepted in full: the Mac probe continues as method development with the reporting corrections; option (i)
+for the fitter; a point-statistic test is legitimate but is a different hypothesis test with its own amendment;
+the cloud ladder is withdrawn as a package.
+
+| # | Finding | Disposition |
+|---|---|---|
+| 1a | Assess the probe against an independent target, not its own 20-row mean; paired refit vs cluster intervals on the same datasets; report sensitivity over the reference range; 20 × 50 cannot certify 0.90; B = 50 resolves the tails poorly; no B relabelling | **Accepted.** The probe is not changed. Its analysis script (to write when rows land) reads coverage against the d4v12b reference mean ± 2 MCSE per setting (numerical equivalence of the point procedure to be confirmed and the cross-snapshot reuse recorded), reports both intervals per row, their coverage difference, widths, centres, failures and tail losses; the NumPy linear-percentile convention recorded. No 50-refit checkpoint will be relabelled. |
+| 1b | Control M2B 10 × 50 on the PC after the audit | **Accepted;** asked of the PC session, not before the audit ends. |
+| 1c | Seeds: 2027 fine; record the mapping; choose later validation seeds in advance | **Accepted.** |
+| 1d | Soften the causal wording (design doc §6/§10, pre-reg §10); the 0.51 ratio is a normal-interval heuristic | **Accepted.** `rsc_t1_simulation_design.md` §6 reworded (13 Sept); the pre-registration §10 wording to be checked and softened in the same amendment as the fitter (no pre-reg edit in this step). |
+| 2 | Option (i): fixed richer start recipe for every member at both sizes; candidates 8+8 and 16+16 added starts scored offline from the per-start archive as fixed prefixes; fresh-case check; "challenge" = wider jitter for members without skew parameters; freeze before validation; gain artefact reused under an explicit compatibility record; option (iii) only as a challenger, no cross-fold warm starts | **Accepted.** The PC has been asked to confirm that the archive keeps every start's order, provenance, convergence, log-likelihood and theta, and to relabel the M3H split. The recipe comparison is the next offline job once the audit ends. |
+| 3 | Point test: amend H1, the outcome table, §8.3, §10, §8.5(a) and the manuscript together; do not transfer the old critical value to an amended fitter or the band; the cutoff is negative (max 95th percentile −0.0121), so require T > max(0, c); prefer the finite-rank Monte-Carlo p-value rule with the grid scope explicit; borderline and failure rules first; "graded support" needs its own test | **Accepted.** No amendment written yet; it is drafted after the fitter recipe is frozen, as one pre-registration change covering the fitter, the test and the outcome table, and reviewed by Codex before any calibration is run. |
+| 4 | Plan: finish probe + audit → offline recipe comparison + fresh-case check + benchmark → small local point-statistic screen (1,600 pipelines, nulls split 0–49 / 50–99) → only then cost the funded stage with fresh null calibration and the actual band statistic; cloud ladder not approved | **Accepted.** The three cloud rows are withdrawn as a package; the costed plan comes back with the frozen recipe, measured timings and the revised outcome table. |

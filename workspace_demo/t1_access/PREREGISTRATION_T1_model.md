@@ -467,12 +467,16 @@ Windows PC, on the 12,000 existing rows — method development, not validation):
 studentised and normal-theory intervals of the SAME fixed out-of-fold scores reach coverage ≥ 0.90 on 6, 6, 7, 9
 and 8 of the twelve nulls respectively, none on all twelve, and the false-positive rate is 0 under every
 candidate. The diagnostic that closes the route: the ratio of the between-replicate SD of the point estimate
-to the mean interval half-width, which should sit near $1/1.96 = 0.51$ for a calibrated 95 % interval, is
+to the mean interval half-width, which sits near $1/1.96 = 0.51$ for a calibrated normal 95 % interval, is
 0.53–0.58 at the seven settings that pass and rises with the graded signal — 0.63 (M2K $\alpha = 1$), 0.69 (M2S
 $\omega = 0.5$), 0.71 (M2H $\tau = 0.5$), 1.06 (M2S $\omega = 1$, an interval half as wide as it should be), 4.20
-(M2S $\omega = 2$) — the signature of fit-to-fit variability that a bootstrap holding the fit constant cannot see.
-No reshaping of that distribution restores coverage; the pipeline-refitting bootstrap, which resamples the
-fits, is the declared replacement and stays the candidate. Two records set straight by the same exercise: the
+(M2S $\omega = 2$). That ratio is a normal-interval heuristic, not a diagnostic theorem for these heavy-tailed
+percentile intervals, and it does not identify which source of variability the interval misses: fit-to-fit
+variability is the hypothesis (the numerical audit's misses land on the same two settings, 13 Sept), while tail
+sampling and interval shape remain in play (Codex, 13 Sept). What it does establish is that no reshaping of the
+fixed-score distribution restores coverage; the pipeline-refitting bootstrap, which resamples the fits, is the
+declared replacement and stays the candidate, and a coverage gain from it would support that interval without
+by itself identifying the cause. Two records set straight by the same exercise: the
 recorded interval endpoints reproduce from the saved per-concept scores to the storage floor only (the scores
 were written at five decimals; median deviation $2.4 \times 10^{-7}$, a resampling change would move them by
 $2 \times 10^{-4}$), so the reproduction gate is a tolerance of $10^{-5}$ and the next snapshot stores the scores at
