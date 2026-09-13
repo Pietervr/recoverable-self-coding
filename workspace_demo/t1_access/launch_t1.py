@@ -57,10 +57,23 @@ def upload_code(s3, run: str, resume: bool, from_snapshot: bool = False):
     reads its code from the snapshot, never from this machine)."""
     prefix = f"{CODE_ROOT}{run}/"
     existing = s3.list_objects_v2(Bucket=BUCKET, Prefix=prefix).get("Contents", [])
+    if resume and not existing:
+        # a resume never uploads: after a region move the run's own snapshot must have been copied into the selected
+        # bucket first, or a "resume" would silently run today's local code (Codex, continuation review 3, 13 Sept 2026)
+        raise SystemExit(f"--resume: s3://{BUCKET}/{prefix} holds no code snapshot, so there is nothing to resume; "
+                         f"copy this run's code/ and results/ prefixes into {BUCKET} first")
     if existing:
         if not resume:
             raise SystemExit(f"s3://{BUCKET}/{prefix} already holds a code snapshot: pick a new --run or pass --resume")
+        names = {o["Key"][len(prefix):] for o in existing}
+        core = {"models.py", "analyze.py", "simulate.py", "t1_job.py"}
+        if not core <= names:
+            raise SystemExit(f"s3://{BUCKET}/{prefix} is an incomplete snapshot (missing {sorted(core - names)}): refusing to resume")
         if from_snapshot:
+            job_src = s3.get_object(Bucket=BUCKET, Key=prefix + "t1_job.py")["Body"].read()
+            if b"points_filter" in job_src and "points_filter.py" not in names:
+                raise SystemExit(f"s3://{BUCKET}/{prefix}: the snapshot's t1_job.py imports points_filter but "
+                                 f"points_filter.py is missing: refusing to resume")
             print(f"resuming from the snapshot in s3://{BUCKET}/{prefix} as it is (local files not compared)")
             return prefix
         for f in CODE_FILES:

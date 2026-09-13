@@ -29,8 +29,9 @@ import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from aws_env import BUCKET, REGION  # noqa: E402  (T1_AWS_REGION picks the region + bucket pair)
+from aws_env import BUCKET, REGION, cache_dir  # noqa: E402  (T1_AWS_REGION picks the region + bucket pair)
 PREFIX = "results/t1_access/"
+PULL_MANIFEST = ".pulled_from.json"   # the S3 source a local cache mirrors + the files its latest pull wrote (Codex, continuation review 3)
 STAGES = ("calibration_D4", "power_D4", "recovery_D4", "calibration_D4_5layers", "power_D4_5layers",
           "calibration_D8", "power_D8", "recovery_D8")
 
@@ -41,14 +42,23 @@ def pull(run: str, profile: str, out_dir: str) -> dict:
     s3 = boto3.Session(profile_name=profile, region_name=REGION).client("s3")
     os.makedirs(out_dir, exist_ok=True)
     prefix = f"{PREFIX}{run}/"
-    keys = []
+    source = f"s3://{BUCKET}/{prefix}"
+    manifest = os.path.join(out_dir, PULL_MANIFEST)
+    if os.path.exists(manifest):
+        with open(manifest) as fh:
+            cached = json.load(fh).get("source")
+        if cached != source:
+            raise SystemExit(f"{out_dir} mirrors {cached}, not {source}: a local cache never crosses sources")
+    keys, sizes = [], {}
     token = None
     while True:
         kw = dict(Bucket=BUCKET, Prefix=prefix)
         if token:
             kw["ContinuationToken"] = token
         r = s3.list_objects_v2(**kw)
-        keys += [o["Key"] for o in r.get("Contents", [])]
+        for o in r.get("Contents", []):
+            keys.append(o["Key"])
+            sizes[o["Key"]] = o["Size"]
         token = r.get("NextContinuationToken")
         if not token:
             break
@@ -89,6 +99,9 @@ def pull(run: str, profile: str, out_dir: str) -> dict:
                  "gain_calibration_D4.revalidated.json", "gain_calibration_D8.revalidated.json"):
         if prefix + name in keys:
             s3.download_file(BUCKET, prefix + name, os.path.join(out_dir, name))
+    # what this cache mirrors and what the source held at this pull: revalidate() refuses a gain file not in it
+    with open(manifest, "w") as fh:
+        json.dump(dict(source=source, files={k[len(prefix):]: sizes[k] for k in keys}), fh, indent=1)
     return found
 
 
@@ -116,6 +129,14 @@ def revalidate(run: str, D: int, out_dir: str, profile: str, seed: int, n_jobs: 
     src = os.path.join(out_dir, f"gain_calibration_D{D}.json")
     if not os.path.exists(src):
         raise SystemExit(f"{src} has not landed yet")
+    manifest = os.path.join(out_dir, PULL_MANIFEST)
+    if os.path.exists(manifest):   # a pulled cache: only a gain file the latest pull fetched from the selected source
+        with open(manifest) as fh:
+            pulled = json.load(fh)
+        name = os.path.basename(src)
+        if pulled.get("source") != f"s3://{BUCKET}/{PREFIX}{run}/" or pulled.get("files", {}).get(name) != os.path.getsize(src):
+            raise SystemExit(f"{src} was not pulled from s3://{BUCKET}/{PREFIX}{run}/ in the latest pull: "
+                             f"a stale or foreign local copy is never revalidated")
     with open(src) as fh:
         cal = json.load(fh)
     entries = cal["entries"] if isinstance(cal, dict) else cal
@@ -210,7 +231,7 @@ def main():
     ap.add_argument("--seed", type=int, default=2026)
     ap.add_argument("--n-jobs", type=int, default=6)
     a = ap.parse_args()
-    out_dir = os.path.join(HERE, "sim_results", a.run)
+    out_dir = cache_dir(HERE, a.run)          # sim_results/<run> for Stockholm, sim_results/<run>@<bucket> otherwise
     found = pull(a.run, a.profile, out_dir)
     if a.revalidate:
         revalidate(a.run, a.revalidate, out_dir, a.profile, a.seed, a.n_jobs)

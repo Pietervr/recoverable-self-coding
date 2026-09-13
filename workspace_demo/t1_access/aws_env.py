@@ -19,3 +19,11 @@ REGION = os.environ.get("T1_AWS_REGION", "eu-north-1")
 if REGION not in REGION_BUCKETS and not os.environ.get("T1_AWS_BUCKET"):
     raise SystemExit(f"T1_AWS_REGION={REGION}: no bucket known for it; set T1_AWS_BUCKET or add it to aws_env.REGION_BUCKETS")
 BUCKET = os.environ.get("T1_AWS_BUCKET") or REGION_BUCKETS[REGION]
+
+
+def cache_dir(here: str, run: str) -> str:
+    """The local mirror of results/t1_access/<run>/ for the selected bucket: sim_results/<run> for the original
+    Stockholm bucket (every existing path unchanged), sim_results/<run>@<bucket> for any other, so a local cache
+    never crosses sources (Codex, continuation review 3, 13 Sept 2026)."""
+    name = run if BUCKET == REGION_BUCKETS["eu-north-1"] else f"{run}@{BUCKET}"
+    return os.path.join(here, "sim_results", name)
