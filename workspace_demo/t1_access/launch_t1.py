@@ -22,14 +22,17 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 import time
 
 import boto3
 
-ACCOUNT, REGION = "763348960464", "eu-north-1"
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+from aws_env import ACCOUNT, BUCKET, REGION, REGION_BUCKETS  # noqa: E402  (T1_AWS_REGION picks the region + bucket pair)
+
 EXEC_ROLE = f"arn:aws:iam::{ACCOUNT}:role/xtenure-job-execution-role"
 IMAGE = f"763104351884.dkr.ecr.{REGION}.amazonaws.com/pytorch-training:2.8.0-cpu-py312-ubuntu22.04-sagemaker"
-BUCKET = "xtenure-cself-pvr"
 CODE_ROOT = "code/t1_access/"            # + <run>/ : one immutable code snapshot per run namespace
 RESULTS_ROOT = f"s3://{BUCKET}/results/t1_access/"
 CODE_FILES = ("models.py", "analyze.py", "simulate.py", "t1_job.py", "points_filter.py")   # points_filter: the POINTS grid filter (13 Sept 2026)
@@ -43,7 +46,8 @@ PRICE_USD_H = {"ml.c7i.48xlarge": 11.01, "ml.c7i.24xlarge": 5.50, "ml.c7i.16xlar
                "ml.r5.2xlarge": 0.643, "ml.r7i.2xlarge": 0.675,    # 64 GiB
                "ml.m6i.4xlarge": 0.979, "ml.m7i.4xlarge": 1.028,   # 64 GiB, 16 vCPU
                "ml.r7i.4xlarge": 1.351}                            # 128 GiB
-HERE = os.path.dirname(os.path.abspath(__file__))
+if REGION in ("us-east-1", "us-east-2", "us-west-2"):   # these price 7 % under eu-north-1 on every listed shape (13 Sept 2026); us-west-1 is 16 % over
+    PRICE_USD_H = {k: round(v * 0.934, 3) for k, v in PRICE_USD_H.items()}
 
 
 def upload_code(s3, run: str, resume: bool, from_snapshot: bool = False):
@@ -105,15 +109,17 @@ def main():
     a = ap.parse_args()
     sess = boto3.Session(profile_name=a.profile, region_name=REGION)
     sm = sess.client("sagemaker")
-    if a.status:
-        r = sm.list_training_jobs(NameContains="t1-", SortBy="CreationTime", SortOrder="Descending", MaxResults=60)
-        for j in r["TrainingJobSummaries"]:
-            d = sm.describe_training_job(TrainingJobName=j["TrainingJobName"])
-            secs = d.get("TrainingTimeInSeconds", 0) or 0
-            bill = d.get("BillableTimeInSeconds", 0) or 0
-            print(f"{j['TrainingJobName']:52s} {j['TrainingJobStatus']:10s} {d.get('SecondaryStatus',''):12s} "
-                  f"{d['ResourceConfig']['InstanceType']:15s} {secs/3600:6.2f} h train {bill/3600:6.2f} h billed  "
-                  f"{d.get('FailureReason','')[:60]}")
+    if a.status:   # every region we run in, so jobs in flight are never out of sight during a move
+        for region in REGION_BUCKETS:
+            smr = boto3.Session(profile_name=a.profile, region_name=region).client("sagemaker")
+            r = smr.list_training_jobs(NameContains="t1-", SortBy="CreationTime", SortOrder="Descending", MaxResults=60)
+            for j in r["TrainingJobSummaries"]:
+                d = smr.describe_training_job(TrainingJobName=j["TrainingJobName"])
+                secs = d.get("TrainingTimeInSeconds", 0) or 0
+                bill = d.get("BillableTimeInSeconds", 0) or 0
+                print(f"{j['TrainingJobName']:52s} {j['TrainingJobStatus']:10s} {d.get('SecondaryStatus',''):12s} "
+                      f"{d['ResourceConfig']['InstanceType']:15s} {secs/3600:6.2f} h train {bill/3600:6.2f} h billed  "
+                      f"{region:10s} {d.get('FailureReason','')[:60]}")
         return
     if a.stop and a.stop.endswith("*"):
         r = sm.list_training_jobs(NameContains=a.stop[:-1], StatusEquals="InProgress", MaxResults=60)
@@ -127,6 +133,7 @@ def main():
         return
     if not a.task:
         ap.error("--task is required")
+    print(f"region {REGION}, bucket {BUCKET} (T1_AWS_REGION selects the pair)")
     results_uri = f"{RESULTS_ROOT}{a.run}/"
     env = {"TASK": a.task, "N_REP": str(a.n_rep), "N_REP_RECOVERY": str(a.n_rep_recovery),
            "N_REP_5LAYERS": str(a.n_rep_5layers), "D": str(a.D), "LAYERS": a.layers, "SEED": str(a.seed),

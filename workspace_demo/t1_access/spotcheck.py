@@ -29,7 +29,7 @@ import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-BUCKET = "xtenure-cself-pvr"
+from aws_env import BUCKET, REGION  # noqa: E402  (T1_AWS_REGION picks the region + bucket pair)
 PREFIX = "results/t1_access/"
 STAGES = ("calibration_D4", "power_D4", "recovery_D4", "calibration_D4_5layers", "power_D4_5layers",
           "calibration_D8", "power_D8", "recovery_D8")
@@ -38,7 +38,7 @@ STAGES = ("calibration_D4", "power_D4", "recovery_D4", "calibration_D4_5layers",
 def pull(run: str, profile: str, out_dir: str) -> dict:
     """List results/t1_access/<run>/ (the job-written files, not the checkpoints/ or output/ copies), download
     every shard CSV and progress JSON, concatenate per stage."""
-    s3 = boto3.Session(profile_name=profile, region_name="eu-north-1").client("s3")
+    s3 = boto3.Session(profile_name=profile, region_name=REGION).client("s3")
     os.makedirs(out_dir, exist_ok=True)
     prefix = f"{PREFIX}{run}/"
     keys = []
@@ -134,7 +134,7 @@ def revalidate(run: str, D: int, out_dir: str, profile: str, seed: int, n_jobs: 
     dst = os.path.join(out_dir, f"gain_calibration_D{D}.revalidated.json")
     with open(dst, "w") as fh:
         json.dump(out, fh, indent=1, default=float)
-    s3 = boto3.Session(profile_name=profile, region_name="eu-north-1").client("s3")
+    s3 = boto3.Session(profile_name=profile, region_name=REGION).client("s3")
     s3.upload_file(dst, BUCKET, f"{PREFIX}{run}/{os.path.basename(dst)}")
     print(f"revalidated {len(new)} entries -> {dst} (uploaded); {'PASS' if not problems else 'FAIL: ' + '; '.join(problems)}")
     return dst
