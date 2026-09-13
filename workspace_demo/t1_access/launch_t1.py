@@ -36,7 +36,13 @@ CODE_FILES = ("models.py", "analyze.py", "simulate.py", "t1_job.py", "points_fil
 ENTRY = ("pip install -q 'jax==0.11.1' 'numpy==2.4.6' 'scipy==1.18.0' 'pandas==3.0.5' 'joblib==1.5.3' boto3 >/dev/null 2>&1; "
          "python /opt/ml/input/data/code/t1_job.py")     # the versions run d4v12b logged; pinned so a resume is the same runtime
 PRICE_USD_H = {"ml.c7i.48xlarge": 11.01, "ml.c7i.24xlarge": 5.50, "ml.c7i.16xlarge": 3.67, "ml.c7i.2xlarge": 0.459,
-               "ml.c8i.2xlarge": 0.50, "ml.r6i.4xlarge": 1.30}   # on-demand, eu-north-1 Training; c8i/r6i estimated
+               "ml.c8i.2xlarge": 0.50,                            # c8i is not in the price list: estimated
+               # 13 Sept 2026, public price list offers/v1.0/aws/AmazonSageMaker/current/eu-north-1/index.csv,
+               # on-demand Training; ml.r6i.* is NOT offered for Training in eu-north-1
+               "ml.m6i.2xlarge": 0.490, "ml.m7i.2xlarge": 0.514,   # 32 GiB
+               "ml.r5.2xlarge": 0.643, "ml.r7i.2xlarge": 0.675,    # 64 GiB
+               "ml.m6i.4xlarge": 0.979, "ml.m7i.4xlarge": 1.028,   # 64 GiB, 16 vCPU
+               "ml.r7i.4xlarge": 1.351}                            # 128 GiB
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
