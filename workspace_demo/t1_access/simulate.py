@@ -181,9 +181,15 @@ def base_null_points() -> list:
 # ----------------------------------------------------------------------------------------------
 # one replicate through the full §8 procedure -> one CSV row
 # ----------------------------------------------------------------------------------------------
-def _row(name, kwargs, rep, D, layers, res, seconds, extra=None, code_hash=""):
+def _row(name, kwargs, rep, D, layers, res, seconds, extra=None, code_hash="", cfg=None):
     row = dict(generator=name, family=M.MEMBERS[name].family, grid=json.dumps(kwargs, sort_keys=True), rep=rep, D=D,
                n_layers=len(layers), code_hash=code_hash, runtime=runtime_versions(),
+               # the settings behind the hash, readable (13 Sept 2026: d4v12b's rows carry only the hash, so their inner-start
+               # count cannot be read back from the artefact — it was 4, from the launch line — a self-describing row fixes that)
+               settings=json.dumps(dict(n_starts=cfg.n_starts, n_starts_inner=cfg.n_starts_inner, n_gh=cfg.n_gh,
+                                        n_outer=cfg.n_outer, n_inner=cfg.n_inner, n_boot=cfg.n_boot, interval=cfg.interval,
+                                        n_boot_refit=cfg.n_boot_refit, refit_min_usable=cfg.refit_min_usable,
+                                        layers=[int(l) for l in layers], rho=None), sort_keys=True) if cfg is not None else "",
                failed=int(res["failed"]), failed_reason=res.get("failed_reason", ""),
                convergence=round(res["convergence_rate"], 4), inner_convergence=round(res.get("inner_convergence_rate", np.nan), 4),
                inner_nonfinite=int(res.get("inner_nonfinite", 0)), recovery=round(res["recovery_rate"], 4),
@@ -251,7 +257,7 @@ def one_replicate(name: str, kwargs: dict, rep: int, D: int, layers, rho: float,
     ds_seed = dataset_seed(name, kwargs, rep, D, seed)
     ds = make_dataset(name, theta, n_per_family=8, D=D, layers=layers, rho=rho, seed=ds_seed)
     res = A.analyze_dataset(ds, cfg, seed=ds_seed)
-    return _row(name, kwargs, rep, D, layers, res, _time.time() - t0, extra, code_hash)
+    return _row(name, kwargs, rep, D, layers, res, _time.time() - t0, extra, code_hash, cfg=cfg)
 
 
 def run_points(points: list, n_rep: int, D: int, layers, rho: float, cfg: A.Config, seed: int, n_jobs: int,
