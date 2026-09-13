@@ -8,14 +8,25 @@ preprocessing, SoundConsciousEEG_PreProcessing.m, where the two paradigms allow 
   1. read the BDF (BioSemi ActiveTwo, 144 channels, 1024 Hz), rename the channels by position from
      channels.tsv (A1..D32 -> 10-20 names, EXG1..4 -> VEOG1/2 HEOG1/2), keep the 128 scalp channels;
   2. high-pass 0.4 Hz (Sergent: FieldTrip hpfreq .4) — needed on BioSemi data, which has no hardware
-     high-pass — and a 50 Hz notch (Sergent: dftfilter); no low-pass beyond the acquisition filter;
-  3. common average reference over the 128 scalp channels (Sergent: refchannel 'all'; the paper: CAR);
-  4. epochs around the PHOTODIODE-corrected Gabor / catch onset, -0.5 .. +1.0 s, baseline -0.5 .. 0
+     high-pass — and a 50 Hz notch (Sergent: dftfilter);
+  3. an anti-alias low-pass at LOWPASS_HZ (200 Hz, zero-phase FIR, MNE defaults: transition band 50 Hz, so the
+     stop band starts at 250 Hz, below the 256 Hz Nyquist of the 512 Hz target) applied to EVERY recording
+     before decimation (13 Sept 2026, Codex: the four 2048 Hz files carry a 417 Hz acquisition corner, so
+     decimating them by 4 without a digital low-pass aliased the 256–417 Hz band; the 1024 Hz files' 208 Hz
+     corner was adequate, and the same digital filter is now applied to all so that every recording is
+     processed identically). The recording's lowpass must be <= target Nyquist before decimation or the
+     loader raises; no warning is suppressed;
+  4. common average reference over the 128 scalp channels (Sergent: refchannel 'all'; the paper: CAR);
+  5. epochs around the PHOTODIODE-corrected Gabor / catch onset, -0.5 .. +1.0 s, baseline -0.5 .. 0
      (Sergent: -0.5 .. 2 s, baseline -0.5 .. 0; the Melcón trial ends with the question display at
-     +0.30 .. +0.40 s and the response at ~+0.8 s, so +1.0 s covers the whole trial);
-  5. decimate to 512 Hz (the paper's own rate; Sergent's data were 500 Hz): by 2 for the 1024 Hz
+     +0.30 .. +0.40 s and the response at ~+0.8 s, so +1.0 s covers the whole trial); the photodiode
+     snap happens on the raw at its native rate, before any decimation;
+  6. decimate to 512 Hz (the paper's own rate; Sergent's data were 500 Hz): by 2 for the 1024 Hz
      files, by 4 for the four 2048 Hz files of sub-35 / sub-36 (README D13).
-  No ICA, no channel repair, no trial rejection here — those are pre-registration decisions.
+  The EOG channels (EXG1..4 -> VEOG1/2, HEOG1/2) are kept in X by default since 13 Sept 2026 so that the
+  pre-registered artefact rule can use them; they receive the same filters and are NEVER decoder features
+  (the decoder picks channel type 'eeg'). No ICA, no channel repair, no trial rejection here — those are
+  pre-registration decisions.
 
 CLI:
   python load.py --subjects 1-3 --verify        # per subject × task: epoch count == events-table trial
@@ -43,6 +54,7 @@ TMIN, TMAX = -0.5, 1.0
 BASELINE = (-0.5, 0.0)
 HIGHPASS_HZ = 0.4
 NOTCH_HZ = 50.0
+LOWPASS_HZ = 200.0             # anti-alias low-pass before decimation, every recording (13 Sept 2026, see the docstring)
 TARGET_FS = 512.0              # decimation factor = round(raw sfreq / 512): 2 for the 1024 Hz files, 4 for the
                                # 2048 Hz files of sub-35 and sub-36 (README D13; eeg.json says 1024 Hz for all)
 SNAP_MS = 8.0                  # snap the tsv onset to the Status-channel 128 within this (tsv onsets: <= 5 ms rounding)
@@ -141,8 +153,9 @@ def compare_status_with_events_tsv(subject: int, task: str, raw: mne.io.BaseRaw,
 
 
 def load_subject(subject: int, task: str, tmin: float = TMIN, tmax: float = TMAX, baseline=BASELINE,
-                 highpass: float = HIGHPASS_HZ, notch: float = NOTCH_HZ, target_fs: float = TARGET_FS,
-                 reref: str = "average", keep_eog: bool = False, verbose: bool = True) -> dict:
+                 highpass: float = HIGHPASS_HZ, notch: float = NOTCH_HZ, lowpass: float = LOWPASS_HZ,
+                 target_fs: float = TARGET_FS, reref: str = "average", keep_eog: bool = True,
+                 verbose: bool = True) -> dict:
     """Returns dict(X (n_trials, n_chan, n_times) float64 in volts, trials (DataFrame, one row per
     epoch in X order = events-table trial order), time (s), labels, fsample, status_check)."""
     t0 = _time.time()
@@ -162,21 +175,25 @@ def load_subject(subject: int, task: str, tmin: float = TMIN, tmax: float = TMAX
     status_check["n_unsnapped"] = int(np.isnan(snap).sum())
     picks = mne.pick_types(raw.info, eeg=True, eog=keep_eog)
     raw.pick(picks)
+    filt_picks = ["eeg", "eog"] if keep_eog else "eeg"
     if highpass:
-        raw.filter(l_freq=highpass, h_freq=None, picks="eeg", verbose=False)
+        raw.filter(l_freq=highpass, h_freq=None, picks=filt_picks, verbose=False)
     if notch:
-        raw.notch_filter(freqs=[notch], picks="eeg", verbose=False)
+        raw.notch_filter(freqs=[notch], picks=filt_picks, verbose=False)
+    if lowpass:
+        # the anti-alias low-pass, every recording, before decimation (13 Sept 2026; docstring step 3)
+        raw.filter(l_freq=None, h_freq=lowpass, picks=filt_picks, verbose=False)
+    if raw.info["lowpass"] > target_fs / 2 + 1e-6:
+        raise RuntimeError(f"{sub_id(subject)} {task}: lowpass {raw.info['lowpass']} Hz exceeds the target Nyquist "
+                           f"{target_fs / 2} Hz; decimation would alias (set lowpass)")
     if reref == "average":
         raw.set_eeg_reference("average", projection=False, verbose=False)
     elif reref is not None:
         raw.set_eeg_reference(reref, projection=False, verbose=False)
     events = np.column_stack([samples, np.zeros(len(samples), dtype=int), trials.code.values.astype(int)])
-    with warnings.catch_warnings():
-        # decim=2 after the BioSemi on-line 5th-order sinc low-pass (fs/5 = 204.8 Hz; header lowpass 208 Hz):
-        # the 208-256 Hz band is already strongly attenuated, README D6
-        warnings.simplefilter("ignore", RuntimeWarning)
-        epochs = mne.Epochs(raw, events, event_id=None, tmin=tmin, tmax=tmax, baseline=baseline, decim=decim,
-                            preload=True, reject=None, flat=None, reject_by_annotation=False, verbose=False)
+    # no warning is suppressed here: an aliasing RuntimeWarning from Epochs(decim=) would be a real defect
+    epochs = mne.Epochs(raw, events, event_id=None, tmin=tmin, tmax=tmax, baseline=baseline, decim=decim,
+                        preload=True, reject=None, flat=None, reject_by_annotation=False, verbose=False)
     n_table = len(trials)
     dropped_trials, drop_reasons = [], []
     if len(epochs) != n_table:
@@ -193,8 +210,9 @@ def load_subject(subject: int, task: str, tmin: float = TMIN, tmax: float = TMAX
     out = dict(X=X, trials=trials, time=epochs.times, labels=epochs.ch_names, fsample=float(epochs.info["sfreq"]),
                status_check=status_check, n_dropped_edge=n_table - len(trials), dropped_trials=dropped_trials,
                drop_reasons=drop_reasons, recording_s=float(raw.times[-1]),
-               params=dict(tmin=tmin, tmax=tmax, baseline=baseline, highpass=highpass, notch=notch, decim=decim,
-                           target_fs=target_fs, reref=reref))
+               params=dict(tmin=tmin, tmax=tmax, baseline=baseline, highpass=highpass, notch=notch, lowpass=lowpass,
+                           info_lowpass=float(raw.info["lowpass"]), decim=decim, target_fs=target_fs, reref=reref,
+                           keep_eog=keep_eog, ch_types=[mne.channel_type(raw.info, i) for i in range(len(raw.ch_names))]))
     if verbose:
         print(f"{sub_id(subject)} {task}: X {X.shape} at {out['fsample']:.0f} Hz, {len(trials)} trials in table, "
               f"status {status_check}, {(_time.time() - t0) / 60:.1f} min", flush=True)

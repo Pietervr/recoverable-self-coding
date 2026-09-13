@@ -122,18 +122,25 @@ reproduces events.tsv event-for-event, `load.py --verify`).
 raw BDF is processed, mirroring `SoundConsciousEEG_PreProcessing.m`): common average reference over
 the 128 scalp channels (Sergent: `refchannel 'all'`; BioSemi records against CMS/DRL and must be
 re-referenced); high-pass 0.4 Hz (Sergent: `hpfreq .4`, MNE's default FIR instead of FieldTrip's
-Butterworth); 50 Hz notch (Sergent: `dftfilter`); no low-pass beyond the acquisition filter (Sergent:
-none). The 4 EOG channels are kept out of the feature set (Sergent: 63 scalp channels).
+Butterworth); 50 Hz notch (Sergent: `dftfilter`); **an anti-alias low-pass at 200 Hz (zero-phase FIR, 50 Hz
+transition band) on every recording before decimation** (13 Sept 2026, Codex's finding: v1 had none, see D6).
+The 4 EOG channels are kept in the epochs (as bipolar VEOG/HEOG for the artefact rule of the pre-registration)
+and are never decoder features (Sergent: 63 scalp channels).
 
 **D5 — epoch window and baseline.** −0.5 … +1.0 s around the photodiode-corrected Gabor/catch onset,
 baseline −0.5 … 0 s (Sergent: −0.5 … +2.0 s, baseline −0.5 … 0). The Melcón trial is over by ≈ 1 s
 (question at +0.30 … 0.40 s, response median +0.93 s); the cue tasks' cue is at −0.7 … −1.0 s, so a
 longer pre-stimulus window would run into it.
 
-**D6 — sampling rate.** Decimation by 2 to 512 Hz (the paper's own analysis rate; Sergent's data were
-500 Hz) without an extra anti-alias filter: the BioSemi on-line 5th-order sinc low-pass sits at
-fs/5 = 204.8 Hz (header: 208 Hz), below the new Nyquist of 256 Hz. Window lengths of 16 samples at
-512 Hz are 31.25 ms (Sergent: 16 samples at 500 Hz = 32 ms).
+**D6 — sampling rate.** Decimation to 512 Hz (the paper's own analysis rate; Sergent's data were
+500 Hz) **after a digital anti-alias low-pass at 200 Hz applied to every recording** (13 Sept 2026). The
+first version relied on the acquisition filter alone — adequate for the 1024 Hz files, whose BioSemi
+on-line 5th-order sinc low-pass sits at fs/5 = 204.8 Hz (header: 208 Hz), below the new Nyquist of
+256 Hz, but not for the four 2048 Hz files (D13), whose corner is 417 Hz: decimating those by 4 without a
+digital low-pass aliased the 256–417 Hz band, and the loader suppressed MNE's warning about it. Now the
+same filter is applied to all, the loader raises if a recording's low-pass exceeds the target Nyquist,
+and no warning is suppressed. Windows are defined on half-open 30 ms time edges (15 or 16 samples at
+512 Hz as the edges require; Sergent: 16 samples at 500 Hz stepping by 15).
 
 **D7 — no artefact handling in the loader.** No ICA, no channel repair, no trial rejection here; the
 authors' visual rejection + ICA + interpolation (307 ± 35 / 290 ± 38 / 256 ± 47 trials retained per
@@ -171,9 +178,11 @@ E–H; `load.py --verify` records the header channel count per recording.
 **D13 — 2048 Hz recordings.** Four BDF files were recorded at 2048 Hz — sub-35 informative and
 noninformative, sub-36 informative and nocue (`results/bdf_headers.csv`, samples per record) —
 although the identical `eeg.json` sidecars say 1024 Hz for every file and `events.tsv` onsets are in
-seconds throughout. `load.py` takes the rate from the BDF header, decimates by round(sfreq / 512) (4
-for these, 2 otherwise) so every recording comes out at 512 Hz with 769 samples per epoch, and
-expresses its snap and matching tolerances in milliseconds (8 ms and 6 ms) rather than samples.
+seconds throughout. `load.py` takes the rate from the BDF header, low-passes at 200 Hz (D6), decimates by
+round(sfreq / 512) (4 for these, 2 otherwise) so every recording comes out at 512 Hz with 769 samples per
+epoch, and expresses its snap and matching tolerances in milliseconds (8 ms and 6 ms) rather than samples.
+These four files carry a 417 Hz acquisition corner in their headers (`results/bdf_headers.csv`), which is
+why the digital low-pass is required before their decimation.
 
 ## Download and verification status (2026-09-12, 18:45 UTC)
 
