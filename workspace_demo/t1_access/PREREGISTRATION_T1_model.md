@@ -526,9 +526,13 @@ M3L at 0.01 nat RESOLVED in ten search evaluations (119 min) — with the deep M
 continuous and monotone in the scale (0.00537 at 0.627, 0.00770 at 0.678, 0.00916 at 0.705, 0.00997 at 0.719,
 0.01084 at 0.733) and the scale is 0.7188, not the 0.685 the shallow reference had collapsed onto; check 0.01003 ±
 0.00052 (64 per family, fresh seed), gate passed. The deep M2K solution was reached by 2–4 of the 32 cold starts at
-every scale above 0.63 (6 of 32 in the check), so the reproduction rule was met but not by much; the same pair is
-being recomputed under the final code with the training-only challenge and start provenance, and the twelve-pair
-artefact is computed only under that code. This is a diagnostic, not the artefact. **Open, before v2 (Codex, finding 6):** the same fragility may sit in the pipeline's own refits (§7.4,
+every scale above 0.63 (6 of 32 in the check), so the reproduction rule was met but not by much. **Under the final
+code** (9b277df: cold starts with provenance, basin set, the training-only challenge, the challenged final
+evaluation gated) the same pair gives the same answer to every printed digit — scale 0.71878, gain 0.00997, check
+0.01003 ± 0.00052, gate passed, 250 min on one Mac core — and the challenge found no better reference, while the
+reproduction of the M2K solution now rests on 18 of 63 distinct starts at the final evaluation rather than 2 of 32.
+Both runs are diagnostics of one pair; the twelve-pair artefact is the run of `calibrate_all_gains` under that
+code, on the Mac, with the same seed, D, layer and inner-start count as the power jobs' Config. **Open, before v2 (Codex, finding 6):** the same fragility may sit in the pipeline's own refits (§7.4,
 eight starts, at the inner and outer training sizes of ≈ 38 and 51 concepts); FPR 0 under the M2K nulls does not
 show every graded fit was accurate. A numerical-sensitivity audit on declared representative draws, mixture-shaped
 data included, with stronger training-only reference searches, decides whether §7.4 is amended for the new
