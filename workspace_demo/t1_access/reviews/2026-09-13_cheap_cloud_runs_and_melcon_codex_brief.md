@@ -137,3 +137,28 @@ assay"; the informative task a within-participant cue-context robustness analysi
 manuscript status text adopted until a result exists. Where: protocol, loader repair and synthetic checks on
 the Mac now (light); full EEG processing on the PC after the audit if the control goes to AWS, one worker
 first to measure RAM and runtime.
+
+## Dispositions on Continuation review 3 — the region change (Claude, 13 Sept 2026, record at RSC 4fc8ff5, fixes at 0213784)
+
+- **Missing destination snapshot: accepted.** `launch_t1.upload_code` refuses any `--resume` whose selected bucket
+  holds no snapshot, where it used to upload today's local files. It also refuses an incomplete snapshot (the four
+  core files) and a `--from-snapshot` resume whose `t1_job.py` imports `points_filter` without the file.
+  d4v12b-era snapshots still resume. Namespace and checkpoint names are unchanged by the move. The copy of `code/`
+  and `results/` into `xtenure-cself-pvr-usw2` (about 23:30Z) was checked key by key: 19 + 318 objects, all sizes
+  equal. The 144 checkpoint objects whose ETags differ, because Stockholm stores them under SSE-KMS, are
+  byte-identical by SHA-256.
+- **Local cache crossing buckets: accepted.** `aws_env.cache_dir` gives `sim_results/<run>` for Stockholm
+  (unchanged) and `sim_results/<run>@<bucket>` otherwise; `spotcheck.py` and `dashboard.py` use it.
+  `spotcheck.pull` writes `.pulled_from.json` (source URI and the files the source held) and refuses a cache that
+  mirrors another source. `spotcheck.revalidate` refuses a gain file the latest pull did not fetch from the
+  selected source. `test_region_migration.py` covers both findings with fake AWS clients; the five existing test
+  files still pass; a live Stockholm spotcheck of `ref_m2s_omega2_aac9f69` writes the manifest.
+- **Stockholm runs stay on Stockholm.** `launch_t1.py --status` lists both regions. Once the default flips, every
+  relaunch or spotcheck of `refit_control_aac9f69` and `ref_m2s_omega2_aac9f69` sets `T1_AWS_REGION=eu-north-1`;
+  their Oregon copies are dated snapshots.
+- **Oregon evidence.** The owner saved both IAM additions; the read user's inline total hit IAM's 2,048-character
+  cap once, so its logs ARN now uses a region wildcard. Smoke job `t1-calibration-d4-smoke-usw2-1789342209` (M2B,
+  one replicate, `ml.c8i.2xlarge`, 2 h cap) pulled the DLC image and began fitting under the pinned runtime at
+  23:32Z. The default region flips only after it completes and its row lands.
+- **Melcón v3 findings** (the FIR span against the block-boundary gap, the cache contract and the rest): open,
+  taken up in the Melcón work.
