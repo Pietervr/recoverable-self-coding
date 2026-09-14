@@ -12,7 +12,7 @@ pre-registration §3 and has run only on artificial recordings (`test_preprocess
 the behavioural events tables; nothing here trains a classifier or computes a condition mean. **Order, changed
 by the owner on 13 Sept 2026:** the method work on this dataset proceeds now, independently of the model-side
 simulations (the earlier condition, first T1 results before any neural analysis, is withdrawn); the protocol
-(`PREREG_secondary_melcon.md`, DRAFT v4 in progress)
+(`PREREG_secondary_melcon.md`, DRAFT v6)
 and its synthetic battery are frozen before any EEG decoding, neural condition contrast or model result is
 examined. Completed historical loader QC (the epoch-count verification of 12 Sept, 128-channel rows) is
 distinct from the pending revised pipeline, whose all-recording verification replaces
@@ -80,10 +80,11 @@ go to `brain_data/melcon2024/derived/` beside the data.
 | `recording.py` | PREREG §2, §4, §7: the inclusion gate, then per recording the two-fold block likelihood inside each held-out half, evidence, Δ, availability and status |
 | `group.py` | PREREG §7–§8: eligibility, BMS per window, runs on the physical grid, the total decision function with availability, common cohort, the participant bootstrap primitives |
 | `synthetic.py` | PREREG §9: the battery's generator laws on real events-table structure (behaviour only) and each law's exact latent ranking AUC per present trial |
-| `battery.py` | PREREG §9 (v5): templates, per-generator strength targets inside the population ceilings, calibration with its full search history, result namespaces with per-recording manifests, the 2,040-recording stage C, complete-cell verdicts; `--limits` / `--benchmark` / `--calibrate` / `--run` / `--summarize` |
-| `test_likelihood.py`, `test_recording.py`, `test_inclusion.py`, `test_group.py`, `test_battery.py` | synthetic inputs only: gradients, recovery, bounds, unavailable paths, legacy traps; exact decoder and likelihood isolation; Codex's inclusion counterexamples and sensitivity losses; decision truth tables incl. Codex's counterexamples; laws, latent AUC and population limits, determinism, summary diagnostics, verdict completeness, calibration history, result provenance |
+| `battery.py` | PREREG §9 (v6): templates, the 34-template calibration statistic with its completeness rule, the frozen reach and per-generator targets, the interior-bracket search with one refinement and an independent terminal check, strength-resolution flags, sealed reach/calibration stores, identity with runtime and BMS hash verified in the executing process, checksummed recording results, the 2,040-recording stage C, complete-cell verdicts; `--limits` / `--benchmark` / `--reach` / `--calibrate` / `--calibration-report` / `--run` / `--summarize` |
+| `stage_c_launch.py` | the only stage C entry: pinned threads, reviewed environment, verified identity, committed covered modules, a run receipt in the namespace |
+| `test_likelihood.py`, `test_recording.py`, `test_inclusion.py`, `test_group.py`, `test_battery.py` | synthetic inputs only: gradients, recovery, bounds, unavailable paths, legacy traps; exact decoder and likelihood isolation; Codex's inclusion counterexamples and sensitivity losses; decision truth tables incl. Codex's counterexamples; laws, latent AUC, G2 quadrature precision and latent-ranking references, determinism, summary diagnostics, the seed map, statistic completeness, the interior bracket, reach and search (seed phases, refinement, terminal check, bounded stopping), strength resolution, verdict completeness, sealed stores, result provenance and refusals, v5 preservation |
 | `verify_download.py` | local files vs the S3 manifest → `results/download_verification.csv` |
-| `PREREG_secondary_melcon.md` | DRAFT v5 of the planned analysis, for the owner's review |
+| `PREREG_secondary_melcon.md` | DRAFT v6 of the planned analysis, for the owner's review |
 | `results/s3_manifest_2026-09-12.txt` | the bucket listing at download time |
 
 ## Environment
@@ -107,9 +108,11 @@ cd workspace_demo/melcon_port
 ../../.venv/bin/python test_inclusion.py                  # the §2 gate on Codex's counterexamples, seconds
 ../../.venv/bin/python test_group.py                      # constructed results
 ../../.venv/bin/python test_battery.py                    # synthetic epochs, about a minute
-../../.venv/bin/python battery.py --limits                # population ceilings and strength targets, behaviour only
-../../.venv/bin/python battery.py --benchmark             # one synthetic recording through the full pipeline, timed
-../../.venv/bin/python battery.py --calibrate --generators G1,X1   # outcome-blind strength calibration (one process per generator set)
+../../.venv/bin/python battery.py --limits                # latent-ranking references, behaviour only
+../../.venv/bin/python battery.py --benchmark             # one synthetic recording: generation, decoder alone, full pipeline
+../../.venv/bin/python battery.py --calibrate --generators G1,G2,G3   # outcome-blind reach then calibration (one process per generator set, one worker first)
+../../.venv/bin/python battery.py --calibration-report    # reach, calibration table and strength-resolution flags
+../../.venv/bin/python stage_c_launch.py --n-jobs 2       # stage C, only after the calibration record is assessed
 ```
 
 ## D-list — every deviation from, and choice beyond, the sergent_port pipeline

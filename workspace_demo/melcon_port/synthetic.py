@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Synthetic epoched recordings for the development battery — PREREG_secondary_melcon.md §9, DRAFT v4 (Codex,
-continuation review 3, V3.5). No EEG is read: a recording's structure (trial order, blocks, catch trials,
+"""Synthetic epoched recordings for the development battery — PREREG_secondary_melcon.md §9, DRAFT v6 (laws unchanged
+since v4, Codex continuation review 3, V3.5; v6 corrects the G2 latent-ranking integration, Codex continuation review 5
+§1). No EEG is read: a recording's structure (trial order, blocks, catch trials,
 hemifields, contrasts) is taken from a real events table (results/trials_all.csv, behaviour only); every sample is
 generated. The output has the shape and fields preprocess.preprocess_raw returns, so decoder.py and recording.py run
 on it unchanged. The continuous preprocessing and QC are checked separately on artificial raw recordings
@@ -26,6 +27,7 @@ epochs of preprocess.py are. p and M are fixed by (SEED, 101); a recording's dra
 """
 from __future__ import annotations
 
+import functools
 import os
 
 import numpy as np
@@ -48,9 +50,12 @@ ENV_CENTER, ENV_SD = 0.45, 0.12
 N_SOURCES, AR_PHI, SENSOR_SD, EOG_SD = 16, 0.9, 0.5, 1.0
 SKEW_SHAPE = 2.0
 
+G2_GRID_STEP, G2_GRID_SPAN = 0.002, 10.0
+
 SPEC = dict(seed=SEED, generators=GENERATORS, dose_slope=DOSE_SLOPE, hemi_shift=HEMI_SHIFT, drift_per_block=DRIFT_PER_BLOCK,
             envelope=(ENV_CENTER, ENV_SD), n_sources=N_SOURCES, ar_phi=AR_PHI, sensor_sd=SENSOR_SD, eog_sd=EOG_SD,
-            skew_shape=SKEW_SHAPE, fixed_pattern_seed=(SEED, 101))
+            skew_shape=SKEW_SHAPE, fixed_pattern_seed=(SEED, 101),
+            g2_latent_auc=dict(step=G2_GRID_STEP, span=G2_GRID_SPAN, cdf="cumulative trapezoid"))
 
 
 def fixed_pattern_and_mixing():
@@ -61,10 +66,16 @@ def fixed_pattern_and_mixing():
     return p, M
 
 
+@functools.lru_cache(maxsize=1)
+def events_table() -> pd.DataFrame:
+    """results/trials_all.csv, read once per process (its SHA-256 is part of the battery identity, re-verified on disk)."""
+    return pd.read_csv(TRIALS_CSV)
+
+
 def template(subject: int, task: str) -> pd.DataFrame:
     """A recording's trial structure from its events table (behaviour only); present trials with a non-positive
     contrast are excluded as in PREREG §2."""
-    df = pd.read_csv(TRIALS_CSV)
+    df = events_table()
     t = df[(df.subject == subject) & (df.task == task)].sort_values("onset_pd").reset_index(drop=True)
     t = t[~(t.present & ~(t.contrast > 0))].reset_index(drop=True)
     return t[["subject", "task", "trial", "block", "catch", "present", "side", "contrast"]].copy()
@@ -100,8 +111,10 @@ def present_latent_auc(generator: str, L: np.ndarray, right: np.ndarray) -> np.n
     Exact for G1, G3, X1 and X2:
       G1  Phi((2L + 0.3h) / sqrt 2)          G3  Phi((2L + 0.3h) / sqrt(1 + (1 + L)^2))
       X   (1 - L) Phi(0.3h / sqrt 2) + L Phi((d + 0.3h) / sqrt 2),  d = 2 (X1), 0.8 (X2)
-    G2 by the distribution of the difference of two independent standardized skew-normals, obtained by convolution on a
-    grid of step 0.002 SD over +-10 SD (discretization error below 1e-5)."""
+    G2 by the distribution of the difference of two independent standardized skew-normals: its density by convolution on a
+    grid of step 0.002 SD over +-10 SD, its CDF by the cumulative trapezoid rule and linear interpolation (v6). v5 took a
+    plain cumulative sum, which integrates a full last cell and overstated the first-eight-template limit by 0.000196
+    (Codex, continuation review 5 §1); the trapezoid's agreement with adaptive quadrature is measured in test_battery.py."""
     L = np.asarray(L, dtype=float)
     shift = HEMI_SHIFT * np.asarray(right, dtype=float)
     if generator == "G1":
@@ -115,12 +128,12 @@ def present_latent_auc(generator: str, L: np.ndarray, right: np.ndarray) -> np.n
         a = SKEW_SHAPE
         dlt = a / np.sqrt(1 + a * a)
         mean, sd = dlt * np.sqrt(2 / np.pi), np.sqrt(1 - 2 * dlt * dlt / np.pi)
-        h = 0.002
-        e = np.arange(-10.0, 10.0 + h / 2, h)
+        h = G2_GRID_STEP
+        e = np.arange(-G2_GRID_SPAN, G2_GRID_SPAN + h / 2, h)
         f = sd * skewnorm.pdf(mean + sd * e, a)                       # density of the standardized noise
         pdf_d = np.convolve(f, f[::-1]) * h                           # D = e_catch - e_present
         grid_d = 2.0 * e[0] + h * np.arange(pdf_d.size)
-        cdf_d = np.cumsum(pdf_d) * h
+        cdf_d = np.concatenate(([0.0], np.cumsum(0.5 * (pdf_d[1:] + pdf_d[:-1])) * h))
         return np.interp(2.0 * L + shift, grid_d, cdf_d)
     raise ValueError(f"unknown generator {generator!r}")
 
