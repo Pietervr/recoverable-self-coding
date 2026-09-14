@@ -96,3 +96,12 @@ With the eight cold starts at the outer size: M3H cold + 16 at 0.50 = 953 s; M2H
 2,040 s for the pair, about 4.65 times today's 438.4 s, against about 3,950 s for cold + 64 at 0.25 on both. The ranking
 of the recipes is unchanged. The primary PC files are being copied to `reviews/pc_audit_2026-09-14/` for the evidence
 review.
+
+## Second correction (Codex, 14 Sept 12:26 PDT, accepted; checked against the delivered `prefix_scoring.md`)
+
+M2S is not a negligible-cost member: 7.93 s per start at the outer size and 5.52 s at the inner size (M3H 39.69 / 25.74,
+M2H 15.09 / 10.02; every other member at most 0.31 s). "All others < 0.35 s" in the table above and "the cheap members
+(M3, M3L, M3V, M2S, M2B …) … whose cost is negligible" in proposal 1 are wrong for M2S: the union recipe (+ 64 at 0.25
+and + 16 at 0.50) would cost about 634 s of added starts per outer M2S fit, for a member that misses at 0.000 (outer) and
+0.010 (inner). M2S's recipe is therefore a cost question in its own right. Codex also notes that archived theta values
+are rounded to six decimal places; the per-start archive has been requested for direct verification of prefix selection.
