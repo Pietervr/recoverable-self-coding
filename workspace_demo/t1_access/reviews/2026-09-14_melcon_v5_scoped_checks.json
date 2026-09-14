@@ -1,0 +1,231 @@
+{
+  "scope": "Scoped v5 arithmetic and temporary contract fixtures; no model fits or stage C.",
+  "thread_environment": {
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "VECLIB_MAXIMUM_THREADS": "1",
+    "BLIS_NUM_THREADS": "1",
+    "NUMEXPR_NUM_THREADS": "1",
+    "NPROC": "1"
+  },
+  "source_sha256": {
+    "synthetic.py": "9c6ed8b103bb57f59c29ca644414f98c21ce67e6383e95cf9b6fb53033d96216",
+    "battery.py": "cd3a87b78493dd64f840c329d3ec48113d8bcb310ce84ab4072e1ac59a2f76ed",
+    "decoder.py": "b3a771b659dbdce9590321ffb484d372f184752e70a7cb7cdbc50d62d17336b8",
+    "likelihood.py": "a142dd8cef9dc65ca6880192a400b06547ce7af8ec24a27f246ef04a8dbb2b2c",
+    "recording.py": "d471837a489a7dfc67b44092dd1b2d130e91c8cc40e5546e0d87ee55703f2ae8",
+    "group.py": "7daeae94b25c0f12b463dd21f1c6614ac57135c7005bee6178dd1e633068ecfa",
+    "inclusion.py": "3be370b2c7cc14bd3fa0eb7d6c5ffc896dc54503f0db97bce60d9807b6db6aac",
+    "test_battery.py": "717d022cb07227860414f86b7e07182069d7480f76615ec3c1cd635fd1312fb1",
+    "test_inclusion.py": "217b33dc22ea5556559c64423d3077e8a8cfdfe2f8510746793587724d744431",
+    "PREREG_secondary_melcon.md": "b32d4ce4ce1768d218f38917e644c0f18dbb0c7c886d6ab9ce5980103cb48846",
+    "results/trials_all.csv": "5d133bdfd81291a4ee9a80c2b2b8a8010bfac33c3b4d94e14feb4e0fb98f5ec7"
+  },
+  "existing_scoped_tests": {
+    "passed": true,
+    "stdout": "240_present: excluded: fewer than 250 present trials (240)\n24_catch: excluded: fewer than 25 catch trials (24)\n2_catch_block1: excluded: block 1: fewer than 3 catch trials (2)\nnegative_contrast_present: ok\npreprocessor_excluded: excluded: preprocessing: 13 bad channels in block(s) [2]\nseveral rules at once: ['block 2: fewer than 3 catch trials (1)', 'block 2: fewer than 20 present trials in a hemifield (5 left, 50 right)']\nsensitivities: edge-trial and no-response losses are applied before the floors and can exclude a recording\nn_pass_section2 over the five cases = 1; a synthetic recording passes with every trial kept\ntest_inclusion: ALL OK\n",
+    "tests": [
+      "test_inclusion.main",
+      "test_battery.check_verdicts",
+      "test_battery.check_calibration_history",
+      "test_battery.check_provenance"
+    ]
+  },
+  "probabilities": {
+    "shifts": [
+      0.0,
+      0.1,
+      0.3,
+      0.4,
+      1.0,
+      1.3,
+      1.8,
+      2.3
+    ],
+    "production": [
+      0.500289408868485,
+      0.5292023303657515,
+      0.5863773753911323,
+      0.6143271654346926,
+      0.764821797484545,
+      0.8250421839561622,
+      0.9004780816607078,
+      0.9481375544674653
+    ],
+    "adaptive_quadrature": [
+      0.5000000000000001,
+      0.5289137407847766,
+      0.5860952158489535,
+      0.6140504971524445,
+      0.7646024922617839,
+      0.8248601986665747,
+      0.9003569459398402,
+      0.9480653903482426
+    ],
+    "quadrature_error_estimates": [
+      9.789383055655592e-13,
+      1.4408056960293727e-13,
+      2.8716574909770554e-13,
+      2.719472614890107e-13,
+      1.3985746833411942e-13,
+      9.905004727624313e-13,
+      9.098049333288392e-13,
+      9.129827175689216e-13
+    ],
+    "production_minus_reference": [
+      0.00028940886848494163,
+      0.0002885895809748851,
+      0.0002821595421788059,
+      0.0002766682822480382,
+      0.00021930522276114583,
+      0.00018198528958757176,
+      0.00012113572086758229,
+      7.216411922272847e-05
+    ],
+    "fine_grid_max_error_on_reference_nodes": 2.6411294262729257e-09,
+    "limits": {
+      "G1": {
+        "production_limit": 0.7805689429170719,
+        "targets": {
+          "weak": 0.640284471458536,
+          "strong": 0.7525120486253647
+        }
+      },
+      "G2": {
+        "production_limit": 0.7839291588328964,
+        "targets": {
+          "weak": 0.6419645794164481,
+          "strong": 0.7555362429496068
+        },
+        "fine_grid_limit": 0.7837336527984881,
+        "fine_grid_targets": {
+          "weak": 0.641866826399244,
+          "strong": 0.7553602875186393
+        }
+      },
+      "G3": {
+        "production_limit": 0.7270254486697635,
+        "targets": {
+          "weak": 0.6135127243348817,
+          "strong": 0.7043229038027872
+        }
+      },
+      "X1": {
+        "production_limit": 0.7438555563939795,
+        "targets": {
+          "weak": 0.6219277781969897,
+          "strong": 0.7194700007545816
+        }
+      },
+      "X2": {
+        "production_limit": 0.6475829768892323,
+        "targets": {
+          "weak": 0.5737914884446161,
+          "strong": 0.632824679200309
+        }
+      }
+    }
+  },
+  "summary_diagnostic": {
+    "fitted_minimum_gap": 0.10000000000000002,
+    "fitted_full_gap": 1.0,
+    "constructed_conditional_state_effect": 0.0,
+    "unadjusted_readout_separation": 0.14640750230154959,
+    "note": "Constructed input: high/low prevalence differs by block; within-block state effect is zero."
+  },
+  "cli_summary": {
+    "partial": {
+      "X1|weak|False": {
+        "outcomes": [
+          null,
+          null,
+          null
+        ],
+        "verdict": "incomplete"
+      },
+      "X1|weak|True": {
+        "outcomes": [
+          null,
+          null,
+          null
+        ],
+        "verdict": "incomplete"
+      },
+      "X1|strong|False": {
+        "outcomes": [
+          "two-state",
+          "two-state",
+          null
+        ],
+        "verdict": "incomplete"
+      },
+      "X1|strong|True": {
+        "outcomes": [
+          null,
+          null,
+          null
+        ],
+        "verdict": "incomplete"
+      }
+    },
+    "complete": {
+      "X1|weak|False": {
+        "outcomes": [
+          null,
+          null,
+          null
+        ],
+        "verdict": "incomplete"
+      },
+      "X1|weak|True": {
+        "outcomes": [
+          null,
+          null,
+          null
+        ],
+        "verdict": "incomplete"
+      },
+      "X1|strong|False": {
+        "outcomes": [
+          "two-state",
+          "two-state",
+          "two-state"
+        ],
+        "verdict": "pass"
+      },
+      "X1|strong|True": {
+        "outcomes": [
+          null,
+          null,
+          null
+        ],
+        "verdict": "incomplete"
+      }
+    },
+    "precedence": {
+      "('X1', 'strong', 0)": "incomplete",
+      "('X1', 'strong', 1)": "diagnostic: calibration not usable"
+    }
+  },
+  "provenance": {
+    "namespace": "v5-7fcb46729408",
+    "live_manifest_matches": true,
+    "bms_path": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/sergent_port/bms.py",
+    "bms_sha256": "6d48a893977e6c71380223f19e70d5fcd95f076eccfa0b8332aada1db1717611",
+    "bms_hash_change_changes_identity": false,
+    "manifest_matching_payload_is_not_schema_or_checksum_checked": true,
+    "runtime_versions": {
+      "python": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "sklearn": "1.9.1"
+    },
+    "numerical_versions_present_in_identity": false
+  },
+  "concurrent_calibration_store": {
+    "two_waiting_writers": true,
+    "both_entries_retained": true,
+    "duplicate_replacement_refused_by_existing_scoped_test": true
+  }
+}

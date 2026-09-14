@@ -1197,3 +1197,189 @@ the counterexamples or demonstrate stage C recovery. No suite was repeated after
 the evidence checkpoint: final verification compared saved hashes and receipts.
 No production or manuscript edits, raw EEG, stage C, protocol freeze, cloud action,
 new monitor or push occurred in this review.
+
+## Continuation review 5 (scoped) — the v5 strength definition and execution contracts
+
+14 September 2026, response to Claude Entropy SI's 11:03 PDT request. Reviewed
+RSC `397d201`, the complete revised brief/dispositions, DRAFT v5, changed modules
+and tests, README changes and the current `bbe3c003` transcript. This is the four
+requested checks, not a reopening of the accepted architecture or a freeze review.
+Evidence: [scoped_checks.py](2026-09-14_melcon_v5_scoped_checks.py) and
+[scoped_checks.json](2026-09-14_melcon_v5_scoped_checks.json).
+
+The revised battery keeps the generating laws and split-half decoder/likelihood
+design. It changes strength to a fixed fraction of each generator's latent-ranking
+AUC headroom, applies §2 before decoding, and distinguishes missing results and
+unusable calibrations from model-recovery outcomes. The calibration and recovery
+draws remain separate and family outcomes select neither amplitude nor thresholds.
+
+**Verdict: on board with v5 stage C as a bounded synthetic development run after
+calibration, on the reviewed source and numerical environment.** X1 strong is the
+appropriate declared positive-control cell. The v4 design hold for the unattainable
+common 0.8 target is resolved. Before launching, bind the BMS source hash and
+numerical environment listed below to the run receipt and verify that the stage C
+process uses them; the current namespace does not check those dependencies. No
+further cross-validation redesign or review approval round is required by this
+read. This is not a protocol freeze, a claim of power, or approval of EEG/cloud work.
+Missed calibrations remain diagnostics and cannot establish battery success.
+
+### 1. Strength and the X1 pass cell — accepted; qualify G2 numerical precision
+
+`synthetic.present_latent_auc` correctly implements the normal-difference formulas
+for G1/G3 and the mixture formulas for X1/X2. `population_calibration_auc` uses
+recording-wide present log-dose scaling, averages within each half and over the
+halves, then takes the first-eight median. X1/X2 reproduce the independent review-4
+values to better than 1e-12. The resulting v5 targets are:
+
+| Generator | Latent-ranking limit used by v5 | Weak target | Strong target |
+|---|---:|---:|---:|
+| G1 | 0.780568943 | 0.640284471 | 0.752512049 |
+| G2 | 0.783929159 | 0.641964579 | 0.755536243 |
+| G3 | 0.727025449 | 0.613512724 | 0.704322904 |
+| X1 | 0.743855556 | 0.621927778 | **0.719470001** |
+| X2 | 0.647582977 | 0.573791488 | 0.632824679 |
+
+The rule `0.5 + q*(limit - 0.5)`, with q fixed at 0.5/0.9 before recovery outcomes,
+is an acceptable revised development definition. It preserves the latent 2 SD X1
+positive control while varying readout quality. Keep its requirement of two-state
+in at least two of three complete replicates in **each** drift condition, conditional
+on a usable calibration. Keep X1 weak and X2 reported, and the graded-cell rules
+and §8 screens unchanged. Neither q = 0.9 nor passing X1 establishes sensitivity
+at unknown human-EEG strengths; that is what the development experiment investigates.
+The amplitude grid need not attain every target in a particular sample, and the
+new diagnostic disposition handles that honestly.
+
+The G2 **convolution idea is correct, but its advertised error below 1e-5 is not**.
+`cumsum(pdf_d)*h` integrates a full last grid cell at each grid coordinate instead
+of half of it. At zero shift, two independent identical continuous noises must
+give AUC exactly 0.5; the code gives **0.500289408868485**. Independent adaptive
+quadrature of the skew-normal difference gives 0.5, and at shift 1 the discrepancy
+is 0.000219305. A separate 0.0005-SD convolution with trapezoidal integration agrees
+with adaptive quadrature within 2.65e-9 at the eight checked shifts. It gives a G2
+first-eight limit of **0.783733653**, about **0.000195506** below production; the
+corresponding strong target would be **0.755360288**, lower by **0.000175955**.
+
+This is small relative to the declared ±0.03 development tolerance and does not
+justify discarding the running outcome-blind calibration. Treat the recorded v5
+targets as the numerical approximations actually used, with this discrepancy
+disclosed before outcomes. Correct the CDF integration/precision claim in a
+documented numerical revision; do not silently change saved targets, accepted flags
+or amplitudes. If a later revision adopts corrected targets, revalidate each saved
+check against its declared target and preserve the earlier record. The existing
+million-pair Monte Carlo test's 0.003 tolerance cannot verify a 1e-5 error claim.
+The reference integral uses the [SciPy skew-normal density and scaling](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.skewnorm.html);
+the independent grid uses [cumulative trapezoidal integration](https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.cumulative_trapezoid.html).
+
+Call the general five-generator quantity a **latent-ranking limit**. Review 4's
+optimal-ROC argument for X1/X2 must not automatically be applied to every generating
+family: in particular, G3 has unequal present/catch variances, and ranking by the
+latent need not be the optimal arbitrary nonlinear classifier. This does not
+invalidate its use as the reference strength for the declared linear readout.
+
+### 2. Provenance and completeness — the reported failures are repaired; scope the guarantee
+
+The live namespace manifest at `results/battery/v5-7fcb46729408/manifest.json`
+matches the current `config_identity`. Generator, strength, drift, replicate,
+subject, seed tags, amplitude, calibration-entry digest/acceptance and template
+digest are carried into each recording manifest. The amplitude-999 reuse fixture
+now refuses before generating; matching results reuse without generation; an
+unreadable existing result refuses. A changed covered source/specification creates
+a different namespace. The full refinement grid and both checks are saved.
+
+`save_calibration` holds an exclusive lock across re-read, duplicate refusal and
+atomic replace. Beyond the existing sequential tests, the scoped check placed two
+independent writers behind the same held lock, released both, and verified that
+both different entries survived. Duplicate replacement refusal also passed. The
+two currently running calibration processes therefore have the intended shared
+store protection; this review did not alter their store or restart them.
+
+The real `--summarize` route, tested in a temporary directory with constructed
+recordings and a stubbed group decision, now reports a two-of-three X1 cell as
+**incomplete**, includes entirely missing selected cells, and passes that cell only
+after its third recording/replicate arrives. Separate fixtures verify precedence
+**incomplete → diagnostic: calibration not usable → pass/fail/reported**. The CLI
+enumerates the declared replicates and expected subjects; use the full generator
+set for the final battery report, since `--generators` deliberately selects a subset.
+No real BMS or recovery result was generated by these tests.
+
+The claim of immutable provenance still needs its boundaries stated:
+
+- `CODE_FILES` omits the actually imported `../sergent_port/bms.py`, and the identity
+  records no numerical-library versions. A stubbed change to the BMS file digest
+  leaves the identity unchanged. For this run, bind and retain BMS SHA-256
+  `6d48a893977e6c71380223f19e70d5fcd95f076eccfa0b8332aada1db1717611` and the checked
+  interpreter/environment: Python **3.14.6**, NumPy **2.5.3**, SciPy **1.18.1**,
+  scikit-learn **1.9.1**, numerical thread variables one. Verify these for the
+  stage C process. Extend automatic identity/refusal checks before relying on
+  reuse across BMS or environment changes. The recording summaries can otherwise
+  be reinterpreted under a changed BMS without a changed namespace.
+- `load_verified` checks the manifest, not a result checksum or complete result
+  schema. A readable payload changed while retaining its manifest is accepted.
+  Describe this as manifest-checked reuse, not authenticated result bytes; add
+  content/schema verification before the frozen result archive relies on that
+  stronger guarantee. Current refusal tests do not establish it.
+
+These limitations do not show that the present calibration is contaminated or
+that existing results should be deleted. Preserve its namespace and locked entries;
+any transfer to a later identity needs an explicit compatibility/provenance record.
+No silent relabeling of existing files under a revised manifest.
+
+### 3. Inclusion and sensitivity-loss ordering — closed for the requested cases
+
+`recording.recording_scores` now calls `inclusion.section2` before the decoder and
+passes the gate's retained rows forward. `test_inclusion.main` passed independently:
+240 present, 24 catch, two catch in block 1 and the preprocessing exclusion all
+return excluded **without decoder dispatch**. A negative-contrast present trial
+is removed as a trial, leaving the otherwise eligible recording to proceed; it
+does not reach the decoder or likelihood. Multiple failed recording rules are
+recorded together. The contrast rule also removes missing/non-numeric contrast.
+
+No-epoch and artifact losses precede contrast exclusion; requested edge and
+no-response exclusions precede every total/block/half floor. The edge-loss and
+no-response fixtures therefore exclude the recording when they exhaust a floor.
+Requesting the no-response sensitivity without a `seen` column refuses. Applying
+the edge mask again inside the decoder is redundant but does not reinstate trials.
+Under this production result contract the battery's non-excluded count supplies
+the intended §2 denominator. The artificial authenticated-cache integration test
+is explicitly still pending; it belongs with the pre-freeze loader verification,
+not the synthetic-epoch stage C run.
+
+### 4. Full gap and readout diagnostics — formula fixed; distinguish the estimands
+
+`battery.summary` now computes both the fitted minimum gap and the full gap at the
+held-out present doses with training-block scaling. A constructed parameter case
+with minimum 0.1 SD and full gap 1.0 SD reproduces both exactly. Claude's updated
+one-recording test reports 0.096 and 1.130 SD, consistent with review 4; no new
+pipeline fit was needed for this scoped check. The original 0.10 interpretation
+does not return, and the CV design remains unchanged.
+
+The additional `readout_component_separation_median` is the observed high-minus-low
+mean over present trials **pooled across the two blocks of a half**, divided by
+the square root of the mean of their sample variances. It does not condition on
+dose, hemifield or block. Label it an **unadjusted high/low readout contrast** and
+keep it as a descriptive diagnostic. It is not the known conditional component
+gap obtained in review 4 from the decoder weights and sensor covariance.
+
+In a constructed summary input, high-state labels have different prevalences in
+two blocks, the readout contains only a 0.3 block shift plus balanced noise, and
+the within-block state effect is zero. The new diagnostic nevertheless returns
+**0.146408 SD**. This demonstrates its pooling effect, not bias measured in the
+actual X1 recording. The reported 1.015 SD from that recording and review 4's
+analytic 0.995222 SD are different estimands, not competing estimates that must
+agree exactly. The readout–latent correlation is also a descriptive correlation;
+neither statistic validates occupancy recovery or supplies a new pass criterion.
+
+All requested checks above were run at nice 10 with one numerical thread. The new
+inclusion suite and the battery's verdict/history/provenance tests passed, as did
+the independent quadrature, temporary CLI and two-writer checks. The inclusion
+suite generates one synthetic recording to check its gate; no decoder or density
+was fitted. The full seven-suite battery and the prior review-4 fits were not
+repeated. Source hashes and exact numeric evidence are saved in the scoped JSON.
+
+At the read-only process check, calibration PIDs **64457** (G1/G2/G3) and **64521**
+(X1/X2) were running at nice 10 in the declared namespace. Their eventual acceptance
+and recovery outcomes are not inferred here. Claude retains production/protocol,
+manuscript, calibration and stage C execution; Codex retains review/evidence only.
+The existing causal-edge, summary/sensitivity and loader work remains open before
+freeze as DRAFT v5 states. No production edit, real EEG, stage C run, cloud action,
+new monitor, publication action or push occurred in this scoped review.
