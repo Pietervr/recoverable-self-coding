@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
-"""One recording's model comparison — PREREG_secondary_melcon.md §4, §6–§7, DRAFT v4. Input: preprocessed epochs
+"""One recording's model comparison — PREREG_secondary_melcon.md §2, §4, §6–§7, DRAFT v5. Input: preprocessed epochs
 (preprocess.py) or synthetic ones (synthetic.py). Nothing here is run on ds006171 EEG before the freeze.
+
+First the label-free inclusion of §2 (inclusion.section2, Codex continuation review 4 §6): trial exclusions under the
+requested retention variant, then every recording, block and half floor and the preprocessor's exclusion; a recording
+failing any rule is 'excluded' before the decoder runs, and only its included trials reach the decoder.
 
 Inside each held-out half B = {b1, b2} the likelihood runs a two-fold block cross-validation on the projections of
 the one decoder fitted on the other half: train on b1 and score b2, and train on b2 and score b1. Across the two halves
@@ -9,8 +13,8 @@ available on all four folds; its evidence is the mean over the four held-out blo
 log-likelihood, and the held-out log-score difference per trial is Delta = (sum ll_twostate - sum ll_graded) / n over
 the four blocks' trials. Seeds: likelihood.fit tags (subject, task index, half index, fold index, window).
 
-Status: 'ok'; 'excluded: …' for a label-free inclusion rule of §2 (a decoder half short of catch trials); 'technical
-failure: …' for an exception anywhere in the decoder or the fits (§8 counts those separately).
+Status: 'ok'; 'excluded: …' for §2 (every failing rule, joined); 'technical failure: …' for an exception anywhere in the
+inclusion, the decoder or the fits (§8 counts those separately).
 """
 from __future__ import annotations
 
@@ -19,6 +23,7 @@ import traceback
 import numpy as np
 
 import decoder as DEC
+import inclusion as INC
 import likelihood as LK
 
 TASK_INDEX = {"nocue": 0, "informative": 1, "noninformative": 2}
@@ -26,11 +31,15 @@ WINDOWS = tuple(DEC.EARLY + DEC.MAIN)
 
 
 def recording_scores(rec: dict, subject: int, task: str, windows=WINDOWS, models=LK.PRIMARY, variant: str = "all_present",
-                     drop_edge: bool = False, causal: bool = False) -> dict:
+                     drop_edge: bool = False, causal: bool = False, exclude_no_response: bool = False) -> dict:
     try:
-        dec = DEC.split_half(rec, variant=variant, drop_edge=drop_edge, causal=causal)
+        gate = INC.section2(rec, drop_edge=drop_edge, exclude_no_response=exclude_no_response)
+        if not gate["passed"]:
+            return dict(status="excluded: " + "; ".join(gate["reasons"]), subject=subject, task=task,
+                        section2=INC.report(gate))
+        dec = DEC.split_half(INC.apply(rec, gate), variant=variant, drop_edge=drop_edge, causal=causal)
         if dec["status"] != "ok":
-            return dict(status=dec["status"], subject=subject, task=task)
+            return dict(status=dec["status"], subject=subject, task=task, section2=INC.report(gate))
         nW, nM = len(windows), len(models)
         held = np.zeros((nW, nM))
         avail = np.ones((nW, nM), dtype=bool)
@@ -64,7 +73,7 @@ def recording_scores(rec: dict, subject: int, task: str, windows=WINDOWS, models
         mi2, mi3 = models.index("graded"), models.index("twostate")
         delta = np.where(avail[:, mi2] & avail[:, mi3], (held[:, mi3] - held[:, mi2]) / np.maximum(n_trials, 1), np.nan)
         return dict(status="ok", subject=subject, task=task, windows=list(windows), models=list(models), evidence=evidence,
-                    available=avail, delta=delta, n_trials=n_trials, auc=auc,
+                    available=avail, delta=delta, n_trials=n_trials, auc=auc, section2=INC.report(gate),
                     reasons=[[sorted(r) for r in row] for row in reasons], folds=folds, decoder=dec)
     except Exception as e:                                        # §8: counted as a technical failure, never dropped
         return dict(status=f"technical failure: {type(e).__name__}: {e}", subject=subject, task=task,

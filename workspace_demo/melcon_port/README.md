@@ -73,16 +73,17 @@ go to `brain_data/melcon2024/derived/` beside the data.
 | `load.py` | `prepare_channels` (types, biosemi128 positions on the original names, rename); one subject × task → epochs `X (n_trials, 132, n_times)` (128 scalp + 4 EOG) + trial table; `--verify` compares epoch counts with the events tables and the Status channel with events.tsv (`results/load_verification.csv`); writes no cache |
 | `preprocess.py` | the analysis entry point (PREREG §3): block-local filters, channel QC, interpolation, average reference, epochs and trial rejection with a per-block QC report; `--cache` writes the authenticated cache (`read_cache` refuses a changed configuration or code, a failed checksum, a wrong channel-type boundary, or a legacy file) |
 | `test_preprocess.py` | artificial recordings only: positions through the rename, block isolation vs a recording-wide filter, flat / noisy / burst / EOG-only / common-mode cases, exclusion, cache refusals |
-| `test_causal.py` | the causal-processing sensitivity (`CONFIG_CAUSAL`, forward-only smoother): zero response before an impulse, measured delays, separate cache |
+| `test_causal.py` | the causal-processing sensitivity (`CONFIG_CAUSAL`, forward-only smoother): zero response before an impulse inside a segment, measured delays, separate cache (segment-start padding and the composite filter support are open before the freeze, PREREG §3, §5) |
 | `decoder.py` | PREREG §4–§5: split-half presence decoder per time sample, training-only z-score, 10 Hz smoother, 40 half-open 30 ms windows, held-out AUC per half |
-| `likelihood.py` | PREREG §6: null / graded / two-state / catch-occupancy densities with analytic gradients, bounds, floors, the start and retry recipe, the frozen legacy sensitivity |
-| `recording.py` | PREREG §4, §7: per recording, the two-fold block likelihood inside each held-out half, evidence, Δ, availability and status |
-| `group.py` | PREREG §7–§8: eligibility, BMS per window, runs on the physical grid, the total decision function with availability, common cohort, the participant bootstrap |
-| `synthetic.py` | PREREG §9: the battery's generator laws on real events-table structure (behaviour only) |
-| `battery.py` | PREREG §9: templates, strength calibration, the 2,040-recording stage C, verdicts; `--benchmark` / `--calibrate` / `--run` / `--summarize` |
-| `test_likelihood.py`, `test_recording.py`, `test_group.py`, `test_battery.py` | synthetic inputs only: gradients, recovery, bounds, unavailable paths, legacy traps; exact decoder and likelihood isolation; decision truth tables incl. Codex's counterexamples; laws, determinism, verdicts |
+| `likelihood.py` | PREREG §6: null / graded / two-state / catch-occupancy densities with analytic gradients, bounds, floors, the start and retry recipe, the frozen legacy sensitivity's fold primitive |
+| `inclusion.py` | PREREG §2: the label-free inclusion gate run before any decoding — trial exclusions under the retention variant, every recording / block / half floor and the preprocessor's exclusion, every failing rule recorded |
+| `recording.py` | PREREG §2, §4, §7: the inclusion gate, then per recording the two-fold block likelihood inside each held-out half, evidence, Δ, availability and status |
+| `group.py` | PREREG §7–§8: eligibility, BMS per window, runs on the physical grid, the total decision function with availability, common cohort, the participant bootstrap primitives |
+| `synthetic.py` | PREREG §9: the battery's generator laws on real events-table structure (behaviour only) and each law's exact latent ranking AUC per present trial |
+| `battery.py` | PREREG §9 (v5): templates, per-generator strength targets inside the population ceilings, calibration with its full search history, result namespaces with per-recording manifests, the 2,040-recording stage C, complete-cell verdicts; `--limits` / `--benchmark` / `--calibrate` / `--run` / `--summarize` |
+| `test_likelihood.py`, `test_recording.py`, `test_inclusion.py`, `test_group.py`, `test_battery.py` | synthetic inputs only: gradients, recovery, bounds, unavailable paths, legacy traps; exact decoder and likelihood isolation; Codex's inclusion counterexamples and sensitivity losses; decision truth tables incl. Codex's counterexamples; laws, latent AUC and population limits, determinism, summary diagnostics, verdict completeness, calibration history, result provenance |
 | `verify_download.py` | local files vs the S3 manifest → `results/download_verification.csv` |
-| `PREREG_secondary_melcon.md` | DRAFT pre-registration for the owner's review |
+| `PREREG_secondary_melcon.md` | DRAFT v5 of the planned analysis, for the owner's review |
 | `results/s3_manifest_2026-09-12.txt` | the bucket listing at download time |
 
 ## Environment
@@ -103,9 +104,12 @@ cd workspace_demo/melcon_port
 ../../.venv/bin/python test_causal.py                     # causal-processing sensitivity, artificial inputs
 ../../.venv/bin/python test_likelihood.py                 # synthetic numbers
 ../../.venv/bin/python test_recording.py                  # synthetic epochs, about a minute
+../../.venv/bin/python test_inclusion.py                  # the §2 gate on Codex's counterexamples, seconds
 ../../.venv/bin/python test_group.py                      # constructed results
 ../../.venv/bin/python test_battery.py                    # synthetic epochs, about a minute
+../../.venv/bin/python battery.py --limits                # population ceilings and strength targets, behaviour only
 ../../.venv/bin/python battery.py --benchmark             # one synthetic recording through the full pipeline, timed
+../../.venv/bin/python battery.py --calibrate --generators G1,X1   # outcome-blind strength calibration (one process per generator set)
 ```
 
 ## D-list — every deviation from, and choice beyond, the sergent_port pipeline

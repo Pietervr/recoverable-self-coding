@@ -1,11 +1,15 @@
-# DRAFT v4 — the planned secondary human analysis on Melcón et al. 2024 (OpenNeuro ds006171)
+# DRAFT v5 — the planned secondary human analysis on Melcón et al. 2024 (OpenNeuro ds006171)
 
-**Status: DRAFT v4 (2026-09-13), after Codex's three reads of v1–v3
-(`../t1_access/reviews/2026-09-13_cheap_cloud_runs_and_melcon_codex_record.md` §B, "Continuation review 2" and
-"Continuation review 3"). §2–§9 are revised on continuation review 3 (V3.1–V3.6) and implemented in the modules
-named in each section, each with its test on artificial or synthetic inputs; before the freeze remain the battery's
-stage C (§9), the both-tasks decoder sensitivity (§4), the report-conditioned description (§10), the all-recording
-loader verification (§3) and Codex's read of this draft.
+**Status: DRAFT v5 (2026-09-14), after Codex's four reads of v1–v4
+(`../t1_access/reviews/2026-09-13_cheap_cloud_runs_and_melcon_codex_record.md` §B and continuation reviews 2–4).
+Continuation review 4 (RSC 706ba25, evidence 6a79dcd) asked for a design change before stage C, and v5 makes it: a
+per-generator strength target inside each generating law's population ceiling, a label-free inclusion gate before any
+decoding, complete cells and immutable result provenance in the battery, the corrected component-separation diagnostic,
+the graded-spread wording and the sample counts (§2, §6, §9, §11), each implemented and tested on artificial or synthetic
+inputs. Before the freeze remain: the battery's stage C (§9); the causal-edge and composite filter-support corrections
+(§3, §5); the §7 summary assembly and output command with the two-model BMS and legacy sensitivity integrations (§6–§7);
+the both-tasks decoder sensitivity (§4); the report-conditioned description (§10); the all-recording loader verification
+(§3); and Codex's read of the result.
 Nothing has been run on EEG: no recording of ds006171 has been decoded, averaged, contrasted or plotted;
 every number quoted is from the behavioural events tables (`INVENTORY.md`), the BDF headers and synthetic
 checks. Metadata, behaviour and loader QC have been inspected. The implemented protocol, its executable
@@ -38,8 +42,7 @@ ds006171: 36 subjects, 104 subject × task recordings (missing on OpenNeuro: sub
 noninformative, sub-35 nocue, sub-36 noninformative). Per recording 400 trials in 4 blocks of 100: 360
 Gabor-present (90 per hemifield × orientation) and 40 catch trials (no Gabor), seen/unseen on every trial, an
 orientation question on ≈ 15 %. **Primary task: nocue** (35 subjects on OpenNeuro; 34 after the sub-36 exclusion
-below), no event before the Gabor. **Within-participant robustness task: informative** (35 subjects; 34 of them
-also in the nocue sample, the same people, not a second cohort), a 100 %-valid spatial cue 0.7–1.0 s before the
+below), no event before the Gabor. **Within-participant robustness task: informative** (35 subjects; 33 of them also in the included nocue sample, the same people, not a second cohort), a 100 %-valid spatial cue 0.7–1.0 s before the
 Gabor. **The noninformative task is excluded from the intensity analysis**: its contrast column does not behave as
 the staircase output of its own trial (INVENTORY §4) and there is no other trial-by-trial intensity measure; it
 enters only the exploratory report-conditioned description of §10.
@@ -61,7 +64,7 @@ randomised, confounding hemifield, orientation, catch status and position with b
 recordings are randomised, longest run of one stimulus code at most 8 trials). These are transparent provisional
 rules, not power guarantees, and they are not relaxed after model preferences are seen. Subjects contribute a
 recording per task independently. Exclusion and retention counts are reported by contrast quintile, hemifield,
-block, task and report.
+block, task and report. The rules are applied by one label-free entry point before any decoding (`inclusion.py`, `test_inclusion.py`; Codex, continuation review 4 §6): trial exclusions first under the requested retention variant, including the edge-trial and no-response sensitivities, then every recording, block and half floor and the preprocessor's exclusion, each failing rule recorded; a recording failing any rule is excluded — never a technical failure or an unavailable fold — and the recordings that pass are §8's denominator.
 
 ## 3. Preprocessing (fixed; implemented in `preprocess.py` and checked on artificial recordings; no EEG outcome examined)
 
@@ -85,7 +88,7 @@ are below 9.75 s), so a recording-wide filter carries one block's samples into a
 continuation review 3, V3.1). In the artificial check a 30 µV step placed after the cut moves the previous
 block's last epoch by up to 10.7 µV under recording-wide filtering and leaves it bit-identical under block-local
 filtering. Segment edges are padded by MNE's `reflect_limited`; a trial whose epoch lies within 4.125 s of a
-segment edge is flagged `edge_trial`, and a sensitivity excludes those trials.
+segment edge is flagged `edge_trial`, and a sensitivity excludes those trials. The 4.125 s is the high-pass's half-support; the composite high-pass → notch → low-pass response has a small tail beyond it (1.5e-6 of an impulse; Codex, continuation review 4 §5), so before the freeze the edge sensitivity is defined on the combined support or the padding influence is bounded, and until then it is not described as covering the whole chain.
 
 **Steps inside a segment.** (i) High-pass 0.4 Hz, notch 50 Hz and an **anti-alias low-pass at 200 Hz** on the
 scalp and EOG channels (FIR, firwin, Hamming window, zero phase, automatic lengths and transition bands, as MNE
@@ -199,12 +202,7 @@ smoother forward only (`scipy.signal.sosfilt`) from zero initial conditions at t
 200 ms before the first window; (iii) epochs, windows, decoder and likelihood unchanged; (iv) **no delay
 compensation**: every causal filter delays, so under this variant an effect can appear later than under
 zero-phase processing and never earlier, and a statement that activity precedes the question display is made only
-if the effect is present under the causal variant before +300 ms. Checked on artificial inputs
-(`test_causal.py`): the causal filters' and smoother's responses are zero before an impulse (at most 5e-17 of the
-impulse, floating-point residue), while the zero-phase ones spread up to 0.31 of it backwards; the causal filter
-chain peaks 3.9 ms after an impulse at 1024 Hz and the forward-only smoother 139 ms after it, so the causal variant
-delays activity by about 0.14 s and its "before +300 ms" reading is conservative; the filter lengths at each native
-rate are reported by `preprocess.filter_support`. Adjacent smoothed windows are strongly dependent; three consecutive windows is a
+if the effect is present under the causal variant before +300 ms. Checked on artificial inputs (`test_causal.py`) for an impulse 20 s inside a segment: the causal filters' and smoother's responses are zero before it (at most 5e-17 of the impulse, floating-point residue), while the zero-phase ones spread up to 0.31 of it backwards; the causal filter chain peaks 3.9 ms after that impulse at 1024 Hz and the forward-only smoother 139 ms after it — delays of the tested impulses, not of every signal, and no proof that onset inference is conservative; the filter lengths at each native rate are reported by `preprocess.filter_support`. **Open before the freeze (Codex, continuation review 4 §5):** `CONFIG_CAUSAL` still pads segment edges with `reflect_limited`, which uses future samples, so an impulse 2 s from a segment start leaves 6.9e-4 of itself earlier; the causal padding or initialization and a warm-up exclusion near segment starts are specified and tested there, and the causal preprocessing configuration is bound to the decoder's causal smoother, before any statement about activity preceding the question relies on this variant. The claim is also conditional on the declared QC and trial selection. Adjacent smoothed windows are strongly dependent; three consecutive windows is a
 persistence convention, not three independent confirmations.
 
 ## 6. Models — the densities, exactly (implemented in `likelihood.py`)
@@ -217,10 +215,7 @@ Gabor in the right hemifield and 0 otherwise, and lg(z) = 1/(1 + e^{−z}):
 **Graded (2B'):** y ~ N(a0 + a1 L + β h, exp(s0 + r L)²), L = lg(k (x − x0)). The intercept a0 is the low-dose
 asymptote, a1 the range, x0 the threshold, k the slope; the log-SD moves with the same logistic as the mean and
 changes by r across the dose range, |r| ≤ ln 10. **Catch density:** the dose-absent limit L = 0, y ~ N(a0,
-exp(s0)²), with no extra parameter. DRAFT v3 wrote σ = exp(s0 + s1(μ − a0)) with s1 ∈ [−2, 2]/S and a1 ≤ 10S, whose
-exponent could span ±20 (Codex, V3.3); the two coincide whenever a1 > 0 (r = s1·a1) with the range now bounded,
-and at a1 = 0 the new form lets the spread move without a mean change — still one state, a slightly wider graded
-family, which is conservative against a false two-state call.
+exp(s0)²), with no extra parameter. DRAFT v3 wrote σ = exp(s0 + s1(μ − a0)) with s1 ∈ [−2, 2]/S and a1 ≤ 10S, whose exponent could span ±20 (Codex, V3.3). For a1 > 0 the two formulas coincide under r = s1·a1, but the bounded families differ and neither contains the other everywhere; at a1 = 0 the new form lets the spread move without a mean change, which is still one conditional normal state. Under the bounds below the graded SD spans 0.005S to 50S globally, and within one fit its asymptotic ratio is at most ten (Codex, continuation review 4 §2). Allowing spread at zero mean range avoids forcing variance changes into the mixture; that is a motivation the battery examines, not a guarantee that held-out family selection is conservative.
 
 **Two-state (3'):** y ~ (1 − A) N(μ_L + β h, σ²) + A N(μ_H(x) + β h, σ²), A = lg(k_A (x − x0)),
 μ_H(x) = μ_L + exp(δ0) + exp(δ1) · lg(k_h (x − x0)), so that the high state sits above the low state at every
@@ -256,7 +251,7 @@ second seed; if still none, the model is **unavailable** for that fold and windo
 test trial must be finite, else unavailable. The number of converged starts within 0.5 nat of the kept solution is
 recorded.
 
-**Legacy/quantile sensitivity (frozen and implemented, `likelihood.LEGACY`, `legacy_fold_scores`).** The three
+**Legacy/quantile sensitivity (frozen; its fold primitive is implemented in `likelihood.LEGACY`, `legacy_fold_scores`, and its decoder, recording and group route is integrated before the freeze).** The three
 Sergent likelihoods with the two inherited traps repaired: levels from the quintile edges of the **training
 block's** present log contrast, applied to training and test trials alike (level = 1 + the number of edges below
 the trial's log contrast; outer bins open); catch = level 0 by its flag, with A = 0 and μ_high = μ_low on catch trials
@@ -273,8 +268,7 @@ recording and window, and the recording leaves that window's group comparison an
 Per recording and window, **evidence** for each model = mean over the four held-out blocks of the block's
 summed held-out log-likelihood (the inherited predictive convention, not a marginal likelihood). **Group
 comparison** per window with the `spm_BMS` port (`../sergent_port/bms.py`, 10⁶ Dirichlet samples seeded by the
-window): protected exceedance probabilities and BOR over the three models, and two-model (2B' vs 3') BMS as a
-sensitivity. The pxp is a descriptive convention: **1 − pxp is not a calibrated p-value**, the step-up correction
+window): protected exceedance probabilities and BOR over the three models, and two-model (2B' vs 3') BMS as a sensitivity (specified; its integration in `group.py` is completed before the freeze). The pxp is a descriptive convention: **1 − pxp is not a calibrated p-value**, the step-up correction
 across windows establishes no frequentist error control, and equal pxp thresholds here and in Sergent do not
 represent matched evidence or power (fold-summed evidence scales with retained trials).
 
@@ -291,7 +285,7 @@ the median over recordings with an interval from the same resampling scheme (see
 3'L is summarized per recording as the median of its fold estimates over the main-interval windows, and at group
 level as the median over recordings with an interval (seed + 2), over all recordings and, as a sensitivity, over
 those not weakly identified. These intervals describe summaries over already-fitted recordings; they are not a
-refitting bootstrap of the decoder and the fits. Δ is the quantity that corresponds to the model-side statistic;
+refitting bootstrap of the decoder and the fits. The bootstrap primitives and the Δ estimators are implemented (`group.bootstrap_mean`, `bootstrap_median`, `bootstrap_tasks`); the AUC and catch-occupancy assemblies, the not-weakly-identified subset and the command that saves these products are completed before the freeze. Δ is the quantity that corresponds to the model-side statistic;
 the two inferential procedures are not the same.
 
 ## 8. Outcome rule — a total decision function (implemented in `group.decide`; truth tables in `test_group.py`)
@@ -328,7 +322,7 @@ disagreement is reported, neither changes the nocue outcome.
 **Stage A** — the continuous preprocessing and QC on artificial raw recordings (`test_preprocess.py`: positions,
 block isolation against a recording-wide filter, flat / noisy / burst / EOG-only / common-mode cases, exclusion,
 cache refusals) and the causal variant (`test_causal.py`). **Stage B** — the likelihood recipe (`test_likelihood.py`),
-the decoder and recording isolation (`test_recording.py`) and the decision function and bootstrap (`test_group.py`).
+the decoder and recording isolation (`test_recording.py`), the inclusion gate (`test_inclusion.py`) and the decision function and bootstrap (`test_group.py`).
 **Stage C** — the complete §4–§8 pipeline on synthetic epochs, as follows.
 
 *Templates.* The 34 nocue recordings that pass §2 at the events-table level (sub-35 nocue is not on OpenNeuro and
@@ -345,29 +339,22 @@ M a fixed 128 × 16 mixing matrix (entries N(0, 1/16)) of 16 unit-variance AR(1)
 n white; four EOG channels of white noise; the epoch grid −0.5 … +1.0 s at 512 Hz; baseline correction over −0.5 … 0 s.
 p and M are fixed by the seed (20260913, 101); a recording's draws by (1, generator, strength, drift, replicate, subject).
 
-*Decoder strength, calibrated independently of every family outcome.* For each generator and target AUC ∈ {0.6,
-0.8} the amplitude is read from a calibration draw of the first 8 templates without drift: the calibration statistic
-(the median over recordings of the mean held-out AUC over both halves and the ten main-interval windows) is computed
-on the amplitude grid 0, 0.2, 0.4, 0.7, 1.0, 1.5, 2.2, 3.2 and interpolated linearly to the target; the amplitude is
-accepted if a fresh check draw lands within ±0.03 of the target, otherwise a five-point grid spanning ±25 % around it
-is added once and the check repeated; a second miss is reported and the cells run at the last amplitude, flagged.
+*Decoder strength, per generator, calibrated independently of every family outcome (v5; Codex, continuation review 4 §5).* DRAFT v4's common targets, held-out AUC 0.6 and 0.8, are withdrawn. The calibration statistic — the median over recordings of the mean held-out AUC over both halves and the ten main-interval windows — has a population ceiling set by the generating law, because a graded law's low-dose present trials and a mixture's low-state present trials overlap the catch distribution whatever the amplitude. Computed exactly from each present trial's latent ranking AUC (`synthetic.present_latent_auc`, behaviour only) on the first eight templates without drift, the ceilings are G1 0.781, G2 0.784, G3 0.727, X1 0.744 and X2 0.648 (X1 and X2 equal Codex's independent calculation to 1e-9, `test_battery.py`), so 0.8 was unattainable for every generator. For a mixture whose low state matches catch the ceiling stays near 0.5 + 0.5 × the mean occupancy whatever the separation, so a larger X1 separation would not have restored that target. Each generator's target is instead 0.5 + q (ceiling − 0.5): **weak** q = 0.5 and **strong** q = 0.9 of its own headroom. The amplitude is read from a calibration draw of the first 8 templates without drift on the grid 0, 0.2, 0.4, 0.7, 1.0, 1.5, 2.2, 3.2, 4.6, 6.4 and interpolated linearly to the target; it is accepted if a fresh check draw lands within ±0.03 of the target (a declared development tolerance, not a precision guarantee), otherwise five points at 0.75–1.25 times the amplitude are added once and the check is repeated. The complete search history — grid, refinement points and both checks — is saved. A calibration that misses twice is **not usable**: its cells run as diagnostics, identified as such in every result and verdict, and neither pass, fail nor drive a revision. Equal presence AUC across generators is not equal mixture identifiability, so the conditional readout separation of the generating high and low present trials and the readout–latent correlation are reported beside every cell.
 
-*Cells.* 5 generators × 2 strengths × 2 drift conditions × 3 replicates = 60 replicates × 34 recordings = 2,040
+*Result provenance and completeness.* A configuration identity — the battery version, the digests of every pipeline module, every module's specification, the strength definition, the calibration constants and the events table's digest — names the result namespace. Every recording result carries its manifest (identity, generator, strength, drift, replicate, subject, seeds, amplitude, calibration digest and usability, template digest); an existing result whose manifest differs, or that cannot be read, is refused, so a revision writes a new namespace beside the retained old one. A cell is judged only when every replicate has every recording; otherwise it is **incomplete**, which is distinct from a failure.
+
+*Cells.* 5 generators × 2 strengths (weak, strong) × 2 drift conditions × 3 replicates = 60 replicates × 34 recordings = 2,040
 synthetic recordings, fitted on the twenty windows of the two intervals.
 
 *Pass criteria* (on the main interval): under **G1, G2, G3**, in every strength × drift cell, at least 2 of the 3
 replicates end in a substantive outcome (two-state, graded, inconclusive/mixed) **and** at most 1 ends two-state —
 technical failure, insufficient sensitivity and insufficient availability count against the first requirement and
-never pass a cell; under **X1** at AUC ≈ 0.8, both drift conditions, two-state in at least 2 of 3 replicates; **X2**
-has no pass criterion and reports its outcome counts, the median fitted component separation exp(δ0)/σ and the
-median absolute error of the fitted occupancy against the generating occupancy; stages A and B pass. A failure leads
+never pass a cell; under **X1** at the strong strength, both drift conditions, two-state in at least 2 of 3 replicates; X1 at the weak strength and **X2** (the weak-separation stress condition) have no pass criterion and report their outcome counts, the fitted minimum gap exp(δ0)/σ and full gap (exp(δ0) + exp(δ1)·lg(k_h (x − x0)))/σ at the held-out present doses (v4 reported only the minimum and called it the separation: 0.096 SD against a full gap of 1.130 SD on the test recording, Codex §4), the conditional readout separation and the median absolute error of the fitted occupancy against the generating occupancy; cells are judged only when complete, and an unusable calibration's cells are diagnostics; stages A and B pass. A failure leads
 to a registered revision of the protocol and a re-run of the battery; every result and revision is retained. These
 are development checks of the implementation, not calibrated family-error control: a few synthetic cells do not
-establish error rates, and the model-side T1 calibration does not validate this pipeline.
+establish error rates, and the model-side T1 calibration does not validate this pipeline. Single-block likelihood training keeps the accepted split-half design: its finite-sample mixture recovery at these readout strengths is not yet established, and X1 at the revised strength assesses it; the cross-validation is not redesigned on the 0.10 SD figure, which was the minimum gap (Codex, continuation review 4 §4).
 
-*Cost, measured.* One complete synthetic recording takes 19.2 s on one core of the Mac while it is shared with the
-running refit probe (`results/battery/benchmark.json`): stage C ≈ 11 core-hours and the calibration ≈ 2.3
-core-hours, run on two or three workers around the probe.
+*Cost, planning evidence.* One complete synthetic recording took 19.2 s of pipeline and 0.64 s of generation on one core of the Mac shared with the refit probe (`results/battery/benchmark.json`), projecting about 11.2 core-hours for the 2,040 recordings. The calibration is projected, not measured: 880 decoder calls at an assumed 11 s each (about 2.8 core-hours), up to 1,360 with every refinement (about 4.4); group BMS, common-cohort reruns and the sensitivities are outside these figures. It runs on two or three workers around the probe.
 
 ## 10. What is and is not claimed
 
@@ -407,15 +394,14 @@ rejection and ICA); an anti-alias low-pass before decimation and 512 Hz (vs 500)
 samples stepping by 15 at 500 Hz); a main interval of 300–600 ms and a separate early interval (vs a single window
 set) with a specified causal-processing sensitivity; a total outcome rule with eligibility, adjacency on the
 physical grid, availability and precedence; the held-out log-score difference and a participant bootstrap beside
-BMS; 34 nocue recordings (vs 20 participants), 34 participants shared across the two tasks. The estimator (decoder
+BMS; 34 nocue recordings (vs 20 participants), 33 participants shared across the two tasks. The estimator (decoder
 type and regularization), the 10 Hz smoother, the fold-mean evidence convention, the BMS port and the three-window
 persistence convention are unchanged.
 
 ## 12. Where it runs, and the manuscript's wording until a result exists
 
 The protocol, `preprocess.py`, the decoder, likelihood and group code and the battery run on the Mac now, on
-synthetic and artificial inputs only; stage C of the battery is measured at ≈ 11 core-hours plus ≈ 2.3 for the
-strength calibration and is staged around the running refit probe. The full EEG processing runs on the PC after its
+synthetic and artificial inputs only; stage C of the battery is projected at ≈ 11 core-hours plus ≈ 3–4 for the strength calibration (planning evidence, §9) and is staged around the running refit probe. The full EEG processing runs on the PC after its
 audit if a verified copy and a matching CPU environment can be prepared, otherwise on the Mac after the probe; one
 recording worker first, peak RAM and runtime measured, then the concurrency chosen; the Mac's raw-data master stays
 where it is. No GPU or cloud run is needed. Until an actual secondary result exists the manuscript says: the human

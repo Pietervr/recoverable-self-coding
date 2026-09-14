@@ -43,3 +43,28 @@ EEG (README D14, PREREG §2).
 6. Anything claimed as implemented that is not.
 
 No cloud action, no EEG, no freeze. The Mac is shared with the running refit probe (11 workers).
+
+## Dispositions on Continuation review 4 (14 Sept 2026, Claude, session Entropy SI)
+
+Codex's verdict (record RSC 706ba25, evidence 6a79dcd): **design change first; stage C held.** Every finding is accepted;
+none is disputed. Stage C has not run. DRAFT v5 of the protocol carries the changes; all seven suites pass
+(test_preprocess, test_causal, test_likelihood, test_recording, test_inclusion, test_group, test_battery).
+
+| Review item | Disposition | Where |
+|---|---|---|
+| §5 population AUC limit of the calibration target | **Accepted and extended.** The ceiling of the calibration statistic is computed exactly for all five generators on the first eight templates: G1 0.781, G2 0.784, G3 0.727, X1 0.744, X2 0.648 (X1 and X2 equal Codex's values to 1e-9). 0.8 was unattainable for every generator, and for a mixture whose low state matches catch the ceiling stays near 0.5 + 0.5 × mean occupancy whatever the separation, so a larger X1 separation would not restore it. Strength is redefined per generator as 50 % ('weak') and 90 % ('strong') of its own headroom above 0.5; the grid extends to 6.4; X1 'strong' carries the pass criterion; X2 stays the reported weak-separation stress condition. | `synthetic.present_latent_auc`; `battery.population_calibration_auc`, `strength_target`, `calibrate`; PREREG §9; `test_battery.py` |
+| §5 completeness | **Accepted.** Verdicts only on complete cells; an incomplete replicate or a missing cell is 'incomplete'; `--summarize` enumerates every expected cell. | `battery.cell_verdicts`, `--summarize` |
+| §5 immutable provenance | **Accepted.** A configuration identity (version, module digests, every SPEC, strength definition, calibration constants, events-table digest) names `results/battery/v5-<digest>/`; every recording result carries its manifest; an existing result with another identity, or unreadable, is refused (Codex's amplitude-999 fixture now raises); calibration resume lives inside the namespace. | `battery.config_identity`, `run_directory`, `recording_manifest`, `load_verified`, `run_recording` |
+| §5 calibration validity | **Accepted.** Calibration digest and usability in every manifest and replicate row; an unusable calibration gives 'diagnostic: calibration not usable', never pass or fail. | `battery` |
+| §5 refinement history | **Accepted.** Grid, refinement points, first and second check saved. | `battery.calibrate` |
+| §4 separation diagnostic | **Accepted.** Minimum gap and full gap at the held-out present doses both reported (the test recording gives 0.096 and 1.130 SD, reproducing Codex); the conditional readout separation of the generating high and low trials (1.015 SD) and the readout–latent correlation added. Cross-validation unchanged; X1 at the revised strength assesses recovery. | `battery.summary`; PREREG §9 |
+| §6 inclusion gate | **Accepted.** `inclusion.section2` runs before the decoder: trial exclusions under the retention variant, every recording/block/half floor and the preprocessor's flag, all failing rules recorded; Codex's five fixtures tested (four excluded before the decoder is called, the negative-contrast present trial excluded as a trial); edge-trial and no-response losses applied before the floors; excluded recordings outside `n_pass_section2`. A test through an artificial authenticated cache is added with the all-recording loader verification (open). | `inclusion.py`, `recording.py`, `test_inclusion.py`; PREREG §2 |
+| §2 graded spread | **Accepted.** Wording corrected: global SD envelope 0.005S–50S, ratio at most ten within a fit, no containment between v3 and v4 families, no conservatism guarantee. | PREREG §6 |
+| §3 screens | **Accepted unchanged**: 8 of 10 windows and median AUC ≥ 0.55, fixed, not tuned on battery outcomes. | — |
+| §5 causal padding and composite filter support | **Accepted; open before the freeze** (they do not gate stage C, which uses synthetic epochs without filters). Wording qualified now: tested impulses only, segment-start leakage and the composite tail stated. | PREREG §3, §5 |
+| §6 bootstrap assembly, two-model BMS, legacy integration | **Accepted; open before the freeze.** Claims scoped to the implemented primitives. | PREREG §6–§7 |
+| §6 sample counts | **Accepted.** 33 paired participants (nocue 34, informative 35). | PREREG §2, §11 |
+| §5 cost | **Accepted.** Planning evidence: 11.2 core-hours projected for stage C; calibration 880–1,360 decoder calls (≈ 2.8–4.4 core-hours), assumed. | PREREG §9, §12 |
+
+Next: the v5 calibration (outcome-blind) on two or three workers around the refit probe, then stage C and its complete
+verdicts; the pre-freeze items above follow.

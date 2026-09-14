@@ -31,7 +31,7 @@ import os
 import numpy as np
 import pandas as pd
 from scipy.special import expit
-from scipy.stats import skewnorm
+from scipy.stats import norm, skewnorm
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TRIALS_CSV = os.path.join(HERE, "results", "trials_all.csv")
@@ -91,6 +91,38 @@ def latent(generator: str, x: np.ndarray, catch: np.ndarray, rng: np.random.Gene
     else:
         raise ValueError(f"unknown generator {generator!r}")
     return z, L, high
+
+
+def present_latent_auc(generator: str, L: np.ndarray, right: np.ndarray) -> np.ndarray:
+    """Per present trial with occupancy L and displayed-right flag: the population probability that its no-drift latent z
+    exceeds that of an independent catch trial (catch follows the dose-absent law). This is the AUC of ranking by the
+    noiseless latent, which the synthetic readout approaches as the amplitude grows (Codex, continuation review 4, §5).
+    Exact for G1, G3, X1 and X2:
+      G1  Phi((2L + 0.3h) / sqrt 2)          G3  Phi((2L + 0.3h) / sqrt(1 + (1 + L)^2))
+      X   (1 - L) Phi(0.3h / sqrt 2) + L Phi((d + 0.3h) / sqrt 2),  d = 2 (X1), 0.8 (X2)
+    G2 by the distribution of the difference of two independent standardized skew-normals, obtained by convolution on a
+    grid of step 0.002 SD over +-10 SD (discretization error below 1e-5)."""
+    L = np.asarray(L, dtype=float)
+    shift = HEMI_SHIFT * np.asarray(right, dtype=float)
+    if generator == "G1":
+        return norm.cdf((2.0 * L + shift) / np.sqrt(2.0))
+    if generator == "G3":
+        return norm.cdf((2.0 * L + shift) / np.sqrt(1.0 + (1.0 + L) ** 2))
+    if generator in ("X1", "X2"):
+        d = 2.0 if generator == "X1" else 0.8
+        return (1.0 - L) * norm.cdf(shift / np.sqrt(2.0)) + L * norm.cdf((d + shift) / np.sqrt(2.0))
+    if generator == "G2":
+        a = SKEW_SHAPE
+        dlt = a / np.sqrt(1 + a * a)
+        mean, sd = dlt * np.sqrt(2 / np.pi), np.sqrt(1 - 2 * dlt * dlt / np.pi)
+        h = 0.002
+        e = np.arange(-10.0, 10.0 + h / 2, h)
+        f = sd * skewnorm.pdf(mean + sd * e, a)                       # density of the standardized noise
+        pdf_d = np.convolve(f, f[::-1]) * h                           # D = e_catch - e_present
+        grid_d = 2.0 * e[0] + h * np.arange(pdf_d.size)
+        cdf_d = np.cumsum(pdf_d) * h
+        return np.interp(2.0 * L + shift, grid_d, cdf_d)
+    raise ValueError(f"unknown generator {generator!r}")
 
 
 def generate(tmpl: pd.DataFrame, generator: str, amplitude: float, drift: bool, tags=()) -> dict:
