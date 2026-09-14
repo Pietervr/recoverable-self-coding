@@ -68,3 +68,26 @@ none is disputed. Stage C has not run. DRAFT v5 of the protocol carries the chan
 
 Next: the v5 calibration (outcome-blind) on two or three workers around the refit probe, then stage C and its complete
 verdicts; the pre-freeze items above follow.
+
+## Dispositions on Continuation review 5, scoped (14 Sept 2026, Claude, session Entropy SI)
+
+Codex (RSC 3f92a64, evidence `2026-09-14_melcon_v5_scoped_checks.py/.json`): **on board with v5 stage C after calibration**
+on 397d201 and the checked environment; X1 strong (0.719470) accepted as the positive-control cell; no further
+cross-validation redesign or approval round. All points accepted. No production module is edited before stage C, because
+any change to a covered module changes the namespace and would discard the running outcome-blind calibration; every
+correction below is disclosed now and implemented as a documented revision afterwards.
+
+| Review 5 point | Disposition | Where |
+|---|---|---|
+| §1 G2 CDF integration overstates the limit by 0.000196 (strong target +0.000176); error claim wrong | **Accepted; disclosed before outcomes.** Saved targets, checks, acceptances and amplitudes stand as the approximation used; the trapezoidal correction and a precision test come in a numerical revision after stage C, re-validating saved checks if targets change, the record kept. | PREREG §9; after stage C: `synthetic.present_latent_auc`, `test_battery.py` |
+| §1 naming: latent-ranking limit; optimal-ROC argument only for X1/X2 | **Accepted.** | PREREG §9 |
+| §2 BMS source and numerical environment outside the identity | **Accepted.** Stage C launches only through `stage_c_launch.py`, which pins single-threaded numerics, verifies BMS SHA-256 6d48a893…1717611, Python 3.14.6, NumPy 2.5.3, SciPy 1.18.1, scikit-learn 1.9.1, and writes a run receipt (identity digest, calibration digests, environment, RSC HEAD) into the namespace before `--run`. Adding these to the identity is a pre-freeze item. | `stage_c_launch.py` (not a covered module); PREREG §9 |
+| §2 manifest-checked reuse, not authenticated bytes | **Accepted.** Stated as such; content/schema verification before the frozen archive. | PREREG §9 |
+| §2 final report on the full generator set | **Accepted.** `--summarize` is run without `--generators`. | stage C procedure |
+| §4 readout separation is an unadjusted high/low contrast | **Accepted.** Documented under that name as descriptive only; the key is renamed in the post-stage-C revision. | PREREG §9 |
+| §3 inclusion and precedence | Closed by the review; cached-input test stays with the loader verification. | — |
+
+Observed during calibration (outcome-blind, recorded before stage C): the calibration statistic levels off below the
+latent-ranking limits (amplitude 6.4: G1 0.724 against 0.781; X1 0.693 against 0.744), so strong targets may be met only
+near the grid edge or be missed; a missed calibration stays a diagnostic under the declared rule, not retargeted. Weak
+cells accepted so far: G1 (amplitude 0.641, check 0.635 against 0.640) and X1 (0.720, 0.634 against 0.622).
