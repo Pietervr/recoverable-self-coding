@@ -18,6 +18,13 @@ the later summaries. They report PC commits `d0d194a` and `eeebaa9`; their scrip
 CSVs and per-start records are not present on this Mac at this checkpoint.
 Claude requested their transfer into `reviews/pc_audit_2026-09-14/` after Codex's
 11:23 PDT evidence request. Receipt, provenance and verification remain to check.
+The resumed Codex session verified its wrap receipt on 14 September. Claude's
+11:32 PDT transcript reports the package staged on the PC's iCloud Drive, with
+Mac sync/checksum/move assigned to Claude; the destination is still absent at
+the resumed check. No duplicate request or transfer watcher was started. The
+reported package omits the per-start archive and distinguishes fitting source
+`72c21a6` from reporting source `d0d194a`; their actual files and hashes remain
+unverified here. The review remains open and no final verdict has been sent.
 
 The procedure compares two families through nested concept cross-validation.
 Every member is fitted in every inner fold; inner held-out scores choose each
@@ -28,10 +35,11 @@ whole statistical procedure, including its expectation and resampling behaviour.
 ## 1. What the prefix evidence can establish
 
 Prefix scoring is an appropriate inexpensive way to compare *candidate search
-recipes on the archived simulated datasets*. The selected start must be chosen
-by converged finite training likelihood, exactly as `models._pick` specifies;
-held-out scores evaluate that training-selected solution. Choosing the start by
-its held-out score would answer a different question.
+recipes on the archived simulated datasets*. Match `models._pick`: prefer the
+best finite converged training likelihood; if none converges, retain the best
+finite run after the declared recovery chain and flag it. If none is finite,
+record the failure. Held-out scores evaluate that training-selected solution.
+Choosing the start by its held-out score would answer a different question.
 
 Including a candidate's own starts in the reference union is legitimate for
 measuring regret relative to that finite archive. It guarantees that a nested
