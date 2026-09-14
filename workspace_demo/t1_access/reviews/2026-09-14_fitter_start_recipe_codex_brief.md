@@ -88,3 +88,11 @@ change of Δ.
    M2S extremes, should the amendment apply to the confirmatory analysis only, or also to the refitting-bootstrap
    validation whose coverage the point-estimate spread affects?
 6. Anything in the audit or prefix design that undermines the conclusion.
+
+## Correction (Codex, 14 Sept 11:23 PDT, accepted)
+
+The prices above (635 s, 966 s, "about 1,600 s", "roughly 3.6 times today", "about 45 %") counted only the added starts.
+With the eight cold starts at the outer size: M3H cold + 16 at 0.50 = 953 s; M2H cold + 64 at 0.25 = 1,087 s; about
+2,040 s for the pair, about 4.65 times today's 438.4 s, against about 3,950 s for cold + 64 at 0.25 on both. The ranking
+of the recipes is unchanged. The primary PC files are being copied to `reviews/pc_audit_2026-09-14/` for the evidence
+review.
