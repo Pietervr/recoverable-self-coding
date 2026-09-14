@@ -1,0 +1,32 @@
+{
+  "format": 1,
+  "title": "Data and code for Testing Two-State Access in Brain and Language Model: Human EEG Reproduction, Simulation Audit, and a Proposed Model Assay",
+  "version": "1.0.0",
+  "resource_type": "dataset",
+  "creator": {
+    "name": "Pieter van Rooyen",
+    "affiliation": "Stellenbosch University",
+    "orcid": "https://orcid.org/0009-0005-7708-8236"
+  },
+  "version_doi": "10.5281/zenodo.22741885",
+  "git_tag": "entropy-access-arxiv-v1",
+  "source_url": "https://github.com/Pietervr/recoverable-self-coding/tree/entropy-access-arxiv-v1",
+  "licenses": [
+    {
+      "id": "CC-BY-4.0",
+      "scope": "New data tables, figure artwork and release documentation",
+      "url": "https://creativecommons.org/licenses/by/4.0/",
+      "notice": "LICENSE-DATA-CC-BY-4.0.txt"
+    },
+    {
+      "id": "MIT",
+      "scope": "Code, figure-generation scripts and preserved software documentation",
+      "notice": "LICENSE-MIT.txt"
+    }
+  ],
+  "upstream_rights": "Source-derived values retain their attribution; upstream CC0 material remains public domain. See README.txt and the preserved human-port README.",
+  "upstream_sources": [
+    "https://doi.org/10.1038/s41467-021-21393-z",
+    "https://osf.io/aw3t5/"
+  ]
+}

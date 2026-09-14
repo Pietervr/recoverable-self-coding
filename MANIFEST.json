@@ -489,9 +489,9 @@
       "source": "saved output or contemporaneous documentation"
     },
     "README.txt": {
-      "sha256": "e40ecccb7a2f254b0dfabce6fd3b2c8f541f4062976b9605ccdf758d173f8ff8",
-      "bytes": 4725,
-      "source": "R052 release preparation"
+      "sha256": "df1fb755f3290c1df206a2a507ebfdd010e12d0852aa4a9d61193907c48edf15",
+      "bytes": 5511,
+      "source": "R052 release documentation"
     },
     "replay_figures.py": {
       "sha256": "f28f5475e585c98ebdd41c8e59eed9f4995c41f1d97dbeeb78ae390a11f4d355",
@@ -507,6 +507,18 @@
       "sha256": "c9906a6498637ce25b64e5d64bec681eda7e1a2a8ba15922a5e48cf38c593348",
       "bytes": 1537,
       "source": "config_hash on exact archived code; no fit or simulation"
+    },
+    "LICENSE-DATA-CC-BY-4.0.txt": {
+      "sha256": "480c10ccac03b4a7b018b3adfec09f25b83364703452d808a723369ff6124a8d",
+      "bytes": 776,
+      "source": "R052 release documentation"
+    },
+    "RELEASE.json": {
+      "sha256": "7cdd16b9b0799edabcb74a80d6224a47e24f7bba02bb237ffafa0a270d72f9bb",
+      "bytes": 1230,
+      "source": "R052 release documentation"
     }
-  }
+  },
+  "version": "1.0.0",
+  "version_doi": "10.5281/zenodo.22741885"
 }

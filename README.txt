@@ -1,7 +1,19 @@
-Testing Two-State Access in Brain and Language Model
-Research snapshot for arXiv version 1, prepared 13 September 2026
+Data and code for Testing Two-State Access in Brain and Language Model:
+Human EEG Reproduction, Simulation Audit, and a Proposed Model Assay
+Research snapshot 1.0.0 for arXiv version 1
 Pieter van Rooyen, Stellenbosch University
 ORCID 0009-0005-7708-8236
+
+SNAPSHOT IDENTITY
+
+Version DOI: https://doi.org/10.5281/zenodo.22741885
+Git tag: entropy-access-arxiv-v1
+Source tree:
+https://github.com/Pietervr/recoverable-self-coding/tree/entropy-access-arxiv-v1
+
+Please cite version 1.0.0 and its version DOI for these exact files. The Zenodo
+landing page supplies the link to all versions as the study develops. This is
+a separate study snapshot from the proceedings archive.
 
 This snapshot contains the completed human EEG reproduction and the one-layer
 simulation audit reported in the article. It does not contain a confirmatory
@@ -74,13 +86,17 @@ https://doi.org/10.1038/s41467-021-21393-z
 Open EEG and authors' scripts: https://osf.io/aw3t5/ (CC0 as recorded by the port).
 The published comparison values derive from the article's Source Data under
 CC BY 4.0; attribution and the exact workbook link are in the port README.
-The RSC code is distributed under the included MIT licence. The original
-third-party licences and attribution continue to apply to source-derived data.
+Code, including the figure and replay scripts, and preserved software
+documentation retain the MIT licence in LICENSE-MIT.txt. The new data tables,
+figure artwork and release documentation are licensed under CC BY 4.0; see
+LICENSE-DATA-CC-BY-4.0.txt. Third-party rights and attribution remain as above;
+CC0 source material retains its public-domain status. The two licences apply
+to their respective material, rather than offering a choice for every file.
 
-RELEASE CANDIDATE
+RELEASE CONTENTS
 
-This is a local deposit candidate. The owner must choose the licence for the
-new data and figure material in the deposit metadata before publication.
-The stable Zenodo concept DOI identifies the continuing collection; the
-version DOI identifies this exact release. Neither identifier has yet been
-assigned to this candidate. The earlier proceedings DOI is a separate snapshot.
+RELEASE.json gives the citation and licence scope. MANIFEST.json records the
+provenance and checksums of the contents; SHA256SUMS covers those files and
+the manifest. The checksum list excludes itself. A repository commit cannot
+contain its own final hash: resolve the named tag to obtain that identifier.
+The manuscript and the Zenodo metadata identify the exact public commit.
