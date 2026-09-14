@@ -1,0 +1,512 @@
+{
+  "format": 1,
+  "release": "entropy-access-arxiv-v1",
+  "calibration_rows": 12000,
+  "gain_pairs": 12,
+  "human_producer_commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+  "files": {
+    "producers/calibration_52267ec/workspace_demo/t1_access/models.py": {
+      "sha256": "3bd1922afce16ccbefb72a43442d394c51022038b38d00e56edb936500a4e78c",
+      "bytes": 37329,
+      "repository": "recoverable-self-coding",
+      "commit": "52267ec1f9cd84fe02016770b083312a59a19194",
+      "path": "workspace_demo/t1_access/models.py"
+    },
+    "producers/calibration_52267ec/workspace_demo/t1_access/analyze.py": {
+      "sha256": "4876f543dd50b1cf20dfcad642923709b8a7893d19d6a1bbc2019dc09bb054a3",
+      "bytes": 20217,
+      "repository": "recoverable-self-coding",
+      "commit": "52267ec1f9cd84fe02016770b083312a59a19194",
+      "path": "workspace_demo/t1_access/analyze.py"
+    },
+    "producers/calibration_52267ec/workspace_demo/t1_access/simulate.py": {
+      "sha256": "395e200835abde5ce8bb167a7900eac1b3642851af2bc4ebc3222d6c28530456",
+      "bytes": 26182,
+      "repository": "recoverable-self-coding",
+      "commit": "52267ec1f9cd84fe02016770b083312a59a19194",
+      "path": "workspace_demo/t1_access/simulate.py"
+    },
+    "producers/calibration_52267ec/workspace_demo/t1_access/requirements.txt": {
+      "sha256": "a899faeca263b423740623bdcf1abbbe51870d53b662b5158bf9e5b3d4bfc484",
+      "bytes": 177,
+      "repository": "recoverable-self-coding",
+      "commit": "52267ec1f9cd84fe02016770b083312a59a19194",
+      "path": "workspace_demo/t1_access/requirements.txt"
+    },
+    "producers/calibration_52267ec/workspace_demo/sergent_port/bms.py": {
+      "sha256": "6d48a893977e6c71380223f19e70d5fcd95f076eccfa0b8332aada1db1717611",
+      "bytes": 5044,
+      "repository": "recoverable-self-coding",
+      "commit": "52267ec1f9cd84fe02016770b083312a59a19194",
+      "path": "workspace_demo/sergent_port/bms.py"
+    },
+    "producers/gain_9b277df/workspace_demo/t1_access/models.py": {
+      "sha256": "c037b5b96fcc730fe33c5d2cf89f4a1d71c437c21bd5a904d8f371dfb03bc3f5",
+      "bytes": 37670,
+      "repository": "recoverable-self-coding",
+      "commit": "9b277df59af7807d34f6e99cb718ab1b1734aec1",
+      "path": "workspace_demo/t1_access/models.py"
+    },
+    "producers/gain_9b277df/workspace_demo/t1_access/analyze.py": {
+      "sha256": "c49c8f744c1dae0cca59fdebe0c6f7134027d6555bb11eb69dcb1ed8c455d219",
+      "bytes": 38795,
+      "repository": "recoverable-self-coding",
+      "commit": "9b277df59af7807d34f6e99cb718ab1b1734aec1",
+      "path": "workspace_demo/t1_access/analyze.py"
+    },
+    "producers/gain_9b277df/workspace_demo/t1_access/simulate.py": {
+      "sha256": "02da5a156814b0ddc0ce93ee187ef7f725bdb373dc1e28986efcc5c91853c267",
+      "bytes": 64830,
+      "repository": "recoverable-self-coding",
+      "commit": "9b277df59af7807d34f6e99cb718ab1b1734aec1",
+      "path": "workspace_demo/t1_access/simulate.py"
+    },
+    "producers/gain_9b277df/workspace_demo/t1_access/requirements.txt": {
+      "sha256": "a899faeca263b423740623bdcf1abbbe51870d53b662b5158bf9e5b3d4bfc484",
+      "bytes": 177,
+      "repository": "recoverable-self-coding",
+      "commit": "9b277df59af7807d34f6e99cb718ab1b1734aec1",
+      "path": "workspace_demo/t1_access/requirements.txt"
+    },
+    "producers/gain_9b277df/workspace_demo/sergent_port/bms.py": {
+      "sha256": "6d48a893977e6c71380223f19e70d5fcd95f076eccfa0b8332aada1db1717611",
+      "bytes": 5044,
+      "repository": "recoverable-self-coding",
+      "commit": "9b277df59af7807d34f6e99cb718ab1b1734aec1",
+      "path": "workspace_demo/sergent_port/bms.py"
+    },
+    "workspace_demo/sergent_port/README.md": {
+      "sha256": "299ca05d599567364e83dabc0c14c98862ebb581f810696c4b5dd89ca4f64dc0",
+      "bytes": 21315,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/README.md"
+    },
+    "workspace_demo/sergent_port/RESULTS_sergent.md": {
+      "sha256": "c4f4c1777ca577ac334fd502641df25b844fcbff5d2960f59b02247538482e65",
+      "bytes": 27053,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/RESULTS_sergent.md"
+    },
+    "workspace_demo/sergent_port/bms.py": {
+      "sha256": "6d48a893977e6c71380223f19e70d5fcd95f076eccfa0b8332aada1db1717611",
+      "bytes": 5044,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/bms.py"
+    },
+    "workspace_demo/sergent_port/common.py": {
+      "sha256": "dcea928128f908c62b53e30e963fe1a8fae705cc18a1d3cb4d2303b725ea59c0",
+      "bytes": 3643,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/common.py"
+    },
+    "workspace_demo/sergent_port/decode.py": {
+      "sha256": "84c06ca59fc4695b0946d60c42f7147130fa3c3d54162beede93a992df890059",
+      "bytes": 7381,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/decode.py"
+    },
+    "workspace_demo/sergent_port/figures/fig_a_timecourse_active.csv": {
+      "sha256": "ca52623805c905e4f787635f1d8a53cdd1af63693ac7baab02bdf59a57d79f08",
+      "bytes": 511774,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/figures/fig_a_timecourse_active.csv"
+    },
+    "workspace_demo/sergent_port/figures/fig_a_timecourse_passive.csv": {
+      "sha256": "2e851d7a2d9974566800af3e47544bbbe02d4fa06efd1d0282f55464208b19e9",
+      "bytes": 607286,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/figures/fig_a_timecourse_passive.csv"
+    },
+    "workspace_demo/sergent_port/figures/fig_a_window_profiles_active.csv": {
+      "sha256": "45b6c39f8eb5a0c6dde74770eaa2152c346a8e2bf9b06dc9299e13e202c8c688",
+      "bytes": 4244,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/figures/fig_a_window_profiles_active.csv"
+    },
+    "workspace_demo/sergent_port/figures/fig_a_window_profiles_passive.csv": {
+      "sha256": "b78f7a04fdb0ddc7effcc1c81470ec1c01ac9e1cf56b56fb8c72a2e1a8033ec8",
+      "bytes": 5057,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/figures/fig_a_window_profiles_passive.csv"
+    },
+    "workspace_demo/sergent_port/figures/fig_b_model_comparison_active.csv": {
+      "sha256": "27d36d67e7b6607d7a672ef7b8739dbe85e11728f8193c8c1c90e1a7868d2739",
+      "bytes": 5920,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/figures/fig_b_model_comparison_active.csv"
+    },
+    "workspace_demo/sergent_port/figures/fig_b_model_comparison_active_lbfgs.csv": {
+      "sha256": "69edf89d1c27062ec3f81f9ed1e400fce13e33b404cfd17beb3e1849c1cddfb4",
+      "bytes": 5930,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/figures/fig_b_model_comparison_active_lbfgs.csv"
+    },
+    "workspace_demo/sergent_port/figures/fig_b_model_comparison_passive.csv": {
+      "sha256": "04fc80dc52b4e4004a6102bad4a6734a62153832bcf0fcb4680c1c9a91ac7f04",
+      "bytes": 5861,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/figures/fig_b_model_comparison_passive.csv"
+    },
+    "workspace_demo/sergent_port/figures/fig_b_model_comparison_passive_max6.csv": {
+      "sha256": "cd94fa6d503b8278a5ec8c2a6dd915d50511c383579369d1a29d1b509f7a93fb",
+      "bytes": 5828,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/figures/fig_b_model_comparison_passive_max6.csv"
+    },
+    "workspace_demo/sergent_port/figures/fig_b_pxp_published_vs_port_active.csv": {
+      "sha256": "59194dcc4148433a6d60c2ff44676de7e4ea1626c4e743ae1d4717c0a93664d1",
+      "bytes": 4133,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/figures/fig_b_pxp_published_vs_port_active.csv"
+    },
+    "workspace_demo/sergent_port/figures/fig_dist_example_S12_active.csv": {
+      "sha256": "2ef06c1684c7c1f09f69a5c0f3929846c3a396a1d71e8d33873ba38b1f69adb1",
+      "bytes": 7436,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/figures/fig_dist_example_S12_active.csv"
+    },
+    "workspace_demo/sergent_port/figures/fig_dist_example_S12_passive.csv": {
+      "sha256": "a1857862fb8530ad3a0eb44b6f04c959a0feb174b1bf7fc97e7c0f8724345007",
+      "bytes": 8796,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/figures/fig_dist_example_S12_passive.csv"
+    },
+    "workspace_demo/sergent_port/fit_models.py": {
+      "sha256": "f2d2a2a96783b83f605e7ced4b45bf757420eb8fc34957babed5ef288ea53c8d",
+      "bytes": 13546,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/fit_models.py"
+    },
+    "workspace_demo/sergent_port/make_figures.py": {
+      "sha256": "3a52d67b8fde6e0132304a6b4d56e5830da15b726c5163c1ec26ca6a3ace6a45",
+      "bytes": 21559,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/make_figures.py"
+    },
+    "workspace_demo/sergent_port/model_comparison.py": {
+      "sha256": "aedd866701693fb3a13f0e133242581d050d6dc67957f52049410e1b97216e04",
+      "bytes": 5904,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/model_comparison.py"
+    },
+    "workspace_demo/sergent_port/reconcile.py": {
+      "sha256": "412a5c6a5b93302195f5361ae9ffa06cb7b4c13d91dbcccfa0a91056ca7398fd",
+      "bytes": 11761,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/reconcile.py"
+    },
+    "workspace_demo/sergent_port/refit_diagnostic.py": {
+      "sha256": "86ccf9920e7a4733a1d612e9e41dd11a8b392813a58946a5fbeb43695313605f",
+      "bytes": 8207,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/refit_diagnostic.py"
+    },
+    "workspace_demo/sergent_port/results/behaviour_active.csv": {
+      "sha256": "d9a965e8bcbc5f29c661a993c037a0fa938d4be4fba3b1c7c1f0b8b97a1e6735",
+      "bytes": 4847,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/behaviour_active.csv"
+    },
+    "workspace_demo/sergent_port/results/behaviour_passive.csv": {
+      "sha256": "036a18b4c4a1c9ddbeda3b55b22c6e4ddaea79ec74e66426d2d1ef5de467cf0b",
+      "bytes": 5210,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/behaviour_passive.csv"
+    },
+    "workspace_demo/sergent_port/results/bms_active.csv": {
+      "sha256": "c7dee55a21161fd915832b21f4a0355e0172aeb01e2a43150ac0ec023b761398",
+      "bytes": 11955,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/bms_active.csv"
+    },
+    "workspace_demo/sergent_port/results/bms_active_lbfgs.csv": {
+      "sha256": "8cce66daeb4b6d1d663b8b24847f9eb832abf29782b3049658c1b6edc4c98177",
+      "bytes": 11964,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/bms_active_lbfgs.csv"
+    },
+    "workspace_demo/sergent_port/results/bms_passive.csv": {
+      "sha256": "cdbb26e6452104f50a0eb474f9a3eb38d7436235a6e9d4eda630ef4226551dec",
+      "bytes": 11397,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/bms_passive.csv"
+    },
+    "workspace_demo/sergent_port/results/bms_passive_max6.csv": {
+      "sha256": "d56cfed0aac52556d50bdb562455e61b87efeae6e1dc9a2851b605af5276c674",
+      "bytes": 11374,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/bms_passive_max6.csv"
+    },
+    "workspace_demo/sergent_port/results/bms_two_model_active.csv": {
+      "sha256": "cc31b9851bdff0813f07e050cd87fe50d4f500b8a380cc5f9fe9856946b4df0f",
+      "bytes": 2811,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/bms_two_model_active.csv"
+    },
+    "workspace_demo/sergent_port/results/bms_two_model_passive.csv": {
+      "sha256": "c85981e219420e3a12300c0268ee4ccf2be52849e54d4c01f7dc4c46da455985",
+      "bytes": 2822,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/bms_two_model_passive.csv"
+    },
+    "workspace_demo/sergent_port/results/c4_crossings.csv": {
+      "sha256": "1447dd8b5761f8465f87cc299fd99c7ced202f60633ffbfba018c40c915699f4",
+      "bytes": 2136,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/c4_crossings.csv"
+    },
+    "workspace_demo/sergent_port/results/decoder_fold_block_overlap.csv": {
+      "sha256": "ae9f0e1d3486c62cef3df2c868e2d9834f4ef22fe02d72affac2752ae9cd06d5",
+      "bytes": 686,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/decoder_fold_block_overlap.csv"
+    },
+    "workspace_demo/sergent_port/results/evidence_size.csv": {
+      "sha256": "f2a8716b24e3d66357806e244f60594d184cd18c7be315e79e7a35f8ab51386c",
+      "bytes": 458,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/evidence_size.csv"
+    },
+    "workspace_demo/sergent_port/results/fits_active.csv": {
+      "sha256": "fae1f280f2d423efb003988226a2a87936b697468111b08709356cecace743f1",
+      "bytes": 1672553,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/fits_active.csv"
+    },
+    "workspace_demo/sergent_port/results/fits_active_lbfgs.csv": {
+      "sha256": "c974f83c1953d2de5f1f84e9da2f6369922c822ff9c2ee00acad29194383644a",
+      "bytes": 1672313,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/fits_active_lbfgs.csv"
+    },
+    "workspace_demo/sergent_port/results/fits_passive.csv": {
+      "sha256": "f76322e5f0ef3e8507c0a4f3fe0af8fb9e88b27207c72d91689876394aae217e",
+      "bytes": 1703348,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/fits_passive.csv"
+    },
+    "workspace_demo/sergent_port/results/fits_passive_max6.csv": {
+      "sha256": "1e24291f929018418b58cf4da0d6db36fdecd519c6aab2b8b840c10c1b0aa5cf",
+      "bytes": 1705518,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/fits_passive_max6.csv"
+    },
+    "workspace_demo/sergent_port/results/llh_active.csv": {
+      "sha256": "7eb400b5997f61ad071ed467c89f98d99bbb6db15b2e6455cc74eece27a051ae",
+      "bytes": 38513,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/llh_active.csv"
+    },
+    "workspace_demo/sergent_port/results/llh_active_lbfgs.csv": {
+      "sha256": "db061c762c4b439f8f81a6e70b9c1e2b4d8f069ff88b372677904b3450e43b28",
+      "bytes": 38505,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/llh_active_lbfgs.csv"
+    },
+    "workspace_demo/sergent_port/results/llh_passive.csv": {
+      "sha256": "a513d5eff8e8a59c198b83d8001d3d7fb86c7928430851ee0afb2f33bbe5dff8",
+      "bytes": 38517,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/llh_passive.csv"
+    },
+    "workspace_demo/sergent_port/results/llh_passive_max6.csv": {
+      "sha256": "b0f0fe5a582be1c86de1e8c606c3b9fd7f51b751f431b13af549cbbdc2085068",
+      "bytes": 38505,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/llh_passive_max6.csv"
+    },
+    "workspace_demo/sergent_port/results/published_passive_sd_anova.csv": {
+      "sha256": "f53ddfd04722dd865611a552eeed55690f3ab5ed843579ef76adf3645b6acbdc",
+      "bytes": 675,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/published_passive_sd_anova.csv"
+    },
+    "workspace_demo/sergent_port/results/refit_diagnostic.csv": {
+      "sha256": "01513f8143f148140cb5137c4f7a9576fe2207df843b7a775eeb266cd47f387d",
+      "bytes": 325752,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/refit_diagnostic.csv"
+    },
+    "workspace_demo/sergent_port/results/refit_diagnostic_summary.csv": {
+      "sha256": "095dcc70dec84948ec8663746bef5dcb9ef51d1bb7d30deab719188c5299b945",
+      "bytes": 3464,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/refit_diagnostic_summary.csv"
+    },
+    "workspace_demo/sergent_port/results/stats_active.csv": {
+      "sha256": "6646e71ceae0edad80415f889b96488763a6333ad42dfcca9589eca64e579cd2",
+      "bytes": 2848,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/stats_active.csv"
+    },
+    "workspace_demo/sergent_port/results/stats_passive.csv": {
+      "sha256": "09646a3b232ba929438aa06ebbb431e3a6711b97f079e9e607f808579595348e",
+      "bytes": 2022,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/stats_passive.csv"
+    },
+    "workspace_demo/sergent_port/results/stats_timecourse_active.csv": {
+      "sha256": "3d129fa5e0bda945fa87ccc9ca4fd36530123de7eca4ba8e165a992ca1e423b9",
+      "bytes": 99687,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/results/stats_timecourse_active.csv"
+    },
+    "workspace_demo/sergent_port/run_all.sh": {
+      "sha256": "43ea43a0896f760fb3d20bb4db1a971c66ec68270e0ea17ac88ac06c85614ef9",
+      "bytes": 1004,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/run_all.sh"
+    },
+    "workspace_demo/sergent_port/source_data.py": {
+      "sha256": "9d834769743fa185a7ac52d6adaad096b275d016bb4db2b2eed3c4ad965b0533",
+      "bytes": 4343,
+      "repository": "recoverable-self-coding",
+      "commit": "e341319f5c6e0ce27fdeeb83ca6124009b7e0996",
+      "path": "workspace_demo/sergent_port/source_data.py"
+    },
+    "workspace_demo/t1_access/sim_results/d4v12b/calibration_D4.csv": {
+      "sha256": "7762f152aaeb00fb8f0b36e453c4c57fc04f0f1910bb265ed8a0d9d19211babb",
+      "bytes": 98959507,
+      "repository": "recoverable-self-coding",
+      "path": "workspace_demo/t1_access/sim_results/d4v12b/calibration_D4.csv",
+      "producer_commit": "52267ec1f9cd84fe02016770b083312a59a19194"
+    },
+    "workspace_demo/t1_access/sim_results/gain_local_9b277df/gain_calibration_D4.json": {
+      "sha256": "38a67e1c8caa76c4bdefbc0e22a59b62678ef3d8e902e53b0b88ee6d3e0a8697",
+      "bytes": 3477642,
+      "repository": "recoverable-self-coding",
+      "path": "workspace_demo/t1_access/sim_results/gain_local_9b277df/gain_calibration_D4.json",
+      "producer_commit": "9b277df59af7807d34f6e99cb718ab1b1734aec1"
+    },
+    "paper/figures/fig_human_bms.py": {
+      "sha256": "f5caaf511ed02ce619fb189854e81d3c3012a2c173745440d10aaeece316ab27",
+      "bytes": 4377,
+      "repository": "Unimog-Projects",
+      "commit": "3b5da27dbb7cf65d004465c389e839a93cbcd426",
+      "path": "papers/adaptive_agency_special_issue/figures/fig_human_bms.py"
+    },
+    "paper/figures/human_bms_data.csv": {
+      "sha256": "e0d9c2eb3d655cc598656adeffd0f9213df8d3fe03d7a1d2575dcb4e5e2b238d",
+      "bytes": 4287,
+      "repository": "Unimog-Projects",
+      "commit": "3b5da27dbb7cf65d004465c389e839a93cbcd426",
+      "path": "papers/adaptive_agency_special_issue/figures/human_bms_data.csv"
+    },
+    "paper/figures/human_bms.pdf": {
+      "sha256": "24aaf339a13453b3d945a2f306b7b06334d47ebd9b4d8d08a8c9727986b377ab",
+      "bytes": 19186,
+      "repository": "Unimog-Projects",
+      "commit": "3b5da27dbb7cf65d004465c389e839a93cbcd426",
+      "path": "papers/adaptive_agency_special_issue/figures/human_bms.pdf"
+    },
+    "paper/figures/fig_t1_calibration.py": {
+      "sha256": "d831fb7747b3d1fa8d7e0d56e48ded4180a4e1d3bae649f0f8c8d1f5ef271a7f",
+      "bytes": 4477,
+      "repository": "Unimog-Projects",
+      "commit": "ff4796b4838e7b16ab71bd2de81c2e3aa57bd1d2",
+      "path": "papers/adaptive_agency_special_issue/figures/fig_t1_calibration.py"
+    },
+    "paper/figures/t1_calibration_D4_summary.csv": {
+      "sha256": "9162869bcf0825daf3a31e9478372f0c773fb3f9ac75f139ebc64884b883abdb",
+      "bytes": 2419,
+      "repository": "Unimog-Projects",
+      "commit": "ff4796b4838e7b16ab71bd2de81c2e3aa57bd1d2",
+      "path": "papers/adaptive_agency_special_issue/figures/t1_calibration_D4_summary.csv"
+    },
+    "paper/figures/t1_calibration_D4.pdf": {
+      "sha256": "cf374bdd77feb29253b639d892c4dfdee206e0f12ffda1a91681588cad56f89b",
+      "bytes": 28484,
+      "repository": "Unimog-Projects",
+      "commit": "ff4796b4838e7b16ab71bd2de81c2e3aa57bd1d2",
+      "path": "papers/adaptive_agency_special_issue/figures/t1_calibration_D4.pdf"
+    },
+    "LICENSE-MIT.txt": {
+      "sha256": "e6f8e7b54e6c5635841733ce3db0a8cc3e972f4e1074976ef71e244a6325bba8",
+      "bytes": 1074,
+      "repository": "recoverable-self-coding",
+      "path": "LICENSE"
+    },
+    "environments/gain.txt": {
+      "sha256": "48518494670059f3a83544652b76a20086f119192d7ba980e8d0d6b3ee89c031",
+      "bytes": 155,
+      "source": "saved output or contemporaneous documentation"
+    },
+    "environments/human.txt": {
+      "sha256": "34fb5a2c55cac38eb85e38c39eaae303687ddb2d145e6827888fecda71388012",
+      "bytes": 190,
+      "source": "saved output or contemporaneous documentation"
+    },
+    "environments/calibration_cloud_recipe.txt": {
+      "sha256": "fb46550547022c59f8703d244c0dc836820bc18f14b1779eeacd91cd175d8f27",
+      "bytes": 212,
+      "source": "saved output or contemporaneous documentation"
+    },
+    "README.txt": {
+      "sha256": "e40ecccb7a2f254b0dfabce6fd3b2c8f541f4062976b9605ccdf758d173f8ff8",
+      "bytes": 4725,
+      "source": "R052 release preparation"
+    },
+    "replay_figures.py": {
+      "sha256": "f28f5475e585c98ebdd41c8e59eed9f4995c41f1d97dbeeb78ae390a11f4d355",
+      "bytes": 1671,
+      "source": "R052 release preparation"
+    },
+    "verify_producer_identity.py": {
+      "sha256": "4be9cf28904584dacd17db900548e74a0cf550c38f64c6d3044e15daf562bf64",
+      "bytes": 1141,
+      "source": "R052 release preparation"
+    },
+    "producer_identity.json": {
+      "sha256": "c9906a6498637ce25b64e5d64bec681eda7e1a2a8ba15922a5e48cf38c593348",
+      "bytes": 1537,
+      "source": "config_hash on exact archived code; no fit or simulation"
+    }
+  }
+}

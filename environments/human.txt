@@ -1,0 +1,9 @@
+# Recorded direct dependencies; not a full historical transitive lock.
+# Python 3.14.6
+numpy==2.5.3
+scipy==1.18.1
+scikit-learn==1.9.1
+mne==1.13.0
+pandas==3.0.5
+joblib==1.6.0
+openpyxl==3.1.5

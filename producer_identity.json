@@ -1,0 +1,96 @@
+[
+  {
+    "label": "calibration_52267ec",
+    "expected": "b29215469af9",
+    "actual": "b29215469af9",
+    "config": {
+      "members_G": [
+        "M2B",
+        "M2H",
+        "M2S",
+        "M2K"
+      ],
+      "members_X": [
+        "M3",
+        "M3H",
+        "M3V",
+        "M3L"
+      ],
+      "n_starts": 8,
+      "n_starts_inner": 4,
+      "n_gh": 20,
+      "n_outer": 5,
+      "n_inner": 4,
+      "n_boot": 2000,
+      "fit_M0": false,
+      "bands": {
+        "ws": [
+          23,
+          57
+        ],
+        "early": [
+          3,
+          15
+        ],
+        "late": [
+          58,
+          62
+        ]
+      }
+    },
+    "D": 4,
+    "layers": [
+      41
+    ],
+    "seed": 2026
+  },
+  {
+    "label": "gain_9b277df",
+    "expected": "d77c3ecc161e",
+    "actual": "d77c3ecc161e",
+    "config": {
+      "members_G": [
+        "M2B",
+        "M2H",
+        "M2S",
+        "M2K"
+      ],
+      "members_X": [
+        "M3",
+        "M3H",
+        "M3V",
+        "M3L"
+      ],
+      "n_starts": 8,
+      "n_starts_inner": 4,
+      "n_gh": 20,
+      "n_outer": 5,
+      "n_inner": 4,
+      "n_boot": 2000,
+      "interval": "cluster",
+      "n_boot_refit": 200,
+      "refit_min_usable": 1.0,
+      "refit_checkpoint_dir": null,
+      "fit_M0": false,
+      "bands": {
+        "ws": [
+          23,
+          57
+        ],
+        "early": [
+          3,
+          15
+        ],
+        "late": [
+          58,
+          62
+        ]
+      }
+    },
+    "D": 4,
+    "layers": [
+      41
+    ],
+    "seed": 2026
+  }
+]
