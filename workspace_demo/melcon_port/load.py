@@ -13,10 +13,10 @@ preprocessing, SoundConsciousEEG_PreProcessing.m, where the two paradigms allow 
   3. an anti-alias low-pass at LOWPASS_HZ (200 Hz, zero-phase FIR, MNE defaults: transition band 50 Hz, so the
      stop band starts at 250 Hz, below the 256 Hz Nyquist of the 512 Hz target) applied to EVERY recording
      before decimation (13 Sept 2026, Codex: the four 2048 Hz files carry a 417 Hz acquisition corner, so
-     decimating them by 4 without a digital low-pass aliased the 256–417 Hz band; the 1024 Hz files' 208 Hz
-     corner was adequate, and the same digital filter is now applied to all so that every recording is
-     processed identically). The recording's lowpass must be <= target Nyquist before decimation or the
-     loader raises; no warning is suppressed;
+     decimating them by 4 without a digital low-pass left the 256–417 Hz band unprotected; how much aliasing that
+     produced in real EEG was not measured; the 1024 Hz files' 208 Hz corner was adequate, and the same digital
+     filter is now applied to all so that every recording is processed identically). The recording's lowpass
+     must be <= target Nyquist before decimation or the loader raises; no warning is suppressed;
   4. common average reference over the 128 scalp channels (Sergent: refchannel 'all'; the paper: CAR);
   5. epochs around the PHOTODIODE-corrected Gabor / catch onset, -0.5 .. +1.0 s, baseline -0.5 .. 0
      (Sergent: -0.5 .. 2 s, baseline -0.5 .. 0; the Melcón trial ends with the question display at
@@ -29,11 +29,15 @@ preprocessing, SoundConsciousEEG_PreProcessing.m, where the two paradigms allow 
   (the decoder picks channel type 'eeg'). No ICA, no channel repair, no trial rejection here — those are
   pre-registration decisions.
 
+This module is the loader and its epoch-count verification. The analysis entry point is preprocess.py: it
+filters, checks channels, references and epochs each block separately (PREREG §3) and writes the only cache the
+analysis accepts. load.py no longer writes a cache (its npz carried neither the filter configuration nor the
+channel types; Codex, continuation review 3, V3.2).
+
 CLI:
   python load.py --subjects 1-3 --verify        # per subject × task: epoch count == events-table trial
                                                 # count, Status-channel events == events.tsv, writes
                                                 # results/load_verification.csv  (no decoding)
-  python load.py --subjects 1 --tasks nocue --cache   # write DERIVED_DIR/sub-01_task-nocue_epochs.npz
 """
 from __future__ import annotations
 
@@ -46,8 +50,8 @@ import numpy as np
 import pandas as pd
 import mne
 
-from common import (DERIVED_DIR, EOG_NAMES, FS_RAW, N_EEG, PHOTODIODE, RESULTS_DIR, TASKS, available,
-                    bids_path, parse_subjects, read_channels, read_events, sub_id, trial_table)
+from common import (EOG_NAMES, N_EEG, PHOTODIODE, RESULTS_DIR, TASKS, available, bids_path, parse_subjects,
+                    read_channels, read_events, sub_id, trial_table)
 
 mne.set_log_level("WARNING")
 
@@ -67,32 +71,44 @@ BDF_NAMES_144 = ([f"{g}{i}" for g in "ABCD" for i in range(1, 33)] + [f"EXG{i}" 
 
 
 def raw_bdf(subject: int, task: str, preload: bool = True) -> mne.io.BaseRaw:
-    """The BDF with channels renamed from channels.tsv and typed (eeg / eog / misc / stim).
+    """The BDF with channels typed, positioned and renamed from channels.tsv (prepare_channels)."""
+    raw = mne.io.read_raw_bdf(bids_path(subject, task, "eeg.bdf"), preload=preload, verbose=False)
+    try:
+        return prepare_channels(raw, read_channels(subject, task))
+    except RuntimeError as e:
+        raise RuntimeError(f"{sub_id(subject)} {task}: {e}") from None
+
+
+def prepare_channels(raw: mne.io.BaseRaw, ch: pd.DataFrame) -> mne.io.BaseRaw:
+    """Type the channels (eeg / eog / misc / stim), attach electrode positions, rename from channels.tsv (in place).
 
     channels.tsv (144 rows, identical in every file) lists the channels in the order of a 144-channel
     BioSemi BDF: A1..D32 (the 128 scalp electrodes, 10-20 names), EXG1..8, GSR1/2, Erg1/2, Resp, Plet,
     Temp, Status. Some recordings were saved in the 256-channel configuration (272 channels, A1..H32
     + the same 16 extras; E..H are all-zero, README D12): the mapping is therefore by BioSemi NAME,
     and channels outside the 144-name list are dropped.
+
+    Positions: MNE's standard 'biosemi128' montage is attached while the scalp channels still carry their ORIGINAL
+    BioSemi names A1..D32, and the rename to channels.tsv's names keeps each channel's position. Matching the renamed
+    labels to the montage literally would miss most of them (Codex, continuation review 3: 122 of 128) and could
+    take a position from an accidentally overlapping name. This checks the name plumbing, not the physical cap.
     """
-    raw = mne.io.read_raw_bdf(bids_path(subject, task, "eeg.bdf"), preload=preload, verbose=False)
-    ch = read_channels(subject, task)
     if len(ch) != len(BDF_NAMES_144):
-        raise RuntimeError(f"{sub_id(subject)} {task}: channels.tsv has {len(ch)} rows, expected 144")
+        raise RuntimeError(f"channels.tsv has {len(ch)} rows, expected 144")
     raw.info["temp"] = dict(n_bdf_channels=len(raw.ch_names))
     missing = [n for n in BDF_NAMES_144 if n not in raw.ch_names]
     if missing:
-        raise RuntimeError(f"{sub_id(subject)} {task}: BDF lacks channels {missing}")
+        raise RuntimeError(f"BDF lacks channels {missing}")
     extra = [n for n in raw.ch_names if n not in BDF_NAMES_144]
     if extra:
         raw.drop_channels(extra)
     raw.reorder_channels(BDF_NAMES_144)
-    raw.rename_channels(dict(zip(BDF_NAMES_144, ch.name.tolist())))
+    tsv = ch.name.tolist()
     types = {}
-    for i, name in enumerate(ch.name):
+    for i, name in enumerate(BDF_NAMES_144):
         if i < N_EEG:
             types[name] = "eeg"
-        elif name in EOG_NAMES:
+        elif tsv[i] in EOG_NAMES:
             types[name] = "eog"
         elif name == "Status":
             types[name] = "stim"
@@ -101,6 +117,8 @@ def raw_bdf(subject: int, task: str, preload: bool = True) -> mne.io.BaseRaw:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)  # unit-change notices for the misc/stim channels
         raw.set_channel_types(types, verbose=False)
+    raw.set_montage(mne.channels.make_standard_montage("biosemi128"), on_missing="raise", verbose=False)
+    raw.rename_channels(dict(zip(BDF_NAMES_144, tsv)))
     return raw
 
 
@@ -225,16 +243,11 @@ def load_subject(subject: int, task: str, tmin: float = TMIN, tmax: float = TMAX
     return out
 
 
-def cache_path(subject: int, task: str) -> str:
-    return os.path.join(DERIVED_DIR, f"{sub_id(subject)}_task-{task}_epochs.npz")
-
-
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--subjects", default="1-36")
     ap.add_argument("--tasks", default=",".join(TASKS))
     ap.add_argument("--verify", action="store_true", help="load and compare epoch counts with the events tables; write results/load_verification.csv")
-    ap.add_argument("--cache", action="store_true", help="write the epochs to DERIVED_DIR as npz")
     a = ap.parse_args()
     subs = parse_subjects(a.subjects)
     tasks = a.tasks.split(",")
@@ -252,13 +265,6 @@ def main():
                              recording_s=round(d["recording_s"], 1),
                              match=(d["X"].shape[0] == n_table), n_chan=d["X"].shape[1], n_times=d["X"].shape[2], fsample=d["fsample"],
                              **{f"status_{k}": v for k, v in d["status_check"].items()}))
-            if a.cache:
-                os.makedirs(DERIVED_DIR, exist_ok=True)
-                np.savez_compressed(cache_path(s, t), X=d["X"].astype(np.float32), time=d["time"], labels=np.array(d["labels"]),
-                                    fsample=d["fsample"], trial=d["trials"].trial.values, code=d["trials"].code.values,
-                                    contrast=d["trials"].contrast.values, seen=d["trials"].seen.values.astype(float),
-                                    present=d["trials"].present.values, block=d["trials"].block.values, subject=s, task=t)
-                d["trials"].to_csv(os.path.join(DERIVED_DIR, f"{sub_id(s)}_task-{t}_trials.csv"), index=False)
             del d
     if a.verify and rows:
         os.makedirs(RESULTS_DIR, exist_ok=True)
