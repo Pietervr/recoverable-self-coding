@@ -4,9 +4,9 @@
 `2026-09-14_fitter_start_recipe_codex_brief.md`, initially RSC `f6a4c93`, with its
 accepted cost correction at `6518219`.
 
-**In progress: primary PC files requested, source verification still owed.** The
-protocol and design assessment below is recorded now; the numerical tables have
-not yet been independently reproduced. Codex owns this review and supporting
+**In progress: primary CSV and archive selection checks completed; integration
+and final six-question response still owed.** The numerical evidence checkpoint
+below updates the provisional design assessment. Codex owns this review and supporting
 evidence. Claude retains production, protocol, execution, manuscript and R052
 front matter. No fits, simulations, cloud actions or production edits were run.
 
@@ -14,17 +14,14 @@ Read the complete brief and its correction, the complete T1 pre-registration,
 `rsc_t1_simulation_design.md`, `analyze.py`, and the relevant scoring, moment-start,
 selection and recovery functions in `models.py`. Read both original epc II messages
 from the Entropy SI transcript, at 18:04:53Z and 18:09:17Z, rather than relying on
-the later summaries. They report PC commits `d0d194a` and `eeebaa9`; their scripts,
-CSVs and per-start records are not present on this Mac at this checkpoint.
-Claude requested their transfer into `reviews/pc_audit_2026-09-14/` after Codex's
-11:23 PDT evidence request. Receipt, provenance and verification remain to check.
-The resumed Codex session verified its wrap receipt on 14 September. Claude's
-11:32 PDT transcript reports the package staged on the PC's iCloud Drive, with
-Mac sync/checksum/move assigned to Claude; the destination is still absent at
-the resumed check. No duplicate request or transfer watcher was started. The
-reported package omits the per-start archive and distinguishes fitting source
-`72c21a6` from reporting source `d0d194a`; their actual files and hashes remain
-unverified here. The review remains open and no final verdict has been sent.
+the later summaries. PC scripts, CSVs and the subsequently requested per-start
+archive are now present in `pc_audit_2026-09-14/`, delivered through Claude via
+Dropbox. All package and archive checksums pass. Independent stdlib verification
+is saved in `2026-09-14_fitter_evidence_checks.py` and its JSON output; it imports
+no numerical model and runs no fitting. It reconstructs every archived prefix
+selection and aggregates both CSVs. Held-out evaluations have not been re-run.
+No final review reply has been sent. The draft must be integrated with §6 before
+being marked complete.
 
 The procedure compares two families through nested concept cross-validation.
 Every member is fitted in every inner fold; inner held-out scores choose each
@@ -77,8 +74,9 @@ procedure on independent seeds.
 
 M3H +16 wide and M2H +64 narrow are defensible candidates on the reported
 evidence, not yet a validated final prescription. The cheap-member union is a
-reasonable training-search default where individual recipes remain unresolved,
-including M3 and M3L. Calling it conservative refers only to the training search:
+reasonable training-search default for M2B, M2K, M3, M3V and M3L. M2S requires a
+separate budget and decision: it is not cheap (about 7.93 seconds per added outer
+start). Calling the union conservative refers only to the training search:
 it does not guarantee conservative false-positive rates or better prediction.
 M3V on M2S omega 2 deserves explicit reporting because the rare losses are large.
 The report establishes zero misses for certain added batches, not for every
@@ -139,23 +137,32 @@ new fits is authorized or launched by this review.
 
 ## 5. Cost and which analyses must use the amendment
 
-The original brief's prices count additional starts only. Claude accepted the
-correction at `6518219`; the source reports still need their timing definition
-checked. Arithmetic on the reported outer-size rates is:
+The primary source times the cold batch separately; `seconds_strong` measures
+only the 80 added starts. Using the full audit's 96 units per member/size, the
+proposed total is mean cold time plus added-count times mean added time / 80:
 
-| Member | Seconds per start | Current eight | Added batch | Proposed total |
-|---|---:|---:|---:|---:|
-| M3H | 39.7 | 317.6 | 635.2 | 952.8 |
-| M2H | 15.1 | 120.8 | 966.4 | 1,087.2 |
-| Pair | — | 438.4 | 1,601.6 | 2,040.0 |
+| Member | Current outer cold (s) | Added seconds/start | Proposed total (s) |
+|---|---:|---:|---:|
+| M3H, +16 wide | 309.026 | 38.9505 | 932.234 |
+| M2H, +64 narrow | 116.325 | 15.0145 | 1,077.250 |
+| Pair | 425.351 | — | 2,009.484 |
 
-The ratio to today is 4.6533. Cold plus 64 narrow on both costs 3,945.6 seconds,
-so the candidate costs 51.7% of that comparator, a 48.3% saving. These are linear
-calculations from reported rates, not measured complete-recipe runtimes. Start
-iterations can depend on member, width, sample size, generator and convergence;
-the PC rates do not turn the old 15.3-minute Mac bootstrap benchmark into a new
-forecast. Include all inner fits, cheap members, compilation, recoveries, layers,
-readouts and the original analysis when re-costing.
+The independently reproduced ratio is 4.7243; cold+64 narrow on both is
+3,879.106 s. The prefix report's per-start rates average the 70 archived units,
+which explains its slightly different basis. These are linear extrapolations
+from pooled added-batch timings, not timings of separately executed recipes.
+The cheaper-width batch can have different iteration costs; a literal fourfold
+total-recipe saving is not established.
+
+M2S alone adds 634.169 s under the proposed 80-added union, reaching 695.632 s
+per outer fit. Including all eight members, that original proposal is 2,803.364 s
+against 495.907 s of cold fits at outer size. Applying four inner fits plus one
+outer fit in each of five folds gives 47,796 s versus 5,766 s on this PC timing
+basis, about 8.29 times; this is an extrapolation across sizes/folds, not a new
+pipeline benchmark. It cannot be applied to the 15.3-minute Mac resample figure.
+The M2S correction is accepted in the brief at `382e7bb`; a final M2S recipe is
+not yet established. Re-cost all members, inner fits, compilation, recovery,
+layers, readouts and the original analysis on the intended machine.
 
 **An adopted amendment must apply to confirmation and to validation of its
 refitting interval.** Let A name the start policy. The declared target is
@@ -178,18 +185,77 @@ not establish that this more expensive recipe fixes the undercoverage. Cost a
 bounded development and validation plan under the standing USD 3,000 cap before
 new spending; the existing owner and launch approvals are unchanged.
 
-## 6. Primary evidence checks still open
+## 6. Primary evidence checkpoint — 14 September, before the 81% wrap
 
-Before the numerical findings can be signed off, read the actual PC scripts and
-tables and verify their provenance. Specifically reconcile the brief's 32-cold
-description, the companion's 32 separated-skew wording, the report's 64+16 added
-batches and 88 archived starts with the actual inner four/outer eight policy.
-Check the reference candidate set, miss tolerance, convergence preference,
-failures and denominators; exact balanced-block selection; candidate starts and
-seed overlap; training-derived floor and scoring settings; stored parameter
-precision; per-member/per-size paired results; and whether the seconds-per-start
-figures include the cold batch. No primary table has been independently
-recomputed at this checkpoint.
+The verifier independently confirms 1,536 unique fits, 96 units, 161 misses at
+training gap > 0.5 nat, no nonfinite fit scores and a converged cold winner in
+every fit. The strong search is 8/4 cold + 64 narrow + 16 challenge: totals 88/84.
+M2K's challenge contains four fixed alpha-sign combinations (+2,+2), (+2,-2),
+(-2,+2), (-2,-2), followed by 12 wide jitter draws; the four do not add to 16.
+No 32-cold batch exists in this source. The audit bypasses `fit` recovery, which
+has no effect on these rows because every cold batch converged. Its start RNG
+tags differ from `analyze.layer_pipeline`; it studies that count/width policy on
+fold 0, not the exact random starts of a full pipeline execution. Its outer
+training floor is also used at inner size, matching the existing analysis code.
+
+All seven original package hashes, three archive hashes and 96 member-file
+hashes pass. Removing the 34-line reporting addition from `audit_fits.py` yields
+exact Git blob `025f4ec859cef9f83ace65d7033cf4cbfe0f2e21`, independently verifying
+the reported producer/reporting-code relationship, not merely accepting the
+provenance prose. The checkpoint schema was introduced mid-run: only 70 units
+carry per-start data (rep 1: six; reps 2–5: 16 each), with 26 earlier units
+unarchived. The files do not themselves supply a per-unit loaded-code digest.
+
+All 96,320 stored starts were checked: 609 nonconverged, zero nonfinite
+log-likelihoods. All 12,320 prefix choices, likelihoods, counts and miss flags
+were reproduced directly from the archive with the convergence preference and
+first-in-order tie rule. The balanced block is 64 units / 896 non-skew fits per
+recipe; all member/size/setting tables and paired transitions are saved in JSON.
+Six common seed values are reused across settings, and some zero-parameter null
+settings share draws, so neither 96 units nor 896 fits are independent replicates.
+
+Selected balanced-block miss counts (each cell has 64 fits):
+
+| Member/size | Cold | +16 narrow | +16 wide | +64 narrow |
+|---|---:|---:|---:|---:|
+| M3H outer | 15 | 13 | 3 | 10 |
+| M3H inner | 12 | 11 | 2 | 7 |
+| M2H outer | 6 | 5 | 3 | 2 |
+| M2H inner | 7 | 6 | 7 | 0 |
+| M2K outer | 6 | 3 | 0 | 2 |
+| M2K inner | 12 | 2 | 2 | 0 |
+| M2S outer / inner | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 |
+
+M2K's wide label means the mixed skew/wide batch above. M3H's two narrow
+16-start draws each miss 24/128, but six fits change miss status: outer 1 rescued
+and 2 newly missed, inner 2 rescued and 1 newly missed. Thus equal aggregate
+misses do not establish seed irrelevance. M3V still misses 4/128 with the first
+16 narrow starts; the zero applies to the second 16 narrow, 16 wide and 32/64
+narrow candidates, not to every extra draw. M2S's one full-audit miss lies
+outside the balanced block and must be examined before calling no extra starts
+a validated prescription.
+
+Zero outer-oracle proxy sign changes reproduces for all 96 audit units and for
+all eleven prefixes on the 64 balanced units. The proxy explicitly chooses the
+best member on the outer held-out data; it does not implement inner selection.
+Ten audit changes exceed 0.001 nat/trial; mean absolute change 0.0384197,
+maximum 0.9578855. The report's per-setting Delta columns accidentally retain
+only the last replicate (`eff_by` overwrites earlier keys). For M2S omega 1/2,
+the actual mean changes are +0.228504/+0.242861, not the near-zero last-row
+values in that table. Its trigger uses setting-mean outer heterogeneity for
+every fit, not each fit's pre-fit statistic; the quoted 70/161 is not a
+within-fold trigger validation. The prose saying omega 0.5 has no misses also
+disagrees with its own table (one miss).
+
+Precision is a real limit: log-likelihoods and final vectors have six decimals,
+initial vectors five. Rounded likelihood ties change the selected final vector
+relative to the raw fit winner in 790/1,120 reference sets and 484/1,120 cold
+sets. The prefix/raw-audit held-out differences reach 1.30e-5 nat/trial for cold
+and 8.53e-5 for references. These differences combine rounding and changed tie
+selection; they are not a demonstrated pure theta-rounding bound. Held-out
+evaluation itself has not yet been independently re-executed. Retain full
+precision and deterministic ties in the amended archive. Finish assessing
+these limits and integrating §§1–6 before delivering the final review.
 
 The development direction is reasonable. The outstanding evidence, bounded
 search check and matched-procedure validation separate that judgment from final

@@ -1,0 +1,7 @@
+5f35afa0c3573c3b7d7691bcb948e13ebebd8ca3cfb6a8ae7ed5db17b590fcde *./audit_fits.py
+6b9b89cec2148ba6823d403b09675d5140094cb61f792e031d47c7767ab6bab0 *./PROVENANCE.txt
+eebd05729a9d8b793f350c46f674957c8a885922091d217556fcdc4e4e88e5be *./results/audit_fits.csv
+ed4d3b2ba39baea17cc0d19dab569f43eb97f8a1b01ba14c47e3e88b06c4ce09 *./results/audit_fits.md
+e279e64041c4416e6ec21ca2ff9f03b5cf8a9c86eb18d0e47a38daab7550dadf *./results/prefix_scoring.csv
+46413197d5d026f30bed34ee0da53f9ca18a3ce303ffeadc1743748b414c7974 *./results/prefix_scoring.md
+c55c9cdefc8b0f59b2f59aa441761abd28004ba55604fe42e775c65b8d6d51e2 *./score_prefixes.py

@@ -1,0 +1,47 @@
+PC audit review copy — Recoverable Self-Coding, T1 access
+Assembled 2026-09-14 on the Windows PC. READ-ONLY REVIEW COPY.
+Not pushed to GitHub; extracted with `git show <commit>:<path>` from the PC's local repository,
+so each file is the committed blob, not a working-tree copy.
+
+PC COMMITS (local only, unpushed)
+  d0d194a  t1_access: fit audit complete at R = 6 - 10.5% miss rate, and jitter WIDTH beats start COUNT
+  eeebaa9  t1_access: width vs count settled offline from the per-start archive - the answer is PER MEMBER
+  72c21a6  t1_access: audit_fits.py keeps the PER-START archive, and corrects the challenge-batch labelling
+
+⚠ WHICH CODE PRODUCED THE NUMBERS
+  The 96-unit fitting run was executed by audit_fits.py as at 72c21a6
+    blob 025f4ec859cef9f83ace65d7033cf4cbfe0f2e21
+  The copy included here is as at d0d194a
+    blob ae0634f93bc344b084cd9231c9d17742e207a9f4
+  The difference is 34 added lines, ALL inside write_md (the wins-per-start reporting section).
+  The fitting path - build_sets, audit_member, audit_one and every call into models/simulate/analyze -
+  is byte-identical between the two. Verified by diff restricted to those functions: 0 changes.
+  So the artefacts were REPORTED by d0d194a and FITTED by 72c21a6.
+
+FILES (path in this package -> source path @ commit, blob sha1)
+  audit_fits.py                -> workspace_demo/t1_access/audit_fits.py @ d0d194a    ae0634f93bc344b084cd9231c9d17742e207a9f4
+  score_prefixes.py            -> workspace_demo/t1_access/score_prefixes.py @ eeebaa9 5c21635739eb7bee9e00997562a4416ddd46ccb2
+  results/audit_fits.csv       -> workspace_demo/t1_access/results/audit_fits.csv @ d0d194a    459125c71806ec3994849a65da4d26e9e039f859
+  results/audit_fits.md        -> workspace_demo/t1_access/results/audit_fits.md @ d0d194a     a56e8b3490b1d71dab1eeef559c46a0e9001832d
+  results/prefix_scoring.csv   -> workspace_demo/t1_access/results/prefix_scoring.csv @ eeebaa9 f508d9e510a253abdc1566baf3e10c2ac6de9f92
+  results/prefix_scoring.md    -> workspace_demo/t1_access/results/prefix_scoring.md @ eeebaa9  2cc64916b0ac8371f1124cc89ebef6b814f3f944
+
+RUNTIME IDENTITY (of both the fitting run and the prefix scoring)
+  python 3.12.2  jax 0.11.1  numpy 2.5.3  scipy 1.18.1  pandas 3.0.5  joblib 1.6.0  AMD64
+  Installed from workspace_demo/t1_access/requirements.txt, not from a paraphrased pin list.
+  verify.py printed ALL OK before any fitting.
+  Hardware: 8 physical cores, 31.8 GB RAM; the audit ran 7 workers (one core left free),
+  NPROC=OMP_NUM_THREADS=OPENBLAS_NUM_THREADS=MKL_NUM_THREADS=1.
+
+RUN FACTS
+  Fit audit: 96 units (16 settings x 6 datasets), 1,536 member-fits, 26.2 h wall, exit 0.
+  Seeds 500000+i, NOT the calibration seeds. CONF size, D = 4, layer 41, rho 0.
+  Prefix scoring: 12,320 scored prefixes, no refitting; held-out values recomputed from stored
+  thetas via models.concept_scores (evaluation, not fitting). Balanced block = reps 2-5 (64 units);
+  rep 1's 6 archived units are reported separately and pooled into nothing.
+
+NOT INCLUDED
+  The per-start archive (results/audit_fits_checkpoint/, 96 unit files, ~34 MB) is omitted as
+  instructed. It is the input to score_prefixes.py and is required to re-derive prefix_scoring.csv;
+  say so if the review needs it and it can be sent separately.
+  No edits were made to models.py, analyze.py or simulate.py at any point.

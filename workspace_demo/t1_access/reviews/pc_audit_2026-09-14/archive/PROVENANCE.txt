@@ -1,0 +1,66 @@
+Per-start checkpoint archive — the input to score_prefixes.py
+Assembled 2026-09-14 on the Windows PC. READ-ONLY REVIEW COPY. Not pushed to GitHub.
+
+SOURCE PATH ON THE PC
+  C:\Users\piete\Projects\recoverable-self-coding\workspace_demo\t1_access\results\audit_fits_checkpoint\
+  96 files, 25.6 MB on disk, one JSON file per (setting, dataset) unit.
+  These are NOT committed blobs: the directory is deliberately untracked (local git exclude), because
+  it is a regenerable intermediate. They are the files the run wrote, byte-for-byte, zipped without
+  modification. SHA256SUMS_members.txt is taken over the files as they sit in the source directory.
+
+WHICH RUN WROTE IT
+  The 96-unit fit audit, executed by audit_fits.py @ 72c21a6 (blob 025f4ec859cef9f83ace65d7033cf4cbfe0f2e21),
+  reported by d0d194a. Each unit file is written by audit_one() on completion via write-to-temp then
+  os.replace, so no file was ever observed half-written.
+
+FILE -> UNIT MAPPING
+  One file per unit. Filename = "<generator>__<grid JSON>__r<rep>.json" with every character outside
+  [A-Za-z0-9._-] replaced by "_", e.g. M2S____omega___2.0___r3.json is generator M2S, grid
+  {"omega": 2.0}, rep 3. Each file holds a JSON LIST of 16 member-fit objects: 8 members
+  (M2B M2H M2S M2K M3 M3H M3V M3L) x 2 sizes (outer, inner). Dataset seed = 500000 + rep, recorded
+  in each row as "seed".
+
+⚠ COVERAGE — 70 OF THE 96 UNITS CARRY THE ARCHIVE, NOT ALL 96
+  The per-start archive was added mid-run; the units completed before that keep their scores but have
+  no "starts_archive" key. load_done() backfills the key as null rather than failing.
+    units WITH archive    : 70   — rep 1: 6, rep 2: 16, rep 3: 16, rep 4: 16, rep 5: 16
+    units WITHOUT archive : 26   — rep 0: 16, rep 1: 10
+  Reps 2-5 are therefore the only BALANCED block (64 units, all 16 settings at every rep), and that is
+  the block score_prefixes.py pools; rep 1's 6 archived units are reported separately and pooled into
+  nothing. Rep 0 contributes to the audit's miss rate but cannot contribute to prefix scoring at all.
+
+COUNTS
+  member-fit rows carrying an archive : 1,120  (70 units x 16)
+  archived starts in total            : 96,320
+  starts per member-fit               : 88 at the outer size (8 cold + 64 extra + 16 challenge)
+                                        84 at the inner size (4 cold + 64 extra + 16 challenge)
+  The cold count differs by size because the pipeline uses n_starts = 8 on the outer training set and
+  n_starts_inner = 4 on the inner. Any statement of the form "the 8 cold starts" is outer-only.
+
+PER-START RECORD, AND ITS ROUNDING
+  Each entry: {batch, i, source, converged, loglik, x0, theta}
+    batch   "cold" | "extra" | "challenge"; i is the 0-based index WITHIN that batch, in the order the
+            starts were generated and run, which is what makes fixed-prefix scoring meaningful.
+    extra      = simulate._extra_starts, 64 starts at jitter sd 0.25, independent seed
+                 [seed, size_tag, member_index, 7717]; the unjittered moment start is dropped.
+    challenge  = simulate._challenge_starts, 16 starts at jitter sd 0.50, seed
+                 [seed, size_tag, member_index, 9931]. ⚠ For M2K ONLY, the batch LEADS with the four
+                 separated-skew starts at +/-2.0 and the remaining 12 are jittered; M2K is the only
+                 member of the eight with alpha* parameters, so for the other seven "challenge" is
+                 simply double jitter from an independent seed, NOT a structured start set.
+    loglik  TRAINING log-likelihood, ROUNDED TO 6 DECIMALS; null when not finite.
+    theta   ROUNDED TO 6 DECIMALS (audit_fits.theta_of); null when the fit produced no finite vector.
+    x0      the initial vector, ROUNDED TO 5 DECIMALS — this rounding is simulate._tag's, not the
+            audit's, and is therefore the same rounding the audit inherited from the shared module.
+  So both solution and start vectors are rounded, at different precisions (6 and 5). The rounding is
+  ample for prefix SELECTION, which compares logliks; it is not suitable for re-deriving a fit or for
+  any bitwise comparison against a fresh run.
+
+INTEGRITY
+  SHA256SUMS_members.txt  sha256 of each of the 96 source files (verify after unzipping)
+  SHA256SUMS              sha256 of audit_fits_checkpoint.zip and of SHA256SUMS_members.txt
+  audit_fits_checkpoint.zip  96 entries, deflate, testzip clean; arcname audit_fits_checkpoint/<file>
+
+NOT INCLUDED / UNCHANGED
+  No fitting was run to produce this. The delivered package pc_audit_2026-09-14 is untouched.
+  No edits to models.py, analyze.py or simulate.py at any point.
