@@ -1,7 +1,9 @@
 # DRAFT v3 — the planned secondary human analysis on Melcón et al. 2024 (OpenNeuro ds006171)
 
-**Status: DRAFT v3 for the owner's review (2026-09-13), after Codex's two reads of v1 and v2
-(`../t1_access/reviews/2026-09-13_cheap_cloud_runs_and_melcon_codex_record.md` §B and "Continuation review 2").
+**Status: DRAFT v4 in progress (2026-09-13), after Codex's three reads of v1–v3
+(`../t1_access/reviews/2026-09-13_cheap_cloud_runs_and_melcon_codex_record.md` §B, "Continuation review 2" and
+"Continuation review 3"). §3 is revised and implemented (`preprocess.py`, V3.1–V3.2); the revisions of §2 and
+§4–§9 for V3.3–V3.6 follow.
 Nothing has been run on EEG: no recording of ds006171 has been decoded, averaged, contrasted or plotted;
 every number quoted is from the behavioural events tables (`INVENTORY.md`), the BDF headers and synthetic
 checks. Metadata, behaviour and loader QC have been inspected. The implemented protocol, its executable
@@ -48,52 +50,77 @@ Trial exclusions, fixed in advance: **present** trials with a non-positive recor
 informative; catch trials have no contrast); trials failing the artefact rule of §3. Trials without a
 seen/unseen response (102 in the dataset) are **retained** in the report-unconditioned neural comparison and
 omitted only from report-conditioned summaries; a sensitivity excludes them. Recording exclusions: fewer than
-250 present or fewer than 25 catch trials after exclusions; more than 12 bad channels (§3); or any decoder
-training half (§4) with fewer than 10 catch trials. These are transparent provisional rules, not power
+250 present or fewer than 25 catch trials after exclusions; more than 12 bad channels in any block (§3); any
+decoder half (§4) with fewer than 10 catch trials; or any block with fewer than 3 catch trials or fewer than 20
+present trials in either hemifield after exclusions, since every block serves as a likelihood training block that
+must estimate the catch moments and the hemifield term (§5–§6). At the events-table level only sub-36 nocue fails
+the block floor, and it is excluded outright, before any EEG is examined: its trial order was sorted rather than
+randomised, confounding hemifield, orientation, catch status and position with block (README D14). These are transparent provisional rules, not power
 guarantees, and they are not relaxed after model preferences are seen. Subjects contribute a recording per task
 independently. Exclusion and retention counts are reported by contrast quintile, hemifield, block, task and
 report.
 
-## 3. Preprocessing (fixed; the loader is implemented, the artefact rule is to be implemented before freeze)
+## 3. Preprocessing (fixed; implemented in `preprocess.py` and checked on artificial recordings; no EEG outcome examined)
 
-**Loader (`load.py`, implemented and verified on sub-36 nocue at 2048 Hz and sub-01 nocue at 1024 Hz; no EEG
-decoded).** BDF → 128 scalp channels renamed from `channels.tsv` plus the four EOG channels (EXG1–4 → VEOG1/2,
-HEOG1/2), all kept in the epochs and typed; high-pass 0.4 Hz and 50 Hz notch (Sergent's FieldTrip settings);
-**an anti-alias low-pass at 200 Hz (MNE default zero-phase FIR, 50 Hz transition band; measured attenuation ≈ 53
-dB at 256 Hz and ≈ 59 dB at 300 Hz at both native rates) on every recording before decimation** — v1 had none,
-and the four 2048 Hz files were decimated by 4 against a 417 Hz corner with the warning suppressed (a missing
-protection; the amount of aliasing in real EEG was not measured); the loader now raises if a recording's
-low-pass exceeds the target Nyquist and suppresses no warning. MNE's decimation guard warns whenever the output
-rate is below three times the low-pass (512 < 600); it fires at both native rates with this filter, is a
-cutoff-only heuristic, and is left visible, not read as evidence of aliasing. Common average reference over the
-128 scalp channels; epochs −0.5 … +1.0 s around the **photodiode-corrected** onset, snapped on the raw at its
-native rate (README D1); baseline −0.5 … 0 s; decimation to 512 Hz (769 samples per epoch). The cache written by
-`--cache` stores the filter configuration and the channel-type list with the data, and the decoder refuses a
-cache whose low-pass is not 200 Hz or whose channel types are absent, so that a pre-repair cache cannot return
-silently. EOG channels receive the same filters and are **never decoder features**: the decoder selects the 128
-channels typed `eeg`. The two revised rows in `results/load_verification.csv` (132 channels) sit beside earlier
-128-channel rows; the all-recording verification of the revised loader is re-run on the processing machine
-before the freeze and replaces that file.
+**Loader (`load.py`).** BDF → the 128 scalp channels and the four EOG channels (EXG1–4 → VEOG1/2, HEOG1/2),
+typed. Electrode positions come from MNE's standard `biosemi128` montage attached to the **original** BioSemi
+names A1…D32 and kept through the position-preserving rename to the `channels.tsv` names; literal matching of the
+renamed labels to the montage would miss most of them and could take a position from an accidentally overlapping
+name (this checks the name plumbing, not the physical cap). Onsets are **photodiode-corrected** and snapped to the
+Status channel at the native rate (README D1, D3). The loader's own recording-wide filtering serves only the
+epoch-count verification in `results/load_verification.csv` (historical 128-channel rows beside two revised
+132-channel rows); the all-recording verification is re-run through `preprocess.py` on the processing machine
+before the freeze and replaces that file. `load.py` writes no cache.
 
-**Artefact and bad-channel rule (`preprocess.py`, to be implemented and checked on synthetic flat-channel,
-EOG-only and block-boundary cases before the freeze; no EEG outcome is examined in those checks).** Per
-recording, on the filtered continuous data before the average reference: (i) a scalp channel is *flat* if its
-peak-to-peak amplitude over the whole recording is below 0.5 µV, and *noisy* if it exceeds 150 µV peak-to-peak
-within −0.2 … +0.6 s in more than 20 % of that recording's trials (denominator: all trials in the events table);
-flat or noisy channels are bad; more than 12 bad channels excludes the recording; (ii) bad channels are
-interpolated by spherical splines from the standard BioSemi-128 montage positions mapped by channel name
-(`channels.tsv` names → the montage's), (iii) the common average reference is computed over the 128 channels
-after interpolation, (iv) bipolar EOG traces VEOG = VEOG1 − VEOG2 and HEOG = HEOG1 − HEOG2 are formed from the
-filtered EOG channels (referenced to CMS/DRL as recorded), (v) a trial is rejected if any scalp channel exceeds
-150 µV peak-to-peak or VEOG or HEOG exceeds 100 µV peak-to-peak within −0.2 … +0.6 s; (vi) the channel rule is
-re-applied once after (v) on the retained trials, and the sequence ends. Recording-wide channel QC is
-**intentionally allowed to see all blocks** of a recording, since it uses no labels and no dose; trial rejection
-is label-free too. The −0.2 … +0.6 s screen includes the question display (jittered +0.30 … +0.40 s), so later
-ocular behaviour can select trials used in the early analysis; retention is reported by contrast quintile,
-hemifield, block, task and report. No ICA, a fixed choice that trades simpler processing for more residual
-ocular signal and trial loss. The continuous non-causal filters cross block boundaries; blocks are separated by
-pauses of tens of seconds, far longer than the filters' impulse responses (< 1 s), and the end-to-end holdout
-of §4 is therefore stated at trial level, with the boundary policy recorded.
+**Block-local segments.** Each recording is cut into one continuous segment per block. The cut between blocks b
+and b+1 is the sample midway between the end of block b's last epoch (onset + 1.0 s) and the start of block
+b+1's first epoch (onset − 0.5 s); the first segment starts at the recording's first sample and the last ends at
+its last. **Every step below runs inside one segment.** The reason is filter support: the 0.4 Hz high-pass (MNE
+FIR, 8,449 taps at 1024 Hz, 8.25 s of support, 4.125 s each side) and the 50 Hz notch (6.6 s) are non-causal, and
+boundary onset gaps are as short as 2.643 s (sub-01 nocue, blocks 2 → 3; 15 of the 210 gaps in the included tasks
+are below 9.75 s), so a recording-wide filter carries one block's samples into another block's epochs (Codex,
+continuation review 3, V3.1). In the artificial check a 30 µV step placed after the cut moves the previous
+block's last epoch by up to 10.7 µV under recording-wide filtering and leaves it bit-identical under block-local
+filtering. Segment edges are padded by MNE's `reflect_limited`; a trial whose epoch lies within 4.125 s of a
+segment edge is flagged `edge_trial`, and a sensitivity excludes those trials.
+
+**Steps inside a segment.** (i) High-pass 0.4 Hz, notch 50 Hz and an **anti-alias low-pass at 200 Hz** on the
+scalp and EOG channels (FIR, firwin, Hamming window, zero phase, automatic lengths and transition bands, as MNE
+1.13's defaults, named explicitly); measured attenuation of the low-pass ≈ 53 dB at 256 Hz and ≈ 59 dB at 300 Hz
+at both native rates. v1 had no low-pass and decimated the four 2048 Hz files by 4 against a 417 Hz acquisition
+corner with the warning suppressed: a missing protection, the amount of aliasing in real EEG not measured.
+(ii) **Channel QC.** A scalp channel is *flat* if its peak-to-peak amplitude over the segment is below 0.5 µV, and
+*noisy* if it exceeds 150 µV peak-to-peak within −0.2 … +0.6 s in more than 20 % of the block's trials
+(denominator: every trial of the block in the events table), measured after subtracting the per-sample median of
+the 128 scalp channels inside each window — a detection reference only, because BioSemi data are recorded against
+CMS/DRL and carry common-mode activity until re-referenced (the artificial check puts 200 µV peak-to-peak of common
+mode on every channel and marks nothing). EOG channels are never marked bad. (iii) Bad scalp channels are
+interpolated by spherical splines (MNE `interpolate_bads`, mode `accurate`, origin `auto`). (iv) Common average
+reference over the 128 scalp channels. (v) Epochs −0.5 … +1.0 s around the photodiode-corrected onset, baseline
+−0.5 … 0 s, decimation to 512 Hz (769 samples). MNE's decimation guard warns whenever the output rate is below
+three times the low-pass (512 < 600); it is a cutoff-only heuristic, fires at both native rates, and is left
+visible, not read as evidence of aliasing. (vi) **Trial rejection:** any scalp channel above 150 µV, or the
+bipolar VEOG = VEOG1 − VEOG2 or HEOG = HEOG1 − HEOG2 above 100 µV, peak-to-peak within −0.2 … +0.6 s. The sequence
+ends there. DRAFT v3's second channel pass on the retained trials is removed: a retained trial has no scalp
+channel above the same 150 µV, so that pass could flag a channel only through the small difference between the
+median detection reference and the average reference — it was empty by construction, not a safeguard.
+A recording is **excluded** when any block's bad set exceeds 12 channels.
+
+**Isolation, and what it is conditional on.** Given a recording's inclusion, every transformation of a block's
+samples — filters, channel QC, interpolation, reference, epochs, trial rejection — depends only on that block's
+raw segment and the fixed constants: changing the EEG of one block changes no other block's epochs, QC decisions
+or retention (checked exactly on artificial recordings, `test_preprocess.py`). The recording-level exclusion
+above and the recording floors of §2 are label-free decisions that see every block. The −0.2 … +0.6 s screen
+includes the question display (jittered +0.30 … +0.40 s), so later ocular behaviour can select trials used in the
+early analysis; retention is reported by contrast quintile, hemifield, block, task and report. No ICA: a fixed
+choice that trades simpler processing for more residual ocular signal and trial loss.
+
+**Cache.** `preprocess.py --cache` writes the only cache the analysis reads. It stores the complete preprocessing
+configuration (every constant, the library versions, and the digests of `preprocess.py`, `load.py` and `common.py`
+as loaded), a SHA-256 over the stored payload, and the channel names and types; `read_cache` refuses a file whose
+configuration differs from the running one, whose checksum fails, whose types are not the 128 `eeg` channels
+followed by the four EOG channels, or which lacks these fields (every pre-v4 cache). The decoder selects the 128
+channels typed `eeg`; the EOG channels are **never decoder features**.
 
 ## 4. Decoder — split-half design with matching readouts
 

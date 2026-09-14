@@ -7,10 +7,12 @@ trial-by-trial intensity covariate (Gabor contrast) and a seen/unseen report on 
 
 **Hard limit (owner, 2026-09-12): no EEG of this dataset has been decoded, averaged, contrasted or
 plotted.** `load.py` reads BDF files into epochs (128 scalp + 4 EOG channels since 13 Sept, the EOG for the
-artefact rule only) and counts them; `inventory.py` reads only the behavioural events tables; nothing here
-trains a classifier or computes a condition mean. **Order, changed by the owner on 13 Sept 2026:** the method
-work on this dataset proceeds now, independently of the model-side simulations (the earlier condition, first
-T1 results before any neural analysis, is withdrawn); the protocol (`PREREG_secondary_melcon.md`, DRAFT v3)
+artefact rule only) and counts them; `preprocess.py` implements the fixed, label-free preprocessing of the
+pre-registration §3 and has run only on artificial recordings (`test_preprocess.py`); `inventory.py` reads only
+the behavioural events tables; nothing here trains a classifier or computes a condition mean. **Order, changed
+by the owner on 13 Sept 2026:** the method work on this dataset proceeds now, independently of the model-side
+simulations (the earlier condition, first T1 results before any neural analysis, is withdrawn); the protocol
+(`PREREG_secondary_melcon.md`, DRAFT v4 in progress)
 and its synthetic battery are frozen before any EEG decoding, neural condition contrast or model result is
 examined. Completed historical loader QC (the epoch-count verification of 12 Sept, 128-channel rows) is
 distinct from the pending revised pipeline, whose all-recording verification replaces
@@ -68,7 +70,9 @@ go to `brain_data/melcon2024/derived/` beside the data.
 |---|---|
 | `common.py` | paths, the trigger-code tables, `read_events`, `trial_table` (per-trial table with the photodiode correction and the behaviour from the response triggers) |
 | `inventory.py` | events-only inventory → `INVENTORY.md`, `results/trials_all.csv` (41,581 rows), `results/inventory_by_file.csv` |
-| `load.py` | one subject × task → epochs `X (n_trials, 128, n_times)` + trial table in the shape `sergent_port/decode.py` consumes; `--verify` compares epoch counts with the events tables and the Status channel with events.tsv (`results/load_verification.csv`); `--cache` writes npz |
+| `load.py` | `prepare_channels` (types, biosemi128 positions on the original names, rename); one subject × task → epochs `X (n_trials, 132, n_times)` (128 scalp + 4 EOG) + trial table; `--verify` compares epoch counts with the events tables and the Status channel with events.tsv (`results/load_verification.csv`); writes no cache |
+| `preprocess.py` | the analysis entry point (PREREG §3): block-local filters, channel QC, interpolation, average reference, epochs and trial rejection with a per-block QC report; `--cache` writes the authenticated cache (`read_cache` refuses a changed configuration or code, a failed checksum, a wrong channel-type boundary, or a legacy file) |
+| `test_preprocess.py` | artificial recordings only: positions through the rename, block isolation vs a recording-wide filter, flat / noisy / burst / EOG-only / common-mode cases, exclusion, cache refusals |
 | `verify_download.py` | local files vs the S3 manifest → `results/download_verification.csv` |
 | `PREREG_secondary_melcon.md` | DRAFT pre-registration for the owner's review |
 | `results/s3_manifest_2026-09-12.txt` | the bucket listing at download time |
@@ -87,6 +91,7 @@ cd workspace_demo/melcon_port
 ../../.venv/bin/python inventory.py                       # events only, seconds
 ../../.venv/bin/python load.py --subjects 1-3 --verify    # reads BDFs, counts epochs, no decoding
 ../../.venv/bin/python verify_download.py                 # after the sync
+../../.venv/bin/python test_preprocess.py                 # artificial recordings, about a minute, no EEG read
 ```
 
 ## D-list — every deviation from, and choice beyond, the sergent_port pipeline
@@ -130,7 +135,10 @@ re-referenced); high-pass 0.4 Hz (Sergent: `hpfreq .4`, MNE's default FIR instea
 Butterworth); 50 Hz notch (Sergent: `dftfilter`); **an anti-alias low-pass at 200 Hz (zero-phase FIR, 50 Hz
 transition band) on every recording before decimation** (13 Sept 2026, Codex's finding: v1 had none, see D6).
 The 4 EOG channels are kept in the epochs (as bipolar VEOG/HEOG for the artefact rule of the pre-registration)
-and are never decoder features (Sergent: 63 scalp channels).
+and are never decoder features (Sergent: 63 scalp channels). In the analysis path (`preprocess.py`) the
+filters, the channel QC, the interpolation and the reference run **inside each block's segment** (pre-registration
+§3: the 0.4 Hz high-pass spans 8.25 s and boundary onset gaps go down to 2.643 s); `load.py`'s recording-wide
+filtering serves only the epoch-count verification.
 
 **D5 — epoch window and baseline.** −0.5 … +1.0 s around the photodiode-corrected Gabor/catch onset,
 baseline −0.5 … 0 s (Sergent: −0.5 … +2.0 s, baseline −0.5 … 0). The Melcón trial is over by ≈ 1 s
@@ -142,7 +150,8 @@ longer pre-stimulus window would run into it.
 first version relied on the acquisition filter alone — adequate for the 1024 Hz files, whose BioSemi
 on-line 5th-order sinc low-pass sits at fs/5 = 204.8 Hz (header: 208 Hz), below the new Nyquist of
 256 Hz, but not for the four 2048 Hz files (D13), whose corner is 417 Hz: decimating those by 4 without a
-digital low-pass aliased the 256–417 Hz band, and the loader suppressed MNE's warning about it. Now the
+digital low-pass left the 256–417 Hz band unprotected (how much aliasing that produced in real EEG was not
+measured), and the loader suppressed MNE's warning about it. Now the
 same filter is applied to all, the loader raises if a recording's low-pass exceeds the target Nyquist,
 and no warning is suppressed. Windows are defined on half-open 30 ms time edges (15 or 16 samples at
 512 Hz as the edges require; Sergent: 16 samples at 500 Hz stepping by 15).
@@ -159,8 +168,9 @@ exists in the files; no demographics are used.
 **D9 — blocks and cross-validation.** 4 blocks of 100 trials per recording (Sergent: 20 blocks of
 ≈ 48), derived from the break-screen 128s where exactly three interior ones exist (97 recordings) and
 from ceil(trial_number / 100) in the other 7 (sub-02 nocue has a spurious extra 128; sub-10 and sub-12
-have no break 128s at all) — `block_source` in the trial table. The likelihood cross-validation by
-block is therefore 4-fold (pre-registration §5).
+have no break 128s at all) — `block_source` in the trial table. The analysis is split-half by block
+(pre-registration §4): a decoder fitted on one half (blocks 1–2 or 3–4) scores the other half, inside which the
+likelihood runs a two-fold block cross-validation, so every block receives one held-out likelihood score.
 
 **D10 — the contrast column of the noninformative task** neither predicts the seen/unseen response
 (per-subject r median 0.03 vs 0.14 / 0.22 in the other tasks, no lag better) nor follows the
@@ -188,6 +198,16 @@ round(sfreq / 512) (4 for these, 2 otherwise) so every recording comes out at 51
 epoch, and expresses its snap and matching tolerances in milliseconds (8 ms and 6 ms) rather than samples.
 These four files carry a 417 Hz acquisition corner in their headers (`results/bdf_headers.csv`), which is
 why the digital low-pass is required before their decimation.
+
+**D14 — sub-36 nocue ran in sorted order.** In the other 103 recordings the trial order is randomised within
+blocks (longest run of one stimulus code at most 8 trials; fewer than 10 catch trials among any block's first 20).
+In sub-36 nocue it is not (events tables only; `block_source` break_128, trial numbers 1–400 in order): block 1 is
+20 catch trials followed by 80 left-vertical Gabors, block 2 is 10 left-vertical then 90 left-horizontal, block 3
+is 20 catch then 80 right-vertical, block 4 is 10 right-vertical then 90 right-horizontal. Hemifield,
+orientation, catch status and position in the block are confounded with block and time, and blocks 2 and 4 hold
+no catch trial, so neither the split-half decoder nor the block folds can be applied as designed. The
+pre-registration (§2, DRAFT v4) excludes the recording on this metadata ground, before any EEG is examined. The same
+subject's informative recording is randomised; the cause cannot be determined from the files.
 
 ## Download and verification status (2026-09-12, 18:45 UTC)
 
