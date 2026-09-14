@@ -97,6 +97,13 @@ CONFIG = dict(
     versions=dict(mne=mne.__version__, numpy=np.__version__, scipy=scipy.__version__, pandas=pd.__version__),
 )
 
+# The causal-processing sensitivity (PREREG §5): the same three FIR filters as minimum-phase (causal) designs, so that no
+# output sample depends on a later input sample; epochs and windows are not shifted to compensate the filters' delays, so
+# under this variant an effect can appear later than under zero-phase filtering, never earlier. The decoder's 10 Hz
+# smoother runs forward only in this variant (decoder.split_half(causal=True)).
+CONFIG_CAUSAL = dict(CONFIG, version=PREPROC_VERSION + " — causal sensitivity",
+                     filter=dict(CONFIG["filter"], phase="minimum"))
+
 
 class StaleCacheError(RuntimeError):
     """A cache that does not authenticate against the running configuration."""
@@ -308,8 +315,8 @@ def preprocess_subject(subject: int, task: str, config: dict = CONFIG) -> dict:
 CACHE_KEYS = ("X", "time", "labels", "ch_types", "fsample", "trials_json", "qc_json", "config_json", "payload_sha256")
 
 
-def cache_path(subject: int, task: str) -> str:
-    return os.path.join(DERIVED_DIR, f"{sub_id(subject)}_task-{task}_preproc.npz")
+def cache_path(subject: int, task: str, variant: str = "") -> str:
+    return os.path.join(DERIVED_DIR, f"{sub_id(subject)}_task-{task}_preproc{variant}.npz")
 
 
 def payload_digest(arrays: dict) -> str:
@@ -367,18 +374,20 @@ def main():
     ap.add_argument("--subjects", default="1-36")
     ap.add_argument("--tasks", default="nocue,informative")
     ap.add_argument("--cache", action="store_true", help="write the authenticated cache to DERIVED_DIR")
+    ap.add_argument("--causal", action="store_true", help="the causal-processing sensitivity (CONFIG_CAUSAL)")
     a = ap.parse_args()
+    config, variant = (CONFIG_CAUSAL, "_causal") if a.causal else (CONFIG, "")
     on_disk = set(available("bdf"))
     for s in parse_subjects(a.subjects):
         for t in a.tasks.split(","):
             if t not in TASKS or (s, t) not in on_disk:
                 print(f"{sub_id(s)} {t}: no BDF on disk, skipped")
                 continue
-            out = preprocess_subject(s, t)
+            out = preprocess_subject(s, t, config)
             print(f"{sub_id(s)} {t}: X {out['X'].shape}, excluded {out['excluded']} {out['exclude_reason']}, "
                   f"per block bad/retained {[(q['n_bad'], q['n_retained']) for q in out['qc']]}", flush=True)
             if a.cache and not out["excluded"]:
-                print("  ->", write_cache(cache_path(s, t), out))
+                print("  ->", write_cache(cache_path(s, t, variant), out))
             del out
 
 

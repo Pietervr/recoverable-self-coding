@@ -26,9 +26,9 @@ WINDOWS = tuple(DEC.EARLY + DEC.MAIN)
 
 
 def recording_scores(rec: dict, subject: int, task: str, windows=WINDOWS, models=LK.PRIMARY, variant: str = "all_present",
-                     drop_edge: bool = False) -> dict:
+                     drop_edge: bool = False, causal: bool = False) -> dict:
     try:
-        dec = DEC.split_half(rec, variant=variant, drop_edge=drop_edge)
+        dec = DEC.split_half(rec, variant=variant, drop_edge=drop_edge, causal=causal)
         if dec["status"] != "ok":
             return dict(status=dec["status"], subject=subject, task=task)
         nW, nM = len(windows), len(models)

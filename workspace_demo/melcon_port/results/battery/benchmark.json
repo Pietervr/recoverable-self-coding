@@ -1,0 +1,11 @@
+{
+  "templates": 34,
+  "status": "ok",
+  "generate_s": 0.6378469467163086,
+  "pipeline_s": 19.200984001159668,
+  "recordings_stage_c": 2040,
+  "projected_stage_c_core_hours": 11.242004203796387,
+  "calibration_decoder_runs": 720,
+  "projected_calibration_core_hours": 2.3275693893432616,
+  "note": "one worker on a machine shared with the refit probe; decoder-only runs assumed at 11 s"
+}

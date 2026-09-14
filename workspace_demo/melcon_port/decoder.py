@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from scipy.signal import butter, sosfiltfilt
+from scipy.signal import butter, sosfilt, sosfiltfilt
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import StandardScaler
@@ -55,6 +55,12 @@ MAIN = interval_windows(0.3, 0.6)
 EARLY = interval_windows(0.0, 0.3)
 
 
+def smooth(z: np.ndarray, causal: bool = False) -> np.ndarray:
+    """The 10 Hz smoother along time: forward-backward (primary), or forward only from zero initial conditions at the
+    epoch's first sample, -0.5 s (the causal-processing sensitivity; no delay compensation)."""
+    return sosfilt(SOS, z, axis=1) if causal else sosfiltfilt(SOS, z, axis=1)
+
+
 def _classifier():
     return LogisticRegression(solver="liblinear", C=1.0, class_weight="balanced", random_state=SEED)
 
@@ -72,7 +78,7 @@ def decision_values(Xa: np.ndarray, ya: np.ndarray, Xb: np.ndarray):
     return da, db
 
 
-def split_half(rec: dict, variant: str = "all_present", drop_edge: bool = False) -> dict:
+def split_half(rec: dict, variant: str = "all_present", drop_edge: bool = False, causal: bool = False) -> dict:
     """{'status': 'ok' | 'excluded: ...', 'halves': {B: dict(decoder_half, trials, W (n_B, N_WIN), auc (N_WIN,))}}"""
     if variant not in VARIANTS:
         raise ValueError(variant)
@@ -98,7 +104,7 @@ def split_half(rec: dict, variant: str = "all_present", drop_edge: bool = False)
         da, db = decision_values(Xa, ya, Xb)
         mu, sd = da.mean(axis=0), da.std(axis=0, ddof=1)
         zb = (db - mu) / np.where(sd >= SD_FLOOR, sd, np.nan)
-        zs = sosfiltfilt(SOS, zb, axis=1)
+        zs = smooth(zb, causal)
         W = np.stack([zs[:, idx].mean(axis=1) for idx in wins], axis=1)
         present_b = ~rb["catch"].to_numpy(bool)
         auc = np.full(N_WIN, np.nan)

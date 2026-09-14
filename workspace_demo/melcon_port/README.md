@@ -73,6 +73,14 @@ go to `brain_data/melcon2024/derived/` beside the data.
 | `load.py` | `prepare_channels` (types, biosemi128 positions on the original names, rename); one subject × task → epochs `X (n_trials, 132, n_times)` (128 scalp + 4 EOG) + trial table; `--verify` compares epoch counts with the events tables and the Status channel with events.tsv (`results/load_verification.csv`); writes no cache |
 | `preprocess.py` | the analysis entry point (PREREG §3): block-local filters, channel QC, interpolation, average reference, epochs and trial rejection with a per-block QC report; `--cache` writes the authenticated cache (`read_cache` refuses a changed configuration or code, a failed checksum, a wrong channel-type boundary, or a legacy file) |
 | `test_preprocess.py` | artificial recordings only: positions through the rename, block isolation vs a recording-wide filter, flat / noisy / burst / EOG-only / common-mode cases, exclusion, cache refusals |
+| `test_causal.py` | the causal-processing sensitivity (`CONFIG_CAUSAL`, forward-only smoother): zero response before an impulse, measured delays, separate cache |
+| `decoder.py` | PREREG §4–§5: split-half presence decoder per time sample, training-only z-score, 10 Hz smoother, 40 half-open 30 ms windows, held-out AUC per half |
+| `likelihood.py` | PREREG §6: null / graded / two-state / catch-occupancy densities with analytic gradients, bounds, floors, the start and retry recipe, the frozen legacy sensitivity |
+| `recording.py` | PREREG §4, §7: per recording, the two-fold block likelihood inside each held-out half, evidence, Δ, availability and status |
+| `group.py` | PREREG §7–§8: eligibility, BMS per window, runs on the physical grid, the total decision function with availability, common cohort, the participant bootstrap |
+| `synthetic.py` | PREREG §9: the battery's generator laws on real events-table structure (behaviour only) |
+| `battery.py` | PREREG §9: templates, strength calibration, the 2,040-recording stage C, verdicts; `--benchmark` / `--calibrate` / `--run` / `--summarize` |
+| `test_likelihood.py`, `test_recording.py`, `test_group.py`, `test_battery.py` | synthetic inputs only: gradients, recovery, bounds, unavailable paths, legacy traps; exact decoder and likelihood isolation; decision truth tables incl. Codex's counterexamples; laws, determinism, verdicts |
 | `verify_download.py` | local files vs the S3 manifest → `results/download_verification.csv` |
 | `PREREG_secondary_melcon.md` | DRAFT pre-registration for the owner's review |
 | `results/s3_manifest_2026-09-12.txt` | the bucket listing at download time |
@@ -92,6 +100,12 @@ cd workspace_demo/melcon_port
 ../../.venv/bin/python load.py --subjects 1-3 --verify    # reads BDFs, counts epochs, no decoding
 ../../.venv/bin/python verify_download.py                 # after the sync
 ../../.venv/bin/python test_preprocess.py                 # artificial recordings, about a minute, no EEG read
+../../.venv/bin/python test_causal.py                     # causal-processing sensitivity, artificial inputs
+../../.venv/bin/python test_likelihood.py                 # synthetic numbers
+../../.venv/bin/python test_recording.py                  # synthetic epochs, about a minute
+../../.venv/bin/python test_group.py                      # constructed results
+../../.venv/bin/python test_battery.py                    # synthetic epochs, about a minute
+../../.venv/bin/python battery.py --benchmark             # one synthetic recording through the full pipeline, timed
 ```
 
 ## D-list — every deviation from, and choice beyond, the sergent_port pipeline
