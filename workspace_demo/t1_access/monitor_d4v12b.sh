@@ -9,6 +9,7 @@
 # the artifact https://claude.ai/code/artifact/26e608c6-83f7-43f4-abdd-d5df9073b5fd (pass url=).
 PY=$HOME/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python
 T1=$HOME/Recoverable-Self-Coding/workspace_demo/t1_access
+export T1_AWS_REGION=eu-north-1   # d4v12b lives in Stockholm; the tools' default is us-west-2 since 13 Sept 2026
 SCR=$T1/sim_results/d4v12b/monitor
 mkdir -p "$SCR"
 OUT=$SCR/spotcheck.out

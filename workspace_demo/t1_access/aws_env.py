@@ -3,11 +3,16 @@
 SageMaker requires a training job's input bucket to be in the job's region, so region and bucket
 travel together. Set T1_AWS_REGION to pick the pair (T1_AWS_BUCKET overrides the bucket alone):
 
-  eu-north-1  xtenure-cself-pvr        the original home (d4v12b, the 13 Sept 2026 control and omega-2 bank)
-  us-west-2   xtenure-cself-pvr-usw2   from 13 Sept 2026: cheaper and calmer c8i spot pools (R052 log)
+  us-west-2   xtenure-cself-pvr-usw2   THE DEFAULT since 13 Sept 2026 (smoke job t1-calibration-d4-smoke-usw2-1789342209
+                                       completed and landed its row): cheaper and calmer c8i spot pools (R052 log)
+  eu-north-1  xtenure-cself-pvr        the original home: d4v12b and the runs launched there on 13 Sept 2026
+                                       (refit_control_aac9f69, ref_m2s_omega2_aac9f69) — every command for those
+                                       runs sets T1_AWS_REGION=eu-north-1
 
-launch_t1.py, spotcheck.py and the monitors import from here; the job itself (t1_job.py) is region-blind
-and takes its bucket from RESULTS_URI. Existing result prefixes were copied across so a --resume finds them.
+launch_t1.py, spotcheck.py, dashboard.py and the monitors import from here (launch_t1.py --status lists every
+region); the job itself (t1_job.py) is region-blind and takes its bucket from RESULTS_URI. The code/ and results/
+prefixes were copied to Oregon on 13 Sept (verified key by key); the copies of runs still writing in Stockholm are
+dated snapshots.
 """
 from __future__ import annotations
 
@@ -15,7 +20,7 @@ import os
 
 ACCOUNT = "763348960464"
 REGION_BUCKETS = {"eu-north-1": "xtenure-cself-pvr", "us-west-2": "xtenure-cself-pvr-usw2"}
-REGION = os.environ.get("T1_AWS_REGION", "eu-north-1")
+REGION = os.environ.get("T1_AWS_REGION", "us-west-2")
 if REGION not in REGION_BUCKETS and not os.environ.get("T1_AWS_BUCKET"):
     raise SystemExit(f"T1_AWS_REGION={REGION}: no bucket known for it; set T1_AWS_BUCKET or add it to aws_env.REGION_BUCKETS")
 BUCKET = os.environ.get("T1_AWS_BUCKET") or REGION_BUCKETS[REGION]

@@ -90,6 +90,8 @@ print("launcher: a resume never uploads; incomplete or points_filter-less snapsh
 
 # 2. the local cache per bucket
 E = fresh("aws_env")
+assert E.REGION == "us-west-2" and E.BUCKET == "xtenure-cself-pvr-usw2"            # the default since 13 Sept 2026
+E = fresh("aws_env", T1_AWS_REGION="eu-north-1")
 assert E.cache_dir("/x", "r") == "/x/sim_results/r"
 E = fresh("aws_env", T1_AWS_REGION="us-west-2")
 assert E.cache_dir("/x", "r") == "/x/sim_results/r@xtenure-cself-pvr-usw2"
@@ -125,7 +127,7 @@ with tempfile.TemporaryDirectory() as td:
         raise RuntimeError("revalidation neither refused nor reached the fit")
     except AssertionError as e:
         assert "reached the fit" in str(e)
-    C2 = fresh("spotcheck")
+    C2 = fresh("spotcheck", T1_AWS_REGION="eu-north-1")
     C2.boto3 = types.SimpleNamespace(Session=lambda **k: types.SimpleNamespace(client=lambda s: FakeS3()))
     assert "never crosses sources" in refuses(lambda: C2.pull(run, "p", td))
 print("spotcheck: a stale local gain file is never revalidated; a freshly pulled one is; a cache never crosses sources OK")
