@@ -1,0 +1,125 @@
+{
+  "scope": "deterministic contracts; decoder/fitter stubs explicitly identified; no epochs or fits",
+  "inclusion": {
+    "240_present": {
+      "status_with_stubbed_numerics": "ok",
+      "decoder_received": {
+        "n_present": 240,
+        "n_catch": 40,
+        "n_nonpositive_present": 0
+      },
+      "n_test_trials": 280
+    },
+    "24_catch": {
+      "status_with_stubbed_numerics": "ok",
+      "decoder_received": {
+        "n_present": 360,
+        "n_catch": 24,
+        "n_nonpositive_present": 0
+      },
+      "n_test_trials": 384
+    },
+    "2_catch_block1": {
+      "status_with_stubbed_numerics": "ok",
+      "decoder_received": {
+        "n_present": 360,
+        "n_catch": 30,
+        "n_nonpositive_present": 0
+      },
+      "n_test_trials": 390
+    },
+    "negative_contrast_present": {
+      "status_with_stubbed_numerics": "ok",
+      "decoder_received": {
+        "n_present": 360,
+        "n_catch": 40,
+        "n_nonpositive_present": 1
+      },
+      "n_test_trials": 400
+    },
+    "preprocessor_excluded": {
+      "status_with_stubbed_numerics": "ok",
+      "decoder_received": {
+        "n_present": 360,
+        "n_catch": 40,
+        "n_nonpositive_present": 0
+      },
+      "n_test_trials": 400
+    }
+  },
+  "battery": {
+    "partial_two_replicates_can_pass": {
+      "('G1', 0, 0)": "pass",
+      "('X1', 1, 0)": "pass"
+    },
+    "existing_recording_reused_with_amplitude_999": true,
+    "jobs_dispatched_from_rejected_calibration": 12,
+    "refinement_not_saved_in_returned_grid": {
+      "generator": "X1",
+      "target": 0.8,
+      "amplitude": 4.0,
+      "check": 0.65,
+      "refined": true,
+      "accepted": false,
+      "grid": {
+        "0.0": 0.65,
+        "0.2": 0.65,
+        "0.4": 0.65,
+        "0.7": 0.65,
+        "1.0": 0.65,
+        "1.5": 0.65,
+        "2.2": 0.65,
+        "3.2": 0.65
+      }
+    }
+  },
+  "separation_and_graded": {
+    "reported_minimum_separation": 0.10000000000000002,
+    "actual_separation_at_x0": 2.0,
+    "graded_zero_mean_range_spread_only_log_densities": [
+      -1.0015637025188104,
+      -1.2655121234846454,
+      -1.52946054445048
+    ],
+    "graded_global_sd_envelope_in_S_units": [
+      0.005,
+      50.0
+    ]
+  },
+  "task_counts": {
+    "nocue": 34,
+    "informative": 35,
+    "paired_after_sub36_nocue_exclusion": 33
+  },
+  "temporal_edge_counterexamples": {
+    "minimum_phase_near_segment_start": {
+      "impulse_time_s": 2.0,
+      "max_output_before_impulse_fraction": 0.0006874828152369268,
+      "max_output_beyond_4_125s_fraction": 3.7761115815913364e-05
+    },
+    "zero_phase_composite_support": {
+      "impulse_time_s": 20.0,
+      "max_output_before_impulse_fraction": 0.3098589978475672,
+      "max_output_beyond_4_125s_fraction": 1.5190762431707592e-06
+    }
+  },
+  "source_sha256": {
+    "battery.py": "61c19e012929fffeb3c6cf9c13a8e6faf258ae376829a8712367da8dfd3287a4",
+    "common.py": "9ba0a7351418c3c0f9ff24a0599a4b5455feab478a80cafdb497b71adec1f1b9",
+    "decoder.py": "b3a771b659dbdce9590321ffb484d372f184752e70a7cb7cdbc50d62d17336b8",
+    "group.py": "7daeae94b25c0f12b463dd21f1c6614ac57135c7005bee6178dd1e633068ecfa",
+    "inventory.py": "dd0e7f3f349fec70ec004f2fba1e5704c2c8553e080eb7ec78009a6e44671782",
+    "likelihood.py": "a142dd8cef9dc65ca6880192a400b06547ce7af8ec24a27f246ef04a8dbb2b2c",
+    "load.py": "05b050b64b223397fba3b23652d8aec89eb9b959fea63ec7ee93d7733f9c413a",
+    "preprocess.py": "a9253d896da99891855da06bcf9b1dd7e7a0070bce25ba648fb0bca61a3c5dac",
+    "recording.py": "9031b13f2ef87677d567f220ad42dd0d3830b30c832a0a81c495ae6ac68c683d",
+    "synthetic.py": "4953dbd2bc57f0874b0d66e6a45dd71450153a5dc6302c422f5111ef597bfb3c",
+    "test_battery.py": "94d3454b5b20fcf9788ef1170a44f50c1d6255f5a4706ee89f0da568dccacf51",
+    "test_causal.py": "9aa39da8dba1d0e03cdf118f629eaef4927ebb4dfde3737e3368f9a6def10aa3",
+    "test_group.py": "4e4136bf427c008321e68c3866982904a2b9e2c1b7364352e275f2eabb6fe092",
+    "test_likelihood.py": "c189548c232225b4e920e6b6bbbcaada576b7ae93c7d9a146d661d39b5279f84",
+    "test_preprocess.py": "f8ef554d2a6178bc9a1a50eff9b550d36fa150e7809c6921163c277f61522f41",
+    "test_recording.py": "9fef5e21b59b649373fb5ad9c1bc6397e0aa2fa42922339a3eab9d795b60c952",
+    "verify_download.py": "172de4ba994899d9e7976391bcd1ad110c15c23b37a1ad85d494d66393b0d38c"
+  }
+}

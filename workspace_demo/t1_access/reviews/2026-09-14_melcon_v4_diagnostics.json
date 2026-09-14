@@ -1,0 +1,872 @@
+{
+  "scope": "one existing synthetic test recording; no power estimate",
+  "generator": "X1",
+  "amplitude": 0.8,
+  "drift": true,
+  "tags": [
+    1,
+    3,
+    1,
+    1,
+    0,
+    1
+  ],
+  "summary": {
+    "true_effective_separation_sd": 0.9952216621728767,
+    "fitted_minimum_separation_sd": 0.09586340876023074,
+    "fitted_total_separation_median_sd": 1.1301339760771458,
+    "effective_separation_range_sd": [
+      0.5216699802283074,
+      1.5137128971386191
+    ],
+    "extra_start_max_training_gain_nat": 0.07925025224050586
+  },
+  "folds": [
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 1,
+      "test_block": 2,
+      "window": 20,
+      "signal_gain": 0.09461116699631784,
+      "sensor_noise_variance": 0.12261758312302197,
+      "true_effective_separation_sd": 0.5216699802283074,
+      "fitted_minimum_separation_sd": 0.010595332746836342,
+      "fitted_total_separation_median_sd": 0.487234916115021,
+      "fitted_total_separation_range_sd": [
+        0.011554865540530982,
+        0.7790394706906167
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 2,
+      "test_block": 1,
+      "window": 20,
+      "signal_gain": 0.09461116699631784,
+      "sensor_noise_variance": 0.12261758312302197,
+      "true_effective_separation_sd": 0.5216699802283074,
+      "fitted_minimum_separation_sd": 0.503406328778119,
+      "fitted_total_separation_median_sd": 0.5088281537477537,
+      "fitted_total_separation_range_sd": [
+        0.5086588386799592,
+        0.5089797070850764
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 1,
+      "test_block": 2,
+      "window": 21,
+      "signal_gain": 0.13210868659340405,
+      "sensor_noise_variance": 0.08131659688221754,
+      "true_effective_separation_sd": 0.8407180628218492,
+      "fitted_minimum_separation_sd": 0.011615342468687548,
+      "fitted_total_separation_median_sd": 1.1979348726601216,
+      "fitted_total_separation_range_sd": [
+        0.011615342469957473,
+        1.224838506356971
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 2,
+      "test_block": 1,
+      "window": 21,
+      "signal_gain": 0.13210868659340405,
+      "sensor_noise_variance": 0.08131659688221754,
+      "true_effective_separation_sd": 0.8407180628218492,
+      "fitted_minimum_separation_sd": 1.0603267086899968,
+      "fitted_total_separation_median_sd": 1.2963921895838104,
+      "fitted_total_separation_range_sd": [
+        1.0603267086918338,
+        1.4899518865837484
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 1,
+      "test_block": 2,
+      "window": 22,
+      "signal_gain": 0.16111593215565054,
+      "sensor_noise_variance": 0.08676190636874329,
+      "true_effective_separation_sd": 0.9597707547726597,
+      "fitted_minimum_separation_sd": 1.016948490586692,
+      "fitted_total_separation_median_sd": 1.022648035295782,
+      "fitted_total_separation_range_sd": [
+        1.0219050279149728,
+        1.022921155397774
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 2,
+      "test_block": 1,
+      "window": 22,
+      "signal_gain": 0.16111593215565054,
+      "sensor_noise_variance": 0.08676190636874329,
+      "true_effective_separation_sd": 0.9597707547726597,
+      "fitted_minimum_separation_sd": 0.012354400284669786,
+      "fitted_total_separation_median_sd": 1.4905415047058685,
+      "fitted_total_separation_range_sd": [
+        1.2383196297950865,
+        1.678951291295741
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 1,
+      "test_block": 2,
+      "window": 23,
+      "signal_gain": 0.17307883514491496,
+      "sensor_noise_variance": 0.09013716902887967,
+      "true_effective_separation_sd": 0.9988822473671091,
+      "fitted_minimum_separation_sd": 0.823100448505453,
+      "fitted_total_separation_median_sd": 0.8286238449512784,
+      "fitted_total_separation_range_sd": [
+        0.8279032054449497,
+        0.8288887877990746
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 2,
+      "test_block": 1,
+      "window": 23,
+      "signal_gain": 0.17307883514491496,
+      "sensor_noise_variance": 0.09013716902887967,
+      "true_effective_separation_sd": 0.9988822473671091,
+      "fitted_minimum_separation_sd": 0.7906646536185711,
+      "fitted_total_separation_median_sd": 2.156434909907621,
+      "fitted_total_separation_range_sd": [
+        0.7973818718648469,
+        2.156434910937151
+      ],
+      "n_converged": 8,
+      "n_at_best": 7
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 1,
+      "test_block": 2,
+      "window": 24,
+      "signal_gain": 0.16365363675178937,
+      "sensor_noise_variance": 0.11079665307833053,
+      "true_effective_separation_sd": 0.8824280818035394,
+      "fitted_minimum_separation_sd": 1.9513595931337513,
+      "fitted_total_separation_median_sd": 1.951359593138415,
+      "fitted_total_separation_range_sd": [
+        1.9513595931337513,
+        3.0237285611684834
+      ],
+      "n_converged": 8,
+      "n_at_best": 2
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 2,
+      "test_block": 1,
+      "window": 24,
+      "signal_gain": 0.16365363675178937,
+      "sensor_noise_variance": 0.11079665307833053,
+      "true_effective_separation_sd": 0.8824280818035394,
+      "fitted_minimum_separation_sd": 1.4026207342151213,
+      "fitted_total_separation_median_sd": 2.5447064365038505,
+      "fitted_total_separation_range_sd": [
+        2.5446679917574504,
+        2.544706436503851
+      ],
+      "n_converged": 8,
+      "n_at_best": 4
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 1,
+      "test_block": 2,
+      "window": 25,
+      "signal_gain": 0.14704069242984838,
+      "sensor_noise_variance": 0.11214896632634466,
+      "true_effective_separation_sd": 0.8040596757098925,
+      "fitted_minimum_separation_sd": 1.4644373810508022,
+      "fitted_total_separation_median_sd": 1.4644373810640479,
+      "fitted_total_separation_range_sd": [
+        1.4644373810508022,
+        2.7771843037723234
+      ],
+      "n_converged": 8,
+      "n_at_best": 6
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 2,
+      "test_block": 1,
+      "window": 25,
+      "signal_gain": 0.14704069242984838,
+      "sensor_noise_variance": 0.11214896632634466,
+      "true_effective_separation_sd": 0.8040596757098925,
+      "fitted_minimum_separation_sd": 0.010499150699160971,
+      "fitted_total_separation_median_sd": 0.9801381940292747,
+      "fitted_total_separation_range_sd": [
+        0.9651184872707891,
+        0.9810574003090715
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 1,
+      "test_block": 2,
+      "window": 26,
+      "signal_gain": 0.13848348853327117,
+      "sensor_noise_variance": 0.1134795337883825,
+      "true_effective_separation_sd": 0.7604358109737829,
+      "fitted_minimum_separation_sd": 1.1970633971062141,
+      "fitted_total_separation_median_sd": 1.2032013711647729,
+      "fitted_total_separation_range_sd": [
+        1.2024204354787285,
+        1.2034870264128466
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 2,
+      "test_block": 1,
+      "window": 26,
+      "signal_gain": 0.13848348853327117,
+      "sensor_noise_variance": 0.1134795337883825,
+      "true_effective_separation_sd": 0.7604358109737829,
+      "fitted_minimum_separation_sd": 0.010321427423438095,
+      "fitted_total_separation_median_sd": 0.56209833655059,
+      "fitted_total_separation_range_sd": [
+        0.483286024311055,
+        0.6226856952111012
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 1,
+      "test_block": 2,
+      "window": 27,
+      "signal_gain": 0.136281616838494,
+      "sensor_noise_variance": 0.12335168979585635,
+      "true_effective_separation_sd": 0.7235004194018984,
+      "fitted_minimum_separation_sd": 0.010495189026432011,
+      "fitted_total_separation_median_sd": 0.6091402719241596,
+      "fitted_total_separation_range_sd": [
+        0.010495189026432008,
+        0.6101914648958124
+      ],
+      "n_converged": 8,
+      "n_at_best": 3
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 2,
+      "test_block": 1,
+      "window": 27,
+      "signal_gain": 0.136281616838494,
+      "sensor_noise_variance": 0.12335168979585635,
+      "true_effective_separation_sd": 0.7235004194018984,
+      "fitted_minimum_separation_sd": 0.010343984822050447,
+      "fitted_total_separation_median_sd": 0.3849379628247678,
+      "fitted_total_separation_range_sd": [
+        0.04877326114888913,
+        0.6138342952841758
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 1,
+      "test_block": 2,
+      "window": 28,
+      "signal_gain": 0.1274993833226919,
+      "sensor_noise_variance": 0.11397961844475592,
+      "true_effective_separation_sd": 0.7065990299722551,
+      "fitted_minimum_separation_sd": 1.0573600962422016,
+      "fitted_total_separation_median_sd": 1.0630659554126485,
+      "fitted_total_separation_range_sd": [
+        1.0623103560775888,
+        1.063344607795582
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 2,
+      "test_block": 1,
+      "window": 28,
+      "signal_gain": 0.1274993833226919,
+      "sensor_noise_variance": 0.11397961844475592,
+      "true_effective_separation_sd": 0.7065990299722551,
+      "fitted_minimum_separation_sd": 0.6090596691108796,
+      "fitted_total_separation_median_sd": 0.6143579777347898,
+      "fitted_total_separation_range_sd": [
+        0.6141838783034289,
+        0.6145143122196761
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 1,
+      "test_block": 2,
+      "window": 29,
+      "signal_gain": 0.10277134172784666,
+      "sensor_noise_variance": 0.11508191031602916,
+      "true_effective_separation_sd": 0.5798709987094051,
+      "fitted_minimum_separation_sd": 0.01189714126272389,
+      "fitted_total_separation_median_sd": 1.259456016741315,
+      "fitted_total_separation_range_sd": [
+        0.48057719481716266,
+        1.4714819687464236
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        1,
+        2
+      ],
+      "train_block": 2,
+      "test_block": 1,
+      "window": 29,
+      "signal_gain": 0.10277134172784666,
+      "sensor_noise_variance": 0.11508191031602916,
+      "true_effective_separation_sd": 0.5798709987094051,
+      "fitted_minimum_separation_sd": 0.14411003181007132,
+      "fitted_total_separation_median_sd": 0.947745131795022,
+      "fitted_total_separation_range_sd": [
+        0.947745131788851,
+        0.947745131795022
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 3,
+      "test_block": 4,
+      "window": 20,
+      "signal_gain": 0.1782387423906626,
+      "sensor_noise_variance": 0.09747937845036932,
+      "true_effective_separation_sd": 0.9915610769786442,
+      "fitted_minimum_separation_sd": 0.010545558842728538,
+      "fitted_total_separation_median_sd": 0.7606355017417075,
+      "fitted_total_separation_range_sd": [
+        0.06164154569242242,
+        0.9800787758304593
+      ],
+      "n_converged": 8,
+      "n_at_best": 3
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 4,
+      "test_block": 3,
+      "window": 20,
+      "signal_gain": 0.1782387423906626,
+      "sensor_noise_variance": 0.09747937845036932,
+      "true_effective_separation_sd": 0.9915610769786442,
+      "fitted_minimum_separation_sd": 0.01165106303944334,
+      "fitted_total_separation_median_sd": 1.2320225601563017,
+      "fitted_total_separation_range_sd": [
+        0.0116512445404339,
+        1.232719914387013
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 3,
+      "test_block": 4,
+      "window": 21,
+      "signal_gain": 0.22465589050099838,
+      "sensor_noise_variance": 0.10183504252405003,
+      "true_effective_separation_sd": 1.1513047094466011,
+      "fitted_minimum_separation_sd": 0.010482512420916176,
+      "fitted_total_separation_median_sd": 0.7885164586402366,
+      "fitted_total_separation_range_sd": [
+        0.3734360207617868,
+        0.9253872730718686
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 4,
+      "test_block": 3,
+      "window": 21,
+      "signal_gain": 0.22465589050099838,
+      "sensor_noise_variance": 0.10183504252405003,
+      "true_effective_separation_sd": 1.1513047094466011,
+      "fitted_minimum_separation_sd": 0.012702208129985295,
+      "fitted_total_separation_median_sd": 1.407797776795429,
+      "fitted_total_separation_range_sd": [
+        1.2482464808374276,
+        1.5988344630726463
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 3,
+      "test_block": 4,
+      "window": 22,
+      "signal_gain": 0.2633001796703009,
+      "sensor_noise_variance": 0.0859418418662875,
+      "true_effective_separation_sd": 1.336407843261417,
+      "fitted_minimum_separation_sd": 0.010374020007782096,
+      "fitted_total_separation_median_sd": 0.5351420212717453,
+      "fitted_total_separation_range_sd": [
+        0.013543702957276922,
+        0.9276112298987671
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 4,
+      "test_block": 3,
+      "window": 22,
+      "signal_gain": 0.2633001796703009,
+      "sensor_noise_variance": 0.0859418418662875,
+      "true_effective_separation_sd": 1.336407843261417,
+      "fitted_minimum_separation_sd": 0.04761678571039016,
+      "fitted_total_separation_median_sd": 2.1085810967330763,
+      "fitted_total_separation_range_sd": [
+        0.0476233205748167,
+        2.2172092074170138
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 3,
+      "test_block": 4,
+      "window": 23,
+      "signal_gain": 0.2874667202059344,
+      "sensor_noise_variance": 0.061623611915190474,
+      "true_effective_separation_sd": 1.5137128971386191,
+      "fitted_minimum_separation_sd": 0.010556507796046381,
+      "fitted_total_separation_median_sd": 0.7121051174054704,
+      "fitted_total_separation_range_sd": [
+        0.011343137585127235,
+        1.3252023563962838
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 4,
+      "test_block": 3,
+      "window": 23,
+      "signal_gain": 0.2874667202059344,
+      "sensor_noise_variance": 0.061623611915190474,
+      "true_effective_separation_sd": 1.5137128971386191,
+      "fitted_minimum_separation_sd": 2.395709906913637,
+      "fitted_total_separation_median_sd": 2.5293640945789995,
+      "fitted_total_separation_range_sd": [
+        2.3969084011972734,
+        2.8862875124988383
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 3,
+      "test_block": 4,
+      "window": 24,
+      "signal_gain": 0.29854966948220557,
+      "sensor_noise_variance": 0.07783915273115163,
+      "true_effective_separation_sd": 1.4612549354359463,
+      "fitted_minimum_separation_sd": 0.010957665878453465,
+      "fitted_total_separation_median_sd": 1.1972019967416432,
+      "fitted_total_separation_range_sd": [
+        0.3892004619707599,
+        1.5021865060423383
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 4,
+      "test_block": 3,
+      "window": 24,
+      "signal_gain": 0.29854966948220557,
+      "sensor_noise_variance": 0.07783915273115163,
+      "true_effective_separation_sd": 1.4612549354359463,
+      "fitted_minimum_separation_sd": 1.8566544118251642,
+      "fitted_total_separation_median_sd": 1.8631680149503351,
+      "fitted_total_separation_range_sd": [
+        1.8629800539107733,
+        1.8633892046642284
+      ],
+      "n_converged": 8,
+      "n_at_best": 7
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 3,
+      "test_block": 4,
+      "window": 25,
+      "signal_gain": 0.3009108113960093,
+      "sensor_noise_variance": 0.08444272826879197,
+      "true_effective_separation_sd": 1.4386697643144688,
+      "fitted_minimum_separation_sd": 2.0060664505938917,
+      "fitted_total_separation_median_sd": 2.3900456045716543,
+      "fitted_total_separation_range_sd": [
+        2.0060664505938917,
+        2.7522887458176553
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 4,
+      "test_block": 3,
+      "window": 25,
+      "signal_gain": 0.3009108113960093,
+      "sensor_noise_variance": 0.08444272826879197,
+      "true_effective_separation_sd": 1.4386697643144688,
+      "fitted_minimum_separation_sd": 2.418489069796241,
+      "fitted_total_separation_median_sd": 2.426281437038571,
+      "fitted_total_separation_range_sd": [
+        2.426054803291255,
+        2.426548272205811
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 3,
+      "test_block": 4,
+      "window": 26,
+      "signal_gain": 0.2926404556496385,
+      "sensor_noise_variance": 0.07079438023008333,
+      "true_effective_separation_sd": 1.4797911568243978,
+      "fitted_minimum_separation_sd": 1.9447959525274956,
+      "fitted_total_separation_median_sd": 1.9517580944342126,
+      "fitted_total_separation_range_sd": [
+        1.9509879341084646,
+        1.9520080847173373
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 4,
+      "test_block": 3,
+      "window": 26,
+      "signal_gain": 0.2926404556496385,
+      "sensor_noise_variance": 0.07079438023008333,
+      "true_effective_separation_sd": 1.4797911568243978,
+      "fitted_minimum_separation_sd": 2.0424925263019937,
+      "fitted_total_separation_median_sd": 2.1081397863716345,
+      "fitted_total_separation_range_sd": [
+        2.0424925263087,
+        2.4320689308372554
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 3,
+      "test_block": 4,
+      "window": 27,
+      "signal_gain": 0.27109606176407386,
+      "sensor_noise_variance": 0.07617623902704032,
+      "true_effective_separation_sd": 1.4014797292872314,
+      "fitted_minimum_separation_sd": 0.7849286363389439,
+      "fitted_total_separation_median_sd": 0.7902258480018457,
+      "fitted_total_separation_range_sd": [
+        0.7896449147616419,
+        0.7904141487101936
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 4,
+      "test_block": 3,
+      "window": 27,
+      "signal_gain": 0.27109606176407386,
+      "sensor_noise_variance": 0.07617623902704032,
+      "true_effective_separation_sd": 1.4014797292872314,
+      "fitted_minimum_separation_sd": 0.015439036924361075,
+      "fitted_total_separation_median_sd": 2.104051259480163,
+      "fitted_total_separation_range_sd": [
+        1.8223060809240033,
+        2.104051259507825
+      ],
+      "n_converged": 8,
+      "n_at_best": 2
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 3,
+      "test_block": 4,
+      "window": 28,
+      "signal_gain": 0.23227877773898636,
+      "sensor_noise_variance": 0.08628576984146027,
+      "true_effective_separation_sd": 1.2405229814894625,
+      "fitted_minimum_separation_sd": 0.010211624955006993,
+      "fitted_total_separation_median_sd": 0.01021162616903175,
+      "fitted_total_separation_range_sd": [
+        0.010211624955006994,
+        10.203276871381119
+      ],
+      "n_converged": 8,
+      "n_at_best": 2
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 4,
+      "test_block": 3,
+      "window": 28,
+      "signal_gain": 0.23227877773898636,
+      "sensor_noise_variance": 0.08628576984146027,
+      "true_effective_separation_sd": 1.2405229814894625,
+      "fitted_minimum_separation_sd": 0.7984575939460065,
+      "fitted_total_separation_median_sd": 0.8043781353832227,
+      "fitted_total_separation_range_sd": [
+        0.8042121921830935,
+        0.8045730529466797
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 3,
+      "test_block": 4,
+      "window": 29,
+      "signal_gain": 0.16830435280314188,
+      "sensor_noise_variance": 0.08214782916358687,
+      "true_effective_separation_sd": 1.012732953855395,
+      "fitted_minimum_separation_sd": 0.010300503950418767,
+      "fitted_total_separation_median_sd": 0.01030052718996164,
+      "fitted_total_separation_range_sd": [
+        0.010300503950418772,
+        2.1354516933916026
+      ],
+      "n_converged": 8,
+      "n_at_best": 7
+    },
+    {
+      "half": [
+        3,
+        4
+      ],
+      "train_block": 4,
+      "test_block": 3,
+      "window": 29,
+      "signal_gain": 0.16830435280314188,
+      "sensor_noise_variance": 0.08214782916358687,
+      "true_effective_separation_sd": 1.012732953855395,
+      "fitted_minimum_separation_sd": 0.01130018403448559,
+      "fitted_total_separation_median_sd": 1.028111441231536,
+      "fitted_total_separation_range_sd": [
+        1.0278596556587893,
+        1.0281114412327257
+      ],
+      "n_converged": 8,
+      "n_at_best": 8
+    }
+  ],
+  "optimizer_probe": [
+    {
+      "train_block": 1,
+      "test_block": 2,
+      "window": 25,
+      "n_train": 100,
+      "production_train_loglik": -33.81412097673995,
+      "extra_starts": 8,
+      "extra_converged": 8,
+      "best_extra_train_gain_nat": 1.0587086762825493e-12,
+      "best_extra_total_separation_median_sd": 1.4644367896711206
+    },
+    {
+      "train_block": 2,
+      "test_block": 1,
+      "window": 25,
+      "n_train": 100,
+      "production_train_loglik": -36.25795621392734,
+      "extra_starts": 8,
+      "extra_converged": 8,
+      "best_extra_train_gain_nat": 0.07925025224050586,
+      "best_extra_total_separation_median_sd": 0.9074137045475105
+    },
+    {
+      "train_block": 3,
+      "test_block": 4,
+      "window": 25,
+      "n_train": 100,
+      "production_train_loglik": -58.23881725410523,
+      "extra_starts": 8,
+      "extra_converged": 8,
+      "best_extra_train_gain_nat": -0.045319941824544685,
+      "best_extra_total_separation_median_sd": 2.695477460210184
+    },
+    {
+      "train_block": 4,
+      "test_block": 3,
+      "window": 25,
+      "n_train": 100,
+      "production_train_loglik": -56.35697959231416,
+      "extra_starts": 8,
+      "extra_converged": 8,
+      "best_extra_train_gain_nat": -5.5280224842135794e-12,
+      "best_extra_total_separation_median_sd": 2.4262832379332018
+    }
+  ]
+}

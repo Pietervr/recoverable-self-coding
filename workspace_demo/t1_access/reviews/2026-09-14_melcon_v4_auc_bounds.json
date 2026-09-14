@@ -1,0 +1,1402 @@
+{
+  "scope": "behaviour-only exact population calculation; no epochs or fits",
+  "calibration_match": "population latent limit of mean over two held-out halves and ten main windows, then median over first eight templates; windows identical at the noiseless latent limit",
+  "calibration_subjects": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "n_templates": 34,
+  "equal_occupancy_no_hemifield": {
+    "X1": 0.7106751982374286,
+    "X2": 0.607098088761667
+  },
+  "summary": {
+    "X1": {
+      "first_eight_median_of_half_means": 0.7438555563939797,
+      "all_34_median_of_half_means": 0.7425603802841505,
+      "all_half_min": 0.6462745731150165,
+      "all_half_max": 0.8389397849840139
+    },
+    "X2": {
+      "first_eight_median_of_half_means": 0.6475829768892323,
+      "all_34_median_of_half_means": 0.6470629737690244,
+      "all_half_min": 0.5981853633005991,
+      "all_half_max": 0.6954215659710801
+    }
+  },
+  "records": [
+    {
+      "subject": 1,
+      "n_trials": 400,
+      "log_contrast_mean": -3.6230976675745055,
+      "log_contrast_sd": 0.2338205230249508,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 176,
+          "n_catch": 24,
+          "mean_occupancy": 0.555234932191916,
+          "right_fraction": 0.5170454545454546,
+          "population_auc": {
+            "X1": 0.7626690665185312,
+            "X2": 0.658114722817804
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 184,
+          "n_catch": 16,
+          "mean_occupancy": 0.4735085684320769,
+          "right_fraction": 0.483695652173913,
+          "population_auc": {
+            "X1": 0.7353199306214961,
+            "X2": 0.6406614301370368
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7489944985700137,
+        "X2": 0.6493880764774205
+      }
+    },
+    {
+      "subject": 2,
+      "n_trials": 400,
+      "log_contrast_mean": -3.090898030206243,
+      "log_contrast_sd": 0.2693205053828388,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 184,
+          "n_catch": 16,
+          "mean_occupancy": 0.30312435200841087,
+          "right_fraction": 0.5271739130434783,
+          "population_auc": {
+            "X1": 0.6647079025248486,
+            "X2": 0.607104276651623
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 176,
+          "n_catch": 24,
+          "mean_occupancy": 0.721731615337049,
+          "right_fraction": 0.4715909090909091,
+          "population_auc": {
+            "X1": 0.8242182317923837,
+            "X2": 0.6885783246158094
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7444630671586161,
+        "X2": 0.6478413006337163
+      }
+    },
+    {
+      "subject": 3,
+      "n_trials": 398,
+      "log_contrast_mean": -3.581364330892529,
+      "log_contrast_sd": 0.13887918822957035,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 178,
+          "n_catch": 20,
+          "mean_occupancy": 0.5320696269757571,
+          "right_fraction": 0.5280898876404494,
+          "population_auc": {
+            "X1": 0.7569796258230523,
+            "X2": 0.6549877229169236
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 180,
+          "n_catch": 20,
+          "mean_occupancy": 0.46605943291546553,
+          "right_fraction": 0.4777777777777778,
+          "population_auc": {
+            "X1": 0.7162366410205319,
+            "X2": 0.6341107204742384
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7366081334217921,
+        "X2": 0.644549221695581
+      }
+    },
+    {
+      "subject": 4,
+      "n_trials": 400,
+      "log_contrast_mean": -3.123365774640023,
+      "log_contrast_sd": 0.14354753777677057,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 181,
+          "n_catch": 19,
+          "mean_occupancy": 0.3477723467970896,
+          "right_fraction": 0.48066298342541436,
+          "population_auc": {
+            "X1": 0.682912062735914,
+            "X2": 0.6137128164693475
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 179,
+          "n_catch": 21,
+          "mean_occupancy": 0.7020687415143724,
+          "right_fraction": 0.5195530726256983,
+          "population_auc": {
+            "X1": 0.8187938780135231,
+            "X2": 0.6880582261260474
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7508529703747185,
+        "X2": 0.6508855212976974
+      }
+    },
+    {
+      "subject": 5,
+      "n_trials": 400,
+      "log_contrast_mean": -3.7099087201619345,
+      "log_contrast_sd": 0.11287193472810933,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 181,
+          "n_catch": 19,
+          "mean_occupancy": 0.5054421710019291,
+          "right_fraction": 0.5524861878453039,
+          "population_auc": {
+            "X1": 0.7415807794920151,
+            "X2": 0.64953593320682
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 179,
+          "n_catch": 21,
+          "mean_occupancy": 0.5216179379684024,
+          "right_fraction": 0.44692737430167595,
+          "population_auc": {
+            "X1": 0.7449153117666714,
+            "X2": 0.6456882385241522
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7432480456293432,
+        "X2": 0.6476120858654861
+      }
+    },
+    {
+      "subject": 6,
+      "n_trials": 400,
+      "log_contrast_mean": -3.6907606807129327,
+      "log_contrast_sd": 0.09725294866072977,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 178,
+          "n_catch": 22,
+          "mean_occupancy": 0.4708003450472242,
+          "right_fraction": 0.5168539325842697,
+          "population_auc": {
+            "X1": 0.727735617931015,
+            "X2": 0.6402033060013891
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 182,
+          "n_catch": 18,
+          "mean_occupancy": 0.5513424218432953,
+          "right_fraction": 0.4835164835164835,
+          "population_auc": {
+            "X1": 0.7576339242213043,
+            "X2": 0.6542975970551661
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7426847710761597,
+        "X2": 0.6472504515282775
+      }
+    },
+    {
+      "subject": 7,
+      "n_trials": 400,
+      "log_contrast_mean": -3.1311062670111793,
+      "log_contrast_sd": 0.20050471678191353,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 180,
+          "n_catch": 20,
+          "mean_occupancy": 0.30457431720804434,
+          "right_fraction": 0.5055555555555555,
+          "population_auc": {
+            "X1": 0.6664513253776406,
+            "X2": 0.6064498368401494
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 180,
+          "n_catch": 20,
+          "mean_occupancy": 0.7116639355514905,
+          "right_fraction": 0.49444444444444446,
+          "population_auc": {
+            "X1": 0.8229921524744204,
+            "X2": 0.6886578989858076
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7447217389260306,
+        "X2": 0.6475538679129785
+      }
+    },
+    {
+      "subject": 8,
+      "n_trials": 400,
+      "log_contrast_mean": -3.3364497444879855,
+      "log_contrast_sd": 0.1562938221953707,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 181,
+          "n_catch": 19,
+          "mean_occupancy": 0.351846154291373,
+          "right_fraction": 0.4696132596685083,
+          "population_auc": {
+            "X1": 0.6741050464850762,
+            "X2": 0.6108881001589435
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 179,
+          "n_catch": 21,
+          "mean_occupancy": 0.6603298356150761,
+          "right_fraction": 0.5307262569832403,
+          "population_auc": {
+            "X1": 0.8032653179952987,
+            "X2": 0.6803795515399218
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7386851822401874,
+        "X2": 0.6456338258494326
+      }
+    },
+    {
+      "subject": 9,
+      "n_trials": 400,
+      "log_contrast_mean": -3.3538402586259894,
+      "log_contrast_sd": 0.1717562738990732,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 178,
+          "n_catch": 22,
+          "mean_occupancy": 0.5312314260250872,
+          "right_fraction": 0.5280898876404494,
+          "population_auc": {
+            "X1": 0.7434642420828241,
+            "X2": 0.6510096605897132
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 182,
+          "n_catch": 18,
+          "mean_occupancy": 0.4527959325259403,
+          "right_fraction": 0.4725274725274725,
+          "population_auc": {
+            "X1": 0.711938643252012,
+            "X2": 0.631328441772164
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.727701442667418,
+        "X2": 0.6411690511809386
+      }
+    },
+    {
+      "subject": 10,
+      "n_trials": 400,
+      "log_contrast_mean": -3.3389943787457232,
+      "log_contrast_sd": 0.17938058275501917,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 182,
+          "n_catch": 18,
+          "mean_occupancy": 0.28682025829824953,
+          "right_fraction": 0.5274725274725275,
+          "population_auc": {
+            "X1": 0.653210423741981,
+            "X2": 0.6022943115663106
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 178,
+          "n_catch": 22,
+          "mean_occupancy": 0.7388939911840758,
+          "right_fraction": 0.47191011235955055,
+          "population_auc": {
+            "X1": 0.8286192057784174,
+            "X2": 0.6914566804532319
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7409148147601992,
+        "X2": 0.6468754960097713
+      }
+    },
+    {
+      "subject": 11,
+      "n_trials": 400,
+      "log_contrast_mean": -3.638544493022427,
+      "log_contrast_sd": 0.14065156221333844,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 178,
+          "n_catch": 22,
+          "mean_occupancy": 0.49952983266608725,
+          "right_fraction": 0.5168539325842697,
+          "population_auc": {
+            "X1": 0.7347726263968813,
+            "X2": 0.6448944125623725
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 182,
+          "n_catch": 18,
+          "mean_occupancy": 0.5128358996448024,
+          "right_fraction": 0.4835164835164835,
+          "population_auc": {
+            "X1": 0.7360659127370778,
+            "X2": 0.6445076151856511
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7354192695669796,
+        "X2": 0.6447010138740118
+      }
+    },
+    {
+      "subject": 12,
+      "n_trials": 400,
+      "log_contrast_mean": -3.619504739888873,
+      "log_contrast_sd": 0.12056515866859681,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 183,
+          "n_catch": 17,
+          "mean_occupancy": 0.3953028620321313,
+          "right_fraction": 0.5027322404371585,
+          "population_auc": {
+            "X1": 0.6948737810237797,
+            "X2": 0.6228848725982632
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 177,
+          "n_catch": 23,
+          "mean_occupancy": 0.6071969975211938,
+          "right_fraction": 0.4971751412429379,
+          "population_auc": {
+            "X1": 0.7767401816886461,
+            "X2": 0.6657997140798306
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7358069813562129,
+        "X2": 0.6443422933390469
+      }
+    },
+    {
+      "subject": 13,
+      "n_trials": 400,
+      "log_contrast_mean": -3.397151028093093,
+      "log_contrast_sd": 0.1304582871956556,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 182,
+          "n_catch": 18,
+          "mean_occupancy": 0.4102316729578072,
+          "right_fraction": 0.5054945054945055,
+          "population_auc": {
+            "X1": 0.7012359070379173,
+            "X2": 0.6262683707185217
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 178,
+          "n_catch": 22,
+          "mean_occupancy": 0.6372680520799437,
+          "right_fraction": 0.4943820224719101,
+          "population_auc": {
+            "X1": 0.7890685443230391,
+            "X2": 0.6719751870516363
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7451522256804781,
+        "X2": 0.6491217788850789
+      }
+    },
+    {
+      "subject": 14,
+      "n_trials": 400,
+      "log_contrast_mean": -3.288098761528233,
+      "log_contrast_sd": 0.1368937579595983,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 179,
+          "n_catch": 21,
+          "mean_occupancy": 0.6197150150868208,
+          "right_fraction": 0.4748603351955307,
+          "population_auc": {
+            "X1": 0.7887965442145742,
+            "X2": 0.669104772710413
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 181,
+          "n_catch": 19,
+          "mean_occupancy": 0.4151187946237404,
+          "right_fraction": 0.5248618784530387,
+          "population_auc": {
+            "X1": 0.7123087093370691,
+            "X2": 0.6310737711840609
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7505526267758217,
+        "X2": 0.650089271947237
+      }
+    },
+    {
+      "subject": 15,
+      "n_trials": 400,
+      "log_contrast_mean": -3.5984609602172224,
+      "log_contrast_sd": 0.08679154376788012,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 177,
+          "n_catch": 23,
+          "mean_occupancy": 0.44771415201070613,
+          "right_fraction": 0.4915254237288136,
+          "population_auc": {
+            "X1": 0.7197875924472367,
+            "X2": 0.634258291054932
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 183,
+          "n_catch": 17,
+          "mean_occupancy": 0.5434892039922039,
+          "right_fraction": 0.5081967213114754,
+          "population_auc": {
+            "X1": 0.7586899800519491,
+            "X2": 0.6553499910653208
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7392387862495928,
+        "X2": 0.6448041410601264
+      }
+    },
+    {
+      "subject": 16,
+      "n_trials": 400,
+      "log_contrast_mean": -3.0719498620392347,
+      "log_contrast_sd": 0.300063253187201,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 183,
+          "n_catch": 17,
+          "mean_occupancy": 0.31296246270443395,
+          "right_fraction": 0.5191256830601093,
+          "population_auc": {
+            "X1": 0.668598872790031,
+            "X2": 0.6086572308850556
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 177,
+          "n_catch": 23,
+          "mean_occupancy": 0.6815978466881879,
+          "right_fraction": 0.480225988700565,
+          "population_auc": {
+            "X1": 0.8143264621602683,
+            "X2": 0.6825233516831594
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7414626674751497,
+        "X2": 0.6455902912841075
+      }
+    },
+    {
+      "subject": 17,
+      "n_trials": 400,
+      "log_contrast_mean": -3.5275574105878116,
+      "log_contrast_sd": 0.17491546124115862,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 179,
+          "n_catch": 21,
+          "mean_occupancy": 0.2937997264963273,
+          "right_fraction": 0.5307262569832403,
+          "population_auc": {
+            "X1": 0.6600776855831121,
+            "X2": 0.6051168687495128
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 181,
+          "n_catch": 19,
+          "mean_occupancy": 0.7043233907589601,
+          "right_fraction": 0.4696132596685083,
+          "population_auc": {
+            "X1": 0.8176624265517874,
+            "X2": 0.6849562309634757
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7388700560674497,
+        "X2": 0.6450365498564943
+      }
+    },
+    {
+      "subject": 18,
+      "n_trials": 400,
+      "log_contrast_mean": -2.759646299511174,
+      "log_contrast_sd": 0.1432925518522616,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 183,
+          "n_catch": 17,
+          "mean_occupancy": 0.3743316751974948,
+          "right_fraction": 0.5245901639344263,
+          "population_auc": {
+            "X1": 0.6888421576176027,
+            "X2": 0.6205084695989652
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 177,
+          "n_catch": 23,
+          "mean_occupancy": 0.6704536855868767,
+          "right_fraction": 0.4745762711864407,
+          "population_auc": {
+            "X1": 0.8007025085194766,
+            "X2": 0.6772220436163537
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7447723330685396,
+        "X2": 0.6488652566076595
+      }
+    },
+    {
+      "subject": 19,
+      "n_trials": 397,
+      "log_contrast_mean": -3.803530482430976,
+      "log_contrast_sd": 0.11602061584016657,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 173,
+          "n_catch": 24,
+          "mean_occupancy": 0.5707879076013124,
+          "right_fraction": 0.5028901734104047,
+          "population_auc": {
+            "X1": 0.7707556290198005,
+            "X2": 0.6610427400122425
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 185,
+          "n_catch": 15,
+          "mean_occupancy": 0.4435447625003965,
+          "right_fraction": 0.5027027027027027,
+          "population_auc": {
+            "X1": 0.7172631999788368,
+            "X2": 0.6338116120881965
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7440094144993187,
+        "X2": 0.6474271760502195
+      }
+    },
+    {
+      "subject": 20,
+      "n_trials": 400,
+      "log_contrast_mean": -3.475923739151443,
+      "log_contrast_sd": 0.13705254708205947,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 182,
+          "n_catch": 18,
+          "mean_occupancy": 0.3296326692933128,
+          "right_fraction": 0.5,
+          "population_auc": {
+            "X1": 0.6670813512495657,
+            "X2": 0.6086200128331082
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 178,
+          "n_catch": 22,
+          "mean_occupancy": 0.7006947934098889,
+          "right_fraction": 0.5,
+          "population_auc": {
+            "X1": 0.8178402007459421,
+            "X2": 0.6864873495342549
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.742460775997754,
+        "X2": 0.6475536811836815
+      }
+    },
+    {
+      "subject": 21,
+      "n_trials": 400,
+      "log_contrast_mean": -3.4272048890287623,
+      "log_contrast_sd": 0.13238027439671932,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 183,
+          "n_catch": 17,
+          "mean_occupancy": 0.6838119399815439,
+          "right_fraction": 0.5081967213114754,
+          "population_auc": {
+            "X1": 0.8124352379620112,
+            "X2": 0.6838540163534409
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 177,
+          "n_catch": 23,
+          "mean_occupancy": 0.33848940954479123,
+          "right_fraction": 0.4915254237288136,
+          "population_auc": {
+            "X1": 0.6744343521130296,
+            "X2": 0.6110557360196447
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7434347950375204,
+        "X2": 0.6474548761865428
+      }
+    },
+    {
+      "subject": 22,
+      "n_trials": 400,
+      "log_contrast_mean": -3.7609007813008652,
+      "log_contrast_sd": 0.2629230387729551,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 184,
+          "n_catch": 16,
+          "mean_occupancy": 0.47485515300650843,
+          "right_fraction": 0.532608695652174,
+          "population_auc": {
+            "X1": 0.7356887120124601,
+            "X2": 0.6438154322151679
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 176,
+          "n_catch": 24,
+          "mean_occupancy": 0.5474471222133372,
+          "right_fraction": 0.4659090909090909,
+          "population_auc": {
+            "X1": 0.763733518721132,
+            "X2": 0.6546450434266978
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7497111153667961,
+        "X2": 0.6492302378209329
+      }
+    },
+    {
+      "subject": 23,
+      "n_trials": 400,
+      "log_contrast_mean": -3.3691572078266425,
+      "log_contrast_sd": 0.14043200089782829,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 183,
+          "n_catch": 17,
+          "mean_occupancy": 0.3836855470447332,
+          "right_fraction": 0.5136612021857924,
+          "population_auc": {
+            "X1": 0.690257298245407,
+            "X2": 0.6211299339861212
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 177,
+          "n_catch": 23,
+          "mean_occupancy": 0.6008527057580688,
+          "right_fraction": 0.4858757062146893,
+          "population_auc": {
+            "X1": 0.7701177281027635,
+            "X2": 0.6626258373769509
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7301875131740853,
+        "X2": 0.641877885681536
+      }
+    },
+    {
+      "subject": 24,
+      "n_trials": 400,
+      "log_contrast_mean": -3.7773225659275242,
+      "log_contrast_sd": 0.09794530248369314,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 181,
+          "n_catch": 19,
+          "mean_occupancy": 0.5468442109587716,
+          "right_fraction": 0.5469613259668509,
+          "population_auc": {
+            "X1": 0.7631986979646358,
+            "X2": 0.6592782873845465
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 179,
+          "n_catch": 21,
+          "mean_occupancy": 0.46488989676868075,
+          "right_fraction": 0.45251396648044695,
+          "population_auc": {
+            "X1": 0.7267520301868527,
+            "X2": 0.6355274107397689
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7449753640757443,
+        "X2": 0.6474028490621577
+      }
+    },
+    {
+      "subject": 25,
+      "n_trials": 400,
+      "log_contrast_mean": -2.908707934183635,
+      "log_contrast_sd": 0.22387237461328077,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 180,
+          "n_catch": 20,
+          "mean_occupancy": 0.4510756587484302,
+          "right_fraction": 0.46111111111111114,
+          "population_auc": {
+            "X1": 0.7242374773914219,
+            "X2": 0.6340363036956486
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 180,
+          "n_catch": 20,
+          "mean_occupancy": 0.5348137143961422,
+          "right_fraction": 0.5388888888888889,
+          "population_auc": {
+            "X1": 0.7626632328802824,
+            "X2": 0.6575273813061613
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7434503551358521,
+        "X2": 0.645781842500905
+      }
+    },
+    {
+      "subject": 26,
+      "n_trials": 400,
+      "log_contrast_mean": -2.980719953876029,
+      "log_contrast_sd": 0.28960391722730466,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 179,
+          "n_catch": 21,
+          "mean_occupancy": 0.2684482796471571,
+          "right_fraction": 0.5418994413407822,
+          "population_auc": {
+            "X1": 0.64687198084457,
+            "X2": 0.599625989398475
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 181,
+          "n_catch": 19,
+          "mean_occupancy": 0.7581600414084908,
+          "right_fraction": 0.4585635359116022,
+          "population_auc": {
+            "X1": 0.8389397849840139,
+            "X2": 0.6954215659710801
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7429058829142919,
+        "X2": 0.6475237776847775
+      }
+    },
+    {
+      "subject": 27,
+      "n_trials": 400,
+      "log_contrast_mean": -3.800311786888922,
+      "log_contrast_sd": 0.09997628660728015,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 179,
+          "n_catch": 21,
+          "mean_occupancy": 0.5332721041890195,
+          "right_fraction": 0.5139664804469274,
+          "population_auc": {
+            "X1": 0.7500242615843186,
+            "X2": 0.6522478298350971
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 181,
+          "n_catch": 19,
+          "mean_occupancy": 0.4983612380452136,
+          "right_fraction": 0.4861878453038674,
+          "population_auc": {
+            "X1": 0.7376803260100048,
+            "X2": 0.6437928405135286
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7438522937971617,
+        "X2": 0.6480203351743128
+      }
+    },
+    {
+      "subject": 28,
+      "n_trials": 400,
+      "log_contrast_mean": -3.6758032626425723,
+      "log_contrast_sd": 0.17213669797037282,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 179,
+          "n_catch": 21,
+          "mean_occupancy": 0.6999054862812483,
+          "right_fraction": 0.5083798882681564,
+          "population_auc": {
+            "X1": 0.8180713993582948,
+            "X2": 0.6869817389549883
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 181,
+          "n_catch": 19,
+          "mean_occupancy": 0.33101801367824274,
+          "right_fraction": 0.49171270718232046,
+          "population_auc": {
+            "X1": 0.6672485697827994,
+            "X2": 0.608301328537816
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.742659984570547,
+        "X2": 0.6476415337464021
+      }
+    },
+    {
+      "subject": 29,
+      "n_trials": 400,
+      "log_contrast_mean": -3.879314272689908,
+      "log_contrast_sd": 0.12978623157048136,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 184,
+          "n_catch": 16,
+          "mean_occupancy": 0.44671839318520445,
+          "right_fraction": 0.4782608695652174,
+          "population_auc": {
+            "X1": 0.713700994487554,
+            "X2": 0.6316168894187056
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 176,
+          "n_catch": 24,
+          "mean_occupancy": 0.5555759251087578,
+          "right_fraction": 0.5227272727272727,
+          "population_auc": {
+            "X1": 0.7564227814083799,
+            "X2": 0.6566831897137314
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7350618879479669,
+        "X2": 0.6441500395662185
+      }
+    },
+    {
+      "subject": 30,
+      "n_trials": 400,
+      "log_contrast_mean": -3.3973595713713665,
+      "log_contrast_sd": 0.23872762185726723,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 184,
+          "n_catch": 16,
+          "mean_occupancy": 0.3097647505445587,
+          "right_fraction": 0.5054347826086957,
+          "population_auc": {
+            "X1": 0.659342944449222,
+            "X2": 0.6048718101282758
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 176,
+          "n_catch": 24,
+          "mean_occupancy": 0.7019949814233722,
+          "right_fraction": 0.4943181818181818,
+          "population_auc": {
+            "X1": 0.8147985896398507,
+            "X2": 0.6853904284133813
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7370707670445364,
+        "X2": 0.6451311192708286
+      }
+    },
+    {
+      "subject": 31,
+      "n_trials": 400,
+      "log_contrast_mean": -3.607779275079959,
+      "log_contrast_sd": 0.11480819255322931,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 177,
+          "n_catch": 23,
+          "mean_occupancy": 0.41899091559425766,
+          "right_fraction": 0.4632768361581921,
+          "population_auc": {
+            "X1": 0.7085502992149509,
+            "X2": 0.6266675463582162
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 183,
+          "n_catch": 17,
+          "mean_occupancy": 0.5608986903674752,
+          "right_fraction": 0.5355191256830601,
+          "population_auc": {
+            "X1": 0.7699174992601868,
+            "X2": 0.6618349461963858
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7392338992375689,
+        "X2": 0.644251246277301
+      }
+    },
+    {
+      "subject": 32,
+      "n_trials": 400,
+      "log_contrast_mean": -3.201937786374318,
+      "log_contrast_sd": 0.22749078417217125,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 177,
+          "n_catch": 23,
+          "mean_occupancy": 0.2726766302838359,
+          "right_fraction": 0.5141242937853108,
+          "population_auc": {
+            "X1": 0.6462745731150165,
+            "X2": 0.5981853633005991
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 183,
+          "n_catch": 17,
+          "mean_occupancy": 0.7452618216660218,
+          "right_fraction": 0.48633879781420764,
+          "population_auc": {
+            "X1": 0.834171523725041,
+            "X2": 0.6945108967773002
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7402230484200287,
+        "X2": 0.6463481300389496
+      }
+    },
+    {
+      "subject": 33,
+      "n_trials": 400,
+      "log_contrast_mean": -3.5209710346261387,
+      "log_contrast_sd": 0.09830058412489465,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 179,
+          "n_catch": 21,
+          "mean_occupancy": 0.4260227717995147,
+          "right_fraction": 0.5418994413407822,
+          "population_auc": {
+            "X1": 0.7099542428281066,
+            "X2": 0.6324220768207649
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 181,
+          "n_catch": 19,
+          "mean_occupancy": 0.5681846403212548,
+          "right_fraction": 0.4585635359116022,
+          "population_auc": {
+            "X1": 0.7634917090732191,
+            "X2": 0.656056551393557
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7367229759506628,
+        "X2": 0.644239314107161
+      }
+    },
+    {
+      "subject": 34,
+      "n_trials": 400,
+      "log_contrast_mean": -3.520319093733061,
+      "log_contrast_sd": 0.11112611585264098,
+      "halves": [
+        {
+          "blocks": [
+            1,
+            2
+          ],
+          "n_present": 180,
+          "n_catch": 20,
+          "mean_occupancy": 0.47359391695512015,
+          "right_fraction": 0.5277777777777778,
+          "population_auc": {
+            "X1": 0.736164941733315,
+            "X2": 0.6435474018307922
+          }
+        },
+        {
+          "blocks": [
+            3,
+            4
+          ],
+          "n_present": 180,
+          "n_catch": 20,
+          "mean_occupancy": 0.5219881761966186,
+          "right_fraction": 0.4722222222222222,
+          "population_auc": {
+            "X1": 0.746604466026232,
+            "X2": 0.6477215376602247
+          }
+        }
+      ],
+      "recording_mean_auc": {
+        "X1": 0.7413847038797735,
+        "X2": 0.6456344697455084
+      }
+    }
+  ],
+  "source_sha256": {
+    "synthetic.py": "4953dbd2bc57f0874b0d66e6a45dd71450153a5dc6302c422f5111ef597bfb3c",
+    "battery.py": "61c19e012929fffeb3c6cf9c13a8e6faf258ae376829a8712367da8dfd3287a4",
+    "decoder.py": "b3a771b659dbdce9590321ffb484d372f184752e70a7cb7cdbc50d62d17336b8",
+    "likelihood.py": "a142dd8cef9dc65ca6880192a400b06547ce7af8ec24a27f246ef04a8dbb2b2c",
+    "results/trials_all.csv": "5d133bdfd81291a4ee9a80c2b2b8a8010bfac33c3b4d94e14feb4e0fb98f5ec7"
+  }
+}
