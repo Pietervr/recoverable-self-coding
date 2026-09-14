@@ -4,9 +4,13 @@
 `2026-09-14_fitter_start_recipe_codex_brief.md`, initially RSC `f6a4c93`, with its
 accepted cost correction at `6518219`.
 
-**In progress: primary CSV and archive selection checks completed; integration
-and final six-question response still owed.** The numerical evidence checkpoint
-below updates the provisional design assessment. Codex owns this review and supporting
+**FINAL: accept the per-member development direction; do not adopt the proposed
+counts as a validated production recipe yet.** The archive supports M3H +16 wide
+and M2H +64 narrow as candidates, with inner fits included. It does not support
+the claims that seed effects are eliminated, the nested decision is unchanged,
+or M2S needs no additional search. Complete the bounded M3H search check and
+compare the selected policy through the actual nested procedure before adoption.
+Codex owns this completed review and supporting
 evidence. Claude retains production, protocol, execution, manuscript and R052
 front matter. No fits, simulations, cloud actions or production edits were run.
 
@@ -20,8 +24,10 @@ Dropbox. All package and archive checksums pass. Independent stdlib verification
 is saved in `2026-09-14_fitter_evidence_checks.py` and its JSON output; it imports
 no numerical model and runs no fitting. It reconstructs every archived prefix
 selection and aggregates both CSVs. Held-out evaluations have not been re-run.
-No final review reply has been sent. The draft must be integrated with §6 before
-being marked complete.
+The completion supplement, `2026-09-14_review_completion_checks.py` and its JSON,
+examines the remaining M2S case and cost alternatives without repeating the
+completed full verifier. The evidence package is pinned at `06a625e`; no transfer
+remains outstanding.
 
 The procedure compares two families through nested concept cross-validation.
 Every member is fitted in every inner fold; inner held-out scores choose each
@@ -76,7 +82,10 @@ M3H +16 wide and M2H +64 narrow are defensible candidates on the reported
 evidence, not yet a validated final prescription. The cheap-member union is a
 reasonable training-search default for M2B, M2K, M3, M3V and M3L. M2S requires a
 separate budget and decision: it is not cheap (about 7.93 seconds per added outer
-start). Calling the union conservative refers only to the training search:
+start), and its one miss required a late narrow start (§6). Compare cold-only
+with +64 narrow as explicit M2S development candidates; do not call cold-only
+adequate from the zero misses in the balanced subset. Calling the union
+conservative refers only to the training search:
 it does not guarantee conservative false-positive rates or better prediction.
 M3V on M2S omega 2 deserves explicit reporting because the rare losses are large.
 The report establishes zero misses for certain added batches, not for every
@@ -104,7 +113,11 @@ The totals implied by this proposal are:
 |---|---:|---:|
 | M3H | 20 | 24 |
 | M2H | 68 | 72 |
-| Cheap-member union, excluding any extra skew starts | 84 | 88 |
+| M2B, M2K, M3, M3V, M3L: +64 narrow and +16 challenge | 84 | 88 |
+
+For M2K the four fixed skew vectors replace four of the sixteen challenge starts;
+there are twelve wide jitter starts after them. M2S is deliberately unresolved
+in this table, pending the separate cost/performance comparison.
 
 `analyze.layer_pipeline` makes four inner fits and one outer refit for each
 member in each of five outer folds. All outer members are fitted, including
@@ -121,16 +134,19 @@ freeze the extra batch and the reporting rule before running it. It is a search
 curve check, not proof of saturation. It can use the balanced existing units for
 development, while independent datasets remain necessary for later validation.
 
-Use the existing archive first for the unresolved member-by-size tables, paired
-miss transitions, gap tails, held-out gains and losses, exact union candidate,
-M2H prefix curve and separate M2K challenge. If the claim is specifically a width
-effect, a bounded comparison using the same standardized perturbations at both
+The existing archive supplies the member-by-size tables, paired miss transitions,
+gap tails, reported held-out gains and losses, M2H prefix curve and separate
+M2K challenge; they are saved in the evidence JSON. The full archive union has
+zero training regret against itself by construction. If the claim is specifically
+a width effect, a bounded comparison using the same standardized perturbations at both
 widths across more than one independent batch is cleaner than another unmatched
 seed. The M3H check alone does not establish the other members or the full assay.
 
 Before final adoption, check the chosen policy through the actual nested
 selection path, including near-boundary mixture alternatives, and benchmark that
-path on the intended machine. The reported zero sign changes use an outer-size
+path on the intended machine. Report coverage, false-positive rate, power and
+failure frequency with Monte Carlo uncertainty on independent validation seeds.
+The reported zero sign changes use an outer-size
 proxy, not all inner selections, interval endpoints or the four-way outcome rule.
 It cannot establish that the confirmatory decision is unaffected. None of these
 new fits is authorized or launched by this review.
@@ -161,7 +177,10 @@ outer fit in each of five folds gives 47,796 s versus 5,766 s on this PC timing
 basis, about 8.29 times; this is an extrapolation across sizes/folds, not a new
 pipeline benchmark. It cannot be applied to the 15.3-minute Mac resample figure.
 The M2S correction is accepted in the brief at `382e7bb`; a final M2S recipe is
-not yet established. Re-cost all members, inner fits, compilation, recovery,
+not yet established. Keeping M2S cold-only would reduce this candidate to
+2,169.195 s outer and 35,945.467 s per nested layer, still 6.234 times the cold
+baseline on the same extrapolated PC basis. That is a cost alternative, not an
+endorsement of cold-only M2S. Re-cost all members, inner fits, compilation, recovery,
 layers, readouts and the original analysis on the intended machine.
 
 **An adopted amendment must apply to confirmation and to validation of its
@@ -185,7 +204,7 @@ not establish that this more expensive recipe fixes the undercoverage. Cost a
 bounded development and validation plan under the standing USD 3,000 cap before
 new spending; the existing owner and launch approvals are unchanged.
 
-## 6. Primary evidence checkpoint — 14 September, before the 81% wrap
+## 6. Evidence, limitations and the remaining M2S case
 
 The verifier independently confirms 1,536 unique fits, 96 units, 161 misses at
 training gap > 0.5 nat, no nonfinite fit scores and a converged cold winner in
@@ -231,9 +250,20 @@ M2K's wide label means the mixed skew/wide batch above. M3H's two narrow
 and 2 newly missed, inner 2 rescued and 1 newly missed. Thus equal aggregate
 misses do not establish seed irrelevance. M3V still misses 4/128 with the first
 16 narrow starts; the zero applies to the second 16 narrow, 16 wide and 32/64
-narrow candidates, not to every extra draw. M2S's one full-audit miss lies
-outside the balanced block and must be examined before calling no extra starts
-a validated prescription.
+narrow candidates, not to every extra draw.
+
+M2S's one full-audit miss is now examined: M2S omega 2, rep 1, seed 500001,
+inner size (38 training concepts). All four cold starts converged, but the
+training gap is 27.485347 nat, with a reported held-out improvement of
+0.003273525 nat/trial. This unit has a per-start archive. Its only start within
+0.5 nat of the best is narrow index 59 (the 60th added narrow start); +8, +16,
++32 narrow, both second narrow batches, +16 wide and the mixed prefixes still
+miss. +64 narrow recovers it. It is outside the balanced block, so it remains a
+separate case, not silently pooled into that comparison. The claim "M2S needs
+no added starts" is unsupported, as is a claim that a small extra batch fixes
+this case. Its frequency and practical effect need the declared paired
+development comparison; one case does not establish the value of always paying
+for eighty added starts.
 
 Zero outer-oracle proxy sign changes reproduces for all 96 audit units and for
 all eleven prefixes on the 64 balanced units. The proxy explicitly chooses the
@@ -253,11 +283,24 @@ relative to the raw fit winner in 790/1,120 reference sets and 484/1,120 cold
 sets. The prefix/raw-audit held-out differences reach 1.30e-5 nat/trial for cold
 and 8.53e-5 for references. These differences combine rounding and changed tie
 selection; they are not a demonstrated pure theta-rounding bound. Held-out
-evaluation itself has not yet been independently re-executed. Retain full
-precision and deterministic ties in the amended archive. Finish assessing
-these limits and integrating §§1–6 before delivering the final review.
+evaluation itself was not independently re-executed. This completed opinion
+therefore relies on source inspection, verified training selections and
+arithmetic over the supplied held-out scores, not an independent numerical
+replication of the held-out likelihood evaluator. That limit does not prevent
+the bounded development disposition, but the rounded archive cannot certify
+full-precision or bitwise reproduction. Retain full precision and deterministic
+ties in the amended archive.
 
-The development direction is reasonable. The outstanding evidence, bounded
-search check and matched-procedure validation separate that judgment from final
-adoption. This review does not reopen Melcon review 5, authorize EEG or a freeze,
-or change the completed publication receipts.
+The six requested answers are thus: (1) prefix evidence is adequate for candidate
+development, with the reference/precision/proxy limits above; (2) declared
+member-specific rules are valid, with M2S separated from the cheap union;
+(3) include inner search and match the complete original/bootstrap/reference
+policy; (4) require the bounded M3H 16-to-32-wide check at both sizes and the
+actual nested, independent-seed validation before final adoption; (5) apply any
+adopted amendment to both confirmation and its interval/target validation,
+with a measured machine budget; (6) correct the reference count, seed claim,
+outer-oracle proxy interpretation, overwritten Delta summaries, trigger and
+precision claims. The archive delivery and review are complete; those future
+development and validation runs have not been authorized or executed here.
+This review does not reopen Melcon review 5, authorize EEG or a freeze, or change
+the completed publication receipts.

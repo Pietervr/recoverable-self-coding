@@ -1,71 +1,227 @@
-# Codex review checkpoint — Melcon v5 calibration and proposed v6
+# Codex second opinion — Melcon v5 calibration and proposed v6
 
-14 September 2026. **IN PROGRESS; no verdict or launch approval delivered.**
-Requested by Claude Entropy SI at 12:25 PDT, brief `1253dfc`. Codex owns this
-review/evidence; Claude retains production, protocol, execution and manuscript.
-Stage C stays held. No calibration, decoder fit, family fit or EEG run was made
-for this checkpoint.
+14 September 2026. Requested by Claude Entropy SI at 12:25 PDT, brief `1253dfc`.
+**FINAL: accept v6 as a bounded, family-outcome-blind development revision,
+subject to the concrete requirements below. Stage C remains held pending the
+implemented revision, its checks and its calibration result.** This is a design
+disposition, not evidence that calibration or the X1 control will pass. Codex owns
+this review/evidence; Claude retains production, protocol, execution, manuscript
+and the R052 front matter. No model import, calibration, decoder fit, family fit,
+simulation, EEG run or production edit was made for this review.
 
-Read the full requested brief, current `melcon_port/battery.py`, `synthetic.py`,
-the complete v5 calibration JSON, namespace manifest, benchmark JSON and the
-relevant full protocol. The completed review 5 (`3f92a64`) remains the prior
-design assessment; this is the new requested calibration revision review.
+Read the full requested brief, `melcon_port/battery.py`, `synthetic.py`, the
+complete v5 calibration JSON, namespace manifest, benchmark JSON and the full
+`PREREG_secondary_melcon.md`, including §§6–9. The completed review 5 (`3f92a64`)
+remains the prior design assessment; this record answers the five newly requested
+calibration questions. The independent stdlib readback is
+`2026-09-14_review_completion_checks.py` with its adjacent JSON. It verifies the
+ten saved entries and their flags, records source/input SHA-256s, reproduces
+namespace `v5-7fcb46729408`, confirms its seven covered source files still match,
+and derives the cost and target arithmetic. It does not rerun the decoder.
 
-The system calibrates a generator-specific sensor amplitude using the median
-across fixed recording templates of each recording's mean decoder AUC across
-halves and main windows. Stage C then draws fresh synthetic recordings and
-applies the complete family-outcome rule. Presence-decoder AUC is a calibration
-quantity; it is not a guarantee of mixture identification or of the X1 outcome.
+The system chooses a generator-specific sensor amplitude using the median across
+fixed recording templates of each recording's mean decoder AUC across two halves
+and ten main windows. Stage C draws fresh synthetic recordings and applies the
+complete family-outcome rule. Presence-decoder AUC calibrates the readout; it
+does not guarantee mixture identification or the X1 family outcome.
 
-## Findings to finish and substantiate
+## 1. Revised strength and the X1 positive control
 
-- The JSON has **eight accepted cells and two unusable cells**, X1 strong and
-  X2 weak. Three accepted strong cells (G2, G3, X2) have
-  `grid_reaches_target=false`. X1 strong check is 0.679919 against 0.719470;
-  X2 weak 0.633010 against 0.573791. Verify these in a small stdlib evidence
-  script and pin only review-owned evidence, preserving the original namespace.
-- A finite-amplitude, two-draw mean at 6.4 is an empirical reference, not a
-  demonstrated attainable ceiling. The two values per generator give a noisy
-  discrepancy, not an estimated noise SD or proof acceptance is mostly chance.
-  q=0.8 does not prove the selected amplitude is below a flat shoulder. The
-  revisions can still be justified as family-outcome-blind development.
-- Using all 34 fixed templates with independent reach/calibration/check/stage-C
-  seed streams is a defensible conditional development design. It does not
-  establish generalization to unseen templates. Do not claim halved median
-  spread from sample-size arithmetic; per-template values and repeated draws
-  are needed to measure Monte Carlo uncertainty.
-- Clarify the tolerance as a declared engineering target, not a confidence
-  interval. With q=.5/.8, target separation is .3(R-.5). At X2's reported
-  R≈.596, that is only .0288; two ±.03 acceptance bands overlap extensively.
-  At X1 R≈.7051, proposed strong is ≈.6641, not guaranteed adequate for mixture
-  recovery. Preserve X1 strong as a meaningful *test* rather than promise it
-  will pass. Check the §8 AUC=.55 sensitivity gate, especially X2 weak near .548.
-- Require a finite interior bracket, a declared interpolation/refinement rule
-  and a final independent check. The current `_interpolate` returns an endpoint
-  even when the grid never crosses the target. The current calibration reuses
-  the same check seed after refinement; account for this adaptation or reserve
-  a new terminal check draw. Keep attempts bounded and all results retained.
-- `calibration_statistic` skips non-ok decoders and uses nanmean. The v6 rule
-  needs a declared fixed cohort and explicit failure/finite-value accounting;
-  otherwise a reported 34-template calibration can silently use fewer values.
-- Fold in the G2 integration fix, accurate unadjusted-contrast naming,
-  BMS/environment identity and payload integrity now in a new namespace, with
-  focused checks. Preserve v5 bytes. These changes do not require another CV
-  redesign. Ensure updated dependencies/source identity is verified by the
-  actual execution process and launcher.
-- Cost arithmetic: base 340 reach + 3,060 calibration/check = 3,400 calls;
-  maximum 340 + 5,100 = 5,440. At assumed 11.6 seconds, 10.96–17.53 core-hours.
-  The existing benchmark explicitly ASSUMES 11 seconds decoder time; it does
-  not measure a decoder-only call. At two processes the range is 5.5–8.8 hours,
-  at three 3.7–5.8 before contention. Stage C's ~11.24 core-hour projection is
-  additional. Any extra check/repeat plan changes this budget. No work launched.
+**Accept the definition** T(g,q) = 0.5 + q(R_g - 0.5), q = 0.5 and 0.8, with
+R_g explicitly the mean of two independently seeded 34-template calibration
+statistics at the fixed amplitude 6.4, without drift. Use the same fixed template
+cohort and aggregation for reach, search and check. R_g and every contributing
+AUC must be finite and in [0,1]; R_g <= 0.5 supplies no positive headroom and
+makes that generator's calibration unusable. Save both reach statistics, their
+per-template values and their disagreement; freeze R_g before searching either
+strength. The 6.4 point in the calibration grid must use the calibration seed,
+not the reach draw. Stage C uses a separate seed namespace again.
 
-Scientific guidance checked: Morris, White and Crowther (2019), ADEMP and Monte
-Carlo uncertainty, [primary paper](https://doi.org/10.1002/sim.8086). PMC's current
-open hit a browser challenge; primary indexed text and the earlier verified
-read establish these limited methodological points. Do not attribute the
-specific design recommendations above to that paper.
+Call R_g an **empirical finite-amplitude reference**. Two values at 6.4 do not
+establish an attainable ceiling or a noise SD. Their observed disagreement
+supports checking repeatability, but not the claim that acceptance is mostly
+chance. Nor does q = 0.8 establish that the chosen amplitude lies below a flat
+shoulder. Continue reporting the latent-ranking reference separately, accurately
+scoped for G3 and with G2's numerical correction.
 
-Finish the five-question response, concrete bounded design disposition and
-cost/verification limits, commit the review paths, append R052's log only, then
-send the requested xs reply. No completion message has been sent.
+The v5 evidence does justify a documented development revision: eight cells were
+accepted and two unusable; three acceptances lacked a grid crossing. The two-draw
+means at 6.4 all lie below the v5 strong targets, but G1 strong's own calibration
+draw crosses its target and its check passes. Do not turn the averaged observation
+into an impossibility claim about every strong cell.
+
+| Saved v5 cell | Target | Final check | Disposition |
+|---|---:|---:|---|
+| X1 strong | 0.719470 | 0.679919 | Unusable after refinement to amplitude 8.0 |
+| X2 weak | 0.573791 | 0.633010 | Unusable after refinement |
+| G2 strong | 0.755536 | 0.756998 | Accepted without grid crossing |
+| G3 strong | 0.704323 | 0.679679 | Accepted without grid crossing |
+| X2 strong | 0.632825 | 0.612456 | Accepted without grid crossing |
+
+The other five cells pass their saved rule with a grid crossing. Keep all ten
+v5 entries and their namespace unchanged.
+
+X1 strong at about 0.664 is a meaningful positive-control **test** of this
+pipeline at the revised readout strength. The exact illustrative value from the
+v5 eight-template reference 0.705078 is 0.664062; the v6 34-template reference
+has not been measured. The latent separation remains 2 SD, but the decoder,
+single-block likelihood training and model comparison can still fail to identify
+it. Keep the declared X1 strong pass criterion, both drift conditions and the
+complete-cell requirement. Do not promise recovery, or change q, separation or
+CV in response to its future family outcome without a new recorded revision.
+
+## 2. Templates, independence and tolerance
+
+**Use all 34 fixed templates**, with independent reach, calibration, check and
+stage-C noise/latent seed streams. This directly develops the procedure
+conditional on the actual template ensemble and avoids changing the small
+calibration cohort between phases. A disjoint template split would answer a
+different question about transport to unseen templates and reduce each cohort;
+it is not needed for this declared conditional development task. Repeating the
+first eight templates measures repeatability on those eight, not coverage of
+the other twenty-six. Generalization to unseen templates remains untested.
+
+Retain the median of per-recording means and the equal weighting of halves and
+windows. Do not pool all trials into an AUC or take the median of pooled draws
+without explicitly changing that estimand. Common random numbers across
+amplitudes within the calibration phase are useful for the search curve; the
+other phases must use disjoint tags. Freeze the phase/generator/strength/draw/
+subject seed map and archive the effective subject list and template digests.
+
+**Retain ±0.03 as the declared development tolerance for this bounded attempt.**
+It is neither a confidence interval nor a demonstrated calibration precision.
+There is no evidence yet to promise halved spread for the median after moving
+from eight to 34 templates; the square-root sample-size argument does not
+establish it. Save all per-template, half and main-window AUCs, actual cohort
+counts, both reach draws and every check. Report the realized reach and check
+disagreements; do not estimate noise SD from a single difference. Do not widen
+the tolerance, average extra favourable checks or retry until accepted.
+
+The weak/strong labels denote requested headroom fractions, not proven separated
+readout levels. The target gap is 0.3(R_g - 0.5). For the illustrative X2
+reference 0.596293 it is only 0.028888, so two ±0.03 bands overlap by 0.031112;
+the weak target 0.548147 is near §8's 0.55 sensitivity threshold. Report the
+achieved weak/strong statistics and their difference, explicitly flagging a
+reversal or a separation unresolved at this tolerance. Retain the labels for
+traceability, but do not count such a result as demonstrating two distinct
+strengths. X2 remains the reported stress condition; its weak cell can end in
+insufficient sensitivity. The calibration median of window means also differs
+from §8's per-window sensitivity gate, so 0.548 does not determine that outcome.
+Do not move either gate to force a desired result. Claims requiring resolved
+strength levels or precise calibration would need a separately costed repeat
+design; they are not part of this bounded acceptance.
+
+Every nominal 34-template statistic must actually contain all 34 recordings,
+both halves and all ten main-window AUCs (680 finite entries). The current
+`calibration_statistic` silently skips non-ok decoders and uses `nanmean`; replace
+that with explicit completeness and finite-value checks. A failed or incomplete
+draw is recorded as such and cannot be used for calibration acceptance. It must
+not silently change the cohort or become a favourable NaN-dropping median.
+
+## 3. Interior brackets, refinement and the terminal check
+
+**Require an interior crossing, not just a finite returned amplitude.** On the
+declared grid, identify the first ascending adjacent pair with finite statistics
+s(lo) < target <= s(hi), and amplitudes 0.2 <= lo < hi < 6.4.
+Use its fixed linear interpolation rule. If the statistic at the lowest
+amplitude already meets or exceeds the target, the target is never reached
+below the top, or the required values are
+nonfinite, report no usable bracket. The current `_interpolate` can return an
+endpoint without a crossing and does not enforce these contracts; that fallback
+must not confer acceptance. Show the whole curve and flag nonmonotonicity;
+do not choose a later favourable crossing.
+
+Permit at most the one declared local refinement with at most five points.
+Predeclare its locations, rounding, reuse of identical points and clipping to
+the fixed amplitude range. Refined acceptance still needs an interior crossing;
+do not extend the range above 6.4 or invent a starting amplitude from a missing
+bracket. Retain every attempted value and the reason refinement was invoked.
+
+A candidate selected from the calibration phase receives a fresh check draw.
+If that first check fails and triggers the permitted refinement, the final
+candidate must receive a **new terminal check seed**, independent of both search
+and first check. Current `calibrate` reuses draw 1 after refinement; the first
+check has already influenced selection, so that repeated draw is not a fresh
+validation. No-refinement acceptance can use the first independent check;
+after refinement, pass/fail uses only the new terminal check and then stops.
+Changing that seed costs no extra calls beyond the brief's existing two-check
+maximum. Neither a terminal miss nor an unusable bracket licenses further
+retargeting. Preserve all rejected attempts.
+
+## 4. Numerical corrections and the v6 identity
+
+**Fold the review-5 items into v6 now.** New calibration code already requires a
+new namespace; postponing these corrections would create another avoidable
+identity change. Implement the trapezoidal G2 CDF with a focused precision check
+against the already established reference, accurate unadjusted high/low readout
+contrast naming, the imported BMS source and numerical/runtime dependencies in
+the identity, and payload checksum plus schema/completeness verification on
+reuse. v5 stays the historical computation, including its approximation.
+
+Bind reach, calibration, amplitudes, generator specification, seeds, templates,
+source hashes, runtime versions and effective numerical thread settings to the
+new namespace and each result. Verify identity in the actual execution process,
+not only a launcher that can become stale while modules change. Do not silently
+reuse v5 entries in v6. The §9 prose that defers the G2 fix until after stage C
+must change with the new implementation. This is a scoped identity/calibration
+revision, not another decoder/CV redesign or a reopening of the completed review.
+
+Before release to calibration, Claude should check the bracket/endpoint cases,
+nonfinite or missing cohort values, first versus terminal seed separation,
+bounded stopping, G2 precision, v5 preservation, and refusal of mismatched or
+damaged v6 results. These are required implementation checks, not tests run by
+this review. Stage C follows only after the implemented revision and calibration
+record have been assessed under the standing approvals. A required graded or
+X1-strong calibration marked unusable cannot establish whole-battery success;
+diagnostic cells stay visibly diagnostic.
+
+## 5. Bounded cost and final disposition
+
+The brief's arithmetic is correct with its stated eight grid points and no
+unbudgeted extra draws:
+
+| Component | Generated decoder calls |
+|---|---:|
+| Reference: 5 generators × 2 draws × 34 templates | 340 |
+| Ten cells, 8 grid points + 1 check | 3,060 |
+| Ten cells, 8 grid + up to 5 refinement + 2 checks | 5,100 |
+| Total, including reference | 3,400–5,440 |
+
+At the assumed 11.6 s per generated decoder call, this is **10.96–17.53
+core-hours**. Ideal wall time is 5.48–8.76 h at two workers, or 3.65–5.84 h at
+three, before contention; "5–7 hours" is not the full range. The benchmark
+explicitly assumes 11 s of decoder time and measures 0.638 s of generation and
+19.201 s for a complete recording pipeline. It does not measure decoder-only
+time. Its stored 720-call calibration estimate predates this proposal and does
+not price v6. The projected 2,040-recording stage C costs about **11.24 further
+core-hours**, excluding group BMS, common-cohort reruns and sensitivities.
+
+Use the first planned reference draw to measure generation, decoding, peak
+memory and shared-machine elapsed time before increasing concurrency; retain
+it as calibration input only under the final identity and planned seed. One
+worker initially, at most two low-priority calibration processes after that
+measurement supports it, with effective single-threaded numerics. Eleven probe
+workers already occupy this Mac; low priority is not a guarantee of spare
+capacity. A third process needs evidence that it improves total throughput
+without unacceptable interference. Claude owns scheduling and execution; this
+review neither starts a pilot nor changes the probe.
+
+Keep the 5,440-call ceiling for the proposed revision. Every extra all-cell
+check draw or grid point adds 340 calls, about 1.10 assumed core-hours; extra
+precision/repeat plans must be costed before extending the attempt. This is a
+Mac development recommendation, not a new cloud or spending authorization.
+
+The five answers are: (1) accept the empirical-reference strength and retain X1
+as a meaningful unproven control; (2) use all 34 fixed templates with independent
+phases and retain ±0.03 with the limits and completeness rule above; (3) require
+the interior bracket and independent terminal check; (4) make the numerical
+and identity corrections in v6 now; (5) bound calls and concurrency, retain v5,
+and inspect implementation/calibration evidence before stage C. No new family
+outcome or successful calibration is asserted.
+
+Methodological basis: Morris, White and Crowther (2019) recommend specifying
+simulation aims, generating mechanisms, estimands, methods and performance
+measures, and reporting Monte Carlo uncertainty
+([primary paper, DOI 10.1002/sim.8086](https://doi.org/10.1002/sim.8086)). The
+specific recipe, tolerance and budget above are this review's judgments, not
+requirements prescribed by that paper.
