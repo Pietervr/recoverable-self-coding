@@ -1,0 +1,373 @@
+{
+  "utc": "2026-09-15T05:50:49.045167+00:00",
+  "repository_head": "c51aab031ec1d63db691fe157136d4163d22e0a1",
+  "review_driver_sha256": "2c6493417b1c20b3ff9b9cf8daeef374a765641334798e6ea3e1254b5ba159b4",
+  "source_sha256": {
+    "workspace_demo/melcon_port/synthetic.py": "bc393b2d8b167e1d50f7c17a0341bdc26ef522c53fcd8c591c05410deaedfbf9",
+    "workspace_demo/melcon_port/battery.py": "f2519afb1dc6474af9baf2d456c8bc58d282d739af892795c8e5919ed0dcf609",
+    "workspace_demo/melcon_port/decoder.py": "b3a771b659dbdce9590321ffb484d372f184752e70a7cb7cdbc50d62d17336b8",
+    "workspace_demo/melcon_port/likelihood.py": "a142dd8cef9dc65ca6880192a400b06547ce7af8ec24a27f246ef04a8dbb2b2c",
+    "workspace_demo/melcon_port/recording.py": "d471837a489a7dfc67b44092dd1b2d130e91c8cc40e5546e0d87ee55703f2ae8",
+    "workspace_demo/melcon_port/group.py": "7daeae94b25c0f12b463dd21f1c6614ac57135c7005bee6178dd1e633068ecfa",
+    "workspace_demo/melcon_port/inclusion.py": "3be370b2c7cc14bd3fa0eb7d6c5ffc896dc54503f0db97bce60d9807b6db6aac",
+    "workspace_demo/melcon_port/stage_c_launch.py": "27ace1c2ee4f1be596d9a954c51be7e983e6dfec35e9b8a45e477e5103c352ce",
+    "workspace_demo/melcon_port/test_battery.py": "b240e8ec9766ec0cf94867cd4c3b23fc7faaf22a6202809d31c651fcd1c80d05",
+    "workspace_demo/melcon_port/PREREG_secondary_melcon.md": "833cb87bc0c808abd510c14ca906c24df9d8c2af3d4c2dd545ca672b8f30925a",
+    "workspace_demo/melcon_port/README.md": "9418665a21586c8fe633cdd26b1317f71436ed94dab467aae301f28ae8d75e42",
+    "workspace_demo/sergent_port/bms.py": "6d48a893977e6c71380223f19e70d5fcd95f076eccfa0b8332aada1db1717611",
+    "workspace_demo/melcon_port/results/trials_all.csv": "5d133bdfd81291a4ee9a80c2b2b8a8010bfac33c3b4d94e14feb4e0fb98f5ec7"
+  },
+  "calibration_evidence_sha256": "00f10a1da8964f7bcdd88d869a4657fe48a68a68a619c805e47783927013dd12",
+  "checks": [
+    {
+      "name": "check_seed_map",
+      "passed": true,
+      "wall_seconds": 0.0010159580124309286,
+      "result": 3401
+    },
+    {
+      "name": "check_statistic_completeness",
+      "passed": true,
+      "wall_seconds": 0.0022476669983007014,
+      "result": null
+    },
+    {
+      "name": "check_bracket",
+      "passed": true,
+      "wall_seconds": 0.00011258300219196826,
+      "result": null
+    },
+    {
+      "name": "check_reach_and_search",
+      "passed": true,
+      "wall_seconds": 0.0371837080019759,
+      "result": null
+    },
+    {
+      "name": "check_strength_resolution",
+      "passed": true,
+      "wall_seconds": 2.6291003450751305e-05,
+      "result": {
+        "G1": {
+          "reach": 0.75,
+          "target_weak": 0.625,
+          "target_strong": 0.7,
+          "target_gap": 0.07499999999999996,
+          "bands_overlap": false,
+          "check_weak": 0.63,
+          "check_strong": 0.62,
+          "achieved_difference": -0.010000000000000009,
+          "reversal": true,
+          "both_accepted": true,
+          "resolved": false
+        },
+        "G2": {
+          "status": "reach missing"
+        },
+        "G3": {
+          "reach": 0.8,
+          "target_weak": 0.65,
+          "target_strong": 0.74,
+          "target_gap": 0.08999999999999997,
+          "bands_overlap": false,
+          "check_weak": 0.64,
+          "check_strong": 0.74,
+          "achieved_difference": 0.09999999999999998,
+          "reversal": false,
+          "both_accepted": true,
+          "resolved": true
+        },
+        "X1": {
+          "status": "reach missing"
+        },
+        "X2": {
+          "reach": 0.596293,
+          "target_weak": 0.5481465,
+          "target_strong": 0.5770344,
+          "target_gap": 0.028887899999999966,
+          "bands_overlap": true,
+          "check_weak": 0.56,
+          "check_strong": 0.575,
+          "achieved_difference": 0.014999999999999902,
+          "reversal": false,
+          "both_accepted": true,
+          "resolved": false
+        }
+      }
+    },
+    {
+      "name": "check_verdicts",
+      "passed": true,
+      "wall_seconds": 2.941599814221263e-05,
+      "result": null
+    },
+    {
+      "name": "check_stores_and_provenance",
+      "passed": true,
+      "wall_seconds": 0.6555205409968039,
+      "result": 6
+    },
+    {
+      "name": "check_v5_preserved",
+      "passed": true,
+      "wall_seconds": 0.09663620800711215,
+      "result": "v5 namespace calibration.json and manifest.json unchanged (SHA-256)"
+    }
+  ],
+  "mocked_test_stdout": "namespace /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/melcon-v6-dispatch-3jyr3jzt/v6-9136c2ecdd59\nnot run (calibration not usable, no amplitude; diagnostic): [('X1', 'strong')]\n",
+  "real_generation_decoder_pipeline_guard_calls": [
+    0,
+    0,
+    0
+  ],
+  "parent": {
+    "pid": 90739,
+    "executable": "/Users/pietervanrooyen/Recoverable-Self-Coding/.venv/bin/python",
+    "identity_digest": "ebaddf98807b3a06642e35315b67be74cc101382240a45d4d1fdc01072a8d021",
+    "runtime": {
+      "python": "3.14.6",
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "sklearn": "1.9.1",
+      "pandas": "3.0.5",
+      "joblib": "1.6.0",
+      "bms_sha256": "6d48a893977e6c71380223f19e70d5fcd95f076eccfa0b8332aada1db1717611",
+      "thread_env": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "threadpools": [
+        [
+          "openmp",
+          "openmp",
+          1
+        ]
+      ]
+    }
+  },
+  "workers": [
+    {
+      "pid": 90781,
+      "executable": "/Users/pietervanrooyen/Recoverable-Self-Coding/.venv/bin/python",
+      "identity_digest": "ebaddf98807b3a06642e35315b67be74cc101382240a45d4d1fdc01072a8d021",
+      "runtime": {
+        "python": "3.14.6",
+        "numpy": "2.5.3",
+        "scipy": "1.18.1",
+        "sklearn": "1.9.1",
+        "pandas": "3.0.5",
+        "joblib": "1.6.0",
+        "bms_sha256": "6d48a893977e6c71380223f19e70d5fcd95f076eccfa0b8332aada1db1717611",
+        "thread_env": {
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "VECLIB_MAXIMUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1"
+        },
+        "threadpools": [
+          [
+            "openmp",
+            "openmp",
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "pid": 90783,
+      "executable": "/Users/pietervanrooyen/Recoverable-Self-Coding/.venv/bin/python",
+      "identity_digest": "ebaddf98807b3a06642e35315b67be74cc101382240a45d4d1fdc01072a8d021",
+      "runtime": {
+        "python": "3.14.6",
+        "numpy": "2.5.3",
+        "scipy": "1.18.1",
+        "sklearn": "1.9.1",
+        "pandas": "3.0.5",
+        "joblib": "1.6.0",
+        "bms_sha256": "6d48a893977e6c71380223f19e70d5fcd95f076eccfa0b8332aada1db1717611",
+        "thread_env": {
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "VECLIB_MAXIMUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1"
+        },
+        "threadpools": [
+          [
+            "openmp",
+            "openmp",
+            1
+          ]
+        ]
+      }
+    }
+  ],
+  "input_and_source_bytes_unchanged": true,
+  "stage_c_files": 0,
+  "run_files_sha256": {
+    "results/battery/v6-ebaddf98807b/calibrate_G1-G2-G3.log": "14907ef3e1d40b3e1d48d344bc29a04ca0da74cb134121a824d80ddc7beddc3e",
+    "results/battery/v6-ebaddf98807b/calibrate_X1-X2.log": "1941a4acf0b0f4450902f277b295801b83dec00f86094eec68db5c91ec80a59b",
+    "results/battery/v6-ebaddf98807b/calibration.json": "efbf3f82c127c23c43b8dfb33d295bbe50b7fdb596c88cf845b1092c4ebc6c1f",
+    "results/battery/v6-ebaddf98807b/calibration.json.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "results/battery/v6-ebaddf98807b/manifest.json": "6dd1414b6c8d34625efe4554f158e8a383ced6771c15965bd6a296409d2063f3",
+    "results/battery/v6-ebaddf98807b/reach.json": "bbcdf173e523d4954cead3643dccc318051a95a9a975df978b5c8f947f359396",
+    "results/battery/v6-ebaddf98807b/reach.json.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "results/battery/v6-ebaddf98807b/stage_c_receipt_2026-09-15T053505Z.json": "5ccf447c299b1e77ecedc857d2395396c9cf79e82c91a27d7b23ae1f8cfc921a",
+    "results/battery/v6-ebaddf98807b/strengths.json": "104699e5c5ce6ecbed2615bdcb4aaa06641e6cc85b0dc9ac87d1fcb121371b8c",
+    "results/battery/v5-7fcb46729408/calibrate_G1-G2-G3.log": "7e59f802a098c070621a6e0742c5d74b867dc1b0dcfee81bf9b9da03e3aa9961",
+    "results/battery/v5-7fcb46729408/calibrate_X1-X2.log": "e02c80ac644df92020cae345782f7cfad6913b1002a8f8d44c00a1cba82e55e0",
+    "results/battery/v5-7fcb46729408/calibration.json": "87c96314af0f590880e447f26d103c216f579181993c0404ff00c83ea6fbeba3",
+    "results/battery/v5-7fcb46729408/calibration.json.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "results/battery/v5-7fcb46729408/limits.csv": "942416f500ba36584fa3d72797321896228ef197a05b97984772e5cc8207646d",
+    "results/battery/v5-7fcb46729408/manifest.json": "5ea038c7e7349e9cd9f8d5fcd133c960fff6bf357aa9074aee58057c245cfb2f"
+  },
+  "machine_snapshot": {
+    "utc": "2026-09-15T05:50:46.060249+00:00",
+    "cores_memory_load": "hw.ncpu: 16\nhw.memsize: 137438953472\nhw.perflevel0.physicalcpu: 12\nhw.perflevel1.physicalcpu: 4\nvm.loadavg: { 13.92 14.33 15.03 }\nvm.swapusage: total = 0.00M  used = 0.00M  free = 0.00M  (encrypted)",
+    "power": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=22413411)\t100%; charged; 0:00 remaining present: true",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   7.3Ti   5.2Ti   2.0Ti    73%    5.8M   21G    0%   /System/Volumes/Data",
+    "process_columns": [
+      "pid",
+      "ppid",
+      "nice",
+      "cpu_percent",
+      "rss_kib",
+      "elapsed",
+      "command"
+    ],
+    "probe_processes": [
+      [
+        "11036",
+        "1",
+        "0",
+        "0.1",
+        "139264",
+        "01-00:45:27",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python /Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/probe_refit.py --points M2S:omega=2.0,M2S:omega=1.0 --n-rep 20 --n-boot-refit 50 --seed 2027 --layers 41 --n-starts-inner 4 --n-jobs 11 --out /Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/sim_results/refit_probe_3ca9304"
+      ],
+      [
+        "11054",
+        "11036",
+        "0",
+        "0.0",
+        "34432",
+        "01-00:45:26",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python -c from joblib.externals.loky.backend.resource_tracker import main; main(3, False)"
+      ],
+      [
+        "11055",
+        "11036",
+        "0",
+        "0.0",
+        "16480",
+        "01-00:45:26",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(17)"
+      ],
+      [
+        "11056",
+        "11036",
+        "0",
+        "100.0",
+        "4119168",
+        "01-00:45:26",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python -m joblib.externals.loky.backend.popen_loky_posix --process-name LokyProcess-1 --pipe 20"
+      ],
+      [
+        "11057",
+        "11036",
+        "0",
+        "98.7",
+        "4589280",
+        "01-00:45:26",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python -m joblib.externals.loky.backend.popen_loky_posix --process-name LokyProcess-2 --pipe 22"
+      ],
+      [
+        "11058",
+        "11036",
+        "0",
+        "99.4",
+        "4669328",
+        "01-00:45:26",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python -m joblib.externals.loky.backend.popen_loky_posix --process-name LokyProcess-3 --pipe 24"
+      ],
+      [
+        "11059",
+        "11036",
+        "0",
+        "98.0",
+        "4040576",
+        "01-00:45:26",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python -m joblib.externals.loky.backend.popen_loky_posix --process-name LokyProcess-4 --pipe 26"
+      ],
+      [
+        "11060",
+        "11036",
+        "0",
+        "98.4",
+        "4609072",
+        "01-00:45:26",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python -m joblib.externals.loky.backend.popen_loky_posix --process-name LokyProcess-5 --pipe 28"
+      ],
+      [
+        "11061",
+        "11036",
+        "0",
+        "99.8",
+        "4284016",
+        "01-00:45:26",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python -m joblib.externals.loky.backend.popen_loky_posix --process-name LokyProcess-6 --pipe 30"
+      ],
+      [
+        "11062",
+        "11036",
+        "0",
+        "98.7",
+        "4279472",
+        "01-00:45:26",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python -m joblib.externals.loky.backend.popen_loky_posix --process-name LokyProcess-7 --pipe 32"
+      ],
+      [
+        "11063",
+        "11036",
+        "0",
+        "97.9",
+        "4298368",
+        "01-00:45:26",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python -m joblib.externals.loky.backend.popen_loky_posix --process-name LokyProcess-8 --pipe 34"
+      ],
+      [
+        "11064",
+        "11036",
+        "0",
+        "97.7",
+        "4524448",
+        "01-00:45:26",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python -m joblib.externals.loky.backend.popen_loky_posix --process-name LokyProcess-9 --pipe 36"
+      ],
+      [
+        "11065",
+        "11036",
+        "0",
+        "98.0",
+        "4203088",
+        "01-00:45:26",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python -m joblib.externals.loky.backend.popen_loky_posix --process-name LokyProcess-10 --pipe 38"
+      ],
+      [
+        "11066",
+        "11036",
+        "0",
+        "99.2",
+        "3989600",
+        "01-00:45:26",
+        "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/.venv/bin/python -m joblib.externals.loky.backend.popen_loky_posix --process-name LokyProcess-11 --pipe 40"
+      ]
+    ],
+    "calibration_or_stage_c_processes": []
+  },
+  "limitations": "Bounded mocked tests and runtime identity only; no new simulated recording, decoder fit, family fit, benchmark, EEG, stage C, launch, schedule or monitor change. Machine load is a single snapshot, not measured spare throughput."
+}
