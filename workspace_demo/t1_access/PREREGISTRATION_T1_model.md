@@ -63,7 +63,7 @@ technical failure: it limits the interpretation to the coherence readout.
 
 **Concepts and roles.** 128 single-token concepts, 16 per family, 8 families (animals, countries,
 tools, foods, vehicles, instruments, body parts, materials); token id frozen per concept in the answer
-context (case and leading-space variants enumerated at build time). Seeded assignment per family:
+context (case and leading-space variants enumerated at build time). The frozen id is the lower-case leading-space form (' fox'), capitalised for countries (' Kenya'); case, space, plural and demonym variants are enumerated per concept in `concepts.json`. Eligibility uses declared string and token rules only (`stimuli/build_concepts.py`: candidate lists written in advance; E1 the answer-context form is one token; E2 a word that also names a member of another bank family is excluded, 12 exclusions), with seed 20260915 and roles by a derived seed; no model output is read. Seeded assignment per family:
 4 → **BACKGROUND** (never a target, foil or competitor), 2 → CAL, 2 → PILOT, 8 → CONF. Roles are
 disjoint by construction: a CAL/PILOT/CONF concept's clues appear only in packets of its own split,
 and only as target, foil or competitor clues; background clauses come only from BACKGROUND concepts.
@@ -72,7 +72,7 @@ concept is selected or dropped on model performance; difficulty is a recorded co
 **Clue bank.** 12 descriptive clauses per concept (all 128), 8–14 tokens each, written and audited by
 two readers against a checklist (true of the concept; not containing the concept's name, an
 inflection, or an accepted token variant; not naming the family). Clue identities are kept in every
-record; single-clue difficulty is measured on CAL (§5) as a covariate.
+record; single-clue difficulty is measured on CAL (§5) as a covariate. Clauses are present-tense predicate fragments with the concept as implied subject; the checker (`stimuli/check_clues.py`) is stricter than the checklist (no surface form of any bank concept, no family word of any family, 8–14 tokens as rendered), and the writing guideline keeps a clause informative but rarely decisive alone (no capital, city, language, currency, inventor or synonym).
 **Pairs.** Within each split, concepts are paired across families by seed (CAL 8 pairs, PILOT 8,
 CONF 32): each member is the **foil** of the other. A **competitor** (C2) is a third pre-assigned
 concept of the same split from a third family.
@@ -90,18 +90,18 @@ move one interior level (§5), recorded.
 **Controls at fixed $k \in \{2,3,4\}$, draw 1 of each (concept, carrier), separate from the primary
 density fitting:**
 - *Foil packets* (C1): slots $\sigma(1..k)$ carry the foil's clues $f_1..f_k$, same background — the
-  target-specificity comparison (§6.4, §8.5).
+  target-specificity comparison (§6.4, §8.5). A C1 packet uses the target's first-draw slot permutation, clue order and background with the foil's clues, so it is not the foil's own primary packet; in C2 the competitor's clues $c_{\pi(j)}$ fill slots $\sigma(j)$ for $j > k$.
 - *Competition packets* (C2): $k$ target clues in $\sigma(1..k)$ and $8-k$ clues of the competitor in
   the other slots (no background) — the one-competitor evidence baseline, explicitly a different
   structure from the primary channel.
-**Carriers.** Six fixed frames (opening + closing sentences), fixed effects.
+**Carriers.** Six fixed frames (opening + closing sentences), fixed effects (`stimuli/carriers.json`).
 **Prompt scan.** Every assembled prompt (instruction, carrier, all slots, marker, suffix) is scanned
 case-insensitively for the target's and the foil's surface forms and accepted variants; a hit
-regenerates the draw with the next seed (recorded); after ten failures the concept is excluded at
-build time, before any capture, on this string rule (recorded).
+regenerates the draw with the next seed (recorded); after ten failures the build stops and the case is decided
+before any capture as a dated amendment that excludes the concept together with its paired foil, so no pair is broken (recorded); no concept is excluded silently.
 **Size.** Primary set per condition: CONF 64 × 6 × 7 × $D$ ($D=4$: 10,752); CAL and PILOT 16 × 6 × 7 × 4
 = 2,688 each. Controls per condition: C1 64 × 6 × 3 = 1,152; C2 1,152. Overlength prompts (> 160
-packet tokens or beyond the capture limit) are rejected at build time, never truncated.
+packet tokens or beyond the capture limit) are rejected at build time, never truncated. "Packet tokens" are the carrier-open through carrier-close lines tokenized alone; the capture limit is 1,024 ids; an overlength item stops the build and is decided like a scan failure. CONF draws are built to $D = 8$; draws 0–3 are the $D = 4$ design and draws 4–7 are used only if §10 adopts $D = 8$.
 
 ## 4. Execution contract *[frozen]*
 
@@ -114,14 +114,14 @@ packet tokens or beyond the capture limit) are rejected at build time, never tru
 - **One execution path, one pass per trial.** A read-only server addition `POST /api/capture` takes
   explicit `input_ids` (built by our code from raw text with the model tokenizer, no chat template),
   runs one `StreamSession.extend` over all ids with `capture_layers` = 0–63, and returns: the post-layer
-  residual `acts[l]` (pre-norm, the tensor the lens transports) at the requested positions for every
+  residual `acts[l]` (pre-norm, the tensor the lens transports; native bfloat16, the model's dtype, carried bit for bit) at the requested positions for every
   layer; the final position's logits reduced to `logsumexp`, the logits of a requested token-id list,
   and the top-1000 (id, logit) pairs; and, when an edit list is supplied, applies it inside that same
   pass with `StreamSession.set_edits` — at the named layers and global positions, before those layers'
   residuals are captured, so downstream layers consume the edited stream — logging $\|\Delta h\|$ per
   layer and position. Edit modes: `steer` (h + λv), `ablate` (`ablate_rows`, λ = removal fraction),
   `swap_delta` (Δ = patch_swap(h, α=1) − h, then h + λΔ — the linear-dose form; the raw `swap` alpha is
-  not a dose and is not used), `patch` (replace the rows at the positions with supplied fp16 vectors).
+  not a dose and is not used), `patch` (replace the rows at the positions with supplied native bfloat16 vectors).
   The legacy `/api/intervene` is not used.
 - Suffix rule: the answer suffix is tokenized separately and its ids concatenated; the build asserts
   that tokenizing the joined text reproduces the prefix ids exactly, else the item is rejected.
@@ -129,7 +129,7 @@ packet tokens or beyond the capture limit) are rejected at build time, never tru
   prompts before any run; an edit with λ=0 must equal the plain capture likewise.
 - Batch size 1; identical kernels and precision; no cache reuse between prompts (a new
   `StreamSession` per trial); model, lens, runtime and OS versions, and every token id, in the run log.
-- Readout position: the last token of the terminal marker (§12).
+- Readout position: the last token of the terminal marker (§12). Layout, marker and suffix are those of `stimuli/packet.py`: one line each, slots written "- <clause>", the marker `[END]` (three tokens, token-aligned after a newline), and in the active condition the suffix `\nAnswer:` tokenized separately under the join assertion. H3's marker positions are all three marker tokens.
 
 ## 5. Calibration (CAL) and pilot (PILOT)
 
@@ -138,11 +138,11 @@ packet tokens or beyond the capture limit) are rejected at build time, never tru
 feature standardization fitted inside each training fold; selection metric = mean held-out log-loss;
 ties → the smaller $C$. The decoder and standardization are then refitted on all CAL and frozen,
 together with the affine z-scaling of the decision function (mean/SD of the CAL training scores).
-Also on CAL: single-clue difficulty (target log-prob with one clue + 7 background); the family
+Also on CAL: single-clue difficulty (target log-prob with one clue + 7 background: each CAL concept's clue $i$ alone in the first slot of the first draw with background in the other seven, all six carriers, active condition only, 16 × 12 × 6 = 1,152 captures); the family
 recovery simulations (§7.5); the CAL layer scores for H3 (§11).
 **PILOT (16 other concepts).** Validates the frozen instrument: held-out-concept accuracy at $k=8$ vs
 $k=0$ per layer and per family on PILOT is the number reported (CAL's CV score is a selection score,
-not a validation). Places the dose: the argmax-correct rate must cross 0.5 between $k=1$ and $k=4$; if
+not a validation). Places the dose: the closed-set correct rate of §6.3 must cross 0.5 between $k=1$ and $k=4$; if
 not, one interior level is moved (e.g. $\{0,1,2,3,4,6,8\} \to \{0,1,2,3,4,5,8\}$) and recorded. Supplies
 the variance inputs for §10. Pilot model-comparison numbers are reported as pilot; they decide nothing
 about the outcome.
@@ -165,8 +165,8 @@ draw) from the matched endpoints; if $\|u\| < 0.05\,\overline{\|h\|}$ the trial 
 $\pi$ only.
 ### 6.3 R3 (behaviour; active condition only)
 From the final position of the active pass: the target token's log-probability
-$\ell_t - \mathrm{logsumexp}$ (always recorded), its margin over the best other token, correct =
-(argmax == target id); the foil's log-probability on every item. No sampling, so no malformed
+$\ell_t - \mathrm{logsumexp}$ (always recorded), its margin over the best other answer-set id, correct = (the target's frozen id has the highest final-position
+logit among the frozen ids of the 128 bank concepts: one fixed answer set for every split and condition, chance 1/128); the open-vocabulary argmax and the target's open-vocabulary rank are recorded as secondary, and the logits of every concept's enumerated single-token variants are requested so that a variant-maximum reading is available descriptively. (Amended 15 Sept 2026: with the §12 suffix the open-vocabulary argmax was a formatting token such as "\n\n" in 20 of 20 full-dose development packets, and in five other suffixes, so an open-vocabulary rate cannot measure identification; a closed answer set crossed 0.5 at $k = 2$ on development concepts from no bank family, RSC d9d626c.) the foil's log-probability on every item. No sampling, so no malformed
 outputs. Undefined in the no-target-report condition (no answer is elicited).
 ### 6.4 Content diagnostics (reported before H1 is read; §8.5 governs the interpretation)
 On CONF at $k \in \{2,3,4\}$, paired target vs C1 foil packets (same background, same slots):
@@ -602,7 +602,7 @@ reported; (vi) **positive control**: `patch` the marker-position residuals from 
 $k=8$ packet (same draw) at the three layers.
 **Outcomes.** Primary: the reduction of the target–foil logit contrast at the final position,
 effect $= (\ell_t - \ell_f)_{\text{before}} - (\ell_t - \ell_f)_{\text{after}}$ (positive = reduction) for
-swap and ablate; for rescue the increase (sign reversed). Secondary: argmax flips (denominator =
+swap and ablate; for rescue the increase (sign reversed). Secondary: flips of the closed-set correctness of §6.3 (denominator =
 trials correct at baseline for swap/ablate; all trials for rescue).
 **Decision rule.** The primary contrast is the intervention × state interaction for the joint
 swap: $\bar E_{\text{high}} - \bar E_{\text{low}}$ with its concept-cluster 95 % CI. H3 supported if the
@@ -628,7 +628,7 @@ causal mask), logits at the final position.
 **No-target-report (challenge).** Instruction B, wording adjusted at build time until it tokenizes to
 **exactly the same number of tokens** as instruction A (asserted in the manifest, so every packet and
 marker position is the same global index in both conditions); same packet, same marker, no suffix;
-residuals at the marker's last token. Called "no-target-report", never "passive". Secondary (§9).
+residuals at the marker's last token. Called "no-target-report", never "passive". Secondary (§9). Instruction B is "Read the description below; there is no need to name what is described.": 15 tokens like A, with identical ids from the carrier line on, the first of four declared candidates to match (15 Sept 2026).
 
 ## 13. Exploratory (not confirmatory; deferred unless time allows)
 Token-axis history dependence (dose ramped within one context) with the controls listed in the
@@ -636,7 +636,7 @@ Token-axis history dependence (dose ramped within one context) with the controls
 
 ## 14. Budget and timeline
 Captures (single pass each, $D=4$): primary 2 × 10,752 + controls 2 × 2,304 + CAL/PILOT 2 × 5,376 =
-36,864, at 3–5 s → 31–51 h. Storage per capture: 64 × 5120 fp16 residuals at one position (0.66 MB)
+36,864, at 3–5 s → 31–51 h. Storage per capture: 64 × 5120 native bfloat16 residuals at one position (0.66 MB)
 + logsumexp, requested-token logits and top-1000 (≈ 10 kB) → ≈ 25 GB, gitignored. H3: 400 trials ×
 (baseline + 6 joint + 3 × 3 single-layer) = 6,400 captures ≈ 7 h. Fitting: 8 members × 63 layers ×
 5 outer folds × (4 inner + 1 refit) × 8 starts = 100,800 starts per condition, plus CAL/PILOT, the
@@ -657,9 +657,8 @@ refits keep 8, and CONF is fitted with the same setting so that the simulated pr
 procedure. The machine (Apple M4 Max, 12
 performance + 4 efficiency cores, 128 GB) takes 11 single-threaded workers before they slow each
 other; one x86 cloud core (`ml.c7i`, SageMaker) is 0.36 of a Mac core on this code, and a fully
-loaded hyperthread a tenth. Server patch + stimulus bank: week of 15 Sept;
-CAL, PILOT, recovery and calibration: week of 22 Sept; **v2 freeze by 29 Sept** (with the manifest
-files); CONF captures and fits 30 Sept–6 Oct; H3 and write-up in October.
+loaded hyperthread a tenth. Timeline (revised 15 Sept 2026): the capture patch and the
+stimulus bank are being built (work item R084). The development capture rate is about 0.9 s per 64-layer capture on the M4 Max under CPU load (RSC 772e532), so CAL and PILOT with the single-clue captures (~11,900) take about 3 h, CONF with controls at $D = 4$ about 6.5 h and H3 about 1.6 h. v2 waits for the §10 replacement-interval validation and the remaining §7.5/§10 stages (planning estimate mid-December 2026); CONF captures, fits and H3 follow v2.
 
 ## 15. Freeze manifest for v2 and amendment log
 Frozen at v2 (all committed, hashes in the v2 commit): `stimuli/` (concepts, clues, background,
@@ -679,3 +678,4 @@ lists, amplitudes, outcomes); this document.
 | 2026-09-11 | v1.2: `models.py`, `analyze.py`, `simulate.py`, `verify.py`, `bench.py` written and verified (inherited likelihoods equal the numpy originals to 1e-9, gradients to 1e-8, self-refits recover every generator); §7.4: L-BFGS-B on analytic gradients replaces Nelder–Mead, the start generator and its jitter defined, the random-effect integral becomes a per-concept trapezoid rule on an adaptive window (prior-centred Gauss–Hermite does not converge at $n_c = 168$, mode-centred Gauss–Hermite fails on the truncated posteriors at $\tau = 2$) with the point ladder 48 → 96 → 192; §7.3 M3V floor as $\text{floor} + e^{s}$; §8.2 foil pairs resampled as units only in the paired statistics; §7.5 and §10 generator base declared, the gain definition made operational; §14 benchmark recorded — every layer kept, inner selection at 4 starts, refits at 8; the simulations moved to sharded SageMaker spot jobs (§10) | first code pass (session Entropy) |
 | 2026-09-11 | v1.1: BACKGROUND concept bank with family-balanced backgrounds identical across target/foil pairs, slot-nested levels, role disjointness, prompt scan; H1 = coherence readout with a pre-declared target bridge (§8.5); one joint concept-scoring definition with training-only within-family selection (equal-weight and M3-vs-M2B as sensitivity); ordered mixture parameterisation, identifiable M3L catch, inherited affine sigma kept, skew-normal parameters named; SciPy option names and solver rule; recovery of the family distinction replaces member-recoverability; post-CONF member loss = primary unavailable; bootstrap defined and validated by refit simulation; calibration vs power failures separated with permitted changes; single-pass active capture with edits inside the answer pass; swap_delta linear dose, per-layer norm matching, rescue amplitude, patch mode; H3 decision rule, polarity, positive-control criterion, smooth-vs-binary check; layer count 64 / lens 0–62 / band 23–57 kept; equal-length instructions; budget recomputed | review round 2 (Codex) |
 | 2026-09-12 | v1.2 (third entry, after the d4v12b calibration-stage read and the Codex re-check of the fixes): §10 records FPR 0 under all twelve nulls, coverage below 0.90 for six settings and the §8.2 refitting-bootstrap replacement invoked; the refitting bootstrap corrected (copies of a concept in one fold at both levels, the analysis's outer folds, failed or partially scored resamples never averaged, every replicate required, the interval method a declared Config choice carried through the runner with an unusable interval = assay failure) and benchmarked on the Mac; the gain-gate failure at M3L 0.01 nat diagnosed as optimiser basin loss within the M2K reference (the best-found solution reached by one start of the batch; the gain discontinuous in the scale at a fixed seed) and the calibration amended on its own side — 32 cold reference starts, distinct basins carried as warm starts, an extra batch without the repeated moment start and skew-mirrored, reproduction of the best-found reference by distinct cold starts required in both draws, the collapsed bracket re-evaluated before the jump is read, the declared fallback re-measurement, the calibration-side gain gated, every start archived; the gain artefact computed once and power jobs failing closed without it; the validation plan (R = 400 × B = 200 with Monte-Carlo intervals, every setting) and the pre-v2 pipeline numerical audit recorded; `models.py` and the pipeline unchanged; the corrected code reproduces the d4v12b null fits bit for bit (cross-snapshot reuse manifest to follow, with separate source and analysis hashes) | run d4v12b's calibration read and gain-gate failure; Codex review of the read and of the fixes (session Entropy SI) |
+| 2026-09-15 | Draft amendments from the instrument build (work item R084, handoff f16ef039), decided by Entropy SI: §6.3 R3 correctness becomes closed-set (the target's frozen id has the highest logit among the 128 bank ids; chance 1/128; open-vocabulary argmax and rank secondary; variant logits requested), with §5's dose rule and §11's secondary flips on that rate; §4 and §14 say native bfloat16; §3 records the target-id convention, eligibility rules E1/E2 and the 12 collision exclusions, the clause checker and writing guideline, C1/C2 packet construction, carriers file, packet-token and capture-limit definitions, CONF draws built to D = 8, and that a scan failure or overlength stops the build for a pair-level amendment; §4 records the packet layout, marker and suffix; §5 the 1,152 single-clue captures; §12 instruction B's wording; §14 the measured capture rate and the revised timeline | Development probes on concepts from no bank family (RSC d9d626c; open-vocabulary argmax a formatting token in 20/20 full-dose packets); the model's dtype; build decisions the text left open (Entropy SI, 15 Sept 2026) |
