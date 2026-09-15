@@ -28,9 +28,55 @@ they must not be described as fully refreshed for this review. The earlier JOB D
 review read the preregistration, companion, analyze.py and relevant models and
 simulate functions, but that does not settle the new protocol questions.
 
-No memo-specific web source has yet been read by Codex in this review. Links
-below are the reading queue, not verified support for conclusions. No fit,
-synthetic-data generation, bootstrap, deployment or source change occurred.
+### Reading progress after the verified continuation (15 September)
+
+The full current preregistration (681 lines) and full companion (128 long lines,
+including section 6) have now been read in sequential bounded chunks, as has the
+complete memo again. The latest wrap from `01a0a5c8` to `01a0a5fa-f8cb-75d1-ba54-21447d0f239b`
+was verified against native/common records, exact name/topic and a single native
+user receipt at 16:51:28.553Z. Prompt SHA256 `ac1d4ee1f4a43368442161e7419111ee705189637e615d9239fa0619fa49e676`
+matches HEAD and the source checkpoint commit `42333922`. Both repo logs/status
+and xs list/chat were refreshed. Claude `ebe16cf8`'s complete post-09:35 text was
+read; its latest job note reports the Mac probe's straggler idling ten workers.
+
+Primary paper reading is IN PROGRESS. Downloads/extractions are local temporary
+public-source files; no private transcript was copied. Read ranges, inclusive:
+
+- Bates–Hastie–Tibshirani v4, all main text plus appendices through extracted
+  line 2250 of `/tmp/r052_bates_cv_clean.txt` (2588 lines total). Continue at
+  2251 to EOF. Source https://arxiv.org/pdf/2104.00673.
+- Nadeau–Bengio, the actual published 2003 article (43 pages, not the 2001 author
+  draft), through line 1270 of `/tmp/r052_nadeau_published_clean.txt` (3086 lines).
+  Continue at 1271 in bounded chunks. Source
+  https://link.springer.com/content/pdf/10.1023/A:1024068626366.pdf.
+- Official CHPC policy sections 2.1/2.3/3.1/3.3 and SU wiki full content read:
+  initial 100,000 CPU-hours/six months, free academic programme usage, approval,
+  240-core default limit and scratch expiry confirmed in the published policy.
+  SU 1,000 free CPU-hours and queue-wide (not personal) week limit of 1,000
+  confirmed. CHPC registration URL did not load in the browser tool; no account
+  or allocation approval is established. Quickstart overview and PBS allocation
+  context read; remaining queue/accounting details may be useful.
+- T1 `models.py` constants, densities (160–257), `_run_starts`/`_pick`/`fit`
+  (557–635) inspected. No bounds argument in minimize; only M3V has the declared
+  0.05 SD floor, while inherited affine scales use absolute value and M3H/M3L
+  use exponentials. This conforms to the declared different families; it is
+  not by itself a demonstrated Melcon-like implementation defect.
+
+Checks supported so far, still to integrate into a final opinion: the refitting
+replacement already fired; v2 is not frozen. Numerical starts and changed model
+floors/bounds require different amendment descriptions. Starts sensitivity does
+not diagnose coverage. Nadeau–Bengio's correlation approximation depends on
+training-set stability (sections 3.1/4), so is a screen, not an automatic repair.
+Bates v4 Algorithm 1 takes repetitions R as an input; 200 is their experiment's
+choice. Its CI construction targets instance-specific ErrXY (section 4.2),
+while T1 targets the unconditional complete-procedure expectation. Dependence
+within a concept does not itself rule out a concept-level adaptation; fixed
+family strata, joint loss, paired family comparison and target need work.
+CHPC CPU-hours are not measured Mac-equivalent hours. No final conclusion,
+arithmetic computation, fit, generation, bootstrap, source edit or xs reply yet.
+
+The next sections remain the checking agenda from the first checkpoint; the
+completed reading above supersedes their reading-status statements.
 
 ## Q1 — Protocol route: unresolved checks
 
