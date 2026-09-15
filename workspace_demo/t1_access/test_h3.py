@@ -114,3 +114,33 @@ def test_binary_vs_smooth_prefers_the_generating_account():
     e_binary = np.where(labels == "high", 1.0, 0.0) + rng.normal(0, 0.05, concepts.size)
     z_noisy = np.where(labels == "high", 1.0, -1.0) * np.abs(rng.normal(0, 1, concepts.size))
     assert h3.binary_vs_smooth(e_binary, labels, z_noisy, concepts)["two_state_may_be_written"]
+
+
+def test_norm_flags():
+    log = [{"layer": 30, "requested_norm": [1.0, 1.0, 1.0], "written_delta_norm": [1.004, 1.006, 0.0],
+            "undefined": [False, False, True]},
+           {"layer": 41, "requested_norm": [2.0, 2.0, 2.0], "written_delta_norm": [2.05, 2.0, 2.0],
+            "undefined": [False, False, False]},
+           {"layer": 52, "requested_norm": None, "written_delta_norm": [0.0], "undefined": None}]
+    f = h3.norm_flags(log)
+    assert f["undefined"] and f["flagged"] and abs(f["max_rel_error"] - 0.025) < 1e-9
+    ok = h3.norm_flags([{"requested_norm": [1.0], "written_delta_norm": [1.006], "undefined": [False]}])
+    assert not ok["undefined"] and not ok["flagged"]
+
+
+def test_offtarget_control_counts_by_state_and_sensitivity():
+    rng = np.random.default_rng(5)
+    concepts = _concepts()
+    n = concepts.size
+    labels = np.where(np.arange(n) % 2 == 0, "high", "low").astype(object)
+    e = rng.normal(0, 0.05, n)
+    undefined = np.zeros(n, bool)
+    undefined[[0, 2, 4, 1]] = True           # three high, one low
+    flagged = np.zeros(n, bool)
+    flagged[[6, 7]] = True
+    e[[6, 7]] = 3.0                          # flagged trials carry large effects
+    r = h3.offtarget_control(e, undefined, flagged, labels, concepts, n_boot=200)
+    assert r["counts_by_state"]["high"]["undefined"] == 3 and r["counts_by_state"]["low"]["undefined"] == 1
+    assert r["counts_by_state"]["high"]["flagged_defined"] == 1 and r["counts_by_state"]["low"]["flagged_defined"] == 1
+    assert r["sensitivity_without_flagged"]["equivalent"]
+    assert r["primary"]["estimate"] > r["sensitivity_without_flagged"]["estimate"]

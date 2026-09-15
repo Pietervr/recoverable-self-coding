@@ -26,9 +26,14 @@ analyze.py (Entropy SI's) are imported as libraries and never edited here. Captu
                    90 % CI inside); positive control on low-state trials (increase, CI excluding 0, else "not
                    testable"); closed-set argmax flips; dose regression; binary vs smooth held-out log score.
 
-Interpretations recorded for Entropy SI (not in §11's text): CAL amplitudes use high-state trials at levels 2-4,
-like the CONF analysis; the patch rows come from the k = 8 packet of the same (concept, carrier, draw) at all three
-marker positions; flips use the §6.3 closed-set correctness.
+Conventions confirmed by Entropy SI as draft amendments (15 Sept, prompts/2026-09-15_r052_decisions_norm_matching_b12_b15.txt):
+CAL amplitudes use high-state trials at levels 2-4 and all three marker positions; the off-target request at each layer
+and position is the written norm of the trial's own JOINT swap; one undefined position makes a trial's off-target
+control undefined (excluded from equivalence, counted by state, `offtarget_control`); a norm mismatch above 1 %
+(`norm_flags`) is flagged, stays in the primary test and gets a sensitivity analysis without it; no iterative search;
+the patch rows come from the k = 8 packet of the same (concept, carrier, draw) at all three marker positions; flips
+use the §6.3 closed-set correctness. Before H3 the sham and self-patch checks rerun on the selected layers and marker
+positions with per-trial sham equality, stopping on any mismatch (Codex finding 10).
 """
 
 from __future__ import annotations
@@ -265,6 +270,42 @@ def equivalence(e: np.ndarray, concepts: np.ndarray, n_boot: int = N_BOOT, seed:
     lo90, hi90 = np.percentile(boots, [5, 95])
     return {"estimate": point, "ci90": [float(lo90), float(hi90)],
             "equivalent": bool(abs(point) < EQUIV and lo90 > -EQUIV and hi90 < EQUIV)}
+
+
+NORM_TOL = 0.01
+
+
+def norm_flags(edit_log: list[dict]) -> dict:
+    """For one trial's joint norm-matched control (off-target or rescue), from its capture edit log (§11 as amended
+    15 Sept): `undefined` if any position fell below the raw-norm floor (left exactly unedited by the endpoint);
+    `flagged` if any defined position wrote |written/requested - 1| > NORM_TOL."""
+    undefined, worst = False, 0.0
+    for e in edit_log:
+        req = e.get("requested_norm")
+        if req is None:
+            continue
+        und = e.get("undefined") or [False] * len(req)
+        for r, w, u in zip(req, e["written_delta_norm"], und):
+            if u:
+                undefined = True
+            elif r > 0:
+                worst = max(worst, abs(w / r - 1.0))
+    return {"undefined": undefined, "max_rel_error": worst, "flagged": worst > NORM_TOL}
+
+
+def offtarget_control(e: np.ndarray, undefined: np.ndarray, flagged: np.ndarray, labels: np.ndarray,
+                      concepts: np.ndarray, n_boot: int = N_BOOT, seed: int = SEED) -> dict:
+    """§11 (v) as amended 15 Sept: a trial with any undefined position is excluded from the equivalence test and
+    counted BY STATE; flagged (norm-mismatch) trials STAY in the primary test; a sensitivity test without them is
+    reported beside it."""
+    e, undefined, flagged = np.asarray(e, float), np.asarray(undefined, bool), np.asarray(flagged, bool)
+    counts = {s: {"n": int(np.sum(labels == s)), "undefined": int(np.sum((labels == s) & undefined)),
+                  "flagged_defined": int(np.sum((labels == s) & flagged & ~undefined))} for s in ("high", "low")}
+    keep = ~undefined
+    sens = keep & ~flagged
+    return {"counts_by_state": counts,
+            "primary": equivalence(e[keep], concepts[keep], n_boot, seed) if keep.any() else None,
+            "sensitivity_without_flagged": equivalence(e[sens], concepts[sens], n_boot, seed) if sens.any() else None}
 
 
 def positive_control(e_increase_low: np.ndarray, concepts_low: np.ndarray, n_boot: int = N_BOOT, seed: int = SEED) -> dict:

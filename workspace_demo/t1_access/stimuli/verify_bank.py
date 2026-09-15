@@ -90,6 +90,10 @@ def main(build: Path) -> int:
             got = refs(r)
             check(sum(1 for cc, i in got if cc == c and i == r["clue"]) == 1
                   and all(role[cc] == "BACKGROUND" for cc, _ in got if cc != c), f"V8 {r['trial_id']}")
+        n_dec = int(r["n_decisive_inserted"])
+        inserted = int(r["k"]) if r["set"] in ("primary", "C1", "C2") else 1
+        check(0 <= n_dec <= min(2, inserted) and (r["set"] == "C2" or int(r["n_decisive_competitor"]) == 0),
+              f"V9 decisive covariate {r['trial_id']}")
         if r["condition"] == "noreport":
             a = by_key[(r["split"], r["set"], "active", c, r["carrier"], r["draw"], r["k"], r["clue"])]
             check(a["slots"] == r["slots"] and a["readout_position"] == r["readout_position"]

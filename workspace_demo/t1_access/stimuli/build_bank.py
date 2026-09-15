@@ -77,6 +77,16 @@ def load_clues(path: Path) -> tuple[dict, bool]:
     return json.loads(path.read_text())["clues"], False
 
 
+def load_decisive(path: Path) -> dict[str, set[int]]:
+    """Indices of each concept's decisive clauses (B12; the "decisive" key of the drafts or of clues.json)."""
+    files = sorted(path.glob("clues_*.json")) if path.is_dir() else [path]
+    out: dict[str, set[int]] = {}
+    for f in files:
+        for cid, idx in json.loads(f.read_text()).get("decisive", {}).items():
+            out[cid] = set(int(i) for i in idx)
+    return out
+
+
 def pair_split(ids: list[str], fam: dict, split: str) -> list[list[str]]:
     rng = random.Random(derived_seed(split, "pairs"))
     for _ in range(10000):
@@ -137,6 +147,7 @@ def main() -> int:
     tok = AutoTokenizer.from_pretrained(str(SNAPSHOT))
     bank = json.loads((HERE / "concepts.json").read_text())
     clues, draft = load_clues(Path(args.clues))
+    decisive = load_decisive(Path(args.clues))
     carriers = json.loads((HERE / "carriers.json").read_text())["carriers"]
     instr = json.loads((HERE / "instructions.json").read_text())
     out_dir = Path(args.out) if args.out else (HERE / "draft_build" if draft else HERE)
@@ -227,6 +238,10 @@ def main() -> int:
                                 print(f"STOP: condition positions differ for {cid} {kind} k={k}")
                                 return 1
                             conds.append(("noreport", b))
+                        owner = foil[cid] if kind == "C1" else cid   # whose clues were inserted (B12 covariate)
+                        n_dec = sum(1 for c_, i_ in refs if c_ == owner and i_ in decisive.get(owner, set()))
+                        n_dec_comp = (sum(1 for c_, i_ in refs if c_ == competitors[cid]
+                                          and i_ in decisive.get(competitors[cid], set())) if kind == "C2" else 0)
                         for cond, ids in conds:
                             tid = f"{split}|{kind}|{cond}|{cid}|c{ci}|d{d}|k{k}" + (f"|i{clue_i}" if clue_i is not None else "")
                             rows.append({
@@ -240,6 +255,7 @@ def main() -> int:
                                 "marker_positions": " ".join(map(str, ids["marker_positions"])),
                                 "ids_sha256": hashlib.sha256(json.dumps(ids["ids"]).encode()).hexdigest(),
                                 "scan": "ok",
+                                "n_decisive_inserted": n_dec, "n_decisive_competitor": n_dec_comp,
                             })
 
     (out_dir / "pairs.json").write_text(json.dumps(pairs, indent=1) + "\n")
