@@ -1,0 +1,410 @@
+{
+  "created_utc": "2026-09-15T20:56:25Z",
+  "identity": "5d74bc1d6a1147eec97694c31eee4bf0c891af18908955fc7beb2c2170a7d5bb",
+  "panel": [
+    {
+      "index": 0,
+      "key": "G1_weak_d0_r2_sub-21",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 15.54287583300902,
+      "n_starts": 1920
+    },
+    {
+      "index": 1,
+      "key": "G1_weak_d0_r1_sub-22",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.17885333400045,
+      "n_starts": 1920
+    },
+    {
+      "index": 2,
+      "key": "G1_weak_d1_r0_sub-30",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.53025041699584,
+      "n_starts": 1920
+    },
+    {
+      "index": 3,
+      "key": "G1_weak_d1_r2_sub-15",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 15.405244417008362,
+      "n_starts": 1920
+    },
+    {
+      "index": 4,
+      "key": "G1_strong_d0_r0_sub-30",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.250671083005727,
+      "n_starts": 1920
+    },
+    {
+      "index": 5,
+      "key": "G1_strong_d0_r1_sub-34",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 15.680992082998273,
+      "n_starts": 1920
+    },
+    {
+      "index": 6,
+      "key": "G1_strong_d1_r0_sub-30",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.26565312499588,
+      "n_starts": 1920
+    },
+    {
+      "index": 7,
+      "key": "G1_strong_d1_r2_sub-09",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.40457820800657,
+      "n_starts": 1920
+    },
+    {
+      "index": 8,
+      "key": "G2_weak_d0_r2_sub-20",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.180797624998377,
+      "n_starts": 1920
+    },
+    {
+      "index": 9,
+      "key": "G2_weak_d0_r0_sub-06",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 15.861063874996034,
+      "n_starts": 1920
+    },
+    {
+      "index": 10,
+      "key": "G2_weak_d1_r1_sub-15",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 15.959572207997553,
+      "n_starts": 1920
+    },
+    {
+      "index": 11,
+      "key": "G2_weak_d1_r2_sub-19",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 15.806730709009571,
+      "n_starts": 1920
+    },
+    {
+      "index": 12,
+      "key": "G2_strong_d0_r2_sub-28",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 15.998053625007742,
+      "n_starts": 1920
+    },
+    {
+      "index": 13,
+      "key": "G2_strong_d0_r0_sub-17",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.257550958995125,
+      "n_starts": 1920
+    },
+    {
+      "index": 14,
+      "key": "G2_strong_d1_r0_sub-12",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 15.882484917005058,
+      "n_starts": 1920
+    },
+    {
+      "index": 15,
+      "key": "G2_strong_d1_r0_sub-02",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 15.874678666994441,
+      "n_starts": 1920
+    },
+    {
+      "index": 16,
+      "key": "G3_weak_d0_r0_sub-20",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 15.552934459003154,
+      "n_starts": 1920
+    },
+    {
+      "index": 17,
+      "key": "G3_weak_d0_r2_sub-01",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.519627082991065,
+      "n_starts": 1920
+    },
+    {
+      "index": 18,
+      "key": "G3_weak_d1_r0_sub-21",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.0624370000005,
+      "n_starts": 1920
+    },
+    {
+      "index": 19,
+      "key": "G3_weak_d1_r2_sub-20",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 17.25603749998845,
+      "n_starts": 1920
+    },
+    {
+      "index": 20,
+      "key": "G3_strong_d0_r0_sub-18",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 17.784833792000427,
+      "n_starts": 1920
+    },
+    {
+      "index": 21,
+      "key": "G3_strong_d0_r1_sub-03",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 17.14443354200921,
+      "n_starts": 1920
+    },
+    {
+      "index": 22,
+      "key": "G3_strong_d1_r0_sub-21",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 17.221963499992853,
+      "n_starts": 1920
+    },
+    {
+      "index": 23,
+      "key": "G3_strong_d1_r2_sub-31",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.762116500001866,
+      "n_starts": 1920
+    },
+    {
+      "index": 24,
+      "key": "X1_weak_d0_r0_sub-15",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.142901166007505,
+      "n_starts": 1920
+    },
+    {
+      "index": 25,
+      "key": "X1_weak_d0_r1_sub-30",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.60814224999922,
+      "n_starts": 1920
+    },
+    {
+      "index": 26,
+      "key": "X1_weak_d1_r2_sub-30",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.358102041995153,
+      "n_starts": 1920
+    },
+    {
+      "index": 27,
+      "key": "X1_weak_d1_r0_sub-25",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.695445458986796,
+      "n_starts": 1920
+    },
+    {
+      "index": 28,
+      "key": "X1_strong_d0_r1_sub-24",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.806067500001518,
+      "n_starts": 1920
+    },
+    {
+      "index": 29,
+      "key": "X1_strong_d0_r2_sub-04",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 15.867868375004036,
+      "n_starts": 1920
+    },
+    {
+      "index": 30,
+      "key": "X1_strong_d1_r0_sub-26",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 15.708605249994434,
+      "n_starts": 1920
+    },
+    {
+      "index": 31,
+      "key": "X1_strong_d1_r1_sub-22",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 15.858005250003771,
+      "n_starts": 1920
+    },
+    {
+      "index": 32,
+      "key": "X2_weak_d0_r1_sub-18",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.328870000012103,
+      "n_starts": 1920
+    },
+    {
+      "index": 33,
+      "key": "X2_weak_d0_r1_sub-32",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 17.503885625003022,
+      "n_starts": 1920
+    },
+    {
+      "index": 34,
+      "key": "X2_weak_d1_r2_sub-16",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 17.001203042003908,
+      "n_starts": 1920
+    },
+    {
+      "index": 35,
+      "key": "X2_weak_d1_r0_sub-07",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.15338045799581,
+      "n_starts": 1920
+    },
+    {
+      "index": 36,
+      "key": "X2_strong_d0_r2_sub-30",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.361792209005216,
+      "n_starts": 1920
+    },
+    {
+      "index": 37,
+      "key": "X2_strong_d0_r1_sub-29",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.402371165997465,
+      "n_starts": 1920
+    },
+    {
+      "index": 38,
+      "key": "X2_strong_d1_r2_sub-13",
+      "role": "worst",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.636785458002123,
+      "n_starts": 1920
+    },
+    {
+      "index": 39,
+      "key": "X2_strong_d1_r2_sub-03",
+      "role": "median",
+      "present": true,
+      "parity": true,
+      "differing": [],
+      "total_s": 16.305032250005752,
+      "n_starts": 1920
+    }
+  ],
+  "panel_present": 40,
+  "panel_parity_equal": 40,
+  "ideal_present": 272,
+  "ideal_expected": 272
+}

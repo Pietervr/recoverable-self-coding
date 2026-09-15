@@ -1,0 +1,172 @@
+{
+  "created_utc": "2026-09-15T20:49:51Z",
+  "identity": "5d74bc1d6a1147eec97694c31eee4bf0c891af18908955fc7beb2c2170a7d5bb",
+  "runtime_differs_from_v6_in": [],
+  "latent_path_checks": [
+    {
+      "generator": "G1",
+      "subject": 1,
+      "tags": [
+        9,
+        0,
+        0,
+        1,
+        0,
+        1
+      ],
+      "equal": true,
+      "columns": {
+        "z_true": true,
+        "occupancy_true": true,
+        "high_true": true
+      }
+    },
+    {
+      "generator": "G2",
+      "subject": 1,
+      "tags": [
+        9,
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "equal": true,
+      "columns": {
+        "z_true": true,
+        "occupancy_true": true,
+        "high_true": true
+      }
+    },
+    {
+      "generator": "G3",
+      "subject": 1,
+      "tags": [
+        9,
+        2,
+        0,
+        1,
+        0,
+        1
+      ],
+      "equal": true,
+      "columns": {
+        "z_true": true,
+        "occupancy_true": true,
+        "high_true": true
+      }
+    },
+    {
+      "generator": "X1",
+      "subject": 1,
+      "tags": [
+        9,
+        3,
+        0,
+        1,
+        0,
+        1
+      ],
+      "equal": true,
+      "columns": {
+        "z_true": true,
+        "occupancy_true": true,
+        "high_true": true
+      }
+    }
+  ],
+  "first_panel": {
+    "index": 0,
+    "key": "G1_weak_d0_r2_sub-21",
+    "role": "worst",
+    "parity": {
+      "equal": true,
+      "differing": [],
+      "keys": [
+        "status",
+        "windows",
+        "models",
+        "evidence",
+        "available",
+        "delta",
+        "n_trials",
+        "auc",
+        "twostate_min_gap_median",
+        "twostate_full_gap_median",
+        "occupancy_abs_error_median",
+        "readout_highlow_contrast_unadjusted_median",
+        "readout_latent_corr_median"
+      ]
+    },
+    "timing": {
+      "generate_s": 0.38176795800973196,
+      "scores_s": 15.161107874999288,
+      "total_s": 15.54287583300902
+    },
+    "reused": false
+  },
+  "ideal_first": [
+    {
+      "key": "G1_d0_sub-01",
+      "status": "ok",
+      "timing": {
+        "total_s": 0.24267512500227895
+      },
+      "reused": false
+    },
+    {
+      "key": "G2_d0_sub-01",
+      "status": "ok",
+      "timing": {
+        "total_s": 0.25371337500109803
+      },
+      "reused": false
+    },
+    {
+      "key": "G3_d0_sub-01",
+      "status": "ok",
+      "timing": {
+        "total_s": 0.25374004199693445
+      },
+      "reused": false
+    },
+    {
+      "key": "X1_d0_sub-01",
+      "status": "ok",
+      "timing": {
+        "total_s": 0.291354125001817
+      },
+      "reused": false
+    }
+  ],
+  "panel_s_first": 15.54287583300902,
+  "ideal_s_mean": 0.2603706667505321,
+  "remaining_panel": 39,
+  "remaining_ideal": 268,
+  "projected_worker_hours": 0.18776430449347067,
+  "n_jobs": 2,
+  "projected_wall_hours": 0.09388215224673534,
+  "pause_wall_hours": 4.0,
+  "parity_first": {
+    "equal": true,
+    "differing": [],
+    "keys": [
+      "status",
+      "windows",
+      "models",
+      "evidence",
+      "available",
+      "delta",
+      "n_trials",
+      "auc",
+      "twostate_min_gap_median",
+      "twostate_full_gap_median",
+      "occupancy_abs_error_median",
+      "readout_highlow_contrast_unadjusted_median",
+      "readout_latent_corr_median"
+    ]
+  },
+  "proceed": true,
+  "note": "projection from one panel recording (all 20 windows) and one idealized recording per generator, under the concurrent Mac load; extreme panel recordings may fit slower"
+}

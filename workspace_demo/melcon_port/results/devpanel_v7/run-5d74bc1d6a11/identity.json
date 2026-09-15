@@ -1,0 +1,109 @@
+{
+  "schema": "melcon-devpanel-v7-phase1-r1",
+  "plan": "DEVPLAN_v7.md rev 1 \u00a72.2-\u00a72.5 (RSC 9cbcc0a)",
+  "modules": {
+    "battery.py": "f2519afb1dc6474af9baf2d456c8bc58d282d739af892795c8e5919ed0dcf609",
+    "decoder.py": "b3a771b659dbdce9590321ffb484d372f184752e70a7cb7cdbc50d62d17336b8",
+    "devpanel_v7.py": "c94733989b655afb3a5c9dac33f1438e2eceea2e444eba732d7a2fa6458b664a",
+    "group.py": "7daeae94b25c0f12b463dd21f1c6614ac57135c7005bee6178dd1e633068ecfa",
+    "inclusion.py": "3be370b2c7cc14bd3fa0eb7d6c5ffc896dc54503f0db97bce60d9807b6db6aac",
+    "likelihood.py": "a142dd8cef9dc65ca6880192a400b06547ce7af8ec24a27f246ef04a8dbb2b2c",
+    "recording.py": "d471837a489a7dfc67b44092dd1b2d130e91c8cc40e5546e0d87ee55703f2ae8",
+    "synthetic.py": "bc393b2d8b167e1d50f7c17a0341bdc26ef522c53fcd8c591c05410deaedfbf9"
+  },
+  "runtime": {
+    "python": "3.14.6",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "sklearn": "1.9.1",
+    "pandas": "3.0.5",
+    "joblib": "1.6.0",
+    "bms_sha256": "6d48a893977e6c71380223f19e70d5fcd95f076eccfa0b8332aada1db1717611",
+    "thread_env": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1"
+    },
+    "threadpools": [
+      [
+        "openmp",
+        "openmp",
+        1
+      ]
+    ]
+  },
+  "parent_namespace": "v6-ebaddf98807b",
+  "parent_identity": "ebaddf98807b3a06642e35315b67be74cc101382240a45d4d1fdc01072a8d021",
+  "panel_manifest_sha256": "0f5343c59b73ad49d6fcb3565a064655ee192ffa615d66cbdbcb5d5909c98fb5",
+  "likelihood": {
+    "seed": 20260913,
+    "n_jitter": 7,
+    "jitter_sd": 0.25,
+    "retry_starts": 8,
+    "retry_jitter_sd": 0.5,
+    "interior": 0.001,
+    "lbfgsb": {
+      "ftol": 1e-10,
+      "gtol": 1e-06,
+      "maxiter": 2000
+    },
+    "pg_tol": 0.001,
+    "basin_nat": 0.5,
+    "s_floor": 1e-08,
+    "x_sd_floor": 1e-06,
+    "min_catch": 3,
+    "min_side": 20,
+    "pi0_start": 0.05,
+    "bounds": "loc in ybar +- 5S; log sigma in log(0.05S)..log(5S); beta in +-3S; a1 in 0..10S; x0 in +-4; log k in log 0.05..log 20; r in +-ln 10; delta in log(0.01S)..log(10S); theta0 in -6..3",
+    "params": {
+      "null": [
+        "mu0",
+        "log_sigma0",
+        "beta"
+      ],
+      "graded": [
+        "a0",
+        "a1",
+        "x0",
+        "log_k",
+        "s0",
+        "r",
+        "beta"
+      ],
+      "twostate": [
+        "mu_l",
+        "log_sigma",
+        "delta0",
+        "delta1",
+        "x0",
+        "log_k_a",
+        "log_k_h",
+        "beta"
+      ],
+      "twostate_catch": [
+        "mu_l",
+        "log_sigma",
+        "delta0",
+        "delta1",
+        "x0",
+        "log_k_a",
+        "log_k_h",
+        "beta",
+        "theta0"
+      ]
+    }
+  },
+  "ideal": {
+    "generators": [
+      "G1",
+      "G2",
+      "G3",
+      "X1"
+    ],
+    "data_tags": "(9, generator index, 0, drift index, 0, subject)",
+    "optimizer_tags": "(subject, task index, half, fold, 99)"
+  },
+  "pause_wall_hours": 4.0
+}
