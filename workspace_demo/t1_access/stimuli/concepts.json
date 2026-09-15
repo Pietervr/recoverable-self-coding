@@ -1,0 +1,5978 @@
+{
+ "build": {
+  "step": "concepts",
+  "seed": 20260915,
+  "per_family": 16,
+  "roles": {
+   "BACKGROUND": 4,
+   "CAL": 2,
+   "PILOT": 2,
+   "CONF": 8
+  },
+  "script_sha256": "5158fb1e9fbfe98ed0bbf9780698fc9376d35b84c6a4af8ec2861be4638d1328",
+  "tokenizer_json_sha256": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4",
+  "snapshot": "c000ac2c2057d94be3fa931000c31723aac53282",
+  "rules": {
+   "E1": "answer-context form ' x' (countries capitalised) is one token",
+   "E2": "not a word that also names a member of another bank family"
+  }
+ },
+ "families": [
+  "animals",
+  "countries",
+  "tools",
+  "foods",
+  "vehicles",
+  "instruments",
+  "body parts",
+  "materials"
+ ],
+ "eligible_counts": {
+  "animals": 28,
+  "countries": 48,
+  "tools": 26,
+  "foods": 26,
+  "vehicles": 28,
+  "instruments": 17,
+  "body parts": 26,
+  "materials": 25
+ },
+ "concepts": [
+  {
+   "id": "animals/ant",
+   "family": "animals",
+   "word": "ant",
+   "role": "BACKGROUND",
+   "token_id": 3094,
+   "token_str": " ant",
+   "variants": {
+    " ant": {
+     "ids": [
+      3094
+     ],
+     "single_token": true
+    },
+    " Ant": {
+     "ids": [
+      6543
+     ],
+     "single_token": true
+    },
+    "ant": {
+     "ids": [
+      505
+     ],
+     "single_token": true
+    },
+    "Ant": {
+     "ids": [
+      16614
+     ],
+     "single_token": true
+    },
+    " ants": {
+     "ids": [
+      58359
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "ant",
+    "ants"
+   ]
+  },
+  {
+   "id": "animals/sheep",
+   "family": "animals",
+   "word": "sheep",
+   "role": "BACKGROUND",
+   "token_id": 30864,
+   "token_str": " sheep",
+   "variants": {
+    " sheep": {
+     "ids": [
+      30864
+     ],
+     "single_token": true
+    },
+    " Sheep": {
+     "ids": [
+      80046
+     ],
+     "single_token": true
+    },
+    "sheep": {
+     "ids": [
+      30040,
+      724
+     ],
+     "single_token": false
+    },
+    "Sheep": {
+     "ids": [
+      7691,
+      724
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "sheep"
+   ]
+  },
+  {
+   "id": "animals/snake",
+   "family": "animals",
+   "word": "snake",
+   "role": "BACKGROUND",
+   "token_id": 24463,
+   "token_str": " snake",
+   "variants": {
+    " snake": {
+     "ids": [
+      24463
+     ],
+     "single_token": true
+    },
+    " Snake": {
+     "ids": [
+      38344
+     ],
+     "single_token": true
+    },
+    "snake": {
+     "ids": [
+      69687
+     ],
+     "single_token": true
+    },
+    "Snake": {
+     "ids": [
+      80543
+     ],
+     "single_token": true
+    },
+    " snakes": {
+     "ids": [
+      54211
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "snake",
+    "snakes"
+   ]
+  },
+  {
+   "id": "animals/elephant",
+   "family": "animals",
+   "word": "elephant",
+   "role": "BACKGROUND",
+   "token_id": 44217,
+   "token_str": " elephant",
+   "variants": {
+    " elephant": {
+     "ids": [
+      44217
+     ],
+     "single_token": true
+    },
+    " Elephant": {
+     "ids": [
+      75414
+     ],
+     "single_token": true
+    },
+    "elephant": {
+     "ids": [
+      9771,
+      26061
+     ],
+     "single_token": false
+    },
+    "Elephant": {
+     "ids": [
+      43827,
+      26061
+     ],
+     "single_token": false
+    },
+    " elephants": {
+     "ids": [
+      58718
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "elephant",
+    "elephants"
+   ]
+  },
+  {
+   "id": "animals/wolf",
+   "family": "animals",
+   "word": "wolf",
+   "role": "CAL",
+   "token_id": 35336,
+   "token_str": " wolf",
+   "variants": {
+    " wolf": {
+     "ids": [
+      35336
+     ],
+     "single_token": true
+    },
+    " Wolf": {
+     "ids": [
+      24429
+     ],
+     "single_token": true
+    },
+    "wolf": {
+     "ids": [
+      73621
+     ],
+     "single_token": true
+    },
+    "Wolf": {
+     "ids": [
+      92135
+     ],
+     "single_token": true
+    },
+    " wolves": {
+     "ids": [
+      53317
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "wolf",
+    "wolves"
+   ]
+  },
+  {
+   "id": "animals/cow",
+   "family": "animals",
+   "word": "cow",
+   "role": "CAL",
+   "token_id": 18775,
+   "token_str": " cow",
+   "variants": {
+    " cow": {
+     "ids": [
+      18775
+     ],
+     "single_token": true
+    },
+    " Cow": {
+     "ids": [
+      21179
+     ],
+     "single_token": true
+    },
+    "cow": {
+     "ids": [
+      18350
+     ],
+     "single_token": true
+    },
+    "Cow": {
+     "ids": [
+      86823
+     ],
+     "single_token": true
+    },
+    " cows": {
+     "ids": [
+      43659
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "cow",
+    "cows"
+   ]
+  },
+  {
+   "id": "animals/rabbit",
+   "family": "animals",
+   "word": "rabbit",
+   "role": "PILOT",
+   "token_id": 37442,
+   "token_str": " rabbit",
+   "variants": {
+    " rabbit": {
+     "ids": [
+      37442
+     ],
+     "single_token": true
+    },
+    " Rabbit": {
+     "ids": [
+      46719
+     ],
+     "single_token": true
+    },
+    "rabbit": {
+     "ids": [
+      83362
+     ],
+     "single_token": true
+    },
+    "Rabbit": {
+     "ids": [
+      49,
+      19341
+     ],
+     "single_token": false
+    },
+    " rabbits": {
+     "ids": [
+      66803
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "rabbit",
+    "rabbits"
+   ]
+  },
+  {
+   "id": "animals/tiger",
+   "family": "animals",
+   "word": "tiger",
+   "role": "PILOT",
+   "token_id": 49993,
+   "token_str": " tiger",
+   "variants": {
+    " tiger": {
+     "ids": [
+      49993
+     ],
+     "single_token": true
+    },
+    " Tiger": {
+     "ids": [
+      34560
+     ],
+     "single_token": true
+    },
+    "tiger": {
+     "ids": [
+      174277
+     ],
+     "single_token": true
+    },
+    "Tiger": {
+     "ids": [
+      51,
+      7045
+     ],
+     "single_token": false
+    },
+    " tigers": {
+     "ids": [
+      259,
+      31055
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "tiger",
+    "tigers"
+   ]
+  },
+  {
+   "id": "animals/fox",
+   "family": "animals",
+   "word": "fox",
+   "role": "CONF",
+   "token_id": 37550,
+   "token_str": " fox",
+   "variants": {
+    " fox": {
+     "ids": [
+      37550
+     ],
+     "single_token": true
+    },
+    " Fox": {
+     "ids": [
+      12897
+     ],
+     "single_token": true
+    },
+    "fox": {
+     "ids": [
+      14576
+     ],
+     "single_token": true
+    },
+    "Fox": {
+     "ids": [
+      45738
+     ],
+     "single_token": true
+    },
+    " foxes": {
+     "ids": [
+      37550,
+      287
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "fox",
+    "foxes"
+   ]
+  },
+  {
+   "id": "animals/mouse",
+   "family": "animals",
+   "word": "mouse",
+   "role": "CONF",
+   "token_id": 8380,
+   "token_str": " mouse",
+   "variants": {
+    " mouse": {
+     "ids": [
+      8380
+     ],
+     "single_token": true
+    },
+    " Mouse": {
+     "ids": [
+      17193
+     ],
+     "single_token": true
+    },
+    "mouse": {
+     "ids": [
+      12853
+     ],
+     "single_token": true
+    },
+    "Mouse": {
+     "ids": [
+      10180
+     ],
+     "single_token": true
+    },
+    " mice": {
+     "ids": [
+      22888
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "mice",
+    "mouse"
+   ]
+  },
+  {
+   "id": "animals/cat",
+   "family": "animals",
+   "word": "cat",
+   "role": "CONF",
+   "token_id": 7993,
+   "token_str": " cat",
+   "variants": {
+    " cat": {
+     "ids": [
+      7993
+     ],
+     "single_token": true
+    },
+    " Cat": {
+     "ids": [
+      16847
+     ],
+     "single_token": true
+    },
+    "cat": {
+     "ids": [
+      4466
+     ],
+     "single_token": true
+    },
+    "Cat": {
+     "ids": [
+      25944
+     ],
+     "single_token": true
+    },
+    " cats": {
+     "ids": [
+      18833
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "cat",
+    "cats"
+   ]
+  },
+  {
+   "id": "animals/bee",
+   "family": "animals",
+   "word": "bee",
+   "role": "CONF",
+   "token_id": 35997,
+   "token_str": " bee",
+   "variants": {
+    " bee": {
+     "ids": [
+      35997
+     ],
+     "single_token": true
+    },
+    " Bee": {
+     "ids": [
+      36192
+     ],
+     "single_token": true
+    },
+    "bee": {
+     "ids": [
+      30976
+     ],
+     "single_token": true
+    },
+    "Bee": {
+     "ids": [
+      33,
+      2059
+     ],
+     "single_token": false
+    },
+    " bees": {
+     "ids": [
+      38152
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "bee",
+    "bees"
+   ]
+  },
+  {
+   "id": "animals/frog",
+   "family": "animals",
+   "word": "frog",
+   "role": "CONF",
+   "token_id": 57859,
+   "token_str": " frog",
+   "variants": {
+    " frog": {
+     "ids": [
+      57859
+     ],
+     "single_token": true
+    },
+    " Frog": {
+     "ids": [
+      68995
+     ],
+     "single_token": true
+    },
+    "frog": {
+     "ids": [
+      83015
+     ],
+     "single_token": true
+    },
+    "Frog": {
+     "ids": [
+      37,
+      11579
+     ],
+     "single_token": false
+    },
+    " frogs": {
+     "ids": [
+      86369
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "frog",
+    "frogs"
+   ]
+  },
+  {
+   "id": "animals/deer",
+   "family": "animals",
+   "word": "deer",
+   "role": "CONF",
+   "token_id": 36791,
+   "token_str": " deer",
+   "variants": {
+    " deer": {
+     "ids": [
+      36791
+     ],
+     "single_token": true
+    },
+    " Deer": {
+     "ids": [
+      60961
+     ],
+     "single_token": true
+    },
+    "deer": {
+     "ids": [
+      92935
+     ],
+     "single_token": true
+    },
+    "Deer": {
+     "ids": [
+      1847,
+      261
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "deer"
+   ]
+  },
+  {
+   "id": "animals/lion",
+   "family": "animals",
+   "word": "lion",
+   "role": "CONF",
+   "token_id": 37739,
+   "token_str": " lion",
+   "variants": {
+    " lion": {
+     "ids": [
+      37739
+     ],
+     "single_token": true
+    },
+    " Lion": {
+     "ids": [
+      31042
+     ],
+     "single_token": true
+    },
+    "lion": {
+     "ids": [
+      75473
+     ],
+     "single_token": true
+    },
+    "Lion": {
+     "ids": [
+      43,
+      289
+     ],
+     "single_token": false
+    },
+    " lions": {
+     "ids": [
+      65735
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "lion",
+    "lions"
+   ]
+  },
+  {
+   "id": "animals/dolphin",
+   "family": "animals",
+   "word": "dolphin",
+   "role": "CONF",
+   "token_id": 94784,
+   "token_str": " dolphin",
+   "variants": {
+    " dolphin": {
+     "ids": [
+      94784
+     ],
+     "single_token": true
+    },
+    " Dolphin": {
+     "ids": [
+      91716
+     ],
+     "single_token": true
+    },
+    "dolphin": {
+     "ids": [
+      67,
+      41551,
+      258
+     ],
+     "single_token": false
+    },
+    "Dolphin": {
+     "ids": [
+      35,
+      41551,
+      258
+     ],
+     "single_token": false
+    },
+    " dolphins": {
+     "ids": [
+      79563
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "dolphin",
+    "dolphins"
+   ]
+  },
+  {
+   "id": "countries/Poland",
+   "family": "countries",
+   "word": "Poland",
+   "role": "BACKGROUND",
+   "token_id": 26707,
+   "token_str": " Poland",
+   "variants": {
+    " poland": {
+     "ids": [
+      1418,
+      429
+     ],
+     "single_token": false
+    },
+    " Poland": {
+     "ids": [
+      26707
+     ],
+     "single_token": true
+    },
+    "poland": {
+     "ids": [
+      9603,
+      429
+     ],
+     "single_token": false
+    },
+    "Poland": {
+     "ids": [
+      14237,
+      429
+     ],
+     "single_token": false
+    },
+    " Pole": {
+     "ids": [
+      50855
+     ],
+     "single_token": true
+    },
+    " Polish": {
+     "ids": [
+      30931
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "Poland",
+    "Pole",
+    "Polish"
+   ]
+  },
+  {
+   "id": "countries/Spain",
+   "family": "countries",
+   "word": "Spain",
+   "role": "BACKGROUND",
+   "token_id": 17163,
+   "token_str": " Spain",
+   "variants": {
+    " spain": {
+     "ids": [
+      947,
+      456
+     ],
+     "single_token": false
+    },
+    " Spain": {
+     "ids": [
+      17163
+     ],
+     "single_token": true
+    },
+    "spain": {
+     "ids": [
+      2085,
+      456
+     ],
+     "single_token": false
+    },
+    "Spain": {
+     "ids": [
+      71792
+     ],
+     "single_token": true
+    },
+    " Spaniard": {
+     "ids": [
+      11564,
+      65575
+     ],
+     "single_token": false
+    },
+    " Spanish": {
+     "ids": [
+      14712
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "Spain",
+    "Spaniard",
+    "Spanish"
+   ]
+  },
+  {
+   "id": "countries/Japan",
+   "family": "countries",
+   "word": "Japan",
+   "role": "BACKGROUND",
+   "token_id": 6124,
+   "token_str": " Japan",
+   "variants": {
+    " japan": {
+     "ids": [
+      52312
+     ],
+     "single_token": true
+    },
+    " Japan": {
+     "ids": [
+      6124
+     ],
+     "single_token": true
+    },
+    "japan": {
+     "ids": [
+      73,
+      5191
+     ],
+     "single_token": false
+    },
+    "Japan": {
+     "ids": [
+      47122
+     ],
+     "single_token": true
+    },
+    " Japanese": {
+     "ids": [
+      10452
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "Japan",
+    "Japanese"
+   ]
+  },
+  {
+   "id": "countries/Germany",
+   "family": "countries",
+   "word": "Germany",
+   "role": "BACKGROUND",
+   "token_id": 9564,
+   "token_str": " Germany",
+   "variants": {
+    " germany": {
+     "ids": [
+      79966
+     ],
+     "single_token": true
+    },
+    " Germany": {
+     "ids": [
+      9564
+     ],
+     "single_token": true
+    },
+    "germany": {
+     "ids": [
+      1341,
+      33431
+     ],
+     "single_token": false
+    },
+    "Germany": {
+     "ids": [
+      48484
+     ],
+     "single_token": true
+    },
+    " German": {
+     "ids": [
+      5753
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "German",
+    "Germany"
+   ]
+  },
+  {
+   "id": "countries/Brazil",
+   "family": "countries",
+   "word": "Brazil",
+   "role": "CAL",
+   "token_id": 15477,
+   "token_str": " Brazil",
+   "variants": {
+    " brazil": {
+     "ids": [
+      93308
+     ],
+     "single_token": true
+    },
+    " Brazil": {
+     "ids": [
+      15477
+     ],
+     "single_token": true
+    },
+    "brazil": {
+     "ids": [
+      65,
+      13639
+     ],
+     "single_token": false
+    },
+    "Brazil": {
+     "ids": [
+      64931
+     ],
+     "single_token": true
+    },
+    " Brazilian": {
+     "ids": [
+      33826
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "Brazil",
+    "Brazilian"
+   ]
+  },
+  {
+   "id": "countries/Nepal",
+   "family": "countries",
+   "word": "Nepal",
+   "role": "CAL",
+   "token_id": 47322,
+   "token_str": " Nepal",
+   "variants": {
+    " nepal": {
+     "ids": [
+      88381,
+      278
+     ],
+     "single_token": false
+    },
+    " Nepal": {
+     "ids": [
+      47322
+     ],
+     "single_token": true
+    },
+    "nepal": {
+     "ids": [
+      214893,
+      278
+     ],
+     "single_token": false
+    },
+    "Nepal": {
+     "ids": [
+      45,
+      724,
+      278
+     ],
+     "single_token": false
+    },
+    " Nepalese": {
+     "ids": [
+      35361,
+      1519,
+      323
+     ],
+     "single_token": false
+    },
+    " Nepali": {
+     "ids": [
+      35361,
+      7705
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "Nepal",
+    "Nepalese",
+    "Nepali"
+   ]
+  },
+  {
+   "id": "countries/Norway",
+   "family": "countries",
+   "word": "Norway",
+   "role": "PILOT",
+   "token_id": 30466,
+   "token_str": " Norway",
+   "variants": {
+    " norway": {
+     "ids": [
+      193755
+     ],
+     "single_token": true
+    },
+    " Norway": {
+     "ids": [
+      30466
+     ],
+     "single_token": true
+    },
+    "norway": {
+     "ids": [
+      43224,
+      3017
+     ],
+     "single_token": false
+    },
+    "Norway": {
+     "ids": [
+      31580,
+      3017
+     ],
+     "single_token": false
+    },
+    " Norwegian": {
+     "ids": [
+      43142
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "Norway",
+    "Norwegian"
+   ]
+  },
+  {
+   "id": "countries/Iceland",
+   "family": "countries",
+   "word": "Iceland",
+   "role": "PILOT",
+   "token_id": 37122,
+   "token_str": " Iceland",
+   "variants": {
+    " iceland": {
+     "ids": [
+      17366,
+      17584
+     ],
+     "single_token": false
+    },
+    " Iceland": {
+     "ids": [
+      37122
+     ],
+     "single_token": true
+    },
+    "iceland": {
+     "ids": [
+      291,
+      17584
+     ],
+     "single_token": false
+    },
+    "Iceland": {
+     "ids": [
+      40,
+      34050
+     ],
+     "single_token": false
+    },
+    " Icelander": {
+     "ids": [
+      353,
+      3546,
+      7942
+     ],
+     "single_token": false
+    },
+    " Icelandic": {
+     "ids": [
+      95716
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "Iceland",
+    "Icelander",
+    "Icelandic"
+   ]
+  },
+  {
+   "id": "countries/Kenya",
+   "family": "countries",
+   "word": "Kenya",
+   "role": "CONF",
+   "token_id": 35453,
+   "token_str": " Kenya",
+   "variants": {
+    " kenya": {
+     "ids": [
+      47577,
+      7509
+     ],
+     "single_token": false
+    },
+    " Kenya": {
+     "ids": [
+      35453
+     ],
+     "single_token": true
+    },
+    "kenya": {
+     "ids": [
+      2625,
+      7509
+     ],
+     "single_token": false
+    },
+    "Kenya": {
+     "ids": [
+      45665,
+      7509
+     ],
+     "single_token": false
+    },
+    " Kenyan": {
+     "ids": [
+      13851,
+      8080
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "Kenya",
+    "Kenyan"
+   ]
+  },
+  {
+   "id": "countries/Nigeria",
+   "family": "countries",
+   "word": "Nigeria",
+   "role": "CONF",
+   "token_id": 27243,
+   "token_str": " Nigeria",
+   "variants": {
+    " nigeria": {
+     "ids": [
+      87844
+     ],
+     "single_token": true
+    },
+    " Nigeria": {
+     "ids": [
+      27243
+     ],
+     "single_token": true
+    },
+    "nigeria": {
+     "ids": [
+      77,
+      61567
+     ],
+     "single_token": false
+    },
+    "Nigeria": {
+     "ids": [
+      45,
+      61567
+     ],
+     "single_token": false
+    },
+    " Nigerian": {
+     "ids": [
+      52509
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "Nigeria",
+    "Nigerian"
+   ]
+  },
+  {
+   "id": "countries/Austria",
+   "family": "countries",
+   "word": "Austria",
+   "role": "CONF",
+   "token_id": 33741,
+   "token_str": " Austria",
+   "variants": {
+    " austria": {
+     "ids": [
+      264,
+      81887
+     ],
+     "single_token": false
+    },
+    " Austria": {
+     "ids": [
+      33741
+     ],
+     "single_token": true
+    },
+    "austria": {
+     "ids": [
+      64,
+      81887
+     ],
+     "single_token": false
+    },
+    "Austria": {
+     "ids": [
+      32,
+      81887
+     ],
+     "single_token": false
+    },
+    " Austrian": {
+     "ids": [
+      55064
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "Austria",
+    "Austrian"
+   ]
+  },
+  {
+   "id": "countries/Jamaica",
+   "family": "countries",
+   "word": "Jamaica",
+   "role": "CONF",
+   "token_id": 54287,
+   "token_str": " Jamaica",
+   "variants": {
+    " jamaica": {
+     "ids": [
+      492,
+      2933,
+      2906
+     ],
+     "single_token": false
+    },
+    " Jamaica": {
+     "ids": [
+      54287
+     ],
+     "single_token": true
+    },
+    "jamaica": {
+     "ids": [
+      73,
+      2933,
+      2906
+     ],
+     "single_token": false
+    },
+    "Jamaica": {
+     "ids": [
+      41,
+      2933,
+      2906
+     ],
+     "single_token": false
+    },
+    " Jamaican": {
+     "ids": [
+      38827,
+      6845
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "Jamaica",
+    "Jamaican"
+   ]
+  },
+  {
+   "id": "countries/Denmark",
+   "family": "countries",
+   "word": "Denmark",
+   "role": "CONF",
+   "token_id": 33200,
+   "token_str": " Denmark",
+   "variants": {
+    " denmark": {
+     "ids": [
+      3262,
+      3854
+     ],
+     "single_token": false
+    },
+    " Denmark": {
+     "ids": [
+      33200
+     ],
+     "single_token": true
+    },
+    "denmark": {
+     "ids": [
+      5018,
+      3854
+     ],
+     "single_token": false
+    },
+    "Denmark": {
+     "ids": [
+      22881,
+      3854
+     ],
+     "single_token": false
+    },
+    " Dane": {
+     "ids": [
+      77121
+     ],
+     "single_token": true
+    },
+    " Danish": {
+     "ids": [
+      42234
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "Dane",
+    "Danish",
+    "Denmark"
+   ]
+  },
+  {
+   "id": "countries/Iraq",
+   "family": "countries",
+   "word": "Iraq",
+   "role": "CONF",
+   "token_id": 10770,
+   "token_str": " Iraq",
+   "variants": {
+    " iraq": {
+     "ids": [
+      6021,
+      35106
+     ],
+     "single_token": false
+    },
+    " Iraq": {
+     "ids": [
+      10770
+     ],
+     "single_token": true
+    },
+    "iraq": {
+     "ids": [
+      8565,
+      80
+     ],
+     "single_token": false
+    },
+    "Iraq": {
+     "ids": [
+      93378
+     ],
+     "single_token": true
+    },
+    " Iraqi": {
+     "ids": [
+      29248
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "Iraq",
+    "Iraqi"
+   ]
+  },
+  {
+   "id": "countries/Greece",
+   "family": "countries",
+   "word": "Greece",
+   "role": "CONF",
+   "token_id": 23655,
+   "token_str": " Greece",
+   "variants": {
+    " greece": {
+     "ids": [
+      338,
+      85967
+     ],
+     "single_token": false
+    },
+    " Greece": {
+     "ids": [
+      23655
+     ],
+     "single_token": true
+    },
+    "greece": {
+     "ids": [
+      21791,
+      341
+     ],
+     "single_token": false
+    },
+    "Greece": {
+     "ids": [
+      38,
+      85967
+     ],
+     "single_token": false
+    },
+    " Greek": {
+     "ids": [
+      17326
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "Greece",
+    "Greek"
+   ]
+  },
+  {
+   "id": "countries/Canada",
+   "family": "countries",
+   "word": "Canada",
+   "role": "CONF",
+   "token_id": 6650,
+   "token_str": " Canada",
+   "variants": {
+    " canada": {
+     "ids": [
+      30721
+     ],
+     "single_token": true
+    },
+    " Canada": {
+     "ids": [
+      6650
+     ],
+     "single_token": true
+    },
+    "canada": {
+     "ids": [
+      4660,
+      2499
+     ],
+     "single_token": false
+    },
+    "Canada": {
+     "ids": [
+      34740
+     ],
+     "single_token": true
+    },
+    " Canadian": {
+     "ids": [
+      11549
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "Canada",
+    "Canadian"
+   ]
+  },
+  {
+   "id": "tools/shovel",
+   "family": "tools",
+   "word": "shovel",
+   "role": "BACKGROUND",
+   "token_id": 88821,
+   "token_str": " shovel",
+   "variants": {
+    " shovel": {
+     "ids": [
+      88821
+     ],
+     "single_token": true
+    },
+    " Shovel": {
+     "ids": [
+      1369,
+      41904
+     ],
+     "single_token": false
+    },
+    "shovel": {
+     "ids": [
+      898,
+      41904
+     ],
+     "single_token": false
+    },
+    "Shovel": {
+     "ids": [
+      1948,
+      41904
+     ],
+     "single_token": false
+    },
+    " shovels": {
+     "ids": [
+      542,
+      833,
+      1943
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "shovel",
+    "shovels"
+   ]
+  },
+  {
+   "id": "tools/hoe",
+   "family": "tools",
+   "word": "hoe",
+   "role": "BACKGROUND",
+   "token_id": 44347,
+   "token_str": " hoe",
+   "variants": {
+    " hoe": {
+     "ids": [
+      44347
+     ],
+     "single_token": true
+    },
+    " Hoe": {
+     "ids": [
+      83385
+     ],
+     "single_token": true
+    },
+    "hoe": {
+     "ids": [
+      73338
+     ],
+     "single_token": true
+    },
+    "Hoe": {
+     "ids": [
+      39,
+      4493
+     ],
+     "single_token": false
+    },
+    " hoes": {
+     "ids": [
+      304,
+      6852
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "hoe",
+    "hoes"
+   ]
+  },
+  {
+   "id": "tools/knife",
+   "family": "tools",
+   "word": "knife",
+   "role": "BACKGROUND",
+   "token_id": 20773,
+   "token_str": " knife",
+   "variants": {
+    " knife": {
+     "ids": [
+      20773
+     ],
+     "single_token": true
+    },
+    " Knife": {
+     "ids": [
+      59137
+     ],
+     "single_token": true
+    },
+    "knife": {
+     "ids": [
+      41305
+     ],
+     "single_token": true
+    },
+    "Knife": {
+     "ids": [
+      54511
+     ],
+     "single_token": true
+    },
+    " knives": {
+     "ids": [
+      47259
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "knife",
+    "knives"
+   ]
+  },
+  {
+   "id": "tools/scissors",
+   "family": "tools",
+   "word": "scissors",
+   "role": "BACKGROUND",
+   "token_id": 69190,
+   "token_str": " scissors",
+   "variants": {
+    " scissors": {
+     "ids": [
+      69190
+     ],
+     "single_token": true
+    },
+    " Scissors": {
+     "ids": [
+      2383,
+      40246
+     ],
+     "single_token": false
+    },
+    "scissors": {
+     "ids": [
+      2311,
+      40246
+     ],
+     "single_token": false
+    },
+    "Scissors": {
+     "ids": [
+      3217,
+      40246
+     ],
+     "single_token": false
+    },
+    " scissor": {
+     "ids": [
+      1100,
+      67970
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "scissor",
+    "scissors"
+   ]
+  },
+  {
+   "id": "tools/rake",
+   "family": "tools",
+   "word": "rake",
+   "role": "CAL",
+   "token_id": 72844,
+   "token_str": " rake",
+   "variants": {
+    " rake": {
+     "ids": [
+      72844
+     ],
+     "single_token": true
+    },
+    " Rake": {
+     "ids": [
+      423,
+      706
+     ],
+     "single_token": false
+    },
+    "rake": {
+     "ids": [
+      225762
+     ],
+     "single_token": true
+    },
+    "Rake": {
+     "ids": [
+      49,
+      706
+     ],
+     "single_token": false
+    },
+    " rakes": {
+     "ids": [
+      427,
+      1982
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "rake",
+    "rakes"
+   ]
+  },
+  {
+   "id": "tools/vise",
+   "family": "tools",
+   "word": "vise",
+   "role": "CAL",
+   "token_id": 185501,
+   "token_str": " vise",
+   "variants": {
+    " vise": {
+     "ids": [
+      185501
+     ],
+     "single_token": true
+    },
+    " Vise": {
+     "ids": [
+      629,
+      1029
+     ],
+     "single_token": false
+    },
+    "vise": {
+     "ids": [
+      85,
+      1029
+     ],
+     "single_token": false
+    },
+    "Vise": {
+     "ids": [
+      53,
+      1029
+     ],
+     "single_token": false
+    },
+    " vice": {
+     "ids": [
+      16282
+     ],
+     "single_token": true
+    },
+    " vises": {
+     "ids": [
+      2030,
+      287
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "vice",
+    "vise",
+    "vises"
+   ]
+  },
+  {
+   "id": "tools/axe",
+   "family": "tools",
+   "word": "axe",
+   "role": "PILOT",
+   "token_id": 48765,
+   "token_str": " axe",
+   "variants": {
+    " axe": {
+     "ids": [
+      48765
+     ],
+     "single_token": true
+    },
+    " Axe": {
+     "ids": [
+      69410
+     ],
+     "single_token": true
+    },
+    "axe": {
+     "ids": [
+      48066
+     ],
+     "single_token": true
+    },
+    "Axe": {
+     "ids": [
+      32,
+      8112
+     ],
+     "single_token": false
+    },
+    " ax": {
+     "ids": [
+      3731
+     ],
+     "single_token": true
+    },
+    " axes": {
+     "ids": [
+      23964
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "ax",
+    "axe",
+    "axes"
+   ]
+  },
+  {
+   "id": "tools/sponge",
+   "family": "tools",
+   "word": "sponge",
+   "role": "PILOT",
+   "token_id": 66035,
+   "token_str": " sponge",
+   "variants": {
+    " sponge": {
+     "ids": [
+      66035
+     ],
+     "single_token": true
+    },
+    " Sponge": {
+     "ids": [
+      77956
+     ],
+     "single_token": true
+    },
+    "sponge": {
+     "ids": [
+      82,
+      35056
+     ],
+     "single_token": false
+    },
+    "Sponge": {
+     "ids": [
+      50,
+      35056
+     ],
+     "single_token": false
+    },
+    " sponges": {
+     "ids": [
+      274,
+      603,
+      4050
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "sponge",
+    "sponges"
+   ]
+  },
+  {
+   "id": "tools/saw",
+   "family": "tools",
+   "word": "saw",
+   "role": "CONF",
+   "token_id": 5312,
+   "token_str": " saw",
+   "variants": {
+    " saw": {
+     "ids": [
+      5312
+     ],
+     "single_token": true
+    },
+    " Saw": {
+     "ids": [
+      35779
+     ],
+     "single_token": true
+    },
+    "saw": {
+     "ids": [
+      82,
+      654
+     ],
+     "single_token": false
+    },
+    "Saw": {
+     "ids": [
+      50,
+      654
+     ],
+     "single_token": false
+    },
+    " saws": {
+     "ids": [
+      5312,
+      82
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "saw",
+    "saws"
+   ]
+  },
+  {
+   "id": "tools/clamp",
+   "family": "tools",
+   "word": "clamp",
+   "role": "CONF",
+   "token_id": 40523,
+   "token_str": " clamp",
+   "variants": {
+    " clamp": {
+     "ids": [
+      40523
+     ],
+     "single_token": true
+    },
+    " Clamp": {
+     "ids": [
+      89621
+     ],
+     "single_token": true
+    },
+    "clamp": {
+     "ids": [
+      82501
+     ],
+     "single_token": true
+    },
+    "Clamp": {
+     "ids": [
+      4904,
+      1085
+     ],
+     "single_token": false
+    },
+    " clamps": {
+     "ids": [
+      1145,
+      14226
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "clamp",
+    "clamps"
+   ]
+  },
+  {
+   "id": "tools/mop",
+   "family": "tools",
+   "word": "mop",
+   "role": "CONF",
+   "token_id": 85030,
+   "token_str": " mop",
+   "variants": {
+    " mop": {
+     "ids": [
+      85030
+     ],
+     "single_token": true
+    },
+    " Mop": {
+     "ids": [
+      380,
+      445
+     ],
+     "single_token": false
+    },
+    "mop": {
+     "ids": [
+      76,
+      445
+     ],
+     "single_token": false
+    },
+    "Mop": {
+     "ids": [
+      44,
+      445
+     ],
+     "single_token": false
+    },
+    " mops": {
+     "ids": [
+      295,
+      3595
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "mop",
+    "mops"
+   ]
+  },
+  {
+   "id": "tools/hammer",
+   "family": "tools",
+   "word": "hammer",
+   "role": "CONF",
+   "token_id": 22725,
+   "token_str": " hammer",
+   "variants": {
+    " hammer": {
+     "ids": [
+      22725
+     ],
+     "single_token": true
+    },
+    " Hammer": {
+     "ids": [
+      35671
+     ],
+     "single_token": true
+    },
+    "hammer": {
+     "ids": [
+      43823
+     ],
+     "single_token": true
+    },
+    "Hammer": {
+     "ids": [
+      38617,
+      1134
+     ],
+     "single_token": false
+    },
+    " hammers": {
+     "ids": [
+      304,
+      40667
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "hammer",
+    "hammers"
+   ]
+  },
+  {
+   "id": "tools/whisk",
+   "family": "tools",
+   "word": "whisk",
+   "role": "CONF",
+   "token_id": 39317,
+   "token_str": " whisk",
+   "variants": {
+    " whisk": {
+     "ids": [
+      39317
+     ],
+     "single_token": true
+    },
+    " Whisk": {
+     "ids": [
+      1190,
+      3086
+     ],
+     "single_token": false
+    },
+    "whisk": {
+     "ids": [
+      1266,
+      3086
+     ],
+     "single_token": false
+    },
+    "Whisk": {
+     "ids": [
+      1582,
+      3086
+     ],
+     "single_token": false
+    },
+    " whisks": {
+     "ids": [
+      412,
+      89637
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "whisk",
+    "whisks"
+   ]
+  },
+  {
+   "id": "tools/bolt",
+   "family": "tools",
+   "word": "bolt",
+   "role": "CONF",
+   "token_id": 30797,
+   "token_str": " bolt",
+   "variants": {
+    " bolt": {
+     "ids": [
+      30797
+     ],
+     "single_token": true
+    },
+    " Bolt": {
+     "ids": [
+      44413
+     ],
+     "single_token": true
+    },
+    "bolt": {
+     "ids": [
+      50669
+     ],
+     "single_token": true
+    },
+    "Bolt": {
+     "ids": [
+      33,
+      5988
+     ],
+     "single_token": false
+    },
+    " bolts": {
+     "ids": [
+      47205
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "bolt",
+    "bolts"
+   ]
+  },
+  {
+   "id": "tools/needle",
+   "family": "tools",
+   "word": "needle",
+   "role": "CONF",
+   "token_id": 29321,
+   "token_str": " needle",
+   "variants": {
+    " needle": {
+     "ids": [
+      29321
+     ],
+     "single_token": true
+    },
+    " Needle": {
+     "ids": [
+      85745
+     ],
+     "single_token": true
+    },
+    "needle": {
+     "ids": [
+      57508
+     ],
+     "single_token": true
+    },
+    "Needle": {
+     "ids": [
+      22916,
+      273
+     ],
+     "single_token": false
+    },
+    " needles": {
+     "ids": [
+      54279
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "needle",
+    "needles"
+   ]
+  },
+  {
+   "id": "tools/screw",
+   "family": "tools",
+   "word": "screw",
+   "role": "CONF",
+   "token_id": 21289,
+   "token_str": " screw",
+   "variants": {
+    " screw": {
+     "ids": [
+      21289
+     ],
+     "single_token": true
+    },
+    " Screw": {
+     "ids": [
+      69723
+     ],
+     "single_token": true
+    },
+    "screw": {
+     "ids": [
+      82,
+      37335
+     ],
+     "single_token": false
+    },
+    "Screw": {
+     "ids": [
+      50,
+      37335
+     ],
+     "single_token": false
+    },
+    " screws": {
+     "ids": [
+      43428
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "screw",
+    "screws"
+   ]
+  },
+  {
+   "id": "foods/lemon",
+   "family": "foods",
+   "word": "lemon",
+   "role": "BACKGROUND",
+   "token_id": 28503,
+   "token_str": " lemon",
+   "variants": {
+    " lemon": {
+     "ids": [
+      28503
+     ],
+     "single_token": true
+    },
+    " Lemon": {
+     "ids": [
+      49488
+     ],
+     "single_token": true
+    },
+    "lemon": {
+     "ids": [
+      273,
+      1588
+     ],
+     "single_token": false
+    },
+    "Lemon": {
+     "ids": [
+      43,
+      7064
+     ],
+     "single_token": false
+    },
+    " lemons": {
+     "ids": [
+      501,
+      22834
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "lemon",
+    "lemons"
+   ]
+  },
+  {
+   "id": "foods/soup",
+   "family": "foods",
+   "word": "soup",
+   "role": "BACKGROUND",
+   "token_id": 18594,
+   "token_str": " soup",
+   "variants": {
+    " soup": {
+     "ids": [
+      18594
+     ],
+     "single_token": true
+    },
+    " Soup": {
+     "ids": [
+      58299
+     ],
+     "single_token": true
+    },
+    "soup": {
+     "ids": [
+      86462
+     ],
+     "single_token": true
+    },
+    "Soup": {
+     "ids": [
+      31469
+     ],
+     "single_token": true
+    },
+    " soups": {
+     "ids": [
+      5641,
+      1630
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "soup",
+    "soups"
+   ]
+  },
+  {
+   "id": "foods/honey",
+   "family": "foods",
+   "word": "honey",
+   "role": "BACKGROUND",
+   "token_id": 24924,
+   "token_str": " honey",
+   "variants": {
+    " honey": {
+     "ids": [
+      24924
+     ],
+     "single_token": true
+    },
+    " Honey": {
+     "ids": [
+      38303
+     ],
+     "single_token": true
+    },
+    "honey": {
+     "ids": [
+      71,
+      2453
+     ],
+     "single_token": false
+    },
+    "Honey": {
+     "ids": [
+      39,
+      2453
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "honey"
+   ]
+  },
+  {
+   "id": "foods/strawberry",
+   "family": "foods",
+   "word": "strawberry",
+   "role": "BACKGROUND",
+   "token_id": 70135,
+   "token_str": " strawberry",
+   "variants": {
+    " strawberry": {
+     "ids": [
+      70135
+     ],
+     "single_token": true
+    },
+    " Strawberry": {
+     "ids": [
+      84945
+     ],
+     "single_token": true
+    },
+    "strawberry": {
+     "ids": [
+      485,
+      654,
+      14911
+     ],
+     "single_token": false
+    },
+    "Strawberry": {
+     "ids": [
+      2495,
+      654,
+      14911
+     ],
+     "single_token": false
+    },
+    " strawberries": {
+     "ids": [
+      72546
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "strawberries",
+    "strawberry"
+   ]
+  },
+  {
+   "id": "foods/orange",
+   "family": "foods",
+   "word": "orange",
+   "role": "CAL",
+   "token_id": 18016,
+   "token_str": " orange",
+   "variants": {
+    " orange": {
+     "ids": [
+      18016
+     ],
+     "single_token": true
+    },
+    " Orange": {
+     "ids": [
+      21281
+     ],
+     "single_token": true
+    },
+    "orange": {
+     "ids": [
+      33034
+     ],
+     "single_token": true
+    },
+    "Orange": {
+     "ids": [
+      40582
+     ],
+     "single_token": true
+    },
+    " oranges": {
+     "ids": [
+      81141
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "orange",
+    "oranges"
+   ]
+  },
+  {
+   "id": "foods/butter",
+   "family": "foods",
+   "word": "butter",
+   "role": "CAL",
+   "token_id": 13696,
+   "token_str": " butter",
+   "variants": {
+    " butter": {
+     "ids": [
+      13696
+     ],
+     "single_token": true
+    },
+    " Butter": {
+     "ids": [
+      29368
+     ],
+     "single_token": true
+    },
+    "butter": {
+     "ids": [
+      65,
+      6013
+     ],
+     "single_token": false
+    },
+    "Butter": {
+     "ids": [
+      3850,
+      455
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "butter"
+   ]
+  },
+  {
+   "id": "foods/pizza",
+   "family": "foods",
+   "word": "pizza",
+   "role": "PILOT",
+   "token_id": 21803,
+   "token_str": " pizza",
+   "variants": {
+    " pizza": {
+     "ids": [
+      21803
+     ],
+     "single_token": true
+    },
+    " Pizza": {
+     "ids": [
+      33665
+     ],
+     "single_token": true
+    },
+    "pizza": {
+     "ids": [
+      89246
+     ],
+     "single_token": true
+    },
+    "Pizza": {
+     "ids": [
+      77002
+     ],
+     "single_token": true
+    },
+    " pizzas": {
+     "ids": [
+      84743
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "pizza",
+    "pizzas"
+   ]
+  },
+  {
+   "id": "foods/grape",
+   "family": "foods",
+   "word": "grape",
+   "role": "PILOT",
+   "token_id": 49431,
+   "token_str": " grape",
+   "variants": {
+    " grape": {
+     "ids": [
+      49431
+     ],
+     "single_token": true
+    },
+    " Grape": {
+     "ids": [
+      76790
+     ],
+     "single_token": true
+    },
+    "grape": {
+     "ids": [
+      873,
+      1959
+     ],
+     "single_token": false
+    },
+    "Grape": {
+     "ids": [
+      38,
+      19237
+     ],
+     "single_token": false
+    },
+    " grapes": {
+     "ids": [
+      62712
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "grape",
+    "grapes"
+   ]
+  },
+  {
+   "id": "foods/apple",
+   "family": "foods",
+   "word": "apple",
+   "role": "CONF",
+   "token_id": 22544,
+   "token_str": " apple",
+   "variants": {
+    " apple": {
+     "ids": [
+      22544
+     ],
+     "single_token": true
+    },
+    " Apple": {
+     "ids": [
+      7905
+     ],
+     "single_token": true
+    },
+    "apple": {
+     "ids": [
+      21680
+     ],
+     "single_token": true
+    },
+    "Apple": {
+     "ids": [
+      25719
+     ],
+     "single_token": true
+    },
+    " apples": {
+     "ids": [
+      39332
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "apple",
+    "apples"
+   ]
+  },
+  {
+   "id": "foods/banana",
+   "family": "foods",
+   "word": "banana",
+   "role": "CONF",
+   "token_id": 41674,
+   "token_str": " banana",
+   "variants": {
+    " banana": {
+     "ids": [
+      41674
+     ],
+     "single_token": true
+    },
+    " Banana": {
+     "ids": [
+      73233
+     ],
+     "single_token": true
+    },
+    "banana": {
+     "ids": [
+      84721
+     ],
+     "single_token": true
+    },
+    "Banana": {
+     "ids": [
+      48554,
+      3253
+     ],
+     "single_token": false
+    },
+    " bananas": {
+     "ids": [
+      65069
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "banana",
+    "bananas"
+   ]
+  },
+  {
+   "id": "foods/pasta",
+   "family": "foods",
+   "word": "pasta",
+   "role": "CONF",
+   "token_id": 35243,
+   "token_str": " pasta",
+   "variants": {
+    " pasta": {
+     "ids": [
+      35243
+     ],
+     "single_token": true
+    },
+    " Pasta": {
+     "ids": [
+      93988
+     ],
+     "single_token": true
+    },
+    "pasta": {
+     "ids": [
+      79,
+      13890
+     ],
+     "single_token": false
+    },
+    "Pasta": {
+     "ids": [
+      47,
+      13890
+     ],
+     "single_token": false
+    },
+    " pastas": {
+     "ids": [
+      3162,
+      299
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "pasta",
+    "pastas"
+   ]
+  },
+  {
+   "id": "foods/egg",
+   "family": "foods",
+   "word": "egg",
+   "role": "CONF",
+   "token_id": 18075,
+   "token_str": " egg",
+   "variants": {
+    " egg": {
+     "ids": [
+      18075
+     ],
+     "single_token": true
+    },
+    " Egg": {
+     "ids": [
+      39851
+     ],
+     "single_token": true
+    },
+    "egg": {
+     "ids": [
+      27445
+     ],
+     "single_token": true
+    },
+    "Egg": {
+     "ids": [
+      36,
+      13985
+     ],
+     "single_token": false
+    },
+    " eggs": {
+     "ids": [
+      18237
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "egg",
+    "eggs"
+   ]
+  },
+  {
+   "id": "foods/sushi",
+   "family": "foods",
+   "word": "sushi",
+   "role": "CONF",
+   "token_id": 63986,
+   "token_str": " sushi",
+   "variants": {
+    " sushi": {
+     "ids": [
+      63986
+     ],
+     "single_token": true
+    },
+    " Sushi": {
+     "ids": [
+      237191
+     ],
+     "single_token": true
+    },
+    "sushi": {
+     "ids": [
+      82,
+      35844
+     ],
+     "single_token": false
+    },
+    "Sushi": {
+     "ids": [
+      50,
+      35844
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "sushi"
+   ]
+  },
+  {
+   "id": "foods/mango",
+   "family": "foods",
+   "word": "mango",
+   "role": "CONF",
+   "token_id": 66922,
+   "token_str": " mango",
+   "variants": {
+    " mango": {
+     "ids": [
+      66922
+     ],
+     "single_token": true
+    },
+    " Mango": {
+     "ids": [
+      87735
+     ],
+     "single_token": true
+    },
+    "mango": {
+     "ids": [
+      76,
+      5005
+     ],
+     "single_token": false
+    },
+    "Mango": {
+     "ids": [
+      44,
+      5005
+     ],
+     "single_token": false
+    },
+    " mangoes": {
+     "ids": [
+      66922,
+      287
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "mango",
+    "mangoes"
+   ]
+  },
+  {
+   "id": "foods/steak",
+   "family": "foods",
+   "word": "steak",
+   "role": "CONF",
+   "token_id": 47318,
+   "token_str": " steak",
+   "variants": {
+    " steak": {
+     "ids": [
+      47318
+     ],
+     "single_token": true
+    },
+    " Steak": {
+     "ids": [
+      81334
+     ],
+     "single_token": true
+    },
+    "steak": {
+     "ids": [
+      5174,
+      570
+     ],
+     "single_token": false
+    },
+    "Steak": {
+     "ids": [
+      20265,
+      570
+     ],
+     "single_token": false
+    },
+    " steaks": {
+     "ids": [
+      3951,
+      9518
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "steak",
+    "steaks"
+   ]
+  },
+  {
+   "id": "foods/cheese",
+   "family": "foods",
+   "word": "cheese",
+   "role": "CONF",
+   "token_id": 16657,
+   "token_str": " cheese",
+   "variants": {
+    " cheese": {
+     "ids": [
+      16657
+     ],
+     "single_token": true
+    },
+    " Cheese": {
+     "ids": [
+      42847
+     ],
+     "single_token": true
+    },
+    "cheese": {
+     "ids": [
+      1474,
+      2290
+     ],
+     "single_token": false
+    },
+    "Cheese": {
+     "ids": [
+      25984,
+      2290
+     ],
+     "single_token": false
+    },
+    " cheeses": {
+     "ids": [
+      94103
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "cheese",
+    "cheeses"
+   ]
+  },
+  {
+   "id": "vehicles/cart",
+   "family": "vehicles",
+   "word": "cart",
+   "role": "BACKGROUND",
+   "token_id": 7171,
+   "token_str": " cart",
+   "variants": {
+    " cart": {
+     "ids": [
+      7171
+     ],
+     "single_token": true
+    },
+    " Cart": {
+     "ids": [
+      12735
+     ],
+     "single_token": true
+    },
+    "cart": {
+     "ids": [
+      11123
+     ],
+     "single_token": true
+    },
+    "Cart": {
+     "ids": [
+      12231
+     ],
+     "single_token": true
+    },
+    " carts": {
+     "ids": [
+      63197
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "cart",
+    "carts"
+   ]
+  },
+  {
+   "id": "vehicles/jet",
+   "family": "vehicles",
+   "word": "jet",
+   "role": "BACKGROUND",
+   "token_id": 16106,
+   "token_str": " jet",
+   "variants": {
+    " jet": {
+     "ids": [
+      16106
+     ],
+     "single_token": true
+    },
+    " Jet": {
+     "ids": [
+      23597
+     ],
+     "single_token": true
+    },
+    "jet": {
+     "ids": [
+      14958
+     ],
+     "single_token": true
+    },
+    "Jet": {
+     "ids": [
+      34462
+     ],
+     "single_token": true
+    },
+    " jets": {
+     "ids": [
+      41780
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "jet",
+    "jets"
+   ]
+  },
+  {
+   "id": "vehicles/rocket",
+   "family": "vehicles",
+   "word": "rocket",
+   "role": "BACKGROUND",
+   "token_id": 23542,
+   "token_str": " rocket",
+   "variants": {
+    " rocket": {
+     "ids": [
+      23542
+     ],
+     "single_token": true
+    },
+    " Rocket": {
+     "ids": [
+      37920
+     ],
+     "single_token": true
+    },
+    "rocket": {
+     "ids": [
+      45226
+     ],
+     "single_token": true
+    },
+    "Rocket": {
+     "ids": [
+      77259
+     ],
+     "single_token": true
+    },
+    " rockets": {
+     "ids": [
+      50250
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "rocket",
+    "rockets"
+   ]
+  },
+  {
+   "id": "vehicles/canoe",
+   "family": "vehicles",
+   "word": "canoe",
+   "role": "BACKGROUND",
+   "token_id": 80611,
+   "token_str": " canoe",
+   "variants": {
+    " canoe": {
+     "ids": [
+      80611
+     ],
+     "single_token": true
+    },
+    " Canoe": {
+     "ids": [
+      2885,
+      4493
+     ],
+     "single_token": false
+    },
+    "canoe": {
+     "ids": [
+      4660,
+      4493
+     ],
+     "single_token": false
+    },
+    "Canoe": {
+     "ids": [
+      6503,
+      4493
+     ],
+     "single_token": false
+    },
+    " canoes": {
+     "ids": [
+      628,
+      6852
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "canoe",
+    "canoes"
+   ]
+  },
+  {
+   "id": "vehicles/boat",
+   "family": "vehicles",
+   "word": "boat",
+   "role": "CAL",
+   "token_id": 14882,
+   "token_str": " boat",
+   "variants": {
+    " boat": {
+     "ids": [
+      14882
+     ],
+     "single_token": true
+    },
+    " Boat": {
+     "ids": [
+      42762
+     ],
+     "single_token": true
+    },
+    "boat": {
+     "ids": [
+      36516
+     ],
+     "single_token": true
+    },
+    "Boat": {
+     "ids": [
+      1191,
+      266
+     ],
+     "single_token": false
+    },
+    " boats": {
+     "ids": [
+      30592
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "boat",
+    "boats"
+   ]
+  },
+  {
+   "id": "vehicles/motorcycle",
+   "family": "vehicles",
+   "word": "motorcycle",
+   "role": "CAL",
+   "token_id": 33168,
+   "token_str": " motorcycle",
+   "variants": {
+    " motorcycle": {
+     "ids": [
+      33168
+     ],
+     "single_token": true
+    },
+    " Motorcycle": {
+     "ids": [
+      67302
+     ],
+     "single_token": true
+    },
+    "motorcycle": {
+     "ids": [
+      56042,
+      20958
+     ],
+     "single_token": false
+    },
+    "Motorcycle": {
+     "ids": [
+      32465,
+      20958
+     ],
+     "single_token": false
+    },
+    " motorcycles": {
+     "ids": [
+      68261
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "motorcycle",
+    "motorcycles"
+   ]
+  },
+  {
+   "id": "vehicles/truck",
+   "family": "vehicles",
+   "word": "truck",
+   "role": "PILOT",
+   "token_id": 10538,
+   "token_str": " truck",
+   "variants": {
+    " truck": {
+     "ids": [
+      10538
+     ],
+     "single_token": true
+    },
+    " Truck": {
+     "ids": [
+      32569
+     ],
+     "single_token": true
+    },
+    "truck": {
+     "ids": [
+      94923
+     ],
+     "single_token": true
+    },
+    "Truck": {
+     "ids": [
+      1237,
+      1875
+     ],
+     "single_token": false
+    },
+    " trucks": {
+     "ids": [
+      25909
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "truck",
+    "trucks"
+   ]
+  },
+  {
+   "id": "vehicles/kayak",
+   "family": "vehicles",
+   "word": "kayak",
+   "role": "PILOT",
+   "token_id": 83978,
+   "token_str": " kayak",
+   "variants": {
+    " kayak": {
+     "ids": [
+      83978
+     ],
+     "single_token": true
+    },
+    " Kayak": {
+     "ids": [
+      29161,
+      570
+     ],
+     "single_token": false
+    },
+    "kayak": {
+     "ids": [
+      74,
+      347,
+      570
+     ],
+     "single_token": false
+    },
+    "Kayak": {
+     "ids": [
+      64080,
+      570
+     ],
+     "single_token": false
+    },
+    " kayaks": {
+     "ids": [
+      35626,
+      9518
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "kayak",
+    "kayaks"
+   ]
+  },
+  {
+   "id": "vehicles/wagon",
+   "family": "vehicles",
+   "word": "wagon",
+   "role": "CONF",
+   "token_id": 58382,
+   "token_str": " wagon",
+   "variants": {
+    " wagon": {
+     "ids": [
+      58382
+     ],
+     "single_token": true
+    },
+    " Wagon": {
+     "ids": [
+      457,
+      5922
+     ],
+     "single_token": false
+    },
+    "wagon": {
+     "ids": [
+      89913
+     ],
+     "single_token": true
+    },
+    "Wagon": {
+     "ids": [
+      54,
+      5922
+     ],
+     "single_token": false
+    },
+    " wagons": {
+     "ids": [
+      62154,
+      2305
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "wagon",
+    "wagons"
+   ]
+  },
+  {
+   "id": "vehicles/tractor",
+   "family": "vehicles",
+   "word": "tractor",
+   "role": "CONF",
+   "token_id": 56701,
+   "token_str": " tractor",
+   "variants": {
+    " tractor": {
+     "ids": [
+      56701
+     ],
+     "single_token": true
+    },
+    " Tractor": {
+     "ids": [
+      1124,
+      5444
+     ],
+     "single_token": false
+    },
+    "tractor": {
+     "ids": [
+      52925
+     ],
+     "single_token": true
+    },
+    "Tractor": {
+     "ids": [
+      1237,
+      5444
+     ],
+     "single_token": false
+    },
+    " tractors": {
+     "ids": [
+      479,
+      20512
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "tractor",
+    "tractors"
+   ]
+  },
+  {
+   "id": "vehicles/van",
+   "family": "vehicles",
+   "word": "van",
+   "role": "CONF",
+   "token_id": 5075,
+   "token_str": " van",
+   "variants": {
+    " van": {
+     "ids": [
+      5075
+     ],
+     "single_token": true
+    },
+    " Van": {
+     "ids": [
+      12345
+     ],
+     "single_token": true
+    },
+    "van": {
+     "ids": [
+      15190
+     ],
+     "single_token": true
+    },
+    "Van": {
+     "ids": [
+      43715
+     ],
+     "single_token": true
+    },
+    " vans": {
+     "ids": [
+      73423
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "van",
+    "vans"
+   ]
+  },
+  {
+   "id": "vehicles/submarine",
+   "family": "vehicles",
+   "word": "submarine",
+   "role": "CONF",
+   "token_id": 55603,
+   "token_str": " submarine",
+   "variants": {
+    " submarine": {
+     "ids": [
+      55603
+     ],
+     "single_token": true
+    },
+    " Submarine": {
+     "ids": [
+      3593,
+      81530
+     ],
+     "single_token": false
+    },
+    "submarine": {
+     "ids": [
+      1899,
+      81530
+     ],
+     "single_token": false
+    },
+    "Submarine": {
+     "ids": [
+      3036,
+      81530
+     ],
+     "single_token": false
+    },
+    " submarines": {
+     "ids": [
+      82588
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "submarine",
+    "submarines"
+   ]
+  },
+  {
+   "id": "vehicles/train",
+   "family": "vehicles",
+   "word": "train",
+   "role": "CONF",
+   "token_id": 5257,
+   "token_str": " train",
+   "variants": {
+    " train": {
+     "ids": [
+      5257
+     ],
+     "single_token": true
+    },
+    " Train": {
+     "ids": [
+      25291
+     ],
+     "single_token": true
+    },
+    "train": {
+     "ids": [
+      10087
+     ],
+     "single_token": true
+    },
+    "Train": {
+     "ids": [
+      33468
+     ],
+     "single_token": true
+    },
+    " trains": {
+     "ids": [
+      26791
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "train",
+    "trains"
+   ]
+  },
+  {
+   "id": "vehicles/bicycle",
+   "family": "vehicles",
+   "word": "bicycle",
+   "role": "CONF",
+   "token_id": 33828,
+   "token_str": " bicycle",
+   "variants": {
+    " bicycle": {
+     "ids": [
+      33828
+     ],
+     "single_token": true
+    },
+    " Bicycle": {
+     "ids": [
+      75660
+     ],
+     "single_token": true
+    },
+    "bicycle": {
+     "ids": [
+      65,
+      25330
+     ],
+     "single_token": false
+    },
+    "Bicycle": {
+     "ids": [
+      33,
+      25330
+     ],
+     "single_token": false
+    },
+    " bicycles": {
+     "ids": [
+      70386
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "bicycle",
+    "bicycles"
+   ]
+  },
+  {
+   "id": "vehicles/ferry",
+   "family": "vehicles",
+   "word": "ferry",
+   "role": "CONF",
+   "token_id": 49813,
+   "token_str": " ferry",
+   "variants": {
+    " ferry": {
+     "ids": [
+      49813
+     ],
+     "single_token": true
+    },
+    " Ferry": {
+     "ids": [
+      75760
+     ],
+     "single_token": true
+    },
+    "ferry": {
+     "ids": [
+      69,
+      5232
+     ],
+     "single_token": false
+    },
+    "Ferry": {
+     "ids": [
+      37,
+      5232
+     ],
+     "single_token": false
+    },
+    " ferries": {
+     "ids": [
+      17685,
+      3884
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "ferries",
+    "ferry"
+   ]
+  },
+  {
+   "id": "vehicles/scooter",
+   "family": "vehicles",
+   "word": "scooter",
+   "role": "CONF",
+   "token_id": 72486,
+   "token_str": " scooter",
+   "variants": {
+    " scooter": {
+     "ids": [
+      72486
+     ],
+     "single_token": true
+    },
+    " Scooter": {
+     "ids": [
+      47415,
+      24587
+     ],
+     "single_token": false
+    },
+    "scooter": {
+     "ids": [
+      82,
+      981,
+      24587
+     ],
+     "single_token": false
+    },
+    "Scooter": {
+     "ids": [
+      238941,
+      24587
+     ],
+     "single_token": false
+    },
+    " scooters": {
+     "ids": [
+      23861,
+      38475
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "scooter",
+    "scooters"
+   ]
+  },
+  {
+   "id": "instruments/guitar",
+   "family": "instruments",
+   "word": "guitar",
+   "role": "BACKGROUND",
+   "token_id": 16488,
+   "token_str": " guitar",
+   "variants": {
+    " guitar": {
+     "ids": [
+      16488
+     ],
+     "single_token": true
+    },
+    " Guitar": {
+     "ids": [
+      45099
+     ],
+     "single_token": true
+    },
+    "guitar": {
+     "ids": [
+      70,
+      33597
+     ],
+     "single_token": false
+    },
+    "Guitar": {
+     "ids": [
+      38,
+      33597
+     ],
+     "single_token": false
+    },
+    " guitars": {
+     "ids": [
+      57484
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "guitar",
+    "guitars"
+   ]
+  },
+  {
+   "id": "instruments/viola",
+   "family": "instruments",
+   "word": "viola",
+   "role": "BACKGROUND",
+   "token_id": 214351,
+   "token_str": " viola",
+   "variants": {
+    " viola": {
+     "ids": [
+      214351
+     ],
+     "single_token": true
+    },
+    " Viola": {
+     "ids": [
+      244249
+     ],
+     "single_token": true
+    },
+    "viola": {
+     "ids": [
+      9676,
+      7674
+     ],
+     "single_token": false
+    },
+    "Viola": {
+     "ids": [
+      34369,
+      7674
+     ],
+     "single_token": false
+    },
+    " violas": {
+     "ids": [
+      4484,
+      299
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "viola",
+    "violas"
+   ]
+  },
+  {
+   "id": "instruments/tabla",
+   "family": "instruments",
+   "word": "tabla",
+   "role": "BACKGROUND",
+   "token_id": 39207,
+   "token_str": " tabla",
+   "variants": {
+    " tabla": {
+     "ids": [
+      39207
+     ],
+     "single_token": true
+    },
+    " Tabla": {
+     "ids": [
+      14698,
+      4120
+     ],
+     "single_token": false
+    },
+    "tabla": {
+     "ids": [
+      55433
+     ],
+     "single_token": true
+    },
+    "Tabla": {
+     "ids": [
+      88329
+     ],
+     "single_token": true
+    },
+    " tablas": {
+     "ids": [
+      5474,
+      14078
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "tabla",
+    "tablas"
+   ]
+  },
+  {
+   "id": "instruments/piano",
+   "family": "instruments",
+   "word": "piano",
+   "role": "BACKGROUND",
+   "token_id": 25439,
+   "token_str": " piano",
+   "variants": {
+    " piano": {
+     "ids": [
+      25439
+     ],
+     "single_token": true
+    },
+    " Piano": {
+     "ids": [
+      53531
+     ],
+     "single_token": true
+    },
+    "piano": {
+     "ids": [
+      79,
+      12711
+     ],
+     "single_token": false
+    },
+    "Piano": {
+     "ids": [
+      47,
+      12711
+     ],
+     "single_token": false
+    },
+    " pianos": {
+     "ids": [
+      57069,
+      428
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "piano",
+    "pianos"
+   ]
+  },
+  {
+   "id": "instruments/drum",
+   "family": "instruments",
+   "word": "drum",
+   "role": "CAL",
+   "token_id": 22472,
+   "token_str": " drum",
+   "variants": {
+    " drum": {
+     "ids": [
+      22472
+     ],
+     "single_token": true
+    },
+    " Drum": {
+     "ids": [
+      43891
+     ],
+     "single_token": true
+    },
+    "drum": {
+     "ids": [
+      3491,
+      367
+     ],
+     "single_token": false
+    },
+    "Drum": {
+     "ids": [
+      8580,
+      367
+     ],
+     "single_token": false
+    },
+    " drums": {
+     "ids": [
+      44747
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "drum",
+    "drums"
+   ]
+  },
+  {
+   "id": "instruments/accordion",
+   "family": "instruments",
+   "word": "accordion",
+   "role": "CAL",
+   "token_id": 83999,
+   "token_str": " accordion",
+   "variants": {
+    " accordion": {
+     "ids": [
+      83999
+     ],
+     "single_token": true
+    },
+    " Accordion": {
+     "ids": [
+      11101,
+      24892
+     ],
+     "single_token": false
+    },
+    "accordion": {
+     "ids": [
+      34166
+     ],
+     "single_token": true
+    },
+    "Accordion": {
+     "ids": [
+      69172
+     ],
+     "single_token": true
+    },
+    " accordions": {
+     "ids": [
+      14141,
+      880
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "accordion",
+    "accordions"
+   ]
+  },
+  {
+   "id": "instruments/synth",
+   "family": "instruments",
+   "word": "synth",
+   "role": "PILOT",
+   "token_id": 41479,
+   "token_str": " synth",
+   "variants": {
+    " synth": {
+     "ids": [
+      41479
+     ],
+     "single_token": true
+    },
+    " Synth": {
+     "ids": [
+      225775
+     ],
+     "single_token": true
+    },
+    "synth": {
+     "ids": [
+      19722,
+      337
+     ],
+     "single_token": false
+    },
+    "Synth": {
+     "ids": [
+      35904,
+      337
+     ],
+     "single_token": false
+    },
+    " synthesizer": {
+     "ids": [
+      49564,
+      3035
+     ],
+     "single_token": false
+    },
+    " synths": {
+     "ids": [
+      6569,
+      16402
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "synth",
+    "synthesizer",
+    "synths"
+   ]
+  },
+  {
+   "id": "instruments/keyboard",
+   "family": "instruments",
+   "word": "keyboard",
+   "role": "PILOT",
+   "token_id": 13232,
+   "token_str": " keyboard",
+   "variants": {
+    " keyboard": {
+     "ids": [
+      13232
+     ],
+     "single_token": true
+    },
+    " Keyboard": {
+     "ids": [
+      24801
+     ],
+     "single_token": true
+    },
+    "keyboard": {
+     "ids": [
+      40335
+     ],
+     "single_token": true
+    },
+    "Keyboard": {
+     "ids": [
+      18342
+     ],
+     "single_token": true
+    },
+    " keyboards": {
+     "ids": [
+      67922
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "keyboard",
+    "keyboards"
+   ]
+  },
+  {
+   "id": "instruments/triangle",
+   "family": "instruments",
+   "word": "triangle",
+   "role": "CONF",
+   "token_id": 20837,
+   "token_str": " triangle",
+   "variants": {
+    " triangle": {
+     "ids": [
+      20837
+     ],
+     "single_token": true
+    },
+    " Triangle": {
+     "ids": [
+      36775
+     ],
+     "single_token": true
+    },
+    "triangle": {
+     "ids": [
+      53264
+     ],
+     "single_token": true
+    },
+    "Triangle": {
+     "ids": [
+      50196
+     ],
+     "single_token": true
+    },
+    " triangles": {
+     "ids": [
+      41036
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "triangle",
+    "triangles"
+   ]
+  },
+  {
+   "id": "instruments/flute",
+   "family": "instruments",
+   "word": "flute",
+   "role": "CONF",
+   "token_id": 92400,
+   "token_str": " flute",
+   "variants": {
+    " flute": {
+     "ids": [
+      92400
+     ],
+     "single_token": true
+    },
+    " Flute": {
+     "ids": [
+      2893,
+      1035
+     ],
+     "single_token": false
+    },
+    "flute": {
+     "ids": [
+      1435,
+      1035
+     ],
+     "single_token": false
+    },
+    "Flute": {
+     "ids": [
+      3751,
+      1035
+     ],
+     "single_token": false
+    },
+    " flutes": {
+     "ids": [
+      1274,
+      2027
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "flute",
+    "flutes"
+   ]
+  },
+  {
+   "id": "instruments/bell",
+   "family": "instruments",
+   "word": "bell",
+   "role": "CONF",
+   "token_id": 27491,
+   "token_str": " bell",
+   "variants": {
+    " bell": {
+     "ids": [
+      27491
+     ],
+     "single_token": true
+    },
+    " Bell": {
+     "ids": [
+      17349
+     ],
+     "single_token": true
+    },
+    "bell": {
+     "ids": [
+      16742
+     ],
+     "single_token": true
+    },
+    "Bell": {
+     "ids": [
+      81236
+     ],
+     "single_token": true
+    },
+    " bells": {
+     "ids": [
+      58648
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "bell",
+    "bells"
+   ]
+  },
+  {
+   "id": "instruments/violin",
+   "family": "instruments",
+   "word": "violin",
+   "role": "CONF",
+   "token_id": 59945,
+   "token_str": " violin",
+   "variants": {
+    " violin": {
+     "ids": [
+      59945
+     ],
+     "single_token": true
+    },
+    " Violin": {
+     "ids": [
+      28494,
+      258
+     ],
+     "single_token": false
+    },
+    "violin": {
+     "ids": [
+      9676,
+      35424
+     ],
+     "single_token": false
+    },
+    "Violin": {
+     "ids": [
+      48044,
+      258
+     ],
+     "single_token": false
+    },
+    " violins": {
+     "ids": [
+      4484,
+      1283
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "violin",
+    "violins"
+   ]
+  },
+  {
+   "id": "instruments/trumpet",
+   "family": "instruments",
+   "word": "trumpet",
+   "role": "CONF",
+   "token_id": 88117,
+   "token_str": " trumpet",
+   "variants": {
+    " trumpet": {
+     "ids": [
+      88117
+     ],
+     "single_token": true
+    },
+    " Trumpet": {
+     "ids": [
+      3230,
+      294
+     ],
+     "single_token": false
+    },
+    "trumpet": {
+     "ids": [
+      371,
+      1456,
+      294
+     ],
+     "single_token": false
+    },
+    "Trumpet": {
+     "ids": [
+      15643,
+      294
+     ],
+     "single_token": false
+    },
+    " trumpets": {
+     "ids": [
+      36797,
+      1367
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "trumpet",
+    "trumpets"
+   ]
+  },
+  {
+   "id": "instruments/sax",
+   "family": "instruments",
+   "word": "sax",
+   "role": "CONF",
+   "token_id": 60883,
+   "token_str": " sax",
+   "variants": {
+    " sax": {
+     "ids": [
+      60883
+     ],
+     "single_token": true
+    },
+    " Sax": {
+     "ids": [
+      64666
+     ],
+     "single_token": true
+    },
+    "sax": {
+     "ids": [
+      82,
+      686
+     ],
+     "single_token": false
+    },
+    "Sax": {
+     "ids": [
+      50,
+      686
+     ],
+     "single_token": false
+    },
+    " saxes": {
+     "ids": [
+      274,
+      19383
+     ],
+     "single_token": false
+    },
+    " saxophone": {
+     "ids": [
+      60883,
+      74562
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "sax",
+    "saxes",
+    "saxophone"
+   ]
+  },
+  {
+   "id": "instruments/whistle",
+   "family": "instruments",
+   "word": "whistle",
+   "role": "CONF",
+   "token_id": 38240,
+   "token_str": " whistle",
+   "variants": {
+    " whistle": {
+     "ids": [
+      38240
+     ],
+     "single_token": true
+    },
+    " Whistle": {
+     "ids": [
+      1190,
+      27381
+     ],
+     "single_token": false
+    },
+    "whistle": {
+     "ids": [
+      1266,
+      27381
+     ],
+     "single_token": false
+    },
+    "Whistle": {
+     "ids": [
+      1582,
+      27381
+     ],
+     "single_token": false
+    },
+    " whistles": {
+     "ids": [
+      412,
+      63717
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "whistle",
+    "whistles"
+   ]
+  },
+  {
+   "id": "instruments/recorder",
+   "family": "instruments",
+   "word": "recorder",
+   "role": "CONF",
+   "token_id": 47201,
+   "token_str": " recorder",
+   "variants": {
+    " recorder": {
+     "ids": [
+      47201
+     ],
+     "single_token": true
+    },
+    " Recorder": {
+     "ids": [
+      82566
+     ],
+     "single_token": true
+    },
+    "recorder": {
+     "ids": [
+      2670,
+      1310
+     ],
+     "single_token": false
+    },
+    "Recorder": {
+     "ids": [
+      45453
+     ],
+     "single_token": true
+    },
+    " recorders": {
+     "ids": [
+      3150,
+      382
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "recorder",
+    "recorders"
+   ]
+  },
+  {
+   "id": "body parts/kidney",
+   "family": "body parts",
+   "word": "kidney",
+   "role": "BACKGROUND",
+   "token_id": 36690,
+   "token_str": " kidney",
+   "variants": {
+    " kidney": {
+     "ids": [
+      36690
+     ],
+     "single_token": true
+    },
+    " Kidney": {
+     "ids": [
+      30527,
+      3327
+     ],
+     "single_token": false
+    },
+    "kidney": {
+     "ids": [
+      61145,
+      3327
+     ],
+     "single_token": false
+    },
+    "Kidney": {
+     "ids": [
+      95105,
+      3327
+     ],
+     "single_token": false
+    },
+    " kidneys": {
+     "ids": [
+      78071
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "kidney",
+    "kidneys"
+   ]
+  },
+  {
+   "id": "body parts/stomach",
+   "family": "body parts",
+   "word": "stomach",
+   "role": "BACKGROUND",
+   "token_id": 21654,
+   "token_str": " stomach",
+   "variants": {
+    " stomach": {
+     "ids": [
+      21654
+     ],
+     "single_token": true
+    },
+    " Stomach": {
+     "ids": [
+      769,
+      315,
+      595
+     ],
+     "single_token": false
+    },
+    "stomach": {
+     "ids": [
+      267,
+      315,
+      595
+     ],
+     "single_token": false
+    },
+    "Stomach": {
+     "ids": [
+      608,
+      315,
+      595
+     ],
+     "single_token": false
+    },
+    " stomachs": {
+     "ids": [
+      21654,
+      82
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "stomach",
+    "stomachs"
+   ]
+  },
+  {
+   "id": "body parts/neck",
+   "family": "body parts",
+   "word": "neck",
+   "role": "BACKGROUND",
+   "token_id": 12603,
+   "token_str": " neck",
+   "variants": {
+    " neck": {
+     "ids": [
+      12603
+     ],
+     "single_token": true
+    },
+    " Neck": {
+     "ids": [
+      41536
+     ],
+     "single_token": true
+    },
+    "neck": {
+     "ids": [
+      60240
+     ],
+     "single_token": true
+    },
+    "Neck": {
+     "ids": [
+      8547,
+      372
+     ],
+     "single_token": false
+    },
+    " necks": {
+     "ids": [
+      12603,
+      82
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "neck",
+    "necks"
+   ]
+  },
+  {
+   "id": "body parts/thumb",
+   "family": "body parts",
+   "word": "thumb",
+   "role": "BACKGROUND",
+   "token_id": 23297,
+   "token_str": " thumb",
+   "variants": {
+    " thumb": {
+     "ids": [
+      23297
+     ],
+     "single_token": true
+    },
+    " Thumb": {
+     "ids": [
+      89071
+     ],
+     "single_token": true
+    },
+    "thumb": {
+     "ids": [
+      24243
+     ],
+     "single_token": true
+    },
+    "Thumb": {
+     "ids": [
+      60586
+     ],
+     "single_token": true
+    },
+    " thumbs": {
+     "ids": [
+      54947
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "thumb",
+    "thumbs"
+   ]
+  },
+  {
+   "id": "body parts/tongue",
+   "family": "body parts",
+   "word": "tongue",
+   "role": "CAL",
+   "token_id": 23684,
+   "token_str": " tongue",
+   "variants": {
+    " tongue": {
+     "ids": [
+      23684
+     ],
+     "single_token": true
+    },
+    " Tongue": {
+     "ids": [
+      48696,
+      356
+     ],
+     "single_token": false
+    },
+    "tongue": {
+     "ids": [
+      83,
+      626,
+      356
+     ],
+     "single_token": false
+    },
+    "Tongue": {
+     "ids": [
+      51,
+      626,
+      356
+     ],
+     "single_token": false
+    },
+    " tongues": {
+     "ids": [
+      85293
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "tongue",
+    "tongues"
+   ]
+  },
+  {
+   "id": "body parts/liver",
+   "family": "body parts",
+   "word": "liver",
+   "role": "CAL",
+   "token_id": 24694,
+   "token_str": " liver",
+   "variants": {
+    " liver": {
+     "ids": [
+      24694
+     ],
+     "single_token": true
+    },
+    " Liver": {
+     "ids": [
+      21187
+     ],
+     "single_token": true
+    },
+    "liver": {
+     "ids": [
+      75,
+      1470
+     ],
+     "single_token": false
+    },
+    "Liver": {
+     "ids": [
+      80033
+     ],
+     "single_token": true
+    },
+    " livers": {
+     "ids": [
+      324,
+      1878
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "liver",
+    "livers"
+   ]
+  },
+  {
+   "id": "body parts/lip",
+   "family": "body parts",
+   "word": "lip",
+   "role": "PILOT",
+   "token_id": 18477,
+   "token_str": " lip",
+   "variants": {
+    " lip": {
+     "ids": [
+      18477
+     ],
+     "single_token": true
+    },
+    " Lip": {
+     "ids": [
+      39781
+     ],
+     "single_token": true
+    },
+    "lip": {
+     "ids": [
+      32016
+     ],
+     "single_token": true
+    },
+    "Lip": {
+     "ids": [
+      43,
+      558
+     ],
+     "single_token": false
+    },
+    " lips": {
+     "ids": [
+      22164
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "lip",
+    "lips"
+   ]
+  },
+  {
+   "id": "body parts/knee",
+   "family": "body parts",
+   "word": "knee",
+   "role": "PILOT",
+   "token_id": 20725,
+   "token_str": " knee",
+   "variants": {
+    " knee": {
+     "ids": [
+      20725
+     ],
+     "single_token": true
+    },
+    " Knee": {
+     "ids": [
+      93861
+     ],
+     "single_token": true
+    },
+    "knee": {
+     "ids": [
+      74,
+      31994
+     ],
+     "single_token": false
+    },
+    "Knee": {
+     "ids": [
+      42,
+      31994
+     ],
+     "single_token": false
+    },
+    " knees": {
+     "ids": [
+      29528
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "knee",
+    "knees"
+   ]
+  },
+  {
+   "id": "body parts/finger",
+   "family": "body parts",
+   "word": "finger",
+   "role": "CONF",
+   "token_id": 13907,
+   "token_str": " finger",
+   "variants": {
+    " finger": {
+     "ids": [
+      13907
+     ],
+     "single_token": true
+    },
+    " Finger": {
+     "ids": [
+      60746
+     ],
+     "single_token": true
+    },
+    "finger": {
+     "ids": [
+      76405
+     ],
+     "single_token": true
+    },
+    "Finger": {
+     "ids": [
+      37,
+      4972
+     ],
+     "single_token": false
+    },
+    " fingers": {
+     "ids": [
+      18645
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "finger",
+    "fingers"
+   ]
+  },
+  {
+   "id": "body parts/ankle",
+   "family": "body parts",
+   "word": "ankle",
+   "role": "CONF",
+   "token_id": 37076,
+   "token_str": " ankle",
+   "variants": {
+    " ankle": {
+     "ids": [
+      37076
+     ],
+     "single_token": true
+    },
+    " Ankle": {
+     "ids": [
+      1473,
+      22369
+     ],
+     "single_token": false
+    },
+    "ankle": {
+     "ids": [
+      1140,
+      273
+     ],
+     "single_token": false
+    },
+    "Ankle": {
+     "ids": [
+      2014,
+      22369
+     ],
+     "single_token": false
+    },
+    " ankles": {
+     "ids": [
+      86532
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "ankle",
+    "ankles"
+   ]
+  },
+  {
+   "id": "body parts/lung",
+   "family": "body parts",
+   "word": "lung",
+   "role": "CONF",
+   "token_id": 19997,
+   "token_str": " lung",
+   "variants": {
+    " lung": {
+     "ids": [
+      19997
+     ],
+     "single_token": true
+    },
+    " Lung": {
+     "ids": [
+      74594
+     ],
+     "single_token": true
+    },
+    "lung": {
+     "ids": [
+      36696
+     ],
+     "single_token": true
+    },
+    "Lung": {
+     "ids": [
+      43,
+      2116
+     ],
+     "single_token": false
+    },
+    " lungs": {
+     "ids": [
+      42706
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "lung",
+    "lungs"
+   ]
+  },
+  {
+   "id": "body parts/chin",
+   "family": "body parts",
+   "word": "chin",
+   "role": "CONF",
+   "token_id": 43570,
+   "token_str": " chin",
+   "variants": {
+    " chin": {
+     "ids": [
+      43570
+     ],
+     "single_token": true
+    },
+    " Chin": {
+     "ids": [
+      46627
+     ],
+     "single_token": true
+    },
+    "chin": {
+     "ids": [
+      57074
+     ],
+     "single_token": true
+    },
+    "Chin": {
+     "ids": [
+      1106,
+      258
+     ],
+     "single_token": false
+    },
+    " chins": {
+     "ids": [
+      509,
+      1283
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "chin",
+    "chins"
+   ]
+  },
+  {
+   "id": "body parts/toe",
+   "family": "body parts",
+   "word": "toe",
+   "role": "CONF",
+   "token_id": 29231,
+   "token_str": " toe",
+   "variants": {
+    " toe": {
+     "ids": [
+      29231
+     ],
+     "single_token": true
+    },
+    " Toe": {
+     "ids": [
+      86713
+     ],
+     "single_token": true
+    },
+    "toe": {
+     "ids": [
+      951,
+      68
+     ],
+     "single_token": false
+    },
+    "Toe": {
+     "ids": [
+      87344
+     ],
+     "single_token": true
+    },
+    " toes": {
+     "ids": [
+      43134
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "toe",
+    "toes"
+   ]
+  },
+  {
+   "id": "body parts/hip",
+   "family": "body parts",
+   "word": "hip",
+   "role": "CONF",
+   "token_id": 17603,
+   "token_str": " hip",
+   "variants": {
+    " hip": {
+     "ids": [
+      17603
+     ],
+     "single_token": true
+    },
+    " Hip": {
+     "ids": [
+      43050
+     ],
+     "single_token": true
+    },
+    "hip": {
+     "ids": [
+      2082
+     ],
+     "single_token": true
+    },
+    "Hip": {
+     "ids": [
+      87422
+     ],
+     "single_token": true
+    },
+    " hips": {
+     "ids": [
+      41013
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "hip",
+    "hips"
+   ]
+  },
+  {
+   "id": "body parts/skull",
+   "family": "body parts",
+   "word": "skull",
+   "role": "CONF",
+   "token_id": 32886,
+   "token_str": " skull",
+   "variants": {
+    " skull": {
+     "ids": [
+      32886
+     ],
+     "single_token": true
+    },
+    " Skull": {
+     "ids": [
+      58743
+     ],
+     "single_token": true
+    },
+    "skull": {
+     "ids": [
+      4729,
+      602
+     ],
+     "single_token": false
+    },
+    "Skull": {
+     "ids": [
+      18707,
+      602
+     ],
+     "single_token": false
+    },
+    " skulls": {
+     "ids": [
+      94242
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "skull",
+    "skulls"
+   ]
+  },
+  {
+   "id": "body parts/elbow",
+   "family": "body parts",
+   "word": "elbow",
+   "role": "CONF",
+   "token_id": 44189,
+   "token_str": " elbow",
+   "variants": {
+    " elbow": {
+     "ids": [
+      44189
+     ],
+     "single_token": true
+    },
+    " Elbow": {
+     "ids": [
+      3851,
+      14987
+     ],
+     "single_token": false
+    },
+    "elbow": {
+     "ids": [
+      300,
+      14987
+     ],
+     "single_token": false
+    },
+    "Elbow": {
+     "ids": [
+      6374,
+      14987
+     ],
+     "single_token": false
+    },
+    " elbows": {
+     "ids": [
+      78121
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "elbow",
+    "elbows"
+   ]
+  },
+  {
+   "id": "materials/gold",
+   "family": "materials",
+   "word": "gold",
+   "role": "BACKGROUND",
+   "token_id": 6414,
+   "token_str": " gold",
+   "variants": {
+    " gold": {
+     "ids": [
+      6414
+     ],
+     "single_token": true
+    },
+    " Gold": {
+     "ids": [
+      7186
+     ],
+     "single_token": true
+    },
+    "gold": {
+     "ids": [
+      33392
+     ],
+     "single_token": true
+    },
+    "Gold": {
+     "ids": [
+      24629
+     ],
+     "single_token": true
+    },
+    " golden": {
+     "ids": [
+      20117
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "gold",
+    "golden"
+   ]
+  },
+  {
+   "id": "materials/cement",
+   "family": "materials",
+   "word": "cement",
+   "role": "BACKGROUND",
+   "token_id": 22875,
+   "token_str": " cement",
+   "variants": {
+    " cement": {
+     "ids": [
+      22875
+     ],
+     "single_token": true
+    },
+    " Cement": {
+     "ids": [
+      59261
+     ],
+     "single_token": true
+    },
+    "cement": {
+     "ids": [
+      178326
+     ],
+     "single_token": true
+    },
+    "Cement": {
+     "ids": [
+      34,
+      1078
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "cement"
+   ]
+  },
+  {
+   "id": "materials/plastic",
+   "family": "materials",
+   "word": "plastic",
+   "role": "BACKGROUND",
+   "token_id": 11840,
+   "token_str": " plastic",
+   "variants": {
+    " plastic": {
+     "ids": [
+      11840
+     ],
+     "single_token": true
+    },
+    " Plastic": {
+     "ids": [
+      34815
+     ],
+     "single_token": true
+    },
+    "plastic": {
+     "ids": [
+      490,
+      4902
+     ],
+     "single_token": false
+    },
+    "Plastic": {
+     "ids": [
+      2052,
+      4902
+     ],
+     "single_token": false
+    },
+    " plastics": {
+     "ids": [
+      65016
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "plastic",
+    "plastics"
+   ]
+  },
+  {
+   "id": "materials/bronze",
+   "family": "materials",
+   "word": "bronze",
+   "role": "BACKGROUND",
+   "token_id": 38486,
+   "token_str": " bronze",
+   "variants": {
+    " bronze": {
+     "ids": [
+      38486
+     ],
+     "single_token": true
+    },
+    " Bronze": {
+     "ids": [
+      43373
+     ],
+     "single_token": true
+    },
+    "bronze": {
+     "ids": [
+      65179,
+      2891
+     ],
+     "single_token": false
+    },
+    "Bronze": {
+     "ids": [
+      39607,
+      2891
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "bronze"
+   ]
+  },
+  {
+   "id": "materials/copper",
+   "family": "materials",
+   "word": "copper",
+   "role": "CAL",
+   "token_id": 22561,
+   "token_str": " copper",
+   "variants": {
+    " copper": {
+     "ids": [
+      22561
+     ],
+     "single_token": true
+    },
+    " Copper": {
+     "ids": [
+      41126
+     ],
+     "single_token": true
+    },
+    "copper": {
+     "ids": [
+      66,
+      17936
+     ],
+     "single_token": false
+    },
+    "Copper": {
+     "ids": [
+      34,
+      17936
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "copper"
+   ]
+  },
+  {
+   "id": "materials/brick",
+   "family": "materials",
+   "word": "brick",
+   "role": "CAL",
+   "token_id": 24051,
+   "token_str": " brick",
+   "variants": {
+    " brick": {
+     "ids": [
+      24051
+     ],
+     "single_token": true
+    },
+    " Brick": {
+     "ids": [
+      43135
+     ],
+     "single_token": true
+    },
+    "brick": {
+     "ids": [
+      67313
+     ],
+     "single_token": true
+    },
+    "Brick": {
+     "ids": [
+      6614,
+      839
+     ],
+     "single_token": false
+    },
+    " bricks": {
+     "ids": [
+      47394
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "brick",
+    "bricks"
+   ]
+  },
+  {
+   "id": "materials/concrete",
+   "family": "materials",
+   "word": "concrete",
+   "role": "PILOT",
+   "token_id": 13769,
+   "token_str": " concrete",
+   "variants": {
+    " concrete": {
+     "ids": [
+      13769
+     ],
+     "single_token": true
+    },
+    " Concrete": {
+     "ids": [
+      35326
+     ],
+     "single_token": true
+    },
+    "concrete": {
+     "ids": [
+      435,
+      9075
+     ],
+     "single_token": false
+    },
+    "Concrete": {
+     "ids": [
+      80711
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "concrete"
+   ]
+  },
+  {
+   "id": "materials/paper",
+   "family": "materials",
+   "word": "paper",
+   "role": "PILOT",
+   "token_id": 5392,
+   "token_str": " paper",
+   "variants": {
+    " paper": {
+     "ids": [
+      5392
+     ],
+     "single_token": true
+    },
+    " Paper": {
+     "ids": [
+      17328
+     ],
+     "single_token": true
+    },
+    "paper": {
+     "ids": [
+      18586
+     ],
+     "single_token": true
+    },
+    "Paper": {
+     "ids": [
+      29885
+     ],
+     "single_token": true
+    },
+    " papers": {
+     "ids": [
+      15228
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "paper",
+    "papers"
+   ]
+  },
+  {
+   "id": "materials/marble",
+   "family": "materials",
+   "word": "marble",
+   "role": "CONF",
+   "token_id": 39926,
+   "token_str": " marble",
+   "variants": {
+    " marble": {
+     "ids": [
+      39926
+     ],
+     "single_token": true
+    },
+    " Marble": {
+     "ids": [
+      70060
+     ],
+     "single_token": true
+    },
+    "marble": {
+     "ids": [
+      5437,
+      863
+     ],
+     "single_token": false
+    },
+    "Marble": {
+     "ids": [
+      11718,
+      863
+     ],
+     "single_token": false
+    },
+    " marbles": {
+     "ids": [
+      3474,
+      37481
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "marble",
+    "marbles"
+   ]
+  },
+  {
+   "id": "materials/steel",
+   "family": "materials",
+   "word": "steel",
+   "role": "CONF",
+   "token_id": 9229,
+   "token_str": " steel",
+   "variants": {
+    " steel": {
+     "ids": [
+      9229
+     ],
+     "single_token": true
+    },
+    " Steel": {
+     "ids": [
+      12142
+     ],
+     "single_token": true
+    },
+    "steel": {
+     "ids": [
+      59477
+     ],
+     "single_token": true
+    },
+    "Steel": {
+     "ids": [
+      62752
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "steel"
+   ]
+  },
+  {
+   "id": "materials/wood",
+   "family": "materials",
+   "word": "wood",
+   "role": "CONF",
+   "token_id": 7339,
+   "token_str": " wood",
+   "variants": {
+    " wood": {
+     "ids": [
+      7339
+     ],
+     "single_token": true
+    },
+    " Wood": {
+     "ids": [
+      11786
+     ],
+     "single_token": true
+    },
+    "wood": {
+     "ids": [
+      6451
+     ],
+     "single_token": true
+    },
+    "Wood": {
+     "ids": [
+      46779
+     ],
+     "single_token": true
+    },
+    " wooden": {
+     "ids": [
+      21664
+     ],
+     "single_token": true
+    },
+    " woods": {
+     "ids": [
+      31460
+     ],
+     "single_token": true
+    }
+   },
+   "surface_forms": [
+    "wood",
+    "wooden",
+    "woods"
+   ]
+  },
+  {
+   "id": "materials/granite",
+   "family": "materials",
+   "word": "granite",
+   "role": "CONF",
+   "token_id": 36055,
+   "token_str": " granite",
+   "variants": {
+    " granite": {
+     "ids": [
+      36055
+     ],
+     "single_token": true
+    },
+    " Granite": {
+     "ids": [
+      62314
+     ],
+     "single_token": true
+    },
+    "granite": {
+     "ids": [
+      64798,
+      614
+     ],
+     "single_token": false
+    },
+    "Granite": {
+     "ids": [
+      87600,
+      614
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "granite"
+   ]
+  },
+  {
+   "id": "materials/leather",
+   "family": "materials",
+   "word": "leather",
+   "role": "CONF",
+   "token_id": 17032,
+   "token_str": " leather",
+   "variants": {
+    " leather": {
+     "ids": [
+      17032
+     ],
+     "single_token": true
+    },
+    " Leather": {
+     "ids": [
+      30060
+     ],
+     "single_token": true
+    },
+    "leather": {
+     "ids": [
+      273,
+      1792
+     ],
+     "single_token": false
+    },
+    "Leather": {
+     "ids": [
+      2229,
+      1792
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "leather"
+   ]
+  },
+  {
+   "id": "materials/nylon",
+   "family": "materials",
+   "word": "nylon",
+   "role": "CONF",
+   "token_id": 49336,
+   "token_str": " nylon",
+   "variants": {
+    " nylon": {
+     "ids": [
+      49336
+     ],
+     "single_token": true
+    },
+    " Nylon": {
+     "ids": [
+      87544
+     ],
+     "single_token": true
+    },
+    "nylon": {
+     "ids": [
+      3706,
+      11864
+     ],
+     "single_token": false
+    },
+    "Nylon": {
+     "ids": [
+      45,
+      25173
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "nylon"
+   ]
+  },
+  {
+   "id": "materials/velvet",
+   "family": "materials",
+   "word": "velvet",
+   "role": "CONF",
+   "token_id": 68905,
+   "token_str": " velvet",
+   "variants": {
+    " velvet": {
+     "ids": [
+      68905
+     ],
+     "single_token": true
+    },
+    " Velvet": {
+     "ids": [
+      70545
+     ],
+     "single_token": true
+    },
+    "velvet": {
+     "ids": [
+      861,
+      16612
+     ],
+     "single_token": false
+    },
+    "Velvet": {
+     "ids": [
+      47842,
+      16612
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "velvet"
+   ]
+  },
+  {
+   "id": "materials/cotton",
+   "family": "materials",
+   "word": "cotton",
+   "role": "CONF",
+   "token_id": 22787,
+   "token_str": " cotton",
+   "variants": {
+    " cotton": {
+     "ids": [
+      22787
+     ],
+     "single_token": true
+    },
+    " Cotton": {
+     "ids": [
+      36448
+     ],
+     "single_token": true
+    },
+    "cotton": {
+     "ids": [
+      66,
+      16387
+     ],
+     "single_token": false
+    },
+    "Cotton": {
+     "ids": [
+      34,
+      16387
+     ],
+     "single_token": false
+    }
+   },
+   "surface_forms": [
+    "cotton"
+   ]
+  }
+ ],
+ "excluded": [
+  {
+   "family": "animals",
+   "word": "duck",
+   "rule": "E2",
+   "detail": "also names a member of foods"
+  },
+  {
+   "family": "animals",
+   "word": "chicken",
+   "rule": "E2",
+   "detail": "also names a member of foods"
+  },
+  {
+   "family": "countries",
+   "word": "China",
+   "rule": "E2",
+   "detail": "also names a member of materials"
+  },
+  {
+   "family": "countries",
+   "word": "Turkey",
+   "rule": "E2",
+   "detail": "also names a member of animals"
+  },
+  {
+   "family": "countries",
+   "word": "Chile",
+   "rule": "E2",
+   "detail": "also names a member of foods"
+  },
+  {
+   "family": "tools",
+   "word": "nail",
+   "rule": "E2",
+   "detail": "also names a member of body parts"
+  },
+  {
+   "family": "vehicles",
+   "word": "plane",
+   "rule": "E2",
+   "detail": "also names a member of tools"
+  },
+  {
+   "family": "instruments",
+   "word": "organ",
+   "rule": "E2",
+   "detail": "also names a member of body parts"
+  },
+  {
+   "family": "instruments",
+   "word": "bass",
+   "rule": "E2",
+   "detail": "also names a member of animals"
+  },
+  {
+   "family": "instruments",
+   "word": "horn",
+   "rule": "E2",
+   "detail": "also names a member of body parts"
+  },
+  {
+   "family": "instruments",
+   "word": "pipes",
+   "rule": "E2",
+   "detail": "also names a member of tools"
+  },
+  {
+   "family": "body parts",
+   "word": "rib",
+   "rule": "E2",
+   "detail": "also names a member of foods"
+  }
+ ]
+}
