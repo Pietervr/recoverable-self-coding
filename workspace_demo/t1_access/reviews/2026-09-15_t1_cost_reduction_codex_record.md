@@ -42,12 +42,12 @@ read; its latest job note reports the Mac probe's straggler idling ten workers.
 Primary paper reading is IN PROGRESS. Downloads/extractions are local temporary
 public-source files; no private transcript was copied. Read ranges, inclusive:
 
-- Bates–Hastie–Tibshirani v4, all main text plus appendices through extracted
-  line 2250 of `/tmp/r052_bates_cv_clean.txt` (2588 lines total). Continue at
-  2251 to EOF. Source https://arxiv.org/pdf/2104.00673.
+- Bates–Hastie–Tibshirani v4, ALL main text and appendices read to EOF,
+  `/tmp/r052_bates_cv_clean.txt` (2588 lines total).
+  Source https://arxiv.org/pdf/2104.00673.
 - Nadeau–Bengio, the actual published 2003 article (43 pages, not the 2001 author
-  draft), through line 1270 of `/tmp/r052_nadeau_published_clean.txt` (3086 lines).
-  Continue at 1271 in bounded chunks. Source
+  draft), through line 1600 of `/tmp/r052_nadeau_published_clean.txt` (3086 lines).
+  Continue at 1601 in bounded chunks. Source
   https://link.springer.com/content/pdf/10.1023/A:1024068626366.pdf.
 - Official CHPC policy sections 2.1/2.3/3.1/3.3 and SU wiki full content read:
   initial 100,000 CPU-hours/six months, free academic programme usage, approval,
@@ -74,6 +74,30 @@ within a concept does not itself rule out a concept-level adaptation; fixed
 family strata, joint loss, paired family comparison and target need work.
 CHPC CPU-hours are not measured Mac-equivalent hours. No final conclusion,
 arithmetic computation, fit, generation, bootstrap, source edit or xs reply yet.
+
+Bates appendix F.8 is a material qualification: although 200 is not a formal
+requirement, their experiments needed many repetitions for a stable standard
+error. A small-R NCV shortcut is therefore unverified, not an established cheap
+answer. Algorithm 1 entails K-squared calls to the fitting algorithm per repeat;
+for T1 that algorithm would include training-only member selection, not another
+whole outer-CV pipeline. At K=5, R=200, the memo's 1,000 ordinary-pipeline
+equivalents is a useful naive fit-count ratio, not a measured runtime or a lower
+bound over all possible R/reuse arrangements. Its MSE/CI is for ErrXY (4.2),
+whereas the paper's OLS point-estimand result concerns Err (section 3). Do not
+conflate them. The paired algorithm difference is discussed as future work in 7.
+
+Possible arithmetic design to settle next, NOT adopted or calculated: fixed
+fresh-seed prefixes; early failure only at 100/200 with exact binomial tails
+and a declared repeated-look error budget, then a mandatory final 400 per retained
+null. If an optional 1,000 terminal extension is allowed, declare that now and
+split the final acceptance error budget over 400/1,000; do not keep extending
+until a pass. Need actual integer boundaries. Coverage must be robust over an
+independent, policy-matched target interval C: count complete containment of C
+for a conservative pass, intersection with C for a conservative failure, or
+explicitly optimize the empirical coverage over C. Reference uncertainty cannot
+be assumed Gaussian/precise from a single tail-dominated bank. A leave-largest
+diagnostic reports instability, never removes the largest row from the target.
+Account for reference uncertainty separately from binomial Monte Carlo error.
 
 The next sections remain the checking agenda from the first checkpoint; the
 completed reading above supersedes their reading-status statements.
