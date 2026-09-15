@@ -234,6 +234,61 @@ allocation, an asymptote cap, other floor values, extra start budgets and a retr
 - **Amplitudes:** all configurations use the fixed v6 amplitudes, so the comparison is a procedure change at fixed input
   signal.
 
+### 3.1 The fixings, proposed after Phase 1 (DRAFT for Codex's read; no candidate fit before they are committed)
+
+**F1. C1's constraint treatment.** C1 bounds the graded log-SD at both dose endpoints, s0 and s0 + r, to
+[log 0.05 S, log 5 S]. v6 also boxes r to ±ln 10, and L-BFGS-B accepts only box bounds. Two faithful implementations exist:
+- **(a) Endpoint box.** Parameters (s0, s1) with s1 = s0 + r, both boxed to [log 0.05 S, log 5 S], and |r| ≤ ln 10 dropped.
+  The optimizer, the starts (s1 starts at s0's start) and the jitter rule are unchanged. This is not nested in the baseline:
+  it floors and caps the SD but allows up to a 100-fold contraction across the logistic where the baseline allows 10-fold,
+  and Phase 1 ties the severe losses to that contraction bound.
+- **(b) Nested.** v6's box in (s0, r) is kept, plus the two linear endpoint constraints. This needs a constrained optimizer
+  (SLSQP or trust-constr) for the graded family in C1, a change to v6's fitting procedure confined to C1, with its own
+  convergence rule to declare.
+
+Phase 1 (§2.6): the floor binds in no kept fit; the ceiling binds in 24 of 1,600 main-window fits, none severe.
+**Proposed:** a recorded amendment that withdraws C1 and C1+C2, leaving C2 against the baseline. C1 changes no severe unit,
+(a) relaxes the parameter tied to the losses, and (b) adds a new optimizer for an expected null effect on the failure. If C1
+stays, use (b).
+
+**F2. Severe loss.** The unit is one recording × half × fold × main window × family on the fresh check. It is severe when
+that family's held-out log-likelihood minus null's, per test trial, is below −1 nat; a non-finite held-out density counts as
+severe. The denominator is every such unit whose null and family fits exist. Reported per group and family.
+
+**F3. Failure and availability.** v6's rules are unchanged: an unavailable fold makes the model unavailable in that window,
+technical failures stay in the denominator, and `group.decide`'s total rule applies. C2 changes only held-out densities, so it
+can change availability only through a non-finite held-out density, which is counted.
+
+**F4. Acceptability: X1 recovery and false two-state calls.** On the fresh check a configuration is acceptable only if all
+of these hold:
+1. X1 strong ends two-state in both drift groups (the one-replicate reading of §9's two of three per drift condition);
+2. G1 strong and G3 weak end in no two-state outcome in any of their four groups, and every outcome is substantive;
+3. the graded severe units under G1 strong and G3 weak together number at most half the baseline's on the same data;
+4. there are no more technical failures, and no more unavailable fold units, than in the baseline.
+
+Graded recovery is not required (§9); graded outcomes are reported.
+
+**F5. Ranking and tie order.** Among acceptable configurations the order is: fewest graded severe units under the graded
+groups; then fewest two-state severe units over all six groups; then the tie order C2, C1, C1+C2 (fewest changes to the
+fitted model first). The baseline is the comparator and cannot be locked.
+
+**F6. Cost ceiling and stop rule.** The measured Phase 1 rate with logging is 15.5 s per recording, so the baseline's fits
+on 204 recordings take about 0.9 worker-hours, and C1's about the same. C2 and C1+C2 are scored from the logged fits after
+replay equivalence (seconds). The ceiling is 3 worker-hours and 4 wall-hours at two workers: benchmark the first recording,
+and stop and report if the projection exceeds either.
+
+**F7. C2's scoring and replay equivalence.** C2 is computed from the logged baseline (or C1) fold records. Each present
+trial's scaled dose is clamped to the training block's present range, in the graded logistic (mean and SD) and in both
+two-state logistics; catch trials and null are unchanged. Replay equivalence comes first: every fit's training
+log-likelihood, recomputed on the clamped training design, must equal the logged value exactly (the clamp is the identity on
+training doses) before any C2 held-out score is read. Any difference stops C2.
+
+**F8. No acceptable candidate.** If no configuration is acceptable, Phase 2 stops and every configuration is reported. The
+phase-8 data become development data and the plan returns to amendment; no candidate is retried or added on these data.
+
+**F9. Identity and seeds.** A new namespace with its own identity (the wrapper and every loaded module). Data tags are
+(8, generator index, strength index, drift index, 0, subject); optimizer tags are unchanged.
+
 ## 4. Phase 3 — lock
 
 Implement the locked configuration with tests:
