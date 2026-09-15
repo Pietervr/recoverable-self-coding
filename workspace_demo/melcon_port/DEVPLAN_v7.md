@@ -328,6 +328,35 @@ tuples (8, generator index, strength index, drift index, 0, subject), the unchan
 events and templates, and the calibration ancestry. v6 and Phase 1 are preserved. Later validation uses the complete locked
 phase-10 battery and its declared criteria, without pooling heterogeneous groups as replicates.
 
+### 3.2 Phase 2 result (15 Sept 2026): C2 not locked; Phase 2 stops (F8)
+
+Run `results/devcheck_v7/run-061c01d763b9` (code and tests RSC 58770a1; benchmark 19.1 s per recording; recordings
+0.50 wall-hours on two workers; report 28 s). All 204 recordings are `ok`, and every recording replayed exactly (F7): the
+baseline evidence, availability, delta and n_trials were rebuilt equal to the stored summaries. Every scheduled unit is
+scored (1,360 of 1,360 per family per group).
+
+Gates (F4):
+1. **X1 strong two-state in both drift groups — fails.** Both groups end inconclusive/mixed under the baseline and under
+   C2. The two-state group PXP peaks at 0.82 without drift; with drift it reaches 0.999 in one window only (C2: 0.999,
+   0.919 and 0.824 in windows starting 420, 510 and 540 ms), never three adjacent windows at 0.95.
+2. **Graded groups graded or inconclusive — fails.** G1 strong with drift ends two-state under both configurations (two-state
+   PXP at least 0.99 in the three adjacent windows starting 390, 420 and 450 ms).
+3. **2·C ≤ B — fails.** Graded severe units over the four graded groups (5,440 scored) fall from 186 to 142, a 24 %
+   reduction.
+4. Tail guards — hold: no group's severe count rises for either family.
+5. Newly unavailable family-folds — none.
+
+Reported beside the gates: C2 repairs severe units and creates none (graded S→N 44 in the graded groups and 9 in the X1
+groups, two-state S→N 13, N→S 0 everywhere), and it shrinks the most extreme graded losses about tenfold (worst unit
+−2,006 → −134 nat per trial in G1 strong with drift). No group decision changes.
+
+**Reading (development evidence).** The clamp removes the magnitude of the extrapolated tail, not the decisions. Both
+decision failures are unchanged by C2: X1 strong lacks persistence at the calibrated readout strength, and a graded law with
+drift across blocks is called two-state. Drift is a transport shift between the training and test blocks that no fitted
+density models (Codex eaea99b Q5). Under F8, Phase 2 stops. Every output is retained, the phase-8 data are development
+data, and the plan returns to prospective amendment; no candidate is retried or added on these data. No amendment is
+proposed here: it waits on the owner's SI scope decision (15 Sept, `rsc_publication_strategy.md`) and a Codex read.
+
 ## 4. Phase 3 — lock
 
 Implement the locked configuration with tests:
@@ -398,6 +427,7 @@ Mac load, with a written limit and a pause-and-report rule before its main work.
 | 1 | 15 Sept 2026 | Codex e42846e taken in (§8). Panel manifest, statistic and selection defined; logging-only instrumentation with v6 parity; idealized readout = stochastic latent z; fold count corrected; C3 withdrawn as already v6; asymptote cap withdrawn; C1 = symmetric effective-SD floor at the existing 0.05·S; C1+C2 added; ranking/stop rule before candidate fits; seed phases 8/9/10 and fixed optimizer tags declared; "certified" replaced. |
 | 1 | 15 Sept 2026 | Phase 1 run and results added as §2.6 (RSC a856116 manifest, ad7e747 wrapper, c2068f1 analysis); no change to the plan. |
 | 2 | 15 Sept 2026 | Codex's Phase 2 fixings record (RSC eaea99b) taken in (§9): C1 and C1+C2 withdrawn by recorded amendment; final fixings F1–F9 (paired comparison set, development gates with tail guards, C2-only decision, cost ceiling counting all downstream work, full replay contract, identity); C1 wording corrected; G1 bound limitation and graded-recovery limit at lock recorded; wrapper implementation recorded in §2.2. |
+| 2 | 15 Sept 2026 | Phase 2 result added as §3.2 (run-061c01d763b9): C2 fails three gates and is not locked; Phase 2 stopped under F8; no plan change. |
 
 ## 8. Dispositions — Codex's v7 plan record (RSC e42846e), read in full
 

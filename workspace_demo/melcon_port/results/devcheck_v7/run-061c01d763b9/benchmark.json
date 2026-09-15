@@ -1,0 +1,27 @@
+{
+  "created_utc": "2026-09-15T21:54:51Z",
+  "identity": "061c01d763b9cb2a792eba6ee7bbfb12c9b2302cd789c2127d80ba5aa506a322",
+  "first": {
+    "key": "X1_strong_d0_sub-01",
+    "status": "ok",
+    "timing": {
+      "generate_s": 0.571898374997545,
+      "scores_s": 18.566199624998262,
+      "total_s": 19.138097999995807
+    },
+    "reused": false
+  },
+  "first_status": "ok",
+  "replay_s": 0.15234270799555816,
+  "replay": "exact: baseline rebuilt from the logged folds; C2 scored",
+  "recording_s": 19.138097999995807,
+  "projected_worker_hours": 1.137808835119512,
+  "projected_wall_hours": 0.5982207942862967,
+  "n_jobs": 2,
+  "ceilings": {
+    "worker_h": 3.0,
+    "wall_h": 4.0
+  },
+  "proceed": true,
+  "note": "one recording under the concurrent Mac load; decide allowance fixed; planning evidence"
+}
