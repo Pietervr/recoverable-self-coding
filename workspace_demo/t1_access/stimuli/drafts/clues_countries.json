@@ -3,264 +3,313 @@
   "clues": {
     "countries/Austria": [
       "is a landlocked state in the middle of central Europe",
-      "has most of its territory covered by the Eastern Alps",
-      "is crossed in the north by the Danube on its way east",
-      "lost a vast empire of many peoples after the First World War",
-      "is officially neutral and stays outside any military alliance",
+      "has a mountainous west and south with high alpine peaks and glaciers",
+      "has a major river flowing east through its northern lowlands",
+      "led a multi-ethnic empire that fell apart after a world war",
+      "is constitutionally neutral and stays outside military alliances",
       "is famous for its classical music heritage and grand opera houses",
-      "has world-renowned ski resorts in its high alpine valleys",
-      "is known for breaded veal cutlets and rich chocolate cakes",
+      "has popular ski resorts in its high alpine valleys",
+      "has a cuisine of hearty dumplings, roasted meats and rich pastries",
       "has a long tradition of elegant coffee houses and pastry shops",
-      "joined the European Union in 1995 with two Nordic states",
+      "joined the European Union in the mid-1990s",
       "shares land borders with eight neighbouring states in total",
-      "was occupied by four Allied powers until 1955"
+      "was occupied by victorious wartime allies for years after 1945"
     ],
     "countries/Brazil": [
       "ranks among the five largest states in the world by area",
-      "contains the largest share of the Amazon rainforest",
-      "is famous for huge street carnivals held in the days before Lent",
-      "has won the men's football World Cup several times",
-      "is a leading exporter of coffee, soybeans and iron ore",
+      "has vast tropical rainforests with extraordinary biodiversity",
+      "has a population descended from indigenous, European and African ancestors",
+      "is passionate about football and exports many star players abroad",
+      "is an agricultural powerhouse exporting grain, beef and sugar",
       "has a long Atlantic coastline lined with famous beaches",
       "moved its capital inland to a purpose-built planned city",
       "was ruled by its own emperors for much of the nineteenth century",
-      "has a martial art that blends dance, acrobatics and music",
-      "shares a vast system of waterfalls with a southern neighbour",
-      "is known for a black bean and pork stew as its national dish",
+      "was colonised by a small seafaring Iberian kingdom",
+      "has huge hydroelectric dams on its major rivers",
+      "has a cuisine of black beans, rice, cassava and grilled meat",
       "lies mostly in the southern hemisphere and spans several time zones"
     ],
     "countries/Canada": [
-      "has coastlines on the Atlantic, Pacific and Arctic oceans",
-      "has most of its people living near its long southern border",
-      "has two official languages at the federal level",
-      "is a major producer of syrup tapped from maple trees",
+      "has a very long coastline with many deep inlets and islands",
+      "has most of its people living within a few hours of its southern border",
+      "is a federation of provinces with strong regional governments",
+      "exports large amounts of timber, pulp and wheat",
       "is a Commonwealth realm whose monarch lives overseas",
       "has vast boreal forests and many thousands of lakes",
-      "is passionate about ice hockey, its most popular winter sport",
+      "has long, severe winters across most of its territory",
       "has a large Arctic archipelago of sparsely populated islands",
-      "was formed as a confederation of colonies in 1867",
-      "includes a vast northern territory with a mostly Inuit population",
-      "has the Rocky Mountains running through its western provinces",
-      "is a leading exporter of crude oil extracted from oil sands"
+      "gained full independence gradually and peacefully from a European empire",
+      "has indigenous peoples who hunt and fish in the far north",
+      "has high, rugged mountain ranges along its western Pacific coast",
+      "extracts heavy crude oil from vast deposits of tar-like sands"
     ],
     "countries/Denmark": [
       "is made up of a peninsula and several hundred islands",
       "is low and flat, with no hill above 200 metres",
-      "has a huge self-governing Arctic island within its realm",
-      "was home to seafaring Viking raiders in the early Middle Ages",
+      "has self-governing island territories far from its mainland",
+      "was a base for seafaring raiders in the early Middle Ages",
       "shares its only mainland border with a larger southern neighbour",
       "is famous for its cycling culture and wide urban bike lanes",
       "is a world leader in wind power and wind turbine manufacturing",
-      "is linked to its eastern neighbour by a long bridge and tunnel",
-      "is known for open-faced sandwiches on dark rye bread",
-      "lies between the North Sea and the Baltic Sea",
+      "relies on long bridges linking its main islands",
+      "has a cuisine of rye bread, pickled herring and pork",
+      "lies at the narrow entrance to a large inland sea",
       "is a constitutional monarchy with one of Europe's oldest royal lines",
-      "cherishes hygge, a cosy feeling of warmth and comfort"
+      "has a generous welfare state funded by high taxes"
     ],
     "countries/Germany": [
-      "has one of the largest economies in the world",
-      "was split into separate eastern and western states for four decades",
-      "is famous for beer festivals and many regional breweries",
-      "has motorways where some stretches have no general speed limit",
+      "has the largest economy of any state in Europe",
+      "was divided into rival states during the Cold War",
+      "has a strong tradition of brewing with many small breweries",
+      "has many large cities rather than one dominant metropolis",
       "is a federal republic whose regional states have strong powers",
-      "has the Rhine flowing north through its western regions",
+      "has major rivers flowing north into a busy shallow sea",
       "is a major exporter of cars, machinery and chemicals",
-      "was where printing with movable type began in Europe",
-      "has a dark, forested southwestern mountain range famous in folk tales",
-      "had its capital divided by a guarded wall until 1989",
-      "is known for sausages, pretzels and pickled cabbage",
+      "has a long history of division between Protestant and Catholic regions",
+      "has thickly forested low mountain ranges in its centre and south",
+      "has a capital that was once split between rival states",
+      "has a cuisine of sausages, dark bread and pickled cabbage",
       "has many medieval castles perched above its winding river valleys"
     ],
     "countries/Greece": [
-      "has thousands of islands scattered across warm, clear seas",
-      "is widely seen as the birthplace of democracy and Western philosophy",
-      "has a mountainous mainland ending in a large southern peninsula",
+      "has many sunny islands in warm, clear seas",
+      "has a long classical heritage that shaped Western art and science",
+      "has a rugged, mountainous mainland with little flat farmland",
       "lies in southeastern Europe on the Mediterranean Sea",
       "is known for olive oil, yogurt and grilled lamb",
-      "controls one of the largest merchant shipping fleets in the world",
-      "suffered a severe debt crisis in the early 2010s",
+      "has a long seafaring tradition and a big merchant fleet",
+      "went through years of harsh austerity after a debt crisis",
       "is full of ancient temples, open-air theatres and ruins",
       "won independence from Ottoman rule in the nineteenth century",
       "has a population that is mostly Orthodox Christian",
       "sits in an earthquake-prone zone and has some volcanic islands",
-      "hosted the first modern Olympic Games in 1896"
+      "uses its own ancient alphabet, ancestor of many later scripts"
     ],
     "countries/Iceland": [
-      "is a volcanic island whose mainland lies just below the Arctic Circle",
-      "sits on a mid-ocean ridge where tectonic plates pull apart",
+      "is a volcanic island lying just below the Arctic Circle",
+      "has a largely treeless landscape of moss, heath and tundra",
       "gets almost all its electricity from hydropower and geothermal plants",
       "has many geysers, hot springs and active volcanoes",
-      "has one of the oldest parliaments, founded in the Viking Age",
+      "has a long democratic tradition and a small, highly educated population",
       "has no standing army and relies on allies for defence",
-      "was settled by Norse seafarers in the ninth century",
-      "is famous for medieval sagas written down in the thirteenth century",
-      "has large ice caps covering about a tenth of its land",
-      "suffered a dramatic collapse of its major banks in 2008",
-      "uses patronymics rather than inherited family surnames for most people",
+      "was uninhabited until seafaring settlers arrived in the Middle Ages",
+      "has mild winters for its latitude thanks to a warm ocean current",
+      "has large ice caps and glaciers feeding powerful rivers",
+      "suffered a severe banking crisis during the global financial crash",
+      "has long summer days and very short winter days",
       "has an economy built largely on fishing, tourism and aluminium smelting"
     ],
     "countries/Iraq": [
-      "is watered by the Tigris and Euphrates rivers",
-      "was home to ancient civilisations where writing on clay tablets began",
+      "depends on large rivers for irrigation in an arid climate",
+      "was home to some of the world's earliest cities and farming",
       "holds some of the largest proven oil reserves in the world",
       "has only a very short coastline at the head of a gulf",
       "has a mostly desert landscape with scorching, dry summers",
-      "has southern marshes where people have long built reed houses",
-      "has an autonomous Kurdish region in its mountainous north",
+      "has fertile river plains in the south and mountains in the north",
+      "has a large ethnic minority with its own autonomous region in the north",
       "was part of the Ottoman Empire until the First World War",
-      "was invaded by a large international coalition in 2003",
+      "has suffered decades of war, sanctions and insurgency",
       "has a population in which Shia Muslims form the majority",
       "has long been among the world's leading growers of date palms",
       "became a kingdom under a foreign mandate after the First World War"
     ],
     "countries/Jamaica": [
-      "is a mountainous island lying south of a much larger island neighbour",
-      "gave the world reggae, ska and dancehall music",
-      "is famous for spicy jerk seasoning rubbed on grilled meats",
-      "has produced many of the world's fastest sprinters",
-      "has cool eastern mountains that grow a prized, costly coffee",
+      "is a large island lying south of an even larger island neighbour",
+      "has an island music culture whose sounds became famous worldwide",
+      "has a spicy cuisine blending African, European and Asian influences",
+      "loves cricket, a legacy of its former colonial rulers",
+      "grows sugar cane, coffee and spices for export",
       "was seized from one European colonial power by another",
       "became independent in 1962 after centuries of colonial rule",
       "has long been a major producer of bauxite and alumina",
-      "is known for rum, allspice and fiery hot peppers",
+      "is known for dark rum and fiery hot peppers",
       "is one of the larger islands of the Greater Antilles",
       "had a sugar economy based on plantations worked by enslaved Africans",
-      "has Maroon communities descended from people who escaped slavery"
+      "has an economy relying heavily on tourism and money sent from abroad"
     ],
     "countries/Japan": [
       "is an archipelago stretching along the western rim of the Pacific",
-      "has a sacred, snow-capped volcano as its highest mountain",
-      "has high-speed rail lines famous for their punctuality",
+      "has many active volcanoes and popular hot spring resorts",
+      "has an extensive high-speed rail network linking major cities",
       "is a leading exporter of cars, electronics and industrial robots",
       "experiences frequent earthquakes and occasional destructive tsunamis",
-      "has a native religion of shrines honouring many nature spirits",
-      "celebrates the brief blooming of cherry blossoms each spring",
-      "is known for sumo wrestling and several traditional martial arts",
+      "blends worship of ancestral spirits with Buddhist temple traditions",
+      "has four distinct seasons and a humid, rainy summer",
+      "is passionate about baseball as a leading spectator sport",
       "has one of the world's longest life expectancies and oldest populations",
-      "closed itself to most foreign contact for about two centuries",
-      "has a cuisine built around rice, raw fish and fermented soy",
-      "has a constitution that renounces war as a sovereign right"
+      "long restricted contact with foreign traders and missionaries",
+      "has a cuisine built around rice, seafood, noodles and fermented soy",
+      "has a monarch who holds the title of emperor"
     ],
     "countries/Kenya": [
       "straddles the equator on the eastern coast of Africa",
       "has vast savannas that attract visitors on wildlife safaris",
       "is renowned for long-distance runners trained in its highlands",
-      "is a major exporter of black tea and cut flowers",
-      "is crossed by the Great Rift Valley and its chain of lakes",
-      "gained independence from colonial rule in 1963",
-      "hosts part of the great wildebeest migration on its southwestern plains",
+      "is a major exporter of tea, coffee and horticultural produce",
+      "is split by a deep rift valley dotted with soda lakes",
+      "won independence from a European colonial power in 1963",
+      "has a cool, fertile highland where much of its farming happens",
       "has a tropical coast with old coral-stone trading towns",
-      "pioneered sending money by mobile phone on a huge scale",
+      "has a fast-growing tech sector in its busy capital",
       "shares Africa's largest lake with two neighbouring states",
-      "is home to pastoralists known for red cloth and elaborate beadwork",
+      "has many pastoralist communities herding cattle in its dry north",
       "has fossil sites that shed light on early human origins"
     ],
     "countries/Nepal": [
       "is a landlocked state wedged between two much larger neighbours",
-      "shares the world's highest mountain along its northern border",
-      "rises from low southern plains to the highest Himalayan peaks",
-      "contains the traditional birthplace of the founder of Buddhism",
-      "abolished its monarchy and became a federal republic in 2008",
-      "is famous for Sherpa mountain guides and trekking expeditions",
+      "has several of the world's highest peaks within its borders",
+      "rises steeply from hot southern lowlands to icy alpine heights",
+      "relies heavily on money sent home by workers abroad",
+      "was a kingdom for centuries before becoming a republic",
+      "has dozens of languages spoken across many ethnic groups",
       "has a mostly Hindu population with strong Buddhist traditions",
-      "suffered a devastating earthquake that killed thousands in 2015",
-      "is known for steamed dumplings called momos",
-      "is known for Gurkha soldiers who serve in foreign armies",
-      "has rivers that flow south to join the Ganges",
+      "lies in an earthquake-prone zone where tectonic plates collide",
+      "has a cuisine of lentils, rice and spiced vegetable curries",
+      "is famous for hardy soldiers who serve in foreign armies",
+      "has fast glacier-fed rivers with great hydropower potential",
       "was never colonised by a European power"
     ],
     "countries/Nigeria": [
-      "has a huge population, among the largest in the world",
+      "is the most populous state on its continent",
       "has one of the world's most prolific film industries",
-      "is a major oil exporter with fields in a vast river delta",
-      "has two great rivers that meet in a Y shape near its centre",
+      "depends heavily on oil exports for government revenue",
+      "has a dry savanna north and a humid, forested south",
       "became independent in 1960, alongside many other African colonies",
-      "is a major source of the globally popular Afrobeats music",
+      "is a federal republic with a powerful elected president",
       "has a mainly Muslim north and a largely Christian south",
-      "fought a civil war after its southeastern region tried to secede",
-      "is known for jollof rice and pounded yam",
-      "has three dominant ethnic groups among hundreds of smaller ones",
+      "fought a bloody civil war over secession after independence",
+      "has a cuisine of spicy stews, rice and starchy yams",
+      "has hundreds of ethnic groups and many local languages",
       "has a humid southern coast on a large West African gulf",
-      "is home to a historic kingdom famed for cast brass plaques"
+      "has one of the largest economies on its continent"
     ],
     "countries/Norway": [
-      "has a rugged western coast cut by deep, steep-sided fjords",
-      "grew wealthy from offshore oil and gas in the North Sea",
-      "manages one of the world's largest sovereign wealth funds",
-      "has twice rejected joining the European bloc in referendums",
+      "has a rugged western coast cut by deep glacial inlets",
+      "grew wealthy from offshore oil and gas in cold northern waters",
+      "has very high wages and a high cost of living",
+      "trades within Europe's single market but stays outside the European Union",
       "has territory extending far north of the Arctic Circle",
       "controls a remote Arctic archipelago known for polar bears",
       "sees the midnight sun in summer across its northern regions",
-      "is a world leader in farmed salmon exports",
+      "raises large quantities of farmed salmon in coastal pens",
       "has one of the highest shares of electric cars on its roads",
       "is famous for success in Nordic skiing and winter sports",
-      "has indigenous Sami reindeer herders in its far north",
-      "ended a union with a neighbouring kingdom in 1905"
+      "has indigenous reindeer herders in its far north",
+      "was ruled for centuries by neighbouring kingdoms before full independence"
     ],
     "countries/Poland": [
-      "lies mostly on a broad northern European plain with a Baltic coast",
-      "vanished from the map for over a century after being partitioned",
+      "lies mostly on a broad, low plain with a northern coastline",
+      "was repeatedly carved up by powerful neighbouring empires",
       "had its capital largely destroyed in the Second World War and rebuilt",
-      "had a trade union movement that helped end communist rule",
+      "had a communist government until the late 1980s",
       "is known for filled dumplings, beet broth and smoked sausage",
       "has high craggy peaks along its southern mountain border",
       "has a northeastern lake district with thousands of lakes",
-      "shares an ancient lowland forest where wild bison still roam",
+      "has large, ancient lowland forests with rare wildlife",
       "has a large coal mining industry in its southern regions",
       "has a strongly Roman Catholic population and religious traditions",
       "joined the European Union in 2004 along with several neighbours",
-      "has an old underground salt mine with chapels carved from salt"
+      "has a large farming sector with many small family farms"
     ],
     "countries/Spain": [
       "occupies most of a large peninsula in southwestern Europe",
-      "was largely under Moorish rule for several medieval centuries",
+      "was under Muslim rule for several medieval centuries",
       "sponsored voyages that built a vast empire across the Americas",
-      "is famous for flamenco dance with clapping and stamping rhythms",
-      "is known for saffron rice dishes, small snacks and cured ham",
+      "has a passion for football and top clubs famous worldwide",
+      "has a cuisine of seafood, rice dishes and cured ham",
       "has a high, dry central plateau surrounding its capital",
       "endured a long dictatorship that ended in the 1970s",
       "has several regions with their own languages and strong identities",
       "is among the most visited tourist destinations in the world",
       "is the world's largest producer of olive oil",
-      "includes one island group in the Mediterranean and another in the Atlantic",
-      "has a famous pilgrimage route ending at a northwestern cathedral"
+      "has large wine regions and exports wine worldwide",
+      "has a hot, dry south and a green, rainy north"
+    ]
+  },
+  "decisive": {
+    "countries/Austria": [
+      8,
+      10
+    ],
+    "countries/Brazil": [
+      7
+    ],
+    "countries/Canada": [
+      1,
+      11
+    ],
+    "countries/Denmark": [
+      0,
+      10
+    ],
+    "countries/Germany": [
+      0,
+      9
+    ],
+    "countries/Greece": [
+      1,
+      11
+    ],
+    "countries/Iceland": [
+      0,
+      11
+    ],
+    "countries/Iraq": [
+      3
+    ],
+    "countries/Jamaica": [
+      0
+    ],
+    "countries/Japan": [
+      11
+    ],
+    "countries/Kenya": [
+      0,
+      2
+    ],
+    "countries/Nepal": [
+      1,
+      9
+    ],
+    "countries/Nigeria": [],
+    "countries/Norway": [
+      5,
+      8
+    ],
+    "countries/Poland": [
+      1,
+      2
+    ],
+    "countries/Spain": [
+      0,
+      9
     ]
   },
   "notes": {
     "countries/Austria": [
-      "\"is officially neutral and stays outside any military alliance\" - constitutionally neutral and not in NATO, but EU membership carries a mutual-assistance clause; a reader may see that as alliance-like"
-    ],
-    "countries/Brazil": [
-      "\"shares a vast system of waterfalls with a southern neighbour\" - the Iguazu Falls are shared with a neighbour lying to the south-west rather than due south"
+      "\"is constitutionally neutral and stays outside military alliances\" - neutral by constitutional law and not in NATO, but EU membership carries a mutual-assistance clause; a reader may see that as alliance-like"
     ],
     "countries/Denmark": [
       "\"shares its only mainland border with a larger southern neighbour\" - worded 'mainland' because since 2022 the realm also has a short land border on a small Arctic island with a North American state"
     ],
     "countries/Germany": [
-      "\"had its capital divided by a guarded wall until 1989\" - true of the present capital; during division the western state's capital was elsewhere"
+      "\"has a capital that was once split between rival states\" - the eastern half was the eastern state's capital, while the western half was not formally the western state's capital",
+      "\"has the largest economy of any state in Europe\" - true by nominal GDP for decades; a ranking that could in principle change"
     ],
-    "countries/Greece": [
-      "\"has thousands of islands scattered across warm, clear seas\" - the count of several thousand includes islets; only about two hundred are inhabited"
+    "countries/Iceland": [
+      "\"was uninhabited until seafaring settlers arrived in the Middle Ages\" - a few hermit monks may have been present shortly before the main ninth-century settlement; both fall in the Middle Ages"
     ],
     "countries/Iraq": [
-      "\"was home to ancient civilisations where writing on clay tablets began\" - cuneiform is usually dated as the earliest writing, but early hieroglyphic writing elsewhere is close in date",
       "\"has long been among the world's leading growers of date palms\" - historically the top producer; its current rank among producers is lower and varies year to year"
     ],
     "countries/Jamaica": [
       "\"has long been a major producer of bauxite and alumina\" - historically among the largest producers; its current world rank is lower (roughly top ten)"
     ],
-    "countries/Nepal": [
-      "\"abolished its monarchy and became a federal republic in 2008\" - the monarchy was abolished and a federal democratic republic declared in 2008; the federal provinces were set up under the 2015 constitution"
-    ],
-    "countries/Nigeria": [
-      "\"is home to a historic kingdom famed for cast brass plaques\" - the famous plaques are mostly brass though commonly called bronzes; the kingdom shares its name with a neighbouring state (not named in the clause)"
+    "countries/Norway": [
+      "\"was ruled for centuries by neighbouring kingdoms before full independence\" - centuries in union under a southern neighbour's crown, then 1814-1905 in a union with its own parliament; 'ruled' is a simplification for the last period"
     ],
     "countries/Poland": [
-      "\"vanished from the map for over a century after being partitioned\" - 1795 to 1918; dependent entities such as the Napoleonic duchy and the congress kingdom existed in between",
       "\"has a northeastern lake district with thousands of lakes\" - the usual figure is about two thousand lakes"
-    ],
-    "countries/Norway": [
-      "\"has twice rejected joining the European bloc in referendums\" - the 1972 vote concerned the European Community and the 1994 vote the European Union, hence 'bloc'"
     ]
   }
 }

@@ -4,35 +4,35 @@
     "tools/axe": [
       "has a heavy metal head with a sharp wedge-shaped edge",
       "splits firewood logs along the grain with a downward blow",
-      "is swung with both hands to fell trees",
+      "is swung with both hands in a long overhead arc",
       "has a long handle traditionally made of hickory or ash",
-      "cuts a deep V-shaped notch into the side of a trunk",
-      "sends large chips flying as it bites into timber",
+      "is used to clear branches and brush from overgrown trails",
+      "throws off chips of timber with every blow",
       "is safely carried with a guard covering its edge",
-      "is sharpened with a file or a small puck-shaped stone",
-      "is carried by firefighters to break through doors and roofs",
-      "is linked with Viking warriors and medieval executioners",
-      "can have a cutting edge on both sides of its head",
-      "is swung by lumberjacks in log-chopping contests"
+      "is kept keen with a file and a sharpening stone",
+      "is used to break through doors in an emergency",
+      "has been used as a weapon in battle for thousands of years",
+      "often has its head secured onto the handle with a wedge",
+      "is used at campsites to cut kindling for a fire"
     ],
     "tools/bolt": [
       "has a hexagonal head that is turned with a wrench",
       "is secured by threading a nut onto its far end",
       "passes through drilled holes to join two pieces together",
       "often has a flat washer placed under its head",
-      "often has grade markings on its head that show its strength",
+      "comes in strength grades for heavy structural joints",
       "has a smooth unthreaded shank below the head on longer sizes",
       "is specified by diameter, length and thread pitch",
       "holds girders, engine blocks and machine frames together",
-      "comes in a carriage style with a rounded domed head",
+      "can have a smooth domed head with nothing to turn it by",
       "is often made of hardened metal with a zinc coating",
-      "can work loose under vibration without a locking nut or adhesive",
-      "can be removed by holding the nut still and turning the head"
+      "can work loose under vibration unless it is locked in place",
+      "is tightened to a set torque with a torque wrench"
     ],
     "tools/clamp": [
       "holds glued pieces together tightly while the glue dries",
       "presses two jaws toward each other to grip work",
-      "is tightened by turning a threaded handle or squeezing a trigger",
+      "is tightened by hand with a threaded handle or knob",
       "can be shaped like a letter C with a threaded spindle",
       "is often used several at a time along one long joint",
       "can be carried around and fixed onto most table edges",
@@ -41,54 +41,54 @@
       "is sized by its maximum opening and the depth of its reach",
       "can release instantly with a lever on quick-action models",
       "hangs in rows on racks along carpentry shop walls",
-      "squeezes a hose tight around a pipe fitting in a car engine"
+      "is sold in sizes from palm-sized to over a metre long"
     ],
     "tools/hammer": [
       "drives nails into timber with a series of sharp blows",
       "has a heavy metal head fixed across the end of a handle",
-      "often has a curved split claw for pulling out nails",
+      "has a head with two different ends for different jobs",
       "is swung in an arc so its face strikes squarely",
-      "can leave a round dent in timber when it misses",
-      "makes a loud bang each time it strikes a nail",
-      "hangs from a loop on a carpenter's belt",
-      "is used by blacksmiths to shape red-hot metal",
-      "can hurt the hand holding a nail if aimed badly",
+      "can leave a round dent in a surface when it misses",
+      "makes a loud bang with every blow it lands",
+      "is carried on a carpenter's belt along with a tape measure",
+      "is used by blacksmiths, roofers and cobblers",
+      "can injure the user's other hand if swung carelessly",
       "has a handle of hickory, fibreglass or solid metal",
       "is sold by the weight of its head in ounces or grams",
-      "strikes chisels and punches held against stone or metal"
+      "is used together with chisels and punches in a workshop"
     ],
     "tools/hoe": [
       "has a flat blade set at a right angle to its handle",
       "chops weeds off at the root just under the soil surface",
       "is pulled back toward the user in short scraping strokes",
       "loosens soil between rows of vegetables in a garden",
-      "heaps earth around the stems of growing potato plants",
+      "is used to heap earth around the base of growing plants",
       "is worked standing, with both hands on a long handle",
       "has been used to till fields since ancient times",
-      "has a looped stirrup-shaped blade in some designs",
+      "is kept in a garden shed alongside spades and forks",
       "has its blade edge sharpened with a flat file",
-      "cuts shallow furrows for sowing seeds with a corner of its blade",
-      "is still the main hand implement on many African smallholdings",
+      "can open a shallow trench for planting seeds",
+      "is used by small farmers who work their fields by hand",
       "breaks up hard crusted earth after heavy rain"
     ],
     "tools/knife": [
       "has a thin metal blade with one sharpened edge",
       "slices bread, meat and vegetables on a cutting board",
-      "is laid to the right of a dinner plate at the table",
-      "can fold its blade into the handle to fit a pocket",
-      "needs regular sharpening on a whetstone or honing rod",
-      "is stored in a slotted block on the kitchen counter",
-      "has a serrated edge on some types for tough crusts",
+      "is set on the dinner table beside the plate",
+      "comes in folding versions that fit in a pocket",
+      "needs regular sharpening on a whetstone or grinder",
+      "is washed by hand rather than in a dishwasher to stay sharp",
+      "has a finely serrated edge on some of its types",
       "has a pointed tip for piercing and making small cuts",
-      "is carried by hunters to skin and clean game",
-      "has a bolster where the blade meets the handle on forged types",
+      "is carried by hunters and campers on a belt",
+      "has a handle fixed to its blade with rivets on many types",
       "spreads jam or margarine onto toast at breakfast",
-      "is held with a pinch grip on the blade by trained chefs"
+      "is drawn away from the body when cutting to avoid injury"
     ],
     "tools/mop": [
-      "has a bundle of absorbent strands on the end of a long handle",
+      "has an absorbent head on the end of a long handle",
       "is dipped into a bucket of soapy water before use",
-      "is wrung out to squeeze dirty water from its head",
+      "is wrung out to get rid of dirty water",
       "is swept across hard floors in wide side-to-side strokes",
       "is used by school janitors to clean corridors and restrooms",
       "leaves floors wet enough to need a warning sign nearby",
@@ -97,75 +97,75 @@
       "can have a flat head covered in microfibre cloth",
       "is stored upright in a utility closet to dry",
       "smells musty if it is left damp for too long",
-      "is paired with a wheeled bucket that has a wringer"
+      "soaks up spilled drinks from a kitchen or bar floor"
     ],
     "tools/needle": [
       "has a tiny eye at one end for passing thread through",
-      "tapers to a sharp point at the end opposite its eye",
-      "draws thread through fabric to make stitches by hand",
-      "is kept stuck in a pincushion when not in use",
-      "is pushed through thick cloth with the help of a thimble",
-      "is so slender that threading it in dim light is hard",
+      "tapers along its length to a very sharp point",
+      "is used to repair torn clothing at home",
+      "is found in a sewing kit alongside a spool of thread",
+      "needs firm pressure to pass through thick layers",
+      "is so slender that it is easily lost when dropped",
       "comes in small packets sorted by size, from fine to heavy",
       "can prick the skin and draw a small bead of blood",
-      "is used by tailors to sew on buttons and mend tears",
-      "is threaded more easily with a small wire-loop threader",
-      "is used for embroidery, quilting and cross-stitch",
-      "can be magnetized and floated on a leaf as a compass"
+      "is used by tailors and dressmakers every working day",
+      "is made of thin polished metal a few centimetres long",
+      "is used in crafts such as quilting and beading",
+      "can be magnetized by stroking it with a magnet"
     ],
     "tools/rake": [
       "has a row of tines fixed across the end of a handle",
-      "gathers fallen leaves into piles on lawns in autumn",
+      "is used to clear up leaves on lawns in autumn",
       "is pulled toward the user across the ground in long strokes",
       "levels loose soil and gravel before planting or paving",
-      "has flexible fan-shaped tines in its lawn version",
+      "comes with a head of metal, bamboo or moulded polymer",
       "pulls dead thatch and moss out of grass",
-      "draws neat parallel lines in the gravel of Zen gardens",
-      "smooths sand in golf course bunkers after a shot",
-      "gathers cut hay into long rows on farms",
-      "has short stiff metal teeth in its bow garden version",
-      "is used by croupiers to gather chips across a gaming table",
-      "comes in a wide aluminium version for spreading hot asphalt"
+      "leaves thin parallel grooves in the ground behind it",
+      "smooths out footprints left in a sand pit",
+      "is used on farms to move loose hay and straw",
+      "has a long handle about as tall as an adult",
+      "helps clear seaweed and litter off beaches",
+      "is sold with wide or narrow heads for different jobs"
     ],
     "tools/saw": [
       "has a row of sharp teeth along a thin metal blade",
-      "cuts through timber with steady back-and-forth strokes",
-      "leaves a small pile of fine dust beneath the cut",
-      "has teeth bent alternately left and right to widen the cut",
-      "can be a toothed disc spun at high speed by a motor",
-      "is used by carpenters to cut boards to length",
+      "cuts with a steady back-and-forth motion of the arm",
+      "leaves a small pile of fine dust on the floor",
+      "is often hung on a pegboard in a woodworking shop",
+      "can be driven by an electric motor for faster work",
+      "is used by carpenters to shape and trim boards",
       "makes a rhythmic rasping sound as it works",
-      "can bind in the cut if the timber pinches its blade",
+      "can get stuck in timber partway through a cut",
       "has a closed handle at one end of a long tapering blade",
-      "cuts metal pipe when fitted with a fine-toothed blade",
-      "is sharpened tooth by tooth with a small triangular file",
-      "cuts on the pull stroke rather than the push in some Asian designs"
+      "can cut through metal pipe as well as timber",
+      "is sharpened with a small file rather than a flat stone",
+      "cuts on the pull stroke in some designs and the push in others"
     ],
     "tools/scissors": [
       "has two blades joined by a pivot near the middle",
-      "has two ring-shaped handles that one hand opens and closes",
-      "cuts by sliding two sharpened edges closely past each other",
-      "cuts shapes out of card for school craft projects",
-      "is used by barbers and hairdressers to trim hair",
-      "has rounded tips in versions made for young children",
+      "has two handles that one hand squeezes and opens",
+      "cuts cleanly through thin sheets with each closing stroke",
+      "is found in school pencil cases for craft lessons",
+      "is kept at a barber's station along with combs and clippers",
+      "is kept out of reach of small children because of its points",
       "is made in special versions for left-handed people",
-      "is handed to another person with its handles first",
-      "is used by tailors to cut cloth along chalk lines",
-      "is used by nurses to cut bandages and surgical tape",
-      "makes a crisp snipping sound each time it closes",
-      "is used to cut ribbon at opening ceremonies"
+      "is used in kitchens to cut herbs and open packaging",
+      "is used to cut cloth, twine and gift wrapping",
+      "is found in first aid kits, desk drawers and sewing baskets",
+      "makes a crisp metallic sound each time it closes",
+      "loses its edge quickly if used to cut wire"
     ],
     "tools/screw": [
       "has a spiral thread wound around a pointed shaft",
-      "has a slot or cross-shaped recess in its head",
-      "is turned clockwise to drive it into timber",
-      "grips more firmly than a nail and resists pulling out",
-      "is driven by hand or with a cordless drill",
-      "cuts its own thread as it bites into softwood",
-      "sits flush with the surface when it has a countersunk head",
-      "holds in masonry when driven into a wall plug",
-      "is sold by gauge and length in boxes of a hundred",
-      "can have its head stripped if the driver slips",
+      "has a flat or rounded head at one end of its shaft",
+      "is turned clockwise to tighten it and the other way to loosen",
+      "comes loose over time if its hole becomes worn",
+      "can be driven by hand or with a cordless drill",
+      "can split thin timber if driven in too close to the edge",
+      "can be set below the surface and hidden with filler",
+      "needs an anchor to hold firmly in masonry",
+      "is often sold by gauge and length in boxes of a hundred",
+      "becomes hard to remove once its head is damaged",
       "fastens hinges and handles to doors and cabinets",
       "is tiny in eyeglass frames and wristwatches"
     ],
@@ -175,21 +175,21 @@
       "moves loose piles of gravel, sand or mulch",
       "has a D-shaped grip at the top of its handle on some models",
       "clears snow from driveways and paths in winter",
-      "is carried in folding form by soldiers to dig trenches",
+      "is carried by soldiers in a compact folding form",
       "is used by gravediggers and construction labourers",
       "tosses dirt to one side in a lifting swing",
       "often has a pointed blade for breaking into hard ground",
-      "feeds coal into the firebox of a steam locomotive",
-      "is carried by backcountry skiers for avalanche rescue",
-      "turns the first earth at ceremonies for new buildings"
+      "scoops ash out of a fireplace or stove",
+      "is used alongside a wheelbarrow to move earth",
+      "has a flat or dished blade for scraping and scooping"
     ],
     "tools/sponge": [
       "is soft and porous and soaks up water when dipped",
       "is squeezed in the hand to wring out dirty water",
-      "often has a green abrasive scouring layer on one side",
+      "has a rougher side for scrubbing stuck-on grime",
       "sits in a small holder beside the kitchen sink",
       "wipes crumbs and spills off countertops and tables",
-      "is made of cellulose or synthetic foam with open pores",
+      "is made from synthetic foam or processed plant fibre",
       "can breed bacteria when it stays damp for days",
       "is cut into rectangular blocks that fit in a hand",
       "is used with soapy water to wash a car body",
@@ -198,32 +198,95 @@
       "is rubbed on dishes with washing-up liquid to scrub them"
     ],
     "tools/vise": [
-      "is fixed permanently to the edge of a workbench",
+      "is mounted on a workbench in many home garages",
       "has two heavy parallel jaws that grip a workpiece",
-      "is closed by turning a sliding bar handle",
-      "holds metal still while it is filed, bent or cut",
+      "is tightened by turning a handle on a threaded shaft",
+      "is used to bend flat bar by gripping one end",
       "often has a swivel base so it can be turned to any angle",
-      "often has a small flat anvil area behind its rear jaw",
+      "can weigh over twenty kilograms on large models",
       "is made of heavy cast iron or forged metal",
-      "has replaceable serrated jaw plates that bite into the work",
-      "can crush soft work unless padded covers are fitted",
-      "grips round pipe in curved notches below its main jaws",
-      "holds parts steady on a drill press table in a smaller form",
-      "holds hooks for fly-tying in a tiny precision form"
+      "has ridged gripping faces that can mark soft work",
+      "holds a part steady so both hands are free to work on it",
+      "can grip round pipe as well as flat stock",
+      "is found in metalworking and woodworking shops alike",
+      "comes in small precision versions for jewellers and model makers"
     ],
     "tools/whisk": [
       "has loops of thin wire gathered into a handle",
-      "beats air into cream until it forms soft peaks",
+      "adds air to a mixture to make it light and fluffy",
       "is moved quickly in circles with a flick of the wrist",
       "makes a rapid clattering sound against the side of a bowl",
-      "blends flour into sauces and gravy to remove lumps",
-      "widens into a teardrop or balloon shape at its far end",
+      "is used to stir sauces and gravy on the stove",
+      "is wider at its working end than at its handle",
       "hangs from a hook in the kitchen with other utensils",
-      "is used by bakers to whip meringue and cake batter",
+      "is used by bakers to mix cake and pancake batters",
       "is often swapped for an electric mixer on big batches",
-      "has a flat spiral coil in some versions for shallow pans",
-      "is made of split bamboo in the form used for matcha tea",
-      "needs careful rinsing because thick mixture clings between its wires"
+      "comes in a flat version suited to shallow pans",
+      "is made of metal or heat-resistant silicone",
+      "needs careful rinsing because thick mixture clings to it"
+    ]
+  },
+  "decisive": {
+    "tools/axe": [
+      0,
+      1
+    ],
+    "tools/bolt": [
+      0,
+      1
+    ],
+    "tools/clamp": [
+      0,
+      3
+    ],
+    "tools/hammer": [
+      0
+    ],
+    "tools/hoe": [
+      0,
+      1
+    ],
+    "tools/knife": [
+      1,
+      10
+    ],
+    "tools/mop": [
+      0,
+      5
+    ],
+    "tools/needle": [
+      0
+    ],
+    "tools/rake": [
+      0,
+      1
+    ],
+    "tools/saw": [
+      0,
+      8
+    ],
+    "tools/scissors": [
+      0,
+      6
+    ],
+    "tools/screw": [
+      0,
+      4
+    ],
+    "tools/shovel": [
+      0,
+      7
+    ],
+    "tools/sponge": [
+      0,
+      2
+    ],
+    "tools/vise": [
+      1
+    ],
+    "tools/whisk": [
+      0,
+      1
     ]
   },
   "notes": {
@@ -231,29 +294,18 @@
       "\"has a smooth unthreaded shank below the head on longer sizes\": true of partially threaded hex bolts, but fully threaded long bolts (tap bolts) also exist",
       "\"is often made of hardened metal with a zinc coating\": common for general-purpose grade bolts; many are plain, black-oxide or stainless instead"
     ],
-    "tools/hoe": [
-      "\"is still the main hand implement on many African smallholdings\": widely reported for sub-Saharan smallholder farming; a general claim, not checked against a specific source"
-    ],
     "tools/knife": [
-      "\"is laid to the right of a dinner plate at the table\": Western table-setting convention, not universal"
+      "\"is washed by hand rather than in a dishwasher to stay sharp\": standard advice for good kitchen knives; many households put everyday knives in the dishwasher"
     ],
-    "tools/needle": [
-      "\"can be magnetized and floated on a leaf as a compass\": the standard survival improvisation; it works for small needles, alignment is weak"
-    ],
-    "tools/rake": [
-      "\"is used by croupiers to gather chips across a gaming table\": true for roulette and baccarat; craps uses a hooked stick that may not count as the same object",
-      "\"comes in a wide aluminium version for spreading hot asphalt\": the asphalt rake/lute is a paving-trade item that a lay reader may not know"
-    ],
-    "tools/saw": [
-      "\"cuts on the pull stroke rather than the push in some Asian designs\": certain for traditional Japanese designs; less certain how widely it holds elsewhere in Asia"
+    "tools/screw": [
+      "\"is often sold by gauge and length in boxes of a hundred\": gauge sizing is the imperial wood-screw convention; metric screws are sold by diameter"
     ],
     "tools/sponge": [
       "\"stiffens when dry and softens again once wet\": true of cellulose sponges; polyurethane foam sponges stay fairly soft when dry",
       "\"is thrown away and replaced every few weeks for hygiene\": common hygiene advice (weekly to monthly), not what every household does"
     ],
     "tools/vise": [
-      "\"grips round pipe in curved notches below its main jaws\": true of combination/pipe-jaw bench vises, not every model",
-      "\"often has a small flat anvil area behind its rear jaw\": common on engineer's bench vises, absent on woodworking vises"
+      "\"can weigh over twenty kilograms on large models\": large engineer's bench vises (150 mm jaws and up) are in this range; small hobby vises weigh a few kilograms"
     ]
   }
 }

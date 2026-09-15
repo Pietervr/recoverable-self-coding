@@ -4,53 +4,53 @@
     "animals/ant": [
       "lives in large colonies ruled by one or more queens",
       "has a narrow waist between its thorax and abdomen",
-      "follows scent trails laid down by its nestmates",
-      "can lift objects many times heavier than its own body",
+      "communicates with its nestmates mainly through chemical scents",
+      "drags pieces of prey and seeds back to its nest",
       "often builds its nest underground or in a mound of soil",
-      "is usually wingless, apart from young queens and males",
-      "sometimes tends aphids for the sugary liquid they release",
+      "has wings only in the forms that leave the nest to breed",
+      "feeds on sweet liquids as well as other insects",
       "is a common uninvited guest at picnics and in kitchens",
       "has bent antennae that it uses to touch and smell",
       "can give a painful bite or sting in some species",
       "is tiny and often seen marching in long lines",
-      "includes kinds that cut leaves to grow fungus underground"
+      "has workers that defend the nest and care for the young"
     ],
     "animals/bee": [
-      "has fuzzy hairs that pick up pollen as it feeds",
-      "often lives in a hive headed by a single queen",
+      "is an important pollinator of crops and wild flowers",
+      "often lives in a colony headed by a single queen",
       "builds six-sided wax cells to raise its young",
-      "visits flowers all day to collect nectar and pollen",
-      "dances to tell its nestmates which way the flowers are",
-      "makes a buzzing sound with its rapidly beating wings",
-      "can sting, though some kinds die after doing so",
-      "is kept by people in stacked boxes on farms and rooftops",
-      "pollinates many crops, including fruit trees and almonds",
+      "visits flowers throughout the day to drink nectar",
+      "works with others in its colony to gather and store supplies",
+      "has two pairs of thin, clear wings",
+      "can deliver a painful sting when it feels threatened",
+      "has declined in many areas as wild meadows disappear",
+      "has a stout body covered in fine, soft hairs",
       "often has black and yellow bands across its body",
-      "huddles with its colony to keep warm through winter",
+      "stays inside its nest with others through cold winters",
       "swarms when a colony splits to find a new home"
     ],
     "animals/cat": [
-      "purrs when it is content or being stroked",
-      "has retractable claws that it sharpens on rough surfaces",
+      "is often kept indoors, though some roam the neighbourhood",
+      "can pull its sharp claws back into its paws",
       "is one of the most popular household pets worldwide",
-      "often lands on its feet after a fall",
-      "grooms itself by licking its fur for long periods",
+      "can leap onto high shelves and fences with ease",
+      "spends a lot of time cleaning its own fur",
       "has whiskers that help it sense nearby objects in the dark",
       "hunts rodents and small birds around homes and barns",
-      "uses a litter box when it is kept indoors",
+      "is often fed from a bowl of dry pellets or tinned meat",
       "sleeps for much of the day, often in sunny spots",
       "has eyes that shine in the dark when light hits them",
-      "was revered and often mummified in ancient Egypt",
+      "has soft paws with pads that let it walk silently",
       "arches its back and hisses when frightened or angry"
     ],
     "animals/cow": [
       "has four digestive chambers and chews its cud",
-      "is milked by farmers, often twice a day",
+      "is kept on farms and fed on hay through the winter",
       "grazes on grass for many hours in open pastures",
-      "usually gives birth to a single calf after nine months",
+      "usually has one young at a time that stands within hours",
       "is raised for its meat, milk and hide",
-      "makes a long, low call across the fields",
-      "is regarded as sacred by many Hindus in India",
+      "calls loudly to its young when they are separated",
+      "is still used in some parts of the world to pull ploughs",
       "often wears a numbered tag clipped to its ear",
       "can weigh several hundred kilograms when fully grown",
       "is often patched black and white on dairy farms",
@@ -59,12 +59,12 @@
     ],
     "animals/deer": [
       "has males that shed and regrow their antlers each year",
-      "often has a spotted coat when it is very young",
+      "has young that hide motionless in tall grass while the mother feeds",
       "bounds away with its white tail raised when startled",
       "browses on leaves, shoots and twigs at forest edges",
       "is a popular target for hunters with rifles and bows",
       "is often struck by cars on quiet rural roads",
-      "clashes head to head with rivals during the autumn rut",
+      "has males that fight rivals for mates each autumn",
       "has slender legs and hooves split in two",
       "has a reddish-brown summer coat that turns greyer in winter",
       "has large ears that swivel to catch distant sounds",
@@ -72,27 +72,27 @@
       "tends to be most active in the hours around dawn and dusk"
     ],
     "animals/dolphin": [
-      "breathes air through a blowhole on top of its head",
+      "must come to the surface regularly to breathe air",
       "uses clicks and their echoes to find prey underwater",
-      "lives and hunts in close social groups called pods",
+      "lives and hunts in close-knit social groups at sea",
       "is widely regarded as highly intelligent and playful",
-      "often rides the bow waves of passing ships",
+      "is hunted in the open sea by sharks and killer whales",
       "has a sleek grey body and a curved fin on its back",
       "is a mammal that nurses its young with milk underwater",
-      "can sleep with one half of its brain at a time",
+      "has a long snout filled with many small pointed teeth",
       "makes high-pitched squeaks to call to others in its group",
       "leaps out of the water in graceful arcs",
-      "is sometimes caught by accident in tuna fishing nets",
+      "is often caught by accident in commercial fishing nets",
       "has been trained to perform tricks for crowds at marine parks"
     ],
     "animals/elephant": [
-      "is one of the heaviest mammals that live on land",
-      "sprays water and dust over its back to keep cool",
-      "has ivory tusks that have made it a target for poachers",
+      "is a very large, slow-growing mammal that can live for decades",
+      "bathes in rivers and rolls in mud to protect its skin",
+      "is threatened by poaching and the loss of its habitat",
       "has huge ears that it flaps to cool itself",
       "lives in herds led by an older female",
       "has thick, wrinkled grey skin with sparse hair",
-      "carries its young for nearly two years before birth",
+      "has a very long pregnancy and gives birth to a single young",
       "lives on African savannas and in the forests of Asia",
       "has been used to carry loads and riders in parts of Asia",
       "walks on thick pillar-like legs with padded feet",
@@ -103,11 +103,11 @@
       "has a bushy tail and pointed ears",
       "is often reddish with a white-tipped tail",
       "raises its litter of young in an underground den",
-      "appears as a cunning trickster in many folk tales",
+      "has a sharp, narrow snout and a keen sense of hearing",
       "raids chicken coops and rubbish bins at the edge of towns",
       "is a familiar sight in many cities after dark",
-      "pounces on rodents hidden under snow by leaping headfirst",
-      "was traditionally hunted on horseback with hounds in England",
+      "listens for hidden rodents, then leaps and pounces on them",
+      "is sometimes killed by eagles, lynx and coyotes",
       "is a small, wild member of the dog family",
       "makes a high-pitched scream that can sound alarming at night",
       "has long been trapped for its thick soft fur",
@@ -118,8 +118,8 @@
       "breathes partly through its smooth, moist skin",
       "catches insects with a fast, sticky flick from its mouth",
       "has long, powerful back legs for jumping",
-      "puffs up a throat pouch to call loudly at night",
-      "lays clumps of jelly-covered spawn in ponds",
+      "calls loudly from ponds and marshes on warm nights",
+      "is easily harmed by polluted water and the loss of wetlands",
       "is an amphibian that lives both in water and on land",
       "has webbed hind feet that help it swim quickly",
       "has bulging eyes on the top of its head",
@@ -134,23 +134,23 @@
       "roars loudly enough to be heard kilometres away",
       "lives mainly on open grasslands in Africa",
       "spends most of the day resting in the shade",
-      "appears on coats of arms as a symbol of courage",
+      "often fights hyenas over the carcasses of large prey",
       "hunts zebra, wildebeest and buffalo",
-      "has a tuft of dark hair at the tip of its tail",
-      "was pitted against gladiators in Roman arenas",
+      "has large paws and a heavy, muscular build",
+      "is a large predator kept in many zoos and safari parks",
       "has cubs that are born with faint spots",
-      "is a large hunter with a plain, unstriped coat"
+      "is a big predator with a plain, unpatterned coat"
     ],
     "animals/mouse": [
       "is a small rodent with a long thin tail",
       "nibbles through packaging in pantries and cupboards",
       "squeaks and scurries along walls at night",
-      "is bred in huge numbers for laboratory research",
-      "can squeeze through gaps the width of a pencil",
+      "is kept as a small pet in cages by children",
+      "can squeeze through surprisingly small gaps under doors",
       "breeds quickly, producing many litters each year",
       "is caught in spring-loaded snap traps in homes",
       "is hunted by owls, hawks and weasels",
-      "has large round ears and a pointed snout",
+      "has large ears, dark beady eyes and a pointed snout",
       "has gnawing front teeth that never stop growing",
       "lives in fields, barns and the walls of houses",
       "eats seeds and grains, sometimes storing them in its nest"
@@ -158,37 +158,37 @@
     "animals/rabbit": [
       "has long ears and a short fluffy tail",
       "lives in large networks of connected underground burrows",
-      "thumps its hind feet to warn others of danger",
-      "breeds very quickly and has large litters",
-      "is closely associated with Easter celebrations in many places",
-      "raids vegetable gardens for lettuce, carrots and young shoots",
-      "is often kept as a pet in outdoor hutches",
-      "has front teeth that keep growing throughout its life",
-      "was introduced to Australia and became a serious pest",
+      "sits upright on its haunches to watch for danger",
+      "gives birth to blind, hairless young in a sheltered nest",
+      "has soft, dense fur that is used in hats and garments",
+      "raids vegetable gardens and nibbles young plants",
+      "is often kept as a pet in a cage or pen outdoors",
+      "feeds mostly on grass, clover and other leafy plants",
+      "prefers grassy meadows with bushes nearby for cover",
       "freezes, then zigzags away when it is chased",
       "can see almost all the way around without turning its head",
       "is hunted by hawks, stoats and people with dogs"
     ],
     "animals/sheep": [
-      "is shorn once a year for its thick wool",
-      "is herded in flocks by trained working dogs",
+      "has a thick coat that farmers clip and spin into yarn",
+      "lives in flocks that stay close together when threatened",
       "bleats loudly when separated from the rest of its flock",
       "often gives birth to twins, usually in early spring",
-      "is often used as a symbol of blindly following others",
+      "is a timid grazer that flees from dogs and people",
       "has males with heavy curled horns in some breeds",
       "provides meat, milk and fibre on farms worldwide",
       "has wide rectangular pupils that give a broad view",
-      "greatly outnumbers the human population of New Zealand",
+      "crops grass very close to the ground with its narrow mouth",
       "is often marked with coloured dye to show its owner",
       "grazes on rough hillsides and upland moors",
-      "yields lanolin, a greasy substance used in skin creams"
+      "huddles with others behind walls and hedges in bad weather"
     ],
     "animals/snake": [
-      "has no legs and moves by bending its long body",
-      "often sheds its whole skin in a single piece",
+      "moves by bending its long body from side to side",
+      "sheds its outer layer of skin several times as it grows",
       "flicks a forked mouthpart in and out to smell the air",
-      "can swallow prey much wider than its own head",
-      "may deliver venom through a pair of hollow fangs",
+      "usually swallows its prey whole without chewing it first",
+      "can be venomous and deadly to people who disturb it",
       "is covered all over in dry, overlapping scales",
       "has no eyelids and so cannot close its eyes",
       "can coil around its prey and squeeze it to death",
@@ -205,20 +205,20 @@
       "is endangered, with far fewer left in the wild than a century ago",
       "hunts alone, stalking prey before a sudden charge",
       "has rust-coloured fur with a white belly",
-      "is a national emblem in India and Bangladesh",
+      "has powerful jaws and long canine teeth for killing large prey",
       "marks its territory with scent and scratches on trees",
-      "is one of the twelve signs of the Chinese zodiac",
+      "has a deep roar and a heavy, muscular body",
       "is poached for its skin and for traditional medicine",
-      "has a rare white variety sometimes seen in zoos"
+      "can kill prey as large as wild cattle"
     ],
     "animals/wolf": [
       "lives and hunts in packs led by a breeding pair",
       "howls to keep in touch with distant members of its group",
-      "is the wild ancestor of the domestic dog",
-      "is often the villain in European fairy tales",
+      "is a close wild relative of the domestic dog",
+      "has been feared and persecuted by people for centuries",
       "has thick grey fur and a bushy tail",
       "roams huge territories in forests, tundra and mountains",
-      "was hunted out of large parts of Western Europe",
+      "was wiped out across much of its former range",
       "brings down large prey such as elk and moose",
       "has pups that are born blind in a den in spring",
       "is blamed by ranchers for killing their livestock",
@@ -226,34 +226,50 @@
       "has yellow or amber eyes that stand out against its fur"
     ]
   },
+  "decisive": {
+    "animals/ant": [5, 10],
+    "animals/bee": [2, 11],
+    "animals/cat": [4, 11],
+    "animals/cow": [0, 9],
+    "animals/deer": [0, 2],
+    "animals/dolphin": [1, 11],
+    "animals/elephant": [3, 9],
+    "animals/fox": [1, 9],
+    "animals/frog": [0, 9],
+    "animals/lion": [0, 1],
+    "animals/mouse": [0, 6],
+    "animals/rabbit": [0],
+    "animals/sheep": [0, 5],
+    "animals/snake": [2, 7],
+    "animals/tiger": [0, 3],
+    "animals/wolf": [0, 1]
+  },
   "notes": {
     "animals/bee": [
-      "\"huddles with its colony to keep warm through winter\": true of honeybees (the ordinary sense); bumblebee colonies die off and only the queens overwinter",
-      "\"can sting, though some kinds die after doing so\": honeybee workers die after stinging mammals because the barbed sting tears out; other bees survive"
+      "\"stays inside its nest with others through cold winters\": true of honeybees (the ordinary sense); bumblebee colonies die off and only the queens overwinter, alone",
+      "\"works with others in its colony to gather and store supplies\": honeybees store nectar and pollen; solitary bees do not live in colonies"
     ],
     "animals/deer": [
       "\"bounds away with its white tail raised when startled\": characteristic of white-tailed deer; other species (roe, red deer) flash a pale rump patch rather than raising a white tail",
-      "\"has a reddish-brown summer coat that turns greyer in winter\": true of white-tailed, roe and red deer; not all species",
-      "\"often has a spotted coat when it is very young\": most fawns are spotted, but moose and reindeer calves are not"
+      "\"has a reddish-brown summer coat that turns greyer in winter\": true of white-tailed, roe and red deer; not all species"
     ],
     "animals/dolphin": [
-      "\"can sleep with one half of its brain at a time\": well documented (unihemispheric sleep) but may not be common knowledge for a lay reader"
+      "\"has a long snout filled with many small pointed teeth\": true of most dolphins (bottlenose, common); a few (e.g. Risso's) have short snouts and few teeth"
+    ],
+    "animals/fox": [
+      "\"is sometimes killed by eagles, lynx and coyotes\": documented for red foxes (golden eagles, Eurasian lynx, coyotes in North America); a lay reader may not know it"
     ],
     "animals/frog": [
       "\"can spend winter dormant in the mud of pond bottoms\": true of some kinds (e.g. leopard and green frogs, which mostly rest on the bottom rather than burrow deep); others overwinter on land"
     ],
     "animals/mouse": [
-      "\"eats seeds and grains, sometimes storing them in its nest\": food caching is well known in field and deer mice; house mice cache less",
-      "\"can squeeze through gaps the width of a pencil\": commonly cited pest-control figure (about 6-7 mm) for house mice"
+      "\"eats seeds and grains, sometimes storing them in its nest\": food caching is well known in field and deer mice; house mice cache less"
     ],
-    "animals/sheep": [
-      "\"greatly outnumbers the human population of New Zealand\": true now (roughly five to one) but the ratio has been falling for decades"
+    "animals/rabbit": [
+      "\"gives birth to blind, hairless young in a sheltered nest\": true of the European rabbit and cottontails; hares, a close relative, bear furred, open-eyed young"
     ],
     "animals/snake": [
-      "\"often sheds its whole skin in a single piece\": typical of healthy snakes; a poor shed comes off in patches"
-    ],
-    "animals/tiger": [
-      "\"is a national emblem in India and Bangladesh\": the Bengal tiger is the national animal of both; the checker allows \"national\" (the family word is only \"nation(s)\"), but a reader may see it as near the countries family word"
+      "\"sheds its outer layer of skin several times as it grows\": frequency varies by age and species, but several sheds a year is typical"
     ],
     "animals/wolf": [
       "\"has yellow or amber eyes that stand out against its fur\": typical of adult wolves; eye colour varies somewhat"

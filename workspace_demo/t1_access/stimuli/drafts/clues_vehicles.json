@@ -2,43 +2,43 @@
   "family": "vehicles",
   "clues": {
     "vehicles/bicycle": [
-      "has two wheels of roughly equal size, one behind the other",
-      "is powered by the legs of the person riding it",
+      "has two wheels and is balanced by the person riding it",
+      "usually has no engine and is driven by human effort",
       "usually sends power to its rear wheel through a metal chain",
       "is steered by turning handlebars linked to the front wheel",
       "has a small saddle on a post that adjusts in height",
-      "often has several gears that the rider changes with levers",
+      "often has several gears for climbing hills and cruising on the flat",
       "has inflatable tyres on wheels laced with thin wire spokes",
       "makes almost no sound and gives off no exhaust",
       "is ridden by couriers weaving through city traffic",
-      "usually has a frame of tubes arranged in a diamond shape",
+      "usually has a light frame built from hollow tubes",
       "balances upright only while it is moving or being held",
       "can be carried up stairs or hung on a wall hook"
     ],
     "vehicles/boat": [
-      "floats on water and is steered with a rudder or tiller",
+      "is often steered with a rudder at the back",
       "can be moved along by oars, by sails or by a motor",
-      "is tied up at a dock or moored when not in use",
-      "usually has a pointed bow and a broader, flatter stern",
+      "is often tied up with ropes when it is not in use",
+      "has a front that tapers to a point to cut through water",
       "is often towed on a trailer and launched from a ramp",
       "is used by people who fish on lakes, rivers and the sea",
       "may carry a mast and sails to catch the wind",
-      "may collect water in a bilge that must be pumped out",
+      "can leak and slowly fill with water if it is damaged",
       "rocks from side to side as waves pass beneath it",
-      "often has its name painted near the stern",
+      "is often given a name that is painted on its hull",
       "is pushed by a spinning propeller when fitted with a motor",
-      "should carry a life jacket for every person on board"
+      "may have a small cabin below deck for sleeping"
     ],
     "vehicles/canoe": [
       "is moved by people using paddles with a blade at one end",
-      "has an open hull stiffened by crossbars called thwarts",
+      "is usually open on top, with no deck covering the people inside",
       "is long and narrow with both ends pointed",
-      "was traditionally made from birch bark stretched over a frame",
-      "can be carried overhead by one person between lakes",
+      "can be lifted onto a car roof by two adults",
+      "is often rented by the hour at lakes and river parks",
       "often seats two people, one at each end",
       "is usually steered by the person sitting at the back",
       "has no engine and glides almost silently over the water",
-      "is paddled by people kneeling or sitting on low seats",
+      "can carry tents and supplies on wilderness trips of several days",
       "is used for trips down rivers and across quiet lakes",
       "tips over easily if the people in it lean too far",
       "is often made today of aluminium, fibreglass or polyethylene"
@@ -58,10 +58,10 @@
       "rattles and creaks as it rolls over rough ground"
     ],
     "vehicles/ferry": [
-      "often shuttles back and forth between the same two landings",
-      "follows a timetable posted at the terminals where it docks",
+      "often repeats the same short route many times each day",
+      "follows a published timetable with fixed departure times",
       "can take cars aboard by a ramp that lowers at one end",
-      "has lounges, cafes and open decks for people making the crossing",
+      "often has lounges, cafes and open decks for its passengers",
       "crosses rivers, bays, straits and lakes",
       "is often run by a public transport authority",
       "sounds a deep horn before it pulls away from the dock",
@@ -69,15 +69,15 @@
       "carries commuters to islands that have no bridge to the mainland",
       "carries life rafts and life jackets for everyone on board",
       "is steered from a bridge high above its passenger decks",
-      "is sometimes built double-ended so it never needs to turn around"
+      "can be big enough to carry hundreds of passengers at once"
     ],
     "vehicles/jet": [
       "cruises high above most clouds and weather",
       "is pushed forward by engines that suck in air and blast it out",
       "usually has swept-back wings and a tall tail fin",
       "takes off and lands on a long paved runway",
-      "leaves a white trail of condensation across the sky",
-      "can fly faster than sound in many of its military versions",
+      "is tracked on radar and guided by controllers on the ground",
+      "is used by air forces for combat and reconnaissance",
       "carries passengers in rows of seats either side of an aisle",
       "is flown by one or two pilots from a cockpit in the nose",
       "makes a loud roar that can be heard for miles",
@@ -87,22 +87,22 @@
     ],
     "vehicles/kayak": [
       "is paddled with a long paddle that has a blade at each end",
-      "usually has a covered deck with a cockpit for the paddler",
+      "usually has a snug cockpit that its occupant sits down inside",
       "is sat in with the legs stretched out in front",
-      "can be sealed with a spray skirt to keep water out",
+      "carries a single paddler in most designs, sometimes two",
       "can be rolled back upright by a skilled paddler after capsizing",
-      "was first built by Arctic peoples to hunt seals and fish",
-      "was once made of sealskin stretched over a light frame",
+      "is usually light enough for one person to carry to the water",
+      "is often moulded in one piece from tough polyethylene",
       "is used for sea touring, whitewater runs and fishing",
       "is sometimes steered with foot pedals linked to a small rudder",
       "usually sits low in the water on a narrow hull",
-      "is raced at the Olympics on flat water and slalom courses",
+      "is raced on flat water and on whitewater slalom courses",
       "often has sealed hatches for storing gear on long trips"
     ],
     "vehicles/motorcycle": [
-      "has an engine slung low between its two wheels",
-      "has a twist-grip throttle on the right handlebar",
-      "usually has a gear lever worked by the rider's left foot",
+      "has an engine whose heat can be felt by the rider's legs",
+      "has a hand lever on its handlebar that works the front brake",
+      "usually has a clutch and a manual gearbox",
       "is ridden by people wearing helmets and armoured jackets",
       "leans into corners as the rider shifts their weight",
       "can easily keep pace with cars on a motorway",
@@ -115,98 +115,98 @@
     ],
     "vehicles/rocket": [
       "stands upright on a launch pad before liftoff",
-      "carries both its fuel and the oxidiser needed to burn it",
-      "is built in stages that drop away as their fuel runs out",
+      "burns through most of its fuel within minutes",
+      "is usually assembled in a huge building and then moved out",
       "delivers satellites and crews into orbit around the Earth",
-      "lifts off at the end of a countdown to zero",
-      "rises on a huge column of flame and smoke",
-      "is tall and slender with a pointed nose cone",
+      "is often delayed on the ground by high winds or storms",
+      "can leave a long trail of smoke and vapour in the sky",
+      "is tall and slender with a pointed tip",
       "steers by swivelling the nozzles of its engines",
-      "is often launched over the ocean so spent stages fall into the sea",
-      "has boosters that some companies now land and fly again",
-      "is so loud at liftoff that spectators watch from miles away",
-      "descends from long-range weapons built during the Second World War"
+      "is often launched out over the sea for safety",
+      "is increasingly designed to fly again rather than be thrown away",
+      "is so loud that anyone close by needs ear protection",
+      "costs many millions and is built by governments or a few firms"
     ],
     "vehicles/scooter": [
       "has small wheels and a low platform for the rider's feet",
       "has an upright steering column with handlebars at the top",
       "can be pushed along by kicking against the ground",
       "is popular for short trips along crowded city streets",
-      "is often rented through a phone app and left on the pavement",
+      "is often rented by the minute in large cities",
       "may have a small electric motor with a battery in the deck",
-      "often has a step-through frame with panels hiding the engine",
+      "may have a small petrol engine that makes a buzzing sound",
       "often folds up so it can be carried onto a bus",
       "is ridden standing up in some designs and seated in others",
-      "became a style icon for young riders in postwar Italy",
+      "is ridden by children on pavements and in parks",
       "is limited to low speeds in cycle lanes in many cities",
-      "has a rear brake pressed with the foot on kick models"
+      "is stopped with a hand brake or by pressing a foot down"
     ],
     "vehicles/submarine": [
-      "can stay hidden underwater for weeks at a time",
+      "operates hidden below the surface of the sea",
       "has a tall fin rising from the top of its hull",
       "raises a periscope to look above the surface",
-      "fills its ballast tanks with seawater in order to dive",
+      "controls its depth by adjusting its buoyancy",
       "has a long cylindrical hull with a rounded front",
-      "finds its way with sonar in the dark ocean depths",
+      "uses sonar to find its way and detect other ships",
       "is often powered by a nuclear reactor instead of diesel engines",
-      "carries torpedoes and sometimes long-range missiles",
+      "carries weapons able to strike targets hundreds of kilometres away",
       "has a crew who live for months in cramped quarters",
-      "has a thick hull built to resist crushing water pressure",
+      "has a strong hull built to withstand great pressure",
       "is entered and left through hatches on its top",
-      "was used to sink merchant shipping in both world wars"
+      "is designed to run as quietly as possible to avoid detection"
     ],
     "vehicles/tractor": [
       "typically has huge rear wheels and smaller front wheels",
-      "pulls ploughs, harrows and seed drills across fields",
-      "is driven by a farmer from a high seat or cab",
-      "has a power take-off shaft that drives attached machines",
+      "drags heavy equipment across soft, muddy fields",
+      "is steered from an open seat or a glass-sided cab",
+      "is sometimes fitted with crawler tracks instead of wheels",
       "has deep tread on its tyres to grip muddy soil",
       "moves slowly on public roads, holding up the traffic behind",
       "is powered by a large diesel engine with plenty of torque",
-      "tows trailers loaded with hay bales or grain",
-      "has a three-point hitch at the back for implements",
+      "can pull loaded trailers along farm tracks and roads",
+      "can be fitted with many interchangeable attachments for different jobs",
       "sometimes has a loader bucket mounted on the front",
-      "replaced horses and oxen for most field work last century",
+      "took over heavy work that horses and oxen once did",
       "is often painted green, red or blue by its maker"
     ],
     "vehicles/train": [
       "runs on a pair of metal rails laid on sleepers",
-      "is made of carriages coupled one behind another",
+      "is made of several linked sections that follow each other",
       "may be pulled by an engine at the front or pushed from behind",
-      "stops at stations where passengers board from platforms",
-      "sounds a loud horn as it nears a level crossing",
+      "picks up passengers at regular stops along a fixed route",
+      "sounds a loud horn to warn people ahead of it",
       "was once powered by coal-fired steam engines",
-      "can draw its power from overhead electric wires or a third rail",
-      "carries freight in long lines of containers and tankers",
+      "can take its power from electric cables strung overhead",
+      "carries freight in shipping containers and tankers",
       "cannot swerve and needs a long distance to stop",
       "passes through tunnels bored beneath mountains and seas",
-      "can exceed 300 kilometres per hour on high-speed lines",
-      "makes a rhythmic clatter as its wheels cross joints in the track"
+      "can travel at over 300 kilometres per hour",
+      "usually has a driver who sits in a cab at the very front"
     ],
     "vehicles/truck": [
       "has a cab for the driver and a separate load area behind",
-      "hauls goods on highways over long distances",
-      "is often coupled to a long trailer resting on a fifth wheel",
+      "moves goods over long distances between cities and ports",
+      "often pulls a long trailer hitched behind it",
       "needs a special licence to drive when it is large and heavy",
       "often has air brakes that hiss when they are released",
       "sits high off the road with a tall step up to the cab",
-      "may have a tipping bed for dumping gravel or sand",
-      "may have a bunk behind the seats where the driver sleeps",
+      "may carry gravel, sand or soil on building sites",
+      "is sometimes home to its driver for days at a time",
       "often has six or more wheels, with pairs on the rear axles",
-      "must stop at weigh stations along some highways",
+      "is limited by law in how much weight it can carry",
       "delivers stock to shops, warehouses and building sites",
       "comes in light forms with an open bed behind a small cabin"
     ],
     "vehicles/van": [
       "has a boxy enclosed body with the load space behind the seats",
-      "often has a sliding door on its side for easy loading",
-      "may have a pair of rear doors that swing open outwards",
+      "often has large doors at the back for loading bulky items",
+      "can carry more people or goods than an ordinary car",
       "is used by plumbers and electricians to carry equipment",
       "can be driven on an ordinary car licence in most places",
       "delivers parcels door to door in towns and suburbs",
-      "can be converted into a camper with a bed and a small kitchen",
+      "can be fitted with beds for sleeping on the road",
       "carries a family and their luggage on three rows of seats",
-      "has windowless side panels on many cargo models",
+      "may have no side windows behind the front seats",
       "is often painted with a company's name and phone number",
       "is taller than a car but runs on similar wheels",
       "shuttles airport travellers to nearby hotels"
@@ -214,11 +214,11 @@
     "vehicles/wagon": [
       "has four wheels on two axles beneath a long load bed",
       "is pulled by a team of horses, mules or oxen",
-      "carried settlers and their belongings across the American West",
+      "carried families and their belongings on long overland journeys",
       "may have a canvas cover stretched over curved hoops",
       "has a front axle that pivots so it can turn",
       "is often driven from a raised bench seat at the front",
-      "was drawn into a circle for protection when travellers camped",
+      "is loaded over its sides or through a hinged tailboard",
       "rolls on large spoked wheels with iron tyres",
       "hauls sacks of grain and bales of hay from the fields",
       "is also a child's toy pulled along by a long handle",
@@ -226,18 +226,27 @@
       "was a main means of moving freight overland before railways"
     ]
   },
+  "decisive": {
+    "vehicles/bicycle": [2, 4],
+    "vehicles/boat": [1],
+    "vehicles/canoe": [0],
+    "vehicles/cart": [0, 1],
+    "vehicles/ferry": [2, 8],
+    "vehicles/jet": [1],
+    "vehicles/kayak": [0, 4],
+    "vehicles/motorcycle": [6, 10],
+    "vehicles/rocket": [0, 3],
+    "vehicles/scooter": [2],
+    "vehicles/submarine": [2],
+    "vehicles/tractor": [0],
+    "vehicles/train": [0],
+    "vehicles/truck": [0, 11],
+    "vehicles/van": [0],
+    "vehicles/wagon": [3, 9]
+  },
   "notes": {
-    "vehicles/rocket": [
-      "\"descends from long-range weapons built during the Second World War\" - true of the lineage (V-2 to postwar missiles to launchers), but not literally of every modern launcher"
-    ],
-    "vehicles/wagon": [
-      "\"was drawn into a circle for protection when travellers camped\" - wagon trains did circle at camp, but historians say it was mainly to corral livestock; attack defence is partly folklore"
-    ],
     "vehicles/tractor": [
       "\"is often painted green, red or blue by its maker\" - rests on maker colour conventions (green, red, blue brands); true in general, not a physical property"
-    ],
-    "vehicles/train": [
-      "\"makes a rhythmic clatter as its wheels cross joints in the track\" - true on jointed track; modern continuously welded rail largely removes the clatter"
     ],
     "vehicles/ferry": [
       "\"is often run by a public transport authority\" - many ferries are public, but many are privately operated; 'often' carries the claim"
@@ -246,11 +255,11 @@
       "\"can be driven on an ordinary car licence in most places\" - holds for light vans (up to about 3.5 t in Europe); larger vans need a higher category"
     ],
     "vehicles/scooter": [
-      "\"became a style icon for young riders in postwar Italy\" - true only of the motor scooter sense",
       "\"is limited to low speeds in cycle lanes in many cities\" - e-scooter rules vary widely by city"
     ],
-    "vehicles/kayak": [
-      "\"was first built by Arctic peoples to hunt seals and fish\" - the Arctic origin is standard; the exact prey mix varied by people and region"
+    "vehicles/rocket": [
+      "\"is so loud that anyone close by needs ear protection\" - true of the noise level, though in practice nobody is allowed close at liftoff",
+      "\"is increasingly designed to fly again rather than be thrown away\" - reusable boosters are a growing share, but most launchers are still expendable"
     ]
   }
 }
