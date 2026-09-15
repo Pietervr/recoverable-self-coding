@@ -1,0 +1,17 @@
+point columns: ['selection_ws_point', 'selection_early_point', 'selection_late_point', 'selection_ws_minus_early_point', 'ensemble_ws_point', 'ensemble_early_point', 'ensemble_late_point', 'ensemble_ws_minus_early_point', 'historical_ws_point', 'historical_early_point', 'historical_late_point', 'historical_ws_minus_early_point'] -> matching shard-0 mean_point: ['selection_ws_point']
+rows 1000 unique reps 1000 grid <StringArray>
+['{"omega": 2.0}']
+Length: 1, dtype: str failed 0 code_hash <StringArray>
+['3575ae74b0fb']
+Length: 1, dtype: str
+selection_ws_point: n 1000, mean -6.8699, SD 84.6978, SE 2.6784, mean +- 2 SE [-12.2267, -1.5132]; median -2.0653
+calibration_D4.shard000of010_summary.csv n 100 mean_point -4.6633 sd 19.933 coverage 0.220
+calibration_D4.shard001of010_summary.csv n 100 mean_point -5.2045 sd 22.068 coverage 0.200
+calibration_D4.shard002of010_summary.csv n 100 mean_point -3.7013 sd 6.366 coverage 0.360
+calibration_D4.shard003of010_summary.csv n 100 mean_point -3.7798 sd 6.032 coverage 0.330
+calibration_D4.shard004of010_summary.csv n 100 mean_point -4.3493 sd 10.145 coverage 0.310
+calibration_D4.shard005of010_summary.csv n 100 mean_point -5.2587 sd 14.343 coverage 0.280
+calibration_D4.shard006of010_summary.csv n 100 mean_point -4.2713 sd 16.623 coverage 0.210
+calibration_D4.shard007of010_summary.csv n 100 mean_point -31.4893 sd 264.784 coverage 0.090
+calibration_D4.shard008of010_summary.csv n 100 mean_point -2.9242 sd 3.837 coverage 0.470
+calibration_D4.shard009of010_summary.csv n 100 mean_point -3.0574 sd 5.640 coverage 0.380
