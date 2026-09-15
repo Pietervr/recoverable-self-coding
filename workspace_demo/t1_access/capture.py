@@ -31,6 +31,7 @@ import hashlib
 import json
 import os
 import random
+import statistics
 import subprocess
 import sys
 import time
@@ -362,6 +363,193 @@ def diagnostics(p: dict, plain: dict, cap, t_src: int, t_tgt: int) -> dict:
     return out
 
 
+# -- runs ----------------------------------------------------------------------------------
+
+SHARD = 1000
+TOP_K = 1000
+PARITY_KEYS_SERVER = ["capture_endpoint_sha256", "serve_sha256", "model_snapshot", "lens_path", "hw_model",
+                      "mlx", "mlx_lm", "hidden_dtype"]
+
+
+def matching_parity(prov: dict, require_clean: bool) -> str | None:
+    """Name of a PASS parity report with the same server, weights, patches and client code, else None."""
+    for path in sorted(LOGS.glob("parity_*.json"), reverse=True):
+        rep = json.loads(path.read_text())
+        p = rep.get("provenance", {})
+        if rep.get("verdict") != "PASS":
+            continue
+        if any(p.get("server", {}).get(k) != prov["server"].get(k) for k in PARITY_KEYS_SERVER):
+            continue
+        if p.get("sha256") != prov["sha256"]:
+            continue
+        if require_clean and p.get("rsc_dirty_paths"):
+            continue
+        return path.name
+    return None
+
+
+def trial_prefix(row: dict, clues: dict, carriers: list, instr: dict) -> str:
+    slots = [clues[c][int(i)] for c, i in (s.rsplit("#", 1) for s in row["slots"].split(";"))]
+    opening, closing = carriers[int(row["carrier"])]
+    return packet_text(instr["A"] if row["condition"] == "active" else instr["B"], opening, slots, closing)
+
+
+def run(args) -> int:
+    import csv
+
+    from stimuli.build_bank import load_clues
+
+    build = Path(args.build).resolve()
+    blog = json.loads((build / "build_log.json").read_text())
+    draft = blog["status"].startswith("DRAFT")
+    splits, sets, conds = (set(x.split(",")) for x in (args.split, args.set, args.condition))
+    stop = []
+    if draft and not args.dev:
+        stop.append("the build is DRAFT (clues not audited): only --dev runs may use it")
+    if "CONF" in splits:
+        if args.dev:
+            stop.append("CONF is never captured in a development run")
+        elif not args.freeze_v2:
+            stop.append("CONF needs --freeze-v2 <commit> of the frozen pre-registration")
+        else:
+            head = git("show", f"{args.freeze_v2}:workspace_demo/t1_access/PREREGISTRATION_T1_model.md",
+                       repo=DEMO.parent).splitlines()[:1]
+            if not head or "DRAFT" in head[0]:
+                stop.append(f"the pre-registration at {args.freeze_v2} is not frozen")
+    if not args.ledger_row:
+        stop.append("--ledger-row is required (rsc_t1_simulation_design.md §12: no row, no run)")
+    server = Server(args.port)
+    prov = provenance(server)
+    parity = matching_parity(prov, require_clean=not args.dev)
+    if parity is None and not args.dev:
+        stop.append("no PASS parity report matches this server, weights, patches and committed client code")
+    if prov["rsc_dirty_paths"] and not args.dev:
+        stop.append(f"uncommitted capture code or stimuli: {prov['rsc_dirty_paths']}")
+    if stop:
+        for s in stop:
+            print("REFUSED:", s)
+        return 2
+
+    stimuli = HERE / "stimuli"
+    bank = json.loads((stimuli / "concepts.json").read_text())
+    clues, _ = load_clues(Path(blog["clues_source"]))
+    carriers = json.loads((stimuli / "carriers.json").read_text())["carriers"]
+    instr = json.loads((stimuli / "instructions.json").read_text())
+    tok = load_tokenizer(prov["server"])
+    tok_sha = hashlib.sha256((Path(prov["server"]["model_snapshot"]) / "tokenizer.json").read_bytes()).hexdigest()
+    if tok_sha != blog["inputs_sha256"]["tokenizer.json"]:
+        print("REFUSED: the server's tokenizer differs from the one the bank was built with")
+        return 2
+    # §6.3 (draft amendment 15 Sept): the answer set is the 128 frozen ids (chance 1/128); the logits of every
+    # concept's other single-token variants are also stored, for a descriptive variant-maximum reading only.
+    answer_ids = sorted(c["token_id"] for c in bank["concepts"])
+    variant_ids = sorted({v["ids"][0] for c in bank["concepts"] for v in c["variants"].values()
+                          if v["single_token"]} - set(answer_ids))
+    rows = [r for r in csv.DictReader(open(build / "manifest.csv"))
+            if r["split"] in splits and r["set"] in sets and r["condition"] in conds
+            and (args.max_draw is None or int(r["draw"]) < args.max_draw)]
+
+    out = CAPTURES / args.run_name
+    out.mkdir(parents=True, exist_ok=True)
+    identity = {"server": {k: prov["server"][k] for k in PARITY_KEYS_SERVER}, "sha256": prov["sha256"],
+                "manifest_sha256": hashlib.sha256((build / "manifest.csv").read_bytes()).hexdigest(),
+                "answer_ids": answer_ids, "variant_ids": variant_ids, "chance": 1 / len(answer_ids),
+                "top_k": TOP_K}
+    header_path = out / "run_header.json"
+    if header_path.exists():
+        old = json.loads(header_path.read_text())
+        if old["identity"] != identity:
+            print("REFUSED: this run directory was captured under a different identity; use a new --run-name")
+            return 2
+    else:
+        header_path.write_text(json.dumps({"identity": identity, "provenance": prov, "args": vars(args),
+                                           "build": str(build), "build_log": blog, "parity_report": parity,
+                                           "started": time.strftime("%Y-%m-%dT%H:%M:%S")}, indent=1))
+    trials_path = out / "trials.jsonl"
+    done = set()
+    if trials_path.exists():
+        done = {json.loads(line)["trial_id"] for line in trials_path.read_text().splitlines() if line.strip()}
+    todo = [r for r in rows if r["trial_id"] not in done]
+    if args.limit:
+        todo = todo[: args.limit]
+    print(f"{len(rows)} trials selected, {len(done)} already captured, {len(todo)} to capture -> {out}")
+
+    L, D, A, V = prov["server"]["n_layers"], prov["server"]["d_model"], len(answer_ids), len(variant_ids)
+    maps: dict[int, dict] = {}
+
+    def shard(s: int) -> dict:
+        if s not in maps:
+            specs = {"res": (np.uint16, (SHARD, L, D)), "top_ids": (np.int32, (SHARD, TOP_K)),
+                     "top_logits": (np.float32, (SHARD, TOP_K)), "answer_logits": (np.float32, (SHARD, A)),
+                     "variant_logits": (np.float32, (SHARD, V))}
+            maps[s] = {}
+            for name, (dt, shape) in specs.items():
+                p = out / f"{name}_{s:05d}.npy"
+                maps[s][name] = (np.load(p, mmap_mode="r+") if p.exists()
+                                 else np.lib.format.open_memmap(p, mode="w+", dtype=dt, shape=shape))
+        return maps[s]
+
+    n_done, times = len(done), []
+    with open(trials_path, "a") as tf:
+        for row in todo:
+            suffix = ANSWER_SUFFIX if row["condition"] == "active" else None
+            built = build_ids(tok, trial_prefix(row, clues, carriers, instr), suffix)
+            if (hashlib.sha256(json.dumps(built["ids"]).encode()).hexdigest() != row["ids_sha256"]
+                    or built["readout_position"] != int(row["readout_position"])):
+                print(f"STOP: ids of {row['trial_id']} differ from the manifest")
+                return 1
+            resp = server.capture({"input_ids": built["ids"], "readout_positions": [built["readout_position"]],
+                                   "request_token_ids": answer_ids + variant_ids, "top_k": TOP_K})
+            res = residuals_native(resp)
+            if resp["residuals"]["dtype"] != "bfloat16" or res.shape != (L, 1, D):
+                print(f"STOP: unexpected residual format {resp['residuals']['dtype']} {res.shape}")
+                return 1
+            s, i = divmod(n_done, SHARD)
+            m = shard(s)
+            m["res"][i] = res[:, 0, :]
+            m["top_ids"][i] = resp["top_ids"]
+            m["top_logits"][i] = resp["top_logits"]
+            logits = [x["logit"] for x in resp["requested"]]
+            m["answer_logits"][i] = logits[:A]
+            m["variant_logits"][i] = logits[A:]
+            for arr in m.values():
+                arr.flush()
+            tf.write(json.dumps({
+                "trial_id": row["trial_id"], "shard": s, "index": i, "ids": built["ids"],
+                "readout_position": built["readout_position"], "logsumexp": resp["logsumexp"],
+                "final_logits_sha256": resp["final_logits"]["sha256"],
+                "residuals_sha256": hashlib.sha256(np.ascontiguousarray(res[:, 0, :]).tobytes()).hexdigest(),
+                "extend_s": resp["timing_s"]["extend"], "total_s": resp["timing_s"]["total"],
+                "ts": time.strftime("%Y-%m-%dT%H:%M:%S")}) + "\n")
+            tf.flush()
+            n_done += 1
+            times.append(resp["timing_s"]["total"])
+            if len(times) % 50 == 0 or len(times) == len(todo):
+                med = statistics.median(times)
+                left = len(rows) - n_done
+                print(f"  {n_done}/{len(rows)} captured; median {med:.2f} s/capture server-side; "
+                      f"~{left * med / 3600:.1f} h left for this selection", flush=True)
+    return 0
+
+
+def verify(args) -> int:
+    """Re-hash every stored residual row against its trial record."""
+    out = CAPTURES / args.run_name
+    bad = n = 0
+    cache: dict[int, np.ndarray] = {}
+    for line in (out / "trials.jsonl").read_text().splitlines():
+        t = json.loads(line)
+        if t["shard"] not in cache:
+            cache[t["shard"]] = np.load(out / f"res_{t['shard']:05d}.npy", mmap_mode="r")
+        row = np.ascontiguousarray(cache[t["shard"]][t["index"]])
+        n += 1
+        if hashlib.sha256(row.tobytes()).hexdigest() != t["residuals_sha256"]:
+            bad += 1
+            print("MISMATCH", t["trial_id"])
+    print(f"{'PASS' if not bad else 'FAIL'}: {n - bad}/{n} residual rows match their records")
+    return 0 if not bad else 1
+
+
 def info(args) -> int:
     prov = provenance(Server(args.port))
     LOGS.mkdir(exist_ok=True)
@@ -379,8 +567,21 @@ def main() -> int:
     sub.add_parser("info")
     pp = sub.add_parser("parity")
     pp.add_argument("--n", type=int, default=20)
+    rp = sub.add_parser("run", help="capture trials from a built bank's manifest")
+    rp.add_argument("--build", required=True, help="directory with manifest.csv and build_log.json")
+    rp.add_argument("--run-name", required=True)
+    rp.add_argument("--split", required=True, help="comma list of CAL, PILOT, CONF")
+    rp.add_argument("--set", default="primary", help="comma list of primary, C1, C2, single")
+    rp.add_argument("--condition", default="active,noreport")
+    rp.add_argument("--max-draw", type=int, default=None, help="only draws below this index (CONF D = 4: 4)")
+    rp.add_argument("--limit", type=int, default=None, help="benchmark slice: capture at most this many")
+    rp.add_argument("--ledger-row", default=None, help="the §12 ledger row this run belongs to, e.g. A3")
+    rp.add_argument("--freeze-v2", default=None, help="commit of the frozen pre-registration (CONF only)")
+    rp.add_argument("--dev", action="store_true", help="development run: DRAFT builds allowed, CONF refused")
+    vp = sub.add_parser("verify", help="re-hash a run's stored residuals")
+    vp.add_argument("--run-name", required=True)
     args = ap.parse_args()
-    return {"info": info, "parity": parity}[args.cmd](args)
+    return {"info": info, "parity": parity, "run": run, "verify": verify}[args.cmd](args)
 
 
 if __name__ == "__main__":
