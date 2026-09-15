@@ -1,0 +1,4 @@
+# Capture outputs (residuals, per-trial responses): tens of GB, never committed.
+# The reports the §15 manifest cites live in ../capture_logs/.
+*
+!.gitignore
