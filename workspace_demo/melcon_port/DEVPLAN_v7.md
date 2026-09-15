@@ -141,6 +141,44 @@ support as sufficient in that setting. Disappearance would not identify a unique
 - **Rule:** benchmark the first recording, including parity, and write the projection. If Phase 1 projects past 4 wall
   hours, pause and report before its main work.
 
+### 2.6 Phase 1 results (15 Sept 2026; no plan change)
+
+Run `results/devpanel_v7/run-5d74bc1d6a11/` (wrapper `devpanel_v7.py`, RSC ad7e747; panel manifest RSC a856116; analysis
+`devpanel_analyze.py` and its `analysis/summary.json`, RSC c2068f1). Development evidence; the panel shows mechanism, not
+frequency.
+
+- **Execution.** The latent-only path equals `SY.generate` for G1, G2, G3 and X1. The first recording matched v6 exactly, then
+  all 40 panel re-runs matched in status, windows, models, evidence, available, delta, n_trials, auc and the summary medians;
+  evidence rebuilt from the logged folds equals v6 for all 40. 272 idealized recordings, all `ok`. 0.10 wall-hours on 2
+  workers beside the refit probe (projection 0.09).
+- **Q1 (panel, main windows).** Graded: 111 of 1,600 fold units more than 1 nat per trial below null. 98.4 % of their summed
+  loss lies on test trials outside the training dose range (33 % of their test trials), and the worst trial is extrapolated in
+  100 of 111. A bound is active in 108 of 111 severe and 72 % of other units, so "at a bound" does not discriminate; `r` at its
+  lower bound (−ln 10) does: 86 of 111 severe against 48 of 1,489 others. `log_k` is at a bound in most units of both kinds.
+  Two-state: 22 severe, 96 % of their loss on extrapolated trials, `delta0` and both slopes at bounds.
+- **Q2.** 410 graded fits have a distinct converged start within 0.5 nat; 46 differ in held-out score by more than 0.1 nat per
+  trial and 15 by more than 1 nat (9 of them severe). Near-ties are a minor contributor.
+- **Q3.** In severe graded units with extrapolated trials, the smallest SD at extrapolated doses is a median 0.58 of the
+  smallest SD at within-support test doses (1.0 in other units); median 0.098 S against 0.27 S.
+- **Q4.** No graded unit, in the panel's main or early windows or in the idealized readout, has an effective SD below 0.05 S
+  at any dose; the smallest is 0.083 S. The SD contraction comes from `r` at its bound applied at extrapolated doses, not from
+  crossing the floor.
+- **Q5.** Graded `a1` at 10 S in 9 of 111 severe units (8 per mille of others); two-state `delta0` or `delta1` at a bound in
+  73 % of all units, severe or not.
+- **Idealized readout.** Graded severe in 12 of 1,088 fold units, all with extrapolated trials (97 % of the loss there);
+  two-state 1. The readout has higher signal-to-noise than the battery, so rates are not comparable with the panel's. Family
+  with the highest evidence per recording (two-state / graded / null of 34): G1 no drift 14/18/2, drift 19/14/1; G2 15/13/6,
+  18/12/4; G3 8/23/3, 14/18/2; X1 27/5/2, 24/8/2.
+
+**Reading for Phase 2 (development; the §3 fixings are still to be written and committed before any candidate fit).**
+- C1 at the declared 0.05 S would leave every kept panel fit feasible: the floor alone cannot remove these losses. Its value
+  stays the existing bound, not a value tuned on Phase 1; changing it or adding an `r` restriction would be a recorded plan
+  amendment. Because C1 changes the box, its starts and search paths still differ from the baseline's, so its fits are not
+  assumed identical.
+- C2 acts on the located loss (extrapolated doses, both families).
+- Neither candidate addresses the weak single-recording separation under G1 on the latent readout (one training block per
+  fold). That bears on whether positive graded recovery can be declared a pass criterion at lock (§4).
+
 ## 3. Phase 2 — candidates (development; three configurations at most, one locked)
 
 **The candidate set (rev 1).** Candidates are applied to both families, with training-only definitions and a written
@@ -256,6 +294,7 @@ Mac load, with a written limit and a pause-and-report rule before its main work.
 |---|---|---|
 | 0 | 15 Sept 2026 | RSC 1100eb1: the plan committed before any fit (owner go; Codex e490f3b Q3). |
 | 1 | 15 Sept 2026 | Codex e42846e taken in (§8). Panel manifest, statistic and selection defined; logging-only instrumentation with v6 parity; idealized readout = stochastic latent z; fold count corrected; C3 withdrawn as already v6; asymptote cap withdrawn; C1 = symmetric effective-SD floor at the existing 0.05·S; C1+C2 added; ranking/stop rule before candidate fits; seed phases 8/9/10 and fixed optimizer tags declared; "certified" replaced. |
+| 1 | 15 Sept 2026 | Phase 1 run and results added as §2.6 (RSC a856116 manifest, ad7e747 wrapper, c2068f1 analysis); no change to the plan. |
 
 ## 8. Dispositions — Codex's v7 plan record (RSC e42846e), read in full
 
