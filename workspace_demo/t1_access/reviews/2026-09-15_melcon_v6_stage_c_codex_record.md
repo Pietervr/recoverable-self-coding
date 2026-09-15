@@ -4,7 +4,13 @@
 `2026-09-15_melcon_v6_stage_c_codex_brief.md` at RSC `a9a8573`, diagnostic
 outputs at `66e4b16`.
 
-**IN PROGRESS.** Codex owns this review, its evidence and the R052 log. Claude
+**FINAL.** The v6 battery fails its declared X1-strong criterion in both drift
+conditions. Accept the saved execution/results as the failed development record;
+do not freeze the secondary analysis. The diagnosis warrants investigating
+predictive stability and dose support before changing the decision rule. It does
+not yet identify a unique cause or justify choosing revisions by whether v6 passes.
+
+Codex owns this review, its evidence and the R052 log. Claude
 retains protocol, implementation, manuscript, execution, front matter and
 monitors. No revised protocol, fit, generated recording, EEG, freeze, cloud
 action or production change has been made in this review. The prior calibration
@@ -29,37 +35,250 @@ entries and Entropy SI's 15 September 03:00 PDT onward transcript were inspected
 The complete primary `sergent_port/README.md`, `RESULTS_sergent.md`,
 `fit_models.py`, and `model_comparison.py` have now been read. Its reproduction
 uses a separate historical likelihood and validation design; its existing
-limitations remain material. The submitted article itself still needs reading.
+limitations remain material. The actual submitted article's driver and all nine
+section files have now been read from the ZIP with `unzip -p`, without extraction,
+building or editing. The publication strategy reading continued from line 701 to
+the end; the release record/manifest were read in the preceding continuation.
 
-## Provisional assessment to verify
+## Q1. Which parts of the diagnosis hold?
 
-- The reported formal failure is X1 strong, both drift conditions, with zero
-  two-state calls among six replicates. G1–G3 satisfy their declared criteria
-  through 35 inconclusive outcomes and one two-state outcome; the absence of a
-  graded call is an additional limitation, not a new retrospective failure rule.
-- The diagnostic outputs show 1,898/20,400 graded recording-windows more than
-  1 nat/trial below null, versus 8/20,400 two-state; large graded penalties
-  inflate arithmetic Delta means. The trimmed descriptive means remain positive.
-  These numbers now reproduce in the independent saved-payload audit below.
-- The fold examples are selected ranks 1, 3 and 5 in the printed extreme list,
-  not its literal three largest entries. The rerun script prints saved/rerun
-  Delta to three decimals; it does not assert full-precision equality. Full
-  theta, fitted mean/SD across actual train/test dose support, start-objective
-  records and training-optimum checks are absent from that output. The examples
-  demonstrate a plausible instability; they do not establish its prevalence or
-  single-block training as the sole cause.
-- A boundary is not intrinsically an invalid fit: graded a1=0 and r=0 contain
-  a null-like submodel. Wholesale boundary rejection would alter availability.
-  The graded conditional SD can reach 0.005 training S under the combined bounds,
-  while each two-state component has shared SD bounded below by 0.05 S.
-- Prefer a staged, training-only predictive-stability diagnosis before changing
-  the BMS candidate set, PXP/run cutoffs, or the positive-control strength.
-  Comparing two families after dropping null is conditional model comparison;
-  it cannot demonstrate that either family predicts adequately.
-- Increasing likelihood training requires a fully specified disjoint decoder /
-  likelihood-train / scored-test allocation. Pooling both held-out-half blocks
-  and scoring them would reuse likelihood-training trials. No such redesign has
-  been assessed or approved here.
+**The numerical description holds; the causal wording needs qualification.**
+All saved decisions, diagnostics and severe-loss counts reproduce in the audit
+below. The formal failure is X1 strong: zero two-state calls among six replicates,
+three in each drift condition. G1–G3 meet their declared criteria through 35
+inconclusive outcomes and one two-state outcome. No graded call is an important
+additional limitation of the instrument, not a retrospective failure rule. All
+34 recordings and ten main windows are eligible throughout; missingness or an
+availability gate does not explain these outcomes.
+
+The null's dominance at weak strength and in X2, the small positive median Delta
+even under graded generators, and the disproportionate graded losses are real.
+The trimmed positive means are useful descriptions of the remaining tilt; the
+trimmed sample is not an alternative inferential dataset. A graded data-generating
+process need not favor this fitted graded predictor at this training size and
+readout. Approximation, parameter estimation, dose support and numerical fitting
+all enter the comparison. Decoder AUC calibration measures signal availability;
+it does not guarantee separation of graded and two-state conditional laws.
+
+The fold examples demonstrate extreme held-out penalties with boundary parameter
+values. They are ranks **1, 3 and 5** in the printed extreme list. The script
+prints saved/rerun Delta to three decimals and has no full-precision equality
+assertion. Its output omits full theta, conditional predictions, per-start
+objectives and training-optimum checks. Do not describe it as an exact
+full-precision reproduction of the literal three largest entries.
+
+In `likelihood.py`, graded mean is `a0 + a1 L + beta h` and SD is
+`exp(s0 + r L)`, with `L` the fitted logistic. An `a1` of 6.9–10 S is an
+asymptotic amplitude, not the predicted shift on every observed trial;
+`r = -ln(10)` permits tenfold contraction as L moves from zero to one. The combined
+bounds permit an SD as low as 0.005 S, versus the two-state shared SD floor
+0.05 S. That is a permitted limit, not a measured SD in the examples: their
+printed `exp(s0)` is roughly S, and actual contraction depends on the missing
+logistic parameters and doses. Small conditional SD can magnify mean error into
+enormous Gaussian log loss. The events-only extrapolation evidence below makes
+that mechanism plausible, but does not prove it is the sole cause or explain
+the prevalence of all 1,898 severe graded losses.
+
+Finally, arithmetic Delta and group PXP are different summaries. In the shared
+`bms.py`, each recording contributes normalized responsibilities `g` in [0,1]
+to the Dirichlet counts. Increasing an already decisive loss cannot increase
+that recording's count without bound. Thus the tail demonstrably inflates mean
+Delta; its numerical contribution to the PXP pattern has not been isolated.
+This distinction follows the RFX derivation and outlier discussion in
+[Stephan et al. (2009), equations 11–14 and Discussion](https://pmc.ncbi.nlm.nih.gov/articles/PMC2703732/).
+PXP also depends on the model set and Bayesian omnibus risk, as in
+[Rigoux et al. (2014), equations 6–7](https://www.tnu.ethz.ch/fileadmin/user_upload/documents/Publications/2014/2014_Rigoux_Stephan_Friston_Daunizeau.pdf)
+(DOI `10.1016/j.neuroimage.2013.08.065`). Here its inputs are cross-validated
+predictive scores, not integrated model evidences, so PXP is the inherited,
+empirically assessed decision convention; 0.95 is not a demonstrated 5% error
+rate. No defect in the shared BMS implementation was found in this review.
+
+## Q2. Which revisions are justified, and what must stay fixed?
+
+**Use v6 for declared method development, then evaluate one locked candidate
+independently.** Post-outcome learning is legitimate when labeled and retained.
+It becomes biased validation when the same outcomes choose and certify the
+procedure. Selection must be included in the procedure being evaluated; see
+[Cawley and Talbot (2010), Introduction](https://www.jmlr.org/papers/volume11/cawley10a/cawley10a.pdf).
+The concrete recommendations below are this review's application of that
+principle, not prescriptions from that paper.
+
+1. **First diagnose the fitted predictions and the training search.** For a
+   bounded development panel covering each generator/strength/drift, both severe
+   and ordinary folds, retain every start's theta, objective, convergence state
+   and chosen solution. Retain full-precision fold scores and conditional
+   means/SDs over actual training and test doses. Log scaling, side, counts and
+   dose-support ranges. Compare best training objectives and predictions across
+   starts, including near-ties. Fit/start selection must use training data only;
+   the known v6 test scores may diagnose the procedure as development evidence.
+   A better maximum-likelihood optimum can generalize worse. More starts alone
+   is not a remedy for unstable extrapolation or density misspecification.
+2. **Develop a prediction-stable density, with a scientific rationale.** A
+   positive effective-SD floor and regularization of asymptotes/slope are
+   defensible candidates if specified in training units, with a declared scope
+   and tested fairly for both families. Equal numeric parameter bounds do not
+   imply equal predictive flexibility. A shared-SD graded model or narrower r
+   is a restricted comparator and could weaken it under G3; it needs a recovery
+   and misspecification check. G2 is skewed, while the graded likelihood is
+   Gaussian; G3's latent SD plus additive sensor noise need not follow the
+   fitted exponential-logistic SD. Diagnose these approximation issues too.
+   A training-observed-range cap on a1 is not an automatic solution: a limited
+   dose range need not identify the asymptote. No numeric replacement bound is
+   established by the present evidence.
+3. **Do not reject every boundary fit or delete difficult trials.** Graded
+   `a1 = 0, r = 0` is a valid null-like submodel, and a boundary can be a valid
+   constrained optimum. Any future availability rule must distinguish a
+   numerical failure from a valid fit and retain failed attempts in reporting.
+   Loss trimming, omitting extrapolated test doses, or choosing a start by
+   held-out performance would change the target or contaminate evaluation.
+4. **More density-training data is a design option, not yet a specified fix.**
+   Every scored trial must be absent from both its decoder's and its density
+   predictor's training. With four blocks, a possible allocation is two decoder
+   blocks, one density-training block and one test block; simply pooling the
+   other two blocks and scoring them leaks density-training information.
+   Obtaining more density-training data therefore requires an explicit new
+   allocation or additional data, with dependencies and scoring units documented.
+   A redesigned decoder allocation changes its strength calibration too.
+5. **Keep the current primary comparison and X1 test as the baseline.** A
+   two-model BMS can be a clearly conditional sensitivity: which family is
+   preferred given those two candidates. It cannot show that either predicts
+   adequately, and removing the third model does not mechanically guarantee
+   a larger PXP. The null run already supplies no separate veto in `group.py`.
+   Do not lower PXP/run thresholds, remove null, boost X1 or relax its required
+   recovery merely to turn this failed battery into a pass. Additional stronger
+   X1 levels could map power as a new, explicitly labeled extension; retain the
+   failed calibrated level and its result. A materially new primary group rule
+   requires an independently evaluated registered revision.
+
+Preserve the v6 data, code/runtime identity, seeds, ten calibrated amplitudes,
+strength-resolution flags, X2 inversion and all original verdicts. Preserve
+cohort, generator laws, dose definition, windows and decision criteria as the
+comparison baseline. If a later approved revision changes any of these, name
+the change explicitly and re-establish the affected calibration; never relabel
+the existing result. The G1–G3 pass rule controls a limited false-two-state
+behavior, not demonstrated positive recovery of graded laws. If graded recovery
+becomes a requirement for the revised instrument, declare it prospectively.
+
+## Q3. What must precede a rerun, and what should it contain?
+
+Recommended sequence, subject to the owner's decision on Claude's concrete
+revision proposal; this review authorizes no revised run:
+
+1. **Preserve and specify.** The full saved-data audit is complete; do not repeat
+   it. Write the revision and its estimand, folds, density/optimizer choices,
+   selection rule, availability handling, success criteria and seed roles.
+   v6 is the development sample. Commit the development plan before additional
+   diagnostic fits. Keep all attempted candidates and their outcomes.
+2. **Bounded development checks.** On synthetic development data, test the
+   density/gradient and null-like special cases, finite conditional predictions,
+   training-only scaling/selection, and decoder/density/test disjointness. Then
+   examine the archived per-start and per-fold evidence described in Q2, with
+   both ordinary and failing examples. Use an explicit limit on candidate
+   revisions; fresh seeds used to choose a candidate are also development data.
+   Add a cheap idealized density-level recovery check to separate a density
+   problem from decoder/noise effects; it cannot replace the complete pipeline
+   battery. No such computation was run for this opinion.
+3. **Lock one candidate, benchmark, then validate.** Seal code, runtime,
+   configuration, source/input hashes and the complete seed schedule before
+   independent validation outcomes are opened. Use a new version/identity
+   namespace and new independent recording seeds, with explicit separate tags
+   for generation, decoder/folds, optimizer starts and group sampling as
+   applicable. Run the whole retained battery: five generators × two strengths
+   × two drift conditions × three replicates × 34 templates = 60 group
+   replicates / 2,040 recordings, all main windows. Do not rerun only X1 or only
+   the cells that failed. With three group replicates per cell, these are the
+   declared development acceptance checks, not a precise power or error-rate
+   estimate. A precision-driven expansion would itself need a declared plan.
+4. **Calibration lineage.** A density-, optimizer- or group-only revision can
+   retain the fixed calibrated amplitudes if the generator, decoder, strength
+   statistic, templates/cohort and calibration settings remain identical.
+   Record the exact parent v6 calibration hashes and applicability in the new
+   manifest; do not claim that copied calibration was freshly run or rewrite a
+   v6 seal to satisfy the new identity. Reusing v6 predictions to select a group
+   rule remains development, not independent validation. A change to decoder,
+   its training allocation, generator, dose/strength statistic or cohort requires
+   new calibration with independent check seeds before the complete battery.
+   Fresh calibration stages must keep separate search/check/validation seeds.
+   Unresolved strengths and the original X2 amplitude inversion remain reported.
+5. **Cost and stopping.** Original stage C ran 05:56:43Z–10:25:19Z, exactly
+   4 h 28 min 36 s. Multiplying elapsed time by two workers gives 8.9533
+   worker elapsed-hours, or 15.8 s per recording; it is not measured CPU time.
+   The preceding benchmark was 11.242 worker-hours including generation.
+   Neither measures a revised density, richer start schedule or different
+   decoder allocation. Benchmark generation, decoding, fitting and summary
+   separately under the intended concurrency after implementation, and cost
+   optional recalibration and development separately. Claude retains scheduling,
+   launch checks, thread limits, keep-awake and monitors. Retain failures; a
+   failed independent validation returns the procedure to development and
+   requires another untouched validation sample after any further selection.
+
+The existing local authorization for v6 is not authorization for this new
+post-outcome revision. No cloud spend, EEG readout, freeze or production action
+is implied. The USD 3,000 cap, omega-1 hold and separate owner decision for the
+PC nested-validation work remain unchanged.
+
+## Q4. Implications for Sergent and the submitted arXiv v1
+
+**No reported Sergent result or submitted numerical claim is shown to be wrong
+by this Melcon battery. The broader methodological concerns remain relevant.**
+
+The human reproduction uses the separate inherited `sergent_port/fit_models.py`
+likelihoods: the graded scale is the absolute affine function of its mean;
+optimization is the historical, unconstrained, capped Nelder–Mead path, not
+Melcon's bounded exponential-logistic graded density. Its five likelihood folds,
+ten decoder folds, trial population and scoring conventions also differ. Its
+graded/two-state starting values use all trials, decoder and likelihood CV are not nested, and
+known optimizer sensitivity limits the interval edges. It is a reproduction of
+that historical procedure, not a newly validated, leakage-free assay. There is
+no Melcon-to-Sergent import of the fitted density. The shared component is BMS.
+
+The adjacent `2026-09-15_melcon_v6_stage_c_lineage_checks.py/.json` verifies all
+11 tracked Sergent source/document files against producer
+`e341319f5c6e0ce27fdeeb83ca6124009b7e0996`; every file is byte-identical, and
+`git diff e341319 -- workspace_demo/sergent_port` is empty. Shared BMS SHA-256
+`6d48a893977e6c71380223f19e70d5fcd95f076eccfa0b8332aada1db1717611`
+matches the completed Melcon audit. This establishes source continuity, not
+fresh numerical reproduction or proof that historical limitations are harmless.
+No new Sergent fit, analysis or raw EEG read occurred. Do not transfer the
+Melcon severe-loss rate or proposed bounds into claims about Sergent.
+
+For the actual submitted text, the archive is
+`Unimog-Projects/papers/adaptive_agency_special_issue/release/local/arxiv-submitted-v1/arxiv_v1_source_candidate.zip`,
+SHA-256 `af47b85b2a9fd24222dfb73ba6781feb287d702169fa4463ebf3ec9d313f4818`.
+The lineage check verifies that SHA and hashes all 14 members. The driver and
+all section text were read directly from that archive, not inferred from live
+manuscript files or the old candidate-status manifest wording.
+
+- `arxiv_v1.tex` abstract and `sections/introduction.tex` status box identify
+  the completed Sergent reproduction and separate model-side simulation audit.
+  Melcon is under development; the dated snapshot is 13 September 2026.
+- `sections/methods.tex`, human subsection, already states historical starts
+  from all trials, nonnested decoder/likelihood CV, block overlap, capped fits,
+  absolute-scale convention and descriptive PXP use.
+- `sections/results.tex`, human subsection, already reports the modest active
+  predictive advantage, optimizer-sensitive boundaries and two-model sensitivity.
+  It says recovery for that historical family has not been run and limits the
+  passive interpretation. The Melcon battery supplies no missing Sergent
+  recovery validation.
+- `sections/discussion.tex`, limits subsection, calls the visual dataset a
+  planned secondary extension with a draft protocol and no outcome decoded.
+  `sections/availability.tex` likewise says its loader was checked but no
+  outcome decoding performed. Synthetic events-template development is
+  consistent with those statements; it is not an EEG outcome.
+
+Therefore this new failure does not require a correction to a claimed Melcon
+result in submitted v1: no such result is claimed. In the next scientific
+revision, report the failed development battery and the subsequent amendment/
+independent-validation lineage before adding any secondary EEG conclusion.
+Keep the human reference described as a bounded historical reproduction and
+avoid implying that its two-state/graded discrimination has now been validated.
+The primary/model-side fitter and interval work remains its own record; this
+opinion does not transfer JOB B/C, certify those revisions or reopen R080.
+
+The owning release/strategy record reports arXiv `submit/8075441` submitted and
+Zenodo `22741885` published. No assigned arXiv identifier or changed portal
+status was verified in this review. No manuscript, archive or publication was
+modified. Claude retains manuscript and publication ownership.
 
 ## Completed independent audit — 15 September 10:51:28Z
 
@@ -120,31 +339,10 @@ This supports an extrapolation/identification mechanism more specifically than
 mean/SD, or per-start training objectives needed to link each loss to its
 mechanism. Do not remove out-of-range test trials after inspecting losses.
 
-## Remaining work
+## Delivery
 
-Finish reading the actual submitted arXiv v1 archive before Q4 and check its
-manifest/source lineage without building or executing it. Archive:
-`Unimog-Projects/papers/adaptive_agency_special_issue/release/local/arxiv-submitted-v1/arxiv_v1_source_candidate.zip`,
-SHA-256 `af47b85b2a9fd24222dfb73ba6781feb287d702169fa4463ebf3ec9d313f4818`.
-Its local manifest and complete `paper_entropy_arxiv_release.md` were read;
-the manifest's old candidate-status text is historical, and the publication
-receipt owns actual status. The current `rsc_publication_strategy.md` has been
-read in order through line 700; resume at 701 (do not restart). Its latest
-relevant status agrees with the release document. Primary Sergent source and
-result reading is complete; still check file hashes against the archived
-producer `e341319` and shared BMS before asserting computational independence.
-
-Finalize Q1–Q4: qualified diagnosis, justified development revisions versus
-outcome selection, an explicitly staged rerun/seed/calibration/cost design, and
-the bounded implications for Sergent/arXiv. Primary-source web retrieval has
-begun for Cawley & Talbot (2010, JMLR), Rigoux et al. (2014, group BMS), and
-Vehtari et al. (2017, predictive checking); any external methodological claim
-must cite an actually inspected primary source. Correct Rigoux DOI, verified
-on PubMed/publisher/author search results: `10.1016/j.neuroimage.2013.08.065`.
-Cawley & Talbot abstract/introduction and initial examples were inspected;
-Stephan 2009's bounded subject contribution under RFX BMS was retrieved. Thus
-the arithmetic mean's tail sensitivity must not be treated as a quantitative
-account of the group PXP: RFX responsibilities are bounded per recording.
-Inspect the relevant full methodological passages before citing them. No final scientific reply has
-been sent. After the final record and latest R052 log are committed, send the
-requested substantive xs reply once and verify Claude's full-record receipt.
+The scientific opinion and source/archive checks are complete. The numerical
+audit above was run once in the predecessor and was not repeated. One requested
+substantive reply to Claude Entropy SI follows the local commits. Exact native
+receipt of the complete FINAL record will be recorded in R052; until verified,
+Codex retains that delivery responsibility.
