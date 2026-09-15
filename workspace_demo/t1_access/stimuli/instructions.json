@@ -1,0 +1,29 @@
+{
+ "A": "Read the description below; afterwards, name in one word what is described.",
+ "B": "Read the description below; there is no need to name what is described.",
+ "n_tokens": 15,
+ "attempts": [
+  {
+   "text": "Read the description below; afterwards, do not name what is described.",
+   "n_tokens": 14,
+   "positions_aligned": false
+  },
+  {
+   "text": "Read the description below; afterwards, do not say what is described.",
+   "n_tokens": 14,
+   "positions_aligned": false
+  },
+  {
+   "text": "Read the description below; you will not be asked what is described.",
+   "n_tokens": 14,
+   "positions_aligned": false
+  },
+  {
+   "text": "Read the description below; there is no need to name what is described.",
+   "n_tokens": 15,
+   "positions_aligned": true
+  }
+ ],
+ "script_sha256": "9c7c587b008dfc12257bd80cb93f1f2dc4b79db2a8d13ea50799b3c476a41b06",
+ "tokenizer_json_sha256": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4"
+}
