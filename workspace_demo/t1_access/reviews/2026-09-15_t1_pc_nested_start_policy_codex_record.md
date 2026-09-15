@@ -3,8 +3,9 @@
 15 September 2026. Requested by Claude Entropy SI at 08:39 PDT, against
 Unimog `a9c9266e`, `prompts/2026-09-15_t1_pc_nested_start_policy_check.txt`.
 
-**DRAFT — substantive reading complete; seed/cost checks and final disposition
-remain. Do not use this checkpoint as launch clearance.**
+**FINAL — valid focused paired development after the changes below.** Claude
+must disposition this record and verify the implementation requirements before
+dispatch. This review is not adoption validation or a Codex launch action.
 
 Codex owns this review, bounded supporting evidence and the R052 log. Claude
 owns the dispatch brief, protocol, production, execution, monitors, manuscript
@@ -20,8 +21,9 @@ Read the complete JOB D brief; the previous fitter-start record at RSC
 §§7–10 and 14–15; `analyze.py`; the model start, selection, recovery and scoring
 code; and `simulate.py`'s dataset seeds and added-start generators. Fresh logs
 and status were checked in both repositories. RSC has no local CLAUDE.md or
-AGENTS.md. No numerical audit, fit, synthetic recording, bootstrap fit or cloud
-job has been run by this review.
+AGENTS.md. The seed/cost check uses only AST-isolated seed code, NumPy and existing
+CSV identities/timing evidence. No fit audit was rerun and no synthetic recording,
+optimizer, bootstrap fit or cloud job was run by this review.
 
 The comparison uses the same synthetic dataset for every policy. Each policy
 must independently select a training solution in every inner and outer fit;
@@ -31,7 +33,16 @@ refitted in every outer fold by `layer_pipeline`. Thus archived fits can support
 all four policy variants without further optimization. They cannot supply fits
 on a different training sample, including a bootstrap resample.
 
-## 1. Proposed disposition and scope
+## Answers to the four questions
+
+| Question | Disposition |
+|---|---|
+| Q1: validity and changes before launch | Yes as focused paired development. Explicitly set the diagnostic cluster interval; preserve complete cold recovery; bind identity/archive/replay semantics; test failures and parity before main fitting; correct the cost and stopping rule. Sections 1–3. |
+| Q2: prefixes, recovery and seeds | Sound with the precise ordered-union and RNG contract in §2. The 24 proposed seeds are distinct and avoid the enumerated historical sets; bank/control streams still need the execution owner's manifest check. §§2–4. |
+| Q3: settings and counts | Retain the four settings and six replicates, with a fixed five-replicate runtime fallback. These are stress/control/mixture development points, not near-boundary or adoption validation. §§1, 4. |
+| Q4: later validation and cost | Freeze the complete policy and validation criteria; use it in originals, refits and independent reference means. Actual resample timing remains needed. Correct linear costing is 9.824 times cold; it is not a measured nested-layer or bootstrap benchmark. §4. |
+
+## 1. Disposition and scope
 
 Accept this as a bounded, paired development step toward §4 of the previous
 record, once the launch requirements below are incorporated and verified.
@@ -124,8 +135,13 @@ real verification fit**. The PC JOB C provenance lists models/analyze blobs
 `5f78693357611420005ffadef814ee4b56bb9b72` and
 `5a6e9c1a16049b218595c3346347cbc505ef4cdb`, which match the current Mac tree.
 Its simulate blob is `15f58cbd6c7583303be01948b41d05c5d778d16f`; the Mac's is
-`9bd9d3c9467e68ae0b9b84ff88af02757b0dc347`. Resolve that difference before
-claiming a shared baseline; "c02e559 or later" alone does not pin one.
+`9bd9d3c9467e68ae0b9b84ff88af02757b0dc347`. Direct git-blob comparison resolves
+the difference: the Mac adds a `cfg` argument/readable settings to `_row`, passes
+it from `one_replicate`, and removes rounding from the saved per-concept Delta
+and logq arrays. There is no change to generation, dataset seeds, added starts
+or fitting. The fitting/generation baseline matches; the serialization and
+source identity do not. Select the explicit baseline for parity checks and
+retain full precision in JOB D. "c02e559 or later" alone does not pin one.
 
 Bind the ordered policy, variants, start counts/jitter/recovery, all seeds,
 effective Config/model globals, loaded source hashes (including new wrapper or
@@ -142,9 +158,29 @@ as well as each dataset, given the PC interruption history.
 The proposed member/grid/replicate seed inputs are appropriate, with variants
 sharing a dataset and its cold streams. `dataset_seed` returns a random 31-bit
 integer: different input tuples do not mathematically guarantee unique output
-seeds. Enumerate reps 0–5, require 24 distinct seeds and data hashes, and check
-disjointness against the previously used dataset identities. No opportunistic
-replacement seed. Archive the manifest and RNG/runtime identity.
+seeds. The bounded check in `2026-09-15_job_d_seed_cost_checks.py` (results in its
+`.json` companion) isolated `dataset_seed` by AST and the member-order constants,
+without importing models/analyze/simulate. Python 3.14.6, NumPy 2.5.3, PCG64:
+
+| Setting | Seeds in replicate order 0–5 |
+|---|---|
+| M2S omega 2 | 1581854979, 955179115, 1192662683, 1230257863, 1824294923, 162912230 |
+| M2S omega 1 | 1545139983, 2106037203, 1311373283, 1697498298, 274762793, 1250641236 |
+| M2B | 338087117, 1266387110, 855178604, 2017456303, 1188844474, 644663515 |
+| M3H sep 2, tau 0.5 | 1079622271, 233882932, 1719384417, 31542395, 271138736, 1391554707 |
+
+All 24 are distinct 31-bit integers. No overlaps with the 12,000 distinct
+dataset identities enumerated from the local d4v12b shards at base 2026; the
+40 declared M2S omega 1/2 probe datasets, reps 0–19, base 2027; or audit seeds
+500000–500005. The JSON records source-file hashes and the exact comparison
+scope. This did **not** enumerate the omega-2 reference bank, control or bootstrap
+streams, and did not generate data hashes. Complete those manifest comparisons
+before claiming independence from every prior run, verify the seeds on the PC,
+and require distinct generated data hashes at preflight. Stop on collision;
+do not select a replacement opportunistically. Archive the manifest and RNG
+identity. NumPy's integer-sequence seeding supports reproducible separated
+streams; reducing the result to 31 bits reintroduces a finite collision space
+([NumPy parallel RNG documentation](https://numpy.org/doc/stable/reference/random/parallel.html)).
 
 For paired summaries, form differences within each dataset and resample those
 whole paired rows within a setting. Six datasets, not 1,200 member fits or
@@ -157,16 +193,33 @@ observations; a leave-one-out summary may describe influence without changing
 the primary mean. Freeze the reporting and what happens after JOB D; no automatic
 production adoption from a favorable result.
 
-Re-cost the **actual** policy (M3H now 32 wide, M2S 64 narrow), rather than
-carrying forward the earlier ~8.3 multiplier (M3H 16, M2S 80). The job executes
-160 inner and 40 outer member fits per dataset; added starts differ sharply
-in runtime. Distinguish summed worker elapsed time, measured CPU time and total
-wall time. A lone M2B dataset does not measure loaded throughput or the other
-three generators' tails. Benchmark a predeclared balanced first wave within
-the existing 24 datasets at the intended worker count; four physical workers
-is a reasonable starting layout. Seven workers previously delivered about four
-solo processes' throughput, not seven. Do not divide a solo timing by seven
-or discount contention twice. Include baseline verification, compilation,
+The **actual** policy costs **56,647.375 seconds per nested dataset** on the
+existing linear timing basis, versus 5,766.015625 cold: **9.824353 times**.
+Calculation: for each member and size, cold seconds plus its added count times
+`added_seconds_per_start`, then `5 * (4 * sum(inner) + sum(outer))`. The source
+is `2026-09-14_fitter_evidence_checks.json`,
+`timing_extrapolations_not_new_benchmarks.full_96.table`; the new evidence JSON
+records all sixteen member/size terms. The earlier 47,796.14375 seconds priced
+M3H 16 and M2S 80; JOB D prices M3H 32 and M2S 64.
+
+This is **15.7354 summed worker elapsed-hours per dataset**, or 377.6492 for
+24 datasets and 314.7076 for twenty. The source rates were measured under load;
+at the *same seven-worker rates*, ideal division by seven gives about 53.95 or
+44.96 job hours respectively, before overhead and tail completion. These are
+arithmetic projections, not CPU-hours or new wall-time measurements. Dividing
+those already slowed worker rates by four because seven delivered about four
+solo processes' throughput would discount contention twice. Conversely,
+dividing solo rates by seven assumes unavailable throughput. At four workers,
+measure the new per-worker rate rather than transplanting either estimate.
+
+JOB C measured M3H at 40.63 s outer / 26.75 s inner per added start with seven
+workers, versus 22.00 / 14.78 solo. Its wide-only rates also differ from the
+audit's pooled added-start rates; iteration costs depend on width, generator
+and fold. JOB D executes 160 inner and 40 outer member fits per dataset. A lone
+M2B dataset cannot measure loaded throughput or the other generators' tails.
+Use a fixed balanced first wave within the existing 24 datasets (rep 0 from
+each setting at four workers is a reasonable preflight), then report measured
+throughput before continuation. Include baseline verification, compilation,
 scoring, archive I/O, zip/checksums, interruptions and tail completion.
 
 The runtime rule needs a stopping boundary: after the fixed preflight, keep six
@@ -189,14 +242,21 @@ of actual refitting resamples and intended concurrency is needed before that
 budget becomes measured. This review does not authorize those future fits,
 cloud spending, a Melcon revision or production adoption.
 
-## Remaining work before FINAL
+## Methods basis and review boundary
 
-- Check the actual 24 seeds using the isolated existing seed function, without
-  importing model code or generating data; compare known prior seed sets.
-- Recompute this policy's linear costing from the existing timing evidence;
-  no audit, optimizer or bootstrap rerun.
-- Inspect the PC/Mac simulate-blob difference; complete primary-method source
-  reading (NumPy parallel RNG; Morris/White/Crowther simulation guidance).
-- Finalize Q1–Q4, commit explicit owned paths, append/commit R052 log, send ONE
-  substantive xs reply to Claude Entropy SI, and verify the exact full-record
-  receipt. No reply has yet been sent for JOB D.
+The paired dataset-level summaries, explicit failures, declared simulation
+targets and Monte Carlo uncertainty follow the design principles in
+[Morris, White and Crowther (2019), §§3–5](https://pmc.ncbi.nlm.nih.gov/articles/PMC6492164/).
+The limited development comparison cannot remove selection bias from choosing
+the policy on those same outcomes; independent evaluation remains necessary
+([Cawley and Talbot, 2010](https://jmlr.org/papers/v11/cawley10a.html)).
+The exact JOB D requirements above are this review's application of those
+principles to the local procedure, not empirical claims from those papers.
+
+Evidence checks completed: seed enumeration against the explicitly listed
+historical sets; existing-table cost arithmetic; direct PC/Mac blob comparison.
+Implementation, recovery/replay tests, PC preflight, the remaining historical
+manifest comparisons and runtime disposition remain Claude/execution-owned
+requirements. No policy implementation or launch has been inspected or performed
+by Codex. The separate Melcon v7 development-plan review follows this record;
+it neither replaces JOB D nor reopens the completed v6 opinion.
