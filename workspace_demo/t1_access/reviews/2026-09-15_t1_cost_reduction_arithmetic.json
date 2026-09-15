@@ -1,0 +1,207 @@
+{
+  "scope": "Deterministic review arithmetic only; proposed rules, not an adopted protocol.",
+  "thresholds": {
+    "coverage": "9/10",
+    "fpr": "8/125"
+  },
+  "error_budgets": {
+    "pass_alpha_per_final_look": "1/50",
+    "fail_alpha_per_endpoint_setting_look": "1/2400",
+    "reference_simultaneous_error": "1/100",
+    "settings": 12,
+    "endpoints": 2,
+    "failure_looks": [
+      100,
+      200,
+      400,
+      1000
+    ],
+    "pass_looks": [
+      400,
+      1000
+    ]
+  },
+  "interpretation": "Pass columns are eligible only at the 400/1000 final looks. Coverage uses containment for pass and intersection for failure. With unavailable intervals its binomial n is the usable count; FPR n is all attempted datasets. No pass with fewer than 400 usable intervals.",
+  "boundaries": [
+    {
+      "n": 100,
+      "coverage_fail": {
+        "count": 78,
+        "direction": "le",
+        "tail_probability": 0.0003119180049885031,
+        "adjacent_count": 79,
+        "adjacent_tail_probability": 0.0008075738743662661
+      },
+      "fpr_fail": {
+        "count": 17,
+        "direction": "ge",
+        "tail_probability": 0.00020092523567608506,
+        "adjacent_count": 16,
+        "adjacent_tail_probability": 0.0006130711191738996
+      },
+      "coverage_pass": {
+        "count": 97,
+        "direction": "ge",
+        "tail_probability": 0.007836487121184399,
+        "adjacent_count": 96,
+        "adjacent_tail_probability": 0.023711082663476764
+      },
+      "fpr_pass": {
+        "count": 1,
+        "direction": "le",
+        "tail_probability": 0.010514009079779603,
+        "adjacent_count": 2,
+        "adjacent_tail_probability": 0.04155948509758364
+      }
+    },
+    {
+      "n": 200,
+      "coverage_fail": {
+        "count": 164,
+        "direction": "le",
+        "tail_probability": 0.00038774226025952314,
+        "adjacent_count": 165,
+        "adjacent_tail_probability": 0.000784346654067158
+      },
+      "fpr_fail": {
+        "count": 27,
+        "direction": "ge",
+        "tail_probability": 0.00020913005110707186,
+        "adjacent_count": 26,
+        "adjacent_tail_probability": 0.000488413187936282
+      },
+      "coverage_pass": {
+        "count": 189,
+        "direction": "ge",
+        "tail_probability": 0.016789533170304044,
+        "adjacent_count": 188,
+        "adjacent_tail_probability": 0.03204652879690642
+      },
+      "fpr_pass": {
+        "count": 5,
+        "direction": "le",
+        "tail_probability": 0.01031376646023732,
+        "adjacent_count": 6,
+        "adjacent_tail_probability": 0.025469158454611285
+      }
+    },
+    {
+      "n": 400,
+      "coverage_fail": {
+        "count": 338,
+        "direction": "le",
+        "tail_probability": 0.0003761525741724748,
+        "adjacent_count": 339,
+        "adjacent_tail_probability": 0.0006349472430135336
+      },
+      "fpr_fail": {
+        "count": 44,
+        "direction": "ge",
+        "tail_probability": 0.00037252677652861266,
+        "adjacent_count": 43,
+        "adjacent_tail_probability": 0.0006898748432565087
+      },
+      "coverage_pass": {
+        "count": 373,
+        "direction": "ge",
+        "tail_probability": 0.014941716467950908,
+        "adjacent_count": 372,
+        "adjacent_tail_probability": 0.02348454730193537
+      },
+      "fpr_pass": {
+        "count": 15,
+        "direction": "le",
+        "tail_probability": 0.014465018621118908,
+        "adjacent_count": 16,
+        "adjacent_tail_probability": 0.02566303717046389
+      }
+    },
+    {
+      "n": 1000,
+      "coverage_fail": {
+        "count": 866,
+        "direction": "le",
+        "tail_probability": 0.00034860984831358187,
+        "adjacent_count": 867,
+        "adjacent_tail_probability": 0.0004941983090359445
+      },
+      "fpr_fail": {
+        "count": 92,
+        "direction": "ge",
+        "tail_probability": 0.00037767093914915117,
+        "adjacent_count": 91,
+        "adjacent_tail_probability": 0.000571087513205434
+      },
+      "coverage_pass": {
+        "count": 920,
+        "direction": "ge",
+        "tail_probability": 0.017611574675836086,
+        "adjacent_count": 919,
+        "adjacent_tail_probability": 0.023096673919379876
+      },
+      "fpr_pass": {
+        "count": 48,
+        "direction": "le",
+        "tail_probability": 0.019361035675812165,
+        "adjacent_count": 49,
+        "adjacent_tail_probability": 0.026996802593634288
+      }
+    }
+  ],
+  "fixed_look_power_known_target": [
+    {
+      "n": 400,
+      "coverage_pass_count": 373,
+      "fpr_pass_count": 15,
+      "fpr_pass_probability_at_true_005": 0.14992814908841356,
+      "known_target_pass_probability": {
+        "9/10": 0.014941716467950908,
+        "91/100": 0.06442891131895406,
+        "23/25": 0.20566060893483487,
+        "47/50": 0.7737583835552571,
+        "19/20": 0.9520076475965306
+      }
+    },
+    {
+      "n": 1000,
+      "coverage_pass_count": 920,
+      "fpr_pass_count": 48,
+      "fpr_pass_probability_at_true_005": 0.42201383886607796,
+      "known_target_pass_probability": {
+        "9/10": 0.017611574675836086,
+        "91/100": 0.14646500902648382,
+        "23/25": 0.5297137799332334,
+        "47/50": 0.9956089502258599,
+        "19/20": 0.9999795125630899
+      }
+    }
+  ],
+  "bootstrap_quantile_arithmetic": [
+    {
+      "B": 50,
+      "expected_draws_below_true_025_quantile": 1.25,
+      "probability_scale_mcse": 0.022079402165819616,
+      "probability_no_draw_below_true_025_quantile": 0.2819881023409172
+    },
+    {
+      "B": 100,
+      "expected_draws_below_true_025_quantile": 2.5,
+      "probability_scale_mcse": 0.015612494995995997,
+      "probability_no_draw_below_true_025_quantile": 0.0795172898618316
+    },
+    {
+      "B": 200,
+      "expected_draws_below_true_025_quantile": 5.0,
+      "probability_scale_mcse": 0.011039701082909808,
+      "probability_no_draw_below_true_025_quantile": 0.006322999386970547
+    }
+  ],
+  "chpc_break_even": {
+    "cluster_hours": 19800,
+    "maximum_chpc_hours_per_historical_mac_equivalent": 5.05050505050505,
+    "policy_A_historical_loaded_pc_ratio": 9.824353363593252,
+    "two_null_refit_hours": 41000,
+    "maximum_chpc_ratio_two_null_refit": 2.4390243902439024
+  },
+  "checks": "Exact mass sums, integer recurrence divisibility, monotone tails, direct-combination agreement, symmetry, error budgets and adjacent cutoffs passed."
+}
