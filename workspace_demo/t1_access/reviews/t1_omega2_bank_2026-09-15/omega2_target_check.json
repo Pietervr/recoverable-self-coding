@@ -1,0 +1,160 @@
+{
+  "bank_files": [
+    "sim_results/ref_m2s_omega2_aac9f69/final_2026-09-15/calibration_D4.shard000of010.csv",
+    "sim_results/ref_m2s_omega2_aac9f69/final_2026-09-15/calibration_D4.shard001of010.csv",
+    "sim_results/ref_m2s_omega2_aac9f69/final_2026-09-15/calibration_D4.shard002of010.csv",
+    "sim_results/ref_m2s_omega2_aac9f69/final_2026-09-15/calibration_D4.shard003of010.csv",
+    "sim_results/ref_m2s_omega2_aac9f69/final_2026-09-15/calibration_D4.shard004of010.csv",
+    "sim_results/ref_m2s_omega2_aac9f69/final_2026-09-15/calibration_D4.shard005of010.csv",
+    "sim_results/ref_m2s_omega2_aac9f69/final_2026-09-15/calibration_D4.shard006of010.csv",
+    "sim_results/ref_m2s_omega2_aac9f69/final_2026-09-15/calibration_D4.shard007of010.csv",
+    "sim_results/ref_m2s_omega2_aac9f69/final_2026-09-15/calibration_D4.shard008of010.csv",
+    "sim_results/ref_m2s_omega2_aac9f69/final_2026-09-15/calibration_D4.shard009of010.csv"
+  ],
+  "d4v12b_files": [
+    "sim_results/d4v12b/calibration_D4.shard000of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard001of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard002of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard003of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard004of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard005of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard006of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard007of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard008of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard009of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard010of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard011of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard012of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard013of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard014of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard015of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard016of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard017of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard018of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard019of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard020of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard021of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard022of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard023of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard024of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard025of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard026of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard027of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard028of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard029of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard030of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard031of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard032of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard033of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard034of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard035of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard036of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard037of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard038of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard039of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard040of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard041of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard042-056of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard057-071of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard072-086of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard087-101of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard102-116of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard117-131of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard132-146of160.csv",
+    "sim_results/d4v12b/calibration_D4.shard147-159of160.csv"
+  ],
+  "bank": {
+    "n": 1000,
+    "mean": -6.869911377867771,
+    "sd": 84.69777945236191,
+    "se": 2.678378958280725,
+    "median": -2.06527316691708,
+    "min": -2650.3000226956806,
+    "quantiles": {
+      "0.001": -223.27026797349544,
+      "0.01": -57.30395851902201,
+      "0.05": -8.915552427834182,
+      "0.25": -2.755544159818778,
+      "0.5": -2.06527316691708,
+      "0.75": -1.7247673012553986,
+      "0.95": -1.433273874643277,
+      "0.99": -1.285317097393174
+    },
+    "n_below_minus_55": 12
+  },
+  "d4v12b": {
+    "n": 1000,
+    "mean": -5.334354172270718,
+    "median": -2.065553576151821,
+    "min": -418.5422175470427
+  },
+  "targets": {
+    "bank_mean": -6.869911377867771,
+    "bank_mean_without_most_extreme": -4.223835190362452,
+    "bank_median": -2.06527316691708,
+    "d4v12b_mean": -5.334354172270718
+  },
+  "coverage_of_targets": {
+    "bank_mean": {
+      "d4v12b_intervals": 0.178,
+      "bank_intervals": 0.156
+    },
+    "bank_mean_without_most_extreme": {
+      "d4v12b_intervals": 0.282,
+      "bank_intervals": 0.285
+    },
+    "bank_median": {
+      "d4v12b_intervals": 0.754,
+      "bank_intervals": 0.74
+    },
+    "d4v12b_mean": {
+      "d4v12b_intervals": 0.216,
+      "bank_intervals": 0.212
+    }
+  },
+  "leave_k_most_extreme": [
+    {
+      "k": 0,
+      "n": 1000,
+      "mean": -6.869911377867771,
+      "se": 2.6783789582807254
+    },
+    {
+      "k": 1,
+      "n": 999,
+      "mean": -4.223835190362452,
+      "se": 0.4151377274396394
+    },
+    {
+      "k": 2,
+      "n": 998,
+      "mean": -4.006784114641815,
+      "se": 0.35423067798918256
+    },
+    {
+      "k": 5,
+      "n": 995,
+      "mean": -3.543925562487118,
+      "se": 0.22342199426924414
+    },
+    {
+      "k": 10,
+      "n": 990,
+      "mean": -3.1661804064663066,
+      "se": 0.1453541519737529
+    },
+    {
+      "k": 20,
+      "n": 980,
+      "mean": -2.81032017299648,
+      "se": 0.08724071569619846
+    },
+    {
+      "k": 50,
+      "n": 950,
+      "mean": -2.4129997527500313,
+      "se": 0.03971354091578802
+    }
+  ],
+  "note": "Development evidence under the old eight-start policy; not a validation of any interval."
+}
