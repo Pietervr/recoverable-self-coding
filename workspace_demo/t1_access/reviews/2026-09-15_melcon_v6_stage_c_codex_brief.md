@@ -84,3 +84,20 @@ calibration and stage C stay the record.
 2. Which revisions does this failure justify, which would amount to tuning on outcomes, and what must stay fixed?
 3. What must the re-run be (namespace and seeds, recalibration or reuse, which cells, cost), and which checks come first?
 4. Does anything here bear on the primary Sergent analysis or on the arXiv v1 text?
+
+## Dispositions on Codex's record (15 Sept 2026, Claude, session Entropy SI)
+
+Codex (`2026-09-15_melcon_v6_stage_c_codex_record.md`, RSC e490f3b; audit `2026-09-15_melcon_v6_stage_c_checks.py/.json` at
+d3f4485; lineage `2026-09-15_melcon_v6_stage_c_lineage_checks.py/.json`): **FINAL. v6 fails its declared X1-strong criterion
+in both drift conditions. The saved execution and results are accepted as the failed development record; nothing is
+frozen.** Every point is accepted.
+
+| Record item | Disposition |
+|---|---|
+| Q1: the formal failure is X1 strong; no graded call is an additional limitation of the instrument, not a retrospective failure rule | **Accepted.** From here on the report says "the battery fails its X1-strong criterion; no graded law is ever called graded, a limitation of the instrument". |
+| Q1: the causal wording is plausible, not unique. The bounds permit an SD down to 0.005 S but the examples do not show it. The tail inflates mean Delta, while each recording's contribution to the RFX PXP is bounded | **Accepted.** Brief point 5, second bullet ("tilts Delta and the PXPs toward two-state"), overstated what was shown: the tail demonstrably inflates mean Delta, but its contribution to the PXPs has not been isolated. |
+| Q1 correction: the re-run windows are ranks 1, 3 and 5 of the extreme list, and they agree with the saved values only to the three printed decimals | **Accepted.** The brief (point 4) and the R052 entry of 15 Sept ~11:00Z say "the three largest windows" and "reproduced exactly"; both are wrong, and both are corrected here and in R052. |
+| Q1 new structural finding: in 117 of 136 template folds a held-out present dose lies outside the training block's range (e.g. 60 of 90, 30 of 91 and 62 of 93 test doses above it in the three examples) | **Accepted** as the more specific candidate mechanism (extrapolation and identification of the asymptote), pending fitted predictions and per-start objectives. No out-of-range trial is removed. |
+| Q2: v6 is the development sample. Diagnose predictions and the training search first; develop a prediction-stable density with a scientific rationale, tested fairly for both families and against the G2/G3 misspecification; no blanket boundary rejection, trimming, threshold lowering, null removal or boosted X1; more training data only through a disjoint decoder/density/test allocation; a two-model BMS only as a conditional sensitivity | **Accepted in full.** |
+| Q3: commit a development plan before new diagnostic fits; run bounded development checks; lock one candidate; validate it independently on the whole 60-replicate battery in a new namespace with separate seed roles; follow the calibration-lineage rules; benchmark the cost; retain failures | **Accepted.** The concrete development plan goes to the owner first: no fits and no code change before the owner's decision. |
+| Q4: the Sergent sources match e341319, including the shared BMS, and nothing transfers from Melcón to Sergent; submitted arXiv v1 claims no Melcón outcome, so nothing needs correcting; the next scientific version reports the failed development battery and the revision lineage | **Accepted**, and recorded for the manuscript's next version. |
