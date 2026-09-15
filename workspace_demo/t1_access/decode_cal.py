@@ -130,6 +130,17 @@ def load_layer(run_dir: Path, records: list[dict], layer: int) -> np.ndarray:
     return bf16_to_float32(np.stack(rows))
 
 
+def apply_decoders(dec, run_dir: Path, records: list[dict]) -> tuple[np.ndarray, np.ndarray]:
+    """Frozen R1 for trials: (raw decision function, z-scaled score), each [n trials, n decoder layers] (§6.1)."""
+    layers = dec["layers"].tolist()
+    raw = np.zeros((len(records), len(layers)))
+    for j, l in enumerate(layers):
+        X = load_layer(run_dir, records, l).astype(np.float64)
+        raw[:, j] = ((X - dec["scaler_mean"][j]) / dec["scaler_scale"][j]) @ dec["coef"][j] + dec["intercept"][j]
+    z = (raw - dec["z_mean"][None, :]) / dec["z_sd"][None, :]
+    return raw, z
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", required=True, help="CAL capture run name under captures/")

@@ -36,7 +36,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from capture import CAPTURES  # noqa: E402
-from decode_cal import load_layer, parse_trial_id  # noqa: E402
+from decode_cal import apply_decoders, parse_trial_id  # noqa: E402
 
 BAND = list(range(23, 58))
 LEVELS = [0, 1, 2, 3, 4, 6, 8]
@@ -82,13 +82,7 @@ def main() -> int:
     cond = np.array([r["condition"] for r in records])
     fam = np.array([r["family"] for r in records])
 
-    z = np.zeros((len(records), len(layers)))
-    raw = np.zeros_like(z)
-    for j, l in enumerate(layers):
-        X = load_layer(run_dir, records, l).astype(np.float64)
-        d = ((X - dec["scaler_mean"][j]) / dec["scaler_scale"][j]) @ dec["coef"][j] + dec["intercept"][j]
-        raw[:, j] = d
-        z[:, j] = (d - dec["z_mean"][j]) / dec["z_sd"][j]
+    raw, z = apply_decoders(dec, run_dir, records)
 
     def accuracy(mask):
         sel = mask & np.isin(k, [0, 8])

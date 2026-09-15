@@ -1,0 +1,230 @@
+{
+ "seed": 20260915,
+ "rule": "per (target family, foil family): one BACKGROUND concept from each of two other families, seeded",
+ "pairs": {
+  "animals|countries": [
+   "tools/scissors",
+   "instruments/tabla"
+  ],
+  "animals|tools": [
+   "foods/strawberry",
+   "instruments/viola"
+  ],
+  "animals|foods": [
+   "vehicles/cart",
+   "countries/Japan"
+  ],
+  "animals|vehicles": [
+   "materials/cement",
+   "body parts/neck"
+  ],
+  "animals|instruments": [
+   "foods/lemon",
+   "body parts/kidney"
+  ],
+  "animals|body parts": [
+   "materials/gold",
+   "tools/scissors"
+  ],
+  "animals|materials": [
+   "foods/soup",
+   "countries/Poland"
+  ],
+  "countries|animals": [
+   "materials/plastic",
+   "body parts/kidney"
+  ],
+  "countries|tools": [
+   "body parts/thumb",
+   "animals/sheep"
+  ],
+  "countries|foods": [
+   "body parts/kidney",
+   "vehicles/cart"
+  ],
+  "countries|vehicles": [
+   "body parts/thumb",
+   "foods/lemon"
+  ],
+  "countries|instruments": [
+   "foods/strawberry",
+   "vehicles/cart"
+  ],
+  "countries|body parts": [
+   "instruments/guitar",
+   "materials/bronze"
+  ],
+  "countries|materials": [
+   "instruments/tabla",
+   "body parts/thumb"
+  ],
+  "tools|animals": [
+   "materials/cement",
+   "instruments/piano"
+  ],
+  "tools|countries": [
+   "body parts/stomach",
+   "animals/sheep"
+  ],
+  "tools|foods": [
+   "body parts/kidney",
+   "animals/elephant"
+  ],
+  "tools|vehicles": [
+   "foods/strawberry",
+   "animals/elephant"
+  ],
+  "tools|instruments": [
+   "materials/cement",
+   "foods/lemon"
+  ],
+  "tools|body parts": [
+   "animals/ant",
+   "countries/Germany"
+  ],
+  "tools|materials": [
+   "vehicles/jet",
+   "body parts/kidney"
+  ],
+  "foods|animals": [
+   "instruments/guitar",
+   "materials/cement"
+  ],
+  "foods|countries": [
+   "body parts/stomach",
+   "vehicles/cart"
+  ],
+  "foods|tools": [
+   "body parts/neck",
+   "countries/Spain"
+  ],
+  "foods|vehicles": [
+   "countries/Japan",
+   "materials/cement"
+  ],
+  "foods|instruments": [
+   "body parts/stomach",
+   "materials/cement"
+  ],
+  "foods|body parts": [
+   "countries/Spain",
+   "vehicles/rocket"
+  ],
+  "foods|materials": [
+   "animals/ant",
+   "tools/scissors"
+  ],
+  "vehicles|animals": [
+   "foods/soup",
+   "materials/bronze"
+  ],
+  "vehicles|countries": [
+   "foods/soup",
+   "animals/elephant"
+  ],
+  "vehicles|tools": [
+   "materials/plastic",
+   "countries/Germany"
+  ],
+  "vehicles|foods": [
+   "materials/bronze",
+   "animals/ant"
+  ],
+  "vehicles|instruments": [
+   "materials/bronze",
+   "foods/lemon"
+  ],
+  "vehicles|body parts": [
+   "foods/lemon",
+   "tools/hoe"
+  ],
+  "vehicles|materials": [
+   "body parts/stomach",
+   "foods/honey"
+  ],
+  "instruments|animals": [
+   "countries/Japan",
+   "tools/hoe"
+  ],
+  "instruments|countries": [
+   "body parts/kidney",
+   "materials/plastic"
+  ],
+  "instruments|tools": [
+   "vehicles/canoe",
+   "body parts/thumb"
+  ],
+  "instruments|foods": [
+   "body parts/kidney",
+   "animals/elephant"
+  ],
+  "instruments|vehicles": [
+   "materials/cement",
+   "body parts/stomach"
+  ],
+  "instruments|body parts": [
+   "vehicles/cart",
+   "animals/snake"
+  ],
+  "instruments|materials": [
+   "foods/soup",
+   "vehicles/cart"
+  ],
+  "body parts|animals": [
+   "countries/Poland",
+   "materials/bronze"
+  ],
+  "body parts|countries": [
+   "vehicles/cart",
+   "instruments/tabla"
+  ],
+  "body parts|tools": [
+   "instruments/piano",
+   "foods/lemon"
+  ],
+  "body parts|foods": [
+   "animals/ant",
+   "tools/knife"
+  ],
+  "body parts|vehicles": [
+   "countries/Poland",
+   "foods/honey"
+  ],
+  "body parts|instruments": [
+   "countries/Spain",
+   "vehicles/cart"
+  ],
+  "body parts|materials": [
+   "countries/Japan",
+   "instruments/guitar"
+  ],
+  "materials|animals": [
+   "tools/knife",
+   "foods/lemon"
+  ],
+  "materials|countries": [
+   "foods/honey",
+   "vehicles/canoe"
+  ],
+  "materials|tools": [
+   "vehicles/cart",
+   "foods/strawberry"
+  ],
+  "materials|foods": [
+   "animals/snake",
+   "body parts/stomach"
+  ],
+  "materials|vehicles": [
+   "animals/elephant",
+   "body parts/stomach"
+  ],
+  "materials|instruments": [
+   "vehicles/rocket",
+   "body parts/kidney"
+  ],
+  "materials|body parts": [
+   "foods/strawberry",
+   "instruments/viola"
+  ]
+ }
+}
