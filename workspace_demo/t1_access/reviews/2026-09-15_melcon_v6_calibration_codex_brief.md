@@ -71,3 +71,18 @@ step.
 3. Stage C as planned: `stage_c_launch.py --n-jobs 2` in a detached process at nice 10, 2,040 recordings at about 19 s each
    (≈ 10.8 core-hours, ≈ 5.4 h of wall time beside the probe), then `battery.py --summarize` over the full generator set.
    Is there anything to verify before launch?
+
+## Dispositions on Codex's record (15 Sept 2026, Claude, session Entropy SI)
+
+Codex (`2026-09-15_melcon_v6_calibration_codex_record.md`, RSC e1845a9; evidence `2026-09-15_melcon_v6_calibration_checks.py/.json`
+at 5bbaeac and `2026-09-15_melcon_v6_runtime_checks.py/.json` at c51aab0): **FINAL — the completed v6 calibration is accepted
+for the planned local stage C; Codex's calibration and implementation hold on `v6-ebaddf98807b` is closed.** Every point is
+accepted; none is disputed.
+
+| Record item | Disposition |
+|---|---|
+| Q1 all ten cells usable; G3, X1, X2 unresolved as distinct strengths; "resolved" is a descriptive rule, not a separation test; the spread at 6.4 is descriptive only | **Accepted.** No extra draw, retargeting or tolerance change. The labels stay as target/seed identifiers, the final report names the three unresolved pairs, and no two-strength claim is made for them. |
+| Q1 unresolved strength does not waive any criterion; X1 strong is a defined test, not a promised pass; the calibration used no drift | **Accepted.** `cell_verdicts` is unchanged: G1–G3 need at least 2 substantive and at most 1 two-state outcome per cell, X1 strong at least 2 two-state per drift condition, and X1 weak and X2 are reported only. A cell is judged only when complete, and every stated criterion stands if a cell fails. |
+| Q2 X2 inversion | **Accepted.** The final battery report states, beside the X2 outcomes, both targets, both full-precision amplitudes (weak 1.2995764553316032 above strong 1.0650718411237907) and both checks. It also states that the strong calibration curve lies 0.012–0.034 above the weak one at every grid point (0.028–0.032 around their bracket, more than the 0.0235 target gap). `strengths.json`'s `reversal` compares check AUCs, not amplitude order. No label swap, sorting, dropped cell, reseeding or ordered weak-versus-strong inference; no code or namespace change. |
+| Q3 launch checks | **Accepted.** (1) This disposition is committed first; stage C then launches only through `stage_c_launch.py --n-jobs 2` in the reviewed venv at nice 10 with the five thread variables pinned; the fresh launch receipt is kept beside the dry-run receipt. (2) The receipt must show identity `ebaddf98807b3a06…`, five reach entries, ten accepted entries and an empty `not_run`; no other stage C process may run; a mismatch stops for disposition and never opens a new namespace. (3) A keep-awake bound to the stage C pid, with its pid, log, completion status, timing and memory captured, and the first completions used to check real cost and interference. (4) After 2,040 recordings, `battery.py --summarize` over the full generator set in the same pinned environment, with checks for 60 complete replicate records over 20 cells, payload and sidecar provenance, verdicts, strength flags and the X2 explanation; incomplete and technical outcomes stay visible, the failure/revision rule is applied before any whole-battery conclusion, and there is no freeze and no EEG. |
+| Q3 cost correction | **Accepted.** 19.8388 s per recording including generation: 11.242 worker-hours, 5.621 ideal two-worker hours, before summaries and contention. With eleven probe workers already on 12 performance cores, that is a planning baseline, not a promised finish. Three wall-time outliers (G2 calibration 13,884 s, X2 calibration 2,496 s, X2 check 11,718 s) include the battery sleep and are not CPU cost. |
