@@ -162,7 +162,9 @@ frequency.
   smallest SD at within-support test doses (1.0 in other units); median 0.098 S against 0.27 S.
 - **Q4.** No graded unit, in the panel's main or early windows or in the idealized readout, has an effective SD below 0.05 S
   at any dose; the smallest is 0.083 S. The SD contraction comes from `r` at its bound applied at extrapolated doses, not from
-  crossing the floor.
+  crossing the floor. The 5 S ceiling of the same range does bind: effective SD above 5 S at some dose in 24 of 1,600
+  main-window, 15 of 1,600 early-window and 27 of 1,088 idealized graded fits (maximum 9.7 S), every one with `r` > 0 and
+  none severe.
 - **Q5.** Graded `a1` at 10 S in 9 of 111 severe units (8 per mille of others); two-state `delta0` or `delta1` at a bound in
   73 % of all units, severe or not.
 - **Idealized readout.** Graded severe in 12 of 1,088 fold units, all with extrapolated trials (97 % of the loss there);
@@ -171,10 +173,11 @@ frequency.
   18/12/4; G3 8/23/3, 14/18/2; X1 27/5/2, 24/8/2.
 
 **Reading for Phase 2 (development; the §3 fixings are still to be written and committed before any candidate fit).**
-- C1 at the declared 0.05 S would leave every kept panel fit feasible: the floor alone cannot remove these losses. Its value
-  stays the existing bound, not a value tuned on Phase 1; changing it or adding an `r` restriction would be a recorded plan
-  amendment. Because C1 changes the box, its starts and search paths still differ from the baseline's, so its fits are not
-  assumed identical.
+- C1's floor (0.05 S) binds in no kept fit, and its ceiling (5 S) only in fits with rising spread and no severe loss, so C1
+  would change a few fits but none of the severe losses. (The first version of this section, and the RSC c2068f1 commit
+  message, called C1 inert; that checked only the floor.) Its range stays the existing bounds, not values tuned on Phase 1;
+  changing them or adding an `r` restriction would be a recorded plan amendment. Because C1 changes the feasible set, its
+  starts and search paths differ from the baseline's, so its fits are not assumed identical.
 - C2 acts on the located loss (extrapolated doses, both families).
 - Neither candidate addresses the weak single-recording separation under G1 on the latent readout (one training block per
   fold). That bears on whether positive graded recovery can be declared a pass criterion at lock (§4).
