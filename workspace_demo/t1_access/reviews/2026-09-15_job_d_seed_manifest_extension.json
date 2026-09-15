@@ -1,0 +1,32 @@
+{
+  "method": "AST-isolated dataset_seed plus NumPy; base seeds and rep ranges from the SageMaker job environments",
+  "python": "3.12.14",
+  "numpy": "2.5.3",
+  "dataset_seed_source_sha256": "dd4d789bc8a7970ea287af496e4d8b0ece893e05c6fef11e20ad9a304e31a029",
+  "jobd_seeds_equal_codex_table": true,
+  "comparisons": {
+    "omega2_bank_M2S_omega2_reps0_999_base2028_datasets": {
+      "unique_seeds": 1000,
+      "overlap": []
+    },
+    "refit_control_M2B_reps0_9_base2027_datasets": {
+      "unique_seeds": 10,
+      "overlap": []
+    },
+    "refit_control_refit_roots_seed_plus_1_plus_rep_B50": {
+      "unique_seeds": 500,
+      "overlap": []
+    },
+    "probe_M2S_omega1_2_reps0_19_base2027_refit_roots_B50": {
+      "unique_seeds": 2000,
+      "overlap": []
+    }
+  },
+  "nearest_distance_jobd_to_historical_dataset_seed": {
+    "bank": 51213,
+    "control": 1072468,
+    "probe": 1721791
+  },
+  "also_checked": "us-west-2 smoke t1-calibration-d4-smoke-usw2-1789342209: SEED 2026, M2B, N_REP 1, INTERVAL cluster \u2014 its dataset is d4v12b's M2B rep 0, inside Codex's d4v12b enumeration, and a cluster run makes no refit roots; the failed first control attempt 1789319939 used the same SEED 2027, M2B, N_REP 10 and namespace",
+  "stream_note": "Every stream of a dataset is rooted in its dataset seed: outer folds stratified_folds(family, n_outer, seed), inner folds and fits _rng(seed, layer_tag, ...), the cluster bootstrap band_bootstrap(..., seed) and the refitting bootstrap default_rng(seed), with seed = the dataset seed (simulate.one_replicate). Distinct dataset seeds therefore give distinct stream roots. Derived 31-bit intermediate integers (the inner-fold seed) are not enumerated."
+}
