@@ -1,0 +1,11 @@
+{
+ "note": "Six fixed carrier frames (PREREGISTRATION_T1_model.md §3), fixed effects. Each is an opening and a closing line around the eight slots. Written 15 Sept 2026 before any bank clause existed; checked by build_bank.py for bank surface forms and family words.",
+ "carriers": [
+  ["Here are some notes a visitor wrote down:", "Those were all of the notes."],
+  ["Someone jotted down these short observations:", "That is the end of the observations."],
+  ["A friend sent the following list of remarks:", "Nothing else was on the list."],
+  ["A student copied these lines from a whiteboard:", "The whiteboard held nothing more."],
+  ["The following remarks were collected in a survey:", "The survey closed after these remarks."],
+  ["These are the clues from a guessing game:", "Those are all the clues in the game."]
+ ]
+}

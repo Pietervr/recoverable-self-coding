@@ -1,0 +1,249 @@
+{
+  "family": "materials",
+  "clues": {
+    "materials/brick": [
+      "is shaped from clay and fired hard in a kiln",
+      "is laid in overlapping rows bound together with mortar",
+      "usually comes as a small rectangular block that fits in one hand",
+      "often has a reddish brown colour from iron in the clay",
+      "was made of sun-dried mud in ancient Mesopotamia and Egypt",
+      "is used to build walls, chimneys and the fronts of houses",
+      "can crack and flake when trapped water freezes inside it",
+      "sometimes develops white salty deposits on its outer surface",
+      "resists fire well and was favoured for rebuilding after city fires",
+      "is either pressed in moulds or extruded and cut by wire",
+      "needs its joints repointed when the old mortar crumbles away",
+      "is often salvaged from demolished buildings and laid again"
+    ],
+    "materials/bronze": [
+      "is an alloy that typically contains around ten percent tin",
+      "replaced stone for blades and spearheads in prehistoric times",
+      "is cast into large statues by the lost-wax process",
+      "weathers to a green or brown patina when left outdoors",
+      "is harder than either of the two metals it is mostly made from",
+      "is used for ship propellers because it resists seawater",
+      "makes durable bearings and bushings with low friction",
+      "is struck into medals, coins and commemorative plaques",
+      "is used for cymbals and gongs because of its ringing tone",
+      "was shaped into ritual vessels in ancient Shang dynasty China",
+      "does not spark when struck, making it safer near flammable gases",
+      "melts at a much lower temperature than pure iron"
+    ],
+    "materials/cement": [
+      "is a fine grey powder sold in heavy sacks",
+      "is made by roasting limestone and clay in a rotary kiln",
+      "leaves the kiln as hard lumps that are ground with gypsum",
+      "hardens through a chemical reaction when mixed with water",
+      "acts as the binder that glues sand and gravel together",
+      "is responsible for about eight percent of global carbon dioxide emissions",
+      "is caustic and can burn skin when it is wet",
+      "turns lumpy and unusable if stored somewhere damp",
+      "can set and harden even when it is underwater",
+      "was patented by an English bricklayer early in the nineteenth century",
+      "is delivered in bulk by tanker lorries and stored in silos",
+      "is combined with sand and water to make mortar"
+    ],
+    "materials/concrete": [
+      "is strong under compression but cracks easily when pulled apart",
+      "is often reinforced with ribbed rebar to carry tension loads",
+      "is poured wet into formwork and left there to harden",
+      "reaches its specified strength about four weeks after pouring",
+      "forms dams, foundations, bridges and multistorey car parks",
+      "is vibrated after placing to drive out trapped air bubbles",
+      "is laid for pavements, driveways and garage floors",
+      "can spall when rusting reinforcement expands inside it",
+      "was mixed by the Romans with volcanic ash for harbour walls",
+      "is cast in factories into slabs, pipes and kerbs",
+      "has joints cut into it so that cracks form in straight lines",
+      "is mostly gravel and sand locked together by a hardened binder"
+    ],
+    "materials/copper": [
+      "has a reddish metallic sheen when newly cleaned",
+      "is drawn into wire for household electrical circuits",
+      "is used for water pipes joined with soldered fittings",
+      "turns green on roofs and domes after years of weathering",
+      "is extracted from huge open-pit mines, many of them in Chile",
+      "kills many bacteria on its surface within hours",
+      "lines the bottoms of pans because it spreads heat quickly",
+      "is soft enough to be bent and hammered cold",
+      "is a trace nutrient that the human diet needs in small amounts",
+      "is often stolen from railway lines and building sites for scrap",
+      "winds the coils inside electric motors and transformers",
+      "colours a flame blue-green when its salts are heated"
+    ],
+    "materials/cotton": [
+      "is a natural plant fibre made almost entirely of cellulose",
+      "is spun into yarn and woven into shirts and bedsheets",
+      "absorbs sweat and lets skin breathe in hot weather",
+      "can shrink noticeably when washed in very hot water",
+      "creases easily unless it is blended with polyester",
+      "was picked by enslaved people on plantations in the American South",
+      "kept the mills of Lancashire busy during the Industrial Revolution",
+      "needs such heavy irrigation that its farming helped drain the Aral Sea",
+      "is woven into the sturdy twill fabric used for most jeans",
+      "is rolled into soft balls and swabs for first aid",
+      "is grown in large quantities in India, China and the United States",
+      "grows around seeds that are pressed to make a cooking oil"
+    ],
+    "materials/gold": [
+      "does not rust or tarnish even after centuries buried underground",
+      "can be beaten into sheets thin enough to let light through",
+      "is held as bars in the vaults of central banks",
+      "is panned from river gravels by hopeful prospectors",
+      "dissolves in a mix of nitric and hydrochloric acids",
+      "coats connector pins in electronics to keep contacts reliable",
+      "is extracted from crushed ore with dilute cyanide solutions",
+      "is so dense that even a small bar feels surprisingly heavy",
+      "is mined from extremely deep shafts in South Africa",
+      "is used by some dentists for crowns and fillings",
+      "has its price quoted per troy ounce on world markets",
+      "is a favourite choice for wedding rings and other jewellery"
+    ],
+    "materials/granite": [
+      "forms when magma cools slowly deep beneath the surface of the Earth",
+      "shows coarse, visible crystals speckled black, white and pink",
+      "is cut and buffed into slabs for kitchen worktops",
+      "is used for headstones because lettering stays crisp for centuries",
+      "is quarried in huge blocks using drills and wedges",
+      "makes up a large part of the continental crust",
+      "weathers into rounded boulders and rocky tors on moorland",
+      "releases small amounts of radon gas from traces of uranium",
+      "is hard enough to resist scratches from everyday kitchen use",
+      "was laid as setts on old city streets and as kerbs",
+      "is usually grey or pink, depending on its feldspar",
+      "forms massive domes and cliffs loved by rock climbers"
+    ],
+    "materials/leather": [
+      "is often tanned with chromium salts that can pollute rivers",
+      "is cut and stitched into belts, saddles and wallets",
+      "darkens and develops a soft sheen with years of handling",
+      "cracks and stiffens if it dries out without conditioning",
+      "has a rich, distinctive smell when it is new",
+      "is often dyed brown, black or tan",
+      "can be stamped with patterns using heated metal dies",
+      "was used to bind books and to make buckets and armour",
+      "is imitated by vinyl and other synthetic look-alikes",
+      "stretches and moulds to the shape of the wearer's foot over time",
+      "upholsters the seats of luxury cars and armchairs",
+      "comes mainly as a by-product of the beef and dairy trade"
+    ],
+    "materials/marble": [
+      "is a metamorphic rock rather than an igneous or sedimentary one",
+      "etches and loses its shine where vinegar touches it",
+      "has been prized by sculptors for statues since classical antiquity",
+      "is often white with grey or coloured veins running through it",
+      "feels cool to the touch even in warm rooms",
+      "is laid as buffed tiles in grand hallways and bathrooms",
+      "stains easily when wine or oil soaks into it",
+      "is kept by bakers as a cool slab for rolling pastry",
+      "was carved into temple columns and friezes in classical Athens",
+      "slowly erodes on gravestones so that inscriptions fade",
+      "has a sugary, crystalline texture on freshly broken faces",
+      "is crushed into chips for terrazzo floors"
+    ],
+    "materials/nylon": [
+      "was invented by an American chemist in the mid nineteen thirties",
+      "replaced silk in parachutes during the Second World War",
+      "is extruded into fishing line and toothbrush bristles",
+      "melts and forms a hard bead when held to a flame",
+      "is made from chemicals that are derived from petroleum",
+      "is woven into tents, backpacks and windbreakers",
+      "is moulded into quiet, low-friction gears and zip ties",
+      "absorbs a little water, which slightly swells moulded parts",
+      "is braided into strong, stretchy climbing ropes",
+      "is tufted into hard-wearing carpets for busy offices",
+      "belongs to the polyamide family of long-chain molecules",
+      "sheds tiny fibres into waterways each time it is washed"
+    ],
+    "materials/paper": [
+      "is formed by draining a watery slurry of fibres on a mesh",
+      "was first made in China about two thousand years ago",
+      "turns yellow and brittle over decades when it is acidic",
+      "is graded by its weight in grams per square metre",
+      "tears easily along a line once it has been creased",
+      "is collected for recycling and can be reprocessed several times",
+      "absorbs ink, so printers and pens can mark it",
+      "can give a sharp, painful cut along a thin edge",
+      "bears watermarks that show when held up to the light",
+      "was once made from linen rags before pulp took over",
+      "is bleached white with chlorine or oxygen compounds at mills",
+      "loses strength and falls apart when soaked in water"
+    ],
+    "materials/plastic": [
+      "is shaped by injecting hot molten polymer into moulds",
+      "is mostly made from chemicals refined from crude oil and gas",
+      "can take centuries to break down in a landfill",
+      "is made into pipes, window frames and gutters for houses",
+      "is formed into bottles, carrier bags and cling film",
+      "breaks down into tiny fragments that fish and seabirds swallow",
+      "often carries a numbered recycling code moulded into its base",
+      "is a poor conductor, so it insulates electrical cables",
+      "softens when heated and can often be remelted and reshaped",
+      "has been banned in single-use forms such as straws and bags",
+      "was first produced fully synthetically early in the twentieth century",
+      "is light, cheap and can be made in almost any colour"
+    ],
+    "materials/steel": [
+      "is mostly iron with a carefully controlled fraction of carbon",
+      "is hardened by quenching and then tempered to reduce brittleness",
+      "forms the girders and frames of skyscrapers and bridges",
+      "rusts unless it is galvanised, painted or alloyed with chromium",
+      "is hot-rolled into long rails for railway tracks",
+      "is attracted to magnets in most of its common grades",
+      "became cheap when air was blown through molten iron in converters",
+      "is pressed into car body panels and drinks cans",
+      "is recycled by melting scrap in huge electric furnaces",
+      "is twisted into wire ropes for cranes and suspension bridges",
+      "is coiled into springs that return to shape after loading",
+      "is welded into the hulls of ocean-going ships"
+    ],
+    "materials/velvet": [
+      "has a dense, short pile that feels soft and plush",
+      "was woven from silk for Renaissance nobles and royalty",
+      "changes shade when its pile is brushed in different directions",
+      "hangs as heavy red curtains in theatres and opera houses",
+      "is often woven as two layers face to face, then sliced apart",
+      "lines jewellery boxes to cushion rings and necklaces",
+      "is now often made cheaply from polyester or viscose fibres",
+      "crushes and marks easily if pressed flat with an iron",
+      "is awkward to sew because its layers slide against each other",
+      "is made into evening gowns, blazers and smoking jackets",
+      "shows dust and lint readily, especially in dark colours",
+      "upholsters vintage sofas and armchairs"
+    ],
+    "materials/wood": [
+      "shows growth rings that reveal the age of a tree",
+      "has a grain that makes it split more easily in one direction",
+      "is dried in kilns or seasoned in open air before use",
+      "usually floats on water because it is less dense",
+      "rots when damp and can be eaten by termites",
+      "swells and warps as the humidity around it changes",
+      "is made mostly of cellulose and lignin",
+      "is carved, turned on lathes and joined into furniture",
+      "gives painful splinters when rough edges are handled",
+      "is burned in stoves and fireplaces as a traditional fuel",
+      "is oiled or varnished to protect and enhance its figure",
+      "frames most new houses built in North America"
+    ]
+  },
+  "notes": {
+    "materials/bronze": [
+      "\"does not spark when struck, making it safer near flammable gases\": non-sparking hand gear is usually specified in aluminium bronze or beryllium copper; true of copper alloys generally, but not a standard selling point of every tin bronze",
+      "\"is used for ship propellers because it resists seawater\": large propellers are mostly nickel-aluminium bronze; the traditional 'manganese bronze' is metallurgically a brass"
+    ],
+    "materials/cement": [
+      "\"is responsible for about eight percent of global carbon dioxide emissions\": published estimates range roughly 5 to 8 percent depending on year and whether energy use is counted",
+      "\"was patented by an English bricklayer early in the nineteenth century\": Joseph Aspdin, 1824, is usually described as a bricklayer or mason; his product differed from modern high-temperature Portland cement"
+    ],
+    "materials/granite": [
+      "\"makes up a large part of the continental crust\": true of granitic rocks broadly (granite, granodiorite); strict granite alone is a smaller share",
+      "\"shows coarse, visible crystals speckled black, white and pink\": pink appears only where potassium feldspar is pink; many granites are grey and white"
+    ],
+    "materials/plastic": [
+      "\"was first produced fully synthetically early in the twentieth century\": Bakelite (1907, patented 1909) is conventionally the first fully synthetic plastic; semi-synthetic celluloid is older"
+    ],
+    "materials/wood": [
+      "\"frames most new houses built in North America\": true for single-family houses in the US and Canada; less so for multi-storey housing"
+    ]
+  }
+}

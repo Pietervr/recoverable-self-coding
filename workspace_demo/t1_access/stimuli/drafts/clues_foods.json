@@ -1,0 +1,265 @@
+{
+  "family": "foods",
+  "clues": {
+    "foods/apple": [
+      "grows on trees in orchards and is picked in autumn",
+      "has crisp white flesh under a thin red, green or yellow skin",
+      "has a core holding a few small dark brown seeds",
+      "has a short stem sitting in a small dip at the top",
+      "turns brown quickly once its cut flesh meets the air",
+      "is pressed each autumn into a cloudy, sweet juice",
+      "is baked into pies and crumbles with cinnamon",
+      "keeps for months in cool, controlled storage after harvest",
+      "comes in thousands of varieties ranging from sweet to sharp",
+      "is eaten raw as a crunchy snack, often skin and all",
+      "is stewed into a smooth sauce often served with roast pork",
+      "is dipped in hot toffee and sold on sticks at autumn fairs"
+    ],
+    "foods/banana": [
+      "grows in large hanging bunches on tall tropical plants",
+      "has a thick peel that turns from green to yellow as it ripens",
+      "gets brown speckles on its skin as it becomes very ripe",
+      "is long and curved with soft, pale, creamy flesh",
+      "is peeled by hand and needs no cutting before eating",
+      "is mashed and baked into a moist, sweet loaf",
+      "is picked while still green and shipped to ripen later",
+      "is blended into smoothies to make them thick and sweet",
+      "is sliced over breakfast cereal or porridge",
+      "has tiny dark specks of seed running through its centre",
+      "is split lengthwise and topped with scoops of ice cream",
+      "has a peel that blackens if it is kept in the fridge"
+    ],
+    "foods/butter": [
+      "is made by churning cream until the fat clumps together",
+      "is pale yellow and firm when it comes out of the fridge",
+      "softens at room temperature and melts quickly in a warm pan",
+      "is spread thinly on warm toast or fresh bread",
+      "comes salted or unsalted in wrapped rectangular blocks",
+      "is creamed with sugar as the first step of many cake recipes",
+      "is clarified by melting it and skimming off the milk solids",
+      "is about four-fifths milk fat by weight",
+      "browns and gives off a nutty smell when heated in a pan",
+      "is rubbed into flour to make pastry and crumble toppings",
+      "is melted over popcorn, corn on the cob and baked potatoes",
+      "is mixed with garlic and herbs to melt over grilled meat"
+    ],
+    "foods/cheese": [
+      "is made by curdling milk and pressing the solid curds",
+      "is often aged for weeks, months or years in cool cellars",
+      "can have a hard rind, a soft white coat or blue veins",
+      "stretches into long strings when some kinds are melted",
+      "is grated over hot dishes or sliced thinly for sandwiches",
+      "can be made from the milk of goats or water buffalo as well",
+      "comes in hundreds of regional styles, many named after towns",
+      "gets a stronger smell and sharper taste as it matures",
+      "is served on a board with crackers at the end of a meal",
+      "is sometimes sealed in red or black wax to protect it",
+      "may have round holes left by gas from bacteria",
+      "is salted in brine or rubbed with salt to preserve it"
+    ],
+    "foods/egg": [
+      "comes from poultry farms and is sold by the half dozen or dozen",
+      "has a thin, fragile shell that is white or brown",
+      "is cracked open against the rim of a bowl",
+      "is boiled for a few minutes to be eaten soft or hard",
+      "is fried in a pan until its edges turn crisp and lacy",
+      "is scrambled with a little milk and served on toast",
+      "is poached in simmering water with a splash of vinegar",
+      "binds and lifts cake batters when it is beaten in",
+      "is stored in a carton, often in a rack in the fridge door",
+      "has a clear runny part that turns white when cooked",
+      "sinks in a glass of water when fresh and floats when stale",
+      "is oval, with one end slightly more pointed than the other"
+    ],
+    "foods/grape": [
+      "grows in hanging clusters on vines that climb along wires",
+      "is small, round and juicy with a smooth thin skin",
+      "comes in green, red and dark purple varieties",
+      "is crushed and fermented in vats to make an alcoholic drink",
+      "shrivels into small chewy sweet bites when dried in the sun",
+      "is sold in seedless varieties for easy snacking",
+      "is frozen whole to make a cool summer snack",
+      "has a pale powdery bloom on its skin when freshly picked",
+      "is pulled off its stalk one at a time and eaten whole",
+      "is cut lengthwise for small children to prevent choking",
+      "is toxic to dogs even in small amounts",
+      "is pressed into a purple juice or cooked into a sweet jelly"
+    ],
+    "foods/honey": [
+      "is used as a natural sweetener in place of sugar",
+      "is thick, sticky and amber in colour",
+      "keeps almost indefinitely in a sealed jar without spoiling",
+      "crystallises into a grainy solid over time",
+      "is stirred into hot tea or drizzled over yoghurt",
+      "is spread on toast, crumpets or warm scones",
+      "comes in dark, strong kinds and pale, mild kinds",
+      "is sold in glass jars and squeezable bottles",
+      "is taken with warm water to soothe a sore throat",
+      "should not be given to babies under one year old",
+      "is harvested from wax frames in late summer",
+      "is warmed gently to make it runny again"
+    ],
+    "foods/lemon": [
+      "has a very sour juice that makes the mouth pucker",
+      "has a bright yellow, waxy peel dotted with oil glands",
+      "is squeezed over fried fish and grilled prawns",
+      "has zest that is grated into cakes and biscuits",
+      "is cut into wedges or thin slices for cold drinks",
+      "is mixed with sugar and water to make a summer drink",
+      "grows on small, thorny evergreen trees in warm climates",
+      "is rich in vitamin C and once protected sailors from scurvy",
+      "keeps cut avocado and pears from turning brown",
+      "is mixed with oil to dress salads in place of vinegar",
+      "is oval with a small pointed tip at one or both ends",
+      "is preserved in salt for use in North African cooking"
+    ],
+    "foods/mango": [
+      "grows on large evergreen trees in tropical regions",
+      "has sweet, juicy, deep yellow flesh when ripe",
+      "has a large flat stone in the middle that clings to the flesh",
+      "is scored in a crisscross pattern to cut the flesh into cubes",
+      "has smooth skin that can be green, yellow or red when ripe",
+      "is blended with yoghurt into a sweet, thick drink in India",
+      "yields slightly to gentle pressure when it is ready to eat",
+      "is eaten green and sour with salt and chilli in parts of Asia",
+      "has flesh that can be stringy and fibrous near the seed",
+      "is served with sticky rice and coconut milk in Thailand",
+      "is cooked into a sweet, spicy chutney served with curries",
+      "has sap near the stem that can irritate the skin"
+    ],
+    "foods/orange": [
+      "is a round citrus fruit with a thick, dimpled peel",
+      "is peeled by hand and pulled apart into juicy segments",
+      "is squeezed into a juice commonly drunk at breakfast",
+      "has a peel that can stay green on the tree in the tropics",
+      "grows in large groves in Florida and California",
+      "has a soft, bitter white pith just under its peel",
+      "has bitter kinds whose peel is boiled into marmalade",
+      "is sweet and juicy with a mild, tangy taste",
+      "has seeds called pips, though many kinds are seedless",
+      "is cut into wedges and handed out at half-time in youth sports",
+      "has fragrant white blossom used in perfume and at weddings",
+      "is traditionally tucked into children's Christmas stockings"
+    ],
+    "foods/pasta": [
+      "is usually made from durum wheat semolina and water",
+      "is boiled in well-salted water until just firm to the bite",
+      "comes dried in boxes or fresh in chilled packs",
+      "is shaped into tubes, ribbons, spirals and shells",
+      "is tossed with a tomato sauce and fresh basil before serving",
+      "can be made fresh by rolling a dough thin and cutting it",
+      "is a staple of Italian cooking, often served as a first course",
+      "is drained in a colander, keeping back some starchy cooking water",
+      "is baked in layers with meat sauce and béchamel",
+      "can be stuffed with a spinach or meat filling before boiling",
+      "swells and softens as it soaks up water during cooking",
+      "is twirled around a fork when served in long strands"
+    ],
+    "foods/pizza": [
+      "is a flat round of dough baked with toppings on it",
+      "is baked in minutes in a blazing hot stone oven",
+      "is spread with tomato sauce before its toppings are added",
+      "is sliced into wedges and usually eaten by hand",
+      "is delivered hot to homes in flat square boxes",
+      "is sold by the slice from street counters in New York",
+      "has a crust that may be thin and crisp or thick and chewy",
+      "is topped with pepperoni, mushrooms, olives or peppers",
+      "is often eaten cold as leftovers the next morning",
+      "has dough that is stretched by hand and sometimes spun in the air",
+      "is slid into the oven on a flat long-handled peel",
+      "is sold frozen in supermarkets for quick oven meals"
+    ],
+    "foods/soup": [
+      "is a liquid dish, usually served steaming hot",
+      "is eaten from a bowl with a large round spoon",
+      "is made by simmering vegetables, meat or beans in stock",
+      "can be blended smooth or left chunky with pieces",
+      "is served with crusty bread for dipping",
+      "is given to people with colds to help them feel better",
+      "is sometimes served chilled on hot summer days",
+      "is ladled out of a big pot at the stove",
+      "can be thickened with cream, flour or potatoes",
+      "is sold in cans and packets as a quick lunch",
+      "is often served as a starter before the main course",
+      "is carried in a flask to stay warm on cold days"
+    ],
+    "foods/steak": [
+      "comes from the loin, rib or rump, usually of beef",
+      "is seared in a very hot pan or over a grill",
+      "is ordered rare, medium or well done",
+      "is rested for a few minutes after cooking so juices settle",
+      "has thin streaks of fat running through that add flavour",
+      "is often served with chips and a creamy peppercorn sauce",
+      "is sliced against the grain into strips for serving",
+      "is a centrepiece of barbecues and upmarket grill restaurants",
+      "can be dry-aged for weeks to deepen its flavour and tenderness",
+      "is checked for doneness by pressing it or with a thermometer",
+      "is seasoned simply with salt and pepper before cooking",
+      "stays red or pink inside when cooked only briefly"
+    ],
+    "foods/strawberry": [
+      "has tiny seeds dotted over its outer surface",
+      "is roughly heart-shaped and bright red when ripe",
+      "has a leafy green cap that is pulled off before eating",
+      "grows on low plants that spread by sending out runners",
+      "is picked in early summer, often by visitors at farms",
+      "is boiled with sugar into a sweet red jam",
+      "bruises easily and spoils within a few days of picking",
+      "is sliced and layered with whipped cream on shortcake",
+      "is often grown under long, low tunnels to extend the season",
+      "is dipped in melted chocolate as a treat",
+      "is a popular pink flavour for milkshakes and ice cream",
+      "is soft and juicy with a sweet, slightly tart taste"
+    ],
+    "foods/sushi": [
+      "is made with vinegared rice, often pressed into shape by hand",
+      "is topped or rolled with raw fish such as salmon or tuna",
+      "is often wrapped in thin sheets of dried seaweed",
+      "is dipped lightly in soy sauce before each bite",
+      "is eaten with chopsticks or simply by hand",
+      "is served with pickled ginger and green wasabi",
+      "is cut into bite-sized rounds from a long roll",
+      "is prepared by chefs who spend years learning the craft",
+      "is often served on small plates that ride along a conveyor belt",
+      "began as a way to preserve fish in fermented rice",
+      "can contain avocado and cucumber in rolls without raw fish",
+      "is often rolled up using a flexible bamboo mat"
+    ]
+  },
+  "notes": {
+    "foods/banana": [
+      "\"has tiny dark specks of seed running through its centre\" - in seedless dessert bananas the specks are undeveloped vestigial seeds; a reader may not think of them as seeds"
+    ],
+    "foods/butter": [
+      "\"is about four-fifths milk fat by weight\" - 80% is the legal minimum in the US and EU; European-style butters run to about 82-86%"
+    ],
+    "foods/egg": [
+      "\"sinks in a glass of water when fresh and floats when stale\" - the standard kitchen test; ageing eggs usually tilt or stand on end before they actually float"
+    ],
+    "foods/grape": [
+      "\"is toxic to dogs even in small amounts\" - toxicity is well established but idiosyncratic; some dogs eat a few without harm"
+    ],
+    "foods/honey": [
+      "\"is harvested from wax frames in late summer\" - main harvest timing varies with region and climate, and frames belong to modern hives",
+      "\"keeps almost indefinitely in a sealed jar without spoiling\" - true of properly ripened low-moisture honey; high-moisture honey can ferment"
+    ],
+    "foods/lemon": [
+      "\"grows on small, thorny evergreen trees in warm climates\" - most lemon cultivars bear thorns, but some are nearly thornless"
+    ],
+    "foods/mango": [
+      "\"has sap near the stem that can irritate the skin\" - the sap contains urushiol-related compounds; it affects sensitive people, not everyone"
+    ],
+    "foods/orange": [
+      "\"has a peel that can stay green on the tree in the tropics\" - true (colour change needs cool nights), but may not be common knowledge to a reader",
+      "\"is cut into wedges and handed out at half-time in youth sports\" - a UK/US/Commonwealth custom, not universal",
+      "\"is traditionally tucked into children's Christmas stockings\" - a UK/US/Commonwealth custom, not universal",
+      "\"has fragrant white blossom used in perfume and at weddings\" - neroli is from the bitter-orange blossom; the bridal orange-blossom custom is largely historical"
+    ],
+    "foods/strawberry": [
+      "\"has tiny seeds dotted over its outer surface\" - botanically these are achenes (tiny fruits each holding a seed); everyday usage calls them seeds"
+    ],
+    "foods/sushi": [
+      "\"began as a way to preserve fish in fermented rice\" - refers to narezushi, the ancestral form; accurate but not everyday knowledge"
+    ]
+  }
+}
