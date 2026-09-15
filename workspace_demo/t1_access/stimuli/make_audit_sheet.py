@@ -65,11 +65,41 @@ def main() -> int:
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
         w.writeheader()
         w.writerows(rows)
-    (out / "CHECKLIST.md").write_text(CHECKLIST)
+    (out / "CHECKLIST.md").write_text(CHECKLIST + PROPERTY_CHECKLIST)
     digest = hashlib.sha256(json.dumps([r["clause"] for r in rows]).encode()).hexdigest()
     print(f"{len(rows)} clauses, {sum(bool(r['marked_decisive']) for r in rows)} marked decisive, "
           f"{sum(bool(r['drafter_note']) for r in rows)} with drafter notes -> {path} (clauses sha256 {digest[:12]})")
+
+    props = HERE / "drafts" / "properties_draft.json"
+    if props.exists():
+        items = json.loads(props.read_text())["items"]
+        prow = [{"id": it["id"], "concept": it["concept"], "foil": it["foil"], "question": it["question"],
+                 "answer_for_concept": it["answer"], "answer_for_foil": it["foil_answer"], "drafter_note": it.get("note", ""),
+                 "R1_both_answers_correct": "", "R1_unambiguous": "", "R1_comment": "",
+                 "R2_both_answers_correct": "", "R2_unambiguous": "", "R2_comment": "", "resolution": ""}
+                for it in items]
+        ppath = out / f"property_audit_{stamp}.csv"
+        with open(ppath, "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.DictWriter(f, fieldnames=list(prow[0]))
+            w.writeheader()
+            w.writerows(prow)
+        print(f"{len(prow)} property items -> {ppath}")
     return 0
+
+
+PROPERTY_CHECKLIST = """
+# Property item audit (H3 secondary task, PREREGISTRATION_T1_model.md §11)
+
+Each row is one yes/no question asked after a description of the concept. In the experiment the model's preference for
+" Yes" over " No" is scored, and the target's representation is swapped for its foil's, so the two answers must be
+opposite. For every item mark:
+- **both_answers_correct**: `y` if "answer_for_concept" is correct for the concept AND "answer_for_foil" is correct for
+  the foil, `n` otherwise.
+- **unambiguous**: `y` if an ordinary educated adult would give both answers at once without dispute (no dependence on
+  species, variety, word sense, era or culture), `n` otherwise.
+- **comment**: optional; propose a better question if you mark n.
+An item passes when both readers mark y and y; disagreements are resolved together and recorded in "resolution".
+"""
 
 
 if __name__ == "__main__":

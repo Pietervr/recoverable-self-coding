@@ -17,3 +17,15 @@ For every clause mark:
 A clause passes when both readers mark true = y, names = n, and (unless marked_decisive) decisive = n. Disagreements
 are resolved by the two readers together; the resolution is recorded in the "resolution" column. The audited bank
 is then frozen as stimuli/clues.json with the readers' names and the date.
+
+# Property item audit (H3 secondary task, PREREGISTRATION_T1_model.md §11)
+
+Each row is one yes/no question asked after a description of the concept. In the experiment the model's preference for
+" Yes" over " No" is scored, and the target's representation is swapped for its foil's, so the two answers must be
+opposite. For every item mark:
+- **both_answers_correct**: `y` if "answer_for_concept" is correct for the concept AND "answer_for_foil" is correct for
+  the foil, `n` otherwise.
+- **unambiguous**: `y` if an ordinary educated adult would give both answers at once without dispute (no dependence on
+  species, variety, word sense, era or culture), `n` otherwise.
+- **comment**: optional; propose a better question if you mark n.
+An item passes when both readers mark y and y; disagreements are resolved together and recorded in "resolution".
