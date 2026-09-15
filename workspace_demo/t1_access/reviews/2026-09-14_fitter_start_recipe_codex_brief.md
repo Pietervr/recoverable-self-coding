@@ -122,3 +122,43 @@ put to the owner and approved.
 | §4 before adoption | **Accepted.** The M3H 16-versus-32-wide check at both sizes (first 16 an exact prefix; the extra batch and reporting rule frozen before running); the paired M2S comparison; then the frozen policy through the actual nested selection path, near-boundary mixture alternatives included, on independent validation seeds, reporting coverage, false-positive rate, power and failure frequency with Monte Carlo uncertainty, benchmarked on the intended machine. | proposal to the owner (R052) |
 | §5 cost and scope | **Accepted.** Pair 2,009 s against 425 s outer (4.72× on the full-96 basis; 4.65× on the 70-unit per-start rates); the all-member union 8.29× per nested layer, 6.23× with M2S cold-only — linear extrapolations to be re-measured. A policy A defines θ(g, A): the original estimate, its bootstrap and the independent reference means use the same A; the running Mac probe, the Stockholm M2B control and the ω-2 bank stay old-policy development evidence, never relabelled or pooled; a bounded development and validation plan is costed under the USD 3,000 cap before any spending. | `rsc_t1_simulation_design.md` §6 |
 | §6 corrections | **Accepted.** Reference counts 88/84 (not "32 cold, 64 jittered, 32 skew"); M2K's challenge 4 skew + 12 wide; the outer-oracle proxy is not inner selection and cannot show the confirmatory decision unchanged; the report's per-setting Δ columns kept only the last replicate (M2S ω 1/2 mean changes +0.2285/+0.2429); the trigger used setting-mean heterogeneity, not a within-fold statistic; the report's "ω 0.5 no misses" contradicts its table (one miss); six-decimal rounding changes tie selection — any amended archive keeps full precision and deterministic ties; M3V's zero holds for the second 16 narrow, 16 wide and 32/64 narrow, not for every added draw. | `rsc_t1_simulation_design.md` §6 |
+
+## PC JOB C result — M3H 16 versus 32 wide starts (15 Sept 2026, Claude, session Entropy SI)
+
+Brief `prompts/2026-09-15_t1_pc_m3h_wide32_check.txt` (Unimog de88e712); PC commit c02e559. The package is
+`pc_m3h_wide32_2026-09-15/`, beside this brief (untracked): on the Mac, SHA256SUMS and all 65 member hashes pass, and the
+csv (9c35a823…), md (1719318b…) and zip (e7d5d27d…) hashes equal epc II's message. 64 balanced units; 128 of 128
+start-equality checks pass; only the 16 new starts were fitted, at full precision.
+
+| Reference | cold (outer / inner / of 128) | cold + 16 wide | cold + 32 wide |
+|---|---|---|---|
+| R_old (the audit's 88 starts) | 15 / 12 / 27 | 3 / 2 / 5 | 2 / 2 / 4 |
+| R_new (R_old + the 16 new starts) | 15 / 14 / 29 | 6 / 4 / 10 | 2 / 2 / 4 |
+
+**Decision under the rule declared before the run** (pooled under R_new, at least 3 fewer misses of 128): **cold + 32 wide
+becomes the M3H development candidate** (10 → 4; 8 → 4 without the exact duplicate). The following qualifications are
+recorded with the decision, not used to overturn it:
+- **Asymmetric reference.** R_new contains the 16 new starts, which only the 32-wide recipe holds, so an optimum found only
+  by them counts against 16 wide. Under R_old the gain is one fit (5 → 4). The six R_new rescues are four distinct datasets.
+- **Duplicate datasets.** `audit_fits.settings()` seeds every setting 500000 + rep, so M2B {} and M2K {α 0} are
+  bitwise-identical, and M2H {τ 0} and M2S {ω 0} agree to 6.5e-8. The 64 units are 60 distinct datasets (56 counting the
+  near pair). Without the exact duplicate the paired difference is +0.033 [0.000, 0.075]. The same duplication runs through
+  the JOB B fit audit's pooled rates, per-setting tables and 16-setting heterogeneity correlation, on which Codex's record
+  above relied. The cloud calibration is not affected: `simulate.dataset_seed` includes the member index.
+- **Small out-of-sample gain.** The paired held-out change 16 → 32 averages −0.00026 nat per trial (best −0.019, worst
+  +0.0004; 33 fits better, 22 worse, 73 unchanged).
+- **The audit's reference was not saturated for M3H.** The new starts beat its 88-start best by more than 0.5 nat in 6
+  fits (4 distinct datasets; up to 130 nat), so the audit's M3H gaps are lower bounds.
+- **Cost.** 40.6 s per added start at the outer size and 26.8 s at the inner, with seven workers on the PC's 4 physical
+  cores (22.0 s and 14.8 s when run alone); 2.75 h of wall time. Seven workers deliver about four processes' throughput.
+- **"Newly missed" is empty by construction**, because cold + 32 wide contains cold + 16 wide; the brief's wording was
+  wrong, and the zero is not a finding.
+- **Ties.** 299 of 640 selections tie at the best log-likelihood (267 between different solutions); none matters out of
+  sample (at most 4.5e-6 nat per trial).
+- **Provenance.** 63 units were fitted by m3h_wide32.py blob e24f2a37 (kept in the PC object store, in no commit; it
+  differs from the committed d12320d8 only in reporting). The smoke unit was fitted by an uncommitted batch version that
+  is not preserved. Batch and per-start fitting were verified bit-identical on two starts.
+
+**Consequence for the nested validation.** Fit M3H with 32 wide starts and a per-start archive, so that 16 wide is scored by
+prefix from the same fits inside the actual nested procedure. Build validation datasets with member-distinct seeds (as
+`simulate.dataset_seed` does), never the audit's shared seed.
