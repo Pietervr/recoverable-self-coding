@@ -129,7 +129,7 @@ SHA-256 `af47b85b2a9fd24222dfb73ba6781feb287d702169fa4463ebf3ec9d313f4818`.
 Its local manifest and complete `paper_entropy_arxiv_release.md` were read;
 the manifest's old candidate-status text is historical, and the publication
 receipt owns actual status. The current `rsc_publication_strategy.md` has been
-read in order through line 460; resume at 461 (do not restart). Its latest
+read in order through line 700; resume at 701 (do not restart). Its latest
 relevant status agrees with the release document. Primary Sergent source and
 result reading is complete; still check file hashes against the archived
 producer `e341319` and shared BMS before asserting computational independence.
