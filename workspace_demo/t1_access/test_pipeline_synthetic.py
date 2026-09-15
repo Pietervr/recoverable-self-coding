@@ -62,6 +62,7 @@ def make_run(name: str, split: str, conds, levels, seed: int) -> Path:
         np.save(out / f"res_{s:05d}.npy", r)
         np.save(out / f"answer_logits_{s:05d}.npy", a)
         np.save(out / f"variant_logits_{s:05d}.npy", v)
+        np.save(out / f"answer_ranks_{s:05d}.npy", (np.argsort(np.argsort(-a, axis=1), axis=1) + 1).astype(np.int32))
     (out / "trials.jsonl").write_text("\n".join(lines) + "\n")
     (out / "run_header.json").write_text(json.dumps({
         "identity": {"answer_ids": answer_ids, "variant_ids": variant_ids, "synthetic": True},

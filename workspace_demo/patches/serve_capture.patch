@@ -19,42 +19,47 @@ diff --git a/jlens_qwen/capture_endpoint.py b/jlens_qwen/capture_endpoint.py
 new file mode 100644
 --- /dev/null
 +++ b/jlens_qwen/capture_endpoint.py
-@@ -0,0 +1,443 @@
-+"""POST /api/capture — the T1 single-pass capture path (local patch).
+@@ -0,0 +1,573 @@
++"""POST /api/capture — the T1 single-pass capture path (local patch, t1-capture-2).
 +
-+Contract: Recoverable-Self-Coding workspace_demo/t1_access/PREREGISTRATION_T1_model.md §4.
-+Shipped as workspace_demo/patches/serve_capture.patch (this module plus a
-+hook at the end of serve.py); the upstream clone is never vendored.
++Contract: Recoverable-Self-Coding workspace_demo/t1_access/PREREGISTRATION_T1_model.md §4 (with the 15 Sept 2026
++draft amendments: native bfloat16, closed-set R3 with open-vocabulary ranks). Shipped as
++workspace_demo/patches/serve_capture.patch (this module plus a hook at the end of serve.py); the upstream clone is
++never vendored. Revision 2 answers the Codex record reviews/2026-09-15_r084_capture_endpoint_codex_record.md.
 +
 +One request is one trial:
-+- explicit ``input_ids`` built by the caller's tokenizer code (no chat
-+  template, no special tokens added here); longer than ``MAX_CAPTURE_TOKENS``
-+  is rejected, never truncated;
++- explicit ``input_ids`` built by the caller's tokenizer code (no chat template, no special tokens added here);
++  longer than ``MAX_CAPTURE_TOKENS`` is rejected, never truncated;
 +- a NEW ``StreamSession`` per request and ONE ``extend`` over all ids, batch 1;
-+- ``capture_layers`` (default every layer): the post-layer, pre-final-norm
-+  residual ``acts[l]`` at ``readout_positions``, returned as the model's
-+  native-dtype bytes (bfloat16 carried bit for bit through a uint16 view);
-+- the final position's logits: logsumexp (float32), the logits of
-+  ``request_token_ids``, the exact top-k (id, logit) pairs, and the sha256 of
-+  the full native logits vector;
-+- ``edits`` (optional) installed with ``StreamSession.set_edits``, so each edit
-+  rewrites its layer's rows at its global positions inside the same pass,
-+  before that layer's residual is captured and before downstream layers read
-+  it. ``edits`` absent = the plain capture (``set_edits`` never called);
-+  ``edits: []`` = an empty edit list (``set_edits([])``).
++- ``capture_layers`` (default every layer): the post-layer, pre-final-norm residual ``acts[l]`` at
++  ``readout_positions``, returned as native-dtype bytes (bfloat16 carried bit for bit through a uint16 view);
++- the final position's logits: logsumexp (float32), for every requested id its logit and its open-vocabulary
++  rank (1 = argmax; ties ordered by ascending token id, the order of the returned top-k), the exact top-k
++  (id, logit) pairs, and the sha256 of the full native logits vector;
++- ``edits`` (optional) installed with ``StreamSession.set_edits``: each edit rewrites its layer's rows at its global
++  positions inside the same pass, before that layer's residual is captured and before downstream layers read it.
++  ``edits`` absent = the plain capture; ``edits: []`` = an empty edit list.
 +
-+Edit modes (``alpha`` is the dose λ):
++Edit modes and doses:
 +- ``steer``:      h + λ v_t,  v_t = J_lᵀ W_U[t] (``j_lens_vectors_lite``)
-+- ``ablate``:     h − λ P_V h, V = {v_t : t ∈ ablate_token_ids} (the ``ablate_rows`` form)
++- ``ablate``:     h − λ P_V h, V = {v_t : t ∈ ablate_token_ids}
 +- ``swap_delta``: h + λ Δ,    Δ = patch_swap(h, α=1) − h for token_id → target_id
-+- ``patch``:      the rows are replaced by the supplied vectors (any listed dtype)
-+``target_norms`` (steer, swap_delta) writes a per-position ||Δ|| instead of λ —
-+the per-layer norm matching of §11 — and leaves a position unedited, flagged
-+``undefined``, where the raw ||Δ|| < ``norm_floor_rel`` · ||h||.
-+Per edit and position the log carries ||h||, the raw ||Δ|| and the written
-+||Δh|| (after the cast back to the residual dtype).
++- ``patch``:      the rows are replaced by the supplied vectors; no dose parameters are accepted
++The dose is λ = ``alpha``, OR (steer, swap_delta) a per-position written norm ``target_norms``, in which case
++``alpha`` must stay 1. **λ = 0 without target_norms is the zero dose: an exact identity** — no vector or delta is
++evaluated, the rows are returned unchanged and keep their native bits through the scatter (the sham of §11).
++With ``target_norms`` a position whose raw ||Δ|| < ``norm_floor_rel`` · ||h|| is left exactly unedited and flagged.
++Per edit and position the log carries ||h||, the requested norm, the raw ||Δ|| and the written ||Δh|| (after the
++cast back to the residual dtype), and the swap/ablate basis condition number. A basis with condition number above
++``COND_MAX``, nonfinite vectors or patch rows, and nonfinite residuals or logits are rejected with HTTP 422 and a
++reason; nothing is regularised silently.
 +
-+Read-only: no server state is changed; the GPU lock is held for the pass.
++Provenance: at import this module hashes every loaded ``jlens_qwen`` source; at startup (after the model and lens
++load) it builds a manifest of content hashes — the resolved model snapshot's files, the resolved lens file, the
++loaded sources (re-hashed and compared with the import-time hashes), upstream HEAD with the tracked diff and the
++untracked sources, the mlx binaries and mlx_lm sources, runtime and machine, and the GDN dispatch flags. Its
++``identity_sha256`` excludes paths, times and process ids, so a fresh process from the same pinned files has the
++same identity. Captures are refused until the manifest exists, and whenever the loaded sources changed.
 +"""
 +
 +from __future__ import annotations
@@ -62,12 +67,14 @@ new file mode 100644
 +import asyncio
 +import base64
 +import hashlib
++import json
 +import math
 +import os
 +import platform
 +import subprocess
 +import sys
 +import time
++from pathlib import Path
 +from typing import Literal
 +
 +import mlx.core as mx
@@ -75,20 +82,41 @@ new file mode 100644
 +from fastapi import APIRouter, HTTPException
 +from pydantic import BaseModel, Field
 +
-+PATCH_ID = "t1-capture-1"
++from jlens_qwen import interventions as _interventions  # bound here so its bytes are part of the import manifest
++
++PATCH_ID = "t1-capture-2"
 +MAX_CAPTURE_TOKENS = 1024
 +MAX_TOP_K = 4096
 +MAX_LENS_VECTORS = 64 * 512
-+
-+with open(__file__, "rb") as _f:
-+    SOURCE_SHA256 = hashlib.sha256(_f.read()).hexdigest()
++COND_MAX = 1e6
 +
 +router = APIRouter()
 +
 +_DTYPE_NAMES = {"bfloat16": mx.bfloat16, "float16": mx.float16, "float32": mx.float32}
 +_ITEMSIZE = {"bfloat16": 2, "float16": 2, "float32": 4}
 +_hidden_dtype: mx.Dtype | None = None
-+_versions_cache: dict | None = None
++_MANIFEST: dict = {"ready": False}
++
++
++def sha256_file(path) -> str:
++    h = hashlib.sha256()
++    with open(path, "rb") as f:
++        for chunk in iter(lambda: f.read(1 << 24), b""):
++            h.update(chunk)
++    return h.hexdigest()
++
++
++def _loaded_jlens_sources() -> dict:
++    out = {}
++    for name, mod in sorted(sys.modules.items()):
++        if name == "jlens_qwen" or name.startswith("jlens_qwen."):
++            f = getattr(mod, "__file__", None)
++            if f and os.path.exists(f):
++                out[name] = sha256_file(f)
++    return out
++
++
++IMPORT_SOURCES = _loaded_jlens_sources()
 +
 +
 +def _server():
@@ -122,6 +150,23 @@ new file mode 100644
 +    return mx.array(np.frombuffer(buf, dtype=npdt).reshape(shape))
 +
 +
++def ranks_of(logits: np.ndarray, ids: list[int]) -> tuple[np.ndarray, list[int]]:
++    """(the stable descending order, the 1-based open-vocabulary rank of each id). Ties: ascending token id."""
++    order = np.argsort(-logits, kind="stable")
++    rank = np.empty(order.size, dtype=np.int64)
++    rank[order] = np.arange(1, order.size + 1)
++    return order, [int(rank[t]) for t in ids]
++
++
++def basis_condition(V: np.ndarray) -> float:
++    """Condition number of the Gram matrix of the rows of V (float64); inf when singular or nonfinite."""
++    V = np.asarray(V, dtype=np.float64)
++    if not np.all(np.isfinite(V)):
++        return math.inf
++    w = np.linalg.eigvalsh(V @ V.T)
++    return math.inf if w.min() <= 0 else float(w.max() / w.min())
++
++
 +class CaptureEdit(BaseModel):
 +    mode: Literal["steer", "ablate", "swap_delta", "patch"]
 +    layer: int
@@ -152,6 +197,10 @@ new file mode 100644
 +
 +def _strictly_increasing(xs: list[int]) -> bool:
 +    return all(b > a for a, b in zip(xs, xs[1:]))
++
++
++def is_zero_dose(e: CaptureEdit) -> bool:
++    return e.mode != "patch" and e.target_norms is None and e.alpha == 0.0
 +
 +
 +def validate(req: CaptureRequest, *, n_layers: int, d_model: int, vocab_rows: int,
@@ -200,6 +249,8 @@ new file mode 100644
 +                raise HTTPException(400, f"{where}: ablate requires distinct ablate_token_ids")
 +            ids = list(e.ablate_token_ids)
 +        else:
++            if e.alpha != 1.0 or e.target_norms is not None:
++                raise HTTPException(400, f"{where}: patch replaces rows and takes no alpha or target_norms")
 +            if e.vectors_b64 is None or e.vectors_dtype is None:
 +                raise HTTPException(400, f"{where}: patch requires vectors_b64 and vectors_dtype")
 +            want = len(p) * d_model * _ITEMSIZE[e.vectors_dtype]
@@ -211,6 +262,9 @@ new file mode 100644
 +        if e.target_norms is not None:
 +            if e.mode not in ("steer", "swap_delta"):
 +                raise HTTPException(400, f"{where}: target_norms applies to steer and swap_delta only")
++            if e.alpha != 1.0:
++                raise HTTPException(400, f"{where}: target_norms sets the dose; alpha must stay 1 "
++                                         "(a zero dose is alpha 0 without target_norms)")
 +            if len(e.target_norms) != len(p) or not all(math.isfinite(x) and x >= 0 for x in e.target_norms):
 +                raise HTTPException(400, f"{where}: target_norms must be finite, >= 0, one per position")
 +        if not (math.isfinite(e.norm_floor_rel) and e.norm_floor_rel >= 0):
@@ -222,12 +276,17 @@ new file mode 100644
 +    from jlens_qwen.interventions import patch_swap_rows
 +
 +    mode, lam = e.mode, float(e.alpha)
++    zero = is_zero_dose(e)
 +    tn = mx.array(e.target_norms, dtype=mx.float32) if e.target_norms is not None else None
 +    floor = float(e.norm_floor_rel)
 +
 +    def fn(h: mx.array) -> mx.array:
 +        rec["_calls"] = rec.get("_calls", 0) + 1
-+        if mode == "patch":
++        rec["_h_norm"] = mx.linalg.norm(h, axis=-1)
++        rec["_neg_zero"] = mx.sum(mx.logical_and(h == 0, mx.view(h, mx.uint32) != 0))
++        if zero:
++            out = h
++        elif mode == "patch":
 +            out = payload
 +        else:
 +            if mode == "steer":
@@ -243,13 +302,11 @@ new file mode 100644
 +            if tn is None:
 +                out = h + lam * d
 +            else:
-+                ok = raw >= floor * mx.linalg.norm(h, axis=-1)
++                ok = raw >= floor * rec["_h_norm"]
 +                scale = mx.where(ok, tn / mx.maximum(raw, 1e-30), 0.0)
-+                out = h + scale[:, None] * d
++                out = mx.where(ok[:, None], h + scale[:, None] * d, h)
 +                rec["_ok"] = ok
-+        rec["_h_norm"] = mx.linalg.norm(h, axis=-1)
 +        rec["_written"] = mx.linalg.norm(out.astype(hidden_dtype).astype(mx.float32) - h, axis=-1)
-+        rec["_neg_zero"] = mx.sum(mx.logical_and(h == 0, mx.view(h, mx.uint32) != 0))
 +        return out
 +
 +    return fn
@@ -262,28 +319,43 @@ new file mode 100644
 +    d_model = S._model.d_model
 +    edits = []
 +    for i, e in enumerate(req.edits or []):
-+        rec = {"index": i, "mode": e.mode, "layer": e.layer, "positions": list(e.positions),
-+               "alpha": e.alpha}
++        rec = {"index": i, "mode": e.mode, "layer": e.layer, "positions": list(e.positions), "alpha": e.alpha,
++               "zero_dose": is_zero_dose(e), "requested_norm": e.target_norms, "basis_condition": None}
 +        records.append(rec)
-+        if e.mode == "steer":
++        payload = None
++        if rec["zero_dose"]:
++            pass  # exact identity: no vector or delta is evaluated
++        elif e.mode == "steer":
 +            v = j_lens_vectors_lite(S._lens, S._model, e.layer, [e.token_id])[0]
 +            mx.eval(v)
-+            rec["v_norm"] = float(mx.linalg.norm(v).item())
++            vn = float(mx.linalg.norm(v).item())
++            if not math.isfinite(vn) or vn == 0.0:
++                raise HTTPException(422, f"edits[{i}]: steer vector is zero or nonfinite")
++            rec["v_norm"] = vn
 +            payload = v
-+        elif e.mode == "ablate":
-+            V = j_lens_vectors_lite(S._lens, S._model, e.layer, list(e.ablate_token_ids))
-+            G = gram_inv(V)
-+            mx.eval(V, G)
-+            payload = (V, G)
-+        elif e.mode == "swap_delta":
-+            vs = j_lens_vectors_lite(S._lens, S._model, e.layer, [e.token_id, e.target_id])
-+            V, inv = make_swap_basis(vs[0], vs[1])
-+            mx.eval(V, inv)
-+            payload = (V, inv)
++        elif e.mode in ("ablate", "swap_delta"):
++            ids = list(e.ablate_token_ids) if e.mode == "ablate" else [e.token_id, e.target_id]
++            V = j_lens_vectors_lite(S._lens, S._model, e.layer, ids)
++            mx.eval(V)
++            cond = basis_condition(np.array(V))
++            rec["basis_condition"] = cond if math.isfinite(cond) else "inf"
++            if not cond <= COND_MAX:
++                raise HTTPException(422, f"edits[{i}]: {e.mode} basis is ill-conditioned or nonfinite "
++                                         f"(condition number {cond:.3g} > {COND_MAX:g}); not regularised")
++            if e.mode == "ablate":
++                G = gram_inv(V)
++                mx.eval(G)
++                payload = (V, G)
++            else:
++                Vs, inv = make_swap_basis(V[0], V[1])
++                mx.eval(Vs, inv)
++                payload = (Vs, inv)
 +        else:
 +            rows = from_bytes(base64.b64decode(e.vectors_b64), e.vectors_dtype,
 +                              (len(e.positions), d_model)).astype(mx.float32)
 +            mx.eval(rows)
++            if not bool(mx.all(mx.isfinite(rows)).item()):
++                raise HTTPException(422, f"edits[{i}]: patch vectors are not finite")
 +            payload = rows
 +        edits.append(LayerEdit(layer=e.layer, fn=_edit_fn(e, payload, rec, hidden_dtype),
 +                               positions=tuple(e.positions), label=f"capture[{i}] {e.mode}"))
@@ -300,6 +372,8 @@ new file mode 100644
 +
 +
 +def _run(S, req: CaptureRequest) -> dict:
++    from jlens_qwen import patch_gdn
++
 +    t0 = time.perf_counter()
 +    model = S._model
 +    hidden_dtype = _get_hidden_dtype(S)
@@ -319,10 +393,16 @@ new file mode 100644
 +    stack = mx.stack([acts[l][0, pos] for l in layers])  # [L, P, D], native dtype
 +    lf = logits.astype(mx.float32)
 +    lse = mx.logsumexp(lf)
-+    lazy = [stack, lse]
++    finite_rows = mx.all(mx.isfinite(stack.astype(mx.float32)), axis=(1, 2))
++    lazy = [stack, lse, finite_rows]
 +    for rec in records:
 +        lazy.extend(v for k, v in rec.items() if k.startswith("_") and isinstance(v, mx.array))
 +    mx.eval(*lazy)
++    nonfinite_layers = [layers[i] for i, ok in enumerate(np.array(finite_rows).tolist()) if not ok]
++    lf_np = np.array(lf)
++    if nonfinite_layers or not np.all(np.isfinite(lf_np)):
++        raise HTTPException(422, f"nonfinite output: residual layers {nonfinite_layers}, "
++                                 f"final logits finite={bool(np.all(np.isfinite(lf_np)))}")
 +
 +    edit_log = []
 +    for rec in records:
@@ -336,13 +416,15 @@ new file mode 100644
 +        out["neg_zero_inputs"] = int(rec["_neg_zero"].item())
 +        edit_log.append(out)
 +
-+    lf_np = np.array(lf)
-+    top = np.argsort(-lf_np, kind="stable")[: req.top_k]
++    order, ranks = ranks_of(lf_np, list(req.request_token_ids))
++    top = order[: req.top_k]
 +    res_bytes = to_bytes(stack)
 +    logit_bytes = to_bytes(logits)
 +    t3 = time.perf_counter()
 +    return {
 +        "patch_id": PATCH_ID,
++        "startup_identity_sha256": _MANIFEST.get("identity_sha256"),
++        "gdn_inference_kernel": bool(patch_gdn._INFERENCE_KERNEL),
 +        "n_tokens": len(req.input_ids),
 +        "input_ids_sha256": hashlib.sha256(np.asarray(req.input_ids, dtype=np.int64).tobytes()).hexdigest(),
 +        "capture_layers": layers,
@@ -354,7 +436,9 @@ new file mode 100644
 +        "final_logits": {"dtype": dtype_name(logits.dtype), "n": int(logits.shape[0]),
 +                         "sha256": hashlib.sha256(logit_bytes).hexdigest()},
 +        "logsumexp": float(lse.item()),
-+        "requested": [{"id": int(t), "logit": float(lf_np[t])} for t in req.request_token_ids],
++        "requested": [{"id": int(t), "logit": float(lf_np[t]), "rank": r}
++                      for t, r in zip(req.request_token_ids, ranks)],
++        "rank_ties": "ascending token id",
 +        "top_ids": top.tolist(),
 +        "top_logits": lf_np[top].tolist(),
 +        "edit_log": edit_log,
@@ -362,64 +446,105 @@ new file mode 100644
 +    }
 +
 +
-+def versions(S) -> dict:
-+    """Model, lens, runtime and machine identity for the run log (computed once)."""
-+    global _versions_cache
-+    if _versions_cache is None:
-+        import mlx_lm
++def _git(repo: Path, *args: str) -> bytes:
++    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, timeout=60).stdout
 +
-+        try:
-+            from huggingface_hub import snapshot_download
 +
-+            snapshot = snapshot_download(S._model_id, local_files_only=True)
-+        except Exception as exc:  # recorded, not fatal
-+            snapshot = f"unresolved: {exc!r}"
-+        try:
-+            hw_model = subprocess.run(["sysctl", "-n", "hw.model"], capture_output=True,
-+                                      text=True, timeout=5).stdout.strip()
-+        except Exception as exc:
-+            hw_model = f"unresolved: {exc!r}"
-+        try:
-+            device = {k: (v if isinstance(v, (int, float, str)) else str(v))
-+                      for k, v in mx.metal.device_info().items()}
-+        except Exception as exc:
-+            device = f"unresolved: {exc!r}"
-+        with open(S.__file__, "rb") as f:
-+            serve_sha = hashlib.sha256(f.read()).hexdigest()
-+        lens = S._lens
-+        _versions_cache = {
-+            "patch_id": PATCH_ID,
-+            "capture_endpoint_sha256": SOURCE_SHA256,
-+            "serve_sha256": serve_sha,
-+            "model_id": S._model_id,
-+            "model_snapshot": snapshot,
-+            "lens_path": os.environ.get("JLENS_PATH"),
-+            "lens_n_prompts": lens.n_prompts if lens is not None else None,
-+            "lens_source_layers": list(lens.source_layers) if lens is not None else [],
-+            "n_layers": S._model.n_layers,
-+            "d_model": S._model.d_model,
-+            "vocab_rows": int(S._model._lm_head.weight.shape[0]),
-+            "hidden_dtype": dtype_name(_get_hidden_dtype(S)),
-+            "max_capture_tokens": MAX_CAPTURE_TOKENS,
-+            "mlx": mx.__version__,
-+            "mlx_lm": mlx_lm.__version__,
-+            "numpy": np.__version__,
-+            "python": sys.version.split()[0],
-+            "platform": platform.platform(),
-+            "mac_ver": platform.mac_ver()[0],
-+            "hw_model": hw_model,
-+            "metal_device": device,
-+        }
-+    return _versions_cache
++def _tree_digest(root: Path, suffixes: tuple[str, ...]) -> str:
++    h = hashlib.sha256()
++    for p in sorted(root.rglob("*")):
++        if p.is_file() and p.suffix in suffixes and "__pycache__" not in p.parts:
++            h.update(str(p.relative_to(root)).encode())
++            h.update(sha256_file(p).encode())
++    return h.hexdigest()
++
++
++def _build_manifest(S) -> None:
++    import mlx_lm
++    from huggingface_hub import snapshot_download
++
++    from jlens_qwen import custom_gdn_patch, patch_gdn
++
++    t0 = time.time()
++    snapshot = Path(snapshot_download(S._model_id, local_files_only=True))
++    lens_path = S.resolve_lens_path(os.environ.get("JLENS_PATH"), str(S._repo_root / "data" / "lens"))
++    repo = S._repo_root
++    untracked = [x for x in _git(repo, "ls-files", "--others", "--exclude-standard").decode().splitlines()
++                 if x.endswith(".py")]
++    now_sources = _loaded_jlens_sources()
++    changed = sorted(k for k in IMPORT_SOURCES if now_sources.get(k) != IMPORT_SOURCES[k])
++    mlx_pkg = Path(mx.__file__).parent
++    try:
++        device = mx.metal.device_info()
++        device = {k: (v if isinstance(v, (int, float, str, bool)) else str(v)) for k, v in sorted(device.items())}
++    except Exception as exc:
++        device = f"unresolved: {exc!r}"
++    hw_model = subprocess.run(["sysctl", "-n", "hw.model"], capture_output=True, text=True).stdout.strip()
++    lens = S._lens
++    identity = {
++        "patch_id": PATCH_ID, "cond_max": COND_MAX, "max_capture_tokens": MAX_CAPTURE_TOKENS,
++        "model_id": S._model_id,
++        "model_files_sha256": {p.name: sha256_file(p) for p in sorted(snapshot.iterdir()) if p.is_file()},
++        "lens_sha256": sha256_file(lens_path) if lens_path else None,
++        "lens_n_prompts": lens.n_prompts if lens is not None else None,
++        "lens_source_layers": list(lens.source_layers) if lens is not None else [],
++        "n_layers": S._model.n_layers, "d_model": S._model.d_model,
++        "vocab_rows": int(S._model._lm_head.weight.shape[0]), "hidden_dtype": dtype_name(_get_hidden_dtype(S)),
++        "loaded_sources_sha256": IMPORT_SOURCES,
++        "upstream_head": _git(repo, "rev-parse", "HEAD").decode().strip(),
++        "upstream_tracked_diff_sha256": hashlib.sha256(_git(repo, "diff", "HEAD")).hexdigest(),
++        "upstream_untracked_sources_sha256": {x: sha256_file(repo / x) for x in sorted(untracked)},
++        "mlx": mx.__version__, "mlx_binaries_sha256": _tree_digest(mlx_pkg, (".so", ".dylib", ".metallib")),
++        "mlx_lm": mlx_lm.__version__, "mlx_lm_sources_sha256": _tree_digest(Path(mlx_lm.__file__).parent, (".py",)),
++        "numpy": np.__version__, "python": sys.version.split()[0],
++        "macos": platform.mac_ver()[0], "machine": platform.machine(), "hw_model": hw_model, "metal_device": device,
++        "gdn_dispatch_at_startup": {"patch_gdn": bool(patch_gdn._PATCHED),
++                                    "checkpoint": bool(patch_gdn._CHECKPOINT_APPLIED),
++                                    "inference_kernel": bool(patch_gdn._INFERENCE_KERNEL),
++                                    "custom_vjp": bool(custom_gdn_patch._PATCHED_CUSTOM)},
++    }
++    ident_json = json.dumps(identity, sort_keys=True)
++    _MANIFEST.update({
++        "ready": not changed,
++        "refusal": f"loaded sources changed on disk after import: {changed}; restart the server" if changed else None,
++        "identity": identity,
++        "identity_sha256": hashlib.sha256(ident_json.encode()).hexdigest(),
++        "metadata": {"model_snapshot": str(snapshot), "lens_path": lens_path, "upstream_repo": str(repo),
++                     "started_at": time.strftime("%Y-%m-%dT%H:%M:%S"), "pid": os.getpid(),
++                     "manifest_seconds": round(time.time() - t0, 1)},
++    })
++    runs = S._repo_root.parent.parent / "runs"
++    if runs.is_dir():
++        (runs / f"capture_startup_{time.strftime('%Y%m%dT%H%M%S')}.json").write_text(
++            json.dumps({k: v for k, v in _MANIFEST.items()}, indent=1))
++    print(f"CAPTURE: startup manifest {_MANIFEST['identity_sha256'][:12]} ready={_MANIFEST['ready']} "
++          f"({_MANIFEST['metadata']['manifest_seconds']} s)", flush=True)
++
++
++@router.on_event("startup")
++async def _startup_manifest():
++    S = _server()
++    if S._model is None:
++        return
++    await asyncio.to_thread(_build_manifest, S)
++
++
++def _require_ready():
++    if not _MANIFEST.get("ready"):
++        raise HTTPException(503, _MANIFEST.get("refusal") or "startup manifest not ready")
 +
 +
 +@router.get("/api/capture/info")
 +async def capture_info():
 +    S = _server()
-+    if S._model is None:
-+        raise HTTPException(503, "model not loaded")
-+    async with S._gpu_lock:
-+        return await asyncio.to_thread(versions, S)
++    if S._model is None or "identity" not in _MANIFEST:
++        raise HTTPException(503, "model or startup manifest not ready")
++    ident, meta = _MANIFEST["identity"], _MANIFEST["metadata"]
++    return {"patch_id": PATCH_ID, "ready": _MANIFEST["ready"], "refusal": _MANIFEST["refusal"],
++            "identity": ident, "identity_sha256": _MANIFEST["identity_sha256"], "metadata": meta,
++            "model_snapshot": meta["model_snapshot"], "lens_path": meta["lens_path"],
++            "n_layers": ident["n_layers"], "d_model": ident["d_model"], "vocab_rows": ident["vocab_rows"],
++            "hidden_dtype": ident["hidden_dtype"], "max_capture_tokens": MAX_CAPTURE_TOKENS}
 +
 +
 +@router.post("/api/capture")
@@ -428,6 +553,7 @@ new file mode 100644
 +    S._require_active_mode()
 +    if S._model is None:
 +        raise HTTPException(503, "model not loaded")
++    _require_ready()
 +    fitted = set(S._lens.source_layers) if S._lens is not None else set()
 +    validate(req, n_layers=S._model.n_layers, d_model=S._model.d_model,
 +             vocab_rows=int(S._model._lm_head.weight.shape[0]), fitted=fitted)
@@ -437,12 +563,13 @@ new file mode 100644
 +
 +@router.post("/api/capture/lens_vectors")
 +async def lens_vectors(req: LensVectorsRequest):
-+    """v_t = J_lᵀ W_U[t] (layer n_layers-1: W_U[t]) as float32 bytes [L, T, D] (§6.2 R2)."""
++    """v_t = J_lᵀ W_U[t] (layer n_layers-1: W_U[t]) as float32 bytes [L, T, D] (§6.2 R2); fp16 matmul inside."""
 +    from jlens_qwen.interventions import j_lens_vectors_lite
 +
 +    S = _server()
 +    if S._model is None:
 +        raise HTTPException(503, "model not loaded")
++    _require_ready()
 +    n_layers, vocab_rows = S._model.n_layers, int(S._model._lm_head.weight.shape[0])
 +    fitted = set(S._lens.source_layers) if S._lens is not None else set()
 +    if not req.layers or not req.token_ids or len(req.layers) * len(req.token_ids) > MAX_LENS_VECTORS:
@@ -454,12 +581,15 @@ new file mode 100644
 +
 +    def _vectors():
 +        out = mx.stack([j_lens_vectors_lite(S._lens, S._model, l, list(req.token_ids))
-+                        for l in req.layers])
++                        for l in req.layers]).astype(mx.float32)
 +        mx.eval(out)
-+        return to_bytes(out.astype(mx.float32))
++        if not bool(mx.all(mx.isfinite(out)).item()):
++            raise HTTPException(422, "nonfinite lens vectors")
++        return to_bytes(out)
 +
 +    async with S._gpu_lock:
 +        buf = await asyncio.to_thread(_vectors)
 +    return {"dtype": "float32", "shape": [len(req.layers), len(req.token_ids), S._model.d_model],
 +            "b64": base64.b64encode(buf).decode("ascii"),
-+            "sha256": hashlib.sha256(buf).hexdigest()}
++            "sha256": hashlib.sha256(buf).hexdigest(),
++            "startup_identity_sha256": _MANIFEST.get("identity_sha256")}

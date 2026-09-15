@@ -110,8 +110,12 @@ def main() -> int:
     col = {t: c for c, t in enumerate(all_ids)}
     variant_max = np.array([all_logits[n, [col[t] for t in variants_of[records[i]["concept"]]]].max()
                             for n, i in enumerate(active)])
+    ranks = load_answer_arrays(run_dir, [records[i] for i in active], "answer_ranks")
+    open_rank = ranks[rows, target_pos]
     ka = k[active]
     by_level = {str(lv): {"n": int(np.sum(ka == lv)), "closed_correct_rate": float(closed_correct[ka == lv].mean()),
+                          "median_open_vocabulary_rank": float(np.median(open_rank[ka == lv])),
+                          "open_vocabulary_argmax_rate": float(np.mean(open_rank[ka == lv] == 1)),
                           "median_margin": float(np.median(margin[ka == lv])),
                           "median_target_logprob": float(np.median((t_logit - lse)[ka == lv])),
                           "median_variant_max_logprob": float(np.median((variant_max - lse)[ka == lv]))}

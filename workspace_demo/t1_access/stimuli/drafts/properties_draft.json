@@ -1,0 +1,816 @@
+{
+  "items": [
+    {
+      "id": "P001",
+      "concept": "animals/bee",
+      "foil": "tools/saw",
+      "question": "Can it fly through the air?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P002",
+      "concept": "tools/saw",
+      "foil": "animals/bee",
+      "question": "Is it a living thing?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P003",
+      "concept": "animals/bee",
+      "foil": "tools/saw",
+      "question": "Does it have a metal blade?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P004",
+      "concept": "animals/cat",
+      "foil": "materials/wood",
+      "question": "Does it come from trees?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P005",
+      "concept": "materials/wood",
+      "foil": "animals/cat",
+      "question": "Can it be burned as fuel?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P006",
+      "concept": "materials/wood",
+      "foil": "animals/cat",
+      "question": "Can it make a purring sound?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P007",
+      "concept": "animals/deer",
+      "foil": "body parts/toe",
+      "question": "Can it run fast?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P008",
+      "concept": "body parts/toe",
+      "foil": "animals/deer",
+      "question": "Does it have four legs?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P009",
+      "concept": "animals/dolphin",
+      "foil": "foods/pasta",
+      "question": "Is it cooked in boiling water?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P010",
+      "concept": "foods/pasta",
+      "foil": "animals/dolphin",
+      "question": "Is it made from dough?",
+      "answer": "yes",
+      "foil_answer": "no",
+      "note": "Dried pasta is extruded dough; check readers accept 'dough' for boxed pasta."
+    },
+    {
+      "id": "P011",
+      "concept": "animals/dolphin",
+      "foil": "foods/pasta",
+      "question": "Can it swim through water?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P012",
+      "concept": "animals/fox",
+      "foil": "vehicles/scooter",
+      "question": "Does it have a tail?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P013",
+      "concept": "vehicles/scooter",
+      "foil": "animals/fox",
+      "question": "Does it hunt small prey?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P014",
+      "concept": "vehicles/scooter",
+      "foil": "animals/fox",
+      "question": "Can you ride on it?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P015",
+      "concept": "animals/frog",
+      "foil": "instruments/violin",
+      "question": "Does it have strings?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P016",
+      "concept": "instruments/violin",
+      "foil": "animals/frog",
+      "question": "Is it played with a bow?",
+      "answer": "yes",
+      "foil_answer": "no",
+      "note": "Pizzicato exists, but the bow is the defining way of playing."
+    },
+    {
+      "id": "P017",
+      "concept": "animals/frog",
+      "foil": "instruments/violin",
+      "question": "Can it jump off the ground?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P018",
+      "concept": "instruments/violin",
+      "foil": "animals/frog",
+      "question": "Does it eat insects?",
+      "answer": "no",
+      "foil_answer": "yes",
+      "note": "Foil answer assumes an adult frog (tadpoles graze on plants)."
+    },
+    {
+      "id": "P019",
+      "concept": "animals/lion",
+      "foil": "foods/egg",
+      "question": "Does it have claws?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P020",
+      "concept": "foods/egg",
+      "foil": "animals/lion",
+      "question": "Does it eat meat?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P021",
+      "concept": "animals/lion",
+      "foil": "foods/egg",
+      "question": "Does it have a yolk inside?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P022",
+      "concept": "foods/egg",
+      "foil": "animals/lion",
+      "question": "Does it have a shell?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P023",
+      "concept": "animals/mouse",
+      "foil": "body parts/lung",
+      "question": "Is it found inside the human body?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P024",
+      "concept": "body parts/lung",
+      "foil": "animals/mouse",
+      "question": "Does it fill with air when you breathe in?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P025",
+      "concept": "animals/mouse",
+      "foil": "body parts/lung",
+      "question": "Does it have a tail?",
+      "answer": "yes",
+      "foil_answer": "no",
+      "note": "Answer assumes the animal sense (the concept), not a computer mouse."
+    },
+    {
+      "id": "P026",
+      "concept": "body parts/ankle",
+      "foil": "materials/leather",
+      "question": "Can it be sprained?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P027",
+      "concept": "materials/leather",
+      "foil": "body parts/ankle",
+      "question": "Is it connected to the foot?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P028",
+      "concept": "body parts/ankle",
+      "foil": "materials/leather",
+      "question": "Can it be made into a belt?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P029",
+      "concept": "materials/leather",
+      "foil": "body parts/ankle",
+      "question": "Can it be made into a jacket?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P030",
+      "concept": "body parts/chin",
+      "foil": "tools/hammer",
+      "question": "Is it used to drive nails?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P031",
+      "concept": "tools/hammer",
+      "foil": "body parts/chin",
+      "question": "Does it have a handle?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P032",
+      "concept": "tools/hammer",
+      "foil": "body parts/chin",
+      "question": "Is it just below the mouth?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P033",
+      "concept": "body parts/elbow",
+      "foil": "instruments/recorder",
+      "question": "Does it let the arm bend?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P034",
+      "concept": "instruments/recorder",
+      "foil": "body parts/elbow",
+      "question": "Is it part of the arm?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P035",
+      "concept": "body parts/elbow",
+      "foil": "instruments/recorder",
+      "question": "Is it played by blowing?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P036",
+      "concept": "body parts/finger",
+      "foil": "foods/steak",
+      "question": "Is it sold at a butcher's shop?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P037",
+      "concept": "foods/steak",
+      "foil": "body parts/finger",
+      "question": "Can it be cooked and eaten?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P038",
+      "concept": "body parts/hip",
+      "foil": "materials/granite",
+      "question": "Does it help a person walk?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P039",
+      "concept": "materials/granite",
+      "foil": "body parts/hip",
+      "question": "Can it be replaced with an artificial joint?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P040",
+      "concept": "body parts/hip",
+      "foil": "materials/granite",
+      "question": "Is it dug out of the ground?",
+      "answer": "no",
+      "foil_answer": "yes",
+      "note": "Foil answer: granite is quarried."
+    },
+    {
+      "id": "P041",
+      "concept": "body parts/skull",
+      "foil": "countries/Greece",
+      "question": "Does it have a coastline?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P042",
+      "concept": "countries/Greece",
+      "foil": "body parts/skull",
+      "question": "Does it have a government?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P043",
+      "concept": "body parts/skull",
+      "foil": "countries/Greece",
+      "question": "Does it protect the brain?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P044",
+      "concept": "countries/Austria",
+      "foil": "tools/clamp",
+      "question": "Does it have a capital city?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P045",
+      "concept": "tools/clamp",
+      "foil": "countries/Austria",
+      "question": "Does it have a government?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P046",
+      "concept": "countries/Canada",
+      "foil": "instruments/bell",
+      "question": "Does it ring when you hit it?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P047",
+      "concept": "instruments/bell",
+      "foil": "countries/Canada",
+      "question": "Does it make a sound when hit?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P048",
+      "concept": "countries/Denmark",
+      "foil": "materials/nylon",
+      "question": "Does it have a king or queen?",
+      "answer": "yes",
+      "foil_answer": "no",
+      "note": "Denmark is a constitutional monarchy (King Frederik X since 2024)."
+    },
+    {
+      "id": "P049",
+      "concept": "materials/nylon",
+      "foil": "countries/Denmark",
+      "question": "Does it have a coastline?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P050",
+      "concept": "countries/Denmark",
+      "foil": "materials/nylon",
+      "question": "Is it made in factories?",
+      "answer": "no",
+      "foil_answer": "yes",
+      "note": "Foil answer: nylon is a synthetic fibre produced industrially."
+    },
+    {
+      "id": "P051",
+      "concept": "countries/Iraq",
+      "foil": "vehicles/train",
+      "question": "Does it run on rails?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P052",
+      "concept": "vehicles/train",
+      "foil": "countries/Iraq",
+      "question": "Can it carry passengers?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P053",
+      "concept": "countries/Iraq",
+      "foil": "vehicles/train",
+      "question": "Does it have deserts?",
+      "answer": "yes",
+      "foil_answer": "no",
+      "note": "Check readers find this immediate (western and southern Iraq are desert)."
+    },
+    {
+      "id": "P054",
+      "concept": "countries/Jamaica",
+      "foil": "materials/velvet",
+      "question": "Is it surrounded by sea?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P055",
+      "concept": "materials/velvet",
+      "foil": "countries/Jamaica",
+      "question": "Does it have a warm climate?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P056",
+      "concept": "countries/Jamaica",
+      "foil": "materials/velvet",
+      "question": "Does it feel soft to the touch?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P057",
+      "concept": "materials/velvet",
+      "foil": "countries/Jamaica",
+      "question": "Can it be sewn into clothing?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P058",
+      "concept": "countries/Kenya",
+      "foil": "vehicles/ferry",
+      "question": "Does it float on water?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P059",
+      "concept": "vehicles/ferry",
+      "foil": "countries/Kenya",
+      "question": "Can it carry passengers across water?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P060",
+      "concept": "countries/Kenya",
+      "foil": "vehicles/ferry",
+      "question": "Does it have mountains?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P061",
+      "concept": "countries/Nigeria",
+      "foil": "foods/apple",
+      "question": "Does it have a large human population?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P062",
+      "concept": "foods/apple",
+      "foil": "countries/Nigeria",
+      "question": "Does it have a government?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P063",
+      "concept": "foods/banana",
+      "foil": "instruments/triangle",
+      "question": "Is it made of metal?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P064",
+      "concept": "instruments/triangle",
+      "foil": "foods/banana",
+      "question": "Does it have three sides?",
+      "answer": "yes",
+      "foil_answer": "no",
+      "note": "The instrument has one open corner; check readers still say yes without hesitating."
+    },
+    {
+      "id": "P065",
+      "concept": "foods/banana",
+      "foil": "instruments/triangle",
+      "question": "Does it have a peel?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P066",
+      "concept": "foods/cheese",
+      "foil": "tools/screw",
+      "question": "Is it made from milk?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P067",
+      "concept": "tools/screw",
+      "foil": "foods/cheese",
+      "question": "Can it be eaten?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P068",
+      "concept": "foods/cheese",
+      "foil": "tools/screw",
+      "question": "Is it used to fasten things together?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P069",
+      "concept": "foods/mango",
+      "foil": "materials/marble",
+      "question": "Is it too hard to bite into?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P070",
+      "concept": "materials/marble",
+      "foil": "foods/mango",
+      "question": "Is it used to make statues?",
+      "answer": "yes",
+      "foil_answer": "no",
+      "note": "Assumes the stone sense (the concept), not toy glass marbles."
+    },
+    {
+      "id": "P071",
+      "concept": "foods/mango",
+      "foil": "materials/marble",
+      "question": "Does it have a large seed inside?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P072",
+      "concept": "foods/sushi",
+      "foil": "vehicles/van",
+      "question": "Does it contain rice?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P073",
+      "concept": "vehicles/van",
+      "foil": "foods/sushi",
+      "question": "Can it be eaten?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P074",
+      "concept": "foods/sushi",
+      "foil": "vehicles/van",
+      "question": "Does it have doors?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P075",
+      "concept": "vehicles/van",
+      "foil": "foods/sushi",
+      "question": "Can it be driven on roads?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P076",
+      "concept": "instruments/flute",
+      "foil": "vehicles/wagon",
+      "question": "Does it have wheels?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P077",
+      "concept": "vehicles/wagon",
+      "foil": "instruments/flute",
+      "question": "Does it have wheels?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P078",
+      "concept": "instruments/flute",
+      "foil": "vehicles/wagon",
+      "question": "Is it played by blowing?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P079",
+      "concept": "instruments/sax",
+      "foil": "tools/mop",
+      "question": "Does it have a reed?",
+      "answer": "yes",
+      "foil_answer": "no",
+      "note": "Needs the fact that the saxophone is a single-reed instrument; readers should confirm it is common knowledge."
+    },
+    {
+      "id": "P080",
+      "concept": "tools/mop",
+      "foil": "instruments/sax",
+      "question": "Can you play a melody on it?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P081",
+      "concept": "instruments/sax",
+      "foil": "tools/mop",
+      "question": "Is it used for cleaning floors?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P082",
+      "concept": "tools/mop",
+      "foil": "instruments/sax",
+      "question": "Does it soak up water?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P083",
+      "concept": "instruments/trumpet",
+      "foil": "vehicles/submarine",
+      "question": "Can it travel underwater?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P084",
+      "concept": "vehicles/submarine",
+      "foil": "instruments/trumpet",
+      "question": "Does it carry a crew?",
+      "answer": "yes",
+      "foil_answer": "no",
+      "note": "Uncrewed underwater drones exist; the concept's description is a crewed submarine."
+    },
+    {
+      "id": "P085",
+      "concept": "instruments/trumpet",
+      "foil": "vehicles/submarine",
+      "question": "Is it played by blowing?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P086",
+      "concept": "vehicles/submarine",
+      "foil": "instruments/trumpet",
+      "question": "Is it smaller than a person?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P087",
+      "concept": "instruments/whistle",
+      "foil": "materials/steel",
+      "question": "Is it used by referees?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P088",
+      "concept": "materials/steel",
+      "foil": "instruments/whistle",
+      "question": "Does it make a loud sound when blown?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P089",
+      "concept": "materials/steel",
+      "foil": "instruments/whistle",
+      "question": "Is it used to build bridges?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P090",
+      "concept": "materials/cotton",
+      "foil": "tools/whisk",
+      "question": "Is it used for mixing batter?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P091",
+      "concept": "tools/whisk",
+      "foil": "materials/cotton",
+      "question": "Does it have a handle?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P092",
+      "concept": "materials/cotton",
+      "foil": "tools/whisk",
+      "question": "Can it be spun into thread?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P093",
+      "concept": "tools/whisk",
+      "foil": "materials/cotton",
+      "question": "Is it grown in fields?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P094",
+      "concept": "tools/bolt",
+      "foil": "vehicles/bicycle",
+      "question": "Is it used to fasten things together?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P095",
+      "concept": "vehicles/bicycle",
+      "foil": "tools/bolt",
+      "question": "Is it made as one solid piece?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P096",
+      "concept": "vehicles/bicycle",
+      "foil": "tools/bolt",
+      "question": "Does it have pedals?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P097",
+      "concept": "tools/needle",
+      "foil": "vehicles/tractor",
+      "question": "Does it have an engine?",
+      "answer": "no",
+      "foil_answer": "yes"
+    },
+    {
+      "id": "P098",
+      "concept": "vehicles/tractor",
+      "foil": "tools/needle",
+      "question": "Can you drive it?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P099",
+      "concept": "tools/needle",
+      "foil": "vehicles/tractor",
+      "question": "Does it have a sharp point?",
+      "answer": "yes",
+      "foil_answer": "no"
+    },
+    {
+      "id": "P100",
+      "concept": "vehicles/tractor",
+      "foil": "tools/needle",
+      "question": "Is it used for sewing?",
+      "answer": "no",
+      "foil_answer": "yes"
+    }
+  ]
+}

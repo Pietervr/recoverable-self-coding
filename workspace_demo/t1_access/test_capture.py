@@ -8,6 +8,7 @@ Run with the upstream environment (mlx, fastapi and the tokenizer live there):
 from __future__ import annotations
 
 import base64
+import json
 import sys
 from pathlib import Path
 
@@ -196,3 +197,125 @@ def test_native_bytes_roundtrip(ep):
     x = (_h(4, 16) * 100).astype(mx.bfloat16)
     y = ep.from_bytes(ep.to_bytes(x), "bfloat16", (4, 16))
     assert mx.array_equal(mx.view(x, mx.uint16), mx.view(y, mx.uint16)).item()
+
+
+# -- revision 2 (Codex record 2026-09-15, findings 1-4, 7, 8) -------------------------------
+
+def test_ranks_below_top_k_and_ties_by_id(ep):
+    logits = np.zeros(5000, np.float32)
+    logits[7] = 3.0
+    logits[42] = 3.0   # tie with 7: id 7 ranks first
+    logits[4000] = -1.0
+    order, ranks = ep.ranks_of(logits, [7, 42, 4000, 1])
+    assert ranks[:2] == [1, 2] and ranks[2] == 5000 and ranks[3] == 4  # zeros follow in id order: 0 is 3rd, 1 is 4th
+    assert order[:3].tolist() == [7, 42, 0]
+
+
+def _hidden_with_negative_zero():
+    base = np.random.default_rng(4).normal(0, 2, (1, 4, 8)).astype(np.float32)
+    base[0, 1, 0] = -0.0
+    base[0, 2, 3] = -0.0
+    return mx.array(base).astype(mx.bfloat16)
+
+
+def test_zero_dose_preserves_native_bits_through_scatter(ep):
+    from jlens_qwen.model import LayerEdit, _apply_edits
+
+    for mode, kw in [("steer", {"token_id": 1}), ("swap_delta", {"token_id": 1, "target_id": 2}),
+                     ("ablate", {"ablate_token_ids": [1]})]:
+        hidden = _hidden_with_negative_zero()
+        before = np.array(mx.view(hidden, mx.uint16))
+        e = ep.CaptureEdit(layer=41, positions=[1, 2], alpha=0.0, mode=mode, **kw)
+        rec: dict = {}
+        out = _apply_edits(hidden, [LayerEdit(layer=41, fn=ep._edit_fn(e, None, rec, mx.bfloat16), positions=(1, 2))], 0)
+        mx.eval(out, rec["_written"], rec["_neg_zero"])
+        assert np.array_equal(np.array(mx.view(out, mx.uint16)), before), mode
+        assert np.array(rec["_written"]).tolist() == [0.0, 0.0] and int(rec["_neg_zero"].item()) == 2
+        assert "_raw" not in rec
+
+
+def test_skipped_norm_position_preserves_native_bits(ep):
+    from jlens_qwen.model import LayerEdit, _apply_edits
+
+    hidden = _hidden_with_negative_zero()
+    before = np.array(mx.view(hidden, mx.uint16))
+    tiny = mx.array(np.full(8, 1e-9, np.float32))
+    e = ep.CaptureEdit(layer=41, positions=[1, 2], mode="steer", token_id=1, target_norms=[1.0, 1.0])
+    rec: dict = {}
+    out = _apply_edits(hidden, [LayerEdit(layer=41, fn=ep._edit_fn(e, tiny, rec, mx.bfloat16), positions=(1, 2))], 0)
+    mx.eval(out)
+    assert np.array_equal(np.array(mx.view(out, mx.uint16)), before)
+    assert not np.array(rec["_ok"]).any()
+
+
+def test_validate_rejects_dose_conflicts(ep):
+    steer = dict(mode="steer", layer=41, positions=[4], token_id=7)
+    assert _status(ep, _req(ep, edits=[{**steer, "alpha": 0.0, "target_norms": [1.0]}])) == 400
+    assert _status(ep, _req(ep, edits=[{**steer, "target_norms": [1.0]}])) == 200
+    rows = base64.b64encode(np.zeros((1, 8), np.uint16).tobytes()).decode()
+    patch = dict(mode="patch", layer=41, positions=[4], vectors_b64=rows, vectors_dtype="bfloat16")
+    assert _status(ep, _req(ep, edits=[{**patch, "alpha": 0.5}])) == 400
+    assert ep.is_zero_dose(ep.CaptureEdit(**{**steer, "alpha": 0.0}))
+    assert not ep.is_zero_dose(ep.CaptureEdit(**{**patch, "alpha": 0.0}))
+
+
+def test_basis_condition(ep):
+    assert ep.basis_condition(np.array([[1.0, 0.0], [2.0, 0.0]])) == float("inf")
+    assert ep.basis_condition(np.array([[1.0, 0.0], [0.0, 1.0]])) == 1.0
+    assert ep.basis_condition(np.array([[np.nan, 0.0], [0.0, 1.0]])) == float("inf")
+
+
+def _write_gate(logs, n_prompts, identity="id-A", client=None, qualifying=True, tamper=False):
+    import capture as cap_mod
+
+    client = client or {"t1_access/capture.py": "c1"}
+    stamp = f"20260915T00{n_prompts:04d}"
+    ev = logs / f"parity_{stamp}.jsonl"
+    lines = [{"header": "parity", "startup_identity_sha256": identity,
+              "prompts": [{"index": i} for i in range(n_prompts)]}]
+    for i in range(n_prompts):
+        for gate, need in cap_mod.REQUIRED_PER_PROMPT.items():
+            for _ in range(need):
+                lines.append({"gate": gate, "prompt": i, "required": True, "pass": True})
+    ev.write_text("\n".join(json.dumps(x) for x in lines) + "\n")
+    rep = {"verdict": "PASS", "qualifying": qualifying, "startup_identity_sha256": identity, "client_sha256": client,
+           "rsc_dirty_paths": "", "evidence": ev.name, "evidence_sha256": cap_mod.sha256_file(ev)}
+    if tamper:
+        ev.write_text(ev.read_text().replace('"pass": true', '"pass": false', 1))
+    (logs / f"parity_{stamp}.json").write_text(json.dumps(rep))
+
+
+def test_gate_admission_rule(tmp_path):
+    import capture as cap_mod
+
+    prov = {"startup_identity_sha256": "id-A", "client_sha256": {"t1_access/capture.py": "c1"}}
+    _write_gate(tmp_path, 1)
+    name, why = cap_mod.matching_parity(prov, tmp_path)
+    assert name is None and "re-count" in " ".join(why)
+    _write_gate(tmp_path, 20)
+    name, _ = cap_mod.matching_parity(prov, tmp_path)
+    assert name == "parity_20260915T000020.json"
+    assert cap_mod.matching_parity({**prov, "startup_identity_sha256": "id-B"}, tmp_path)[0] is None
+    assert cap_mod.matching_parity({**prov, "client_sha256": {"t1_access/capture.py": "c2"}}, tmp_path)[0] is None
+
+
+def test_gate_admission_rejects_altered_evidence(tmp_path):
+    import capture as cap_mod
+
+    _write_gate(tmp_path, 20, tamper=True)
+    prov = {"startup_identity_sha256": "id-A", "client_sha256": {"t1_access/capture.py": "c1"}}
+    name, why = cap_mod.matching_parity(prov, tmp_path)
+    assert name is None and "altered" in " ".join(why)
+
+
+def test_observables_sha_covers_every_array():
+    import capture as cap_mod
+
+    rows = {name: np.arange(6, dtype=np.int32) for name in cap_mod.OBSERVABLES}
+    base = cap_mod.observables_sha(rows, 1.5)
+    for name in cap_mod.OBSERVABLES:
+        changed = dict(rows)
+        changed[name] = rows[name].copy()
+        changed[name][0] += 1
+        assert cap_mod.observables_sha(changed, 1.5) != base
+    assert cap_mod.observables_sha(rows, 1.25) != base
