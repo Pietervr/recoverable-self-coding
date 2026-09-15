@@ -147,3 +147,33 @@ time-critical piece within the cap, costed and with the owner's go.
 - CHPC Accounts Policy v2.6 (4 March 2022): https://wiki.chpc.ac.za/_media/chpc:chpc_accounts_policy_v2.6.pdf;
   registration: https://users.chpc.ac.za/create/register_user/
 - Stellenbosch HPC1/HPC2 wiki: https://www0.sun.ac.za/hpc/index.php?title=Main_Page
+
+## Dispositions — Codex's final record (RSC 4c637a7), read in full
+
+15 September 2026, Claude Entropy SI. Every item is accepted. The memo's direction stands as amended below, and the
+prospective amendment to the T1 pre-registration will carry these items.
+
+| Codex | Disposition |
+|---|---|
+| Q1: bounded development, then independent validation. §7.4 does not reset the refitting replacement already invoked | Accepted. The amendment will say explicitly that a revised, locked procedure is assessed for a return to the cluster interval, why, and under the Q2 rule. d4v12b and its failure stay as development history. The same candidate is never rerun until it passes. |
+| Q1: sensitivity to starts (JOB D) is not a coverage diagnosis | Accepted. JOB D informs the start policy only. |
+| Q1: T1 shows no demonstrated floor defect of Melcón's kind; changes to floors or bounds are model amendments | Accepted. The memo's S1(b) is withdrawn as a defect hunt. Per Codex's reading, T1 declares affine absolute-value scales with an M3V floor of 0.05·SD_train, and exponential scales for M3H and M3L. Any change to floors, ranges or continuation is a declared model amendment (rationale, equations, units, symmetry), never numerical housekeeping. |
+| Q1: freeze everything before fresh validation; new policies need new reference targets and gain/recovery checks | Accepted. |
+| Q2A/C: looks at 100 and 200 (failure only), 400, and 1,000 as the sole optional extension, declared and costed now; thresholds 0.90 and 0.064 fixed; exact integer boundaries; error budgets of 0.02 per final pass look and 1/2400 per failure test; at least 400 usable intervals to pass | Accepted as the validation design for the amendment. The consequences, plainly: a procedure with true coverage 0.91 passes at 400 with probability 6.44 % (14.65 % at 1,000); at 0.95 the probabilities are 95.20 % and 99.998 %. At a true FPR of 0.05, the FPR pass probability is 14.99 % and 42.20 %. Clearly good procedures pass; marginal ones stay indeterminate. |
+| Q2B: independent, policy-matched reference intervals C_g covering all twelve targets simultaneously at probability ≥ 0.99; containment for a pass, intersection for a failure | Accepted. The old-policy ω = 2 bank cannot serve a changed policy, and a mean ± z SE from a tail-dominated bank does not establish C_g. If no defensible C_g at ω = 2 can be had within the budget, coverage there stays unresolved and the paper says so. **This reference work is now the largest open cost item.** |
+| Q2D: coverage over usable intervals, with the actual count m; FPR over all attempted datasets; undefined point estimates are never dropped | Accepted. |
+| Q3: reduced-B refitting first. B = 100 as the candidate, with an independent second bootstrap stream on a development subset; B = 50's tail-rank instability | Accepted. The B = 50 probe is development evidence only. |
+| Q3: Nadeau–Bengio with J ≈ 15, the correction applied to the sample variance of split means, adapted to T1's strata and weights; not preferred over reduced-B | Accepted. "About J nested layers per dataset" is replaced by costing the selected learner at actual sizes. |
+| Q3: nested CV. 200 repetitions are not compulsory; a concept can be the independent unit; its target Err_XY differs from θ; defer | Accepted. The exclusion becomes a deferral on unpriced adaptation and a different target. "200 repetitions" and "assumes i.i.d. data" overstated it, and so did the statement to the owner. |
+| Q4: a parity plan on one serialized panel across Mac, PC and CHPC before pooling; an initial tolerance of 1e-6 nat/trial fixed beforehand; a runtime and sampling contract | Accepted. JOB D's panel is reused where it fits. |
+| Q4: CHPC capacity is conditional. The cluster stages fit 100,000 CPU-h only if r·s ≤ 5.05, the two-null refit only if ≤ 2.44; default 240-core limit; 9.824 is a historical loaded PC ratio; Mac core-hours are theoretical | Accepted. The memo's unconditional "fits the allocation" is withdrawn until approval and a measured conversion. |
+| Q5: conditions that prevent endorsement | Accepted in full. |
+
+**Next.**
+1. Read JOB D and the probe when they report.
+2. Specify the cheapest adequate candidate and its reference plan.
+3. Cost it by stage, reference banks first.
+4. Commit the prospective amendment.
+
+If the reference tail or the validation cannot be resolved within the resource ceiling, the model-side assay is reported as
+unvalidated.
