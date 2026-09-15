@@ -1,9 +1,12 @@
-# Melcón battery — development plan for the revision after the failed v6 battery (v7, DRAFT rev 1, 15 Sept 2026)
+# Melcón battery — development plan for the revision after the failed v6 battery (v7, DRAFT rev 2, 15 Sept 2026)
 
 **Status.** The owner gave the go on 15 Sept 2026. The plan was committed before any new diagnostic fit (RSC 1100eb1;
 Codex, post-outcome record `t1_access/reviews/2026-09-15_melcon_v6_stage_c_codex_record.md`, RSC e490f3b, Q3 step 1).
 **Rev 1** takes in Codex's second opinion on that commit (`t1_access/reviews/2026-09-15_melcon_v7_devplan_codex_record.md`,
 RSC e42846e). Its dispositions are in §8, and Phase 1 proceeds from this revision.
+**Rev 2** records Phase 1 (§2.6) and takes in Codex's record on the Phase 2 fixings
+(`t1_access/reviews/2026-09-15_melcon_v7_phase2_fixings_codex_record.md`, RSC eaea99b): C1 and C1+C2 are withdrawn by
+recorded amendment, the fixings are final (§3.1), and the dispositions are in §9.
 
 The v6 battery is retained unchanged as the failed development record (namespace `results/battery/v6-ebaddf98807b/`:
 calibration, stage C, verdicts). X1 strong recovered no two-state outcome in either drift condition, and no graded
@@ -71,6 +74,8 @@ The v6 unresolved-strength flags and the X2 amplitude inversion stay reported.
   `SY.generate` from the parent manifest, then `RC.recording_scores` over all 20 windows. Inside its own process only,
   `LK._run` is replaced by an instrumented copy that calls the same objective, bounds and L-BFGS-B options. No file of
   the v6 code is edited, and nothing is added to the fitting.
+  *As implemented (rev 2; Codex eaea99b Q6):* the wrapper installs functions that call the original `_run`, `fit` and
+  `fold_scores` and a pass-through `minimize`, rather than a copy; logging reads their results and draws no random number.
 - **Per start** (the moment start, 7 jitters and any 8 retries; failures included):
   - the seed tuple (SEED, recording tags, model index, retry flag) and start order
   - x0, theta and log-likelihood at full precision
@@ -170,12 +175,15 @@ frequency.
 - **Idealized readout.** Graded severe in 12 of 1,088 fold units, all with extrapolated trials (97 % of the loss there);
   two-state 1. The readout has higher signal-to-noise than the battery, so rates are not comparable with the panel's. Family
   with the highest evidence per recording (two-state / graded / null of 34): G1 no drift 14/18/2, drift 19/14/1; G2 15/13/6,
-  18/12/4; G3 8/23/3, 14/18/2; X1 27/5/2, 24/8/2.
+  18/12/4; G3 8/23/3, 14/18/2; X1 27/5/2, 24/8/2. These are recording winners, not group decisions. The graded family
+  contains G1 only within its parameter bounds: the true x0 lies outside the box in 1 of 136 no-drift folds (sub-26,
+  block 4 → 3, x0 = −4.93; Codex eaea99b Q5). The bounds are not changed on these data.
 
 **Reading for Phase 2 (development; the §3 fixings are still to be written and committed before any candidate fit).**
-- C1's floor (0.05 S) binds in no kept fit, and its ceiling (5 S) only in fits with rising spread and no severe loss, so C1
-  would change a few fits but none of the severe losses. (The first version of this section, and the RSC c2068f1 commit
-  message, called C1 inert; that checked only the floor.) Its range stays the existing bounds, not values tuned on Phase 1;
+- C1's floor (0.05 S) binds in no kept fit, and its ceiling (5 S) only in fits with rising spread and no severe loss: the C1
+  constraints exclude none of the observed severe kept solutions; their effect after constrained refitting has not been
+  measured (Codex eaea99b Q1). (The first version of this section, and the RSC c2068f1 commit message, called C1 inert;
+  that checked only the floor.) Its range stays the existing bounds, not values tuned on Phase 1;
   changing them or adding an `r` restriction would be a recorded plan amendment. Because C1 changes the feasible set, its
   starts and search paths differ from the baseline's, so its fits are not assumed identical.
 - C2 acts on the located loss (extrapolated doses, both families).
@@ -215,6 +223,8 @@ allocation, an asymptote cap, other floor values, extra start budgets and a retr
     training would need a different decoder allocation or more data, and so an amendment, recalibration and new costing.
   - The asymptote cap of rev 0 is also withdrawn: it needs a tuned multiplier and imposes an unidentified plateau. The
     shift bounds are diagnosed in §2.4 Q5 only.
+  - **C1 and C1+C2 (rev 2, after Phase 1; Codex eaea99b Q1)** are withdrawn by recorded amendment. The candidate set is
+    C2 alone (§3.1 F1).
 
 **Fixed after Phase 1, committed before any candidate fit:**
 - C1's exact constraint treatment
@@ -227,67 +237,96 @@ allocation, an asymptote cap, other floor values, extra start budgets and a retr
 **The fresh development check.**
 - **Design:** X1 strong, G1 strong and G3 weak, both drift conditions, one replicate each: 6 groups × 34 recordings.
 - **Streams:** new data phase 8, common random streams for all configurations.
-- **Fits:** the unchanged baseline and C1 are fitted; C2 and C1+C2 are scored from those fits.
+- **Fits:** the unchanged baseline is fitted; C2 is scored from its logged fits under the replay contract (§3.1 F7).
 - **Scope:** a bounded development check, not validation. It contains no G2, so it reports no fresh graded-call
   performance under all of G1–G3.
 - **Retention:** every configuration and the baseline are retained and reported.
 - **Amplitudes:** all configurations use the fixed v6 amplitudes, so the comparison is a procedure change at fixed input
   signal.
 
-### 3.1 The fixings, proposed after Phase 1 (DRAFT for Codex's read; no candidate fit before they are committed)
+### 3.1 The fixings (rev 2; final, committed before any candidate fit; Codex record RSC eaea99b, dispositions §9)
 
-**F1. C1's constraint treatment.** C1 bounds the graded log-SD at both dose endpoints, s0 and s0 + r, to
-[log 0.05 S, log 5 S]. v6 also boxes r to ±ln 10, and L-BFGS-B accepts only box bounds. Two faithful implementations exist:
-- **(a) Endpoint box.** Parameters (s0, s1) with s1 = s0 + r, both boxed to [log 0.05 S, log 5 S], and |r| ≤ ln 10 dropped.
-  The optimizer, the starts (s1 starts at s0's start) and the jitter rule are unchanged. This is not nested in the baseline:
-  it floors and caps the SD but allows up to a 100-fold contraction across the logistic where the baseline allows 10-fold,
-  and Phase 1 ties the severe losses to that contraction bound.
-- **(b) Nested.** v6's box in (s0, r) is kept, plus the two linear endpoint constraints. This needs a constrained optimizer
-  (SLSQP or trust-constr) for the graded family in C1, a change to v6's fitting procedure confined to C1, with its own
-  convergence rule to declare.
+**F1. Candidate set: C2 alone, by recorded amendment.** C1 and C1+C2 are withdrawn. The C1 constraints exclude none of the
+observed severe kept solutions (§2.6); their effect after constrained refitting has not been measured. A faithful C1 needs
+one of two things. The endpoint box in (s0, s1 = s0 + r) is not nested in v6: it removes some v6 predictions and admits
+others, permits |r| up to log 100, and its jittered starts differ physically even with the same seeds and jitter algorithm.
+The nested version keeps v6's box plus the endpoint constraints, and needs a constrained optimizer with a full-constraint
+convergence rule. Developing and validating that optimizer is a poor use of this bounded check. This is a priority decision
+from development evidence, not a demonstration that C1 could not help. Any return of C1 is a new amendment using the nested
+definition, with primal feasibility and stationarity checked for all constraints (Codex eaea99b Q1).
 
-Phase 1 (§2.6): the floor binds in no kept fit; the ceiling binds in 24 of 1,600 main-window fits, none severe.
-**Proposed:** a recorded amendment that withdraws C1 and C1+C2, leaving C2 against the baseline. C1 changes no severe unit,
-(a) relaxes the parameter tied to the losses, and (b) adds a new optimizer for an expected null effect on the failure. If C1
-stays, use (b).
+**F2. Units and the paired comparison set.**
+1. Every scheduled recording × half × fold × main-window key is enumerated first: 1,360 per family per group, 8,160 over
+   the six groups, of which 5,440 are in the four graded groups. The shared §2 inclusion gate applies, and its exclusions
+   and all failures stay in the accounting.
+2. A family's paired comparison set is fixed from the saved baseline training state before any C2 held-out score is read.
+   It holds the keys with inclusion passed, valid scoring inputs, a retained converged training fit for both the family and
+   null, and finite null test densities. C2 has the same training fits and status at every key.
+3. On that set a unit is severe if and only if the sum of all family-minus-null trial log densities, divided by all test
+   trials, is strictly below −1 nat. A non-finite family trial density counts as severe and makes that family-fold
+   unavailable; it stays in the denominator. A finite training fit whose baseline test score was non-finite is rescored
+   under C2.
+4. No converged training fit, invalid input, technical failure or non-finite null score is its own failure, unavailability
+   or reference-failure category, never a fabricated loss or an automatic non-severe unit. Scheduled, included, fitted,
+   reference-valid and scored counts are reported with their reasons. An empty comparison set cannot pass.
 
-**F2. Severe loss.** The unit is one recording × half × fold × main window × family on the fresh check. It is severe when
-that family's held-out log-likelihood minus null's, per test trial, is below −1 nat; a non-finite held-out density counts as
-severe. The denominator is every such unit whose null and family fits exist. Reported per group and family.
+**F3. Failure and availability.** v6's rules, and §8's denominator and precedence, are unchanged when recording and group
+decisions are assembled. Technical failures and exclusions of the shared baseline stage remain shared; a C2 replay exception
+is a recorded failure, not a missing row.
 
-**F3. Failure and availability.** v6's rules are unchanged: an unavailable fold makes the model unavailable in that window,
-technical failures stay in the denominator, and `group.decide`'s total rule applies. C2 changes only held-out densities, so it
-can change availability only through a non-finite held-out density, which is counted.
+**F4. Development gates.** The gates are decided only when all six groups and all 34 recording results per group are
+present; an archived failure is a result, a missing job is incomplete. C2 is locked only if every gate holds; otherwise
+Phase 2 stops for amendment.
+1. X1 strong ends two-state in both drift groups under the unchanged `group.decide`. This is a conservative one-replicate
+   development screen, not statistically equivalent to §9's two of three. Recording winners, positive Delta, a two-state
+   run beside a graded run and a non-substantive outcome do not count.
+2. Each of the four G1 strong and G3 weak groups ends graded or inconclusive/mixed. Graded-call counts are reported;
+   passing through inconclusive outcomes demonstrates no positive graded recovery.
+3. Pooled over the four graded groups, with B and C the baseline's and C2's graded severe counts on the same paired units:
+   2·C ≤ B (B = 0 or 1 requires C = 0). This is an effect-size screen, not a significance test.
+4. Tail guards: no increase in the two-state severe count in any of the six groups, and no increase in the graded severe
+   count in any of the four graded groups.
+5. No held-out family-fold newly unavailable where the baseline was available, compared per group and family with paired
+   identities; repairs elsewhere do not offset new failures.
 
-**F4. Acceptability: X1 recovery and false two-state calls.** On the fresh check a configuration is acceptable only if all
-of these hold:
-1. X1 strong ends two-state in both drift groups (the one-replicate reading of §9's two of three per drift condition);
-2. G1 strong and G3 weak end in no two-state outcome in any of their four groups, and every outcome is substantive;
-3. the graded severe units under G1 strong and G3 weak together number at most half the baseline's on the same data;
-4. there are no more technical failures, and no more unavailable fold units, than in the baseline.
+Reported beside the gates: the paired severe, repaired and new-severe transitions and the untrimmed loss magnitudes by group
+and family, and the below-, within- and above-support counts and losses for both families.
 
-Graded recovery is not required (§9); graded outcomes are reported.
+**F5. Decision.** With C2 the only candidate there is no ranking contest: C2 is locked only if it passes F4. The baseline is
+the comparator and cannot be locked. No unlisted variant, alternative solver or retry is added.
 
-**F5. Ranking and tie order.** Among acceptable configurations the order is: fewest graded severe units under the graded
-groups; then fewest two-state severe units over all six groups; then the tie order C2, C1, C1+C2 (fewest changes to the
-fitted model first). The baseline is the comparator and cannot be locked.
+**F6. Cost ceiling.** The planning projection from the first Phase 1 recording (15.54 s) is about 0.88 worker-hours for the
+baseline's 204 recordings, before logging, replay, summaries, group BMS and the common-cohort sensitivity. Benchmark the
+first recording under the actual concurrent Mac load. The ceiling, 3 worker-hours and 4 wall-hours at two workers, counts
+all of that work; stop and report if the projection exceeds either.
 
-**F6. Cost ceiling and stop rule.** The measured Phase 1 rate with logging is 15.5 s per recording, so the baseline's fits
-on 204 recordings take about 0.9 worker-hours, and C1's about the same. C2 and C1+C2 are scored from the logged fits after
-replay equivalence (seconds). The ceiling is 3 worker-hours and 4 wall-hours at two workers: benchmark the first recording,
-and stop and report if the projection exceeds either.
+**F7. C2 replay contract, completed before any C2 held-out score is read.**
+- Verify archive payload hashes, model and parameter order, complete fold keys, trial order, training scaling, source and
+  runtime identity, parent input and calibration lineage, and the saved bounds, start, convergence and selection metadata.
+- Reuse the exact retained theta and the training-fit availability flag, not the baseline fold's final held-out
+  availability. Preserve retries, first-in-order exact ties and failure reasons. Never refit a missing result or choose
+  another start by C2's score.
+- Show that the clamped training design equals the original arrays; check per-trial likelihoods, analytic gradients and the
+  summed likelihood; validate start selection from the logged starts.
+- Reconstruct, with the same replay machinery, the unclamped baseline test likelihood arrays, finite masks, availability and
+  reasons, fold sums, trial counts, recording evidence (sum/4) and Delta. Group assembly keeps the original cohorts, AUCs,
+  window grid, seeds, precedence and common-cohort sensitivity.
+- Then score C2. Each present test trial outside the training present-dose range is evaluated at the nearest endpoint, in
+  graded L (mean and SD) and in both two-state A and H, at its observed y. Catch laws, hemifield terms and null are
+  unchanged and verified unchanged, as are in-support predictions. Availability is re-evaluated from all C2 trial densities.
 
-**F7. C2's scoring and replay equivalence.** C2 is computed from the logged baseline (or C1) fold records. Each present
-trial's scaled dose is clamped to the training block's present range, in the graded logistic (mean and SD) and in both
-two-state logistics; catch trials and null are unchanged. Replay equivalence comes first: every fit's training
-log-likelihood, recomputed on the clamped training design, must equal the logged value exactly (the clamp is the identity on
-training doses) before any C2 held-out score is read. Any difference stops C2.
+Equality is exact on the same numerical path; a mismatch stops for investigation and is never relaxed to a tolerance after it
+is seen. C2 is an endpoint-plateau prediction assumption: it cannot repair a training-search miss, and it can bias
+predictions outside support. Before it runs, the implementation is tested on unavailable training fits, non-finite held-out
+scores, retry and tie selection, and replay failures.
 
-**F8. No acceptable candidate.** If no configuration is acceptable, Phase 2 stops and every configuration is reported. The
-phase-8 data become development data and the plan returns to amendment; no candidate is retried or added on these data.
+**F8. No acceptable candidate.** If C2 fails any gate, Phase 2 stops. Every output is retained and reported, the phase-8
+data become development data, and the plan returns to prospective amendment. No candidate is retried or added on these data.
 
-**F9. Identity and seeds.** A new namespace with its own identity (the wrapper and every loaded module). Data tags are
-(8, generator index, strength index, drift index, 0, subject); optimizer tags are unchanged.
+**F9. Identity and seeds.** The new namespace seals the C2 and replay code, the F2–F5 definitions, the complete phase-8 data
+tuples (8, generator index, strength index, drift index, 0, subject), the unchanged optimizer tags, the runtime, the actual
+events and templates, and the calibration ancestry. v6 and Phase 1 are preserved. Later validation uses the complete locked
+phase-10 battery and its declared criteria, without pooling heterogeneous groups as replicates.
 
 ## 4. Phase 3 — lock
 
@@ -314,7 +353,12 @@ randomness is intentionally retained as part of the procedure. With new recordin
 described as a fresh optimizer stream.
 
 Whether positive graded recovery is a pass criterion is declared here, before validation. Otherwise graded-call rates are
-reported, and the claim is limited to what the unchanged criteria test. Codex reads the locked configuration and its tests
+reported, and the claim is limited to what the unchanged criteria test.
+*Rev 2 (Codex eaea99b Q5).* For the C2 amendment the lock retains §9 and states its limit: passing tests strong-X1 recovery
+and limited false two-state behaviour under the declared graded laws. It does not establish reliable positive identification
+of graded generators or a general bidirectional classifier, and graded outcomes are reported in every validation cell. If
+the scientific claim needs positive graded identification, a prospective recovery requirement and a new development plan
+must precede the untouched validation. Codex reads the locked configuration and its tests
 before any validation outcome is opened.
 
 ## 5. Phase 4 — independent validation
@@ -340,7 +384,7 @@ The v6 stage C rate is 8.9533 worker elapsed-hours for 2,040 recordings, about 0
 |---|---|
 | Phase 1 panel | 40 recordings ≈ 0.2 worker-hours, plus logging I/O |
 | Phase 1 idealized | 272 recordings, 3,264 fits ≈ 0.1 worker-hours (no sensor or decoder cost) |
-| Phase 2 fresh check | baseline + C1 on 204 recordings ≈ 1.8 worker-hours; C2 and C1+C2 by scoring, credited only after replay equivalence |
+| Phase 2 fresh check (rev 2) | baseline on 204 recordings ≈ 0.88 worker-hours (planning, from the first Phase 1 recording), plus logging, replay, C2 scoring, group BMS and summaries; ceiling 3 worker-hours / 4 wall-hours (§3.1 F6) |
 | Phase 4 | ≈ 9–11 worker-hours |
 
 These are worker elapsed-hours, not CPU hours and not wall time. Each phase is benchmarked under the actual concurrent
@@ -353,6 +397,7 @@ Mac load, with a written limit and a pause-and-report rule before its main work.
 | 0 | 15 Sept 2026 | RSC 1100eb1: the plan committed before any fit (owner go; Codex e490f3b Q3). |
 | 1 | 15 Sept 2026 | Codex e42846e taken in (§8). Panel manifest, statistic and selection defined; logging-only instrumentation with v6 parity; idealized readout = stochastic latent z; fold count corrected; C3 withdrawn as already v6; asymptote cap withdrawn; C1 = symmetric effective-SD floor at the existing 0.05·S; C1+C2 added; ranking/stop rule before candidate fits; seed phases 8/9/10 and fixed optimizer tags declared; "certified" replaced. |
 | 1 | 15 Sept 2026 | Phase 1 run and results added as §2.6 (RSC a856116 manifest, ad7e747 wrapper, c2068f1 analysis); no change to the plan. |
+| 2 | 15 Sept 2026 | Codex's Phase 2 fixings record (RSC eaea99b) taken in (§9): C1 and C1+C2 withdrawn by recorded amendment; final fixings F1–F9 (paired comparison set, development gates with tail guards, C2-only decision, cost ceiling counting all downstream work, full replay contract, identity); C1 wording corrected; G1 bound limitation and graded-recovery limit at lock recorded; wrapper implementation recorded in §2.2. |
 
 ## 8. Dispositions — Codex's v7 plan record (RSC e42846e), read in full
 
@@ -370,3 +415,16 @@ Mac load, with a written limit and a pause-and-report rule before its main work.
 | Q3: panel for mechanism only; no two-state tail sampling; ideal ≠ matched SNR; G2/G3 approximation | Accepted: §2.1, §2.3, §2.4. |
 | Q4: full 60-group validation; identity including wrappers; seed phases vs optimizer tags; lineage flags; "passes the declared synthetic acceptance criteria"; graded recovery declared at lock | Accepted: §4, §5. |
 | Cost: planning values; worker elapsed time vs wall time; benchmark under load with a pause rule | Accepted: §2.5, §6. |
+
+## 9. Dispositions — Codex's Phase 2 fixings record (RSC eaea99b, SHA-256 e8270b89…), read in full
+
+| Codex | Disposition |
+|---|---|
+| Audit: 40/40 parity over 13 fields, 272 ideal records, 12,864 fits and 102,912 start selections replayed, ceiling counts reproduced | Noted; independent confirmation of §2.6. |
+| Q1: withdraw C1 and C1+C2 by prospective amendment; corrected rationale ("exclude none of the observed severe kept solutions; effect after constrained refitting unmeasured"); endpoint box non-nested and its physical starts change; if retained, nested with full-constraint feasibility and stationarity | Accepted: §3 withdrawn list, §3.1 F1; wording corrected in §2.6 and the owning summaries. |
+| Q2: X1 both drift groups and 2·C ≤ B as development gates with zero-count conventions; complete scheduled/paired denominators; strict −1; non-finite family density severe and unavailable; failure categories; per group and family; no newly unavailable units; tail guards for both families; transitions and untrimmed magnitudes | Accepted: §3.1 F2–F4. |
+| Q3: tie order total; after withdrawal C2 passes every gate or stops for amendment | Accepted: §3.1 F5, F8. |
+| Q4: replay contract beyond training-sum equality (lineage, theta and training-fit status, arrays and gradients, start selection, baseline test reconstruction and aggregation, rescoring non-finite baseline scores, unchanged null/catch/in-support checks, exact equality) | Accepted: §3.1 F7. |
+| Q5: keep the fresh-check design; G1 truth outside the x0 box in 1/136 no-drift folds; recording winners are not group recovery; state the graded-recovery limit at lock | Accepted: §2.6 note, §4 rev 2 statement; bounds unchanged. |
+| Q6: original-function wrappers acceptable; record the deviation | Accepted: §2.2 note, revision trail. |
+| F6/F8/F9: ceiling counts all downstream work; no-acceptable exit; sealing list | Accepted: §3.1 F6, F8, F9; §6. |
