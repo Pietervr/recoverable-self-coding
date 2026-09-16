@@ -1,0 +1,302 @@
+{
+  "input": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/sim_results/d4v12b/calibration_D4.csv",
+  "input_bytes": 98959507,
+  "input_sha256": "7762f152aaeb00fb8f0b36e453c4c57fc04f0f1910bb265ed8a0d9d19211babb",
+  "input_unchanged": true,
+  "datasets": 12000,
+  "settings": 12,
+  "row_code_hashes": {
+    "b29215469af9": 12000
+  },
+  "recorded_failed": {
+    "0": 12000
+  },
+  "interval_signs_match_stored_decisions": true,
+  "all_three_predictors_have_finite_point_interval_se": true,
+  "totals": {
+    "selection": {
+      "graded": 12000
+    },
+    "ensemble": {
+      "graded": 12000
+    },
+    "historical": {
+      "graded": 9864,
+      "mixture": 989,
+      "inconclusive": 1147
+    }
+  },
+  "per_setting": [
+    {
+      "generator": "M2B",
+      "grid": {},
+      "n": 1000,
+      "counts": {
+        "selection": {
+          "graded": 1000
+        },
+        "ensemble": {
+          "graded": 1000
+        },
+        "historical": {
+          "graded": 1000
+        }
+      },
+      "selection_replicate_mean": -0.014800121968820811,
+      "selection_replicate_mean_sample_se": 4.839124844827966e-05,
+      "selection_intervals_containing_replicate_mean": 935,
+      "selection_plugin_containment": 0.935
+    },
+    {
+      "generator": "M2H",
+      "grid": {
+        "tau": 0.0
+      },
+      "n": 1000,
+      "counts": {
+        "selection": {
+          "graded": 1000
+        },
+        "ensemble": {
+          "graded": 1000
+        },
+        "historical": {
+          "graded": 1000
+        }
+      },
+      "selection_replicate_mean": -0.014817537407164558,
+      "selection_replicate_mean_sample_se": 5.1870472314239514e-05,
+      "selection_intervals_containing_replicate_mean": 918,
+      "selection_plugin_containment": 0.918
+    },
+    {
+      "generator": "M2H",
+      "grid": {
+        "tau": 0.5
+      },
+      "n": 1000,
+      "counts": {
+        "selection": {
+          "graded": 1000
+        },
+        "ensemble": {
+          "graded": 1000
+        },
+        "historical": {
+          "graded": 1000
+        }
+      },
+      "selection_replicate_mean": -0.032675008653415535,
+      "selection_replicate_mean_sample_se": 0.00015504935492491434,
+      "selection_intervals_containing_replicate_mean": 819,
+      "selection_plugin_containment": 0.819
+    },
+    {
+      "generator": "M2H",
+      "grid": {
+        "tau": 1.0
+      },
+      "n": 1000,
+      "counts": {
+        "selection": {
+          "graded": 1000
+        },
+        "ensemble": {
+          "graded": 1000
+        },
+        "historical": {
+          "graded": 975,
+          "inconclusive": 25
+        }
+      },
+      "selection_replicate_mean": -0.037450139808926204,
+      "selection_replicate_mean_sample_se": 8.727429192605494e-05,
+      "selection_intervals_containing_replicate_mean": 926,
+      "selection_plugin_containment": 0.926
+    },
+    {
+      "generator": "M2H",
+      "grid": {
+        "tau": 2.0
+      },
+      "n": 1000,
+      "counts": {
+        "selection": {
+          "graded": 1000
+        },
+        "ensemble": {
+          "graded": 1000
+        },
+        "historical": {
+          "mixture": 651,
+          "inconclusive": 349
+        }
+      },
+      "selection_replicate_mean": -0.05701110725863968,
+      "selection_replicate_mean_sample_se": 0.00025513097680185306,
+      "selection_intervals_containing_replicate_mean": 894,
+      "selection_plugin_containment": 0.894
+    },
+    {
+      "generator": "M2K",
+      "grid": {
+        "alpha": 0.0
+      },
+      "n": 1000,
+      "counts": {
+        "selection": {
+          "graded": 1000
+        },
+        "ensemble": {
+          "graded": 1000
+        },
+        "historical": {
+          "graded": 1000
+        }
+      },
+      "selection_replicate_mean": -0.014849682357641492,
+      "selection_replicate_mean_sample_se": 5.2697405565039004e-05,
+      "selection_intervals_containing_replicate_mean": 915,
+      "selection_plugin_containment": 0.915
+    },
+    {
+      "generator": "M2K",
+      "grid": {
+        "alpha": 1.0
+      },
+      "n": 1000,
+      "counts": {
+        "selection": {
+          "graded": 1000
+        },
+        "ensemble": {
+          "graded": 1000
+        },
+        "historical": {
+          "graded": 1000
+        }
+      },
+      "selection_replicate_mean": -0.027751151787845155,
+      "selection_replicate_mean_sample_se": 7.890858131960257e-05,
+      "selection_intervals_containing_replicate_mean": 885,
+      "selection_plugin_containment": 0.885
+    },
+    {
+      "generator": "M2K",
+      "grid": {
+        "alpha": 3.0
+      },
+      "n": 1000,
+      "counts": {
+        "selection": {
+          "graded": 1000
+        },
+        "ensemble": {
+          "graded": 1000
+        },
+        "historical": {
+          "graded": 1000
+        }
+      },
+      "selection_replicate_mean": -0.0720003565180586,
+      "selection_replicate_mean_sample_se": 0.00011786523418299172,
+      "selection_intervals_containing_replicate_mean": 928,
+      "selection_plugin_containment": 0.928
+    },
+    {
+      "generator": "M2S",
+      "grid": {
+        "omega": 0.0
+      },
+      "n": 1000,
+      "counts": {
+        "selection": {
+          "graded": 1000
+        },
+        "ensemble": {
+          "graded": 1000
+        },
+        "historical": {
+          "graded": 1000
+        }
+      },
+      "selection_replicate_mean": -0.014800594204518725,
+      "selection_replicate_mean_sample_se": 5.05475222642959e-05,
+      "selection_intervals_containing_replicate_mean": 917,
+      "selection_plugin_containment": 0.917
+    },
+    {
+      "generator": "M2S",
+      "grid": {
+        "omega": 0.5
+      },
+      "n": 1000,
+      "counts": {
+        "selection": {
+          "graded": 1000
+        },
+        "ensemble": {
+          "graded": 1000
+        },
+        "historical": {
+          "graded": 966,
+          "inconclusive": 34
+        }
+      },
+      "selection_replicate_mean": -0.2504958484889072,
+      "selection_replicate_mean_sample_se": 0.001832855078892985,
+      "selection_intervals_containing_replicate_mean": 848,
+      "selection_plugin_containment": 0.848
+    },
+    {
+      "generator": "M2S",
+      "grid": {
+        "omega": 1.0
+      },
+      "n": 1000,
+      "counts": {
+        "selection": {
+          "graded": 1000
+        },
+        "ensemble": {
+          "graded": 1000
+        },
+        "historical": {
+          "graded": 846,
+          "inconclusive": 153,
+          "mixture": 1
+        }
+      },
+      "selection_replicate_mean": -0.869512701313596,
+      "selection_replicate_mean_sample_se": 0.011241725023228438,
+      "selection_intervals_containing_replicate_mean": 780,
+      "selection_plugin_containment": 0.78
+    },
+    {
+      "generator": "M2S",
+      "grid": {
+        "omega": 2.0
+      },
+      "n": 1000,
+      "counts": {
+        "selection": {
+          "graded": 1000
+        },
+        "ensemble": {
+          "graded": 1000
+        },
+        "historical": {
+          "mixture": 337,
+          "inconclusive": 586,
+          "graded": 77
+        }
+      },
+      "selection_replicate_mean": -5.334354172270719,
+      "selection_replicate_mean_sample_se": 0.7339563039623117,
+      "selection_intervals_containing_replicate_mean": 216,
+      "selection_plugin_containment": 0.216
+    }
+  ],
+  "zero_call_upper_95_per_setting": 0.002991249545095296,
+  "scope": "Saved-row verification only; no fits, generation, bootstrap, or scientific runner. Containment uses same-sample replicate means and is not independent coverage validation. The historical predictor uses the T1 interval rule, not the human PXP pipeline."
+}
