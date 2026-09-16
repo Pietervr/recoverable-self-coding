@@ -1,0 +1,265 @@
+{
+  "purpose": "Planning arithmetic; examples are hypothetical, not measured power.",
+  "time_utc": "2026-09-16T20:02:34.855703+00:00",
+  "rsc_head": "da6070d602a1875a00d2da32584a47f50c88f49b",
+  "unimog_head": "2221334281e7cf37403c2e68c7769ea098709f9f",
+  "examples": [
+    {
+      "n": 25,
+      "detections": 20,
+      "rate": 0.8,
+      "mcse": 0.08,
+      "cp_two_sided_95": [
+        0.5929625677213228,
+        0.931688535987516
+      ],
+      "cp_lower_one_sided_95": 0.6245948648751218,
+      "cp_lower_bonferroni_four_one_sided_95": 0.5643876439042219
+    },
+    {
+      "n": 50,
+      "detections": 0,
+      "rate": 0.0,
+      "mcse": 0.0,
+      "cp_two_sided_95": [
+        0.0,
+        0.07112173646419767
+      ],
+      "cp_lower_one_sided_95": 0.0,
+      "cp_lower_bonferroni_four_one_sided_95": 0.0
+    },
+    {
+      "n": 50,
+      "detections": 35,
+      "rate": 0.7,
+      "mcse": 0.06480740698407861,
+      "cp_two_sided_95": [
+        0.5539176743388219,
+        0.821382154335853
+      ],
+      "cp_lower_one_sided_95": 0.5762670333919175,
+      "cp_lower_bonferroni_four_one_sided_95": 0.5338715594342958
+    },
+    {
+      "n": 50,
+      "detections": 40,
+      "rate": 0.8,
+      "mcse": 0.0565685424949238,
+      "cp_two_sided_95": [
+        0.662816891616512,
+        0.899697762527429
+      ],
+      "cp_lower_one_sided_95": 0.684403938579986,
+      "cp_lower_bonferroni_four_one_sided_95": 0.6431918827017591
+    },
+    {
+      "n": 50,
+      "detections": 45,
+      "rate": 0.9,
+      "mcse": 0.04242640687119285,
+      "cp_two_sided_95": [
+        0.7818646335657977,
+        0.9667249064109775
+      ],
+      "cp_lower_one_sided_95": 0.8011669974835816,
+      "cp_lower_bonferroni_four_one_sided_95": 0.7639651966612335
+    },
+    {
+      "n": 50,
+      "detections": 46,
+      "rate": 0.92,
+      "mcse": 0.038366652186501746,
+      "cp_two_sided_95": [
+        0.8076572164040372,
+        0.9777720363450702
+      ],
+      "cp_lower_one_sided_95": 0.8262088418358065,
+      "cp_lower_bonferroni_four_one_sided_95": 0.7903526955775753
+    },
+    {
+      "n": 50,
+      "detections": 47,
+      "rate": 0.94,
+      "mcse": 0.03358571124749334,
+      "cp_two_sided_95": [
+        0.8345180533962271,
+        0.987451412164666
+      ],
+      "cp_lower_one_sided_95": 0.8521628236358187,
+      "cp_lower_bonferroni_four_one_sided_95": 0.8179399965264695
+    },
+    {
+      "n": 50,
+      "detections": 50,
+      "rate": 1.0,
+      "mcse": 0.0,
+      "cp_two_sided_95": [
+        0.9288782635358024,
+        1.0
+      ],
+      "cp_lower_one_sided_95": 0.9418449208830277,
+      "cp_lower_bonferroni_four_one_sided_95": 0.9160901219920095
+    }
+  ],
+  "mcse_at_p08": {
+    "25": 0.08,
+    "50": 0.05656854249492381,
+    "100": 0.04,
+    "200": 0.028284271247461905,
+    "1000": 0.01264911064067352
+  },
+  "normal_95_halfwidth_005_at_p08_n": 246,
+  "minimum_k_of_50_for_lower_above_08": {
+    "individual_one_sided_95": 45,
+    "bonferroni_four_one_sided_95": 47
+  },
+  "pool_example_rates": [
+    0.4,
+    1,
+    1,
+    1
+  ],
+  "pool_example_equal_weight_mean": 0.85,
+  "nist_90_interval_4_of_20_check": [
+    0.07135388430861817,
+    0.40102811733197463
+  ],
+  "gain_chronology": [
+    "4677e41e8337b5188bcaec972b5a665ace2b400e 2026-09-11T17:49:10-07:00 t1_access: the \u00a710 gain acceptance gate enforced on write and on load (Codex re-check finding 7); revalidation of recorded entries; runtime pinned and recorded; recovery merge; resume from snapshot",
+    "3ca9304508e5dc5c9883c22ad7c783ecb25d18e2 2026-09-13T08:04:27-07:00 T1: the twelve-pair gain artefact (Mac, 561 min on 11 workers, code 9b277df, hash d77c3ecc161e) \u2014 every (member, gain) pair passes the gate: references converged in both draws, reproduced by >= 2 starts, check SE <= 20 % and calibration and check within 25 % of target (worst: M3V 0.01, check 0.00948)"
+  ],
+  "rsc_sources": [
+    {
+      "path": "workspace_demo/t1_access/simulate.py",
+      "sha256": "0832d490f6b2f10749f53f6f5ea69c2079acb240fbf0dce7f1dba7b2f89ab3fb",
+      "bytes": 65791,
+      "lines": 1025,
+      "last_commit": "a9f66bb7ad8c63c1e91b8a6b5492602983dc55e3",
+      "tracked_change": ""
+    },
+    {
+      "path": "workspace_demo/t1_access/analyze.py",
+      "sha256": "c49c8f744c1dae0cca59fdebe0c6f7134027d6555bb11eb69dcb1ed8c455d219",
+      "bytes": 38795,
+      "lines": 668,
+      "last_commit": "9b277df59af7807d34f6e99cb718ab1b1734aec1",
+      "tracked_change": ""
+    },
+    {
+      "path": "workspace_demo/t1_access/models.py",
+      "sha256": "c037b5b96fcc730fe33c5d2cf89f4a1d71c437c21bd5a904d8f371dfb03bc3f5",
+      "bytes": 37670,
+      "lines": 767,
+      "last_commit": "9b277df59af7807d34f6e99cb718ab1b1734aec1",
+      "tracked_change": ""
+    },
+    {
+      "path": "workspace_demo/t1_access/probe_refit.py",
+      "sha256": "84db00f684cf7382bbc19a1d245b026f5e1055c85c7dada190f400b46654281c",
+      "bytes": 3896,
+      "lines": 73,
+      "last_commit": "e8d7b4ca64f7e6a66dd33776ee854aefd6b702a4",
+      "tracked_change": ""
+    },
+    {
+      "path": "workspace_demo/t1_access/PREREGISTRATION_T1_model.md",
+      "sha256": "c473c30d4d29d62eae5817ccff20f8b3bea8fdc13a8c765c823f2f7d2d959e7d",
+      "bytes": 75033,
+      "lines": 688,
+      "last_commit": "19d818a94d18583e3db7c25d8a9c992587f13d11",
+      "tracked_change": ""
+    },
+    {
+      "path": "workspace_demo/t1_access/sim_results/gain_local_9b277df/gain_calibration_D4.json",
+      "sha256": "38a67e1c8caa76c4bdefbc0e22a59b62678ef3d8e902e53b0b88ee6d3e0a8697",
+      "bytes": 3477642,
+      "lines": 199311,
+      "last_commit": "3ca9304508e5dc5c9883c22ad7c783ecb25d18e2",
+      "tracked_change": ""
+    },
+    {
+      "path": "workspace_demo/t1_access/reviews/2026-09-16_power_stage_codex_brief.md",
+      "sha256": "ecb3adff423cae8006c486b08c060f90f6e142ac7359207a147afe356a9cba60",
+      "bytes": 6594,
+      "lines": 91,
+      "last_commit": "26f34d85cf2e62cbf93652d63a3fc0cc2d80f2d7",
+      "tracked_change": ""
+    },
+    {
+      "path": "workspace_demo/t1_access/reviews/2026-09-16_power_stage_gate_check.py",
+      "sha256": "5c0814757f547835ddd0c9ee4002b364693331d56857356351f7442fa75c647e",
+      "bytes": 2108,
+      "lines": 29,
+      "last_commit": "da6070d602a1875a00d2da32584a47f50c88f49b",
+      "tracked_change": ""
+    },
+    {
+      "path": "workspace_demo/t1_access/reviews/2026-09-16_power_stage_gate_check.output.txt",
+      "sha256": "f5c34e3fb8cf4a7ecd0d222f5c5491bd5f3ff6e215d310f2e03799e1cb8639a4",
+      "bytes": 9119,
+      "lines": 30,
+      "last_commit": "da6070d602a1875a00d2da32584a47f50c88f49b",
+      "tracked_change": ""
+    }
+  ],
+  "unimog_sources": [
+    {
+      "path": "papers/adaptive_agency_special_issue/sections/introduction.tex",
+      "sha256": "edbd96890657f6dfc4353949740ef1d2f17c7e59b5f81dbbb4ed22ac1a8a1bcc",
+      "bytes": 12178,
+      "lines": 32,
+      "last_commit": "3fe024a3b43cc8de484a63ef05c41e894422c26a",
+      "tracked_change": ""
+    },
+    {
+      "path": "papers/adaptive_agency_special_issue/sections/methods.tex",
+      "sha256": "c3c325738eb0626e60c3ffe718ecdbc8571173debab7e5f4ce0dfcb6a869638a",
+      "bytes": 21190,
+      "lines": 121,
+      "last_commit": "df9c17118f30a4c86d119e23411ac76d42c4c2e6",
+      "tracked_change": ""
+    },
+    {
+      "path": "papers/adaptive_agency_special_issue/sections/results.tex",
+      "sha256": "bf7f0df5141646eb1832bc88566d46afb4e125884b506f38b6ba9f8c8cf02302",
+      "bytes": 26708,
+      "lines": 184,
+      "last_commit": "e7fe794e0d1b9039deef18215558b49e8dfa7df2",
+      "tracked_change": ""
+    },
+    {
+      "path": "papers/adaptive_agency_special_issue/sections/discussion.tex",
+      "sha256": "4bc41040b51cdf4e204fbd321353478c96b2d764a26a04e06640498fd0519d93",
+      "bytes": 15554,
+      "lines": 41,
+      "last_commit": "2221334281e7cf37403c2e68c7769ea098709f9f",
+      "tracked_change": ""
+    },
+    {
+      "path": "papers/adaptive_agency_special_issue/sections/transfer.tex",
+      "sha256": "52c4d9ddf2048a59dab19eda6cf099c3a3654f280ab9204c0e187d0ba4a15ae5",
+      "bytes": 29334,
+      "lines": 121,
+      "last_commit": "4d90471dd675b8648d89ba5b88043271696e0896",
+      "tracked_change": ""
+    },
+    {
+      "path": "project_knowledge/rsc_publication_strategy.md",
+      "sha256": "a098a04783b734e6cf8b8b1296b49fa75f9f130f6898853ab2cc6032f5e26d68",
+      "bytes": 159688,
+      "lines": 1494,
+      "last_commit": "8d51896670bb03ec1531bbcf62e52692176fa2f1",
+      "tracked_change": ""
+    },
+    {
+      "path": "project_knowledge/rsc_t1_simulation_design.md",
+      "sha256": "7653b9ca779a3897a4dc52e0adee7c4879f19344e3b5e775089cba7d8fc08ba7",
+      "bytes": 51375,
+      "lines": 188,
+      "last_commit": "42de4d1215771c794d5b0d83349739e17166f15c",
+      "tracked_change": ""
+    }
+  ],
+  "calculation_source": "https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm",
+  "no_scientific_run": true
+}
