@@ -1,0 +1,107 @@
+{
+  "scope": "Read-only package checks; no scientific rerun or independent recompilation",
+  "request_commit": "4420a32",
+  "package_commit": "d5354b97",
+  "typography_commit": "e5f1e542",
+  "roadmap_commit": "901b58b9",
+  "pdfs": {
+    "si_submission": {
+      "bytes": 397463,
+      "sha256": "149f689d3301415473cc2a3f97a9b713cac45d08870e889c5390d8251c587749"
+    },
+    "si_supplementary": {
+      "bytes": 147875,
+      "sha256": "cb86649e8f06a097ff8d7d78c54a671d1748e723b07496644535833590c4c03e"
+    },
+    "si_next_preview": {
+      "bytes": 607848,
+      "sha256": "9d978cc5ed90c0e90cc89dca2586461efc00010f31c7a9446380515bad06e4a4"
+    },
+    "arxiv_v1_untouched_baseline": {
+      "sha256": "8f171b5b3841972572d6dbd06af6015a5c0a9ce73b21d72000224db6cc3e2201"
+    }
+  },
+  "article_pages_visually_inspected": [
+    1,
+    6,
+    13,
+    14,
+    15,
+    17,
+    18,
+    20,
+    21,
+    22,
+    23,
+    27
+  ],
+  "supplement_pages_visually_inspected": [
+    1,
+    2,
+    3
+  ],
+  "arxiv_next_preview_visual_inspection": false,
+  "changed_selected_page_after_final_typography_rebuild": [
+    13
+  ],
+  "same_directory_identity": {
+    "device": 16777230,
+    "root_inode": 917784171,
+    "git_inode": 917784510,
+    "paths": [
+      "/Users/pietervanrooyen/Recoverable-Self-Coding",
+      "/Users/pietervanrooyen/recoverable-self-coding"
+    ]
+  },
+  "public_readback": {
+    "checked_at_utc": "2026-09-16T05:01:02.227616+00:00",
+    "remote": {
+      "main": "f5569980455751b82c8a39a376a9ae039cc61c14",
+      "committed_at": "2026-09-12T22:48:38Z",
+      "tree_complete": true,
+      "files": 328,
+      "paths_of_interest": [
+        "workspace_demo/t1_access/monitor_d4v12b.sh",
+        "workspace_demo/t1_access/reviews/2026-09-12_d4v12b_calibration_read_codex_brief.md"
+      ]
+    },
+    "missing_current_analysis_paths": {
+      "workspace_demo/t1_access/reviews/t1_historical_pair_2026-09-16/historical_pair_sensitivity.py": true,
+      "workspace_demo/t1_access/reviews/t1_historical_pair_2026-09-16/reference_inclusion_check.py": true,
+      "workspace_demo/t1_access/sim_results/ref_m2s_omega2_aac9f69": true
+    },
+    "public_v1_tag": {
+      "commit": "6a3103ea7055c7bc0eaf1010a62d804570005034",
+      "tree_complete": true,
+      "files": 78,
+      "current_analysis_matches": []
+    },
+    "zenodo": {
+      "id": 22741885,
+      "doi": "10.5281/zenodo.22741885",
+      "published": "2026-09-14",
+      "title": "Data and code for Testing Two-State Access in Brain and Language Model: Human EEG Reproduction, Simulation Audit, and a Proposed Model Assay",
+      "files": [
+        {
+          "key": "entropy-access-arxiv-v1-research.zip",
+          "size": 35854881,
+          "checksum": "md5:fb02368fa85e5200aa28893b6a76892b"
+        }
+      ]
+    }
+  },
+  "public_sources": [
+    "https://api.github.com/repos/Pietervr/recoverable-self-coding/commits/main",
+    "https://api.github.com/repos/Pietervr/recoverable-self-coding/git/trees/f5569980455751b82c8a39a376a9ae039cc61c14?recursive=1",
+    "https://api.github.com/repos/Pietervr/recoverable-self-coding/git/trees/6a3103ea7055c7bc0eaf1010a62d804570005034?recursive=1",
+    "https://zenodo.org/api/records/22741885"
+  ],
+  "zenodo_limit": "Public metadata read; archive not downloaded or re-audited",
+  "word_counter_limit": "Rough source-body count; excludes floats, counts source fragments, includes supplement in combined total, omits wrapper/back matter and bibliography",
+  "word_counter_result": {
+    "main": 10169,
+    "availability": 462,
+    "appendix": 1351,
+    "combined": 11982
+  }
+}
