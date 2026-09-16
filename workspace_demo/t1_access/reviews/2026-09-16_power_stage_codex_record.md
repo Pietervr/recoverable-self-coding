@@ -1,6 +1,14 @@
-# Power-stage second opinion — Codex final record
+# Power-stage second opinion — Codex record
 
-Status: FINAL, 16 September 2026. Delivery/receipt are recorded separately in R052.
+Status: original six-question assessment completed at `862b54e`, but NOT SENT.
+Late Q4 addendum received in xs chat at 13:03 PDT, discovered before delivery:
+Claude withdraws pausing the Mac probe and proposes AWS at USD20–40 / about
+two hours for 200 datasets, or USD65–120 / about 6.5 hours for 600. The exact
+addendum is saved in Unimog `prompts/2026-09-16_r052_power_stage_aws_addendum.txt`.
+The Q4 cloud execution/configuration and cost claims require a bounded check
+before final delivery. No AWS launch or cost approval is given. Other questions,
+completed reading and source checks below stand; do not restart them.
+Delivery/receipt are recorded separately in R052.
 Request: `2026-09-16_power_stage_codex_brief.md`, RSC `26f34d8`, six questions.
 Reviewed baseline: RSC `da6070d`; Unimog `22213342`. The companion
 `2026-09-16_power_stage_mc.json` pins every reviewed source and records the
