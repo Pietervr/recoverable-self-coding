@@ -1,0 +1,121 @@
+{
+  "scope": "No fitting, gate rerun, response simulation, benchmark, launcher import or AWS operation. Only stored JSON, pure point selection and arithmetic.",
+  "source_commit": "50812ef9684c78afc6e8bbfbf44e6a8e51f54f7e",
+  "source_sha256": {
+    "launch_t1.py": "5b335ecba8530b0466dd752299cae54f1b98ce5fd7e6b6042e9ef9ae9c82c182",
+    "t1_job.py": "4c6840b49703187d8495011dc7165ea6043d9c2325f7885e3b51d6bf0a279296",
+    "aws_env.py": "ce422c99ee403d382bef4d51e30057da20421a36587f867d0e9d12a664168a08",
+    "points_filter.py": "9666b3daad3729377063b5658d406234056c430b2404ffbb19af23afaf6df846",
+    "simulate.py": "0832d490f6b2f10749f53f6f5ea69c2079acb240fbf0dce7f1dba7b2f89ab3fb",
+    "analyze.py": "c49c8f744c1dae0cca59fdebe0c6f7134027d6555bb11eb69dcb1ed8c455d219",
+    "models.py": "c037b5b96fcc730fe33c5d2cf89f4a1d71c437c21bd5a904d8f371dfb03bc3f5"
+  },
+  "gain_sha256": "38a67e1c8caa76c4bdefbc0e22a59b62678ef3d8e902e53b0b88ee6d3e0a8697",
+  "gain_code_hash": "d77c3ecc161e",
+  "gain_D": 4,
+  "gain_seed": 2026,
+  "points_filter_spec_for_stored_artifact": "M3:scale=0.7048470316951376,M3H:tau=0.5;scale=0.5359075609613234,M3V:scale=0.6267476817856267,M3L:pi0=0.05;scale=0.7187787541376713",
+  "selected_points": [
+    [
+      "M3",
+      {
+        "scale": 0.7048470316951376
+      }
+    ],
+    [
+      "M3H",
+      {
+        "tau": 0.5,
+        "scale": 0.5359075609613234
+      }
+    ],
+    [
+      "M3V",
+      {
+        "scale": 0.6267476817856267
+      }
+    ],
+    [
+      "M3L",
+      {
+        "pi0": 0.05,
+        "scale": 0.7187787541376713
+      }
+    ]
+  ],
+  "bare_power_n_rep_2_datasets": 24,
+  "filtered_power_n_rep_2_datasets": 8,
+  "arithmetic_assumptions": "Illustrations only: 20 simultaneous jobs, 8 workers each, equal 6,188 seconds per complete dataset, chunk=N_JOBS, no startup/straggler/retry/spot delay. Fitter time is not measured complete-dataset time.",
+  "scenarios": [
+    {
+      "points": 4,
+      "R": 50,
+      "datasets": 200,
+      "per_job_counts": [
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10
+      ],
+      "jobs": 20,
+      "workers_per_job": 8,
+      "rounds_equal_time_assumption": 2,
+      "summed_fitter_hours": 343.77777777777777,
+      "ideal_fully_utilized_hours": 2.1486111111111112,
+      "chunked_equal_time_hours": 3.437777777777778,
+      "usd_at_unverified_050": 34.37777777777778,
+      "usd_at_listed_oregon_c7i_04284": 29.454880000000003
+    },
+    {
+      "points": 12,
+      "R": 50,
+      "datasets": 600,
+      "per_job_counts": [
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30
+      ],
+      "jobs": 20,
+      "workers_per_job": 8,
+      "rounds_equal_time_assumption": 4,
+      "summed_fitter_hours": 1031.3333333333333,
+      "ideal_fully_utilized_hours": 6.445833333333333,
+      "chunked_equal_time_hours": 6.875555555555556,
+      "usd_at_unverified_050": 68.75555555555556,
+      "usd_at_listed_oregon_c7i_04284": 58.909760000000006
+    }
+  ]
+}

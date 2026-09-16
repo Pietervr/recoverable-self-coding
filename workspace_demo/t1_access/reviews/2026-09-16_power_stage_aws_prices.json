@@ -1,0 +1,287 @@
+{
+  "scope": "Public unauthenticated AWS Price List read only; no account API or cloud operation",
+  "regions": [
+    {
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonSageMaker/current/us-west-2/index.json",
+      "region": "us-west-2",
+      "fetched_at_utc": "2026-09-16T20:16:02.834590+00:00",
+      "publicationDate": "2026-09-16T20:07:20Z",
+      "version": "20260916200720",
+      "response_bytes": 4349724,
+      "response_sha256": "94aeda320fd43caf712835923dd14a74f58d64dd0cf20045a8b26625e52505a2",
+      "c8i_products_any_component": [],
+      "training_rows": [
+        {
+          "sku": "BGGHDUVBBXX499XB",
+          "attributes": {
+            "servicecode": "AmazonSageMaker",
+            "location": "US West (Oregon)",
+            "locationType": "AWS Region",
+            "instanceType": "ml.r7i.2xlarge-Training",
+            "currentGeneration": "Yes",
+            "clockSpeed": "3.2 GHz",
+            "memory": "64 GiB",
+            "storage": "EBS only",
+            "networkPerformance": "Up to 12500 Megabit",
+            "processorArchitecture": "64-bit",
+            "usagetype": "USW2-Train:ml.r7i.2xlarge",
+            "operation": "RunInstance",
+            "component": "Training",
+            "computeType": "Memory Optimized Instances",
+            "gpu": "0",
+            "gpuMemory": "NA",
+            "instanceName": "ml.r7i.2xlarge",
+            "physicalCpu": "Intel Xeon Scalable (Sapphire Rapids)",
+            "physicalGpu": "N/A",
+            "platoinstancename": "r7i",
+            "platoinstancetype": "Training",
+            "regionCode": "us-west-2",
+            "servicename": "Amazon SageMaker",
+            "vCpu": "8"
+          },
+          "prices": [
+            {
+              "effectiveDate": "2026-09-01T00:00:00Z",
+              "rateCode": "BGGHDUVBBXX499XB.JRTCKXETXF.6YS6EN2CT7",
+              "description": "$0.63504 per hour for Training ml.r7i.2xlarge in US West (Oregon)",
+              "beginRange": "0",
+              "endRange": "Inf",
+              "unit": "Hrs",
+              "pricePerUnit": {
+                "USD": "0.6350400000"
+              },
+              "appliesTo": []
+            }
+          ]
+        },
+        {
+          "sku": "NAH4FW6E8SKE3XB2",
+          "attributes": {
+            "servicecode": "AmazonSageMaker",
+            "location": "US West (Oregon)",
+            "locationType": "AWS Region",
+            "instanceType": "ml.m7i.2xlarge-Training",
+            "currentGeneration": "Yes",
+            "clockSpeed": "3.2 GHz",
+            "memory": "32 GiB",
+            "storage": "EBS only",
+            "networkPerformance": "Up to 12500 Megabit",
+            "processorArchitecture": "64-bit",
+            "usagetype": "USW2-Train:ml.m7i.2xlarge",
+            "operation": "RunInstance",
+            "component": "Training",
+            "computeType": "Standard Instances",
+            "gpu": "0",
+            "gpuMemory": "NA",
+            "instanceName": "ml.m7i.2xlarge",
+            "physicalCpu": "Intel Xeon Scalable (Sapphire Rapids)",
+            "physicalGpu": "N/A",
+            "platoinstancename": "m7i",
+            "platoinstancetype": "Training",
+            "regionCode": "us-west-2",
+            "servicename": "Amazon SageMaker",
+            "vCpu": "8"
+          },
+          "prices": [
+            {
+              "effectiveDate": "2026-09-01T00:00:00Z",
+              "rateCode": "NAH4FW6E8SKE3XB2.JRTCKXETXF.6YS6EN2CT7",
+              "description": "$0.48384 per hour for Training ml.m7i.2xlarge in US West (Oregon)",
+              "beginRange": "0",
+              "endRange": "Inf",
+              "unit": "Hrs",
+              "pricePerUnit": {
+                "USD": "0.4838400000"
+              },
+              "appliesTo": []
+            }
+          ]
+        },
+        {
+          "sku": "QA396P9BFP8JGQPP",
+          "attributes": {
+            "servicecode": "AmazonSageMaker",
+            "location": "US West (Oregon)",
+            "locationType": "AWS Region",
+            "instanceType": "ml.c7i.2xlarge-Training",
+            "currentGeneration": "Yes",
+            "clockSpeed": "3.2 GHz",
+            "memory": "16 GiB",
+            "storage": "EBS only",
+            "networkPerformance": "Up to 12500 Megabit",
+            "processorArchitecture": "64-bit",
+            "usagetype": "USW2-Train:ml.c7i.2xlarge",
+            "operation": "RunInstance",
+            "component": "Training",
+            "computeType": "Compute Optimized Instances",
+            "gpu": "0",
+            "gpuMemory": "NA",
+            "instanceName": "ml.c7i.2xlarge",
+            "physicalCpu": "Intel Xeon Scalable (Sapphire Rapids)",
+            "physicalGpu": "N/A",
+            "platoinstancename": "c7i",
+            "platoinstancetype": "Training",
+            "regionCode": "us-west-2",
+            "servicename": "Amazon SageMaker",
+            "vCpu": "8"
+          },
+          "prices": [
+            {
+              "effectiveDate": "2026-09-01T00:00:00Z",
+              "rateCode": "QA396P9BFP8JGQPP.JRTCKXETXF.6YS6EN2CT7",
+              "description": "$0.4284 per hour for Training ml.c7i.2xlarge in US West (Oregon)",
+              "beginRange": "0",
+              "endRange": "Inf",
+              "unit": "Hrs",
+              "pricePerUnit": {
+                "USD": "0.4284000000"
+              },
+              "appliesTo": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonSageMaker/current/eu-north-1/index.json",
+      "region": "eu-north-1",
+      "fetched_at_utc": "2026-09-16T20:16:01.578650+00:00",
+      "publicationDate": "2026-09-16T20:07:20Z",
+      "version": "20260916200720",
+      "response_bytes": 2765782,
+      "response_sha256": "e0f2ea0af049bfdeacb2f050ed219b3314e39780378c85f8a9c458ffced104f2",
+      "c8i_products_any_component": [],
+      "training_rows": [
+        {
+          "sku": "WA8CQXUPG3TH45XS",
+          "attributes": {
+            "servicecode": "AmazonSageMaker",
+            "location": "EU (Stockholm)",
+            "locationType": "AWS Region",
+            "instanceType": "ml.r7i.2xlarge-Training",
+            "currentGeneration": "Yes",
+            "clockSpeed": "3.2 GHz",
+            "memory": "64 GiB",
+            "storage": "EBS only",
+            "networkPerformance": "Up to 12500 Megabit",
+            "processorArchitecture": "64-bit",
+            "usagetype": "EUN1-Train:ml.r7i.2xlarge",
+            "operation": "RunInstance",
+            "component": "Training",
+            "computeType": "Memory Optimized Instances",
+            "gpu": "0",
+            "gpuMemory": "NA",
+            "instanceName": "ml.r7i.2xlarge",
+            "physicalCpu": "Intel Xeon Scalable (Sapphire Rapids)",
+            "physicalGpu": "N/A",
+            "platoinstancename": "r7i",
+            "platoinstancetype": "Training",
+            "regionCode": "eu-north-1",
+            "servicename": "Amazon SageMaker",
+            "vCpu": "8"
+          },
+          "prices": [
+            {
+              "effectiveDate": "2026-09-01T00:00:00Z",
+              "rateCode": "WA8CQXUPG3TH45XS.JRTCKXETXF.6YS6EN2CT7",
+              "description": "$0.67536 per hour for Training ml.r7i.2xlarge in EU (Stockholm)",
+              "beginRange": "0",
+              "endRange": "Inf",
+              "unit": "Hrs",
+              "pricePerUnit": {
+                "USD": "0.6753600000"
+              },
+              "appliesTo": []
+            }
+          ]
+        },
+        {
+          "sku": "KRXZXYFQGSK2RQX6",
+          "attributes": {
+            "servicecode": "AmazonSageMaker",
+            "location": "EU (Stockholm)",
+            "locationType": "AWS Region",
+            "instanceType": "ml.m7i.2xlarge-Training",
+            "currentGeneration": "Yes",
+            "clockSpeed": "3.2 GHz",
+            "memory": "32 GiB",
+            "storage": "EBS only",
+            "networkPerformance": "Up to 12500 Megabit",
+            "processorArchitecture": "64-bit",
+            "usagetype": "EUN1-Train:ml.m7i.2xlarge",
+            "operation": "RunInstance",
+            "component": "Training",
+            "computeType": "Standard Instances",
+            "gpu": "0",
+            "gpuMemory": "NA",
+            "instanceName": "ml.m7i.2xlarge",
+            "physicalCpu": "Intel Xeon Scalable (Sapphire Rapids)",
+            "physicalGpu": "N/A",
+            "platoinstancename": "m7i",
+            "platoinstancetype": "Training",
+            "regionCode": "eu-north-1",
+            "servicename": "Amazon SageMaker",
+            "vCpu": "8"
+          },
+          "prices": [
+            {
+              "effectiveDate": "2026-09-01T00:00:00Z",
+              "rateCode": "KRXZXYFQGSK2RQX6.JRTCKXETXF.6YS6EN2CT7",
+              "description": "$0.51408 per hour for Training ml.m7i.2xlarge in EU (Stockholm)",
+              "beginRange": "0",
+              "endRange": "Inf",
+              "unit": "Hrs",
+              "pricePerUnit": {
+                "USD": "0.5140800000"
+              },
+              "appliesTo": []
+            }
+          ]
+        },
+        {
+          "sku": "BZYFY6TFXWSBTKHP",
+          "attributes": {
+            "servicecode": "AmazonSageMaker",
+            "location": "EU (Stockholm)",
+            "locationType": "AWS Region",
+            "instanceType": "ml.c7i.2xlarge-Training",
+            "currentGeneration": "Yes",
+            "clockSpeed": "3.2 GHz",
+            "memory": "16 GiB",
+            "storage": "EBS only",
+            "networkPerformance": "Up to 12500 Megabit",
+            "processorArchitecture": "64-bit",
+            "usagetype": "EUN1-Train:ml.c7i.2xlarge",
+            "operation": "RunInstance",
+            "component": "Training",
+            "computeType": "Compute Optimized Instances",
+            "gpu": "0",
+            "gpuMemory": "NA",
+            "instanceName": "ml.c7i.2xlarge",
+            "physicalCpu": "Intel Xeon Scalable (Sapphire Rapids)",
+            "physicalGpu": "N/A",
+            "platoinstancename": "c7i",
+            "platoinstancetype": "Training",
+            "regionCode": "eu-north-1",
+            "servicename": "Amazon SageMaker",
+            "vCpu": "8"
+          },
+          "prices": [
+            {
+              "effectiveDate": "2026-09-01T00:00:00Z",
+              "rateCode": "BZYFY6TFXWSBTKHP.JRTCKXETXF.6YS6EN2CT7",
+              "description": "$0.45864 per hour for Training ml.c7i.2xlarge in EU (Stockholm)",
+              "beginRange": "0",
+              "endRange": "Inf",
+              "unit": "Hrs",
+              "pricePerUnit": {
+                "USD": "0.4586400000"
+              },
+              "appliesTo": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

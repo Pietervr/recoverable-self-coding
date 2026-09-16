@@ -1,14 +1,16 @@
 # Power-stage second opinion — Codex record
 
-Status: original six-question assessment completed at `862b54e`, but NOT SENT.
-Late Q4 addendum received in xs chat at 13:03 PDT, discovered before delivery:
-Claude withdraws pausing the Mac probe and proposes AWS at USD20–40 / about
-two hours for 200 datasets, or USD65–120 / about 6.5 hours for 600. The exact
-addendum is saved in Unimog `prompts/2026-09-16_r052_power_stage_aws_addendum.txt`.
-The Q4 cloud execution/configuration and cost claims require a bounded check
-before final delivery. No AWS launch or cost approval is given. Other questions,
-completed reading and source checks below stand; do not restart them.
-Delivery/receipt are recorded separately in R052.
+Status: FINAL, including the bounded Q4 AWS addendum review on 16 September 2026.
+The original six-question assessment at `862b54e` stands except for the revised
+cloud sequencing/cost advice and acknowledgment of manuscript correction
+`af85237e`. The exact addendum is saved in Unimog
+`prompts/2026-09-16_r052_power_stage_aws_addendum.txt`.
+Scientific scope and AWS sequencing are supported in principle; the quoted
+price/time and an unspecified dispatch are not cleared. Concrete configuration,
+gain provenance, a bounded benchmark and a measured campaign cap remain necessary.
+The owner's 13:04/13:17 PDT conditional AWS go is recorded in the live native Entropy SI
+exchange; it does not establish those missing execution facts. Delivery/receipt
+are recorded separately in R052. No cloud account call or scientific run occurred.
 Request: `2026-09-16_power_stage_codex_brief.md`, RSC `26f34d8`, six questions.
 Reviewed baseline: RSC `da6070d`; Unimog `22213342`. The companion
 `2026-09-16_power_stage_mc.json` pins every reviewed source and records the
@@ -35,9 +37,12 @@ Read `simulate.py` (all 1,025 lines), `analyze.py` (all 668 lines),
 sections 5, 7–10, budget and freeze-manifest text. Completed the simulation-design
 document through its current ledger, strategy lines 1–100, and current manuscript
 introduction, transfer, methods, results and discussion/conclusion in full.
-Read the current owner/Claude exchange through 12:58 PDT in native Entropy SI
-`9c0d76b5-e296-4739-bb14-ed95dfe64a09`. The owner has frozen text through §2.5;
-the separate AI-side pilot is not an expansion of this review.
+Read the original owner/Claude exchange through 12:58 PDT and the later AWS
+exchange through 13:19 PDT in native Entropy SI
+`9c0d76b5-e296-4739-bb14-ed95dfe64a09`, plus the actual `af85237e` diff.
+The owner-frozen text through §2.5 remains outside Codex's edit scope; Claude
+has made the authorized narrow predictor-calibration correction. The separate
+AI-side pilot is not an expansion of this review.
 
 Source snapshot: RSC HEAD `26f34d8`; SHA256:
 
@@ -127,15 +132,17 @@ been independently validated. A simulation's known generator label also differs
 from the sign of this fitted procedure's expected score difference: the latter
 can be positive between two misspecified predictors on a graded generator.
 
-**Current-paper consequence.** The explicit limitation in transfer §2.4–2.5 is
-helpful, but the Introduction's closing “predictors calibrated” and its
-“calibrates the assay on human data” still overstate the evidence. Human
-reproduction anchors an implementation; it supplies no known two-state ground
-truth or human error-rate calibration. The Conclusion's “which components are
-now calibrated” needs the same qualification. The owner's freeze through §2.5
-is respected: flag the frozen claims for owner disposition, do not edit them.
-Outside the freeze, state a partial operating-characteristic audit, with
-sensitivity unmeasured or reported at the few new settings actually run.
+**Current-paper consequence.** Claude's `af85237e` has already replaced the
+explicit “predictors calibrated” summaries in both abstracts and the
+Introduction with the measured false-call result and untested sensitivity.
+That correction is accepted; do not request it again. The residual claim-scope
+cautions from the completed review remain for owner disposition: human
+reproduction anchors an implementation, without known two-state ground truth
+or human error-rate calibration; a broad claim about calibrated components or
+guaranteed property detection needs qualification. The owner's freeze through
+§2.5 is respected. No frozen prose was edited or manuscript review restarted.
+State a partial operating-characteristic audit, with sensitivity unmeasured
+or reported at the few new settings actually run.
 
 The new sampling-unit discussion is subject to the same boundary. Independent
 random effects can be identically distributed, hence exchangeable, despite
@@ -249,58 +256,157 @@ The companion script inverts binomial tail probabilities and checks the
 published NIST example and the zero-count formula; it imports no fitting code.
 [NIST exact interval construction](https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm).
 
-## Q4 — Priority is reasonable; the proposed interruption and timing are not ready
+## Q4 — Support AWS sequencing; correct the dispatch and benchmark the cost
 
-For the new SI sensitivity question, ordinary historical-cluster power is more
-directly relevant than finishing replacement-interval validation. That gives it
-a reasonable claim on the **next available, budgeted** local compute. It does not
-establish that stopping either live probe now is the best schedule. The PC's
-JOB E is the current probe; JOB D is complete. The Mac probe, PID 8012/PPID 1/
-PGID 8010 with caffeinate 8014, was checked live during this review and left alone.
+The 13:03 PDT addendum withdraws pausing the Mac. I support that sequence and
+the 200-dataset scientific scope in principle. The live owner reply at 13:04
+PDT says to use AWS if everyone is aligned on what to run. Claude subsequently
+held launch while examining failed historical jobs. Alignment on this scope is
+not acceptance of USD20–40/two hours as a measured quote or approval of an
+unspecified launch. No need to revive the Mac takeover: the 31-hour estimate
+was unbenchmarked and kill/relaunch is not lossless. Mac probe 8012/8014 and
+PC JOB E remain independently owned and untouched.
 
-Do not schedule a 31-hour takeover from the cloud timing average. Even accepting
-6,188 fitter-seconds as quoted, 200 x 6,188 / 3,600 / 11 = 31.25 is only an ideal
-division of a historical workload. It does not measure Mac mixture performance,
-compilation, memory/contention or chunk stragglers. No new timing audit or
-benchmark was run by Codex. The protocol's own Mac/cloud measurements demonstrate
-why such rates cannot simply be transplanted.
+**What the cloud code actually permits.** Read `launch_t1.py`, `t1_job.py`,
+`aws_env.py` and `points_filter.py` completely, and only the relevant stored
+gain/config/dispatch functions in `simulate.py`. The source pins and pure
+selection/arithmetic check are in `2026-09-16_power_stage_aws_checks.py/.json`.
+No launcher import, credential/status request, fit, benchmark or gate rerun.
 
-Likewise, “checkpointed, resumes without loss” is false for kill/relaunch. The
-probe saves completed refit resamples; original dataset fits are rerun, in-flight
-work can be lost, and complete rows wait for a whole chunk. Suspending a live
-process tree is a different operation with its own resource consequences. A
-planned owner-authorized interruption should preserve the exact process tree,
-paths, checkpoint identities and restart settings and account for lost work.
-No signal, restart or duplication is part of this review.
+- `--task power` exists, but defaults to R=1000, all twelve gain points, one
+  job, eight inner starts, layer 41, D=4, cluster interval, and on-demand.
+  R=50 alone is **600 datasets**, not 200; `--generators` cannot distinguish
+  the three gains for each generator. Set inner starts to four explicitly.
+  The runner uses Config's eight outer starts and B=2000 cluster replicates.
+- There is no `--targets` option. The existing `--points` route can select
+  exactly four points without changing the numerical code, using the complete
+  kwargs, including the artifact's exact scale (target gain lives in metadata).
+  The checked string for this stored artifact is:
 
-Before requesting the owner's execution go, Claude can prepare a concrete run
-manifest and ledger row with these choices:
+      M3:scale=0.7048470316951376,M3H:tau=0.5;scale=0.5359075609613234,M3V:scale=0.6267476817856267,M3L:pi0=0.05;scale=0.7187787541376713
 
-1. Historical comparison: D=4, 64 concepts, layer 41 only, four inner and eight
-   outer starts, fixed-score B=2,000, all four 0.01 alternatives, 50 fresh dataset
-   seeds per alternative; preserve d4v12b and record source/runtime provenance.
-   A modern runner must explicitly reconcile relevant source and failure-policy
-   differences with the historical target; source hashes alone do not prove
-   behavioural parity, and failed rows must retain the current explicit status.
-2. Call `power_points(..., targets=[.01])` through an explicit scoped runner.
-   The CLI defaults otherwise change layers, inner starts and number of points.
-   Bind the gain file's D, checksum and source hash through the accepted-artifact
-   contract; do not use its entry-only CLI check as cross-snapshot authorization.
-3. Benchmark at least one complete dataset from each of the four alternatives
-   on the intended machine, before committing the campaign. Retain valid benchmark
-   rows in the fixed sample under a predeclared policy. Stop on technical or cost
-   failure, save everything, and report an incomplete screen as incomplete.
-   Low sensitivity is a result, not a reason to change the rule or stop reporting.
-4. Write a measured wall/worker-hour cap, checkpoint cadence, independent seed
-   schedule and interruption/resumption plan. Prefer available cores or a safe
-   probe boundary when feasible. Any scheduling change remains the owner's call.
+  Quote the whole argument because its semicolons are shell syntax. Derive and
+  verify it from the pinned artifact when preparing the manifest. Filtering
+  occurs after the full twelve-entry gate and preserves the selected points'
+  dataset seeds. The pure selector returns exactly four points; no new gate
+  evaluation was needed. A target-only runner is an alternative implementation,
+  not a requirement to modify the model code.
+- A new `--run` uploads code but **does not upload the gain JSON**. The job
+  fetches `gain_calibration_D4.json` (and any revalidated companion) from its
+  own RESULTS_URI, checks D and the requested code/config hash, and refuses
+  power if no compatible artifact exists. The hash includes source digests,
+  starts, interval settings and seed. Passing the stored gates at its own
+  `d77c3ecc161e` hash does not authorize relabelling that file for today's
+  snapshot or a fresh seed. Claude must declare and implement a truthful reuse
+  mapping/compatible snapshot before the paid benchmark; a cosmetic hash edit
+  is not a provenance decision. No numerical gain refit is requested here.
+- Region defaults to **us-west-2**, paired with its Oregon bucket. Reusing an
+  existing namespace invokes code-snapshot/resume rules; `--from-snapshot`
+  deliberately runs remote code rather than the local implementation reviewed
+  here. A fresh named namespace with an explicit source/runtime manifest is
+  easier to assess. Preserve d4v12b and the live refit outputs.
+- `N_JOBS` defaults to `os.cpu_count()`; the launcher pins NPROC, OMP, MKL and
+  OpenBLAS to one. Twenty 2xlarge jobs would mean 160 logical workers, but the
+  current local comment about twenty Spot instances is dated Stockholm quota
+  context, not proof of available Oregon capacity. Specify job count, worker
+  count, instance, region and Spot/on-demand mode; measure complete-dataset
+  throughput and peak memory at that concurrency.
 
-The separate pilot row 16 does not inherit an inference approval from this
-recommendation. A 64-concept single-layer simulation cannot validate a
-16-concept pilot's folds, a 35-layer band, decoders or the target bridge. Pilot
-numbers remain descriptive under §5; no H1 verdict follows. The clue audit,
-capture gates and prior route-A conditions are unchanged. I have not reviewed
-or implemented the proposed scores-to-Dataset bridge.
+**Current public pricing and hardware.** Public AWS SageMaker regional offer
+files fetched on 16 September (publication `2026-09-16T20:07:20Z`) contain no
+c8i SKU in either Oregon or Stockholm. That is a lookup limitation, not proof
+the instance is unavailable: prior local job records name it. The launcher's
+`0.50` is explicitly commented as estimated and becomes `0.467` under its
+Oregon multiplier. It is not a verified current Training price. For comparison,
+the actual listed Oregon on-demand Training price is USD0.4284/hour for
+ml.c7i.2xlarge (Stockholm USD0.45864); these are c7i prices, not c8i prices.
+Do not substitute EC2 pricing for SageMaker Training. The captured SKUs,
+effective dates and source digests are in `2026-09-16_power_stage_aws_prices.json`.
+[Oregon AWS offer](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonSageMaker/current/us-west-2/index.json),
+[Stockholm AWS offer](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonSageMaker/current/eu-north-1/index.json).
+
+AWS lists c8i.2xlarge as 8 vCPU, **4 physical cores**, 2 threads per core and
+16 GiB RAM. Twenty such instances are not 160 physical cores. Eight workers
+may help or hurt this workload relative to four; do not presume either linear
+scaling or an exact twofold slowdown. Memory must accommodate all workers and
+their compilation state. [AWS hardware specifications](https://docs.aws.amazon.com/ec2/latest/instancetypes/co.html).
+
+**The arithmetic is conditional, not a quote.** USD2400/12000 = USD0.20 per
+historical row, hence USD40/120 for 200/600. That is an all-in historical
+average across different work, hardware utilisation and purchase modes. Wasted
+gain work does not make it an upper bound on new mixture rows. The fitted-time
+and bill-per-row calculations are distinct estimates, but neither independently
+benchmarks the new workload. The 6,188 seconds are accumulated fitter elapsed
+time, not a complete-dataset wall time or hardware-independent core-hours.
+
+Claude's later 13:14 estimate cites 88.5 billed instance-hours for the 1,000-row
+omega=2 bank: at the same assumed USD0.50 rate this is USD0.04425/row, hence
+USD8.85/26.55 for 200/600. That is a more focused historical comparator, read
+from the live exchange, not independently retrieved account billing. It still
+does not settle the actual c8i rate, mixture runtime, small-job utilisation or
+future Spot discount/capacity; USD9/under30 is not an enforced maximum. The
+owner reaffirmed AWS subject to alignment at 13:17 and required a whole-paper
+consistency pass after results, while keeping the 12,000 graded rows intact
+and the mixture artifact separate. Those directions are accepted (Unimog
+`9be5a179`); this review does not merge the artifacts or lift the prose freeze.
+
+Even granting 6,188 seconds per full dataset at eight-way concurrency, the
+proposed 20-job layout gives 10 datasets/job for 200, and 30/job for 600.
+`run_points` waits for chunks of eight: equal-duration datasets therefore need
+two and four rounds respectively. The resulting illustrative times are 3.44
+and 6.88 hours, before startup, imbalance or interruptions, rather than the
+fully utilised divisions of 2.15 and 6.45 hours. At the **unverified** USD0.50
+rate the examples cost USD34.38 and USD68.76; at the listed c7i rate they would
+cost USD29.45 and USD58.91 **if that hardware achieved the assumed runtime**.
+These are scheduling illustrations, not a new forecast, floor or cap.
+
+SageMaker bills instance duration, including idle workers, rather than summed
+fitter-seconds. For Managed Spot, `BillableTimeInSeconds / TrainingTimeInSeconds`
+already reflects the discount. The reported roughly 28 training versus 7 billed
+hours therefore does not by itself identify 21 wasted hours or rounding to
+whole billed hours. Failure reasons and complete per-job accounting are needed;
+the transcript's Failed count alone cannot attribute the USD2400. Include
+startup, storage/logging, retries and any discarded partial chunk in the budget;
+do not apply the Spot discount twice. [AWS billing fields](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeTrainingJob.html),
+[Managed Spot interruption and billing guidance](https://docs.aws.amazon.com/sagemaker/latest/dg/model-managed-spot-training.html).
+
+Spot is opt-in here (`--spot`); it can wait or interrupt. `--max-hours` caps each
+job, not campaign dollars, and sets Spot wait to twice runtime. Twenty jobs at
+the default 48-hour runtime and guessed USD0.467/hour expose roughly USD448
+in compute before overhead/retries, not a USD40 cap. A small projected average
+does not enforce the owner's budget. No current account spend/quota was checked
+by Codex; approximately USD2780 remaining stays a dated estimate.
+
+**Concrete next dispatch work, owned by Claude.** Write ledger row 15 and a
+manifest for D4, 64 concepts, layer41, inner4/outer8, historical cluster B2000,
+the four nominal .01 points and R50, fresh deterministic seeds and explicit
+source/runtime/gain provenance. Reconcile only the relevant historical-rule
+and modern failure-reporting differences. Specify one bounded benchmark job,
+its instance price basis, worker count, max runtime, dollar allowance and stop
+on first technical failure. Resolve artifact transfer/compatibility before
+launch so a paid job is not merely an artifact-presence test.
+
+Benchmark at least one complete dataset per alternative on the intended shape
+and concurrency, with a predeclared rule for retaining valid benchmark rows in
+the final sample. **Bare `--task power --n-rep 2` is 24 full datasets**; with
+the exact .01 filter it is eight. It is not established as “minutes, cents”:
+24 times the quoted average alone is 41.25 summed fitter-hours. Select and cap
+the intended four-dataset benchmark explicitly. Technical failure stops the
+campaign; low sensitivity is a result to report, not a reason to retune.
+
+Use that result to set an aggregate campaign dollar/runtime cap and a checkpoint
+policy across all shards and retries. Reconcile current remaining funds before
+dispatch. The owner's conditional AWS go and my agreement with the scientific
+scope stand; the concrete benchmark/campaign must satisfy the existing ledger,
+benchmark, budget and alignment gates. I do not endorse expanding to 600 rows
+just because the guessed price is small, nor launch the unspecified job here.
+
+The separate pilot row 16 gains no inference approval from this recommendation.
+A 64-concept, single-layer sensitivity screen does not validate a 16-concept
+pilot's folds, a 35-layer band, decoders or the target bridge. Pilot numbers
+remain descriptive under §5; prior route-A conditions and CONF gates persist.
+The addendum's MLX capture/provenance claim is outside this bounded Q4 review;
+no capture portability audit or scores-to-Dataset bridge implementation occurred.
 
 ## Q5 — Each alternative first; pooling only as a labelled secondary average
 
@@ -355,16 +461,28 @@ none was performed by Codex.
 
 ## Disposition boundary and evidence
 
-Final evidence: the preserved gate script/output at `da6070d`, the new
-standard-library MC script/JSON, and this record. Source hashes match the
-checkpoint; reviewed manuscript/docs were clean at `22213342`. There was no
-reopening of the 12,000-row numerical audit or prior policy/PDF reviews.
+Final evidence: the preserved gate script/output at `da6070d`, the original
+standard-library MC script/JSON, this record and the bounded AWS source/filter/
+arithmetic and public-price evidence. Original scientific hashes still match
+the checkpoint; the only later manuscript check was the actual `af85237e` diff.
+There was no reopening of the 12,000-row audit, policy/PDF review, numerical
+gain validation, or prior completed second opinions.
 
 The real wrap `01a0a8a3` -> `01a0abca` was independently verified from the latest
 native attempt (suffix `01a0abbd`), common registry and committed prompt at
 Unimog `0a046cb8`. Exact name/topic retained; the complete native user receipt
 matches the unchanged prompt except for its terminal newline. Prior park records
 and failed historical attempts remain intact. This review continued after wrap.
+
+The later retry `01a0abca` -> `01a0abd9-c7cb-7b73-816d-dd64a0d12181`
+was independently verified at native suffix `01a0abd8-8bc8-7140-aa23-f65b1a99f1b7`.
+Native complete, common source historical/replaced_by successor, same exact
+name/topic, unchanged Unimog `a2ce17d0` prompt SHA256
+`e51bc046d511882219b5d299fc23ccaf7833d370b1d4893294728a93a2e6636e`;
+native user receipt line 10 at 20:12:58.520Z is complete, 5550 bytes versus
+5551 on disk, terminal newline only. The earlier failed attempt suffix
+`01a0abca-9be8-70f2-95a3-fed82d733665` remains failed with its cancellation
+evidence retained; it was not mistaken for this retry's successful transport.
 
 Ownership: Codex review/evidence/reply/receipt and R052 log append only; Claude
 manuscript/protocol/dispatch/front matter; R084 instruments. The owner-go,
