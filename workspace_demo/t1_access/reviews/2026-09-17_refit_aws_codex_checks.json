@@ -1,0 +1,381 @@
+{
+  "generated_utc": "2026-09-17T19:40:30.672331+00:00",
+  "scope": "Read-only provenance/arithmetic plus isolated queue fixture; no numerical fits or AWS account calls.",
+  "rsc_head": "c900d0400ca3ab7bb5d6b575f01e1b0adfb9b397",
+  "unimog_head": "c77dea62f25f7d96706bd07d8f6a5feb7cd3ab6a",
+  "brief_sha256": "351439ccb947dbeac62e3d3683ef6d4ddd4a020cb82c493ac9860dffc42c2b82",
+  "brief_bytes": 7476,
+  "brief_lines": 114,
+  "source_sha256": {
+    "models.py": "c037b5b96fcc730fe33c5d2cf89f4a1d71c437c21bd5a904d8f371dfb03bc3f5",
+    "analyze.py": "c49c8f744c1dae0cca59fdebe0c6f7134027d6555bb11eb69dcb1ed8c455d219",
+    "simulate.py": "0832d490f6b2f10749f53f6f5ea69c2079acb240fbf0dce7f1dba7b2f89ab3fb",
+    "probe_refit.py": "84db00f684cf7382bbc19a1d245b026f5e1055c85c7dada190f400b46654281c",
+    "t1_job.py": "4c6840b49703187d8495011dc7165ea6043d9c2325f7885e3b51d6bf0a279296",
+    "launch_t1.py": "5b335ecba8530b0466dd752299cae54f1b98ce5fd7e6b6042e9ef9ae9c82c182",
+    "requirements.txt": "a899faeca263b423740623bdcf1abbbe51870d53b662b5158bf9e5b3d4bfc484"
+  },
+  "probe_csv": {
+    "path": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/sim_results/refit_probe_3ca9304/refit_probe_D4.csv",
+    "sha256": "bd7037d0952ca07ea8438a1c06826a916f6f6fb942e7dac2a99e69ab68a52e9a",
+    "completed": 11,
+    "counts_by_setting": {
+      "M2S {\"omega\": 2.0}": 11
+    },
+    "identities": [
+      {
+        "generator": "M2S",
+        "grid": "{\"omega\": 2.0}",
+        "rep": "0",
+        "D": "4",
+        "code_hash": "fab869c34eb6",
+        "runtime": "python 3.12.14 jax 0.11.1 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 joblib 1.6.0 arm64",
+        "settings": "{\"interval\": \"refit\", \"layers\": [41], \"n_boot\": 2000, \"n_boot_refit\": 50, \"n_gh\": 20, \"n_inner\": 4, \"n_outer\": 5, \"n_starts\": 8, \"n_starts_inner\": 4, \"refit_min_usable\": 1.0, \"rho\": null}"
+      },
+      {
+        "generator": "M2S",
+        "grid": "{\"omega\": 2.0}",
+        "rep": "1",
+        "D": "4",
+        "code_hash": "fab869c34eb6",
+        "runtime": "python 3.12.14 jax 0.11.1 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 joblib 1.6.0 arm64",
+        "settings": "{\"interval\": \"refit\", \"layers\": [41], \"n_boot\": 2000, \"n_boot_refit\": 50, \"n_gh\": 20, \"n_inner\": 4, \"n_outer\": 5, \"n_starts\": 8, \"n_starts_inner\": 4, \"refit_min_usable\": 1.0, \"rho\": null}"
+      },
+      {
+        "generator": "M2S",
+        "grid": "{\"omega\": 2.0}",
+        "rep": "2",
+        "D": "4",
+        "code_hash": "fab869c34eb6",
+        "runtime": "python 3.12.14 jax 0.11.1 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 joblib 1.6.0 arm64",
+        "settings": "{\"interval\": \"refit\", \"layers\": [41], \"n_boot\": 2000, \"n_boot_refit\": 50, \"n_gh\": 20, \"n_inner\": 4, \"n_outer\": 5, \"n_starts\": 8, \"n_starts_inner\": 4, \"refit_min_usable\": 1.0, \"rho\": null}"
+      },
+      {
+        "generator": "M2S",
+        "grid": "{\"omega\": 2.0}",
+        "rep": "3",
+        "D": "4",
+        "code_hash": "fab869c34eb6",
+        "runtime": "python 3.12.14 jax 0.11.1 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 joblib 1.6.0 arm64",
+        "settings": "{\"interval\": \"refit\", \"layers\": [41], \"n_boot\": 2000, \"n_boot_refit\": 50, \"n_gh\": 20, \"n_inner\": 4, \"n_outer\": 5, \"n_starts\": 8, \"n_starts_inner\": 4, \"refit_min_usable\": 1.0, \"rho\": null}"
+      },
+      {
+        "generator": "M2S",
+        "grid": "{\"omega\": 2.0}",
+        "rep": "4",
+        "D": "4",
+        "code_hash": "fab869c34eb6",
+        "runtime": "python 3.12.14 jax 0.11.1 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 joblib 1.6.0 arm64",
+        "settings": "{\"interval\": \"refit\", \"layers\": [41], \"n_boot\": 2000, \"n_boot_refit\": 50, \"n_gh\": 20, \"n_inner\": 4, \"n_outer\": 5, \"n_starts\": 8, \"n_starts_inner\": 4, \"refit_min_usable\": 1.0, \"rho\": null}"
+      },
+      {
+        "generator": "M2S",
+        "grid": "{\"omega\": 2.0}",
+        "rep": "5",
+        "D": "4",
+        "code_hash": "fab869c34eb6",
+        "runtime": "python 3.12.14 jax 0.11.1 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 joblib 1.6.0 arm64",
+        "settings": "{\"interval\": \"refit\", \"layers\": [41], \"n_boot\": 2000, \"n_boot_refit\": 50, \"n_gh\": 20, \"n_inner\": 4, \"n_outer\": 5, \"n_starts\": 8, \"n_starts_inner\": 4, \"refit_min_usable\": 1.0, \"rho\": null}"
+      },
+      {
+        "generator": "M2S",
+        "grid": "{\"omega\": 2.0}",
+        "rep": "6",
+        "D": "4",
+        "code_hash": "fab869c34eb6",
+        "runtime": "python 3.12.14 jax 0.11.1 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 joblib 1.6.0 arm64",
+        "settings": "{\"interval\": \"refit\", \"layers\": [41], \"n_boot\": 2000, \"n_boot_refit\": 50, \"n_gh\": 20, \"n_inner\": 4, \"n_outer\": 5, \"n_starts\": 8, \"n_starts_inner\": 4, \"refit_min_usable\": 1.0, \"rho\": null}"
+      },
+      {
+        "generator": "M2S",
+        "grid": "{\"omega\": 2.0}",
+        "rep": "7",
+        "D": "4",
+        "code_hash": "fab869c34eb6",
+        "runtime": "python 3.12.14 jax 0.11.1 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 joblib 1.6.0 arm64",
+        "settings": "{\"interval\": \"refit\", \"layers\": [41], \"n_boot\": 2000, \"n_boot_refit\": 50, \"n_gh\": 20, \"n_inner\": 4, \"n_outer\": 5, \"n_starts\": 8, \"n_starts_inner\": 4, \"refit_min_usable\": 1.0, \"rho\": null}"
+      },
+      {
+        "generator": "M2S",
+        "grid": "{\"omega\": 2.0}",
+        "rep": "8",
+        "D": "4",
+        "code_hash": "fab869c34eb6",
+        "runtime": "python 3.12.14 jax 0.11.1 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 joblib 1.6.0 arm64",
+        "settings": "{\"interval\": \"refit\", \"layers\": [41], \"n_boot\": 2000, \"n_boot_refit\": 50, \"n_gh\": 20, \"n_inner\": 4, \"n_outer\": 5, \"n_starts\": 8, \"n_starts_inner\": 4, \"refit_min_usable\": 1.0, \"rho\": null}"
+      },
+      {
+        "generator": "M2S",
+        "grid": "{\"omega\": 2.0}",
+        "rep": "9",
+        "D": "4",
+        "code_hash": "fab869c34eb6",
+        "runtime": "python 3.12.14 jax 0.11.1 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 joblib 1.6.0 arm64",
+        "settings": "{\"interval\": \"refit\", \"layers\": [41], \"n_boot\": 2000, \"n_boot_refit\": 50, \"n_gh\": 20, \"n_inner\": 4, \"n_outer\": 5, \"n_starts\": 8, \"n_starts_inner\": 4, \"refit_min_usable\": 1.0, \"rho\": null}"
+      },
+      {
+        "generator": "M2S",
+        "grid": "{\"omega\": 2.0}",
+        "rep": "10",
+        "D": "4",
+        "code_hash": "fab869c34eb6",
+        "runtime": "python 3.12.14 jax 0.11.1 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 joblib 1.6.0 arm64",
+        "settings": "{\"interval\": \"refit\", \"layers\": [41], \"n_boot\": 2000, \"n_boot_refit\": 50, \"n_gh\": 20, \"n_inner\": 4, \"n_outer\": 5, \"n_starts\": 8, \"n_starts_inner\": 4, \"refit_min_usable\": 1.0, \"rho\": null}"
+      }
+    ],
+    "outcome_columns_inspected": false,
+    "checkpoints": [
+      {
+        "file": "refit_20070c46823b36182701aceb.jsonl",
+        "unique_completed_indices": 47,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          421423307
+        ]
+      },
+      {
+        "file": "refit_2f2d467d134c2b6b4d286db6.jsonl",
+        "unique_completed_indices": 46,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          864663468
+        ]
+      },
+      {
+        "file": "refit_329929731f2c2570746c4f2a.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          480664472
+        ]
+      },
+      {
+        "file": "refit_368c23847ddddda28f37f2c0.jsonl",
+        "unique_completed_indices": 48,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          1302177059
+        ]
+      },
+      {
+        "file": "refit_39854357eacd06d430e45a10.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          2101831474
+        ]
+      },
+      {
+        "file": "refit_49950f6c322e84b12b23737f.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          118987977
+        ]
+      },
+      {
+        "file": "refit_4aa61ff625a1b56cee5f8dfd.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          772839591
+        ]
+      },
+      {
+        "file": "refit_5936b022a009a8b3bca424c3.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          1737822276
+        ]
+      },
+      {
+        "file": "refit_6189c0ee696764f711138780.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          1482414089
+        ]
+      },
+      {
+        "file": "refit_6c57f7ad83292719ec5d5b59.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          1654962376
+        ]
+      },
+      {
+        "file": "refit_817dc2e35fd1a57165e44d3d.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          2087047422
+        ]
+      },
+      {
+        "file": "refit_88de5cf1cafc16a67348bad4.jsonl",
+        "unique_completed_indices": 46,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          1880453326
+        ]
+      },
+      {
+        "file": "refit_935af74403e2ca71b604f2fb.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          2015734512
+        ]
+      },
+      {
+        "file": "refit_9472e7e2b52a6cdd63d2a840.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          1302516830
+        ]
+      },
+      {
+        "file": "refit_ac85cc316c8df2d905baf877.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          836699927
+        ]
+      },
+      {
+        "file": "refit_acf4c1530d7946c2a303b9a3.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          1154043539
+        ]
+      },
+      {
+        "file": "refit_bb6e52a6fc21fb6f3591a5cd.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          688822257
+        ]
+      },
+      {
+        "file": "refit_e18bc49c85486287e85303fa.jsonl",
+        "unique_completed_indices": 48,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          1801410744
+        ]
+      },
+      {
+        "file": "refit_e3cbcf688260c30bfa4fc519.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          1781836225
+        ]
+      },
+      {
+        "file": "refit_e41d3ec70ae9474688fb4cc5.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          214102824
+        ]
+      },
+      {
+        "file": "refit_e892f72213689c2db9c4e9f3.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          1845884604
+        ]
+      },
+      {
+        "file": "refit_f34bae37bc77d4b89f491a1e.jsonl",
+        "unique_completed_indices": 50,
+        "declared_n_rep": [
+          50
+        ],
+        "seeds": [
+          974850782
+        ]
+      }
+    ]
+  },
+  "fixed_queue_fixture": {
+    "scheduled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "external_row_inserted": [
+      2
+    ],
+    "rep2_rows": 2,
+    "proves": "run_points does not refresh its pending task list between batches"
+  },
+  "arithmetic": {
+    "pipeline_seconds": 4730,
+    "refit_resamples": 50,
+    "pipeline_hours": 1.3138888888888889,
+    "original_plus_50_refits_hours": 67.00833333333334,
+    "instance_hours_18": 1206.15,
+    "estimated_rate_basis_usd_h": 0.467,
+    "rate_is_current_verified_tariff": false,
+    "forecast_at_stated_quarter_rate": 140.8180125,
+    "forecast_at_stated_full_rate": 563.27205,
+    "max_18x72_at_quarter_rate": 151.30800000000002,
+    "max_18x72_at_full_rate": 605.2320000000001,
+    "row_cap_usd": 250,
+    "max_effective_rate_to_fit_18x72": 0.19290123456790123,
+    "expected_count_per_setting": 20,
+    "max_binomial_mcse_per_setting": 0.11180339887498948,
+    "binomial_mcse_at_coverage_09": 0.0670820393249937
+  }
+}
