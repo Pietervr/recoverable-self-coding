@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""C_self measured from a longitudinal event stream (proceedings, after Sec. 2).
+"""C_self measured from a longitudinal event stream (proceedings, Figure 2, Section 3).
 
 Demonstrates that C_self, R_self, and the margin M = C_self - R_self are
 concrete measured quantities, not only formal ones. Physiological homeostasis is
 the self-decoder: a monitored variable crossing outside a reference band is a
-candidate commitment, its return within a horizon is certification, and the
+candidate commitment, its next observed return to the band is a certification
+(no horizon is imposed), and the
 restoration rate is C_self. Estimated over synthetic longitudinal health records
 (Synthea); per-unit values in cself_measured_synthea.csv.
 

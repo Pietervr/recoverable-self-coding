@@ -30,17 +30,19 @@ Revision-1 statistical protocol (referee request):
 Panel (a) -- the accuracy/recoverability decoupling (independent and coupled
 models, the latter at the reference point p_hi=0.95, p_lo=0.85).
 Panel (b) -- the boundary law SR (mean backlog occupancy via Little's law)
-under three arrival/service laws: the (1-CR)^-1 exponent is shared across the
-finite-variance heavy-traffic class, the Kingman prefactor (c_a^2+c_s^2)/2 is not.
+under three arrival/service laws: the (1-CR)^-1 exponent is shared within the
+fixed-law, positive-variability families of Proposition 1(e) (a deterministic
+D/D/1 queue does not diverge); the prefactor (c_a^2+c_s^2)/2 is not shared.
 Panel (c) -- the coupling sweep.
 
 Revision 2 (referee request for an analytical derivation): panel (b) now
 overlays the EXACT stationary mean number in system for each of the three
 laws (exact_sr: Pollaczek-Khinchine for M/M/1 and M/D/1, the GI/M/1 root for
 H2/M/1), so the simulation is a check of the closed forms. At the revision-1
-run length (40,000 commitments) the per-load intervals near CR=1 were too
-wide for that comparison to mean anything (+-21 on a backlog of 67 at
-CR=0.965 for H2/M/1), so panel (b) alone now runs N_B=400,000 commitments per
+run length (40,000 commitments) the estimates near CR=1 are unreliable,
+because the backlog relaxes slowly there (the fixed-seed revision-1 protocol
+gives 47 +- 8 against an exact 67.5 at CR=0.965 for H2/M/1), so panel (b)
+alone now runs N_B=400,000 commitments per
 replication with WARMUP_B=50,000 deleted. Panels (a) and (c) and the horizon
 check keep the revision-1 protocol, seeds and numbers.
 

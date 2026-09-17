@@ -159,8 +159,8 @@ def main() -> None:
         "icd10_median_codes_per_unit": float(burden["n_icd10"].median()),
         "note": ("Absolute rates are not comparable with the ambulatory Synthea cohort "
                  "(ICU series run over days, ambulatory ones over years); CR, being "
-                 "dimensionless, is the compared quantity. A face-validity check on "
-                 "measurability, not a validation."),
+                 "dimensionless, is the compared quantity. A descriptive demonstration "
+                 "of measurability: not a validation and not a face-validity claim."),
     }
     out = Path(__file__).resolve().parent / "mimic_demo_cself_results.json"
     out.write_text(json.dumps(res, indent=2))

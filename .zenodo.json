@@ -1,0 +1,14 @@
+{
+  "title": "Recoverable Self-Coding: figure-generation and analysis code",
+  "description": "Source code for the analyses and figures of the Recoverable Self-Coding (RSC) papers, with derived estimates. Tags of the form proceedings-vX.Y are the releases cited by the Physical Sciences Forum proceedings paper (manuscript psf-3705961).",
+  "upload_type": "software",
+  "creators": [
+    {
+      "name": "van Rooyen, Pieter",
+      "affiliation": "Stellenbosch University",
+      "orcid": "0009-0005-7708-8236"
+    }
+  ],
+  "license": "MIT",
+  "keywords": ["recoverable self-coding", "queueing theory", "rate-capacity constraint", "reproducibility"]
+}

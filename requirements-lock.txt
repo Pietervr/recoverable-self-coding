@@ -1,5 +1,6 @@
 # Exact environment that generated every figure and reported number of the
-# proceedings paper at tag proceedings-v2.3 (regenerated 2026-09-05).
+# proceedings paper. Unchanged since proceedings-v2.3 (2026-09-05); every number was
+# reproduced with these versions from a clean clone for proceedings-v3.1 (2026-09-17).
 # requirements.txt keeps the minimum-version floors for general use; this file
 # records the versions actually executed, for reproduction of the paper.
 # Python 3.14.2

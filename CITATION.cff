@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Recoverable Self-Coding: figure-generation and analysis code"
+type: software
+authors:
+  - family-names: "van Rooyen"
+    given-names: "Pieter"
+    orcid: "https://orcid.org/0009-0005-7708-8236"
+    affiliation: "Stellenbosch University"
+license: MIT
+repository-code: "https://github.com/Pietervr/recoverable-self-coding"
+doi: 10.5281/zenodo.22395356

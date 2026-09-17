@@ -10,7 +10,7 @@ The same computational procedure is run on two cohorts — one synthetic and
 ambulatory, one real and critically ill — each read against cohort-specific
 reference ranges.
 
-**Scope (proceedings revision 1, Sep 2026).** The physiological restoration
+**Scope (proceedings, revisions 1 and 2, Sep 2026).** The physiological restoration
 process is parallel (many analytes can be out of range and restore at once), so
 the paper uses these data **only for the rates** `R_self`, `C_self` and their
 margin. The single-server stability law is **not** applied to them: `CR` here is
@@ -47,7 +47,10 @@ python3 mimic_demo_cself.py --download
 ```
 
 It fetches three tables (`labevents`, `diagnoses_icd`, `patients`) from
-PhysioNet and prints aggregates only. Expected:
+PhysioNet and prints aggregates only. If Python cannot verify the PhysioNet
+certificate (a python.org macOS install without its certificates), download the
+three files with `curl -L -O` from `https://physionet.org/files/mimic-iv-demo/2.2/hosp/`
+into `mimic_demo/hosp/` and run the script without `--download`. Expected:
 
 ```
 units on the rate plot: 78 / 100

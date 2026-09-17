@@ -41,6 +41,7 @@ poster/figures/        poster figure scripts
 ```
 
 `special_issue/figures/README.md` maps each script to its figure and result;
+`proceedings/figures/README.md` gives the run command for each proceedings figure;
 `proceedings/cself/README.md` documents the physiological pipeline and how to
 reproduce its published numbers.
 
