@@ -1,0 +1,19 @@
+local code/config hash: 625798e9e7f4
+panel: [('M3', '{"scale": 0.5465000938917843}', 0), ('M3', '{"scale": 0.5465000938917843}', 20), ('M3', '{"scale": 0.5465000938917843}', 40)]
+local re-run of three datasets: 21.3 min
+
+ROW 6 PARITY PANEL - arm64 (Mac) against x86_64 (AWS), one code hash
+  datasets compared:      3
+  max |delta| selection_ws_point     4.397e-08 nat/trial
+  max |delta| selection_ws_lo        5.704e-08 nat/trial
+  max |delta| selection_ws_hi        8.512e-08 nat/trial
+  max |delta| selection_ws_se        5.319e-09 nat/trial
+  decisions identical:    True
+  technical failures:     none
+
+  tolerance 1e-6 nat/trial on every quantity, decisions identical
+  VERDICT: PASS - Mac and AWS rows may be pooled for row 2
+
+  (Which decision each setting returned is deliberately not printed: sens600 stays blinded.)
+
+[exited with code 0]
