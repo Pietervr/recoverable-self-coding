@@ -1,0 +1,417 @@
+{
+ "stamp": "20260916T132516",
+ "verdict": "PASS",
+ "qualifying": true,
+ "recount": {
+  "n_prompts": 20,
+  "n_rows": 135,
+  "all_pass": true,
+  "per_prompt_complete": true,
+  "prompt_manifest_matches": true,
+  "startup_identity_sha256": "3c38b6cef6deb6e71df6b6b8358f2c2a8dec2bfe79f544bfcc4474cdf359a40e"
+ },
+ "min_prompts": 20,
+ "required_per_prompt": {
+  "G1_empty": 1,
+  "G2_lambda0": 3,
+  "G3_patch_self": 1,
+  "G4_repeat": 1
+ },
+ "summary": {
+  "G1_empty": {
+   "n": 20,
+   "pass": 20
+  },
+  "G2_lambda0": {
+   "n": 75,
+   "pass": 75
+  },
+  "G3_patch_self": {
+   "n": 20,
+   "pass": 20
+  },
+  "G4_repeat": {
+   "n": 20,
+   "pass": 20
+  }
+ },
+ "n_prompts": 20,
+ "n_captures": 175,
+ "wall_s": 186.3,
+ "neg_zero_inputs_total": 0,
+ "startup_identity_sha256": "3c38b6cef6deb6e71df6b6b8358f2c2a8dec2bfe79f544bfcc4474cdf359a40e",
+ "client_sha256": {
+  "t1_access/capture.py": "416625ea84118b1c8f17462f14eacf5bf5d56ca0567b24403b2a22dd117dfe58",
+  "t1_access/stimuli/packet.py": "e4e0b6f8506b3af9f44b610e700ae12ba81cccb97d2982bd231611b2888c2eef",
+  "patches/serve_tail_readout.patch": "b12673c9c5b2ace2dd8aa73976eed41a8fc974df84e6cca63e06348c113d2ae3",
+  "patches/serve_capture.patch": "3747fc3c0cd676f618b850bd8f6dc7136c77d932c7428938bcc1a359a506b491",
+  "patches/make_serve_capture_patch.py": "00828958de919fbfb2c24d95691a8bdcc1c648428914451c59c4e4d29c9a0f2f"
+ },
+ "rsc_head": "fe34a1769f440f7371d1e5f867d7e120302fe465",
+ "rsc_dirty_paths": "",
+ "evidence": "parity_20260916T132516.jsonl",
+ "evidence_sha256": "3d5a4941016c69a96b55a7e130e161982bf8e1f86340e9c136525f57a9f1c7b1",
+ "diagnostics": [
+  {
+   "prompt": 0,
+   "steer_layers_below_unchanged": true,
+   "steer_earlier_positions_unchanged": true,
+   "steer_edit_layer_changed": true,
+   "steer_v_norm": 1.0384083986282349,
+   "steer_written_norm": [
+    8.30724811553955,
+    8.304828643798828,
+    8.305834770202637
+   ],
+   "swap_basis_condition": 1.9940871652643584,
+   "swap_written_norm_lambda1": [
+    1.889245867729187,
+    0.9541270732879639,
+    1.7504119873046875
+   ],
+   "swap_half_over_full": [
+    0.5003680557400322,
+    0.5065085350729741,
+    0.4998238841912566
+   ],
+   "norm_matched_requested": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "norm_matched_written": [
+    1.004382848739624,
+    1.0040684938430786,
+    1.005967617034912
+   ],
+   "norm_matched_undefined": [
+    false,
+    false,
+    false
+   ]
+  },
+  {
+   "prompt": 1,
+   "steer_layers_below_unchanged": true,
+   "steer_earlier_positions_unchanged": true,
+   "steer_edit_layer_changed": true,
+   "steer_v_norm": 1.0384083986282349,
+   "steer_written_norm": [
+    8.30880355834961,
+    8.30516242980957,
+    8.306323051452637
+   ],
+   "swap_basis_condition": 1.9940871652643584,
+   "swap_written_norm_lambda1": [
+    2.3013548851013184,
+    1.0279146432876587,
+    1.7017879486083984
+   ],
+   "swap_half_over_full": [
+    0.500258739060699,
+    0.5088818875320039,
+    0.5007098459808995
+   ],
+   "norm_matched_requested": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "norm_matched_written": [
+    1.003711462020874,
+    1.0038328170776367,
+    1.0062696933746338
+   ],
+   "norm_matched_undefined": [
+    false,
+    false,
+    false
+   ]
+  },
+  {
+   "prompt": 2,
+   "steer_layers_below_unchanged": true,
+   "steer_earlier_positions_unchanged": true,
+   "steer_edit_layer_changed": true,
+   "steer_v_norm": 1.0384083986282349,
+   "steer_written_norm": [
+    8.308489799499512,
+    8.304915428161621,
+    8.3060884475708
+   ],
+   "swap_basis_condition": 1.9940871652643584,
+   "swap_written_norm_lambda1": [
+    2.161098003387451,
+    1.27225661277771,
+    1.660573959350586
+   ],
+   "swap_half_over_full": [
+    0.501741943284767,
+    0.5010461035138846,
+    0.5006014398950631
+   ],
+   "norm_matched_requested": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "norm_matched_written": [
+    1.003583312034607,
+    1.0042877197265625,
+    1.0052318572998047
+   ],
+   "norm_matched_undefined": [
+    false,
+    false,
+    false
+   ]
+  },
+  {
+   "prompt": 3,
+   "steer_layers_below_unchanged": true,
+   "steer_earlier_positions_unchanged": true,
+   "steer_edit_layer_changed": true,
+   "steer_v_norm": 1.0384083986282349,
+   "steer_written_norm": [
+    8.30669116973877,
+    8.305093765258789,
+    8.305500030517578
+   ],
+   "swap_basis_condition": 1.9940871652643584,
+   "swap_written_norm_lambda1": [
+    2.1831603050231934,
+    1.1476364135742188,
+    1.7296415567398071
+   ],
+   "swap_half_over_full": [
+    0.5026491677585647,
+    0.504671565767868,
+    0.5011246591406813
+   ],
+   "norm_matched_requested": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "norm_matched_written": [
+    1.0033882856369019,
+    1.0033092498779297,
+    1.0064666271209717
+   ],
+   "norm_matched_undefined": [
+    false,
+    false,
+    false
+   ]
+  },
+  {
+   "prompt": 4,
+   "steer_layers_below_unchanged": true,
+   "steer_earlier_positions_unchanged": true,
+   "steer_edit_layer_changed": true,
+   "steer_v_norm": 1.0384083986282349,
+   "steer_written_norm": [
+    8.307228088378906,
+    8.306028366088867,
+    8.30579662322998
+   ],
+   "swap_basis_condition": 1.9940871652643584,
+   "swap_written_norm_lambda1": [
+    2.083296298980713,
+    1.3186982870101929,
+    1.6360036134719849
+   ],
+   "swap_half_over_full": [
+    0.5008067083712044,
+    0.5036643321672136,
+    0.5010966356021255
+   ],
+   "norm_matched_requested": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "norm_matched_written": [
+    1.0043439865112305,
+    1.004331111907959,
+    1.005712628364563
+   ],
+   "norm_matched_undefined": [
+    false,
+    false,
+    false
+   ]
+  }
+ ],
+ "provenance": {
+  "server": {
+   "patch_id": "t1-capture-2",
+   "ready": true,
+   "refusal": null,
+   "identity": {
+    "patch_id": "t1-capture-2",
+    "cond_max": 1000000.0,
+    "max_capture_tokens": 1024,
+    "model_id": "mlx-community/Qwen3.6-27B-4bit",
+    "model_files_sha256": {
+     ".gitattributes": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+     "README.md": "c2c18574ee7d11d043802d88542b68710021416cdfff3b4d8571cc845ce623bd",
+     "chat_template.jinja": "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259",
+     "config.json": "ede24666ac51e6d5ab948a8a1e6c72fc6effd941ba3aabb6dd942eb517c78043",
+     "configuration.json": "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0",
+     "generation_config.json": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+     "model-00001-of-00003.safetensors": "2689680915661f040c50c35244d08b336def279e509e1ca11873f8dd1b0e7ce0",
+     "model-00002-of-00003.safetensors": "a46183727b2c5cd16613fd8395f5e9e7cc4ad679644558cc87c9406fe334463d",
+     "model-00003-of-00003.safetensors": "ac23bf70b1f239a040921d6f93770d74176fd435dbf44e42317053d06c68d702",
+     "model.safetensors.index.json": "13b840162b4cb35c66fef7df072f7dbb4717908204364f5e5d9f9655a2758fa8",
+     "preprocessor_config.json": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+     "processor_config.json": "51c5f33646392e0bf1ed3e96be02504da47406c21c6cb86925d8908d1a6c4da7",
+     "tokenizer.json": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4",
+     "tokenizer_config.json": "e98f1901ac6f0adff67b1d540bfa0c36ac1a0cf59eb72ed78146ef89aafa1182",
+     "video_preprocessor_config.json": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+     "vocab.json": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003"
+    },
+    "lens_sha256": "1177e8fb529d9d81e8f379c9a5d02b4d11e05b3056f677bb223b7e6e23ce0aed",
+    "lens_n_prompts": 1000,
+    "lens_source_layers": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16,
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32,
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48,
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62
+    ],
+    "n_layers": 64,
+    "d_model": 5120,
+    "vocab_rows": 248320,
+    "hidden_dtype": "bfloat16",
+    "loaded_sources_sha256": {
+     "jlens_qwen": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "jlens_qwen.capture_endpoint": "38a7f2edea77f58f91b1d83e5519439a849374c0e4f84087ac09d97e59113e84",
+     "jlens_qwen.custom_gdn_patch": "c47263e66bf6bb130d13ed407c8b232bb8d2aefe5f2f656a7aac78f665e2c85c",
+     "jlens_qwen.custom_gdn_vjp": "3fe41d735c3b44ae526568f454d58d074d40b807183c77a651260b33844f2ac3",
+     "jlens_qwen.gdn_backward": "a952e79f27dcc9b4540e9925814970455a9193e1ff0bcd7f67e7255b157d1873",
+     "jlens_qwen.interventions": "82fa9dcb505c32f840f0e6c0ff7660350aae228097026fb39a64a8cc9d381901",
+     "jlens_qwen.lens": "4e2cc31663cd55ee907cbef3374913597c34036ad80aa23f29b75cf8028a9c02",
+     "jlens_qwen.model": "ac31788353e154b1519fabb3a438d7859198525d1fe70646521bef753da5e0a3",
+     "jlens_qwen.patch_gdn": "77a1a3ec38fa76421fab858913a047dc1d6bab0499def512d32f6cdaf8a77760",
+     "jlens_qwen.perf": "9fecd526a3a1af4fa94c7f51f68980f4c3124641257b1fae209488a4e91825a2",
+     "jlens_qwen.serve": "48dc24d42fc2fbf07d71ed5d1d6e9c26d9037587071a7c68431454b753711569"
+    },
+    "upstream_head": "745a3a894be7043ae5eb7dbbdcec44b68b819411",
+    "upstream_tracked_diff_sha256": "c5f7fac8b421a3c398bb2a36f4193d909f504573cdb323d5178342e3868926b9",
+    "upstream_untracked_sources_sha256": {
+     "jlens_qwen/capture_endpoint.py": "38a7f2edea77f58f91b1d83e5519439a849374c0e4f84087ac09d97e59113e84"
+    },
+    "mlx": "0.31.2",
+    "mlx_binaries_sha256": "bd1b9db5dd0e7cb290fbaca775af224e307e833b9f3a0d3cf2d70a56cb94a202",
+    "mlx_lm": "0.31.3",
+    "mlx_lm_sources_sha256": "bdc495a566b09ba4ed87413c425d5959847f910d6a15fb9669212c8b7aa3730e",
+    "numpy": "2.5.1",
+    "python": "3.12.14",
+    "macos": "27.0",
+    "machine": "arm64",
+    "hw_model": "Mac16,5",
+    "metal_device": {
+     "architecture": "applegpu_g16s",
+     "device_name": "Apple M4 Max",
+     "max_buffer_length": 86586540032,
+     "max_recommended_working_set_size": 115448725504,
+     "memory_size": 137438953472,
+     "resource_limit": 499000
+    },
+    "gdn_dispatch_at_startup": {
+     "patch_gdn": true,
+     "checkpoint": true,
+     "inference_kernel": false,
+     "custom_vjp": true
+    }
+   },
+   "identity_sha256": "3c38b6cef6deb6e71df6b6b8358f2c2a8dec2bfe79f544bfcc4474cdf359a40e",
+   "metadata": {
+    "model_snapshot": "/Users/pietervanrooyen/.cache/huggingface/hub/models--mlx-community--Qwen3.6-27B-4bit/snapshots/c000ac2c2057d94be3fa931000c31723aac53282",
+    "lens_path": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/upstream/jlens-qwen36/data/lens/qwen36_27b_neuronpedia_n1000.npz",
+    "upstream_repo": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/upstream/jlens-qwen36",
+    "started_at": "2026-09-16T13:24:55",
+    "pid": 98215,
+    "manifest_seconds": 10.9
+   },
+   "model_snapshot": "/Users/pietervanrooyen/.cache/huggingface/hub/models--mlx-community--Qwen3.6-27B-4bit/snapshots/c000ac2c2057d94be3fa931000c31723aac53282",
+   "lens_path": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/upstream/jlens-qwen36/data/lens/qwen36_27b_neuronpedia_n1000.npz",
+   "n_layers": 64,
+   "d_model": 5120,
+   "vocab_rows": 248320,
+   "hidden_dtype": "bfloat16",
+   "max_capture_tokens": 1024
+  },
+  "startup_identity_sha256": "3c38b6cef6deb6e71df6b6b8358f2c2a8dec2bfe79f544bfcc4474cdf359a40e",
+  "client_sha256": {
+   "t1_access/capture.py": "416625ea84118b1c8f17462f14eacf5bf5d56ca0567b24403b2a22dd117dfe58",
+   "t1_access/stimuli/packet.py": "e4e0b6f8506b3af9f44b610e700ae12ba81cccb97d2982bd231611b2888c2eef",
+   "patches/serve_tail_readout.patch": "b12673c9c5b2ace2dd8aa73976eed41a8fc974df84e6cca63e06348c113d2ae3",
+   "patches/serve_capture.patch": "3747fc3c0cd676f618b850bd8f6dc7136c77d932c7428938bcc1a359a506b491",
+   "patches/make_serve_capture_patch.py": "00828958de919fbfb2c24d95691a8bdcc1c648428914451c59c4e4d29c9a0f2f"
+  },
+  "rsc_head": "fe34a1769f440f7371d1e5f867d7e120302fe465",
+  "rsc_dirty_paths": "",
+  "client_python": "3.12.14",
+  "client_numpy": "2.5.1"
+ }
+}

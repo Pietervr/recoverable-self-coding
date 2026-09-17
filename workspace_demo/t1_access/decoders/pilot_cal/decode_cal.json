@@ -1,0 +1,3064 @@
+{
+ "run": "pilot_cal",
+ "run_identity_sha256": "1c1a00e9193ad86e239d0456f9a4ea736dff09438da7239de7a87cbaf5dbde95",
+ "trials_sha256": "9448202eee2d17eeb9f6b14b8bd46842d49a90ac10963d6b98992c93991256e7",
+ "decode_cal_sha256": "7c89913264d5b923bbd6526ecca89adc966d819f3e9c6d4bbd011f14f66fad9b",
+ "versions": {
+  "sklearn": "1.9.1",
+  "numpy": "2.5.3",
+  "python": "3.12.14"
+ },
+ "lr_kwargs": {
+  "penalty": "l2",
+  "solver": "lbfgs",
+  "tol": 1e-06,
+  "max_iter": 5000
+ },
+ "C_grid": [
+  0.001,
+  0.0031622776601683794,
+  0.01,
+  0.03162277660168379,
+  0.1,
+  0.31622776601683794,
+  1.0,
+  3.1622776601683795,
+  10.0
+ ],
+ "n_folds": 5,
+ "fold_seed": "t1-cal-folds-20260915",
+ "folds": {
+  "tools/vise": 0,
+  "countries/Nepal": 1,
+  "body parts/tongue": 2,
+  "vehicles/motorcycle": 3,
+  "foods/butter": 4,
+  "materials/copper": 0,
+  "animals/wolf": 1,
+  "instruments/drum": 2,
+  "tools/rake": 3,
+  "countries/Brazil": 4,
+  "body parts/liver": 0,
+  "vehicles/boat": 1,
+  "foods/orange": 2,
+  "materials/brick": 3,
+  "animals/cow": 4,
+  "instruments/accordion": 0
+ },
+ "counts": {
+  "0": 384,
+  "8": 384
+ },
+ "wall_s": 552.6,
+ "layers": {
+  "0": {
+   "C": 0.001,
+   "C_index": 0,
+   "cv": {
+    "log_loss": [
+     1.133708894252777,
+     1.357701873779297,
+     1.6321173429489135,
+     1.960792875289917,
+     2.335388255119324,
+     2.7371482849121094,
+     3.1452269077301027,
+     3.5407636642456053,
+     3.909337568283081
+    ],
+    "accuracy": [
+     0.5413194444444444,
+     0.5437500000000001,
+     0.5479166666666667,
+     0.5527777777777778,
+     0.55,
+     0.55,
+     0.5552083333333333,
+     0.5552083333333333,
+     0.55625
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.039458949118852615,
+   "z_sd": 1.8120172023773193,
+   "train_accuracy": 0.96875,
+   "intercept": -0.039459023624658585
+  },
+  "1": {
+   "C": 0.001,
+   "C_index": 0,
+   "cv": {
+    "log_loss": [
+     0.9558270096778869,
+     1.1064767837524414,
+     1.3004629731178283,
+     1.5305307388305665,
+     1.7876041173934936,
+     2.0638692378997803,
+     2.3546685218811034,
+     2.6490302801132204,
+     2.936537837982178
+    ],
+    "accuracy": [
+     0.5576388888888889,
+     0.5659722222222221,
+     0.5677083333333333,
+     0.570486111111111,
+     0.5746527777777779,
+     0.5715277777777779,
+     0.5715277777777779,
+     0.5715277777777779,
+     0.570486111111111
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.036287032067775726,
+   "z_sd": 2.05088472366333,
+   "train_accuracy": 0.99609375,
+   "intercept": -0.036286868155002594
+  },
+  "2": {
+   "C": 0.001,
+   "C_index": 0,
+   "cv": {
+    "log_loss": [
+     0.8253977179527283,
+     0.954588508605957,
+     1.1165364146232606,
+     1.303424334526062,
+     1.5084135055541992,
+     1.7275707244873046,
+     1.9546768426895142,
+     2.182744574546814,
+     2.4000893354415895
+    ],
+    "accuracy": [
+     0.6041666666666667,
+     0.6065972222222222,
+     0.6076388888888888,
+     0.6079861111111111,
+     0.6090277777777778,
+     0.609375,
+     0.6135416666666667,
+     0.6163194444444444,
+     0.6163194444444444
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.043071944266557693,
+   "z_sd": 2.2374398708343506,
+   "train_accuracy": 0.9973958333333334,
+   "intercept": -0.043072041124105453
+  },
+  "3": {
+   "C": 0.001,
+   "C_index": 0,
+   "cv": {
+    "log_loss": [
+     0.789914858341217,
+     0.9036252498626709,
+     1.0485946774482726,
+     1.2164688467979432,
+     1.4016516089439393,
+     1.5991772890090943,
+     1.8062190532684326,
+     2.014144682884216,
+     2.2173282384872435
+    ],
+    "accuracy": [
+     0.6197916666666667,
+     0.6236111111111111,
+     0.6225694444444445,
+     0.6211805555555555,
+     0.6305555555555555,
+     0.6305555555555555,
+     0.6291666666666667,
+     0.628125,
+     0.6309027777777778
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.03995932266116142,
+   "z_sd": 2.2438268661499023,
+   "train_accuracy": 0.9973958333333334,
+   "intercept": -0.03995921090245247
+  },
+  "4": {
+   "C": 0.001,
+   "C_index": 0,
+   "cv": {
+    "log_loss": [
+     0.7853058457374573,
+     0.9118903636932373,
+     1.0705637454986572,
+     1.252096915245056,
+     1.4502902269363402,
+     1.660651731491089,
+     1.8786293268203735,
+     2.099641466140747,
+     2.3134284257888793
+    ],
+    "accuracy": [
+     0.64375,
+     0.6319444444444444,
+     0.6291666666666667,
+     0.6291666666666667,
+     0.6274305555555555,
+     0.63125,
+     0.632638888888889,
+     0.632638888888889,
+     0.6315972222222223
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.04103841632604599,
+   "z_sd": 2.4149410724639893,
+   "train_accuracy": 0.99609375,
+   "intercept": -0.041038334369659424
+  },
+  "5": {
+   "C": 0.001,
+   "C_index": 0,
+   "cv": {
+    "log_loss": [
+     0.7502904653549194,
+     0.8615096211433411,
+     1.0036806106567382,
+     1.1682133316993712,
+     1.3488411545753478,
+     1.5409940719604491,
+     1.7416652679443358,
+     1.9453249454498291,
+     2.143903398513794
+    ],
+    "accuracy": [
+     0.6336805555555556,
+     0.6295138888888888,
+     0.6305555555555555,
+     0.628125,
+     0.6246527777777777,
+     0.6204861111111111,
+     0.6190972222222222,
+     0.6204861111111111,
+     0.6190972222222222
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.045293956995010376,
+   "z_sd": 2.419654607772827,
+   "train_accuracy": 0.99609375,
+   "intercept": -0.04529397189617157
+  },
+  "6": {
+   "C": 0.001,
+   "C_index": 0,
+   "cv": {
+    "log_loss": [
+     0.6584151029586792,
+     0.7423164486885071,
+     0.8581815004348755,
+     0.9967785477638245,
+     1.1506969690322877,
+     1.3156925916671753,
+     1.4889757871627807,
+     1.665027105808258,
+     1.834920883178711
+    ],
+    "accuracy": [
+     0.6673611111111111,
+     0.6666666666666666,
+     0.6572916666666666,
+     0.6572916666666666,
+     0.6576388888888889,
+     0.6586805555555556,
+     0.6586805555555556,
+     0.6572916666666667,
+     0.6597222222222222
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.04604296758770943,
+   "z_sd": 2.406963348388672,
+   "train_accuracy": 0.9973958333333334,
+   "intercept": -0.04604296758770943
+  },
+  "7": {
+   "C": 0.001,
+   "C_index": 0,
+   "cv": {
+    "log_loss": [
+     0.6484072506427765,
+     0.7315204799175262,
+     0.8506867587566376,
+     0.995489525794983,
+     1.1578766465187074,
+     1.3330382466316224,
+     1.5145879149436952,
+     1.69599130153656,
+     1.8645936727523804
+    ],
+    "accuracy": [
+     0.678125,
+     0.6805555555555556,
+     0.664236111111111,
+     0.657986111111111,
+     0.6541666666666667,
+     0.6538194444444444,
+     0.6524305555555555,
+     0.6513888888888888,
+     0.6513888888888888
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.04698805883526802,
+   "z_sd": 2.3229072093963623,
+   "train_accuracy": 0.9947916666666666,
+   "intercept": -0.04698803275823593
+  },
+  "8": {
+   "C": 0.001,
+   "C_index": 0,
+   "cv": {
+    "log_loss": [
+     0.6213119387626648,
+     0.6811407923698425,
+     0.774561220407486,
+     0.8929564476013183,
+     1.0283838748931884,
+     1.1767222881317139,
+     1.3330198168754577,
+     1.4898610711097717,
+     1.6413995265960692
+    ],
+    "accuracy": [
+     0.6854166666666666,
+     0.6763888888888888,
+     0.6697916666666666,
+     0.6708333333333334,
+     0.6680555555555556,
+     0.6670138888888888,
+     0.6659722222222222,
+     0.6659722222222222,
+     0.6635416666666667
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.04991772398352623,
+   "z_sd": 2.2508068084716797,
+   "train_accuracy": 0.99609375,
+   "intercept": -0.049917735159397125
+  },
+  "9": {
+   "C": 0.001,
+   "C_index": 0,
+   "cv": {
+    "log_loss": [
+     0.5030904531478881,
+     0.5219781756401062,
+     0.5696091711521148,
+     0.637941163778305,
+     0.7197309792041778,
+     0.8124400556087494,
+     0.9118159592151642,
+     1.015890645980835,
+     1.1199767231941222
+    ],
+    "accuracy": [
+     0.7635416666666667,
+     0.7607638888888889,
+     0.7465277777777778,
+     0.7357638888888889,
+     0.7319444444444445,
+     0.7340277777777777,
+     0.7329861111111111,
+     0.7329861111111111,
+     0.7326388888888888
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.06147417426109314,
+   "z_sd": 2.3769984245300293,
+   "train_accuracy": 0.9986979166666666,
+   "intercept": -0.06147417053580284
+  },
+  "10": {
+   "C": 0.0031622776601683794,
+   "C_index": 1,
+   "cv": {
+    "log_loss": [
+     0.4292557954788208,
+     0.42647109031677244,
+     0.4512015044689178,
+     0.4946753531694412,
+     0.5512908831238746,
+     0.6169389635324478,
+     0.6890492096543313,
+     0.7666059166193009,
+     0.842997470498085
+    ],
+    "accuracy": [
+     0.8052083333333334,
+     0.8024305555555555,
+     0.8034722222222224,
+     0.8041666666666668,
+     0.8055555555555557,
+     0.8083333333333332,
+     0.809375,
+     0.8065972222222222,
+     0.8065972222222223
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.12994492053985596,
+   "z_sd": 3.3422646522521973,
+   "train_accuracy": 1.0,
+   "intercept": -0.1299450397491455
+  },
+  "11": {
+   "C": 0.0031622776601683794,
+   "C_index": 1,
+   "cv": {
+    "log_loss": [
+     0.4345954954624176,
+     0.42468162477016447,
+     0.4436571538448334,
+     0.4825455129146576,
+     0.535035252571106,
+     0.5973934233188629,
+     0.6663276210427285,
+     0.7401800453662872,
+     0.8164822116494179
+    ],
+    "accuracy": [
+     0.8072916666666666,
+     0.804513888888889,
+     0.8097222222222221,
+     0.8041666666666666,
+     0.804861111111111,
+     0.8083333333333333,
+     0.8121527777777778,
+     0.8131944444444444,
+     0.8135416666666666
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.1268615871667862,
+   "z_sd": 3.1668314933776855,
+   "train_accuracy": 1.0,
+   "intercept": -0.126861572265625
+  },
+  "12": {
+   "C": 0.0031622776601683794,
+   "C_index": 1,
+   "cv": {
+    "log_loss": [
+     0.40236312747001646,
+     0.3827698856592178,
+     0.3900556445121765,
+     0.4160168766975403,
+     0.45446766912937164,
+     0.5016444191336632,
+     0.5557147771120071,
+     0.6141946211457252,
+     0.6742021813988686
+    ],
+    "accuracy": [
+     0.8402777777777779,
+     0.8447916666666666,
+     0.8475694444444445,
+     0.8388888888888889,
+     0.8378472222222223,
+     0.8392361111111111,
+     0.8392361111111111,
+     0.8402777777777779,
+     0.8413194444444445
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.13593989610671997,
+   "z_sd": 3.2225775718688965,
+   "train_accuracy": 1.0,
+   "intercept": -0.13593991100788116
+  },
+  "13": {
+   "C": 0.01,
+   "C_index": 2,
+   "cv": {
+    "log_loss": [
+     0.38435280323028564,
+     0.35244778394699094,
+     0.34816657900810244,
+     0.36361244022846223,
+     0.3925124675035477,
+     0.4305726021528244,
+     0.47525154054164886,
+     0.5238936707377434,
+     0.5745497584342957
+    ],
+    "accuracy": [
+     0.8642361111111111,
+     0.8684027777777776,
+     0.8722222222222221,
+     0.8680555555555556,
+     0.8652777777777778,
+     0.867361111111111,
+     0.867013888888889,
+     0.865625,
+     0.8666666666666666
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.1480335146188736,
+   "z_sd": 4.191031455993652,
+   "train_accuracy": 1.0,
+   "intercept": -0.14803370833396912
+  },
+  "14": {
+   "C": 0.01,
+   "C_index": 2,
+   "cv": {
+    "log_loss": [
+     0.363995361328125,
+     0.32268948554992677,
+     0.3090359091758728,
+     0.31442600935697557,
+     0.3327441766858101,
+     0.3592306524515152,
+     0.39194666892290114,
+     0.4287004515528679,
+     0.4664100229740143
+    ],
+    "accuracy": [
+     0.8833333333333334,
+     0.882986111111111,
+     0.8809027777777778,
+     0.8854166666666666,
+     0.8885416666666666,
+     0.888888888888889,
+     0.888888888888889,
+     0.8899305555555556,
+     0.8899305555555556
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.13402073085308075,
+   "z_sd": 4.156804084777832,
+   "train_accuracy": 1.0,
+   "intercept": -0.13402080535888672
+  },
+  "15": {
+   "C": 0.01,
+   "C_index": 2,
+   "cv": {
+    "log_loss": [
+     0.3483015179634094,
+     0.30179724395275115,
+     0.28319145143032076,
+     0.28364832401275636,
+     0.2966455012559891,
+     0.3179243117570877,
+     0.3447315186262131,
+     0.3753615155816078,
+     0.4066537611186504
+    ],
+    "accuracy": [
+     0.8965277777777778,
+     0.9065972222222222,
+     0.898263888888889,
+     0.9006944444444445,
+     0.9020833333333333,
+     0.9027777777777779,
+     0.9041666666666668,
+     0.9038194444444445,
+     0.9024305555555555
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.1358252912759781,
+   "z_sd": 4.14345121383667,
+   "train_accuracy": 1.0,
+   "intercept": -0.13582521677017212
+  },
+  "16": {
+   "C": 0.03162277660168379,
+   "C_index": 3,
+   "cv": {
+    "log_loss": [
+     0.3122454971075058,
+     0.26322697699069975,
+     0.24237626045942307,
+     0.2400624930858612,
+     0.2495422311127186,
+     0.2664941307157278,
+     0.2888892855495214,
+     0.31453865244984625,
+     0.34073360711336137
+    ],
+    "accuracy": [
+     0.9118055555555555,
+     0.9083333333333332,
+     0.9086805555555557,
+     0.9048611111111111,
+     0.9034722222222221,
+     0.9034722222222221,
+     0.9034722222222221,
+     0.9059027777777778,
+     0.9083333333333334
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.177853062748909,
+   "z_sd": 5.366416931152344,
+   "train_accuracy": 1.0,
+   "intercept": -0.17785292863845825
+  },
+  "17": {
+   "C": 0.1,
+   "C_index": 4,
+   "cv": {
+    "log_loss": [
+     0.23564827740192412,
+     0.18326727747917176,
+     0.15582378953695297,
+     0.14387047439813613,
+     0.14124004505574703,
+     0.1443477101624012,
+     0.15130672231316566,
+     0.16084072645753622,
+     0.17104421090334654
+    ],
+    "accuracy": [
+     0.9444444444444444,
+     0.9461805555555556,
+     0.9447916666666666,
+     0.9461805555555556,
+     0.9486111111111111,
+     0.9475694444444445,
+     0.9447916666666666,
+     0.9434027777777778,
+     0.9434027777777778
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.24650956690311432,
+   "z_sd": 6.997199058532715,
+   "train_accuracy": 1.0,
+   "intercept": -0.24650938808918
+  },
+  "18": {
+   "C": 0.1,
+   "C_index": 4,
+   "cv": {
+    "log_loss": [
+     0.22245388031005858,
+     0.17143066972494125,
+     0.1438216894865036,
+     0.13063962534070014,
+     0.126087761297822,
+     0.1268666870892048,
+     0.13107396550476552,
+     0.13763635382056236,
+     0.145314646884799
+    ],
+    "accuracy": [
+     0.9461805555555557,
+     0.9482638888888889,
+     0.9555555555555555,
+     0.9555555555555555,
+     0.9545138888888889,
+     0.9545138888888889,
+     0.9545138888888889,
+     0.9527777777777778,
+     0.951388888888889
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.24643631279468536,
+   "z_sd": 7.126455307006836,
+   "train_accuracy": 1.0,
+   "intercept": -0.2464362382888794
+  },
+  "19": {
+   "C": 0.1,
+   "C_index": 4,
+   "cv": {
+    "log_loss": [
+     0.22115469872951507,
+     0.17230802923440933,
+     0.14673163145780563,
+     0.13555655851960183,
+     0.1333571344614029,
+     0.13649937584996225,
+     0.14317402318120004,
+     0.15178719516843558,
+     0.16146659646183253
+    ],
+    "accuracy": [
+     0.9444444444444444,
+     0.946875,
+     0.9489583333333333,
+     0.9489583333333333,
+     0.9486111111111111,
+     0.9482638888888889,
+     0.9482638888888889,
+     0.946875,
+     0.946875
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.18908452987670898,
+   "z_sd": 7.2342023849487305,
+   "train_accuracy": 1.0,
+   "intercept": -0.18908464908599854
+  },
+  "20": {
+   "C": 0.1,
+   "C_index": 4,
+   "cv": {
+    "log_loss": [
+     0.21068297624588012,
+     0.16398916393518448,
+     0.1380162753164768,
+     0.12536873668432236,
+     0.12085875645279884,
+     0.12137500010430813,
+     0.12541081812232732,
+     0.13133246190845965,
+     0.13776950035244226
+    ],
+    "accuracy": [
+     0.9427083333333333,
+     0.9461805555555557,
+     0.9461805555555557,
+     0.9472222222222222,
+     0.9472222222222222,
+     0.9503472222222221,
+     0.951388888888889,
+     0.951388888888889,
+     0.9524305555555557
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.21570329368114471,
+   "z_sd": 7.469287872314453,
+   "train_accuracy": 1.0,
+   "intercept": -0.21570339798927307
+  },
+  "21": {
+   "C": 0.1,
+   "C_index": 4,
+   "cv": {
+    "log_loss": [
+     0.20081196427345277,
+     0.15450349003076552,
+     0.12867593467235566,
+     0.11579483523964881,
+     0.11088440455496311,
+     0.11100621204823255,
+     0.11412691324949265,
+     0.11899097813293338,
+     0.12431037900969386
+    ],
+    "accuracy": [
+     0.946875,
+     0.9489583333333333,
+     0.95,
+     0.9510416666666668,
+     0.9510416666666668,
+     0.9520833333333334,
+     0.953125,
+     0.953125,
+     0.9541666666666668
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.06352058053016663,
+   "z_sd": 7.564125061035156,
+   "train_accuracy": 1.0,
+   "intercept": -0.06352062523365021
+  },
+  "22": {
+   "C": 0.1,
+   "C_index": 4,
+   "cv": {
+    "log_loss": [
+     0.20543511509895324,
+     0.16321869939565659,
+     0.14089786261320114,
+     0.13118327260017396,
+     0.12935580648481845,
+     0.13243319969624281,
+     0.13863309286534786,
+     0.14623415879905224,
+     0.15522078527137637
+    ],
+    "accuracy": [
+     0.935763888888889,
+     0.9395833333333334,
+     0.9430555555555555,
+     0.945486111111111,
+     0.945486111111111,
+     0.9413194444444445,
+     0.9423611111111111,
+     0.94375,
+     0.94375
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.05755416676402092,
+   "z_sd": 7.612143516540527,
+   "train_accuracy": 1.0,
+   "intercept": -0.05755414441227913
+  },
+  "23": {
+   "C": 0.1,
+   "C_index": 4,
+   "cv": {
+    "log_loss": [
+     0.20260292589664458,
+     0.1604710951447487,
+     0.1387314260005951,
+     0.1300499141216278,
+     0.12953818030655384,
+     0.13419280834496022,
+     0.1422618992626667,
+     0.15237129852175713,
+     0.16280434112995862
+    ],
+    "accuracy": [
+     0.9385416666666666,
+     0.9440972222222221,
+     0.9465277777777779,
+     0.945138888888889,
+     0.9461805555555556,
+     0.946875,
+     0.945486111111111,
+     0.945486111111111,
+     0.9440972222222224
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.06185714527964592,
+   "z_sd": 7.669775009155273,
+   "train_accuracy": 1.0,
+   "intercept": -0.06185731291770935
+  },
+  "24": {
+   "C": 0.03162277660168379,
+   "C_index": 3,
+   "cv": {
+    "log_loss": [
+     0.19062238037586213,
+     0.15165925920009612,
+     0.13257338777184485,
+     0.1259396631270647,
+     0.1268070310354233,
+     0.13235509395599365,
+     0.1408493395894766,
+     0.1513016814365983,
+     0.1631589660421014
+    ],
+    "accuracy": [
+     0.9385416666666666,
+     0.939236111111111,
+     0.939236111111111,
+     0.9364583333333334,
+     0.9375,
+     0.9375,
+     0.9375,
+     0.9375,
+     0.9375
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.008995354175567627,
+   "z_sd": 6.509567737579346,
+   "train_accuracy": 1.0,
+   "intercept": -0.008995765820145607
+  },
+  "25": {
+   "C": 0.31622776601683794,
+   "C_index": 5,
+   "cv": {
+    "log_loss": [
+     0.16282160431146622,
+     0.12370482683181763,
+     0.10271574258804321,
+     0.0923773244023323,
+     0.08819387406110764,
+     0.08771368321031332,
+     0.08946170518174767,
+     0.0922494012862444,
+     0.09643111983314157
+    ],
+    "accuracy": [
+     0.954861111111111,
+     0.9576388888888889,
+     0.9583333333333333,
+     0.9597222222222221,
+     0.9586805555555555,
+     0.961111111111111,
+     0.9597222222222221,
+     0.9625,
+     0.961111111111111
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.04901513457298279,
+   "z_sd": 9.126282691955566,
+   "train_accuracy": 1.0,
+   "intercept": -0.049015264958143234
+  },
+  "26": {
+   "C": 0.31622776601683794,
+   "C_index": 5,
+   "cv": {
+    "log_loss": [
+     0.13883835822343826,
+     0.10389520823955536,
+     0.08556732460856438,
+     0.07666419446468353,
+     0.07314844373613597,
+     0.07276463294401765,
+     0.07451139483600855,
+     0.0772320281714201,
+     0.07845963442232459
+    ],
+    "accuracy": [
+     0.9638888888888889,
+     0.9659722222222221,
+     0.9673611111111111,
+     0.9673611111111111,
+     0.9673611111111111,
+     0.9673611111111111,
+     0.9673611111111111,
+     0.9673611111111111,
+     0.9673611111111111
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.1531820446252823,
+   "z_sd": 9.345918655395508,
+   "train_accuracy": 1.0,
+   "intercept": -0.15318180620670319
+  },
+  "27": {
+   "C": 0.31622776601683794,
+   "C_index": 5,
+   "cv": {
+    "log_loss": [
+     0.14409009516239166,
+     0.10763175189495086,
+     0.08834637440741062,
+     0.07888305559754372,
+     0.07496681977063417,
+     0.07438123039901257,
+     0.075740204192698,
+     0.0785528426989913,
+     0.08005056129768491
+    ],
+    "accuracy": [
+     0.961111111111111,
+     0.9638888888888889,
+     0.9659722222222221,
+     0.9659722222222221,
+     0.9645833333333333,
+     0.967013888888889,
+     0.9694444444444444,
+     0.9694444444444444,
+     0.970486111111111
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.15196610987186432,
+   "z_sd": 9.291152000427246,
+   "train_accuracy": 1.0,
+   "intercept": -0.15196651220321655
+  },
+  "28": {
+   "C": 0.31622776601683794,
+   "C_index": 5,
+   "cv": {
+    "log_loss": [
+     0.12817180454730986,
+     0.09238010421395301,
+     0.07354731969535351,
+     0.06410005725920201,
+     0.05985756404697895,
+     0.05858017774298787,
+     0.05901012122631073,
+     0.06023916930425912,
+     0.061813484458252785
+    ],
+    "accuracy": [
+     0.9690972222222223,
+     0.9711805555555555,
+     0.9732638888888889,
+     0.9746527777777778,
+     0.9760416666666666,
+     0.9760416666666666,
+     0.9760416666666666,
+     0.9774305555555556,
+     0.9774305555555556
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.15771569311618805,
+   "z_sd": 9.340800285339355,
+   "train_accuracy": 1.0,
+   "intercept": -0.1577155739068985
+  },
+  "29": {
+   "C": 0.31622776601683794,
+   "C_index": 5,
+   "cv": {
+    "log_loss": [
+     0.11336462199687958,
+     0.08156173899769784,
+     0.06568849198520184,
+     0.0583673445507884,
+     0.055570245068520305,
+     0.055272162146866324,
+     0.05654286770150065,
+     0.05811752153094858,
+     0.06015420153271407
+    ],
+    "accuracy": [
+     0.9739583333333334,
+     0.9736111111111111,
+     0.9732638888888889,
+     0.9743055555555555,
+     0.9743055555555555,
+     0.9743055555555555,
+     0.9743055555555555,
+     0.9743055555555555,
+     0.9756944444444444
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.05344387888908386,
+   "z_sd": 9.372081756591797,
+   "train_accuracy": 1.0,
+   "intercept": -0.053443677723407745
+  },
+  "30": {
+   "C": 0.1,
+   "C_index": 4,
+   "cv": {
+    "log_loss": [
+     0.09433276131749153,
+     0.06511531546711921,
+     0.05093184355646372,
+     0.044618222396820784,
+     0.04238529871217907,
+     0.04240985307842493,
+     0.04364103896077722,
+     0.04536742091877386,
+     0.0471242705360055
+    ],
+    "accuracy": [
+     0.9847222222222222,
+     0.9833333333333332,
+     0.9833333333333332,
+     0.9833333333333332,
+     0.9833333333333332,
+     0.9833333333333332,
+     0.9833333333333332,
+     0.9833333333333332,
+     0.9833333333333332
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.047603506594896317,
+   "z_sd": 8.28766918182373,
+   "train_accuracy": 1.0,
+   "intercept": -0.04760375991463661
+  },
+  "31": {
+   "C": 0.31622776601683794,
+   "C_index": 5,
+   "cv": {
+    "log_loss": [
+     0.08559131547808647,
+     0.056833305209875104,
+     0.042838679440319535,
+     0.036445547454059125,
+     0.033981761708855626,
+     0.0336598954629153,
+     0.03446156732970849,
+     0.03574061060789972,
+     0.03626712587429211
+    ],
+    "accuracy": [
+     0.9875,
+     0.986111111111111,
+     0.986111111111111,
+     0.986111111111111,
+     0.986111111111111,
+     0.986111111111111,
+     0.986111111111111,
+     0.986111111111111,
+     0.986111111111111
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": -0.0024778146762400866,
+   "z_sd": 9.692493438720703,
+   "train_accuracy": 1.0,
+   "intercept": -0.002477780682966113
+  },
+  "32": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.06695520132780075,
+     0.04142528735101223,
+     0.028793517965823412,
+     0.022577921533957122,
+     0.01953379367478192,
+     0.018065747269429267,
+     0.017423604521900414,
+     0.01672330709261587,
+     0.01591645585940569
+    ],
+    "accuracy": [
+     0.9916666666666668,
+     0.9902777777777778,
+     0.9902777777777778,
+     0.9902777777777778,
+     0.9888888888888889,
+     0.9888888888888889,
+     0.9888888888888889,
+     0.9902777777777778,
+     0.9902777777777778
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.050965189933776855,
+   "z_sd": 14.001761436462402,
+   "train_accuracy": 1.0,
+   "intercept": 0.05096547305583954
+  },
+  "33": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.053614572435617444,
+     0.03099522702395916,
+     0.01981123723089695,
+     0.014145881263539195,
+     0.01111842116806656,
+     0.009374071157071739,
+     0.008254782587755471,
+     0.007499728265247541,
+     0.0068119629955617714
+    ],
+    "accuracy": [
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9972222222222221,
+     0.9972222222222221,
+     0.9972222222222221,
+     0.9972222222222221,
+     0.9972222222222221,
+     0.9972222222222221
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.14858825504779816,
+   "z_sd": 14.11839771270752,
+   "train_accuracy": 1.0,
+   "intercept": 0.14858785271644592
+  },
+  "34": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.04897579960525036,
+     0.02725627236068249,
+     0.01650431202724576,
+     0.01097581759095192,
+     0.007962467370089144,
+     0.006173306546406821,
+     0.005034995934693143,
+     0.0042055687838001175,
+     0.0035267382067104337
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.1813906580209732,
+   "z_sd": 14.036910057067871,
+   "train_accuracy": 1.0,
+   "intercept": 0.181390643119812
+  },
+  "35": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.050106408819556233,
+     0.027377015352249144,
+     0.016115020494908094,
+     0.01037675915285945,
+     0.007267710147425532,
+     0.005400855472544208,
+     0.004246525920461863,
+     0.003487553288869094,
+     0.0029469582506862933
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.21252326667308807,
+   "z_sd": 13.947379112243652,
+   "train_accuracy": 1.0,
+   "intercept": 0.21252338588237762
+  },
+  "36": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.05011812634766102,
+     0.027326902188360692,
+     0.01603706832975149,
+     0.01026225124951452,
+     0.0071057557128369805,
+     0.005231036490295082,
+     0.00406406846595928,
+     0.003349263220297871,
+     0.0026977184727002166
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.33998391032218933,
+   "z_sd": 13.919398307800293,
+   "train_accuracy": 1.0,
+   "intercept": 0.339983731508255
+  },
+  "37": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.05015706941485405,
+     0.02752816043794155,
+     0.01634637303650379,
+     0.010655651777051389,
+     0.007535826554521919,
+     0.005669343681074679,
+     0.004479245922993869,
+     0.003714425369980745,
+     0.0030865637076203712
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.31364044547080994,
+   "z_sd": 13.805540084838867,
+   "train_accuracy": 1.0,
+   "intercept": 0.3136407136917114
+  },
+  "38": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.0497497696429491,
+     0.026938898861408232,
+     0.01571105597540736,
+     0.010004064859822392,
+     0.006899038515985012,
+     0.005060343304648995,
+     0.003910173694021068,
+     0.003170828711154172,
+     0.002529674320612685
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.33732107281684875,
+   "z_sd": 13.759517669677734,
+   "train_accuracy": 1.0,
+   "intercept": 0.3373209536075592
+  },
+  "39": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.05083821341395378,
+     0.027731368131935597,
+     0.01637949710711837,
+     0.010637257061898709,
+     0.007530709099955857,
+     0.005705207050777972,
+     0.004556149855488911,
+     0.0038194715474674013,
+     0.003249418419363792
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.4433968961238861,
+   "z_sd": 13.781207084655762,
+   "train_accuracy": 1.0,
+   "intercept": 0.44339677691459656
+  },
+  "40": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.051910721510648725,
+     0.028195283934473993,
+     0.01645505363121629,
+     0.010529012139886617,
+     0.007309790793806314,
+     0.0054152681084815414,
+     0.004172877376549877,
+     0.0033995908008364493,
+     0.0028132303268648684
+    ],
+    "accuracy": [
+     0.9986111111111111,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.41517162322998047,
+   "z_sd": 13.676746368408203,
+   "train_accuracy": 1.0,
+   "intercept": 0.4151715338230133
+  },
+  "41": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.05075558796525002,
+     0.026837834529578684,
+     0.015131202712655067,
+     0.009280561935156584,
+     0.006171719846315682,
+     0.004381301946705207,
+     0.003288228515884839,
+     0.002533184445928782,
+     0.001970685129708727
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.22357088327407837,
+   "z_sd": 13.564374923706055,
+   "train_accuracy": 1.0,
+   "intercept": 0.22357074916362762
+  },
+  "42": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.04843150898814201,
+     0.024768625013530256,
+     0.01332146106287837,
+     0.007678770273923874,
+     0.004757379076909274,
+     0.00313508139224723,
+     0.002176368987420574,
+     0.0015674866299377754,
+     0.0011112177333416184
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.1389312595129013,
+   "z_sd": 13.490715026855469,
+   "train_accuracy": 1.0,
+   "intercept": 0.13893163204193115
+  },
+  "43": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.0497949481010437,
+     0.02574806474149227,
+     0.014061749912798405,
+     0.008272777311503887,
+     0.005248702480457723,
+     0.0035521945275831966,
+     0.002519990352448076,
+     0.0018835364375263453,
+     0.0014439763119298732
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.29254087805747986,
+   "z_sd": 13.482086181640625,
+   "train_accuracy": 1.0,
+   "intercept": 0.29254060983657837
+  },
+  "44": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.04603476375341416,
+     0.023399132117629052,
+     0.012472277786582709,
+     0.0071108582429587845,
+     0.004346741351764649,
+     0.002821787667926401,
+     0.0019224316900363192,
+     0.0013843430642737076,
+     0.0009895957886328689
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.20732204616069794,
+   "z_sd": 13.515825271606445,
+   "train_accuracy": 1.0,
+   "intercept": 0.20732206106185913
+  },
+  "45": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.04398972541093826,
+     0.021951601095497607,
+     0.011368774902075529,
+     0.006230197753757239,
+     0.0036355346092022955,
+     0.0022417539672460406,
+     0.0014558970869984478,
+     0.0010155517215025612,
+     0.0006804081262089312
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.14002221822738647,
+   "z_sd": 13.608926773071289,
+   "train_accuracy": 1.0,
+   "intercept": 0.14002251625061035
+  },
+  "46": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.04487478360533714,
+     0.0223699364811182,
+     0.01151979211717844,
+     0.006254781037569046,
+     0.0036118983756750823,
+     0.0022102950199041514,
+     0.0014259746007155628,
+     0.0009665987774496898,
+     0.0006938026584975887
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.11575786024332047,
+   "z_sd": 13.698995590209961,
+   "train_accuracy": 1.0,
+   "intercept": 0.1157575324177742
+  },
+  "47": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.046380167454481126,
+     0.0232720073312521,
+     0.012099620141088962,
+     0.006663209060207009,
+     0.003916298854164779,
+     0.002448003872996196,
+     0.001627851341618225,
+     0.001131670080940239,
+     0.0007902237790403888
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.12639950215816498,
+   "z_sd": 13.748518943786621,
+   "train_accuracy": 1.0,
+   "intercept": 0.1263992339372635
+  },
+  "48": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.046321304887533186,
+     0.023618843778967856,
+     0.012606058456003665,
+     0.007191801583394409,
+     0.004406834556721151,
+     0.0028849228110630065,
+     0.001985612479620613,
+     0.001451426587300375,
+     0.0010161437108763493
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.09968218952417374,
+   "z_sd": 13.6116361618042,
+   "train_accuracy": 1.0,
+   "intercept": 0.09968170523643494
+  },
+  "49": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.04377528876066208,
+     0.02234881278127432,
+     0.012007918115705252,
+     0.006945146946236491,
+     0.004355586529709399,
+     0.002911353833042085,
+     0.0020419987209606915,
+     0.0014768568318686448,
+     0.0010797581235237885
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.07565703243017197,
+   "z_sd": 13.82684326171875,
+   "train_accuracy": 1.0,
+   "intercept": 0.07565698772668839
+  },
+  "50": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.042842695116996767,
+     0.02189691551029682,
+     0.011778670176863671,
+     0.006823780573904514,
+     0.004280552105046809,
+     0.002884486044058576,
+     0.002069300814764574,
+     0.001500165683683008,
+     0.001140719732211437
+    ],
+    "accuracy": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.06452528387308121,
+   "z_sd": 13.784228324890137,
+   "train_accuracy": 1.0,
+   "intercept": 0.06452596187591553
+  },
+  "51": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.048990698158741,
+     0.025185607187449933,
+     0.013676007185131312,
+     0.008059644093737005,
+     0.005195780610665679,
+     0.0036248940043151377,
+     0.002699939359445125,
+     0.002126370205951389,
+     0.0018961324713018257
+    ],
+    "accuracy": [
+     0.9986111111111111,
+     0.9986111111111111,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.25867095589637756,
+   "z_sd": 13.663067817687988,
+   "train_accuracy": 1.0,
+   "intercept": 0.2586710751056671
+  },
+  "52": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.049108564108610156,
+     0.02584967017173767,
+     0.014525075349956751,
+     0.00893685957416892,
+     0.006039928097743541,
+     0.00443532727076672,
+     0.003469004950602539,
+     0.0028491025368566625,
+     0.0023752437737130094
+    ],
+    "accuracy": [
+     0.9986111111111111,
+     0.9986111111111111,
+     0.9986111111111111,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.13277439773082733,
+   "z_sd": 13.61581802368164,
+   "train_accuracy": 1.0,
+   "intercept": 0.13277442753314972
+  },
+  "53": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.050104682147502896,
+     0.0267478134483099,
+     0.015273056831210852,
+     0.009552802005782724,
+     0.006553329760208726,
+     0.0048683698521927,
+     0.003860904439352453,
+     0.003245365481416229,
+     0.0028797186860174406
+    ],
+    "accuracy": [
+     0.9958333333333332,
+     0.9986111111111111,
+     0.9986111111111111,
+     0.9986111111111111,
+     0.9986111111111111,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.17652076482772827,
+   "z_sd": 13.556645393371582,
+   "train_accuracy": 1.0,
+   "intercept": 0.176520437002182
+  },
+  "54": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.050295739620924,
+     0.027465305104851723,
+     0.016169364005327223,
+     0.010478706192225217,
+     0.0074600580148398874,
+     0.0057228721212595705,
+     0.0046909149736166,
+     0.00404426108871121,
+     0.003492881602142006
+    ],
+    "accuracy": [
+     0.9958333333333332,
+     0.9972222222222221,
+     0.9972222222222221,
+     0.9972222222222221,
+     0.9972222222222221,
+     0.9972222222222221,
+     0.9986111111111111,
+     0.9986111111111111,
+     0.9986111111111111
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.29271313548088074,
+   "z_sd": 13.666272163391113,
+   "train_accuracy": 1.0,
+   "intercept": 0.29271307587623596
+  },
+  "55": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.05918152779340744,
+     0.033260899409651754,
+     0.020379579067230223,
+     0.013970604632049799,
+     0.01068797241896391,
+     0.008962997212074697,
+     0.008028888131957502,
+     0.007706882641650736,
+     0.007402190160064492
+    ],
+    "accuracy": [
+     0.9944444444444445,
+     0.9944444444444445,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.27894195914268494,
+   "z_sd": 13.430784225463867,
+   "train_accuracy": 1.0,
+   "intercept": 0.2789422571659088
+  },
+  "56": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.059131532162427905,
+     0.033097556605935094,
+     0.02007306907325983,
+     0.01354706771671772,
+     0.010162846627645194,
+     0.008319976751226931,
+     0.00730848761741072,
+     0.006760962269618176,
+     0.006497076879168162
+    ],
+    "accuracy": [
+     0.9958333333333332,
+     0.9944444444444445,
+     0.9944444444444445,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.27261438965797424,
+   "z_sd": 13.393049240112305,
+   "train_accuracy": 1.0,
+   "intercept": 0.2726140320301056
+  },
+  "57": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.06092841550707817,
+     0.034473799914121625,
+     0.021180640533566476,
+     0.014490778744220733,
+     0.01102792618330568,
+     0.009167247056029736,
+     0.008123452629661188,
+     0.00762893943610834,
+     0.007168984255258692
+    ],
+    "accuracy": [
+     0.9934027777777779,
+     0.9944444444444445,
+     0.9944444444444445,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.14796531200408936,
+   "z_sd": 13.274097442626953,
+   "train_accuracy": 1.0,
+   "intercept": 0.14796499907970428
+  },
+  "58": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.062154439836740495,
+     0.03540266565978527,
+     0.021945021487772463,
+     0.01518940981477499,
+     0.01176737539935857,
+     0.00990424961782992,
+     0.008960654289694503,
+     0.00850289746595081,
+     0.00836299843795132
+    ],
+    "accuracy": [
+     0.9934027777777779,
+     0.9934027777777779,
+     0.9944444444444445,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332,
+     0.9958333333333332
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.20825564861297607,
+   "z_sd": 13.363945960998535,
+   "train_accuracy": 1.0,
+   "intercept": 0.20825543999671936
+  },
+  "59": {
+   "C": 3.1622776601683795,
+   "C_index": 7,
+   "cv": {
+    "log_loss": [
+     0.0861508309841156,
+     0.051374830305576324,
+     0.03329859543591738,
+     0.024138644337654114,
+     0.019583482574671508,
+     0.01737055378034711,
+     0.016318364045582713,
+     0.0160983686306281,
+     0.01654974757839227
+    ],
+    "accuracy": [
+     0.9881944444444445,
+     0.990625,
+     0.9934027777777779,
+     0.9944444444444445,
+     0.9944444444444445,
+     0.9944444444444445,
+     0.9944444444444445,
+     0.9944444444444445,
+     0.9944444444444445
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.1492462307214737,
+   "z_sd": 11.372040748596191,
+   "train_accuracy": 1.0,
+   "intercept": 0.14924605190753937
+  },
+  "60": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.09298319816589355,
+     0.05521439835429191,
+     0.035389819741249086,
+     0.025182769633829594,
+     0.01992402453906834,
+     0.01720204430166632,
+     0.015819099033251405,
+     0.015013681026175618,
+     0.01450418574968353
+    ],
+    "accuracy": [
+     0.992361111111111,
+     0.992361111111111,
+     0.9909722222222221,
+     0.9909722222222221,
+     0.992361111111111,
+     0.992361111111111,
+     0.992361111111111,
+     0.992361111111111,
+     0.992361111111111
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.025990387424826622,
+   "z_sd": 12.514443397521973,
+   "train_accuracy": 1.0,
+   "intercept": 0.025990448892116547
+  },
+  "61": {
+   "C": 3.1622776601683795,
+   "C_index": 7,
+   "cv": {
+    "log_loss": [
+     0.10539663434028626,
+     0.06467817947268487,
+     0.04266585037112236,
+     0.03096164409071207,
+     0.024745866376906633,
+     0.021464873803779483,
+     0.01973865432664752,
+     0.019026254245545715,
+     0.0191546754387673
+    ],
+    "accuracy": [
+     0.9916666666666666,
+     0.99375,
+     0.9909722222222221,
+     0.9909722222222221,
+     0.9909722222222221,
+     0.9909722222222221,
+     0.9909722222222221,
+     0.9909722222222221,
+     0.992361111111111
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.05037315562367439,
+   "z_sd": 11.155292510986328,
+   "train_accuracy": 1.0,
+   "intercept": 0.050372857600450516
+  },
+  "62": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.15354521870613097,
+     0.09559491574764252,
+     0.06283560395240784,
+     0.04487601593136788,
+     0.0350250469520688,
+     0.029596895352005957,
+     0.026627731695771217,
+     0.024955696822144092,
+     0.023953034589067102
+    ],
+    "accuracy": [
+     0.9864583333333334,
+     0.9885416666666668,
+     0.9913194444444444,
+     0.992361111111111,
+     0.9909722222222221,
+     0.9909722222222221,
+     0.9909722222222221,
+     0.992361111111111,
+     0.992361111111111
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.04257695749402046,
+   "z_sd": 11.734114646911621,
+   "train_accuracy": 1.0,
+   "intercept": 0.042577069252729416
+  },
+  "63": {
+   "C": 10.0,
+   "C_index": 8,
+   "cv": {
+    "log_loss": [
+     0.2168037176132202,
+     0.13939514607191086,
+     0.09348003268241882,
+     0.06791185736656188,
+     0.05385159961879253,
+     0.04616974722594023,
+     0.04204848287627101,
+     0.039773089811205864,
+     0.038549749786034225
+    ],
+    "accuracy": [
+     0.9732638888888887,
+     0.9784722222222222,
+     0.982638888888889,
+     0.9847222222222222,
+     0.9885416666666668,
+     0.9895833333333334,
+     0.9909722222222221,
+     0.9895833333333334,
+     0.9895833333333334
+    ],
+    "converged": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "refit_converged": true,
+   "warnings": [
+    "'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' i"
+   ],
+   "z_mean": 0.0618753544986248,
+   "z_sd": 11.151248931884766,
+   "train_accuracy": 1.0,
+   "intercept": 0.061875686049461365
+  }
+ },
+ "not_converged": []
+}

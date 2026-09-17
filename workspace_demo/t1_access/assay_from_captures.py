@@ -122,15 +122,23 @@ def main() -> None:
           f"condition {a.condition}, scores sha256 {ds.meta['sha256'][:12]}")
     res = A.analyze_dataset(ds, cfg, seed=a.seed)
 
+    def _plain(o):
+        """numpy arrays and scalars are not JSON types; ndarray.tolist() is lossless for float64."""
+        if isinstance(o, np.ndarray):
+            return o.tolist()
+        if isinstance(o, np.generic):
+            return o.item()
+        raise TypeError(f"cannot serialise {type(o).__name__}")
+
     report = dict(source=ds.meta, cfg=dict(interval=a.interval, n_starts_inner=a.n_starts_inner, seed=a.seed),
-                  result=json.loads(json.dumps(res, default=float)))
+                  result=json.loads(json.dumps(res, default=_plain)))
     if a.out:
         os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
         with open(a.out, "w") as fh:
             json.dump(report, fh, indent=2, sort_keys=True)
         print(f"wrote {a.out}")
     else:
-        print(json.dumps(report["result"], indent=2, sort_keys=True, default=float)[:2000])
+        print(json.dumps(report["result"], indent=2, sort_keys=True, default=_plain)[:2000])
 
 
 if __name__ == "__main__":
