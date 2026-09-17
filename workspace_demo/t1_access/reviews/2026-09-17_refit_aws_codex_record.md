@@ -47,13 +47,13 @@ code/config `fab869c34eb6`. The panel is M3 at one scale, seed 2026,
 `interval="cluster"`, B=2000, hash `625798e9e7f4`. Although every generator is fitted
 by the same candidate members, the input changes the optimiser paths, active
 bounds, recovered fits, selections and tail scores. Cluster mode never calls
-`refit_bootstrap` (`analyze.py:366`); it misses its duplicated-concept grouping,
+`refit_bootstrap` (`analyze.py:368`); it misses its duplicated-concept grouping,
 resampled fits, checkpoint identities and percentile tails. Determinism on one
 input is not a proof of equivalent behaviour on all inputs.
 
 Matching the short code/config hash is also insufficient: `simulate.py:45` hashes
 three sources and settings but not the numerical library versions. The actual
-Mac rows record NumPy 2.5.3, SciPy 1.18.1, joblib 1.6.0; `launch_t1.py:37` installs
+Mac rows record NumPy 2.5.3, SciPy 1.18.1, joblib 1.6.0; `launch_t1.py:39` installs
 NumPy 2.4.6, SciPy 1.18.0, joblib 1.5.3. Both name JAX 0.11.1. Thus the proposed
 comparison is not architecture alone. Pin and record the actual Python, JAX,
 jaxlib, NumPy, SciPy, backend/precision and source settings; either align the
@@ -105,7 +105,7 @@ My prior Q4 supported a separate sensitivity run while both refit probes stayed
 untouched. It was not a blanket approval to repartition a running refit queue.
 The new scope appropriately came back for this review.
 
-`probe_refit.py:68` calls `run_points` for all forty tasks. `simulate.py:271–286`
+`probe_refit.py:67` calls `run_points` for all forty tasks. `simulate.py:271–286`
 constructs the task list and subtracts completed CSV rows once, at startup; it
 does not re-read an exclusion manifest or completed rows between chunks. The
 isolated fixture executes that actual function with fake workers: a row supplied
@@ -169,7 +169,7 @@ runtime. No launch is licensed on an assumption that restore must have worked.
 [AWS documents automatic checkpoint synchronization and restoration](https://docs.aws.amazon.com/sagemaker/latest/dg/model-checkpoints.html),
 but the application must consume those checkpoints correctly.
 
-`launch_t1.py:164` also turns `--max-hours 72 --spot` into 72 hours of runtime
+`launch_t1.py:166` also turns `--max-hours 72 --spot` into 72 hours of runtime
 and **144 hours including waiting**, rather than a 72-hour calendar deadline.
 Record both clocks and the aggregate campaign stop rule, including retries;
 do not silently reset the agreed clock with manual relaunches.
