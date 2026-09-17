@@ -30,6 +30,9 @@ special_issue/
 proceedings/
   figures/    proceedings figure scripts (rsc_pipeline.tex = Figure 1, the schematic;
               make_cself_measured.py = Figure 2; rsc_simulation.py = Figure 3)
+  checks/     proposition1_exact_checks.py: exact, simulation-free checks of Proposition 1
+              (the H2/M/1 root from a closed-form quadratic, the boundary amplitudes,
+              and three worked examples); reads two functions from figures/rsc_simulation.py
   cself/      the physiological pipeline: the C_self/R_self estimator + both cohort
               drivers (Synthea -> Figure 2; MIMIC-IV demo -> the Section 3 estimates)
 poster/figures/        poster figure scripts
