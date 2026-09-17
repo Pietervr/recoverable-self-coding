@@ -20,10 +20,10 @@ stability boundary (an infinite-server process is stationary at every load).
 | file | what it does |
 | --- | --- |
 | `csself_estimator.py` | the estimator (v2). `CR = λ/μ` from **rates** (`R_self` = onsets / observation span; `C_self` = restorations / union-busy time); `SR` = mean number in system from **occupancy**. `CR` exceeds 1 only when counted excursions remain unresolved at series end, so its value depends on the observation and censoring scheme. |
-| `synthea_to_cself.py` | Synthea → per-unit `(C_self, R_self, CR, SR)` → `../figures/cself_measured_synthea.csv`, the input to **Figure 1**. |
+| `synthea_to_cself.py` | Synthea → per-unit `(C_self, R_self, CR, SR)` → `../figures/cself_measured_synthea.csv`, the input to **Figure 2**. |
 | `mimic_demo_cself.py` | MIMIC-IV **demo** → the real-physiology estimates reported in **Section 3**. |
 
-## Reproducing Figure 1 (Synthea)
+## Reproducing Figure 2 (Synthea)
 
 Openly downloadable, no registration:
 

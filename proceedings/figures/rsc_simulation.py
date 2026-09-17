@@ -34,6 +34,16 @@ under three arrival/service laws: the (1-CR)^-1 exponent is shared across the
 finite-variance heavy-traffic class, the Kingman prefactor (c_a^2+c_s^2)/2 is not.
 Panel (c) -- the coupling sweep.
 
+Revision 2 (referee request for an analytical derivation): panel (b) now
+overlays the EXACT stationary mean number in system for each of the three
+laws (exact_sr: Pollaczek-Khinchine for M/M/1 and M/D/1, the GI/M/1 root for
+H2/M/1), so the simulation is a check of the closed forms. At the revision-1
+run length (40,000 commitments) the per-load intervals near CR=1 were too
+wide for that comparison to mean anything (+-21 on a backlog of 67 at
+CR=0.965 for H2/M/1), so panel (b) alone now runs N_B=400,000 commitments per
+replication with WARMUP_B=50,000 deleted. Panels (a) and (c) and the horizon
+check keep the revision-1 protocol, seeds and numbers.
+
 The shaded admissible region in panel (a) is DERIVED from the horizon law:
 per-commitment FIRST-PASS certification success Pc = 1-exp(-M*Dt) >= 1/2 iff
 (the plotted recoverability is the smaller two-pass quantity Pc*P(corr<=H))
@@ -53,6 +63,8 @@ mu = 1.0           # certification service rate
 N = 40000          # commitments simulated per replication per CR value
 WARMUP = 5000      # warm-up deletion (discarded from every estimate)
 REPS = 12          # independent replications per load (both panels)
+N_B = 400000       # panel (b) only: commitments per replication (revision 2)
+WARMUP_B = 50000   # panel (b) only: warm-up deletion (revision 2)
 Dt = 4.0           # certification horizon (mean-service-time units)
 H = 4.0            # correction / option-loss window
 p_acc = 0.90       # belief accuracy, independent model
@@ -79,22 +91,56 @@ def hyperexp(rng, rate, scv, n):
     return rng.exponential(1.0 / r)
 
 
-def draw_queue(rng, rho, kind="MM1"):
+def draw_queue(rng, rho, kind="MM1", n=N, warmup=WARMUP):
     """One replication's post-warm-up sojourn times."""
     lam = rho * mu
     if kind == "MM1":
-        interarr = rng.exponential(1.0 / lam, N)
-        service = rng.exponential(1.0 / mu, N)
+        interarr = rng.exponential(1.0 / lam, n)
+        service = rng.exponential(1.0 / mu, n)
     elif kind == "MD1":
-        interarr = rng.exponential(1.0 / lam, N)
-        service = np.full(N, 1.0 / mu)
+        interarr = rng.exponential(1.0 / lam, n)
+        service = np.full(n, 1.0 / mu)
     elif kind == "H2M1":
-        interarr = hyperexp(rng, lam, 4.0, N)
-        service = rng.exponential(1.0 / mu, N)
+        interarr = hyperexp(rng, lam, 4.0, n)
+        service = rng.exponential(1.0 / mu, n)
     else:
         raise ValueError(kind)
     sojourn = lindley(interarr, service) + service
-    return sojourn[WARMUP:]
+    return sojourn[warmup:]
+
+
+def gim1_root(lam, scv=4.0):
+    """Root sigma in (0,1) of sigma = A*(mu(1-sigma)) for the H2 interarrival
+    law of hyperexp(); the root at 1 is excluded. Plain bisection."""
+    p1 = 0.5 * (1.0 + np.sqrt((scv - 1.0) / (scv + 1.0)))
+    p2 = 1.0 - p1
+    r1, r2 = 2.0 * p1 * lam, 2.0 * p2 * lam
+
+    def f(z):
+        s = mu * (1.0 - z)
+        return p1 * r1 / (r1 + s) + p2 * r2 / (r2 + s) - z
+
+    a, b = 1e-12, 1.0 - 1e-12          # f(a) > 0 > f(b) for rho < 1
+    for _ in range(200):
+        m = 0.5 * (a + b)
+        if f(m) > 0.0:
+            a = m
+        else:
+            b = m
+    return 0.5 * (a + b)
+
+
+def exact_sr(rho, kind):
+    """Exact stationary mean number in system (Proposition 1 of the paper).
+    M/M/1 and M/D/1: Pollaczek-Khinchine, SR = rho + rho^2 (1+c_s^2)/(2(1-rho)).
+    H2/M/1: the GI/M/1 form SR = rho/(1-sigma)."""
+    if kind == "MM1":
+        return rho / (1.0 - rho)
+    if kind == "MD1":
+        return rho + rho ** 2 / (2.0 * (1.0 - rho))
+    if kind == "H2M1":
+        return rho / (1.0 - gim1_root(rho * mu))
+    raise ValueError(kind)
 
 
 def point_stats(rng, rho, phi=p_hi, plo=p_lo):
@@ -138,7 +184,6 @@ rec_r, sr_r = np.array(rec_r), np.array(sr_r)
 accuracy, accuracy_cpl = acc_r.mean(1), accc_r.mean(1)
 recover = rec_r.mean(1)
 acc_ci, accc_ci, rec_ci = ci95(acc_r, 1), ci95(accc_r, 1), ci95(rec_r, 1)
-sr_theory = CRs / (1.0 - CRs)
 
 # =====================================================================
 # Panel (b): three arrival/service laws, REPS replications, warm-up, CIs.
@@ -149,7 +194,8 @@ for kind in ("MM1", "MD1", "H2M1"):
     vals = []
     for rho in CRs:
         lam = rho * mu
-        occ = [lam * draw_queue(np.random.default_rng(s), rho, kind).mean()
+        occ = [lam * draw_queue(np.random.default_rng(s), rho, kind,
+                                n=N_B, warmup=WARMUP_B).mean()
                for s in ssb.spawn(REPS)]
         vals.append(occ)
     vals = np.array(vals)
@@ -189,11 +235,28 @@ for c in (0.3, 0.5, 0.8, 0.94):
           f"     {r:.3f}+-{rci:.3f}")
 
 top = CRs >= 0.90
+exact = {k: np.array([exact_sr(r, k) for r in CRs])
+         for k in ("MM1", "MD1", "H2M1")}
 print()
-print(f"panel (b) -- Kingman prefactor SR*(1-CR), mean over CR>=0.90")
+print(f"panel (b) -- protocol: N={N_B}/rep, warm-up {WARMUP_B}, {REPS} reps")
+print("panel (b) -- SR*(1-CR), mean over CR>=0.90: simulated | exact "
+      "(Proposition 1) | boundary limit (c_a^2+c_s^2)/2")
 for kind, pred in (("MD1", 0.5), ("MM1", 1.0), ("H2M1", 2.5)):
     got = float(np.mean(series[kind][top] * (1 - CRs[top])))
-    print(f"  {kind:<6}: {got:.2f}   (Kingman {pred})")
+    ex = float(np.mean(exact[kind][top] * (1 - CRs[top])))
+    print(f"  {kind:<6}: {got:.3f} | {ex:.3f} | {pred}")
+print("panel (b) -- simulated SR +- 95% CI against exact SR, per load")
+for kind in ("MM1", "MD1", "H2M1"):
+    inside = np.abs(series[kind] - exact[kind]) <= series_ci[kind]
+    rel = np.abs(series[kind] / exact[kind] - 1.0)
+    print(f"  {kind:<6}: exact inside the 95% CI at {int(inside.sum())} of "
+          f"{CRs.size} loads; largest relative gap {100 * rel.max():.1f}%; "
+          f"simulated above exact at {int((series[kind] > exact[kind]).sum())}"
+          f" of {CRs.size} loads")
+    for c in (0.5, 0.8, 0.94, 0.965):
+        i = int(np.argmin(np.abs(CRs - c)))
+        print(f"      CR={CRs[i]:.3f}  sim {series[kind][i]:8.3f} +- "
+              f"{series_ci[kind][i]:6.3f}   exact {exact[kind][i]:8.3f}")
 
 print()
 print("panel (c) -- coupling sweep at p_hi=0.95 (bounds vs collapse)")
@@ -254,14 +317,17 @@ ax1.legend(fontsize=8, loc="lower left")
 ax1.tick_params(labelsize=TICK)
 ax1.grid(alpha=0.25)
 
-ax2.semilogy(CRs, sr_theory, "-", color="#C00000", lw=1.8,
-             label=r"M/M/1 exact $\mathrm{CR}/(1-\mathrm{CR})$")
+cr_fine = np.linspace(0.30, 0.97, 200)
 for kind, mk, col, lab in (
+        ("H2M1", "^", "#7B3294", r"H$_2$/M/1 ($c_a^2\!=\!4$)"),
         ("MM1", "o", "#1F4E79", r"M/M/1 ($c_a^2\!=\!c_s^2\!=\!1$)"),
-        ("MD1", "v", "#2E7D32", r"M/D/1 ($c_s^2\!=\!0$)"),
-        ("H2M1", "^", "#7B3294", r"H$_2$/M/1 ($c_a^2\!=\!4$)")):
+        ("MD1", "v", "#2E7D32", r"M/D/1 ($c_s^2\!=\!0$)")):
+    ax2.semilogy(cr_fine, [exact_sr(r, kind) for r in cr_fine], "-",
+                 color=col, lw=1.4, alpha=0.9)
     ax2.errorbar(CRs, series[kind], yerr=series_ci[kind], fmt=mk, color=col,
                  ms=4, elinewidth=0.8, capsize=1.5, ls="none", label=lab)
+ax2.plot([], [], "-", color="#6B6B6B", lw=1.4,
+         label="exact (Proposition 1)")
 ax2.set_xlabel(r"capacity ratio $\mathrm{CR}$", fontsize=LAB)
 ax2.set_ylabel(r"stability index $\mathrm{SR}$ (mean backlog)", fontsize=LAB)
 ax2.set_xlim(0.3, 1.0)

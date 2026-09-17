@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synthea -> per-unit (C_self, R_self, CR, SR): the input behind Figure 1.
+"""Synthea -> per-unit (C_self, R_self, CR, SR): the input behind Figure 2.
 
 Reads the Synthea 10k COVID-19 synthetic cohort, keeps a fixed 13-analyte
 metabolic / haematology / liver panel with standard adult reference ranges,
@@ -7,7 +7,7 @@ normalizes to the estimator's `labs` contract, and runs the unchanged v2
 estimator (csself_estimator.py).
 
 Writes cself_measured_synthea.csv (C_self, R_self, CR, SR per unit) — the file
-proceedings/figures/make_cself_measured.py plots as Figure 1 — plus a
+proceedings/figures/make_cself_measured.py plots as Figure 2 — plus a
 results.json of the aggregates.
 
 Data (openly downloadable, no registration):

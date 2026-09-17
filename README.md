@@ -28,9 +28,10 @@ special_issue/
   empirical/    the two operational substrates: GitHub review queues, Wikipedia edits
   derivation/   the effective-capacity derivation note + the invertibility-axis model
 proceedings/
-  figures/    proceedings figure scripts
+  figures/    proceedings figure scripts (rsc_pipeline.tex = Figure 1, the schematic;
+              make_cself_measured.py = Figure 2; rsc_simulation.py = Figure 3)
   cself/      the physiological pipeline: the C_self/R_self estimator + both cohort
-              drivers (Synthea -> Figure 1; MIMIC-IV demo -> the Section 3 estimates)
+              drivers (Synthea -> Figure 2; MIMIC-IV demo -> the Section 3 estimates)
 poster/figures/        poster figure scripts
 ```
 
@@ -64,13 +65,13 @@ from public sources, then the figure scripts read pinned snapshots from `/tmp`
 Then `fig_github.py`, `fig_wikipedia.py`, `fig_earlywarning.py`, and the
 `analyze_*.py` probes read those snapshots.
 
-## Physiological data (proceedings Section 3 / Figure 1)
+## Physiological data (proceedings Section 3 / Figure 2)
 
 Both cohorts are **openly available** and neither is redistributed here:
 
 - **Synthea** 10k COVID-19 synthetic cohort — no registration.
   `proceedings/cself/synthea_to_cself.py --data <unzipped dir>` regenerates
-  `proceedings/figures/cself_measured_synthea.csv` (the Figure 1 input): 1,898
+  `proceedings/figures/cself_measured_synthea.csv` (the Figure 2 input): 1,898
   units on the regime map, 90.3% below the feasibility boundary.
 - **MIMIC-IV Clinical Database Demo** (100 ICU patients) — Open Data Commons
   ODbL, **no credentialing and no DUA**. `proceedings/cself/mimic_demo_cself.py

@@ -39,7 +39,7 @@ commensurable with CR, so the identity could never hold. Delta t is retained
 only as a separate clinical readout (recovered-within-horizon).
 
 Used by:
-  synthea_to_cself.py   -> per-unit metrics behind proceedings Figure 1
+  synthea_to_cself.py   -> per-unit metrics behind proceedings Figure 2
   mimic_demo_cself.py   -> the real-physiology estimates reported in Section 3
 """
 from __future__ import annotations
