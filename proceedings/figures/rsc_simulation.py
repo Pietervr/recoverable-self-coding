@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Numerical demonstration for the RSC proceedings (revision 1).
+"""Numerical demonstration for the RSC proceedings (revisions 1 and 2).
 
 An event-driven finite-capacity decoder: candidate commitments arrive at rate
 lambda and must be certified by a single server (rate mu=1); utilization
