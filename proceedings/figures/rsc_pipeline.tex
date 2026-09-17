@@ -35,9 +35,9 @@
 \node[lane, text=model] at (0,7.38)
   {Model: one certifier, arrivals from outside (an open queue)};
 
-\node[box, minimum width=2.1cm, minimum height=1.0cm] at (1.15,5.6)
+\node[box, minimum width=2.1cm, minimum height=1.0cm] (src) at (1.15,5.6)
   {candidate\\commitments};
-\draw[flow] (2.2,5.6) -- (4.5,5.6)
+\draw[flow] (src.east) -- (4.5,5.6)
   node[pos=0.46, above=1pt] {rate $\lambda=R_{\mathrm{self}}$};
 
 % waiting room: open on the arrival side
@@ -61,45 +61,46 @@
    $\mathrm{SR}=\langle N_{\mathrm{uncert}}\rangle$};
 
 % sojourn -> deadline test
-\draw[flow] (7.7,5.6) -- (9.6,5.6)
-  node[pos=0.42, above=1pt] {$T=W+S$};
-\node[test, minimum width=2.2cm, minimum height=1.0cm] at (10.7,5.6)
+\node[test, minimum width=2.2cm, minimum height=1.0cm] (t1) at (10.7,5.6)
   {certified in time?\\$T\le\Delta t$};
-\draw[flow] (11.8,5.6) -- (12.7,5.6) node[midway, above=1pt, text=good] {yes};
-\node[test, minimum width=2.6cm, minimum height=1.0cm] at (14.0,5.6)
+\draw[flow] (7.7,5.6) -- (t1.west)
+  node[pos=0.42, above=1pt] {$T=W+S$};
+\node[test, minimum width=2.6cm, minimum height=1.0cm] (t2) at (14.0,5.6)
   {corrective pass\\in time? $T_{\mathrm{corr}}\le H$};
 \node[text=soft, align=center] at (14.0,6.5)
   {independent draw from the\\[-1pt]law of $T$; adds no load};
-\draw[flow] (15.3,5.6) -- (16.2,5.6) node[midway, above=1pt, text=good] {yes};
-\node[box, draw=good, fill=good!8, minimum width=2.1cm, minimum height=0.8cm]
+\node[box, draw=good, fill=good!8, minimum width=2.1cm, minimum height=0.8cm] (rec)
   at (17.25,5.6) {recoverable};
+% arrows between the boxes, drawn after the boxes exist and from their real edges
+\draw[flow] (t1.east) -- (t2.west) node[midway, above=1pt, text=good] {yes};
+\draw[flow] (t2.east) -- (rec.west) node[midway, above=1pt, text=good] {yes};
 
 % "no" branches: one outcome box, no crossings
-\node[box, draw=bad, fill=bad!6, minimum width=5.7cm, minimum height=0.8cm]
+\node[box, draw=bad, fill=bad!6, minimum width=5.7cm, minimum height=0.8cm] (nrec)
   at (12.45,3.75) {not recoverable};
-\draw[flow] (10.7,5.1) -- (10.7,4.15);
+\draw[flow] (t1.south) -- (t1.south |- nrec.north);
 \node[text=bad, align=left, anchor=west] at (10.8,4.62) {no: committed\\[-1pt]uncertified};
-\draw[flow] (14.0,5.1) -- (14.0,4.15) node[midway, right=1pt, text=bad] {no};
+\draw[flow] (t2.south) -- (t2.south |- nrec.north) node[midway, right=1pt, text=bad] {no};
 
 % ------------------------------------------------------------ measurement lane
 \node[lane, text=meas] at (3.85,2.55) {Measurement: from event counts to the margin};
 
-\node[mbox, minimum width=3.4cm, minimum height=1.3cm] at (1.9,1.5)
+\node[mbox, minimum width=3.4cm, minimum height=1.3cm] (log) at (1.9,1.5)
   {event log: arrival times,\\completion times, busy time};
-\node[mbox, minimum width=4.5cm, minimum height=1.3cm] at (6.75,1.5)
+\node[mbox, minimum width=4.5cm, minimum height=1.3cm] (est) at (6.75,1.5)
   {$\hat R_{\mathrm{self}}=$ arrivals $/$ observation time\\[1pt]
    $\hat C_{\mathrm{self}}=$ completions $/$ busy time};
-\node[mbox, minimum width=3.3cm, minimum height=1.3cm] at (11.3,1.5)
+\node[mbox, minimum width=3.3cm, minimum height=1.3cm] (mar) at (11.3,1.5)
   {$\mathrm{CR}=R_{\mathrm{self}}/C_{\mathrm{self}}$\\[1pt]
    $\mathcal{M}=C_{\mathrm{self}}-R_{\mathrm{self}}$};
-\draw[flow] (3.6,1.5) -- (4.5,1.5);
-\draw[flow] (9.0,1.5) -- (9.65,1.5);
-\draw[flow] (12.95,1.5) -- (14.55,1.5);
+\draw[flow] (log.east) -- (est.west);
+\draw[flow] (est.east) -- (mar.west);
+\draw[flow] (mar.east) -- (14.55,1.5);
 \node[align=center, text=soft] at (13.75,2.0) {queue law\\[-1pt](Prop.~1)};
 
 % what is observed (dashed; the two paths do not cross)
-\draw[obs] (3.3,5.6) -- (3.3,3.35) -- (1.0,3.35) -- (1.0,2.15);
-\draw[obs] (9.0,5.6) -- (9.0,3.0) -- (2.6,3.0) -- (2.6,2.15);
+\draw[obs] (3.3,5.6) -- (3.3,3.35) -- (1.0,3.35) -- (1.0,0 |- log.north);
+\draw[obs] (9.0,5.6) -- (9.0,3.0) -- (2.6,3.0) -- (2.6,0 |- log.north);
 \fill[soft] (3.3,5.6) circle (1.2pt);
 \fill[soft] (9.0,5.6) circle (1.2pt);
 \node[text=soft, anchor=east] at (3.2,4.5) {arrivals};
