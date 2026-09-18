@@ -20,6 +20,10 @@ property question (both answers right / beyond dispute).
 
 The page opens with a short account of why the check is done, for readers who know nothing of the study.
 
+The sheets' `drafter_note` (58 clauses, each quoting its own clause) is shown on the page only as a neutral flag,
+"Please check this fact carefully", without the drafter's reasoning: the full note read like another reader's
+answer (owner, 18 Sept) and could lean the reader one way. The notes stay in the sheets for the resolution.
+
 ## Pieces
 
 | File | What it does |

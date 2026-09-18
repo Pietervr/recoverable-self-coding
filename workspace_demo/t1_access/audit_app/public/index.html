@@ -198,12 +198,12 @@ button[disabled] { opacity: .45; cursor: default; }
     if (isClue(it.id)) {
       head = '<div class="txt">' + esc(it.clause) + '</div>'
         + (it.allowed ? '<span class="tag allow">One of the two lines allowed to give it away</span>' : '')
-        + (it.note ? '<span class="tag note">Writer unsure: ' + esc(it.note) + '</span>' : '');
+        + (it.note ? '<span class="tag note">⚑ Please check this fact carefully</span>' : '');
     } else {
       head = '<div class="txt"><strong>' + esc(it.question) + '</strong></div>'
         + '<p class="muted" style="margin:0 0 8px">For <strong>' + esc(it.concept) + '</strong> the answer is <strong>'
         + esc(it.a_concept) + '</strong>. For <strong>' + esc(it.foil) + '</strong> it is <strong>' + esc(it.a_foil) + '</strong>.</p>'
-        + (it.note ? '<span class="tag note">Writer unsure: ' + esc(it.note) + '</span>' : '');
+        + (it.note ? '<span class="tag note">⚑ Please check this fact carefully</span>' : '');
     }
     const fineLabel = isClue(it.id) ? 'Fine' : 'Both right, no doubt';
     return head + '<div class="btns"><button class="fine" aria-pressed="false">✓ ' + fineLabel + '</button><span class="sep"></span>'
@@ -341,8 +341,8 @@ button[disabled] { opacity: .45; cursor: default; }
           labelled.</li>
         </ul>
         <p>If all three hold, click <strong>✓ Fine</strong>. If not, click what’s wrong (more than one is allowed) and, if
-        you like, type a note. Lines marked <em>Writer unsure</em> contain a fact the writer was not sure of, so please check those
-        carefully. When the rest of a card is fine, one click on <strong>The other … are fine</strong> marks them all.</p>
+        you like, type a note. A few lines carry the flag <em>⚑ Please check this fact carefully</em>: whoever wrote the descriptions was not
+        sure of that fact. The flag is the same for everyone; it is not another reader’s answer. When the rest of a card is fine, one click on <strong>The other … are fine</strong> marks them all.</p>
         <table class="ex"><tbody>
           <tr><td colspan="2" class="muted">Example, for <strong>owl</strong> (not in the list):</td></tr>
           <tr><td>hunts small creatures in the dark</td><td>Fine</td></tr>
