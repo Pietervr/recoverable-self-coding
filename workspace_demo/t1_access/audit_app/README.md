@@ -1,7 +1,7 @@
 # audit_app — the T1 stimulus audit, as a click-through page (audit.raconteur-road.com)
 
 The clue bank (1,536 clauses) and the 100 H3 property questions must be checked by two readers before any
-of them is captured (`PREREGISTRATION_T1_model.md` §3, amended 18 Sept 2026). Every item is read twice and
+of them is captured (`PREREGISTRATION_T1_model.md` §3, amended 18 Sept 2026). Every item is read
 independently:
 
 - **by one or more anonymous human readers** on this page, filling the sheets' **R1** columns. The bank is
@@ -42,7 +42,7 @@ is gitignored until the audit closes.
 python3 assign.py                       # only if the sheets change; the split is fixed before anyone reads
 python3 push.py --local                 # local rig
 wrangler --cwd . pages dev --port 8797 --ip 127.0.0.1
-python3 test_api.py                     # 33 checks, cleans up after itself
+python3 test_api.py                     # 40 checks, cleans up after itself
 python3 push.py --remote                # production D1 (items and readers; marks are never touched)
 wrangler --cwd . pages deploy --branch main --commit-dirty=true
 python3 check_live.py                   # read-only
