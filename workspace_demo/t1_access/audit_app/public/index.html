@@ -124,7 +124,8 @@ button[disabled] { opacity: .45; cursor: default; }
 
   let items = [], marks = {};
   const rows = new Map();          // id -> {el, item, card}
-  const cards = [];                // {el, ids, leftEl, restBtn}
+  const cards = [];                // {el, ids, word, leftEl, restBtn}
+  let current = null;              // the card the visitor last worked on, shown in the top bar
 
   // ---------- saving: one request at a time, retried until the server has it ----------
   const queue = [];
@@ -185,6 +186,7 @@ button[disabled] { opacity: .45; cursor: default; }
   function setMark(id, m, via = 'row') {
     if (m) marks[id] = m; else delete marks[id];
     enqueue('/api/mark', { t: token, s: sid, id, m: m || {}, via });
+    current = rows.get(id).card;
     paintRow(id);
   }
 
@@ -229,8 +231,8 @@ button[disabled] { opacity: .45; cursor: default; }
 
   function paintCard(card) {
     if (!card) return;
-    const left = card.ids.filter((id) => !marks[id]).length;
-    card.leftEl.textContent = left ? left + ' left' : 'all checked';
+    const left = card.ids.filter((id) => !marks[id]).length, n = card.ids.length;
+    card.leftEl.textContent = left ? (n - left) + ' of ' + n + ' checked' : 'all ' + n + ' checked \u2713';
     card.restBtn.disabled = left === 0;
     card.restBtn.textContent = left ? 'The other ' + left + ' ' + (left === 1 ? 'is' : 'are') + ' fine' : 'All checked';
   }
@@ -238,8 +240,14 @@ button[disabled] { opacity: .45; cursor: default; }
   function paintProgress() {
     const clues = items.filter((i) => isClue(i.id)), qs = items.filter((i) => !isClue(i.id));
     const dc = clues.filter((i) => marks[i.id]).length, dq = qs.filter((i) => marks[i.id]).length;
-    document.getElementById('counts').textContent =
-      'Descriptions ' + dc + ' of ' + clues.length + '  ·  Questions ' + dq + ' of ' + qs.length;
+    // Say what has been done, never how much is left: the bar shows the proportion.
+    const finished = cards.filter((c) => c.ids.every((id) => marks[id])).length;
+    const parts = [];
+    if (current) parts.push(current.word + ': ' + current.ids.filter((id) => marks[id]).length + ' of ' + current.ids.length);
+    parts.push((dc + dq) + ' checked in all');
+    if (finished) parts.push(finished + (finished === 1 ? ' card' : ' cards') + ' finished');
+    document.getElementById('counts').textContent = (dc + dq)
+      ? parts.join('  \u00b7  ') : 'Nothing checked yet: start with the first card below';
     const all = items.length ? (dc + dq) / items.length : 0;
     document.getElementById('fill').style.width = (100 * all).toFixed(1) + '%';
     const complete = items.length > 0 && dc + dq === items.length;
@@ -376,7 +384,7 @@ button[disabled] { opacity: .45; cursor: default; }
       card.className = 'card';
       card.innerHTML = '<header><span class="word">' + esc(g.word) + '</span>'
         + (g.fam ? '<span class="fam">' + esc(g.fam) + '</span>' : '') + '<span class="left"></span></header>';
-      const rec = { el: card, ids: g.items.map((i) => i.id) };
+      const rec = { el: card, ids: g.items.map((i) => i.id), word: g.key === 'questions' ? 'Questions' : g.word };
       for (const it of g.items) {
         const row = document.createElement('div');
         row.className = 'row';
@@ -395,6 +403,7 @@ button[disabled] { opacity: .45; cursor: default; }
         if (!todo.length) return;
         const batch = todo.map((id) => ({ id, m: fineMark(id, '') }));
         for (const x of batch) marks[x.id] = x.m;
+        current = rec;
         enqueue('/api/bulk', { t: token, s: sid, marks: batch, via: 'card' });
         for (const id of todo) paintRow(id);
       });
