@@ -1,0 +1,12 @@
+# Cloudflare Pages config for audit.raconteur-road.com: the T1 stimulus audit (PREREGISTRATION_T1_model.md §3).
+# Same house pattern as review.raconteur-road.com (Raconteur-Road-Assets/review/wrangler.toml).
+
+name = "raconteur-road-audit"
+pages_build_output_dir = "public"
+compatibility_date = "2026-07-07"
+
+# Items (clauses and property questions), readers and their marks.
+[[d1_databases]]
+binding = "DB"
+database_name = "raconteur-audit"
+database_id = "6360f95e-e1cb-428a-8cf4-69ad4c340efc"

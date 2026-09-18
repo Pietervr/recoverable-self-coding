@@ -1,0 +1,6 @@
+# invite tokens and local build/test state never enter git
+readers.local.json
+build/
+results/
+.wrangler/
+node_modules/

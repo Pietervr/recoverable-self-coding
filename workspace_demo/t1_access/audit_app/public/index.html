@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Clue Check</title>
+<style>
+:root {
+  --bg: #f7f6f2; --card: #ffffff; --ink: #1d1d1b; --muted: #6b6a64; --line: #e3e1d9;
+  --accent: #2f6f4f; --accent-ink: #ffffff; --flag: #b4532a; --flag-bg: #fbeee7;
+  --ok-bg: #e8f3ec; --warn-bg: #fff6d6; --focus: #2f6f4f;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171716; --card: #222220; --ink: #ecebe6; --muted: #a3a29b; --line: #3a3935;
+    --accent: #6fbf92; --accent-ink: #0f1a14; --flag: #f0946a; --flag-bg: #3a261d;
+    --ok-bg: #1e3327; --warn-bg: #3a331a; --focus: #6fbf92;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #171716; --card: #222220; --ink: #ecebe6; --muted: #a3a29b; --line: #3a3935;
+  --accent: #6fbf92; --accent-ink: #0f1a14; --flag: #f0946a; --flag-bg: #3a261d;
+  --ok-bg: #1e3327; --warn-bg: #3a331a; --focus: #6fbf92;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 760px; margin: 0 auto; padding: 0 16px 96px; }
+h1 { font-size: 1.6rem; margin: 28px 0 4px; }
+h2 { font-size: 1.15rem; margin: 0 0 8px; }
+p { margin: 0 0 12px; }
+.muted { color: var(--muted); }
+.box { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin: 16px 0; }
+details.box > summary { cursor: pointer; font-weight: 600; }
+details.box[open] > summary { margin-bottom: 10px; }
+ul.tight { margin: 0 0 12px; padding-left: 20px; }
+ul.tight li { margin: 2px 0; }
+.ex { font-size: .95rem; }
+.ex td { padding: 3px 10px 3px 0; vertical-align: top; }
+.ex td:last-child { white-space: nowrap; font-weight: 600; }
+
+#bar { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line);
+  padding: 8px 16px; }
+#bar .in { max-width: 760px; margin: 0 auto; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+#bar .counts { font-size: .9rem; flex: 1 1 220px; }
+#bar .track { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+#bar .fill { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+#status { font-size: .85rem; color: var(--muted); min-width: 90px; text-align: right; }
+#status.bad { color: var(--flag); font-weight: 600; }
+
+button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--card); color: var(--ink); padding: 6px 11px; min-height: 36px; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button[disabled] { opacity: .45; cursor: default; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin: 18px 0; overflow: hidden; }
+.card > header { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.card > header .word { font-size: 1.3rem; font-weight: 700; }
+.card > header .fam { font-size: .85rem; color: var(--muted); }
+.card > header .left { margin-left: auto; font-size: .85rem; color: var(--muted); }
+.card > footer { padding: 10px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+.row { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.row.done { background: var(--ok-bg); }
+.row.flagged { background: var(--flag-bg); }
+.row.hl { box-shadow: inset 4px 0 0 var(--accent); }
+.row .txt { margin-bottom: 8px; }
+.row .txt::before { content: "\2013\00a0"; color: var(--muted); }
+.tag { display: inline-block; font-size: .8rem; border-radius: 6px; padding: 1px 7px; margin: 0 6px 6px 0; }
+.tag.allow { background: var(--warn-bg); }
+.tag.note { background: var(--warn-bg); display: block; margin-right: 0; }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.btns .sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 4px; }
+.btns button.fine[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btns button.flag[aria-pressed="true"] { background: var(--flag); color: #fff; border-color: var(--flag); }
+.cmt { margin-top: 8px; display: none; }
+.cmt.show { display: block; }
+.cmt input { width: 100%; font: inherit; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--card); color: var(--ink); }
+
+#next { position: fixed; right: 16px; bottom: 16px; z-index: 6; box-shadow: 0 2px 10px rgba(0,0,0,.18); }
+#done { display: none; }
+.err { color: var(--flag); }
+</style>
+</head>
+<body>
+<div id="bar" hidden>
+  <div class="in">
+    <div class="counts"><span id="counts"></span><div class="track"><div class="fill" id="fill"></div></div></div>
+    <div id="status" aria-live="polite">Saved</div>
+  </div>
+</div>
+<main id="app">
+  <h1>Clue Check</h1>
+  <p class="muted" id="loading">Loading your part&hellip;</p>
+</main>
+<button id="next" class="primary" hidden>Next unchecked &darr;</button>
+
+<script>
+(() => {
+  const token = (location.pathname.match(/\/r\/([A-Za-z0-9_-]+)/) || [])[1]
+    || new URLSearchParams(location.search).get('t') || '';
+  const app = document.getElementById('app');
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  let items = [], marks = {};
+  const rows = new Map();          // id -> {el, item, card}
+  const cards = [];                // {el, ids, leftEl, restBtn}
+
+  // ---------- saving: one request at a time, retried until the server has it ----------
+  const queue = [];
+  let busy = false, failed = false;
+  const statusEl = document.getElementById('status');
+  function setStatus() {
+    statusEl.classList.toggle('bad', failed);
+    statusEl.textContent = failed ? 'Not saved: retrying…' : (queue.length ? 'Saving…' : 'Saved');
+  }
+  function enqueue(url, body) { queue.push({ url, body }); setStatus(); pump(); }
+  async function pump() {
+    if (busy) return;
+    busy = true;
+    while (queue.length) {
+      const req = queue[0];
+      try {
+        const r = await fetch(req.url, { method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(req.body) });
+        if (r.status >= 400 && r.status < 500) {
+          const e = await r.json().catch(() => ({}));
+          queue.shift();
+          failed = false;
+          statusEl.textContent = 'Could not save (' + (e.error || r.status) + '). Please reload the page.';
+          statusEl.classList.add('bad');
+          continue;
+        }
+        if (!r.ok) throw new Error(String(r.status));
+        queue.shift();
+        failed = false;
+      } catch (e) {
+        failed = true;
+        setStatus();
+        await sleep(3000);
+      }
+      setStatus();
+    }
+    busy = false;
+  }
+  window.addEventListener('beforeunload', (ev) => { if (queue.length) { ev.preventDefault(); ev.returnValue = ''; } });
+
+  // ---------- mark semantics ----------
+  // A clause mark: t (true: y|n|?), nm (names it: y|n), d (gives it away alone: y|n), c (comment).
+  // A question mark: ok (both answers right: y|n), un (beyond dispute: y|n), c.
+  const isClue = (id) => id.startsWith('c-');
+  function flagsOf(id) {
+    const m = marks[id];
+    if (!m) return null;
+    if (isClue(id)) return { notTrue: m.t === 'n', unsure: m.t === '?', names: m.nm === 'y', gives: m.d === 'y' };
+    return { wrong: m.ok === 'n', depends: m.un === 'n' };
+  }
+  const anyFlag = (f) => !!f && Object.values(f).some(Boolean);
+  function markFromFlags(id, f, c) {
+    if (isClue(id)) return { t: f.notTrue ? 'n' : f.unsure ? '?' : 'y', nm: f.names ? 'y' : 'n', d: f.gives ? 'y' : 'n', c };
+    return { ok: f.wrong ? 'n' : 'y', un: f.depends ? 'n' : 'y', c };
+  }
+  const fineMark = (id, c) => isClue(id) ? { t: 'y', nm: 'n', d: 'n', c } : { ok: 'y', un: 'y', c };
+
+  function setMark(id, m, via = 'row') {
+    if (m) marks[id] = m; else delete marks[id];
+    enqueue('/api/mark', { t: token, id, m: m || {}, via });
+    paintRow(id);
+  }
+
+  // ---------- rendering ----------
+  const FLAGS_CLUE = [['notTrue', 'Not true'], ['unsure', 'Not sure it’s true'], ['names', 'Names it'], ['gives', 'Gives it away']];
+  const FLAGS_Q = [['wrong', 'An answer is wrong'], ['depends', 'It depends / arguable']];
+
+  function rowHTML(it) {
+    const flags = isClue(it.id) ? FLAGS_CLUE.filter(([k]) => !(k === 'gives' && it.allowed)) : FLAGS_Q;
+    let head;
+    if (isClue(it.id)) {
+      head = '<div class="txt">' + esc(it.clause) + '</div>'
+        + (it.allowed ? '<span class="tag allow">One of the two lines allowed to give it away</span>' : '')
+        + (it.note ? '<span class="tag note">Writer unsure: ' + esc(it.note) + '</span>' : '');
+    } else {
+      head = '<div class="txt"><strong>' + esc(it.question) + '</strong></div>'
+        + '<p class="muted" style="margin:0 0 8px">For <strong>' + esc(it.concept) + '</strong> the answer is <strong>'
+        + esc(it.a_concept) + '</strong>. For <strong>' + esc(it.foil) + '</strong> it is <strong>' + esc(it.a_foil) + '</strong>.</p>'
+        + (it.note ? '<span class="tag note">Writer unsure: ' + esc(it.note) + '</span>' : '');
+    }
+    const fineLabel = isClue(it.id) ? 'Fine' : 'Both right, no doubt';
+    return head + '<div class="btns"><button class="fine" aria-pressed="false">✓ ' + fineLabel + '</button><span class="sep"></span>'
+      + flags.map(([k, l]) => '<button class="flag" data-f="' + k + '" aria-pressed="false">' + l + '</button>').join('')
+      + '</div><div class="cmt"><input type="text" maxlength="1000" placeholder="What’s wrong, or a better wording (optional)" aria-label="Note"></div>';
+  }
+
+  function paintRow(id) {
+    const r = rows.get(id);
+    if (!r) return;
+    const m = marks[id], f = flagsOf(id), flagged = anyFlag(f);
+    r.el.classList.toggle('done', !!m && !flagged);
+    r.el.classList.toggle('flagged', flagged);
+    r.el.querySelector('button.fine').setAttribute('aria-pressed', String(!!m && !flagged));
+    r.el.querySelectorAll('button.flag').forEach((b) => b.setAttribute('aria-pressed', String(!!f && !!f[b.dataset.f])));
+    const cmt = r.el.querySelector('.cmt');
+    cmt.classList.toggle('show', flagged || !!(m && m.c));
+    const inp = cmt.querySelector('input');
+    if (document.activeElement !== inp) inp.value = (m && m.c) || '';
+    paintCard(r.card);
+    paintProgress();
+  }
+
+  function paintCard(card) {
+    if (!card) return;
+    const left = card.ids.filter((id) => !marks[id]).length;
+    card.leftEl.textContent = left ? left + ' left' : 'all checked';
+    card.restBtn.disabled = left === 0;
+    card.restBtn.textContent = left ? 'The other ' + left + ' ' + (left === 1 ? 'is' : 'are') + ' fine' : 'All checked';
+  }
+
+  function paintProgress() {
+    const clues = items.filter((i) => isClue(i.id)), qs = items.filter((i) => !isClue(i.id));
+    const dc = clues.filter((i) => marks[i.id]).length, dq = qs.filter((i) => marks[i.id]).length;
+    document.getElementById('counts').textContent =
+      'Descriptions ' + dc + ' of ' + clues.length + '  ·  Questions ' + dq + ' of ' + qs.length;
+    const all = items.length ? (dc + dq) / items.length : 0;
+    document.getElementById('fill').style.width = (100 * all).toFixed(1) + '%';
+    const complete = items.length > 0 && dc + dq === items.length;
+    document.getElementById('done').style.display = complete ? 'block' : 'none';
+    document.getElementById('next').hidden = complete;
+  }
+
+  function wireRow(el, it, card) {
+    const id = it.id;
+    rows.set(id, { el, item: it, card });
+    el.querySelector('button.fine').addEventListener('click', () => {
+      const f = flagsOf(id), m = marks[id];
+      if (m && !anyFlag(f)) setMark(id, null);                       // un-click Fine
+      else setMark(id, fineMark(id, (m && m.c) || ''));
+    });
+    el.querySelectorAll('button.flag').forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.f;
+      const f = Object.assign({}, flagsOf(id) || {});
+      f[k] = !f[k];
+      if (k === 'notTrue' && f.notTrue) f.unsure = false;
+      if (k === 'unsure' && f.unsure) f.notTrue = false;
+      const c = (marks[id] && marks[id].c) || '';
+      setMark(id, anyFlag(f) ? markFromFlags(id, f, c) : null);
+      if (anyFlag(f)) el.querySelector('.cmt input').focus({ preventScroll: true });
+    }));
+    let t = null;
+    el.querySelector('.cmt input').addEventListener('input', (ev) => {
+      clearTimeout(t);
+      const v = ev.target.value;
+      t = setTimeout(() => {
+        const m = marks[id];
+        if (!m) return;                                                // a note needs a mark to hang on
+        setMark(id, Object.assign({}, m, { c: v }));
+      }, 700);
+    });
+  }
+
+  function render(state) {
+    items = state.items;
+    marks = {};
+    for (const [id, x] of Object.entries(state.marks)) marks[id] = x.m;
+
+    const clueItems = items.filter((i) => isClue(i.id)), qItems = items.filter((i) => !isClue(i.id));
+    const minutes = Math.round((clueItems.length * 5 + qItems.length * 15) / 60 / 5) * 5;
+
+    app.innerHTML = `
+      <h1>Clue Check</h1>
+      <p class="muted">Hi ${esc(state.name)}, thank you for helping. This is your part of the check (part ${esc(state.slot)} of 4).</p>
+
+      <section class="box">
+        <h2>Why we are doing this</h2>
+        <p>A long-standing question about the brain is how awareness arrives. When the evidence for something builds up slowly, does
+        awareness of it grow gradually, or does it switch on all at once at some threshold? Neuroscientists disagree, and one way to test
+        it is to feed a brain more and more evidence and watch whether its response rises smoothly or jumps.</p>
+        <p>We are running the same test on an AI language model. The model reads a list of eight short lines. Some of them describe a
+        hidden thing, say an owl, and the rest describe other, unrelated things. We change how many lines point to the hidden thing (none,
+        one, two, and so on up to all eight) and record what happens inside the model. Does its internal state change smoothly as the
+        evidence grows, or does it flip at some point?</p>
+        <p>That test is only fair if every description is fair: true, not simply naming the answer, and not giving it away on its own.
+        The descriptions were drafted in advance by an AI model. Before any of them is shown to the model under test, two readers check
+        every one: a person (you, for this part) and a second AI model, from a different company than the one that drafted them. Where
+        either reader finds a problem, the description is fixed or dropped.</p>
+        <p class="muted" style="margin:0">Pieter van Rooyen, Stellenbosch University</p>
+      </section>
+
+      <details class="box" open>
+        <summary>What to check (1 minute to read)</summary>
+        <p>Each card shows one thing and twelve descriptions of it. For each description, check that:</p>
+        <ul class="tight">
+          <li><strong>It is true</strong> of the thing, as an ordinary person understands the word.</li>
+          <li><strong>It does not name it.</strong> No form of the word (plural, translation, pun, part of a longer word) and no
+          category word such as “animal”, “country” or “instrument”.</li>
+          <li><strong>It does not give it away on its own.</strong> Someone reading that one line alone should not be able to say
+          what it is; it should take two or three lines together. Up to two lines per thing are allowed to give it away, and they are
+          labelled.</li>
+        </ul>
+        <p>If all three hold, click <strong>✓ Fine</strong>. If not, click what’s wrong (more than one is allowed) and, if
+        you like, type a note. Lines marked <em>Writer unsure</em> contain a fact the writer was not sure of, so please check those
+        carefully. When the rest of a card is fine, one click on <strong>The other … are fine</strong> marks them all.</p>
+        <table class="ex"><tbody>
+          <tr><td colspan="2" class="muted">Example, for <strong>owl</strong> (not in the list):</td></tr>
+          <tr><td>hunts small creatures in the dark</td><td>Fine</td></tr>
+          <tr><td>lives its whole life underwater</td><td>Not true</td></tr>
+          <tr><td>is a night animal with soft feathers</td><td>Names it (“animal”)</td></tr>
+          <tr><td>is the bird that hoots at night</td><td>Gives it away</td></tr>
+        </tbody></table>
+        <p style="margin-top:12px">At the end are ${qItems.length} yes/no questions, each with its correct answers for two things.
+        Click <strong>✓ Both right, no doubt</strong> if both answers are correct and nobody would dispute them.</p>
+        <ul class="tight muted" style="margin-bottom:0">
+          <li>About ${minutes} minutes in all. Every click saves at once; stop whenever you like and reopen this link to carry on, on any device.</li>
+          <li>Please work on your own and don’t compare answers with other readers.</li>
+          <li>The paper will name the readers. If you would rather not be named, tell Pieter.</li>
+        </ul>
+      </details>
+
+      <div id="cards"></div>
+      <section class="box" id="done"><h2>All done, thank you!</h2><p style="margin:0">Everything is saved. You can still change any answer
+      on this page until Pieter closes the check.</p></section>`;
+
+    const host = document.getElementById('cards');
+    const groups = [];
+    for (const it of clueItems) {
+      const g = groups[groups.length - 1];
+      if (g && g.key === it.key) g.items.push(it); else groups.push({ key: it.key, word: it.concept, fam: it.family, items: [it] });
+    }
+    if (qItems.length) groups.push({ key: 'questions', word: 'Yes/no questions', fam: '', items: qItems });
+
+    for (const g of groups) {
+      const card = document.createElement('section');
+      card.className = 'card';
+      card.innerHTML = '<header><span class="word">' + esc(g.word) + '</span>'
+        + (g.fam ? '<span class="fam">' + esc(g.fam) + '</span>' : '') + '<span class="left"></span></header>';
+      const rec = { el: card, ids: g.items.map((i) => i.id) };
+      for (const it of g.items) {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.dataset.id = it.id;
+        row.innerHTML = rowHTML(it);
+        card.appendChild(row);
+        wireRow(row, it, rec);
+      }
+      const foot = document.createElement('footer');
+      foot.innerHTML = '<button class="rest"></button>';
+      card.appendChild(foot);
+      rec.leftEl = card.querySelector('.left');
+      rec.restBtn = foot.querySelector('button.rest');
+      rec.restBtn.addEventListener('click', () => {
+        const todo = rec.ids.filter((id) => !marks[id]);
+        if (!todo.length) return;
+        const batch = todo.map((id) => ({ id, m: fineMark(id, '') }));
+        for (const x of batch) marks[x.id] = x.m;
+        enqueue('/api/bulk', { t: token, marks: batch, via: 'card' });
+        for (const id of todo) paintRow(id);
+      });
+      cards.push(rec);
+      host.appendChild(card);
+    }
+    for (const id of rows.keys()) paintRow(id);
+    for (const c of cards) paintCard(c);
+    paintProgress();
+    document.getElementById('bar').hidden = false;
+  }
+
+  document.getElementById('next').addEventListener('click', () => {
+    const it = items.find((i) => !marks[i.id]);
+    if (!it) return;
+    const r = rows.get(it.id);
+    document.querySelectorAll('.row.hl').forEach((e) => e.classList.remove('hl'));
+    r.el.classList.add('hl');
+    r.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  async function start() {
+    if (!token) { app.innerHTML = '<h1>Clue Check</h1><p class="err">This page needs your personal link. Please use the link Pieter sent you.</p>'; return; }
+    try {
+      const r = await fetch('/api/state?t=' + encodeURIComponent(token), { cache: 'no-store' });
+      if (r.status === 404) { app.innerHTML = '<h1>Clue Check</h1><p class="err">This link is not valid. Please check it against the one Pieter sent you.</p>'; return; }
+      if (!r.ok) throw new Error(String(r.status));
+      render(await r.json());
+    } catch (e) {
+      app.innerHTML = '<h1>Clue Check</h1><p class="err">Could not load your part (' + esc(e.message) + '). Please check your connection and reload.</p>';
+    }
+  }
+  start();
+})();
+</script>
+</body>
+</html>
