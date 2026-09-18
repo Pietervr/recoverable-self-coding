@@ -6,8 +6,8 @@
     python3 push.py --links                  # print the four links, push nothing
 
 Tokens are created once per slot and kept in readers.local.json (gitignored): the token in the link
-IS the reader's identity, so never commit it. Re-pushing replaces items and reader rows but never
-touches saved marks. Item text comes from the committed audit sheets through assign.py's ids.
+IS the part's identity (several people may share it; each visitor gets a private session in the
+page), so never commit it. Re-pushing replaces items and part rows but never touches saved answers. Item text comes from the committed audit sheets through assign.py's ids.
 """
 import argparse
 import csv
@@ -74,7 +74,12 @@ def main():
     plan = json.loads((HERE / "assignment.json").read_text())
     rows = item_rows()
     known = {i for i, _, _ in rows}
-    stmts = [(HERE / "schema.sql").read_text(), "DELETE FROM items;"]
+    # The first design kept one set of marks per link; the links were then forwarded to several people, so
+    # those marks are copied (once, idempotently) into answers under one 'legacy' session per link.
+    stmts = [(HERE / "schema.sql").read_text(),
+             "INSERT OR IGNORE INTO answers (token, sid, id, m, via, ts) "
+             "SELECT token, 'legacy-shared-link', id, m, via, ts FROM marks;",
+             "DELETE FROM items;"]
     for i, kind, body in rows:
         stmts.append(f"INSERT INTO items (id, kind, body) VALUES ({q(i)}, {q(kind)}, {q(json.dumps(body, ensure_ascii=False))});")
     for s in assign.SLOTS:

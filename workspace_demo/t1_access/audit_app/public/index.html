@@ -29,6 +29,7 @@ body { margin: 0; background: var(--bg); color: var(--ink);
 main { max-width: 760px; margin: 0 auto; padding: 0 16px 96px; }
 h1 { font-size: 1.6rem; margin: 28px 0 4px; }
 h2 { font-size: 1.15rem; margin: 0 0 8px; }
+.box h3 { font-size: 1rem; margin: 14px 0 4px; }
 p { margin: 0 0 12px; }
 .muted { color: var(--muted); }
 .box { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin: 16px 0; }
@@ -106,6 +107,21 @@ button[disabled] { opacity: .45; cursor: default; }
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+  // Each visitor gets a private, anonymous session, so people who share a link keep their own answers.
+  // It comes from the personal link (?s=), else from this browser, else it is made now; it is kept in both.
+  const SID_RE = /^[A-Za-z0-9_-]{16,40}$/;
+  const sidKey = 'audit_sid_' + token;
+  let sid = new URLSearchParams(location.search).get('s') || '';
+  if (!SID_RE.test(sid)) { try { sid = localStorage.getItem(sidKey) || ''; } catch (e) { sid = ''; } }
+  if (!SID_RE.test(sid)) {
+    const a = new Uint8Array(18);
+    crypto.getRandomValues(a);
+    sid = btoa(String.fromCharCode(...a)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  try { localStorage.setItem(sidKey, sid); } catch (e) { /* private window: the personal link still works */ }
+  const personal = location.origin + '/r/' + token + '?s=' + sid;
+  if (token) history.replaceState(null, '', '/r/' + token + '?s=' + sid);
+
   let items = [], marks = {};
   const rows = new Map();          // id -> {el, item, card}
   const cards = [];                // {el, ids, leftEl, restBtn}
@@ -168,7 +184,7 @@ button[disabled] { opacity: .45; cursor: default; }
 
   function setMark(id, m, via = 'row') {
     if (m) marks[id] = m; else delete marks[id];
-    enqueue('/api/mark', { t: token, id, m: m || {}, via });
+    enqueue('/api/mark', { t: token, s: sid, id, m: m || {}, via });
     paintRow(id);
   }
 
@@ -271,22 +287,43 @@ button[disabled] { opacity: .45; cursor: default; }
 
     app.innerHTML = `
       <h1>Clue Check</h1>
-      <p class="muted">Hi ${esc(state.name)}, thank you for helping. This is your part of the check (part ${esc(state.slot)} of 4).</p>
+      <p class="muted">Thank you for helping. This is part ${esc(state.slot)} of 4 of the check. Do as much as you have time for:
+      every line you check counts, and the cards at the top are the ones the fewest people have checked so far.</p>
+      <div class="box" style="padding:12px 16px">
+        <p style="margin:0 0 6px">Your answers save as you click. To carry on later, just reopen this page in the same browser.
+        On another device, use your personal link:</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><input id="plink" type="text" readonly style="flex:1 1 240px;min-width:0;font:inherit;
+        padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)"
+        value="${esc(personal)}" aria-label="Your personal link"><button id="pcopy">Copy</button></div>
+      </div>
 
       <section class="box">
-        <h2>Why we are doing this</h2>
-        <p>A long-standing question about the brain is how awareness arrives. When the evidence for something builds up slowly, does
-        awareness of it grow gradually, or does it switch on all at once at some threshold? Neuroscientists disagree, and one way to test
-        it is to feed a brain more and more evidence and watch whether its response rises smoothly or jumps.</p>
-        <p>We are running the same test on an AI language model. The model reads a list of eight short lines. Some of them describe a
-        hidden thing, say an owl, and the rest describe other, unrelated things. We change how many lines point to the hidden thing (none,
-        one, two, and so on up to all eight) and record what happens inside the model. Does its internal state change smoothly as the
-        evidence grows, or does it flip at some point?</p>
-        <p>That test is only fair if every description is fair: true, not simply naming the answer, and not giving it away on its own.
-        The descriptions were drafted in advance by an AI model. Before any of them is shown to the model under test, two readers check
-        every one: a person (you, for this part) and a second AI model, from a different company than the one that drafted them. Where
-        either reader finds a problem, the description is fixed or dropped.</p>
-        <p class="muted" style="margin:0">Pieter van Rooyen, Stellenbosch University</p>
+        <h2>What this is for</h2>
+        <p>This check is part of a research project on a question that is now asked of artificial intelligence as well as of the
+        brain: when something reaches awareness, how does it get there?</p>
+        <h3>The question</h3>
+        <p>Think of glimpsing a faint shape in the dark. At first you see nothing; a moment later, you see it. What happens in between
+        is still argued over. On one view, awareness fades in gradually as the evidence grows. On another, the brain gathers evidence
+        quietly and then, at a threshold, commits to it and makes it available all at once, to memory, to speech and to decisions.
+        Experiments that show people faint pictures or words at the edge of visibility have been read both ways, partly because the
+        answer depends on exactly how the data are analysed.</p>
+        <h3>Why an AI model</h3>
+        <p>AI language models, the systems behind chatbots, now do many things that once seemed to need a mind, and it is reasonable to
+        ask whether anything like that threshold happens inside them. We do not assume the answer either way, and this project does not
+        claim that any AI is aware. It asks a narrower question that can be measured: as the evidence for something builds up, does the
+        model's internal state change smoothly, or does it switch between two distinct states? The model is analysed with the same method
+        we apply to published brain recordings, so that the two can be compared on equal terms.</p>
+        <h3>How the test works</h3>
+        <p>The model reads a list of eight short lines. Some describe a hidden thing, say an owl, and the rest describe other, unrelated
+        things. We vary how many lines point to the hidden thing, from none to all eight, and record what happens inside the model at each
+        step: a gradual shift, or a jump.</p>
+        <h3>Why we need you</h3>
+        <p>The test is only as good as its descriptions. A line that is false, that quietly contains the answer, or that gives it away on
+        its own would make the result meaningless. The descriptions were drafted by an AI model, and an AI should not be the only judge of
+        its own work. So every line is checked by people, like you, and separately by a second AI model from a different company. Where
+        anyone finds a problem, the line is fixed or dropped before the experiment runs.</p>
+        <p class="muted" style="margin:0">Your answers are anonymous and are used only to fix or drop descriptions; the study and these
+        checks will be described in a scientific paper. Thank you. Pieter van Rooyen, Stellenbosch University</p>
       </section>
 
       <details class="box" open>
@@ -313,9 +350,9 @@ button[disabled] { opacity: .45; cursor: default; }
         <p style="margin-top:12px">At the end are ${qItems.length} yes/no questions, each with its correct answers for two things.
         Click <strong>✓ Both right, no doubt</strong> if both answers are correct and nobody would dispute them.</p>
         <ul class="tight muted" style="margin-bottom:0">
-          <li>About ${minutes} minutes in all. Every click saves at once; stop whenever you like and reopen this link to carry on, on any device.</li>
+          <li>About ${minutes} minutes for the whole part, but any amount helps. Every click saves at once; stop whenever you like.</li>
           <li>Please work on your own and don’t compare answers with other readers.</li>
-          <li>The paper will name the readers. If you would rather not be named, tell Pieter.</li>
+          <li>No name or email is recorded: your answers are anonymous.</li>
         </ul>
       </details>
 
@@ -355,7 +392,7 @@ button[disabled] { opacity: .45; cursor: default; }
         if (!todo.length) return;
         const batch = todo.map((id) => ({ id, m: fineMark(id, '') }));
         for (const x of batch) marks[x.id] = x.m;
-        enqueue('/api/bulk', { t: token, marks: batch, via: 'card' });
+        enqueue('/api/bulk', { t: token, s: sid, marks: batch, via: 'card' });
         for (const id of todo) paintRow(id);
       });
       cards.push(rec);
@@ -365,6 +402,12 @@ button[disabled] { opacity: .45; cursor: default; }
     for (const c of cards) paintCard(c);
     paintProgress();
     document.getElementById('bar').hidden = false;
+    document.getElementById('pcopy').addEventListener('click', async (ev) => {
+      const inp = document.getElementById('plink');
+      try { await navigator.clipboard.writeText(inp.value); } catch (e) { inp.select(); document.execCommand('copy'); }
+      ev.target.textContent = 'Copied';
+      setTimeout(() => { ev.target.textContent = 'Copy'; }, 1500);
+    });
   }
 
   document.getElementById('next').addEventListener('click', () => {
@@ -379,7 +422,7 @@ button[disabled] { opacity: .45; cursor: default; }
   async function start() {
     if (!token) { app.innerHTML = '<h1>Clue Check</h1><p class="err">This page needs your personal link. Please use the link Pieter sent you.</p>'; return; }
     try {
-      const r = await fetch('/api/state?t=' + encodeURIComponent(token), { cache: 'no-store' });
+      const r = await fetch('/api/state?t=' + encodeURIComponent(token) + '&s=' + encodeURIComponent(sid), { cache: 'no-store' });
       if (r.status === 404) { app.innerHTML = '<h1>Clue Check</h1><p class="err">This link is not valid. Please check it against the one Pieter sent you.</p>'; return; }
       if (!r.ok) throw new Error(String(r.status));
       render(await r.json());

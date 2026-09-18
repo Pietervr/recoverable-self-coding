@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS readers (
   updated  TEXT
 );
 
+-- marks: the first design's table, one set of marks per LINK. Kept read-only as history: the links were
+-- forwarded to several people (owner, 18 Sept), so one link is not one reader. Its rows were copied into
+-- answers under sid 'legacy' on the day.
 CREATE TABLE IF NOT EXISTS marks (
   token TEXT NOT NULL,
   id    TEXT NOT NULL,
@@ -28,3 +31,17 @@ CREATE TABLE IF NOT EXISTS marks (
   ts    TEXT NOT NULL,
   PRIMARY KEY (token, id)
 );
+
+-- answers: one row per (link, visitor session, item). A session id is made in the visitor's browser on
+-- first load and kept there (and in their personal resume link), so everyone who opens a shared link
+-- keeps their own answers. No name or other personal detail is stored.
+CREATE TABLE IF NOT EXISTS answers (
+  token TEXT NOT NULL,
+  sid   TEXT NOT NULL,
+  id    TEXT NOT NULL,
+  m     TEXT NOT NULL,
+  via   TEXT NOT NULL DEFAULT 'row',
+  ts    TEXT NOT NULL,
+  PRIMARY KEY (token, sid, id)
+);
+CREATE INDEX IF NOT EXISTS answers_by_item ON answers (token, id);

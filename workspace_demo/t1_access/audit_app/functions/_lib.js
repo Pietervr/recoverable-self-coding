@@ -7,9 +7,13 @@ export const J = (o, status = 200) =>
   });
 
 export const TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/;
+export const SID_RE = /^[A-Za-z0-9_-]{16,40}$/;
 export const ID_RE = /^[cp]-[a-z0-9][a-z0-9-]{0,80}$/;
 
-// The reader behind a token, with their item ids as a Set; null if unknown or disabled.
+// Sent to a page loaded before the per-visitor sessions existed: its saves must not land in a shared bucket.
+export const RELOAD = 'this page was updated: please reload it';
+
+// The part behind a link token, with its item ids as a Set; null if unknown or disabled.
 export async function reader(env, token) {
   if (!TOKEN_RE.test(token)) return null;
   const r = await env.DB.prepare(
@@ -38,3 +42,6 @@ export function checkMark(id, m) {
   if (!YN.has(m.ok) || !YN.has(m.un)) return { error: 'incomplete question mark' };
   return { m: { ok: m.ok, un: m.un, c } };
 }
+
+export const UPSERT = `INSERT INTO answers (token, sid, id, m, via, ts) VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+  ON CONFLICT (token, sid, id) DO UPDATE SET m = ?4, via = ?5, ts = ?6`;

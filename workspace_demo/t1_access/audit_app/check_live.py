@@ -25,13 +25,12 @@ def get(path):
 
 
 for slot, rd in sorted(READERS.items()):
-    s, body = get(f"/api/state?t={rd['token']}")
+    s, body = get(f"/api/state?t={rd['token']}&s=live-check-read-only")   # a GET: nothing is written
     st = json.loads(body)
-    ok = s == 200 and [i["id"] for i in st["items"]] == PLAN[slot]["items"]
-    print(f"{slot}: {s} {st.get('name')!r}, {len(st.get('items', []))} items in dealt order: {ok}, "
-          f"{len(st.get('marks', {}))} marks saved")
+    ok = s == 200 and sorted(i["id"] for i in st["items"]) == sorted(PLAN[slot]["items"])
+    print(f"{slot}: {s}, {len(st.get('items', []))} items, exactly the part's: {ok}")
     assert ok
-s, _ = get("/api/state?t=not-a-real-token-at-all")
+s, _ = get("/api/state?t=not-a-real-token-at-all&s=live-check-read-only")
 print("bad token:", s)
 assert s == 404
 s, page = get("/r/" + READERS["A"]["token"])
