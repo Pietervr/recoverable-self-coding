@@ -24,6 +24,42 @@ The sheets' `drafter_note` (58 clauses, each quoting its own clause) is shown on
 "Please check this fact carefully", without the drafter's reasoning: the full note read like another reader's
 answer (owner, 18 Sept) and could lean the reader one way. The notes stay in the sheets for the resolution.
 
+## Who has read what — 21 September 2026
+
+Read live with `python3 pull.py --remote`; these are that command's numbers, not a stored count.
+
+| Part | Sessions | Answers | Flagged | Read of 409 | Last answer (UTC) |
+|---|---|---|---|---|---|
+| A | 2 | 35 | 4 | 35 | 2026-09-18 22:49 |
+| B | 0 | 0 | 0 | 0 | — |
+| C | 0 | 0 | 0 | 0 | — |
+| D | 2 | 180 | 8 | 180 | 2026-09-20 18:55 |
+
+215 of the 1,636 slots, 13 percent. Four visitor sessions: two on part A (13 answers on the legacy
+shared link and 22 more, both on 18 September) and two on part D (120 answers in 18 minutes on
+20 September, then 60 in 10.5 minutes that evening) — 9 to 10 seconds a clue on part D against 8 to
+15 on part A. Nothing has arrived since 20 September 18:55 UTC.
+
+**All 215 answers are `via = row`.** Not one came from a card's "the other … are fine" button, so
+every item was answered on its own item, and the pace is a pace of reading rather than of clearing.
+The flags are substantive too: part D raised 7 clauses as not true, 1 as naming the concept and 3
+comments; part A raised 3 as giving it away, 1 as naming the concept and 3 comments. Part A's flags
+are about disclosure and part D's about fact, which is a difference in what the two parts' clues
+are, not a difference in care. These answers count.
+
+**The AI reader is complete** (Codex, `ai_reader/`, 20 September): all 1,536 clauses and 100 property
+items, 211 clauses and 8 property items flagged.
+
+**An external human reader has all four links.** On 19 September the owner sent the submission PDF
+and links A, B, C and D to one reader outside the project, a working scientist in another field, and
+asked for comments. Nothing has come back. So "parts B and C have no human readers" describes the
+answers in the database, not the state of the audit: four parts are out with a reader who has not
+started, or has not finished, or will not.
+
+**Sessions are anonymous by design**, so no answer can be attributed to anyone. A link is a part, not
+a person: the two part D sessions are after the 19 September mail and the two part A sessions are
+before it, and that is the whole of what the data supports.
+
 ## Pieces
 
 | File | What it does |
