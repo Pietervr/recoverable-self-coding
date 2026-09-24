@@ -1,0 +1,420 @@
+{
+ "reader": {
+  "runner": "ollama",
+  "model": "llama3.1:8b",
+  "digest": "46e0c10c039e",
+  "developer": "Meta",
+  "quantization": "Q4_K_M"
+ },
+ "prompt_template": "Here is a single clue about one everyday thing.\n\nClue: {clause}\n\nWhat is being described? Answer with the single most likely word, and nothing else.",
+ "results": {
+  "materials/leather": {
+   "named": 3,
+   "verdict": "RE-SELECT or PASS OVER",
+   "rows": [
+    {
+     "i": 0,
+     "clause": "is among the smoothest surfaces a hand can run across",
+     "answer": "Glass",
+     "named": false,
+     "feature": "smoothest",
+     "sharing": 1
+    },
+    {
+     "i": 1,
+     "clause": "stays tough enough to survive many years of daily use",
+     "answer": "Rubber",
+     "named": false,
+     "feature": "tough",
+     "sharing": 2
+    },
+    {
+     "i": 2,
+     "clause": "is cut and stitched into boots for walking long distances",
+     "answer": "Lacing",
+     "named": false,
+     "feature": "boot",
+     "sharing": 3
+    },
+    {
+     "i": 3,
+     "clause": "is commonly formed into a belt worn around the waist",
+     "answer": "Leather",
+     "named": true,
+     "feature": "belt",
+     "sharing": 7
+    },
+    {
+     "i": 4,
+     "clause": "is moulded into a purse carried over one shoulder",
+     "answer": "Shoulder bag",
+     "named": false,
+     "feature": "purse",
+     "sharing": 4
+    },
+    {
+     "i": 5,
+     "clause": "covers the furniture in many formal sitting rooms",
+     "answer": "Carpets",
+     "named": false,
+     "feature": "furniture",
+     "sharing": 21
+    },
+    {
+     "i": 6,
+     "clause": "is stretched over a seat to make it last longer",
+     "answer": "Cushion",
+     "named": false,
+     "feature": "seat",
+     "sharing": 27
+    },
+    {
+     "i": 7,
+     "clause": "feels smooth and cool to the fingers when first touched",
+     "answer": "Glass",
+     "named": false,
+     "feature": "smooth",
+     "sharing": 41
+    },
+    {
+     "i": 8,
+     "clause": "is expensive compared with the substitutes that imitate it",
+     "answer": "Caviar",
+     "named": false,
+     "feature": "expensive",
+     "sharing": 49
+    },
+    {
+     "i": 9,
+     "clause": "is most often a deep brown shade rather than a bright one",
+     "answer": "Coffee",
+     "named": false,
+     "feature": "brown",
+     "sharing": 91
+    },
+    {
+     "i": 10,
+     "clause": "grows softer and more supple the longer it is handled",
+     "answer": "Leather",
+     "named": true,
+     "feature": "soft",
+     "sharing": 107
+    },
+    {
+     "i": 11,
+     "clause": "is the cured hide of a large grazing beast",
+     "answer": "Leather",
+     "named": true,
+     "feature": "hide",
+     "sharing": 25
+    }
+   ]
+  },
+  "materials/shampoo": {
+   "named": 4,
+   "verdict": "RE-SELECT or PASS OVER",
+   "rows": [
+    {
+     "i": 0,
+     "clause": "is often paired with a conditioner used straight afterwards",
+     "answer": "Shampoo",
+     "named": true,
+     "feature": "conditioner",
+     "sharing": 1
+    },
+    {
+     "i": 1,
+     "clause": "works as a cleanser that lifts away oil and grease",
+     "answer": "Soap",
+     "named": false,
+     "feature": "cleanser",
+     "sharing": 6
+    },
+    {
+     "i": 2,
+     "clause": "is meant to condition as much as it is meant to wash",
+     "answer": "Shampoo",
+     "named": true,
+     "feature": "condition",
+     "sharing": 6
+    },
+    {
+     "i": 3,
+     "clause": "turns soapy and foams up when rubbed between the palms",
+     "answer": "Soap",
+     "named": false,
+     "feature": "soapy",
+     "sharing": 6
+    },
+    {
+     "i": 4,
+     "clause": "is bought for cleanliness rather than for any other reason",
+     "answer": "Soap",
+     "named": false,
+     "feature": "cleanliness",
+     "sharing": 9
+    },
+    {
+     "i": 5,
+     "clause": "cleanses without stripping away everything it touches",
+     "answer": "Soap",
+     "named": false,
+     "feature": "cleanse",
+     "sharing": 14
+    },
+    {
+     "i": 6,
+     "clause": "behaves much like soap but is milder in ordinary use",
+     "answer": "Shampoo",
+     "named": true,
+     "feature": "soap",
+     "sharing": 15
+    },
+    {
+     "i": 7,
+     "clause": "is often strongly smelly in a deliberately pleasant way",
+     "answer": "Perfume",
+     "named": false,
+     "feature": "smelly",
+     "sharing": 35
+    },
+    {
+     "i": 8,
+     "clause": "is used to clean what grows on top of the head",
+     "answer": "Hairbrush",
+     "named": false,
+     "feature": "clean",
+     "sharing": 76
+    },
+    {
+     "i": 9,
+     "clause": "leaves a lingering smell that other people notice",
+     "answer": "Cigarette",
+     "named": false,
+     "feature": "smell",
+     "sharing": 80
+    },
+    {
+     "i": 10,
+     "clause": "is generally regarded as good to keep close at hand",
+     "answer": "Phone",
+     "named": false,
+     "feature": "good",
+     "sharing": 196
+    },
+    {
+     "i": 11,
+     "clause": "is reached for in the shower most mornings",
+     "answer": "Shampoo",
+     "named": true,
+     "feature": "shower",
+     "sharing": 6
+    }
+   ]
+  },
+  "materials/card": {
+   "named": 6,
+   "verdict": "RE-SELECT or PASS OVER",
+   "rows": [
+    {
+     "i": 0,
+     "clause": "is chosen to greet someone on a particular day",
+     "answer": "Card",
+     "named": true,
+     "feature": "greet",
+     "sharing": 4
+    },
+    {
+     "i": 1,
+     "clause": "can carry a credit line that is accepted at a till",
+     "answer": "Card",
+     "named": true,
+     "feature": "credit",
+     "sharing": 6
+    },
+    {
+     "i": 2,
+     "clause": "is sent to mark a birthday once every year",
+     "answer": "Card",
+     "named": true,
+     "feature": "birthday",
+     "sharing": 7
+    },
+    {
+     "i": 3,
+     "clause": "comes in a deck of fifty two, shuffled before dealing",
+     "answer": "Card",
+     "named": true,
+     "feature": "deck",
+     "sharing": 7
+    },
+    {
+     "i": 4,
+     "clause": "is picked out for an occasion that matters to someone",
+     "answer": "Gift",
+     "named": false,
+     "feature": "occasion",
+     "sharing": 8
+    },
+    {
+     "i": 5,
+     "clause": "is sent through the post with a stamp in the corner",
+     "answer": "Letter",
+     "named": false,
+     "feature": "send",
+     "sharing": 8
+    },
+    {
+     "i": 6,
+     "clause": "is kept for years because the words inside are special",
+     "answer": "Journal",
+     "named": false,
+     "feature": "special",
+     "sharing": 12
+    },
+    {
+     "i": 7,
+     "clause": "is dealt out at the start of a game of chance",
+     "answer": "Cards",
+     "named": true,
+     "feature": "game",
+     "sharing": 50
+    },
+    {
+     "i": 8,
+     "clause": "is a stiff piece of stock folded once down the middle",
+     "answer": "Napkin",
+     "named": false,
+     "feature": "piece",
+     "sharing": 69
+    },
+    {
+     "i": 9,
+     "clause": "is often a thin plastic rectangle kept in a wallet",
+     "answer": "Credit card",
+     "named": true,
+     "feature": "plastic",
+     "sharing": 74
+    },
+    {
+     "i": 10,
+     "clause": "has a short message written by hand on the inside",
+     "answer": "Notebook",
+     "named": false,
+     "feature": "write",
+     "sharing": 80
+    },
+    {
+     "i": 11,
+     "clause": "is cut from heavy paper and creased down the middle",
+     "answer": "Envelope",
+     "named": false,
+     "feature": "paper",
+     "sharing": 84
+    }
+   ]
+  },
+  "materials/marble": {
+   "named": 0,
+   "verdict": "ACCEPT",
+   "rows": [
+    {
+     "i": 0,
+     "clause": "carries a swirling design trapped inside its body",
+     "answer": "Globe",
+     "named": false,
+     "feature": "design",
+     "sharing": 7
+    },
+    {
+     "i": 1,
+     "clause": "will roll across a flat floor until something stops it",
+     "answer": "Ball",
+     "named": false,
+     "feature": "roll",
+     "sharing": 9
+    },
+    {
+     "i": 2,
+     "clause": "is kept by the handful in a drawstring bag",
+     "answer": "Beans",
+     "named": false,
+     "feature": "bag",
+     "sharing": 14
+    },
+    {
+     "i": 3,
+     "clause": "is something people collect and trade with each other",
+     "answer": "Stamp",
+     "named": false,
+     "feature": "collect",
+     "sharing": 16
+    },
+    {
+     "i": 4,
+     "clause": "is smooth all over with no edge to catch a finger",
+     "answer": "Ball",
+     "named": false,
+     "feature": "smooth",
+     "sharing": 41
+    },
+    {
+     "i": 5,
+     "clause": "is flicked with a thumb in a game played on the ground",
+     "answer": "Coin",
+     "named": false,
+     "feature": "game",
+     "sharing": 50
+    },
+    {
+     "i": 6,
+     "clause": "is colorful in a way that catches the light",
+     "answer": "Glitter",
+     "named": false,
+     "feature": "colorful",
+     "sharing": 70
+    },
+    {
+     "i": 7,
+     "clause": "is played with by kneeling down on a hard surface",
+     "answer": "Hoop",
+     "named": false,
+     "feature": "play",
+     "sharing": 77
+    },
+    {
+     "i": 8,
+     "clause": "is a toy a child keeps in a pocket",
+     "answer": "Pencil",
+     "named": false,
+     "feature": "child",
+     "sharing": 83
+    },
+    {
+     "i": 9,
+     "clause": "is hard enough to chip if dropped on stone",
+     "answer": "Ice",
+     "named": false,
+     "feature": "hard",
+     "sharing": 146
+    },
+    {
+     "i": 10,
+     "clause": "shows more than one color in a single piece",
+     "answer": "Tie",
+     "named": false,
+     "feature": "color",
+     "sharing": 171
+    },
+    {
+     "i": 11,
+     "clause": "is small enough to hold a dozen in one hand",
+     "answer": "Egg",
+     "named": false,
+     "feature": "small",
+     "sharing": 274
+    }
+   ]
+  }
+ }
+}

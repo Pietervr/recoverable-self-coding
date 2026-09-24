@@ -1,0 +1,198 @@
+{
+ "family": "materials",
+ "note": "DEMONSTRATION, not a bank. Two concepts rendered to show what the source licenses.",
+ "clues": {
+  "materials/leather": {
+   "surface_forms": [
+    "leather",
+    "leathers"
+   ],
+   "features": [
+    "smoothest",
+    "tough",
+    "boot",
+    "belt",
+    "purse",
+    "furniture",
+    "seat",
+    "smooth",
+    "expensive",
+    "brown",
+    "soft",
+    "hide"
+   ],
+   "sharing": [
+    1,
+    2,
+    3,
+    7,
+    4,
+    21,
+    27,
+    41,
+    49,
+    91,
+    107,
+    25
+   ],
+   "clauses": [
+    "is among the smoothest surfaces a hand can run across",
+    "stays tough enough to survive many years of daily use",
+    "is cut and stitched into boots for walking long distances",
+    "is commonly formed into a belt worn around the waist",
+    "is moulded into a purse carried over one shoulder",
+    "covers the furniture in many formal sitting rooms",
+    "is stretched over a seat to make it last longer",
+    "feels smooth and cool to the fingers when first touched",
+    "is expensive compared with the substitutes that imitate it",
+    "is most often a deep brown shade rather than a bright one",
+    "grows softer and more supple the longer it is handled",
+    "is the cured hide of a large grazing beast"
+   ]
+  },
+  "materials/shampoo": {
+   "surface_forms": [
+    "shampoo",
+    "shampoos"
+   ],
+   "features": [
+    "conditioner",
+    "cleanser",
+    "condition",
+    "soapy",
+    "cleanliness",
+    "cleanse",
+    "soap",
+    "smelly",
+    "clean",
+    "smell",
+    "good",
+    "shower"
+   ],
+   "sharing": [
+    1,
+    6,
+    6,
+    6,
+    9,
+    14,
+    15,
+    35,
+    76,
+    80,
+    196,
+    6
+   ],
+   "clauses": [
+    "is often paired with a conditioner used straight afterwards",
+    "works as a cleanser that lifts away oil and grease",
+    "is meant to condition as much as it is meant to wash",
+    "turns soapy and foams up when rubbed between the palms",
+    "is bought for cleanliness rather than for any other reason",
+    "cleanses without stripping away everything it touches",
+    "behaves much like soap but is milder in ordinary use",
+    "is often strongly smelly in a deliberately pleasant way",
+    "is used to clean what grows on top of the head",
+    "leaves a lingering smell that other people notice",
+    "is generally regarded as good to keep close at hand",
+    "is reached for in the shower most mornings"
+   ]
+  },
+  "materials/card": {
+   "surface_forms": [
+    "card",
+    "cards"
+   ],
+   "features": [
+    "greet",
+    "credit",
+    "birthday",
+    "deck",
+    "occasion",
+    "send",
+    "special",
+    "game",
+    "piece",
+    "plastic",
+    "write",
+    "paper"
+   ],
+   "sharing": [
+    4,
+    6,
+    7,
+    7,
+    8,
+    8,
+    12,
+    50,
+    69,
+    74,
+    80,
+    84
+   ],
+   "clauses": [
+    "is chosen to greet someone on a particular day",
+    "can carry a credit line that is accepted at a till",
+    "is sent to mark a birthday once every year",
+    "comes in a deck of fifty two, shuffled before dealing",
+    "is picked out for an occasion that matters to someone",
+    "is sent through the post with a stamp in the corner",
+    "is kept for years because the words inside are special",
+    "is dealt out at the start of a game of chance",
+    "is a stiff piece of stock folded once down the middle",
+    "is often a thin plastic rectangle kept in a wallet",
+    "has a short message written by hand on the inside",
+    "is cut from heavy paper and creased down the middle"
+   ]
+  },
+  "materials/marble": {
+   "surface_forms": [
+    "marble",
+    "marbles"
+   ],
+   "features": [
+    "design",
+    "roll",
+    "bag",
+    "collect",
+    "smooth",
+    "game",
+    "colorful",
+    "play",
+    "child",
+    "hard",
+    "color",
+    "small"
+   ],
+   "sharing": [
+    7,
+    9,
+    14,
+    16,
+    41,
+    50,
+    70,
+    77,
+    83,
+    146,
+    171,
+    274
+   ],
+   "clauses": [
+    "carries a swirling design trapped inside its body",
+    "will roll across a flat floor until something stops it",
+    "is kept by the handful in a drawstring bag",
+    "is something people collect and trade with each other",
+    "is smooth all over with no edge to catch a finger",
+    "is flicked with a thumb in a game played on the ground",
+    "is colorful in a way that catches the light",
+    "is played with by kneeling down on a hard surface",
+    "is a toy a child keeps in a pocket",
+    "is hard enough to chip if dropped on stone",
+    "shows more than one color in a single piece",
+    "is small enough to hold a dozen in one hand"
+   ]
+  }
+ }
+}
