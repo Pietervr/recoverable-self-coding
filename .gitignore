@@ -29,3 +29,6 @@ foundational/data/
 workspace_demo/upstream/
 # brain datasets (openly re-pullable from their repositories; e.g. Sergent et al. 2021, OSF aw3t5, CC0)
 workspace_demo/brain_data/
+
+# T1 stimulus rebuild: regenerable WordNet intermediate (family_pool.py rewrites it in seconds)
+workspace_demo/t1_access/stimuli/norms_bank/pool_wordnet.json
