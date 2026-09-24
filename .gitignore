@@ -31,4 +31,5 @@ workspace_demo/upstream/
 workspace_demo/brain_data/
 
 # T1 stimulus rebuild: regenerable WordNet intermediate (family_pool.py rewrites it in seconds)
-workspace_demo/t1_access/stimuli/norms_bank/pool_wordnet.json
+workspace_demo/t1_access/stimuli/norms_bank/pool_wordnet*.json
+workspace_demo/t1_access/stimuli/norms_bank/pool_eligible_min*.json

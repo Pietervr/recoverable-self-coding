@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -23,6 +24,7 @@ HERE = Path(__file__).resolve().parent
 SNAPSHOT = Path.home() / (".cache/huggingface/hub/models--mlx-community--Qwen3.6-27B-4bit/snapshots/"
                           "c000ac2c2057d94be3fa931000c31723aac53282")
 PER_FAMILY = 16
+SUFFIX = "" if os.environ.get("MIN_FEATURES", "12") == "12" else f"_min{os.environ['MIN_FEATURES']}"
 VARIANTS = ("any_sense", "sense1")
 
 
@@ -30,7 +32,7 @@ def main() -> int:
     from transformers import AutoTokenizer
 
     tok = AutoTokenizer.from_pretrained(str(SNAPSHOT))
-    pool = json.loads((HERE / "pool_wordnet.json").read_text())
+    pool = json.loads((HERE / f"pool_wordnet{SUFFIX}.json").read_text())
 
     def ids(text: str) -> list[int]:
         return list(tok.encode(text, add_special_tokens=False))
@@ -60,16 +62,30 @@ def main() -> int:
                         keep.append(word)
                     else:
                         dropped.append({"word": word, "form": form, "tokens": n})
+                # A dominant-sense concept is a SYNSET, not a word: 'ax' and 'axe' are one.
+                # Collapsing happens here, after E1, so a concept survives if ANY of its cues
+                # passes E1 - collapsing first would discard a passing cue behind a failing one.
+                key = by_variant[variant].get("synset_key") or {}
+                if variant == "sense1" and key:
+                    chosen: dict[str, str] = {}
+                    for w in keep:
+                        chosen.setdefault(key[w], w)
+                    concepts = sorted(chosen.values())
+                    merged = {k: v for k, v in chosen.items() if sum(1 for w in keep if key[w] == k) > 1}
+                else:
+                    concepts, merged = keep, {}
                 rows[family][variant] = {
                     "after_E2": by_variant[variant]["after_E2"],
-                    "after_E1": len(keep),
-                    "superordinate_in_pool": [w for w in by_variant[variant].get("superordinate_in_pool", []) if w in keep],
-                    "words": keep,
+                    "after_E1": len(concepts),
+                    "after_E1_words": len(keep),
+                    "superordinate_in_pool": [w for w in by_variant[variant].get("superordinate_in_pool", []) if w in concepts],
+                    "words": concepts,
+                    "merged_synsets": merged,
                     "excluded_E1": [] if variant == "ceiling" else dropped,
                 }
         out["scenarios"][scenario] = rows
 
-    (HERE / "pool_eligible.json").write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
+    (HERE / f"pool_eligible{SUFFIX}.json").write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
 
     print(f"tokenizer snapshot {SNAPSHOT.name}   needs {PER_FAMILY} per family")
     print("ceiling = every single-word WordNet noun in the subtree passing E2+E1, normed or not\n")
@@ -87,7 +103,7 @@ def main() -> int:
                   f"   |  E2 {s['after_E2']:>4} -> E1 {s['after_E1']:>4}"
                   f"   |  ceiling {c['after_E1']:>4}{mark}")
         print()
-    print(f"-> {HERE / 'pool_eligible.json'}")
+    print(f"-> {HERE / f'pool_eligible{SUFFIX}.json'}")
     return 0
 
 

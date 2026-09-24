@@ -11,12 +11,21 @@ string, xl/worksheets/sheet1.xml the cells. 69,284 data rows, 4,436 distinct cue
 published count. 25 of those cues are sense-disambiguated with an underscore (bat_animal,
 bat_baseball); they are not single words and are dropped here, leaving 4,411.
 
-The feature identity used throughout is the raw `feature` string, not `translated`: `translated`
-collapses production variants and leaves only 878 cues with >= 12 features against 2,585 on
-`feature`. Which column defines a feature for the DECISIVENESS statistic is a step-2 question and
-is not settled here.
+FEATURE IDENTITY (R052, 24 Sept, handoff 7d4428c1): the raw `feature` string, LEMMATISED.
+Not `translated`, which collapses on meaning - a judgement we would be importing - and leaves only
+878 cues at >= 12 features against 2,585. Not raw either: inflections as separate strings fragment
+the sharing counts, and because cue validity is approximated by 1 / (cues sharing the feature),
+fragmentation makes every feature look rarer than it is and so systematically OVERSTATES
+decisiveness, biasing selection toward calling ordinary features decisive.
 
-    python3 norms_parse.py            # prints the summary counts, no dependencies
+The lemmatiser is nltk.stem.wordnet.WordNetLemmatizer (nltk 3.10.3, WordNet 3.0), applied as:
+lowercase, strip, lemmatise as noun, and if that is a no-op lemmatise as verb. It collapses
+trunk/trunks without collapsing trunk/tusk. It does not collapse every irregular: 'teeth' and 'men'
+are themselves WordNet noun lemmas, so they stay separate from 'tooth' and 'man'. Handful-sized,
+and in the conservative direction (a little residual fragmentation), so it is left as specified.
+
+    python3 norms_parse.py            # raw counts, no dependencies
+    ../../.venv-build/bin/python norms_parse.py --lemmatise    # the counts step 2 uses
 """
 
 from __future__ import annotations
@@ -26,6 +35,7 @@ import hashlib
 import html
 import os
 import re
+import sys
 import zipfile
 from pathlib import Path
 
@@ -66,11 +76,27 @@ def read_rows(xlsx: Path = DEFAULT_XLSX) -> list[dict[str, str]]:
     return [{names[ref]: v for ref, v in cells(r).items() if ref in names} for r in raw_rows[1:]]
 
 
+def lemmatiser():
+    """The feature-identity map. Imported lazily: the raw parse has no dependencies."""
+    from nltk.stem import WordNetLemmatizer
+
+    wnl = WordNetLemmatizer()
+
+    def lemmatise(word: str) -> str:
+        w = word.strip().lower()
+        as_noun = wnl.lemmatize(w, "n")
+        return as_noun if as_noun != w else wnl.lemmatize(w, "v")
+
+    return lemmatise
+
+
 class Norms:
     """Cue -> features, feature -> cues, and the per-cue part of speech."""
 
-    def __init__(self, xlsx: Path = DEFAULT_XLSX):
+    def __init__(self, xlsx: Path = DEFAULT_XLSX, lemmatise: bool = True):
         self.xlsx = xlsx
+        self.lemmatised = lemmatise
+        norm = lemmatiser() if lemmatise else (lambda w: w)
         self.sha256 = hashlib.sha256(xlsx.read_bytes()).hexdigest()
         rows = read_rows(xlsx)
         self.n_rows = len(rows)
@@ -82,10 +108,11 @@ class Norms:
             feat = r.get("feature", "").strip()
             if not cue or not feat:
                 continue
-            features[cue].add(feat)
+            features[cue].add(norm(feat))
             pos[cue][r.get("pos_cue", "")] += 1
             try:
-                freq[(cue, feat)] = max(freq.get((cue, feat), 0), int(float(r.get("frequency_feature") or 0)))
+                key = (cue, norm(feat))
+                freq[key] = freq.get(key, 0) + int(float(r.get("frequency_feature") or 0))
             except ValueError:
                 pass
         self.all_cues = dict(features)
@@ -105,10 +132,13 @@ class Norms:
 
 
 def main() -> None:
-    n = Norms()
+    lemmatise = "--lemmatise" in sys.argv
+    n = Norms(lemmatise=lemmatise)
     ok = "matches" if n.sha256 == EXPECTED_SHA256 else "DOES NOT MATCH"
     print(f"{n.xlsx}\n  sha256 {n.sha256} ({ok} the recorded file)")
+    print(f"  feature identity: {'LEMMATISED' if lemmatise else 'raw'}")
     print(f"  {n.n_rows} data rows, {len(n.all_cues)} distinct cues, {len(n.features)} single-word cues")
+    print(f"  distinct feature strings: {len(n.sharing)}")
     print(f"  single-word cues with >= 12 features: {len(n.with_features(12))}")
     print(f"  single-word cues with >= 16 features: {len(n.with_features(16))}")
     print(f"  of the single-word cues, {len(n.nouns())} carry pos_cue = noun")

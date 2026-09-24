@@ -1,19 +1,29 @@
-# Step 1 feasibility: can the T1 clue bank be rebuilt on published feature norms?
+# Rebuilding the T1 clue bank on published feature norms: what the norms can supply
 
-R084, 23 September 2026, answering the handoff
-`prompts/2026-09-24_t1_bank_rebuild_on_published_norms.txt` (R052, handoff d310454e).
-Step 1 only. Nothing is selected, rendered or frozen here, and no existing bank file is touched.
+R084, 23 September 2026. Measurement for R052, who owns `PREREGISTRATION_T1_model.md` §3 and
+amends it from these numbers. Answers handoffs d310454e and 7d4428c1. Step 1 only: nothing is
+selected, rendered or frozen, and no existing bank file is touched.
 
-## The answer in three lines
+## Where this stands
 
-1. **Five of the seven retained families clear 16 comfortably** from Buchanan alone: animals, body
-   parts, foods, vehicles, materials.
-2. **Clothing is the replacement for countries**, decisively over furniture: 34 eligible against 17
-   on the permissive reading, 23 against 9 on the conservative one.
-3. **Tools (13) and instruments (11) cannot reach 16 — and no other human norm set can fix them.**
-   The binding constraint is E1, not the norms: across the whole of WordNet only 11 single-token
-   nouns have a tool as their dominant sense, and only 11 have a musical instrument. This is a
-   design question for R052, not a sourcing one.
+**Settled by R052 on 24 September, and applied throughout below.**
+
+- The eight-family structure stays. §3's background list is "eight background clauses, exactly one
+  from a BACKGROUND concept of each family", so the packet's eight slots *are* the eight families;
+  six families cannot fill a packet without redesigning the nesting and every §10 power number.
+  16 per family is exactly 4 BACKGROUND + 2 CAL + 2 PILOT + 8 CONF, so a smaller per-family count
+  comes straight out of the 64 CONF concepts.
+- **Membership is dominant-sense.** A cue belongs to a family when its *first* WordNet noun synset
+  lies in that family's subtree. One citable sentence, and it only tightens the all-senses rule.
+- **Countries is replaced by clothing.**
+- **Tools and instruments are replaced.** Buildings is adopted as one replacement.
+- **E1 and E2 are unchanged.** E1 is a decode rule — the single-token answer form is what makes the
+  answer-position logit readable — so it was not relaxed.
+- **The feature identity is the raw `feature` string, lemmatised.**
+
+**Open, and the reason this document is still being read:** at the decided threshold of ≥ 12
+features, **buildings yields 15, one short of 16**, and neither candidate measured for the eighth
+slot clears it as specified. See "The eighth family" below.
 
 ## Source, and that it is the right file
 
@@ -26,162 +36,148 @@ Step 1 only. Nothing is selected, rendered or frozen here, and no existing bank 
 
 Parsed with `zipfile` + `re` (an `.xlsx` is a zip of XML), no pandas and no openpyxl: 69,284 data
 rows, 4,436 distinct cues, of which 4,411 are single words — the other 25 are sense-disambiguated
-(`bat_animal`, `bat_baseball`). 2,585 single-word cues carry ≥ 12 features and 1,405 carry ≥ 16.
-**Those four counts reproduce R052's measurements exactly**, which is the check that this is the
-same file read the same way.
+(`bat_animal`, `bat_baseball`). On the raw feature column, 2,585 single-word cues carry ≥ 12
+features and 1,405 carry ≥ 16. **Those four counts reproduce R052's measurements exactly**, which
+is the check that this is the same file read the same way.
 
-The feature identity used is the raw `feature` column, not `translated`: `translated` collapses
-production variants and leaves only 878 cues at ≥ 12 features against 2,585 on `feature`, and
-R052's measured numbers came from `feature`. Which column defines a feature for the **decisiveness**
-statistic is a separate question and is left to step 2 — it changes the sharing counts (on `feature`,
-elephant's rarest are `trunks` shared by 1 cue and `tusk` by 2, against the brief's `trunk` by 3).
+## Feature identity: lemmatised
+
+The `feature` column, lowercased, stripped, lemmatised as a noun, and if that is a no-op lemmatised
+as a verb. Lemmatiser: `nltk.stem.wordnet.WordNetLemmatizer`, nltk 3.10.3, WordNet 3.0.
+
+Not the raw string: inflections as separate strings fragment the sharing counts, and because cue
+validity is approximated by 1 / (cues sharing the feature), fragmentation makes every feature look
+rarer than it is and so systematically **overstates** decisiveness. Not `translated` either: it
+collapses on meaning, a judgement we would be importing, and leaves only 878 cues at ≥ 12 features.
+
+**This is what reconciles the elephant example.** On raw strings elephant's rarest features are
+`trunks` shared by 1 cue and `tusk` by 2. Lemmatised, they are `trunk` shared by 3 and `tusk` by 3
+— exactly the figures in R052's original brief. The discrepancy was the fragmentation, and
+lemmatising removes it.
+
+It does not collapse every irregular: `teeth` and `men` are themselves WordNet noun lemmas, so they
+stay separate from `tooth` and `man`. That is a handful of cases and it errs toward residual
+fragmentation, so it is left as specified.
+
+**Cost of lemmatising, measured:** distinct feature strings fall from 11,424 to 7,534, and cues at
+≥ 12 features from 2,585 to 1,474. This is a large contraction and it is why the threshold now
+binds (see the sweep below).
 
 ## The rules as implemented
 
-Applied in order, each counted so the attrition is visible:
+Applied in order, each counted so the attrition is visible (at ≥ 12 lemmatised features):
 
 - **F1** `pos_cue = noun` in the norms *and* the cue has a WordNet noun sense → 3,072 cues.
-  `pos_cue` is unanimous per cue, so this is the norms' own judgement, not ours: `rake` is normed
-  65/65 rows as a verb, so its features describe the action and it is correctly out of tools.
-- **F2** the cue is its own WordNet base form → 2,957. Drops `arms`, `antlers`, `beans`: inflections
-  of cues already in the pool, not separate concepts.
-- **F3** ≥ 12 distinct features → 1,920.
-- **F4** a noun sense inside the family's WordNet hyponym + instance-hyponym closure.
-- **E2** no noun sense of the cue lies in **another** family's subtree. The existing rule — "a word
-  naming a member of another bank family" — computed from the taxonomy instead of the hand-written
-  `COLLISIONS` list, and recomputed per scenario because the family set changes. E2 always tests
-  *all* senses: the prompt scan cannot tell senses apart.
+  `pos_cue` is unanimous per cue, so this is the norms' own judgement: `rake` is normed 65/65 rows
+  as a verb, so its features describe the action and it is correctly out of tools.
+- **F2** the cue is its own WordNet base form → 2,957. Drops `arms`, `beans`: inflections of cues
+  already in the pool.
+- **F3** ≥ 12 distinct lemmatised features → 1,131.
+- **F4** the cue's **first** noun synset lies in the family's hyponym + instance-hyponym closure.
+- **E2** no noun sense of the cue lies in **another** family's subtree — the existing rule computed
+  from the taxonomy instead of the hand-written `COLLISIONS` list, recomputed per scenario. E2
+  tests *all* senses, because the prompt scan cannot tell senses apart.
 - **E1** the answer-context form `' x'` is a single token under the frozen Qwen3.6 tokenizer
-  (snapshot `c000ac2c…`), capitalised for countries. Unchanged from `build_concepts.py`.
+  (snapshot `c000ac2c…`). Unchanged.
+
+A dominant-sense concept is a **synset**, not a word: `ax`/`axe` and `bike`/`bicycle` are one
+concept. Cues sharing a dominant synset are collapsed **after** E1, so a concept is lost only when
+every one of its cues fails E1.
 
 One documented root synset set per family, chosen to match the family's ordinary meaning and not to
 maximise a count: `animal.n.01`, `body_part.n.01`, `food.n.01`+`food.n.02`, `vehicle.n.01`,
-`tool.n.01`, `musical_instrument.n.01`, `material.n.01`, `country.n.02`, `clothing.n.01`,
-`furniture.n.01`.
+`material.n.01`, `clothing.n.01`, `building.n.01`, and for the candidates
+`geological_formation.n.01`+`body_of_water.n.01` and `worker.n.01`(+`professional.n.01`).
 
-**Two membership variants are reported**, because F4 on all senses admits members no reader would
-accept — `bark` is a sailing ship, `secretary` a writing desk, `kettle` a kettledrum:
+The all-senses reading (`any_sense`) is still computed and reported in `pool_eligible.json`, but it
+is not the rule: it admits `bark` the sailing ship, `secretary` the writing desk and `kettle` the
+kettledrum.
 
-- **any-sense** — F4 exactly as written. This is the number the handoff asked for.
-- **dominant-sense** — the cue's *first* WordNet noun synset must be in the subtree (WordNet orders
-  senses by frequency), and cues in one family sharing that synset collapse to one concept
-  (`ax`/`axe`, `bike`/`bicycle` are one concept, not two).
+## Eligible per family, dominant-sense, and the threshold sweep
 
-Both are mechanical and preregisterable. Dominant-sense is the conservative floor. Neither relaxes
-an existing rule; the second only tightens F4.
+Concepts, not words. Scenario: the six families that stand on their own, plus buildings, plus
+occupations. **≥ 12 is the decided threshold**; the other two columns are the sensitivity R052
+asked to see before §3 fixes it.
 
-## Eligible per family — the measured result
+| family | ≥ 12 | ≥ 10 | ≥ 8 |
+|---|---:|---:|---:|
+| foods | 40 | 52 | 63 |
+| animals | 36 | 41 | 45 |
+| body parts | 25 | 28 | 33 |
+| vehicles | 19 | 23 | 24 |
+| clothing | 19 | 20 | 23 |
+| occupations | 18 | 25 | 30 |
+| **materials** | **16** | 26 | 36 |
+| **buildings** | **15** | **15** | 18 |
+| *natural features* | *11* | *11* | *17* |
 
-Counts from the *clothing* scenario for the seven retained families; the same families vary by at
-most 3 across scenarios because E2 is recomputed. **Ceiling** is every single-word WordNet noun in
-the subtree that passes E2 and E1 whether or not anyone has normed it — the most any human norm set
-could ever supply — and the last column restricts that to dominant sense.
+Needed: 16. **Materials sits exactly on 16 with no margin; buildings is one short at ≥ 12 and at
+≥ 10, and only clears at ≥ 8.** Every family clears at ≥ 8.
 
-| family | any-sense | dominant-sense | ceiling | ceiling, dominant-sense |
-|---|---:|---:|---:|---:|
-| foods | 108 | 61 | 299 | 175 |
-| materials | 67 | 32 | 306 | 197 |
-| body parts | 68 | 35 | 255 | 129 |
-| animals | 61 | 41 | 217 | 115 |
-| clothing | **34** | **23** | 99 | 59 |
-| vehicles | 32 | 21 | 94 | 53 |
-| tools | **13** | **6** | 37 | **11** |
-| instruments | **11** | **6** | 24 | **11** |
+**Lowering the threshold is not actually available.** Step 2 selects 12 features per concept, one
+per clause, so a concept with 8 normed features cannot supply its 12 clauses. The ≥ 12 threshold is
+not a tuning knob — it is 12 clauses per concept restated. The ≥ 10 and ≥ 8 columns show where the
+headroom would be if the clauses-per-concept count itself changed, which is a §3 decision with its
+own cost, and nothing below ≥ 12 is usable as the design stands.
 
-Measured in their own scenarios: **countries 12 / 9** (ceiling 146), **furniture 17 / 9**
-(ceiling 34, dominant-sense 19).
+## The eighth family
 
-`animals` loses more than half its pool to E1 (125 → 61): most animal names are multi-token.
-It still clears 16 four times over.
+Both candidates were measured in the full eight-family scenario, so the pair interaction with
+buildings through E2 is included.
 
-## Countries: replace it, and the replacement is clothing
+**A. Natural features** (`geological_formation.n.01` + `body_of_water.n.01`) — **11. Does not
+clear.** Members: ascent, bank, cave, cliff, coast, mountain, reef, river, sea, shore, slope.
+It fails on the **feature threshold**, not on taxonomy or tokenizer — its ceiling is 128, so the
+words exist and are single tokens. Of R052's twenty expected words: mountain (21 features), river
+(13), cliff (23) and cave (12) are in; `lake` is lost to E2 (also a pigment, so it sits in
+materials); valley, glacier, creek and ridge are **not normed at all**; and island (11), swamp (10),
+canyon (9), hill (9), volcano (9), ocean (9), bay (8), pond (8), desert (7), beach (7) and stream
+(7) are normed but **below 12 features**. Natural features attract fewer distinct feature responses
+than artifacts do. At ≥ 8 it reaches 17.
 
-Countries yields **12** cues: australia, britain, china, egypt, england, france, japan, land,
-mexico, north, russia, usa. Two of those (`land`, `north`) are not countries at all, and britain /
-england / usa overlap as names of one another's territory, so the usable count is nearer 7.
-Concrete-object feature norms do not contain countries, and the ceiling of 146 (128 dominant-sense)
-shows this is a norms gap rather than a tokenizer one: the words exist, nobody has normed them. **Countries cannot be built from published norms.** Confirmed, as the handoff
-predicted.
+**B. People by occupation** — the root matters, and `worker.n.01` alone is the wrong one.
 
-| candidate | any-sense | dominant-sense | ceiling | ceiling, dominant-sense |
-|---|---:|---:|---:|---:|
-| clothing | **34** | **23** | 99 | 59 |
-| furniture | 17 | 9 | 34 | 19 |
+- `worker.n.01` as specified → **13. Does not clear.** It excludes doctor, nurse and teacher, which
+  sit under `professional.n.01` → `adult.n.01`, a sibling branch, not under worker; and farmer,
+  which sits under `creator.n.02`. This is a root artifact, not a shortage of normed occupations.
+- `worker.n.01` + `professional.n.01` → **18. Clears.** Members: captain, chef, commander, cook,
+  cowboy, doctor, editor, helper, lawyer, maid, nurse, officer, plumber, professor, rebel, teacher,
+  veteran, washer. Ceiling 241.
 
-**Clothing clears 16 more comfortably, on every measure.** Furniture clears the permissive reading
-by one word, fails the conservative reading at 9, and its permissive list leans on oblique senses
-(`press`, `secretary`, `lounge`, `box`). Clothing's dominant-sense 23 are ordinary garments:
-attire, blouse, bra, clothes, coat, dress, gown, hat, hose, laundry, lingerie, mask, mitten, pants,
-robe, scarf, shirt, shorts, sock, sweater, tie, underwear, vest.
+R052's flagged concern about `person.n.01` ancestry dragging in body-part collisions did not
+materialise: E2 costs occupations only `sailor` (also a collar) and `worker` (also an insect caste).
+The pair interaction is small but not nil — adopting occupations costs **materials** one concept,
+`clay`, which is also a person in WordNet, and that is what leaves materials sitting exactly on 16.
+No other family moves by more than 1 against the natural-features scenario.
 
-The decision is R052's; this reports the measurement and does not make it.
-
-## Tools and instruments cannot reach 16, and this is not a sourcing problem
-
-Both fall short under every reading. What is lost, and to which rule:
-
-- **tools** — 34 in subtree → 22 after E2 → **13** after E1. E2 removes `hammer` (also the malleus,
-  a body part), `drill` (also a baboon), `screwdriver` (also a cocktail), `plane`, `comb`, `blade`.
-  E1 removes `chisel`, `pliers`, `hatchet`, `scalpel`, `spatula`, `gavel`, `pitchfork` (2 tokens),
-  `corkscrew`, `sledgehammer` (3). Survivors: ax, axe, bit, file, fork, hoe, knife, razor, saw,
-  scissors, shovel, square, wrench — and `ax`/`axe` are one concept, so 12.
-- **instruments** — 23 → 19 after E2 → **11** after E1. E2 removes `drum` (a fish), `horn`, `wood`.
-  E1 removes `banjo`, `bugle`, `chime`, `clarinet`, `saxophone`, `trombone`, `tuba`, `woodwind`.
-  Survivors include `instrument` (the category name), `kettle` (kettledrum) and `wind` (wind
-  instrument); the clean set is accordion, flute, guitar, piano, trumpet, viola, violin, whistle.
-
-Mixing in McRae (541 concepts) or CSLB (638) cannot close this. **The ceiling over the entire
-WordNet subtree, after E2 and E1, is 11 for tools and 11 for instruments on the dominant-sense
-rule** — the words a norm set would have to contain do not exist as single tokens. For tools the
-whole list is ax, axe, hoe, knife, mower, razor, scissors, scraper, shovel, smoother, tamp; for
-instruments accordion, bombard, flute, guitar, piano, piccolo, strad, trumpet, vibes, viol, violin.
-Buchanan already norms most of the usable ones.
-
-E1 is what binds. It is not a stimulus rule but a decode rule — the single-token answer form is what
-makes the answer-position logit readable — so relaxing it is a protocol change with a cost, and it
-is R052's to weigh, not ours. The handoff says not to relax a rule, and none has been.
-
-## If tools and instruments are replaced, here is what clears 16
-
-Every candidate measured against the five families that stand on their own plus clothing, one at a
-time (the pair interaction through E2 was ≤ 3 words in the measured scenarios):
-
-| candidate | any-sense | dominant-sense | ceiling | verdict |
-|---|---:|---:|---:|---|
-| buildings `building.n.01` | 22 | **16** | 68 | **clears 16 on both readings** |
-| containers `container.n.01` | 30 | 15 | 98 | permissive only — and it cuts **vehicles to 12**, because car, truck and tank are containers in WordNet |
-| furniture | 18 | 9 | 35 | permissive only, by two |
-| weapons `weapon.n.01` | 13 | 9 | 35 | no |
-| sports equipment | 9 | 0 | 24 | no |
-| utensils `utensil.n.01` | 6 | 5 | 16 | no |
-| toys `toy.n.01` | 3 | 1 | 6 | no |
-| appliances `appliance.n.01` | 1 | 1 | 5 | no |
-| trees `tree.n.01` | 0 | 0 | 18 | no — every normed tree cue also sits in foods or materials |
-
-Buildings is the only measured alternative that clears 16 on both readings: barn, cabin, cafe,
-castle, cathedral, chapel, church, convent, cottage, garage, grill, hospital, house, inn, lodge,
-monastery, palace, restaurant, school, shed, building, court.
+E1 removes beautician, cowgirl, electrician, mailman and stewardess at 2 tokens.
 
 ## What R052 has to decide
 
-1. Confirm **clothing** replaces countries (or keep countries as a declared self-authored minority).
-2. Choose the membership rule to preregister: **any-sense** or **dominant-sense**. Every family
-   clears 16 on either except tools and instruments; dominant-sense costs nothing that matters and
-   removes the `bark`-is-a-ship class of member.
-3. Decide **tools and instruments**, where the options are: replace them (buildings is measured and
-   clears; a second replacement needs one more measured candidate), drop to 6 families of 16, keep
-   8 families at a smaller per-family count, or change E1 — which is a decode-protocol change.
-4. Fix the feature identity for the decisiveness threshold (`feature` vs `normalized_feature`),
-   since it moves the sharing counts.
-
-Then §3 is amended from these numbers and step 2 (selection) can run.
+1. **Buildings is 15, not the 16 measured before.** The lemmatised identity cost it one concept —
+   17 words survive E2; `castle` and `palace` are the same synset (`palace.n.01`) and so one
+   concept, giving 16; `skyscraper` then fails E1 at 2 tokens, giving 15. Separately, cabin, church,
+   court and school fail the dominant-sense rule — church sense 1 is the body of Christians, school
+   sense 1 the educational institution, court sense 1 the judicial assembly, cabin sense 1 a room on
+   a ship — and monastery has only 8 features. The threshold cannot rescue it: buildings is 15 at ≥ 10 too,
+   and ≥ 8 is not usable while each concept needs 12 clauses. So the options are: accept 15 in that
+   family and carry the §3 arithmetic change, replace buildings with another family, or reduce
+   clauses per concept — which would free the threshold but is a protocol change.
+2. **The eighth family.** Neither candidate clears as specified. Occupations with
+   `worker.n.01` + `professional.n.01` clears at 18 and is the same family concept R052 named,
+   with the root that actually contains occupations. R052 said to report and stop rather than hunt
+   a third candidate, so that is what this does.
+3. **Materials has zero margin at 16.** Any later tightening removes a concept from a family that
+   has none to give, and it is the family most exposed to E2 — it already loses alligator, beaver,
+   cherry, fur, leopard, lime, mink, raccoon, salt and sponge to animals, foods or clothing.
+4. **Nothing is frozen** until §3 is amended. Step 2 runs on the amendment.
 
 ## Licence
 
-Unchanged from the handoff, and it gates publication rather than this build. The norms are held
-outside the repo, are not redistributed, and nothing derived from them is published beyond our own
-prose and a per-clause citation table. `pool_eligible.json` contains cue *words* and counts, no
-feature strings. R052 is confirming reuse terms with the authors or the library.
+Unchanged, and it gates publication rather than this build. The norms are held outside the repo,
+are not redistributed, and nothing derived from them is published beyond our own prose and a
+per-clause citation table. `pool_eligible.json` contains cue *words* and counts, no feature
+strings. R052 is confirming reuse terms with the authors or the library.
 
 NOVA (arXiv 2505.10718) was not used: LLM-augmented norms would reintroduce the circularity.
 
@@ -189,11 +185,14 @@ NOVA (arXiv 2505.10718) was not used: LLM-augmented norms would reintroduce the 
 
 ```sh
 cd ~/Recoverable-Self-Coding/workspace_demo
-t1_access/.venv-build/bin/python t1_access/stimuli/norms_bank/norms_parse.py   # source counts
-t1_access/.venv-build/bin/python t1_access/stimuli/norms_bank/family_pool.py   # WordNet + E2
-upstream/jlens-qwen36/.venv/bin/python t1_access/stimuli/norms_bank/pool_e1.py # E1, the table
+t1_access/.venv-build/bin/python t1_access/stimuli/norms_bank/norms_parse.py --lemmatise
+t1_access/.venv-build/bin/python t1_access/stimuli/norms_bank/family_pool.py
+upstream/jlens-qwen36/.venv/bin/python t1_access/stimuli/norms_bank/pool_e1.py
+MIN_FEATURES=8 t1_access/.venv-build/bin/python t1_access/stimuli/norms_bank/family_pool.py   # the sweep
+MIN_FEATURES=8 upstream/jlens-qwen36/.venv/bin/python t1_access/stimuli/norms_bank/pool_e1.py
 ```
 
 `.venv-build` is a separate venv holding nltk 3.10.3 and WordNet 3.0. Neither nltk nor WordNet went
-into `t1_access/.venv`, which stays version-pinned for parity. `pool_wordnet.json` is a regenerable
-intermediate and is gitignored; `pool_eligible.json` is the committed measurement record.
+into `t1_access/.venv`, which stays version-pinned for parity. `pool_wordnet*.json` and the
+`*_min8` / `*_min10` sweep outputs are regenerable and gitignored; `pool_eligible.json` is the
+committed measurement record at the decided threshold.
