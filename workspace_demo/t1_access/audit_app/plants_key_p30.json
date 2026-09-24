@@ -1,0 +1,1893 @@
+{
+ "seed": 20260924,
+ "built_utc": "2026-09-24T03:00:58Z",
+ "prevalence_target": 0.3,
+ "prevalence_actual": 0.3,
+ "n_items": 200,
+ "n_plants": 60,
+ "n_clean": 140,
+ "sheet": "plants_audit_p30.csv",
+ "warning": "HOLD BACK. A reader that sees this file cannot measure anything.",
+ "key": {
+  "x-far-000": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "tools/axe",
+   "attached_to": "body parts/finger"
+  },
+  "x-far-001": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "foods/grape",
+   "attached_to": "materials/wood"
+  },
+  "x-far-002": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "vehicles/rocket",
+   "attached_to": "countries/Norway"
+  },
+  "x-far-003": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "tools/sponge",
+   "attached_to": "countries/Poland"
+  },
+  "x-far-004": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "body parts/skull",
+   "attached_to": "countries/Iceland"
+  },
+  "x-far-005": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "foods/sushi",
+   "attached_to": "body parts/elbow"
+  },
+  "x-far-006": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "countries/Canada",
+   "attached_to": "materials/concrete"
+  },
+  "x-far-007": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "materials/bronze",
+   "attached_to": "foods/apple"
+  },
+  "x-far-008": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "countries/Denmark",
+   "attached_to": "materials/marble"
+  },
+  "x-far-009": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "body parts/lung",
+   "attached_to": "tools/vise"
+  },
+  "x-far-010": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "animals/snake",
+   "attached_to": "vehicles/boat"
+  },
+  "x-far-011": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "countries/Austria",
+   "attached_to": "body parts/neck"
+  },
+  "x-far-012": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "tools/screw",
+   "attached_to": "materials/wood"
+  },
+  "x-far-013": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "tools/whisk",
+   "attached_to": "foods/apple"
+  },
+  "x-far-014": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "vehicles/scooter",
+   "attached_to": "countries/Greece"
+  },
+  "x-far-015": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "foods/butter",
+   "attached_to": "tools/clamp"
+  },
+  "x-far-016": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "instruments/accordion",
+   "attached_to": "animals/snake"
+  },
+  "x-far-017": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "animals/deer",
+   "attached_to": "body parts/finger"
+  },
+  "x-far-018": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "countries/Nepal",
+   "attached_to": "tools/sponge"
+  },
+  "x-far-019": {
+   "type": "FALSE_FAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "vehicles/truck",
+   "attached_to": "tools/hoe"
+  },
+  "x-near-000": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "foods/banana",
+   "attached_to": "foods/soup"
+  },
+  "x-near-001": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "instruments/triangle",
+   "attached_to": "instruments/drum"
+  },
+  "x-near-002": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "instruments/triangle",
+   "attached_to": "instruments/recorder"
+  },
+  "x-near-003": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "tools/axe",
+   "attached_to": "tools/scissors"
+  },
+  "x-near-004": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "materials/granite",
+   "attached_to": "materials/leather"
+  },
+  "x-near-005": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "tools/bolt",
+   "attached_to": "tools/saw"
+  },
+  "x-near-006": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "body parts/chin",
+   "attached_to": "body parts/lip"
+  },
+  "x-near-007": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "animals/cat",
+   "attached_to": "animals/wolf"
+  },
+  "x-near-008": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "vehicles/submarine",
+   "attached_to": "vehicles/motorcycle"
+  },
+  "x-near-009": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "body parts/hip",
+   "attached_to": "body parts/elbow"
+  },
+  "x-near-010": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "countries/Greece",
+   "attached_to": "countries/Spain"
+  },
+  "x-near-011": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "vehicles/cart",
+   "attached_to": "vehicles/train"
+  },
+  "x-near-012": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "vehicles/motorcycle",
+   "attached_to": "vehicles/scooter"
+  },
+  "x-near-013": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "body parts/lip",
+   "attached_to": "body parts/skull"
+  },
+  "x-near-014": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "body parts/skull",
+   "attached_to": "body parts/ankle"
+  },
+  "x-near-015": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "foods/lemon",
+   "attached_to": "foods/butter"
+  },
+  "x-near-016": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "foods/steak",
+   "attached_to": "foods/mango"
+  },
+  "x-near-017": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "animals/lion",
+   "attached_to": "animals/rabbit"
+  },
+  "x-near-018": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "body parts/knee",
+   "attached_to": "body parts/liver"
+  },
+  "x-near-019": {
+   "type": "FALSE_NEAR",
+   "expect": {
+    "true": "n"
+   },
+   "source_concept": "countries/Nepal",
+   "attached_to": "countries/Iceland"
+  },
+  "x-dec-000": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "animals/frog",
+   "attached_to": "animals/frog"
+  },
+  "x-dec-001": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "body parts/thumb",
+   "attached_to": "body parts/thumb"
+  },
+  "x-dec-002": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "tools/hoe",
+   "attached_to": "tools/hoe"
+  },
+  "x-dec-003": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "body parts/elbow",
+   "attached_to": "body parts/elbow"
+  },
+  "x-dec-004": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "body parts/toe",
+   "attached_to": "body parts/toe"
+  },
+  "x-dec-005": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "body parts/toe",
+   "attached_to": "body parts/toe"
+  },
+  "x-dec-006": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "vehicles/jet",
+   "attached_to": "vehicles/jet"
+  },
+  "x-dec-007": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "countries/Poland",
+   "attached_to": "countries/Poland"
+  },
+  "x-dec-008": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "animals/wolf",
+   "attached_to": "animals/wolf"
+  },
+  "x-dec-009": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "body parts/kidney",
+   "attached_to": "body parts/kidney"
+  },
+  "x-dec-010": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "materials/copper",
+   "attached_to": "materials/copper"
+  },
+  "x-dec-011": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "animals/mouse",
+   "attached_to": "animals/mouse"
+  },
+  "x-dec-012": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "materials/leather",
+   "attached_to": "materials/leather"
+  },
+  "x-dec-013": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "materials/steel",
+   "attached_to": "materials/steel"
+  },
+  "x-dec-014": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "animals/mouse",
+   "attached_to": "animals/mouse"
+  },
+  "x-dec-015": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "instruments/synth",
+   "attached_to": "instruments/synth"
+  },
+  "x-dec-016": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "foods/honey",
+   "attached_to": "foods/honey"
+  },
+  "x-dec-017": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "animals/tiger",
+   "attached_to": "animals/tiger"
+  },
+  "x-dec-018": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "body parts/lip",
+   "attached_to": "body parts/lip"
+  },
+  "x-dec-019": {
+   "type": "DECISIVE",
+   "expect": {
+    "decisive": "y"
+   },
+   "source_concept": "countries/Iraq",
+   "attached_to": "countries/Iraq"
+  },
+  "x-clean-0000": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/banana",
+   "attached_to": "foods/banana"
+  },
+  "x-clean-0001": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/nylon",
+   "attached_to": "materials/nylon"
+  },
+  "x-clean-0002": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/dolphin",
+   "attached_to": "animals/dolphin"
+  },
+  "x-clean-0003": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/pasta",
+   "attached_to": "foods/pasta"
+  },
+  "x-clean-0004": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/elbow",
+   "attached_to": "body parts/elbow"
+  },
+  "x-clean-0005": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/violin",
+   "attached_to": "instruments/violin"
+  },
+  "x-clean-0006": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/lung",
+   "attached_to": "body parts/lung"
+  },
+  "x-clean-0007": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/cat",
+   "attached_to": "animals/cat"
+  },
+  "x-clean-0008": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/boat",
+   "attached_to": "vehicles/boat"
+  },
+  "x-clean-0009": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/rake",
+   "attached_to": "tools/rake"
+  },
+  "x-clean-0010": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/lion",
+   "attached_to": "animals/lion"
+  },
+  "x-clean-0011": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/hoe",
+   "attached_to": "tools/hoe"
+  },
+  "x-clean-0012": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/steak",
+   "attached_to": "foods/steak"
+  },
+  "x-clean-0013": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/egg",
+   "attached_to": "foods/egg"
+  },
+  "x-clean-0014": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/chin",
+   "attached_to": "body parts/chin"
+  },
+  "x-clean-0015": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "countries/Denmark",
+   "attached_to": "countries/Denmark"
+  },
+  "x-clean-0016": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/saw",
+   "attached_to": "tools/saw"
+  },
+  "x-clean-0017": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/liver",
+   "attached_to": "body parts/liver"
+  },
+  "x-clean-0018": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/needle",
+   "attached_to": "tools/needle"
+  },
+  "x-clean-0019": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/copper",
+   "attached_to": "materials/copper"
+  },
+  "x-clean-0020": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "countries/Austria",
+   "attached_to": "countries/Austria"
+  },
+  "x-clean-0021": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "countries/Germany",
+   "attached_to": "countries/Germany"
+  },
+  "x-clean-0022": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/dolphin",
+   "attached_to": "animals/dolphin"
+  },
+  "x-clean-0023": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/cement",
+   "attached_to": "materials/cement"
+  },
+  "x-clean-0024": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "countries/Austria",
+   "attached_to": "countries/Austria"
+  },
+  "x-clean-0025": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/steel",
+   "attached_to": "materials/steel"
+  },
+  "x-clean-0026": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/boat",
+   "attached_to": "vehicles/boat"
+  },
+  "x-clean-0027": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/wolf",
+   "attached_to": "animals/wolf"
+  },
+  "x-clean-0028": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/keyboard",
+   "attached_to": "instruments/keyboard"
+  },
+  "x-clean-0029": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/fox",
+   "attached_to": "animals/fox"
+  },
+  "x-clean-0030": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/lip",
+   "attached_to": "body parts/lip"
+  },
+  "x-clean-0031": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/wood",
+   "attached_to": "materials/wood"
+  },
+  "x-clean-0032": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/cat",
+   "attached_to": "animals/cat"
+  },
+  "x-clean-0033": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "countries/Poland",
+   "attached_to": "countries/Poland"
+  },
+  "x-clean-0034": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "countries/Austria",
+   "attached_to": "countries/Austria"
+  },
+  "x-clean-0035": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/axe",
+   "attached_to": "tools/axe"
+  },
+  "x-clean-0036": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/liver",
+   "attached_to": "body parts/liver"
+  },
+  "x-clean-0037": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/rake",
+   "attached_to": "tools/rake"
+  },
+  "x-clean-0038": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/rocket",
+   "attached_to": "vehicles/rocket"
+  },
+  "x-clean-0039": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/trumpet",
+   "attached_to": "instruments/trumpet"
+  },
+  "x-clean-0040": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/train",
+   "attached_to": "vehicles/train"
+  },
+  "x-clean-0041": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/hip",
+   "attached_to": "body parts/hip"
+  },
+  "x-clean-0042": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/whisk",
+   "attached_to": "tools/whisk"
+  },
+  "x-clean-0043": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/mango",
+   "attached_to": "foods/mango"
+  },
+  "x-clean-0044": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/leather",
+   "attached_to": "materials/leather"
+  },
+  "x-clean-0045": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/egg",
+   "attached_to": "foods/egg"
+  },
+  "x-clean-0046": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/cotton",
+   "attached_to": "materials/cotton"
+  },
+  "x-clean-0047": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/motorcycle",
+   "attached_to": "vehicles/motorcycle"
+  },
+  "x-clean-0048": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/bronze",
+   "attached_to": "materials/bronze"
+  },
+  "x-clean-0049": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/gold",
+   "attached_to": "materials/gold"
+  },
+  "x-clean-0050": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/hoe",
+   "attached_to": "tools/hoe"
+  },
+  "x-clean-0051": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/scissors",
+   "attached_to": "tools/scissors"
+  },
+  "x-clean-0052": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/hoe",
+   "attached_to": "tools/hoe"
+  },
+  "x-clean-0053": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/keyboard",
+   "attached_to": "instruments/keyboard"
+  },
+  "x-clean-0054": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/bee",
+   "attached_to": "animals/bee"
+  },
+  "x-clean-0055": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/train",
+   "attached_to": "vehicles/train"
+  },
+  "x-clean-0056": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/screw",
+   "attached_to": "tools/screw"
+  },
+  "x-clean-0057": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/bee",
+   "attached_to": "animals/bee"
+  },
+  "x-clean-0058": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/gold",
+   "attached_to": "materials/gold"
+  },
+  "x-clean-0059": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/ankle",
+   "attached_to": "body parts/ankle"
+  },
+  "x-clean-0060": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/nylon",
+   "attached_to": "materials/nylon"
+  },
+  "x-clean-0061": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/honey",
+   "attached_to": "foods/honey"
+  },
+  "x-clean-0062": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/knee",
+   "attached_to": "body parts/knee"
+  },
+  "x-clean-0063": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/leather",
+   "attached_to": "materials/leather"
+  },
+  "x-clean-0064": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "countries/Jamaica",
+   "attached_to": "countries/Jamaica"
+  },
+  "x-clean-0065": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/paper",
+   "attached_to": "materials/paper"
+  },
+  "x-clean-0066": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/pasta",
+   "attached_to": "foods/pasta"
+  },
+  "x-clean-0067": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/concrete",
+   "attached_to": "materials/concrete"
+  },
+  "x-clean-0068": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/vise",
+   "attached_to": "tools/vise"
+  },
+  "x-clean-0069": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/kayak",
+   "attached_to": "vehicles/kayak"
+  },
+  "x-clean-0070": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "countries/Brazil",
+   "attached_to": "countries/Brazil"
+  },
+  "x-clean-0071": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/pizza",
+   "attached_to": "foods/pizza"
+  },
+  "x-clean-0072": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/lion",
+   "attached_to": "animals/lion"
+  },
+  "x-clean-0073": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/bolt",
+   "attached_to": "tools/bolt"
+  },
+  "x-clean-0074": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/mop",
+   "attached_to": "tools/mop"
+  },
+  "x-clean-0075": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/dolphin",
+   "attached_to": "animals/dolphin"
+  },
+  "x-clean-0076": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/truck",
+   "attached_to": "vehicles/truck"
+  },
+  "x-clean-0077": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/knee",
+   "attached_to": "body parts/knee"
+  },
+  "x-clean-0078": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/concrete",
+   "attached_to": "materials/concrete"
+  },
+  "x-clean-0079": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/hip",
+   "attached_to": "body parts/hip"
+  },
+  "x-clean-0080": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/plastic",
+   "attached_to": "materials/plastic"
+  },
+  "x-clean-0081": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/keyboard",
+   "attached_to": "instruments/keyboard"
+  },
+  "x-clean-0082": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "countries/Japan",
+   "attached_to": "countries/Japan"
+  },
+  "x-clean-0083": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/neck",
+   "attached_to": "body parts/neck"
+  },
+  "x-clean-0084": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/nylon",
+   "attached_to": "materials/nylon"
+  },
+  "x-clean-0085": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/ankle",
+   "attached_to": "body parts/ankle"
+  },
+  "x-clean-0086": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/sheep",
+   "attached_to": "animals/sheep"
+  },
+  "x-clean-0087": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/truck",
+   "attached_to": "vehicles/truck"
+  },
+  "x-clean-0088": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/ankle",
+   "attached_to": "body parts/ankle"
+  },
+  "x-clean-0089": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/tiger",
+   "attached_to": "animals/tiger"
+  },
+  "x-clean-0090": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/rabbit",
+   "attached_to": "animals/rabbit"
+  },
+  "x-clean-0091": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/scooter",
+   "attached_to": "vehicles/scooter"
+  },
+  "x-clean-0092": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/canoe",
+   "attached_to": "vehicles/canoe"
+  },
+  "x-clean-0093": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/leather",
+   "attached_to": "materials/leather"
+  },
+  "x-clean-0094": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/tiger",
+   "attached_to": "animals/tiger"
+  },
+  "x-clean-0095": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/boat",
+   "attached_to": "vehicles/boat"
+  },
+  "x-clean-0096": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/synth",
+   "attached_to": "instruments/synth"
+  },
+  "x-clean-0097": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "countries/Germany",
+   "attached_to": "countries/Germany"
+  },
+  "x-clean-0098": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/saw",
+   "attached_to": "tools/saw"
+  },
+  "x-clean-0099": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/marble",
+   "attached_to": "materials/marble"
+  },
+  "x-clean-0100": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/hammer",
+   "attached_to": "tools/hammer"
+  },
+  "x-clean-0101": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/trumpet",
+   "attached_to": "instruments/trumpet"
+  },
+  "x-clean-0102": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/trumpet",
+   "attached_to": "instruments/trumpet"
+  },
+  "x-clean-0103": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/gold",
+   "attached_to": "materials/gold"
+  },
+  "x-clean-0104": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/hip",
+   "attached_to": "body parts/hip"
+  },
+  "x-clean-0105": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/recorder",
+   "attached_to": "instruments/recorder"
+  },
+  "x-clean-0106": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/cart",
+   "attached_to": "vehicles/cart"
+  },
+  "x-clean-0107": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/ant",
+   "attached_to": "animals/ant"
+  },
+  "x-clean-0108": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/hoe",
+   "attached_to": "tools/hoe"
+  },
+  "x-clean-0109": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/gold",
+   "attached_to": "materials/gold"
+  },
+  "x-clean-0110": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/stomach",
+   "attached_to": "body parts/stomach"
+  },
+  "x-clean-0111": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/screw",
+   "attached_to": "tools/screw"
+  },
+  "x-clean-0112": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/shovel",
+   "attached_to": "tools/shovel"
+  },
+  "x-clean-0113": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/tabla",
+   "attached_to": "instruments/tabla"
+  },
+  "x-clean-0114": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/lung",
+   "attached_to": "body parts/lung"
+  },
+  "x-clean-0115": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/cement",
+   "attached_to": "materials/cement"
+  },
+  "x-clean-0116": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/motorcycle",
+   "attached_to": "vehicles/motorcycle"
+  },
+  "x-clean-0117": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "countries/Brazil",
+   "attached_to": "countries/Brazil"
+  },
+  "x-clean-0118": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/violin",
+   "attached_to": "instruments/violin"
+  },
+  "x-clean-0119": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/strawberry",
+   "attached_to": "foods/strawberry"
+  },
+  "x-clean-0120": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/grape",
+   "attached_to": "foods/grape"
+  },
+  "x-clean-0121": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/vise",
+   "attached_to": "tools/vise"
+  },
+  "x-clean-0122": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/steel",
+   "attached_to": "materials/steel"
+  },
+  "x-clean-0123": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/saw",
+   "attached_to": "tools/saw"
+  },
+  "x-clean-0124": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/apple",
+   "attached_to": "foods/apple"
+  },
+  "x-clean-0125": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/honey",
+   "attached_to": "foods/honey"
+  },
+  "x-clean-0126": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/shovel",
+   "attached_to": "tools/shovel"
+  },
+  "x-clean-0127": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "foods/mango",
+   "attached_to": "foods/mango"
+  },
+  "x-clean-0128": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/piano",
+   "attached_to": "instruments/piano"
+  },
+  "x-clean-0129": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/whisk",
+   "attached_to": "tools/whisk"
+  },
+  "x-clean-0130": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "tools/shovel",
+   "attached_to": "tools/shovel"
+  },
+  "x-clean-0131": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "body parts/thumb",
+   "attached_to": "body parts/thumb"
+  },
+  "x-clean-0132": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/bell",
+   "attached_to": "instruments/bell"
+  },
+  "x-clean-0133": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/accordion",
+   "attached_to": "instruments/accordion"
+  },
+  "x-clean-0134": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "instruments/bell",
+   "attached_to": "instruments/bell"
+  },
+  "x-clean-0135": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/boat",
+   "attached_to": "vehicles/boat"
+  },
+  "x-clean-0136": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "animals/sheep",
+   "attached_to": "animals/sheep"
+  },
+  "x-clean-0137": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "vehicles/jet",
+   "attached_to": "vehicles/jet"
+  },
+  "x-clean-0138": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/concrete",
+   "attached_to": "materials/concrete"
+  },
+  "x-clean-0139": {
+   "type": "CLEAN",
+   "expect": {
+    "true": "y",
+    "names": "n",
+    "decisive": "n"
+   },
+   "source_concept": "materials/velvet",
+   "attached_to": "materials/velvet"
+  }
+ }
+}
