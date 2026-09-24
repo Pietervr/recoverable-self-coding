@@ -61,94 +61,146 @@ technical failure: it limits the interpretation to the coherence readout.
 
 ## 3. Stimulus population *[frozen at v2: `stimuli/concepts.json`, `stimuli/clues.json`, `stimuli/background.json`, `stimuli/manifest.csv`]*
 
-**Concepts and roles.** at most 127 single-token concepts in 8 families — animals, body parts, buildings, clothing, foods, materials, occupations, vehicles — 16 per family except buildings at 15, and a family that cannot fill its count may run to 13 with the shortfall taken from BACKGROUND (§3.1); the realised count is fixed by the seeded acceptance loop and recorded at the freeze; token id frozen per concept in the answer
+**Concepts and roles.** single-token concepts in **3 families — animals, foods, vehicles** (§3.1). The confirmation set stays at 64 concepts, so §10's power numbers are unchanged; what changes is the stratification, from eight levels to three. Per-family role counts are no longer equal and are allocated by seed in proportion to each family's eligible pool, subject to CONF totalling 64, CAL 16 and PILOT 16; the realised allocation is fixed by the seeded acceptance loop and recorded at the freeze; token id frozen per concept in the answer
 context (case and leading-space variants enumerated at build time). The frozen id is the lower-case leading-space form (' fox'); case, space and plural variants are enumerated per concept in `concepts.json`. No family now takes a capitalised id. Eligibility uses declared string and token rules only (`stimuli/build_concepts.py`: candidate lists written in advance; E1 the answer-context form is one token; E2 a word that also names a member of another bank family is excluded, 12 exclusions), with seed 20260915 and roles by a derived seed; no model output is read. Seeded assignment per family:
-4 → **BACKGROUND** (never a target, foil or competitor), 2 → CAL, 2 → PILOT, 8 → CONF; buildings takes 3 → BACKGROUND, so the bank is 127. The shortfall is taken from BACKGROUND and nowhere else because CAL, PILOT and CONF are fixed by the pairing (8, 8 and 32 pairs), and an odd count in any of them cannot be paired at all; BACKGROUND concepts are never a target, foil or competitor, so three of them instead of four costs a little variety in the filler and nothing in the inference. Roles are
+**BACKGROUND** (never a target, foil or competitor), CAL, PILOT and CONF, with CONF, CAL and PILOT totalling 64, 16 and 16 across the three families and BACKGROUND taking every remaining eligible concept, at least one per family. The totals are what the pairing fixes (32, 8 and 8 pairs, each member the foil of the other), and they are met across families rather than within one: with counts $a \ge b \ge c$ over three families, every concept can be paired outside its own family whenever $a \le b + c$, which the allocation rule must satisfy and record. Roles are
 disjoint by construction: a CAL/PILOT/CONF concept's clues appear only in packets of its own split,
 and only as target, foil or competitor clues; background clauses come only from BACKGROUND concepts.
 So a held-out CONF concept's clues are absent from every training packet of the primary set. No
 concept is selected or dropped on model performance; difficulty is a recorded covariate.
-**Clue bank.** 12 descriptive clauses per concept (all 127), each stating one published normed feature of that concept (§3.1), 8–14 tokens each, written and audited by
+**Clue bank.** 12 descriptive clauses per concept, each stating one published normed feature statement of that concept (§3.1), 8–14 tokens each, written and audited by
 two readers against a checklist (true of the concept; not containing the concept's name, an
 inflection, or an accepted token variant; not naming the family). Clue identities are kept in every
 record; single-clue difficulty is measured on CAL (§5) as a covariate. Clauses are present-tense predicate fragments with the concept as implied subject; the checker (`stimuli/check_clues.py`) is stricter than the checklist (no surface form of any bank concept, no family word of any family, 8–14 tokens as rendered), and the writing guideline keeps a clause informative but rarely decisive alone (no capital, city, language, currency, inventor or synonym). At most 2 of a concept's 12 clauses may identify it alone to a knowledgeable reader; they are recorded under a "decisive" key and audited by the two readers. Named terms tied to a concept (local words, named dishes, peoples, works, myths, makers, cities), idioms and dates that pin a concept are removed. The rule is applied in text only, before any capture. Whether a trial's inserted clues include a decisive clause is recorded as a trial covariate, and no clause is dropped on model output.
 ### 3.1 The bank is built from published feature norms (draft amendment, 24 Sept 2026)
 
-The concepts, the facts their clauses state and the decisiveness of each clause come from a published
-human-produced source rather than from the authors. The reason is plain: these clauses are the base of the
-whole study and the easiest part of it to attack, and a bank whose every fact carries a citation cannot be
-dismissed as ours. It also retires the audit problem instead of managing it — the two questions that an
-audit exists to answer, *is this true of the concept* and *does it give the concept away*, are answered by
-the source.
+The concepts, the facts their clauses state and the decisiveness of each clause come from published human
+production norms rather than from the authors. These clauses are the base of the study and the easiest part
+of it to attack; a bank whose every fact carries a citation cannot be dismissed as ours. It also retires the
+stimulus audit rather than managing it, because the two questions an audit exists to answer — *is this true
+of the concept* and *does it give the concept away* — are answered by the source and by a declared test.
 
-**The source.** Buchanan, Valentine and Maxwell (2019), *English semantic feature production norms: an
-extended database of 4436 concepts*, Behavior Research Methods: 69,284 concept–feature rows over 4,436
-cues, each feature carrying the number of participants who produced it. The file is
-`4 analysis/final words 2017.xlsx` from `github.com/doomlab/Word-Norms-2`, 7,173,768 bytes, SHA-256
-`6e1fc087986d5657684e190c2c04bd5a2c40f1d39b78eebb0ead8bb5e2225337`. **It is held outside this repository
-and is never redistributed.** Each clause cites its source entry — cue, feature, production frequency and
-sharing count — and that citation table, not the database, is what the release publishes. LLM-augmented
-norm sets are excluded by construction: building stimuli from model output to test a model would reintroduce
-the circularity the different-developer rule exists to prevent.
+**The source.** McRae, Cree, Seidenberg and McNorgan (2005), *Semantic feature production norms for a large
+set of living and nonliving things*, Behavior Research Methods 37(4): 541 concepts, 2,432 distinct feature
+statements, every feature produced by at least 5 of 30 participants. File
+`McRae-BRM-InPress/CONCS_FEATS_concstats_brm.txt` from `McRae-BRM-2005.zip`, SHA-256
+`eb36b4c88f85141a226879ef2fdddc8075b9d35705fd27344c3a414eb56430a3`. Pooled with the CSLB concept property
+norms (Devereux, Tyler, Geertzen and Randall 2014, Behavior Research Methods 46(4): 638 concepts), which
+state the same kind of relational label and whose appendix carries a McRae label column, so the two reconcile
+on a separator and a label mapping.
 
-**Family membership is taxonomic, not ours.** A concept belongs to a family when **its first WordNet noun
-synset** (WordNet 3.0, senses ordered by frequency) lies in that family's hyponym and instance-hyponym
-closure, and cues sharing a dominant synset are one concept. The eight roots are `animal.n.01`,
-`body_part.n.01`, `building.n.01`, `clothing.n.01`, `food.n.01` with `food.n.02`, `material.n.01`,
-`worker.n.01` with `professional.n.01`, and `vehicle.n.01`. The dominant-sense rule is used rather than
+What makes McRae the right source is that **it carries the relation**, one relation type per entry:
+*elephant* `has_a_trunk` (production frequency 23, shared by 1 concept, cue validity 1.000), *truck*
+`used_for_cargo`, *cow* `beh_-_produces_milk`. `has_a_trunk` renders to "has a trunk", so what is left to do
+is agreement and padding to the 8–14 token window, not the invention of a predicate. It also ships
+`CV_No_Tax`, **the authors' own cue validity per feature**, so cue validity is cited rather than derived.
+
+Buchanan et al. (2019) was measured first and dropped, and the reason belongs on the record because it is
+not visible from the file's shape: its `feature` column holds single content words segmented out of
+unsegmented free-text participant prose, not feature statements. The cue *garbage* yields *away*, *bad*,
+*dump*, *gross*, *landfill*; the cue *oak* yields the word *as*. The relation is absent, and the relation is
+what a clause asserts — *leather* with *cow* does not say whether leather is made from a cow, comes from one
+or is found near one — so every predicate would have been authored and the citation decorative. LLM-augmented
+norm sets are excluded on the same principle in reverse: building stimuli from model output to test a model
+reintroduces the circularity the different-developer rule exists to prevent.
+
+The norms are **held outside this repository and never redistributed**. Each clause cites its source entry —
+concept, feature statement, production frequency and cue validity — and the release publishes that citation
+table, not the database. McRae's terms are non-commercial with a citation stipulation, which citing per clause
+satisfies and which is why the norms cannot sit inside the CC BY 4.0 data release.
+
+**Three families: animals, foods, vehicles.** Membership is taxonomic, not ours: a concept belongs to a family
+when **its first WordNet noun synset** (WordNet 3.0, senses ordered by frequency) lies in that family's
+hyponym and instance-hyponym closure, over the roots `animal.n.01`, `food.n.01` with `food.n.02`, and
+`vehicle.n.01`; cues sharing a dominant synset are one concept. The dominant-sense rule is used rather than
 any-sense because any-sense admits members no reader would accept — *bark* the sailing ship, *secretary* the
-writing desk, *kettle* the kettledrum — and a bank that needs those explained away defeats the point of
-sourcing it. E1 (the answer-context form is one token) and E2 (no noun sense in another family's subtree)
-are unchanged and are applied after membership, with dominant-sense collapsing applied after E1 so that a
-synset is lost only when every one of its cues fails E1.
+writing desk — and a bank that needs those explained away defeats the point of sourcing it. E1 (the
+answer-context form is one token) and E2 (no noun sense in another family's subtree) are unchanged and applied
+after membership, with dominant-sense collapsing applied after E1 so that a synset is lost only when every one
+of its cues fails E1.
 
-**Feature identity is lemmatised.** Sharing counts are computed on the feature string lowercased, stripped,
-and lemmatised as a noun, else as a verb (`nltk.stem.wordnet.WordNetLemmatizer`, nltk 3.10.3, WordNet 3.0).
-Raw strings fragment the counts — *trunk* and *trunks* count as two — and because cue validity is
-approximated by one over the number of cues sharing a feature, fragmentation makes every feature look rarer
-than it is and therefore **overstates decisiveness**, which would strip the bank of exactly the ordinary
-filler the dose design needs. Lemmatising costs 43 % of the eligible pool (distinct features 11,424 →
-7,534; cues at ≥ 12 features 2,585 → 1,474) and is taken anyway. Buchanan's own `translated` column is not
-used: it collapses on meaning, which is a judgement, and leaves only 878 cues at ≥ 12 features.
+Three is what the source supports and also the floor, since a competitor must come from a third family. McRae
+and CSLB are concrete-**object** norm sets: neither norms people at all, and clothing, body parts, materials
+and buildings fall short. Tools and instruments could not have been built from any source — after E2 and E1
+the ceiling over the entire WordNet subtree, every single-token English noun in the family whether normed or
+not, is 11 for each. E1 is what binds there, not the source, and E1 is a decode rule — the single-token answer
+form is what makes the answer-position logit readable — so it was not relaxed to retain a family name.
 
-**Twelve features, and why the threshold cannot be lowered.** A concept is eligible only with ≥ 12
-lemmatised features, because step 2 selects 12 features per concept, one per clause: the threshold is the
-clause count restated, and a concept with eight features cannot supply twelve clauses. Measured eligible
-counts, dominant-sense, at ≥ 12: foods 40, animals 36, body parts 25, vehicles 19, clothing 19,
-occupations 18, materials 16, buildings 15.
+**Twelve features per concept, and the threshold is that count restated.** A concept is eligible only with
+≥ 12 usable features, because selection takes twelve, one per clause: a concept with eight features cannot
+supply its twelve clauses. Before selection, features are merged **by subsumption** — two features merge when
+one's word set contains the other's, the more specific representing the pair. That is McRae's duplication
+pattern: `has_legs` and `has_4_legs`; `has_wheels`, `has_4_wheels`, `has_>_4_wheels` and `has_18_wheels`;
+`beh_-_eats` and `beh_-_eats_peanuts` — 70 such pairs across 77 eligible concepts. Features are also merged
+when they share a Snowball (Porter2) stem or a WordNet derivational link, and proper nouns and brand names are
+removed. Unmerged duplication would let a concept's twelve clauses be a few ideas restated, which flattens the
+$k$-graded curve of §5 for a reason that has nothing to do with the model. McRae's taxonomic features
+(`an_animal`, `a_mammal`, `a_vehicle`) are family words by construction and rule F removes them, consistently:
+`CV_No_Tax` is blank for exactly those rows.
 
-**What the families are, and what they are not.** Families are a stratification and an E2 exclusion device,
-not a hypothesis, so which eight they are carries no scientific weight and they were chosen by what the
-norms can support. Tools and instruments are **not** in the bank and could not be: after E2 and E1 the
-ceiling over the entire WordNet subtree — every single-token English noun in the family, normed or not — is
-11 for each. E1 is what binds, not the source: it removes *chisel*, *pliers*, *hatchet*, *scalpel*,
-*gavel*, *corkscrew*, *sledgehammer*, *clarinet*, *saxophone*, *trombone*, *tuba*. E1 is a decode rule —
-the single-token answer form is what makes the answer-position logit readable — so it was not relaxed to
-retain a family name. Countries is likewise absent: concrete-object norms do not cover it.
+**Decisiveness is settled by the naming test, not by cue validity.** Cue validity ranks candidates so that a
+concept's twelve clauses span a range of evidence strength; it does not gate them. An absolute floor on cue
+validity was specified and withdrawn, and the reason is worth keeping: a production-norm sharing count records
+how many concepts elicited a feature, not how many things the feature is true of, so it overstates
+decisiveness. The measurement showed it directly — *leather* was named from "soft", its most widely shared
+feature, and not from its two rarest. Decisiveness is therefore taken from a test: each rendered clause is
+presented alone to a reader model, which attempts to name the concept, and a clause is decisive when it is
+named. That measures the property instead of inferring it.
 
-**Decisiveness is settled by the naming test, not by cue validity (revised 24 Sept 2026).** The sharing count of a feature ranks candidates for selection, so that a concept's twelve clauses span a range of evidence strength rather than clustering; it does **not** gate them. An absolute floor $K$ on the sharing count of the ten non-decisive clauses was specified and has been withdrawn, for two reasons. The first is measured: the bank ceiling is $K = 2$, bound by materials at exactly sixteen concepts, and at $K = 2$ a clause need only be shared by two of 4,411 cues — that is the absence of a floor. The trade against the per-family count (16 → 2, 15 → 4, 14 → 5, 13 → 6, 12 → 8, 10 → 10) does not rescue it, and a floor at cue validity 0.05 is unreachable at any per-family count this source supports across eight families. The second reason is the one that matters: **a sharing count is the wrong statistic for the question.** It records how many cues happened to elicit a feature in a production study, not how many things the feature is true of. A feature only two cues produced is not thereby true of only two concepts, so cue validity read this way systematically overstates decisiveness, and $K = 2$ is that mismatch becoming visible rather than a shortage of data. Decisiveness is therefore taken from the naming test already declared above: each rendered clause is presented alone to a reader model, which attempts to name the concept, and a clause is decisive when it is named. That measures the property directly instead of inferring it from co-occurrence.
+**Acceptance is two-sided, and both sides are required.** *The ceiling*, on single clauses: at most two of the
+twelve are named when each is presented alone, and those two are the concept's marked decisive clauses. *The
+floor*, on the packet: the concept **is** named from the eight clauses of a seeded draw, on three independent
+draws, all three. A ceiling alone rewards vagueness — the way to pass a concept becomes to write clauses that
+identify nothing, which hands decisiveness back to whoever writes them. It was observed happening: a concept
+passed with 0 of 12 named because a reader given its clauses answered globe, ball, beans, stamp and coin, so a
+$k = 8$ packet would not have identified it either. The floor sits at eight clauses on seeded draws because
+that is the $k = 8$ endpoint the design presents, so the two sides together state the dose requirement itself
+and make it testable before any capture: near-uninformative one clause at a time, identifying when the
+evidence is in.
 
-**Selection, rendering and acceptance are one seeded loop.** Because a clause's decisiveness is known only once it is rendered and tested, the draw cannot be a set of sixteen chosen in advance. The seed fixes an **order** over each family's eligible concepts. The order is walked; for each concept twelve features are selected to span the sharing-count range, rendered, and put through the naming test. Before selection the candidate pool is reduced: features are merged when they share a Snowball (Porter2) stem or are linked by WordNet `derivationally_related_forms`, the merged group counting as one feature represented by its highest-frequency surface form, and proper nouns and brand names are removed. Lemmatising alone merges inflections but not derivations, which let *conditional*, *condition* and *conditioner*, or *cleanser*, *cleanliness*, *cleanse* and *clean*, stand as four distinct features of one concept — 36 such pairs across sixteen concepts in the materials trial. A concept's twelve clauses would then be a handful of ideas restated, which flattens the $k$-graded curve of §5 for a reason that has nothing to do with the model. The brand-name exclusion is the same finding from the other end: *glue*'s two rarest candidates were *elmer* and *elmers*, one brand name counted twice, and §3 already bars named terms tied to a concept. Acceptance is **two-sided**, and both sides are required. *The ceiling*, on single clauses: at most two of the twelve are named when each is presented alone, and those two are the concept's marked decisive clauses. *The floor*, on the packet: the concept **is** named from the eight clauses of a seeded draw, on three independent draws, all three. A ceiling alone rewards vagueness — the way to pass a concept becomes to write clauses that identify nothing, which hands decisiveness straight back to whoever writes them and is what the naming test was adopted to prevent. R084's materials trial showed it happening: the one accepted concept, *marble*, passed with 0 of 12 named because a reader given its clauses answered globe, ball, beans, stamp, coin and egg, so a packet playing all twelve at $k = 8$ would not point at marble either. The floor is set at eight clauses on seeded draws because that is the $k = 8$ endpoint the design actually presents, so the two sides together state the dose requirement itself and make it testable before any capture: near-uninformative one clause at a time, identifying when the evidence is in. A concept with more than two named is re-selected once from its remaining features where it has any to spare, and only a concept that still fails, or that has exactly twelve features and so no freedom to re-select, is passed over. Every acceptance, re-selection and pass-over is recorded with its reason and its position in the seeded order, so the bank is reproducible from the seed and the source alone. This replaces the filter-before-draw problem rather than patching it: there is no separate eligibility filter for the draw to disagree with.
+**Selection, rendering and acceptance are one seeded loop.** Because a clause's decisiveness is known only
+once it is rendered and tested, the draw cannot be a set fixed in advance. The seed fixes an **order** over
+each family's eligible concepts. The order is walked; for each concept twelve features are selected to span
+the cue-validity range, rendered, and put through both sides of the test. A concept that fails is re-selected
+once from its remaining features where it has any to spare, and only a concept that still fails, or that has
+exactly twelve features and so no freedom to re-select, is passed over. Every acceptance, re-selection and
+pass-over is recorded with its reason and its position in the order, so the bank is reproducible from the seed
+and the source alone, and there is no separate eligibility filter for the draw to disagree with.
 
-**Families may run short, and the shortfall goes to BACKGROUND.** A family that cannot fill sixteen takes 15, 14 or 13, by the same rule buildings already uses: CAL, PILOT and CONF are fixed by the pairing and cannot carry an odd or short count, so the shortfall comes out of BACKGROUND alone. At least one BACKGROUND concept per family is required, because the background list draws exactly one clause from a BACKGROUND concept of each family, which sets the floor at 13. Materials is the family at risk: it stands at exactly sixteen eligible concepts, so a single pass-over there shortens it.
+**Role allocation across three families.** The confirmation set stays at **64 concepts**, so §10's power
+numbers are unchanged; what changes is the stratification, from eight levels to three. CONF, CAL and PILOT
+total 64, 16 and 16 as the pairing fixes them (32, 8 and 8 pairs, each member the foil of the other), and
+those totals are met **across** families rather than within one, so per-family counts are unequal. They are
+allocated by seed in proportion to each family's eligible pool, subject to the pairing being satisfiable:
+with counts $a \ge b \ge c$ over three families every concept can be paired outside its own family whenever
+$a \le b + c$, which the allocation must satisfy and record. BACKGROUND takes every remaining eligible
+concept, at least one per family. The realised allocation is fixed by the seeded loop and recorded at the
+freeze.
 
-**What this does and does not read.** The naming test uses a reader model that is **never the model under test**, and it runs in text before any capture. §3's rule stands untouched: no concept is selected and no clause is dropped on the model under test's output, and no output of the model under test is read at any point in building the bank. The residual risk is stated rather than dismissed — if the reader model and the model under test share a blind spot, stimulus construction is indirectly correlated with the system being measured. Its direction is conservative: the test removes clauses that give the concept away, which makes the task harder and the evidence gradient longer, never shorter. The per-clause record carries the cue, the feature, its production frequency, its sharing count and the naming-test outcome with the reader model and version, so any reader can recompute every decisiveness call in the bank.
+**What this does and does not read.** The naming test uses a reader model that is **never the model under
+test**, and it runs in text before any capture. §3's rule stands untouched: no concept is selected and no
+clause is dropped on the model under test's output, and none of its output is read while building the bank.
+The residual risk is stated rather than dismissed — if the reader model and the model under test share a blind
+spot, stimulus construction is indirectly correlated with the system being measured. Its direction is
+conservative: the test removes clauses that give the concept away, which makes the evidence gradient longer,
+never shorter. The per-clause record carries the concept, the feature statement, its production frequency, its
+cited cue validity and the naming-test outcome with the reader model and version, so any reader can recompute
+every decisiveness call in the bank.
 
-**The source is under question (24 Sept 2026).** Buchanan's `feature` column does not hold feature statements. It holds single content words segmented out of unsegmented free-text participant prose: the cue *garbage* yields *away*, *bad*, *dump*, *gross*, *landfill*, *smell*, *trash*, *want*; the cue *oak* yields the word *as*. **The relation is absent, and the relation is what a clause asserts** — *leather* with *cow* does not say whether leather is made from a cow, comes from one, or is found near one. Under this source every clause's predicate is supplied by the renderer, and a citation reading “the word *away* was produced by 20 participants for the cue *garbage*” does not license “is taken away by a collection truck each week”. That is the authored content this construction exists to remove, re-entering at the last step, and it would make the citation decorative. McRae et al. (2005) carries the relation explicitly, with a relation type per entry (*alligator* beh- *eats people*; *airplane* inbeh- *crashes*), and CSLB publishes normalised feature labels for 638 concepts. Those two are the format this section assumes and Buchanan is not, so they are not coverage fallbacks but candidate primary sources. The eight family sizes must be re-measured on them before any of this is promised, since they hold 541 and 638 concepts against Buchanan's 4,411 — a comparison that is less unequal than it looks, because only 188 Buchanan cues were eligible across the eight families at all. Until that measurement returns, no bank is built and nothing here is frozen.
-
-**Recorded fragility.** Materials stands at exactly 16 with no margin, and adopting occupations is what put
-it there (*clay* is also a person in WordNet, so E2 removes it). Materials is the family most exposed to
-E2, already losing *alligator*, *beaver*, *cherry*, *fur*, *leopard*, *lime*, *mink*, *raccoon*, *salt*,
-*sponge* and *wash* to animals, foods or clothing. Any later tightening of any rule must re-check materials
-first, because it is the family with nothing to give.
+**Recorded fragility, and it is not small.** **The design does not stand on McRae alone.** McRae's own
+eligible counts across the three families are animals 29, foods 14, vehicles 15 — 58 against the 96 that CONF,
+CAL and PILOT require before any background. CSLB's concepts are therefore load-bearing, and CSLB's data is
+available only on request. Until that access is settled the pooled figures (animals 52, foods 40, vehicles 27)
+are an **upper bound**, because CSLB's concepts are counted without the ≥ 12 feature filter, which can only
+reduce them. **Vehicles is the binding family.** If its realised eligible count falls below what the
+allocation needs, three families cannot be filled, and since three is already the floor set by the competitor
+rule, the question returns to whether this bank can be built from published norms at all.
 
 **Audit readers (draft amendment, 24 Sept 2026, second entry).** Every clause, and every §11 property item, is read by AI readers. **There is no human reader pass.** The human read was removed because it was a low-prevalence detection task, the regime in which human search is known to fail: published miss rates in low-prevalence visual search average about 0.30 even for trained screeners, and this bank's defect rate is of order 1–2\%. Our own instrument measured the failure directly — of the 818 items marked read by 24 September, 534 were cleared by the page's card-level control at a median 0.5–1.6 s per clause against the 9.1–10.6 s/item of the sessions that answered line by line. The decisive property is that a skimmed pass and an attentive pass are indistinguishable in the record, so a missed defect that both a human and an AI reader pass is recorded as agreement and reads as confirmation: the audit would look cleanest exactly where it failed. A reader whose sensitivity is unmeasured does not give a weak bound on the defect rate, it gives none. **Readers.** One or more AI readers, each from a developer other than the model that drafted the clauses (Claude, Anthropic); the first is OpenAI's Codex, with model and version recorded. Each reads the whole bank against `CHECKLIST.md` one item at a time in a fresh context, so no vigilance decay accumulates across items and every judgement is an independent pass — the property the human read could not offer. **Recall is measured, not assumed.** A planted-defect set of certain ground truth is generated mechanically by `audit_app/plant.py` (seed declared, output committed before any reader sees it) and embedded at a declared rate, blind to the readers: a true clause of one concept re-attached to a sibling concept where it is false; a clause already marked decisive moved into an unmarked slot. No model authors the defects, so the drafting model's blind spots are not built into its own test. Each reader's catch rate on the plants is its measured recall $r$, reported per reader and per failure mode, and every result is stated with $r$ beside it. **Decisiveness is measured, not judged.** Rather than asking a reader whether a clause would let someone name the concept — a hindsight-biased meta-judgement — each clause is presented alone to a reader model and the model attempts to name the concept; a clause counts decisive when it is named. For an experiment whose subject is a language model this is the more direct operationalisation, and it errs conservative, flagging more clauses than a judgement would and so removing give-aways rather than manufacturing them. The model under test is never used for it, and §3's existing rule stands: no clause is dropped on the model under test's output. **Passing.** An item passes when every AI reader passes it and the readers' measured recall on the planted set is at or above the declared bar. Items any reader flags, and disagreements between readers, are decided by the author, with every reader's answer and the reason recorded beside the resolution; that adjudication set is small and mostly defective, which is the regime in which human judgement is reliable. **The bar.** The recall bar and the residual-defect tolerance are to be fixed by the contamination simulation recorded in the `rsc_t1_simulation_design.md` §12 ledger — the rate of contaminated concepts at which the expanded procedure's false-mixture rate leaves zero — and not guessed. Until that run reports, the interim bar is a measured recall of at least 0.90 on the planted set, declared here as provisional. **The record.** The frozen bank records, per item, every reader's answer, each reader's model and version and measured recall, the plant seed and which items were planted, the naming-test model and its outcome per clause, the author's adjudications with reasons, and the dates. The audited bank, `CHECKLIST.md`, every answer, the plants and all of this code are published with the study, so the audit can be re-run, extended or contradicted by anyone. **Recorded limitation.** With the human read removed, the guard against a blind spot shared across reader models is weaker. It now rests on using developers other than the drafter, on the mechanically generated plants, and on publication. A second reader from a third developer would strengthen it materially and is not yet in place.
 **Pairs.** Within each split, concepts are paired across families by seed (CAL 8 pairs, PILOT 8,
 CONF 32): each member is the **foil** of the other. A **competitor** (C2) is a third pre-assigned
 concept of the same split from a third family.
-**Background list.** Per (concept, carrier, draw): eight background clauses, exactly one from a
-BACKGROUND concept of each family (the target's own family included), drawn by seed; identical for
-the target packet and its paired foil packet.
+**Background list.** Per (concept, carrier, draw): eight background clauses drawn by seed from BACKGROUND concepts, balanced across the three families in a declared 3–3–2 pattern whose family order rotates by seed, the target's own family included; identical for the target packet and its paired foil packet. One clause per family no longer fills eight slots at three families, so the rule states the balance explicitly instead; what it preserves is unchanged — background composition is fixed by seed, balanced across families, and identical between a target packet and its foil.
 **Packet and nesting.** Eight slots. A draw fixes a slot permutation $\sigma$, a permutation of the
 12 target clues, the same for the foil's clues, and the background list, with background clause $d_j$
 attached to slot $\sigma(j)$. Level $k$ replaces slots $\sigma(1..k)$ with target clues $t_1..t_k$;
@@ -837,3 +889,4 @@ lists, amplitudes, outcomes); this document.
 | 2026-09-24 | Draft amendment, §3.1: the stimulus bank is rebuilt on published feature norms. Concepts and clause facts from Buchanan et al. 2019 (held outside the repo, cited per clause, never redistributed); family membership by dominant WordNet noun sense over eight declared roots; feature identity lemmatised; eligibility at ≥ 12 features because that is the clause count restated; decisiveness set by cue-validity rank with the two rarest permitted and $K$ deferred to the reported distribution. The families become animals, body parts, buildings, clothing, foods, materials, occupations and vehicles — 127 concepts, buildings at 15 with its shortfall taken from BACKGROUND | owner, 24 Sept: these clauses are the base of the whole study and the easiest part to discredit, and a curated source takes the sting out of a review. Tools, instruments and countries could not be built from any norm set: after E2 and E1 the whole-subtree ceiling is 11 for tools and 11 for instruments, so E1 binds rather than the source, and E1 is a decode rule that was not relaxed to keep a family name. The shortfall goes to BACKGROUND alone because CAL, PILOT and CONF are fixed by the pairing and an odd count cannot be paired |
 | 2026-09-24 | Draft amendment, §3.1 revised: the absolute floor $K$ on cue validity is WITHDRAWN. Sharing count ranks candidates for selection so the twelve clauses span a range of evidence strength; decisiveness is settled by the naming test already declared. Selection, rendering and acceptance become one seeded loop over an order rather than a set of sixteen, with re-selection once and pass-over recorded; a family may run 13–16 with the shortfall in BACKGROUND | R084 measured the bank ceiling at $K = 2$, bound by materials at exactly sixteen concepts, where a clause need only be shared by two of 4,411 cues — no floor at all — and no per-family count this source supports reaches cue validity 0.05 across eight families. More fundamentally the statistic was wrong for the question: a sharing count records how many cues elicited a feature in a production study, not how many things it is true of, so it overstates decisiveness, and $K = 2$ is that mismatch made visible. The naming test measures the property directly |
 | 2026-09-24 | Draft amendment, §3.1: acceptance becomes TWO-SIDED — at most two of twelve clauses named alone, AND the concept named from the eight clauses of three seeded draws; derivational variants merged before selection (Snowball stem or WordNet derivational link) and proper and brand names removed; and the source recorded as under question, with McRae and CSLB named as candidate primary sources to be measured | R084's materials trial: a one-sided ceiling rewards vagueness, and the only accepted concept passed with 0 of 12 named because a reader given its clauses answered globe, ball, beans and coin — so a $k = 8$ packet would not identify it either, and decisiveness had returned to the renderer. Lemmatising leaves derivations unmerged, so twelve features can be four ideas restated (36 pairs in sixteen concepts) and *glue*'s rarest two were *elmer* and *elmers*. And Buchanan's feature column holds content words cut from free-text prose rather than feature statements, so the relation — which is what a clause asserts — is authored, and the citation would be decorative |
+| 2026-09-24 | Draft amendment, §3 and §3.1: the source becomes McRae (CSLB pooled) and the bank becomes **three families** — animals, foods, vehicles. CONF stays 64 so §10 is unchanged; stratification drops from eight levels to three; per-family role counts become unequal and seeded in proportion to each family's eligible pool; the background list becomes a declared 3–3–2 balance rotating by seed, since one clause per family no longer fills eight slots; merging becomes subsumption over the feature's word set | McRae carries the relation and ships the authors' own cue validity (`CV_No_Tax`), so the clause is rendered from a cited statement rather than authored from a cited topic word. But McRae and CSLB are concrete-object norms: neither norms people, and only animals, foods and vehicles can be filled. McRae alone gives 58 eligible across those three against the 96 CONF, CAL and PILOT need, so CSLB is load-bearing and its data is gated; vehicles is the binding family |
