@@ -1,0 +1,1537 @@
+id,R2_true,R2_names,R2_decisive,R2_comment
+c-animals-ant-0,n,n,n,'Ruled' misleadingly assigns command to queens; reproductive status does not mean directing workers. Rewrite: lives in colonies with breeding females and many workers
+c-animals-ant-1,y,n,n,
+c-animals-ant-2,y,n,y,Chemical nestmate communication is enough to pick this concept in this bank. Rewrite: uses chemical scents when interacting with others nearby
+c-animals-ant-3,y,n,n,
+c-animals-ant-4,y,n,n,
+c-animals-ant-5,y,n,y,
+c-animals-ant-6,y,n,n,
+c-animals-ant-7,y,n,n,
+c-animals-ant-8,y,n,n,
+c-animals-ant-9,y,n,n,
+c-animals-ant-10,y,n,y,
+c-animals-ant-11,y,n,n,
+c-animals-bee-0,y,n,y,The important crop-and-wildflower pollinator is identifiable among the bank concepts. Rewrite: visits flowering plants while gathering its daily supplies
+c-animals-bee-1,y,n,n,
+c-animals-bee-2,?,n,y,Hexagonal wax brood cells specify honeybees; the declared concept includes solitary and bumblebee forms. Consider: places its young in protected chambers within a nest
+c-animals-bee-3,y,n,n,
+c-animals-bee-4,?,n,n,"Drafter's caveat matters: cooperative colony storage describes social species, not the unrestricted concept. Consider: gathers supplies that will feed its developing young"
+c-animals-bee-5,y,n,n,
+c-animals-bee-6,y,n,n,
+c-animals-bee-7,y,n,n,
+c-animals-bee-8,y,n,n,
+c-animals-bee-9,y,n,n,
+c-animals-bee-10,?,n,n,Drafter's winter caveat is substantive: colony overwintering is species-dependent. Consider: changes its activity as temperatures fall during winter
+c-animals-bee-11,?,n,y,"Colony-fission swarming describes honeybees, not bees generally; no narrower sense is declared. Consider: may leave its nest to establish a new home"
+c-animals-cat-0,y,n,y,Indoor keeping with neighbourhood roaming singles out the ordinary domestic sense in this bank. Rewrite: can live indoors under the care of people
+c-animals-cat-1,y,n,n,
+c-animals-cat-2,y,n,n,
+c-animals-cat-3,y,n,y,High household shelves plus fences identify the domestic climber in this bank. Rewrite: can jump and climb to reach raised resting places
+c-animals-cat-4,y,n,n,Grooming also fits other felines and several other bank mammals; marked status is not evidence of decisiveness.
+c-animals-cat-5,y,n,n,
+c-animals-cat-6,y,n,n,
+c-animals-cat-7,y,n,y,Dry pellets or tinned meat served in a bowl identifies this bank's ordinary carnivorous household pet. Rewrite: often receives its daily meals from a human carer
+c-animals-cat-8,y,n,n,
+c-animals-cat-9,y,n,n,
+c-animals-cat-10,y,n,n,
+c-animals-cat-11,y,n,y,
+c-animals-cow-0,y,n,n,Four stomach chambers and rumination also fit sheep and deer.
+c-animals-cow-1,y,n,n,
+c-animals-cow-2,y,n,n,
+c-animals-cow-3,y,n,n,
+c-animals-cow-4,y,n,n,
+c-animals-cow-5,y,n,n,
+c-animals-cow-6,y,n,y,Plough pulling selects cattle among the bank's ordinary farm mammals; females can be used for draught. Rewrite: is sometimes trained to help people with heavy work
+c-animals-cow-7,y,n,n,
+c-animals-cow-8,y,n,n,
+c-animals-cow-9,y,n,y,
+c-animals-cow-10,y,n,n,
+c-animals-cow-11,y,n,n,
+c-animals-deer-0,y,n,y,
+c-animals-deer-1,y,n,y,Hidden young in tall grass during maternal feeding distinguishes this bank's usual fawn behaviour. Rewrite: leaves its young concealed while it searches for plants
+c-animals-deer-2,?,n,y,The drafter correctly limits white-tail flagging to particular species. Consider: often flees quickly when it detects nearby danger
+c-animals-deer-3,y,n,n,
+c-animals-deer-4,y,n,n,
+c-animals-deer-5,y,n,n,
+c-animals-deer-6,y,n,n,
+c-animals-deer-7,y,n,n,
+c-animals-deer-8,?,n,n,Summer-to-grey winter colouring depends on species; the bank does not declare one. Consider: grows a thicker coat during the colder months
+c-animals-deer-9,y,n,n,
+c-animals-deer-10,y,n,n,
+c-animals-deer-11,y,n,n,
+c-animals-dolphin-0,y,n,n,
+c-animals-dolphin-1,y,n,y,
+c-animals-dolphin-2,y,n,y,Social hunting at sea singles out the marine mammal in this bank. Rewrite: often travels with others while searching for prey
+c-animals-dolphin-3,y,n,n,
+c-animals-dolphin-4,y,n,y,Open-sea predation by sharks and killer whales identifies this bank concept. Rewrite: can fall prey to larger hunters in its habitat
+c-animals-dolphin-5,?,n,y,Grey colour and a curved dorsal fin are species-dependent; as worded they also disclose this bank concept. Rewrite: has a smooth outer surface suited to moving through water
+c-animals-dolphin-6,y,n,y,"Underwater nursing uniquely selects this bank's aquatic mammal. 'Mammal' is a narrower taxon, not a synonym of the family label. Rewrite: feeds its young with milk during their early growth"
+c-animals-dolphin-7,?,n,n,Drafter's caveat is valid: long beak and numerous teeth do not cover several familiar species. Consider: uses pointed teeth to seize and hold its prey
+c-animals-dolphin-8,y,n,n,
+c-animals-dolphin-9,y,n,y,Arcing leaps from the water disclose this bank concept in ordinary usage. Rewrite: can move rapidly through water while pursuing prey
+c-animals-dolphin-10,y,n,y,Commercial fishing-net bycatch identifies the bank's marine mammal. Rewrite: can become trapped accidentally in equipment used by people
+c-animals-dolphin-11,y,n,y,
+c-animals-elephant-0,y,n,n,
+c-animals-elephant-1,y,n,n,
+c-animals-elephant-2,y,n,n,
+c-animals-elephant-3,y,n,y,
+c-animals-elephant-4,y,n,n,
+c-animals-elephant-5,y,n,y,Thick wrinkled grey skin with sparse hair singles out this bank mammal. Rewrite: has a tough outer skin that protects its body
+c-animals-elephant-6,y,n,n,
+c-animals-elephant-7,y,n,n,
+c-animals-elephant-8,y,n,n,
+c-animals-elephant-9,y,n,y,
+c-animals-elephant-10,y,n,y,Inaudibly low communication rumbles identify this concept among the bank animals. Rewrite: uses low calls to communicate across long distances
+c-animals-elephant-11,y,n,n,
+c-animals-fox-0,y,n,n,
+c-animals-fox-1,y,n,y,
+c-animals-fox-2,y,n,n,
+c-animals-fox-3,y,n,n,
+c-animals-fox-4,y,n,y,Coop raids and urban-edge bin scavenging together disclose this bank concept. Rewrite: searches for scraps around human settlements after dark
+c-animals-fox-5,y,n,n,
+c-animals-fox-6,y,n,n,
+c-animals-fox-7,y,n,n,"Drafter's uncommon predator claim checked: Alaska Department of Fish and Game lists coyotes, lynx and eagles; https://www.adfg.alaska.gov/static/education/wns/red_fox.pdf ."
+c-animals-fox-8,y,n,y,Small wild canid distinguishes it from the bank's wolf. Rewrite: has a keen sense of smell for finding prey
+c-animals-fox-9,y,n,n,High-pitched alarming screams can also come from other bank mammals; marked status alone does not establish decisiveness.
+c-animals-fox-10,y,n,n,
+c-animals-fox-11,y,n,n,
+c-animals-frog-0,y,n,y,
+c-animals-frog-1,y,n,y,Cutaneous breathing through moist skin identifies the bank's amphibian. Rewrite: depends on moisture to keep its outer surface healthy
+c-animals-frog-2,y,n,y,Sticky prey-catching flick identifies this bank concept. Rewrite: catches small insects while waiting quietly for prey
+c-animals-frog-3,y,n,n,
+c-animals-frog-4,y,n,y,Loud warm-night pond calling identifies this bank concept. Rewrite: makes calls that others can hear from some distance
+c-animals-frog-5,y,n,n,
+c-animals-frog-6,y,n,y,It is the bank's only amphibian; this taxonomy discloses it. Rewrite: may spend part of its time near fresh water
+c-animals-frog-7,y,n,y,Webbed hind feet single out this bank concept. Rewrite: uses its back limbs to move quickly through water
+c-animals-frog-8,y,n,y,Bulging eyes atop the head disclose this bank concept. Rewrite: has eyes positioned to watch its surroundings closely
+c-animals-frog-9,y,n,y,
+c-animals-frog-10,?,n,y,"Drafter distinguishes resting ON the bottom from burial IN mud. Sources differ on partial burial; oxygen requirements make the wording uncertain, and pond-bottom winter dormancy identifies the concept here. Rewrite: may become less active during colder parts of the year. Physiology: https://pubmed.ncbi.nlm.nih.gov/15057718/ ; field description: https://www.fws.gov/refuge/fergus-falls-wetland-management-district/species"
+c-animals-frog-11,y,n,n,
+c-animals-lion-0,y,n,y,
+c-animals-lion-1,y,n,y,
+c-animals-lion-2,y,n,n,
+c-animals-lion-3,y,n,n,
+c-animals-lion-4,y,n,n,
+c-animals-lion-5,y,n,n,
+c-animals-lion-6,y,n,y,Fighting hyenas over large carcasses identifies this bank predator. Rewrite: often competes with other hunters over fresh kills
+c-animals-lion-7,y,n,y,The zebra-wildebeest-buffalo prey list identifies this bank predator. Rewrite: hunts large grazing prey across open ground
+c-animals-lion-8,y,n,n,
+c-animals-lion-9,y,n,n,
+c-animals-lion-10,y,n,y,Faintly spotted cubs distinguish this bank's ordinary large felines. Rewrite: keeps its young concealed during their early weeks
+c-animals-lion-11,y,n,n,
+c-animals-mouse-0,y,n,y,
+c-animals-mouse-1,y,n,y,Pantry packaging gnawing identifies the bank's small household rodent. Rewrite: searches for stored supplies inside human homes
+c-animals-mouse-2,y,n,y,Squeaking and scurrying along walls at night identify this bank concept. Rewrite: often moves quietly beside walls after dark
+c-animals-mouse-3,y,n,n,
+c-animals-mouse-4,y,n,n,
+c-animals-mouse-5,y,n,n,
+c-animals-mouse-6,y,n,y,
+c-animals-mouse-7,y,n,n,
+c-animals-mouse-8,y,n,n,
+c-animals-mouse-9,y,n,n,
+c-animals-mouse-10,y,n,n,
+c-animals-mouse-11,y,n,n,'Sometimes' accommodates the drafter's field/house variation; not a claim that every kind caches.
+c-animals-rabbit-0,y,n,y,
+c-animals-rabbit-1,?,n,n,Communal warrens describe European rabbits; cottontails do not normally inhabit such networks. Consider: hides in sheltered places when danger is nearby
+c-animals-rabbit-2,y,n,n,
+c-animals-rabbit-3,y,n,n,"Hares are a different concept, not an accepted rabbit variant; the drafter's caveat does not invalidate the ordinary rabbit claim."
+c-animals-rabbit-4,y,n,n,
+c-animals-rabbit-5,y,n,n,
+c-animals-rabbit-6,y,n,y,An outdoor cage/pen household pet identifies this bank concept. Rewrite: is often kept by people in an enclosed space
+c-animals-rabbit-7,y,n,n,
+c-animals-rabbit-8,y,n,n,
+c-animals-rabbit-9,y,n,n,
+c-animals-rabbit-10,y,n,n,
+c-animals-rabbit-11,y,n,y,This combination of bird/mustelid predation and human dog-assisted hunting identifies the bank concept. Rewrite: is pursued by larger hunters in open countryside
+c-animals-sheep-0,y,n,y,
+c-animals-sheep-1,y,n,y,No other bank concept ordinarily lives in defensive flocks. Rewrite: stays close to others when nearby danger appears
+c-animals-sheep-2,y,n,y,Bleating with a flock identifies this bank concept. Rewrite: calls loudly when separated from familiar companions
+c-animals-sheep-3,y,n,n,
+c-animals-sheep-4,y,n,n,
+c-animals-sheep-5,y,n,y,
+c-animals-sheep-6,y,n,y,"Meat, milk AND fibre production singles out this farmed bank concept. Rewrite: is raised on farms for several useful products"
+c-animals-sheep-7,y,n,n,
+c-animals-sheep-8,y,n,n,
+c-animals-sheep-9,y,n,y,Coloured ownership marks on the fleece disclose this bank concept. Rewrite: may carry visible markings applied by its keeper
+c-animals-sheep-10,y,n,n,
+c-animals-sheep-11,y,n,n,
+c-animals-snake-0,y,n,y,Lateral bending of a long body identifies this bank's limbless reptile. Rewrite: moves flexibly through narrow spaces in its habitat
+c-animals-snake-1,y,n,n,"The clause says several sheds as it grows, without fixing annual frequency; the note does not undermine it."
+c-animals-snake-2,y,n,y,
+c-animals-snake-3,y,n,n,
+c-animals-snake-4,y,n,n,
+c-animals-snake-5,y,n,y,Dry overlapping scales uniquely identify this bank concept. Rewrite: has a tough outer covering that protects its body
+c-animals-snake-6,y,n,n,
+c-animals-snake-7,y,n,y,
+c-animals-snake-8,y,n,y,Shelled hatching and live birth across species distinguish this bank reptile. Rewrite: has young whose early development varies across species
+c-animals-snake-9,y,n,n,
+c-animals-snake-10,y,n,n,
+c-animals-snake-11,y,n,n,
+c-animals-tiger-0,y,n,n,Vertical dark coat stripes also fit a tabby domestic cat; marked status does not remove that bank alternative.
+c-animals-tiger-1,y,n,n,"'Felines' is a broader taxon, not the name of this concept or the family label 'animals'."
+c-animals-tiger-2,y,n,n,
+c-animals-tiger-3,y,n,n,Strong swimming and cooling in water also fit elephant; the clause alone does not identify tiger.
+c-animals-tiger-4,y,n,n,
+c-animals-tiger-5,y,n,n,
+c-animals-tiger-6,y,n,n,
+c-animals-tiger-7,y,n,n,
+c-animals-tiger-8,y,n,n,
+c-animals-tiger-9,y,n,n,
+c-animals-tiger-10,y,n,n,
+c-animals-tiger-11,y,n,n,
+c-animals-wolf-0,y,n,y,
+c-animals-wolf-1,y,n,y,
+c-animals-wolf-2,y,n,n,
+c-animals-wolf-3,y,n,n,
+c-animals-wolf-4,?,n,n,"Unqualified grey colour depends on kind and colour morph; black, white and reddish coats are familiar too. Consider: has thick fur and a bushy tail in winter"
+c-animals-wolf-5,y,n,n,
+c-animals-wolf-6,y,n,n,
+c-animals-wolf-7,y,n,n,Large elk/moose prey is also compatible with tiger; specific prey alone is insufficient here.
+c-animals-wolf-8,y,n,n,
+c-animals-wolf-9,y,n,n,
+c-animals-wolf-10,y,n,n,
+c-animals-wolf-11,y,n,n,Yellow/amber is an ordinary adult trait; the drafter notes variation rather than an incompatible declared sense.
+c-countries-austria-0,y,y,y,'State' names the countries family; landlocked central-Europe also isolates this bank concept. Rewrite: has many settlements in valleys surrounded by hills
+c-countries-austria-1,y,n,y,West-and-south alpine geography distinguishes it within this bank. Rewrite: has high mountains where snow remains into summer
+c-countries-austria-2,y,n,y,The east-flowing northern lowland river identifies this bank's Danube geography. Rewrite: has fertile lowlands crossed by an important river
+c-countries-austria-3,y,n,n,
+c-countries-austria-4,y,n,y,Military neutrality is official policy despite EU cooperation; it also isolates this bank concept. Rewrite: takes part in international peacekeeping and diplomatic work. Source: https://www.bmeia.gv.at/fileadmin/user_upload/Zentrale/Aussenpolitik/Austrian_Security_Strategy.pdf
+c-countries-austria-5,y,n,n,
+c-countries-austria-6,y,n,n,
+c-countries-austria-7,y,n,n,
+c-countries-austria-8,y,n,n,Coffee houses and pastry shops also fit other central-European bank members.
+c-countries-austria-9,y,n,y,Only this bank member joined the EU in the mid-1990s. Rewrite: has close economic links with its European neighbours
+c-countries-austria-10,y,y,y,'States' names the family; eight land neighbours also identifies it. Rewrite: shares land borders across much of its perimeter
+c-countries-austria-11,y,n,n,
+c-countries-brazil-0,y,y,n,'States' is a synonym of the countries family. Rewrite: covers a very large area with varied landscapes
+c-countries-brazil-1,y,n,n,
+c-countries-brazil-2,y,n,n,
+c-countries-brazil-3,y,n,n,
+c-countries-brazil-4,y,n,y,"Combined major grain, beef and sugar exports select this bank member. Rewrite: exports large amounts of produce from its farms"
+c-countries-brazil-5,y,n,n,
+c-countries-brazil-6,y,n,n,Nigeria also moved its capital inland to a purpose-built city.
+c-countries-brazil-7,y,n,n,Austria and Japan also had their own emperors for much of that century.
+c-countries-brazil-8,y,n,y,Colonisation by the small maritime Iberian kingdom singles out this bank member. Rewrite: has a history shaped by overseas colonial settlement
+c-countries-brazil-9,y,n,n,
+c-countries-brazil-10,y,n,y,The combined black-bean/cassava/grilled-meat cuisine identifies it in this bank. Rewrite: has many dishes combining grains with cooked meat
+c-countries-brazil-11,y,n,y,Only this bank member is mostly southern-hemisphere AND spans several time zones. Rewrite: stretches across several regions with different climates
+c-countries-canada-0,y,n,n,
+c-countries-canada-1,y,n,y,
+c-countries-canada-2,y,n,n,
+c-countries-canada-3,y,n,n,
+c-countries-canada-4,y,n,n,Monarchy verified; Jamaica remains a bank alternative to overseas-monarch wording. https://www.canada.ca/en/canadian-heritage/services/crown-canada/about.html
+c-countries-canada-5,y,n,n,
+c-countries-canada-6,y,n,n,
+c-countries-canada-7,y,n,n,
+c-countries-canada-8,y,n,n,
+c-countries-canada-9,y,n,n,
+c-countries-canada-10,y,n,y,A western national coast on the Pacific with high ranges singles it out among these countries. Rewrite: has rugged mountain ranges close to part of its coast
+c-countries-canada-11,y,n,y,
+c-countries-denmark-0,y,n,n,A peninsula with many islands also describes Greece.
+c-countries-denmark-1,?,n,y,"Below 200 metres is true for Denmark proper, not the wider realm invoked by sibling 2; intended territorial sense is not fixed. It is decisive in this bank. Rewrite: has broad areas of low ground near the sea. https://denmark.dk/people-and-culture/nature"
+c-countries-denmark-2,y,n,n,
+c-countries-denmark-3,y,n,n,
+c-countries-denmark-4,y,n,n,'Mainland' handles the drafter's Arctic-island border caveat; Canada also has only a southern mainland neighbour.
+c-countries-denmark-5,y,n,n,
+c-countries-denmark-6,y,n,n,
+c-countries-denmark-7,y,n,n,
+c-countries-denmark-8,y,n,n,
+c-countries-denmark-9,y,n,n,
+c-countries-denmark-10,y,n,n,An old European royal line alone does not exclude Spain or Norway.
+c-countries-denmark-11,y,n,n,
+c-countries-germany-0,?,y,y,"'State' names the family. Largest economy depends on nominal versus purchasing-power GDP; nominal ranking is supported, and the intended claim identifies the concept. Rewrite: has a large economy with extensive industrial production. https://www.destatis.de/EN/Themes/Countries-Regions/International-Statistics/Data-Topic/Tables/BasicData_GDP.html"
+c-countries-germany-1,y,y,y,'States' names the countries family and the Cold-War division identifies this bank member. Rewrite: experienced political division during the twentieth century
+c-countries-germany-2,y,n,n,
+c-countries-germany-3,y,n,n,
+c-countries-germany-4,y,n,n,"Regional 'states' means subnational units here, not countries."
+c-countries-germany-5,y,n,n,
+c-countries-germany-6,y,n,n,
+c-countries-germany-7,y,n,n,
+c-countries-germany-8,y,n,n,
+c-countries-germany-9,?,y,y,"The Berlin wording is decisive, but West Berlin was not formally part of the western state; the drafter's jurisdiction caveat remains. 'States' names the family. Rewrite: has a capital whose districts reflect a divided past"
+c-countries-germany-10,y,n,n,
+c-countries-germany-11,y,n,n,
+c-countries-greece-0,y,n,n,
+c-countries-greece-1,y,n,y,
+c-countries-greece-2,y,n,n,
+c-countries-greece-3,y,n,y,Only this bank country occupies southeastern Europe's Mediterranean coast. Rewrite: has warm coastal regions popular with summer visitors
+c-countries-greece-4,y,n,y,This combination of culinary associations identifies it in the bank. Rewrite: is known for dishes using oil and grilled meat
+c-countries-greece-5,y,n,n,
+c-countries-greece-6,y,n,n,
+c-countries-greece-7,y,n,n,
+c-countries-greece-8,y,n,y,Nineteenth-century independence from Ottoman rule identifies it in this bank. Rewrite: won independence after a long period of outside rule
+c-countries-greece-9,y,n,y,It is the only bank country with an Orthodox majority. Rewrite: has longstanding Christian traditions and many historic churches
+c-countries-greece-10,y,n,n,
+c-countries-greece-11,y,n,y,
+c-countries-iceland-0,y,n,y,
+c-countries-iceland-1,y,n,y,A largely treeless moss/heath/tundra landscape singles it out within the bank. Rewrite: has open landscapes shaped by a cool climate
+c-countries-iceland-2,y,n,y,The near-total hydro/geothermal power mix identifies this bank member. Rewrite: uses natural resources to generate much of its electricity
+c-countries-iceland-3,y,n,n,
+c-countries-iceland-4,y,n,n,
+c-countries-iceland-5,y,n,y,It is the only bank country without a standing army. Rewrite: cooperates with allies on matters of defence
+c-countries-iceland-6,y,n,y,First settlement in the Middle Ages identifies this bank member; the drafter's possible monks also fit that era. Rewrite: has a history shaped by settlers arriving across the sea
+c-countries-iceland-7,y,n,n,
+c-countries-iceland-8,y,n,n,
+c-countries-iceland-9,y,n,n,
+c-countries-iceland-10,y,n,n,
+c-countries-iceland-11,y,n,y,
+c-countries-iraq-0,y,n,n,
+c-countries-iraq-1,y,n,y,Earliest urban farming civilisation locates this bank member. Rewrite: has archaeological remains of very early farming settlements
+c-countries-iraq-2,y,n,n,
+c-countries-iraq-3,y,n,y,
+c-countries-iraq-4,y,n,y,Only this bank member is predominantly desert with such summers. Rewrite: has regions with very hot and dry summers
+c-countries-iraq-5,y,n,n,
+c-countries-iraq-6,y,n,n,
+c-countries-iraq-7,y,n,y,Only this bank member remained Ottoman territory until that war. Rewrite: passed through a long period of outside imperial rule
+c-countries-iraq-8,y,n,y,The joint war/sanctions/insurgency history identifies it in this bank. Rewrite: has endured prolonged political instability and armed conflict
+c-countries-iraq-9,y,n,y,Only this bank member has a Shia Muslim majority. Rewrite: has important religious communities with differing traditions
+c-countries-iraq-10,y,n,y,The long-established major date-growing sector identifies it within this bank; the wording need not assert first place today. Rewrite: has irrigated orchards that supply domestic and export markets
+c-countries-iraq-11,y,n,y,A post-WWI mandate kingdom identifies this bank member. Rewrite: underwent major political changes after a world war
+c-countries-jamaica-0,y,n,y,
+c-countries-jamaica-1,y,n,n,
+c-countries-jamaica-2,y,n,n,
+c-countries-jamaica-3,y,n,n,
+c-countries-jamaica-4,y,n,n,
+c-countries-jamaica-5,y,n,n,
+c-countries-jamaica-6,y,n,y,The 1962 independence date identifies this bank member. Rewrite: gained independence after a long period of colonial rule
+c-countries-jamaica-7,y,n,n,
+c-countries-jamaica-8,y,n,y,The dark-rum/hot-pepper pairing identifies it within this bank. Rewrite: is known for strongly flavoured drinks and spicy cooking
+c-countries-jamaica-9,y,n,y,Greater Antilles names the island group containing only this bank member. Rewrite: has a warm climate shaped by the surrounding sea
+c-countries-jamaica-10,y,n,n,
+c-countries-jamaica-11,y,n,n,
+c-countries-japan-0,y,n,y,The Pacific-rim archipelago is unique within the bank. Rewrite: has many coastal settlements separated by stretches of water
+c-countries-japan-1,y,n,n,
+c-countries-japan-2,y,n,n,
+c-countries-japan-3,y,n,n,
+c-countries-japan-4,y,n,n,
+c-countries-japan-5,y,n,y,This paired religious tradition identifies it within the bank. Rewrite: has religious customs shaped by several longstanding traditions
+c-countries-japan-6,y,n,n,
+c-countries-japan-7,y,n,n,
+c-countries-japan-8,y,n,n,
+c-countries-japan-9,y,n,y,The historic restriction on foreign traders and missionaries identifies this bank member. Rewrite: has a history of changing relations with overseas visitors
+c-countries-japan-10,y,n,y,The combined seafood/noodles/fermented-soy cuisine identifies it here. Rewrite: has many dishes based on grains and seafood
+c-countries-japan-11,y,n,y,
+c-countries-kenya-0,y,n,y,
+c-countries-kenya-1,y,n,y,Savanna wildlife-safari tourism identifies this bank member. Rewrite: draws visitors to protected areas with diverse wildlife
+c-countries-kenya-2,y,n,y,
+c-countries-kenya-3,y,n,y,The tea/coffee/horticulture export combination identifies it here. Rewrite: earns export income from crops grown on its farms
+c-countries-kenya-4,y,n,y,Rift-valley soda lakes identify this bank member. Rewrite: has inland lakes surrounded by varied upland landscapes
+c-countries-kenya-5,y,n,y,The 1963 independence date singles it out. Rewrite: gained independence after a period of European colonial rule
+c-countries-kenya-6,y,n,n,
+c-countries-kenya-7,y,n,y,Tropical coral-stone trading towns disclose the bank's East African coast. Rewrite: has coastal settlements with a long trading history
+c-countries-kenya-8,y,n,n,
+c-countries-kenya-9,y,y,y,"'States' names the countries family, and sharing Africa's largest lake identifies the concept. Rewrite: shares important inland waters with neighbouring lands"
+c-countries-kenya-10,y,n,n,
+c-countries-kenya-11,y,n,y,Early-human-origin fossil sites identify it in this bank. Rewrite: has archaeological sites that attract researchers from abroad
+c-countries-nepal-0,y,y,y,'State' names the family; the two huge neighbours identify this bank member. Rewrite: shares long land borders across mountainous terrain
+c-countries-nepal-1,y,n,y,
+c-countries-nepal-2,y,n,y,The hot-south-to-icy-north elevation sequence singles it out within this bank. Rewrite: has climates that change sharply with increasing altitude
+c-countries-nepal-3,y,n,n,
+c-countries-nepal-4,y,n,n,
+c-countries-nepal-5,y,n,n,
+c-countries-nepal-6,y,n,y,The Hindu-majority/Buddhist-tradition combination is unique here. Rewrite: has several religious traditions with longstanding local roots
+c-countries-nepal-7,y,n,n,
+c-countries-nepal-8,y,n,y,The lentil/rice/vegetable-curry staple combination identifies this bank member. Rewrite: has everyday dishes combining grains with cooked vegetables
+c-countries-nepal-9,y,n,y,
+c-countries-nepal-10,y,n,n,
+c-countries-nepal-11,y,n,n,
+c-countries-nigeria-0,y,y,n,"'State' names the countries family; Brazil also has its continent's largest population, so it is not decisive. Rewrite: has a very large population spread across many regions"
+c-countries-nigeria-1,y,n,n,
+c-countries-nigeria-2,y,n,n,
+c-countries-nigeria-3,y,n,n,
+c-countries-nigeria-4,y,n,y,The 1960 African independence date identifies it in this bank. Rewrite: gained independence during a period of widespread colonial retreat
+c-countries-nigeria-5,y,n,n,
+c-countries-nigeria-6,y,n,y,This major north/south religious division identifies this bank member. Rewrite: has large religious communities concentrated in different regions
+c-countries-nigeria-7,y,n,y,The post-independence secession war identifies this bank member. Rewrite: experienced serious internal conflict after gaining independence
+c-countries-nigeria-8,y,n,n,
+c-countries-nigeria-9,y,n,n,
+c-countries-nigeria-10,y,n,y,Only this bank country has a coast on a West African gulf. Rewrite: has a humid coast with busy ports and settlements
+c-countries-nigeria-11,y,n,n,
+c-countries-norway-0,y,n,n,
+c-countries-norway-1,y,n,n,
+c-countries-norway-2,y,n,n,
+c-countries-norway-3,y,n,n,
+c-countries-norway-4,y,n,n,
+c-countries-norway-5,y,n,n,Canada also controls a remote Arctic archipelago inhabited by polar bears; marked status is not enough.
+c-countries-norway-6,y,n,n,
+c-countries-norway-7,y,n,n,
+c-countries-norway-8,y,n,n,'One of the highest shares' is not unique against other northern-European bank members.
+c-countries-norway-9,y,n,n,
+c-countries-norway-10,y,n,n,
+c-countries-norway-11,y,n,n,The drafter's union nuance does not make the broad historical statement false; Iceland also passed through rule by neighbouring crowns.
+c-countries-poland-0,y,n,n,
+c-countries-poland-1,y,n,y,
+c-countries-poland-2,y,n,n,The destruction/rebuilding description also fits Germany and Japan.
+c-countries-poland-3,y,n,n,
+c-countries-poland-4,y,n,y,Filled dumplings with beet broth and smoked sausage disclose it in this bank. Rewrite: has traditional meals featuring dumplings and preserved meat
+c-countries-poland-5,y,n,n,
+c-countries-poland-6,y,n,n,About two thousand supports the plural 'thousands'; similar northeastern lake geography also occurs in Germany.
+c-countries-poland-7,y,n,n,
+c-countries-poland-8,y,n,y,The large southern coal-mining region identifies this bank member. Rewrite: has regions shaped by a long history of heavy industry
+c-countries-poland-9,y,n,n,
+c-countries-poland-10,y,n,y,It is the only 2004 EU entrant in this bank. Rewrite: has strengthened economic ties with its European neighbours
+c-countries-poland-11,y,n,n,
+c-countries-spain-0,y,n,y,
+c-countries-spain-1,y,n,n,
+c-countries-spain-2,y,n,y,The vast American colonial empire identifies this bank member. Rewrite: sponsored overseas voyages during an era of colonial expansion
+c-countries-spain-3,y,n,n,
+c-countries-spain-4,y,n,y,The seafood/rice/cured-ham culinary combination identifies it here. Rewrite: has varied regional cooking that uses seafood and meat
+c-countries-spain-5,y,n,y,The high dry plateau around the capital singles it out in this bank. Rewrite: has dry inland regions contrasting with its coastal areas
+c-countries-spain-6,y,n,n,
+c-countries-spain-7,y,n,n,
+c-countries-spain-8,y,n,n,
+c-countries-spain-9,y,n,y,
+c-countries-spain-10,y,n,n,
+c-countries-spain-11,y,n,n,
+c-tools-axe-0,y,n,y,
+c-tools-axe-1,y,n,y,
+c-tools-axe-2,y,n,n,
+c-tools-axe-3,y,n,n,
+c-tools-axe-4,y,n,n,
+c-tools-axe-5,y,n,y,Chips removed by repeated blows identify the chopping implement in this bank. Rewrite: removes small pieces while shaping a rough surface
+c-tools-axe-6,y,n,n,
+c-tools-axe-7,y,n,n,
+c-tools-axe-8,y,n,n,
+c-tools-axe-9,y,n,n,
+c-tools-axe-10,y,n,n,
+c-tools-axe-11,y,n,n,
+c-tools-bolt-0,y,n,n,Hex-headed screws also take a wrench; the marked clause alone does not separate them.
+c-tools-bolt-1,y,n,y,
+c-tools-bolt-2,y,n,n,
+c-tools-bolt-3,y,n,n,
+c-tools-bolt-4,y,n,n,
+c-tools-bolt-5,?,n,n,Drafter is right: full-length threading exists even on long sizes. Consider: may have an unthreaded section below its head
+c-tools-bolt-6,y,n,n,
+c-tools-bolt-7,y,n,n,
+c-tools-bolt-8,y,n,y,"The smooth domed, undrivable head identifies the carriage form among bank fasteners. Rewrite: can have a rounded head on some varieties"
+c-tools-bolt-9,y,n,n,'Often' allows the alternative finishes noted by the drafter.
+c-tools-bolt-10,y,n,n,
+c-tools-bolt-11,y,n,n,
+c-tools-clamp-0,y,n,n,A vise can also press glued pieces together while drying.
+c-tools-clamp-1,y,n,n,
+c-tools-clamp-2,y,n,n,
+c-tools-clamp-3,y,n,y,
+c-tools-clamp-4,y,n,n,
+c-tools-clamp-5,y,n,n,
+c-tools-clamp-6,?,n,n,"Swivelling pads describe some models, not the unrestricted concept. Consider: can have pads that help spread pressure over a surface"
+c-tools-clamp-7,y,n,y,Holding work flat onto the table distinguishes this from the bank's usual bench vise. Rewrite: holds a workpiece steady during work in a workshop
+c-tools-clamp-8,y,n,n,
+c-tools-clamp-9,y,n,n,
+c-tools-clamp-10,y,n,n,
+c-tools-clamp-11,y,n,n,
+c-tools-hammer-0,y,n,y,
+c-tools-hammer-1,y,n,n,
+c-tools-hammer-2,y,n,n,
+c-tools-hammer-3,y,n,n,
+c-tools-hammer-4,y,n,y,The accidental round striking mark identifies this bank implement. Rewrite: can leave a dent if it strikes the wrong place
+c-tools-hammer-5,y,n,n,
+c-tools-hammer-6,y,n,n,
+c-tools-hammer-7,y,n,y,The three trades together disclose this common striking implement. Rewrite: is used for many jobs in skilled manual trades
+c-tools-hammer-8,y,n,n,
+c-tools-hammer-9,y,n,n,
+c-tools-hammer-10,y,n,n,
+c-tools-hammer-11,y,n,y,Use with both chisels and punches identifies it in the bank. Rewrite: is often used alongside other equipment in a workshop
+c-tools-hoe-0,y,n,y,
+c-tools-hoe-1,y,n,y,
+c-tools-hoe-2,y,n,n,
+c-tools-hoe-3,y,n,n,
+c-tools-hoe-4,y,n,n,
+c-tools-hoe-5,y,n,n,
+c-tools-hoe-6,y,n,n,
+c-tools-hoe-7,y,n,n,
+c-tools-hoe-8,y,n,n,
+c-tools-hoe-9,y,n,n,
+c-tools-hoe-10,y,n,n,
+c-tools-hoe-11,y,n,n,
+c-tools-knife-0,y,n,n,
+c-tools-knife-1,y,n,y,
+c-tools-knife-2,y,n,y,Being laid beside a dinner plate identifies this bank's eating implement. Rewrite: is commonly used when preparing and serving meals
+c-tools-knife-3,y,n,n,
+c-tools-knife-4,y,n,n,
+c-tools-knife-5,?,n,n,"Drafter describes care advice, not a universal practice or type. Consider: benefits from careful cleaning and drying after use"
+c-tools-knife-6,y,n,n,
+c-tools-knife-7,y,n,n,
+c-tools-knife-8,y,n,n,
+c-tools-knife-9,y,n,n,
+c-tools-knife-10,y,n,y,
+c-tools-knife-11,y,n,n,
+c-tools-mop-0,y,n,y,
+c-tools-mop-1,y,n,n,
+c-tools-mop-2,y,n,n,
+c-tools-mop-3,y,n,y,Wide sweeping strokes over hard floors identify this cleaning implement. Rewrite: is moved across dirty surfaces during routine cleaning
+c-tools-mop-4,y,n,n,
+c-tools-mop-5,y,n,n,Wet floors are also possible after using the bank's sponge.
+c-tools-mop-6,?,n,n,Detachable machine-washable heads are model-dependent; sponge and disposable heads differ. Consider: has a cleaning surface that needs washing after use
+c-tools-mop-7,y,n,n,
+c-tools-mop-8,y,n,y,A flat microfibre-covered head identifies a familiar form of this concept. Rewrite: can have a soft covering that collects dirt
+c-tools-mop-9,y,n,n,
+c-tools-mop-10,y,n,n,
+c-tools-mop-11,y,n,n,
+c-tools-needle-0,y,n,y,
+c-tools-needle-1,y,n,n,
+c-tools-needle-2,y,n,n,
+c-tools-needle-3,y,n,n,
+c-tools-needle-4,y,n,n,
+c-tools-needle-5,y,n,y,Extreme slenderness and ease of loss distinguish this bank sewing implement. Rewrite: is small enough to require careful storage after use
+c-tools-needle-6,y,n,n,
+c-tools-needle-7,y,n,n,
+c-tools-needle-8,y,n,n,
+c-tools-needle-9,y,n,n,
+c-tools-needle-10,y,n,n,
+c-tools-needle-11,y,n,n,
+c-tools-rake-0,y,n,y,
+c-tools-rake-1,y,n,y,
+c-tools-rake-2,y,n,n,
+c-tools-rake-3,y,n,n,
+c-tools-rake-4,y,n,n,
+c-tools-rake-5,y,n,y,Removing thatch and moss from grass identifies this bank implement. Rewrite: helps remove loose debris from planted ground
+c-tools-rake-6,y,n,y,Parallel ground grooves identify the tined implement in this bank. Rewrite: leaves marks on loose ground as it is pulled
+c-tools-rake-7,y,n,n,
+c-tools-rake-8,y,n,n,
+c-tools-rake-9,y,n,n,
+c-tools-rake-10,y,n,n,
+c-tools-rake-11,y,n,n,
+c-tools-saw-0,y,n,n,A serrated knife also has sharp teeth on a thin blade.
+c-tools-saw-1,y,n,n,
+c-tools-saw-2,y,n,y,Fine cutting dust identifies this bank implement in normal use. Rewrite: leaves loose fragments that need clearing after work
+c-tools-saw-3,y,n,n,
+c-tools-saw-4,y,n,n,
+c-tools-saw-5,y,n,n,
+c-tools-saw-6,y,n,y,Rhythmic rasping during work identifies this bank implement. Rewrite: makes repeated scraping sounds during manual work
+c-tools-saw-7,y,n,n,
+c-tools-saw-8,y,n,y,
+c-tools-saw-9,y,n,y,Cutting both metal pipe and timber identifies this bank cutting implement. Rewrite: is used to cut several kinds of solid stock
+c-tools-saw-10,?,n,n,File sharpening depends on tooth construction; hardened disposable blades cannot routinely be resharpened that way. Consider: needs attention when its cutting edge becomes dull
+c-tools-saw-11,y,n,y,Designs distinguished by push-versus-pull cutting strokes disclose this bank implement. Rewrite: is available in designs suited to different cutting tasks
+c-tools-scissors-0,y,n,y,
+c-tools-scissors-1,y,n,n,
+c-tools-scissors-2,y,n,y,Cutting sheets on a closing stroke identifies this bank implement. Rewrite: is used to cut thin sheets for many everyday tasks
+c-tools-scissors-3,y,n,y,The school pencil-case craft implement is identifiable within this bank. Rewrite: is used for simple craft projects in classrooms
+c-tools-scissors-4,y,n,y,The barber-station implement beside combs and clippers identifies it here. Rewrite: is kept close at hand by several skilled trades
+c-tools-scissors-5,y,n,n,
+c-tools-scissors-6,y,n,n,Special left-handed versions also exist for knives and saws.
+c-tools-scissors-7,y,n,n,
+c-tools-scissors-8,y,n,n,
+c-tools-scissors-9,y,n,n,
+c-tools-scissors-10,y,n,y,Repeated crisp metallic closure identifies the paired cutting blades in normal bank usage. Rewrite: makes a brief sound as its moving parts meet
+c-tools-scissors-11,y,n,n,
+c-tools-screw-0,?,n,n,Pointed shafts describe some types; machine/set screws may be blunt. Pointed lag bolts also prevent unique identification. Consider: has a helical thread running around its shaft
+c-tools-screw-1,y,n,n,
+c-tools-screw-2,y,n,n,
+c-tools-screw-3,y,n,n,
+c-tools-screw-4,y,n,n,A suitable drill driver can also drive bolts; the marked clause is not decisive.
+c-tools-screw-5,y,n,y,Edge splitting during direct driving identifies the ordinary timber fastener here. Rewrite: can damage a thin surface if fitted carelessly
+c-tools-screw-6,y,n,n,
+c-tools-screw-7,n,n,n,Self-tapping masonry designs do not need a separate anchor. Rewrite: may need an anchor when fitted into masonry
+c-tools-screw-8,y,n,n,'Often' accommodates the imperial-size convention and retail-pack variation.
+c-tools-screw-9,y,n,n,
+c-tools-screw-10,y,n,n,
+c-tools-screw-11,y,n,y,The tiny threaded fittings in spectacles and watches identify this bank concept. Rewrite: comes in very small sizes for delicate assemblies
+c-tools-shovel-0,y,n,y,
+c-tools-shovel-1,y,n,y,Foot pressure on a digging blade identifies this bank implement. Rewrite: is pressed into loose ground during outdoor work
+c-tools-shovel-2,y,n,n,
+c-tools-shovel-3,y,n,y,A D grip atop the long handle identifies this bank implement. Rewrite: has a grip shaped to make it easier to hold
+c-tools-shovel-4,y,n,y,Driveway snow clearing identifies this bank implement in ordinary use. Rewrite: helps clear loose accumulations from outdoor paths
+c-tools-shovel-5,y,n,n,
+c-tools-shovel-6,y,n,y,The gravedigging/construction combination identifies this bank implement. Rewrite: is widely used during outdoor manual labour
+c-tools-shovel-7,y,n,y,
+c-tools-shovel-8,y,n,y,A pointed ground-breaking blade identifies it in this bank. Rewrite: has an edge that helps break into firm ground
+c-tools-shovel-9,y,n,y,Ash scooping identifies this bank implement. Rewrite: helps remove loose waste after a fire has cooled
+c-tools-shovel-10,y,n,y,Moving earth beside a wheelbarrow identifies this bank implement. Rewrite: is used to move loose earth around work sites
+c-tools-shovel-11,y,n,y,A flat or dished scraping/scooping blade identifies this bank implement. Rewrite: has a broad working surface suited to outdoor tasks
+c-tools-sponge-0,y,n,n,"Other porous absorbents in the bank, including cotton, also fit."
+c-tools-sponge-1,y,n,n,
+c-tools-sponge-2,?,n,y,"A rougher scrubbing side is a particular kitchen type, not all cleaning sponges; it identifies the intended implement here. Rewrite: can remove grime when rubbed across a dirty surface"
+c-tools-sponge-3,y,n,y,A small sink-side holder identifies this bank cleaning implement. Rewrite: is often kept close to where washing takes place
+c-tools-sponge-4,y,n,n,
+c-tools-sponge-5,?,n,n,This omits natural sea sponges used for cleaning; the declared tools sense does not fix manufacture. Consider: is commonly made from foam or processed plant fibre
+c-tools-sponge-6,y,n,n,
+c-tools-sponge-7,y,n,n,
+c-tools-sponge-8,y,n,n,
+c-tools-sponge-9,?,n,n,Drafter's cellulose/foam distinction is substantive; stiffness on drying is not general. Consider: changes how it feels as water enters its pores
+c-tools-sponge-10,?,n,n,"Drafter gives hygiene advice, not consistent use across households or sponge types. Consider: needs regular cleaning and eventual replacement after use"
+c-tools-sponge-11,y,n,y,Direct rubbing on dishes with detergent identifies the ordinary bank cleaning implement. Rewrite: is used with detergent during routine washing tasks
+c-tools-vise-0,y,n,n,
+c-tools-vise-1,y,n,n,A heavy parallel clamp can also have these jaws.
+c-tools-vise-2,y,n,n,
+c-tools-vise-3,y,n,n,
+c-tools-vise-4,y,n,y,A swivelling base distinguishes the bench-mounted implement in this bank. Rewrite: can be adjusted to hold work at a useful angle
+c-tools-vise-5,y,n,n,The 'can' and 'large models' wording explicitly accommodates the drafter's size caveat.
+c-tools-vise-6,y,n,n,
+c-tools-vise-7,y,n,n,
+c-tools-vise-8,y,n,n,
+c-tools-vise-9,y,n,n,
+c-tools-vise-10,y,n,n,
+c-tools-vise-11,y,n,n,
+c-tools-whisk-0,y,n,y,
+c-tools-whisk-1,y,n,y,
+c-tools-whisk-2,y,n,n,
+c-tools-whisk-3,y,n,y,Rapid clattering against a mixing bowl identifies this bank implement. Rewrite: makes a light repeated sound during use
+c-tools-whisk-4,y,n,y,The bank has no spoon; stirring sauces/gravy identifies this cooking implement. Rewrite: helps combine ingredients during meal preparation
+c-tools-whisk-5,y,n,n,
+c-tools-whisk-6,y,y,n,'Utensils' is a kitchen-context synonym for the tools family. Rewrite: often hangs from a hook within easy reach
+c-tools-whisk-7,y,n,y,Batter-mixing identifies this bank implement. Rewrite: is used during the preparation of baked dishes
+c-tools-whisk-8,y,n,y,Being replaced by an electric mixer identifies this manual mixing implement. Rewrite: is sometimes replaced by powered equipment for larger jobs
+c-tools-whisk-9,y,n,y,A flat version for shallow pans identifies this bank mixing implement. Rewrite: comes in several shapes suited to different containers
+c-tools-whisk-10,y,n,n,
+c-tools-whisk-11,y,n,n,
+c-foods-apple-0,y,n,y,Autumn picking from orchard trees identifies this bank fruit in ordinary usage. Rewrite: is picked from cultivated trees when fully grown
+c-foods-apple-1,y,n,y,
+c-foods-apple-2,y,n,n,
+c-foods-apple-3,y,n,n,
+c-foods-apple-4,y,n,n,
+c-foods-apple-5,y,n,n,
+c-foods-apple-6,y,n,n,
+c-foods-apple-7,y,n,n,
+c-foods-apple-8,y,n,n,
+c-foods-apple-9,y,n,n,
+c-foods-apple-10,y,n,n,
+c-foods-apple-11,y,n,n,
+c-foods-banana-0,y,n,y,
+c-foods-banana-1,y,n,n,
+c-foods-banana-2,y,n,y,
+c-foods-banana-3,y,n,y,Pale creamy mashable flesh identifies this bank fruit. Rewrite: has soft flesh that is easy to mash when ripe
+c-foods-banana-4,y,n,n,
+c-foods-banana-5,y,n,n,
+c-foods-banana-6,y,n,n,
+c-foods-banana-7,y,n,n,
+c-foods-banana-8,y,n,n,
+c-foods-banana-9,y,n,y,The tiny central vestigial seed specks are a real feature of ordinary dessert fruit; the note does not require functional seeds. They identify it here. Rewrite: has a soft centre with small darker markings
+c-foods-banana-10,y,n,n,
+c-foods-banana-11,?,n,n,Best storage depends on ripeness and desired keeping time; ripe fruit can be refrigerated. Consider: is often left at room temperature while it ripens
+c-foods-butter-0,y,n,n,
+c-foods-butter-1,y,n,n,
+c-foods-butter-2,y,n,n,
+c-foods-butter-3,y,n,n,
+c-foods-butter-4,y,n,y,
+c-foods-butter-5,y,n,n,
+c-foods-butter-6,y,n,y,Melting then brushing over dough identifies this bank dairy fat. Rewrite: is sometimes applied to dough before baking
+c-foods-butter-7,y,n,y,Approximate four-fifths accommodates common 80-86 percent varieties. https://www.ams.usda.gov/grades-standards/butter-grades-and-standards/butter-grading-info
+c-foods-butter-8,y,n,n,
+c-foods-butter-9,y,n,y,Rubbing into flour for pastry/crumble identifies this bank ingredient. Rewrite: is combined with flour in many baking recipes
+c-foods-butter-10,y,n,n,
+c-foods-butter-11,y,n,n,
+c-foods-cheese-0,y,n,y,Milk origin plus the deli counter identifies it in this bank. Rewrite: is sold chilled in several common retail formats
+c-foods-cheese-1,y,n,y,Cellar aging over weeks to years identifies this bank product. Rewrite: can develop a stronger flavour during storage
+c-foods-cheese-2,?,n,n,A firm removable rind depends on variety; fresh and rindless types lack it. Consider: can have an outer layer that is cut away
+c-foods-cheese-3,?,n,n,Melting to gooey texture depends on variety; halloumi/paneer differ. Consider: can change texture when heated during cooking
+c-foods-cheese-4,y,n,y,
+c-foods-cheese-5,y,n,n,
+c-foods-cheese-6,y,n,n,
+c-foods-cheese-7,y,n,n,
+c-foods-cheese-8,y,n,n,
+c-foods-cheese-9,y,n,n,
+c-foods-cheese-10,?,n,n,"Cultured varieties use bacteria, whereas some familiar fresh acid-set varieties do not. Consider: is often made with the help of bacterial cultures"
+c-foods-cheese-11,?,n,n,"Brining/rubbing is not the only salting method, and some varieties are unsalted; salt may instead be mixed into curds. Consider: often contains salt added during its preparation"
+c-foods-egg-0,y,n,n,
+c-foods-egg-1,y,n,n,
+c-foods-egg-2,y,n,n,Major allergen status checked against FDA; dairy-derived bank items remain alternatives. https://www.fda.gov/food/nutrition-food-labeling-and-critical-foods/food-allergies
+c-foods-egg-3,y,n,y,
+c-foods-egg-4,y,n,n,
+c-foods-egg-5,y,n,n,
+c-foods-egg-6,y,n,y,Gentle water poaching identifies this bank food in ordinary usage. Rewrite: can be cooked gently in a small pan
+c-foods-egg-7,y,n,n,
+c-foods-egg-8,y,n,y,The carton/fridge-door combination identifies this bank item as a storage practice. Rewrite: is often kept chilled until it is needed
+c-foods-egg-9,y,n,y,Runny-to-firm cooking singles it out among the ordinary bank foods. Rewrite: changes texture as heat acts on it
+c-foods-egg-10,?,n,y,Floating requires a sufficiently enlarged air cell; 'stale' is not a fixed buoyancy threshold. The claim also identifies the concept. Consider: changes internal structure as it ages during storage. https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/eggs/shell-eggs-farm-table
+c-foods-egg-11,y,n,n,
+c-foods-grape-0,y,n,y,Vine cultivation on rows of wires identifies this bank fruit. Rewrite: grows on cultivated plants arranged in long rows
+c-foods-grape-1,y,n,n,
+c-foods-grape-2,y,n,y,Green/red/dark-purple varieties together identify this bank fruit. Rewrite: comes in several varieties with different skin colours
+c-foods-grape-3,y,n,n,
+c-foods-grape-4,y,n,n,
+c-foods-grape-5,y,n,n,
+c-foods-grape-6,y,n,n,
+c-foods-grape-7,y,n,n,
+c-foods-grape-8,y,n,n,Strawberries can also be detached from stalks and eaten whole.
+c-foods-grape-9,y,n,n,Lengthwise cutting for choking prevention is also used for other bank fruits; the marked clause is not exclusive.
+c-foods-grape-10,y,n,y,"The toxicity warning identifies this bank fruit. Susceptibility varies, but the drafter's caveat does not remove the small-dose hazard. Rewrite: needs special care before it is shared with household pets. https://www.msdvetmanual.com/toxicology/food-hazards/grape-raisin-and-tamarind-vitis-spp-tamarindus-spp-toxicosis-in-dogs"
+c-foods-grape-11,y,n,n,
+c-foods-honey-0,y,n,n,
+c-foods-honey-1,y,n,y,Thick sticky amber appearance identifies this bank food. Rewrite: has a thick consistency that changes with temperature
+c-foods-honey-2,?,n,y,Drafter's moisture caveat matters: sealing alone does not prevent high-moisture fermentation. Consider: keeps well when its moisture content remains low
+c-foods-honey-3,y,n,y,Storage crystallisation identifies this bank sweetener. Rewrite: can change texture during prolonged cool storage
+c-foods-honey-4,y,n,y,It is the bank's ordinary tea sweetener. Rewrite: is added in small amounts to flavour warm drinks
+c-foods-honey-5,y,n,n,
+c-foods-honey-6,y,n,n,
+c-foods-honey-7,y,n,y,The jar/squeeze-bottle combination identifies this bank product. Rewrite: is sold in containers of several shapes and sizes
+c-foods-honey-8,y,n,n,
+c-foods-honey-9,y,n,y,Drizzling over all three foods identifies this bank sweetener. Rewrite: is sometimes served as a sweet breakfast topping
+c-foods-honey-10,y,n,n,
+c-foods-honey-11,y,n,n,
+c-foods-lemon-0,y,n,y,The rarely-drunk-alone acidic juice identifies this bank citrus fruit. Rewrite: has juice with a noticeably sharp flavour
+c-foods-lemon-1,y,n,y,
+c-foods-lemon-2,y,n,y,Squeezing over fish and prawns identifies this bank fruit in ordinary use. Rewrite: adds a sharp flavour to some cooked dishes
+c-foods-lemon-3,y,n,n,
+c-foods-lemon-4,y,n,n,
+c-foods-lemon-5,y,n,y,A sharp addition to hot water/tea identifies this bank fruit. Rewrite: can be added to drinks to alter their flavour
+c-foods-lemon-6,y,n,n,The ordinary tree description tolerates the drafter's thornless cultivars; orange is a bank alternative.
+c-foods-lemon-7,y,n,n,
+c-foods-lemon-8,y,n,n,
+c-foods-lemon-9,y,n,n,
+c-foods-lemon-10,y,n,n,An oval shape with a pointed end also fits mango and does not identify this alone.
+c-foods-lemon-11,y,n,y,Salt preservation for stews identifies it within this bank. Rewrite: is sometimes preserved for use in cooked dishes
+c-foods-mango-0,y,n,n,
+c-foods-mango-1,y,n,y,Sweet deep-yellow ripe flesh identifies this bank fruit. Rewrite: has sweet flesh with plenty of juice when ripe
+c-foods-mango-2,y,n,y,It is the only bank fruit with a single large central stone. Rewrite: has flesh surrounding a seed-bearing centre
+c-foods-mango-3,y,n,y,
+c-foods-mango-4,y,n,n,
+c-foods-mango-5,y,n,n,
+c-foods-mango-6,y,n,n,
+c-foods-mango-7,y,n,n,
+c-foods-mango-8,y,n,y,Fibrous flesh beside the seed identifies this bank fruit. Rewrite: has flesh whose texture varies between its different varieties
+c-foods-mango-9,y,n,n,
+c-foods-mango-10,y,n,n,
+c-foods-mango-11,y,n,y,The stem-sap irritation feature identifies this bank fruit; 'can' accommodates sensitive versus unaffected people. Rewrite: needs care when handled during picking and preparation
+c-foods-orange-0,y,n,y,
+c-foods-orange-1,y,n,y,Hand peeling followed by separation into juicy segments identifies it among the bank fruits. Rewrite: has juicy flesh that is eaten after peeling
+c-foods-orange-2,y,n,n,
+c-foods-orange-3,y,n,n,'Can' allows persistent tropical green peel without claiming every ripe fruit stays green.
+c-foods-orange-4,y,n,n,
+c-foods-orange-5,y,n,n,
+c-foods-orange-6,y,n,n,
+c-foods-orange-7,y,n,n,
+c-foods-orange-8,y,n,n,
+c-foods-orange-9,y,n,n,
+c-foods-orange-10,y,n,n,The drafter's bitter/sweet distinction does not invalidate the blossom claim; fragrant white blossom is not enough to exclude lemon.
+c-foods-orange-11,y,n,n,
+c-foods-pasta-0,y,n,y,The usual flour-and-water composition singles out this bank food. Rewrite: is usually made from a simple grain-based dough
+c-foods-pasta-1,y,n,y,
+c-foods-pasta-2,y,n,y,Dried boxes versus fresh chilled packs identify this bank food. Rewrite: is sold in both dry and freshly prepared forms
+c-foods-pasta-3,y,n,n,
+c-foods-pasta-4,y,n,y,Tossing with tomato sauce and basil identifies this bank food. Rewrite: is often combined with a sauce just before serving
+c-foods-pasta-5,y,n,n,
+c-foods-pasta-6,y,n,n,
+c-foods-pasta-7,y,n,y,Draining in a colander after cooking identifies this bank food. Rewrite: is usually drained carefully after cooking in water
+c-foods-pasta-8,y,n,n,
+c-foods-pasta-9,y,n,y,Filling with spinach/meat before boiling identifies this bank food. Rewrite: is available in forms with a savoury filling
+c-foods-pasta-10,y,n,y,Cooking-water absorption with swelling and softening identifies this bank staple. Rewrite: changes its size and texture during cooking
+c-foods-pasta-11,y,n,n,
+c-foods-pizza-0,y,n,y,A yeast-risen dough base identifies this bank food. Rewrite: has a baked base beneath its savoury topping
+c-foods-pizza-1,y,n,y,Minute-scale baking in a blazing stone oven identifies it here. Rewrite: is baked quickly in a very hot oven
+c-foods-pizza-2,?,n,y,White and other sauce-free styles do not have a tomato layer. Consider: may have a layer of sauce beneath its toppings
+c-foods-pizza-3,y,n,n,
+c-foods-pizza-4,y,n,n,
+c-foods-pizza-5,y,n,y,Retail sale by the slice for eating on the go identifies it here. Rewrite: is often bought as a ready-to-eat portion
+c-foods-pizza-6,y,n,y,Thin/crisp versus thick/chewy crust alternatives identify this bank food. Rewrite: has a baked outer texture that varies by style
+c-foods-pizza-7,y,n,n,
+c-foods-pizza-8,y,n,n,
+c-foods-pizza-9,y,n,y,
+c-foods-pizza-10,y,n,y,Sliding into an oven on a peel identifies this bank food. Rewrite: is moved carefully into the oven for baking
+c-foods-pizza-11,y,n,n,
+c-foods-soup-0,y,n,n,
+c-foods-soup-1,y,n,y,Ordinary bowl-and-spoon eating identifies this bank dish. Rewrite: is served in a bowl during an everyday meal
+c-foods-soup-2,y,n,y,Simmering vegetables/meat/beans in stock identifies this bank dish. Rewrite: combines several ingredients during gentle cooking
+c-foods-soup-3,y,n,n,
+c-foods-soup-4,y,n,n,
+c-foods-soup-5,y,n,n,
+c-foods-soup-6,y,n,n,
+c-foods-soup-7,y,n,y,Slow cooking in a large stovetop pot identifies this bank dish in ordinary usage. Rewrite: is often prepared in a pot on the stove
+c-foods-soup-8,y,n,y,The cream/flour/potato thickener list identifies this bank dish. Rewrite: can be prepared with a thicker or thinner consistency
+c-foods-soup-9,y,n,n,
+c-foods-soup-10,y,n,n,
+c-foods-soup-11,y,n,y,Keeping it hot in a walking flask identifies the bank's liquid dish. Rewrite: can be packed in a container for eating outdoors
+c-foods-steak-0,y,n,y,
+c-foods-steak-1,y,n,n,
+c-foods-steak-2,y,n,y,Thick individual butcher portions identify this bank food. Rewrite: is sold in portions of varying size and thickness
+c-foods-steak-3,y,n,y,Post-cooking rest for juices identifies this bank meat dish. Rewrite: is often left briefly before being cut for serving
+c-foods-steak-4,y,n,y,Flavour-giving internal fat streaks identify this bank food. Rewrite: has a texture and richness that vary by cut
+c-foods-steak-5,y,n,n,
+c-foods-steak-6,y,n,y,Against-grain serving strips identify this bank food. Rewrite: is often cut into smaller pieces before serving
+c-foods-steak-7,y,n,y,Barbecue/grill-restaurant centrepiece identifies this bank food. Rewrite: is popular at outdoor meals and in restaurants
+c-foods-steak-8,y,n,n,
+c-foods-steak-9,y,n,y,Press testing or temperature testing of doneness identifies this bank food. Rewrite: is checked during cooking to achieve the desired texture
+c-foods-steak-10,y,n,n,
+c-foods-steak-11,y,n,y,Red/pink interior from brief cooking identifies this bank food. Rewrite: changes its internal appearance as cooking continues
+c-foods-strawberry-0,y,n,y,The checklist uses ordinary language: calling the visible seed-bearing achenes 'seeds' is acceptable here.
+c-foods-strawberry-1,y,n,n,
+c-foods-strawberry-2,y,n,y,A removable tuft of green leaves identifies this bank fruit. Rewrite: has an inedible top that is removed before serving
+c-foods-strawberry-3,y,n,y,Low leafy ground-level growth identifies this bank fruit. Rewrite: grows on cultivated plants during the warmer months
+c-foods-strawberry-4,y,n,y,Early-summer visitor picking identifies this bank fruit in ordinary temperate practice. Rewrite: is often picked by visitors at farms during harvest
+c-foods-strawberry-5,y,n,n,
+c-foods-strawberry-6,y,n,n,
+c-foods-strawberry-7,y,n,n,
+c-foods-strawberry-8,y,n,y,Low season-extending tunnels identify this bank crop. Rewrite: is sometimes grown under cover to extend the harvest
+c-foods-strawberry-9,y,n,n,
+c-foods-strawberry-10,y,n,n,
+c-foods-strawberry-11,y,n,n,
+c-foods-sushi-0,y,n,y,Small portions built around seasoned cooked rice identify this bank dish. Rewrite: combines cooked grains with several savoury ingredients
+c-foods-sushi-1,?,n,y,Raw fish is one common form; cooked and vegetarian forms remain within the declared concept. Consider: may include a topping or filling made from fish
+c-foods-sushi-2,y,n,y,
+c-foods-sushi-3,y,n,y,Light soy dipping before bites identifies this bank dish. Rewrite: is sometimes eaten with a salty dipping sauce
+c-foods-sushi-4,y,n,y,Chopsticks or hand eating identifies this bank dish in ordinary use. Rewrite: can be eaten in small portions without cutlery
+c-foods-sushi-5,y,n,n,
+c-foods-sushi-6,?,n,y,Bite-sized rounds from a long roll describe maki rather than sushi generally. Consider: comes in several compact shapes suited to single bites
+c-foods-sushi-7,y,n,n,
+c-foods-sushi-8,y,n,n,
+c-foods-sushi-9,y,n,y,The fish-preservation origin identifies this bank dish; the drafter refers to the historical precursor. Rewrite: has a preparation method that changed over many generations
+c-foods-sushi-10,y,n,y,Avocado/cucumber replacing meat as a filling identifies this bank dish. Rewrite: can be prepared with a filling made from vegetables
+c-foods-sushi-11,y,n,n,
+c-vehicles-bicycle-0,y,n,n,
+c-vehicles-bicycle-1,y,n,n,
+c-vehicles-bicycle-2,y,n,n,Rear-wheel chain drive also fits many motorcycles.
+c-vehicles-bicycle-3,y,n,n,
+c-vehicles-bicycle-4,y,n,y,
+c-vehicles-bicycle-5,y,n,n,
+c-vehicles-bicycle-6,y,n,n,
+c-vehicles-bicycle-7,y,n,n,
+c-vehicles-bicycle-8,y,n,n,
+c-vehicles-bicycle-9,y,n,n,
+c-vehicles-bicycle-10,n,n,n,The 'only' omits independent stationary balance by a skilled rider and support from a stand. Rewrite: needs balance or support to remain upright on its wheels
+c-vehicles-bicycle-11,y,n,n,
+c-vehicles-boat-0,y,n,n,
+c-vehicles-boat-1,y,n,y,"The range of rowing, sailing and motor propulsion supports the general concept in ordinary usage; narrower bank craft do not ordinarily span all three."
+c-vehicles-boat-2,y,n,n,
+c-vehicles-boat-3,y,n,n,
+c-vehicles-boat-4,y,n,n,
+c-vehicles-boat-5,y,n,n,
+c-vehicles-boat-6,y,n,n,
+c-vehicles-boat-7,y,n,n,
+c-vehicles-boat-8,y,n,n,
+c-vehicles-boat-9,y,n,n,
+c-vehicles-boat-10,y,n,n,
+c-vehicles-boat-11,y,n,n,
+c-vehicles-canoe-0,y,n,y,The single-bladed paddle picks the ordinary specific craft rather than the broader boat label.
+c-vehicles-canoe-1,y,n,n,
+c-vehicles-canoe-2,y,n,n,
+c-vehicles-canoe-3,y,n,n,
+c-vehicles-canoe-4,y,n,n,
+c-vehicles-canoe-5,y,n,n,
+c-vehicles-canoe-6,y,n,n,
+c-vehicles-canoe-7,y,n,n,
+c-vehicles-canoe-8,y,n,n,
+c-vehicles-canoe-9,y,n,n,
+c-vehicles-canoe-10,y,n,n,
+c-vehicles-canoe-11,y,n,n,
+c-vehicles-cart-0,y,n,n,Hand-pushed/pulled four-wheel wagons also fit.
+c-vehicles-cart-1,y,n,n,A wagon may be drawn by the same harnessed animals.
+c-vehicles-cart-2,y,n,n,
+c-vehicles-cart-3,?,n,n,The speed/no-engine description depends on intended cart type; animal-drawn carts can travel well above walking pace. Consider: is often moved by hand over short distances
+c-vehicles-cart-4,y,n,n,
+c-vehicles-cart-5,y,n,n,
+c-vehicles-cart-6,y,n,n,
+c-vehicles-cart-7,y,n,n,
+c-vehicles-cart-8,y,n,n,
+c-vehicles-cart-9,y,n,n,
+c-vehicles-cart-10,y,n,y,A single axle with a wheel at each end distinguishes this ordinary bank hauling concept. Rewrite: carries its load above wheels on a simple frame
+c-vehicles-cart-11,y,n,n,
+c-vehicles-ferry-0,y,n,n,
+c-vehicles-ferry-1,y,n,n,
+c-vehicles-ferry-2,y,n,n,A cargo jet can also take cars aboard through an end ramp; no water context appears in this clause.
+c-vehicles-ferry-3,y,n,n,
+c-vehicles-ferry-4,y,n,n,
+c-vehicles-ferry-5,y,n,n,'Often' does not claim that every operator is public; the drafter's caveat is accommodated.
+c-vehicles-ferry-6,y,n,n,
+c-vehicles-ferry-7,y,n,n,
+c-vehicles-ferry-8,y,n,n,The clause does not say that the journey is by water; island commuters also travel by jet or a more generic boat.
+c-vehicles-ferry-9,y,n,n,
+c-vehicles-ferry-10,y,n,n,
+c-vehicles-ferry-11,y,n,n,
+c-vehicles-jet-0,y,n,y,High cruising above clouds identifies this bank's ordinary aircraft. Rewrite: travels high above the ground during long journeys
+c-vehicles-jet-1,y,n,y,
+c-vehicles-jet-2,y,n,y,The usual swept-wing/tall-tail configuration identifies this bank aircraft. Rewrite: has surfaces shaped to guide its motion through air
+c-vehicles-jet-3,y,n,y,Runway takeoff and landing identify the bank's ordinary aircraft. Rewrite: departs from and returns to specially prepared facilities
+c-vehicles-jet-4,y,n,n,
+c-vehicles-jet-5,y,n,y,Air-force combat and reconnaissance identify this bank aircraft in ordinary usage. Rewrite: is used for several demanding military tasks
+c-vehicles-jet-6,y,n,n,
+c-vehicles-jet-7,y,n,y,Pilots in a nose cockpit identify this bank's ordinary aircraft. Rewrite: is controlled by trained crew from an enclosed station
+c-vehicles-jet-8,y,n,n,
+c-vehicles-jet-9,y,n,y,Airborne wheel retraction identifies this bank aircraft. Rewrite: has moving parts that retract during part of its journey
+c-vehicles-jet-10,y,n,y,Wing-stored kerosene identifies this bank aircraft. Rewrite: carries fuel in tanks built into its structure
+c-vehicles-jet-11,y,n,n,A crewed rocket also needs a pressurised breathing environment.
+c-vehicles-kayak-0,y,n,y,
+c-vehicles-kayak-1,y,n,n,
+c-vehicles-kayak-2,y,n,n,
+c-vehicles-kayak-3,y,n,y,"Predominantly one paddler, sometimes two, identifies the usual specific craft among this bank's paddled types. Rewrite: carries a small number of people across the water"
+c-vehicles-kayak-4,y,n,n,Skilled paddlers can also roll suitable canoes; this is not exclusive.
+c-vehicles-kayak-5,y,n,n,
+c-vehicles-kayak-6,y,n,n,
+c-vehicles-kayak-7,y,n,n,
+c-vehicles-kayak-8,y,n,y,Foot-pedal rudder control identifies the ordinary bank paddled craft. Rewrite: may use a small rudder to help with steering
+c-vehicles-kayak-9,y,n,n,
+c-vehicles-kayak-10,y,n,n,
+c-vehicles-kayak-11,y,n,n,
+c-vehicles-motorcycle-0,y,n,n,
+c-vehicles-motorcycle-1,y,n,n,
+c-vehicles-motorcycle-2,y,n,n,
+c-vehicles-motorcycle-3,y,n,n,
+c-vehicles-motorcycle-4,y,n,n,
+c-vehicles-motorcycle-5,y,n,n,
+c-vehicles-motorcycle-6,y,n,y,
+c-vehicles-motorcycle-7,y,n,n,
+c-vehicles-motorcycle-8,y,n,n,
+c-vehicles-motorcycle-9,y,n,n,
+c-vehicles-motorcycle-10,y,n,n,Sidecars can also be attached to scooters; marked status alone does not resolve that alternative.
+c-vehicles-motorcycle-11,y,n,n,
+c-vehicles-rocket-0,y,n,y,
+c-vehicles-rocket-1,y,n,y,Minute-scale consumption of most propellant identifies this bank launch system. Rewrite: uses a large amount of fuel during operation
+c-vehicles-rocket-2,y,n,n,
+c-vehicles-rocket-3,y,n,y,
+c-vehicles-rocket-4,y,n,n,
+c-vehicles-rocket-5,y,n,n,
+c-vehicles-rocket-6,y,n,y,Tall slender form with a pointed tip identifies this bank transport concept. Rewrite: has a narrow body shaped to reduce air resistance
+c-vehicles-rocket-7,y,n,n,
+c-vehicles-rocket-8,y,n,n,
+c-vehicles-rocket-9,y,n,y,The shift from expendable to reusable designs identifies this bank concept; 'increasingly' does not assert that all designs are reusable. Rewrite: has newer designs intended for repeated use
+c-vehicles-rocket-10,y,n,n,The drafter's exclusion-zone note does not make the acoustic hazard false; other loud bank machines also fit.
+c-vehicles-rocket-11,y,n,n,
+c-vehicles-scooter-0,y,n,y,Small wheels and a low foot platform identify this bank concept. Rewrite: has a compact frame suited to short journeys
+c-vehicles-scooter-1,y,n,n,
+c-vehicles-scooter-2,y,n,n,Balance bicycles can also be propelled by feet against the ground.
+c-vehicles-scooter-3,y,n,n,
+c-vehicles-scooter-4,y,n,n,
+c-vehicles-scooter-5,y,n,y,A battery housed in the foot deck identifies this bank electric form. Rewrite: may use a small electric motor and rechargeable battery
+c-vehicles-scooter-6,y,n,n,
+c-vehicles-scooter-7,y,n,n,
+c-vehicles-scooter-8,y,n,y,Standing and seated design families identify the ordinary bank concept. Rewrite: is available in designs for different kinds of riders
+c-vehicles-scooter-9,y,n,n,
+c-vehicles-scooter-10,y,n,n,The city-qualified claim does not imply uniform rules everywhere; the note concerns jurisdictional variation.
+c-vehicles-scooter-11,y,n,n,
+c-vehicles-submarine-0,y,n,y,Sustained concealed operation below the sea identifies this bank craft. Rewrite: operates in conditions that make direct observation difficult
+c-vehicles-submarine-1,y,n,y,A tall fin on top of the hull identifies this bank craft. Rewrite: has structures projecting above its main outer shell
+c-vehicles-submarine-2,y,n,y,
+c-vehicles-submarine-3,y,n,y,Depth control by changing buoyancy identifies this bank craft. Rewrite: adjusts its position using built-in control systems
+c-vehicles-submarine-4,y,n,y,"A long cylindrical, rounded-front hull identifies this bank craft. Rewrite: has a streamlined outer shape suited to moving through water"
+c-vehicles-submarine-5,y,n,y,Navigational and ship-detection sonar identifies this bank craft in ordinary usage. Rewrite: uses remote sensing to find its way safely
+c-vehicles-submarine-6,y,n,y,A common choice between nuclear and diesel propulsion identifies this bank craft. Rewrite: uses onboard machinery to supply power for long journeys
+c-vehicles-submarine-7,y,n,n,
+c-vehicles-submarine-8,y,n,n,
+c-vehicles-submarine-9,y,n,y,A pressure-resisting hull identifies this bank craft. Rewrite: has a strong outer structure suited to demanding conditions
+c-vehicles-submarine-10,y,n,n,
+c-vehicles-submarine-11,y,n,y,Extreme quietness to avoid detection identifies this bank craft in ordinary usage. Rewrite: is designed to reduce noise during normal operation
+c-vehicles-tractor-0,y,n,y,
+c-vehicles-tractor-1,y,n,n,
+c-vehicles-tractor-2,y,n,y,The open-seat versus glazed-cab range identifies this bank machine in ordinary usage. Rewrite: is controlled by a driver from a raised working position
+c-vehicles-tractor-3,y,n,n,
+c-vehicles-tractor-4,y,n,n,
+c-vehicles-tractor-5,y,n,n,
+c-vehicles-tractor-6,y,n,n,
+c-vehicles-tractor-7,y,n,n,
+c-vehicles-tractor-8,y,n,n,
+c-vehicles-tractor-9,y,n,y,The front-loader bucket attachment identifies this bank machine. Rewrite: can carry additional equipment for loading heavy objects
+c-vehicles-tractor-10,y,n,n,
+c-vehicles-tractor-11,y,n,n,'Often' is compatible with common maker colours without making colour an invariant.
+c-vehicles-train-0,y,n,y,
+c-vehicles-train-1,y,n,y,Linked sections following one another identify this bank concept in ordinary usage. Rewrite: carries its load in several connected sections
+c-vehicles-train-2,y,n,y,A separate engine pulling or pushing identifies this bank consist. Rewrite: can be propelled from different positions along its length
+c-vehicles-train-3,y,n,n,
+c-vehicles-train-4,y,n,n,
+c-vehicles-train-5,y,n,n,
+c-vehicles-train-6,y,n,n,Overhead supply is also possible for specially equipped trucks; it does not identify a rail system on its own.
+c-vehicles-train-7,y,n,n,
+c-vehicles-train-8,y,n,y,Inability to swerve plus long stopping distance identifies this bank concept. Rewrite: needs careful advance planning when slowing to a stop
+c-vehicles-train-9,y,n,n,
+c-vehicles-train-10,y,n,n,
+c-vehicles-train-11,y,n,n,
+c-vehicles-truck-0,y,n,n,A van also separates its driver compartment from a rear loading area; the clause does not specify a detached body.
+c-vehicles-truck-1,y,n,n,
+c-vehicles-truck-2,y,n,n,
+c-vehicles-truck-3,y,n,n,
+c-vehicles-truck-4,y,n,n,
+c-vehicles-truck-5,y,n,n,
+c-vehicles-truck-6,y,n,n,
+c-vehicles-truck-7,y,n,n,
+c-vehicles-truck-8,y,n,n,
+c-vehicles-truck-9,y,n,n,
+c-vehicles-truck-10,y,n,n,
+c-vehicles-truck-11,y,n,y,
+c-vehicles-van-0,y,n,n,A box-bodied truck can also enclose load space behind the driver.
+c-vehicles-van-1,y,n,n,
+c-vehicles-van-2,y,n,n,
+c-vehicles-van-3,y,n,n,
+c-vehicles-van-4,y,n,n,'Can' is compatible with light models permitted on an ordinary licence; it does not assert that every size qualifies.
+c-vehicles-van-5,y,n,n,
+c-vehicles-van-6,y,n,n,
+c-vehicles-van-7,y,n,y,The family luggage/three-row arrangement identifies this bank's ordinary people carrier. Rewrite: can carry several people together with their luggage
+c-vehicles-van-8,y,n,n,
+c-vehicles-van-9,y,n,n,
+c-vehicles-van-10,y,n,n,
+c-vehicles-van-11,y,n,y,Hotel airport shuttling identifies this bank people carrier in ordinary usage. Rewrite: carries passengers on short local journeys
+c-vehicles-wagon-0,y,n,n,
+c-vehicles-wagon-1,y,n,n,
+c-vehicles-wagon-2,y,n,n,
+c-vehicles-wagon-3,y,n,n,Hooped canvas covers also occur on animal-drawn carts.
+c-vehicles-wagon-4,y,n,n,
+c-vehicles-wagon-5,y,n,n,
+c-vehicles-wagon-6,y,n,n,
+c-vehicles-wagon-7,?,n,n,Iron-rimmed spoked wheels describe historical forms; modern farm and toy senses differ. Consider: traditionally used large spoked wheels on rough roads
+c-vehicles-wagon-8,y,n,n,
+c-vehicles-wagon-9,y,n,n,A child can also pull a toy cart with a long handle.
+c-vehicles-wagon-10,?,n,n,Wheel-block brakes depend on period and form; the bank also invokes modern toy and farm senses. Consider: can have a brake to help control its movement
+c-vehicles-wagon-11,y,n,n,
+c-instruments-accordion-0,y,n,n,A marching drum can also be carried on a front harness; the straps alone do not settle the bank choice.
+c-instruments-accordion-1,y,n,y,
+c-instruments-accordion-2,y,n,y,Free metal reeds driven by air identify this bank member. Rewrite: makes its sound through parts that vibrate inside a casing.
+c-instruments-accordion-3,y,n,y,
+c-instruments-accordion-4,y,n,n,
+c-instruments-accordion-5,y,n,n,
+c-instruments-accordion-6,y,n,n,Register/tone selection can also describe an electronic keyboard; not decisive by itself.
+c-instruments-accordion-7,y,n,n,
+c-instruments-accordion-8,y,n,y,The two directions of airflow giving different notes identify the bisonoric form within this bank. Rewrite: can produce changing notes during a repeated movement.
+c-instruments-accordion-9,y,n,n,
+c-instruments-accordion-10,y,n,y,Detuned paired reeds identify this member against the other bank concepts. Rewrite: can blend slightly differing pitches into a shimmering tone.
+c-instruments-accordion-11,y,n,n,The qualified weight claim is supported by Hohner Atlantic IV 120 MP specifications: https://hohner.de/en/instruments/archive/atlantic/atlantic-iv-120-mp
+c-instruments-bell-0,y,n,n,
+c-instruments-bell-1,y,n,y,
+c-instruments-bell-2,y,n,y,
+c-instruments-bell-3,y,n,y,Removing metal to tune its ringing pitch identifies this bank member. Rewrite: can have its tone adjusted during manufacture.
+c-instruments-bell-4,y,n,n,
+c-instruments-bell-5,y,n,n,
+c-instruments-bell-6,y,n,n,Tuned sets and divided notes also fit an ensemble of tuned drums.
+c-instruments-bell-7,y,n,n,
+c-instruments-bell-8,y,n,n,
+c-instruments-bell-9,y,n,n,
+c-instruments-bell-10,y,n,n,
+c-instruments-bell-11,y,n,n,
+c-instruments-drum-0,y,n,n,Tabla is also in the bank and has a stretched membrane on a shell.
+c-instruments-drum-1,y,n,n,
+c-instruments-drum-2,y,n,n,Tabla also admits tension adjustment.
+c-instruments-drum-3,y,n,n,
+c-instruments-drum-4,y,n,y,
+c-instruments-drum-5,y,n,n,
+c-instruments-drum-6,y,n,y,The calfskin-to-polyester head construction identifies drum rather than the ordinary tabla. Rewrite: often uses modern synthetic coverings in place of natural ones.
+c-instruments-drum-7,y,n,y,The marching-band harness points directly to drum in this bank. Rewrite: can be carried while its player moves in a procession.
+c-instruments-drum-8,y,n,n,The one-head alternative also fits tabla; the disjunction does not exclude it.
+c-instruments-drum-9,y,n,n,
+c-instruments-drum-10,y,n,n,
+c-instruments-drum-11,y,n,y,
+c-instruments-flute-0,y,n,y,
+c-instruments-flute-1,y,n,n,
+c-instruments-flute-2,y,n,n,
+c-instruments-flute-3,y,n,y,Its place above most orchestral winds singles out flute within the bank. Rewrite: often carries a bright melody in the upper register.
+c-instruments-flute-4,y,n,n,Recorder and whistle also use an edge without a reed.
+c-instruments-flute-5,y,n,n,
+c-instruments-flute-6,y,n,n,
+c-instruments-flute-7,y,n,n,
+c-instruments-flute-8,y,n,n,
+c-instruments-flute-9,y,n,n,
+c-instruments-flute-10,y,n,y,The large escaping airstream is distinctive here; Yamaha confirms the air demand: https://hub.yamaha.com/music-educators/instruments/winds-instruments/first-year-flutes-success/ . Rewrite: requires careful control of a steady flowing breath.
+c-instruments-flute-11,y,n,n,"Accept as a comparative typical-tone description, not across every register and dynamic: https://newt.phys.unsw.edu.au/jw/fluteacoustics.html . Recorder remains an alternative."
+c-instruments-guitar-0,y,n,y,
+c-instruments-guitar-1,y,n,y,Metal frets across the fingerboard identify guitar among the bank strings. Rewrite: has a playing surface along which pitch can be changed.
+c-instruments-guitar-2,y,n,y,The normal pick-or-bare-hand strumming/plucking practice identifies guitar in this bank. Rewrite: can produce a succession of short notes by plucking.
+c-instruments-guitar-3,y,n,n,Violin and viola also have a waist.
+c-instruments-guitar-4,y,n,y,Round sound hole beneath strings identifies guitar among the bank alternatives. Rewrite: has an opening that helps its sound project outward.
+c-instruments-guitar-5,y,n,y,Strummed chordal accompaniment singles out guitar within the bank. Rewrite: often supplies a repeating accompaniment for a singer.
+c-instruments-guitar-6,y,n,n,Electric bowed strings can also use pickups and an amplifier; magnetic pickups make guitar likely but do not exclude them.
+c-instruments-guitar-7,y,n,n,
+c-instruments-guitar-8,y,n,n,
+c-instruments-guitar-9,y,n,y,Geared machines on a headstock conventionally identify guitar here. Rewrite: has adjustable fittings that set the tension of its strings.
+c-instruments-guitar-10,n,n,n,"Amplification alone does not prevent a plucked note decaying; sustain depends on construction, feedback or processing. Rewrite: lets each freely plucked note fade unless it is excited again."
+c-instruments-guitar-11,y,n,n,Synthetic versus metal stringing also occurs for the bowed strings in the bank.
+c-instruments-keyboard-0,?,n,n,This selects a portable home model; stage keyboards and controllers often lack built-in speakers or battery operation. No narrower sense is declared. Rewrite: often runs from an external power supply.
+c-instruments-keyboard-1,y,n,n,A typical electronic keyboard offers many presets; synth remains an alternative.
+c-instruments-keyboard-2,?,n,n,"Automatic accompaniment selects arranger/home models, not keyboards in general; a synth workstation can also provide it. Rewrite: can provide chords to accompany a melody."
+c-instruments-keyboard-3,?,n,n,A shortened key span and light body are portable-model properties; full-span stage versions are ordinary too. Rewrite: is made in several sizes for different playing needs.
+c-instruments-keyboard-4,y,n,n,
+c-instruments-keyboard-5,y,n,n,
+c-instruments-keyboard-6,y,n,n,
+c-instruments-keyboard-7,y,n,n,
+c-instruments-keyboard-8,?,n,n,"Built-in lessons are a learner-model feature, not established for the unqualified concept. Rewrite: is available in versions designed for beginners."
+c-instruments-keyboard-9,y,n,n,
+c-instruments-keyboard-10,y,n,n,
+c-instruments-keyboard-11,?,n,n,Sampling is typical of many home models but the concept includes synthesis/controllers without that sound architecture. Rewrite: can offer a range of electronically produced tones.
+c-instruments-piano-0,y,n,y,
+c-instruments-piano-1,y,n,y,
+c-instruments-piano-2,y,n,n,
+c-instruments-piano-3,y,n,n,
+c-instruments-piano-4,y,n,n,High string tension and a sturdy frame are not quantified enough to exclude the other strings.
+c-instruments-piano-5,y,n,n,
+c-instruments-piano-6,y,n,n,Velocity-sensitive keyboard and synth also fit.
+c-instruments-piano-7,y,n,y,Accept the approximate household interval; Yamaha recommends at least annual tuning: https://www.yamaha.com/en/musical_instrument_guide/piano/maintenance/maintenance002.html . Technician tuning on this schedule identifies piano in the bank. Rewrite: benefits from regular servicing to keep its pitch accurate.
+c-instruments-piano-8,y,n,n,"Spruce soundboards also occur on guitar, violin and viola; large is relative."
+c-instruments-piano-9,y,n,n,A twelve-string guitar also has multiple strings for a note.
+c-instruments-piano-10,y,n,n,
+c-instruments-piano-11,y,n,y,The exceptionally wide acoustic pitch span identifies piano in this bank. Rewrite: can play both a low accompaniment and a high melody.
+c-instruments-recorder-0,y,n,n,
+c-instruments-recorder-1,y,n,y,
+c-instruments-recorder-2,y,n,y,
+c-instruments-recorder-3,y,n,n,Sax also has these size names.
+c-instruments-recorder-4,y,n,y,The historical eclipse distinguishes recorder from the bank's continuously used European strings/winds. Rewrite: has surviving examples from several centuries ago.
+c-instruments-recorder-5,y,n,n,End-blown flute and whistle also fit.
+c-instruments-recorder-6,y,n,n,Both boxwood and molded-resin forms also occur in the broader flute concept.
+c-instruments-recorder-7,y,n,n,
+c-instruments-recorder-8,y,n,n,Whistle also has a duct and edge.
+c-instruments-recorder-9,y,n,y,Half-covering the register hole to reach higher notes identifies the ordinary recorder practice here. Rewrite: reaches different notes by changing breath and hole coverage.
+c-instruments-recorder-10,y,n,n,
+c-instruments-recorder-11,y,n,n,
+c-instruments-sax-0,y,n,y,A ligature-held single reed identifies sax among these 128 concepts; clarinet is absent. Rewrite: has a detachable mouthpiece fitted at one end.
+c-instruments-sax-1,y,n,y,"Woodwinds is a narrower classification, not a synonym for the whole instruments family."
+c-instruments-sax-2,y,n,y,
+c-instruments-sax-3,y,n,y,This conventional quartet of sizes identifies sax in the bank. Rewrite: comes in several sizes with different pitch ranges.
+c-instruments-sax-4,y,n,n,
+c-instruments-sax-5,y,n,n,
+c-instruments-sax-6,y,n,n,
+c-instruments-sax-7,y,n,n,
+c-instruments-sax-8,y,n,y,The detachable curved crook identifies sax here. Rewrite: can have a detachable section at the blowing end.
+c-instruments-sax-9,y,n,n,
+c-instruments-sax-10,y,n,y,The standard size-dependent B-flat/E-flat family tuning identifies sax. Rewrite: is made in sizes with different sounding pitches.
+c-instruments-sax-11,y,n,n,
+c-instruments-synth-0,y,n,n,Electronic keyboard is also a bank member.
+c-instruments-synth-1,y,n,n,"Marked status does not remove the keyboard/workstation alternative, which can have a resonant filter too."
+c-instruments-synth-2,y,n,y,The desktop sound module without keys distinguishes synth from the ordinary keyboard alternative. Rewrite: comes in several forms for different performance setups.
+c-instruments-synth-3,y,n,n,
+c-instruments-synth-4,y,n,n,
+c-instruments-synth-5,y,n,y,"Analog hardware, digital hardware and software forms directly identify synth in the bank. Rewrite: can create tones through electronically controlled processes."
+c-instruments-synth-6,y,n,n,
+c-instruments-synth-7,y,n,n,
+c-instruments-synth-8,y,n,n,
+c-instruments-synth-9,y,n,n,
+c-instruments-synth-10,y,n,n,
+c-instruments-synth-11,y,n,n,
+c-instruments-tabla-0,y,n,n,Pairs of hand drums also fit the broader drum concept; this does not establish tabla by itself.
+c-instruments-tabla-1,y,n,n,"Other South Asian drums also accompany these performers, leaving drum as a bank alternative."
+c-instruments-tabla-2,y,n,y,
+c-instruments-tabla-3,y,n,n,
+c-instruments-tabla-4,y,n,y,
+c-instruments-tabla-5,y,n,n,
+c-instruments-tabla-6,y,n,n,Recited stroke syllables also teach other drums; the bank includes drum.
+c-instruments-tabla-7,y,n,n,Pressure-driven pitch changes also occur with other hand drums.
+c-instruments-tabla-8,y,n,n,
+c-instruments-tabla-9,y,n,n,
+c-instruments-tabla-10,y,n,n,
+c-instruments-tabla-11,y,n,n,
+c-instruments-triangle-0,y,n,y,
+c-instruments-triangle-1,y,n,n,Suspension by a cord also fits bell.
+c-instruments-triangle-2,y,n,n,A metal striker can also sound a bell.
+c-instruments-triangle-3,y,n,n,Unpitched bells also give bright inharmonic ringing tones.
+c-instruments-triangle-4,y,n,n,
+c-instruments-triangle-5,y,n,y,
+c-instruments-triangle-6,y,n,n,
+c-instruments-triangle-7,y,n,n,
+c-instruments-triangle-8,y,n,n,
+c-instruments-triangle-9,y,n,n,
+c-instruments-triangle-10,y,n,n,
+c-instruments-triangle-11,y,n,n,
+c-instruments-trumpet-0,y,n,y,
+c-instruments-trumpet-1,y,n,y,The lip-buzzed cup mouthpiece identifies the bank's only brass wind. Rewrite: needs a steady breath to sustain a note.
+c-instruments-trumpet-2,y,n,n,
+c-instruments-trumpet-3,y,n,n,
+c-instruments-trumpet-4,y,n,y,Only trumpet fits a high brass-section role in the bank. Rewrite: often carries a bright melody above an accompaniment.
+c-instruments-trumpet-5,y,n,y,The folded compact tubing singles out trumpet among the bank winds. Rewrite: has shaped tubing that channels a stream of air.
+c-instruments-trumpet-6,y,n,y,The combination of fanfares and military calls identifies trumpet here. Rewrite: has a role in ceremonial music and public celebrations.
+c-instruments-trumpet-7,y,n,y,A cone mute inserted into the opening identifies trumpet in this bank. Rewrite: can use an added fitting to alter its tone.
+c-instruments-trumpet-8,y,n,n,
+c-instruments-trumpet-9,y,n,n,Other wind concepts also change notes through breath and embouchure.
+c-instruments-trumpet-10,y,n,y,The history from limited-note valveless forms identifies trumpet here. Rewrite: has changed in design over many centuries of use.
+c-instruments-trumpet-11,y,n,n,"Baritone sax also has a water key, so this is not unique in the bank."
+c-instruments-viola-0,y,n,y,
+c-instruments-viola-1,y,n,y,
+c-instruments-viola-2,y,n,y,Viola is the bank's bowed string between the orchestral extremes; cello is absent. Rewrite: often plays a line in the middle register.
+c-instruments-viola-3,y,n,n,
+c-instruments-viola-4,y,n,n,Second violin also supplies inner harmony.
+c-instruments-viola-5,y,n,n,
+c-instruments-viola-6,y,n,n,
+c-instruments-viola-7,y,n,n,
+c-instruments-viola-8,y,n,n,
+c-instruments-viola-9,y,n,n,
+c-instruments-viola-10,y,n,n,
+c-instruments-viola-11,y,n,n,
+c-instruments-violin-0,y,n,y,
+c-instruments-violin-1,y,n,n,
+c-instruments-violin-2,y,n,n,
+c-instruments-violin-3,y,n,y,
+c-instruments-violin-4,y,n,n,Fractional student sizes also occur for guitar.
+c-instruments-violin-5,y,n,n,
+c-instruments-violin-6,y,n,n,
+c-instruments-violin-7,y,n,n,
+c-instruments-violin-8,y,n,n,
+c-instruments-violin-9,y,n,n,
+c-instruments-violin-10,y,n,n,Rare antique violas can also be valued in the millions.
+c-instruments-violin-11,y,n,n,
+c-instruments-whistle-0,?,n,n,"This selects the six-hole tin-whistle sense, which concepts.json does not declare; an ordinary signal whistle has no tone-hole row. A simple metal flute is also a bank alternative. Rewrite: produces a tone when air is blown through it."
+c-instruments-whistle-1,y,n,n,Accept for the musical folk use; the broader word also has non-melodic uses.
+c-instruments-whistle-2,y,n,n,
+c-instruments-whistle-3,?,n,n,The slim tube construction selects a musical subtype; many ordinary whistles are compact chambers. Rewrite: directs blown air through a small opening.
+c-instruments-whistle-4,?,n,n,Different keyed tube lengths select tin whistles rather than the undeclared broader word. Rewrite: is sold in several shapes and sizes.
+c-instruments-whistle-5,y,n,n,The stated folk-tune use supplies the musical context; flute also fits.
+c-instruments-whistle-6,?,n,n,Half-holing requires the unstated melodic subtype; signal whistles lack these holes. Rewrite: can be made in versions that play several pitches.
+c-instruments-whistle-7,?,n,n,Octave overblowing is true of tin whistles but not the ordinary class as a whole. Rewrite: changes its sound as the airflow changes.
+c-instruments-whistle-8,y,n,n,
+c-instruments-whistle-9,?,n,n,Low versions and breathier tone select a melodic tube subtype that the concept file does not specify. Rewrite: comes in versions with different tone qualities.
+c-instruments-whistle-10,?,n,n,"An upper octave presupposes the melodic subtype, not every ordinary whistle. Rewrite: can produce a bright and piercing tone."
+c-instruments-whistle-11,?,n,n,The front-hole layout is a tin-whistle description; signal whistles have no row. Simple flutes can also share this layout. Rewrite: can have a simple design with few moving parts.
+c-body-parts-ankle-0,y,n,y,
+c-body-parts-ankle-1,y,n,y,
+c-body-parts-ankle-2,y,n,n,
+c-body-parts-ankle-3,y,n,n,
+c-body-parts-ankle-4,y,n,y,The paired projecting bony knobs conventionally identify ankle in this bank. Rewrite: has firm bone beneath a thin covering of skin.
+c-body-parts-ankle-5,y,n,n,Toes and fingers can also swell during travel; not sufficient alone.
+c-body-parts-ankle-6,y,n,n,
+c-body-parts-ankle-7,y,n,n,
+c-body-parts-ankle-8,y,n,n,
+c-body-parts-ankle-9,y,n,n,Toes may also be visible; the clothing clue alone does not settle the bank choice.
+c-body-parts-ankle-10,y,n,n,
+c-body-parts-ankle-11,y,n,n,
+c-body-parts-chin-0,y,n,y,
+c-body-parts-chin-1,y,n,y,
+c-body-parts-chin-2,y,n,y,An implant for a stronger profile conventionally identifies chin among these concepts. Rewrite: can have its shape changed by cosmetic surgery.
+c-body-parts-chin-3,y,n,n,Neck also gets shaved.
+c-body-parts-chin-4,y,n,n,The same helmet protection also covers lips and skull; the word guard does not explicitly name its location.
+c-body-parts-chin-5,y,n,n,Liver is also a bank member and a recognized knockout target in boxing.
+c-body-parts-chin-6,y,n,y,The attractive facial dimple description singles out chin within this bank. Rewrite: can have a small natural indentation in its surface.
+c-body-parts-chin-7,y,n,n,
+c-body-parts-chin-8,y,n,n,Accept for the ordinary soft-tissue region; neck is also an alternative.
+c-body-parts-chin-9,y,n,n,
+c-body-parts-chin-10,y,n,n,
+c-body-parts-chin-11,y,n,n,
+c-body-parts-elbow-0,y,n,y,
+c-body-parts-elbow-1,y,n,y,
+c-body-parts-elbow-2,y,n,n,
+c-body-parts-elbow-3,y,n,n,Gripping strain can also affect finger or thumb; tennis-related wording alone is not an anatomical location.
+c-body-parts-elbow-4,y,n,y,Pressure swelling from prolonged leaning points to the elbow bursa here. Rewrite: may swell painfully after repeated pressure or irritation.
+c-body-parts-elbow-5,y,n,n,Knees also wear holes needing patches.
+c-body-parts-elbow-6,y,n,n,Finger flexion during grasping leaves a bank alternative.
+c-body-parts-elbow-7,y,n,n,
+c-body-parts-elbow-8,y,n,y,The toddler traction injury identifies elbow: https://www.orthoinfo.org/diseases--conditions/nursemaids-elbow . Rewrite: can be injured if it is suddenly pulled too hard.
+c-body-parts-elbow-9,y,n,n,
+c-body-parts-elbow-10,y,n,n,
+c-body-parts-elbow-11,y,n,n,
+c-body-parts-finger-0,y,n,y,Accept the ordinary contrast with the separately listed thumb.
+c-body-parts-finger-1,y,n,y,
+c-body-parts-finger-2,y,n,n,
+c-body-parts-finger-3,y,n,n,Thumb also operates typing keys.
+c-body-parts-finger-4,y,n,n,Thumb can also be used to turn pages.
+c-body-parts-finger-5,y,n,n,
+c-body-parts-finger-6,y,n,n,
+c-body-parts-finger-7,y,n,n,Most toes also have three phalanges; thumb is excluded but toe is not.
+c-body-parts-finger-8,y,n,n,
+c-body-parts-finger-9,y,n,n,
+c-body-parts-finger-10,y,n,n,
+c-body-parts-finger-11,y,n,n,Thumb also has its own glove sleeve.
+c-body-parts-hip-0,y,n,y,
+c-body-parts-hip-1,y,n,y,"Accept the ordinary anatomical-region sense, rather than the joint surfaces alone."
+c-body-parts-hip-2,y,n,y,The characteristic elderly-woman fall fracture points to hip in this bank. Rewrite: can be fractured by a fall onto a hard surface.
+c-body-parts-hip-3,y,n,y,The side perch for carrying a toddler identifies hip here. Rewrite: can help support a child being carried close.
+c-body-parts-hip-4,y,n,y,Trouser-sizing circumference selects hip; waist is absent from the bank. Rewrite: is sometimes measured to fit clothing comfortably.
+c-body-parts-hip-5,y,n,n,Knee also bends deeply.
+c-body-parts-hip-6,y,n,n,
+c-body-parts-hip-7,y,n,n,
+c-body-parts-hip-8,y,n,n,
+c-body-parts-hip-9,y,n,n,
+c-body-parts-hip-10,y,n,n,
+c-body-parts-hip-11,y,n,n,
+c-body-parts-kidney-0,y,n,y,
+c-body-parts-kidney-1,y,n,y,
+c-body-parts-kidney-2,y,n,n,
+c-body-parts-kidney-3,y,n,n,
+c-body-parts-kidney-4,y,n,n,
+c-body-parts-kidney-5,y,n,n,Chronic metabolic/vascular damage does not exclude the other internal organs by itself.
+c-body-parts-kidney-6,y,n,n,
+c-body-parts-kidney-7,y,n,n,
+c-body-parts-kidney-8,y,n,n,The approximate fist-size comparison is supported by NIDDK: https://www.niddk.nih.gov/health-information/kidney-disease/kidneys-how-they-work . An empty stomach is another plausible bank comparison.
+c-body-parts-kidney-9,y,n,y,The position behind the gut beside the spine identifies kidney within the bank. Rewrite: lies deep inside beneath several layers of tissue.
+c-body-parts-kidney-10,y,n,n,
+c-body-parts-kidney-11,y,n,n,
+c-body-parts-knee-0,y,n,y,
+c-body-parts-knee-1,y,n,y,
+c-body-parts-knee-2,y,n,n,Elbows can also rub the floor during crawling.
+c-body-parts-knee-3,y,n,n,
+c-body-parts-knee-4,y,n,n,
+c-body-parts-knee-5,y,n,n,
+c-body-parts-knee-6,y,n,n,
+c-body-parts-knee-7,y,n,n,
+c-body-parts-knee-8,y,n,n,A straight-position hinged brace can also protect an elbow; not unique to knee.
+c-body-parts-knee-9,y,n,n,
+c-body-parts-knee-10,y,n,n,
+c-body-parts-knee-11,y,n,y,The seated desk-underside collision identifies knee among the bank concepts. Rewrite: can be bumped painfully against nearby furniture.
+c-body-parts-lip-0,y,n,y,
+c-body-parts-lip-1,y,n,y,
+c-body-parts-lip-2,y,n,n,
+c-body-parts-lip-3,y,n,n,
+c-body-parts-lip-4,y,n,n,
+c-body-parts-lip-5,y,n,n,Chin can also tremble before crying.
+c-body-parts-lip-6,y,n,n,
+c-body-parts-lip-7,y,n,y,Loss of fullness and thinning conventionally identify lip within the bank. Rewrite: changes in shape and texture as a person ages.
+c-body-parts-lip-8,y,n,n,
+c-body-parts-lip-9,y,n,n,
+c-body-parts-lip-10,y,n,n,
+c-body-parts-lip-11,y,n,y,Contact with the drinking rim identifies lip in ordinary use. Rewrite: is sensitive to contact with hot or cold surfaces.
+c-body-parts-liver-0,y,n,y,"Organ is a subset of body parts, not a synonym for the full family; no semantic family-name leak."
+c-body-parts-liver-1,y,n,y,
+c-body-parts-liver-2,y,n,n,Kidney also clears drugs and toxic substances from blood.
+c-body-parts-liver-3,y,n,n,"True for a partial graft, as the drafter notes: https://www.niddk.nih.gov/-/media/Files/Liver-Disease/livertransplant_508.pdf . Kidney is also a living-donor possibility."
+c-body-parts-liver-4,y,n,n,
+c-body-parts-liver-5,y,n,n,
+c-body-parts-liver-6,y,n,n,"Accept as approximate adult anatomy, not a fixed mass: https://my.clevelandclinic.org/health/body/21481-liver . Weight alone also fits some adult rabbits in the bank."
+c-body-parts-liver-7,y,n,y,Dark reddish-brown lobes distinguish liver from the bank's smooth unlobed adult kidney and usually pinkish lung. Rewrite: has a smooth surface with a rich dark colour.
+c-body-parts-liver-8,y,n,n,
+c-body-parts-liver-9,y,n,n,
+c-body-parts-liver-10,y,n,n,
+c-body-parts-liver-11,y,n,y,"Among listed organs, a whole liver is indispensable; one lung/kidney can be removed and stomach can be removed. Rewrite: performs functions essential to maintaining normal health."
+c-body-parts-lung-0,y,n,y,
+c-body-parts-lung-1,y,n,y,
+c-body-parts-lung-2,y,n,n,Kidney is another paired soft organ.
+c-body-parts-lung-3,y,n,n,
+c-body-parts-lung-4,y,n,n,Lower rib fractures can also injure liver or kidney.
+c-body-parts-lung-5,y,n,y,Cough-spread viral infection identifies the respiratory organ within this bank. Rewrite: can suffer infection that needs medical attention.
+c-body-parts-lung-6,y,n,n,
+c-body-parts-lung-7,y,n,y,Chest X-ray visibility identifies lung among the listed organs. Rewrite: can be examined using medical imaging when symptoms develop.
+c-body-parts-lung-8,y,n,n,"Accept pinkish as a general healthy-tissue description, allowing the mottling explicitly disclosed in the note."
+c-body-parts-lung-9,y,n,n,
+c-body-parts-lung-10,y,n,n,
+c-body-parts-lung-11,y,n,n,
+c-body-parts-neck-0,y,n,y,
+c-body-parts-neck-1,y,n,y,
+c-body-parts-neck-2,y,n,n,
+c-body-parts-neck-3,y,n,n,Ankle can also carry a fine chain.
+c-body-parts-neck-4,y,n,n,A pulse can also be felt beside the ankle.
+c-body-parts-neck-5,y,n,y,The characteristic rear-impact strain identifies neck here. Rewrite: can be strained by a sudden unexpected movement.
+c-body-parts-neck-6,y,n,n,
+c-body-parts-neck-7,y,n,n,
+c-body-parts-neck-8,y,n,n,
+c-body-parts-neck-9,y,n,y,Massage for tension and headaches identifies neck among ordinary bank interpretations. Rewrite: can be gently massaged to ease muscular tension.
+c-body-parts-neck-10,y,n,y,Palpable swollen glands during a cold locate neck within this bank. Rewrite: can become tender during an illness.
+c-body-parts-neck-11,y,n,y,The forward-bent phone-viewing posture identifies neck. Rewrite: may become uncomfortable after staying bent for hours.
+c-body-parts-skull-0,y,n,y,
+c-body-parts-skull-1,y,n,y,
+c-body-parts-skull-2,y,n,n,Other developing bones also have more unossified tissue.
+c-body-parts-skull-3,y,n,n,
+c-body-parts-skull-4,y,n,y,Hard-hat protection identifies skull among the bank parts. Rewrite: can be protected from blows by rigid safety equipment.
+c-body-parts-skull-5,y,n,n,Hip/pelvic bones are also studied for age and sex estimation.
+c-body-parts-skull-6,y,n,n,
+c-body-parts-skull-7,y,n,n,Other bones in the bank also persist after soft tissue decays.
+c-body-parts-skull-8,y,n,y,Underlying shape of face and forehead identifies skull. Rewrite: gives support and shape to overlying soft tissue.
+c-body-parts-skull-9,y,n,n,
+c-body-parts-skull-10,y,n,n,The hip bone also comprises firmly fused bones.
+c-body-parts-skull-11,y,n,n,Accept the stated average tendency; not a sex classifier for individuals.
+c-body-parts-stomach-0,y,n,y,
+c-body-parts-stomach-1,y,n,y,
+c-body-parts-stomach-2,y,n,y,"A hollow, highly distensible muscular organ identifies stomach among the listed organs. Rewrite: has tissue that expands and contracts as it works."
+c-body-parts-stomach-3,y,n,n,
+c-body-parts-stomach-4,y,n,y,Queasiness on a rough crossing conventionally identifies stomach in the bank. Rewrite: can feel uncomfortable during a long journey.
+c-body-parts-stomach-5,y,n,y,Being upset by bad shellfish is an idiomatic stomach description. Rewrite: can develop symptoms after an infection.
+c-body-parts-stomach-6,y,n,y,The folded inner lining identifies stomach among these bank organs. Rewrite: has internal tissue whose surface is not smooth.
+c-body-parts-stomach-7,y,n,n,Liver is also vulnerable to a doubling-over body punch.
+c-body-parts-stomach-8,y,n,y,Accept the source-of-reflux reading described by the note: https://www.niddk.nih.gov/health-information/digestive-diseases/acid-reflux-ger-gerd-adults . The rising burning symptom identifies stomach here. Rewrite: can cause discomfort felt beyond its own location.
+c-body-parts-stomach-9,y,n,n,Lung can also be examined with a camera passed through the throat.
+c-body-parts-stomach-10,y,n,y,Post-meal tightness and bloating identify stomach in ordinary language. Rewrite: can expand enough to produce a feeling of pressure.
+c-body-parts-stomach-11,y,n,y,The meal-satiety function conventionally identifies stomach here. Rewrite: sends signals that influence how a person feels.
+c-body-parts-thumb-0,y,n,y,
+c-body-parts-thumb-1,y,n,y,
+c-body-parts-thumb-2,y,n,n,
+c-body-parts-thumb-3,y,n,n,
+c-body-parts-thumb-4,y,n,n,Finger can also press a drawing pin.
+c-body-parts-thumb-5,y,n,n,
+c-body-parts-thumb-6,y,n,n,
+c-body-parts-thumb-7,y,n,n,
+c-body-parts-thumb-8,y,n,n,
+c-body-parts-thumb-9,y,n,n,
+c-body-parts-thumb-10,y,n,n,Finger also has ridge patterns.
+c-body-parts-thumb-11,y,n,n,
+c-body-parts-toe-0,y,n,y,
+c-body-parts-toe-1,y,n,y,
+c-body-parts-toe-2,y,n,n,
+c-body-parts-toe-3,y,n,n,
+c-body-parts-toe-4,y,n,n,Ankle can also blister from shoe rubbing.
+c-body-parts-toe-5,y,n,y,The damp-sock fungal-infection association identifies toe in this bank. Rewrite: can develop a fungal infection in warm damp conditions.
+c-body-parts-toe-6,y,n,y,Reinforced construction boots conventionally signal toe protection. Rewrite: can be protected by reinforced safety clothing.
+c-body-parts-toe-7,y,n,y,Curling to grip while walking barefoot identifies toe. Rewrite: can curl during coordinated movement.
+c-body-parts-toe-8,y,n,n,
+c-body-parts-toe-9,y,n,n,
+c-body-parts-toe-10,y,n,n,
+c-body-parts-toe-11,y,n,n,
+c-body-parts-tongue-0,y,n,y,
+c-body-parts-tongue-1,y,n,y,
+c-body-parts-tongue-2,y,n,n,
+c-body-parts-tongue-3,y,n,n,
+c-body-parts-tongue-4,y,n,n,
+c-body-parts-tongue-5,y,n,n,
+c-body-parts-tongue-6,y,n,n,
+c-body-parts-tongue-7,y,n,n,
+c-body-parts-tongue-8,y,n,n,
+c-body-parts-tongue-9,y,n,n,
+c-body-parts-tongue-10,y,n,n,
+c-body-parts-tongue-11,y,n,n,Accept the general oral-tissue tendency; lip is also an alternative. Human oral wound research: https://pmc.ncbi.nlm.nih.gov/articles/6598699/ .
+c-materials-brick-0,y,n,y,
+c-materials-brick-1,y,n,n,
+c-materials-brick-2,y,n,n,
+c-materials-brick-3,y,n,n,
+c-materials-brick-4,y,n,n,
+c-materials-brick-5,y,n,n,
+c-materials-brick-6,y,n,n,Concrete blocks and dressed stone also build mortared walls/chimneys; the marked clue is not unique in the bank.
+c-materials-brick-7,y,n,n,Cement is also kiln-produced.
+c-materials-brick-8,y,n,n,
+c-materials-brick-9,y,n,n,Concrete masonry units also come in standard sizes.
+c-materials-brick-10,n,n,y,"Glazing is a surface finish, not a weight-saving method; the shared purpose is misleading. The glazed/hollow/perforated list is also identifying. Rewrite: is made in forms suited to different building uses."
+c-materials-brick-11,y,n,n,
+c-materials-bronze-0,y,n,y,"Accept the conventional tin-alloy sense; the later marine clause includes other grades, which the author should distinguish."
+c-materials-bronze-1,y,n,y,
+c-materials-bronze-2,y,n,n,
+c-materials-bronze-3,y,n,n,
+c-materials-bronze-4,y,n,n,The note correctly identifies marine aluminium grades: https://www.copper.org/applications/marine/other-copper-alloys/al-bronzes.html . This is broader than the tin-only description in clause 0.
+c-materials-bronze-5,y,n,n,
+c-materials-bronze-6,y,n,n,
+c-materials-bronze-7,y,n,y,The conventional cymbal-and-gong alloy is bronze; brass is absent from the bank. Rewrite: is used in cast objects that produce a ringing sound.
+c-materials-bronze-8,y,n,y,Warm brown freshly cast metal identifies bronze among the listed metals. Rewrite: can be polished to give a warm metallic sheen.
+c-materials-bronze-9,n,n,n,The absolute no-spark claim is misleading and grade-dependent. CCOHS says spark-resistant alloys reduce risk without eliminating sparks: https://www.ccohs.ca/oshanswers/safety_haz/hand_tools/nonsparking.html . Rewrite: has grades chosen for reduced risk of ignition sparks.
+c-materials-bronze-10,y,n,n,
+c-materials-bronze-11,y,n,n,
+c-materials-cement-0,?,n,y,"Fine powder identifies cement in the ordinary bank senses, but I cannot establish the unqualified comparison with most flour from the source consulted. Rewrite: is ground to a fine texture during manufacture."
+c-materials-cement-1,y,n,y,Heating crushed limestone in a kiln identifies cement in this bank. Rewrite: is produced by heating mineral ingredients to high temperatures.
+c-materials-cement-2,y,n,n,Concrete also hardens through hydration.
+c-materials-cement-3,y,n,y,
+c-materials-cement-4,y,n,n,
+c-materials-cement-5,y,n,n,
+c-materials-cement-6,y,n,y,Damp-storage lumping and loss of usability identify cement here. Rewrite: needs dry storage to keep it in usable condition.
+c-materials-cement-7,y,n,n,Concrete also hardens underwater.
+c-materials-cement-8,y,n,n,Plastic granules can also be bulk-delivered and silo-stored.
+c-materials-cement-9,y,n,y,The sand-and-water mortar recipe identifies cement. Rewrite: is combined with other ingredients in building mixtures.
+c-materials-cement-10,y,n,n,
+c-materials-cement-11,y,n,n,Bagged concrete mixes are another bank interpretation.
+c-materials-concrete-0,y,n,n,
+c-materials-concrete-1,y,n,y,
+c-materials-concrete-2,y,n,n,Cement paste can also be wet-cast.
+c-materials-concrete-3,y,n,n,Cement also gains strength through continuing hydration.
+c-materials-concrete-4,y,n,n,Stone masonry also supplies foundations and bridge supports.
+c-materials-concrete-5,y,n,n,
+c-materials-concrete-6,y,n,y,The combined pavement/driveway/garage-floor use conventionally identifies concrete here. Rewrite: is widely used for durable surfaces around buildings.
+c-materials-concrete-7,y,n,y,"Factory-cast slabs, pipes and kerbs identify concrete in the bank. Rewrite: can be shaped in factories before reaching a building site."
+c-materials-concrete-8,y,n,y,
+c-materials-concrete-9,y,n,n,
+c-materials-concrete-10,y,n,n,
+c-materials-concrete-11,y,n,n,"Leather and wood also admit decorative staining, stamping and buffing."
+c-materials-copper-0,y,n,y,
+c-materials-copper-1,y,n,y,High conductivity plus widespread cable use identifies copper; aluminium is absent. Rewrite: carries electricity readily and has many industrial uses.
+c-materials-copper-2,y,n,n,
+c-materials-copper-3,y,n,y,The familiar green weathered roof/dome surface identifies copper in the bank. Rewrite: develops a coloured surface layer after years outdoors.
+c-materials-copper-4,y,n,n,
+c-materials-copper-5,y,n,n,Bronze alloys can also have antibacterial surfaces.
+c-materials-copper-6,y,n,y,Heat-spreading pan bottoms identify copper among the listed materials. Rewrite: is used in cookware because it transfers heat readily.
+c-materials-copper-7,y,n,n,
+c-materials-copper-8,y,n,y,Copper is the bank's essential trace mineral; iron and zinc are absent. Rewrite: occurs naturally in small amounts in living tissues.
+c-materials-copper-9,y,n,n,
+c-materials-copper-10,y,n,y,Motor and transformer winding metal identifies copper; aluminium is absent. Rewrite: is used in components of electrical machinery.
+c-materials-copper-11,y,n,y,
+c-materials-cotton-0,y,n,y,
+c-materials-cotton-1,y,n,n,
+c-materials-cotton-2,y,n,n,
+c-materials-cotton-3,y,n,n,
+c-materials-cotton-4,y,n,n,Some velvet fabrics also crease and are blended; not exclusive.
+c-materials-cotton-5,?,n,n,"Thirsty/heavy irrigation is region-, variety- and yield-dependent; cotton also grows rainfed and has drought-tolerant varieties. Source: https://www.cottoninc.com/cotton-production/ag-resources/irrigation-management/management-considerations-for-irrigated-cotton/ . Rewrite: is sometimes grown with irrigation where rainfall is insufficient."
+c-materials-cotton-6,y,n,n,
+c-materials-cotton-7,y,n,y,
+c-materials-cotton-8,y,n,n,
+c-materials-cotton-9,y,n,n,Grape also comes from a crop with oil-producing seeds.
+c-materials-cotton-10,y,n,n,Nylon-containing fabrics also cover these uses.
+c-materials-cotton-11,y,n,n,
+c-materials-gold-0,y,n,y,
+c-materials-gold-1,y,n,n,Copper can also be beaten into decorative leaf.
+c-materials-gold-2,y,n,n,
+c-materials-gold-3,y,n,y,Economic recovery from only grams per tonne identifies gold among these metals. Rewrite: is recovered by separating small quantities from mined rock.
+c-materials-gold-4,y,n,n,
+c-materials-gold-5,y,n,y,The corrosion-resistant contact-pin coating identifies gold in the bank. Rewrite: is applied as a thin coating on some manufactured parts.
+c-materials-gold-6,y,n,n,Surprising heaviness is subjective; other metal bars also feel heavy.
+c-materials-gold-7,y,n,n,Plastic-based dental restorations leave another bank alternative.
+c-materials-gold-8,y,n,n,Steel is also commonly chosen for rings/jewellery; preference language does not uniquely exclude it.
+c-materials-gold-9,y,n,n,
+c-materials-gold-10,y,n,y,Exceptional resistance to nearly all acids identifies gold among the bank metals. Rewrite: resists many forms of chemical attack.
+c-materials-gold-11,y,n,n,
+c-materials-granite-0,y,n,y,
+c-materials-granite-1,y,n,n,
+c-materials-granite-2,y,n,n,
+c-materials-granite-3,y,n,n,Marble has also long been used for carved headstones.
+c-materials-granite-4,y,n,n,
+c-materials-granite-5,y,n,n,
+c-materials-granite-6,y,n,y,Slow weathering to exposed rounded boulders conventionally identifies granite among the bank stones. Rewrite: gradually changes shape through weathering outdoors.
+c-materials-granite-7,y,n,n,
+c-materials-granite-8,y,n,y,Superior acid-rain resistance distinguishes granite from the bank's marble. Rewrite: is valued for durability when used outdoors.
+c-materials-granite-9,y,n,y,Huge bare climbing domes are characteristic granite landforms; marble is not the ordinary alternative. Rewrite: forms exposed cliffs that attract climbers.
+c-materials-granite-10,y,n,n,
+c-materials-granite-11,y,n,n,
+c-materials-leather-0,y,n,y,
+c-materials-leather-1,y,n,n,Cotton canvas and nylon can also be cut and sewn into all three products.
+c-materials-leather-2,y,n,n,
+c-materials-leather-3,y,n,y,"Drying, stiffening and conditioning together identify leather here. Rewrite: can change texture if it is stored too dry."
+c-materials-leather-4,y,n,n,Wood also has a distinctive new smell.
+c-materials-leather-5,y,n,n,
+c-materials-leather-6,y,n,n,
+c-materials-leather-7,y,n,n,Wood has also served as book covers and desktop covering/veneer.
+c-materials-leather-8,y,n,n,
+c-materials-leather-9,y,n,n,Cotton clothing can also soften and conform through wear.
+c-materials-leather-10,y,n,n,
+c-materials-leather-11,y,n,n,
+c-materials-marble-0,y,n,y,
+c-materials-marble-1,y,n,n,Granite also forms at depth under heat and pressure; metamorphic transformation is not specified.
+c-materials-marble-2,y,n,n,Granite has also been prized for carved statuary.
+c-materials-marble-3,y,n,n,Acids also damage other bank materials and polished surfaces.
+c-materials-marble-4,y,n,n,The can qualifier accommodates the white-marble subtype in the note; other thin materials also transmit light.
+c-materials-marble-5,y,n,n,
+c-materials-marble-6,y,n,n,
+c-materials-marble-7,y,n,n,Granite slabs can also provide a cool pastry surface.
+c-materials-marble-8,y,n,n,Granite was also used in carved temple architecture.
+c-materials-marble-9,y,n,n,Other stone inscriptions also eventually weather; no rate is specified.
+c-materials-marble-10,y,n,y,"Soft, readily scratched stone distinguishes marble from granite in this bank. Rewrite: needs care to protect its finished surface."
+c-materials-marble-11,y,n,n,Granite can also supply decorative aggregate.
+c-materials-nylon-0,y,n,y,The petroleum-derived synthetic fibre identifies nylon among the bank's ordinary fibre senses. Rewrite: is manufactured using chemically processed ingredients.
+c-materials-nylon-1,y,n,n,
+c-materials-nylon-2,y,n,n,"The broader plastic concept also covers line/bristles made from other polymers, so not uniquely nylon."
+c-materials-nylon-3,y,n,n,
+c-materials-nylon-4,y,n,n,
+c-materials-nylon-5,y,n,n,Plastic also fits the gears/ties description.
+c-materials-nylon-6,y,n,y,Strong stretchy dynamic climbing rope conventionally identifies nylon here. Rewrite: is braided into flexible ropes for demanding uses.
+c-materials-nylon-7,y,n,n,Other plastics also form synthetic office carpet fibres.
+c-materials-nylon-8,y,n,n,Cotton and other textiles also shed fibres; tiny does not mean synthetic.
+c-materials-nylon-9,y,n,y,The silk-substitute development history identifies nylon within the bank. Rewrite: was developed to replace some uses of natural fibres.
+c-materials-nylon-10,y,n,n,
+c-materials-nylon-11,y,n,n,
+c-materials-paper-0,y,n,y,
+c-materials-paper-1,y,n,n,
+c-materials-paper-2,y,n,y,The fold-then-tear behaviour conventionally identifies paper in this bank. Rewrite: can be folded and torn into smaller pieces.
+c-materials-paper-3,y,n,n,
+c-materials-paper-4,y,n,y,Liquid absorption followed by disintegration identifies ordinary paper here. Rewrite: loses strength after it has soaked up water.
+c-materials-paper-5,y,n,n,Cotton is also bleached.
+c-materials-paper-6,y,n,n,Plastic films and sheets can also be folded into packaging.
+c-materials-paper-7,y,n,n,
+c-materials-paper-8,y,n,y,"Card is a grade/product subtype, not a synonym for all paper."
+c-materials-paper-9,y,n,n,Industrial textile and metal rolls can also be very large; mill/roll/weight alone does not uniquely identify paper.
+c-materials-paper-10,y,n,n,Wood can also be coated with wax; the disjunction leaves an alternative.
+c-materials-paper-11,y,n,n,
+c-materials-plastic-0,y,n,n,"Nylon is also injection-moulded; polymer is broader than plastic, not an exact semantic name replacement."
+c-materials-plastic-1,y,n,n,
+c-materials-plastic-2,y,n,n,
+c-materials-plastic-3,y,n,n,Steel also serves these construction uses.
+c-materials-plastic-4,y,n,y,
+c-materials-plastic-5,y,n,n,
+c-materials-plastic-6,y,n,n,
+c-materials-plastic-7,y,n,n,
+c-materials-plastic-8,y,n,n,Accept the explicitly qualified often/can remelting claim for the common thermoplastic class.
+c-materials-plastic-9,y,n,n,"Paper-based products can also supply disposable cups, utensils and straws; the product list alone is not unique."
+c-materials-plastic-10,y,n,n,
+c-materials-plastic-11,y,n,n,
+c-materials-steel-0,?,n,y,"The iron-alloy phrase identifies steel in this bank, but quench-and-temper treatment applies to suitable grades rather than the whole concept. Rewrite: is an alloy whose properties depend on its heat treatment."
+c-materials-steel-1,y,n,n,Concrete also forms girders and structural frames.
+c-materials-steel-2,y,n,y,Rust protection by galvanising/painting/alloying identifies steel among these metals. Rewrite: may need a protective coating during outdoor use.
+c-materials-steel-3,y,n,y,Hot-rolled railway rails identify steel; iron is absent from the bank. Rewrite: is rolled into long sections for heavy construction.
+c-materials-steel-4,y,n,y,Common-grade magnetic attraction identifies steel among the listed metals. Rewrite: has physical properties that vary across its grades.
+c-materials-steel-5,y,n,n,
+c-materials-steel-6,y,n,y,Pressed car panels plus drinks cans identify steel; aluminium is absent. Rewrite: is pressed into thin sheets for manufactured products.
+c-materials-steel-7,y,n,n,
+c-materials-steel-8,y,n,y,Structural wire for cables and fences conventionally identifies steel here. Rewrite: can be drawn into long strands for practical uses.
+c-materials-steel-9,y,n,n,Bronze and copper alloys also form springs.
+c-materials-steel-10,y,n,y,Welded ocean-going ship hulls identify steel among these materials. Rewrite: is joined into large structures that carry heavy loads.
+c-materials-steel-11,y,n,y,
+c-materials-velvet-0,y,n,y,
+c-materials-velvet-1,y,n,y,The silk-woven luxury history identifies velvet among the listed materials. Rewrite: has long been used for expensive formal clothing.
+c-materials-velvet-2,y,n,n,Suede leather can also change shade with brushed nap.
+c-materials-velvet-3,y,n,n,
+c-materials-velvet-4,y,n,n,
+c-materials-velvet-5,y,n,y,A textile now made from polyester/viscose identifies velvet in the bank; cotton and nylon are different fibre identities. Rewrite: is now made in both expensive and inexpensive forms.
+c-materials-velvet-6,y,n,y,The pile-crushing ironing problem identifies velvet among ordinary fabric choices here. Rewrite: can be marked by careless pressing or handling.
+c-materials-velvet-7,y,n,n,Nylon layers also slide while sewing.
+c-materials-velvet-8,y,n,n,
+c-materials-velvet-9,y,n,n,
+c-materials-velvet-10,y,n,n,
+c-materials-velvet-11,y,n,n,
+c-materials-wood-0,y,n,y,
+c-materials-wood-1,y,n,n,Paper also has a directional grain affecting tearing/splitting.
+c-materials-wood-2,y,n,n,
+c-materials-wood-3,y,n,n,
+c-materials-wood-4,y,n,n,
+c-materials-wood-5,y,n,n,
+c-materials-wood-6,y,n,y,"Carved and joined chairs, tables and cabinets conventionally identify wood here. Rewrite: is shaped and assembled into useful household objects."
+c-materials-wood-7,y,n,n,Paper is also burned as fuel/kindling.
+c-materials-wood-8,y,n,y,Figure enhanced by oil or varnish is identifying woodworking terminology. Rewrite: is given a protective finish that improves its appearance.
+c-materials-wood-9,y,n,n,
+c-materials-wood-10,y,n,n,Recycled paper can also be pulped into those outputs.
+c-materials-wood-11,y,n,y,

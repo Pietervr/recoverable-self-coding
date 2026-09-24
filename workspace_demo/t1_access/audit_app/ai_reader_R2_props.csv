@@ -1,0 +1,101 @@
+id,R2_both_answers_correct,R2_unambiguous,R2_comment
+p-p001,y,y,
+p-p002,y,y,
+p-p003,y,y,
+p-p004,y,y,
+p-p005,n,n,"Can be burned as fuel asks physical possibility rather than customary use; animal tissue is combustible too, so the categorical cat=no is not secure. Better: Is it commonly burned in household stoves for heat? (wood yes, cat no)."
+p-p006,y,y,
+p-p007,y,y,
+p-p008,y,y,
+p-p009,y,y,"Accept a generic usual cooking method, not a claim that every pasta dish is boiled."
+p-p010,y,y,Boxed dried pasta is made from dough even after drying; the drafter's manufacturing distinction does not change the answer.
+p-p011,y,y,
+p-p012,y,y,"Accept ordinary anatomical tail, rather than a figurative rear section."
+p-p013,y,y,
+p-p014,y,y,
+p-p015,y,y,
+p-p016,y,y,Pizzicato does not negate the generic fact that violin is played with a bow.
+p-p017,y,y,
+p-p018,y,n,"The supplied yes is correct for the ordinary adult frog, but the drafter explicitly relies on life stage. Better: In its adult form, does it normally eat insects? (violin no, frog yes)."
+p-p019,y,y,
+p-p020,y,y,
+p-p021,y,y,
+p-p022,y,n,"Yes fits a whole unpeeled egg, but egg as a food also ordinarily means a peeled or cooked serving with no shell. Better: In its intact uncooked form, is it enclosed by a shell? (egg yes, lion no)."
+p-p023,y,y,
+p-p024,y,y,
+p-p025,y,y,The animals family fixes mouse to the animal sense; no computer-sense ambiguity remains.
+p-p026,y,y,
+p-p027,y,y,"Read as an anatomical connection, not contact with footwear."
+p-p028,y,y,
+p-p029,y,y,
+p-p030,y,y,
+p-p031,y,y,
+p-p032,y,y,
+p-p033,y,y,
+p-p034,y,y,
+p-p035,y,y,The instruments family fixes the musical recorder sense.
+p-p036,y,y,
+p-p037,n,n,"The wording asks physical cookability/edibility, which is not impossible for tissue in a finger; finger=no relies on customary consumption. Better: Is it commonly served as the main dish at dinner? (steak yes, finger no)."
+p-p038,y,y,
+p-p039,y,y,
+p-p040,y,y,"Quarrying is an ordinary way of digging/extracting rock from the ground, consistent with the drafter note."
+p-p041,y,y,
+p-p042,y,y,
+p-p043,y,y,
+p-p044,y,y,
+p-p045,y,y,
+p-p046,y,y,
+p-p047,y,y,
+p-p048,y,y,Present-tense monarchy confirmed against the Royal House: https://www.kongehuset.dk/en/the-royal-family/hm-the-king/ .
+p-p049,y,y,
+p-p050,y,y,"Industrial manufacture is the ordinary source of nylon, as the note states."
+p-p051,y,y,
+p-p052,y,y,
+p-p053,y,y,"Western/southern desert regions make the geographical claim straightforward, as the note suggests."
+p-p054,y,y,
+p-p055,y,y,"Accept the ordinary tropical-climate description, not a claim about every high-altitude location."
+p-p056,y,y,
+p-p057,y,y,
+p-p058,y,y,
+p-p059,y,y,
+p-p060,y,y,
+p-p061,y,y,
+p-p062,y,y,
+p-p063,y,y,The instruments family fixes the struck metal-object sense.
+p-p064,y,y,An open corner leaves three rod sides; it does not remove one side.
+p-p065,y,n,"Yes assumes an unpeeled banana; the food can ordinarily be served peeled. Better: In its intact unpeeled form, does it have a soft outer skin? (banana yes, triangle no)."
+p-p066,y,n,"Yes is correct for dairy cheese, but unqualified cheese can include plant-based varieties in ordinary contemporary use. Better: Is it traditionally produced by curdling milk? (cheese yes, screw no)."
+p-p067,y,y,"Accept edible as food, not the mere possibility of swallowing an inedible object."
+p-p068,y,y,
+p-p069,y,n,"The intended contrast is correct for ripe flesh, but hardness depends on ripeness and whether skin or stone is included. Better: Is its ripe flesh normally eaten? (mango yes, marble no; reverse the supplied answer polarity)."
+p-p070,y,y,"The materials family fixes the building-stone sense, consistent with the drafter note."
+p-p071,y,y,
+p-p072,y,y,"Rice is a constituent of sushi, whereas incidental cargo does not define a van."
+p-p073,y,y,
+p-p074,y,y,
+p-p075,y,y,
+p-p076,y,y,
+p-p077,y,y,"The same wheels question appears in P076 with concept/foil reversed; both answers are correct, but the author should note the duplicated content."
+p-p078,y,y,
+p-p079,y,y,Single-reed construction is correct. Actual lay-reader familiarity is an empirical question beyond this semantic judgment.
+p-p080,y,y,
+p-p081,y,y,
+p-p082,y,y,
+p-p083,y,y,"Travel is understood as the intended transport function, not being carried as cargo."
+p-p084,y,n,"Yes is correct for a crewed submarine, but the note selects a narrower sense not declared in concepts.json; uncrewed forms exist. Better: Is it designed to travel beneath the water surface? (submarine yes, trumpet no)."
+p-p085,y,y,
+p-p086,y,n,"The no assumes a full-size crewed submarine; small uncrewed forms can be smaller than a person. Better: Is it normally played by a musician? (submarine no, trumpet yes)."
+p-p087,y,n,"Referees use signal whistles, while all twelve bank clues describe the melodic tin-whistle subtype. The word-level yes is defensible but the sense switches across tasks. Better: Does blowing into it normally produce a musical tone? (whistle yes, steel no), with the whistle sense declared consistently."
+p-p088,y,y,
+p-p089,y,y,
+p-p090,y,y,
+p-p091,y,y,
+p-p092,y,y,
+p-p093,y,y,
+p-p094,y,y,
+p-p095,y,n,"Yes assumes the ordinary one-piece threaded fastener; expansion-bolt assemblies and door-bolt mechanisms create a construction/word-sense dependency. Better: Is it commonly tightened with a nut to join parts? (bicycle no, bolt yes)."
+p-p096,y,n,"Yes fits the standard pedal bicycle, but balance bikes are a familiar pedal-free variety: https://striderbikes.com/faq/ . Better: Does it normally have two wheels arranged one behind the other? (bicycle yes, bolt no)."
+p-p097,y,n,"Yes assumes combustion power or treats motor and engine as synonyms; electric tractors use batteries and motors. Manufacturer evidence: https://www.monarchtractor.com/blog/cost-to-charge-ev . Better: Does it have a powered drive system for moving over ground? (needle no, tractor yes)."
+p-p098,y,y,
+p-p099,y,n,"Yes fits sharp sewing/hypodermic varieties, but blunt tapestry and darning needles are ordinary alternatives. Better: Is it a slender implement used to pass thread through fabric? (needle yes, tractor no), explicitly selecting the sewing sense."
+p-p100,y,y,Accept the general sewing use; this does not claim that every specialized needle is used for sewing.
