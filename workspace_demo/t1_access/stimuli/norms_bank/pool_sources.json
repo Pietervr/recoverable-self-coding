@@ -1,0 +1,158 @@
+{
+ "note": "CSLB counts are an upper bound: no >= 12 feature filter, that file is gated",
+ "cslb_concepts": 638,
+ "cslb_not_in_mcrae": 222,
+ "per_family": {
+  "animals": {
+   "mcrae_eligible": 29,
+   "cslb_only_upper_bound": 23,
+   "pooled_upper_bound": 52,
+   "needed": 16,
+   "cslb_only_words": [
+    "bee",
+    "centipede",
+    "cricket",
+    "dragonfly",
+    "gerbil",
+    "hedgehog",
+    "hummingbird",
+    "jellyfish",
+    "kangaroo",
+    "kingfisher",
+    "ladybird",
+    "lizard",
+    "llama",
+    "magpie",
+    "millipede",
+    "monkey",
+    "mosquito",
+    "rhino",
+    "seahorse",
+    "shark",
+    "tarantula",
+    "termite",
+    "wolf"
+   ]
+  },
+  "body parts": {
+   "mcrae_eligible": 0,
+   "cslb_only_upper_bound": 9,
+   "pooled_upper_bound": 9,
+   "needed": 16,
+   "cslb_only_words": [
+    "arm",
+    "ear",
+    "eye",
+    "finger",
+    "foot",
+    "nose",
+    "organ",
+    "thumb",
+    "toe"
+   ]
+  },
+  "foods": {
+   "mcrae_eligible": 14,
+   "cslb_only_upper_bound": 26,
+   "pooled_upper_bound": 40,
+   "needed": 16,
+   "cslb_only_words": [
+    "bacon",
+    "beer",
+    "brandy",
+    "butter",
+    "champagne",
+    "chocolate",
+    "cider",
+    "coffee",
+    "currant",
+    "flour",
+    "gin",
+    "ham",
+    "jam",
+    "jelly",
+    "ketchup",
+    "lemonade",
+    "mayonnaise",
+    "melon",
+    "milk",
+    "sandwich",
+    "soup",
+    "sultana",
+    "tea",
+    "whisky",
+    "wine",
+    "yoghurt"
+   ]
+  },
+  "vehicles": {
+   "mcrae_eligible": 15,
+   "cslb_only_upper_bound": 12,
+   "pooled_upper_bound": 27,
+   "needed": 16,
+   "cslb_only_words": [
+    "barge",
+    "carriage",
+    "dinghy",
+    "ferry",
+    "glider",
+    "houseboat",
+    "kayak",
+    "lorry",
+    "moped",
+    "pram",
+    "speedboat",
+    "tugboat"
+   ]
+  },
+  "materials": {
+   "mcrae_eligible": 2,
+   "cslb_only_upper_bound": 7,
+   "pooled_upper_bound": 9,
+   "needed": 16,
+   "cslb_only_words": [
+    "aspirin",
+    "eucalyptus",
+    "fir",
+    "glue",
+    "hyacinth",
+    "sycamore",
+    "tobacco"
+   ]
+  },
+  "clothing": {
+   "mcrae_eligible": 11,
+   "cslb_only_upper_bound": 3,
+   "pooled_upper_bound": 14,
+   "needed": 16,
+   "cslb_only_words": [
+    "knickers",
+    "mask",
+    "tights"
+   ]
+  },
+  "buildings": {
+   "mcrae_eligible": 6,
+   "cslb_only_upper_bound": 1,
+   "pooled_upper_bound": 7,
+   "needed": 16,
+   "cslb_only_words": [
+    "castle"
+   ]
+  },
+  "occupations": {
+   "mcrae_eligible": 0,
+   "cslb_only_upper_bound": 0,
+   "pooled_upper_bound": 0,
+   "needed": 16,
+   "cslb_only_words": []
+  }
+ },
+ "families_short_of_16": [
+  "body parts",
+  "materials",
+  "clothing",
+  "buildings",
+  "occupations"
+ ]
+}

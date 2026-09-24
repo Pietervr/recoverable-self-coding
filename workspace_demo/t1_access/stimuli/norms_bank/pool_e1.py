@@ -24,7 +24,9 @@ HERE = Path(__file__).resolve().parent
 SNAPSHOT = Path.home() / (".cache/huggingface/hub/models--mlx-community--Qwen3.6-27B-4bit/snapshots/"
                           "c000ac2c2057d94be3fa931000c31723aac53282")
 PER_FAMILY = 16
-SUFFIX = "" if os.environ.get("MIN_FEATURES", "12") == "12" else f"_min{os.environ['MIN_FEATURES']}"
+_SRC = os.environ.get("SOURCE", "buchanan")
+_MIN = os.environ.get("MIN_FEATURES", "12")
+SUFFIX = ("" if _SRC == "buchanan" else f"_{_SRC}") + ("" if _MIN == "12" else f"_min{_MIN}")
 VARIANTS = ("any_sense", "sense1")
 
 

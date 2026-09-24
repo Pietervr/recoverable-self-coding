@@ -52,6 +52,16 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from norms_parse import Norms  # noqa: E402
 
+SOURCE = os.environ.get("SOURCE", "buchanan")   # buchanan | mcrae
+
+
+def load_source():
+    """The measurement runs on either norm set; the family rules are identical."""
+    if SOURCE == "mcrae":
+        from mcrae_parse import McRae
+        return McRae()
+    return Norms(lemmatise=True)
+
 MIN_FEATURES = int(os.environ.get("MIN_FEATURES", "12"))   # the §3 threshold, swept for sensitivity
 PER_FAMILY = 16
 
@@ -116,7 +126,7 @@ def subtree(family: str) -> set:
 
 
 def main() -> int:
-    norms = Norms(lemmatise=True)
+    norms = load_source()
     trees = {f: subtree(f) for f in ROOTS}
     supers = {l.name().lower() for f in ROOTS for r in ROOTS[f] for l in wn.synset(r).lemmas()}
 
@@ -143,11 +153,11 @@ def main() -> int:
         synset_key[fam] = {c: senses[c][0].name() for c in s1}
 
     out = {
-        "source": {"xlsx": str(norms.xlsx), "sha256": norms.sha256, "rows": norms.n_rows,
+        "source": {"name": SOURCE,
+                   "path": str(getattr(norms, "xlsx", None) or norms.path),
+                   "sha256": norms.sha256, "rows": norms.n_rows,
                    "distinct_cues": len(norms.all_cues), "single_word_cues": len(norms.features)},
-        "feature_identity": {"column": "feature", "lemmatised": norms.lemmatised,
-                             "lemmatiser": "nltk.stem.wordnet.WordNetLemmatizer",
-                             "rule": "lowercase, strip, noun lemma, else verb lemma",
+        "feature_identity": {"lemmatised": getattr(norms, "lemmatised", False),
                              "distinct_feature_strings": len(norms.sharing),
                              "cues_at_min_features": len(norms.with_features(MIN_FEATURES))},
         "wordnet_version": wn.get_version(),
@@ -190,11 +200,11 @@ def main() -> int:
             rows[fam]["ceiling"] = {"after_E2": len(ceiling), "words": ceiling}
         out["scenarios"][name] = rows
 
-    suffix = "" if MIN_FEATURES == 12 else f"_min{MIN_FEATURES}"
+    suffix = ("" if SOURCE == "buchanan" else f"_{SOURCE}") + ("" if MIN_FEATURES == 12 else f"_min{MIN_FEATURES}")
     (HERE / f"pool_wordnet{suffix}.json").write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
 
-    print(f"WordNet {wn.get_version()}   norms sha256 {norms.sha256[:12]}...   "
-          f"features LEMMATISED ({len(norms.sharing)} distinct)")
+    print(f"source {SOURCE}   WordNet {wn.get_version()}   sha256 {norms.sha256[:12]}...   "
+          f"{len(norms.sharing)} distinct features")
     print(f"F1 noun cues with a WordNet noun sense: {len(f1)}")
     print(f"F2 base form (not an inflection):       {len(f2)}")
     print(f"F3 with >= {MIN_FEATURES} features:              {len(f3)}")
