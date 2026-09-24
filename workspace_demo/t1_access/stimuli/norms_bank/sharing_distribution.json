@@ -1,0 +1,2716 @@
+{
+ "scenario": "final_occupations",
+ "clauses": 12,
+ "decisive": 2,
+ "sharing_denominator_cues": 4411,
+ "definition": {
+  "R3": "sharing count of the concept's 3rd-rarest feature",
+  "KMAX": "10th-largest sharing count among the features left after the two rarest"
+ },
+ "pooled_candidate_feature_shares": {
+  "min": 1,
+  "p10": 4,
+  "p25": 12,
+  "median": 35,
+  "p75": 84,
+  "p90": 196,
+  "max": 537,
+  "n": 4209
+ },
+ "R3": {
+  "overall": {
+   "min": 1,
+   "p10": 2,
+   "p25": 2,
+   "median": 5,
+   "p75": 10,
+   "p90": 14,
+   "max": 78,
+   "n": 188
+  },
+  "by_family": {
+   "animals": {
+    "min": 1,
+    "p10": 2,
+    "p25": 3,
+    "median": 5,
+    "p75": 9,
+    "p90": 13,
+    "max": 18,
+    "n": 36
+   },
+   "body parts": {
+    "min": 1,
+    "p10": 2,
+    "p25": 4,
+    "median": 8,
+    "p75": 12,
+    "p90": 14,
+    "max": 19,
+    "n": 25
+   },
+   "foods": {
+    "min": 1,
+    "p10": 1,
+    "p25": 2,
+    "median": 4,
+    "p75": 9,
+    "p90": 14,
+    "max": 78,
+    "n": 40
+   },
+   "vehicles": {
+    "min": 1,
+    "p10": 2,
+    "p25": 2,
+    "median": 3,
+    "p75": 9,
+    "p90": 19,
+    "max": 31,
+    "n": 19
+   },
+   "materials": {
+    "min": 1,
+    "p10": 2,
+    "p25": 2,
+    "median": 4,
+    "p75": 9,
+    "p90": 14,
+    "max": 35,
+    "n": 16
+   },
+   "clothing": {
+    "min": 1,
+    "p10": 2,
+    "p25": 3,
+    "median": 6,
+    "p75": 9,
+    "p90": 17,
+    "max": 18,
+    "n": 19
+   },
+   "buildings": {
+    "min": 1,
+    "p10": 1,
+    "p25": 4,
+    "median": 7,
+    "p75": 9,
+    "p90": 17,
+    "max": 36,
+    "n": 15
+   },
+   "occupations": {
+    "min": 1,
+    "p10": 2,
+    "p25": 3,
+    "median": 4,
+    "p75": 7,
+    "p90": 8,
+    "max": 10,
+    "n": 18
+   }
+  }
+ },
+ "KMAX": {
+  "overall": {
+   "min": 1,
+   "p10": 5,
+   "p25": 12,
+   "median": 35,
+   "p75": 73,
+   "p90": 89,
+   "max": 147,
+   "n": 188
+  },
+  "by_family": {
+   "animals": {
+    "min": 4,
+    "p10": 13,
+    "p25": 18,
+    "median": 44,
+    "p75": 77,
+    "p90": 85,
+    "max": 105,
+    "n": 36
+   },
+   "body parts": {
+    "min": 1,
+    "p10": 6,
+    "p25": 19,
+    "median": 64,
+    "p75": 76,
+    "p90": 120,
+    "max": 147,
+    "n": 25
+   },
+   "foods": {
+    "min": 1,
+    "p10": 3,
+    "p25": 11,
+    "median": 28,
+    "p75": 78,
+    "p90": 103,
+    "max": 106,
+    "n": 40
+   },
+   "vehicles": {
+    "min": 1,
+    "p10": 17,
+    "p25": 27,
+    "median": 37,
+    "p75": 74,
+    "p90": 87,
+    "max": 93,
+    "n": 19
+   },
+   "materials": {
+    "min": 2,
+    "p10": 6,
+    "p25": 8,
+    "median": 20,
+    "p75": 41,
+    "p90": 93,
+    "max": 93,
+    "n": 16
+   },
+   "clothing": {
+    "min": 2,
+    "p10": 13,
+    "p25": 26,
+    "median": 75,
+    "p75": 78,
+    "p90": 93,
+    "max": 98,
+    "n": 19
+   },
+   "buildings": {
+    "min": 5,
+    "p10": 6,
+    "p25": 10,
+    "median": 17,
+    "p75": 25,
+    "p90": 41,
+    "max": 55,
+    "n": 15
+   },
+   "occupations": {
+    "min": 1,
+    "p10": 3,
+    "p25": 5,
+    "median": 12,
+    "p75": 20,
+    "p90": 26,
+    "max": 71,
+    "n": 18
+   }
+  }
+ },
+ "concepts": {
+  "animals": [
+   {
+    "cue": "animal",
+    "n_features": 15,
+    "decisive": [
+     1,
+     3
+    ],
+    "r3": 5,
+    "kmax": 16,
+    "median_share": 26
+   },
+   {
+    "cue": "ant",
+    "n_features": 13,
+    "decisive": [
+     1,
+     5
+    ],
+    "r3": 7,
+    "kmax": 8,
+    "median_share": 31
+   },
+   {
+    "cue": "bee",
+    "n_features": 16,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 2,
+    "kmax": 4,
+    "median_share": 22.5
+   },
+   {
+    "cue": "beetle",
+    "n_features": 13,
+    "decisive": [
+     7,
+     11
+    ],
+    "r3": 16,
+    "kmax": 18,
+    "median_share": 66
+   },
+   {
+    "cue": "bull",
+    "n_features": 16,
+    "decisive": [
+     1,
+     4
+    ],
+    "r3": 4,
+    "kmax": 25,
+    "median_share": 33.0
+   },
+   {
+    "cue": "butterfly",
+    "n_features": 16,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 2,
+    "kmax": 30,
+    "median_share": 31.5
+   },
+   {
+    "cue": "camel",
+    "n_features": 36,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 2,
+    "kmax": 77,
+    "median_share": 50.5
+   },
+   {
+    "cue": "cougar",
+    "n_features": 23,
+    "decisive": [
+     1,
+     12
+    ],
+    "r3": 13,
+    "kmax": 59,
+    "median_share": 52
+   },
+   {
+    "cue": "cow",
+    "n_features": 44,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 3,
+    "kmax": 85,
+    "median_share": 41.5
+   },
+   {
+    "cue": "crow",
+    "n_features": 13,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 5,
+    "kmax": 11,
+    "median_share": 55
+   },
+   {
+    "cue": "deer",
+    "n_features": 21,
+    "decisive": [
+     2,
+     3
+    ],
+    "r3": 5,
+    "kmax": 68,
+    "median_share": 67
+   },
+   {
+    "cue": "dolphin",
+    "n_features": 30,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 55,
+    "median_share": 24.5
+   },
+   {
+    "cue": "eagle",
+    "n_features": 20,
+    "decisive": [
+     1,
+     3
+    ],
+    "r3": 8,
+    "kmax": 44,
+    "median_share": 33.0
+   },
+   {
+    "cue": "elephant",
+    "n_features": 47,
+    "decisive": [
+     3,
+     3
+    ],
+    "r3": 3,
+    "kmax": 85,
+    "median_share": 37
+   },
+   {
+    "cue": "elk",
+    "n_features": 19,
+    "decisive": [
+     5,
+     7
+    ],
+    "r3": 9,
+    "kmax": 48,
+    "median_share": 48
+   },
+   {
+    "cue": "flea",
+    "n_features": 21,
+    "decisive": [
+     2,
+     5
+    ],
+    "r3": 6,
+    "kmax": 35,
+    "median_share": 31
+   },
+   {
+    "cue": "frog",
+    "n_features": 18,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 3,
+    "kmax": 31,
+    "median_share": 36.5
+   },
+   {
+    "cue": "goat",
+    "n_features": 43,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 3,
+    "kmax": 85,
+    "median_share": 33
+   },
+   {
+    "cue": "hawk",
+    "n_features": 15,
+    "decisive": [
+     1,
+     8
+    ],
+    "r3": 10,
+    "kmax": 14,
+    "median_share": 51
+   },
+   {
+    "cue": "horse",
+    "n_features": 45,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 4,
+    "kmax": 105,
+    "median_share": 46
+   },
+   {
+    "cue": "lion",
+    "n_features": 59,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 2,
+    "kmax": 82,
+    "median_share": 30
+   },
+   {
+    "cue": "lizard",
+    "n_features": 14,
+    "decisive": [
+     4,
+     5
+    ],
+    "r3": 13,
+    "kmax": 16,
+    "median_share": 44.5
+   },
+   {
+    "cue": "mouse",
+    "n_features": 46,
+    "decisive": [
+     2,
+     5
+    ],
+    "r3": 10,
+    "kmax": 105,
+    "median_share": 38.0
+   },
+   {
+    "cue": "owl",
+    "n_features": 14,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 8,
+    "kmax": 44,
+    "median_share": 60.0
+   },
+   {
+    "cue": "ox",
+    "n_features": 13,
+    "decisive": [
+     2,
+     13
+    ],
+    "r3": 18,
+    "kmax": 30,
+    "median_share": 73
+   },
+   {
+    "cue": "pig",
+    "n_features": 44,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 85,
+    "median_share": 35.5
+   },
+   {
+    "cue": "pigeon",
+    "n_features": 14,
+    "decisive": [
+     1,
+     3
+    ],
+    "r3": 12,
+    "kmax": 20,
+    "median_share": 53.0
+   },
+   {
+    "cue": "pony",
+    "n_features": 15,
+    "decisive": [
+     4,
+     5
+    ],
+    "r3": 12,
+    "kmax": 41,
+    "median_share": 80
+   },
+   {
+    "cue": "python",
+    "n_features": 17,
+    "decisive": [
+     1,
+     3
+    ],
+    "r3": 4,
+    "kmax": 13,
+    "median_share": 16
+   },
+   {
+    "cue": "robin",
+    "n_features": 20,
+    "decisive": [
+     2,
+     6
+    ],
+    "r3": 8,
+    "kmax": 44,
+    "median_share": 37.5
+   },
+   {
+    "cue": "shark",
+    "n_features": 20,
+    "decisive": [
+     2,
+     5
+    ],
+    "r3": 6,
+    "kmax": 78,
+    "median_share": 66.5
+   },
+   {
+    "cue": "sheep",
+    "n_features": 42,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 2,
+    "kmax": 87,
+    "median_share": 36.5
+   },
+   {
+    "cue": "snake",
+    "n_features": 20,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 14,
+    "median_share": 13.5
+   },
+   {
+    "cue": "spider",
+    "n_features": 18,
+    "decisive": [
+     3,
+     4
+    ],
+    "r3": 5,
+    "kmax": 31,
+    "median_share": 38.0
+   },
+   {
+    "cue": "wolf",
+    "n_features": 28,
+    "decisive": [
+     4,
+     6
+    ],
+    "r3": 13,
+    "kmax": 62,
+    "median_share": 46.0
+   },
+   {
+    "cue": "worm",
+    "n_features": 12,
+    "decisive": [
+     1,
+     4
+    ],
+    "r3": 7,
+    "kmax": 7,
+    "median_share": 60.0
+   }
+  ],
+  "body parts": [
+   {
+    "cue": "ankle",
+    "n_features": 24,
+    "decisive": [
+     5,
+     7
+    ],
+    "r3": 12,
+    "kmax": 67,
+    "median_share": 40.5
+   },
+   {
+    "cue": "arm",
+    "n_features": 43,
+    "decisive": [
+     4,
+     7
+    ],
+    "r3": 7,
+    "kmax": 127,
+    "median_share": 42
+   },
+   {
+    "cue": "chin",
+    "n_features": 22,
+    "decisive": [
+     6,
+     10
+    ],
+    "r3": 12,
+    "kmax": 62,
+    "median_share": 56.0
+   },
+   {
+    "cue": "colon",
+    "n_features": 15,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 6,
+    "median_share": 7
+   },
+   {
+    "cue": "ear",
+    "n_features": 31,
+    "decisive": [
+     9,
+     10
+    ],
+    "r3": 11,
+    "kmax": 72,
+    "median_share": 41
+   },
+   {
+    "cue": "elbow",
+    "n_features": 35,
+    "decisive": [
+     4,
+     5
+    ],
+    "r3": 7,
+    "kmax": 69,
+    "median_share": 30
+   },
+   {
+    "cue": "eye",
+    "n_features": 28,
+    "decisive": [
+     5,
+     10
+    ],
+    "r3": 11,
+    "kmax": 120,
+    "median_share": 72.0
+   },
+   {
+    "cue": "face",
+    "n_features": 29,
+    "decisive": [
+     5,
+     6
+    ],
+    "r3": 8,
+    "kmax": 69,
+    "median_share": 48
+   },
+   {
+    "cue": "finger",
+    "n_features": 76,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 147,
+    "median_share": 25.5
+   },
+   {
+    "cue": "forehead",
+    "n_features": 12,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 1,
+    "median_share": 14.0
+   },
+   {
+    "cue": "intestine",
+    "n_features": 18,
+    "decisive": [
+     1,
+     3
+    ],
+    "r3": 4,
+    "kmax": 18,
+    "median_share": 18.0
+   },
+   {
+    "cue": "knee",
+    "n_features": 33,
+    "decisive": [
+     4,
+     5
+    ],
+    "r3": 7,
+    "kmax": 69,
+    "median_share": 30
+   },
+   {
+    "cue": "mouth",
+    "n_features": 34,
+    "decisive": [
+     5,
+     5
+    ],
+    "r3": 7,
+    "kmax": 76,
+    "median_share": 47.5
+   },
+   {
+    "cue": "muscle",
+    "n_features": 12,
+    "decisive": [
+     6,
+     7
+    ],
+    "r3": 19,
+    "kmax": 19,
+    "median_share": 71.5
+   },
+   {
+    "cue": "nail",
+    "n_features": 17,
+    "decisive": [
+     10,
+     11
+    ],
+    "r3": 14,
+    "kmax": 46,
+    "median_share": 62
+   },
+   {
+    "cue": "nerve",
+    "n_features": 12,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 2,
+    "kmax": 2,
+    "median_share": 32.0
+   },
+   {
+    "cue": "nose",
+    "n_features": 33,
+    "decisive": [
+     4,
+     11
+    ],
+    "r3": 12,
+    "kmax": 80,
+    "median_share": 66
+   },
+   {
+    "cue": "paw",
+    "n_features": 18,
+    "decisive": [
+     8,
+     13
+    ],
+    "r3": 14,
+    "kmax": 61,
+    "median_share": 66.0
+   },
+   {
+    "cue": "tail",
+    "n_features": 28,
+    "decisive": [
+     7,
+     10
+    ],
+    "r3": 11,
+    "kmax": 63,
+    "median_share": 41.5
+   },
+   {
+    "cue": "thumb",
+    "n_features": 32,
+    "decisive": [
+     4,
+     9
+    ],
+    "r3": 12,
+    "kmax": 80,
+    "median_share": 42.5
+   },
+   {
+    "cue": "toe",
+    "n_features": 36,
+    "decisive": [
+     6,
+     9
+    ],
+    "r3": 10,
+    "kmax": 89,
+    "median_share": 48.0
+   },
+   {
+    "cue": "transplant",
+    "n_features": 14,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 8,
+    "median_share": 31.5
+   },
+   {
+    "cue": "valve",
+    "n_features": 13,
+    "decisive": [
+     1,
+     3
+    ],
+    "r3": 3,
+    "kmax": 7,
+    "median_share": 12
+   },
+   {
+    "cue": "wing",
+    "n_features": 18,
+    "decisive": [
+     3,
+     13
+    ],
+    "r3": 16,
+    "kmax": 37,
+    "median_share": 39.0
+   },
+   {
+    "cue": "wrist",
+    "n_features": 31,
+    "decisive": [
+     4,
+     5
+    ],
+    "r3": 7,
+    "kmax": 64,
+    "median_share": 32
+   }
+  ],
+  "foods": [
+   {
+    "cue": "apple",
+    "n_features": 42,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 89,
+    "median_share": 33.5
+   },
+   {
+    "cue": "avocado",
+    "n_features": 13,
+    "decisive": [
+     1,
+     7
+    ],
+    "r3": 28,
+    "kmax": 37,
+    "median_share": 89
+   },
+   {
+    "cue": "barbecue",
+    "n_features": 12,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 2,
+    "kmax": 2,
+    "median_share": 25.5
+   },
+   {
+    "cue": "bread",
+    "n_features": 18,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 12,
+    "median_share": 15.0
+   },
+   {
+    "cue": "butter",
+    "n_features": 16,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 5,
+    "kmax": 13,
+    "median_share": 18.5
+   },
+   {
+    "cue": "cabbage",
+    "n_features": 41,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 3,
+    "kmax": 93,
+    "median_share": 36
+   },
+   {
+    "cue": "candy",
+    "n_features": 19,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 4,
+    "kmax": 26,
+    "median_share": 26
+   },
+   {
+    "cue": "champagne",
+    "n_features": 13,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 4,
+    "kmax": 5,
+    "median_share": 10
+   },
+   {
+    "cue": "cheese",
+    "n_features": 22,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 57,
+    "median_share": 34.0
+   },
+   {
+    "cue": "coconut",
+    "n_features": 23,
+    "decisive": [
+     6,
+     11
+    ],
+    "r3": 14,
+    "kmax": 89,
+    "median_share": 74
+   },
+   {
+    "cue": "coffee",
+    "n_features": 28,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 46,
+    "median_share": 10.5
+   },
+   {
+    "cue": "grape",
+    "n_features": 31,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 5,
+    "kmax": 106,
+    "median_share": 37
+   },
+   {
+    "cue": "gravy",
+    "n_features": 13,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 2,
+    "kmax": 3,
+    "median_share": 9
+   },
+   {
+    "cue": "hay",
+    "n_features": 13,
+    "decisive": [
+     5,
+     5
+    ],
+    "r3": 17,
+    "kmax": 18,
+    "median_share": 35
+   },
+   {
+    "cue": "honey",
+    "n_features": 13,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 2,
+    "kmax": 3,
+    "median_share": 10
+   },
+   {
+    "cue": "jelly",
+    "n_features": 19,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 4,
+    "kmax": 16,
+    "median_share": 16
+   },
+   {
+    "cue": "juice",
+    "n_features": 20,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 4,
+    "kmax": 32,
+    "median_share": 29.0
+   },
+   {
+    "cue": "lemon",
+    "n_features": 29,
+    "decisive": [
+     2,
+     4
+    ],
+    "r3": 5,
+    "kmax": 78,
+    "median_share": 45
+   },
+   {
+    "cue": "meat",
+    "n_features": 13,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 2,
+    "kmax": 3,
+    "median_share": 18
+   },
+   {
+    "cue": "milk",
+    "n_features": 28,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 2,
+    "kmax": 42,
+    "median_share": 28.0
+   },
+   {
+    "cue": "mix",
+    "n_features": 26,
+    "decisive": [
+     8,
+     12
+    ],
+    "r3": 13,
+    "kmax": 92,
+    "median_share": 54.0
+   },
+   {
+    "cue": "mousse",
+    "n_features": 13,
+    "decisive": [
+     1,
+     3
+    ],
+    "r3": 4,
+    "kmax": 7,
+    "median_share": 17
+   },
+   {
+    "cue": "pea",
+    "n_features": 28,
+    "decisive": [
+     4,
+     8
+    ],
+    "r3": 9,
+    "kmax": 106,
+    "median_share": 69.0
+   },
+   {
+    "cue": "pear",
+    "n_features": 28,
+    "decisive": [
+     10,
+     10
+    ],
+    "r3": 11,
+    "kmax": 106,
+    "median_share": 79.5
+   },
+   {
+    "cue": "pickle",
+    "n_features": 20,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 37,
+    "median_share": 29.0
+   },
+   {
+    "cue": "pie",
+    "n_features": 16,
+    "decisive": [
+     3,
+     4
+    ],
+    "r3": 9,
+    "kmax": 28,
+    "median_share": 49.5
+   },
+   {
+    "cue": "pizza",
+    "n_features": 27,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 14,
+    "median_share": 8
+   },
+   {
+    "cue": "potato",
+    "n_features": 41,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 4,
+    "kmax": 106,
+    "median_share": 46
+   },
+   {
+    "cue": "rice",
+    "n_features": 12,
+    "decisive": [
+     10,
+     14
+    ],
+    "r3": 78,
+    "kmax": 78,
+    "median_share": 126.0
+   },
+   {
+    "cue": "roast",
+    "n_features": 24,
+    "decisive": [
+     9,
+     10
+    ],
+    "r3": 10,
+    "kmax": 48,
+    "median_share": 36.5
+   },
+   {
+    "cue": "salad",
+    "n_features": 16,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 14,
+    "median_share": 25.5
+   },
+   {
+    "cue": "sandwich",
+    "n_features": 15,
+    "decisive": [
+     5,
+     6
+    ],
+    "r3": 11,
+    "kmax": 20,
+    "median_share": 36
+   },
+   {
+    "cue": "seafood",
+    "n_features": 13,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 1,
+    "median_share": 22
+   },
+   {
+    "cue": "seasoning",
+    "n_features": 13,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 3,
+    "kmax": 4,
+    "median_share": 10
+   },
+   {
+    "cue": "strawberry",
+    "n_features": 37,
+    "decisive": [
+     5,
+     5
+    ],
+    "r3": 8,
+    "kmax": 103,
+    "median_share": 42
+   },
+   {
+    "cue": "supper",
+    "n_features": 12,
+    "decisive": [
+     1,
+     3
+    ],
+    "r3": 6,
+    "kmax": 6,
+    "median_share": 11.5
+   },
+   {
+    "cue": "tea",
+    "n_features": 18,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 2,
+    "kmax": 11,
+    "median_share": 12.5
+   },
+   {
+    "cue": "toast",
+    "n_features": 13,
+    "decisive": [
+     2,
+     7
+    ],
+    "r3": 12,
+    "kmax": 14,
+    "median_share": 20
+   },
+   {
+    "cue": "tomato",
+    "n_features": 16,
+    "decisive": [
+     9,
+     14
+    ],
+    "r3": 18,
+    "kmax": 37,
+    "median_share": 46.5
+   },
+   {
+    "cue": "vodka",
+    "n_features": 12,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 2,
+    "kmax": 2,
+    "median_share": 14.5
+   }
+  ],
+  "vehicles": [
+   {
+    "cue": "aircraft",
+    "n_features": 12,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 1,
+    "median_share": 18.5
+   },
+   {
+    "cue": "airplane",
+    "n_features": 52,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 3,
+    "kmax": 93,
+    "median_share": 35.0
+   },
+   {
+    "cue": "ambulance",
+    "n_features": 22,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 37,
+    "median_share": 33.0
+   },
+   {
+    "cue": "balloon",
+    "n_features": 21,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 70,
+    "median_share": 68
+   },
+   {
+    "cue": "bicycle",
+    "n_features": 29,
+    "decisive": [
+     7,
+     16
+    ],
+    "r3": 19,
+    "kmax": 87,
+    "median_share": 55
+   },
+   {
+    "cue": "bike",
+    "n_features": 25,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 3,
+    "kmax": 27,
+    "median_share": 22
+   },
+   {
+    "cue": "boat",
+    "n_features": 38,
+    "decisive": [
+     5,
+     6
+    ],
+    "r3": 8,
+    "kmax": 74,
+    "median_share": 41.0
+   },
+   {
+    "cue": "buggy",
+    "n_features": 15,
+    "decisive": [
+     20,
+     27
+    ],
+    "r3": 31,
+    "kmax": 35,
+    "median_share": 37
+   },
+   {
+    "cue": "canoe",
+    "n_features": 22,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 19,
+    "median_share": 17.5
+   },
+   {
+    "cue": "car",
+    "n_features": 38,
+    "decisive": [
+     3,
+     3
+    ],
+    "r3": 5,
+    "kmax": 74,
+    "median_share": 39.0
+   },
+   {
+    "cue": "helicopter",
+    "n_features": 40,
+    "decisive": [
+     1,
+     3
+    ],
+    "r3": 4,
+    "kmax": 89,
+    "median_share": 42.5
+   },
+   {
+    "cue": "jeep",
+    "n_features": 17,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 31,
+    "median_share": 33
+   },
+   {
+    "cue": "missile",
+    "n_features": 17,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 2,
+    "kmax": 17,
+    "median_share": 41
+   },
+   {
+    "cue": "ship",
+    "n_features": 34,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 53,
+    "median_share": 31.0
+   },
+   {
+    "cue": "sled",
+    "n_features": 15,
+    "decisive": [
+     1,
+     8
+    ],
+    "r3": 18,
+    "kmax": 35,
+    "median_share": 64
+   },
+   {
+    "cue": "tractor",
+    "n_features": 12,
+    "decisive": [
+     2,
+     8
+    ],
+    "r3": 27,
+    "kmax": 27,
+    "median_share": 45.0
+   },
+   {
+    "cue": "truck",
+    "n_features": 36,
+    "decisive": [
+     2,
+     3
+    ],
+    "r3": 5,
+    "kmax": 87,
+    "median_share": 51.0
+   },
+   {
+    "cue": "wagon",
+    "n_features": 19,
+    "decisive": [
+     2,
+     7
+    ],
+    "r3": 9,
+    "kmax": 41,
+    "median_share": 41
+   },
+   {
+    "cue": "yacht",
+    "n_features": 14,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 3,
+    "kmax": 9,
+    "median_share": 22.5
+   }
+  ],
+  "materials": [
+   {
+    "cue": "card",
+    "n_features": 15,
+    "decisive": [
+     4,
+     6
+    ],
+    "r3": 7,
+    "kmax": 8,
+    "median_share": 12
+   },
+   {
+    "cue": "cigarette",
+    "n_features": 14,
+    "decisive": [
+     1,
+     3
+    ],
+    "r3": 3,
+    "kmax": 6,
+    "median_share": 12.0
+   },
+   {
+    "cue": "cotton",
+    "n_features": 13,
+    "decisive": [
+     1,
+     3
+    ],
+    "r3": 4,
+    "kmax": 10,
+    "median_share": 35
+   },
+   {
+    "cue": "dirt",
+    "n_features": 14,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 4,
+    "kmax": 6,
+    "median_share": 17.5
+   },
+   {
+    "cue": "feather",
+    "n_features": 34,
+    "decisive": [
+     4,
+     7
+    ],
+    "r3": 9,
+    "kmax": 93,
+    "median_share": 71.0
+   },
+   {
+    "cue": "garbage",
+    "n_features": 19,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 24,
+    "median_share": 24
+   },
+   {
+    "cue": "glue",
+    "n_features": 19,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 10,
+    "median_share": 10
+   },
+   {
+    "cue": "leather",
+    "n_features": 25,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 3,
+    "kmax": 49,
+    "median_share": 27
+   },
+   {
+    "cue": "marble",
+    "n_features": 14,
+    "decisive": [
+     7,
+     9
+    ],
+    "r3": 14,
+    "kmax": 41,
+    "median_share": 60.0
+   },
+   {
+    "cue": "oak",
+    "n_features": 15,
+    "decisive": [
+     21,
+     30
+    ],
+    "r3": 35,
+    "kmax": 37,
+    "median_share": 73
+   },
+   {
+    "cue": "paint",
+    "n_features": 34,
+    "decisive": [
+     6,
+     13
+    ],
+    "r3": 14,
+    "kmax": 93,
+    "median_share": 48.0
+   },
+   {
+    "cue": "shampoo",
+    "n_features": 16,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 6,
+    "kmax": 9,
+    "median_share": 14.0
+   },
+   {
+    "cue": "spray",
+    "n_features": 21,
+    "decisive": [
+     3,
+     10
+    ],
+    "r3": 13,
+    "kmax": 64,
+    "median_share": 51
+   },
+   {
+    "cue": "starch",
+    "n_features": 17,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 4,
+    "median_share": 4
+   },
+   {
+    "cue": "trash",
+    "n_features": 18,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 20,
+    "median_share": 27.5
+   },
+   {
+    "cue": "waste",
+    "n_features": 13,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 2,
+    "median_share": 7
+   }
+  ],
+  "clothing": [
+   {
+    "cue": "blouse",
+    "n_features": 30,
+    "decisive": [
+     4,
+     6
+    ],
+    "r3": 6,
+    "kmax": 93,
+    "median_share": 61.5
+   },
+   {
+    "cue": "bra",
+    "n_features": 21,
+    "decisive": [
+     2,
+     3
+    ],
+    "r3": 3,
+    "kmax": 26,
+    "median_share": 17
+   },
+   {
+    "cue": "clothes",
+    "n_features": 31,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 3,
+    "kmax": 70,
+    "median_share": 35
+   },
+   {
+    "cue": "coat",
+    "n_features": 56,
+    "decisive": [
+     3,
+     6
+    ],
+    "r3": 7,
+    "kmax": 83,
+    "median_share": 40.0
+   },
+   {
+    "cue": "dress",
+    "n_features": 24,
+    "decisive": [
+     5,
+     9
+    ],
+    "r3": 13,
+    "kmax": 75,
+    "median_share": 61.5
+   },
+   {
+    "cue": "gown",
+    "n_features": 14,
+    "decisive": [
+     4,
+     5
+    ],
+    "r3": 7,
+    "kmax": 10,
+    "median_share": 14.5
+   },
+   {
+    "cue": "hat",
+    "n_features": 32,
+    "decisive": [
+     6,
+     9
+    ],
+    "r3": 18,
+    "kmax": 75,
+    "median_share": 59.0
+   },
+   {
+    "cue": "hose",
+    "n_features": 20,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 23,
+    "median_share": 19.5
+   },
+   {
+    "cue": "lingerie",
+    "n_features": 12,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 2,
+    "kmax": 2,
+    "median_share": 5.0
+   },
+   {
+    "cue": "mitten",
+    "n_features": 19,
+    "decisive": [
+     9,
+     16
+    ],
+    "r3": 17,
+    "kmax": 73,
+    "median_share": 73
+   },
+   {
+    "cue": "pants",
+    "n_features": 40,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 2,
+    "kmax": 98,
+    "median_share": 44.0
+   },
+   {
+    "cue": "robe",
+    "n_features": 20,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 6,
+    "kmax": 74,
+    "median_share": 64.0
+   },
+   {
+    "cue": "scarf",
+    "n_features": 32,
+    "decisive": [
+     6,
+     8
+    ],
+    "r3": 9,
+    "kmax": 78,
+    "median_share": 47.5
+   },
+   {
+    "cue": "shirt",
+    "n_features": 39,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 4,
+    "kmax": 93,
+    "median_share": 35
+   },
+   {
+    "cue": "shorts",
+    "n_features": 19,
+    "decisive": [
+     5,
+     5
+    ],
+    "r3": 6,
+    "kmax": 42,
+    "median_share": 42
+   },
+   {
+    "cue": "sock",
+    "n_features": 24,
+    "decisive": [
+     10,
+     10
+    ],
+    "r3": 17,
+    "kmax": 75,
+    "median_share": 67.0
+   },
+   {
+    "cue": "sweater",
+    "n_features": 34,
+    "decisive": [
+     7,
+     7
+    ],
+    "r3": 8,
+    "kmax": 78,
+    "median_share": 36.5
+   },
+   {
+    "cue": "tie",
+    "n_features": 16,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 5,
+    "kmax": 13,
+    "median_share": 18.5
+   },
+   {
+    "cue": "vest",
+    "n_features": 43,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 3,
+    "kmax": 78,
+    "median_share": 22
+   }
+  ],
+  "buildings": [
+   {
+    "cue": "barn",
+    "n_features": 18,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 41,
+    "median_share": 42.0
+   },
+   {
+    "cue": "building",
+    "n_features": 15,
+    "decisive": [
+     2,
+     4
+    ],
+    "r3": 7,
+    "kmax": 25,
+    "median_share": 35
+   },
+   {
+    "cue": "cafe",
+    "n_features": 14,
+    "decisive": [
+     1,
+     4
+    ],
+    "r3": 6,
+    "kmax": 10,
+    "median_share": 16.5
+   },
+   {
+    "cue": "castle",
+    "n_features": 16,
+    "decisive": [
+     1,
+     4
+    ],
+    "r3": 4,
+    "kmax": 17,
+    "median_share": 19.0
+   },
+   {
+    "cue": "cathedral",
+    "n_features": 14,
+    "decisive": [
+     2,
+     7
+    ],
+    "r3": 9,
+    "kmax": 9,
+    "median_share": 17.5
+   },
+   {
+    "cue": "chapel",
+    "n_features": 12,
+    "decisive": [
+     2,
+     6
+    ],
+    "r3": 7,
+    "kmax": 7,
+    "median_share": 17.5
+   },
+   {
+    "cue": "convent",
+    "n_features": 12,
+    "decisive": [
+     2,
+     3
+    ],
+    "r3": 6,
+    "kmax": 6,
+    "median_share": 19.0
+   },
+   {
+    "cue": "cottage",
+    "n_features": 15,
+    "decisive": [
+     2,
+     3
+    ],
+    "r3": 4,
+    "kmax": 17,
+    "median_share": 26
+   },
+   {
+    "cue": "garage",
+    "n_features": 12,
+    "decisive": [
+     2,
+     33
+    ],
+    "r3": 36,
+    "kmax": 36,
+    "median_share": 61.5
+   },
+   {
+    "cue": "grill",
+    "n_features": 22,
+    "decisive": [
+     2,
+     7
+    ],
+    "r3": 16,
+    "kmax": 39,
+    "median_share": 36.5
+   },
+   {
+    "cue": "hospital",
+    "n_features": 23,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 14,
+    "median_share": 12
+   },
+   {
+    "cue": "house",
+    "n_features": 22,
+    "decisive": [
+     7,
+     7
+    ],
+    "r3": 7,
+    "kmax": 55,
+    "median_share": 50.0
+   },
+   {
+    "cue": "inn",
+    "n_features": 13,
+    "decisive": [
+     6,
+     8
+    ],
+    "r3": 17,
+    "kmax": 19,
+    "median_share": 41
+   },
+   {
+    "cue": "restaurant",
+    "n_features": 14,
+    "decisive": [
+     1,
+     3
+    ],
+    "r3": 4,
+    "kmax": 5,
+    "median_share": 6.5
+   },
+   {
+    "cue": "shed",
+    "n_features": 14,
+    "decisive": [
+     1,
+     7
+    ],
+    "r3": 9,
+    "kmax": 11,
+    "median_share": 56.5
+   }
+  ],
+  "occupations": [
+   {
+    "cue": "captain",
+    "n_features": 13,
+    "decisive": [
+     2,
+     5
+    ],
+    "r3": 10,
+    "kmax": 14,
+    "median_share": 21
+   },
+   {
+    "cue": "chef",
+    "n_features": 15,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 8,
+    "kmax": 15,
+    "median_share": 30
+   },
+   {
+    "cue": "commander",
+    "n_features": 12,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 5,
+    "kmax": 5,
+    "median_share": 23.5
+   },
+   {
+    "cue": "cook",
+    "n_features": 36,
+    "decisive": [
+     2,
+     7
+    ],
+    "r3": 8,
+    "kmax": 71,
+    "median_share": 27.0
+   },
+   {
+    "cue": "cowboy",
+    "n_features": 19,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 16,
+    "median_share": 16
+   },
+   {
+    "cue": "doctor",
+    "n_features": 17,
+    "decisive": [
+     5,
+     6
+    ],
+    "r3": 7,
+    "kmax": 20,
+    "median_share": 24
+   },
+   {
+    "cue": "editor",
+    "n_features": 15,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 1,
+    "kmax": 1,
+    "median_share": 1
+   },
+   {
+    "cue": "helper",
+    "n_features": 13,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 3,
+    "kmax": 4,
+    "median_share": 7
+   },
+   {
+    "cue": "lawyer",
+    "n_features": 20,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 4,
+    "kmax": 35,
+    "median_share": 30.5
+   },
+   {
+    "cue": "maid",
+    "n_features": 14,
+    "decisive": [
+     5,
+     6
+    ],
+    "r3": 7,
+    "kmax": 12,
+    "median_share": 26.5
+   },
+   {
+    "cue": "nurse",
+    "n_features": 21,
+    "decisive": [
+     1,
+     3
+    ],
+    "r3": 4,
+    "kmax": 26,
+    "median_share": 24
+   },
+   {
+    "cue": "officer",
+    "n_features": 13,
+    "decisive": [
+     2,
+     6
+    ],
+    "r3": 7,
+    "kmax": 10,
+    "median_share": 18
+   },
+   {
+    "cue": "plumber",
+    "n_features": 13,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 3,
+    "kmax": 3,
+    "median_share": 10
+   },
+   {
+    "cue": "professor",
+    "n_features": 12,
+    "decisive": [
+     1,
+     1
+    ],
+    "r3": 2,
+    "kmax": 2,
+    "median_share": 8.5
+   },
+   {
+    "cue": "rebel",
+    "n_features": 13,
+    "decisive": [
+     2,
+     2
+    ],
+    "r3": 3,
+    "kmax": 6,
+    "median_share": 17
+   },
+   {
+    "cue": "teacher",
+    "n_features": 24,
+    "decisive": [
+     1,
+     2
+    ],
+    "r3": 2,
+    "kmax": 24,
+    "median_share": 16.0
+   },
+   {
+    "cue": "veteran",
+    "n_features": 12,
+    "decisive": [
+     1,
+     10
+    ],
+    "r3": 10,
+    "kmax": 10,
+    "median_share": 26.5
+   },
+   {
+    "cue": "washer",
+    "n_features": 16,
+    "decisive": [
+     2,
+     3
+    ],
+    "r3": 4,
+    "kmax": 15,
+    "median_share": 22.0
+   }
+  ]
+ },
+ "feasible_by_K": {
+  "2": {
+   "animals": {
+    "feasible": 36,
+    "needed": 16,
+    "short_by": 0
+   },
+   "body parts": {
+    "feasible": 24,
+    "needed": 16,
+    "short_by": 0
+   },
+   "foods": {
+    "feasible": 39,
+    "needed": 16,
+    "short_by": 0
+   },
+   "vehicles": {
+    "feasible": 18,
+    "needed": 16,
+    "short_by": 0
+   },
+   "materials": {
+    "feasible": 16,
+    "needed": 16,
+    "short_by": 0
+   },
+   "clothing": {
+    "feasible": 19,
+    "needed": 16,
+    "short_by": 0
+   },
+   "buildings": {
+    "feasible": 15,
+    "needed": 15,
+    "short_by": 0
+   },
+   "occupations": {
+    "feasible": 17,
+    "needed": 16,
+    "short_by": 0
+   }
+  },
+  "5": {
+   "animals": {
+    "feasible": 35,
+    "needed": 16,
+    "short_by": 0
+   },
+   "body parts": {
+    "feasible": 23,
+    "needed": 16,
+    "short_by": 0
+   },
+   "foods": {
+    "feasible": 33,
+    "needed": 16,
+    "short_by": 0
+   },
+   "vehicles": {
+    "feasible": 18,
+    "needed": 16,
+    "short_by": 0
+   },
+   "materials": {
+    "feasible": 14,
+    "needed": 16,
+    "short_by": 2
+   },
+   "clothing": {
+    "feasible": 18,
+    "needed": 16,
+    "short_by": 0
+   },
+   "buildings": {
+    "feasible": 15,
+    "needed": 15,
+    "short_by": 0
+   },
+   "occupations": {
+    "feasible": 14,
+    "needed": 16,
+    "short_by": 2
+   }
+  },
+  "10": {
+   "animals": {
+    "feasible": 33,
+    "needed": 16,
+    "short_by": 0
+   },
+   "body parts": {
+    "feasible": 20,
+    "needed": 16,
+    "short_by": 0
+   },
+   "foods": {
+    "feasible": 30,
+    "needed": 16,
+    "short_by": 0
+   },
+   "vehicles": {
+    "feasible": 17,
+    "needed": 16,
+    "short_by": 0
+   },
+   "materials": {
+    "feasible": 10,
+    "needed": 16,
+    "short_by": 6
+   },
+   "clothing": {
+    "feasible": 18,
+    "needed": 16,
+    "short_by": 0
+   },
+   "buildings": {
+    "feasible": 11,
+    "needed": 15,
+    "short_by": 4
+   },
+   "occupations": {
+    "feasible": 12,
+    "needed": 16,
+    "short_by": 4
+   }
+  },
+  "20": {
+   "animals": {
+    "feasible": 26,
+    "needed": 16,
+    "short_by": 0
+   },
+   "body parts": {
+    "feasible": 18,
+    "needed": 16,
+    "short_by": 0
+   },
+   "foods": {
+    "feasible": 22,
+    "needed": 16,
+    "short_by": 0
+   },
+   "vehicles": {
+    "feasible": 15,
+    "needed": 16,
+    "short_by": 1
+   },
+   "materials": {
+    "feasible": 8,
+    "needed": 16,
+    "short_by": 8
+   },
+   "clothing": {
+    "feasible": 16,
+    "needed": 16,
+    "short_by": 0
+   },
+   "buildings": {
+    "feasible": 5,
+    "needed": 15,
+    "short_by": 10
+   },
+   "occupations": {
+    "feasible": 5,
+    "needed": 16,
+    "short_by": 11
+   }
+  },
+  "30": {
+   "animals": {
+    "feasible": 24,
+    "needed": 16,
+    "short_by": 0
+   },
+   "body parts": {
+    "feasible": 18,
+    "needed": 16,
+    "short_by": 0
+   },
+   "foods": {
+    "feasible": 19,
+    "needed": 16,
+    "short_by": 0
+   },
+   "vehicles": {
+    "feasible": 13,
+    "needed": 16,
+    "short_by": 3
+   },
+   "materials": {
+    "feasible": 6,
+    "needed": 16,
+    "short_by": 10
+   },
+   "clothing": {
+    "feasible": 14,
+    "needed": 16,
+    "short_by": 2
+   },
+   "buildings": {
+    "feasible": 4,
+    "needed": 15,
+    "short_by": 11
+   },
+   "occupations": {
+    "feasible": 2,
+    "needed": 16,
+    "short_by": 14
+   }
+  },
+  "50": {
+   "animals": {
+    "feasible": 14,
+    "needed": 16,
+    "short_by": 2
+   },
+   "body parts": {
+    "feasible": 16,
+    "needed": 16,
+    "short_by": 0
+   },
+   "foods": {
+    "feasible": 12,
+    "needed": 16,
+    "short_by": 4
+   },
+   "vehicles": {
+    "feasible": 8,
+    "needed": 16,
+    "short_by": 8
+   },
+   "materials": {
+    "feasible": 3,
+    "needed": 16,
+    "short_by": 13
+   },
+   "clothing": {
+    "feasible": 13,
+    "needed": 16,
+    "short_by": 3
+   },
+   "buildings": {
+    "feasible": 1,
+    "needed": 15,
+    "short_by": 14
+   },
+   "occupations": {
+    "feasible": 1,
+    "needed": 16,
+    "short_by": 15
+   }
+  },
+  "75": {
+   "animals": {
+    "feasible": 10,
+    "needed": 16,
+    "short_by": 6
+   },
+   "body parts": {
+    "feasible": 7,
+    "needed": 16,
+    "short_by": 9
+   },
+   "foods": {
+    "feasible": 11,
+    "needed": 16,
+    "short_by": 5
+   },
+   "vehicles": {
+    "feasible": 4,
+    "needed": 16,
+    "short_by": 12
+   },
+   "materials": {
+    "feasible": 2,
+    "needed": 16,
+    "short_by": 14
+   },
+   "clothing": {
+    "feasible": 10,
+    "needed": 16,
+    "short_by": 6
+   },
+   "buildings": {
+    "feasible": 0,
+    "needed": 15,
+    "short_by": 15
+   },
+   "occupations": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   }
+  },
+  "100": {
+   "animals": {
+    "feasible": 2,
+    "needed": 16,
+    "short_by": 14
+   },
+   "body parts": {
+    "feasible": 3,
+    "needed": 16,
+    "short_by": 13
+   },
+   "foods": {
+    "feasible": 5,
+    "needed": 16,
+    "short_by": 11
+   },
+   "vehicles": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "materials": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "clothing": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "buildings": {
+    "feasible": 0,
+    "needed": 15,
+    "short_by": 15
+   },
+   "occupations": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   }
+  },
+  "150": {
+   "animals": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "body parts": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "foods": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "vehicles": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "materials": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "clothing": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "buildings": {
+    "feasible": 0,
+    "needed": 15,
+    "short_by": 15
+   },
+   "occupations": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   }
+  },
+  "200": {
+   "animals": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "body parts": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "foods": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "vehicles": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "materials": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "clothing": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   },
+   "buildings": {
+    "feasible": 0,
+    "needed": 15,
+    "short_by": 15
+   },
+   "occupations": {
+    "feasible": 0,
+    "needed": 16,
+    "short_by": 16
+   }
+  }
+ }
+}

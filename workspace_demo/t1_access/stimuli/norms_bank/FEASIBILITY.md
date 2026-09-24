@@ -1,12 +1,13 @@
 # Rebuilding the T1 clue bank on published feature norms: what the norms can supply
 
 R084, 23 September 2026. Measurement for R052, who owns `PREREGISTRATION_T1_model.md` §3 and
-amends it from these numbers. Answers handoffs d310454e and 7d4428c1. Step 1 only: nothing is
-selected, rendered or frozen, and no existing bank file is touched.
+amends it from these numbers. Answers handoffs d310454e, 7d4428c1 and b0a1f386. Step 1 only:
+nothing is selected, rendered or frozen, and no existing bank file is touched.
 
 ## Where this stands
 
-**Settled by R052 on 24 September, and applied throughout below.**
+**Settled by R052 on 24 September in §3.1 of the preregistration (RSC 0ed1365), and applied
+throughout below.**
 
 - The eight-family structure stays. §3's background list is "eight background clauses, exactly one
   from a BACKGROUND concept of each family", so the packet's eight slots *are* the eight families;
@@ -16,14 +17,22 @@ selected, rendered or frozen, and no existing bank file is touched.
 - **Membership is dominant-sense.** A cue belongs to a family when its *first* WordNet noun synset
   lies in that family's subtree. One citable sentence, and it only tightens the all-senses rule.
 - **Countries is replaced by clothing.**
-- **Tools and instruments are replaced.** Buildings is adopted as one replacement.
+- **Tools and instruments are replaced**, by **buildings** and **occupations**
+  (`worker.n.01` with `professional.n.01`). They could not be kept: after E2 and E1 the ceiling
+  over their entire WordNet subtrees is 11 concepts each.
+- **The bank is 127, not 128.** Buildings supplies 15 and the shortfall comes out of BACKGROUND,
+  which is the only split it can come from: CAL, PILOT and CONF are fixed by the pairing at 8, 8
+  and 32 pairs, so an odd count in any of them cannot be paired, while BACKGROUND concepts are
+  never a target, foil or competitor. Buildings takes 3 BACKGROUND instead of 4; CONF stays 64.
+- **Materials stands at exactly 16 with no margin**, recorded in §3.1 rather than engineered away.
 - **E1 and E2 are unchanged.** E1 is a decode rule — the single-token answer form is what makes the
   answer-position logit readable — so it was not relaxed.
 - **The feature identity is the raw `feature` string, lemmatised.**
 
-**Open, and the reason this document is still being read:** at the decided threshold of ≥ 12
-features, **buildings yields 15, one short of 16**, and neither candidate measured for the eighth
-slot clears it as specified. See "The eighth family" below.
+**Open, and the reason this document is still being read:** *K*, the floor on sharing count for
+the ten non-decisive clauses, is not set, and the measured distribution says **no useful value of
+it exists at 16 concepts per family** — the ceiling is K = 2, which is cue validity 0.5. See
+"Setting K" below. Selection cannot run until R052 settles it.
 
 ## Source, and that it is the right file
 
@@ -120,57 +129,126 @@ not a tuning knob — it is 12 clauses per concept restated. The ≥ 10 and ≥ 
 headroom would be if the clauses-per-concept count itself changed, which is a §3 decision with its
 own cost, and nothing below ≥ 12 is usable as the design stands.
 
-## The eighth family
+## How the eighth family was chosen
 
-Both candidates were measured in the full eight-family scenario, so the pair interaction with
-buildings through E2 is included.
+Both candidates R052 named were measured in the full eight-family scenario, so the pair interaction
+with buildings through E2 is included. **Occupations was adopted**, at 18 concepts.
 
-**A. Natural features** (`geological_formation.n.01` + `body_of_water.n.01`) — **11. Does not
-clear.** Members: ascent, bank, cave, cliff, coast, mountain, reef, river, sea, shore, slope.
-It fails on the **feature threshold**, not on taxonomy or tokenizer — its ceiling is 128, so the
-words exist and are single tokens. Of R052's twenty expected words: mountain (21 features), river
-(13), cliff (23) and cave (12) are in; `lake` is lost to E2 (also a pigment, so it sits in
-materials); valley, glacier, creek and ridge are **not normed at all**; and island (11), swamp (10),
-canyon (9), hill (9), volcano (9), ocean (9), bay (8), pond (8), desert (7), beach (7) and stream
-(7) are normed but **below 12 features**. Natural features attract fewer distinct feature responses
-than artifacts do. At ≥ 8 it reaches 17.
+- **Natural features** (`geological_formation.n.01` + `body_of_water.n.01`) — 11, short. It fails on
+  the **feature threshold**, not on taxonomy or tokenizer: its ceiling is 128, so the words exist
+  and are single tokens. Of the twenty expected, mountain (21 features), river (13), cliff (23) and
+  cave (12) are in; `lake` goes to E2 (also a pigment, so it sits in materials); valley, glacier,
+  creek and ridge are **not normed at all**; island (11), swamp (10), canyon (9), hill (9),
+  volcano (9), ocean (9), bay (8), pond (8), desert (7), beach (7) and stream (7) are normed but
+  below 12 features. Natural features attract fewer distinct feature responses than artifacts do.
+- **People by occupation** — the root decides it. `worker.n.01` alone gives 13, because it excludes
+  doctor, nurse and teacher, which sit under `professional.n.01` → `adult.n.01`, a sibling branch,
+  and farmer, which sits under `creator.n.02`. With `worker.n.01` + `professional.n.01` the same
+  family gives **18**: captain, chef, commander, cook, cowboy, doctor, editor, helper, lawyer, maid,
+  nurse, officer, plumber, professor, rebel, teacher, veteran, washer. Ceiling 241. E1 removes
+  beautician, cowgirl, electrician, mailman and stewardess at 2 tokens; E2 costs only `sailor`
+  (also a collar) and `worker` (also an insect caste).
 
-**B. People by occupation** — the root matters, and `worker.n.01` alone is the wrong one.
+Adopting occupations costs **materials** one concept — `clay`, which is also a person in WordNet —
+and that is what leaves materials sitting exactly on 16. No other family moves by more than 1.
 
-- `worker.n.01` as specified → **13. Does not clear.** It excludes doctor, nurse and teacher, which
-  sit under `professional.n.01` → `adult.n.01`, a sibling branch, not under worker; and farmer,
-  which sits under `creator.n.02`. This is a root artifact, not a shortage of normed occupations.
-- `worker.n.01` + `professional.n.01` → **18. Clears.** Members: captain, chef, commander, cook,
-  cowboy, doctor, editor, helper, lawyer, maid, nurse, officer, plumber, professor, rebel, teacher,
-  veteran, washer. Ceiling 241.
+## Why buildings supplies 15
 
-R052's flagged concern about `person.n.01` ancestry dragging in body-part collisions did not
-materialise: E2 costs occupations only `sailor` (also a collar) and `worker` (also an insect caste).
-The pair interaction is small but not nil — adopting occupations costs **materials** one concept,
-`clay`, which is also a person in WordNet, and that is what leaves materials sitting exactly on 16.
-No other family moves by more than 1 against the natural-features scenario.
+17 words survive E2; `castle` and `palace` are the same synset (`palace.n.01`) and so one concept,
+giving 16; `skyscraper` then fails E1 at 2 tokens, giving 15. Separately cabin, church, court and
+school fail the dominant-sense rule — church sense 1 is the body of Christians, school sense 1 the
+educational institution, court sense 1 the judicial assembly, cabin sense 1 a room on a ship — and
+monastery has only 8 features. The threshold cannot rescue it: buildings is 15 at ≥ 10 as well, and
+≥ 8 is not usable while each concept needs 12 clauses.
 
-E1 removes beautician, cowgirl, electrician, mailman and stewardess at 2 tokens.
+## Setting K: the distribution, and why no useful K exists at 16 per family
 
-## What R052 has to decide
+§3.1 ranks a concept's 12 **selected** features by sharing count, marks the two rarest decisive, and
+requires every other selected feature to be shared by at least *K* cues. K is not yet set.
 
-1. **Buildings is 15, not the 16 measured before.** The lemmatised identity cost it one concept —
-   17 words survive E2; `castle` and `palace` are the same synset (`palace.n.01`) and so one
-   concept, giving 16; `skyscraper` then fails E1 at 2 tokens, giving 15. Separately, cabin, church,
-   court and school fail the dominant-sense rule — church sense 1 is the body of Christians, school
-   sense 1 the educational institution, court sense 1 the judicial assembly, cabin sense 1 a room on
-   a ship — and monastery has only 8 features. The threshold cannot rescue it: buildings is 15 at ≥ 10 too,
-   and ≥ 8 is not usable while each concept needs 12 clauses. So the options are: accept 15 in that
-   family and carry the §3 arithmetic change, replace buildings with another family, or reduce
-   clauses per concept — which would free the threshold but is a protocol change.
-2. **The eighth family.** Neither candidate clears as specified. Occupations with
-   `worker.n.01` + `professional.n.01` clears at 18 and is the same family concept R052 named,
-   with the root that actually contains occupations. R052 said to report and stop rather than hunt
-   a third candidate, so that is what this does.
-3. **Materials has zero margin at 16.** Any later tightening removes a concept from a family that
-   has none to give, and it is the family most exposed to E2 — it already loses alligator, beaver,
-   cherry, fur, leopard, lime, mink, raccoon, salt and sponge to animals, foods or clothing.
-4. **Nothing is frozen** until §3 is amended. Step 2 runs on the amendment.
+Because selection chooses *which* 12 of a concept's features to use, two statistics matter and they
+are not the same:
+
+- **R3** — the sharing count of the concept's 3rd-rarest feature overall. This is the number K must
+  clear if the 12 selected are simply the 12 rarest.
+- **KMAX** — the largest K the concept can satisfy at all: spend the two rarest on the decisive
+  pair, sort the rest by sharing count descending, and read off the 10th. Any K ≤ KMAX is feasible,
+  by selecting the ten most-shared of the remaining features.
+
+They coincide exactly when a concept has 12 features, since then the ten non-decisive clauses are
+forced. Above 12 features KMAX exceeds R3, and **KMAX is what decides whether a concept can be
+built.** Sharing counts are over the 4,411 single-word cues, so a feature shared by *s* cues has
+cue validity ≈ 1/*s*.
+
+**Pooled, over every candidate feature of every eligible concept** (n = 4,209): min 1, p10 4,
+p25 12, median 35, p75 84, p90 196, max 537.
+
+| statistic | min | p10 | p25 | median | p75 | p90 | max |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| R3, over 188 eligible concepts | 1 | 2 | 2 | 5 | 10 | 14 | 78 |
+| KMAX, over 188 eligible concepts | 1 | 5 | 12 | 35 | 73 | 89 | 147 |
+
+Per family, KMAX (min / median / max): animals 4 / 44 / 105 · body parts 1 / 64 / 147 · buildings
+5 / 17 / 55 · clothing 2 / 75 / 98 · foods 1 / 28 / 106 · materials 2 / 20 / 93 · occupations
+1 / 12 / 71 · vehicles 1 / 37 / 93.
+
+### The ceiling is K = 2
+
+A family keeps K only if it still has enough concepts clearing it. The family ceiling is therefore
+its *n*-th largest KMAX, and the bank's ceiling is the smallest of those:
+
+| family | needs | has | slack | K ceiling | weakest concepts (KMAX) |
+|---|---:|---:|---:|---:|---|
+| **materials** | 16 | 16 | **0** | **2** | waste 2, starch 4, cigarette 6, dirt 6 |
+| **occupations** | 16 | 18 | 2 | **3** | editor 1, professor 2, plumber 3, helper 4 |
+| **buildings** | 15 | 15 | **0** | **5** | restaurant 5, convent 6, chapel 7, cathedral 9 |
+| vehicles | 16 | 19 | 3 | 19 | aircraft 1, yacht 9, missile 17 |
+| clothing | 16 | 19 | 3 | 23 | lingerie 2, gown 10, tie 13 |
+| foods | 16 | 40 | 24 | 37 | seafood 1, barbecue 2, vodka 2 |
+| animals | 16 | 36 | 20 | 44 | bee 4, worm 7, ant 8 |
+| body parts | 16 | 25 | 9 | 61 | forehead 1, nerve 2, colon 6 |
+
+**The bank ceiling is K = 2, bound by materials**, which has exactly 16 concepts and so cannot drop
+`waste`. At K = 2 a non-decisive clause need only be shared by 2 of 4,411 cues — **cue validity
+0.5**. That is not a floor; it is the absence of one, and it does not achieve what K is for.
+
+Concepts that cannot clear a given K: 4 of 188 at K = 2, 10 at K = 3, 18 at K = 5, 37 at K = 10,
+73 at K = 20.
+
+The reason is visible in the binding concepts' own profiles — these are concepts whose features are
+nearly all rare, so almost every clue gives them away:
+
+```
+editor      15 features, shares [1,1,1,1,1,1,1,1,1,4,11,15,18,80,497]
+seafood     13 features, shares [1,1,1,1,2,2,22,39,52,55,132,245,253]
+aircraft    12 features, shares [1,1,1,3,10,17,20,33,41,46,79,85]
+waste       13 features, shares [1,1,2,2,2,4,7,11,12,37,42,62,67]
+```
+
+### The trade, if the per-family count were to move
+
+| concepts per family | bank K ceiling | binding family |
+|---:|---:|---|
+| 16 | 2 | materials |
+| 15 | 4 | materials, occupations |
+| 14 | 5 | occupations |
+| 13 | 6 | materials, occupations |
+| 12 | 8 | materials |
+| 10 | 10 | materials |
+
+K = 10 is cue validity 0.1 and needs 10 concepts per family; K = 20 (validity 0.05) is not reachable
+at any per-family count this source supports across eight families. **No setting of K makes the ten
+non-decisive clauses genuinely non-decisive while the bank is 16 per family.** That is a property of
+the source, and it is reported rather than engineered around.
+
+### One rule detail this exposes
+
+§3's selection draws 16 per family **by seed from the eligible list**, and the eligible list is not
+filtered by K. Wherever a family has slack, a seeded draw can pick a concept whose KMAX is below K
+even though the family as a whole clears it. The eligible list must be filtered to K-feasible
+concepts *before* the seeded draw, or the draw can fail for a reason the seed does not record.
+At K = 2 this is a no-op for materials and buildings, which have no slack, but it is not a no-op
+for foods, animals or body parts.
 
 ## Licence
 
@@ -190,9 +268,10 @@ t1_access/.venv-build/bin/python t1_access/stimuli/norms_bank/family_pool.py
 upstream/jlens-qwen36/.venv/bin/python t1_access/stimuli/norms_bank/pool_e1.py
 MIN_FEATURES=8 t1_access/.venv-build/bin/python t1_access/stimuli/norms_bank/family_pool.py   # the sweep
 MIN_FEATURES=8 upstream/jlens-qwen36/.venv/bin/python t1_access/stimuli/norms_bank/pool_e1.py
+t1_access/.venv-build/bin/python t1_access/stimuli/norms_bank/sharing_distribution.py        # K
 ```
 
 `.venv-build` is a separate venv holding nltk 3.10.3 and WordNet 3.0. Neither nltk nor WordNet went
 into `t1_access/.venv`, which stays version-pinned for parity. `pool_wordnet*.json` and the
 `*_min8` / `*_min10` sweep outputs are regenerable and gitignored; `pool_eligible.json` is the
-committed measurement record at the decided threshold.
+committed measurement record at the decided threshold, beside `sharing_distribution.json`.
