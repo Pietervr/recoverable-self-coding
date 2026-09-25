@@ -1,0 +1,52 @@
+# The pinned T1 environment on CHPC Lengau (ledger row 18)
+
+Written 25 September 2026 from what was measured on the cluster; the ledger is
+`rsc_t1_simulation_design.md` §12 row 18 in the Unimog repository.
+
+## Why the obvious route fails
+
+Lengau is CentOS 7.9 with glibc 2.17, the login nodes have no internet, and the newest
+Python module is 3.11.6. The pinned set — Python 3.12, jax 0.11.1, jaxlib 0.11.1,
+numpy 2.4.6, scipy 1.18.0, pandas 3.0.5, joblib 1.5.3, the versions the AWS rows record —
+ships only `manylinux_2_27`/`2_28` wheels for every compiled package (jaxlib 0.11.1 has no
+glibc-2.17 wheel at all; under that constraint pip resolves jaxlib ≤ 0.7.0 and numpy ≤ 2.2.6).
+Apptainer 1.2.3 (`/apps/chpc/bio/app/apptainer-1.2.3`) runs on login1 and login2 and can pull
+an image, but cannot execute one: no setuid starter and no user namespaces on kernel 3.10.
+The `chpc/singularity/3.5.3` module that runs containers exists on compute nodes only.
+
+## The route that works, with no privileges
+
+1. On the sanctioned transfer node `scp.chpc.ac.za` (= login1, which has internet and mounts
+   Lustre): `apptainer pull docker://python:3.12.10-slim-bookworm` into
+   `/mnt/lustre/users/pvanrooyen/t1_toolchain/`. Debian bookworm, glibc 2.36; 3.12.10 is the
+   interpreter version the AWS sens600 rows record.
+2. Unpack the image's root filesystem from the SIF (`apptainer sif dump` + `unsquashfs`, both
+   plain file operations) into `t1_toolchain/rootfs`.
+3. Run the image's Python under the image's own dynamic loader with `--library-path` pointing
+   at the image's libraries: that is `t1_toolchain/t1py`, written by `t1_toolchain_setup.sh`.
+   `LD_LIBRARY_PATH` is deliberately not exported — host binaries that Python spawns (pip runs
+   `uname`) would otherwise load the image's libc under the host loader and crash.
+4. Install the ten wheels offline into `t1_toolchain/t1site` with `--require-hashes` from
+   `t1_cloudset_hashed.txt`, whose SHA-256s were measured on the Mac from the wheels pip
+   downloaded for `manylinux_2_28_x86_64` / cp312.
+
+Measured on login2 (E5-2690 v3 Haswell, AVX2, no AVX-512): python 3.12.10, jax 0.11.1,
+jaxlib 0.11.1, numpy 2.4.6, scipy 1.18.0, pandas 3.0.5, joblib 1.5.3, ml_dtypes 0.6.0;
+`jax.devices()` one CpuDevice; jit, grad, `jnp.linalg.norm` and scipy Nelder–Mead run.
+
+## Files
+
+- `t1_toolchain_setup.sh` — steps 2–4 and the two checks; idempotent (skips the unpack and the
+  install when they exist). Run on login2: `sh /mnt/lustre/users/pvanrooyen/t1_toolchain/t1_toolchain_setup.sh`.
+- `t1_cloudset_hashed.txt` — the hash-pinned requirements.
+- The wheelhouse itself (`wheels_cloudset/`, 148 MB) lives only on Lustre; it is
+  reproducible with `pip download --only-binary=:all: --platform manylinux_2_28_x86_64
+  --python-version 3.12 --implementation cp --abi cp312` on the row's pins.
+
+## What this does not do
+
+No job has been submitted and no core-hour consumed. The timing benchmark of row 18 (M2B,
+M2H, M2S, M3H at D = 4 under `NPROC=1`, like-for-like with the 22 September measurement) is a
+PBS job on the shared `serial` or `test` queue and waits for the owner's go. Everything on
+Lengau is under `/mnt/lustre/users/pvanrooyen/t1_toolchain`; the home directory (15 GB per
+the CHPC wiki) holds nothing.
