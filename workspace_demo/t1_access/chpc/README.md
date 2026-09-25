@@ -39,6 +39,11 @@ jaxlib 0.11.1, numpy 2.4.6, scipy 1.18.0, pandas 3.0.5, joblib 1.5.3, ml_dtypes 
 - `t1_toolchain_setup.sh` — steps 2–4 and the two checks; idempotent (skips the unpack and the
   install when they exist). Run on login2: `sh /mnt/lustre/users/pvanrooyen/t1_toolchain/t1_toolchain_setup.sh`.
 - `t1_cloudset_hashed.txt` — the hash-pinned requirements.
+- `row18_bench.pbs` — the stage-1 benchmark job, one core on the shared `serial` queue, 3 h walltime,
+  `bench.py --D 4 --layer` on the code of `f7e69b1` cloned to `t1_toolchain/rsc`. It sits at
+  `t1_toolchain/jobs/row18_bench.pbs` on Lustre and is submitted only on the owner's go.
+  Mac baseline for the same command (25 Sept, M4 Max, one core, the Mac venv's numpy 2.5.3 set):
+  fit s M2B 0.04, M2H 9.70, M2S 5.90, M3H 50.46; nine refits 67.2 s; 1:12 wall.
 - The wheelhouse itself (`wheels_cloudset/`, 148 MB) lives only on Lustre; it is
   reproducible with `pip download --only-binary=:all: --platform manylinux_2_28_x86_64
   --python-version 3.12 --implementation cp --abi cp312` on the row's pins.
