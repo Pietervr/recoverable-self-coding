@@ -113,6 +113,11 @@ SCENARIOS.update({f"alt_{a}": CORE + [a] for a in ALTERNATES})
 # full eight, so the pair interaction between buildings and the candidate through E2 is included.
 FINALISTS = ["natural features", "people", "occupations"]
 SCENARIOS.update({f"final_{c}": CORE + ["buildings", c] for c in FINALISTS})
+
+# The design ADOPTED on 24 Sept (§3 amended at RSC 9b7927b): McRae, three families. E2 tests only the
+# families that are actually in the bank, so this scenario - not final_occupations - is the one whose
+# counts bind the adopted design.
+SCENARIOS["adopted_three"] = ["animals", "foods", "vehicles"]
 VARIANTS = ("any_sense", "sense1")
 
 

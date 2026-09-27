@@ -1,0 +1,101 @@
+{
+ "note": "CSLB counts are an upper bound: no >= 12 feature filter, that file is gated",
+ "cslb_concepts": 638,
+ "cslb_not_in_mcrae": 222,
+ "per_family": {
+  "animals": {
+   "mcrae_eligible": 33,
+   "cslb_only_upper_bound": 24,
+   "pooled_upper_bound": 57,
+   "needed": 16,
+   "cslb_only_words": [
+    "bee",
+    "centipede",
+    "cricket",
+    "dragonfly",
+    "gerbil",
+    "hedgehog",
+    "hummingbird",
+    "jellyfish",
+    "kangaroo",
+    "kingfisher",
+    "ladybird",
+    "lizard",
+    "llama",
+    "locust",
+    "magpie",
+    "millipede",
+    "monkey",
+    "mosquito",
+    "rhino",
+    "seahorse",
+    "shark",
+    "tarantula",
+    "termite",
+    "wolf"
+   ]
+  },
+  "foods": {
+   "mcrae_eligible": 15,
+   "cslb_only_upper_bound": 27,
+   "pooled_upper_bound": 42,
+   "needed": 16,
+   "cslb_only_words": [
+    "bacon",
+    "beer",
+    "brandy",
+    "butter",
+    "champagne",
+    "chocolate",
+    "cider",
+    "coffee",
+    "currant",
+    "flour",
+    "gin",
+    "ham",
+    "jam",
+    "jelly",
+    "ketchup",
+    "lemonade",
+    "mayonnaise",
+    "melon",
+    "milk",
+    "sandwich",
+    "soup",
+    "sugar",
+    "sultana",
+    "tea",
+    "whisky",
+    "wine",
+    "yoghurt"
+   ]
+  },
+  "vehicles": {
+   "mcrae_eligible": 17,
+   "cslb_only_upper_bound": 12,
+   "pooled_upper_bound": 29,
+   "needed": 16,
+   "cslb_only_words": [
+    "barge",
+    "carriage",
+    "dinghy",
+    "ferry",
+    "glider",
+    "houseboat",
+    "kayak",
+    "lorry",
+    "moped",
+    "pram",
+    "speedboat",
+    "tugboat"
+   ]
+  }
+ },
+ "families_short_of_16": [],
+ "family_set": "three",
+ "totals": {
+  "mcrae": 65,
+  "pooled_upper_bound": 128,
+  "needed": 99
+ }
+}

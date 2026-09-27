@@ -30,9 +30,22 @@ sys.path.insert(0, str(HERE))
 import family_pool as fp  # noqa: E402
 
 CSLB_CONCEPTS = Path.home() / "word-norms-mcrae/cslb_concepts.json"
-FAMILIES = ["animals", "body parts", "foods", "vehicles", "materials", "clothing",
-            "buildings", "occupations"]
+import os
+
+# E2 tests only the families that are actually in the bank, so the family set is a parameter.
+# FAMILY_SET=eight is the pre-24-Sept design; FAMILY_SET=three is the design adopted at RSC 9b7927b.
+FAMILY_SETS = {
+    "eight": ["animals", "body parts", "foods", "vehicles", "materials", "clothing",
+              "buildings", "occupations"],
+    "three": ["animals", "foods", "vehicles"],
+}
+FAMILY_SET = os.environ.get("FAMILY_SET", "eight")
+FAMILIES = FAMILY_SETS[FAMILY_SET]
+SCENARIO = {"eight": "final_occupations", "three": "adopted_three"}[FAMILY_SET]
 PER_FAMILY = 16
+# The adopted design fixes totals, not a per-family 16: CONF 64 + CAL 16 + PILOT 16, plus at least one
+# BACKGROUND concept per family (§3, RSC 9b7927b).
+TOTAL_NEEDED = 64 + 16 + 16 + len(FAMILY_SETS["three"])
 
 
 def assign(words: list[str], trees: dict) -> dict[str, list[str]]:
@@ -57,7 +70,7 @@ def assign(words: list[str], trees: dict) -> dict[str, list[str]]:
 
 def main() -> int:
     trees = {f: fp.subtree(f) for f in FAMILIES}
-    mcrae = json.loads((HERE / "pool_eligible_mcrae.json").read_text())["scenarios"]["final_occupations"]
+    mcrae = json.loads((HERE / "pool_eligible_mcrae.json").read_text())["scenarios"][SCENARIO]
     cslb = json.loads(CSLB_CONCEPTS.read_text())
     only = assign([r["concept"] for r in cslb if not r["in_mcrae"]], trees)
 
@@ -75,16 +88,27 @@ def main() -> int:
            "cslb_concepts": len(cslb),
            "cslb_not_in_mcrae": sum(1 for r in cslb if not r["in_mcrae"]),
            "per_family": rows, "families_short_of_16": short}
-    (HERE / "pool_sources.json").write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
+    out["family_set"] = FAMILY_SET
+    if FAMILY_SET == "three":
+        m_total = sum(r["mcrae_eligible"] for r in rows.values())
+        b_total = sum(r["pooled_upper_bound"] for r in rows.values())
+        out["totals"] = {"mcrae": m_total, "pooled_upper_bound": b_total, "needed": TOTAL_NEEDED}
+    (HERE / ("pool_sources.json" if FAMILY_SET == "eight" else f"pool_sources_{FAMILY_SET}.json")).write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
 
-    print(f"{'family':>12} {'McRae':>7} {'+CSLB':>7} {'bound':>7}   needs {PER_FAMILY}")
+    head = f"needs {PER_FAMILY}" if FAMILY_SET == "eight" else "(totals bind, not a per-family 16)"
+    print(f"{'family':>12} {'McRae':>7} {'+CSLB':>7} {'bound':>7}   {head}")
     for f in FAMILIES:
         r = rows[f]
-        flag = "" if r["pooled_upper_bound"] >= PER_FAMILY else "   << CANNOT REACH 16"
+        flag = ("" if FAMILY_SET == "three" or r["pooled_upper_bound"] >= PER_FAMILY
+                else "   << CANNOT REACH 16")
         print(f"{f:>12} {r['mcrae_eligible']:>7} {r['cslb_only_upper_bound']:>7} "
               f"{r['pooled_upper_bound']:>7}{flag}")
-    print(f"\n{len(short)} of {len(FAMILIES)} families cannot reach 16: {', '.join(short)}")
-    print(f"-> {HERE / 'pool_sources.json'}")
+    if FAMILY_SET == "three":
+        t = out["totals"]
+        print(f"\nTOTAL  McRae {t['mcrae']}   pooled upper bound {t['pooled_upper_bound']}   needed {t['needed']}"
+              f"   (CONF 64 + CAL 16 + PILOT 16 + one BACKGROUND per family)")
+    else:
+        print(f"\n{len(short)} of {len(FAMILIES)} families cannot reach 16: {', '.join(short)}")
     return 0
 
 
