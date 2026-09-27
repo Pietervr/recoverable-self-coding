@@ -3,7 +3,29 @@
 R084, 24 September 2026, answering R052's handoff f24ec33f. One pass, the pipeline already built for
 Buchanan. Nothing selected, rendered or frozen; no clause rendered on Buchanan since the last report.
 
-## The answer
+## Where this stands now
+
+**Decided 24 Sept (§3 at RSC 9b7927b): the bank moves to McRae and to three families — animals,
+foods, vehicles.** The eight-family measurement below is the evidence that decided it and is kept
+as that record.
+
+The adopted design's own counts (RSC 2646bf1, scenario `adopted_three`, where E2 tests only the three
+families in the bank):
+
+| | animals | foods | vehicles | total | needed |
+|---|---:|---:|---:|---:|---:|
+| McRae alone | 33 | 15 | 17 | **65** | 99 |
+| McRae + CSLB-only upper bound | 57 | 42 | 29 | **128** | 99 |
+
+Needed is CONF 64 + CAL 16 + PILOT 16 + one BACKGROUND per family. **CSLB is load-bearing** — McRae
+alone is 34 short, so CSLB must supply at least 34 of its 63 three-family candidates at ≥ 12 features.
+It is also load-bearing for **pairing**: cross-family pairs need every family at no more than half of
+each split, and on McRae-alone proportions animals would take 32.49 of CONF's 64 and 8.12 of CAL's and
+PILOT's 16, over that limit in all three; pooled, 28.50 and 7.12. The CSLB file was requested by the
+owner on 24 Sept, reply by 8 October. **Nothing is built until it arrives and R052 sends the step-2
+handoff.**
+
+## The eight-family answer (the evidence for the decision)
 
 **McRae's format is exactly what §3.1 assumes.** Its features are relational statements —
 `has_a_trunk`, `lives_in_Africa`, `used_for_cargo`, `has_a_wooden_handle` — so rendering is
