@@ -1,0 +1,15 @@
+host cnode0114  model name	: Intel(R) Xeon(R) CPU E5-2690 v3 @ 2.60GHz  cores 1
+code f7e69b1  start 2026-10-01T03:54:35Z
+all 24 copies done in 503 s wall
+24 logs, 0 without a table
+member   n    min s   median    max s  conv 8/8
+M0      24     0.11     0.13     0.14        24
+M2B     24     0.20     0.21     0.28        24
+M2H     24    84.53    85.53    86.84        24
+M2S     24    46.63    47.11    47.44        24
+M2K     24     0.83     0.93     1.26        24
+M3      24     0.78     0.82     0.83        24
+M3H     24   284.55   286.59   289.25        24
+M3V     24     0.96     1.10     1.41        24
+M3L     24     1.36     1.52     1.85        24
+end 2026-10-01T04:02:59Z
