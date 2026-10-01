@@ -1,0 +1,30 @@
+#!/bin/bash
+#PBS -N t1_row18_pack
+#PBS -P CSCI1913
+#PBS -q smp
+#PBS -l select=1:ncpus=24:mpiprocs=24:nodetype=haswell_reg
+#PBS -l walltime=02:00:00
+#PBS -o /mnt/lustre/users/pvanrooyen/t1_toolchain/jobs/row18_pack.out
+#PBS -e /mnt/lustre/users/pvanrooyen/t1_toolchain/jobs/row18_pack.err
+#PBS -m ae
+#PBS -M pgwvanrooyen@sun.ac.za
+# Ledger row 18, stage 1b: the packing penalty. Twenty-four copies of the stage-1 per-member benchmark
+# (bench.py --D 4, no --layer) run at once on ONE Haswell node, one copy pinned to each core, NPROC=1 each.
+# Beside the single-core job (7513466) this measures whether this workload slows itself down when a node is
+# filled - which decides serial (shared nodes) against packed smp/normal nodes for the campaign, without
+# asking anyone. Cost: 24 cores x the wall of one bench run, a few core-hours against the 500 cap.
+ulimit -s unlimited
+T=/mnt/lustre/users/pvanrooyen/t1_toolchain
+cd $T/rsc/workspace_demo/t1_access
+export NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+echo "host $(hostname)  $(grep -m1 'model name' /proc/cpuinfo)  cores $(nproc)"
+echo "code $(git rev-parse --short HEAD)  start $(date -u +%FT%TZ)"
+mkdir -p $T/jobs/pack
+t0=$(date +%s)
+for i in $(seq 0 23); do
+  ( taskset -c $i $T/t1py bench.py --D 4 > $T/jobs/pack/copy_$i.log 2>&1 ) &
+done
+wait
+echo "all 24 copies done in $(( $(date +%s) - t0 )) s wall"
+$T/t1py $T/rsc/workspace_demo/t1_access/chpc/pack_summary.py $T/jobs/pack
+echo "end $(date -u +%FT%TZ)"
