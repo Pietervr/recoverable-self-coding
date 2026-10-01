@@ -1,0 +1,25 @@
+host cnode0941  model name	: Intel(R) Xeon(R) CPU E5-2690 v3 @ 2.60GHz
+code f7e69b1  start 2026-10-01T03:43:27Z
+python 3.12.10 jax 0.11.1 jaxlib 0.11.1 numpy 2.4.6 scipy 1.18.0 joblib 1.5.3
+D=4: training fold 8736 trials / 52 concepts; GH nodes 20
+member compile s   fit s per start  conv   nfev score ms
+M0         13.90    0.35     0.043  8/8      71      1.0
+M2B         0.99    0.21     0.026  8/8     258      0.6
+M2H         5.99   55.70     6.962  8/8     325     21.7
+M2S         3.37   32.34     4.043  8/8     319     17.0
+M2K         1.00    0.85     0.107  8/8     529      0.8
+M3          0.64    0.85     0.106  8/8     473      0.7
+M3H         5.67  223.04    27.880  8/8     619     29.7
+M3V         0.67    1.06     0.132  8/8     593      0.8
+M3L         0.88    1.43     0.179  8/8     695      1.2
+sum of the nine refits at 8 starts: 315.8 s
+one layer, 5 outer folds x 8 members x (4 inner @ 8 starts + refit @ 8): 6409 s wall, 6396 s in fits, convergence 1.000, selected [('M2K', 'M3H'), ('M2K', 'M3H'), ('M2K', 'M3H'), ('M2K', 'M3H'), ('M2K', 'M3H')]
+  selection: mean Delta 0.05357
+  ensemble: mean Delta 0.05262
+  historical: mean Delta 0.08721
+end 2026-10-01T05:38:10Z
+--- stderr (time) ---
+
+real	113m18.364s
+user	102m32.499s
+sys	13m53.121s
