@@ -1,0 +1,2326 @@
+{
+ "note": "Photograph arm, desk gate: the per-photo manifest of framework §8.2 for the 32 development roles (P = 1 so far:\nthe THINGSplus primary view; the Stage B second view is added when found and cleared).",
+ "release": {
+  "zip": {
+   "name": "images_THINGSplus-CC0.zip",
+   "osf": "jum2f",
+   "bytes": 1177368548,
+   "sha256": "ed86912f6848ac5cf8b405a727f875295cc081cdd64271e80ae4d607b7d447e3"
+  },
+  "notice": {
+   "osf": "ahg2k",
+   "sha256": "bdda43a819803658fb0e3611cdfa571a2b2dc2f3a3429617a4cf1169ace1e69e",
+   "quote": "We provide the THINGS+ public domain images for any purpose without restriction under copyright or database law ... At the time of downloading, all images had a public domain/CC0 license"
+  },
+  "license": {
+   "osf": "52wrx",
+   "sha256": "de570769b5545d7b9a7f9165b9da691370fa680330a8b2bf73cd9368ba1dbc97",
+   "quote": "The THINGSplus images ... have a CC0 license"
+  },
+  "downloaded": "2026-10-01",
+  "misattribution_caveat": "the notice reports rights status at collection and acknowledges possible misattribution, with a take-down route",
+  "creator": "not supplied by the release",
+  "original_url": "not supplied by the release",
+  "per_image_provenance_in_release": "none (zip of square-cropped derivatives, EXIF stripped)"
+ },
+ "execution_identity": {
+  "code_sha256": {
+   "dose.py": "05d61ea6d199903eb066534e8cc2e7bb73e102b9cfa284f5692f8d75e9bb4302",
+   "dose_report.py": "aff4afc3ac18455d0876da042d4202deaf428820ffaf09fde4603e32e14a825a",
+   "pool.py": "045abd38b1b2c4bd7b0e76fb7215fe7fe6b22c5e32b85c2b65b63d056a08c836",
+   "image_adapter.py": "d8f85d764ab51b0f8b96fbed7eaf6a8438b5fb46da33aff25cd65fa976885c55",
+   "manifest.py": "6124f952877cfc3c280f3ce0f699f948a9d4b3b13198fcc19c0973f2c558cbe6"
+  },
+  "template_sha256": "9e6096381c10879db3360ddee61492f4ab1e9e964c80acdd726a56910c391e5d",
+  "processor": {
+   "class": "Qwen3VLImageProcessor",
+   "mlx_vlm": "0.6.3",
+   "config": "snapshot c000ac2c preprocessor_config.json"
+  },
+  "pillow": "12.3.0",
+  "numpy": "2.5.1",
+  "dev_pool_sha256": "0726bd2dbb8d43aa370f739dff1bd75b47381ec5174c57f965e72d77509db75d",
+  "provenance_checks_sha256": "3f16e1b4b865ac7db98364bd89039d2630205cc0030e90f150150fa5d73f5e1e"
+ },
+ "n_records": 32,
+ "check_status_counts": {
+  "eligible": 8,
+  "not_found": 0,
+  "ineligible": 0,
+  "pending (before row 21)": 24
+ },
+ "records": [
+  {
+   "concept": "bull",
+   "synset": "bull.n.01",
+   "wnid": "n02403325",
+   "family": "animals",
+   "e1_token_id": 16319,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:bull.jpg",
+   "source_group_id": "thingsplus-primary:bull",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "bull.jpg",
+   "original_bytes": 607954,
+   "original_sha256": "169ffe3c921f6ea3596b14d9cb85b43f886855ccf6df9772cb1c0fa5c91f7587",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "169ffe3c921f6ea3596b14d9cb85b43f886855ccf6df9772cb1c0fa5c91f7587",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "dd73c23ab55366b460f4671e9c1970734e2eeca8e51b04ce6f1ce9d84d97830a",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "577d99351fdef6fa84fe8378a6f984ae6aeeeb0383edfb2a3007c7b3795531ec",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.571428571,
+   "raters_most_common_label": "bull"
+  },
+  {
+   "concept": "crow",
+   "synset": "crow.n.01",
+   "wnid": "n01579028",
+   "family": "animals",
+   "e1_token_id": 9000,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "replaces": null,
+   "photo_id": "thingsplus:crow.jpg",
+   "source_group_id": "thingsplus-primary:crow",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "crow.jpg",
+   "original_bytes": 960218,
+   "original_sha256": "609058b9e54c8d791e9003c69311134c7faee05537b078f61c5adbc0cf63db49",
+   "per_image_check": {
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/crow-bird-animal-corvus-wildlife-3238629/",
+    "creator": "MabelAmber (Pixabay)",
+    "published": "2018-03-17",
+    "licence_shown": "Pixabay Content License (page banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 13,
+    "notes": "creator's profile asks that people pictures be used editorially; no person in this image"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "609058b9e54c8d791e9003c69311134c7faee05537b078f61c5adbc0cf63db49",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "3d50d7ee2ca4cab60f372d217867448d8707e2e063f29a1ff8cc9c9b9e2e54a5",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "a6cceb517f539724e5df553544bcf04934c41cb25443f8305fa4bb2baf3ef2a9",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.823529412,
+   "raters_most_common_label": "crow"
+  },
+  {
+   "concept": "horse",
+   "synset": "horse.n.01",
+   "wnid": "n02374451",
+   "family": "animals",
+   "e1_token_id": 14780,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "replaces": "fly",
+   "photo_id": "thingsplus:horse.jpg",
+   "source_group_id": "thingsplus-primary:horse",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "horse.jpg",
+   "original_bytes": 1422692,
+   "original_sha256": "e2a067d72b3b3368758ed62bf69771c3e03b315a154b64ecf1835f311648a34a",
+   "per_image_check": {
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/shire-horse-horse-big-horse-1759322/",
+    "creator": "Alexas_Fotos (Pixabay)",
+    "published": "2016-10-22",
+    "licence_shown": "Pixabay Content License (page banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 65,
+    "notes": "checked as fly's replacement (next in the animals seeded order)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "e2a067d72b3b3368758ed62bf69771c3e03b315a154b64ecf1835f311648a34a",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "00f35c27dd9c5141d85f8eab1172cc5fbb95e5359d1e2416462c20e5b1c7f917",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "efd555fa87ba6b1fad51118e12e92bdc411bf492dda7d90607a1ed8343ac92a1",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.9375,
+   "raters_most_common_label": "horse"
+  },
+  {
+   "concept": "shark",
+   "synset": "shark.n.01",
+   "wnid": "n01482330",
+   "family": "animals",
+   "e1_token_id": 42342,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:shark.jpg",
+   "source_group_id": "thingsplus-primary:shark",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "shark.jpg",
+   "original_bytes": 710303,
+   "original_sha256": "e53e95552265df6f0a944cb3526cd2d35e3babd4d7eb12c591033dce5b87fb52",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "e53e95552265df6f0a944cb3526cd2d35e3babd4d7eb12c591033dce5b87fb52",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "db46f4a0331e705bee2aadce71a79a73375b96f93d186e0465b125009242cf62",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "de34907523c43798f5dda2c42c09b75e229c2c874acac5b208a82017c075c4a8",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.666666667,
+   "raters_most_common_label": "shark"
+  },
+  {
+   "concept": "cow",
+   "synset": "cow.n.01",
+   "wnid": "n02403454",
+   "family": "animals",
+   "e1_token_id": 18775,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:cow.jpg",
+   "source_group_id": "thingsplus-primary:cow",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "cow.jpg",
+   "original_bytes": 1392977,
+   "original_sha256": "774e981f6e558dd3a36c2c66fb0ccc44a2f6d68de71d23601e6a2aff5994c057",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "774e981f6e558dd3a36c2c66fb0ccc44a2f6d68de71d23601e6a2aff5994c057",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "d95cb9a43a1fece436168eb25a60e5d82c37b1cd0aee392d250e89c2a5405ce6",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "ac6993ac2ac16262d681f32ac3b130ee1c65f3a4d90f4998f67b1d2c79076dce",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 1.0,
+   "raters_most_common_label": "cow"
+  },
+  {
+   "concept": "frog",
+   "synset": "frog.n.01",
+   "wnid": "n01639765",
+   "family": "animals",
+   "e1_token_id": 57859,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:frog.jpg",
+   "source_group_id": "thingsplus-primary:frog",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "frog.jpg",
+   "original_bytes": 645881,
+   "original_sha256": "b69ef0041691fb3241e2a431485a13f7fc8b39b5db8ff5772c1a7fcbbe5eefcb",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "b69ef0041691fb3241e2a431485a13f7fc8b39b5db8ff5772c1a7fcbbe5eefcb",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "a25bb27e549f953647b144caee1747173ef3103bed0e5e3d33dd634af25ed918",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "d369c6613df244032629a435ea5469bc3190e097992941da9d7686b60dae8fa2",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 1.0,
+   "raters_most_common_label": "frog"
+  },
+  {
+   "concept": "mosquito",
+   "synset": "mosquito.n.01",
+   "wnid": "n02200198",
+   "family": "animals",
+   "e1_token_id": 47881,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:mosquito.jpg",
+   "source_group_id": "thingsplus-primary:mosquito",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "mosquito.jpg",
+   "original_bytes": 498294,
+   "original_sha256": "3e2e6c2a2ca870cb688ec873c6da882ea143bfc33121414f6dbe29d9f62bc8e3",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "3e2e6c2a2ca870cb688ec873c6da882ea143bfc33121414f6dbe29d9f62bc8e3",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "9913454e617f8ac46829a325f21587ae866e4f88a1a0bff0ff958f6e39af138d",
+    "clip": {
+     "clipped_fraction": 0.014180501302083334,
+     "clipped_low": 0.014180501302083334,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "a31642ec0176b220b279ad168f36f414a0f1404afbb686acae8643edddc53fc8",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.823529412,
+   "raters_most_common_label": "mosquito"
+  },
+  {
+   "concept": "pigeon",
+   "synset": "pigeon.n.01",
+   "wnid": "n01811909",
+   "family": "animals",
+   "e1_token_id": 89350,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:pigeon.jpg",
+   "source_group_id": "thingsplus-primary:pigeon",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "pigeon.jpg",
+   "original_bytes": 459964,
+   "original_sha256": "418acab929ede22c649e674e35e34ae82fddbf20cc2c62cac2af1d75ed6b63e6",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "418acab929ede22c649e674e35e34ae82fddbf20cc2c62cac2af1d75ed6b63e6",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "456ecbd28f9205b409ab73ffc13506db4e349429899e9835a0aa98bf0d965b8d",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "56e2c8ccfcf67ff0909892084dbda6da8ca1b019cd3d2562db73d3a6043d7b7a",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.777777778,
+   "raters_most_common_label": "pigeon"
+  },
+  {
+   "concept": "coat",
+   "synset": "coat.n.01",
+   "wnid": "n03057021",
+   "family": "clothing",
+   "e1_token_id": 22162,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:coat.jpg",
+   "source_group_id": "thingsplus-primary:coat",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "coat.jpg",
+   "original_bytes": 678274,
+   "original_sha256": "de889570e24a70857afa50227f170cbfb429b4e7cdc8aa9d7a9c301ec5ff55a7",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "de889570e24a70857afa50227f170cbfb429b4e7cdc8aa9d7a9c301ec5ff55a7",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "475c3c1ee359fb86fa3234c62ff0a0ec656936792450593516ca334843e6fd55",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "62e3b390bb21ebaa8cacc65abf889560626ab035c1ce6bc4f28bc1983f5f6769",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.571428571,
+   "raters_most_common_label": "coat"
+  },
+  {
+   "concept": "jacket",
+   "synset": "jacket.n.01",
+   "wnid": "n03589791",
+   "family": "clothing",
+   "e1_token_id": 25372,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "replaces": "suit",
+   "photo_id": "thingsplus:jacket.jpg",
+   "source_group_id": "thingsplus-primary:jacket",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "jacket.jpg",
+   "original_bytes": 870476,
+   "original_sha256": "46f6a46e4f055f16814955e7079b5dde720238a0b0138554cf235bfd45b87039",
+   "per_image_check": {
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/jackets-leather-jackets-clothing-357898/",
+    "creator": "Hans (Pixabay)",
+    "published": "2014-06-10",
+    "licence_shown": "Pixabay Content License (page banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 83,
+    "notes": "checked as suit's replacement after wig; the image shows several leather jackets"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "46f6a46e4f055f16814955e7079b5dde720238a0b0138554cf235bfd45b87039",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "559484f14444615b205aaffce0352003b22cb64f8b182374447c0e591f4fd91b",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "8bb8c0ce9b473da67d16c58ce7c4795f89390e4574ae63d7abbdefc58f300884",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.363636364,
+   "raters_most_common_label": "jacket"
+  },
+  {
+   "concept": "jeans",
+   "synset": "jean.n.01",
+   "wnid": "n03594734",
+   "family": "clothing",
+   "e1_token_id": 32186,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:jeans.jpg",
+   "source_group_id": "thingsplus-primary:jeans",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "jeans.jpg",
+   "original_bytes": 1045401,
+   "original_sha256": "0fdef93daabb3b14c56d252813fbf9cdf88499e109af2f1844a7e6f73612176c",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "0fdef93daabb3b14c56d252813fbf9cdf88499e109af2f1844a7e6f73612176c",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "0bf36f54e8cf3f473b75145312fe4000809fd9de33746a3e6db8d62e34d69dea",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "8e27b7106f4804f5afcf6dd9ca5cb0172cdbec40c1931d247021cffedcee74a4",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.733333333,
+   "raters_most_common_label": "jeans"
+  },
+  {
+   "concept": "mask",
+   "synset": "mask.n.01",
+   "wnid": "n03724870",
+   "family": "clothing",
+   "e1_token_id": 6696,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "replaces": null,
+   "photo_id": "thingsplus:mask.jpg",
+   "source_group_id": "thingsplus-primary:mask",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "mask.jpg",
+   "original_bytes": 499552,
+   "original_sha256": "7c9991a64b8f652643ee821f25b4c001fa89398ff9ca981cb57bdf588e8746d3",
+   "per_image_check": {
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/masks-field-nature-tree-1152278/",
+    "creator": "josealbafotos (Pixabay)",
+    "published": "2016-01-20",
+    "licence_shown": "Pixabay Content License (page banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 57,
+    "notes": ""
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "7c9991a64b8f652643ee821f25b4c001fa89398ff9ca981cb57bdf588e8746d3",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "08d2dab7e3f62b3da5df562bff6ca503717ff3b9a1f660fd3e9148b8a15deb34",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "bb54a96e8d56750d35f111bed7166acd9deee023812f255bfdb586984b4eaa2e",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.866666667,
+   "raters_most_common_label": "mask"
+  },
+  {
+   "concept": "robe",
+   "synset": "robe.n.01",
+   "wnid": "n04097866",
+   "family": "clothing",
+   "e1_token_id": 60507,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:robe.jpg",
+   "source_group_id": "thingsplus-primary:robe",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "robe.jpg",
+   "original_bytes": 636899,
+   "original_sha256": "300bb50a067e2efc9685b572e5b59b863e418ff19b5d3bc5a56559cdc74a42d0",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "300bb50a067e2efc9685b572e5b59b863e418ff19b5d3bc5a56559cdc74a42d0",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "14fd744bdeb6064a7cb0c4f77fac96eb291fe53f8f08ea1c7159b75997d786c2",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "d9cedd93654bb99b8a092244fde40b4ba474b8d6c3caa712269e2417cbc43c8f",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.352941176,
+   "raters_most_common_label": "robe"
+  },
+  {
+   "concept": "shirt",
+   "synset": "shirt.n.01",
+   "wnid": "n04197391",
+   "family": "clothing",
+   "e1_token_id": 15024,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:shirt.jpg",
+   "source_group_id": "thingsplus-primary:shirt",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "shirt.jpg",
+   "original_bytes": 820021,
+   "original_sha256": "6880ce37fa8a3430a768ce83ec21b975bc3fcf9dc47a5a70a3ca3586931528c8",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "6880ce37fa8a3430a768ce83ec21b975bc3fcf9dc47a5a70a3ca3586931528c8",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "8e642508c472b07c85a02a06a2e60208ec0f8e3a9298a3f6b94293723c6296e3",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "6f254f1b9ad417f25ee481d8ac27cc87051039bf2ebc65f1edccfda161d341a3",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.941176471,
+   "raters_most_common_label": "shirt"
+  },
+  {
+   "concept": "shorts",
+   "synset": "short_pants.n.01",
+   "wnid": "n04205318",
+   "family": "clothing",
+   "e1_token_id": 34591,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:shorts.jpg",
+   "source_group_id": "thingsplus-primary:shorts",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "shorts.jpg",
+   "original_bytes": 812650,
+   "original_sha256": "6268cc7d199d938c85643037a75d2919f89ef7ba56692667fe70a1b78c7d31e6",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "6268cc7d199d938c85643037a75d2919f89ef7ba56692667fe70a1b78c7d31e6",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "bc4511062b9f9b05087ed1251f4acab2ca2d979728e4a7790b6dad5eeb6e7bd6",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "ac7c622b93d994d197f8a67f06488c064c7c3d8a69a8362b863875c73120a3ed",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.352941176,
+   "raters_most_common_label": "shorts"
+  },
+  {
+   "concept": "sock",
+   "synset": "sock.n.01",
+   "wnid": "n04254777",
+   "family": "clothing",
+   "e1_token_id": 10764,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:sock.jpg",
+   "source_group_id": "thingsplus-primary:sock",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "sock.jpg",
+   "original_bytes": 912255,
+   "original_sha256": "5961fd8fdeb92263928d0b259159cfe4e690ad847b4973c33daa4060965ae159",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "5961fd8fdeb92263928d0b259159cfe4e690ad847b4973c33daa4060965ae159",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "00cbdbe6bde523c25b217af4d85ee468394a9b343ff770f56cbed8c8e1c06957",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "a1cfb16e16cda6c586a22f88dd87d82034f7603ba8d2e865023b65a4519dbe5d",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.833333333,
+   "raters_most_common_label": "sock"
+  },
+  {
+   "concept": "avocado",
+   "synset": "avocado.n.01",
+   "wnid": "n07764847",
+   "family": "foods",
+   "e1_token_id": 64978,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:avocado.jpg",
+   "source_group_id": "thingsplus-primary:avocado",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "avocado.jpg",
+   "original_bytes": 622681,
+   "original_sha256": "b3abc86f96456952d22d428e044635011346608d9c2ce33a3c7dba4ae538d115",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "b3abc86f96456952d22d428e044635011346608d9c2ce33a3c7dba4ae538d115",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "5ed3e7194394419735b968e87e5a1e3fe1bdd46e65b3a4166fb9eccc193a5ef6",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "f654f218f9d4be5a7b22e1fdef8d14168d8d10c3d0e8ef639b2b0de0dd306586",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.875,
+   "raters_most_common_label": "avocado"
+  },
+  {
+   "concept": "caramel",
+   "synset": "caramel.n.01",
+   "wnid": "n07601809",
+   "family": "foods",
+   "e1_token_id": 56726,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:caramel.jpg",
+   "source_group_id": "thingsplus-primary:caramel",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "caramel.jpg",
+   "original_bytes": 709287,
+   "original_sha256": "c5c7ec2042b9dbbb989951c7ecc2af51a0a22b4907e589d0a2fa937a391b3a99",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "c5c7ec2042b9dbbb989951c7ecc2af51a0a22b4907e589d0a2fa937a391b3a99",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "dc802ea6b94a862fa2550e86d16b3c8efdbc6b2181a0a8c1bbd2b68280ad1c19",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "6bf2b10eb6679410c1bb1230af29d7830fc8c9d73aff6c173d75ace163488022",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.384615385,
+   "raters_most_common_label": "caramel"
+  },
+  {
+   "concept": "chili",
+   "synset": "chili.n.01",
+   "wnid": "n07864934",
+   "family": "foods",
+   "e1_token_id": 56637,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "replaces": null,
+   "photo_id": "thingsplus:chili.jpg",
+   "source_group_id": "thingsplus-primary:chili",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "chili.jpg",
+   "original_bytes": 565404,
+   "original_sha256": "1fe7bbd6c204ee34f64700963a619e532400cb41cd325cd0437ad6ffd2ec1a9a",
+   "per_image_check": {
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/chili-con-carne-chili-cook-378952/",
+    "creator": "kalhh (Pixabay)",
+    "published": "2014-06-29",
+    "licence_shown": "Pixabay Content License (page banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 154,
+    "notes": "the dish (chili con carne), consistent with THINGS' sense 'chili (stew)', n07864934"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "1fe7bbd6c204ee34f64700963a619e532400cb41cd325cd0437ad6ffd2ec1a9a",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "43297bffc0183ad33cfd6586187571b16bcf5714e6b3232b581ac0624ba38c39",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "863045009a1d97d183c2cd9a020f04e59321e3b64c463a0e7311ba5af2699c4e",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.384615385,
+   "raters_most_common_label": "chili (stew)"
+  },
+  {
+   "concept": "hamburger",
+   "synset": "hamburger.n.01",
+   "wnid": "n07697100",
+   "family": "foods",
+   "e1_token_id": 85693,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "replaces": null,
+   "photo_id": "thingsplus:hamburger.jpg",
+   "source_group_id": "thingsplus-primary:hamburger",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "hamburger.jpg",
+   "original_bytes": 499260,
+   "original_sha256": "a5ae90267c852d15a33f273a9bbb970a55864b6d765e953b420408b0add0ec1a",
+   "per_image_check": {
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/hamburger-burger-sweet-bread-3291829/",
+    "creator": "chadarat (Pixabay)",
+    "published": "2018-04-04",
+    "licence_shown": "Pixabay Content License (page banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 34,
+    "notes": ""
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "a5ae90267c852d15a33f273a9bbb970a55864b6d765e953b420408b0add0ec1a",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "f82dd04390c420b929aa4bd0f8e0a3703ffbed75e397beb61bc1cb2243536993",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "7087bdef5f7774180058f514f23c4f23da5e86a4050b3a6ea857c0da3c0e3f91",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.357142857,
+   "raters_most_common_label": "hamburger"
+  },
+  {
+   "concept": "cheese",
+   "synset": "cheese.n.01",
+   "wnid": "n07850329",
+   "family": "foods",
+   "e1_token_id": 16657,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:cheese.jpg",
+   "source_group_id": "thingsplus-primary:cheese",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "cheese.jpg",
+   "original_bytes": 442631,
+   "original_sha256": "97f644057ed08198372c624e4149ecbf6c49e1ee62268b5f9a39aea107816f1c",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "97f644057ed08198372c624e4149ecbf6c49e1ee62268b5f9a39aea107816f1c",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "be865117ed0306d73e46e170c57e4f89b4c3eddbd3c31be575569aefc6de3671",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "12815698aa61e2b2a42330f0f3ecdee8b4077064e481ed1846746fec4e235424",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.4375,
+   "raters_most_common_label": "cheese"
+  },
+  {
+   "concept": "meat",
+   "synset": "meat.n.01",
+   "wnid": "n07649854",
+   "family": "foods",
+   "e1_token_id": 12668,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:meat.jpg",
+   "source_group_id": "thingsplus-primary:meat",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "meat.jpg",
+   "original_bytes": 418429,
+   "original_sha256": "1113bde40dd7052f4f43b0f91b2549ec0e6429bca8975cb1144558173e44d99d",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "1113bde40dd7052f4f43b0f91b2549ec0e6429bca8975cb1144558173e44d99d",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "d7dcf216c3229ba0715340643d4e0d735cc1b3abde4e6f5dc201faa1152ad549",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "4d03c0101ab93ac16d515a35e04eaf06f514f8fe9f799070e3a0ec71248d15a2",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.538461538,
+   "raters_most_common_label": "meat"
+  },
+  {
+   "concept": "tomato",
+   "synset": "tomato.n.01",
+   "wnid": "n07734017",
+   "family": "foods",
+   "e1_token_id": 39666,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:tomato.jpg",
+   "source_group_id": "thingsplus-primary:tomato",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "tomato.jpg",
+   "original_bytes": 642867,
+   "original_sha256": "2fb692d29be3bbfd8e99615d69f5678de947d76ad8ec04a8a6461b0500f6dd93",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "2fb692d29be3bbfd8e99615d69f5678de947d76ad8ec04a8a6461b0500f6dd93",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "483ec77b5945a34a5e6df78e5b62c4f342455e664e6a4334255b6164757a5687",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "39ffa6d48d300e1c57af06923bc9bf1cf1eb84fed5097da63ffc32d657bd9c16",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 1.0,
+   "raters_most_common_label": "tomato"
+  },
+  {
+   "concept": "wine",
+   "synset": "wine.n.01",
+   "wnid": "n07891726",
+   "family": "foods",
+   "e1_token_id": 12701,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:wine.jpg",
+   "source_group_id": "thingsplus-primary:wine",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "wine.jpg",
+   "original_bytes": 440711,
+   "original_sha256": "93cf5bbcb47fc16af333e9ba5ad2c8a36548f9cd74e13c12237a13ec11c3225f",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "93cf5bbcb47fc16af333e9ba5ad2c8a36548f9cd74e13c12237a13ec11c3225f",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "9d092fc15fcc90ae93b1da13d20d49f551be17ce0419d8a08204f47e74661b7f",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "3c559fb8ba550a8401e8a4dbf44be3444dbd04ddfb35f3328c436267d387a5b0",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.8,
+   "raters_most_common_label": "wine"
+  },
+  {
+   "concept": "boat",
+   "synset": "boat.n.01",
+   "wnid": "n02858304",
+   "family": "vehicles",
+   "e1_token_id": 14882,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:boat.jpg",
+   "source_group_id": "thingsplus-primary:boat",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "boat.jpg",
+   "original_bytes": 473889,
+   "original_sha256": "604b2cc916fd8718208afacca51abfe4b0d6326cb696af81da4c2241cb67d096",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "604b2cc916fd8718208afacca51abfe4b0d6326cb696af81da4c2241cb67d096",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "506a62a03053134c9d55fa5554b417f546796695b92eb80f7ecae176a2c0d689",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "77306d1a8b6c9328555bc4b2022f9e683278accffb822895cc88c0d710acf035",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.8125,
+   "raters_most_common_label": "boat"
+  },
+  {
+   "concept": "canoe",
+   "synset": "canoe.n.01",
+   "wnid": "n02951358",
+   "family": "vehicles",
+   "e1_token_id": 80611,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:canoe.jpg",
+   "source_group_id": "thingsplus-primary:canoe",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "canoe.jpg",
+   "original_bytes": 833665,
+   "original_sha256": "32d5ea2affb504f579480fa8ff85c335dd5adf92ee3ee416352c4a960f13d2db",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "32d5ea2affb504f579480fa8ff85c335dd5adf92ee3ee416352c4a960f13d2db",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "872ceeb8a83a3cb2b2618971a0452db8d145f98009f724d5c27f5513bdac6520",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "86bd74fbc7bea4b3bd38c5f62100220cf082ffd634c3ba302671c1ebcceba177",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.5,
+   "raters_most_common_label": "canoe"
+  },
+  {
+   "concept": "taxi",
+   "synset": "cab.n.03",
+   "wnid": "n02930766",
+   "family": "vehicles",
+   "e1_token_id": 31432,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "replaces": null,
+   "photo_id": "thingsplus:taxi.jpg",
+   "source_group_id": "thingsplus-primary:taxi",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "taxi.jpg",
+   "original_bytes": 640084,
+   "original_sha256": "fbf2a0efcc9d72bd8dbe03973aefc284926c1dd2bb48d3f99ebdb04d1ee5db3a",
+   "per_image_check": {
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/manhattan-taxis-5th-avenue-932754/",
+    "creator": "tookapic (Pixabay)",
+    "published": "2015-09-29",
+    "licence_shown": "Pixabay Content License (page banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 327,
+    "notes": "the THINGSplus file is a square crop; TinEye matched it to manhattan-932754 copies (e.g. ibm.com manhattan-932754_640.jpg). Alamy 88994189 and Shutterstock rows were SPONSORED adverts, not matches. Street scene: trademarks/shop signage visible (Pixabay Terms s.5 caution applies to commercial use, not to a research figure)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "fbf2a0efcc9d72bd8dbe03973aefc284926c1dd2bb48d3f99ebdb04d1ee5db3a",
+    "original_size": [
+     1280,
+     1280
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "5393307acc1ebaf9b2e0782e26a61fa6dae13e141fe2610151a134b9051699d3",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "fceda1d0d08490866d18da5b3c7e6ba3fe061b78e7308835dea392545bc2f27d",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.615384615,
+   "raters_most_common_label": "taxi"
+  },
+  {
+   "concept": "wagon",
+   "synset": "wagon.n.01",
+   "wnid": "n04543158",
+   "family": "vehicles",
+   "e1_token_id": 58382,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "replaces": null,
+   "photo_id": "thingsplus:wagon.jpg",
+   "source_group_id": "thingsplus-primary:wagon",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "wagon.jpg",
+   "original_bytes": 809552,
+   "original_sha256": "f6a04931bed3d798626b72827888a2b77252947fd358490d7e5b0bc48d53e936",
+   "per_image_check": {
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/west-usa-desert-ancient-of-wood-2048829/",
+    "creator": "gozadera123 (Pixabay)",
+    "published": "2017-02-07",
+    "licence_shown": "Pixabay Content License (page banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 23,
+    "notes": "also on Pexels (pexels-photo-327318)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "f6a04931bed3d798626b72827888a2b77252947fd358490d7e5b0bc48d53e936",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "fb6a15f00bfdd578b724888cda4354cad5985a21d433fe232ccd4d1aec71e9c9",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "c67810110b065616290cd38b24f1b6f581ad54f2043bf7543eedc45f1e8b17bc",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.461538462,
+   "raters_most_common_label": "wagon"
+  },
+  {
+   "concept": "helicopter",
+   "synset": "helicopter.n.01",
+   "wnid": "n03512147",
+   "family": "vehicles",
+   "e1_token_id": 33866,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:helicopter.jpg",
+   "source_group_id": "thingsplus-primary:helicopter",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "helicopter.jpg",
+   "original_bytes": 470148,
+   "original_sha256": "56f6e7235bc25e8a83dec9e63fde81c9e44835b0834ee8e13f370edda6fb1eda",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "56f6e7235bc25e8a83dec9e63fde81c9e44835b0834ee8e13f370edda6fb1eda",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "4148050f7eb90c04bbe73891afd4852d99e924bdaf622dde3b6b31b65314ffb5",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "d9e2f0bbbe1b8a76b08290499605473033c47b4a0e73c374b298e6b8acb50f08",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.933333333,
+   "raters_most_common_label": "helicopter"
+  },
+  {
+   "concept": "jet",
+   "synset": "jet.n.01",
+   "wnid": "n03595860",
+   "family": "vehicles",
+   "e1_token_id": 16106,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:jet.jpg",
+   "source_group_id": "thingsplus-primary:jet",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "jet.jpg",
+   "original_bytes": 832745,
+   "original_sha256": "5e234283548cfbf4b294d849b746704e64e4b8b32bc07d23f982d1cd179f57cd",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "5e234283548cfbf4b294d849b746704e64e4b8b32bc07d23f982d1cd179f57cd",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "f45f8a7b4971580f40223e38fb7504fc2c2a31504d4f43eb24b5dffa90166460",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "8931983a6b832f4302445084402f0479001900ce203717f4fb850241fb809885",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.538461538,
+   "raters_most_common_label": "jet"
+  },
+  {
+   "concept": "ship",
+   "synset": "ship.n.01",
+   "wnid": "n04194289",
+   "family": "vehicles",
+   "e1_token_id": 8026,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:ship.jpg",
+   "source_group_id": "thingsplus-primary:ship",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "ship.jpg",
+   "original_bytes": 525770,
+   "original_sha256": "5382a30a270ffb2661868ebe4d7eab536157c11bdca4591360a8962d1cd4952e",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "5382a30a270ffb2661868ebe4d7eab536157c11bdca4591360a8962d1cd4952e",
+    "original_size": [
+     1200,
+     1200
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "831d014aa406c6e673f668dbcc77ada49ac20f317942a34a4bd628b7a39bfe67",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "62498d5d06285428d24ae9f6d6c7edca891f33298a2a3bd61440a3f5d6ff7dad",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.466666667,
+   "raters_most_common_label": "ship"
+  },
+  {
+   "concept": "truck",
+   "synset": "truck.n.01",
+   "wnid": "n04490091",
+   "family": "vehicles",
+   "e1_token_id": 10538,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": null,
+   "photo_id": "thingsplus:truck.jpg",
+   "source_group_id": "thingsplus-primary:truck",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_file": "truck.jpg",
+   "original_bytes": 834171,
+   "original_sha256": "c0cc6599f8e1b9d8d161db810636e37ecd4787184d2222dc70e00e0b209a9067",
+   "per_image_check": {
+    "status": "pending (before row 21)"
+   },
+   "permission": {
+    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
+    "internal_capture": "yes",
+    "publication_and_redistribution": "not decided: per-image check pending"
+   },
+   "operations": {
+    "original_sha256": "c0cc6599f8e1b9d8d161db810636e37ecd4787184d2222dc70e00e0b209a9067",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "ebeaa8c9cdb8c04d21bf5c40c6a7c3186b522b6af0071aa541e6520e65e1a49a",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "c956a1902f5224a4c2cb1ac87803ae1739ed02ca496f3ed6bf933e1e63fb50b3",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.769230769,
+   "raters_most_common_label": "truck"
+  }
+ ]
+}
