@@ -20,7 +20,7 @@
   "_concepts-metadata_things.tsv": "3f05b6b748d1e1b685e15130d2487bff63f86e1f4da94a2a5d9e7dec073a48eb",
   "_images-metadata_things.tsv": "fd5b17635f0f6528f58decaf5a089587593708862d4ee7a2a72cd8aa57ce013c"
  },
- "script_sha256": "046f8cbf37fae539e96005cb74e9eefc4db153d3ff77809008958815725e72c0",
+ "script_sha256": "045abd38b1b2c4bd7b0e76fb7215fe7fe6b22c5e32b85c2b65b63d056a08c836",
  "qualified_counts": {
   "animals": 36,
   "foods": 46,
@@ -1527,17 +1527,18 @@
    "stage_a_primary_view": true
   },
   {
-   "concept": "fly",
-   "name": "fly",
-   "wnid": "n02190166",
-   "synset": "fly.n.01",
+   "concept": "horse",
+   "name": "horse",
+   "wnid": "n02374451",
+   "synset": "horse.n.01",
    "family": "animals",
-   "e1_token_id": 11137,
-   "thingsplus_image": "fly.jpg",
-   "recognizability": 0.444444444,
-   "most_common_label": "fly",
+   "e1_token_id": 14780,
+   "thingsplus_image": "horse.jpg",
+   "recognizability": 0.9375,
+   "most_common_label": "horse",
    "role": "DEV-CAL",
-   "stage_a_primary_view": true
+   "stage_a_primary_view": true,
+   "replaces": "fly"
   },
   {
    "concept": "shark",
@@ -1618,6 +1619,20 @@
    "stage_a_primary_view": false
   },
   {
+   "concept": "jacket",
+   "name": "jacket",
+   "wnid": "n03589791",
+   "synset": "jacket.n.01",
+   "family": "clothing",
+   "e1_token_id": 25372,
+   "thingsplus_image": "jacket.jpg",
+   "recognizability": 0.363636364,
+   "most_common_label": "jacket",
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "replaces": "suit"
+  },
+  {
    "concept": "jeans",
    "name": "jeans",
    "wnid": "n03594734",
@@ -1640,19 +1655,6 @@
    "thingsplus_image": "mask.jpg",
    "recognizability": 0.866666667,
    "most_common_label": "mask",
-   "role": "DEV-CAL",
-   "stage_a_primary_view": true
-  },
-  {
-   "concept": "suit",
-   "name": "suit",
-   "wnid": "n04350905",
-   "synset": "suit.n.01",
-   "family": "clothing",
-   "e1_token_id": 7535,
-   "thingsplus_image": "suit.jpg",
-   "recognizability": 0.5,
-   "most_common_label": "suit",
    "role": "DEV-CAL",
    "stage_a_primary_view": true
   },
@@ -1917,6 +1919,42 @@
    "stage_a_primary_view": false
   }
  ],
+ "provenance_checks_sha256": "3f16e1b4b865ac7db98364bd89039d2630205cc0030e90f150150fa5d73f5e1e",
+ "replacements": [
+  {
+   "family": "animals",
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "out": "fly",
+   "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source; the THINGSplus collective 'all CC0 at download' statement does not hold for this image",
+   "skipped": [],
+   "in": "horse",
+   "in_check": {
+    "source_url": "https://pixabay.com/photos/shire-horse-horse-big-horse-1759322/",
+    "published": "2016-10-22",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)"
+   }
+  },
+  {
+   "family": "clothing",
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "out": "suit",
+   "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source",
+   "skipped": [
+    {
+     "concept": "wig",
+     "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source"
+    }
+   ],
+   "in": "jacket",
+   "in_check": {
+    "source_url": "https://pixabay.com/photos/jackets-leather-jackets-clothing-357898/",
+    "published": "2014-06-10",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)"
+   }
+  }
+ ],
  "excluded_from_formal_CAL_PILOT_CONF": [
   "avocado",
   "boat",
@@ -1932,6 +1970,8 @@
   "frog",
   "hamburger",
   "helicopter",
+  "horse",
+  "jacket",
   "jeans",
   "jet",
   "mask",

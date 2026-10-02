@@ -29,6 +29,13 @@ picks the two DEV-CAL concepts per family whose primary views feed Stage A. If t
 concept, its slot is filled by the next qualified concept in the same family's seeded order, in the same role - a
 declared rule, so no replacement is chosen by hand. All 32 are excluded from any later formal CAL, PILOT or CONF.
 
+PROVENANCE. provenance_checks.json holds the per-image source checks of R052's terms reading (framework §8.2 (ii)).
+A role concept whose check is 'ineligible' is replaced AFTER the roles are drawn (so no other role moves) by the next
+concept in its family's seeded order past the first eight that is unused and not itself ineligible; it inherits the
+role and the Stage A flag. The replacement must carry a check of its own (eligible or not_found), or the run stops
+and asks for that check first. Every replacement is logged with its reason in dev_pool.json 'replacements'; the
+replaced concept stays excluded from formal CAL, PILOT and CONF.
+
     .venv-build/bin/python stimuli/photo/pool.py
 """
 
@@ -137,12 +144,46 @@ def main() -> int:
         for x in pilot:
             roles.append({**x, "role": "DEV-PILOT", "stage_a_primary_view": False})
 
+    checks_path = HERE / "provenance_checks.json"
+    checks = {c["concept"]: c for c in json.loads(checks_path.read_text())["checks"]} if checks_path.exists() else {}
+    replacements = []
+    used = {x["concept"] for x in roles}
+    for i, x in enumerate(roles):
+        c = checks.get(x["concept"])
+        if not c or c["status"] != "ineligible":
+            continue
+        by_name = {r["concept"]: r for r in qualified[x["family"]]}
+        skipped = []
+        for cand in order[x["family"]][PER_FAMILY:]:
+            if cand in used:
+                continue
+            cc = checks.get(cand)
+            if cc is None:
+                raise SystemExit(f"replacement for {x['concept']}: next in order is {cand}, which has no provenance "
+                                 "check yet - check it first")
+            if cc["status"] == "ineligible":
+                skipped.append({"concept": cand, "reason": cc["licence_basis"]})
+                continue
+            roles[i] = {**by_name[cand], "role": x["role"], "stage_a_primary_view": x["stage_a_primary_view"],
+                        "replaces": x["concept"]}
+            used.add(cand)
+            replacements.append({"family": x["family"], "role": x["role"],
+                                 "stage_a_primary_view": x["stage_a_primary_view"], "out": x["concept"],
+                                 "reason": c["licence_basis"], "skipped": skipped, "in": cand,
+                                 "in_check": {k: cc[k] for k in ("source_url", "published", "licence_basis")}})
+            break
+        else:
+            raise SystemExit(f"no eligible replacement left for {x['concept']} in {x['family']}")
+
     counts = {f: len(v) for f, v in qualified.items()}
     out = {"seed": SEED, "families": FAMILIES, "per_family": PER_FAMILY, "source_digests": digests,
            "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
            "qualified_counts": counts, "qualified": qualified, "seeded_order": order,
            "roles": sorted(roles, key=lambda x: (x["family"], x["role"], x["concept"])),
-           "excluded_from_formal_CAL_PILOT_CONF": sorted(x["concept"] for x in roles),
+           "provenance_checks_sha256": hashlib.sha256(checks_path.read_bytes()).hexdigest() if checks else None,
+           "replacements": replacements,
+           "excluded_from_formal_CAL_PILOT_CONF": sorted({x["concept"] for x in roles}
+                                                         | {r["out"] for r in replacements}),
            "exclusions": excluded,
            "exclusion_counts": {k: sum(e["rule"] == k for e in excluded) for k in
                                 ("Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8", "Q9")}}
