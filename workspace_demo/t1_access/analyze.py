@@ -533,6 +533,20 @@ def _record_ok(d, ident: str, seed: int, n_rep: int, idx: np.ndarray, bands: lis
         return False
 
 
+class CheckpointDamaged(RuntimeError):
+    """A refit checkpoint holds a record this run cannot accept and strict restore is on: the run HOLDS for diagnosis
+    instead of recomputing (Codex, row-19 Lengau review c3e1d2a: a failed restore must hold, never re-buy fits)."""
+
+
+def _tail_fragment(path: str) -> bool:
+    """True when the file ends in a partial line - an interrupted write, distinct from damage inside the file."""
+    if not os.path.exists(path):
+        return False
+    with open(path, "rb") as fh:
+        data = fh.read()
+    return bool(data) and not data.endswith(b"\n")
+
+
 def _repair_tail(path: str):
     """An interrupted write can leave a final line without its newline; appending would glue the next record to that
     fragment. Drop the fragment before appending (it is recomputed) — review 5 finding 3."""
@@ -548,7 +562,9 @@ def _repair_tail(path: str):
 
 def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REFIT, predictor: str = "selection",
                     n_jobs: int = 1, outer_folds: list | None = None, min_usable: float = 1.0,
-                    checkpoint_path: str | None = None, checkpoint_dir: str | None = None) -> dict:
+                    checkpoint_path: str | None = None, checkpoint_dir: str | None = None,
+                    segment: int | None = None, deadline: float | None = None, strict_restore: bool = False,
+                    durable: bool = False, on_record=None) -> dict:
     """Resample whole concepts with replacement within family strata and re-run the ENTIRE per-layer procedure
     (outer folds, inner selection, refit, joint scoring) on every resample; percentile intervals of the band means
     and of ws − early, for EVERY predictor from the same refits (selection, ensemble, historical).
@@ -568,7 +584,19 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
     folds), whose resample indices lie in range and whose drawn concepts equal the ones this run would draw; a
     damaged line (truncated JSON, wrong identity, wrong resample) is counted in `n_damaged` and recomputed, never
     accepted (Codex, review 4 finding 1). Top-level band entries are those of `predictor` (compatibility);
-    `predictors` holds all three."""
+    `predictors` holds all three.
+
+    Slice hooks (2 Oct 2026, ledger row 19; every default leaves the behaviour above unchanged):
+      segment        run at most this many NEW resamples this call, in index order, then return a PARTIAL result
+                     (`partial=True`, every interval unusable) - the exact-index subchain control under the unchanged
+                     B identity; a later call with the same checkpoint continues from the next index;
+      deadline       a wall-clock epoch after which no new resample is dispatched (the record in flight completes);
+      strict_restore a record that is not accepted HOLDS the run (CheckpointDamaged) instead of being recomputed -
+                     only a trailing partial line (an interrupted write) is repaired and counted in `n_tail_repaired`;
+      durable        the checkpoint is held under an exclusive lock for the run (a second writer fails at once) and
+                     every record is fsynced after its write;
+      on_record      a callback (record dict) after each durable write, for timing and progress ledgers."""
+    import time as _t
     rng = np.random.default_rng(seed)
     idx = stratified_resample(ds.family, n_rep, rng)
     base_folds = stratified_folds(ds.family, cfg.n_outer, seed) if outer_folds is None else outer_folds
@@ -595,10 +623,23 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
     bands = list(masks) + (["ws_minus_early"] if "ws" in masks and "early" in masks else [])
     if checkpoint_path is None and checkpoint_dir:
         checkpoint_path = os.path.join(checkpoint_dir, f"refit_{ident[:24]}.jsonl")
-    done, n_damaged = {}, 0
+    done, n_damaged, n_tail_repaired = {}, 0, 0
+    lock_fh = None
+    if checkpoint_path and durable:
+        import fcntl
+        os.makedirs(os.path.dirname(checkpoint_path) or ".", exist_ok=True)
+        lock_fh = open(checkpoint_path + ".lock", "a+")
+        try:
+            fcntl.flock(lock_fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as e:
+            lock_fh.close()
+            raise CheckpointDamaged(f"another writer holds {checkpoint_path}.lock: {e}")
     if checkpoint_path and os.path.exists(checkpoint_path):
+        if strict_restore and _tail_fragment(checkpoint_path):
+            _repair_tail(checkpoint_path)                      # an interrupted write: repaired, counted, never damage
+            n_tail_repaired += 1
         with open(checkpoint_path) as fh:
-            for line in fh:
+            for lineno, line in enumerate(fh, 1):
                 if not line.strip():
                     continue
                 try:
@@ -606,10 +647,18 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
                 except Exception:
                     d = None
                 if _record_ok(d, ident, seed, n_rep, idx, bands):
-                    done[int(d["rep"])] = d
+                    r = int(d["rep"])
+                    if strict_restore and r in done and done[r].get("sha") != d.get("sha"):
+                        raise CheckpointDamaged(f"{checkpoint_path}:{lineno}: resample {r} recorded twice with different payloads")
+                    done[r] = d
+                elif strict_restore:
+                    raise CheckpointDamaged(f"{checkpoint_path}:{lineno}: a record this run cannot accept (identity, index, payload or checksum); holding for diagnosis")
                 else:
                     n_damaged += 1
     todo = [r for r in range(n_rep) if r not in done]
+    n_todo_total = len(todo)
+    if segment is not None:
+        todo = todo[:max(0, int(segment))]
     def _save(batch):
         if checkpoint_path:
             os.makedirs(os.path.dirname(checkpoint_path) or ".", exist_ok=True)
@@ -621,27 +670,41 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
                     rec["sha"] = _record_sha(rec)
                     fh.write(json.dumps(rec) + "\n")
                     fh.flush()
+                    if durable:
+                        os.fsync(fh.fileno())
+                    if on_record is not None:
+                        on_record(rec)
     new = []
+    stopped_at_deadline = False
     if n_jobs > 1:
         from joblib import Parallel, delayed
         for i in range(0, len(todo), n_jobs):
+            if deadline is not None and _t.time() >= deadline:
+                stopped_at_deadline = True; break
             batch = Parallel(n_jobs=n_jobs)(delayed(one)(r) for r in todo[i:i + n_jobs])
             _save(batch); new += batch
     else:
         for r in todo:
+            if deadline is not None and _t.time() >= deadline:
+                stopped_at_deadline = True; break
             s = one(r)
             _save([s]); new.append(s)
+    if lock_fh is not None:
+        lock_fh.close()
     reps = sorted(list(done.values()) + new, key=lambda s: s["rep"])
+    partial = len(reps) < n_rep
     out = dict(method="refit", n_rep=int(n_rep), seed=int(seed), min_usable=float(min_usable),
                policy=("every replicate scored" if min_usable >= 1.0 else f"at least {min_usable:.0%} of the replicates scored"),
                outer_folds=[[int(c) for c in f] for f in base_folds], checkpoint=checkpoint_path, n_resumed=len(done),
-               n_damaged=int(n_damaged), ident=ident,
+               n_damaged=int(n_damaged), n_tail_repaired=int(n_tail_repaired), ident=ident,
+               partial=bool(partial), n_done=len(reps), n_new=len(new), n_todo_before=int(n_todo_total),
+               stopped_at_deadline=bool(stopped_at_deadline), segment=(None if segment is None else int(segment)),
                failed_reasons=[s["failed_reason"] for s in reps if s["failed"]],
                fit_seconds=float(sum(s["fit_seconds"] for s in reps)), predictors={},
                replicates=[dict(rep=s["rep"], failed=s["failed"], failed_reason=s["failed_reason"], stats=s["stats"]) for s in reps])
     for p in PREDICTORS:
         ok = [s for s in reps if not s["failed"] and all(np.isfinite(s["stats"][p][b]) for b in bands)]
-        usable = bool(ok) and len(ok) >= min_usable * n_rep
+        usable = bool(ok) and len(ok) >= min_usable * n_rep and not partial   # a partial chain yields no interval
         pr = dict(n_used=len(ok), n_failed=int(n_rep - len(ok)), usable=usable, bands={})
         for b in bands:
             if usable:
