@@ -1,0 +1,331 @@
+test_bound_files_include_imports (test_ai_reader.Approval.test_bound_files_include_imports) ... ok
+test_mixed_resumed_state_refused (test_ai_reader.Approval.test_mixed_resumed_state_refused) ... ok
+test_modified_dependency_moves_the_package (test_ai_reader.Approval.test_modified_dependency_moves_the_package) ... ok
+test_modified_package_refused (test_ai_reader.Approval.test_modified_package_refused) ... ok
+test_negative_record_refused (test_ai_reader.Approval.test_negative_record_refused) ... ok
+test_nothing_runs_after_a_receipt (test_ai_reader.Approval.test_nothing_runs_after_a_receipt) ... ok
+test_positive_control (test_ai_reader.Approval.test_positive_control) ... ok
+test_reviewed_commit_rederivation (test_ai_reader.Approval.test_reviewed_commit_rederivation) ... ok
+test_strict_schema_on_the_reader_package (test_ai_reader.Approval.test_strict_schema_on_the_reader_package) ... ok
+test_unrelated_approval_refused (test_ai_reader.Approval.test_unrelated_approval_refused) ... ok
+test_freeze_states_the_current_rule (test_ai_reader.AuditMap.test_freeze_states_the_current_rule) ... ok
+test_rule_applied_and_inflections (test_ai_reader.AuditMap.test_rule_applied_and_inflections) ... ok
+test_scorer_bound_to_the_pinned_map (test_ai_reader.AuditMap.test_scorer_bound_to_the_pinned_map) ... ok
+test_scorer_code_bound_in_the_audit_package (test_ai_reader.AuditMap.test_scorer_code_bound_in_the_audit_package)
+Codex RSC 1bf9890 A8: the audit scorer's classifier/normalisation source is bound to the pins the audit ... ok
+test_allowlist_real_binary (test_ai_reader.Boundary.test_allowlist_real_binary)
+The production profile: codex's local subcommands run; reads outside the allowlist and any other program ... ok
+test_effective_features_and_receipts (test_ai_reader.Boundary.test_effective_features_and_receipts) ... ok
+test_event_and_file_answers_must_agree (test_ai_reader.Boundary.test_event_and_file_answers_must_agree) ... ok
+test_events_beyond_retention_are_overflow (test_ai_reader.Boundary.test_events_beyond_retention_are_overflow) ... ok
+test_exec_invocation_receipt (test_ai_reader.Boundary.test_exec_invocation_receipt)
+The exact exec invocation, network denied by the kernel, synthetic image: its submitted input and its ... ok
+test_fail_closed (test_ai_reader.Boundary.test_fail_closed) ... ok
+test_lifecycle_mutations (test_ai_reader.Boundary.test_lifecycle_mutations) ... ok
+test_no_silent_truncation (test_ai_reader.Boundary.test_no_silent_truncation) ... ok
+test_notices (test_ai_reader.Boundary.test_notices) ... ok
+test_pinned_env_and_gate (test_ai_reader.Boundary.test_pinned_env_and_gate) ... ok
+test_prompt_separator_regression (test_ai_reader.Boundary.test_prompt_separator_regression)
+Measured: without '--' the CLI reads the prompt as a second image path and renders no prompt. ... ok
+test_attempt_cap_writes_final_then_stops (test_ai_reader.Executor.test_attempt_cap_writes_final_then_stops) ... ok
+test_clock_beats_without_the_main_thread (test_ai_reader.Executor.test_clock_beats_without_the_main_thread) ... ok
+test_clock_stops_inside_reserve (test_ai_reader.Executor.test_clock_stops_inside_reserve) ... ok
+test_failed_receipt_setup_stops_with_a_receipt (test_ai_reader.Executor.test_failed_receipt_setup_stops_with_a_receipt) ... ok
+test_leader_exit_leaves_no_child (test_ai_reader.Executor.test_leader_exit_leaves_no_child) ... ok
+test_lost_and_inconsistent_accounting_refused (test_ai_reader.Executor.test_lost_and_inconsistent_accounting_refused) ... ok
+test_notice_is_bookkeeping_unknown_error_is_isolation (test_ai_reader.Executor.test_notice_is_bookkeeping_unknown_error_is_isolation) ... ok
+test_overflow_retained_including_quick_exit (test_ai_reader.Executor.test_overflow_retained_including_quick_exit) ... ok
+test_pending_quarantine_recorded (test_ai_reader.Executor.test_pending_quarantine_recorded) ... ok
+test_raw_cap_stops (test_ai_reader.Executor.test_raw_cap_stops) ... ok
+test_receipt_mismatch_holds_before_sending (test_ai_reader.Executor.test_receipt_mismatch_holds_before_sending) ... ok
+test_resumed_journal_validated_before_dispatch (test_ai_reader.Executor.test_resumed_journal_validated_before_dispatch) ... ok
+test_retry_only_without_answer (test_ai_reader.Executor.test_retry_only_without_answer) ... ok
+test_smoke_holds (test_ai_reader.Executor.test_smoke_holds) ... ok
+test_stop_during_open_attempt_reconciles_first (test_ai_reader.Executor.test_stop_during_open_attempt_reconciles_first) ... ok
+test_structural_later_holds (test_ai_reader.Executor.test_structural_later_holds) ... ok
+test_timeout_kills_and_reaps_the_group (test_ai_reader.Executor.test_timeout_kills_and_reaps_the_group) ... ok
+test_counts_and_proportions (test_ai_reader.FrameInvariant.test_counts_and_proportions) ... ok
+test_duplicate_row_refused (test_ai_reader.FrameInvariant.test_duplicate_row_refused) ... ok
+test_equal_ratio_swap_refused (test_ai_reader.FrameInvariant.test_equal_ratio_swap_refused) ... ok
+test_known_release_mismatch_refused (test_ai_reader.FrameInvariant.test_known_release_mismatch_refused) ... ok
+test_real_frame_passes (test_ai_reader.FrameInvariant.test_real_frame_passes) ... ok
+test_retained_close_and_ratio_mutations (test_ai_reader.FrameInvariant.test_retained_close_and_ratio_mutations) ... ok
+test_source_pin_mismatch_refused (test_ai_reader.FrameInvariant.test_source_pin_mismatch_refused) ... ok
+test_full_form_s1_prospectively (test_ai_reader.KeyFunctions.test_full_form_s1_prospectively)
+Every ADMITTED full form (inflections included) against every released concept's canonical names and ... skipped 'needs WordNet (run under .venv-build)'
+test_inflections (test_ai_reader.KeyFunctions.test_inflections) ... skipped 'needs WordNet (run under .venv-build)'
+test_rebuild_reproduces_the_key (test_ai_reader.KeyFunctions.test_rebuild_reproduces_the_key) ... skipped 'needs WordNet (run under .venv-build)'
+test_specificity_rules (test_ai_reader.KeyFunctions.test_specificity_rules) ... skipped 'needs WordNet (run under .venv-build)'
+test_synonym_residue (test_ai_reader.KeyFunctions.test_synonym_residue) ... skipped 'needs WordNet (run under .venv-build)'
+test_counts_frozen (test_ai_reader.KeyIntegrity.test_counts_frozen) ... ok
+test_docstring_counts (test_ai_reader.KeyIntegrity.test_docstring_counts) ... ok
+test_full_forms_prospectively_excluded_with_their_base (test_ai_reader.KeyIntegrity.test_full_forms_prospectively_excluded_with_their_base)
+A generated inflection inherits its base's decision: no excluded base admits any of its forms. ... ok
+test_no_shared_string_but_the_equivalence (test_ai_reader.KeyIntegrity.test_no_shared_string_but_the_equivalence) ... ok
+test_no_synset_items_record_source_and_rationale (test_ai_reader.KeyIntegrity.test_no_synset_items_record_source_and_rationale) ... ok
+test_plural_only_artefacts_gone (test_ai_reader.KeyIntegrity.test_plural_only_artefacts_gone) ... ok
+test_plural_only_heuristic_audited (test_ai_reader.KeyIntegrity.test_plural_only_heuristic_audited) ... ok
+test_source_pins_in_key (test_ai_reader.KeyIntegrity.test_source_pins_in_key) ... ok
+test_specificity_collisions_pruned (test_ai_reader.KeyIntegrity.test_specificity_collisions_pruned) ... ok
+test_wording_matches_the_predicates (test_ai_reader.KeyIntegrity.test_wording_matches_the_predicates) ... ok
+test_blocked_beat_does_not_hold_close (test_ai_reader.Rev5Clock.test_blocked_beat_does_not_hold_close) ... ok
+test_guard_ends_the_process_at_the_cap (test_ai_reader.Rev5Clock.test_guard_ends_the_process_at_the_cap) ... ok
+test_guard_kills_at_the_final_reserve (test_ai_reader.Rev5Clock.test_guard_kills_at_the_final_reserve) ... ok
+test_nonfinite_and_typed_accounting_refused (test_ai_reader.Rev5Clock.test_nonfinite_and_typed_accounting_refused) ... ok
+test_complete_receipt_over_the_cap_refused (test_ai_reader.Rev5Evidence.test_complete_receipt_over_the_cap_refused) ... ok
+test_duplicate_quarantine_record_refused (test_ai_reader.Rev5Evidence.test_duplicate_quarantine_record_refused) ... ok
+test_exact_false_cannot_hide_a_received_answer_or_tool (test_ai_reader.Rev5Evidence.test_exact_false_cannot_hide_a_received_answer_or_tool) ... ok
+test_exact_false_refused_on_resume_before_dispatch (test_ai_reader.Rev5Evidence.test_exact_false_refused_on_resume_before_dispatch) ... ok
+test_exact_schemas_identities_and_image_fields (test_ai_reader.Rev5Evidence.test_exact_schemas_identities_and_image_fields) ... ok
+test_head_tail_evidence_only_for_retained_errors (test_ai_reader.Rev5Evidence.test_head_tail_evidence_only_for_retained_errors) ... ok
+test_received_file_answer_on_a_non_answer_label (test_ai_reader.Rev5Evidence.test_received_file_answer_on_a_non_answer_label) ... ok
+test_record_and_file_bounds (test_ai_reader.Rev5Evidence.test_record_and_file_bounds) ... ok
+test_top_level_error_event_is_never_ignored (test_ai_reader.Rev5Evidence.test_top_level_error_event_is_never_ignored) ... ok
+test_invocation_receipt_deadline_and_cleanup (test_ai_reader.Rev5LocalReceipts.test_invocation_receipt_deadline_and_cleanup) ... ok
+test_leader_first_descendants_killed (test_ai_reader.Rev5LocalReceipts.test_leader_first_descendants_killed) ... ok
+test_quick_exit_over_the_cap_refused (test_ai_reader.Rev5LocalReceipts.test_quick_exit_over_the_cap_refused) ... ok
+test_timeout_refused_and_group_gone (test_ai_reader.Rev5LocalReceipts.test_timeout_refused_and_group_gone) ... ok
+test_ok_file_evidence_bound_on_complete (test_ai_reader.Rev6Evidence.test_ok_file_evidence_bound_on_complete) ... ok
+test_ok_file_evidence_bound_on_resume (test_ai_reader.Rev6Evidence.test_ok_file_evidence_bound_on_resume) ... ok
+test_complete_invocation_logs_after_the_deadline_refused (test_ai_reader.Rev6LocalCommands.test_complete_invocation_logs_after_the_deadline_refused) ... ok
+test_late_exit_is_a_timeout (test_ai_reader.Rev6LocalCommands.test_late_exit_is_a_timeout) ... ok
+test_setup_failure_after_spawn_leaves_no_process (test_ai_reader.Rev6LocalCommands.test_setup_failure_after_spawn_leaves_no_process) ... ok
+test_already_exited_leader_observed_late (test_ai_reader.Rev7.test_already_exited_leader_observed_late) ... ok
+test_complete_logs_observed_after_the_deadline (test_ai_reader.Rev7.test_complete_logs_observed_after_the_deadline) ... ok
+test_overlength_excerpt_and_length_bound_to_the_event_answer (test_ai_reader.Rev7.test_overlength_excerpt_and_length_bound_to_the_event_answer) ... ok
+test_scientific_scoring_refuses_a_caller_clock (test_ai_reader.Rev7.test_scientific_scoring_refuses_a_caller_clock) ... ok
+test_exit_observed_late_at_its_probe (test_ai_reader.Rev8.test_exit_observed_late_at_its_probe)
+The leader exited in time, but the probe that observes it returns only past the deadline (a scheduling ... ok
+test_fallback_read_past_the_deadline (test_ai_reader.Rev8.test_fallback_read_past_the_deadline)
+The command wrote complete, parseable logs (content [x], model m, empty feature tags - NOT an equivalent ... ok
+test_referrals_carry_identity (test_ai_reader.ScorerAdmission.test_referrals_carry_identity) ... ok
+test_scientific_mode_refuses_injected_objects (test_ai_reader.ScorerAdmission.test_scientific_mode_refuses_injected_objects) ... ok
+test_synthetic_refused_without_flag_and_labelled (test_ai_reader.ScorerAdmission.test_synthetic_refused_without_flag_and_labelled) ... ok
+test_untracked_and_tracked_dirty_refused (test_ai_reader.ScorerAdmission.test_untracked_and_tracked_dirty_refused) ... ok
+test_codes_and_format_precedence (test_ai_reader.Scoring.test_codes_and_format_precedence) ... ok
+test_gate_arithmetic (test_ai_reader.Scoring.test_gate_arithmetic) ... ok
+test_no_alias_trips_a_format_check (test_ai_reader.Scoring.test_no_alias_trips_a_format_check) ... ok
+test_normalise (test_ai_reader.Scoring.test_normalise) ... ok
+test_contradictory_evidence (test_ai_reader.Validator.test_contradictory_evidence) ... ok
+test_evidence_required_and_consistent (test_ai_reader.Validator.test_evidence_required_and_consistent) ... ok
+test_illegal_resumed_transitions (test_ai_reader.Validator.test_illegal_resumed_transitions) ... ok
+test_mutations (test_ai_reader.Validator.test_mutations) ... ok
+test_no_response_needs_three_failures (test_ai_reader.Validator.test_no_response_needs_three_failures) ... ok
+test_nonfinite_and_out_of_range (test_ai_reader.Validator.test_nonfinite_and_out_of_range) ... ok
+test_receipt_pins (test_ai_reader.Validator.test_receipt_pins) ... ok
+test_valid_journal_passes (test_ai_reader.Validator.test_valid_journal_passes) ... ok
+test_after_begin_not_dispatched (test_ai_reader_crash.HardKill.test_after_begin_not_dispatched) ... ok
+test_after_dispatch_record_before_go (test_ai_reader_crash.HardKill.test_after_dispatch_record_before_go) ... ok
+test_after_end_answer_durable (test_ai_reader_crash.HardKill.test_after_end_answer_durable) ... ok
+test_after_go_worker_killed_by_the_watchdog (test_ai_reader_crash.HardKill.test_after_go_worker_killed_by_the_watchdog) ... ok
+test_after_response_answer_lost (test_ai_reader_crash.HardKill.test_after_response_answer_lost) ... ok
+test_after_state (test_ai_reader_crash.HardKill.test_after_state) ... ok
+test_attempt1_answer_durable_then_crash_holds (test_ai_reader_crash.HardKill.test_attempt1_answer_durable_then_crash_holds) ... ok
+test_attempt1_not_dispatched_retries (test_ai_reader_crash.HardKill.test_attempt1_not_dispatched_retries) ... ok
+test_attempt1_uncertain_smoke_never_passes (test_ai_reader_crash.HardKill.test_attempt1_uncertain_smoke_never_passes) ... ok
+test_before_begin (test_ai_reader_crash.HardKill.test_before_begin) ... ok
+test_external_sigkill_with_live_worker (test_ai_reader_crash.HardKill.test_external_sigkill_with_live_worker)
+The orchestrator is SIGKILLed with its worker running: the watchdog kills the worker group within its ... ok
+test_first_request_retry_crash_holds (test_ai_reader_crash.HardKill.test_first_request_retry_crash_holds) ... ok
+test_incomplete_tail_quarantined (test_ai_reader_crash.HardKill.test_incomplete_tail_quarantined) ... ok
+test_recovery_persistence (test_ai_reader_crash.HardKill.test_recovery_persistence) ... ok
+test_terminal_no_response (test_ai_reader_crash.HardKill.test_terminal_no_response) ... ok
+test_live_foreign_start_before_the_lock (test_ai_reader_crash.Rev10.test_live_foreign_start_before_the_lock)
+S1 publishes its pending record (final, or only its readable temporary) and stays ALIVE, stalled before ... ok
+test_exhausted_resume_stops_before_preflight (test_ai_reader_crash.Rev5Recovery.test_exhausted_resume_stops_before_preflight)
+R4: a resume with too little time left records the recovery and goes straight to STOPPED. ... ok
+test_immediate_restart_kills_unrecorded_members (test_ai_reader_crash.Rev5Recovery.test_immediate_restart_kills_unrecorded_members)
+R3: a crashed attempt whose recorded worker is alive with a child NO record names, and whose watchdog is ... ok
+test_quarantine_crash_before_truncation_one_record (test_ai_reader_crash.Rev5Recovery.test_quarantine_crash_before_truncation_one_record)
+R6: the quarantine file exists but the journal still holds the tail (a crash between the two): one ... ok
+test_structural_after_end_first_and_later_request (test_ai_reader_crash.Rev5Recovery.test_structural_after_end_first_and_later_request)
+R2: a durable structural end, then a crash before STOPPED: the restart goes straight to a valid STOPPED - ... ok
+test_setup_before_the_clock_is_bounded (test_ai_reader_crash.Rev6.test_setup_before_the_clock_is_bounded)
+Reader 3: a stall in check_accounting, before the clock (and its guard) exists, ends at the setup timer. ... ok
+test_slow_receipt_and_slow_close_share_one_deadline (test_ai_reader_crash.Rev6.test_slow_receipt_and_slow_close_share_one_deadline)
+Reader 3: receipt + close past their ONE allowance -> exit 75 and the COMPLETE does not qualify (the clock ... ok
+test_watchdog_does_not_retire_while_a_recorded_escaped_member_lives (test_ai_reader_crash.Rev6.test_watchdog_does_not_retire_while_a_recorded_escaped_member_lives)
+Reader 1: the leader exits, its recorded child has left the group, and the orchestrator dies before its ... ok
+test_coherent_undercharge_refused (test_ai_reader_crash.Rev7.test_coherent_undercharge_refused)
+Reader B: an alternate clock - total 0, one closed session of 0 s naming the journal, marker consistent - ... ok
+test_failed_start_is_charged_at_the_next_start (test_ai_reader_crash.Rev7.test_failed_start_is_charged_at_the_next_start)
+Reader B: a start killed by its setup timer before the clock's first persist is charged next time. ... ok
+test_marker_failure_after_its_rename_is_removed (test_ai_reader_crash.Rev7.test_marker_failure_after_its_rename_is_removed)
+Reader A (revision 8 path): the marker's write fails before its commit - no marker, not admitted. ... ok
+test_post_rename_clock_failure_and_stall_do_not_qualify (test_ai_reader_crash.Rev7.test_post_rename_clock_failure_and_stall_do_not_qualify)
+Reader A: the closed clock is renamed into place, then its directory fsync fails (or stalls): the COMPLETE ... ok
+test_crash_after_first_persist_is_charged_once (test_ai_reader_crash.Rev8.test_crash_after_first_persist_is_charged_once)
+Reader B: the pending entry and the clock session share one id; a crash after the clock's first persist and ... ok
+test_elapsed_setup_is_charged_and_holds_at_the_cap (test_ai_reader_crash.Rev8.test_elapsed_setup_is_charged_and_holds_at_the_cap)
+Reader B: with 3 s of the allowance left, the old clock's read takes 5 s: the start HOLDS (no fresh ... ok
+test_journal_session_without_its_clock_session_is_refused (test_ai_reader_crash.Rev8.test_journal_session_without_its_clock_session_is_refused)
+Reader B: a valid two-session COMPLETE; dropping the earlier (crashed) clock session, the total reduced to ... ok
+test_marker_commit_stall_does_not_qualify (test_ai_reader_crash.Rev8.test_marker_commit_stall_does_not_qualify)
+Reader A: the marker's commit stalls before its rename, or the rename takes effect but does not return; ... ok
+test_marker_present_beside_its_tombstone_is_refused (test_ai_reader_crash.Rev8.test_marker_present_beside_its_tombstone_is_refused)
+Reader A: a marker that survives (its removal blocked) beside the tombstone naming its session is refused. ... ok
+test_two_failed_starts_then_recovery (test_ai_reader_crash.Rev8.test_two_failed_starts_then_recovery)
+Reader B: S1 and S2 both die before the clock's first persist; S3 charges BOTH (each start publishes its ... ok
+test_late_rename_after_an_early_unlink_does_not_qualify (test_ai_reader_crash.Rev9.test_late_rename_after_an_early_unlink_does_not_qualify)
+Reader A: the commit is released only after the deadline fired and the revocation's first unlink found no ... ok
+test_near_cap_recovery_bounds_the_blocked_first_persist (test_ai_reader_crash.Rev9.test_near_cap_recovery_bounds_the_blocked_first_persist)
+Reader B2: the saved base leaves ample time, but the recovered open session (live + 30 s tail) leaves about ... ok
+test_readable_incomplete_pending_publication_is_charged (test_ai_reader_crash.Rev9.test_readable_incomplete_pending_publication_is_charged)
+Reader B1: the initial pending write's temporary is written and fsynced, the rename never comes, the setup ... ok
+test_undeclared_closed_state_is_refused (test_ai_reader_crash.Rev9.test_undeclared_closed_state_is_refused)
+Reader B3: a valid two-session COMPLETE; the earlier crashed session rewritten to an undeclared state, the ... ok
+test_blocked_writer_watchdog_bounds_worker_and_controller (test_controller.Controller.test_blocked_writer_watchdog_bounds_worker_and_controller)
+The controller's record writer blocks forever: the controller is stuck; the watchdog kills the worker ... ok
+test_controller_death_during_active_work (test_controller.Controller.test_controller_death_during_active_work)
+SIGKILL the controller while its worker (and grandchild) run: the watchdog kills the group; the next ... ok
+test_crash_tail_charge (test_controller.Controller.test_crash_tail_charge) ... ok
+test_deadline_kills_a_worker_busy_in_metal (test_controller.Controller.test_deadline_kills_a_worker_busy_in_metal) ... stage_a_controller: stop observed at monotonic 299589.497365, previous successful reading at 299589.474009, SIGKILL sent at 299589.497435: instrumented: time limit 1815 s reached (row cap 2535 s less reserves)
+ok
+test_deadline_kills_a_worker_that_ignores_sigterm (test_controller.Controller.test_deadline_kills_a_worker_that_ignores_sigterm) ... stage_a_controller: stop observed at monotonic 299595.011665, previous successful reading at 299594.985673, SIGKILL sent at 299595.011796: instrumented: time limit 1813 s reached (row cap 2533 s less reserves)
+ok
+test_directory_stall_before_load_is_guarded (test_controller.Controller.test_directory_stall_before_load_is_guarded)
+Stage A A (c036c00): the output directory's creation blocks forever; the guardian, started before ANY file ... ok
+test_escaped_child_killed_by_identity (test_controller.Controller.test_escaped_child_killed_by_identity) ... ok
+test_exit_peak_enters_the_task_aggregate (test_controller.Controller.test_exit_peak_enters_the_task_aggregate) ... ok
+test_exit_spike_over_the_stop_stops (test_controller.Controller.test_exit_spike_over_the_stop_stops) ... stage_a_controller: stop observed at monotonic 299617.224599, previous successful reading at 299617.194550, SIGKILL sent at 299617.226714: instrumented: task memory 1317358352 >= 805306368
+ok
+test_external_death_before_pending_with_a_healthy_guardian (test_controller.Controller.test_external_death_before_pending_with_a_healthy_guardian)
+Revision 9 (Codex 7fdb937, Stage A A1.1): directory creation or the lock blocks; the controller is ... ok
+test_failed_start_is_charged (test_controller.Controller.test_failed_start_is_charged)
+Revision 7: a start that died before its session's first durable record is charged from its pending-start ... ok
+test_final_output_stall_is_guarded_and_charged (test_controller.Controller.test_final_output_stall_is_guarded_and_charged)
+Stage A A: the result's output blocks forever after a PASS; the guardian (deadline moved to the end of the ... ok
+test_guardian_in_the_task_aggregate (test_controller.Controller.test_guardian_in_the_task_aggregate)
+Stage A B: the guardian is sampled, its final maximum read, and both counted; unreadable -> STOPPED. ... ok
+test_immediate_restart_kills_unrecorded_group_members (test_controller.Controller.test_immediate_restart_kills_unrecorded_group_members)
+Immediate restart (A2): the crashed worker's leader is alive with a child no record names, and its ... ok
+test_initial_resource_failure_is_terminal (test_controller.Controller.test_initial_resource_failure_is_terminal) ... ok
+test_leader_exit_with_surviving_child (test_controller.Controller.test_leader_exit_with_surviving_child) ... ok
+test_live_foreign_start_before_the_lock (test_controller.Controller.test_live_foreign_start_before_the_lock)
+Revision 10 (Codex dda950b, Stage A A1): S1 publishes its armed record and stays ALIVE, stalled in the ... ok
+test_long_first_persist_with_an_existing_clock (test_controller.Controller.test_long_first_persist_with_an_existing_clock)
+Revision 8 (Stage A A2): a closed controller.json exists; the next start's first persist blocks before its ... ok
+test_memory_stop_is_whole_task (test_controller.Controller.test_memory_stop_is_whole_task) ... stage_a_controller: stop observed at monotonic 299760.055573, previous successful reading at 299760.028576, SIGKILL sent at 299760.057766: instrumented: task memory 1268550416 >= 805306368
+ok
+test_memory_stop_with_blocked_io_kills_first (test_controller.Controller.test_memory_stop_with_blocked_io_kills_first)
+Stage A 1: the memory stop SIGKILLs the group from the sampler BEFORE any join or persist while the I/O ... ok
+test_missing_mandatory_measurements_refuse_pass (test_controller.Controller.test_missing_mandatory_measurements_refuse_pass) ... ok
+test_never_returning_first_and_later_sample (test_controller.Controller.test_never_returning_first_and_later_sample) ... ok
+test_pass_sequential_lock_held_and_final_figures (test_controller.Controller.test_pass_sequential_lock_held_and_final_figures) ... ok
+test_persistence_after_the_watchdog_retired_is_bounded (test_controller.Controller.test_persistence_after_the_watchdog_retired_is_bounded)
+Stage A 2: a controller-only persist blocks forever after the gates' worker and watchdog are gone; the ... ok
+test_persistence_failure_is_bounded (test_controller.Controller.test_persistence_failure_is_bounded) ... ok
+test_post_close_death_is_inside_the_charged_closure (test_controller.Controller.test_post_close_death_is_inside_the_charged_closure)
+Stage A A: after the close, finalisation blocks and both revocations block; the process ends (bounded abort ... ok
+test_pre_pending_stall_is_charged_at_restart (test_controller.Controller.test_pre_pending_stall_is_charged_at_restart)
+Revision 8 (Codex 12a7f20, Stage A A1): the directory creation or the lock blocks before the pending-start ... ok
+test_recovery_during_guardian_receipt_publication (test_controller.Controller.test_recovery_during_guardian_receipt_publication)
+Revision 9 (Stage A A1.2): the guardian kills the stalled controller at its setup deadline and publishes ... ok
+test_refusal_and_authorisation_hold_are_distinct (test_controller.Controller.test_refusal_and_authorisation_hold_are_distinct) ... refused: fixture refusal
+ok
+test_sampler_unavailable_and_slow (test_controller.Controller.test_sampler_unavailable_and_slow) ... stage_a_controller: stop observed at monotonic 299896.729679, previous successful reading at 299896.703189, SIGKILL sent at 299896.731587: instrumented: memory reading unavailable (test)
+stage_a_controller: stop observed at monotonic 299897.434644, previous successful reading at nan, SIGKILL sent at 299897.440235: report: memory reading unavailable (test)
+stage_a_controller: stop observed at monotonic 299900.811637, previous successful reading at 299900.781591, SIGKILL sent at 299900.884010: instrumented: a sampling iteration took 0.072 s (limit 0.05 s)
+stage_a_controller: stop observed at monotonic 299901.591359, previous successful reading at nan, SIGKILL sent at 299901.666780: report: a sampling iteration took 0.075 s (limit 0.05 s)
+ok
+test_stale_worker_reconciled_by_identity_only (test_controller.Controller.test_stale_worker_reconciled_by_identity_only)
+A recorded worker of a crashed session that is still alive is killed (identity verified); a live process ... ok
+test_terminal_holds_later_runs_but_report_runs (test_controller.Controller.test_terminal_holds_later_runs_but_report_runs) ... ok
+test_two_failures_during_pending_reconciliation (test_controller.Controller.test_two_failures_during_pending_reconciliation)
+Revision 8 (Stage A A3): S1's pending entry exists; S2 reads it, publishes S1 + S2 and dies while ... ok
+test_worker_crash_and_missing_record (test_controller.Controller.test_worker_crash_and_missing_record) ... ok
+test_failed_final_write_leaves_no_pass (test_controller.Finalisation.test_failed_final_write_leaves_no_pass) ... ok
+test_lost_and_invalid_accounting_refused (test_controller.Finalisation.test_lost_and_invalid_accounting_refused) ... ok
+test_marker_failure_after_its_rename_unadmits (test_controller.Finalisation.test_marker_failure_after_its_rename_unadmits) ... ok
+test_over_limit_and_illegal_ledger (test_controller.Finalisation.test_over_limit_and_illegal_ledger) ... ok
+test_post_marker_stall_and_blocked_revocation_are_bounded (test_controller.Finalisation.test_post_marker_stall_and_blocked_revocation_are_bounded)
+Stage A 3: the marker's write stalls after its rename; the allowance fires; revocation (tombstone + ... ok
+test_post_rename_block_is_bounded_and_not_admitted (test_controller.Finalisation.test_post_rename_block_is_bounded_and_not_admitted) ... ok
+test_post_rename_failure_is_not_admitted (test_controller.Finalisation.test_post_rename_failure_is_not_admitted) ... ok
+test_report_failure_modes_prevent_pass (test_controller.Finalisation.test_report_failure_modes_prevent_pass) ... ok
+test_size_mismatch_invalidates_completion (test_controller.Finalisation.test_size_mismatch_invalidates_completion) ... ok
+test_stale_pass_superseded (test_controller.Finalisation.test_stale_pass_superseded) ... ok
+test_storage_cap_edges (test_controller.Finalisation.test_storage_cap_edges) ... stage_a_controller: stop observed at monotonic 300095.495942, previous successful reading at 300095.469877, SIGKILL sent at 300095.496211: instrumented: task storage 5245933 over 4194304
+ok
+test_time_exhausted_spawns_no_work (test_controller.Finalisation.test_time_exhausted_spawns_no_work) ... ok
+test_exit_watch_failure (test_controller.Startup.test_exit_watch_failure) ... ok
+test_first_persist_failure (test_controller.Startup.test_first_persist_failure) ... ok
+test_stale_handles_never_survive_into_the_next_phase (test_controller.Startup.test_stale_handles_never_survive_into_the_next_phase)
+A worker handle left by a failed phase is ended (whole group, reaped) before the next phase spawns. ... ok
+test_watchdog_spawn_failure (test_controller.Startup.test_watchdog_spawn_failure) ... ok
+test_attestation_refusals (test_stage_a_runner.GoAttestation.test_attestation_refusals) ... ok
+test_block_structure (test_stage_a_runner.GoAttestation.test_block_structure) ... ok
+test_extra_null_key_in_both_attestation_and_go (test_stage_a_runner.GoAttestation.test_extra_null_key_in_both_attestation_and_go) ... ok
+test_go_file_refusals (test_stage_a_runner.GoAttestation.test_go_file_refusals) ... ok
+test_good (test_stage_a_runner.GoAttestation.test_good) ... ok
+test_negative_record_supplement (test_stage_a_runner.GoAttestation.test_negative_record_supplement) ... ok
+test_package_changes (test_stage_a_runner.GoAttestation.test_package_changes) ... ok
+test_review_must_descend_from_reviewed_commit (test_stage_a_runner.GoAttestation.test_review_must_descend_from_reviewed_commit) ... ok
+test_reviewed_commit_must_be_a_commit_object (test_stage_a_runner.GoAttestation.test_reviewed_commit_must_be_a_commit_object) ... ok
+test_reviewed_commit_rederivation_is_mandatory (test_stage_a_runner.GoAttestation.test_reviewed_commit_rederivation_is_mandatory) ... ok
+test_identity_not_describing_its_blobs_refused (test_stage_a_runner.ReviewedPackageBuilder.test_identity_not_describing_its_blobs_refused) ... ok
+test_identity_self_hash_refused (test_stage_a_runner.ReviewedPackageBuilder.test_identity_self_hash_refused) ... ok
+test_local_code_mismatch_refused (test_stage_a_runner.ReviewedPackageBuilder.test_local_code_mismatch_refused) ... ok
+test_positive (test_stage_a_runner.ReviewedPackageBuilder.test_positive) ... ok
+test_bitwise_failure_is_terminal_in_both_phases (test_stage_a_runner.StageA.test_bitwise_failure_is_terminal_in_both_phases) ... ok
+test_consistent_nonplain_change_refused_before_native (test_stage_a_runner.StageA.test_consistent_nonplain_change_refused_before_native)
+A6: a non-plain record's input_ids_sha256 changed with every hash (record, ledger, phase record) updated ... ok
+test_corrupt_committed_output_holds (test_stage_a_runner.StageA.test_corrupt_committed_output_holds) ... ok
+test_crash_recovery_is_per_try_and_consumed (test_stage_a_runner.StageA.test_crash_recovery_is_per_try_and_consumed) ... ok
+test_diagnostic_report_confers_nothing (test_stage_a_runner.StageA.test_diagnostic_report_confers_nothing) ... ok
+test_full_pass_validator (test_stage_a_runner.StageA.test_full_pass_validator) ... ok
+test_gates_consume_their_map_and_recheck (test_stage_a_runner.StageA.test_gates_consume_their_map_and_recheck)
+A1: the gates check their own bound map and recheck the identity before GATES.json is committed. ... ok
+test_gates_reconcile_then_hold (test_stage_a_runner.StageA.test_gates_reconcile_then_hold)
+Restart before interruption reconciliation: the GATES worker converts the open attempt durably, then ... ok
+test_native_parity_failure_is_terminal (test_stage_a_runner.StageA.test_native_parity_failure_is_terminal) ... ok
+test_native_refused_before_instrumented (test_stage_a_runner.StageA.test_native_refused_before_instrumented) ... ok
+test_report_consumes_its_map_and_rechecks_before_the_receipt (test_stage_a_runner.StageA.test_report_consumes_its_map_and_rechecks_before_the_receipt) ... ok
+test_resumed_record_admitted_by_the_full_predicates (test_stage_a_runner.StageA.test_resumed_record_admitted_by_the_full_predicates)
+A6: a committed record reloaded on resumption passes the instrumented predicates before use. ... ok
+test_source_records_pinned (test_stage_a_runner.StageA.test_source_records_pinned)
+A8: admission requires the current dev pool and provenance records identical to the plan's pins. ... ok
+test_stopped_report_with_unauthorised_interrupted_attempt (test_stage_a_runner.StageA.test_stopped_report_with_unauthorised_interrupted_attempt)
+A resource-killed open attempt: the report describes it and grants or consumes nothing. ... ok
+test_attempt_without_commit_fails_and_is_never_retried (test_stage_a_runner.Units.test_attempt_without_commit_fails_and_is_never_retried) ... ok
+test_cases (test_stage_a_runner.Units.test_cases) ... ok
+test_code_changed_between_phases (test_stage_a_runner.Units.test_code_changed_between_phases) ... ok
+test_consumed_map_bound_and_origins (test_stage_a_runner.Units.test_consumed_map_bound_and_origins) ... ok
+test_every_writer_reserves (test_stage_a_runner.Units.test_every_writer_reserves)
+Work writes stop at the operational limit; finalisation writes may use the reserve but not pass the cap. ... ok
+test_identity_mismatch_refuses (test_stage_a_runner.Units.test_identity_mismatch_refuses) ... ok
+test_interpretation_status (test_stage_a_runner.Units.test_interpretation_status) ... ok
+test_positions_receipt_absent_failing_stale (test_stage_a_runner.Units.test_positions_receipt_absent_failing_stale) ... ok
+test_storage_reserve_refuses (test_stage_a_runner.Units.test_storage_reserve_refuses) ... ok
+test_worker_identity_must_equal_frozen_and_gates (test_stage_a_runner.Units.test_worker_identity_must_equal_frozen_and_gates) ... ok
+test_authority_domains_and_witness (test_stage_a_runner.ValidatorMutations.test_authority_domains_and_witness)
+Stage A D (c036c00): an authorised history is legal only with the intake's domains AND its retained owner ... ok
+test_boundary_bytes_decoded (test_stage_a_runner.ValidatorMutations.test_boundary_bytes_decoded) ... ok
+test_capture_and_dispatch_metadata (test_stage_a_runner.ValidatorMutations.test_capture_and_dispatch_metadata) ... ok
+test_clean_base_passes (test_stage_a_runner.ValidatorMutations.test_clean_base_passes) ... ok
+test_codex_ledger_counterexample (test_stage_a_runner.ValidatorMutations.test_codex_ledger_counterexample)
+A6, Codex's static counterexample: all tries 0, passes per try 1, row20 started 16, passes 16, completed ... ok
+test_codex_unauthorised_extra_try (test_stage_a_runner.ValidatorMutations.test_codex_unauthorised_extra_try)
+Stage A 4 (b569f8a): one completed attempt's tries 1 -> 2 with NO consumed recovery and counters raised by one ... ok
+test_coherent_zero_negative_and_typed_states (test_stage_a_runner.ValidatorMutations.test_coherent_zero_negative_and_typed_states) ... ok
+test_exact_consumed_and_outstanding_sets (test_stage_a_runner.ValidatorMutations.test_exact_consumed_and_outstanding_sets)
+Stage A D: legal counters and unchanged outputs, but the recovery sets are not exact. ... ok
+test_failing_numbers_marked_pass (test_stage_a_runner.ValidatorMutations.test_failing_numbers_marked_pass) ... ok
+test_hash_tamper (test_stage_a_runner.ValidatorMutations.test_hash_tamper) ... ok
+test_image_rotary_merge_and_features (test_stage_a_runner.ValidatorMutations.test_image_rotary_merge_and_features) ... ok
+test_ledger_consistency (test_stage_a_runner.ValidatorMutations.test_ledger_consistency) ... ok
+test_native_embedding_digest_from_archive (test_stage_a_runner.ValidatorMutations.test_native_embedding_digest_from_archive) ... ok
+test_nonfinite_native (test_stage_a_runner.ValidatorMutations.test_nonfinite_native) ... ok
+test_output_membership (test_stage_a_runner.ValidatorMutations.test_output_membership) ... ok
+test_parity_summary_unbound (test_stage_a_runner.ValidatorMutations.test_parity_summary_unbound) ... ok
+test_phase_record_mismatch_and_identity (test_stage_a_runner.ValidatorMutations.test_phase_record_mismatch_and_identity) ... ok
+test_plain_input_ids_and_token_count (test_stage_a_runner.ValidatorMutations.test_plain_input_ids_and_token_count) ... ok
+test_ranks_top_k_and_logit_dtype (test_stage_a_runner.ValidatorMutations.test_ranks_top_k_and_logit_dtype) ... ok
+test_record_identity_fields (test_stage_a_runner.ValidatorMutations.test_record_identity_fields) ... ok
+test_schema_extra_and_missing_keys (test_stage_a_runner.ValidatorMutations.test_schema_extra_and_missing_keys) ... ok
+test_suffix_leak_and_encoder_insensitive (test_stage_a_runner.ValidatorMutations.test_suffix_leak_and_encoder_insensitive) ... ok
+
+----------------------------------------------------------------------
+Ran 255 tests in 2024.525s
+
+OK (skipped=5)
