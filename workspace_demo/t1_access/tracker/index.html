@@ -48,7 +48,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
 <div class="wrap">
 <header>
   <h1>T1 Validation Tracker</h1>
-  <p class="sub">Entropy SI lane · updated <span id="upd">2 Oct 2026, 22:30 UTC</span> · Unimog <code>c0129feb</code>, RSC <code>3390183</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
+  <p class="sub">Entropy SI lane · updated <span id="upd">2 Oct 2026, 23:45 UTC</span> · Unimog <code>570ad685</code>, RSC <code>6ca6fb0</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
 </header>
 
 <section class="two">
@@ -88,8 +88,8 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
   <h2>Mac runs · photograph arm</h2>
   <div class="tbl"><table>
     <tr><th>Run</th><th>Purpose</th><th>Where</th><th>State</th><th>Progress</th><th>Time</th></tr>
-    <tr><td class="w">Row 20 · Stage A</td><td>Native fidelity and resource profile of the capture instrument on 20 development images.</td><td class="n">Mac · 1 worker</td><td><span class="pill ok">favourable</span></td><td>Ten Codex reviews; revision 10 (RSC fbfb7db, 255 tests) FAVOURABLE with an attestation block. Only the owner's dated go is left: ROW20_GO.json, then R084 runs it.<div class="bar ok"><i style="width:100%"></i></div></td><td class="n">≤ 4 h · 194 of 200 forwards</td></tr>
-    <tr><td class="w">AI reader qualification</td><td>Can the Codex reader name 61 of 63 easy grayscale images? Gates the audit reader.</td><td class="n">Mac · codex 0.159.3</td><td><span class="pill ok">favourable</span></td><td>Revision 10 FAVOURABLE with an attestation block; the owner's dated go (AIREADER_GO.json) is left; the 61-of-63 gate is then measured, not presumed.<div class="bar ok"><i style="width:100%"></i></div></td><td class="n">≤ 6 h · ≤ 660 attempts</td></tr>
+    <tr><td class="w">Row 20 · Stage A</td><td>Native fidelity and resource profile of the capture instrument on 20 development images.</td><td class="n">Mac · 1 worker</td><td><span class="pill run">go given</span></td><td>Ten Codex reviews; revision 10 (RSC fbfb7db) FAVOURABLE. Owner's go 2 Oct; ROW20_GO.json committed, guard passed; R084 executing. Result pending.<div class="bar run"><i style="width:5%"></i></div></td><td class="n">≤ 4 h · 194 of 200 forwards</td></tr>
+    <tr><td class="w">AI reader qualification</td><td>Can the Codex reader name 61 of 63 easy grayscale images? Gates the audit reader.</td><td class="n">Mac · codex 0.159.3</td><td><span class="pill run">go given</span></td><td>Revision 10 FAVOURABLE. Owner's go 2 Oct; AIREADER_GO.json committed, guard passed; runs after Stage A. The 61-of-63 gate is measured, not presumed.<div class="bar run"><i style="width:5%"></i></div></td><td class="n">≤ 6 h · ≤ 660 attempts</td></tr>
     <tr><td class="w">Row 21 · Stage B</td><td>Held-out qualification of the development instrument.</td><td class="n">Mac · 1 worker</td><td><span class="pill wait">after A</span></td><td>Held for Stage A and the freeze gates.</td><td class="n">≤ 4 h · 1,856 forwards</td></tr>
     <tr><td class="w">Text arm</td><td>The same assay on text, with a stronger reader.</td><td class="n">Mac</td><td><span class="pill wait">undeclared</span></td><td>Waits on the owner's reader and acceptance rule, due 15 Oct.</td><td class="n">—</td></tr>
   </table></div>
@@ -108,7 +108,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
   <div>
     <h2>Open with the owner</h2>
     <ul>
-      <li><b>Stage A and reader go.</b> Both mechanisms are favourable. Your dated words launch them: Stage A on the Mac (≤ 4 h) and the reader qualification (≤ 6 h, Codex CLI).</li>
+      <li><b>Stage A and reader.</b> Go given 2 Oct. Next decision: Stage B (row 21) after Stage A's report goes to Codex.</li>
       <li><b>Slice go.</b> After Codex's launch review and the stage-0 addendum.</li>
       <li><b>Text arm.</b> Reader and acceptance rule by 15 Oct.</li>
     </ul>
