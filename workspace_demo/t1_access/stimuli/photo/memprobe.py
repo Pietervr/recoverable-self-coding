@@ -256,6 +256,18 @@ class _XSW(ctypes.Structure):
                 ("pagesize", ctypes.c_uint32), ("encrypted", ctypes.c_bool)]
 
 
+class _TV(ctypes.Structure):
+    _fields_ = [("tv_sec", ctypes.c_int64), ("tv_usec", ctypes.c_int32)]
+
+
+def boot_time() -> float:
+    """The kernel's boot wall time (kern.boottime): two records on the same side of it share one machine-up interval;
+    a record older than it was cut by a reboot or power loss."""
+    tv = _TV()
+    _sysctl("kern.boottime", tv)
+    return tv.tv_sec + tv.tv_usec / 1e6
+
+
 def swap_used() -> int:
     x = _XSW()
     _sysctl("vm.swapusage", x)

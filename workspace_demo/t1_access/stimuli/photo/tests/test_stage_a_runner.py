@@ -1,4 +1,4 @@
-"""Stage A revision 6: runner, validator, recovery, attestation and identity tests on a fake instrument - no model
+"""Stage A revision 7: runner, validator, recovery, attestation and identity tests on a fake instrument - no model
 is imported, loaded or run. Controller mechanism fixtures are in test_controller.py. Revision 5 adds Codex RSC
 1bf9890's A1 call-site fixtures (gates and report consume their own map and recheck before committing), the A6 ledger
 counterexample and coherent zero/negative states, full instrumented admission before any native work (a CONSISTENT
@@ -458,37 +458,95 @@ class ValidatorMutations(unittest.TestCase):
         self.assertIn("LEDGER_DOMAIN", self.ledger_codes(st))
         self.assertTrue(enforce.check_ledger(st))
 
+    def with_recovery(self, st: dict, out: Path, aid: str = "05-plain", tries: int = 2, **auth_over) -> dict:
+        """A legal authorised history for one attempt: tries raised, counters raised, the owner's recovery file retained
+        in out and its consumed entry recorded (the authority possibly altered by auth_over)."""
+        st = copy.deepcopy(st)
+        st["attempts"][aid]["tries"] = tries
+        for k in ("row20", "aggregate"):
+            for x in ("started", "passes", "failed"):
+                st["counters"][k][x] += tries - 1
+        st["recoveries_consumed"] = []
+        for t in range(1, tries):
+            body = {"attempt_id": aid, "session": f"s{t}", "try": t, "owner": "o", "date": "2026-10-02",
+                    "reason": "test crash"}
+            raw = json.dumps(body).encode()
+            (out / f"RECOVERY_{aid}__s{t}__{t}.json").write_bytes(raw)
+            auth = {**body, "file_sha256": sha(raw), **auth_over}
+            st["recoveries_consumed"].append({"attempt_id": aid, "session": f"s{t}", "try": t, "authority": auth,
+                                              "consumed_by": f"s{t + 1}"})
+        return st
+
+    def both_admissions(self, out: Path, st: dict) -> tuple:
+        (out / "stage_a_state.json").write_text(json.dumps(st))
+        fin = {f["code"] for f in R.validate(out, PLAN, st, identity="f" * 64)["failures"]}
+        pre = {f["code"] for f in R.validate(out, PLAN, st, identity="f" * 64, phases=("instrumented",))["failures"]}
+        return fin, pre
+
     def test_codex_unauthorised_extra_try(self):
-        """Stage A 4, Codex RSC b569f8a: one completed attempt's tries 1 -> 2 with NO consumed recovery, and row 20 /
-        aggregate started, passes and failed raised by one (195 of 200, every counter legal, the recount agrees) -
-        refused in final admission and in pre-native admission."""
-        st = json.loads((self.base / "stage_a_state.json").read_text())
+        """Stage A 4 (b569f8a): one completed attempt's tries 1 -> 2 with NO consumed recovery and counters raised by one
+        (195 of 200, every counter legal) - refused in final and pre-native admission."""
+        out = self.copy()
+        st = json.loads((out / "stage_a_state.json").read_text())
         st["attempts"]["05-plain"]["tries"] = 2
         for k in ("row20", "aggregate"):
             for x in ("started", "passes", "failed"):
                 st["counters"][k][x] += 1
-        self.assertTrue(any("no consumed, authorised recovery" in p for p in enforce.check_ledger(st)))
-        self.assertIn("LEDGER_DOMAIN", self.ledger_codes(st))
+        self.assertTrue(any("not exactly tries [1]" in p for p in enforce.check_ledger(st)))
+        fin, pre = self.both_admissions(out, st)
+        self.assertIn("LEDGER_DOMAIN", fin)
+        self.assertIn("LEDGER_DOMAIN", pre)
+
+    def test_authority_domains_and_witness(self):
+        """Stage A D (c036c00): an authorised history is legal only with the intake's domains AND its retained owner
+        file; authority-only mutations (bool / float try, an impossible date, a non-hex digest) and a well-typed
+        authority that differs from the witness file are refused - in final and pre-native admission."""
         out = self.copy()
-        (out / "stage_a_state.json").write_text(json.dumps(st))
-        val = R.validate(out, PLAN, st, identity="f" * 64, phases=("instrumented",))
-        self.assertIn("LEDGER_DOMAIN", {f["code"] for f in val["failures"]})
-        good = {"attempt_id": "05-plain", "session": "s0", "try": 1, "consumed_by": "s1",
-                "authority": {"attempt_id": "05-plain", "session": "s0", "try": 1, "owner": "o", "date": "2026-10-02",
-                              "reason": "r", "file_sha256": "a" * 64}}
-        muts = {"authority names another try": dict(good, authority={**good["authority"], "try": 2}),
-                "try as bool": dict(good, **{"try": True}), "missing consumed_by": {k: v for k, v in good.items()
-                                                                                    if k != "consumed_by"}}
-        for name, r in muts.items():
+        base = json.loads((out / "stage_a_state.json").read_text())
+        good = self.with_recovery(base, out)
+        self.assertEqual(enforce.check_ledger(good, witness_dir=out), [])
+        fin, pre = self.both_admissions(out, good)
+        self.assertNotIn("LEDGER_DOMAIN", fin | pre)
+        muts = {"authority try true": {"try": True}, "authority try 1.0": {"try": 1.0},
+                "date not a date": {"date": "not-a-date"}, "impossible date": {"date": "2026-02-30"},
+                "digest x*64": {"file_sha256": "x" * 64}, "owner differs from the witness": {"owner": "someone"},
+                "digest of another file": {"file_sha256": "a" * 64}}
+        for name, over in muts.items():
             with self.subTest(name):
-                st2 = copy.deepcopy(st)
-                st2["recoveries_consumed"] = [r]
-                self.assertTrue(enforce.check_ledger(st2))
-        st2 = copy.deepcopy(st)
-        st2["recoveries_consumed"] = [good, good]
-        self.assertTrue(any("recorded twice" in p for p in enforce.check_ledger(st2)))
-        st2["recoveries_consumed"] = [good]
-        self.assertEqual(enforce.check_ledger(st2), [])                 # with its authorised recovery: legal
+                o = self.copy()
+                st = self.with_recovery(base, o, **over)
+                self.assertTrue(enforce.check_ledger(st, witness_dir=o), name)
+                fin, pre = self.both_admissions(o, st)
+                self.assertIn("LEDGER_DOMAIN", fin)
+                self.assertIn("LEDGER_DOMAIN", pre)
+        o = self.copy()                                                  # the witness file removed
+        st = self.with_recovery(base, o)
+        (o / "RECOVERY_05-plain__s1__1.json").unlink()
+        self.assertTrue(any("not retained" in p for p in enforce.check_ledger(st, witness_dir=o)))
+
+    def test_exact_consumed_and_outstanding_sets(self):
+        """Stage A D: legal counters and unchanged outputs, but the recovery sets are not exact."""
+        out = self.copy()
+        base = json.loads((out / "stage_a_state.json").read_text())
+        st = self.with_recovery(base, out, tries=2)
+        clean = copy.deepcopy(base)                                       # a clean tries=1 attempt with a consumed try 1
+        clean["recoveries_consumed"] = [dict(st["recoveries_consumed"][0], attempt_id="06-plain",
+                                             authority={**st["recoveries_consumed"][0]["authority"],
+                                                        "attempt_id": "06-plain"})]
+        overlap = copy.deepcopy(st)
+        overlap["attempts"]["05-plain"]["status"] = "interrupted"
+        del overlap["completed"]["05-plain"]
+        overlap["interrupted"] = [{"id": "05-plain", "session": "s2", "try": 2}, {"id": "05-plain", "session": "s1",
+                                                                                 "try": 1}]
+        dup = copy.deepcopy(overlap)
+        dup["interrupted"] = [{"id": "05-plain", "session": "s2", "try": 2}, {"id": "05-plain", "session": "s2",
+                                                                             "try": 2}]
+        for name, bad, msg in (("consumed try on a clean attempt", clean, "are not exactly tries []"),
+                               ("outstanding and consumed overlap", overlap, "both outstanding and consumed"),
+                               ("duplicate outstanding", dup, "exactly one outstanding entry")):
+            with self.subTest(name):
+                probs = enforce.check_ledger(bad, witness_dir=out)
+                self.assertTrue(any(msg in x for x in probs), (name, probs[:4]))
 
     def test_coherent_zero_negative_and_typed_states(self):
         base = json.loads((self.base / "stage_a_state.json").read_text())

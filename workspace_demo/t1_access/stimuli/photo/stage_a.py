@@ -252,6 +252,8 @@ def envelope() -> dict:
                            "watchdog_tick_stale_s": C.TICK_STALE_S,
                            "tail_reserve_s": C.TAIL_RESERVE_S, "stop_reserve_s": C.STOP_RESERVE_S,
                            "report_reserve_s": C.REPORT_RESERVE_S, "final_allowance_s": C.FINAL_ALLOWANCE_S,
+                           "revoke_timeout_s": C.REVOKE_TIMEOUT_S, "exit_margin_s": C.EXIT_MARGIN_S,
+                           "close_charge_s": C.CLOSE_CHARGE_S, "guardian_setup_deadline_s": C.SETUP_DEADLINE_S,
                            "stop_signal": "SIGKILL at once (no grace)",
                            "watchdog_stale_s": C.STALE_S, "watchdog_hard_margin_s": C.HARD_MARGIN_S,
                            "group_gone_s": C.GROUP_GONE_S, "watchdog_arm_timeout_s": C.ARM_TIMEOUT_S,
@@ -320,7 +322,7 @@ def make_plan() -> dict:
                   "index": x["index"], "case": "native"} for x in inputs]
     env = envelope()
     assert len(attempts) + ENGINEERING_CARRY["passes"] == env["total_attempts"] == 194
-    return {"revision": 5, "seed": SEED, "a_grid_sha256": grid["sha256"], "inputs": inputs,
+    return {"revision": 7, "seed": SEED, "a_grid_sha256": grid["sha256"], "inputs": inputs,
             "request_tokens": request, "request_token_ids": [r["id"] for r in request],
             "cases": CASES, "bitwise_cases": BITWISE, "edit_layer": EDIT_LAYER, "capture_layers": LAYERS,
             "top_k": TOP_K, "tolerances": TOL, "template_sha256": template_sha256(),
@@ -391,8 +393,8 @@ def package_hashes(ctx: Ctx) -> dict:
 
 def load_frozen(ctx: Ctx) -> tuple[dict, dict]:
     plan = json.loads(ctx.plan_path.read_text())
-    if plan.get("revision") != 5:
-        raise SystemExit("refused: stage_a_plan.json is not revision 5")
+    if plan.get("revision") != 7:
+        raise SystemExit("refused: stage_a_plan.json is not revision 7")
     if budget_sha256(envelope()) != plan["budget_sha256"]:
         raise SystemExit("refused: the code's envelope differs from the frozen plan's")
     for k, name in (("dev_pool_sha256", "dev_pool.json"), ("provenance_checks_sha256", "provenance_checks.json")):

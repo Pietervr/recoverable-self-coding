@@ -152,7 +152,7 @@ def committed(raw_path: Path) -> dict:
 def admit(raw_path: Path, sset: dict, *, package: dict | None, allow_synthetic: bool, go: Path | None,
           delivery: dict | None = None, clock_path: Path | None = None) -> dict:
     """Groups 1 and 6: committed raw, complete validation, approved package."""
-    if not allow_synthetic and package is not None:
+    if not allow_synthetic and (package is not None or clock_path is not None):
         raise SystemExit("refused: scientific scoring recomputes the package; a caller-supplied package is refused")
     if allow_synthetic:
         data = raw_path.read_bytes()
@@ -195,7 +195,8 @@ def rate(rows: list[bool]) -> dict:
 def score(raw_path: Path, *, allow_synthetic: bool = False, package: dict | None = None, go: Path | None = None,
           sset: dict | None = None, key: dict | None = None, delivery: dict | None = None,
           clock_path: Path | None = None) -> dict:
-    if not allow_synthetic and (sset is not None or key is not None or package is not None or delivery is not None):
+    if not allow_synthetic and (sset is not None or key is not None or package is not None or delivery is not None
+                                or clock_path is not None):
         raise SystemExit("refused: scientific scoring uses only the approved key, set, delivery and package; "
                          "injected objects are accepted in labelled synthetic mode only")
     sset = sset or json.loads(SET.read_text())

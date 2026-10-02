@@ -1,4 +1,4 @@
-# Stage A (ledger row 20): declared criteria and code, revision 6 (R084, 2 October 2026)
+# Stage A (ledger row 20): declared criteria and code, revision 7 (R084, 2 October 2026)
 
 **Specification:** framework `rsc_t1_two_channel_framework.md` §8.2, §8.4 and §8.6 (Unimog; R052's text).
 
@@ -11,10 +11,11 @@
 | 3 | RSC `a59fc2d` | RSC `081f17b` | NOT ON BOARD |
 | 4 | RSC `d7a486a` | RSC `1bf9890` (combined with the AI reader) | NOT ON BOARD |
 | 5 | RSC `2610d8a` | RSC `b569f8a` (combined) | NOT ON BOARD; A1, A7, A8 closed; the memory qualification accepted in principle |
-| 6 | this commit | — | answers R052's handoff `c39df47e`: Stage A conditions 1–4 of `b569f8a` (§0 below) |
+| 6 | RSC `bb4f076` | RSC `c036c00` (combined) | NOT ON BOARD; kill-first, the guardian, bounded revocation and the 195-count refusal credited |
+| 7 | this commit | — | answers R052's handoff `cdefd254`: Stage A conditions A–D of `c036c00` (§00 below) |
 
 No review record of a not-favourable verdict can be named by a go: the guard's supplementary negative list holds
-`f9d2ef3`, `69539bb`, `081f17b`, `1bf9890`, `b569f8a` (row 20) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
+`f9d2ef3`, `69539bb`, `081f17b`, `1bf9890`, `b569f8a`, `c036c00` (row 20) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
 rejection is the absence of a positive, exactly matching attestation.
 
 **Not reopened** (accepted by Codex at `1bf9890`): the hashes and their relations, the shared strict guard (no schema
@@ -22,19 +23,49 @@ objection), the attestation v1 format, the inputs, cases, positional rule, trans
 and envelope; the sum-of-lifetime over-count as an early-stop convention; live-bound full logits and features; the two
 tiny unreserved writes; the power-loss tail as an accounting rule; at `b569f8a` also A1, A7, A8, the startup and
 immediate-restart repairs, the final aggregate and pre-native admission, and the memory qualification in principle.
-The plan (revision 5), inputs, cases and the 178 planned attempts are byte-identical to revision 5.
+Inputs, cases and the 178 planned attempts are byte-identical to revision 6; the plan moved to revision 7 only in its
+envelope's controller constants (finalisation allowance 50 s, revocation 5 s, exit margin 5 s, close charge 60 s,
+guardian setup deadline 300 s) and therefore its budget hash.
 
 **No forward has run on any development image.** Every mechanism measurement below is from declared, non-development
 fixtures: synthetic worker processes, the real watchdog, synthetic arrays; no model and no image
 (`controller_fixtures.json`, recorded 2 October 2026).
 
-## 0. Revision 6: the four conditions of RSC `b569f8a`
+## 00. Revision 7: the four conditions of RSC `c036c00`
+
+| # | Condition | Where it lives | Fixtures (`tests/test_controller.py` unless named) |
+|---|---|---|---|
+| A | Complete controller coverage and tail charge | The guardian starts before ANY file operation (the output directory's creation included) and lives through the result's output (`run(emit=)`; `main` prints through it). A pending-start record (`controller.starting.json`) is durable before any load; the open session carries the guardian's wall-clock deadline. A dead session or failed start is charged from durable evidence only: a recorded controller death ends the tail; without one, on the same boot (`kern.boottime` earlier than the beat) the tail runs until min(now, the guardian deadline + 5 s); after a reboot the declared 60 s rule. The close charges the WHOLE bounded closure (`CLOSE_CHARGE_S` = finalisation 50 + revocation 5 + exit/output 5 = 60 s = the tail reserve) and moves the guardian's deadline to its end, so a post-close death lies inside the charged total. Diagnostics before an abort or after a kill are written by daemon threads. | `test_directory_stall_before_load_is_guarded` (killed at the shortened setup deadline, run M_SETUP); `test_final_output_stall_is_guarded_and_charged` (PASS admitted, output blocks, killed within the charged closure, run M_OUTPUT); `test_post_close_death_is_inside_the_charged_closure` (finalisation and both revocations blocked: death before the charged closure's end, not admitted, run M_POSTCLOSE); `test_crash_tail_charge` (blocked and no-evidence same-boot tails); `test_failed_start_is_charged`; `test_persistence_after_the_watchdog_retired_is_bounded` |
+| B | Guardian in whole-task memory | The guardian's pid is sampled every iteration (`guardian_lifetime_max`), its final maximum read at finalisation (`guardian_final`; unreadable -> a missing mandatory measurement), both added to the phase and task aggregates. | `test_guardian_in_the_task_aggregate` (lifetime M_GUARD; unreadable -> STOPPED) |
+| C | The timing statement | Each reading's observation instant is kept; the tick sent after a successful reading carries that reading's time (the watchdog measures staleness from it, not from consumption); the stop records the previous successful below-stop reading, the deciding reading, the kill, the leader's death and verified extinction; the watchdog records the tick's source and consumption times, its observation, group extinction and the controller's death. | `test_memory_stop_is_whole_task`, `test_never_returning_first_and_later_sample`, `test_memory_stop_with_blocked_io_kills_first` (values below) |
+| D | Strict authority admission and exact recovery set | `enforce.check_ledger(..., witness_dir=out)` (controller, pre-native and final admission): authority with the intake's domains (non-blank text, try an exact positive int, never bool or float, a real calendar date, 64 lowercase hex), bound to the retained owner file (present, hashing to file_sha256, strict content equal to the authority); consumed tries exactly 1..tries-1 (1..tries for 'interrupted, recovery consumed'); exactly one outstanding entry, for the last try, on an interrupted attempt and none otherwise; no overlap. consumed_by is not required to equal the next session. | `test_stage_a_runner.ValidatorMutations.test_authority_domains_and_witness` (bool / float try, impossible dates, non-hex and wrong digests, an owner differing from the witness, a missing witness - in final and pre-native admission); `test_exact_consumed_and_outstanding_sets`; `test_codex_unauthorised_extra_try` |
+
+**The complete observation interval (revision 7, measured; `controller_fixtures.json`).** Endpoints are separate:
+
+| Path | Previous successful reading → | Value |
+|---|---|---|
+| Ordinary memory stop | kill / leader dead / verified extinction | M_STOP |
+| Ordinary memory stop | (deciding reading → leader dead) | M_DECIDE |
+| Memory stop, I/O thread blocked | (deciding observation → worker gone, timed by the test) | M_BLOCKEDIO |
+| First sample never returns | tick consumed / watchdog observation / group extinct / controller gone | M_NEVER1 |
+| Third sample never returns | the same | M_NEVER3 |
+
+**The conditional margin.** Stipulating the configured interval 0.16 s (two readings' work 2 × 50 ms + one 20 ms
+sleep; or, stalled, 150 ms tick staleness measured from the reading's own time + the watchdog's 10 ms poll) and the measured SIGKILL delivery 0.0259 s: 4 GiB / (0.16 + 0.026) ≈ 21.5 GiB/s, rounded to 22. The
+measured complete intervals above lie inside 0.16 s. ASSUMPTIONS (stated, not enforced): ordinary scheduling of the
+controller's threads and the watchdog process (no multi-second CPU starvation or suspension); the kernel's footprint
+ledger current to within one reading; SIGKILL delivered within tens of milliseconds as measured. The synthetic growth
+rates M_RATES (one thread fits; 2–8 threads do not) are finite averages that do not bound bursts or measure the frozen
+model; Stage A reports the model's growth and peak, and a faster episode, an overshoot, pressure or a cap failure stops
+and invalidates the qualified claim.
+
+## 0. Revision 6: the four conditions of RSC `b569f8a` (still in force; revocation and timing wording corrected in §00)
 
 | # | Condition | Where it lives | Fixtures (`tests/test_controller.py` unless named) |
 |---|---|---|---|
 | 1 | Kill before any I/O wait; guard the first sample | `_sample` catches every stop and SIGKILLs the group itself (`_kill_now`) before the `finally` that disarms the tick check and joins the I/O thread, and before `_phase` persists; it records the last admissible observation (`stop_observed_mono`, the start of the deciding iteration), the kill and the leader's death (kqueue, no file I/O). The watchdog's tick check is armed by a tick written immediately BEFORE `GO`, so the first sample is guarded; after the kill the watchdog stays active (controller death, beat, deadline, group-and-member retirement) until extinction. | `test_memory_stop_with_blocked_io_kills_first` (I/O thread blocked forever; the worker gone 0.008 s after the last admissible observation, timed by the test, independent of the controller); `test_never_returning_first_and_later_sample` (sample 1 and sample 3 never return: group gone, controller killed); `test_sampler_unavailable_and_slow` (killed by the sampler itself, leader dead < 0.5 s) |
 | 2 | An independent whole-controller deadline | A GUARDIAN (`stage_a_watchdog.py` in guardian mode) is started before the lock and any load, with a setup deadline (300 s), then moved to the session's cap + 5 s (at least the finalisation allowance + 5 s); on it, it SIGKILLs the controller by identity and records the death. Its path depends on no observation or persistence. The per-phase watchdog now kills the (alive) controller also on a stalled sampler. Crash charge: the guardian's and the watchdog's controller-death times; a blocked controller never seen to die is charged until the restart; the power-loss rule unchanged. | `test_persistence_after_the_watchdog_retired_is_bounded` (a controller-only persist blocks forever after the gates' watchdog retired: killed by the guardian at the shortened cap, run 18.7 s; the restart charges to that death); `test_never_returning_first_and_later_sample` |
-| 3 | Bound the abort path | `_abort_exit`: revocation - an abort tombstone `STAGE_A_FINAL.ABORTED.json` naming the session, and the removal of the session's marker - runs in two threads for at most 5 s, then exit 75 whatever they did; `final_admitted` refuses a session with a tombstone. Neither revocation step is followed by a directory fsync, so its durability across a power loss is limited; if both block or fail, a marker can survive an exit 75. | `Finalisation.test_post_marker_stall_and_blocked_revocation_are_bounded` (the marker's write stalls after its rename: exit 75 in 10.6 s (allowance 4 s + the stall; 15.6 s with the unlink blocked), tombstone present, not admitted; the same with the unlink blocking forever: the marker survives, the tombstone refuses it) |
+| 3 | Bound the abort path | `_abort_exit`: revocation - an abort tombstone `STAGE_A_FINAL.ABORTED.json` naming the session, and the removal of the session's marker - runs in two threads for at most 5 s, then exit 75 whatever they did; `final_admitted` refuses a session with a tombstone. The tombstone write, when it returns, is file-, rename- and directory-fsynced; the marker's unlink is not followed by a directory fsync, so its removal's durability across a power loss is limited; if both block or fail, a marker can survive an exit 75 - reviewed as an abort, never a completed transaction. | `Finalisation.test_post_marker_stall_and_blocked_revocation_are_bounded` (the marker's write stalls after its rename: exit 75 in 10.6 s (allowance 4 s + the stall; 15.6 s with the unlink blocked), tombstone present, not admitted; the same with the unlink blocking forever: the marker survives, the tombstone refuses it) |
 | 4 | The consumed recovery history | `enforce.check_ledger`: every consumed recovery an exact, typed, unique (attempt, try) entry whose authority (the owner's recovery file: attempt, session, try, owner, date, reason, file hash) names exactly it and a try the attempt has; every try of an attempt before its last must have such a recovery; outstanding interrupted entries name the last try; the open attempt's kind and session coherent. Used by pre-native admission, the final validator and the controller's final algebra. | `test_stage_a_runner.ValidatorMutations.test_codex_unauthorised_extra_try` (Codex's 195-of-200 counterexample refused in final and pre-native admission; an authority naming another try, a bool try, a missing field, a duplicate; legal with its authorised recovery); `StageA.test_crash_recovery_is_per_try_and_consumed` (the honest two-recovery history is legal) |
 
 **The memory qualification (revision 6, end to end).** The enforced bound between two readings of a process is
@@ -287,8 +318,8 @@ The retained-output run of the whole photo suite on this package is in `reviews/
   group, finalisation 60 s).
 - **The completion marker's commit point** is its rename; a failure of the marker's directory fsync that is followed
   by a failure (or block) of BOTH revocation steps would leave an admissible marker after exit 75 — the residual window,
-  which needs filesystem failures on both; the revocation itself (tombstone, unlink) is not directory-fsynced, so its
-  durability across a power loss is limited. Exit 75 and its stderr diagnostic are preserved and reviewed as an abort.
+  which needs filesystem failures on both; the tombstone write is directory-fsynced when it returns, the marker's unlink
+  is not, so that removal's durability across a power loss is limited. Exit 75 and its stderr diagnostic are preserved and reviewed as an abort.
 - **The guardian's bound is the session cap + 5 s:** a controller blocked between phases (no worker watchdog) is
   killed then, not sooner; the interval is charged until its recorded death.
 - **Full logits and features** are live-bound digests, not archive-recomputed.

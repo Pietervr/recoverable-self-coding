@@ -5,5 +5,5 @@
   "1": true
  },
  "method": "mlx-vlm 0.6.3 LanguageModel.get_rope_index on lazily opened weights, index arithmetic only, compared with expected_positions",
- "plan_sha256": "40aba7ecf4a4cc6cdb5b0a5d536e87f31b4945f6c98a94c0458808050342c74c"
+ "plan_sha256": "3faebf4eab25081cf32652bf025fa8fab9d11bee6f1c9a19a1cf2dbad45417cc"
 }

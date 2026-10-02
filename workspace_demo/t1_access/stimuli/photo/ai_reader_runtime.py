@@ -1,4 +1,4 @@
-"""AI image-reader qualification, revision 6: THE REQUEST BOUNDARY (Codex RSC b569f8a R4; RSC 1bf9890 R5, R6; RSC 5a8d7ac closure 4; framework 8.2's isolation
+"""AI image-reader qualification, revision 7: THE REQUEST BOUNDARY (Codex RSC c036c00 reader C; RSC b569f8a R4; RSC 1bf9890 R5, R6; RSC 5a8d7ac closure 4; framework 8.2's isolation
 evidence list and smoke rule). Standard library only. Nothing here sends a request by itself: `exec_argv` builds the one
 command that does, and only `ai_reader_exec.run` starts it, after the go.
 
@@ -7,8 +7,10 @@ descendant: (deny default), then only
   - process-exec of the pinned codex binary itself, and process-fork: the pinned binary MAY run and fork copies of
     itself, so no no-descendant guarantee is claimed; no shell, no helper and no OTHER program may be executed
     (unified_exec, which this CLI keeps on under every switch, has no other program it may exec - measured: /bin/sh,
-    /bin/zsh and /bin/bash cannot even be stat'ed, and code-mode-host cannot be spawned); every descendant stays in
-    the attempt's process group and is killed with it (memprobe.end_group);
+    /bin/zsh and /bin/bash cannot even be stat'ed, and code-mode-host cannot be spawned); every descendant
+    normally stays in the attempt's process group and is killed with it (memprobe.end_group); one that leaves the group
+    is killed by its recorded identity if a member sample saw it, and one that escapes and exits between samples is not
+    observed (the accepted transient-child scope);
   - file reads of: the attempt directory (the image under its opaque name, the private CODEX_HOME with the auth link,
     tmp, its own outputs), the auth file, the codex binary and its package manifest, and the system runtime (/System,
     /usr/lib, /usr/share, the dyld cache, the timezone database, /private/etc/ssl, localtime, a few /dev nodes, the
@@ -39,7 +41,8 @@ invocation receipt) runs in its own process group with its exit seen by kqueue w
 only up to the cap, an output past the cap - while running OR at a quick exit - and a missed deadline REFUSE, and on
 every exit the whole group (enumerated) and every member sampled while it ran are killed and confirmed gone before the
 leader is reaped. Revision 6: the post-spawn setup (exit watch, identity) has the same cleanup owner, and an exit or a
-complete log observed only after the deadline is a timeout - both receipts refuse it.
+complete log observed only after the deadline is a timeout - both receipts refuse it. Revision 7: the invocation
+receipt checks the observation's own time AFTER reading and parsing, before accepting.
 
 RECEIPTS (no credential is read or recorded):
   - `prompt_input`: `codex debug prompt-input` with the same flags, profile, environment and separator renders the
@@ -398,6 +401,8 @@ def invocation_receipt(codex: list[str], reader: dict, adir: Path, img: Path, pr
             txt = _read_capped(c.se, LOCAL_CAP)[0].decode("utf-8", "replace")
             sub, fb = _SUBMISSION.search(txt), _FEEDBACK.search(txt)
             if sub and fb:
+                if time.monotonic() > c.deadline:      # the observation's own time, after reading and parsing
+                    c.timed_out = True
                 break
             time.sleep(0.1)
         txt = _read_capped(c.se, LOCAL_CAP)[0].decode("utf-8", "replace")

@@ -1,5 +1,5 @@
 {
- "revision": 5,
+ "revision": 7,
  "seed": 20261006,
  "a_grid_sha256": "3e86bc49eea49d2db2ef336f7843808f2beff0fc158c54a1bf7f6affa9c9683c",
  "inputs": [
@@ -2492,11 +2492,15 @@
    "memory_sample_s": 0.02,
    "system_sample_s": 1.0,
    "sample_limit_s": 0.05,
-   "watchdog_tick_stale_s": 0.1,
+   "watchdog_tick_stale_s": 0.15,
    "tail_reserve_s": 60.0,
    "stop_reserve_s": 60.0,
    "report_reserve_s": 600.0,
-   "final_allowance_s": 60.0,
+   "final_allowance_s": 50.0,
+   "revoke_timeout_s": 5.0,
+   "exit_margin_s": 5.0,
+   "close_charge_s": 60.0,
+   "guardian_setup_deadline_s": 300.0,
    "stop_signal": "SIGKILL at once (no grace)",
    "watchdog_stale_s": 10.0,
    "watchdog_hard_margin_s": 5.0,
@@ -2508,7 +2512,7 @@
   },
   "rule": "no attempt id outside the plan; no retry; the six in hand are spent only by an owner-authorised recovery of one named interrupted try"
  },
- "budget_sha256": "914fa4156368a2278357bb870786dd568a09823c202b9bd9ea880f1fada80a5d",
+ "budget_sha256": "9e9eb4dcc8dca396af86ee982b17d1e957e9668b12bda0fd803deb126805c07f",
  "dev_pool_sha256": "fae20dc215d1de329ff81a5687735047c9a92cead1b9642f7cda4f6c2d69ad2d",
  "provenance_checks_sha256": "0085d38e9c29b4403b5791bb9140149a38fbb800a5c516e1d680fee9a0a1a6ec",
  "manifest_records_sha256": {

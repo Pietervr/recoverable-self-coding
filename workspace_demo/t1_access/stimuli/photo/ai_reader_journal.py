@@ -311,6 +311,14 @@ def _rederive(i: int, r: dict) -> None:
         if not isinstance(fa, dict) or fa.get("sha256") != r.get("file_answer_sha256") or \
                 fa.get("sha256") != r.get("answer_sha256"):
             _fail(i, "an ok outcome whose retained -o evidence is absent or not the answer's digest")
+        ev_ = r["events"]
+        if "text" in ev_:                              # the complete event answer binds the representation (rev 7, D)
+            from ai_reader_runtime import event_answer as _ea, parse_events as _pe
+            full = _ea(_pe(ev_["text"].encode("utf-8"))[0])
+            if isinstance(full, str) and ((r.get("overlength") and (ans != full[:_AK] or
+                                                                   r.get("answer_len") != len(full))) or
+                                          (not r.get("overlength") and (ans != full or r.get("answer_len") != len(full)))):
+                _fail(i, "an ok outcome whose answer excerpt or length is not the complete event answer's")
         if "text" in fa:
             if not fa["exact"] or (not r.get("overlength") and fa["text"] != ans) or \
                     len(fa["text"].encode("utf-8")) != fa["length"]:

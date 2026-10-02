@@ -169,9 +169,13 @@ class Controller(unittest.TestCase):
         self.assertEqual(final["outcome"], "STOPPED")
         self.assertIn("task memory", terminal(self.out)["first"]["reason"])
         w = rec(self.out)["workers"][1]
-        MEASURED["memory_stop"] = {"observation_to_leader_dead_s": round(w["stop_leader_dead_s"], 4),
-                                   "observation_to_verified_extinction_s": round(w["observation_to_extinction_s"], 4),
-                                   "how": w["how"]}
+        MEASURED["memory_stop"] = {
+            "previous_ok_reading_to_kill_s": round(w["stop_killed_mono"] - w["prev_ok_read_mono"], 4),
+            "previous_ok_reading_to_leader_dead_s": round(w["stop_leader_dead_mono"] - w["prev_ok_read_mono"], 4),
+            "previous_ok_reading_to_verified_extinction_s": round(w["extinction_verified_mono"] -
+                                                                  w["prev_ok_read_mono"], 4),
+            "deciding_reading_to_leader_dead_s": round(w["stop_leader_dead_mono"] - w["deciding_read_mono"], 4),
+            "how": w["how"]}
 
     def test_exit_peak_enters_the_task_aggregate(self):
         final = ctl(self.out, {"instrumented": "spike_exit"}).run()
@@ -214,7 +218,7 @@ class Controller(unittest.TestCase):
         def gone(pids):
             raise memprobe.Unavailable("test")
 
-        def slow(pids):                                   # over the 50 ms work limit, under the 100 ms tick staleness
+        def slow(pids):                                   # over the 50 ms work limit, inside the 150 ms tick staleness
             time.sleep(0.065)
             return memprobe.task_sample(pids)
         for name, s, want in (("unavailable", gone, "unavailable"), ("slow", slow, "took")):
@@ -258,9 +262,12 @@ class Controller(unittest.TestCase):
                 if (out / "grandchild.pid").exists():
                     self.assertFalse(alive(int((out / "grandchild.pid").read_text())))
                 self.assertLess(el, 30.0)
+                src = wd["last_tick_source_mono"]        # the last successful reading the tick reported
                 MEASURED.setdefault("never_returning_sample", {})[f"sample_{nth}"] = {
-                    "observed_to_group_gone_s": round(wd["group_gone_wall"] - wd["observed_wall"], 4),
-                    "observed_to_controller_gone_s": round(wd["controller_gone_wall"] - wd["observed_wall"], 4)}
+                    "previous_ok_reading_to_tick_consumed_s": round(wd["last_tick_consumed_mono"] - src, 4),
+                    "previous_ok_reading_to_watchdog_observation_s": round(wd["observed_mono"] - src, 4),
+                    "previous_ok_reading_to_group_extinction_s": round(wd["group_gone_mono"] - src, 4),
+                    "previous_ok_reading_to_controller_gone_s": round(wd["controller_gone_mono"] - src, 4)}
                 ctl(out, {}).run()                                         # restart: charged the measured tail
                 crashed = [x for x in rec(out)["sessions"] if x.get("closed") == "crashed"]
                 self.assertGreaterEqual(crashed[0]["tail_s"], C.TAIL_RESERVE_S)
@@ -298,6 +305,86 @@ class Controller(unittest.TestCase):
             p.wait()
             p.stderr.close()
 
+    def guarded_driver(self, body: str, timeout: float = 120) -> tuple:
+        out = new_out()
+        t = time.monotonic()
+        p = subprocess.run(driver(f"o=Path({str(out)!r})\nimport time, pathlib\n" + body), capture_output=True,
+                           text=True, timeout=timeout)
+        return p, out, time.monotonic() - t
+
+    def test_directory_stall_before_load_is_guarded(self):
+        """Stage A A (c036c00): the output directory's creation blocks forever; the guardian, started before ANY file
+        operation, kills the controller at its (shortened) setup deadline."""
+        p, out, el = self.guarded_driver(
+            "C.SETUP_DEADLINE_S = 2.0\n"
+            "real = pathlib.Path.mkdir\n"
+            "def mk(self, *a, **k):\n"
+            "    if str(self) == str(o): time.sleep(10**6)\n"
+            "    return real(self, *a, **k)\n"
+            "pathlib.Path.mkdir = mk\n"
+            "T.ctl(o, {}).run()\n")
+        self.assertEqual(p.returncode, -signal.SIGKILL, p.stderr[-800:])
+        g = json.loads(next(out.glob("guardian_*.json")).read_text())
+        self.assertTrue(g["controller_killed"])
+        self.assertLess(el, 20.0)
+        MEASURED["setup_directory_stall_run_s"] = round(el, 3)
+
+    def test_final_output_stall_is_guarded_and_charged(self):
+        """Stage A A: the result's output blocks forever after a PASS; the guardian (deadline moved to the end of the
+        charged closure at the close) kills the controller; the PASS stays admitted and its closed session's charge
+        covers the death."""
+        p, out, el = self.guarded_driver(
+            "C.FINAL_ALLOWANCE_S, C.REVOKE_TIMEOUT_S, C.EXIT_MARGIN_S = 2.0, 1.0, 1.0\n"
+            "C.CLOSE_CHARGE_S = 4.0\n"
+            "T.ctl(o, {}).run(emit=lambda r: time.sleep(10**6))\n")
+        self.assertEqual(p.returncode, -signal.SIGKILL, p.stderr[-800:])
+        g = json.loads(next(out.glob("guardian_*.json")).read_text())
+        s_ = rec(out)["sessions"][-1]
+        self.assertEqual(s_["allowance_s"], 4.0)
+        self.assertLessEqual(g["controller_gone_wall"], s_["guardian_deadline_wall"] + C.HARD_MARGIN_S)
+        self.assertEqual(C.final_admitted(out)["outcome"], "PASS")
+        MEASURED["final_output_stall_run_s"] = round(el, 3)
+
+    def test_post_close_death_is_inside_the_charged_closure(self):
+        """Stage A A: after the close, finalisation blocks and both revocations block; the process ends (bounded abort
+        or guardian) and the closed session's charge - the whole closure - covers its death."""
+        p, out, el = self.guarded_driver(
+            "C.FINAL_ALLOWANCE_S, C.REVOKE_TIMEOUT_S, C.EXIT_MARGIN_S = 2.0, 1.0, 1.0\n"
+            "C.CLOSE_CHARGE_S = 4.0\n"
+            "C._unlink = lambda q: time.sleep(10**6)\n"
+            "def w(q, ob, final=False):\n"
+            "    if q.name in ('STAGE_A_FINAL.json', 'STAGE_A_FINAL.ABORTED.json'): time.sleep(10**6)\n"
+            "    write_json_atomic(q, ob, final=final)\n"
+            "T.ctl(o, {}, writer=w).run()\n")
+        died = time.time()
+        self.assertIn(p.returncode, (75, -signal.SIGKILL), p.stderr[-800:])
+        s_ = rec(out)["sessions"][-1]
+        self.assertIsNone(rec(out)["open_session"])
+        self.assertLessEqual(died, s_["guardian_deadline_wall"] + C.HARD_MARGIN_S + 2.0)
+        self.assertIsNone(C.final_admitted(out))
+        MEASURED["post_close_death_run_s"] = round(el, 3)
+
+    def test_guardian_in_the_task_aggregate(self):
+        """Stage A B: the guardian is sampled, its final maximum read, and both counted; unreadable -> STOPPED."""
+        out = new_out()
+        final = ctl(out, {}).run()
+        pk = final["peaks"]
+        self.assertGreater(pk["guardian_lifetime_max"], 0)
+        self.assertGreater(pk["guardian_final"], 0)
+        self.assertGreaterEqual(final["task_memory_aggregate"], pk["guardian_final"] + pk["controller_final"])
+        c = ctl(new_out(), {})
+        real = memprobe.footprint
+
+        def fp(pid):
+            if getattr(c, "guard", None) is not None and pid == c.guard.pid:
+                raise memprobe.Unavailable("fixture: guardian unreadable")
+            return real(pid)
+        c.probe = Probe(footprint=fp)
+        final = c.run()
+        self.assertEqual(final["outcome"], "STOPPED")
+        self.assertTrue(any("guardian final" in m for m in final["missing_measurements"]))
+        MEASURED["guardian_lifetime_max_mib"] = round(pk["guardian_lifetime_max"] / (1 << 20), 1)
+
     def test_persistence_after_the_watchdog_retired_is_bounded(self):
         """Stage A 2: a controller-only persist blocks forever after the gates' worker and watchdog are gone; the
         guardian kills the controller at the (shortened) cap + margin; the restart charges until that death."""
@@ -306,6 +393,7 @@ class Controller(unittest.TestCase):
         body = (f"o=Path({str(out)!r})\n"
                 "import time\n"
                 "C.TAIL_RESERVE_S, C.STOP_RESERVE_S, C.REPORT_RESERVE_S, C.FINAL_ALLOWANCE_S = 1.0, 1.0, 3.0, 3.0\n"
+                "C.CLOSE_CHARGE_S = 5.0\n"
                 "def w(p,ob,final=False):\n"
                 "    ws = ob.get('workers') if isinstance(ob, dict) else None\n"
                 "    if ws and ws[-1].get('phase') == 'gates' and ws[-1].get('reaped'): time.sleep(10**6)\n"
@@ -399,14 +487,40 @@ class Controller(unittest.TestCase):
         ctl(out2, {"instrumented": "ok:instrumented"}).run()
         crashed = [s for s in rec(out2)["sessions"] if s.get("closed") == "crashed"]
         self.assertEqual(crashed[0]["charged_s"], 10.0 + 95.0)                      # the measured, longer tail
-        out3 = new_out()                                                             # blocked, never seen to die
-        out3.mkdir(parents=True)
-        (out3 / "controller.json").write_text(json.dumps(base))
-        (out3 / "wd.json").write_text(json.dumps({"reason": "heartbeat stale (10.2 s)", "group_gone_wall": 1015.0,
-                                                  "observed_wall": 1011.0, "controller_gone_wall": None}))
-        ctl(out3, {}).run()
-        crashed = [s for s in rec(out3)["sessions"] if s.get("closed") == "crashed"]
-        self.assertGreater(crashed[0]["tail_s"], time.time() - 1000.0 - 60.0)        # charged until the restart
+        # Revision 7: same boot (the beat after kern.boottime) and no recorded controller death - the death evidence
+        # is missing or late - so the tail runs until min(now, the guardian's deadline + margin).
+        now = time.time()
+        for name, dl, recs_, want in (("blocked, guardian deadline passed", now - 20, True, 180.0 + C.EXIT_MARGIN_S),
+                                      ("no evidence at all, deadline ahead", now + 1000, False, 200.0)):
+            with self.subTest(name):
+                o = new_out()
+                o.mkdir(parents=True)
+                b3 = json.loads(json.dumps(base))
+                b3["open_session"].update(beat_wall=now - 200, guardian_deadline_wall=dl)
+                (o / "controller.json").write_text(json.dumps(b3))
+                if recs_:
+                    (o / "wd.json").write_text(json.dumps({"reason": "heartbeat stale (10.2 s)",
+                                                           "group_gone_wall": now - 190, "observed_wall": now - 191,
+                                                           "controller_gone_wall": None}))
+                ctl(o, {}).run()
+                crashed = [x for x in rec(o)["sessions"] if x.get("closed") == "crashed"]
+                self.assertAlmostEqual(crashed[0]["tail_s"], want, delta=15.0)
+
+    def test_failed_start_is_charged(self):
+        """Revision 7: a start that died before its session's first durable record is charged from its pending-start
+        record (same boot: until min(now, its setup deadline))."""
+        out = new_out()
+        self.assertEqual(ctl(out, {}).run()["outcome"], "PASS")
+        now = time.time()
+        (out / C.STARTING).write_text(json.dumps({"session": "deadstart", "start_wall": now - 40,
+                                                  "deadline_wall": now - 40 + C.SETUP_DEADLINE_S}))
+        before = rec(out)["seconds_total"]
+        ctl(out, {}).run()
+        fs = [x for x in rec(out)["sessions"] if x.get("closed") == "failed_start"]
+        self.assertEqual(len(fs), 1)
+        self.assertAlmostEqual(fs[0]["charged_s"], 40.0, delta=5.0)
+        self.assertGreaterEqual(rec(out)["seconds_total"], before + 40.0)
+        self.assertFalse((out / C.STARTING).exists())
 
     def test_controller_death_during_active_work(self):
         """SIGKILL the controller while its worker (and grandchild) run: the watchdog kills the group; the next

@@ -93,10 +93,14 @@ import memprobe  # noqa: E402
 from enforce import (CAPS, MEMORY_CAP as CAPS_MEMORY, GiB, MiB, check_ledger, configure_storage, dir_bytes,  # noqa: E402
                      write_json_atomic)
 
-HEARTBEAT_S, MEM_SAMPLE_S, SYS_SAMPLE_S, SAMPLE_LIMIT_S, TICK_STALE_S = 1.0, 0.02, 1.0, 0.05, 0.1
-TAIL_RESERVE_S, STOP_RESERVE_S, REPORT_RESERVE_S, FINAL_ALLOWANCE_S = 60.0, 60.0, 600.0, 60.0
+HEARTBEAT_S, MEM_SAMPLE_S, SYS_SAMPLE_S, SAMPLE_LIMIT_S, TICK_STALE_S = 1.0, 0.02, 1.0, 0.05, 0.15
+# TICK_STALE_S (rev 7): staleness is measured from a tick's SOURCE reading time; the longest legitimate gap between two
+# readings' ticks is 2 x 50 ms work + 20 ms sleep = 0.12 s, so 0.15 s; stalled: 0.15 + the 10 ms poll = 0.16 s.
+TAIL_RESERVE_S, STOP_RESERVE_S, REPORT_RESERVE_S, FINAL_ALLOWANCE_S = 60.0, 60.0, 600.0, 50.0
 STALE_S, HARD_MARGIN_S, GROUP_GONE_S, ARM_TIMEOUT_S = 10.0, 5.0, 10.0, 10.0
-SETUP_DEADLINE_S, REVOKE_TIMEOUT_S = 300.0, 5.0
+SETUP_DEADLINE_S, REVOKE_TIMEOUT_S, EXIT_MARGIN_S = 300.0, 5.0, 5.0
+CLOSE_CHARGE_S = FINAL_ALLOWANCE_S + REVOKE_TIMEOUT_S + EXIT_MARGIN_S   # the whole bounded closure (= TAIL_RESERVE_S)
+STARTING = "controller.starting.json"
 MEM_STOP = 44 * GiB
 FINAL_RESERVE_BYTES = 64 * MiB
 PHASES = ["instrumented", "native"]
@@ -158,6 +162,17 @@ def final_admitted(out: Path) -> dict | None:
     return fin
 
 
+def _say(text: str) -> None:
+    """A diagnostic that can never delay a kill or an abort: written by a daemon thread (revision 7)."""
+    def w():
+        try:
+            sys.stderr.write(text + "\n")
+            sys.stderr.flush()
+        except Exception:                             # noqa: BLE001
+            pass
+    threading.Thread(target=w, daemon=True).start()
+
+
 def _process_age_s() -> float:
     """Seconds since this process started (libproc start time), so the session clock includes interpreter start-up
     and imports (A4)."""
@@ -199,48 +214,80 @@ class Controller:
 
     def _load(self) -> dict:
         if not self.path.exists():
-            others = [p.name for p in self.out.iterdir() if p.name not in ("LOCK",)] if self.out.exists() else []
+            others = [p.name for p in self.out.iterdir() if p.name not in ("LOCK", STARTING) and
+                      not p.name.startswith("guardian_")] if self.out.exists() else []
             if others:
                 raise SystemExit(f"refused: controller.json is absent beside existing task output {sorted(others)[:6]} "
                                  f"- the accumulated time is lost; the run holds")
-            return {"carry_s": self.carry, "seconds_total": self.carry, "sessions": [], "open_session": None,
-                    "peaks": {"task_lifetime_sum": 0, "phase_aggregates": {}, "storage_bytes": 0,
-                              "max_iteration_s": {}},
-                    "stops": [], "workers": [], "swap_baseline": None, "reconciled": []}
+            rec = {"carry_s": self.carry, "seconds_total": self.carry, "sessions": [], "open_session": None,
+                   "peaks": {"task_lifetime_sum": 0, "phase_aggregates": {}, "storage_bytes": 0,
+                             "max_iteration_s": {}},
+                   "stops": [], "workers": [], "swap_baseline": None, "reconciled": []}
+            self._charge_failed_start(rec)
+            return rec
         rec = json.loads(self.path.read_text())
         self._validate_accounting(rec)
+        self._charge_failed_start(rec)
         s = rec.get("open_session")
         if s:                                         # the last controller died
             rec["reconciled"].append(self._reconcile(rec, s["session"]))
-            tail, wd = TAIL_RESERVE_S, None
-            for w in rec["workers"]:
-                if w.get("session") == s["session"] and w.get("watchdog_record"):
-                    p = self.out / w["watchdog_record"]
-                    if p.exists():
-                        wd = json.loads(p.read_text())
-                        ends = [wd.get(k) for k in ("group_gone_wall", "controller_gone_wall") if _num(wd.get(k))]
-                        if ends and _num(s.get("beat_wall")):
-                            tail = max(tail, max(ends) - s["beat_wall"])
-                        blocked = str(wd.get("reason", "")).startswith(("heartbeat stale", "hard deadline",
-                                                                         "sampler stale"))
-                        if blocked and not _num(wd.get("controller_gone_wall")) and _num(s.get("beat_wall")):
-                            tail = max(tail, time.time() - s["beat_wall"])   # blocked and not seen to die: until now
-            gp = self.out / f"guardian_{s['session']}.json"   # the controller-deadline guardian (Stage A 2)
-            if gp.exists():
-                try:
-                    g = json.loads(gp.read_text())
-                except ValueError:
-                    g = {}
-                if _num(g.get("controller_gone_wall")) and _num(s.get("beat_wall")):
-                    tail = max(tail, g["controller_gone_wall"] - s["beat_wall"])
-                elif _num(s.get("beat_wall")):
-                    tail = max(tail, time.time() - s["beat_wall"])
+            wds = [json.loads((self.out / w["watchdog_record"]).read_text()) for w in rec["workers"]
+                   if w.get("session") == s["session"] and w.get("watchdog_record") and
+                   (self.out / w["watchdog_record"]).exists()]
+            gp = self.out / f"guardian_{s['session']}.json"
+            g = json.loads(gp.read_text()) if gp.exists() else None
+            tail = self._crash_tail(s, wds + ([g] if g else []))
             charged = float(s["live_s"]) + tail
             rec["seconds_total"] += charged
             rec["sessions"].append({**s, "closed": "crashed", "charged_s": charged, "tail_s": tail,
-                                    "watchdog": wd})
+                                    "watchdog": wds[-1] if wds else None, "guardian": g})
             rec["open_session"] = None
         return rec
+
+    @staticmethod
+    def _crash_tail(s: dict, records: list) -> float:
+        """The unseen tail of a dead session (revision 7, Stage A A). A recorded controller death (guardian or watchdog)
+        ends it. Without one: if the machine stayed up since the last beat (kern.boottime earlier than the beat), the
+        controller lived at most until its guardian's deadline - charged until min(now, that deadline); after a
+        reboot or power loss the declared 60 s rule applies. Never less than TAIL_RESERVE_S."""
+        beat = s.get("beat_wall")
+        tail = TAIL_RESERVE_S
+        if not _num(beat):
+            return tail
+        deaths = [r["controller_gone_wall"] for r in records if _num(r.get("controller_gone_wall"))]
+        groups = [r["group_gone_wall"] for r in records if _num(r.get("group_gone_wall"))]
+        if deaths or groups:
+            tail = max(tail, max(deaths + groups) - beat)
+        try:
+            same_boot = memprobe.boot_time() < beat
+        except memprobe.Unavailable:
+            same_boot = True                               # unknown: the conservative branch
+        if same_boot and not deaths:
+            dl = s.get("guardian_deadline_wall")
+            end = min(time.time(), dl + EXIT_MARGIN_S) if _num(dl) else time.time()
+            tail = max(tail, end - beat)
+        return tail
+
+    def _charge_failed_start(self, rec: dict) -> None:
+        """A start that died before its session's first durable record (revision 7): its pending-start record is
+        charged - until min(now, its setup deadline) on the same boot, else the declared 60 s - and removed later."""
+        st = getattr(self, "prior_start", None)
+        if not st:
+            return
+        known = {x.get("session") for x in rec.get("sessions") or []} | {(rec.get("open_session") or {}).get("session")}
+        if st.get("session") == self.session or st.get("session") in known:
+            return
+        if not _num(st.get("start_wall")):            # unreadable pending start: the declared tail, conservatively
+            st = {"start_wall": time.time() - TAIL_RESERVE_S, "deadline_wall": time.time(), "session": "?"}                                   # opened (its session carries the charge) or this very start
+        try:
+            same_boot = memprobe.boot_time() < st["start_wall"]
+        except memprobe.Unavailable:
+            same_boot = True
+        dl = st.get("deadline_wall")
+        charged = max(0.0, min(time.time(), dl) - st["start_wall"]) if same_boot and _num(dl) else TAIL_RESERVE_S
+        rec["seconds_total"] += charged
+        rec["sessions"].append({"session": st.get("session"), "live_s": 0.0, "closed": "failed_start",
+                                "charged_s": charged, "start_wall": st["start_wall"]})
 
     def _validate_accounting(self, rec) -> None:
         """Finite, non-negative, typed accounting before any use (A4)."""
@@ -328,30 +375,53 @@ class Controller:
                 os.replace(p, sup / f"{p.stem}.{self.session}{p.suffix}")
 
     # ---- the run --------------------------------------------------------------------------------------------------
-    def run(self, phases=PHASES) -> dict:
+    def run(self, phases=PHASES, emit=None) -> dict:
+        """emit: called with the result while the guardian still bounds the process (main prints through it)."""
         self.t0 = self.clock()                         # the clock starts with the process (A4)
         self.pre_s = _process_age_s() if self.from_process_start else 0.0
-        from stage_a_guard import TaskLock, set_terminal
-        self.out.mkdir(parents=True, exist_ok=True)
-        self._start_guardian()                         # before any load: bounds the controller process (Stage A 2)
+        from stage_a_guard import TaskLock
+        self._start_guardian()                         # before ANY file operation (revision 7, Stage A A)
         try:
+            self.out.mkdir(parents=True, exist_ok=True)
             lock = TaskLock(self.out)
         except BaseException:
             self._stop_guardian()
             raise
         try:
+            result = self._run(phases)
+            if emit is not None:
+                emit(result)                           # inside the guardian's charged closure window
+            return result
+        finally:
+            lock.release()
+            self._stop_guardian()
+
+    def _run(self, phases) -> dict:
+        from stage_a_guard import set_terminal
+        if True:
             configure_storage([self.out], self.cap_b, self.cap_b - FINAL_RESERVE_BYTES)
+            self.start_wall = time.time()
+            sp = self.out / STARTING                  # a previous start's pending record, read before replacing it
+            try:
+                self.prior_start = json.loads(sp.read_text()) if sp.exists() else None
+            except ValueError:
+                self.prior_start = {"start_wall": None}
+            write_json_atomic(self.out / STARTING, {"session": self.session, "start_wall": self.start_wall,
+                                                    "deadline_wall": self.start_wall + SETUP_DEADLINE_S},
+                              final=True)          # durable before any load: a failed start is charged (rev 7)
             self.base = 0.0
             self.rec = self._load()
             self._supersede()
             self.base = self.rec["seconds_total"]
             self._guardian_deadline(max(time.monotonic() + (self.cap_s - self.elapsed_total()) + HARD_MARGIN_S,
-                                        time.monotonic() + FINAL_ALLOWANCE_S + HARD_MARGIN_S))
+                                        time.monotonic() + CLOSE_CHARGE_S))
             self.ident = memprobe.proc_info(os.getpid())
             self.rec["open_session"] = {"session": self.session, "pid": os.getpid(), "live_s": 0.0,
                                         "opened_wall": time.time(), "beat_wall": time.time(),
-                                        "controller": self.ident}
+                                        "controller": self.ident, "guardian": self.guard_ident,
+                                        "guardian_deadline_wall": self.guard_deadline_wall}
             self._persist()
+            (self.out / STARTING).unlink(missing_ok=True)   # the open session now carries the accounting
             if self.rec["swap_baseline"] is None:
                 try:
                     self.rec["swap_baseline"] = self.system_reader()["swap"]
@@ -381,9 +451,6 @@ class Controller:
                                           "reason": f"{type(exc).__name__}: {exc}"})
             outcome = "terminal" if (self.out / "TERMINAL.json").exists() else "completed"
             return self._bounded(lambda: (self._close(outcome), self._finalise())[1])
-        finally:
-            lock.release()
-            self._stop_guardian()
 
     # ---- the guardian: an independent bound on the controller process (Stage A 2) ----------------------------------
     def _start_guardian(self) -> None:
@@ -403,14 +470,21 @@ class Controller:
         finally:
             os.close(r)
         self.guard_w = w
+        self.guard_deadline_wall = time.time() + SETUP_DEADLINE_S
         ready = select.select([self.guard.stdout], [], [], ARM_TIMEOUT_S)[0]
         if not ready or self.guard.stdout.readline().strip() != b"ARMED":
             self._stop_guardian()
             raise SystemExit("refused: the controller's guardian did not arm; nothing was loaded")
+        self.guard_ident = memprobe.proc_info(self.guard.pid)
 
     def _guardian_deadline(self, mono: float) -> None:
+        """Move the guardian's deadline; its wall-clock value goes into the open session at the next persist, so a
+        restart can bound a dead session's tail without the guardian's own record (revision 7)."""
         if self.guard_w is not None:
             os.write(self.guard_w, f"D {mono:.6f}\n".encode())
+            self.guard_deadline_wall = time.time() + (mono - time.monotonic())
+            if getattr(self, "rec", None) and self.rec.get("open_session"):
+                self.rec["open_session"]["guardian_deadline_wall"] = self.guard_deadline_wall
 
     def _stop_guardian(self) -> None:
         g = getattr(self, "guard", None)
@@ -447,17 +521,17 @@ class Controller:
         th.start()
         th.join(FINAL_ALLOWANCE_S)
         if th.is_alive() or err:
-            sys.stderr.write(f"finalisation did not complete: {(repr(err[0]) if err else 'allowance exceeded')}\n")
-            sys.stderr.flush()
+            _say(f"finalisation did not complete: {(repr(err[0]) if err else 'allowance exceeded')}")
             self._abort_exit()
         return res.get("r")
 
     def _abort_exit(self) -> None:
         """The abort path, itself bounded (Stage A 3): revocation - an abort tombstone naming this session and the
         removal of this session's admission marker - runs in its own threads for at most REVOKE_TIMEOUT_S; then the
-        process ends with exit 75 whatever they did. `final_admitted` refuses a session with a tombstone. Neither
-        operation is directory-fsynced after the fact, so the revocation's durability across a power loss is limited;
-        if both block or fail, a marker can survive an exit 75 (disclosed)."""
+        process ends with exit 75 whatever they did. `final_admitted` refuses a session with a tombstone. The tombstone
+        write is file-, rename- and directory-fsynced (enforce.write_atomic) when it returns; the marker's unlink is
+        not followed by a directory fsync, so that removal's durability across a power loss is limited; if both block
+        or fail, a marker can survive an exit 75 - reviewed as an abort, never a completed transaction."""
         threads = [threading.Thread(target=self._revoke_tombstone, daemon=True),
                    threading.Thread(target=self._unadmit, daemon=True)]
         for t in threads:
@@ -505,11 +579,16 @@ class Controller:
         return {"outcome": "PASSED", "reason": ""}
 
     def _close(self, outcome: str) -> None:
+        """Revision 7: the close charges the WHOLE bounded closure - finalisation (50 s), revocation (5 s) and the
+        exit/output margin (5 s) = CLOSE_CHARGE_S - and moves the guardian's deadline to the end of that window, so
+        nothing after the close can outlive its charge: a post-close death is inside the charged total."""
         self._self_sample()
         before = dir_bytes([self.out])
-        live = self.live() + FINAL_ALLOWANCE_S        # the remaining finalisation, charged here and enforced (A4)
+        self._guardian_deadline(time.monotonic() + CLOSE_CHARGE_S)
+        live = self.live() + CLOSE_CHARGE_S
         with self.lock:
-            s = dict(self.rec["open_session"], live_s=live, closed=outcome, allowance_s=FINAL_ALLOWANCE_S)
+            s = dict(self.rec["open_session"], live_s=live, closed=outcome, allowance_s=CLOSE_CHARGE_S,
+                     guardian_deadline_wall=self.guard_deadline_wall)
             self.rec["sessions"].append(s)
             self.rec["seconds_total"] = self.base + live
             self.rec["open_session"] = None
@@ -527,11 +606,22 @@ class Controller:
             return
         pk["controller_final"] = f["lifetime_max"]
         pk["controller_lifetime_max"] = max(pk.get("controller_lifetime_max", 0), f["lifetime_max"])
+        g = getattr(self, "guard", None)              # the guardian is part of the task (revision 7, Stage A B)
+        try:
+            if g is None:
+                raise memprobe.Unavailable("no guardian")
+            gf = self.probe.footprint(g.pid)
+            pk["guardian_final"] = gf["lifetime_max"]
+            pk["guardian_lifetime_max"] = max(pk.get("guardian_lifetime_max", 0), gf["lifetime_max"])
+        except memprobe.Unavailable as exc:
+            pk["guardian_final_error"] = str(exc)
 
     # ---- memory aggregate (A3) ------------------------------------------------------------------------------------
     def _key(self, pid: int, procs: dict) -> str:
         if pid == os.getpid():
             return "controller"
+        if getattr(self, "guard", None) is not None and pid == self.guard.pid:
+            return "guardian"
         i = procs.get(pid) or (self.wd_ident if self.wd is not None and pid == self.wd.pid else None)
         return f"{pid}:{i['start']}" if i else f"{pid}:?"
 
@@ -539,16 +629,17 @@ class Controller:
         mm = w.setdefault("member_max", {})
         for p, life in smp["per_pid_lifetime"].items():
             k = self._key(p, procs)
-            if k == "controller":
+            if k in ("controller", "guardian"):
                 pk = self.rec["peaks"]
-                pk["controller_lifetime_max"] = max(pk.get("controller_lifetime_max", 0), life)
+                pk[f"{k}_lifetime_max"] = max(pk.get(f"{k}_lifetime_max", 0), life)
             else:
                 mm[k] = max(mm.get(k, 0), life)
         self._aggregate(w)
 
     def _aggregate(self, w: dict) -> int:
         pk = self.rec["peaks"]
-        a = sum((w.get("member_max") or {}).values()) + pk.get("controller_lifetime_max", 0)
+        a = sum((w.get("member_max") or {}).values()) + pk.get("controller_lifetime_max", 0) + \
+            pk.get("guardian_lifetime_max", 0)
         w["aggregate"] = a
         key = f"{w['session']}:{w['phase']}:{len(self.rec['workers'])}"
         agg = pk.setdefault("phase_aggregates", {})
@@ -559,7 +650,8 @@ class Controller:
     def _task_aggregate(self) -> int:
         """Final: max over this session's workers of (member maxima) + the controller's FINAL lifetime maximum."""
         pk = self.rec["peaks"]
-        c = max(pk.get("controller_final", 0), pk.get("controller_lifetime_max", 0))
+        c = max(pk.get("controller_final", 0), pk.get("controller_lifetime_max", 0)) + \
+            max(pk.get("guardian_final", 0), pk.get("guardian_lifetime_max", 0))
         ws = [sum((w.get("member_max") or {}).values()) for w in self.rec["workers"] if w.get("session") == self.session]
         return max([pk["task_lifetime_sum"]] + [s + c for s in ws])
 
@@ -569,6 +661,8 @@ class Controller:
                 (isinstance(w.get("exit_peak"), int) and w["exit_peak"] > 0)]
         if not (isinstance(self.rec["peaks"].get("controller_final"), int) and self.rec["peaks"]["controller_final"] > 0):
             miss.append(f"controller final self sample ({self.rec['peaks'].get('controller_final_error', 'absent')})")
+        if not (isinstance(self.rec["peaks"].get("guardian_final"), int) and self.rec["peaks"]["guardian_final"] > 0):
+            miss.append(f"guardian final sample ({self.rec['peaks'].get('guardian_final_error', 'absent')})")
         return miss
 
     # ---- final (A5, A7) -------------------------------------------------------------------------------------------
@@ -625,7 +719,7 @@ class Controller:
             else None
         if st is None:
             return {"ok": True, "detail": "no attempts"}
-        problems = check_ledger(st)
+        problems = check_ledger(st, witness_dir=self.out)
         c = st.get("counters", {}) if isinstance(st, dict) else {}
         for key in ("row20", "aggregate"):
             k = c.get(key, {})
@@ -736,7 +830,7 @@ class Controller:
         if p is None:
             self._end_watchdog(w)
             return out
-        self._tick(b"E")
+        self._tick(b"E\n")
         t = self.clock()
         try:
             if p.stdin and not p.stdin.closed:
@@ -759,7 +853,8 @@ class Controller:
             raise ControllerStop(f"{w['phase']}: {exc}")
         w["group_clean"], w["group_killed"] = True, len(res["killed"])
         if "stop_observed_mono" in w:                  # end to end: last admissible observation -> verified extinction
-            w["observation_to_extinction_s"] = time.monotonic() - w["stop_observed_mono"]
+            w["extinction_verified_mono"] = time.monotonic()
+            w["observation_to_extinction_s"] = w["extinction_verified_mono"] - w["stop_observed_mono"]
         p.wait()
         w["returncode"], w["reaped"] = p.returncode, True
         if why:
@@ -858,7 +953,7 @@ class Controller:
             w["leader"] = leader
             self._arm_watchdog(w, phase, deadline)
             self._persist()                            # durable identities BEFORE the worker may run anything
-            self._tick()                              # sampler liveness armed BEFORE release (Stage A 1)
+            self._tick(f"{time.monotonic():.6f}\n".encode())   # liveness armed BEFORE release (from this instant)
             self.proc.stdin.write(b"GO\n")
             self.proc.stdin.close()
             w["released"], w["released_total_s"] = True, self.elapsed_total()
@@ -920,6 +1015,7 @@ class Controller:
         unreaped leader's parent, so the group id is ours). `stop_observed_mono` is the start of the iteration whose
         observation decided it - the last admissible observation."""
         w["stop_observed_mono"], w["how"] = observed, "SIGKILL"
+        w["deciding_read_mono"] = getattr(self, "t_read_last", observed)
         try:
             os.killpg(self.proc.pid, signal.SIGKILL)
             w["stop_killed_mono"] = time.monotonic()
@@ -929,10 +1025,11 @@ class Controller:
         while not self._leader_exited() and time.monotonic() - t < 1.0:
             time.sleep(0.001)
         if self._leader_exited():
-            w["stop_leader_dead_s"] = time.monotonic() - observed
-        sys.stderr.write(f"stage_a_controller: stop observed at monotonic {observed:.6f}, SIGKILL sent at "
-                         f"{w.get('stop_killed_mono', float('nan')):.6f}: {str(exc)[:200]}\n")
-        sys.stderr.flush()
+            w["stop_leader_dead_mono"] = time.monotonic()
+            w["stop_leader_dead_s"] = w["stop_leader_dead_mono"] - observed
+        _say(f"stage_a_controller: stop observed at monotonic {observed:.6f}, previous successful reading at "
+             f"{w.get('prev_ok_read_mono', float('nan')):.6f}, SIGKILL sent at "
+             f"{w.get('stop_killed_mono', float('nan')):.6f}: {str(exc)[:200]}")
 
     def _sample(self, w: dict, phase: str, deadline: float, storage_limit: int) -> float:
         """The sampler (main thread, no file I/O). Returns the largest iteration work time."""
@@ -958,7 +1055,9 @@ class Controller:
                     raise ControllerStop(f"{phase}: watchdog exited ({self.wd.returncode})")
                 try:
                     procs = self.probe.task_processes([pid], {pid})
-                    pids = set(procs) | {os.getpid()} | ({self.wd.pid} if self.wd is not None else set())
+                    pids = set(procs) | {os.getpid()} | ({self.wd.pid} if self.wd is not None else set()) | \
+                        ({self.guard.pid} if getattr(self, "guard", None) is not None else set())
+                    t_read = self.t_read_last = time.monotonic()   # this reading's observation instant (rev 7)
                     smp = self.probe.task_sample(pids)
                 except memprobe.Unavailable as exc:
                     if self._leader_exited():
@@ -983,13 +1082,14 @@ class Controller:
                 max_work = max(max_work, work)
                 if work > SAMPLE_LIMIT_S:
                     raise ControllerStop(f"{phase}: a sampling iteration took {work:.3f} s (limit {SAMPLE_LIMIT_S} s)")
-                self._tick()
+                w["prev_ok_read_mono"] = self.prev_ok = t_read   # the last successful below-stop reading
+                self._tick(f"{t_read:.6f}\n".encode())    # the tick carries its source observation time
                 time.sleep(MEM_SAMPLE_S)
         except BaseException as exc:
             self._kill_now(w, it0, exc)               # SIGKILL FIRST - before any join, persist or record (Stage A 1)
             raise
         finally:
-            self._tick(b"E")                          # the group is already killed (or the leader exited)
+            self._tick(b"E\n")                        # the group is already killed (or the leader exited)
             self.io_run = False
             io.join(timeout=2 * HEARTBEAT_S)
         return max_work
@@ -1003,8 +1103,7 @@ def main() -> int:
     import stage_a
     c = Controller(stage_a.OUT, carry_seconds=stage_a.ENGINEERING_CARRY["seconds"], worker_cmd=default_worker_cmd,
                    from_process_start=True)
-    out = c.run()
-    print(json.dumps(out, indent=1, default=str))
+    out = c.run(emit=lambda r: (print(json.dumps(r, indent=1, default=str)), sys.stdout.flush()))
     return {"REFUSED": 2, "HELD": EXIT_HOLD}.get(out["outcome"], 0)
 
 

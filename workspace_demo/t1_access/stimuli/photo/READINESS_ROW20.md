@@ -1,42 +1,35 @@
-# Photograph arm, ledger row 20: readiness, revision 6
+# Photograph arm, ledger row 20: readiness, revision 7
 
 R084 (Claude), 2 October 2026. **Row 20 has no go.** No forward has run on any development image.
 
-**What this answers.** Codex reviewed revision 5 (RSC `2610d8a`) as NOT ON BOARD in a combined record with the AI
-reader (RSC `b569f8a`), closing A1, A7 and A8 and accepting the memory qualification in principle. R052 sent the four
-remaining Stage A conditions (handoff `c39df47e`). `STAGE_A_CRITERIA.md` §0 maps them to code, fixture and
-measurement; §1 keeps revision 5's map; §7 states the limits. The owner is separately asked (by
-R052) whether Stage A, once revision 6 closes these to its own fixtures, runs on his go with Codex reviewing the
-report instead of a fifth package attestation.
+**What this answers.** Codex reviewed revision 6 (RSC `bb4f076`) as NOT ON BOARD in a combined record with the AI
+reader (RSC `c036c00`), crediting kill-first, the guardian, bounded revocation and the 195-count refusal, and keeping
+the ~22 GiB/s memory qualification acceptable in principle. R052 sent four remaining Stage A conditions (handoff
+`cdefd254`). `STAGE_A_CRITERIA.md` §00 maps them to code, fixture and measurement; §0 and §1 keep revisions 6 and 5;
+§7 states the limits. The owner's Stage A gate decision (go with Codex reviewing the report) is pressed by R052 and
+still open.
 
 **The package.** `stage_a.py package` prints the five hashes; the brief to R052 carries the exact values for this
-commit. The plan, inputs, cases and the 178 planned attempts are byte-identical to revision 5 (the envelope's constants
-are unchanged).
+commit. Inputs, cases and the 178 planned attempts are byte-identical; the plan moved to revision 7 in the envelope's
+controller constants (tick staleness 0.15 s, finalisation 50 s, revocation 5 s, exit margin 5 s, close charge 60 s,
+guardian setup 300 s) and the budget hash.
 
 **Run.** `stage_a_controller.py run`: one controller that holds the lock and the clock (counted from its own process
 start); the gates, each phase and the report run as gated workers released only after an armed, identity-checked
 watchdog and a durable record of both identities; every stop SIGKILLs the whole group at once; the final record is
 admitted only with its marker (`final_admitted`).
 
-**Mechanism evidence.** All from synthetic, non-development fixtures (`controller_fixtures.json`, revision 6):
+**Mechanism evidence.** All from synthetic, non-development fixtures; values in `controller_fixtures.json` (revision 7)
+and `STAGE_A_CRITERIA.md` §00: the complete observation interval from the previous successful reading to the kill, the
+leader's death and verified extinction (ordinary stop, blocked I/O, first and third stalled samples); the guardian
+covering a stalled directory creation, a stalled final output and a post-close death; the closed session charging the
+whole bounded closure; failed starts and missing death evidence charged on the same boot; the guardian in the task
+memory aggregate; strict, witness-bound recovery authority and exact recovery sets in pre-native and final admission.
 
-| Evidence | Measured |
-|---|---|
-| Memory stop: deciding observation → leader dead / verified extinction | 0.009 s / 0.062 s |
-| Memory stop with the I/O thread blocked forever: observation → worker gone (timed by the test) | 0.008 s |
-| Never-returning first / third sample (tick check armed before release) | group gone 0.033 s, controller killed 0.048 / 0.046 s after the watchdog's observation |
-| Controller-only persist blocked after the watchdog retired | the guardian kills the controller at the shortened cap (run 18.7 s) |
-| Marker write stalls after its rename; also with the unlink blocked | exit 75 in 10.6 s / 15.6 s; tombstone; not admitted |
-| Deadline kill → reap (blocked in C / busy in MLX) | 0.002 s / 0.002 s |
-| Worker group gone after the controller was SIGKILLed | 0.030 s |
-| Blocked controller writer | group gone 0.035 s, controller killed 0.050 s after the stale beat |
-| Startup failures; immediate restart with unrecorded members | worker never released / every member killed, watchdog last |
-| Codex's unauthorised-extra-try ledger (195 of 200) | refused in final and pre-native admission |
-
-**The memory margin.** Enforced reading-to-reading bound 0.16 s (with a stalled sampler) plus the measured SIGKILL
-delivery (0.025 s, evidence, not a bound) → the 4 GiB headroom covers growth up to about 22 GiB/s. One synthetic
-thread (11.1–14.7 GiB/s) fits; 2–8 threads (32–75 GiB/s) do not. Codex accepted this in principle as a declared,
-measured limit for this local Stage A (RSC `b569f8a` Question 2); Stage A reports the model's actual growth and peak.
+**The memory margin.** Stipulated interval 0.16 s from the previous successful reading (ordinary ≤ 0.12 s; stalled
+0.15 s tick staleness from the reading's own time + 10 ms poll) plus the measured SIGKILL delivery → the 4 GiB headroom
+covers growth up to about 21.5 GiB/s. One synthetic thread fits; 2–8 threads do not. Accepted in principle by Codex as
+a declared, measured limit for this local Stage A, under stated scheduling assumptions.
 
 **Source records.** Admission requires the current `dev_pool.json` and `provenance_checks.json` byte-identical to the
 plan's pins. The eight Stage A views (chili, clothes, crow, hamburger, horse, jacket, taxi, wagon) are unchanged; each

@@ -184,7 +184,8 @@ class Clock:
     and the orchestrator's death); a watchdog that found the orchestrator blocked and could not see it die charges
     until now."""
 
-    def __init__(self, path: Path, t0: float, cap: float, on_cap=None, pre_s: float = 0.0):
+    def __init__(self, path: Path, t0: float, cap: float, on_cap=None, pre_s: float = 0.0,
+                 prior_start: dict | None = None):
         self.path, self.t0, self.cap, self.on_cap, self.pre_s = path, t0, cap, on_cap, pre_s
         self.stop_guard = threading.Event()
         rec = json.loads(path.read_text()) if path.exists() else {"sessions": [], "seconds_total": 0.0,
@@ -212,6 +213,22 @@ class Clock:
             charged = float(s["live_s"]) + tail
             rec["seconds_total"] += charged
             rec["sessions"].append({**s, "closed": "crashed", "charged_s": charged, "tail_s": tail})
+            rec["open_session"] = None
+        known = {x.get("session") for x in rec["sessions"]}
+        if prior_start and prior_start.get("start") not in known:   # a start that died before its first persist (rev 7)
+            st = prior_start
+            try:
+                same_boot = memprobe.boot_time() < float(st.get("start_wall", 0))
+            except (memprobe.Unavailable, TypeError, ValueError):
+                same_boot = True
+            num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)  # noqa
+            if same_boot and num(st.get("start_wall")) and num(st.get("deadline_wall")):
+                ch = max(0.0, min(time.time(), st["deadline_wall"]) - st["start_wall"])
+            else:
+                ch = TAIL_S
+            rec["seconds_total"] += ch
+            rec["sessions"].append({"session": st.get("start"), "live_s": 0.0, "closed": "failed_start",
+                                    "charged_s": ch})
         self.rec, self.base = rec, rec["seconds_total"]
         rec["open_session"] = {"session": uuid.uuid4().hex[:12], "pid": os.getpid(), "opened_wall": time.time(),
                                "live_s": 0.0, "beat_wall": time.time()}
@@ -275,6 +292,11 @@ class Clock:
         pass                                              # the beat thread persists; kept for call sites
 
     def close(self, outcome: str, receipt_raw_sha256: str | None = None) -> None:
+        """Revision 7 (reader A): the closed clock is written; ONLY after that write fully returned (file, rename and
+        directory fsync) is the closure marker clock.closed.json written, naming the session, the journal's and the
+        clock's sha256. admit_clock admits a COMPLETE only with that marker; a failure after the marker's own rename
+        removes it. A renamed-but-unfinished closed snapshot therefore never qualifies (a power loss after the marker
+        is the disclosed filesystem residual)."""
         self.stop_beat.set()                              # the beat stops; the cap guard does not
         with self.lock:
             s = dict(self.rec["open_session"], live_s=self.pre_s + time.monotonic() - self.t0, closed=outcome,
@@ -292,6 +314,17 @@ class Clock:
             self.done_seq = seq
         finally:
             self.wlock.release()
+        if receipt_raw_sha256 is not None:
+            mp = self.path.parent / "clock.closed.json"
+            mk = json.dumps({"session": s["session"], "raw_sha256": receipt_raw_sha256, "clock_sha256": sha(snap)},
+                            sort_keys=True).encode()
+            try:
+                write_atomic(mp, mk)
+            except BaseException:
+                try:
+                    mp.unlink(missing_ok=True)
+                finally:
+                    raise
 
 
 def check_accounting(job: Path, raw: Path) -> None:
@@ -521,9 +554,28 @@ class Job:
         self.job.mkdir(parents=True, exist_ok=True)
         lock = TaskLock(self.job)
         try:
+            # Revision 7 (reader B): the setup bound is shortened to the cumulative time left, and a durable
+            # pending-start record makes a start that dies before the clock's first persist chargeable next time.
+            cp, sp = self.job / "clock.json", self.job / "clock.starting.json"
+            try:
+                used = float(json.loads(cp.read_text())["seconds_total"]) if cp.exists() else 0.0
+            except (ValueError, KeyError, TypeError):
+                used = 0.0
+            left = LIMITS["job_clock_s"] - used
+            if left < SETUP_S:
+                setup.__exit__()
+                setup = Deadline(max(1.0, left), "setup within the remaining six-hour allowance").__enter__()
+            try:
+                prior = json.loads(sp.read_text()) if sp.exists() else None
+            except ValueError:
+                prior = {"start": "unreadable"}
+            now = time.time()
+            write_json_atomic(sp, {"start": uuid.uuid4().hex[:12], "start_wall": now,
+                                   "deadline_wall": now + min(SETUP_S, max(1.0, left))})
             check_accounting(self.job, self.raw)
             self.clock = Clock(self.job / "clock.json", self.t0, LIMITS["job_clock_s"], on_cap=self._cap_kill,
-                               pre_s=0.0 if self.fx else _process_age_s())
+                               pre_s=0.0 if self.fx else _process_age_s(), prior_start=prior)
+            sp.unlink(missing_ok=True)                     # the clock's open session now carries this start
             setup.__exit__()                               # from here the clock's cap guard bounds the process
             try:
                 return self._run()
@@ -886,6 +938,22 @@ class Job:
 
 
 def admit_clock(clock_path: Path, raw_bytes: bytes, receipt: dict) -> dict:
+    """Revision 7 (reader A, B): also the closure marker matching the clock's bytes, coherent cumulative totals (the
+    total equals the sum of closed sessions' live seconds and the crashed/failed starts' charges) and the lower bound:
+    at least the journal's charged attempt seconds."""
+    cb = Path(clock_path).read_bytes() if Path(clock_path).exists() else b""
+    mp = Path(clock_path).parent / "clock.closed.json"
+    try:
+        mk = json.loads(mp.read_text()) if mp.exists() else None
+    except ValueError:
+        mk = None
+    if not isinstance(mk, dict) or mk.get("raw_sha256") != sha(raw_bytes) or mk.get("clock_sha256") != sha(cb):
+        raise SystemExit("refused: no closure marker for this journal and clock (an unfinished closure does not "
+                         "qualify)")
+    return _admit_clock(clock_path, raw_bytes, receipt, mk)
+
+
+def _admit_clock(clock_path: Path, raw_bytes: bytes, receipt: dict, mk: dict) -> dict:
     """A COMPLETE qualifies only together with a FINISHED clock (revision 6, R3): clock.json valid and closed, its last
     session closed on this receipt's outcome and naming the sha256 of exactly this journal, its total within the cap and
     not above the receipt's own charged total. A closure that never finished leaves the COMPLETE non-qualifying."""
@@ -899,6 +967,21 @@ def admit_clock(clock_path: Path, raw_bytes: bytes, receipt: dict) -> dict:
     if c.get("open_session") is not None or last.get("closed") != receipt.get("outcome") or \
             last.get("receipt_raw_sha256") != sha(raw_bytes):
         raise SystemExit("refused: the clock was not closed on this receipt (an unfinished closure does not qualify)")
+    if last.get("session") != mk.get("session"):
+        raise SystemExit("refused: the closure marker names another session")
+    parts = [x["live_s"] if x.get("closed") not in ("crashed", "failed_start") else x["charged_s"]
+             for x in c["sessions"]]
+    if abs(sum(parts) - c["seconds_total"]) > 1e-3 * max(1, len(parts)):
+        raise SystemExit(f"refused: the clock's total {c['seconds_total']:.3f} s is not the sum of its sessions "
+                         f"{sum(parts):.3f} s")
+    charged = 0.0
+    for line in raw_bytes.splitlines():
+        r = json.loads(line)
+        if r.get("t") == "end":
+            charged += float(r.get("seconds", 0.0))
+    if c["seconds_total"] + 1e-6 < charged:
+        raise SystemExit(f"refused: the clock ({c['seconds_total']:.1f} s) is below the journal's charged attempt "
+                         f"time ({charged:.1f} s)")
     if c["seconds_total"] > LIMITS["job_clock_s"] or c["seconds_total"] > receipt.get("seconds_total", -1.0):
         raise SystemExit(f"refused: the closed clock ({c['seconds_total']:.1f} s) exceeds the cap or the receipt's "
                          f"charged total")

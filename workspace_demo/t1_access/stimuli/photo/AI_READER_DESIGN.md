@@ -1,11 +1,26 @@
-# AI image-reader qualification, revision 6: the design and where each condition lives
+# AI image-reader qualification, revision 7: the design and where each condition lives
 
 R084, 2 October 2026. The specification is framework §8.2's reader rule with R052's closures (Unimog, R052's text).
 Revision 5 answers Codex's combined record RSC `1bf9890` (not favourable to revision 4 at RSC `d7a486a`; reader
 conditions 1–7 = R1–R6 there) through R052's handoff `8c9dac2b`. Revision 4 answered RSC `5a8d7ac` (handoff
 `46125389`); its closures stand and are listed after the revision-5 table.
 
-## Revision 6: the conditions of RSC `b569f8a`
+## Revision 7: the conditions of RSC `c036c00`
+
+Codex's record RSC `c036c00` (not favourable to revision 6 at `bb4f076`) credited the escaped-member watchdog, the
+answer-dictionary binding and the local-command cleanup owner, and left four reader conditions, answered here through
+R052's handoff `cdefd254`.
+
+| # | Condition | Where it lives | Evidence |
+|---|---|---|---|
+| A | A failed post-rename close must not qualify | `Clock.close` writes the closed clock and, only after that write fully returned (file, rename, directory fsync), the closure marker `clock.closed.json` (session, journal sha256, clock sha256); a failure after the marker's rename removes it. `admit_clock` requires the marker matching the clock's bytes. | `test_ai_reader_crash.Rev7.test_post_rename_clock_failure_and_stall_do_not_qualify` (the closed clock renamed into place, then its directory fsync fails - exit 1 - or stalls - exit 75: COMPLETE durable, clock reads closed, not admitted); `test_marker_failure_after_its_rename_is_removed` |
+| B | Clock admission binding; failed-start charge | Scientific `score`/`admit` refuse a caller-selected clock. `admit_clock` also requires coherent totals (the total equals the sum of closed sessions' live seconds and crashed/failed-start charges) and the lower bound (at least the journal's charged attempt seconds). A pending-start record `clock.starting.json` is written under the setup timer (itself shortened to the cumulative time left); a start that dies before the clock's first persist is charged at the next start (same boot: until its setup deadline; otherwise the 30 s tail). | `Rev7.test_coherent_undercharge_refused` (an alternate 0 s clock; a sum-inconsistent total); `Rev7.test_failed_start_is_charged_at_the_next_start`; `test_ai_reader.Rev7.test_scientific_scoring_refuses_a_caller_clock` |
+| C | The actual final observation time | `invocation_receipt` checks the observation's own time after reading and parsing, before accepting; `LocalCommand.poll` marks an exit observed after the deadline as a timeout. | `test_ai_reader.Rev7.test_already_exited_leader_observed_late` (timeout 0, instant exit: refused); `test_complete_logs_observed_after_the_deadline` (valid logs whose read/parse is delayed past the deadline: refused) |
+| D | Overlength representation; declarations | For an ok end with a complete event stream, the answer must be the complete event answer (overlength: its first 2,000 characters) and `answer_len` its character count. Declarations: the 30 s allowances in the revision-5 table below are historical (revision 6 made the receipt-and-close allowance 60 s); "every descendant stays in the group" is qualified everywhere (a recorded escaped descendant is killed by identity; one that escapes and exits between samples is not observed - the accepted transient scope). | `test_ai_reader.Rev7.test_overlength_excerpt_and_length_bound_to_the_event_answer`; this file, `AI_READER_JOB.md`, the runtime docstring |
+
+The retained-output run of the whole photo suite on this commit: `reviews/2026-10-02_photo_suite_rev7_run.md`.
+
+## Revision 6: the conditions of RSC `b569f8a` (still in force)
 
 Codex's record RSC `b569f8a` (not favourable to revision 5 at `2610d8a`) closed R2 and most of R1, R3–R6 and left four
 reader conditions, answered here through R052's handoff `c39df47e`.
@@ -17,7 +32,7 @@ reader conditions, answered here through R052's handoff `c39df47e`.
 | 3 | One deadline and one charge through closure | `ai_reader_exec`: a setup timer (300 s) is armed before ANY accounting I/O (`check_accounting`, the clock's first persist); the clock's cap guard runs until the run ends (closing the clock no longer stops it); the receipt charges `FINAL_WRITE_S` = 60 s for its append AND the clock's closure, under one timer cancelled only after the close; the closed clock session names the journal's sha256; `admit_clock` (used by the scorer) admits a COMPLETE only with that finished closure, its total within the cap and not above the receipt's. | `test_ai_reader_crash.Rev6.test_slow_receipt_and_slow_close_share_one_deadline` (receipt 2 s + close 2 s against a 3 s allowance: exit 75, the durable COMPLETE is refused by `admit_clock`; 0.3 + 0.3 s: closed and admitted); `test_setup_before_the_clock_is_bounded` (a 30 s stall in `check_accounting` ends at a 1 s setup timer, exit 75) |
 | 4 | Local commands: ownership before spawn, explicit deadline | `ai_reader_runtime.LocalCommand`: the exit watch and identity read run inside a cleanup owner (a failure kills and reaps the whole group); an exit or a complete log observed only after the deadline is a timeout, refused by both receipts. | `test_ai_reader.Rev6LocalCommands` (a one-shot exit-watch failure after the command spawned a child: no process left; a late exit refused; complete invocation logs written after the deadline refused) |
 
-## Revision 5: the conditions of RSC `1bf9890` (still in force)
+## Revision 5: the conditions of RSC `1bf9890` (still in force; its timing values are historical - see revision 6)
 
 | # | Condition | Where it lives | Evidence (tests in `tests/test_ai_reader.py` unless named) |
 |---|---|---|---|
@@ -103,7 +118,7 @@ prospective, separately reviewed change with fresh identities.
   request; the prompt-input receipt is the CLI's local rendering of the instructions, and the invocation receipt shows
   the exact exec's input and configuration.
 - `unified_exec` cannot be disabled in 0.159.3; under the allowlist no program but the pinned codex binary may be
-  executed (it may run and fork copies of itself, all inside the attempt's process group) and a command event would be
+  executed (it may run and fork copies of itself, normally inside the attempt's process group; a recorded escaped descendant is killed by identity) and a command event would be
   ERR_ISOLATION.
 - A descendant that leaves the attempt's process group and exits between two one-second member samples is not
   observed; one that persists is killed by its recorded identity.

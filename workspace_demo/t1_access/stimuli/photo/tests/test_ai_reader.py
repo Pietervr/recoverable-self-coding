@@ -1,4 +1,4 @@
-"""AI-reader qualification revision 6: scorer, key, frame, identity, validator, boundary and executor fixtures - no
+"""AI-reader qualification revision 7: scorer, key, frame, identity, validator, boundary and executor fixtures - no
 model is called and no qualification image is shown to anything. Revision 5 (Codex RSC 1bf9890 R1-R6) adds the
 exact=false evidence mutations, strict schema/identity/image/bounds admission, local-receipt cleanup and cap fixtures,
 and the clock's strict validation, guard and lock fixtures. The real codex binary is used only for its local
@@ -1275,6 +1275,65 @@ class Rev6LocalCommands(Rev5LocalReceipts):
 
 for _n in [n for n in dir(Rev5LocalReceipts) if n.startswith("test_")]:
     setattr(Rev6LocalCommands, _n, None)
+
+
+class Rev7(unittest.TestCase):
+    """Codex RSC c036c00 reader B (scientific clock refusal), C (late observation) and D (overlength binding)."""
+
+    def test_scientific_scoring_refuses_a_caller_clock(self):
+        with self.assertRaisesRegex(SystemExit, "injected objects"):
+            S.score(Path("/nonexistent"), clock_path=Path("/tmp/clock.json"))
+        with self.assertRaisesRegex(SystemExit, "caller-supplied"):
+            S.admit(Path("/nonexistent"), SET, package=None, allow_synthetic=False, go=None,
+                    clock_path=Path("/tmp/clock.json"))
+
+    def adir(self) -> Path:
+        d = tmp() / "a"
+        R.prepare(d, A.png(3), "x.png")
+        return d
+
+    def test_already_exited_leader_observed_late(self):
+        with self.assertRaisesRegex(SystemExit, "deadline"):
+            R.run_local([sys.executable, "-c", "pass"], self.adir(), [], sandbox=False, timeout=0.0)
+
+    def test_complete_logs_observed_after_the_deadline(self):
+        d = self.adir()
+        prog = d / "w" / "logs.py"
+        prog.write_text("import sys, time\n"
+                        "sys.stderr.write('TurnInput { request: TurnInputRequest { input: UserInput { content: [x], "
+                        "client_id\\n')\n"
+                        "sys.stderr.write('feedback_tags: model=\"m\" approval_policy=Never sandbox_policy=ReadOnly "
+                        "{ network_access: false } effort=Some(Medium) auth_mode=a tags_json={}\\n')\n"
+                        "sys.stderr.flush()\ntime.sleep(5)\n")
+        real, n = R._read_capped, {"k": 0}
+
+        def slow_read(path, cap):
+            n["k"] += 1
+            if n["k"] == 1:
+                time.sleep(1.0)                                    # the read/parse finishes after the deadline
+            return real(path, cap)
+        R._read_capped = slow_read
+        try:
+            with self.assertRaisesRegex(SystemExit, "deadline"):
+                R.invocation_receipt([sys.executable, str(prog)], A.READER, d, d / "w" / "x.png", "p", wait_s=0.6,
+                                     sandbox=False)
+        finally:
+            R._read_capped = real
+
+    def test_overlength_excerpt_and_length_bound_to_the_event_answer(self):
+        root = tmp()
+        b = A.build(root, {"rq1c": ["long"]})
+        X.run(fixture=b["fixture"])
+        recs, _ = J.read(b["fixture"]["raw"])
+        i = next(k for k, r in enumerate(recs) if r["t"] == "end" and r.get("overlength"))
+        self.assertEqual(recs[i]["outcome"], "ok")
+        for name, fn in (("edited excerpt", lambda r: r.update(answer="X" + r["answer"][1:])),
+                         ("another declared length", lambda r: r.update(answer_len=r["answer_len"] + 7))):
+            with self.subTest(name):
+                m = copy.deepcopy(recs)
+                fn(m[i])
+                with self.assertRaisesRegex(SystemExit, "excerpt or length"):
+                    J.validate(m, b["sset"], A.DIGEST, **vkw(b))
 
 
 class Rev5Clock(unittest.TestCase):

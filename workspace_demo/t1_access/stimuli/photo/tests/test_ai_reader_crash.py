@@ -402,8 +402,84 @@ class Rev6(HardKill):
         self.assertLess(time.monotonic() - t, 10.0)
 
 
+class Rev7(HardKill):
+    """Codex RSC c036c00, reader A and B, across real process exits."""
+
+    def run_env(self, plan=None, **env) -> subprocess.CompletedProcess:
+        self.root = Path(tempfile.mkdtemp(dir=X.ensure_root()))
+        self.build(plan or {})
+        e = {**{k: v for k, v in os.environ.items() if k != "AIRQ_CRASH"}, **env}
+        return subprocess.run([sys.executable, str(DRIVER), str(self.root)], capture_output=True, text=True, env=e,
+                              timeout=180)
+
+    def admitted(self) -> dict:
+        recs, _ = self.journal()
+        return X.admit_clock(self.b["fixture"]["job"] / "clock.json", self.b["fixture"]["raw"].read_bytes(), recs[-1])
+
+    def test_post_rename_clock_failure_and_stall_do_not_qualify(self):
+        """Reader A: the closed clock is renamed into place, then its directory fsync fails (or stalls): the COMPLETE
+        receipt is durable and the closed clock readable, but there is no closure marker - not admitted."""
+        for mode, codes in (("error", (1,)), ("stall", (75,))):
+            with self.subTest(mode):
+                p = self.run_env(AIRQ_CLOSE_FAIL=mode, AIRQ_FINAL_WRITE_S="4")
+                self.assertIn(p.returncode, codes, p.stderr[-800:])
+                recs, _ = self.journal()
+                self.assertEqual((recs[-1]["t"], recs[-1]["outcome"]), ("receipt", "COMPLETE"))
+                c = json.loads((self.b["fixture"]["job"] / "clock.json").read_text())
+                self.assertIsNone(c["open_session"])                      # the renamed snapshot says 'closed' ...
+                with self.assertRaisesRegex(SystemExit, "no closure marker"):
+                    self.admitted()                                       # ... and does not qualify
+
+    def test_marker_failure_after_its_rename_is_removed(self):
+        p = self.run_env(AIRQ_MARKER_FAIL="error")
+        self.assertEqual(p.returncode, 1, p.stderr[-800:])
+        self.assertFalse((self.b["fixture"]["job"] / "clock.closed.json").exists())
+        with self.assertRaisesRegex(SystemExit, "no closure marker"):
+            self.admitted()
+
+    def test_failed_start_is_charged_at_the_next_start(self):
+        """Reader B: a start killed by its setup timer before the clock's first persist is charged next time."""
+        p = self.run_env(AIRQ_SETUP_S="1.0", AIRQ_SLOW_ACCOUNTING="30")
+        self.assertEqual(p.returncode, 75, p.stderr[-800:])
+        self.assertTrue((self.b["fixture"]["job"] / "clock.starting.json").exists())
+        p = drive(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr[-800:])
+        c = json.loads((self.b["fixture"]["job"] / "clock.json").read_text())
+        fs = [x for x in c["sessions"] if x.get("closed") == "failed_start"]
+        self.assertEqual(len(fs), 1)
+        self.assertGreater(fs[0]["charged_s"], 0.5)
+        self.assertFalse((self.b["fixture"]["job"] / "clock.starting.json").exists())
+        self.admitted()                                                   # coherent totals with the charge included
+
+    def test_coherent_undercharge_refused(self):
+        """Reader B: an alternate clock - total 0, one closed session of 0 s naming the journal, marker consistent -
+        is below the journal's charged attempt seconds; a sum-consistent but under-charged total too."""
+        p = self.run_env({"rq1c": ["slow_ok:1:thing"]})
+        self.assertEqual(p.returncode, 0, p.stderr[-800:])
+        recs, _ = self.journal()
+        raw = self.b["fixture"]["raw"].read_bytes()
+        cp = self.b["fixture"]["job"] / "clock.json"
+        c = json.loads(cp.read_text())
+        last = dict(c["sessions"][-1], live_s=0.0)
+        alt = {"sessions": [last], "seconds_total": 0.0, "open_session": None}
+        b_ = json.dumps(alt, indent=1, sort_keys=True).encode()
+        cp.write_bytes(b_)
+        (self.b["fixture"]["job"] / "clock.closed.json").write_text(json.dumps(
+            {"session": last["session"], "raw_sha256": J.sha(raw), "clock_sha256": J.sha(b_)}))
+        with self.assertRaisesRegex(SystemExit, "below the journal's charged attempt time"):
+            X.admit_clock(cp, raw, recs[-1])
+        alt = {"sessions": [dict(last, live_s=5.0)], "seconds_total": 99.0, "open_session": None}
+        b_ = json.dumps(alt, indent=1, sort_keys=True).encode()
+        cp.write_bytes(b_)
+        (self.b["fixture"]["job"] / "clock.closed.json").write_text(json.dumps(
+            {"session": last["session"], "raw_sha256": J.sha(raw), "clock_sha256": J.sha(b_)}))
+        with self.assertRaisesRegex(SystemExit, "not the sum of its sessions"):
+            X.admit_clock(cp, raw, recs[-1])
+
+
 for _name in [n for n in dir(HardKill) if n.startswith("test_")]:
     setattr(Rev6, _name, None)
+    setattr(Rev7, _name, None)
 for _name in [n for n in dir(HardKill) if n.startswith("test_")]:
     setattr(Rev5Recovery, _name, None)             # helpers inherited, HardKill's own tests not collected twice
 

@@ -111,6 +111,19 @@ if __name__ == "__main__":
                 time.sleep(slow_c)
             return _wa(path, data, **kw)
         X.write_atomic = wa
+    close_fail, marker_fail = os.environ.get("AIRQ_CLOSE_FAIL"), os.environ.get("AIRQ_MARKER_FAIL")
+    if close_fail or marker_fail:                          # revision-7 post-rename failure fixtures (reader A)
+        _wa2 = X.write_atomic
+
+        def wa2(path, data, **kw):
+            _wa2(path, data, **kw)                         # the rename (and fsyncs) happened ...
+            if close_fail and b'"open_session": null' in data:
+                if close_fail == "stall":
+                    time.sleep(10 ** 6)
+                raise OSError("fixture: directory fsync failed after the rename")
+            if marker_fail and Path(path).name == "clock.closed.json":
+                raise OSError("fixture: the marker's directory fsync failed after its rename")
+        X.write_atomic = wa2
     if slow_a:
         _ca = X.check_accounting
         X.check_accounting = lambda *a: (time.sleep(slow_a), _ca(*a))[1]

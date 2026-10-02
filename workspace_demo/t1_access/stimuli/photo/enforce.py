@@ -1,5 +1,7 @@
 """Photograph arm, rows 20 and 21: the WORKER-SIDE ledger - attempts, the completion transaction, recovery and
-storage reservations. Revision 6 extends `check_ledger` to the consumed recovery history (Codex RSC b569f8a Stage A 4);
+storage reservations. Revision 7 makes `check_ledger` admit authority with the intake's strict domains, binds each consumed
+recovery to its retained owner file (`witness_dir`) and requires the EXACT consumed/outstanding sets (Codex RSC c036c00
+Stage A D). Revision 6 extended `check_ledger` to the consumed recovery history (Codex RSC b569f8a Stage A 4);
 revision 5 added it - the ledger's legal domains (Codex RSC 1bf9890 A6), used by the validator and the controller's
 final algebra; revision 4 answered Codex RSC 081f17b closure groups 2 and 4. Time, memory, swap, pressure, the deadline,
 termination and reaping belong to the independent controller (`stage_a_controller.py`) and its watchdog.
@@ -119,7 +121,48 @@ def _int(v, lo: int = 0) -> bool:
     return isinstance(v, int) and not isinstance(v, bool) and v >= lo
 
 
-def check_ledger(state, passes_per_try: int = 1, row: str = "row20") -> list[str]:
+def _text(v) -> bool:
+    return isinstance(v, str) and bool(v.strip())
+
+
+def _authority_ok(a: dict) -> bool:
+    """The intake's domains (stage_a_guard.recovery_files): non-blank strings, try an exact positive int (never bool or
+    float), date an exact calendar YYYY-MM-DD, file_sha256 64 lowercase hex."""
+    import re
+    import time as _t
+    if not (all(_text(a[k]) for k in ("attempt_id", "session", "owner", "reason")) and type(a["try"]) is int and
+            a["try"] >= 1 and isinstance(a["date"], str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", a["date"]) and
+            isinstance(a["file_sha256"], str) and re.fullmatch(r"[0-9a-f]{64}", a["file_sha256"])):
+        return False
+    try:
+        _t.strptime(a["date"], "%Y-%m-%d")
+    except ValueError:
+        return False
+    return True
+
+
+def _witness_problem(out: Path, a: dict) -> str | None:
+    """The retained owner file: RECOVERY_<attempt>__<session>__<try>.json present, hashing to file_sha256, and its
+    strict content equal to the authority (without the hash)."""
+    import hashlib
+    f = out / f"RECOVERY_{a['attempt_id']}__{a['session']}__{a['try']}.json"
+    if not f.exists():
+        return f"the owner file {f.name} is not retained"
+    raw = f.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != a["file_sha256"]:
+        return f"{f.name} does not hash to the recorded file_sha256"
+    try:
+        from stage_a_guard import strict_json
+        body = strict_json(raw.decode("utf-8"), f.name)
+    except (SystemExit, UnicodeDecodeError) as exc:
+        return f"{f.name} is not strict JSON ({exc})"
+    if body != {k: v for k, v in a.items() if k != "file_sha256"} or \
+            any(type(body[k]) is not type(a[k]) for k in body if k in a):
+        return f"{f.name} differs from the recorded authority"
+    return None
+
+
+def check_ledger(state, passes_per_try: int = 1, row: str = "row20", witness_dir=None) -> list[str]:
     """The ledger's LEGAL DOMAINS and relations (revision 5; Codex RSC 1bf9890 A6), independent of the plan: exact
     integer types (never bool), non-negative counters, completed + failed <= started, passes per try exactly the
     declared number, every attempt with a positive try count and a known status, the open attempt coherent with its
@@ -178,35 +221,47 @@ def check_ledger(state, passes_per_try: int = 1, row: str = "row20") -> list[str
     # only after one); nothing else may account for an extra try.
     rkeys = {"attempt_id", "session", "try", "authority", "consumed_by"}
     akeys = {"attempt_id", "session", "try", "owner", "date", "reason", "file_sha256"}
-    seen = set()
+    seen, by_att = set(), {}
     for r_ in rec:
-        ok = (isinstance(r_, dict) and set(r_) == rkeys and isinstance(r_["attempt_id"], str) and
-              isinstance(r_["session"], str) and r_["session"] and isinstance(r_["consumed_by"], str) and
-              r_["consumed_by"] and _int(r_["try"], 1) and isinstance(r_["authority"], dict) and
-              set(r_["authority"]) == akeys and
-              (r_["authority"]["attempt_id"], r_["authority"]["session"], r_["authority"]["try"]) ==
-              (r_["attempt_id"], r_["session"], r_["try"]) and
-              all(isinstance(r_["authority"][k], str) and r_["authority"][k] for k in ("owner", "date", "reason")) and
-              isinstance(r_["authority"]["file_sha256"], str) and len(r_["authority"]["file_sha256"]) == 64)
+        ok = (isinstance(r_, dict) and set(r_) == rkeys and _text(r_["attempt_id"]) and _text(r_["session"]) and
+              _text(r_["consumed_by"]) and _int(r_["try"], 1) and isinstance(r_["authority"], dict) and
+              set(r_["authority"]) == akeys and _authority_ok(r_["authority"]) and
+              r_["authority"]["attempt_id"] == r_["attempt_id"] and r_["authority"]["session"] == r_["session"] and
+              r_["authority"]["try"] == r_["try"])
         if not ok:
-            p.append(f"consumed recovery {r_!r:.80} not an exact, typed, authorised entry")
+            p.append(f"consumed recovery {r_!r:.80} not an exact, typed, authorised entry (intake's domains)")
             continue
         k = (r_["attempt_id"], r_["try"])
         if k in seen:
             p.append(f"consumed recovery {k} recorded twice")
         seen.add(k)
-        a_ = att.get(r_["attempt_id"])
-        if not isinstance(a_, dict) or not _int(a_.get("tries"), 1) or r_["try"] > a_["tries"]:
-            p.append(f"consumed recovery {k} names no such try of a planned attempt")
-    for i, a in att.items():
+        by_att.setdefault(r_["attempt_id"], set()).add(r_["try"])
+        if witness_dir is not None:                    # bound to the retained owner file (revision 7, Stage A D)
+            prob = _witness_problem(Path(witness_dir), r_["authority"])
+            if prob:
+                p.append(f"consumed recovery {k}: {prob}")
+        if not isinstance(att.get(r_["attempt_id"]), dict):
+            p.append(f"consumed recovery {k} names no planned attempt")
+    outstanding = {}
+    for it in inter:
+        if isinstance(it, dict):
+            outstanding.setdefault(it.get("id"), []).append(it.get("try"))
+    for i, a in att.items():                           # the EXACT legal sets (revision 7, Stage A D)
         if not isinstance(a, dict) or not _int(a.get("tries"), 1):
             continue
-        last = a["tries"] if a.get("status") == "interrupted, recovery consumed" else a["tries"] - 1
-        missing = [t for t in range(1, last + 1) if (i, t) not in seen]
-        if missing:
-            p.append(f"attempt {i}: tries {missing} have no consumed, authorised recovery (an extra try)")
-        if any(it.get("id") == i and it.get("try") != a["tries"] for it in inter if isinstance(it, dict)):
-            p.append(f"attempt {i}: an outstanding interrupted entry names a try other than its last")
+        t = a["tries"]
+        want = set(range(1, t + 1)) if a.get("status") == "interrupted, recovery consumed" else set(range(1, t))
+        got = by_att.get(i, set())
+        if got != want:
+            p.append(f"attempt {i}: consumed recoveries {sorted(got)} are not exactly tries {sorted(want)}")
+        outs = outstanding.get(i, [])
+        if a.get("status") == "interrupted":
+            if outs != [t]:
+                p.append(f"attempt {i}: interrupted needs exactly one outstanding entry for its last try {t}")
+        elif outs:
+            p.append(f"attempt {i}: outstanding interrupted entries {outs} on a {a.get('status')!r} attempt")
+        if set(outs) & got:
+            p.append(f"attempt {i}: a try both outstanding and consumed")
     if isinstance(open_, dict):
         a_ = att.get(open_.get("id")) or {}
         if open_.get("kind") != a_.get("kind") or not isinstance(open_.get("session"), str) or \

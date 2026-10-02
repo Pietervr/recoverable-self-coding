@@ -242,11 +242,11 @@ def _nat(rec: dict, arr: dict, x: dict, plan: dict, plain: dict | None, D: int, 
     v.need(isinstance(rec["inputs_embeds_dtype"], str), "PASS_META", aid)
 
 
-def _ledger(state: dict, plan: dict, identity: str | None, v: V) -> None:
+def _ledger(state: dict, plan: dict, identity: str | None, v: V, witness=None) -> None:
     import stage_a as A
     from enforce import CAPS, check_ledger
     planned = {a["id"]: a for a in plan["attempts"]}
-    for prob in check_ledger(state):                  # legal domains first (Codex RSC 1bf9890 A6)
+    for prob in check_ledger(state, witness_dir=witness):   # legal domains + bound owner authority (A6; rev 7 D)
         v.need(False, "LEDGER_DOMAIN", "state", prob)
     if not isinstance(state, dict) or not isinstance(state.get("attempts"), dict) or \
             not isinstance(state.get("completed"), dict):
@@ -298,7 +298,7 @@ def validate(out: Path, plan: dict, state: dict | None, *, identity: str | None 
     D = A.D_MODEL
     inputs = {x["index"]: x for x in plan["inputs"]}
     suffix = {s["base_index"]: s for s in plan["diagnostics"]["suffix_isolation"]}
-    _ledger(state, plan, identity, v)
+    _ledger(state, plan, identity, v, witness=out)
     recs, arrs = {}, {}
     for a in plan["attempts"]:
         if a["phase"] not in phases:

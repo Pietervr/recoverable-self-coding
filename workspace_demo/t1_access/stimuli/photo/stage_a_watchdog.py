@@ -1,4 +1,6 @@
-"""Photograph arm, Stage A (row 20) and the AI-reader job: the WATCHDOG - revision 6 (Codex RSC b569f8a Stage A 1-2,
+"""Photograph arm, Stage A (row 20) and the AI-reader job: the WATCHDOG - revision 7 (Codex RSC c036c00 Stage A A, C: ticks
+carry their source observation time, staleness is measured from it, every endpoint is timestamped; the guardian
+creates its record's directory) - revision 6 answered RSC b569f8a Stage A 1-2,
 reader 1; revision 5 answered RSC 1bf9890 A2-A4, R3; framework 8.4 (m)). Revision 6: it retires only when the worker's
 group AND every recorded member are gone; a stalled sampler, a stale beat or a missed deadline also kills the
 (alive but not acting) controller by identity; and a GUARDIAN mode bounds the controller process itself from before
@@ -47,6 +49,7 @@ POLL_S = 0.01
 
 
 def write_record(path: str, rec: dict) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     tmp = path + ".tmp"
     with open(tmp, "w") as fh:
         json.dump(rec, fh, indent=1, sort_keys=True)
@@ -96,7 +99,9 @@ def kill_controller(ctl: dict, rec: dict) -> None:
         while memprobe.same_process(ctl) and time.monotonic() - t < 10.0:
             time.sleep(0.01)
         rec["controller_killed"] = not memprobe.same_process(ctl)
-    rec["controller_gone_wall"] = time.time() if not memprobe.same_process(ctl) else None
+    gone = not memprobe.same_process(ctl)
+    rec["controller_gone_wall"] = time.time() if gone else None
+    rec["controller_gone_mono"] = time.monotonic() if gone else None
 
 
 def guardian(a: dict) -> int:
@@ -134,7 +139,7 @@ def guardian(a: dict) -> int:
             break
         time.sleep(POLL_S)
     rec = {"reason": "controller deadline", "session": a.get("session"), "observed_wall": time.time(),
-           "watchdog_pid": os.getpid(), "how": "SIGKILL"}
+           "observed_mono": time.monotonic(), "deadline_mono": deadline, "watchdog_pid": os.getpid(), "how": "SIGKILL"}
     kill_controller(ctl, rec)
     write_record(a["record"], rec)
     return 3
@@ -160,7 +165,7 @@ def main() -> int:
         os.set_blocking(int(tick_fd), False)
     sys.stdout.write("ARMED\n")
     sys.stdout.flush()
-    last_tick, ticking, eof, cache = None, False, False, []
+    last_tick, ticking, eof, cache, consumed, tbuf = None, False, False, [], None, b""
     while reason is None:
         if not group_live(leader) and not recorded_live(a.get("members_file"), cache):
             return 0                                    # retire only when the group AND every recorded member are gone
@@ -178,15 +183,18 @@ def main() -> int:
             reason = f"heartbeat stale ({age:.1f} s)"
             break
         if tick_fd is not None and not eof:
-            try:
+            try:                                        # each tick line carries its SOURCE observation time (rev 7)
                 b = os.read(int(tick_fd), 4096)
                 if b == b"":
                     eof = True
-                elif b"E" in b:
-                    ticking = False
-                    eof = True                          # the controller has already SIGKILLed the group itself
                 else:
-                    last_tick, ticking = time.monotonic(), True
+                    tbuf += b
+                    *lines, tbuf = tbuf.split(b"\n")
+                    for ln in lines:
+                        if ln == b"E":
+                            ticking, eof = False, True  # the controller has already SIGKILLed the group itself
+                        elif ln:
+                            last_tick, ticking, consumed = float(ln), True, time.monotonic()
             except BlockingIOError:
                 pass
             if ticking and time.monotonic() - last_tick > float(a["tick_stale_s"]):
@@ -195,17 +203,18 @@ def main() -> int:
         time.sleep(POLL_S)
     observed = time.time()
     rec = {"reason": reason, "session": a.get("session"), "pgid": leader["pgid"], "how": "SIGKILL",
-           "observed_wall": observed, "watchdog_pid": os.getpid()}
+           "observed_wall": observed, "observed_mono": time.monotonic(), "watchdog_pid": os.getpid(),
+           "last_tick_source_mono": last_tick, "last_tick_consumed_mono": consumed}
     try:
         res = memprobe.end_group(leader, members(a.get("members_file")), limit=10.0)
         rec.update(killed_wall=time.time(), group_gone=True, group_gone_wall=time.time(),
-                   killed=[k["pid"] for k in res["killed"]])
+                   group_gone_mono=time.monotonic(), killed=[k["pid"] for k in res["killed"]])
     except memprobe.Survivors as exc:
         rec.update(killed_wall=time.time(), group_gone=False, group_gone_wall=None, survivors=str(exc))
     if not reason.startswith("controller died"):        # alive but not acting (blocked beat, stalled sampler,
         kill_controller(ctl, rec)                       # missed deadline): bounded by its death (Stage A 2)
     else:
-        rec["controller_gone_wall"] = time.time()
+        rec["controller_gone_wall"], rec["controller_gone_mono"] = time.time(), time.monotonic()
     write_record(a["record"], rec)
     return 3 if rec["group_gone"] else 4
 
