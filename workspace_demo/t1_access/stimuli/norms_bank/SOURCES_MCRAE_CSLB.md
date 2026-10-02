@@ -19,6 +19,11 @@ counts this document gave earlier were raw-feature ceilings (Codex's finding 3, 
 | McRae + Feats, up to two tokens (upper bound) | 72 | 114 |
 
 Only ten clauses with two-token answers fills the bank. The taxonomic-row rule alone costs 16 concepts at twelve.
+
+**Codex's no-CSLB route, under the same rules (2 Oct, `ROUTE_FOUR_FAMILY.md`):** adding Hovhannisyan et al. (2021) at
+>= 3 productions and clothing as a fourth family gives **104 at ten clauses against a four-family minimum of 100**
+- a margin of four before naming acceptance, of which 14 concepts are Hovhannisyan's photo-conditioned ones. At
+twelve, or at Hovhannisyan >= 5, it fails.
 **Nothing is built until R052 settles the design after 15 October and sends the step-2 handoff.**
 
 CSLB's three-family candidates (63, counted from its published concept list) remain an upper bound until the file

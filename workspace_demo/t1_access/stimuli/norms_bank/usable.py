@@ -154,7 +154,7 @@ def maximal_sets(sets: dict[str, frozenset]) -> tuple[list[str], dict[str, str]]
 
 
 def usable(concept: str, feats: set[str], provenance: dict, bank_names: set[str], canon: Canon | None,
-           tier: str, skip: frozenset = frozenset()) -> dict:
+           tier: str, skip: frozenset = frozenset(), family_words: set[str] | None = None) -> dict:
     """The usable features of one concept under a tier: 'raw', 'minimal' or 'protocol'.
 
     `skip` drops named protocol rules (T, N, X, P, and D for the stem/derivation canonicalisation) - used only to
@@ -168,8 +168,9 @@ def usable(concept: str, feats: set[str], provenance: dict, bank_names: set[str]
             if provenance[(concept, f)]["relation"] == "taxonomic":
                 log["T"].append(f)
         live -= set(log["T"])
+    fw = FAMILY_WORDS if family_words is None else family_words
     for f in sorted(live):
-        if set(words(f)) & FAMILY_WORDS:
+        if set(words(f)) & fw:
             log["F"].append(f)
     live -= set(log["F"])
     if tier == "protocol":

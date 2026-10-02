@@ -1,0 +1,3648 @@
+{
+ "script_sha256": "11d70a55c88b18729966d742dbb114566e053f9e17f5760cf767e3be0b231957",
+ "usable_sha256": "97b94f32883d24b7d4d8e339cf541a198e6a91ecfc4ef0ec7aba4c6139a16f8d",
+ "tokenizer_json_sha256": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4",
+ "digests": {
+  "CONCS_FEATS_concstats_brm.txt": "fe796831232b164635c258095749320665c18c40186778e8d8baf4b0c4cdba23",
+  "MBCDI_concsFeats_2022-07-14.csv": "4b45b8910c5f42f7a6450aa33732a81bcbbcc0631d8c41df7b73d8c9d83d29ba",
+  "remainingUKCDI_concsFeats.csv": "91aaef66e7e4cbfa975238c79f7ed7dcb0903b9dc4cdae37ae864f84a3302d34",
+  "MBCDI_concs_2022-07-14.csv": "202311ec37050b4b7ccaff646cafcdac4acf134b75f5905bdfbdb8334b21eb09",
+  "MCSM_LLAMA_feats_2022-07-14.csv": "f941ef90437407eb7de34085d27d69ebea8f9049508a335e752ac3894496935e",
+  "featurematrix.csv": "152eb2cc1729514781f4087d7fd6bbf2f34ff05089af02636f1e11df57b80e33",
+  "conceptFeatureLabelList.xlsx": "570aa322dd7af158f5d893a3c9f7ed47000a753607c63fbd81dd6bd53eb3dc3b",
+  "pics.csv": "ce2688a42010e928d64f662cc6136a8a01f15e82a36b575d219179c2f1269d2a"
+ },
+ "bookkeeping": {
+  "feats_labels": 372,
+  "uk_labels": 13,
+  "overlap": 136,
+  "overlap_identical": 103,
+  "overlap_differing": 33,
+  "exact_new": 236,
+  "exact_new_single_word": 208,
+  "hovhannisyan": {
+   "hov_labels": 995,
+   "overlap": 327,
+   "exact_new": 668,
+   "exact_new_single_word": 404,
+   "cutoff": 3
+  }
+ },
+ "rows": {
+  "(a) McRae+Feats, 3 families": {
+   "minimal|>=12": {
+    "counts": {
+     "animals": 35,
+     "foods": 30,
+     "vehicles": 15
+    },
+    "total": 80,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "monkey",
+      "mouse",
+      "owl",
+      "pig",
+      "pigeon",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "coconut",
+      "coffee",
+      "cookie",
+      "grape",
+      "gum",
+      "hamburger",
+      "juice",
+      "lemon",
+      "meat",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "pudding",
+      "sauce",
+      "soup",
+      "strawberry",
+      "tea",
+      "tomato",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "canoe",
+      "car",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tractor",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 31,
+      "foods": 15,
+      "vehicles": 15
+     },
+     "Feats": {
+      "animals": 4,
+      "foods": 15
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 80,
+      "needed": 99,
+      "margin": -19,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 80,
+      "needed": 102,
+      "margin": -22,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "minimal|>=10": {
+    "counts": {
+     "animals": 41,
+     "foods": 33,
+     "vehicles": 20
+    },
+    "total": 94,
+    "concepts": {
+     "animals": [
+      "animal",
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "bug",
+      "bull",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "monkey",
+      "mouse",
+      "owl",
+      "ox",
+      "pig",
+      "pigeon",
+      "pony",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "avocado",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "chocolate",
+      "coconut",
+      "coffee",
+      "cookie",
+      "grape",
+      "gum",
+      "hamburger",
+      "jelly",
+      "juice",
+      "lemon",
+      "meat",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "pudding",
+      "sauce",
+      "soup",
+      "strawberry",
+      "tea",
+      "tomato",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "helicopter",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "taxi",
+      "tractor",
+      "truck",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "by_source": {
+     "Feats": {
+      "animals": 6,
+      "foods": 17
+     },
+     "McRae": {
+      "animals": 35,
+      "foods": 16,
+      "vehicles": 20
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 94,
+      "needed": 99,
+      "margin": -5,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 94,
+      "needed": 102,
+      "margin": -8,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "protocol|>=12": {
+    "counts": {
+     "animals": 25,
+     "foods": 15,
+     "vehicles": 11
+    },
+    "total": 51,
+    "concepts": {
+     "animals": [
+      "bear",
+      "bee",
+      "butterfly",
+      "camel",
+      "cougar",
+      "cow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "horse",
+      "lion",
+      "mouse",
+      "pig",
+      "puppy",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "butter",
+      "cabbage",
+      "candy",
+      "coconut",
+      "coffee",
+      "grape",
+      "lemon",
+      "pear",
+      "pickle",
+      "pizza",
+      "potato",
+      "prune",
+      "strawberry",
+      "tea"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "canoe",
+      "car",
+      "jet",
+      "missile",
+      "ship",
+      "sled",
+      "yacht"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 22,
+      "foods": 10,
+      "vehicles": 11
+     },
+     "Feats": {
+      "animals": 3,
+      "foods": 5
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 51,
+      "needed": 99,
+      "margin": -48,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 51,
+      "needed": 102,
+      "margin": -51,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "protocol|>=10": {
+    "counts": {
+     "animals": 36,
+     "foods": 23,
+     "vehicles": 18
+    },
+    "total": 77,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "monkey",
+      "mouse",
+      "owl",
+      "pig",
+      "pigeon",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "coconut",
+      "coffee",
+      "grape",
+      "gum",
+      "juice",
+      "lemon",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "strawberry",
+      "tea",
+      "tomato",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "helicopter",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tractor",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 32,
+      "foods": 15,
+      "vehicles": 18
+     },
+     "Feats": {
+      "animals": 4,
+      "foods": 8
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 77,
+      "needed": 99,
+      "margin": -22,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 77,
+      "needed": 102,
+      "margin": -25,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   }
+  },
+  "(b) +Hovhannisyan >=3, 3 families": {
+   "minimal|>=12": {
+    "counts": {
+     "animals": 41,
+     "foods": 31,
+     "vehicles": 16
+    },
+    "total": 88,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "chick",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "kitten",
+      "lion",
+      "lizard",
+      "monkey",
+      "mouse",
+      "owl",
+      "panda",
+      "pig",
+      "pigeon",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "snake",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "coconut",
+      "coffee",
+      "cookie",
+      "grape",
+      "gum",
+      "hamburger",
+      "juice",
+      "lemon",
+      "meat",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "pudding",
+      "sauce",
+      "soup",
+      "strawberry",
+      "tea",
+      "tomato",
+      "wine",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "canoe",
+      "car",
+      "convertible",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tractor",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 31,
+      "foods": 15,
+      "vehicles": 15
+     },
+     "Feats": {
+      "animals": 4,
+      "foods": 15
+     },
+     "Hovhannisyan": {
+      "animals": 6,
+      "foods": 1,
+      "vehicles": 1
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 88,
+      "needed": 99,
+      "margin": -11,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 88,
+      "needed": 102,
+      "margin": -14,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "minimal|>=10": {
+    "counts": {
+     "animals": 49,
+     "foods": 37,
+     "vehicles": 24
+    },
+    "total": 110,
+    "concepts": {
+     "animals": [
+      "animal",
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "bug",
+      "bull",
+      "butterfly",
+      "calf",
+      "camel",
+      "chick",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dinosaur",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "kitten",
+      "lion",
+      "lizard",
+      "monkey",
+      "mouse",
+      "owl",
+      "ox",
+      "panda",
+      "pig",
+      "pigeon",
+      "pony",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "snake",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "avocado",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "chocolate",
+      "coconut",
+      "coffee",
+      "cookie",
+      "grape",
+      "gum",
+      "hamburger",
+      "jam",
+      "jelly",
+      "juice",
+      "lemon",
+      "meat",
+      "milk",
+      "orange",
+      "pasta",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "pudding",
+      "sauce",
+      "soup",
+      "steak",
+      "strawberry",
+      "tea",
+      "tomato",
+      "wine",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "convertible",
+      "helicopter",
+      "jeep",
+      "jet",
+      "kayak",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tank",
+      "taxi",
+      "tractor",
+      "truck",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "by_source": {
+     "Feats": {
+      "animals": 6,
+      "foods": 17
+     },
+     "McRae": {
+      "animals": 35,
+      "foods": 16,
+      "vehicles": 20
+     },
+     "Hovhannisyan": {
+      "animals": 8,
+      "foods": 4,
+      "vehicles": 4
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 110,
+      "needed": 99,
+      "margin": 11,
+      "reserve": 1,
+      "feasible": true,
+      "witness": {
+       "CONF": [
+        32,
+        31,
+        1
+       ],
+       "CAL": [
+        8,
+        4,
+        4
+       ],
+       "PILOT": [
+        8,
+        1,
+        7
+       ],
+       "BACKGROUND": [
+        1,
+        1,
+        12
+       ]
+      }
+     },
+     "reserve2": {
+      "available": 110,
+      "needed": 102,
+      "margin": 8,
+      "reserve": 2,
+      "feasible": true,
+      "witness": {
+       "CONF": [
+        32,
+        31,
+        1
+       ],
+       "CAL": [
+        8,
+        3,
+        5
+       ],
+       "PILOT": [
+        7,
+        1,
+        8
+       ],
+       "BACKGROUND": [
+        2,
+        2,
+        10
+       ]
+      }
+     }
+    },
+    "slack_reserve1": {
+     "animals": 11,
+     "foods": 11,
+     "vehicles": 11
+    }
+   },
+   "protocol|>=12": {
+    "counts": {
+     "animals": 26,
+     "foods": 15,
+     "vehicles": 11
+    },
+    "total": 52,
+    "concepts": {
+     "animals": [
+      "bear",
+      "bee",
+      "butterfly",
+      "camel",
+      "chick",
+      "cougar",
+      "cow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "horse",
+      "lion",
+      "mouse",
+      "pig",
+      "puppy",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "butter",
+      "cabbage",
+      "candy",
+      "coconut",
+      "coffee",
+      "grape",
+      "lemon",
+      "pear",
+      "pickle",
+      "pizza",
+      "potato",
+      "prune",
+      "strawberry",
+      "tea"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "canoe",
+      "car",
+      "jet",
+      "missile",
+      "ship",
+      "sled",
+      "yacht"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 22,
+      "foods": 10,
+      "vehicles": 11
+     },
+     "Feats": {
+      "animals": 3,
+      "foods": 5
+     },
+     "Hovhannisyan": {
+      "animals": 1
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 52,
+      "needed": 99,
+      "margin": -47,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 52,
+      "needed": 102,
+      "margin": -50,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "protocol|>=10": {
+    "counts": {
+     "animals": 43,
+     "foods": 26,
+     "vehicles": 20
+    },
+    "total": 89,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "chick",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dinosaur",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "kitten",
+      "lion",
+      "lizard",
+      "monkey",
+      "mouse",
+      "owl",
+      "panda",
+      "pig",
+      "pigeon",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "snake",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "coconut",
+      "coffee",
+      "grape",
+      "gum",
+      "jam",
+      "juice",
+      "lemon",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "steak",
+      "strawberry",
+      "tea",
+      "tomato",
+      "wine",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "convertible",
+      "helicopter",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tractor",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 32,
+      "foods": 15,
+      "vehicles": 18
+     },
+     "Feats": {
+      "animals": 4,
+      "foods": 8
+     },
+     "Hovhannisyan": {
+      "animals": 7,
+      "foods": 3,
+      "vehicles": 2
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 89,
+      "needed": 99,
+      "margin": -10,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 89,
+      "needed": 102,
+      "margin": -13,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   }
+  },
+  "(c) +Hovhannisyan >=3, 4 families": {
+   "minimal|>=12": {
+    "counts": {
+     "animals": 41,
+     "foods": 31,
+     "vehicles": 16,
+     "clothing": 10
+    },
+    "total": 98,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "chick",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "kitten",
+      "lion",
+      "lizard",
+      "monkey",
+      "mouse",
+      "owl",
+      "panda",
+      "pig",
+      "pigeon",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "snake",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "coconut",
+      "coffee",
+      "cookie",
+      "grape",
+      "gum",
+      "hamburger",
+      "juice",
+      "lemon",
+      "meat",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "pudding",
+      "sauce",
+      "soup",
+      "strawberry",
+      "tea",
+      "tomato",
+      "wine",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "canoe",
+      "car",
+      "convertible",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tractor",
+      "wagon",
+      "yacht"
+     ],
+     "clothing": [
+      "blouse",
+      "bra",
+      "coat",
+      "dress",
+      "hose",
+      "jacket",
+      "pants",
+      "robe",
+      "shirt",
+      "tie"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 31,
+      "foods": 15,
+      "vehicles": 15,
+      "clothing": 10
+     },
+     "Feats": {
+      "animals": 4,
+      "foods": 15
+     },
+     "Hovhannisyan": {
+      "animals": 6,
+      "foods": 1,
+      "vehicles": 1
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 98,
+      "needed": 100,
+      "margin": -2,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 98,
+      "needed": 104,
+      "margin": -6,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "minimal|>=10": {
+    "counts": {
+     "animals": 49,
+     "foods": 37,
+     "vehicles": 24,
+     "clothing": 17
+    },
+    "total": 127,
+    "concepts": {
+     "animals": [
+      "animal",
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "bug",
+      "bull",
+      "butterfly",
+      "calf",
+      "camel",
+      "chick",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dinosaur",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "kitten",
+      "lion",
+      "lizard",
+      "monkey",
+      "mouse",
+      "owl",
+      "ox",
+      "panda",
+      "pig",
+      "pigeon",
+      "pony",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "snake",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "avocado",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "chocolate",
+      "coconut",
+      "coffee",
+      "cookie",
+      "grape",
+      "gum",
+      "hamburger",
+      "jam",
+      "jelly",
+      "juice",
+      "lemon",
+      "meat",
+      "milk",
+      "orange",
+      "pasta",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "pudding",
+      "sauce",
+      "soup",
+      "steak",
+      "strawberry",
+      "tea",
+      "tomato",
+      "wine",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "convertible",
+      "helicopter",
+      "jeep",
+      "jet",
+      "kayak",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tank",
+      "taxi",
+      "tractor",
+      "truck",
+      "wagon",
+      "yacht"
+     ],
+     "clothing": [
+      "blouse",
+      "bra",
+      "coat",
+      "diaper",
+      "dress",
+      "gown",
+      "hose",
+      "jacket",
+      "mask",
+      "mitten",
+      "pants",
+      "robe",
+      "scarf",
+      "shirt",
+      "sweater",
+      "tie",
+      "veil"
+     ]
+    },
+    "by_source": {
+     "Feats": {
+      "animals": 6,
+      "foods": 17,
+      "clothing": 1
+     },
+     "McRae": {
+      "animals": 35,
+      "foods": 16,
+      "vehicles": 20,
+      "clothing": 14
+     },
+     "Hovhannisyan": {
+      "animals": 8,
+      "foods": 4,
+      "vehicles": 4,
+      "clothing": 2
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 127,
+      "needed": 100,
+      "margin": 27,
+      "reserve": 1,
+      "feasible": true,
+      "witness": {
+       "CONF": [
+        32,
+        30,
+        1,
+        1
+       ],
+       "CAL": [
+        8,
+        5,
+        2,
+        1
+       ],
+       "PILOT": [
+        8,
+        1,
+        6,
+        1
+       ],
+       "BACKGROUND": [
+        1,
+        1,
+        15,
+        14
+       ]
+      }
+     },
+     "reserve2": {
+      "available": 127,
+      "needed": 104,
+      "margin": 23,
+      "reserve": 2,
+      "feasible": true,
+      "witness": {
+       "CONF": [
+        32,
+        30,
+        1,
+        1
+       ],
+       "CAL": [
+        8,
+        4,
+        3,
+        1
+       ],
+       "PILOT": [
+        7,
+        1,
+        7,
+        1
+       ],
+       "BACKGROUND": [
+        2,
+        2,
+        13,
+        14
+       ]
+      }
+     }
+    },
+    "slack_reserve1": {
+     "animals": 27,
+     "foods": 27,
+     "vehicles": 20,
+     "clothing": 13
+    }
+   },
+   "protocol|>=12": {
+    "counts": {
+     "animals": 26,
+     "foods": 15,
+     "vehicles": 11,
+     "clothing": 10
+    },
+    "total": 62,
+    "concepts": {
+     "animals": [
+      "bear",
+      "bee",
+      "butterfly",
+      "camel",
+      "chick",
+      "cougar",
+      "cow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "horse",
+      "lion",
+      "mouse",
+      "pig",
+      "puppy",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "butter",
+      "cabbage",
+      "candy",
+      "coconut",
+      "coffee",
+      "grape",
+      "lemon",
+      "pear",
+      "pickle",
+      "pizza",
+      "potato",
+      "prune",
+      "strawberry",
+      "tea"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "canoe",
+      "car",
+      "jet",
+      "missile",
+      "ship",
+      "sled",
+      "yacht"
+     ],
+     "clothing": [
+      "blouse",
+      "bra",
+      "coat",
+      "dress",
+      "hose",
+      "jacket",
+      "pants",
+      "robe",
+      "shirt",
+      "tie"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 22,
+      "foods": 10,
+      "vehicles": 11,
+      "clothing": 10
+     },
+     "Feats": {
+      "animals": 3,
+      "foods": 5
+     },
+     "Hovhannisyan": {
+      "animals": 1
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 62,
+      "needed": 100,
+      "margin": -38,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 62,
+      "needed": 104,
+      "margin": -42,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "protocol|>=10": {
+    "counts": {
+     "animals": 43,
+     "foods": 26,
+     "vehicles": 20,
+     "clothing": 15
+    },
+    "total": 104,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "chick",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dinosaur",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "kitten",
+      "lion",
+      "lizard",
+      "monkey",
+      "mouse",
+      "owl",
+      "panda",
+      "pig",
+      "pigeon",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "snake",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "coconut",
+      "coffee",
+      "grape",
+      "gum",
+      "jam",
+      "juice",
+      "lemon",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "steak",
+      "strawberry",
+      "tea",
+      "tomato",
+      "wine",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "convertible",
+      "helicopter",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tractor",
+      "wagon",
+      "yacht"
+     ],
+     "clothing": [
+      "blouse",
+      "bra",
+      "coat",
+      "diaper",
+      "dress",
+      "gown",
+      "hose",
+      "jacket",
+      "mask",
+      "mitten",
+      "pants",
+      "robe",
+      "scarf",
+      "shirt",
+      "tie"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 32,
+      "foods": 15,
+      "vehicles": 18,
+      "clothing": 12
+     },
+     "Feats": {
+      "animals": 4,
+      "foods": 8,
+      "clothing": 1
+     },
+     "Hovhannisyan": {
+      "animals": 7,
+      "foods": 3,
+      "vehicles": 2,
+      "clothing": 2
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 104,
+      "needed": 100,
+      "margin": 4,
+      "reserve": 1,
+      "feasible": true,
+      "witness": {
+       "CONF": [
+        32,
+        23,
+        8,
+        1
+       ],
+       "CAL": [
+        8,
+        1,
+        6,
+        1
+       ],
+       "PILOT": [
+        2,
+        1,
+        5,
+        8
+       ],
+       "BACKGROUND": [
+        1,
+        1,
+        1,
+        5
+       ]
+      }
+     },
+     "reserve2": {
+      "available": 104,
+      "needed": 104,
+      "margin": 0,
+      "reserve": 2,
+      "feasible": true,
+      "witness": {
+       "CONF": [
+        29,
+        22,
+        9,
+        4
+       ],
+       "CAL": [
+        8,
+        1,
+        6,
+        1
+       ],
+       "PILOT": [
+        4,
+        1,
+        3,
+        8
+       ],
+       "BACKGROUND": [
+        2,
+        2,
+        2,
+        2
+       ]
+      }
+     }
+    },
+    "slack_reserve1": {
+     "animals": 4,
+     "foods": 4,
+     "vehicles": 4,
+     "clothing": 4
+    }
+   }
+  },
+  "(c) without rule T": {
+   "minimal|>=12": {
+    "counts": {
+     "animals": 41,
+     "foods": 31,
+     "vehicles": 16,
+     "clothing": 10
+    },
+    "total": 98,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "chick",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "kitten",
+      "lion",
+      "lizard",
+      "monkey",
+      "mouse",
+      "owl",
+      "panda",
+      "pig",
+      "pigeon",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "snake",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "coconut",
+      "coffee",
+      "cookie",
+      "grape",
+      "gum",
+      "hamburger",
+      "juice",
+      "lemon",
+      "meat",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "pudding",
+      "sauce",
+      "soup",
+      "strawberry",
+      "tea",
+      "tomato",
+      "wine",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "canoe",
+      "car",
+      "convertible",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tractor",
+      "wagon",
+      "yacht"
+     ],
+     "clothing": [
+      "blouse",
+      "bra",
+      "coat",
+      "dress",
+      "hose",
+      "jacket",
+      "pants",
+      "robe",
+      "shirt",
+      "tie"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 31,
+      "foods": 15,
+      "vehicles": 15,
+      "clothing": 10
+     },
+     "Feats": {
+      "animals": 4,
+      "foods": 15
+     },
+     "Hovhannisyan": {
+      "animals": 6,
+      "foods": 1,
+      "vehicles": 1
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 98,
+      "needed": 100,
+      "margin": -2,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 98,
+      "needed": 104,
+      "margin": -6,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "minimal|>=10": {
+    "counts": {
+     "animals": 49,
+     "foods": 37,
+     "vehicles": 24,
+     "clothing": 17
+    },
+    "total": 127,
+    "concepts": {
+     "animals": [
+      "animal",
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "bug",
+      "bull",
+      "butterfly",
+      "calf",
+      "camel",
+      "chick",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dinosaur",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "kitten",
+      "lion",
+      "lizard",
+      "monkey",
+      "mouse",
+      "owl",
+      "ox",
+      "panda",
+      "pig",
+      "pigeon",
+      "pony",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "snake",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "avocado",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "chocolate",
+      "coconut",
+      "coffee",
+      "cookie",
+      "grape",
+      "gum",
+      "hamburger",
+      "jam",
+      "jelly",
+      "juice",
+      "lemon",
+      "meat",
+      "milk",
+      "orange",
+      "pasta",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "pudding",
+      "sauce",
+      "soup",
+      "steak",
+      "strawberry",
+      "tea",
+      "tomato",
+      "wine",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "convertible",
+      "helicopter",
+      "jeep",
+      "jet",
+      "kayak",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tank",
+      "taxi",
+      "tractor",
+      "truck",
+      "wagon",
+      "yacht"
+     ],
+     "clothing": [
+      "blouse",
+      "bra",
+      "coat",
+      "diaper",
+      "dress",
+      "gown",
+      "hose",
+      "jacket",
+      "mask",
+      "mitten",
+      "pants",
+      "robe",
+      "scarf",
+      "shirt",
+      "sweater",
+      "tie",
+      "veil"
+     ]
+    },
+    "by_source": {
+     "Feats": {
+      "animals": 6,
+      "foods": 17,
+      "clothing": 1
+     },
+     "McRae": {
+      "animals": 35,
+      "foods": 16,
+      "vehicles": 20,
+      "clothing": 14
+     },
+     "Hovhannisyan": {
+      "animals": 8,
+      "foods": 4,
+      "vehicles": 4,
+      "clothing": 2
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 127,
+      "needed": 100,
+      "margin": 27,
+      "reserve": 1,
+      "feasible": true,
+      "witness": {
+       "CONF": [
+        32,
+        30,
+        1,
+        1
+       ],
+       "CAL": [
+        8,
+        5,
+        2,
+        1
+       ],
+       "PILOT": [
+        8,
+        1,
+        6,
+        1
+       ],
+       "BACKGROUND": [
+        1,
+        1,
+        15,
+        14
+       ]
+      }
+     },
+     "reserve2": {
+      "available": 127,
+      "needed": 104,
+      "margin": 23,
+      "reserve": 2,
+      "feasible": true,
+      "witness": {
+       "CONF": [
+        32,
+        30,
+        1,
+        1
+       ],
+       "CAL": [
+        8,
+        4,
+        3,
+        1
+       ],
+       "PILOT": [
+        7,
+        1,
+        7,
+        1
+       ],
+       "BACKGROUND": [
+        2,
+        2,
+        13,
+        14
+       ]
+      }
+     }
+    },
+    "slack_reserve1": {
+     "animals": 27,
+     "foods": 27,
+     "vehicles": 20,
+     "clothing": 13
+    }
+   },
+   "protocol|>=12": {
+    "counts": {
+     "animals": 38,
+     "foods": 19,
+     "vehicles": 13,
+     "clothing": 10
+    },
+    "total": 80,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "camel",
+      "chick",
+      "cougar",
+      "cow",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "kitten",
+      "lion",
+      "monkey",
+      "mouse",
+      "owl",
+      "panda",
+      "pig",
+      "pigeon",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "snake",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "coconut",
+      "coffee",
+      "grape",
+      "lemon",
+      "orange",
+      "pear",
+      "pickle",
+      "pizza",
+      "potato",
+      "prune",
+      "strawberry",
+      "tea",
+      "tomato",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "canoe",
+      "car",
+      "jet",
+      "missile",
+      "ship",
+      "sled",
+      "tractor",
+      "wagon",
+      "yacht"
+     ],
+     "clothing": [
+      "blouse",
+      "bra",
+      "coat",
+      "dress",
+      "hose",
+      "jacket",
+      "pants",
+      "robe",
+      "shirt",
+      "tie"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 30,
+      "foods": 13,
+      "vehicles": 13,
+      "clothing": 10
+     },
+     "Feats": {
+      "animals": 4,
+      "foods": 6
+     },
+     "Hovhannisyan": {
+      "animals": 4
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 80,
+      "needed": 100,
+      "margin": -20,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 80,
+      "needed": 104,
+      "margin": -24,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "protocol|>=10": {
+    "counts": {
+     "animals": 45,
+     "foods": 30,
+     "vehicles": 22,
+     "clothing": 16
+    },
+    "total": 113,
+    "concepts": {
+     "animals": [
+      "animal",
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "bug",
+      "butterfly",
+      "calf",
+      "camel",
+      "chick",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dinosaur",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "kitten",
+      "lion",
+      "lizard",
+      "monkey",
+      "mouse",
+      "owl",
+      "panda",
+      "pig",
+      "pigeon",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "snake",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "avocado",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "coconut",
+      "coffee",
+      "grape",
+      "gum",
+      "hamburger",
+      "jam",
+      "juice",
+      "lemon",
+      "meat",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "soup",
+      "steak",
+      "strawberry",
+      "tea",
+      "tomato",
+      "wine",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "convertible",
+      "helicopter",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tank",
+      "tractor",
+      "truck",
+      "wagon",
+      "yacht"
+     ],
+     "clothing": [
+      "blouse",
+      "bra",
+      "coat",
+      "diaper",
+      "dress",
+      "gown",
+      "hose",
+      "jacket",
+      "mask",
+      "mitten",
+      "pants",
+      "robe",
+      "scarf",
+      "shirt",
+      "sweater",
+      "tie"
+     ]
+    },
+    "by_source": {
+     "Feats": {
+      "animals": 6,
+      "foods": 11,
+      "clothing": 1
+     },
+     "McRae": {
+      "animals": 32,
+      "foods": 16,
+      "vehicles": 19,
+      "clothing": 13
+     },
+     "Hovhannisyan": {
+      "animals": 7,
+      "foods": 3,
+      "vehicles": 3,
+      "clothing": 2
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 113,
+      "needed": 100,
+      "margin": 13,
+      "reserve": 1,
+      "feasible": true,
+      "witness": {
+       "CONF": [
+        32,
+        27,
+        4,
+        1
+       ],
+       "CAL": [
+        8,
+        1,
+        6,
+        1
+       ],
+       "PILOT": [
+        4,
+        1,
+        8,
+        3
+       ],
+       "BACKGROUND": [
+        1,
+        1,
+        4,
+        11
+       ]
+      }
+     },
+     "reserve2": {
+      "available": 113,
+      "needed": 104,
+      "margin": 9,
+      "reserve": 2,
+      "feasible": true,
+      "witness": {
+       "CONF": [
+        32,
+        26,
+        5,
+        1
+       ],
+       "CAL": [
+        8,
+        1,
+        6,
+        1
+       ],
+       "PILOT": [
+        3,
+        1,
+        8,
+        4
+       ],
+       "BACKGROUND": [
+        2,
+        2,
+        3,
+        10
+       ]
+      }
+     }
+    },
+    "slack_reserve1": {
+     "animals": 13,
+     "foods": 13,
+     "vehicles": 13,
+     "clothing": 12
+    }
+   }
+  },
+  "(b) sensitivity, Hovhannisyan >=5": {
+   "minimal|>=12": {
+    "counts": {
+     "animals": 35,
+     "foods": 30,
+     "vehicles": 15
+    },
+    "total": 80,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "monkey",
+      "mouse",
+      "owl",
+      "pig",
+      "pigeon",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "coconut",
+      "coffee",
+      "cookie",
+      "grape",
+      "gum",
+      "hamburger",
+      "juice",
+      "lemon",
+      "meat",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "pudding",
+      "sauce",
+      "soup",
+      "strawberry",
+      "tea",
+      "tomato",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "canoe",
+      "car",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tractor",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 31,
+      "foods": 15,
+      "vehicles": 15
+     },
+     "Feats": {
+      "animals": 4,
+      "foods": 15
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 80,
+      "needed": 99,
+      "margin": -19,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 80,
+      "needed": 102,
+      "margin": -22,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "minimal|>=10": {
+    "counts": {
+     "animals": 41,
+     "foods": 33,
+     "vehicles": 20
+    },
+    "total": 94,
+    "concepts": {
+     "animals": [
+      "animal",
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "bug",
+      "bull",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "monkey",
+      "mouse",
+      "owl",
+      "ox",
+      "pig",
+      "pigeon",
+      "pony",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "avocado",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "chocolate",
+      "coconut",
+      "coffee",
+      "cookie",
+      "grape",
+      "gum",
+      "hamburger",
+      "jelly",
+      "juice",
+      "lemon",
+      "meat",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "pudding",
+      "sauce",
+      "soup",
+      "strawberry",
+      "tea",
+      "tomato",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "helicopter",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "taxi",
+      "tractor",
+      "truck",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "by_source": {
+     "Feats": {
+      "animals": 6,
+      "foods": 17
+     },
+     "McRae": {
+      "animals": 35,
+      "foods": 16,
+      "vehicles": 20
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 94,
+      "needed": 99,
+      "margin": -5,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 94,
+      "needed": 102,
+      "margin": -8,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "protocol|>=12": {
+    "counts": {
+     "animals": 25,
+     "foods": 15,
+     "vehicles": 11
+    },
+    "total": 51,
+    "concepts": {
+     "animals": [
+      "bear",
+      "bee",
+      "butterfly",
+      "camel",
+      "cougar",
+      "cow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "horse",
+      "lion",
+      "mouse",
+      "pig",
+      "puppy",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "butter",
+      "cabbage",
+      "candy",
+      "coconut",
+      "coffee",
+      "grape",
+      "lemon",
+      "pear",
+      "pickle",
+      "pizza",
+      "potato",
+      "prune",
+      "strawberry",
+      "tea"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "canoe",
+      "car",
+      "jet",
+      "missile",
+      "ship",
+      "sled",
+      "yacht"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 22,
+      "foods": 10,
+      "vehicles": 11
+     },
+     "Feats": {
+      "animals": 3,
+      "foods": 5
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 51,
+      "needed": 99,
+      "margin": -48,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 51,
+      "needed": 102,
+      "margin": -51,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "protocol|>=10": {
+    "counts": {
+     "animals": 36,
+     "foods": 23,
+     "vehicles": 18
+    },
+    "total": 77,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "monkey",
+      "mouse",
+      "owl",
+      "pig",
+      "pigeon",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "coconut",
+      "coffee",
+      "grape",
+      "gum",
+      "juice",
+      "lemon",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "strawberry",
+      "tea",
+      "tomato",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "helicopter",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tractor",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 32,
+      "foods": 15,
+      "vehicles": 18
+     },
+     "Feats": {
+      "animals": 4,
+      "foods": 8
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 77,
+      "needed": 99,
+      "margin": -22,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 77,
+      "needed": 102,
+      "margin": -25,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   }
+  },
+  "(c) sensitivity, Hovhannisyan >=5": {
+   "minimal|>=12": {
+    "counts": {
+     "animals": 35,
+     "foods": 30,
+     "vehicles": 15,
+     "clothing": 10
+    },
+    "total": 90,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "monkey",
+      "mouse",
+      "owl",
+      "pig",
+      "pigeon",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "coconut",
+      "coffee",
+      "cookie",
+      "grape",
+      "gum",
+      "hamburger",
+      "juice",
+      "lemon",
+      "meat",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "pudding",
+      "sauce",
+      "soup",
+      "strawberry",
+      "tea",
+      "tomato",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "canoe",
+      "car",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tractor",
+      "wagon",
+      "yacht"
+     ],
+     "clothing": [
+      "blouse",
+      "bra",
+      "coat",
+      "dress",
+      "hose",
+      "jacket",
+      "pants",
+      "robe",
+      "shirt",
+      "tie"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 31,
+      "foods": 15,
+      "vehicles": 15,
+      "clothing": 10
+     },
+     "Feats": {
+      "animals": 4,
+      "foods": 15
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 90,
+      "needed": 100,
+      "margin": -10,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 90,
+      "needed": 104,
+      "margin": -14,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "minimal|>=10": {
+    "counts": {
+     "animals": 41,
+     "foods": 33,
+     "vehicles": 20,
+     "clothing": 15
+    },
+    "total": 109,
+    "concepts": {
+     "animals": [
+      "animal",
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "bug",
+      "bull",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "monkey",
+      "mouse",
+      "owl",
+      "ox",
+      "pig",
+      "pigeon",
+      "pony",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "avocado",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "chocolate",
+      "coconut",
+      "coffee",
+      "cookie",
+      "grape",
+      "gum",
+      "hamburger",
+      "jelly",
+      "juice",
+      "lemon",
+      "meat",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "pudding",
+      "sauce",
+      "soup",
+      "strawberry",
+      "tea",
+      "tomato",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "helicopter",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "taxi",
+      "tractor",
+      "truck",
+      "wagon",
+      "yacht"
+     ],
+     "clothing": [
+      "blouse",
+      "bra",
+      "coat",
+      "diaper",
+      "dress",
+      "gown",
+      "hose",
+      "jacket",
+      "pants",
+      "robe",
+      "scarf",
+      "shirt",
+      "sweater",
+      "tie",
+      "veil"
+     ]
+    },
+    "by_source": {
+     "Feats": {
+      "animals": 6,
+      "foods": 17,
+      "clothing": 1
+     },
+     "McRae": {
+      "animals": 35,
+      "foods": 16,
+      "vehicles": 20,
+      "clothing": 14
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 109,
+      "needed": 100,
+      "margin": 9,
+      "reserve": 1,
+      "feasible": true,
+      "witness": {
+       "CONF": [
+        32,
+        30,
+        1,
+        1
+       ],
+       "CAL": [
+        7,
+        1,
+        7,
+        1
+       ],
+       "PILOT": [
+        1,
+        1,
+        8,
+        6
+       ],
+       "BACKGROUND": [
+        1,
+        1,
+        4,
+        7
+       ]
+      }
+     },
+     "reserve2": {
+      "available": 109,
+      "needed": 104,
+      "margin": 5,
+      "reserve": 2,
+      "feasible": true,
+      "witness": {
+       "CONF": [
+        32,
+        29,
+        2,
+        1
+       ],
+       "CAL": [
+        6,
+        1,
+        8,
+        1
+       ],
+       "PILOT": [
+        1,
+        1,
+        8,
+        6
+       ],
+       "BACKGROUND": [
+        2,
+        2,
+        2,
+        7
+       ]
+      }
+     }
+    },
+    "slack_reserve1": {
+     "animals": 9,
+     "foods": 9,
+     "vehicles": 9,
+     "clothing": 9
+    }
+   },
+   "protocol|>=12": {
+    "counts": {
+     "animals": 25,
+     "foods": 15,
+     "vehicles": 11,
+     "clothing": 10
+    },
+    "total": 61,
+    "concepts": {
+     "animals": [
+      "bear",
+      "bee",
+      "butterfly",
+      "camel",
+      "cougar",
+      "cow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "horse",
+      "lion",
+      "mouse",
+      "pig",
+      "puppy",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "butter",
+      "cabbage",
+      "candy",
+      "coconut",
+      "coffee",
+      "grape",
+      "lemon",
+      "pear",
+      "pickle",
+      "pizza",
+      "potato",
+      "prune",
+      "strawberry",
+      "tea"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "canoe",
+      "car",
+      "jet",
+      "missile",
+      "ship",
+      "sled",
+      "yacht"
+     ],
+     "clothing": [
+      "blouse",
+      "bra",
+      "coat",
+      "dress",
+      "hose",
+      "jacket",
+      "pants",
+      "robe",
+      "shirt",
+      "tie"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 22,
+      "foods": 10,
+      "vehicles": 11,
+      "clothing": 10
+     },
+     "Feats": {
+      "animals": 3,
+      "foods": 5
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 61,
+      "needed": 100,
+      "margin": -39,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 61,
+      "needed": 104,
+      "margin": -43,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   },
+   "protocol|>=10": {
+    "counts": {
+     "animals": 36,
+     "foods": 23,
+     "vehicles": 18,
+     "clothing": 13
+    },
+    "total": 90,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "monkey",
+      "mouse",
+      "owl",
+      "pig",
+      "pigeon",
+      "puppy",
+      "python",
+      "rat",
+      "robin",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "bread",
+      "butter",
+      "cabbage",
+      "candy",
+      "cheese",
+      "coconut",
+      "coffee",
+      "grape",
+      "gum",
+      "juice",
+      "lemon",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "pizza",
+      "potato",
+      "prune",
+      "strawberry",
+      "tea",
+      "tomato",
+      "yogurt"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "helicopter",
+      "jeep",
+      "jet",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tractor",
+      "wagon",
+      "yacht"
+     ],
+     "clothing": [
+      "blouse",
+      "bra",
+      "coat",
+      "diaper",
+      "dress",
+      "gown",
+      "hose",
+      "jacket",
+      "pants",
+      "robe",
+      "scarf",
+      "shirt",
+      "tie"
+     ]
+    },
+    "by_source": {
+     "McRae": {
+      "animals": 32,
+      "foods": 15,
+      "vehicles": 18,
+      "clothing": 12
+     },
+     "Feats": {
+      "animals": 4,
+      "foods": 8,
+      "clothing": 1
+     }
+    },
+    "allocation": {
+     "reserve1": {
+      "available": 90,
+      "needed": 100,
+      "margin": -10,
+      "reserve": 1,
+      "feasible": false
+     },
+     "reserve2": {
+      "available": 90,
+      "needed": 104,
+      "margin": -14,
+      "reserve": 2,
+      "feasible": false
+     }
+    },
+    "slack_reserve1": null
+   }
+  }
+ }
+}

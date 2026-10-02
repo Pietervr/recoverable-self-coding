@@ -102,11 +102,21 @@ def read_feats() -> tuple[dict[str, list[dict]], dict[str, str]]:
     return dict(rows), digests
 
 
-class Source:
-    """One source or the pool, with the McRae-compatible interface family_pool.py expects."""
+# Hovhannisyan's overlap with McRae + Feats on exact labels (Codex, RSC d6bdbc4), asserted below.
+PINNED_HOV = {"hov_labels": 995, "overlap": 327, "exact_new": 668, "exact_new_single_word": 404}
 
-    def __init__(self, name: str):
-        if name not in ("mcrae", "pooled"):
+
+class Source:
+    """One source or a pool, with the McRae-compatible interface family_pool.py expects.
+
+    mcrae    McRae alone
+    pooled   McRae > Feats, exact-new Feats concepts only
+    pooled3  McRae > Feats > Hovhannisyan (2021), exact-new Hovhannisyan concepts only, Hovhannisyan features at an
+             absolute cutoff of >= hov_cutoff productions (hovhannisyan_parse.py states the gaps that implies)
+    """
+
+    def __init__(self, name: str, hov_cutoff: int = 3):
+        if name not in ("mcrae", "pooled", "pooled3"):
             raise ValueError(name)
         self.name = name
         mc = McRae()
@@ -126,7 +136,7 @@ class Source:
         digests = {"CONCS_FEATS_concstats_brm.txt": mc.sha256}
         self.bookkeeping: dict = {}
         n_rows = mc.n_rows
-        if name == "pooled":
+        if name in ("pooled", "pooled3"):
             feats, fd = read_feats()
             digests.update(fd)
             labels = set(feats)
@@ -148,6 +158,27 @@ class Source:
             for c in new_single:
                 features[c] = {r["feature"] for r in feats[c]}
             self.exact_new_single = new_single
+        if name == "pooled3":
+            from hovhannisyan_parse import read as read_hov
+            hov, hd = read_hov(hov_cutoff)
+            digests.update(hd)
+            hlabels = set(hov)
+            h_overlap = sorted(hlabels & set(all_cues))
+            h_new = sorted(hlabels - set(all_cues))
+            h_single = [c for c in h_new if c.isalpha()]
+            hb = {"hov_labels": len(hlabels), "overlap": len(h_overlap), "exact_new": len(h_new),
+                  "exact_new_single_word": len(h_single)}
+            if hb != PINNED_HOV:
+                raise SystemExit(f"Hovhannisyan bookkeeping {hb} differs from the pinned {PINNED_HOV}")
+            self.bookkeeping["hovhannisyan"] = {**hb, "cutoff": hov_cutoff}
+            for c in h_new:
+                all_cues[c] = {r["feature"] for r in hov[c]}
+                n_rows += len(hov[c])
+                for r in hov[c]:
+                    self.provenance[(c, r["feature"])] = r
+            for c in h_single:
+                features[c] = {r["feature"] for r in hov[c]}
+            self.hov_new_single = h_single
         self.digests = digests
         self.sha256 = hashlib.sha256("|".join(f"{k}:{v}" for k, v in sorted(digests.items())).encode()).hexdigest()
         self.n_rows = n_rows
