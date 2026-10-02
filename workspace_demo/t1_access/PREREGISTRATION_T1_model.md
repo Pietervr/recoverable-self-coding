@@ -208,9 +208,24 @@ against a four-family minimum of 100** (CONF 64 + CAL 16 + PILOT 16 + one BACKGR
 allocation with an aggregate margin of four — counted before naming acceptance, for which no rate on relational
 features has been measured, and resting on 14 Hovhannisyan concepts; 113 without rule T; 90 at a ≥ 5 cutoff. **Vehicles
 is the binding family at every three-family count; on the four-family route no family binds and the aggregate
-margin does.** The question therefore stands as this section raised it: whether the bank can be
-built from published norms under these rules, or which rule, source or channel changes — a decision recorded for
-15 October 2026. binding family.** If its realised eligible count falls below what the
+margin does.** **The route does not survive this section's acceptance.** On a seeded development sample of 30 concepts drawn
+from the four-family pool in proportion to its sources, with ten usable clauses each selected and rendered under
+the declared rules, the two-sided acceptance as declared (at most two of ten clauses named alone; the concept named
+from eight clauses on all three seeded draws) passes **12 of 30 — 0.40, exact 95 % interval 0.23–0.59** (R084, RSC
+af8a668, `stimuli/norms_bank/ACCEPTANCE_SAMPLE.md`; reader ollama llama3.1:8b at temperature 0, never the model under
+test, stateless, no prior exposure to these concepts). Applied to the pool, 104 becomes about 42 (24–62) and 113
+about 45, against a minimum of 100. The failures are 13 at the floor — the reader names a near neighbour (hawk → eagle,
+pie → pizza, convertible → car; six were named on two of three draws) — and 5 at the ceiling, each with exactly three
+clauses named alone; by source McRae 10/22, Feats 2/4, Hovhannisyan 0/4. Relaxing the floor to two of three draws gives
+0.60, the ceiling to three clauses 0.57, both 0.77 — 80 of 104 and 87 of 113, still under 100 at the point estimate.
+**The acceptance rate is a property of the clauses and the reader together.** The floor measures the reader's naming
+ability, and this section fixes only that the reader is never the model under test, not how capable it must be; the
+bank's size therefore depends on a choice the protocol has not made, which is recorded here as open. Hovhannisyan's
+clauses add a second weakness: four of forty describe the photographed exemplar (wine "is made of glass", "has a
+cork"; convertible "is red"), and without a cue validity its ten clauses spread over production counts, which do not
+favour distinguishing features. The question therefore stands as this section raised it, and harder: whether the bank
+can be built from published norms under these rules, or which rule, reader, source or channel changes — a decision
+recorded for 15 October 2026. binding family.** If its realised eligible count falls below what the
 allocation needs, three families cannot be filled, and since three is already the floor set by the competitor
 rule, the question returns to whether this bank can be built from published norms at all.
 
@@ -911,3 +926,4 @@ lists, amplitudes, outcomes); this document.
 | 2026-09-26 | Draft amendment, §3.1: the recorded fragility re-measured for the adopted three-family design (R084, RSC 2646bf1). McRae alone 33/15/17 = 65 against 99 (CONF 64 + CAL 16 + PILOT 16 + one BACKGROUND per family), not 58 against 96 — the earlier figures were the eight-family scenario's, where E2 also excluded concepts touching the five families since dropped; pooled upper bound 57/42/29 = 128; CSLB must supply at least 34 of its 63 three-family candidates at ≥ 12 features. Added: on McRae alone, proportional allocation puts animals over the half-share pairing limit in every split. Vehicles stays the binding family. |
 | 2026-10-02 | Draft amendment, §3.1: Feats (Borovsky, Peters, Cox & McRae 2023) adopted as a second source under a declared pooling rule (R084, RSC 3cd3786); the recorded fragility restated on USABLE features — single token 51 of 99 at twelve (25/15/11), 77 at ten; only ten clauses with two-token names reaches 114; rule T's wording corrected (taxonomic rows are not all family words) and its narrowing left open at a measured cost of 16/8; the raw figures 65, 85 and 128 withdrawn; CSLB and Hovhannisyan unmeasured under these rules. Decision point 15 October 2026. |
 | 2026-10-02 | Draft amendment, §3.1, later: the no-CSLB route measured under the full rules (R084, RSC 6153fee) — McRae + Feats + Hovhannisyan (≥ 3 productions) with clothing as a fourth family reaches 104 usable single-token concepts at ten clauses against a four-family minimum of 100 (margin four, before naming acceptance, 14 concepts from Hovhannisyan); 113 without rule T; 90 at ≥ 5; twelve clauses fail under every row. Hovhannisyan's three gaps (no denominator, no CV, photo-conditioned) and its unrecorded data terms stated. Decision point 15 October 2026. |
+| 2026-10-02 | Draft amendment, §3.1, last: the naming-acceptance rate measured on a 30-concept development sample of the four-family route (R084, RSC af8a668) — 12 of 30 pass as declared (0.40, 0.23–0.59), so 104 becomes about 42 and no relaxation of the two sides reaches 100 at the point estimate; the floor measures the reader's naming ability, and the reader's required capability is recorded as an open protocol choice; Hovhannisyan's photo-conditioned and generic clauses noted. The route is withdrawn as a bank; the 15 October decision now includes the reader and the channel. |
