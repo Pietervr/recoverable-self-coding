@@ -4,7 +4,7 @@ R084, 2 October 2026. Executed under the owner's go ("go for Stage A and the rea
 `stimuli/photo/AIREADER_GO.json`, RSC `6ca6fb0`), after Stage A (sequential: Stage A stops on system-wide swap and
 pressure, so the two were not shown independent). `ai_reader_exec.py plan` reproduced package digest `ffba894e…`
 (24 fields, codex-cli 0.159.3) before the run. Command: `.venv-image/bin/python stimuli/photo/ai_reader_exec.py run`
-(22:36:00-22:54:20 UTC) on RSC HEAD `66c64ca`, whose bound photo files equal the reviewed `fbfb7db`. The journal is
+(22:36:02-22:54:20 UTC) on RSC HEAD `66c64ca`, whose bound photo files equal the reviewed `fbfb7db`. The journal is
 committed at RSC `f021c53`; the clock, its closure marker, the outputs and the scorer's refusal are in
 `2026-10-02_ai_reader_run/` (`summary.json` holds the journal sha256 and the counts).
 
