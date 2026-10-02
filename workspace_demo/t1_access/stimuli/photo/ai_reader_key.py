@@ -62,7 +62,10 @@ def plurals(word: str) -> set[str]:
         regular = word + "s"
     exc = wn._exception_map["n"]                       # WordNet noun.exc: inflected form -> base forms
     irregular = {p for p, bases in exc.items() if word in bases}
-    cands = ({regular} if not irregular else set()) | irregular
+    # A word already ending in a plural -s (scissors, shorts, clothes, drawers) gets no regular plural: WordNet's
+    # lemmatiser would accept 'scissorses'. Singular -s endings (glass, bus, iris, gas, lasso...) keep theirs.
+    plural_only = word.endswith("s") and not word.endswith(("ss", "us", "is", "as", "os"))
+    cands = ({regular} if not irregular and not plural_only else set()) | irregular
     return {p for p in cands if p != word and word in wn._morphy(p, wn.NOUN)}   # all bases WordNet allows
 
 

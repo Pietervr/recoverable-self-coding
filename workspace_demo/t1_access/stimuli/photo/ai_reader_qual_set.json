@@ -6060,10 +6060,10 @@
   "4d7f5790e767",
   "b4ea376fb211"
  ],
- "key_sha256": "95265605f2b0fc2b274b71dc028756fc6e37efa4ac14e554f6d9556e77b8236d",
+ "key_sha256": "65aa70aadd67c44eab2fa4a02637f978dafaa9611931ce38f01ee1f0f9af2198",
  "code_sha256": {
   "ai_reader_frame.py": "54935de726626bbadf9004732b75cb8f6a155576a76c7425bf4c0581deafc77f",
-  "ai_reader_key.py": "7500164d2726d4435cf10be604d71488664e968dfe0ccdbc8aeb6f2f8b2abf42",
+  "ai_reader_key.py": "2d21121c75c307c6f6c64b3e253c1caa0f2de06f9a4842b9cd790b5dd2097bcf",
   "ai_reader_qual.py": "4704220fcc05daeaaa5281603e022dad5ee4029180222ce904594cbee4bec18e",
   "dose.py": "05d61ea6d199903eb066534e8cc2e7bb73e102b9cfa284f5692f8d75e9bb4302"
  }

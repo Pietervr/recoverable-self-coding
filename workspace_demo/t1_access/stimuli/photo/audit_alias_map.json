@@ -1,0 +1,615 @@
+{
+ "note": "Audit-specific frozen sense/alias map for the 32 instrument concepts; scoring = whole-answer equality after ai_reader_key.normalise; frozen before any audit answer.",
+ "dev_pool_sha256": "fae20dc215d1de329ff81a5687735047c9a92cead1b9642f7cda4f6c2d69ad2d",
+ "concepts": {
+  "avocado": {
+   "family": "foods",
+   "role": "DEV-CAL",
+   "synset": "n07764847",
+   "sense": "a pear-shaped tropical fruit with green or blackish skin and rich yellowish pulp enclosing a single large seed",
+   "aliases": [
+    "aguacate",
+    "aguacates",
+    "alligator pear",
+    "alligator pears",
+    "avocado",
+    "avocado pear",
+    "avocado pears",
+    "avocados"
+   ],
+   "validated_plurals": {
+    "aguacate": [
+     "aguacates"
+    ],
+    "alligator pear": [
+     "alligator pears"
+    ],
+    "avocado pear": [
+     "avocado pears"
+    ],
+    "avocado": [
+     "avocados"
+    ]
+   }
+  },
+  "boat": {
+   "family": "vehicles",
+   "role": "DEV-CAL",
+   "synset": "n02858304",
+   "sense": "a small vessel for travel on water",
+   "aliases": [
+    "boat",
+    "boats"
+   ],
+   "validated_plurals": {
+    "boat": [
+     "boats"
+    ]
+   }
+  },
+  "butterfly": {
+   "family": "animals",
+   "role": "DEV-PILOT",
+   "synset": "n02274259",
+   "sense": "diurnal insect typically having a slender body with knobbed antennae and broad colorful wings",
+   "aliases": [
+    "butterflies",
+    "butterfly"
+   ],
+   "validated_plurals": {
+    "butterfly": [
+     "butterflies"
+    ]
+   }
+  },
+  "candy": {
+   "family": "foods",
+   "role": "DEV-PILOT",
+   "synset": "n07597365",
+   "sense": "a rich sweet made of flavored sugar and often combined with fruit or nuts",
+   "aliases": [
+    "candies",
+    "candy",
+    "confect",
+    "confects"
+   ],
+   "validated_plurals": {
+    "confect": [
+     "confects"
+    ],
+    "candy": [
+     "candies"
+    ]
+   }
+  },
+  "canoe": {
+   "family": "vehicles",
+   "role": "DEV-CAL",
+   "synset": "n02951358",
+   "sense": "small and light boat; pointed at both ends; propelled with a paddle",
+   "aliases": [
+    "canoe",
+    "canoes"
+   ],
+   "validated_plurals": {
+    "canoe": [
+     "canoes"
+    ]
+   }
+  },
+  "caramel": {
+   "family": "foods",
+   "role": "DEV-CAL",
+   "synset": "n07601809",
+   "sense": "firm chewy candy made from caramelized sugar and butter and milk",
+   "aliases": [
+    "caramel",
+    "caramels"
+   ],
+   "validated_plurals": {
+    "caramel": [
+     "caramels"
+    ]
+   }
+  },
+  "cheese": {
+   "family": "foods",
+   "role": "DEV-PILOT",
+   "synset": "n07850329",
+   "sense": "a solid food prepared from the pressed curd of milk",
+   "aliases": [
+    "cheese",
+    "cheeses"
+   ],
+   "validated_plurals": {
+    "cheese": [
+     "cheeses"
+    ]
+   }
+  },
+  "chili": {
+   "family": "foods",
+   "role": "DEV-CAL",
+   "synset": "n07864934",
+   "sense": "ground beef and chili peppers or chili powder often with tomatoes and kidney beans",
+   "aliases": [
+    "chili",
+    "chili con carne",
+    "chilis"
+   ],
+   "validated_plurals": {
+    "chili": [
+     "chilis"
+    ]
+   }
+  },
+  "clothes": {
+   "family": "clothing",
+   "role": "DEV-CAL",
+   "synset": "n02728440",
+   "sense": "clothing in general",
+   "aliases": [
+    "apparel",
+    "apparels",
+    "clothes",
+    "dress",
+    "dresses",
+    "wearing apparel",
+    "wearing apparels"
+   ],
+   "validated_plurals": {
+    "apparel": [
+     "apparels"
+    ],
+    "wearing apparel": [
+     "wearing apparels"
+    ],
+    "dress": [
+     "dresses"
+    ]
+   }
+  },
+  "cow": {
+   "family": "animals",
+   "role": "DEV-PILOT",
+   "synset": "n02403454",
+   "sense": "female of domestic cattle: \"`moo-cow' is a child's term\"",
+   "aliases": [
+    "cow",
+    "cows",
+    "moo cow",
+    "moo cows"
+   ],
+   "validated_plurals": {
+    "moo cow": [
+     "moo cows"
+    ],
+    "cow": [
+     "cows"
+    ]
+   }
+  },
+  "crow": {
+   "family": "animals",
+   "role": "DEV-CAL",
+   "synset": "n01579028",
+   "sense": "black birds having a raucous call",
+   "aliases": [
+    "crow",
+    "crows"
+   ],
+   "validated_plurals": {
+    "crow": [
+     "crows"
+    ]
+   }
+  },
+  "hamburger": {
+   "family": "foods",
+   "role": "DEV-CAL",
+   "synset": "n07697100",
+   "sense": "a sandwich consisting of a fried cake of minced beef served on a bun, often with other ingredients",
+   "aliases": [
+    "beefburger",
+    "beefburgers",
+    "burger",
+    "burgers",
+    "hamburger",
+    "hamburgers"
+   ],
+   "validated_plurals": {
+    "hamburger": [
+     "hamburgers"
+    ],
+    "beefburger": [
+     "beefburgers"
+    ],
+    "burger": [
+     "burgers"
+    ]
+   }
+  },
+  "hat": {
+   "family": "clothing",
+   "role": "DEV-PILOT",
+   "synset": "n03497657",
+   "sense": "headdress that protects the head from bad weather; has shaped crown and usually a brim",
+   "aliases": [
+    "chapeau",
+    "chapeaux",
+    "hat",
+    "hats",
+    "lid",
+    "lids"
+   ],
+   "validated_plurals": {
+    "hat": [
+     "hats"
+    ],
+    "chapeau": [
+     "chapeaux"
+    ],
+    "lid": [
+     "lids"
+    ]
+   }
+  },
+  "horse": {
+   "family": "animals",
+   "role": "DEV-CAL",
+   "synset": "n02374451",
+   "sense": "solid-hoofed herbivorous quadruped domesticated since prehistoric times",
+   "aliases": [
+    "equus caballus",
+    "horse",
+    "horses"
+   ],
+   "validated_plurals": {
+    "horse": [
+     "horses"
+    ]
+   }
+  },
+  "jacket": {
+   "family": "clothing",
+   "role": "DEV-CAL",
+   "synset": "n03589791",
+   "sense": "a short coat",
+   "aliases": [
+    "jacket",
+    "jackets"
+   ],
+   "validated_plurals": {
+    "jacket": [
+     "jackets"
+    ]
+   }
+  },
+  "jeans": {
+   "family": "clothing",
+   "role": "DEV-CAL",
+   "synset": "n03594734",
+   "sense": "(usually plural) close-fitting trousers of heavy denim for manual work or casual wear",
+   "aliases": [
+    "blue jean",
+    "blue jeans",
+    "denim",
+    "denims",
+    "jean",
+    "jeans"
+   ],
+   "validated_plurals": {
+    "denim": [
+     "denims"
+    ],
+    "blue jean": [
+     "blue jeans"
+    ],
+    "jean": [
+     "jeans"
+    ]
+   }
+  },
+  "jet": {
+   "family": "vehicles",
+   "role": "DEV-PILOT",
+   "synset": "n03595860",
+   "sense": "an airplane powered by one or more jet engines",
+   "aliases": [
+    "jet",
+    "jet plane",
+    "jet planes",
+    "jet propelled plane",
+    "jet propelled planes",
+    "jets"
+   ],
+   "validated_plurals": {
+    "jet plane": [
+     "jet planes"
+    ],
+    "jet propelled plane": [
+     "jet propelled planes"
+    ],
+    "jet": [
+     "jets"
+    ]
+   }
+  },
+  "lingerie": {
+   "family": "clothing",
+   "role": "DEV-CAL",
+   "synset": "n03673450",
+   "sense": "women's underwear and nightclothes",
+   "aliases": [
+    "intimate apparel",
+    "intimate apparels",
+    "lingerie",
+    "lingeries"
+   ],
+   "validated_plurals": {
+    "intimate apparel": [
+     "intimate apparels"
+    ],
+    "lingerie": [
+     "lingeries"
+    ]
+   }
+  },
+  "mosquito": {
+   "family": "animals",
+   "role": "DEV-PILOT",
+   "synset": "n02200198",
+   "sense": "two-winged insect whose female has a long proboscis to pierce the skin and suck the blood of humans and animals",
+   "aliases": [
+    "mosquito",
+    "mosquitoes"
+   ],
+   "validated_plurals": {
+    "mosquito": [
+     "mosquitoes"
+    ]
+   }
+  },
+  "pig": {
+   "family": "animals",
+   "role": "DEV-CAL",
+   "synset": "n02395406",
+   "sense": "domestic swine",
+   "aliases": [
+    "grunter",
+    "grunters",
+    "hog",
+    "hogs",
+    "pig",
+    "pigs",
+    "squealer",
+    "squealers",
+    "sus scrofa"
+   ],
+   "validated_plurals": {
+    "pig": [
+     "pigs"
+    ],
+    "grunter": [
+     "grunters"
+    ],
+    "hog": [
+     "hogs"
+    ],
+    "squealer": [
+     "squealers"
+    ]
+   }
+  },
+  "pigeon": {
+   "family": "animals",
+   "role": "DEV-PILOT",
+   "synset": "n01811909",
+   "sense": "wild and domesticated birds having a heavy body and short legs",
+   "aliases": [
+    "pigeon",
+    "pigeons"
+   ],
+   "validated_plurals": {
+    "pigeon": [
+     "pigeons"
+    ]
+   }
+  },
+  "prune": {
+   "family": "foods",
+   "role": "DEV-PILOT",
+   "synset": "n07752602",
+   "sense": "dried plum",
+   "aliases": [
+    "prune",
+    "prunes"
+   ],
+   "validated_plurals": {
+    "prune": [
+     "prunes"
+    ]
+   }
+  },
+  "robe": {
+   "family": "clothing",
+   "role": "DEV-PILOT",
+   "synset": "n04097866",
+   "sense": "any loose flowing garment",
+   "aliases": [
+    "robe",
+    "robes"
+   ],
+   "validated_plurals": {
+    "robe": [
+     "robes"
+    ]
+   }
+  },
+  "shark": {
+   "family": "animals",
+   "role": "DEV-CAL",
+   "synset": "n01482330",
+   "sense": "any of numerous elongate mostly marine carnivorous fishes with heterocercal caudal fins and tough skin covered with small toothlike scales",
+   "aliases": [
+    "shark",
+    "sharks"
+   ],
+   "validated_plurals": {
+    "shark": [
+     "sharks"
+    ]
+   }
+  },
+  "ship": {
+   "family": "vehicles",
+   "role": "DEV-PILOT",
+   "synset": "n04194289",
+   "sense": "a vessel that carries passengers or freight",
+   "aliases": [
+    "ship",
+    "ships"
+   ],
+   "validated_plurals": {
+    "ship": [
+     "ships"
+    ]
+   }
+  },
+  "skateboard": {
+   "family": "vehicles",
+   "role": "DEV-PILOT",
+   "synset": "n04225987",
+   "sense": "a board with wheels that is ridden in a standing or crouching position and propelled by foot",
+   "aliases": [
+    "skateboard",
+    "skateboards"
+   ],
+   "validated_plurals": {
+    "skateboard": [
+     "skateboards"
+    ]
+   }
+  },
+  "sock": {
+   "family": "clothing",
+   "role": "DEV-PILOT",
+   "synset": "n04254777",
+   "sense": "hosiery consisting of a cloth covering for the foot; worn inside the shoe; reaches to between the ankle and the knee",
+   "aliases": [
+    "sock",
+    "socks"
+   ],
+   "validated_plurals": {
+    "sock": [
+     "socks"
+    ]
+   }
+  },
+  "taxi": {
+   "family": "vehicles",
+   "role": "DEV-CAL",
+   "synset": "n02930766",
+   "sense": "a car driven by a person whose job is to take passengers where they want to go in exchange for money",
+   "aliases": [
+    "cab",
+    "cabs",
+    "hack",
+    "hacks",
+    "taxi",
+    "taxicab",
+    "taxicabs",
+    "taxies"
+   ],
+   "validated_plurals": {
+    "taxi": [
+     "taxies"
+    ],
+    "cab": [
+     "cabs"
+    ],
+    "taxicab": [
+     "taxicabs"
+    ],
+    "hack": [
+     "hacks"
+    ]
+   }
+  },
+  "tie": {
+   "family": "clothing",
+   "role": "DEV-PILOT",
+   "synset": "n03815615",
+   "sense": "neckwear consisting of a long narrow piece of material worn (mostly by men) under a collar and tied in knot at the front",
+   "aliases": [
+    "necktie",
+    "neckties",
+    "tie",
+    "ties"
+   ],
+   "validated_plurals": {
+    "necktie": [
+     "neckties"
+    ],
+    "tie": [
+     "ties"
+    ]
+   }
+  },
+  "tomato": {
+   "family": "foods",
+   "role": "DEV-PILOT",
+   "synset": "n07734017",
+   "sense": "mildly acid red or yellow pulpy fruit eaten as a vegetable",
+   "aliases": [
+    "tomato",
+    "tomatoes"
+   ],
+   "validated_plurals": {
+    "tomato": [
+     "tomatoes"
+    ]
+   }
+  },
+  "truck": {
+   "family": "vehicles",
+   "role": "DEV-PILOT",
+   "synset": "n04490091",
+   "sense": "an automotive vehicle suitable for hauling",
+   "aliases": [
+    "motortruck",
+    "motortrucks",
+    "truck",
+    "trucks"
+   ],
+   "validated_plurals": {
+    "motortruck": [
+     "motortrucks"
+    ],
+    "truck": [
+     "trucks"
+    ]
+   }
+  },
+  "wagon": {
+   "family": "vehicles",
+   "role": "DEV-CAL",
+   "synset": "n04543158",
+   "sense": "any of various kinds of wheeled vehicles drawn by an animal or a tractor",
+   "aliases": [
+    "waggon",
+    "waggons",
+    "wagon",
+    "wagons"
+   ],
+   "validated_plurals": {
+    "waggon": [
+     "waggons"
+    ],
+    "wagon": [
+     "wagons"
+    ]
+   }
+  }
+ }
+}

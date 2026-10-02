@@ -1,211 +1,267 @@
-# Stage A (ledger row 20): declared criteria and code, revision 2 (R084, 2 October 2026)
+# Stage A (ledger row 20): declared criteria and code, revision 3 (R084, 2 October 2026)
 
-**Specification.** Framework `rsc_t1_two_channel_framework.md` §8.4 (Unimog repo), which carries runner checks
-(a)–(p). This document states how the code implements it.
+**Specification:** framework `rsc_t1_two_channel_framework.md` §8.2, §8.4 and §8.6 (Unimog).
 
-**What this answers.**
+**History.**
 
-- Revision 1 (RSC `79343d9`) was reviewed by Codex as **NOT ON BOARD** (RSC `f9d2ef3`). That record is not a
-  favourable review and cannot be named in `ROW20_GO.json`. The code refuses it.
-- This revision answers R052's repairs 1–18 (Unimog `prompts/2026-10-02_r052_to_r084_row20_repairs.txt`).
+| Revision | Commit | Codex's review | Verdict |
+|---|---|---|---|
+| 1 | RSC `79343d9` | RSC `f9d2ef3` | NOT ON BOARD |
+| 2 | RSC `e598f96` | RSC `69539bb` | NOT ON BOARD |
+| 3 | this commit | — | answers R052's handoff `51739bd8`: the seven closure groups of `69539bb` §5 |
 
-**State.** No forward has run on any development image. Every test below ran on a fake instrument, with no model
-imported or loaded.
+Neither review record can be named by a go; the guard refuses both commits.
 
-## 0. Where each repair lives
+**Not reopened** (Codex confirmed them):
 
-| # | Repair | Where |
-|---|---|---|
-| 1 | Seven cases; λ = 1 swap/ablate as 16 labelled diagnostics on 8 named inputs | `stage_a.py` `CASES`, `MECHANICS`, `make_plan` (diagnostics.mechanics = the 8 clean inputs); §2 below |
-| 2 | Explicit no-edit delayed repeat; unknown case rejected | `stage_a.edits_for` (a table; `repeat` → `None`; anything else raises); test `Units.test_cases` |
-| 3 | Frozen plan and manifest loaded, never regenerated; original bytes, PNG, tensor and grid checked before each input; native checked against the frozen values | `stage_a.load_frozen`, `admit_input` (both phases); plan fields `original_sha256`, `png_sha256`, `pixel_values_sha256`, `grid_thw`, `expected` |
-| 4 | Positional identity enforced | `admit_input` → `check_against_processor` and `check_sequence_structure`; `validate_pass` (ids hash, readout, M-RoPE positions = the frozen expectation = effective, 32 rope calls at offset 0, one embed call, one injection, merge rows bitwise, dims and dtypes, requested E1 order); `check_tokenizer` (E1 ids vs the pinned tokenizer in both phases); native: effective positions and one call per decoder layer |
-| 5 | Execution identity | `stage_a_guard.execution_identity` → `stage_a_identity.json` (snapshot files including the three shards, lens, local code, `packet.py`, jlens tree + HEAD + diff + shim, ten package trees with versions, Python and macOS, declared precision and dispatch, plan and manifest hashes); recomputed and compared in every phase; `post_load_instrumented` checks the loaded dims, dtype and GDN patch |
-| 6 | Go bound to the exact package | `stage_a_guard.require_go` checks: verdict "favourable"; commit not `f9d2ef3`; the record's sha256 read from git at that commit; the owner's dated words, not earlier than the review; criteria, identity, plan, manifest and budget hashes. It runs before any load. Tests: `GoBinding` (7 mismatches refused) |
-| 7 | Durable first-failure stop across both phases; no retry | `stage_a_guard.TERMINAL.json` (`set_terminal`/`check_terminal`), written on ANY exception after the session opens and by the supervisor; consulted at every phase start; `Budget.attempt` refuses any id already attempted. Tests: `test_bitwise_failure_is_terminal_in_both_phases`, `test_native_parity_failure_is_terminal` |
-| 8 | Completion transaction; reload without forward; corrupt output holds | `enforce.Attempt.commit` (only after `save_outputs` writes, re-reads and checksums); `load_outputs` re-verifies on restart; an interrupted attempt needs `RECOVERY_<id>.json`. Tests: crash mid-attempt (subprocess `os._exit`), corrupt output |
-| 9 | Native integrity | `stage_a.admit_native`: `INSTRUMENTED_DONE.json` + all 158 committed ids, unique (index, case), checksums, shapes and dtypes; `finish_native` re-validates all 20 before `native_parity.json` |
-| 10 | Clock | `enforce.Budget` opens before any model import; monotonic live time; supervisor heartbeat every 2 s (durable); a crash is charged last live time + one beat; at the cap, the supervisor records the stop, interrupts the main thread, and ends the process after 20 s if a kernel cannot be interrupted. Test: `test_deadline_supervisor_stops_active_work` |
-| 11 | Single worker and memory | `stage_a_guard.TaskLock` (`fcntl.flock`); native admitted only after the instrumented phase's durable completion record (separate processes, strictly sequential); `enforce.memory_reading` fails closed (task_info, ps, sysctl or MLX counters unavailable → stop); enforced = max(phys_footprint, MLX active + cache, MLX peak), sampled every heartbeat through load, run and report; qualification in `enforce.py`'s docstring. Tests: lock contention, memory fail-closed |
-| 12 | Storage | `Budget.used_bytes` over every task directory (passes, temporaries, state, report); `reserve(n)` checks n + 2n headroom before each write; `final_size()` at each phase end |
-| 13 | Finiteness and causality | Pixels, every feature element, the boundary mean, native residuals and logits, every comparison statistic, non-zero reference norms (`compare`), 144 tokens; structure (`check_sequence_structure`); encoder-sensitivity pair (plan diagnostics, checked at the end of the instrumented phase, no forward); future-suffix isolation (2 diagnostics, bitwise marker residuals). The boundary record is labelled "FP32 mean over the 144 projected visual tokens + full-token sha256" |
-| 14 | Numeric definition | §3 below; `stage_a.compare` docstring |
-| 15 | Engineering accounting | `stage_a.ENGINEERING_CARRY` (16 attempts, 8.73 s measured + 1,800 s allowance) seeded into row 20's state; `engineering/README.md` "Reconciliation"; `numeric_equal_layers` labels in `adapter_engineering.py` and `runtime_agreement.py` |
-| 16 | Source records | `provenance_checks.json`: R052's ruling in `stock_matches_note`; a dated `stock_comparison` for every Stage A input; jet/ship permission text from the actual basis and missing fields kept with their basis (`manifest.py`). Result: **mask is ineligible** (a live listing credits another author) and is replaced by **clothes** (§1) |
-| 17 | Report | `stage_a_report.py` (validator, timings, peaks, accounting, SVG figures, interpretation section, Stage B headroom from whole-stage rates), run by `stage_a.py report` inside A's budget |
-| 18 | Audit page | `audit_app/IMAGE_AUDIT_FREEZE.md` (panel, order, attempts, aggregation frozen before any answer, to the revised §8.2); opaque item ids and image names in `image_items.py`; page tests 14/14 and API 40/40 |
+- inputs, cases and diagnostics;
+- the frozen-input admission;
+- the positional checks;
+- the transaction;
+- the numeric statistic;
+- the engineering carry;
+- mask → clothes.
 
-## 1. Inputs (`stage_a_plan.json`, revision 2, seed 20261006)
+For those, see revision 2's text at `e598f96`. They are unchanged except where §1 says otherwise.
 
-| | Count | Construction |
-|---|---|---|
-| Clean | 8 | the Stage A primary views — crow, horse, chili, hamburger, taxi, wagon, jacket, **clothes** — a = 1 |
-| Intermediate | 8 | per family the two views, sorted by name, dealt one to −12 dB and one to 0 dB by the seed |
-| Noise-only | 4 | `dose.zero(nonce)`, its own path; no photograph is opened |
+**No forward has run on any development image.** The mechanism evidence below comes from declared,
+non-development fixtures: synthetic worker processes and synthetic arrays, no model and no image.
 
-**The input set changed from revision 1.**
+## 1. Closure groups 1–7: where each lives
 
-- The dated stock comparison (repair 16) found that **mask** has a live Shutterstock listing (1799626735, uploaded
-  2020-08-20) crediting "Beni setiawan98". The free source credits josealbafotos (Pixabay, 2016-01-20). Under §8.2's
-  rule a listing that names a different author is a conflicting claim, so mask is ineligible.
-- `pool.py` replaced it in seeded order with **clothes** (Pixabay 53319, JamesDeMers, 2012-07-29, CC0 by date). It
-  skipped wig (post-2019), sweater (a live listing credits another author) and scarf (post-2019). Every other role is
-  unchanged.
-- The other Stage A views show no conflict. jacket, chili, hamburger and taxi have ten listings between them; all
-  ten are removed (410, 404 or a redirect to a generic page), and each was first crawled after its free source's
-  published date. Of the thirteen listings checked for the original eight, only mask's one is live.
-- crow, horse and wagon have no stock listing.
-- The seed is unchanged. The clothing pair is now (clothes, jacket), so the clothing deals are drawn afresh; the other
-  families' deals are unchanged.
-- Carriers are 10/10. Every input is grid [1, 24, 24] (144 merged tokens).
+### Group 1 — approval and identity
 
-**The plan freezes per input:**
+**Code.** `stage_a_guard.require_go` and `parse_attestation`:
 
-- the original file's sha256, equal to the manifest's;
-- the PNG, delivered-tensor and grid hashes;
-- the expected expanded-ids hash, image span, vision start/end, marker and suffix indices;
-- the expected multimodal positions hash. It comes from a declared rule; `stage_a.py plan` checked that rule against
-  mlx-vlm 0.6.3's own `get_rope_index` for both carriers by index arithmetic only, with the weights opened lazily and
-  never evaluated.
+- the go file holds exactly `review` (the full 40-hex commit, path and sha256 of the review record), `owner_go`
+  and `package`;
+- the record is read from git at that commit and hash-checked;
+- it must carry **exactly one** attestation block (§4) with exactly the declared fields: row "20", stage "A",
+  verdict "favourable", a reviewer, a date, the full reviewed commit, and the five hashes;
+- **attestation package = go package = package recomputed now**, and `stage_a.package_at_commit` must re-derive
+  the same five hashes from the reviewed commit itself;
+- the dates must be in order (reviewed commit ≤ review ≤ owner go);
+- the three negative records `f9d2ef3`, `69539bb` and `cf3e49e` are refused.
 
-It also freezes:
+**The report phase** is admissible only when the controller passed these gates for this package in the same run
+(`STAGE_A_GATES_OK`). Otherwise the report is labelled DIAGNOSTIC and confers nothing.
 
-- the 32 request tokens, each checked to be `encode(' ' + concept)` under the pinned tokenizer;
-- the 178 attempt ids in run order;
-- the diagnostics;
-- the budget envelope and its hash.
+**Identity.**
 
-## 2. Cases, diagnostics and the envelope
+- `execution_identity` hashes everything afresh: the cache is removed, so the shards are hashed each phase in about
+  8 s.
+- It fails closed when an identity command (git) fails.
+- It writes per-file maps of every watched package tree (`stage_a_identity_files.json`, bound by hash).
+- `check_imported_origins` runs in each worker after its loads. It refuses any loaded module of a watched package
+  that comes from outside its hashed root or whose file changed.
 
-**Cases.** Every case captures 64 layers at the three `[END]` rows, plus logits over the 32 E1 ids at the final
-suffix token.
+**Positions receipt.** `stage_a.py plan` now refuses unless the declared M-RoPE rule equals mlx-vlm's
+`get_rope_index` for both carriers. It writes `stage_a_positions_receipt.json` (bound to the plan hash) only on
+success. The identity binds the receipt, and the desk gates require it.
 
-| Case | Edit (layer 41, the three marker rows) | Criterion |
-|---|---|---|
-| plain | none | reference |
-| empty | `edits = []` | bitwise = plain |
-| zero_steer | steer toward the target, λ = 0 | bitwise = plain |
-| zero_ablate | ablate the target, λ = 0 | bitwise = plain |
-| zero_swap | swap_delta target → foil, λ = 0 | bitwise = plain |
-| self_patch | patch with plain's own layer-41 rows | bitwise = plain |
-| repeat | none (explicit), after every input's other cases | bitwise = plain |
+**Tests** (`tests/test_stage_a_runner.py`):
 
-"Bitwise = plain" means equal sha256 of the residual bytes, of the final-logit bytes and of the vision-feature bytes.
-The target is the view's E1; the foil is the other Stage A view of its family. A noise-only input uses its family's
-pair in name order.
+- `GoAttestation`: good; no block; two blocks; unrelated package attested; wrong row; not favourable; extra field;
+  go package differs; package changed since review; package at the reviewed commit differs; owner go before review;
+  record hash mismatch.
+- `Units.test_imported_origin_and_changed_file`: a shadowing origin and a changed file are both refused.
+- `test_diagnostic_report_confers_nothing`.
 
-**Diagnostics** (labelled, inside the envelope):
+### Group 2 — controller and recovery
 
-- **Mechanics.** λ = 1 swap and λ = 1 ablate at layer 41 on the eight clean inputs (indices 1, 6, 7, 9, 12, 13, 15,
-  18), 16 passes. The outputs are archived. There is no favourable-output criterion; a nonfinite output still stops
-  the run.
-- **Future-suffix isolation.** On inputs 1 (carrier 0) and 12 (carrier 1), the three suffix ids `\n`, `Answer`, `:`
-  are replaced position for position by the declared single tokens `\t`, `Reply`, `;`. The length and every position
-  are unchanged. The marker residual sha256 must equal plain's.
-- **Encoder sensitivity.** Inputs 1 and 6 (two clean, same-grid inputs) must have different pixel and feature hashes.
-  This is checked from their plain passes, with no forward.
+**Code.** `stage_a_controller.py`, a separate process that spawns each phase as a worker in its own process group.
 
-**Native reference.** mlx-vlm 0.6.3's own unchunked prefill (`get_input_embeddings` → `language_model(ids,
-inputs_embeds, fresh cache)`), in a separate process after the instrumented phase completes, 20 passes. Residuals
-are read through pass-through proxies. `capture_layer_ids` is not used. `jlens_qwen` must not be imported in that
-process.
+- It writes a durable record every 1 s (`controller.json`).
+- It holds reserves **inside** the 4 h cap: tail 60 s, stop 60 s, report 600 s. Work phases are killed at
+  cap − 720 s, and the report at cap − 60 s.
+- On a stop it sends SIGTERM to the group, waits 3 s, sends SIGKILL and calls `waitpid`.
+- **A dead controller is charged its last durable live time + 60 s.**
+- Initial resource failures and worker crashes write `TERMINAL.json` and keep the first reason. A persistence
+  failure kills the worker and exits 75.
+- **Recovery is per try and consumed.** `RECOVERY_<attempt>__<session>__<try>.json` names exactly one interrupted
+  try. `enforce.Budget.authorise_recovery` consumes it durably. A later crash of the same id needs a new file; the
+  old one cannot serve.
 
-**Envelope (194 of 200, six in hand).**
+**Measured in the fixtures** (`controller_fixtures.json`, synthetic workers, `tests/test_controller.py`, 10 of 10):
 
-| Part | Attempts |
+| Fixture | Result |
 |---|---|
-| Engineering, carried in | 16 |
-| Mandatory instrumented | 140 |
-| Mechanics diagnostics | 16 |
-| Suffix-isolation diagnostics | 2 |
-| Native | 20 |
-| **Total** | **194** |
+| Worker ignoring SIGTERM, blocked in C | SIGKILL; kill → reap **3.01 s**; its grandchild dies with the group |
+| Worker ignoring SIGTERM, looping 4096² MLX matmuls on the GPU | SIGKILL; kill → reap **3.01 s** |
+| Failing memory sampler | stops |
+| Sampler taking 1.2 s | stops |
+| Initial sysctl failure | terminal, no worker spawned |
+| Worker exits 3 | terminal |
+| Worker exits 0 without its phase record | terminal |
+| Second run after a terminal stop | holds; the first reason is kept; the report still runs |
+| Controller writer fails | exit 75 within 5.7 s, with the first reason durable |
+| Crash tail | charged at exactly live + 60 s |
 
-- The time carried in is 1,808.73 s: 8.73 s measured plus a 1,800 s allowance.
-- Row 20's caps are ≤ 4 h and ≤ 1 GiB, with the aggregate caps of rows 20 and 21 also enforced. Task memory is
-  ≤ 48 GiB.
-- No attempt id outside the plan ever runs. The six in hand are spent only by an owner-authorised crash recovery.
+Runner test: `test_crash_recovery_is_per_try_and_consumed`. Two crashes of the same id need two files, and both
+tries stay counted.
 
-## 3. Tolerances and the exact statistics (fixed before the run, never adjusted)
+### Group 3 — phase separation and memory
 
-- **Relative L2, per marker layer.** ‖inst − nat‖ / ‖inst‖ over the three marker rows × 5,120.
-  - inst = the instrumented path's bfloat16 residuals, widened exactly to FP32;
-  - nat = the native path's FP32 residuals;
-  - both are accumulated in FP64, and the instrumented norm is the denominator.
-  - It must be ≤ **0.01** at every layer.
-  - An instrumented reference norm that is zero or nonfinite is a stop. No zero-norm convention is needed or used.
-- **Logits.** The maximum absolute difference of the 32 E1 logits is ≤ **0.10**, and the closed-set argmax is
-  identical.
-  - The 0.03125 seen on `chair.jpg` is reported unexplained unless a declared, counted comparison attributes it.
-  - 0.10 is an engineering tolerance, not a precision claim for later target-minus-foil contrasts.
-- **Within-path cases.** Byte-identical hashes, as in §2.
-- **Every statistic** must be finite.
+**Phase separation.** The controller holds the lock for the whole run. The native worker is spawned only after the
+instrumented worker has exited and been reaped (tested via spawn and exit times). Workers refuse to run unless their
+parent is the lock-holding controller.
 
-## 4. Stops (each writes `TERMINAL.json` durably; no phase runs again)
+**Memory.** Read from outside through `memprobe.footprint`:
 
-- The first bitwise, parity, structure, identity, finiteness or causality failure.
-- A missing or corrupt committed output.
-- Any cap reached: attempts, time (stopped by the supervisor), storage, 48 GiB task memory.
-- Swap above the level at the state file's creation.
-- Kernel memory pressure ≥ 2.
-- Any memory measurement unavailable.
-- Any unexpected exception.
+- the API is `proc_pid_rusage` V4;
+- `ri_phys_footprint` is the ledger now;
+- `ri_lifetime_max_phys_footprint` is the kernel's running maximum of it;
+- the controller stops at a lifetime maximum ≥ 44 GiB (4 GiB headroom), on an unavailable reading, or on a reading
+  slower than 1 s;
+- swap and kernel pressure are read every 2 s with 2 s timeouts.
 
-Not terminal:
+**Measured** (`memprobe.py fixture`, synthetic):
 
-- A refusal before the session opens (lock held, go absent or mismatched).
-- A crash that leaves an interrupted attempt. It holds until the owner names that attempt in `RECOVERY_<id>.json`;
-  the interrupted try stays counted.
+| Allocation | Ledger |
+|---|---|
+| 1 GiB host + 2 GiB MLX at once | 3.22 GiB — additive across host and Metal, covering disjoint simultaneous allocations |
+| plus a 2 GiB host spike, released | lifetime maximum 5.22 GiB — the released spike is still seen |
+| one sample | under 0.3 ms |
 
-## 5. The report (`stage_a.py report`, also after a stop)
+**Not shown:** the MLX free-buffer cache class. MLX reported its cache as 0 in both runs, so that class was not
+exercised separately; its buffers sit inside the allocator's own total, which the ledger covered. The model's
+actual peak stays a Stage A measurement.
 
-The validator classes all 178 planned attempts as committed (outputs re-verified), failed, interrupted or never
-started.
+### Group 4 — output and finalisation envelope
 
-The run is a **PASS** only if all of these hold:
+- The external hash cache is gone; every task-owned file is under the output tree.
+- Work phases stop at 1 GiB − 64 MiB, the finalisation reserve for the terminal, phase, parity, report and final
+  writes.
+- The report runs under the full cap, also after a stop: a bounded STOPPED route. No cap is reset.
+- `enforce.Budget.reserve` checks n + 2n of headroom against the operational limit before each array write.
+- **Closure ordering.** The controller closes its session, then writes `STAGE_A_FINAL.json` after the report
+  worker has exited.
 
-- no terminal record;
-- both phase records exist;
-- all 178 attempts are committed;
-- 120 of 120 bitwise cases equal plain;
-- both suffix-isolation checks hold;
-- the encoder pair differs;
-- 20 of 20 native rows pass.
+### Group 5 — independent validator
 
-Anything else is reported as **STOPPED** with the first reason.
+`stage_a_report.validate` trusts no summary. For each of the 178 planned ids it:
 
-The report holds:
+- re-reads every committed output and re-hashes it;
+- checks the exact id, index and case, the schema, the shape, dtype, finiteness and hash of the arrays, the
+  requested-E1 order and finiteness, and the pixel, grid, token, position (frozen and effective), merge, boundary
+  and single-prefill fields.
 
-- counters and the engineering carry;
-- per-phase whole-stage seconds;
-- the enforced memory peak overall and by phase;
-- storage;
-- attempt accounting by kind;
-- the parity table;
-- two SVG figures: relative L2 by layer for every input, and the maximum logit difference per input against 0.10;
-- the interpretation section the author writes after inspecting the figures;
-- **Stage B's headroom from whole-stage rates**: A's own session seconds (loads, checks, writes and this report;
-  the engineering carry excluded) and bytes per attempt, times row 21's 1,856 attempts, × 1.2 must fit row 21's
-  caps, and A's memory peak must be under 48 GiB.
+It checks both phase records against the state. It then **recomputes every criterion**:
 
-The report runs as its own session of the same state file, so its cost is inside A.
+- the 120 bitwise cases;
+- the two suffix-isolation diagnostics (also against the declared perturbed-id hash);
+- the encoder pair (pixel **and** feature hashes must differ);
+- the native merged-embedding equality, **now enforced** as a native stop and a validator check;
+- all 20 native comparisons, from the committed arrays with `stage_a.compare`.
 
-## 6. Tests (no model)
+`native_parity.json` is only compared with the recomputation.
 
-`.venv-image/bin/python -m unittest discover -s stimuli/photo/tests -v` (`tests/fake_stage_a.py` is a fake
-instrument with the real record structure). **15 of 15 pass:**
+**Tests** (`ValidatorMutations`): consistent tampering reaches each check on its own:
 
-- a full pass and report;
-- lock contention;
-- a bitwise failure that is terminal in both phases, with the report still produced;
-- a native parity failure;
-- native refused before instrumented;
-- a crash mid-attempt, which holds until authorised and then reloads 39 committed attempts without a forward, the
-  crashed try counted;
-- a corrupt committed output, which holds;
-- the deadline supervisor stopping busy work at the time cap;
-- the case table;
-- memory fail-closed;
-- an attempt without a commit, which fails and is counted, and is never retried;
-- an identity mismatch;
-- the go binding (good, absent, and seven mismatches).
+- hash tamper;
+- wrong case;
+- non-finite native residuals;
+- twenty duplicate passing parity rows;
+- failing numbers recorded as passes;
+- phase-record mismatch;
+- suffix leak and an insensitive encoder;
+- an embedding difference.
+
+### Group 6 — completed report and the B gate
+
+- Only `STAGE_A_FINAL.json` can say PASS. The controller writes it after the report worker has exited and its own
+  session has closed, so its cost, peaks and final bytes include the report's generation, writes and closure. It
+  re-checks the terminal record and every cap on those final figures.
+- The report counts unique planned ids, ids started and actual tries separately.
+- **B admission** is an explicit list, every item false until it exists:
+  1. STAGE_A_FINAL = PASS;
+  2. `report/INTERPRETATION.md` by the author, after inspecting the figures (author, date, figure hashes);
+  3. Codex's review of the report;
+  4. the owner's row-21 go.
+- B's first-CAL-slice qualification stays with row 21.
+
+### Group 7 — headroom and declarations
+
+**Headroom.** B is predicted from whole-stage rates per unique attempt and must satisfy predicted ≤ 0.8 × row 21's
+cap (× 1.25): **11,520 s and 6.4 GiB**.
+
+**Source wording.** A removed stock listing is recorded as "no conflicting claim observed; upload date unknown". A
+first crawl is an upper bound on when a listing existed, not proof of a later upload. This applies in
+`provenance_checks.json` (five verdicts reworded) and in the readiness report.
+
+**Clothes** replaces mask throughout.
+
+**Audit (before B, not an A gate).** In `audit_app/IMAGE_AUDIT_FREEZE.md`:
+
+- every photograph is named blind on its own, before any pair is shown;
+- `audit_alias_map.json` (built by `audit_alias_map.py`) is the audit's own frozen sense and alias map for the 32
+  instrument concepts.
+
+The same builder fix ("no regular plural for a word already ending in a plural -s", so no more "scissorses") also
+changed the qualification key. That moves the AI-reader package; see the brief to R052.
+
+## 2. Inputs, cases, tolerances and stops
+
+These are as revision 2 (`e598f96`, §§1–4), with two changes:
+
+- the native merged-embedding equality is now a stop;
+- the plan is revision 3. Its inputs, attempts and diagnostics are identical; its envelope also declares the
+  controller's sampling intervals, reserves, memory stop and finalisation reserve.
+
+The tolerances are unchanged:
+
+- relative L2 ≤ 0.01 per marker layer: ‖inst − nat‖ / ‖inst‖ over the 3 marker rows × 5,120, FP32 values in FP64,
+  with the instrumented norm (non-zero, finite) as denominator;
+- maximum E1 logit difference ≤ 0.10;
+- identical argmax;
+- the within-path cases equal plain byte for byte.
+
+The envelope is unchanged: 16 carried + 140 + 16 + 2 + 20 = **194 of 200**, with 1,808.73 s carried.
+
+## 3. Running it (after the go only)
+
+```
+.venv-image/bin/python stimuli/photo/stage_a_controller.py run
+```
+
+This runs instrumented → native → report in one controller process. A restart resumes, after any recovery files.
+
+## 4. The proposed attestation block (R052 to agree with Codex; the guard accepts exactly this)
+
+The block goes in the favourable review record, once:
+
+```
+<!-- STAGE-ATTESTATION v1
+{"row": "20", "stage": "A", "verdict": "favourable", "reviewer": "<reviewer name and session>",
+ "date": "YYYY-MM-DD", "reviewed_commit": "<40-hex RSC commit of the reviewed package>",
+ "package": {"criteria_sha256": "...", "identity_sha256": "...", "plan_sha256": "...",
+             "manifest_sha256": "...", "budget_sha256": "..."}}
+-->
+```
+
+The go file then holds:
+
+- `review`: `{"commit": "<40-hex commit of the review record>", "path": "<record path>", "record_sha256": "..."}`;
+- `owner_go`: `{"by", "date", "words"}`;
+- `package`: the same five hashes.
+
+## 5. Tests (no model)
+
+| Suite | Result |
+|---|---|
+| `test_stage_a_runner.py` | 23 of 23 |
+| `test_controller.py` | 10 of 10, real subprocesses, synthetic |
+| `test_ai_reader.py` | 12 of 12 |
+
+```
+.venv-image/bin/python -m unittest discover -s stimuli/photo/tests -v
+```
+
+## 6. Stated limits (not narrowed silently)
+
+- **The 60 s crash-tail charge** is a declared bound, not a measurement of an uncontrolled power loss. The loop it
+  covers is measured: a 1 s beat, a sample under 1 ms, sysctl calls with 2 s timeouts.
+- **The 4 GiB memory headroom** assumes less than 4 GiB of growth within one 0.25 s sample. The kernel's lifetime
+  maximum still records any overshoot, and an overshoot is reported as a cap breach.
+- **The fixtures qualify the mechanisms on synthetic work.** Real throughput, peak and parity are Stage A
+  measurements.

@@ -553,11 +553,11 @@
     "gums"
    ],
    "validated_plurals": {
-    "chewing gum": [
-     "chewing gums"
-    ],
     "gum": [
      "gums"
+    ],
+    "chewing gum": [
+     "chewing gums"
     ]
    },
    "multiword_only": false,
@@ -650,14 +650,14 @@
     "workbenches"
    ],
    "validated_plurals": {
-    "bench": [
-     "benches"
-    ],
     "work bench": [
      "work benches"
     ],
     "workbench": [
      "workbenches"
+    ],
+    "bench": [
+     "benches"
     ]
    },
    "multiword_only": false,
@@ -690,14 +690,14 @@
     "suspenders"
    ],
    "validated_plurals": {
-    "gallus": [
-     "galluses"
-    ],
     "suspender": [
      "suspenders"
     ],
     "brace": [
      "braces"
+    ],
+    "gallus": [
+     "galluses"
     ]
    },
    "multiword_only": false,
@@ -758,11 +758,11 @@
     "limousines"
    ],
    "validated_plurals": {
-    "limousine": [
-     "limousines"
-    ],
     "limo": [
      "limos"
+    ],
+    "limousine": [
+     "limousines"
     ]
    },
    "multiword_only": false,
@@ -857,14 +857,14 @@
     "washrags"
    ],
    "validated_plurals": {
-    "washcloth": [
-     "washcloths"
+    "flannel": [
+     "flannels"
     ],
     "face cloth": [
      "face cloths"
     ],
-    "flannel": [
-     "flannels"
+    "washcloth": [
+     "washcloths"
     ],
     "washrag": [
      "washrags"
@@ -935,14 +935,14 @@
     "tins"
    ],
    "validated_plurals": {
+    "canister": [
+     "canisters"
+    ],
     "cannister": [
      "cannisters"
     ],
     "tin": [
      "tins"
-    ],
-    "canister": [
-     "canisters"
     ]
    },
    "multiword_only": false,
@@ -1073,11 +1073,11 @@
     "stirrups"
    ],
    "validated_plurals": {
-    "stirrup": [
-     "stirrups"
-    ],
     "stirrup iron": [
      "stirrup irons"
+    ],
+    "stirrup": [
+     "stirrups"
     ]
    },
    "multiword_only": false,
@@ -1168,38 +1168,13 @@
    "sense": "underpants worn by men",
    "aliases": [
     "boxer shorts",
-    "boxer shortses",
     "boxers",
-    "boxerses",
     "boxershorts",
-    "boxershortses",
     "drawers",
-    "drawerses",
     "shorts",
-    "shortses",
-    "underdrawers",
-    "underdrawerses"
+    "underdrawers"
    ],
-   "validated_plurals": {
-    "drawers": [
-     "drawerses"
-    ],
-    "boxers": [
-     "boxerses"
-    ],
-    "underdrawers": [
-     "underdrawerses"
-    ],
-    "boxershorts": [
-     "boxershortses"
-    ],
-    "shorts": [
-     "shortses"
-    ],
-    "boxer shorts": [
-     "boxer shortses"
-    ]
-   },
+   "validated_plurals": {},
    "multiword_only": false,
    "human": {
     "recognizability": 0.153846154,
@@ -1423,11 +1398,11 @@
     "pinballs"
    ],
    "validated_plurals": {
-    "pinball game": [
-     "pinball games"
-    ],
     "pinball": [
      "pinballs"
+    ],
+    "pinball game": [
+     "pinball games"
     ]
    },
    "multiword_only": false,
@@ -1462,14 +1437,14 @@
     "woodworking vises"
    ],
    "validated_plurals": {
-    "woodworking vise": [
-     "woodworking vises"
+    "vise": [
+     "vises"
     ],
     "shoulder vise": [
      "shoulder vises"
     ],
-    "vise": [
-     "vises"
+    "woodworking vise": [
+     "woodworking vises"
     ],
     "wood vise": [
      "wood vises"
@@ -1535,14 +1510,14 @@
     "mills"
    ],
    "validated_plurals": {
-    "grinder": [
-     "grinders"
+    "milling machinery": [
+     "milling machineries"
     ],
     "mill": [
      "mills"
     ],
-    "milling machinery": [
-     "milling machineries"
+    "grinder": [
+     "grinders"
     ]
    },
    "multiword_only": false,
@@ -1738,11 +1713,11 @@
     "bongoes"
    ],
    "validated_plurals": {
-    "bongo drum": [
-     "bongo drums"
-    ],
     "bongo": [
      "bongoes"
+    ],
+    "bongo drum": [
+     "bongo drums"
     ]
    },
    "multiword_only": false,
@@ -1780,14 +1755,14 @@
     "vertical flute": [
      "vertical flutes"
     ],
-    "fipple flute": [
-     "fipple flutes"
-    ],
     "fipple pipe": [
      "fipple pipes"
     ],
     "recorder": [
      "recorders"
+    ],
+    "fipple flute": [
+     "fipple flutes"
     ]
    },
    "multiword_only": false,
@@ -1960,14 +1935,14 @@
     "trunks"
    ],
    "validated_plurals": {
+    "body": [
+     "bodies"
+    ],
     "torso": [
      "torsi"
     ],
     "trunk": [
      "trunks"
-    ],
-    "body": [
-     "bodies"
     ]
    },
    "multiword_only": false,
@@ -2123,11 +2098,11 @@
     "petfoods"
    ],
    "validated_plurals": {
-    "petfood": [
-     "petfoods"
-    ],
     "pet food": [
      "pet foods"
+    ],
+    "petfood": [
+     "petfoods"
     ]
    },
    "multiword_only": false,
@@ -2448,11 +2423,11 @@
     "gong": [
      "gongs"
     ],
-    "bell": [
-     "bells"
-    ],
     "chime": [
      "chimes"
+    ],
+    "bell": [
+     "bells"
     ]
    },
    "multiword_only": false,
@@ -2487,17 +2462,17 @@
     "henhouses"
    ],
    "validated_plurals": {
-    "coop": [
-     "coops"
-    ],
     "chicken coop": [
      "chicken coops"
+    ],
+    "hencoop": [
+     "hencoops"
     ],
     "henhouse": [
      "henhouses"
     ],
-    "hencoop": [
-     "hencoops"
+    "coop": [
+     "coops"
     ]
    },
    "multiword_only": false,
@@ -2655,14 +2630,14 @@
     "pangas"
    ],
    "validated_plurals": {
+    "machete": [
+     "machetes"
+    ],
     "panga": [
      "pangas"
     ],
     "matchet": [
      "matchets"
-    ],
-    "machete": [
-     "machetes"
     ]
    },
    "multiword_only": false,
@@ -2724,11 +2699,11 @@
     "fencing posts"
    ],
    "validated_plurals": {
-    "fence post": [
-     "fence posts"
-    ],
     "fencing post": [
      "fencing posts"
+    ],
+    "fence post": [
+     "fence posts"
     ]
    },
    "multiword_only": false,
@@ -2821,14 +2796,14 @@
     "chute": [
      "chutes"
     ],
-    "slide": [
-     "slides"
+    "sloping trough": [
+     "sloping troughs"
     ],
     "slideway": [
      "slideways"
     ],
-    "sloping trough": [
-     "sloping troughs"
+    "slide": [
+     "slides"
     ]
    },
    "multiword_only": false,
@@ -2923,17 +2898,17 @@
     "shotes"
    ],
    "validated_plurals": {
-    "shote": [
-     "shotes"
-    ],
     "piggy": [
      "piggies"
     ],
-    "shoat": [
-     "shoats"
-    ],
     "piglet": [
      "piglets"
+    ],
+    "shote": [
+     "shotes"
+    ],
+    "shoat": [
+     "shoats"
     ]
    },
    "multiword_only": false,
@@ -3029,11 +3004,11 @@
     "finder": [
      "finders"
     ],
-    "view finder": [
-     "view finders"
-    ],
     "viewfinder": [
      "viewfinders"
+    ],
+    "view finder": [
+     "view finders"
     ]
    },
    "multiword_only": false,
@@ -3097,14 +3072,14 @@
     "orycteropus afer"
    ],
    "validated_plurals": {
-    "aardvark": [
-     "aardvarks"
+    "anteater": [
+     "anteaters"
     ],
     "ant bear": [
      "ant bears"
     ],
-    "anteater": [
-     "anteaters"
+    "aardvark": [
+     "aardvarks"
     ]
    },
    "multiword_only": false,
@@ -3165,11 +3140,11 @@
     "tree stumps"
    ],
    "validated_plurals": {
-    "stump": [
-     "stumps"
-    ],
     "tree stump": [
      "tree stumps"
+    ],
+    "stump": [
+     "stumps"
     ]
    },
    "multiword_only": false,
@@ -3298,11 +3273,11 @@
     "pouched rats"
    ],
    "validated_plurals": {
-    "gopher": [
-     "gophers"
-    ],
     "pouched rat": [
      "pouched rats"
+    ],
+    "gopher": [
+     "gophers"
     ],
     "pocket gopher": [
      "pocket gophers"
@@ -3529,14 +3504,14 @@
     "mortise joints"
    ],
    "validated_plurals": {
+    "mortise joint": [
+     "mortise joints"
+    ],
     "ankle": [
      "ankles"
     ],
     "ankle joint": [
      "ankle joints"
-    ],
-    "mortise joint": [
-     "mortise joints"
     ]
    },
    "multiword_only": false,
@@ -3632,11 +3607,11 @@
     "cirripede": [
      "cirripedes"
     ],
-    "barnacle": [
-     "barnacles"
-    ],
     "cirriped": [
      "cirripeds"
+    ],
+    "barnacle": [
+     "barnacles"
     ]
    },
    "multiword_only": false,
@@ -3792,11 +3767,11 @@
     "tacker": [
      "tackers"
     ],
-    "staplegun": [
-     "stapleguns"
-    ],
     "staple gun": [
      "staple guns"
+    ],
+    "staplegun": [
+     "stapleguns"
     ]
    },
    "multiword_only": false,
@@ -3892,11 +3867,11 @@
     "trailers"
    ],
    "validated_plurals": {
-    "trailer": [
-     "trailers"
-    ],
     "house trailer": [
      "house trailers"
+    ],
+    "trailer": [
+     "trailers"
     ]
    },
    "multiword_only": false,
@@ -3957,11 +3932,11 @@
     "tarps"
    ],
    "validated_plurals": {
-    "tarpaulin": [
-     "tarpaulins"
-    ],
     "tarp": [
      "tarps"
+    ],
+    "tarpaulin": [
+     "tarpaulins"
     ]
    },
    "multiword_only": false,
@@ -3992,11 +3967,11 @@
     "lampshades"
    ],
    "validated_plurals": {
-    "lamp shade": [
-     "lamp shades"
-    ],
     "lampshade": [
      "lampshades"
+    ],
+    "lamp shade": [
+     "lamp shades"
     ]
    },
    "multiword_only": false,
@@ -4087,11 +4062,11 @@
     "slippers"
    ],
    "validated_plurals": {
-    "slipper": [
-     "slippers"
-    ],
     "carpet slipper": [
      "carpet slippers"
+    ],
+    "slipper": [
+     "slippers"
     ]
    },
    "multiword_only": false,
@@ -4193,11 +4168,11 @@
     "praying mantis"
    ],
    "validated_plurals": {
-    "praying mantis": [
-     "praying mantes"
-    ],
     "praying mantid": [
      "praying mantids"
+    ],
+    "praying mantis": [
+     "praying mantes"
     ]
    },
    "multiword_only": true,
@@ -4384,11 +4359,11 @@
     "smoke alarms"
    ],
    "validated_plurals": {
-    "fire alarm": [
-     "fire alarms"
-    ],
     "smoke alarm": [
      "smoke alarms"
+    ],
+    "fire alarm": [
+     "fire alarms"
     ]
    },
    "multiword_only": true,
@@ -4457,23 +4432,23 @@
     "wall sockets"
    ],
    "validated_plurals": {
+    "wall socket": [
+     "wall sockets"
+    ],
     "wall plug": [
      "wall plugs"
+    ],
+    "electric receptacle": [
+     "electric receptacles"
+    ],
+    "outlet": [
+     "outlets"
     ],
     "electric outlet": [
      "electric outlets"
     ],
     "electrical outlet": [
      "electrical outlets"
-    ],
-    "outlet": [
-     "outlets"
-    ],
-    "electric receptacle": [
-     "electric receptacles"
-    ],
-    "wall socket": [
-     "wall sockets"
     ]
    },
    "multiword_only": false,
@@ -4504,11 +4479,11 @@
     "wheels"
    ],
    "validated_plurals": {
-    "roulette wheel": [
-     "roulette wheels"
-    ],
     "wheel": [
      "wheels"
+    ],
+    "roulette wheel": [
+     "roulette wheels"
     ]
    },
    "multiword_only": false,
@@ -4608,17 +4583,17 @@
     "chaplet": [
      "chaplets"
     ],
-    "coronal": [
-     "coronals"
-    ],
-    "garland": [
-     "garlands"
-    ],
     "wreath": [
      "wreaths"
     ],
     "lei": [
      "leis"
+    ],
+    "garland": [
+     "garlands"
+    ],
+    "coronal": [
+     "coronals"
     ]
    },
    "multiword_only": false,
@@ -4678,17 +4653,17 @@
     "mouth organs"
    ],
    "validated_plurals": {
+    "mouth organ": [
+     "mouth organs"
+    ],
+    "mouth harp": [
+     "mouth harps"
+    ],
     "harp": [
      "harps"
     ],
     "harmonica": [
      "harmonicas"
-    ],
-    "mouth harp": [
-     "mouth harps"
-    ],
-    "mouth organ": [
-     "mouth organs"
     ]
    },
    "multiword_only": false,
@@ -4719,11 +4694,11 @@
     "tape recorders"
    ],
    "validated_plurals": {
-    "tape recorder": [
-     "tape recorders"
-    ],
     "tape machine": [
      "tape machines"
+    ],
+    "tape recorder": [
+     "tape recorders"
     ]
    },
    "multiword_only": true,
@@ -4754,11 +4729,11 @@
     "cutting boards"
    ],
    "validated_plurals": {
-    "cutting board": [
-     "cutting boards"
-    ],
     "chopping board": [
      "chopping boards"
+    ],
+    "cutting board": [
+     "cutting boards"
     ]
    },
    "multiword_only": true,
@@ -4925,11 +4900,11 @@
     "pallets"
    ],
    "validated_plurals": {
-    "palette": [
-     "palettes"
-    ],
     "pallet": [
      "pallets"
+    ],
+    "palette": [
+     "palettes"
     ]
    },
    "multiword_only": false,
@@ -4997,11 +4972,11 @@
     "pulverizations"
    ],
    "validated_plurals": {
-    "pulverization": [
-     "pulverizations"
-    ],
     "powder": [
      "powders"
+    ],
+    "pulverization": [
+     "pulverizations"
     ],
     "pulverisation": [
      "pulverisations"
@@ -5097,14 +5072,14 @@
     "spears"
    ],
    "validated_plurals": {
+    "lance": [
+     "lances"
+    ],
     "spear": [
      "spears"
     ],
     "shaft": [
      "shafts"
-    ],
-    "lance": [
-     "lances"
     ]
    },
    "multiword_only": false,
@@ -5199,9 +5174,6 @@
     "taillights"
    ],
    "validated_plurals": {
-    "rear lamp": [
-     "rear lamps"
-    ],
     "taillight": [
      "taillights"
     ],
@@ -5210,6 +5182,9 @@
     ],
     "rear light": [
      "rear lights"
+    ],
+    "rear lamp": [
+     "rear lamps"
     ]
    },
    "multiword_only": false,
@@ -5274,14 +5249,14 @@
     "richmondena cardinalis"
    ],
    "validated_plurals": {
-    "redbird": [
-     "redbirds"
-    ],
     "cardinal": [
      "cardinals"
     ],
     "cardinal grosbeak": [
      "cardinal grosbeaks"
+    ],
+    "redbird": [
+     "redbirds"
     ]
    },
    "multiword_only": false,
@@ -5353,11 +5328,11 @@
     "cribs"
    ],
    "validated_plurals": {
-    "cot": [
-     "cots"
-    ],
     "crib": [
      "cribs"
+    ],
+    "cot": [
+     "cots"
     ]
    },
    "multiword_only": false,
@@ -5458,11 +5433,11 @@
     "posts"
    ],
    "validated_plurals": {
-    "post": [
-     "posts"
-    ],
     "mail": [
      "mails"
+    ],
+    "post": [
+     "posts"
     ]
    },
    "multiword_only": false,
@@ -5493,11 +5468,11 @@
     "welcome mats"
    ],
    "validated_plurals": {
-    "doormat": [
-     "doormats"
-    ],
     "welcome mat": [
      "welcome mats"
+    ],
+    "doormat": [
+     "doormats"
     ]
    },
    "multiword_only": false,
@@ -5560,14 +5535,14 @@
     "firecrackers"
    ],
    "validated_plurals": {
+    "cracker": [
+     "crackers"
+    ],
     "firecracker": [
      "firecrackers"
     ],
     "banger": [
      "bangers"
-    ],
-    "cracker": [
-     "crackers"
     ]
    },
    "multiword_only": false,
@@ -5600,11 +5575,11 @@
     "rappers"
    ],
    "validated_plurals": {
-    "doorknocker": [
-     "doorknockers"
-    ],
     "knocker": [
      "knockers"
+    ],
+    "doorknocker": [
+     "doorknockers"
     ],
     "rapper": [
      "rappers"
@@ -5673,11 +5648,11 @@
     "breathalyzers"
    ],
    "validated_plurals": {
-    "breathalyser": [
-     "breathalysers"
-    ],
     "breathalyzer": [
      "breathalyzers"
+    ],
+    "breathalyser": [
+     "breathalysers"
     ]
    },
    "multiword_only": false,
@@ -5832,11 +5807,11 @@
     "venters"
    ],
    "validated_plurals": {
-    "venter": [
-     "venters"
-    ],
     "belly": [
      "bellies"
+    ],
+    "venter": [
+     "venters"
     ],
     "stomach": [
      "stomaches"
@@ -6083,11 +6058,11 @@
     "trefoils"
    ],
    "validated_plurals": {
-    "clover": [
-     "clovers"
-    ],
     "trefoil": [
      "trefoils"
+    ],
+    "clover": [
+     "clovers"
     ]
    },
    "multiword_only": false,
@@ -6118,11 +6093,11 @@
     "rhubarbs"
    ],
    "validated_plurals": {
-    "pieplant": [
-     "pieplants"
-    ],
     "rhubarb": [
      "rhubarbs"
+    ],
+    "pieplant": [
+     "pieplants"
     ]
    },
    "multiword_only": false,
@@ -6153,11 +6128,11 @@
     "anklets"
    ],
    "validated_plurals": {
-    "ankle bracelet": [
-     "ankle bracelets"
-    ],
     "anklet": [
      "anklets"
+    ],
+    "ankle bracelet": [
+     "ankle bracelets"
     ]
    },
    "multiword_only": false,
@@ -6250,11 +6225,11 @@
     "kerbs"
    ],
    "validated_plurals": {
-    "curb": [
-     "curbs"
-    ],
     "kerb": [
      "kerbs"
+    ],
+    "curb": [
+     "curbs"
     ],
     "curbing": [
      "curbings"
@@ -6418,11 +6393,11 @@
     "pucks"
    ],
    "validated_plurals": {
-    "puck": [
-     "pucks"
-    ],
     "hockey puck": [
      "hockey pucks"
+    ],
+    "puck": [
+     "pucks"
     ]
    },
    "multiword_only": false,
@@ -6545,14 +6520,14 @@
     "doyly"
    ],
    "validated_plurals": {
-    "doily": [
-     "doilies"
+    "doyly": [
+     "doylies"
     ],
     "doyley": [
      "doyleys"
     ],
-    "doyly": [
-     "doylies"
+    "doily": [
+     "doilies"
     ]
    },
    "multiword_only": false,
@@ -6583,11 +6558,11 @@
     "fireplaces"
    ],
    "validated_plurals": {
-    "fireplace": [
-     "fireplaces"
-    ],
     "fire pit": [
      "fire pits"
+    ],
+    "fireplace": [
+     "fireplaces"
     ]
    },
    "multiword_only": false,
@@ -6678,11 +6653,11 @@
     "headgears"
    ],
    "validated_plurals": {
-    "headgear": [
-     "headgears"
-    ],
     "headdress": [
      "headdresses"
+    ],
+    "headgear": [
+     "headgears"
     ]
    },
    "multiword_only": false,
@@ -6804,11 +6779,11 @@
     "coffee tables"
    ],
    "validated_plurals": {
-    "cocktail table": [
-     "cocktail tables"
-    ],
     "coffee table": [
      "coffee tables"
+    ],
+    "cocktail table": [
+     "cocktail tables"
     ]
    },
    "multiword_only": true,
@@ -6849,26 +6824,26 @@
     "cash machines"
    ],
    "validated_plurals": {
-    "automatic teller": [
-     "automatic tellers"
-    ],
     "atm": [
      "atms"
     ],
-    "cash dispenser": [
-     "cash dispensers"
-    ],
-    "automated teller": [
-     "automated tellers"
-    ],
     "automatic teller machine": [
      "automatic teller machines"
+    ],
+    "cash dispenser": [
+     "cash dispensers"
     ],
     "cash machine": [
      "cash machines"
     ],
     "automated teller machine": [
      "automated teller machines"
+    ],
+    "automated teller": [
+     "automated tellers"
+    ],
+    "automatic teller": [
+     "automatic tellers"
     ]
    },
    "multiword_only": false,
@@ -6901,14 +6876,14 @@
     "bobsleighs"
    ],
    "validated_plurals": {
-    "bob": [
-     "bobs"
+    "bobsled": [
+     "bobsleds"
     ],
     "bobsleigh": [
      "bobsleighs"
     ],
-    "bobsled": [
-     "bobsleds"
+    "bob": [
+     "bobs"
     ]
    },
    "multiword_only": false,
@@ -7010,11 +6985,11 @@
     "pictures"
    ],
    "validated_plurals": {
-    "painting": [
-     "paintings"
-    ],
     "picture": [
      "pictures"
+    ],
+    "painting": [
+     "paintings"
     ]
    },
    "multiword_only": false,
@@ -7417,11 +7392,11 @@
     "french pancakes"
    ],
    "validated_plurals": {
-    "crepe": [
-     "crepes"
-    ],
     "french pancake": [
      "french pancakes"
+    ],
+    "crepe": [
+     "crepes"
     ],
     "crape": [
      "crapes"
@@ -7554,14 +7529,14 @@
     "swords"
    ],
    "validated_plurals": {
-    "blade": [
-     "blades"
+    "sword": [
+     "swords"
     ],
     "steel": [
      "steels"
     ],
-    "sword": [
-     "swords"
+    "blade": [
+     "blades"
     ],
     "brand": [
      "brands"
@@ -7689,17 +7664,17 @@
     "lights"
    ],
    "validated_plurals": {
-    "lighter": [
-     "lighters"
-    ],
-    "light": [
-     "lights"
-    ],
     "ignitor": [
      "ignitors"
     ],
     "igniter": [
      "igniters"
+    ],
+    "lighter": [
+     "lighters"
+    ],
+    "light": [
+     "lights"
     ]
    },
    "multiword_only": false,
@@ -7765,11 +7740,11 @@
     "troughs"
    ],
    "validated_plurals": {
-    "gutter": [
-     "gutters"
-    ],
     "trough": [
      "troughs"
+    ],
+    "gutter": [
+     "gutters"
     ]
    },
    "multiword_only": false,
@@ -7900,11 +7875,11 @@
     "headstone": [
      "headstones"
     ],
-    "gravestone": [
-     "gravestones"
-    ],
     "tombstone": [
      "tombstones"
+    ],
+    "gravestone": [
+     "gravestones"
     ]
    },
    "multiword_only": false,
@@ -7939,17 +7914,17 @@
     "paws"
    ],
    "validated_plurals": {
+    "manus": [
+     "manuses"
+    ],
+    "mitt": [
+     "mitts"
+    ],
     "hand": [
      "hands"
     ],
     "paw": [
      "paws"
-    ],
-    "mitt": [
-     "mitts"
-    ],
-    "manus": [
-     "manuses"
     ]
    },
    "multiword_only": false,
@@ -8040,11 +8015,11 @@
     "parachutes"
    ],
    "validated_plurals": {
-    "parachute": [
-     "parachutes"
-    ],
     "chute": [
      "chutes"
+    ],
+    "parachute": [
+     "parachutes"
     ]
    },
    "multiword_only": false,
@@ -8140,11 +8115,11 @@
     "trophy"
    ],
    "validated_plurals": {
-    "trophy": [
-     "trophies"
-    ],
     "prize": [
      "prizes"
+    ],
+    "trophy": [
+     "trophies"
     ]
    },
    "multiword_only": false,
@@ -8332,11 +8307,11 @@
     "water fountains"
    ],
    "validated_plurals": {
-    "bubbler": [
-     "bubblers"
-    ],
     "water fountain": [
      "water fountains"
+    ],
+    "bubbler": [
+     "bubblers"
     ],
     "drinking fountain": [
      "drinking fountains"
@@ -8435,18 +8410,9 @@
    "sense": "an edge tool having two crossed pivoting blades",
    "aliases": [
     "pair of scissors",
-    "pair of scissorses",
-    "scissors",
-    "scissorses"
+    "scissors"
    ],
-   "validated_plurals": {
-    "scissors": [
-     "scissorses"
-    ],
-    "pair of scissors": [
-     "pair of scissorses"
-    ]
-   },
+   "validated_plurals": {},
    "multiword_only": false,
    "human": {
     "recognizability": 1.0,
@@ -8582,11 +8548,11 @@
     "bubble wraps"
    ],
    "validated_plurals": {
-    "bubble wrap": [
-     "bubble wraps"
-    ],
     "bubble pack": [
      "bubble packs"
+    ],
+    "bubble wrap": [
+     "bubble wraps"
     ],
     "bubble film": [
      "bubble films"
@@ -8668,14 +8634,11 @@
     "wirelesses"
    ],
    "validated_plurals": {
+    "receiving set": [
+     "receiving sets"
+    ],
     "radio": [
      "radios"
-    ],
-    "tuner": [
-     "tuners"
-    ],
-    "radio receiver": [
-     "radio receivers"
     ],
     "radio set": [
      "radio sets"
@@ -8683,8 +8646,11 @@
     "wireless": [
      "wirelesses"
     ],
-    "receiving set": [
-     "receiving sets"
+    "tuner": [
+     "tuners"
+    ],
+    "radio receiver": [
+     "radio receivers"
     ]
    },
    "multiword_only": false,
@@ -8745,11 +8711,11 @@
     "rocking chairs"
    ],
    "validated_plurals": {
-    "rocking chair": [
-     "rocking chairs"
-    ],
     "rocker": [
      "rockers"
+    ],
+    "rocking chair": [
+     "rocking chairs"
     ]
    },
    "multiword_only": false,
@@ -8843,11 +8809,11 @@
     "steps"
    ],
    "validated_plurals": {
-    "footmark": [
-     "footmarks"
-    ],
     "step": [
      "steps"
+    ],
+    "footmark": [
+     "footmarks"
     ],
     "footprint": [
      "footprints"
@@ -9058,14 +9024,14 @@
     "teguments"
    ],
    "validated_plurals": {
-    "cutis": [
-     "cutes"
-    ],
     "tegument": [
      "teguments"
     ],
     "skin": [
      "skins"
+    ],
+    "cutis": [
+     "cutes"
     ]
    },
    "multiword_only": false,
@@ -9096,11 +9062,11 @@
     "pillars"
    ],
    "validated_plurals": {
-    "pillar": [
-     "pillars"
-    ],
     "column": [
      "columns"
+    ],
+    "pillar": [
+     "pillars"
     ]
    },
    "multiword_only": false,
@@ -9202,20 +9168,20 @@
     "speakers"
    ],
    "validated_plurals": {
-    "loudspeaker system": [
-     "loudspeaker systems"
+    "speaker system": [
+     "speaker systems"
     ],
     "loudspeaker": [
      "loudspeakers"
     ],
-    "speaker unit": [
-     "speaker units"
-    ],
     "speaker": [
      "speakers"
     ],
-    "speaker system": [
-     "speaker systems"
+    "loudspeaker system": [
+     "loudspeaker systems"
+    ],
+    "speaker unit": [
+     "speaker units"
     ]
    },
    "multiword_only": false,
@@ -9248,14 +9214,14 @@
     "spun sugars"
    ],
    "validated_plurals": {
+    "cotton candy": [
+     "cotton candies"
+    ],
     "candyfloss": [
      "candyflosses"
     ],
     "spun sugar": [
      "spun sugars"
-    ],
-    "cotton candy": [
-     "cotton candies"
     ]
    },
    "multiword_only": false,
@@ -9348,14 +9314,14 @@
     "toilet tissues"
    ],
    "validated_plurals": {
+    "toilet tissue": [
+     "toilet tissues"
+    ],
     "bathroom tissue": [
      "bathroom tissues"
     ],
     "toilet paper": [
      "toilet papers"
-    ],
-    "toilet tissue": [
-     "toilet tissues"
     ]
    },
    "multiword_only": true,
@@ -9386,11 +9352,11 @@
     "garlics"
    ],
    "validated_plurals": {
-    "garlic": [
-     "garlics"
-    ],
     "ail": [
      "ails"
+    ],
+    "garlic": [
+     "garlics"
     ]
    },
    "multiword_only": false,
@@ -9517,11 +9483,11 @@
     "giraffes"
    ],
    "validated_plurals": {
-    "giraffe": [
-     "giraffes"
-    ],
     "camelopard": [
      "camelopards"
+    ],
+    "giraffe": [
+     "giraffes"
     ]
    },
    "multiword_only": false,
@@ -9642,11 +9608,11 @@
     "paddles"
    ],
    "validated_plurals": {
-    "paddle": [
-     "paddles"
-    ],
     "boat paddle": [
      "boat paddles"
+    ],
+    "paddle": [
+     "paddles"
     ]
    },
    "multiword_only": false,
@@ -9707,11 +9673,11 @@
     "air conditionings"
    ],
    "validated_plurals": {
-    "air conditioning": [
-     "air conditionings"
-    ],
     "air conditioner": [
      "air conditioners"
+    ],
+    "air conditioning": [
+     "air conditionings"
     ]
    },
    "multiword_only": true,
@@ -9747,11 +9713,11 @@
     "washing machine": [
      "washing machines"
     ],
-    "washer": [
-     "washers"
-    ],
     "automatic washer": [
      "automatic washers"
+    ],
+    "washer": [
+     "washers"
     ]
    },
    "multiword_only": false,
@@ -10022,11 +9988,11 @@
     "stapling machines"
    ],
    "validated_plurals": {
-    "stapling machine": [
-     "stapling machines"
-    ],
     "stapler": [
      "staplers"
+    ],
+    "stapling machine": [
+     "stapling machines"
     ]
    },
    "multiword_only": false,
@@ -10118,11 +10084,11 @@
     "dartboards"
    ],
    "validated_plurals": {
-    "dart board": [
-     "dart boards"
-    ],
     "dartboard": [
      "dartboards"
+    ],
+    "dart board": [
+     "dart boards"
     ]
    },
    "multiword_only": false,
@@ -10153,11 +10119,11 @@
     "yarns"
    ],
    "validated_plurals": {
-    "yarn": [
-     "yarns"
-    ],
     "thread": [
      "threads"
+    ],
+    "yarn": [
+     "yarns"
     ]
    },
    "multiword_only": false,
@@ -10223,11 +10189,11 @@
     "cashews"
    ],
    "validated_plurals": {
-    "cashew nut": [
-     "cashew nuts"
-    ],
     "cashew": [
      "cashews"
+    ],
+    "cashew nut": [
+     "cashew nuts"
     ]
    },
    "multiword_only": false,
@@ -10258,11 +10224,11 @@
     "pigments"
    ],
    "validated_plurals": {
-    "paint": [
-     "paints"
-    ],
     "pigment": [
      "pigments"
+    ],
+    "paint": [
+     "paints"
     ]
    },
    "multiword_only": false,
@@ -10464,11 +10430,11 @@
     "seahorses"
    ],
    "validated_plurals": {
-    "seahorse": [
-     "seahorses"
-    ],
     "sea horse": [
      "sea horses"
+    ],
+    "seahorse": [
+     "seahorses"
     ]
    },
    "multiword_only": false,
@@ -10536,14 +10502,14 @@
     "earpiece": [
      "earpieces"
     ],
-    "headphone": [
-     "headphones"
+    "phone": [
+     "phones"
     ],
     "earphone": [
      "earphones"
     ],
-    "phone": [
-     "phones"
+    "headphone": [
+     "headphones"
     ]
    },
    "multiword_only": false,
@@ -10669,11 +10635,11 @@
     "porcupines"
    ],
    "validated_plurals": {
-    "porcupine": [
-     "porcupines"
-    ],
     "hedgehog": [
      "hedgehogs"
+    ],
+    "porcupine": [
+     "porcupines"
     ]
    },
    "multiword_only": false,

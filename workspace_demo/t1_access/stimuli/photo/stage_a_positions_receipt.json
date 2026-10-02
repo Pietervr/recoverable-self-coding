@@ -1,0 +1,9 @@
+{
+ "all_equal": true,
+ "by_carrier": {
+  "0": true,
+  "1": true
+ },
+ "method": "mlx-vlm 0.6.3 LanguageModel.get_rope_index on lazily opened weights, index arithmetic only, compared with expected_positions",
+ "plan_sha256": "b349d35185cbe5f8e917d88e71bcb64779576286a977b97eaad2d442c163f23e"
+}

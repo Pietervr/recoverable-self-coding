@@ -133,7 +133,7 @@ def run(dry: bool = True, *, call=None) -> dict:
         return {"dry_run": True, "requests": len(reqs), "images_verified": len(reqs), "limits": LIMITS,
                 "first_command": cmd, "private_home_extra_files": extra, "package": package()}
     stage_a_guard.NEGATIVE_REVIEWS = stage_a_guard.NEGATIVE_REVIEWS | NEGATIVE
-    require_go(GO, package())
+    require_go(GO, package(), row="aireader", stage="qualification")   # the attested review (guard v3)
     JOB.mkdir(parents=True, exist_ok=True)
     lock = TaskLock(JOB)
     state_path = JOB / "state.json"

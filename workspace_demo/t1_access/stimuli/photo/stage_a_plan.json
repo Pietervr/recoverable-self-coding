@@ -1,5 +1,5 @@
 {
- "revision": 2,
+ "revision": 3,
  "seed": 20261006,
  "a_grid_sha256": "3e86bc49eea49d2db2ef336f7843808f2beff0fc158c54a1bf7f6affa9c9683c",
  "inputs": [
@@ -2487,20 +2487,30 @@
    }
   },
   "memory_cap": 51539607552,
-  "heartbeat_s": 2.0,
-  "rule": "no attempt id outside the plan; no retry; the six in hand are spent only by an owner-authorised crash recovery"
+  "controller": {
+   "heartbeat_s": 1.0,
+   "memory_sample_s": 0.25,
+   "system_sample_s": 2.0,
+   "tail_reserve_s": 60.0,
+   "stop_reserve_s": 60.0,
+   "report_reserve_s": 600.0,
+   "term_grace_s": 3.0,
+   "memory_stop_bytes": 47244640256,
+   "final_reserve_bytes": 67108864
+  },
+  "rule": "no attempt id outside the plan; no retry; the six in hand are spent only by an owner-authorised recovery of one named interrupted try"
  },
- "budget_sha256": "76152a558c1eac048cdd55450bdbc969d04cfb37c024d6a010bc7192cc7b3b51",
- "dev_pool_sha256": "e01c1582e75ac629b1e17abd8b411c3cd295a4be374ff2f6b25226a13263acda",
- "provenance_checks_sha256": "c2a3db126277707c76c61f15d77bb98634ffce000fc4a96953bb7813a193d62d",
+ "budget_sha256": "a4b833ddde953234cf209f62ae09b7068bfbe1bf62f4d3aec764f3caa1d0a9bf",
+ "dev_pool_sha256": "fae20dc215d1de329ff81a5687735047c9a92cead1b9642f7cda4f6c2d69ad2d",
+ "provenance_checks_sha256": "84abf3618f699fa9d4e9d1fc1a7179b7668d3e1c09ca34fc8dfd3c159c6398aa",
  "manifest_records_sha256": {
-  "chili": "f098f2c7cdae17700c92738e49069325b479008d32e71e0936a88ac1cab2e99c",
-  "clothes": "02d0599e2c84062659ef71862fe3a3ec02de8e7d88cc70e224841e58da3caeca",
+  "chili": "4e3c79a0bd54e63786d4e68a8454926ad150a52adf59d5c65cb0e56f5fb363fe",
+  "clothes": "9f313ee6f0bd7ec274298366a92733c093de865e914e6ed76177633eafbe365e",
   "crow": "36eaf7ad4b84fbdc98d4599b9e09a31bde056986ef30016dbcf8e2d7c0974ee6",
-  "hamburger": "e9180dc7767f245211d655d5cba57d8ad159d3812b3478338b70cbb7fa56f982",
+  "hamburger": "3c156cb499c3a21ce259ab7571ecbe54e56d4a5bf54e69777740fbf2fb4b0495",
   "horse": "4deb2e3b179ec38660c21491aba94749c8f727f9b16ab346b3061bdbe3530fb3",
-  "jacket": "474876d5f481f829b3abf5b7676e4c48864ddd1127979980723e9e8494cdd825",
-  "taxi": "2542613ba4bd08c694894f8c6086bc59de83c5228998fa96545f67ddc1452a78",
+  "jacket": "39628526995d831a45d0bdfec73355e877f781bcec3f1d0fcb052913bc79c323",
+  "taxi": "6db315e0423a15de3b53f7c93c24f87050580ecdd696e2ff6a70e8cbb0006d7f",
   "wagon": "4c4e83302654b9c5523fadac1863c183d1803b8216e561b714803d0b23761c70"
  }
 }

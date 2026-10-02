@@ -1,0 +1,42 @@
+{
+ "recorded": "2026-10-02T00:04:04-0700",
+ "python": "3.12.14",
+ "measured": {
+  "deadline_metal": {
+   "kill_to_reap_s": 3.013,
+   "how": "SIGKILL",
+   "run_seconds": 9.987
+  },
+  "deadline": {
+   "kill_to_reap_s": 3.012,
+   "how": "SIGKILL",
+   "run_seconds": 6.889,
+   "grandchild_killed": true
+  },
+  "memory_stop_seconds": 1.57,
+  "pass_run_seconds": 2.329,
+  "persistence_failure_seconds": 5.718
+ },
+ "memory_fixture": {
+  "steady": {
+   "phys_footprint": 3.219,
+   "lifetime_max": 3.219,
+   "resident": 1.081,
+   "allocated_simultaneously_gib": 3.0,
+   "mlx_active_gib": 2.0,
+   "mlx_cache_gib": 0.0,
+   "sample_seconds": 0.000125
+  },
+  "spike": {
+   "phys_footprint": 5.222,
+   "lifetime_max": 5.222,
+   "resident": 3.082,
+   "allocated_simultaneously_gib": 3.0,
+   "mlx_active_gib": 2.0,
+   "mlx_cache_gib": 0.0,
+   "sample_seconds": 8.1e-05
+  },
+  "expected_transient_peak_gib": 5.0
+ },
+ "note": "synthetic workers, no model, no development input"
+}

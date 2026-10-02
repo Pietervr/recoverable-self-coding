@@ -39,8 +39,8 @@
   },
   "pillow": "12.3.0",
   "numpy": "2.5.1",
-  "dev_pool_sha256": "e01c1582e75ac629b1e17abd8b411c3cd295a4be374ff2f6b25226a13263acda",
-  "provenance_checks_sha256": "c2a3db126277707c76c61f15d77bb98634ffce000fc4a96953bb7813a193d62d"
+  "dev_pool_sha256": "fae20dc215d1de329ff81a5687735047c9a92cead1b9642f7cda4f6c2d69ad2d",
+  "provenance_checks_sha256": "84abf3618f699fa9d4e9d1fc1a7179b7668d3e1c09ca34fc8dfd3c159c6398aa"
  },
  "n_records": 32,
  "check_status_counts": {
@@ -744,7 +744,7 @@
        "listing_upload_date": null
       }
      ],
-     "verdict": "no conflicting claim observed: both listings first crawled 2022, after the free source; both removed, no author shown"
+     "verdict": "no conflicting claim observed: both listings first crawled 2022, later than the free source's date; both removed, no author shown; a first crawl is an upper bound on when a listing existed, not proof of a later upload: upload date unknown, author not shown; recheck at publication"
     }
    },
    "permission": {
@@ -842,7 +842,7 @@
        "listing_upload_date": null
       }
      ],
-     "verdict": "no conflicting claim observed: the one listing was first crawled 2024-04-12, after the free source (2014-06-10); it is removed, so no author is shown"
+     "verdict": "no conflicting claim observed: the one listing was first crawled 2024-04-12, later than the free source's date (2014-06-10); it is removed, so no author is shown; a first crawl is an upper bound on when a listing existed, not proof of a later upload: upload date unknown, author not shown; recheck at publication"
     }
    },
    "permission": {
@@ -1590,7 +1590,7 @@
        "listing_upload_date": null
       }
      ],
-     "verdict": "no conflicting claim observed: all three listings first crawled in 2020, after the free source (2014-06-29); all removed, no author shown"
+     "verdict": "no conflicting claim observed: all three listings first crawled in 2020, later than the free source's date (2014-06-29); all removed, no author shown; a first crawl is an upper bound on when a listing existed, not proof of a later upload: upload date unknown, author not shown; recheck at publication"
     }
    },
    "permission": {
@@ -1715,7 +1715,7 @@
        "listing_upload_date": null
       }
      ],
-     "verdict": "no conflicting claim observed: all four listings first crawled 2021-2024, after the free source (2018-04-04); all removed, no author shown"
+     "verdict": "no conflicting claim observed: all four listings first crawled 2021-2024, later than the free source's date (2018-04-04); all removed, no author shown; a first crawl is an upper bound on when a listing existed, not proof of a later upload: upload date unknown, author not shown; recheck at publication"
     }
    },
    "permission": {
@@ -2296,7 +2296,7 @@
        "listing_upload_date": null
       }
      ],
-     "verdict": "no conflicting claim observed: both listings first crawled 2021/2023, after the free source (2015-09-29); both removed, no author shown"
+     "verdict": "no conflicting claim observed: both listings first crawled 2021/2023, later than the free source's date (2015-09-29); both removed, no author shown; a first crawl is an upper bound on when a listing existed, not proof of a later upload: upload date unknown, author not shown; recheck at publication"
     }
    },
    "permission": {

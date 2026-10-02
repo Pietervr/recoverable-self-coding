@@ -25,7 +25,7 @@ eight go first, as the audit's own pilot.
 - Each item has an opaque id. `image_items.py` names files and items by `sha256("audit-img|<concept>|v1")[:12]`, so
   neither the URL nor the id names the concept.
 - The PNG is byte-identical to `manifest_dev.json`'s clean canvas, and the script asserts it.
-- For a second-view item, the reader sees both pictures side by side.
+- **Every photograph is named blind first, on its own** (Codex RSC 69539bb §4.6): a second view gets its own free-name request, alone, exactly like a primary view. Only after both photographs' names are locked is the pair shown side by side, and only for the distinct-view question.
 
 ## Instructions and question order
 
@@ -36,8 +36,8 @@ Each question is a separate turn. Each answer is locked before the next question
 2. **Photograph.** "Is this a photograph?" (yes / no / unsure)
 3. **Sense.** Only after 1 and 2 are locked: "Does it show a <name> in this sense: '<THINGS definition>'?"
    (yes / no / unsure)
-4. **Distinct view** (second-view items only): "Is the second picture a different photograph from the first, not a
-   crop or flip of it?" (yes / no / unsure)
+4. **Distinct view** (second-view items only; the pair shown only after both photos' blind names are locked): "Is
+   the second picture a different photograph from the first, not a crop or flip of it?" (yes / no / unsure)
 
 The page `public/images.html` keeps the same order for the owner's referral view: the name is saved before the sense
 question appears.
@@ -54,8 +54,10 @@ question appears.
 
 An item **passes on the AI reader alone** when all of these hold:
 
-- the free name, normalised, equals an admissible alias of the intended concept and sense (the frozen alias list of
-  the qualification scorer);
+- the free name, normalised, equals an admissible alias of the intended concept and sense in
+  `stimuli/photo/audit_alias_map.json` - the audit's own frozen map for the 32 instrument concepts, built the way
+  the qualification key is (THINGS synset names plus WordNet-validated plurals), since the qualification key
+  excludes every pool concept and cannot score them;
 - photograph = yes;
 - sense = yes;
 - for a second view, distinct = yes.

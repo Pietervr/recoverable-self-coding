@@ -46,8 +46,9 @@ UPSTREAM = T1.parent / "upstream" / "jlens-qwen36"
 SNAPSHOT = Path.home() / (".cache/huggingface/hub/models--mlx-community--Qwen3.6-27B-4bit/snapshots/"
                           "c000ac2c2057d94be3fa931000c31723aac53282")
 LENS = UPSTREAM / "data" / "lens" / "qwen36_27b_neuronpedia_n1000.npz"
-NEGATIVE_REVIEWS = {"f9d2ef3"}                     # Codex's NOT ON BOARD record for the first package
-LOCAL_CODE = ["stage_a.py", "stage_a_guard.py", "stage_a_report.py", "enforce.py", "image_adapter.py", "dose.py",
+NEGATIVE_REVIEWS = {"f9d2ef3", "69539bb", "cf3e49e"}   # Codex's negative records (rows 20, AI reader)
+LOCAL_CODE = ["stage_a.py", "stage_a_guard.py", "stage_a_report.py", "stage_a_controller.py", "memprobe.py",
+              "enforce.py", "image_adapter.py", "dose.py",
               "dose_report.py"]
 PACKAGES = ["mlx", "mlx_lm", "mlx_vlm", "transformers", "tokenizers", "safetensors", "numpy", "PIL",
             "huggingface_hub", "pydantic"]
@@ -138,93 +139,176 @@ def set_terminal(out: Path, phase: str, reason: str) -> None:
     write_json_atomic(p, t)
 
 
-def recovery_authority(out: Path, attempt_id: str) -> dict | None:
-    p = out / f"RECOVERY_{attempt_id}.json"
-    if not p.exists():
-        return None
-    a = json.loads(p.read_text())
-    if a.get("attempt_id") != attempt_id or not a.get("owner") or not a.get("date") or not a.get("reason"):
-        raise SystemExit(f"refused: {p.name} must name attempt_id, owner, date and reason")
-    return a
+def recovery_files(out: Path) -> list[dict]:
+    """RECOVERY_<attempt>__<session>__<try>.json files: each names exactly one interrupted try (closure group 2)."""
+    found = []
+    for p in sorted(out.glob("RECOVERY_*.json")):
+        a = json.loads(p.read_text())
+        want = f"RECOVERY_{a.get('attempt_id')}__{a.get('session')}__{a.get('try')}.json"
+        if p.name != want or not a.get("owner") or not a.get("date") or not a.get("reason"):
+            raise SystemExit(f"refused: {p.name} must be named {want} and give owner, date and reason")
+        found.append({**a, "file_sha256": sha_bytes(p.read_bytes())})
+    return found
 
 
-# ---- the execution identity ------------------------------------------------------------------------------------
-def execution_identity(plan_path: Path, manifest_path: Path, cache_path: Path) -> dict:
-    """Everything either phase loads or runs, hashed without loading a model."""
+# ---- the execution identity (fresh hashes every time; no cache - closure group 1) ------------------------------
+def _git(*args: str) -> bytes:
+    p = subprocess.run(["git", "-C", str(UPSTREAM), *args], capture_output=True, timeout=60)
+    if p.returncode != 0:
+        raise SystemExit(f"refused: identity command git {' '.join(args)} failed ({p.returncode}): fail closed")
+    return p.stdout
+
+
+def package_roots() -> dict[str, Path]:
     import importlib
-    import importlib.metadata as md
-    cache = json.loads(cache_path.read_text()) if cache_path.exists() else {}
-    snap = {p.name: sha_file(p, cache) for p in sorted(SNAPSHOT.iterdir())
-            if p.is_file() and p.name not in ("README.md", ".gitattributes")}
-    pkgs = {}
+    roots = {}
     for name in PACKAGES:
         mod = importlib.import_module(name)
-        root = Path(mod.__file__).parent if getattr(mod, "__file__", None) else Path(list(mod.__path__)[0])
-        dist = {"PIL": "pillow", "mlx": "mlx"}.get(name, name.replace("_", "-"))
+        roots[name] = Path(mod.__file__).parent if getattr(mod, "__file__", None) else Path(list(mod.__path__)[0])
+    roots["jlens_qwen"] = UPSTREAM / "jlens_qwen"
+    return roots
+
+
+def file_map(root: Path, suffixes=TREE_SUFFIXES) -> dict[str, str]:
+    return {str(p.relative_to(root)): sha_file(p) for p in sorted(Path(root).rglob("*"))
+            if p.is_file() and p.suffix in suffixes and "__pycache__" not in p.parts}
+
+
+def execution_identity(plan_path: Path, manifest_path: Path, receipt_path: Path, files_path: Path | None = None) -> dict:
+    """Everything either phase loads or runs, hashed afresh without loading a model. The per-file maps of every
+    watched package tree are written to files_path (when given) and their hash enters the identity, so the actual
+    imported origins can be checked against them at run time (`check_imported_origins`)."""
+    import importlib.metadata as md
+    snap = {p.name: sha_file(p) for p in sorted(SNAPSHOT.iterdir())
+            if p.is_file() and p.name not in ("README.md", ".gitattributes")}
+    roots = package_roots()
+    maps = {name: {"root": str(r), "files": file_map(r, (".py",) if name == "jlens_qwen" else TREE_SUFFIXES)}
+            for name, r in roots.items()}
+    versions = {}
+    for name in PACKAGES + ["mlx-metal"]:
+        dist = {"PIL": "pillow"}.get(name, name.replace("_", "-"))
         try:
-            ver = md.version(dist)
+            versions[name] = md.version(dist)
         except md.PackageNotFoundError:
-            ver = getattr(mod, "__version__", None)
-        pkgs[name] = {"version": ver, "tree": tree_digest(root, cache)}
-    try:
-        pkgs["mlx-metal"] = {"version": md.version("mlx-metal")}
-    except md.PackageNotFoundError:
-        pass
-    git = lambda *a: subprocess.run(["git", "-C", str(UPSTREAM), *a], capture_output=True, timeout=60).stdout
+            versions[name] = None
+    maps_json = json.dumps(maps, sort_keys=True).encode()
+    if files_path is not None:
+        Path(files_path).write_bytes(maps_json)
+    if not Path(receipt_path).exists():
+        raise SystemExit("refused: the positions receipt is absent (stage_a.py plan writes it only on success)")
     ident = {
         "row": "20", "stage": "A",
         "snapshot": {"id": SNAPSHOT.name, "files_sha256": snap},
-        "lens": {"name": LENS.name, "sha256": sha_file(LENS, cache)},
-        "local_code_sha256": {n: sha_file(HERE / n, cache) for n in LOCAL_CODE},
-        "packet_py_sha256": sha_file(T1 / "stimuli" / "packet.py", cache),
-        "jlens": {"tree": tree_digest(UPSTREAM / "jlens_qwen", cache, (".py",)),
-                  "head": git("rev-parse", "HEAD").decode().strip(),
-                  "tracked_diff_sha256": sha_bytes(git("diff", "HEAD")),
-                  "sitecustomize_sha256": sha_file(UPSTREAM / "sitecustomize.py", cache)},
-        "packages": pkgs,
+        "lens": {"name": LENS.name, "sha256": sha_file(LENS)},
+        "local_code_sha256": {n: sha_file(HERE / n) for n in LOCAL_CODE},
+        "packet_py_sha256": sha_file(T1 / "stimuli" / "packet.py"),
+        "jlens": {"head": _git("rev-parse", "HEAD").decode().strip(),
+                  "tracked_diff_sha256": sha_bytes(_git("diff", "HEAD")),
+                  "sitecustomize_sha256": sha_file(UPSTREAM / "sitecustomize.py")},
+        "package_versions": versions, "package_file_maps_sha256": sha_bytes(maps_json),
         "python": sys.version.split()[0], "machine": platform.machine(), "macos": platform.mac_ver()[0],
         "dispatch": DISPATCH,
         "plan_sha256": sha_file(plan_path), "manifest_sha256": sha_file(manifest_path),
+        "positions_receipt_sha256": sha_file(receipt_path),
     }
-    cache_path.parent.mkdir(parents=True, exist_ok=True)
-    cache_path.write_text(json.dumps(cache, indent=0, sort_keys=True))
     ident["identity_sha256"] = sha_bytes(json.dumps(ident, sort_keys=True).encode())
     return ident
 
 
-# ---- the go ----------------------------------------------------------------------------------------------------
-def require_go(go_path: Path, package: dict[str, str], *, repo: Path = RSC) -> dict:
-    """package: {criteria_sha256, identity_sha256, plan_sha256, manifest_sha256, budget_sha256} as computed now."""
+def check_imported_origins(files_path: Path) -> dict:
+    """Every loaded module of a watched package must come from inside its hashed root with an unchanged file
+    hash; a watched package imported from anywhere else (a shadowing copy, another venv) is refused."""
+    maps = json.loads(Path(files_path).read_text())
+    checked, bad = 0, []
+    for name, mod in list(sys.modules.items()):
+        top = name.split(".")[0]
+        if top not in maps:
+            continue
+        f = getattr(mod, "__file__", None)
+        if not f:
+            continue
+        root = Path(maps[top]["root"])
+        try:
+            rel = str(Path(f).resolve().relative_to(root.resolve()))
+        except ValueError:
+            bad.append(f"{name}: loaded from {f}, outside {root}")
+            continue
+        want = maps[top]["files"].get(rel)
+        if want is None or sha_file(Path(f)) != want:
+            bad.append(f"{name}: {rel} not in the identity or changed")
+        checked += 1
+    if bad:
+        raise SystemExit(f"refused: imported origins differ from the identity: {bad[:5]}")
+    return {"modules_checked": checked}
+
+
+# ---- the go: a machine-readable attestation inside the review record (closure group 1) ---------------------------
+ATTEST_OPEN, ATTEST_CLOSE = "<!-- STAGE-ATTESTATION v1", "-->"
+ATTEST_KEYS = {"row", "stage", "verdict", "reviewer", "date", "reviewed_commit", "package"}
+
+
+def parse_attestation(text: str) -> dict:
+    blocks = text.split(ATTEST_OPEN)
+    if len(blocks) != 2:
+        raise SystemExit(f"refused: the review record holds {len(blocks) - 1} attestation blocks, not exactly one")
+    body = blocks[1].split(ATTEST_CLOSE, 1)[0]
+    try:
+        att = json.loads(body)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"refused: the attestation is not JSON ({exc})")
+    if set(att) != ATTEST_KEYS:
+        raise SystemExit(f"refused: attestation fields {sorted(att)} are not exactly {sorted(ATTEST_KEYS)}")
+    return att
+
+
+def _iso(d: str, what: str) -> str:
+    try:
+        time.strptime(str(d)[:10], "%Y-%m-%d")
+    except ValueError:
+        raise SystemExit(f"refused: {what} {d!r} is not an ISO date")
+    return str(d)[:10]
+
+
+def require_go(go_path: Path, package: dict[str, str], *, row: str = "20", stage: str = "A", repo: Path = RSC,
+               verify_at_commit=None) -> dict:
+    """The go names the review record (full commit, path, sha256); the record carries exactly one attestation; the
+    attestation's package, the go's package and the package recomputed now must be identical; optionally the
+    package is re-derived from the reviewed commit itself (verify_at_commit)."""
     if not go_path.exists():
-        raise SystemExit(f"refused: {go_path.name} absent - row 20 has no owner go bound to a favourable review")
+        raise SystemExit(f"refused: {go_path.name} absent - no owner go bound to a favourable review")
     go = json.loads(go_path.read_text())
-    rv, og, bound = go.get("codex_row_review") or {}, go.get("owner_go") or {}, go.get("package") or {}
-    if not isinstance(rv, dict) or rv.get("verdict") != "favourable":
-        raise SystemExit("refused: codex_row_review.verdict is not exactly 'favourable'")
-    commit, rec = str(rv.get("commit", "")), str(rv.get("record_path", ""))
-    if len(commit) < 7 or any(commit.startswith(n) or n.startswith(commit) for n in NEGATIVE_REVIEWS):
-        raise SystemExit(f"refused: review commit {commit!r} is absent or is the negative record")
+    if set(go) != {"review", "owner_go", "package"}:
+        raise SystemExit("refused: the go file must hold exactly review, owner_go and package")
+    rv, og = go["review"], go["owner_go"]
+    commit, rec = str(rv.get("commit", "")), str(rv.get("path", ""))
+    if len(commit) != 40 or any(commit.startswith(n) for n in NEGATIVE_REVIEWS):
+        raise SystemExit(f"refused: review commit {commit!r} is not a full commit id, or is a negative record")
     got = subprocess.run(["git", "-C", str(repo), "show", f"{commit}:{rec}"], capture_output=True)
     if got.returncode != 0:
         raise SystemExit(f"refused: {rec} not found at commit {commit}")
     if sha_bytes(got.stdout) != rv.get("record_sha256"):
         raise SystemExit("refused: the review record's sha256 at that commit differs from the go file's")
-    if b"not on board" in got.stdout.lower():
-        raise SystemExit("refused: the named review record says NOT ON BOARD")
-    if not og.get("date") or not og.get("words") or not og.get("by"):
+    att = parse_attestation(got.stdout.decode())
+    if (att["row"], att["stage"], att["verdict"]) != (row, stage, "favourable"):
+        raise SystemExit(f"refused: attestation is {att['row']}/{att['stage']}/{att['verdict']}, "
+                         f"not {row}/{stage}/favourable")
+    if not att["reviewer"] or len(str(att["reviewed_commit"])) != 40:
+        raise SystemExit("refused: the attestation lacks a reviewer or a full reviewed commit")
+    for k in set(package) | set(att["package"]) | set(go["package"]):
+        a, g, n = att["package"].get(k), go["package"].get(k), package.get(k)
+        if not (a == g == n):
+            raise SystemExit(f"refused: {k}: attested {a!r}, go {g!r}, now {n!r}")
+    if verify_at_commit is not None:
+        then = verify_at_commit(att["reviewed_commit"])
+        if then != package:
+            raise SystemExit("refused: the package at the reviewed commit differs from the package now")
+    if not og.get("by") or not og.get("words"):
         raise SystemExit("refused: owner_go needs by, date and the owner's words")
-    try:
-        go_day = time.strptime(og["date"][:10], "%Y-%m-%d")
-    except ValueError:
-        raise SystemExit("refused: owner_go.date is not an ISO date")
-    review_day = subprocess.run(["git", "-C", str(repo), "show", "-s", "--format=%cs", commit],
-                                capture_output=True, text=True).stdout.strip()
-    if review_day and time.strftime("%Y-%m-%d", go_day) < review_day:
-        raise SystemExit("refused: the owner's go predates the review it is bound to")
-    for k, v in package.items():
-        if bound.get(k) != v:
-            raise SystemExit(f"refused: the go binds {k}={bound.get(k)!r}, the package now has {v!r}")
-    extra = set(bound) - set(package)
-    if extra:
-        raise SystemExit(f"refused: the go binds unknown fields {sorted(extra)}")
-    return go
+    a_day, o_day = _iso(att["date"], "attestation date"), _iso(og.get("date"), "owner go date")
+    c_day = subprocess.run(["git", "-C", str(repo), "show", "-s", "--format=%cs", att["reviewed_commit"]],
+                           capture_output=True, text=True)
+    if c_day.returncode != 0:
+        raise SystemExit("refused: the reviewed commit is not in the repository")
+    if not (c_day.stdout.strip() <= a_day <= o_day):
+        raise SystemExit(f"refused: dates out of order (commit {c_day.stdout.strip()}, review {a_day}, go {o_day})")
+    return {"go": go, "attestation": att}

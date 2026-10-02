@@ -157,19 +157,17 @@ def make_ctx(out: Path, faults: dict | None = None, **budget_kwargs) -> stage_a.
                     "inputs_embeds_sha256": rec["image"]["merge"]["merged_sha256"]}
         return None, FakeProcessor(), tok, forward
 
-    return stage_a.Ctx(out=out, identity_path=out.parent / "identity.json", hash_cache=out.parent / "hc.json",
+    return stage_a.Ctx(out=out, identity_path=out.parent / "identity.json", verify_controller=False,
+                       origins_check=lambda: None,
                        instrument_factory=inst_factory, native_factory=native_factory,
                        compute_identity=lambda: ident, check_go=lambda c: {}, pixels_fn=fake_pixels,
                        original_sha_fn=lambda p: by_path[str(p)], post_load=lambda inst: {"vocab_rows": VOCAB},
                        budget_kwargs=budget_kwargs)
 
 
-if __name__ == "__main__":                                  # subprocess entry: python fake_stage_a.py <out> <json>
+if __name__ == "__main__":     # subprocess entry: python fake_stage_a.py <out> <faults json> [phase]
+    import os
     out, faults = Path(sys.argv[1]), json.loads(sys.argv[2])
-    kw = json.loads(sys.argv[3]) if len(sys.argv) > 3 else {}
-    if "caps_row20_seconds" in kw:
-        from enforce import CAPS
-        caps = json.loads(json.dumps(CAPS))
-        caps["row20"]["seconds"] = kw.pop("caps_row20_seconds")
-        kw["caps"] = caps
-    stage_a.run_instrumented(make_ctx(out, faults, **kw))
+    phase = sys.argv[3] if len(sys.argv) > 3 else "instrumented"
+    os.environ.setdefault("STAGE_A_SESSION", faults.get("session", "sub"))
+    {"instrumented": stage_a.run_instrumented, "native": stage_a.run_native}[phase](make_ctx(out, faults))
