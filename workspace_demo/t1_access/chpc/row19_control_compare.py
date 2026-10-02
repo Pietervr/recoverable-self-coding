@@ -211,7 +211,8 @@ def main(argv=None):
             if root_b != ck_root:
                 qual.append(f"status {name}: its checkpoint lies under {ck_root!r}, not the ledger entry's root {root_b!r} (roots compared by basename: pulled paths differ from remote ones)")
             opened = os.path.realpath(a.c1 if role == "c1" else a.c3)                 # the file actually opened for this role
-            if os.path.basename(opened) != os.path.basename(str(task["ckpt"])) or os.path.basename(os.path.dirname(os.path.dirname(opened))) != root_b:
+            if os.path.basename(opened) != os.path.basename(str(task["ckpt"])) or os.path.basename(os.path.dirname(opened)) != "ckpt" \
+                    or os.path.basename(os.path.dirname(os.path.dirname(opened))) != root_b:
                 qual.append(f"--{role}: the opened file {opened!r} is not <{root_b}>/ckpt/{os.path.basename(str(task['ckpt']))} - the evidence this role's status and ledger entry name")
             if s_.get("manifest_sha") != task_sha:
                 qual.append(f"status {name}: manifest sha is not the task binding's")

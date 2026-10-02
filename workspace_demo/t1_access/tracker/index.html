@@ -48,7 +48,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
 <div class="wrap">
 <header>
   <h1>T1 Validation Tracker</h1>
-  <p class="sub">Entropy SI lane · updated <span id="upd">3 Oct 2026, 00:45 UTC</span> · Unimog <code>80ef2e7d</code>, RSC <code>669153d</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
+  <p class="sub">Entropy SI lane · updated <span id="upd">3 Oct 2026, 01:10 UTC</span> · Unimog <code>6666312b</code>, RSC <code>d29464d</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
 </header>
 
 <section class="two">
@@ -75,7 +75,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
     <tr><td class="w">Row 18 · benchmark</td><td>How fast a Lengau core is on this workload.</td><td class="n">serial · 1 core</td><td><span class="pill ok">done 1 Oct</span></td><td>4.7× the Mac core, 1.3× the AWS core. Programme fits.<div class="bar ok"><i style="width:100%"></i></div></td><td class="n">113 min</td></tr>
     <tr><td class="w">Row 6 · parity</td><td>Can Lengau rows pool with published ones?</td><td class="n">serial · 3 × 1 core</td><td><span class="pill ok">pass 2 Oct</span></td><td>Max deviation 7.1e-08 nat/trial, decisions identical.<div class="bar ok"><i style="width:100%"></i></div></td><td class="n">77 min · 3.6 core-h</td></tr>
     <tr><td class="w">Row 19 · stage 0</td><td>Cost of one full layer under the §7.4 start policy. Sizes the slice and the reference bank.</td><td class="n">serial · 1 core · job 7516261</td><td><span class="pill run">running</span></td><td>Started 16:59 UTC; output arrives at job end. Reserved in the campaign ledger.<div class="bar run"><i style="width:27%"></i></div><span class="small">6.5 h of ≤ 24 h walltime</span></td><td class="n">≤ 24 h</td></tr>
-    <tr><td class="w">Row 19 · stage 1 slice</td><td>Prove the refit chain runs and resumes across jobs; measure per-resample time and memory. Reads no coverage.</td><td class="n">seriallong · 3 × 1 core + control</td><td><span class="pill wait">ready</span></td><td>Six specification revisions; the review list has narrowed each round (eight conditions, seven, six, six, five). All items implemented, 50 tests, clone and wrapper verified, ledger live. Rev 6 with Codex. Needs: Codex review, stage-0 addendum, owner go.<div class="bar"><i style="width:0%"></i></div></td><td class="n">10–22 d per chain · cap 1,500 core-h</td></tr>
+    <tr><td class="w">Row 19 · stage 1 slice</td><td>Prove the refit chain runs and resumes across jobs; measure per-resample time and memory. Reads no coverage.</td><td class="n">seriallong · 3 × 1 core + control</td><td><span class="pill ok">Codex on board</span></td><td>Six specification revisions; Codex is ON BOARD with the staged slice at the reviewed candidate. Three prerequisites: the watch expectations from stage 0, stage 0 settled from its accounting, and your row-specific go. Then C1 and reps 0–2 launch through reservations; C2 from C1's timings; C3 after C2's kill.<div class="bar"><i style="width:0%"></i></div></td><td class="n">10–22 d per chain · cap 1,500 core-h</td></tr>
     <tr><td class="w">ω = 1 reference bank</td><td>The policy-matched target the coverage reading needs.</td><td class="n">normal · packed 24/node</td><td><span class="pill wait">planned</span></td><td>Row written after stage 0 sizes it.</td><td class="n">≈ 1 day wall</td></tr>
     <tr><td class="w">Row 19 · stage 2 screen</td><td>100 datasets at ω = 1: does refitting reach 0.90? Futility at 83 of 100.</td><td class="n">seriallong · packed 12/job</td><td><span class="pill wait">planned</span></td><td>Costed from the slice's measured rate; own go.</td><td class="n">2–5 weeks wall</td></tr>
     <tr><td class="w">Misspecification battery</td><td>The paper's disclosure of what the assay gets wrong off-model.</td><td class="n">normal · packed</td><td><span class="pill wait">planned</span></td><td>Row to write after stage 0.</td><td class="n">≈ 2,400 core-h · &lt; 1 day</td></tr>
@@ -109,7 +109,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
     <h2>Open with the owner</h2>
     <ul>
       <li><b>Stage A and reader.</b> Both stopped on execution races on 2 Oct. Rulings needed once revision 11 is favourable: authorise the Stage A recovery with counters carried; a fresh reader job under the same envelope with the spent part carried (recommended).</li>
-      <li><b>Slice go.</b> After Codex's launch review and the stage-0 addendum.</li>
+      <li><b>Slice go.</b> Codex is on board. Your row-specific go for C1 and main reps 0–2 is needed; it takes effect once stage 0 ends and is settled and the watch expectations are appended.</li>
       <li><b>Text arm.</b> Reader and acceptance rule by 15 Oct.</li>
     </ul>
   </div>
