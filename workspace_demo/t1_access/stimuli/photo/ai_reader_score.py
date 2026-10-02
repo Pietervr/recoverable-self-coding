@@ -1,4 +1,4 @@
-"""AI image-reader qualification, revision 5: the mechanical SCORER (orchestrator side; the reader never sees it).
+"""AI image-reader qualification, revision 6: the mechanical SCORER (orchestrator side; the reader never sees it).
 Framework §8.2 reader rule; Codex RSC cf3e49e and 7048bb8; R052 handoffs 7f25830e repairs 1, 2, 4, 7 and 742146ad
 groups 1 and 6; RSC 5a8d7ac closures 1 and 6. Standard library only.
 
@@ -150,7 +150,7 @@ def committed(raw_path: Path) -> dict:
 
 
 def admit(raw_path: Path, sset: dict, *, package: dict | None, allow_synthetic: bool, go: Path | None,
-          delivery: dict | None = None) -> dict:
+          delivery: dict | None = None, clock_path: Path | None = None) -> dict:
     """Groups 1 and 6: committed raw, complete validation, approved package."""
     if not allow_synthetic and package is not None:
         raise SystemExit("refused: scientific scoring recomputes the package; a caller-supplied package is refused")
@@ -181,8 +181,11 @@ def admit(raw_path: Path, sset: dict, *, package: dict | None, allow_synthetic: 
         deliv = json.loads(X.DELIVERY.read_text())
         v = J.validate(recs, sset, digest, raw_bytes=info["bytes"], require_complete=True, mode="scientific",
                        delivery=deliv, instructions_sha256=pkg["instructions_sha256"], limits=X.LIMITS)
+    import ai_reader_exec as X
+    cp = clock_path if clock_path is not None else (None if allow_synthetic else X.JOB / "clock.json")
+    clock = X.admit_clock(cp, info["bytes"], recs[-1]) if cp is not None else None   # a FINISHED closure (R3)
     begins = {r["attempt_id"]: r for r in recs if r["t"] == "begin"}
-    return {**info, "validation": v, "records": recs, "begins": begins, "package_digest": digest}
+    return {**info, "validation": v, "clock": clock, "records": recs, "begins": begins, "package_digest": digest}
 
 
 def rate(rows: list[bool]) -> dict:
@@ -190,7 +193,8 @@ def rate(rows: list[bool]) -> dict:
 
 
 def score(raw_path: Path, *, allow_synthetic: bool = False, package: dict | None = None, go: Path | None = None,
-          sset: dict | None = None, key: dict | None = None, delivery: dict | None = None) -> dict:
+          sset: dict | None = None, key: dict | None = None, delivery: dict | None = None,
+          clock_path: Path | None = None) -> dict:
     if not allow_synthetic and (sset is not None or key is not None or package is not None or delivery is not None):
         raise SystemExit("refused: scientific scoring uses only the approved key, set, delivery and package; "
                          "injected objects are accepted in labelled synthetic mode only")
@@ -199,7 +203,8 @@ def score(raw_path: Path, *, allow_synthetic: bool = False, package: dict | None
     key = key or json.loads(key_bytes)
     if not allow_synthetic and sha(key_bytes) != sset.get("key_sha256"):
         raise SystemExit("refused: the key's sha256 differs from the set's key_sha256")
-    a = admit(raw_path, sset, package=package, allow_synthetic=allow_synthetic, go=go, delivery=delivery)
+    a = admit(raw_path, sset, package=package, allow_synthetic=allow_synthetic, go=go, delivery=delivery,
+              clock_path=clock_path)
     ident = {"raw_sha256": a["raw_sha256"], "raw_commit": a["raw_commit"], "package_digest": a["package_digest"],
              "key_sha256": sha(key_bytes), "set_sha256": sha(SET.read_bytes()),
              "scorer_sha256": sha(Path(__file__).read_bytes())}

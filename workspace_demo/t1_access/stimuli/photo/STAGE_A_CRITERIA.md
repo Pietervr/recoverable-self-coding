@@ -1,4 +1,4 @@
-# Stage A (ledger row 20): declared criteria and code, revision 5 (R084, 2 October 2026)
+# Stage A (ledger row 20): declared criteria and code, revision 6 (R084, 2 October 2026)
 
 **Specification:** framework `rsc_t1_two_channel_framework.md` §8.2, §8.4 and §8.6 (Unimog; R052's text).
 
@@ -10,24 +10,44 @@
 | 2 | RSC `e598f96` | RSC `69539bb` | NOT ON BOARD |
 | 3 | RSC `a59fc2d` | RSC `081f17b` | NOT ON BOARD |
 | 4 | RSC `d7a486a` | RSC `1bf9890` (combined with the AI reader) | NOT ON BOARD |
-| 5 | this commit | — | answers R052's handoff `8c9dac2b`: Stage A conditions 1–8 of `1bf9890` Question 4 (A1–A8) |
+| 5 | RSC `2610d8a` | RSC `b569f8a` (combined) | NOT ON BOARD; A1, A7, A8 closed; the memory qualification accepted in principle |
+| 6 | this commit | — | answers R052's handoff `c39df47e`: Stage A conditions 1–4 of `b569f8a` (§0 below) |
 
 No review record of a not-favourable verdict can be named by a go: the guard's supplementary negative list holds
-`f9d2ef3`, `69539bb`, `081f17b`, `1bf9890` (row 20) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
+`f9d2ef3`, `69539bb`, `081f17b`, `1bf9890`, `b569f8a` (row 20) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
 rejection is the absence of a positive, exactly matching attestation.
 
 **Not reopened** (accepted by Codex at `1bf9890`): the hashes and their relations, the shared strict guard (no schema
 objection), the attestation v1 format, the inputs, cases, positional rule, transaction, statistic, engineering carry
 and envelope; the sum-of-lifetime over-count as an early-stop convention; live-bound full logits and features; the two
-tiny unreserved writes; the power-loss tail as an accounting rule. Inputs, cases and the 178 planned attempts are
-byte-identical to revision 4; the plan moved only in `revision`, the envelope's declared controller constants and its
-budget hash.
+tiny unreserved writes; the power-loss tail as an accounting rule; at `b569f8a` also A1, A7, A8, the startup and
+immediate-restart repairs, the final aggregate and pre-native admission, and the memory qualification in principle.
+The plan (revision 5), inputs, cases and the 178 planned attempts are byte-identical to revision 5.
 
 **No forward has run on any development image.** Every mechanism measurement below is from declared, non-development
 fixtures: synthetic worker processes, the real watchdog, synthetic arrays; no model and no image
 (`controller_fixtures.json`, recorded 2 October 2026).
 
-## 1. The conditions A1–A8: where each lives
+## 0. Revision 6: the four conditions of RSC `b569f8a`
+
+| # | Condition | Where it lives | Fixtures (`tests/test_controller.py` unless named) |
+|---|---|---|---|
+| 1 | Kill before any I/O wait; guard the first sample | `_sample` catches every stop and SIGKILLs the group itself (`_kill_now`) before the `finally` that disarms the tick check and joins the I/O thread, and before `_phase` persists; it records the last admissible observation (`stop_observed_mono`, the start of the deciding iteration), the kill and the leader's death (kqueue, no file I/O). The watchdog's tick check is armed by a tick written immediately BEFORE `GO`, so the first sample is guarded; after the kill the watchdog stays active (controller death, beat, deadline, group-and-member retirement) until extinction. | `test_memory_stop_with_blocked_io_kills_first` (I/O thread blocked forever; the worker gone 0.008 s after the last admissible observation, timed by the test, independent of the controller); `test_never_returning_first_and_later_sample` (sample 1 and sample 3 never return: group gone, controller killed); `test_sampler_unavailable_and_slow` (killed by the sampler itself, leader dead < 0.5 s) |
+| 2 | An independent whole-controller deadline | A GUARDIAN (`stage_a_watchdog.py` in guardian mode) is started before the lock and any load, with a setup deadline (300 s), then moved to the session's cap + 5 s (at least the finalisation allowance + 5 s); on it, it SIGKILLs the controller by identity and records the death. Its path depends on no observation or persistence. The per-phase watchdog now kills the (alive) controller also on a stalled sampler. Crash charge: the guardian's and the watchdog's controller-death times; a blocked controller never seen to die is charged until the restart; the power-loss rule unchanged. | `test_persistence_after_the_watchdog_retired_is_bounded` (a controller-only persist blocks forever after the gates' watchdog retired: killed by the guardian at the shortened cap, run 18.7 s; the restart charges to that death); `test_never_returning_first_and_later_sample` |
+| 3 | Bound the abort path | `_abort_exit`: revocation - an abort tombstone `STAGE_A_FINAL.ABORTED.json` naming the session, and the removal of the session's marker - runs in two threads for at most 5 s, then exit 75 whatever they did; `final_admitted` refuses a session with a tombstone. Neither revocation step is followed by a directory fsync, so its durability across a power loss is limited; if both block or fail, a marker can survive an exit 75. | `Finalisation.test_post_marker_stall_and_blocked_revocation_are_bounded` (the marker's write stalls after its rename: exit 75 in 10.6 s (allowance 4 s + the stall; 15.6 s with the unlink blocked), tombstone present, not admitted; the same with the unlink blocking forever: the marker survives, the tombstone refuses it) |
+| 4 | The consumed recovery history | `enforce.check_ledger`: every consumed recovery an exact, typed, unique (attempt, try) entry whose authority (the owner's recovery file: attempt, session, try, owner, date, reason, file hash) names exactly it and a try the attempt has; every try of an attempt before its last must have such a recovery; outstanding interrupted entries name the last try; the open attempt's kind and session coherent. Used by pre-native admission, the final validator and the controller's final algebra. | `test_stage_a_runner.ValidatorMutations.test_codex_unauthorised_extra_try` (Codex's 195-of-200 counterexample refused in final and pre-native admission; an authority naming another try, a bool try, a missing field, a duplicate; legal with its authorised recovery); `StageA.test_crash_recovery_is_per_try_and_consumed` (the honest two-recovery history is legal) |
+
+**The memory qualification (revision 6, end to end).** The enforced bound between two readings of a process is
+0.12 s (0.16 s if the sampler stalls, through the watchdog's 0.1 s tick check and 10 ms poll); the kill is now sent by
+the sampler at the decision, with no wait in between. The measured SIGKILL delivery (0.025 s kill → exit in the overshoot fixture) is evidence,
+not a bound. Measured end to end with the I/O thread blocked: 0.008 s from the last admissible
+observation to the worker's death. The 4 GiB headroom therefore covers growth up to about 4 GiB / (0.16 s + delivery)
+≈ 22 GiB/s; one synthetic thread (11.1–14.7 GiB/s in two runs) fits, 2–8 threads (32–75 GiB/s) do not. This is the declared,
+measured qualification Codex accepted in principle (RSC `b569f8a` Question 2) for this local Stage A: Stage A
+reports the model's actual growth and peak; any cap, pressure or fidelity failure stops and is preserved; a faster
+allocation episode or an overshoot invalidates the qualified claim and grants no Stage B authority.
+
+## 1. The conditions A1–A8 of revision 5 (RSC `1bf9890`): where each lives
 
 ### A1 — every worker consumes and checks its own map; identity rechecked before completion
 
@@ -86,30 +106,17 @@ the leader already exited and only the unrecorded child holding the group;
   stops) and ticks a pipe to the watchdog; a separate I/O thread persists and sums the storage. A hung sampler (no tick
   for 0.1 s) makes the watchdog kill the group.
 
-**The complete observation-to-death interval** is at most two iterations' work plus one sleep between two readings of
-any process (0.05 + 0.02 + 0.05 = **0.12 s**), or with a hung sampler the last reading + the 0.1 s tick staleness + the
-watchdog's 10 ms poll (**≤ 0.16 s**), plus the SIGKILL delivery. Measured (`controller_fixtures.json`):
+**The observation-to-death interval** — superseded in revision 6 by §0 (the sampler now kills at the decision, before
+any join or persist; the first sample is guarded). Measured (`controller_fixtures.json`, revision 6):
 
 | Measurement | Value |
 |---|---|
-| Largest sampling iteration's work over a full run (gates, instrumented, native, report) | 5.1 ms (gates 3.1, instrumented 3.6, native 4.7, report 5.1 ms) against the 50 ms limit |
-| Hung sampler: watchdog observation → group gone | 0.034 s |
-| Memory stop: kill → reap | 0.017 s |
-| SIGKILL overshoot of a writer growing as fast as one thread can (killed at a 4 GiB reading) | 0.001 GiB (observed 4.132, exit peak 4.133 GiB; kill → exit 0.022 s) |
-| Growth rate, one thread (numpy touch) | 14.7 GiB/s |
-| Growth rate, 2 / 4 / 8 threads | 36.2 / 58.1 / 75.0 GiB/s |
-
-**The margin, stated with the numbers (partly unbuildable as asked).** The enforced bound is 0.12 s between two
-readings (0.16 s with a hung sampler) + 0.022 s SIGKILL delivery = **≤ 0.18 s**. The 4 GiB between the 44 GiB stop and
-the 48 GiB cap therefore holds for growth up to **about 22 GiB/s**. A single thread touching fresh memory grows at
-14.7 GiB/s: inside the margin (≤ 2.7 GiB unseen). **Two or more threads exceed it**: 36 GiB/s (2), 58 GiB/s (4) and
-75 GiB/s (8) would allow 6.6, 10.6 and 13.7 GiB past the stop within the enforced bound. With the measured iteration
-work (5 ms, not the 50 ms limit) the typical interval is 0.03 s + 0.022 s, which covers about 77 GiB/s, but that is a
-measurement, not an enforced bound. No sampling design can guarantee the margin against an allocator as fast as the
-machine's multi-threaded page-fault rate; a kernel-enforced per-process memory limit is not available to an
-unprivileged process on this macOS. Stage A's own growth (an mmap'd 4-bit model load, then single prefill passes) is
-the measurement Stage A makes; the declared position is that the margin is qualified for growth ≤ 22 GiB/s and is not
-claimed beyond it.
+| Largest sampling iteration's work over a full run | 5.2 ms (gates 3.2, instrumented 3.9, native 4.6, report 5.2 ms) against the 50 ms limit |
+| Memory stop (whole task): last admissible observation → leader dead | 0.009 s (0.062 s to verified extinction) |
+| Memory stop with the I/O thread blocked: last admissible observation → worker gone (timed by the test) | 0.008 s |
+| Never-returning sample 1 / 3: watchdog observation → group gone; → controller gone | 0.033 s / 0.033 s; 0.048 s / 0.046 s |
+| SIGKILL overshoot of a writer growing as fast as one thread can (killed at a 4 GiB reading) | 0.001 GiB (observed 4.122, exit peak 4.122 GiB; kill → exit 0.025 s) |
+| Growth rate, one thread / 2 / 4 / 8 threads (numpy touch) | 11.1 / 32.0 / 53.1 / 66.8 GiB/s (revision 5's run: 14.7 / 36.2 / 58.1 / 75.0) |
 
 Fixtures: `test_exit_peak_enters_the_task_aggregate` (the 1 GiB exit spike is in `member_max`, `task_lifetime_sum`
 and the final aggregate, not only a side field), `test_exit_spike_over_the_stop_stops`,
@@ -216,18 +223,18 @@ reconciliation into interrupted tries and the authorisation hold (HELD ≠ REFUS
 ledger without authority; the MLX cache counted (2.0 GiB cache in a 4.222 GiB ledger; 2.222 current against 4.222
 lifetime after a fall); the B prediction recomputed at finalisation; the interpretation item validated.
 
-**Other mechanism measurements** (`controller_fixtures.json`):
+**Other mechanism measurements** (`controller_fixtures.json`, revision 6):
 
 | Fixture | Result |
 |---|---|
-| Deadline, worker ignoring SIGTERM with a grandchild | SIGKILL at once; kill → reap 0.019 s; grandchild dead |
-| Deadline, worker busy in 4096² MLX matmuls | kill → reap 0.029 s |
-| Controller SIGKILLed during active work | worker and grandchild gone 0.022 s after the kill; restart reconciles, charges ≥ 60 s, PASSes |
-| Controller writer blocked forever | stale beat: group gone 0.031 s and the controller 0.059 s after the observation |
-| Immediate restart with an unrecorded live member (leader alive / leader exited) | every member killed, the watchdog retired last; whole run 5.3 s each |
-| Persistence failure | exit 75 in 5.4 s, first reason durable, no final record |
-| Post-rename block of the final record | exit 75, not admitted, run 10.0 s (allowance set to 4 s in the fixture) |
-| Whole PASS run (four synthetic workers) | 5.3 s |
+| Deadline, worker ignoring SIGTERM with a grandchild | SIGKILL at once; kill → reap 0.002 s; grandchild dead |
+| Deadline, worker busy in 4096² MLX matmuls | kill → reap 0.002 s |
+| Controller SIGKILLed during active work | worker and grandchild gone 0.030 s after the kill; restart reconciles, charges ≥ 60 s, PASSes |
+| Controller writer blocked forever | stale beat: group gone 0.035 s and the controller 0.050 s after the observation |
+| Immediate restart with an unrecorded live member (leader alive / leader exited) | every member killed, the watchdog retired last |
+| Persistence failure | exit 75 in 6.1 s, first reason durable, no final record |
+| Post-rename block of the final record | exit 75, not admitted, run 10.6 s (allowance set to 4 s in the fixture) |
+| Whole PASS run (four synthetic workers, guardian included) | 6.0 s |
 
 ## 3. Inputs, cases, tolerances and stops
 
@@ -268,18 +275,22 @@ The retained-output run of the whole photo suite on this package is in `reviews/
 - **The memory margin** holds for growth below the rate stated in A3; it is not a guarantee against an allocator
   faster than that. The model's own peak and growth are Stage A measurements.
 - **Descendants that leave the process group and exit between two samples** (20 ms apart in the controller) are not
-  seen; one that persists after a sample is killed by its recorded identity, by the controller and by the watchdog. No
-  Stage A worker forks a process that leaves its group.
+  seen; one that persists after a sample is killed by its recorded identity, by the controller and by the watchdog,
+  which retires only when the group AND every recorded member are gone. No Stage A worker forks a process that leaves
+  its group.
 - **The Σ-lifetime memory measure** over-counts processes whose peaks did not coincide; that can stop early, never
   late, for the processes it measures.
 - **The 60 s charge for a power loss** is a declared accounting rule; with the machine up the unseen interval is
   measured by the watchdog and charged when longer.
-- **The controller between phases** (no watchdog running: setup, reconciliation, the report checks) is bounded by its
-  own timeouts (reconciliation 10 s per group, finalisation 60 s); a controller that dies there is charged the 60 s
-  tail.
+- **The controller between phases** (no worker watchdog: setup, reconciliation, inter-phase persistence, the report
+  checks) is bounded by the guardian (setup 300 s, then the cap + 5 s) and by its own timeouts (reconciliation 10 s per
+  group, finalisation 60 s).
 - **The completion marker's commit point** is its rename; a failure of the marker's directory fsync that is followed
-  by a failure to remove it would leave a marker after exit 75 — the one residual window, which needs two consecutive
-  filesystem failures.
+  by a failure (or block) of BOTH revocation steps would leave an admissible marker after exit 75 — the residual window,
+  which needs filesystem failures on both; the revocation itself (tombstone, unlink) is not directory-fsynced, so its
+  durability across a power loss is limited. Exit 75 and its stderr diagnostic are preserved and reviewed as an abort.
+- **The guardian's bound is the session cap + 5 s:** a controller blocked between phases (no worker watchdog) is
+  killed then, not sooner; the interval is charged until its recorded death.
 - **Full logits and features** are live-bound digests, not archive-recomputed.
 - **Small writes outside the reservation:** the task LOCK (under 100 bytes, before storage is configured) and a
   watchdog's record (under 1 KiB, a separate process); both fit the 64 MiB finalisation reserve.

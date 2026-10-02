@@ -305,6 +305,19 @@ def _rederive(i: int, r: dict) -> None:
         _fail(i, f"{o} on events that cannot be re-derived (head and tail only): only a retained final error may")
     if o == "ok" and not (complete and ev["exact"]):
         _fail(i, "an ok outcome without its complete, exact event stream")
+    if o == "ok":                                      # the retained -o evidence bound to the answer (revision 6, R2)
+        from ai_reader_runtime import ANSWER_KEEP as _AK, FILE_ANSWER_KEEP as _FK
+        ans, fa = r.get("answer"), r.get("file_answer")
+        if not isinstance(fa, dict) or fa.get("sha256") != r.get("file_answer_sha256") or \
+                fa.get("sha256") != r.get("answer_sha256"):
+            _fail(i, "an ok outcome whose retained -o evidence is absent or not the answer's digest")
+        if "text" in fa:
+            if not fa["exact"] or (not r.get("overlength") and fa["text"] != ans) or \
+                    len(fa["text"].encode("utf-8")) != fa["length"]:
+                _fail(i, "an ok outcome whose retained -o text is not exactly the recorded answer")
+        elif not (fa["length"] > _FK and isinstance(ans, str) and
+                  (r.get("overlength") or len(ans.encode("utf-8")) == fa["length"])):
+            _fail(i, "an ok outcome whose retained -o excerpt does not match the answer's declared length")
     fa = r.get("file_answer")
     if o in ("provider_failure", "structural_failure"):
         if fa is not None and not ("text" in fa and fa["exact"] and fa["text"].strip() == "" and

@@ -346,6 +346,64 @@ class Rev5Recovery(HardKill):
         self.assertEqual(len([r for r in recs if r["t"] == "tail_repair"]), 1)
 
 
+class Rev6(HardKill):
+    """Codex RSC b569f8a, reader 1 and 3, across a real process death."""
+
+    def test_watchdog_does_not_retire_while_a_recorded_escaped_member_lives(self):
+        """Reader 1: the leader exits, its recorded child has left the group, and the orchestrator dies before its
+        own cleanup: the watchdog must not retire on the empty group - it kills the recorded member."""
+        self.build({"rq1c": ["escape:thing"]})
+        p = drive(self.root, "after_leader_exit:2")
+        self.assertEqual(p.returncode, 77, p.stderr[-2000:])
+        child = int((self.root / "escaped.pid").read_text())
+        t = time.monotonic()
+        while memprobe.proc_info(child) is not None and time.monotonic() - t < 10:
+            time.sleep(0.02)
+        self.assertIsNone(memprobe.proc_info(child), "the recorded escaped child outlived the dead orchestrator")
+        wd = [json.loads(x.read_text()) for x in self.b["fixture"]["job"].glob("watchdog_*.json")]
+        self.assertTrue(any(w["reason"] == "controller died" and child in w.get("killed", []) for w in wd))
+        recs, _ = self.finish_and_check()
+
+    def slow_close_run(self, allowance: float, slow: float) -> tuple:
+        self.root = Path(tempfile.mkdtemp(dir=X.ensure_root()))
+        self.build({})
+        env = {**{k: v for k, v in os.environ.items() if k != "AIRQ_CRASH"}, "AIRQ_FINAL_WRITE_S": str(allowance),
+               "AIRQ_SLOW_RECEIPT": str(slow), "AIRQ_SLOW_CLOSE": str(slow)}
+        t = time.monotonic()
+        p = subprocess.run([sys.executable, str(DRIVER), str(self.root)], capture_output=True, text=True, env=env,
+                           timeout=180)
+        return p, time.monotonic() - t
+
+    def test_slow_receipt_and_slow_close_share_one_deadline(self):
+        """Reader 3: receipt + close past their ONE allowance -> exit 75 and the COMPLETE does not qualify (the clock
+        was never closed on it); within the allowance -> the clock closes naming this journal and it qualifies."""
+        p, el = self.slow_close_run(3.0, 2.0)
+        self.assertEqual(p.returncode, 75, p.stderr[-1500:])
+        recs, _ = self.journal()
+        self.assertEqual((recs[-1]["t"], recs[-1]["outcome"]), ("receipt", "COMPLETE"))   # the receipt is durable ...
+        raw = self.b["fixture"]["raw"].read_bytes()
+        with self.assertRaisesRegex(SystemExit, "not closed on this receipt"):           # ... and does not qualify
+            X.admit_clock(self.b["fixture"]["job"] / "clock.json", raw, recs[-1])
+        p, el2 = self.slow_close_run(3.0, 0.3)
+        self.assertEqual(p.returncode, 0, p.stderr[-1500:])
+        recs, _ = self.journal()
+        ok = X.admit_clock(self.b["fixture"]["job"] / "clock.json", self.b["fixture"]["raw"].read_bytes(), recs[-1])
+        self.assertLessEqual(ok["seconds_total"], recs[-1]["seconds_total"])
+
+    def test_setup_before_the_clock_is_bounded(self):
+        """Reader 3: a stall in check_accounting, before the clock (and its guard) exists, ends at the setup timer."""
+        self.build({})
+        env = {**{k: v for k, v in os.environ.items() if k != "AIRQ_CRASH"}, "AIRQ_SETUP_S": "1.0",
+               "AIRQ_SLOW_ACCOUNTING": "30"}
+        t = time.monotonic()
+        p = subprocess.run([sys.executable, str(DRIVER), str(self.root)], capture_output=True, text=True, env=env,
+                           timeout=60)
+        self.assertEqual(p.returncode, 75, p.stderr[-800:])
+        self.assertLess(time.monotonic() - t, 10.0)
+
+
+for _name in [n for n in dir(HardKill) if n.startswith("test_")]:
+    setattr(Rev6, _name, None)
 for _name in [n for n in dir(HardKill) if n.startswith("test_")]:
     setattr(Rev5Recovery, _name, None)             # helpers inherited, HardKill's own tests not collected twice
 

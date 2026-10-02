@@ -6,7 +6,7 @@ each exec call appends {request, behaviour, pid} to dispatch_log.jsonl there.
 Behaviours: ok:<answer> | ok_exit1:<answer> | slow_ok:<seconds>:<answer> | fail | structural | tool | tool_exit1 |
 malformed | no_events:<answer> | long | multiline | noimage | block (ignores SIGTERM) | flood (> 1 MiB stdout) |
 quickflood (> 1 MiB stdout, then exit at once) | orphanchild:<answer> (a child ignoring SIGTERM outlives the answer) |
-notice:<answer> (the frozen code-mode notice first) | unknown_error:<answer> | two_messages | mismatch (-o differs) |
+escape:<answer> (a child leaves the group and persists) | notice:<answer> (the frozen code-mode notice first) | unknown_error:<answer> | two_messages | mismatch (-o differs) |
 completed_not_last | item_without_id | promptfail (debug prompt-input fails) - FAKE_PROMPT_FAIL=1 in the environment
 of the fixture also makes prompt-input fail.
 """
@@ -149,6 +149,13 @@ if kind == "orphanchild":
     with open(root / "orphan.pid", "w") as fh:
         fh.write(str(c.pid))
     time.sleep(1.5)                                # sampled as a member before the leader answers and exits
+    answer(rest)
+if kind == "escape":                               # a child that leaves the group, recorded, then the leader answers
+    import subprocess
+    c = subprocess.Popen([sys.executable, "-c", "import os, time; time.sleep(0.3); os.setsid(); time.sleep(600)"])
+    with open(root / "escaped.pid", "w") as fh:
+        fh.write(str(c.pid))
+    time.sleep(1.6)                                # sampled as a member (by parent chain) before the answer
     answer(rest)
 if kind == "notice":
     answer(rest, pre=[{"id": "n0", "type": "error", "message": NOTICE}])

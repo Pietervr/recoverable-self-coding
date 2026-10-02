@@ -1,4 +1,4 @@
-"""AI-reader qualification revision 5: scorer, key, frame, identity, validator, boundary and executor fixtures - no
+"""AI-reader qualification revision 6: scorer, key, frame, identity, validator, boundary and executor fixtures - no
 model is called and no qualification image is shown to anything. Revision 5 (Codex RSC 1bf9890 R1-R6) adds the
 exact=false evidence mutations, strict schema/identity/image/bounds admission, local-receipt cleanup and cap fixtures,
 and the clock's strict validation, guard and lock fixtures. The real codex binary is used only for its local
@@ -407,7 +407,7 @@ class ScorerAdmission(unittest.TestCase):
         X.run(fixture=b["fixture"])
         with self.assertRaises(SystemExit):
             S.score(b["fixture"]["raw"])                                     # scientific mode on a fixture journal
-        out = S.score(b["fixture"]["raw"], allow_synthetic=True, sset=b["sset"], key=b["key"],
+        out = S.score(b["fixture"]["raw"], allow_synthetic=True, sset=b["sset"], key=b["key"], clock_path=b["fixture"]["job"] / "clock.json",
                       delivery=b["fixture"]["delivery"])
         self.assertEqual(out["WARNING"], "SYNTHETIC FIXTURE - NOT A QUALIFICATION RESULT")
         self.assertIsNone(out["admission"]["admitted"])
@@ -451,7 +451,7 @@ class ScorerAdmission(unittest.TestCase):
         root = tmp()
         b = A.build(root, {"rq0g": ["ok:wrong"]})
         X.run(fixture=b["fixture"])
-        out = S.score(b["fixture"]["raw"], allow_synthetic=True, sset=b["sset"], key=b["key"],
+        out = S.score(b["fixture"]["raw"], allow_synthetic=True, sset=b["sset"], key=b["key"], clock_path=b["fixture"]["job"] / "clock.json",
                       delivery=b["fixture"]["delivery"])
         ref = out["referrals"][0]
         for k in ("raw_sha256", "package_digest", "key_sha256", "set_sha256", "scorer_sha256", "attempt_id",
@@ -550,7 +550,7 @@ class Validator(unittest.TestCase):
         self.bad(recs, "isolation")                                          # ok, but the events show a command
         recs = copy.deepcopy(self.recs)
         recs[e_ok]["file_answer_sha256"] = "0" * 64
-        self.bad(recs, "disagree")                                           # -o answer differs
+        self.bad(recs, "-o")                                                 # -o answer differs
         recs = copy.deepcopy(self.recs)
         e_pf = self.idx(lambda r: r["t"] == "end" and r["outcome"] == "provider_failure")
         recs[e_pf]["outcome"] = "structural_failure"
@@ -967,6 +967,7 @@ class Executor(unittest.TestCase):
         time.sleep(2.5)                                                       # the main thread does nothing
         live = json.loads((d / "clock.json").read_text())["open_session"]["live_s"]
         c.close("test")
+        c.stop_guard.set()
         self.assertGreaterEqual(live, 1.5)
 
     def test_pending_quarantine_recorded(self):
@@ -1149,6 +1150,38 @@ class Rev5Evidence(unittest.TestCase):
         self.bad(recs, "finite")
 
 
+class Rev6Evidence(Rev5Evidence):
+    """Reader 2 (Codex RSC b569f8a): the retained -o evidence on an ok outcome is bound to the answer."""
+
+    def ok_end(self, recs):
+        return self.idx(recs, lambda r: r["t"] == "end" and r["outcome"] == "ok")
+
+    def test_ok_file_evidence_bound_on_complete(self):
+        other = R.bounded(b"spoon", R.FILE_ANSWER_KEEP)
+        for name, val in (("another complete string, its own length and hash", other), ("None", None)):
+            with self.subTest(name):
+                recs = copy.deepcopy(self.recs)
+                recs[self.ok_end(recs)]["file_answer"] = val           # separate digest and answers unchanged
+                self.bad(recs, "-o")
+
+    def test_ok_file_evidence_bound_on_resume(self):
+        root = tmp()
+        b = A.build(root, {"rq1c": ["fail", "ok:thing"]})
+        X.run(fixture=b["fixture"])
+        recs, _ = J.read(b["fixture"]["raw"])
+        body = recs[:-1]
+        body[self.ok_end(body)]["file_answer"] = R.bounded(b"spoon", R.FILE_ANSWER_KEEP)
+        b["fixture"]["raw"].write_bytes(b"".join((json.dumps(r, sort_keys=True) + "\n").encode() for r in body))
+        n = len(A.dispatches(root))
+        with self.assertRaisesRegex(SystemExit, "-o"):
+            X.run(fixture=b["fixture"])
+        self.assertEqual(len(A.dispatches(root)), n)
+
+
+for _n in [n for n in dir(Rev5Evidence) if n.startswith("test_")]:
+    setattr(Rev6Evidence, _n, None)
+
+
 class Rev5LocalReceipts(unittest.TestCase):
     """R5: local receipt commands enforce the final output bound, bounded reads, an independent deadline and verified
     whole-group cleanup on every exit."""
@@ -1194,11 +1227,54 @@ class Rev5LocalReceipts(unittest.TestCase):
                         f"open({str(pidf)!r}, 'w').write(str(c.pid))\n"
                         "time.sleep(600)\n")
         t = time.monotonic()
-        with self.assertRaisesRegex(SystemExit, "could not be read"):
+        with self.assertRaisesRegex(SystemExit, "deadline"):
             R.invocation_receipt([sys.executable, str(prog)], A.READER, d, d / "w" / "x.png", "p", wait_s=1.0,
                                  sandbox=False)
         self.assertLess(time.monotonic() - t, 6.0)
         self.assertIsNone(memprobe.proc_info(int(pidf.read_text())))
+
+
+class Rev6LocalCommands(Rev5LocalReceipts):
+    """Reader 4: post-spawn setup owned by cleanup; the deadline enforced explicitly on every receipt."""
+
+    def test_setup_failure_after_spawn_leaves_no_process(self):
+        d = self.adir()
+        pidf = d / "child.pid"
+        body = ("import subprocess, sys, time; c = subprocess.Popen([sys.executable, '-c', "
+                "'import time; time.sleep(600)']); open(%r, 'w').write(str(c.pid)); time.sleep(600)" % str(pidf))
+        real = R.memprobe.exit_watch
+
+        def failing(pid):
+            time.sleep(2.0)                                    # the child exists before the setup fails
+            raise OSError("fixture: exit-watch registration failed")
+        R.memprobe.exit_watch = failing
+        try:
+            with self.assertRaisesRegex(OSError, "exit-watch"):
+                R.run_local(self.script(body), d, [], sandbox=False)
+        finally:
+            R.memprobe.exit_watch = real
+        self.assertIsNone(memprobe.proc_info(int(pidf.read_text())), "a process outlived the failed setup")
+
+    def test_late_exit_is_a_timeout(self):
+        with self.assertRaisesRegex(SystemExit, "deadline"):
+            R.run_local(self.script("import time; time.sleep(1.1)"), self.adir(), [], sandbox=False, timeout=1.0)
+
+    def test_complete_invocation_logs_after_the_deadline_refused(self):
+        d = self.adir()
+        prog = d / "w" / "lateexec.py"
+        prog.write_text("import sys, time\ntime.sleep(1.3)\n"
+                        "sys.stderr.write('TurnInput { request: TurnInputRequest { input: UserInput { content: [x], "
+                        "client_id\\n')\n"
+                        "sys.stderr.write('feedback_tags: model=\"m\" approval_policy=Never sandbox_policy=ReadOnly "
+                        "{ network_access: false } effort=Some(Medium) auth_mode=a tags_json={}\\n')\n"
+                        "sys.stderr.flush()\ntime.sleep(0.5)\n")
+        with self.assertRaisesRegex(SystemExit, "deadline"):
+            R.invocation_receipt([sys.executable, str(prog)], A.READER, d, d / "w" / "x.png", "p", wait_s=1.0,
+                                 sandbox=False)
+
+
+for _n in [n for n in dir(Rev5LocalReceipts) if n.startswith("test_")]:
+    setattr(Rev6LocalCommands, _n, None)
 
 
 class Rev5Clock(unittest.TestCase):
@@ -1224,6 +1300,7 @@ class Rev5Clock(unittest.TestCase):
         while not hit and time.monotonic() - t < 5:
             time.sleep(0.05)
         c.close("test")
+        c.stop_guard.set()
         self.assertTrue(hit)
         self.assertLess(hit[0] - t, 1.5)
 
@@ -1256,6 +1333,7 @@ class Rev5Clock(unittest.TestCase):
             t = time.monotonic()
             with self.assertRaisesRegex(RuntimeError, "blocked write"):
                 c.close("test")
+            c.stop_guard.set()
             self.assertLess(time.monotonic() - t, 1.5)
         finally:
             X.write_atomic, X.CLOSE_WAIT_S = real, old_wait

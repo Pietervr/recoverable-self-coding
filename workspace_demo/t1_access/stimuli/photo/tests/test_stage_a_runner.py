@@ -1,4 +1,4 @@
-"""Stage A revision 5: runner, validator, recovery, attestation and identity tests on a fake instrument - no model
+"""Stage A revision 6: runner, validator, recovery, attestation and identity tests on a fake instrument - no model
 is imported, loaded or run. Controller mechanism fixtures are in test_controller.py. Revision 5 adds Codex RSC
 1bf9890's A1 call-site fixtures (gates and report consume their own map and recheck before committing), the A6 ledger
 counterexample and coherent zero/negative states, full instrumented admission before any native work (a CONSISTENT
@@ -135,6 +135,7 @@ class StageA(unittest.TestCase):
         st = state(self.out)
         self.assertEqual(st["counters"]["row20"]["started"], 16 + N_INST + 2)    # both crashed tries counted
         self.assertEqual(st["attempts"][crashed]["tries"], 3)
+        self.assertEqual(enforce.check_ledger(st), [])                 # an honest, authorised history is legal
 
     def test_gates_reconcile_then_hold(self):
         """Restart before interruption reconciliation: the GATES worker converts the open attempt durably, then
@@ -456,6 +457,38 @@ class ValidatorMutations(unittest.TestCase):
         st["counters"]["aggregate"] = dict(st["counters"]["row20"])
         self.assertIn("LEDGER_DOMAIN", self.ledger_codes(st))
         self.assertTrue(enforce.check_ledger(st))
+
+    def test_codex_unauthorised_extra_try(self):
+        """Stage A 4, Codex RSC b569f8a: one completed attempt's tries 1 -> 2 with NO consumed recovery, and row 20 /
+        aggregate started, passes and failed raised by one (195 of 200, every counter legal, the recount agrees) -
+        refused in final admission and in pre-native admission."""
+        st = json.loads((self.base / "stage_a_state.json").read_text())
+        st["attempts"]["05-plain"]["tries"] = 2
+        for k in ("row20", "aggregate"):
+            for x in ("started", "passes", "failed"):
+                st["counters"][k][x] += 1
+        self.assertTrue(any("no consumed, authorised recovery" in p for p in enforce.check_ledger(st)))
+        self.assertIn("LEDGER_DOMAIN", self.ledger_codes(st))
+        out = self.copy()
+        (out / "stage_a_state.json").write_text(json.dumps(st))
+        val = R.validate(out, PLAN, st, identity="f" * 64, phases=("instrumented",))
+        self.assertIn("LEDGER_DOMAIN", {f["code"] for f in val["failures"]})
+        good = {"attempt_id": "05-plain", "session": "s0", "try": 1, "consumed_by": "s1",
+                "authority": {"attempt_id": "05-plain", "session": "s0", "try": 1, "owner": "o", "date": "2026-10-02",
+                              "reason": "r", "file_sha256": "a" * 64}}
+        muts = {"authority names another try": dict(good, authority={**good["authority"], "try": 2}),
+                "try as bool": dict(good, **{"try": True}), "missing consumed_by": {k: v for k, v in good.items()
+                                                                                    if k != "consumed_by"}}
+        for name, r in muts.items():
+            with self.subTest(name):
+                st2 = copy.deepcopy(st)
+                st2["recoveries_consumed"] = [r]
+                self.assertTrue(enforce.check_ledger(st2))
+        st2 = copy.deepcopy(st)
+        st2["recoveries_consumed"] = [good, good]
+        self.assertTrue(any("recorded twice" in p for p in enforce.check_ledger(st2)))
+        st2["recoveries_consumed"] = [good]
+        self.assertEqual(enforce.check_ledger(st2), [])                 # with its authorised recovery: legal
 
     def test_coherent_zero_negative_and_typed_states(self):
         base = json.loads((self.base / "stage_a_state.json").read_text())

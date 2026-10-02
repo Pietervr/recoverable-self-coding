@@ -169,7 +169,9 @@ class Controller(unittest.TestCase):
         self.assertEqual(final["outcome"], "STOPPED")
         self.assertIn("task memory", terminal(self.out)["first"]["reason"])
         w = rec(self.out)["workers"][1]
-        MEASURED["memory_stop"] = {"kill_to_reap_s": round(w["kill_to_reap_s"], 4), "how": w["how"]}
+        MEASURED["memory_stop"] = {"observation_to_leader_dead_s": round(w["stop_leader_dead_s"], 4),
+                                   "observation_to_verified_extinction_s": round(w["observation_to_extinction_s"], 4),
+                                   "how": w["how"]}
 
     def test_exit_peak_enters_the_task_aggregate(self):
         final = ctl(self.out, {"instrumented": "spike_exit"}).run()
@@ -208,12 +210,12 @@ class Controller(unittest.TestCase):
         self.assertEqual(final["outcome"], "STOPPED")
         self.assertTrue(any("controller final" in m for m in final["missing_measurements"]))
 
-    def test_sampler_unavailable_slow_and_blocked(self):
+    def test_sampler_unavailable_and_slow(self):
         def gone(pids):
             raise memprobe.Unavailable("test")
 
-        def slow(pids):
-            time.sleep(0.7)
+        def slow(pids):                                   # over the 50 ms work limit, under the 100 ms tick staleness
+            time.sleep(0.065)
             return memprobe.task_sample(pids)
         for name, s, want in (("unavailable", gone, "unavailable"), ("slow", slow, "took")):
             with self.subTest(name):
@@ -222,30 +224,105 @@ class Controller(unittest.TestCase):
                             probe=Probe(task_sample=armed(out, s, memprobe.task_sample))).run()
                 self.assertEqual(final["outcome"], "STOPPED")
                 self.assertIn(want, terminal(out)["first"]["reason"])
+                w = rec(out)["workers"][1]
+                self.assertIn("stop_observed_mono", w)              # killed by the sampler itself
+                self.assertLess(w["stop_leader_dead_s"], 0.5)
 
-    def test_hung_sampler_watchdog_kills_on_stale_ticks(self):
-        """A sampler that hangs 25 s stops ticking; the watchdog kills the worker's group within TICK_STALE_S of the
-        last tick, independent of the controller (whose I/O thread keeps beating)."""
-        hang = {"n": 0}
-
-        def blocked(pids):
-            hang["n"] += 1
-            if hang["n"] == 3:
-                time.sleep(25)
-            return memprobe.task_sample(pids)
+    def never_returning_sample(self, nth: int) -> tuple:
+        """Stage A 1-2: the instrumented phase's nth sample never returns (in a separate controller process). The
+        watchdog's tick check is armed before release, so even the FIRST sample is guarded; a stalled sampler kills
+        the worker group AND the controller - no controller outlives its safeguard."""
+        out = new_out()
+        body = (f"o=Path({str(out)!r})\n"
+                "import memprobe, time\n"
+                "n={'k':0}\n"
+                "def ts(pids):\n"
+                "    if ctlr.rec['workers'][-1]['phase'] == 'instrumented':\n"
+                "        n['k'] += 1\n"
+                f"        if n['k'] == {nth}: time.sleep(10**6)\n"
+                "    return memprobe.task_sample(pids)\n"
+                "ctlr = T.ctl(o, {'instrumented': 'family'}, probe=T.Probe(task_sample=ts))\n"
+                "ctlr.run()\n")
         t = time.monotonic()
-        final = ctl(self.out, {"instrumented": "family"},
-                    probe=Probe(task_sample=armed(self.out, blocked, memprobe.task_sample))).run()
-        self.assertEqual(final["outcome"], "STOPPED")
-        wd = json.loads((self.out / f"watchdog_{final['session']}_instrumented.json").read_text())
-        self.assertIn("sampler stale", wd["reason"])
-        self.assertTrue(wd["group_gone"])
-        self.assertIsNone(wd.get("controller_killed"))                      # a sampler stall does not kill it
-        gpid = int((self.out / "grandchild.pid").read_text())
-        self.assertFalse(alive(gpid))
-        self.assertLessEqual(wd["group_gone_wall"] - wd["observed_wall"], 1.0)
-        MEASURED["hung_sampler"] = {"observed_to_group_gone_s": round(wd["group_gone_wall"] - wd["observed_wall"], 4),
-                                    "tick_stale_s": C.TICK_STALE_S, "run_seconds": round(time.monotonic() - t, 3)}
+        p = subprocess.run(driver(body), capture_output=True, text=True, timeout=120)
+        return p, out, time.monotonic() - t
+
+    def test_never_returning_first_and_later_sample(self):
+        for nth in (1, 3):
+            with self.subTest(nth=nth):
+                p, out, el = self.never_returning_sample(nth)
+                self.assertEqual(p.returncode, -signal.SIGKILL, p.stderr[-800:])    # the controller is killed
+                wd = json.loads(next(out.glob("watchdog_*_instrumented.json")).read_text())
+                self.assertIn("sampler stale", wd["reason"])
+                self.assertTrue(wd["group_gone"] and wd["controller_killed"])
+                if (out / "grandchild.pid").exists():
+                    self.assertFalse(alive(int((out / "grandchild.pid").read_text())))
+                self.assertLess(el, 30.0)
+                MEASURED.setdefault("never_returning_sample", {})[f"sample_{nth}"] = {
+                    "observed_to_group_gone_s": round(wd["group_gone_wall"] - wd["observed_wall"], 4),
+                    "observed_to_controller_gone_s": round(wd["controller_gone_wall"] - wd["observed_wall"], 4)}
+                ctl(out, {}).run()                                         # restart: charged the measured tail
+                crashed = [x for x in rec(out)["sessions"] if x.get("closed") == "crashed"]
+                self.assertGreaterEqual(crashed[0]["tail_s"], C.TAIL_RESERVE_S)
+
+    def test_memory_stop_with_blocked_io_kills_first(self):
+        """Stage A 1: the memory stop SIGKILLs the group from the sampler BEFORE any join or persist while the I/O
+        thread is blocked forever. Measured end to end by this test, independent of the controller: the last
+        admissible observation -> the worker gone."""
+        out = new_out()
+        body = (f"o=Path({str(out)!r})\n"
+                "import time\n"
+                "C.MEM_STOP = 768 << 20\n"
+                "def w(p,ob,final=False):\n"
+                "    ws = ob.get('workers') if isinstance(ob, dict) else None\n"
+                "    if ws and ws[-1].get('phase') == 'instrumented' and ws[-1].get('released'): time.sleep(10**6)\n"
+                "    write_json_atomic(p,ob,final=final)\n"
+                "T.ctl(o, {'instrumented': 'alloc:1'}, writer=w).run()\n")
+        p = subprocess.Popen(driver(body), stderr=subprocess.PIPE, text=True)
+        try:
+            observed = None
+            for line in p.stderr:
+                if "stop observed at monotonic" in line:
+                    observed = float(line.split("monotonic ")[1].split(",")[0])
+                    break
+            self.assertIsNotNone(observed, "no stop observed")
+            pid = [w for w in rec(out)["workers"] if w["phase"] == "instrumented"][0]["pid"]
+            while alive(pid) and time.monotonic() - observed < 10:
+                time.sleep(0.001)
+            gone = time.monotonic() - observed
+            self.assertFalse(alive(pid))
+            self.assertLess(gone, 0.5)
+            MEASURED["memory_stop_blocked_io_observation_to_gone_s"] = round(gone, 4)
+        finally:
+            p.kill()
+            p.wait()
+            p.stderr.close()
+
+    def test_persistence_after_the_watchdog_retired_is_bounded(self):
+        """Stage A 2: a controller-only persist blocks forever after the gates' worker and watchdog are gone; the
+        guardian kills the controller at the (shortened) cap + margin; the restart charges until that death."""
+        out = new_out()
+        cap = CARRY + 1 + 1 + 3 + 8
+        body = (f"o=Path({str(out)!r})\n"
+                "import time\n"
+                "C.TAIL_RESERVE_S, C.STOP_RESERVE_S, C.REPORT_RESERVE_S, C.FINAL_ALLOWANCE_S = 1.0, 1.0, 3.0, 3.0\n"
+                "def w(p,ob,final=False):\n"
+                "    ws = ob.get('workers') if isinstance(ob, dict) else None\n"
+                "    if ws and ws[-1].get('phase') == 'gates' and ws[-1].get('reaped'): time.sleep(10**6)\n"
+                "    write_json_atomic(p,ob,final=final)\n"
+                f"T.ctl(o, {{}}, writer=w, row_cap_s={cap}).run()\n")
+        t = time.monotonic()
+        p = subprocess.run(driver(body), capture_output=True, text=True, timeout=120)
+        el = time.monotonic() - t
+        self.assertEqual(p.returncode, -signal.SIGKILL, p.stderr[-800:])
+        g = json.loads(next(out.glob("guardian_*.json")).read_text())
+        self.assertEqual(g["reason"], "controller deadline")
+        self.assertTrue(g["controller_killed"])
+        self.assertLess(el, 8 + C.HARD_MARGIN_S + 15)
+        MEASURED["guardian_blocked_persist_run_s"] = round(el, 3)
+        ctl(out, {}, row_cap_s=cap + 3600).run()
+        crashed = [x for x in rec(out)["sessions"] if x.get("closed") == "crashed"]
+        self.assertGreaterEqual(crashed[0]["tail_s"], g["controller_gone_wall"] - crashed[0]["beat_wall"] - 1e-6)
 
     def test_initial_resource_failure_is_terminal(self):
         def bad():
@@ -656,6 +733,25 @@ class Finalisation(unittest.TestCase):
         self.assertEqual(p.returncode, 75, p.stderr[-800:])
         self.assertFalse((out / C.ADMITTED).exists())
         self.assertIsNone(C.final_admitted(out))
+
+    def test_post_marker_stall_and_blocked_revocation_are_bounded(self):
+        """Stage A 3: the marker's write stalls after its rename; the allowance fires; revocation (tombstone +
+        unlink) is itself bounded - also when the unlink blocks forever - and the process exits 75 in bounded time;
+        the session is not admitted either way."""
+        for blocked_unlink in (False, True):
+            with self.subTest(blocked_unlink=blocked_unlink):
+                pre = "C.FINAL_ALLOWANCE_S = 4.0\n" + ("C._unlink = lambda p: time.sleep(10**6)\n"
+                                                        if blocked_unlink else "")
+                p, out, el = self.run_driver("def w(p,ob,final=False):\n"
+                                             "    write_json_atomic(p,ob,final=final)\n"
+                                             "    if p.name == 'STAGE_A_FINAL.ADMITTED.json': time.sleep(10**6)\n",
+                                             pre="import time\n" + pre)
+                self.assertEqual(p.returncode, 75, p.stderr[-800:])
+                self.assertLess(el, 4.0 + C.REVOKE_TIMEOUT_S + 20)
+                self.assertIsNone(C.final_admitted(out))
+                self.assertTrue((out / C.ABORTED).exists())
+                self.assertEqual((out / C.ADMITTED).exists(), blocked_unlink)    # the marker survives only here
+                MEASURED.setdefault("post_marker_abort_run_s", {})[f"unlink_blocked_{blocked_unlink}"] = round(el, 3)
 
     def test_size_mismatch_invalidates_completion(self):
         p, out, _ = self.run_driver("def w(p,ob,final=False):\n"

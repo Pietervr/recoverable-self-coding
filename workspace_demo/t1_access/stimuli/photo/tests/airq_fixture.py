@@ -86,4 +86,32 @@ def dispatches(root: Path) -> list[dict]:
 
 
 if __name__ == "__main__":
+    import os
+    import time
+    import ai_reader_journal as J
+    if os.environ.get("AIRQ_FINAL_WRITE_S"):               # revision-6 timing fixtures (R3)
+        X.FINAL_WRITE_S = float(os.environ["AIRQ_FINAL_WRITE_S"])
+    if os.environ.get("AIRQ_SETUP_S"):
+        X.SETUP_S = float(os.environ["AIRQ_SETUP_S"])
+    slow_r, slow_c = float(os.environ.get("AIRQ_SLOW_RECEIPT", 0)), float(os.environ.get("AIRQ_SLOW_CLOSE", 0))
+    slow_a = float(os.environ.get("AIRQ_SLOW_ACCOUNTING", 0))
+    if slow_r:
+        _append = J.append
+
+        def append(path, rec, cap=None):
+            if rec.get("t") == "receipt":
+                time.sleep(slow_r)
+            return _append(path, rec, cap)
+        J.append = append
+    if slow_c:
+        _wa = X.write_atomic
+
+        def wa(path, data, **kw):
+            if b'"open_session": null' in data:
+                time.sleep(slow_c)
+            return _wa(path, data, **kw)
+        X.write_atomic = wa
+    if slow_a:
+        _ca = X.check_accounting
+        X.check_accounting = lambda *a: (time.sleep(slow_a), _ca(*a))[1]
     print(json.dumps(X.run(fixture=load(Path(sys.argv[1]))), default=str))

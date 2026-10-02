@@ -1,6 +1,7 @@
 """Photograph arm, rows 20 and 21: the WORKER-SIDE ledger - attempts, the completion transaction, recovery and
-storage reservations. Revision 5 adds `check_ledger`, the ledger's legal domains (Codex RSC 1bf9890 A6), used by the
-validator and the controller's final algebra; revision 4 answered Codex RSC 081f17b closure groups 2 and 4. Time, memory, swap, pressure, the deadline,
+storage reservations. Revision 6 extends `check_ledger` to the consumed recovery history (Codex RSC b569f8a Stage A 4);
+revision 5 added it - the ledger's legal domains (Codex RSC 1bf9890 A6), used by the validator and the controller's
+final algebra; revision 4 answered Codex RSC 081f17b closure groups 2 and 4. Time, memory, swap, pressure, the deadline,
 termination and reaping belong to the independent controller (`stage_a_controller.py`) and its watchdog.
 
 STATE: one file per task (`stage_a_state.json`), written atomically (temp file, fsync, os.replace, directory fsync)
@@ -171,6 +172,49 @@ def check_ledger(state, passes_per_try: int = 1, row: str = "row20") -> list[str
                 (att.get(it.get("id")) or {}).get("status") != "interrupted" or \
                 not _int(it.get("try"), 1) or it["try"] > att[it["id"]]["tries"]:
             p.append(f"interrupted entry {it!r:.80} incoherent")
+    # The consumed recovery history (revision 6, Codex RSC b569f8a Stage A 4): every consumed recovery an exact,
+    # typed, unique (attempt, try) identity with the owner's authority naming exactly it; every try of an attempt
+    # before its last one must have been interrupted AND recovered by such an authority (a re-attempt is permitted
+    # only after one); nothing else may account for an extra try.
+    rkeys = {"attempt_id", "session", "try", "authority", "consumed_by"}
+    akeys = {"attempt_id", "session", "try", "owner", "date", "reason", "file_sha256"}
+    seen = set()
+    for r_ in rec:
+        ok = (isinstance(r_, dict) and set(r_) == rkeys and isinstance(r_["attempt_id"], str) and
+              isinstance(r_["session"], str) and r_["session"] and isinstance(r_["consumed_by"], str) and
+              r_["consumed_by"] and _int(r_["try"], 1) and isinstance(r_["authority"], dict) and
+              set(r_["authority"]) == akeys and
+              (r_["authority"]["attempt_id"], r_["authority"]["session"], r_["authority"]["try"]) ==
+              (r_["attempt_id"], r_["session"], r_["try"]) and
+              all(isinstance(r_["authority"][k], str) and r_["authority"][k] for k in ("owner", "date", "reason")) and
+              isinstance(r_["authority"]["file_sha256"], str) and len(r_["authority"]["file_sha256"]) == 64)
+        if not ok:
+            p.append(f"consumed recovery {r_!r:.80} not an exact, typed, authorised entry")
+            continue
+        k = (r_["attempt_id"], r_["try"])
+        if k in seen:
+            p.append(f"consumed recovery {k} recorded twice")
+        seen.add(k)
+        a_ = att.get(r_["attempt_id"])
+        if not isinstance(a_, dict) or not _int(a_.get("tries"), 1) or r_["try"] > a_["tries"]:
+            p.append(f"consumed recovery {k} names no such try of a planned attempt")
+    for i, a in att.items():
+        if not isinstance(a, dict) or not _int(a.get("tries"), 1):
+            continue
+        last = a["tries"] if a.get("status") == "interrupted, recovery consumed" else a["tries"] - 1
+        missing = [t for t in range(1, last + 1) if (i, t) not in seen]
+        if missing:
+            p.append(f"attempt {i}: tries {missing} have no consumed, authorised recovery (an extra try)")
+        if any(it.get("id") == i and it.get("try") != a["tries"] for it in inter if isinstance(it, dict)):
+            p.append(f"attempt {i}: an outstanding interrupted entry names a try other than its last")
+    if isinstance(open_, dict):
+        a_ = att.get(open_.get("id")) or {}
+        if open_.get("kind") != a_.get("kind") or not isinstance(open_.get("session"), str) or \
+                not open_.get("session"):
+            p.append("open_attempt kind or session incoherent")
+    for it in inter:
+        if isinstance(it, dict) and (not isinstance(it.get("session"), str) or not it.get("session")):
+            p.append(f"interrupted entry {it.get('id')} without a session")
     named = {it.get("id") for it in inter if isinstance(it, dict)}
     for i, a in att.items():
         if isinstance(a, dict) and a.get("status") == "interrupted" and i not in named:

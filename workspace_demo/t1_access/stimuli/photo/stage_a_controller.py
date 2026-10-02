@@ -96,6 +96,7 @@ from enforce import (CAPS, MEMORY_CAP as CAPS_MEMORY, GiB, MiB, check_ledger, co
 HEARTBEAT_S, MEM_SAMPLE_S, SYS_SAMPLE_S, SAMPLE_LIMIT_S, TICK_STALE_S = 1.0, 0.02, 1.0, 0.05, 0.1
 TAIL_RESERVE_S, STOP_RESERVE_S, REPORT_RESERVE_S, FINAL_ALLOWANCE_S = 60.0, 60.0, 600.0, 60.0
 STALE_S, HARD_MARGIN_S, GROUP_GONE_S, ARM_TIMEOUT_S = 10.0, 5.0, 10.0, 10.0
+SETUP_DEADLINE_S, REVOKE_TIMEOUT_S = 300.0, 5.0
 MEM_STOP = 44 * GiB
 FINAL_RESERVE_BYTES = 64 * MiB
 PHASES = ["instrumented", "native"]
@@ -103,7 +104,8 @@ B_PLANNED_ATTEMPTS, B_RESERVE = 1856, 1.25
 EXIT_HOLD = 4
 GATE = ["/bin/sh", "-c", 'IFS= read -r go || exit 97; [ "$go" = GO ] || exit 97; exec "$@" </dev/null', "stagea"]
 WATCHDOG = [sys.executable, str(HERE / "stage_a_watchdog.py")]
-FINAL, ADMITTED = "STAGE_A_FINAL.json", "STAGE_A_FINAL.ADMITTED.json"
+FINAL, ADMITTED, ABORTED = "STAGE_A_FINAL.json", "STAGE_A_FINAL.ADMITTED.json", "STAGE_A_FINAL.ABORTED.json"
+_unlink = os.unlink                                   # module-level so a fixture can make revocation block
 REPORT_OUTPUTS = {"report/rel_l2_by_layer.svg", "report/logit_max_abs.svg", "report/STAGE_A_REPORT.md",
                   "report/stage_a_report.json"}
 RECEIPT_KEYS = {"session", "package", "identity", "date", "outputs", "admissible", "validator_pass"}
@@ -146,6 +148,13 @@ def final_admitted(out: Path) -> dict | None:
     if not isinstance(mk, dict) or set(mk) != {"final_sha256", "session"} or mk["final_sha256"] != _sha(fb) or \
             not isinstance(fin, dict) or fin.get("session") != mk["session"]:
         return None
+    ab = Path(out) / ABORTED                           # an abort of that session revokes it, whatever the marker says
+    if ab.exists():
+        try:
+            if json.loads(ab.read_text()).get("session") == mk["session"]:
+                return None
+        except (OSError, ValueError):
+            return None
     return fin
 
 
@@ -212,9 +221,20 @@ class Controller:
                         ends = [wd.get(k) for k in ("group_gone_wall", "controller_gone_wall") if _num(wd.get(k))]
                         if ends and _num(s.get("beat_wall")):
                             tail = max(tail, max(ends) - s["beat_wall"])
-                        blocked = str(wd.get("reason", "")).startswith(("heartbeat stale", "hard deadline"))
+                        blocked = str(wd.get("reason", "")).startswith(("heartbeat stale", "hard deadline",
+                                                                         "sampler stale"))
                         if blocked and not _num(wd.get("controller_gone_wall")) and _num(s.get("beat_wall")):
                             tail = max(tail, time.time() - s["beat_wall"])   # blocked and not seen to die: until now
+            gp = self.out / f"guardian_{s['session']}.json"   # the controller-deadline guardian (Stage A 2)
+            if gp.exists():
+                try:
+                    g = json.loads(gp.read_text())
+                except ValueError:
+                    g = {}
+                if _num(g.get("controller_gone_wall")) and _num(s.get("beat_wall")):
+                    tail = max(tail, g["controller_gone_wall"] - s["beat_wall"])
+                elif _num(s.get("beat_wall")):
+                    tail = max(tail, time.time() - s["beat_wall"])
             charged = float(s["live_s"]) + tail
             rec["seconds_total"] += charged
             rec["sessions"].append({**s, "closed": "crashed", "charged_s": charged, "tail_s": tail,
@@ -301,7 +321,8 @@ class Controller:
         """No earlier PASS survives into this session: the previous final record, its admission marker and the report
         receipt move aside."""
         sup = self.out / "superseded"
-        for p in (self.out / ADMITTED, self.out / FINAL, self.out / "report" / "REPORT_RECEIPT.json"):
+        for p in (self.out / ADMITTED, self.out / ABORTED, self.out / FINAL,
+                  self.out / "report" / "REPORT_RECEIPT.json"):
             if p.exists():
                 sup.mkdir(exist_ok=True)
                 os.replace(p, sup / f"{p.stem}.{self.session}{p.suffix}")
@@ -312,13 +333,20 @@ class Controller:
         self.pre_s = _process_age_s() if self.from_process_start else 0.0
         from stage_a_guard import TaskLock, set_terminal
         self.out.mkdir(parents=True, exist_ok=True)
-        lock = TaskLock(self.out)
+        self._start_guardian()                         # before any load: bounds the controller process (Stage A 2)
+        try:
+            lock = TaskLock(self.out)
+        except BaseException:
+            self._stop_guardian()
+            raise
         try:
             configure_storage([self.out], self.cap_b, self.cap_b - FINAL_RESERVE_BYTES)
             self.base = 0.0
             self.rec = self._load()
             self._supersede()
             self.base = self.rec["seconds_total"]
+            self._guardian_deadline(max(time.monotonic() + (self.cap_s - self.elapsed_total()) + HARD_MARGIN_S,
+                                        time.monotonic() + FINAL_ALLOWANCE_S + HARD_MARGIN_S))
             self.ident = memprobe.proc_info(os.getpid())
             self.rec["open_session"] = {"session": self.session, "pid": os.getpid(), "live_s": 0.0,
                                         "opened_wall": time.time(), "beat_wall": time.time(),
@@ -355,6 +383,55 @@ class Controller:
             return self._bounded(lambda: (self._close(outcome), self._finalise())[1])
         finally:
             lock.release()
+            self._stop_guardian()
+
+    # ---- the guardian: an independent bound on the controller process (Stage A 2) ----------------------------------
+    def _start_guardian(self) -> None:
+        """A watchdog in GUARDIAN mode, started before any load: it SIGKILLs this controller (by identity) at an absolute
+        deadline - first SETUP_DEADLINE_S, then the session's cap + HARD_MARGIN_S - whatever the controller is doing
+        (blocked I/O, a hung sample, cleanup, finalisation). Its kill/exit path depends on no observation or
+        persistence of the controller's."""
+        self.guard_w = None
+        r, w = os.pipe()
+        ident = memprobe.proc_info(os.getpid())
+        arg = {"mode": "guardian", "controller": ident, "session": self.session, "control_fd": r,
+               "deadline_monotonic": time.monotonic() + SETUP_DEADLINE_S,
+               "record": str(self.out / f"guardian_{self.session}.json")}
+        try:
+            self.guard = subprocess.Popen(self.watchdog_cmd + [json.dumps(arg)], stdout=subprocess.PIPE,
+                                          stdin=subprocess.DEVNULL, start_new_session=True, pass_fds=(r,))
+        finally:
+            os.close(r)
+        self.guard_w = w
+        ready = select.select([self.guard.stdout], [], [], ARM_TIMEOUT_S)[0]
+        if not ready or self.guard.stdout.readline().strip() != b"ARMED":
+            self._stop_guardian()
+            raise SystemExit("refused: the controller's guardian did not arm; nothing was loaded")
+
+    def _guardian_deadline(self, mono: float) -> None:
+        if self.guard_w is not None:
+            os.write(self.guard_w, f"D {mono:.6f}\n".encode())
+
+    def _stop_guardian(self) -> None:
+        g = getattr(self, "guard", None)
+        if g is None:
+            return
+        if g.poll() is None:
+            try:
+                g.terminate()
+            except ProcessLookupError:
+                pass
+        try:
+            g.wait(timeout=5.0)
+        except subprocess.TimeoutExpired:
+            g.kill()
+            g.wait()
+        if g.stdout:
+            g.stdout.close()
+        if self.guard_w is not None:
+            os.close(self.guard_w)
+            self.guard_w = None
+        self.guard = None
 
     def _bounded(self, fn):
         """Close and finalisation run under one allowance FINAL_ALLOWANCE_S, charged at the close: past it the process
@@ -370,17 +447,37 @@ class Controller:
         th.start()
         th.join(FINAL_ALLOWANCE_S)
         if th.is_alive() or err:
-            self._unadmit()
             sys.stderr.write(f"finalisation did not complete: {(repr(err[0]) if err else 'allowance exceeded')}\n")
             sys.stderr.flush()
-            os._exit(75)
+            self._abort_exit()
         return res.get("r")
+
+    def _abort_exit(self) -> None:
+        """The abort path, itself bounded (Stage A 3): revocation - an abort tombstone naming this session and the
+        removal of this session's admission marker - runs in its own threads for at most REVOKE_TIMEOUT_S; then the
+        process ends with exit 75 whatever they did. `final_admitted` refuses a session with a tombstone. Neither
+        operation is directory-fsynced after the fact, so the revocation's durability across a power loss is limited;
+        if both block or fail, a marker can survive an exit 75 (disclosed)."""
+        threads = [threading.Thread(target=self._revoke_tombstone, daemon=True),
+                   threading.Thread(target=self._unadmit, daemon=True)]
+        for t in threads:
+            t.start()
+        dl = time.monotonic() + REVOKE_TIMEOUT_S
+        for t in threads:
+            t.join(max(0.0, dl - time.monotonic()))
+        os._exit(75)
+
+    def _revoke_tombstone(self) -> None:
+        try:
+            self._write(self.out / ABORTED, {"session": self.session, "wall": time.time()})
+        except Exception:                             # noqa: BLE001
+            pass
 
     def _unadmit(self) -> None:
         try:
             m = self.out / ADMITTED
             if m.exists() and json.loads(m.read_text()).get("session") == self.session:
-                m.unlink()
+                _unlink(m)
         except Exception:                             # noqa: BLE001 - best effort; the exit status says no PASS
             pass
 
@@ -589,11 +686,7 @@ class Controller:
             self._write(fp, final)
             return final
         marker = {"final_sha256": _sha_file(fp), "session": self.session}
-        try:
-            self._write(self.out / ADMITTED, marker)  # the commit point: the admission marker, written last
-        except BaseException:
-            self._unadmit()
-            raise
+        self._write(self.out / ADMITTED, marker)      # the commit point; a failure after it -> _bounded's abort
         return final
 
     def _final_write(self, fp: Path, final: dict, err: list) -> None:  # kept for fixtures that patch the writer
@@ -665,6 +758,8 @@ class Controller:
         except memprobe.Survivors as exc:
             raise ControllerStop(f"{w['phase']}: {exc}")
         w["group_clean"], w["group_killed"] = True, len(res["killed"])
+        if "stop_observed_mono" in w:                  # end to end: last admissible observation -> verified extinction
+            w["observation_to_extinction_s"] = time.monotonic() - w["stop_observed_mono"]
         p.wait()
         w["returncode"], w["reaped"] = p.returncode, True
         if why:
@@ -763,6 +858,7 @@ class Controller:
             w["leader"] = leader
             self._arm_watchdog(w, phase, deadline)
             self._persist()                            # durable identities BEFORE the worker may run anything
+            self._tick()                              # sampler liveness armed BEFORE release (Stage A 1)
             self.proc.stdin.write(b"GO\n")
             self.proc.stdin.close()
             w["released"], w["released_total_s"] = True, self.elapsed_total()
@@ -819,12 +915,32 @@ class Controller:
             while self.io_run and time.monotonic() - t < HEARTBEAT_S:
                 time.sleep(0.05)
 
+    def _kill_now(self, w: dict, observed: float, exc: BaseException) -> None:
+        """The stop's kill, sent by the sampler itself: the group SIGKILLed the instant the stop is decided (we are the
+        unreaped leader's parent, so the group id is ours). `stop_observed_mono` is the start of the iteration whose
+        observation decided it - the last admissible observation."""
+        w["stop_observed_mono"], w["how"] = observed, "SIGKILL"
+        try:
+            os.killpg(self.proc.pid, signal.SIGKILL)
+            w["stop_killed_mono"] = time.monotonic()
+        except (ProcessLookupError, PermissionError):
+            pass
+        t = time.monotonic()                           # the leader's death, seen by kqueue (no reap, no file I/O)
+        while not self._leader_exited() and time.monotonic() - t < 1.0:
+            time.sleep(0.001)
+        if self._leader_exited():
+            w["stop_leader_dead_s"] = time.monotonic() - observed
+        sys.stderr.write(f"stage_a_controller: stop observed at monotonic {observed:.6f}, SIGKILL sent at "
+                         f"{w.get('stop_killed_mono', float('nan')):.6f}: {str(exc)[:200]}\n")
+        sys.stderr.flush()
+
     def _sample(self, w: dict, phase: str, deadline: float, storage_limit: int) -> float:
         """The sampler (main thread, no file I/O). Returns the largest iteration work time."""
         self.io_stop, self.io_run = None, True
         io = threading.Thread(target=self._io, args=(storage_limit, phase), daemon=True)
         io.start()
         last_sys, max_work = 0.0, 0.0
+        it0 = time.monotonic()
         pid = self.proc.pid
         try:
             while True:
@@ -869,8 +985,11 @@ class Controller:
                     raise ControllerStop(f"{phase}: a sampling iteration took {work:.3f} s (limit {SAMPLE_LIMIT_S} s)")
                 self._tick()
                 time.sleep(MEM_SAMPLE_S)
+        except BaseException as exc:
+            self._kill_now(w, it0, exc)               # SIGKILL FIRST - before any join, persist or record (Stage A 1)
+            raise
         finally:
-            self._tick(b"E")                          # disarm the sampler check before any cleanup or join
+            self._tick(b"E")                          # the group is already killed (or the leader exited)
             self.io_run = False
             io.join(timeout=2 * HEARTBEAT_S)
         return max_work

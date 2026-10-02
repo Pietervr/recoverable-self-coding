@@ -1,4 +1,4 @@
-"""AI image-reader qualification, revision 5: THE REQUEST BOUNDARY (Codex RSC 1bf9890 R5, R6; RSC 5a8d7ac closure 4; framework 8.2's isolation
+"""AI image-reader qualification, revision 6: THE REQUEST BOUNDARY (Codex RSC b569f8a R4; RSC 1bf9890 R5, R6; RSC 5a8d7ac closure 4; framework 8.2's isolation
 evidence list and smoke rule). Standard library only. Nothing here sends a request by itself: `exec_argv` builds the one
 command that does, and only `ai_reader_exec.run` starts it, after the go.
 
@@ -38,7 +38,8 @@ LOCAL COMMANDS (`LocalCommand`, revision 5): every receipt command (features lis
 invocation receipt) runs in its own process group with its exit seen by kqueue without reaping, its output files read
 only up to the cap, an output past the cap - while running OR at a quick exit - and a missed deadline REFUSE, and on
 every exit the whole group (enumerated) and every member sampled while it ran are killed and confirmed gone before the
-leader is reaped.
+leader is reaped. Revision 6: the post-spawn setup (exit watch, identity) has the same cleanup owner, and an exit or a
+complete log observed only after the deadline is a timeout - both receipts refuse it.
 
 RECEIPTS (no credential is read or recorded):
   - `prompt_input`: `codex debug prompt-input` with the same flags, profile, environment and separator renders the
@@ -241,18 +242,29 @@ class LocalCommand:
         with open(self.so, "wb") as fo, open(self.se, "wb") as fe:
             self.p = subprocess.Popen(argv, stdout=fo, stderr=fe, env=env_, cwd=adir / "w",
                                       stdin=subprocess.DEVNULL, start_new_session=True)
-        self.kq = memprobe.exit_watch(self.p.pid)
-        self.leader = memprobe.proc_info(self.p.pid) or {"pid": self.p.pid, "ppid": os.getpid(), "pgid": self.p.pid,
-                                                         "start": "0.000000"}
+        self.leader = {"pid": self.p.pid, "ppid": os.getpid(), "pgid": self.p.pid, "start": "0.000000"}
         self.members, self.exited, self.timed_out, self.overflow = {}, False, False, False
+        try:                                           # post-spawn setup has a cleanup owner (revision 6, R4)
+            self.kq = memprobe.exit_watch(self.p.pid)
+            self.leader = memprobe.proc_info(self.p.pid) or self.leader
+        except BaseException:
+            try:
+                memprobe.end_group(self.leader, [], limit=LOCAL_GONE_S, own_leader=True)
+            finally:
+                self.p.wait()
+                self.so.unlink(missing_ok=True)
+                self.se.unlink(missing_ok=True)
+            raise
 
     def sizes(self) -> tuple[int, int]:
         return self.so.stat().st_size, self.se.stat().st_size
 
     def poll(self) -> bool:
         """One observation; True while the command should keep running."""
+        late = time.monotonic() > self.deadline      # the deadline is checked with, not after, the exit (R4)
         if not self.exited and memprobe.exited(self.kq):
             self.exited = True
+            self.timed_out = self.timed_out or late
         if self.exited:
             return False
         if max(self.sizes()) > self.cap:
@@ -393,6 +405,8 @@ def invocation_receipt(codex: list[str], reader: dict, adir: Path, img: Path, pr
         c.finish()
     if c.overflow:
         raise SystemExit(f"refused: the exec invocation receipt's log passed its {LOCAL_CAP}-byte cap")
+    if c.timed_out:                                    # complete logs read only after the deadline do not count
+        raise SystemExit(f"refused: the exec invocation receipt ran past its {wait_s} s deadline")
     sub, fb = _SUBMISSION.search(txt), _FEEDBACK.search(txt)
     if not (sub and fb):
         raise SystemExit("refused: the exec invocation receipt could not be read (no submission or sampling log"

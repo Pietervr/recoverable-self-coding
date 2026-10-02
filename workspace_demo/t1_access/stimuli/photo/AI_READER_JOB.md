@@ -1,7 +1,7 @@
 # The AI image-reader qualification: the bounded reader job
 
-R084, 2 October 2026. Revision 5, answering Codex's record RSC `1bf9890` (R1–R6) through R052's handoff `8c9dac2b`;
-revision 4 answered RSC `5a8d7ac`. The design and the map from each condition to its code and test are in
+R084, 2 October 2026. Revision 6, answering Codex's record RSC `b569f8a` (reader 1–4) through R052's handoff
+`c39df47e`; revision 5 answered RSC `1bf9890`, revision 4 RSC `5a8d7ac`. The design and the map from each condition to its code and test are in
 `AI_READER_DESIGN.md`.
 
 **No model has been called.** Nothing in this job runs until R052 has submitted the exact package to Codex, Codex
@@ -13,7 +13,7 @@ package `ai_reader_exec.py plan` prints), and the owner's go is written into `AI
 | Reader | OpenAI Codex CLI 0.159.3 (`/opt/homebrew/Caskroom/codex/0.159.3/bin/codex`, sha256 and package manifest bound), `codex exec`, model `gpt-6.1-sol`, reasoning effort medium. One image per fresh ephemeral session. |
 | Executor | `ai_reader_exec.py` (`plan`, `delivery` - both local, no request; `run` - the job) |
 | Boundary | `ai_reader_runtime.py` (the allowlist profile, receipts, parser) |
-| Watchdog | `stage_a_watchdog.py` (shared with row 20), one per attempt: checks the orchestrator's identity, answers ARMED before dispatch, kills the whole group and the recorded members at once on the orchestrator's death, a stale beat or the hard deadline, and kills a blocked orchestrator |
+| Watchdog | `stage_a_watchdog.py` (shared with row 20), one per attempt: checks the orchestrator's identity, answers ARMED before dispatch, kills the whole group and the recorded members at once on the orchestrator's death, a stale beat or the hard deadline, and kills a blocked orchestrator; it retires only when the group AND every recorded member are gone |
 | Journal | `ai_reader_raw_responses.jsonl` (`ai_reader_journal.py`), committed before scoring |
 | Scorer | `ai_reader_score.py` (orchestrator only) |
 | Key | `ai_reader_qual_key.json` (orchestrator only; outside the reader's allowlist) |
@@ -38,10 +38,10 @@ and qualification clears no image for formal reuse.
 | Retry | only when nothing was received (provider failure) or the attempt was never dispatched. A received answer is final however wrong, whatever the exit status; an isolation event, an overflow or an interrupted attempt is final too | `ai_reader_runtime.classify`; the journal |
 | A request with 3 non-retained attempts | retained as no response (ERR_NO_RESPONSE) | `final` record |
 | Time per attempt | min(120 s, job time left − 120 s reserve), refreshed again immediately before GO; not started under 30 s | process-group SIGTERM, 3 s, SIGKILL, whole-group cleanup (every live member enumerated), reap; the watchdog's hard deadline |
-| Job wall clock | **6 h** across sessions, counted from the process's start; the durable session opens before hashing, the go and the receipts and beats every second from its own thread (no lock held while a write blocks); an independent guard thread kills a live worker at 6 h − 120 s and ends the process at 6 h (exit 75, no receipt); package/go admission bounded at 900 s; the receipt includes 30 s for its own append and the clock's close, enforced by a timer; a dead session is charged its last durable time + max(30 s, its watchdog's measured interval to the group's and the orchestrator's death), and until the restart for a blocked orchestrator never seen to die; a journal without its clock, a clock below the journal's charged time, or any non-finite, negative or mistyped clock field is refused; a COMPLETE receipt over 6 h is not admitted | `clock.json`, `Clock`, `clock_problems` |
+| Job wall clock | **6 h** across sessions, counted from the process's start; the durable session opens before hashing, the go and the receipts and beats every second from its own thread (no lock held while a write blocks); a setup timer (300 s) is armed before any accounting I/O; an independent guard thread, alive until the run ends, kills a live worker at 6 h − 120 s and ends the process at 6 h (exit 75); package/go admission bounded at 900 s; the receipt charges 60 s for its own append AND the clock's closure, under one timer; a COMPLETE qualifies only with a closed clock naming this journal (`admit_clock`); a dead session is charged its last durable time + max(30 s, its watchdog's measured interval to the group's and the orchestrator's death), and until the restart for a blocked orchestrator never seen to die; a journal without its clock, a clock below the journal's charged time, or any non-finite, negative or mistyped clock field is refused; a COMPLETE receipt over 6 h is not admitted | `clock.json`, `Clock`, `clock_problems` |
 | Answer kept | 2,000 characters verbatim; longer = excerpt + original length + sha256, ERR_OVERLENGTH | no silent truncation |
 | Raw evidence per attempt | the event stream complete up to 32 KiB (beyond it the attempt is OVERFLOW), stderr 4 KiB (head and tail beyond, with length and sha256); captured stdout 1 MiB, stderr 256 KiB, attempt directory 16 MiB + the image, also checked at exit | `bounded`, the wait loop |
-| Local receipt commands | own process group; output files read only up to 4 MiB; over the cap while running or at a quick exit, or past the 60 s deadline (20 s for the invocation receipt) - refused; the whole group and every sampled member killed and confirmed gone on every exit | `LocalCommand` (`run_local`, `invocation_receipt`) |
+| Local receipt commands | own process group; post-spawn setup inside the cleanup owner; output files read only up to 4 MiB; over the cap while running or at a quick exit, or an exit or complete log seen only past the 60 s deadline (20 s for the invocation receipt) - refused; the whole group and every sampled member killed and confirmed gone on every exit | `LocalCommand` (`run_local`, `invocation_receipt`) |
 | Raw output | under 20 MiB, each line under 64 KiB, both enforced before parsing on every read and in admission; an attempt starts only if its three records fit under 20 MiB − 256 KiB | `J.append(cap=…)`, `J.read(cap=…)`, the pre-attempt check |
 | Abandoned attempt output | swept at start; the attempts root capped at 256 MiB before every attempt | `sweep`, the pre-attempt check |
 | Quota | the owner's ChatGPT plan through Codex (`codex login status`: "Logged in using ChatGPT"). No other model, setting or panel may be substituted | the package binds binary, manifest, version, flags, profile |
@@ -135,6 +135,7 @@ this public dataset is absent from the reader's training data.
 3. The owner's go, bound in `AIREADER_GO.json`.
 4. `ai_reader_exec.py run` (resumable within the same limits).
 5. Commit `ai_reader_raw_responses.jsonl`.
-6. `ai_reader_score.py ai_reader_raw_responses.jsonl`.
+6. `ai_reader_score.py ai_reader_raw_responses.jsonl` (it also requires `captures/ai_reader_job/clock.json` closed on
+   that exact journal: a COMPLETE whose closure did not finish does not qualify).
 7. If admitted, the referrals go to the owner and the audit proceeds under `audit_app/IMAGE_AUDIT_FREEZE.md`; if
    not, the audit holds. Any other route is a separate owner decision.

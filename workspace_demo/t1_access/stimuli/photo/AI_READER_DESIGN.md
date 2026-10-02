@@ -1,11 +1,23 @@
-# AI image-reader qualification, revision 5: the design and where each condition lives
+# AI image-reader qualification, revision 6: the design and where each condition lives
 
 R084, 2 October 2026. The specification is framework §8.2's reader rule with R052's closures (Unimog, R052's text).
 Revision 5 answers Codex's combined record RSC `1bf9890` (not favourable to revision 4 at RSC `d7a486a`; reader
 conditions 1–7 = R1–R6 there) through R052's handoff `8c9dac2b`. Revision 4 answered RSC `5a8d7ac` (handoff
 `46125389`); its closures stand and are listed after the revision-5 table.
 
-## Revision 5: the conditions of RSC `1bf9890`
+## Revision 6: the conditions of RSC `b569f8a`
+
+Codex's record RSC `b569f8a` (not favourable to revision 5 at `2610d8a`) closed R2 and most of R1, R3–R6 and left four
+reader conditions, answered here through R052's handoff `c39df47e`.
+
+| # | Condition | Where it lives | Evidence |
+|---|---|---|---|
+| 1 | Watchdog retirement | `stage_a_watchdog.py` (shared): retires only when the worker's group AND every identity in the members file are gone; with the orchestrator dead it kills them. | `test_ai_reader_crash.Rev6.test_watchdog_does_not_retire_while_a_recorded_escaped_member_lives` (the leader answers and exits, its recorded child has left the group, the orchestrator dies before its cleanup: the child is killed by the watchdog) |
+| 2 | `-o` evidence bound on ok | `ai_reader_journal._rederive`: an ok end must carry its retained `-o` evidence, whose sha256 equals both `file_answer_sha256` and the answer's digest; complete text must be exact and equal to the recorded answer (or the declared overlength form), and its length its byte length; an excerpt only beyond the 2,048-byte retention with the answer's declared length. | `test_ai_reader.Rev6Evidence` (the retained dictionary replaced by another self-consistent string, or by None, with the separate digest and answers unchanged: refused on the COMPLETE journal and at resume before any dispatch) |
+| 3 | One deadline and one charge through closure | `ai_reader_exec`: a setup timer (300 s) is armed before ANY accounting I/O (`check_accounting`, the clock's first persist); the clock's cap guard runs until the run ends (closing the clock no longer stops it); the receipt charges `FINAL_WRITE_S` = 60 s for its append AND the clock's closure, under one timer cancelled only after the close; the closed clock session names the journal's sha256; `admit_clock` (used by the scorer) admits a COMPLETE only with that finished closure, its total within the cap and not above the receipt's. | `test_ai_reader_crash.Rev6.test_slow_receipt_and_slow_close_share_one_deadline` (receipt 2 s + close 2 s against a 3 s allowance: exit 75, the durable COMPLETE is refused by `admit_clock`; 0.3 + 0.3 s: closed and admitted); `test_setup_before_the_clock_is_bounded` (a 30 s stall in `check_accounting` ends at a 1 s setup timer, exit 75) |
+| 4 | Local commands: ownership before spawn, explicit deadline | `ai_reader_runtime.LocalCommand`: the exit watch and identity read run inside a cleanup owner (a failure kills and reaps the whole group); an exit or a complete log observed only after the deadline is a timeout, refused by both receipts. | `test_ai_reader.Rev6LocalCommands` (a one-shot exit-watch failure after the command spawned a child: no process left; a late exit refused; complete invocation logs written after the deadline refused) |
+
+## Revision 5: the conditions of RSC `1bf9890` (still in force)
 
 | # | Condition | Where it lives | Evidence (tests in `tests/test_ai_reader.py` unless named) |
 |---|---|---|---|

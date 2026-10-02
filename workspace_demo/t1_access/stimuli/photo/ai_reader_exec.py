@@ -1,5 +1,8 @@
-"""AI image-reader qualification, revision 5: the bounded READER JOB executor (the job brief is AI_READER_JOB.md; Codex
-RSC 1bf9890 R1-R6 through R052 handoff 8c9dac2b; revision 4 answered RSC 5a8d7ac). It is the orchestrator's half: it holds the key and the
+"""AI image-reader qualification, revision 6: the bounded READER JOB executor (the job brief is AI_READER_JOB.md; Codex
+RSC b569f8a reader 1-4 through R052 handoff c39df47e; revision 5 answered RSC 1bf9890, revision 4 RSC 5a8d7ac).
+Revision 6: a setup timer is armed before any accounting I/O; the cap guard runs until the run ends (closing the clock
+does not stop it); the receipt and the clock's closure share ONE allowance and one timer; the closed clock names the
+journal's sha256 and `admit_clock` admits a COMPLETE only with that finished closure. It is the orchestrator's half: it holds the key and the
 scorer out of the reader's reach and sends the reader one image per fresh request.
 
     .venv-image/bin/python stimuli/photo/ai_reader_exec.py plan       # identity and boundary checks, no request
@@ -93,7 +96,10 @@ LIMITS = {"planned": 600, "max_tries_per_request": 3, "max_attempts": 660, "atte
           "job_clock_s": 6 * 3600, "answer_chars": R.ANSWER_KEEP, "raw_bytes": 20 * 1024 * 1024}
 FINAL_S, MIN_ATTEMPT_S, TAIL_S, TERM_GRACE_S, BEAT_S, STALE_S = 120.0, 30.0, 30.0, 3.0, 1.0, 10.0
 RAW_FINAL_BYTES, TEMP_CAP, ROOT_CAP, GONE_S = 256 * 1024, 16 * 1024 * 1024, 256 * 1024 * 1024, 10.0
-GUARD_S, CLOSE_WAIT_S, FINAL_WRITE_S, ADMIT_TIMEOUT_S = 0.2, 30.0, 30.0, 900.0
+GUARD_S, CLOSE_WAIT_S, FINAL_WRITE_S, ADMIT_TIMEOUT_S = 0.2, 30.0, 60.0, 900.0
+SETUP_S = 300.0
+# FINAL_WRITE_S (revision 6): ONE allowance for the receipt's append AND the clock's closure, charged in the receipt
+# and enforced by one timer; the cap guard stays alive through it. SETUP_S bounds everything before the clock exists.
 # FINAL_WRITE_S: the receipt's clock includes this allowance for its own append and the clock's close, which a timer
 # enforces (exit 75 past it, nothing more claimed); ADMIT_TIMEOUT_S bounds package/go hashing the same way.
 BOUND_FILES = ["ai_reader_qual_set.json", "ai_reader_qual_key.json", "ai_reader_delivery.json", "ai_reader_exec.py",
@@ -180,6 +186,7 @@ class Clock:
 
     def __init__(self, path: Path, t0: float, cap: float, on_cap=None, pre_s: float = 0.0):
         self.path, self.t0, self.cap, self.on_cap, self.pre_s = path, t0, cap, on_cap, pre_s
+        self.stop_guard = threading.Event()
         rec = json.loads(path.read_text()) if path.exists() else {"sessions": [], "seconds_total": 0.0,
                                                                    "open_session": None}
         bad = clock_problems(rec)
@@ -209,6 +216,7 @@ class Clock:
         rec["open_session"] = {"session": uuid.uuid4().hex[:12], "pid": os.getpid(), "opened_wall": time.time(),
                                "live_s": 0.0, "beat_wall": time.time()}
         self.lock, self.wlock, self.stop_beat = threading.Lock(), threading.Lock(), threading.Event()
+        self.base_ready = True
         self.wseq = self.done_seq = 0
         self.capped = False
         self.persist()
@@ -229,7 +237,7 @@ class Clock:
                 return                                   # the watchdog sees a stale beat and kills any worker
 
     def _guard(self) -> None:
-        while not self.stop_beat.wait(GUARD_S):
+        while not self.stop_guard.wait(GUARD_S):         # NOT stopped by close: alive until the run ends (R3)
             left = self.remaining()
             if left <= FINAL_S and not self.capped:
                 self.capped = True
@@ -266,10 +274,11 @@ class Clock:
     def beat(self) -> None:
         pass                                              # the beat thread persists; kept for call sites
 
-    def close(self, outcome: str) -> None:
-        self.stop_beat.set()
+    def close(self, outcome: str, receipt_raw_sha256: str | None = None) -> None:
+        self.stop_beat.set()                              # the beat stops; the cap guard does not
         with self.lock:
-            s = dict(self.rec["open_session"], live_s=self.pre_s + time.monotonic() - self.t0, closed=outcome)
+            s = dict(self.rec["open_session"], live_s=self.pre_s + time.monotonic() - self.t0, closed=outcome,
+                     receipt_raw_sha256=receipt_raw_sha256)
             self.rec["sessions"].append(s)
             self.rec["seconds_total"] = self.elapsed()
             self.rec["open_session"] = None
@@ -489,11 +498,13 @@ class Job:
         if self.st["open"]:
             self.reconcile_open(f"stop: {reason}")
         data = self.raw.read_bytes() if self.raw.exists() else b""
-        with Deadline(FINAL_WRITE_S, "the receipt append"):    # the receipt's clock includes this allowance (R4)
-            return self.rec("receipt", outcome=outcome, reason=reason[:2000], counts=J.counts(self.st),
-                            journal_sha256=sha(data), raw_bytes_before=len(data),
-                            seconds_total=self.clock.elapsed() + FINAL_WRITE_S, limits=LIMITS,
-                            smoke=J.smoke_status(self.st, self.order[0]))
+        # ONE deadline from here through the clock's closure (revision 6, R3): the receipt charges FINAL_WRITE_S for
+        # its append AND the close; the timer covering both is cancelled only after the close in _run.
+        self.final_deadline = Deadline(FINAL_WRITE_S, "the receipt and the clock's closure").__enter__()
+        return self.rec("receipt", outcome=outcome, reason=reason[:2000], counts=J.counts(self.st),
+                        journal_sha256=sha(data), raw_bytes_before=len(data),
+                        seconds_total=self.clock.elapsed() + FINAL_WRITE_S, limits=LIMITS,
+                        smoke=J.smoke_status(self.st, self.order[0]))
 
     def _cap_kill(self) -> None:
         """The clock guard's enforcement (no file I/O): a live worker group at cap - FINAL_S is killed."""
@@ -506,25 +517,32 @@ class Job:
 
     # ---- the run --------------------------------------------------------------------------------------------------
     def run(self) -> dict:
+        setup = Deadline(SETUP_S, "setup before the clock exists").__enter__()   # armed before ANY accounting I/O
         self.job.mkdir(parents=True, exist_ok=True)
         lock = TaskLock(self.job)
         try:
             check_accounting(self.job, self.raw)
             self.clock = Clock(self.job / "clock.json", self.t0, LIMITS["job_clock_s"], on_cap=self._cap_kill,
                                pre_s=0.0 if self.fx else _process_age_s())
+            setup.__exit__()                               # from here the clock's cap guard bounds the process
             try:
                 return self._run()
             except BaseException:
+                fd = getattr(self, "final_deadline", None)
+                if fd is not None:
+                    fd.__exit__()                          # the exception is reported; no timer outlives the run
                 self._kill_live_worker()
                 raise
             finally:
                 if self.clock.rec["open_session"] is not None:
                     try:
-                        with Deadline(FINAL_WRITE_S + CLOSE_WAIT_S, "the clock close"):
+                        with Deadline(FINAL_WRITE_S, "the clock close"):
                             self.clock.close("ended")
                     except Exception:
                         pass
+                self.clock.stop_guard.set()
         finally:
+            setup.__exit__()
             lock.release()
 
     def _admit(self) -> None:
@@ -586,8 +604,11 @@ class Job:
                 result = self.stop("STOPPED", f"{type(exc).__name__}: {exc}")
             except Exception:
                 raise exc                                  # persistence failed: no receipt is claimed
-        with Deadline(FINAL_WRITE_S + CLOSE_WAIT_S, "the clock close"):
-            self.clock.close(result["outcome"])
+        raw = self.raw.read_bytes() if self.raw.exists() else b""
+        self.clock.close(result["outcome"], receipt_raw_sha256=sha(raw) if result.get("t") == "receipt" else None)
+        fd = getattr(self, "final_deadline", None)
+        if fd is not None:
+            fd.__exit__()                                  # receipt + closure finished inside the one allowance
         return result
 
     def _preflight(self) -> dict:
@@ -810,6 +831,8 @@ class Job:
                 write_json_atomic(self._members_path(aid), self.members)
             time.sleep(0.05)
         seconds = time.monotonic() - t
+        if exited:
+            self.crash("after_leader_exit", n)
         if not exited:
             kill = self._term_kill(kq)
         so_n, se_n = (adir / "stdout").stat().st_size, (adir / "stderr").stat().st_size
@@ -860,6 +883,26 @@ class Job:
         self.proc = None
         self._end_watchdog()
         return rcode
+
+
+def admit_clock(clock_path: Path, raw_bytes: bytes, receipt: dict) -> dict:
+    """A COMPLETE qualifies only together with a FINISHED clock (revision 6, R3): clock.json valid and closed, its last
+    session closed on this receipt's outcome and naming the sha256 of exactly this journal, its total within the cap and
+    not above the receipt's own charged total. A closure that never finished leaves the COMPLETE non-qualifying."""
+    if not Path(clock_path).exists():
+        raise SystemExit("refused: no clock record beside the journal")
+    c = json.loads(Path(clock_path).read_text())
+    bad = clock_problems(c)
+    if bad:
+        raise SystemExit(f"refused: clock record invalid {bad}")
+    last = c["sessions"][-1] if c["sessions"] else {}
+    if c.get("open_session") is not None or last.get("closed") != receipt.get("outcome") or \
+            last.get("receipt_raw_sha256") != sha(raw_bytes):
+        raise SystemExit("refused: the clock was not closed on this receipt (an unfinished closure does not qualify)")
+    if c["seconds_total"] > LIMITS["job_clock_s"] or c["seconds_total"] > receipt.get("seconds_total", -1.0):
+        raise SystemExit(f"refused: the closed clock ({c['seconds_total']:.1f} s) exceeds the cap or the receipt's "
+                         f"charged total")
+    return {"seconds_total": c["seconds_total"], "sessions": len(c["sessions"])}
 
 
 def ensure_dir(p) -> Path:
