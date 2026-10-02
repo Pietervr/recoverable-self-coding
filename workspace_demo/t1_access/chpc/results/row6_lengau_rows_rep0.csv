@@ -1,0 +1,2 @@
+generator,grid,rep,code_hash,selection_ws_point,selection_ws_lo,selection_ws_hi,selection_ws_se,selection_decision,failed,failed_reason,fit_seconds,env
+M3,"{""scale"": 0.5465000938917843}",0,625798e9e7f4,0.00440376786614103,0.0029356168992231164,0.005896155798562895,0.0007517898993968003,mixture,0,,4608.9,python 3.12.10 jax 0.11.1 jaxlib 0.11.1 numpy 2.4.6 scipy 1.18.0 joblib 1.5.3 x86_64 cnode0009

@@ -1,0 +1,9 @@
+host cnode0009  model name	: Intel(R) Xeon(R) CPU E5-2690 v3 @ 2.60GHz
+code f7e69b1  start 2026-10-02T16:59:56Z
+python 3.12.10 jax 0.11.1 jaxlib 0.11.1 numpy 2.4.6 scipy 1.18.0 joblib 1.5.3
+code/config hash: 625798e9e7f4  (expected 625798e9e7f4)
+panel: [('M3', '{"scale": 0.5465000938917843}', 0)]
+lengau re-run of 1 dataset(s) [0]: 77.1 min wall
+wrote /mnt/lustre/users/pvanrooyen/t1_toolchain/jobs/row6_lengau_rows_rep0.csv: 1 row(s) (quantities only; the comparison runs on the Mac)
+technical failures: none
+end 2026-10-02T18:17:18Z
