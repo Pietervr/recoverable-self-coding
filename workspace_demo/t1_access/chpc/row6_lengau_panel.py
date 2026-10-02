@@ -13,8 +13,10 @@ os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 import sys, csv, json, time, platform
+# the PBS job cds into t1_access before running; the script is copied to the toolchain's jobs/ directory, so the
+# code directory is the current working directory when it holds analyze.py, else the script's parent (local runs)
 HERE = os.path.dirname(os.path.abspath(__file__))
-T1 = os.path.abspath(os.path.join(HERE, ".."))
+T1 = os.getcwd() if os.path.exists(os.path.join(os.getcwd(), "analyze.py")) else os.path.abspath(os.path.join(HERE, ".."))
 sys.path.insert(0, T1)
 os.chdir(T1)
 import analyze as A, simulate as S
