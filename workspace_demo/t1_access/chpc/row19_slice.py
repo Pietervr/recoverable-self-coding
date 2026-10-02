@@ -2,27 +2,33 @@
 dataset per process. Everything it does is declared in `row19_slice_manifest.json`; it runs only after Codex's review
 of that specification and the owner's go, and it reads NO coverage.
 
-    t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep 0 --reservation-token T
+    t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep 0 --reservation-token T --kind main
                              [--until 20] [--segment 20] [--walltime-s 518400] [--pbs-kill-control]
                              [--root .../row19_slice] [--campaign .../row19_campaign] [--job-id 1234.sched01]
                              [--authorize-original-recompute "reason"]
 
 Exit codes: 0 the dataset's chain is complete (aggregated without buying a fit); 75 stopped at the deadline, the
 segment, the control target or an operator stop request (resume with the same arguments); 4 HELD (identity,
-environment, reservation, task binding, second owner, checkpoint or cache damage, memory stop) - nothing more ran.
+environment, reservation, task domain, binding, second owner, checkpoint or cache damage, lost progress, memory) -
+nothing more ran.
 
-Order, each step fail-closed and BEFORE any fit (Codex 523249d, launch conditions A-H): manifest and environment
-identity; the code pins; the campaign reservation bound to this PBS job; exclusive task ownership for this rep; the
-dataset by its declared seed, its resolved seed checked against the declared exclusions; the task binding
-(manifest, rep, seed, identity, B, target) persisted and re-verified; the checkpoint inspected without fitting; the
-original-run cache validated (lossless nested serialisation, payload checksum, schema and shapes) or, with no
-committed records, computed; then the chain under strict, durable, deadline-bounded, target-bounded hooks with a
-checked stop boundary; status and timing ledgers; on completion the aggregation from the cached original and the
-validated completed chain - no second chain, no fit.
+Order, each step fail-closed and BEFORE any fit (Codex 523249d A-H; e44f804 R1-R7): manifest and environment identity
+(versions, backend, thread caps, the wrapper's hash when pinned); the code pins; the campaign reservation bound to
+this PBS job with this job's cores and walltime; the declared task domain (rep, resolved seed, kind, target, kill
+mode); exclusive task ownership for this rep; fresh-versus-recovering decided from the root's task index and prior
+evidence before any binding is created; the task binding persisted and re-verified; the checkpoint inspected without
+fitting against the per-record progress watermark; the current stop request and memory diagnosed before any original
+work; the original-run cache validated (lossless nested serialisation, payload and metadata checksums, the complete
+schema against cfg, dataset and folds) or, with no committed record, computed; then the chain under strict, durable,
+deadline-bounded, target-bounded hooks with the stop checked before every dispatch and the watermark advanced after
+every durable record; stop and memory re-checked after the last record and on no-work restores; on completion the
+aggregation from the cached original and the validated completed chain - no second chain, no fit - with the
+companion cluster interval retained; the measurement scopes stated as they are.
 """
 import os
 os.environ["NPROC"] = "1"; os.environ["OMP_NUM_THREADS"] = "1"; os.environ["MKL_NUM_THREADS"] = "1"; os.environ["OPENBLAS_NUM_THREADS"] = "1"
-import sys, json, time, argparse, hashlib, resource, platform, base64, fcntl
+os.environ.setdefault("JAX_PLATFORMS", "cpu")
+import sys, json, time, argparse, hashlib, resource, platform, base64, fcntl, math
 HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = os.getcwd() if os.path.exists(os.path.join(os.getcwd(), "analyze.py")) else os.path.abspath(os.path.join(HERE, ".."))
 sys.path.insert(0, T1); sys.path.insert(0, HERE)
@@ -32,9 +38,10 @@ import analyze as A, simulate as S, models as M
 from row19_ledger import CampaignLedger, write_atomic
 
 HELD, RESUME, DONE = 4, 75, 0
-ORIG_SCHEMA = "row19-orig-v2"
+ORIG_SCHEMA = "row19-orig-v3"
 RUN_KEYS = ("layers", "folds", "members", "delta", "logq", "n_c", "selected", "converged", "inner_conv", "inner_nonfinite",
             "recovery", "failed", "failed_reason", "params", "fit_seconds")
+THREAD_VARS = ("NPROC", "OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")
 
 
 def sha_file(p):
@@ -50,7 +57,7 @@ def held(msg):
 
 
 # ---------------------------------------------------------------------------------------------------------------
-# A: lossless nested serialisation of run_dataset's output (arrays as typed raw bytes, full precision)
+# A/R6: lossless nested serialisation of run_dataset's output (arrays as typed raw bytes, full precision)
 # ---------------------------------------------------------------------------------------------------------------
 def to_wire(o):
     if isinstance(o, np.ndarray):
@@ -84,37 +91,61 @@ def payload_sha(wire):
     return hashlib.sha256(json.dumps(wire, sort_keys=True).encode()).hexdigest()
 
 
-def run_problems(run, n_layers, n_concepts):
-    """Strict schema and shape checks on a (restored) run_dataset output; a list of problems, empty when clean."""
+def meta_sha(rec):
+    return hashlib.sha256(json.dumps({k: v for k, v in rec.items() if k not in ("run", "meta_sha")}, sort_keys=True).encode()).hexdigest()
+
+
+def run_problems(run, ds, cfg, folds):
+    """The complete contract of a (restored) run_dataset output against THIS cfg, dataset and folds - what the
+    aggregation consumes; a list of problems, empty when clean."""
     p = []
     for k in RUN_KEYS:
         if k not in run:
             p.append(f"missing {k}")
     if p:
         return p
+    L, C = ds.n_layers, ds.n_concepts
+    members = run["members"]
+    if not (isinstance(members, list) and members and all(isinstance(m, str) for m in members)):
+        return ["members is not a non-empty list of names"]
+    Mn = len(members)
+    if not (isinstance(run["layers"], np.ndarray) and run["layers"].shape == (L,) and np.array_equal(run["layers"], np.asarray(ds.layers))):
+        p.append("layers differ from the dataset's")
+    fl = run["folds"]
+    if not (isinstance(fl, list) and len(fl) == len(folds) and all(isinstance(f, np.ndarray) and f.ndim == 1 for f in fl)
+            and all(np.array_equal(np.asarray(a, dtype=np.int64), np.asarray(b, dtype=np.int64)) for a, b in zip(fl, folds))):
+        p.append("folds differ from the declared outer folds")
     if not isinstance(run["failed"], (bool, np.bool_)):
         p.append("failed is not a bool")
+    if not isinstance(run["failed_reason"], str):
+        p.append("failed_reason is not a string")
     if not isinstance(run["delta"], dict) or sorted(run["delta"]) != sorted(A.PREDICTORS):
         p.append("delta does not hold exactly the predictors")
     else:
         for q, v in run["delta"].items():
-            if not (isinstance(v, np.ndarray) and v.shape == (n_layers, n_concepts) and v.dtype.kind == "f"):
-                p.append(f"delta[{q}] is not a float array of shape ({n_layers}, {n_concepts})")
-    if not (isinstance(run["folds"], list) and all(isinstance(f, np.ndarray) and f.ndim == 1 for f in run["folds"])):
-        p.append("folds is not a list of 1-D arrays")
+            if not (isinstance(v, np.ndarray) and v.shape == (L, C) and v.dtype.kind == "f"):
+                p.append(f"delta[{q}] is not a float array of shape ({L}, {C})")
+            elif not run["failed"] and not np.all(np.isfinite(v)):
+                p.append(f"delta[{q}] has non-finite entries on a run not marked failed")
+    if not (isinstance(run["logq"], np.ndarray) and run["logq"].shape == (L, Mn, C)):
+        p.append(f"logq is not an array of shape ({L}, {Mn}, {C})")
+    if not (isinstance(run["n_c"], np.ndarray) and run["n_c"].shape == (C,)):
+        p.append(f"n_c is not an array of shape ({C},)")
+    if not (isinstance(run["selected"], list) and len(run["selected"]) == L):
+        p.append(f"selected is not a list of length {L}")
+    for k in ("converged", "inner_conv", "inner_nonfinite", "recovery"):
+        v = run[k]
+        if not (isinstance(v, np.ndarray) and v.ndim >= 2 and v.shape[0] == L and v.shape[1] == len(folds)):
+            p.append(f"{k} is not an array with leading shape ({L}, {len(folds)})")
+    if not (isinstance(run["params"], dict) and sorted(run["params"]) == sorted(members)):
+        p.append("params keys are not exactly the members")
     else:
-        cover = np.sort(np.concatenate([np.asarray(f, dtype=np.int64) for f in run["folds"]])) if run["folds"] else np.array([])
-        if cover.size != n_concepts or not np.array_equal(cover, np.arange(n_concepts)):
-            p.append("folds do not cover every concept exactly once")
-    if not isinstance(run["params"], dict) or not all(isinstance(v, np.ndarray) for v in run["params"].values()):
-        p.append("params is not a dict of arrays")
-    for k in ("converged", "inner_conv", "inner_nonfinite", "recovery", "logq", "layers"):
-        if not isinstance(run[k], np.ndarray):
-            p.append(f"{k} is not an array")
-    if isinstance(run["layers"], np.ndarray) and run["layers"].shape != (n_layers,):
-        p.append("layers has the wrong shape")
-    if not isinstance(run["fit_seconds"], (int, float)) or not np.isfinite(run["fit_seconds"]):
-        p.append("fit_seconds is not finite")
+        for m, v in run["params"].items():
+            if not (isinstance(v, np.ndarray) and v.ndim >= 1 and v.shape[0] == L):
+                p.append(f"params[{m}] is not an array with leading dimension {L}")
+    fs = run["fit_seconds"]
+    if isinstance(fs, bool) or not isinstance(fs, (int, float)) or not math.isfinite(float(fs)) or float(fs) < 0:
+        p.append("fit_seconds is not finite and non-negative")
     return p
 
 
@@ -122,44 +153,39 @@ def write_orig(path, run, ident, code_hash, seconds):
     wire = to_wire(run)
     rec = dict(schema=ORIG_SCHEMA, ident=ident, code_hash=code_hash, seconds=float(seconds), payload_sha=payload_sha(wire),
                written=time.time(), run=wire)
+    rec["meta_sha"] = meta_sha(rec)
     write_atomic(path, rec)
     return rec["payload_sha"]
 
 
-def read_orig(path, ident, code_hash, n_layers, n_concepts):
-    """The validated original run, or (None, reason)."""
+def read_orig(path, ident, code_hash, ds, cfg, folds):
+    """The validated original run, or (None, reason). Every failure - parse, decode, schema, checksum - is a reason, never
+    an exception (the runner HOLDS on a reason)."""
     try:
         rec = json.load(open(path))
+        if rec.get("schema") != ORIG_SCHEMA:
+            return None, f"schema {rec.get('schema')!r} is not {ORIG_SCHEMA}"
+        if rec.get("ident") != ident:
+            return None, "another dataset identity"
+        if rec.get("code_hash") != code_hash:
+            return None, "another code/config hash"
+        if meta_sha(rec) != rec.get("meta_sha"):
+            return None, "metadata checksum mismatch"
+        sec = rec.get("seconds")
+        if isinstance(sec, bool) or not isinstance(sec, (int, float)) or not math.isfinite(float(sec)) or float(sec) < 0:
+            return None, "seconds is not finite and non-negative"
+        if payload_sha(rec.get("run")) != rec.get("payload_sha"):
+            return None, "payload checksum mismatch"
+        run = from_wire(rec["run"])
+        bad = run_problems(run, ds, cfg, folds)
+        if bad:
+            return None, "schema/shape: " + "; ".join(bad)
+        return dict(run=run, seconds=float(sec), payload_sha=rec["payload_sha"]), ""
     except Exception as e:
-        return None, f"unreadable: {e}"
-    if rec.get("schema") != ORIG_SCHEMA:
-        return None, f"schema {rec.get('schema')!r} is not {ORIG_SCHEMA}"
-    if rec.get("ident") != ident:
-        return None, "another dataset identity"
-    if rec.get("code_hash") != code_hash:
-        return None, "another code/config hash"
-    if payload_sha(rec.get("run")) != rec.get("payload_sha"):
-        return None, "payload checksum mismatch"
-    run = from_wire(rec["run"])
-    bad = run_problems(run, n_layers, n_concepts)
-    if bad:
-        return None, "schema/shape: " + "; ".join(bad)
-    return dict(run=run, seconds=float(rec["seconds"]), payload_sha=rec["payload_sha"]), ""
+        return None, f"unreadable or undecodable: {type(e).__name__}: {str(e)[:120]}"
 
 
 # ---------------------------------------------------------------------------------------------------------------
-def environment(man):
-    import jax, jaxlib, scipy, joblib
-    env = dict(python=platform.python_version(), jax=jax.__version__, jaxlib=jaxlib.__version__, numpy=np.__version__,
-               scipy=scipy.__version__, joblib=joblib.__version__, machine=platform.machine(), node=platform.node(),
-               backend=str(jax.default_backend()), nproc=os.environ.get("NPROC"), omp=os.environ.get("OMP_NUM_THREADS"),
-               cpu=_cpu_model())
-    w = man.get("environment", {}).get("wrapper")
-    if w and os.path.exists(w):
-        env["wrapper"] = w; env["wrapper_sha256"] = sha_file(w)
-    return env
-
-
 def _cpu_model():
     try:
         for line in open("/proc/cpuinfo"):
@@ -170,10 +196,29 @@ def _cpu_model():
     return platform.processor() or "unknown"
 
 
+def environment(man):
+    import jax, jaxlib, scipy, joblib
+    env = dict(python=platform.python_version(), jax=jax.__version__, jaxlib=jaxlib.__version__, numpy=np.__version__,
+               scipy=scipy.__version__, joblib=joblib.__version__, machine=platform.machine(), node=platform.node(),
+               backend=str(jax.default_backend()), jax_platforms=os.environ.get("JAX_PLATFORMS"), cpu=_cpu_model(),
+               threads={k: os.environ.get(k) for k in THREAD_VARS})
+    w = man.get("environment", {}).get("wrapper")
+    env["wrapper"] = w
+    env["wrapper_sha256"] = sha_file(w) if (w and os.path.exists(w)) else None
+    return env
+
+
 def check_environment(man):
     env = environment(man)
     want = man["environment"]
     bad = [k for k in ("python", "jax", "jaxlib", "numpy", "scipy", "joblib", "machine") if str(want.get(k)) != str(env[k])]
+    if want.get("backend") and env["backend"] != want["backend"]:
+        bad.append("backend")
+    if any(env["threads"].get(k) != "1" for k in THREAD_VARS):
+        bad.append("threads")
+    if want.get("wrapper_sha256"):
+        if env["wrapper_sha256"] != want["wrapper_sha256"]:
+            bad.append("wrapper_sha256")
     return env, bad
 
 
@@ -200,18 +245,18 @@ def main(argv=None):
     ap.add_argument("--campaign", default=None)
     ap.add_argument("--job-id", default=os.environ.get("PBS_JOBID", f"local-{int(time.time())}"))
     ap.add_argument("--reservation-token", default=None)
-    ap.add_argument("--kind", default=None, help="main|c1|c2|c3 (the reservation's kind; defaults by until/segment)")
+    ap.add_argument("--kind", default="main", help="main|c1|c2|c3 (the reservation's kind and the declared role)")
     ap.add_argument("--authorize-original-recompute", default=None, metavar="REASON",
                     help="recompute a lost ORIGINAL beside a committed checkpoint; recorded in the task binding")
     ap.add_argument("--skip-environment-check", action="store_true", help="tests only: the fixture environment is not Lengau's")
     ap.add_argument("--no-reservation", action="store_true", help="tests only")
     a = ap.parse_args(argv)
-    t_start = time.time()
+    t_main = time.time()
     man = json.load(open(a.manifest))
     manifest_sha = sha_file(a.manifest)
     root = a.root or man["storage"]["root"]
     campaign = a.campaign or man["storage"]["campaign"]
-    kind = a.kind or ("main" if a.until is None else "c1")
+    kind = a.kind
     os.makedirs(root, exist_ok=True)
     for sub in ("ckpt", "orig"):
         os.makedirs(os.path.join(root, sub), exist_ok=True)
@@ -223,14 +268,29 @@ def main(argv=None):
         return held(f"code hashes differ from the manifest's pins on {bad_code}")
     walltime_s = a.walltime_s if a.walltime_s is not None else man["pbs"]["walltime_h"] * 3600.0
     reserve_s = float(man["pbs"]["deadline_reserve_s"])
-    deadline = None if a.pbs_kill_control else t_start + walltime_s - reserve_s
-    # C: the campaign reservation, bound to this job, before anything else
+    deadline = None if a.pbs_kill_control else t_main + walltime_s - reserve_s
+    cores = int(man["pbs"]["cores"])
+    # R2: the declared task domain - rep, resolved seed, kind, target and kill mode - before anything is reserved or owned
+    ctl = man.get("control", {})
+    if kind not in ("main", "c1", "c2", "c3"):
+        return held(f"kind {kind!r} is not a declared role")
+    if kind == "main":
+        if int(a.rep) not in [int(r) for r in man["datasets"]["reps"]]:
+            return held(f"rep {a.rep} is not in the declared datasets.reps {man['datasets']['reps']}")
+        if a.until is not None or a.pbs_kill_control:
+            return held("a main run carries no target and no kill mode")
+    else:
+        if int(a.rep) != int(ctl.get("rep", -1)) or a.until is None or int(a.until) != int(ctl.get("target", -1)):
+            return held(f"control role {kind}: rep must be {ctl.get('rep')} and --until must be {ctl.get('target')}")
+        if (kind == "c2") != bool(a.pbs_kill_control):
+            return held(f"control role {kind}: --pbs-kill-control is {'required' if kind == 'c2' else 'not allowed'}")
+    # R1: the campaign reservation, bound to this job with this job's filled request, before anything else
     ledger = CampaignLedger(campaign, man["budget"]["core_hours_cap"])
     if not a.no_reservation:
         if not a.reservation_token:
             return held("no --reservation-token: reserve before qsub (chpc/row19_ledger.py reserve)")
         try:
-            entry = ledger.runner_start(a.reservation_token, a.job_id, kind, int(a.rep), root)
+            entry = ledger.runner_start(a.reservation_token, a.job_id, kind, int(a.rep), root, cores, walltime_s)
         except Exception as e:
             return held(f"reservation: {e}")
         print(f"reservation {entry['token']}: {entry['kind']} rep {entry['rep']} attempt {entry['attempt']}, {entry['reserved_core_h']:.1f} core-h", flush=True)
@@ -243,6 +303,7 @@ def main(argv=None):
     status_path = os.path.join(root, f"status_{a.rep}.json")
     timing_path = os.path.join(root, f"timing_{a.rep}.jsonl")
     task_path = os.path.join(root, f"task_{a.rep}.json")
+    index_path = os.path.join(root, "task_index.json")
     code_exit = HELD
     stop_reason = {}
     try:
@@ -256,6 +317,9 @@ def main(argv=None):
         excluded = set(int(x) for x in man["datasets"].get("excluded_resolved_seeds", []))
         if ds_seed in excluded:
             return held(f"resolved dataset seed {ds_seed} is in the declared exclusion set")
+        declared = man["datasets"].get("resolved_seeds", {})
+        if str(a.rep) in declared and int(declared[str(a.rep)]) != int(ds_seed):
+            return held(f"resolved seed {ds_seed} differs from the declared {declared[str(a.rep)]} for rep {a.rep}")
         ds = S.make_dataset(st["generator"], theta, n_per_family=int(st["n_per_family"]), D=int(st["D"]),
                             layers=np.array(st["layers"]), rho=float(st["rho"]), seed=ds_seed)
         ds.meta.update(generator=st["generator"], theta=[float(x) for x in theta], D=int(st["D"]), rho=float(st["rho"]), seed=int(ds_seed))
@@ -264,29 +328,55 @@ def main(argv=None):
         ident = A.dataset_identity(ds, cfg, ds_seed, cfg.n_boot_refit, folds)
         ckpt_path = os.path.join(root, "ckpt", f"refit_{ident[:24]}.jsonl")
         orig_path = os.path.join(root, "orig", f"orig_{ident[:24]}.json")
-        print(f"rep {a.rep}: dataset seed {ds_seed}, code/config {code_hash}, identity {ident[:16]}, policy {cfg.start_policy}, "
+        print(f"rep {a.rep} ({kind}): dataset seed {ds_seed}, code/config {code_hash}, identity {ident[:16]}, policy {cfg.start_policy}, "
               f"target {'all ' + str(cfg.n_boot_refit) if a.until is None else '0..' + str(int(a.until) - 1)}", flush=True)
-        # D: the task binding - persisted on the first start, re-verified on every later one
+        # R2/D: fresh versus recovering, decided from the root's task index and prior evidence BEFORE any binding is created
         binding = dict(manifest_sha=manifest_sha, rep=int(a.rep), ds_seed=int(ds_seed), ident=ident, code_hash=code_hash,
-                       n_rep=int(cfg.n_boot_refit), until=a.until, ckpt=ckpt_path, orig=orig_path)   # the kind (c2 then c3) is per run
+                       policy=cfg.start_policy, n_rep=int(cfg.n_boot_refit), until=a.until, ckpt=ckpt_path, orig=orig_path)
+        index = json.load(open(index_path)) if os.path.exists(index_path) else {}
         if os.path.exists(task_path):
             task = json.load(open(task_path))
             diff = [k for k in binding if task.get("binding", {}).get(k) != binding[k]]
             if diff:
                 return held(f"task binding differs on {diff}: this is not the task that was started in {root}")
         else:
-            task = dict(binding=binding, created=time.time(), runs=[], expected_accepted=0, recompute_authorizations=[])
+            prior = [p for p in (status_path, timing_path, os.path.join(root, f"STOP_ACK_rep{a.rep}.json")) if os.path.exists(p)]
+            if str(a.rep) in index or prior or os.path.exists(ckpt_path) or os.path.exists(orig_path):
+                return held(f"no task binding for rep {a.rep} but prior evidence exists ({'index' if str(a.rep) in index else ''} "
+                            f"{[os.path.basename(p) for p in prior]} ckpt={os.path.exists(ckpt_path)} orig={os.path.exists(orig_path)}): "
+                            f"unexplained binding loss; holding")
+            task = dict(binding=binding, created=time.time(), runs=[], expected_accepted=0, recompute_authorizations=[],
+                        watermark_rule="expected_accepted is advanced after every durable record (record fsynced first, then this "
+                                       "file); a crash between the two leaves it at most one record behind, which the next start "
+                                       "tolerates; it never decreases")
             write_atomic(task_path, task)
-        # D: inspect the checkpoint without fitting
+            index[str(a.rep)] = dict(ident=ident, created=time.time())
+            write_atomic(index_path, index)
+        # D: inspect the checkpoint without fitting, against the per-record watermark
         cs = A.checkpoint_state(ds, cfg, ds_seed, cfg.n_boot_refit, folds, ckpt_path)
         if cs["rejected"] or cs["duplicates_conflicting"]:
             return held(f"checkpoint {ckpt_path}: {cs['rejected']} record(s) this run cannot accept, {cs['duplicates_conflicting']} conflicting duplicates; holding for diagnosis")
         if len(cs["accepted"]) < int(task.get("expected_accepted", 0)):
-            return held(f"checkpoint holds {len(cs['accepted'])} accepted records but {task['expected_accepted']} were committed by earlier runs")
-        print(f"checkpoint: {len(cs['accepted'])} accepted record(s), tail fragment {cs['tail_fragment']}", flush=True)
-        # A/D: the original run - validated cache, or computed only when no committed record depends on it
+            return held(f"checkpoint holds {len(cs['accepted'])} accepted records but {task['expected_accepted']} were committed by earlier runs: lost or rolled-back progress")
+        print(f"checkpoint: {len(cs['accepted'])} accepted record(s), watermark {task.get('expected_accepted', 0)}, tail fragment {cs['tail_fragment']}", flush=True)
+        # R5: the current stop request and the memory diagnosis BEFORE any original work
+        mem_stop = float(man["pbs"].get("mem_stop_gib", 0) or 0) * 2**30
+        def ack(boundary, n_done):
+            req = ledger.current_stop(int(a.rep))
+            if req is not None:
+                write_atomic(os.path.join(root, f"STOP_ACK_rep{a.rep}.json"),
+                             dict(request_id=req.get("id"), scope=req.get("scope"), requested=req.get("requested"), job=a.job_id,
+                                  rep=int(a.rep), boundary=boundary, n_done=int(n_done), t=time.time()))
+        if ledger.stop_requested(int(a.rep)):
+            ack("before the original", len(cs["accepted"]))
+            print(f"rep {a.rep}: stop requested before any work; acknowledged; exit 75", flush=True)
+            code_exit = RESUME
+            return code_exit
+        if mem_stop and maxrss_bytes() > mem_stop:
+            return held(f"memory at admission {maxrss_bytes()/2**30:.2f} GiB already exceeds the {mem_stop/2**30:.2f} GiB stop")
+        # A/D/R6: the original run - the validated cache, or computed only when no committed record depends on it
         t0 = time.time()
-        orig, why = (read_orig(orig_path, ident, code_hash, ds.n_layers, ds.n_concepts) if os.path.exists(orig_path) else (None, "absent"))
+        orig, why = (read_orig(orig_path, ident, code_hash, ds, cfg, folds) if os.path.exists(orig_path) else (None, "absent"))
         if orig is None:
             if cs["accepted"]:
                 if not a.authorize_original_recompute:
@@ -299,11 +389,11 @@ def main(argv=None):
                 return held(f"original-run cache {why} and no committed record: remove it deliberately before a fresh start")
             run = A.run_dataset(ds, cfg, ds_seed, outer_folds=folds)
             orig_seconds, orig_cached = time.time() - t0, False
-            bad = run_problems(run, ds.n_layers, ds.n_concepts)
+            bad = run_problems(run, ds, cfg, folds)
             if bad:
                 return held("the original run's output does not meet the schema: " + "; ".join(bad))
             psha = write_orig(orig_path, run, ident, code_hash, orig_seconds)
-            back, why2 = read_orig(orig_path, ident, code_hash, ds.n_layers, ds.n_concepts)
+            back, why2 = read_orig(orig_path, ident, code_hash, ds, cfg, folds)
             if back is None:
                 return held(f"the original-run cache does not read back: {why2}")
         else:
@@ -311,21 +401,26 @@ def main(argv=None):
         print(f"original run: {orig_seconds:.1f} s ({'cached' if orig_cached else 'computed'}), failed={run.get('failed')}, payload {psha[:12]}", flush=True)
         if run.get("failed"):
             return held(f"the original run failed: {run.get('failed_reason')}")
-        # G/H: the stop boundary and the memory stop
-        mem_stop = float(man["pbs"].get("mem_stop_gib", 0) or 0) * 2**30
+        # G/R5: the stop boundary and the memory stop, checked before every dispatch and after the last record
+        def over_memory():
+            return bool(mem_stop) and maxrss_bytes() > mem_stop
         def should_stop():
             if ledger.stop_requested(int(a.rep)):
-                stop_reason.setdefault("request", ledger.stop_path(int(a.rep)) if os.path.exists(ledger.stop_path(int(a.rep))) else ledger.stop_path())
+                stop_reason.setdefault("request", ledger.current_stop(int(a.rep)))
                 return True
-            if mem_stop and maxrss_bytes() > mem_stop:
+            if over_memory():
                 stop_reason.setdefault("memory", maxrss_bytes())
                 return True
             return False
         n_before = len(open(timing_path).read().splitlines()) if os.path.exists(timing_path) else 0
+        progress = {"n": len(cs["accepted"])}
         def on_record(rec):
             with open(timing_path, "a") as fh:
                 fh.write(json.dumps(dict(rep=rec["rep"], fit_seconds=rec["fit_seconds"], failed=rec["failed"], t=time.time(),
                                          job=a.job_id, maxrss_bytes=maxrss_bytes())) + "\n"); fh.flush(); os.fsync(fh.fileno())
+            progress["n"] += 1                                           # R2: the watermark advances per durable record
+            task["expected_accepted"] = max(int(task.get("expected_accepted", 0)), progress["n"])
+            write_atomic(task_path, task)
         try:
             rb = A.refit_bootstrap(ds, cfg, ds_seed, n_rep=cfg.n_boot_refit, outer_folds=folds, min_usable=cfg.refit_min_usable,
                                    checkpoint_path=ckpt_path, segment=a.segment, deadline=deadline, strict_restore=True,
@@ -333,56 +428,69 @@ def main(argv=None):
         except A.CheckpointDamaged as e:
             return held(str(e))
         t_chain_end = time.time()
+        # R5: after the last record (and on a no-work restore): the current stop and memory state
+        stopped_by_request = bool(rb["stopped_by_request"]) or ledger.stop_requested(int(a.rep))
+        memory_breach = bool(stop_reason.get("memory")) or over_memory()
         new_fits = ([float(l.get("fit_seconds", 0)) for l in (json.loads(x) for x in open(timing_path).read().splitlines()[n_before:] if x.strip())]
                     if os.path.exists(timing_path) else [])
         status = dict(phase="chain_done", rep=int(a.rep), job=a.job_id, kind=kind, ident=ident, code_hash=code_hash, policy=cfg.start_policy,
-                      n_rep=int(cfg.n_boot_refit), until=a.until, segment=rb["segment"], n_done=rb["n_done"], n_new=rb["n_new"],
+                      seed=int(ds_seed), n_rep=int(cfg.n_boot_refit), until=a.until, segment=rb["segment"], n_done=rb["n_done"], n_new=rb["n_new"],
                       n_resumed=rb["n_resumed"], n_damaged=rb["n_damaged"], n_tail_repaired=rb["n_tail_repaired"], partial=rb["partial"],
                       target_complete=rb["target_complete"], stopped_at_deadline=rb["stopped_at_deadline"],
-                      stopped_by_request=rb["stopped_by_request"], stop_reason=stop_reason,
+                      stopped_by_request=stopped_by_request, memory_breach=memory_breach, stop_reason=stop_reason,
                       original_seconds=orig_seconds, original_cached=orig_cached, original_payload_sha=psha,
-                      original_note="wall seconds of run_dataset in this process; includes jit compilation when computed fresh",
+                      original_note="wall seconds of run_dataset in this process when computed fresh (jit compilation INCLUDED, not separated); "
+                                    "the cached value when restored",
                       refit_fit_seconds_total=rb["fit_seconds"], first_new_fit_s=(new_fits[0] if new_fits else None),
                       median_new_fit_s=(float(np.median(new_fits)) if new_fits else None),
-                      compilation_note="jit compilation is NOT separated; the first new resample's excess over the median is the proxy",
-                      chain_wall_seconds=t_chain_end - t_start, environment=env, code=code, checkpoint=rb["checkpoint"],
+                      compilation_note="jit compilation is NOT measured; the first new resample's excess over the median new resample of this job is a proxy only",
+                      chain_wall_seconds=t_chain_end - t_main, environment=env, code=code, checkpoint=rb["checkpoint"],
                       manifest_sha=manifest_sha, reservation=a.reservation_token)
         write_atomic(status_path, status)
-        # B: aggregate from the cached original and the validated completed chain - no fit is bought
+        # B: aggregate from the cached original and the validated completed chain - no fit is bought; the companion kept
         if not rb["partial"]:
             t_f = time.time()
             res = A.analyze_dataset(ds, cfg, ds_seed, outer_folds=folds, run=run, interval_result=rb)
-            status["result"] = {p: dict(decision=res["predictors"][p]["decision"], ws=res["predictors"][p]["ws"]) for p in A.PREDICTORS}
+            status["result"] = {p: dict(decision=res["predictors"][p]["decision"], ws=res["predictors"][p]["ws"],
+                                        cluster_ws=res["predictors"][p].get("cluster", {}).get("ws")) for p in A.PREDICTORS}
             status["interval"] = {k: v for k, v in res.get("interval", {}).items() if k != "replicates"}
-            status["finalisation_seconds"] = time.time() - t_f
-        if stop_reason.get("memory"):
+            status["aggregation_seconds"] = time.time() - t_f
+        if memory_breach:
             code_exit = HELD
+        elif rb["partial"]:
+            code_exit = RESUME
         else:
-            code_exit = DONE if not rb["partial"] else RESUME
-        wall = time.time() - t_start
+            code_exit = DONE
+        t_pub = time.time()
+        wall = t_pub - t_main
         ru = resource.getrusage(resource.RUSAGE_SELF)
-        status.update(phase="final", wall_seconds=wall, cpu_seconds=ru.ru_utime + ru.ru_stime,
+        status.update(phase="final", wall_seconds_main=wall, cpu_seconds_lifetime=ru.ru_utime + ru.ru_stime,
                       utilisation=(ru.ru_utime + ru.ru_stime) / max(wall, 1e-9), maxrss_bytes=maxrss_bytes(), exit=code_exit,
-                      resource_note="ru_maxrss/cpu/wall of this one process after aggregation and status publication; "
-                                    "no workers exist in this route; scheduler accounting is settled in the campaign ledger",
-                      finished=time.time())
+                      measurement_scope="wall_seconds_main runs from main() start (imports before main excluded) to this publication; "
+                                        "cpu_seconds_lifetime and maxrss_bytes are RUSAGE_SELF for the whole process (imports included), so "
+                                        "utilisation mixes the two scopes; aggregation_seconds is the aggregation only; publication_seconds "
+                                        "(below) is the final status/ACK/task/ledger writes; wrapper and PBS start-up are not measured here; "
+                                        "scheduler-accounted allocated time is settled in the campaign ledger",
+                      finished=t_pub)
         write_atomic(status_path, status)
-        if rb["stopped_by_request"]:
-            write_atomic(os.path.join(root, f"STOP_ACK_rep{a.rep}.json"), dict(job=a.job_id, rep=int(a.rep), n_done=rb["n_done"], t=time.time(), reason=stop_reason))
-        task["runs"].append(dict(job=a.job_id, kind=kind, started=t_start, ended=time.time(), exit=code_exit, n_done=rb["n_done"], n_new=rb["n_new"]))
-        task["expected_accepted"] = int(rb["n_done"])
+        if stopped_by_request:
+            ack("after the last durable record" if rb["n_new"] else ("no work remaining" if not rb["partial"] else "no work bought"), rb["n_done"])
+        task["runs"].append(dict(job=a.job_id, kind=kind, started=t_main, ended=time.time(), exit=code_exit, n_done=rb["n_done"], n_new=rb["n_new"]))
+        task["expected_accepted"] = max(int(task.get("expected_accepted", 0)), int(rb["n_done"]))
         write_atomic(task_path, task)
+        status["publication_seconds"] = time.time() - t_pub
+        write_atomic(status_path, status)
         if code_exit == HELD:
-            return held(f"memory stop: maxrss {stop_reason['memory']/2**30:.2f} GiB exceeds {mem_stop/2**30:.2f} GiB; chain flushed at a record boundary")
+            return held(f"memory stop: maxrss {maxrss_bytes()/2**30:.2f} GiB exceeds {mem_stop/2**30:.2f} GiB; chain flushed at a record boundary")
         print(f"rep {a.rep}: {'COMPLETE' if code_exit == DONE else 'PARTIAL (resume)'}: done {rb['n_done']}/{cfg.n_boot_refit}, "
               f"new {rb['n_new']}, resumed {rb['n_resumed']}, wall {wall/60:.1f} min, maxrss {status['maxrss_bytes']/2**30:.2f} GiB"
               + (f", target 0..{int(a.until)-1} complete" if rb["target_complete"] else "")
-              + (", stopped by request" if rb["stopped_by_request"] else ""), flush=True)
+              + (", stopped by request" if stopped_by_request else ""), flush=True)
         return code_exit
     finally:
         if not a.no_reservation and a.reservation_token:
             try:
-                ledger.runner_end(a.reservation_token, time.time() - t_start, code_exit)
+                ledger.runner_end(a.reservation_token, time.time() - t_main, code_exit)
             except Exception as e:
                 print(f"ledger: runner_end failed: {e}", flush=True)
         try:

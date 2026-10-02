@@ -26,7 +26,7 @@ echo "host $(hostname)  $(grep -m1 'model name' /proc/cpuinfo)"
 echo "code $(git rev-parse --short HEAD)  start $(date -u +%FT%TZ)  job $PBS_JOBID  mode __MODE__"
 mkdir -p $T/__ROOT__
 $T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep 0 --until 20 __KILL_FLAG__ --walltime-s __WALLTIME_S__ --root $T/__ROOT__ --campaign $T/row19_campaign --job-id $PBS_JOBID --reservation-token __TOKEN__ --kind __KIND__ 2>&1 | tee -a $T/__ROOT__/live_ctl___MODE__.log
-rc=${PIPESTATUS[0]}
+rc=${PIPESTATUS[0]}; tee_rc=${PIPESTATUS[1]}
 
-echo "exit $rc  end $(date -u +%FT%TZ)"
+echo "exit $rc tee $tee_rc  end $(date -u +%FT%TZ)" | tee -a $T/__ROOT__/live_ctl___MODE__.log
 exit $rc
