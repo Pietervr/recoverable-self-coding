@@ -17,6 +17,7 @@
   alloc:<gib>    touch <gib> GiB of host memory and hold it
   exit:<code>    exit with that code
   norecord       exit 0 without writing the phase record
+  linger:<phase>:<s>  write the phase record, then linger <s> before exit 0 (a slow teardown; rev 11)
 """
 
 import hashlib
@@ -63,6 +64,14 @@ if mode.startswith("ok:"):
                             "gates": gates.get("passed"), "t": time.time()}) + "\n")
     (out / f"{ph.upper()}_DONE.json").write_text("{}")
     sys.exit(0)
+if mode.startswith("linger:"):                 # revision 11: complete and commit, then a slow teardown before exit
+    _, ph, secs = mode.split(":")
+    with open(out / "worker_log.jsonl", "a") as f:
+        f.write(json.dumps({"phase": ph, "pid": os.getpid(), "t": time.time()}) + "\n")
+    (out / f"{ph.upper()}_DONE.json").write_text("{}")
+    (out / "teardown.pid").write_text(str(os.getpid()))   # the fixture watchdog's proc_info stops answering for it
+    time.sleep(float(secs))
+    sys.exit(0)
 if mode.startswith("report:"):
     how = mode.split(":")[1]
     if how == "fail":
@@ -72,7 +81,8 @@ if mode.startswith("report:"):
     outputs = {"report/rel_l2_by_layer.svg": put("report/rel_l2_by_layer.svg", b"<svg/>"),
                "report/logit_max_abs.svg": put("report/logit_max_abs.svg", b"<svg></svg>"),
                "report/STAGE_A_REPORT.md": put("report/STAGE_A_REPORT.md", b"# report\n")}
-    rec = {"validator_pass": not (out / "TERMINAL.json").exists(), "admissible": gates.get("passed") is True,
+    from stage_a_guard import terminal_active          # revision 11: as the real report - an owner-released terminal
+    rec = {"validator_pass": not terminal_active(out), "admissible": gates.get("passed") is True,
            "session": session}
     outputs["report/stage_a_report.json"] = put("report/stage_a_report.json", json.dumps(rec).encode())
     if how == "json_then_fail":

@@ -1,11 +1,23 @@
-# AI image-reader qualification, revision 10: the design and where each condition lives
+# AI image-reader qualification, revision 11: the design and where each condition lives
 
 R084, 2 October 2026. The specification is framework §8.2's reader rule with R052's closures (Unimog, R052's text).
 Revision 5 answers Codex's combined record RSC `1bf9890` (not favourable to revision 4 at RSC `d7a486a`; reader
 conditions 1–7 = R1–R6 there) through R052's handoff `8c9dac2b`. Revision 4 answered RSC `5a8d7ac` (handoff
 `46125389`); its closures stand and are listed after the revision-5 table.
 
-## Revision 10: the condition of RSC `dda950b`
+## Revision 11: the 2 October execution race
+
+Revision 10 (RSC `fbfb7db`) was favourable (Codex RSC `3390183`) and ran under the owner's go on 2 October: smoke
+passed, 174 of 175 attempts ended ok, one was interrupted, and the job STOPPED (`reviews/2026-10-02_ai_reader_run.md`).
+
+| # | Condition | Where it lives | Evidence |
+|---|---|---|---|
+| R | `dir_bytes` over a live attempt directory | `ai_reader_exec.dir_bytes` walks with `os.walk` (symlinked directories not followed) and `lstat`s each entry; ENOENT/ENOTDIR on an entry that vanished after the listing - the Codex CLI's own `codex_home/tmp/arg0/codex-arg0*/applypatch` helper - is skipped and what was seen is counted; any other error (an unreadable directory) still raises and stops the run. | `test_ai_reader.Rev11.test_entry_removed_between_listing_and_stat` (PRODUCED exactly; the revision-10 function raises FileNotFoundError on the same race); `Rev11.test_continuous_churn` (a thread creates and removes helper directories, files and symlinks during 300 measures); `Rev11.test_unreadable_directory_still_raises` (control); `test_ai_reader_crash.Rev11.test_job_completes_while_the_cli_churns_its_helpers` (the fake CLI's `arg0churn` behaviour for 3 s during a real-process job: COMPLETE, admitted) |
+| W | The shared watchdog | `stage_a_watchdog` now retires only on the leader's confirmed NOTE_EXIT (Stage A §R11); the reader's watchdog, the same file, follows the same rule. | the reader's existing watchdog fixtures (retirement with escaped members, controller death) |
+
+The retained-output run for this revision: `reviews/2026-10-02_photo_suite_rev11_run.md`.
+
+## Revision 10: the condition of RSC `dda950b` (favourable at `3390183`)
 
 Codex's record RSC `dda950b` (not favourable to revision 9 at `ba4fc75`) closed reader A and B1–B3 as submitted and
 left one boundary, answered here through R052's handoff `ac3b8525`.
@@ -24,7 +36,7 @@ qualify). Revision 9's "any late return the process observes" is withdrawn. Star
 publication is covered (revision 9) and a live foreign start is ended before its charge is final (revision 10); what
 remains is a start that never got a pending temporary onto disk, bounded by its setup timer.
 
-The retained-output run for this revision: `reviews/2026-10-02_photo_suite_rev10_run.md`.
+The retained-output run for revision 10: `reviews/2026-10-02_photo_suite_rev10_run.md` (historical).
 
 ## Revision 9: the conditions of RSC `7fdb937` (closed by `dda950b`; residual wording qualified in revision 10)
 

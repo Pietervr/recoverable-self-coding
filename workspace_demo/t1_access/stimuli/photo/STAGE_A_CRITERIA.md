@@ -1,4 +1,4 @@
-# Stage A (ledger row 20): declared criteria and code, revision 10 (R084, 2 October 2026)
+# Stage A (ledger row 20): declared criteria and code, revision 11 (R084, 2 October 2026)
 
 **Specification:** framework `rsc_t1_two_channel_framework.md` §8.2, §8.4 and §8.6 (Unimog; R052's text).
 
@@ -15,7 +15,8 @@
 | 7 | RSC `068fe30` | RSC `12a7f20` (combined) | NOT ON BOARD; B and D closed; the ~21 GiB/s qualification (C) accepted; coverage, the 60 s closure and the missing-death branch credited |
 | 8 | RSC `9f696c6` | RSC `7fdb937` (combined) | NOT ON BOARD; A2 and A3 closed; A1's timeout path credited; two A1 transitions and five summary alignments left |
 | 9 | RSC `ba4fc75` | RSC `dda950b` (combined) | NOT ON BOARD; A1.1 and A1.2 closed as submitted; alignments a–d accepted; a live foreign start before the lock left |
-| 10 | this commit | — | answers R052's handoff `ac3b8525`: the live foreign start (§00000) and declarations 1–3 |
+| 10 | RSC `fbfb7db` | RSC `3390183` | FAVOURABLE; the owner's go (2 October) ran it: STOPPED by the controller race (`reviews/2026-10-02_stage_a_run.md`) |
+| 11 | this commit | — | answers R052's handoff `27d226eb`: the execution race and the terminal release (§R11) |
 
 No review record of a not-favourable verdict can be named by a go: the guard's supplementary negative list holds
 `f9d2ef3`, `69539bb`, `081f17b`, `1bf9890`, `b569f8a`, `c036c00`, `12a7f20`, `7fdb937`, `dda950b` (row 20; the last six combined) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
@@ -38,6 +39,26 @@ SAMPLING/TICK/KILL MEASUREMENTS: revisions 9 and 10 change no sampling, tick or 
 guardian's arming and release paths and add the foreign-start reconcile, whose evidence is the revision-9/10 tests
 and the retained suite run, not that file; the §000/§00 interval, margin and A1–A3 values are from that file;
 values inside the older sections are their own revision's and are marked so).
+
+## R11. Revision 11: the 2 October execution race and the owner's terminal release
+
+**The race (diagnosed in `reviews/2026-10-02_stage_a_run.md`).** The instrumented worker (31.0 GiB) committed
+`INSTRUMENTED_DONE.json` and began its teardown; `proc_info` stopped answering for it before kqueue posted NOTE_EXIT;
+the phase watchdog's retirement rule ("group and members no longer answer") retired it (exit 0); the controller saw a
+retired watchdog without a confirmed leader exit and stopped terminally.
+
+| Change | Where it lives | Fixture (`tests/test_controller.py`) |
+|---|---|---|
+| The watchdog retires only on the leader's CONFIRMED exit | `stage_a_watchdog.main` registers its own NOTE_EXIT watch on the leader at arming (a leader already gone, or not the recorded process, is exited); retirement needs that confirmed exit AND the group and every recorded member gone. An unanswered `proc_info` alone is a wait under the watchdog's other checks (controller death, deadline, stale beat, stale sampler), never a retirement. This is a RELEASE path of the watchdog; no sampling, tick or kill path changed, so the pinned revision-8 `controller_fixtures.json` stands. | `test_slow_teardown_after_the_phase_record_does_not_stop` - PRODUCED: the worker commits its record, then lingers 1.5 s while the fixture watchdog's `proc_info` no longer answers for it (`tests/fixture_watchdogs.py teardown`, the real kqueue): PASS, native run, no terminal. The same fixture against the revision-10 code (`fbfb7db`) reproduces the 2 October stop exactly: STOPPED, "instrumented: watchdog exited (0)". |
+| A watchdog gone before a confirmed exit HOLDS | `_sample`: the controller waits up to GROUP_GONE_S for the confirmed exit (kqueue); confirmed -> the phase ended and goes on to its independent predicates (exit code, durable record, exit peak); not confirmed -> the group is SIGKILLed and the run HOLDS (`ControllerHold` -> `_hold`: the reason in `stops`, the session closed and charged, no TERMINAL record, no report). | `test_watchdog_gone_before_a_confirmed_exit_holds` (a watchdog that exits 1 s after arming, a worker that never exits: HELD, worker gone, no terminal). Control: `test_worker_crash_and_missing_record` - a worker that dies without its record still STOPS. |
+| The owner's release of a terminal record | `stage_a_guard.terminal_release`: `TERMINAL_RELEASE.json` under an exact schema (`terminal_sha256` = the sha256 of TERMINAL.json's exact bytes, owner, date YYYY-MM-DD, words, reason). With a matching release the terminal record is not active: work phases resume; TERMINAL.json stays unchanged as the record; any later failure appends to it, changes its bytes and voids the release. A malformed release refuses. The final record names the release. | `test_owner_release_of_a_terminal_record` (a native failure after the instrumented phase; a later run without a release still holds; with the release the next run resumes - the committed instrumented phase not rerun, native run, seconds carried - to PASS; a later failure voids it; a malformed date refuses) |
+
+**The rule for the 2 October attempt (the owner's ruling, applied after Codex's record).** The attempt stays TERMINAL
+in the record. Work resumes only under the owner's `TERMINAL_RELEASE.json` naming that exact record, in the same
+output directory, with every counter carried and none reset: 174 of 200 row-20 forwards used, 2,057.9 s of the
+14,400 s cumulative, 317.5 MB of 1 GiB. The committed instrumented records (158 attempts) are not rerun; they pass
+through the native phase's pre-native admission and the final validator's full independent predicates, and the native
+phase runs on the remaining 26 forwards (20 planned).
 
 ## 00000. Revision 10: a live foreign start before the lock (RSC `dda950b`)
 
@@ -350,8 +371,8 @@ same five hashes). If one review approves both Stage A and the AI reader, each g
 
 ## 6. Tests (no model)
 
-The retained-output evidence for this package is `reviews/2026-10-02_photo_suite_rev10_run.md` (command, exit status,
-counts, skips, identity, stdout/stderr); earlier records (`..._rev5_run.md` to `..._rev9_run.md`) are historical.
+The retained-output evidence for this package is `reviews/2026-10-02_photo_suite_rev11_run.md` (command, exit status,
+counts, skips, identity, stdout/stderr); earlier records (`..._rev5_run.md` to `..._rev10_run.md`) are historical.
 
 ## 7. Stated limits (not narrowed silently)
 

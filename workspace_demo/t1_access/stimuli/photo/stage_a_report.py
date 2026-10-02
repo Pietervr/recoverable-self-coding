@@ -475,7 +475,9 @@ def build(out: Path, plan: dict, ledger: dict, *, admissible: bool, session: str
     state = ledger.get("state")
     ident = identity or gates.get("identity")
     val = validate(out, plan, state, identity=ident)
+    from stage_a_guard import terminal_active, terminal_release
     terminal = json.loads((out / "TERMINAL.json").read_text()) if (out / "TERMINAL.json").exists() else None
+    released = terminal_release(out) if terminal is not None else None        # revision 11
     ctrl = json.loads((out / "controller.json").read_text()) if (out / "controller.json").exists() else {}
     planned = [a["id"] for a in plan["attempts"]]
     st = state or {"attempts": {}, "counters": {"row20": {}}, "carry_in": {}}
@@ -498,8 +500,8 @@ def build(out: Path, plan: dict, ledger: dict, *, admissible: bool, session: str
     record = {"admissible": admissible, "label": "ADMISSIBLE" if admissible else
               "DIAGNOSTIC - identity/package not verified in this session; confers nothing",
               "identity_problem": identity_problem, "session": session,
-              "validator_pass": bool(val["pass"] and admissible and terminal is None),
-              "validator": val, "terminal": terminal, "unique_planned_ids": len(planned),
+              "validator_pass": bool(val["pass"] and admissible and not terminal_active(out)),
+              "validator": val, "terminal": terminal, "terminal_release": released, "unique_planned_ids": len(planned),
               "unique_ids_started": unique_started, "actual_tries": tries,
               "unreconciled_open_attempt": ledger.get("unreconciled_open_attempt"),
               "interrupted": st.get("interrupted", []),

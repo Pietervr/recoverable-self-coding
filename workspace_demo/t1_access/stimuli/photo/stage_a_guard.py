@@ -130,9 +130,35 @@ def terminal_path(out: Path) -> Path:
     return out / "TERMINAL.json"
 
 
+RELEASE = "TERMINAL_RELEASE.json"
+RELEASE_KEYS = {"terminal_sha256", "owner", "date", "words", "reason"}
+
+
+def terminal_release(out: Path) -> dict | None:
+    """Revision 11: the owner's authorised release of a terminal record - TERMINAL_RELEASE.json under an exact schema
+    (terminal_sha256 = the sha256 of TERMINAL.json's exact bytes as released; owner, words and reason non-empty; date
+    an exact YYYY-MM-DD; no other field). TERMINAL.json stays as the record. Any later failure appends to it, changes
+    its bytes and so voids the release: the run is terminal again. A malformed release refuses; a stale one is no
+    release."""
+    p, t = out / RELEASE, terminal_path(out)
+    if not (p.exists() and t.exists()):
+        return None
+    a = _keys(strict_json(p.read_text(), p.name), RELEASE_KEYS, p.name)
+    for k in ("owner", "words", "reason", "terminal_sha256"):
+        _str(a[k], f"{p.name}.{k}")
+    iso_date(a["date"], f"{p.name}.date")
+    if a["terminal_sha256"] != sha_bytes(t.read_bytes()):
+        return None
+    return {**a, "file_sha256": sha_bytes(p.read_bytes())}
+
+
+def terminal_active(out: Path) -> bool:
+    return terminal_path(out).exists() and terminal_release(out) is None
+
+
 def check_terminal(out: Path) -> None:
     p = terminal_path(out)
-    if p.exists():
+    if terminal_active(out):
         t = json.loads(p.read_text())
         raise SystemExit(f"refused: Stage A stopped terminally ({t['first']['phase']}: {t['first']['reason']}); "
                          f"no phase runs again and no failed gate is retried")

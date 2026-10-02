@@ -1,4 +1,5 @@
-"""AI image-reader qualification, revision 10 (Codex RSC dda950b: a live foreign start before the lock is
+"""AI image-reader qualification, revision 11 (the 2 October run: dir_bytes skips an entry that vanished
+after its listing). Revision 10 (Codex RSC dda950b: a live foreign start before the lock is
 ended by its retained identity before its charge is final). Revision 9 (Codex RSC 7fdb937 reader A, B: a late commit is undone and the
 revocation unlinks until the exit; readable pending temporaries count; the first persist is bounded by the
 recovered balance; declared session states). Revision 8 (Codex RSC 12a7f20 reader A, B through R052 handoff db8a9e1d: the
@@ -72,6 +73,7 @@ import json
 import math
 import os
 import shutil
+import stat
 import signal
 import select
 import subprocess
@@ -453,7 +455,26 @@ def read_capped(p: Path, cap: int) -> tuple[bytes, bool]:
 
 
 def dir_bytes(d: Path) -> int:
-    return sum(f.stat().st_size for f in d.rglob("*") if f.is_file() and not f.is_symlink()) if d.exists() else 0
+    """Bytes of the regular files under d (symlinks not followed). Revision 11 (the 2 October run): the Codex CLI
+    creates and removes its own helper entries (codex_home/tmp/arg0/...) during an attempt, so an entry listed by the
+    walk can be gone before its stat - ENOENT/ENOTDIR on such an entry is skipped and what was seen is counted. Any
+    other error (an unreadable directory: EACCES, EIO, ...) still raises and stops the run."""
+    if not d.exists():
+        return 0
+
+    def onerror(exc: OSError) -> None:
+        if not isinstance(exc, (FileNotFoundError, NotADirectoryError)):
+            raise exc                                  # a directory that cannot be read: the run stops
+    total = 0
+    for root, _dirs, files in os.walk(d, onerror=onerror):   # symlinked directories are not followed
+        for name in files:
+            try:
+                st = os.lstat(os.path.join(root, name))
+            except (FileNotFoundError, NotADirectoryError):
+                continue                               # vanished after the listing
+            if stat.S_ISREG(st.st_mode):
+                total += st.st_size
+    return total
 
 
 def end_recorded(worker: dict | None, members: list[dict], watchdog: dict | None) -> dict:

@@ -1,4 +1,5 @@
-"""Photograph arm, Stage A (row 20) and the AI-reader job: the WATCHDOG - revision 10 (the record retains the controller's identity); revision 9 (the guardian's record is durable
+"""Photograph arm, Stage A (row 20) and the AI-reader job: the WATCHDOG - revision 11 (retirement only on the leader's
+confirmed NOTE_EXIT, never on proc_info alone); revision 10 (the record retains the controller's identity); revision 9 (the guardian's record is durable
 from arming and names every ending: exited, released, killed); revision 8 (its death record carries the start); revision 7 (Codex RSC c036c00 Stage A A, C: ticks
 carry their source observation time, staleness is measured from it, every endpoint is timestamped; the guardian
 creates its record's directory) - revision 6 answered RSC b569f8a Stage A 1-2,
@@ -179,6 +180,15 @@ def main() -> int:
                                       flags=select.KQ_EV_ADD | select.KQ_EV_ONESHOT, fflags=select.KQ_NOTE_EXIT)], 0, 0)
         except OSError:
             reason = "controller died (before arming)"
+    # Revision 11 (the 2 October run): the leader's exit is CONFIRMED by its own NOTE_EXIT, never inferred from
+    # proc_info no longer answering - a worker tearing down a large address space stops answering proc_info before
+    # NOTE_EXIT is posted. Registered here, at arming; a leader already gone (or not the recorded process) is exited.
+    leader_exited = False
+    try:
+        lkq = memprobe.exit_watch(leader["pid"]) if memprobe.same_process(leader) else None
+        leader_exited = lkq is None
+    except OSError:
+        lkq, leader_exited = None, True
     tick_fd = a.get("tick_fd")
     if tick_fd is not None:
         os.set_blocking(int(tick_fd), False)
@@ -186,8 +196,12 @@ def main() -> int:
     sys.stdout.flush()
     last_tick, ticking, eof, cache, consumed, tbuf = None, False, False, [], None, b""
     while reason is None:
-        if not group_live(leader) and not recorded_live(a.get("members_file"), cache):
-            return 0                                    # retire only when the group AND every recorded member are gone
+        if not leader_exited and lkq is not None and memprobe.exited(lkq):
+            leader_exited = True
+        if leader_exited and not group_live(leader) and not recorded_live(a.get("members_file"), cache):
+            return 0                                    # retire only on the leader's CONFIRMED exit (rev 11) with the
+                                                        # group AND every recorded member gone; an unanswered proc_info
+                                                        # alone is a wait under the checks below, never a retirement
         if kq.control(None, 1, 0) or not memprobe.same_process(ctl):
             reason = "controller died"
             break

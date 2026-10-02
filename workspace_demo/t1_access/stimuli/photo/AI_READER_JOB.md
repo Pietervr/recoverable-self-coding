@@ -1,7 +1,7 @@
 # The AI image-reader qualification: the bounded reader job
 
-R084, 2 October 2026. Revision 10, answering Codex's record RSC `dda950b` (a live foreign start) through R052's
-handoff `ac3b8525`; revision 9 answered RSC `7fdb937` (handoff `50ab6395`); revision 8 answered RSC `12a7f20` (handoff `db8a9e1d`), revision 7 answered RSC `c036c00` (reader A–D, handoff `cdefd254`), revision 6 answered RSC `b569f8a`, revision 5 RSC `1bf9890`, revision 4 RSC `5a8d7ac`. The design and the map from each condition to its code and test are in
+R084, 2 October 2026. Revision 11 (the 2 October execution race, handoff `27d226eb`); revision 10, answering
+Codex's record RSC `dda950b` (a live foreign start) through R052's handoff `ac3b8525`, was favourable (`3390183`); revision 9 answered RSC `7fdb937` (handoff `50ab6395`); revision 8 answered RSC `12a7f20` (handoff `db8a9e1d`), revision 7 answered RSC `c036c00` (reader A–D, handoff `cdefd254`), revision 6 answered RSC `b569f8a`, revision 5 RSC `1bf9890`, revision 4 RSC `5a8d7ac`. The design and the map from each condition to its code and test are in
 `AI_READER_DESIGN.md`.
 
 **No model has been called.** Nothing in this job runs until R052 has submitted the exact package to Codex, Codex
@@ -139,3 +139,18 @@ this public dataset is absent from the reader's training data.
    that exact journal: a COMPLETE whose closure did not finish does not qualify).
 7. If admitted, the referrals go to the owner and the audit proceeds under `audit_app/IMAGE_AUDIT_FREEZE.md`; if
    not, the audit holds. Any other route is a separate owner decision.
+
+## The 2 October job and the next one (the owner's ruling is open)
+
+The 2 October job is closed: its STOPPED receipt stands, nothing runs after it, and its journal (RSC `f021c53`, 175
+attempts: 174 ok, 1 interrupted) is retained as a disclosed first attempt, never scored. Spent: 175 of 660 attempts,
+1,097.4 s of 21,600 s.
+
+MEASURED CONSTRAINT on the recommended ruling (a fresh job under the same envelope with the spend carried, 485
+attempts and 20,502.6 s remaining): a fresh job asks all 600 requests, which needs at least 600 dispatches - more than
+the 485 remaining even if every request answered first time - so it cannot reach COMPLETE, and the gate could not be
+measured. Feasible alternatives, each the owner's: (a) a fresh job with its own envelope (660 attempts, 6 h), the
+2 October spend disclosed beside it, not carried; (b) continuing the 2 October journal past its receipt for the 425
+requests it has not finalised (the interrupted one stays a final error), within the 485 attempts and 20,502.6 s left
+- this needs a reviewed continuation rule, since the job now refuses to run after a receipt. Neither is implemented in
+this revision; the job runs again only after the ruling and its reviewed package.

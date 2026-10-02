@@ -750,6 +750,17 @@ class Rev10(Rev9):
                 self.admitted()
 
 
+class Rev11(Rev10):
+    """The 2 October run (reader), across a real process: the CLI churns its own arg0 helper during an attempt."""
+
+    def test_job_completes_while_the_cli_churns_its_helpers(self):
+        p = self.run_env({"rq1c": ["arg0churn:3:thing"]})
+        self.assertEqual(p.returncode, 0, p.stderr[-800:])
+        recs, _ = self.journal()
+        self.assertEqual((recs[-1]["t"], recs[-1]["outcome"]), ("receipt", "COMPLETE"), recs[-1].get("reason"))
+        self.admitted()
+
+
 for _name in [n for n in dir(HardKill) if n.startswith("test_")]:
     setattr(Rev6, _name, None)
     setattr(Rev7, _name, None)
@@ -759,6 +770,8 @@ for _name in [n for n in dir(Rev8) if n.startswith("test_")]:
     setattr(Rev9, _name, None)
 for _name in [n for n in dir(Rev9) if n.startswith("test_")]:
     setattr(Rev10, _name, None)
+for _name in [n for n in dir(Rev10) if n.startswith("test_")]:
+    setattr(Rev11, _name, None)
 for _name in [n for n in dir(HardKill) if n.startswith("test_")]:
     setattr(Rev5Recovery, _name, None)             # helpers inherited, HardKill's own tests not collected twice
 

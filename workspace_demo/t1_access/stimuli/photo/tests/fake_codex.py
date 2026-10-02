@@ -3,7 +3,7 @@ looked at). The fixture root (three levels above HOME, i.e. <root>/attempts/<tmp
 {"<request>": ["<behaviour>", ...]} - the n-th call for a request takes the n-th behaviour (the last repeats) - and
 each exec call appends {request, behaviour, pid} to dispatch_log.jsonl there.
 
-Behaviours: ok:<answer> | ok_exit1:<answer> | slow_ok:<seconds>:<answer> | fail | structural | tool | tool_exit1 |
+Behaviours: ok:<answer> | ok_exit1:<answer> | slow_ok:<seconds>:<answer> | arg0churn:<seconds>:<answer> | fail | structural | tool | tool_exit1 |
 malformed | no_events:<answer> | long | multiline | noimage | block (ignores SIGTERM) | flood (> 1 MiB stdout) |
 quickflood (> 1 MiB stdout, then exit at once) | orphanchild:<answer> (a child ignoring SIGTERM outlives the answer) |
 escape:<answer> (a child leaves the group and persists) | notice:<answer> (the frozen code-mode notice first) | unknown_error:<answer> | two_messages | mismatch (-o differs) |
@@ -108,6 +108,19 @@ if kind == "ok_exit1":
 if kind == "slow_ok":
     secs, _, text = rest.partition(":")
     time.sleep(float(secs))
+    answer(text)
+if kind == "arg0churn":                      # revision 11: like the real CLI, create and remove its own arg0 helper
+    secs, _, text = rest.partition(":")      # entries in CODEX_HOME for <secs>, as fast as it can, then answer
+    import shutil
+    home = Path(os.environ["CODEX_HOME"]) / "tmp" / "arg0"
+    end, n = time.monotonic() + float(secs), 0
+    while time.monotonic() < end:
+        d = home / f"codex-arg0{n:06d}"
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "applypatch").write_bytes(b"x" * 4096)
+        os.symlink(d / "applypatch", d / "apply_patch")
+        shutil.rmtree(d)
+        n += 1
     answer(text)
 if kind == "fail":
     ev("thread.started", thread_id="t")

@@ -1,4 +1,5 @@
-"""Photograph arm, Stage A (row 20): the INDEPENDENT CONTROLLER - revision 10 (Codex RSC dda950b: a foreign start still alive
+"""Photograph arm, Stage A (row 20): the INDEPENDENT CONTROLLER - revision 11 (the 2 October run: a watchdog gone
+before a confirmed leader exit waits for it, else HOLDS; the owner's terminal release); revision 10 (Codex RSC dda950b: a foreign start still alive
 before the lock is ended by its retained identity before its charge is final); revision 9 (Codex RSC 7fdb937 A1: every
 guardian record of an unnamed start is charged - armed, exited, released or killed, a temporary included);
 revision 8 (Codex RSC 12a7f20 Stage A A: pending
@@ -128,6 +129,11 @@ HEX64 = re.compile(r"[0-9a-f]{64}")
 
 class ControllerStop(RuntimeError):
     pass
+
+
+class ControllerHold(RuntimeError):
+    """Revision 11: an unresolved control state that is not an integrity failure of the task - the run HOLDS (no
+    terminal record, no report) for the owner's review."""
 
 
 def _sha(b: bytes) -> str:
@@ -556,7 +562,8 @@ class Controller:
                 if g["outcome"] != "PASSED":
                     self._bounded(lambda: self._close(g["outcome"].lower()))
                     return {"outcome": g["outcome"], "reason": g["reason"], "session": self.session}
-            terminal = (self.out / "TERMINAL.json").exists()
+            from stage_a_guard import terminal_active
+            terminal = terminal_active(self.out)          # rev 11: an owner-released terminal record lets work resume
             try:
                 if not terminal:
                     for ph in phases:
@@ -564,15 +571,28 @@ class Controller:
                             continue
                         self._phase(ph, deadline=self.cap_s - TAIL_RESERVE_S - STOP_RESERVE_S - REPORT_RESERVE_S,
                                     storage_limit=self.cap_b - FINAL_RESERVE_BYTES)
+            except ControllerHold as exc:               # revision 11: a hold, not an integrity failure - no terminal
+                return self._hold(str(exc))
             except (ControllerStop, Exception) as exc:
                 self._stop(set_terminal, "controller", f"{type(exc).__name__}: {exc}")
             try:                                       # the report: always, inside its reserve (STOPPED after a stop)
                 self._phase("report", deadline=self.cap_s - TAIL_RESERVE_S, storage_limit=self.cap_b, report=True)
+            except ControllerHold as exc:
+                return self._hold(str(exc))
             except Exception as exc:
                 self.rec["stops"].append({"phase": "report", "session": self.session,
                                           "reason": f"{type(exc).__name__}: {exc}"})
-            outcome = "terminal" if (self.out / "TERMINAL.json").exists() else "completed"
+            outcome = "terminal" if terminal_active(self.out) else "completed"
             return self._bounded(lambda: (self._close(outcome), self._finalise())[1])
+
+    def _hold(self, reason: str) -> dict:
+        """Revision 11: the run HOLDS - the reason recorded, the session closed and charged as usual, no terminal record,
+        no report; the owner's review decides the resumption (a resumed run reloads the committed phase records through
+        their full independent predicates)."""
+        self.rec["stops"].append({"phase": "controller", "session": self.session, "reason": f"HELD: {reason}",
+                                  "hold": True, "at_total_s": self.elapsed_total()})
+        self._bounded(lambda: self._close("held"))
+        return {"outcome": "HELD", "reason": reason, "session": self.session}
 
     # ---- the guardian: an independent bound on the controller process (Stage A 2) ----------------------------------
     def _start_guardian(self) -> None:
@@ -861,7 +881,8 @@ class Controller:
     def _finalise(self) -> dict:
         rok = self._report_ok()
         rep = rok["report"]
-        terminal = (self.out / "TERMINAL.json").exists()
+        from stage_a_guard import terminal_active, terminal_release
+        terminal = terminal_active(self.out)
         cnt = self._counters_ok()
         st = json.loads((self.out / "stage_a_state.json").read_text()) if (self.out / "stage_a_state.json").exists() \
             else {"attempts": {}}
@@ -869,7 +890,8 @@ class Controller:
         missing = self._missing_measurements()
         final = {"outcome": "STOPPED", "session": self.session, "report_current": rok["ok"],
                  "report_problems": rok["why"], "validator_pass": bool(rep.get("validator_pass")),
-                 "admissible": bool(rep.get("admissible")), "terminal": terminal, "counters": cnt,
+                 "admissible": bool(rep.get("admissible")), "terminal": terminal,
+                 "terminal_release": terminal_release(self.out), "counters": cnt,
                  "seconds_total": self.rec["seconds_total"], "carry_s": self.rec["carry_s"],
                  "stage_a_seconds": self.rec["seconds_total"] - self.rec["carry_s"],
                  "task_memory_aggregate": mem_peak, "missing_measurements": missing,
@@ -1182,9 +1204,17 @@ class Controller:
                     raise ControllerStop(f"{phase}: time limit {deadline:.0f} s reached (row cap {self.cap_s:.0f} s "
                                          f"less reserves)")
                 if self.wd is not None and self.wd.poll() is not None:
+                    # Revision 11 (the 2 October run): a watchdog gone before this controller saw the leader's exit.
+                    # Wait, bounded by GROUP_GONE_S, for the confirmed exit (kqueue): confirmed -> the phase ended and
+                    # goes on to its independent predicates; not confirmed -> the group is killed and the run HOLDS
+                    # with the reason (never a silent terminal on a phase whose done-marker may be committed).
+                    t_w = time.monotonic()
+                    while not self._leader_exited() and time.monotonic() - t_w < GROUP_GONE_S:
+                        time.sleep(0.01)
                     if self._leader_exited():
                         break
-                    raise ControllerStop(f"{phase}: watchdog exited ({self.wd.returncode})")
+                    raise ControllerHold(f"{phase}: watchdog exited ({self.wd.returncode}) and the leader's exit was "
+                                         f"not confirmed within {GROUP_GONE_S:.0f} s")
                 try:
                     procs = self.probe.task_processes([pid], {pid})
                     pids = set(procs) | {os.getpid()} | ({self.wd.pid} if self.wd is not None else set()) | \

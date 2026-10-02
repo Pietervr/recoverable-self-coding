@@ -22,6 +22,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 import memprobe  # noqa: E402
 import stage_a_controller as C  # noqa: E402
+import stage_a_guard as G  # noqa: E402
 
 PY = sys.executable
 CARRY = 1808.73
@@ -593,6 +594,73 @@ class Controller(unittest.TestCase):
                 self.assertGreaterEqual(fs[0]["charged_s"], 1.0)
                 self.assertLessEqual(g["controller_gone_wall"], killed + 1.0)
                 MEASURED.setdefault("external_death_before_pending_charged_s", {})[name] = round(fs[0]["charged_s"], 3)
+
+    def test_owner_release_of_a_terminal_record(self):
+        """Revision 11 (the owner's ruling on the 2 October attempt): a terminal stop after the instrumented phase holds
+        every later run; the owner's TERMINAL_RELEASE.json naming the exact terminal record lets the next run resume -
+        the committed instrumented phase is not rerun, native runs, counters and seconds carried, TERMINAL.json kept
+        unchanged as the record. Controls: a later failure voids the release; a malformed release refuses."""
+        import hashlib
+        out = new_out()
+        self.assertEqual(ctl(out, {"native": "exit:3"}).run()["outcome"], "STOPPED")
+        self.assertTrue((out / "INSTRUMENTED_DONE.json").exists())
+        self.assertIn("native", terminal(out)["first"]["reason"])
+        self.assertEqual(ctl(out, {}).run()["outcome"], "STOPPED")            # held: no work without a release
+        self.assertFalse((out / "NATIVE_DONE.json").exists())
+        before = rec(out)["seconds_total"]
+        n_inst = len([w for w in rec(out)["workers"] if w["phase"] == "instrumented"])
+        tb = (out / "TERMINAL.json").read_bytes()
+        rel = {"terminal_sha256": hashlib.sha256(tb).hexdigest(), "owner": "the owner", "date": "2026-10-02",
+               "words": "release the 2 October terminal record; resume with every counter carried",
+               "reason": "fixture"}
+        (out / "TERMINAL_RELEASE.json").write_text(json.dumps(rel))
+        final = ctl(out, {}).run()
+        self.assertEqual(final["outcome"], "PASS", final.get("stops"))
+        self.assertTrue((out / "NATIVE_DONE.json").exists())
+        self.assertEqual((out / "TERMINAL.json").read_bytes(), tb)            # the record stays
+        self.assertEqual(final["terminal_release"]["terminal_sha256"], rel["terminal_sha256"])
+        self.assertGreater(final["seconds_total"], before)                     # carried, never reset
+        self.assertEqual(len([w for w in rec(out)["workers"] if w["phase"] == "instrumented"]), n_inst)  # not rerun
+        G.set_terminal(out, "native", "a later failure")                      # control: the release lapses
+        self.assertTrue(G.terminal_active(out))
+        (out / "TERMINAL_RELEASE.json").write_text(json.dumps({**rel, "date": "2 October"}))
+        with self.assertRaises(SystemExit):                                     # control: malformed refuses
+            G.terminal_release(out)
+
+    def test_slow_teardown_after_the_phase_record_does_not_stop(self):
+        """Revision 11 (the 2 October run, PRODUCED): the instrumented worker commits INSTRUMENTED_DONE, then lingers
+        1.5 s before its exit while the watchdog's proc_info no longer answers for it (tests/fixture_watchdogs.py
+        teardown) - the state of a large worker's teardown before NOTE_EXIT. The watchdog waits for the confirmed exit
+        instead of retiring; the controller completes the phase and the run (native and report) to PASS."""
+        out = new_out()
+        final = ctl(out, {"instrumented": "linger:instrumented:1.5"},
+                    watchdog_cmd=[PY, str(HERE / "fixture_watchdogs.py"), "teardown"]).run()
+        self.assertEqual(final["outcome"], "PASS", final.get("stops"))
+        self.assertTrue((out / "NATIVE_DONE.json").exists())
+        self.assertIsNone(terminal(out))
+        self.assertEqual(int((out / "teardown.pid").read_text()),
+                         [w for w in rec(out)["workers"] if w["phase"] == "instrumented"][0]["pid"])
+
+    def test_watchdog_gone_before_a_confirmed_exit_holds(self):
+        """Revision 11: the watchdog exits while the leader is alive and never exits (tests/fixture_watchdogs.py
+        retire_early, a blocking worker): the controller waits GROUP_GONE_S for a confirmed exit, kills the group and
+        the run HOLDS - no terminal record, the worker gone. Control for a genuine death without its record:
+        test_worker_crash_and_missing_record (still STOPPED)."""
+        out = new_out()
+        old = C.GROUP_GONE_S
+        C.GROUP_GONE_S = 3.0
+        try:
+            final = ctl(out, {"instrumented": "block"},
+                        watchdog_cmd=[PY, str(HERE / "fixture_watchdogs.py"), "retire_early"]).run()
+        finally:
+            C.GROUP_GONE_S = old
+        self.assertEqual(final["outcome"], "HELD", final)
+        self.assertIn("leader's exit was not confirmed", final["reason"])
+        self.assertIsNone(terminal(out))
+        w = [x for x in rec(out)["workers"] if x["phase"] == "instrumented"][0]
+        self.assertFalse(alive(w["pid"]))
+        self.assertTrue(any(x.get("hold") for x in rec(out)["stops"]))
+        self.assertIsNone(rec(out)["open_session"])
 
     def test_live_foreign_start_before_the_lock(self):
         """Revision 10 (Codex dda950b, Stage A A1): S1 publishes its armed record and stays ALIVE, stalled in the

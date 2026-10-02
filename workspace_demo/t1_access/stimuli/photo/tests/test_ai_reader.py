@@ -1476,5 +1476,68 @@ class Rev8(unittest.TestCase):
         self.assertNotRegex(msg or "", "deadline|could not be read")
 
 
+class Rev11(unittest.TestCase):
+    """The 2 October run (reader): dir_bytes over a live attempt directory whose entries vanish after the listing."""
+
+    def tree(self) -> Path:
+        d = tmp() / "a"
+        (d / "codex_home" / "tmp" / "arg0" / "codex-arg0x").mkdir(parents=True)
+        for name, n in (("keep1", 100), ("codex_home/tmp/arg0/codex-arg0x/applypatch", 4096), ("keep2", 50)):
+            (d / name).write_bytes(b"x" * n)
+        return d
+
+    def test_entry_removed_between_listing_and_stat(self):
+        """PRODUCED exactly: the listed helper is removed just before its stat; the measure returns what it saw."""
+        d = self.tree()
+        real = os.lstat
+
+        def racing(path, *a, **k):
+            if str(path).endswith("applypatch"):
+                os.unlink(path)                                   # gone after the listing, before the stat
+            return real(path, *a, **k)
+        os.lstat = racing
+        try:
+            self.assertEqual(X.dir_bytes(d), 150)
+        finally:
+            os.lstat = real
+
+    def test_continuous_churn(self):
+        """PRODUCED continuously: a thread creates and removes helper directories, files and symlinks while the measure
+        runs 300 times; it never raises."""
+        import shutil
+        import threading
+        d = self.tree()
+        stop = threading.Event()
+
+        def churn():
+            n = 0
+            while not stop.is_set():
+                q = d / "codex_home" / "tmp" / "arg0" / f"c{n}"
+                q.mkdir(parents=True, exist_ok=True)
+                (q / "applypatch").write_bytes(b"y" * 10)
+                os.symlink(q / "applypatch", q / "apply_patch")
+                shutil.rmtree(q)
+                n += 1
+        th = threading.Thread(target=churn, daemon=True)
+        th.start()
+        try:
+            for _ in range(300):
+                self.assertGreaterEqual(X.dir_bytes(d), 150)
+        finally:
+            stop.set()
+            th.join()
+
+    def test_unreadable_directory_still_raises(self):
+        """Control: a directory that cannot be read is not a vanished entry - the measure raises (the run stops)."""
+        d = self.tree()
+        locked = d / "codex_home"
+        locked.chmod(0)
+        try:
+            with self.assertRaises(PermissionError):
+                X.dir_bytes(d)
+        finally:
+            locked.chmod(0o755)
+
+
 if __name__ == "__main__":
     unittest.main()
