@@ -40,7 +40,7 @@ The brief reports **48 passing stub tests** and Lustre clone `rsc_slice` at `7b8
 |---|---|
 | 1 — R6: floating counts and numeric logq | Closed, including the producing fresh/cache and reason-specific mutation evidence. |
 | 2 — R3: control root/token/checkpoint linkage | Status/ledger linkage and C3/C2 root matching added; the actual opened checkpoint files remain unbound. |
-| 3 — R4: producer-snapshot consumer identity | Runtime-label dependence removed from the numerical snapshot; required source membership and a distinct-consumer producing case remain missing. Broad cross-runtime wording exceeds the mechanism. |
+| 3 — R4: producer-snapshot consumer identity | Local consumer-runtime labels no longer replace producer labels in the identity; required source membership and a distinct-consumer producing case remain missing. Broad cross-runtime wording exceeds the mechanism. |
 | 4 — R4: kind-named log and complete witness | Closed for the declared template/watch path; torn witness and finite-timing negatives reach their checks. |
 | 5 — R4: known-killed C2 and settled obligations | Prospective technical-note settlement repaired; known-kill exemption still accepts a job-ID-only receipt. |
 | 6 — R5/R7: terminal-publication boundary | New first-request/peak checks and fixtures credited; current-ID replacement, decision/stored-peak consistency and precise tail scopes remain. |
