@@ -34,3 +34,4 @@ workspace_demo/brain_data/
 workspace_demo/t1_access/stimuli/norms_bank/pool_wordnet*.json
 workspace_demo/t1_access/stimuli/norms_bank/pool_eligible_min*.json
 workspace_demo/t1_access/stimuli/norms_bank/clean_eligibility_detail.json
+workspace_demo/t1_access/stimuli/norms_bank/acceptance_sample_detail.json

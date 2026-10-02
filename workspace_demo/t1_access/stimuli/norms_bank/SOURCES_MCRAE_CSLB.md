@@ -24,6 +24,11 @@ Only ten clauses with two-token answers fills the bank. The taxonomic-row rule a
 >= 3 productions and clothing as a fourth family gives **104 at ten clauses against a four-family minimum of 100**
 - a margin of four before naming acceptance, of which 14 concepts are Hovhannisyan's photo-conditioned ones. At
 twelve, or at Hovhannisyan >= 5, it fails.
+
+**And it does not survive naming acceptance (2 Oct, `ACCEPTANCE_SAMPLE.md`):** on a seeded 30-concept development
+sample, 12 pass §3.1's two-sided test (40 %, 23-59 %), so the 104 becomes about 42. Even with both sides of the test
+relaxed and rule T narrowed the point estimate is 87 against 100. The reader is an 8B model and its floor misses
+are near-neighbour answers (hawk -> eagle), so the rate belongs to the clauses and the reader together.
 **Nothing is built until R052 settles the design after 15 October and sends the step-2 handoff.**
 
 CSLB's three-family candidates (63, counted from its published concept list) remain an upper bound until the file

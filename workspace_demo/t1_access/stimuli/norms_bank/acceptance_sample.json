@@ -1,0 +1,3774 @@
+{
+ "seed": 20261002,
+ "reader": {
+  "runner": "ollama",
+  "model": "llama3.1:8b",
+  "digest": "46e0c10c039e",
+  "developer": "Meta",
+  "quantization": "Q4_K_M",
+  "temperature": 0,
+  "seed": 20260924
+ },
+ "prompts": {
+  "single": "Here is a single clue about one everyday thing.\n\nClue: {clue}\n\nWhat is being described? Answer with the single most likely word, and nothing else.",
+  "several": "Here are several clues about one everyday thing.\n\n{clues}\n\nWhat is being described? Answer with the single most likely word, and nothing else."
+ },
+ "quotas": {
+  "animals": {
+   "McRae": 5,
+   "Feats": 1,
+   "Hovhannisyan": 2
+  },
+  "foods": {
+   "McRae": 4,
+   "Feats": 3,
+   "Hovhannisyan": 1
+  },
+  "vehicles": {
+   "McRae": 6,
+   "Feats": 0,
+   "Hovhannisyan": 1
+  },
+  "clothing": {
+   "McRae": 7,
+   "Feats": 0,
+   "Hovhannisyan": 0
+  }
+ },
+ "sample": [
+  {
+   "family": "animals",
+   "source": "McRae",
+   "concept": "owl"
+  },
+  {
+   "family": "animals",
+   "source": "McRae",
+   "concept": "bear"
+  },
+  {
+   "family": "animals",
+   "source": "McRae",
+   "concept": "lion"
+  },
+  {
+   "family": "animals",
+   "source": "McRae",
+   "concept": "elephant"
+  },
+  {
+   "family": "animals",
+   "source": "McRae",
+   "concept": "hawk"
+  },
+  {
+   "family": "animals",
+   "source": "Feats",
+   "concept": "monkey"
+  },
+  {
+   "family": "animals",
+   "source": "Hovhannisyan",
+   "concept": "cricket"
+  },
+  {
+   "family": "animals",
+   "source": "Hovhannisyan",
+   "concept": "chick"
+  },
+  {
+   "family": "foods",
+   "source": "McRae",
+   "concept": "cabbage"
+  },
+  {
+   "family": "foods",
+   "source": "McRae",
+   "concept": "pickle"
+  },
+  {
+   "family": "foods",
+   "source": "McRae",
+   "concept": "pie"
+  },
+  {
+   "family": "foods",
+   "source": "McRae",
+   "concept": "cheese"
+  },
+  {
+   "family": "foods",
+   "source": "Feats",
+   "concept": "gum"
+  },
+  {
+   "family": "foods",
+   "source": "Feats",
+   "concept": "pizza"
+  },
+  {
+   "family": "foods",
+   "source": "Feats",
+   "concept": "tea"
+  },
+  {
+   "family": "foods",
+   "source": "Hovhannisyan",
+   "concept": "wine"
+  },
+  {
+   "family": "vehicles",
+   "source": "McRae",
+   "concept": "sled"
+  },
+  {
+   "family": "vehicles",
+   "source": "McRae",
+   "concept": "bike"
+  },
+  {
+   "family": "vehicles",
+   "source": "McRae",
+   "concept": "balloon"
+  },
+  {
+   "family": "vehicles",
+   "source": "McRae",
+   "concept": "canoe"
+  },
+  {
+   "family": "vehicles",
+   "source": "McRae",
+   "concept": "yacht"
+  },
+  {
+   "family": "vehicles",
+   "source": "McRae",
+   "concept": "tractor"
+  },
+  {
+   "family": "vehicles",
+   "source": "Hovhannisyan",
+   "concept": "convertible"
+  },
+  {
+   "family": "clothing",
+   "source": "McRae",
+   "concept": "jacket"
+  },
+  {
+   "family": "clothing",
+   "source": "McRae",
+   "concept": "hose"
+  },
+  {
+   "family": "clothing",
+   "source": "McRae",
+   "concept": "dress"
+  },
+  {
+   "family": "clothing",
+   "source": "McRae",
+   "concept": "pants"
+  },
+  {
+   "family": "clothing",
+   "source": "McRae",
+   "concept": "robe"
+  },
+  {
+   "family": "clothing",
+   "source": "McRae",
+   "concept": "blouse"
+  },
+  {
+   "family": "clothing",
+   "source": "McRae",
+   "concept": "scarf"
+  }
+ ],
+ "script_sha256": "1903171a19a5adb7cda8a2360d3d0884e9a2ca01f0c986bd4f6aee358f1c6b94",
+ "summary": {
+  "overall": {
+   "pass": 12,
+   "n": 30,
+   "rate": 0.4,
+   "ci95": [
+    0.22655764882859364,
+    0.5939650699481813
+   ]
+  },
+  "by_source": {
+   "McRae": {
+    "pass": 10,
+    "n": 22,
+    "rate": 0.45454545454545453,
+    "ci95": [
+     0.2438618659230165,
+     0.6778952454468283
+    ]
+   },
+   "Feats": {
+    "pass": 2,
+    "n": 4,
+    "rate": 0.5,
+    "ci95": [
+     0.06758598648854294,
+     0.9324140135114571
+    ]
+   },
+   "Hovhannisyan": {
+    "pass": 0,
+    "n": 4,
+    "rate": 0.0,
+    "ci95": [
+     0.0,
+     0.6023646356164747
+    ]
+   }
+  },
+  "by_family": {
+   "animals": {
+    "pass": 3,
+    "n": 8,
+    "rate": 0.375,
+    "ci95": [
+     0.08523341413725352,
+     0.7551367836334484
+    ]
+   },
+   "foods": {
+    "pass": 3,
+    "n": 8,
+    "rate": 0.375,
+    "ci95": [
+     0.08523341413725352,
+     0.7551367836334484
+    ]
+   },
+   "vehicles": {
+    "pass": 5,
+    "n": 7,
+    "rate": 0.7142857142857143,
+    "ci95": [
+     0.29042086373734266,
+     0.9633074338239145
+    ]
+   },
+   "clothing": {
+    "pass": 1,
+    "n": 7,
+    "rate": 0.14285714285714285,
+    "ci95": [
+     0.0036102968619005846,
+     0.5787231970431952
+    ]
+   }
+  },
+  "verdicts": {
+   "pass": 12,
+   "fail-ceiling": 5,
+   "fail-floor": 13,
+   "fail-both": 0
+  },
+  "implied_survivors": {
+   "104": {
+    "point": 41.6,
+    "ci95": [
+     23.6,
+     61.8
+    ]
+   },
+   "113": {
+    "point": 45.2,
+    "ci95": [
+     25.6,
+     67.1
+    ]
+   }
+  },
+  "authored_connective_clauses": 9
+ },
+ "records": [
+  {
+   "concept": "owl",
+   "family": "animals",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 11,
+   "single_named": 1,
+   "draws_named": 3,
+   "verdict": "pass",
+   "single": [
+    {
+     "named": true,
+     "answer": "Owl",
+     "authored_connective": false,
+     "relation": "sound"
+    },
+    {
+     "named": false,
+     "answer": "Bat",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Cat",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": false,
+     "answer": "Birds",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Clock",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bread",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      6,
+      0,
+      5,
+      1,
+      9,
+      8,
+      3,
+      2
+     ],
+     "named": true,
+     "answer": "Owl"
+    },
+    {
+     "clauses": [
+      5,
+      9,
+      7,
+      0,
+      6,
+      1,
+      2,
+      4
+     ],
+     "named": true,
+     "answer": "Owl"
+    },
+    {
+     "clauses": [
+      1,
+      3,
+      5,
+      6,
+      9,
+      8,
+      7,
+      0
+     ],
+     "named": true,
+     "answer": "Owl"
+    }
+   ]
+  },
+  {
+   "concept": "bear",
+   "family": "animals",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 17,
+   "single_named": 1,
+   "draws_named": 2,
+   "verdict": "fail-floor",
+   "single": [
+    {
+     "named": false,
+     "answer": "Cat",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Animal",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Cat",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": true,
+     "answer": "Bear",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Squirrel",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Comb",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bread",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    },
+    {
+     "named": false,
+     "answer": "Pencil",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    },
+    {
+     "named": false,
+     "answer": "Knife",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Table",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      3,
+      0,
+      5,
+      2,
+      4,
+      8,
+      6,
+      1
+     ],
+     "named": true,
+     "answer": "Bear"
+    },
+    {
+     "clauses": [
+      1,
+      0,
+      9,
+      7,
+      6,
+      4,
+      5,
+      2
+     ],
+     "named": false,
+     "answer": "Raccoon"
+    },
+    {
+     "clauses": [
+      5,
+      4,
+      9,
+      2,
+      0,
+      6,
+      8,
+      1
+     ],
+     "named": true,
+     "answer": "Bear"
+    }
+   ]
+  },
+  {
+   "concept": "lion",
+   "family": "animals",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 12,
+   "single_named": 2,
+   "draws_named": 3,
+   "verdict": "pass",
+   "single": [
+    {
+     "named": false,
+     "answer": "Lawnmower",
+     "authored_connective": false,
+     "relation": "sound"
+    },
+    {
+     "named": false,
+     "answer": "Dog",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": true,
+     "answer": "Lion",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bear",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": true,
+     "answer": "Lion",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Monkey",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Cat",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "House",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Cat",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Knife",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      2,
+      1,
+      6,
+      9,
+      8,
+      0,
+      3,
+      7
+     ],
+     "named": true,
+     "answer": "Lion"
+    },
+    {
+     "clauses": [
+      3,
+      0,
+      4,
+      1,
+      2,
+      5,
+      8,
+      7
+     ],
+     "named": true,
+     "answer": "Lion"
+    },
+    {
+     "clauses": [
+      0,
+      1,
+      5,
+      2,
+      6,
+      8,
+      4,
+      3
+     ],
+     "named": true,
+     "answer": "Lion"
+    }
+   ]
+  },
+  {
+   "concept": "elephant",
+   "family": "animals",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 11,
+   "single_named": 2,
+   "draws_named": 3,
+   "verdict": "pass",
+   "single": [
+    {
+     "named": false,
+     "answer": "Monkey",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": true,
+     "answer": "Elephant",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Rabbit",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": true,
+     "answer": "Elephant",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Trampoline",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Lion",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "House",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Deer",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Table",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Cat",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      2,
+      0,
+      1,
+      6,
+      9,
+      5,
+      4,
+      8
+     ],
+     "named": true,
+     "answer": "Elephant"
+    },
+    {
+     "clauses": [
+      0,
+      9,
+      2,
+      1,
+      5,
+      7,
+      3,
+      8
+     ],
+     "named": true,
+     "answer": "Elephant"
+    },
+    {
+     "clauses": [
+      4,
+      8,
+      7,
+      1,
+      0,
+      9,
+      3,
+      2
+     ],
+     "named": true,
+     "answer": "Elephant"
+    }
+   ]
+  },
+  {
+   "concept": "hawk",
+   "family": "animals",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 11,
+   "single_named": 0,
+   "draws_named": 0,
+   "verdict": "fail-floor",
+   "single": [
+    {
+     "named": false,
+     "answer": "Telescope",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Plane",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": false,
+     "answer": "Cat",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": false,
+     "answer": "Cat",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": false,
+     "answer": "Clock",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "House",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      3,
+      9,
+      5,
+      0,
+      2,
+      7,
+      4,
+      1
+     ],
+     "named": false,
+     "answer": "Eagle"
+    },
+    {
+     "clauses": [
+      3,
+      1,
+      8,
+      5,
+      9,
+      0,
+      2,
+      6
+     ],
+     "named": false,
+     "answer": "Eagle"
+    },
+    {
+     "clauses": [
+      7,
+      6,
+      5,
+      4,
+      0,
+      1,
+      8,
+      2
+     ],
+     "named": false,
+     "answer": "Eagle"
+    }
+   ]
+  },
+  {
+   "concept": "monkey",
+   "family": "animals",
+   "source": "Feats",
+   "heuristic": "published CV, highest first",
+   "usable": 10,
+   "single_named": 3,
+   "draws_named": 3,
+   "verdict": "fail-ceiling",
+   "single": [
+    {
+     "named": true,
+     "answer": "Monkey",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": false,
+     "answer": "Bridle",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": false,
+     "answer": "Phone",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Mirror",
+     "authored_connective": true,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": true,
+     "answer": "Monkey",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": true,
+     "answer": "Monkey",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": false,
+     "answer": "Lion",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Cat",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Cat",
+     "authored_connective": false,
+     "relation": "tactile"
+    },
+    {
+     "named": false,
+     "answer": "Bread",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      2,
+      5,
+      3,
+      9,
+      0,
+      1,
+      4,
+      6
+     ],
+     "named": true,
+     "answer": "Monkey"
+    },
+    {
+     "clauses": [
+      8,
+      1,
+      2,
+      3,
+      6,
+      4,
+      5,
+      0
+     ],
+     "named": true,
+     "answer": "Monkey"
+    },
+    {
+     "clauses": [
+      2,
+      4,
+      0,
+      6,
+      1,
+      8,
+      7,
+      9
+     ],
+     "named": true,
+     "answer": "Monkey"
+    }
+   ]
+  },
+  {
+   "concept": "cricket",
+   "family": "animals",
+   "source": "Hovhannisyan",
+   "heuristic": "raw production count (no CV, no denominator)",
+   "usable": 10,
+   "single_named": 0,
+   "draws_named": 2,
+   "verdict": "fail-floor",
+   "single": [
+    {
+     "named": false,
+     "answer": "Table",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Radio",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "Siren",
+     "authored_connective": false,
+     "relation": "sound"
+    },
+    {
+     "named": false,
+     "answer": "Rope",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "Button",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Rabbit",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "Slugs",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Mirror",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      7,
+      2,
+      0,
+      3,
+      6,
+      8,
+      1,
+      5
+     ],
+     "named": true,
+     "answer": "Cricket"
+    },
+    {
+     "clauses": [
+      6,
+      0,
+      4,
+      2,
+      7,
+      9,
+      5,
+      1
+     ],
+     "named": false,
+     "answer": "Grasshopper"
+    },
+    {
+     "clauses": [
+      7,
+      2,
+      9,
+      0,
+      4,
+      3,
+      6,
+      8
+     ],
+     "named": true,
+     "answer": "Cricket"
+    }
+   ]
+  },
+  {
+   "concept": "chick",
+   "family": "animals",
+   "source": "Hovhannisyan",
+   "heuristic": "raw production count (no CV, no denominator)",
+   "usable": 14,
+   "single_named": 0,
+   "draws_named": 0,
+   "verdict": "fail-floor",
+   "single": [
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Chicken",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "Bird",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "Puppy",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "Slippers",
+     "authored_connective": false,
+     "relation": "tactile"
+    },
+    {
+     "named": false,
+     "answer": "Grain",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Banana",
+     "authored_connective": false,
+     "relation": "visual-color"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      9,
+      3,
+      0,
+      7,
+      5,
+      1,
+      6,
+      4
+     ],
+     "named": false,
+     "answer": "Canary"
+    },
+    {
+     "clauses": [
+      8,
+      0,
+      2,
+      1,
+      5,
+      6,
+      7,
+      4
+     ],
+     "named": false,
+     "answer": "Bird"
+    },
+    {
+     "clauses": [
+      9,
+      3,
+      2,
+      1,
+      6,
+      4,
+      5,
+      0
+     ],
+     "named": false,
+     "answer": "Bird"
+    }
+   ]
+  },
+  {
+   "concept": "cabbage",
+   "family": "foods",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 13,
+   "single_named": 1,
+   "draws_named": 2,
+   "verdict": "fail-floor",
+   "single": [
+    {
+     "named": true,
+     "answer": "Cabbage",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Grass",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Plant",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Garbage",
+     "authored_connective": false,
+     "relation": "smell"
+    },
+    {
+     "named": false,
+     "answer": "Flower",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Meat",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Tomato",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Money",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    },
+    {
+     "named": false,
+     "answer": "Toothbrush",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    },
+    {
+     "named": false,
+     "answer": "Apple",
+     "authored_connective": false,
+     "relation": "function"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      1,
+      0,
+      7,
+      6,
+      5,
+      8,
+      2,
+      4
+     ],
+     "named": true,
+     "answer": "Cabbage"
+    },
+    {
+     "clauses": [
+      0,
+      3,
+      6,
+      1,
+      2,
+      8,
+      7,
+      5
+     ],
+     "named": true,
+     "answer": "Cabbage"
+    },
+    {
+     "clauses": [
+      6,
+      8,
+      4,
+      3,
+      1,
+      5,
+      0,
+      2
+     ],
+     "named": false,
+     "answer": "Onion"
+    }
+   ]
+  },
+  {
+   "concept": "pickle",
+   "family": "foods",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 14,
+   "single_named": 2,
+   "draws_named": 0,
+   "verdict": "fail-floor",
+   "single": [
+    {
+     "named": true,
+     "answer": "Pickles",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Jam",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": true,
+     "answer": "Pickles",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Chips",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Lemon",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Fruit",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Money",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    },
+    {
+     "named": false,
+     "answer": "Candy",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Apple",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Ball",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      3,
+      6,
+      2,
+      0,
+      8,
+      4,
+      9,
+      5
+     ],
+     "named": false,
+     "answer": "Cucumber"
+    },
+    {
+     "clauses": [
+      7,
+      6,
+      9,
+      3,
+      8,
+      5,
+      2,
+      0
+     ],
+     "named": false,
+     "answer": "Cucumber"
+    },
+    {
+     "clauses": [
+      0,
+      9,
+      7,
+      3,
+      2,
+      5,
+      4,
+      8
+     ],
+     "named": false,
+     "answer": "Cucumber"
+    }
+   ]
+  },
+  {
+   "concept": "pie",
+   "family": "foods",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 10,
+   "single_named": 0,
+   "draws_named": 0,
+   "verdict": "fail-floor",
+   "single": [
+    {
+     "named": false,
+     "answer": "Knife",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Pizza",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bread",
+     "authored_connective": true,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Bread",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Ice cream",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Bread",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Donut",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Food",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Apple",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Ball",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      1,
+      3,
+      4,
+      5,
+      2,
+      0,
+      7,
+      6
+     ],
+     "named": false,
+     "answer": "Pizza"
+    },
+    {
+     "clauses": [
+      4,
+      5,
+      9,
+      1,
+      0,
+      3,
+      8,
+      7
+     ],
+     "named": false,
+     "answer": "Pizza"
+    },
+    {
+     "clauses": [
+      7,
+      8,
+      2,
+      0,
+      5,
+      1,
+      9,
+      3
+     ],
+     "named": false,
+     "answer": "Pizza"
+    }
+   ]
+  },
+  {
+   "concept": "cheese",
+   "family": "foods",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 10,
+   "single_named": 1,
+   "draws_named": 3,
+   "verdict": "pass",
+   "single": [
+    {
+     "named": true,
+     "answer": "Cheese",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Butter",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Garbage",
+     "authored_connective": false,
+     "relation": "smell"
+    },
+    {
+     "named": false,
+     "answer": "Ice cream",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Food",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Blanket",
+     "authored_connective": false,
+     "relation": "tactile"
+    },
+    {
+     "named": false,
+     "answer": "Banana",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    },
+    {
+     "named": false,
+     "answer": "Rock",
+     "authored_connective": false,
+     "relation": "tactile"
+    },
+    {
+     "named": false,
+     "answer": "Apple",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Toothbrush",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      9,
+      6,
+      4,
+      5,
+      7,
+      2,
+      0,
+      1
+     ],
+     "named": true,
+     "answer": "Cheese"
+    },
+    {
+     "clauses": [
+      4,
+      7,
+      2,
+      8,
+      1,
+      6,
+      5,
+      3
+     ],
+     "named": true,
+     "answer": "Cheese"
+    },
+    {
+     "clauses": [
+      7,
+      9,
+      2,
+      0,
+      5,
+      3,
+      1,
+      4
+     ],
+     "named": true,
+     "answer": "Cheese"
+    }
+   ]
+  },
+  {
+   "concept": "gum",
+   "family": "foods",
+   "source": "Feats",
+   "heuristic": "published CV, highest first",
+   "usable": 11,
+   "single_named": 1,
+   "draws_named": 3,
+   "verdict": "pass",
+   "single": [
+    {
+     "named": false,
+     "answer": "Toothbrush",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Mouthwash",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Toothpaste",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Blowtorch",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": true,
+     "answer": "Gum",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Glue",
+     "authored_connective": false,
+     "relation": "tactile"
+    },
+    {
+     "named": false,
+     "answer": "Ice cream",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Candy",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Candy",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Shoes",
+     "authored_connective": true,
+     "relation": "visual-colour"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      9,
+      2,
+      1,
+      5,
+      3,
+      8,
+      7,
+      0
+     ],
+     "named": true,
+     "answer": "Gum"
+    },
+    {
+     "clauses": [
+      4,
+      7,
+      8,
+      0,
+      3,
+      1,
+      5,
+      2
+     ],
+     "named": true,
+     "answer": "Gum"
+    },
+    {
+     "clauses": [
+      9,
+      6,
+      3,
+      0,
+      2,
+      8,
+      7,
+      5
+     ],
+     "named": true,
+     "answer": "Gum"
+    }
+   ]
+  },
+  {
+   "concept": "pizza",
+   "family": "foods",
+   "source": "Feats",
+   "heuristic": "published CV, highest first",
+   "usable": 12,
+   "single_named": 3,
+   "draws_named": 3,
+   "verdict": "fail-ceiling",
+   "single": [
+    {
+     "named": true,
+     "answer": "Pizza",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": true,
+     "answer": "Pizza",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": true,
+     "answer": "Pizza",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": false,
+     "answer": "Bread",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Bread",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Food",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Salad",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Ball",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Food",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Apple",
+     "authored_connective": false,
+     "relation": "function"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      8,
+      7,
+      3,
+      5,
+      9,
+      0,
+      6,
+      2
+     ],
+     "named": true,
+     "answer": "Pizza"
+    },
+    {
+     "clauses": [
+      7,
+      4,
+      1,
+      0,
+      9,
+      8,
+      5,
+      3
+     ],
+     "named": true,
+     "answer": "Pizza"
+    },
+    {
+     "clauses": [
+      1,
+      6,
+      2,
+      3,
+      4,
+      5,
+      9,
+      8
+     ],
+     "named": true,
+     "answer": "Pizza"
+    }
+   ]
+  },
+  {
+   "concept": "tea",
+   "family": "foods",
+   "source": "Feats",
+   "heuristic": "normalised production frequency (no published CV)",
+   "usable": 14,
+   "single_named": 1,
+   "draws_named": 3,
+   "verdict": "pass",
+   "single": [
+    {
+     "named": false,
+     "answer": "Coffee",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Money",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    },
+    {
+     "named": false,
+     "answer": "Coffee",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Ice cream",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Coffee",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Candy",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Ice cream",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": true,
+     "answer": "Tea",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Coffee",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Candy",
+     "authored_connective": false,
+     "relation": "taste"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      4,
+      7,
+      8,
+      0,
+      2,
+      1,
+      6,
+      3
+     ],
+     "named": true,
+     "answer": "Tea"
+    },
+    {
+     "clauses": [
+      2,
+      6,
+      3,
+      9,
+      4,
+      8,
+      0,
+      7
+     ],
+     "named": true,
+     "answer": "Tea"
+    },
+    {
+     "clauses": [
+      3,
+      5,
+      2,
+      7,
+      8,
+      6,
+      4,
+      0
+     ],
+     "named": true,
+     "answer": "Tea"
+    }
+   ]
+  },
+  {
+   "concept": "wine",
+   "family": "foods",
+   "source": "Hovhannisyan",
+   "heuristic": "raw production count (no CV, no denominator)",
+   "usable": 10,
+   "single_named": 0,
+   "draws_named": 2,
+   "verdict": "fail-floor",
+   "single": [
+    {
+     "named": false,
+     "answer": "Vase",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bottle",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Cologne",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "Food",
+     "authored_connective": false,
+     "relation": "taste"
+    },
+    {
+     "named": false,
+     "answer": "Glass",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Package",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Food",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "House",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "Apple",
+     "authored_connective": false,
+     "relation": "visual-color"
+    },
+    {
+     "named": false,
+     "answer": "Toothbrush",
+     "authored_connective": false,
+     "relation": "visual-color"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      5,
+      3,
+      8,
+      9,
+      7,
+      1,
+      2,
+      6
+     ],
+     "named": true,
+     "answer": "Wine"
+    },
+    {
+     "clauses": [
+      2,
+      6,
+      5,
+      1,
+      0,
+      4,
+      8,
+      3
+     ],
+     "named": true,
+     "answer": "Wine"
+    },
+    {
+     "clauses": [
+      6,
+      8,
+      4,
+      5,
+      2,
+      9,
+      0,
+      1
+     ],
+     "named": false,
+     "answer": "Bottle"
+    }
+   ]
+  },
+  {
+   "concept": "sled",
+   "family": "vehicles",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 12,
+   "single_named": 1,
+   "draws_named": 3,
+   "verdict": "pass",
+   "single": [
+    {
+     "named": true,
+     "answer": "Sled",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Hill",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Ski",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Shovel",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Game",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Pencil",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Bottle",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Chair",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Shoes",
+     "authored_connective": true,
+     "relation": "visual-colour"
+    },
+    {
+     "named": false,
+     "answer": "Pencil",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      2,
+      5,
+      0,
+      7,
+      9,
+      8,
+      6,
+      4
+     ],
+     "named": true,
+     "answer": "Sled"
+    },
+    {
+     "clauses": [
+      3,
+      5,
+      9,
+      7,
+      6,
+      4,
+      8,
+      2
+     ],
+     "named": true,
+     "answer": "Sled"
+    },
+    {
+     "clauses": [
+      1,
+      8,
+      4,
+      5,
+      0,
+      9,
+      2,
+      6
+     ],
+     "named": true,
+     "answer": "Sled"
+    }
+   ]
+  },
+  {
+   "concept": "bike",
+   "family": "vehicles",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 17,
+   "single_named": 1,
+   "draws_named": 0,
+   "verdict": "fail-floor",
+   "single": [
+    {
+     "named": true,
+     "answer": "Bike",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bicycle",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bicycle",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Treadmill",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Schoolbell",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Bicycle",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bicycle",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Chair",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Car",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Pencil",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      5,
+      6,
+      1,
+      8,
+      4,
+      2,
+      9,
+      0
+     ],
+     "named": false,
+     "answer": "Bicycle"
+    },
+    {
+     "clauses": [
+      8,
+      5,
+      2,
+      4,
+      1,
+      0,
+      3,
+      6
+     ],
+     "named": false,
+     "answer": "Bicycle"
+    },
+    {
+     "clauses": [
+      3,
+      8,
+      6,
+      0,
+      1,
+      7,
+      5,
+      2
+     ],
+     "named": false,
+     "answer": "Bicycle"
+    }
+   ]
+  },
+  {
+   "concept": "balloon",
+   "family": "vehicles",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 16,
+   "single_named": 0,
+   "draws_named": 3,
+   "verdict": "pass",
+   "single": [
+    {
+     "named": false,
+     "answer": "Bubble",
+     "authored_connective": false,
+     "relation": "sound"
+    },
+    {
+     "named": false,
+     "answer": "Bubble wrap",
+     "authored_connective": false,
+     "relation": "sound"
+    },
+    {
+     "named": false,
+     "answer": "Towel",
+     "authored_connective": false,
+     "relation": "tactile"
+    },
+    {
+     "named": false,
+     "answer": "Toaster",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Rednose",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Bubble",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": false,
+     "answer": "Crayon",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    },
+    {
+     "named": false,
+     "answer": "Pencil",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Ball",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "House",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      2,
+      9,
+      1,
+      5,
+      4,
+      6,
+      0,
+      7
+     ],
+     "named": true,
+     "answer": "Balloon"
+    },
+    {
+     "clauses": [
+      3,
+      6,
+      7,
+      9,
+      1,
+      0,
+      5,
+      4
+     ],
+     "named": true,
+     "answer": "Balloon"
+    },
+    {
+     "clauses": [
+      5,
+      4,
+      0,
+      1,
+      2,
+      9,
+      3,
+      6
+     ],
+     "named": true,
+     "answer": "Balloon"
+    }
+   ]
+  },
+  {
+   "concept": "canoe",
+   "family": "vehicles",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 15,
+   "single_named": 2,
+   "draws_named": 3,
+   "verdict": "pass",
+   "single": [
+    {
+     "named": false,
+     "answer": "Paddleboard",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": true,
+     "answer": "Birchbark canoe",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bicycle helmet",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": true,
+     "answer": "Canoe",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Life jacket",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Buoy",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Tent",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Paper",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Car",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Ruler",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      5,
+      2,
+      3,
+      8,
+      7,
+      0,
+      1,
+      4
+     ],
+     "named": true,
+     "answer": "Canoe"
+    },
+    {
+     "clauses": [
+      0,
+      5,
+      9,
+      7,
+      3,
+      2,
+      6,
+      1
+     ],
+     "named": true,
+     "answer": "Canoe"
+    },
+    {
+     "clauses": [
+      7,
+      6,
+      9,
+      3,
+      4,
+      1,
+      5,
+      8
+     ],
+     "named": true,
+     "answer": "Canoe"
+    }
+   ]
+  },
+  {
+   "concept": "yacht",
+   "family": "vehicles",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 13,
+   "single_named": 1,
+   "draws_named": 3,
+   "verdict": "pass",
+   "single": [
+    {
+     "named": false,
+     "answer": "Bike",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Rudder",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Buoy",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": true,
+     "answer": "Yacht",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Showerhead",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Buoy",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Boat",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Car",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "House",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Car",
+     "authored_connective": false,
+     "relation": "function"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      6,
+      3,
+      4,
+      9,
+      7,
+      1,
+      2,
+      5
+     ],
+     "named": true,
+     "answer": "Yacht"
+    },
+    {
+     "clauses": [
+      2,
+      8,
+      7,
+      5,
+      9,
+      6,
+      3,
+      0
+     ],
+     "named": true,
+     "answer": "Yacht"
+    },
+    {
+     "clauses": [
+      5,
+      8,
+      4,
+      9,
+      6,
+      1,
+      2,
+      7
+     ],
+     "named": true,
+     "answer": "Yacht"
+    }
+   ]
+  },
+  {
+   "concept": "tractor",
+   "family": "vehicles",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 11,
+   "single_named": 1,
+   "draws_named": 3,
+   "verdict": "pass",
+   "single": [
+    {
+     "named": true,
+     "answer": "Tractor",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Plough",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Truck",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Car",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Internet",
+     "authored_connective": false,
+     "relation": "visual-motion"
+    },
+    {
+     "named": false,
+     "answer": "Siren",
+     "authored_connective": false,
+     "relation": "sound"
+    },
+    {
+     "named": false,
+     "answer": "Banana",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    },
+    {
+     "named": false,
+     "answer": "Apple",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    },
+    {
+     "named": false,
+     "answer": "House",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Pencil",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      1,
+      4,
+      3,
+      0,
+      8,
+      2,
+      7,
+      5
+     ],
+     "named": true,
+     "answer": "Tractor"
+    },
+    {
+     "clauses": [
+      3,
+      0,
+      1,
+      2,
+      9,
+      4,
+      6,
+      5
+     ],
+     "named": true,
+     "answer": "Tractor"
+    },
+    {
+     "clauses": [
+      2,
+      7,
+      4,
+      6,
+      3,
+      1,
+      0,
+      5
+     ],
+     "named": true,
+     "answer": "Tractor"
+    }
+   ]
+  },
+  {
+   "concept": "convertible",
+   "family": "vehicles",
+   "source": "Hovhannisyan",
+   "heuristic": "raw production count (no CV, no denominator)",
+   "usable": 11,
+   "single_named": 0,
+   "draws_named": 1,
+   "verdict": "fail-floor",
+   "single": [
+    {
+     "named": false,
+     "answer": "Pencil",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Car",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Train",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "Apple",
+     "authored_connective": false,
+     "relation": "visual-color"
+    },
+    {
+     "named": false,
+     "answer": "Park",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "House",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "Car",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Car",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Game",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    },
+    {
+     "named": false,
+     "answer": "Sneakers",
+     "authored_connective": false,
+     "relation": "encyclopedic"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      3,
+      8,
+      6,
+      1,
+      9,
+      7,
+      2,
+      0
+     ],
+     "named": false,
+     "answer": "Car"
+    },
+    {
+     "clauses": [
+      3,
+      1,
+      5,
+      9,
+      6,
+      8,
+      4,
+      0
+     ],
+     "named": true,
+     "answer": "Convertible"
+    },
+    {
+     "clauses": [
+      9,
+      4,
+      0,
+      8,
+      7,
+      1,
+      5,
+      2
+     ],
+     "named": false,
+     "answer": "Car"
+    }
+   ]
+  },
+  {
+   "concept": "jacket",
+   "family": "clothing",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 14,
+   "single_named": 3,
+   "draws_named": 3,
+   "verdict": "fail-ceiling",
+   "single": [
+    {
+     "named": false,
+     "answer": "Hoodie",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": true,
+     "answer": "Jacket",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": true,
+     "answer": "Jacket",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Umbrella",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": true,
+     "answer": "Jacket",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Pants",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Shirt",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Shirt",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Wallet",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Shoes",
+     "authored_connective": true,
+     "relation": "visual-colour"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      1,
+      4,
+      5,
+      3,
+      9,
+      0,
+      8,
+      6
+     ],
+     "named": true,
+     "answer": "Jacket"
+    },
+    {
+     "clauses": [
+      3,
+      1,
+      8,
+      9,
+      7,
+      2,
+      0,
+      6
+     ],
+     "named": true,
+     "answer": "Jacket"
+    },
+    {
+     "clauses": [
+      1,
+      5,
+      4,
+      2,
+      7,
+      0,
+      3,
+      8
+     ],
+     "named": true,
+     "answer": "Jacket"
+    }
+   ]
+  },
+  {
+   "concept": "hose",
+   "family": "clothing",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 14,
+   "single_named": 3,
+   "draws_named": 3,
+   "verdict": "fail-ceiling",
+   "single": [
+    {
+     "named": false,
+     "answer": "Sprayer",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Sprinkler",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": true,
+     "answer": "Hose",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": true,
+     "answer": "Hose",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": true,
+     "answer": "Hose",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Tree",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Paper",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Ruler",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bottle",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Ball",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      2,
+      6,
+      3,
+      9,
+      1,
+      8,
+      0,
+      4
+     ],
+     "named": true,
+     "answer": "Hose"
+    },
+    {
+     "clauses": [
+      5,
+      7,
+      2,
+      9,
+      4,
+      6,
+      1,
+      3
+     ],
+     "named": true,
+     "answer": "Hose"
+    },
+    {
+     "clauses": [
+      9,
+      5,
+      1,
+      2,
+      4,
+      8,
+      3,
+      6
+     ],
+     "named": true,
+     "answer": "Hose"
+    }
+   ]
+  },
+  {
+   "concept": "dress",
+   "family": "clothing",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 12,
+   "single_named": 0,
+   "draws_named": 2,
+   "verdict": "fail-floor",
+   "single": [
+    {
+     "named": false,
+     "answer": "Skirt",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Purse",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Suit",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Pen",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Veil",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Shirt",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bra",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "House",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Ruler",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Shoes",
+     "authored_connective": true,
+     "relation": "visual-colour"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      7,
+      4,
+      8,
+      1,
+      6,
+      3,
+      9,
+      2
+     ],
+     "named": false,
+     "answer": "Veil"
+    },
+    {
+     "clauses": [
+      1,
+      0,
+      7,
+      3,
+      6,
+      5,
+      4,
+      2
+     ],
+     "named": true,
+     "answer": "Wedding dress"
+    },
+    {
+     "clauses": [
+      9,
+      1,
+      3,
+      8,
+      0,
+      2,
+      4,
+      5
+     ],
+     "named": true,
+     "answer": "Dress"
+    }
+   ]
+  },
+  {
+   "concept": "pants",
+   "family": "clothing",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 15,
+   "single_named": 3,
+   "draws_named": 3,
+   "verdict": "fail-ceiling",
+   "single": [
+    {
+     "named": true,
+     "answer": "Pants",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Shirt",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Backpack",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": true,
+     "answer": "Pants",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": true,
+     "answer": "Pants",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Watch",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Furniture",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bra",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Jacket",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Ruler",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      1,
+      2,
+      8,
+      3,
+      9,
+      7,
+      5,
+      6
+     ],
+     "named": true,
+     "answer": "Pants"
+    },
+    {
+     "clauses": [
+      4,
+      8,
+      1,
+      0,
+      7,
+      5,
+      6,
+      2
+     ],
+     "named": true,
+     "answer": "Pants"
+    },
+    {
+     "clauses": [
+      2,
+      8,
+      1,
+      6,
+      5,
+      3,
+      4,
+      9
+     ],
+     "named": true,
+     "answer": "Pants"
+    }
+   ]
+  },
+  {
+   "concept": "robe",
+   "family": "clothing",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 15,
+   "single_named": 0,
+   "draws_named": 0,
+   "verdict": "fail-floor",
+   "single": [
+    {
+     "named": false,
+     "answer": "Pants",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Swimsuit",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Towel",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Clothing",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Furniture",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Towel",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Toilet",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Jacket",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Blanket",
+     "authored_connective": false,
+     "relation": "tactile"
+    },
+    {
+     "named": false,
+     "answer": "Shoes",
+     "authored_connective": true,
+     "relation": "visual-colour"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      3,
+      6,
+      8,
+      7,
+      0,
+      2,
+      5,
+      4
+     ],
+     "named": false,
+     "answer": "Towel"
+    },
+    {
+     "clauses": [
+      3,
+      9,
+      8,
+      5,
+      7,
+      2,
+      6,
+      0
+     ],
+     "named": false,
+     "answer": "Towel"
+    },
+    {
+     "clauses": [
+      9,
+      8,
+      7,
+      6,
+      4,
+      3,
+      0,
+      2
+     ],
+     "named": false,
+     "answer": "Towel"
+    }
+   ]
+  },
+  {
+   "concept": "blouse",
+   "family": "clothing",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 13,
+   "single_named": 0,
+   "draws_named": 3,
+   "verdict": "pass",
+   "single": [
+    {
+     "named": false,
+     "answer": "Stockings",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Shirt",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Shirt",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Pillowcase",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Shirt",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Shirt",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Towel",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Bra",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Blanket",
+     "authored_connective": false,
+     "relation": "tactile"
+    },
+    {
+     "named": false,
+     "answer": "Shoes",
+     "authored_connective": true,
+     "relation": "visual-colour"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      3,
+      2,
+      9,
+      0,
+      1,
+      4,
+      8,
+      6
+     ],
+     "named": true,
+     "answer": "Blouse"
+    },
+    {
+     "clauses": [
+      3,
+      5,
+      9,
+      6,
+      0,
+      2,
+      8,
+      4
+     ],
+     "named": true,
+     "answer": "Blouse"
+    },
+    {
+     "clauses": [
+      5,
+      2,
+      1,
+      7,
+      0,
+      4,
+      6,
+      8
+     ],
+     "named": true,
+     "answer": "Blouse"
+    }
+   ]
+  },
+  {
+   "concept": "scarf",
+   "family": "clothing",
+   "source": "McRae",
+   "heuristic": "published CV, highest first",
+   "usable": 11,
+   "single_named": 0,
+   "draws_named": 2,
+   "verdict": "fail-floor",
+   "single": [
+    {
+     "named": false,
+     "answer": "Hat",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Coat",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Necklace",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Hat",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Sweater",
+     "authored_connective": false,
+     "relation": "encyclopaedic"
+    },
+    {
+     "named": false,
+     "answer": "Jacket",
+     "authored_connective": false,
+     "relation": "function"
+    },
+    {
+     "named": false,
+     "answer": "Crayon",
+     "authored_connective": false,
+     "relation": "visual-colour"
+    },
+    {
+     "named": false,
+     "answer": "Blanket",
+     "authored_connective": false,
+     "relation": "tactile"
+    },
+    {
+     "named": false,
+     "answer": "Ruler",
+     "authored_connective": false,
+     "relation": "visual-form_and_surface"
+    },
+    {
+     "named": false,
+     "answer": "Shoes",
+     "authored_connective": true,
+     "relation": "visual-colour"
+    }
+   ],
+   "draws": [
+    {
+     "clauses": [
+      3,
+      0,
+      2,
+      1,
+      6,
+      4,
+      5,
+      9
+     ],
+     "named": true,
+     "answer": "Scarf"
+    },
+    {
+     "clauses": [
+      6,
+      9,
+      7,
+      3,
+      5,
+      1,
+      2,
+      0
+     ],
+     "named": true,
+     "answer": "Scarf"
+    },
+    {
+     "clauses": [
+      5,
+      2,
+      1,
+      0,
+      7,
+      9,
+      4,
+      3
+     ],
+     "named": false,
+     "answer": "Sweater"
+    }
+   ]
+  }
+ ]
+}
