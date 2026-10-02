@@ -781,8 +781,12 @@ directory.* The top-level `sim_results/ref_m2s_omega2_aac9f69/calibration_D4.csv
 1,000 the reference needs; the 1,000 distinct replicates are the ten `final_2026-09-15/calibration_D4.shard*of010.csv`
 files, whose mean agrees with the compact bank in `reviews/t1_omega2_bank_2026-09-15/omega2_figure_data.csv`
 to 1.42e−14 on matched points. Every coverage reading names the exact files and their SHA-256. *The targets.*
-At M2S ω = 1 the reference is −0.869513 with 2 MCSE of 0.022483, which is tight enough to read coverage
-against. At M2S ω = 2 the reference is −6.869911 with 2 MCSE of 2.678379, a median of −2.065273, a minimum of
+At M2S ω = 1 the historical reference is −0.869513 with a Monte-Carlo SE of 0.011242 (2 MCSE 0.022483), recomputed
+on 13 September from the complete old-policy calibration rows at that setting (its file and hash are pinned per
+setting when a reading is taken; the ten `final_2026-09-15` shards above are **ω = 2's** bank and pin nothing at
+ω = 1) — tight enough to read coverage against for the old procedure, and for the §7.4 policy sensitivity evidence
+only: a policy-matched ω = 1 reference with its own target-estimation and error plan is generated and pinned under
+its own ledger row before any coverage is read against it. At M2S ω = 2 the reference is −6.869911 with a Monte-Carlo SE of 2.678379 (2 MCSE 5.356758), a median of −2.065273, a minimum of
 −2650.300023, and a mean that moves to −4.223835 if that single point is dropped — and dropping it, or
 substituting the median, changes the estimand rather than repairing it. A ±2-MCSE band there is a
 **sensitivity range, not a confidence set**, and coverage swept across it moves from 4 of 20 to 18 of 20 on
@@ -792,12 +796,16 @@ if it cannot be pinned down within budget, report it unresolved and stop spendin
 B = 50 result whose exact 95 % interval on 17 of 20 is [0.6211, 0.9679]. ω = 2 is retained as a required
 stress condition, not dropped. *Resamples.* B = 200, never 50: at 200 each 2.5 % tail holds about five
 resamples and at 50 about 1.25, so a negative screen at 50 could not rule the method out. *The decision rule,
-for one standalone single-setting single-look screen at 100 usable intervals.* Stop for futility when the
+for one standalone single-setting single-look screen at 100 fixed attempted datasets (each method's usable $n$
+and failures reported, its exact bound recomputed at that $n$, the cutoff below applied only at $n = 100$).* Stop for futility when the
 one-sided 97.5 % exact binomial upper bound falls below 0.90, which is **83 or fewer covered of 100** — at 83
 the bound is 0.897735 and at 84 it is 0.905690. Carry the reference uncertainty: for a justified target set
-$T$, let $K_{\max}$ be the largest number of intervals containing any $\theta \in T$, and require the same
-failure at $K_{\max}$, so that even the most favourable target fails; where reference uncertainty prevents
-that decision, report unresolved. No "material move from 0.216" threshold is used, because a move to 0.50
+$T$ — a declared 99 % reference confidence set, mean ± $t_{0.995,\,n-1}$ × MCSE under predeclared normal-approximation,
+tail and stability checks — let $K_{\max}$ be the largest number of intervals containing any $\theta \in T$, computed
+over every interval endpoint and intervening segment of $T$ with inclusive ties (a containment argument, not a
+binomial count at a fixed target), and require the same failure at $K_{\max}$, so that even the most favourable target
+fails; the one-look erroneous-stop allowance is then 0.025 + 0.01 = 0.035 (about 0.0306 at the discrete cutoff) and is
+declared as such; where reference uncertainty prevents that decision, report unresolved. No "material move from 0.216" threshold is used, because a move to 0.50
 could be large, convincing and still useless against a required 0.90, and because 0.216 comes from historical
 rows whose comparator must be recomputed on the same new datasets and the same external target as the
 replacement. Anything not stopped is **"not ruled out at this look"** and never a §10 acceptance or a row 8
@@ -927,3 +935,4 @@ lists, amplitudes, outcomes); this document.
 | 2026-10-02 | Draft amendment, §3.1: Feats (Borovsky, Peters, Cox & McRae 2023) adopted as a second source under a declared pooling rule (R084, RSC 3cd3786); the recorded fragility restated on USABLE features — single token 51 of 99 at twelve (25/15/11), 77 at ten; only ten clauses with two-token names reaches 114; rule T's wording corrected (taxonomic rows are not all family words) and its narrowing left open at a measured cost of 16/8; the raw figures 65, 85 and 128 withdrawn; CSLB and Hovhannisyan unmeasured under these rules. Decision point 15 October 2026. |
 | 2026-10-02 | Draft amendment, §3.1, later: the no-CSLB route measured under the full rules (R084, RSC 6153fee) — McRae + Feats + Hovhannisyan (≥ 3 productions) with clothing as a fourth family reaches 104 usable single-token concepts at ten clauses against a four-family minimum of 100 (margin four, before naming acceptance, 14 concepts from Hovhannisyan); 113 without rule T; 90 at ≥ 5; twelve clauses fail under every row. Hovhannisyan's three gaps (no denominator, no CV, photo-conditioned) and its unrecorded data terms stated. Decision point 15 October 2026. |
 | 2026-10-02 | Draft amendment, §3.1, last: the naming-acceptance rate measured on a 30-concept development sample of the four-family route (R084, RSC af8a668) — 12 of 30 pass as declared (0.40, 0.23–0.59), so 104 becomes about 42 and no relaxation of the two sides reaches 100 at the point estimate; the floor measures the reader's naming ability, and the reader's required capability is recorded as an open protocol choice; Hovhannisyan's photo-conditioned and generic clauses noted. The route is withdrawn as a bank; the 15 October decision now includes the reader and the channel. |
+| 2026-10-02 | Draft amendment, §10.1, corrected on Codex's row-19 Lengau review (RSC c3e1d2a): ω = 2's Monte-Carlo SE is 2.678379 (2 MCSE 5.356758), not "2 MCSE 2.678379"; the ten final_2026-09-15 shards are ω = 2's bank and pin nothing at ω = 1, whose historical reference (−0.869513, MCSE 0.011242, old policy) is sensitivity evidence until a policy-matched reference is generated under its own ledger row; the screen is 100 fixed attempted datasets with the 83 cutoff applied only at n = 100; T is a declared 99 % reference confidence set and the one-look allowance 0.035 is stated. |
