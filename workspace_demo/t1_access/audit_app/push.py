@@ -21,6 +21,8 @@ import assign
 HERE = Path(__file__).resolve().parent
 READERS = HERE / "readers.local.json"
 BASE = "https://audit.raconteur-road.com/r/"
+IMAGE_BASE = "https://audit.raconteur-road.com/i/"
+IMAGES = HERE / "image_items.json"
 
 
 def q(s):
@@ -29,8 +31,8 @@ def q(s):
 
 def load_readers(names):
     data = json.loads(READERS.read_text()) if READERS.exists() else {}
-    for s in assign.SLOTS:
-        data.setdefault(s, {"token": secrets.token_urlsafe(18), "name": f"Reader {s}"})
+    for s in assign.SLOTS + ["I"]:
+        data.setdefault(s, {"token": secrets.token_urlsafe(18), "name": f"Reader {s}" if s != "I" else "Images"})
     for s, n in names.items():
         data[s]["name"] = n
     READERS.write_text(json.dumps(data, indent=1) + "\n")
@@ -69,6 +71,8 @@ def main():
     if a.links:
         for s in assign.SLOTS:
             print(f"{s}  {readers[s]['name']:<20} {BASE}{readers[s]['token']}")
+        if IMAGES.exists():
+            print(f"I  {readers['I']['name']:<20} {IMAGE_BASE}{readers['I']['token']}")
         return
 
     plan = json.loads((HERE / "assignment.json").read_text())
@@ -82,6 +86,17 @@ def main():
              "DELETE FROM items;"]
     for i, kind, body in rows:
         stmts.append(f"INSERT INTO items (id, kind, body) VALUES ({q(i)}, {q(kind)}, {q(json.dumps(body, ensure_ascii=False))});")
+    images = json.loads(IMAGES.read_text())["items"] if IMAGES.exists() else []
+    for it in images:          # the photograph arm's image audit: one more part, 'I', with its own link
+        stmts.append(f"INSERT INTO items (id, kind, body) VALUES ({q(it['id'])}, 'image', "
+                     f"{q(json.dumps(it['body'], ensure_ascii=False))});")
+    if images:
+        ids = [it["id"] for it in images]
+        stmts.append(
+            "INSERT INTO readers (token, slot, name, items, disabled, updated) VALUES "
+            f"({q(readers['I']['token'])}, 'I', {q(readers['I']['name'])}, {q(json.dumps(ids))}, 0, datetime('now')) "
+            "ON CONFLICT (token) DO UPDATE SET slot = excluded.slot, name = excluded.name, items = excluded.items, "
+            "updated = excluded.updated;")
     for s in assign.SLOTS:
         ids = plan["slots"][s]["items"]
         assert set(ids) <= known, f"slot {s} has ids not in the sheets"
@@ -97,7 +112,7 @@ def main():
     where = "--remote" if a.remote else "--local"
     subprocess.run(["wrangler", "d1", "execute", "raconteur-audit", where, "--file", str(sql), "--yes"],
                    cwd=HERE, check=True)
-    print(f"pushed {len(rows)} items and {len(assign.SLOTS)} readers ({where})")
+    print(f"pushed {len(rows)} items, {len(images)} image items and {len(assign.SLOTS) + bool(images)} parts ({where})")
 
 
 if __name__ == "__main__":

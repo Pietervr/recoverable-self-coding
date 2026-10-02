@@ -1,0 +1,117 @@
+{
+ "set": "stagea",
+ "items": [
+  {
+   "id": "i-crow-v1",
+   "kind": "image",
+   "body": {
+    "key": "crow",
+    "concept": "crow",
+    "family": "animals",
+    "definition": "black birds having a raucous call",
+    "img": "/img/crow.png",
+    "png_sha256": "3d50d7ee2ca4cab60f372d217867448d8707e2e063f29a1ff8cc9c9b9e2e54a5",
+    "view": "primary",
+    "second": null
+   }
+  },
+  {
+   "id": "i-horse-v1",
+   "kind": "image",
+   "body": {
+    "key": "horse",
+    "concept": "horse",
+    "family": "animals",
+    "definition": "solid-hoofed herbivorous quadruped domesticated since prehistoric times",
+    "img": "/img/horse.png",
+    "png_sha256": "00f35c27dd9c5141d85f8eab1172cc5fbb95e5359d1e2416462c20e5b1c7f917",
+    "view": "primary",
+    "second": null
+   }
+  },
+  {
+   "id": "i-jacket-v1",
+   "kind": "image",
+   "body": {
+    "key": "jacket",
+    "concept": "jacket",
+    "family": "clothing",
+    "definition": "a short coat",
+    "img": "/img/jacket.png",
+    "png_sha256": "559484f14444615b205aaffce0352003b22cb64f8b182374447c0e591f4fd91b",
+    "view": "primary",
+    "second": null
+   }
+  },
+  {
+   "id": "i-mask-v1",
+   "kind": "image",
+   "body": {
+    "key": "mask",
+    "concept": "mask",
+    "family": "clothing",
+    "definition": "a covering to disguise or conceal the face",
+    "img": "/img/mask.png",
+    "png_sha256": "08d2dab7e3f62b3da5df562bff6ca503717ff3b9a1f660fd3e9148b8a15deb34",
+    "view": "primary",
+    "second": null
+   }
+  },
+  {
+   "id": "i-chili-v1",
+   "kind": "image",
+   "body": {
+    "key": "chili",
+    "concept": "chili",
+    "family": "foods",
+    "definition": "ground beef and chili peppers or chili powder often with tomatoes and kidney beans",
+    "img": "/img/chili.png",
+    "png_sha256": "43297bffc0183ad33cfd6586187571b16bcf5714e6b3232b581ac0624ba38c39",
+    "view": "primary",
+    "second": null
+   }
+  },
+  {
+   "id": "i-hamburger-v1",
+   "kind": "image",
+   "body": {
+    "key": "hamburger",
+    "concept": "hamburger",
+    "family": "foods",
+    "definition": "a sandwich consisting of a fried cake of minced beef served on a bun, often with other ingredients",
+    "img": "/img/hamburger.png",
+    "png_sha256": "f82dd04390c420b929aa4bd0f8e0a3703ffbed75e397beb61bc1cb2243536993",
+    "view": "primary",
+    "second": null
+   }
+  },
+  {
+   "id": "i-taxi-v1",
+   "kind": "image",
+   "body": {
+    "key": "taxi",
+    "concept": "taxi",
+    "family": "vehicles",
+    "definition": "a car driven by a person whose job is to take passengers where they want to go in exchange for money",
+    "img": "/img/taxi.png",
+    "png_sha256": "5393307acc1ebaf9b2e0782e26a61fa6dae13e141fe2610151a134b9051699d3",
+    "view": "primary",
+    "second": null
+   }
+  },
+  {
+   "id": "i-wagon-v1",
+   "kind": "image",
+   "body": {
+    "key": "wagon",
+    "concept": "wagon",
+    "family": "vehicles",
+    "definition": "any of various kinds of wheeled vehicles drawn by an animal or a tractor",
+    "img": "/img/wagon.png",
+    "png_sha256": "fb6a15f00bfdd578b724888cda4354cad5985a21d433fe232ccd4d1aec71e9c9",
+    "view": "primary",
+    "second": null
+   }
+  }
+ ]
+}

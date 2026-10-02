@@ -28,7 +28,7 @@ export async function onRequestGet({ request, env }) {
     'SELECT id, sid FROM answers WHERE token = ?1'
   ).bind(token).all();
   const readersOf = new Map();
-  const cardOf = (id, body) => (id.startsWith('c-') ? body.key : 'questions');
+  const cardOf = (id, body) => (id.startsWith('c-') || id.startsWith('i-') ? body.key : 'questions');
 
   const groups = new Map();
   for (const id of r.order) {

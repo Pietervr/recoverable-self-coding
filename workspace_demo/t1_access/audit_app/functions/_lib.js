@@ -8,7 +8,7 @@ export const J = (o, status = 200) =>
 
 export const TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/;
 export const SID_RE = /^[A-Za-z0-9_-]{16,40}$/;
-export const ID_RE = /^[cp]-[a-z0-9][a-z0-9-]{0,80}$/;
+export const ID_RE = /^[cpi]-[a-z0-9][a-z0-9-]{0,80}$/;
 
 // Sent to a page loaded before the per-visitor sessions existed: its saves must not land in a shared bucket.
 export const RELOAD = 'this page was updated: please reload it';
@@ -35,6 +35,16 @@ export function checkMark(id, m) {
   }
   if (typeof m !== 'object') return { error: 'bad mark' };
   const c = String(m.c || '').slice(0, 1000);
+  if (id.startsWith('i-')) {
+    // An image (photograph arm, framework 8.2): ph photograph y|n, sense shows it in the THINGS sense y|n|?,
+    // name nameable in one word from the grayscale stimulus y|n (w = the word typed, before the concept is revealed); dist (second views only) a different photograph y|n.
+    if (!YN.has(m.ph) || !YNQ.has(m.sense) || !YN.has(m.name)) return { error: 'incomplete image mark' };
+    if (m.dist !== undefined && !YN.has(m.dist)) return { error: 'bad image mark' };
+    const out = { ph: m.ph, sense: m.sense, name: m.name, c };
+    if (m.w !== undefined) out.w = String(m.w).slice(0, 60);   // the reader's own one-word name, typed before the concept is shown
+    if (m.dist !== undefined) out.dist = m.dist;
+    return { m: out };
+  }
   if (id.startsWith('c-')) {
     if (!YNQ.has(m.t) || !YN.has(m.nm) || !YN.has(m.d)) return { error: 'incomplete clause mark' };
     return { m: { t: m.t, nm: m.nm, d: m.d, c } };

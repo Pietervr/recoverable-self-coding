@@ -60,6 +60,18 @@ started, or has not finished, or will not.
 a person: the two part D sessions are after the 19 September mail and the two part A sessions are
 before it, and that is the whole of what the data supports.
 
+## The image part (photograph arm, framework §8.2)
+
+A fifth part, **I**, holds the image and sense audit of the photograph arm's development pictures (R052 handoff
+d0db04cb): `image_items.py --set stagea|all` writes the actual grayscale clean stimuli to `public/img/` (asserting the
+bytes equal `stimuli/photo/manifest_dev.json`'s clean-canvas hashes) and `image_items.json`; `push.py` loads them as
+part I with its own token; the page is `public/images.html` at `/i/<token>`. Per picture: photograph? (y/n); the main
+thing in one word, typed, or "I can't tell", answered BEFORE the concept is shown; then "does it show <name> in the
+sense <THINGS definition>?" (y/n/not sure); for a second view, "a different photograph?" Pass rule (R052): at least
+one human pass and the AI reader's (Codex) pass; the author decides disagreements, every answer recorded. The Stage A
+eight are the pilot; all 32 and their second views are required before row 21. `test_images.py` is its 14-check spec
+(local rig, cleans up). Not deployed until the owner names the readers. The PNGs are not in git (the repository ignores `*.png`); run `image_items.py` before `push.py` and any deploy - it regenerates them byte for byte.
+
 ## Pieces
 
 | File | What it does |

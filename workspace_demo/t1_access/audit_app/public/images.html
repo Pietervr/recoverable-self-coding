@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Picture Check</title>
+<style>
+:root {
+  --bg: #f7f6f2; --card: #ffffff; --ink: #1d1d1b; --muted: #6b6a64; --line: #e3e1d9;
+  --accent: #2f6f4f; --accent-ink: #ffffff; --flag: #b4532a; --focus: #2f6f4f; --sel: #e8f3ec;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171716; --card: #222220; --ink: #ecebe6; --muted: #a3a29b; --line: #3a3935;
+    --accent: #6fbf92; --accent-ink: #0f1a14; --flag: #f0946a; --focus: #6fbf92; --sel: #1e3327;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #171716; --card: #222220; --ink: #ecebe6; --muted: #a3a29b; --line: #3a3935;
+  --accent: #6fbf92; --accent-ink: #0f1a14; --flag: #f0946a; --focus: #6fbf92; --sel: #1e3327;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 760px; margin: 0 auto; padding: 0 16px 96px; }
+h1 { font-size: 1.6rem; margin: 28px 0 4px; }
+p { margin: 0 0 12px; }
+.muted { color: var(--muted); }
+.box { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin: 16px 0; }
+#bar { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); padding: 8px 16px; }
+#bar .in { max-width: 760px; margin: 0 auto; display: flex; gap: 12px; align-items: center; }
+#bar .counts { flex: 1; font-size: .9rem; }
+#status { font-size: .85rem; color: var(--muted); }
+#status.bad { color: var(--flag); font-weight: 600; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin: 18px 0; overflow: hidden; }
+.card header { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.card header b { font-size: 1.15rem; }
+.pics { display: flex; gap: 10px; flex-wrap: wrap; padding: 12px 16px 0; }
+.pics figure { margin: 0; flex: 1 1 260px; max-width: 384px; }
+.pics img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 6px; }
+.pics figcaption { font-size: .8rem; color: var(--muted); }
+.q { padding: 10px 16px; border-top: 1px solid var(--line); }
+.q:first-of-type { border-top: 0; }
+.opts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--card); color: var(--ink); padding: 6px 14px; min-height: 40px; }
+button:focus-visible, textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+textarea { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 8px; min-height: 44px; }
+.done { font-size: .85rem; color: var(--accent); padding: 0 16px 12px; }
+.err { color: var(--flag); }
+</style>
+</head>
+<body>
+<div id="bar"><div class="in"><div class="counts" id="counts"></div><div id="status">Saved</div></div></div>
+<main id="app"><h1>Picture Check</h1><p class="muted">Loading…</p></main>
+<script>
+(() => {
+  const token = (location.pathname.match(/\/i\/([A-Za-z0-9_-]+)/) || [])[1]
+    || new URLSearchParams(location.search).get('t') || '';
+  const app = document.getElementById('app');
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  // A private, anonymous session per visitor (same scheme as the clue page).
+  const SID_RE = /^[A-Za-z0-9_-]{16,40}$/;
+  const sidKey = 'audit_sid_' + token;
+  let sid = new URLSearchParams(location.search).get('s') || '';
+  if (!SID_RE.test(sid)) { try { sid = localStorage.getItem(sidKey) || ''; } catch (e) { sid = ''; } }
+  if (!SID_RE.test(sid)) {
+    const a = new Uint8Array(18); crypto.getRandomValues(a);
+    sid = btoa(String.fromCharCode(...a)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  try { localStorage.setItem(sidKey, sid); } catch (e) { /* the personal link still works */ }
+  if (token) history.replaceState(null, '', '/i/' + token + '?s=' + sid);
+
+  const queue = []; let busy = false, failed = false;
+  const statusEl = document.getElementById('status');
+  const setStatus = () => { statusEl.classList.toggle('bad', failed);
+    statusEl.textContent = failed ? 'Not saved: retrying…' : (queue.length ? 'Saving…' : 'Saved'); };
+  async function pump() {
+    if (busy) return; busy = true;
+    while (queue.length) {
+      try {
+        const r = await fetch('/api/mark', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(queue[0]) });
+        if (r.status >= 400 && r.status < 500) {
+          const e = await r.json().catch(() => ({})); queue.shift();
+          statusEl.textContent = 'Could not save (' + (e.error || r.status) + '). Please reload.'; statusEl.classList.add('bad'); continue;
+        }
+        if (!r.ok) throw new Error(String(r.status));
+        queue.shift(); failed = false;
+      } catch (e) { failed = true; setStatus(); await sleep(3000); }
+      setStatus();
+    }
+    busy = false;
+  }
+  window.addEventListener('beforeunload', (ev) => { if (queue.length) { ev.preventDefault(); ev.returnValue = ''; } });
+
+  let items = [], marks = {};
+  const QS = (it) => {
+    // Order matters: the reader names the picture BEFORE the concept is revealed (the sense question stays hidden
+    // until 'name' is answered), so the naming answer is not primed by the word.
+    const q = [
+      ['ph', 'Is this a photograph (not a drawing, painting or render)?', [['y', 'Yes'], ['n', 'No']]],
+      ['name', 'What is the main thing in the picture, in one word? Type it, or say you can’t tell.', 'word'],
+      ['sense', 'Does it show a <b>' + esc(it.concept) + '</b> in this sense: “' + esc(it.definition) + '”?',
+        [['y', 'Yes'], ['n', 'No'], ['?', 'Not sure']]],
+    ];
+    if (it.second) q.push(['dist', 'Is the second picture a <i>different photograph</i> from the first (not the same shot, cropped or flipped)?', [['y', 'Yes, different'], ['n', 'No, same shot']]]);
+    return q;
+  };
+  const complete = (it, m) => m && QS(it).every(([k]) => m[k] !== undefined);
+  function save(it) {
+    const m = marks[it.id] || {};
+    if (complete(it, m)) queue.push({ t: token, s: sid, id: it.id, m, via: 'row' });
+    setStatus(); pump(); paint();
+  }
+  function paint() {
+    const n = items.filter((it) => complete(it, marks[it.id])).length;
+    document.getElementById('counts').textContent = n + ' of ' + items.length + ' pictures answered';
+    for (const it of items) {
+      const el = document.getElementById('card-' + it.id);
+      const m = marks[it.id] || {};
+      el.querySelectorAll('button[data-k]').forEach((b) => b.classList.toggle('on', m[b.dataset.k] === b.dataset.v));
+      el.querySelectorAll('[data-after="name"]').forEach((d) => { d.hidden = m.name === undefined; });
+      el.querySelector('.done').textContent = complete(it, m) ? 'Answered and saved.' : '';
+    }
+  }
+  function render(state) {
+    items = state.items; marks = {};
+    for (const [id, x] of Object.entries(state.marks || {})) marks[id] = x.m;
+    let h = '<h1>Picture Check</h1>' +
+      '<div class="box"><p>Each picture below is shown exactly as a computer model in our study will see it: in grey, ' +
+      'with deliberately low contrast. For each, first say what you see, then answer a question about it. Judge the grey picture, not what ' +
+      'you think the original looked like. There are no trick pictures; “Not sure” is a fine answer.</p>' +
+      '<p class="muted">Answers save as you click and are anonymous. You can stop and come back with this same link.</p></div>';
+    items.forEach((it, n) => {
+      h += '<section class="card" id="card-' + esc(it.id) + '"><header><b>Picture ' + (n + 1) + ' of ' + items.length + '</b></header><div class="pics">' +
+        '<figure><img src="' + esc(it.img) + '" alt="picture to check" width="384" height="384"></figure>' +
+        (it.second ? '<figure><img src="' + esc(it.second.img) + '" alt="second picture" width="384" height="384"><figcaption>second picture</figcaption></figure>' : '') +
+        '</div>';
+      for (const [k, label, opts] of QS(it)) {
+        const after = (k === 'sense' || k === 'dist') ? ' data-after="name" hidden' : '';
+        if (opts === 'word') {
+          const w = (marks[it.id] && marks[it.id].w) || '';
+          h += '<div class="q"><div>' + label + '</div><div class="opts">' +
+            '<input type="text" maxlength="60" data-word="' + esc(it.id) + '" value="' + esc(w) + '" placeholder="one word" ' +
+            'style="font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">' +
+            '<button type="button" data-id="' + esc(it.id) + '" data-k="name" data-v="y" data-save-word="1">Save word</button>' +
+            '<button type="button" data-id="' + esc(it.id) + '" data-k="name" data-v="n">I can’t tell</button></div></div>';
+          continue;
+        }
+        h += '<div class="q"' + after + '><div>' + label + '</div><div class="opts">' +
+          opts.map(([v, t]) => '<button type="button" data-id="' + esc(it.id) + '" data-k="' + k + '" data-v="' + esc(v) + '">' + esc(t) + '</button>').join('') +
+          '</div></div>';
+      }
+      const c = (marks[it.id] && marks[it.id].c) || '';
+      h += '<div class="q" data-after="name" hidden><textarea data-id="' + esc(it.id) + '" placeholder="Comment (optional)">' + esc(c) + '</textarea></div><div class="done"></div></section>';
+    });
+    app.innerHTML = h;
+    app.querySelectorAll('button[data-k]').forEach((b) => b.addEventListener('click', () => {
+      const it = items.find((x) => x.id === b.dataset.id);
+      const upd = { [b.dataset.k]: b.dataset.v };
+      if (b.dataset.saveWord) {
+        const w = app.querySelector('input[data-word="' + it.id + '"]').value.trim();
+        if (!w) { app.querySelector('input[data-word="' + it.id + '"]').focus(); return; }
+        upd.w = w;
+      } else if (b.dataset.k === 'name') upd.w = '';
+      marks[it.id] = { ...(marks[it.id] || {}), ...upd };
+      save(it);
+    }));
+    app.querySelectorAll('textarea').forEach((t) => t.addEventListener('change', () => {
+      const it = items.find((x) => x.id === t.dataset.id);
+      marks[it.id] = { ...(marks[it.id] || {}), c: t.value.slice(0, 1000) };
+      save(it);
+    }));
+    paint();
+  }
+  async function start() {
+    if (!token) { app.innerHTML = '<h1>Picture Check</h1><p class="err">This page needs your personal link.</p>'; return; }
+    try {
+      const r = await fetch('/api/state?t=' + encodeURIComponent(token) + '&s=' + encodeURIComponent(sid), { cache: 'no-store' });
+      if (r.status === 404) { app.innerHTML = '<h1>Picture Check</h1><p class="err">This link is not valid.</p>'; return; }
+      if (!r.ok) throw new Error(String(r.status));
+      render(await r.json());
+    } catch (e) {
+      app.innerHTML = '<h1>Picture Check</h1><p class="err">Could not load (' + esc(e.message) + '). Please reload.</p>';
+    }
+  }
+  start();
+})();
+</script>
+</body>
+</html>
