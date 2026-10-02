@@ -1,6 +1,17 @@
-"""AI image-reader qualification, revision 2: the sampling frame and the draw (standard library only, shared by the key
-builder `ai_reader_key.py` and the image builder `ai_reader_qual.py`). Framework §8.2 reader rule; Codex RSC cf3e49e;
-R052 handoff 7f25830e repair 3.
+"""AI image-reader qualification, revision 3: the sampling frame and the draw (standard library only, shared by the key
+builder `ai_reader_key.py` and the image builder `ai_reader_qual.py`). Framework §8.2 reader rule; Codex RSC cf3e49e
+and 7048bb8; R052 handoffs 7f25830e repair 3 and 742146ad group 2.
+
+SOURCE PINS (group 2). The construction inputs are pinned by sha256 and checked before anything is read
+(`check_sources`): both metadata tables and the norm description (hashes reproduced by Codex, RSC 7048bb8 section 2).
+The WordNet corpus is pinned in the key builder.
+
+FRAME INVARIANT (group 2), asserted on every retained frame row, never used to exclude or redraw
+(`check_frame_invariant`): the image row of '<concept>.jpg' carries uniqueID == <concept> and the concept's Word; the
+proportions are finite and in [0, 1]; N_ratings and N_correct are integers with 0 <= N_correct <= N_ratings and
+N_ratings > 0; no concept id or root image row is duplicated, and none is missing. The release has 20 filename/uniqueID
+mismatches among its 1,854 root rows; none survives the frame (they are homonym or anomaly exclusions), so the
+invariant holds and the verified redraw stands. Mutation fixtures: tests `FrameInvariant`.
 
 FRAME: the 1,854 THINGSplus concepts minus the 121 qualified development-pool concepts, minus homonyms ('Number of
 word meanings in list' > 1), minus concepts without a parseable image norm, and minus SOURCE-NORM ANOMALIES - the
@@ -28,12 +39,16 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import math
 import random
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 THINGS = Path.home() / "things-plus"
 SEED, N, EASY = 20261007, 300, 0.8
+SOURCE_PINS = {"_concepts-metadata_things.tsv": "3f05b6b748d1e1b685e15130d2487bff63f86e1f4da94a2a5d9e7dec073a48eb",
+               "_images-metadata_things.tsv": "fd5b17635f0f6528f58decaf5a089587593708862d4ee7a2a72cd8aa57ce013c",
+               "image-level_description.txt": "e6e9bf63304978460b9556ab965a1cd462041c724dee6fa92a386d31ef81252d"}
 
 
 def sha(b: bytes) -> str:
@@ -45,13 +60,77 @@ def concept_names(c: dict, uid: str) -> set[str]:
     return {c["Word"].strip().lower(), uid.replace("_", " ").lower()} | syn
 
 
-def frame() -> tuple[list[dict], dict]:
+def check_sources(root: Path = THINGS) -> dict:
+    got = {n: sha((root / n).read_bytes()) for n in SOURCE_PINS}
+    bad = {n: h for n, h in got.items() if h != SOURCE_PINS[n]}
+    if bad:
+        raise SystemExit(f"refused: construction sources differ from the pinned hashes: {sorted(bad)}")
+    return got
+
+
+def read_tables(root: Path = THINGS) -> tuple[dict, dict]:
+    """(concepts by uniqueID, root image rows by filename); a duplicate id or root image row is a refusal."""
+    concepts, imgs = {}, {}
+    with open(root / "_concepts-metadata_things.tsv", encoding="utf-8", newline="") as fh:
+        for r in csv.DictReader(fh, delimiter="\t"):
+            if r["uniqueID"] in concepts:
+                raise SystemExit(f"refused: duplicate concept row {r['uniqueID']}")
+            concepts[r["uniqueID"]] = r
+    with open(root / "_images-metadata_things.tsv", encoding="utf-8", newline="") as fh:
+        for r in csv.DictReader(fh, delimiter="\t"):
+            if "/" in r["image"]:
+                continue
+            if r["image"] in imgs:
+                raise SystemExit(f"refused: duplicate root image row {r['image']}")
+            imgs[r["image"]] = r
+    return concepts, imgs
+
+
+def _finite01(v) -> bool:
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return False
+    return math.isfinite(f) and 0.0 <= f <= 1.0
+
+
+def _count(v):
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return int(f) if math.isfinite(f) and f.is_integer() else None
+
+
+def check_frame_invariant(rows: list[dict], concepts: dict, imgs: dict) -> int:
+    """Raise on the first violation among the retained rows; return how many rows were checked."""
+    seen = set()
+    for x in rows:
+        uid, im, c = x["concept"], x["im"], x["c"]
+        if uid in seen:
+            raise SystemExit(f"invariant: concept {uid} retained twice")
+        seen.add(uid)
+        if uid not in concepts or imgs.get(f"{uid}.jpg") != im:
+            raise SystemExit(f"invariant: {uid} has no concept row or no root image row of its own")
+        if im["uniqueID"] != uid or im["image"] != f"{uid}.jpg":
+            raise SystemExit(f"invariant: image row {im['image']} carries uniqueID {im['uniqueID']}, not {uid}")
+        if im["Word"].strip().lower() != c["Word"].strip().lower():
+            raise SystemExit(f"invariant: image row of {uid} carries Word {im['Word']!r}, concept says {c['Word']!r}")
+        if not (_finite01(im["recognizability"]) and _finite01(im["recognizability_close"])):
+            raise SystemExit(f"invariant: {uid} has a proportion that is not finite in [0, 1]")
+        nr, nc = _count(im["recognizability_N-ratings"]), _count(im["recognizability_N-correct"])
+        if nr is None or nc is None or not (nr > 0 and 0 <= nc <= nr):
+            raise SystemExit(f"invariant: {uid} counts are not integers with 0 <= N_correct <= N_ratings, N_ratings > 0")
+        if (x["n_ratings"], x["n_correct"]) != (nr, nc) or x["rec"] != float(im["recognizability"]):
+            raise SystemExit(f"invariant: {uid} retained norm differs from its source row")
+    return len(seen)
+
+
+def frame(root: Path = THINGS) -> tuple[list[dict], dict]:
+    check_sources(root)
     pool = json.loads((HERE / "dev_pool.json").read_text())
     exclude = {r["concept"] for f in pool["qualified"].values() for r in f}
-    concepts = {r["uniqueID"]: r for r in csv.DictReader(open(THINGS / "_concepts-metadata_things.tsv",
-                                                             encoding="utf-8", newline=""), delimiter="\t")}
-    imgs = {r["image"]: r for r in csv.DictReader(open(THINGS / "_images-metadata_things.tsv", encoding="utf-8",
-                                                       newline=""), delimiter="\t") if "/" not in r["image"]}
+    concepts, imgs = read_tables(root)
     out, excl = [], {"pool": [], "homonym": [], "no_norm": [], "A1": [], "A2": [], "A3": []}
     for uid, c in concepts.items():
         im = imgs.get(f"{uid}.jpg")
@@ -80,6 +159,7 @@ def frame() -> tuple[list[dict], dict]:
             continue
         out.append({"concept": uid, "c": c, "im": im, "rec": rec, "close": close, "n_ratings": int(nr),
                     "n_correct": int(nc)})
+    check_frame_invariant(out, concepts, imgs)
     return out, excl
 
 

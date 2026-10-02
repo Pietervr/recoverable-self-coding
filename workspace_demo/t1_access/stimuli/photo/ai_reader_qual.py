@@ -1,5 +1,5 @@
-"""AI image-reader qualification, revision 2: the IMAGES and the reader-side SET (framework §8.2 reader rule, R052
-2 Oct 2026; Codex RSC cf3e49e NOT ON BOARD with revision 1 at RSC 7efeb55; R052 handoff 7f25830e repairs 1-8).
+"""AI image-reader qualification, revision 3: the IMAGES and the reader-side SET (framework §8.2 reader rule, R052
+2 Oct 2026; Codex RSC cf3e49e and 7048bb8, not favourable to revisions 1 and 2; R052 handoffs 7f25830e and 742146ad).
 Nothing here calls a model.
 
     .venv-build/bin/python stimuli/photo/ai_reader_key.py      # the key (needs WordNet) - first
@@ -9,7 +9,7 @@ WHAT IS QUALIFIED. The free-naming judgement of the image audit, and only that: 
 developer than the model under test (Codex) names 300 THINGSplus photographs outside the development pool, each as
 the colour original and as our grayscale clean canvas (dose pipeline, a = 1: fitting, padding, luma, contrast
 normalisation, clipping and quantisation - not just colour removal). The THINGSplus per-image recognition norm
-(Experiment 3 of Mukherjee et al. 2026: a best label chosen from a searchable menu of the 1,854 labels, 9-22
+(Experiment 3 of Mukherjee et al. 2026: a best label chosen from a searchable menu of the 1,854 labels, 8-22
 ratings per image here) is a DIFFICULTY REFERENCE and an item diagnostic - not a free-naming measure, not
 individual human verdicts, and never read as human equivalence. Admission is decided on grayscale only
 (`ai_reader_score.py`); colour is the external human-reference diagnostic.
@@ -26,10 +26,14 @@ of one item never adjacent by construction of the check below); the prompt and i
 stratum and easy counts; the frame's exclusion counts; and the per-image SOURCE BASIS. The labels, aliases, human
 norms and senses are in the key (`ai_reader_qual_key.json`), which only the orchestrator reads.
 
-SOURCE BASIS (R052's ruling, §8.2): the capture gate's per-image check does not apply to qualification transmissions
-(never captured, published or redistributed; transmitted once to the reader and reported by opaque id with aggregate
-scores). Each image records the collective THINGSplus basis - the release zip, notice and LICENSE hashes and OSF
-ids, the download date and the misattribution caveat - and no qualification image appears in any publication.
+SOURCE BASIS (R052's ruling, §8.2; accepted by Codex as a project scope rule, RSC 7048bb8): qualification is a
+RESTRICTED PRIVATE USE resting on the release's collective CC0/public-domain statement and its misattribution caveat;
+the per-image provenance of these 300 is UNVERIFIED and the known conflicts are excluded. The images are never
+captured as stimuli, published or redistributed; each is transmitted to the external reader for a naming answer -
+600 planned transmissions (colour and grayscale), up to 660 attempts with repeats on permitted failures - and is
+reported by opaque id with aggregate scores. The capture gate's per-image check is not required for these
+transmissions and qualification clears no image for formal reuse. Each image records the collective THINGSplus basis
+- the release zip, notice and LICENSE hashes and OSF ids, the download date and the misattribution caveat.
 """
 
 from __future__ import annotations
@@ -52,10 +56,11 @@ ORDER_SEED = 20261008
 PROMPT = ("Look at this picture. What is the main object in it? Answer with one short noun or noun phrase that "
           "names the object, or with the single word 'unclear' if you cannot tell. Reply with the name only.")
 READER = {"product": "OpenAI Codex CLI (codex exec)", "cli_version": "codex-cli 0.159.3", "model": "gpt-6.1-sol",
-          "reasoning_effort": "medium", "delivery": "one image attached with -i to a fresh ephemeral exec session, "
-          "empty working directory, private CODEX_HOME holding only the auth link, user config, rules and "
-          "instructions ignored, read-only sandbox, tool features disabled; the JSONL event stream checked for any "
-          "tool use (ai_reader_exec.py)"}
+          "reasoning_effort": "medium", "delivery": "one image attached with -i to a fresh ephemeral exec session "
+          "under sandbox-exec (home unreadable but the auth file), pinned minimal environment, empty working "
+          "directory, private CODEX_HOME holding only the auth link, user config, rules and optional instructions "
+          "off, read-only, tool features disabled; the prompt-input receipt and the JSONL event stream checked "
+          "(ai_reader_runtime.py, ai_reader_exec.py)"}
 
 
 def sha(b: bytes) -> str:
@@ -95,7 +100,7 @@ def main() -> int:
         if all(item_of[a] != item_of[b] for a, b in zip(order, order[1:])):
             break
     strata = {s: sum(1 for x in d["chosen"] if x["stratum"] == s) for s in (0, 1, 2)}
-    out = {"revision": 2, "note": "Reader-side record of the AI-reader qualification: no labels. The key is "
+    out = {"revision": 3, "note": "Reader-side record of the AI-reader qualification: no labels. The key is "
            "ai_reader_qual_key.json (orchestrator only).", "seed": F.SEED, "order_seed": ORDER_SEED,
            "n_items": len(d["chosen"]), "n_requests": len(requests), "easy_items": sum(x["easy"] for x in d["chosen"]),
            "strata": strata, "cuts": d["cuts"], "frame_size": d["n_frame"],

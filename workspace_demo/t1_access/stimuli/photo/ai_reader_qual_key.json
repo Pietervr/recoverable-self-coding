@@ -1,11 +1,17 @@
 {
- "note": "The orchestrator's key for the AI-reader qualification (revision 2). Never sent to the reader.",
+ "note": "The orchestrator's key for the AI-reader qualification (revision 3). Never sent to the reader.",
+ "revision": 3,
  "seed": 20261007,
  "frame_size": 1659,
  "cuts": [
   0.333333333,
   0.642857143
  ],
+ "stratum_frame_sizes": {
+  "0": 520,
+  "1": 585,
+  "2": 554
+ },
  "exclusion_counts": {
   "pool": 121,
   "homonym": 56,
@@ -235,6 +241,142 @@
    "pincushion",
    "staple"
   ]
+ },
+ "source_pins": {
+  "things": {
+   "_concepts-metadata_things.tsv": "3f05b6b748d1e1b685e15130d2487bff63f86e1f4da94a2a5d9e7dec073a48eb",
+   "_images-metadata_things.tsv": "fd5b17635f0f6528f58decaf5a089587593708862d4ee7a2a72cd8aa57ce013c",
+   "image-level_description.txt": "e6e9bf63304978460b9556ab965a1cd462041c724dee6fa92a386d31ef81252d"
+  },
+  "wordnet": {
+   "version": "3.0",
+   "zip_sha256": "cbda5ea6eef7f36a97a43d4a75f85e07fccbb4f23657d27b4ccbc93e2646ab59"
+  }
+ },
+ "specificity_rule": "S1 another released concept's canonical name or inflection; S2 another selected target's candidate; S3 WordNet broader class, part or whole; S4 dominant sense not the target synset; canonical names, space variants and inflections always stand; EQUIVALENCES documented",
+ "equivalences": [
+  {
+   "concept": "roll",
+   "alias": "bun",
+   "rationale": "WordNet puts bun and roll in one synset (small rounded bread); THINGS defines both as a small bread; Codex named roll/bun as an equivalence that may stand (S1, S2)"
+  },
+  {
+   "concept": "stomach",
+   "alias": "abdomen",
+   "rationale": "the target synset is abdomen.n.01 itself; 'abdomen' also names the abdominal cavity (S3)"
+  },
+  {
+   "concept": "cilantro",
+   "alias": "coriander",
+   "rationale": "coriander.n.03 is the target synset (the herb leaves); British usage names the leaves coriander (S3 whole, S4)"
+  },
+  {
+   "concept": "cilantro",
+   "alias": "chinese parsley",
+   "rationale": "a lemma of the target synset coriander.n.03, naming the same leaves (S3, S4)"
+  },
+  {
+   "concept": "possum",
+   "alias": "opossum",
+   "rationale": "the full form of the target's own name, opossum.n.02 (S4: dominant sense phalanger)"
+  },
+  {
+   "concept": "chickpea",
+   "alias": "garbanzo",
+   "rationale": "dominant sense is the seed chickpea.n.01, the same object a picture shows (S4)"
+  },
+  {
+   "concept": "doorknocker",
+   "alias": "knocker",
+   "rationale": "the ordinary short name of the door device; the dominant sense (Yiddish, a boaster) is not a visible object (S4)"
+  },
+  {
+   "concept": "cash_machine",
+   "alias": "atm",
+   "rationale": "the ordinary name; the dominant sense (a pressure unit) is not a visible object (S4)"
+  },
+  {
+   "concept": "bobsled",
+   "alias": "bobsleigh",
+   "rationale": "a spelling variant; dominant bobsled.n.01 is the same kind of sled (S4)"
+  },
+  {
+   "concept": "gravestone",
+   "alias": "headstone",
+   "rationale": "same object; the dominant sense (an arch keystone) is a WordNet artefact (S4)"
+  },
+  {
+   "concept": "column",
+   "alias": "pillar",
+   "rationale": "same architectural object; the dominant sense is abstract (a principle) (S4)"
+  },
+  {
+   "concept": "spider_web",
+   "alias": "spider's web",
+   "rationale": "the possessive spelling of the canonical name 'spider web' (S4 only because THINGS chose spider_web.n.02); the source column carried it as u\"spider's_web\"]"
+  },
+  {
+   "concept": "artichoke",
+   "alias": "globe artichoke",
+   "rationale": "the specific name of the same vegetable head; the canonical 'artichoke' is equally the plant's name (S3 whole, S4)"
+  }
+ ],
+ "specificity_audit": {
+  "excluded_bases": 64,
+  "excluded_forms": 126,
+  "targets_affected": 52,
+  "easy_targets_affected": 14,
+  "by_rule": {
+   "S1": 23,
+   "S2": 4,
+   "S3": 5,
+   "S4": 60
+  },
+  "equivalences_applied": 13,
+  "shared_admitted_strings": [
+   "bun",
+   "buns"
+  ],
+  "no_synset_items": 10
+ },
+ "inflection_audit": {
+  "plural_only_heads": [
+   "beans",
+   "boots",
+   "boxers",
+   "boxershorts",
+   "chopsticks",
+   "drawers",
+   "headphones",
+   "latrans",
+   "overalls",
+   "scissors",
+   "shorts",
+   "suspenders",
+   "underdrawers"
+  ],
+  "singular_s_heads": [
+   "asparagus",
+   "camelopardalis",
+   "candyfloss",
+   "cardinalis",
+   "compass",
+   "cutis",
+   "gallus",
+   "gladius",
+   "glass",
+   "headdress",
+   "manatus",
+   "mantis",
+   "manus",
+   "octopus",
+   "rhinoceros",
+   "talocruralis",
+   "thermos",
+   "wineglass",
+   "wireless"
+  ],
+  "note": "every head ending in -s among the candidates, as the suffix rule classifies it; reviewed: the plural-only heads are plural forms (no generated plural is valid), the singular heads are -ss/-us/-is/-as/-os nouns and Latin binomial parts, whose generated plurals survive only where WordNet lemmatises them back"
  },
  "reserved_concepts": [
   "aardvark",
@@ -538,7 +680,6 @@
   "wreck",
   "yoke"
  ],
- "normalisation": "see ai_reader_score.normalise",
  "items": {
   "e944771b21": {
    "concept": "gum",
@@ -553,14 +694,27 @@
     "gums"
    ],
    "validated_plurals": {
-    "gum": [
-     "gums"
-    ],
     "chewing gum": [
      "chewing gums"
+    ],
+    "gum": [
+     "gums"
     ]
    },
+   "alias_sources": {
+    "chewing gum": [
+     "WordNet Synonyms"
+    ],
+    "gum": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.294117647,
     "recognizability_close": 0.470588235,
@@ -590,7 +744,17 @@
      "clams"
     ]
    },
+   "alias_sources": {
+    "clam": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.25,
     "recognizability_close": 0.25,
@@ -620,7 +784,17 @@
      "gravies"
     ]
    },
+   "alias_sources": {
+    "gravy": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -642,8 +816,6 @@
    "synset": "n04600486",
    "sense": "a strong worktable for a carpenter or mechanic",
    "aliases": [
-    "bench",
-    "benches",
     "work bench",
     "work benches",
     "workbench",
@@ -655,12 +827,39 @@
     ],
     "workbench": [
      "workbenches"
-    ],
-    "bench": [
-     "benches"
     ]
    },
+   "alias_sources": {
+    "work bench": [
+     "WordNet Synonyms"
+    ],
+    "workbench": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "bench",
+     "base": "bench",
+     "rules": [
+      "S1:bench",
+      "S4:bench.n.01"
+     ]
+    },
+    {
+     "alias": "benches",
+     "base": "bench",
+     "rules": [
+      "S1:bench",
+      "S4:bench.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.055555556,
     "recognizability_close": 0.055555556,
@@ -682,25 +881,52 @@
    "synset": "n02887489",
    "sense": "elastic straps that hold trousers up (usually used in the plural)",
    "aliases": [
-    "brace",
-    "braces",
     "gallus",
     "galluses",
     "suspender",
     "suspenders"
    ],
    "validated_plurals": {
-    "suspender": [
-     "suspenders"
-    ],
-    "brace": [
-     "braces"
-    ],
     "gallus": [
      "galluses"
+    ],
+    "suspender": [
+     "suspenders"
     ]
    },
+   "alias_sources": {
+    "gallus": [
+     "WordNet Synonyms"
+    ],
+    "suspender": [
+     "WordNet Synonyms"
+    ],
+    "suspenders": [
+     "Word",
+     "uniqueID"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "brace",
+     "base": "brace",
+     "rules": [
+      "S1:brace",
+      "S4:brace.n.01"
+     ]
+    },
+    {
+     "alias": "braces",
+     "base": "brace",
+     "rules": [
+      "S1:brace",
+      "S4:brace.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.133333333,
     "recognizability_close": 0.133333333,
@@ -730,7 +956,17 @@
      "buckles"
     ]
    },
+   "alias_sources": {
+    "buckle": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.75,
@@ -765,7 +1001,20 @@
      "limousines"
     ]
    },
+   "alias_sources": {
+    "limo": [
+     "WordNet Synonyms"
+    ],
+    "limousine": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.2,
     "recognizability_close": 0.2,
@@ -795,7 +1044,17 @@
      "surfboards"
     ]
    },
+   "alias_sources": {
+    "surfboard": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.277777778,
     "recognizability_close": 0.277777778,
@@ -825,7 +1084,17 @@
      "squeegees"
     ]
    },
+   "alias_sources": {
+    "squeegee": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.230769231,
     "recognizability_close": 0.230769231,
@@ -849,17 +1118,12 @@
    "aliases": [
     "face cloth",
     "face cloths",
-    "flannel",
-    "flannels",
     "washcloth",
     "washcloths",
     "washrag",
     "washrags"
    ],
    "validated_plurals": {
-    "flannel": [
-     "flannels"
-    ],
     "face cloth": [
      "face cloths"
     ],
@@ -870,7 +1134,38 @@
      "washrags"
     ]
    },
+   "alias_sources": {
+    "face cloth": [
+     "WordNet Synonyms"
+    ],
+    "washcloth": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "washrag": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "flannel",
+     "base": "flannel",
+     "rules": [
+      "S4:flannel.n.01"
+     ]
+    },
+    {
+     "alias": "flannels",
+     "base": "flannel",
+     "rules": [
+      "S4:flannel.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.1875,
     "recognizability_close": 0.1875,
@@ -898,14 +1193,27 @@
     "steamrollers"
    ],
    "validated_plurals": {
-    "steamroller": [
-     "steamrollers"
-    ],
     "road roller": [
      "road rollers"
+    ],
+    "steamroller": [
+     "steamrollers"
     ]
    },
+   "alias_sources": {
+    "road roller": [
+     "WordNet Synonyms"
+    ],
+    "steamroller": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.125,
     "recognizability_close": 0.125,
@@ -930,9 +1238,7 @@
     "canister",
     "canisters",
     "cannister",
-    "cannisters",
-    "tin",
-    "tins"
+    "cannisters"
    ],
    "validated_plurals": {
     "canister": [
@@ -940,12 +1246,37 @@
     ],
     "cannister": [
      "cannisters"
-    ],
-    "tin": [
-     "tins"
     ]
    },
+   "alias_sources": {
+    "canister": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "cannister": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "tin",
+     "base": "tin",
+     "rules": [
+      "S4:tin.n.01"
+     ]
+    },
+    {
+     "alias": "tins",
+     "base": "tin",
+     "rules": [
+      "S4:tin.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -975,7 +1306,17 @@
      "coals"
     ]
    },
+   "alias_sources": {
+    "coal": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.214285714,
     "recognizability_close": 0.428571429,
@@ -1005,7 +1346,17 @@
      "wands"
     ]
    },
+   "alias_sources": {
+    "wand": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.294117647,
     "recognizability_close": 0.294117647,
@@ -1035,17 +1386,33 @@
     "thumbtacks"
    ],
    "validated_plurals": {
+    "drawing pin": [
+     "drawing pins"
+    ],
     "pushpin": [
      "pushpins"
     ],
     "thumbtack": [
      "thumbtacks"
-    ],
-    "drawing pin": [
-     "drawing pins"
     ]
    },
+   "alias_sources": {
+    "drawing pin": [
+     "WordNet Synonyms"
+    ],
+    "pushpin": [
+     "WordNet Synonyms"
+    ],
+    "thumbtack": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -1073,14 +1440,27 @@
     "stirrups"
    ],
    "validated_plurals": {
-    "stirrup iron": [
-     "stirrup irons"
-    ],
     "stirrup": [
      "stirrups"
+    ],
+    "stirrup iron": [
+     "stirrup irons"
     ]
    },
+   "alias_sources": {
+    "stirrup": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "stirrup iron": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0625,
     "recognizability_close": 0.0625,
@@ -1110,7 +1490,17 @@
      "origamis"
     ]
    },
+   "alias_sources": {
+    "origami": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.125,
     "recognizability_close": 0.125,
@@ -1133,19 +1523,39 @@
    "sense": "a hand tool consisting of a rotating shaft with parallel handle",
    "aliases": [
     "crank",
-    "cranks",
-    "starter",
-    "starters"
+    "cranks"
    ],
    "validated_plurals": {
-    "starter": [
-     "starters"
-    ],
     "crank": [
      "cranks"
     ]
    },
+   "alias_sources": {
+    "crank": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "starter",
+     "base": "starter",
+     "rules": [
+      "S4:starter.n.01"
+     ]
+    },
+    {
+     "alias": "starters",
+     "base": "starter",
+     "rules": [
+      "S4:starter.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -1170,12 +1580,44 @@
     "boxer shorts",
     "boxers",
     "boxershorts",
-    "drawers",
-    "shorts",
     "underdrawers"
    ],
    "validated_plurals": {},
+   "alias_sources": {
+    "boxer shorts": [
+     "Word",
+     "uniqueID"
+    ],
+    "boxers": [
+     "WordNet Synonyms"
+    ],
+    "boxershorts": [
+     "WordNet Synonyms"
+    ],
+    "underdrawers": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "drawers",
+     "base": "drawers",
+     "rules": [
+      "S1:drawer"
+     ]
+    },
+    {
+     "alias": "shorts",
+     "base": "shorts",
+     "rules": [
+      "S1:shorts",
+      "S4:short_pants.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.153846154,
     "recognizability_close": 0.153846154,
@@ -1205,7 +1647,17 @@
      "toads"
     ]
    },
+   "alias_sources": {
+    "toad": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": "no WordNet id in THINGS: candidates are the Word and uniqueID fields and the listed synonyms; the sense is THINGS's definition above, single-meaning ('Number of word meanings in list' = 1)",
    "human": {
     "recognizability": 0.307692308,
     "recognizability_close": 0.307692308,
@@ -1235,7 +1687,17 @@
      "tomato sauces"
     ]
    },
+   "alias_sources": {
+    "tomato sauce": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.117647059,
     "recognizability_close": 0.117647059,
@@ -1258,19 +1720,39 @@
    "sense": "instrument panel on an automobile or airplane containing dials and controls",
    "aliases": [
     "dashboard",
-    "dashboards",
-    "fascia",
-    "fasciae"
+    "dashboards"
    ],
    "validated_plurals": {
-    "fascia": [
-     "fasciae"
-    ],
     "dashboard": [
      "dashboards"
     ]
    },
+   "alias_sources": {
+    "dashboard": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "fascia",
+     "base": "fascia",
+     "rules": [
+      "S4:fascia.n.01"
+     ]
+    },
+    {
+     "alias": "fasciae",
+     "base": "fascia",
+     "rules": [
+      "S4:fascia.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -1300,7 +1782,17 @@
      "backscratchers"
     ]
    },
+   "alias_sources": {
+    "backscratcher": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.1875,
     "recognizability_close": 0.1875,
@@ -1330,7 +1822,17 @@
      "seismographs"
     ]
    },
+   "alias_sources": {
+    "seismograph": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.285714286,
     "recognizability_close": 0.285714286,
@@ -1360,17 +1862,50 @@
     "corianders"
    ],
    "validated_plurals": {
-    "cilantro": [
-     "cilantros"
-    ],
     "chinese parsley": [
      "chinese parsleys"
+    ],
+    "cilantro": [
+     "cilantros"
     ],
     "coriander": [
      "corianders"
     ]
    },
+   "alias_sources": {
+    "chinese parsley": [
+     "WordNet Synonyms"
+    ],
+    "cilantro": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "coriander": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [
+    {
+     "alias": "chinese parsley",
+     "rules": [
+      "S3:coriander.n.01",
+      "S4:coriander.n.01"
+     ],
+     "rationale": "a lemma of the target synset coriander.n.03, naming the same leaves (S3, S4)"
+    },
+    {
+     "alias": "coriander",
+     "rules": [
+      "S3:coriander.n.01",
+      "S4:coriander.n.01"
+     ],
+     "rationale": "coriander.n.03 is the target synset (the herb leaves); British usage names the leaves coriander (S3 whole, S4)"
+    }
+   ],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.294117647,
     "recognizability_close": 0.294117647,
@@ -1405,7 +1940,20 @@
      "pinball games"
     ]
    },
+   "alias_sources": {
+    "pinball": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "pinball game": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.272727273,
     "recognizability_close": 0.272727273,
@@ -1427,30 +1975,67 @@
    "synset": "n04538552",
    "sense": "a holding device attached to a workbench; has two jaws to hold workpiece firmly in place",
    "aliases": [
-    "shoulder vise",
-    "shoulder vises",
     "vise",
-    "vises",
-    "wood vise",
-    "wood vises",
-    "woodworking vise",
-    "woodworking vises"
+    "vises"
    ],
    "validated_plurals": {
     "vise": [
      "vises"
-    ],
-    "shoulder vise": [
-     "shoulder vises"
-    ],
-    "woodworking vise": [
-     "woodworking vises"
-    ],
-    "wood vise": [
-     "wood vises"
     ]
    },
+   "alias_sources": {
+    "vise": [
+     "Word",
+     "uniqueID"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "shoulder vise",
+     "base": "shoulder vise",
+     "rules": [
+      "S4:wood_vise.n.01"
+     ]
+    },
+    {
+     "alias": "shoulder vises",
+     "base": "shoulder vise",
+     "rules": [
+      "S4:wood_vise.n.01"
+     ]
+    },
+    {
+     "alias": "wood vise",
+     "base": "wood vise",
+     "rules": [
+      "S4:wood_vise.n.01"
+     ]
+    },
+    {
+     "alias": "wood vises",
+     "base": "wood vise",
+     "rules": [
+      "S4:wood_vise.n.01"
+     ]
+    },
+    {
+     "alias": "woodworking vise",
+     "base": "woodworking vise",
+     "rules": [
+      "S4:wood_vise.n.01"
+     ]
+    },
+    {
+     "alias": "woodworking vises",
+     "base": "woodworking vise",
+     "rules": [
+      "S4:wood_vise.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.3125,
     "recognizability_close": 0.3125,
@@ -1480,7 +2065,17 @@
      "granites"
     ]
    },
+   "alias_sources": {
+    "granite": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.25,
     "recognizability_close": 0.25,
@@ -1504,23 +2099,46 @@
    "aliases": [
     "grinder",
     "grinders",
-    "mill",
     "milling machineries",
-    "milling machinery",
-    "mills"
+    "milling machinery"
    ],
    "validated_plurals": {
-    "milling machinery": [
-     "milling machineries"
-    ],
-    "mill": [
-     "mills"
-    ],
     "grinder": [
      "grinders"
+    ],
+    "milling machinery": [
+     "milling machineries"
     ]
    },
+   "alias_sources": {
+    "grinder": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "milling machinery": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "mill",
+     "base": "mill",
+     "rules": [
+      "S4:factory.n.01"
+     ]
+    },
+    {
+     "alias": "mills",
+     "base": "mill",
+     "rules": [
+      "S4:factory.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.222222222,
     "recognizability_close": 0.222222222,
@@ -1550,7 +2168,17 @@
      "sauerkrauts"
     ]
    },
+   "alias_sources": {
+    "sauerkraut": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.3125,
     "recognizability_close": 0.3125,
@@ -1585,7 +2213,20 @@
      "pegs"
     ]
    },
+   "alias_sources": {
+    "nog": [
+     "WordNet Synonyms"
+    ],
+    "peg": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -1615,7 +2256,17 @@
      "skewers"
     ]
    },
+   "alias_sources": {
+    "skewer": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.125,
     "recognizability_close": 0.125,
@@ -1655,7 +2306,23 @@
      "spring onions"
     ]
    },
+   "alias_sources": {
+    "green onion": [
+     "WordNet Synonyms"
+    ],
+    "scallion": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "spring onion": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.142857143,
     "recognizability_close": 0.142857143,
@@ -1685,7 +2352,17 @@
      "cereals"
     ]
    },
+   "alias_sources": {
+    "cereal": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.25,
     "recognizability_close": 0.25,
@@ -1720,7 +2397,20 @@
      "bongo drums"
     ]
    },
+   "alias_sources": {
+    "bongo": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "bongo drum": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.066666667,
     "recognizability_close": 0.066666667,
@@ -1752,8 +2442,8 @@
     "vertical flutes"
    ],
    "validated_plurals": {
-    "vertical flute": [
-     "vertical flutes"
+    "fipple flute": [
+     "fipple flutes"
     ],
     "fipple pipe": [
      "fipple pipes"
@@ -1761,11 +2451,30 @@
     "recorder": [
      "recorders"
     ],
-    "fipple flute": [
-     "fipple flutes"
+    "vertical flute": [
+     "vertical flutes"
     ]
    },
+   "alias_sources": {
+    "fipple flute": [
+     "WordNet Synonyms"
+    ],
+    "fipple pipe": [
+     "WordNet Synonyms"
+    ],
+    "recorder": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "vertical flute": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.230769231,
     "recognizability_close": 0.230769231,
@@ -1800,7 +2509,20 @@
      "sewerages"
     ]
    },
+   "alias_sources": {
+    "sewage": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "sewerage": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.222222222,
     "recognizability_close": 0.222222222,
@@ -1822,25 +2544,48 @@
    "synset": "n00017222",
    "sense": "(botany) a living organism lacking the power of locomotion",
    "aliases": [
-    "flora",
-    "florae",
     "plant",
     "plant life",
     "plant lives",
     "plants"
    ],
    "validated_plurals": {
-    "plant life": [
-     "plant lives"
-    ],
-    "flora": [
-     "florae"
-    ],
     "plant": [
      "plants"
+    ],
+    "plant life": [
+     "plant lives"
     ]
    },
+   "alias_sources": {
+    "plant": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "plant life": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "flora",
+     "base": "flora",
+     "rules": [
+      "S4:vegetation.n.01"
+     ]
+    },
+    {
+     "alias": "florae",
+     "base": "flora",
+     "rules": [
+      "S4:vegetation.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.230769231,
     "recognizability_close": 0.230769231,
@@ -1868,14 +2613,26 @@
     "coffeepots"
    ],
    "validated_plurals": {
-    "coffeepot": [
-     "coffeepots"
-    ],
     "coffee pot": [
      "coffee pots"
+    ],
+    "coffeepot": [
+     "coffeepots"
     ]
    },
+   "alias_sources": {
+    "coffee pot": [
+     "Word",
+     "uniqueID"
+    ],
+    "coffeepot": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.285714286,
     "recognizability_close": 0.285714286,
@@ -1905,7 +2662,17 @@
      "geese"
     ]
    },
+   "alias_sources": {
+    "goose": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.076923077,
     "recognizability_close": 0.076923077,
@@ -1927,25 +2694,58 @@
    "synset": "n05549830",
    "sense": "the body excluding the head and neck and limbs",
    "aliases": [
-    "bodies",
-    "body",
     "torsi",
-    "torso",
-    "trunk",
-    "trunks"
+    "torso"
    ],
    "validated_plurals": {
-    "body": [
-     "bodies"
-    ],
     "torso": [
      "torsi"
-    ],
-    "trunk": [
-     "trunks"
     ]
    },
+   "alias_sources": {
+    "torso": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "body",
+     "base": "body",
+     "rules": [
+      "S3:body.n.01",
+      "S4:body.n.01"
+     ]
+    },
+    {
+     "alias": "bodies",
+     "base": "body",
+     "rules": [
+      "S3:body.n.01",
+      "S4:body.n.01"
+     ]
+    },
+    {
+     "alias": "trunk",
+     "base": "trunk",
+     "rules": [
+      "S1:trunk",
+      "S4:trunk.n.01"
+     ]
+    },
+    {
+     "alias": "trunks",
+     "base": "trunk",
+     "rules": [
+      "S1:trunk",
+      "S4:trunk.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.076923077,
     "recognizability_close": 0.076923077,
@@ -1980,7 +2780,20 @@
      "ring binders"
     ]
    },
+   "alias_sources": {
+    "binder": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "ring binder": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.066666667,
     "recognizability_close": 0.066666667,
@@ -2010,7 +2823,17 @@
      "muffs"
     ]
    },
+   "alias_sources": {
+    "muff": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.066666667,
     "recognizability_close": 0.066666667,
@@ -2040,7 +2863,17 @@
      "gurneys"
     ]
    },
+   "alias_sources": {
+    "gurney": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0625,
     "recognizability_close": 0.0625,
@@ -2070,7 +2903,17 @@
      "gondolas"
     ]
    },
+   "alias_sources": {
+    "gondola": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.181818182,
     "recognizability_close": 0.181818182,
@@ -2105,7 +2948,20 @@
      "petfoods"
     ]
    },
+   "alias_sources": {
+    "pet food": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "petfood": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.272727273,
     "recognizability_close": 0.272727273,
@@ -2140,7 +2996,29 @@
      "rolls"
     ]
    },
+   "alias_sources": {
+    "bun": [
+     "WordNet Synonyms"
+    ],
+    "roll": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [
+    {
+     "alias": "bun",
+     "rules": [
+      "S1:bun",
+      "S2:bun"
+     ],
+     "rationale": "WordNet puts bun and roll in one synset (small rounded bread); THINGS defines both as a small bread; Codex named roll/bun as an equivalence that may stand (S1, S2)"
+    }
+   ],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.25,
     "recognizability_close": 0.25,
@@ -2170,7 +3048,17 @@
      "breakfasts"
     ]
    },
+   "alias_sources": {
+    "breakfast": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.294117647,
     "recognizability_close": 0.294117647,
@@ -2200,7 +3088,17 @@
      "paper plates"
     ]
    },
+   "alias_sources": {
+    "paper plate": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.285714286,
     "recognizability_close": 0.285714286,
@@ -2230,7 +3128,17 @@
      "pallets"
     ]
    },
+   "alias_sources": {
+    "pallet": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.266666667,
     "recognizability_close": 0.266666667,
@@ -2260,7 +3168,17 @@
      "mulberries"
     ]
    },
+   "alias_sources": {
+    "mulberry": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -2295,7 +3213,28 @@
      "possums"
     ]
    },
+   "alias_sources": {
+    "opossum": [
+     "WordNet Synonyms"
+    ],
+    "possum": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [
+    {
+     "alias": "opossum",
+     "rules": [
+      "S4:phalanger.n.01"
+     ],
+     "rationale": "the full form of the target's own name, opossum.n.02 (S4: dominant sense phalanger)"
+    }
+   ],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.153846154,
     "recognizability_close": 0.153846154,
@@ -2325,7 +3264,17 @@
      "corsages"
     ]
    },
+   "alias_sources": {
+    "corsage": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": "no WordNet id in THINGS: candidates are the Word and uniqueID fields and the listed synonyms; the sense is THINGS's definition above, single-meaning ('Number of word meanings in list' = 1)",
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -2355,7 +3304,17 @@
      "toes"
     ]
    },
+   "alias_sources": {
+    "toe": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.125,
     "recognizability_close": 0.125,
@@ -2390,7 +3349,20 @@
      "gauze bandages"
     ]
    },
+   "alias_sources": {
+    "gauze": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "gauze bandage": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -2412,25 +3384,58 @@
    "synset": "n03017168",
    "sense": "a percussion instrument consisting of a set of tuned bells that are struck with a hammer; used as an orchestral instrument",
    "aliases": [
-    "bell",
-    "bells",
     "chime",
-    "chimes",
-    "gong",
-    "gongs"
+    "chimes"
    ],
    "validated_plurals": {
-    "gong": [
-     "gongs"
-    ],
     "chime": [
      "chimes"
-    ],
-    "bell": [
-     "bells"
     ]
    },
+   "alias_sources": {
+    "chime": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "bell",
+     "base": "bell",
+     "rules": [
+      "S1:bell",
+      "S4:bell.n.01"
+     ]
+    },
+    {
+     "alias": "bells",
+     "base": "bell",
+     "rules": [
+      "S1:bell",
+      "S4:bell.n.01"
+     ]
+    },
+    {
+     "alias": "gong",
+     "base": "gong",
+     "rules": [
+      "S1:gong",
+      "S4:gong.n.01"
+     ]
+    },
+    {
+     "alias": "gongs",
+     "base": "gong",
+     "rules": [
+      "S1:gong",
+      "S4:gong.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.125,
     "recognizability_close": 0.75,
@@ -2465,17 +3470,36 @@
     "chicken coop": [
      "chicken coops"
     ],
+    "coop": [
+     "coops"
+    ],
     "hencoop": [
      "hencoops"
     ],
     "henhouse": [
      "henhouses"
-    ],
-    "coop": [
-     "coops"
     ]
    },
+   "alias_sources": {
+    "chicken coop": [
+     "WordNet Synonyms"
+    ],
+    "coop": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "hencoop": [
+     "WordNet Synonyms"
+    ],
+    "henhouse": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.25,
     "recognizability_close": 0.25,
@@ -2505,7 +3529,17 @@
      "wafers"
     ]
    },
+   "alias_sources": {
+    "wafer": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.285714286,
     "recognizability_close": 0.285714286,
@@ -2535,7 +3569,17 @@
      "grapefruits"
     ]
    },
+   "alias_sources": {
+    "grapefruit": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.266666667,
     "recognizability_close": 0.266666667,
@@ -2565,7 +3609,17 @@
      "puddings"
     ]
    },
+   "alias_sources": {
+    "pudding": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.071428571,
     "recognizability_close": 0.071428571,
@@ -2600,7 +3654,20 @@
      "cookie sheets"
     ]
    },
+   "alias_sources": {
+    "baking tray": [
+     "WordNet Synonyms"
+    ],
+    "cookie sheet": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -2633,14 +3700,30 @@
     "machete": [
      "machetes"
     ],
-    "panga": [
-     "pangas"
-    ],
     "matchet": [
      "matchets"
+    ],
+    "panga": [
+     "pangas"
     ]
    },
+   "alias_sources": {
+    "machete": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "matchet": [
+     "WordNet Synonyms"
+    ],
+    "panga": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.066666667,
     "recognizability_close": 0.066666667,
@@ -2670,7 +3753,17 @@
      "wineglasses"
     ]
    },
+   "alias_sources": {
+    "wineglass": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.111111111,
     "recognizability_close": 0.111111111,
@@ -2699,14 +3792,30 @@
     "fencing posts"
    ],
    "validated_plurals": {
-    "fencing post": [
-     "fencing posts"
-    ],
     "fence post": [
      "fence posts"
+    ],
+    "fencing post": [
+     "fencing posts"
     ]
    },
+   "alias_sources": {
+    "fence post": [
+     "WordNet Synonyms"
+    ],
+    "fencepost": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "fencing post": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": "no WordNet id in THINGS: candidates are the Word and uniqueID fields and the listed synonyms; the sense is THINGS's definition above, single-meaning ('Number of word meanings in list' = 1)",
    "human": {
     "recognizability": 0.25,
     "recognizability_close": 0.25,
@@ -2731,7 +3840,17 @@
     "creme brulee"
    ],
    "validated_plurals": {},
+   "alias_sources": {
+    "creme brulee": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.25,
     "recognizability_close": 0.25,
@@ -2761,7 +3880,17 @@
      "mulches"
     ]
    },
+   "alias_sources": {
+    "mulch": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.2,
     "recognizability_close": 0.2,
@@ -2785,8 +3914,6 @@
    "aliases": [
     "chute",
     "chutes",
-    "slide",
-    "slides",
     "slideway",
     "slideways",
     "sloping trough",
@@ -2796,17 +3923,47 @@
     "chute": [
      "chutes"
     ],
-    "sloping trough": [
-     "sloping troughs"
-    ],
     "slideway": [
      "slideways"
     ],
-    "slide": [
-     "slides"
+    "sloping trough": [
+     "sloping troughs"
     ]
    },
+   "alias_sources": {
+    "chute": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "slideway": [
+     "WordNet Synonyms"
+    ],
+    "sloping trough": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "slide",
+     "base": "slide",
+     "rules": [
+      "S1:slide",
+      "S4:slide.n.01"
+     ]
+    },
+    {
+     "alias": "slides",
+     "base": "slide",
+     "rules": [
+      "S1:slide",
+      "S4:slide.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.2,
     "recognizability_close": 0.2,
@@ -2836,7 +3993,17 @@
      "wax papers"
     ]
    },
+   "alias_sources": {
+    "wax paper": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.125,
     "recognizability_close": 0.125,
@@ -2866,7 +4033,17 @@
      "parsleys"
     ]
    },
+   "alias_sources": {
+    "parsley": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.285714286,
     "recognizability_close": 0.285714286,
@@ -2904,14 +4081,33 @@
     "piglet": [
      "piglets"
     ],
-    "shote": [
-     "shotes"
-    ],
     "shoat": [
      "shoats"
+    ],
+    "shote": [
+     "shotes"
     ]
    },
+   "alias_sources": {
+    "piggy": [
+     "WordNet Synonyms"
+    ],
+    "piglet": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "shoat": [
+     "WordNet Synonyms"
+    ],
+    "shote": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.210526316,
     "recognizability_close": 0.210526316,
@@ -2941,7 +4137,17 @@
      "cream cheeses"
     ]
    },
+   "alias_sources": {
+    "cream cheese": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.2,
     "recognizability_close": 0.2,
@@ -2971,7 +4177,17 @@
      "missiles"
     ]
    },
+   "alias_sources": {
+    "missile": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.230769231,
     "recognizability_close": 0.230769231,
@@ -2993,25 +4209,48 @@
    "synset": "n03340723",
    "sense": "optical device that helps a user to find the target of interest",
    "aliases": [
-    "finder",
-    "finders",
     "view finder",
     "view finders",
     "viewfinder",
     "viewfinders"
    ],
    "validated_plurals": {
-    "finder": [
-     "finders"
+    "view finder": [
+     "view finders"
     ],
     "viewfinder": [
      "viewfinders"
-    ],
-    "view finder": [
-     "view finders"
     ]
    },
+   "alias_sources": {
+    "view finder": [
+     "WordNet Synonyms"
+    ],
+    "viewfinder": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "finder",
+     "base": "finder",
+     "rules": [
+      "S4:finder.n.01"
+     ]
+    },
+    {
+     "alias": "finders",
+     "base": "finder",
+     "rules": [
+      "S4:finder.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.142857143,
     "recognizability_close": 0.142857143,
@@ -3041,7 +4280,17 @@
      "taffies"
     ]
    },
+   "alias_sources": {
+    "taffy": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -3065,24 +4314,58 @@
    "aliases": [
     "aardvark",
     "aardvarks",
-    "ant bear",
-    "ant bears",
-    "anteater",
-    "anteaters",
     "orycteropus afer"
    ],
    "validated_plurals": {
-    "anteater": [
-     "anteaters"
-    ],
-    "ant bear": [
-     "ant bears"
-    ],
     "aardvark": [
      "aardvarks"
     ]
    },
+   "alias_sources": {
+    "aardvark": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "orycteropus afer": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "ant bear",
+     "base": "ant bear",
+     "rules": [
+      "S4:ant_bear.n.01"
+     ]
+    },
+    {
+     "alias": "ant bears",
+     "base": "ant bear",
+     "rules": [
+      "S4:ant_bear.n.01"
+     ]
+    },
+    {
+     "alias": "anteater",
+     "base": "anteater",
+     "rules": [
+      "S1:anteater",
+      "S4:pangolin.n.01"
+     ]
+    },
+    {
+     "alias": "anteaters",
+     "base": "anteater",
+     "rules": [
+      "S1:anteater",
+      "S4:pangolin.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.166666667,
     "recognizability_close": 0.166666667,
@@ -3112,7 +4395,17 @@
      "parfaits"
     ]
    },
+   "alias_sources": {
+    "parfait": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.294117647,
     "recognizability_close": 0.294117647,
@@ -3140,14 +4433,27 @@
     "tree stumps"
    ],
    "validated_plurals": {
-    "tree stump": [
-     "tree stumps"
-    ],
     "stump": [
      "stumps"
+    ],
+    "tree stump": [
+     "tree stumps"
     ]
    },
+   "alias_sources": {
+    "stump": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "tree stump": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.1875,
     "recognizability_close": 0.1875,
@@ -3177,7 +4483,17 @@
      "hatboxes"
     ]
    },
+   "alias_sources": {
+    "hatbox": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -3207,7 +4523,17 @@
      "llamas"
     ]
    },
+   "alias_sources": {
+    "llama": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.133333333,
     "recognizability_close": 0.133333333,
@@ -3243,7 +4569,22 @@
      "eye droppers"
     ]
    },
+   "alias_sources": {
+    "dropper": [
+     "WordNet Synonyms"
+    ],
+    "eye dropper": [
+     "WordNet Synonyms"
+    ],
+    "eyedropper": [
+     "Word",
+     "uniqueID"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.285714286,
     "recognizability_close": 0.285714286,
@@ -3273,17 +4614,33 @@
     "pouched rats"
    ],
    "validated_plurals": {
-    "pouched rat": [
-     "pouched rats"
-    ],
     "gopher": [
      "gophers"
     ],
     "pocket gopher": [
      "pocket gophers"
+    ],
+    "pouched rat": [
+     "pouched rats"
     ]
    },
+   "alias_sources": {
+    "gopher": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "pocket gopher": [
+     "WordNet Synonyms"
+    ],
+    "pouched rat": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -3313,7 +4670,17 @@
      "portholes"
     ]
    },
+   "alias_sources": {
+    "porthole": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.307692308,
     "recognizability_close": 0.307692308,
@@ -3343,17 +4710,33 @@
     "slip nooses"
    ],
    "validated_plurals": {
-    "running noose": [
-     "running nooses"
-    ],
     "noose": [
      "nooses"
+    ],
+    "running noose": [
+     "running nooses"
     ],
     "slip noose": [
      "slip nooses"
     ]
    },
+   "alias_sources": {
+    "noose": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "running noose": [
+     "WordNet Synonyms"
+    ],
+    "slip noose": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.133333333,
     "recognizability_close": 0.133333333,
@@ -3383,7 +4766,17 @@
      "yokes"
     ]
    },
+   "alias_sources": {
+    "yoke": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.222222222,
     "recognizability_close": 0.222222222,
@@ -3413,7 +4806,17 @@
      "hamsters"
     ]
    },
+   "alias_sources": {
+    "hamster": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.266666667,
     "recognizability_close": 0.266666667,
@@ -3443,7 +4846,17 @@
      "teacups"
     ]
    },
+   "alias_sources": {
+    "teacup": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.277777778,
     "recognizability_close": 0.277777778,
@@ -3473,7 +4886,17 @@
      "gourds"
     ]
    },
+   "alias_sources": {
+    "gourd": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.066666667,
     "recognizability_close": 0.066666667,
@@ -3504,17 +4927,36 @@
     "mortise joints"
    ],
    "validated_plurals": {
-    "mortise joint": [
-     "mortise joints"
-    ],
     "ankle": [
      "ankles"
     ],
     "ankle joint": [
      "ankle joints"
+    ],
+    "mortise joint": [
+     "mortise joints"
     ]
    },
+   "alias_sources": {
+    "ankle": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "ankle joint": [
+     "WordNet Synonyms"
+    ],
+    "articulatio talocruralis": [
+     "WordNet Synonyms"
+    ],
+    "mortise joint": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.153846154,
     "recognizability_close": 0.153846154,
@@ -3544,7 +4986,19 @@
      "overalls"
     ]
    },
+   "alias_sources": {
+    "overall": [
+     "WordNet Synonyms"
+    ],
+    "overalls": [
+     "Word",
+     "uniqueID"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.307692308,
     "recognizability_close": 0.307692308,
@@ -3574,7 +5028,17 @@
      "bassinets"
     ]
    },
+   "alias_sources": {
+    "bassinet": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.235294118,
     "recognizability_close": 0.235294118,
@@ -3604,17 +5068,33 @@
     "cirripeds"
    ],
    "validated_plurals": {
-    "cirripede": [
-     "cirripedes"
+    "barnacle": [
+     "barnacles"
     ],
     "cirriped": [
      "cirripeds"
     ],
-    "barnacle": [
-     "barnacles"
+    "cirripede": [
+     "cirripedes"
     ]
    },
+   "alias_sources": {
+    "barnacle": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "cirriped": [
+     "WordNet Synonyms"
+    ],
+    "cirripede": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.266666667,
     "recognizability_close": 0.266666667,
@@ -3644,7 +5124,17 @@
      "soda fountains"
     ]
    },
+   "alias_sources": {
+    "soda fountain": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.3125,
     "recognizability_close": 0.3125,
@@ -3674,7 +5164,17 @@
      "highlighters"
     ]
    },
+   "alias_sources": {
+    "highlighter": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.2,
     "recognizability_close": 0.2,
@@ -3704,7 +5204,17 @@
      "cummerbunds"
     ]
    },
+   "alias_sources": {
+    "cummerbund": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.133333333,
     "recognizability_close": 0.133333333,
@@ -3734,7 +5244,17 @@
      "toasts"
     ]
    },
+   "alias_sources": {
+    "toast": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.0,
     "recognizability_close": 0.0,
@@ -3759,14 +5279,9 @@
     "staple gun",
     "staple guns",
     "staplegun",
-    "stapleguns",
-    "tacker",
-    "tackers"
+    "stapleguns"
    ],
    "validated_plurals": {
-    "tacker": [
-     "tackers"
-    ],
     "staple gun": [
      "staple guns"
     ],
@@ -3774,7 +5289,35 @@
      "stapleguns"
     ]
    },
+   "alias_sources": {
+    "staple gun": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "staplegun": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "tacker",
+     "base": "tacker",
+     "rules": [
+      "S4:tacker.n.01"
+     ]
+    },
+    {
+     "alias": "tackers",
+     "base": "tacker",
+     "rules": [
+      "S4:tacker.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.25,
     "recognizability_close": 0.25,
@@ -3802,14 +5345,27 @@
     "icepicks"
    ],
    "validated_plurals": {
-    "icepick": [
-     "icepicks"
-    ],
     "ice pick": [
      "ice picks"
+    ],
+    "icepick": [
+     "icepicks"
     ]
    },
+   "alias_sources": {
+    "ice pick": [
+     "WordNet Synonyms"
+    ],
+    "icepick": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.166666667,
     "recognizability_close": 0.166666667,
@@ -3839,7 +5395,17 @@
      "pantyhoses"
     ]
    },
+   "alias_sources": {
+    "pantyhose": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.1,
     "recognizability_close": 0.1,
@@ -3874,7 +5440,20 @@
      "trailers"
     ]
    },
+   "alias_sources": {
+    "house trailer": [
+     "WordNet Synonyms"
+    ],
+    "trailer": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.25,
     "recognizability_close": 0.25,
@@ -3904,7 +5483,17 @@
      "confettis"
     ]
    },
+   "alias_sources": {
+    "confetti": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.294117647,
     "recognizability_close": 0.294117647,
@@ -3939,7 +5528,20 @@
      "tarpaulins"
     ]
    },
+   "alias_sources": {
+    "tarp": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "tarpaulin": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.533333333,
     "recognizability_close": 0.533333333,
@@ -3967,14 +5569,27 @@
     "lampshades"
    ],
    "validated_plurals": {
-    "lampshade": [
-     "lampshades"
-    ],
     "lamp shade": [
      "lamp shades"
+    ],
+    "lampshade": [
+     "lampshades"
     ]
    },
+   "alias_sources": {
+    "lamp shade": [
+     "WordNet Synonyms"
+    ],
+    "lampshade": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.583333333,
     "recognizability_close": 0.583333333,
@@ -4004,7 +5619,17 @@
      "cranberries"
     ]
    },
+   "alias_sources": {
+    "cranberry": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.533333333,
     "recognizability_close": 0.533333333,
@@ -4034,7 +5659,17 @@
      "penlights"
     ]
    },
+   "alias_sources": {
+    "penlight": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.428571429,
     "recognizability_close": 0.428571429,
@@ -4069,7 +5704,20 @@
      "slippers"
     ]
    },
+   "alias_sources": {
+    "carpet slipper": [
+     "WordNet Synonyms"
+    ],
+    "slipper": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.416666667,
     "recognizability_close": 0.416666667,
@@ -4099,7 +5747,17 @@
      "wrecks"
     ]
    },
+   "alias_sources": {
+    "wreck": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.461538462,
     "recognizability_close": 0.461538462,
@@ -4129,17 +5787,33 @@
     "hatracks"
    ],
    "validated_plurals": {
+    "coat rack": [
+     "coat racks"
+    ],
     "coatrack": [
      "coatracks"
     ],
     "hatrack": [
      "hatracks"
-    ],
-    "coat rack": [
-     "coat racks"
     ]
    },
+   "alias_sources": {
+    "coat rack": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "coatrack": [
+     "WordNet Synonyms"
+    ],
+    "hatrack": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.583333333,
     "recognizability_close": 0.583333333,
@@ -4175,7 +5849,23 @@
      "praying mantes"
     ]
    },
+   "alias_sources": {
+    "mantis religioso": [
+     "WordNet Synonyms"
+    ],
+    "praying mantid": [
+     "WordNet Synonyms"
+    ],
+    "praying mantis": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.583333333,
     "recognizability_close": 0.583333333,
@@ -4206,7 +5896,20 @@
      "hand prints"
     ]
    },
+   "alias_sources": {
+    "hand print": [
+     "WordNet Synonyms"
+    ],
+    "handprint": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": "no WordNet id in THINGS: candidates are the Word and uniqueID fields and the listed synonyms; the sense is THINGS's definition above, single-meaning ('Number of word meanings in list' = 1)",
    "human": {
     "recognizability": 0.545454545,
     "recognizability_close": 0.545454545,
@@ -4234,14 +5937,27 @@
     "toys"
    ],
    "validated_plurals": {
-    "toy": [
-     "toys"
-    ],
     "plaything": [
      "playthings"
+    ],
+    "toy": [
+     "toys"
     ]
    },
+   "alias_sources": {
+    "plaything": [
+     "WordNet Synonyms"
+    ],
+    "toy": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.411764706,
     "recognizability_close": 0.411764706,
@@ -4271,7 +5987,17 @@
      "scoops"
     ]
    },
+   "alias_sources": {
+    "scoop": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.368421053,
     "recognizability_close": 0.368421053,
@@ -4301,7 +6027,17 @@
      "terraria"
     ]
    },
+   "alias_sources": {
+    "terrarium": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.466666667,
     "recognizability_close": 0.466666667,
@@ -4331,7 +6067,17 @@
      "timers"
     ]
    },
+   "alias_sources": {
+    "timer": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.555555556,
     "recognizability_close": 0.555555556,
@@ -4353,20 +6099,42 @@
    "synset": "n03343737",
    "sense": "an alarm that is tripped off by fire or smoke",
    "aliases": [
-    "fire alarm",
-    "fire alarms",
     "smoke alarm",
     "smoke alarms"
    ],
    "validated_plurals": {
     "smoke alarm": [
      "smoke alarms"
-    ],
-    "fire alarm": [
-     "fire alarms"
     ]
    },
+   "alias_sources": {
+    "smoke alarm": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "fire alarm",
+     "base": "fire alarm",
+     "rules": [
+      "S1:fire_alarm",
+      "S4:fire_alarm.n.01"
+     ]
+    },
+    {
+     "alias": "fire alarms",
+     "base": "fire alarm",
+     "rules": [
+      "S1:fire_alarm",
+      "S4:fire_alarm.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.571428571,
     "recognizability_close": 0.571428571,
@@ -4396,7 +6164,17 @@
      "pocket watches"
     ]
    },
+   "alias_sources": {
+    "pocket watch": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.538461538,
     "recognizability_close": 0.538461538,
@@ -4432,26 +6210,51 @@
     "wall sockets"
    ],
    "validated_plurals": {
-    "wall socket": [
-     "wall sockets"
-    ],
-    "wall plug": [
-     "wall plugs"
+    "electric outlet": [
+     "electric outlets"
     ],
     "electric receptacle": [
      "electric receptacles"
     ],
+    "electrical outlet": [
+     "electrical outlets"
+    ],
     "outlet": [
      "outlets"
     ],
-    "electric outlet": [
-     "electric outlets"
+    "wall plug": [
+     "wall plugs"
     ],
-    "electrical outlet": [
-     "electrical outlets"
+    "wall socket": [
+     "wall sockets"
     ]
    },
+   "alias_sources": {
+    "electric outlet": [
+     "WordNet Synonyms"
+    ],
+    "electric receptacle": [
+     "WordNet Synonyms"
+    ],
+    "electrical outlet": [
+     "WordNet Synonyms"
+    ],
+    "outlet": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "wall plug": [
+     "WordNet Synonyms"
+    ],
+    "wall socket": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.35,
     "recognizability_close": 0.35,
@@ -4474,19 +6277,41 @@
    "sense": "game equipment consisting of a wheel with slots that is used for gambling; the wheel rotates horizontally and players bet on which slot the roulette ball will stop in",
    "aliases": [
     "roulette wheel",
-    "roulette wheels",
-    "wheel",
-    "wheels"
+    "roulette wheels"
    ],
    "validated_plurals": {
-    "wheel": [
-     "wheels"
-    ],
     "roulette wheel": [
      "roulette wheels"
     ]
    },
-   "multiword_only": false,
+   "alias_sources": {
+    "roulette wheel": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "wheel",
+     "base": "wheel",
+     "rules": [
+      "S1:wheel",
+      "S4:wheel.n.01"
+     ]
+    },
+    {
+     "alias": "wheels",
+     "base": "wheel",
+     "rules": [
+      "S1:wheel",
+      "S4:wheel.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
+   "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.538461538,
     "recognizability_close": 0.538461538,
@@ -4516,7 +6341,17 @@
      "moneys"
     ]
    },
+   "alias_sources": {
+    "money": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.461538462,
     "recognizability_close": 0.461538462,
@@ -4546,7 +6381,17 @@
      "otters"
     ]
    },
+   "alias_sources": {
+    "otter": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.466666667,
     "recognizability_close": 0.466666667,
@@ -4572,8 +6417,6 @@
     "chaplets",
     "coronal",
     "coronals",
-    "garland",
-    "garlands",
     "lei",
     "leis",
     "wreath",
@@ -4583,20 +6426,51 @@
     "chaplet": [
      "chaplets"
     ],
-    "wreath": [
-     "wreaths"
+    "coronal": [
+     "coronals"
     ],
     "lei": [
      "leis"
     ],
-    "garland": [
-     "garlands"
-    ],
-    "coronal": [
-     "coronals"
+    "wreath": [
+     "wreaths"
     ]
    },
+   "alias_sources": {
+    "chaplet": [
+     "WordNet Synonyms"
+    ],
+    "coronal": [
+     "WordNet Synonyms"
+    ],
+    "lei": [
+     "WordNet Synonyms"
+    ],
+    "wreath": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "garland",
+     "base": "garland",
+     "rules": [
+      "S4:garland.n.01"
+     ]
+    },
+    {
+     "alias": "garlands",
+     "base": "garland",
+     "rules": [
+      "S4:garland.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.615384615,
     "recognizability_close": 0.615384615,
@@ -4621,7 +6495,17 @@
     "dreidel"
    ],
    "validated_plurals": {},
+   "alias_sources": {
+    "dreidel": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": "no WordNet id in THINGS: candidates are the Word and uniqueID fields and the listed synonyms; the sense is THINGS's definition above, single-meaning ('Number of word meanings in list' = 1)",
    "human": {
     "recognizability": 0.5625,
     "recognizability_close": 0.5625,
@@ -4645,28 +6529,56 @@
    "aliases": [
     "harmonica",
     "harmonicas",
-    "harp",
-    "harps",
     "mouth harp",
     "mouth harps",
     "mouth organ",
     "mouth organs"
    ],
    "validated_plurals": {
-    "mouth organ": [
-     "mouth organs"
+    "harmonica": [
+     "harmonicas"
     ],
     "mouth harp": [
      "mouth harps"
     ],
-    "harp": [
-     "harps"
-    ],
-    "harmonica": [
-     "harmonicas"
+    "mouth organ": [
+     "mouth organs"
     ]
    },
+   "alias_sources": {
+    "harmonica": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "mouth harp": [
+     "WordNet Synonyms"
+    ],
+    "mouth organ": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "harp",
+     "base": "harp",
+     "rules": [
+      "S1:harp",
+      "S4:harp.n.01"
+     ]
+    },
+    {
+     "alias": "harps",
+     "base": "harp",
+     "rules": [
+      "S1:harp",
+      "S4:harp.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.615384615,
     "recognizability_close": 0.615384615,
@@ -4701,7 +6613,20 @@
      "tape recorders"
     ]
    },
+   "alias_sources": {
+    "tape machine": [
+     "WordNet Synonyms"
+    ],
+    "tape recorder": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.411764706,
     "recognizability_close": 0.411764706,
@@ -4736,7 +6661,20 @@
      "cutting boards"
     ]
    },
+   "alias_sources": {
+    "chopping board": [
+     "WordNet Synonyms"
+    ],
+    "cutting board": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.384615385,
     "recognizability_close": 0.384615385,
@@ -4766,7 +6704,17 @@
      "cheesecakes"
     ]
    },
+   "alias_sources": {
+    "cheesecake": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.388888889,
     "recognizability_close": 0.388888889,
@@ -4794,14 +6742,27 @@
     "thumbs"
    ],
    "validated_plurals": {
-    "thumb": [
-     "thumbs"
-    ],
     "pollex": [
      "pollices"
+    ],
+    "thumb": [
+     "thumbs"
     ]
    },
+   "alias_sources": {
+    "pollex": [
+     "WordNet Synonyms"
+    ],
+    "thumb": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.470588235,
     "recognizability_close": 0.470588235,
@@ -4835,14 +6796,33 @@
     "ganja": [
      "ganjas"
     ],
-    "marijuana": [
-     "marijuanas"
-    ],
     "marihuana": [
      "marihuanas"
+    ],
+    "marijuana": [
+     "marijuanas"
     ]
    },
+   "alias_sources": {
+    "cannabis sativa": [
+     "WordNet Synonyms"
+    ],
+    "ganja": [
+     "WordNet Synonyms"
+    ],
+    "marihuana": [
+     "WordNet Synonyms"
+    ],
+    "marijuana": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.357142857,
     "recognizability_close": 0.357142857,
@@ -4872,7 +6852,17 @@
      "mascaras"
     ]
    },
+   "alias_sources": {
+    "mascara": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.533333333,
     "recognizability_close": 0.533333333,
@@ -4895,19 +6885,43 @@
    "sense": "board that provides a flat surface on which artists mix paints and the range of colors used",
    "aliases": [
     "palette",
-    "palettes",
-    "pallet",
-    "pallets"
+    "palettes"
    ],
    "validated_plurals": {
-    "pallet": [
-     "pallets"
-    ],
     "palette": [
      "palettes"
     ]
    },
+   "alias_sources": {
+    "palette": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "pallet",
+     "base": "pallet",
+     "rules": [
+      "S1:pallet",
+      "S2:pallet",
+      "S4:palette.n.01"
+     ]
+    },
+    {
+     "alias": "pallets",
+     "base": "pallet",
+     "rules": [
+      "S1:pallet",
+      "S2:pallet",
+      "S4:palette.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.375,
     "recognizability_close": 0.375,
@@ -4942,7 +6956,20 @@
      "wall brackets"
     ]
    },
+   "alias_sources": {
+    "bracket": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "wall bracket": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.428571429,
     "recognizability_close": 0.428571429,
@@ -4975,14 +7002,30 @@
     "powder": [
      "powders"
     ],
-    "pulverization": [
-     "pulverizations"
-    ],
     "pulverisation": [
      "pulverisations"
+    ],
+    "pulverization": [
+     "pulverizations"
     ]
    },
+   "alias_sources": {
+    "powder": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "pulverisation": [
+     "WordNet Synonyms"
+    ],
+    "pulverization": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.5,
     "recognizability_close": 0.5,
@@ -5012,7 +7055,17 @@
      "crutches"
     ]
    },
+   "alias_sources": {
+    "crutch": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.363636364,
     "recognizability_close": 0.363636364,
@@ -5042,7 +7095,17 @@
      "warthogs"
     ]
    },
+   "alias_sources": {
+    "warthog": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.571428571,
     "recognizability_close": 0.571428571,
@@ -5066,8 +7129,6 @@
    "aliases": [
     "lance",
     "lances",
-    "shaft",
-    "shafts",
     "spear",
     "spears"
    ],
@@ -5077,12 +7138,37 @@
     ],
     "spear": [
      "spears"
-    ],
-    "shaft": [
-     "shafts"
     ]
    },
+   "alias_sources": {
+    "lance": [
+     "WordNet Synonyms"
+    ],
+    "spear": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "shaft",
+     "base": "shaft",
+     "rules": [
+      "S4:shaft.n.01"
+     ]
+    },
+    {
+     "alias": "shafts",
+     "base": "shaft",
+     "rules": [
+      "S4:shaft.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.5,
     "recognizability_close": 0.5,
@@ -5112,7 +7198,17 @@
      "jars"
     ]
    },
+   "alias_sources": {
+    "jar": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.461538462,
     "recognizability_close": 0.461538462,
@@ -5142,7 +7238,17 @@
      "ovens"
     ]
    },
+   "alias_sources": {
+    "oven": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.625,
     "recognizability_close": 0.6875,
@@ -5174,20 +7280,39 @@
     "taillights"
    ],
    "validated_plurals": {
-    "taillight": [
-     "taillights"
-    ],
-    "tail lamp": [
-     "tail lamps"
+    "rear lamp": [
+     "rear lamps"
     ],
     "rear light": [
      "rear lights"
     ],
-    "rear lamp": [
-     "rear lamps"
+    "tail lamp": [
+     "tail lamps"
+    ],
+    "taillight": [
+     "taillights"
     ]
    },
+   "alias_sources": {
+    "rear lamp": [
+     "WordNet Synonyms"
+    ],
+    "rear light": [
+     "WordNet Synonyms"
+    ],
+    "tail lamp": [
+     "WordNet Synonyms"
+    ],
+    "taillight": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.357142857,
     "recognizability_close": 0.357142857,
@@ -5217,7 +7342,17 @@
      "jigsaw puzzles"
     ]
    },
+   "alias_sources": {
+    "jigsaw puzzle": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.529411765,
     "recognizability_close": 0.529411765,
@@ -5244,8 +7379,6 @@
     "cardinal grosbeaks",
     "cardinalis cardinalis",
     "cardinals",
-    "redbird",
-    "redbirds",
     "richmondena cardinalis"
    ],
    "validated_plurals": {
@@ -5254,12 +7387,43 @@
     ],
     "cardinal grosbeak": [
      "cardinal grosbeaks"
-    ],
-    "redbird": [
-     "redbirds"
     ]
    },
+   "alias_sources": {
+    "cardinal": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "cardinal grosbeak": [
+     "WordNet Synonyms"
+    ],
+    "cardinalis cardinalis": [
+     "WordNet Synonyms"
+    ],
+    "richmondena cardinalis": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "redbird",
+     "base": "redbird",
+     "rules": [
+      "S4:scarlet_tanager.n.01"
+     ]
+    },
+    {
+     "alias": "redbirds",
+     "base": "redbird",
+     "rules": [
+      "S4:scarlet_tanager.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.5,
     "recognizability_close": 0.5,
@@ -5290,17 +7454,36 @@
     "prairie wolves"
    ],
    "validated_plurals": {
-    "prairie wolf": [
-     "prairie wolves"
+    "brush wolf": [
+     "brush wolves"
     ],
     "coyote": [
      "coyotes"
     ],
-    "brush wolf": [
-     "brush wolves"
+    "prairie wolf": [
+     "prairie wolves"
     ]
    },
+   "alias_sources": {
+    "brush wolf": [
+     "WordNet Synonyms"
+    ],
+    "canis latrans": [
+     "WordNet Synonyms"
+    ],
+    "coyote": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "prairie wolf": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.333333333,
     "recognizability_close": 0.333333333,
@@ -5322,20 +7505,42 @@
    "synset": "n03131574",
    "sense": "baby bed with high sides made of slats",
    "aliases": [
-    "cot",
-    "cots",
     "crib",
     "cribs"
    ],
    "validated_plurals": {
     "crib": [
      "cribs"
-    ],
-    "cot": [
-     "cots"
     ]
    },
+   "alias_sources": {
+    "crib": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "cot",
+     "base": "cot",
+     "rules": [
+      "S1:cot",
+      "S4:fingerstall.n.01"
+     ]
+    },
+    {
+     "alias": "cots",
+     "base": "cot",
+     "rules": [
+      "S1:cot",
+      "S4:fingerstall.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.4,
     "recognizability_close": 0.4,
@@ -5370,7 +7575,20 @@
      "sandpapers"
     ]
    },
+   "alias_sources": {
+    "emery paper": [
+     "WordNet Synonyms"
+    ],
+    "sandpaper": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.625,
     "recognizability_close": 0.625,
@@ -5405,7 +7623,28 @@
      "garbanzos"
     ]
    },
+   "alias_sources": {
+    "chickpea": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "garbanzo": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [
+    {
+     "alias": "garbanzo",
+     "rules": [
+      "S4:chickpea.n.01"
+     ],
+     "rationale": "dominant sense is the seed chickpea.n.01, the same object a picture shows (S4)"
+    }
+   ],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.529411765,
     "recognizability_close": 0.529411765,
@@ -5428,19 +7667,39 @@
    "sense": "any particular collection of letters or packages that is delivered",
    "aliases": [
     "mail",
-    "mails",
-    "post",
-    "posts"
+    "mails"
    ],
    "validated_plurals": {
     "mail": [
      "mails"
-    ],
-    "post": [
-     "posts"
     ]
    },
+   "alias_sources": {
+    "mail": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "post",
+     "base": "post",
+     "rules": [
+      "S4:post.n.01"
+     ]
+    },
+    {
+     "alias": "posts",
+     "base": "post",
+     "rules": [
+      "S4:post.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.529411765,
     "recognizability_close": 0.529411765,
@@ -5468,14 +7727,27 @@
     "welcome mats"
    ],
    "validated_plurals": {
-    "welcome mat": [
-     "welcome mats"
-    ],
     "doormat": [
      "doormats"
+    ],
+    "welcome mat": [
+     "welcome mats"
     ]
    },
+   "alias_sources": {
+    "doormat": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "welcome mat": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.411764706,
     "recognizability_close": 0.941176471,
@@ -5505,7 +7777,17 @@
      "hubcaps"
     ]
    },
+   "alias_sources": {
+    "hubcap": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.545454545,
     "recognizability_close": 0.545454545,
@@ -5527,25 +7809,58 @@
    "synset": "n03345115",
    "sense": "firework consisting of a small explosive charge and fuse in a heavy paper casing",
    "aliases": [
-    "banger",
-    "bangers",
-    "cracker",
-    "crackers",
     "firecracker",
     "firecrackers"
    ],
    "validated_plurals": {
-    "cracker": [
-     "crackers"
-    ],
     "firecracker": [
      "firecrackers"
-    ],
-    "banger": [
-     "bangers"
     ]
    },
+   "alias_sources": {
+    "firecracker": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "banger",
+     "base": "banger",
+     "rules": [
+      "S4:banger.n.01"
+     ]
+    },
+    {
+     "alias": "bangers",
+     "base": "banger",
+     "rules": [
+      "S4:banger.n.01"
+     ]
+    },
+    {
+     "alias": "cracker",
+     "base": "cracker",
+     "rules": [
+      "S1:cracker",
+      "S2:cracker",
+      "S4:cracker.n.01"
+     ]
+    },
+    {
+     "alias": "crackers",
+     "base": "cracker",
+     "rules": [
+      "S1:cracker",
+      "S2:cracker",
+      "S4:cracker.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.533333333,
     "recognizability_close": 0.533333333,
@@ -5570,22 +7885,53 @@
     "doorknocker",
     "doorknockers",
     "knocker",
-    "knockers",
-    "rapper",
-    "rappers"
+    "knockers"
    ],
    "validated_plurals": {
-    "knocker": [
-     "knockers"
-    ],
     "doorknocker": [
      "doorknockers"
     ],
-    "rapper": [
-     "rappers"
+    "knocker": [
+     "knockers"
     ]
    },
+   "alias_sources": {
+    "doorknocker": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "knocker": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "rapper",
+     "base": "rapper",
+     "rules": [
+      "S4:rapper.n.01"
+     ]
+    },
+    {
+     "alias": "rappers",
+     "base": "rapper",
+     "rules": [
+      "S4:rapper.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [
+    {
+     "alias": "knocker",
+     "rules": [
+      "S4:knocker.n.01"
+     ],
+     "rationale": "the ordinary short name of the door device; the dominant sense (Yiddish, a boaster) is not a visible object (S4)"
+    }
+   ],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.4375,
     "recognizability_close": 0.4375,
@@ -5620,7 +7966,20 @@
      "ice chests"
     ]
    },
+   "alias_sources": {
+    "cooler": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "ice chest": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.428571429,
     "recognizability_close": 0.5,
@@ -5648,14 +8007,27 @@
     "breathalyzers"
    ],
    "validated_plurals": {
-    "breathalyzer": [
-     "breathalyzers"
-    ],
     "breathalyser": [
      "breathalysers"
+    ],
+    "breathalyzer": [
+     "breathalyzers"
     ]
    },
+   "alias_sources": {
+    "breathalyser": [
+     "WordNet Synonyms"
+    ],
+    "breathalyzer": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.5,
     "recognizability_close": 0.5,
@@ -5685,7 +8057,17 @@
      "collars"
     ]
    },
+   "alias_sources": {
+    "collar": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.352941176,
     "recognizability_close": 0.352941176,
@@ -5715,7 +8097,17 @@
      "clays"
     ]
    },
+   "alias_sources": {
+    "clay": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.5625,
     "recognizability_close": 0.5625,
@@ -5745,7 +8137,17 @@
      "routers"
     ]
    },
+   "alias_sources": {
+    "router": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.5625,
     "recognizability_close": 0.5625,
@@ -5775,7 +8177,17 @@
      "rims"
     ]
    },
+   "alias_sources": {
+    "rim": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.428571429,
     "recognizability_close": 0.428571429,
@@ -5802,25 +8214,59 @@
     "bellies",
     "belly",
     "stomach",
-    "stomaches",
-    "venter",
-    "venters"
+    "stomaches"
    ],
    "validated_plurals": {
+    "abdomen": [
+     "abdomens"
+    ],
     "belly": [
      "bellies"
     ],
-    "venter": [
-     "venters"
-    ],
     "stomach": [
      "stomaches"
-    ],
-    "abdomen": [
-     "abdomens"
     ]
    },
+   "alias_sources": {
+    "abdomen": [
+     "WordNet Synonyms"
+    ],
+    "belly": [
+     "WordNet Synonyms"
+    ],
+    "stomach": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "venter",
+     "base": "venter",
+     "rules": [
+      "S4:venter.n.01"
+     ]
+    },
+    {
+     "alias": "venters",
+     "base": "venter",
+     "rules": [
+      "S4:venter.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [
+    {
+     "alias": "abdomen",
+     "rules": [
+      "S3:abdominal_cavity.n.01"
+     ],
+     "rationale": "the target synset is abdomen.n.01 itself; 'abdomen' also names the abdominal cavity (S3)"
+    }
+   ],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.333333333,
     "recognizability_close": 0.333333333,
@@ -5850,7 +8296,17 @@
      "foams"
     ]
    },
+   "alias_sources": {
+    "foam": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.529411765,
     "recognizability_close": 0.529411765,
@@ -5880,7 +8336,17 @@
      "kayaks"
     ]
    },
+   "alias_sources": {
+    "kayak": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.333333333,
     "recognizability_close": 0.333333333,
@@ -5910,7 +8376,17 @@
      "tabs"
     ]
    },
+   "alias_sources": {
+    "tab": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.35,
     "recognizability_close": 0.35,
@@ -5940,7 +8416,17 @@
      "darts"
     ]
    },
+   "alias_sources": {
+    "dart": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.6,
     "recognizability_close": 0.7,
@@ -5970,7 +8456,17 @@
      "toucans"
     ]
    },
+   "alias_sources": {
+    "toucan": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.411764706,
     "recognizability_close": 0.411764706,
@@ -6000,7 +8496,17 @@
      "teeth"
     ]
    },
+   "alias_sources": {
+    "tooth": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.533333333,
     "recognizability_close": 0.533333333,
@@ -6030,7 +8536,17 @@
      "woods"
     ]
    },
+   "alias_sources": {
+    "wood": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.555555556,
     "recognizability_close": 0.666666667,
@@ -6053,19 +8569,39 @@
    "sense": "a plant of the genus Trifolium",
    "aliases": [
     "clover",
-    "clovers",
-    "trefoil",
-    "trefoils"
+    "clovers"
    ],
    "validated_plurals": {
-    "trefoil": [
-     "trefoils"
-    ],
     "clover": [
      "clovers"
     ]
    },
+   "alias_sources": {
+    "clover": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "trefoil",
+     "base": "trefoil",
+     "rules": [
+      "S4:medic.n.01"
+     ]
+    },
+    {
+     "alias": "trefoils",
+     "base": "trefoil",
+     "rules": [
+      "S4:medic.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.4,
     "recognizability_close": 0.4,
@@ -6093,14 +8629,27 @@
     "rhubarbs"
    ],
    "validated_plurals": {
-    "rhubarb": [
-     "rhubarbs"
-    ],
     "pieplant": [
      "pieplants"
+    ],
+    "rhubarb": [
+     "rhubarbs"
     ]
    },
+   "alias_sources": {
+    "pieplant": [
+     "WordNet Synonyms"
+    ],
+    "rhubarb": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.461538462,
     "recognizability_close": 0.461538462,
@@ -6128,14 +8677,27 @@
     "anklets"
    ],
    "validated_plurals": {
-    "anklet": [
-     "anklets"
-    ],
     "ankle bracelet": [
      "ankle bracelets"
+    ],
+    "anklet": [
+     "anklets"
     ]
    },
+   "alias_sources": {
+    "ankle bracelet": [
+     "WordNet Synonyms"
+    ],
+    "anklet": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.583333333,
     "recognizability_close": 0.583333333,
@@ -6165,7 +8727,17 @@
      "footbaths"
     ]
    },
+   "alias_sources": {
+    "footbath": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.538461538,
     "recognizability_close": 0.538461538,
@@ -6195,7 +8767,17 @@
      "pecans"
     ]
    },
+   "alias_sources": {
+    "pecan": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.5,
     "recognizability_close": 0.5,
@@ -6225,17 +8807,33 @@
     "kerbs"
    ],
    "validated_plurals": {
-    "kerb": [
-     "kerbs"
-    ],
     "curb": [
      "curbs"
     ],
     "curbing": [
      "curbings"
+    ],
+    "kerb": [
+     "kerbs"
     ]
    },
+   "alias_sources": {
+    "curb": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "curbing": [
+     "WordNet Synonyms"
+    ],
+    "kerb": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.583333333,
     "recognizability_close": 0.583333333,
@@ -6265,7 +8863,17 @@
      "sandals"
     ]
    },
+   "alias_sources": {
+    "sandal": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.470588235,
     "recognizability_close": 0.470588235,
@@ -6293,14 +8901,27 @@
     "moccasins"
    ],
    "validated_plurals": {
-    "moccasin": [
-     "moccasins"
-    ],
     "mocassin": [
      "mocassins"
+    ],
+    "moccasin": [
+     "moccasins"
     ]
    },
+   "alias_sources": {
+    "mocassin": [
+     "WordNet Synonyms"
+    ],
+    "moccasin": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.416666667,
     "recognizability_close": 0.416666667,
@@ -6330,7 +8951,17 @@
      "looms"
     ]
    },
+   "alias_sources": {
+    "loom": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.416666667,
     "recognizability_close": 0.416666667,
@@ -6365,7 +8996,20 @@
      "croissants"
     ]
    },
+   "alias_sources": {
+    "crescent roll": [
+     "WordNet Synonyms"
+    ],
+    "croissant": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.411764706,
     "recognizability_close": 0.411764706,
@@ -6400,7 +9044,20 @@
      "pucks"
     ]
    },
+   "alias_sources": {
+    "hockey puck": [
+     "WordNet Synonyms"
+    ],
+    "puck": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.545454545,
     "recognizability_close": 0.545454545,
@@ -6430,7 +9087,17 @@
      "snowshoes"
     ]
    },
+   "alias_sources": {
+    "snowshoe": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.352941176,
     "recognizability_close": 0.352941176,
@@ -6460,7 +9127,17 @@
      "helmets"
     ]
    },
+   "alias_sources": {
+    "helmet": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.357142857,
     "recognizability_close": 0.428571429,
@@ -6490,7 +9167,17 @@
      "radishes"
     ]
    },
+   "alias_sources": {
+    "radish": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.476190476,
     "recognizability_close": 0.476190476,
@@ -6520,17 +9207,33 @@
     "doyly"
    ],
    "validated_plurals": {
-    "doyly": [
-     "doylies"
+    "doily": [
+     "doilies"
     ],
     "doyley": [
      "doyleys"
     ],
-    "doily": [
-     "doilies"
+    "doyly": [
+     "doylies"
     ]
    },
+   "alias_sources": {
+    "doily": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "doyley": [
+     "WordNet Synonyms"
+    ],
+    "doyly": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.5,
     "recognizability_close": 0.5,
@@ -6553,19 +9256,39 @@
    "sense": "dug into the ground or a freestanding metal vessel, in which a contained outdoor fire is made",
    "aliases": [
     "fire pit",
-    "fire pits",
-    "fireplace",
-    "fireplaces"
+    "fire pits"
    ],
    "validated_plurals": {
     "fire pit": [
      "fire pits"
-    ],
-    "fireplace": [
-     "fireplaces"
     ]
    },
-   "multiword_only": false,
+   "alias_sources": {
+    "fire pit": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "fireplace",
+     "base": "fireplace",
+     "rules": [
+      "S1:fireplace"
+     ]
+    },
+    {
+     "alias": "fireplaces",
+     "base": "fireplace",
+     "rules": [
+      "S1:fireplace"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
+   "multiword_only": true,
+   "sense_rationale": "no WordNet id in THINGS: candidates are the Word and uniqueID fields and the listed synonyms; the sense is THINGS's definition above, single-meaning ('Number of word meanings in list' = 1)",
    "human": {
     "recognizability": 0.6,
     "recognizability_close": 0.6,
@@ -6595,7 +9318,17 @@
      "gaskets"
     ]
    },
+   "alias_sources": {
+    "gasket": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.352941176,
     "recognizability_close": 0.352941176,
@@ -6625,7 +9358,17 @@
      "scones"
     ]
    },
+   "alias_sources": {
+    "scone": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.333333333,
     "recognizability_close": 0.333333333,
@@ -6660,7 +9403,20 @@
      "headgears"
     ]
    },
+   "alias_sources": {
+    "headdress": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "headgear": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.411764706,
     "recognizability_close": 0.411764706,
@@ -6690,7 +9446,17 @@
      "cloves"
     ]
    },
+   "alias_sources": {
+    "clove": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.533333333,
     "recognizability_close": 0.6,
@@ -6720,7 +9486,17 @@
      "cherries"
     ]
    },
+   "alias_sources": {
+    "cherry": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.388888889,
     "recognizability_close": 0.388888889,
@@ -6751,7 +9527,20 @@
      "swordfishes"
     ]
    },
+   "alias_sources": {
+    "swordfish": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "xiphias gladius": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.352941176,
     "recognizability_close": 0.352941176,
@@ -6779,14 +9568,27 @@
     "coffee tables"
    ],
    "validated_plurals": {
-    "coffee table": [
-     "coffee tables"
-    ],
     "cocktail table": [
      "cocktail tables"
+    ],
+    "coffee table": [
+     "coffee tables"
     ]
    },
+   "alias_sources": {
+    "cocktail table": [
+     "WordNet Synonyms"
+    ],
+    "coffee table": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.6,
     "recognizability_close": 0.6,
@@ -6827,6 +9629,15 @@
     "atm": [
      "atms"
     ],
+    "automated teller": [
+     "automated tellers"
+    ],
+    "automated teller machine": [
+     "automated teller machines"
+    ],
+    "automatic teller": [
+     "automatic tellers"
+    ],
     "automatic teller machine": [
      "automatic teller machines"
     ],
@@ -6835,18 +9646,45 @@
     ],
     "cash machine": [
      "cash machines"
-    ],
-    "automated teller machine": [
-     "automated teller machines"
-    ],
-    "automated teller": [
-     "automated tellers"
-    ],
-    "automatic teller": [
-     "automatic tellers"
     ]
    },
+   "alias_sources": {
+    "atm": [
+     "WordNet Synonyms"
+    ],
+    "automated teller": [
+     "WordNet Synonyms"
+    ],
+    "automated teller machine": [
+     "WordNet Synonyms"
+    ],
+    "automatic teller": [
+     "WordNet Synonyms"
+    ],
+    "automatic teller machine": [
+     "WordNet Synonyms"
+    ],
+    "cash dispenser": [
+     "WordNet Synonyms"
+    ],
+    "cash machine": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [
+    {
+     "alias": "atm",
+     "rules": [
+      "S4:standard_atmosphere.n.01"
+     ],
+     "rationale": "the ordinary name; the dominant sense (a pressure unit) is not a visible object (S4)"
+    }
+   ],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.466666667,
     "recognizability_close": 0.466666667,
@@ -6868,8 +9706,6 @@
    "synset": "n02860847",
    "sense": "a long racing sled (for 2 or more people) with a steering mechanism",
    "aliases": [
-    "bob",
-    "bobs",
     "bobsled",
     "bobsleds",
     "bobsleigh",
@@ -6881,12 +9717,45 @@
     ],
     "bobsleigh": [
      "bobsleighs"
-    ],
-    "bob": [
-     "bobs"
     ]
    },
+   "alias_sources": {
+    "bobsled": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "bobsleigh": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "bob",
+     "base": "bob",
+     "rules": [
+      "S4:british_shilling.n.01"
+     ]
+    },
+    {
+     "alias": "bobs",
+     "base": "bob",
+     "rules": [
+      "S4:british_shilling.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [
+    {
+     "alias": "bobsleigh",
+     "rules": [
+      "S4:bobsled.n.01"
+     ],
+     "rationale": "a spelling variant; dominant bobsled.n.01 is the same kind of sled (S4)"
+    }
+   ],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.615384615,
     "recognizability_close": 0.615384615,
@@ -6917,7 +9786,20 @@
      "manatees"
     ]
    },
+   "alias_sources": {
+    "manatee": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "trichechus manatus": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.363636364,
     "recognizability_close": 0.363636364,
@@ -6947,17 +9829,33 @@
     "thermoses"
    ],
    "validated_plurals": {
-    "thermos flask": [
-     "thermos flasks"
-    ],
     "thermos": [
      "thermoses"
     ],
     "thermos bottle": [
      "thermos bottles"
+    ],
+    "thermos flask": [
+     "thermos flasks"
     ]
    },
+   "alias_sources": {
+    "thermos": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "thermos bottle": [
+     "WordNet Synonyms"
+    ],
+    "thermos flask": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.333333333,
     "recognizability_close": 0.333333333,
@@ -6980,19 +9878,39 @@
    "sense": "graphic art consisting of an artistic composition made by applying paints to a surface",
    "aliases": [
     "painting",
-    "paintings",
-    "picture",
-    "pictures"
+    "paintings"
    ],
    "validated_plurals": {
-    "picture": [
-     "pictures"
-    ],
     "painting": [
      "paintings"
     ]
    },
+   "alias_sources": {
+    "painting": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "picture",
+     "base": "picture",
+     "rules": [
+      "S4:picture.n.01"
+     ]
+    },
+    {
+     "alias": "pictures",
+     "base": "picture",
+     "rules": [
+      "S4:picture.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.615384615,
     "recognizability_close": 0.846153846,
@@ -7017,7 +9935,17 @@
     "airboat"
    ],
    "validated_plurals": {},
+   "alias_sources": {
+    "airboat": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": "no WordNet id in THINGS: candidates are the Word and uniqueID fields and the listed synonyms; the sense is THINGS's definition above, single-meaning ('Number of word meanings in list' = 1)",
    "human": {
     "recognizability": 0.529411765,
     "recognizability_close": 0.529411765,
@@ -7047,7 +9975,17 @@
      "rubies"
     ]
    },
+   "alias_sources": {
+    "ruby": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.375,
     "recognizability_close": 0.375,
@@ -7077,7 +10015,17 @@
      "headlamps"
     ]
    },
+   "alias_sources": {
+    "headlamp": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": "no WordNet id in THINGS: candidates are the Word and uniqueID fields and the listed synonyms; the sense is THINGS's definition above, single-meaning ('Number of word meanings in list' = 1)",
    "human": {
     "recognizability": 0.533333333,
     "recognizability_close": 0.533333333,
@@ -7107,7 +10055,17 @@
      "bottles"
     ]
    },
+   "alias_sources": {
+    "bottle": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.625,
     "recognizability_close": 0.8125,
@@ -7137,7 +10095,17 @@
      "crackers"
     ]
    },
+   "alias_sources": {
+    "cracker": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.333333333,
     "recognizability_close": 0.333333333,
@@ -7167,7 +10135,17 @@
      "olives"
     ]
    },
+   "alias_sources": {
+    "olive": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.375,
     "recognizability_close": 0.375,
@@ -7197,7 +10175,17 @@
      "sombreros"
     ]
    },
+   "alias_sources": {
+    "sombrero": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.4375,
     "recognizability_close": 0.4375,
@@ -7237,7 +10225,23 @@
      "spangles"
     ]
    },
+   "alias_sources": {
+    "diamante": [
+     "WordNet Synonyms"
+    ],
+    "sequin": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "spangle": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.428571429,
     "recognizability_close": 0.428571429,
@@ -7260,19 +10264,39 @@
    "sense": "a band (usually elastic) worn around the leg to hold up a stocking (or around the arm to hold up a sleeve)",
    "aliases": [
     "garter",
-    "garters",
-    "supporter",
-    "supporters"
+    "garters"
    ],
    "validated_plurals": {
-    "supporter": [
-     "supporters"
-    ],
     "garter": [
      "garters"
     ]
    },
+   "alias_sources": {
+    "garter": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "supporter",
+     "base": "supporter",
+     "rules": [
+      "S4:supporter.n.01"
+     ]
+    },
+    {
+     "alias": "supporters",
+     "base": "supporter",
+     "rules": [
+      "S4:supporter.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.5,
     "recognizability_close": 0.5,
@@ -7302,7 +10326,19 @@
      "ski boots"
     ]
    },
+   "alias_sources": {
+    "ski boot": [
+     "WordNet Synonyms"
+    ],
+    "ski boots": [
+     "Word",
+     "uniqueID"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.411764706,
     "recognizability_close": 0.411764706,
@@ -7332,7 +10368,17 @@
      "typewriters"
     ]
    },
+   "alias_sources": {
+    "typewriter": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.941176471,
     "recognizability_close": 0.941176471,
@@ -7362,7 +10408,17 @@
      "car doors"
     ]
    },
+   "alias_sources": {
+    "car door": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.928571429,
     "recognizability_close": 0.928571429,
@@ -7392,17 +10448,33 @@
     "french pancakes"
    ],
    "validated_plurals": {
-    "french pancake": [
-     "french pancakes"
+    "crape": [
+     "crapes"
     ],
     "crepe": [
      "crepes"
     ],
-    "crape": [
-     "crapes"
+    "french pancake": [
+     "french pancakes"
     ]
    },
+   "alias_sources": {
+    "crape": [
+     "WordNet Synonyms"
+    ],
+    "crepe": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "french pancake": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.642857143,
     "recognizability_close": 0.642857143,
@@ -7432,7 +10504,17 @@
      "ponies"
     ]
    },
+   "alias_sources": {
+    "pony": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.6875,
     "recognizability_close": 0.6875,
@@ -7467,7 +10549,20 @@
      "electric batteries"
     ]
    },
+   "alias_sources": {
+    "battery": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "electric battery": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.928571429,
     "recognizability_close": 0.928571429,
@@ -7497,7 +10592,17 @@
      "bowls"
     ]
    },
+   "alias_sources": {
+    "bowl": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.833333333,
     "recognizability_close": 0.833333333,
@@ -7519,30 +10624,70 @@
    "synset": "n04373894",
    "sense": "a cutting or thrusting weapon that has a long metal blade and a hilt with a hand guard",
    "aliases": [
-    "blade",
-    "blades",
-    "brand",
-    "brands",
-    "steel",
-    "steels",
     "sword",
     "swords"
    ],
    "validated_plurals": {
     "sword": [
      "swords"
-    ],
-    "steel": [
-     "steels"
-    ],
-    "blade": [
-     "blades"
-    ],
-    "brand": [
-     "brands"
     ]
    },
+   "alias_sources": {
+    "sword": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "blade",
+     "base": "blade",
+     "rules": [
+      "S3:blade.n.09",
+      "S4:blade.n.01"
+     ]
+    },
+    {
+     "alias": "blades",
+     "base": "blade",
+     "rules": [
+      "S3:blade.n.09",
+      "S4:blade.n.01"
+     ]
+    },
+    {
+     "alias": "brand",
+     "base": "brand",
+     "rules": [
+      "S4:trade_name.n.01"
+     ]
+    },
+    {
+     "alias": "brands",
+     "base": "brand",
+     "rules": [
+      "S4:trade_name.n.01"
+     ]
+    },
+    {
+     "alias": "steel",
+     "base": "steel",
+     "rules": [
+      "S4:steel.n.01"
+     ]
+    },
+    {
+     "alias": "steels",
+     "base": "steel",
+     "rules": [
+      "S4:steel.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.857142857,
     "recognizability_close": 0.857142857,
@@ -7572,7 +10717,17 @@
      "holes"
     ]
    },
+   "alias_sources": {
+    "hole": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.8,
     "recognizability_close": 0.8,
@@ -7602,7 +10757,17 @@
      "aloes"
     ]
    },
+   "alias_sources": {
+    "aloe": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.785714286,
     "recognizability_close": 0.785714286,
@@ -7632,7 +10797,17 @@
      "eyeliners"
     ]
    },
+   "alias_sources": {
+    "eyeliner": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.647058824,
     "recognizability_close": 0.647058824,
@@ -7654,30 +10829,68 @@
    "synset": "n03666591",
    "sense": "a device for lighting or igniting fuel or charges or fires",
    "aliases": [
-    "igniter",
-    "igniters",
-    "ignitor",
-    "ignitors",
-    "light",
     "lighter",
-    "lighters",
-    "lights"
+    "lighters"
    ],
    "validated_plurals": {
-    "ignitor": [
-     "ignitors"
-    ],
-    "igniter": [
-     "igniters"
-    ],
     "lighter": [
      "lighters"
-    ],
-    "light": [
-     "lights"
     ]
    },
+   "alias_sources": {
+    "lighter": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "igniter",
+     "base": "igniter",
+     "rules": [
+      "S4:igniter.n.01"
+     ]
+    },
+    {
+     "alias": "igniters",
+     "base": "igniter",
+     "rules": [
+      "S4:igniter.n.01"
+     ]
+    },
+    {
+     "alias": "ignitor",
+     "base": "ignitor",
+     "rules": [
+      "S4:igniter.n.01"
+     ]
+    },
+    {
+     "alias": "ignitors",
+     "base": "ignitor",
+     "rules": [
+      "S4:igniter.n.01"
+     ]
+    },
+    {
+     "alias": "light",
+     "base": "light",
+     "rules": [
+      "S4:light.n.01"
+     ]
+    },
+    {
+     "alias": "lights",
+     "base": "light",
+     "rules": [
+      "S4:light.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -7705,14 +10918,27 @@
     "male children"
    ],
    "validated_plurals": {
-    "male child": [
-     "male children"
-    ],
     "boy": [
      "boys"
+    ],
+    "male child": [
+     "male children"
     ]
    },
+   "alias_sources": {
+    "boy": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "male child": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.833333333,
     "recognizability_close": 0.833333333,
@@ -7735,19 +10961,41 @@
    "sense": "a channel along the eaves or on the roof; collects and carries away rainwater",
    "aliases": [
     "gutter",
-    "gutters",
-    "trough",
-    "troughs"
+    "gutters"
    ],
    "validated_plurals": {
-    "trough": [
-     "troughs"
-    ],
     "gutter": [
      "gutters"
     ]
    },
+   "alias_sources": {
+    "gutter": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "trough",
+     "base": "trough",
+     "rules": [
+      "S1:trough",
+      "S4:trough.n.01"
+     ]
+    },
+    {
+     "alias": "troughs",
+     "base": "trough",
+     "rules": [
+      "S1:trough",
+      "S4:trough.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.692307692,
     "recognizability_close": 0.692307692,
@@ -7770,19 +11018,41 @@
    "sense": "a piece of soft material that covers and protects an injured part of the body",
    "aliases": [
     "bandage",
-    "bandages",
-    "patch",
-    "patches"
+    "bandages"
    ],
    "validated_plurals": {
     "bandage": [
      "bandages"
-    ],
-    "patch": [
-     "patches"
     ]
    },
+   "alias_sources": {
+    "bandage": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "patch",
+     "base": "patch",
+     "rules": [
+      "S1:patch",
+      "S4:spot.n.05"
+     ]
+    },
+    {
+     "alias": "patches",
+     "base": "patch",
+     "rules": [
+      "S1:patch",
+      "S4:spot.n.05"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.933333333,
     "recognizability_close": 0.933333333,
@@ -7812,7 +11082,17 @@
      "ferrets"
     ]
    },
+   "alias_sources": {
+    "ferret": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.75,
     "recognizability_close": 0.75,
@@ -7842,7 +11122,17 @@
      "belts"
     ]
    },
+   "alias_sources": {
+    "belt": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -7872,17 +11162,41 @@
     "tombstones"
    ],
    "validated_plurals": {
+    "gravestone": [
+     "gravestones"
+    ],
     "headstone": [
      "headstones"
     ],
     "tombstone": [
      "tombstones"
-    ],
-    "gravestone": [
-     "gravestones"
     ]
    },
+   "alias_sources": {
+    "gravestone": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "headstone": [
+     "WordNet Synonyms"
+    ],
+    "tombstone": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [
+    {
+     "alias": "headstone",
+     "rules": [
+      "S4:keystone.n.02"
+     ],
+     "rationale": "same object; the dominant sense (an arch keystone) is a WordNet artefact (S4)"
+    }
+   ],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.727272727,
     "recognizability_close": 0.727272727,
@@ -7909,25 +11223,51 @@
     "manus",
     "manuses",
     "mitt",
-    "mitts",
-    "paw",
-    "paws"
+    "mitts"
    ],
    "validated_plurals": {
+    "hand": [
+     "hands"
+    ],
     "manus": [
      "manuses"
     ],
     "mitt": [
      "mitts"
-    ],
-    "hand": [
-     "hands"
-    ],
-    "paw": [
-     "paws"
     ]
    },
+   "alias_sources": {
+    "hand": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "manus": [
+     "WordNet Synonyms"
+    ],
+    "mitt": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "paw",
+     "base": "paw",
+     "rules": [
+      "S4:paw.n.01"
+     ]
+    },
+    {
+     "alias": "paws",
+     "base": "paw",
+     "rules": [
+      "S4:paw.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.714285714,
     "recognizability_close": 0.714285714,
@@ -7957,7 +11297,17 @@
      "pillows"
     ]
    },
+   "alias_sources": {
+    "pillow": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.823529412,
     "recognizability_close": 0.823529412,
@@ -7987,7 +11337,17 @@
      "projectors"
     ]
    },
+   "alias_sources": {
+    "projector": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -8009,20 +11369,42 @@
    "synset": "n03888257",
    "sense": "rescue equipment consisting of a device that fills with air and retards your fall",
    "aliases": [
-    "chute",
-    "chutes",
     "parachute",
     "parachutes"
    ],
    "validated_plurals": {
-    "chute": [
-     "chutes"
-    ],
     "parachute": [
      "parachutes"
     ]
    },
+   "alias_sources": {
+    "parachute": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "chute",
+     "base": "chute",
+     "rules": [
+      "S1:chute",
+      "S2:chute"
+     ]
+    },
+    {
+     "alias": "chutes",
+     "base": "chute",
+     "rules": [
+      "S1:chute",
+      "S2:chute"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.928571429,
     "recognizability_close": 0.928571429,
@@ -8052,7 +11434,17 @@
      "tridents"
     ]
    },
+   "alias_sources": {
+    "trident": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.666666667,
     "recognizability_close": 0.666666667,
@@ -8087,7 +11479,20 @@
      "weighing machines"
     ]
    },
+   "alias_sources": {
+    "scale": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "weighing machine": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.857142857,
     "recognizability_close": 0.857142857,
@@ -8109,20 +11514,40 @@
    "synset": "n04487996",
    "sense": "something given as a token of victory",
    "aliases": [
-    "prize",
-    "prizes",
     "trophies",
     "trophy"
    ],
    "validated_plurals": {
-    "prize": [
-     "prizes"
-    ],
     "trophy": [
      "trophies"
     ]
    },
+   "alias_sources": {
+    "trophy": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "prize",
+     "base": "prize",
+     "rules": [
+      "S4:prize.n.01"
+     ]
+    },
+    {
+     "alias": "prizes",
+     "base": "prize",
+     "rules": [
+      "S4:prize.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.8,
     "recognizability_close": 0.8,
@@ -8152,7 +11577,17 @@
      "asparaguses"
     ]
    },
+   "alias_sources": {
+    "asparagus": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.923076923,
     "recognizability_close": 0.923076923,
@@ -8187,7 +11622,20 @@
      "vacuum pumps"
     ]
    },
+   "alias_sources": {
+    "air pump": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "vacuum pump": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.733333333,
     "recognizability_close": 0.733333333,
@@ -8217,7 +11665,17 @@
      "stethoscopes"
     ]
    },
+   "alias_sources": {
+    "stethoscope": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.933333333,
     "recognizability_close": 0.933333333,
@@ -8247,7 +11705,17 @@
      "chains"
     ]
    },
+   "alias_sources": {
+    "chain": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.882352941,
     "recognizability_close": 0.882352941,
@@ -8277,7 +11745,17 @@
      "metronomes"
     ]
    },
+   "alias_sources": {
+    "metronome": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.846153846,
     "recognizability_close": 0.846153846,
@@ -8307,17 +11785,33 @@
     "water fountains"
    ],
    "validated_plurals": {
-    "water fountain": [
-     "water fountains"
-    ],
     "bubbler": [
      "bubblers"
     ],
     "drinking fountain": [
      "drinking fountains"
+    ],
+    "water fountain": [
+     "water fountains"
     ]
    },
+   "alias_sources": {
+    "bubbler": [
+     "WordNet Synonyms"
+    ],
+    "drinking fountain": [
+     "WordNet Synonyms"
+    ],
+    "water fountain": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.736842105,
     "recognizability_close": 0.736842105,
@@ -8347,7 +11841,17 @@
      "magnets"
     ]
    },
+   "alias_sources": {
+    "magnet": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.75,
     "recognizability_close": 0.75,
@@ -8369,8 +11873,6 @@
    "synset": "n03484931",
    "sense": "light microscope consisting of a single convex lens that is used to produce an enlarged image",
    "aliases": [
-    "hand glass",
-    "hand glasses",
     "magnifying glass",
     "magnifying glasses",
     "simple microscope",
@@ -8382,12 +11884,37 @@
     ],
     "simple microscope": [
      "simple microscopes"
-    ],
-    "hand glass": [
-     "hand glasses"
     ]
    },
+   "alias_sources": {
+    "magnifying glass": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "simple microscope": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "hand glass",
+     "base": "hand glass",
+     "rules": [
+      "S4:hand_glass.n.01"
+     ]
+    },
+    {
+     "alias": "hand glasses",
+     "base": "hand glass",
+     "rules": [
+      "S4:hand_glass.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.705882353,
     "recognizability_close": 0.705882353,
@@ -8410,10 +11937,28 @@
    "sense": "an edge tool having two crossed pivoting blades",
    "aliases": [
     "pair of scissors",
+    "pairs of scissors",
     "scissors"
    ],
-   "validated_plurals": {},
+   "validated_plurals": {
+    "pair of scissors": [
+     "pairs of scissors"
+    ]
+   },
+   "alias_sources": {
+    "pair of scissors": [
+     "WordNet Synonyms"
+    ],
+    "scissors": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -8443,7 +11988,17 @@
      "rolling pins"
     ]
    },
+   "alias_sources": {
+    "rolling pin": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.705882353,
     "recognizability_close": 0.705882353,
@@ -8473,17 +12028,33 @@
     "solar panels"
    ],
    "validated_plurals": {
+    "solar array": [
+     "solar arrays"
+    ],
     "solar battery": [
      "solar batteries"
     ],
     "solar panel": [
      "solar panels"
-    ],
-    "solar array": [
-     "solar arrays"
     ]
    },
+   "alias_sources": {
+    "solar array": [
+     "WordNet Synonyms"
+    ],
+    "solar battery": [
+     "WordNet Synonyms"
+    ],
+    "solar panel": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -8511,14 +12082,27 @@
     "pocket breads"
    ],
    "validated_plurals": {
-    "pocket bread": [
-     "pocket breads"
-    ],
     "pita": [
      "pitas"
+    ],
+    "pocket bread": [
+     "pocket breads"
     ]
    },
+   "alias_sources": {
+    "pita": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "pocket bread": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.666666667,
     "recognizability_close": 0.666666667,
@@ -8548,17 +12132,33 @@
     "bubble wraps"
    ],
    "validated_plurals": {
+    "bubble film": [
+     "bubble films"
+    ],
     "bubble pack": [
      "bubble packs"
     ],
     "bubble wrap": [
      "bubble wraps"
-    ],
-    "bubble film": [
-     "bubble films"
     ]
    },
+   "alias_sources": {
+    "bubble film": [
+     "WordNet Synonyms"
+    ],
+    "bubble pack": [
+     "WordNet Synonyms"
+    ],
+    "bubble wrap": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": "no WordNet id in THINGS: candidates are the Word and uniqueID fields and the listed synonyms; the sense is THINGS's definition above, single-meaning ('Number of word meanings in list' = 1)",
    "human": {
     "recognizability": 0.818181818,
     "recognizability_close": 0.818181818,
@@ -8588,17 +12188,33 @@
     "iguanas"
    ],
    "validated_plurals": {
-    "iguana": [
-     "iguanas"
-    ],
     "common iguana": [
      "common iguanas"
+    ],
+    "iguana": [
+     "iguanas"
     ],
     "iguana iguana": [
      "iguana iguanas"
     ]
    },
+   "alias_sources": {
+    "common iguana": [
+     "WordNet Synonyms"
+    ],
+    "iguana": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "iguana iguana": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.882352941,
     "recognizability_close": 0.882352941,
@@ -8627,33 +12243,73 @@
     "radio sets",
     "radios",
     "receiving set",
-    "receiving sets",
-    "tuner",
-    "tuners",
-    "wireless",
-    "wirelesses"
+    "receiving sets"
    ],
    "validated_plurals": {
-    "receiving set": [
-     "receiving sets"
-    ],
     "radio": [
      "radios"
+    ],
+    "radio receiver": [
+     "radio receivers"
     ],
     "radio set": [
      "radio sets"
     ],
-    "wireless": [
-     "wirelesses"
-    ],
-    "tuner": [
-     "tuners"
-    ],
-    "radio receiver": [
-     "radio receivers"
+    "receiving set": [
+     "receiving sets"
     ]
    },
+   "alias_sources": {
+    "radio": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "radio receiver": [
+     "WordNet Synonyms"
+    ],
+    "radio set": [
+     "WordNet Synonyms"
+    ],
+    "receiving set": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "tuner",
+     "base": "tuner",
+     "rules": [
+      "S4:tuner.n.01"
+     ]
+    },
+    {
+     "alias": "tuners",
+     "base": "tuner",
+     "rules": [
+      "S4:tuner.n.01"
+     ]
+    },
+    {
+     "alias": "wireless",
+     "base": "wireless",
+     "rules": [
+      "S3:radio.n.03",
+      "S4:radio.n.01"
+     ]
+    },
+    {
+     "alias": "wirelesses",
+     "base": "wireless",
+     "rules": [
+      "S3:radio.n.03",
+      "S4:radio.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.888888889,
     "recognizability_close": 0.888888889,
@@ -8683,7 +12339,17 @@
      "burners"
     ]
    },
+   "alias_sources": {
+    "burner": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.692307692,
     "recognizability_close": 0.692307692,
@@ -8705,20 +12371,42 @@
    "synset": "n04099969",
    "sense": "a chair mounted on rockers",
    "aliases": [
-    "rocker",
-    "rockers",
     "rocking chair",
     "rocking chairs"
    ],
    "validated_plurals": {
-    "rocker": [
-     "rockers"
-    ],
     "rocking chair": [
      "rocking chairs"
     ]
    },
-   "multiword_only": false,
+   "alias_sources": {
+    "rocking chair": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "rocker",
+     "base": "rocker",
+     "rules": [
+      "S3:rocker.n.07",
+      "S4:rocker.n.01"
+     ]
+    },
+    {
+     "alias": "rockers",
+     "base": "rocker",
+     "rules": [
+      "S3:rocker.n.07",
+      "S4:rocker.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
+   "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.833333333,
     "recognizability_close": 0.833333333,
@@ -8748,7 +12436,19 @@
      "green beans"
     ]
    },
+   "alias_sources": {
+    "green bean": [
+     "WordNet Synonyms"
+    ],
+    "green beans": [
+     "Word",
+     "uniqueID"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.714285714,
     "recognizability_close": 0.714285714,
@@ -8779,7 +12479,19 @@
      "hooks"
     ]
    },
+   "alias_sources": {
+    "hook": [
+     "Word",
+     "WordNet Synonyms"
+    ],
+    "hook2": [
+     "uniqueID"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.8,
     "recognizability_close": 0.866666667,
@@ -8804,14 +12516,9 @@
     "footmark",
     "footmarks",
     "footprint",
-    "footprints",
-    "step",
-    "steps"
+    "footprints"
    ],
    "validated_plurals": {
-    "step": [
-     "steps"
-    ],
     "footmark": [
      "footmarks"
     ],
@@ -8819,7 +12526,35 @@
      "footprints"
     ]
    },
+   "alias_sources": {
+    "footmark": [
+     "WordNet Synonyms"
+    ],
+    "footprint": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "step",
+     "base": "step",
+     "rules": [
+      "S4:measure.n.01"
+     ]
+    },
+    {
+     "alias": "steps",
+     "base": "step",
+     "rules": [
+      "S4:measure.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.941176471,
     "recognizability_close": 0.941176471,
@@ -8847,14 +12582,27 @@
     "nickelodeons"
    ],
    "validated_plurals": {
-    "nickelodeon": [
-     "nickelodeons"
-    ],
     "jukebox": [
      "jukeboxes"
+    ],
+    "nickelodeon": [
+     "nickelodeons"
     ]
    },
+   "alias_sources": {
+    "jukebox": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "nickelodeon": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.714285714,
     "recognizability_close": 0.714285714,
@@ -8882,14 +12630,27 @@
     "saltshakers"
    ],
    "validated_plurals": {
-    "saltshaker": [
-     "saltshakers"
-    ],
     "salt shaker": [
      "salt shakers"
+    ],
+    "saltshaker": [
+     "saltshakers"
     ]
    },
+   "alias_sources": {
+    "salt shaker": [
+     "WordNet Synonyms"
+    ],
+    "saltshaker": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.916666667,
     "recognizability_close": 0.916666667,
@@ -8917,14 +12678,27 @@
     "printing machines"
    ],
    "validated_plurals": {
-    "printing machine": [
-     "printing machines"
-    ],
     "printer": [
      "printers"
+    ],
+    "printing machine": [
+     "printing machines"
     ]
    },
+   "alias_sources": {
+    "printer": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "printing machine": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -8954,17 +12728,33 @@
     "water heaters"
    ],
    "validated_plurals": {
+    "hot water heater": [
+     "hot water heaters"
+    ],
     "hot water tank": [
      "hot water tanks"
     ],
     "water heater": [
      "water heaters"
-    ],
-    "hot water heater": [
-     "hot water heaters"
     ]
    },
+   "alias_sources": {
+    "hot water heater": [
+     "WordNet Synonyms"
+    ],
+    "hot water tank": [
+     "WordNet Synonyms"
+    ],
+    "water heater": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.785714286,
     "recognizability_close": 0.785714286,
@@ -8994,7 +12784,17 @@
      "cd players"
     ]
    },
+   "alias_sources": {
+    "cd player": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.6875,
     "recognizability_close": 0.6875,
@@ -9024,17 +12824,33 @@
     "teguments"
    ],
    "validated_plurals": {
-    "tegument": [
-     "teguments"
+    "cutis": [
+     "cutes"
     ],
     "skin": [
      "skins"
     ],
-    "cutis": [
-     "cutes"
+    "tegument": [
+     "teguments"
     ]
    },
+   "alias_sources": {
+    "cutis": [
+     "WordNet Synonyms"
+    ],
+    "skin": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "tegument": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.923076923,
     "recognizability_close": 0.923076923,
@@ -9069,7 +12885,28 @@
      "pillars"
     ]
    },
+   "alias_sources": {
+    "column": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "pillar": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [
+    {
+     "alias": "pillar",
+     "rules": [
+      "S4:pillar.n.01"
+     ],
+     "rationale": "same architectural object; the dominant sense is abstract (a principle) (S4)"
+    }
+   ],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.733333333,
     "recognizability_close": 0.733333333,
@@ -9099,7 +12936,17 @@
      "shoes"
     ]
    },
+   "alias_sources": {
+    "shoe": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -9127,14 +12974,27 @@
     "wax crayons"
    ],
    "validated_plurals": {
-    "wax crayon": [
-     "wax crayons"
-    ],
     "crayon": [
      "crayons"
+    ],
+    "wax crayon": [
+     "wax crayons"
     ]
    },
+   "alias_sources": {
+    "crayon": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "wax crayon": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.888888889,
     "recognizability_close": 0.888888889,
@@ -9168,23 +13028,45 @@
     "speakers"
    ],
    "validated_plurals": {
-    "speaker system": [
-     "speaker systems"
-    ],
     "loudspeaker": [
      "loudspeakers"
+    ],
+    "loudspeaker system": [
+     "loudspeaker systems"
     ],
     "speaker": [
      "speakers"
     ],
-    "loudspeaker system": [
-     "loudspeaker systems"
+    "speaker system": [
+     "speaker systems"
     ],
     "speaker unit": [
      "speaker units"
     ]
    },
+   "alias_sources": {
+    "loudspeaker": [
+     "WordNet Synonyms"
+    ],
+    "loudspeaker system": [
+     "WordNet Synonyms"
+    ],
+    "speaker": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "speaker system": [
+     "WordNet Synonyms"
+    ],
+    "speaker unit": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.916666667,
     "recognizability_close": 0.916666667,
@@ -9214,17 +13096,33 @@
     "spun sugars"
    ],
    "validated_plurals": {
-    "cotton candy": [
-     "cotton candies"
-    ],
     "candyfloss": [
      "candyflosses"
+    ],
+    "cotton candy": [
+     "cotton candies"
     ],
     "spun sugar": [
      "spun sugars"
     ]
    },
+   "alias_sources": {
+    "candyfloss": [
+     "WordNet Synonyms"
+    ],
+    "cotton candy": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "spun sugar": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.733333333,
     "recognizability_close": 0.733333333,
@@ -9254,7 +13152,17 @@
      "buns"
     ]
    },
+   "alias_sources": {
+    "bun": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": "no WordNet id in THINGS: candidates are the Word and uniqueID fields and the listed synonyms; the sense is THINGS's definition above, single-meaning ('Number of word meanings in list' = 1)",
    "human": {
     "recognizability": 0.75,
     "recognizability_close": 0.75,
@@ -9284,7 +13192,17 @@
      "generators"
     ]
    },
+   "alias_sources": {
+    "generator": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.8,
     "recognizability_close": 0.8,
@@ -9314,17 +13232,33 @@
     "toilet tissues"
    ],
    "validated_plurals": {
-    "toilet tissue": [
-     "toilet tissues"
-    ],
     "bathroom tissue": [
      "bathroom tissues"
     ],
     "toilet paper": [
      "toilet papers"
+    ],
+    "toilet tissue": [
+     "toilet tissues"
     ]
    },
+   "alias_sources": {
+    "bathroom tissue": [
+     "WordNet Synonyms"
+    ],
+    "toilet paper": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "toilet tissue": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.941176471,
     "recognizability_close": 0.941176471,
@@ -9359,7 +13293,20 @@
      "garlics"
     ]
    },
+   "alias_sources": {
+    "ail": [
+     "WordNet Synonyms"
+    ],
+    "garlic": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -9381,20 +13328,44 @@
    "synset": "n14956325",
    "sense": "water soaked soil; soft wet earth",
    "aliases": [
-    "clay",
-    "clays",
     "mud",
     "muds"
    ],
    "validated_plurals": {
     "mud": [
      "muds"
-    ],
-    "clay": [
-     "clays"
     ]
    },
+   "alias_sources": {
+    "mud": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "clay",
+     "base": "clay",
+     "rules": [
+      "S1:clay",
+      "S2:clay",
+      "S4:clay.n.01"
+     ]
+    },
+    {
+     "alias": "clays",
+     "base": "clay",
+     "rules": [
+      "S1:clay",
+      "S2:clay",
+      "S4:clay.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.75,
     "recognizability_close": 0.75,
@@ -9424,7 +13395,17 @@
      "christmas cards"
     ]
    },
+   "alias_sources": {
+    "christmas card": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.818181818,
     "recognizability_close": 0.818181818,
@@ -9454,7 +13435,17 @@
      "scoreboards"
     ]
    },
+   "alias_sources": {
+    "scoreboard": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.769230769,
     "recognizability_close": 0.769230769,
@@ -9490,7 +13481,23 @@
      "giraffes"
     ]
    },
+   "alias_sources": {
+    "camelopard": [
+     "WordNet Synonyms"
+    ],
+    "giraffa camelopardalis": [
+     "WordNet Synonyms"
+    ],
+    "giraffe": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -9520,7 +13527,17 @@
      "thimbles"
     ]
    },
+   "alias_sources": {
+    "thimble": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.642857143,
     "recognizability_close": 0.642857143,
@@ -9550,7 +13567,17 @@
      "ears"
     ]
    },
+   "alias_sources": {
+    "ear": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.933333333,
     "recognizability_close": 0.933333333,
@@ -9580,7 +13607,17 @@
      "turnstiles"
     ]
    },
+   "alias_sources": {
+    "turnstile": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.642857143,
     "recognizability_close": 0.642857143,
@@ -9615,7 +13652,20 @@
      "paddles"
     ]
    },
+   "alias_sources": {
+    "boat paddle": [
+     "WordNet Synonyms"
+    ],
+    "paddle": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.714285714,
     "recognizability_close": 0.714285714,
@@ -9645,7 +13695,17 @@
      "totem poles"
     ]
    },
+   "alias_sources": {
+    "totem pole": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.866666667,
     "recognizability_close": 0.866666667,
@@ -9680,7 +13740,20 @@
      "air conditionings"
     ]
    },
+   "alias_sources": {
+    "air conditioner": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "air conditioning": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.923076923,
     "recognizability_close": 0.923076923,
@@ -9704,23 +13777,46 @@
    "aliases": [
     "automatic washer",
     "automatic washers",
-    "washer",
-    "washers",
     "washing machine",
     "washing machines"
    ],
    "validated_plurals": {
-    "washing machine": [
-     "washing machines"
-    ],
     "automatic washer": [
      "automatic washers"
     ],
-    "washer": [
-     "washers"
+    "washing machine": [
+     "washing machines"
     ]
    },
-   "multiword_only": false,
+   "alias_sources": {
+    "automatic washer": [
+     "WordNet Synonyms"
+    ],
+    "washing machine": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "washer",
+     "base": "washer",
+     "rules": [
+      "S4:washer.n.01"
+     ]
+    },
+    {
+     "alias": "washers",
+     "base": "washer",
+     "rules": [
+      "S4:washer.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
+   "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.9375,
     "recognizability_close": 0.9375,
@@ -9750,7 +13846,17 @@
      "tables"
     ]
    },
+   "alias_sources": {
+    "table": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -9780,7 +13886,17 @@
      "compasses"
     ]
    },
+   "alias_sources": {
+    "compass": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.75,
     "recognizability_close": 0.75,
@@ -9810,7 +13926,17 @@
      "treadmills"
     ]
    },
+   "alias_sources": {
+    "treadmill": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.8,
     "recognizability_close": 0.8,
@@ -9840,7 +13966,17 @@
      "snails"
     ]
    },
+   "alias_sources": {
+    "snail": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -9870,7 +14006,17 @@
      "pearls"
     ]
    },
+   "alias_sources": {
+    "pearl": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.916666667,
     "recognizability_close": 0.916666667,
@@ -9900,7 +14046,17 @@
      "bananas"
     ]
    },
+   "alias_sources": {
+    "banana": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -9930,7 +14086,17 @@
      "kaleidoscopes"
     ]
    },
+   "alias_sources": {
+    "kaleidoscope": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.666666667,
     "recognizability_close": 0.666666667,
@@ -9960,7 +14126,19 @@
      "chopsticks"
     ]
    },
+   "alias_sources": {
+    "chopstick": [
+     "WordNet Synonyms"
+    ],
+    "chopsticks": [
+     "Word",
+     "uniqueID"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.642857143,
     "recognizability_close": 0.642857143,
@@ -9995,7 +14173,20 @@
      "stapling machines"
     ]
    },
+   "alias_sources": {
+    "stapler": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "stapling machine": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.714285714,
     "recognizability_close": 0.714285714,
@@ -10019,14 +14210,39 @@
    "aliases": [
     "spider web",
     "spider webs",
-    "u\"spider's web\"]"
+    "spider's web",
+    "spider's webs"
    ],
    "validated_plurals": {
     "spider web": [
      "spider webs"
+    ],
+    "spider's web": [
+     "spider's webs"
     ]
    },
+   "alias_sources": {
+    "spider web": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "spider's web": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [
+    {
+     "alias": "spider's web",
+     "rules": [
+      "S4:spider_web.n.01"
+     ],
+     "rationale": "the possessive spelling of the canonical name 'spider web' (S4 only because THINGS chose spider_web.n.02); the source column carried it as u\"spider's_web\"]"
+    }
+   ],
    "multiword_only": true,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.933333333,
     "recognizability_close": 0.933333333,
@@ -10056,7 +14272,17 @@
      "legs"
     ]
    },
+   "alias_sources": {
+    "leg": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -10084,14 +14310,27 @@
     "dartboards"
    ],
    "validated_plurals": {
-    "dartboard": [
-     "dartboards"
-    ],
     "dart board": [
      "dart boards"
+    ],
+    "dartboard": [
+     "dartboards"
     ]
    },
+   "alias_sources": {
+    "dart board": [
+     "WordNet Synonyms"
+    ],
+    "dartboard": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.666666667,
     "recognizability_close": 0.666666667,
@@ -10114,19 +14353,41 @@
    "sense": "a fine cord of twisted fibers (of cotton or silk or wool or nylon etc.) used in sewing and weaving",
    "aliases": [
     "thread",
-    "threads",
-    "yarn",
-    "yarns"
+    "threads"
    ],
    "validated_plurals": {
     "thread": [
      "threads"
-    ],
-    "yarn": [
-     "yarns"
     ]
    },
+   "alias_sources": {
+    "thread": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "yarn",
+     "base": "yarn",
+     "rules": [
+      "S1:yarn",
+      "S4:narration.n.02"
+     ]
+    },
+    {
+     "alias": "yarns",
+     "base": "yarn",
+     "rules": [
+      "S1:yarn",
+      "S4:narration.n.02"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.9375,
     "recognizability_close": 0.9375,
@@ -10154,14 +14415,27 @@
     "teddy bears"
    ],
    "validated_plurals": {
-    "teddy bear": [
-     "teddy bears"
-    ],
     "teddy": [
      "teddies"
+    ],
+    "teddy bear": [
+     "teddy bears"
     ]
    },
+   "alias_sources": {
+    "teddy": [
+     "WordNet Synonyms"
+    ],
+    "teddy bear": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -10196,7 +14470,20 @@
      "cashew nuts"
     ]
    },
+   "alias_sources": {
+    "cashew": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "cashew nut": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.888888889,
     "recognizability_close": 0.888888889,
@@ -10219,19 +14506,41 @@
    "sense": "a substance used as a coating to protect or decorate a surface (especially a mixture of pigment suspended in a liquid); dries to form a hard coating",
    "aliases": [
     "paint",
-    "paints",
-    "pigment",
-    "pigments"
+    "paints"
    ],
    "validated_plurals": {
-    "pigment": [
-     "pigments"
-    ],
     "paint": [
      "paints"
     ]
    },
+   "alias_sources": {
+    "paint": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "pigment",
+     "base": "pigment",
+     "rules": [
+      "S3:pigment.n.01",
+      "S4:pigment.n.01"
+     ]
+    },
+    {
+     "alias": "pigments",
+     "base": "pigment",
+     "rules": [
+      "S3:pigment.n.01",
+      "S4:pigment.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.933333333,
     "recognizability_close": 1.0,
@@ -10253,20 +14562,40 @@
    "synset": "n01970164",
    "sense": "bottom-living cephalopod having a soft oval body with eight long tentacles",
    "aliases": [
-    "devilfish",
-    "devilfishes",
     "octopi",
     "octopus"
    ],
    "validated_plurals": {
     "octopus": [
      "octopi"
-    ],
-    "devilfish": [
-     "devilfishes"
     ]
    },
+   "alias_sources": {
+    "octopus": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "devilfish",
+     "base": "devilfish",
+     "rules": [
+      "S4:grey_whale.n.01"
+     ]
+    },
+    {
+     "alias": "devilfishes",
+     "base": "devilfish",
+     "rules": [
+      "S4:grey_whale.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.928571429,
     "recognizability_close": 0.928571429,
@@ -10296,7 +14625,17 @@
      "spacesuits"
     ]
    },
+   "alias_sources": {
+    "spacesuit": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.692307692,
     "recognizability_close": 0.692307692,
@@ -10331,7 +14670,29 @@
      "globe artichokes"
     ]
    },
+   "alias_sources": {
+    "artichoke": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "globe artichoke": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [
+    {
+     "alias": "globe artichoke",
+     "rules": [
+      "S3:artichoke.n.01",
+      "S4:artichoke.n.01"
+     ],
+     "rationale": "the specific name of the same vegetable head; the canonical 'artichoke' is equally the plant's name (S3 whole, S4)"
+    }
+   ],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.785714286,
     "recognizability_close": 0.785714286,
@@ -10353,20 +14714,40 @@
    "synset": "n03710193",
    "sense": "a private box for delivery of mail",
    "aliases": [
-    "letter box",
-    "letter boxes",
     "mailbox",
     "mailboxes"
    ],
    "validated_plurals": {
     "mailbox": [
      "mailboxes"
-    ],
-    "letter box": [
-     "letter boxes"
     ]
    },
+   "alias_sources": {
+    "mailbox": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "letter box",
+     "base": "letter box",
+     "rules": [
+      "S4:post-office_box.n.01"
+     ]
+    },
+    {
+     "alias": "letter boxes",
+     "base": "letter box",
+     "rules": [
+      "S4:post-office_box.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.769230769,
     "recognizability_close": 0.769230769,
@@ -10402,7 +14783,22 @@
      "fire trucks"
     ]
    },
+   "alias_sources": {
+    "fire engine": [
+     "WordNet Synonyms"
+    ],
+    "fire truck": [
+     "WordNet Synonyms"
+    ],
+    "firetruck": [
+     "Word",
+     "uniqueID"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.833333333,
     "recognizability_close": 0.833333333,
@@ -10437,7 +14833,20 @@
      "seahorses"
     ]
    },
+   "alias_sources": {
+    "sea horse": [
+     "WordNet Synonyms"
+    ],
+    "seahorse": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.9,
     "recognizability_close": 0.9,
@@ -10467,7 +14876,17 @@
      "cauliflowers"
     ]
    },
+   "alias_sources": {
+    "cauliflower": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -10494,25 +14913,55 @@
     "earpiece",
     "earpieces",
     "headphone",
-    "headphones",
-    "phone",
-    "phones"
+    "headphones"
    ],
    "validated_plurals": {
-    "earpiece": [
-     "earpieces"
-    ],
-    "phone": [
-     "phones"
-    ],
     "earphone": [
      "earphones"
+    ],
+    "earpiece": [
+     "earpieces"
     ],
     "headphone": [
      "headphones"
     ]
    },
+   "alias_sources": {
+    "earphone": [
+     "WordNet Synonyms"
+    ],
+    "earpiece": [
+     "WordNet Synonyms"
+    ],
+    "headphone": [
+     "WordNet Synonyms"
+    ],
+    "headphones": [
+     "Word",
+     "uniqueID"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "phone",
+     "base": "phone",
+     "rules": [
+      "S1:phone",
+      "S4:telephone.n.01"
+     ]
+    },
+    {
+     "alias": "phones",
+     "base": "phone",
+     "rules": [
+      "S1:phone",
+      "S4:telephone.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.8125,
     "recognizability_close": 0.8125,
@@ -10542,7 +14991,17 @@
      "albums"
     ]
    },
+   "alias_sources": {
+    "album": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.8125,
     "recognizability_close": 0.8125,
@@ -10572,7 +15031,17 @@
      "fires"
     ]
    },
+   "alias_sources": {
+    "fire": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.857142857,
     "recognizability_close": 1.0,
@@ -10607,7 +15076,20 @@
      "rhinoceroses"
     ]
    },
+   "alias_sources": {
+    "rhino": [
+     "WordNet Synonyms"
+    ],
+    "rhinoceros": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.785714286,
     "recognizability_close": 0.785714286,
@@ -10629,20 +15111,40 @@
    "synset": "n02346627",
    "sense": "relatively large rodents with sharp erectile bristles mingled with the fur",
    "aliases": [
-    "hedgehog",
-    "hedgehogs",
     "porcupine",
     "porcupines"
    ],
    "validated_plurals": {
-    "hedgehog": [
-     "hedgehogs"
-    ],
     "porcupine": [
      "porcupines"
     ]
    },
+   "alias_sources": {
+    "porcupine": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "hedgehog",
+     "base": "hedgehog",
+     "rules": [
+      "S1:hedgehog"
+     ]
+    },
+    {
+     "alias": "hedgehogs",
+     "base": "hedgehog",
+     "rules": [
+      "S1:hedgehog"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 0.923076923,
     "recognizability_close": 0.923076923,
@@ -10672,7 +15174,17 @@
      "waffles"
     ]
    },
+   "alias_sources": {
+    "waffle": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,
@@ -10702,7 +15214,17 @@
      "wheelchairs"
     ]
    },
+   "alias_sources": {
+    "wheelchair": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
    "multiword_only": false,
+   "sense_rationale": null,
    "human": {
     "recognizability": 1.0,
     "recognizability_close": 1.0,

@@ -1,5 +1,5 @@
 {
- "revision": 2,
+ "revision": 3,
  "note": "Reader-side record of the AI-reader qualification: no labels. The key is ai_reader_qual_key.json (orchestrator only).",
  "seed": 20261007,
  "order_seed": 20261008,
@@ -31,7 +31,7 @@
   "cli_version": "codex-cli 0.159.3",
   "model": "gpt-6.1-sol",
   "reasoning_effort": "medium",
-  "delivery": "one image attached with -i to a fresh ephemeral exec session, empty working directory, private CODEX_HOME holding only the auth link, user config, rules and instructions ignored, read-only sandbox, tool features disabled; the JSONL event stream checked for any tool use (ai_reader_exec.py)"
+  "delivery": "one image attached with -i to a fresh ephemeral exec session under sandbox-exec (home unreadable but the auth file), pinned minimal environment, empty working directory, private CODEX_HOME holding only the auth link, user config, rules and optional instructions off, read-only, tool features disabled; the prompt-input receipt and the JSONL event stream checked (ai_reader_runtime.py, ai_reader_exec.py)"
  },
  "release": {
   "zip": {
@@ -6060,11 +6060,11 @@
   "4d7f5790e767",
   "b4ea376fb211"
  ],
- "key_sha256": "65aa70aadd67c44eab2fa4a02637f978dafaa9611931ce38f01ee1f0f9af2198",
+ "key_sha256": "f68c71f7d3a8372d00c99f7627f5c243fd0e93b6a742a9e2b8960b01bbb79ce3",
  "code_sha256": {
-  "ai_reader_frame.py": "54935de726626bbadf9004732b75cb8f6a155576a76c7425bf4c0581deafc77f",
-  "ai_reader_key.py": "2d21121c75c307c6f6c64b3e253c1caa0f2de06f9a4842b9cd790b5dd2097bcf",
-  "ai_reader_qual.py": "4704220fcc05daeaaa5281603e022dad5ee4029180222ce904594cbee4bec18e",
+  "ai_reader_frame.py": "3ec7f42ee3bf59bd289e5053783010fc39bfd274c8dde61df6e7266eab2c1e12",
+  "ai_reader_key.py": "328a8617b447d8374288056f3db43e4a3565fd92802acf59deb8d37a66a5cf90",
+  "ai_reader_qual.py": "8d570ab4f7b5ec59ad18b42c3cbddac13e0bd4984d8c45a5879b557833df0ae2",
   "dose.py": "05d61ea6d199903eb066534e8cc2e7bb73e102b9cfa284f5692f8d75e9bb4302"
  }
 }

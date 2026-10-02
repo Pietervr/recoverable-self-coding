@@ -1,46 +1,53 @@
-"""AI image-reader qualification, revision 2: the mechanical SCORER (orchestrator side; the reader never sees it).
-Framework §8.2 reader rule (R052, 2 Oct); Codex RSC cf3e49e; R052 handoff 7f25830e repairs 1, 2, 4 and 7.
-Standard library only.
+"""AI image-reader qualification, revision 3: the mechanical SCORER (orchestrator side; the reader never sees it).
+Framework §8.2 reader rule; Codex RSC cf3e49e and 7048bb8; R052 handoffs 7f25830e repairs 1, 2, 4, 7 and 742146ad
+groups 1 and 6. Standard library only.
 
-    python3 stimuli/photo/ai_reader_score.py <raw_responses.jsonl>      # refuses unless the raw file is committed
+    python3 stimuli/photo/ai_reader_score.py <raw_responses.jsonl>
 
-PRIMARY SCORE. An answer is correct only when its WHOLE normalised text equals one of the item's frozen admissible
-aliases (`ai_reader_key.normalise`, `ai_reader_qual_key.json`). Every other outcome is an ERROR and stays in the
-denominator, with a reason code, in this order:
-  ERR_NO_RESPONSE     no answer was obtained within the job's attempt limits (provider failures only)
-  ERR_ISOLATION       the reader used a tool, file or web access in that request (the executor's event check)
+ADMISSION OF THE RAW FILE (groups 1 and 6), before any score: the file is tracked and clean in git and its bytes equal
+the committed blob (its sha256 and the commit are carried into the output and every referral); the journal passes the
+complete validator (ai_reader_journal.validate: schema, statuses, ordering, attempts, counters, caps, unique attempt
+ids, delivery order, first-answer ordering, bounded and unedited answers, a COMPLETE receipt); the package recomputed
+now (key, set, this scorer and every other bound file, the binary and runtime) equals the package digest in every
+journal record and the package the go approved (stage_a_guard.require_go, row aireader). A synthetic-fixture journal
+is refused unless `allow_synthetic=True`, and then the output is labelled as not a qualification result.
+
+PRIMARY SCORE. Codes, in this precedence (format before matching - a multi-line, over-length or malformed answer is
+an error even when its normalised text would equal an alias):
+  ERR_ISOLATION       the reader used a tool, file or web access, or its event evidence was malformed or incomplete
+  ERR_OVERLENGTH      the answer exceeded 2,000 characters, or the worker's output crossed its cap
+  ERR_INTERRUPTED     the attempt was dispatched and a crash lost its outcome (recovery's conservative rule)
+  ERR_NO_RESPONSE     no answer was obtained within the job's attempt limits
+  ERR_EXPLANATORY     more than one line, more than five words, or sentence punctuation inside the answer
+  ERR_MALFORMED       control characters, or characters other than letters, digits, spaces and apostrophes
   ERR_EMPTY           nothing left after normalisation
-  ERR_UNCLEAR         the answer is exactly 'unclear' (the permitted abstention - an error, never excluded)
-  ERR_MULTIPLE        more than one name ('x or y', 'x, y', 'x/y', 'x and y', 'x; y')
-  ERR_EXPLANATORY     more than five words, or sentence punctuation inside the answer
-  ERR_MALFORMED       characters other than letters, digits, spaces and apostrophes
+  ERR_UNCLEAR         exactly 'unclear' (the permitted abstention - an error, never excluded)
+  ERR_MULTIPLE        more than one name ('x or y', 'x, y', 'x/y', 'x and y', 'x; y', 'x & y')
+  OK_MATCH            the WHOLE normalised answer equals one of the item's frozen admissible aliases
   ERR_NONMATCH        a well-formed name that is not an admissible alias
-Broad 'close' credit (an alias appearing as a whole-word run inside the answer) is reported as a DESCRIPTIVE column
-only and never enters a gate.
+No admissible alias trips a format check (tested over the key: at most three words, letters, digits, spaces and
+apostrophes, no 'and'/'or'). Broad 'close' credit (an alias as a whole-word run inside the answer) is a DESCRIPTIVE
+column only and never enters a gate.
 
-COMPLETENESS (repair 4). The raw file must hold exactly one RETAINED response for each of the 600 declared
-(item, view) requests - no more, no fewer; a duplicate retained response, an unknown request id or view, or a
-request's item/view disagreeing with the set is a refusal, not a warning. Provider-failure attempts are listed and
-counted but never scored.
+COMPLETENESS. Exactly one retained outcome for each of the 600 declared requests (the validator's COMPLETE receipt).
 
 ADMISSION (R052's rule in §8.2, fixed before any answer). Whole-answer admissible naming accuracy on the EASY items
-(human recognizability >= 0.8) on the GRAYSCALE canvas as delivered; the reader is admitted iff the one-sided exact
-(Clopper-Pearson) 95 % lower bound on that proportion is >= 0.90. With 63 easy items after the frame repair
-(revision 1 had 61) that is 61 of 63 or better (`required_successes`). Nothing else gates.
-DESCRIPTIVE (no claim): colour accuracy on the same items as the human-reference diagnostic, the paired colour/gray
-table with discordant counts, full-panel and per-stratum rows with their denominators (an empty stratum reports n = 0
-and accuracy null, never NaN), and Q1 - reader colour accuracy beside the human mean recognizability - with no
-equivalence reading.
+(human recognizability >= 0.8) on the GRAYSCALE canvas as delivered; admitted iff the one-sided exact (Clopper-Pearson)
+95 % lower bound is >= 0.90: with 63 easy items, 61 of 63 or better (`required_successes`). Nothing else gates.
+DESCRIPTIVE (no claim): colour accuracy, the paired colour/gray table with discordant counts, full-panel and
+per-stratum rows with denominators (an empty stratum reports n = 0 and accuracy null), Q1 beside the human mean.
 
-REFERRAL RECORDS (repair 7). Every grayscale item not answered correctly becomes a record with: opaque item and
-view, intended concept and THINGS sense, human proportion and rating count, image hash, prompt hash, model identity,
-the unedited raw answer and the question order, the frozen score and reason code, and empty fields for the owner's
-dated evidence, decision and disposition. AI-passed and owner-adjudicated items are reported separately; an owner
-decision never adds an alias and never changes the qualification score.
+REFERRAL RECORDS. Every grayscale item not answered correctly: opaque item and view, intended concept, THINGS sense
+and synset, human proportion and rating count, the delivered image digest and the attempt id from the executed
+request's receipt, the prompt hash and reader identity, the unedited raw answer with its length and sha256, the
+question order, the frozen code, the raw file's sha256 and commit, the package digest and the key, set and scorer
+hashes, and empty fields for the owner's dated evidence, decision and disposition. An owner decision never adds an
+alias and never changes the qualification score.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import re
@@ -50,10 +57,17 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import ai_reader_journal as J  # noqa: E402
 from ai_reader_key import KEY, normalise  # noqa: E402
 
 SET = HERE / "ai_reader_qual_set.json"
 LOWER_BOUND, CONF = 0.90, 0.95
+STATUS_CODES = {"isolation_violation": "ERR_ISOLATION", "overflow": "ERR_OVERLENGTH",
+                "interrupted": "ERR_INTERRUPTED", "no_response": "ERR_NO_RESPONSE"}
+
+
+def sha(b: bytes) -> str:
+    return hashlib.sha256(b).hexdigest()
 
 
 def binom_tail_ge(k: int, n: int, p: float) -> float:
@@ -81,76 +95,115 @@ def required_successes(n: int) -> int | None:
     return None
 
 
-def classify(raw: str | None, aliases: list[str], status: str = "ok") -> tuple[str, bool]:
+def classify(raw: str | None, aliases: list[str], status: str = "ok", overlength: bool = False) -> tuple[str, bool]:
     """(reason code, descriptive close). 'OK_MATCH' is the only correct outcome."""
-    if status == "isolation_violation":
-        return "ERR_ISOLATION", False
+    if status in STATUS_CODES:
+        return STATUS_CODES[status], False
+    if overlength:
+        return "ERR_OVERLENGTH", False
     if status != "ok" or raw is None:
         return "ERR_NO_RESPONSE", False
     n = normalise(raw)
     close = any(re.search(r"(^| )" + re.escape(a) + r"( |$)", n) for a in aliases) if n else False
-    if n in aliases:
-        return "OK_MATCH", True
+    if re.search(r"[\r\n  ]", raw.strip()):
+        return "ERR_EXPLANATORY", close
+    if any((ord(ch) < 32 and ch != "\t") or 127 <= ord(ch) < 160 for ch in raw.strip()):
+        return "ERR_MALFORMED", close
     if not n:
         return "ERR_EMPTY", False
     if n == "unclear":
         return "ERR_UNCLEAR", False
     if re.search(r"\b(or|and)\b|[,/;&]", n):
         return "ERR_MULTIPLE", close
-    if len(n.split()) > 5 or re.search(r"[.!?:]", n) or "\n" in raw.strip():
+    if len(n.split()) > 5 or re.search(r"[.!?:]", n):
         return "ERR_EXPLANATORY", close
     if not re.fullmatch(r"[a-z0-9' ]+", n):
         return "ERR_MALFORMED", close
+    if n in aliases:
+        return "OK_MATCH", True
     return "ERR_NONMATCH", close
 
 
-def retained(raw_path: Path, sset: dict) -> dict:
-    """{request_id: record} with exactly one retained response per declared request, or a refusal."""
-    want = {r["request"]: r for r in sset["requests"]}
-    got, failures = {}, []
-    for line in raw_path.read_text().splitlines():
-        if not line.strip():
-            continue
-        rec = json.loads(line)
-        rq = rec.get("request")
-        if rq not in want:
-            raise SystemExit(f"refused: unknown request id {rq!r}")
-        if (rec.get("item"), rec.get("view")) != (want[rq]["item"], want[rq]["view"]):
-            raise SystemExit(f"refused: request {rq} names item/view {rec.get('item')}/{rec.get('view')}")
-        if rec.get("retained"):
-            if rq in got:
-                raise SystemExit(f"refused: duplicate retained response for {rq}")
-            got[rq] = rec
-        else:
-            failures.append(rec)
-    missing = sorted(set(want) - set(got))
-    if missing:
-        raise SystemExit(f"refused: {len(missing)} of {len(want)} requests have no retained response "
-                         f"(first: {missing[:3]}); no verdict on an incomplete file")
-    return {"retained": got, "failures": failures}
+def committed(raw_path: Path) -> dict:
+    """The raw file must be tracked, clean and byte-equal to the committed blob."""
+    p = raw_path.resolve()
+    top = subprocess.run(["git", "-C", str(p.parent), "rev-parse", "--show-toplevel"], capture_output=True,
+                         text=True)
+    if top.returncode != 0:
+        raise SystemExit("refused: the raw file is not in a git repository")
+    rel = str(p.relative_to(Path(top.stdout.strip()).resolve()))
+    ls = subprocess.run(["git", "-C", top.stdout.strip(), "ls-files", "--error-unmatch", rel], capture_output=True)
+    dirty = subprocess.run(["git", "-C", top.stdout.strip(), "status", "--porcelain", "--", rel], capture_output=True,
+                           text=True).stdout.strip()
+    if ls.returncode != 0 or dirty:
+        raise SystemExit("refused: commit the raw responses before scoring (raw answers are locked first)")
+    blob = subprocess.run(["git", "-C", top.stdout.strip(), "show", f"HEAD:{rel}"], capture_output=True).stdout
+    data = p.read_bytes()
+    if sha(blob) != sha(data):
+        raise SystemExit("refused: the raw file differs from its committed blob")
+    commit = subprocess.run(["git", "-C", top.stdout.strip(), "log", "-1", "--format=%H", "--", rel],
+                            capture_output=True, text=True).stdout.strip()
+    return {"raw_sha256": sha(data), "raw_commit": commit, "bytes": data}
+
+
+def admit(raw_path: Path, sset: dict, *, package: dict | None, allow_synthetic: bool, go: Path | None) -> dict:
+    """Groups 1 and 6: committed raw, complete validation, approved package."""
+    if allow_synthetic:
+        data = raw_path.read_bytes()
+        info = {"raw_sha256": sha(data), "raw_commit": None, "bytes": data}
+    else:
+        info = committed(raw_path)
+    recs, tail = J.read(raw_path)
+    if tail:
+        raise SystemExit("refused: the raw file ends in an incomplete line")
+    digest = recs[0].get("package_digest") if recs else None
+    if not allow_synthetic:
+        import ai_reader_exec as X
+        import stage_a_guard
+        pkg = package or X.package()
+        if digest != pkg["package_digest"]:
+            raise SystemExit("refused: the journal's package digest is not the package recomputed now")
+        stage_a_guard.NEGATIVE_REVIEWS = stage_a_guard.NEGATIVE_REVIEWS | X.NEGATIVE
+        stage_a_guard.require_go(go or X.GO, pkg, row="aireader", stage="qualification",
+                                 verify_at_commit=X.package_at_commit)
+    v = J.validate(recs, sset, digest, raw_bytes=info["bytes"], require_complete=True,
+                   mode="synthetic-fixture" if allow_synthetic else "scientific")
+    begins = {r["attempt_id"]: r for r in recs if r["t"] == "begin"}
+    return {**info, "validation": v, "records": recs, "begins": begins, "package_digest": digest}
 
 
 def rate(rows: list[bool]) -> dict:
     return {"n": len(rows), "correct": sum(rows), "accuracy": (sum(rows) / len(rows)) if rows else None}
 
 
-def score(raw_path: Path, *, require_committed: bool = True) -> dict:
-    if require_committed:
-        rel = str(raw_path.resolve())
-        ls = subprocess.run(["git", "-C", str(HERE), "ls-files", "--error-unmatch", rel], capture_output=True)
-        dirty = subprocess.run(["git", "-C", str(HERE), "status", "--porcelain", "--", rel], capture_output=True,
-                               text=True).stdout.strip()
-        if ls.returncode != 0 or dirty:
-            raise SystemExit("refused: commit the raw responses before scoring (raw answers are locked first)")
-    sset = json.loads(SET.read_text())
-    key = json.loads(KEY.read_text())
-    r = retained(raw_path, sset)
+def score(raw_path: Path, *, allow_synthetic: bool = False, package: dict | None = None, go: Path | None = None,
+          sset: dict | None = None, key: dict | None = None) -> dict:
+    sset = sset or json.loads(SET.read_text())
+    key_bytes = KEY.read_bytes()
+    key = key or json.loads(key_bytes)
+    if not allow_synthetic and sha(key_bytes) != sset.get("key_sha256"):
+        raise SystemExit("refused: the key's sha256 differs from the set's key_sha256")
+    a = admit(raw_path, sset, package=package, allow_synthetic=allow_synthetic, go=go)
+    ident = {"raw_sha256": a["raw_sha256"], "raw_commit": a["raw_commit"], "package_digest": a["package_digest"],
+             "key_sha256": sha(key_bytes), "set_sha256": sha(SET.read_bytes()),
+             "scorer_sha256": sha(Path(__file__).read_bytes())}
+    final = {}
+    for r in a["records"]:
+        if (r["t"] == "end" and r["retained"]) or r["t"] == "final":
+            final[r["request"]] = r
+    reqs = {r["request"]: r for r in sset["requests"]}
     rows = {}
-    for rq, rec in r["retained"].items():
-        k = key["items"][rec["item"]]
-        code, close = classify(rec.get("answer"), k["aliases"], rec.get("status", "ok"))
-        rows[rq] = {"item": rec["item"], "view": rec["view"], "code": code, "correct": code == "OK_MATCH",
-                    "close_descriptive": close, "raw": rec.get("answer"), "stratum": k["stratum"], "easy": k["easy"]}
+    for rq, rec in final.items():
+        item, view = reqs[rq]["item"], reqs[rq]["view"]
+        k = key["items"][item]
+        status = rec["outcome"]
+        code, close = classify(rec.get("answer"), k["aliases"], status, bool(rec.get("overlength")))
+        b = a["begins"].get(rec.get("attempt_id"), {})
+        rows[rq] = {"item": item, "view": view, "code": code, "correct": code == "OK_MATCH",
+                    "close_descriptive": close, "raw": rec.get("answer"), "answer_len": rec.get("answer_len"),
+                    "answer_sha256": rec.get("answer_sha256"), "attempt_id": rec.get("attempt_id"),
+                    "delivered_sha256": (b.get("receipt") or {}).get("image_sha256"),
+                    "stratum": k["stratum"], "easy": k["easy"]}
     by_item = {}
     for v in rows.values():
         by_item.setdefault(v["item"], {})[v["view"]] = v
@@ -182,14 +235,14 @@ def score(raw_path: Path, *, require_committed: bool = True) -> dict:
             k = key["items"][i]
             referrals.append({"item": i, "view": "gray", "concept": k["concept"], "sense": k["sense"],
                               "synset": k["synset"], "human_recognizability": k["human"]["recognizability"],
-                              "human_n_ratings": k["human"]["n_ratings"],
-                              "image_sha256": next(r["sha256"] for r in sset["requests"]
-                                                   if r["item"] == i and r["view"] == "gray"),
+                              "human_n_ratings": k["human"]["n_ratings"], "attempt_id": g["attempt_id"],
+                              "delivered_image_sha256": g["delivered_sha256"],
                               "prompt_sha256": sset["prompt_sha256"], "model": sset["reader"],
-                              "raw_answer": g["raw"], "question_order": ["free_name"], "score": g["code"],
-                              "reason": g["code"], "owner_evidence": None, "owner_decision": None,
-                              "owner_date": None, "disposition": None})
-    out = {"admission": {"rule": f"gray easy whole-answer accuracy, one-sided exact {int(CONF * 100)}% lower bound "
+                              "raw_answer": g["raw"], "answer_len": g["answer_len"], "answer_sha256": g["answer_sha256"],
+                              "question_order": ["free_name"], "score": g["code"], "reason": g["code"], **ident,
+                              "owner_evidence": None, "owner_decision": None, "owner_date": None, "disposition": None})
+    out = {"identity": ident, "mode": a["validation"]["mode"],
+           "admission": {"rule": f"gray easy whole-answer accuracy, one-sided exact {int(CONF * 100)}% lower bound "
                                  f">= {LOWER_BOUND}", "easy_n": len(g_easy), "easy_correct": sum(g_easy),
                          "required_successes": k_req, "lower_bound": lb, "admitted": lb >= LOWER_BOUND},
            "descriptive": {
@@ -202,8 +255,12 @@ def score(raw_path: Path, *, require_committed: bool = True) -> dict:
                                      for view in ("colour", "gray")},
                "Q1_colour_accuracy_beside_human_mean": [rate(view_rows("colour"))["accuracy"], human_mean],
                "Q1_note": "descriptive only: a menu-choice human norm is not a free-naming measure"},
-           "reason_codes": codes, "provider_failures": len(r["failures"]),
-           "referrals": referrals, "referral_count": len(referrals)}
+           "reason_codes": codes, "attempts": a["validation"]["attempts"],
+           "outcomes": a["validation"]["outcomes"], "referrals": referrals, "referral_count": len(referrals)}
+    if out["mode"] != "scientific":
+        out = {"WARNING": "SYNTHETIC FIXTURE - NOT A QUALIFICATION RESULT", **out}
+        out["admission"]["admitted"] = None
+        out["admission"]["synthetic_would_admit"] = lb >= LOWER_BOUND
     return out
 
 

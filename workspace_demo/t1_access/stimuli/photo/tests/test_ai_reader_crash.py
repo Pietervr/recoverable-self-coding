@@ -1,0 +1,193 @@
+"""AI-reader revision 3, group 3: HARD-KILL fixtures. The executor runs as a real subprocess in fixture mode (fake
+codex, synthetic images, no model) and dies by os._exit(77) at each crash window, or by an external SIGKILL while its
+worker is alive; a second process then recovers from the journal alone. Asserted every time: the journal validates,
+the counters are exact, no request is dispatched again after a durable answer, an attempt that may have been answered
+is retained as INTERRUPTED and never re-asked, an attempt never dispatched sends nothing, and the crashed session's
+time is charged.
+
+    .venv-image/bin/python -m unittest discover -s stimuli/photo/tests -p 'test_ai_reader_crash.py' -v
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import signal
+import subprocess
+import sys
+import tempfile
+import time
+import unittest
+from pathlib import Path
+
+TESTS = Path(__file__).resolve().parent
+sys.path.insert(0, str(TESTS.parent))
+sys.path.insert(0, str(TESTS))
+import ai_reader_exec as X  # noqa: E402
+import ai_reader_journal as J  # noqa: E402
+import airq_fixture as A  # noqa: E402
+
+DRIVER = TESTS / "airq_fixture.py"
+
+
+def drive(root: Path, crash: str | None = None, timeout: float = 120) -> subprocess.CompletedProcess:
+    env = {**os.environ, "AIRQ_CRASH": crash} if crash else {k: v for k, v in os.environ.items() if k != "AIRQ_CRASH"}
+    return subprocess.run([sys.executable, str(DRIVER), str(root)], capture_output=True, text=True, env=env,
+                          timeout=timeout)
+
+
+class HardKill(unittest.TestCase):
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp(dir=X.ensure_root()))
+
+    def build(self, plan=None):
+        self.b = A.build(self.root, plan or {"rq1c": ["slow_ok:1:thing"]})
+        return self.b
+
+    def journal(self):
+        recs, tail = J.read(self.b["fixture"]["raw"])
+        return recs, tail
+
+    def finish_and_check(self) -> list[dict]:
+        p = drive(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr[-2000:])
+        self.assertEqual(json.loads(p.stdout.strip().splitlines()[-1])["outcome"], "COMPLETE")
+        recs, tail = self.journal()
+        self.assertEqual(tail, b"")
+        v = J.validate(recs, self.b["sset"], A.DIGEST, raw_bytes=self.b["fixture"]["raw"].read_bytes(),
+                       mode="synthetic-fixture")
+        self.assertEqual(v["final"], 6)
+        # no dispatch after a durable answer for the same request
+        answered_at = {}
+        for r in recs:
+            if r["t"] == "end" and r["retained"]:
+                answered_at.setdefault(r["request"], r["seq"])
+        disp_reqs = [d["request"] for d in A.dispatches(self.root)]
+        begins = [r for r in recs if r["t"] == "begin"]
+        for rq in answered_at:
+            later = [r for r in begins if r["request"] == rq and r["seq"] > answered_at[rq]]
+            self.assertEqual(later, [], f"{rq} begun again after a retained outcome")
+        self.assertLessEqual(len(disp_reqs), len(begins))
+        clock = json.loads((self.b["fixture"]["job"] / "clock.json").read_text())
+        crashed = [s for s in clock["sessions"] if s.get("closed") == "crashed"]
+        return recs, crashed
+
+    def crash_at(self, point: str, n: int):
+        p = drive(self.root, f"{point}:{n}")
+        self.assertEqual(p.returncode, 77, p.stderr[-2000:])
+
+    def test_before_begin(self):
+        self.build()
+        self.crash_at("before_begin", 2)
+        recs, crashed = self.finish_and_check()
+        self.assertEqual(len(crashed), 1)
+        self.assertGreaterEqual(crashed[0]["charged_s"], X.TAIL_S)
+        self.assertFalse([r for r in recs if r["t"] == "recovered"])     # nothing was open
+
+    def test_after_begin_not_dispatched(self):
+        self.build()
+        self.crash_at("after_begin", 2)
+        recs, _ = self.finish_and_check()
+        rv = [r for r in recs if r["t"] == "recovered"]
+        self.assertEqual(rv[0]["finding"], "not_dispatched")
+        self.assertEqual([d["request"] for d in A.dispatches(self.root)].count("rq1c"), 1)  # sent once, by the retry
+        tries = [r for r in recs if r["t"] == "begin" and r["request"] == "rq1c"]
+        self.assertEqual(len(tries), 2)                                    # the lost try stays charged
+
+    def test_after_dispatch_record_before_go(self):
+        self.build()
+        self.crash_at("after_dispatch", 2)                                # the gate gets EOF: nothing is sent
+        time.sleep(0.5)
+        recs, _ = self.finish_and_check()
+        self.assertEqual([d["request"] for d in A.dispatches(self.root)].count("rq1c"), 0)
+        e = next(r for r in recs if r["t"] == "end" and r["request"] == "rq1c")
+        self.assertEqual(e["outcome"], "interrupted")                     # conservative: dispatched => interrupted
+
+    def test_after_go_worker_alive(self):
+        self.build({"rq1c": ["slow_ok:5:thing"]})
+        self.crash_at("after_go", 2)
+        for _ in range(200):                                              # the gate saw GO; wait for the worker
+            if any(d["request"] == "rq1c" for d in A.dispatches(self.root)):
+                break
+            time.sleep(0.05)
+        pid = next(d["pid"] for d in A.dispatches(self.root) if d["request"] == "rq1c")
+        os.kill(pid, 0)                                                   # the orphaned worker is still running
+        recs, _ = self.finish_and_check()
+        rv = next(r for r in recs if r["t"] == "recovered")
+        self.assertEqual((rv["finding"], rv["killed"]), ("dispatched_no_end", True))
+        with self.assertRaises(ProcessLookupError):
+            os.kill(pid, 0)
+        self.assertEqual([d["request"] for d in A.dispatches(self.root)].count("rq1c"), 1)   # never re-asked
+
+    def test_after_response_answer_lost(self):
+        self.build()
+        self.crash_at("after_response", 2)
+        recs, _ = self.finish_and_check()
+        rv = next(r for r in recs if r["t"] == "recovered")
+        self.assertEqual(rv["evidence"]["last.txt"]["text"], "thing")    # the evidence is kept for audit
+        e = next(r for r in recs if r["t"] == "end" and r["request"] == "rq1c")
+        self.assertEqual((e["outcome"], e["retained"], e["answer"]), ("interrupted", True, None))
+        self.assertEqual([d["request"] for d in A.dispatches(self.root)].count("rq1c"), 1)
+
+    def test_after_end_answer_durable(self):
+        self.build()
+        self.crash_at("after_end", 2)
+        recs, _ = self.finish_and_check()
+        e = next(r for r in recs if r["t"] == "end" and r["request"] == "rq1c")
+        self.assertEqual((e["outcome"], e["answer"]), ("ok", "thing"))
+        self.assertEqual([d["request"] for d in A.dispatches(self.root)].count("rq1c"), 1)
+
+    def test_after_state(self):
+        self.build()
+        self.crash_at("after_state", 2)
+        recs, _ = self.finish_and_check()
+        self.assertEqual([d["request"] for d in A.dispatches(self.root)].count("rq1c"), 1)
+
+    def test_terminal_no_response(self):
+        self.build({"rq1c": ["fail"]})
+        self.crash_at("final", 4)                                        # three failures done, final not yet written
+        recs, _ = self.finish_and_check()
+        self.assertEqual(len([r for r in recs if r["t"] == "final"]), 1)
+        self.assertEqual([d["request"] for d in A.dispatches(self.root)].count("rq1c"), 3)
+
+    def test_recovery_persistence(self):
+        self.build({"rq1c": ["slow_ok:5:thing"]})
+        self.crash_at("after_go", 2)
+        self.crash_at("recovery", 2)                                     # dies after 'recovered', before 'end'
+        recs, _ = self.finish_and_check()
+        self.assertEqual(len([r for r in recs if r["t"] == "recovered"]), 1)
+        self.assertEqual(len([r for r in recs if r["t"] == "end" and r["outcome"] == "interrupted"]), 1)
+
+    def test_incomplete_tail_quarantined(self):
+        self.build()
+        self.crash_at("after_state", 2)
+        with open(self.b["fixture"]["raw"], "ab") as fh:
+            fh.write(b'{"t": "end", "seq": 99, "answ')                     # a write cut by a crash
+        recs, _ = self.finish_and_check()
+        tr = [r for r in recs if r["t"] == "tail_repair"]
+        self.assertEqual(len(tr), 1)
+        self.assertTrue((self.b["fixture"]["job"] / "quarantine" / tr[0]["quarantine"]).exists())
+
+    def test_external_sigkill_with_live_worker(self):
+        self.build({"rq1c": ["slow_ok:30:thing"]})
+        env = {k: v for k, v in os.environ.items() if k != "AIRQ_CRASH"}
+        p = subprocess.Popen([sys.executable, str(DRIVER), str(self.root)], env=env, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        for _ in range(400):
+            if any(d["request"] == "rq1c" for d in A.dispatches(self.root)):
+                break
+            time.sleep(0.05)
+        pid = next(d["pid"] for d in A.dispatches(self.root) if d["request"] == "rq1c")
+        p.send_signal(signal.SIGKILL)
+        p.wait()
+        os.kill(pid, 0)                                                   # alive after its orchestrator died
+        recs, crashed = self.finish_and_check()
+        rv = next(r for r in recs if r["t"] == "recovered")
+        self.assertTrue(rv["killed"])
+        with self.assertRaises(ProcessLookupError):
+            os.kill(pid, 0)
+        self.assertEqual(len(crashed), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
