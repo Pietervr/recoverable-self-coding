@@ -112,18 +112,45 @@ if __name__ == "__main__":
             return _wa(path, data, **kw)
         X.write_atomic = wa
     close_fail, marker_fail = os.environ.get("AIRQ_CLOSE_FAIL"), os.environ.get("AIRQ_MARKER_FAIL")
-    if close_fail or marker_fail:                          # revision-7 post-rename failure fixtures (reader A)
+    if close_fail:                                         # revision-7 post-rename failure fixtures (reader A)
         _wa2 = X.write_atomic
 
         def wa2(path, data, **kw):
             _wa2(path, data, **kw)                         # the rename (and fsyncs) happened ...
-            if close_fail and b'"open_session": null' in data:
+            if b'"open_session": null' in data:
                 if close_fail == "stall":
                     time.sleep(10 ** 6)
                 raise OSError("fixture: directory fsync failed after the rename")
-            if marker_fail and Path(path).name == "clock.closed.json":
-                raise OSError("fixture: the marker's directory fsync failed after its rename")
         X.write_atomic = wa2
+    if marker_fail:                                        # revision 8 (reader A): the marker's write and commit
+        _wm = X.write_marker
+
+        def wm(path, data, commit=None):
+            if marker_fail == "error":
+                raise OSError("fixture: the marker's write failed")
+
+            def c2(fn):
+                def f():
+                    if marker_fail == "stall_before_rename":
+                        time.sleep(10 ** 6)
+                    fn()                                   # the rename
+                    if marker_fail == "stall_after_rename":   # visible, but the call does not return
+                        time.sleep(10 ** 6)
+                return (commit or (lambda g: g()))(f)
+            return _wm(path, data, c2)
+        X.write_marker = wm
+    if os.environ.get("AIRQ_JOB_CLOCK_S"):                 # revision 8 (reader B): a cap near the used time
+        X.LIMITS["job_clock_s"] = float(os.environ["AIRQ_JOB_CLOCK_S"])
+    if os.environ.get("AIRQ_SLOW_CLOCK_READ"):             # revision 8 (reader B): the old clock's read is slow
+        _rt, slow_cr = Path.read_text, float(os.environ["AIRQ_SLOW_CLOCK_READ"])
+        done = {"n": 0}
+
+        def rt(self, *a, **k):
+            if self.name == "clock.json" and not done["n"]:
+                done["n"] = 1
+                time.sleep(slow_cr)
+            return _rt(self, *a, **k)
+        Path.read_text = rt
     if slow_a:
         _ca = X.check_accounting
         X.check_accounting = lambda *a: (time.sleep(slow_a), _ca(*a))[1]

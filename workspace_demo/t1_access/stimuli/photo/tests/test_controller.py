@@ -522,6 +522,98 @@ class Controller(unittest.TestCase):
         self.assertGreaterEqual(rec(out)["seconds_total"], before + 40.0)
         self.assertFalse((out / C.STARTING).exists())
 
+    def test_pre_pending_stall_is_charged_at_restart(self):
+        """Revision 8 (Codex 12a7f20, Stage A A1): the directory creation or the lock blocks before the pending-start
+        record exists; the guardian kills the controller and records the start and the death; the next start charges
+        that interval (a kill alone is not accounting)."""
+        stalls = {"directory": ("real = pathlib.Path.mkdir\n"
+                                "def mk(self, *a, **k):\n"
+                                "    if str(self) == str(o): time.sleep(10**6)\n"
+                                "    return real(self, *a, **k)\n"
+                                "pathlib.Path.mkdir = mk\n"),
+                  "lock": "import stage_a_guard\nstage_a_guard.TaskLock = lambda d: time.sleep(10**6)\n"}
+        for name, patch in stalls.items():
+            with self.subTest(name):
+                p, out, el = self.guarded_driver("C.SETUP_DEADLINE_S = 2.0\n" + patch + "T.ctl(o, {}).run()\n")
+                self.assertEqual(p.returncode, -signal.SIGKILL, p.stderr[-800:])
+                self.assertFalse((out / C.STARTING).exists())        # it died before publishing a pending entry
+                gp = next(out.glob("guardian_*.json"))
+                g = json.loads(gp.read_text())
+                self.assertTrue(C._num(g["started_wall"]))
+                self.assertEqual(ctl(out, {}).run()["outcome"], "PASS")
+                fs = [x for x in rec(out)["sessions"] if x.get("closed") == "failed_start_before_pending"]
+                self.assertEqual([x["session"] for x in fs], [gp.stem[len("guardian_"):]])
+                self.assertAlmostEqual(fs[0]["charged_s"], g["controller_gone_wall"] - g["started_wall"], delta=1e-6)
+                self.assertGreaterEqual(fs[0]["charged_s"], 2.0)
+                self.assertGreaterEqual(rec(out)["seconds_total"], CARRY + fs[0]["charged_s"])
+                ctl(out, {}).run()                                       # charged once, not again
+                self.assertEqual(len([x for x in rec(out)["sessions"]
+                                      if x.get("closed") == "failed_start_before_pending"]), 1)
+                MEASURED.setdefault("pre_pending_stall_charged_s", {})[name] = round(fs[0]["charged_s"], 3)
+
+    def test_long_first_persist_with_an_existing_clock(self):
+        """Revision 8 (Stage A A2): a closed controller.json exists; the next start's first persist blocks before its
+        rename after the guardian was moved past the setup deadline. The longer deadline was durable in the pending
+        entry first, so the restart charges until the recorded death - and, with the death record missing, until that
+        durable deadline + margin (never only the setup interval)."""
+        for missing_death in (False, True):
+            with self.subTest(missing_death=missing_death):
+                out = new_out()
+                self.assertEqual(ctl(out, {}).run()["outcome"], "PASS")
+                cap = rec(out)["seconds_total"] + 6.0
+                body = (f"o=Path({str(out)!r})\nimport time\n"
+                        "C.SETUP_DEADLINE_S, C.CLOSE_CHARGE_S = 1.0, 1.0\n"
+                        "def w(p, ob, final=False):\n"
+                        "    if p.name == 'controller.json':\n"           # this process's FIRST persist: before rename
+                        "        time.sleep(10**6)\n"
+                        "    write_json_atomic(p, ob, final=final)\n"
+                        f"T.ctl(o, {{}}, writer=w, row_cap_s={cap}).run()\n")
+                t = time.monotonic()
+                p = subprocess.run(driver(body), capture_output=True, text=True, timeout=120)
+                el = time.monotonic() - t
+                self.assertEqual(p.returncode, -signal.SIGKILL, p.stderr[-800:])
+                self.assertGreater(el, 5.0)                               # lived past the 1 s setup deadline
+                pend = json.loads((out / C.STARTING).read_text())["pending"]
+                mine = pend[-1]
+                gp = out / f"guardian_{mine['session']}.json"
+                g = json.loads(gp.read_text())
+                self.assertGreaterEqual(mine["deadline_wall"] + C.EXIT_MARGIN_S, g["controller_gone_wall"])
+                if missing_death:
+                    gp.unlink()
+                ctl(out, {}, row_cap_s=cap + 3600).run()
+                fs = [x for x in rec(out)["sessions"] if x.get("session") == mine["session"]]
+                self.assertEqual(len(fs), 1)
+                self.assertEqual(fs[0]["closed"], "failed_start")
+                self.assertGreaterEqual(fs[0]["charged_s"], g["controller_gone_wall"] - mine["start_wall"] - 1e-6)
+                MEASURED.setdefault("long_first_persist_charged_s", {})[f"death_missing_{missing_death}"] = \
+                    round(fs[0]["charged_s"], 3)
+
+    def test_two_failures_during_pending_reconciliation(self):
+        """Revision 8 (Stage A A3): S1's pending entry exists; S2 reads it, publishes S1 + S2 and dies while
+        reconciling (before its first persist); S3 charges BOTH - repeated failed starts never erase startup time."""
+        out = new_out()
+        self.assertEqual(ctl(out, {}).run()["outcome"], "PASS")
+        now = time.time()
+        (out / C.STARTING).write_text(json.dumps({"session": "deadstart1", "start_wall": now - 40,
+                                                  "deadline_wall": now - 40 + C.SETUP_DEADLINE_S}))
+        before = rec(out)["seconds_total"]
+        body = (f"o=Path({str(out)!r})\nimport os\n"
+                "C.Controller._supersede = lambda self: os._exit(9)\n"     # dies after the load, before the persist
+                "T.ctl(o, {}).run()\n")
+        p = subprocess.run(driver(body), capture_output=True, text=True, timeout=120)
+        self.assertEqual(p.returncode, 9, p.stderr[-800:])
+        pend = json.loads((out / C.STARTING).read_text())["pending"]
+        self.assertEqual([x["session"] for x in pend][0], "deadstart1")    # S1 survived S2's replacement
+        self.assertEqual(rec(out)["seconds_total"], before)                 # nothing was absorbed yet
+        s2 = pend[1]["session"]
+        ctl(out, {}).run()
+        fs = {x["session"]: x for x in rec(out)["sessions"] if x.get("closed") == "failed_start"}
+        self.assertEqual(set(fs), {"deadstart1", s2})
+        self.assertAlmostEqual(fs["deadstart1"]["charged_s"], 40.0, delta=5.0)
+        self.assertGreater(fs[s2]["charged_s"], 0.0)
+        self.assertGreaterEqual(rec(out)["seconds_total"], before + 40.0 + fs[s2]["charged_s"] - 1e-6)
+        self.assertFalse((out / C.STARTING).exists())
+
     def test_controller_death_during_active_work(self):
         """SIGKILL the controller while its worker (and grandchild) run: the watchdog kills the group; the next
         controller reconciles by identity, charges the tail and continues."""

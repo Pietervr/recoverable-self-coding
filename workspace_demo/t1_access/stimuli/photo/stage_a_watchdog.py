@@ -1,4 +1,5 @@
-"""Photograph arm, Stage A (row 20) and the AI-reader job: the WATCHDOG - revision 7 (Codex RSC c036c00 Stage A A, C: ticks
+"""Photograph arm, Stage A (row 20) and the AI-reader job: the WATCHDOG - revision 8 (the guardian's death
+record carries the protected start's wall time); revision 7 (Codex RSC c036c00 Stage A A, C: ticks
 carry their source observation time, staleness is measured from it, every endpoint is timestamped; the guardian
 creates its record's directory) - revision 6 answered RSC b569f8a Stage A 1-2,
 reader 1; revision 5 answered RSC 1bf9890 A2-A4, R3; framework 8.4 (m)). Revision 6: it retires only when the worker's
@@ -139,6 +140,7 @@ def guardian(a: dict) -> int:
             break
         time.sleep(POLL_S)
     rec = {"reason": "controller deadline", "session": a.get("session"), "observed_wall": time.time(),
+           "started_wall": a.get("started_wall"),     # the protected start (revision 8: a pre-pending death is charged)
            "observed_mono": time.monotonic(), "deadline_mono": deadline, "watchdog_pid": os.getpid(), "how": "SIGKILL"}
     kill_controller(ctl, rec)
     write_record(a["record"], rec)

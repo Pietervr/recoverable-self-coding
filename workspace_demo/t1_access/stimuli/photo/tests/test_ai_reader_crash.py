@@ -425,31 +425,36 @@ class Rev7(HardKill):
                 p = self.run_env(AIRQ_CLOSE_FAIL=mode, AIRQ_FINAL_WRITE_S="4")
                 self.assertIn(p.returncode, codes, p.stderr[-800:])
                 recs, _ = self.journal()
-                self.assertEqual((recs[-1]["t"], recs[-1]["outcome"]), ("receipt", "COMPLETE"))
+                self.assertEqual((recs[-1]["t"], recs[-1]["outcome"]), ("receipt", "COMPLETE"),
+                                 f"{recs[-1].get('reason')!r} | {p.stderr[-1500:]}")
                 c = json.loads((self.b["fixture"]["job"] / "clock.json").read_text())
                 self.assertIsNone(c["open_session"])                      # the renamed snapshot says 'closed' ...
                 with self.assertRaisesRegex(SystemExit, "no closure marker"):
                     self.admitted()                                       # ... and does not qualify
 
     def test_marker_failure_after_its_rename_is_removed(self):
+        """Reader A (revision 8 path): the marker's write fails before its commit - no marker, not admitted."""
         p = self.run_env(AIRQ_MARKER_FAIL="error")
         self.assertEqual(p.returncode, 1, p.stderr[-800:])
         self.assertFalse((self.b["fixture"]["job"] / "clock.closed.json").exists())
         with self.assertRaisesRegex(SystemExit, "no closure marker"):
             self.admitted()
 
+    def pending(self) -> list:
+        return sorted(self.b["fixture"]["job"].glob("clock.starting*.json"))
+
     def test_failed_start_is_charged_at_the_next_start(self):
         """Reader B: a start killed by its setup timer before the clock's first persist is charged next time."""
         p = self.run_env(AIRQ_SETUP_S="1.0", AIRQ_SLOW_ACCOUNTING="30")
         self.assertEqual(p.returncode, 75, p.stderr[-800:])
-        self.assertTrue((self.b["fixture"]["job"] / "clock.starting.json").exists())
+        self.assertEqual(len(self.pending()), 1)
         p = drive(self.root)
         self.assertEqual(p.returncode, 0, p.stderr[-800:])
         c = json.loads((self.b["fixture"]["job"] / "clock.json").read_text())
         fs = [x for x in c["sessions"] if x.get("closed") == "failed_start"]
         self.assertEqual(len(fs), 1)
         self.assertGreater(fs[0]["charged_s"], 0.5)
-        self.assertFalse((self.b["fixture"]["job"] / "clock.starting.json").exists())
+        self.assertEqual(self.pending(), [])
         self.admitted()                                                   # coherent totals with the charge included
 
     def test_coherent_undercharge_refused(self):
@@ -478,9 +483,146 @@ class Rev7(HardKill):
             X.admit_clock(cp, raw, recs[-1])
 
 
+class Rev8(Rev7):
+    """Codex RSC 12a7f20, reader A and B, across real process exits."""
+
+    def again(self, **env) -> subprocess.CompletedProcess:
+        e = {**{k: v for k, v in os.environ.items() if k != "AIRQ_CRASH"}, **env}
+        return subprocess.run([sys.executable, str(DRIVER), str(self.root)], capture_output=True, text=True, env=e,
+                              timeout=180)
+
+    def clock(self) -> dict:
+        return json.loads((self.b["fixture"]["job"] / "clock.json").read_text())
+
+    def test_marker_commit_stall_does_not_qualify(self):
+        """Reader A: the marker's commit stalls before its rename, or the rename takes effect but does not return;
+        the final deadline fires (exit 75): the tombstone names the session and any marker is removed - the durable
+        COMPLETE and the readable closed clock do not qualify."""
+        for mode in ("stall_before_rename", "stall_after_rename"):
+            with self.subTest(mode):
+                p = self.run_env(AIRQ_MARKER_FAIL=mode, AIRQ_FINAL_WRITE_S="4")
+                self.assertEqual(p.returncode, 75, p.stderr[-800:])
+                recs, _ = self.journal()
+                self.assertEqual((recs[-1]["t"], recs[-1]["outcome"]), ("receipt", "COMPLETE"))
+                self.assertIsNone(self.clock()["open_session"])
+                job = self.b["fixture"]["job"]
+                self.assertEqual(json.loads((job / X.CLOSE_TOMBSTONE).read_text())["session"],
+                                 self.clock()["sessions"][-1]["session"])
+                self.assertFalse((job / X.CLOSED_MARKER).exists())
+                with self.assertRaisesRegex(SystemExit, "no closure marker|tombstone"):
+                    self.admitted()
+        p = self.run_env(AIRQ_FINAL_WRITE_S="4")                          # the control: an ordinary close qualifies
+        self.assertEqual(p.returncode, 0, p.stderr[-800:])
+        self.assertFalse((self.b["fixture"]["job"] / X.CLOSE_TOMBSTONE).exists())
+        self.admitted()
+
+    def test_marker_present_beside_its_tombstone_is_refused(self):
+        """Reader A: a marker that survives (its removal blocked) beside the tombstone naming its session is refused."""
+        p = self.run_env()
+        self.assertEqual(p.returncode, 0, p.stderr[-800:])
+        self.admitted()
+        job = self.b["fixture"]["job"]
+        mk = json.loads((job / X.CLOSED_MARKER).read_text())
+        (job / X.CLOSE_TOMBSTONE).write_text(json.dumps({"session": mk["session"]}))
+        with self.assertRaisesRegex(SystemExit, "tombstone"):
+            self.admitted()
+        (job / X.CLOSE_TOMBSTONE).write_text(json.dumps({"session": "another"}))
+        self.admitted()                                                   # another session's tombstone: no effect
+
+    def test_two_failed_starts_then_recovery(self):
+        """Reader B: S1 and S2 both die before the clock's first persist; S3 charges BOTH (each start publishes its
+        own pending file and none replaces another's)."""
+        p = self.run_env(AIRQ_SETUP_S="1.0", AIRQ_SLOW_ACCOUNTING="30")
+        self.assertEqual(p.returncode, 75, p.stderr[-800:])
+        p = self.again(AIRQ_SETUP_S="1.0", AIRQ_SLOW_ACCOUNTING="30")
+        self.assertEqual(p.returncode, 75, p.stderr[-800:])
+        ids = sorted(json.loads(x.read_text())["start"] for x in self.pending())
+        self.assertEqual(len(ids), 2)
+        p = drive(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr[-800:])
+        fs = {x["session"]: x for x in self.clock()["sessions"] if x.get("closed") == "failed_start"}
+        self.assertEqual(sorted(fs), ids)
+        for x in fs.values():
+            self.assertGreater(x["charged_s"], 0.5)
+        self.assertEqual(self.pending(), [])
+        self.admitted()
+
+    def test_elapsed_setup_is_charged_and_holds_at_the_cap(self):
+        """Reader B: with 3 s of the allowance left, the old clock's read takes 5 s: the start HOLDS (no fresh
+        allowance), and its pending entry - from the process's own start - charges the whole setup next time."""
+        p = self.run_env()
+        self.assertEqual(p.returncode, 0, p.stderr[-800:])
+        used = self.clock()["seconds_total"]
+        t = time.time()
+        p = self.again(AIRQ_JOB_CLOCK_S=str(used + 3.0), AIRQ_SLOW_CLOCK_READ="5")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("allowance is used up", p.stderr)
+        (pp,) = self.pending()
+        st = json.loads(pp.read_text())
+        self.assertLessEqual(st["start_wall"], t + 1.0)
+        p = self.again()
+        c = self.clock()
+        fs = [x for x in c["sessions"] if x.get("session") == st["start"]]
+        self.assertEqual(len(fs), 1, p.stderr[-800:])
+        self.assertEqual(fs[0]["closed"], "failed_start")
+        self.assertGreaterEqual(fs[0]["charged_s"], 5.0)
+
+    def test_crash_after_first_persist_is_charged_once(self):
+        """Reader B: the pending entry and the clock session share one id; a crash after the clock's first persist and
+        before the pending file's removal is charged once (as the crashed session), never also as a failed start."""
+        p = self.run_env(AIRQ_CRASH="after_clock_persist:1")
+        self.assertEqual(p.returncode, 77, p.stderr[-800:])
+        (pp,) = self.pending()
+        sid = json.loads(pp.read_text())["start"]
+        self.assertEqual(self.clock()["open_session"]["session"], sid)
+        p = drive(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr[-800:])
+        mine = [x for x in self.clock()["sessions"] if x.get("session") == sid]
+        self.assertEqual([x["closed"] for x in mine], ["crashed"])
+        self.admitted()
+
+    def test_journal_session_without_its_clock_session_is_refused(self):
+        """Reader B: a valid two-session COMPLETE; dropping the earlier (crashed) clock session, the total reduced to
+        the sum of the rest and the marker rehashed, is refused - the journal's session has no clock session."""
+        self.root = Path(tempfile.mkdtemp(dir=X.ensure_root()))
+        self.build({})
+        p = drive(self.root, crash="before_begin:1")
+        self.assertEqual(p.returncode, 77, p.stderr[-800:])
+        p = drive(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr[-800:])
+        self.admitted()
+        recs, _ = self.journal()
+        opened = [r["session"] for r in recs if r["t"] == "open"]
+        self.assertGreaterEqual(len(opened), 2)
+        raw = self.b["fixture"]["raw"].read_bytes()
+        cp = self.b["fixture"]["job"] / "clock.json"
+        c = self.clock()
+        keep = [x for x in c["sessions"] if x.get("session") != opened[0]]
+        total = sum(x["live_s"] if x.get("closed") not in ("crashed", "failed_start") else x["charged_s"]
+                    for x in keep)
+        alt = {**c, "sessions": keep, "seconds_total": total}
+        b_ = json.dumps(alt, indent=1, sort_keys=True).encode()
+        cp.write_bytes(b_)
+        (self.b["fixture"]["job"] / X.CLOSED_MARKER).write_text(json.dumps(
+            {"session": keep[-1]["session"], "raw_sha256": J.sha(raw), "clock_sha256": J.sha(b_)}))
+        with self.assertRaisesRegex(SystemExit, "no clock session that ran"):
+            X.admit_clock(cp, raw, recs[-1])
+        dup_s = c["sessions"] + [c["sessions"][-1]]               # sum-consistent: only the uniqueness is wrong
+        dup = {**c, "sessions": dup_s, "seconds_total": sum(
+            x["live_s"] if x.get("closed") not in ("crashed", "failed_start") else x["charged_s"] for x in dup_s)}
+        b_ = json.dumps(dup, indent=1, sort_keys=True).encode()
+        cp.write_bytes(b_)
+        (self.b["fixture"]["job"] / X.CLOSED_MARKER).write_text(json.dumps(
+            {"session": c["sessions"][-1]["session"], "raw_sha256": J.sha(raw), "clock_sha256": J.sha(b_)}))
+        with self.assertRaisesRegex(SystemExit, "names a session twice"):
+            X.admit_clock(cp, raw, recs[-1])
+
+
 for _name in [n for n in dir(HardKill) if n.startswith("test_")]:
     setattr(Rev6, _name, None)
     setattr(Rev7, _name, None)
+for _name in [n for n in dir(Rev7) if n.startswith("test_")]:
+    setattr(Rev8, _name, None)                     # Rev7's (and HardKill's) tests are not collected again
 for _name in [n for n in dir(HardKill) if n.startswith("test_")]:
     setattr(Rev5Recovery, _name, None)             # helpers inherited, HardKill's own tests not collected twice
 

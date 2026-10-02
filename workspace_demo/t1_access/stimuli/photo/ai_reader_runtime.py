@@ -1,4 +1,5 @@
-"""AI image-reader qualification, revision 7: THE REQUEST BOUNDARY (Codex RSC c036c00 reader C; RSC b569f8a R4; RSC 1bf9890 R5, R6; RSC 5a8d7ac closure 4; framework 8.2's isolation
+"""AI image-reader qualification, revision 8: THE REQUEST BOUNDARY (Codex RSC 12a7f20 reader C: the exit observation
+and the receipt's fallback read are timed after they complete; RSC c036c00 reader C; RSC b569f8a R4; RSC 1bf9890 R5, R6; RSC 5a8d7ac closure 4; framework 8.2's isolation
 evidence list and smoke rule). Standard library only. Nothing here sends a request by itself: `exec_argv` builds the one
 command that does, and only `ai_reader_exec.run` starts it, after the go.
 
@@ -264,10 +265,9 @@ class LocalCommand:
 
     def poll(self) -> bool:
         """One observation; True while the command should keep running."""
-        late = time.monotonic() > self.deadline      # the deadline is checked with, not after, the exit (R4)
         if not self.exited and memprobe.exited(self.kq):
-            self.exited = True
-            self.timed_out = self.timed_out or late
+            self.exited = True                       # the exit observation's OWN time: after the probe returned
+            self.timed_out = self.timed_out or time.monotonic() > self.deadline      # (revision 8, reader C)
         if self.exited:
             return False
         if max(self.sizes()) > self.cap:
@@ -395,23 +395,34 @@ def invocation_receipt(codex: list[str], reader: dict, adir: Path, img: Path, pr
     rust_log = "warn,codex_core::session::handlers=debug,feedback_tags=info"
     c = LocalCommand(boxed(adir, argv, sandbox, "nonet.sb"), adir, {**env(adir), "RUST_LOG": rust_log}, "inv",
                      LOCAL_CAP, wait_s)
-    sub = fb = None
+    # Revision 8 (reader C): the accepted evidence is the text of ONE timely observation - a read and parse that
+    # completed before the deadline, in the loop or in the fallback read after the command ended. Each such
+    # observation is timed after its parse; a late one sets timed_out and is never used.
+    obs = None
     try:
         while c.poll():
             txt = _read_capped(c.se, LOCAL_CAP)[0].decode("utf-8", "replace")
-            sub, fb = _SUBMISSION.search(txt), _FEEDBACK.search(txt)
-            if sub and fb:
+            if _SUBMISSION.search(txt) and _FEEDBACK.search(txt):
                 if time.monotonic() > c.deadline:      # the observation's own time, after reading and parsing
                     c.timed_out = True
+                else:
+                    obs = txt
                 break
             time.sleep(0.1)
-        txt = _read_capped(c.se, LOCAL_CAP)[0].decode("utf-8", "replace")
+        if obs is None and not c.timed_out:            # the fallback: the command ended before a complete read
+            txt = _read_capped(c.se, LOCAL_CAP)[0].decode("utf-8", "replace")
+            if _SUBMISSION.search(txt) and _FEEDBACK.search(txt):
+                if time.monotonic() > c.deadline:
+                    c.timed_out = True
+                else:
+                    obs = txt
     finally:
         c.finish()
     if c.overflow:
         raise SystemExit(f"refused: the exec invocation receipt's log passed its {LOCAL_CAP}-byte cap")
     if c.timed_out:                                    # complete logs read only after the deadline do not count
         raise SystemExit(f"refused: the exec invocation receipt ran past its {wait_s} s deadline")
+    txt = obs or ""
     sub, fb = _SUBMISSION.search(txt), _FEEDBACK.search(txt)
     if not (sub and fb):
         raise SystemExit("refused: the exec invocation receipt could not be read (no submission or sampling log"

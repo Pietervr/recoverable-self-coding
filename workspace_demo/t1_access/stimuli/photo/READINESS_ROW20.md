@@ -1,16 +1,16 @@
-# Photograph arm, ledger row 20: readiness, revision 7
+# Photograph arm, ledger row 20: readiness, revision 8
 
 R084 (Claude), 2 October 2026. **Row 20 has no go.** No forward has run on any development image.
 
-**What this answers.** Codex reviewed revision 6 (RSC `bb4f076`) as NOT ON BOARD in a combined record with the AI
-reader (RSC `c036c00`), crediting kill-first, the guardian, bounded revocation and the 195-count refusal, and keeping
-the ~22 GiB/s memory qualification acceptable in principle. R052 sent four remaining Stage A conditions (handoff
-`cdefd254`). `STAGE_A_CRITERIA.md` §00 maps them to code, fixture and measurement; §0 and §1 keep revisions 6 and 5;
-§7 states the limits. The owner's Stage A gate decision (go with Codex reviewing the report) is pressed by R052 and
-still open.
+**What this answers.** Codex reviewed revision 7 (RSC `068fe30`) as NOT ON BOARD in a combined record with the AI
+reader (RSC `12a7f20`): B (guardian memory) and D (authority, exact recovery sets) closed; the ~21 GiB/s memory
+qualification accepted; one condition left, A - continuous, durable failed-start/restart accounting - plus declaration
+alignment (handoff `db8a9e1d`). `STAGE_A_CRITERIA.md` §000 maps A's three paths to code and fixtures; §00, §0 and §1
+keep revisions 7, 6 and 5; §7 states the limits. The owner's Stage A gate decision is still open.
 
 **The package.** `stage_a.py package` prints the five hashes; the brief to R052 carries the exact values for this
-commit. Inputs, cases and the 178 planned attempts are byte-identical; the plan moved to revision 7 in the envelope's
+commit. Inputs, cases and the 178 planned attempts are byte-identical; revision 8 changes no plan constant (plan, manifest
+and budget as in revision 7); the plan moved to revision 7 in the envelope's
 controller constants (tick staleness 0.15 s, finalisation 50 s, revocation 5 s, exit margin 5 s, close charge 60 s,
 guardian setup 300 s) and the budget hash.
 
@@ -19,19 +19,19 @@ start); the gates, each phase and the report run as gated workers released only 
 watchdog and a durable record of both identities; every stop SIGKILLs the whole group at once; the final record is
 admitted only with its marker (`final_admitted`).
 
-**Mechanism evidence.** All from synthetic, non-development fixtures; values in `controller_fixtures.json` (revision 7)
-and `STAGE_A_CRITERIA.md` §00: the complete observation interval from the previous successful reading to the kill, the
+**Mechanism evidence.** All from synthetic, non-development fixtures; values in `controller_fixtures.json` (revision 8)
+and `STAGE_A_CRITERIA.md` §000/§00: failed starts charged across a pre-pending stall, a long first persist with an
+existing clock and two failures during reconciliation (§000); the complete observation interval from the previous successful reading to the kill, the
 leader's death and verified extinction (ordinary stop, blocked I/O, first and third stalled samples); the guardian
 covering a stalled directory creation, a stalled final output and a post-close death; the closed session charging the
 whole bounded closure; failed starts and missing death evidence charged on the same boot; the guardian in the task
 memory aggregate; strict, witness-bound recovery authority and exact recovery sets in pre-native and final admission.
 
-**The memory margin.** Stipulated interval 0.16 s from the previous successful reading (ordinary ≤ 0.12 s; stalled
-0.15 s tick staleness from the reading's own time + 10 ms poll) plus the measured SIGKILL delivery → the 4 GiB headroom
-covers growth up to about 21.5 GiB/s (20.6 GiB/s on the latest measured endpoint: a stalled sample's controller gone
-0.194 s after the previous reading; the worker group extinct by 0.183 s). One synthetic thread (11.7 GiB/s) fits;
-2–8 threads (34–71 GiB/s) do not. Accepted in principle by Codex as
-a declared, measured limit for this local Stage A, under stated scheduling assumptions.
+**The memory margin.** Configured interval 0.16 s from the previous successful reading (ordinary ≤ 0.12 s; stalled
+0.15 s tick staleness from the reading's own time + 10 ms poll) plus the pinned fixture's SIGKILL delivery 0.0273 s →
+about 21.4 GiB/s; on the latest measured endpoint (a stalled sample's controller gone 0.1948 s after its baseline)
+20.5 GiB/s; stated as about 21 GiB/s and accepted by Codex at `12a7f20` as the declared, measured local qualification
+under stated scheduling assumptions. One synthetic thread (13.63 GiB/s) fits; 2–8 threads (32.29–75.22 GiB/s) do not.
 
 **Source records.** Admission requires the current `dev_pool.json` and `provenance_checks.json` byte-identical to the
 plan's pins. The eight Stage A views (chili, clothes, crow, hamburger, horse, jacket, taxi, wagon) are unchanged; each

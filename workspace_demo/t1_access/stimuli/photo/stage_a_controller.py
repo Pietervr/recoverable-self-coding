@@ -1,4 +1,6 @@
-"""Photograph arm, Stage A (row 20): the INDEPENDENT CONTROLLER - revision 5 (Codex RSC 1bf9890 A2, A3, A4, A5 and A7;
+"""Photograph arm, Stage A (row 20): the INDEPENDENT CONTROLLER - revision 8 (Codex RSC 12a7f20 Stage A A: pending
+starts accumulate and are removed only once absorbed; a longer deadline is durable before the guardian moves to
+it; a start that died before publishing its pending entry is charged from its guardian's record); revision 5 (Codex RSC 1bf9890 A2, A3, A4, A5 and A7;
 revision 4 answered RSC 081f17b). A separate process that owns the task lock, the clock, the resource limits,
 termination and reaping; every phase - the desk gates included - runs as a WORKER subprocess it spawns, watches from
 outside and reaps, with a WATCHDOG process (stage_a_watchdog.py) beside it that the worker cannot stop and a blocked
@@ -49,10 +51,12 @@ CLOCK (A4). Row 20's time = carried 1,808.73 s + every session's live seconds co
 own start (before configuration, recovery and superseding), durable every HEARTBEAT_S with the wall time of the beat.
 Closing a session charges, at the close, the whole bounded closure CLOSE_CHARGE_S = FINAL_ALLOWANCE_S 50 + revocation
 5 + exit/output 5 = 60 s and moves the guardian's deadline to its end; a timer ends the process (exit 75, nothing
-admitted) if finalisation overruns its allowance. A dead session or failed start (controller.starting.json) is charged
-at restart from durable evidence: to a recorded controller death; without one, on the same boot, until min(now, the
-guardian's deadline + 5 s); after a reboot, the declared 60 s; never less than TAIL_RESERVE_S = 60 s after the last
-beat. RESERVES INSIDE THE 4 h
+admitted) if finalisation overruns its allowance. A dead OPEN session is charged at restart its live time + a tail: to
+a recorded controller death; without one, on the same boot, until min(now, the guardian's deadline + 5 s); after a
+reboot the declared 60 s; the tail is never less than TAIL_RESERVE_S = 60 s. A FAILED START (an accumulated entry of
+controller.starting.json, or a guardian record of a start that died before publishing one) is charged from its start
+to its recorded death; without one, on the same boot, until min(now, its last durable deadline + 5 s), which can be
+below 60 s; after a reboot or for an unreadable entry, 60 s. RESERVES INSIDE THE 4 h
 CAP: TAIL 60 s, STOP 60 s, REPORT 600 s; work phases end at cap - 720 s, the report at cap - 60 s; the watchdog's hard
 deadline is HARD_MARGIN_S = 5 s after the controller's. Caps are never reset.
 
@@ -270,26 +274,83 @@ class Controller:
             tail = max(tail, end - beat)
         return tail
 
-    def _charge_failed_start(self, rec: dict) -> None:
-        """A start that died before its session's first durable record (revision 7): its pending-start record is
-        charged - until min(now, its setup deadline) on the same boot, else the declared 60 s - and removed later."""
-        st = getattr(self, "prior_start", None)
-        if not st:
-            return
-        known = {x.get("session") for x in rec.get("sessions") or []} | {(rec.get("open_session") or {}).get("session")}
-        if st.get("session") == self.session or st.get("session") in known:
-            return
-        if not _num(st.get("start_wall")):            # unreadable pending start: the declared tail, conservatively
-            st = {"start_wall": time.time() - TAIL_RESERVE_S, "deadline_wall": time.time(), "session": "?"}                                   # opened (its session carries the charge) or this very start
+    def _read_pending(self) -> list:
+        """Every pending start not yet absorbed (revision 8). Unreadable -> one conservative unknown entry."""
+        sp = self.out / STARTING
+        if not sp.exists():
+            return []
         try:
-            same_boot = memprobe.boot_time() < st["start_wall"]
+            d = json.loads(sp.read_text())
+        except ValueError:
+            return [{"session": None, "start_wall": None}]
+        items = d.get("pending") if isinstance(d, dict) and "pending" in d else [d]
+        if not isinstance(items, list):
+            return [{"session": None, "start_wall": None}]
+        return [x if isinstance(x, dict) else {"session": None, "start_wall": None} for x in items]
+
+    def _write_pending(self) -> None:
+        write_json_atomic(self.out / STARTING, {"pending": [*self.prior_starts, self.my_start]}, final=True)
+
+    def _failed_start_charge(self, st: dict) -> float:
+        """One failed start's charge: from its start to its guardian's recorded controller death if there is one;
+        else, on the same boot, until min(now, its last durable deadline + EXIT_MARGIN_S); else (a reboot, or an
+        unreadable entry) the declared TAIL_RESERVE_S. A same-boot start that died early is charged its actual
+        interval, which can be below 60 s."""
+        start = st.get("start_wall")
+        if not _num(start):
+            return TAIL_RESERVE_S
+        g = None
+        if isinstance(st.get("session"), str):
+            gp = self.out / f"guardian_{st['session']}.json"
+            try:
+                g = json.loads(gp.read_text()) if gp.exists() else None
+            except ValueError:
+                g = None
+        if g and _num(g.get("controller_gone_wall")):
+            return max(0.0, g["controller_gone_wall"] - start)
+        try:
+            same_boot = memprobe.boot_time() < start
         except memprobe.Unavailable:
             same_boot = True
         dl = st.get("deadline_wall")
-        charged = max(0.0, min(time.time(), dl) - st["start_wall"]) if same_boot and _num(dl) else TAIL_RESERVE_S
-        rec["seconds_total"] += charged
-        rec["sessions"].append({"session": st.get("session"), "live_s": 0.0, "closed": "failed_start",
-                                "charged_s": charged, "start_wall": st["start_wall"]})
+        if same_boot:
+            end = min(time.time(), dl + EXIT_MARGIN_S) if _num(dl) else time.time()
+            return max(0.0, end - start)
+        return TAIL_RESERVE_S
+
+    def _charge_failed_start(self, rec: dict) -> None:
+        """Starts that died before their session's first durable record (revision 8, Stage A A): every accumulated
+        pending entry, and every guardian death record of a start that died before it could publish its pending
+        entry (directory creation, the lock), not yet charged, is charged once and named in the sessions."""
+        known = {x.get("session") for x in rec.get("sessions") or []} | {(rec.get("open_session") or {}).get("session")}
+        known.discard(None)
+        pending = list(getattr(self, "prior_starts", None) or [])
+        for st in pending:
+            sid = st.get("session")
+            if sid == self.session or (isinstance(sid, str) and sid in known):
+                continue
+            charged = self._failed_start_charge(st)
+            rec["seconds_total"] += charged
+            rec["sessions"].append({"session": sid, "live_s": 0.0, "closed": "failed_start", "charged_s": charged,
+                                    "start_wall": st.get("start_wall"), "deadline_wall": st.get("deadline_wall")})
+            if isinstance(sid, str):
+                known.add(sid)
+        if not self.out.exists():
+            return
+        for gp in sorted(self.out.glob("guardian_*.json")):
+            sid = gp.stem[len("guardian_"):]
+            if sid == self.session or sid in known:
+                continue
+            try:
+                g = json.loads(gp.read_text())
+            except ValueError:
+                g = {}
+            st, end = g.get("started_wall"), g.get("controller_gone_wall")
+            charged = max(0.0, end - st) if _num(st) and _num(end) else TAIL_RESERVE_S
+            rec["seconds_total"] += charged
+            rec["sessions"].append({"session": sid, "live_s": 0.0, "closed": "failed_start_before_pending",
+                                    "charged_s": charged, "start_wall": st, "guardian": g or None})
+            known.add(sid)
 
     def _validate_accounting(self, rec) -> None:
         """Finite, non-negative, typed accounting before any use (A4)."""
@@ -381,6 +442,7 @@ class Controller:
         """emit: called with the result while the guardian still bounds the process (main prints through it)."""
         self.t0 = self.clock()                         # the clock starts with the process (A4)
         self.pre_s = _process_age_s() if self.from_process_start else 0.0
+        self.run_start_wall = time.time() - self.pre_s   # what a failed start is charged from (revision 8)
         from stage_a_guard import TaskLock
         self._start_guardian()                         # before ANY file operation (revision 7, Stage A A)
         try:
@@ -402,28 +464,31 @@ class Controller:
         from stage_a_guard import set_terminal
         if True:
             configure_storage([self.out], self.cap_b, self.cap_b - FINAL_RESERVE_BYTES)
-            self.start_wall = time.time()
-            sp = self.out / STARTING                  # a previous start's pending record, read before replacing it
-            try:
-                self.prior_start = json.loads(sp.read_text()) if sp.exists() else None
-            except ValueError:
-                self.prior_start = {"start_wall": None}
-            write_json_atomic(self.out / STARTING, {"session": self.session, "start_wall": self.start_wall,
-                                                    "deadline_wall": self.start_wall + SETUP_DEADLINE_S},
-                              final=True)          # durable before any load: a failed start is charged (rev 7)
+            self.start_wall = self.run_start_wall
+            # Pending starts (revision 8, Stage A A): the file ACCUMULATES every start not yet absorbed into
+            # controller.json - it is only ever replaced by a superset, and removed only after the first persist that
+            # charges all of them - so a start that dies while reconciling an earlier failed start loses nothing.
+            self.prior_starts = self._read_pending()
+            self.my_start = {"session": self.session, "start_wall": self.start_wall,
+                             "deadline_wall": self.guard_deadline_wall}
+            self._write_pending()                     # durable before any load
             self.base = 0.0
             self.rec = self._load()
             self._supersede()
             self.base = self.rec["seconds_total"]
-            self._guardian_deadline(max(time.monotonic() + (self.cap_s - self.elapsed_total()) + HARD_MARGIN_S,
-                                        time.monotonic() + CLOSE_CHARGE_S))
+            mono = max(time.monotonic() + (self.cap_s - self.elapsed_total()) + HARD_MARGIN_S,
+                       time.monotonic() + CLOSE_CHARGE_S)
+            # the longer deadline is durable in this start's pending entry BEFORE the guardian is moved to it
+            self.my_start["deadline_wall"] = time.time() + (mono - time.monotonic())
+            self._write_pending()
+            self._guardian_deadline(mono)
             self.ident = memprobe.proc_info(os.getpid())
             self.rec["open_session"] = {"session": self.session, "pid": os.getpid(), "live_s": 0.0,
                                         "opened_wall": time.time(), "beat_wall": time.time(),
                                         "controller": self.ident, "guardian": self.guard_ident,
                                         "guardian_deadline_wall": self.guard_deadline_wall}
             self._persist()
-            (self.out / STARTING).unlink(missing_ok=True)   # the open session now carries the accounting
+            (self.out / STARTING).unlink(missing_ok=True)   # controller.json now carries every pending start's charge
             if self.rec["swap_baseline"] is None:
                 try:
                     self.rec["swap_baseline"] = self.system_reader()["swap"]
@@ -464,6 +529,7 @@ class Controller:
         r, w = os.pipe()
         ident = memprobe.proc_info(os.getpid())
         arg = {"mode": "guardian", "controller": ident, "session": self.session, "control_fd": r,
+               "started_wall": getattr(self, "run_start_wall", time.time()),
                "deadline_monotonic": time.monotonic() + SETUP_DEADLINE_S,
                "record": str(self.out / f"guardian_{self.session}.json")}
         try:
@@ -748,8 +814,10 @@ class Controller:
                  "peaks": self.rec["peaks"], "report_receipt_sha256": _sha_file(self.out / "report/REPORT_RECEIPT.json")
                  if rok["receipt"] is not None else None,
                  "controller_sha256": _sha_file(self.path), "stops": self.rec["stops"],
-                 "time_scope": f"seconds_total includes this session's finalisation allowance ({FINAL_ALLOWANCE_S:.0f} "
-                               f"s), charged at the close and enforced by the finalisation timer"}
+                 "time_scope": f"seconds_total includes this session's whole bounded closure ({CLOSE_CHARGE_S:.0f} s "
+                               f"= finalisation {FINAL_ALLOWANCE_S:.0f} + revocation {REVOKE_TIMEOUT_S:.0f} + exit/output "
+                               f"{EXIT_MARGIN_S:.0f}), charged at the close; finalisation is enforced by its timer and "
+                               f"the whole closure by the guardian"}
         unique = sum(1 for _ in st.get("attempts", {}))
         final["stage_b_prediction"] = None
         size0 = dir_bytes([self.out])

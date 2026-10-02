@@ -1398,5 +1398,82 @@ class Rev5Clock(unittest.TestCase):
             X.write_atomic, X.CLOSE_WAIT_S = real, old_wait
 
 
+LOGS = ("import sys\n"
+        "sys.stderr.write('TurnInput { request: TurnInputRequest { input: UserInput { content: [x], client_id\\n')\n"
+        "sys.stderr.write('feedback_tags: model=\"m\" approval_policy=Never sandbox_policy=ReadOnly "
+        "{ network_access: false } effort=Some(Medium) auth_mode=a tags_json={}\\n')\n"
+        "sys.stderr.flush()\n")
+
+
+class Rev8(unittest.TestCase):
+    """Codex RSC 12a7f20 reader C: the exit observation and the fallback read are timed after they complete."""
+
+    def adir(self) -> Path:
+        d = tmp() / "a"
+        R.prepare(d, A.png(3), "x.png")
+        return d
+
+    def test_exit_observed_late_at_its_probe(self):
+        """The leader exited in time, but the probe that observes it returns only past the deadline (a scheduling
+        pause inside the probe): refused. Control: the same command observed promptly is accepted."""
+        rc, _, _ = R.run_local([sys.executable, "-c", "pass"], self.adir(), [], sandbox=False, timeout=5.0)
+        self.assertEqual(rc, 0)
+        real = memprobe.exited
+
+        def slow_probe(kq):
+            r = real(kq)
+            if r:
+                time.sleep(0.8)                                    # the observation completes after the deadline
+            return r
+        memprobe.exited = slow_probe
+        try:
+            with self.assertRaisesRegex(SystemExit, "deadline"):
+                R.run_local([sys.executable, "-c", "import time; time.sleep(0.1)"], self.adir(), [], sandbox=False,
+                            timeout=0.5)
+        finally:
+            memprobe.exited = real
+
+    def run_receipt(self, slow_fallback: bool):
+        d = self.adir()
+        prog = d / "w" / "logs.py"
+        prog.write_text(LOGS)                                      # complete, equivalence-positive logs; exits at once
+        real_poll, real_read, n = R.LocalCommand.poll, R._read_capped, {"poll": 0, "read": 0}
+
+        def poll(self_):
+            n.setdefault("first", self_)
+            if self_ is not n["first"]:                            # a later command (features list): not counted
+                return real_poll(self_)
+            n["poll"] += 1
+            if n["poll"] == 1:
+                time.sleep(1.5)                                    # the command has exited before its first poll
+            return real_poll(self_)
+
+        def read(path, cap):
+            n["read"] += 1
+            if slow_fallback and n["read"] == 1:
+                time.sleep(2.0)                                    # the fallback read finishes past the deadline
+            return real_read(path, cap)
+        R.LocalCommand.poll, R._read_capped = poll, read
+        try:
+            R.invocation_receipt([sys.executable, str(prog)], A.READER, d, d / "w" / "x.png", "p", wait_s=3.0,
+                                 sandbox=False)
+            return None, n
+        except SystemExit as exc:
+            return str(exc), n
+        finally:
+            R.LocalCommand.poll, R._read_capped = real_poll, real_read
+
+    def test_fallback_read_past_the_deadline(self):
+        """The command wrote complete logs and exited in time; the first poll sees the exit, so the loop never reads;
+        the fallback read and parse complete past the deadline: refused. Control: a prompt fallback read passes the
+        cutoff (any later refusal is about content, not time)."""
+        msg, n = self.run_receipt(slow_fallback=True)
+        self.assertEqual(n["poll"], 1)                             # the fallback branch, not the loop
+        self.assertRegex(msg or "", "past its .* deadline")
+        msg, n = self.run_receipt(slow_fallback=False)
+        self.assertEqual(n["poll"], 1)
+        self.assertNotRegex(msg or "", "deadline|could not be read")
+
+
 if __name__ == "__main__":
     unittest.main()
