@@ -28,8 +28,8 @@
    "dose.py": "05d61ea6d199903eb066534e8cc2e7bb73e102b9cfa284f5692f8d75e9bb4302",
    "dose_report.py": "aff4afc3ac18455d0876da042d4202deaf428820ffaf09fde4603e32e14a825a",
    "pool.py": "6c85785448c06e0755a747fc9e65f0a327662f554ead4b2eea5ce43cf3f87ea2",
-   "image_adapter.py": "d8f85d764ab51b0f8b96fbed7eaf6a8438b5fb46da33aff25cd65fa976885c55",
-   "manifest.py": "12d0bef343040ea752d123912b3206ea5ca0e17bd0e9e8082ed150ff6a53c3c3"
+   "image_adapter.py": "2c1c3cedc9559fe8b2f7fd31c82984255ac7072a1f6442fc5a3e098f56f901aa",
+   "manifest.py": "65b2448815ace423291ded6a7494afaedb7d1830da3aa358246b8e4f4ba7435e"
   },
   "template_sha256": "9e6096381c10879db3360ddee61492f4ab1e9e964c80acdd726a56910c391e5d",
   "processor": {
@@ -39,8 +39,8 @@
   },
   "pillow": "12.3.0",
   "numpy": "2.5.1",
-  "dev_pool_sha256": "fd7139bcaa2adb66c23621a57fd8a1d78e2004b38aaf9cbca1dfa71f299fd801",
-  "provenance_checks_sha256": "d6f9b58fc4ebc379d0aa23bc230f840b612b6e4e3f678c36bbbbcad81c751211"
+  "dev_pool_sha256": "e01c1582e75ac629b1e17abd8b411c3cd295a4be374ff2f6b25226a13263acda",
+  "provenance_checks_sha256": "c2a3db126277707c76c61f15d77bb98634ffce000fc4a96953bb7813a193d62d"
  },
  "n_records": 32,
  "check_status_counts": {
@@ -76,7 +76,13 @@
     "licence_shown": "Pixabay Content License (page banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 13,
-    "notes": "creator's profile asks that people pictures be used editorially; no person in this image"
+    "notes": "creator's profile asks that people pictures be used editorially; no person in this image",
+    "stock_matches": 0,
+    "stock_comparison": {
+     "checked": "2026-10-01",
+     "listings": [],
+     "verdict": "TinEye listed no result in stock (count 0, recorded 2026-10-01)"
+    }
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -123,7 +129,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.823529412,
    "raters_most_common_label": "crow"
   },
@@ -153,7 +159,13 @@
     "licence_shown": "Pixabay Content License (page banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 65,
-    "notes": "checked as fly's replacement (next in the animals seeded order)"
+    "notes": "checked as fly's replacement (next in the animals seeded order)",
+    "stock_matches": 0,
+    "stock_comparison": {
+     "checked": "2026-10-01",
+     "listings": [],
+     "verdict": "TinEye listed no result in stock (count 0, recorded 2026-10-01)"
+    }
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -200,7 +212,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.9375,
    "raters_most_common_label": "horse"
   },
@@ -230,7 +242,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 619,
-    "notes": "replacement candidate for bull; stock matches: 9 (incl. calvendo.de)"
+    "notes": "replacement candidate for bull; stock matches: 9 (incl. calvendo.de)",
+    "stock_matches": 9,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -277,7 +291,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 1.0,
    "raters_most_common_label": "pig"
   },
@@ -307,7 +321,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 556,
-    "notes": "matched via copies named blacktip-1294753_1920 (patch.com); also on Pexels (pexels-photo-272742)"
+    "notes": "matched via copies named blacktip-1294753_1920 (patch.com); also on Pexels (pexels-photo-272742)",
+    "stock_matches": null,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -354,7 +370,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.666666667,
    "raters_most_common_label": "shark"
   },
@@ -384,7 +400,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 173,
-    "notes": "replacement candidate; stock matches: 10"
+    "notes": "replacement candidate; stock matches: 10",
+    "stock_matches": 10,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -431,7 +449,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 1.0,
    "raters_most_common_label": "butterfly"
   },
@@ -461,7 +479,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 7,
-    "notes": ""
+    "notes": "",
+    "stock_matches": null,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -508,7 +528,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 1.0,
    "raters_most_common_label": "cow"
   },
@@ -538,7 +558,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 1922,
-    "notes": "matched via copies named mosquito-719613_1920"
+    "notes": "matched via copies named mosquito-719613_1920",
+    "stock_matches": null,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -585,7 +607,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.823529412,
    "raters_most_common_label": "mosquito"
   },
@@ -615,7 +637,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 32,
-    "notes": ""
+    "notes": "",
+    "stock_matches": null,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -662,9 +686,115 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.777777778,
    "raters_most_common_label": "pigeon"
+  },
+  {
+   "concept": "clothes",
+   "synset": "apparel.n.01",
+   "wnid": "n02728440",
+   "family": "clothing",
+   "e1_token_id": 14656,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "replaces": "mask",
+   "photo_id": "thingsplus:clothes.jpg",
+   "source_group_id": "thingsplus-primary:clothes",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
+   "release_file": "clothes.jpg",
+   "original_bytes": 809990,
+   "original_sha256": "64fb9ffe85e89c0b0e77a44903ee4465449450920f91abd9228099ea6e1d3308",
+   "per_image_check": {
+    "label": "found by the per-image check, 2026-10-02",
+    "status": "eligible",
+    "checked": "2026-10-02",
+    "source_url": "https://pixabay.com/photos/dresses-apparel-clothing-clothes-53319/",
+    "creator": "JamesDeMers (Pixabay)",
+    "published": "2012-07-29",
+    "licence_shown": "Pixabay Content License (page banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 1145,
+    "notes": "checked as mask's replacement after sweater and scarf; the earliest TinEye copy (femina.hu, 2013-11-01) postdates the Pixabay date. Dresses on a rack",
+    "stock_matches": 2,
+    "stock_comparison": {
+     "checked": "2026-10-02",
+     "free_source": {
+      "published": "2012-07-29",
+      "creator": "JamesDeMers (Pixabay)"
+     },
+     "listings": [
+      {
+       "site": "Adobe Stock",
+       "listing_id": "545179675",
+       "url": "https://stock.adobe.com/images/Close-up-Of-Clothes-Hanging-In-Store/545179675",
+       "tineye_first_crawled": "2022-11-15",
+       "state_on_2026-10-02": "404 Page not found",
+       "credited_author": null,
+       "listing_upload_date": null
+      },
+      {
+       "site": "EyeEm",
+       "listing_id": "192421442",
+       "url": "https://www.eyeem.com/p/192421442",
+       "tineye_first_crawled": "2022-11-19",
+       "state_on_2026-10-02": "redirects to Magnific's generic photos page",
+       "credited_author": null,
+       "listing_upload_date": null
+      }
+     ],
+     "verdict": "no conflicting claim observed: both listings first crawled 2022, after the free source; both removed, no author shown"
+    }
+   },
+   "permission": {
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "64fb9ffe85e89c0b0e77a44903ee4465449450920f91abd9228099ea6e1d3308",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "38eb17a87988559879e7d49d77b8f4c5941c8fede7337d1680c320d77bdca2a7",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "33413f4b40eccda26bde143b2b0ce0b145e181d0da2f71c85c8d2f4ae9f1e8b9",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
+   "recognizability_at_source": 0.375,
+   "raters_most_common_label": "clothes"
   },
   {
    "concept": "jacket",
@@ -692,7 +822,28 @@
     "licence_shown": "Pixabay Content License (page banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 83,
-    "notes": "checked as suit's replacement after wig; the image shows several leather jackets"
+    "notes": "checked as suit's replacement after wig; the image shows several leather jackets",
+    "stock_matches": 1,
+    "stock_comparison": {
+     "checked": "2026-10-02",
+     "method": "TinEye 'results found in stock' (Oldest), each listing opened in Chrome; listing date = the site's upload date where shown, otherwise TinEye's first crawl as an upper bound on when it was listed",
+     "free_source": {
+      "published": "2014-06-10",
+      "creator": "Hans (Pixabay)"
+     },
+     "listings": [
+      {
+       "site": "Adobe Stock",
+       "listing_id": "775691038",
+       "url": "https://stock.adobe.com/images/Clothing-serves-as-both-self-expression-and-protection,-including-shirts,-pa/775691038",
+       "tineye_first_crawled": "2024-04-12",
+       "state_on_2026-10-02": "404 Page not found",
+       "credited_author": null,
+       "listing_upload_date": null
+      }
+     ],
+     "verdict": "no conflicting claim observed: the one listing was first crawled 2024-04-12, after the free source (2014-06-10); it is removed, so no author is shown"
+    }
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -739,7 +890,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.363636364,
    "raters_most_common_label": "jacket"
   },
@@ -769,7 +920,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": null,
-    "notes": "TinEye result count not captured (batch timed out); the Pixabay id came from that TinEye result"
+    "notes": "TinEye result count not captured (batch timed out); the Pixabay id came from that TinEye result",
+    "stock_matches": null,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -816,7 +969,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.733333333,
    "raters_most_common_label": "jeans"
   },
@@ -846,7 +999,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 52,
-    "notes": "replacement candidate; stock matches: 0; lingerie on a tailor's dummy"
+    "notes": "replacement candidate; stock matches: 0; lingerie on a tailor's dummy",
+    "stock_matches": 0,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -893,86 +1048,9 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.357142857,
    "raters_most_common_label": "lingerie"
-  },
-  {
-   "concept": "mask",
-   "synset": "mask.n.01",
-   "wnid": "n03724870",
-   "family": "clothing",
-   "e1_token_id": 6696,
-   "role": "DEV-CAL",
-   "stage_a_primary_view": true,
-   "replaces": null,
-   "photo_id": "thingsplus:mask.jpg",
-   "source_group_id": "thingsplus-primary:mask",
-   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
-   "release_file": "mask.jpg",
-   "original_bytes": 499552,
-   "original_sha256": "7c9991a64b8f652643ee821f25b4c001fa89398ff9ca981cb57bdf588e8746d3",
-   "per_image_check": {
-    "label": "found by the per-image check, 2026-10-01",
-    "status": "eligible",
-    "checked": "2026-10-01",
-    "source_url": "https://pixabay.com/photos/masks-field-nature-tree-1152278/",
-    "creator": "josealbafotos (Pixabay)",
-    "published": "2016-01-20",
-    "licence_shown": "Pixabay Content License (page banner)",
-    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
-    "tineye_results": 57,
-    "notes": ""
-   },
-   "permission": {
-    "capture_and_transformation": "yes",
-    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
-   },
-   "operations": {
-    "original_sha256": "7c9991a64b8f652643ee821f25b4c001fa89398ff9ca981cb57bdf588e8746d3",
-    "original_size": [
-     1600,
-     1600
-    ],
-    "original_mode": "RGB",
-    "orientation_applied": null,
-    "icc": "none embedded; treated as sRGB",
-    "alpha": "none",
-    "fitted_size": [
-     384,
-     384
-    ],
-    "offset": [
-     0,
-     0
-    ],
-    "padding": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
-   },
-   "clean_canvas": {
-    "png_sha256": "08d2dab7e3f62b3da5df562bff6ca503717ff3b9a1f660fd3e9148b8a15deb34",
-    "clip": {
-     "clipped_fraction": 0.0,
-     "clipped_low": 0.0,
-     "clipped_high": 0.0
-    },
-    "processed_tensor_sha256": "bb54a96e8d56750d35f111bed7166acd9deee023812f255bfdb586984b4eaa2e",
-    "grid_thw": [
-     1,
-     24,
-     24
-    ]
-   },
-   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
-   "recognizability_at_source": 0.866666667,
-   "raters_most_common_label": "mask"
   },
   {
    "concept": "hat",
@@ -1000,7 +1078,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 6,
-    "notes": "replacement candidate; stock matches: 0"
+    "notes": "replacement candidate; stock matches: 0",
+    "stock_matches": 0,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -1047,7 +1127,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.583333333,
    "raters_most_common_label": "hat"
   },
@@ -1077,7 +1157,9 @@
     "licence_shown": "CC0 (StockSnap page)",
     "licence_basis": "CC0 (StockSnap page)",
     "tineye_results": 175,
-    "notes": "oldest copies named StockSnap_3QL8IOYS4Z; also on Pexels 306739 under the Pexels License"
+    "notes": "oldest copies named StockSnap_3QL8IOYS4Z; also on Pexels 306739 under the Pexels License",
+    "stock_matches": null,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -1124,7 +1206,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.352941176,
    "raters_most_common_label": "robe"
   },
@@ -1154,7 +1236,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 24,
-    "notes": "stock matches: 0"
+    "notes": "stock matches: 0",
+    "stock_matches": 0,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -1201,7 +1285,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.833333333,
    "raters_most_common_label": "sock"
   },
@@ -1231,7 +1315,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 22,
-    "notes": "replacement candidate; stock matches: 0; a businessman's torso and tie"
+    "notes": "replacement candidate; stock matches: 0; a businessman's torso and tie",
+    "stock_matches": 0,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -1278,7 +1364,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.705882353,
    "raters_most_common_label": "tie"
   },
@@ -1308,7 +1394,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 358,
-    "notes": "stock matches: 5 (shutterstock among them); a near-duplicate Pixabay 1712584 by the same upload batch also matched"
+    "notes": "stock matches: 5 (shutterstock among them); a near-duplicate Pixabay 1712584 by the same upload batch also matched",
+    "stock_matches": 5,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -1355,7 +1443,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.875,
    "raters_most_common_label": "avocado"
   },
@@ -1385,7 +1473,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 13,
-    "notes": "stock matches: 0"
+    "notes": "stock matches: 0",
+    "stock_matches": 0,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -1432,7 +1522,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.384615385,
    "raters_most_common_label": "caramel"
   },
@@ -1462,7 +1552,46 @@
     "licence_shown": "Pixabay Content License (page banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 154,
-    "notes": "the dish (chili con carne), consistent with THINGS' sense 'chili (stew)', n07864934"
+    "notes": "the dish (chili con carne), consistent with THINGS' sense 'chili (stew)', n07864934",
+    "stock_matches": 3,
+    "stock_comparison": {
+     "checked": "2026-10-02",
+     "method": "TinEye 'results found in stock' (Oldest), each listing opened in Chrome; listing date = the site's upload date where shown, otherwise TinEye's first crawl as an upper bound on when it was listed",
+     "free_source": {
+      "published": "2014-06-29",
+      "creator": "kalhh (Pixabay)"
+     },
+     "listings": [
+      {
+       "site": "Shutterstock",
+       "listing_id": "1710110734",
+       "url": "https://www.shutterstock.com/image-photo/red-beans-corn-spicy-tomato-sauce-1710110734",
+       "tineye_first_crawled": "2020-04-27",
+       "state_on_2026-10-02": "410 Gone",
+       "credited_author": null,
+       "listing_upload_date": null
+      },
+      {
+       "site": "Adobe Stock",
+       "listing_id": "352909940",
+       "url": "https://stock.adobe.com/images/352909940",
+       "tineye_first_crawled": "2020-06-08",
+       "state_on_2026-10-02": "404 Page not found",
+       "credited_author": null,
+       "listing_upload_date": null
+      },
+      {
+       "site": "Depositphotos",
+       "listing_id": "377539832",
+       "url": "https://depositphotos.com/377539832/stock-photo-healthy-vegetarian-yellow-ingredient-background.html",
+       "tineye_first_crawled": "2020-06-15",
+       "state_on_2026-10-02": "redirects to the generic stock-photography page",
+       "credited_author": null,
+       "listing_upload_date": null
+      }
+     ],
+     "verdict": "no conflicting claim observed: all three listings first crawled in 2020, after the free source (2014-06-29); all removed, no author shown"
+    }
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -1509,7 +1638,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.384615385,
    "raters_most_common_label": "chili (stew)"
   },
@@ -1539,7 +1668,55 @@
     "licence_shown": "Pixabay Content License (page banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 34,
-    "notes": ""
+    "notes": "",
+    "stock_matches": 4,
+    "stock_comparison": {
+     "checked": "2026-10-02",
+     "method": "TinEye 'results found in stock' (Oldest), each listing opened in Chrome; listing date = the site's upload date where shown, otherwise TinEye's first crawl as an upper bound on when it was listed",
+     "free_source": {
+      "published": "2018-04-04",
+      "creator": "chadarat (Pixabay)"
+     },
+     "listings": [
+      {
+       "site": "EyeEm",
+       "listing_id": "181817112",
+       "url": "https://www.eyeem.com/p/181817112",
+       "tineye_first_crawled": "2021-08-14",
+       "state_on_2026-10-02": "redirects to Magnific's generic photos page",
+       "credited_author": null,
+       "listing_upload_date": null
+      },
+      {
+       "site": "Shutterstock",
+       "listing_id": "1290695491",
+       "url": "https://www.shutterstock.com/image-photo/fresh-tasty-burger-french-fries-served-1290695491",
+       "tineye_first_crawled": "2022-04-24",
+       "state_on_2026-10-02": "410 Gone",
+       "credited_author": null,
+       "listing_upload_date": null
+      },
+      {
+       "site": "Shutterstock",
+       "listing_id": "2156460173",
+       "url": "https://www.shutterstock.com/image-photo/gorgeous-delicious-burger-food-background-2156460173",
+       "tineye_first_crawled": "2022-07-13",
+       "state_on_2026-10-02": "410 Gone",
+       "credited_author": null,
+       "listing_upload_date": null
+      },
+      {
+       "site": "Adobe Stock",
+       "listing_id": "785884971",
+       "url": "https://stock.adobe.com/images/The-beauty-of-a-hamburger-lies-not-only-in-its-simple,-satisfying-flavors-but-/785884971",
+       "tineye_first_crawled": "2024-04-23",
+       "state_on_2026-10-02": "404 Page not found",
+       "credited_author": null,
+       "listing_upload_date": null
+      }
+     ],
+     "verdict": "no conflicting claim observed: all four listings first crawled 2021-2024, after the free source (2018-04-04); all removed, no author shown"
+    }
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -1586,7 +1763,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.357142857,
    "raters_most_common_label": "hamburger"
   },
@@ -1616,7 +1793,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 981,
-    "notes": "replacement candidate; stock matches: 14"
+    "notes": "replacement candidate; stock matches: 14",
+    "stock_matches": 14,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -1663,7 +1842,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.764705882,
    "raters_most_common_label": "candy"
   },
@@ -1693,7 +1872,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 660,
-    "notes": "stock matches: 3"
+    "notes": "stock matches: 3",
+    "stock_matches": 3,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -1740,7 +1921,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.4375,
    "raters_most_common_label": "cheese"
   },
@@ -1770,7 +1951,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 50,
-    "notes": "replacement candidate; stock matches: 0; the image shows dried fruits, nuts and plums - a sense question for the image audit"
+    "notes": "replacement candidate; stock matches: 0; the image shows dried fruits, nuts and plums - a sense question for the image audit",
+    "stock_matches": 0,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -1817,7 +2000,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.357142857,
    "raters_most_common_label": "prune"
   },
@@ -1847,7 +2030,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 206,
-    "notes": "stock matches: 28 (shutterstock, alamy, dreamstime 'red-round-tomato-image368124060')"
+    "notes": "stock matches: 28 (shutterstock, alamy, dreamstime 'red-round-tomato-image368124060')",
+    "stock_matches": 28,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -1894,7 +2079,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 1.0,
    "raters_most_common_label": "tomato"
   },
@@ -1924,7 +2109,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 14,
-    "notes": "stock matches: 0"
+    "notes": "stock matches: 0",
+    "stock_matches": 0,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -1971,7 +2158,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.8125,
    "raters_most_common_label": "boat"
   },
@@ -2001,7 +2188,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 12,
-    "notes": "stock matches: 0"
+    "notes": "stock matches: 0",
+    "stock_matches": 0,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -2048,7 +2237,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.5,
    "raters_most_common_label": "canoe"
   },
@@ -2078,7 +2267,37 @@
     "licence_shown": "Pixabay Content License (page banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 327,
-    "notes": "the THINGSplus file is a square crop; TinEye matched it to manhattan-932754 copies (e.g. ibm.com manhattan-932754_640.jpg). TinEye also lists 2 matches in stock collections (Alamy 88994189, Shutterstock 2358195733): the first record called these adverts, which was wrong - TinEye's 'results found in stock' are matches of this image. Street scene with shop signage."
+    "notes": "the THINGSplus file is a square crop; TinEye matched it to manhattan-932754 copies (e.g. ibm.com manhattan-932754_640.jpg). TinEye also lists 2 matches in stock collections (Alamy 88994189, Shutterstock 2358195733): the first record called these adverts, which was wrong - TinEye's 'results found in stock' are matches of this image. Street scene with shop signage.",
+    "stock_matches": 2,
+    "stock_comparison": {
+     "checked": "2026-10-02",
+     "method": "TinEye 'results found in stock' (Oldest), each listing opened in Chrome; listing date = the site's upload date where shown, otherwise TinEye's first crawl as an upper bound on when it was listed",
+     "free_source": {
+      "published": "2015-09-29",
+      "creator": "tookapic (Pixabay)"
+     },
+     "listings": [
+      {
+       "site": "Alamy",
+       "listing_id": "88994189",
+       "url": "https://www.alamy.com/stock-photo-yellow-taxis-in-manhattan-88994189.html",
+       "tineye_first_crawled": "2021-08-25",
+       "state_on_2026-10-02": "404 Page not found",
+       "credited_author": null,
+       "listing_upload_date": null
+      },
+      {
+       "site": "Shutterstock",
+       "listing_id": "2358195733",
+       "url": "https://www.shutterstock.com/image-photo/manhattan-usa-september-30-2015-taxis-2358195733",
+       "tineye_first_crawled": "2023-09-10",
+       "state_on_2026-10-02": "410 Gone",
+       "credited_author": null,
+       "listing_upload_date": null
+      }
+     ],
+     "verdict": "no conflicting claim observed: both listings first crawled 2021/2023, after the free source (2015-09-29); both removed, no author shown"
+    }
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -2125,7 +2344,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.615384615,
    "raters_most_common_label": "taxi"
   },
@@ -2155,7 +2374,13 @@
     "licence_shown": "Pixabay Content License (page banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 23,
-    "notes": "also on Pexels (pexels-photo-327318)"
+    "notes": "also on Pexels (pexels-photo-327318)",
+    "stock_matches": 0,
+    "stock_comparison": {
+     "checked": "2026-10-01",
+     "listings": [],
+     "verdict": "TinEye listed no result in stock (count 0, recorded 2026-10-01)"
+    }
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -2202,7 +2427,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.461538462,
    "raters_most_common_label": "wagon"
   },
@@ -2232,11 +2457,13 @@
     "licence_shown": "Public domain (Commons LicenseShortName; US military work, VIRIN 110622-F-KX404-022, dvidshub 419218)",
     "licence_basis": "Public domain (Commons LicenseShortName; US military work, VIRIN 110622-F-KX404-022, dvidshub 419218)",
     "tineye_results": 2409,
-    "notes": "documented PD (US federal work); stock matches: 16 (alamy, shutterstock resellers)"
+    "notes": "documented PD (US federal work); stock matches: 16 (alamy, shutterstock resellers)",
+    "stock_matches": 16,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
-    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+    "publication_and_redistribution": "publishable with the source record (public domain at source (Public domain (Commons LicenseShortName; US military work, VIRIN 110622-F-KX404-022, dvidshub 419218)))"
    },
    "operations": {
     "original_sha256": "5e234283548cfbf4b294d849b746704e64e4b8b32bc07d23f982d1cd179f57cd",
@@ -2279,7 +2506,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.538461538,
    "raters_most_common_label": "jet"
   },
@@ -2309,11 +2536,13 @@
     "licence_shown": "Public domain (Commons LicenseShortName)",
     "licence_basis": "Public domain (Commons LicenseShortName)",
     "tineye_results": 154,
-    "notes": "documented PD on the file page (also an edited derivative File:Крузенштерн_Radich-1.jpg, PD); stock matches: 5"
+    "notes": "documented PD on the file page (also an edited derivative File:Крузенштерн_Radich-1.jpg, PD); stock matches: 5",
+    "stock_matches": 5,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
-    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+    "publication_and_redistribution": "publishable with the source record (public domain at source (Public domain (Commons LicenseShortName)))"
    },
    "operations": {
     "original_sha256": "5382a30a270ffb2661868ebe4d7eab536157c11bdca4591360a8962d1cd4952e",
@@ -2356,7 +2585,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.466666667,
    "raters_most_common_label": "ship"
   },
@@ -2386,7 +2615,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 71,
-    "notes": "replacement candidate; stock matches: 4"
+    "notes": "replacement candidate; stock matches: 4",
+    "stock_matches": 4,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -2433,7 +2664,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.933333333,
    "raters_most_common_label": "skateboard"
   },
@@ -2463,7 +2694,9 @@
     "licence_shown": "Pixabay Content License (banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 603,
-    "notes": "matched via copies named semi-trailers-534577_150; stock matches: 0"
+    "notes": "matched via copies named semi-trailers-534577_150; stock matches: 0",
+    "stock_matches": 0,
+    "stock_comparison": null
    },
    "permission": {
     "capture_and_transformation": "yes",
@@ -2510,7 +2743,7 @@
     ]
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once qualified against THINGSplus norms, the owner deciding referrals (framework 8.2, owner 2 Oct 2026)",
    "recognizability_at_source": 0.769230769,
    "raters_most_common_label": "truck"
   }

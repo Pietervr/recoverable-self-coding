@@ -1,7 +1,7 @@
 """Image items for the photograph-arm image and sense audit (framework §8.2; R052 handoff d0db04cb).
 
 Readers judge the ACTUAL stimulus: the grayscale, normalised clean canvas the model sees (dose pipeline, a = 1),
-written byte for byte as public/img/<concept>.png. Its sha256 must equal manifest_dev.json's clean_canvas.png_sha256,
+written byte for byte as public/img/<opaque id>.png. Its sha256 must equal manifest_dev.json's clean_canvas.png_sha256,
 and the script asserts it. Each item carries the THINGS sense the concept is qualified under. The four questions, in this order on the page (images.html):
   ph     is it a photograph?                                                  y | n
   name   the main thing in one word, typed (w), or "I can't tell"             y (w = the word) | n
@@ -56,10 +56,12 @@ def main() -> int:
         png = dose.to_png(rgb8)
         h = hashlib.sha256(png).hexdigest()
         assert h == manifest[r["concept"]]["clean_canvas"]["png_sha256"], f"{r['concept']}: not the manifest's canvas"
-        (out_dir / f"{r['concept']}.png").write_bytes(png)
-        items.append({"id": f"i-{r['concept']}-v1", "kind": "image",
-                      "body": {"key": r["concept"], "concept": r["concept"], "family": r["family"],
-                               "definition": defs[r["concept"]], "img": f"/img/{r['concept']}.png",
+        # Opaque id and file name (repair 18, Codex f9d2ef3): neither the URL nor the item id names the concept.
+        op = hashlib.sha256(f"audit-img|{r['concept']}|v1".encode()).hexdigest()[:12]
+        (out_dir / f"{op}.png").write_bytes(png)
+        items.append({"id": f"i-{op}", "kind": "image",
+                      "body": {"key": op, "concept": r["concept"], "family": r["family"],
+                               "definition": defs[r["concept"]], "img": f"/img/{op}.png",
                                "png_sha256": h, "view": "primary", "second": None}})
     (HERE / "image_items.json").write_text(json.dumps({"set": a.set, "items": items}, indent=1) + "\n")
     print(len(items), "image items:", ", ".join(i["body"]["concept"] for i in items))

@@ -2,112 +2,112 @@
  "set": "stagea",
  "items": [
   {
-   "id": "i-crow-v1",
+   "id": "i-a4ed9153eac6",
    "kind": "image",
    "body": {
-    "key": "crow",
+    "key": "a4ed9153eac6",
     "concept": "crow",
     "family": "animals",
     "definition": "black birds having a raucous call",
-    "img": "/img/crow.png",
+    "img": "/img/a4ed9153eac6.png",
     "png_sha256": "3d50d7ee2ca4cab60f372d217867448d8707e2e063f29a1ff8cc9c9b9e2e54a5",
     "view": "primary",
     "second": null
    }
   },
   {
-   "id": "i-horse-v1",
+   "id": "i-1c015f6cc662",
    "kind": "image",
    "body": {
-    "key": "horse",
+    "key": "1c015f6cc662",
     "concept": "horse",
     "family": "animals",
     "definition": "solid-hoofed herbivorous quadruped domesticated since prehistoric times",
-    "img": "/img/horse.png",
+    "img": "/img/1c015f6cc662.png",
     "png_sha256": "00f35c27dd9c5141d85f8eab1172cc5fbb95e5359d1e2416462c20e5b1c7f917",
     "view": "primary",
     "second": null
    }
   },
   {
-   "id": "i-jacket-v1",
+   "id": "i-a8f8935c9ad1",
    "kind": "image",
    "body": {
-    "key": "jacket",
+    "key": "a8f8935c9ad1",
+    "concept": "clothes",
+    "family": "clothing",
+    "definition": "clothing in general",
+    "img": "/img/a8f8935c9ad1.png",
+    "png_sha256": "38eb17a87988559879e7d49d77b8f4c5941c8fede7337d1680c320d77bdca2a7",
+    "view": "primary",
+    "second": null
+   }
+  },
+  {
+   "id": "i-4407f36a5c0d",
+   "kind": "image",
+   "body": {
+    "key": "4407f36a5c0d",
     "concept": "jacket",
     "family": "clothing",
     "definition": "a short coat",
-    "img": "/img/jacket.png",
+    "img": "/img/4407f36a5c0d.png",
     "png_sha256": "559484f14444615b205aaffce0352003b22cb64f8b182374447c0e591f4fd91b",
     "view": "primary",
     "second": null
    }
   },
   {
-   "id": "i-mask-v1",
+   "id": "i-42ef237095a2",
    "kind": "image",
    "body": {
-    "key": "mask",
-    "concept": "mask",
-    "family": "clothing",
-    "definition": "a covering to disguise or conceal the face",
-    "img": "/img/mask.png",
-    "png_sha256": "08d2dab7e3f62b3da5df562bff6ca503717ff3b9a1f660fd3e9148b8a15deb34",
-    "view": "primary",
-    "second": null
-   }
-  },
-  {
-   "id": "i-chili-v1",
-   "kind": "image",
-   "body": {
-    "key": "chili",
+    "key": "42ef237095a2",
     "concept": "chili",
     "family": "foods",
     "definition": "ground beef and chili peppers or chili powder often with tomatoes and kidney beans",
-    "img": "/img/chili.png",
+    "img": "/img/42ef237095a2.png",
     "png_sha256": "43297bffc0183ad33cfd6586187571b16bcf5714e6b3232b581ac0624ba38c39",
     "view": "primary",
     "second": null
    }
   },
   {
-   "id": "i-hamburger-v1",
+   "id": "i-6063ba65aaa9",
    "kind": "image",
    "body": {
-    "key": "hamburger",
+    "key": "6063ba65aaa9",
     "concept": "hamburger",
     "family": "foods",
     "definition": "a sandwich consisting of a fried cake of minced beef served on a bun, often with other ingredients",
-    "img": "/img/hamburger.png",
+    "img": "/img/6063ba65aaa9.png",
     "png_sha256": "f82dd04390c420b929aa4bd0f8e0a3703ffbed75e397beb61bc1cb2243536993",
     "view": "primary",
     "second": null
    }
   },
   {
-   "id": "i-taxi-v1",
+   "id": "i-8a7482b5c2cc",
    "kind": "image",
    "body": {
-    "key": "taxi",
+    "key": "8a7482b5c2cc",
     "concept": "taxi",
     "family": "vehicles",
     "definition": "a car driven by a person whose job is to take passengers where they want to go in exchange for money",
-    "img": "/img/taxi.png",
+    "img": "/img/8a7482b5c2cc.png",
     "png_sha256": "5393307acc1ebaf9b2e0782e26a61fa6dae13e141fe2610151a134b9051699d3",
     "view": "primary",
     "second": null
    }
   },
   {
-   "id": "i-wagon-v1",
+   "id": "i-290c7066c493",
    "kind": "image",
    "body": {
-    "key": "wagon",
+    "key": "290c7066c493",
     "concept": "wagon",
     "family": "vehicles",
     "definition": "any of various kinds of wheeled vehicles drawn by an animal or a tractor",
-    "img": "/img/wagon.png",
+    "img": "/img/290c7066c493.png",
     "png_sha256": "fb6a15f00bfdd578b724888cda4354cad5985a21d433fe232ccd4d1aec71e9c9",
     "view": "primary",
     "second": null

@@ -1,4 +1,5 @@
 {
+ "revision": 2,
  "seed": 20261006,
  "a_grid_sha256": "3e86bc49eea49d2db2ef336f7843808f2beff0fc158c54a1bf7f6affa9c9683c",
  "inputs": [
@@ -20,7 +21,30 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "609058b9e54c8d791e9003c69311134c7faee05537b078f61c5adbc0cf63db49",
+   "expected": {
+    "ids_sha256": "c599d6d49513e1fb7e1ab6cff5506b90a934cbd0e5e3efa254e062dae6cda793",
+    "n": 185,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     179,
+     180,
+     181
+    ],
+    "suffix_positions": [
+     182,
+     183,
+     184
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "c47d401a78c9819fbbe18e766eb5684ecdad27318b90e1af434bc9bbb7c24310"
+   }
   },
   {
    "kind": "clean",
@@ -40,7 +64,30 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "a5ae90267c852d15a33f273a9bbb970a55864b6d765e953b420408b0add0ec1a",
+   "expected": {
+    "ids_sha256": "c599d6d49513e1fb7e1ab6cff5506b90a934cbd0e5e3efa254e062dae6cda793",
+    "n": 185,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     179,
+     180,
+     181
+    ],
+    "suffix_positions": [
+     182,
+     183,
+     184
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "c47d401a78c9819fbbe18e766eb5684ecdad27318b90e1af434bc9bbb7c24310"
+   }
   },
   {
    "kind": "intermediate",
@@ -60,7 +107,30 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "a5ae90267c852d15a33f273a9bbb970a55864b6d765e953b420408b0add0ec1a",
+   "expected": {
+    "ids_sha256": "c599d6d49513e1fb7e1ab6cff5506b90a934cbd0e5e3efa254e062dae6cda793",
+    "n": 185,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     179,
+     180,
+     181
+    ],
+    "suffix_positions": [
+     182,
+     183,
+     184
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "c47d401a78c9819fbbe18e766eb5684ecdad27318b90e1af434bc9bbb7c24310"
+   }
   },
   {
    "kind": "intermediate",
@@ -80,7 +150,30 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "e2a067d72b3b3368758ed62bf69771c3e03b315a154b64ecf1835f311648a34a",
+   "expected": {
+    "ids_sha256": "c599d6d49513e1fb7e1ab6cff5506b90a934cbd0e5e3efa254e062dae6cda793",
+    "n": 185,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     179,
+     180,
+     181
+    ],
+    "suffix_positions": [
+     182,
+     183,
+     184
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "c47d401a78c9819fbbe18e766eb5684ecdad27318b90e1af434bc9bbb7c24310"
+   }
   },
   {
    "kind": "intermediate",
@@ -100,47 +193,116 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "1fe7bbd6c204ee34f64700963a619e532400cb41cd325cd0437ad6ffd2ec1a9a",
+   "expected": {
+    "ids_sha256": "c599d6d49513e1fb7e1ab6cff5506b90a934cbd0e5e3efa254e062dae6cda793",
+    "n": 185,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     179,
+     180,
+     181
+    ],
+    "suffix_positions": [
+     182,
+     183,
+     184
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "c47d401a78c9819fbbe18e766eb5684ecdad27318b90e1af434bc9bbb7c24310"
+   }
   },
   {
    "kind": "intermediate",
-   "concept": "mask",
+   "concept": "jacket",
    "level": "-12dB",
    "index": 5,
    "carrier": 0,
    "nonce": "42c1b23406f73f374813c0deee577369be6b40a6818c2aa87b278aa3adc023c3",
    "a": 0.24362048990749444,
-   "target": "mask",
-   "foil": "jacket",
-   "target_id": 6696,
-   "foil_id": 25372,
-   "png_sha256": "1f895e8b0836937f86d6ff5c6d9dfcbbe2bcaebc953bf67dea54c89e18abcc9b",
-   "pixel_values_sha256": "b810518a98026901824595f1cee254651f9231bfe5b51adf34de8cd110f878c6",
+   "target": "jacket",
+   "foil": "clothes",
+   "target_id": 25372,
+   "foil_id": 14656,
+   "png_sha256": "384b8907f2076bc7ef1644f32c1af318ad4bf84243e6e34144ef78de8800ba93",
+   "pixel_values_sha256": "ebdf2c53ddd4d5999454ce3f58aa11b55957bb61a5efc3ea9f89dfea402a14d0",
    "grid_thw": [
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "46f6a46e4f055f16814955e7079b5dde720238a0b0138554cf235bfd45b87039",
+   "expected": {
+    "ids_sha256": "c599d6d49513e1fb7e1ab6cff5506b90a934cbd0e5e3efa254e062dae6cda793",
+    "n": 185,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     179,
+     180,
+     181
+    ],
+    "suffix_positions": [
+     182,
+     183,
+     184
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "c47d401a78c9819fbbe18e766eb5684ecdad27318b90e1af434bc9bbb7c24310"
+   }
   },
   {
    "kind": "clean",
-   "concept": "jacket",
+   "concept": "clothes",
    "level": "clean",
    "index": 6,
    "carrier": 0,
    "nonce": "ee02174f25cfd9cd9a8e810060eba99bd00300c8ca3cc64dc83abcb60f2a6303",
    "a": 1.0,
-   "target": "jacket",
-   "foil": "mask",
-   "target_id": 25372,
-   "foil_id": 6696,
-   "png_sha256": "559484f14444615b205aaffce0352003b22cb64f8b182374447c0e591f4fd91b",
-   "pixel_values_sha256": "8bb8c0ce9b473da67d16c58ce7c4795f89390e4574ae63d7abbdefc58f300884",
+   "target": "clothes",
+   "foil": "jacket",
+   "target_id": 14656,
+   "foil_id": 25372,
+   "png_sha256": "38eb17a87988559879e7d49d77b8f4c5941c8fede7337d1680c320d77bdca2a7",
+   "pixel_values_sha256": "33413f4b40eccda26bde143b2b0ce0b145e181d0da2f71c85c8d2f4ae9f1e8b9",
    "grid_thw": [
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "64fb9ffe85e89c0b0e77a44903ee4465449450920f91abd9228099ea6e1d3308",
+   "expected": {
+    "ids_sha256": "c599d6d49513e1fb7e1ab6cff5506b90a934cbd0e5e3efa254e062dae6cda793",
+    "n": 185,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     179,
+     180,
+     181
+    ],
+    "suffix_positions": [
+     182,
+     183,
+     184
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "c47d401a78c9819fbbe18e766eb5684ecdad27318b90e1af434bc9bbb7c24310"
+   }
   },
   {
    "kind": "clean",
@@ -160,7 +322,30 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "fbf2a0efcc9d72bd8dbe03973aefc284926c1dd2bb48d3f99ebdb04d1ee5db3a",
+   "expected": {
+    "ids_sha256": "c599d6d49513e1fb7e1ab6cff5506b90a934cbd0e5e3efa254e062dae6cda793",
+    "n": 185,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     179,
+     180,
+     181
+    ],
+    "suffix_positions": [
+     182,
+     183,
+     184
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "c47d401a78c9819fbbe18e766eb5684ecdad27318b90e1af434bc9bbb7c24310"
+   }
   },
   {
    "kind": "noise_only",
@@ -181,7 +366,30 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": null,
+   "expected": {
+    "ids_sha256": "c599d6d49513e1fb7e1ab6cff5506b90a934cbd0e5e3efa254e062dae6cda793",
+    "n": 185,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     179,
+     180,
+     181
+    ],
+    "suffix_positions": [
+     182,
+     183,
+     184
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "c47d401a78c9819fbbe18e766eb5684ecdad27318b90e1af434bc9bbb7c24310"
+   }
   },
   {
    "kind": "clean",
@@ -201,27 +409,73 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "1fe7bbd6c204ee34f64700963a619e532400cb41cd325cd0437ad6ffd2ec1a9a",
+   "expected": {
+    "ids_sha256": "c599d6d49513e1fb7e1ab6cff5506b90a934cbd0e5e3efa254e062dae6cda793",
+    "n": 185,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     179,
+     180,
+     181
+    ],
+    "suffix_positions": [
+     182,
+     183,
+     184
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "c47d401a78c9819fbbe18e766eb5684ecdad27318b90e1af434bc9bbb7c24310"
+   }
   },
   {
    "kind": "intermediate",
-   "concept": "jacket",
+   "concept": "clothes",
    "level": "+0dB",
    "index": 10,
    "carrier": 1,
    "nonce": "6fda0b2257bdc191b64c330c316d2511739bf76a10cbca3f193078441653f916",
    "a": 0.7071067811865476,
-   "target": "jacket",
-   "foil": "mask",
-   "target_id": 25372,
-   "foil_id": 6696,
-   "png_sha256": "36b685a454cb145d5ed3fc72f08c999b248a88d2fe124a7232182b03634b65e5",
-   "pixel_values_sha256": "aa6c1a8b53744c9a22c5a84b05650b528348424a024b509b6bd4380ed816fac0",
+   "target": "clothes",
+   "foil": "jacket",
+   "target_id": 14656,
+   "foil_id": 25372,
+   "png_sha256": "641cb8516c4ffefd450ed63ac7e6a64634aa14482baddf562846bb420809c988",
+   "pixel_values_sha256": "fb4504c8a845e4086911e11a7c8970879ee40d56a9586541a65dac463ddc713b",
    "grid_thw": [
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "64fb9ffe85e89c0b0e77a44903ee4465449450920f91abd9228099ea6e1d3308",
+   "expected": {
+    "ids_sha256": "6884a84f970599053e9c87e2f93765a1453dd2dff0e4bb4a2e847aabcc552bfd",
+    "n": 186,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     180,
+     181,
+     182
+    ],
+    "suffix_positions": [
+     183,
+     184,
+     185
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "96caa7786960b9fe762341ff6ed514b415c6dfef76b19c912f5c005b3eb1a08c"
+   }
   },
   {
    "kind": "intermediate",
@@ -241,27 +495,73 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "f6a04931bed3d798626b72827888a2b77252947fd358490d7e5b0bc48d53e936",
+   "expected": {
+    "ids_sha256": "6884a84f970599053e9c87e2f93765a1453dd2dff0e4bb4a2e847aabcc552bfd",
+    "n": 186,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     180,
+     181,
+     182
+    ],
+    "suffix_positions": [
+     183,
+     184,
+     185
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "96caa7786960b9fe762341ff6ed514b415c6dfef76b19c912f5c005b3eb1a08c"
+   }
   },
   {
    "kind": "clean",
-   "concept": "mask",
+   "concept": "jacket",
    "level": "clean",
    "index": 12,
    "carrier": 1,
    "nonce": "6e886ffce36910d81a5f2471a307f2352a7e8864434b49ab15cbbe7836a5b863",
    "a": 1.0,
-   "target": "mask",
-   "foil": "jacket",
-   "target_id": 6696,
-   "foil_id": 25372,
-   "png_sha256": "08d2dab7e3f62b3da5df562bff6ca503717ff3b9a1f660fd3e9148b8a15deb34",
-   "pixel_values_sha256": "bb54a96e8d56750d35f111bed7166acd9deee023812f255bfdb586984b4eaa2e",
+   "target": "jacket",
+   "foil": "clothes",
+   "target_id": 25372,
+   "foil_id": 14656,
+   "png_sha256": "559484f14444615b205aaffce0352003b22cb64f8b182374447c0e591f4fd91b",
+   "pixel_values_sha256": "8bb8c0ce9b473da67d16c58ce7c4795f89390e4574ae63d7abbdefc58f300884",
    "grid_thw": [
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "46f6a46e4f055f16814955e7079b5dde720238a0b0138554cf235bfd45b87039",
+   "expected": {
+    "ids_sha256": "6884a84f970599053e9c87e2f93765a1453dd2dff0e4bb4a2e847aabcc552bfd",
+    "n": 186,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     180,
+     181,
+     182
+    ],
+    "suffix_positions": [
+     183,
+     184,
+     185
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "96caa7786960b9fe762341ff6ed514b415c6dfef76b19c912f5c005b3eb1a08c"
+   }
   },
   {
    "kind": "clean",
@@ -281,7 +581,30 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "609058b9e54c8d791e9003c69311134c7faee05537b078f61c5adbc0cf63db49",
+   "expected": {
+    "ids_sha256": "6884a84f970599053e9c87e2f93765a1453dd2dff0e4bb4a2e847aabcc552bfd",
+    "n": 186,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     180,
+     181,
+     182
+    ],
+    "suffix_positions": [
+     183,
+     184,
+     185
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "96caa7786960b9fe762341ff6ed514b415c6dfef76b19c912f5c005b3eb1a08c"
+   }
   },
   {
    "kind": "intermediate",
@@ -301,7 +624,30 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "fbf2a0efcc9d72bd8dbe03973aefc284926c1dd2bb48d3f99ebdb04d1ee5db3a",
+   "expected": {
+    "ids_sha256": "6884a84f970599053e9c87e2f93765a1453dd2dff0e4bb4a2e847aabcc552bfd",
+    "n": 186,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     180,
+     181,
+     182
+    ],
+    "suffix_positions": [
+     183,
+     184,
+     185
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "96caa7786960b9fe762341ff6ed514b415c6dfef76b19c912f5c005b3eb1a08c"
+   }
   },
   {
    "kind": "clean",
@@ -321,7 +667,30 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "e2a067d72b3b3368758ed62bf69771c3e03b315a154b64ecf1835f311648a34a",
+   "expected": {
+    "ids_sha256": "6884a84f970599053e9c87e2f93765a1453dd2dff0e4bb4a2e847aabcc552bfd",
+    "n": 186,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     180,
+     181,
+     182
+    ],
+    "suffix_positions": [
+     183,
+     184,
+     185
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "96caa7786960b9fe762341ff6ed514b415c6dfef76b19c912f5c005b3eb1a08c"
+   }
   },
   {
    "kind": "noise_only",
@@ -342,7 +711,30 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": null,
+   "expected": {
+    "ids_sha256": "6884a84f970599053e9c87e2f93765a1453dd2dff0e4bb4a2e847aabcc552bfd",
+    "n": 186,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     180,
+     181,
+     182
+    ],
+    "suffix_positions": [
+     183,
+     184,
+     185
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "96caa7786960b9fe762341ff6ed514b415c6dfef76b19c912f5c005b3eb1a08c"
+   }
   },
   {
    "kind": "noise_only",
@@ -363,7 +755,30 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": null,
+   "expected": {
+    "ids_sha256": "6884a84f970599053e9c87e2f93765a1453dd2dff0e4bb4a2e847aabcc552bfd",
+    "n": 186,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     180,
+     181,
+     182
+    ],
+    "suffix_positions": [
+     183,
+     184,
+     185
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "96caa7786960b9fe762341ff6ed514b415c6dfef76b19c912f5c005b3eb1a08c"
+   }
   },
   {
    "kind": "clean",
@@ -383,7 +798,30 @@
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": "f6a04931bed3d798626b72827888a2b77252947fd358490d7e5b0bc48d53e936",
+   "expected": {
+    "ids_sha256": "6884a84f970599053e9c87e2f93765a1453dd2dff0e4bb4a2e847aabcc552bfd",
+    "n": 186,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     180,
+     181,
+     182
+    ],
+    "suffix_positions": [
+     183,
+     184,
+     185
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "96caa7786960b9fe762341ff6ed514b415c6dfef76b19c912f5c005b3eb1a08c"
+   }
   },
   {
    "kind": "noise_only",
@@ -394,17 +832,170 @@
    "carrier": 1,
    "nonce": "a379d61d939cd315e54d055c5d2d160d1d7200baca59e3b75e6f1f7cfb5d2b7b",
    "a": 0.0,
-   "target": "jacket",
-   "foil": "mask",
-   "target_id": 25372,
-   "foil_id": 6696,
+   "target": "clothes",
+   "foil": "jacket",
+   "target_id": 14656,
+   "foil_id": 25372,
    "png_sha256": "0196e3c43f4f28d1d97d1a063e071a208ebd16aa079f7f89d6c6fd033fe7c96b",
    "pixel_values_sha256": "0b0267d4fb67deaeb8d388ba16b6b7988f490d8a144a049a84bc8102bd531b14",
    "grid_thw": [
     1,
     24,
     24
-   ]
+   ],
+   "original_sha256": null,
+   "expected": {
+    "ids_sha256": "6884a84f970599053e9c87e2f93765a1453dd2dff0e4bb4a2e847aabcc552bfd",
+    "n": 186,
+    "image_span": [
+     26,
+     170
+    ],
+    "vision_start": 25,
+    "vision_end": 170,
+    "marker_positions": [
+     180,
+     181,
+     182
+    ],
+    "suffix_positions": [
+     183,
+     184,
+     185
+    ],
+    "n_image_tokens": 144,
+    "positions_sha256": "96caa7786960b9fe762341ff6ed514b415c6dfef76b19c912f5c005b3eb1a08c"
+   }
+  }
+ ],
+ "request_tokens": [
+  {
+   "concept": "avocado",
+   "id": 64978
+  },
+  {
+   "concept": "boat",
+   "id": 14882
+  },
+  {
+   "concept": "butterfly",
+   "id": 53315
+  },
+  {
+   "concept": "candy",
+   "id": 30517
+  },
+  {
+   "concept": "canoe",
+   "id": 80611
+  },
+  {
+   "concept": "caramel",
+   "id": 56726
+  },
+  {
+   "concept": "cheese",
+   "id": 16657
+  },
+  {
+   "concept": "chili",
+   "id": 56637
+  },
+  {
+   "concept": "clothes",
+   "id": 14656
+  },
+  {
+   "concept": "cow",
+   "id": 18775
+  },
+  {
+   "concept": "crow",
+   "id": 9000
+  },
+  {
+   "concept": "hamburger",
+   "id": 85693
+  },
+  {
+   "concept": "hat",
+   "id": 8628
+  },
+  {
+   "concept": "horse",
+   "id": 14780
+  },
+  {
+   "concept": "jacket",
+   "id": 25372
+  },
+  {
+   "concept": "jeans",
+   "id": 32186
+  },
+  {
+   "concept": "jet",
+   "id": 16106
+  },
+  {
+   "concept": "lingerie",
+   "id": 54286
+  },
+  {
+   "concept": "mosquito",
+   "id": 47881
+  },
+  {
+   "concept": "pig",
+   "id": 22952
+  },
+  {
+   "concept": "pigeon",
+   "id": 89350
+  },
+  {
+   "concept": "prune",
+   "id": 76787
+  },
+  {
+   "concept": "robe",
+   "id": 60507
+  },
+  {
+   "concept": "shark",
+   "id": 42342
+  },
+  {
+   "concept": "ship",
+   "id": 8026
+  },
+  {
+   "concept": "skateboard",
+   "id": 94601
+  },
+  {
+   "concept": "sock",
+   "id": 10764
+  },
+  {
+   "concept": "taxi",
+   "id": 31432
+  },
+  {
+   "concept": "tie",
+   "id": 17592
+  },
+  {
+   "concept": "tomato",
+   "id": 39666
+  },
+  {
+   "concept": "truck",
+   "id": 10538
+  },
+  {
+   "concept": "wagon",
+   "id": 58382
   }
  ],
  "request_token_ids": [
@@ -416,6 +1007,7 @@
   56726,
   16657,
   56637,
+  14656,
   18775,
   9000,
   85693,
@@ -425,7 +1017,6 @@
   32186,
   16106,
   54286,
-  6696,
   47881,
   22952,
   89350,
@@ -444,23 +1035,1472 @@
  "cases": [
   "plain",
   "empty",
-  "zero",
+  "zero_steer",
+  "zero_ablate",
+  "zero_swap",
   "self_patch",
-  "swap",
-  "ablate",
   "repeat"
  ],
- "native": 1,
+ "bitwise_cases": [
+  "empty",
+  "zero_steer",
+  "zero_ablate",
+  "zero_swap",
+  "self_patch",
+  "repeat"
+ ],
  "edit_layer": 41,
+ "capture_layers": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+  20,
+  21,
+  22,
+  23,
+  24,
+  25,
+  26,
+  27,
+  28,
+  29,
+  30,
+  31,
+  32,
+  33,
+  34,
+  35,
+  36,
+  37,
+  38,
+  39,
+  40,
+  41,
+  42,
+  43,
+  44,
+  45,
+  46,
+  47,
+  48,
+  49,
+  50,
+  51,
+  52,
+  53,
+  54,
+  55,
+  56,
+  57,
+  58,
+  59,
+  60,
+  61,
+  62,
+  63
+ ],
+ "top_k": 50,
  "tolerances": {
   "rel_l2": 0.01,
   "logit": 0.1
  },
- "dev_pool_sha256": "fd7139bcaa2adb66c23621a57fd8a1d78e2004b38aaf9cbca1dfa71f299fd801",
- "provenance_checks_sha256": "d6f9b58fc4ebc379d0aa23bc230f840b612b6e4e3f678c36bbbbcad81c751211",
- "planned_passes": {
-  "instrumented": 140,
-  "native": 20,
-  "total": 160
+ "template_sha256": "9e6096381c10879db3360ddee61492f4ab1e9e964c80acdd726a56910c391e5d",
+ "diagnostics": {
+  "mechanics": {
+   "cases": [
+    "swap1",
+    "ablate1"
+   ],
+   "inputs": [
+    1,
+    6,
+    7,
+    9,
+    12,
+    13,
+    15,
+    18
+   ],
+   "alpha": 1.0,
+   "layer": 41,
+   "criterion": "none (labelled mechanics diagnostic); output archived"
+  },
+  "suffix_isolation": [
+   {
+    "base_index": 1,
+    "carrier": 0,
+    "replacement": {
+     "pieces": [
+      "\t",
+      "Reply",
+      ";"
+     ],
+     "ids": [
+      197,
+      20206,
+      26
+     ],
+     "replaces": [
+      198,
+      15666,
+      25
+     ]
+    },
+    "ids_sha256": "05e0c6b6c6782ded5cd2e95b28038128f5edd0ec9b1a8b80acedd94bd09671d9",
+    "criterion": "marker residual sha256 == base plain's"
+   },
+   {
+    "base_index": 12,
+    "carrier": 1,
+    "replacement": {
+     "pieces": [
+      "\t",
+      "Reply",
+      ";"
+     ],
+     "ids": [
+      197,
+      20206,
+      26
+     ],
+     "replaces": [
+      198,
+      15666,
+      25
+     ]
+    },
+    "ids_sha256": "67983f9298267bfcf0fb8ed7a1b1f3724d69bf695dce0ab3d4441d8f3724ede5",
+    "criterion": "marker residual sha256 == base plain's"
+   }
+  ],
+  "encoder_sensitivity": {
+   "pair": [
+    1,
+    6
+   ],
+   "criterion": "pixel_values and features sha256 differ, grids equal; from the plain passes, no forward"
+  }
+ },
+ "attempts": [
+  {
+   "id": "00-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 0,
+   "case": "plain"
+  },
+  {
+   "id": "00-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 0,
+   "case": "empty"
+  },
+  {
+   "id": "00-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 0,
+   "case": "zero_steer"
+  },
+  {
+   "id": "00-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 0,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "00-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 0,
+   "case": "zero_swap"
+  },
+  {
+   "id": "00-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 0,
+   "case": "self_patch"
+  },
+  {
+   "id": "01-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 1,
+   "case": "plain"
+  },
+  {
+   "id": "01-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 1,
+   "case": "empty"
+  },
+  {
+   "id": "01-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 1,
+   "case": "zero_steer"
+  },
+  {
+   "id": "01-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 1,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "01-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 1,
+   "case": "zero_swap"
+  },
+  {
+   "id": "01-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 1,
+   "case": "self_patch"
+  },
+  {
+   "id": "02-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 2,
+   "case": "plain"
+  },
+  {
+   "id": "02-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 2,
+   "case": "empty"
+  },
+  {
+   "id": "02-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 2,
+   "case": "zero_steer"
+  },
+  {
+   "id": "02-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 2,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "02-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 2,
+   "case": "zero_swap"
+  },
+  {
+   "id": "02-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 2,
+   "case": "self_patch"
+  },
+  {
+   "id": "03-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 3,
+   "case": "plain"
+  },
+  {
+   "id": "03-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 3,
+   "case": "empty"
+  },
+  {
+   "id": "03-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 3,
+   "case": "zero_steer"
+  },
+  {
+   "id": "03-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 3,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "03-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 3,
+   "case": "zero_swap"
+  },
+  {
+   "id": "03-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 3,
+   "case": "self_patch"
+  },
+  {
+   "id": "04-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 4,
+   "case": "plain"
+  },
+  {
+   "id": "04-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 4,
+   "case": "empty"
+  },
+  {
+   "id": "04-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 4,
+   "case": "zero_steer"
+  },
+  {
+   "id": "04-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 4,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "04-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 4,
+   "case": "zero_swap"
+  },
+  {
+   "id": "04-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 4,
+   "case": "self_patch"
+  },
+  {
+   "id": "05-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 5,
+   "case": "plain"
+  },
+  {
+   "id": "05-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 5,
+   "case": "empty"
+  },
+  {
+   "id": "05-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 5,
+   "case": "zero_steer"
+  },
+  {
+   "id": "05-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 5,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "05-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 5,
+   "case": "zero_swap"
+  },
+  {
+   "id": "05-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 5,
+   "case": "self_patch"
+  },
+  {
+   "id": "06-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 6,
+   "case": "plain"
+  },
+  {
+   "id": "06-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 6,
+   "case": "empty"
+  },
+  {
+   "id": "06-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 6,
+   "case": "zero_steer"
+  },
+  {
+   "id": "06-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 6,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "06-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 6,
+   "case": "zero_swap"
+  },
+  {
+   "id": "06-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 6,
+   "case": "self_patch"
+  },
+  {
+   "id": "07-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 7,
+   "case": "plain"
+  },
+  {
+   "id": "07-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 7,
+   "case": "empty"
+  },
+  {
+   "id": "07-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 7,
+   "case": "zero_steer"
+  },
+  {
+   "id": "07-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 7,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "07-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 7,
+   "case": "zero_swap"
+  },
+  {
+   "id": "07-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 7,
+   "case": "self_patch"
+  },
+  {
+   "id": "08-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 8,
+   "case": "plain"
+  },
+  {
+   "id": "08-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 8,
+   "case": "empty"
+  },
+  {
+   "id": "08-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 8,
+   "case": "zero_steer"
+  },
+  {
+   "id": "08-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 8,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "08-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 8,
+   "case": "zero_swap"
+  },
+  {
+   "id": "08-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 8,
+   "case": "self_patch"
+  },
+  {
+   "id": "09-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 9,
+   "case": "plain"
+  },
+  {
+   "id": "09-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 9,
+   "case": "empty"
+  },
+  {
+   "id": "09-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 9,
+   "case": "zero_steer"
+  },
+  {
+   "id": "09-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 9,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "09-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 9,
+   "case": "zero_swap"
+  },
+  {
+   "id": "09-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 9,
+   "case": "self_patch"
+  },
+  {
+   "id": "10-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 10,
+   "case": "plain"
+  },
+  {
+   "id": "10-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 10,
+   "case": "empty"
+  },
+  {
+   "id": "10-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 10,
+   "case": "zero_steer"
+  },
+  {
+   "id": "10-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 10,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "10-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 10,
+   "case": "zero_swap"
+  },
+  {
+   "id": "10-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 10,
+   "case": "self_patch"
+  },
+  {
+   "id": "11-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 11,
+   "case": "plain"
+  },
+  {
+   "id": "11-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 11,
+   "case": "empty"
+  },
+  {
+   "id": "11-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 11,
+   "case": "zero_steer"
+  },
+  {
+   "id": "11-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 11,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "11-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 11,
+   "case": "zero_swap"
+  },
+  {
+   "id": "11-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 11,
+   "case": "self_patch"
+  },
+  {
+   "id": "12-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 12,
+   "case": "plain"
+  },
+  {
+   "id": "12-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 12,
+   "case": "empty"
+  },
+  {
+   "id": "12-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 12,
+   "case": "zero_steer"
+  },
+  {
+   "id": "12-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 12,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "12-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 12,
+   "case": "zero_swap"
+  },
+  {
+   "id": "12-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 12,
+   "case": "self_patch"
+  },
+  {
+   "id": "13-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 13,
+   "case": "plain"
+  },
+  {
+   "id": "13-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 13,
+   "case": "empty"
+  },
+  {
+   "id": "13-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 13,
+   "case": "zero_steer"
+  },
+  {
+   "id": "13-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 13,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "13-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 13,
+   "case": "zero_swap"
+  },
+  {
+   "id": "13-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 13,
+   "case": "self_patch"
+  },
+  {
+   "id": "14-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 14,
+   "case": "plain"
+  },
+  {
+   "id": "14-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 14,
+   "case": "empty"
+  },
+  {
+   "id": "14-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 14,
+   "case": "zero_steer"
+  },
+  {
+   "id": "14-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 14,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "14-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 14,
+   "case": "zero_swap"
+  },
+  {
+   "id": "14-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 14,
+   "case": "self_patch"
+  },
+  {
+   "id": "15-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 15,
+   "case": "plain"
+  },
+  {
+   "id": "15-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 15,
+   "case": "empty"
+  },
+  {
+   "id": "15-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 15,
+   "case": "zero_steer"
+  },
+  {
+   "id": "15-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 15,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "15-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 15,
+   "case": "zero_swap"
+  },
+  {
+   "id": "15-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 15,
+   "case": "self_patch"
+  },
+  {
+   "id": "16-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 16,
+   "case": "plain"
+  },
+  {
+   "id": "16-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 16,
+   "case": "empty"
+  },
+  {
+   "id": "16-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 16,
+   "case": "zero_steer"
+  },
+  {
+   "id": "16-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 16,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "16-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 16,
+   "case": "zero_swap"
+  },
+  {
+   "id": "16-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 16,
+   "case": "self_patch"
+  },
+  {
+   "id": "17-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 17,
+   "case": "plain"
+  },
+  {
+   "id": "17-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 17,
+   "case": "empty"
+  },
+  {
+   "id": "17-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 17,
+   "case": "zero_steer"
+  },
+  {
+   "id": "17-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 17,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "17-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 17,
+   "case": "zero_swap"
+  },
+  {
+   "id": "17-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 17,
+   "case": "self_patch"
+  },
+  {
+   "id": "18-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 18,
+   "case": "plain"
+  },
+  {
+   "id": "18-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 18,
+   "case": "empty"
+  },
+  {
+   "id": "18-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 18,
+   "case": "zero_steer"
+  },
+  {
+   "id": "18-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 18,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "18-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 18,
+   "case": "zero_swap"
+  },
+  {
+   "id": "18-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 18,
+   "case": "self_patch"
+  },
+  {
+   "id": "19-plain",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 19,
+   "case": "plain"
+  },
+  {
+   "id": "19-empty",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 19,
+   "case": "empty"
+  },
+  {
+   "id": "19-zero_steer",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 19,
+   "case": "zero_steer"
+  },
+  {
+   "id": "19-zero_ablate",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 19,
+   "case": "zero_ablate"
+  },
+  {
+   "id": "19-zero_swap",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 19,
+   "case": "zero_swap"
+  },
+  {
+   "id": "19-self_patch",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 19,
+   "case": "self_patch"
+  },
+  {
+   "id": "00-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 0,
+   "case": "repeat"
+  },
+  {
+   "id": "01-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 1,
+   "case": "repeat"
+  },
+  {
+   "id": "02-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 2,
+   "case": "repeat"
+  },
+  {
+   "id": "03-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 3,
+   "case": "repeat"
+  },
+  {
+   "id": "04-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 4,
+   "case": "repeat"
+  },
+  {
+   "id": "05-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 5,
+   "case": "repeat"
+  },
+  {
+   "id": "06-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 6,
+   "case": "repeat"
+  },
+  {
+   "id": "07-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 7,
+   "case": "repeat"
+  },
+  {
+   "id": "08-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 8,
+   "case": "repeat"
+  },
+  {
+   "id": "09-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 9,
+   "case": "repeat"
+  },
+  {
+   "id": "10-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 10,
+   "case": "repeat"
+  },
+  {
+   "id": "11-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 11,
+   "case": "repeat"
+  },
+  {
+   "id": "12-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 12,
+   "case": "repeat"
+  },
+  {
+   "id": "13-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 13,
+   "case": "repeat"
+  },
+  {
+   "id": "14-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 14,
+   "case": "repeat"
+  },
+  {
+   "id": "15-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 15,
+   "case": "repeat"
+  },
+  {
+   "id": "16-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 16,
+   "case": "repeat"
+  },
+  {
+   "id": "17-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 17,
+   "case": "repeat"
+  },
+  {
+   "id": "18-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 18,
+   "case": "repeat"
+  },
+  {
+   "id": "19-repeat",
+   "phase": "instrumented",
+   "kind": "mandatory",
+   "index": 19,
+   "case": "repeat"
+  },
+  {
+   "id": "01-swap1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 1,
+   "case": "swap1"
+  },
+  {
+   "id": "01-ablate1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 1,
+   "case": "ablate1"
+  },
+  {
+   "id": "06-swap1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 6,
+   "case": "swap1"
+  },
+  {
+   "id": "06-ablate1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 6,
+   "case": "ablate1"
+  },
+  {
+   "id": "07-swap1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 7,
+   "case": "swap1"
+  },
+  {
+   "id": "07-ablate1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 7,
+   "case": "ablate1"
+  },
+  {
+   "id": "09-swap1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 9,
+   "case": "swap1"
+  },
+  {
+   "id": "09-ablate1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 9,
+   "case": "ablate1"
+  },
+  {
+   "id": "12-swap1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 12,
+   "case": "swap1"
+  },
+  {
+   "id": "12-ablate1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 12,
+   "case": "ablate1"
+  },
+  {
+   "id": "13-swap1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 13,
+   "case": "swap1"
+  },
+  {
+   "id": "13-ablate1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 13,
+   "case": "ablate1"
+  },
+  {
+   "id": "15-swap1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 15,
+   "case": "swap1"
+  },
+  {
+   "id": "15-ablate1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 15,
+   "case": "ablate1"
+  },
+  {
+   "id": "18-swap1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 18,
+   "case": "swap1"
+  },
+  {
+   "id": "18-ablate1",
+   "phase": "instrumented",
+   "kind": "diagnostic_mechanics",
+   "index": 18,
+   "case": "ablate1"
+  },
+  {
+   "id": "01-suffix_isolation",
+   "phase": "instrumented",
+   "kind": "diagnostic_suffix_isolation",
+   "index": 1,
+   "case": "suffix_isolation"
+  },
+  {
+   "id": "12-suffix_isolation",
+   "phase": "instrumented",
+   "kind": "diagnostic_suffix_isolation",
+   "index": 12,
+   "case": "suffix_isolation"
+  },
+  {
+   "id": "00-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 0,
+   "case": "native"
+  },
+  {
+   "id": "01-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 1,
+   "case": "native"
+  },
+  {
+   "id": "02-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 2,
+   "case": "native"
+  },
+  {
+   "id": "03-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 3,
+   "case": "native"
+  },
+  {
+   "id": "04-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 4,
+   "case": "native"
+  },
+  {
+   "id": "05-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 5,
+   "case": "native"
+  },
+  {
+   "id": "06-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 6,
+   "case": "native"
+  },
+  {
+   "id": "07-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 7,
+   "case": "native"
+  },
+  {
+   "id": "08-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 8,
+   "case": "native"
+  },
+  {
+   "id": "09-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 9,
+   "case": "native"
+  },
+  {
+   "id": "10-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 10,
+   "case": "native"
+  },
+  {
+   "id": "11-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 11,
+   "case": "native"
+  },
+  {
+   "id": "12-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 12,
+   "case": "native"
+  },
+  {
+   "id": "13-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 13,
+   "case": "native"
+  },
+  {
+   "id": "14-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 14,
+   "case": "native"
+  },
+  {
+   "id": "15-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 15,
+   "case": "native"
+  },
+  {
+   "id": "16-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 16,
+   "case": "native"
+  },
+  {
+   "id": "17-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 17,
+   "case": "native"
+  },
+  {
+   "id": "18-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 18,
+   "case": "native"
+  },
+  {
+   "id": "19-native",
+   "phase": "native",
+   "kind": "mandatory_native",
+   "index": 19,
+   "case": "native"
+  }
+ ],
+ "envelope": {
+  "mandatory": {
+   "instrumented": 140,
+   "native": 20
+  },
+  "diagnostics": {
+   "mechanics_lambda1": 16,
+   "suffix_isolation": 2,
+   "encoder_sensitivity": 0
+  },
+  "engineering_carried": {
+   "started": 16,
+   "completed": 15,
+   "failed": 1,
+   "passes": 16,
+   "measured_seconds": 8.73,
+   "allowance_seconds": 1800.0,
+   "seconds": 1808.73,
+   "basis": "engineering/README.md: eng-runtime-agreement 8 attempts (1.72 s of attempts) and eng-image-adapter-1 8 attempts, 7 completed, 1 failed before any model pass (7.01 s); the manual identity relabel disclosed there. Startup, model and lens loads, preprocessing and writes were not timed: a recorded allowance of 1,800 s (30 min) is charged for them - conservative against the 5 s loads and ~1 s passes measured. Carried into row 20, not reset (framework \u00a78.4; Codex f9d2ef3)."
+  },
+  "total_attempts": 194,
+  "cap_attempts": 200,
+  "in_hand": 6,
+  "caps": {
+   "row20": {
+    "attempts": 200,
+    "seconds": 14400,
+    "bytes": 1073741824
+   },
+   "row21": {
+    "attempts": 1856,
+    "seconds": 14400,
+    "bytes": 8589934592
+   },
+   "aggregate": {
+    "attempts": 2056,
+    "seconds": 28800,
+    "bytes": 9663676416
+   }
+  },
+  "memory_cap": 51539607552,
+  "heartbeat_s": 2.0,
+  "rule": "no attempt id outside the plan; no retry; the six in hand are spent only by an owner-authorised crash recovery"
+ },
+ "budget_sha256": "76152a558c1eac048cdd55450bdbc969d04cfb37c024d6a010bc7192cc7b3b51",
+ "dev_pool_sha256": "e01c1582e75ac629b1e17abd8b411c3cd295a4be374ff2f6b25226a13263acda",
+ "provenance_checks_sha256": "c2a3db126277707c76c61f15d77bb98634ffce000fc4a96953bb7813a193d62d",
+ "manifest_records_sha256": {
+  "chili": "f098f2c7cdae17700c92738e49069325b479008d32e71e0936a88ac1cab2e99c",
+  "clothes": "02d0599e2c84062659ef71862fe3a3ec02de8e7d88cc70e224841e58da3caeca",
+  "crow": "36eaf7ad4b84fbdc98d4599b9e09a31bde056986ef30016dbcf8e2d7c0974ee6",
+  "hamburger": "e9180dc7767f245211d655d5cba57d8ad159d3812b3478338b70cbb7fa56f982",
+  "horse": "4deb2e3b179ec38660c21491aba94749c8f727f9b16ab346b3061bdbe3530fb3",
+  "jacket": "474876d5f481f829b3abf5b7676e4c48864ddd1127979980723e9e8494cdd825",
+  "taxi": "2542613ba4bd08c694894f8c6086bc59de83c5228998fa96545f67ddc1452a78",
+  "wagon": "4c4e83302654b9c5523fadac1863c183d1803b8216e561b714803d0b23761c70"
  }
 }

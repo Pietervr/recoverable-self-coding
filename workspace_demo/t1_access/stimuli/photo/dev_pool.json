@@ -1608,6 +1608,20 @@
    "stage_a_primary_view": false
   },
   {
+   "concept": "clothes",
+   "name": "clothes",
+   "wnid": "n02728440",
+   "synset": "apparel.n.01",
+   "family": "clothing",
+   "e1_token_id": 14656,
+   "thingsplus_image": "clothes.jpg",
+   "recognizability": 0.375,
+   "most_common_label": "clothes",
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "replaces": "mask"
+  },
+  {
    "concept": "jacket",
    "name": "jacket",
    "wnid": "n03589791",
@@ -1647,19 +1661,6 @@
    "role": "DEV-CAL",
    "stage_a_primary_view": false,
    "replaces": "coat"
-  },
-  {
-   "concept": "mask",
-   "name": "mask",
-   "wnid": "n03724870",
-   "synset": "mask.n.01",
-   "family": "clothing",
-   "e1_token_id": 6696,
-   "thingsplus_image": "mask.jpg",
-   "recognizability": 0.866666667,
-   "most_common_label": "mask",
-   "role": "DEV-CAL",
-   "stage_a_primary_view": true
   },
   {
    "concept": "hat",
@@ -1927,7 +1928,7 @@
    "stage_a_primary_view": false
   }
  ],
- "provenance_checks_sha256": "d6f9b58fc4ebc379d0aa23bc230f840b612b6e4e3f678c36bbbbcad81c751211",
+ "provenance_checks_sha256": "c2a3db126277707c76c61f15d77bb98634ffce000fc4a96953bb7813a193d62d",
  "replacements": [
   {
    "family": "animals",
@@ -2101,6 +2102,33 @@
     "published": "2016-09-02",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)"
    }
+  },
+  {
+   "family": "clothing",
+   "role": "DEV-CAL",
+   "stage_a_primary_view": true,
+   "out": "mask",
+   "reason": "conflicting rights claim: a live stock listing credits a different author (framework 8.2 stock-listing rule)",
+   "skipped": [
+    {
+     "concept": "wig",
+     "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source"
+    },
+    {
+     "concept": "sweater",
+     "reason": "conflicting rights claim: a live stock listing credits a different author (framework 8.2 stock-listing rule)"
+    },
+    {
+     "concept": "scarf",
+     "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source"
+    }
+   ],
+   "in": "clothes",
+   "in_check": {
+    "source_url": "https://pixabay.com/photos/dresses-apparel-clothing-clothes-53319/",
+    "published": "2012-07-29",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)"
+   }
   }
  ],
  "excluded_from_formal_CAL_PILOT_CONF": [
@@ -2113,6 +2141,7 @@
   "caramel",
   "cheese",
   "chili",
+  "clothes",
   "coat",
   "cow",
   "crow",

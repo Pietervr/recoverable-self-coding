@@ -148,7 +148,8 @@ def compare() -> None:
         rel_last = np.linalg.norm(a[:, -1] - b[:, -1], axis=-1) / np.linalg.norm(a[:, -1], axis=-1)
         rel_all = np.linalg.norm((a - b).reshape(64, -1), axis=-1) / np.linalg.norm(a.reshape(64, -1), axis=-1)
         la, lb = base["logits"], o["logits"]
-        res[f"{other}_vs_{ref}"] = {"bitwise_equal_layers": int(sum(np.array_equal(base["H"][i], o["H"][i]) for i in range(64))),
+        res[f"{other}_vs_{ref}"] = {"numeric_equal_layers": int(sum(np.array_equal(base["H"][i], o["H"][i]) for i in range(64))),  # np.array_equal: numeric equality on the saved arrays, not a byte compare (Codex f9d2ef3); the committed JSON of 1 Oct calls this "bitwise_equal_layers"
+                     
                       "rel_l2_last_max": float(rel_last.max()), "rel_l2_last_argmax_layer": int(rel_last.argmax()),
                       "rel_l2_all_max": float(rel_all.max()),
                       "rel_l2_last_by_layer": [round(float(x), 6) for x in rel_last],

@@ -83,8 +83,16 @@ def main() -> int:
         else:
             check = {"label": f"found by the per-image check, {c['checked']}",
                      **{k: c[k] for k in ("status", "checked", "source_url", "creator", "published", "licence_shown",
-                                          "licence_basis", "tineye_results", "notes")}}
-            publish = {"eligible": "publishable with the source record (CC0 at source)",
+                                          "licence_basis", "tineye_results", "notes")},
+                     "stock_matches": c.get("stock_matches"),          # null = unrecorded, never zero
+                     "stock_comparison": c.get("stock_comparison")}    # the dated comparison (framework 8.2)
+            for k in ("creator", "published"):                          # a missing field keeps its actual basis
+                if c.get(k) in (None, "", "-"):
+                    check[k] = f"not shown at the source checked ({c['source_url']}), {c['checked']}"
+            basis = c.get("licence_basis") or ""
+            at_source = ("CC0 at source" if basis.startswith("CC0") else
+                         f"public domain at source ({basis})" if basis.lower().startswith("public domain") else basis)
+            publish = {"eligible": f"publishable with the source record ({at_source})",
                        "not_found": "by reference only (filename and hash), never redistributed",
                        "ineligible": "not publishable; replaced"}[c["status"]]
         records.append({
@@ -105,8 +113,9 @@ def main() -> int:
                                                  "grid_thw": np.asarray(out["image_grid_thw"]).tolist()[0]},
             "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and "
                                    "hashed per trial at capture (row 20/21 schedules), not here",
-            "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately "
-                                     "qualified image reader (proposal in the readiness report)",
+            "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the AI image reader once "
+                                     "qualified against THINGSplus norms, the owner deciding referrals (framework "
+                                     "8.2, owner 2 Oct 2026)",
             "recognizability_at_source": r["recognizability"], "raters_most_common_label": r["most_common_label"],
         })
     manifest = {"note": __doc__.split("\n\n")[0], "release": RELEASE, "execution_identity": identity,

@@ -1,0 +1,143 @@
+{
+ "dispatch": {
+  "hidden_dtype": "bfloat16",
+  "instrumented": {
+   "GDN inference kernel per pass": true,
+   "capture": "jlens_qwen.capture_endpoint._run, one StreamSession.extend per pass",
+   "custom GDN VJP": "recorded (training-only path, unused in a prefill)",
+   "jlens patch_gdn applied": true
+  },
+  "native": {
+   "capture_layer_ids": null,
+   "jlens_qwen imported": false,
+   "prefill": "mlx-vlm get_input_embeddings + language_model(ids, inputs_embeds, fresh cache)"
+  },
+  "vision": "mlx-vlm qwen3_5 vision tower in its weight dtype; features cast to the hidden dtype at merge",
+  "weights": "4-bit affine (snapshot quantization config)"
+ },
+ "identity_sha256": "557b59c96afbef0ceeff2ac5677cda2c9405d9147f18b1ced320026ac1890fa2",
+ "jlens": {
+  "head": "745a3a894be7043ae5eb7dbbdcec44b68b819411",
+  "sitecustomize_sha256": "8b0b2acbe668ef4d994cad710557d57683d98a52c588e9bfe3e6dd1caa43afc9",
+  "tracked_diff_sha256": "c5f7fac8b421a3c398bb2a36f4193d909f504573cdb323d5178342e3868926b9",
+  "tree": {
+   "files": 18,
+   "sha256": "bdcf5ec9f4411d2e6c1f5b08349040a96796607d5f44db3c87dea08ac497694d"
+  }
+ },
+ "lens": {
+  "name": "qwen36_27b_neuronpedia_n1000.npz",
+  "sha256": "1177e8fb529d9d81e8f379c9a5d02b4d11e05b3056f677bb223b7e6e23ce0aed"
+ },
+ "local_code_sha256": {
+  "dose.py": "05d61ea6d199903eb066534e8cc2e7bb73e102b9cfa284f5692f8d75e9bb4302",
+  "dose_report.py": "aff4afc3ac18455d0876da042d4202deaf428820ffaf09fde4603e32e14a825a",
+  "enforce.py": "1e2d384366f6db5e67965493542561b9aca227d0cbbc0674ca28f5194cf5de0e",
+  "image_adapter.py": "2c1c3cedc9559fe8b2f7fd31c82984255ac7072a1f6442fc5a3e098f56f901aa",
+  "stage_a.py": "4e4c46fa818b29be4fd562640fac9c1e3503ad6ad77744d9b286a98245138818",
+  "stage_a_guard.py": "31493c52a9c801fb3f696be3d6274c1a036947ff2255697bbeec8b940ae8c70c",
+  "stage_a_report.py": "fdc6fa87fe79729e499d9aa0bad4906c9451454e408a46f81d3ece64cd10d7dc"
+ },
+ "machine": "arm64",
+ "macos": "27.0",
+ "manifest_sha256": "4f73be4f30ba98c2bd542485a17e69df843748cdb0d27c4a6e40dea5f89cac1a",
+ "packages": {
+  "PIL": {
+   "tree": {
+    "files": 123,
+    "sha256": "3618ae9638924148d02318eea89214db089a665d5dc51003f61fe392d500ac35"
+   },
+   "version": "12.3.0"
+  },
+  "huggingface_hub": {
+   "tree": {
+    "files": 181,
+    "sha256": "cad93f4ae73f1b6e6a1d0e64f913435759d6731441ce8b372736b2d9b24f9aea"
+   },
+   "version": "1.22.0"
+  },
+  "mlx": {
+   "tree": {
+    "files": 36,
+    "sha256": "d2a8d41775914a1a70f4e814af5a047c4712d4551632f8702b2b6a8541663a2c"
+   },
+   "version": "0.31.2"
+  },
+  "mlx-metal": {
+   "version": "0.31.2"
+  },
+  "mlx_lm": {
+   "tree": {
+    "files": 166,
+    "sha256": "0fd1a91bb8527051afa77cba309f9ebdbc041b26aab182ed58e22d68909dc8a8"
+   },
+   "version": "0.31.3"
+  },
+  "mlx_vlm": {
+   "tree": {
+    "files": 634,
+    "sha256": "6037f1f16cd2049caa5e77b131215ce211be367acc030b40083fb3ca164af6e7"
+   },
+   "version": "0.6.3"
+  },
+  "numpy": {
+   "tree": {
+    "files": 426,
+    "sha256": "a415a9a944a7f3d3236d2f8a947247f7a1271c7b82d1cc29dddbf85ed670a62a"
+   },
+   "version": "2.5.1"
+  },
+  "pydantic": {
+   "tree": {
+    "files": 105,
+    "sha256": "bc863fe5f06d63cd14c4aff6cdd8fa541689588e09c9b88fe3c72f1dffbf395c"
+   },
+   "version": "2.13.5"
+  },
+  "safetensors": {
+   "tree": {
+    "files": 8,
+    "sha256": "441282c6bc862b5129c880ae6688e2e3143458afb82dcd1ae351b0d04cca2f37"
+   },
+   "version": "0.8.0"
+  },
+  "tokenizers": {
+   "tree": {
+    "files": 17,
+    "sha256": "d92be7a66513d9eb3241ee5a1abfb682ed4359e513a5dafbed81ca7abb2b3686"
+   },
+   "version": "0.22.2"
+  },
+  "transformers": {
+   "tree": {
+    "files": 2533,
+    "sha256": "2bd308c2bdf99cddf6e3b62bb89f9b9e6d02012aac113e31ce305029dc61614e"
+   },
+   "version": "5.13.0"
+  }
+ },
+ "packet_py_sha256": "e4e0b6f8506b3af9f44b610e700ae12ba81cccb97d2982bd231611b2888c2eef",
+ "plan_sha256": "8dab64654049a27fb6e5d27e66ba30be66f447b7a012ce6bc41ad24ff3a75508",
+ "python": "3.12.14",
+ "row": "20",
+ "snapshot": {
+  "files_sha256": {
+   "chat_template.jinja": "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259",
+   "config.json": "ede24666ac51e6d5ab948a8a1e6c72fc6effd941ba3aabb6dd942eb517c78043",
+   "configuration.json": "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0",
+   "generation_config.json": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+   "model-00001-of-00003.safetensors": "2689680915661f040c50c35244d08b336def279e509e1ca11873f8dd1b0e7ce0",
+   "model-00002-of-00003.safetensors": "a46183727b2c5cd16613fd8395f5e9e7cc4ad679644558cc87c9406fe334463d",
+   "model-00003-of-00003.safetensors": "ac23bf70b1f239a040921d6f93770d74176fd435dbf44e42317053d06c68d702",
+   "model.safetensors.index.json": "13b840162b4cb35c66fef7df072f7dbb4717908204364f5e5d9f9655a2758fa8",
+   "preprocessor_config.json": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+   "processor_config.json": "51c5f33646392e0bf1ed3e96be02504da47406c21c6cb86925d8908d1a6c4da7",
+   "tokenizer.json": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4",
+   "tokenizer_config.json": "e98f1901ac6f0adff67b1d540bfa0c36ac1a0cf59eb72ed78146ef89aafa1182",
+   "video_preprocessor_config.json": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+   "vocab.json": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003"
+  },
+  "id": "c000ac2c2057d94be3fa931000c31723aac53282"
+ },
+ "stage": "A"
+}

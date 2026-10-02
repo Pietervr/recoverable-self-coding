@@ -1,174 +1,84 @@
-# Photograph arm desk gate: readiness report for ledger row 20
+# Photograph arm, ledger row 20: readiness, revision 2
 
-R084 (Claude), 1 October 2026 (2 October in R052's dating). This answers R052's handoffs 2e94e85e, 41b67d26 and
-a89ddc24. Framework `rsc_t1_two_channel_framework.md` §8 is the specification. **Row 20 has no go.** No forward
-has run on any DEV-CAL or DEV-PILOT image, and no decoder has been fitted on image states.
+R084 (Claude), 2 October 2026. **Row 20 has no go.** No forward has run on any DEV-CAL or DEV-PILOT image, and no
+decoder has been fitted on image states.
 
-Framework §8.1 item 2 asks R084 to commit the adapter, the builder, the template, the manifest, the extraction and
-edit conventions, the counters and the stop/recovery mechanism before the go. All are committed (RSC):
-
-| Item | Where | Commit |
+| Record | Commit | What it is |
 |---|---|---|
-| Pool and roles (ask 1a), with the per-image check and seeded replacements | `pool.py`, `dev_pool.json`, `provenance_checks.json` | c2721c1, 3324b2f, 6442e2e |
-| Dose pipeline and delivered-SNR report (ask 2) | `dose.py`, `dose_report.py`, `dose_report.json` | 56a8b82, 3324b2f |
-| Enforcement: counters, stops, recovery (ask 4) | `enforce.py` | 804eaef |
-| Image adapter, builder, template, extraction and edit conventions (ask 3) | `image_adapter.py` | 889a04e |
-| Manifest (ask 1b) | `manifest.py`, `manifest_dev.json` | ebf7d8f, 6442e2e |
-| Stage B second-view candidates (ask 1b) | `second_views.py`, `second_view_candidates.json` | 8425fd2 |
-| Stage A runner and criteria | `stage_a.py`, `stage_a_plan.json`, `STAGE_A_CRITERIA.md` | this commit |
+| Revision 1 | RSC `79343d9` | the first package |
+| Codex's review | RSC `f9d2ef3` | **NOT ON BOARD**, not a favourable review |
+| R052's repair brief | Unimog `c9e0421d` | 18 repairs, accepted as handoff `eb9620f5` |
 
-## 1. The adapter: the text arm's capture path, with the image injected
+This revision is the single revised package the brief asks for. `STAGE_A_CRITERIA.md` §0 maps each repair to its
+code and test.
 
-The instrumented image path runs the text arm's single-pass capture (`capture_endpoint._run` and `validate`, patch
-t1-capture-2) in-process and unmodified. It adds two things:
+## The package (what the go must bind)
 
-- **An embedding injector.** The mlx-vlm 0.6.3 qwen3_5 vision tower and its native `merge_input_ids_with_image_features`
-  replace the image-pad rows.
-- **Interleaved M-RoPE** in the 16 full-attention layers, fed mlx-vlm's own `get_rope_index`.
-
-Measured before the build, on text only (no image, no pool concept; `engineering/runtime_agreement.json`):
-
-- mlx-vlm's separate qwen3_5 language stack equals the jlens StreamSession **bitwise** on all 64 layers and the
-  logits.
-- The M-RoPE swap is bitwise equal to `nn.RoPE` on 1-D positions.
-- On unequal (t, h, w) positions the swap moves the output (rel L2 up to 0.040, so it is live) and matches mlx-vlm
-  bitwise.
-
-So the image arm runs the text arm's own runtime and edit code. The runtime factor of §8.4 ("same weights alone do
-not isolate modality") reduces to the vision tower, the merge and the positions, all mlx-vlm's own.
-
-**Template (proposed, for the row review).** Raw ids, no chat template and no thinking block, matching the text arm
-(PREREGISTRATION §4):
-
-    Look at the picture below; afterwards, name in one word what is shown.
-    <carrier open>
-    <|vision_start|><|image_pad|> × 144<|vision_end|>
-    <carrier close>
-    [END]
-
-followed by `\nAnswer:`. The two carriers are:
-
-- "Here is a photograph someone took:" / "That was the whole photograph."
-- "A camera captured the following picture:" / "Nothing else was in the picture."
-
-Packet.build_ids' marker and join rules apply to the unexpanded prefix. The expanded ids equal mlx-vlm's processor
-output (185 ids for carrier 0).
-
-**Engineering forwards** (allowed on one image outside the 32-concept pool, logged, establishing nothing;
-`engineering/README.md`):
-
-| Identity | Input | Attempts | Completed | Failed | Note |
-|---|---|---|---|---|---|
-| `eng-runtime-agreement` | one 19-token text prompt | 8 | 8 | 0 | 1.72 s of attempts |
-| `eng-image-adapter-1` | THINGSplus `chair.jpg` (outside the pool) | 8 | 7 | 1 | the failure was before any model pass |
-
-16 attempts in all. On `chair.jpg`:
-
-- The processor ids and grid are equal to the builder's.
-- Empty edit, zero dose, self-patch and delayed repeat are bitwise equal to plain. The λ = 1 swap changes the output.
-- Native mlx-vlm prefill: marker residuals bitwise at 64/64 layers, requested-logit max |diff| 0.031 (tolerance
-  0.10), same argmax. The model's top answer is " Chair".
-- Memory: 30.65 GiB instrumented, 16.69 GiB native.
-
-The logit difference has a probable cause, not verified: the text path unembeds the final row alone, while mlx-vlm
-unembeds the whole sequence, so the quantized matmul shape differs. Stage A measures parity on DEV-CAL under row 20.
-
-## 2. Development set: every role checked eligible (capture gate, option A)
-
-46 THINGSplus files were checked on 1 Oct 2026 (TinEye, then the earliest source page; all observations are in
-`provenance_checks.json`): **32 eligible, 14 ineligible.**
-
-- Pixabay: CC0 only for a published date before 9 Jan 2019 (Pixabay Terms §4).
-- The ineligible files: 11 Pixabay uploads from after the switch; shirt, which exists only on Pexels under the
-  Pexels License; shorts and wine, whose only or earliest source is a stock listing.
-- Non-Pixabay eligible sources: robe on StockSnap (CC0); jet, a USAF photo on Commons (PD); ship on Commons (PD).
-
-The THINGSplus collective statement "all images had a public domain/CC0 license" failed for 14 of 46 files.
-
-Replacements follow the seeded rule. Rejections are taken in the order their checks were recorded, so a replacement
-once made never moves:
-
-| Out | In | Skipped |
+| Item | File | sha256 |
 |---|---|---|
-| fly | horse | |
-| suit | jacket | wig |
-| bull | pig | |
-| frog | butterfly | monkey, ant, bug |
-| coat | lingerie | |
-| shirt | tie | |
-| shorts | hat | |
-| meat | candy | |
-| wine | prune | |
-| helicopter | skateboard | |
+| Criteria | `STAGE_A_CRITERIA.md` | printed by `stage_a.py package` |
+| Execution identity | `stage_a_identity.json` (written by `stage_a.py identity`) | printed by `stage_a.py package` |
+| Frozen plan | `stage_a_plan.json` (revision 2) | printed by `stage_a.py package` |
+| Manifest | `manifest_dev.json` | printed by `stage_a.py package` |
+| Budget envelope | `stage_a_plan.json` → `envelope` | printed by `stage_a.py package` |
 
-The roles are now:
+The handoff brief to R052 carries the exact values for this commit.
 
-| Family | DEV-CAL (Stage A views in bold) | DEV-PILOT |
-|---|---|---|
-| Animals | **crow**, **horse**, pig, shark | butterfly, cow, mosquito, pigeon |
-| Foods | avocado, caramel, **chili**, **hamburger** | candy, cheese, prune, tomato |
-| Vehicles | boat, canoe, **taxi**, **wagon** | jet, ship, skateboard, truck |
-| Clothing | **jacket**, jeans, lingerie, **mask** | hat, robe, sock, tie |
+**Code.**
 
-The dose report on the Stage A eight is unchanged: delivered within 0.2 dB of nominal, zero clipping, 144 tokens,
-no defect.
+- `stage_a.py`: the runner.
+- `stage_a_guard.py`: lock, terminal gate, go binding and identity.
+- `stage_a_report.py`: validator and report.
+- `enforce.py`: the budget session, supervisor, transaction, memory and storage.
+- `image_adapter.py`: per-pass identity evidence and finiteness.
+- `tests/`: the fake-instrument tests, 15 of 15 passing.
 
-**Open for R052 (terms).** TinEye also lists the same image in stock collections for many eligible files: tomato 28,
-jet 16, candy 14, butterfly 10, pig 9, and taxi 2 among the Stage A eight. The first record called these adverts,
-which was wrong, and it is corrected. Is a stock listing of an image that is CC0 at its source a "conflicting rights
-claim" under §8.2? The counts are recorded and nothing was excluded on them.
+**`ROW20_GO.json` must hold these fields.** The runner refuses before any load otherwise.
 
-## 3. Manifests and second views
+```json
+{"codex_row_review": {"verdict": "favourable", "commit": "<RSC commit of the favourable record>",
+                      "record_path": "<path of the record in RSC>", "record_sha256": "<sha256 of that file at that commit>"},
+ "owner_go": {"by": "owner", "date": "YYYY-MM-DD", "words": "<the owner's go, verbatim>"},
+ "package": {"criteria_sha256": "...", "identity_sha256": "...", "plan_sha256": "...", "manifest_sha256": "...",
+             "budget_sha256": "..."}}
+```
 
-`manifest_dev.json` has 32 records with both field sets:
+Any later change to the code, plan, manifest, criteria or environment changes a bound hash. The go then refuses, and
+the package goes back for review.
 
-- the release fields
-- "found by the per-image check, <date>": source URL, creator, published date, the licence line read
+## What changed in substance, beyond the code
 
-It also records the original-byte hash, geometry and operations, the clean-canvas PNG and processed-tensor hashes,
-and the execution identity. Capture is admitted only on an eligible check. Capture-time fields (nonce, positions,
-delivered tensors) are recorded per trial.
+1. **Stage A's eight changed: mask out, clothes in.** Applying R052's adopted stock-listing rule (repair 16) to the
+   actual inputs found a live Shutterstock listing of mask's image (1799626735, uploaded 2020-08-20) crediting
+   "Beni setiawan98". The Pixabay source credits josealbafotos (2016-01-20). A listing that names a different author
+   is a conflicting claim under §8.2, so mask is ineligible.
+   - `pool.py` replaced it in seeded order with clothes. It skipped wig (published 2019), sweater (a live listing
+     credits another author) and scarf (published 2020).
+   - No other role moved.
+   - The other views' stock listings were all removed when opened on 2 October, and all postdate their free
+     sources.
+   - **For R052:** framework §8.2's list of Stage A's eight and its stock counts still name mask; that text is
+     R052's to change.
+2. **Engineering carried in.** Row 20's state starts at 16 attempts and 1,808.73 s (8.73 s measured plus a 1,800 s
+   allowance), which leaves 194 of 200 planned.
+3. **The audit's reader rule** follows the owner's decision (§8.2 as revised by R052): the qualified AI reader, with
+   the owner deciding referrals. It is frozen in `audit_app/IMAGE_AUDIT_FREEZE.md`. It is not a row-20 gate.
 
-`second_view_candidates.json` has 8 candidates for each of the 32 concepts: Commons bitmaps whose own structured data
-states CC0 or PD, shorter side ≥ 384, with titles naming an artwork medium or a museum dropped. Relevance is mixed:
-a painting, a TIE fighter, a town called Chili, station wagons. The second view is the first candidate that the audit
-accepts as a photograph of the concept in its THINGS sense, distinct from the primary. It then needs its own
-per-image check, at the original source when Commons credits another site. Stage B holds for any concept without one.
+## Forecast (unchanged, from one out-of-pool image; establishes nothing)
 
-## 4. Proposed image and sense audit reader
+| Quantity | Measured | Stage A forecast | Cap |
+|---|---|---|---|
+| Instrumented pass | about 1.0 s | 158 passes, about 3 min | |
+| Native pass | 0.9 s | 20 passes, under 1 min | |
+| Loads | about 5 s each; lens about 3 GB | minutes | |
+| Identity hashing | 8.6 s cold (cached afterwards) | per phase | |
+| Whole stage including report | | well under 30 min | 4 h, less the 1,808.73 s carried |
+| Task memory, instrumented process | 30.65 GiB | | 48 GiB |
+| Task memory, native process | 16.69 GiB | | 48 GiB |
+| Storage | about 2.0 MB per instrumented pass, 3.9 MB per native pass (FP32) | about 0.40 GB | 1 GiB |
 
-The model under test never filters, and llama3.1:8b is not used. The proposal follows the text audit's structure
-(`audit_app/README.md`):
+## Still needed before row 20 runs
 
-**Readers.** One or more human readers (the owner, and others through an image page added to the existing audit app,
-audit.raconteur-road.com), plus one AI reader from a different developer than the model under test (Codex,
-GPT-family vision).
-
-**What they see.** The actual grayscale normalised clean canvas, and for a second-view candidate, both images side
-by side.
-
-**Questions.**
-
-1. Is it a photograph?
-2. Does it show <name> in the sense "<THINGS definition>"?
-3. Could you name it in one word from this grayscale picture?
-4. For a second view only: is it a different photograph from the primary, not a crop or flip?
-
-**Pass rule.** An item passes with at least one human pass and the AI reader's pass. The author decides any
-disagreement, with every answer recorded.
-
-The owner chooses the readers. Codex's row review decides whether the audit must precede row 20's go or only row 21.
-Stage A's criteria are not semantic, but its eight views would ideally be audited first.
-
-## 5. Environment (part of the execution identity)
-
-`t1_access/.venv-image` uses Python 3.12.14 and pins mlx 0.31.2, mlx-lm 0.31.3, transformers 5.13.0 and numpy
-2.5.1, as in the jlens rig, plus mlx-vlm 0.6.3 and Pillow 12.3.0. It loads the jlens sitecustomize shim. The text
-capture environments (`upstream/jlens-qwen36/.venv`, `t1_access/.venv`) are untouched. Snapshot: c000ac2c. Lens:
-`qwen36_27b_neuronpedia_n1000.npz`.
-
-## 6. What row 20 needs before it can run
-
-1. Codex's row review of `STAGE_A_CRITERIA.md` and the code, including the proposed seven cases and the template.
-2. R052's call on stock-listed CC0 images, and on whether the audit precedes row 20.
-3. The owner's go, recorded by creating `ROW20_GO.json` (`owner_go`, `codex_row_review`).
+1. R052 submits this exact package to Codex.
+2. Codex gives a favourable row review.
+3. The owner gives a go bound to the package's hashes in `ROW20_GO.json`.

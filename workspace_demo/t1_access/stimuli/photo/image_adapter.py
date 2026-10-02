@@ -75,6 +75,11 @@ def template_sha256() -> str:
     return sha256_bytes(json.dumps(TEMPLATE, sort_keys=True).encode())
 
 
+def positions_sha256(pos) -> str:
+    """Positions hashed as int64 [3, 1, L] whatever dtype the producer used, so both paths compare."""
+    return sha256_bytes(np.ascontiguousarray(np.asarray(np.array(pos)).astype(np.int64)).tobytes())
+
+
 def prefix_text(carrier: int) -> str:
     o, c = CARRIERS[carrier]
     return "\n".join([INSTRUCTION, o, IMAGE_SPAN, c, MARKER])
@@ -135,6 +140,10 @@ class MRope:
             if pos.shape[-1] < offset + L:
                 raise ValueError("registered positions shorter than the sequence")
             pos = pos[:, :, offset:offset + L]
+            calls = self.holder.setdefault("calls", [])  # the effective positions, one record per rope call
+            calls.append((int(offset), int(L)))
+            if len(calls) == 1:
+                self.holder["effective"] = pos
         out, _ = self.rotary_emb.apply_rotary(x, x, pos, unsqueeze_dim=1)
         return out
 
@@ -149,8 +158,12 @@ class EmbedInjector:
         self.image_token_id, self.video_token_id = image_token_id, video_token_id
         self.pending = None
         self.injections = 0
+        self.calls = 0                      # every embed call, registered or not: one per decoder prefill
+        self.last_merge: dict | None = None
 
     def __call__(self, ids):
+        import mlx.core as mx
+        self.calls += 1
         h = self.embed(ids)
         if self.pending is None:
             return h
@@ -158,7 +171,20 @@ class EmbedInjector:
         got = np.array(ids).reshape(-1).tolist()
         if got != want:
             raise RuntimeError("embed call on ids other than the registered image sequence")
-        merged, _ = self.merge_fn(feats.astype(h.dtype), h, ids, self.image_token_id, self.video_token_id)
+        fh = feats.astype(h.dtype)
+        merged, _ = self.merge_fn(fh, h, ids, self.image_token_id, self.video_token_id)
+        # The merge, verified bitwise: image-pad rows are the features in order, every other row the token embedding.
+        span = [i for i, t in enumerate(got) if t == self.image_token_id]
+        other = [i for i, t in enumerate(got) if t != self.image_token_id]
+        u16 = lambda a: mx.view(a, mx.uint16) if a.dtype == mx.bfloat16 else a
+        img_ok = mx.array_equal(u16(merged[0, mx.array(span)]), u16(fh))
+        txt_ok = mx.array_equal(u16(merged[0, mx.array(other)]), u16(h[0, mx.array(other)]))
+        mx.eval(img_ok, txt_ok, merged)
+        self.last_merge = {"image_rows_equal_features": bool(img_ok.item()),
+                           "text_rows_equal_embeddings": bool(txt_ok.item()), "n_image_rows": len(span),
+                           "image_rows_contiguous": span == list(range(span[0], span[0] + len(span))) if span else False,
+                           "merged_sha256": sha256_bytes(np.ascontiguousarray(np.array(u16(merged))).tobytes()),
+                           "dtype": str(merged.dtype)}
         self.pending = None
         self.injections += 1
         return merged
@@ -239,9 +265,10 @@ class ImageInstrument:
         fitted = set(self.lens.source_layers)
         ce.validate(req, n_layers=self.model.n_layers, d_model=self.model.d_model,
                     vocab_rows=int(self.model._lm_head.weight.shape[0]), fitted=fitted)
-        before = self.injector.injections
-        self.holder["position_ids"] = pos
+        before, calls_before = self.injector.injections, self.injector.calls
+        self.holder.update(position_ids=pos, calls=[], effective=None)
         self.injector.pending = (seq["ids"], feats)
+        self.injector.last_merge = None
         try:
             out = ce._run(self.S, req)
         finally:
@@ -250,17 +277,29 @@ class ImageInstrument:
         self.passes += 1
         if self.injector.injections != before + 1:
             raise RuntimeError("the image embedding was not injected exactly once")
+        rope_calls = list(self.holder.get("calls") or [])
+        eff = self.holder.get("effective")
         f32 = feats.astype(mx.float32)
+        finite = mx.all(mx.isfinite(f32))
         boundary = mx.mean(f32, axis=0)
-        mx.eval(boundary)
+        mx.eval(boundary, finite)
         b = np.array(boundary)
         out["image"] = {"pixel_values_sha256": sha256_bytes(np.ascontiguousarray(
                             np.asarray(pixel_values, dtype=np.float32)).tobytes()),
                         "grid_thw": seq["grid_thw"], "n_image_tokens": int(feats.shape[0]),
-                        "positions_sha256": sha256_bytes(np.ascontiguousarray(np.array(pos)).tobytes()),
+                        "features_shape": list(feats.shape), "features_dtype": str(feats.dtype),
+                        "features_all_finite": bool(finite.item()),
+                        "positions_sha256": positions_sha256(pos),
+                        "effective_positions_sha256": positions_sha256(eff) if eff is not None else None,
+                        "rope_calls": rope_calls,
+                        "embed_calls_this_pass": self.injector.calls - calls_before,
+                        "merge": self.injector.last_merge,
                         "features_sha256": sha256_bytes(np.ascontiguousarray(np.array(f32)).tobytes()),
+                        "boundary_label": "FP32 mean over the 144 projected visual tokens + full-token sha256",
                         "boundary_mean_fp32_b64": __import__("base64").b64encode(b.tobytes()).decode("ascii"),
-                        "boundary_mean_sha256": sha256_bytes(b.tobytes())}
+                        "boundary_mean_sha256": sha256_bytes(b.tobytes()),
+                        "boundary_mean_all_finite": bool(np.all(np.isfinite(b)))}
+        out["positions_array"] = np.asarray(np.array(pos)).astype(np.int64)
         return out
 
 
@@ -281,11 +320,16 @@ def native_forward(vmodel, seq: dict, pixel_values: np.ndarray, capture_layers, 
             return getattr(self._layer, k)
 
         def __call__(self, *a, **kw):
+            calls[self._i] = calls.get(self._i, 0) + 1
+            if self._i in FA_LAYERS and "position_ids" not in seen:
+                seen["position_ids"] = kw.get("position_ids")
             h = self._layer(*a, **kw)
             if self._i in capture_layers:
                 rec[self._i] = h
             return h
 
+    calls: dict = {}
+    seen: dict = {}
     originals = list(inner.layers)
     inner.layers = [_Proxy(l, i) for i, l in enumerate(originals)]
     try:
@@ -297,7 +341,14 @@ def native_forward(vmodel, seq: dict, pixel_values: np.ndarray, capture_layers, 
         logits = out.logits[0, -1]
         pos = mx.array(positions)
         stack = mx.stack([rec[l][0, pos] for l in capture_layers]).astype(mx.float32)
-        mx.eval(logits, stack)
+        e = emb.inputs_embeds
+        mx.eval(logits, stack, e)
     finally:
         inner.layers = originals
-    return {"residuals": np.array(stack), "logits": np.array(logits.astype(mx.float32))}
+    u16 = mx.view(e, mx.uint16) if e.dtype == mx.bfloat16 else e
+    eff = seen.get("position_ids")
+    return {"residuals": np.array(stack), "logits": np.array(logits.astype(mx.float32)),
+            "decoder_calls": {"min": min(calls.values()), "max": max(calls.values()), "layers": len(calls)},
+            "effective_positions_sha256": positions_sha256(eff) if eff is not None else None,
+            "inputs_embeds_sha256": sha256_bytes(np.ascontiguousarray(np.array(u16)).tobytes()),
+            "inputs_embeds_dtype": str(e.dtype)}

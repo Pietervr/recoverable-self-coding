@@ -152,7 +152,8 @@ def run_native() -> None:
     li = z["logits_requested"].astype(np.float64)
     ln = nat["logits"][req].astype(np.float64)
     out = {"rel_l2_max": float(rel.max()), "rel_l2_argmax_layer": int(rel.argmax()),
-           "rel_l2_by_layer": [float(x) for x in rel], "bitwise_layers": int((rel == 0).sum()),
+           "rel_l2_by_layer": [float(x) for x in rel], "numeric_equal_layers": int((rel == 0).sum()),  # rel == 0 after FP64 conversion: numeric equality, not a byte compare (signed zeros not distinguished; Codex f9d2ef3); the committed JSON of 1 Oct calls this "bitwise_layers"
+          
            "requested_logit_max_abs": float(np.abs(li - ln).max()),
            "argmax_open_vocab": [int(z["top_ids"][0]), int(nat["logits"].argmax())],
            "argmax_requested": [int(req[int(li.argmax())]), int(req[int(ln.argmax())])],

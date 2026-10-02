@@ -31,3 +31,24 @@ sequence, and the probe is now resolved at instrument init. It stays counted.
   Native process phys_footprint 16.69 GiB. Probable cause of the logit difference (not verified): the text path
   unembeds the final row alone, while mlx-vlm applies `lm_head` to the whole sequence and takes the last row, so the
   quantized matmul shape differs.
+
+## Reconciliation with row 20 (2 October 2026; framework §8.4; Codex RSC f9d2ef3, R052 repair 15)
+
+**Carried in, not reset.** The 16 attempts above are row 20's first 16. `stage_a.py` creates row 20's state file
+with `ENGINEERING_CARRY`: started 16, completed 15, failed 1 (the pre-model failure), passes 16, and **1,808.73 s**
+of time - the 8.73 s measured inside attempts (1.72 + 7.01) plus a recorded **allowance of 1,800 s** for what was never
+timed: interpreter starts, model and lens loads (about 5 s per load measured, the lens ~3 GB), preprocessing, writes and
+the manual relabel. The allowance is deliberately generous. The envelope is then 16 carried + 140 mandatory
+instrumented + 16 mechanics diagnostics + 2 suffix-isolation diagnostics + 20 native = **194 of 200**, six in hand;
+`2,056` remains the photograph project's total across rows 20 and 21, engineering included. The two engineering state
+files above stay as they are (the record of what ran); `enforce.py` has since been revised, so these scripts would
+not run again unchanged - no further engineering forwards are planned. The engineering attempts establish nothing
+about Stage A.
+
+**Strength of the equality claims, relabelled.** `adapter_engineering_native.json`'s `"bitwise_layers": 64` counts
+layers whose relative L2 is exactly 0 after conversion to FP64, and `runtime_agreement.json`'s
+`"bitwise_equal_layers"` counts `np.array_equal` on the saved arrays. Both are **numeric equality on the saved
+arrays**, not byte comparisons (a signed zero would not be told apart). The scripts now name these
+`numeric_equal_layers`; the committed JSON keeps the old key names as the record of 1 October, read with this label.
+The within-instrument comparisons in `adapter_engineering_inst.json` (`bitwise_equal_to_plain`: residual, logit and
+feature sha256) are byte comparisons and keep the word.

@@ -21,7 +21,12 @@
    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
    "status": "eligible",
    "notes": "creator's profile asks that people pictures be used editorially; no person in this image",
-   "stock_matches": 0
+   "stock_matches": 0,
+   "stock_comparison": {
+    "checked": "2026-10-01",
+    "listings": [],
+    "verdict": "TinEye listed no result in stock (count 0, recorded 2026-10-01)"
+   }
   },
   {
    "concept": "fly",
@@ -51,7 +56,45 @@
    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
    "status": "eligible",
    "notes": "the dish (chili con carne), consistent with THINGS' sense 'chili (stew)', n07864934",
-   "stock_matches": 3
+   "stock_matches": 3,
+   "stock_comparison": {
+    "checked": "2026-10-02",
+    "method": "TinEye 'results found in stock' (Oldest), each listing opened in Chrome; listing date = the site's upload date where shown, otherwise TinEye's first crawl as an upper bound on when it was listed",
+    "free_source": {
+     "published": "2014-06-29",
+     "creator": "kalhh (Pixabay)"
+    },
+    "listings": [
+     {
+      "site": "Shutterstock",
+      "listing_id": "1710110734",
+      "url": "https://www.shutterstock.com/image-photo/red-beans-corn-spicy-tomato-sauce-1710110734",
+      "tineye_first_crawled": "2020-04-27",
+      "state_on_2026-10-02": "410 Gone",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "Adobe Stock",
+      "listing_id": "352909940",
+      "url": "https://stock.adobe.com/images/352909940",
+      "tineye_first_crawled": "2020-06-08",
+      "state_on_2026-10-02": "404 Page not found",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "Depositphotos",
+      "listing_id": "377539832",
+      "url": "https://depositphotos.com/377539832/stock-photo-healthy-vegetarian-yellow-ingredient-background.html",
+      "tineye_first_crawled": "2020-06-15",
+      "state_on_2026-10-02": "redirects to the generic stock-photography page",
+      "credited_author": null,
+      "listing_upload_date": null
+     }
+    ],
+    "verdict": "no conflicting claim observed: all three listings first crawled in 2020, after the free source (2014-06-29); all removed, no author shown"
+   }
   },
   {
    "concept": "hamburger",
@@ -66,7 +109,54 @@
    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
    "status": "eligible",
    "notes": "",
-   "stock_matches": 4
+   "stock_matches": 4,
+   "stock_comparison": {
+    "checked": "2026-10-02",
+    "method": "TinEye 'results found in stock' (Oldest), each listing opened in Chrome; listing date = the site's upload date where shown, otherwise TinEye's first crawl as an upper bound on when it was listed",
+    "free_source": {
+     "published": "2018-04-04",
+     "creator": "chadarat (Pixabay)"
+    },
+    "listings": [
+     {
+      "site": "EyeEm",
+      "listing_id": "181817112",
+      "url": "https://www.eyeem.com/p/181817112",
+      "tineye_first_crawled": "2021-08-14",
+      "state_on_2026-10-02": "redirects to Magnific's generic photos page",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "Shutterstock",
+      "listing_id": "1290695491",
+      "url": "https://www.shutterstock.com/image-photo/fresh-tasty-burger-french-fries-served-1290695491",
+      "tineye_first_crawled": "2022-04-24",
+      "state_on_2026-10-02": "410 Gone",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "Shutterstock",
+      "listing_id": "2156460173",
+      "url": "https://www.shutterstock.com/image-photo/gorgeous-delicious-burger-food-background-2156460173",
+      "tineye_first_crawled": "2022-07-13",
+      "state_on_2026-10-02": "410 Gone",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "Adobe Stock",
+      "listing_id": "785884971",
+      "url": "https://stock.adobe.com/images/The-beauty-of-a-hamburger-lies-not-only-in-its-simple,-satisfying-flavors-but-/785884971",
+      "tineye_first_crawled": "2024-04-23",
+      "state_on_2026-10-02": "404 Page not found",
+      "credited_author": null,
+      "listing_upload_date": null
+     }
+    ],
+    "verdict": "no conflicting claim observed: all four listings first crawled 2021-2024, after the free source (2018-04-04); all removed, no author shown"
+   }
   },
   {
    "concept": "taxi",
@@ -81,7 +171,36 @@
    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
    "status": "eligible",
    "notes": "the THINGSplus file is a square crop; TinEye matched it to manhattan-932754 copies (e.g. ibm.com manhattan-932754_640.jpg). TinEye also lists 2 matches in stock collections (Alamy 88994189, Shutterstock 2358195733): the first record called these adverts, which was wrong - TinEye's 'results found in stock' are matches of this image. Street scene with shop signage.",
-   "stock_matches": 2
+   "stock_matches": 2,
+   "stock_comparison": {
+    "checked": "2026-10-02",
+    "method": "TinEye 'results found in stock' (Oldest), each listing opened in Chrome; listing date = the site's upload date where shown, otherwise TinEye's first crawl as an upper bound on when it was listed",
+    "free_source": {
+     "published": "2015-09-29",
+     "creator": "tookapic (Pixabay)"
+    },
+    "listings": [
+     {
+      "site": "Alamy",
+      "listing_id": "88994189",
+      "url": "https://www.alamy.com/stock-photo-yellow-taxis-in-manhattan-88994189.html",
+      "tineye_first_crawled": "2021-08-25",
+      "state_on_2026-10-02": "404 Page not found",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "Shutterstock",
+      "listing_id": "2358195733",
+      "url": "https://www.shutterstock.com/image-photo/manhattan-usa-september-30-2015-taxis-2358195733",
+      "tineye_first_crawled": "2023-09-10",
+      "state_on_2026-10-02": "410 Gone",
+      "credited_author": null,
+      "listing_upload_date": null
+     }
+    ],
+    "verdict": "no conflicting claim observed: both listings first crawled 2021/2023, after the free source (2015-09-29); both removed, no author shown"
+   }
   },
   {
    "concept": "wagon",
@@ -96,22 +215,12 @@
    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
    "status": "eligible",
    "notes": "also on Pexels (pexels-photo-327318)",
-   "stock_matches": 0
-  },
-  {
-   "concept": "mask",
-   "thingsplus_image": "mask.jpg",
-   "file_sha256": "7c9991a64b8f652643ee821f25b4c001fa89398ff9ca981cb57bdf588e8746d3",
-   "checked": "2026-10-01",
-   "tineye_results": 57,
-   "source_url": "https://pixabay.com/photos/masks-field-nature-tree-1152278/",
-   "creator": "josealbafotos (Pixabay)",
-   "published": "2016-01-20",
-   "licence_shown": "Pixabay Content License (page banner)",
-   "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
-   "status": "eligible",
-   "notes": "",
-   "stock_matches": 3
+   "stock_matches": 0,
+   "stock_comparison": {
+    "checked": "2026-10-01",
+    "listings": [],
+    "verdict": "TinEye listed no result in stock (count 0, recorded 2026-10-01)"
+   }
   },
   {
    "concept": "suit",
@@ -141,7 +250,12 @@
    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
    "status": "eligible",
    "notes": "checked as fly's replacement (next in the animals seeded order)",
-   "stock_matches": 0
+   "stock_matches": 0,
+   "stock_comparison": {
+    "checked": "2026-10-01",
+    "listings": [],
+    "verdict": "TinEye listed no result in stock (count 0, recorded 2026-10-01)"
+   }
   },
   {
    "concept": "wig",
@@ -171,7 +285,27 @@
    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
    "status": "eligible",
    "notes": "checked as suit's replacement after wig; the image shows several leather jackets",
-   "stock_matches": 1
+   "stock_matches": 1,
+   "stock_comparison": {
+    "checked": "2026-10-02",
+    "method": "TinEye 'results found in stock' (Oldest), each listing opened in Chrome; listing date = the site's upload date where shown, otherwise TinEye's first crawl as an upper bound on when it was listed",
+    "free_source": {
+     "published": "2014-06-10",
+     "creator": "Hans (Pixabay)"
+    },
+    "listings": [
+     {
+      "site": "Adobe Stock",
+      "listing_id": "775691038",
+      "url": "https://stock.adobe.com/images/Clothing-serves-as-both-self-expression-and-protection,-including-shirts,-pa/775691038",
+      "tineye_first_crawled": "2024-04-12",
+      "state_on_2026-10-02": "404 Page not found",
+      "credited_author": null,
+      "listing_upload_date": null
+     }
+    ],
+    "verdict": "no conflicting claim observed: the one listing was first crawled 2024-04-12, after the free source (2014-06-10); it is removed, so no author is shown"
+   }
   },
   {
    "concept": "bull",
@@ -697,9 +831,217 @@
    "status": "eligible",
    "stock_matches": 0,
    "notes": "replacement candidate; stock matches: 0"
+  },
+  {
+   "concept": "sweater",
+   "thingsplus_image": "sweater.jpg",
+   "file_sha256": "1d9138286f95a38c803fbc4d7f6aaf48434895fac3819835b15c6d46509146c3",
+   "checked": "2026-10-02",
+   "tineye_results": 435,
+   "source_url": "https://pixabay.com/photos/fashion-sweater-wool-clothing-1283863/",
+   "creator": "Pexels (Pixabay account)",
+   "published": "2016-03-26",
+   "licence_shown": "Pixabay Content License (page banner)",
+   "licence_basis": "conflicting rights claim: a live stock listing credits a different author (framework 8.2 stock-listing rule)",
+   "status": "ineligible",
+   "stock_matches": 8,
+   "notes": "checked as mask's replacement (next in the clothing seeded order). CC0 at source by date, but the stock comparison found a live listing crediting another author",
+   "stock_comparison": {
+    "checked": "2026-10-02",
+    "free_source": {
+     "published": "2016-03-26",
+     "creator": "Pexels (Pixabay account)"
+    },
+    "listings": [
+     {
+      "site": "Shutterstock",
+      "listing_id": "1086080666",
+      "url": "https://www.shutterstock.com/image-photo/blue-knitted-sweater-1086080666",
+      "tineye_first_crawled": "2018-05-16",
+      "state_on_2026-10-02": "410 Gone",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "Adobe Stock",
+      "listing_id": "204742962",
+      "url": "https://stock.adobe.com/images/204742962",
+      "tineye_first_crawled": "2019-04-24",
+      "state_on_2026-10-02": "404 Page not found",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "Shutterstock",
+      "listing_id": "1817600609",
+      "url": "https://www.shutterstock.com/image-photo/beautiful-fashion-clothes-black-white-colour-1817600609",
+      "tineye_first_crawled": "2020-09-21",
+      "state_on_2026-10-02": "410 Gone",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "Shutterstock",
+      "listing_id": "1881639082",
+      "url": "https://www.shutterstock.com/image-photo/warm-man-winter-sweater-isolated-on-1881639082",
+      "tineye_first_crawled": "2022-05-13",
+      "state_on_2026-10-02": "410 Gone",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "Shutterstock",
+      "listing_id": "2241216537",
+      "url": "https://www.shutterstock.com/image-photo/this-clothing-made-wool-perfect-relaxing-2241216537",
+      "tineye_first_crawled": "2022-12-24",
+      "state_on_2026-10-02": "live",
+      "credited_author": "Sonysuseno",
+      "listing_upload_date": "2022-12-23"
+     },
+     {
+      "site": "Shutterstock",
+      "listing_id": "2308081365",
+      "url": "https://www.shutterstock.com/image-photo/pontianak-indonesia16february2016sweaters-made-wool-very-comfortable-2308081365",
+      "tineye_first_crawled": "2023-05-28",
+      "state_on_2026-10-02": "410 Gone",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "Shutterstock",
+      "listing_id": "2359427167",
+      "url": "https://www.shutterstock.com/image-photo/sweater-winter-clothing-cloths-design-2359427167",
+      "tineye_first_crawled": "2023-09-15",
+      "state_on_2026-10-02": "410 Gone",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "Adobe Stock",
+      "listing_id": "772728561",
+      "url": "https://stock.adobe.com/images/A-neatly-folded-wool-sweater,-its-soft-fibers-woven-into-a-cozy-embrace,-awa/772728561",
+      "tineye_first_crawled": "2024-04-05",
+      "state_on_2026-10-02": "404 Page not found",
+      "credited_author": null,
+      "listing_upload_date": null
+     }
+    ],
+    "verdict": "CONFLICTING CLAIM: live Shutterstock 2241216537 credits 'Sonysuseno' (uploaded 2022-12-23); the caption of removed 2308081365 also claims a capture date of 16 Feb 2016, before the free source's 2016-03-26"
+   }
+  },
+  {
+   "concept": "scarf",
+   "thingsplus_image": "scarf.jpg",
+   "file_sha256": "248e7f16d08e30c5d56e1b7629def86c42ff2347d1c1ee13645d93210cb63e88",
+   "checked": "2026-10-02",
+   "tineye_results": 11,
+   "source_url": "https://pixabay.com/photos/scarf-fashion-accessory-knitwear-4849441/",
+   "creator": "MabelAmber (Pixabay)",
+   "published": "2020-02-14",
+   "licence_shown": "Pixabay Content License",
+   "licence_basis": "Pixabay Content License only: published after 2019-01-09, never CC0 at source",
+   "status": "ineligible",
+   "stock_matches": 3,
+   "notes": "checked as mask's replacement after sweater; ineligible on its date, so the order moves on (stock: Shutterstock 1649258428, Adobe 324521035 first crawled 2020-02-27, Freepik 33596483; not opened, the date already decides)"
+  },
+  {
+   "concept": "clothes",
+   "thingsplus_image": "clothes.jpg",
+   "file_sha256": "64fb9ffe85e89c0b0e77a44903ee4465449450920f91abd9228099ea6e1d3308",
+   "checked": "2026-10-02",
+   "tineye_results": 1145,
+   "source_url": "https://pixabay.com/photos/dresses-apparel-clothing-clothes-53319/",
+   "creator": "JamesDeMers (Pixabay)",
+   "published": "2012-07-29",
+   "licence_shown": "Pixabay Content License (page banner)",
+   "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+   "status": "eligible",
+   "stock_matches": 2,
+   "notes": "checked as mask's replacement after sweater and scarf; the earliest TinEye copy (femina.hu, 2013-11-01) postdates the Pixabay date. Dresses on a rack",
+   "stock_comparison": {
+    "checked": "2026-10-02",
+    "free_source": {
+     "published": "2012-07-29",
+     "creator": "JamesDeMers (Pixabay)"
+    },
+    "listings": [
+     {
+      "site": "Adobe Stock",
+      "listing_id": "545179675",
+      "url": "https://stock.adobe.com/images/Close-up-Of-Clothes-Hanging-In-Store/545179675",
+      "tineye_first_crawled": "2022-11-15",
+      "state_on_2026-10-02": "404 Page not found",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "EyeEm",
+      "listing_id": "192421442",
+      "url": "https://www.eyeem.com/p/192421442",
+      "tineye_first_crawled": "2022-11-19",
+      "state_on_2026-10-02": "redirects to Magnific's generic photos page",
+      "credited_author": null,
+      "listing_upload_date": null
+     }
+    ],
+    "verdict": "no conflicting claim observed: both listings first crawled 2022, after the free source; both removed, no author shown"
+   }
+  },
+  {
+   "concept": "mask",
+   "thingsplus_image": "mask.jpg",
+   "file_sha256": "7c9991a64b8f652643ee821f25b4c001fa89398ff9ca981cb57bdf588e8746d3",
+   "checked": "2026-10-01",
+   "tineye_results": 57,
+   "source_url": "https://pixabay.com/photos/masks-field-nature-tree-1152278/",
+   "creator": "josealbafotos (Pixabay)",
+   "published": "2016-01-20",
+   "licence_shown": "Pixabay Content License (page banner)",
+   "licence_basis": "conflicting rights claim: a live stock listing credits a different author (framework 8.2 stock-listing rule)",
+   "status": "ineligible",
+   "notes": " | 2026-10-02: the dated stock comparison found a live Shutterstock listing crediting another author; ineligible, replaced in seeded order (this record moved to the end of the list so earlier replacements do not move)",
+   "stock_matches": 3,
+   "stock_comparison": {
+    "checked": "2026-10-02",
+    "method": "TinEye 'results found in stock' (Oldest), each listing opened in Chrome; listing date = the site's upload date where shown, otherwise TinEye's first crawl as an upper bound on when it was listed",
+    "free_source": {
+     "published": "2016-01-20",
+     "creator": "josealbafotos (Pixabay)"
+    },
+    "listings": [
+     {
+      "site": "Shutterstock",
+      "listing_id": "1799626735",
+      "url": "https://www.shutterstock.com/image-photo/beautiful-white-mask-1799626735",
+      "tineye_first_crawled": "2022-04-24",
+      "state_on_2026-10-02": "live",
+      "credited_author": "Beni setiawan98",
+      "listing_upload_date": "2020-08-20"
+     },
+     {
+      "site": "Adobe Stock",
+      "listing_id": "560955951",
+      "url": "https://stock.adobe.com/images/White-mask/560955951",
+      "tineye_first_crawled": "2023-01-16",
+      "state_on_2026-10-02": "404 Page not found",
+      "credited_author": null,
+      "listing_upload_date": null
+     },
+     {
+      "site": "Adobe Stock",
+      "listing_id": "612859109",
+      "url": "https://stock.adobe.com/images/White-mask/612859109",
+      "tineye_first_crawled": "2023-06-20",
+      "state_on_2026-10-02": "404 Page not found",
+      "credited_author": null,
+      "listing_upload_date": null
+     }
+    ],
+    "verdict": "CONFLICTING CLAIM: the live Shutterstock listing credits 'Beni setiawan98' (uploaded 2020-08-20), a different author from the free source's josealbafotos (Pixabay, 2016-01-20) - ineligible under framework 8.2's stock-listing rule (R052, 2 Oct; Codex f9d2ef3)"
+   }
   }
  ],
- "stock_matches_note": "stock_matches = TinEye's 'results found in stock' for the file: listings of the same image in stock collections (Shutterstock, Alamy, Adobe Stock, Dreamstime). Whether a stock listing of an image that is CC0 at its source counts as a 'conflicting rights claim' under framework §8.2 is R052's terms call; counts are recorded, no image was excluded on them. An image whose only or earliest source is a stock listing (shorts, wine) is ineligible because no CC0/PD source was found.",
+ "stock_matches_note": "stock_matches = TinEye's 'results found in stock' for the file: listings of the same image in stock collections. R052's ruling (2 October 2026; framework 8.2; Codex f9d2ef3): a stock listing of an image that is CC0 at its earliest source is not by itself a conflicting claim; a listing that predates the free source's published date or credits a different author is, and so is any later explicit ownership or misattribution claim. Clearance is never inferred from a count: for every input admitted to a capture the dated comparison is recorded in 'stock_comparison' before the capture. A null count means unrecorded, not zero. An image whose only or earliest source is a stock listing (shorts, wine) is ineligible because no CC0/PD source was found.",
  "other_licences": {
   "pexels": "https://www.pexels.com/license/ read 2026-10-01: 'All photos and videos on Pexels are free to use.' (the Pexels License, not CC0)",
   "stocksnap": "StockSnap photo page footer read 2026-10-01: 'Free to use under the Creative Commons CC0 license.'"
