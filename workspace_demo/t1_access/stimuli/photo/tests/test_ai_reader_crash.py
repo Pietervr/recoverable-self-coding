@@ -382,7 +382,8 @@ class Rev6(HardKill):
         recs, _ = self.journal()
         self.assertEqual((recs[-1]["t"], recs[-1]["outcome"]), ("receipt", "COMPLETE"))   # the receipt is durable ...
         raw = self.b["fixture"]["raw"].read_bytes()
-        with self.assertRaisesRegex(SystemExit, "not closed on this receipt"):           # ... and does not qualify
+        # ... and does not qualify (revision 7: the missing closure marker refuses before the receipt check)
+        with self.assertRaisesRegex(SystemExit, "no closure marker|not closed on this receipt"):
             X.admit_clock(self.b["fixture"]["job"] / "clock.json", raw, recs[-1])
         p, el2 = self.slow_close_run(3.0, 0.3)
         self.assertEqual(p.returncode, 0, p.stderr[-1500:])
