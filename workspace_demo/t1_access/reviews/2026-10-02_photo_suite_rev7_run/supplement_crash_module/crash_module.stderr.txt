@@ -1,0 +1,42 @@
+test_after_begin_not_dispatched (test_ai_reader_crash.HardKill.test_after_begin_not_dispatched) ... ok
+test_after_dispatch_record_before_go (test_ai_reader_crash.HardKill.test_after_dispatch_record_before_go) ... ok
+test_after_end_answer_durable (test_ai_reader_crash.HardKill.test_after_end_answer_durable) ... ok
+test_after_go_worker_killed_by_the_watchdog (test_ai_reader_crash.HardKill.test_after_go_worker_killed_by_the_watchdog) ... ok
+test_after_response_answer_lost (test_ai_reader_crash.HardKill.test_after_response_answer_lost) ... ok
+test_after_state (test_ai_reader_crash.HardKill.test_after_state) ... ok
+test_attempt1_answer_durable_then_crash_holds (test_ai_reader_crash.HardKill.test_attempt1_answer_durable_then_crash_holds) ... ok
+test_attempt1_not_dispatched_retries (test_ai_reader_crash.HardKill.test_attempt1_not_dispatched_retries) ... ok
+test_attempt1_uncertain_smoke_never_passes (test_ai_reader_crash.HardKill.test_attempt1_uncertain_smoke_never_passes) ... ok
+test_before_begin (test_ai_reader_crash.HardKill.test_before_begin) ... ok
+test_external_sigkill_with_live_worker (test_ai_reader_crash.HardKill.test_external_sigkill_with_live_worker)
+The orchestrator is SIGKILLed with its worker running: the watchdog kills the worker group within its ... ok
+test_first_request_retry_crash_holds (test_ai_reader_crash.HardKill.test_first_request_retry_crash_holds) ... ok
+test_incomplete_tail_quarantined (test_ai_reader_crash.HardKill.test_incomplete_tail_quarantined) ... ok
+test_recovery_persistence (test_ai_reader_crash.HardKill.test_recovery_persistence) ... ok
+test_terminal_no_response (test_ai_reader_crash.HardKill.test_terminal_no_response) ... ok
+test_exhausted_resume_stops_before_preflight (test_ai_reader_crash.Rev5Recovery.test_exhausted_resume_stops_before_preflight)
+R4: a resume with too little time left records the recovery and goes straight to STOPPED. ... ok
+test_immediate_restart_kills_unrecorded_members (test_ai_reader_crash.Rev5Recovery.test_immediate_restart_kills_unrecorded_members)
+R3: a crashed attempt whose recorded worker is alive with a child NO record names, and whose watchdog is ... ok
+test_quarantine_crash_before_truncation_one_record (test_ai_reader_crash.Rev5Recovery.test_quarantine_crash_before_truncation_one_record)
+R6: the quarantine file exists but the journal still holds the tail (a crash between the two): one ... ok
+test_structural_after_end_first_and_later_request (test_ai_reader_crash.Rev5Recovery.test_structural_after_end_first_and_later_request)
+R2: a durable structural end, then a crash before STOPPED: the restart goes straight to a valid STOPPED - ... ok
+test_setup_before_the_clock_is_bounded (test_ai_reader_crash.Rev6.test_setup_before_the_clock_is_bounded)
+Reader 3: a stall in check_accounting, before the clock (and its guard) exists, ends at the setup timer. ... ok
+test_slow_receipt_and_slow_close_share_one_deadline (test_ai_reader_crash.Rev6.test_slow_receipt_and_slow_close_share_one_deadline)
+Reader 3: receipt + close past their ONE allowance -> exit 75 and the COMPLETE does not qualify (the clock ... ok
+test_watchdog_does_not_retire_while_a_recorded_escaped_member_lives (test_ai_reader_crash.Rev6.test_watchdog_does_not_retire_while_a_recorded_escaped_member_lives)
+Reader 1: the leader exits, its recorded child has left the group, and the orchestrator dies before its ... ok
+test_coherent_undercharge_refused (test_ai_reader_crash.Rev7.test_coherent_undercharge_refused)
+Reader B: an alternate clock - total 0, one closed session of 0 s naming the journal, marker consistent - ... ok
+test_failed_start_is_charged_at_the_next_start (test_ai_reader_crash.Rev7.test_failed_start_is_charged_at_the_next_start)
+Reader B: a start killed by its setup timer before the clock's first persist is charged next time. ... ok
+test_marker_failure_after_its_rename_is_removed (test_ai_reader_crash.Rev7.test_marker_failure_after_its_rename_is_removed) ... ok
+test_post_rename_clock_failure_and_stall_do_not_qualify (test_ai_reader_crash.Rev7.test_post_rename_clock_failure_and_stall_do_not_qualify)
+Reader A: the closed clock is renamed into place, then its directory fsync fails (or stalls): the COMPLETE ... ok
+
+----------------------------------------------------------------------
+Ran 26 tests in 524.783s
+
+OK
