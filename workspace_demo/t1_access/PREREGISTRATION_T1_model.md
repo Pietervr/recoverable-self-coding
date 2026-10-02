@@ -440,7 +440,17 @@ evidence, is never relabelled, and is never pooled with new-policy evidence. *No
 adoption still requires the M2S comparison, the frozen policy run through the actual nested selection on
 independent seeds with coverage, false-positive rate, power and failure frequency with Monte-Carlo
 uncertainty, and its cost measured on the intended machine. This declaration fixes what will be tested; it
-does not assert that it passed.
+does not assert that it passed. *Implemented* (2 Oct 2026, RSC `5f6333c`): `models.START_POLICY` and the
+`policy_key` argument of `models.fit` — the cold starts from the caller's stream, then each member's added batches,
+every added start from its own stream keyed by (member, size, fold, replicate, start index) with the dataset seed
+and layer tag standing for the replicate inside the pipeline, start indices running on across cold, added and
+recovery starts, the kept solution the converged start with the highest finite likelihood and ties to the lowest
+index; `PAD_MULTIPLE` 64; `analyze.Config.start_policy` switches it on at both sizes and every call site, and the
+policy table, its open members and the padding enter `dataset_identity` and `config_hash`; the reference-bank
+archive stores every start's parameters and likelihood at full precision. Without a key the v1.2 fit is unchanged,
+so the historical rows' hash lineage is preserved on the legacy path. Tested on mechanics only
+(`test_start_policy.py`: the table, keyed and disjoint streams, the tie-break, padding inert to 1e-13, cold plus
+added counts, the legacy path, the hashes). Still not adopted: the M2S comparison and the validation above remain.
 
 ### 7.5 Recovery of the family distinction (before v2; `simulate.py` outputs committed)
 Generators: every member of G and X at CAL/PILOT-fitted parameters and across a frozen grid —
@@ -936,3 +946,4 @@ lists, amplitudes, outcomes); this document.
 | 2026-10-02 | Draft amendment, §3.1, later: the no-CSLB route measured under the full rules (R084, RSC 6153fee) — McRae + Feats + Hovhannisyan (≥ 3 productions) with clothing as a fourth family reaches 104 usable single-token concepts at ten clauses against a four-family minimum of 100 (margin four, before naming acceptance, 14 concepts from Hovhannisyan); 113 without rule T; 90 at ≥ 5; twelve clauses fail under every row. Hovhannisyan's three gaps (no denominator, no CV, photo-conditioned) and its unrecorded data terms stated. Decision point 15 October 2026. |
 | 2026-10-02 | Draft amendment, §3.1, last: the naming-acceptance rate measured on a 30-concept development sample of the four-family route (R084, RSC af8a668) — 12 of 30 pass as declared (0.40, 0.23–0.59), so 104 becomes about 42 and no relaxation of the two sides reaches 100 at the point estimate; the floor measures the reader's naming ability, and the reader's required capability is recorded as an open protocol choice; Hovhannisyan's photo-conditioned and generic clauses noted. The route is withdrawn as a bank; the 15 October decision now includes the reader and the channel. |
 | 2026-10-02 | Draft amendment, §10.1, corrected on Codex's row-19 Lengau review (RSC c3e1d2a): ω = 2's Monte-Carlo SE is 2.678379 (2 MCSE 5.356758), not "2 MCSE 2.678379"; the ten final_2026-09-15 shards are ω = 2's bank and pin nothing at ω = 1, whose historical reference (−0.869513, MCSE 0.011242, old policy) is sensitivity evidence until a policy-matched reference is generated under its own ledger row; the screen is 100 fixed attempted datasets with the 83 cutoff applied only at n = 100; T is a declared 99 % reference confidence set and the one-look allowance 0.035 is stated. |
+| 2026-10-02 | §7.4 start policy IMPLEMENTED at RSC 5f6333c (not adopted): START_POLICY, fit(policy_key), PAD_MULTIPLE 64, the policy in the identity and the code hash, the reference archive at full precision; the v1.2 path unchanged without a key; mechanics tests in test_start_policy.py. The code hash under the policy (D = 4, layer 41, seed 2026, refit, four inner cold starts) is edcfdf4300f3; the legacy cluster configuration now hashes af666f75d0b0 because models.py changed, so no new row can be pooled with the 625798e9e7f4 rows. |
