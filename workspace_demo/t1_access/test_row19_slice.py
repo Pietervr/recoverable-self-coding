@@ -13,9 +13,10 @@ buys no fit and keeps the companion; the control target on fresh and resumed run
 """
 import os
 os.environ.setdefault("NPROC", "1")
-import json, tempfile, importlib.util, sys, threading, time, math, io, contextlib, base64
+import json, tempfile, importlib.util, sys, threading, time, math, io, contextlib, base64, platform
 import numpy as np
 import analyze as A
+import jax, jaxlib, scipy, joblib
 
 T1 = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(T1, "chpc"))
@@ -40,7 +41,7 @@ def _stub_run_dataset(sub, cfg, seed, outer_folds=None, n_jobs=1):
     is_resample = getattr(sub, "group", None) is not None
     return dict(layers=sub.layers, folds=[np.asarray(f) for f in folds], members=members,
                 delta={p: rng.normal(size=(L, C)) for p in A.PREDICTORS},
-                logq=rng.normal(size=(L, Mn, C)), n_c=np.full(C, 3), selected=[[(members[0], members[-1])] * F for _ in range(L)],
+                logq=rng.normal(size=(L, Mn, C)), n_c=np.bincount(sub.concept, minlength=C).astype(float), selected=[[(members[0], members[-1])] * F for _ in range(L)],
                 converged=np.ones((L, F, Mn)), inner_conv=np.ones((L, F, Mn)), inner_nonfinite=np.zeros((L, F, Mn), dtype=bool),
                 recovery=np.zeros((L, F, Mn)), failed=bool(CALLS["fail_all"] and is_resample),
                 failed_reason=("stub failure" if (CALLS["fail_all"] and is_resample) else ""),
@@ -53,7 +54,8 @@ def _manifest(root, campaign, n_boot=10, cap=1500.0, walltime_h=1.0, mem_stop_gi
             "cfg": {"start_policy": "", "interval": "refit", "n_boot_refit": n_boot, "n_starts": 2, "n_starts_inner": 2,
                     "refit_min_usable": 1.0, "n_outer": 3, "n_inner": 2},
             "code": {"files": {"analyze.py": None}},
-            "environment": {"python": "x", "jax": "x", "jaxlib": "x", "numpy": "x", "scipy": "x", "joblib": "x", "machine": "x"},
+            "environment": {"python": platform.python_version(), "jax": jax.__version__, "jaxlib": jaxlib.__version__, "numpy": np.__version__,
+                            "scipy": scipy.__version__, "joblib": joblib.__version__, "machine": platform.machine()},
             "pbs": {"cores": 1, "walltime_h": walltime_h, "deadline_reserve_s": 0.0, "mem_stop_gib": mem_stop_gib},
             "control": {"rep": 0, "target": target},
             "storage": {"root": root, "campaign": campaign}, "budget": {"core_hours_cap": cap}}
@@ -106,7 +108,8 @@ def _rehash(r):
 def test_environment_and_code_gates_hold_before_anything():
     d, c = _dirs()
     with _Patched():
-        mp = os.path.join(d, "manifest.json"); json.dump(_manifest(d, c), open(mp, "w"))
+        bad_env = _manifest(d, c); bad_env["environment"]["jax"] = "0.0.0"
+        mp = os.path.join(d, "manifest.json"); json.dump(bad_env, open(mp, "w"))
         assert R19.main(["--manifest", mp, "--root", d, "--rep", "0", "--no-reservation"]) == R19.HELD        # environment
         man = _manifest(d, c); man["code"]["files"]["analyze.py"] = "0" * 64
         assert _run(d, man, reserve=False) == R19.HELD                                                       # code pin
@@ -180,10 +183,14 @@ def test_ledger_domains_states_and_terminal_settlement():
     L.runner_end(t0, 10.0, 75)
     st = json.load(open(L.path))
     assert st["entries"][t1]["state"] == "reserved" and st["entries"][t0]["state"] == "live"
-    L.settle("J0", 3600.0, 1, "qstat -xf")
+    L.settle("J0", 3600.0, 1, "qstat -xf: walltime 01:00:00, exit 75, ended normally")
     assert L.totals(json.load(open(L.path))) == (1.0, 40.0)
-    L.settle("J0", 3600.0, 1)
-    for call in (lambda: L.settle("J0", 7200.0, 1), lambda: L.bind(t0, "J0x"), lambda: L.runner_start(t0, "J0", "main", 0, d, 1, 40 * 3600),
+    L.settle("J0", 3600.0, 1, "qstat -xf: walltime 01:00:00, exit 75, ended normally")
+    try:
+        L.settle("J1x", 1.0, 1, ""); raise AssertionError("settlement without a note accepted")
+    except RuntimeError:
+        pass
+    for call in (lambda: L.settle("J0", 7200.0, 1, "qstat -xf: a different accounting"), lambda: L.bind(t0, "J0x"), lambda: L.runner_start(t0, "J0", "main", 0, d, 1, 40 * 3600),
                  lambda: L.settle("J0", float("nan"), 1), lambda: L.settle("J0", -5.0, 1)):
         try:
             call(); raise AssertionError("terminal or invalid transition accepted")
@@ -240,6 +247,7 @@ def test_lossless_original_cache_every_leaf_and_each_validator():
         CALLS["run_dataset"] = 0
         expect = _stub_run_dataset(ds, cfg, seed, outer_folds=folds)
         assert isinstance(expect["members"], tuple) and isinstance(run["members"], list) and _leaf_equal(expect, run)
+        assert run["n_c"].dtype.kind == "f"                                              # the real pipeline's floating counts, kept
         assert run["converged"].shape == (1, 3, len(expect["members"])) and run["logq"].shape == (1, len(expect["members"]), ds.n_concepts)
         assert R19.payload_sha(rec["run"]) == rec["payload_sha"] and R19.meta_sha(rec) == rec["meta_sha"] and rec["schema"] == R19.ORIG_SCHEMA
         keep = open(p).read()
@@ -270,7 +278,14 @@ def test_lossless_original_cache_every_leaf_and_each_validator():
         hold_after(foreign_member, "not two member names")
         def bad_nc(r):
             r["run"]["n_c"]["b64"] = base64.b64encode(np.zeros(len(expect["n_c"]), dtype=np.int64).tobytes()).decode(); _rehash(r)
-        hold_after(bad_nc, "n_c is not positive integer counts")
+        hold_after(bad_nc, "n_c is not positive integral counts")
+        def half_nc(r):
+            r["run"]["n_c"]["b64"] = base64.b64encode(np.full(len(expect["n_c"]), 2.5).tobytes()).decode(); _rehash(r)
+        hold_after(half_nc, "n_c is not positive integral counts")
+        def text_logq(r):
+            w = r["run"]["logq"]; arr = np.full(tuple(w["shape"]), "x", dtype="<U1")
+            w["__nd__"] = str(arr.dtype); w["b64"] = base64.b64encode(arr.tobytes()).decode(); _rehash(r)
+        hold_after(text_logq, "logq is not a numeric array")
         open(p, "w").write("{not json")
         CALLS["run_dataset"] = 0
         rc, out = _run(d, man, "--job-id", "jy", reserve=False, capture=True)
@@ -493,6 +508,37 @@ def test_stop_and_memory_at_the_last_fit_aggregation_and_no_work_under_one_bindi
             ack = json.load(open(os.path.join(d4, "STOP_ACK_rep0.json")))
             assert rc == R19.RESUME and ack["request_id"] == holder["req4"]["id"] and ack["boundary"] == "no work bought"
             os.remove(L3.stop_path(0))
+            # (e) a request landing during the publication writes is acknowledged 'at publication'
+            d5, c5 = _dirs(); man5 = _manifest(d5, c5, n_boot=3); L5 = CampaignLedger(c5, 1500.0)
+            keep_wa = R19.write_atomic
+            def write_with_stop(path, obj):
+                keep_wa(path, obj)
+                if path.endswith("status_0.json") and obj.get("phase") == "final" and "req5" not in holder:
+                    holder["req5"] = L5.stop_request(0)
+            R19.write_atomic = write_with_stop
+            try:
+                rc = _run(d5, man5, "--job-id", "j5")
+            finally:
+                R19.write_atomic = keep_wa
+            ack = json.load(open(os.path.join(d5, "STOP_ACK_rep0.json")))
+            st = json.load(open(os.path.join(d5, "status_0.json")))
+            assert rc == R19.DONE and ack["request_id"] == holder["req5"]["id"] and ack["boundary"] == "at publication" and st["stopped_by_request"]
+            os.remove(L5.stop_path(0))
+            # (f) a peak first crossing in the publication window: exit 4, never 0, result retained
+            d6, c6 = _dirs(); man6 = _manifest(d6, c6, n_boot=3, mem_stop_gib=1.0)
+            sp6 = os.path.join(d6, "status_0.json")
+            def rss_at_publication():
+                if os.path.exists(sp6) and json.load(open(sp6)).get("phase") == "final":
+                    return 2 * 2**30
+                return 10 * 2**20
+            R19.maxrss_bytes = rss_at_publication
+            try:
+                rc = _run(d6, man6, "--job-id", "j6")
+            finally:
+                R19.maxrss_bytes = keep_rss
+            st = json.load(open(sp6)); task6 = json.load(open(os.path.join(d6, "task_0.json")))
+            assert rc == R19.HELD and st["memory_breach"] and st["exit"] == 4 and "result" in st and st["sampled_at"] == "terminal boundary"
+            assert task6["runs"][-1]["exit"] == 4
     finally:
         R19.maxrss_bytes = keep_rss; A.analyze_dataset = keep_agg
 

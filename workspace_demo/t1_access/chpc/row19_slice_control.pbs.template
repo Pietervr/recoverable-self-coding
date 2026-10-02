@@ -20,6 +20,7 @@
 #                    of a completed resample, the original run from its validated cache) (__KIND__ c3)
 # __TOKEN__ is each run's campaign reservation, made BEFORE its qsub (chpc/row19_ledger.py reserve --kind c1|c2|c3 --rep 0).
 # Then C1's and C3's completed outputs are compared field by field on the Mac (chpc/row19_control_compare.py).
+# __MODE__ names the PBS job and its spool files only; the live log is live_ctl___KIND__.log (c1 / c2 / c3), the name the watch expects.
 ulimit -s unlimited
 T=/mnt/lustre/users/pvanrooyen/t1_toolchain
 cd $T/rsc_slice/workspace_demo/t1_access
@@ -27,9 +28,9 @@ export NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHON
 echo "host $(hostname)  $(grep -m1 'model name' /proc/cpuinfo)"
 echo "code $(git rev-parse --short HEAD)  start $(date -u +%FT%TZ)  job $PBS_JOBID  mode __MODE__"
 mkdir -p $T/__ROOT__
-$T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep 0 --until 20 __KILL_FLAG__ --walltime-s __WALLTIME_S__ --root $T/__ROOT__ --campaign $T/row19_campaign --job-id $PBS_JOBID --reservation-token __TOKEN__ --kind __KIND__ 2>&1 | tee -a $T/__ROOT__/live_ctl___MODE__.log
+$T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep 0 --until 20 __KILL_FLAG__ --walltime-s __WALLTIME_S__ --root $T/__ROOT__ --campaign $T/row19_campaign --job-id $PBS_JOBID --reservation-token __TOKEN__ --kind __KIND__ 2>&1 | tee -a $T/__ROOT__/live_ctl___KIND__.log
 ps=("${PIPESTATUS[@]}"); rc=${ps[0]}; tee_rc=${ps[1]}
 
-echo "exit $rc tee $tee_rc job $PBS_JOBID end $(date -u +%FT%TZ)" | tee -a $T/__ROOT__/live_ctl___MODE__.log
+echo "exit $rc tee $tee_rc job $PBS_JOBID end $(date -u +%FT%TZ)" | tee -a $T/__ROOT__/live_ctl___KIND__.log
 w=$?; if [ $w -ne 0 ] || [ "$tee_rc" != "0" ]; then echo "LOGGER FAILURE: tee $tee_rc, terminal witness write rc $w"; fi
 exit $rc

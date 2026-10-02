@@ -58,7 +58,20 @@ def expected_contract(manifest_path, task_binding):
     ds.meta.update(generator=st["generator"], theta=[float(x) for x in theta], D=int(st["D"]), rho=float(st["rho"]), seed=seed)
     folds = A.stratified_folds(ds.family, cfg.n_outer, seed)
     n_rep = int(cfg.n_boot_refit)
-    ident = A.dataset_identity(ds, cfg, seed, n_rep, folds)
+    snap = task_binding.get("numerical")
+    if not isinstance(snap, dict):
+        raise ValueError("the task binding carries no producer numerical snapshot")
+    want = man["environment"]
+    rt = snap.get("runtime", {})
+    for k in ("python", "jax", "numpy", "scipy"):
+        if str(rt.get(k)) != str(want.get(k)):
+            raise ValueError(f"the producer's snapshot runtime {k} {rt.get(k)!r} is not the manifest's pinned {want.get(k)!r}")
+    pins = man["code"]["files"]
+    for name, dig in snap.get("files", {}).items():
+        pin = pins.get(name)
+        if pin and str(dig) != str(pin)[:16]:
+            raise ValueError(f"the producer's loaded {name} digest {dig!r} is not the manifest's pin {str(pin)[:16]!r}")
+    ident = A.dataset_identity(ds, cfg, seed, n_rep, folds, numerical=snap)
     if ident != task_binding["ident"] or n_rep != int(task_binding["n_rep"]):
         raise ValueError("the task binding's identity or B is not the manifest's for this rep")
     idx = A.stratified_resample(ds.family, n_rep, np.random.default_rng(seed))
@@ -133,7 +146,7 @@ def main(argv=None):
     ap.add_argument("--target", type=int, default=20)
     a = ap.parse_args(argv)
     qual, diffs = [], []
-    task = json.load(open(a.task))["binding"]
+    task_doc = json.load(open(a.task)); task = task_doc["binding"]; task_sha = task.get("manifest_sha")
     if task.get("until") is None or int(task["until"]) != a.target:
         qual.append(f"task binding's target {task.get('until')} is not --target {a.target}")
     try:
@@ -170,8 +183,25 @@ def main(argv=None):
         if s_.get("target_complete") is not True:
             qual.append(f"status {name}: did not report the target complete")
         bound = [e for e in entries[role] if e.get("job_id")]
-        if not (isinstance(s_.get("job"), str) and s_.get("job") and any(e["job_id"] == s_["job"] for e in bound)):
+        mine = [e for e in bound if e["job_id"] == s_.get("job")]
+        if not (isinstance(s_.get("job"), str) and s_.get("job") and mine):
             qual.append(f"status {name}: job {s_.get('job')!r} is not a {role} job bound in the campaign ledger")
+        else:
+            e = mine[0]
+            if s_.get("reservation") != e.get("token"):
+                qual.append(f"status {name}: reservation {s_.get('reservation')!r} is not the ledger entry's token {e.get('token')}")
+            if os.path.basename(str(s_.get("checkpoint", ""))) != os.path.basename(str(task["ckpt"])):
+                qual.append(f"status {name}: checkpoint {os.path.basename(str(s_.get('checkpoint', '')))!r} is not the task's")
+            root_b = os.path.basename(str(e.get("root", "")).rstrip("/"))
+            ck_root = os.path.basename(os.path.dirname(os.path.dirname(str(s_.get("checkpoint", "")))))
+            if root_b != ck_root:
+                qual.append(f"status {name}: its checkpoint lies under {ck_root!r}, not the ledger entry's root {root_b!r} (roots compared by basename: pulled paths differ from remote ones)")
+            if s_.get("manifest_sha") != task_sha:
+                qual.append(f"status {name}: manifest sha is not the task binding's")
+            if role == "c3":
+                c2e = [x for x in entries["c2"] if x.get("job_id")]
+                if len(c2e) == 1 and os.path.basename(str(c2e[0].get("root", "")).rstrip("/")) != root_b:
+                    qual.append(f"status C3: its reservation's root {root_b!r} is not C2's root {os.path.basename(str(c2e[0].get('root', '')).rstrip('/'))!r}")
         if fresh and not (s_.get("n_resumed") == 0 and s_.get("original_cached") is False):
             qual.append("status C1: not a fresh run (something resumed or the original came from a cache)")
         if not fresh and not (_is_int(s_.get("n_resumed")) and s_.get("n_resumed") >= 1 and s_.get("original_cached") is True):

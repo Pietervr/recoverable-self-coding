@@ -34,7 +34,7 @@ LIVE_DIR = os.path.join(HERE, "results", "row19_slice", "live")
 ARCHIVE_DIR = os.path.join(HERE, "results", "row19_slice", "archive")
 NEVER_SHOWN = ("result", "interval", "stats")
 LIVE_STATES = ("reserved", "bound", "live")
-TERMINAL = re.compile(r"^exit (?P<rc>\S+) tee (?P<tee>\S*) job (?P<job>\S+) end ")
+TERMINAL = re.compile(r"^exit (?P<rc>\d+) tee (?P<tee>\d*) job (?P<job>\S+) end \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 
 
 def sh(cmd, timeout=180):
@@ -201,15 +201,17 @@ def main(argv=None):
         notes.append("stop request(s): " + ", ".join(f"{k} id {v.get('id')}" for k, v in stops.items()))
     contracts = {}
     for e in entries:
-        if e.get("state") not in LIVE_STATES:
+        if e.get("state") not in LIVE_STATES and not (e.get("state") == "settled" and not str(e.get("settle_note", "")).strip()):
             continue
         root = e["root"]; rep = e.get("rep"); lr = os.path.join(LIVE_DIR, os.path.basename(root.rstrip("/")))
         q = (qs or {}).get(e.get("job_id")) if qs is not None else ("-" if not a.qstat else "unknown")
         started = e.get("runner_started"); ended = e.get("runner_exit")
-        phase = "ended" if ended is not None else "running" if started else "queued/not started"
+        killed_c2 = e["kind"] == "c2" and e.get("job_id") and os.path.exists(os.path.join(lr, "c2_interruption.json")) \
+            and json.load(open(os.path.join(lr, "c2_interruption.json"))).get("job_id") == e.get("job_id")
+        phase = "settled" if e["state"] == "settled" else "killed by PBS (known)" if killed_c2 else "ended" if ended is not None else "running" if started else "queued/not started"
         print(f"\n  {e['kind']:<6} rep {rep} attempt {e['attempt']} {e['state']:<8} job {e.get('job_id')} PBS {q}  {phase}  "
               f"{e['reserved_core_h']:.0f} core-h reserved, runner exit {ended}")
-        if e["state"] == "live" and ended == 4:
+        if e["state"] in ("live", "settled") and ended == 4:
             alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: HELD (exit 4) - diagnose before any resubmission")
         if a.qstat and e.get("job_id") and q in ("gone", "F", "E") and ended is None and e["kind"] != "c2":
             alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: PBS says {q} but the runner never ended - killed or crashed; keep the reservation")
@@ -230,10 +232,13 @@ def main(argv=None):
                     alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: terminal line exit {rc} differs from the ledger's runner exit {ended}")
                 if tee != "0":
                     alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: logger status {tee!r} (tee failed or unknown): the live log is not a complete observation")
-        elif e["kind"] == "c2" and e.get("job_id") and (q in ("gone", "F", "E") or os.path.exists(os.path.join(lr, "c2_interruption.json"))):
-            notes.append(f"c2 job {e.get('job_id')}: externally killed by design; judged by c2_interruption.json, not by a terminal line")
+        elif killed_c2:
+            notes.append(f"c2 job {e.get('job_id')}: externally killed by design (interruption record present); judged by c2_interruption.json, "
+                         f"not by a terminal line; its reservation stays charged until the operator settles it")
         tp = os.path.join(lr, f"task_{rep}.json")
         if not os.path.exists(tp):
+            if killed_c2:
+                print(f"    no task binding ({phase}; the interruption record is the evidence)"); continue
             if started and ended is None and now - started > a.startup_allowance_s:
                 alarms.append(f"{e['kind']} rep {rep}: live for {(now-started)/60:.0f} min without a task binding (allowance {a.startup_allowance_s/60:.0f} min)")
             elif started and ended is not None:
@@ -254,7 +259,11 @@ def main(argv=None):
         target = ex["n_rep"] if b.get("until") is None else int(b["until"])
         ck = os.path.join(lr, "ckpt", os.path.basename(b["ckpt"]))
         acc, failed, fits, problems, tail = checkpoint_metadata(ck, ex, ex["n_rep"])
-        rows = [json.loads(l) for l in open(os.path.join(lr, f"timing_{rep}.jsonl")).read().splitlines() if l.strip()] if os.path.exists(os.path.join(lr, f"timing_{rep}.jsonl")) else []
+        rows_raw = [json.loads(l) for l in open(os.path.join(lr, f"timing_{rep}.jsonl")).read().splitlines() if l.strip()] if os.path.exists(os.path.join(lr, f"timing_{rep}.jsonl")) else []
+        rows = [r for r in rows_raw if isinstance(r.get("t"), (int, float)) and not isinstance(r.get("t"), bool) and math.isfinite(r["t"])
+                and isinstance(r.get("rep"), int) and isinstance(r.get("fit_seconds"), (int, float)) and math.isfinite(r["fit_seconds"])]
+        if len(rows) != len(rows_raw):
+            alarms.append(f"rep {rep}: {len(rows_raw) - len(rows)} timing row(s) with non-finite or mistyped fields (not used for health)")
         mine = [r for r in rows if r.get("job") == e.get("job_id")]
         sp = os.path.join(lr, f"status_{rep}.json")
         st = {}
@@ -262,7 +271,7 @@ def main(argv=None):
             st = json.load(open(sp))
             for k in NEVER_SHOWN:
                 st.pop(k, None)
-        running = e["state"] == "live" and ended is None
+        running = e["state"] == "live" and ended is None and not killed_c2
         fvals = sorted(v for r, v in fits.items() if r not in failed)
         rate_h = None
         if len(mine) >= 2 and mine[-1]["t"] > mine[0]["t"]:

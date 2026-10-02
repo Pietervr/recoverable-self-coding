@@ -120,12 +120,51 @@ def test_terminal_evidence_is_attributed_and_c2_is_exempt():
         L = CampaignLedger(c, 1500.0)
         tok, _ = L.reserve("c2", 0, 1, 1800.0, d + "_ctl")
         L.runner_start(tok, "c2.sched", "c2", 0, d + "_ctl", 1, 1800.0)
+        st = json.load(open(L.path)); st["entries"][tok]["runner_started"] = time.time() - 9 * 3600; json.dump(st, open(L.path, "w"))
     os.makedirs(d + "_ctl", exist_ok=True); json.dump(dict(job_id="c2.sched"), open(os.path.join(d + "_ctl", "c2_interruption.json"), "w"))
     mp, lr = _snapshot(d, c, man)
     shutil.copytree(d + "_ctl", os.path.join(W.LIVE_DIR, os.path.basename(d + "_ctl")))
     open(os.path.join(lr, "live_rep0.log"), "a").write("exit 75 tee 0 job j1 end 2026-10-02T22:03:00Z\n")
-    rc, out = _watch(mp)
-    assert "externally killed by design" in out and "c2" not in " ".join(l for l in out.splitlines() if l.strip().startswith("-"))
+    rc, out = _watch(mp, "--startup-allowance-s", "60")
+    assert "externally killed by design" in out and "c2" not in " ".join(l for l in out.splitlines() if l.strip().startswith("-")) and rc == 0
+    # a control's live log is named by kind; a torn witness and a non-finite timing field are alarms
+    with _Patched():
+        L = CampaignLedger(c, 1500.0)
+        tok1, _ = L.reserve("c1", 0, 1, 3600.0, d + "_c1")
+        L.runner_start(tok1, "c1.sched", "c1", 0, d + "_c1", 1, 3600.0); L.runner_end(tok1, 5.0, 75)
+    os.makedirs(d + "_c1", exist_ok=True)
+    for f in ("task_0.json", "task_index.json"):                                      # the control root's own binding
+        shutil.copy(os.path.join(d, f), os.path.join(d + "_c1", f))
+    t = json.load(open(os.path.join(d + "_c1", "task_0.json"))); t["expected_accepted"] = 0; t["runs"] = []
+    json.dump(t, open(os.path.join(d + "_c1", "task_0.json"), "w"))
+    mp, lr = _snapshot(d, c, man)
+    shutil.copytree(d + "_ctl", os.path.join(W.LIVE_DIR, os.path.basename(d + "_ctl")))
+    shutil.copytree(d + "_c1", os.path.join(W.LIVE_DIR, os.path.basename(d + "_c1")))
+    open(os.path.join(lr, "live_rep0.log"), "a").write("exit 75 tee 0 job j1 end 2026-10-02T22:03:00Z\n")
+    rc, out = _watch(mp, "--startup-allowance-s", "60")
+    assert rc == 1 and "live log live_ctl_c1.log is absent" in out
+    lc1 = os.path.join(W.LIVE_DIR, os.path.basename(d + "_c1"), "live_ctl_c1.log")
+    open(lc1, "w").write("exit 75 tee 0 job c1.sched end \n")                       # a torn witness
+    rc, out = _watch(mp, "--startup-allowance-s", "60")
+    assert rc == 1 and "no terminal line names this job" in out
+    open(lc1, "w").write("exit 75 tee 0 job c1.sched end 2026-10-02T22:10:00Z\n")
+    rc, out = _watch(mp, "--startup-allowance-s", "60")
+    assert rc == 0, out[-900:]
+    tp = os.path.join(lr, "timing_0.jsonl")
+    rows = open(tp).read().splitlines()
+    open(tp, "w").write("\n".join(rows[:-1] + [rows[-1].replace('"t": ', '"t": Infinity, "was": ')]) + "\n")
+    rc, out = _watch(mp, "--startup-allowance-s", "60")
+    assert rc == 1 and "non-finite or mistyped" in out
+    open(tp, "w").write("\n".join(rows) + "\n")
+    # a SETTLED entry without the operator's note keeps its terminal obligations
+    st = json.load(open(_ledger_local()))
+    for e in st["entries"].values():
+        if e.get("job_id") == "j1":
+            e.update(state="settled", settled_core_h=0.5, settle_note="")
+    json.dump(st, open(_ledger_local(), "w"))
+    os.remove(os.path.join(lr, "live_rep0.log"))
+    rc, out = _watch(mp, "--startup-allowance-s", "60")
+    assert rc == 1 and "live log live_rep0.log is absent" in out
 
 
 def test_expected_jobs_held_exits_and_stop_ack():

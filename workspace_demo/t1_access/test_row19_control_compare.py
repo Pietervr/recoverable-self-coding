@@ -44,10 +44,11 @@ def _produce(n_boot=30, segment_c2=7, fail_all=False, target=20):
     with _Patched():
         CALLS["fail_all"] = fail_all
         try:
-            assert _run_ctl(d1, _manifest(d1, c, n_boot=n_boot, target=target), "c1", "c1.sched", "--until", str(target)) == R19.RESUME
-            assert _run_ctl(d2, _manifest(d2, c, n_boot=n_boot, target=target), "c2", "c2.sched", "--until", str(target), "--segment", str(segment_c2),
+            man = _manifest(d1, c, n_boot=n_boot, target=target)                 # ONE manifest for every root, as in production
+            assert _run_ctl(d1, man, "c1", "c1.sched", "--until", str(target)) == R19.RESUME
+            assert _run_ctl(d2, man, "c2", "c2.sched", "--until", str(target), "--segment", str(segment_c2),
                             "--pbs-kill-control", walltime_s=W_INT) == R19.RESUME
-            assert _run_ctl(d2, _manifest(d2, c, n_boot=n_boot, target=target), "c3", "c3.sched", "--until", str(target)) == R19.RESUME
+            assert _run_ctl(d2, man, "c3", "c3.sched", "--until", str(target)) == R19.RESUME
         finally:
             CALLS["fail_all"] = False
     ck1 = os.path.join(d1, "ckpt", [f for f in os.listdir(os.path.join(d1, "ckpt")) if f.endswith(".jsonl")][0])
@@ -131,6 +132,22 @@ def test_interruption_negatives_are_non_qualification():
         assert CC.main(args) == 2, mut
     json.dump(good, open(it, "w"))
     assert CC.main(args) == 0
+
+
+def test_root_token_and_checkpoint_bindings_are_required():
+    args, ck1, ck3, it, d1, d2, L = _produce()
+    s3 = os.path.join(d2, "status_0.json"); keep = json.load(open(s3))
+    for mut in (dict(reservation="000000000000"), dict(checkpoint=os.path.join(d2, "ckpt", "refit_foreign.jsonl")),
+                dict(checkpoint=os.path.join(d1, "ckpt", os.path.basename(keep["checkpoint"]))), dict(manifest_sha="0" * 64)):
+        json.dump(dict(keep, **mut), open(s3, "w"))
+        assert CC.main(args) == 2, mut
+    json.dump(keep, open(s3, "w"))
+    led = json.load(open(L.path))                                       # C3 reserved in a root other than C2's
+    for e in led["entries"].values():
+        if e["kind"] == "c3":
+            e["root"] = d1
+    json.dump(led, open(L.path, "w"))
+    assert CC.main(args) == 2
 
 
 def test_c1_that_resumed_is_not_qualified():

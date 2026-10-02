@@ -492,7 +492,7 @@ def numerical_snapshot() -> dict:
     return dict(files=files, models=globs, runtime=runtime)
 
 
-def dataset_identity(ds: Dataset, cfg: Config, seed: int, n_rep: int, outer_folds: list) -> str:
+def dataset_identity(ds: Dataset, cfg: Config, seed: int, n_rep: int, outer_folds: list, numerical: dict | None = None) -> str:
     """The complete data-and-procedure identity of a refitting bootstrap (Codex, review 4 finding 1, review 5
     finding 1): a digest of the response array, levels, concept and family mappings, group, exact layer ids, the
     generator metadata, every numerical setting of the Config, the numerical snapshot actually executed (code
@@ -513,7 +513,8 @@ def dataset_identity(ds: Dataset, cfg: Config, seed: int, n_rep: int, outer_fold
                     folds=[[int(c) for c in f] for f in outer_folds],
                     start_policy=cfg.start_policy, policy=(M.START_POLICY if cfg.start_policy else None),
                     policy_open=list(M.POLICY_OPEN), pad_multiple=M.PAD_MULTIPLE)
-    h.update(json.dumps(dict(meta=meta, settings=settings, numerical=numerical_snapshot()), sort_keys=True, default=str).encode())
+    h.update(json.dumps(dict(meta=meta, settings=settings, numerical=(numerical_snapshot() if numerical is None else numerical)),
+                        sort_keys=True, default=str).encode())
     return h.hexdigest()
 
 

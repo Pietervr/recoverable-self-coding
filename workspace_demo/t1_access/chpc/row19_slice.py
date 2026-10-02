@@ -13,9 +13,9 @@ environment, reservation, task domain, binding, second owner, checkpoint or cach
 nothing more ran.
 
 Order, each step fail-closed and BEFORE any fit (Codex 523249d A-H; e44f804 R1-R7): manifest and environment identity
-(versions, backend, thread caps, the wrapper's hash when pinned); the code pins; the campaign reservation bound to
-this PBS job with this job's cores and walltime; the declared task domain (rep, resolved seed, kind, target, kill
-mode); exclusive task ownership for this rep; fresh-versus-recovering decided from the root's task index and prior
+(versions, backend, thread caps, the wrapper's hash when pinned); the code pins; the declared task domain (rep, resolved
+seed, kind, target, kill mode); the campaign reservation bound to this PBS job with this job's cores and walltime;
+exclusive task ownership for this rep; the shared task index under task_index.json.lock; fresh-versus-recovering decided from the root's task index and prior
 evidence before any binding is created; the task binding persisted and re-verified; the checkpoint inspected without
 fitting against the per-record progress watermark; the current stop request and memory diagnosed before any original
 work; the original-run cache validated (lossless nested serialisation, payload and metadata checksums, the complete
@@ -130,6 +130,8 @@ def run_problems(run, ds, cfg, folds):
                 p.append(f"delta[{q}] has non-finite entries on a run not marked failed")
     if not (isinstance(run["logq"], np.ndarray) and run["logq"].shape == (L, Mn, C)):
         p.append(f"logq is not an array of shape ({L}, {Mn}, {C})")
+    elif run["logq"].dtype.kind not in "fiu":
+        p.append("logq is not a numeric array")
     if not (isinstance(run["n_c"], np.ndarray) and run["n_c"].shape == (C,)):
         p.append(f"n_c is not an array of shape ({C},)")
     sel = run["selected"]
@@ -143,8 +145,10 @@ def run_problems(run, ds, cfg, folds):
                 if not (isinstance(pair, (list, tuple)) and len(pair) == 2 and all(isinstance(m, str) and m in members for m in pair)):
                     p.append(f"selected[{li}] holds a pair that is not two member names"); break
     nc = run["n_c"]
-    if isinstance(nc, np.ndarray) and nc.shape == (C,) and not (nc.dtype.kind in "iu" and np.all(nc > 0)):
-        p.append("n_c is not positive integer counts")
+    if isinstance(nc, np.ndarray) and nc.shape == (C,):
+        if nc.dtype.kind not in "iuf" or not np.all(np.isfinite(nc.astype(float))) or not np.all(nc > 0) \
+                or not np.all(np.asarray(nc, dtype=float) == np.floor(np.asarray(nc, dtype=float))):
+            p.append("n_c is not positive integral counts")       # the real pipeline returns bincount(...).astype(float)
     for k in ("converged", "inner_conv", "inner_nonfinite", "recovery"):
         v = run[k]
         if not (isinstance(v, np.ndarray) and v.ndim >= 2 and v.shape[0] == L and v.shape[1] == len(folds)):
@@ -366,7 +370,8 @@ def main(argv=None):
               f"target {'all ' + str(cfg.n_boot_refit) if a.until is None else '0..' + str(int(a.until) - 1)}", flush=True)
         # R2/D: fresh versus recovering, decided from the root's task index and prior evidence BEFORE any binding is created
         binding = dict(manifest_sha=manifest_sha, rep=int(a.rep), ds_seed=int(ds_seed), ident=ident, code_hash=code_hash,
-                       policy=cfg.start_policy, n_rep=int(cfg.n_boot_refit), until=a.until, ckpt=ckpt_path, orig=orig_path)
+                       policy=cfg.start_policy, n_rep=int(cfg.n_boot_refit), until=a.until, ckpt=ckpt_path, orig=orig_path,
+                       numerical=json.loads(json.dumps(A.numerical_snapshot(), default=str)))   # the producer's snapshot, for consumers elsewhere
         index = _index_read(index_path)
         if os.path.exists(task_path):
             task = json.load(open(task_path))
@@ -500,13 +505,13 @@ def main(argv=None):
             code_exit = RESUME
         else:
             code_exit = DONE
-        ru = resource.getrusage(resource.RUSAGE_SELF)
         status.update(phase="final", stopped_by_request=stopped_by_request, memory_breach=memory_breach, stop_reason=stop_reason,
-                      cpu_seconds_lifetime=ru.ru_utime + ru.ru_stime, maxrss_bytes=maxrss_bytes(), exit=code_exit,
+                      exit=code_exit,
                       measurement_scope="wall_seconds_main runs from main() start (imports before main excluded) to the terminal boundary "
                                         "after the status, acknowledgment and task writes and BEFORE the final status rewrite and the ledger's "
                                         "runner_end write (those two are excluded); cpu_seconds_lifetime and maxrss_bytes are RUSAGE_SELF for "
-                                        "the whole process (imports included), so utilisation mixes the two scopes; aggregation_seconds is the "
+                                        "the whole process (imports included), SAMPLED AT THAT SAME TERMINAL BOUNDARY, so utilisation mixes "
+                                        "the two scopes; the stop request and the peak are re-read at that boundary too; aggregation_seconds is the "
                                         "aggregation only; publication_seconds is the status, acknowledgment and task writes after aggregation, "
                                         "excluding the final status rewrite and the ledger write; wrapper and PBS start-up are not measured; "
                                         "compilation is not measured; scheduler-accounted allocated time is settled in the campaign ledger",
@@ -518,11 +523,22 @@ def main(argv=None):
         task["runs"].append(dict(job=a.job_id, kind=kind, started=t_main, ended=time.time(), exit=code_exit, n_done=rb["n_done"], n_new=rb["n_new"]))
         task["expected_accepted"] = max(int(task.get("expected_accepted", 0)), int(rb["n_done"]))
         write_atomic(task_path, task)
+        # R5/R7: the declared terminal-publication boundary - the request and the peak re-read, CPU/RSS sampled HERE
         t_term = time.time()
-        status["publication_seconds"] = t_term - t_pub
-        status["wall_seconds_main"] = t_term - t_main
-        status["utilisation"] = (ru.ru_utime + ru.ru_stime) / max(t_term - t_main, 1e-9)
+        late_stop = ledger.current_stop(int(a.rep))
+        if late_stop is not None and not stopped_by_request:
+            stopped_by_request = True
+            ack("at publication", rb["n_done"])
+        if over_memory() and not memory_breach:
+            memory_breach = True; stop_reason.setdefault("memory", maxrss_bytes()); code_exit = HELD
+        ru = resource.getrusage(resource.RUSAGE_SELF)
+        status.update(stopped_by_request=stopped_by_request, memory_breach=memory_breach, stop_reason=stop_reason, exit=code_exit,
+                      cpu_seconds_lifetime=ru.ru_utime + ru.ru_stime, maxrss_bytes=maxrss_bytes(),
+                      publication_seconds=t_term - t_pub, wall_seconds_main=t_term - t_main,
+                      utilisation=(ru.ru_utime + ru.ru_stime) / max(t_term - t_main, 1e-9), sampled_at="terminal boundary")
         write_atomic(status_path, status)
+        if code_exit == HELD and task["runs"] and task["runs"][-1].get("job") == a.job_id:
+            task["runs"][-1]["exit"] = code_exit; write_atomic(task_path, task)
         if code_exit == HELD:
             return held(f"memory stop: maxrss {maxrss_bytes()/2**30:.2f} GiB exceeds {mem_stop/2**30:.2f} GiB; chain flushed at a record boundary")
         print(f"rep {a.rep}: {'COMPLETE' if code_exit == DONE else 'PARTIAL (resume)'}: done {rb['n_done']}/{cfg.n_boot_refit}, "

@@ -187,6 +187,8 @@ class CampaignLedger:
 
     def settle(self, job_id, walltime_s, cores, note=""):
         walltime_s = _nonneg(walltime_s, "settled walltime"); cores = _pos(cores, "cores")
+        if not isinstance(note, str) or len(note.strip()) < 8:
+            raise RuntimeError("refused: settlement needs the operator's technical note (qstat -xf accounting and the job's observed end)")
         with self.locked() as st:
             hits = [e for e in st["entries"].values() if e.get("job_id") == job_id]
             if len(hits) != 1:
@@ -233,7 +235,7 @@ def main(argv=None):
     r.add_argument("--note", default="")
     b = sub.add_parser("bind"); b.add_argument("--token", required=True); b.add_argument("--job-id", required=True)
     s = sub.add_parser("settle"); s.add_argument("--job-id", required=True); s.add_argument("--walltime-s", type=float, required=True)
-    s.add_argument("--cores", type=int, default=1); s.add_argument("--note", default="")
+    s.add_argument("--cores", type=int, default=1); s.add_argument("--note", required=True, help="the operator's technical diagnosis of the job's end")
     sub.add_parser("show")
     st = sub.add_parser("stop"); st.add_argument("--rep", type=int, default=None)
     sc = sub.add_parser("stop-clear"); sc.add_argument("--rep", type=int, default=None)
