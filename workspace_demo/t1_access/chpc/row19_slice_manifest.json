@@ -4051,7 +4051,7 @@
     "interruption_record": "<C2 root>/c2_interruption.json written by the operator from qstat -xf: job_id, exit_status, walltime_requested_s, walltime_used_s, pbs_killed, accepted_records_before (from the checkpoint)"
   },
   "code": {
-    "commit": "TBD (RSC): the policy at 5f6333c + the refit slice hooks (ff82dd0; until, should_stop, checkpoint_state and analyze_dataset(interval_result=) in this revision) + the runner, the campaign ledger, the comparator and the watch of this revision; the Lustre clone rsc_slice carries them; the pinned file hashes below are the files at that commit",
+    "commit": "e6d3964 (RSC): the policy at 5f6333c + the refit slice hooks (ff82dd0; until, should_stop, checkpoint_state and analyze_dataset(interval_result=) in this revision) + the runner, the campaign ledger, the comparator and the watch of this revision; the Lustre clone rsc_slice carries them; the pinned file hashes below are the files at that commit",
     "files": {
       "models.py": "28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef",
       "analyze.py": "5177e4a4eca90f6f04dcddc34d4c42c709b3d501b82a2d8919e09eedadfc4d7f",
