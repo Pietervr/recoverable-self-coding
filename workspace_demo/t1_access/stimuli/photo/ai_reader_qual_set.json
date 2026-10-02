@@ -1,0 +1,5097 @@
+{
+ "seed": 20261007,
+ "n": 300,
+ "excluded": "the 121 qualified pool concepts and homonym concepts",
+ "tercile_cuts": [
+  0.333333333,
+  0.642857143
+ ],
+ "prompt": "Look at this picture. What is the main object in it? Answer with ONE English word (a noun), or the word 'unclear' if you cannot tell. Answer with the word only.",
+ "prompt_sha256": "8a964ba5553bd4b6731053a4fb36b553626cba034577e9430f1004029c677652",
+ "human_mean_recognizability": 0.4949696067766666,
+ "human_mean_recognizability_close": 0.5046420582366666,
+ "items": [
+  {
+   "id": "q000",
+   "concept": "shortbread",
+   "word": "shortbread",
+   "display_label": "shortbread",
+   "accept": [
+    "shortbread",
+    "shortbread cookie"
+   ],
+   "recognizability": 0.0,
+   "recognizability_close": 0.0,
+   "n_ratings": 13,
+   "most_common_label": "cookie",
+   "tercile": 0,
+   "colour_sha256": "f4dd0a214ed2b1094e460781fdadff4554b143a8096e3defb18e5ed5b2c06f01",
+   "gray_sha256": "7b7659e20f2649a32f9cda9137a690211a122cbfd42533f22d276bce35f1df08"
+  },
+  {
+   "id": "q001",
+   "concept": "cookie_sheet",
+   "word": "cookie sheet",
+   "display_label": "cookie sheet",
+   "accept": [
+    "baking tray",
+    "cookie sheet"
+   ],
+   "recognizability": 0.0,
+   "recognizability_close": 0.0,
+   "n_ratings": 12,
+   "most_common_label": "tray",
+   "tercile": 0,
+   "colour_sha256": "f7cdb99d32005f946f445850be771aae265883f6320028c87474fe285261e521",
+   "gray_sha256": "c078f773f53a2fdd6204c65c0e1da5adfaf07ad7a7a583230499ea11b9de7a2f"
+  },
+  {
+   "id": "q002",
+   "concept": "pudding",
+   "word": "pudding",
+   "display_label": "pudding",
+   "accept": [
+    "pudding"
+   ],
+   "recognizability": 0.071428571,
+   "recognizability_close": 0.071428571,
+   "n_ratings": 14,
+   "most_common_label": "chocolate",
+   "tercile": 0,
+   "colour_sha256": "c3cb43a93ba1c067a9dceb1bf2361f213196cc5be4a5a7edc46b850d8eaf2327",
+   "gray_sha256": "e61fe1d613d274e763f3416200f23bb6d65570b987848f625d302bb2480e1b46"
+  },
+  {
+   "id": "q003",
+   "concept": "sorbet",
+   "word": "sorbet",
+   "display_label": "sorbet",
+   "accept": [
+    "sorbet",
+    "water ice"
+   ],
+   "recognizability": 0.142857143,
+   "recognizability_close": 0.142857143,
+   "n_ratings": 14,
+   "most_common_label": "ice cream",
+   "tercile": 0,
+   "colour_sha256": "a3d60af37dee06b53c001578614d47a09bbdf6109e43fed360bbb5af469ef2eb",
+   "gray_sha256": "2d39c568507a7c420f91dcf5583aa6826771c8dc093b06d5c245bfdcd397ec97"
+  },
+  {
+   "id": "q004",
+   "concept": "confetti",
+   "word": "confetti",
+   "display_label": "confetti",
+   "accept": [
+    "confetti"
+   ],
+   "recognizability": 0.294117647,
+   "recognizability_close": 0.294117647,
+   "n_ratings": 17,
+   "most_common_label": "paper",
+   "tercile": 0,
+   "colour_sha256": "a68bc97ca9e261fc1d0ba3775857b17e79a087759f384e3bc579763e7ba90754",
+   "gray_sha256": "3d606db24cd219c250f9cf36e6f31fce2438b47bc31212cc82ca99dc2f93ea0a"
+  },
+  {
+   "id": "q005",
+   "concept": "gum",
+   "word": "gum",
+   "display_label": "gum",
+   "accept": [
+    "chewing gum",
+    "gum"
+   ],
+   "recognizability": 0.294117647,
+   "recognizability_close": 0.470588235,
+   "n_ratings": 17,
+   "most_common_label": "pill",
+   "tercile": 0,
+   "colour_sha256": "9a959676562bc4cec6ba66024750f603050910fdb6148217a2b89df71c89d07f",
+   "gray_sha256": "dd4442d98fdb4f3484b04b13cee9313d91dd228db4e11c69c1261fdbbead97e5"
+  },
+  {
+   "id": "q006",
+   "concept": "bathrobe",
+   "word": "bathrobe",
+   "display_label": "bathrobe",
+   "accept": [
+    "bathrobe"
+   ],
+   "recognizability": 0.3125,
+   "recognizability_close": 0.3125,
+   "n_ratings": 16,
+   "most_common_label": "bathrobe",
+   "tercile": 0,
+   "colour_sha256": "74d55ad05e2ecf9a40a33a734adaa66697a528714c1156a09c5465179b4f9395",
+   "gray_sha256": "a4fe8cdfda3536677d4c5582ace26e58f0cf0ff35927060803e632fb4bfa14c5"
+  },
+  {
+   "id": "q007",
+   "concept": "gumdrop",
+   "word": "gumdrop",
+   "display_label": "gumdrop",
+   "accept": [
+    "gumdrop"
+   ],
+   "recognizability": 0.071428571,
+   "recognizability_close": 0.071428571,
+   "n_ratings": 14,
+   "most_common_label": "candy",
+   "tercile": 0,
+   "colour_sha256": "05db007351ee4b1b12b0e0a796accaa4b737d1c5e3c898ea56141ce332c6a35d",
+   "gray_sha256": "11a2ea3531a5564a289391743949656faf3018d8305a5f86326f18e80c2cc040"
+  },
+  {
+   "id": "q008",
+   "concept": "bongo",
+   "word": "bongo",
+   "display_label": "bongo (musical instrument)",
+   "accept": [
+    "bongo",
+    "bongo drum"
+   ],
+   "recognizability": 0.066666667,
+   "recognizability_close": 0.066666667,
+   "n_ratings": 15,
+   "most_common_label": "drum",
+   "tercile": 0,
+   "colour_sha256": "62ce00749901567fb6540da6bcc1affca71997f06b05d0db296fee2bf2f901ae",
+   "gray_sha256": "a3262120fc8ee8e3a2fe64d366d4e34c1573129975ae773dc6a3f56db76f6ef9"
+  },
+  {
+   "id": "q009",
+   "concept": "vise",
+   "word": "vise",
+   "display_label": "vise",
+   "accept": [
+    "shoulder vise",
+    "vise",
+    "wood vise",
+    "woodworking vise"
+   ],
+   "recognizability": 0.3125,
+   "recognizability_close": 0.3125,
+   "n_ratings": 16,
+   "most_common_label": "vise",
+   "tercile": 0,
+   "colour_sha256": "453825e46dcc2d1c7706f3b131e88f368c392e40dc349fea39f5371f39140082",
+   "gray_sha256": "14349c43d04717b2880828686474bf03a833de8b5c17adeb59b8e2acd63465ce"
+  },
+  {
+   "id": "q010",
+   "concept": "wand",
+   "word": "wand",
+   "display_label": "wand",
+   "accept": [
+    "wand"
+   ],
+   "recognizability": 0.294117647,
+   "recognizability_close": 0.294117647,
+   "n_ratings": 17,
+   "most_common_label": "wand",
+   "tercile": 0,
+   "colour_sha256": "20dcffac29f1f52fe13a8732fee5629602d3a3d3080821a31cc36056dd85475f",
+   "gray_sha256": "4558307dfc65a99f0c68f720ae13bf30de1ce71c09eb32ba0add2ff50be11e16"
+  },
+  {
+   "id": "q011",
+   "concept": "riser",
+   "word": "riser",
+   "display_label": "riser (step riser)",
+   "accept": [
+    "riser"
+   ],
+   "recognizability": 0.0,
+   "recognizability_close": 0.0,
+   "n_ratings": 16,
+   "most_common_label": "bench",
+   "tercile": 0,
+   "colour_sha256": "9746b8c2404941ec440fea54ab1759dbffde7593245819dd20c34d5c61974841",
+   "gray_sha256": "3d07191b0aced7001d8a03d68e9832ebc55e28fd30b7a7faadac5750d8b5cc18"
+  },
+  {
+   "id": "q012",
+   "concept": "wick",
+   "word": "wick",
+   "display_label": "wick (candle wick)",
+   "accept": [
+    "taper",
+    "wick"
+   ],
+   "recognizability": 0.277777778,
+   "recognizability_close": 0.277777778,
+   "n_ratings": 18,
+   "most_common_label": "candle",
+   "tercile": 0,
+   "colour_sha256": "b5276312864b37613d1d40d13807a547137a14520e02980a58e465834e7b680b",
+   "gray_sha256": "579e94f87fd7a1af390edaf53b4b0704b5f1b06dca15bd343f5228fabecf6a5a"
+  },
+  {
+   "id": "q013",
+   "concept": "mousse",
+   "word": "mousse",
+   "display_label": "mousse",
+   "accept": [
+    "mousse"
+   ],
+   "recognizability": 0.0,
+   "recognizability_close": 0.0,
+   "n_ratings": 13,
+   "most_common_label": "ice cream",
+   "tercile": 0,
+   "colour_sha256": "b8836ed838cae9a7f54c149a7ccc33277a1e9a534f2e85d5bc72aab51deda9d2",
+   "gray_sha256": "9e8dc2543d4c22459db3505c45f2963ad0be538ba94db16ed41e8c88e65cc80f"
+  },
+  {
+   "id": "q014",
+   "concept": "orchid",
+   "word": "orchid",
+   "display_label": "orchid",
+   "accept": [
+    "orchid",
+    "orchidaceous plant"
+   ],
+   "recognizability": 0.176470588,
+   "recognizability_close": 0.176470588,
+   "n_ratings": 17,
+   "most_common_label": "flower",
+   "tercile": 0,
+   "colour_sha256": "15d5482252bcb76fabe680218e6d67790eaaba9e6a05d26616315860b3d67815",
+   "gray_sha256": "fbbc56287820f34231cc6912c07c21139ea225133bc48680e33d0f94cbcc56aa"
+  },
+  {
+   "id": "q015",
+   "concept": "arugula",
+   "word": "arugula",
+   "display_label": "arugula",
+   "accept": [
+    "arugula",
+    "eruca sativa",
+    "eruca vesicaria sativa",
+    "garden rocket",
+    "rocket",
+    "rocket salad",
+    "roquette"
+   ],
+   "recognizability": 0.266666667,
+   "recognizability_close": 0.266666667,
+   "n_ratings": 15,
+   "most_common_label": "leaf",
+   "tercile": 0,
+   "colour_sha256": "3f67f7c5822d15140787965cd7e35765cef53dea95bb7ed4153cb62cd8bfa28d",
+   "gray_sha256": "502f3bab0d2a84da8cd5972068c3a9b120e2894cfde41e48a3dbdda4be00ae89"
+  },
+  {
+   "id": "q016",
+   "concept": "swing_set",
+   "word": "swing set",
+   "display_label": "swing set",
+   "accept": [
+    "swing",
+    "swing set"
+   ],
+   "recognizability": 0.3125,
+   "recognizability_close": 0.3125,
+   "n_ratings": 16,
+   "most_common_label": "swing",
+   "tercile": 0,
+   "colour_sha256": "00666752e4bc479ae45eaf4abda20df44fdd0f819e395cbcae0b15f7aea20900",
+   "gray_sha256": "c4f0b6b33aa321d316f00fe3a83511ab76c80a14c68608ad32cf9e859693c047"
+  },
+  {
+   "id": "q017",
+   "concept": "binder",
+   "word": "binder",
+   "display_label": "binder",
+   "accept": [
+    "binder",
+    "ring-binder"
+   ],
+   "recognizability": 0.066666667,
+   "recognizability_close": 0.066666667,
+   "n_ratings": 15,
+   "most_common_label": "file (card index)",
+   "tercile": 0,
+   "colour_sha256": "f98590c613b2d31a0bec6ee389e3594c1aaa1fcb2eeef84c9c741fdd0ce7cada",
+   "gray_sha256": "0f95ba28490bfb85c0b2192ec2958f32c478336aac28f92c8adad851768c5885"
+  },
+  {
+   "id": "q018",
+   "concept": "tarantula",
+   "word": "tarantula",
+   "display_label": "tarantula",
+   "accept": [
+    "tarantula"
+   ],
+   "recognizability": 0.176470588,
+   "recognizability_close": 0.176470588,
+   "n_ratings": 17,
+   "most_common_label": "spider",
+   "tercile": 0,
+   "colour_sha256": "9d1a7c7be45ffe11e26c6799ee0661fd04e95c893e0bef25851c3f9c14d67a52",
+   "gray_sha256": "2a6f3ca8e29e964d3b159d9f0af4506eb10c5c6857de900056dab26b5941f3c7"
+  },
+  {
+   "id": "q019",
+   "concept": "maggot",
+   "word": "maggot",
+   "display_label": "maggot",
+   "accept": [
+    "maggot"
+   ],
+   "recognizability": 0.0625,
+   "recognizability_close": 0.0625,
+   "n_ratings": 16,
+   "most_common_label": "worm",
+   "tercile": 0,
+   "colour_sha256": "12410b5477968084f60adca3abc1f1f68c9e760a1b85117d6b85e3f8330b663c",
+   "gray_sha256": "0ae5b89587bd94a4eb38ce0d7b15dd67795fba9c8592b224f0eb97c7e24b4fd3"
+  },
+  {
+   "id": "q020",
+   "concept": "backscratcher",
+   "word": "backscratcher",
+   "display_label": "backscratcher",
+   "accept": [
+    "backscratcher"
+   ],
+   "recognizability": 0.1875,
+   "recognizability_close": 0.1875,
+   "n_ratings": 16,
+   "most_common_label": "wood",
+   "tercile": 0,
+   "colour_sha256": "4b22765a4178ed148ee155e4f300552fb6cfa4db88cd7e6e23bec88f8411028c",
+   "gray_sha256": "7b5c0f71730df28b7cef140bb9cf0723ddd9f8f4e89bd6943c5ef5579b666dee"
+  },
+  {
+   "id": "q021",
+   "concept": "spool",
+   "word": "spool",
+   "display_label": "spool",
+   "accept": [
+    "bobbin",
+    "reel",
+    "spool"
+   ],
+   "recognizability": 0.0,
+   "recognizability_close": 0.2,
+   "n_ratings": 15,
+   "most_common_label": "wheel",
+   "tercile": 0,
+   "colour_sha256": "91933b4fed1f152bdee9a1664752fe92290913f741ca191927808bc82e5230aa",
+   "gray_sha256": "711aeafada0c6143ee3873e772b7b78a6697176c1d171c5abdcfa55b14bd5911"
+  },
+  {
+   "id": "q022",
+   "concept": "stir_fry",
+   "word": "stir fry",
+   "display_label": "stir fry",
+   "accept": [
+    "stir fry"
+   ],
+   "recognizability": 0.25,
+   "recognizability_close": 0.25,
+   "n_ratings": 12,
+   "most_common_label": "dish (food)",
+   "tercile": 0,
+   "colour_sha256": "a3927997c1a9d5308df1eb9a642948205a53bf938a9106fec24782bacc356ef0",
+   "gray_sha256": "b50a412a6e0540b9060938256a0caa106bb3d271b185a402ddd9817fbbf39216"
+  },
+  {
+   "id": "q023",
+   "concept": "gumball",
+   "word": "gumball",
+   "display_label": "gumball",
+   "accept": [
+    "gum ball",
+    "gumball"
+   ],
+   "recognizability": 0.3,
+   "recognizability_close": 0.3,
+   "n_ratings": 10,
+   "most_common_label": "candy",
+   "tercile": 0,
+   "colour_sha256": "ed30ada763b5cd24a13327f63a9acdd7c49ec598eda6c55491a111c31b26bf96",
+   "gray_sha256": "668fa4441d03693ccdf06f219a5953cbbf09f998e552a71368cbf6dc668aa341"
+  },
+  {
+   "id": "q024",
+   "concept": "soda",
+   "word": "soda",
+   "display_label": "soda",
+   "accept": [
+    "pop",
+    "soda",
+    "soda pop",
+    "soda water",
+    "tonic"
+   ],
+   "recognizability": 0.076923077,
+   "recognizability_close": 0.076923077,
+   "n_ratings": 13,
+   "most_common_label": "juice",
+   "tercile": 0,
+   "colour_sha256": "26b9921ecef02dff756ee20410c84b03979aaa38edd22d27f01cbdc9fcdcf94e",
+   "gray_sha256": "16dc0c635ab8f50cd79778845947c61ab7ef56489fa04de15588566f0d87d9f0"
+  },
+  {
+   "id": "q025",
+   "concept": "figurine",
+   "word": "figurine",
+   "display_label": "figurine",
+   "accept": [
+    "figurine",
+    "statuette"
+   ],
+   "recognizability": 0.1875,
+   "recognizability_close": 0.1875,
+   "n_ratings": 16,
+   "most_common_label": "statue",
+   "tercile": 0,
+   "colour_sha256": "3f246145d1a9f913ffbd53b6541284f502dc39b8192476e69e3d19434da1b91b",
+   "gray_sha256": "ae7f26920fdb4c0ff5529cfd6a6cb4ccb22b4a5980b1e275e42f7d4112c29877"
+  },
+  {
+   "id": "q026",
+   "concept": "goalpost",
+   "word": "goalpost",
+   "display_label": "goalpost",
+   "accept": [
+    "goalpost"
+   ],
+   "recognizability": 0.214285714,
+   "recognizability_close": 0.214285714,
+   "n_ratings": 14,
+   "most_common_label": "goalpost",
+   "tercile": 0,
+   "colour_sha256": "acfa74d496a69a77cdbb40efca26a89525f68079f9892c8f8a8cb7237ffd409f",
+   "gray_sha256": "613456598cdb14dfa0182f98f322366dd4d84fb1f2b70070ebee9d443324a5ba"
+  },
+  {
+   "id": "q027",
+   "concept": "silverware",
+   "word": "silverware",
+   "display_label": "silverware",
+   "accept": [
+    "silverware"
+   ],
+   "recognizability": 0.25,
+   "recognizability_close": 0.25,
+   "n_ratings": 16,
+   "most_common_label": "spoon",
+   "tercile": 0,
+   "colour_sha256": "12a633d448098900f465ec8042912de8359cabb734d0aa139008cde2a6445620",
+   "gray_sha256": "7e41fa5f32128ea4c5193e8f4572d79e9103b401b5272967f5479a740ac0d302"
+  },
+  {
+   "id": "q028",
+   "concept": "cereal",
+   "word": "cereal",
+   "display_label": "cereal",
+   "accept": [
+    "cereal"
+   ],
+   "recognizability": 0.25,
+   "recognizability_close": 0.25,
+   "n_ratings": 16,
+   "most_common_label": "cereal",
+   "tercile": 0,
+   "colour_sha256": "52b31b0fda7698d96d0c06fb0162ac56ba469bc3a17023d805c6334cb951398b",
+   "gray_sha256": "5642f39b4a2ebf2ffe481ea2beed86a45229d98d7554322e1400ff483792e4bd"
+  },
+  {
+   "id": "q029",
+   "concept": "jug",
+   "word": "jug",
+   "display_label": "jug",
+   "accept": [
+    "jug"
+   ],
+   "recognizability": 0.266666667,
+   "recognizability_close": 0.266666667,
+   "n_ratings": 15,
+   "most_common_label": "jug",
+   "tercile": 0,
+   "colour_sha256": "62d709163f31760780f626373cfeb91f9db7174dddb2cd6bacc7221d33559d8b",
+   "gray_sha256": "56d1979aa126696fa3e63f6bd267c41a2b9b8204de113683edb7622632f2fd48"
+  },
+  {
+   "id": "q030",
+   "concept": "cream_cheese",
+   "word": "cream cheese",
+   "display_label": "cream cheese",
+   "accept": [
+    "cream cheese"
+   ],
+   "recognizability": 0.2,
+   "recognizability_close": 0.2,
+   "n_ratings": 15,
+   "most_common_label": "cream cheese",
+   "tercile": 0,
+   "colour_sha256": "1f531aff6ce9c45e4140c48a2696f66825adc779976d3d70d3a290ffd22a899f",
+   "gray_sha256": "affa3dec785ab834f0af8309944e70d7475d1e391df711c0ff2acb16656a3b39"
+  },
+  {
+   "id": "q031",
+   "concept": "seaweed",
+   "word": "seaweed",
+   "display_label": "seaweed",
+   "accept": [
+    "seaweed"
+   ],
+   "recognizability": 0.083333333,
+   "recognizability_close": 0.083333333,
+   "n_ratings": 12,
+   "most_common_label": "fish",
+   "tercile": 0,
+   "colour_sha256": "d0a1d5043cd1b3ea66d53827d8ca900e1b8e81296c9ef4f38fefe2e11cf3c3c0",
+   "gray_sha256": "0b5344d64967389cc6a3677be90e9b146f283d34c6b24ce73b11de4dd9f5c4b8"
+  },
+  {
+   "id": "q032",
+   "concept": "spam",
+   "word": "spam",
+   "display_label": "spam",
+   "accept": [
+    "spam"
+   ],
+   "recognizability": 0.266666667,
+   "recognizability_close": 0.266666667,
+   "n_ratings": 15,
+   "most_common_label": "meat",
+   "tercile": 0,
+   "colour_sha256": "860daf2a296138cde10651d43634015946684d0fa75e54d1151b1e10c036c486",
+   "gray_sha256": "6ec36203a1fbb1538bbe221f41053400867dd6bf187242f066ca6820a26ddc7d"
+  },
+  {
+   "id": "q033",
+   "concept": "smoothie",
+   "word": "smoothie",
+   "display_label": "smoothie",
+   "accept": [
+    "smoothie"
+   ],
+   "recognizability": 0.307692308,
+   "recognizability_close": 0.307692308,
+   "n_ratings": 13,
+   "most_common_label": "juice",
+   "tercile": 0,
+   "colour_sha256": "8436275913d8213cc0d8ae8291fad4dacc48c3490cf00171993d55598efedef9",
+   "gray_sha256": "a41f67dcc4ed03764f4b164c59846eff7c771affa462d0aec3b8432ff8c80f9f"
+  },
+  {
+   "id": "q034",
+   "concept": "springboard",
+   "word": "springboard",
+   "display_label": "springboard",
+   "accept": [
+    "springboard"
+   ],
+   "recognizability": 0.230769231,
+   "recognizability_close": 0.230769231,
+   "n_ratings": 13,
+   "most_common_label": "wallet",
+   "tercile": 0,
+   "colour_sha256": "b7f5f379cf66eb6fe4e95c394c73732a6d1e5546683ab2bccb5edfa6946031b2",
+   "gray_sha256": "de4800871f5be5d61a353a5a53be64e48632f25310537d3038b2eef728b1b1a8"
+  },
+  {
+   "id": "q035",
+   "concept": "whoopee_cushion",
+   "word": "whoopee cushion",
+   "display_label": "whoopee cushion",
+   "accept": [
+    "whoopee cushion",
+    "whoopie cushion"
+   ],
+   "recognizability": 0.25,
+   "recognizability_close": 0.25,
+   "n_ratings": 12,
+   "most_common_label": "whoopee cushion",
+   "tercile": 0,
+   "colour_sha256": "fd2b9e204c8762b68b10b0731084b17f5c559cf460b95962655cf266d3052cac",
+   "gray_sha256": "6799cacf9f057800695cf62d4213052dfbc82082ae66b214f6b5771c2c80835a"
+  },
+  {
+   "id": "q036",
+   "concept": "sauerkraut",
+   "word": "sauerkraut",
+   "display_label": "sauerkraut",
+   "accept": [
+    "sauerkraut"
+   ],
+   "recognizability": 0.3125,
+   "recognizability_close": 0.3125,
+   "n_ratings": 16,
+   "most_common_label": "sauerkraut",
+   "tercile": 0,
+   "colour_sha256": "016b4e534b237c9284e0f13d54ce7a0acd9ae32d4e59d2c56670a803766ce383",
+   "gray_sha256": "8892afda7c691b87ee2d06c21bec040f6403560e58bf0321365d8ee2e2001b09"
+  },
+  {
+   "id": "q037",
+   "concept": "skewer",
+   "word": "skewer",
+   "display_label": "skewer (food)",
+   "accept": [
+    "skewer"
+   ],
+   "recognizability": 0.125,
+   "recognizability_close": 0.125,
+   "n_ratings": 16,
+   "most_common_label": "toothpick",
+   "tercile": 0,
+   "colour_sha256": "35a64686759ef106bf4a86d7674db4a6a341c291a407052e2acf440e9a674ebf",
+   "gray_sha256": "2fdf97d779b2ef8ec831eb6fdd072ad52bad9a9e051ff89d16e8b829274331cd"
+  },
+  {
+   "id": "q038",
+   "concept": "parsley",
+   "word": "parsley",
+   "display_label": "parsley",
+   "accept": [
+    "parsley"
+   ],
+   "recognizability": 0.285714286,
+   "recognizability_close": 0.285714286,
+   "n_ratings": 14,
+   "most_common_label": "leaf",
+   "tercile": 0,
+   "colour_sha256": "7cb8fe03306cb179d606af36c1ef34d6c763265cdaf17ba28fe5ef661a90f38e",
+   "gray_sha256": "3b85cdca2de9115ebdaf0df0f38e250926e2a96d9af5fe2823b68f7550242c5b"
+  },
+  {
+   "id": "q039",
+   "concept": "wafer",
+   "word": "wafer",
+   "display_label": "wafer",
+   "accept": [
+    "wafer"
+   ],
+   "recognizability": 0.285714286,
+   "recognizability_close": 0.285714286,
+   "n_ratings": 14,
+   "most_common_label": "biscuit",
+   "tercile": 0,
+   "colour_sha256": "ebc156c2290b0d43622f3b29873f2869e84e8dd0d213327d11ca0154343ca225",
+   "gray_sha256": "be3bd90de486b4048cf1b92690e9f1764f61f5f17adb7d616b7fe0c11e7df018"
+  },
+  {
+   "id": "q040",
+   "concept": "boxer_shorts",
+   "word": "boxer shorts",
+   "display_label": "boxer shorts",
+   "accept": [
+    "boxer",
+    "boxer short",
+    "boxershort",
+    "drawer",
+    "short",
+    "underdrawer"
+   ],
+   "recognizability": 0.153846154,
+   "recognizability_close": 0.153846154,
+   "n_ratings": 13,
+   "most_common_label": "underwear",
+   "tercile": 0,
+   "colour_sha256": "aa328bf8579130c8139db89b152debbba72579440861919cf535e439aec41ecd",
+   "gray_sha256": "6d33efdb1f8d8b74322494df9b449b75fcba4dd50a345cce32ef76c3ffbf08eb"
+  },
+  {
+   "id": "q041",
+   "concept": "gravy",
+   "word": "gravy",
+   "display_label": "gravy",
+   "accept": [
+    "gravy"
+   ],
+   "recognizability": 0.0,
+   "recognizability_close": 0.0,
+   "n_ratings": 12,
+   "most_common_label": "spoon",
+   "tercile": 0,
+   "colour_sha256": "82e7fe5d6a9c0b7d390940d9490fa8fce0df4bdacfb1459a4b72d7494cd745ab",
+   "gray_sha256": "ac7b7c3d2314c62ee893917133d64de70fbf5242e9a5b86efcb450d3fa6fd79d"
+  },
+  {
+   "id": "q042",
+   "concept": "grate",
+   "word": "grate",
+   "display_label": "grate",
+   "accept": [
+    "grate",
+    "grating"
+   ],
+   "recognizability": 0.214285714,
+   "recognizability_close": 0.285714286,
+   "n_ratings": 14,
+   "most_common_label": "manhole",
+   "tercile": 0,
+   "colour_sha256": "b7722001f19c9fdae2e78831e0b361bc4cef4ec430f6674863a57cf720a7feca",
+   "gray_sha256": "53b685727a5d6f1322e958db352d4445ec7ef1045554eb5ed6e2b9617205476d"
+  },
+  {
+   "id": "q043",
+   "concept": "grain",
+   "word": "grain",
+   "display_label": "grain",
+   "accept": [
+    "caryopsi",
+    "grain"
+   ],
+   "recognizability": 0.076923077,
+   "recognizability_close": 0.076923077,
+   "n_ratings": 13,
+   "most_common_label": "wheat",
+   "tercile": 0,
+   "colour_sha256": "eb08f02dbe21959b5c631ce8ec32e19a322f8570069c9fa6ae1c18f476129aa1",
+   "gray_sha256": "f494a98f18ffc8425de4bcf986811b14c10809df559ff231b8d6fcba987dc771"
+  },
+  {
+   "id": "q044",
+   "concept": "highlighter",
+   "word": "highlighter",
+   "display_label": "highlighter",
+   "accept": [
+    "highlighter"
+   ],
+   "recognizability": 0.2,
+   "recognizability_close": 0.2,
+   "n_ratings": 15,
+   "most_common_label": "marker",
+   "tercile": 0,
+   "colour_sha256": "fcc52552c754852e47ffc4660a046d1b223c9d98651b2a09a12efe07d4e56fc8",
+   "gray_sha256": "952856d720819e1651069e2c3c97040e5d7592fc99f8d7689e1222a523f0ae86"
+  },
+  {
+   "id": "q045",
+   "concept": "stilt",
+   "word": "stilt",
+   "display_label": "stilt (walking)",
+   "accept": [
+    "stilt"
+   ],
+   "recognizability": 0.2,
+   "recognizability_close": 0.2,
+   "n_ratings": 10,
+   "most_common_label": "easel",
+   "tercile": 0,
+   "colour_sha256": "483ec13e57e16364b99b3a12c49eaff4ae652eea79e995890c23529cb1bc761f",
+   "gray_sha256": "51baae720cd4ca13800f9be450fb94f302efada7808010cff929f7639d498cf8"
+  },
+  {
+   "id": "q046",
+   "concept": "recorder",
+   "word": "recorder",
+   "display_label": "recorder (instrument)",
+   "accept": [
+    "fipple flute",
+    "fipple pipe",
+    "recorder",
+    "vertical flute"
+   ],
+   "recognizability": 0.230769231,
+   "recognizability_close": 0.230769231,
+   "n_ratings": 13,
+   "most_common_label": "flute",
+   "tercile": 0,
+   "colour_sha256": "c4c7182765bf2950390926440215e6ba3642f88a3784fe0b7bf975361740a36d",
+   "gray_sha256": "6276f917ff0c6538909124782e364cf8f4a756882532877f5136b76286c7532a"
+  },
+  {
+   "id": "q047",
+   "concept": "hot-water_bottle",
+   "word": "hot-water bottle",
+   "display_label": "hot tub",
+   "accept": [
+    "hot tub",
+    "hot-water bag",
+    "hot-water bottle"
+   ],
+   "recognizability": 0.294117647,
+   "recognizability_close": 0.294117647,
+   "n_ratings": 15,
+   "most_common_label": "swimming pool",
+   "tercile": 0,
+   "colour_sha256": "b0d9633a5e7f3369984ea5b5dc99d42479d3d1de003abcb3d8cb3f165529db0e",
+   "gray_sha256": "69029eda69cede122b22a671c583424a008a9c089be68e7c8da06654bb294d77"
+  },
+  {
+   "id": "q048",
+   "concept": "shears",
+   "word": "shears",
+   "display_label": "shears",
+   "accept": [
+    "shear"
+   ],
+   "recognizability": 0.117647059,
+   "recognizability_close": 0.117647059,
+   "n_ratings": 17,
+   "most_common_label": "scissors",
+   "tercile": 0,
+   "colour_sha256": "94a7602f664296a887393e8751f1adddb2b7542245227832f32c73ffd01ed9b2",
+   "gray_sha256": "38d8c80ff7a99b9a496830e85547717445667ec45879ed4dea688adfd7599f74"
+  },
+  {
+   "id": "q049",
+   "concept": "breakfast",
+   "word": "breakfast",
+   "display_label": "breakfast",
+   "accept": [
+    "breakfast"
+   ],
+   "recognizability": 0.294117647,
+   "recognizability_close": 0.294117647,
+   "n_ratings": 17,
+   "most_common_label": "dish (food)",
+   "tercile": 0,
+   "colour_sha256": "61067049d337db1a049fc80d7c554cf7bf366b0cf4f530aecd5f8f2bf361543b",
+   "gray_sha256": "5ecd7a4a0f30cd4ddb9a255f27443a9adbde0c5137d2c0db60238718520b8627"
+  },
+  {
+   "id": "q050",
+   "concept": "gourd",
+   "word": "gourd",
+   "display_label": "gourd",
+   "accept": [
+    "gourd"
+   ],
+   "recognizability": 0.066666667,
+   "recognizability_close": 0.066666667,
+   "n_ratings": 15,
+   "most_common_label": "pumpkin",
+   "tercile": 0,
+   "colour_sha256": "dae7a18ceb0c38caf73fde6c31c7801b1d8fb896ee32c2a5cc5d635253acba53",
+   "gray_sha256": "7ab4b9cc68e90707b9c9d3ae553353428d215d1d34f36bb29867b0d0f4b83145"
+  },
+  {
+   "id": "q051",
+   "concept": "torpedo",
+   "word": "torpedo",
+   "display_label": "torpedo",
+   "accept": [
+    "torpedo"
+   ],
+   "recognizability": 0.3125,
+   "recognizability_close": 0.3125,
+   "n_ratings": 16,
+   "most_common_label": "missile",
+   "tercile": 0,
+   "colour_sha256": "a5739410b4181a647755baec590879c46adc1cd914e06703df8db9b9a5911c7c",
+   "gray_sha256": "443dcd7f638c212391a267d3c40abe805788d95a4f967aaac0f121ce93a8083e"
+  },
+  {
+   "id": "q052",
+   "concept": "mullet",
+   "word": "mullet",
+   "display_label": "mullet (hair)",
+   "accept": [
+    "mullet"
+   ],
+   "recognizability": 0.125,
+   "recognizability_close": 0.125,
+   "n_ratings": 16,
+   "most_common_label": "hair",
+   "tercile": 0,
+   "colour_sha256": "1f2a246c5cf8073eda0b399bca8cd9fe2eabd4663ca58e8b9d12dff95074a68a",
+   "gray_sha256": "3738346a9ef51b3ca6f5ee1c095bc5f2efa65f897adb7ddffb497850cabe5031"
+  },
+  {
+   "id": "q053",
+   "concept": "cape",
+   "word": "cape",
+   "display_label": "cape (garment)",
+   "accept": [
+    "cape",
+    "mantle"
+   ],
+   "recognizability": 0.083333333,
+   "recognizability_close": 0.083333333,
+   "n_ratings": 12,
+   "most_common_label": "dress",
+   "tercile": 0,
+   "colour_sha256": "69fee47bd51a41488f31e93a85c5b293cbc63912ffe7124af4a0f15a0131b6bf",
+   "gray_sha256": "1d3dfff65b002f5bea75b3d7420c6463ea28b736d28c477400a6279b9f3190e8"
+  },
+  {
+   "id": "q054",
+   "concept": "dish",
+   "word": "dish",
+   "display_label": "dish (food)",
+   "accept": [
+    "dish"
+   ],
+   "recognizability": 0.0,
+   "recognizability_close": 0.571428571,
+   "n_ratings": 14,
+   "most_common_label": "plate (dish)",
+   "tercile": 0,
+   "colour_sha256": "dbb35216d87c336e781d9156d5bbc108339b638d6808b52e431e5891878c6b67",
+   "gray_sha256": "9269b28cad7dc81b03a00837f771b76bb25bfb89f04dbe4dcf604d1e17d82b6c"
+  },
+  {
+   "id": "q055",
+   "concept": "pot",
+   "word": "pot",
+   "display_label": "pot",
+   "accept": [
+    "pot"
+   ],
+   "recognizability": 0.235294118,
+   "recognizability_close": 0.235294118,
+   "n_ratings": 17,
+   "most_common_label": "cooker",
+   "tercile": 0,
+   "colour_sha256": "c7514308e037e1225e44abd2c89edda18e258ca9436e4fb5e34806e7e52715ae",
+   "gray_sha256": "497c3430b8b0de2e1df821eb4f77310e5a02f03c975ff796bf00dafebb88d8c8"
+  },
+  {
+   "id": "q056",
+   "concept": "surfboard",
+   "word": "surfboard",
+   "display_label": "surfboard",
+   "accept": [
+    "surfboard"
+   ],
+   "recognizability": 0.277777778,
+   "recognizability_close": 0.277777778,
+   "n_ratings": 18,
+   "most_common_label": "surfboard",
+   "tercile": 0,
+   "colour_sha256": "9d14477a1fb8c6e38b97b1c359a60298078fa5e7560a7ebf4892874abb4cc326",
+   "gray_sha256": "94f7e11c9468344283eca56a97d0b6c4c7eae49574475a33abe7dc6d153be454"
+  },
+  {
+   "id": "q057",
+   "concept": "buckle",
+   "word": "buckle",
+   "display_label": "buckle",
+   "accept": [
+    "buckle"
+   ],
+   "recognizability": 0.0,
+   "recognizability_close": 0.75,
+   "n_ratings": 16,
+   "most_common_label": "belt buckle",
+   "tercile": 0,
+   "colour_sha256": "4c0b0ece1d5e301efd12e9b0e6136f4e71adb69053eaa5ffcdbeadd7440d9d2f",
+   "gray_sha256": "12d77c365f903d59c56e292614ecdcde4f6b4493f64d7ca99846e2563e2ef1a4"
+  },
+  {
+   "id": "q058",
+   "concept": "napkin_ring",
+   "word": "napkin ring",
+   "display_label": "napkin ring",
+   "accept": [
+    "napkin ring"
+   ],
+   "recognizability": 0.214285714,
+   "recognizability_close": 0.214285714,
+   "n_ratings": 14,
+   "most_common_label": "bracelet (jewelry)",
+   "tercile": 0,
+   "colour_sha256": "c0cc155427e6ddf35397df94ac76f9f8bbdb44e5ff44e78d6a5e693a4d2e4bde",
+   "gray_sha256": "867030563947824f4240705d1afdcea2a6e8c0efee67fbdbba0f181a45bf6342"
+  },
+  {
+   "id": "q059",
+   "concept": "counter",
+   "word": "counter",
+   "display_label": "counter",
+   "accept": [
+    "counter"
+   ],
+   "recognizability": 0.25,
+   "recognizability_close": 0.25,
+   "n_ratings": 16,
+   "most_common_label": "table",
+   "tercile": 0,
+   "colour_sha256": "4d1ae66116d73c81ae18fac5b5adf0ce3d1348c7c3d9b736ab49859e59274b8d",
+   "gray_sha256": "fbc6de0229fb53a2e839d5901273216301930ffd8ee74b0f7c82bfb34e310268"
+  },
+  {
+   "id": "q060",
+   "concept": "pajamas",
+   "word": "pajamas",
+   "display_label": "pajamas",
+   "accept": [
+    "jammy",
+    "pajama",
+    "pyjama",
+    "u\"pj'"
+   ],
+   "recognizability": 0.076923077,
+   "recognizability_close": 0.076923077,
+   "n_ratings": 13,
+   "most_common_label": "shirt",
+   "tercile": 0,
+   "colour_sha256": "620ba13c2cf3c0db5d4b175653f310ae3f17716a864ce479239d62ce2a105612",
+   "gray_sha256": "962e876219f305ebe1610f2ad92b0ba49ebd0e9993a0a6437519d91f9b342fef"
+  },
+  {
+   "id": "q061",
+   "concept": "jumpsuit",
+   "word": "jumpsuit",
+   "display_label": "jumpsuit",
+   "accept": [
+    "jump suit",
+    "jumpsuit"
+   ],
+   "recognizability": 0.230769231,
+   "recognizability_close": 0.230769231,
+   "n_ratings": 13,
+   "most_common_label": "dress",
+   "tercile": 0,
+   "colour_sha256": "af8ec9c4c4f826196fc8e2589f790ed2b173851347460263242a904364810d35",
+   "gray_sha256": "42cc37770e987928af1d29ee6b6c58e795d5f7ae0f13f4290152e9aa0c2f8c2e"
+  },
+  {
+   "id": "q062",
+   "concept": "quill",
+   "word": "quill",
+   "display_label": "quill",
+   "accept": [
+    "quill",
+    "quill pen"
+   ],
+   "recognizability": 0.25,
+   "recognizability_close": 0.25,
+   "n_ratings": 20,
+   "most_common_label": "feather",
+   "tercile": 0,
+   "colour_sha256": "ce5126efbc475c04e4232a3d97a1d5702ce377c767d22d58987c038c9360e6ec",
+   "gray_sha256": "98440fe48837f6b4a3b025274d2f7353948dde488f04a64c967c5cede1f8f50b"
+  },
+  {
+   "id": "q063",
+   "concept": "reindeer",
+   "word": "reindeer",
+   "display_label": "reindeer",
+   "accept": [
+    "caribou",
+    "greenland caribou",
+    "rangifer tarandu",
+    "reindeer"
+   ],
+   "recognizability": 0.25,
+   "recognizability_close": 0.25,
+   "n_ratings": 12,
+   "most_common_label": "moose",
+   "tercile": 0,
+   "colour_sha256": "fa2ea16244fbddea6b6bfd1d76a4bc99ba2ab094aaa8a8010ee39ac521a761fe",
+   "gray_sha256": "08d2e8918d6a0f36b96863e8a619686f08a2d1f1e49c5404216c5713b03e21e0"
+  },
+  {
+   "id": "q064",
+   "concept": "aardvark",
+   "word": "aardvark",
+   "display_label": "aardvark",
+   "accept": [
+    "aardvark",
+    "ant bear",
+    "anteater",
+    "orycteropus afer"
+   ],
+   "recognizability": 0.166666667,
+   "recognizability_close": 0.166666667,
+   "n_ratings": 12,
+   "most_common_label": "anteater",
+   "tercile": 0,
+   "colour_sha256": "8fb376faad91d26ea5e079c49d8fe42562317815678c7637fb423c8f662a19ab",
+   "gray_sha256": "5c71c6fa1ff35bf74d19b85869326266f60b364936e0049c8dca5318be762221"
+  },
+  {
+   "id": "q065",
+   "concept": "cane",
+   "word": "cane",
+   "display_label": "cane (walking)",
+   "accept": [
+    "cane"
+   ],
+   "recognizability": 0.166666667,
+   "recognizability_close": 0.166666667,
+   "n_ratings": 12,
+   "most_common_label": "stick",
+   "tercile": 0,
+   "colour_sha256": "ae9493578971334dcec064621efbb5f369deb6522e64f3473fbaa4e5e3c12b89",
+   "gray_sha256": "9b4f424512ec89953c99011e44091f06fff8facb77dbaa7089d9fb8d4246525d"
+  },
+  {
+   "id": "q066",
+   "concept": "cummerbund",
+   "word": "cummerbund",
+   "display_label": "cummerbund",
+   "accept": [
+    "cummerbund"
+   ],
+   "recognizability": 0.133333333,
+   "recognizability_close": 0.133333333,
+   "n_ratings": 15,
+   "most_common_label": "paper",
+   "tercile": 0,
+   "colour_sha256": "99a60d7590a7b77d6be6d1658961203c45cd3d9668496468eae75e455134b313",
+   "gray_sha256": "95efec308b0cd864993a7cdd848d949e563b6a3863aea338011f3915382a0aeb"
+  },
+  {
+   "id": "q067",
+   "concept": "ready_meal",
+   "word": "ready meal",
+   "display_label": "ready meal",
+   "accept": [
+    "ready meal",
+    "tv dinner"
+   ],
+   "recognizability": 0.071428571,
+   "recognizability_close": 0.071428571,
+   "n_ratings": 14,
+   "most_common_label": "dish (food)",
+   "tercile": 0,
+   "colour_sha256": "227635deac93ca0b7c59bd6f628ae657b2cc0f43f7f90657479f5d80b0a3cf78",
+   "gray_sha256": "14c166eee6e10e0f003ee489fc729683429050b84fb366ed7c29923d099922f6"
+  },
+  {
+   "id": "q068",
+   "concept": "pantyhose",
+   "word": "pantyhose",
+   "display_label": "pantyhose",
+   "accept": [
+    "pantyhose"
+   ],
+   "recognizability": 0.1,
+   "recognizability_close": 0.1,
+   "n_ratings": 10,
+   "most_common_label": "leg",
+   "tercile": 0,
+   "colour_sha256": "8bf3d7885b4df59b70381c84f0b12e52256e3b1df8c57c86580904cb0ad543d8",
+   "gray_sha256": "b98f67b9cfd8f4c1cfa6350d5b033abe4e8114d0c7d59fe263707bdee727a05c"
+  },
+  {
+   "id": "q069",
+   "concept": "oar",
+   "word": "oar",
+   "display_label": "oar",
+   "accept": [
+    "oar"
+   ],
+   "recognizability": 0.166666667,
+   "recognizability_close": 0.166666667,
+   "n_ratings": 18,
+   "most_common_label": "paddle",
+   "tercile": 0,
+   "colour_sha256": "1208d93804adc257c6b608aa075a7e5a6f61819f70842c2159c9ceabf9fd9aec",
+   "gray_sha256": "1f2e482d2bec8758939f0bbc197239024ef211c25a6c581b31e7f342ae7d931d"
+  },
+  {
+   "id": "q070",
+   "concept": "pet_food",
+   "word": "pet food",
+   "display_label": "pet food",
+   "accept": [
+    "pet food",
+    "pet-food",
+    "petfood"
+   ],
+   "recognizability": 0.272727273,
+   "recognizability_close": 0.272727273,
+   "n_ratings": 11,
+   "most_common_label": "dogfood",
+   "tercile": 0,
+   "colour_sha256": "135255767908a34cb759d62931c0439bf9cee0b29dff3d2a25ad9ffe67ce9758",
+   "gray_sha256": "ed4e1aa924fae534e2cbc27f6d0c1c11a532686484bc8dd128c54d4a066142ca"
+  },
+  {
+   "id": "q071",
+   "concept": "paper_plate",
+   "word": "paper plate",
+   "display_label": "paper plate",
+   "accept": [
+    "paper plate"
+   ],
+   "recognizability": 0.285714286,
+   "recognizability_close": 0.285714286,
+   "n_ratings": 14,
+   "most_common_label": "plate (dish)",
+   "tercile": 0,
+   "colour_sha256": "37fca7b007908d415acbe544ec2324edf92aaf71af2460269d5c7a05ad67d6cf",
+   "gray_sha256": "82c3dec0749080b64c1758a323611e1b4e3a0efd68d4c97e351203090021f501"
+  },
+  {
+   "id": "q072",
+   "concept": "curry",
+   "word": "curry",
+   "display_label": "curry",
+   "accept": [
+    "curry"
+   ],
+   "recognizability": 0.153846154,
+   "recognizability_close": 0.153846154,
+   "n_ratings": 13,
+   "most_common_label": "dish (food)",
+   "tercile": 0,
+   "colour_sha256": "f3a6c6443c68c303bb0834665c5903a812eab2079167f8b7d16c2ab0d10ed889",
+   "gray_sha256": "9359192b24f21215f0e837d0381c1a0dff253c6f443b5eef1a7cde22a2ba306f"
+  },
+  {
+   "id": "q073",
+   "concept": "pepperoni",
+   "word": "pepperoni",
+   "display_label": "pepperoni",
+   "accept": [
+    "pepperoni"
+   ],
+   "recognizability": 0.214285714,
+   "recognizability_close": 0.214285714,
+   "n_ratings": 14,
+   "most_common_label": "salami",
+   "tercile": 0,
+   "colour_sha256": "b8689f24863cdf8a968ba5e7b1640818a657ac2e053446237f55844ec9323d03",
+   "gray_sha256": "9f51644e80a1bcdd106eacc400072f909108c33dcfa0a2877e3165764757d736"
+  },
+  {
+   "id": "q074",
+   "concept": "poker",
+   "word": "poker",
+   "display_label": "poker (fire rake)",
+   "accept": [
+    "fire hook",
+    "poker",
+    "salamander",
+    "stove poker"
+   ],
+   "recognizability": 0.153846154,
+   "recognizability_close": 0.153846154,
+   "n_ratings": 13,
+   "most_common_label": "tool",
+   "tercile": 0,
+   "colour_sha256": "20039dc57ce6c83b10581467ffb13001bd1fd763d7e17da6334f3c0d66a11f3d",
+   "gray_sha256": "ad5af3070122ca4de8d25168c2b8f1c7dbebdc0a8394caefd831299bf3b23a44"
+  },
+  {
+   "id": "q075",
+   "concept": "coal",
+   "word": "coal",
+   "display_label": "coal",
+   "accept": [
+    "coal"
+   ],
+   "recognizability": 0.214285714,
+   "recognizability_close": 0.428571429,
+   "n_ratings": 14,
+   "most_common_label": "fire",
+   "tercile": 0,
+   "colour_sha256": "ac61d5fcfd4f401b31b4efa219510902af5f469dd18a97b8de60d62bce248454",
+   "gray_sha256": "dcd1c7d7dcd34c3bbe017b0d3809608a339a382458796d03aa144e131ae71ad7"
+  },
+  {
+   "id": "q076",
+   "concept": "ankle",
+   "word": "ankle",
+   "display_label": "ankle",
+   "accept": [
+    "ankle",
+    "ankle joint",
+    "articulatio talocrurali",
+    "mortise joint"
+   ],
+   "recognizability": 0.153846154,
+   "recognizability_close": 0.153846154,
+   "n_ratings": 13,
+   "most_common_label": "leg",
+   "tercile": 0,
+   "colour_sha256": "58d7b75de60f2d89c0f990af81c5da388c4e283bc772ab9eda4af097042712a9",
+   "gray_sha256": "029b127bec918c4dc72292dde5b70aad3871cda7609b95bcf51ce8f45a1b06a8"
+  },
+  {
+   "id": "q077",
+   "concept": "creme_brulee",
+   "word": "creme brulee",
+   "display_label": "creme brulee",
+   "accept": [
+    "creme brulee"
+   ],
+   "recognizability": 0.25,
+   "recognizability_close": 0.25,
+   "n_ratings": 12,
+   "most_common_label": "cupcake",
+   "tercile": 0,
+   "colour_sha256": "92a493a61e3eb7f45460aa5d2ec820cd516b48ecacde5fa9ce49273aed239307",
+   "gray_sha256": "fc07f9a1033f94013eb61aa2bd1f46a2279f5a16f8279a10c77f8b9faff09db0"
+  },
+  {
+   "id": "q078",
+   "concept": "cougar",
+   "word": "cougar",
+   "display_label": "cougar",
+   "accept": [
+    "catamount",
+    "cougar",
+    "felis concolor",
+    "mountain lion",
+    "painter",
+    "panther",
+    "puma"
+   ],
+   "recognizability": 0.083333333,
+   "recognizability_close": 0.083333333,
+   "n_ratings": 12,
+   "most_common_label": "lion",
+   "tercile": 0,
+   "colour_sha256": "555ab5d645ba3d3f06babfb1230486bd9a6b60830b9b1a095d9310bae777e5a8",
+   "gray_sha256": "6d834e0ab220515ec2e4352edbe9234df058b3e98194005a3c6c6649468a3fb7"
+  },
+  {
+   "id": "q079",
+   "concept": "bassinet",
+   "word": "bassinet",
+   "display_label": "bassinet",
+   "accept": [
+    "bassinet"
+   ],
+   "recognizability": 0.235294118,
+   "recognizability_close": 0.235294118,
+   "n_ratings": 17,
+   "most_common_label": "bed",
+   "tercile": 0,
+   "colour_sha256": "715455e8033e2cbbf1786f8bc201b9d131190a44cbd42c68239636ed520f5010",
+   "gray_sha256": "fd666a9d01424fcc4a502b81bfbccaa833595b0f27b9cfb472ebbaa9cdf0bb9b"
+  },
+  {
+   "id": "q080",
+   "concept": "barnacle",
+   "word": "barnacle",
+   "display_label": "barnacle",
+   "accept": [
+    "barnacle",
+    "cirriped",
+    "cirripede"
+   ],
+   "recognizability": 0.266666667,
+   "recognizability_close": 0.266666667,
+   "n_ratings": 15,
+   "most_common_label": "barnacle",
+   "tercile": 0,
+   "colour_sha256": "cc64bc6c6c45882ebb3f4b69510c13d85e3ae2665a2ff8ee2270414af598140e",
+   "gray_sha256": "d0e61f7bd8268b59737a1c0dfd51b4dca8492ea21b530fc77a4bfb1e281cad94"
+  },
+  {
+   "id": "q081",
+   "concept": "ham",
+   "word": "ham",
+   "display_label": "ham",
+   "accept": [
+    "gammon",
+    "ham",
+    "jambon"
+   ],
+   "recognizability": 0.227272727,
+   "recognizability_close": 0.227272727,
+   "n_ratings": 22,
+   "most_common_label": "meat",
+   "tercile": 0,
+   "colour_sha256": "0f70f03a9cd56b8fd15d76b31a152cca700c6a639ff095b0e8018d62ed89b08f",
+   "gray_sha256": "d651493ec3300d841ba2a69abe414da98df65d10593e954076b7a1c461311bfc"
+  },
+  {
+   "id": "q082",
+   "concept": "patty",
+   "word": "patty",
+   "display_label": "patty",
+   "accept": [
+    "cake",
+    "patty"
+   ],
+   "recognizability": 0.0,
+   "recognizability_close": 0.0,
+   "n_ratings": 9,
+   "most_common_label": "hamburger",
+   "tercile": 0,
+   "colour_sha256": "fa48346b989f54456f49abfb5b9da8d86ed1a24b1aea26b35e0465cb58684c97",
+   "gray_sha256": "cd98f8c3e4a1200a7b30a6581da74f485661a2d07698377e2b0c6a9cea3021b6"
+  },
+  {
+   "id": "q083",
+   "concept": "pothole",
+   "word": "pothole",
+   "display_label": "pothole",
+   "accept": [
+    "chuckhole",
+    "pothole"
+   ],
+   "recognizability": 0.1,
+   "recognizability_close": 0.1,
+   "n_ratings": 10,
+   "most_common_label": "hole",
+   "tercile": 0,
+   "colour_sha256": "900ef1f724c503f74ab4b51b3c8fbfd9f7840632cf89b86351a341b98f98ac9d",
+   "gray_sha256": "f3190be110855860f096d50c8e4debc7a52e239af1d8f547acf91df238139732"
+  },
+  {
+   "id": "q084",
+   "concept": "cilantro",
+   "word": "cilantro",
+   "display_label": "cilantro",
+   "accept": [
+    "chinese parsley",
+    "cilantro",
+    "coriander"
+   ],
+   "recognizability": 0.294117647,
+   "recognizability_close": 0.294117647,
+   "n_ratings": 17,
+   "most_common_label": "leaf",
+   "tercile": 0,
+   "colour_sha256": "1914cd2139b5face560065c966debf6b96e83ff9d415ff8aefa30f88f400e03a",
+   "gray_sha256": "f836c3dc199c305c956b83984382c7e4a76f00f5367b1a394de69871c1503eee"
+  },
+  {
+   "id": "q085",
+   "concept": "racehorse",
+   "word": "racehorse",
+   "display_label": "racehorse",
+   "accept": [
+    "bangtail",
+    "race horse",
+    "racehorse"
+   ],
+   "recognizability": 0.0,
+   "recognizability_close": 0.0,
+   "n_ratings": 17,
+   "most_common_label": "horse",
+   "tercile": 0,
+   "colour_sha256": "2366edac4a8df85e81b5f05c24e78108cf45b4f54e48f09336cd611c24660321",
+   "gray_sha256": "5710e09030414648de19feb8ffa8c186519be94c9cab256aa0808deef95b4d18"
+  },
+  {
+   "id": "q086",
+   "concept": "outfit",
+   "word": "outfit",
+   "display_label": "outfit",
+   "accept": [
+    "getup",
+    "outfit",
+    "rig",
+    "turnout"
+   ],
+   "recognizability": 0.083333333,
+   "recognizability_close": 0.083333333,
+   "n_ratings": 12,
+   "most_common_label": "shirt",
+   "tercile": 0,
+   "colour_sha256": "d4368c35df1a13fd84d2e0def79807a954d9cce9cc7d6ad57938420e762f8f95",
+   "gray_sha256": "8234a31fd1a1c120a05659c98a2e5a42350dfe447be4098e3668a2d7ed8cc333"
+  },
+  {
+   "id": "q087",
+   "concept": "tapestry",
+   "word": "tapestry",
+   "display_label": "tapestry",
+   "accept": [
+    "arra",
+    "tapestry"
+   ],
+   "recognizability": 0.1,
+   "recognizability_close": 0.1,
+   "n_ratings": 10,
+   "most_common_label": "artichoke",
+   "tercile": 0,
+   "colour_sha256": "8434470d717170e7eff7635a4c0bab4dbb475034730d4456099fc4bd88359144",
+   "gray_sha256": "5716886b634f085b0fcbcc4e1a1153cd5ce88e556ddde8816182808fe5375028"
+  },
+  {
+   "id": "q088",
+   "concept": "magnifier",
+   "word": "magnifier",
+   "display_label": "magnifier",
+   "accept": [
+    "magnifier"
+   ],
+   "recognizability": 0.090909091,
+   "recognizability_close": 0.090909091,
+   "n_ratings": 11,
+   "most_common_label": "magnifying glass",
+   "tercile": 0,
+   "colour_sha256": "15d601f5db4ee1fef331331dc9a99996a33d948c1a1ea078b681646e243d9179",
+   "gray_sha256": "cb8e61f388ba4472707c943558d1a8d7df2fc22e33d4acbe724aac2ee73643cf"
+  },
+  {
+   "id": "q089",
+   "concept": "rust",
+   "word": "rust",
+   "display_label": "rust",
+   "accept": [
+    "rust"
+   ],
+   "recognizability": 0.285714286,
+   "recognizability_close": 0.285714286,
+   "n_ratings": 14,
+   "most_common_label": "rust",
+   "tercile": 0,
+   "colour_sha256": "ef35ca85b5d9abd10d0a46f854ca287cce51d5fe0539f8eebd6bb7019d8c2e28",
+   "gray_sha256": "5a1bdb71d2cd0904693caa35f427e96b3f4087ee7008b3717e0d91bcea337886"
+  },
+  {
+   "id": "q090",
+   "concept": "pantsuit",
+   "word": "pantsuit",
+   "display_label": "pantsuit",
+   "accept": [
+    "pants suit",
+    "pantsuit"
+   ],
+   "recognizability": 0.166666667,
+   "recognizability_close": 0.166666667,
+   "n_ratings": 12,
+   "most_common_label": "suit",
+   "tercile": 0,
+   "colour_sha256": "a572359d20f74a474676e5682e9433948cc0a61b2cce773ca9f7e52b49a67689",
+   "gray_sha256": "c9e526fa2dfa715c4880022a5d92496d05113d367a3978ddec1a888f934c3ed5"
+  },
+  {
+   "id": "q091",
+   "concept": "pickle",
+   "word": "pickle",
+   "display_label": "pickle",
+   "accept": [
+    "pickle"
+   ],
+   "recognizability": 0.266666667,
+   "recognizability_close": 0.266666667,
+   "n_ratings": 15,
+   "most_common_label": "cucumber",
+   "tercile": 0,
+   "colour_sha256": "3aebcb54aac3d3537496da4167bfacb4b192797ef8cea12a5e28a378b5d3a4db",
+   "gray_sha256": "f3caee2a4db8261729325221f3f406ef540356560186237ff4d8a14ef100c2b2"
+  },
+  {
+   "id": "q092",
+   "concept": "mallet",
+   "word": "mallet",
+   "display_label": "mallet",
+   "accept": [
+    "beetle",
+    "mallet"
+   ],
+   "recognizability": 0.1875,
+   "recognizability_close": 0.1875,
+   "n_ratings": 16,
+   "most_common_label": "hammer",
+   "tercile": 0,
+   "colour_sha256": "6f3a69e641cdd574e45d276da8d2b9d0a1320da2b6b0777b5dab753f7621b0b4",
+   "gray_sha256": "e2b21a3aceb5c450f7d212a7f95256865182e034632aad03e0709bbc2874a480"
+  },
+  {
+   "id": "q093",
+   "concept": "muff",
+   "word": "muff",
+   "display_label": "muff (hands)",
+   "accept": [
+    "muff"
+   ],
+   "recognizability": 0.066666667,
+   "recognizability_close": 0.066666667,
+   "n_ratings": 15,
+   "most_common_label": "pillow",
+   "tercile": 0,
+   "colour_sha256": "feecfdcd401b94fd0c45c61304ee11e31aabc2d4402f10803955b428f798f50f",
+   "gray_sha256": "b5b2da323d9a29177ff9ac4014ba90665731c45289a5ff41dba80981a8992187"
+  },
+  {
+   "id": "q094",
+   "concept": "velcro",
+   "word": "velcro",
+   "display_label": "velcro",
+   "accept": [
+    "velcro"
+   ],
+   "recognizability": 0.235294118,
+   "recognizability_close": 0.235294118,
+   "n_ratings": 17,
+   "most_common_label": "velcro",
+   "tercile": 0,
+   "colour_sha256": "074c02bf5432f355c1a5c4e80089f1ab03ff1e75c8356cfde91bfab0e5d3423c",
+   "gray_sha256": "173033ba924421efedaddce631952e07eca9028f8e9a09024a44ea2c8a38f495"
+  },
+  {
+   "id": "q095",
+   "concept": "cake_mix",
+   "word": "cake mix",
+   "display_label": "cake mix",
+   "accept": [
+    "cake mix"
+   ],
+   "recognizability": 0.083333333,
+   "recognizability_close": 0.083333333,
+   "n_ratings": 12,
+   "most_common_label": "batter (baking)",
+   "tercile": 0,
+   "colour_sha256": "131706752d5a824013341c7ede15dcb0eec4ee7aa07fb15caf18f21f85deb2ba",
+   "gray_sha256": "0ed11b7e2faeb7e08fde352c966d077837dc2f4288786b2b3c08cce1a7401acb"
+  },
+  {
+   "id": "q096",
+   "concept": "badge",
+   "word": "badge",
+   "display_label": "badge",
+   "accept": [
+    "badge"
+   ],
+   "recognizability": 0.0,
+   "recognizability_close": 0.0,
+   "n_ratings": 16,
+   "most_common_label": "medal",
+   "tercile": 0,
+   "colour_sha256": "5eaf7d54a53bc5131b08560bfaa490020e31bb88d9dd1af79b816569791524a4",
+   "gray_sha256": "4021661af63c12ec2d56c1329343378a216d94baae233f035ff740496f5530e2"
+  },
+  {
+   "id": "q097",
+   "concept": "food_processor",
+   "word": "food processor",
+   "display_label": "food processor",
+   "accept": [
+    "food processor"
+   ],
+   "recognizability": 0.263157895,
+   "recognizability_close": 0.263157895,
+   "n_ratings": 19,
+   "most_common_label": "food processor",
+   "tercile": 0,
+   "colour_sha256": "18463a46d2ede674969e4bddf11de74b3d661109188bd88427b0962a0ef75bf3",
+   "gray_sha256": "34e612ecebea839504c00fabcce914e4469dc4c1810188b6676755abad631669"
+  },
+  {
+   "id": "q098",
+   "concept": "diskette",
+   "word": "diskette",
+   "display_label": "diskette",
+   "accept": [
+    "diskette",
+    "floppy",
+    "floppy disk"
+   ],
+   "recognizability": 0.2,
+   "recognizability_close": 0.2,
+   "n_ratings": 15,
+   "most_common_label": "hard disk",
+   "tercile": 0,
+   "colour_sha256": "c71d0d7124575960b8134d88624bbd02168a486de2d2ced996990df9b7e451b6",
+   "gray_sha256": "a622a320652935da3cb2a1c4b2d92cecf88a63b1f9c932e9e0e4e25a486a0fb6"
+  },
+  {
+   "id": "q099",
+   "concept": "cornmeal",
+   "word": "cornmeal",
+   "display_label": "cornmeal",
+   "accept": [
+    "cornmeal",
+    "indian meal"
+   ],
+   "recognizability": 0.2,
+   "recognizability_close": 0.2,
+   "n_ratings": 15,
+   "most_common_label": "cornmeal",
+   "tercile": 0,
+   "colour_sha256": "726efe50f18272f9c87bcd6161a50a38cfd0b2f8c1feeb0449f582ccb21ec657",
+   "gray_sha256": "5398b97a6c9c50a9cfb3e6876f20fd611e9819ca547ec37be4a00feef11df84c"
+  },
+  {
+   "id": "q100",
+   "concept": "tooth",
+   "word": "tooth",
+   "display_label": "tooth",
+   "accept": [
+    "tooth"
+   ],
+   "recognizability": 0.533333333,
+   "recognizability_close": 0.533333333,
+   "n_ratings": 15,
+   "most_common_label": "tooth",
+   "tercile": 1,
+   "colour_sha256": "abf3f7cadb4661ceb64b291bc9bfc737c9cfbf02c3fb63d2b53d8e1d556736df",
+   "gray_sha256": "b98b15617ae53f7b7b0b5fb93e0d29cea83a92926e069b3128444ca763d660e7"
+  },
+  {
+   "id": "q101",
+   "concept": "wrapping_paper",
+   "word": "wrapping paper",
+   "display_label": "wrapping paper",
+   "accept": [
+    "wrapping paper"
+   ],
+   "recognizability": 0.357142857,
+   "recognizability_close": 0.357142857,
+   "n_ratings": 14,
+   "most_common_label": "wrapping paper",
+   "tercile": 1,
+   "colour_sha256": "7266e591b3609eaa4fe94b2a35801bbc476df4614266636bed873de40a06c1fd",
+   "gray_sha256": "d8cc180bf80537baf9e349438b96949af8371e70697fe3be682b5389dc0e202f"
+  },
+  {
+   "id": "q102",
+   "concept": "wallpaper",
+   "word": "wallpaper",
+   "display_label": "wallpaper",
+   "accept": [
+    "wallpaper"
+   ],
+   "recognizability": 0.428571429,
+   "recognizability_close": 0.428571429,
+   "n_ratings": 14,
+   "most_common_label": "wallpaper",
+   "tercile": 1,
+   "colour_sha256": "9c26268eeb975002c5985e974b49f243db236412fdfa5626234cdc4eab59f023",
+   "gray_sha256": "8ad226cd74bad693ee0134ddd953860f735ec911ea63610d52ca9b52f36744d1"
+  },
+  {
+   "id": "q103",
+   "concept": "taco",
+   "word": "taco",
+   "display_label": "taco",
+   "accept": [
+    "taco"
+   ],
+   "recognizability": 0.5,
+   "recognizability_close": 0.5,
+   "n_ratings": 12,
+   "most_common_label": "taco",
+   "tercile": 1,
+   "colour_sha256": "04b816c788861b3a272faf45389dcb6c0af9259b6e44f7c14f1106029ce4c584",
+   "gray_sha256": "7dad7fc6cbc3c454e06774ff4d2a2d5add1631f95289a7d41d5a8bc908f85cdd"
+  },
+  {
+   "id": "q104",
+   "concept": "swordfish",
+   "word": "swordfish",
+   "display_label": "swordfish",
+   "accept": [
+    "swordfish",
+    "xiphias gladiu"
+   ],
+   "recognizability": 0.352941176,
+   "recognizability_close": 0.352941176,
+   "n_ratings": 17,
+   "most_common_label": "fish",
+   "tercile": 1,
+   "colour_sha256": "331240f33a9a2b7bbd2c737dfbdda7648b9c6f5c2ec85717acf31a5928818510",
+   "gray_sha256": "206ead92ee3a65e6319fd086efe6514dc84236798db2a90f72f2a700fd67bb8b"
+  },
+  {
+   "id": "q105",
+   "concept": "hairspray",
+   "word": "hairspray",
+   "display_label": "hairspray",
+   "accept": [
+    "hair spray",
+    "hairspray"
+   ],
+   "recognizability": 0.6,
+   "recognizability_close": 0.6,
+   "n_ratings": 20,
+   "most_common_label": "hairspray",
+   "tercile": 1,
+   "colour_sha256": "97148eac6232afdb86e0832ad3b3fbaa65c4218475c2af209e442642305c7ba1",
+   "gray_sha256": "67fc3d6b5ddf9355b1bee759deaa9a26fd3454a8034a8e04ee25abc55b2c69f9"
+  },
+  {
+   "id": "q106",
+   "concept": "shaker",
+   "word": "shaker",
+   "display_label": "shaker",
+   "accept": [
+    "shaker"
+   ],
+   "recognizability": 0.411764706,
+   "recognizability_close": 0.411764706,
+   "n_ratings": 17,
+   "most_common_label": "shaker",
+   "tercile": 1,
+   "colour_sha256": "aaffb56bfaa2c00f40031ae974fa6fe25a80ab6dda8f441cb51d4248394fbbfa",
+   "gray_sha256": "7649156de1dfb5a48cafd0d75f964ee06e1817d0f0e5fe3edd1a05b7d8fdaa53"
+  },
+  {
+   "id": "q107",
+   "concept": "lavender",
+   "word": "lavender",
+   "display_label": "lavender",
+   "accept": [
+    "lavender"
+   ],
+   "recognizability": 0.4375,
+   "recognizability_close": 0.4375,
+   "n_ratings": 16,
+   "most_common_label": "flower",
+   "tercile": 1,
+   "colour_sha256": "93e3696f09f2b4d75556e89cad5b29ddaa79dc37c372a9e4fc32205d34655bee",
+   "gray_sha256": "7fda85e67b509a348c01cea8469f0aa9599bafa9c100942e271b86269c5b8ff8"
+  },
+  {
+   "id": "q108",
+   "concept": "sprouts",
+   "word": "sprouts",
+   "display_label": "sprouts",
+   "accept": [
+    "sprout"
+   ],
+   "recognizability": 0.555555556,
+   "recognizability_close": 0.555555556,
+   "n_ratings": 18,
+   "most_common_label": "sprouts",
+   "tercile": 1,
+   "colour_sha256": "01c695d75eb08ab69588ccc274279c6c76aab20d7222e95dc2fcba6a5dc97481",
+   "gray_sha256": "bab655887295c577684bde1c6fb084d3545cab8a027571c1ce030bf68729916b"
+  },
+  {
+   "id": "q109",
+   "concept": "toy",
+   "word": "toy",
+   "display_label": "toy",
+   "accept": [
+    "plaything",
+    "toy"
+   ],
+   "recognizability": 0.411764706,
+   "recognizability_close": 0.411764706,
+   "n_ratings": 17,
+   "most_common_label": "toy",
+   "tercile": 1,
+   "colour_sha256": "fe3d2546b74158d67fab03dac4486c257c341ec36b511db7e729354ea2320826",
+   "gray_sha256": "3082d82e5c14a9c241276d10d4f35240c51e3bb4f162ddc8a0e0cf92c30c7ace"
+  },
+  {
+   "id": "q110",
+   "concept": "cheeseburger",
+   "word": "cheeseburger",
+   "display_label": "cheeseburger",
+   "accept": [
+    "cheeseburger"
+   ],
+   "recognizability": 0.461538462,
+   "recognizability_close": 0.461538462,
+   "n_ratings": 13,
+   "most_common_label": "cheeseburger",
+   "tercile": 1,
+   "colour_sha256": "cf98f1f3fae1506838a9e1ae9ff2ee59aff3f45771a4016e3ab98a4462213273",
+   "gray_sha256": "ba10fa9718e73a249940b8922fb6cd5e7c0fae7a0a2864f4afb4c4e53d74b0fa"
+  },
+  {
+   "id": "q111",
+   "concept": "pickax",
+   "word": "pickax",
+   "display_label": "pickax",
+   "accept": [
+    "pick",
+    "pickax",
+    "pickaxe"
+   ],
+   "recognizability": 0.444444444,
+   "recognizability_close": 0.444444444,
+   "n_ratings": 9,
+   "most_common_label": "pickax",
+   "tercile": 1,
+   "colour_sha256": "bb56e83a5c7fc8da99e846a72fddb9b81f036eddfb688607823c30b4fb62ba0b",
+   "gray_sha256": "ab4eae206d83f19813b4bcd635268256f15e8b679dc58a42ba43d0f9c7d7e543"
+  },
+  {
+   "id": "q112",
+   "concept": "dumpster",
+   "word": "dumpster",
+   "display_label": "dumpster",
+   "accept": [
+    "dumpster"
+   ],
+   "recognizability": 0.631578947,
+   "recognizability_close": 0.631578947,
+   "n_ratings": 19,
+   "most_common_label": "dumpster",
+   "tercile": 1,
+   "colour_sha256": "89a985af04c9362f01d47f204042d252a3cca5244d50655d06c8d43f2c62f2e5",
+   "gray_sha256": "cf75e6e878e1ed45c9f8a862cb542102b38b23454a16759d369d960b99b77bb6"
+  },
+  {
+   "id": "q113",
+   "concept": "clarinet",
+   "word": "clarinet",
+   "display_label": "clarinet",
+   "accept": [
+    "clarinet"
+   ],
+   "recognizability": 0.588235294,
+   "recognizability_close": 0.588235294,
+   "n_ratings": 17,
+   "most_common_label": "clarinet",
+   "tercile": 1,
+   "colour_sha256": "82b3b11b10e2c6d9a42d9c6604da61001c3e2e73b8b13c324addd7db0cdd0ae2",
+   "gray_sha256": "089f5e296abf4b673b4ab327c25cfba880d843c8fe2ba2aaeec482740c5d1c67"
+  },
+  {
+   "id": "q114",
+   "concept": "chive",
+   "word": "chive",
+   "display_label": "chive",
+   "accept": [
+    "allium schoenoprasum",
+    "chive",
+    "cive",
+    "schnittlaugh"
+   ],
+   "recognizability": 0.545454545,
+   "recognizability_close": 0.545454545,
+   "n_ratings": 11,
+   "most_common_label": "chive",
+   "tercile": 1,
+   "colour_sha256": "e94e70a19a3862e22957ac2ecc03c3cd09846ec4749654a3b0b17b709d376a9a",
+   "gray_sha256": "dfabc915cdc6e76b845ed671933417b94a5eacefdb16b2a9d89da4fc98c464f6"
+  },
+  {
+   "id": "q115",
+   "concept": "gong",
+   "word": "gong",
+   "display_label": "gong",
+   "accept": [
+    "gong",
+    "tam-tam"
+   ],
+   "recognizability": 0.571428571,
+   "recognizability_close": 0.571428571,
+   "n_ratings": 14,
+   "most_common_label": "gong",
+   "tercile": 1,
+   "colour_sha256": "712cb771244084066f6bcc18f5ef21b65d9e7954779723ef473f843ac3c03b3a",
+   "gray_sha256": "cd6a145dc128d76228519f6cf50b68568c2c25b4ee3a2c80bd5a7a9697922c76"
+  },
+  {
+   "id": "q116",
+   "concept": "pitchfork",
+   "word": "pitchfork",
+   "display_label": "pitchfork",
+   "accept": [
+    "pitchfork"
+   ],
+   "recognizability": 0.5,
+   "recognizability_close": 0.5,
+   "n_ratings": 14,
+   "most_common_label": "pitchfork",
+   "tercile": 1,
+   "colour_sha256": "c703e8014abeca437c1a516a9b1b0afaf2375b4fe6105f1dee7403237fdc0ade",
+   "gray_sha256": "99dc4ba032702f97914190299a8f35d01c0505e0b3b96829569bc38de159def3"
+  },
+  {
+   "id": "q117",
+   "concept": "golf_club",
+   "word": "golf club",
+   "display_label": "golf club",
+   "accept": [
+    "club",
+    "golf club",
+    "golf-club"
+   ],
+   "recognizability": 0.529411765,
+   "recognizability_close": 0.529411765,
+   "n_ratings": 17,
+   "most_common_label": "golf club",
+   "tercile": 1,
+   "colour_sha256": "8c608588431996b35c3f7ac9405b26fbffb6e98e6ff97fbd98c088962b6d8e03",
+   "gray_sha256": "643d71463a97b3bf7fb0a523103028a0dc543cfb031d40cd28ebd63620be4bba"
+  },
+  {
+   "id": "q118",
+   "concept": "wing",
+   "word": "wing",
+   "display_label": "wing (airplane)",
+   "accept": [
+    "wing"
+   ],
+   "recognizability": 0.533333333,
+   "recognizability_close": 0.533333333,
+   "n_ratings": 15,
+   "most_common_label": "wing (airplane)",
+   "tercile": 1,
+   "colour_sha256": "15178f14435ba76fb35318406a40fb4b00acc29c7306f62e08b598a473c49226",
+   "gray_sha256": "13c03849da5224b42cff01b067ebf4b32d39c8677f28e45e10ce89898ae817cd"
+  },
+  {
+   "id": "q119",
+   "concept": "crate",
+   "word": "crate",
+   "display_label": "crate (box)",
+   "accept": [
+    "crate"
+   ],
+   "recognizability": 0.384615385,
+   "recognizability_close": 0.384615385,
+   "n_ratings": 13,
+   "most_common_label": "crate (box)",
+   "tercile": 1,
+   "colour_sha256": "217994f06333208635149caec9f9220a455fd889ab2514ad2bab5f06ab171b61",
+   "gray_sha256": "b658fe4ebc4cbb9dae1b4fe7c3df7ec3ef590bb3634ee573ddb6fa5756610d8f"
+  },
+  {
+   "id": "q120",
+   "concept": "sausage",
+   "word": "sausage",
+   "display_label": "sausage",
+   "accept": [
+    "sausage"
+   ],
+   "recognizability": 0.411764706,
+   "recognizability_close": 0.411764706,
+   "n_ratings": 17,
+   "most_common_label": "hotdog",
+   "tercile": 1,
+   "colour_sha256": "b3d1bd1adcd5565cf850900b0e3dbb807299678835923a7824475806ee5dc6b6",
+   "gray_sha256": "f09061e7b0249e0d69ff0cf430d62714d90ad70cca6b6b9a970a371dada1ff33"
+  },
+  {
+   "id": "q121",
+   "concept": "guardrail",
+   "word": "guardrail",
+   "display_label": "guardrail",
+   "accept": [
+    "guardrail",
+    "safety rail"
+   ],
+   "recognizability": 0.588235294,
+   "recognizability_close": 0.588235294,
+   "n_ratings": 17,
+   "most_common_label": "guardrail",
+   "tercile": 1,
+   "colour_sha256": "4054b106f336c4f1ed2b64827875d171eb90f09984a0ae77480a7203d06e2c5d",
+   "gray_sha256": "64ced83af870741f45e2c943269ef4dd232ba0bbad5cc185aca86e7bb88c0ebe"
+  },
+  {
+   "id": "q122",
+   "concept": "cigarette_butt",
+   "word": "cigarette butt",
+   "display_label": "cigarette butt",
+   "accept": [
+    "cigarette butt"
+   ],
+   "recognizability": 0.428571429,
+   "recognizability_close": 0.428571429,
+   "n_ratings": 14,
+   "most_common_label": "cigarette",
+   "tercile": 1,
+   "colour_sha256": "0f39a4db9a8c1d1c331528b33cfc8a7d6f5f67f40d6d11f28e9c500f5f86aea8",
+   "gray_sha256": "cd353b581ce93950ea6d5d3a1083a7829bd3edea782fd8cbfa3cac3dad1ca70a"
+  },
+  {
+   "id": "q123",
+   "concept": "soy_sauce",
+   "word": "soy sauce",
+   "display_label": "soy sauce",
+   "accept": [
+    "soy",
+    "soy sauce"
+   ],
+   "recognizability": 0.416666667,
+   "recognizability_close": 0.416666667,
+   "n_ratings": 12,
+   "most_common_label": "soy sauce",
+   "tercile": 1,
+   "colour_sha256": "0856574a22f0e7a9560e0b32a420098d762adafd2805f81f2367a450ff37861a",
+   "gray_sha256": "aebec2fef35f19d0bbe47ccd6fcd578a75dc2e2f9bf802e7f272bdca3b675e49"
+  },
+  {
+   "id": "q124",
+   "concept": "coyote",
+   "word": "coyote",
+   "display_label": "coyote",
+   "accept": [
+    "brush wolf",
+    "canis latran",
+    "coyote",
+    "prairie wolf"
+   ],
+   "recognizability": 0.333333333,
+   "recognizability_close": 0.333333333,
+   "n_ratings": 18,
+   "most_common_label": "fox",
+   "tercile": 1,
+   "colour_sha256": "166a5fdb3777466673d39f5c64021b3522717e3ae6a55fdeaa4c6fe512e51dff",
+   "gray_sha256": "ff36e1332c7bbcbe5c913ae689c53eb4bb3c2929ae7e0b04260f849b494f05f3"
+  },
+  {
+   "id": "q125",
+   "concept": "laser_pointer",
+   "word": "laser pointer",
+   "display_label": "laser pointer",
+   "accept": [
+    "laser pointer",
+    "pointer"
+   ],
+   "recognizability": 0.631578947,
+   "recognizability_close": 0.631578947,
+   "n_ratings": 19,
+   "most_common_label": "laser pointer",
+   "tercile": 1,
+   "colour_sha256": "8b1467a63decd0e118cf72533f33fa52e9d596da6e5f60ab89266864a2891513",
+   "gray_sha256": "a31280a3fbdeecc83db116b784f075b4fd24052c925b2867ee34733042e97690"
+  },
+  {
+   "id": "q126",
+   "concept": "garbage_truck",
+   "word": "garbage truck",
+   "display_label": "garbage truck",
+   "accept": [
+    "dustcart",
+    "garbage truck"
+   ],
+   "recognizability": 0.538461538,
+   "recognizability_close": 0.538461538,
+   "n_ratings": 13,
+   "most_common_label": "garbage truck",
+   "tercile": 1,
+   "colour_sha256": "05b4cd8b756e339a24708bd47275d8f32d4ff900acbea8f9f34f5a7b1abda1fb",
+   "gray_sha256": "0aa88c4bcf81dace96473229a5cddb5f4ad916639346f5e849d14e240074f62c"
+  },
+  {
+   "id": "q127",
+   "concept": "coffee_table",
+   "word": "coffee table",
+   "display_label": "coffee table",
+   "accept": [
+    "cocktail table",
+    "coffee table"
+   ],
+   "recognizability": 0.6,
+   "recognizability_close": 0.6,
+   "n_ratings": 15,
+   "most_common_label": "coffee table",
+   "tercile": 1,
+   "colour_sha256": "583f4d6c654a9dc028d299f9bac685b46b08bc6fcf77fff08e8fa5aba8047853",
+   "gray_sha256": "1824051fc6d5927af1706e58592594478f46ddc9fbc66c7842611095ab09781b"
+  },
+  {
+   "id": "q128",
+   "concept": "rug",
+   "word": "rug",
+   "display_label": "rug",
+   "accept": [
+    "carpet",
+    "carpeting",
+    "rug"
+   ],
+   "recognizability": 0.625,
+   "recognizability_close": 0.625,
+   "n_ratings": 16,
+   "most_common_label": "rug",
+   "tercile": 1,
+   "colour_sha256": "283ea34ac4634865b0255a1b6219f57be793403c4a49d1b22ae73afdda62a692",
+   "gray_sha256": "1ea23567ee146e5666476a46d3b82bf9167798ac2511e2a6ee85d7dce33b98c1"
+  },
+  {
+   "id": "q129",
+   "concept": "cranberry",
+   "word": "cranberry",
+   "display_label": "cranberry",
+   "accept": [
+    "cranberry"
+   ],
+   "recognizability": 0.533333333,
+   "recognizability_close": 0.533333333,
+   "n_ratings": 15,
+   "most_common_label": "cranberry",
+   "tercile": 1,
+   "colour_sha256": "585c79d81867e3de2c7e93dc712224a4705d38cf52416977b595b658d8bc3600",
+   "gray_sha256": "1ec323c95c7151f22353aef6159c9eefedd36d262bf4c95d88edd02db5fd28c4"
+  },
+  {
+   "id": "q130",
+   "concept": "chickpea",
+   "word": "chickpea",
+   "display_label": "chickpea",
+   "accept": [
+    "chickpea",
+    "garbanzo"
+   ],
+   "recognizability": 0.529411765,
+   "recognizability_close": 0.529411765,
+   "n_ratings": 17,
+   "most_common_label": "chickpea",
+   "tercile": 1,
+   "colour_sha256": "6f98f6e1ad83a9df92cfb2f8761689ceb371f70674853ddce4ec5fbeeda717ba",
+   "gray_sha256": "4106fd3377eed012a9354ae7e20d6cb730278554e3e71956d2683655dd74a41d"
+  },
+  {
+   "id": "q131",
+   "concept": "necklace",
+   "word": "necklace",
+   "display_label": "necklace",
+   "accept": [
+    "necklace"
+   ],
+   "recognizability": 0.428571429,
+   "recognizability_close": 0.428571429,
+   "n_ratings": 14,
+   "most_common_label": "necklace",
+   "tercile": 1,
+   "colour_sha256": "2e5de8e5d9da20036c1ffd3e3a8b78401c35432776470133078060e5fbefa51d",
+   "gray_sha256": "2571b6057935d44bcdc05d0eee52d1385736753bedbe0d8b66c915b45fbeb90f"
+  },
+  {
+   "id": "q132",
+   "concept": "tube_top",
+   "word": "tube top",
+   "display_label": "tube top",
+   "accept": [
+    "tube top"
+   ],
+   "recognizability": 0.352941176,
+   "recognizability_close": 0.352941176,
+   "n_ratings": 17,
+   "most_common_label": "tube top",
+   "tercile": 1,
+   "colour_sha256": "e1539883efb756dd3cffc739ba139447ed5cd7088282d377318647845a966707",
+   "gray_sha256": "8d7ee41724e3aebd6de08036df976efe23f06477483b1a61bf304d2492154433"
+  },
+  {
+   "id": "q133",
+   "concept": "puffin",
+   "word": "puffin",
+   "display_label": "puffin",
+   "accept": [
+    "puffin"
+   ],
+   "recognizability": 0.545454545,
+   "recognizability_close": 0.545454545,
+   "n_ratings": 11,
+   "most_common_label": "puffin",
+   "tercile": 1,
+   "colour_sha256": "628af17214d10badb9a33e6495b22b10b2e4bb5c316135cebb2922a244089ae3",
+   "gray_sha256": "5dd39f9d4c99e3c9b93980881c25f58da269adcebd574ccf2fa5010cde0ef5c9"
+  },
+  {
+   "id": "q134",
+   "concept": "flagpole",
+   "word": "flagpole",
+   "display_label": "flagpole",
+   "accept": [
+    "flagpole",
+    "flagstaff"
+   ],
+   "recognizability": 0.571428571,
+   "recognizability_close": 0.571428571,
+   "n_ratings": 14,
+   "most_common_label": "flagpole",
+   "tercile": 1,
+   "colour_sha256": "a0a2429851ef6310bb65ea1e40b709c305c03c1dd63bcbf0b5677c8faa189c5f",
+   "gray_sha256": "9f818a3b14b841f866ae07f32abe5e8c6479d3aada632af6fe790e1de007559e"
+  },
+  {
+   "id": "q135",
+   "concept": "breathalyzer",
+   "word": "breathalyzer",
+   "display_label": "breathalyzer",
+   "accept": [
+    "breathalyser",
+    "breathalyzer"
+   ],
+   "recognizability": 0.5,
+   "recognizability_close": 0.5,
+   "n_ratings": 18,
+   "most_common_label": "breathalyzer",
+   "tercile": 1,
+   "colour_sha256": "4bbf81c0ca0eadc05d1eea954a14dc80f6c427e13cadc9e957c006334559341d",
+   "gray_sha256": "b7d57d957d5d54c13c79a3232bade915dee5babfea86197d7eb0a8f10796e482"
+  },
+  {
+   "id": "q136",
+   "concept": "earwig",
+   "word": "earwig",
+   "display_label": "earwig",
+   "accept": [
+    "earwig"
+   ],
+   "recognizability": 0.4,
+   "recognizability_close": 0.4,
+   "n_ratings": 15,
+   "most_common_label": "earwig",
+   "tercile": 1,
+   "colour_sha256": "829c38d9736c235c5f3d4002aace9395cfcabf42fb40a1b2d49be22a12843098",
+   "gray_sha256": "25cb28dc088d956021e020ef5df2881ffd0c5f0bc418c5530391bfbce1312f14"
+  },
+  {
+   "id": "q137",
+   "concept": "oyster",
+   "word": "oyster",
+   "display_label": "oyster",
+   "accept": [
+    "oyster"
+   ],
+   "recognizability": 0.533333333,
+   "recognizability_close": 0.533333333,
+   "n_ratings": 15,
+   "most_common_label": "oyster",
+   "tercile": 1,
+   "colour_sha256": "8b4531fec0d5a7c2b0714f451c97f539c329b9c3839ab591ce9a65b53376929b",
+   "gray_sha256": "f03cbf8b235dc77faad75941f07d6a32ef84e7b34ebd198c572ef085e446bbfc"
+  },
+  {
+   "id": "q138",
+   "concept": "footbath",
+   "word": "footbath",
+   "display_label": "footbath",
+   "accept": [
+    "footbath"
+   ],
+   "recognizability": 0.538461538,
+   "recognizability_close": 0.538461538,
+   "n_ratings": 13,
+   "most_common_label": "footbath",
+   "tercile": 1,
+   "colour_sha256": "c27fc63c14fcc12e8c1b46380e7c6f224a7508c8645e5c729d88d3a6871b4cdc",
+   "gray_sha256": "773403026f35a6b73964b0818eea4e2ea68891f83cd71bc0acce6e20a2527c6e"
+  },
+  {
+   "id": "q139",
+   "concept": "bracket",
+   "word": "bracket",
+   "display_label": "bracket",
+   "accept": [
+    "bracket",
+    "wall bracket"
+   ],
+   "recognizability": 0.428571429,
+   "recognizability_close": 0.428571429,
+   "n_ratings": 14,
+   "most_common_label": "bracket",
+   "tercile": 1,
+   "colour_sha256": "b6defd2cc8d4b8214080c72401c91087cc3fc4feca660405ecf3cdfc616ab01b",
+   "gray_sha256": "b07dfbeaad65e7975419ed52cb13af8d3e496add2e042f66484fc360c5295c17"
+  },
+  {
+   "id": "q140",
+   "concept": "roadsweeper",
+   "word": "roadsweeper",
+   "display_label": "road sweeper (vehicle)",
+   "accept": [
+    "road sweeper",
+    "roadsweeper"
+   ],
+   "recognizability": 0.384615385,
+   "recognizability_close": 0.0,
+   "n_ratings": 13,
+   "most_common_label": "road sweeper (vehicle)",
+   "tercile": 1,
+   "colour_sha256": "9e0ed3f28e92870247f5b62e042f190d54b5beffea736f66c9266a6c520c3e4d",
+   "gray_sha256": "7ec159223da43c40c5af5e2bf3f6259cac441f7b7b22041d55d178df9a31a3ac"
+  },
+  {
+   "id": "q141",
+   "concept": "centrifuge",
+   "word": "centrifuge",
+   "display_label": "centrifuge",
+   "accept": [
+    "centrifuge",
+    "extractor",
+    "separator"
+   ],
+   "recognizability": 0.411764706,
+   "recognizability_close": 0.411764706,
+   "n_ratings": 17,
+   "most_common_label": "centrifuge",
+   "tercile": 1,
+   "colour_sha256": "7a198cae66dd610e61e984e2fd08da10affb44af1bed6ddbf86b8e671ef6f3cf",
+   "gray_sha256": "ea2db9b80cd9b540e05a633c126b32a1c1432288c6986f77f04a64e06cd0e330"
+  },
+  {
+   "id": "q142",
+   "concept": "birthday_cake",
+   "word": "birthday cake",
+   "display_label": "birthday cake",
+   "accept": [
+    "birthday cake"
+   ],
+   "recognizability": 0.5625,
+   "recognizability_close": 0.5625,
+   "n_ratings": 16,
+   "most_common_label": "birthday cake",
+   "tercile": 1,
+   "colour_sha256": "f7b104fb83fccb867cfd7938246866e7eca6726cd698b26ee0bd0949f5c0b2e2",
+   "gray_sha256": "6dbed5feae4133fc0951e6e3d22bf0a88f89fd0c252755de50b0a6ae368da1f9"
+  },
+  {
+   "id": "q143",
+   "concept": "rollerskate",
+   "word": "rollerskate",
+   "display_label": "rollerskate",
+   "accept": [
+    "roller skate",
+    "rollerskate"
+   ],
+   "recognizability": 0.5,
+   "recognizability_close": 0.5,
+   "n_ratings": 14,
+   "most_common_label": "rollerskate",
+   "tercile": 1,
+   "colour_sha256": "494b093ec9d6cb64a9366163d4bbeed174e476ba5ed0116bfce8b4a2afd36331",
+   "gray_sha256": "87977fd2073d4e089ad2b7d34908baf070459124b06273558a67ef372dacbe0a"
+  },
+  {
+   "id": "q144",
+   "concept": "lifesaver",
+   "word": "lifesaver",
+   "display_label": "lifesaver (life buoy)",
+   "accept": [
+    "life belt",
+    "life buoy",
+    "life ring",
+    "lifesaver"
+   ],
+   "recognizability": 0.5,
+   "recognizability_close": 0.5,
+   "n_ratings": 12,
+   "most_common_label": "lifesaver (life buoy)",
+   "tercile": 1,
+   "colour_sha256": "006e9f9277900d340799d8c53f1fb28673b9ea8d51fdcb04b07ebcf7d4ff10fa",
+   "gray_sha256": "dfba176a0bfb339a7a7120c3127aa83be888a5457c53e279263b63d62cb9a4ab"
+  },
+  {
+   "id": "q145",
+   "concept": "pea",
+   "word": "pea",
+   "display_label": "pea",
+   "accept": [
+    "pea"
+   ],
+   "recognizability": 0.444444444,
+   "recognizability_close": 0.611111111,
+   "n_ratings": 18,
+   "most_common_label": "pea",
+   "tercile": 1,
+   "colour_sha256": "db1e3b121f470e625a4435186071e2ab252d5d8479a665f77db9c70e63d86b53",
+   "gray_sha256": "13af693cbacd65e081d8445fbdf82559b732534022b723f52936548f5c3afac1"
+  },
+  {
+   "id": "q146",
+   "concept": "shower_curtain",
+   "word": "shower curtain",
+   "display_label": "shower curtain",
+   "accept": [
+    "shower curtain"
+   ],
+   "recognizability": 0.4,
+   "recognizability_close": 0.4,
+   "n_ratings": 15,
+   "most_common_label": "shower curtain",
+   "tercile": 1,
+   "colour_sha256": "dd11bcc695766bfa1c9f7b655b43d0cd734ff13820a90cfac30bcefac8dd1d93",
+   "gray_sha256": "a2674cb7a78d85a288b90efa0edd1bdb4c48dbb52c49f05e5e84e4b03754c320"
+  },
+  {
+   "id": "q147",
+   "concept": "macadamia",
+   "word": "macadamia",
+   "display_label": "macadamia",
+   "accept": [
+    "macadamia",
+    "macadamia nut"
+   ],
+   "recognizability": 0.357142857,
+   "recognizability_close": 0.357142857,
+   "n_ratings": 14,
+   "most_common_label": "nut",
+   "tercile": 1,
+   "colour_sha256": "6bab9e37d56947f9fc8ee86d2a4bb8dfd6d1eef0cdcb61a56b03f915a150a74d",
+   "gray_sha256": "bc9851eaf862a086637e2b266b34d8205bfd4bb9cf4c06ad8998e1bca1a69d6b"
+  },
+  {
+   "id": "q148",
+   "concept": "freezer",
+   "word": "freezer",
+   "display_label": "freezer",
+   "accept": [
+    "deep freezer",
+    "deep-freeze",
+    "deepfreeze",
+    "freezer"
+   ],
+   "recognizability": 0.526315789,
+   "recognizability_close": 0.526315789,
+   "n_ratings": 19,
+   "most_common_label": "freezer",
+   "tercile": 1,
+   "colour_sha256": "0cd762aa4886c69dcef056c8192884184941761a3b09a2777c092f687e4e1948",
+   "gray_sha256": "5bebc5599e26c33e3a0d0bfaa53da8bc4b71183724733acbd73ed411fa71ae7d"
+  },
+  {
+   "id": "q149",
+   "concept": "wax",
+   "word": "wax",
+   "display_label": "wax",
+   "accept": [
+    "wax"
+   ],
+   "recognizability": 0.538461538,
+   "recognizability_close": 0.538461538,
+   "n_ratings": 13,
+   "most_common_label": "wax",
+   "tercile": 1,
+   "colour_sha256": "c9cc3985d1a1a7e269bc8da21efb9c54830fb4cfd0e7e08f5546665401c41b0d",
+   "gray_sha256": "1e3ad34230353ee0b662870569f9b29850715377da005e6c3af66cc298b0555d"
+  },
+  {
+   "id": "q150",
+   "concept": "dandelion",
+   "word": "dandelion",
+   "display_label": "dandelion",
+   "accept": [
+    "blowball",
+    "dandelion"
+   ],
+   "recognizability": 0.454545455,
+   "recognizability_close": 0.454545455,
+   "n_ratings": 11,
+   "most_common_label": "dandelion",
+   "tercile": 1,
+   "colour_sha256": "a8cece43c6055de276cd1d6fd68b10fc4add17f40b3e8b9286d5db59590a9a4c",
+   "gray_sha256": "ab1427be903ba5df158ac69d01ad6693a11eef7549959131d28788cdd9fde522"
+  },
+  {
+   "id": "q151",
+   "concept": "wine_bottle",
+   "word": "wine bottle",
+   "display_label": "wine bottle",
+   "accept": [
+    "wine bottle"
+   ],
+   "recognizability": 0.333333333,
+   "recognizability_close": 0.333333333,
+   "n_ratings": 18,
+   "most_common_label": "wine bottle",
+   "tercile": 1,
+   "colour_sha256": "3d10a8815afaf90a7f185e7bb7fe1ad1186640095fd6c4f6c25fa8c80d9b11e1",
+   "gray_sha256": "bbd3e0abb546d26effe65f84f890f39781760312535fc5cfceb9cd59aaeaa67a"
+  },
+  {
+   "id": "q152",
+   "concept": "stingray",
+   "word": "stingray",
+   "display_label": "stingray",
+   "accept": [
+    "stingray"
+   ],
+   "recognizability": 0.533333333,
+   "recognizability_close": 0.533333333,
+   "n_ratings": 15,
+   "most_common_label": "stingray",
+   "tercile": 1,
+   "colour_sha256": "bc2ee77984d0c5334dfd683b0e30d0bf5904ca75816c11adb9c0fac91b139fe9",
+   "gray_sha256": "5daf729316006ec2aae295cde6a334f8eeb042570b516048f0e9bd1ab570025a"
+  },
+  {
+   "id": "q153",
+   "concept": "oil",
+   "word": "oil",
+   "display_label": "oil",
+   "accept": [
+    "oil",
+    "vegetable oil"
+   ],
+   "recognizability": 0.333333333,
+   "recognizability_close": 0.333333333,
+   "n_ratings": 12,
+   "most_common_label": "oil",
+   "tercile": 1,
+   "colour_sha256": "108d5f3768c6106923fae5e7fbb2399facca002d447003f9088a03770456eea2",
+   "gray_sha256": "35d5c5bda7e95e97046325a8697bd6f79003b4182026a509b4ece976883b2751"
+  },
+  {
+   "id": "q154",
+   "concept": "mosquito_net",
+   "word": "mosquito net",
+   "display_label": "mosquito net",
+   "accept": [
+    "mosquito net"
+   ],
+   "recognizability": 0.4,
+   "recognizability_close": 0.4,
+   "n_ratings": 20,
+   "most_common_label": "bed",
+   "tercile": 1,
+   "colour_sha256": "de73312a1f8fe71f1476696a1e080444dbcfbf77af95676585347c582ee2091c",
+   "gray_sha256": "c00b26df2de590b5e9e91b9617d9c291227cfa5d165d5b1caa362c1ef33593b0"
+  },
+  {
+   "id": "q155",
+   "concept": "tray",
+   "word": "tray",
+   "display_label": "tray",
+   "accept": [
+    "tray"
+   ],
+   "recognizability": 0.375,
+   "recognizability_close": 0.375,
+   "n_ratings": 16,
+   "most_common_label": "tray",
+   "tercile": 1,
+   "colour_sha256": "ef4c956ce4d3b392b4dc691dbbf0a2c0f20abc8cf1d49c339a084e4fc725fe8a",
+   "gray_sha256": "832ece0f39a3988291600f5b40a60b46461ad097e8cd27720f2a0ebd430b3965"
+  },
+  {
+   "id": "q156",
+   "concept": "panties",
+   "word": "panties",
+   "display_label": "panties",
+   "accept": [
+    "pantie",
+    "panty",
+    "scanty",
+    "step-in"
+   ],
+   "recognizability": 0.333333333,
+   "recognizability_close": 0.333333333,
+   "n_ratings": 15,
+   "most_common_label": "underwear",
+   "tercile": 1,
+   "colour_sha256": "84e1e54ebc2c04471864799dbc9a60de17384e8dd071d2b81221c1595d2e22ae",
+   "gray_sha256": "9617e92c17727c02353f1295f0ef272bf489df501b38a9e8403cedf47ca9010a"
+  },
+  {
+   "id": "q157",
+   "concept": "doorbell",
+   "word": "doorbell",
+   "display_label": "doorbell",
+   "accept": [
+    "bell",
+    "buzzer",
+    "doorbell"
+   ],
+   "recognizability": 0.533333333,
+   "recognizability_close": 0.533333333,
+   "n_ratings": 15,
+   "most_common_label": "doorbell",
+   "tercile": 1,
+   "colour_sha256": "b54b4857323ec392b8bdfefdbb4c743341fa9eb78a8095cad4f414094b33f0da",
+   "gray_sha256": "f5ca7439704b5621f3c973e065d4ffcb27dfcb7531fa30b772a2446f95fa5257"
+  },
+  {
+   "id": "q158",
+   "concept": "gargoyle",
+   "word": "gargoyle",
+   "display_label": "gargoyle",
+   "accept": [
+    "gargoyle"
+   ],
+   "recognizability": 0.5625,
+   "recognizability_close": 0.5625,
+   "n_ratings": 16,
+   "most_common_label": "gargoyle",
+   "tercile": 1,
+   "colour_sha256": "3bc57bb08bced94f438aa48e5f1673f8855389990715199349725d26cdc71859",
+   "gray_sha256": "e44e9477840bfe2cf49ccde3e4943475ff6e7ee538e12118cf132288c0208229"
+  },
+  {
+   "id": "q159",
+   "concept": "wood",
+   "word": "wood",
+   "display_label": "wood",
+   "accept": [
+    "wood"
+   ],
+   "recognizability": 0.555555556,
+   "recognizability_close": 0.666666667,
+   "n_ratings": 18,
+   "most_common_label": "wood",
+   "tercile": 1,
+   "colour_sha256": "3738c82c0ba8375cd362d6c464c16dbd65855c9f8117e43bd9e7d3d44d278dce",
+   "gray_sha256": "14cc1db493cc49605ec8d452ab116c1a291b43bf805fbda1e863cde083e3ab7f"
+  },
+  {
+   "id": "q160",
+   "concept": "pillbox",
+   "word": "pillbox",
+   "display_label": "pillbox",
+   "accept": [
+    "pillbox"
+   ],
+   "recognizability": 0.470588235,
+   "recognizability_close": 0.470588235,
+   "n_ratings": 17,
+   "most_common_label": "pillbox",
+   "tercile": 1,
+   "colour_sha256": "8a7e033daa026e8d3a0f3f35873ca3a0aaa33173a0218abeee6e6244b19ed3f7",
+   "gray_sha256": "d7976009232cfe922011cff1c79420d555920b8c3cf4c17d6720772a1d0ee940"
+  },
+  {
+   "id": "q161",
+   "concept": "foot",
+   "word": "foot",
+   "display_label": "foot",
+   "accept": [
+    "foot",
+    "human foot",
+    "pes"
+   ],
+   "recognizability": 0.5,
+   "recognizability_close": 0.5,
+   "n_ratings": 16,
+   "most_common_label": "foot",
+   "tercile": 1,
+   "colour_sha256": "9232efafca0276676705b921ce48ad1708c42f43d0dda0a1020fce8cec3ca31f",
+   "gray_sha256": "9d54c9b6964a8554acb227e8f8a1e54bcf7605087dfc51eda7b9eba8c0b334ce"
+  },
+  {
+   "id": "q162",
+   "concept": "scalpel",
+   "word": "scalpel",
+   "display_label": "scalpel",
+   "accept": [
+    "scalpel"
+   ],
+   "recognizability": 0.384615385,
+   "recognizability_close": 0.384615385,
+   "n_ratings": 13,
+   "most_common_label": "knife",
+   "tercile": 1,
+   "colour_sha256": "8c1b951577b1551aadcb5544d958a859163a2fe37483c4ae5887f67311aca413",
+   "gray_sha256": "02872ceda177190baf28b4a3865e8d87f87eadb22777a2517cbd44bc49424dff"
+  },
+  {
+   "id": "q163",
+   "concept": "sprinkler",
+   "word": "sprinkler",
+   "display_label": "sprinkler",
+   "accept": [
+    "sprinkler"
+   ],
+   "recognizability": 0.333333333,
+   "recognizability_close": 0.333333333,
+   "n_ratings": 15,
+   "most_common_label": "sprinkler",
+   "tercile": 1,
+   "colour_sha256": "d8964a2e3f21a492b68a9eed96907d24a98299495bfdc662db5e76b64e530d5e",
+   "gray_sha256": "0adc8f8862ce98308e51fa3ba19765aa8ac8d94af1881e80be8b076fe13af971"
+  },
+  {
+   "id": "q164",
+   "concept": "thermos",
+   "word": "thermos",
+   "display_label": "thermos",
+   "accept": [
+    "thermo",
+    "thermos bottle",
+    "thermos flask"
+   ],
+   "recognizability": 0.333333333,
+   "recognizability_close": 0.333333333,
+   "n_ratings": 12,
+   "most_common_label": "flask",
+   "tercile": 1,
+   "colour_sha256": "51bcf17130115f0150b964817b869ad6d700d59e1b3f2fba75ae0786fed626d4",
+   "gray_sha256": "ecc68ddcdb1a0be9de61401e1eb9d15193b09d21a04c22b3970e85a55b09f6dc"
+  },
+  {
+   "id": "q165",
+   "concept": "eel",
+   "word": "eel",
+   "display_label": "eel",
+   "accept": [
+    "eel"
+   ],
+   "recognizability": 0.5,
+   "recognizability_close": 0.5,
+   "n_ratings": 12,
+   "most_common_label": "eel",
+   "tercile": 1,
+   "colour_sha256": "9b920044a6d2dce8d260b733a5ee0dea1be9eb0ab829c23c69ac3f571065be7c",
+   "gray_sha256": "fb688784b771c195c27415257b8399bb389b7c11d2674d4c22d4c72439db6946"
+  },
+  {
+   "id": "q166",
+   "concept": "clothespin",
+   "word": "clothespin",
+   "display_label": "clothespin",
+   "accept": [
+    "clothes peg",
+    "clothes pin",
+    "clothespin"
+   ],
+   "recognizability": 0.583333333,
+   "recognizability_close": 0.583333333,
+   "n_ratings": 12,
+   "most_common_label": "clothespin",
+   "tercile": 1,
+   "colour_sha256": "d79ce027415e337aefa0b99f57fd4116e2fd74505cd39ccca1470226e262a7f3",
+   "gray_sha256": "b7c4fccef4acc37f31a465c342fba60b69fb1e96a9d60ba602b4bd55aeb4d75b"
+  },
+  {
+   "id": "q167",
+   "concept": "anklet",
+   "word": "anklet",
+   "display_label": "anklet",
+   "accept": [
+    "ankle bracelet",
+    "anklet"
+   ],
+   "recognizability": 0.583333333,
+   "recognizability_close": 0.583333333,
+   "n_ratings": 12,
+   "most_common_label": "anklet",
+   "tercile": 1,
+   "colour_sha256": "3660cfc850e2fea54a60915d2320b238ca56c753a6666c65d9134fbf83e15b1a",
+   "gray_sha256": "e6ef071542178eba21388a8eb63be47346c3224d585f444dcc4cfe8dcce5f228"
+  },
+  {
+   "id": "q168",
+   "concept": "incubator",
+   "word": "incubator",
+   "display_label": "incubator",
+   "accept": [
+    "brooder",
+    "incubator"
+   ],
+   "recognizability": 0.411764706,
+   "recognizability_close": 0.411764706,
+   "n_ratings": 17,
+   "most_common_label": "incubator",
+   "tercile": 1,
+   "colour_sha256": "7d163324b1b670371f3a497cf28441ef6e58b3282d60b2b407cdd1e367829665",
+   "gray_sha256": "8fcdad1649de4408fd11a390fc997b227f5a3889e7942fe44ae01d4dffda37b3"
+  },
+  {
+   "id": "q169",
+   "concept": "warthog",
+   "word": "warthog",
+   "display_label": "warthog",
+   "accept": [
+    "warthog"
+   ],
+   "recognizability": 0.571428571,
+   "recognizability_close": 0.571428571,
+   "n_ratings": 14,
+   "most_common_label": "warthog",
+   "tercile": 1,
+   "colour_sha256": "9c93c4b76ab1f4ea99090c9d68e27313ad06e7580552d30c9a414e8faf0f5929",
+   "gray_sha256": "5b9300a8ee874553600cba1499a5fce24d9de60b8d4a045eaf9cb04aab6de960"
+  },
+  {
+   "id": "q170",
+   "concept": "syringe",
+   "word": "syringe",
+   "display_label": "syringe",
+   "accept": [
+    "syringe"
+   ],
+   "recognizability": 0.523809524,
+   "recognizability_close": 0.523809524,
+   "n_ratings": 21,
+   "most_common_label": "syringe",
+   "tercile": 1,
+   "colour_sha256": "782b4cf32658f0df6cc5ff1f8e224187be943435187b125b37be9c644eb5e2db",
+   "gray_sha256": "74adaffced0eac8c3ae6016228e13f5b5af3844f830d9ff5283765887df79def"
+  },
+  {
+   "id": "q171",
+   "concept": "leopard",
+   "word": "leopard",
+   "display_label": "leopard",
+   "accept": [
+    "leopard",
+    "panthera pardu"
+   ],
+   "recognizability": 0.529411765,
+   "recognizability_close": 0.529411765,
+   "n_ratings": 17,
+   "most_common_label": "leopard",
+   "tercile": 1,
+   "colour_sha256": "564450541c79dab3d43d4621d06dbd0d30b30222d336a58f0a8c44f8c80120fe",
+   "gray_sha256": "8c7212dcfc3f3bf45063c771ea775b2b14d36ccb01461878b5a56b9485d157ef"
+  },
+  {
+   "id": "q172",
+   "concept": "checkers",
+   "word": "checkers",
+   "display_label": "checkers",
+   "accept": [
+    "checker",
+    "draught"
+   ],
+   "recognizability": 0.352941176,
+   "recognizability_close": 0.352941176,
+   "n_ratings": 17,
+   "most_common_label": "checkers",
+   "tercile": 1,
+   "colour_sha256": "90b038674d109ce0b4c8731f7ed3a0be8ee650ea619332b1ab46b114bf18af48",
+   "gray_sha256": "cc39a444c67f3f6dee850417178a6ff9fa38392c680f2fb126dfc0b239032084"
+  },
+  {
+   "id": "q173",
+   "concept": "plug",
+   "word": "plug",
+   "display_label": "plug",
+   "accept": [
+    "male plug",
+    "plug"
+   ],
+   "recognizability": 0.470588235,
+   "recognizability_close": 0.470588235,
+   "n_ratings": 17,
+   "most_common_label": "plug",
+   "tercile": 1,
+   "colour_sha256": "79aa6197447d5af985c31c0b5ad2f86af683782a2d11a8e62a010be2f031c207",
+   "gray_sha256": "712f099cc5b4595dd20ebf51d4e9f47255df4aeef3056067cd7f1007296cee29"
+  },
+  {
+   "id": "q174",
+   "concept": "grasshopper",
+   "word": "grasshopper",
+   "display_label": "grasshopper",
+   "accept": [
+    "grasshopper",
+    "hopper"
+   ],
+   "recognizability": 0.545454545,
+   "recognizability_close": 0.545454545,
+   "n_ratings": 11,
+   "most_common_label": "grasshopper",
+   "tercile": 1,
+   "colour_sha256": "1eaa3b0577ca5cbc3d312d77f87835153d1f5c6169c30b0a40004e192dc50f76",
+   "gray_sha256": "4a7cf9fc786e554ed0d53ed9d5d12cf5c90b672e49b4b414dabc7018aa53c3e7"
+  },
+  {
+   "id": "q175",
+   "concept": "doorhandle",
+   "word": "doorhandle",
+   "display_label": "doorhandle",
+   "accept": [
+    "door handle",
+    "doorhandle"
+   ],
+   "recognizability": 0.470588235,
+   "recognizability_close": 0.470588235,
+   "n_ratings": 17,
+   "most_common_label": "doorhandle",
+   "tercile": 1,
+   "colour_sha256": "4a5292b37491b41c204a5b44bb70bde6940687d8983b6b81bd373b4a7ada687d",
+   "gray_sha256": "f65e617b4e930d9f5818022217080669e110100055fd0c3011755be7d8ac415a"
+  },
+  {
+   "id": "q176",
+   "concept": "streetlight",
+   "word": "streetlight",
+   "display_label": "streetlight",
+   "accept": [
+    "street lamp",
+    "streetlight"
+   ],
+   "recognizability": 0.533333333,
+   "recognizability_close": 0.533333333,
+   "n_ratings": 15,
+   "most_common_label": "streetlight",
+   "tercile": 1,
+   "colour_sha256": "7f023b8ffe5110e24e3191dca5ed539b4ce8b11c0de9e65f8dc028229cdd9f40",
+   "gray_sha256": "d11c60d6c56a545c8a65f59643e78caec2e24af91b3e491ba3c8b0dacc873477"
+  },
+  {
+   "id": "q177",
+   "concept": "ski_boots",
+   "word": "ski boots",
+   "display_label": "ski boots",
+   "accept": [
+    "ski boot"
+   ],
+   "recognizability": 0.411764706,
+   "recognizability_close": 0.411764706,
+   "n_ratings": 17,
+   "most_common_label": "ski boots",
+   "tercile": 1,
+   "colour_sha256": "72c395d257ea1506f1bbbad69991f40fea70d78a1506026515b97f896bfb649f",
+   "gray_sha256": "c9c7d67e673c2017664aad8d87ceeb3028d027e6197b90b236f1e501f68e3659"
+  },
+  {
+   "id": "q178",
+   "concept": "cash_register",
+   "word": "cash register",
+   "display_label": "cash register",
+   "accept": [
+    "cash register",
+    "register"
+   ],
+   "recognizability": 0.578947368,
+   "recognizability_close": 0.578947368,
+   "n_ratings": 19,
+   "most_common_label": "cash register",
+   "tercile": 1,
+   "colour_sha256": "41406a463b5d0ad0469c3bb0568aaf11912d1bf28156a7314e2fd5c3efcd6bab",
+   "gray_sha256": "87d64db6fc7edf11d99135940bee19f4fa422898e7ab5297b508c7f7f3cd5b70"
+  },
+  {
+   "id": "q179",
+   "concept": "coffee_filter",
+   "word": "coffee filter",
+   "display_label": "coffee filter",
+   "accept": [
+    "coffee filter"
+   ],
+   "recognizability": 0.615384615,
+   "recognizability_close": 0.615384615,
+   "n_ratings": 13,
+   "most_common_label": "coffee filter",
+   "tercile": 1,
+   "colour_sha256": "0f49226c17779b4b687ce1e12dcad3eb5668ab64f79310a69e89a9ecd3931fcd",
+   "gray_sha256": "96ff41aeb8b92f1dd67f3cf54bd9188cdf52cc55842210b466860995c6b77428"
+  },
+  {
+   "id": "q180",
+   "concept": "extinguisher",
+   "word": "extinguisher",
+   "display_label": "extinguisher",
+   "accept": [
+    "asphyxiator",
+    "extinguisher",
+    "fire extinguisher"
+   ],
+   "recognizability": 0.529411765,
+   "recognizability_close": 0.529411765,
+   "n_ratings": 17,
+   "most_common_label": "extinguisher",
+   "tercile": 1,
+   "colour_sha256": "6653734b53be99b95596081816b49ed5f6f34434365d423a429e3fd9cf94114a",
+   "gray_sha256": "68b4a82203a28ac6f9cc6a2b8e2c082aef505c8eb25c63a54a3c62155faf8afd"
+  },
+  {
+   "id": "q181",
+   "concept": "coleslaw",
+   "word": "coleslaw",
+   "display_label": "coleslaw",
+   "accept": [
+    "coleslaw",
+    "slaw"
+   ],
+   "recognizability": 0.625,
+   "recognizability_close": 0.625,
+   "n_ratings": 16,
+   "most_common_label": "coleslaw",
+   "tercile": 1,
+   "colour_sha256": "ce2f27327a21e6a06d736c34c74e15e957cb345abec69a715913a1d94a908efa",
+   "gray_sha256": "95ee4c604cc48d04cdac545f0cc6d2c74519b0c804c04fed84e63fa93bac7aba"
+  },
+  {
+   "id": "q182",
+   "concept": "string_cheese",
+   "word": "string cheese",
+   "display_label": "string cheese",
+   "accept": [
+    "string cheese"
+   ],
+   "recognizability": 0.333333333,
+   "recognizability_close": 0.333333333,
+   "n_ratings": 12,
+   "most_common_label": "string cheese",
+   "tercile": 1,
+   "colour_sha256": "81803562e46c33813aad3777eff8a191740309c7d8e28298a8a4cbf6871d6025",
+   "gray_sha256": "578f77452c5d4b3f971cf36acf8a3c9962a31e4eb67a98ab9db2972f82f5cd4b"
+  },
+  {
+   "id": "q183",
+   "concept": "clove",
+   "word": "clove",
+   "display_label": "clove",
+   "accept": [
+    "clove"
+   ],
+   "recognizability": 0.533333333,
+   "recognizability_close": 0.6,
+   "n_ratings": 15,
+   "most_common_label": "clove",
+   "tercile": 1,
+   "colour_sha256": "a3cfbef435ff1689d58c7ce4e44da578be2953f83c13a211cc1044c52efed45d",
+   "gray_sha256": "f232c00d6d63944371378dc120ce21d3b813710c50b6b195a07db954be4aba63"
+  },
+  {
+   "id": "q184",
+   "concept": "bobsled",
+   "word": "bobsled",
+   "display_label": "bobsled",
+   "accept": [
+    "bob",
+    "bobsled",
+    "bobsleigh"
+   ],
+   "recognizability": 0.615384615,
+   "recognizability_close": 0.615384615,
+   "n_ratings": 13,
+   "most_common_label": "bobsled",
+   "tercile": 1,
+   "colour_sha256": "39405413a8cc57b4ecfaca6294b1c202f7f342ff083c8133a4698b761aa0b354",
+   "gray_sha256": "eab4147d71998ad12d30a9be1488632a10f718b3aedacd95c6b5d361de3a8ba5"
+  },
+  {
+   "id": "q185",
+   "concept": "screw",
+   "word": "screw",
+   "display_label": "screw",
+   "accept": [
+    "screw"
+   ],
+   "recognizability": 0.529411765,
+   "recognizability_close": 0.705882353,
+   "n_ratings": 17,
+   "most_common_label": "screw",
+   "tercile": 1,
+   "colour_sha256": "2388b453fc672c1aa7ef482881d52439738cffce4c6581d147f7a48414389445",
+   "gray_sha256": "4687817b65e773f0997c47971848992cc6f0586536d18b5af7a1734989897a59"
+  },
+  {
+   "id": "q186",
+   "concept": "racket",
+   "word": "racket",
+   "display_label": "racket",
+   "accept": [
+    "racket",
+    "racquet"
+   ],
+   "recognizability": 0.615384615,
+   "recognizability_close": 0.615384615,
+   "n_ratings": 13,
+   "most_common_label": "racket",
+   "tercile": 1,
+   "colour_sha256": "f0280baca27a8717eba7add457ec183de645a4e71f0c1185ed5b88f9e128a30d",
+   "gray_sha256": "e2d6da3cc71c5f01ed8662f9b79c7e5bf502e589c87641d6d4d6480e39d04842"
+  },
+  {
+   "id": "q187",
+   "concept": "catfish",
+   "word": "catfish",
+   "display_label": "catfish",
+   "accept": [
+    "catfish",
+    "siluriform fish"
+   ],
+   "recognizability": 0.444444444,
+   "recognizability_close": 0.444444444,
+   "n_ratings": 9,
+   "most_common_label": "fish",
+   "tercile": 1,
+   "colour_sha256": "9657a0c8dbf7c93ce4d187287d55fe42b5d68b92624554ba762426a298195a2f",
+   "gray_sha256": "3e2de55e9ae5402f9057214a4a53abe72b7ee6bd5d1f1b4642d23a94807342e4"
+  },
+  {
+   "id": "q188",
+   "concept": "dalmatian",
+   "word": "dalmatian",
+   "display_label": "dalmatian",
+   "accept": [
+    "carriage dog",
+    "coach dog",
+    "dalmatian"
+   ],
+   "recognizability": 0.375,
+   "recognizability_close": 0.375,
+   "n_ratings": 16,
+   "most_common_label": "dog",
+   "tercile": 1,
+   "colour_sha256": "2d89bac48f1df0b75b1bba96e47c9c5e87f9744e6d0d8ed5506486765d18b127",
+   "gray_sha256": "1d0fba465d0d3badaad0214b26387eaac430e099017c3f3b824b2cb0d6de944e"
+  },
+  {
+   "id": "q189",
+   "concept": "daisy",
+   "word": "daisy",
+   "display_label": "daisy",
+   "accept": [
+    "daisy"
+   ],
+   "recognizability": 0.4,
+   "recognizability_close": 0.4,
+   "n_ratings": 15,
+   "most_common_label": "flower",
+   "tercile": 1,
+   "colour_sha256": "9b68e7aead25450a7f4bda2ebf1f9f466a8e2a13b7836758787ee3bfb4bf0235",
+   "gray_sha256": "bb9d008f2732db1f01016d54c928898e156e8d7d53509e1686b55f02772af515"
+  },
+  {
+   "id": "q190",
+   "concept": "airboat",
+   "word": "airboat",
+   "display_label": "airboat",
+   "accept": [
+    "airboat"
+   ],
+   "recognizability": 0.529411765,
+   "recognizability_close": 0.529411765,
+   "n_ratings": 17,
+   "most_common_label": "airboat",
+   "tercile": 1,
+   "colour_sha256": "41d7198f2da010b1d6bb67ca01e82f8fb8ab4ebf9b12868b1705464e7c047072",
+   "gray_sha256": "f3420c743f387f06fbfbe0812f2cd9daf63a9a0be16f61c2fe49c7dbd0c4b5a0"
+  },
+  {
+   "id": "q191",
+   "concept": "leek",
+   "word": "leek",
+   "display_label": "leek",
+   "accept": [
+    "allium porrum",
+    "leek",
+    "scallion"
+   ],
+   "recognizability": 0.5,
+   "recognizability_close": 0.5,
+   "n_ratings": 14,
+   "most_common_label": "leek",
+   "tercile": 1,
+   "colour_sha256": "b5adfd1c0430688c2a3f1cd128e2d34690ba2f5944c8ff755a766ec13fe49669",
+   "gray_sha256": "855f69517126725c273cd0b71dee77ef2e4c70e28df28e9f5d0d35816881c64b"
+  },
+  {
+   "id": "q192",
+   "concept": "measuring_cup",
+   "word": "measuring cup",
+   "display_label": "measuring cup",
+   "accept": [
+    "measuring cup"
+   ],
+   "recognizability": 0.416666667,
+   "recognizability_close": 0.416666667,
+   "n_ratings": 12,
+   "most_common_label": "measuring cup",
+   "tercile": 1,
+   "colour_sha256": "f52f0f059631810208475cf07c43b377ed870f53eb8d047a8818747dd7e0c73e",
+   "gray_sha256": "b3accde7f017ace171e65e4696dfdd371aac55f7b027a7e0e133214d10995e8b"
+  },
+  {
+   "id": "q193",
+   "concept": "lasagna",
+   "word": "lasagna",
+   "display_label": "lasagna",
+   "accept": [
+    "lasagna",
+    "lasagne"
+   ],
+   "recognizability": 0.333333333,
+   "recognizability_close": 0.333333333,
+   "n_ratings": 12,
+   "most_common_label": "dish (food)",
+   "tercile": 1,
+   "colour_sha256": "6003314b73e6b7fdc1a3f29fde92bf1186d9ac94bffb18258793bc5eb27fc4f1",
+   "gray_sha256": "10afea7d2f4c2ee5cace46e1830e3aefd6450d79c05b6012742739e2b710a2ab"
+  },
+  {
+   "id": "q194",
+   "concept": "bottle",
+   "word": "bottle",
+   "display_label": "bottle",
+   "accept": [
+    "bottle"
+   ],
+   "recognizability": 0.625,
+   "recognizability_close": 0.8125,
+   "n_ratings": 16,
+   "most_common_label": "bottle",
+   "tercile": 1,
+   "colour_sha256": "ac3e1ec513ee1adc145a60800aa98d2e1a7ce90e190c3d5a23f8cf74303c8144",
+   "gray_sha256": "4999c90fabbcd4d93a44a1bcbc42d2607f1b426234e12f4c0d42527cd49957c7"
+  },
+  {
+   "id": "q195",
+   "concept": "strainer",
+   "word": "strainer",
+   "display_label": "strainer",
+   "accept": [
+    "strainer"
+   ],
+   "recognizability": 0.357142857,
+   "recognizability_close": 0.357142857,
+   "n_ratings": 14,
+   "most_common_label": "strainer",
+   "tercile": 1,
+   "colour_sha256": "488d670775d84e38e866ac0ce5ee09ff61b91f1af082afbecaff178645ce7a46",
+   "gray_sha256": "64c79c26e00689a343e6ed43a69d4a11cdd8387534386db1680fa517b2428887"
+  },
+  {
+   "id": "q196",
+   "concept": "cheesecake",
+   "word": "cheesecake",
+   "display_label": "cheesecake",
+   "accept": [
+    "cheesecake"
+   ],
+   "recognizability": 0.388888889,
+   "recognizability_close": 0.388888889,
+   "n_ratings": 18,
+   "most_common_label": "cheesecake",
+   "tercile": 1,
+   "colour_sha256": "30d2eb147d7ee8375aefa52b12d21730a879afc3831dbaee3d7d35100fe95a12",
+   "gray_sha256": "8169b2e70972e36d8b03dfab8276871c3904207ec5d8d965de0f2f88b94ee9e1"
+  },
+  {
+   "id": "q197",
+   "concept": "fast_food",
+   "word": "fast food",
+   "display_label": "fast food",
+   "accept": [
+    "fast food"
+   ],
+   "recognizability": 0.5,
+   "recognizability_close": 0.5,
+   "n_ratings": 12,
+   "most_common_label": "fast food",
+   "tercile": 1,
+   "colour_sha256": "34ce914b2201663d2c3bfd822d1cfbb91263264937ab18b957be135882e8dc79",
+   "gray_sha256": "25a49d3b81cbcc7778e256c7711874271b5651c9953d1f1e6517ec79646ffd65"
+  },
+  {
+   "id": "q198",
+   "concept": "pecan",
+   "word": "pecan",
+   "display_label": "pecan",
+   "accept": [
+    "pecan"
+   ],
+   "recognizability": 0.5,
+   "recognizability_close": 0.5,
+   "n_ratings": 14,
+   "most_common_label": "pecan",
+   "tercile": 1,
+   "colour_sha256": "5cbc38238b1595015a5877fcd2b8624fd3f8dcdbbe302efcfda32a33a5ec12ee",
+   "gray_sha256": "d105ebc6054bdc520b4fd6fe3c82bd524aa9e241f6713441213843d5d182702a"
+  },
+  {
+   "id": "q199",
+   "concept": "kazoo",
+   "word": "kazoo",
+   "display_label": "kazoo",
+   "accept": [
+    "kazoo"
+   ],
+   "recognizability": 0.444444444,
+   "recognizability_close": 0.444444444,
+   "n_ratings": 18,
+   "most_common_label": "kazoo",
+   "tercile": 1,
+   "colour_sha256": "7406774981f51fb6c1e5287eb6b786732c574afdc3ae546128ceda5fbbebada1",
+   "gray_sha256": "5b06002e2f9c78218f201b857a1f0ae0bcdaf77f461df737f95701889f745638"
+  },
+  {
+   "id": "q200",
+   "concept": "thread",
+   "word": "thread",
+   "display_label": "thread",
+   "accept": [
+    "thread",
+    "yarn"
+   ],
+   "recognizability": 0.9375,
+   "recognizability_close": 0.9375,
+   "n_ratings": 16,
+   "most_common_label": "thread",
+   "tercile": 2,
+   "colour_sha256": "bbb2678e20d5e7bb457597dc4a55cfe29badecefd6fc4bd8404433b31301e54a",
+   "gray_sha256": "0e13e39923a6b6dc20f4878c3d28be604887445fcdd7806b9a635cfa7dbb3988"
+  },
+  {
+   "id": "q201",
+   "concept": "toilet",
+   "word": "toilet",
+   "display_label": "toilet",
+   "accept": [
+    "can",
+    "commode",
+    "crapper",
+    "pot",
+    "potty",
+    "stool",
+    "throne",
+    "toilet"
+   ],
+   "recognizability": 0.866666667,
+   "recognizability_close": 0.866666667,
+   "n_ratings": 15,
+   "most_common_label": "toilet",
+   "tercile": 2,
+   "colour_sha256": "0633d1ab838172c7cf5bea73c598fcd46357f12a5993f875f682a9638b661508",
+   "gray_sha256": "f10ff3d9e6deeac0ea99e5243c37c78acabfb4da1c987c58a9a9e6664095bcbe"
+  },
+  {
+   "id": "q202",
+   "concept": "wallet",
+   "word": "wallet",
+   "display_label": "wallet",
+   "accept": [
+    "billfold",
+    "notecase",
+    "pocketbook",
+    "wallet"
+   ],
+   "recognizability": 0.642857143,
+   "recognizability_close": 0.642857143,
+   "n_ratings": 14,
+   "most_common_label": "wallet",
+   "tercile": 2,
+   "colour_sha256": "4049398755c38ce0f58614889f31902ca4f9d8b9a864e18f010fbe7f0491ec46",
+   "gray_sha256": "1af7cac1ad3913dcf1274fe6cb469103492da098cb5d6ced99e2f0b868e1f909"
+  },
+  {
+   "id": "q203",
+   "concept": "crayon",
+   "word": "crayon",
+   "display_label": "crayon",
+   "accept": [
+    "crayon",
+    "wax crayon"
+   ],
+   "recognizability": 0.888888889,
+   "recognizability_close": 0.888888889,
+   "n_ratings": 18,
+   "most_common_label": "crayon",
+   "tercile": 2,
+   "colour_sha256": "9cd6ef3d90e8849e17cabe339ad8db84501e6bf14c3ac44c691591546581f267",
+   "gray_sha256": "82e8cd514ff7fe5b9a06d8534174a3aa289c06c9c84f345b0add48a7f801e043"
+  },
+  {
+   "id": "q204",
+   "concept": "piano",
+   "word": "piano",
+   "display_label": "piano",
+   "accept": [
+    "forte-piano",
+    "piano",
+    "pianoforte"
+   ],
+   "recognizability": 1.0,
+   "recognizability_close": 1.0,
+   "n_ratings": 18,
+   "most_common_label": "piano",
+   "tercile": 2,
+   "colour_sha256": "eb617ee60e1bd1d5d6f13023680aa1db67ac76f472e1dcc57155ab29e5526618",
+   "gray_sha256": "7f13635769ef6a758231f0ce1f3ec8729c21fdff81762bf5359bed069bd68bab"
+  },
+  {
+   "id": "q205",
+   "concept": "aloe",
+   "word": "aloe",
+   "display_label": "aloe",
+   "accept": [
+    "aloe"
+   ],
+   "recognizability": 0.785714286,
+   "recognizability_close": 0.785714286,
+   "n_ratings": 14,
+   "most_common_label": "aloe",
+   "tercile": 2,
+   "colour_sha256": "ddced959b79be6f43be26dc207da8e0643699ada5cebae7504aa16f2a2709b0a",
+   "gray_sha256": "9f6145f00ad49420b94f4109ca336a96a98b39b4cb188ff155a9ba0748333282"
+  },
+  {
+   "id": "q206",
+   "concept": "green_beans",
+   "word": "green beans",
+   "display_label": "green beans",
+   "accept": [
+    "green bean"
+   ],
+   "recognizability": 0.714285714,
+   "recognizability_close": 0.714285714,
+   "n_ratings": 14,
+   "most_common_label": "green beans",
+   "tercile": 2,
+   "colour_sha256": "2730c6f16a7549069291c881e641c67fb6e5d357783902758d9af1e8555cec8d",
+   "gray_sha256": "fafed088f30c6710d6d01a67326968f343aceebc3dd7d1a79e8507011136c104"
+  },
+  {
+   "id": "q207",
+   "concept": "water_fountain",
+   "word": "water fountain",
+   "display_label": "water fountain (drinking fountain)",
+   "accept": [
+    "bubbler",
+    "drinking fountain",
+    "water fountain"
+   ],
+   "recognizability": 0.736842105,
+   "recognizability_close": 0.736842105,
+   "n_ratings": 19,
+   "most_common_label": "water fountain (drinking fountain)",
+   "tercile": 2,
+   "colour_sha256": "5a61dcf3d863d44af5853a48bce32d5b83331ff95256752e25748d8b7e33fc64",
+   "gray_sha256": "1665c71b57dabae3f4c4618d01d218982aabf54fd18e2542c97211009b121803"
+  },
+  {
+   "id": "q208",
+   "concept": "mole",
+   "word": "mole",
+   "display_label": "mole",
+   "accept": [
+    "mole"
+   ],
+   "recognizability": 0.846153846,
+   "recognizability_close": 0.846153846,
+   "n_ratings": 13,
+   "most_common_label": "mole",
+   "tercile": 2,
+   "colour_sha256": "de1a185cd8539a3abde0e0dd357683ff3d365edb469bf5dfbccdfc4cc789946a",
+   "gray_sha256": "6d4b68ea9f5ce4b036affa99d9502c1135abec4a18bc38b4684a1941040227dc"
+  },
+  {
+   "id": "q209",
+   "concept": "sandbox",
+   "word": "sandbox",
+   "display_label": "sandbox",
+   "accept": [
+    "sandbox",
+    "sandpile",
+    "sandpit"
+   ],
+   "recognizability": 0.727272727,
+   "recognizability_close": 0.727272727,
+   "n_ratings": 11,
+   "most_common_label": "sandbox",
+   "tercile": 2,
+   "colour_sha256": "4e10916c239a37d848718b696dbd3567882dcd4934e39a77c460da1180e87052",
+   "gray_sha256": "5b2ca2eda9484a02825d6c9591b2bf2511284fe11e676163d6efe35327734594"
+  },
+  {
+   "id": "q210",
+   "concept": "tile",
+   "word": "tile",
+   "display_label": "tile",
+   "accept": [
+    "roofing tile",
+    "tile"
+   ],
+   "recognizability": 0.714285714,
+   "recognizability_close": 0.714285714,
+   "n_ratings": 14,
+   "most_common_label": "tile",
+   "tercile": 2,
+   "colour_sha256": "15d8e78fc03ca98d1e50d4e69a330167f14e4ea67bbb2799a39604a57ed7660c",
+   "gray_sha256": "f7b9f694e5f024db29b304cccdf97a640ead11451bb45fe3d22ad09519859ac0"
+  },
+  {
+   "id": "q211",
+   "concept": "toolbox",
+   "word": "toolbox",
+   "display_label": "toolbox",
+   "accept": [
+    "tool cabinet",
+    "tool case",
+    "tool chest",
+    "toolbox"
+   ],
+   "recognizability": 0.733333333,
+   "recognizability_close": 0.733333333,
+   "n_ratings": 15,
+   "most_common_label": "toolbox",
+   "tercile": 2,
+   "colour_sha256": "97a04d7aac6593c6c7a8213480c48e6ac70400eee58e7e2df0e10fa7be79b213",
+   "gray_sha256": "3e881d562b93040b3816dc1573b383499b1f4e9b3469ec3b7fb5042b6bdc4d4c"
+  },
+  {
+   "id": "q212",
+   "concept": "bowl",
+   "word": "bowl",
+   "display_label": "bowl",
+   "accept": [
+    "bowl"
+   ],
+   "recognizability": 0.833333333,
+   "recognizability_close": 0.833333333,
+   "n_ratings": 12,
+   "most_common_label": "bowl",
+   "tercile": 2,
+   "colour_sha256": "ab03bb76b75f56514f3ddaa0e2707c1e995a3a07ef6d4d77f637f69bfb998bd6",
+   "gray_sha256": "7558eaec2c722aebe97a72257070d8270f6a57aa880d211893eb70684b179bcf"
+  },
+  {
+   "id": "q213",
+   "concept": "swan",
+   "word": "swan",
+   "display_label": "swan",
+   "accept": [
+    "swan"
+   ],
+   "recognizability": 0.857142857,
+   "recognizability_close": 0.857142857,
+   "n_ratings": 14,
+   "most_common_label": "swan",
+   "tercile": 2,
+   "colour_sha256": "2ce13ee594000ecf150c30d588fc77a916d6677dc3ca62e34ee8b9705ddd2757",
+   "gray_sha256": "22631405629bb1fcb3af86ce3ce155f7cc76edbb5d9cb68e50e4aaf051b4610b"
+  },
+  {
+   "id": "q214",
+   "concept": "mailbox",
+   "word": "mailbox",
+   "display_label": "mailbox",
+   "accept": [
+    "letter box",
+    "mailbox"
+   ],
+   "recognizability": 0.769230769,
+   "recognizability_close": 0.769230769,
+   "n_ratings": 13,
+   "most_common_label": "mailbox",
+   "tercile": 2,
+   "colour_sha256": "0183327f299fde0547ddf9845ca3fdc51ced82f06324bc87e405f808c1953351",
+   "gray_sha256": "6298da146c16ba7f284fd1e2bee26d81f8d09225738b344cbd2a1bff0e6332ea"
+  },
+  {
+   "id": "q215",
+   "concept": "nest",
+   "word": "nest",
+   "display_label": "nest",
+   "accept": [
+    "nest"
+   ],
+   "recognizability": 0.941176471,
+   "recognizability_close": 0.941176471,
+   "n_ratings": 17,
+   "most_common_label": "nest",
+   "tercile": 2,
+   "colour_sha256": "3b11e2d6ad8f17fb6f4447624d0b183a6342c23132250361f0f84c55873af95a",
+   "gray_sha256": "032f104987a2d84cdd3436fd10b395264861ac3d29231e21beec2fc6f33173be"
+  },
+  {
+   "id": "q216",
+   "concept": "lighter",
+   "word": "lighter",
+   "display_label": "lighter",
+   "accept": [
+    "igniter",
+    "ignitor",
+    "light",
+    "lighter"
+   ],
+   "recognizability": 1.0,
+   "recognizability_close": 1.0,
+   "n_ratings": 12,
+   "most_common_label": "lighter",
+   "tercile": 2,
+   "colour_sha256": "0b0d6c643cc6eb0ac8feafa8b273789a36ec54f4bde3c95d0c5b0d44df7ac1d7",
+   "gray_sha256": "cf904eb7f7ac49888872831522013c4ad659282276f41e162f8f7ffbbcc15415"
+  },
+  {
+   "id": "q217",
+   "concept": "sword",
+   "word": "sword",
+   "display_label": "sword",
+   "accept": [
+    "blade",
+    "brand",
+    "steel",
+    "sword"
+   ],
+   "recognizability": 0.857142857,
+   "recognizability_close": 0.857142857,
+   "n_ratings": 14,
+   "most_common_label": "sword",
+   "tercile": 2,
+   "colour_sha256": "2227bd1ddd4c6faf43431921e1ec21cbdaa6e911601111328c32c0fcaa7411dd",
+   "gray_sha256": "050e9c3f28e7c9302400c9f887d7bf17f9aba9860264ea151c00233ef4d0043e"
+  },
+  {
+   "id": "q218",
+   "concept": "trophy",
+   "word": "trophy",
+   "display_label": "trophy",
+   "accept": [
+    "prize",
+    "trophy"
+   ],
+   "recognizability": 0.8,
+   "recognizability_close": 0.8,
+   "n_ratings": 15,
+   "most_common_label": "trophy",
+   "tercile": 2,
+   "colour_sha256": "e2fcdec80bb61c25cba85f788437f1846f2b39c9321da6db4ce273b91eb32f32",
+   "gray_sha256": "a23f63e143acaa3841b143d14a7f3db08534b64ae619042923b24f65cbfd8d5a"
+  },
+  {
+   "id": "q219",
+   "concept": "tattoo",
+   "word": "tattoo",
+   "display_label": "tattoo",
+   "accept": [
+    "tattoo"
+   ],
+   "recognizability": 1.0,
+   "recognizability_close": 1.0,
+   "n_ratings": 11,
+   "most_common_label": "tattoo",
+   "tercile": 2,
+   "colour_sha256": "46accd7c6803c02c918f8fd4212c409e79431029f95858adc3b365a22eab4fd2",
+   "gray_sha256": "12e6bfb65bbb7988b16b4fc4f485ee0379c52e393e742f65a1d2b16818788714"
+  },
+  {
+   "id": "q220",
+   "concept": "belt",
+   "word": "belt",
+   "display_label": "belt",
+   "accept": [
+    "belt"
+   ],
+   "recognizability": 1.0,
+   "recognizability_close": 1.0,
+   "n_ratings": 16,
+   "most_common_label": "belt",
+   "tercile": 2,
+   "colour_sha256": "878d4b3cb4777b5d4600ce3e64bb247442cc206564fb1b58f995c89bc7769b74",
+   "gray_sha256": "b9a29d6e238b2ea082dbd09944ccd9356136b7b4def33cf2ded181b06f0ac159"
+  },
+  {
+   "id": "q221",
+   "concept": "bandage",
+   "word": "bandage",
+   "display_label": "bandage",
+   "accept": [
+    "bandage",
+    "patch"
+   ],
+   "recognizability": 0.933333333,
+   "recognizability_close": 0.933333333,
+   "n_ratings": 15,
+   "most_common_label": "bandage",
+   "tercile": 2,
+   "colour_sha256": "a4a8488ef221e49f994c7d4b7da9ef4363b8082027e5c0fe8205881b04a1230b",
+   "gray_sha256": "913b6dda78b391b3b4c21d43d9bed212e8702dadb9652aee7095fe95a4f008e2"
+  },
+  {
+   "id": "q222",
+   "concept": "battery",
+   "word": "battery",
+   "display_label": "battery",
+   "accept": [
+    "battery",
+    "electric battery"
+   ],
+   "recognizability": 0.928571429,
+   "recognizability_close": 0.928571429,
+   "n_ratings": 14,
+   "most_common_label": "battery",
+   "tercile": 2,
+   "colour_sha256": "3e143d8d272418fc90a89bbea5181ec39bfb0d906087def6ab1f243291f82448",
+   "gray_sha256": "b7a85aa0e0f621b1b8aa86875288a0fc9404ce3aa57111c6c6a9050e4937c4f6"
+  },
+  {
+   "id": "q223",
+   "concept": "boy",
+   "word": "boy",
+   "display_label": "boy",
+   "accept": [
+    "boy",
+    "male child"
+   ],
+   "recognizability": 0.833333333,
+   "recognizability_close": 0.833333333,
+   "n_ratings": 12,
+   "most_common_label": "boy",
+   "tercile": 2,
+   "colour_sha256": "44b033d9968f29670b17708a3645a455422e81a07e9490e53a4a4c00bb69c984",
+   "gray_sha256": "1149887ceb45e216ce3b80a15124510c5c4d172590e94a14ee026c1b30ab7c9b"
+  },
+  {
+   "id": "q224",
+   "concept": "radar",
+   "word": "radar",
+   "display_label": "radar",
+   "accept": [
+    "microwave radar",
+    "radar",
+    "radio detection and ranging",
+    "radiolocation"
+   ],
+   "recognizability": 0.714285714,
+   "recognizability_close": 0.714285714,
+   "n_ratings": 14,
+   "most_common_label": "radar",
+   "tercile": 2,
+   "colour_sha256": "f0ac388256854d9f149cd31d7748b947c57406c3360510fa398f868ac69e119f",
+   "gray_sha256": "1be85b0f4f7ed30cb6d88a353afc2580f4c7f0cf59bddc8ae5759b6cd18fc3f2"
+  },
+  {
+   "id": "q225",
+   "concept": "vacuum",
+   "word": "vacuum",
+   "display_label": "vacuum",
+   "accept": [
+    "vacuum",
+    "vacuum cleaner"
+   ],
+   "recognizability": 0.857142857,
+   "recognizability_close": 0.857142857,
+   "n_ratings": 14,
+   "most_common_label": "vacuum",
+   "tercile": 2,
+   "colour_sha256": "31307f0c2aebec684ffd9b557c258ac5e3ec21a7aaca58352321b7c986b8591c",
+   "gray_sha256": "3bacda8ef87c79740985f0764bcdaf263a114ee31ef3236360f6fd9eec77d8b0"
+  },
+  {
+   "id": "q226",
+   "concept": "stroller",
+   "word": "stroller",
+   "display_label": "stroller",
+   "accept": [
+    "baby buggy",
+    "baby carriage",
+    "carriage",
+    "go-cart",
+    "perambulator",
+    "pram",
+    "pushchair",
+    "pusher",
+    "stroller"
+   ],
+   "recognizability": 0.8125,
+   "recognizability_close": 0.8125,
+   "n_ratings": 16,
+   "most_common_label": "stroller",
+   "tercile": 2,
+   "colour_sha256": "cb3436f0328165c8ef80dc9ef77d8124f60146d70e20fb9653cf3795578b8e94",
+   "gray_sha256": "0005da6d6853f87956c3928779d8b5bbc91918d535998508806b9b38fdadfafe"
+  },
+  {
+   "id": "q227",
+   "concept": "cloud",
+   "word": "cloud",
+   "display_label": "cloud",
+   "accept": [
+    "cloud"
+   ],
+   "recognizability": 0.785714286,
+   "recognizability_close": 0.785714286,
+   "n_ratings": 14,
+   "most_common_label": "cloud",
+   "tercile": 2,
+   "colour_sha256": "4988b178a1e83baedc9dc1dc44cdb4400717251e6396aa7c481ca3a226b209e6",
+   "gray_sha256": "8ee0fbec3c9e1f036c07a4510f764d02b92658830ca2f338f8be345d085e1be9"
+  },
+  {
+   "id": "q228",
+   "concept": "pelican",
+   "word": "pelican",
+   "display_label": "pelican",
+   "accept": [
+    "pelican"
+   ],
+   "recognizability": 0.666666667,
+   "recognizability_close": 0.666666667,
+   "n_ratings": 12,
+   "most_common_label": "pelican",
+   "tercile": 2,
+   "colour_sha256": "1399a2b125b1ea2266818807a51c5dc33ba33708d2767c61928b14935d49027f",
+   "gray_sha256": "16e40f8680386950893157d871a4842454814adb49f3e92287654c7f72b254ac"
+  },
+  {
+   "id": "q229",
+   "concept": "asparagus",
+   "word": "asparagus",
+   "display_label": "asparagus",
+   "accept": [
+    "asparagu"
+   ],
+   "recognizability": 0.923076923,
+   "recognizability_close": 0.923076923,
+   "n_ratings": 13,
+   "most_common_label": "asparagus",
+   "tercile": 2,
+   "colour_sha256": "98b078b875d162f76186ea1626f411ae4e83911552a6cfb3157585b1c8c5ae7f",
+   "gray_sha256": "30a278d6cf78c9849b2ec7750417129ed59777cc9511d1e337f49b49c7c6cc54"
+  },
+  {
+   "id": "q230",
+   "concept": "air_pump",
+   "word": "air pump",
+   "display_label": "air pump",
+   "accept": [
+    "air pump",
+    "vacuum pump"
+   ],
+   "recognizability": 0.733333333,
+   "recognizability_close": 0.733333333,
+   "n_ratings": 15,
+   "most_common_label": "air pump",
+   "tercile": 2,
+   "colour_sha256": "a92fbd9b462f2a0a3590cea483c25b3f07f98e29eaf68a3cad213e1a27a4688a",
+   "gray_sha256": "e707027bddccd8d39ba47e939571a38c59948a0f129eb79c8a09005b6776bd73"
+  },
+  {
+   "id": "q231",
+   "concept": "razor_blade",
+   "word": "razor blade",
+   "display_label": "razor blade",
+   "accept": [
+    "razor blade",
+    "razorblade"
+   ],
+   "recognizability": 0.923076923,
+   "recognizability_close": 0.923076923,
+   "n_ratings": 13,
+   "most_common_label": "razor blade",
+   "tercile": 2,
+   "colour_sha256": "7bd9fac02445f1646bf8756a72169c9b3f419c677041f52ff92e33ce3956610e",
+   "gray_sha256": "e1f92b40840a978baf38e3f57eda8a364fca5ec60073bd64037a045cebe0931e"
+  },
+  {
+   "id": "q232",
+   "concept": "steering_wheel",
+   "word": "steering wheel",
+   "display_label": "steering wheel",
+   "accept": [
+    "steering wheel",
+    "wheel"
+   ],
+   "recognizability": 0.928571429,
+   "recognizability_close": 0.928571429,
+   "n_ratings": 14,
+   "most_common_label": "steering wheel",
+   "tercile": 2,
+   "colour_sha256": "46ba5d43dd6c9fd95ce08484ce483a231c4a9a5ebb3d68ef2825b4c7dccce1a6",
+   "gray_sha256": "39cb046afb466345a431ffa3a2d9c282ce4ec2ee24a72099505c5ce7ca1cdfb6"
+  },
+  {
+   "id": "q233",
+   "concept": "photo_booth",
+   "word": "photo booth",
+   "display_label": "photo booth",
+   "accept": [
+    "photo booth"
+   ],
+   "recognizability": 0.7,
+   "recognizability_close": 0.7,
+   "n_ratings": 10,
+   "most_common_label": "photo booth",
+   "tercile": 2,
+   "colour_sha256": "fb59135106cd88b82f9ca5bb364ac49d43d236d76c30e1b5a2f552e4b1cb1095",
+   "gray_sha256": "bc76798c81885a0239cb550b96cae0dbdedaa8d36f1a5a45c2bf113d85b65cfa"
+  },
+  {
+   "id": "q234",
+   "concept": "burner",
+   "word": "burner",
+   "display_label": "burner (stove burner)",
+   "accept": [
+    "burner"
+   ],
+   "recognizability": 0.692307692,
+   "recognizability_close": 0.692307692,
+   "n_ratings": 13,
+   "most_common_label": "burner (stove burner)",
+   "tercile": 2,
+   "colour_sha256": "30ab0cf5636791bb50d68ca3d05f6df7b0e47a9cce6ed72152e3cdec55bf6852",
+   "gray_sha256": "c21ed09f5228bffd2c125f8d373ed674bef7de80fb0fbc8c8c32d169b6d8fdb1"
+  },
+  {
+   "id": "q235",
+   "concept": "flower",
+   "word": "flower",
+   "display_label": "flower",
+   "accept": [
+    "flower"
+   ],
+   "recognizability": 0.823529412,
+   "recognizability_close": 0.823529412,
+   "n_ratings": 17,
+   "most_common_label": "flower",
+   "tercile": 2,
+   "colour_sha256": "623e34812e8a2fd7f919b61261a3f6afe4f250ea77f0243a693b5efed9d8aa63",
+   "gray_sha256": "c6eb1b559d16a8e39918e83f6c51325cac2988d1bb91168a3732987ca98b25da"
+  },
+  {
+   "id": "q236",
+   "concept": "chessboard",
+   "word": "chessboard",
+   "display_label": "chessboard",
+   "accept": [
+    "chess board",
+    "chessboard"
+   ],
+   "recognizability": 0.9375,
+   "recognizability_close": 0.9375,
+   "n_ratings": 16,
+   "most_common_label": "chessboard",
+   "tercile": 2,
+   "colour_sha256": "6e8a92101cc6f69e67caff7d63217aab06d453d48c9c96aa7a7c7e00e460fff8",
+   "gray_sha256": "d1742544a1e246ae724ae573feec12be1b1623e215399de426653ecea421f150"
+  },
+  {
+   "id": "q237",
+   "concept": "pocket",
+   "word": "pocket",
+   "display_label": "pocket (pants)",
+   "accept": [
+    "pocket"
+   ],
+   "recognizability": 0.733333333,
+   "recognizability_close": 0.733333333,
+   "n_ratings": 15,
+   "most_common_label": "pocket (pants)",
+   "tercile": 2,
+   "colour_sha256": "c88e5cf8db6aa59cbd93161231efb7363825bce9ffe3d52f19e5103d06938dd0",
+   "gray_sha256": "d1e25d3cdf7d7ad5a325224f98e121a0d8a26435a00a5d328a6a6c0dd6810091"
+  },
+  {
+   "id": "q238",
+   "concept": "cheetah",
+   "word": "cheetah",
+   "display_label": "cheetah",
+   "accept": [
+    "acinonyx jubatu",
+    "cheetah",
+    "chetah"
+   ],
+   "recognizability": 0.8,
+   "recognizability_close": 0.8,
+   "n_ratings": 10,
+   "most_common_label": "cheetah",
+   "tercile": 2,
+   "colour_sha256": "5a0a534bc7aedecf7efef20e911c7f6028668a885e863490a0c57b400a4d49f1",
+   "gray_sha256": "1f7979d9afa0c7ce0217156cf731620855bba587936be746c98298d056f7c70a"
+  },
+  {
+   "id": "q239",
+   "concept": "car_door",
+   "word": "car door",
+   "display_label": "car door",
+   "accept": [
+    "car door"
+   ],
+   "recognizability": 0.928571429,
+   "recognizability_close": 0.928571429,
+   "n_ratings": 14,
+   "most_common_label": "car door",
+   "tercile": 2,
+   "colour_sha256": "ab143756c76bb137c2c3742cf43b5b9610db18d6b70857f2523e02bcdb35588c",
+   "gray_sha256": "928ff2d8f22f2f566e98fcdd4a0222cd94d5c81a60de6fe052226d5d63c893f8"
+  },
+  {
+   "id": "q240",
+   "concept": "thermometer",
+   "word": "thermometer",
+   "display_label": "thermometer",
+   "accept": [
+    "thermometer"
+   ],
+   "recognizability": 0.785714286,
+   "recognizability_close": 0.785714286,
+   "n_ratings": 14,
+   "most_common_label": "thermometer",
+   "tercile": 2,
+   "colour_sha256": "8cce3045962b721d8f6f0b0fff157046b47f43511dffb7737a3d890674558328",
+   "gray_sha256": "9cd9c5504981eba7ec459fdbc50a5819832323d28d2ec7d99b855028ebb23c75"
+  },
+  {
+   "id": "q241",
+   "concept": "fire_hydrant",
+   "word": "fire hydrant",
+   "display_label": "fire hydrant",
+   "accept": [
+    "fire hydrant",
+    "fireplug",
+    "plug"
+   ],
+   "recognizability": 0.928571429,
+   "recognizability_close": 0.928571429,
+   "n_ratings": 14,
+   "most_common_label": "fire hydrant",
+   "tercile": 2,
+   "colour_sha256": "15507c46713d953ff478cbb6ffc2c47227a3753ef264e1a259452fef8680c45f",
+   "gray_sha256": "b309579e11f6d908ad222f4f67b70bee51965d725b069835ee8cf9a0ade996a6"
+  },
+  {
+   "id": "q242",
+   "concept": "fan",
+   "word": "fan",
+   "display_label": "fan (mechanical fan)",
+   "accept": [
+    "fan"
+   ],
+   "recognizability": 1.0,
+   "recognizability_close": 1.0,
+   "n_ratings": 13,
+   "most_common_label": "fan (mechanical fan)",
+   "tercile": 2,
+   "colour_sha256": "ff470e9b912cb939665bfc74f8dc03171aa2ccaa7073465a977353df3faacedf",
+   "gray_sha256": "118d1d20fa09c10135785df1725408696d3b64c0214ad87ab618b010992e6f1b"
+  },
+  {
+   "id": "q243",
+   "concept": "water_heater",
+   "word": "water heater",
+   "display_label": "water heater",
+   "accept": [
+    "hot-water heater",
+    "hot-water tank",
+    "water heater"
+   ],
+   "recognizability": 0.785714286,
+   "recognizability_close": 0.785714286,
+   "n_ratings": 14,
+   "most_common_label": "water heater",
+   "tercile": 2,
+   "colour_sha256": "7756c0dab51b6da74fd7e4c6690d412b5ab0910a6534465eb7c6d64090369ff1",
+   "gray_sha256": "16d02d3618763b70aa6d8b5261ec164dd756db9922dd69587ccfdaecf7a0f0d7"
+  },
+  {
+   "id": "q244",
+   "concept": "glue",
+   "word": "glue",
+   "display_label": "glue",
+   "accept": [
+    "glue",
+    "gum",
+    "mucilage"
+   ],
+   "recognizability": 0.647058824,
+   "recognizability_close": 0.647058824,
+   "n_ratings": 17,
+   "most_common_label": "glue",
+   "tercile": 2,
+   "colour_sha256": "29b3dc5e75e454657ccce847b8378df5837415f8f4e26af091e9f486500b2a4b",
+   "gray_sha256": "65bd5ee5254df4e3563a95c2d3a5e0dd2b326fe1126bbe853ffb4ed154251921"
+  },
+  {
+   "id": "q245",
+   "concept": "slide",
+   "word": "slide",
+   "display_label": "slide",
+   "accept": [
+    "playground slide",
+    "slide",
+    "sliding board"
+   ],
+   "recognizability": 1.0,
+   "recognizability_close": 1.0,
+   "n_ratings": 14,
+   "most_common_label": "slide",
+   "tercile": 2,
+   "colour_sha256": "fea07ff0740d57f3a227ae5dbfc97f839d83be6077a2b1d5ef815c0c17ac86aa",
+   "gray_sha256": "b5023e5c28c66030308d17cc41c4c7ad2b67ba0b0ba9c0f2df9ad98b5cd18c23"
+  },
+  {
+   "id": "q246",
+   "concept": "raccoon",
+   "word": "raccoon",
+   "display_label": "raccoon",
+   "accept": [
+    "raccoon",
+    "racoon"
+   ],
+   "recognizability": 0.769230769,
+   "recognizability_close": 0.769230769,
+   "n_ratings": 13,
+   "most_common_label": "raccoon",
+   "tercile": 2,
+   "colour_sha256": "7bcce4b46f3a3d5c77e581bf08ae98ac67692bc2d9fd6433f47f6271c313b99f",
+   "gray_sha256": "2be0a45b2c9cd35fa6b619ad713746ed6030bb791f1fe3382eaa95a92d63de6a"
+  },
+  {
+   "id": "q247",
+   "concept": "phone",
+   "word": "phone",
+   "display_label": "phone",
+   "accept": [
+    "phone",
+    "telephone",
+    "telephone set"
+   ],
+   "recognizability": 0.642857143,
+   "recognizability_close": 1.0,
+   "n_ratings": 14,
+   "most_common_label": "phone",
+   "tercile": 2,
+   "colour_sha256": "ff2059a5cb1bb46a6fd46e5bbbf1ccab5cd98be9296ba11d47e5514ee314d950",
+   "gray_sha256": "99d507cb7f1b86c5cd95f5517b8bdc174a609afd6de38e4d759fddee966b3b5e"
+  },
+  {
+   "id": "q248",
+   "concept": "iron",
+   "word": "iron",
+   "display_label": "iron (ironing iron)",
+   "accept": [
+    "iron",
+    "smoothing iron"
+   ],
+   "recognizability": 0.916666667,
+   "recognizability_close": 1.0,
+   "n_ratings": 12,
+   "most_common_label": "iron (ironing iron)",
+   "tercile": 2,
+   "colour_sha256": "8c114d44fb37672ee41625edf9e3079e6ce73bcc3efa10260200eb97f12e57f5",
+   "gray_sha256": "1970297724514e623c9521861db1bf2ca7b5a003d767151fd58e9a27ca68f7db"
+  },
+  {
+   "id": "q249",
+   "concept": "computer",
+   "word": "computer",
+   "display_label": "computer",
+   "accept": [
+    "computer",
+    "computing device",
+    "computing machine",
+    "data processor",
+    "electronic computer",
+    "information processing system"
+   ],
+   "recognizability": 0.818181818,
+   "recognizability_close": 0.818181818,
+   "n_ratings": 11,
+   "most_common_label": "computer",
+   "tercile": 2,
+   "colour_sha256": "9b57235680ffd2b55b23125b7573183a1c7f2f8767db5ac14cd9329ac4fec70a",
+   "gray_sha256": "78e82f0dba46860888789ce3921ff53166ea43e3322d5075d2f2df92f28644b5"
+  },
+  {
+   "id": "q250",
+   "concept": "mixer",
+   "word": "mixer",
+   "display_label": "mixer (electric whisk)",
+   "accept": [
+    "mixer"
+   ],
+   "recognizability": 0.769230769,
+   "recognizability_close": 0.846153846,
+   "n_ratings": 13,
+   "most_common_label": "mixer (electric whisk)",
+   "tercile": 2,
+   "colour_sha256": "e7402c7b716c3f25c2bcbbfadb41972814d3966d647574999563fb037332f031",
+   "gray_sha256": "c555373d7b781d49b0bceebe0ebd177b3fa08b5436ca563cc5fd8846688235cd"
+  },
+  {
+   "id": "q251",
+   "concept": "thimble",
+   "word": "thimble",
+   "display_label": "thimble",
+   "accept": [
+    "thimble"
+   ],
+   "recognizability": 0.642857143,
+   "recognizability_close": 0.642857143,
+   "n_ratings": 14,
+   "most_common_label": "thimble",
+   "tercile": 2,
+   "colour_sha256": "11b07e3aa28c530e99b118e9f4bc0bfdaaa58ed047d714dbf123a7d55ef6af3d",
+   "gray_sha256": "75b46d5add970dff2cbc827aadb47cbf1ae675e3d8d3d43015c1d82d6f0ef8ed"
+  },
+  {
+   "id": "q252",
+   "concept": "go-kart",
+   "word": "go-kart",
+   "display_label": "go-kart",
+   "accept": [
+    "go-kart"
+   ],
+   "recognizability": 0.733333333,
+   "recognizability_close": 0.733333333,
+   "n_ratings": 15,
+   "most_common_label": "go-kart",
+   "tercile": 2,
+   "colour_sha256": "50cb4d7f6223a0a9496eaee8570110ff5d376650ed51e447c330e22d93a1cb77",
+   "gray_sha256": "87b9985a46064c167925b2bd02169f79b485fef32bbd7c297edb01978b16f8e8"
+  },
+  {
+   "id": "q253",
+   "concept": "hair",
+   "word": "hair",
+   "display_label": "hair",
+   "accept": [
+    "hair"
+   ],
+   "recognizability": 0.769230769,
+   "recognizability_close": 0.846153846,
+   "n_ratings": 13,
+   "most_common_label": "hair",
+   "tercile": 2,
+   "colour_sha256": "e16b5304f259d7113886dddd62f2795cdf4f94ab414cd3a712b4595caf02b686",
+   "gray_sha256": "e100bfc8222ffcf52d8be137067a05701ee25714fa7507d972c93136141bb808"
+  },
+  {
+   "id": "q254",
+   "concept": "rocket",
+   "word": "rocket",
+   "display_label": "rocket",
+   "accept": [
+    "rocket",
+    "rocket engine"
+   ],
+   "recognizability": 1.0,
+   "recognizability_close": 1.0,
+   "n_ratings": 15,
+   "most_common_label": "rocket",
+   "tercile": 2,
+   "colour_sha256": "ecb298b74805530322670513c507c600c2de53216173f991d4ef3cdbcf56f40f",
+   "gray_sha256": "5e0818df3d58cea0507ca18d2e3c66a24e3ad75899b44d4fa0d86b7fe5ea5454"
+  },
+  {
+   "id": "q255",
+   "concept": "tambourine",
+   "word": "tambourine",
+   "display_label": "tambourine",
+   "accept": [
+    "tambourine"
+   ],
+   "recognizability": 0.75,
+   "recognizability_close": 0.75,
+   "n_ratings": 16,
+   "most_common_label": "tambourine",
+   "tercile": 2,
+   "colour_sha256": "8eba74297c0f3c0ab646567f982660561ed224d24006e3a9f6949cb853b5c226",
+   "gray_sha256": "675971db53cef96adf903b835dfc08a87b6acf816a7e386c43ef3f1b24e738a2"
+  },
+  {
+   "id": "q256",
+   "concept": "bubble_wrap",
+   "word": "bubble wrap",
+   "display_label": "bubble wrap",
+   "accept": [
+    "bubble film",
+    "bubble pack",
+    "bubble wrap"
+   ],
+   "recognizability": 0.818181818,
+   "recognizability_close": 0.818181818,
+   "n_ratings": 11,
+   "most_common_label": "bubble wrap",
+   "tercile": 2,
+   "colour_sha256": "fc35a4afdd362ec71b717058115ea968476ac253c8101098ce3cf80b2d4e9a9f",
+   "gray_sha256": "7b82973ee8f1addf0fee63ea6383b5403fe7bcc2b5bb0d61eb734c673c2b93c3"
+  },
+  {
+   "id": "q257",
+   "concept": "chocolate",
+   "word": "chocolate",
+   "display_label": "chocolate",
+   "accept": [
+    "chocolate"
+   ],
+   "recognizability": 1.0,
+   "recognizability_close": 1.0,
+   "n_ratings": 15,
+   "most_common_label": "chocolate",
+   "tercile": 2,
+   "colour_sha256": "47d68f730680a6de33e59253042bfff383eaf84bb82bf073d2e26154ea7e7a00",
+   "gray_sha256": "fd246e7643ab293f6361d75f183ae13c581f6483f8ce1d854a401f2cd971fbfc"
+  },
+  {
+   "id": "q258",
+   "concept": "credit_card",
+   "word": "credit card",
+   "display_label": "credit card",
+   "accept": [
+    "charge card",
+    "charge plate",
+    "credit card",
+    "plastic"
+   ],
+   "recognizability": 1.0,
+   "recognizability_close": 1.0,
+   "n_ratings": 18,
+   "most_common_label": "credit card",
+   "tercile": 2,
+   "colour_sha256": "541f53c3aeb4d8fd6694a8e520f43ea1e4241e7055bf2db6b6f766120dc07a93",
+   "gray_sha256": "bbc44d908a36e0a3958b38c5b20faa2ab44d8f7b5a0be66c1abbac1011d507b2"
+  },
+  {
+   "id": "q259",
+   "concept": "hanger",
+   "word": "hanger",
+   "display_label": "hanger",
+   "accept": [
+    "hanger"
+   ],
+   "recognizability": 0.6875,
+   "recognizability_close": 0.6875,
+   "n_ratings": 16,
+   "most_common_label": "hanger",
+   "tercile": 2,
+   "colour_sha256": "8f465b80957560da4b00ac1dbabc75340efb1a8a9d17cf315f4ee4fc5a2f0a1f",
+   "gray_sha256": "4caec1fe02457018cab0cbce09f5e8d6532cd52d20f215e375eaeeba6b37ba96"
+  },
+  {
+   "id": "q260",
+   "concept": "caviar",
+   "word": "caviar",
+   "display_label": "caviar",
+   "accept": [
+    "caviar",
+    "caviare"
+   ],
+   "recognizability": 0.684210526,
+   "recognizability_close": 0.684210526,
+   "n_ratings": 19,
+   "most_common_label": "caviar",
+   "tercile": 2,
+   "colour_sha256": "5930588f7594c0c7cb27c13cdcfad07164896b015a416799233246dbfd184a71",
+   "gray_sha256": "b3b8b6b9b4a35003b029859c07bff2b7d998cddc2fc7d19336028ff4e315314a"
+  },
+  {
+   "id": "q261",
+   "concept": "dice",
+   "word": "dice",
+   "display_label": "dice",
+   "accept": [
+    "dice",
+    "die"
+   ],
+   "recognizability": 1.0,
+   "recognizability_close": 1.0,
+   "n_ratings": 18,
+   "most_common_label": "dice",
+   "tercile": 2,
+   "colour_sha256": "bb78734865b159caa836abb59bc826683e1e0c99d927639a3bf619cbf55bd758",
+   "gray_sha256": "509ba109d519e5b281b8aa1db21c95e69270b45c9979f9fb274864466570ff9f"
+  },
+  {
+   "id": "q262",
+   "concept": "radio",
+   "word": "radio",
+   "display_label": "radio",
+   "accept": [
+    "radio",
+    "radio receiver",
+    "radio set",
+    "receiving set",
+    "tuner",
+    "wireless"
+   ],
+   "recognizability": 0.888888889,
+   "recognizability_close": 0.888888889,
+   "n_ratings": 18,
+   "most_common_label": "radio",
+   "tercile": 2,
+   "colour_sha256": "bde4d39b9e316d95481773015bb8a4de5a4c0738b80a806b362df1a0fe1df4e8",
+   "gray_sha256": "c4cb8fcee457734b9701d998fc5c9880078618dec7f12aa50310d11f2f5787c5"
+  },
+  {
+   "id": "q263",
+   "concept": "toilet_paper",
+   "word": "toilet paper",
+   "display_label": "toilet paper",
+   "accept": [
+    "bathroom tissue",
+    "toilet paper",
+    "toilet tissue"
+   ],
+   "recognizability": 0.941176471,
+   "recognizability_close": 0.941176471,
+   "n_ratings": 17,
+   "most_common_label": "toilet paper",
+   "tercile": 2,
+   "colour_sha256": "22e6704b2cebd80130ecf9336a1b649f1b6e562eb331d084a9f21e69f812ddee",
+   "gray_sha256": "13ac7439a1e93bbfb002e9995021044f71040114c00826a0845fdca271809dcd"
+  },
+  {
+   "id": "q264",
+   "concept": "rhinoceros",
+   "word": "rhinoceros",
+   "display_label": "rhinoceros",
+   "accept": [
+    "rhino",
+    "rhinocero"
+   ],
+   "recognizability": 0.785714286,
+   "recognizability_close": 0.785714286,
+   "n_ratings": 14,
+   "most_common_label": "rhinoceros",
+   "tercile": 2,
+   "colour_sha256": "246075d25cb7d6d7a0fc29ea8eff915778b69aac1029bf59bc6642eb3227717a",
+   "gray_sha256": "776967130efd43885d38ca93b87daad284e7f7bd3b09d24fe073063f909e9229"
+  },
+  {
+   "id": "q265",
+   "concept": "crepe",
+   "word": "crepe",
+   "display_label": "crepe",
+   "accept": [
+    "crape",
+    "crepe",
+    "french pancake"
+   ],
+   "recognizability": 0.642857143,
+   "recognizability_close": 0.642857143,
+   "n_ratings": 14,
+   "most_common_label": "crepe",
+   "tercile": 2,
+   "colour_sha256": "fcf11b6198ff4e5053914b63f31f460799608f5bb6966de464743b7bff14859b",
+   "gray_sha256": "67d70871afd405cef07ed100c1f1aa5633f790479b7e195a1ff2f2f03ed6404c"
+  },
+  {
+   "id": "q266",
+   "concept": "hole",
+   "word": "hole",
+   "display_label": "hole",
+   "accept": [
+    "hole"
+   ],
+   "recognizability": 0.8,
+   "recognizability_close": 0.8,
+   "n_ratings": 15,
+   "most_common_label": "hole",
+   "tercile": 2,
+   "colour_sha256": "4dd1c52154d7cbdab4a29876c0d499ab7b0b6ee4d4293a231d787887ad73856d",
+   "gray_sha256": "c86e1611b8788cc08f5588803568f79bd7f0f9caa39bd1fa0e0911a013df722e"
+  },
+  {
+   "id": "q267",
+   "concept": "bun",
+   "word": "bun",
+   "display_label": "bun (bread)",
+   "accept": [
+    "bun"
+   ],
+   "recognizability": 0.75,
+   "recognizability_close": 0.75,
+   "n_ratings": 16,
+   "most_common_label": "bun (bread)",
+   "tercile": 2,
+   "colour_sha256": "cfdb854e6eb7b3c76fc36a8a1688585f13f9792ecab107278db0bc2d0b6a4d11",
+   "gray_sha256": "4ada3bac9115882f953f89f8cd4a06fe97dc4d9f7527b36cc22e6c84129e2ceb"
+  },
+  {
+   "id": "q268",
+   "concept": "parachute",
+   "word": "parachute",
+   "display_label": "parachute",
+   "accept": [
+    "chute",
+    "parachute"
+   ],
+   "recognizability": 0.928571429,
+   "recognizability_close": 0.928571429,
+   "n_ratings": 14,
+   "most_common_label": "parachute",
+   "tercile": 2,
+   "colour_sha256": "dbc978ae3f517c1dab0af2adeed2c2ea6c1733013092caa311826f45388c60ed",
+   "gray_sha256": "bea265014487dbe411b879163f69e43707d493a29218fcb9cf9ba75d09695a7e"
+  },
+  {
+   "id": "q269",
+   "concept": "machine_gun",
+   "word": "machine gun",
+   "display_label": "machine gun",
+   "accept": [
+    "machine gun"
+   ],
+   "recognizability": 0.705882353,
+   "recognizability_close": 0.705882353,
+   "n_ratings": 17,
+   "most_common_label": "machine gun",
+   "tercile": 2,
+   "colour_sha256": "49d0768ec22bb87e48c2eaaf38ddb3155393a8ab6c82eb502cdb592cbf2be4c8",
+   "gray_sha256": "2abf28ee465aa211ec82c66d70ee214b8ded61f782902150b7f2eaad8acf7a93"
+  },
+  {
+   "id": "q270",
+   "concept": "crab",
+   "word": "crab",
+   "display_label": "crab",
+   "accept": [
+    "crab"
+   ],
+   "recognizability": 1.0,
+   "recognizability_close": 1.0,
+   "n_ratings": 12,
+   "most_common_label": "crab",
+   "tercile": 2,
+   "colour_sha256": "61c68767070252a6f1c58ec1bddfd58b0169a85e8899281aa36d542409d4e6be",
+   "gray_sha256": "4d0a697220dd1460376826534086afbe8ee608b5d704c4859bbe6ca70a59b754"
+  },
+  {
+   "id": "q271",
+   "concept": "totem_pole",
+   "word": "totem pole",
+   "display_label": "totem pole",
+   "accept": [
+    "totem pole"
+   ],
+   "recognizability": 0.866666667,
+   "recognizability_close": 0.866666667,
+   "n_ratings": 15,
+   "most_common_label": "totem pole",
+   "tercile": 2,
+   "colour_sha256": "134dbecb8d1b4f9f6db954c6ba28beede0c499b829fcb2b986ca0c08b5c945c6",
+   "gray_sha256": "67b348ed4f42ad1320f612bcd53fd7d9a4c1a6878b2d48e65b168b745d0adfee"
+  },
+  {
+   "id": "q272",
+   "concept": "soap",
+   "word": "soap",
+   "display_label": "soap",
+   "accept": [
+    "soap"
+   ],
+   "recognizability": 1.0,
+   "recognizability_close": 1.0,
+   "n_ratings": 13,
+   "most_common_label": "soap",
+   "tercile": 2,
+   "colour_sha256": "f3efeb18dfffda9c5418a9341bcf42e7ed9b30a8aaa10e646573a719dacbe51a",
+   "gray_sha256": "a9105b4c31c6208d40fa9336fdff255122d349c100d9de13c73d23ab263943bf"
+  },
+  {
+   "id": "q273",
+   "concept": "dog",
+   "word": "dog",
+   "display_label": "dog",
+   "accept": [
+    "canis familiari",
+    "dog",
+    "domestic dog"
+   ],
+   "recognizability": 0.928571429,
+   "recognizability_close": 0.928571429,
+   "n_ratings": 14,
+   "most_common_label": "dog",
+   "tercile": 2,
+   "colour_sha256": "21f0100d81c978985f27af07ee3c49149179e3014b91ea4e15b6bbb5da83f6cc",
+   "gray_sha256": "c83ca1da8cd8bc27d1aea5b790cef18a1b8039b37e861ef86ecf60630854b937"
+  },
+  {
+   "id": "q274",
+   "concept": "french_fries",
+   "word": "french fries",
+   "display_label": "french fries",
+   "accept": [
+    "chip",
+    "french fry",
+    "french-fried potatoe",
+    "fry"
+   ],
+   "recognizability": 0.875,
+   "recognizability_close": 0.875,
+   "n_ratings": 16,
+   "most_common_label": "french fries",
+   "tercile": 2,
+   "colour_sha256": "43e7797aeb9f97b20daa9447d7cc4842486b9cbc3adc1e462863b5487d940e96",
+   "gray_sha256": "3899b89bea67980a882dba981852ded00d3aa241cf8b54dac10d27e9eba218ae"
+  },
+  {
+   "id": "q275",
+   "concept": "cooker",
+   "word": "cooker",
+   "display_label": "cooker",
+   "accept": [
+    "cooker"
+   ],
+   "recognizability": 0.833333333,
+   "recognizability_close": 0.833333333,
+   "n_ratings": 12,
+   "most_common_label": "cooker",
+   "tercile": 2,
+   "colour_sha256": "0ed2f9fd618878102895e74561ed800ac882281a753ac5c6807b025e6c26f679",
+   "gray_sha256": "9ee146fa263216ff175e4600a47e8c18db8c10a57430ff1cc8daa76bd9cb9c8a"
+  },
+  {
+   "id": "q276",
+   "concept": "feather",
+   "word": "feather",
+   "display_label": "feather",
+   "accept": [
+    "feather",
+    "plumage",
+    "plume"
+   ],
+   "recognizability": 0.842105263,
+   "recognizability_close": 0.842105263,
+   "n_ratings": 19,
+   "most_common_label": "feather",
+   "tercile": 2,
+   "colour_sha256": "d5c6730538a2d34698104dc349843ee3bc84f1e4779f49916550cefcff59b170",
+   "gray_sha256": "48babb45ca188e75fd6c11153afce1be0c27a0eb466997d309814d9bf778dcb5"
+  },
+  {
+   "id": "q277",
+   "concept": "scarecrow",
+   "word": "scarecrow",
+   "display_label": "scarecrow",
+   "accept": [
+    "bird-scarer",
+    "scarecrow",
+    "scarer",
+    "straw man",
+    "strawman"
+   ],
+   "recognizability": 0.714285714,
+   "recognizability_close": 0.714285714,
+   "n_ratings": 14,
+   "most_common_label": "scarecrow",
+   "tercile": 2,
+   "colour_sha256": "0617a439ec95ed961fdfdd340b0628787dfc001767c5d64242939f661ca67243",
+   "gray_sha256": "ec1f0230e6350498a0fc900233dbe8eec184599e4a92d7a851e4911eae5813b5"
+  },
+  {
+   "id": "q278",
+   "concept": "rope",
+   "word": "rope",
+   "display_label": "rope",
+   "accept": [
+    "rope"
+   ],
+   "recognizability": 0.916666667,
+   "recognizability_close": 0.916666667,
+   "n_ratings": 12,
+   "most_common_label": "rope",
+   "tercile": 2,
+   "colour_sha256": "270c72f7a541611baf553118da1f02996307c0bb97ff30f5386f7ffa2089dc5b",
+   "gray_sha256": "30477b956cc1cbbbe3de3f8d10e6d4a87e0b508fa97ef0c28d4def3ac0578aab"
+  },
+  {
+   "id": "q279",
+   "concept": "towel_rack",
+   "word": "towel rack",
+   "display_label": "towel rack",
+   "accept": [
+    "towel horse",
+    "towel rack"
+   ],
+   "recognizability": 0.705882353,
+   "recognizability_close": 0.705882353,
+   "n_ratings": 17,
+   "most_common_label": "towel rack",
+   "tercile": 2,
+   "colour_sha256": "31b20fcc1b7a2a1f65b8c9977a5b29493b3e8fbc8ef932761f40da6c038381c4",
+   "gray_sha256": "e84829956500cbbd7a4a1f2eaaca3fe1efde8b44042301c94569d8add92b5afe"
+  },
+  {
+   "id": "q280",
+   "concept": "air_conditioner",
+   "word": "air conditioner",
+   "display_label": "air conditioner",
+   "accept": [
+    "air conditioner",
+    "air conditioning"
+   ],
+   "recognizability": 0.923076923,
+   "recognizability_close": 0.923076923,
+   "n_ratings": 13,
+   "most_common_label": "air conditioner",
+   "tercile": 2,
+   "colour_sha256": "f1eb9d0400abf272aaeaf20bde7c4a2130ed7a6357732f8d98b65474bc15c529",
+   "gray_sha256": "d36effd492546006f4c9fde5adbb26d914eac1e4190b866a051b677d6c1c8549"
+  },
+  {
+   "id": "q281",
+   "concept": "washing_machine",
+   "word": "washing machine",
+   "display_label": "washing machine",
+   "accept": [
+    "automatic washer",
+    "washer",
+    "washing machine"
+   ],
+   "recognizability": 0.9375,
+   "recognizability_close": 0.9375,
+   "n_ratings": 16,
+   "most_common_label": "washing machine",
+   "tercile": 2,
+   "colour_sha256": "4869075dbed3f75935a4699706256e6ec0a20822edb56748c7151069cdd22fdf",
+   "gray_sha256": "5ac52fb281528f0fbee80d4a47609628fdd90b86a49910832420d848078466a9"
+  },
+  {
+   "id": "q282",
+   "concept": "trident",
+   "word": "trident",
+   "display_label": "trident",
+   "accept": [
+    "trident"
+   ],
+   "recognizability": 0.666666667,
+   "recognizability_close": 0.666666667,
+   "n_ratings": 18,
+   "most_common_label": "trident",
+   "tercile": 2,
+   "colour_sha256": "b5946c14cf08fecb4ae6a86b3ed24a39e7812266faa42aea6e1cf9dfe02704b5",
+   "gray_sha256": "112ffdd1e0edc7f429efdd3f277d40047ee2c6744193c84c0dd59b7b8afc1c04"
+  },
+  {
+   "id": "q283",
+   "concept": "yo-yo",
+   "word": "yo-yo",
+   "display_label": "yo-yo",
+   "accept": [
+    "yo-yo"
+   ],
+   "recognizability": 0.8125,
+   "recognizability_close": 0.8125,
+   "n_ratings": 16,
+   "most_common_label": "yo-yo",
+   "tercile": 2,
+   "colour_sha256": "18e85a79ca6884bd09a927b66e20edd2718150ebea8af9a7678c30ad389a5ae2",
+   "gray_sha256": "9f67322e41b58db7e1fc8cffd400c309bf9e8bbe0b090fc3fbf1f33110d1706f"
+  },
+  {
+   "id": "q284",
+   "concept": "headband",
+   "word": "headband",
+   "display_label": "headband",
+   "accept": [
+    "headband"
+   ],
+   "recognizability": 0.75,
+   "recognizability_close": 0.75,
+   "n_ratings": 16,
+   "most_common_label": "headband",
+   "tercile": 2,
+   "colour_sha256": "d6750b8a88919c0ca7a750f1c2ae4d53999a37e073da66f97a28c1a2a732b8c0",
+   "gray_sha256": "eb6765f64c7356a0a0da30eeec73c31edbfe20da7ebc7e8c2212d00f6b6e3df8"
+  },
+  {
+   "id": "q285",
+   "concept": "pacifier",
+   "word": "pacifier",
+   "display_label": "pacifier",
+   "accept": [
+    "comforter",
+    "pacifier",
+    "teething ring",
+    "u\"baby's dummy"
+   ],
+   "recognizability": 0.8125,
+   "recognizability_close": 0.8125,
+   "n_ratings": 16,
+   "most_common_label": "pacifier",
+   "tercile": 2,
+   "colour_sha256": "8dbf72a7f5331618a39a8358bf98d90bf848caf13e838994afe0b5beca816cc6",
+   "gray_sha256": "253bd8d353ad595a21df1dbf2f9657c5914b8845dac1fe6962152e35a99d8758"
+  },
+  {
+   "id": "q286",
+   "concept": "banana",
+   "word": "banana",
+   "display_label": "banana",
+   "accept": [
+    "banana"
+   ],
+   "recognizability": 1.0,
+   "recognizability_close": 1.0,
+   "n_ratings": 14,
+   "most_common_label": "banana",
+   "tercile": 2,
+   "colour_sha256": "46cc39d7850cb097704515eeac3fe63098df5dff355595cb616328d0aae149b4",
+   "gray_sha256": "e1d336fa19b820a2be88acdca597f365bb67c19db6b714678279e2e6c21f2a5a"
+  },
+  {
+   "id": "q287",
+   "concept": "christmas_card",
+   "word": "christmas card",
+   "display_label": "christmas card",
+   "accept": [
+    "christmas card"
+   ],
+   "recognizability": 0.818181818,
+   "recognizability_close": 0.818181818,
+   "n_ratings": 11,
+   "most_common_label": "christmas card",
+   "tercile": 2,
+   "colour_sha256": "5e8727c1f5b8466e5fcad6d8413f7fcf9b6b53b1de49f83f1c3b788b86a296ba",
+   "gray_sha256": "e212ba1115c5a275448091acd3c9a8bfc26219648c3d1f55072b1526941b9265"
+  },
+  {
+   "id": "q288",
+   "concept": "ginger",
+   "word": "ginger",
+   "display_label": "ginger",
+   "accept": [
+    "ginger",
+    "gingerroot"
+   ],
+   "recognizability": 0.875,
+   "recognizability_close": 0.875,
+   "n_ratings": 16,
+   "most_common_label": "ginger",
+   "tercile": 2,
+   "colour_sha256": "57c3fb57b46d787dfa3f34d8f5839fd436b3e6ca44809fd0e0c998545b566c5e",
+   "gray_sha256": "d46f4a3748a616e7f0346c804bd0701e0b32a5edc91adf095648d45126139f26"
+  },
+  {
+   "id": "q289",
+   "concept": "snowman",
+   "word": "snowman",
+   "display_label": "snowman",
+   "accept": [
+    "snowman"
+   ],
+   "recognizability": 0.8125,
+   "recognizability_close": 0.8125,
+   "n_ratings": 16,
+   "most_common_label": "snowman",
+   "tercile": 2,
+   "colour_sha256": "126f0725ad0ab3a48c257acfa52c60808b9c5e9aa617e23ae4a77b5ba7e1f32b",
+   "gray_sha256": "6dd672f778898f7c35f183544d71d45a3abde2220c71c12e24878c9289fa8293"
+  },
+  {
+   "id": "q290",
+   "concept": "parrot",
+   "word": "parrot",
+   "display_label": "parrot",
+   "accept": [
+    "parrot"
+   ],
+   "recognizability": 0.8,
+   "recognizability_close": 0.8,
+   "n_ratings": 15,
+   "most_common_label": "parrot",
+   "tercile": 2,
+   "colour_sha256": "7c9a77feec3c0b65b16834615bf34c9423037a74d337a038ee1de88e8ad11a98",
+   "gray_sha256": "dea4e243250bbeff75f189b5795a8d495c9c67213aa8730b773bdd9092631573"
+  },
+  {
+   "id": "q291",
+   "concept": "handlebar",
+   "word": "handlebar",
+   "display_label": "handlebar (bicycle)",
+   "accept": [
+    "handlebar"
+   ],
+   "recognizability": 0.647058824,
+   "recognizability_close": 0.647058824,
+   "n_ratings": 17,
+   "most_common_label": "handlebar (bicycle)",
+   "tercile": 2,
+   "colour_sha256": "8d57b68be3080f6e95499cd2bed7cced2914fb5c1f939ce2f70ac1bafcf4753e",
+   "gray_sha256": "195e0b992e93c658f0259b26c165d6b02dfcd5bca293009e32a7bd3ca7d9b67d"
+  },
+  {
+   "id": "q292",
+   "concept": "seatbelt",
+   "word": "seatbelt",
+   "display_label": "seatbelt",
+   "accept": [
+    "seat belt",
+    "seatbelt"
+   ],
+   "recognizability": 0.928571429,
+   "recognizability_close": 0.928571429,
+   "n_ratings": 14,
+   "most_common_label": "seatbelt",
+   "tercile": 2,
+   "colour_sha256": "911546bed83f228b1f658ddd43e1bbe6bac841280832b1ff9f938716f867aae8",
+   "gray_sha256": "813267309025b6615d0309ebbce28915b9ee140c0d848c09dcb2cb4e732cab46"
+  },
+  {
+   "id": "q293",
+   "concept": "pony",
+   "word": "pony",
+   "display_label": "pony",
+   "accept": [
+    "pony"
+   ],
+   "recognizability": 0.6875,
+   "recognizability_close": 0.6875,
+   "n_ratings": 16,
+   "most_common_label": "pony",
+   "tercile": 2,
+   "colour_sha256": "e511b3da145b72d2f993076e90844204e4b51810de3adda28ee5ed5faae5aaa8",
+   "gray_sha256": "5e8082cb26dbcd05e0bfa3c763e20cb08fcf51dbb49f0a209fdc4637135a323a"
+  },
+  {
+   "id": "q294",
+   "concept": "koala",
+   "word": "koala",
+   "display_label": "koala",
+   "accept": [
+    "kangaroo bear",
+    "koala",
+    "koala bear",
+    "native bear",
+    "phascolarctos cinereu"
+   ],
+   "recognizability": 0.846153846,
+   "recognizability_close": 0.846153846,
+   "n_ratings": 13,
+   "most_common_label": "koala",
+   "tercile": 2,
+   "colour_sha256": "3ed991d16f5841fab0ac83eb3bacb1317226cc7329cc872fe70728e65b5ecfef",
+   "gray_sha256": "14ed761e833f05e66e1f21e483def126a60de64f6a7c84bb7eeb867e5b5f31f1"
+  },
+  {
+   "id": "q295",
+   "concept": "gas_mask",
+   "word": "gas mask",
+   "display_label": "gas mask",
+   "accept": [
+    "gas helmet",
+    "gas mask",
+    "gasmask",
+    "respirator"
+   ],
+   "recognizability": 0.8125,
+   "recognizability_close": 0.8125,
+   "n_ratings": 16,
+   "most_common_label": "gas mask",
+   "tercile": 2,
+   "colour_sha256": "635d4f9ee94e7d19f3f3f7b1c99d88c1dd80e48878ab9c98d4f70dc0a5f1eb74",
+   "gray_sha256": "19eb049edf5a7095a6f6c46f962b53e9b1511bc98675d08ccf99f139ec426027"
+  },
+  {
+   "id": "q296",
+   "concept": "coffee_bean",
+   "word": "coffee bean",
+   "display_label": "coffee bean",
+   "accept": [
+    "coffee",
+    "coffee bean",
+    "coffee berry"
+   ],
+   "recognizability": 0.714285714,
+   "recognizability_close": 0.714285714,
+   "n_ratings": 14,
+   "most_common_label": "coffee bean",
+   "tercile": 2,
+   "colour_sha256": "07fa652903d4c50bb507475c8da70fa722417a55b2da934438648964769d86e0",
+   "gray_sha256": "a8793fa3ebb894668c7bd63712e38b4ca73dde9d310c8eda6f09f82d8577ec48"
+  },
+  {
+   "id": "q297",
+   "concept": "mop",
+   "word": "mop",
+   "display_label": "mop",
+   "accept": [
+    "mop",
+    "swab",
+    "swob"
+   ],
+   "recognizability": 0.866666667,
+   "recognizability_close": 0.866666667,
+   "n_ratings": 15,
+   "most_common_label": "mop",
+   "tercile": 2,
+   "colour_sha256": "18d6370d2b2223186222605d6b00a7fff0a7099027d9074c1845e29f9ab7d2d1",
+   "gray_sha256": "2ed2bb07c099badd2fa5c748d951bd69fcca5cf03b073d0b4579f55734e83ff6"
+  },
+  {
+   "id": "q298",
+   "concept": "dragonfly",
+   "word": "dragonfly",
+   "display_label": "dragonfly",
+   "accept": [
+    "darning needle",
+    "dragonfly",
+    "mosquito hawk",
+    "sewing needle",
+    "skeeter hawk",
+    "snake doctor",
+    "snake feeder",
+    "u\"devil's darning needle"
+   ],
+   "recognizability": 0.818181818,
+   "recognizability_close": 0.818181818,
+   "n_ratings": 11,
+   "most_common_label": "dragonfly",
+   "tercile": 2,
+   "colour_sha256": "b80fac5640f0e435833697cabbab5ec6789fc100357c8bd8794ac7c9a4f4f62e",
+   "gray_sha256": "e13818c16052e26dd702c712fe6feaab644590319c0b74e50b17681eec59232c"
+  },
+  {
+   "id": "q299",
+   "concept": "pool_table",
+   "word": "pool table",
+   "display_label": "pool table",
+   "accept": [
+    "billiard table",
+    "pool table",
+    "snooker table"
+   ],
+   "recognizability": 0.705882353,
+   "recognizability_close": 0.705882353,
+   "n_ratings": 17,
+   "most_common_label": "pool table",
+   "tercile": 2,
+   "colour_sha256": "5da7a71281cdc4d2cb660cfe4e267fecff68fe93146931f931bcef5be8b7742a",
+   "gray_sha256": "d463aa5fe4e7e84e3fb435df19e642ed9afb716ccd4ba2009053c5fc0aaab38e"
+  }
+ ]
+}
