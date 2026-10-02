@@ -1,104 +1,114 @@
 {
- "recorded": "2026-10-02T06:38:59-0700",
+ "recorded": "2026-10-02T08:12:52-0700",
  "python": "3.12.14",
  "measured": {
   "blocked_writer": {
-   "observed_to_group_gone_s": 0.0347,
-   "observed_to_controller_gone_s": 0.0498
+   "observed_to_group_gone_s": 0.0369,
+   "observed_to_controller_gone_s": 0.052
   },
   "controller_death": {
-   "kill_to_group_gone_s": 0.03,
+   "kill_to_group_gone_s": 0.029,
    "how": "SIGKILL",
    "watchdog_observed_to_gone_s": 0.0333
   },
   "deadline_metal": {
-   "kill_to_reap_s": 0.002,
+   "kill_to_reap_s": 0.003,
    "how": "SIGKILL"
   },
   "deadline": {
-   "kill_to_reap_s": 0.002,
+   "kill_to_reap_s": 0.003,
    "how": "SIGKILL",
-   "run_seconds": 5.414,
+   "run_seconds": 5.473,
    "grandchild_killed": true
   },
+  "setup_directory_stall_run_s": 2.684,
   "exit_peak_gib": 1.057,
+  "final_output_stall_run_s": 10.761,
+  "guardian_lifetime_max_mib": 57.9,
   "immediate_restart": {
-   "leader_exited_False": 5.994,
-   "leader_exited_True": 6.042
+   "leader_exited_False": 6.122,
+   "leader_exited_True": 6.078
   },
   "memory_stop": {
-   "observation_to_leader_dead_s": 0.0093,
-   "observation_to_verified_extinction_s": 0.0616,
+   "previous_ok_reading_to_kill_s": 0.0316,
+   "previous_ok_reading_to_leader_dead_s": 0.0361,
+   "previous_ok_reading_to_verified_extinction_s": 0.041,
+   "deciding_reading_to_leader_dead_s": 0.0046,
    "how": "SIGKILL"
   },
-  "memory_stop_blocked_io_observation_to_gone_s": 0.0082,
+  "memory_stop_blocked_io_observation_to_gone_s": 0.0084,
   "never_returning_sample": {
    "sample_1": {
-    "observed_to_group_gone_s": 0.0334,
-    "observed_to_controller_gone_s": 0.0484
+    "previous_ok_reading_to_tick_consumed_s": 0.0106,
+    "previous_ok_reading_to_watchdog_observation_s": 0.1501,
+    "previous_ok_reading_to_group_extinction_s": 0.177,
+    "previous_ok_reading_to_controller_gone_s": 0.1896
    },
    "sample_3": {
-    "observed_to_group_gone_s": 0.0334,
-    "observed_to_controller_gone_s": 0.0464
+    "previous_ok_reading_to_tick_consumed_s": 0.002,
+    "previous_ok_reading_to_watchdog_observation_s": 0.1559,
+    "previous_ok_reading_to_group_extinction_s": 0.1831,
+    "previous_ok_reading_to_controller_gone_s": 0.1936
    }
   },
-  "pass_run_seconds": 6.02,
+  "pass_run_seconds": 6.051,
   "max_iteration_work_s": {
-   "gates": 0.0031951660057529807,
-   "instrumented": 0.003923707990907133,
-   "native": 0.004560499975923449,
-   "report": 0.0051774170133285224
+   "gates": 0.00330941699212417,
+   "instrumented": 0.004062874999362975,
+   "native": 0.004969416011590511,
+   "report": 0.004999542026780546
   },
-  "guardian_blocked_persist_run_s": 18.706,
-  "persistence_failure_seconds": 6.098,
+  "guardian_blocked_persist_run_s": 18.709,
+  "persistence_failure_seconds": 6.054,
+  "post_close_death_run_s": 9.655,
   "post_marker_abort_run_s": {
-   "unlink_blocked_False": 10.649,
-   "unlink_blocked_True": 15.632
+   "unlink_blocked_False": 10.716,
+   "unlink_blocked_True": 15.677
   },
-  "post_rename_block_run_seconds": 10.577
+  "post_rename_block_run_seconds": 10.655
  },
  "memory_fixture": {
   "steady": {
-   "phys_footprint_gib": 4.223,
-   "lifetime_max_gib": 4.223,
+   "phys_footprint_gib": 4.222,
+   "lifetime_max_gib": 4.222,
    "host_gib": 1.0,
    "mlx_active_gib": 1.0,
    "mlx_cache_gib": 2.0,
    "allocated_now_gib": 4.0,
-   "sample_seconds": 5.3e-05
+   "sample_seconds": 0.000168
   },
   "nocache": {
-   "phys_footprint_gib": 2.222,
-   "lifetime_max_gib": 4.222,
+   "phys_footprint_gib": 2.223,
+   "lifetime_max_gib": 4.223,
    "host_gib": 1.0,
    "mlx_active_gib": 1.0,
    "mlx_cache_gib": 0.0,
    "allocated_now_gib": 2.0,
-   "sample_seconds": 3.9e-05
+   "sample_seconds": 0.000146
   },
   "spike": {
-   "phys_footprint_gib": 6.192,
+   "phys_footprint_gib": 6.222,
    "lifetime_max_gib": 6.223,
    "host_gib": 1.0,
    "mlx_active_gib": 1.0,
    "mlx_cache_gib": 2.0,
    "allocated_now_gib": 4.0,
-   "sample_seconds": 4.1e-05
+   "sample_seconds": 5.7e-05
   },
   "exit_peak_before_reap_gib": 2.057,
   "max_growth_gib_per_s": 11.12,
   "growth_gib_per_s_threads": {
-   "2": 32.02,
-   "4": 53.1,
-   "8": 66.84
+   "2": 33.41,
+   "4": 53.04,
+   "8": 74.06
   },
   "sigkill_overshoot": {
-   "observed_gib": 4.122,
-   "exit_peak_gib": 4.122,
+   "observed_gib": 4.07,
+   "exit_peak_gib": 4.071,
    "overshoot_gib": 0.001,
-   "kill_to_exit_s": 0.0254
+   "kill_to_exit_s": 0.0267
   },
-  "task_listing_seconds": 0.001372
+  "task_listing_seconds": 0.001438
  },
  "note": "synthetic workers and the real watchdog, no model, no development input"
 }

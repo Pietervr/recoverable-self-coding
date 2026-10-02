@@ -28,7 +28,9 @@ memory aggregate; strict, witness-bound recovery authority and exact recovery se
 
 **The memory margin.** Stipulated interval 0.16 s from the previous successful reading (ordinary ≤ 0.12 s; stalled
 0.15 s tick staleness from the reading's own time + 10 ms poll) plus the measured SIGKILL delivery → the 4 GiB headroom
-covers growth up to about 21.5 GiB/s. One synthetic thread fits; 2–8 threads do not. Accepted in principle by Codex as
+covers growth up to about 21.5 GiB/s (20.6 GiB/s on the latest measured endpoint: a stalled sample's controller gone
+0.194 s after the previous reading; the worker group extinct by 0.183 s). One synthetic thread (11.7 GiB/s) fits;
+2–8 threads (34–71 GiB/s) do not. Accepted in principle by Codex as
 a declared, measured limit for this local Stage A, under stated scheduling assumptions.
 
 **Source records.** Admission requires the current `dev_pool.json` and `provenance_checks.json` byte-identical to the

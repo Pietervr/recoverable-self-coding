@@ -37,20 +37,22 @@ live sampled sum, if larger). A phase whose aggregate reaches MEM_STOP at exit s
 AND every mandatory measurement: each worker's exit peak and the controller's final self sample - a missing one is
 STOPPED. Stop at MEM_STOP = 44 GiB.
 
-PROMPT STOPS AND THE MARGIN. Every controller stop SIGKILLs the worker's group at once (no SIGTERM grace). The complete
-observation-to-death interval is at most the gap between two readings of a process (two iterations of at most
-SAMPLE_LIMIT_S each plus one MEM_SAMPLE_S sleep: 0.12 s) or, with a hung sampler, the last reading + TICK_STALE_S + the
-watchdog's 10 ms poll (0.16 s), plus the measured SIGKILL delivery (controller_fixtures.json). The 4 GiB margin between
-the stop and the cap therefore holds for growth below 4 GiB / that bound; the measured synthetic rates are in
-controller_fixtures.json and STAGE_A_CRITERIA.md §2 states where the margin holds and where it does not.
+PROMPT STOPS AND THE MARGIN. Every controller stop SIGKILLs the worker's group at once (no SIGTERM grace). The
+configured observation interval from the previous successful reading is the gap between two readings of a process (two
+iterations of at most SAMPLE_LIMIT_S each plus one MEM_SAMPLE_S sleep: 0.12 s) or, with a hung sampler, that reading's
+own time + TICK_STALE_S + the watchdog's 10 ms poll (0.16 s); the kill's delivery is measured, not bounded. The 4 GiB
+margin between the stop and the cap holds for growth below 4 GiB / (that interval + delivery); the measured endpoints
+and synthetic rates are in controller_fixtures.json and STAGE_A_CRITERIA.md §00 states where the margin holds and where
+it does not.
 
 CLOCK (A4). Row 20's time = carried 1,808.73 s + every session's live seconds counted from the controller process's
 own start (before configuration, recovery and superseding), durable every HEARTBEAT_S with the wall time of the beat.
-Closing a session charges, at the close, the FINAL_ALLOWANCE_S = 60 s that the remaining finalisation (receipt and
-ledger checks, the final record and its admission marker) may use; a timer ends the process (exit 75, nothing
-admitted) if finalisation overruns it. A dead controller is charged at restart its last durable live time plus
-max(TAIL_RESERVE_S = 60 s, its watchdog's interval from the last beat to the group's and the controller's death); a
-watchdog that found the controller blocked kills it, so that interval is bounded and recorded. RESERVES INSIDE THE 4 h
+Closing a session charges, at the close, the whole bounded closure CLOSE_CHARGE_S = FINAL_ALLOWANCE_S 50 + revocation
+5 + exit/output 5 = 60 s and moves the guardian's deadline to its end; a timer ends the process (exit 75, nothing
+admitted) if finalisation overruns its allowance. A dead session or failed start (controller.starting.json) is charged
+at restart from durable evidence: to a recorded controller death; without one, on the same boot, until min(now, the
+guardian's deadline + 5 s); after a reboot, the declared 60 s; never less than TAIL_RESERVE_S = 60 s after the last
+beat. RESERVES INSIDE THE 4 h
 CAP: TAIL 60 s, STOP 60 s, REPORT 600 s; work phases end at cap - 720 s, the report at cap - 60 s; the watchdog's hard
 deadline is HARD_MARGIN_S = 5 s after the controller's. Caps are never reset.
 

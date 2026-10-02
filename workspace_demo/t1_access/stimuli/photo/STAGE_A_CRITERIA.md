@@ -35,8 +35,8 @@ fixtures: synthetic worker processes, the real watchdog, synthetic arrays; no mo
 
 | # | Condition | Where it lives | Fixtures (`tests/test_controller.py` unless named) |
 |---|---|---|---|
-| A | Complete controller coverage and tail charge | The guardian starts before ANY file operation (the output directory's creation included) and lives through the result's output (`run(emit=)`; `main` prints through it). A pending-start record (`controller.starting.json`) is durable before any load; the open session carries the guardian's wall-clock deadline. A dead session or failed start is charged from durable evidence only: a recorded controller death ends the tail; without one, on the same boot (`kern.boottime` earlier than the beat) the tail runs until min(now, the guardian deadline + 5 s); after a reboot the declared 60 s rule. The close charges the WHOLE bounded closure (`CLOSE_CHARGE_S` = finalisation 50 + revocation 5 + exit/output 5 = 60 s = the tail reserve) and moves the guardian's deadline to its end, so a post-close death lies inside the charged total. Diagnostics before an abort or after a kill are written by daemon threads. | `test_directory_stall_before_load_is_guarded` (killed at the shortened setup deadline, run M_SETUP); `test_final_output_stall_is_guarded_and_charged` (PASS admitted, output blocks, killed within the charged closure, run M_OUTPUT); `test_post_close_death_is_inside_the_charged_closure` (finalisation and both revocations blocked: death before the charged closure's end, not admitted, run M_POSTCLOSE); `test_crash_tail_charge` (blocked and no-evidence same-boot tails); `test_failed_start_is_charged`; `test_persistence_after_the_watchdog_retired_is_bounded` |
-| B | Guardian in whole-task memory | The guardian's pid is sampled every iteration (`guardian_lifetime_max`), its final maximum read at finalisation (`guardian_final`; unreadable -> a missing mandatory measurement), both added to the phase and task aggregates. | `test_guardian_in_the_task_aggregate` (lifetime M_GUARD; unreadable -> STOPPED) |
+| A | Complete controller coverage and tail charge | The guardian starts before ANY file operation (the output directory's creation included) and lives through the result's output (`run(emit=)`; `main` prints through it). A pending-start record (`controller.starting.json`) is durable before any load; the open session carries the guardian's wall-clock deadline. A dead session or failed start is charged from durable evidence only: a recorded controller death ends the tail; without one, on the same boot (`kern.boottime` earlier than the beat) the tail runs until min(now, the guardian deadline + 5 s); after a reboot the declared 60 s rule. The close charges the WHOLE bounded closure (`CLOSE_CHARGE_S` = finalisation 50 + revocation 5 + exit/output 5 = 60 s = the tail reserve) and moves the guardian's deadline to its end, so a post-close death lies inside the charged total. Diagnostics before an abort or after a kill are written by daemon threads. | `test_directory_stall_before_load_is_guarded` (killed at the shortened setup deadline, run 2.7 s); `test_final_output_stall_is_guarded_and_charged` (PASS admitted, output blocks, killed within the charged closure, run 10.8 s); `test_post_close_death_is_inside_the_charged_closure` (finalisation and both revocations blocked: death before the charged closure's end, not admitted, run 9.7 s); `test_crash_tail_charge` (blocked and no-evidence same-boot tails); `test_failed_start_is_charged`; `test_persistence_after_the_watchdog_retired_is_bounded` |
+| B | Guardian in whole-task memory | The guardian's pid is sampled every iteration (`guardian_lifetime_max`), its final maximum read at finalisation (`guardian_final`; unreadable -> a missing mandatory measurement), both added to the phase and task aggregates. | `test_guardian_in_the_task_aggregate` (lifetime 57.9 MiB; unreadable -> STOPPED) |
 | C | The timing statement | Each reading's observation instant is kept; the tick sent after a successful reading carries that reading's time (the watchdog measures staleness from it, not from consumption); the stop records the previous successful below-stop reading, the deciding reading, the kill, the leader's death and verified extinction; the watchdog records the tick's source and consumption times, its observation, group extinction and the controller's death. | `test_memory_stop_is_whole_task`, `test_never_returning_first_and_later_sample`, `test_memory_stop_with_blocked_io_kills_first` (values below) |
 | D | Strict authority admission and exact recovery set | `enforce.check_ledger(..., witness_dir=out)` (controller, pre-native and final admission): authority with the intake's domains (non-blank text, try an exact positive int, never bool or float, a real calendar date, 64 lowercase hex), bound to the retained owner file (present, hashing to file_sha256, strict content equal to the authority); consumed tries exactly 1..tries-1 (1..tries for 'interrupted, recovery consumed'); exactly one outstanding entry, for the last try, on an interrupted attempt and none otherwise; no overlap. consumed_by is not required to equal the next session. | `test_stage_a_runner.ValidatorMutations.test_authority_domains_and_witness` (bool / float try, impossible dates, non-hex and wrong digests, an owner differing from the witness, a missing witness - in final and pre-native admission); `test_exact_consumed_and_outstanding_sets`; `test_codex_unauthorised_extra_try` |
 
@@ -44,18 +44,24 @@ fixtures: synthetic worker processes, the real watchdog, synthetic arrays; no mo
 
 | Path | Previous successful reading → | Value |
 |---|---|---|
-| Ordinary memory stop | kill / leader dead / verified extinction | M_STOP |
-| Ordinary memory stop | (deciding reading → leader dead) | M_DECIDE |
-| Memory stop, I/O thread blocked | (deciding observation → worker gone, timed by the test) | M_BLOCKEDIO |
-| First sample never returns | tick consumed / watchdog observation / group extinct / controller gone | M_NEVER1 |
-| Third sample never returns | the same | M_NEVER3 |
+| Ordinary memory stop | kill / leader dead / verified extinction | 0.032 / 0.036 / 0.041 s |
+| Ordinary memory stop | (deciding reading → leader dead) | 0.005 s |
+| Memory stop, I/O thread blocked | (deciding observation → worker gone, timed by the test) | 0.008 s |
+| First sample never returns | tick consumed / watchdog observation / group extinct / controller gone | 0.011 / 0.150 / 0.177 / 0.190 s |
+| Third sample never returns | the same | 0.002 / 0.156 / 0.183 / 0.194 s |
 
-**The conditional margin.** Stipulating the configured interval 0.16 s (two readings' work 2 × 50 ms + one 20 ms
-sleep; or, stalled, 150 ms tick staleness measured from the reading's own time + the watchdog's 10 ms poll) and the measured SIGKILL delivery 0.0259 s: 4 GiB / (0.16 + 0.026) ≈ 21.5 GiB/s, rounded to 22. The
-measured complete intervals above lie inside 0.16 s. ASSUMPTIONS (stated, not enforced): ordinary scheduling of the
-controller's threads and the watchdog process (no multi-second CPU starvation or suspension); the kernel's footprint
-ledger current to within one reading; SIGKILL delivered within tens of milliseconds as measured. The synthetic growth
-rates M_RATES (one thread fits; 2–8 threads do not) are finite averages that do not bound bursts or measure the frozen
+**The conditional margin.** Stipulating the configured observation interval 0.16 s (ordinary: two readings' work
+2 × 50 ms + one 20 ms sleep = 0.12 s; stalled: 150 ms tick staleness measured from the reading's own time + the
+watchdog's 10 ms poll) and the measured SIGKILL delivery 0.0259 s: 4 GiB / (0.16 + 0.026) ≈ 21.5 GiB/s. Measured
+against it: the ordinary stop's whole interval to verified extinction (0.041 s) lies inside 0.12 s; on a stalled
+sample the watchdog's observation (0.150–0.156 s) lies inside 0.16 s and the worker group's extinction (0.177–0.183 s)
+inside 0.16 + 0.026 = 0.186 s; the controller, killed after the group, is gone at 0.190–0.194 s, up to 8 ms past it.
+Taking that latest endpoint instead, 4 GiB / 0.194 s ≈ 20.6 GiB/s. The qualified limit is therefore stated as about
+21 GiB/s; the conclusion below does not change between 20.6 and 21.5. ASSUMPTIONS (stated, not enforced): ordinary
+scheduling of the controller's threads and the watchdog process (no multi-second CPU starvation or suspension); the
+kernel's footprint ledger current to within one reading; SIGKILL delivered within tens of milliseconds as measured. The
+synthetic growth rates (one thread 11.66 GiB/s fits; 2, 4 and 8 threads 34.0, 55.2 and 70.5 GiB/s do not) are finite
+averages that do not bound bursts or measure the frozen
 model; Stage A reports the model's growth and peak, and a faster episode, an overshoot, pressure or a cap failure stops
 and invalidates the qualified claim.
 
