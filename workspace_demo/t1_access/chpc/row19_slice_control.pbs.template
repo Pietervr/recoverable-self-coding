@@ -18,11 +18,13 @@
 # Then C1's and C3's completed outputs are compared field by field on the Mac (chpc/row19_control_compare.py).
 ulimit -s unlimited
 T=/mnt/lustre/users/pvanrooyen/t1_toolchain
-cd $T/rsc_policy/workspace_demo/t1_access
-export NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+cd $T/rsc_slice/workspace_demo/t1_access
+export NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONUNBUFFERED=1
 echo "host $(hostname)  $(grep -m1 'model name' /proc/cpuinfo)"
 echo "code $(git rev-parse --short HEAD)  start $(date -u +%FT%TZ)  job $PBS_JOBID  mode __MODE__"
-$T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep 0 --segment 20 --walltime-s __WALLTIME_S__ --root $T/__ROOT__ --job-id $PBS_JOBID
-rc=$?
+mkdir -p $T/__ROOT__
+$T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep 0 --segment 20 --walltime-s __WALLTIME_S__ --root $T/__ROOT__ --job-id $PBS_JOBID 2>&1 | tee -a $T/__ROOT__/live_ctl___MODE__.log
+rc=${PIPESTATUS[0]}
+
 echo "exit $rc  end $(date -u +%FT%TZ)"
 exit $rc

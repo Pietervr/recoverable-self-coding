@@ -14,11 +14,13 @@
 # after Codex's review of the launch specification and the owner's go on row 19's slice, under the manifest's budget.
 ulimit -s unlimited
 T=/mnt/lustre/users/pvanrooyen/t1_toolchain
-cd $T/rsc_policy/workspace_demo/t1_access
-export NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+cd $T/rsc_slice/workspace_demo/t1_access
+export NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONUNBUFFERED=1
 echo "host $(hostname)  $(grep -m1 'model name' /proc/cpuinfo)"
 echo "code $(git rev-parse --short HEAD)  start $(date -u +%FT%TZ)  job $PBS_JOBID"
-$T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep __REP__ --walltime-s 518400 --root $T/row19_slice --job-id $PBS_JOBID
-rc=$?
+mkdir -p $T/row19_slice
+$T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep __REP__ --walltime-s 518400 --root $T/row19_slice --job-id $PBS_JOBID 2>&1 | tee -a $T/row19_slice/live_rep__REP__.log
+rc=${PIPESTATUS[0]}
+
 echo "exit $rc  end $(date -u +%FT%TZ)"
 exit $rc

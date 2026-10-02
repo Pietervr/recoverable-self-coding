@@ -41,7 +41,7 @@
     "rule": "the recovery control: dataset rep 0's resamples 0..19 under the UNCHANGED B = 200 identity, run once normally (job C1: segment 20, no interruption) and once under deliberate walltime interruption (job C2: a 20-minute walltime that the chain cannot finish, then job C3 resumes it to the segment); every completed scientific output of C1 and C3 compared field by field (rep index, chosen concepts, every predictor's band statistics, failed flags), timing and checksums excluded; then the resumed chain continues to 200 if the budget permits"
   },
   "code": {
-    "commit": "103ee7f (RSC): the policy at 5f6333c + the refit slice hooks at ff82dd0 + the runner at 103ee7f; the Lustre clone rsc_policy must carry these commits before the slice (today it carries the policy and the bench flag only)",
+    "commit": "103ee7f (RSC): the policy at 5f6333c + the refit slice hooks at ff82dd0 + the runner at 103ee7f; the Lustre clone rsc_slice carries them (policy branch + ff82dd0, 103ee7f, 9a6fbcc, ad0eb9f applied 2 Oct), its pinned file hashes verified equal to the four below",
     "files": {
       "models.py": "28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef",
       "analyze.py": "972d92f6b9e435ed18fbf6c1e88300cc543950b59c7ed8aa8f563b47af2ae5bb",
@@ -58,7 +58,7 @@
     "scipy": "1.18.0",
     "joblib": "1.5.3",
     "machine": "x86_64",
-    "toolchain": "/mnt/lustre/users/pvanrooyen/t1_toolchain (t1py, t1site, rootfs python:3.12.10-slim-bookworm), clone rsc_policy",
+    "toolchain": "/mnt/lustre/users/pvanrooyen/t1_toolchain (t1py, t1site, rootfs python:3.12.10-slim-bookworm), clone rsc_slice (dedicated to this slice; never a tree another job uses)",
     "threads": "NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1; no joblib workers (they cannot spawn under the image loader)"
   },
   "pbs": {
