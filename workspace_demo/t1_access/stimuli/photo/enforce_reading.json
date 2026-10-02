@@ -1,0 +1,11 @@
+{
+ "phys_footprint": "0.471 GiB",
+ "rss": "0.083 GiB",
+ "mlx_active": "0.250 GiB",
+ "mlx_cache": "0.000 GiB",
+ "mlx_peak": "0.250 GiB",
+ "enforced": "0.471 GiB",
+ "rss_plus_mlx": "0.333 GiB",
+ "swap_used": "0.000 GiB",
+ "pressure_level": 1
+}
