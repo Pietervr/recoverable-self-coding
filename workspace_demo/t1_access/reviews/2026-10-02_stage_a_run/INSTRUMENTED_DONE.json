@@ -1,0 +1,645 @@
+{
+ "attempts": {
+  "00-empty": {
+   "passes/00-empty.json": "c70dbc2e015903dbd643ee10f461ade4c66901c3723d0fb27f86c1049a84e3e9",
+   "passes/00-empty.residuals.npy": "b93f204f9e2e0233445b6694f3eafec8355c0e3de78e01f03337ea95b79e26f4"
+  },
+  "00-plain": {
+   "passes/00-plain.json": "094b2b6728d26c5c76fdea885856e39a8de5809acc9e7c5b02b0edd9cc0a602d",
+   "passes/00-plain.residuals.npy": "b93f204f9e2e0233445b6694f3eafec8355c0e3de78e01f03337ea95b79e26f4"
+  },
+  "00-repeat": {
+   "passes/00-repeat.json": "882d5163381a9c90b32f6d95a83091e0e2605a4d137d36b3501361de8519ef0e",
+   "passes/00-repeat.residuals.npy": "b93f204f9e2e0233445b6694f3eafec8355c0e3de78e01f03337ea95b79e26f4"
+  },
+  "00-self_patch": {
+   "passes/00-self_patch.json": "25d1930518d19ecc9c9ddb8b3c0fb6027f85429f73e7560f457cddd187f22003",
+   "passes/00-self_patch.residuals.npy": "b93f204f9e2e0233445b6694f3eafec8355c0e3de78e01f03337ea95b79e26f4"
+  },
+  "00-zero_ablate": {
+   "passes/00-zero_ablate.json": "bd088743793b60946db3f7147eb71d3708cb5fa49db05551c7eaae079fdae47b",
+   "passes/00-zero_ablate.residuals.npy": "b93f204f9e2e0233445b6694f3eafec8355c0e3de78e01f03337ea95b79e26f4"
+  },
+  "00-zero_steer": {
+   "passes/00-zero_steer.json": "1bc37a87553cec904301e290e5d1dd267991036598d0c7f7a51dea7ae7107ee7",
+   "passes/00-zero_steer.residuals.npy": "b93f204f9e2e0233445b6694f3eafec8355c0e3de78e01f03337ea95b79e26f4"
+  },
+  "00-zero_swap": {
+   "passes/00-zero_swap.json": "debb43a9523ac729f4b4cc8f84354fba5a9b05d1a8724669f656f62c0e06966f",
+   "passes/00-zero_swap.residuals.npy": "b93f204f9e2e0233445b6694f3eafec8355c0e3de78e01f03337ea95b79e26f4"
+  },
+  "01-ablate1": {
+   "passes/01-ablate1.json": "c244e07e00940b1fe0e42d6459b68d29c8bc81a178721d84d42f3f854eea2cba",
+   "passes/01-ablate1.residuals.npy": "2fc87796d4f8a2d6a8d396c115020a9a5c56e9291db3b35b64a91a601c2d702d"
+  },
+  "01-empty": {
+   "passes/01-empty.json": "5d5f303e50c47bc81b0c394a7eed6d5ad66cd44203bc45bd36091f91acdfe010",
+   "passes/01-empty.residuals.npy": "acd376c32c06e4e2dbb7b1eae26832d9eaf30571ca68c23efd2db698c0e70285"
+  },
+  "01-plain": {
+   "passes/01-plain.json": "d87cae7dae128b362b005e823c95f32a9db2cbedce46ba55f18db9c47d7964f9",
+   "passes/01-plain.residuals.npy": "acd376c32c06e4e2dbb7b1eae26832d9eaf30571ca68c23efd2db698c0e70285"
+  },
+  "01-repeat": {
+   "passes/01-repeat.json": "372b48fa878ebea9e6df2d6d5a4c9385dfffca6919db0a593dddb7dffe849aab",
+   "passes/01-repeat.residuals.npy": "acd376c32c06e4e2dbb7b1eae26832d9eaf30571ca68c23efd2db698c0e70285"
+  },
+  "01-self_patch": {
+   "passes/01-self_patch.json": "309f176f46be8d960b4c9989330f7e4283e06278792bdda754d5599e87d33b2a",
+   "passes/01-self_patch.residuals.npy": "acd376c32c06e4e2dbb7b1eae26832d9eaf30571ca68c23efd2db698c0e70285"
+  },
+  "01-suffix_isolation": {
+   "passes/01-suffix_isolation.json": "b33827138e6c82a7327cd31cfb899d27850e8e5be6fdeb48c8293d577bf6beb1",
+   "passes/01-suffix_isolation.residuals.npy": "acd376c32c06e4e2dbb7b1eae26832d9eaf30571ca68c23efd2db698c0e70285"
+  },
+  "01-swap1": {
+   "passes/01-swap1.json": "f0d0bcb3b5b408ddc6b9b0f92918ed77912187829bd93bf2b4390f514b98a8a6",
+   "passes/01-swap1.residuals.npy": "9a0fd9a0faf5e5bbfd172fd400486166378c43ba6340fcd26c99f7d50abb732a"
+  },
+  "01-zero_ablate": {
+   "passes/01-zero_ablate.json": "43478e279551ac742130ad5f8c11a53fddd73a8c3bfb8d709d7e32ab91b199d2",
+   "passes/01-zero_ablate.residuals.npy": "acd376c32c06e4e2dbb7b1eae26832d9eaf30571ca68c23efd2db698c0e70285"
+  },
+  "01-zero_steer": {
+   "passes/01-zero_steer.json": "dbce373ad2d9af441fd837d72ec01e21ac5eeaaad35932841dd61a3b181209fb",
+   "passes/01-zero_steer.residuals.npy": "acd376c32c06e4e2dbb7b1eae26832d9eaf30571ca68c23efd2db698c0e70285"
+  },
+  "01-zero_swap": {
+   "passes/01-zero_swap.json": "e1f99b68178e9dda55fe102aadd03d3a197bdac933393363fce533603861501c",
+   "passes/01-zero_swap.residuals.npy": "acd376c32c06e4e2dbb7b1eae26832d9eaf30571ca68c23efd2db698c0e70285"
+  },
+  "02-empty": {
+   "passes/02-empty.json": "f537436df753e13de9ec4cbd8e4ca2fe05a7ab78836908c9188c955f11b99e69",
+   "passes/02-empty.residuals.npy": "7c4fa93923109424047ca0bc5b6c3536c8a544d245ab52c32bcf421eacdc5e63"
+  },
+  "02-plain": {
+   "passes/02-plain.json": "81f5a7f99951e8e8f0cece1ac8ef454c94281d2e9bb84a54972c8e5b2bf8bc09",
+   "passes/02-plain.residuals.npy": "7c4fa93923109424047ca0bc5b6c3536c8a544d245ab52c32bcf421eacdc5e63"
+  },
+  "02-repeat": {
+   "passes/02-repeat.json": "b8a059f13098693eed72f5dcc9a65784f62c4beb034e9ba56f9b0cbb33da1188",
+   "passes/02-repeat.residuals.npy": "7c4fa93923109424047ca0bc5b6c3536c8a544d245ab52c32bcf421eacdc5e63"
+  },
+  "02-self_patch": {
+   "passes/02-self_patch.json": "f023609aa14bc4acc7347dd0c76403bf66bd440f2c5aeb79fa30721b4b7f2744",
+   "passes/02-self_patch.residuals.npy": "7c4fa93923109424047ca0bc5b6c3536c8a544d245ab52c32bcf421eacdc5e63"
+  },
+  "02-zero_ablate": {
+   "passes/02-zero_ablate.json": "cd4caac35ba5929ab0fc2328be8892d129f8b9643fe36755ca4a7d2ff136382b",
+   "passes/02-zero_ablate.residuals.npy": "7c4fa93923109424047ca0bc5b6c3536c8a544d245ab52c32bcf421eacdc5e63"
+  },
+  "02-zero_steer": {
+   "passes/02-zero_steer.json": "8e4664ff94e00cc3e4572c26b0e722e3be7cb5bef2da3f663b33a47c18fb5920",
+   "passes/02-zero_steer.residuals.npy": "7c4fa93923109424047ca0bc5b6c3536c8a544d245ab52c32bcf421eacdc5e63"
+  },
+  "02-zero_swap": {
+   "passes/02-zero_swap.json": "ad2e111835431a65ea6f4b5aafeacdfeb883900302b75fe23b4b7950fa7e2d41",
+   "passes/02-zero_swap.residuals.npy": "7c4fa93923109424047ca0bc5b6c3536c8a544d245ab52c32bcf421eacdc5e63"
+  },
+  "03-empty": {
+   "passes/03-empty.json": "d6d9c99110304b28e7f243074d85e842a6c4345ddc9dcfc2d4e17f3904ede56f",
+   "passes/03-empty.residuals.npy": "daa613a8088e9d74a0f145f6e5acb03859a5d57af29a3488326176627b010163"
+  },
+  "03-plain": {
+   "passes/03-plain.json": "f8b291cd5bfa5bf7bc75d609be1f9b2446b333901f282f15a3b5914f5a9d759a",
+   "passes/03-plain.residuals.npy": "daa613a8088e9d74a0f145f6e5acb03859a5d57af29a3488326176627b010163"
+  },
+  "03-repeat": {
+   "passes/03-repeat.json": "852303253dbee380c99db68935ae288bd83a6790443ca8becf2ba1256f27df0d",
+   "passes/03-repeat.residuals.npy": "daa613a8088e9d74a0f145f6e5acb03859a5d57af29a3488326176627b010163"
+  },
+  "03-self_patch": {
+   "passes/03-self_patch.json": "eef09d749ffab35efe925527e2f8f711b1663be2898f40813a5aa8b6a5810a9d",
+   "passes/03-self_patch.residuals.npy": "daa613a8088e9d74a0f145f6e5acb03859a5d57af29a3488326176627b010163"
+  },
+  "03-zero_ablate": {
+   "passes/03-zero_ablate.json": "481d42372edb2008957e89b2fbd45cd607857f766eb90e3c51dc1410dbc9c651",
+   "passes/03-zero_ablate.residuals.npy": "daa613a8088e9d74a0f145f6e5acb03859a5d57af29a3488326176627b010163"
+  },
+  "03-zero_steer": {
+   "passes/03-zero_steer.json": "4c42bce879010f2b7899651a736b3fd6fdca2506b3bb5a8b8b8167c7c0ff7850",
+   "passes/03-zero_steer.residuals.npy": "daa613a8088e9d74a0f145f6e5acb03859a5d57af29a3488326176627b010163"
+  },
+  "03-zero_swap": {
+   "passes/03-zero_swap.json": "e79914d838ac47f0e9e87973c7b73d0283cd404d2415fc0847c4ccf9e9d6303e",
+   "passes/03-zero_swap.residuals.npy": "daa613a8088e9d74a0f145f6e5acb03859a5d57af29a3488326176627b010163"
+  },
+  "04-empty": {
+   "passes/04-empty.json": "38862543d9e41dd4cd37f178ae4e04d8e9d66893536b5665cce7518f9d4e33e9",
+   "passes/04-empty.residuals.npy": "b3501fda7d83470cea0b8a7837fe4cbdffcca1f06ac72db13ceda33df3b7e838"
+  },
+  "04-plain": {
+   "passes/04-plain.json": "46cd2482f2cf7dcd040094dae7c7933b3d82c2488eca96dff95f90dd2eb5f5bb",
+   "passes/04-plain.residuals.npy": "b3501fda7d83470cea0b8a7837fe4cbdffcca1f06ac72db13ceda33df3b7e838"
+  },
+  "04-repeat": {
+   "passes/04-repeat.json": "b647a69d1a6564e5b1976d40edd368ba872eec41c682b947a6962a29b91700e1",
+   "passes/04-repeat.residuals.npy": "b3501fda7d83470cea0b8a7837fe4cbdffcca1f06ac72db13ceda33df3b7e838"
+  },
+  "04-self_patch": {
+   "passes/04-self_patch.json": "dff4cb908ae54f3ce4c9d609c838a703ed8a37394610677728fdedde515bd62a",
+   "passes/04-self_patch.residuals.npy": "b3501fda7d83470cea0b8a7837fe4cbdffcca1f06ac72db13ceda33df3b7e838"
+  },
+  "04-zero_ablate": {
+   "passes/04-zero_ablate.json": "499b93bdfc1682a730f03139c76804e347b73020ad5fde6a97f73881c3ae2fd7",
+   "passes/04-zero_ablate.residuals.npy": "b3501fda7d83470cea0b8a7837fe4cbdffcca1f06ac72db13ceda33df3b7e838"
+  },
+  "04-zero_steer": {
+   "passes/04-zero_steer.json": "78edcbf09acd25f4c00f015cc35f7b31f0d7064d001a8f7bea10e55934bf2043",
+   "passes/04-zero_steer.residuals.npy": "b3501fda7d83470cea0b8a7837fe4cbdffcca1f06ac72db13ceda33df3b7e838"
+  },
+  "04-zero_swap": {
+   "passes/04-zero_swap.json": "589ec9c524b4666512c42863cb389d1e2f4f88fa37b76003678b4bf9ea8dd429",
+   "passes/04-zero_swap.residuals.npy": "b3501fda7d83470cea0b8a7837fe4cbdffcca1f06ac72db13ceda33df3b7e838"
+  },
+  "05-empty": {
+   "passes/05-empty.json": "04d3099dae976ba55ee2f036f87abc429668c724d49cfc73809bbadc7e0e6b4f",
+   "passes/05-empty.residuals.npy": "139f29e8167318b992d6874546af5ae4a1ec99d3062a986271794582be39981d"
+  },
+  "05-plain": {
+   "passes/05-plain.json": "65745b3f13700c7c7885b89bc4340542a612397ce6fa6286a37923fb7a601489",
+   "passes/05-plain.residuals.npy": "139f29e8167318b992d6874546af5ae4a1ec99d3062a986271794582be39981d"
+  },
+  "05-repeat": {
+   "passes/05-repeat.json": "b0e3df60f43e7ee972cd2554a25a7a929d859650214e38d5390e3b094e87d4ea",
+   "passes/05-repeat.residuals.npy": "139f29e8167318b992d6874546af5ae4a1ec99d3062a986271794582be39981d"
+  },
+  "05-self_patch": {
+   "passes/05-self_patch.json": "4327fccd825e78bd2a0283c81849266555faf88c10afc74b99b798f2c4b7af14",
+   "passes/05-self_patch.residuals.npy": "139f29e8167318b992d6874546af5ae4a1ec99d3062a986271794582be39981d"
+  },
+  "05-zero_ablate": {
+   "passes/05-zero_ablate.json": "e8b78001c2fcf86d31b1926807e7a367604e4a6dbf8f05c626ee17f053a7a0c6",
+   "passes/05-zero_ablate.residuals.npy": "139f29e8167318b992d6874546af5ae4a1ec99d3062a986271794582be39981d"
+  },
+  "05-zero_steer": {
+   "passes/05-zero_steer.json": "2fa0171c3bd9d8f62030ed2c6a50bf03dcb3b01991b098523983aca0eb155395",
+   "passes/05-zero_steer.residuals.npy": "139f29e8167318b992d6874546af5ae4a1ec99d3062a986271794582be39981d"
+  },
+  "05-zero_swap": {
+   "passes/05-zero_swap.json": "d63ce8df4da8b2bec6731b9e705ec5b7bead8eac15232d9cdce97b4e0ab6d011",
+   "passes/05-zero_swap.residuals.npy": "139f29e8167318b992d6874546af5ae4a1ec99d3062a986271794582be39981d"
+  },
+  "06-ablate1": {
+   "passes/06-ablate1.json": "45bb2b2a35abef6e9050268d75f96b7ff15b4dbbf9d110b72c4b21cc363b98c7",
+   "passes/06-ablate1.residuals.npy": "53756d3549c05ef7fa16c0e4b1b92810d315f71666ed79998a426fc95a0ecdda"
+  },
+  "06-empty": {
+   "passes/06-empty.json": "f4f8f0f79da0ed420744df6080f946346b701f9b57c674535c626deb07e42516",
+   "passes/06-empty.residuals.npy": "a1535805a69175e7ca2bd2a63e8ccec69b6ef241507f8309c168220ca166268b"
+  },
+  "06-plain": {
+   "passes/06-plain.json": "e3fb626ac67055de732f03c3fc9e3faa9d466946c55c85db5d38483b2d546b6a",
+   "passes/06-plain.residuals.npy": "a1535805a69175e7ca2bd2a63e8ccec69b6ef241507f8309c168220ca166268b"
+  },
+  "06-repeat": {
+   "passes/06-repeat.json": "807633e5086646b13fa89a141d5734d5901490ac017dc4efefb47ff5e296ed17",
+   "passes/06-repeat.residuals.npy": "a1535805a69175e7ca2bd2a63e8ccec69b6ef241507f8309c168220ca166268b"
+  },
+  "06-self_patch": {
+   "passes/06-self_patch.json": "78ed44398ac8a77dcba2710b9d55d0b6753069b0d397b4eb5ef0cf0d4913fb30",
+   "passes/06-self_patch.residuals.npy": "a1535805a69175e7ca2bd2a63e8ccec69b6ef241507f8309c168220ca166268b"
+  },
+  "06-swap1": {
+   "passes/06-swap1.json": "ebb1aebe5dcb121bf8aa74a4532c05319db5564b34b1005362a7caa45f3198fc",
+   "passes/06-swap1.residuals.npy": "af6b61bc2b061b4291dd487a3fd76bc212028e4c4e5fe9b0834f70e1f626e03e"
+  },
+  "06-zero_ablate": {
+   "passes/06-zero_ablate.json": "33f984c378939fb7f771cb57a9da198802cdd7df18a647af305a8bc0a77a2d22",
+   "passes/06-zero_ablate.residuals.npy": "a1535805a69175e7ca2bd2a63e8ccec69b6ef241507f8309c168220ca166268b"
+  },
+  "06-zero_steer": {
+   "passes/06-zero_steer.json": "5a0fe1aec046531c0d97852de61b0759677f107c4475ae1d8de4b4534936dfe0",
+   "passes/06-zero_steer.residuals.npy": "a1535805a69175e7ca2bd2a63e8ccec69b6ef241507f8309c168220ca166268b"
+  },
+  "06-zero_swap": {
+   "passes/06-zero_swap.json": "b7b82c1f9f3cd0eaf89641a6f5f8d446ce4b08379f3a800af33282a72a03f731",
+   "passes/06-zero_swap.residuals.npy": "a1535805a69175e7ca2bd2a63e8ccec69b6ef241507f8309c168220ca166268b"
+  },
+  "07-ablate1": {
+   "passes/07-ablate1.json": "974dc08decdd886d00e981374ba2eeabdc13b1ccb1f2da88475b83ea9fafe918",
+   "passes/07-ablate1.residuals.npy": "986a03a7f43547625d3e091203ed8f097d2be5fbd798a861ba02fa54fae8eab6"
+  },
+  "07-empty": {
+   "passes/07-empty.json": "60e74ff479f146268ad6c01f0469e481d5a1c8a3309e201ed573cd04998c3d15",
+   "passes/07-empty.residuals.npy": "d7b3984c42611e4960319d4fb6963597fba330d93381cf02b223696e0f33dc9d"
+  },
+  "07-plain": {
+   "passes/07-plain.json": "49c4303f50217d64be861f7e4057d7c9a42626086391364eb183ae37fd5bdd28",
+   "passes/07-plain.residuals.npy": "d7b3984c42611e4960319d4fb6963597fba330d93381cf02b223696e0f33dc9d"
+  },
+  "07-repeat": {
+   "passes/07-repeat.json": "cd520db996bcd63da2a62345db71b931df38bd88d211f9dd09492859e286061f",
+   "passes/07-repeat.residuals.npy": "d7b3984c42611e4960319d4fb6963597fba330d93381cf02b223696e0f33dc9d"
+  },
+  "07-self_patch": {
+   "passes/07-self_patch.json": "ecc62afc3676b4c2ef19161c46fffbb86b0e39c2181dcab69751b2e46ab390e9",
+   "passes/07-self_patch.residuals.npy": "d7b3984c42611e4960319d4fb6963597fba330d93381cf02b223696e0f33dc9d"
+  },
+  "07-swap1": {
+   "passes/07-swap1.json": "7bb9af7e9777c1ca9ee8156aa8ad98e7b507c2f39558c9b484cdd933d5130e60",
+   "passes/07-swap1.residuals.npy": "f1f25993edf3bcb9cc39a14042ab68aaf21a275683e18568aebe0c5227996bec"
+  },
+  "07-zero_ablate": {
+   "passes/07-zero_ablate.json": "d86eb29c648e0e3b8ceb9a543c96b296c21f7088c7245ec2971f3a9331dee72b",
+   "passes/07-zero_ablate.residuals.npy": "d7b3984c42611e4960319d4fb6963597fba330d93381cf02b223696e0f33dc9d"
+  },
+  "07-zero_steer": {
+   "passes/07-zero_steer.json": "a09505b8d54479382e4500df6b49c8b1f08e5b3a2fd13000bd40caa66abacfab",
+   "passes/07-zero_steer.residuals.npy": "d7b3984c42611e4960319d4fb6963597fba330d93381cf02b223696e0f33dc9d"
+  },
+  "07-zero_swap": {
+   "passes/07-zero_swap.json": "57f652903d0580e8a10079c70e080d485385a1e944e637383c401f6c63f1bf8b",
+   "passes/07-zero_swap.residuals.npy": "d7b3984c42611e4960319d4fb6963597fba330d93381cf02b223696e0f33dc9d"
+  },
+  "08-empty": {
+   "passes/08-empty.json": "00b9d2f99c0d1f10ea73fe8da5f57148cb88a54bf4efd000a910ee5d5b38f10f",
+   "passes/08-empty.residuals.npy": "977277475a24a01dc8af1f7cbcfb7c9bcb63db8a5dabcf16f434ee4eb9b6302c"
+  },
+  "08-plain": {
+   "passes/08-plain.json": "2c25a2cebd42c298c1e221b70a4639e7a3e19846c3a20eba8597a36dd0f96c13",
+   "passes/08-plain.residuals.npy": "977277475a24a01dc8af1f7cbcfb7c9bcb63db8a5dabcf16f434ee4eb9b6302c"
+  },
+  "08-repeat": {
+   "passes/08-repeat.json": "ec82d60d0f31108bbe2bf9e767f92dd64a509e821bdd608a9d8c8f1909384057",
+   "passes/08-repeat.residuals.npy": "977277475a24a01dc8af1f7cbcfb7c9bcb63db8a5dabcf16f434ee4eb9b6302c"
+  },
+  "08-self_patch": {
+   "passes/08-self_patch.json": "39728d09017130cafd974c7e5ac40e0411acfc7d1c33a328339ad2b5e7978f02",
+   "passes/08-self_patch.residuals.npy": "977277475a24a01dc8af1f7cbcfb7c9bcb63db8a5dabcf16f434ee4eb9b6302c"
+  },
+  "08-zero_ablate": {
+   "passes/08-zero_ablate.json": "7a073285d7559aee1974fa0e2b09a0606629e814d1219047aa0c80bba43b29d0",
+   "passes/08-zero_ablate.residuals.npy": "977277475a24a01dc8af1f7cbcfb7c9bcb63db8a5dabcf16f434ee4eb9b6302c"
+  },
+  "08-zero_steer": {
+   "passes/08-zero_steer.json": "10d84edd2be423283064571950f5dda948ffbc30a8102479394aaed954aef526",
+   "passes/08-zero_steer.residuals.npy": "977277475a24a01dc8af1f7cbcfb7c9bcb63db8a5dabcf16f434ee4eb9b6302c"
+  },
+  "08-zero_swap": {
+   "passes/08-zero_swap.json": "43304ab3a30b0a168d90044a79a5b96f55d477ea3251639d6821d2605a763506",
+   "passes/08-zero_swap.residuals.npy": "977277475a24a01dc8af1f7cbcfb7c9bcb63db8a5dabcf16f434ee4eb9b6302c"
+  },
+  "09-ablate1": {
+   "passes/09-ablate1.json": "079470d25d970d7282cede2a0283a3d04162957544b6e8ce62cec1ff2eb926c0",
+   "passes/09-ablate1.residuals.npy": "ebc40734bbdbb15380c9b9e7574e387ad34aa2e7ff289439276c021a23266ffa"
+  },
+  "09-empty": {
+   "passes/09-empty.json": "680d51493c649940ef92b3356b37735052ca68f1e33f0be118aa16997e7ed786",
+   "passes/09-empty.residuals.npy": "e0582bcc5a1066271c3c1165f7688549bcb592042f196746fe6703dd2a09a412"
+  },
+  "09-plain": {
+   "passes/09-plain.json": "188f899d1d9827ddcda7ab761702cb3ef4a1745d0b7d9c6c0b008cfee5d192cd",
+   "passes/09-plain.residuals.npy": "e0582bcc5a1066271c3c1165f7688549bcb592042f196746fe6703dd2a09a412"
+  },
+  "09-repeat": {
+   "passes/09-repeat.json": "1d31c5927e8c6215fcd4e23985384f33ace7e0b265c0de456e1af9d7527d0b06",
+   "passes/09-repeat.residuals.npy": "e0582bcc5a1066271c3c1165f7688549bcb592042f196746fe6703dd2a09a412"
+  },
+  "09-self_patch": {
+   "passes/09-self_patch.json": "d4a314d186b47f5447aca7d571566eeaaa13cf880864594ad58a7b65169c1909",
+   "passes/09-self_patch.residuals.npy": "e0582bcc5a1066271c3c1165f7688549bcb592042f196746fe6703dd2a09a412"
+  },
+  "09-swap1": {
+   "passes/09-swap1.json": "649eb16db58e23198519ffdafb64db5438be11040f96388723ce57a816051e79",
+   "passes/09-swap1.residuals.npy": "9d20f76e296f99b7c10338a2431aecf57b4403d9919844f2461ed949847e8481"
+  },
+  "09-zero_ablate": {
+   "passes/09-zero_ablate.json": "09b45e015a89e4597598a7a49dc1415b5dc40418cbf52312d907a5a081d6ff9b",
+   "passes/09-zero_ablate.residuals.npy": "e0582bcc5a1066271c3c1165f7688549bcb592042f196746fe6703dd2a09a412"
+  },
+  "09-zero_steer": {
+   "passes/09-zero_steer.json": "d65802b9d1c5e830db2536b0604b895fb5f26bd221fe4e6242d29d742ddd432d",
+   "passes/09-zero_steer.residuals.npy": "e0582bcc5a1066271c3c1165f7688549bcb592042f196746fe6703dd2a09a412"
+  },
+  "09-zero_swap": {
+   "passes/09-zero_swap.json": "6ea13ec112d0d1a391c7c51448f54a8876a5563305eb360062be2bd5f582b506",
+   "passes/09-zero_swap.residuals.npy": "e0582bcc5a1066271c3c1165f7688549bcb592042f196746fe6703dd2a09a412"
+  },
+  "10-empty": {
+   "passes/10-empty.json": "ab9609d357fef115869ed620233bbc5eb7d4b0c9948a925baa125aaf2636bacc",
+   "passes/10-empty.residuals.npy": "bcd36e597f15cc1e6bbd291277c0decb568ae312c59f78a8322a24740b99122e"
+  },
+  "10-plain": {
+   "passes/10-plain.json": "60eaa2bb5fbf1347c15eca73014db8abffcc854c5f03448a9b51990e8860d429",
+   "passes/10-plain.residuals.npy": "bcd36e597f15cc1e6bbd291277c0decb568ae312c59f78a8322a24740b99122e"
+  },
+  "10-repeat": {
+   "passes/10-repeat.json": "b4d0e3161e0a23c938fdb13efdbcad56b5f602d965b2b3061f4fc028d22ae46e",
+   "passes/10-repeat.residuals.npy": "bcd36e597f15cc1e6bbd291277c0decb568ae312c59f78a8322a24740b99122e"
+  },
+  "10-self_patch": {
+   "passes/10-self_patch.json": "20774b653b5769f9ae4a6070eac689faebce662b804674eacae5fce62825cccf",
+   "passes/10-self_patch.residuals.npy": "bcd36e597f15cc1e6bbd291277c0decb568ae312c59f78a8322a24740b99122e"
+  },
+  "10-zero_ablate": {
+   "passes/10-zero_ablate.json": "f50b1cec7085dafbb6961aaffaae33511987cff37404e0d812a01839c8ff87a1",
+   "passes/10-zero_ablate.residuals.npy": "bcd36e597f15cc1e6bbd291277c0decb568ae312c59f78a8322a24740b99122e"
+  },
+  "10-zero_steer": {
+   "passes/10-zero_steer.json": "06a6ab106ff4891dc637a589d64b4de492fa583d321d33f15b34c20bd0d808b8",
+   "passes/10-zero_steer.residuals.npy": "bcd36e597f15cc1e6bbd291277c0decb568ae312c59f78a8322a24740b99122e"
+  },
+  "10-zero_swap": {
+   "passes/10-zero_swap.json": "c3d93554513091b29149f585fec7bddc3bce5da7120485d8d8efac8e5da3bef6",
+   "passes/10-zero_swap.residuals.npy": "bcd36e597f15cc1e6bbd291277c0decb568ae312c59f78a8322a24740b99122e"
+  },
+  "11-empty": {
+   "passes/11-empty.json": "49b5fbac3afb7375c04b03f96f538fa07970a98b24a14bd0ed9f5a442cc3a926",
+   "passes/11-empty.residuals.npy": "19070e146ddc47c0d5f750f6c3b50ec9609ee478654fa6da26f21e81a9ba9a17"
+  },
+  "11-plain": {
+   "passes/11-plain.json": "4461c5a6835e64b52d8d55ba2c231659c349f4ac8598c83d07019d487bf8546d",
+   "passes/11-plain.residuals.npy": "19070e146ddc47c0d5f750f6c3b50ec9609ee478654fa6da26f21e81a9ba9a17"
+  },
+  "11-repeat": {
+   "passes/11-repeat.json": "582466fc3c6747bd4936233d3beb1c78ea20d44c5b6aa00b2e3c401b8e7eda87",
+   "passes/11-repeat.residuals.npy": "19070e146ddc47c0d5f750f6c3b50ec9609ee478654fa6da26f21e81a9ba9a17"
+  },
+  "11-self_patch": {
+   "passes/11-self_patch.json": "d37bd0da3fe75fc7cd597c0574b64211d23c27cf5aa80713045d49183ab66213",
+   "passes/11-self_patch.residuals.npy": "19070e146ddc47c0d5f750f6c3b50ec9609ee478654fa6da26f21e81a9ba9a17"
+  },
+  "11-zero_ablate": {
+   "passes/11-zero_ablate.json": "4c8757ae9f3d58c8349f15dcb56bf4d70839084e2fbc6443dc01f249fcc4c2e5",
+   "passes/11-zero_ablate.residuals.npy": "19070e146ddc47c0d5f750f6c3b50ec9609ee478654fa6da26f21e81a9ba9a17"
+  },
+  "11-zero_steer": {
+   "passes/11-zero_steer.json": "faf01f498b0a76b41ded70acea5709d007c215c0b964471398f968268fd5315b",
+   "passes/11-zero_steer.residuals.npy": "19070e146ddc47c0d5f750f6c3b50ec9609ee478654fa6da26f21e81a9ba9a17"
+  },
+  "11-zero_swap": {
+   "passes/11-zero_swap.json": "9123812bb9b4c08a3be8bba381ee78fdf9c58b554635228dc119944f3feec28f",
+   "passes/11-zero_swap.residuals.npy": "19070e146ddc47c0d5f750f6c3b50ec9609ee478654fa6da26f21e81a9ba9a17"
+  },
+  "12-ablate1": {
+   "passes/12-ablate1.json": "e4f537b889444ae2a97173202f628ce2b0172fb7a985d01d3a183a38d003de22",
+   "passes/12-ablate1.residuals.npy": "5a8b247641cd4c7497147784389fa2dcd6cb3376a54f7d2f276941dbe4c6f1f8"
+  },
+  "12-empty": {
+   "passes/12-empty.json": "3aab9cd21e9ee7e7bcfd09b1bb88a919661eb1626a2a7b69aa8ea6b4c7bb7bb9",
+   "passes/12-empty.residuals.npy": "1a0d998559888bd9eb19defd8d579c9315134db81c6753408aa9956d39636dbe"
+  },
+  "12-plain": {
+   "passes/12-plain.json": "c91e836e3d9623f7ae742c97768096dbdd1f38193a768accdba1ca7c51dedf9c",
+   "passes/12-plain.residuals.npy": "1a0d998559888bd9eb19defd8d579c9315134db81c6753408aa9956d39636dbe"
+  },
+  "12-repeat": {
+   "passes/12-repeat.json": "fe4e6a95903011f45576ea7d93e7069a70532f3de5521f72ec5e00fac32cf179",
+   "passes/12-repeat.residuals.npy": "1a0d998559888bd9eb19defd8d579c9315134db81c6753408aa9956d39636dbe"
+  },
+  "12-self_patch": {
+   "passes/12-self_patch.json": "49c43145ee38e0e50a8ab150b2c375094e2be510761c604904e53b75542591da",
+   "passes/12-self_patch.residuals.npy": "1a0d998559888bd9eb19defd8d579c9315134db81c6753408aa9956d39636dbe"
+  },
+  "12-suffix_isolation": {
+   "passes/12-suffix_isolation.json": "8e4586c25bf8219c90f9df222d76f7cc4a4b2ce48d5ed30e8c16285fdfa275d0",
+   "passes/12-suffix_isolation.residuals.npy": "1a0d998559888bd9eb19defd8d579c9315134db81c6753408aa9956d39636dbe"
+  },
+  "12-swap1": {
+   "passes/12-swap1.json": "131bea1e19c7317a5397d0f698a72357b430518069e463d37875c807eaf7e48b",
+   "passes/12-swap1.residuals.npy": "d185a99485001bf7198a803b4611274573941d12d99596cc18107f0cf1824ee7"
+  },
+  "12-zero_ablate": {
+   "passes/12-zero_ablate.json": "bd931196fb320ca242d90dae1145bbe6b66dd5e5ee21b524781767b779b219c3",
+   "passes/12-zero_ablate.residuals.npy": "1a0d998559888bd9eb19defd8d579c9315134db81c6753408aa9956d39636dbe"
+  },
+  "12-zero_steer": {
+   "passes/12-zero_steer.json": "ad5abd0e8e6da6f7b21233c062b0e07b8434772ca53b49764fb69f17b21cbb35",
+   "passes/12-zero_steer.residuals.npy": "1a0d998559888bd9eb19defd8d579c9315134db81c6753408aa9956d39636dbe"
+  },
+  "12-zero_swap": {
+   "passes/12-zero_swap.json": "145710def806c6978eea44630a7c61780c146c10d787dd8a858d93fcbf4f9467",
+   "passes/12-zero_swap.residuals.npy": "1a0d998559888bd9eb19defd8d579c9315134db81c6753408aa9956d39636dbe"
+  },
+  "13-ablate1": {
+   "passes/13-ablate1.json": "7d80857984f7cafb41d6bfc507801cd863807c4aef5ae820bd71226ebd1ade70",
+   "passes/13-ablate1.residuals.npy": "f2059966422835dd351ce7f35cc3199adaf665cb502c29a2dcd69150b3016a89"
+  },
+  "13-empty": {
+   "passes/13-empty.json": "a97e59b9d680d4980c6ebf70905ed62e0a3c9f8b0aeafc025a6f079d6dbefd6c",
+   "passes/13-empty.residuals.npy": "f0f7d6a32c7b38401f0f02850b2ef729c3ca07beb8b240f2a16ca9107a7c9e61"
+  },
+  "13-plain": {
+   "passes/13-plain.json": "b87bd3da410432c94466124e6e6935da12e1934ea747801da339ca70d7729c26",
+   "passes/13-plain.residuals.npy": "f0f7d6a32c7b38401f0f02850b2ef729c3ca07beb8b240f2a16ca9107a7c9e61"
+  },
+  "13-repeat": {
+   "passes/13-repeat.json": "b6eb693e26d31b6ddb2e51d23a7beb680efa7e38eeabcecebd9da1edaedef076",
+   "passes/13-repeat.residuals.npy": "f0f7d6a32c7b38401f0f02850b2ef729c3ca07beb8b240f2a16ca9107a7c9e61"
+  },
+  "13-self_patch": {
+   "passes/13-self_patch.json": "1cd364457c5eb62c2f2eb9d25f501cbc2b3f258751e753c2938e2eb788bef17c",
+   "passes/13-self_patch.residuals.npy": "f0f7d6a32c7b38401f0f02850b2ef729c3ca07beb8b240f2a16ca9107a7c9e61"
+  },
+  "13-swap1": {
+   "passes/13-swap1.json": "b4b4a18154f86712498f3086b78afa1bcea001f0eb247211ef14d4ac635f33f6",
+   "passes/13-swap1.residuals.npy": "d2c16635499e7279caa6269e4ebe12c9a9c1c1cb00f1f0eba9aef057b91367c5"
+  },
+  "13-zero_ablate": {
+   "passes/13-zero_ablate.json": "32bfdedb64d8319d03b1e622cd39fb65da1c1b0eda2687321eab6000cc6ecafe",
+   "passes/13-zero_ablate.residuals.npy": "f0f7d6a32c7b38401f0f02850b2ef729c3ca07beb8b240f2a16ca9107a7c9e61"
+  },
+  "13-zero_steer": {
+   "passes/13-zero_steer.json": "0cb2fb1696815c4c4596945680b49976000e93614bc8eafe966b7c15d7074f83",
+   "passes/13-zero_steer.residuals.npy": "f0f7d6a32c7b38401f0f02850b2ef729c3ca07beb8b240f2a16ca9107a7c9e61"
+  },
+  "13-zero_swap": {
+   "passes/13-zero_swap.json": "c3fd3c6d91ec314b4eb7e268a4f23971c95bdb95de2f2e59022f49d02d02d149",
+   "passes/13-zero_swap.residuals.npy": "f0f7d6a32c7b38401f0f02850b2ef729c3ca07beb8b240f2a16ca9107a7c9e61"
+  },
+  "14-empty": {
+   "passes/14-empty.json": "f01fa0199930c336c4609832a7de92e478380204f8bb1a750619bd5510eab8f3",
+   "passes/14-empty.residuals.npy": "5188f256de653daeb1a53aefeb97564af139826d6d18d24256b35972981ea4bb"
+  },
+  "14-plain": {
+   "passes/14-plain.json": "865d6537fb83590aee1b8a2cc20e7d265616097ba862cf8698fab01a87ebd233",
+   "passes/14-plain.residuals.npy": "5188f256de653daeb1a53aefeb97564af139826d6d18d24256b35972981ea4bb"
+  },
+  "14-repeat": {
+   "passes/14-repeat.json": "d1f6010f285aa16b5bbe43fb8b4335571128a089dd9f9c3495f6e7f46c836b14",
+   "passes/14-repeat.residuals.npy": "5188f256de653daeb1a53aefeb97564af139826d6d18d24256b35972981ea4bb"
+  },
+  "14-self_patch": {
+   "passes/14-self_patch.json": "aaa5fdb0c662e9180bd2fcbd439a64f393bb7b57153c2f8945c0fea0813f69f4",
+   "passes/14-self_patch.residuals.npy": "5188f256de653daeb1a53aefeb97564af139826d6d18d24256b35972981ea4bb"
+  },
+  "14-zero_ablate": {
+   "passes/14-zero_ablate.json": "db9d158c61cfc04681da6e16f05acfbb84b5376f40220f6b1bc4c0edab4afaab",
+   "passes/14-zero_ablate.residuals.npy": "5188f256de653daeb1a53aefeb97564af139826d6d18d24256b35972981ea4bb"
+  },
+  "14-zero_steer": {
+   "passes/14-zero_steer.json": "bcd5ed088ae6735e75d1b1dd554dd938890a17adfbcb8f9e703dba1ada7695fa",
+   "passes/14-zero_steer.residuals.npy": "5188f256de653daeb1a53aefeb97564af139826d6d18d24256b35972981ea4bb"
+  },
+  "14-zero_swap": {
+   "passes/14-zero_swap.json": "03f6605073ae53f52a601bccd21dce55a879acfeb183ebf811c477a7fbc2e776",
+   "passes/14-zero_swap.residuals.npy": "5188f256de653daeb1a53aefeb97564af139826d6d18d24256b35972981ea4bb"
+  },
+  "15-ablate1": {
+   "passes/15-ablate1.json": "8f8c112ff51c9b5dbf814dd5460be0793115fe2b6e2282b4199af9e5e7bc8ade",
+   "passes/15-ablate1.residuals.npy": "84b25a9e63682118878aaafcf1d72f27fb5001d04d3907b57982cf5541cddddd"
+  },
+  "15-empty": {
+   "passes/15-empty.json": "c703daa4609b5b774115d37166850187907e3eb26b5d607db290df0d2a63ff9d",
+   "passes/15-empty.residuals.npy": "276bcf7e354477724a6d274a224e342e29d42afbed26ace88a0cb5b52e62657e"
+  },
+  "15-plain": {
+   "passes/15-plain.json": "8ad05fbe7bcbbc17a8284bc9afc69a68e1674d2bb567b56c7626e0a90ba14434",
+   "passes/15-plain.residuals.npy": "276bcf7e354477724a6d274a224e342e29d42afbed26ace88a0cb5b52e62657e"
+  },
+  "15-repeat": {
+   "passes/15-repeat.json": "16d41c6491633ea4cccd4b1387ef5a84322f7e30ed69817dfa807d349138d36f",
+   "passes/15-repeat.residuals.npy": "276bcf7e354477724a6d274a224e342e29d42afbed26ace88a0cb5b52e62657e"
+  },
+  "15-self_patch": {
+   "passes/15-self_patch.json": "595bb5bf5f5d4b0a52ce8cd21a07f215bcfba45aaa0f85ea254576cbce952738",
+   "passes/15-self_patch.residuals.npy": "276bcf7e354477724a6d274a224e342e29d42afbed26ace88a0cb5b52e62657e"
+  },
+  "15-swap1": {
+   "passes/15-swap1.json": "e9ee5665a9638e068cc8a893aba7abd3b007e57834cb256161d6272eb86dbf1d",
+   "passes/15-swap1.residuals.npy": "f385deaad4f0e194c2be9b02de41dc15bc39b48941b2dcd8c5a7fae8eb5c9183"
+  },
+  "15-zero_ablate": {
+   "passes/15-zero_ablate.json": "4eb52eec6798d22d91fb393bffb106230c2fe8e36a7c17459dbd1cd80a3837f9",
+   "passes/15-zero_ablate.residuals.npy": "276bcf7e354477724a6d274a224e342e29d42afbed26ace88a0cb5b52e62657e"
+  },
+  "15-zero_steer": {
+   "passes/15-zero_steer.json": "391d6d9e1a350269fdd26a918eaae81f010abe0b9b98b51fb0aaba58b9dfb4fc",
+   "passes/15-zero_steer.residuals.npy": "276bcf7e354477724a6d274a224e342e29d42afbed26ace88a0cb5b52e62657e"
+  },
+  "15-zero_swap": {
+   "passes/15-zero_swap.json": "a83b22b88b2dc1be0616ab9da2ddfff4d4468162f99949dc2b300923fd9b224e",
+   "passes/15-zero_swap.residuals.npy": "276bcf7e354477724a6d274a224e342e29d42afbed26ace88a0cb5b52e62657e"
+  },
+  "16-empty": {
+   "passes/16-empty.json": "776e6c1eedb80f9cb3685615932edcf42004f7199977bc7c4e682251bf2eee84",
+   "passes/16-empty.residuals.npy": "afeb0ec11dffae072f2001d614bbab895e05fe40d963735146d2f63be3d74418"
+  },
+  "16-plain": {
+   "passes/16-plain.json": "01e99d8147119557a89f02fd3532f95c0c1c52aea698ba02c4b5efe525050b55",
+   "passes/16-plain.residuals.npy": "afeb0ec11dffae072f2001d614bbab895e05fe40d963735146d2f63be3d74418"
+  },
+  "16-repeat": {
+   "passes/16-repeat.json": "1a112cf7b324b6a33bfaa9c7d9f30aeefe5b5d9d3c7130a36192cbaeef7eee39",
+   "passes/16-repeat.residuals.npy": "afeb0ec11dffae072f2001d614bbab895e05fe40d963735146d2f63be3d74418"
+  },
+  "16-self_patch": {
+   "passes/16-self_patch.json": "d8dd9ea067a088f7b2eee450c45deb6ea731d732857ea4a41e4a21a1b7c019a4",
+   "passes/16-self_patch.residuals.npy": "afeb0ec11dffae072f2001d614bbab895e05fe40d963735146d2f63be3d74418"
+  },
+  "16-zero_ablate": {
+   "passes/16-zero_ablate.json": "24dfa48941eeaac2a0e42965ceabf8fdec493773ecc5b865acd79f51ef17901c",
+   "passes/16-zero_ablate.residuals.npy": "afeb0ec11dffae072f2001d614bbab895e05fe40d963735146d2f63be3d74418"
+  },
+  "16-zero_steer": {
+   "passes/16-zero_steer.json": "9d921e2f32d2157a4cb867b36c981f19b2aeb97c6334fb0e3933bde1b0c2a867",
+   "passes/16-zero_steer.residuals.npy": "afeb0ec11dffae072f2001d614bbab895e05fe40d963735146d2f63be3d74418"
+  },
+  "16-zero_swap": {
+   "passes/16-zero_swap.json": "80e1c4abe373713a51891f521ce2749a60b83b3342e390faa51cc1ec900bc1e8",
+   "passes/16-zero_swap.residuals.npy": "afeb0ec11dffae072f2001d614bbab895e05fe40d963735146d2f63be3d74418"
+  },
+  "17-empty": {
+   "passes/17-empty.json": "f6c03a15dcdbd905e8e6f80ca1617f948f32d553f4e12f8bdc8c7b2af514cd53",
+   "passes/17-empty.residuals.npy": "e9dcc05f1efef3588314329a7772f84aef7ce4ae6c4a5683c6027111ab560ebd"
+  },
+  "17-plain": {
+   "passes/17-plain.json": "8e13b0b0e5f2d76ff6b8f52cd5c9c9bb314f3f16907097736eda1c910ba88cbd",
+   "passes/17-plain.residuals.npy": "e9dcc05f1efef3588314329a7772f84aef7ce4ae6c4a5683c6027111ab560ebd"
+  },
+  "17-repeat": {
+   "passes/17-repeat.json": "bb1069f07c952f51c4f5fb5ceb6dc73371a6de1e7c62290d0736b1a9978eb9fb",
+   "passes/17-repeat.residuals.npy": "e9dcc05f1efef3588314329a7772f84aef7ce4ae6c4a5683c6027111ab560ebd"
+  },
+  "17-self_patch": {
+   "passes/17-self_patch.json": "9b6a432c87dc34bb7ebe94e09d8048bddc9bebc568f57f4cc2009d7657d3151c",
+   "passes/17-self_patch.residuals.npy": "e9dcc05f1efef3588314329a7772f84aef7ce4ae6c4a5683c6027111ab560ebd"
+  },
+  "17-zero_ablate": {
+   "passes/17-zero_ablate.json": "f366d6929ed929d1e4a4d33aec6dfa6857c0d4755e9d31d382baa6198277842d",
+   "passes/17-zero_ablate.residuals.npy": "e9dcc05f1efef3588314329a7772f84aef7ce4ae6c4a5683c6027111ab560ebd"
+  },
+  "17-zero_steer": {
+   "passes/17-zero_steer.json": "711abb5b2bf4400c571de91fc84fd24e2f2c6525c9572c033f5d39bf3a59539a",
+   "passes/17-zero_steer.residuals.npy": "e9dcc05f1efef3588314329a7772f84aef7ce4ae6c4a5683c6027111ab560ebd"
+  },
+  "17-zero_swap": {
+   "passes/17-zero_swap.json": "92c31dd508dabdf9bb80fa0f1807cdba1bb2ad2c56b0a3f88e8811cb2ec42d2b",
+   "passes/17-zero_swap.residuals.npy": "e9dcc05f1efef3588314329a7772f84aef7ce4ae6c4a5683c6027111ab560ebd"
+  },
+  "18-ablate1": {
+   "passes/18-ablate1.json": "e7443127217e65e9afbe0d9f77a10318365a3813baf82c4b80f30719a961eb50",
+   "passes/18-ablate1.residuals.npy": "635059f0894f076ddbde1c02ff815b5e173364a66efaa0e567cf22b5a959e283"
+  },
+  "18-empty": {
+   "passes/18-empty.json": "e488bc70444c1432ab4809cd8712b90d7d961bc456cb1a162888e2915c466fa3",
+   "passes/18-empty.residuals.npy": "cd6e12943d6fae5211f532f3bc220012f57e4810a7bd481f115c149bc681c25a"
+  },
+  "18-plain": {
+   "passes/18-plain.json": "bba9433b7e8368c6ccf9e39b15fb685414ca1290a9c5c71944192486a3662a0b",
+   "passes/18-plain.residuals.npy": "cd6e12943d6fae5211f532f3bc220012f57e4810a7bd481f115c149bc681c25a"
+  },
+  "18-repeat": {
+   "passes/18-repeat.json": "1e1c3f02ca63dc9ace3242a877ff42ef6658d55f4301a0d78b138c568c1707d6",
+   "passes/18-repeat.residuals.npy": "cd6e12943d6fae5211f532f3bc220012f57e4810a7bd481f115c149bc681c25a"
+  },
+  "18-self_patch": {
+   "passes/18-self_patch.json": "ff93c5834fd87d4e92254cebb7ec8eb467f0f53993f271c9560e0b8d85c19b8e",
+   "passes/18-self_patch.residuals.npy": "cd6e12943d6fae5211f532f3bc220012f57e4810a7bd481f115c149bc681c25a"
+  },
+  "18-swap1": {
+   "passes/18-swap1.json": "0873618dfaaedd22f8fc4b302c9c6b421abe8caf127982c61d5fa756b5f70146",
+   "passes/18-swap1.residuals.npy": "2413f589f1f990e2f7b1bc5444a8f8938ad1f46ea9eda5e4a75e54887b548efc"
+  },
+  "18-zero_ablate": {
+   "passes/18-zero_ablate.json": "1a29347e2dd3ea84a7d3db9c016f14b32f7dfbd7f14d8421ee2a7b7cebcbd010",
+   "passes/18-zero_ablate.residuals.npy": "cd6e12943d6fae5211f532f3bc220012f57e4810a7bd481f115c149bc681c25a"
+  },
+  "18-zero_steer": {
+   "passes/18-zero_steer.json": "0d0c7c6a28ef07bcf29faa36ca956a416d38c2e8a92c7fc002eb8fbeb4951eb9",
+   "passes/18-zero_steer.residuals.npy": "cd6e12943d6fae5211f532f3bc220012f57e4810a7bd481f115c149bc681c25a"
+  },
+  "18-zero_swap": {
+   "passes/18-zero_swap.json": "9d42291ace6363848edbf5f7a1695af988a834ae51af8d593919aca7c4d7f803",
+   "passes/18-zero_swap.residuals.npy": "cd6e12943d6fae5211f532f3bc220012f57e4810a7bd481f115c149bc681c25a"
+  },
+  "19-empty": {
+   "passes/19-empty.json": "fb4784ed91c303e38f972e2fa5c65ed55400a5855dc5a07d89fcb4b6da1b7aa1",
+   "passes/19-empty.residuals.npy": "38f5e5151a991a067df083893df04c1c77ba9a5ba7d17c7913519e38a72879db"
+  },
+  "19-plain": {
+   "passes/19-plain.json": "ac863168bf98266a59eea471566ae3cb29e11ca9e529bfc2432169b274f4bf96",
+   "passes/19-plain.residuals.npy": "38f5e5151a991a067df083893df04c1c77ba9a5ba7d17c7913519e38a72879db"
+  },
+  "19-repeat": {
+   "passes/19-repeat.json": "2775e56e472462db969799cbc3ca466b15b82e568919f08f02a91e85097117f9",
+   "passes/19-repeat.residuals.npy": "38f5e5151a991a067df083893df04c1c77ba9a5ba7d17c7913519e38a72879db"
+  },
+  "19-self_patch": {
+   "passes/19-self_patch.json": "8d5b3f01577e3687359d2b7e9253cfa30571dcea376bcc21f572cbbb06d44ebf",
+   "passes/19-self_patch.residuals.npy": "38f5e5151a991a067df083893df04c1c77ba9a5ba7d17c7913519e38a72879db"
+  },
+  "19-zero_ablate": {
+   "passes/19-zero_ablate.json": "0769225da9f854f1da6ed43ea9f58df08daf2317fcd43375c23fd5a1391803b4",
+   "passes/19-zero_ablate.residuals.npy": "38f5e5151a991a067df083893df04c1c77ba9a5ba7d17c7913519e38a72879db"
+  },
+  "19-zero_steer": {
+   "passes/19-zero_steer.json": "9af67391b34db580c41d6d54cc68f3d906345734c2e984ea3a738d43d2a94c0d",
+   "passes/19-zero_steer.residuals.npy": "38f5e5151a991a067df083893df04c1c77ba9a5ba7d17c7913519e38a72879db"
+  },
+  "19-zero_swap": {
+   "passes/19-zero_swap.json": "0c6860b07037780dee6b7dba0862bebbd9e3536b024874e996f7ce0209c013e7",
+   "passes/19-zero_swap.residuals.npy": "38f5e5151a991a067df083893df04c1c77ba9a5ba7d17c7913519e38a72879db"
+  }
+ },
+ "encoder_sensitivity": {
+  "pair": [
+   1,
+   6
+  ],
+  "passed": true
+ },
+ "identity": "e146ec63bc32973bb217de6066b57fe1c972bf8cf79a369b19d8efca617b2f38",
+ "phase": "instrumented"
+}

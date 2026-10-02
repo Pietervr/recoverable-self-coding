@@ -1,0 +1,80 @@
+{"instrumented": 158, "counters": {"started": 174, "completed": 173, "failed": 1, "passes": 174}}
+{"validator_pass": false, "failures": 42}
+{
+ "outcome": "STOPPED",
+ "session": "36854e9651f8",
+ "report_current": false,
+ "report_problems": [
+  "the report worker of this session did not exit 0",
+  "a report stop in this session"
+ ],
+ "validator_pass": false,
+ "admissible": false,
+ "terminal": true,
+ "counters": {
+  "ok": true,
+  "detail": []
+ },
+ "seconds_total": 2057.9124480187497,
+ "carry_s": 1808.73,
+ "stage_a_seconds": 249.1824480187497,
+ "task_memory_aggregate": 33317693192,
+ "missing_measurements": [],
+ "peaks": {
+  "task_lifetime_sum": 33317693192,
+  "phase_aggregates": {
+   "36854e9651f8:gates:1": 449679800,
+   "36854e9651f8:instrumented:2": 33317693192,
+   "36854e9651f8:report:3": 753552336
+  },
+  "storage_bytes": 317507267,
+  "max_iteration_s": {
+   "gates": 0.009917082963511348,
+   "instrumented": 0.0,
+   "report": 0.0
+  },
+  "controller_lifetime_max": 66830888,
+  "guardian_lifetime_max": 61948408,
+  "controller_final": 66830888,
+  "guardian_final": 61948408
+ },
+ "report_receipt_sha256": "e54d0b617eb03ec0e64f3f762108d53b8a85012d3a62fa39bde2267e0ad6dd6b",
+ "controller_sha256": "a84d1c3f4704586030a96250241ad9047e57d7c0f39f482b3fce7d12db776f7a",
+ "stops": [
+  {
+   "phase": "controller",
+   "session": "36854e9651f8",
+   "reason": "ControllerStop: instrumented: watchdog exited (0)",
+   "at_total_s": 1987.6995163527504
+  },
+  {
+   "phase": "report",
+   "session": "36854e9651f8",
+   "reason": "ControllerStop: report: watchdog exited (0)"
+  }
+ ],
+ "time_scope": "seconds_total includes this session's whole bounded closure (60 s = finalisation 50 + revocation 5 + exit/output 5), charged at the close; finalisation is enforced by its timer and the whole closure by the guardian",
+ "stage_b_prediction": {
+  "unique_attempts": 158,
+  "seconds_per_unique_attempt": 1.5771041013844918,
+  "bytes_per_unique_attempt": 2009649.1075949366,
+  "predicted_seconds": 2927.1052121696166,
+  "predicted_bytes": 3729908743.6962023,
+  "limit_seconds": 11520.0,
+  "limit_bytes": 6871947673.6,
+  "time_ok": true,
+  "storage_ok": true,
+  "basis": "completed whole-stage rates"
+ },
+ "storage_final": 317524559,
+ "caps_ok_on_final_figures": {
+  "time": true,
+  "storage": true,
+  "memory": true,
+  "attempts": true
+ },
+ "storage_final_check": {
+  "declared": 317524559,
+  "measured_after": 317524560
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "admissible": true,
+ "date": "2026-10-02",
+ "identity": "e146ec63bc32973bb217de6066b57fe1c972bf8cf79a369b19d8efca617b2f38",
+ "outputs": {
+  "report/STAGE_A_REPORT.md": "8a0408806262e7185d91eaefa65143f4a4e720f327342483391eeddcf59679f1",
+  "report/logit_max_abs.svg": "5d9ef057a6e0b03aae7b319b2253d5cfb897d77d58c214ff3cb13d7eb91c7fe1",
+  "report/rel_l2_by_layer.svg": "168d35d10283ad614de236dd956e9747ef21adb858af728204a3c791e1d3317c",
+  "report/stage_a_report.json": "66e7a5d6cd5986d019b93c07682379deddb5389e99f7f3e7014db17adc388b02"
+ },
+ "package": {
+  "budget_sha256": "9e9eb4dcc8dca396af86ee982b17d1e957e9668b12bda0fd803deb126805c07f",
+  "criteria_sha256": "f05be7a80274226bfb90101fc676170ef610c336ca5fe8d1c87d9321bca1c3f7",
+  "identity_sha256": "04678ddb2360238bc02c7bca850c2c2f1e4d8247e65bd5717b05461baadad158",
+  "manifest_sha256": "e816f843700a4a15c4ca56ba71318957e73b77d3560e81a2bf476ff23422f448",
+  "plan_sha256": "3faebf4eab25081cf32652bf025fa8fab9d11bee6f1c9a19a1cf2dbad45417cc"
+ },
+ "session": "36854e9651f8",
+ "validator_pass": false
+}

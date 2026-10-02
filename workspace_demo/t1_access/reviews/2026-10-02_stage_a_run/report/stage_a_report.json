@@ -1,0 +1,427 @@
+{
+ "actual_tries": 158,
+ "admissible": true,
+ "carry": {
+  "allowance_seconds": 1800.0,
+  "basis": "engineering/README.md: eng-runtime-agreement 8 attempts (1.72 s of attempts) and eng-image-adapter-1 8 attempts, 7 completed, 1 failed before any model pass (7.01 s); the manual identity relabel disclosed there. Startup, model and lens loads, preprocessing and writes were not timed: a recorded allowance of 1,800 s (30 min) is charged for them - conservative against the 5 s loads and ~1 s passes measured. Carried into row 20, not reset (framework \u00a78.4; Codex f9d2ef3).",
+  "completed": 15,
+  "failed": 1,
+  "measured_seconds": 8.73,
+  "passes": 16,
+  "seconds": 1808.73,
+  "started": 16
+ },
+ "controller_as_of_report": {
+  "carry_s": 1808.73,
+  "peaks": {
+   "controller_lifetime_max": 66830888,
+   "guardian_lifetime_max": 61948408,
+   "max_iteration_s": {
+    "gates": 0.009917082963511348,
+    "instrumented": 0.0
+   },
+   "phase_aggregates": {
+    "36854e9651f8:gates:1": 449679800,
+    "36854e9651f8:instrumented:2": 33317693192,
+    "36854e9651f8:report:3": 424085928
+   },
+   "storage_bytes": 317507267,
+   "task_lifetime_sum": 33317693192
+  },
+  "seconds_total_live": 1997.0406292277225,
+  "stops": [
+   {
+    "at_total_s": 1987.6995163527504,
+    "phase": "controller",
+    "reason": "ControllerStop: instrumented: watchdog exited (0)",
+    "session": "36854e9651f8"
+   }
+  ]
+ },
+ "counters_row20": {
+  "completed": 173,
+  "failed": 1,
+  "passes": 174,
+  "started": 174
+ },
+ "identity_problem": "",
+ "interrupted": [],
+ "label": "ADMISSIBLE",
+ "session": "36854e9651f8",
+ "stage_b_admission": {
+  "STAGE_A_FINAL_PASS": false,
+  "admitted": false,
+  "b_first_cal_slice": "row 21's own gate",
+  "codex_review_of_report": false,
+  "inspected_figures_and_interpretation": false,
+  "interpretation_problems": [
+   "absent"
+  ],
+  "owner_row21_go": false
+ },
+ "stage_b_prediction": {
+  "bytes_per_unique_attempt": 2009539.670886076,
+  "limit_bytes": 6871947673.6,
+  "limit_seconds": 11520.0,
+  "note": "PRELIMINARY (as of this report); the completed prediction is in STAGE_A_FINAL.json",
+  "predicted_bytes": 3729705629.164557,
+  "predicted_seconds": 2212.053973712994,
+  "seconds_per_unique_attempt_whole_stage": 1.1918394254919147
+ },
+ "storage_as_of_report": 317507268,
+ "terminal": {
+  "first": {
+   "phase": "controller",
+   "pid": 93865,
+   "reason": "ControllerStop: instrumented: watchdog exited (0)",
+   "wall": "2026-10-02T15:32:47-0700"
+  }
+ },
+ "unique_ids_started": 158,
+ "unique_planned_ids": 178,
+ "unreconciled_open_attempt": null,
+ "validator": {
+  "bitwise": {
+   "00-empty": true,
+   "00-repeat": true,
+   "00-self_patch": true,
+   "00-zero_ablate": true,
+   "00-zero_steer": true,
+   "00-zero_swap": true,
+   "01-empty": true,
+   "01-repeat": true,
+   "01-self_patch": true,
+   "01-zero_ablate": true,
+   "01-zero_steer": true,
+   "01-zero_swap": true,
+   "02-empty": true,
+   "02-repeat": true,
+   "02-self_patch": true,
+   "02-zero_ablate": true,
+   "02-zero_steer": true,
+   "02-zero_swap": true,
+   "03-empty": true,
+   "03-repeat": true,
+   "03-self_patch": true,
+   "03-zero_ablate": true,
+   "03-zero_steer": true,
+   "03-zero_swap": true,
+   "04-empty": true,
+   "04-repeat": true,
+   "04-self_patch": true,
+   "04-zero_ablate": true,
+   "04-zero_steer": true,
+   "04-zero_swap": true,
+   "05-empty": true,
+   "05-repeat": true,
+   "05-self_patch": true,
+   "05-zero_ablate": true,
+   "05-zero_steer": true,
+   "05-zero_swap": true,
+   "06-empty": true,
+   "06-repeat": true,
+   "06-self_patch": true,
+   "06-zero_ablate": true,
+   "06-zero_steer": true,
+   "06-zero_swap": true,
+   "07-empty": true,
+   "07-repeat": true,
+   "07-self_patch": true,
+   "07-zero_ablate": true,
+   "07-zero_steer": true,
+   "07-zero_swap": true,
+   "08-empty": true,
+   "08-repeat": true,
+   "08-self_patch": true,
+   "08-zero_ablate": true,
+   "08-zero_steer": true,
+   "08-zero_swap": true,
+   "09-empty": true,
+   "09-repeat": true,
+   "09-self_patch": true,
+   "09-zero_ablate": true,
+   "09-zero_steer": true,
+   "09-zero_swap": true,
+   "10-empty": true,
+   "10-repeat": true,
+   "10-self_patch": true,
+   "10-zero_ablate": true,
+   "10-zero_steer": true,
+   "10-zero_swap": true,
+   "11-empty": true,
+   "11-repeat": true,
+   "11-self_patch": true,
+   "11-zero_ablate": true,
+   "11-zero_steer": true,
+   "11-zero_swap": true,
+   "12-empty": true,
+   "12-repeat": true,
+   "12-self_patch": true,
+   "12-zero_ablate": true,
+   "12-zero_steer": true,
+   "12-zero_swap": true,
+   "13-empty": true,
+   "13-repeat": true,
+   "13-self_patch": true,
+   "13-zero_ablate": true,
+   "13-zero_steer": true,
+   "13-zero_swap": true,
+   "14-empty": true,
+   "14-repeat": true,
+   "14-self_patch": true,
+   "14-zero_ablate": true,
+   "14-zero_steer": true,
+   "14-zero_swap": true,
+   "15-empty": true,
+   "15-repeat": true,
+   "15-self_patch": true,
+   "15-zero_ablate": true,
+   "15-zero_steer": true,
+   "15-zero_swap": true,
+   "16-empty": true,
+   "16-repeat": true,
+   "16-self_patch": true,
+   "16-zero_ablate": true,
+   "16-zero_steer": true,
+   "16-zero_swap": true,
+   "17-empty": true,
+   "17-repeat": true,
+   "17-self_patch": true,
+   "17-zero_ablate": true,
+   "17-zero_steer": true,
+   "17-zero_swap": true,
+   "18-empty": true,
+   "18-repeat": true,
+   "18-self_patch": true,
+   "18-zero_ablate": true,
+   "18-zero_steer": true,
+   "18-zero_swap": true,
+   "19-empty": true,
+   "19-repeat": true,
+   "19-self_patch": true,
+   "19-zero_ablate": true,
+   "19-zero_steer": true,
+   "19-zero_swap": true
+  },
+  "encoder_pair_differs": true,
+  "failures": [
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "00-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "01-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "02-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "03-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "04-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "05-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "06-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "07-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "08-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "09-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "10-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "11-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "12-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "13-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "14-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "15-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "16-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "17-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "18-native"
+   },
+   {
+    "code": "NOT_COMMITTED",
+    "detail": "",
+    "where": "19-native"
+   },
+   {
+    "code": "PHASE_RECORD_MISSING",
+    "detail": "",
+    "where": "NATIVE_DONE.json"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "00-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "01-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "02-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "03-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "04-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "05-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "06-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "07-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "08-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "09-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "10-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "11-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "12-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "13-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "14-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "15-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "16-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "17-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "18-native"
+   },
+   {
+    "code": "PARITY_INPUTS_MISSING",
+    "detail": "",
+    "where": "19-native"
+   },
+   {
+    "code": "PARITY_COUNT",
+    "detail": "",
+    "where": "0"
+   }
+  ],
+  "parity": [],
+  "pass": false,
+  "suffix": {
+   "01-suffix_isolation": true,
+   "12-suffix_isolation": true
+  }
+ },
+ "validator_pass": false
+}

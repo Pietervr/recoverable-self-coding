@@ -1,0 +1,8 @@
+{
+ "first": {
+  "phase": "controller",
+  "pid": 93865,
+  "reason": "ControllerStop: instrumented: watchdog exited (0)",
+  "wall": "2026-10-02T15:32:47-0700"
+ }
+}

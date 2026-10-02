@@ -1,0 +1,2 @@
+stage_a_controller: stop observed at monotonic 303972.085509, previous successful reading at 303972.061226, SIGKILL sent at nan: instrumented: watchdog exited (0)
+stage_a_controller: stop observed at monotonic 303982.533949, previous successful reading at 303982.511686, SIGKILL sent at nan: report: watchdog exited (0)

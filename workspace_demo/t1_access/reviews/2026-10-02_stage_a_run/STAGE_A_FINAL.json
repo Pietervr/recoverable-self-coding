@@ -1,0 +1,78 @@
+{
+ "admissible": false,
+ "caps_ok_on_final_figures": {
+  "attempts": true,
+  "memory": true,
+  "storage": true,
+  "time": true
+ },
+ "carry_s": 1808.73,
+ "controller_sha256": "a84d1c3f4704586030a96250241ad9047e57d7c0f39f482b3fce7d12db776f7a",
+ "counters": {
+  "detail": [],
+  "ok": true
+ },
+ "missing_measurements": [],
+ "outcome": "STOPPED",
+ "peaks": {
+  "controller_final": 66830888,
+  "controller_lifetime_max": 66830888,
+  "guardian_final": 61948408,
+  "guardian_lifetime_max": 61948408,
+  "max_iteration_s": {
+   "gates": 0.009917082963511348,
+   "instrumented": 0.0,
+   "report": 0.0
+  },
+  "phase_aggregates": {
+   "36854e9651f8:gates:1": 449679800,
+   "36854e9651f8:instrumented:2": 33317693192,
+   "36854e9651f8:report:3": 753552336
+  },
+  "storage_bytes": 317507267,
+  "task_lifetime_sum": 33317693192
+ },
+ "report_current": false,
+ "report_problems": [
+  "the report worker of this session did not exit 0",
+  "a report stop in this session"
+ ],
+ "report_receipt_sha256": "e54d0b617eb03ec0e64f3f762108d53b8a85012d3a62fa39bde2267e0ad6dd6b",
+ "seconds_total": 2057.9124480187497,
+ "session": "36854e9651f8",
+ "stage_a_seconds": 249.1824480187497,
+ "stage_b_prediction": {
+  "basis": "completed whole-stage rates",
+  "bytes_per_unique_attempt": 2009649.1075949366,
+  "limit_bytes": 6871947673.6,
+  "limit_seconds": 11520.0,
+  "predicted_bytes": 3729908743.6962023,
+  "predicted_seconds": 2927.1052121696166,
+  "seconds_per_unique_attempt": 1.5771041013844918,
+  "storage_ok": true,
+  "time_ok": true,
+  "unique_attempts": 158
+ },
+ "stops": [
+  {
+   "at_total_s": 1987.6995163527504,
+   "phase": "controller",
+   "reason": "ControllerStop: instrumented: watchdog exited (0)",
+   "session": "36854e9651f8"
+  },
+  {
+   "phase": "report",
+   "reason": "ControllerStop: report: watchdog exited (0)",
+   "session": "36854e9651f8"
+  }
+ ],
+ "storage_final": 317524559,
+ "storage_final_check": {
+  "declared": 317524559,
+  "measured_after": 317524560
+ },
+ "task_memory_aggregate": 33317693192,
+ "terminal": true,
+ "time_scope": "seconds_total includes this session's whole bounded closure (60 s = finalisation 50 + revocation 5 + exit/output 5), charged at the close; finalisation is enforced by its timer and the whole closure by the guardian",
+ "validator_pass": false
+}
