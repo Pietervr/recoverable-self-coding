@@ -1,167 +1,114 @@
-"""Qualifying an AI image reader against existing human norms, so the image and sense audit needs no new human
-readers (owner, 2 Oct 2026: a human-gated audit would stall as the text audit did). PROPOSED to R052 and Codex;
-nothing here calls a model.
+"""AI image-reader qualification, revision 2: the IMAGES and the reader-side SET (framework §8.2 reader rule, R052
+2 Oct 2026; Codex RSC cf3e49e NOT ON BOARD with revision 1 at RSC 7efeb55; R052 handoff 7f25830e repairs 1-8).
+Nothing here calls a model.
 
-WHY THIS WORKS FOR PICTURES. THINGSplus published, for every one of its 1,854 images, a human recognition norm:
-about 15 to 17 raters each chose the object's name from the 1,854 THINGS labels (`recognizability` = share
-correct; `recognizability_close` also accepts a label containing the right one). Those raters are the human
-reference; the reader is qualified by agreeing with them on images OUTSIDE the development pool.
+    .venv-build/bin/python stimuli/photo/ai_reader_key.py      # the key (needs WordNet) - first
+    .venv-image/bin/python stimuli/photo/ai_reader_qual.py      # the images + ai_reader_qual_set.json
 
-THE SET (`build`): N = 300 THINGSplus images drawn by a frozen seed from the 1,854 concepts minus the 121 qualified
-pool concepts (so no image the instrument may ever use) and minus homonym concepts (`Number of word meanings in
-list` > 1), stratified by human recognizability tercile. For each: the colour original (as the raters saw it) and
-our grayscale clean canvas (dose pipeline, a = 1, as the audit shows it), written to captures/ai_reader_qual/
-(git-ignored), with hashes, the human norm and the accepted-answer set recorded in ai_reader_qual_set.json.
+WHAT IS QUALIFIED. The free-naming judgement of the image audit, and only that: an AI reader from a different
+developer than the model under test (Codex) names 300 THINGSplus photographs outside the development pool, each as
+the colour original and as our grayscale clean canvas (dose pipeline, a = 1: fitting, padding, luma, contrast
+normalisation, clipping and quantisation - not just colour removal). The THINGSplus per-image recognition norm
+(Experiment 3 of Mukherjee et al. 2026: a best label chosen from a searchable menu of the 1,854 labels, 9-22
+ratings per image here) is a DIFFICULTY REFERENCE and an item diagnostic - not a free-naming measure, not
+individual human verdicts, and never read as human equivalence. Admission is decided on grayscale only
+(`ai_reader_score.py`); colour is the external human-reference diagnostic.
 
-THE READER TASK (`prompt`): per image, one word naming the main object, or "unclear". The reader never sees the
-concept, the THINGS label list, or any other image's answer; images are shown one per request.
+THE TASK (repair 1): the frozen PROMPT below, alone with one image, in a fresh stateless image-only request - one
+short object noun or noun phrase, or 'unclear'. No label, menu, caption, path, concept, sense, prior answer or the
+item's other view. This task is separate from the target model's single-token naming convention.
 
-SCORING (`score <answers.csv>`): an answer is correct when, lower-cased and singularised, it equals the concept
-word, its THINGS display label, a WordNet synonym listed by THINGS, or (the 'close' score, as THINGS'
-recognizability-close) contains the concept word or is contained in a multi-word concept name. Reported:
-reader accuracy on colour and on grayscale, human mean recognizability on the same images, per-tercile rows, and
-the item list where reader and humans disagree.
+THIS FILE writes, to captures/ai_reader_qual/ (git-ignored), one file per REQUEST named by its opaque request id -
+<request>.jpg for the colour original (the release file's bytes, unchanged) and <request>.png for the grayscale
+canvas - and ai_reader_qual_set.json, the reader-side record, which carries NO label: per request its opaque item,
+view, file, bytes and sha256; the frozen delivery order (a seeded permutation of all 600 requests, colour and gray
+of one item never adjacent by construction of the check below); the prompt and its hash; the reader identity;
+stratum and easy counts; the frame's exclusion counts; and the per-image SOURCE BASIS. The labels, aliases, human
+norms and senses are in the key (`ai_reader_qual_key.json`), which only the orchestrator reads.
 
-PROPOSED THRESHOLD (for Codex's review, fixed before any answer exists):
-  Q1  colour accuracy (close)  >=  the mean human recognizability-close on the same 300 images
-      - the reader names them at least as well as the average rater;
-  Q2  on images the raters found easy (recognizability >= 0.8), colour accuracy >= 0.90;
-  Q3  grayscale accuracy is reported against colour accuracy (no human grayscale norm exists); in the audit, an
-      item where the reader fails on grayscale but humans succeed in colour goes to the owner.
-A reader that fails Q1 or Q2 is not qualified, and the audit falls back to the owner (one sitting, about 15 minutes
-for 64 pictures).
-
-    .venv-image/bin/python stimuli/photo/ai_reader_qual.py build
-    .venv-image/bin/python stimuli/photo/ai_reader_qual.py score answers.csv     # columns: id, view, answer
+SOURCE BASIS (R052's ruling, §8.2): the capture gate's per-image check does not apply to qualification transmissions
+(never captured, published or redistributed; transmitted once to the reader and reported by opaque id with aggregate
+scores). Each image records the collective THINGSplus basis - the release zip, notice and LICENSE hashes and OSF
+ids, the download date and the misattribution caveat - and no qualification image appears in any publication.
 """
 
 from __future__ import annotations
 
-import csv
 import hashlib
 import json
 import random
 import sys
 from pathlib import Path
 
-import numpy as np
-
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import ai_reader_frame as F  # noqa: E402
 import dose  # noqa: E402
 
-THINGS = Path.home() / "things-plus"
 OUT = HERE.parents[1] / "captures" / "ai_reader_qual"
-SEED, N = 20261007, 300
-PROMPT = ("Look at this picture. What is the main object in it? Answer with ONE English word (a noun), "
-          "or the word 'unclear' if you cannot tell. Answer with the word only.")
+SET = HERE / "ai_reader_qual_set.json"
+KEY = HERE / "ai_reader_qual_key.json"
+ORDER_SEED = 20261008
+PROMPT = ("Look at this picture. What is the main object in it? Answer with one short noun or noun phrase that "
+          "names the object, or with the single word 'unclear' if you cannot tell. Reply with the name only.")
+READER = {"product": "OpenAI Codex CLI (codex exec)", "cli_version": "codex-cli 0.159.3", "model": "gpt-6.1-sol",
+          "reasoning_effort": "medium", "delivery": "one image attached with -i to a fresh ephemeral exec session, "
+          "empty working directory, private CODEX_HOME holding only the auth link, user config, rules and "
+          "instructions ignored, read-only sandbox, tool features disabled; the JSONL event stream checked for any "
+          "tool use (ai_reader_exec.py)"}
 
 
 def sha(b: bytes) -> str:
     return hashlib.sha256(b).hexdigest()
 
 
-def norm(w: str) -> str:
-    w = w.strip().lower().strip(".,;:!\"'")
-    for suf, rep in (("ies", "y"), ("ses", "s"), ("es", "e"), ("s", "")):
-        if w.endswith(suf) and len(w) > 3 and not w.endswith("ss"):
-            return w[: -len(suf)] + rep
-    return w
-
-
-def build() -> int:
-    pool = json.loads((HERE / "dev_pool.json").read_text())
-    exclude = {r["concept"] for f in pool["qualified"].values() for r in f}
-    concepts = {r["uniqueID"]: r for r in csv.DictReader(open(THINGS / "_concepts-metadata_things.tsv",
-                                                             encoding="utf-8", newline=""), delimiter="\t")}
-    imgs = {r["image"]: r for r in csv.DictReader(open(THINGS / "_images-metadata_things.tsv", encoding="utf-8",
-                                                       newline=""), delimiter="\t") if "/" not in r["image"]}
-    cand = []
-    for uid, c in concepts.items():
-        im = imgs.get(f"{uid}.jpg")
-        if uid in exclude or im is None or c["Number of word meanings in list"].strip() not in ("1", "1.0"):
-            continue
-        try:
-            rec = float(im["recognizability"])
-            close = float(im["recognizability_close"])
-        except ValueError:
-            continue
-        cand.append((uid, c, im, rec, close))
-    cand.sort(key=lambda x: x[0])
-    rng = random.Random(SEED)
-    rng.shuffle(cand)
-    cut = sorted(x[3] for x in cand)
-    t1, t2 = cut[len(cut) // 3], cut[2 * len(cut) // 3]
-    terc = {0: [], 1: [], 2: []}
-    for x in cand:
-        terc[0 if x[3] < t1 else 1 if x[3] < t2 else 2].append(x)
-    chosen = terc[0][:N // 3] + terc[1][:N // 3] + terc[2][:N - 2 * (N // 3)]
+def main() -> int:
+    d = F.draw()
+    key = json.loads(KEY.read_text())
+    if sorted(key["items"]) != sorted(x["item"] for x in d["chosen"]):
+        raise SystemExit("the key and this draw disagree: rebuild the key first (ai_reader_key.py)")
+    release = json.loads((HERE / "manifest_dev.json").read_text())["release"]
     OUT.mkdir(parents=True, exist_ok=True)
-    items = []
-    for i, (uid, c, im, rec, close) in enumerate(chosen):
-        src = THINGS / "cc0" / "object_images_CC0" / f"{uid}.jpg"
+    for old in OUT.iterdir():                          # revision 1's q###_*.jpg/png and any stale files
+        if old.is_file() and old.suffix in (".jpg", ".png"):
+            old.unlink()
+    requests = []
+    for x in d["chosen"]:
+        src = F.THINGS / "cc0" / "object_images_CC0" / f"{x['concept']}.jpg"
         raw = src.read_bytes()
         canvas, _ = dose.load_canvas(src)
         S = dose.signal(dose.luma(canvas))
         rgb8, _ = dose.quantise(dose.mix(S, S * 0.0, 1.0))
         png = dose.to_png(rgb8)
-        qid = f"q{i:03d}"
-        (OUT / f"{qid}_colour.jpg").write_bytes(raw)
-        (OUT / f"{qid}_gray.png").write_bytes(png)
-        syn = [s.strip().replace("_", " ") for s in c["WordNet Synonyms"].split(",") if s.strip()]
-        accept = sorted({norm(c["Word"]), norm(im["display_label"].split("(")[0]), *(norm(s) for s in syn)})
-        items.append({"id": qid, "concept": uid, "word": c["Word"], "display_label": im["display_label"],
-                      "accept": accept, "recognizability": rec, "recognizability_close": close,
-                      "n_ratings": int(float(im["recognizability_N-ratings"])),
-                      "most_common_label": im["recognizability_most-common-label"],
-                      "tercile": 0 if rec < t1 else 1 if rec < t2 else 2,
-                      "colour_sha256": sha(raw), "gray_sha256": sha(png)})
-    meta = {"seed": SEED, "n": len(items), "excluded": "the 121 qualified pool concepts and homonym concepts",
-            "tercile_cuts": [t1, t2], "prompt": PROMPT, "prompt_sha256": sha(PROMPT.encode()),
-            "human_mean_recognizability": float(np.mean([x["recognizability"] for x in items])),
-            "human_mean_recognizability_close": float(np.mean([x["recognizability_close"] for x in items])),
-            "items": items}
-    (HERE / "ai_reader_qual_set.json").write_text(json.dumps(meta, indent=1) + "\n")
-    print(len(items), "images; human mean recognizability", round(meta["human_mean_recognizability"], 3),
-          "close", round(meta["human_mean_recognizability_close"], 3), "tercile cuts", [round(t1, 3), round(t2, 3)])
-    return 0
-
-
-def score(path: str) -> int:
-    meta = json.loads((HERE / "ai_reader_qual_set.json").read_text())
-    by = {x["id"]: x for x in meta["items"]}
-    ans = {(r["id"], r["view"]): r["answer"] for r in csv.DictReader(open(path, newline=""))}
-
-    def correct(x, a, close):
-        w = norm(a)
-        if w in x["accept"]:
-            return True
-        return close and any(k in w or (w and w in k and " " in k) for k in x["accept"])
-
-    out = {}
-    for view in ("colour", "gray"):
-        got = [x for x in meta["items"] if (x["id"], view) in ans]
-        if not got:
-            continue
-        acc = float(np.mean([correct(x, ans[(x["id"], view)], False) for x in got]))
-        accc = float(np.mean([correct(x, ans[(x["id"], view)], True) for x in got]))
-        easy = [x for x in got if x["recognizability"] >= 0.8]
-        out[view] = {"n": len(got), "accuracy": acc, "accuracy_close": accc,
-                     "easy_n": len(easy), "easy_accuracy_close": float(np.mean(
-                         [correct(x, ans[(x["id"], view)], True) for x in easy])) if easy else None,
-                     "by_tercile": {t: float(np.mean([correct(x, ans[(x["id"], view)], True) for x in got
-                                                      if x["tercile"] == t])) for t in (0, 1, 2)}}
-    h = meta["human_mean_recognizability_close"]
-    c = out.get("colour", {})
-    out["threshold"] = {"Q1_colour_close_vs_human": [c.get("accuracy_close"), h],
-                        "Q1_pass": c.get("accuracy_close") is not None and c["accuracy_close"] >= h,
-                        "Q2_easy": c.get("easy_accuracy_close"),
-                        "Q2_pass": c.get("easy_accuracy_close") is not None and c["easy_accuracy_close"] >= 0.90}
-    out["qualified"] = out["threshold"]["Q1_pass"] and out["threshold"]["Q2_pass"]
-    print(json.dumps(out, indent=1))
+        for view, data, ext in (("colour", raw, ".jpg"), ("gray", png, ".png")):
+            rq = x["requests"][view]
+            (OUT / f"{rq}{ext}").write_bytes(data)
+            requests.append({"request": rq, "item": x["item"], "view": view, "file": f"{rq}{ext}",
+                             "bytes": len(data), "sha256": sha(data),
+                             "source_basis": "THINGSplus collective release (see 'release')" if view == "colour" else
+                             "derived from the THINGSplus release file by the dose pipeline (a = 1)"})
+    rng = random.Random(ORDER_SEED)
+    order = [r["request"] for r in sorted(requests, key=lambda r: r["request"])]
+    while True:                                        # a seeded permutation with no item's two views adjacent
+        rng.shuffle(order)
+        item_of = {r["request"]: r["item"] for r in requests}
+        if all(item_of[a] != item_of[b] for a, b in zip(order, order[1:])):
+            break
+    strata = {s: sum(1 for x in d["chosen"] if x["stratum"] == s) for s in (0, 1, 2)}
+    out = {"revision": 2, "note": "Reader-side record of the AI-reader qualification: no labels. The key is "
+           "ai_reader_qual_key.json (orchestrator only).", "seed": F.SEED, "order_seed": ORDER_SEED,
+           "n_items": len(d["chosen"]), "n_requests": len(requests), "easy_items": sum(x["easy"] for x in d["chosen"]),
+           "strata": strata, "cuts": d["cuts"], "frame_size": d["n_frame"],
+           "frame_exclusion_counts": d["exclusion_counts"], "prompt": PROMPT, "prompt_sha256": sha(PROMPT.encode()),
+           "reader": READER, "release": release, "requests": requests, "delivery_order": order,
+           "key_sha256": sha(KEY.read_bytes()),
+           "code_sha256": {n: sha((HERE / n).read_bytes()) for n in ("ai_reader_frame.py", "ai_reader_key.py",
+                                                                     "ai_reader_qual.py", "dose.py")}}
+    SET.write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
+    print(f"{len(requests)} requests for {len(d['chosen'])} items; easy {out['easy_items']}; strata {strata}; "
+          f"prompt {out['prompt_sha256'][:12]}")
     return 0
 
 
 if __name__ == "__main__":
-    cmd = sys.argv[1] if len(sys.argv) > 1 else "build"
-    sys.exit(build() if cmd == "build" else score(sys.argv[2]))
+    sys.exit(main())
