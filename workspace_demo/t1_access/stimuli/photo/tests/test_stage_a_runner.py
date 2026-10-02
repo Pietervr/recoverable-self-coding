@@ -1,5 +1,8 @@
-"""Stage A revision 4: runner, validator, recovery, attestation and identity tests on a fake instrument - no model
-is imported, loaded or run. Controller mechanism fixtures are in test_controller.py.
+"""Stage A revision 5: runner, validator, recovery, attestation and identity tests on a fake instrument - no model
+is imported, loaded or run. Controller mechanism fixtures are in test_controller.py. Revision 5 adds Codex RSC
+1bf9890's A1 call-site fixtures (gates and report consume their own map and recheck before committing), the A6 ledger
+counterexample and coherent zero/negative states, full instrumented admission before any native work (a CONSISTENT
+non-plain input_ids change), resumed-record admission, rank/top-k/logit-dtype predicates and the A8 source pins.
 
     .venv-image/bin/python -m unittest discover -s stimuli/photo/tests -v
 """
@@ -163,6 +166,95 @@ class StageA(unittest.TestCase):
         rep = json.loads((self.out / "report/stage_a_report.json").read_text())
         self.assertIsNotNone(rep["unreconciled_open_attempt"])
         self.assertTrue((self.out / "report/REPORT_RECEIPT.json").exists())
+
+    def test_consistent_nonplain_change_refused_before_native(self):
+        """A6: a non-plain record's input_ids_sha256 changed with every hash (record, ledger, phase record) updated
+        consistently - the full instrumented validator refuses BEFORE the native model is even constructed."""
+        stage_a.run_instrumented(F.make_ctx(self.out))
+        aid = "05-zero_steer"
+        st = state(self.out)
+        r = json.loads((self.out / f"passes/{aid}.json").read_text())
+        r["input_ids_sha256"] = "0" * 64
+        (self.out / f"passes/{aid}.json").write_text(json.dumps(r))
+        st["completed"][aid]["outputs"][f"passes/{aid}.json"] = sha((self.out / f"passes/{aid}.json").read_bytes())
+        (self.out / "stage_a_state.json").write_text(json.dumps(st))
+        d = json.loads((self.out / "INSTRUMENTED_DONE.json").read_text())
+        d["attempts"][aid] = st["completed"][aid]["outputs"]
+        (self.out / "INSTRUMENTED_DONE.json").write_text(json.dumps(d))
+        ctx = F.make_ctx(self.out)
+        built = []
+        nf = ctx.native_factory
+        ctx.native_factory = lambda: built.append(1) or nf()
+        with self.assertRaisesRegex(stage_a.StopCheck, "pre-native admission failed.*INPUT_IDS"):
+            stage_a.run_native(ctx)
+        self.assertEqual(built, [])                                          # no native model, no forward
+
+    def test_resumed_record_admitted_by_the_full_predicates(self):
+        """A6: a committed record reloaded on resumption passes the instrumented predicates before use."""
+        p = subprocess.run([PY, str(HERE / "fake_stage_a.py"), str(self.out), json.dumps({"exit_at_call": 30,
+                            "session": "s1"})], capture_output=True, text=True, timeout=600)
+        self.assertEqual(p.returncode, 9, p.stderr[-1500:])
+        st = state(self.out)
+        crashed = st["open_attempt"]["id"]
+        aid = "02-plain"
+        r = json.loads((self.out / f"passes/{aid}.json").read_text())
+        r["requested"][0]["rank"] = True                                     # a bool rank, hashes kept consistent
+        (self.out / f"passes/{aid}.json").write_text(json.dumps(r))
+        st["completed"][aid]["outputs"][f"passes/{aid}.json"] = sha((self.out / f"passes/{aid}.json").read_bytes())
+        (self.out / "stage_a_state.json").write_text(json.dumps(st))
+        (self.out / f"RECOVERY_{crashed}__s1__1.json").write_text(json.dumps(
+            {"attempt_id": crashed, "session": "s1", "try": 1, "owner": "test", "date": "2026-10-02",
+             "reason": "test crash"}))
+        with self.assertRaisesRegex(stage_a.StopCheck, "resumed record fails admission.*RANKS"):
+            stage_a.run_instrumented(F.make_ctx(self.out))
+
+    def test_gates_consume_their_map_and_recheck(self):
+        """A1: the gates check their own bound map and recheck the identity before GATES.json is committed."""
+        os.environ.pop("STAGE_A_SESSION", None)
+        ctx = F.make_ctx(self.out)
+        calls = []
+        ctx.origins_check = lambda: calls.append("origins") or (_ for _ in ()).throw(SystemExit("refused: origins"))
+        with self.assertRaisesRegex(SystemExit, "origins"):
+            stage_a.run_gates(ctx)
+        self.assertEqual(calls, ["origins"])
+        self.assertFalse((self.out / "GATES.json").exists())
+        real = stage_a.recheck_identity
+        stage_a.recheck_identity = lambda c, i: (_ for _ in ()).throw(stage_a.StopCheck("identity changed (fixture)"))
+        try:
+            with self.assertRaisesRegex(stage_a.StopCheck, "identity changed"):
+                stage_a.run_gates(F.make_ctx(self.out))
+        finally:
+            stage_a.recheck_identity = real
+        self.assertFalse((self.out / "GATES.json").exists())
+
+    def test_report_consumes_its_map_and_rechecks_before_the_receipt(self):
+        full_run(self.out)
+        gates_env()
+        ctx = F.make_ctx(self.out)
+        calls = []
+        ctx.origins_check = lambda: calls.append("origins")
+        real = stage_a.recheck_identity
+        stage_a.recheck_identity = lambda c, i: (_ for _ in ()).throw(stage_a.StopCheck("identity changed (fixture)"))
+        try:
+            with self.assertRaisesRegex(stage_a.StopCheck, "identity changed"):
+                stage_a.run_report(ctx)
+        finally:
+            stage_a.recheck_identity = real
+        self.assertEqual(calls, ["origins"])
+        self.assertTrue((self.out / "report/stage_a_report.json").exists())
+        self.assertFalse((self.out / "report/REPORT_RECEIPT.json").exists())    # no receipt without the recheck
+        for f in ("rel_l2_by_layer.svg", "logit_max_abs.svg"):
+            self.assertTrue((self.out / "report" / f).exists())
+
+    def test_source_records_pinned(self):
+        """A8: admission requires the current dev pool and provenance records identical to the plan's pins."""
+        with tempfile.TemporaryDirectory() as d:
+            plan = json.loads(stage_a.PLAN.read_text())
+            plan["provenance_checks_sha256"] = "0" * 64
+            pp = Path(d) / "plan.json"
+            pp.write_text(json.dumps(plan))
+            with self.assertRaisesRegex(SystemExit, "provenance_checks.json differs"):
+                stage_a.load_frozen(stage_a.Ctx(plan_path=pp))
 
     def test_corrupt_committed_output_holds(self):
         stage_a.run_instrumented(F.make_ctx(self.out))
@@ -347,6 +439,67 @@ class ValidatorMutations(unittest.TestCase):
         st["caps"]["row20"]["attempts"] = 400
         (out / "stage_a_state.json").write_text(json.dumps(st))
         self.assertIn("LEDGER_CAPS", self.codes(out))
+
+    def ledger_codes(self, st: dict) -> set:
+        out = self.copy()
+        (out / "stage_a_state.json").write_text(json.dumps(st))
+        return self.codes(out)
+
+    def test_codex_ledger_counterexample(self):
+        """A6, Codex's static counterexample: all tries 0, passes per try 1, row20 started 16, passes 16, completed
+        193, failed -177, row 21 zero, aggregate = row 20 - the old equations held; the legal domains refuse it."""
+        st = json.loads((self.base / "stage_a_state.json").read_text())
+        for a in st["attempts"].values():
+            a["tries"], a["passes"] = 0, 1
+        st["counters"]["row20"] = {"started": 16, "passes": 16, "completed": 193, "failed": -177}
+        st["counters"]["row21"] = {"started": 0, "passes": 0, "completed": 0, "failed": 0}
+        st["counters"]["aggregate"] = dict(st["counters"]["row20"])
+        self.assertIn("LEDGER_DOMAIN", self.ledger_codes(st))
+        self.assertTrue(enforce.check_ledger(st))
+
+    def test_coherent_zero_negative_and_typed_states(self):
+        base = json.loads((self.base / "stage_a_state.json").read_text())
+        self.assertEqual(enforce.check_ledger(base), [])
+        muts = {
+            "negative failed, consistent sums": lambda st: [st["counters"][k].update(
+                failed=st["counters"][k]["failed"] - 2, completed=st["counters"][k]["completed"] + 2)
+                for k in ("row20", "aggregate")],
+            "bool counter": lambda st: st["counters"]["row20"].update(passes=True),
+            "float counter": lambda st: st["counters"]["row20"].update(started=194.0),
+            "zero tries on one attempt": lambda st: st["attempts"]["00-plain"].update(tries=0),
+            "two passes per try": lambda st: st["attempts"]["00-plain"].update(passes=2),
+            "completed > started": lambda st: [st["counters"][k].update(completed=st["counters"][k]["started"] + 1)
+                                               for k in ("row20", "aggregate")],
+            "unknown status": lambda st: st["attempts"]["00-plain"].update(status="maybe"),
+            "open attempt without its entry": lambda st: st.update(open_attempt={
+                "id": "00-plain", "kind": "mandatory", "row": "row20", "passes": 1, "session": "x", "try": 1}),
+            "interrupted entry without status": lambda st: st["interrupted"].append(
+                {"id": "00-plain", "session": "x", "try": 1}),
+            "aggregate not the sum": lambda st: st["counters"]["aggregate"].update(
+                started=st["counters"]["aggregate"]["started"] + 1),
+        }
+        for name, fn in muts.items():
+            with self.subTest(name):
+                st = copy.deepcopy(base)
+                fn(st)
+                self.assertTrue(enforce.check_ledger(st), name)
+                self.assertIn("LEDGER_DOMAIN", self.ledger_codes(st))
+
+    def test_ranks_top_k_and_logit_dtype(self):
+        self.assertIn("RANKS", self.mutate("05-plain", lambda r: r["requested"][0].update(rank=True)))
+        self.assertIn("RANKS", self.mutate("05-plain", lambda r: r["requested"][0].update(rank=-1)))
+        self.assertIn("RANKS", self.mutate("05-plain", lambda r: r["requested"][0].update(rank=10 ** 9)))
+        def swap(r):                                                          # two ranks exchanged: order violated
+            q = sorted(r["requested"], key=lambda q: (-q["logit"], q["id"]))
+            q[0]["rank"], q[-1]["rank"] = q[-1]["rank"], q[0]["rank"]
+        self.assertIn("RANKS", self.mutate("05-plain", swap))
+        self.assertIn("TOP_K", self.mutate("05-plain", lambda r: r["top_ids"].__setitem__(0, -1)))
+        self.assertIn("TOP_K", self.mutate("05-plain", lambda r: r["top_ids"].__setitem__(1, r["top_ids"][0])))
+        self.assertIn("TOP_K", self.mutate("05-plain", lambda r: r["top_ids"].__setitem__(0, True)))
+        self.assertIn("TOP_K", self.mutate("05-plain", lambda r: r["top_logits"].__setitem__(
+            0, r["top_logits"][1] - 1.0)))                                     # increasing: not the descending top-k
+        self.assertIn("LOGITS_META", self.mutate("05-plain", lambda r: r["final_logits"].update(dtype="x")))
+        self.assertIn("LOGITS_META", self.mutate("05-plain", lambda r: r["final_logits"].update(dtype="float32")))
 
     def test_output_membership(self):
         out = self.copy()

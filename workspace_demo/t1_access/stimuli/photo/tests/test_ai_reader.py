@@ -1,5 +1,7 @@
-"""AI-reader qualification revision 4: scorer, key, frame, identity, validator, boundary and executor fixtures - no
-model is called and no qualification image is shown to anything. The real codex binary is used only for its local
+"""AI-reader qualification revision 5: scorer, key, frame, identity, validator, boundary and executor fixtures - no
+model is called and no qualification image is shown to anything. Revision 5 (Codex RSC 1bf9890 R1-R6) adds the
+exact=false evidence mutations, strict schema/identity/image/bounds admission, local-receipt cleanup and cap fixtures,
+and the clock's strict validation, guard and lock fixtures. The real codex binary is used only for its local
 subcommands (--version, features list, debug prompt-input, login status) and for the exec-invocation receipt with all
 network denied by the kernel sandbox and a synthetic 8x8 image. The hard-kill fixtures are test_ai_reader_crash.py.
 
@@ -532,7 +534,7 @@ class Validator(unittest.TestCase):
         e_ok = self.idx(lambda r: r["t"] == "end" and r["outcome"] == "ok")
         recs = copy.deepcopy(self.recs)
         del recs[e_pf]["events"]
-        self.bad(recs, "events evidence")                                    # missing failure evidence
+        self.bad(recs, "['events'] differ from its exact schema")           # missing failure evidence
         recs = copy.deepcopy(self.recs)
         recs[e_ok]["events"]["length"] += 1
         self.bad(recs, "events evidence")                                    # length/hash against its bytes
@@ -784,6 +786,19 @@ class AuditMap(unittest.TestCase):
         finally:
             M.MAP = old
 
+    def test_scorer_code_bound_in_the_audit_package(self):
+        """Codex RSC 1bf9890 A8: the audit scorer's classifier/normalisation source is bound to the pins the audit
+        package records; a changed source (or map) refuses scoring."""
+        import audit_package as P
+        pins = P.identity()
+        self.assertEqual(set(pins), {"audit_alias_map_json_sha256", "ai_reader_score.py_sha256",
+                                     "ai_reader_key.py_sha256", "audit_alias_map.py_sha256"})
+        self.assertEqual(P.score("taxi", "Taxis", pins=pins)["code"], "OK_MATCH")
+        for k in pins:
+            with self.subTest(k):
+                with self.assertRaisesRegex(SystemExit, "differs from the audit package's pins"):
+                    P.score("taxi", "taxi", pins={**pins, k: "0" * 64})
+
     def test_freeze_states_the_current_rule(self):
         t = (PHOTO.parents[1] / "audit_app" / "IMAGE_AUDIT_FREEZE.md").read_text()
         self.assertIn("61 of the 63", t)
@@ -978,6 +993,272 @@ class Executor(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "edited"):
             X.run(fixture=b["fixture"])
         self.assertEqual(len(A.dispatches(root)), n)                          # nothing dispatched
+
+
+def sha_(b: bytes) -> str:
+    return J.sha(b)
+
+
+class Rev5Evidence(unittest.TestCase):
+    """R1 and R6: evidence that cannot be hidden from re-derivation, and strict admission of every record."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.root = tmp()
+        cls.b = A.build(cls.root, {"rq1c": ["fail", "ok:thing"]})
+        X.run(fixture=cls.b["fixture"])
+        cls.recs, _ = J.read(cls.b["fixture"]["raw"])
+
+    def ok(self, recs, **kw):
+        return J.validate(recs, self.b["sset"], A.DIGEST, **{**vkw(self.b), **kw})
+
+    def bad(self, recs, msg=None):
+        with self.assertRaises(SystemExit) as cm:
+            self.ok(recs)
+        if msg:
+            self.assertIn(msg, str(cm.exception))
+        return str(cm.exception)
+
+    def idx(self, recs, pred):
+        return next(i for i, r in enumerate(recs) if pred(r))
+
+    def forged_failure(self, item: dict, replacement: bool) -> list[dict]:
+        """Codex's counterexample: the provider failure's events replaced by a complete lifecycle carrying a received
+        answer or a tool, marked exact=false (with or without a replacement character)."""
+        recs = copy.deepcopy(self.recs)
+        i = self.idx(recs, lambda r: r["t"] == "end" and r["outcome"] == "provider_failure")
+        item = {k: (v + "\ufffd" if replacement and k in ("text", "command") else v) for k, v in item.items()}
+        evs = [{"type": "thread.started", "thread_id": "t"}, {"type": "turn.started"},
+               {"type": "item.completed", "item": item},
+               {"type": "turn.completed", "usage": {"input_tokens": 1, "output_tokens": 1}}]
+        text = "\n".join(json.dumps(e, ensure_ascii=False) for e in evs) + "\n"
+        recs[i]["events"] = {"length": len(text.encode()), "sha256": "0" * 64, "text": text, "exact": False}
+        recs[i]["event_types"] = sorted({e["type"] for e in evs})
+        return recs
+
+    def test_exact_false_cannot_hide_a_received_answer_or_tool(self):
+        ans = {"id": "m", "type": "agent_message", "text": "unclear"}
+        tool = {"id": "c", "type": "command_execution", "command": "cat key"}
+        self.bad(self.forged_failure(ans, False), "representation inconsistent")
+        self.bad(self.forged_failure(ans, True), "agent message")
+        self.bad(self.forged_failure(tool, True), "isolation")
+
+    def test_exact_false_refused_on_resume_before_dispatch(self):
+        root = tmp()
+        b = A.build(root, {"rq1c": ["fail", "ok:thing"]})
+        X.run(fixture=b["fixture"])
+        recs, _ = J.read(b["fixture"]["raw"])
+        i = next(k for k, r in enumerate(recs) if r["t"] == "end" and r["outcome"] == "provider_failure")
+        body = recs[:i + 1]                                                 # an incomplete journal: resume toward try 2
+        ans = {"id": "m", "type": "agent_message", "text": "unclear\ufffd"}
+        evs = [{"type": "thread.started", "thread_id": "t"}, {"type": "turn.started"},
+               {"type": "item.completed", "item": ans},
+               {"type": "turn.completed", "usage": {"input_tokens": 1, "output_tokens": 1}}]
+        text = "\n".join(json.dumps(e, ensure_ascii=False) for e in evs) + "\n"
+        body[i]["events"] = {"length": len(text.encode()), "sha256": "0" * 64, "text": text, "exact": False}
+        body[i]["event_types"] = sorted({e["type"] for e in evs})
+        b["fixture"]["raw"].write_bytes(b"".join((json.dumps(r, sort_keys=True) + "\n").encode() for r in body))
+        n = len(A.dispatches(root))
+        with self.assertRaisesRegex(SystemExit, "agent message"):
+            X.run(fixture=b["fixture"])
+        self.assertEqual(len(A.dispatches(root)), n)                        # nothing dispatched
+
+    def test_received_file_answer_on_a_non_answer_label(self):
+        recs = copy.deepcopy(self.recs)
+        i = self.idx(recs, lambda r: r["t"] == "end" and r["outcome"] == "provider_failure")
+        recs[i]["file_answer"] = R.bounded(b"unclear", R.FILE_ANSWER_KEEP)
+        recs[i]["file_answer_sha256"] = recs[i]["file_answer"]["sha256"]
+        self.bad(recs, "-o answer file holds text")
+
+    def test_head_tail_evidence_only_for_retained_errors(self):
+        recs = copy.deepcopy(self.recs)
+        i = self.idx(recs, lambda r: r["t"] == "end" and r["outcome"] == "provider_failure")
+        recs[i]["events"] = R.bounded(b"x" * (R.EVENTS_KEEP + 10), R.EVENTS_KEEP)
+        self.bad(recs, "cannot be re-derived")
+
+    def test_exact_schemas_identities_and_image_fields(self):
+        b1 = self.idx(self.recs, lambda r: r["t"] == "begin")
+        d1 = self.idx(self.recs, lambda r: r["t"] == "dispatched")
+        e_ok = self.idx(self.recs, lambda r: r["t"] == "end" and r["outcome"] == "ok")
+        muts = {
+            "extra key on end": (e_ok, lambda r: r.update(extra=1), "exact schema"),
+            "missing key on begin": (b1, lambda r: r.pop("adir"), "exact schema"),
+            "image bytes bool": (b1, lambda r: r["receipt"].update(image_bytes=True), "image_bytes"),
+            "image bytes differ": (b1, lambda r: r["receipt"].update(image_bytes=r["receipt"]["image_bytes"] + 1),
+                                   "size, detail"),
+            "detail differs": (b1, lambda r: r["receipt"].update(detail="low"), "size, detail"),
+            "worker pid str": (d1, lambda r: r["worker"].update(pid=str(r["worker"]["pid"])), "identities"),
+            "worker pid bool": (d1, lambda r: r.update(pid=True), None),
+            "worker start unknown": (d1, lambda r: r["worker"].update(start="unknown"), "identities"),
+            "watchdog missing fields": (d1, lambda r: r.update(watchdog={"pid": 5}), "identities"),
+            "event types differ": (e_ok, lambda r: r.update(event_types=["turn.started"]), "event types"),
+            "usage malformed on ok": (e_ok, lambda r: r.update(usage={"input_tokens": True, "output_tokens": 1}),
+                                      "usage"),
+            "kill malformed": (e_ok, lambda r: r.update(kill={"how": "SIGSTOP", "kill_to_reap_s": 1.0}), "kill"),
+        }
+        for name, (i, fn, msg) in muts.items():
+            with self.subTest(name):
+                recs = copy.deepcopy(self.recs)
+                fn(recs[i])
+                self.bad(recs, msg)
+
+    def test_top_level_error_event_is_never_ignored(self):
+        evs = EV[:2] + [{"type": "error", "message": "something else went wrong"}] + EV[2:]
+        c = R.classify(evb(evs), b"", "knife", 0, timed_out=False, overflow=False)
+        self.assertEqual(c["outcome"], "isolation_violation")
+        recs = copy.deepcopy(self.recs)
+        i = self.idx(recs, lambda r: r["t"] == "end" and r["outcome"] == "ok")
+        evs = [json.loads(x) for x in recs[i]["events"]["text"].splitlines() if x.strip()]
+        evs.insert(2, {"type": "error", "message": "x"})
+        recs[i]["events"] = R.bounded(evb(evs), R.EVENTS_KEEP)
+        self.bad(recs, "isolation")
+
+    def test_record_and_file_bounds(self):
+        d = tmp()
+        raw = d / "raw.jsonl"
+        raw.write_bytes((json.dumps({"t": "open", "pad": "x" * (J.MAX_RECORD + 10)}) + "\n").encode())
+        with self.assertRaisesRegex(SystemExit, "over the .* bound"):
+            J.read(raw)
+        raw.write_bytes(b"{}\n" * 10)
+        with self.assertRaisesRegex(SystemExit, "over its"):
+            J.read(raw, cap=5)
+        data = self.b["fixture"]["raw"].read_bytes()
+        with self.assertRaisesRegex(SystemExit, "over its"):
+            J.validate(self.recs, self.b["sset"], A.DIGEST, raw_bytes=data,
+                       **{**vkw(self.b), "limits": {**X.LIMITS, "raw_bytes": len(data) - 1}})
+        recs = copy.deepcopy(self.recs)
+        recs[-1]["reason"] = "y" * (21 << 20)                                 # the final reason expanded past 20 MiB
+        blob = b"".join((json.dumps(r, sort_keys=True) + "\n").encode() for r in recs)
+        with self.assertRaises(SystemExit):
+            J.validate(recs, self.b["sset"], A.DIGEST, raw_bytes=blob, **vkw(self.b))
+
+    def test_duplicate_quarantine_record_refused(self):
+        recs = copy.deepcopy(self.recs)
+        body, receipt = recs[:-1], recs[-1]
+        tr = {"t": "tail_repair", "package_digest": A.DIGEST, "mode": "synthetic-fixture", "bytes": 3,
+              "sha256": "a" * 64, "quarantine": "tail_000009_abc.bin"}
+        body += [dict(tr, seq=len(body) + 1), dict(tr, seq=len(body) + 2)]
+        with self.assertRaisesRegex(SystemExit, "recorded twice"):
+            J.validate(body, self.b["sset"], A.DIGEST, require_complete=False, **vkw(self.b))
+
+    def test_complete_receipt_over_the_cap_refused(self):
+        recs = copy.deepcopy(self.recs)
+        recs[-1]["seconds_total"] = X.LIMITS["job_clock_s"] + 1800.0          # a 6 h 30 min COMPLETE
+        self.bad(recs, "over the")
+        recs[-1]["seconds_total"] = float("nan")
+        self.bad(recs, "finite")
+
+
+class Rev5LocalReceipts(unittest.TestCase):
+    """R5: local receipt commands enforce the final output bound, bounded reads, an independent deadline and verified
+    whole-group cleanup on every exit."""
+
+    def adir(self) -> Path:
+        d = tmp() / "a"
+        R.prepare(d, A.png(3), "x.png")
+        return d
+
+    def script(self, body: str) -> list[str]:
+        return [sys.executable, "-c", body]
+
+    def test_quick_exit_over_the_cap_refused(self):
+        with self.assertRaisesRegex(SystemExit, "cap"):
+            R.run_local(self.script("import sys; sys.stdout.write('x' * (5 << 20))"), self.adir(), [], sandbox=False)
+
+    def test_leader_first_descendants_killed(self):
+        d = self.adir()
+        pidf = d / "child.pid"
+        body = ("import subprocess, sys, time; c = subprocess.Popen([sys.executable, '-c', "
+                "'import time; time.sleep(600)']); open(%r, 'w').write(str(c.pid)); time.sleep(0.2)" % str(pidf))
+        rc, out, err = R.run_local(self.script(body), d, [], sandbox=False)
+        self.assertEqual(rc, 0)
+        self.assertIsNone(memprobe.proc_info(int(pidf.read_text())), "a descendant outlived its local command")
+
+    def test_timeout_refused_and_group_gone(self):
+        d = self.adir()
+        pidf = d / "child.pid"
+        body = ("import subprocess, sys, time; c = subprocess.Popen([sys.executable, '-c', "
+                "'import time; time.sleep(600)']); open(%r, 'w').write(str(c.pid)); time.sleep(600)" % str(pidf))
+        t = time.monotonic()
+        with self.assertRaisesRegex(SystemExit, "deadline"):
+            R.run_local(self.script(body), d, [], sandbox=False, timeout=1.0)
+        self.assertLess(time.monotonic() - t, 5.0)
+        self.assertIsNone(memprobe.proc_info(int(pidf.read_text())))
+
+    def test_invocation_receipt_deadline_and_cleanup(self):
+        d = self.adir()
+        pidf = d / "child.pid"
+        prog = d / "w" / "fakeexec.py"
+        prog.write_text("import subprocess, sys, time\n"
+                        "c = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(600)'])\n"
+                        f"open({str(pidf)!r}, 'w').write(str(c.pid))\n"
+                        "time.sleep(600)\n")
+        t = time.monotonic()
+        with self.assertRaisesRegex(SystemExit, "could not be read"):
+            R.invocation_receipt([sys.executable, str(prog)], A.READER, d, d / "w" / "x.png", "p", wait_s=1.0,
+                                 sandbox=False)
+        self.assertLess(time.monotonic() - t, 6.0)
+        self.assertIsNone(memprobe.proc_info(int(pidf.read_text())))
+
+
+class Rev5Clock(unittest.TestCase):
+    """R4: strict clock admission, the guard's cap enforcement and no lock held through a blocked write."""
+
+    def test_nonfinite_and_typed_accounting_refused(self):
+        for bad in ({"seconds_total": float("nan")}, {"seconds_total": -1.0}, {"seconds_total": True},
+                    {"open_session": {"session": "s", "live_s": float("inf")}}):
+            with self.subTest(str(bad)):
+                d = tmp()
+                (d / "clock.json").write_text(json.dumps({"sessions": [], "seconds_total": 0.0, "open_session": None,
+                                                          **bad}))
+                with self.assertRaisesRegex(SystemExit, "accounting invalid"):
+                    X.Clock(d / "clock.json", time.monotonic(), 100.0)
+                with self.assertRaisesRegex(SystemExit, "accounting invalid"):
+                    X.check_accounting(d, d / "none.jsonl")
+
+    def test_guard_kills_at_the_final_reserve(self):
+        d = tmp()
+        hit = []
+        c = X.Clock(d / "clock.json", time.monotonic(), X.FINAL_S + 0.6, on_cap=lambda: hit.append(time.monotonic()))
+        t = time.monotonic()
+        while not hit and time.monotonic() - t < 5:
+            time.sleep(0.05)
+        c.close("test")
+        self.assertTrue(hit)
+        self.assertLess(hit[0] - t, 1.5)
+
+    def test_guard_ends_the_process_at_the_cap(self):
+        d = tmp()
+        body = (f"import sys, time; sys.path.insert(0, {str(PHOTO)!r}); import ai_reader_exec as X; "
+                f"from pathlib import Path; X.Clock(Path({str(d / 'clock.json')!r}), time.monotonic(), 1.0); "
+                "time.sleep(30)")
+        t = time.monotonic()
+        p = subprocess.run([sys.executable, "-c", body], capture_output=True, text=True, timeout=60)
+        self.assertEqual(p.returncode, 75, p.stderr[-500:])
+        self.assertLess(time.monotonic() - t, 10.0)
+        self.assertIn("cap was reached", p.stderr)
+
+    def test_blocked_beat_does_not_hold_close(self):
+        d = tmp()
+        real = X.write_atomic
+        state = {"block": False}
+
+        def slow(path, data, **kw):
+            if state["block"]:
+                time.sleep(3.0)
+            return real(path, data, **kw)
+        X.write_atomic, old_wait = slow, X.CLOSE_WAIT_S
+        X.CLOSE_WAIT_S = 0.5
+        try:
+            c = X.Clock(d / "clock.json", time.monotonic(), 100.0)
+            state["block"] = True
+            time.sleep(1.3)                                                  # the beat thread is now inside a write
+            t = time.monotonic()
+            with self.assertRaisesRegex(RuntimeError, "blocked write"):
+                c.close("test")
+            self.assertLess(time.monotonic() - t, 1.5)
+        finally:
+            X.write_atomic, X.CLOSE_WAIT_S = real, old_wait
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-# Stage A (ledger row 20): declared criteria and code, revision 4 (R084, 2 October 2026)
+# Stage A (ledger row 20): declared criteria and code, revision 5 (R084, 2 October 2026)
 
 **Specification:** framework `rsc_t1_two_channel_framework.md` §8.2, §8.4 and §8.6 (Unimog; R052's text).
 
@@ -9,220 +9,242 @@
 | 1 | RSC `79343d9` | RSC `f9d2ef3` | NOT ON BOARD |
 | 2 | RSC `e598f96` | RSC `69539bb` | NOT ON BOARD |
 | 3 | RSC `a59fc2d` | RSC `081f17b` | NOT ON BOARD |
-| 4 | this commit | — | answers R052's handoff `dfdac45a`: the closure set 1–7 of `081f17b` §4 |
+| 4 | RSC `d7a486a` | RSC `1bf9890` (combined with the AI reader) | NOT ON BOARD |
+| 5 | this commit | — | answers R052's handoff `8c9dac2b`: Stage A conditions 1–8 of `1bf9890` Question 4 (A1–A8) |
 
 No review record of a not-favourable verdict can be named by a go: the guard's supplementary negative list holds
-`f9d2ef3`, `69539bb`, `081f17b` (row 20) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general rejection is the
-absence of a positive, exactly matching attestation.
+`f9d2ef3`, `69539bb`, `081f17b`, `1bf9890` (row 20) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
+rejection is the absence of a positive, exactly matching attestation.
 
-**Not reopened** (Codex confirmed them at `081f17b`): the attestation v1 format (no field added), the inputs, cases,
-positional rule, transaction, numeric statistic, engineering carry and envelope. Inputs, cases and the 178 planned
-attempts are byte-identical to revision 3; the plan moved only in `revision`, the envelope's declared controller
-constants and its budget hash.
+**Not reopened** (accepted by Codex at `1bf9890`): the hashes and their relations, the shared strict guard (no schema
+objection), the attestation v1 format, the inputs, cases, positional rule, transaction, statistic, engineering carry
+and envelope; the sum-of-lifetime over-count as an early-stop convention; live-bound full logits and features; the two
+tiny unreserved writes; the power-loss tail as an accounting rule. Inputs, cases and the 178 planned attempts are
+byte-identical to revision 4; the plan moved only in `revision`, the envelope's declared controller constants and its
+budget hash.
 
 **No forward has run on any development image.** Every mechanism measurement below is from declared, non-development
 fixtures: synthetic worker processes, the real watchdog, synthetic arrays; no model and no image
 (`controller_fixtures.json`, recorded 2 October 2026).
 
-## 1. The closure set: where each lives
+## 1. The conditions A1–A8: where each lives
 
-### 1 — Approval and identity
+### A1 — every worker consumes and checks its own map; identity rechecked before completion
 
-**Strict shared guard** (`stage_a_guard.require_go`, `parse_attestation`; also the AI reader's):
+- **Gates** (`stage_a.desk_gates`): after the fresh identity equals the frozen one, the gates' own import map
+  (`identity_files.gates.json`) is consumed by `check_imported_origins(map, identity.package_file_maps_sha256)`; the
+  identity is rechecked (`recheck_identity`: local code, packet, plan, manifest, receipt) before GATES.json is
+  committed.
+- **Report** (`stage_a.run_report`): the map `worker_identity` returns is consumed and checked the same way; the
+  report's `build` calls the recheck immediately before it writes `REPORT_RECEIPT.json` — a source change during
+  report construction leaves no receipt, so no current report and no PASS.
+- Instrumented and native: unchanged (map consumed after load, recheck before the phase record).
 
-- exact key sets at every level (go file, review, owner_go, attestation, package): an extra key refuses, null or not;
-- strings are non-empty strings (a number or bool refuses), digests 64 lowercase hex, dates exact calendar
-  `YYYY-MM-DD` (nothing truncated);
-- both commit ids are 40-hex and resolve to **commit objects** (`git cat-file -t`, `rev-parse ^{commit}`);
-- exactly one block: marker at a line start, JSON with no duplicate key, the closing delimiter required on its own
-  line;
-- attestation package = go package = package now = package **re-derived from the reviewed commit** (mandatory); the
-  review record's commit descends from the reviewed commit; reviewed commit ≤ attestation ≤ review commit ≤ owner go;
-- recovery files under an exact schema too.
+Fixtures (`tests/test_stage_a_runner.py`): `StageA.test_gates_consume_their_map_and_recheck` (an origins refusal and a
+recheck failure each leave no GATES.json), `test_report_consumes_its_map_and_rechecks_before_the_receipt` (the map
+check is called; a recheck failure leaves the report and both figures but no receipt).
 
-**The reviewed-package builder proves the identity–blob relation** (`stage_a.package_at_commit`): at the reviewed
-commit the identity hashes to its own `identity_sha256`, and its local-code digests (all ten files), packet, import
-map, positions receipt, plan and manifest digests equal the hashes of those blobs at that commit.
+### A2 — guarded startup, armed safeguard, whole-group restart
 
-**The consumed import map is bound.** Every worker (gates, instrumented, native, report) **recomputes the execution
-identity itself** (~8 s), must equal the frozen identity and this session's gates identity, and writes its own
-per-file map; `check_imported_origins(map, identity.package_file_maps_sha256)` refuses unless the consumed map's bytes
-hash to the identity's value. Before a phase record is written, local code, packet, plan, manifest and receipt are
-re-hashed against the identity (`recheck_identity`). The identity binds the new `stage_a_watchdog.py`.
+- **One cleanup owner from before the first spawn** (`stage_a_controller._phase`): the worker is spawned behind a start
+  gate (a shell that execs the worker only after reading `GO` on stdin; EOF → exit 97, nothing ran); then the exit
+  watch, the worker's identity (pid + start), the watchdog — given the controller's and the leader's identities — which
+  must print `ARMED` within 10 s and whose identity is read, and the durable record holding both identities; only then
+  is `GO` written. A failure at any step ends and reaps the gated worker, which has run nothing.
+- **No phase starts while an earlier handle exists:** a leftover worker or watchdog is ended (whole group, reaped)
+  first.
+- **The watchdog checks its controller by identity** (pid AND start time) at arming and on every poll, and on firing
+  kills, at once, every live member of the worker's group (enumerated by `memprobe.end_group`, anchored to the recorded
+  leader identity) and every identity in the members file the controller keeps (escaped descendants); a stale beat or
+  the hard deadline also kills the blocked controller, by identity, after the group.
+- **Restart** (`_reconcile`): for each recorded worker of the crashed session, every live member of its process group
+  is enumerated — not only the recorded ones — anchored to the leader's identity (XNU never reuses a pid that is still
+  a process-group id; a live process holding the leader's pid with another start time means the group is extinct),
+  killed with every recorded member, and confirmed gone; **only then** is the watchdog killed and confirmed gone.
+  A crash between spawn and the first persist leaves an unreleased gated worker whose stdin closes with the controller
+  (exit 97) and, if armed, a watchdog that kills its group on the controller's death.
 
-**Positions receipt:** absent, failing and stale (bound to another plan) are three refusals (`check_receipt`).
+Fixtures (`tests/test_controller.py`): `Startup` — exit-watch failure, watchdog spawn failure (no ARMED), first-persist
+failure (each: the instrumented worker never released, ran nothing, is dead and reaped; the run STOPS), a leftover
+handle ended before the report phase; `Controller.test_immediate_restart_kills_unrecorded_group_members` — a recorded
+live leader with a child no record names, and a live watchdog: the child is killed, the watchdog last; the same with
+the leader already exited and only the unrecorded child holding the group;
+`test_stale_worker_reconciled_by_identity_only` (a recorded pid whose start differs is never signalled).
 
-**Fixtures** (`tests/test_stage_a_runner.py`): `GoAttestation` (refusal cases: unrelated package, wrong row,
-not favourable, extra field, extra null key in attestation and in both attestation and go, short/uppercase digest,
-truthy non-string and boolean reviewer, empty reviewer, date with a time, impossible date, short/non-hex/unknown
-reviewed commit, a tree id, row as integer, no closing delimiter, delimiter not on its own line, marker not at a line
-start, text after the delimiter, duplicate key, two blocks, no block, go package differs, owner go before review,
-owner-date truncation, owner by not a string, record hash mismatch, short review commit, absolute record path, extra
-review key, package changed since review, re-derivation differs or has a null field, review not descending from the
-reviewed commit, negative-record supplement); `ReviewedPackageBuilder` (a real git repository laid out like RSC:
-positive, identity not describing its map/receipt/packet/plan blobs, local code changed after the identity, identity
-self-hash broken); `Units.test_consumed_map_bound_and_origins` (a rewritten consumed map admitting a shadowing copy
-is refused), `test_positions_receipt_absent_failing_stale`, `test_code_changed_between_phases`,
-`test_worker_identity_must_equal_frozen_and_gates`.
+### A3 — one task aggregate, mandatory final measurements, the margin
 
-### 2 — Controller and recovery
+- **By identity:** every sampled process's lifetime maximum is kept under its identity (`member_max`, pid:start); the
+  leader's exit maximum, read from the exited, **unreaped** process, is folded in. The phase aggregate = Σ member maxima
+  + the controller's lifetime maximum; `task_lifetime_sum` is the maximum over phases and live samples; at
+  finalisation the controller samples itself again and the **task aggregate** = max over this session's workers of
+  (Σ member maxima) + the controller's final lifetime maximum. A phase whose aggregate reaches the stop at the worker's
+  exit stops.
+- **Mandatory:** PASS requires every released worker's exit peak and the controller's final self sample; a missing
+  one is listed in `missing_measurements` and the outcome is STOPPED.
+- **Prompt stops:** every controller stop SIGKILLs the worker's group at once (no SIGTERM grace); the watchdog too.
+- **The sampler does no file I/O:** the main thread samples (sleep 0.02 s; an iteration whose work exceeds 0.05 s
+  stops) and ticks a pipe to the watchdog; a separate I/O thread persists and sums the storage. A hung sampler (no tick
+  for 0.1 s) makes the watchdog kill the group.
 
-**`stage_a_controller.py`** spawns every phase — **the gates included** — as a worker in its own process group, with a
-**watchdog** (`stage_a_watchdog.py`) beside it in its own session. The watchdog kills the worker's group on the
-controller's death (kqueue NOTE_EXIT), on a **stale heartbeat** (controller.json not rewritten for 10 s: the
-controller alive but blocked by hashing, a hung call or an fsync) and at a hard deadline 5 s after the controller's
-own; it records the observation, kill and empty-group wall times durably.
+**The complete observation-to-death interval** is at most two iterations' work plus one sleep between two readings of
+any process (0.05 + 0.02 + 0.05 = **0.12 s**), or with a hung sampler the last reading + the 0.1 s tick staleness + the
+watchdog's 10 ms poll (**≤ 0.16 s**), plus the SIGKILL delivery. Measured (`controller_fixtures.json`):
 
-- **Workers cannot outlive a dead controller**; leader exit is seen by kqueue **without reaping**; after any exit —
-  ordinary, stop or deadline — the **whole group** is SIGKILLed until no live member remains (an exited, unreaped
-  leader makes killpg answer EPERM: measured) and every member recorded during the phase (pid + start time) outside
-  the group is killed by identity and confirmed gone; only then is the leader reaped.
-- **Reconciliation before any spawn:** a restart finds the crashed session's workers, members and watchdogs, kills
-  those whose recorded identity still matches the live process, confirms them gone, and **never signals a pid whose
-  start time differs** (an unidentified process). It then charges the tail.
-- **Crash state reconciled first; hold ≠ failure:** the gates worker converts an open attempt into an interrupted try
-  durably (`enforce.reconcile_open_attempt`); an interrupted try without the owner's file is a **HELD** outcome (exit
-  4): no TERMINAL record, no work, no report. REFUSED (a gate refused) and STOPPED/PASS are separate outcomes.
-- **The report never grants or consumes authority:** it reads `enforce.read_ledger` and describes an open or
-  interrupted attempt.
-- **The deadline cannot be blocked:** the controller's observation loop does no hashing or git (the gates are a
-  worker), reads swap and pressure in-process (`sysctlbyname`, ~50 µs, no subprocess or timeout path), and the watchdog
-  enforces both the stale-heartbeat and the hard-deadline kill independently.
+| Measurement | Value |
+|---|---|
+| Largest sampling iteration's work over a full run (gates, instrumented, native, report) | 5.1 ms (gates 3.1, instrumented 3.6, native 4.7, report 5.1 ms) against the 50 ms limit |
+| Hung sampler: watchdog observation → group gone | 0.034 s |
+| Memory stop: kill → reap | 0.017 s |
+| SIGKILL overshoot of a writer growing as fast as one thread can (killed at a 4 GiB reading) | 0.001 GiB (observed 4.132, exit peak 4.133 GiB; kill → exit 0.022 s) |
+| Growth rate, one thread (numpy touch) | 14.7 GiB/s |
+| Growth rate, 2 / 4 / 8 threads | 36.2 / 58.1 / 75.0 GiB/s |
 
-**Measured** (`controller_fixtures.json`):
+**The margin, stated with the numbers (partly unbuildable as asked).** The enforced bound is 0.12 s between two
+readings (0.16 s with a hung sampler) + 0.022 s SIGKILL delivery = **≤ 0.18 s**. The 4 GiB between the 44 GiB stop and
+the 48 GiB cap therefore holds for growth up to **about 22 GiB/s**. A single thread touching fresh memory grows at
+14.7 GiB/s: inside the margin (≤ 2.7 GiB unseen). **Two or more threads exceed it**: 36 GiB/s (2), 58 GiB/s (4) and
+75 GiB/s (8) would allow 6.6, 10.6 and 13.7 GiB past the stop within the enforced bound. With the measured iteration
+work (5 ms, not the 50 ms limit) the typical interval is 0.03 s + 0.022 s, which covers about 77 GiB/s, but that is a
+measurement, not an enforced bound. No sampling design can guarantee the margin against an allocator as fast as the
+machine's multi-threaded page-fault rate; a kernel-enforced per-process memory limit is not available to an
+unprivileged process on this macOS. Stage A's own growth (an mmap'd 4-bit model load, then single prefill passes) is
+the measurement Stage A makes; the declared position is that the margin is qualified for growth ≤ 22 GiB/s and is not
+claimed beyond it.
+
+Fixtures: `test_exit_peak_enters_the_task_aggregate` (the 1 GiB exit spike is in `member_max`, `task_lifetime_sum`
+and the final aggregate, not only a side field), `test_exit_spike_over_the_stop_stops`,
+`test_missing_mandatory_measurements_refuse_pass` (exit peak unreadable; controller self sample unreadable),
+`test_memory_stop_is_whole_task`, `test_hung_sampler_watchdog_kills_on_stale_ticks`,
+`test_sampler_unavailable_slow_and_blocked`.
+
+### A4 — the whole-controller clock
+
+- **From the process's start:** the session's live seconds count from the controller process's own start (libproc
+  start time), before configuration, recovery and superseding.
+- **Close and finalisation are charged and bounded:** the close charges, at once, `FINAL_ALLOWANCE_S` = 60 s for
+  everything after it (receipt and ledger reads, hashing, scans, the final record and its marker); close and
+  finalisation run under a timer of that length — past it the process ends with exit 75 after removing any admission
+  marker of the session. The storage scan precedes the close's time sample.
+- **Crash charge:** the dead session's last durable live time + max(60 s, the watchdog's interval from the last beat to
+  the group's **and the controller's** death). A watchdog that found the controller blocked (stale beat, hard deadline)
+  kills it, so the interval is bounded and recorded; if it could not see the controller die, the charge runs until the
+  restart. A power loss stays the declared 60 s accounting rule.
+- **Lost or invalid accounting refuses:** an absent controller.json beside any existing task output; non-finite,
+  negative or mistyped carry, totals, session times or beat; a total below the carry; a carry other than the declared
+  one.
+
+Fixtures: `test_crash_tail_charge` (declared, measured-longer, and blocked-never-seen-to-die tails),
+`test_blocked_writer_watchdog_bounds_worker_and_controller` (group and controller killed),
+`Finalisation.test_lost_and_invalid_accounting_refused` (absent record beside output; NaN, negative, wrong carry,
+mistyped session), `test_post_rename_block_is_bounded_and_not_admitted`, the allowance charged in the PASS fixture.
+
+### A5 — durable completion
+
+`STAGE_A_FINAL.json` is written first; then, only if the output tree's size equals the declared figure (which includes
+the record and its marker), `STAGE_A_FINAL.ADMITTED.json` names the final record's sha256 and session.
+**`stage_a_controller.final_admitted(out)`** admits a final record only with that marker. A failure or block after the
+final record's rename leaves no marker; a failure after the marker's own rename removes the marker before exit 75; a
+size mismatch rewrites the record STOPPED, with no marker. Earlier finals and markers are superseded at every session
+start.
+
+Fixtures (`Finalisation`): failure before the final write; **post-rename exception** (the bytes say PASS, not
+admitted, exit 75); **post-rename block** (bounded by the allowance, exit 75, not admitted); **marker failure after its
+rename** (marker removed); **size mismatch** (STOPPED on disk, not admitted); `test_stale_pass_superseded`.
+
+### A6 — legal ledger domains and full instrumented admission before native work
+
+- **`enforce.check_ledger`** (used by the validator and the controller's final algebra): exactly four non-negative
+  integer counters per row and aggregate (never bool or float); completed + failed ≤ started; passes ≥ started × the
+  declared passes per try; aggregate = row 20 + row 21; every attempt with exactly kind, passes (= the declared 1),
+  status (open, completed, interrupted, interrupted with recovery consumed, failed…) and tries ≥ 1; the completed map
+  equal to the completed statuses; the open attempt coherent with its entry; interrupted entries and consumed
+  recoveries coherent with the statuses; the row recount from tries and carry; row 21 zero in a row-20 ledger.
+- **Pre-native admission:** before any native model is constructed, `admit_native` runs the complete instrumented
+  validator (`stage_a_report.validate(..., phases=("instrumented",))`: ledger domains, every instrumented record and
+  array under the full predicates, cross-case, 120 bitwise, suffix and encoder criteria, INSTRUMENTED_DONE).
+- **Resumed records:** a committed record reloaded on resumption passes its phase's full predicates before use.
+- **Predicates added:** requested ranks integers in [1, vocabulary], never bool, agreeing with the top-k and with the
+  order of their logits (ties by ascending id, the capture's rule); top-k ids distinct integers in [0, vocabulary) with
+  finite non-increasing logits; the final-logit dtype one of the capture's names (bfloat16, float16, float32) and the
+  same on every record.
+
+Fixtures: `ValidatorMutations.test_codex_ledger_counterexample` (all tries 0, per-try passes 1, started 16, passes 16,
+completed 193, failed −177, row 21 zero, aggregate = row 20: refused), `test_coherent_zero_negative_and_typed_states`
+(ten coherent or typed mutations), `test_ranks_top_k_and_logit_dtype`;
+`StageA.test_consistent_nonplain_change_refused_before_native` (a non-plain `input_ids_sha256` changed with record,
+ledger and phase-record hashes updated: refused, the native factory never called),
+`test_resumed_record_admitted_by_the_full_predicates` (a bool rank in a reloaded record refused).
+
+### A7 — exact report membership
+
+The receipt must have exactly `session, package, identity, date, outputs, admissible, validator_pass`; its outputs
+exactly the two SVG figures, the Markdown and the machine JSON, each matching on disk; the machine JSON's session and
+flags equal to the receipt's; the session and the gates' package and identity current. The report always writes both
+figures (an empty plot after a stop).
+
+Fixtures: `Finalisation.test_report_failure_modes_prevent_pass` — machine JSON then failure, a wrong output hash,
+another session, worker failure, **figures and Markdown removed with the receipt consistently trimmed**, an extra
+receipt field, a receipt flag that differs from the machine report.
+
+### A8 — declarations: provenance, source records, the audit scorer
+
+- **Provenance snapshot vs current pin.** `manifest_dev.json`'s `execution_identity` is the **construction snapshot**
+  taken when the manifest was last built (RSC `a59fc2d`): its `provenance_checks_sha256` `84abf361…` names the
+  provenance record as it was then. The plan's `provenance_checks_sha256` `0085d38e…` pins the **current** record,
+  revised at RSC `859262f` (revision 4) only in its `stock_matches_note` wording (a first crawl "does not establish the
+  upload date or a later upload"); no check entry changed. The moved field is the plan's provenance pin (it moved the
+  plan hash at revision 4); the manifest and its records for the eight Stage A inputs are unchanged and
+  pinned record by record in the plan.
+- **Admission policy (enforced, `stage_a.load_frozen`):** the frozen plan and manifest are the reviewed immutable
+  records (both hashed in the package), and the **current** `dev_pool.json` and `provenance_checks.json` must be
+  byte-identical to the plan's pins; a later change to either refuses until a new plan is reviewed.
+- **Audit scorer code (a before-audit condition, not a Stage A gate):** `audit_package.py` binds the live classifier
+  and normalisation source — `ai_reader_score.py`, `ai_reader_key.py`, `audit_alias_map.py` — and the map's pinned hash;
+  the audit package records `audit_package.identity()` when reviewed, and `audit_package.score(..., pins=)` refuses on
+  any difference. The frozen map and its construction record are unchanged.
+
+Fixtures: `StageA.test_source_records_pinned`; `test_ai_reader.AuditMap.test_scorer_code_bound_in_the_audit_package`.
+
+## 2. Revision 4 mechanisms still in force
+
+The strict shared guard (`stage_a_guard.require_go`: exact key sets, typed values, commit objects, one closed block,
+mandatory reviewed-commit re-derivation, descent and date order); the reviewed-package builder proving the identity–blob
+relation (`stage_a.package_at_commit`); the positions receipt's three refusals; every writer's storage reservation
+(work under cap − 64 MiB, finalisation under the full cap); the validator's per-record, ledger, membership, phase-record
+and recomputed-criterion checks (`ValidatorMutations`, `GoAttestation`, `ReviewedPackageBuilder`, `Units`); crash
+reconciliation into interrupted tries and the authorisation hold (HELD ≠ REFUSED ≠ STOPPED); the report reading the
+ledger without authority; the MLX cache counted (2.0 GiB cache in a 4.222 GiB ledger; 2.222 current against 4.222
+lifetime after a fall); the B prediction recomputed at finalisation; the interpretation item validated.
+
+**Other mechanism measurements** (`controller_fixtures.json`):
 
 | Fixture | Result |
 |---|---|
-| Deadline, worker ignoring SIGTERM with a grandchild | SIGKILL; kill → reap **3.03 s**; grandchild dead |
-| Deadline, worker busy in 4096² MLX matmuls | SIGKILL; kill → reap **3.04 s** |
-| Controller SIGKILLed during active work | worker and grandchild gone **3.15 s** after the kill; restart reconciles, charges ≥ 60 s, PASSes |
-| Sampler hung 25 s (controller blocked) | watchdog: heartbeat stale → group gone **3.05 s** after observation (≤ 10 + 3 s after the last beat) |
-| Controller writer blocked forever | the same: group gone **3.05 s** after observation |
-| Leader exits first, child ignores SIGTERM | child dead before the next phase; PASS |
-| Child leaves the group (setsid) | killed by its recorded identity; PASS |
-| Stale crashed-session worker | killed by identity; a live process whose pid matched but whose start time did not was **not** signalled |
-| Gate refusal / authorisation hold | REFUSED, gates only / HELD, no TERMINAL, no report; resumes to PASS |
-| Persistence failure | exit 75 in **9.4 s**, first reason durable, no FINAL |
-| Initial system-reading failure | terminal, nothing spawned |
+| Deadline, worker ignoring SIGTERM with a grandchild | SIGKILL at once; kill → reap 0.019 s; grandchild dead |
+| Deadline, worker busy in 4096² MLX matmuls | kill → reap 0.029 s |
+| Controller SIGKILLed during active work | worker and grandchild gone 0.022 s after the kill; restart reconciles, charges ≥ 60 s, PASSes |
+| Controller writer blocked forever | stale beat: group gone 0.031 s and the controller 0.059 s after the observation |
+| Immediate restart with an unrecorded live member (leader alive / leader exited) | every member killed, the watchdog retired last; whole run 5.3 s each |
+| Persistence failure | exit 75 in 5.4 s, first reason durable, no final record |
+| Post-rename block of the final record | exit 75, not admitted, run 10.0 s (allowance set to 4 s in the fixture) |
+| Whole PASS run (four synthetic workers) | 5.3 s |
 
-**The 60 s tail, justified against the measured interval.** After the last durable beat a worker can run at most
-STALE_S (10 s) + TERM_GRACE_S (3 s) + the measured kill-to-gone (≤ 3.2 s) ≈ 16 s if the controller is alive but
-blocked, and ≈ 3.2 s after its death. A restart charges max(60 s, the interval its watchdog recorded from the last
-beat to the empty group). A power loss stops everything at once; then the 60 s is the declared allowance for the
-unrecorded part of the last beat interval (1 s nominal).
+## 3. Inputs, cases, tolerances and stops
 
-### 3 — Whole-task memory
-
-- **Scope:** the controller, the watchdog, the worker and every process in its group or descended from it
-  (`memprobe.task_processes`, libproc), summed as **Σ lifetime maxima** — per Apple's XNU, `ri_lifetime_max_phys_footprint`
-  covers one task, so the sum bounds the task's simultaneous peak from above. Sampled through the gates, load,
-  execution and the report (all workers); the controller samples itself at close.
-- **Final peak before reap:** the leader's lifetime maximum is read from the exited, **unreaped** process (kqueue
-  reports the exit without reaping). Measured: a worker that touched 1 GiB and exited faster than a sample showed
-  **1.057 GiB** exit peak; a child that touched 2 GiB showed **2.057 GiB** before its reap.
-- **Validation:** lifetime > 0; current > 0 for a live process; the kernel updates the maximum lazily (measured once
-  **above** it just after exec: current 4,112,816 > lifetime 4,096,432 bytes), so the reading is max(lifetime, current)
-  and the lag is flagged — never trusted downward.
-- **The MLX cache is covered:** a nonzero **2.0 GiB** MLX free-buffer cache plus 1 GiB host and 1 GiB MLX active read
-  **4.222 GiB** (4.0 allocated + 0.22 baseline); with the cache disabled (`set_cache_limit(0)`) the current ledger fell
-  to **2.222 GiB** while the lifetime maximum kept **4.222 GiB** (retention after a real fall).
-- **The stop margin, justified:** the measured full observation interval (one loop iteration) is at most
-  **0.113 s**; the fastest synthetic growth measured is **12.7 GiB/s**; so at most **1.43 GiB** can grow unseen within
-  an interval, against the 4 GiB headroom (stop at 44 GiB of the 48 GiB cap). A sample costs 0.1–0.2 ms; the task
-  listing 1.3 ms.
-
-### 4 — Storage and finalisation
-
-- **Every writer reserves** (`enforce.configure_storage` + `write_atomic`): used + 3n against the class limit — work
-  writes (arrays, per-pass records) under cap − 64 MiB; finalisation writes (state, terminal, gates, phase records,
-  parity, report, receipt, controller, final) under the full cap — so the report reserve stays available on every stop
-  route without a cap reset.
-- **Honest completed figures:** `storage_final` in STAGE_A_FINAL.json **includes the final record's own bytes** (a
-  fixed point, checked equal to the tree after the write); `seconds_total` ends at the close of the session record, the
-  final write's own duration inside the 60 s tail reserve within the cap.
-- **A failed or blocked final write** leaves **no** final record (the previous one was superseded at session start):
-  exit 75, a truthful hold.
-
-Fixtures: `Units.test_every_writer_reserves` (work refused at the operational limit; finalisation into the reserve;
-refused past the cap; the terminal writer included); `Finalisation.test_storage_cap_edges`,
-`test_failed_final_write_leaves_no_pass`.
-
-### 5 — Independent validator
-
-`stage_a_report.validate` implements the schema it claims, from archived data:
-
-- per record: **exact key set and schema tag**, planned id/index/case/**kind**; instrumented — expanded-ids hash
-  (plain: the frozen hash; suffix: the declared hash) and token count, readout positions, capture layers, residual
-  metadata and array (shape, dtype, finiteness, hash), final-logit metadata (one vocabulary size across all records,
-  hash = logits_sha256), requested ids/logits/ranks, top-k, edit/dispatch (edits installed exactly for edited cases;
-  one edit-log entry with the case's mode, layer 41, the marker positions and the declared alpha), GDN kernel, image
-  (exact keys, pixels, grid, 144 tokens, features shape and one declared dtype, frozen and effective positions, **32
-  rotary calls (0, n)**, one embed call, merge exact keys and **144 contiguous rows**, merge digest equal across the
-  input's cases, feature digest equal across the input's cases), and the **boundary bytes decoded** (D values, sha256
-  and finiteness recomputed);
-- native — exact keys, **decoder calls exactly one per layer (64)**, effective positions, the **merged embedding digest
-  compared with the paired plain merge digest from the archive** (the stored boolean must agree), finite requested
-  logits, the residual array; reloaded native outputs are checked the same way at run time;
-- the **ledger**: identity, caps, carry, no unknown or extra id, completed kinds and output maps, counters recomputed
-  from the attempts (row and aggregate);
-- **output membership** (every file under passes/ committed); both phase records (and the instrumented identity);
-- every criterion recomputed (120 bitwise, 2 suffix, encoder pair, embeddings, 20 parity rows).
-
-**Live-bound, not recomputed:** full final logits (~1 MB per pass) and the 144 × D features (~3 MB) are not archived;
-their digests and the merge flags are compared as recorded.
-
-Fixtures (`ValidatorMutations`, consistently rehashed, 16 tests): record identity and kind, extra and missing keys,
-plain input-ids and token count, readout, layers, top-k, logit metadata, residual metadata, edit mode and alpha, edits
-on a plain case, rotary calls, merge rows, feature shape and dtype, merge across cases, boundary NaN with a consistent
-hash, boundary hash and byte length, native embedding digest with the boolean left true, the boolean alone, decoder
-calls, nonfinite native residuals, duplicate parity summary, failing numbers marked pass, phase-record mismatch and
-identity, suffix leak and insensitive encoder, ledger counters, unknown id, identity and caps, a stray output.
-
-### 6 — Final PASS and B
-
-- The report writes figures, Markdown, machine JSON and **last** `report/REPORT_RECEIPT.json` (session, the gates'
-  package and identity, the sha256 of every output).
-- `_finalise` accepts PASS only with a **current** report: this session's report worker exited 0, no report stop this
-  session, a receipt naming this session and these gates, every listed output matching, the validator passed and
-  admissible — and no terminal record, and **every cap on the final figures: time, storage (with the final record),
-  whole-task memory and the attempt counters** per row and in aggregate from the ledger.
-- Earlier PASS artefacts are **superseded** at every session start (moved to `superseded/`).
-- The **Stage B prediction is recomputed at finalisation** from the completed whole-stage seconds and bytes (the report's
-  is labelled preliminary).
-- **B admission's interpretation item is validated** (`interpretation_status`): `report/INTERPRETATION.md` must name an
-  author and a date on or after the report and the sha256 of both figures as they are on disk.
-
-Fixtures: `Finalisation.test_report_failure_modes_prevent_pass` (machine JSON then failure, wrong receipt hash, other
-session, worker failure), `test_stale_pass_superseded`, `test_over_limit_ledger`, `test_time_exhausted_spawns_no_work`;
-`Units.test_interpretation_status`; `StageA.test_full_pass_validator` (the receipt binds every output).
-
-### 7 — Declarations
-
-- This file and `READINESS_ROW20.md` state the implemented guarantees and the limits in §6.
-- `audit_app/IMAGE_AUDIT_FREEZE.md`: **61 of 63** (replacing 59/61).
-- `provenance_checks.json`: a first crawl "does not establish the upload date or a later upload".
-- **Audit map** (`audit_alias_map.py`, a before-audit condition, not a Stage A gate): the qualification key's
-  specificity rule S1–S4 applied (dress pruned from clothes, lid from hat); denim pruned from jeans by a documented
-  exclusion the rule does not reach (it also names the fabric); three documented equivalences (taxi/cab,
-  hamburger/burger, pig/hog); taxis admitted beside taxies; construction identities recorded (THINGS tables, WordNet,
-  dev_pool, the key module, the builder); the frozen map's sha256 pinned in the audit freeze; the audit scorer
-  (`audit_alias_map.score`, format before matching) refuses any other map. Revision 3's builder imported a function
-  the key module no longer had; revision 4 rebuilds it.
-
-## 2. Inputs, cases, tolerances and stops
-
-Unchanged from revision 3 (and 2): relative L2 ≤ 0.01 per marker layer (FP32 in FP64, instrumented norm as
+Unchanged from revision 4 (and 3, 2): relative L2 ≤ 0.01 per marker layer (FP32 in FP64, instrumented norm as
 denominator), maximum E1 logit difference ≤ 0.10, identical argmax, the within-path cases bitwise equal to plain. The
 envelope: 16 carried + 140 + 16 + 2 + 20 = **194 of 200**, 1,808.73 s carried; caps A 200 / 4 h / 1 GiB, task
-memory 48 GiB.
+memory 48 GiB (stop 44 GiB).
 
-## 3. Running it (after the go only)
+## 4. Running it (after the go only)
 
 ```
-.venv-image/bin/python stimuli/photo/stage_a_controller.py run     # exit 0 PASS/STOPPED, 2 REFUSED, 4 HELD
+.venv-image/bin/python stimuli/photo/stage_a_controller.py run     # exit 0 PASS/STOPPED, 2 REFUSED, 4 HELD, 75 no final
 ```
 
-## 4. The attestation block (agreed by Codex at `081f17b`; unchanged)
+A PASS is read only through `stage_a_controller.final_admitted(captures/photo_stage_a)`.
+
+## 5. The attestation block (agreed by Codex at `081f17b`; unchanged)
 
 ```
 <!-- STAGE-ATTESTATION v1
@@ -234,23 +256,30 @@ memory 48 GiB.
 ```
 
 The go file holds exactly `review` {commit, path, record_sha256}, `owner_go` {by, date, words} and `package` (the
-same five hashes).
+same five hashes). If one review approves both Stage A and the AI reader, each gets its own record with one block.
 
-## 5. Tests (no model)
+## 6. Tests (no model)
 
-The retained-output run of the whole photo suite on this package is in `reviews/2026-10-02_photo_suite_rev4_run.md`
+The retained-output run of the whole photo suite on this package is in `reviews/2026-10-02_photo_suite_rev5_run.md`
 (command, exit status, counts, skips, identity, stdout/stderr).
 
-## 6. Stated limits (not narrowed silently)
+## 7. Stated limits (not narrowed silently)
 
-- **Descendants that leave the process group between two samples** (0.1 s apart) and are reaped by their own parent
-  before the next sample are not seen; a member recorded once is killed by identity. No task process forks in Stage A.
+- **The memory margin** holds for growth below the rate stated in A3; it is not a guarantee against an allocator
+  faster than that. The model's own peak and growth are Stage A measurements.
+- **Descendants that leave the process group and exit between two samples** (20 ms apart in the controller) are not
+  seen; one that persists after a sample is killed by its recorded identity, by the controller and by the watchdog. No
+  Stage A worker forks a process that leaves its group.
 - **The Σ-lifetime memory measure** over-counts processes whose peaks did not coincide; that can stop early, never
-  late. A descendant reaped by its parent between samples contributes its last sampled value.
-- **The 60 s charge for a power loss** is a declared allowance; with the controller alive or dead (but the machine up)
-  the unseen interval is measured by the watchdog and charged when longer.
-- **The stop margin** rests on the measured interval and growth of synthetic work; the model's own peak and growth are
-  Stage A measurements.
+  late, for the processes it measures.
+- **The 60 s charge for a power loss** is a declared accounting rule; with the machine up the unseen interval is
+  measured by the watchdog and charged when longer.
+- **The controller between phases** (no watchdog running: setup, reconciliation, the report checks) is bounded by its
+  own timeouts (reconciliation 10 s per group, finalisation 60 s); a controller that dies there is charged the 60 s
+  tail.
+- **The completion marker's commit point** is its rename; a failure of the marker's directory fsync that is followed
+  by a failure to remove it would leave a marker after exit 75 — the one residual window, which needs two consecutive
+  filesystem failures.
 - **Full logits and features** are live-bound digests, not archive-recomputed.
-- **Two tiny writes are outside the reservation:** the task LOCK (under 100 bytes, before storage is configured) and a
-  watchdog's record (under 500 bytes, a separate process); both fit the 64 MiB finalisation reserve.
+- **Small writes outside the reservation:** the task LOCK (under 100 bytes, before storage is configured) and a
+  watchdog's record (under 1 KiB, a separate process); both fit the 64 MiB finalisation reserve.

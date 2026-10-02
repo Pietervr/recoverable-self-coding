@@ -1,5 +1,9 @@
-"""Out-of-process task memory and process identity for the Stage A controller - revision 4 (Codex RSC 081f17b closure
-groups 2 and 3). Standard library and libproc through ctypes; no privilege needed for processes of the same user.
+"""Out-of-process task memory and process identity for the Stage A controller and the AI-reader job - revision 5 (Codex
+RSC 1bf9890 A2, A3, R3): `end_group` kills a whole process group by enumeration, anchored to the recorded leader
+identity (a group id whose pid now belongs to another process is extinct; nothing unidentified is signalled), plus the
+recorded member identities outside it, and confirms all gone; `valid_ident` is the strict identity schema. The
+fixture adds the multi-thread growth rate and the SIGKILL overshoot used by the memory-margin statement. Revision 4
+answered RSC 081f17b groups 2 and 3. Standard library and libproc through ctypes; no privilege needed for processes of the same user.
 
 FOOTPRINT (`footprint`): proc_pid_rusage(RUSAGE_INFO_V4) - ri_phys_footprint (the kernel's physical-footprint ledger of
 ONE task now) and ri_lifetime_max_phys_footprint (that task's running maximum of it). Per Apple's XNU
@@ -179,6 +183,68 @@ def exit_peak(pid: int) -> int:
     return f["lifetime_max"]
 
 
+# ---- whole-group extinction, anchored to identity (revision 5; Codex RSC 1bf9890 A2 / R3) -------------------------
+# A process-group id is the leader's pid. XNU never hands out a pid that is still in use as a process-group id, so
+# while ANY member of the group lives (or while its leader is an unreaped zombie of ours) the id names only that
+# group. Once the group is empty the pid may be reused - then a live process holds the pid with ANOTHER start time,
+# and the recorded group is known to be extinct. Nothing unidentified is ever signalled.
+class Survivors(RuntimeError):
+    pass
+
+
+def group_reused(leader: dict) -> bool:
+    """True when a live process now holds the recorded leader's pid with another start time (the group is gone)."""
+    now = proc_info(leader["pgid"])
+    return now is not None and leader["pgid"] == leader["pid"] and now["start"] != leader["start"]
+
+
+def end_group(leader: dict, members=(), limit: float = 10.0, *, own_leader: bool = False) -> dict:
+    """SIGKILL every live member of the leader's process group (enumerated, not only the recorded ones) and every
+    recorded member identity outside it, until none remains; raise Survivors past `limit`. own_leader: the caller
+    is the leader's unreaped parent, so killpg is safe for the whole loop. Returns what was killed and the time."""
+    pgid, t, killed = int(leader["pgid"]), time.monotonic(), {}
+    members = [m for m in members if m]
+    while True:
+        live = {} if (not own_leader and group_reused(leader)) else task_processes([], {pgid})
+        if own_leader or same_process(leader):
+            try:
+                os.killpg(pgid, 9)
+            except (ProcessLookupError, PermissionError):
+                pass
+        for p, i in live.items():
+            if same_process(i):
+                try:
+                    os.kill(p, 9)
+                    killed[str(p)] = i
+                except ProcessLookupError:
+                    pass
+        out_of_group = [m for m in members if same_process(m)]
+        for m in out_of_group:
+            try:
+                os.kill(m["pid"], 9)
+                killed[str(m["pid"])] = m
+            except ProcessLookupError:
+                pass
+        if not live and not out_of_group:
+            return {"killed": list(killed.values()), "seconds": round(time.monotonic() - t, 4)}
+        if time.monotonic() - t > limit:
+            raise Survivors(f"process group {pgid}: {sorted(live)} and members "
+                            f"{[m['pid'] for m in out_of_group]} survive SIGKILL after {limit} s")
+        time.sleep(0.02)
+
+
+IDENT_KEYS = {"pid", "ppid", "pgid", "start"}
+
+
+def valid_ident(i) -> bool:
+    """A recorded identity: exactly pid, ppid, pgid (positive ints, never bool) and the start time 'sec.usec'."""
+    import re
+    return (isinstance(i, dict) and set(i) == IDENT_KEYS and
+            all(isinstance(i[k], int) and not isinstance(i[k], bool) and i[k] >= 0 for k in ("pid", "ppid", "pgid"))
+            and i["pid"] > 0 and i["pgid"] > 0 and isinstance(i["start"], str) and
+            re.fullmatch(r"\d+\.\d{6}", i["start"]) is not None)
+
+
 def _sysctl(name: str, obj) -> None:
     n = ctypes.c_size_t(ctypes.sizeof(obj))
     if _LIBC.sysctlbyname(name.encode(), ctypes.byref(obj), ctypes.byref(n), None, 0) != 0:
@@ -228,6 +294,23 @@ _EXIT = r"""
 import numpy as np, time
 a = np.ones(2 * (1 << 30) // 8); a += 1; del a; time.sleep(0.1)
 """
+_RATE_MT = r"""
+import time, json, threading, numpy as np
+G, N = 1 << 30, int(__import__("sys").argv[1])
+def touch():
+    a = np.empty(2 * G // 8, dtype=np.float64); a.fill(1.0)
+ts = [threading.Thread(target=touch) for _ in range(N)]
+t = time.monotonic()
+for x in ts: x.start()
+for x in ts: x.join()
+print(json.dumps({"bytes": 2 * G * N, "seconds": time.monotonic() - t}), flush=True)
+"""
+_GROW = r"""
+import numpy as np, sys
+G = 1 << 30
+print("ready", flush=True); sys.stdin.readline()
+a = np.empty(16 * G // 8, dtype=np.float64); a.fill(1.0)
+"""
 
 
 def fixture(python: str) -> dict:
@@ -257,6 +340,33 @@ def fixture(python: str) -> dict:
     r = subprocess.run([python, "-c", _RATE], capture_output=True, text=True, timeout=120)
     rate = json.loads(r.stdout)
     out["max_growth_gib_per_s"] = round(rate["bytes"] / rate["seconds"] / G, 2)
+    mt = {}
+    for n in (2, 4, 8):                                  # several threads touching at once (the margin's rate)
+        r = subprocess.run([python, "-c", _RATE_MT, str(n)], capture_output=True, text=True, timeout=180)
+        d = json.loads(r.stdout)
+        mt[str(n)] = round(d["bytes"] / d["seconds"] / G, 2)
+    out["growth_gib_per_s_threads"] = mt
+    # SIGKILL delivery overshoot: a writer growing as fast as it can is sampled every 20 ms and killed the instant a
+    # reading crosses 4 GiB; the exit peak (unreaped) minus that reading is the growth between observation and death.
+    p = subprocess.Popen([python, "-c", _GROW], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+    p.stdout.readline()
+    kq = exit_watch(p.pid)
+    p.stdin.write("go\n")
+    p.stdin.flush()
+    seen, t0 = 0, time.monotonic()
+    while seen < 4 * G and time.monotonic() - t0 < 30:
+        seen = footprint(p.pid)["lifetime_max"]
+        if seen >= 4 * G:
+            t1 = time.monotonic()
+            os.kill(p.pid, 9)
+            break
+        time.sleep(0.02)
+    kq.control(None, 1, 10)
+    dead = exit_peak(p.pid)
+    p.wait()
+    out["sigkill_overshoot"] = {"observed_gib": round(seen / G, 3), "exit_peak_gib": round(dead / G, 3),
+                                "overshoot_gib": round((dead - seen) / G, 3),
+                                "kill_to_exit_s": round(time.monotonic() - t1, 4)}
     t = time.monotonic()
     for _ in range(1000):
         task_processes([os.getpid()], {os.getpgrp()})

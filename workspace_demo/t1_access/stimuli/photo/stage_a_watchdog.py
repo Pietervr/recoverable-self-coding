@@ -1,23 +1,32 @@
-"""Photograph arm, Stage A (row 20): the WATCHDOG - revision 4 (Codex RSC 081f17b closure group 2; framework 8.4 (m)).
-A separate, tiny, standard-library process the controller starts beside every worker, in its own session (outside the
-worker's process group), so neither the worker nor a blocked controller can stop it. It holds three conditions the
-controller's own loop could miss:
+"""Photograph arm, Stage A (row 20) and the AI-reader job: the WATCHDOG - revision 5 (Codex RSC 1bf9890 A2, A3, A4 and
+R3; framework 8.4 (m)). A separate, small process the controller (or the reader's orchestrator) starts beside every
+worker, in its own session (outside the worker's process group), so neither the worker nor a blocked controller can
+stop it. Standard library plus memprobe (ctypes/libproc, in-process).
 
-  CONTROLLER DEATH   kqueue NOTE_EXIT on the controller's pid (checked with its recorded start time), so a worker
-                     cannot outlive a dead controller;
-  HEARTBEAT LOSS     the controller's durable record (controller.json) not rewritten for STALE_S seconds - the
-                     controller is alive but blocked (hashing, a hung call, an fsync), so its deadline path is stalled;
-  HARD DEADLINE      a monotonic instant a little after the controller's own phase deadline (the controller normally
-                     stops the worker first and records it; this fires only if it did not).
+ARMING. It first checks the controller it was given by IDENTITY (pid AND start time) and the worker leader's identity,
+registers kqueue NOTE_EXIT on the controller, and only then prints `ARMED` on stdout; the controller releases the
+worker (its start gate) only after reading that line. If the controller is already gone or is not the recorded process,
+the watchdog acts at once.
 
-On any of them it sends SIGTERM to the worker's process group, waits GRACE_S, sends SIGKILL, waits until the group is
-empty (killpg -> ESRCH) and writes watchdog_<session>_<phase>.json (reason, wall times of the observation, the kill
-and the empty group) durably; the controller's next start charges the unseen interval from that record. It exits on
-its own as soon as the worker's group is empty. It never signals anything but the worker's process group, whose id
-cannot be reused while any member lives.
+CONDITIONS (any one fires):
+  CONTROLLER DEATH   kqueue NOTE_EXIT on the controller (or its identity no longer live);
+  HEARTBEAT LOSS     the controller's durable beat file not rewritten for stale_s - the controller is alive but blocked;
+  SAMPLER LOSS       (optional, Stage A) the controller's sampler stopped ticking on the tick pipe for tick_stale_s
+                     after its first tick - the memory observation is stalled; a tick byte 'E' disarms it when the
+                     controller has seen the worker's exit and is cleaning up itself;
+  HARD DEADLINE      a monotonic instant a little after the controller's own deadline.
 
-    stage_a_watchdog.py '<json: controller_pid, controller_start, pgid, deadline_monotonic, beat_file, stale_s,
-                         grace_s, record>'
+ACTION. SIGKILL at once (no grace: a resource stop must be prompt), then every live member of the worker's process group
+- enumerated and anchored to the recorded leader identity (memprobe.end_group) - and every recorded member identity in
+the members file (escaped descendants), until none remains. On HEARTBEAT LOSS or HARD DEADLINE the controller is alive
+but not acting: it is then killed too, by identity, after the group (a blocked controller's time is bounded and its
+death time recorded for the crash charge). The record watchdog_<...>.json (reason, session, the wall times of the
+observation, the kill, the group's extinction and the controller's death) is written durably. It exits when the group
+and the recorded members are gone and its controller has finished with it (an ordinary, controller-led end: the group
+is gone and no condition fired -> exit 0, no record).
+
+    stage_a_watchdog.py '<json: controller {pid,ppid,pgid,start}, leader {pid,ppid,pgid,start}, session, beat_file,
+                         stale_s, deadline_monotonic, record, members_file|null, tick_fd|null, tick_stale_s>'
 """
 
 import json
@@ -26,18 +35,12 @@ import select
 import signal
 import sys
 import time
+from pathlib import Path
 
-POLL_S = 0.1
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import memprobe  # noqa: E402
 
-
-def group_alive(pgid: int) -> bool:
-    try:
-        os.killpg(pgid, 0)
-        return True
-    except ProcessLookupError:
-        return False
-    except PermissionError:                        # only exited, unreaped members remain (measured: EPERM)
-        return False
+POLL_S = 0.01
 
 
 def write_record(path: str, rec: dict) -> None:
@@ -54,58 +57,95 @@ def write_record(path: str, rec: dict) -> None:
         os.close(dfd)
 
 
+def members(path) -> list[dict]:
+    if not path:
+        return []
+    try:
+        d = json.loads(Path(path).read_text())
+    except (OSError, ValueError):
+        return []
+    vals = d.values() if isinstance(d, dict) else d
+    return [m for m in vals if memprobe.valid_ident(m)]
+
+
+def group_live(leader: dict) -> bool:
+    if memprobe.same_process(leader):
+        return True
+    return (not memprobe.group_reused(leader)) and bool(memprobe.task_processes([], {leader["pgid"]}))
+
+
 def main() -> int:
     a = json.loads(sys.argv[1])
-    pgid, cpid = int(a["pgid"]), int(a["controller_pid"])
+    ctl, leader = a["controller"], a["leader"]
     kq = select.kqueue()
-    try:
-        kq.control([select.kevent(cpid, filter=select.KQ_FILTER_PROC, flags=select.KQ_EV_ADD | select.KQ_EV_ONESHOT,
-                                  fflags=select.KQ_NOTE_EXIT)], 0, 0)
-        controller_gone = False
-    except OSError:
-        controller_gone = True                     # the controller is already gone
     reason = None
-    while True:
-        if not group_alive(pgid):
+    if not memprobe.same_process(ctl):
+        reason = "controller died (not the recorded process at arming)"
+    else:
+        try:
+            kq.control([select.kevent(ctl["pid"], filter=select.KQ_FILTER_PROC,
+                                      flags=select.KQ_EV_ADD | select.KQ_EV_ONESHOT, fflags=select.KQ_NOTE_EXIT)], 0, 0)
+        except OSError:
+            reason = "controller died (before arming)"
+    tick_fd = a.get("tick_fd")
+    if tick_fd is not None:
+        os.set_blocking(int(tick_fd), False)
+    sys.stdout.write("ARMED\n")
+    sys.stdout.flush()
+    last_tick, ticking, eof = None, False, False
+    while reason is None:
+        if not group_live(leader):
             return 0
-        if controller_gone or kq.control(None, 1, 0):
+        if kq.control(None, 1, 0) or not memprobe.same_process(ctl):
             reason = "controller died"
-        elif time.monotonic() >= float(a["deadline_monotonic"]):
-            reason = "hard deadline"
-        else:
-            try:
-                age = time.time() - os.stat(a["beat_file"]).st_mtime
-            except FileNotFoundError:
-                age = float("inf")
-            if age > float(a["stale_s"]):
-                reason = f"heartbeat stale ({age:.1f} s)"
-        if reason:
             break
+        if time.monotonic() >= float(a["deadline_monotonic"]):
+            reason = "hard deadline"
+            break
+        try:
+            age = time.time() - os.stat(a["beat_file"]).st_mtime
+        except FileNotFoundError:
+            age = float("inf")
+        if age > float(a["stale_s"]):
+            reason = f"heartbeat stale ({age:.1f} s)"
+            break
+        if tick_fd is not None and not eof:
+            try:
+                b = os.read(int(tick_fd), 4096)
+                if b == b"":
+                    eof = True
+                elif b"E" in b:
+                    ticking = False
+                    eof = True                          # disarmed: the controller handles the exited worker itself
+                else:
+                    last_tick, ticking = time.monotonic(), True
+            except BlockingIOError:
+                pass
+            if ticking and time.monotonic() - last_tick > float(a["tick_stale_s"]):
+                reason = f"sampler stale ({time.monotonic() - last_tick:.3f} s)"
+                break
         time.sleep(POLL_S)
     observed = time.time()
-    how = "SIGTERM"
+    rec = {"reason": reason, "session": a.get("session"), "pgid": leader["pgid"], "how": "SIGKILL",
+           "observed_wall": observed, "watchdog_pid": os.getpid()}
     try:
-        os.killpg(pgid, signal.SIGTERM)
-    except ProcessLookupError:
-        pass
-    t = time.monotonic()
-    while group_alive(pgid) and time.monotonic() - t < float(a["grace_s"]):
-        time.sleep(0.05)
-    if group_alive(pgid):
-        how = "SIGKILL"
+        res = memprobe.end_group(leader, members(a.get("members_file")), limit=10.0)
+        rec.update(killed_wall=time.time(), group_gone=True, group_gone_wall=time.time(),
+                   killed=[k["pid"] for k in res["killed"]])
+    except memprobe.Survivors as exc:
+        rec.update(killed_wall=time.time(), group_gone=False, group_gone_wall=None, survivors=str(exc))
+    if reason.startswith(("heartbeat stale", "hard deadline")) and memprobe.same_process(ctl):
         try:
-            os.killpg(pgid, signal.SIGKILL)
+            os.kill(ctl["pid"], signal.SIGKILL)
         except ProcessLookupError:
             pass
-    killed = time.time()
-    t = time.monotonic()
-    while group_alive(pgid) and time.monotonic() - t < 10.0:
-        time.sleep(0.02)
-    gone = not group_alive(pgid)
-    write_record(a["record"], {"reason": reason, "pgid": pgid, "how": how, "observed_wall": observed,
-                               "killed_wall": killed, "group_gone_wall": time.time() if gone else None,
-                               "group_gone": gone, "watchdog_pid": os.getpid()})
-    return 3 if gone else 4
+        t = time.monotonic()
+        while memprobe.same_process(ctl) and time.monotonic() - t < 10.0:
+            time.sleep(0.02)
+        rec["controller_killed"] = not memprobe.same_process(ctl)
+    rec["controller_gone_wall"] = time.time() if not memprobe.same_process(ctl) else None
+    write_record(a["record"], rec)
+    return 3 if rec["group_gone"] else 4
 
 
 if __name__ == "__main__":

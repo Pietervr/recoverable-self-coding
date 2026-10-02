@@ -1,7 +1,8 @@
 # The AI image-reader qualification: the bounded reader job
 
-R084, 2 October 2026. Revision 4, answering Codex's record RSC `5a8d7ac` through R052's handoff `46125389`.
-The design and the map from each closure to its code and test are in `AI_READER_DESIGN.md`.
+R084, 2 October 2026. Revision 5, answering Codex's record RSC `1bf9890` (R1–R6) through R052's handoff `8c9dac2b`;
+revision 4 answered RSC `5a8d7ac`. The design and the map from each condition to its code and test are in
+`AI_READER_DESIGN.md`.
 
 **No model has been called.** Nothing in this job runs until R052 has submitted the exact package to Codex, Codex
 has written a favourable review carrying a STAGE-ATTESTATION v1 block (row `aireader`, stage `qualification`, the
@@ -12,7 +13,7 @@ package `ai_reader_exec.py plan` prints), and the owner's go is written into `AI
 | Reader | OpenAI Codex CLI 0.159.3 (`/opt/homebrew/Caskroom/codex/0.159.3/bin/codex`, sha256 and package manifest bound), `codex exec`, model `gpt-6.1-sol`, reasoning effort medium. One image per fresh ephemeral session. |
 | Executor | `ai_reader_exec.py` (`plan`, `delivery` - both local, no request; `run` - the job) |
 | Boundary | `ai_reader_runtime.py` (the allowlist profile, receipts, parser) |
-| Watchdog | `stage_a_watchdog.py` (shared with row 20), one per attempt |
+| Watchdog | `stage_a_watchdog.py` (shared with row 20), one per attempt: checks the orchestrator's identity, answers ARMED before dispatch, kills the whole group and the recorded members at once on the orchestrator's death, a stale beat or the hard deadline, and kills a blocked orchestrator |
 | Journal | `ai_reader_raw_responses.jsonl` (`ai_reader_journal.py`), committed before scoring |
 | Scorer | `ai_reader_score.py` (orchestrator only) |
 | Key | `ai_reader_qual_key.json` (orchestrator only; outside the reader's allowlist) |
@@ -36,27 +37,30 @@ and qualification clears no image for formal reuse.
 | Attempts | at most **660**, at most **3** per request | checked before every attempt; the 3-try final is written before the cap is consulted |
 | Retry | only when nothing was received (provider failure) or the attempt was never dispatched. A received answer is final however wrong, whatever the exit status; an isolation event, an overflow or an interrupted attempt is final too | `ai_reader_runtime.classify`; the journal |
 | A request with 3 non-retained attempts | retained as no response (ERR_NO_RESPONSE) | `final` record |
-| Time per attempt | min(120 s, job time left − 120 s reserve), refreshed again immediately before GO; not started under 30 s | process-group SIGTERM, 3 s, SIGKILL, whole-group cleanup, reap; the watchdog's hard deadline |
-| Job wall clock | **6 h** across sessions; the durable session opens before hashing, the go and the receipts and beats every second from its own thread; a dead session is charged its last durable time + 30 s; a journal without its clock, or a clock below the journal's charged time, is refused | `clock.json` |
+| Time per attempt | min(120 s, job time left − 120 s reserve), refreshed again immediately before GO; not started under 30 s | process-group SIGTERM, 3 s, SIGKILL, whole-group cleanup (every live member enumerated), reap; the watchdog's hard deadline |
+| Job wall clock | **6 h** across sessions, counted from the process's start; the durable session opens before hashing, the go and the receipts and beats every second from its own thread (no lock held while a write blocks); an independent guard thread kills a live worker at 6 h − 120 s and ends the process at 6 h (exit 75, no receipt); package/go admission bounded at 900 s; the receipt includes 30 s for its own append and the clock's close, enforced by a timer; a dead session is charged its last durable time + max(30 s, its watchdog's measured interval to the group's and the orchestrator's death), and until the restart for a blocked orchestrator never seen to die; a journal without its clock, a clock below the journal's charged time, or any non-finite, negative or mistyped clock field is refused; a COMPLETE receipt over 6 h is not admitted | `clock.json`, `Clock`, `clock_problems` |
 | Answer kept | 2,000 characters verbatim; longer = excerpt + original length + sha256, ERR_OVERLENGTH | no silent truncation |
 | Raw evidence per attempt | the event stream complete up to 32 KiB (beyond it the attempt is OVERFLOW), stderr 4 KiB (head and tail beyond, with length and sha256); captured stdout 1 MiB, stderr 256 KiB, attempt directory 16 MiB + the image, also checked at exit | `bounded`, the wait loop |
-| Local receipt commands | output captured to files under a 4 MiB cap and a 60 s timeout | `run_local` |
-| Raw output | under 20 MiB; an attempt starts only if its three records fit under 20 MiB − 256 KiB | `J.append(cap=…)`, the pre-attempt check |
+| Local receipt commands | own process group; output files read only up to 4 MiB; over the cap while running or at a quick exit, or past the 60 s deadline (20 s for the invocation receipt) - refused; the whole group and every sampled member killed and confirmed gone on every exit | `LocalCommand` (`run_local`, `invocation_receipt`) |
+| Raw output | under 20 MiB, each line under 64 KiB, both enforced before parsing on every read and in admission; an attempt starts only if its three records fit under 20 MiB − 256 KiB | `J.append(cap=…)`, `J.read(cap=…)`, the pre-attempt check |
 | Abandoned attempt output | swept at start; the attempts root capped at 256 MiB before every attempt | `sweep`, the pre-attempt check |
 | Quota | the owner's ChatGPT plan through Codex (`codex login status`: "Logged in using ChatGPT"). No other model, setting or panel may be substituted | the package binds binary, manifest, version, flags, profile |
 | The later audit | up to **400** reader turns, a separate job with its own frozen state and caps, only after this qualification admits the reader | not this executor |
 
 A stop after the journal is admitted — a limit, a hold, a receipt mismatch, a raw-cap refusal, a launch or receipt
-failure, an exception — first brings any open attempt to an end (identity-verified kill, recovered + end) and then
+failure, an exception — first brings any open attempt to an end (whole-group kill, recovered + end) and then
 writes a STOPPED receipt (reason, exact counters, smoke status, limits, clock, the journal's hash); all 600 final
-writes COMPLETE (only with a passed smoke). If the journal cannot be written at all, no receipt is claimed: the journal
+writes COMPLETE (only with a passed smoke). A durable hold or an exhausted clock found at a restart goes straight to
+the STOPPED receipt, with no preflight and no new open record. If the journal cannot be written at all, no receipt is claimed: the journal
 stays a valid incomplete journal and the next start re-derives its holds. Nothing runs after a receipt. No limit is
 reset or extended; nothing is redrawn, replaced, re-prompted or re-run after an answer exists.
 
 ## The request boundary
 
 Every attempt is a new process under `sandbox-exec` with an **allowlist** profile: deny by default; only the codex
-binary may execute (no shell, no helper, no other program); file reads only of the attempt directory (the image under
+binary may execute (no shell, no helper, no other program; the binary itself may run and fork, so no no-descendant
+guarantee is claimed - every descendant stays in the attempt's process group and is killed with it); file reads only
+of the attempt directory (the image under
 its opaque request name, the private CODEX_HOME with the auth link, tmp, its own outputs), the auth file, the binary and
 its package manifest, and the system runtime; writes only inside the attempt directory and to the auth file; network
 outbound; eight named Mach services (TLS trust, Security, network configuration, DNS, directory lookups,
@@ -67,14 +71,14 @@ The command: `codex exec --ephemeral --skip-git-repo-check --ignore-user-config 
 pinned model and effort, configuration that sets the read-only sandbox mode, disables web search and drops the
 permissions, environment, collaboration, apps and skills instructions, **32 tool-capable features disabled
 (`features list` under the same flags: 31 false; `unified_exec` stays true in this CLI under every switch, measured,
-and has no program it may launch)**, `--json` and `-o`, the image with `-i`, then `--` and the frozen prompt; a pinned
+and can exec no program but the pinned codex binary)**, `--json` and `-o`, the image with `-i`, then `--` and the frozen prompt; a pinned
 environment of five variables; stdin `/dev/null`.
 
 Before anything is sent:
 
 - **per attempt**, `codex debug prompt-input` renders the attempt's model-visible input locally: its instructions
-  must hash to the pinned value, its embedded image to the request's frozen delivered digest and its normalised user
-  text to the request's frozen hash, or the job holds with nothing sent;
+  must hash to the pinned value, its embedded image to the request's frozen delivered digest, size and detail, and its
+  normalised user text to the request's frozen hash, or the job holds with nothing sent;
 - **per session**, the preflight re-measures the effective features and the auth route, and runs the **exact exec
   invocation** with a synthetic image and all network denied by the kernel: its submitted input must be exactly
   [image, prompt] and its sampling-time configuration (model, effort, approval Never, ReadOnly without network, every
@@ -84,11 +88,12 @@ Before anything is sent:
 The worker then waits for 'GO' on stdin, written only after the dispatch record (with the worker's and its watchdog's
 identities) is durable.
 
-The event stream is classified fail-closed: a tool, command, file, web, MCP or other non-bookkeeping event or item is
-ERR_ISOLATION (retained, never retried) whatever the exit status, except two frozen CLI notices (the code-mode-disabled
-notice and the transport-fallback prefix); a malformed line, an answer without a complete ordered lifecycle
+The event stream is classified fail-closed: a tool, command, file, web, MCP or other non-bookkeeping event or item, or
+a top-level error event, is ERR_ISOLATION (retained, never retried) whatever the exit status, except two frozen CLI
+notices (the code-mode-disabled notice and the transport-fallback prefix); a malformed line, an answer without a complete ordered lifecycle
 (thread.started once and first, turn.started once, each item completed once, exactly one agent message,
-turn.completed once and last, no turn.failed), or an event answer that differs from the `-o` answer is ERR_ISOLATION;
+turn.completed once and last with non-negative integer token counts, no turn.failed), or an event answer that differs
+from the `-o` answer is ERR_ISOLATION;
 an event stream too long to retain completely is ERR_OVERLENGTH; a structural failure (configuration, authentication,
 image, sandbox, missing prompt) holds the job.
 
@@ -112,11 +117,14 @@ this public dataset is absent from the reader's training data.
 - One exclusive lock (`captures/ai_reader_job/LOCK`, fcntl) for the life of the process.
 - The journal is the only attempt state; every record is fsynced before the next step and carries the package digest.
 - A restart validates the incomplete journal, then reconstructs everything from it: no answer that reached the journal
-  is asked again; a dispatched attempt without an end is retained as ERR_INTERRUPTED (never re-asked), after any
-  surviving process of its recorded identities is killed and confirmed gone; an attempt never dispatched is charged and
-  may be retried; an incomplete last line is quarantined durably before the journal is truncated, and a quarantine file
-  without its record is recorded at the next start.
-- A worker never outlives a dead orchestrator beyond its watchdog's bound (measured: gone within grace + 3 s).
+  is asked again; a dispatched attempt without an end is retained as ERR_INTERRUPTED (never re-asked), after every live
+  member of its recorded worker's process group (enumerated, anchored to the leader's identity) and every recorded
+  member is killed and confirmed gone, and only then its watchdog; an attempt never dispatched is charged and may be
+  retried; an incomplete last line is quarantined durably before the journal is truncated, and a quarantine file
+  without its record is recorded once at the next start.
+- A received answer cannot be hidden from the restart's validation: every complete retained event stream is
+  re-derived whatever its decoding, and evidence that cannot be re-derived admits only a retained final error.
+- A worker never outlives a dead orchestrator beyond its watchdog's bound (SIGKILL at once on observation).
 - The scorer refuses a raw file that is untracked, dirty, different from its committed blob, incomplete, invalid, or
   written under another package, and in scientific mode any injected key, set, delivery or package.
 

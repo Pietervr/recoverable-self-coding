@@ -2,9 +2,11 @@
   gates:ok | gates:hold | gates:refuse      the gates worker: GATES.json passed (exit 0), a hold (exit 4), a refusal
   ok:<phase>     write <PHASE>_DONE.json and exit 0; first checks it cannot take the task lock (the controller must
                  hold it) and records that
-  report:<how>   the report worker: ok (figures, md, json, then the receipt last); json_then_fail (machine JSON
-                 written, then a failure before the receipt); bad_receipt (a receipt whose output hash is wrong);
-                 other_session (a receipt naming another session); fail (exit 1 at once)
+  report:<how>   the report worker: ok (both figures, md, json, then the receipt last, exact schema); json_then_fail
+                 (machine JSON written, then a failure before the receipt); bad_receipt (a receipt whose output hash is
+                 wrong); other_session (a receipt naming another session); trimmed (figures and Markdown removed and
+                 the receipt consistently trimmed to the machine JSON); extra_key (a receipt with one more field);
+                 flag_mismatch (the receipt's validator flag differs from the machine report's); fail (exit 1 at once)
   block          ignore SIGTERM and sleep in C (time.sleep) - only SIGKILL ends it
   mlxblock       ignore SIGTERM and loop 4096 x 4096 MLX matmuls on the GPU
   family         spawn a grandchild that sleeps, then block (the process group must die together)
@@ -68,6 +70,7 @@ if mode.startswith("report:"):
     with open(out / "worker_log.jsonl", "a") as f:
         f.write(json.dumps({"phase": "report", "pid": os.getpid(), "t": time.time()}) + "\n")
     outputs = {"report/rel_l2_by_layer.svg": put("report/rel_l2_by_layer.svg", b"<svg/>"),
+               "report/logit_max_abs.svg": put("report/logit_max_abs.svg", b"<svg></svg>"),
                "report/STAGE_A_REPORT.md": put("report/STAGE_A_REPORT.md", b"# report\n")}
     rec = {"validator_pass": not (out / "TERMINAL.json").exists(), "admissible": gates.get("passed") is True,
            "session": session}
@@ -76,8 +79,17 @@ if mode.startswith("report:"):
         sys.exit(1)
     if how == "bad_receipt":
         outputs["report/STAGE_A_REPORT.md"] = "0" * 64
+    if how == "trimmed":
+        for rel in ("report/rel_l2_by_layer.svg", "report/logit_max_abs.svg", "report/STAGE_A_REPORT.md"):
+            (out / rel).unlink()
+            outputs.pop(rel)
     rc = {"session": "another" if how == "other_session" else session, "package": gates.get("package"),
-          "identity": gates.get("identity"), "outputs": outputs}
+          "identity": gates.get("identity"), "date": time.strftime("%Y-%m-%d"), "outputs": outputs,
+          "admissible": rec["admissible"], "validator_pass": rec["validator_pass"]}
+    if how == "extra_key":
+        rc["note"] = "x"
+    if how == "flag_mismatch":
+        rc["validator_pass"] = not rec["validator_pass"]
     put("report/REPORT_RECEIPT.json", json.dumps(rc).encode())
     sys.exit(0)
 if mode in ("block", "family"):

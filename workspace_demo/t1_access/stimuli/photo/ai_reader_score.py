@@ -1,4 +1,4 @@
-"""AI image-reader qualification, revision 4: the mechanical SCORER (orchestrator side; the reader never sees it).
+"""AI image-reader qualification, revision 5: the mechanical SCORER (orchestrator side; the reader never sees it).
 Framework §8.2 reader rule; Codex RSC cf3e49e and 7048bb8; R052 handoffs 7f25830e repairs 1, 2, 4, 7 and 742146ad
 groups 1 and 6; RSC 5a8d7ac closures 1 and 6. Standard library only.
 
@@ -159,7 +159,8 @@ def admit(raw_path: Path, sset: dict, *, package: dict | None, allow_synthetic: 
         info = {"raw_sha256": sha(data), "raw_commit": None, "bytes": data}
     else:
         info = committed(raw_path)
-    recs, tail = J.read(raw_path)
+    import ai_reader_exec as X
+    recs, tail = J.read(raw_path, cap=X.LIMITS["raw_bytes"])     # file and line bounds before parsing (R6)
     if tail:
         raise SystemExit("refused: the raw file ends in an incomplete line")
     digest = recs[0].get("package_digest") if recs else None

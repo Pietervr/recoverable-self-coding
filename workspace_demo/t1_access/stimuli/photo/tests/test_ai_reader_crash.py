@@ -1,4 +1,4 @@
-"""AI-reader revision 4, closures 3 and 5: HARD-KILL fixtures. The executor runs as a real subprocess in fixture mode (fake
+"""AI-reader revision 5 (Codex RSC 1bf9890 R2, R3, R4, R6; revision 4 closures 3 and 5): HARD-KILL fixtures. The executor runs as a real subprocess in fixture mode (fake
 codex, synthetic images, no model) and dies by os._exit(77) at each crash window, or by an external SIGKILL while its
 worker is alive; a second process then recovers from the journal alone. Asserted every time: the journal validates,
 the counters are exact, no request is dispatched again after a durable answer, an attempt that may have been answered
@@ -252,6 +252,102 @@ class HardKill(unittest.TestCase):
         recs = self.stopped_check("no image")
         self.assertEqual([r["try"] for r in recs if r["t"] == "begin"], [1, 2])
 
+
+class Rev5Recovery(HardKill):
+    """R2, R3, R4 and R6 across a real process death."""
+
+    def valid_stopped(self, want: str) -> list[dict]:
+        p = drive(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr[-2000:])
+        out = json.loads(p.stdout.strip().splitlines()[-1])
+        self.assertEqual(out["outcome"], "STOPPED")
+        self.assertIn(want, out["reason"])
+        recs, _ = self.journal()
+        J.validate(recs, self.b["sset"], A.DIGEST, raw_bytes=self.b["fixture"]["raw"].read_bytes(),
+                   mode="synthetic-fixture", delivery=self.b["fixture"]["delivery"],
+                   instructions_sha256=self.b["fixture"]["delivery"]["instructions_sha256"], limits=X.LIMITS,
+                   require_complete=False)
+        return recs
+
+    def test_structural_after_end_first_and_later_request(self):
+        """R2: a durable structural end, then a crash before STOPPED: the restart goes straight to a valid STOPPED -
+        no preflight, no new open record, nothing dispatched."""
+        for rq, n in (("rq0c", 1), ("rq1c", 2)):
+            with self.subTest(rq):
+                self.root = Path(tempfile.mkdtemp(dir=X.ensure_root()))
+                self.build({rq: ["structural"]})
+                self.crash_at("after_end", n)
+                before = len(A.dispatches(self.root))
+                recs = self.valid_stopped("structural")
+                ends = [i for i, r in enumerate(recs) if r["t"] == "end" and r["outcome"] == "structural_failure"]
+                self.assertEqual([r["t"] for r in recs[ends[0] + 1:]], ["receipt"])
+                self.assertEqual(len([r for r in recs if r["t"] == "open"]), 1)
+                self.assertEqual(len(A.dispatches(self.root)), before)
+
+    def test_immediate_restart_kills_unrecorded_members(self):
+        """R3: a crashed attempt whose recorded worker is alive with a child NO record names, and whose watchdog is
+        alive: recovery enumerates the identity-anchored group, kills and confirms everything, and only then the
+        watchdog."""
+        self.build({"rq1c": ["ok:thing"]})
+        self.crash_at("after_begin", 2)
+        pidf = self.root / "unrecorded.pid"
+        lead = subprocess.Popen([sys.executable, "-c",
+                                 "import subprocess, sys, time; c = subprocess.Popen([sys.executable, '-c', "
+                                 f"'import time; time.sleep(600)']); open({str(pidf)!r}, 'w').write(str(c.pid)); "
+                                 "time.sleep(600)"], start_new_session=True)
+        wdp = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(600)"], start_new_session=True)
+        for _ in range(200):
+            if pidf.exists() and pidf.read_text():
+                break
+            time.sleep(0.02)
+        child = int(pidf.read_text())
+        recs, _ = self.journal()
+        b = recs[-1]
+        self.assertEqual(b["t"], "begin")
+        J.append(self.b["fixture"]["raw"], {"t": "dispatched", "seq": b["seq"] + 1, "package_digest": A.DIGEST,
+                                            "mode": "synthetic-fixture", "attempt_id": b["attempt_id"],
+                                            "pid": lead.pid, "worker": memprobe.proc_info(lead.pid),
+                                            "watchdog": memprobe.proc_info(wdp.pid), "wall": time.time()})
+        recs, crashed = self.finish_and_check()
+        lead.wait(timeout=5)
+        wdp.wait(timeout=5)
+        self.assertIsNone(memprobe.proc_info(child), "an unrecorded member of the crashed group survived")
+        rv = next(r for r in recs if r["t"] == "recovered")
+        self.assertEqual(rv["finding"], "dispatched_no_end")
+        self.assertIn(child, [k["pid"] for k in rv["killed"]])
+        self.assertEqual(rv["killed"][-1]["pid"], wdp.pid)                  # the safeguard retired last
+
+    def test_exhausted_resume_stops_before_preflight(self):
+        """R4: a resume with too little time left records the recovery and goes straight to STOPPED."""
+        self.build()
+        self.crash_at("after_begin", 2)
+        cp = self.b["fixture"]["job"] / "clock.json"
+        c = json.loads(cp.read_text())
+        c["seconds_total"] = X.LIMITS["job_clock_s"] - X.FINAL_S - 10.0 - c["open_session"]["live_s"] - X.TAIL_S
+        cp.write_text(json.dumps(c))
+        recs = self.valid_stopped("job clock")
+        self.assertEqual(len([r for r in recs if r["t"] == "open"]), 1)        # no fresh preflight/open
+        self.assertEqual([r["t"] for r in recs[-3:]], ["recovered", "end", "receipt"])
+
+    def test_quarantine_crash_before_truncation_one_record(self):
+        """R6: the quarantine file exists but the journal still holds the tail (a crash between the two): one
+        quarantine, one record."""
+        self.build()
+        self.crash_at("after_state", 2)
+        raw = self.b["fixture"]["raw"]
+        tail = b'{"t": "end", "seq": 99, "answ'
+        with open(raw, "ab") as fh:
+            fh.write(tail)
+        recs, _ = self.journal()
+        q = self.b["fixture"]["job"] / "quarantine"
+        q.mkdir(parents=True, exist_ok=True)
+        (q / f"tail_{len(recs) + 1:06d}_{J.sha(tail)[:12]}.bin").write_bytes(tail)
+        recs, _ = self.finish_and_check()
+        self.assertEqual(len([r for r in recs if r["t"] == "tail_repair"]), 1)
+
+
+for _name in [n for n in dir(HardKill) if n.startswith("test_")]:
+    setattr(Rev5Recovery, _name, None)             # helpers inherited, HardKill's own tests not collected twice
 
 if __name__ == "__main__":
     unittest.main()

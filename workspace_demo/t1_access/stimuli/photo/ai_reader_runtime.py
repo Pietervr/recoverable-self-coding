@@ -1,12 +1,14 @@
-"""AI image-reader qualification, revision 4: THE REQUEST BOUNDARY (Codex RSC 5a8d7ac closure 4; framework 8.2's isolation
+"""AI image-reader qualification, revision 5: THE REQUEST BOUNDARY (Codex RSC 1bf9890 R5, R6; RSC 5a8d7ac closure 4; framework 8.2's isolation
 evidence list and smoke rule). Standard library only. Nothing here sends a request by itself: `exec_argv` builds the one
 command that does, and only `ai_reader_exec.run` starts it, after the go.
 
 THE INPUT BOUNDARY IS AN ALLOWLIST (`profile`), enforced by macOS sandbox-exec on the reader process and every
 descendant: (deny default), then only
-  - process-exec of the pinned codex binary itself (no shell, no helper, no other program: unified_exec, which this CLI
-    keeps on under every switch, has nothing it may launch - measured: /bin/sh, /bin/zsh and /bin/bash cannot even be
-    stat'ed, and code-mode-host cannot be spawned);
+  - process-exec of the pinned codex binary itself, and process-fork: the pinned binary MAY run and fork copies of
+    itself, so no no-descendant guarantee is claimed; no shell, no helper and no OTHER program may be executed
+    (unified_exec, which this CLI keeps on under every switch, has no other program it may exec - measured: /bin/sh,
+    /bin/zsh and /bin/bash cannot even be stat'ed, and code-mode-host cannot be spawned); every descendant stays in
+    the attempt's process group and is killed with it (memprobe.end_group);
   - file reads of: the attempt directory (the image under its opaque name, the private CODEX_HOME with the auth link,
     tmp, its own outputs), the auth file, the codex binary and its package manifest, and the system runtime (/System,
     /usr/lib, /usr/share, the dyld cache, the timezone database, /private/etc/ssl, localtime, a few /dev nodes, the
@@ -32,6 +34,12 @@ THE PROMPT SEPARATOR (revision 4, measured). `-i` takes several values: in revis
 the CLI read the prompt as a second image path - debug prompt-input rendered "Codex could not read the local image at
 `<prompt>`" and no prompt text, and exec read stdin for its prompt. `-i <image> -- <prompt>` renders the prompt.
 
+LOCAL COMMANDS (`LocalCommand`, revision 5): every receipt command (features list, prompt-input, login status, the
+invocation receipt) runs in its own process group with its exit seen by kqueue without reaping, its output files read
+only up to the cap, an output past the cap - while running OR at a quick exit - and a missed deadline REFUSE, and on
+every exit the whole group (enumerated) and every member sampled while it ran are killed and confirmed gone before the
+leader is reaped.
+
 RECEIPTS (no credential is read or recorded):
   - `prompt_input`: `codex debug prompt-input` with the same flags, profile, environment and separator renders the
     model-visible input locally: the non-user instructions (attempt directory written <W>) must hash to the package's
@@ -49,18 +57,21 @@ RECEIPTS (no credential is read or recorded):
 PARSER AND CLASSIFICATION (fail closed; `parse_events`, `lifecycle`, `classify`):
   1. any event or item outside the bookkeeping set (a command, file, patch, MCP, web, plan, agent or other tool
      event) -> ISOLATION, retained, final - BEFORE any retry eligibility, whatever the exit status. An item of type
-     'error' is a CLI notice only when its text is one of the frozen NOTICES (the code-mode-disabled notice, the
-     transport fallback); any other is ISOLATION;
+     'error' or a top-level 'error' event is a CLI notice only when its message is one of the frozen NOTICES (the
+     code-mode-disabled notice, the transport fallback); any other is ISOLATION (never ignored);
   2. stdout, stderr or the attempt directory over its cap -> OVERFLOW, retained, final (ERR_OVERLENGTH);
   3. any stdout line that is not a JSON object with a string type -> ISOLATION (malformed evidence);
   4. an answer received is LOCKED whatever the exit status. It is retained 'ok' only when the lifecycle is complete
      and ordered - thread.started once and first, turn.started once after it, each item id started at most once and
      completed exactly once, exactly one completed agent message, turn.completed once and last, no turn.failed, every
-     bookkeeping payload well formed - and the event stream's message EQUALS the -o file's text; otherwise retained
+     usage well formed (non-negative integer token counts, input and output present) - and the event stream's
+     message EQUALS the -o file's text; otherwise retained
      ISOLATION (evidence incomplete or contradictory);
   5. no answer and no agent message: STRUCTURAL when stderr matches a frozen configuration/authentication/image/sandbox
      pattern (the job holds), else PROVIDER_FAILURE (the only retryable outcome).
   An answer longer than ANSWER_KEEP characters is never cut silently (excerpt, original length and sha256, overlength).
+  The -o file is retained as evidence on every dispatched outcome (FILE_ANSWER_KEEP bytes, length and sha256), so a
+  non-answer label can be checked against it.
 """
 
 from __future__ import annotations
@@ -72,8 +83,12 @@ import os
 import re
 import signal
 import subprocess
+import sys
 import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import memprobe  # noqa: E402
 
 HOME = Path.home()
 CODEX = Path("/opt/homebrew/Caskroom/codex/0.159.3/bin/codex")
@@ -114,6 +129,8 @@ EVENTS_KEEP, STDERR_KEEP = 32768, 4096  # bytes of raw evidence retained per att
                                        # cannot be retained completely and the attempt is OVERFLOW (ERR_OVERLENGTH)
 STDOUT_CAP, STDERR_CAP = 1 << 20, 256 << 10   # bytes captured per attempt before the worker is killed (OVERFLOW)
 LOCAL_CAP = 4 << 20                    # bytes captured from a local receipt command (features, prompt-input, ...)
+FILE_ANSWER_KEEP = 2048                # bytes of the -o answer file retained as evidence on every dispatched outcome
+LOCAL_GONE_S = 10.0                    # a local command's whole group must be gone within this after its end
 STRUCTURAL = re.compile(r"(?i)(error loading config|unknown (feature|variant|field)|invalid value|unsupported image|"
                         r"invalid[_ ]image|image (could not|cannot) be|could not read the local image|not logged in|"
                         r"login required|unauthori[sz]ed|\b401\b|\b403\b|model[_ ]not[_ ]found|"
@@ -205,29 +222,83 @@ def gated(argv: list[str]) -> list[str]:
             *argv]
 
 
+def _read_capped(p: Path, cap: int) -> tuple[bytes, bool]:
+    with open(p, "rb") as fh:
+        b = fh.read(cap + 1)
+    return b[:cap], len(b) > cap
+
+
+class LocalCommand:
+    """A local receipt command (revision 5; Codex RSC 1bf9890 R5): started in its own process group under the
+    attempt's profile, its exit seen by kqueue WITHOUT reaping (so the group id stays this group's), output files
+    bounded while it runs and at its end, an independent deadline, and on EVERY exit - ordinary, overflow or timeout -
+    the whole group (every live member, enumerated) and every member sampled while it ran killed and confirmed gone
+    before the leader is reaped. Reads never exceed the cap."""
+
+    def __init__(self, argv: list[str], adir: Path, env_: dict, tag: str, cap: int, timeout: float):
+        self.so, self.se = adir / f".{tag}_{os.getpid()}_out", adir / f".{tag}_{os.getpid()}_err"
+        self.cap, self.deadline = cap, time.monotonic() + timeout
+        with open(self.so, "wb") as fo, open(self.se, "wb") as fe:
+            self.p = subprocess.Popen(argv, stdout=fo, stderr=fe, env=env_, cwd=adir / "w",
+                                      stdin=subprocess.DEVNULL, start_new_session=True)
+        self.kq = memprobe.exit_watch(self.p.pid)
+        self.leader = memprobe.proc_info(self.p.pid) or {"pid": self.p.pid, "ppid": os.getpid(), "pgid": self.p.pid,
+                                                         "start": "0.000000"}
+        self.members, self.exited, self.timed_out, self.overflow = {}, False, False, False
+
+    def sizes(self) -> tuple[int, int]:
+        return self.so.stat().st_size, self.se.stat().st_size
+
+    def poll(self) -> bool:
+        """One observation; True while the command should keep running."""
+        if not self.exited and memprobe.exited(self.kq):
+            self.exited = True
+        if self.exited:
+            return False
+        if max(self.sizes()) > self.cap:
+            self.overflow = True
+            return False
+        if time.monotonic() > self.deadline:
+            self.timed_out = True
+            return False
+        for pid, i in memprobe.task_processes([self.p.pid], {self.p.pid}).items():
+            self.members.setdefault(str(pid), i)
+        return True
+
+    def finish(self) -> tuple[int | None, bytes, bytes]:
+        """Whole-group cleanup on every exit, then reap; final overflow check; bounded reads."""
+        try:
+            memprobe.end_group(self.leader, list(self.members.values()), limit=LOCAL_GONE_S, own_leader=True)
+        finally:
+            self.p.wait()
+        if max(self.sizes()) > self.cap:
+            self.overflow = True                       # a quick exit past the cap
+        try:
+            out, _ = _read_capped(self.so, self.cap)
+            err, _ = _read_capped(self.se, self.cap)
+        finally:
+            self.so.unlink(missing_ok=True)
+            self.se.unlink(missing_ok=True)
+        return self.p.returncode, out, err
+
+
 def run_local(codex: list[str], adir: Path, args: list[str], sandbox: bool = True, timeout: float = 60,
               cap: int = LOCAL_CAP, extra_env: dict | None = None, prof: str = "profile.sb") -> tuple:
-    """A local receipt command under the attempt's profile, its output captured to files with a size cap (the
-    process group is killed past the cap or the timeout)."""
-    so, se = adir / f".local_{os.getpid()}_out", adir / f".local_{os.getpid()}_err"
-    with open(so, "wb") as fo, open(se, "wb") as fe:
-        p = subprocess.Popen(boxed(adir, codex + args, sandbox, prof), stdout=fo, stderr=fe,
-                             env={**env(adir), **(extra_env or {})}, cwd=adir / "w", stdin=subprocess.DEVNULL,
-                             start_new_session=True)
-        t = time.monotonic()
-        while p.poll() is None:
-            if time.monotonic() - t > timeout or so.stat().st_size > cap or se.stat().st_size > cap:
-                try:
-                    os.killpg(p.pid, signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
-                p.wait()
-                break
+    """A local receipt command under the attempt's profile (LocalCommand). Output over the cap - while running OR at
+    a quick exit - and a timeout REFUSE; nothing truncated is ever returned as a successful receipt."""
+    c = LocalCommand(boxed(adir, codex + args, sandbox, prof), adir, {**env(adir), **(extra_env or {})}, "local", cap,
+                     timeout)
+    try:
+        while c.poll():
             time.sleep(0.02)
-    out, err = so.read_bytes()[:cap], se.read_bytes()[:cap]
-    so.unlink()
-    se.unlink()
-    return p.returncode, out, err
+    finally:
+        rc, out, err = c.finish()
+    if c.overflow:
+        raise SystemExit(f"refused: a local receipt command's output passed its {cap}-byte cap ({c.sizes()})"
+                         if c.so.exists() else f"refused: a local receipt command's output passed its {cap}-byte cap")
+    if c.timed_out:
+        raise SystemExit(f"refused: a local receipt command ran past its {timeout} s deadline")
+    return rc, out, err
 
 
 def prompt_input(codex: list[str], reader: dict, adir: Path, img: Path, prompt: str, sandbox: bool = True) -> dict:
@@ -298,36 +369,34 @@ _FEEDBACK = re.compile(r'feedback_tags: model="([^"]*)" approval_policy=(\S+) sa
 
 
 def invocation_receipt(codex: list[str], reader: dict, adir: Path, img: Path, prompt: str,
-                       wait_s: float = 20.0) -> dict:
+                       wait_s: float = 20.0, sandbox: bool = True) -> dict:
     """The EXACT exec invocation under the attempt profile with ALL network denied (nothing can leave): its logged
     submitted input and its effective configuration at the sampling instant, compared with `features list` under the
-    same flags. Only the parsed fields are kept (the log carries account identifiers; it is discarded)."""
+    same flags. Only the parsed fields are kept (the log carries account identifiers; it is discarded). It runs as a
+    LocalCommand: the log is read bounded (never past LOCAL_CAP) while it grows, an output past the cap refuses, the
+    wait has its own deadline, and the whole group is killed and confirmed gone on every exit (R5)."""
     (adir / "nonet.sb").write_text(profile(adir, network=False))
     argv = exec_argv(codex, reader, adir, img, prompt)
     rust_log = "warn,codex_core::session::handlers=debug,feedback_tags=info"
-    so, se = adir / ".inv_out", adir / ".inv_err"
-    with open(so, "wb") as fo, open(se, "wb") as fe:
-        p = subprocess.Popen(boxed(adir, argv, True, "nonet.sb"), stdout=fo, stderr=fe,
-                             env={**env(adir), "RUST_LOG": rust_log}, cwd=adir / "w", stdin=subprocess.DEVNULL,
-                             start_new_session=True)
-        t, sub, fb = time.monotonic(), None, None
-        while time.monotonic() - t < wait_s and p.poll() is None:
-            txt = se.read_bytes()[:LOCAL_CAP].decode("utf-8", "replace")
+    c = LocalCommand(boxed(adir, argv, sandbox, "nonet.sb"), adir, {**env(adir), "RUST_LOG": rust_log}, "inv",
+                     LOCAL_CAP, wait_s)
+    sub = fb = None
+    try:
+        while c.poll():
+            txt = _read_capped(c.se, LOCAL_CAP)[0].decode("utf-8", "replace")
             sub, fb = _SUBMISSION.search(txt), _FEEDBACK.search(txt)
             if sub and fb:
                 break
             time.sleep(0.1)
-        try:
-            os.killpg(p.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        p.wait()
-    txt = se.read_bytes()[:LOCAL_CAP].decode("utf-8", "replace")
-    so.unlink()
-    se.unlink()
+        txt = _read_capped(c.se, LOCAL_CAP)[0].decode("utf-8", "replace")
+    finally:
+        c.finish()
+    if c.overflow:
+        raise SystemExit(f"refused: the exec invocation receipt's log passed its {LOCAL_CAP}-byte cap")
     sub, fb = _SUBMISSION.search(txt), _FEEDBACK.search(txt)
     if not (sub and fb):
-        raise SystemExit("refused: the exec invocation receipt could not be read (no submission or sampling log)")
+        raise SystemExit("refused: the exec invocation receipt could not be read (no submission or sampling log"
+                         + (", deadline passed)" if c.timed_out else ")"))
     content = sub.group(1)
     rimg = str(Path(img).resolve()) if str(Path(img).resolve()) in content else str(img)
     want_items = f'LocalImage {{ path: "{rimg}", detail: None }}, Text {{ text: {json.dumps(prompt)}, ' \
@@ -411,6 +480,9 @@ def isolation_problems(events: list[dict]) -> list[str]:
         t = e["type"]
         if t not in BOOKKEEPING:
             bad.append(t)
+        elif t == "error" and not (isinstance(e.get("message"), str) and
+                                   (e["message"] in NOTICES or e["message"].startswith(NOTICE_PREFIXES))):
+            bad.append("error event (not a frozen notice)")           # a top-level error is never ignored (R6)
         item = e.get("item")
         if item is not None:
             if not isinstance(item, dict):
@@ -472,9 +544,15 @@ def lifecycle(events: list[dict]) -> list[str]:
     if n_msgs != 1:
         p.append(f"{n_msgs} completed agent messages, not exactly one")
     tc = [e for e in events if e["type"] == "turn.completed"]
-    if tc and not isinstance(tc[-1].get("usage"), dict):
-        p.append("turn.completed without usage")
+    if tc and not usage_ok(tc[-1].get("usage")):
+        p.append("turn.completed without a well-formed usage (non-negative integer token counts)")
     return p
+
+
+def usage_ok(u) -> bool:
+    return (isinstance(u, dict) and {"input_tokens", "output_tokens"} <= set(u) and
+            all(isinstance(k, str) and isinstance(v, int) and not isinstance(v, bool) and v >= 0
+                for k, v in u.items()))
 
 
 def lifecycle_complete(events: list[dict]) -> bool:
@@ -494,6 +572,7 @@ def classify(stdout: bytes, stderr: bytes, last_message: str | None, returncode:
     file_answer = last_message if last_message is not None else None
     answer = ea if ea is not None else (file_answer if file_answer is not None and file_answer.strip() else None)
     ev["file_answer_sha256"] = sha(file_answer.encode()) if file_answer is not None else None
+    ev["file_answer"] = bounded(file_answer.encode(), FILE_ANSWER_KEEP) if file_answer is not None else None
     bad = isolation_problems(events)
     if bad:
         return {**ev, "outcome": "isolation_violation", "retained": True, "isolation_events": bad,

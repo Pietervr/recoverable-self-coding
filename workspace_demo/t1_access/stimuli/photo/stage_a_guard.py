@@ -1,5 +1,6 @@
 """Photograph arm, Stage A (ledger row 20) and the AI-reader qualification: the guards consulted before anything is
-loaded or sent - revision 4 (Codex RSC 081f17b closure group 1; RSC 5a8d7ac closure 1).
+loaded or sent - revision 5 (unchanged schema; RSC 1bf9890 added to the negative-record supplement). Revision 4 answered
+Codex RSC 081f17b closure group 1 and RSC 5a8d7ac closure 1.
 
 Framework §8.4 (b), (c), (j), (n).
 
@@ -57,7 +58,8 @@ UPSTREAM = T1.parent / "upstream" / "jlens-qwen36"
 SNAPSHOT = Path.home() / (".cache/huggingface/hub/models--mlx-community--Qwen3.6-27B-4bit/snapshots/"
                           "c000ac2c2057d94be3fa931000c31723aac53282")
 LENS = UPSTREAM / "data" / "lens" / "qwen36_27b_neuronpedia_n1000.npz"
-NEGATIVE_REVIEWS = {"f9d2ef3", "69539bb", "081f17b", "cf3e49e", "7048bb8", "5a8d7ac"}   # Codex negative records: row 20, AI reader
+NEGATIVE_REVIEWS = {"f9d2ef3", "69539bb", "081f17b", "cf3e49e", "7048bb8", "5a8d7ac",   # Codex negative records:
+                    "1bf9890"}                                                               # row 20, AI reader, both
 LOCAL_CODE = ["stage_a.py", "stage_a_guard.py", "stage_a_report.py", "stage_a_controller.py", "stage_a_watchdog.py",
               "memprobe.py", "enforce.py", "image_adapter.py", "dose.py", "dose_report.py"]
 PACKAGES = ["mlx", "mlx_lm", "mlx_vlm", "transformers", "tokenizers", "safetensors", "numpy", "PIL",

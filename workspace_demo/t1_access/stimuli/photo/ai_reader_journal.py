@@ -1,5 +1,6 @@
-"""AI image-reader qualification, revision 4: the ATTEMPT JOURNAL and the COMPLETE RAW-EVIDENCE VALIDATOR (Codex RSC
-5a8d7ac closures 3, 5 and 6). Standard library only.
+"""AI image-reader qualification, revision 5: the ATTEMPT JOURNAL and the COMPLETE RAW-EVIDENCE VALIDATOR (Codex RSC
+1bf9890 R1, R2, R4 and R6; revision 4 answered RSC 5a8d7ac closures 3, 5 and 6). Standard library plus memprobe's
+identity schema.
 
 THE JOURNAL IS THE RAW FILE (`ai_reader_raw_responses.jsonl`) AND THE ONLY STATE. Every record is one JSON line,
 appended, flushed and fsynced (the directory too when the file is created) before the next step. Each record carries
@@ -29,7 +30,10 @@ outcome or an answer saying no image arrived, and after a no-response final; pas
 pending while only provider failures or never-dispatched attempts exist. A recovered uncertain smoke never passes.
 
 VALIDATION (`validate`), run on the INCOMPLETE journal before every resumed dispatch and on the complete journal
-before scoring: every line an object; seq contiguous; one digest and mode; exact per-type schema and types; finite,
+before scoring: the file within the raw cap and every line within MAX_RECORD BEFORE parsing; every line an object; seq
+contiguous; one digest and mode; EXACT per-type key sets (end in its three variants: recovery, not-sent, classified) and
+types; strict worker and watchdog identities (pid = pgid = the leader, start 'sec.usec', never bool); the receipt's
+image size and detail equal to the frozen delivery; finite,
 in-range numbers (timeouts in (0, 120], durations within the timeout plus grace, walls positive); attempt ids
 unique; attempt_no contiguous <= 660; tries contiguous <= 3; no begin while another attempt is open, after the
 request is final, out of the frozen order, or after a hold; every begin's receipt equal to the package's instruction
@@ -37,9 +41,13 @@ pin and the request's frozen delivered image and user-text digests; dispatched/e
 retained exactly for the retained outcomes; evidence REQUIRED for every dispatched outcome, its length and sha256
 equal to its retained bytes when complete, digest syntax checked; the OUTCOME RE-DERIVED from the retained evidence
 (isolation events, the ordered lifecycle, the event answer equal to the -o answer and to the recorded answer, the
-structural pattern on the retained stderr); answers unedited and bounded; no-response finals only after exactly three
-non-retained attempts; the receipt's counters, smoke status, limits, clock and journal hash; COMPLETE only with all
-requests final and the smoke passed.
+structural pattern on the retained stderr) - every COMPLETE retained stream is parsed with the classifier's own
+decoding whether or not it decoded losslessly; head-and-tail evidence admits only a retained final error; a
+provider/structural label with a received agent message or a non-blank -o file refuses; answers unedited and bounded;
+no-response finals only after exactly three non-retained attempts; after a structural failure only tail repairs and the
+STOPPED receipt; one tail_repair per quarantine file; the receipt's counters, smoke status, limits, clock (finite,
+non-negative; COMPLETE only within job_clock_s) and journal hash; COMPLETE only with all requests final and the smoke
+passed.
 """
 
 from __future__ import annotations
@@ -59,6 +67,23 @@ MAX_RECORD = 64 * 1024
 ANSWER_KEEP, MAX_TRIES, MAX_ATTEMPTS, MAX_TIMEOUT_S, GRACE_MARGIN_S = 2000, 3, 660, 120.0, 30.0
 HEX64 = re.compile(r"[0-9a-f]{64}")
 COMMON = {"t": str, "seq": int, "package_digest": str, "mode": str}
+# Exact key sets per record type (revision 5, R6): the COMMON keys plus exactly these; `end` has three variants.
+EXACT = {
+    "open": {"session", "wall", "preflight"},
+    "begin": {"attempt_id", "attempt_no", "request", "try", "item", "view", "timeout_s", "receipt", "adir", "wall"},
+    "dispatched": {"attempt_id", "pid", "worker", "watchdog", "wall"},
+    "final": {"request", "outcome", "tries"},
+    "recovered": {"attempt_id", "finding", "killed", "evidence", "note", "rule"},
+    "tail_repair": {"bytes", "sha256", "quarantine"},
+    "receipt": {"outcome", "reason", "counts", "journal_sha256", "raw_bytes_before", "seconds_total", "limits",
+                "smoke"},
+}
+CLASSIFY_KEYS = {"events", "stderr", "returncode", "timed_out", "event_types", "notices", "usage",
+                 "file_answer_sha256", "file_answer", "outcome", "retained", "isolation_events", "answer",
+                 "answer_len", "answer_sha256", "overlength"}
+END_KEYS = {"recovery": {"attempt_id", "request", "outcome", "retained", "seconds", "answer"},
+            "not_sent": {"attempt_id", "request", "outcome", "retained", "seconds", "answer", "cause"},
+            "classified": {"attempt_id", "request", "seconds", "kill", "overflow_detail", "group_clean"} | CLASSIFY_KEYS}
 SCHEMA = {
     "open": {"session": str, "wall": float, "preflight": dict},
     "begin": {"attempt_id": str, "attempt_no": int, "request": str, "try": int, "item": str, "view": str,
@@ -106,14 +131,19 @@ def append(path: Path, rec: dict, cap: int | None = None) -> None:
         _fsync_dir(path.parent)
 
 
-def read(path: Path) -> tuple[list[dict], bytes]:
-    """(records, incomplete tail bytes). A complete line that is not a JSON object is a refusal."""
+def read(path: Path, cap: int | None = None) -> tuple[list[dict], bytes]:
+    """(records, incomplete tail bytes). A file over `cap`, a complete line longer than MAX_RECORD, or a complete line
+    that is not a JSON object is a refusal (R6: bounds enforced before parsing)."""
     if not path.exists():
         return [], b""
+    if cap is not None and path.stat().st_size > cap:
+        raise SystemExit(f"refused: the journal holds {path.stat().st_size} bytes, over its {cap}-byte cap")
     data = path.read_bytes()
     cut = data.rfind(b"\n") + 1
     recs = []
-    for i, line in enumerate(data[:cut].splitlines()):
+    for i, line in enumerate(data[:cut].splitlines(keepends=True)):
+        if len(line) > MAX_RECORD:
+            raise SystemExit(f"refused: journal line {i + 1} holds {len(line)} bytes, over the {MAX_RECORD} bound")
         try:
             r = json.loads(line)
         except json.JSONDecodeError:
@@ -259,27 +289,45 @@ def _fail(i: int, why: str):
 
 
 def _rederive(i: int, r: dict) -> None:
-    """The end's outcome re-derived from its retained evidence (closure 6)."""
+    """The end's outcome re-derived from its retained evidence (closure 6; revision 5, R1). Every COMPLETE retained
+    stream is parsed whether or not it decoded losslessly: the retained text IS the classifier's own decoding (UTF-8
+    with replacement), so parsing it reproduces the events the classifier saw. A stream retained only as head and
+    tail cannot be re-derived: such an end is admitted only as a retained final error (isolation or overflow) - never
+    as ok, and never as a retryable label."""
     from ai_reader_runtime import (STRUCTURAL, event_answer, isolation_problems, lifecycle, parse_events,
                                    retained_text)
     o = r["outcome"]
     ev = r["events"]
-    complete = "text" in ev and ev["exact"]
-    if o == "ok" and not complete:
-        _fail(i, "an ok outcome without its complete event stream")
+    complete = "text" in ev
+    if complete and not ev["exact"] and "\ufffd" not in ev["text"]:
+        _fail(i, "events marked inexact without a replacement character (representation inconsistent)")
+    if not complete and o not in ("isolation_violation", "overflow"):
+        _fail(i, f"{o} on events that cannot be re-derived (head and tail only): only a retained final error may")
+    if o == "ok" and not (complete and ev["exact"]):
+        _fail(i, "an ok outcome without its complete, exact event stream")
+    fa = r.get("file_answer")
+    if o in ("provider_failure", "structural_failure"):
+        if fa is not None and not ("text" in fa and fa["exact"] and fa["text"].strip() == "" and
+                                   r.get("file_answer_sha256") == fa["sha256"]):
+            _fail(i, f"{o} although the -o answer file holds text (a received answer cannot be retried)")
+        if fa is None and r.get("file_answer_sha256") is not None:
+            _fail(i, f"{o} with an -o answer digest but no retained -o evidence")
     if complete:
         events, problems = parse_events(ev["text"].encode("utf-8"))
         iso = isolation_problems(events)
         if (iso or problems) and o not in ("isolation_violation", "overflow"):
             _fail(i, f"outcome {o} where the retained events show isolation or malformed lines")
         ea = event_answer(events)
+        if sorted({e["type"] for e in events}) != r.get("event_types"):
+            _fail(i, "recorded event types differ from the retained events")
         if o == "ok":
             if lifecycle(events):
                 _fail(i, "an ok outcome whose retained events do not show the complete ordered lifecycle")
             if ea is None or sha(ea.encode()) != r.get("answer_sha256") or r.get("file_answer_sha256") != \
                     r.get("answer_sha256"):
                 _fail(i, "an ok outcome whose event answer, -o answer and recorded answer disagree")
-        if o in ("provider_failure", "structural_failure") and ea is not None:
+        if o in ("provider_failure", "structural_failure") and (ea is not None or any(
+                isinstance(e.get("item"), dict) and e["item"].get("type") == "agent_message" for e in events)):
             _fail(i, f"{o} although the retained events carry an agent message")
     if o in ("provider_failure", "structural_failure"):
         hit = bool(STRUCTURAL.search(retained_text(r["stderr"])))
@@ -295,6 +343,13 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
     order = list(sset["delivery_order"])
     if not recs:
         raise SystemExit("refused: the raw file is empty")
+    if raw_bytes is not None:
+        cap = (limits or {}).get("raw_bytes")
+        if cap is not None and len(raw_bytes) > cap:
+            _fail(len(recs) - 1, f"the raw file holds {len(raw_bytes)} bytes, over its {cap}-byte cap")
+        for k, line in enumerate(raw_bytes.splitlines(keepends=True)):
+            if len(line) > MAX_RECORD:
+                _fail(k, f"a line of {len(line)} bytes, over the {MAX_RECORD} bound")
     modes = {r.get("mode") for r in recs}
     if len(modes) != 1 or not modes <= MODES or (mode is not None and modes != {mode}):
         raise SystemExit(f"refused: raw modes {sorted(map(str, modes))}, expected one of {sorted(MODES)}"
@@ -302,6 +357,7 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
     ids, st = set(), {"attempts": 0, "tries": {}, "final": set(), "open": None, "disp": False, "recovered": None,
                       "structural": False, "outcomes": {}, "prov_by_req": {}}
     js = fresh()
+    quarantines = set()
     timeout_cap = float((limits or {}).get("attempt_timeout_s", MAX_TIMEOUT_S))
     for i, r in enumerate(recs):
         for k, ty in COMMON.items():
@@ -314,6 +370,14 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
             _fail(i, f"seq {r['seq']} where {i + 1} was due")
         if r["package_digest"] != package_digest:
             _fail(i, "package digest differs from the approved package (mixed or foreign state)")
+        if t == "end":
+            variant = ("classified" if set(r) & (CLASSIFY_KEYS - {"outcome", "retained", "answer"}) else
+                       "not_sent" if "cause" in r else "recovery")
+            keys = END_KEYS[variant]
+        else:
+            keys = EXACT[t]
+        if set(r) != set(COMMON) | keys:
+            _fail(i, f"{t} fields {sorted(set(r) ^ (set(COMMON) | keys))} differ from its exact schema")
         for k, ty in SCHEMA[t].items():
             v = r.get(k)
             if ty is float:
@@ -325,8 +389,8 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
             _fail(i, f"{t}.wall not positive")
         if i == 0 and t != "open":
             _fail(i, "the journal does not start with an open record")
-        if st["structural"] and t != "receipt":
-            _fail(i, "a record after a structural failure other than the STOPPED receipt")
+        if st["structural"] and t not in ("receipt", "tail_repair"):
+            _fail(i, "a record after a structural failure other than a tail repair or the STOPPED receipt")
         if t == "receipt" and i != len(recs) - 1:
             _fail(i, "a receipt that is not the last record")
         if t == "open":
@@ -364,19 +428,26 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
             if set(rc) != RECEIPT_KEYS or not all(isinstance(rc[k], str) and HEX64.fullmatch(rc[k]) for k in
                                                   ("instructions_sha256", "image_sha256", "user_text_sha256")):
                 _fail(i, "begin without the exact prompt-input receipt")
+            if not (isinstance(rc["image_bytes"], int) and not isinstance(rc["image_bytes"], bool) and
+                    rc["image_bytes"] > 0 and isinstance(rc["detail"], str)):
+                _fail(i, "receipt image_bytes/detail malformed")
             if instructions_sha256 is not None and rc["instructions_sha256"] != instructions_sha256:
                 _fail(i, "receipt instructions differ from the package's instruction pin")
             if delivery is not None:
                 want = delivery["requests"].get(a["request"], {})
                 if rc["image_sha256"] != want.get("image_sha256") or \
-                        ("user_text_sha256" in want and rc["user_text_sha256"] != want["user_text_sha256"]):
-                    _fail(i, "receipt image or user text differs from the request's frozen delivery")
+                        rc["user_text_sha256"] != want.get("user_text_sha256") or \
+                        rc["image_bytes"] != want.get("bytes") or rc["detail"] != want.get("detail"):
+                    _fail(i, "receipt image, size, detail or user text differs from the request's frozen delivery")
             st["open"], st["disp"], st["recovered"] = a, False, None
         elif t == "dispatched":
             if st["open"] is None or r["attempt_id"] != st["open"]["attempt_id"] or st["disp"]:
                 _fail(i, "dispatched without its open attempt, or twice")
-            if not all(isinstance(r["worker"].get(k), (int, str)) for k in ("pid", "pgid", "start")):
-                _fail(i, "dispatched without the worker's identity")
+            from memprobe import valid_ident
+            w_, wd_ = r["worker"], r["watchdog"]
+            if not valid_ident(w_) or not valid_ident(wd_) or w_["pid"] != r["pid"] or w_["pgid"] != w_["pid"] or \
+                    isinstance(r["pid"], bool) or wd_["pid"] == w_["pid"]:
+                _fail(i, "dispatched without strict worker and watchdog identities (pid = pgid = leader)")
             st["disp"] = True
         elif t == "recovered":
             if st["open"] is None or r["attempt_id"] != st["open"]["attempt_id"] or st["recovered"]:
@@ -384,6 +455,11 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
             want = "dispatched_no_end" if st["disp"] else "not_dispatched"
             if r["finding"] != want:
                 _fail(i, f"recovery finding {r['finding']} where {want} follows from the journal")
+            from memprobe import valid_ident
+            if not all(valid_ident(k) for k in r["killed"]) or not set(r["evidence"]) <= {"stdout", "stderr",
+                                                                                          "last.txt"} or \
+                    not isinstance(r["note"], str) or not isinstance(r["rule"], str):
+                _fail(i, "recovered record: killed identities, evidence names or text fields malformed")
             for name, e in r["evidence"].items():
                 if not (isinstance(e, dict) and e.get("captured_prefix") is True and
                         _bounded_ok({k: v for k, v in e.items() if k not in ("captured_prefix", "source_truncated")},
@@ -433,6 +509,20 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
                         _fail(i, "an ok outcome without an answer")
                 elif ans is not None:
                     _fail(i, f"an answer on a {o} outcome")
+                from ai_reader_runtime import FILE_ANSWER_KEEP, usage_ok
+                k_ = r["kill"]
+                strs = lambda v: isinstance(v, list) and all(isinstance(x, str) for x in v)   # noqa: E731
+                if not (k_ is None or (isinstance(k_, dict) and set(k_) == {"how", "kill_to_reap_s"} and
+                                       k_["how"] in ("SIGTERM", "SIGKILL") and _num(k_["kill_to_reap_s"], 0.0, 1e6))) \
+                        or not (r["overflow_detail"] is None or isinstance(r["overflow_detail"], str)) or \
+                        r["group_clean"] is not True or not strs(r["event_types"]) or not strs(r["notices"]) or \
+                        not strs(r["isolation_events"]) or not (r["usage"] is None or isinstance(r["usage"], dict)) \
+                        or (o == "ok" and not usage_ok(r["usage"])) or \
+                        not (r["file_answer"] is None or _bounded_ok(r["file_answer"], FILE_ANSWER_KEEP)) or \
+                        not (r["file_answer_sha256"] is None or (isinstance(r["file_answer_sha256"], str) and
+                                                                 HEX64.fullmatch(r["file_answer_sha256"]))):
+                    _fail(i, "end bookkeeping fields (kill, overflow, cleanup, event types, notices, usage, -o "
+                             "evidence) malformed")
                 _rederive(i, r)
             st["outcomes"][o] = st["outcomes"].get(o, 0) + 1
             if r["retained"]:
@@ -453,6 +543,9 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
         elif t == "tail_repair":
             if not HEX64.fullmatch(r["sha256"]) or r["bytes"] <= 0:
                 _fail(i, "tail_repair malformed")
+            if r["quarantine"] in quarantines:
+                _fail(i, f"tail_repair {r['quarantine']} recorded twice (one quarantine, one record)")
+            quarantines.add(r["quarantine"])
         elif t == "receipt":
             if st["open"] is not None:
                 _fail(i, "receipt while an attempt is open")
@@ -473,9 +566,11 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
                 _fail(i, "COMPLETE without a passed smoke")
             if limits is not None and r["limits"] != limits:
                 _fail(i, "receipt limits differ from the frozen limits")
-            cap_s = float((limits or {}).get("job_clock_s", 6 * 3600)) + 3600.0
-            if not _num(r["seconds_total"], 0.0, cap_s):
-                _fail(i, "receipt clock not finite or out of range")
+            cap_s = float((limits or {}).get("job_clock_s", 6 * 3600))
+            if not _num(r["seconds_total"], 0.0, 1e12):
+                _fail(i, "receipt clock not finite or negative")
+            if r["outcome"] == "COMPLETE" and r["seconds_total"] > cap_s:
+                _fail(i, f"COMPLETE with {r['seconds_total']:.0f} s on the clock, over the {cap_s:.0f} s cap")
             if r["raw_bytes_before"] < 0 or (limits is not None and r["raw_bytes_before"] > limits["raw_bytes"]):
                 _fail(i, "receipt raw size outside the cap")
             if raw_bytes is not None:

@@ -89,6 +89,9 @@ class FakeInstrument:
         rb = res.tobytes()
         logits = np.frombuffer(_h("logit", seq["ids"], eff, fault) * (VOCAB * 4 // 32 + 1),
                                dtype=np.uint32)[:VOCAB].astype(np.float64) / 2**32
+        order = np.lexsort((np.arange(VOCAB), -logits))     # the capture's rule: descending, ties by ascending id
+        rank = np.empty(VOCAB, dtype=np.int64)
+        rank[order] = np.arange(1, VOCAB + 1)
         pos_sha = self.plan["inputs"][idx]["expected"]["positions_sha256"]
         x = self.plan["inputs"][idx]
         return {"n_tokens": n, "input_ids_sha256": seq["ids_sha256"], "readout_positions": list(m),
@@ -99,9 +102,10 @@ class FakeInstrument:
                 "residuals": {"dtype": "bfloat16", "shape": [64, 3, D], "b64": base64.b64encode(rb).decode(),
                               "sha256": hashlib.sha256(rb).hexdigest()},
                 "final_logits": {"dtype": "bfloat16", "n": VOCAB, "sha256": hashlib.sha256(logits.tobytes()).hexdigest()},
-                "logsumexp": 1.0, "requested": [{"id": t, "logit": float(logits[t]), "rank": 1}
+                "logsumexp": 1.0, "requested": [{"id": t, "logit": float(logits[t]), "rank": int(rank[t])}
                                                 for t in request_token_ids],
-                "top_ids": list(range(top_k)), "top_logits": [0.0] * top_k, "timing_s": {"total": 0.0},
+                "top_ids": [int(t) for t in order[:top_k]], "top_logits": [float(logits[t]) for t in order[:top_k]],
+                "timing_s": {"total": 0.0},
                 "image": {"pixel_values_sha256": x["pixel_values_sha256"], "grid_thw": x["grid_thw"],
                           "n_image_tokens": 144, "features_shape": [144, D], "features_dtype": "mlx.core.bfloat16",
                           "features_all_finite": True, "positions_sha256": pos_sha,

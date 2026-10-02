@@ -1,5 +1,5 @@
-"""AI image-reader qualification, revision 4: the bounded READER JOB executor (the job brief is AI_READER_JOB.md; Codex
-RSC 5a8d7ac closures 1, 3, 4, 5 and 6; R052 handoff 46125389). It is the orchestrator's half: it holds the key and the
+"""AI image-reader qualification, revision 5: the bounded READER JOB executor (the job brief is AI_READER_JOB.md; Codex
+RSC 1bf9890 R1-R6 through R052 handoff 8c9dac2b; revision 4 answered RSC 5a8d7ac). It is the orchestrator's half: it holds the key and the
 scorer out of the reader's reach and sends the reader one image per fresh request.
 
     .venv-image/bin/python stimuli/photo/ai_reader_exec.py plan       # identity and boundary checks, no request
@@ -16,13 +16,16 @@ placeholders, the allowlist profile, environment keys, the gate) and the model-v
 `stage_a_guard.require_go(GO, package(), row="aireader", stage="qualification", verify_at_commit=package_at_commit)`
 passes. The digest is in every journal record and the receipt.
 
-ORDER OF A RUN. lock -> refuse lost accounting (a journal without clock.json, or a clock below the journal's charged
-time) -> the clock's durable session opens BEFORE anything else and beats every BEAT_S from its own thread through
-hashing, the go, receipts, recovery, attempts, cleanup and the final writes -> package and go (scientific) -> journal:
-pending quarantine records, tail repair, VALIDATION of the incomplete journal (validate(require_complete=False) with the
-package's instruction pin, the frozen delivery and the limits) -> reconstruction -> recovery of an open attempt by
-VERIFIED IDENTITY (the recorded worker and members, pid and start time; nothing unidentified is signalled) -> the
-abandoned-attempt sweep -> a FRESH preflight (effective features, auth route, the exec-invocation receipt) in the open
+ORDER OF A RUN. lock -> refuse lost or invalid accounting (a journal without clock.json, a clock below the journal's
+charged time, or any non-finite, negative or mistyped clock field) -> the clock's durable session opens BEFORE anything
+else, counted from the process's start; a BEAT thread persists every BEAT_S from a snapshot (no lock held while a
+write blocks) and a GUARD thread with no file I/O enforces the cap - at cap - FINAL_S it kills a live worker group,
+at the cap it ends the process (exit 75, no receipt) -> package and go (scientific; bounded by ADMIT_TIMEOUT_S) ->
+journal: pending quarantine records, tail repair (one record per quarantine file), VALIDATION of the incomplete
+journal -> reconstruction -> recovery of an open attempt: every live member of the recorded worker's group
+(enumerated, anchored to its identity) and every recorded member killed and confirmed gone, the watchdog last ->
+the abandoned-attempt sweep -> the durable HOLDS and the remaining time are checked HERE: a hold or an exhausted clock
+goes straight to the STOPPED receipt, with no preflight and no new open record -> a FRESH preflight in the open
 record -> the loop.
 
 THE LOOP. Before EVERY attempt, from durable records only: the holds (a structural failure; the smoke over every
@@ -30,18 +33,22 @@ attempt of the first request - J.holds), then the request's 3-try limit (a third
 no_response), the 660 cap, the clock (min(120 s, remaining - FINAL_S), none under MIN_ATTEMPT_S), the raw cap (three
 records of MAX_RECORD must fit under 20 MiB - RAW_FINAL_BYTES) and the attempts-root cap. An attempt: its directory and
 prompt-input receipt (instructions = pin, image = frozen delivered digest, user text = frozen per-request hash; a
-mismatch holds with nothing sent and the directory removed) -> begin (fsync) -> worker started in its own process group
-with a WATCHDOG (stage_a_watchdog.py: the orchestrator's death or a stale clock beat or the hard attempt deadline
-kills the group) -> dispatched (fsync, the worker's and watchdog's identities) -> the remaining time REFRESHED: too
+mismatch - including the delivered image's size and detail - holds with nothing sent and the directory removed) ->
+begin (fsync) -> worker started behind its gate in its own process group, its identity read (unreadable -> nothing
+sent) -> a WATCHDOG (stage_a_watchdog.py) given the orchestrator's and the worker's identities and the members file,
+which must answer ARMED (the orchestrator's death, a stale clock beat or the hard attempt deadline makes it kill the
+whole group and the recorded members at once; a stale beat or the deadline also kills a blocked orchestrator) ->
+dispatched (fsync, the worker's and watchdog's identities) -> the remaining time REFRESHED: too
 little and the gate is closed unsent (not_dispatched, charged) -> 'GO' -> wait (exit seen by kqueue without reaping;
 stdout, stderr and directory caps) -> final size check -> SIGTERM/grace/SIGKILL if alive -> the whole process group
 and every recorded member killed and confirmed gone, also after an ordinary leader exit -> reap -> end (fsync).
 
 STOPS. Every stop after the journal is admitted - a limit, a hold, a receipt mismatch, RawCap, a launch or pipe
-failure, a receipt renderer timeout, an exception - first reconciles an open attempt (identity-verified kill, recovered
-+ end) and then writes the STOPPED receipt with counters, smoke status, limits, clock and journal hash. If persistence
-itself fails, no receipt is claimed: the journal stays a valid incomplete journal and the next start re-derives its
-holds.
+failure, a receipt renderer timeout, an exception - first reconciles an open attempt (whole-group kill, recovered
++ end) and then writes the STOPPED receipt with counters, smoke status, limits, clock and journal hash. The receipt's
+clock includes FINAL_WRITE_S for its own append and the clock's close, which a timer enforces (exit 75 past it). If
+persistence itself fails, no receipt is claimed: the journal stays a valid incomplete journal and the next start
+re-derives its holds.
 
 FIXTURE MODE. `run(fixture=...)` replaces the binary, the directories and the sandbox for the mechanism tests; its
 records are marked mode 'synthetic-fixture', the go is not consulted, and the scorer refuses that mode unless asked
@@ -52,9 +59,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import shutil
 import signal
+import select
 import subprocess
 import sys
 import tempfile
@@ -69,7 +78,7 @@ import ai_reader_journal as J  # noqa: E402
 import ai_reader_runtime as R  # noqa: E402
 import memprobe  # noqa: E402
 import stage_a_guard  # noqa: E402
-from enforce import write_json_atomic  # noqa: E402
+from enforce import write_atomic, write_json_atomic  # noqa: E402
 from stage_a_guard import TaskLock  # noqa: E402
 
 SET = HERE / "ai_reader_qual_set.json"
@@ -84,11 +93,14 @@ LIMITS = {"planned": 600, "max_tries_per_request": 3, "max_attempts": 660, "atte
           "job_clock_s": 6 * 3600, "answer_chars": R.ANSWER_KEEP, "raw_bytes": 20 * 1024 * 1024}
 FINAL_S, MIN_ATTEMPT_S, TAIL_S, TERM_GRACE_S, BEAT_S, STALE_S = 120.0, 30.0, 30.0, 3.0, 1.0, 10.0
 RAW_FINAL_BYTES, TEMP_CAP, ROOT_CAP, GONE_S = 256 * 1024, 16 * 1024 * 1024, 256 * 1024 * 1024, 10.0
+GUARD_S, CLOSE_WAIT_S, FINAL_WRITE_S, ADMIT_TIMEOUT_S = 0.2, 30.0, 30.0, 900.0
+# FINAL_WRITE_S: the receipt's clock includes this allowance for its own append and the clock's close, which a timer
+# enforces (exit 75 past it, nothing more claimed); ADMIT_TIMEOUT_S bounds package/go hashing the same way.
 BOUND_FILES = ["ai_reader_qual_set.json", "ai_reader_qual_key.json", "ai_reader_delivery.json", "ai_reader_exec.py",
                "ai_reader_score.py", "ai_reader_runtime.py", "ai_reader_journal.py", "ai_reader_key.py",
                "ai_reader_frame.py", "ai_reader_qual.py", "AI_READER_JOB.md", "AI_READER_DESIGN.md",
                "stage_a_guard.py", "enforce.py", "memprobe.py", "stage_a_watchdog.py"]
-NEGATIVE = {"cf3e49e", "7048bb8", "5a8d7ac"}
+NEGATIVE = {"cf3e49e", "7048bb8", "5a8d7ac", "1bf9890"}
 
 
 def sha(b: bytes) -> str:
@@ -128,27 +140,86 @@ def package_at_commit(commit: str, repo: Path = stage_a_guard.RSC) -> dict:
         return package(Path(td))
 
 
-class Clock:
-    """The job's wall clock across sessions (closure 5): a durable session from the first instant of `run`, a beat
-    thread persisting every BEAT_S whatever the main thread is doing, and a dead session charged its last durable
-    live time plus TAIL_S at the next start."""
+def clock_problems(rec) -> list[str]:
+    """Strict, finite, non-negative, typed clock state (R4): checked before ANY work, so altered accounting (a NaN, a
+    negative, a string, a bool) can never reach a budget comparison."""
+    num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v >= 0  # noqa
+    p = []
+    if not isinstance(rec, dict) or not isinstance(rec.get("sessions"), list):
+        return ["clock.json is not an object with a sessions list"]
+    if not num(rec.get("seconds_total")):
+        p.append("seconds_total")
+    for k in ("seconds_total_live",):
+        if k in rec and not num(rec[k]):
+            p.append(k)
+    for s in rec["sessions"]:
+        if not isinstance(s, dict) or not num(s.get("live_s")) or ("charged_s" in s and not num(s["charged_s"])):
+            p.append("sessions[]")
+            break
+    s = rec.get("open_session")
+    if s is not None and (not isinstance(s, dict) or not isinstance(s.get("session"), str) or not num(s.get("live_s"))
+                          or ("beat_wall" in s and not num(s["beat_wall"]))):
+        p.append("open_session")
+    return p
 
-    def __init__(self, path: Path, t0: float, cap: float):
-        self.path, self.t0, self.cap = path, t0, cap
+
+def _process_age_s() -> float:
+    i = memprobe.proc_info(os.getpid())
+    return max(0.0, time.time() - float(i["start"])) if i else 0.0
+
+
+class Clock:
+    """The job's wall clock across sessions (R4): validated strictly before any work; a durable session counted from
+    the process's start (or `t0`); a BEAT thread persisting every BEAT_S from a snapshot (no lock is held while a write
+    blocks; a write lock serialises writers and `close` waits for it only CLOSE_WAIT_S); a GUARD thread with no file
+    I/O that enforces the cap whatever the main thread is doing - at cap - FINAL_S it kills a live worker group
+    (`on_cap`), at the cap itself it ends the process (exit 75, no receipt claimed). A dead session is charged at the
+    next start its last durable live time plus max(TAIL_S, its watchdog's interval from the last beat to the group's
+    and the orchestrator's death); a watchdog that found the orchestrator blocked and could not see it die charges
+    until now."""
+
+    def __init__(self, path: Path, t0: float, cap: float, on_cap=None, pre_s: float = 0.0):
+        self.path, self.t0, self.cap, self.on_cap, self.pre_s = path, t0, cap, on_cap, pre_s
         rec = json.loads(path.read_text()) if path.exists() else {"sessions": [], "seconds_total": 0.0,
                                                                    "open_session": None}
+        bad = clock_problems(rec)
+        if bad:
+            raise SystemExit(f"refused: clock.json accounting invalid {bad}; the job holds")
         if rec["open_session"]:
             s = rec["open_session"]
-            charged = float(s["live_s"]) + TAIL_S
+            tail = TAIL_S
+            for wp in sorted(path.parent.glob("watchdog_*.json")):
+                try:
+                    wd = json.loads(wp.read_text())
+                except ValueError:
+                    continue
+                if wd.get("session") != s["session"] or not isinstance(s.get("beat_wall"), (int, float)):
+                    continue
+                ends = [wd.get(k) for k in ("group_gone_wall", "controller_gone_wall")
+                        if isinstance(wd.get(k), (int, float)) and math.isfinite(wd[k])]
+                if ends:
+                    tail = max(tail, max(ends) - s["beat_wall"])
+                if str(wd.get("reason", "")).startswith(("heartbeat stale", "hard deadline")) and \
+                        wd.get("controller_gone_wall") is None:
+                    tail = max(tail, time.time() - s["beat_wall"])
+            charged = float(s["live_s"]) + tail
             rec["seconds_total"] += charged
-            rec["sessions"].append({**s, "closed": "crashed", "charged_s": charged})
+            rec["sessions"].append({**s, "closed": "crashed", "charged_s": charged, "tail_s": tail})
         self.rec, self.base = rec, rec["seconds_total"]
         rec["open_session"] = {"session": uuid.uuid4().hex[:12], "pid": os.getpid(), "opened_wall": time.time(),
-                               "live_s": 0.0}
-        self.lock, self.stop_beat = threading.Lock(), threading.Event()
+                               "live_s": 0.0, "beat_wall": time.time()}
+        self.lock, self.wlock, self.stop_beat = threading.Lock(), threading.Lock(), threading.Event()
+        self.wseq = self.done_seq = 0
+        self.capped = False
         self.persist()
         self.thread = threading.Thread(target=self._beat, daemon=True)
         self.thread.start()
+        self.guard = threading.Thread(target=self._guard, daemon=True)
+        self.guard.start()
+
+    @property
+    def session(self) -> str:
+        return self.rec["open_session"]["session"] if self.rec["open_session"] else ""
 
     def _beat(self) -> None:
         while not self.stop_beat.wait(BEAT_S):
@@ -157,8 +228,23 @@ class Clock:
             except Exception:
                 return                                   # the watchdog sees a stale beat and kills any worker
 
+    def _guard(self) -> None:
+        while not self.stop_beat.wait(GUARD_S):
+            left = self.remaining()
+            if left <= FINAL_S and not self.capped:
+                self.capped = True
+                if self.on_cap:
+                    try:
+                        self.on_cap()
+                    except Exception:                    # noqa: BLE001
+                        pass
+            if left <= 0:
+                sys.stderr.write("job clock: the six-hour cap was reached before the job finished; no receipt\n")
+                sys.stderr.flush()
+                os._exit(75)
+
     def elapsed(self) -> float:
-        return self.base + time.monotonic() - self.t0
+        return self.base + self.pre_s + time.monotonic() - self.t0
 
     def remaining(self) -> float:
         return self.cap - self.elapsed()
@@ -167,32 +253,51 @@ class Clock:
         with self.lock:
             if self.rec["open_session"] is None:
                 return
-            self.rec["open_session"]["live_s"] = time.monotonic() - self.t0
+            self.rec["open_session"]["live_s"] = self.pre_s + time.monotonic() - self.t0
+            self.rec["open_session"]["beat_wall"] = time.time()
             self.rec["seconds_total_live"] = self.elapsed()
-            write_json_atomic(self.path, self.rec)
+            self.wseq += 1
+            seq, snap = self.wseq, json.dumps(self.rec, indent=1, sort_keys=True).encode()
+        with self.wlock:
+            if seq > self.done_seq:
+                write_atomic(self.path, snap)
+                self.done_seq = seq
 
     def beat(self) -> None:
         pass                                              # the beat thread persists; kept for call sites
 
     def close(self, outcome: str) -> None:
         self.stop_beat.set()
-        self.thread.join(timeout=5)
         with self.lock:
-            s = dict(self.rec["open_session"], live_s=time.monotonic() - self.t0, closed=outcome)
+            s = dict(self.rec["open_session"], live_s=self.pre_s + time.monotonic() - self.t0, closed=outcome)
             self.rec["sessions"].append(s)
             self.rec["seconds_total"] = self.elapsed()
             self.rec["open_session"] = None
-            write_json_atomic(self.path, self.rec)
+            self.wseq += 1
+            seq, snap = self.wseq, json.dumps(self.rec, indent=1, sort_keys=True).encode()
+        if not self.wlock.acquire(timeout=CLOSE_WAIT_S):
+            raise RuntimeError("clock: a blocked write holds the clock file; the session stays open (charged at the "
+                               "next start)")
+        try:
+            write_atomic(self.path, snap)
+            self.done_seq = seq
+        finally:
+            self.wlock.release()
 
 
 def check_accounting(job: Path, raw: Path) -> None:
-    """Refuse lost or inconsistent accumulated accounting instead of silently restarting the clock."""
-    recs, _ = J.read(raw) if raw.exists() else ([], b"")
+    """Refuse lost or inconsistent accumulated accounting instead of silently restarting the clock (strictly typed,
+    finite, non-negative - R4)."""
+    recs, _ = J.read(raw, cap=LIMITS["raw_bytes"]) if raw.exists() else ([], b"")
     cp = job / "clock.json"
     if recs and not cp.exists():
         raise SystemExit("refused: the journal has records but clock.json is missing - the accumulated time is lost")
-    if recs:
+    if cp.exists():
         c = json.loads(cp.read_text())
+        bad = clock_problems(c)
+        if bad:
+            raise SystemExit(f"refused: clock.json accounting invalid {bad}; the job holds")
+    if recs:
         charged = sum(float(r.get("seconds", 0.0)) for r in recs if r.get("t") == "end")
         total = c["seconds_total"] + (float(c["open_session"]["live_s"]) if c.get("open_session") else 0.0)
         if total + 1e-6 < charged:
@@ -212,21 +317,29 @@ def dir_bytes(d: Path) -> int:
     return sum(f.stat().st_size for f in d.rglob("*") if f.is_file() and not f.is_symlink()) if d.exists() else 0
 
 
-def kill_identified(idents: list[dict], limit: float = GONE_S) -> list[dict]:
-    """SIGKILL every process whose recorded identity (pid AND start time) is still the live process with that pid;
-    confirm them gone. A pid now owned by another process is never signalled."""
-    live = [i for i in idents if i and memprobe.same_process(i)]
-    for i in live:
+def end_recorded(worker: dict | None, members: list[dict], watchdog: dict | None) -> dict:
+    """Recovery of a crashed attempt (R3, shared with Stage A): every live member of the recorded worker's process
+    group (enumerated, anchored to the leader's identity) and every recorded member identity killed and confirmed
+    gone; only THEN the watchdog (the safeguard retires last). Nothing unidentified is signalled."""
+    out = {"killed": [], "watchdog_killed": None}
+    if memprobe.valid_ident(worker):
         try:
-            os.kill(i["pid"], signal.SIGKILL)
+            out["killed"] = memprobe.end_group(worker, [m for m in members if memprobe.valid_ident(m)],
+                                               limit=GONE_S)["killed"]
+        except memprobe.Survivors as exc:
+            raise SystemExit(f"refused: identified worker processes survive SIGKILL: {exc}; the job holds")
+    if memprobe.valid_ident(watchdog) and memprobe.same_process(watchdog):
+        try:
+            os.kill(watchdog["pid"], signal.SIGKILL)
         except ProcessLookupError:
             pass
-    t = time.monotonic()
-    while any(memprobe.same_process(i) for i in live):
-        if time.monotonic() - t > limit:
-            raise SystemExit(f"refused: identified worker processes survive SIGKILL: {live}; the job holds")
-        time.sleep(0.05)
-    return live
+        t = time.monotonic()
+        while memprobe.same_process(watchdog):
+            if time.monotonic() - t > GONE_S:
+                raise SystemExit("refused: identified worker processes survive SIGKILL (watchdog); the job holds")
+            time.sleep(0.02)
+        out["watchdog_killed"] = watchdog
+    return out
 
 
 def plan() -> dict:
@@ -323,6 +436,28 @@ class Stop(Exception):
     pass
 
 
+class Deadline:
+    """A bounded step: past `seconds` the process ends (exit 75) - nothing after the step is claimed (R4)."""
+
+    def __init__(self, seconds: float, what: str):
+        self.t = threading.Timer(seconds, self._fire, args=(what,))
+        self.t.daemon = True
+
+    @staticmethod
+    def _fire(what: str) -> None:
+        sys.stderr.write(f"bounded step overran: {what}; exit 75, nothing claimed\n")
+        sys.stderr.flush()
+        os._exit(75)
+
+    def __enter__(self):
+        self.t.start()
+        return self
+
+    def __exit__(self, *exc):
+        self.t.cancel()
+        return False
+
+
 class Job:
     def __init__(self, fixture: dict | None):
         self.t0 = time.monotonic()
@@ -336,6 +471,7 @@ class Job:
             self.codex, self.sandbox = [str(R.CODEX)], True
             self.images, self.job, self.raw, self.root = IMAGES, JOB, RAW, ATTEMPTS
         self.proc = self.wd = self.st = None
+        self.worker_ident = None
         self.clock = None
 
     def crash(self, point: str, n) -> None:
@@ -353,9 +489,20 @@ class Job:
         if self.st["open"]:
             self.reconcile_open(f"stop: {reason}")
         data = self.raw.read_bytes() if self.raw.exists() else b""
-        return self.rec("receipt", outcome=outcome, reason=reason[:2000], counts=J.counts(self.st),
-                        journal_sha256=sha(data), raw_bytes_before=len(data), seconds_total=self.clock.elapsed(),
-                        limits=LIMITS, smoke=J.smoke_status(self.st, self.order[0]))
+        with Deadline(FINAL_WRITE_S, "the receipt append"):    # the receipt's clock includes this allowance (R4)
+            return self.rec("receipt", outcome=outcome, reason=reason[:2000], counts=J.counts(self.st),
+                            journal_sha256=sha(data), raw_bytes_before=len(data),
+                            seconds_total=self.clock.elapsed() + FINAL_WRITE_S, limits=LIMITS,
+                            smoke=J.smoke_status(self.st, self.order[0]))
+
+    def _cap_kill(self) -> None:
+        """The clock guard's enforcement (no file I/O): a live worker group at cap - FINAL_S is killed."""
+        w = self.worker_ident
+        if self.proc is not None and w and memprobe.same_process(w):
+            try:
+                os.killpg(w["pgid"], signal.SIGKILL)
+            except (ProcessLookupError, PermissionError):
+                pass
 
     # ---- the run --------------------------------------------------------------------------------------------------
     def run(self) -> dict:
@@ -363,7 +510,8 @@ class Job:
         lock = TaskLock(self.job)
         try:
             check_accounting(self.job, self.raw)
-            self.clock = Clock(self.job / "clock.json", self.t0, LIMITS["job_clock_s"])
+            self.clock = Clock(self.job / "clock.json", self.t0, LIMITS["job_clock_s"], on_cap=self._cap_kill,
+                               pre_s=0.0 if self.fx else _process_age_s())
             try:
                 return self._run()
             except BaseException:
@@ -372,7 +520,8 @@ class Job:
             finally:
                 if self.clock.rec["open_session"] is not None:
                     try:
-                        self.clock.close("ended")
+                        with Deadline(FINAL_WRITE_S + CLOSE_WAIT_S, "the clock close"):
+                            self.clock.close("ended")
                     except Exception:
                         pass
         finally:
@@ -383,11 +532,12 @@ class Job:
             self.sset, self.deliv = self.fx["sset"], self.fx["delivery"]
             self.pkg = self.fx.get("package") or {"package_digest": "f" * 64}
         else:
-            self.sset, self.deliv = json.loads(SET.read_text()), json.loads(DELIVERY.read_text())
-            self.pkg = package()
-            stage_a_guard.NEGATIVE_REVIEWS = stage_a_guard.NEGATIVE_REVIEWS | NEGATIVE
-            stage_a_guard.require_go(GO, self.pkg, row="aireader", stage="qualification",
-                                     verify_at_commit=package_at_commit)
+            with Deadline(ADMIT_TIMEOUT_S, "package and go admission"):
+                self.sset, self.deliv = json.loads(SET.read_text()), json.loads(DELIVERY.read_text())
+                self.pkg = package()
+                stage_a_guard.NEGATIVE_REVIEWS = stage_a_guard.NEGATIVE_REVIEWS | NEGATIVE
+                stage_a_guard.require_go(GO, self.pkg, row="aireader", stage="qualification",
+                                         verify_at_commit=package_at_commit)
             if self.pkg["cli_version"] != self.sset["reader"]["cli_version"]:
                 raise SystemExit("refused: the installed codex CLI is not the pinned version")
         self.digest = self.pkg["package_digest"]
@@ -396,7 +546,7 @@ class Job:
 
     def _run(self) -> dict:
         self._admit()
-        recs, _ = J.read(self.raw)
+        recs, _ = J.read(self.raw, cap=LIMITS["raw_bytes"])
         for r in recs:
             if r.get("package_digest") != self.digest or r.get("mode") != self.mode:
                 raise SystemExit("refused: the journal was written under another package or mode "
@@ -406,7 +556,9 @@ class Job:
             raise SystemExit(f"refused: the job ended ({self.st['receipt']['outcome']}); nothing runs after a receipt")
         pend = J.pending_quarantine(self.job / "quarantine", recs)
         tail = J.repair_tail(self.raw, self.job / "quarantine")
-        recs, _ = J.read(self.raw)
+        if tail and any(p["quarantine"] == tail["quarantine"] for p in pend):
+            tail = None                                    # one quarantine, one record (crash before truncation; R6)
+        recs, _ = J.read(self.raw, cap=LIMITS["raw_bytes"])
         if recs:
             J.validate(recs, self.sset, self.digest, require_complete=False, mode=self.mode, delivery=self.deliv,
                        instructions_sha256=self.deliv["instructions_sha256"], limits=LIMITS)
@@ -417,9 +569,16 @@ class Job:
             if self.st["open"]:
                 self.recover()
             self.sweep()
-            pre = self._preflight()
-            self.rec("open", session=self.clock.rec["open_session"]["session"], wall=time.time(), preflight=pre)
-            result = self.loop()
+            h = J.holds(self.st, self.order[0]) if recs else None
+            if h:                                          # a durable hold: straight to STOPPED, no preflight (R2)
+                result = self.stop("STOPPED", h)
+            elif self.clock.remaining() - FINAL_S < MIN_ATTEMPT_S:   # an exhausted resume: no preflight (R4)
+                result = self.stop("STOPPED", f"job clock: {self.clock.remaining() - FINAL_S:.0f} s left after the "
+                                              f"final reserve")
+            else:
+                pre = self._preflight()
+                self.rec("open", session=self.clock.session, wall=time.time(), preflight=pre)
+                result = self.loop()
         except (Stop, J.RawCap, subprocess.SubprocessError, OSError, SystemExit, ValueError, KeyError) as exc:
             if isinstance(exc, SystemExit) and str(exc.code).startswith("refused: identified worker"):
                 raise                                      # an unkillable worker: hold, nothing more is written
@@ -427,11 +586,12 @@ class Job:
                 result = self.stop("STOPPED", f"{type(exc).__name__}: {exc}")
             except Exception:
                 raise exc                                  # persistence failed: no receipt is claimed
-        self.clock.close(result["outcome"])
+        with Deadline(FINAL_WRITE_S + CLOSE_WAIT_S, "the clock close"):
+            self.clock.close(result["outcome"])
         return result
 
     def _preflight(self) -> dict:
-        with tempfile.TemporaryDirectory(dir=self.root) as td:
+        with tempfile.TemporaryDirectory(dir=ensure_dir(self.root)) as td:
             adir = Path(td) / "a"
             img = R.prepare(adir, _synthetic_png(), "x.png")
             return preflight(self.codex, self.sset, adir, img, sandbox=self.sandbox, invocation=not self.fx)
@@ -446,28 +606,30 @@ class Job:
                 shutil.rmtree(d, ignore_errors=True)
 
     def _kill_live_worker(self) -> None:
-        """No worker outlives an orchestrator that is still alive: SIGKILL the group, clean it by identity, reap, and
-        end the watchdog."""
+        """No worker outlives an orchestrator that is still alive: the whole group (enumerated) and every recorded
+        member killed and confirmed gone, reap, and the watchdog ended."""
         if self.proc is not None:
-            w = getattr(self, "worker_ident", None)
             if self.proc.stdin and not self.proc.stdin.closed:
                 try:
                     self.proc.stdin.close()
                 except OSError:
                     pass
-            try:
-                os.killpg(self.proc.pid, signal.SIGKILL)
-            except (ProcessLookupError, PermissionError):
-                pass
-            self._clean_group(w, getattr(self, "members", {}))
+            self._clean_group(self.worker_ident or {"pid": self.proc.pid, "ppid": os.getpid(),
+                                                    "pgid": self.proc.pid, "start": "0.000000"},
+                              getattr(self, "members", {}))
             self.proc.wait()
             self.proc = None
+        self._end_watchdog()
+
+    def _end_watchdog(self) -> None:
         if self.wd is not None:
             try:
                 self.wd.wait(timeout=5.0)
             except subprocess.TimeoutExpired:
                 self.wd.kill()
                 self.wd.wait()
+            if self.wd.stdout:
+                self.wd.stdout.close()
             self.wd = None
 
     # ---- recovery -------------------------------------------------------------------------------------------------
@@ -487,8 +649,12 @@ class Job:
         killed = []
         if d:
             mp = self._members_path(o["attempt_id"])
-            members = list(json.loads(mp.read_text()).values()) if mp.exists() else []
-            killed = kill_identified([d.get("worker"), d.get("watchdog")] + members)
+            try:
+                members = list(json.loads(mp.read_text()).values()) if mp.exists() else []
+            except ValueError:
+                members = []
+            res = end_recorded(d.get("worker"), members, d.get("watchdog"))
+            killed = res["killed"] + ([res["watchdog_killed"]] if res["watchdog_killed"] else [])
         ev = {}
         if adir.exists():
             for name, cap in (("stdout", R.EVENTS_KEEP), ("stderr", R.STDERR_KEEP), ("last.txt", R.ANSWER_KEEP)):
@@ -540,22 +706,14 @@ class Job:
         return self.stop("COMPLETE", f"all {len(self.order)} requests final")
 
     def _clean_group(self, w: dict | None, members: dict) -> bool:
-        """SIGKILL the attempt's process group until no live member remains (an exited, unreaped leader answers
-        EPERM), then every recorded member by identity; confirm all gone."""
+        """Every live member of the attempt's process group (enumerated; the unreaped leader keeps the group id ours)
+        and every recorded member killed and confirmed gone."""
         if not w:
             return True
-        pgid, t = w["pgid"], time.monotonic()
-        while True:
-            try:
-                os.killpg(pgid, signal.SIGKILL)
-            except (ProcessLookupError, PermissionError):
-                pass
-            if not [p for p in memprobe.task_processes([], {pgid}) if p != w["pid"]]:
-                break
-            if time.monotonic() - t > GONE_S:
-                raise SystemExit("refused: identified worker processes survive SIGKILL (group); the job holds")
-            time.sleep(0.02)
-        kill_identified([m for m in members.values() if m["pid"] != w["pid"]])
+        try:
+            memprobe.end_group(w, list(members.values()), limit=GONE_S, own_leader=True)
+        except memprobe.Survivors as exc:
+            raise SystemExit(f"refused: identified worker processes survive SIGKILL (group): {exc}; the job holds")
         return True
 
     def attempt(self, r: dict, timeout: float) -> dict:
@@ -570,17 +728,17 @@ class Job:
             img = R.prepare(adir, data, r["file"])
             rc = R.prompt_input(self.codex, self.sset["reader"], adir, img, self.sset["prompt"], self.sandbox)
             want = self.deliv["requests"][rq]
+            im = rc["images"][0] if len(rc["images"]) == 1 else {}
             if rc["instructions_sha256"] != self.deliv["instructions_sha256"] or len(rc["images"]) != 1 or \
-                    rc["images"][0]["sha256"] != want["image_sha256"] or \
-                    rc["user_text_sha256"] != want.get("user_text_sha256", rc["user_text_sha256"]) or \
-                    not rc["prompt_rendered"]:
+                    im.get("sha256") != want["image_sha256"] or im.get("bytes") != want.get("bytes") or \
+                    im.get("detail") != want.get("detail") or rc["user_text_sha256"] != want.get("user_text_sha256") \
+                    or not rc["prompt_rendered"]:
                 raise Stop(f"prompt-input receipt for {rq} differs from the frozen delivery (nothing sent)")
         except BaseException:
             shutil.rmtree(base, ignore_errors=True)
             raise
-        receipt = {"instructions_sha256": rc["instructions_sha256"], "image_sha256": rc["images"][0]["sha256"],
-                   "image_bytes": rc["images"][0]["bytes"], "detail": rc["images"][0]["detail"],
-                   "user_text_sha256": rc["user_text_sha256"]}
+        receipt = {"instructions_sha256": rc["instructions_sha256"], "image_sha256": im["sha256"],
+                   "image_bytes": im["bytes"], "detail": im["detail"], "user_text_sha256": rc["user_text_sha256"]}
         self.crash("before_begin", n)
         aid = f"{n:03d}.{rq}.{tr}"
         self.rec("begin", **{"attempt_id": aid, "attempt_no": n, "request": rq, "try": tr, "item": r["item"],
@@ -589,20 +747,27 @@ class Job:
         self.crash("after_begin", n)
         argv = R.gated(R.boxed(adir, R.exec_argv(self.codex, self.sset["reader"], adir, img, self.sset["prompt"]),
                                self.sandbox))
+        self.members = {}
         with open(adir / "stdout", "wb") as so, open(adir / "stderr", "wb") as se:
             self.proc = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=so, stderr=se, env=R.env(adir),
                                          cwd=adir / "w", start_new_session=True)
         kq = memprobe.exit_watch(self.proc.pid)
-        self.worker_ident = memprobe.proc_info(self.proc.pid) or {"pid": self.proc.pid, "pgid": self.proc.pid,
-                                                                  "ppid": os.getpid(), "start": "unknown"}
-        self.members = {}
+        self.worker_ident = memprobe.proc_info(self.proc.pid)
+        if not memprobe.valid_ident(self.worker_ident):            # fail closed before GO: nothing is sent
+            raise Stop(f"{aid}: the worker's identity cannot be read before dispatch (nothing sent)")
         hard = time.monotonic() + timeout + TERM_GRACE_S + 5.0
-        warg = {"controller_pid": os.getpid(), "pgid": self.proc.pid, "beat_file": str(self.job / "clock.json"),
-                "deadline_monotonic": hard, "stale_s": STALE_S, "grace_s": TERM_GRACE_S,
-                "record": str(self.job / f"watchdog_{aid}.json")}
+        ctl = memprobe.proc_info(os.getpid())
+        warg = {"controller": ctl, "leader": self.worker_ident, "session": self.clock.session,
+                "beat_file": str(self.job / "clock.json"), "deadline_monotonic": hard, "stale_s": STALE_S,
+                "record": str(self.job / f"watchdog_{aid}.json"), "members_file": str(self._members_path(aid)),
+                "tick_fd": None, "tick_stale_s": 0.0}
         self.wd = subprocess.Popen([sys.executable, str(WATCHDOG), json.dumps(warg)], start_new_session=True,
-                                   stdin=subprocess.DEVNULL)
-        wd_ident = memprobe.proc_info(self.wd.pid) or {"pid": self.wd.pid, "pgid": self.wd.pid, "start": "unknown"}
+                                   stdin=subprocess.DEVNULL, stdout=subprocess.PIPE)
+        ready = select.select([self.wd.stdout], [], [], 10.0)[0]
+        line = self.wd.stdout.readline() if ready else b""
+        wd_ident = memprobe.proc_info(self.wd.pid)
+        if line.strip() != b"ARMED" or not memprobe.valid_ident(wd_ident):
+            raise Stop(f"{aid}: the watchdog did not arm (nothing sent)")
         t = time.monotonic()
         self.rec("dispatched", attempt_id=aid, pid=self.proc.pid, worker=self.worker_ident, watchdog=wd_ident,
                  wall=time.time())
@@ -693,13 +858,7 @@ class Job:
         self.proc.wait()
         rcode = self.proc.returncode
         self.proc = None
-        if self.wd is not None:
-            try:
-                self.wd.wait(timeout=5.0)
-            except subprocess.TimeoutExpired:
-                self.wd.kill()
-                self.wd.wait()
-            self.wd = None
+        self._end_watchdog()
         return rcode
 
 

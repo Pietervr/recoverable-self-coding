@@ -1,67 +1,84 @@
-"""Photograph arm, Stage A (row 20): the INDEPENDENT CONTROLLER - revision 4, Codex RSC 081f17b closure groups 2, 3, 4
-and 6. A separate process that owns the task lock, the clock, the resource limits, termination and reaping; every
-phase - the desk gates included - runs as a WORKER subprocess it spawns, watches from outside and reaps, with a
-WATCHDOG process (stage_a_watchdog.py) beside it that the worker cannot stop and a blocked controller cannot delay.
+"""Photograph arm, Stage A (row 20): the INDEPENDENT CONTROLLER - revision 5 (Codex RSC 1bf9890 A2, A3, A4, A5 and A7;
+revision 4 answered RSC 081f17b). A separate process that owns the task lock, the clock, the resource limits,
+termination and reaping; every phase - the desk gates included - runs as a WORKER subprocess it spawns, watches from
+outside and reaps, with a WATCHDOG process (stage_a_watchdog.py) beside it that the worker cannot stop and a blocked
+controller cannot delay.
 
     .venv-image/bin/python stimuli/photo/stage_a_controller.py run      # gates -> instrumented -> native -> report
 
-ORDER: lock (held until the controller exits) -> load the durable record; if the last controller died, RECONCILE its
-workers by verified identity (pid + start time: leader, every recorded member, its watchdog) - kill and confirm gone,
-never signalling an unidentified process - and charge its tail -> supersede any earlier STAGE_A_FINAL.json and report
-receipt -> open the session -> the GATES worker (go/attestation/package, fresh execution identity, positions receipt,
-crash reconciliation of an open attempt, recovery files) -> per work phase: spawn, watch, final peak, whole-group
-cleanup, reap, verify its phase record -> the report worker (always, also after a stop; never after a refusal or a
-hold) -> close -> finalise.
+ORDER: clock from the process's own start -> lock -> load and VALIDATE the durable record (finite, non-negative
+accounting; an absent controller.json beside any existing task output is lost accounting and refuses) -> if the last
+controller died, RECONCILE its workers: every live member of each recorded worker's process group (enumerated, anchored
+to the leader's identity), every recorded member identity, and only then the watchdog - SIGKILL and verified extinction
+before the safeguard retires; charge its tail -> supersede any earlier STAGE_A_FINAL.json, its admission marker and
+the report receipt -> the GATES worker -> per work phase: guarded start, sample, cleanup, reap, verify -> the report
+worker (always, also after a stop; never after a refusal or a hold) -> close and finalise under one bounded allowance.
 
-OUTCOMES. REFUSED: the gates refused (package, go, identity, receipt) - nothing else was spawned. HELD: an interrupted
-try lacks the owner's recovery file - an AUTHORISATION HOLD, distinct from an integrity failure: no TERMINAL record, no
-work, no report; the run resumes once the file exists. STOPPED / PASS: from STAGE_A_FINAL.json (below).
+GUARDED START (A2). One cleanup owner from before the first spawn: the worker is spawned behind a start gate (a shell
+that execs the worker only after reading 'GO' on stdin; EOF -> exit 97, nothing ran); the exit watch is registered;
+the worker's identity (pid, start) is read; the watchdog is spawned with the controller's and the leader's identities
+and must answer 'ARMED' within ARM_TIMEOUT_S, its own identity read; the record holding both identities is persisted
+durably; only then is 'GO' written. A failure at any of these steps ends the gated worker - which has run nothing - and
+reaps it. A phase never starts while an earlier worker or watchdog handle exists: that worker is ended first.
 
-CLOCK. Row 20's time = carried 1,808.73 s + every session's live monotonic seconds, written durably every
-HEARTBEAT_S = 1 s together with the wall time of that beat. A controller that dies is charged at restart with its last
-durable live time plus its tail: max(TAIL_RESERVE_S = 60 s, the interval its watchdog measured from the last beat to
-the worker group's death). The bound behind the 60 s (fixtures, controller_fixtures.json): the watchdog kills the
-worker group within STALE_S = 10 s of the last beat if the controller is alive but blocked, and within its 0.1 s poll
-of the controller's death otherwise, plus TERM_GRACE_S = 3 s and the measured reap. RESERVES INSIDE THE 4 h CAP:
-TAIL 60 s, STOP 60 s, REPORT 600 s; work phases end at cap - 720 s, the report at cap - 60 s; the watchdog's hard
+OBSERVATION (A3). The main thread is the SAMPLER and does no file I/O: each iteration (sleep MEM_SAMPLE_S = 0.02 s)
+reads the worker's exit (kqueue, not reaping), the deadline, the watchdog's liveness, the task's processes and their
+memory, every SYS_SAMPLE_S swap and pressure (sysctl, in-process), and writes one tick byte to the watchdog; an
+iteration whose work exceeds SAMPLE_LIMIT_S = 0.05 s stops. A separate I/O thread persists the record and the members
+file every HEARTBEAT_S and sums the output tree; a failure there stops the run through the sampler. The watchdog kills
+the worker group if the ticks stop for TICK_STALE_S = 0.1 s (a hung sampler), and kills the group AND the controller if
+the durable beat is STALE_S = 10 s old (a blocked controller) or the hard deadline passes.
+
+WHOLE-TASK MEMORY (A3). The task = the controller, the watchdog, the worker and every process in its group or descended
+from it. Each sampled process's lifetime maximum is kept BY IDENTITY (pid + start); a worker's exit maximum is read
+from the exited, unreaped leader (exit_peak) before the reap and folded in. The task aggregate = max over the session's
+phases of (the sum of that phase's member maxima) + the controller's lifetime maximum read at finalisation (or the
+live sampled sum, if larger). A phase whose aggregate reaches MEM_STOP at exit stops. PASS needs 0 < aggregate < 48 GiB
+AND every mandatory measurement: each worker's exit peak and the controller's final self sample - a missing one is
+STOPPED. Stop at MEM_STOP = 44 GiB.
+
+PROMPT STOPS AND THE MARGIN. Every controller stop SIGKILLs the worker's group at once (no SIGTERM grace). The complete
+observation-to-death interval is at most the gap between two readings of a process (two iterations of at most
+SAMPLE_LIMIT_S each plus one MEM_SAMPLE_S sleep: 0.12 s) or, with a hung sampler, the last reading + TICK_STALE_S + the
+watchdog's 10 ms poll (0.16 s), plus the measured SIGKILL delivery (controller_fixtures.json). The 4 GiB margin between
+the stop and the cap therefore holds for growth below 4 GiB / that bound; the measured synthetic rates are in
+controller_fixtures.json and STAGE_A_CRITERIA.md §2 states where the margin holds and where it does not.
+
+CLOCK (A4). Row 20's time = carried 1,808.73 s + every session's live seconds counted from the controller process's
+own start (before configuration, recovery and superseding), durable every HEARTBEAT_S with the wall time of the beat.
+Closing a session charges, at the close, the FINAL_ALLOWANCE_S = 60 s that the remaining finalisation (receipt and
+ledger checks, the final record and its admission marker) may use; a timer ends the process (exit 75, nothing
+admitted) if finalisation overruns it. A dead controller is charged at restart its last durable live time plus
+max(TAIL_RESERVE_S = 60 s, its watchdog's interval from the last beat to the group's and the controller's death); a
+watchdog that found the controller blocked kills it, so that interval is bounded and recorded. RESERVES INSIDE THE 4 h
+CAP: TAIL 60 s, STOP 60 s, REPORT 600 s; work phases end at cap - 720 s, the report at cap - 60 s; the watchdog's hard
 deadline is HARD_MARGIN_S = 5 s after the controller's. Caps are never reset.
 
-OBSERVATION. Each loop iteration (sleep MEM_SAMPLE_S = 0.1 s): the worker's exit (kqueue, which does NOT reap), the
-deadline, the watchdog's liveness, the task's processes and their memory, every SYS_SAMPLE_S = 1 s swap, pressure
-(sysctlbyname, in-process) and storage, every HEARTBEAT_S the durable record. The full iteration time is measured and
-its maximum recorded per phase (`max_iteration_s`); a sample slower than SAMPLE_LIMIT_S = 0.5 s stops.
+STORAGE. Every writer reserves (enforce.configure_storage): work writes under cap - 64 MiB, finalisation writes under the
+full cap; the I/O thread sums the output tree and stops a work phase over its limit. STAGE_A_FINAL.json's storage figure
+includes its own bytes and its admission marker's (a fixed point checked after the write).
 
-WHOLE-TASK MEMORY (group 3). The task = the controller itself, the watchdog, the worker and every process in the
-worker's group or descended from it (memprobe.task_processes); the measure is the SUM of their lifetime maxima
-(ri_lifetime_max_phys_footprint per task, which per Apple's XNU covers one task only; the sum bounds the
-simultaneous peak from above). It is sampled through the gates, load, execution and the report; at a worker's exit the
-leader's final lifetime maximum is read from the exited, unreaped process (exit_peak) BEFORE the reap; the controller
-samples itself again at finalisation. Stop at MEM_STOP = 44 GiB; a reading that fails, is implausible (lifetime <
-current, or zero) or is slower than the limit stops. The MLX free-buffer cache is covered: a nonzero 2 GiB cache is
-counted in the ledger (memprobe fixture).
+DURABLE COMPLETION (A5). STAGE_A_FINAL.json is written first; then, only if the tree's size equals the declared figure,
+STAGE_A_FINAL.ADMITTED.json names the final record's sha256 and session. `final_admitted()` admits a final record only
+with that marker. A failure or block after the final record's rename leaves no marker; a failure after the marker's
+rename removes the marker before the exit 75; a size mismatch rewrites the record STOPPED with no marker.
 
-STORAGE (group 4). Every writer reserves (enforce.configure_storage): work writes under cap - 64 MiB, finalisation
-writes (state, terminal, phase records, parity, report, controller, gates, final) under the full cap; the controller
-sums the output tree every SYS_SAMPLE_S and stops a work phase over its operational limit. STAGE_A_FINAL.json's
-storage figure includes its own bytes (a fixed point checked after the write).
-
-STOP. Any limit, sampler failure, worker crash, non-zero exit, watchdog loss or persistence failure -> TERMINAL.json
-(first reason kept) -> SIGTERM to the worker's group -> TERM_GRACE_S -> the leader's final peak -> SIGKILL to the
-group -> every recorded member confirmed gone by identity -> reap. A write failure of the controller or terminal
-record exits 75 after the kill; no PASS can exist then (the previous FINAL was superseded at session start).
-
-FINAL (group 6). PASS only if, in THIS session, the report worker exited 0, wrote report/REPORT_RECEIPT.json last
-naming this session, the gates' package and identity and the sha256 of every report output, every one of which
-matches on disk; its validator passed and it was admissible; no TERMINAL record; and every cap holds on the final
-figures - time, storage (including the final record), whole-task memory, and the attempt counters per row and in
-aggregate, re-read from the ledger. The Stage B prediction is recomputed here from the completed A seconds and bytes.
+FINAL (A7). PASS only if, in THIS session, the report worker exited 0 and wrote report/REPORT_RECEIPT.json last with
+exactly the receipt schema, naming this session, the gates' package and identity and the sha256 of EXACTLY the four
+report outputs (both SVG figures, the Markdown, the machine JSON), every one matching on disk, and the machine JSON's
+session, admissibility and validator flags equal to the receipt's; its validator passed and it was admissible; no
+TERMINAL record; the ledger's legal domains hold (enforce.check_ledger); every mandatory measurement exists; and every
+cap holds on the final figures.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
+import re
+import select
 import signal
 import subprocess
 import sys
@@ -73,25 +90,40 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import memprobe  # noqa: E402
-from enforce import (CAPS, MEMORY_CAP as CAPS_MEMORY, GiB, MiB, configure_storage, dir_bytes,  # noqa: E402
+from enforce import (CAPS, MEMORY_CAP as CAPS_MEMORY, GiB, MiB, check_ledger, configure_storage, dir_bytes,  # noqa: E402
                      write_json_atomic)
 
-HEARTBEAT_S, MEM_SAMPLE_S, SYS_SAMPLE_S, SAMPLE_LIMIT_S = 1.0, 0.1, 1.0, 0.5
-TAIL_RESERVE_S, STOP_RESERVE_S, REPORT_RESERVE_S, TERM_GRACE_S = 60.0, 60.0, 600.0, 3.0
-STALE_S, HARD_MARGIN_S, GROUP_GONE_S, FINAL_WRITE_TIMEOUT_S = 10.0, 5.0, 10.0, 30.0
+HEARTBEAT_S, MEM_SAMPLE_S, SYS_SAMPLE_S, SAMPLE_LIMIT_S, TICK_STALE_S = 1.0, 0.02, 1.0, 0.05, 0.1
+TAIL_RESERVE_S, STOP_RESERVE_S, REPORT_RESERVE_S, FINAL_ALLOWANCE_S = 60.0, 60.0, 600.0, 60.0
+STALE_S, HARD_MARGIN_S, GROUP_GONE_S, ARM_TIMEOUT_S = 10.0, 5.0, 10.0, 10.0
 MEM_STOP = 44 * GiB
 FINAL_RESERVE_BYTES = 64 * MiB
 PHASES = ["instrumented", "native"]
 B_PLANNED_ATTEMPTS, B_RESERVE = 1856, 1.25
 EXIT_HOLD = 4
+GATE = ["/bin/sh", "-c", 'IFS= read -r go || exit 97; [ "$go" = GO ] || exit 97; exec "$@" </dev/null', "stagea"]
+WATCHDOG = [sys.executable, str(HERE / "stage_a_watchdog.py")]
+FINAL, ADMITTED = "STAGE_A_FINAL.json", "STAGE_A_FINAL.ADMITTED.json"
+REPORT_OUTPUTS = {"report/rel_l2_by_layer.svg", "report/logit_max_abs.svg", "report/STAGE_A_REPORT.md",
+                  "report/stage_a_report.json"}
+RECEIPT_KEYS = {"session", "package", "identity", "date", "outputs", "admissible", "validator_pass"}
+HEX64 = re.compile(r"[0-9a-f]{64}")
 
 
 class ControllerStop(RuntimeError):
     pass
 
 
+def _sha(b: bytes) -> str:
+    return hashlib.sha256(b).hexdigest()
+
+
 def _sha_file(p: Path) -> str:
-    return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+    return _sha(Path(p).read_bytes())
+
+
+def _num(v) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v >= 0
 
 
 def default_system_reader() -> dict:
@@ -101,32 +133,73 @@ def default_system_reader() -> dict:
         raise ControllerStop(str(exc)) from exc
 
 
+def final_admitted(out: Path) -> dict | None:
+    """The final record, only when its admission marker names exactly its bytes and session (A5)."""
+    f, m = Path(out) / FINAL, Path(out) / ADMITTED
+    if not (f.exists() and m.exists()):
+        return None
+    try:
+        mk, fb = json.loads(m.read_text()), f.read_bytes()
+        fin = json.loads(fb)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(mk, dict) or set(mk) != {"final_sha256", "session"} or mk["final_sha256"] != _sha(fb) or \
+            not isinstance(fin, dict) or fin.get("session") != mk["session"]:
+        return None
+    return fin
+
+
+def _process_age_s() -> float:
+    """Seconds since this process started (libproc start time), so the session clock includes interpreter start-up
+    and imports (A4)."""
+    i = memprobe.proc_info(os.getpid())
+    return max(0.0, time.time() - float(i["start"])) if i else 0.0
+
+
 class Controller:
     def __init__(self, out: Path, *, carry_seconds: float, worker_cmd, gates: bool = True,
                  row_cap_s: float | None = None, storage_cap: int | None = None, probe=memprobe,
-                 system_reader=None, writer=write_json_atomic, clock=time.monotonic, watchdog: bool = True):
+                 system_reader=None, writer=write_json_atomic, clock=time.monotonic, watchdog_cmd=None,
+                 from_process_start: bool = False):
         self.out, self.worker_cmd, self.use_gates = Path(out), worker_cmd, gates
         self.cap_s = row_cap_s if row_cap_s is not None else CAPS["row20"]["seconds"]
         self.cap_b = storage_cap if storage_cap is not None else CAPS["row20"]["bytes"]
         self.carry, self.probe, self.writer, self.clock = carry_seconds, probe, writer, clock
         self.system_reader = system_reader or default_system_reader
-        self.use_watchdog = watchdog
+        self.watchdog_cmd = watchdog_cmd or WATCHDOG
+        self.from_process_start = from_process_start      # main(): the clock counts from the process's own start
         self.path = self.out / "controller.json"
         self.session = uuid.uuid4().hex[:12]
-        self.proc = self.wd = None
+        self.proc = self.wd = self.kq = None
+        self.tick_w = None
         self._exited_flag = False
         self.gates_rec = None
+        self.lock, self.wlock = threading.RLock(), threading.Lock()
+        self.io_stop = None
+        self.io_run = False
 
     # ---- the durable record ---------------------------------------------------------------------------------------
     def _write(self, path: Path, obj) -> None:
         self.writer(path, obj, final=True)
 
+    def live(self) -> float:
+        return (self.clock() - self.t0) + self.pre_s
+
+    def elapsed_total(self) -> float:
+        return self.base + self.live()
+
     def _load(self) -> dict:
         if not self.path.exists():
+            others = [p.name for p in self.out.iterdir() if p.name not in ("LOCK",)] if self.out.exists() else []
+            if others:
+                raise SystemExit(f"refused: controller.json is absent beside existing task output {sorted(others)[:6]} "
+                                 f"- the accumulated time is lost; the run holds")
             return {"carry_s": self.carry, "seconds_total": self.carry, "sessions": [], "open_session": None,
-                    "peaks": {"task_lifetime_sum": 0, "by_phase": {}, "storage_bytes": 0, "max_iteration_s": {}},
+                    "peaks": {"task_lifetime_sum": 0, "phase_aggregates": {}, "storage_bytes": 0,
+                              "max_iteration_s": {}},
                     "stops": [], "workers": [], "swap_baseline": None, "reconciled": []}
         rec = json.loads(self.path.read_text())
+        self._validate_accounting(rec)
         s = rec.get("open_session")
         if s:                                         # the last controller died
             rec["reconciled"].append(self._reconcile(rec, s["session"]))
@@ -136,8 +209,12 @@ class Controller:
                     p = self.out / w["watchdog_record"]
                     if p.exists():
                         wd = json.loads(p.read_text())
-                        if wd.get("group_gone_wall") and s.get("beat_wall"):
-                            tail = max(tail, wd["group_gone_wall"] - s["beat_wall"])
+                        ends = [wd.get(k) for k in ("group_gone_wall", "controller_gone_wall") if _num(wd.get(k))]
+                        if ends and _num(s.get("beat_wall")):
+                            tail = max(tail, max(ends) - s["beat_wall"])
+                        blocked = str(wd.get("reason", "")).startswith(("heartbeat stale", "hard deadline"))
+                        if blocked and not _num(wd.get("controller_gone_wall")) and _num(s.get("beat_wall")):
+                            tail = max(tail, time.time() - s["beat_wall"])   # blocked and not seen to die: until now
             charged = float(s["live_s"]) + tail
             rec["seconds_total"] += charged
             rec["sessions"].append({**s, "closed": "crashed", "charged_s": charged, "tail_s": tail,
@@ -145,78 +222,119 @@ class Controller:
             rec["open_session"] = None
         return rec
 
+    def _validate_accounting(self, rec) -> None:
+        """Finite, non-negative, typed accounting before any use (A4)."""
+        bad = []
+        if not isinstance(rec, dict):
+            raise SystemExit("refused: controller.json is not an object")
+        for k in ("carry_s", "seconds_total"):
+            if not _num(rec.get(k)):
+                bad.append(k)
+        if _num(rec.get("carry_s")) and abs(rec["carry_s"] - self.carry) > 1e-9:
+            bad.append("carry_s differs from the declared carry")
+        if _num(rec.get("seconds_total")) and _num(rec.get("carry_s")) and rec["seconds_total"] < rec["carry_s"]:
+            bad.append("seconds_total below the carry")
+        for k, ty in (("sessions", list), ("workers", list), ("stops", list), ("reconciled", list), ("peaks", dict)):
+            if not isinstance(rec.get(k), ty):
+                bad.append(k)
+        for s in rec.get("sessions") or []:
+            if not isinstance(s, dict) or not _num(s.get("live_s")) or \
+                    ("charged_s" in s and not _num(s["charged_s"])):
+                bad.append("sessions[]")
+                break
+        s = rec.get("open_session")
+        if s is not None and (not isinstance(s, dict) or not isinstance(s.get("session"), str) or
+                              not _num(s.get("live_s")) or not _num(s.get("beat_wall"))):
+            bad.append("open_session")
+        if bad:
+            raise SystemExit(f"refused: controller.json accounting invalid: {bad}; the run holds")
+
     def _reconcile(self, rec: dict, session: str) -> dict:
-        """Kill and confirm gone every still-live process of the crashed session's workers, identified by pid AND
-        start time (leader, recorded members, watchdog). An unidentified process is never signalled."""
-        out = {"session": session, "killed": [], "already_gone": 0}
-        idents = []
+        """Every recorded worker group of the crashed session: all its LIVE members (enumerated, anchored to the
+        recorded leader identity - a group whose id now belongs to another process is extinct), every recorded member
+        identity, killed and confirmed gone; only then its watchdog (the safeguard retires last)."""
+        out = {"session": session, "groups": [], "watchdogs_killed": []}
         for w in rec["workers"]:
             if w.get("session") != session or w.get("reaped"):
                 continue
-            idents += [i for i in [w.get("leader"), w.get("watchdog")] + list((w.get("members") or {}).values())
-                       if i]
-        live = [i for i in idents if memprobe.same_process(i)]
-        out["already_gone"] = len(idents) - len(live)
-        for i in live:
-            try:
-                os.kill(i["pid"], signal.SIGKILL)
-                out["killed"].append(i)
-            except ProcessLookupError:
-                pass
-        t = time.monotonic()
-        while any(memprobe.same_process(i) for i in live):
-            if time.monotonic() - t > GROUP_GONE_S:
-                raise SystemExit(f"refused: processes of the crashed session {session} survive SIGKILL: "
-                                 f"{[i for i in live if memprobe.same_process(i)]}; the run holds")
-            time.sleep(0.05)
+            leader = w.get("leader")
+            members = [m for m in (w.get("members") or {}).values() if memprobe.valid_ident(m)]
+            if memprobe.valid_ident(leader):
+                try:
+                    res = memprobe.end_group(leader, members, limit=GROUP_GONE_S)
+                except memprobe.Survivors as exc:
+                    raise SystemExit(f"refused: processes of the crashed session {session} survive SIGKILL: {exc}; "
+                                     f"the run holds")
+                out["groups"].append({"phase": w.get("phase"), "pgid": leader["pgid"], **res})
+            wd = w.get("watchdog")
+            if memprobe.valid_ident(wd) and memprobe.same_process(wd):
+                try:
+                    os.kill(wd["pid"], signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                t = time.monotonic()
+                while memprobe.same_process(wd):
+                    if time.monotonic() - t > GROUP_GONE_S:
+                        raise SystemExit(f"refused: the crashed session's watchdog {wd['pid']} survives SIGKILL")
+                    time.sleep(0.02)
+                out["watchdogs_killed"].append(wd)
         return out
 
     def _persist(self) -> None:
-        live = self.clock() - self.t0
-        self.rec["open_session"]["live_s"] = live
-        self.rec["open_session"]["beat_wall"] = time.time()
-        self.rec["seconds_total_live"] = self.base + live
+        live = self.live()
+        with self.lock:
+            self.rec["open_session"]["live_s"] = live
+            self.rec["open_session"]["beat_wall"] = time.time()
+            self.rec["seconds_total_live"] = self.base + live
+            snap = json.loads(json.dumps(self.rec))
+            w = self.rec["workers"][-1] if self.rec["workers"] and self.proc is not None else None
+            mem = (w.get("members_file"), dict(w.get("members") or {})) if w and w.get("members_file") else None
         try:
-            self._write(self.path, self.rec)
+            with self.wlock:
+                self._write(self.path, snap)
+                if mem:
+                    self._write(self.out / mem[0], mem[1])
         except Exception as exc:
             raise ControllerStop(f"persistence failure: {exc!r}") from exc
 
-    def elapsed_total(self) -> float:
-        return self.base + (self.clock() - self.t0)
-
     def _supersede(self) -> None:
-        """No earlier PASS survives into this session: the previous final record and report receipt move aside."""
+        """No earlier PASS survives into this session: the previous final record, its admission marker and the report
+        receipt move aside."""
         sup = self.out / "superseded"
-        for p in (self.out / "STAGE_A_FINAL.json", self.out / "report" / "REPORT_RECEIPT.json"):
+        for p in (self.out / ADMITTED, self.out / FINAL, self.out / "report" / "REPORT_RECEIPT.json"):
             if p.exists():
                 sup.mkdir(exist_ok=True)
                 os.replace(p, sup / f"{p.stem}.{self.session}{p.suffix}")
 
     # ---- the run --------------------------------------------------------------------------------------------------
     def run(self, phases=PHASES) -> dict:
+        self.t0 = self.clock()                         # the clock starts with the process (A4)
+        self.pre_s = _process_age_s() if self.from_process_start else 0.0
         from stage_a_guard import TaskLock, set_terminal
         self.out.mkdir(parents=True, exist_ok=True)
         lock = TaskLock(self.out)
         try:
             configure_storage([self.out], self.cap_b, self.cap_b - FINAL_RESERVE_BYTES)
+            self.base = 0.0
             self.rec = self._load()
             self._supersede()
             self.base = self.rec["seconds_total"]
-            self.t0 = self.clock()
+            self.ident = memprobe.proc_info(os.getpid())
             self.rec["open_session"] = {"session": self.session, "pid": os.getpid(), "live_s": 0.0,
-                                        "opened_wall": time.time(), "beat_wall": time.time()}
+                                        "opened_wall": time.time(), "beat_wall": time.time(),
+                                        "controller": self.ident}
             self._persist()
             if self.rec["swap_baseline"] is None:
                 try:
                     self.rec["swap_baseline"] = self.system_reader()["swap"]
                 except Exception as exc:              # no observation, no work: terminal, nothing spawned
                     self._stop(set_terminal, "controller", f"initial system reading failed: {exc}")
-                    self._close("terminal")
+                    self._bounded(lambda: self._close("terminal"))
                     return {"outcome": "STOPPED", "reason": "initial system reading failed", "session": self.session}
             if self.use_gates:
                 g = self._gates()
                 if g["outcome"] != "PASSED":
-                    self._close(g["outcome"].lower())
+                    self._bounded(lambda: self._close(g["outcome"].lower()))
                     return {"outcome": g["outcome"], "reason": g["reason"], "session": self.session}
             terminal = (self.out / "TERMINAL.json").exists()
             try:
@@ -233,21 +351,49 @@ class Controller:
             except Exception as exc:
                 self.rec["stops"].append({"phase": "report", "session": self.session,
                                           "reason": f"{type(exc).__name__}: {exc}"})
-            self._close("terminal" if (self.out / "TERMINAL.json").exists() else "completed")
-            return self._finalise()
+            outcome = "terminal" if (self.out / "TERMINAL.json").exists() else "completed"
+            return self._bounded(lambda: (self._close(outcome), self._finalise())[1])
         finally:
             lock.release()
+
+    def _bounded(self, fn):
+        """Close and finalisation run under one allowance FINAL_ALLOWANCE_S, charged at the close: past it the process
+        ends (exit 75) after removing any admission marker of this session - nothing is admitted (A4/A5)."""
+        res, err = {}, []
+
+        def body():
+            try:
+                res["r"] = fn()
+            except BaseException as exc:           # noqa: BLE001 - reported below, then exit 75
+                err.append(exc)
+        th = threading.Thread(target=body, daemon=True)
+        th.start()
+        th.join(FINAL_ALLOWANCE_S)
+        if th.is_alive() or err:
+            self._unadmit()
+            sys.stderr.write(f"finalisation did not complete: {(repr(err[0]) if err else 'allowance exceeded')}\n")
+            sys.stderr.flush()
+            os._exit(75)
+        return res.get("r")
+
+    def _unadmit(self) -> None:
+        try:
+            m = self.out / ADMITTED
+            if m.exists() and json.loads(m.read_text()).get("session") == self.session:
+                m.unlink()
+        except Exception:                             # noqa: BLE001 - best effort; the exit status says no PASS
+            pass
 
     def _gates(self) -> dict:
         """The desk gates as a supervised worker (hashing and git cannot block the controller's loop)."""
         gp = self.out / "GATES.json"
         if gp.exists():
-            os.replace(gp, self.out / f"GATES.prev.json")
+            os.replace(gp, self.out / "GATES.prev.json")
         try:
             self._phase("gates", deadline=self.cap_s - TAIL_RESERVE_S - STOP_RESERVE_S - REPORT_RESERVE_S,
                         storage_limit=self.cap_b - FINAL_RESERVE_BYTES, gates=True)
         except ControllerStop as exc:
-            w = self.rec["workers"][-1]
+            w = self.rec["workers"][-1] if self.rec["workers"] else {}
             if w.get("returncode") == EXIT_HOLD and gp.exists():
                 g = json.loads(gp.read_text())
                 if g.get("session") == self.session and g.get("hold"):
@@ -263,29 +409,76 @@ class Controller:
 
     def _close(self, outcome: str) -> None:
         self._self_sample()
-        live = self.clock() - self.t0
-        s = dict(self.rec["open_session"], live_s=live, closed=outcome)
-        self.rec["sessions"].append(s)
-        self.rec["seconds_total"] = self.base + live
-        self.rec["open_session"] = None
-        self.rec["storage_before_close"] = dir_bytes([self.out])
-        try:
-            self._write(self.path, self.rec)
-        except Exception:
-            os._exit(75)
+        before = dir_bytes([self.out])
+        live = self.live() + FINAL_ALLOWANCE_S        # the remaining finalisation, charged here and enforced (A4)
+        with self.lock:
+            s = dict(self.rec["open_session"], live_s=live, closed=outcome, allowance_s=FINAL_ALLOWANCE_S)
+            self.rec["sessions"].append(s)
+            self.rec["seconds_total"] = self.base + live
+            self.rec["open_session"] = None
+            self.rec["storage_before_close"] = before
+            snap = json.loads(json.dumps(self.rec))
+        with self.wlock:
+            self._write(self.path, snap)
 
     def _self_sample(self) -> None:
+        pk = self.rec["peaks"]
         try:
             f = self.probe.footprint(os.getpid())
-        except memprobe.Unavailable:
+        except memprobe.Unavailable as exc:
+            pk["controller_final_error"] = str(exc)
             return
-        pk = self.rec["peaks"]
+        pk["controller_final"] = f["lifetime_max"]
         pk["controller_lifetime_max"] = max(pk.get("controller_lifetime_max", 0), f["lifetime_max"])
 
-    # ---- final (group 6) ------------------------------------------------------------------------------------------
+    # ---- memory aggregate (A3) ------------------------------------------------------------------------------------
+    def _key(self, pid: int, procs: dict) -> str:
+        if pid == os.getpid():
+            return "controller"
+        i = procs.get(pid) or (self.wd_ident if self.wd is not None and pid == self.wd.pid else None)
+        return f"{pid}:{i['start']}" if i else f"{pid}:?"
+
+    def _fold(self, w: dict, procs: dict, smp: dict) -> None:
+        mm = w.setdefault("member_max", {})
+        for p, life in smp["per_pid_lifetime"].items():
+            k = self._key(p, procs)
+            if k == "controller":
+                pk = self.rec["peaks"]
+                pk["controller_lifetime_max"] = max(pk.get("controller_lifetime_max", 0), life)
+            else:
+                mm[k] = max(mm.get(k, 0), life)
+        self._aggregate(w)
+
+    def _aggregate(self, w: dict) -> int:
+        pk = self.rec["peaks"]
+        a = sum((w.get("member_max") or {}).values()) + pk.get("controller_lifetime_max", 0)
+        w["aggregate"] = a
+        key = f"{w['session']}:{w['phase']}:{len(self.rec['workers'])}"
+        agg = pk.setdefault("phase_aggregates", {})
+        agg[key] = max(agg.get(key, 0), a)
+        pk["task_lifetime_sum"] = max(pk.get("task_lifetime_sum", 0), a)
+        return a
+
+    def _task_aggregate(self) -> int:
+        """Final: max over this session's workers of (member maxima) + the controller's FINAL lifetime maximum."""
+        pk = self.rec["peaks"]
+        c = max(pk.get("controller_final", 0), pk.get("controller_lifetime_max", 0))
+        ws = [sum((w.get("member_max") or {}).values()) for w in self.rec["workers"] if w.get("session") == self.session]
+        return max([pk["task_lifetime_sum"]] + [s + c for s in ws])
+
+    def _missing_measurements(self) -> list[str]:
+        miss = [f"{w['phase']}: no exit peak ({w.get('exit_peak_error', 'not read')})" for w in self.rec["workers"]
+                if w.get("session") == self.session and w.get("released") and not
+                (isinstance(w.get("exit_peak"), int) and w["exit_peak"] > 0)]
+        if not (isinstance(self.rec["peaks"].get("controller_final"), int) and self.rec["peaks"]["controller_final"] > 0):
+            miss.append(f"controller final self sample ({self.rec['peaks'].get('controller_final_error', 'absent')})")
+        return miss
+
+    # ---- final (A5, A7) -------------------------------------------------------------------------------------------
     def _report_ok(self) -> dict:
-        """The CURRENT report: worker of this session exited 0, no report stop this session, a receipt naming this
-        session and the gates' package/identity, every listed output present with its sha256."""
+        """The CURRENT report: worker of this session exited 0, no report stop this session, a receipt with exactly
+        the receipt schema naming this session and the gates' package/identity and EXACTLY the four report outputs,
+        each present with its sha256; the machine report agreeing with the receipt."""
         why = []
         ws = [w for w in self.rec["workers"] if w.get("session") == self.session and w["phase"] == "report"]
         if not ws or ws[-1].get("returncode") != 0 or ws[-1].get("stop"):
@@ -293,22 +486,41 @@ class Controller:
         if any(s.get("phase") == "report" and s.get("session") == self.session for s in self.rec["stops"]):
             why.append("a report stop in this session")
         rp = self.out / "report" / "REPORT_RECEIPT.json"
-        rc = json.loads(rp.read_text()) if rp.exists() else None
+        try:
+            rc = json.loads(rp.read_text()) if rp.exists() else None
+        except ValueError:
+            rc, _ = None, why.append("the report receipt is not JSON")
+        rep = {}
         if rc is None:
             why.append("no report receipt")
+        elif not isinstance(rc, dict) or set(rc) != RECEIPT_KEYS:
+            why.append(f"the report receipt's fields are not exactly {sorted(RECEIPT_KEYS)}")
         else:
             g = self.gates_rec or {}
-            if rc.get("session") != self.session:
+            outs = rc["outputs"]
+            if rc["session"] != self.session:
                 why.append("the report receipt names another session")
-            if self.use_gates and (rc.get("package") != g.get("package") or rc.get("identity") != g.get("identity")):
+            if not (isinstance(rc["date"], str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", rc["date"])):
+                why.append("the report receipt's date is not YYYY-MM-DD")
+            if not (isinstance(rc["admissible"], bool) and isinstance(rc["validator_pass"], bool)):
+                why.append("the report receipt's flags are not booleans")
+            if self.use_gates and (rc["package"] != g.get("package") or rc["identity"] != g.get("identity")):
                 why.append("the report receipt's package or identity differs from this session's gates")
-            for rel, h in (rc.get("outputs") or {}).items():
-                p = self.out / rel
-                if not p.exists() or _sha_file(p) != h:
-                    why.append(f"report output {rel} missing or changed")
-            if "report/stage_a_report.json" not in (rc.get("outputs") or {}):
-                why.append("the receipt does not bind the machine report")
-        rep = json.loads((self.out / "report/stage_a_report.json").read_text()) if not why else {}
+            if not isinstance(outs, dict) or set(outs) != REPORT_OUTPUTS or \
+                    not all(isinstance(h, str) and HEX64.fullmatch(h) for h in outs.values()):
+                why.append(f"the receipt does not bind exactly the four report outputs {sorted(REPORT_OUTPUTS)}")
+            else:
+                for rel, h in outs.items():
+                    p = self.out / rel
+                    if not p.exists() or _sha_file(p) != h:
+                        why.append(f"report output {rel} missing or changed")
+            if not why:
+                rep = json.loads((self.out / "report/stage_a_report.json").read_text())
+                if not isinstance(rep, dict) or rep.get("session") != rc["session"] or \
+                        rep.get("admissible") is not rc["admissible"] or \
+                        rep.get("validator_pass") is not rc["validator_pass"]:
+                    why.append("the machine report's session or flags differ from the receipt")
+                    rep = {}
         return {"ok": not why, "why": why, "receipt": rc, "report": rep}
 
     def _counters_ok(self) -> dict:
@@ -316,16 +528,14 @@ class Controller:
             else None
         if st is None:
             return {"ok": True, "detail": "no attempts"}
-        c, caps = st["counters"], CAPS
-        checks = {}
+        problems = check_ledger(st)
+        c = st.get("counters", {}) if isinstance(st, dict) else {}
         for key in ("row20", "aggregate"):
-            k = c[key]
-            checks[key] = (k["passes"] <= caps[key]["attempts"] and k["started"] <= caps[key]["attempts"] and
-                           k["started"] == k["completed"] + k["failed"] + (1 if st.get("open_attempt") else 0) and
-                           k["passes"] >= k["started"])
-        checks["completed_ids"] = len(st["completed"]) + st["carry_in"].get("row20", {}).get("completed", 0) == \
-            c["row20"]["completed"]
-        return {"ok": all(checks.values()), "detail": checks}
+            k = c.get(key, {})
+            if not (isinstance(k.get("passes"), int) and k["passes"] <= CAPS[key]["attempts"] and
+                    k.get("started", 1 << 30) <= CAPS[key]["attempts"]):
+                problems.append(f"{key}: over its attempt cap")
+        return {"ok": not problems, "detail": problems}
 
     def _finalise(self) -> dict:
         rok = self._report_ok()
@@ -334,22 +544,25 @@ class Controller:
         cnt = self._counters_ok()
         st = json.loads((self.out / "stage_a_state.json").read_text()) if (self.out / "stage_a_state.json").exists() \
             else {"attempts": {}}
-        mem_peak = self.rec["peaks"]["task_lifetime_sum"]
+        mem_peak = self._task_aggregate()
+        missing = self._missing_measurements()
         final = {"outcome": "STOPPED", "session": self.session, "report_current": rok["ok"],
                  "report_problems": rok["why"], "validator_pass": bool(rep.get("validator_pass")),
                  "admissible": bool(rep.get("admissible")), "terminal": terminal, "counters": cnt,
                  "seconds_total": self.rec["seconds_total"], "carry_s": self.rec["carry_s"],
                  "stage_a_seconds": self.rec["seconds_total"] - self.rec["carry_s"],
+                 "task_memory_aggregate": mem_peak, "missing_measurements": missing,
                  "peaks": self.rec["peaks"], "report_receipt_sha256": _sha_file(self.out / "report/REPORT_RECEIPT.json")
                  if rok["receipt"] is not None else None,
                  "controller_sha256": _sha_file(self.path), "stops": self.rec["stops"],
-                 "time_scope": "seconds_total ends at the close of this session's record; the final record's own "
-                               "write (measured in the fixtures) lies inside the 60 s tail reserve within the cap"}
+                 "time_scope": f"seconds_total includes this session's finalisation allowance ({FINAL_ALLOWANCE_S:.0f} "
+                               f"s), charged at the close and enforced by the finalisation timer"}
         unique = sum(1 for _ in st.get("attempts", {}))
         final["stage_b_prediction"] = None
         size0 = dir_bytes([self.out])
-        for _ in range(4):                            # a fixed point: the figure includes this record's own bytes
-            final["storage_final"] = size0 + len(json.dumps(final, indent=1, sort_keys=True).encode())
+        mlen = len(json.dumps({"final_sha256": "0" * 64, "session": self.session}, indent=1, sort_keys=True).encode())
+        for _ in range(4):                            # a fixed point: the figure includes this record and its marker
+            final["storage_final"] = size0 + mlen + len(json.dumps(final, indent=1, sort_keys=True).encode())
             if unique:
                 ps = final["stage_a_seconds"] / unique * B_PLANNED_ATTEMPTS
                 pb = final["storage_final"] / unique * B_PLANNED_ATTEMPTS
@@ -361,26 +574,29 @@ class Controller:
                     "limit_bytes": cap21["bytes"] / B_RESERVE, "time_ok": ps <= cap21["seconds"] / B_RESERVE,
                     "storage_ok": pb <= cap21["bytes"] / B_RESERVE, "basis": "completed whole-stage rates"}
             caps_ok = {"time": self.rec["seconds_total"] <= self.cap_s, "storage": final["storage_final"] <= self.cap_b,
-                       "memory": 0 < mem_peak < CAPS_MEMORY, "attempts": cnt["ok"]}
+                       "memory": 0 < mem_peak < CAPS_MEMORY and not missing, "attempts": cnt["ok"]}
             final["caps_ok_on_final_figures"] = caps_ok
             final["outcome"] = "PASS" if (rok["ok"] and rep.get("validator_pass") is True and rep.get("admissible")
                                           is True and not terminal and all(caps_ok.values())) else "STOPPED"
-            if len(json.dumps(final, indent=1, sort_keys=True).encode()) + size0 == final["storage_final"]:
+            if size0 + mlen + len(json.dumps(final, indent=1, sort_keys=True).encode()) == final["storage_final"]:
                 break
-        fp = self.out / "STAGE_A_FINAL.json"
-        err: list = []
-        th = threading.Thread(target=lambda: self._final_write(fp, final, err), daemon=True)
-        th.start()
-        th.join(FINAL_WRITE_TIMEOUT_S)
-        if th.is_alive() or err:                      # no final record: a truthful hold, never a promised PASS
-            sys.stderr.write(f"final record not written: {err or 'timeout'}\n")
-            os._exit(75)
+        fp = self.out / FINAL
+        self._write(fp, final)                        # a failure or block here leaves no marker (A5)
         after = dir_bytes([self.out])
-        if after != final["storage_final"]:
-            final["storage_final_check"] = {"declared": final["storage_final"], "measured_after": after}
+        if after + mlen != final["storage_final"]:   # invalidate a mismatching completion on disk
+            final.update(outcome="STOPPED", storage_final_check={"declared": final["storage_final"],
+                                                                 "measured_after": after + mlen})
+            self._write(fp, final)
+            return final
+        marker = {"final_sha256": _sha_file(fp), "session": self.session}
+        try:
+            self._write(self.out / ADMITTED, marker)  # the commit point: the admission marker, written last
+        except BaseException:
+            self._unadmit()
+            raise
         return final
 
-    def _final_write(self, fp: Path, final: dict, err: list) -> None:
+    def _final_write(self, fp: Path, final: dict, err: list) -> None:  # kept for fixtures that patch the writer
         try:
             self._write(fp, final)
         except Exception as exc:
@@ -397,74 +613,74 @@ class Controller:
             os._exit(75)
 
     def _final_peak(self, w: dict) -> None:
-        """The leader's lifetime maximum read from the exited, UNREAPED process (before proc.wait)."""
+        """The leader's lifetime maximum read from the exited, UNREAPED process (before proc.wait), folded into the
+        member maxima by identity."""
         try:
             peak = self.probe.exit_peak(self.proc.pid)
         except memprobe.Unavailable as exc:
             w["exit_peak_error"] = str(exc)
             return
         w["exit_peak"] = peak
-        pk = self.rec["peaks"]
-        pk["by_phase"][w["phase"]] = max(pk["by_phase"].get(w["phase"], 0), peak)
+        ld = w.get("leader") or {}
+        k = f"{self.proc.pid}:{ld.get('start', '?')}"
+        with self.lock:
+            mm = w.setdefault("member_max", {})
+            mm[k] = max(mm.get(k, 0), peak)
+            self._aggregate(w)
 
-    def _clean_group(self, w: dict) -> None:
-        """SIGKILL the worker's whole process group until no LIVE member remains (the exited leader is still a group
-        member until it is reaped, and killpg then answers EPERM - measured), then every recorded member outside the
-        group by identity (pid + start time); confirm all gone, else stop."""
-        pgid, leader = w["leader"]["pgid"], w["leader"]["pid"]
-        t = time.monotonic()
-        while True:
+    def _tick(self, b: bytes = b".") -> None:
+        if self.tick_w is not None:
             try:
-                os.killpg(pgid, signal.SIGKILL)
-            except (ProcessLookupError, PermissionError):
+                os.write(self.tick_w, b)
+            except (BlockingIOError, BrokenPipeError, OSError):
                 pass
-            live = [p for p in self.probe.task_processes([], {pgid}) if p != leader]
-            if not live:
-                break
-            if time.monotonic() - t > GROUP_GONE_S:
-                raise ControllerStop(f"{w['phase']}: members {live} of process group {pgid} survive SIGKILL")
-            time.sleep(0.02)
-        others = [m for m in (w.get("members") or {}).values() if m["pid"] != leader]
-        for m in others:
-            if memprobe.same_process(m):
-                try:
-                    os.kill(m["pid"], signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
-        while any(memprobe.same_process(m) for m in others):
-            if time.monotonic() - t > GROUP_GONE_S:
-                raise ControllerStop(f"{w['phase']}: a member of the worker's task survives SIGKILL")
-            time.sleep(0.02)
-        w["group_clean"] = True
 
     def _end_worker(self, w: dict, why: str | None) -> dict:
-        """Stop (if why) or finish the current worker: SIGTERM -> grace -> SIGKILL -> the leader's final peak read
-        from the exited, unreaped process -> whole-group SIGKILL and members confirmed gone -> reap -> watchdog ended."""
+        """Stop (if why) or finish the current worker: SIGKILL to the group at once -> the leader's final peak read
+        from the exited, unreaped process -> every live group member (enumerated) and recorded member killed and
+        confirmed gone -> reap -> watchdog ended."""
         p, out = self.proc, {}
         if p is None:
+            self._end_watchdog(w)
             return out
+        self._tick(b"E")
         t = self.clock()
-        if why and not self._leader_exited():
-            try:
-                os.killpg(p.pid, signal.SIGTERM)
-            except (ProcessLookupError, PermissionError):
-                pass
-            dl = time.monotonic() + TERM_GRACE_S
-            while time.monotonic() < dl and not self._leader_exited():
-                time.sleep(0.02)
-            out["how"] = "SIGTERM" if self._leader_exited() else "SIGKILL"
+        try:
+            if p.stdin and not p.stdin.closed:
+                p.stdin.close()
+        except OSError:
+            pass
         if not self._leader_exited():
             try:
                 os.killpg(p.pid, signal.SIGKILL)
             except (ProcessLookupError, PermissionError):
                 pass
+            out["how"] = "SIGKILL"
             self._wait_leader_exit(GROUP_GONE_S)
         self._final_peak(w)
-        self._clean_group(w)
+        leader = w.get("leader") or {"pid": p.pid, "ppid": os.getpid(), "pgid": p.pid, "start": "0.000000"}
+        try:
+            res = memprobe.end_group(leader, list((w.get("members") or {}).values()), limit=GROUP_GONE_S,
+                                     own_leader=True)
+        except memprobe.Survivors as exc:
+            raise ControllerStop(f"{w['phase']}: {exc}")
+        w["group_clean"], w["group_killed"] = True, len(res["killed"])
         p.wait()
         w["returncode"], w["reaped"] = p.returncode, True
         if why:
             out.update(killed=True, why=why, kill_to_reap_s=self.clock() - t)
+        self._end_watchdog(w)
+        w.update(out)
+        self.proc = None
+        return out
+
+    def _end_watchdog(self, w: dict) -> None:
+        if self.tick_w is not None:
+            try:
+                os.close(self.tick_w)
+            except OSError:
+                pass
+            self.tick_w = None
         if self.wd is not None:
             try:
                 self.wd.wait(timeout=5.0)
@@ -472,14 +688,16 @@ class Controller:
                 self.wd.kill()
                 self.wd.wait()
             w["watchdog_exit"] = self.wd.returncode
+            if self.wd.stdout:
+                self.wd.stdout.close()
             self.wd = None
-        w.update(out)
-        self.proc = None
-        return out
 
     def _leader_exited(self) -> bool:
-        if not self._exited_flag and memprobe.exited(self.kq):
-            self._exited_flag = True
+        if not self._exited_flag:
+            if self.kq is not None:
+                self._exited_flag = memprobe.exited(self.kq)
+            elif self.proc is not None:
+                self._exited_flag = memprobe.proc_info(self.proc.pid) is None   # zombie or gone (never reaped here)
         return self._exited_flag
 
     def _wait_leader_exit(self, limit: float) -> None:
@@ -487,44 +705,134 @@ class Controller:
         while not self._leader_exited():
             if time.monotonic() > dl:
                 raise ControllerStop("the worker leader survives SIGKILL")
-            time.sleep(0.02)
+            time.sleep(0.01)
 
     def _kill_current(self, why: str) -> dict:
         if self.proc is None:
             return {"killed": False}
         return self._end_worker(self.rec["workers"][-1], why)
 
+    def _arm_watchdog(self, w: dict, phase: str, deadline: float) -> None:
+        rel = f"watchdog_{self.session}_{phase}.json"
+        mfile = f"members_{self.session}_{phase}.json"
+        r, wfd = os.pipe()
+        try:
+            arg = {"controller": self.ident, "leader": w["leader"], "session": self.session,
+                   "beat_file": str(self.path), "stale_s": STALE_S, "record": str(self.out / rel),
+                   "deadline_monotonic": time.monotonic() + (deadline - self.elapsed_total()) + HARD_MARGIN_S,
+                   "members_file": str(self.out / mfile), "tick_fd": r, "tick_stale_s": TICK_STALE_S}
+            self.wd = subprocess.Popen(self.watchdog_cmd + [json.dumps(arg)], stdout=subprocess.PIPE,
+                                       stdin=subprocess.DEVNULL, start_new_session=True, pass_fds=(r,))
+        finally:
+            os.close(r)
+        self.tick_w = wfd
+        os.set_blocking(wfd, False)
+        ready = select.select([self.wd.stdout], [], [], ARM_TIMEOUT_S)[0]
+        line = self.wd.stdout.readline() if ready else b""
+        if line.strip() != b"ARMED":
+            raise ControllerStop(f"{phase}: the watchdog did not arm ({line[:80]!r}, exit {self.wd.poll()})")
+        self.wd_ident = memprobe.proc_info(self.wd.pid)
+        if not memprobe.valid_ident(self.wd_ident):
+            raise ControllerStop(f"{phase}: the watchdog's identity cannot be read")
+        w.update(watchdog=self.wd_ident, watchdog_record=rel, members_file=mfile)
+
     def _phase(self, phase: str, *, deadline: float, storage_limit: int, report: bool = False,
                gates: bool = False) -> None:
+        if self.proc is not None or self.wd is not None:   # never let an earlier worker survive into a new phase
+            self._end_worker(self.rec["workers"][-1], f"an earlier worker still present at the start of {phase}")
+        if self.elapsed_total() >= deadline:
+            raise ControllerStop(f"{phase}: time limit {deadline:.0f} s reached (row cap {self.cap_s:.0f} s "
+                                 f"less reserves) before the start")
         env = {**os.environ, "STAGE_A_CONTROLLER_PID": str(os.getpid()), "STAGE_A_SESSION": self.session,
                "STAGE_A_STORAGE_LIMIT": str(storage_limit), "STAGE_A_STORAGE_CAP": str(self.cap_b),
                "STAGE_A_GATES": json.dumps(self.gates_rec or {})}
-        self.proc = subprocess.Popen(self.worker_cmd(phase), env=env, start_new_session=True)
-        self._exited_flag = False
-        self.kq = memprobe.exit_watch(self.proc.pid)
-        leader = memprobe.proc_info(self.proc.pid) or {"pid": self.proc.pid, "ppid": os.getpid(),
-                                                         "pgid": self.proc.pid, "start": "unknown"}
-        w = {"phase": phase, "session": self.session, "pid": self.proc.pid, "leader": leader, "members": {},
-             "spawned_total_s": self.elapsed_total()}
-        self.rec["workers"].append(w)
-        if self.use_watchdog:
-            rel = f"watchdog_{self.session}_{phase}.json"
-            arg = {"controller_pid": os.getpid(), "pgid": self.proc.pid, "beat_file": str(self.path),
-                   "deadline_monotonic": self.t0 + (deadline - self.base) + HARD_MARGIN_S, "stale_s": STALE_S,
-                   "grace_s": TERM_GRACE_S, "record": str(self.out / rel)}
-            self.wd = subprocess.Popen([sys.executable, str(HERE / "stage_a_watchdog.py"), json.dumps(arg)],
-                                       start_new_session=True)
-            w["watchdog"] = memprobe.proc_info(self.wd.pid)
-            w["watchdog_record"] = rel
+        w = {"phase": phase, "session": self.session, "members": {}, "member_max": {},
+             "spawned_total_s": self.elapsed_total(), "released": False}
+        with self.lock:
+            self.rec["workers"].append(w)
+        self._exited_flag, self.kq, self.wd_ident = False, None, None
+        max_work = 0.0
+        try:
+            self.proc = subprocess.Popen(GATE + self.worker_cmd(phase), stdin=subprocess.PIPE, env=env,
+                                         start_new_session=True)
+            w["pid"] = self.proc.pid
+            self.kq = self.probe.exit_watch(self.proc.pid)
+            leader = memprobe.proc_info(self.proc.pid)
+            if not memprobe.valid_ident(leader):
+                raise ControllerStop(f"{phase}: the worker's identity cannot be read before its release")
+            w["leader"] = leader
+            self._arm_watchdog(w, phase, deadline)
+            self._persist()                            # durable identities BEFORE the worker may run anything
+            self.proc.stdin.write(b"GO\n")
+            self.proc.stdin.close()
+            w["released"], w["released_total_s"] = True, self.elapsed_total()
+            max_work = self._sample(w, phase, deadline, storage_limit)
+        except BaseException as exc:
+            try:
+                k = self._end_worker(w, str(exc))
+            except ControllerStop as exc2:
+                k = {"cleanup_failure": str(exc2)}
+                exc = exc2
+            w.update(exited_total_s=self.elapsed_total(), stop=str(exc), **k)
+            self._iter(phase, max_work)
+            try:
+                self._persist()
+            except ControllerStop as exc3:
+                w["persist_after_stop"] = str(exc3)
+            raise exc
+        self._end_worker(w, None)
+        rc = w["returncode"]
+        w["exited_total_s"] = self.elapsed_total()
+        self._iter(phase, max_work)
         self._persist()
-        last_beat = last_sys = 0.0
-        max_iter = 0.0
+        if self._aggregate(w) >= MEM_STOP:
+            raise ControllerStop(f"{phase}: task memory {w['aggregate']} >= {MEM_STOP} at the worker's exit")
+        if rc != 0:
+            raise ControllerStop(f"{phase}: worker exited {rc}")
+        if not (report or gates) and not (self.out / f"{phase.upper()}_DONE.json").exists():
+            raise ControllerStop(f"{phase}: worker exited 0 without its durable phase record")
+
+    def _iter(self, phase: str, work: float) -> None:
+        mi = self.rec["peaks"]["max_iteration_s"]
+        mi[phase] = max(mi.get(phase, 0.0), work)
+
+    def _io(self, storage_limit: int, phase: str) -> None:
+        """The I/O thread: the durable beat (record + members file) and the storage sum every HEARTBEAT_S; a failure
+        or an over-limit sum is handed to the sampler as a stop."""
+        while self.io_run and self.io_stop is None:
+            try:
+                used = dir_bytes([self.out])
+                with self.lock:
+                    pk = self.rec["peaks"]
+                    pk["storage_bytes"] = max(pk["storage_bytes"], used)
+                if used > storage_limit:
+                    self.io_stop = f"{phase}: task storage {used} over {storage_limit}"
+                    return
+                self._persist()
+            except ControllerStop as exc:
+                self.io_stop = str(exc)
+                return
+            except Exception as exc:                 # noqa: BLE001
+                self.io_stop = f"{phase}: I/O failure {exc!r}"
+                return
+            t = time.monotonic()
+            while self.io_run and time.monotonic() - t < HEARTBEAT_S:
+                time.sleep(0.05)
+
+    def _sample(self, w: dict, phase: str, deadline: float, storage_limit: int) -> float:
+        """The sampler (main thread, no file I/O). Returns the largest iteration work time."""
+        self.io_stop, self.io_run = None, True
+        io = threading.Thread(target=self._io, args=(storage_limit, phase), daemon=True)
+        io.start()
+        last_sys, max_work = 0.0, 0.0
+        pid = self.proc.pid
         try:
             while True:
                 it0 = time.monotonic()
-                now = self.clock()
                 if self._leader_exited():
                     break
+                if self.io_stop:
+                    raise ControllerStop(self.io_stop)
                 if self.elapsed_total() >= deadline:
                     raise ControllerStop(f"{phase}: time limit {deadline:.0f} s reached (row cap {self.cap_s:.0f} s "
                                          f"less reserves)")
@@ -532,24 +840,22 @@ class Controller:
                     if self._leader_exited():
                         break
                     raise ControllerStop(f"{phase}: watchdog exited ({self.wd.returncode})")
-                t = time.monotonic()
                 try:
-                    procs = self.probe.task_processes([self.proc.pid], {self.proc.pid})
-                    for p, i in procs.items():
-                        w["members"].setdefault(str(p), i)
+                    procs = self.probe.task_processes([pid], {pid})
                     pids = set(procs) | {os.getpid()} | ({self.wd.pid} if self.wd is not None else set())
                     smp = self.probe.task_sample(pids)
                 except memprobe.Unavailable as exc:
                     if self._leader_exited():
                         break                         # exited between the check and the sample
                     raise ControllerStop(f"{phase}: memory reading unavailable ({exc})")
-                if time.monotonic() - t > SAMPLE_LIMIT_S:
-                    raise ControllerStop(f"{phase}: memory reading took {time.monotonic() - t:.2f} s")
-                pk = self.rec["peaks"]
-                pk["task_lifetime_sum"] = max(pk["task_lifetime_sum"], smp["lifetime_sum"])
-                pk["by_phase"][phase] = max(pk["by_phase"].get(phase, 0), smp["lifetime_sum"])
-                if smp["lifetime_sum"] >= MEM_STOP:
-                    raise ControllerStop(f"{phase}: task memory {smp['lifetime_sum']} >= {MEM_STOP}")
+                with self.lock:
+                    for p, i in procs.items():
+                        w["members"].setdefault(str(p), i)
+                    self._fold(w, procs, smp)
+                if smp["lifetime_sum"] >= MEM_STOP or w["aggregate"] >= MEM_STOP:
+                    raise ControllerStop(f"{phase}: task memory {max(smp['lifetime_sum'], w['aggregate'])} >= "
+                                         f"{MEM_STOP}")
+                now = time.monotonic()
                 if now - last_sys >= SYS_SAMPLE_S:
                     last_sys = now
                     sysr = self.system_reader()
@@ -557,33 +863,17 @@ class Controller:
                         raise ControllerStop(f"swap rose from {self.rec['swap_baseline']} to {sysr['swap']}")
                     if sysr["pressure"] >= 2:
                         raise ControllerStop(f"kernel memory pressure {sysr['pressure']}")
-                    used = dir_bytes([self.out])
-                    pk["storage_bytes"] = max(pk["storage_bytes"], used)
-                    if used > storage_limit:
-                        raise ControllerStop(f"{phase}: task storage {used} over {storage_limit}")
-                if now - last_beat >= HEARTBEAT_S:
-                    last_beat = now
-                    pk["max_iteration_s"][phase] = max(pk["max_iteration_s"].get(phase, 0.0), max_iter)
-                    self._persist()
+                work = time.monotonic() - it0
+                max_work = max(max_work, work)
+                if work > SAMPLE_LIMIT_S:
+                    raise ControllerStop(f"{phase}: a sampling iteration took {work:.3f} s (limit {SAMPLE_LIMIT_S} s)")
+                self._tick()
                 time.sleep(MEM_SAMPLE_S)
-                max_iter = max(max_iter, time.monotonic() - it0)
-        except BaseException as exc:
-            k = self._end_worker(w, str(exc))
-            w.update(exited_total_s=self.elapsed_total(), stop=str(exc), **k)
-            self.rec["peaks"]["max_iteration_s"][phase] = max(self.rec["peaks"]["max_iteration_s"].get(phase, 0.0),
-                                                               max_iter)
-            self._persist()
-            raise
-        self._end_worker(w, None)
-        rc = w["returncode"]
-        w["exited_total_s"] = self.elapsed_total()
-        self.rec["peaks"]["max_iteration_s"][phase] = max(self.rec["peaks"]["max_iteration_s"].get(phase, 0.0),
-                                                           max_iter)
-        self._persist()
-        if rc != 0:
-            raise ControllerStop(f"{phase}: worker exited {rc}")
-        if not (report or gates) and not (self.out / f"{phase.upper()}_DONE.json").exists():
-            raise ControllerStop(f"{phase}: worker exited 0 without its durable phase record")
+        finally:
+            self._tick(b"E")                          # disarm the sampler check before any cleanup or join
+            self.io_run = False
+            io.join(timeout=2 * HEARTBEAT_S)
+        return max_work
 
 
 def default_worker_cmd(phase: str) -> list[str]:
@@ -592,7 +882,8 @@ def default_worker_cmd(phase: str) -> list[str]:
 
 def main() -> int:
     import stage_a
-    c = Controller(stage_a.OUT, carry_seconds=stage_a.ENGINEERING_CARRY["seconds"], worker_cmd=default_worker_cmd)
+    c = Controller(stage_a.OUT, carry_seconds=stage_a.ENGINEERING_CARRY["seconds"], worker_cmd=default_worker_cmd,
+                   from_process_start=True)
     out = c.run()
     print(json.dumps(out, indent=1, default=str))
     return {"REFUSED": 2, "HELD": EXIT_HOLD}.get(out["outcome"], 0)

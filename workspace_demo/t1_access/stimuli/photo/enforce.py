@@ -1,5 +1,6 @@
 """Photograph arm, rows 20 and 21: the WORKER-SIDE ledger - attempts, the completion transaction, recovery and
-storage reservations. Revision 4 (Codex RSC 081f17b closure groups 2 and 4). Time, memory, swap, pressure, the deadline,
+storage reservations. Revision 5 adds `check_ledger`, the ledger's legal domains (Codex RSC 1bf9890 A6), used by the
+validator and the controller's final algebra; revision 4 answered Codex RSC 081f17b closure groups 2 and 4. Time, memory, swap, pressure, the deadline,
 termination and reaping belong to the independent controller (`stage_a_controller.py`) and its watchdog.
 
 STATE: one file per task (`stage_a_state.json`), written atomically (temp file, fsync, os.replace, directory fsync)
@@ -93,15 +94,103 @@ def write_json_atomic(path: Path, obj, *, final: bool = False) -> None:
 
 
 def dir_bytes(paths) -> int:
+    """Bytes of every file under the roots. A file renamed or removed between listing and stat (an atomic write in
+    progress in another thread or process) is skipped; its successor is counted on the next sum."""
     seen, total = set(), 0
     for d in paths:
         d = Path(d)
         items = [d] if d.is_file() else (d.rglob("*") if d.exists() else [])
         for f in items:
-            if f.is_file() and f.resolve() not in seen:
-                seen.add(f.resolve())
-                total += f.stat().st_size
+            try:
+                if f.is_file() and f.resolve() not in seen:
+                    seen.add(f.resolve())
+                    total += f.stat().st_size
+            except FileNotFoundError:
+                continue
     return total
+
+
+STATUSES = {"open", "completed", "interrupted", "interrupted, recovery consumed"}
+COUNTER_KEYS = {"started", "completed", "failed", "passes"}
+
+
+def _int(v, lo: int = 0) -> bool:
+    return isinstance(v, int) and not isinstance(v, bool) and v >= lo
+
+
+def check_ledger(state, passes_per_try: int = 1, row: str = "row20") -> list[str]:
+    """The ledger's LEGAL DOMAINS and relations (revision 5; Codex RSC 1bf9890 A6), independent of the plan: exact
+    integer types (never bool), non-negative counters, completed + failed <= started, passes per try exactly the
+    declared number, every attempt with a positive try count and a known status, the open attempt coherent with its
+    entry, interrupted tries and consumed recoveries coherent with the statuses, the aggregate the sum of the rows,
+    and the row's counters recomputed from its attempts and its carry. Returns the problems ([] = legal)."""
+    p = []
+    if not isinstance(state, dict):
+        return ["the ledger is not an object"]
+    c = state.get("counters")
+    if not isinstance(c, dict) or set(c) != {"row20", "row21", "aggregate"}:
+        return ["counters are not exactly row20, row21, aggregate"]
+    for key, k in c.items():
+        if not isinstance(k, dict) or set(k) != COUNTER_KEYS or not all(_int(k[x]) for x in COUNTER_KEYS):
+            p.append(f"counters.{key}: not exactly four non-negative integers")
+        elif k["completed"] + k["failed"] > k["started"] or k["passes"] < k["started"] * passes_per_try:
+            p.append(f"counters.{key}: completed + failed > started, or passes below the declared passes per try")
+    if p:
+        return p
+    for x in COUNTER_KEYS:
+        if c["aggregate"][x] != c["row20"][x] + c["row21"][x]:
+            p.append(f"counters.aggregate.{x} is not row20 + row21")
+    att, comp = state.get("attempts"), state.get("completed")
+    if not isinstance(att, dict) or not isinstance(comp, dict):
+        return p + ["attempts or completed is not an object"]
+    tries = 0
+    for i, a in att.items():
+        if not isinstance(a, dict) or set(a) != {"kind", "passes", "status", "tries"} or \
+                not isinstance(a["kind"], str) or not _int(a["tries"], 1) or a["passes"] != passes_per_try or \
+                not _int(a["passes"], 1) or not isinstance(a["status"], str) or \
+                not (a["status"] in STATUSES or a["status"].startswith("failed")):
+            p.append(f"attempt {i}: not a legal entry (positive tries, declared passes, known status)")
+            continue
+        tries += a["tries"]
+        if (a["status"] == "completed") != (i in comp):
+            p.append(f"attempt {i}: completed status and the completed map disagree")
+    open_ = state.get("open_attempt")
+    opened = [i for i, a in att.items() if isinstance(a, dict) and a.get("status") == "open"]
+    if open_ is None:
+        if opened:
+            p.append(f"attempts {opened[:3]} open without an open_attempt")
+    elif not isinstance(open_, dict) or set(open_) != {"id", "kind", "row", "passes", "session", "try"} or \
+            opened != [open_.get("id")] or open_.get("try") != (att.get(open_.get("id")) or {}).get("tries") or \
+            open_.get("row") != row or open_.get("passes") != passes_per_try:
+        p.append("open_attempt incoherent with its attempt entry")
+    inter, rec = state.get("interrupted"), state.get("recoveries_consumed")
+    if not isinstance(inter, list) or not isinstance(rec, list):
+        return p + ["interrupted or recoveries_consumed is not a list"]
+    for it in inter:
+        if not isinstance(it, dict) or set(it) != {"id", "session", "try"} or \
+                (att.get(it.get("id")) or {}).get("status") != "interrupted" or \
+                not _int(it.get("try"), 1) or it["try"] > att[it["id"]]["tries"]:
+            p.append(f"interrupted entry {it!r:.80} incoherent")
+    named = {it.get("id") for it in inter if isinstance(it, dict)}
+    for i, a in att.items():
+        if isinstance(a, dict) and a.get("status") == "interrupted" and i not in named:
+            p.append(f"attempt {i}: interrupted without an outstanding interrupted entry")
+        if isinstance(a, dict) and a.get("status") == "interrupted, recovery consumed" and \
+                not any(isinstance(r, dict) and r.get("attempt_id") == i for r in rec):
+            p.append(f"attempt {i}: recovery consumed without a consumed recovery")
+    carry = (state.get("carry_in") or {}).get(row) or {}
+    if not all(_int(carry.get(x, 0)) for x in COUNTER_KEYS):
+        return p + ["carry_in not non-negative integers"]
+    o = 1 if open_ else 0
+    want = {"started": carry.get("started", 0) + tries, "passes": carry.get("passes", 0) + tries * passes_per_try,
+            "completed": carry.get("completed", 0) + len(comp),
+            "failed": carry.get("failed", 0) + tries - len(comp) - o}
+    if {x: c[row][x] for x in want} != want:
+        p.append(f"counters.{row} {c[row]} are not the recount from the attempts and carry {want}")
+    other = "row21" if row == "row20" else "row20"
+    if any(c[other][x] for x in COUNTER_KEYS) and row == "row20":
+        p.append("row 21 counters are not zero in a row-20 ledger")
+    return p
 
 
 def _zero() -> dict:

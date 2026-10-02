@@ -1,5 +1,11 @@
-"""Photograph arm, Stage A (row 20): the INDEPENDENT VALIDATOR and the report - revision 4 (Codex RSC 081f17b closure
-groups 5 and 6). Runs as the controller's report worker, after a pass or a stop; never a forward; never converts,
+"""Photograph arm, Stage A (row 20): the INDEPENDENT VALIDATOR and the report - revision 5 (Codex RSC 1bf9890 A6 and
+A7; revision 4 answered RSC 081f17b groups 5 and 6). Revision 5: the ledger's legal domains (enforce.check_ledger -
+exact integer types, positive tries, the declared passes per try, non-negative counters, completed <= started, coherent
+open/interrupted/recovery state) before its equations; requested ranks integers in [1, vocabulary] (never bool) that
+agree with the top-k and with the order of their logits; top-k ids distinct integers in [0, vocabulary) with finite,
+non-increasing logits; the final-logit dtype one of the capture's names and the same on every record; validation
+restricted to the instrumented phase is the PRE-NATIVE ADMISSION; both figures are always written; the receipt is
+written only after the caller's identity recheck. Runs as the controller's report worker, after a pass or a stop; never a forward; never converts,
 grants or consumes ledger authority (it reads `enforce.read_ledger`).
 
 VALIDATOR (group 5). Trusts no summary and no boolean that it can recompute. For every one of the 178 planned ids it
@@ -54,6 +60,7 @@ import numpy as np
 
 B_PLANNED_ATTEMPTS, B_RESERVE = 1856, 1.25
 FEATURE_DTYPES = {"mlx.core.bfloat16", "mlx.core.float16", "mlx.core.float32"}
+LOGIT_DTYPES = {"bfloat16", "float16", "float32"}           # jlens capture_endpoint.dtype_name; one on every record
 INST_KEYS = {"record_schema", "id", "case", "index", "kind", "residuals_meta", "final_logits", "residuals_sha256",
              "logits_sha256", "arrays", "input_ids_sha256", "n_tokens", "readout_positions", "capture_layers",
              "requested", "top_ids", "top_logits", "edit_log", "edits_installed", "logsumexp", "timing_s", "image",
@@ -78,6 +85,10 @@ def _sha(b: bytes) -> str:
 
 def _finite(v) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+
+
+def _int(v, lo: int = 0) -> bool:
+    return isinstance(v, int) and not isinstance(v, bool) and v >= lo
 
 
 class V:
@@ -145,15 +156,32 @@ def _inst(rec: dict, arr: dict, a: dict, x: dict, plan: dict, suffix: dict, D: i
         v.need(bool(np.all(np.isfinite(A.bf16_to_f32(r)))), "NONFINITE", aid, "residuals")
         v.need(_sha(np.ascontiguousarray(r).tobytes()) == rec["residuals_sha256"], "ARRAY_HASH", aid)
     fl = rec["final_logits"]
-    v.need(isinstance(fl, dict) and set(fl) == {"dtype", "n", "sha256"} and isinstance(fl.get("n"), int) and
-           fl["n"] > 0 and fl.get("sha256") == rec["logits_sha256"] and isinstance(fl.get("dtype"), str),
-           "LOGITS_META", aid)
+    n = fl.get("n") if isinstance(fl, dict) else None
+    v.need(isinstance(fl, dict) and set(fl) == {"dtype", "n", "sha256"} and _int(n, 1) and
+           fl.get("sha256") == rec["logits_sha256"] and fl.get("dtype") in LOGIT_DTYPES and
+           isinstance(rec["logits_sha256"], str) and bool(HEX64.fullmatch(rec["logits_sha256"])), "LOGITS_META", aid)
+    n = n if _int(n, 1) else 0
     req = rec["requested"]
-    v.need(isinstance(req, list) and [q.get("id") for q in req] == plan["request_token_ids"], "REQUEST_ORDER", aid)
-    v.need(isinstance(req, list) and all(_finite(q.get("logit")) and isinstance(q.get("rank"), int)
-                                         for q in req), "NONFINITE", aid, "requested logits")
-    v.need(isinstance(rec["top_ids"], list) and len(rec["top_ids"]) == plan["top_k"] == len(rec["top_logits"]) and
-           all(_finite(t) for t in rec["top_logits"]), "TOP_K", aid)
+    v.need(isinstance(req, list) and all(isinstance(q, dict) and set(q) == {"id", "logit", "rank"} for q in req) and
+           [q.get("id") for q in req] == plan["request_token_ids"], "REQUEST_ORDER", aid)
+    v.need(isinstance(req, list) and all(isinstance(q, dict) and _finite(q.get("logit")) for q in req), "NONFINITE",
+           aid, "requested logits")
+    v.need(isinstance(req, list) and all(isinstance(q, dict) and _int(q.get("rank"), 1) and q["rank"] <= n
+                                         for q in req), "RANKS", aid, "rank not an int in [1, vocabulary]")
+    top, tl = rec["top_ids"], rec["top_logits"]
+    top_ok = (isinstance(top, list) and isinstance(tl, list) and len(top) == plan["top_k"] == len(tl) and
+              all(_int(t) and t < n for t in top) and len(set(top)) == len(top) and all(_finite(x) for x in tl) and
+              all(a >= b for a, b in zip(tl, tl[1:])))
+    v.need(top_ok, "TOP_K", aid, "top-k ids not distinct ints in [0, vocabulary) with finite non-increasing logits")
+    if top_ok and isinstance(req, list) and all(isinstance(q, dict) and _int(q.get("rank"), 1) for q in req):
+        pos = {t: k + 1 for k, t in enumerate(top)}
+        v.need(all(q["rank"] == pos[q["id"]] for q in req if q["id"] in pos) and
+               all(q["rank"] > len(top) for q in req if q["id"] not in pos), "RANKS", aid,
+               "a requested id's rank disagrees with its place in the top-k")
+        if all(isinstance(q, dict) and _finite(q.get("logit")) and _int(q.get("id")) for q in req):
+            ordered = sorted(req, key=lambda q: (-q["logit"], q["id"]))     # the capture's order: ties by ascending id
+            v.need(all(a["rank"] < b["rank"] for a, b in zip(ordered, ordered[1:])), "RANKS", aid,
+                   "requested ranks disagree with the order of their logits")
     v.need(_finite(rec["logsumexp"]) and rec["gdn_inference_kernel"] is True, "PASS_META", aid)
     el = rec["edit_log"]
     if case in ("plain", "repeat", "suffix_isolation"):
@@ -216,8 +244,13 @@ def _nat(rec: dict, arr: dict, x: dict, plan: dict, plain: dict | None, D: int, 
 
 def _ledger(state: dict, plan: dict, identity: str | None, v: V) -> None:
     import stage_a as A
-    from enforce import CAPS
+    from enforce import CAPS, check_ledger
     planned = {a["id"]: a for a in plan["attempts"]}
+    for prob in check_ledger(state):                  # legal domains first (Codex RSC 1bf9890 A6)
+        v.need(False, "LEDGER_DOMAIN", "state", prob)
+    if not isinstance(state, dict) or not isinstance(state.get("attempts"), dict) or \
+            not isinstance(state.get("completed"), dict):
+        return
     v.need(identity is None or state.get("identities", {}).get("row20") == identity, "LEDGER_IDENTITY", "state")
     v.need(state.get("caps") == json.loads(json.dumps(CAPS)), "LEDGER_CAPS", "state")
     carry = A.ENGINEERING_CARRY
@@ -229,8 +262,9 @@ def _ledger(state: dict, plan: dict, identity: str | None, v: V) -> None:
         a = att.get(i, {})
         v.need(a.get("status") == "completed" and c.get("kind") == planned.get(i, {}).get("kind") and
                a.get("kind") == c.get("kind"), "LEDGER_COMPLETED", i)
-    tries = sum(int(a.get("tries", 0)) for a in att.values())
-    passes = sum(int(a.get("tries", 0)) * int(a.get("passes", 1)) for a in att.values())
+    tries = sum(a.get("tries", 0) for a in att.values() if isinstance(a, dict) and _int(a.get("tries", 0)))
+    passes = sum(a["tries"] * a["passes"] for a in att.values() if isinstance(a, dict) and _int(a.get("tries"))
+                 and _int(a.get("passes")))
     openp = 1 if state.get("open_attempt") else 0
     want = {"started": carry["started"] + tries, "passes": carry["passes"] + passes,
             "completed": carry["completed"] + len(comp), "failed": carry["failed"] + tries - len(comp) - openp}
@@ -243,10 +277,18 @@ def _ledger(state: dict, plan: dict, identity: str | None, v: V) -> None:
     v.need(got.get("passes", 0) <= CAPS["row20"]["attempts"] and agg.get("passes", 0) <= CAPS["aggregate"]["attempts"],
            "LEDGER_CAP", "counters", got.get("passes"))
     for it in state.get("interrupted", []):
-        v.need(att.get(it.get("id"), {}).get("status") == "interrupted", "LEDGER_INTERRUPTED", str(it.get("id")))
+        v.need(isinstance(it, dict) and att.get(it.get("id"), {}).get("status") == "interrupted",
+               "LEDGER_INTERRUPTED", str(it.get("id") if isinstance(it, dict) else it))
+    for i, a in att.items():
+        v.need(isinstance(a, dict) and a.get("kind") == planned.get(i, {}).get("kind") and
+               a.get("passes") == 1, "LEDGER_KIND", i)
 
 
-def validate(out: Path, plan: dict, state: dict | None, *, identity: str | None = None) -> dict:
+def validate(out: Path, plan: dict, state: dict | None, *, identity: str | None = None,
+             phases: tuple = ("instrumented", "native")) -> dict:
+    """phases=("instrumented",) is the PRE-NATIVE ADMISSION (A6): the ledger's domains, every instrumented record and
+    array under the full instrumented predicates, the cross-case, bitwise, suffix and encoder criteria and
+    INSTRUMENTED_DONE - nothing native is required."""
     import stage_a as A
     v = V()
     if state is None:
@@ -259,8 +301,10 @@ def validate(out: Path, plan: dict, state: dict | None, *, identity: str | None 
     _ledger(state, plan, identity, v)
     recs, arrs = {}, {}
     for a in plan["attempts"]:
+        if a["phase"] not in phases:
+            continue
         aid = a["id"]
-        c = state["completed"].get(aid)
+        c = state["completed"].get(aid) if isinstance(state.get("completed"), dict) else None
         if not v.need(c is not None, "NOT_COMMITTED", aid):
             continue
         rec, arr = _load(out, aid, c.get("outputs") or {}, v)
@@ -285,6 +329,9 @@ def validate(out: Path, plan: dict, state: dict | None, *, identity: str | None 
     fdt = {(r.get("image") or {}).get("features_dtype") for r in recs.values() if r.get("record_schema") ==
            "stage_a.instrumented.v4"}
     v.need(len(fdt) <= 1, "FEATURE_DTYPE", "all", sorted(map(str, fdt)))
+    ldt = {(r.get("final_logits") or {}).get("dtype") for r in recs.values() if r.get("record_schema") ==
+           "stage_a.instrumented.v4"}
+    v.need(len(ldt) <= 1, "LOGITS_META", "all", sorted(map(str, ldt)))
     for i, p0 in plain.items():                       # one input, one image: features and merge agree across cases
         if not p0 or "image" not in p0:
             continue
@@ -295,12 +342,15 @@ def validate(out: Path, plan: dict, state: dict | None, *, identity: str | None 
             if r.get("case") != "suffix_isolation":
                 v.need(r["image"]["merge"].get("merged_sha256") == p0["image"]["merge"].get("merged_sha256"),
                        "MERGE_ACROSS_CASES", aid)
-    committed = {rel for c in state["completed"].values() for rel in (c.get("outputs") or {})}
+    committed = {rel for c in (state.get("completed") or {}).values() if isinstance(c, dict)
+                 for rel in (c.get("outputs") or {})}
     present = {str(p.relative_to(out)) for p in (out / "passes").glob("*")} if (out / "passes").exists() else set()
     v.need(present <= committed, "OUTPUT_MEMBERSHIP", "passes/", sorted(present - committed)[:5])
     for name, ph, keys in (("INSTRUMENTED_DONE.json", "instrumented", {"phase", "attempts", "encoder_sensitivity",
                                                                        "identity"}),
                            ("NATIVE_DONE.json", "native", {"phase", "attempts"})):
+        if ph not in phases:
+            continue
         p = out / name
         ids = [a["id"] for a in plan["attempts"] if a["phase"] == ph]
         if v.need(p.exists(), "PHASE_RECORD_MISSING", name):
@@ -332,6 +382,10 @@ def validate(out: Path, plan: dict, state: dict | None, *, identity: str | None 
                and i0["grid_thw"] == i1["grid_thw"])
     v.need(enc, "ENCODER_SENSITIVITY", str([e0, e1]))
     parity = []
+    if "native" not in phases:
+        v.need(len(bitwise) == 120, "BITWISE_COUNT", str(len(bitwise)))
+        return {"pass": not v.failures, "failures": v.failures, "bitwise": bitwise, "suffix": sfx,
+                "encoder_pair_differs": enc, "parity": [], "records": recs, "arrays": arrs}
     for x in plan["inputs"]:
         aid = f"{x['index']:02d}-native"
         p0, n0 = plain.get(x["index"]), recs.get(aid)
@@ -412,7 +466,7 @@ def _svg_lines(series, title, tol):
 
 
 def build(out: Path, plan: dict, ledger: dict, *, admissible: bool, session: str = "test", gates: dict | None = None,
-          identity: str | None = None, identity_problem: str = "", writer=None) -> dict:
+          identity: str | None = None, identity_problem: str = "", writer=None, before_receipt=None) -> dict:
     from enforce import write_atomic, write_json_atomic
     W = writer or (lambda p, b: write_atomic(p, b, final=True))
     gates = gates or {}
@@ -453,7 +507,7 @@ def build(out: Path, plan: dict, ledger: dict, *, admissible: bool, session: str
               "controller_as_of_report": {k: ctrl.get(k) for k in ("seconds_total_live", "carry_s", "peaks", "stops")},
               "storage_as_of_report": used, "stage_b_prediction": b, "stage_b_admission": admission}
     outputs = {}
-    if val["parity"]:
+    if True:                                          # both figures always (an empty plot after a stop; A7)
         for name, svg in (("rel_l2_by_layer.svg", _svg_lines({f"input {r['index']}": r["rel_l2_by_layer"]
                                                               for r in val["parity"]},
                                                              "Relative L2 by layer (tolerance 0.01)", 0.01)),
@@ -485,6 +539,8 @@ def build(out: Path, plan: dict, ledger: dict, *, admissible: bool, session: str
     jb = json.dumps(record, indent=1, sort_keys=True).encode()
     W(rep / "stage_a_report.json", jb)
     outputs["report/stage_a_report.json"] = _sha(jb)
+    if before_receipt is not None:                    # the completion-time identity recheck (A1): no receipt else
+        before_receipt()
     receipt = {"session": session, "package": gates.get("package"), "identity": gates.get("identity"),
                "date": time.strftime("%Y-%m-%d"), "outputs": outputs, "admissible": admissible,
                "validator_pass": record["validator_pass"]}

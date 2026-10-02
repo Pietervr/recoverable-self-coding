@@ -1,7 +1,8 @@
-"""Photograph arm, Stage A (ledger row 20, framework §8.4): native fidelity and profiling - the runner, revision 4.
+"""Photograph arm, Stage A (ledger row 20, framework §8.4): native fidelity and profiling - the runner, revision 5.
 
-Revision 4 answers Codex's record RSC 081f17b (not favourable to revision 3 at a59fc2d) through R052's handoff
-dfdac45a; the closure-by-closure map is STAGE_A_CRITERIA.md §1. NOT RUN: no forward has run on any development image.
+Revision 5 answers Codex's record RSC 1bf9890 (not favourable to revision 4 at d7a486a) through R052's handoff
+8c9dac2b; the condition-by-condition map is STAGE_A_CRITERIA.md §1. NOT RUN: no forward has run on any development
+image.
 
     .venv-image/bin/python stimuli/photo/stage_a.py plan          # desk: freeze stage_a_plan.json (no model forward)
     .venv-image/bin/python stimuli/photo/stage_a.py identity      # desk: write stage_a_identity.json (no model load)
@@ -9,15 +10,19 @@ dfdac45a; the closure-by-closure map is STAGE_A_CRITERIA.md §1. NOT RUN: no for
     .venv-image/bin/python stimuli/photo/stage_a_controller.py run    # after the go: gates -> phases -> report
     (`stage_a.py worker <gates|instrumented|native|report>` is the controller's worker entry, never run by hand)
 
-WORKERS (closure groups 1 and 2). GATES: frozen plan and manifest, positions receipt (present, passing, for this
-plan), the go under the strict shared guard with the reviewed package re-derived from the reviewed commit's blobs (the
-identity's source, map, receipt, plan and manifest hashes shown to describe those blobs), a fresh execution identity,
-then crash reconciliation of an open attempt and the recovery files - a missing one is an authorisation Hold (exit 4),
-distinct from a refusal. INSTRUMENTED, NATIVE: each recomputes the execution identity itself (equal to the frozen one
-and to the gates' admitted one), consumes the import map it wrote (bytes bound to the identity's map hash), and
-re-checks local code, packet, plan, manifest and receipt before writing its phase record. REPORT: reads the ledger
-without converting, granting or consuming anything, recomputes the identity, and is admissible only with this
-session's passed gates and an equal identity. Every write reserves storage (enforce.configure_storage).
+WORKERS. GATES: frozen plan and manifest (and the current dev pool and provenance records equal to the plan's
+reviewed pins - A8), positions receipt (present, passing, for this plan), the go under the strict shared guard with the
+reviewed package re-derived from the reviewed commit's blobs, a fresh execution identity, the gates' OWN import map
+consumed and checked (check_imported_origins - A1), then crash reconciliation of an open attempt and the recovery
+files, and the identity rechecked before GATES.json is committed - a missing recovery file is an authorisation Hold
+(exit 4), distinct from a refusal. INSTRUMENTED, NATIVE: each recomputes the execution identity itself (equal to the
+frozen one and to the gates' admitted one), consumes the import map it wrote, and re-checks local code, packet, plan,
+manifest and receipt before writing its phase record; a committed record reloaded on resumption passes the phase's full
+independent predicates before use, and NATIVE runs the complete instrumented validator (stage_a_report.validate,
+phases=("instrumented",)) before any native model is constructed (A6). REPORT: reads the ledger without converting,
+granting or consuming anything, recomputes the identity, consumes and checks its own map, and rechecks the identity
+before it writes its receipt (A1); it is admissible only with this session's passed gates and an equal identity. Every
+write reserves storage (enforce.configure_storage).
 
 INPUTS (20): unchanged from revision 1 (same seed, same draws): 8 clean, 4 at -12 dB, 4 at 0 dB, 4 noise-only; carriers
 10/10. The plan now also freezes every input's original-file sha256 (equal to manifest_dev.json's), the expected
@@ -244,12 +249,15 @@ def envelope() -> dict:
             "total_attempts": 194, "cap_attempts": 200, "in_hand": 6, "caps": CAPS, "memory_cap": MEMORY_CAP,
             "controller": {"heartbeat_s": C.HEARTBEAT_S, "memory_sample_s": C.MEM_SAMPLE_S,
                            "system_sample_s": C.SYS_SAMPLE_S, "sample_limit_s": C.SAMPLE_LIMIT_S,
+                           "watchdog_tick_stale_s": C.TICK_STALE_S,
                            "tail_reserve_s": C.TAIL_RESERVE_S, "stop_reserve_s": C.STOP_RESERVE_S,
-                           "report_reserve_s": C.REPORT_RESERVE_S, "term_grace_s": C.TERM_GRACE_S,
+                           "report_reserve_s": C.REPORT_RESERVE_S, "final_allowance_s": C.FINAL_ALLOWANCE_S,
+                           "stop_signal": "SIGKILL at once (no grace)",
                            "watchdog_stale_s": C.STALE_S, "watchdog_hard_margin_s": C.HARD_MARGIN_S,
-                           "group_gone_s": C.GROUP_GONE_S, "final_write_timeout_s": C.FINAL_WRITE_TIMEOUT_S,
-                           "memory_stop_bytes": C.MEM_STOP, "memory_measure": "sum of lifetime maxima over the "
-                           "controller, the watchdog, the worker and its group/descendants",
+                           "group_gone_s": C.GROUP_GONE_S, "watchdog_arm_timeout_s": C.ARM_TIMEOUT_S,
+                           "memory_stop_bytes": C.MEM_STOP, "memory_measure": "per-identity lifetime maxima summed "
+                           "over the watchdog, the worker and its group/descendants (exit peaks folded in), plus the "
+                           "controller's final lifetime maximum",
                            "final_reserve_bytes": C.FINAL_RESERVE_BYTES},
             "rule": "no attempt id outside the plan; no retry; the six in hand are spent only by an owner-authorised "
                     "recovery of one named interrupted try"}
@@ -312,7 +320,7 @@ def make_plan() -> dict:
                   "index": x["index"], "case": "native"} for x in inputs]
     env = envelope()
     assert len(attempts) + ENGINEERING_CARRY["passes"] == env["total_attempts"] == 194
-    return {"revision": 4, "seed": SEED, "a_grid_sha256": grid["sha256"], "inputs": inputs,
+    return {"revision": 5, "seed": SEED, "a_grid_sha256": grid["sha256"], "inputs": inputs,
             "request_tokens": request, "request_token_ids": [r["id"] for r in request],
             "cases": CASES, "bitwise_cases": BITWISE, "edit_layer": EDIT_LAYER, "capture_layers": LAYERS,
             "top_k": TOP_K, "tolerances": TOL, "template_sha256": template_sha256(),
@@ -383,10 +391,13 @@ def package_hashes(ctx: Ctx) -> dict:
 
 def load_frozen(ctx: Ctx) -> tuple[dict, dict]:
     plan = json.loads(ctx.plan_path.read_text())
-    if plan.get("revision") != 4:
-        raise SystemExit("refused: stage_a_plan.json is not revision 4")
+    if plan.get("revision") != 5:
+        raise SystemExit("refused: stage_a_plan.json is not revision 5")
     if budget_sha256(envelope()) != plan["budget_sha256"]:
         raise SystemExit("refused: the code's envelope differs from the frozen plan's")
+    for k, name in (("dev_pool_sha256", "dev_pool.json"), ("provenance_checks_sha256", "provenance_checks.json")):
+        if sha_file(HERE / name) != plan[k]:            # current source records must equal the reviewed pins (A8)
+            raise SystemExit(f"refused: {name} differs from the plan's reviewed pin {k}")
     ids = [a["id"] for a in plan["attempts"]]
     if len(ids) != len(set(ids)):
         raise SystemExit("refused: duplicate attempt ids in the plan")
@@ -422,12 +433,15 @@ def desk_gates(ctx: Ctx) -> dict:
     if now["identity_sha256"] != frozen["identity_sha256"]:
         raise SystemExit(f"refused: execution identity now {now['identity_sha256']} differs from the frozen "
                          f"{frozen['identity_sha256']}")
+    from stage_a_guard import check_imported_origins          # the gates consume and check their own map (A1)
+    (ctx.origins_check or (lambda: check_imported_origins(tmp, now["package_file_maps_sha256"])))()
     st = ctx.out / "stage_a_state.json"
     reconciled = reconcile_open_attempt(st)
     pending = json.loads(st.read_text())["interrupted"] if st.exists() else []
     files = {(f["attempt_id"], f["session"], f["try"]) for f in recovery_files(ctx.out)}
     missing = [i for i in pending if (i["id"], i["session"], i["try"]) not in files]
     out = {"package": pkg, "identity": now["identity_sha256"], "reconciled": reconciled, "missing_recovery": missing}
+    recheck_identity(ctx, now)                                 # before GATES.json is committed (A1)
     if missing:
         raise Hold(json.dumps({**out, "hold_reason": "interrupted tries need an owner's recovery file each: " +
                                ", ".join(f"RECOVERY_{i['id']}__{i['session']}__{i['try']}.json" for i in missing)}))
@@ -753,6 +767,7 @@ def run_instrumented(ctx: Ctx | None = None) -> dict:
             done = budget.completed(aid)
             if done is not None:
                 rec, arrays = load_outputs(ctx.out, aid, done)
+                _admit_resumed(rec, arrays, a, x, plan, suffix, aid)
             else:
                 ed = edits_for(ce, case, x, seq, plain_res.get(x["index"]))
                 with budget.attempt(aid, a["kind"], passes=1) as att:
@@ -795,6 +810,21 @@ def run_instrumented(ctx: Ctx | None = None) -> dict:
         if not isinstance(exc, SystemExit):
             set_terminal(ctx.out, "instrumented", f"{type(exc).__name__}: {exc}")
         raise
+
+
+def _admit_resumed(rec: dict, arrays: dict, a: dict, x: dict, plan: dict, suffix: dict, aid: str,
+                   plain: dict | None = None) -> None:
+    """A committed record reloaded on resumption passes the phase's full independent predicates before any use (A6)."""
+    import stage_a_report as R
+    v = R.V()
+    v.need((rec.get("id"), rec.get("index"), rec.get("case"), rec.get("kind")) ==
+           (aid, a["index"], a["case"], a["kind"]), "RECORD_ID", aid)
+    if a["phase"] == "instrumented":
+        R._inst(rec, arrays, a, x, plan, suffix, D_MODEL, v, aid)
+    else:
+        R._nat(rec, arrays, x, plan, plain, D_MODEL, v, aid)
+    if v.failures:
+        raise StopCheck(f"{aid}: the resumed record fails admission: {[f['code'] for f in v.failures][:6]}")
 
 
 def finish_instrumented(ctx: Ctx, budget, plan: dict, recs: dict, enc: list, ident: dict) -> dict:
@@ -857,6 +887,10 @@ def admit_native(ctx: Ctx, plan: dict, budget) -> dict:
             plains[rec["index"]] = (rec, r)
     if len(plains) != len(plan["inputs"]):
         raise StopCheck("plain records missing")
+    import stage_a_report as R                                 # the full instrumented validator BEFORE native (A6)
+    val = R.validate(ctx.out, plan, budget.state, identity=budget.identity, phases=("instrumented",))
+    if not val["pass"]:
+        raise StopCheck(f"pre-native admission failed: {[(f['code'], f['where']) for f in val['failures']][:6]}")
     return plains
 
 
@@ -915,6 +949,7 @@ def run_native(ctx: Ctx | None = None) -> dict:
             done = budget.completed(aid)
             if done is not None:
                 rec, arrays = load_outputs(ctx.out, aid, done)
+                _admit_resumed(rec, arrays, a, x, plan, {}, aid, plain=plains[x["index"]][0])
             else:
                 with budget.attempt(aid, a["kind"], passes=1) as att:
                     nat = forward(vmodel, seq, px["pv"], LAYERS, seq["marker_positions"])
@@ -999,14 +1034,17 @@ def run_report(ctx: Ctx | None = None) -> dict:
     gates = json.loads(os.environ.get("STAGE_A_GATES") or "{}")
     session = os.environ.get("STAGE_A_SESSION", "test")
     try:
-        ident, _ = worker_identity(ctx, "report")
+        ident, files = worker_identity(ctx, "report")
+        (ctx.origins_check or (lambda: __import__("stage_a_guard").check_imported_origins(     # its own map (A1)
+            files, ident["package_file_maps_sha256"])))()
         ident_ok, why = True, ""
     except SystemExit as exc:
         ident_ok, why = False, str(exc)
     admissible = bool(gates.get("passed") is True and gates.get("session") == session and ident_ok)
     frozen = json.loads(ctx.identity_path.read_text())["identity_sha256"]
     return stage_a_report.build(ctx.out, plan, read_ledger(ctx.out / "stage_a_state.json"), admissible=admissible,
-                                session=session, gates=gates, identity=frozen, identity_problem=why)
+                                session=session, gates=gates, identity=frozen, identity_problem=why,
+                                before_receipt=(lambda: recheck_identity(ctx, ident)) if ident_ok else None)
 
 
 # ================================================================================================================

@@ -61,7 +61,8 @@ def build(root: Path, plan: dict | None = None, n_items: int = N_ITEMS) -> dict:
         img = R.prepare(adir, (root / "images" / r["file"]).read_bytes(), r["file"])
         rc = R.prompt_input(codex, READER, adir, img, PROMPT, sandbox=False)
         instr.add(rc["instructions_sha256"])
-        per[r["request"]] = {"image_sha256": rc["images"][0]["sha256"], "user_text_sha256": rc["user_text_sha256"]}
+        per[r["request"]] = {"image_sha256": rc["images"][0]["sha256"], "user_text_sha256": rc["user_text_sha256"],
+                             "bytes": rc["images"][0]["bytes"], "detail": rc["images"][0]["detail"]}
     import shutil
     shutil.rmtree(root / "probe", ignore_errors=True)
     delivery = {"instructions_sha256": instr.pop(), "requests": per}
