@@ -209,8 +209,9 @@ def execution_identity(plan_path: Path, manifest_path: Path, receipt_path: Path,
         except md.PackageNotFoundError:
             versions[name] = None
     maps_json = json.dumps(maps, sort_keys=True).encode()
-    if files_path is not None:
-        Path(files_path).write_bytes(maps_json)
+    if files_path is not None:                         # inside the output tree this is a reserved write
+        from enforce import write_atomic
+        write_atomic(Path(files_path), maps_json, final=True)
     if not Path(receipt_path).exists():
         raise SystemExit("refused: the positions receipt is absent (stage_a.py plan writes it only on success)")
     ident = {

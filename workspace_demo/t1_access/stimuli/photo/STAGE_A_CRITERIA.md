@@ -252,3 +252,5 @@ The retained-output run of the whole photo suite on this package is in `reviews/
 - **The stop margin** rests on the measured interval and growth of synthetic work; the model's own peak and growth are
   Stage A measurements.
 - **Full logits and features** are live-bound digests, not archive-recomputed.
+- **Two tiny writes are outside the reservation:** the task LOCK (under 100 bytes, before storage is configured) and a
+  watchdog's record (under 500 bytes, a separate process); both fit the 64 MiB finalisation reserve.
