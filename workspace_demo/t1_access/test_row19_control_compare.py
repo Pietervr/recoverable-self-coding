@@ -150,6 +150,60 @@ def test_root_token_and_checkpoint_bindings_are_required():
     assert CC.main(args) == 2
 
 
+def test_the_opened_files_are_bound_to_their_roles():
+    args, ck1, ck3, it, d1, d2, L = _produce()
+    i3 = args.index("--c3")
+    assert CC.main(args[:i3 + 1] + [ck1] + args[i3 + 2:]) in (2, 3)                   # C1's file supplied for both roles
+    import shutil
+    foreign = os.path.join(d1, "ckpt", os.path.basename(ck3)); shutil.copy(ck3, foreign)   # C3's content under C1's root
+    assert CC.main(args[:i3 + 1] + [foreign] + args[i3 + 2:]) == 2
+    assert CC.main(args) == 0
+
+
+def test_producer_snapshot_is_verified_and_a_distinct_consumer_reconstructs():
+    args, ck1, ck3, it, d1, d2, L = _produce()
+    tp = os.path.join(d1, "task_0.json"); keep = json.load(open(tp))
+    def with_binding(mut):
+        t = json.loads(json.dumps(keep)); mut(t["binding"]); json.dump(t, open(tp, "w"))
+        return CC.main(args)
+    assert with_binding(lambda b: b.pop("numerical")) == 3                              # no snapshot
+    assert with_binding(lambda b: b["numerical"].__setitem__("files", {})) == 3        # no sources
+    assert with_binding(lambda b: b["numerical"]["files"].pop("simulate.py")) == 3   # a canonical source missing
+    assert with_binding(lambda b: b["numerical"]["files"].__setitem__("extra.py", "0" * 16)) == 3
+    assert with_binding(lambda b: b["numerical"]["files"].__setitem__("models.py", "0" * 16)) == 3   # a mismatched digest
+    assert with_binding(lambda b: b["numerical"]["runtime"].pop("numpy")) == 3        # a runtime label missing
+    assert with_binding(lambda b: b["numerical"]["models"].__setitem__("PAD_MULTIPLE", 7)) == 3   # altered model settings
+    json.dump(keep, open(tp, "w"))
+    assert CC.main(args) == 0
+    # a distinct consumer: the producer's runtime labels differ from this host's, the identity was made with the producer's snapshot
+    d1b, cb = _dirs(); d2b = tempfile.mkdtemp()
+    keep_snap = A.numerical_snapshot
+    def producer_snapshot():
+        s = keep_snap(); s["runtime"] = dict(s["runtime"], python="9.9.9", numpy="9.9.9")
+        return s
+    Lb = CampaignLedger(cb, 1500.0)
+    with _Patched():
+        A.numerical_snapshot = producer_snapshot
+        try:
+            man = _manifest(d1b, cb, n_boot=30, target=20)
+            man["environment"]["python"] = "9.9.9"; man["environment"]["numpy"] = "9.9.9"      # the manifest pins the producer
+            assert _run_ctl(d1b, man, "c1", "c1.sched", "--until", "20") == R19.RESUME
+            assert _run_ctl(d2b, man, "c2", "c2.sched", "--until", "20", "--segment", "7", "--pbs-kill-control", walltime_s=W_INT) == R19.RESUME
+            assert _run_ctl(d2b, man, "c3", "c3.sched", "--until", "20") == R19.RESUME
+        finally:
+            A.numerical_snapshot = keep_snap
+    assert A.numerical_snapshot()["runtime"]["python"] != "9.9.9"                        # this consumer's own labels differ
+    ck1b = os.path.join(d1b, "ckpt", [f for f in os.listdir(os.path.join(d1b, "ckpt")) if f.endswith(".jsonl")][0])
+    ck3b = os.path.join(d2b, "ckpt", [f for f in os.listdir(os.path.join(d2b, "ckpt")) if f.endswith(".jsonl")][0])
+    itb = os.path.join(d2b, "c2_interruption.json")
+    json.dump(dict(job_id="c2.sched", exit_status=271, walltime_requested_s=W_INT, walltime_used_s=W_INT + 3.0, pbs_killed=True,
+                   accepted_records_before=7, original_cache_reused=True, tail_fragment_present=False), open(itb, "w"))
+    argsb = ["--manifest", os.path.join(d1b, "manifest.json"), "--task", os.path.join(d1b, "task_0.json"), "--c1", ck1b, "--c3", ck3b,
+             "--status-c1", os.path.join(d1b, "status_0.json"), "--status-c3", os.path.join(d2b, "status_0.json"),
+             "--interruption", itb, "--ledger", Lb.path, "--target", "20"]
+    assert CC.main(argsb) == 0
+
+
 def test_c1_that_resumed_is_not_qualified():
     args, ck1, ck3, it, d1, d2, L = _produce()
     _mutate_status(os.path.join(d1, "status_0.json"), n_resumed=3)

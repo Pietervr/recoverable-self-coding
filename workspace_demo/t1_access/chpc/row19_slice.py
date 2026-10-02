@@ -399,9 +399,11 @@ def main(argv=None):
         print(f"checkpoint: {len(cs['accepted'])} accepted record(s), watermark {task.get('expected_accepted', 0)}, tail fragment {cs['tail_fragment']}", flush=True)
         # R5: the current stop request and the memory diagnosis BEFORE any original work
         mem_stop = float(man["pbs"].get("mem_stop_gib", 0) or 0) * 2**30
+        acked = {"id": None}
         def ack(boundary, n_done):
             req = ledger.current_stop(int(a.rep))
             if req is not None:
+                acked["id"] = req.get("id")
                 write_atomic(os.path.join(root, f"STOP_ACK_rep{a.rep}.json"),
                              dict(request_id=req.get("id"), scope=req.get("scope"), requested=req.get("requested"), job=a.job_id,
                                   rep=int(a.rep), boundary=boundary, n_done=int(n_done), t=time.time()))
@@ -511,7 +513,10 @@ def main(argv=None):
                                         "after the status, acknowledgment and task writes and BEFORE the final status rewrite and the ledger's "
                                         "runner_end write (those two are excluded); cpu_seconds_lifetime and maxrss_bytes are RUSAGE_SELF for "
                                         "the whole process (imports included), SAMPLED AT THAT SAME TERMINAL BOUNDARY, so utilisation mixes "
-                                        "the two scopes; the stop request and the peak are re-read at that boundary too; aggregation_seconds is the "
+                                        "the two scopes; the stop request and the peak are re-read at that boundary (one peak observation serves both "
+                                        "the memory decision and this field); a late acknowledgment written at that boundary and a task exit "
+                                        "correction after a late memory stop are written AFTER t_term and are excluded from both durations, and "
+                                        "CPU/RSS are sampled after that late acknowledgment; aggregation_seconds is the "
                                         "aggregation only; publication_seconds is the status, acknowledgment and task writes after aggregation, "
                                         "excluding the final status rewrite and the ledger write; wrapper and PBS start-up are not measured; "
                                         "compilation is not measured; scheduler-accounted allocated time is settled in the campaign ledger",
@@ -526,14 +531,15 @@ def main(argv=None):
         # R5/R7: the declared terminal-publication boundary - the request and the peak re-read, CPU/RSS sampled HERE
         t_term = time.time()
         late_stop = ledger.current_stop(int(a.rep))
-        if late_stop is not None and not stopped_by_request:
+        if late_stop is not None and late_stop.get("id") != acked["id"]:        # a first OR a replacement request
             stopped_by_request = True
-            ack("at publication", rb["n_done"])
-        if over_memory() and not memory_breach:
-            memory_breach = True; stop_reason.setdefault("memory", maxrss_bytes()); code_exit = HELD
+            ack("at publication" if acked["id"] is None else "at publication (replacement)", rb["n_done"])
+        peak = maxrss_bytes()                                                     # ONE terminal observation: predicate and field
+        if mem_stop and peak > mem_stop and not memory_breach:
+            memory_breach = True; stop_reason.setdefault("memory", peak); code_exit = HELD
         ru = resource.getrusage(resource.RUSAGE_SELF)
         status.update(stopped_by_request=stopped_by_request, memory_breach=memory_breach, stop_reason=stop_reason, exit=code_exit,
-                      cpu_seconds_lifetime=ru.ru_utime + ru.ru_stime, maxrss_bytes=maxrss_bytes(),
+                      cpu_seconds_lifetime=ru.ru_utime + ru.ru_stime, maxrss_bytes=peak,
                       publication_seconds=t_term - t_pub, wall_seconds_main=t_term - t_main,
                       utilisation=(ru.ru_utime + ru.ru_stime) / max(t_term - t_main, 1e-9), sampled_at="terminal boundary")
         write_atomic(status_path, status)

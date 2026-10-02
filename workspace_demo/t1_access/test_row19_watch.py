@@ -121,12 +121,25 @@ def test_terminal_evidence_is_attributed_and_c2_is_exempt():
         tok, _ = L.reserve("c2", 0, 1, 1800.0, d + "_ctl")
         L.runner_start(tok, "c2.sched", "c2", 0, d + "_ctl", 1, 1800.0)
         st = json.load(open(L.path)); st["entries"][tok]["runner_started"] = time.time() - 9 * 3600; json.dump(st, open(L.path, "w"))
-    os.makedirs(d + "_ctl", exist_ok=True); json.dump(dict(job_id="c2.sched"), open(os.path.join(d + "_ctl", "c2_interruption.json"), "w"))
+    os.makedirs(d + "_ctl", exist_ok=True)
+    good_kill = dict(job_id="c2.sched", exit_status=271, walltime_requested_s=1800.0, walltime_used_s=1803.0, pbs_killed=True,
+                     accepted_records_before=7, original_cache_reused=True, tail_fragment_present=False)
+    json.dump(good_kill, open(os.path.join(d + "_ctl", "c2_interruption.json"), "w"))
     mp, lr = _snapshot(d, c, man)
     shutil.copytree(d + "_ctl", os.path.join(W.LIVE_DIR, os.path.basename(d + "_ctl")))
     open(os.path.join(lr, "live_rep0.log"), "a").write("exit 75 tee 0 job j1 end 2026-10-02T22:03:00Z\n")
     rc, out = _watch(mp, "--startup-allowance-s", "60")
     assert "externally killed by design" in out and "c2" not in " ".join(l for l in out.splitlines() if l.strip().startswith("-")) and rc == 0
+    # an incomplete, false or mistyped kill receipt is NOT a known kill: alarmed, and the aged C2 trips its start-up obligation
+    itp = os.path.join(W.LIVE_DIR, os.path.basename(d + "_ctl"), "c2_interruption.json")
+    for mut in (dict(job_id="c2.sched"), dict(good_kill, pbs_killed="yes"), dict(good_kill, exit_status=0), dict(good_kill, walltime_requested_s=3600.0),
+                dict(good_kill, walltime_used_s=100.0), dict(good_kill, exit_status=True)):
+        json.dump(mut, open(itp, "w"))
+        rc, out = _watch(mp, "--startup-allowance-s", "60")
+        assert rc == 1 and "incomplete or contradictory" in out and "without a task binding" in out, mut
+    json.dump(good_kill, open(itp, "w"))
+    rc, out = _watch(mp, "--startup-allowance-s", "60")
+    assert rc == 0
     # a control's live log is named by kind; a torn witness and a non-finite timing field are alarms
     with _Patched():
         L = CampaignLedger(c, 1500.0)

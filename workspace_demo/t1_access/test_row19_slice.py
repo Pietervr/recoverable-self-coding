@@ -13,7 +13,7 @@ buys no fit and keeps the companion; the control target on fresh and resumed run
 """
 import os
 os.environ.setdefault("NPROC", "1")
-import json, tempfile, importlib.util, sys, threading, time, math, io, contextlib, base64, platform
+import json, tempfile, importlib.util, sys, threading, time, math, io, contextlib, base64, platform, hashlib
 import numpy as np
 import analyze as A
 import jax, jaxlib, scipy, joblib
@@ -53,7 +53,7 @@ def _manifest(root, campaign, n_boot=10, cap=1500.0, walltime_h=1.0, mem_stop_gi
             "datasets": {"seed_base": 20261003, "reps": list(reps), "excluded_resolved_seeds": []},
             "cfg": {"start_policy": "", "interval": "refit", "n_boot_refit": n_boot, "n_starts": 2, "n_starts_inner": 2,
                     "refit_min_usable": 1.0, "n_outer": 3, "n_inner": 2},
-            "code": {"files": {"analyze.py": None}},
+            "code": {"files": {f: hashlib.sha256(open(os.path.join(T1, f), "rb").read()).hexdigest() for f in ("analyze.py", "models.py", "simulate.py")}},
             "environment": {"python": platform.python_version(), "jax": jax.__version__, "jaxlib": jaxlib.__version__, "numpy": np.__version__,
                             "scipy": scipy.__version__, "joblib": joblib.__version__, "machine": platform.machine()},
             "pbs": {"cores": 1, "walltime_h": walltime_h, "deadline_reserve_s": 0.0, "mem_stop_gib": mem_stop_gib},
@@ -111,7 +111,7 @@ def test_environment_and_code_gates_hold_before_anything():
         bad_env = _manifest(d, c); bad_env["environment"]["jax"] = "0.0.0"
         mp = os.path.join(d, "manifest.json"); json.dump(bad_env, open(mp, "w"))
         assert R19.main(["--manifest", mp, "--root", d, "--rep", "0", "--no-reservation"]) == R19.HELD        # environment
-        man = _manifest(d, c); man["code"]["files"]["analyze.py"] = "0" * 64
+        man = _manifest(d, c); man["code"]["files"]["analyze.py"] = "0" * 64                                 # a wrong pin
         assert _run(d, man, reserve=False) == R19.HELD                                                       # code pin
         assert not os.path.exists(os.path.join(d, "status_0.json")) and not os.path.exists(os.path.join(d, "task_0.json"))
 
@@ -539,6 +539,40 @@ def test_stop_and_memory_at_the_last_fit_aggregation_and_no_work_under_one_bindi
             st = json.load(open(sp6)); task6 = json.load(open(os.path.join(d6, "task_0.json")))
             assert rc == R19.HELD and st["memory_breach"] and st["exit"] == 4 and "result" in st and st["sampled_at"] == "terminal boundary"
             assert task6["runs"][-1]["exit"] == 4
+            # (g) request A acknowledged after aggregation, replaced by B during the task write: the terminal ack names B
+            d7, c7 = _dirs(); man7 = _manifest(d7, c7, n_boot=3); L7 = CampaignLedger(c7, 1500.0)
+            def agg_with_a(*args, **kw):
+                holder["A"] = L7.stop_request(0)
+                return keep_agg(*args, **kw)
+            def write_with_b(path, obj):
+                keep_wa(path, obj)
+                if path.endswith("task_0.json") and "B" not in holder and "A" in holder and obj.get("runs"):
+                    holder["B"] = L7.stop_request(0)                               # replaces A's file with a new id
+            A.analyze_dataset = agg_with_a; R19.write_atomic = write_with_b
+            try:
+                rc = _run(d7, man7, "--job-id", "j7")
+            finally:
+                A.analyze_dataset = keep_agg; R19.write_atomic = keep_wa
+            ack = json.load(open(os.path.join(d7, "STOP_ACK_rep0.json")))
+            assert rc == R19.DONE and holder["B"]["id"] != holder["A"]["id"] and ack["request_id"] == holder["B"]["id"] \
+                and ack["boundary"] == "at publication (replacement)"
+            os.remove(L7.stop_path(0))
+            # (h) the terminal peak is observed ONCE: an alternating sampler cannot leave exit 0 beside a stored breach
+            d8, c8 = _dirs(); man8 = _manifest(d8, c8, n_boot=3, mem_stop_gib=1.0)
+            sp8 = os.path.join(d8, "status_0.json")
+            flip = {"n": 0}
+            def rss_alternating():
+                if os.path.exists(sp8) and json.load(open(sp8)).get("phase") == "final":
+                    flip["n"] += 1
+                    return 2 * 2**30 if flip["n"] % 2 == 1 else 10 * 2**20
+                return 10 * 2**20
+            R19.maxrss_bytes = rss_alternating
+            try:
+                rc = _run(d8, man8, "--job-id", "j8")
+            finally:
+                R19.maxrss_bytes = keep_rss
+            st = json.load(open(sp8))
+            assert (st["maxrss_bytes"] > 2**30) == bool(st["memory_breach"]) and (rc == R19.HELD) == bool(st["memory_breach"])
     finally:
         R19.maxrss_bytes = keep_rss; A.analyze_dataset = keep_agg
 

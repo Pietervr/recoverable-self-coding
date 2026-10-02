@@ -23,6 +23,7 @@ os.environ.setdefault("NPROC", "1")
 import json, sys, argparse, hashlib, math
 
 SCIENTIFIC = ("rep", "chosen", "stats", "failed", "failed_reason", "ident", "seed", "n_rep")
+CANONICAL_SOURCES = ("analyze.py", "models.py", "simulate.py")       # the sources the producer registers as loaded
 EXCLUDED = ("fit_seconds", "sha")
 CONTROL_EXIT = 75          # a partial-B control ends with "resume" (its target is complete, B is not)
 
@@ -67,10 +68,21 @@ def expected_contract(manifest_path, task_binding):
         if str(rt.get(k)) != str(want.get(k)):
             raise ValueError(f"the producer's snapshot runtime {k} {rt.get(k)!r} is not the manifest's pinned {want.get(k)!r}")
     pins = man["code"]["files"]
-    for name, dig in snap.get("files", {}).items():
+    files = snap.get("files")
+    if not isinstance(files, dict) or sorted(files) != sorted(CANONICAL_SOURCES):
+        raise ValueError(f"the producer's snapshot does not name exactly the canonical sources {CANONICAL_SOURCES}")
+    for name in CANONICAL_SOURCES:
         pin = pins.get(name)
-        if pin and str(dig) != str(pin)[:16]:
-            raise ValueError(f"the producer's loaded {name} digest {dig!r} is not the manifest's pin {str(pin)[:16]!r}")
+        if not (isinstance(pin, str) and len(pin) == 64):
+            raise ValueError(f"the manifest does not pin {name}, so the producer's snapshot cannot be verified")
+        if str(files[name]) != pin[:16]:
+            raise ValueError(f"the producer's loaded {name} digest {files[name]!r} is not the manifest's pin {pin[:16]!r}")
+    for k in ("python", "jax", "numpy", "scipy"):
+        if k not in rt:
+            raise ValueError(f"the producer's snapshot runtime lacks {k}")
+    local_models = A.numerical_snapshot().get("models", {})
+    if snap.get("models") != json.loads(json.dumps(local_models, default=str)):
+        raise ValueError("the producer's snapshot model settings differ from the pinned models.py's")
     ident = A.dataset_identity(ds, cfg, seed, n_rep, folds, numerical=snap)
     if ident != task_binding["ident"] or n_rep != int(task_binding["n_rep"]):
         raise ValueError("the task binding's identity or B is not the manifest's for this rep")
@@ -163,6 +175,8 @@ def main(argv=None):
     c1, p1 = load_validated(a.c1, ex, a.target)
     c3, p3 = load_validated(a.c3, ex, a.target)
     qual += p1 + p3
+    if os.path.realpath(a.c1) == os.path.realpath(a.c3):
+        qual.append("the same checkpoint file was supplied for both roles")
     s1, s3 = json.load(open(a.status_c1)), json.load(open(a.status_c3))
     for name, s_, role, fresh in (("C1", s1, "c1", True), ("C3", s3, "c3", False)):
         if s_.get("kind") != role:
@@ -196,6 +210,9 @@ def main(argv=None):
             ck_root = os.path.basename(os.path.dirname(os.path.dirname(str(s_.get("checkpoint", "")))))
             if root_b != ck_root:
                 qual.append(f"status {name}: its checkpoint lies under {ck_root!r}, not the ledger entry's root {root_b!r} (roots compared by basename: pulled paths differ from remote ones)")
+            opened = os.path.realpath(a.c1 if role == "c1" else a.c3)                 # the file actually opened for this role
+            if os.path.basename(opened) != os.path.basename(str(task["ckpt"])) or os.path.basename(os.path.dirname(os.path.dirname(opened))) != root_b:
+                qual.append(f"--{role}: the opened file {opened!r} is not <{root_b}>/ckpt/{os.path.basename(str(task['ckpt']))} - the evidence this role's status and ledger entry name")
             if s_.get("manifest_sha") != task_sha:
                 qual.append(f"status {name}: manifest sha is not the task binding's")
             if role == "c3":

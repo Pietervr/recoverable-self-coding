@@ -113,6 +113,28 @@ def checkpoint_metadata(path, ex, target):
     return acc, failed, fits, problems, tail
 
 
+def kill_receipt_ok(it, e):
+    """(known_kill, problem): the typed, bound native kill evidence a C2 exemption needs - the entry's job id, pbs_killed exactly
+    True, a non-bool non-zero integer exit, a finite positive requested walltime equal to the reservation's, a finite used
+    walltime supporting a walltime kill."""
+    if not isinstance(it, dict):
+        return False, "not an object"
+    if it.get("job_id") != e.get("job_id"):
+        return False, "names another job"
+    if it.get("pbs_killed") is not True:
+        return False, "pbs_killed is not exactly true"
+    x = it.get("exit_status")
+    if isinstance(x, bool) or not isinstance(x, int) or x == 0:
+        return False, "exit status is not a non-zero integer"
+    wr, wu = it.get("walltime_requested_s"), it.get("walltime_used_s")
+    num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+    if not (num(wr) and wr > 0 and abs(wr - float(e.get("walltime_s", -1))) <= 1.0):
+        return False, "requested walltime is not the reservation's"
+    if not (num(wu) and wu >= wr):
+        return False, "used walltime does not support a walltime kill"
+    return True, None
+
+
 def expected_log(lr, e):
     """The live log an entry must have written: main -> live_rep<N>.log; a control -> live_ctl_<kind>.log."""
     return os.path.join(lr, f"live_rep{e['rep']}.log" if e["kind"] == "main" else f"live_ctl_{e['kind']}.log")
@@ -206,8 +228,11 @@ def main(argv=None):
         root = e["root"]; rep = e.get("rep"); lr = os.path.join(LIVE_DIR, os.path.basename(root.rstrip("/")))
         q = (qs or {}).get(e.get("job_id")) if qs is not None else ("-" if not a.qstat else "unknown")
         started = e.get("runner_started"); ended = e.get("runner_exit")
-        killed_c2 = e["kind"] == "c2" and e.get("job_id") and os.path.exists(os.path.join(lr, "c2_interruption.json")) \
-            and json.load(open(os.path.join(lr, "c2_interruption.json"))).get("job_id") == e.get("job_id")
+        killed_c2, kill_problem = False, None
+        if e["kind"] == "c2" and e.get("job_id") and os.path.exists(os.path.join(lr, "c2_interruption.json")):
+            killed_c2, kill_problem = kill_receipt_ok(json.load(open(os.path.join(lr, "c2_interruption.json"))), e)
+            if kill_problem:
+                alarms.append(f"c2 job {e.get('job_id')}: interruption record incomplete or contradictory ({kill_problem}); not treated as a known kill")
         phase = "settled" if e["state"] == "settled" else "killed by PBS (known)" if killed_c2 else "ended" if ended is not None else "running" if started else "queued/not started"
         print(f"\n  {e['kind']:<6} rep {rep} attempt {e['attempt']} {e['state']:<8} job {e.get('job_id')} PBS {q}  {phase}  "
               f"{e['reserved_core_h']:.0f} core-h reserved, runner exit {ended}")
