@@ -55,11 +55,16 @@ def build(root: Path, plan: dict | None = None, n_items: int = N_ITEMS) -> dict:
     sset = {"requests": requests, "delivery_order": order, "reader": READER, "prompt": PROMPT,
             "prompt_sha256": hashlib.sha256(PROMPT.encode()).hexdigest()}
     codex = [sys.executable, str(TESTS / "fake_codex.py")]
-    adir = root / "attempts" / "probe" / "a"
-    img = R.prepare(adir, (root / "images" / requests[0]["file"]).read_bytes(), requests[0]["file"])
-    rc = R.prompt_input(codex, READER, adir, img, PROMPT, sandbox=False)
-    delivery = {"instructions_sha256": rc["instructions_sha256"],
-                "requests": {r["request"]: {"image_sha256": r["sha256"]} for r in requests}}
+    per, instr = {}, set()
+    for i, r in enumerate(requests):                   # rendered like the real delivery receipt, per request
+        adir = root / "probe" / f"r{i}" / "a"
+        img = R.prepare(adir, (root / "images" / r["file"]).read_bytes(), r["file"])
+        rc = R.prompt_input(codex, READER, adir, img, PROMPT, sandbox=False)
+        instr.add(rc["instructions_sha256"])
+        per[r["request"]] = {"image_sha256": rc["images"][0]["sha256"], "user_text_sha256": rc["user_text_sha256"]}
+    import shutil
+    shutil.rmtree(root / "probe", ignore_errors=True)
+    delivery = {"instructions_sha256": instr.pop(), "requests": per}
     (root / "fake_plan.json").write_text(json.dumps(plan or {}))
     fx = {"codex": codex, "images": root / "images", "job": root / "job", "raw": root / "raw.jsonl",
           "attempts": root / "attempts", "sset": sset, "delivery": delivery, "package": {"package_digest": DIGEST}}

@@ -26,11 +26,16 @@ for p in (str(PHOTO), str(T1)):
 import stage_a  # noqa: E402
 
 D = 16
-VOCAB = 1000
+_PLAN = json.loads(stage_a.PLAN.read_text())
+VOCAB = max(_PLAN["request_token_ids"]) + 1                 # one vocabulary size for both paths, as in the real run
 
 
 def _h(*parts) -> bytes:
     return hashlib.sha256("|".join(map(str, parts)).encode()).digest()
+
+
+def _boundary(idx: int) -> bytes:
+    return np.full(D, 0.25 + idx, dtype=np.float32).tobytes()
 
 
 class FakeEdit:
@@ -82,28 +87,34 @@ class FakeInstrument:
         res = np.frombuffer(_h("res", prefix, eff, fault) * (64 * 3 * D * 2 // 32), dtype=np.uint16)
         res = res.reshape(64, 3, D) & 0x3FFF                 # finite bf16 patterns
         rb = res.tobytes()
-        logits = np.frombuffer(_h("logit", seq["ids"], eff, fault) * (VOCAB * 4 // 32),
-                               dtype=np.uint32).astype(np.float64) / 2**32
+        logits = np.frombuffer(_h("logit", seq["ids"], eff, fault) * (VOCAB * 4 // 32 + 1),
+                               dtype=np.uint32)[:VOCAB].astype(np.float64) / 2**32
         pos_sha = self.plan["inputs"][idx]["expected"]["positions_sha256"]
         x = self.plan["inputs"][idx]
         return {"n_tokens": n, "input_ids_sha256": seq["ids_sha256"], "readout_positions": list(m),
                 "capture_layers": list(capture_layers), "gdn_inference_kernel": True,
-                "edits_installed": edits is not None, "edit_log": [{"mode": mode}] * len(edits or []),
+                "edits_installed": edits is not None,
+                "edit_log": [{"index": 0, "mode": e.mode, "layer": e.layer, "positions": list(e.positions),
+                              "alpha": float(getattr(e, "alpha", 1.0))} for e in (edits or [])],
                 "residuals": {"dtype": "bfloat16", "shape": [64, 3, D], "b64": base64.b64encode(rb).decode(),
                               "sha256": hashlib.sha256(rb).hexdigest()},
                 "final_logits": {"dtype": "bfloat16", "n": VOCAB, "sha256": hashlib.sha256(logits.tobytes()).hexdigest()},
-                "logsumexp": 1.0, "requested": [{"id": t, "logit": float(logits[t % VOCAB]), "rank": 1}
+                "logsumexp": 1.0, "requested": [{"id": t, "logit": float(logits[t]), "rank": 1}
                                                 for t in request_token_ids],
-                "top_ids": [0], "top_logits": [0.0], "timing_s": {"total": 0.0},
+                "top_ids": list(range(top_k)), "top_logits": [0.0] * top_k, "timing_s": {"total": 0.0},
                 "image": {"pixel_values_sha256": x["pixel_values_sha256"], "grid_thw": x["grid_thw"],
-                          "n_image_tokens": 144, "features_shape": [144, D], "features_dtype": "bfloat16",
+                          "n_image_tokens": 144, "features_shape": [144, D], "features_dtype": "mlx.core.bfloat16",
                           "features_all_finite": True, "positions_sha256": pos_sha,
                           "effective_positions_sha256": pos_sha, "rope_calls": [(0, n)] * 32,
                           "embed_calls_this_pass": 1,
                           "merge": {"image_rows_equal_features": True, "text_rows_equal_embeddings": True,
                                     "n_image_rows": 144, "image_rows_contiguous": True,
-                                    "merged_sha256": hashlib.sha256(_h("emb", idx)).hexdigest()},
+                                    "merged_sha256": hashlib.sha256(_h("emb", seq["ids_sha256"], idx)).hexdigest(),
+                                    "dtype": "mlx.core.bfloat16"},
                           "features_sha256": hashlib.sha256(_h("feat", x["pixel_values_sha256"])).hexdigest(),
+                          "boundary_label": "FP32 mean over the 144 projected visual tokens + full-token sha256",
+                          "boundary_mean_fp32_b64": base64.b64encode(_boundary(idx)).decode(),
+                          "boundary_mean_sha256": hashlib.sha256(_boundary(idx)).hexdigest(),
                           "boundary_mean_all_finite": True}}
 
     def case_of(self, edits, seq):
@@ -149,12 +160,13 @@ def make_ctx(out: Path, faults: dict | None = None, **budget_kwargs) -> stage_a.
             f32 = stage_a.bf16_to_f32(res)
             if faults.get("native_off") == x["index"]:
                 f32 = f32 * 1.5
-            logits = np.zeros(VOCAB + max(plan["request_token_ids"]) + 1, dtype=np.float32)
+            logits = np.zeros(VOCAB, dtype=np.float32)
             for q in rec["requested"]:
                 logits[q["id"]] = q["logit"]
             return {"residuals": f32, "logits": logits, "decoder_calls": {"min": 1, "max": 1, "layers": 64},
                     "effective_positions_sha256": x["expected"]["positions_sha256"],
-                    "inputs_embeds_sha256": rec["image"]["merge"]["merged_sha256"]}
+                    "inputs_embeds_sha256": rec["image"]["merge"]["merged_sha256"],
+                    "inputs_embeds_dtype": "mlx.core.bfloat16"}
         return None, FakeProcessor(), tok, forward
 
     return stage_a.Ctx(out=out, identity_path=out.parent / "identity.json", verify_controller=False,

@@ -1,6 +1,6 @@
-"""AI image-reader qualification, revision 3: the mechanical SCORER (orchestrator side; the reader never sees it).
+"""AI image-reader qualification, revision 4: the mechanical SCORER (orchestrator side; the reader never sees it).
 Framework §8.2 reader rule; Codex RSC cf3e49e and 7048bb8; R052 handoffs 7f25830e repairs 1, 2, 4, 7 and 742146ad
-groups 1 and 6. Standard library only.
+groups 1 and 6; RSC 5a8d7ac closures 1 and 6. Standard library only.
 
     python3 stimuli/photo/ai_reader_score.py <raw_responses.jsonl>
 
@@ -9,8 +9,11 @@ the committed blob (its sha256 and the commit are carried into the output and ev
 complete validator (ai_reader_journal.validate: schema, statuses, ordering, attempts, counters, caps, unique attempt
 ids, delivery order, first-answer ordering, bounded and unedited answers, a COMPLETE receipt); the package recomputed
 now (key, set, this scorer and every other bound file, the binary and runtime) equals the package digest in every
-journal record and the package the go approved (stage_a_guard.require_go, row aireader). A synthetic-fixture journal
-is refused unless `allow_synthetic=True`, and then the output is labelled as not a qualification result.
+journal record and the package the go approved (stage_a_guard.require_go, row aireader), and the journal's receipts
+equal that package's instruction pin and the frozen delivery. In SCIENTIFIC mode the key, the set and the package are
+ALWAYS the approved objects loaded and recomputed here: a caller-supplied key, set or package is refused (only the
+labelled synthetic mode accepts injected objects). A synthetic-fixture journal is refused unless
+`allow_synthetic=True`, and then the output is labelled as not a qualification result.
 
 PRIMARY SCORE. Codes, in this precedence (format before matching - a multi-line, over-length or malformed answer is
 an error even when its normalised text would equal an alias):
@@ -146,8 +149,11 @@ def committed(raw_path: Path) -> dict:
     return {"raw_sha256": sha(data), "raw_commit": commit, "bytes": data}
 
 
-def admit(raw_path: Path, sset: dict, *, package: dict | None, allow_synthetic: bool, go: Path | None) -> dict:
+def admit(raw_path: Path, sset: dict, *, package: dict | None, allow_synthetic: bool, go: Path | None,
+          delivery: dict | None = None) -> dict:
     """Groups 1 and 6: committed raw, complete validation, approved package."""
+    if not allow_synthetic and package is not None:
+        raise SystemExit("refused: scientific scoring recomputes the package; a caller-supplied package is refused")
     if allow_synthetic:
         data = raw_path.read_bytes()
         info = {"raw_sha256": sha(data), "raw_commit": None, "bytes": data}
@@ -160,14 +166,20 @@ def admit(raw_path: Path, sset: dict, *, package: dict | None, allow_synthetic: 
     if not allow_synthetic:
         import ai_reader_exec as X
         import stage_a_guard
-        pkg = package or X.package()
+        pkg = X.package()
         if digest != pkg["package_digest"]:
             raise SystemExit("refused: the journal's package digest is not the package recomputed now")
         stage_a_guard.NEGATIVE_REVIEWS = stage_a_guard.NEGATIVE_REVIEWS | X.NEGATIVE
         stage_a_guard.require_go(go or X.GO, pkg, row="aireader", stage="qualification",
                                  verify_at_commit=X.package_at_commit)
-    v = J.validate(recs, sset, digest, raw_bytes=info["bytes"], require_complete=True,
-                   mode="synthetic-fixture" if allow_synthetic else "scientific")
+    if allow_synthetic:
+        v = J.validate(recs, sset, digest, raw_bytes=info["bytes"], require_complete=True, mode="synthetic-fixture",
+                       delivery=delivery, instructions_sha256=(delivery or {}).get("instructions_sha256"))
+    else:
+        import ai_reader_exec as X
+        deliv = json.loads(X.DELIVERY.read_text())
+        v = J.validate(recs, sset, digest, raw_bytes=info["bytes"], require_complete=True, mode="scientific",
+                       delivery=deliv, instructions_sha256=pkg["instructions_sha256"], limits=X.LIMITS)
     begins = {r["attempt_id"]: r for r in recs if r["t"] == "begin"}
     return {**info, "validation": v, "records": recs, "begins": begins, "package_digest": digest}
 
@@ -177,13 +189,16 @@ def rate(rows: list[bool]) -> dict:
 
 
 def score(raw_path: Path, *, allow_synthetic: bool = False, package: dict | None = None, go: Path | None = None,
-          sset: dict | None = None, key: dict | None = None) -> dict:
+          sset: dict | None = None, key: dict | None = None, delivery: dict | None = None) -> dict:
+    if not allow_synthetic and (sset is not None or key is not None or package is not None or delivery is not None):
+        raise SystemExit("refused: scientific scoring uses only the approved key, set, delivery and package; "
+                         "injected objects are accepted in labelled synthetic mode only")
     sset = sset or json.loads(SET.read_text())
     key_bytes = KEY.read_bytes()
     key = key or json.loads(key_bytes)
     if not allow_synthetic and sha(key_bytes) != sset.get("key_sha256"):
         raise SystemExit("refused: the key's sha256 differs from the set's key_sha256")
-    a = admit(raw_path, sset, package=package, allow_synthetic=allow_synthetic, go=go)
+    a = admit(raw_path, sset, package=package, allow_synthetic=allow_synthetic, go=go, delivery=delivery)
     ident = {"raw_sha256": a["raw_sha256"], "raw_commit": a["raw_commit"], "package_digest": a["package_digest"],
              "key_sha256": sha(key_bytes), "set_sha256": sha(SET.read_bytes()),
              "scorer_sha256": sha(Path(__file__).read_bytes())}

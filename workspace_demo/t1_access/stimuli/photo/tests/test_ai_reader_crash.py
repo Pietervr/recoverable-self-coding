@@ -1,9 +1,10 @@
-"""AI-reader revision 3, group 3: HARD-KILL fixtures. The executor runs as a real subprocess in fixture mode (fake
+"""AI-reader revision 4, closures 3 and 5: HARD-KILL fixtures. The executor runs as a real subprocess in fixture mode (fake
 codex, synthetic images, no model) and dies by os._exit(77) at each crash window, or by an external SIGKILL while its
 worker is alive; a second process then recovers from the journal alone. Asserted every time: the journal validates,
 the counters are exact, no request is dispatched again after a durable answer, an attempt that may have been answered
-is retained as INTERRUPTED and never re-asked, an attempt never dispatched sends nothing, and the crashed session's
-time is charged.
+is retained as INTERRUPTED and never re-asked, an attempt never dispatched sends nothing, the crashed session's
+time is charged, a worker never outlives its dead orchestrator beyond the watchdog's bound, and the smoke hold of the
+first request is rebuilt from the journal after a crash in any of its windows.
 
     .venv-image/bin/python -m unittest discover -s stimuli/photo/tests -p 'test_ai_reader_crash.py' -v
 """
@@ -26,6 +27,7 @@ sys.path.insert(0, str(TESTS))
 import ai_reader_exec as X  # noqa: E402
 import ai_reader_journal as J  # noqa: E402
 import airq_fixture as A  # noqa: E402
+import memprobe  # noqa: E402
 
 DRIVER = TESTS / "airq_fixture.py"
 
@@ -55,7 +57,8 @@ class HardKill(unittest.TestCase):
         recs, tail = self.journal()
         self.assertEqual(tail, b"")
         v = J.validate(recs, self.b["sset"], A.DIGEST, raw_bytes=self.b["fixture"]["raw"].read_bytes(),
-                       mode="synthetic-fixture")
+                       mode="synthetic-fixture", delivery=self.b["fixture"]["delivery"],
+                       instructions_sha256=self.b["fixture"]["delivery"]["instructions_sha256"], limits=X.LIMITS)
         self.assertEqual(v["final"], 6)
         # no dispatch after a durable answer for the same request
         answered_at = {}
@@ -103,21 +106,36 @@ class HardKill(unittest.TestCase):
         e = next(r for r in recs if r["t"] == "end" and r["request"] == "rq1c")
         self.assertEqual(e["outcome"], "interrupted")                     # conservative: dispatched => interrupted
 
-    def test_after_go_worker_alive(self):
-        self.build({"rq1c": ["slow_ok:5:thing"]})
-        self.crash_at("after_go", 2)
-        for _ in range(200):                                              # the gate saw GO; wait for the worker
-            if any(d["request"] == "rq1c" for d in A.dispatches(self.root)):
+    def wait_dispatch(self, rq):
+        for _ in range(400):
+            if any(d["request"] == rq for d in A.dispatches(self.root)):
                 break
             time.sleep(0.05)
-        pid = next(d["pid"] for d in A.dispatches(self.root) if d["request"] == "rq1c")
-        os.kill(pid, 0)                                                   # the orphaned worker is still running
+        return next(d["pid"] for d in A.dispatches(self.root) if d["request"] == rq)
+
+    def worker_pid(self, rq):
+        """The worker's pid from the journal's durable dispatched record (the fake may be killed before it logs)."""
+        recs, _ = self.journal()
+        aid = next(r["attempt_id"] for r in recs if r["t"] == "begin" and r["request"] == rq)
+        return next(r["worker"]["pid"] for r in recs if r["t"] == "dispatched" and r["attempt_id"] == aid)
+
+    def wait_gone(self, pid, limit):
+        t = time.monotonic()
+        while memprobe.proc_info(pid) is not None and time.monotonic() - t < limit:
+            time.sleep(0.05)
+        return time.monotonic() - t
+
+    def test_after_go_worker_killed_by_the_watchdog(self):
+        self.build({"rq1c": ["slow_ok:30:thing"]})
+        self.crash_at("after_go", 2)
+        pid = self.worker_pid("rq1c")
+        gone = self.wait_gone(pid, 15)                                    # the orchestrator is dead: the watchdog acts
+        self.assertIsNone(memprobe.proc_info(pid))
+        self.assertLessEqual(gone, X.TERM_GRACE_S + 3.0)
         recs, _ = self.finish_and_check()
         rv = next(r for r in recs if r["t"] == "recovered")
-        self.assertEqual((rv["finding"], rv["killed"]), ("dispatched_no_end", True))
-        with self.assertRaises(ProcessLookupError):
-            os.kill(pid, 0)
-        self.assertEqual([d["request"] for d in A.dispatches(self.root)].count("rq1c"), 1)   # never re-asked
+        self.assertEqual(rv["finding"], "dispatched_no_end")
+        self.assertLessEqual([d["request"] for d in A.dispatches(self.root)].count("rq1c"), 1)   # never re-asked
 
     def test_after_response_answer_lost(self):
         self.build()
@@ -151,7 +169,7 @@ class HardKill(unittest.TestCase):
         self.assertEqual([d["request"] for d in A.dispatches(self.root)].count("rq1c"), 3)
 
     def test_recovery_persistence(self):
-        self.build({"rq1c": ["slow_ok:5:thing"]})
+        self.build({"rq1c": ["slow_ok:30:thing"]})
         self.crash_at("after_go", 2)
         self.crash_at("recovery", 2)                                     # dies after 'recovered', before 'end'
         recs, _ = self.finish_and_check()
@@ -169,24 +187,70 @@ class HardKill(unittest.TestCase):
         self.assertTrue((self.b["fixture"]["job"] / "quarantine" / tr[0]["quarantine"]).exists())
 
     def test_external_sigkill_with_live_worker(self):
+        """The orchestrator is SIGKILLed with its worker running: the watchdog kills the worker group within its
+        bound (no independent deadline gap); recovery then finds the identities gone and records the attempt."""
         self.build({"rq1c": ["slow_ok:30:thing"]})
         env = {k: v for k, v in os.environ.items() if k != "AIRQ_CRASH"}
         p = subprocess.Popen([sys.executable, str(DRIVER), str(self.root)], env=env, stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
-        for _ in range(400):
-            if any(d["request"] == "rq1c" for d in A.dispatches(self.root)):
-                break
-            time.sleep(0.05)
-        pid = next(d["pid"] for d in A.dispatches(self.root) if d["request"] == "rq1c")
+        pid = self.wait_dispatch("rq1c")
+        time.sleep(0.3)
         p.send_signal(signal.SIGKILL)
         p.wait()
-        os.kill(pid, 0)                                                   # alive after its orchestrator died
+        p.stdout.close()
+        p.stderr.close()
+        gone = self.wait_gone(pid, 15)
+        self.assertIsNone(memprobe.proc_info(pid), "the worker outlived its dead orchestrator")
+        self.assertLessEqual(gone, X.TERM_GRACE_S + 3.0)
+        for _ in range(100):                                              # written once the group is gone
+            wd = list((self.b["fixture"]["job"]).glob("watchdog_*.json"))
+            if wd:
+                break
+            time.sleep(0.05)
+        self.assertTrue(wd and json.loads(wd[0].read_text())["reason"] == "controller died")
         recs, crashed = self.finish_and_check()
-        rv = next(r for r in recs if r["t"] == "recovered")
-        self.assertTrue(rv["killed"])
-        with self.assertRaises(ProcessLookupError):
-            os.kill(pid, 0)
+        self.assertEqual(next(r for r in recs if r["t"] == "recovered")["finding"], "dispatched_no_end")
         self.assertEqual(len(crashed), 1)
+
+    # ---- attempt 1: the smoke's crash windows -------------------------------------------------------------------
+    def stopped_check(self, want: str):
+        p = drive(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr[-2000:])
+        out = json.loads(p.stdout.strip().splitlines()[-1])
+        self.assertEqual(out["outcome"], "STOPPED")
+        self.assertIn(want, out["reason"])
+        recs, _ = self.journal()
+        J.validate(recs, self.b["sset"], A.DIGEST, raw_bytes=self.b["fixture"]["raw"].read_bytes(),
+                   mode="synthetic-fixture", delivery=self.b["fixture"]["delivery"],
+                   instructions_sha256=self.b["fixture"]["delivery"]["instructions_sha256"], limits=X.LIMITS,
+                   require_complete=False)
+        self.assertLessEqual({d["request"] for d in A.dispatches(self.root)}, {"rq0c"})   # nothing after the hold
+        return recs
+
+    def test_attempt1_answer_durable_then_crash_holds(self):
+        self.build({"rq0c": ["noimage"]})
+        self.crash_at("after_end", 1)                                    # the end is durable, no receipt yet
+        recs = self.stopped_check("no image")
+        self.assertEqual(recs[-1]["smoke"]["state"], "held")
+
+    def test_attempt1_uncertain_smoke_never_passes(self):
+        self.build({"rq0c": ["slow_ok:30:thing"]})
+        self.crash_at("after_go", 1)
+        self.wait_gone(self.worker_pid("rq0c"), 15)
+        recs = self.stopped_check("uncertain smoke")
+        self.assertEqual(next(r for r in recs if r["t"] == "end")["outcome"], "interrupted")
+
+    def test_attempt1_not_dispatched_retries(self):
+        self.build({"rq0c": ["ok:thing"]})
+        self.crash_at("after_begin", 1)
+        recs, _ = self.finish_and_check()
+        self.assertEqual(next(r for r in recs if r["t"] == "recovered")["finding"], "not_dispatched")
+
+    def test_first_request_retry_crash_holds(self):
+        self.build({"rq0c": ["fail", "noimage"]})
+        self.crash_at("after_end", 2)                                    # try 2 of the FIRST request answered
+        recs = self.stopped_check("no image")
+        self.assertEqual([r["try"] for r in recs if r["t"] == "begin"], [1, 2])
 
 
 if __name__ == "__main__":

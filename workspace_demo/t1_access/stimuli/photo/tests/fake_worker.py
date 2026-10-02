@@ -1,14 +1,23 @@
 """A synthetic worker for the controller fixtures (no model, no development input). Usage: fake_worker.py <out> <mode>
-  ok:<phase>   write <PHASE>_DONE.json (report: report/stage_a_report.json, validator_pass true) and exit 0;
-               first checks it cannot take the task lock (the controller must hold it) and records that
-  block        ignore SIGTERM and sleep in C (time.sleep) - only SIGKILL ends it
-  mlxblock     ignore SIGTERM and loop 4096 x 4096 MLX matmuls on the GPU
-  family       spawn a grandchild that sleeps, then block (the process group must die together)
-  alloc:<gib>  touch <gib> GiB of host memory and hold it
-  exit:<code>  exit with that code
-  norecord     exit 0 without writing the phase record
+  gates:ok | gates:hold | gates:refuse      the gates worker: GATES.json passed (exit 0), a hold (exit 4), a refusal
+  ok:<phase>     write <PHASE>_DONE.json and exit 0; first checks it cannot take the task lock (the controller must
+                 hold it) and records that
+  report:<how>   the report worker: ok (figures, md, json, then the receipt last); json_then_fail (machine JSON
+                 written, then a failure before the receipt); bad_receipt (a receipt whose output hash is wrong);
+                 other_session (a receipt naming another session); fail (exit 1 at once)
+  block          ignore SIGTERM and sleep in C (time.sleep) - only SIGKILL ends it
+  mlxblock       ignore SIGTERM and loop 4096 x 4096 MLX matmuls on the GPU
+  family         spawn a grandchild that sleeps, then block (the process group must die together)
+  orphanchild    spawn a child that ignores SIGTERM and sleeps, write the phase record, exit 0 (leader first)
+  escape         spawn a child that leaves the process group (setsid) after 1 s, write the record, exit 0 after 2 s
+  spike_exit     touch 1 GiB of host memory and exit at once (faster than a sample): the exit peak must be read
+  fill:<bytes>   write <bytes> into the output tree, then block
+  alloc:<gib>    touch <gib> GiB of host memory and hold it
+  exit:<code>    exit with that code
+  norecord       exit 0 without writing the phase record
 """
 
+import hashlib
 import json
 import os
 import signal
@@ -20,6 +29,25 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 out, mode = Path(sys.argv[1]), sys.argv[2]
+session = os.environ.get("STAGE_A_SESSION", "test")
+gates = json.loads(os.environ.get("STAGE_A_GATES") or "{}")
+
+
+def put(rel: str, b: bytes) -> str:
+    p = out / rel
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_bytes(b)
+    return hashlib.sha256(b).hexdigest()
+
+
+if mode.startswith("gates:"):
+    how = mode.split(":")[1]
+    if how == "refuse":
+        sys.exit("refused: fixture refusal")
+    rec = {"session": session, "package": {"criteria_sha256": "a" * 64}, "identity": "f" * 64,
+           "passed": how == "ok", "hold": how == "hold", "hold_reason": "fixture hold" if how == "hold" else None}
+    put("GATES.json", json.dumps(rec).encode())
+    sys.exit(0 if how == "ok" else 4)
 if mode.startswith("ok:"):
     from stage_a_guard import TaskLock
     try:
@@ -30,14 +58,27 @@ if mode.startswith("ok:"):
     ph = mode.split(":")[1]
     with open(out / "worker_log.jsonl", "a") as f:
         f.write(json.dumps({"phase": ph, "pid": os.getpid(), "lock_held_by_controller": held,
-                            "gates_ok": os.environ.get("STAGE_A_GATES_OK"),
-                            "t": time.time()}) + "\n")
-    if ph == "report":
-        (out / "report").mkdir(exist_ok=True)
-        (out / "report" / "stage_a_report.json").write_text(json.dumps(
-            {"validator_pass": not (out / "TERMINAL.json").exists()}))
-    else:
-        (out / f"{ph.upper()}_DONE.json").write_text("{}")
+                            "gates": gates.get("passed"), "t": time.time()}) + "\n")
+    (out / f"{ph.upper()}_DONE.json").write_text("{}")
+    sys.exit(0)
+if mode.startswith("report:"):
+    how = mode.split(":")[1]
+    if how == "fail":
+        sys.exit(1)
+    with open(out / "worker_log.jsonl", "a") as f:
+        f.write(json.dumps({"phase": "report", "pid": os.getpid(), "t": time.time()}) + "\n")
+    outputs = {"report/rel_l2_by_layer.svg": put("report/rel_l2_by_layer.svg", b"<svg/>"),
+               "report/STAGE_A_REPORT.md": put("report/STAGE_A_REPORT.md", b"# report\n")}
+    rec = {"validator_pass": not (out / "TERMINAL.json").exists(), "admissible": gates.get("passed") is True,
+           "session": session}
+    outputs["report/stage_a_report.json"] = put("report/stage_a_report.json", json.dumps(rec).encode())
+    if how == "json_then_fail":
+        sys.exit(1)
+    if how == "bad_receipt":
+        outputs["report/STAGE_A_REPORT.md"] = "0" * 64
+    rc = {"session": "another" if how == "other_session" else session, "package": gates.get("package"),
+          "identity": gates.get("identity"), "outputs": outputs}
+    put("report/REPORT_RECEIPT.json", json.dumps(rc).encode())
     sys.exit(0)
 if mode in ("block", "family"):
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
@@ -53,6 +94,28 @@ if mode == "mlxblock":                       # busy in MLX/Metal work, SIGTERM i
     while True:
         a = (a @ a) / 4096.0
         mx.eval(a)
+if mode == "orphanchild":
+    c = subprocess.Popen([sys.executable, "-c", "import signal, time; signal.signal(signal.SIGTERM, signal.SIG_IGN); "
+                                                "time.sleep(600)"])
+    (out / "child.pid").write_text(str(c.pid))
+    time.sleep(0.5)                          # long enough to be sampled as a member
+    (out / "INSTRUMENTED_DONE.json").write_text("{}")
+    os._exit(0)                              # the leader exits first; the child survives it
+if mode == "escape":
+    c = subprocess.Popen([sys.executable, "-c", "import os, time; time.sleep(1.0); os.setsid(); time.sleep(600)"])
+    (out / "child.pid").write_text(str(c.pid))
+    time.sleep(2.0)                          # sampled in the group first, then it leaves the group
+    (out / "INSTRUMENTED_DONE.json").write_text("{}")
+    os._exit(0)
+if mode == "spike_exit":
+    import numpy as np
+    a = np.ones((1 << 30) // 8)
+    a += 1
+    (out / "INSTRUMENTED_DONE.json").write_text("{}")
+    os._exit(0)
+if mode.startswith("fill:"):
+    put("passes/fill.bin", b"\0" * int(mode.split(":")[1]))
+    time.sleep(600)
 if mode.startswith("alloc:"):
     import numpy as np
     a = np.ones(int(float(mode.split(":")[1]) * (1 << 30)) // 8)

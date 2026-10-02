@@ -1,4 +1,4 @@
-"""AI image-reader qualification, revision 3: the answer KEY (held by the orchestrator, never sent to the reader).
+"""AI image-reader qualification, revision 4: the answer KEY (held by the orchestrator, never sent to the reader).
 Framework §8.2; Codex RSC cf3e49e and 7048bb8; R052 handoffs 7f25830e repairs 2, 3, 7 and 742146ad group 2. Needs
 WordNet 3.0 (the corpus zip is pinned by sha256 below):
 
@@ -7,7 +7,8 @@ WordNet 3.0 (the corpus zip is pinned by sha256 below):
 CANDIDATE NAMES, per item: the THINGS Word, the concept id with '_' as space, and the WordNet synonyms THINGS lists
 for that concept (`WordNet Synonyms`; Python-literal residue in that column - u"...", [ ] - is stripped, e.g.
 spider_web's u"spider's_web"]). Each candidate's source fields are recorded (`alias_sources`). Ten selected concepts
-carry no WordNet id: their candidates come from the Word and id fields alone, and their sense rests on the THINGS
+carry no WordNet id: their candidates are the Word, the id and any synonyms THINGS lists for them (five synonym bases
+across three of the ten), S3 and S4 cannot apply without a recorded synset, and their sense rests on the THINGS
 definition (recorded per item in `sense_rationale`).
 
 THE SPECIFICITY RULE (framework 8.2, Codex RSC 7048bb8, frozen before any answer). Canonical names - the Word, the
@@ -17,17 +18,19 @@ candidate is EXCLUDED from the primary gate, with its inflections, when
   S2  it is a candidate of another selected target;
   S3  WordNet relates one of its noun senses to the target synset as a broader class (hypernym closure), a part
       (part/member/substance meronym) or a whole (holonym);
-  S4  its dominant (first-listed) WordNet noun sense is not the target synset;
+  S4  its FIRST-LISTED WordNet noun sense differs from the recorded target synset - a predicate on WordNet 3.0's
+      sense order, not a measurement of dominant usage among these images or readers;
 unless the pair is in EQUIVALENCES, a documented same-referent equivalence frozen here with its rationale (13 pairs,
 roll/bun among them). An excluded candidate stays in the key as `excluded_aliases` with its rule; it can never be
 added back after an answer. S1-S3 are Codex's rule; S4 extends it to the 'bench' case for words that are not
 themselves released concepts (e.g. lighter/'light', sword/'brand').
 
 INFLECTIONS. Only plurals, only of the head noun: the last token, or in an 'X of Y' phrase the token before 'of'
-('pairs of scissors', never 'pair of scissorses'). A head that is already a plural form (it ends in -s and is not a
-singular -ss/-us/-is/-as/-os word - scissors, shorts, drawers, boots, headphones) gets no generated plural. The suffix
-rule is not a grammatical test, so it is qualified by audit: every -s head among the 300 items' candidates is listed
-in the key (`inflection_audit`: 13 plural-only, 19 singular) and was reviewed, and the lists are frozen by test. Otherwise
+('pairs of scissors', never 'pair of scissorses'). A head that ends in -s and is not a -ss/-us/-is/-as/-os word gets
+no generated plural. That suffix rule is not a grammatical test: it is qualified by an audit BOUNDED TO THIS CANDIDATE
+SET - every -s head among the 300 items' candidates is listed in the key (`inflection_audit`: 13 heads the rule treats
+as plural-only, among them English plural nouns such as scissors, shorts and drawers but also the Latin binomial part
+'latrans'; 19 it treats as singular), reviewed, and frozen by test. It is not a general grammatical validator. Otherwise
 one regular plural by English orthography, or WordNet's irregular plurals (noun.exc) when it lists any; every
 candidate must lemmatise back to the head (`_morphy`). No stemming, no substring credit, no hand-added alias.
 
@@ -263,18 +266,21 @@ def main() -> int:
                     if K_.endswith("s")})
     inflection_audit = {"plural_only_heads": [h for h in heads if plural_only(h)],
                         "singular_s_heads": [h for h in heads if not plural_only(h)],
-                        "note": "every head ending in -s among the candidates, as the suffix rule classifies it; "
-                                "reviewed: the plural-only heads are plural forms (no generated plural is valid), the "
-                                "singular heads are -ss/-us/-is/-as/-os nouns and Latin binomial parts, whose generated "
-                                "plurals survive only where WordNet lemmatises them back"}
-    key = {"note": "The orchestrator's key for the AI-reader qualification (revision 3). Never sent to the reader.",
-           "revision": 3, "seed": F.SEED, "frame_size": d["n_frame"], "cuts": d["cuts"],
+                        "note": "every head ending in -s among this candidate set, as the suffix rule classifies it "
+                                "(an audit bounded to this set, not a general grammatical validator); reviewed: the "
+                                "heads treated as plural-only are English plural nouns and the Latin binomial part "
+                                "'latrans', none of which takes a generated plural here; the singular heads are "
+                                "-ss/-us/-is/-as/-os words whose generated plurals survive only where WordNet "
+                                "lemmatises them back"}
+    key = {"note": "The orchestrator's key for the AI-reader qualification (revision 4: wording only; aliases, items "
+                   "and membership as revision 3). Never sent to the reader.",
+           "revision": 4, "seed": F.SEED, "frame_size": d["n_frame"], "cuts": d["cuts"],
            "stratum_frame_sizes": d["stratum_frame_sizes"], "exclusion_counts": d["exclusion_counts"],
            "exclusions": d["exclusions"], "source_pins": {"things": sources, "wordnet": wn_pin},
            "specificity_rule": "S1 another released concept's canonical name or inflection; S2 another selected "
-                               "target's candidate; S3 WordNet broader class, part or whole; S4 dominant sense not the "
-                               "target synset; canonical names, space variants and inflections always stand; "
-                               "EQUIVALENCES documented",
+                               "target's candidate; S3 WordNet broader class, part or whole; S4 first-listed WordNet "
+                               "noun sense differs from the recorded target synset (sense order, not measured usage); "
+                               "canonical names, space variants and inflections always stand; EQUIVALENCES documented",
            "equivalences": [{"concept": k[0], "alias": k[1], "rationale": v} for k, v in EQUIVALENCES.items()],
            "specificity_audit": audit, "inflection_audit": inflection_audit, "reserved_concepts": sorted(v["concept"] for v in items.values()),
            "items": items}

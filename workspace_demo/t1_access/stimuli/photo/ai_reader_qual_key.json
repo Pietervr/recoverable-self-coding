@@ -1,6 +1,6 @@
 {
- "note": "The orchestrator's key for the AI-reader qualification (revision 3). Never sent to the reader.",
- "revision": 3,
+ "note": "The orchestrator's key for the AI-reader qualification (revision 4: wording only; aliases, items and membership as revision 3). Never sent to the reader.",
+ "revision": 4,
  "seed": 20261007,
  "frame_size": 1659,
  "cuts": [
@@ -253,7 +253,7 @@
    "zip_sha256": "cbda5ea6eef7f36a97a43d4a75f85e07fccbb4f23657d27b4ccbc93e2646ab59"
   }
  },
- "specificity_rule": "S1 another released concept's canonical name or inflection; S2 another selected target's candidate; S3 WordNet broader class, part or whole; S4 dominant sense not the target synset; canonical names, space variants and inflections always stand; EQUIVALENCES documented",
+ "specificity_rule": "S1 another released concept's canonical name or inflection; S2 another selected target's candidate; S3 WordNet broader class, part or whole; S4 first-listed WordNet noun sense differs from the recorded target synset (sense order, not measured usage); canonical names, space variants and inflections always stand; EQUIVALENCES documented",
  "equivalences": [
   {
    "concept": "roll",
@@ -376,7 +376,7 @@
    "wineglass",
    "wireless"
   ],
-  "note": "every head ending in -s among the candidates, as the suffix rule classifies it; reviewed: the plural-only heads are plural forms (no generated plural is valid), the singular heads are -ss/-us/-is/-as/-os nouns and Latin binomial parts, whose generated plurals survive only where WordNet lemmatises them back"
+  "note": "every head ending in -s among this candidate set, as the suffix rule classifies it (an audit bounded to this set, not a general grammatical validator); reviewed: the heads treated as plural-only are English plural nouns and the Latin binomial part 'latrans', none of which takes a generated plural here; the singular heads are -ss/-us/-is/-as/-os words whose generated plurals survive only where WordNet lemmatises them back"
  },
  "reserved_concepts": [
   "aardvark",

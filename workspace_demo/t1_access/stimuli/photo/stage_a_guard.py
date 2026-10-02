@@ -1,30 +1,40 @@
-"""Photograph arm, Stage A (ledger row 20): the guards the runner consults before anything is loaded.
+"""Photograph arm, Stage A (ledger row 20) and the AI-reader qualification: the guards consulted before anything is
+loaded or sent - revision 4 (Codex RSC 081f17b closure group 1; RSC 5a8d7ac closure 1).
 
-Framework §8.4 (b), (c), (j), (n); R052 brief 2026-10-02 repairs 5, 6, 7, 11.
+Framework §8.4 (b), (c), (j), (n).
 
 TaskLock       an exclusive fcntl.flock on <out>/LOCK, held for the life of the process. A second process - another
                phase, or the same phase twice - is refused at once. Atomic file replacement is not a lock; this is.
-Terminal gate  <out>/TERMINAL.json, written durably at the FIRST integrity, parity, identity, resource or unexpected
-               failure in any phase, and consulted at the start of every phase before any load. Once it exists no
-               phase runs again: no retry of a failed gate. Later failures are appended, the first stays first.
-               An explicitly authorised crash recovery is different: an attempt interrupted by a crash (not by a
-               check) may be re-attempted only if <out>/RECOVERY_<attempt id>.json names it with the owner's dated
-               authorisation; a crash that leaves no interrupted attempt needs nothing (the session clock charged it).
-Go binding     ROW20_GO.json must carry: the favourable review (RSC commit, record path, the record's sha256 at that
-               commit, verdict exactly "favourable", reviewer), the owner's dated go (date, words), and the sha256 of
-               the exact package - STAGE_A_CRITERIA.md, stage_a_identity.json, stage_a_plan.json, manifest_dev.json and
-               the budget envelope. Each is recomputed and compared; the review record is read from git at the named
-               commit and hashed; RSC f9d2ef3 (the negative record) can never serve. A mismatch refuses before any
-               model import or load. Refusal here is a hold, not a terminal failure (nothing ran).
+Terminal gate  <out>/TERMINAL.json, written durably (a finalisation-class reserved write) at the FIRST integrity,
+               parity, identity, resource or unexpected failure in any phase, and consulted at the start of every work
+               phase before any load. Once it exists no work phase runs again: no retry of a failed gate. Later
+               failures are appended, the first stays first. An explicitly authorised crash recovery is different: an
+               attempt interrupted by a crash (not by a check) may be re-attempted only if
+               <out>/RECOVERY_<attempt>__<session>__<try>.json (an exact schema) names it with the owner's dated
+               authorisation; its absence is an authorisation HOLD, not a terminal failure.
+Go binding     `require_go`, shared by row 20 (row "20", stage "A") and the AI reader (row "aireader", stage
+               "qualification"), under a STRICT schema: the go file holds exactly review {commit, path,
+               record_sha256}, owner_go {by, date, words} and package; the review record is read from git at that
+               commit and hashed; it holds exactly ONE closed attestation block (marker at a line start, JSON with no
+               duplicate key, the closing delimiter on its own line) with exactly row, stage, verdict, reviewer, date,
+               reviewed_commit and package; strings are non-empty strings (never a number or bool), digests 64
+               lowercase hex, commit ids 40 lowercase hex resolving to COMMIT objects, dates exact YYYY-MM-DD calendar
+               dates (nothing truncated); the package key set is EXACTLY the recomputed package's, so an extra key,
+               null or not, refuses; attestation package = go package = package recomputed now = package re-derived
+               from the reviewed commit (`verify_at_commit`, mandatory); the review record's commit descends from the
+               reviewed commit; reviewed commit <= attestation date <= review commit <= owner go. The absence of a
+               positive, exactly matching attestation is the general rejection; the negative-record list (Codex's
+               not-favourable records) is a supplement. A refusal is a hold (nothing ran).
 Identity       `execution_identity()` hashes everything either phase loads or runs, without loading a model: the
                snapshot's config, tokenizer, processor and template files and every safetensors shard; the lens; this
-               directory's runner code and stimuli/packet.py; the whole jlens_qwen source tree, its upstream HEAD,
-               tracked diff and sitecustomize shim; the package trees (sources and binaries) of mlx, mlx_lm, mlx_vlm,
-               transformers, tokenizers, safetensors, numpy, Pillow, huggingface_hub and pydantic with their versions;
-               the Python version; the declared precision and dispatch; the full frozen plan and manifest. Large files
-               are hashed once and cached by (path, size, mtime_ns). The record is written to stage_a_identity.json;
-               both phases recompute it and refuse a different value. The in-process `_run` never builds the HTTP
-               startup manifest, so nothing relies on that manifest's attestation.
+               directory's runner, controller, watchdog, report and enforcement code and stimuli/packet.py; the whole
+               jlens_qwen source tree, its upstream HEAD, tracked diff and sitecustomize shim; the package trees
+               (sources and binaries) of mlx, mlx_lm, mlx_vlm, transformers, tokenizers, safetensors, numpy, Pillow,
+               huggingface_hub and pydantic with their versions; the Python version; the declared precision and
+               dispatch; the full frozen plan and manifest; the positions receipt. Hashed afresh every time (no cache).
+               Every worker - gates, instrumented, native and report - recomputes it, and the per-file import map it
+               writes is the map it consumes: `check_imported_origins` refuses unless that map's bytes hash to the
+               identity's package_file_maps_sha256.
 """
 
 from __future__ import annotations
@@ -34,6 +44,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import subprocess
 import sys
 import time
@@ -46,10 +57,9 @@ UPSTREAM = T1.parent / "upstream" / "jlens-qwen36"
 SNAPSHOT = Path.home() / (".cache/huggingface/hub/models--mlx-community--Qwen3.6-27B-4bit/snapshots/"
                           "c000ac2c2057d94be3fa931000c31723aac53282")
 LENS = UPSTREAM / "data" / "lens" / "qwen36_27b_neuronpedia_n1000.npz"
-NEGATIVE_REVIEWS = {"f9d2ef3", "69539bb", "cf3e49e"}   # Codex's negative records (rows 20, AI reader)
-LOCAL_CODE = ["stage_a.py", "stage_a_guard.py", "stage_a_report.py", "stage_a_controller.py", "memprobe.py",
-              "enforce.py", "image_adapter.py", "dose.py",
-              "dose_report.py"]
+NEGATIVE_REVIEWS = {"f9d2ef3", "69539bb", "081f17b", "cf3e49e", "7048bb8", "5a8d7ac"}   # Codex negative records: row 20, AI reader
+LOCAL_CODE = ["stage_a.py", "stage_a_guard.py", "stage_a_report.py", "stage_a_controller.py", "stage_a_watchdog.py",
+              "memprobe.py", "enforce.py", "image_adapter.py", "dose.py", "dose_report.py"]
 PACKAGES = ["mlx", "mlx_lm", "mlx_vlm", "transformers", "tokenizers", "safetensors", "numpy", "PIL",
             "huggingface_hub", "pydantic"]
 TREE_SUFFIXES = (".py", ".so", ".dylib", ".metallib", ".json", ".jinja")
@@ -136,17 +146,24 @@ def set_terminal(out: Path, phase: str, reason: str) -> None:
         t.setdefault("later", []).append(entry)
     else:
         t = {"first": entry}
-    write_json_atomic(p, t)
+    write_json_atomic(p, t, final=True)
 
 
 def recovery_files(out: Path) -> list[dict]:
-    """RECOVERY_<attempt>__<session>__<try>.json files: each names exactly one interrupted try (closure group 2)."""
+    """RECOVERY_<attempt>__<session>__<try>.json files: each names exactly one interrupted try (closure group 2), under
+    an exact schema - attempt_id, session and owner non-empty strings, try a positive integer (not a bool), date an
+    exact YYYY-MM-DD, reason a non-empty string, no other field."""
     found = []
     for p in sorted(out.glob("RECOVERY_*.json")):
-        a = json.loads(p.read_text())
-        want = f"RECOVERY_{a.get('attempt_id')}__{a.get('session')}__{a.get('try')}.json"
-        if p.name != want or not a.get("owner") or not a.get("date") or not a.get("reason"):
-            raise SystemExit(f"refused: {p.name} must be named {want} and give owner, date and reason")
+        a = _keys(strict_json(p.read_text(), p.name), RECOVERY_KEYS, p.name)
+        for k in ("attempt_id", "session", "owner", "reason"):
+            _str(a[k], f"{p.name}.{k}")
+        if not isinstance(a["try"], int) or isinstance(a["try"], bool) or a["try"] < 1:
+            _refuse(f"{p.name}.try must be a positive integer")
+        iso_date(a["date"], f"{p.name}.date")
+        want = f"RECOVERY_{a['attempt_id']}__{a['session']}__{a['try']}.json"
+        if p.name != want:
+            _refuse(f"{p.name} must be named {want}")
         found.append({**a, "file_sha256": sha_bytes(p.read_bytes())})
     return found
 
@@ -215,10 +232,16 @@ def execution_identity(plan_path: Path, manifest_path: Path, receipt_path: Path,
     return ident
 
 
-def check_imported_origins(files_path: Path) -> dict:
-    """Every loaded module of a watched package must come from inside its hashed root with an unchanged file
-    hash; a watched package imported from anywhere else (a shadowing copy, another venv) is refused."""
-    maps = json.loads(Path(files_path).read_text())
+def check_imported_origins(files_path: Path, maps_sha256: str) -> dict:
+    """The map CONSUMED here must be byte-identical to the admitted one (its sha256 = the identity's
+    package_file_maps_sha256) before it is trusted; then every loaded module of a watched package must come from inside
+    its hashed root with an unchanged file hash - a watched package imported from anywhere else (a shadowing copy,
+    another venv) is refused."""
+    raw = Path(files_path).read_bytes()
+    if sha_bytes(raw) != maps_sha256:
+        raise SystemExit(f"refused: the consumed import map {Path(files_path).name} is not the admitted map "
+                         f"({sha_bytes(raw)[:12]} != {str(maps_sha256)[:12]})")
+    maps = json.loads(raw)
     checked, bad = 0, []
     for name, mod in list(sys.modules.items()):
         top = name.split(".")[0]
@@ -239,76 +262,190 @@ def check_imported_origins(files_path: Path) -> dict:
         checked += 1
     if bad:
         raise SystemExit(f"refused: imported origins differ from the identity: {bad[:5]}")
-    return {"modules_checked": checked}
+    return {"modules_checked": checked, "map_sha256": maps_sha256}
 
 
-# ---- the go: a machine-readable attestation inside the review record (closure group 1) ---------------------------
+# ---- the go: a machine-readable attestation inside the review record (strict schema, revision 4) -----------------
+# Shared by row 20 (row "20", stage "A") and the AI reader (row "aireader", stage "qualification"). The absence of a
+# POSITIVE, exactly matching attestation is the general rejection: every check below must pass, and anything not
+# recognised refuses. The negative-record list is a supplement only.
 ATTEST_OPEN, ATTEST_CLOSE = "<!-- STAGE-ATTESTATION v1", "-->"
 ATTEST_KEYS = {"row", "stage", "verdict", "reviewer", "date", "reviewed_commit", "package"}
+GO_KEYS = {"review", "owner_go", "package"}
+REVIEW_KEYS = {"commit", "path", "record_sha256"}
+OWNER_KEYS = {"by", "date", "words"}
+RECOVERY_KEYS = {"attempt_id", "session", "try", "owner", "date", "reason"}
+_HEX40 = re.compile(r"[0-9a-f]{40}")
+_HEX64 = re.compile(r"[0-9a-f]{64}")
+_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+
+
+def _refuse(msg: str):
+    raise SystemExit(f"refused: {msg}")
+
+
+def _no_dupes(pairs):
+    d = {}
+    for k, v in pairs:
+        if k in d:
+            _refuse(f"duplicate JSON key {k!r}")
+        d[k] = v
+    return d
+
+
+def strict_json(text: str, what: str):
+    try:
+        return json.loads(text, object_pairs_hook=_no_dupes)
+    except json.JSONDecodeError as exc:
+        _refuse(f"{what} is not JSON ({exc})")
+
+
+def _str(v, what: str) -> str:
+    if not isinstance(v, str) or not v.strip():
+        _refuse(f"{what} must be a non-empty string, got {type(v).__name__} {v!r:.60}")
+    return v
+
+
+def _hex(v, n: int, what: str) -> str:
+    if not isinstance(v, str) or not (_HEX40 if n == 40 else _HEX64).fullmatch(v):
+        _refuse(f"{what} must be {n} lowercase hexadecimal characters, got {v!r:.80}")
+    return v
+
+
+def iso_date(v, what: str) -> str:
+    """Exactly YYYY-MM-DD and a real calendar date; nothing is truncated."""
+    if not isinstance(v, str) or not _DATE.fullmatch(v):
+        _refuse(f"{what} {v!r:.40} is not an exact YYYY-MM-DD date")
+    try:
+        time.strptime(v, "%Y-%m-%d")
+    except ValueError:
+        _refuse(f"{what} {v!r} is not a calendar date")
+    return v
+
+
+def _keys(d, want: set, what: str) -> dict:
+    if not isinstance(d, dict) or set(d) != want:
+        got = sorted(d) if isinstance(d, dict) else type(d).__name__
+        _refuse(f"{what} fields {got} are not exactly {sorted(want)}")
+    return d
+
+
+def is_digest_key(k: str) -> bool:
+    return k.endswith("_sha256") or k == "package_digest"
+
+
+def check_package_schema(pkg, keys: set, what: str) -> dict:
+    """Exact key set; digests 64 lowercase hex; every other field a non-empty string (no null, number or bool)."""
+    _keys(pkg, keys, what)
+    for k, v in pkg.items():
+        if is_digest_key(k):
+            _hex(v, 64, f"{what}.{k}")
+        else:
+            _str(v, f"{what}.{k}")
+    return pkg
+
+
+def resolve_commit(repo: Path, commit: str, what: str) -> str:
+    """A full 40-hex id that names a commit object in this repository (not a tree, blob or tag)."""
+    _hex(commit, 40, what)
+    t = subprocess.run(["git", "-C", str(repo), "cat-file", "-t", commit], capture_output=True, text=True)
+    if t.returncode != 0 or t.stdout.strip() != "commit":
+        _refuse(f"{what} {commit} is not a commit object in {repo}")
+    r = subprocess.run(["git", "-C", str(repo), "rev-parse", "--verify", "--quiet", f"{commit}^{{commit}}"],
+                       capture_output=True, text=True)
+    if r.returncode != 0 or r.stdout.strip() != commit:
+        _refuse(f"{what} {commit} does not resolve to itself")
+    return commit
+
+
+def commit_day(repo: Path, commit: str) -> str:
+    c = subprocess.run(["git", "-C", str(repo), "show", "-s", "--format=%cs", commit], capture_output=True, text=True)
+    if c.returncode != 0:
+        _refuse(f"cannot read the date of {commit}")
+    return iso_date(c.stdout.strip(), f"commit date of {commit}")
 
 
 def parse_attestation(text: str) -> dict:
-    blocks = text.split(ATTEST_OPEN)
-    if len(blocks) != 2:
-        raise SystemExit(f"refused: the review record holds {len(blocks) - 1} attestation blocks, not exactly one")
-    body = blocks[1].split(ATTEST_CLOSE, 1)[0]
-    try:
-        att = json.loads(body)
-    except json.JSONDecodeError as exc:
-        raise SystemExit(f"refused: the attestation is not JSON ({exc})")
-    if set(att) != ATTEST_KEYS:
-        raise SystemExit(f"refused: attestation fields {sorted(att)} are not exactly {sorted(ATTEST_KEYS)}")
-    return att
-
-
-def _iso(d: str, what: str) -> str:
-    try:
-        time.strptime(str(d)[:10], "%Y-%m-%d")
-    except ValueError:
-        raise SystemExit(f"refused: {what} {d!r} is not an ISO date")
-    return str(d)[:10]
+    """Exactly one block: the opening marker at the start of a line, then a newline, a JSON object (duplicate keys
+    refused), and the closing delimiter on its own line. Anything else between the markers refuses."""
+    n = text.count(ATTEST_OPEN)
+    if n != 1:
+        _refuse(f"the review record holds {n} attestation blocks, not exactly one")
+    i = text.index(ATTEST_OPEN)
+    if i and text[i - 1] != "\n":
+        _refuse("the attestation marker does not start a line")
+    rest = text[i + len(ATTEST_OPEN):]
+    if not rest.startswith("\n"):
+        _refuse("the attestation marker is not followed by a newline")
+    j = rest.find("\n" + ATTEST_CLOSE)
+    if j < 0:
+        _refuse("the attestation block has no closing delimiter on its own line")
+    after = rest[j + 1 + len(ATTEST_CLOSE):]
+    if after and not after.startswith("\n"):
+        _refuse("the closing delimiter is not on its own line")
+    att = strict_json(rest[1:j], "the attestation")
+    return _keys(att, ATTEST_KEYS, "attestation")
 
 
 def require_go(go_path: Path, package: dict[str, str], *, row: str = "20", stage: str = "A", repo: Path = RSC,
-               verify_at_commit=None) -> dict:
-    """The go names the review record (full commit, path, sha256); the record carries exactly one attestation; the
-    attestation's package, the go's package and the package recomputed now must be identical; optionally the
-    package is re-derived from the reviewed commit itself (verify_at_commit)."""
+               verify_at_commit) -> dict:
+    """The go names the review record (full commit, path, sha256) and the owner's dated words; the record carries
+    exactly one closed attestation; attestation package = go package = package recomputed now = package re-derived
+    from the reviewed commit (`verify_at_commit`, mandatory), each under the exact schema; both commits resolve to
+    commit objects, the review record's commit descends from the reviewed commit, and the dates are ordered:
+    reviewed commit <= attestation <= review record commit <= owner go."""
+    if verify_at_commit is None:
+        _refuse("no reviewed-commit re-derivation was supplied")
+    keys = set(package)
+    check_package_schema(package, keys, "the package recomputed now")
     if not go_path.exists():
-        raise SystemExit(f"refused: {go_path.name} absent - no owner go bound to a favourable review")
-    go = json.loads(go_path.read_text())
-    if set(go) != {"review", "owner_go", "package"}:
-        raise SystemExit("refused: the go file must hold exactly review, owner_go and package")
-    rv, og = go["review"], go["owner_go"]
-    commit, rec = str(rv.get("commit", "")), str(rv.get("path", ""))
-    if len(commit) != 40 or any(commit.startswith(n) for n in NEGATIVE_REVIEWS):
-        raise SystemExit(f"refused: review commit {commit!r} is not a full commit id, or is a negative record")
+        _refuse(f"{go_path.name} absent - no owner go bound to a favourable review")
+    go = _keys(strict_json(go_path.read_text(), go_path.name), GO_KEYS, go_path.name)
+    rv = _keys(go["review"], REVIEW_KEYS, "go.review")
+    og = _keys(go["owner_go"], OWNER_KEYS, "go.owner_go")
+    check_package_schema(go["package"], keys, "go.package")
+    commit = resolve_commit(repo, rv["commit"], "go.review.commit")
+    rec = _str(rv["path"], "go.review.path")
+    if rec.startswith("/") or ".." in Path(rec).parts:
+        _refuse(f"go.review.path {rec!r} must be a relative path inside the repository")
+    _hex(rv["record_sha256"], 64, "go.review.record_sha256")
+    if any(commit.startswith(n) for n in NEGATIVE_REVIEWS):
+        _refuse(f"review commit {commit} is a negative record")
     got = subprocess.run(["git", "-C", str(repo), "show", f"{commit}:{rec}"], capture_output=True)
     if got.returncode != 0:
-        raise SystemExit(f"refused: {rec} not found at commit {commit}")
-    if sha_bytes(got.stdout) != rv.get("record_sha256"):
-        raise SystemExit("refused: the review record's sha256 at that commit differs from the go file's")
-    att = parse_attestation(got.stdout.decode())
-    if (att["row"], att["stage"], att["verdict"]) != (row, stage, "favourable"):
-        raise SystemExit(f"refused: attestation is {att['row']}/{att['stage']}/{att['verdict']}, "
-                         f"not {row}/{stage}/favourable")
-    if not att["reviewer"] or len(str(att["reviewed_commit"])) != 40:
-        raise SystemExit("refused: the attestation lacks a reviewer or a full reviewed commit")
-    for k in set(package) | set(att["package"]) | set(go["package"]):
-        a, g, n = att["package"].get(k), go["package"].get(k), package.get(k)
+        _refuse(f"{rec} not found at commit {commit}")
+    if sha_bytes(got.stdout) != rv["record_sha256"]:
+        _refuse("the review record's sha256 at that commit differs from the go file's")
+    try:
+        text = got.stdout.decode("utf-8")
+    except UnicodeDecodeError:
+        _refuse("the review record is not UTF-8")
+    att = parse_attestation(text)
+    for k, want in (("row", row), ("stage", stage), ("verdict", "favourable")):
+        if not isinstance(att[k], str) or att[k] != want:
+            _refuse(f"attestation is {att['row']!r}/{att['stage']!r}/{att['verdict']!r}, not {row}/{stage}/favourable")
+    _str(att["reviewer"], "attestation.reviewer")
+    reviewed = resolve_commit(repo, att["reviewed_commit"], "attestation.reviewed_commit")
+    if any(reviewed.startswith(n) for n in NEGATIVE_REVIEWS):
+        _refuse(f"reviewed commit {reviewed} is a negative record")
+    check_package_schema(att["package"], keys, "attestation.package")
+    for k in sorted(keys):
+        a, g, n = att["package"][k], go["package"][k], package[k]
         if not (a == g == n):
-            raise SystemExit(f"refused: {k}: attested {a!r}, go {g!r}, now {n!r}")
-    if verify_at_commit is not None:
-        then = verify_at_commit(att["reviewed_commit"])
-        if then != package:
-            raise SystemExit("refused: the package at the reviewed commit differs from the package now")
-    if not og.get("by") or not og.get("words"):
-        raise SystemExit("refused: owner_go needs by, date and the owner's words")
-    a_day, o_day = _iso(att["date"], "attestation date"), _iso(og.get("date"), "owner go date")
-    c_day = subprocess.run(["git", "-C", str(repo), "show", "-s", "--format=%cs", att["reviewed_commit"]],
-                           capture_output=True, text=True)
-    if c_day.returncode != 0:
-        raise SystemExit("refused: the reviewed commit is not in the repository")
-    if not (c_day.stdout.strip() <= a_day <= o_day):
-        raise SystemExit(f"refused: dates out of order (commit {c_day.stdout.strip()}, review {a_day}, go {o_day})")
+            _refuse(f"{k}: attested {a!r}, go {g!r}, now {n!r}")
+    then = verify_at_commit(reviewed)
+    check_package_schema(then, keys, "the package re-derived at the reviewed commit")
+    if then != package:
+        diff = sorted(k for k in keys if then[k] != package[k])
+        _refuse(f"the package at the reviewed commit differs from the package now: {diff}")
+    anc = subprocess.run(["git", "-C", str(repo), "merge-base", "--is-ancestor", reviewed, commit], capture_output=True)
+    if anc.returncode != 0:
+        _refuse(f"the review record's commit {commit} does not descend from the reviewed commit {reviewed}")
+    _str(og["by"], "owner_go.by")
+    _str(og["words"], "owner_go.words")
+    a_day, o_day = iso_date(att["date"], "attestation.date"), iso_date(og["date"], "owner_go.date")
+    c_day, r_day = commit_day(repo, reviewed), commit_day(repo, commit)
+    if not (c_day <= a_day <= r_day <= o_day):
+        _refuse(f"dates out of order (reviewed commit {c_day}, attestation {a_day}, review record commit {r_day}, "
+                f"owner go {o_day})")
     return {"go": go, "attestation": att}

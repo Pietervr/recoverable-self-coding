@@ -1,6 +1,51 @@
 {
- "note": "Audit-specific frozen sense/alias map for the 32 instrument concepts; scoring = whole-answer equality after ai_reader_key.normalise; frozen before any audit answer.",
- "dev_pool_sha256": "fae20dc215d1de329ff81a5687735047c9a92cead1b9642f7cda4f6c2d69ad2d",
+ "note": "Audit-specific frozen sense/alias map for the 32 instrument concepts (revision 4): the qualification key's specificity rule S1-S4 with documented equivalences and exclusions; scoring = whole-answer equality after ai_reader_key.normalise with format checked first; frozen before any audit answer.",
+ "revision": 4,
+ "construction": {
+  "things_sources_sha256": {
+   "_concepts-metadata_things.tsv": "3f05b6b748d1e1b685e15130d2487bff63f86e1f4da94a2a5d9e7dec073a48eb",
+   "_images-metadata_things.tsv": "fd5b17635f0f6528f58decaf5a089587593708862d4ee7a2a72cd8aa57ce013c",
+   "image-level_description.txt": "e6e9bf63304978460b9556ab965a1cd462041c724dee6fa92a386d31ef81252d"
+  },
+  "wordnet": {
+   "version": "3.0",
+   "zip_sha256": "cbda5ea6eef7f36a97a43d4a75f85e07fccbb4f23657d27b4ccbc93e2646ab59"
+  },
+  "dev_pool_sha256": "fae20dc215d1de329ff81a5687735047c9a92cead1b9642f7cda4f6c2d69ad2d",
+  "ai_reader_key_py_sha256": "e063c7ceb08d39ac028e418857a612797516129ed1aa1e96280e22902d660c8f",
+  "audit_alias_map_py_sha256": "f793e5d2b3fdcfdef5c2b0b77fec0e98bbefa29bef3f37d2a73ca46850d50ee4"
+ },
+ "specificity_rule": "S1-S4 as ai_reader_key; canonical names, space variants and inflections stand",
+ "equivalences": [
+  {
+   "concept": "taxi",
+   "alias": "cab",
+   "rationale": "cab.n.03 is the target synset itself; the first-listed sense (the driver's compartment) is a WordNet ordering artefact; the ordinary name of the vehicle (S4)"
+  },
+  {
+   "concept": "hamburger",
+   "alias": "burger",
+   "rationale": "hamburger.n.01 is a sense of 'burger'; the first-listed sense is a person (Warren Burger) (S4)"
+  },
+  {
+   "concept": "pig",
+   "alias": "hog",
+   "rationale": "hog.n.03 (domestic swine) is the target synset; the first-listed sense is figurative, a greedy person (S4)"
+  }
+ ],
+ "exclusions": [
+  {
+   "concept": "jeans",
+   "alias": "denim",
+   "rationale": "also names the fabric (denim.n.02, 'a coarse durable twill-weave cotton fabric'): a material name does not discriminate the garment (Codex RSC 081f17b group 7); not reached by S1-S4 because 'denim''s first-listed sense is the target synset"
+  }
+ ],
+ "regular_plurals_reviewed": {
+  "taxi": [
+   "taxis"
+  ]
+ },
+ "shared_admitted_strings": [],
  "concepts": {
   "avocado": {
    "family": "foods",
@@ -24,13 +69,33 @@
     "alligator pear": [
      "alligator pears"
     ],
-    "avocado pear": [
-     "avocado pears"
-    ],
     "avocado": [
      "avocados"
+    ],
+    "avocado pear": [
+     "avocado pears"
     ]
-   }
+   },
+   "alias_sources": {
+    "aguacate": [
+     "WordNet Synonyms"
+    ],
+    "alligator pear": [
+     "WordNet Synonyms"
+    ],
+    "avocado": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "avocado pear": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "boat": {
    "family": "vehicles",
@@ -45,7 +110,18 @@
     "boat": [
      "boats"
     ]
-   }
+   },
+   "alias_sources": {
+    "boat": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "butterfly": {
    "family": "animals",
@@ -60,7 +136,18 @@
     "butterfly": [
      "butterflies"
     ]
-   }
+   },
+   "alias_sources": {
+    "butterfly": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "candy": {
    "family": "foods",
@@ -74,13 +161,27 @@
     "confects"
    ],
    "validated_plurals": {
-    "confect": [
-     "confects"
-    ],
     "candy": [
      "candies"
+    ],
+    "confect": [
+     "confects"
     ]
-   }
+   },
+   "alias_sources": {
+    "candy": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "confect": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "canoe": {
    "family": "vehicles",
@@ -95,7 +196,18 @@
     "canoe": [
      "canoes"
     ]
-   }
+   },
+   "alias_sources": {
+    "canoe": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "caramel": {
    "family": "foods",
@@ -110,7 +222,18 @@
     "caramel": [
      "caramels"
     ]
-   }
+   },
+   "alias_sources": {
+    "caramel": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "cheese": {
    "family": "foods",
@@ -125,7 +248,18 @@
     "cheese": [
      "cheeses"
     ]
-   }
+   },
+   "alias_sources": {
+    "cheese": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "chili": {
    "family": "foods",
@@ -141,7 +275,21 @@
     "chili": [
      "chilis"
     ]
-   }
+   },
+   "alias_sources": {
+    "chili": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "chili con carne": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "clothes": {
    "family": "clothing",
@@ -152,8 +300,6 @@
     "apparel",
     "apparels",
     "clothes",
-    "dress",
-    "dresses",
     "wearing apparel",
     "wearing apparels"
    ],
@@ -163,11 +309,42 @@
     ],
     "wearing apparel": [
      "wearing apparels"
-    ],
-    "dress": [
-     "dresses"
     ]
-   }
+   },
+   "alias_sources": {
+    "apparel": [
+     "WordNet Synonyms"
+    ],
+    "clothes": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "wearing apparel": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "dress",
+     "base": "dress",
+     "rules": [
+      "S1:dress",
+      "S4:dress.n.01"
+     ]
+    },
+    {
+     "alias": "dresses",
+     "base": "dress",
+     "rules": [
+      "S1:dress",
+      "S4:dress.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "cow": {
    "family": "animals",
@@ -181,13 +358,27 @@
     "moo cows"
    ],
    "validated_plurals": {
-    "moo cow": [
-     "moo cows"
-    ],
     "cow": [
      "cows"
+    ],
+    "moo cow": [
+     "moo cows"
     ]
-   }
+   },
+   "alias_sources": {
+    "cow": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "moo cow": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "crow": {
    "family": "animals",
@@ -202,7 +393,18 @@
     "crow": [
      "crows"
     ]
-   }
+   },
+   "alias_sources": {
+    "crow": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "hamburger": {
    "family": "foods",
@@ -218,16 +420,41 @@
     "hamburgers"
    ],
    "validated_plurals": {
-    "hamburger": [
-     "hamburgers"
-    ],
     "beefburger": [
      "beefburgers"
     ],
     "burger": [
      "burgers"
+    ],
+    "hamburger": [
+     "hamburgers"
     ]
-   }
+   },
+   "alias_sources": {
+    "beefburger": [
+     "WordNet Synonyms"
+    ],
+    "burger": [
+     "WordNet Synonyms"
+    ],
+    "hamburger": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [
+    {
+     "alias": "burger",
+     "rules": [
+      "S4:burger.n.01"
+     ],
+     "rationale": "hamburger.n.01 is a sense of 'burger'; the first-listed sense is a person (Warren Burger) (S4)"
+    }
+   ],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "hat": {
    "family": "clothing",
@@ -238,21 +465,47 @@
     "chapeau",
     "chapeaux",
     "hat",
-    "hats",
-    "lid",
-    "lids"
+    "hats"
    ],
    "validated_plurals": {
-    "hat": [
-     "hats"
-    ],
     "chapeau": [
      "chapeaux"
     ],
-    "lid": [
-     "lids"
+    "hat": [
+     "hats"
     ]
-   }
+   },
+   "alias_sources": {
+    "chapeau": [
+     "WordNet Synonyms"
+    ],
+    "hat": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "lid",
+     "base": "lid",
+     "rules": [
+      "S1:lid",
+      "S4:eyelid.n.01"
+     ]
+    },
+    {
+     "alias": "lids",
+     "base": "lid",
+     "rules": [
+      "S1:lid",
+      "S4:eyelid.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "horse": {
    "family": "animals",
@@ -268,7 +521,21 @@
     "horse": [
      "horses"
     ]
-   }
+   },
+   "alias_sources": {
+    "equus caballus": [
+     "WordNet Synonyms"
+    ],
+    "horse": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "jacket": {
    "family": "clothing",
@@ -283,7 +550,18 @@
     "jacket": [
      "jackets"
     ]
-   }
+   },
+   "alias_sources": {
+    "jacket": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "jeans": {
    "family": "clothing",
@@ -293,22 +571,53 @@
    "aliases": [
     "blue jean",
     "blue jeans",
-    "denim",
-    "denims",
     "jean",
     "jeans"
    ],
    "validated_plurals": {
-    "denim": [
-     "denims"
-    ],
     "blue jean": [
      "blue jeans"
     ],
     "jean": [
      "jeans"
     ]
-   }
+   },
+   "alias_sources": {
+    "blue jean": [
+     "WordNet Synonyms"
+    ],
+    "jean": [
+     "WordNet Synonyms"
+    ],
+    "jeans": [
+     "Word",
+     "uniqueID"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "denim",
+     "base": "denim",
+     "rules": [
+      "AUDIT:material"
+     ]
+    },
+    {
+     "alias": "denims",
+     "base": "denim",
+     "rules": [
+      "AUDIT:material"
+     ]
+    }
+   ],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [
+    {
+     "alias": "denim",
+     "rationale": "also names the fabric (denim.n.02, 'a coarse durable twill-weave cotton fabric'): a material name does not discriminate the garment (Codex RSC 081f17b group 7); not reached by S1-S4 because 'denim''s first-listed sense is the target synset"
+    }
+   ],
+   "sense_rationale": null
   },
   "jet": {
    "family": "vehicles",
@@ -324,16 +633,33 @@
     "jets"
    ],
    "validated_plurals": {
+    "jet": [
+     "jets"
+    ],
     "jet plane": [
      "jet planes"
     ],
     "jet propelled plane": [
      "jet propelled planes"
-    ],
-    "jet": [
-     "jets"
     ]
-   }
+   },
+   "alias_sources": {
+    "jet": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "jet plane": [
+     "WordNet Synonyms"
+    ],
+    "jet propelled plane": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "lingerie": {
    "family": "clothing",
@@ -353,7 +679,21 @@
     "lingerie": [
      "lingeries"
     ]
-   }
+   },
+   "alias_sources": {
+    "intimate apparel": [
+     "WordNet Synonyms"
+    ],
+    "lingerie": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "mosquito": {
    "family": "animals",
@@ -368,7 +708,18 @@
     "mosquito": [
      "mosquitoes"
     ]
-   }
+   },
+   "alias_sources": {
+    "mosquito": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "pig": {
    "family": "animals",
@@ -376,30 +727,77 @@
    "synset": "n02395406",
    "sense": "domestic swine",
    "aliases": [
-    "grunter",
-    "grunters",
     "hog",
     "hogs",
     "pig",
-    "pigs",
-    "squealer",
-    "squealers",
-    "sus scrofa"
+    "pigs"
    ],
    "validated_plurals": {
-    "pig": [
-     "pigs"
-    ],
-    "grunter": [
-     "grunters"
-    ],
     "hog": [
      "hogs"
     ],
-    "squealer": [
-     "squealers"
+    "pig": [
+     "pigs"
     ]
-   }
+   },
+   "alias_sources": {
+    "hog": [
+     "WordNet Synonyms"
+    ],
+    "pig": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "grunter",
+     "base": "grunter",
+     "rules": [
+      "S4:grunter.n.01"
+     ]
+    },
+    {
+     "alias": "grunters",
+     "base": "grunter",
+     "rules": [
+      "S4:grunter.n.01"
+     ]
+    },
+    {
+     "alias": "squealer",
+     "base": "squealer",
+     "rules": [
+      "S4:informer.n.01"
+     ]
+    },
+    {
+     "alias": "squealers",
+     "base": "squealer",
+     "rules": [
+      "S4:informer.n.01"
+     ]
+    },
+    {
+     "alias": "sus scrofa",
+     "base": "sus scrofa",
+     "rules": [
+      "S4:wild_boar.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [
+    {
+     "alias": "hog",
+     "rules": [
+      "S4:hog.n.01"
+     ],
+     "rationale": "hog.n.03 (domestic swine) is the target synset; the first-listed sense is figurative, a greedy person (S4)"
+    }
+   ],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "pigeon": {
    "family": "animals",
@@ -414,7 +812,18 @@
     "pigeon": [
      "pigeons"
     ]
-   }
+   },
+   "alias_sources": {
+    "pigeon": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "prune": {
    "family": "foods",
@@ -429,7 +838,18 @@
     "prune": [
      "prunes"
     ]
-   }
+   },
+   "alias_sources": {
+    "prune": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "robe": {
    "family": "clothing",
@@ -444,7 +864,18 @@
     "robe": [
      "robes"
     ]
-   }
+   },
+   "alias_sources": {
+    "robe": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "shark": {
    "family": "animals",
@@ -459,7 +890,18 @@
     "shark": [
      "sharks"
     ]
-   }
+   },
+   "alias_sources": {
+    "shark": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "ship": {
    "family": "vehicles",
@@ -474,7 +916,18 @@
     "ship": [
      "ships"
     ]
-   }
+   },
+   "alias_sources": {
+    "ship": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "skateboard": {
    "family": "vehicles",
@@ -489,7 +942,18 @@
     "skateboard": [
      "skateboards"
     ]
-   }
+   },
+   "alias_sources": {
+    "skateboard": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "sock": {
    "family": "clothing",
@@ -504,7 +968,18 @@
     "sock": [
      "socks"
     ]
-   }
+   },
+   "alias_sources": {
+    "sock": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "taxi": {
    "family": "vehicles",
@@ -514,27 +989,64 @@
    "aliases": [
     "cab",
     "cabs",
-    "hack",
-    "hacks",
     "taxi",
     "taxicab",
     "taxicabs",
-    "taxies"
+    "taxies",
+    "taxis"
    ],
    "validated_plurals": {
-    "taxi": [
-     "taxies"
-    ],
     "cab": [
      "cabs"
     ],
+    "taxi": [
+     "taxies",
+     "taxis"
+    ],
     "taxicab": [
      "taxicabs"
-    ],
-    "hack": [
-     "hacks"
     ]
-   }
+   },
+   "alias_sources": {
+    "cab": [
+     "WordNet Synonyms"
+    ],
+    "taxi": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ],
+    "taxicab": [
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [
+    {
+     "alias": "hack",
+     "base": "hack",
+     "rules": [
+      "S4:hack.n.01"
+     ]
+    },
+    {
+     "alias": "hacks",
+     "base": "hack",
+     "rules": [
+      "S4:hack.n.01"
+     ]
+    }
+   ],
+   "equivalences_applied": [
+    {
+     "alias": "cab",
+     "rules": [
+      "S4:cab.n.01"
+     ],
+     "rationale": "cab.n.03 is the target synset itself; the first-listed sense (the driver's compartment) is a WordNet ordering artefact; the ordinary name of the vehicle (S4)"
+    }
+   ],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "tie": {
    "family": "clothing",
@@ -554,7 +1066,21 @@
     "tie": [
      "ties"
     ]
-   }
+   },
+   "alias_sources": {
+    "necktie": [
+     "WordNet Synonyms"
+    ],
+    "tie": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "tomato": {
    "family": "foods",
@@ -569,7 +1095,18 @@
     "tomato": [
      "tomatoes"
     ]
-   }
+   },
+   "alias_sources": {
+    "tomato": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "truck": {
    "family": "vehicles",
@@ -589,7 +1126,21 @@
     "truck": [
      "trucks"
     ]
-   }
+   },
+   "alias_sources": {
+    "motortruck": [
+     "WordNet Synonyms"
+    ],
+    "truck": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   },
   "wagon": {
    "family": "vehicles",
@@ -609,7 +1160,21 @@
     "wagon": [
      "wagons"
     ]
-   }
+   },
+   "alias_sources": {
+    "waggon": [
+     "WordNet Synonyms"
+    ],
+    "wagon": [
+     "Word",
+     "uniqueID",
+     "WordNet Synonyms"
+    ]
+   },
+   "excluded_aliases": [],
+   "equivalences_applied": [],
+   "audit_exclusions_applied": [],
+   "sense_rationale": null
   }
  }
 }

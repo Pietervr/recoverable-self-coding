@@ -1,4 +1,4 @@
-"""AI image-reader qualification, revision 3: the sampling frame and the draw (standard library only, shared by the key
+"""AI image-reader qualification, revision 4: the sampling frame and the draw (standard library only, shared by the key
 builder `ai_reader_key.py` and the image builder `ai_reader_qual.py`). Framework §8.2 reader rule; Codex RSC cf3e49e
 and 7048bb8; R052 handoffs 7f25830e repair 3 and 742146ad group 2.
 
@@ -6,10 +6,12 @@ SOURCE PINS (group 2). The construction inputs are pinned by sha256 and checked 
 (`check_sources`): both metadata tables and the norm description (hashes reproduced by Codex, RSC 7048bb8 section 2).
 The WordNet corpus is pinned in the key builder.
 
-FRAME INVARIANT (group 2), asserted on every retained frame row, never used to exclude or redraw
-(`check_frame_invariant`): the image row of '<concept>.jpg' carries uniqueID == <concept> and the concept's Word; the
-proportions are finite and in [0, 1]; N_ratings and N_correct are integers with 0 <= N_correct <= N_ratings and
-N_ratings > 0; no concept id or root image row is duplicated, and none is missing. The release has 20 filename/uniqueID
+FRAME INVARIANT (group 2; revision 4 adds the direct close and ratio comparisons, Codex RSC 5a8d7ac), asserted on every
+retained frame row, never used to exclude or redraw (`check_frame_invariant`): the image row of '<concept>.jpg'
+carries uniqueID == <concept> and the concept's Word; the proportions are finite and in [0, 1]; N_ratings and
+N_correct are integers with 0 <= N_correct <= N_ratings and N_ratings > 0; the RETAINED exact, close and counts equal
+the source row's; the retained exact equals N_correct / N_ratings (1e-6) and close is not below exact; no concept id or
+root image row is duplicated, and none is missing. The release has 20 filename/uniqueID
 mismatches among its 1,854 root rows; none survives the frame (they are homonym or anomaly exclusions), so the
 invariant holds and the verified redraw stands. Mutation fixtures: tests `FrameInvariant`.
 
@@ -121,8 +123,11 @@ def check_frame_invariant(rows: list[dict], concepts: dict, imgs: dict) -> int:
         nr, nc = _count(im["recognizability_N-ratings"]), _count(im["recognizability_N-correct"])
         if nr is None or nc is None or not (nr > 0 and 0 <= nc <= nr):
             raise SystemExit(f"invariant: {uid} counts are not integers with 0 <= N_correct <= N_ratings, N_ratings > 0")
-        if (x["n_ratings"], x["n_correct"]) != (nr, nc) or x["rec"] != float(im["recognizability"]):
-            raise SystemExit(f"invariant: {uid} retained norm differs from its source row")
+        if (x["n_ratings"], x["n_correct"]) != (nr, nc) or x["rec"] != float(im["recognizability"]) or \
+                x["close"] != float(im["recognizability_close"]):
+            raise SystemExit(f"invariant: {uid} retained norm (exact, close or counts) differs from its source row")
+        if abs(nc / nr - x["rec"]) > 1e-6 or x["close"] < x["rec"] - 1e-9:
+            raise SystemExit(f"invariant: {uid} retained ratio differs from N_correct/N_ratings, or close < exact")
     return len(seen)
 
 

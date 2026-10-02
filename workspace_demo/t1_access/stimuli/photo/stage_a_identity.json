@@ -15,7 +15,7 @@
   "vision": "mlx-vlm qwen3_5 vision tower in its weight dtype; features cast to the hidden dtype at merge",
   "weights": "4-bit affine (snapshot quantization config)"
  },
- "identity_sha256": "1aa94baf55378a29269b1bd9b5cf3fc91f71c3af13c90233e4d28ff4e01ef13b",
+ "identity_sha256": "18f5e165c7a6fca4df7548cb26b494b8b397c74ec5448d3f15b006bc9c1e046c",
  "jlens": {
   "head": "745a3a894be7043ae5eb7dbbdcec44b68b819411",
   "sitecustomize_sha256": "8b0b2acbe668ef4d994cad710557d57683d98a52c588e9bfe3e6dd1caa43afc9",
@@ -28,13 +28,14 @@
  "local_code_sha256": {
   "dose.py": "05d61ea6d199903eb066534e8cc2e7bb73e102b9cfa284f5692f8d75e9bb4302",
   "dose_report.py": "aff4afc3ac18455d0876da042d4202deaf428820ffaf09fde4603e32e14a825a",
-  "enforce.py": "150cc0c63f4551acaa5f5ffb4f355b91dc61d796f47dbbec1f4c917ae00b1381",
+  "enforce.py": "043c1c577cdd54000d2f9471d2fc458a2a3300c1c0a0da775a86db9680b8e36a",
   "image_adapter.py": "2c1c3cedc9559fe8b2f7fd31c82984255ac7072a1f6442fc5a3e098f56f901aa",
-  "memprobe.py": "bced97391aed7d3472c974a4ddd0ae4ae784c9962d1a3aca63cc2c45f2933634",
-  "stage_a.py": "69dfb79ed473518c603d6c463bbceda8178c3f97cc52a62f9dc4a3a78599543c",
-  "stage_a_controller.py": "bac646a6a1f75ec89031ea1f1692ac3af4d1a7c316ca597f71e53c003bc7930d",
-  "stage_a_guard.py": "8c916465fb6256a22371e599b148c4e6ece30c30ac0f501c254b4dc950e9f68c",
-  "stage_a_report.py": "89d0fade9446c5785ce2cb5aebfcd4441bc3be769a39724d9ce2d91e7b039b33"
+  "memprobe.py": "c85d304df8c584cf74db0d0b2ae1e990fe5e97126d6442134669cdccda91aea5",
+  "stage_a.py": "83985ce6336995adb30b4260b3111ba590bf193de9e2d9ec927d263f1d3a956e",
+  "stage_a_controller.py": "6761d891e116367edb196240d47ebf04d3637cb98eea2edf9f3bc5e4f9378b29",
+  "stage_a_guard.py": "1e13621975589de885c159de5463be1dd817b6ed367c2961208c9f1fd44f5546",
+  "stage_a_report.py": "189aa2c4eedb9cd0bca047ba243861942cf6db13b09ec57035dfc17681a8e15f",
+  "stage_a_watchdog.py": "6d0ac05a204d4a68d1ac072c9cfe8760e032dc2eadd8d718bfa62e65e635700a"
  },
  "machine": "arm64",
  "macos": "27.0",
@@ -54,8 +55,8 @@
   "transformers": "5.13.0"
  },
  "packet_py_sha256": "e4e0b6f8506b3af9f44b610e700ae12ba81cccb97d2982bd231611b2888c2eef",
- "plan_sha256": "b349d35185cbe5f8e917d88e71bcb64779576286a977b97eaad2d442c163f23e",
- "positions_receipt_sha256": "6343e30c6a87e8eeb080a344318b1fdd51f7695cb3d378f95a637bcae3874d48",
+ "plan_sha256": "98eb2817df5a99c98fab29285cd002f95a3042fa6fa235146cf9719d922289d6",
+ "positions_receipt_sha256": "c8d911ad035db414781c76878962c79e849b57ea105e73729ccd6a79ab808b37",
  "python": "3.12.14",
  "row": "20",
  "snapshot": {

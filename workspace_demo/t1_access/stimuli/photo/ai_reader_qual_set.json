@@ -1,5 +1,5 @@
 {
- "revision": 3,
+ "revision": 4,
  "note": "Reader-side record of the AI-reader qualification: no labels. The key is ai_reader_qual_key.json (orchestrator only).",
  "seed": 20261007,
  "order_seed": 20261008,
@@ -31,7 +31,7 @@
   "cli_version": "codex-cli 0.159.3",
   "model": "gpt-6.1-sol",
   "reasoning_effort": "medium",
-  "delivery": "one image attached with -i to a fresh ephemeral exec session under sandbox-exec (home unreadable but the auth file), pinned minimal environment, empty working directory, private CODEX_HOME holding only the auth link, user config, rules and optional instructions off, read-only, tool features disabled; the prompt-input receipt and the JSONL event stream checked (ai_reader_runtime.py, ai_reader_exec.py)"
+  "delivery": "one image attached with -i to a fresh ephemeral exec session, the prompt after '--', under a sandbox-exec ALLOWLIST (deny by default: only the codex binary may run; reads only of the attempt directory with the image, the auth file, the codex binary and the system runtime), pinned minimal environment, private CODEX_HOME holding only the auth link, user config, rules and optional instructions off, read-only, web search and tool features disabled (unified_exec cannot be, and no program but codex may run); the prompt-input and exec-invocation receipts and the JSONL event stream checked (ai_reader_runtime.py, ai_reader_exec.py)"
  },
  "release": {
   "zip": {
@@ -6060,11 +6060,11 @@
   "4d7f5790e767",
   "b4ea376fb211"
  ],
- "key_sha256": "f68c71f7d3a8372d00c99f7627f5c243fd0e93b6a742a9e2b8960b01bbb79ce3",
+ "key_sha256": "d9c467f39d4d221b8d92059574506b1537140e66b6b9df18db28e15610ef9aea",
  "code_sha256": {
-  "ai_reader_frame.py": "3ec7f42ee3bf59bd289e5053783010fc39bfd274c8dde61df6e7266eab2c1e12",
-  "ai_reader_key.py": "328a8617b447d8374288056f3db43e4a3565fd92802acf59deb8d37a66a5cf90",
-  "ai_reader_qual.py": "8d570ab4f7b5ec59ad18b42c3cbddac13e0bd4984d8c45a5879b557833df0ae2",
+  "ai_reader_frame.py": "cf1e648dbd7617cc8160c73969adbcf4eac0703823ec98ae25056c7ef7ba60d8",
+  "ai_reader_key.py": "e063c7ceb08d39ac028e418857a612797516129ed1aa1e96280e22902d660c8f",
+  "ai_reader_qual.py": "6153bb6fafc63f64f92fee8654cb78cdfac4d6652e31261844d7ac35c2848cdc",
   "dose.py": "05d61ea6d199903eb066534e8cc2e7bb73e102b9cfa284f5692f8d75e9bb4302"
  }
 }

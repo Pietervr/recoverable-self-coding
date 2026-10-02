@@ -1,5 +1,5 @@
 {
- "revision": 3,
+ "revision": 4,
  "seed": 20261006,
  "a_grid_sha256": "3e86bc49eea49d2db2ef336f7843808f2beff0fc158c54a1bf7f6affa9c9683c",
  "inputs": [
@@ -2489,20 +2489,26 @@
   "memory_cap": 51539607552,
   "controller": {
    "heartbeat_s": 1.0,
-   "memory_sample_s": 0.25,
-   "system_sample_s": 2.0,
+   "memory_sample_s": 0.1,
+   "system_sample_s": 1.0,
+   "sample_limit_s": 0.5,
    "tail_reserve_s": 60.0,
    "stop_reserve_s": 60.0,
    "report_reserve_s": 600.0,
    "term_grace_s": 3.0,
+   "watchdog_stale_s": 10.0,
+   "watchdog_hard_margin_s": 5.0,
+   "group_gone_s": 10.0,
+   "final_write_timeout_s": 30.0,
    "memory_stop_bytes": 47244640256,
+   "memory_measure": "sum of lifetime maxima over the controller, the watchdog, the worker and its group/descendants",
    "final_reserve_bytes": 67108864
   },
   "rule": "no attempt id outside the plan; no retry; the six in hand are spent only by an owner-authorised recovery of one named interrupted try"
  },
- "budget_sha256": "a4b833ddde953234cf209f62ae09b7068bfbe1bf62f4d3aec764f3caa1d0a9bf",
+ "budget_sha256": "334ae9c9e5be55b0f8e6cdfc17d7d60463dc28da548239e0a59a2d2f390f8820",
  "dev_pool_sha256": "fae20dc215d1de329ff81a5687735047c9a92cead1b9642f7cda4f6c2d69ad2d",
- "provenance_checks_sha256": "84abf3618f699fa9d4e9d1fc1a7179b7668d3e1c09ca34fc8dfd3c159c6398aa",
+ "provenance_checks_sha256": "0085d38e9c29b4403b5791bb9140149a38fbb800a5c516e1d680fee9a0a1a6ec",
  "manifest_records_sha256": {
   "chili": "4e3c79a0bd54e63786d4e68a8454926ad150a52adf59d5c65cb0e56f5fb363fe",
   "clothes": "9f313ee6f0bd7ec274298366a92733c093de865e914e6ed76177633eafbe365e",

@@ -4,7 +4,11 @@ looked at). The fixture root (three levels above HOME, i.e. <root>/attempts/<tmp
 each exec call appends {request, behaviour, pid} to dispatch_log.jsonl there.
 
 Behaviours: ok:<answer> | ok_exit1:<answer> | slow_ok:<seconds>:<answer> | fail | structural | tool | tool_exit1 |
-malformed | no_events:<answer> | long | multiline | noimage | block (ignores SIGTERM) | flood (> 1 MiB stdout)
+malformed | no_events:<answer> | long | multiline | noimage | block (ignores SIGTERM) | flood (> 1 MiB stdout) |
+quickflood (> 1 MiB stdout, then exit at once) | orphanchild:<answer> (a child ignoring SIGTERM outlives the answer) |
+notice:<answer> (the frozen code-mode notice first) | unknown_error:<answer> | two_messages | mismatch (-o differs) |
+completed_not_last | item_without_id | promptfail (debug prompt-input fails) - FAKE_PROMPT_FAIL=1 in the environment
+of the fixture also makes prompt-input fail.
 """
 
 import base64
@@ -40,6 +44,9 @@ if args[:2] == ["features", "list"]:
     sys.exit(0)
 if args[:2] == ["debug", "prompt-input"]:
     img = Path(opt("-i"))
+    if (Path(os.environ["HOME"]).parents[2] / "PROMPT_FAIL").exists():
+        print("prompt-input failed (fixture)", file=sys.stderr)
+        sys.exit(2)
     b64 = base64.b64encode(img.read_bytes()).decode()
     meta = {"internal_chat_message_metadata_passthrough": {"content_item_kinds": ["multi_agent.role_instructions"]}}
     out = [{"type": "message", "role": "developer", "content": [{"type": "input_text", "text": "<fake role>"}], **meta},
@@ -69,15 +76,27 @@ def ev(t, **kw):
     print(json.dumps({"type": t, **kw}), flush=True)
 
 
-def answer(text, code=0, tool=False):
+NOTICE = ("Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable "
+          "`features.code_mode_host` and install `codex-code-mode-host`.")
+
+
+def answer(text, code=0, tool=False, pre=None, file_text=None, extra=None, last_event=True):
     ev("thread.started", thread_id="t")
+    for x in pre or []:
+        ev("item.completed", item=x)
     ev("turn.started")
     ev("item.completed", item={"id": "r", "type": "reasoning", "text": "..."})
     if tool:
         ev("item.completed", item={"id": "c", "type": "command_execution", "command": "cat key"})
     ev("item.completed", item={"id": "m", "type": "agent_message", "text": text})
-    last.write_text(text)
-    ev("turn.completed", usage={"input_tokens": 900, "output_tokens": 3})
+    for x in extra or []:
+        ev(x["type"], **{k: v for k, v in x.items() if k != "type"})
+    last.write_text(text if file_text is None else file_text)
+    if last_event:
+        ev("turn.completed", usage={"input_tokens": 900, "output_tokens": 3})
+    else:
+        ev("turn.completed", usage={"input_tokens": 900, "output_tokens": 3})
+        ev("item.completed", item={"id": "late", "type": "reasoning", "text": "late"})
     sys.exit(code)
 
 
@@ -118,6 +137,36 @@ if kind == "noimage":
 if kind == "block":
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
     time.sleep(600)
+if kind == "quickflood":
+    ev("thread.started", thread_id="t")
+    sys.stdout.write("x" * (2 << 20))
+    sys.stdout.flush()
+    sys.exit(0)
+if kind == "orphanchild":
+    import subprocess
+    c = subprocess.Popen([sys.executable, "-c", "import signal, time; signal.signal(signal.SIGTERM, signal.SIG_IGN); "
+                                                "time.sleep(600)"])
+    with open(root / "orphan.pid", "w") as fh:
+        fh.write(str(c.pid))
+    time.sleep(1.5)                                # sampled as a member before the leader answers and exits
+    answer(rest)
+if kind == "notice":
+    answer(rest, pre=[{"id": "n0", "type": "error", "message": NOTICE}])
+if kind == "unknown_error":
+    answer(rest, pre=[{"id": "n0", "type": "error", "message": "something else went wrong"}])
+if kind == "two_messages":
+    answer("thing", extra=[{"type": "item.completed", "item": {"id": "m2", "type": "agent_message", "text": "other"}}])
+if kind == "mismatch":
+    answer("thing", file_text="something else")
+if kind == "completed_not_last":
+    answer("thing", last_event=False)
+if kind == "item_without_id":
+    ev("thread.started", thread_id="t")
+    ev("turn.started")
+    ev("item.completed", item={"type": "agent_message", "text": "thing"})
+    last.write_text("thing")
+    ev("turn.completed", usage={"input_tokens": 1, "output_tokens": 1})
+    sys.exit(0)
 if kind == "flood":
     ev("thread.started", thread_id="t")
     sys.stdout.write("x" * (2 << 20))

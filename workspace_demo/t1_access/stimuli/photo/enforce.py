@@ -1,7 +1,6 @@
 """Photograph arm, rows 20 and 21: the WORKER-SIDE ledger - attempts, the completion transaction, recovery and
-storage reservations. Revision 3 (Codex RSC 69539bb closure groups 2-4): time, memory, swap, pressure, the deadline,
-termination and reaping moved to the independent controller process (`stage_a_controller.py`), which a worker
-cannot outlive or block; this module no longer runs a thread or reads memory.
+storage reservations. Revision 4 (Codex RSC 081f17b closure groups 2 and 4). Time, memory, swap, pressure, the deadline,
+termination and reaping belong to the independent controller (`stage_a_controller.py`) and its watchdog.
 
 STATE: one file per task (`stage_a_state.json`), written atomically (temp file, fsync, os.replace, directory fsync)
 before and after every attempt. Counters are cumulative and never reset: attempts started / completed / failed and
@@ -12,15 +11,20 @@ the controller's (`controller.json`), not this module's.
 ATTEMPTS: `attempt(id, kind, passes)` counts the attempt durably BEFORE the forward and yields an `Attempt`; the
 caller writes, re-reads, checksums and validates its outputs and then calls `commit({path: sha256})`. Only a
 committed attempt is complete. An exception, or leaving without commit, records a failed attempt. An attempt open at a
-crash is recorded at the next open as INTERRUPTED with the session and try that held it; it is never re-run unless
-the controller passes an authorisation naming that attempt, session and try, which `authorise_recovery` consumes
-durably (a second use, or a use for a later crash of the same id, is refused). A committed attempt is reloaded and
-re-verified by the caller, never replayed; an id already attempted otherwise is never retried.
+crash is RECONCILED (`reconcile_open_attempt`) into INTERRUPTED with the session and try that held it - by the
+controller's gates before anything is spawned, and again by any ledger open; it is never re-run unless an
+authorisation names that attempt, session and try, which `authorise_recovery` consumes durably (a second use, or a use
+for a later crash of the same id, is refused). An interrupted try without authority is an AUTHORISATION HOLD, not an
+integrity failure. `read_ledger` gives the report a read-only view: it describes an open or interrupted attempt and
+never converts, grants or consumes anything.
 
-STORAGE: `reserve(n)` must pass before a write of n bytes: everything under the task directories plus 3 n (the bytes
-and the temp/rename overlap) must stay under the row's operational storage limit, which the caller sets to the cap
-minus the declared finalisation reserve (state, terminal, completion, parity and report writes). `final_size()` is
-checked at phase end against the full cap.
+STORAGE (every writer): `configure_storage(roots, cap, operational)` sets the task's directories and limits once per
+process; from then on EVERY `write_atomic` / `write_json_atomic` under those roots first checks that everything under
+them plus 3 n (the bytes and the temp/rename overlap) stays under its class's limit, and refuses (StorageStop) otherwise.
+Work writes (arrays, per-pass records) use the operational limit = cap - the finalisation reserve; finalisation writes
+(`final=True`: state, terminal, phase completion, parity, report, controller and final records) use the full cap, so
+the reserve stays available on every stop route without a cap reset. `final_size()` is checked at phase end against
+the full cap.
 """
 
 from __future__ import annotations
@@ -42,8 +46,35 @@ class StopRun(RuntimeError):
     """A declared stop condition. The caller archives and stops; it never retries past one."""
 
 
-def write_atomic(path: Path, data: bytes) -> None:
+class StorageStop(StopRun):
+    """A write that its storage class's limit cannot hold."""
+
+
+STORAGE: dict = {"roots": None, "cap": None, "operational": None}
+
+
+def configure_storage(roots, cap: int, operational: int | None = None) -> None:
+    STORAGE.update(roots=[Path(r).resolve() for r in roots], cap=int(cap),
+                   operational=int(operational if operational is not None else cap))
+
+
+def _check_reserve(path: Path, nbytes: int, final: bool) -> None:
+    roots = STORAGE["roots"]
+    if not roots:
+        return
+    rp = Path(path).resolve()
+    if not any(rp == r or r in rp.parents for r in roots):
+        return
+    limit = STORAGE["cap"] if final else STORAGE["operational"]
+    used = dir_bytes(roots)
+    if used + 3 * int(nbytes) > limit:
+        raise StorageStop(f"writing {nbytes} bytes to {rp.name} would exceed the "
+                          f"{'cap' if final else 'operational limit'} {limit} ({used} used)")
+
+
+def write_atomic(path: Path, data: bytes, *, final: bool = False) -> None:
     path = Path(path)
+    _check_reserve(path, len(data), final)
     tmp = path.with_name(path.name + ".tmp")
     with open(tmp, "wb") as fh:
         fh.write(data)
@@ -57,8 +88,8 @@ def write_atomic(path: Path, data: bytes) -> None:
         os.close(dfd)
 
 
-def write_json_atomic(path: Path, obj) -> None:
-    write_atomic(path, json.dumps(obj, indent=1, sort_keys=True).encode())
+def write_json_atomic(path: Path, obj, *, final: bool = False) -> None:
+    write_atomic(path, json.dumps(obj, indent=1, sort_keys=True).encode(), final=final)
 
 
 def dir_bytes(paths) -> int:
@@ -75,6 +106,43 @@ def dir_bytes(paths) -> int:
 
 def _zero() -> dict:
     return {"started": 0, "completed": 0, "failed": 0, "passes": 0}
+
+
+def _reconcile(state: dict) -> dict | None:
+    a = state.get("open_attempt")
+    if not a:
+        return None
+    for key in (a["row"], "aggregate"):
+        state["counters"][key]["failed"] += 1
+    state["attempts"][a["id"]]["status"] = "interrupted"
+    state["interrupted"].append({"id": a["id"], "session": a["session"], "try": a["try"]})
+    state["log"].append({"id": a["id"], "kind": a["kind"], "passes": a["passes"], "status": "interrupted",
+                         "session": a["session"], "reconciled": True})
+    state["open_attempt"] = None
+    return a
+
+
+def reconcile_open_attempt(state_path: Path) -> dict | None:
+    """Durably turn an attempt left open by a crash into an INTERRUPTED try (started, failed, never re-run without
+    an owner's authority). Returns the reconciled attempt, or None when nothing was open."""
+    p = Path(state_path)
+    if not p.exists():
+        return None
+    st = json.loads(p.read_text())
+    a = _reconcile(st)
+    if a:
+        write_json_atomic(p, st, final=True)
+    return a
+
+
+def read_ledger(state_path: Path) -> dict:
+    """A read-only view for the report: the state as stored, with any open attempt DESCRIBED as interrupted
+    (unreconciled) - nothing is converted, granted or consumed."""
+    p = Path(state_path)
+    if not p.exists():
+        return {"state": None, "unreconciled_open_attempt": None}
+    st = json.loads(p.read_text())
+    return {"state": st, "unreconciled_open_attempt": st.get("open_attempt")}
 
 
 class Attempt:
@@ -104,13 +172,7 @@ class Budget:
             if self.state["identities"].get(row) not in (None, identity):
                 raise StopRun(f"identity mismatch for {row}: state has {self.state['identities'][row]}, "
                               f"this execution is {identity}")
-            a = self.state.get("open_attempt")
-            if a:                                       # died mid-attempt: stays started, now failed and interrupted
-                for key in (a["row"], "aggregate"):
-                    self.state["counters"][key]["failed"] += 1
-                self.state["attempts"][a["id"]]["status"] = "interrupted"
-                self.state["interrupted"].append({"id": a["id"], "session": a["session"], "try": a["try"]})
-                self.state["open_attempt"] = None
+            _reconcile(self.state)                      # died mid-attempt: stays started, now failed and interrupted
         else:
             self.state = {"identities": {}, "counters": {"row20": _zero(), "row21": _zero(), "aggregate": _zero()},
                           "completed": {}, "attempts": {}, "interrupted": [], "recoveries_consumed": [],
@@ -124,7 +186,7 @@ class Budget:
         self.persist()
 
     def persist(self) -> None:
-        write_json_atomic(self.path, self.state)
+        write_json_atomic(self.path, self.state, final=True)
 
     def used_bytes(self) -> int:
         return dir_bytes(self.task_paths)
@@ -132,7 +194,7 @@ class Budget:
     def reserve(self, nbytes: int) -> None:
         used = self.used_bytes()
         if used + 3 * int(nbytes) > min(self.storage_limit, self.caps["aggregate"]["bytes"]):
-            raise StopRun(f"reserving {nbytes} bytes would exceed the operational storage limit "
+            raise StorageStop(f"reserving {nbytes} bytes would exceed the operational storage limit "
                           f"{self.storage_limit} ({used} used)")
 
     def final_size(self) -> int:

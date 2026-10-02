@@ -1,4 +1,4 @@
-"""AI image-reader qualification, revision 3: the IMAGES and the reader-side SET (framework §8.2 reader rule, R052
+"""AI image-reader qualification, revision 4: the IMAGES and the reader-side SET (framework §8.2 reader rule, R052
 2 Oct 2026; Codex RSC cf3e49e and 7048bb8, not favourable to revisions 1 and 2; R052 handoffs 7f25830e and 742146ad).
 Nothing here calls a model.
 
@@ -56,10 +56,12 @@ ORDER_SEED = 20261008
 PROMPT = ("Look at this picture. What is the main object in it? Answer with one short noun or noun phrase that "
           "names the object, or with the single word 'unclear' if you cannot tell. Reply with the name only.")
 READER = {"product": "OpenAI Codex CLI (codex exec)", "cli_version": "codex-cli 0.159.3", "model": "gpt-6.1-sol",
-          "reasoning_effort": "medium", "delivery": "one image attached with -i to a fresh ephemeral exec session "
-          "under sandbox-exec (home unreadable but the auth file), pinned minimal environment, empty working "
-          "directory, private CODEX_HOME holding only the auth link, user config, rules and optional instructions "
-          "off, read-only, tool features disabled; the prompt-input receipt and the JSONL event stream checked "
+          "reasoning_effort": "medium", "delivery": "one image attached with -i to a fresh ephemeral exec session, the "
+          "prompt after '--', under a sandbox-exec ALLOWLIST (deny by default: only the codex binary may run; reads "
+          "only of the attempt directory with the image, the auth file, the codex binary and the system runtime), "
+          "pinned minimal environment, private CODEX_HOME holding only the auth link, user config, rules and optional "
+          "instructions off, read-only, web search and tool features disabled (unified_exec cannot be, and no program "
+          "but codex may run); the prompt-input and exec-invocation receipts and the JSONL event stream checked "
           "(ai_reader_runtime.py, ai_reader_exec.py)"}
 
 
@@ -100,7 +102,7 @@ def main() -> int:
         if all(item_of[a] != item_of[b] for a, b in zip(order, order[1:])):
             break
     strata = {s: sum(1 for x in d["chosen"] if x["stratum"] == s) for s in (0, 1, 2)}
-    out = {"revision": 3, "note": "Reader-side record of the AI-reader qualification: no labels. The key is "
+    out = {"revision": 4, "note": "Reader-side record of the AI-reader qualification: no labels. The key is "
            "ai_reader_qual_key.json (orchestrator only).", "seed": F.SEED, "order_seed": ORDER_SEED,
            "n_items": len(d["chosen"]), "n_requests": len(requests), "easy_items": sum(x["easy"] for x in d["chosen"]),
            "strata": strata, "cuts": d["cuts"], "frame_size": d["n_frame"],

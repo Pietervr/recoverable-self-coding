@@ -11,7 +11,7 @@ eight go first, as the audit's own pilot.
 
 - **Reader: one AI reader, Codex (GPT-family vision).** Codex is from a different developer than the model under
   test. It reads the stimuli only after it passes the qualification of §8.2: on the grayscale canvas, whole-answer
-  admissible naming on 59 of the 61 easy THINGSplus images or better. The qualification is a separate package
+  admissible naming on 61 of the 63 easy THINGSplus images or better (one-sided exact 95 % lower bound >= 0.90). The qualification is a separate package
   (`stimuli/photo/ai_reader_qual.py`, with its executor and bounded job brief), reviewed by Codex before its first
   call.
 - **The owner decides referrals.** The owner does not read every item.
@@ -55,9 +55,14 @@ question appears.
 An item **passes on the AI reader alone** when all of these hold:
 
 - the free name, normalised, equals an admissible alias of the intended concept and sense in
-  `stimuli/photo/audit_alias_map.json` - the audit's own frozen map for the 32 instrument concepts, built the way
-  the qualification key is (THINGS synset names plus WordNet-validated plurals), since the qualification key
-  excludes every pool concept and cannot score them;
+  `stimuli/photo/audit_alias_map.json` - the audit's own frozen map for the 32 instrument concepts (the qualification
+  key excludes every pool concept and cannot score them), built under the qualification key's specificity rule S1-S4
+  (dress is pruned from clothes, lid from hat), with three documented same-referent equivalences (taxi/cab,
+  hamburger/burger, pig/hog), one documented exclusion the rule does not reach (denim from jeans: it also names the
+  fabric), and ordinary validated inflections (taxis beside taxies). The map records its construction identities
+  (THINGS tables and norm description, WordNet 3.0, dev_pool.json, ai_reader_key.py and its builder), and the audit
+  scorer (`audit_alias_map.score`, format checked before matching) refuses unless the map hashes to
+  audit_alias_map.json sha256: `a3f6ab51dbf0dda1148a26bfdc8b671adf91d1edc712fe58ef9ddcffc0397c80`;
 - photograph = yes;
 - sense = yes;
 - for a second view, distinct = yes.

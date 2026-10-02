@@ -1,42 +1,73 @@
 {
- "recorded": "2026-10-02T00:04:04-0700",
+ "recorded": "2026-10-02T02:43:01-0700",
  "python": "3.12.14",
  "measured": {
-  "deadline_metal": {
-   "kill_to_reap_s": 3.013,
+  "stale_heartbeat": {
+   "observed_to_group_gone_s": 3.052,
    "how": "SIGKILL",
-   "run_seconds": 9.987
+   "bound_s": 13.0,
+   "run_seconds": 27.264
+  },
+  "blocked_writer": {
+   "observed_to_group_gone_s": 3.046,
+   "how": "SIGKILL"
+  },
+  "controller_death": {
+   "kill_to_group_gone_s": 3.15,
+   "how": "SIGKILL",
+   "watchdog_observed_to_gone_s": 3.068
+  },
+  "deadline_metal": {
+   "kill_to_reap_s": 3.036,
+   "how": "SIGKILL"
   },
   "deadline": {
-   "kill_to_reap_s": 3.012,
+   "kill_to_reap_s": 3.03,
    "how": "SIGKILL",
-   "run_seconds": 6.889,
+   "run_seconds": 7.972,
    "grandchild_killed": true
   },
-  "memory_stop_seconds": 1.57,
-  "pass_run_seconds": 2.329,
-  "persistence_failure_seconds": 5.718
+  "exit_peak_gib": 1.057,
+  "pass_run_seconds": 3.329,
+  "max_iteration_s": {
+   "gates": 0.11176175001310185,
+   "instrumented": 0.1130198750179261,
+   "native": 0.1102812500030268,
+   "report": 0.1123208750213962
+  },
+  "persistence_failure_seconds": 9.434
  },
  "memory_fixture": {
   "steady": {
-   "phys_footprint": 3.219,
-   "lifetime_max": 3.219,
-   "resident": 1.081,
-   "allocated_simultaneously_gib": 3.0,
-   "mlx_active_gib": 2.0,
+   "phys_footprint_gib": 4.222,
+   "lifetime_max_gib": 4.222,
+   "host_gib": 1.0,
+   "mlx_active_gib": 1.0,
+   "mlx_cache_gib": 2.0,
+   "allocated_now_gib": 4.0,
+   "sample_seconds": 0.000165
+  },
+  "nocache": {
+   "phys_footprint_gib": 2.222,
+   "lifetime_max_gib": 4.222,
+   "host_gib": 1.0,
+   "mlx_active_gib": 1.0,
    "mlx_cache_gib": 0.0,
-   "sample_seconds": 0.000125
+   "allocated_now_gib": 2.0,
+   "sample_seconds": 0.000104
   },
   "spike": {
-   "phys_footprint": 5.222,
-   "lifetime_max": 5.222,
-   "resident": 3.082,
-   "allocated_simultaneously_gib": 3.0,
-   "mlx_active_gib": 2.0,
-   "mlx_cache_gib": 0.0,
-   "sample_seconds": 8.1e-05
+   "phys_footprint_gib": 6.223,
+   "lifetime_max_gib": 6.223,
+   "host_gib": 1.0,
+   "mlx_active_gib": 1.0,
+   "mlx_cache_gib": 2.0,
+   "allocated_now_gib": 4.0,
+   "sample_seconds": 0.000105
   },
-  "expected_transient_peak_gib": 5.0
+  "exit_peak_before_reap_gib": 2.057,
+  "max_growth_gib_per_s": 12.69,
+  "task_listing_seconds": 0.001305
  },
- "note": "synthetic workers, no model, no development input"
+ "note": "synthetic workers and the real watchdog, no model, no development input"
 }
