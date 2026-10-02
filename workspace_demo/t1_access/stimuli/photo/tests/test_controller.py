@@ -551,6 +551,88 @@ class Controller(unittest.TestCase):
                                       if x.get("closed") == "failed_start_before_pending"]), 1)
                 MEASURED.setdefault("pre_pending_stall_charged_s", {})[name] = round(fs[0]["charged_s"], 3)
 
+    def test_external_death_before_pending_with_a_healthy_guardian(self):
+        """Revision 9 (Codex 7fdb937, Stage A A1.1): directory creation or the lock blocks; the controller is
+        SIGKILLed from outside before its pending entry and long before the guardian's deadline; the healthy guardian
+        observes the death and records it; the next start charges start -> death."""
+        stalls = {"directory": ("real = pathlib.Path.mkdir\n"
+                                "def mk(self, *a, **k):\n"
+                                "    if str(self) == str(o): time.sleep(10**6)\n"
+                                "    return real(self, *a, **k)\n"
+                                "pathlib.Path.mkdir = mk\n"),
+                  "lock": "import stage_a_guard\nstage_a_guard.TaskLock = lambda d: time.sleep(10**6)\n"}
+        for name, patch in stalls.items():
+            with self.subTest(name):
+                out = new_out()
+                p = subprocess.Popen(driver(f"o=Path({str(out)!r})\nimport time, pathlib\n" + patch +
+                                            "T.ctl(o, {}).run()\n"), stderr=subprocess.PIPE, text=True)
+                try:
+                    for _ in range(400):
+                        if list(out.glob("guardian_*.json")) if out.exists() else []:
+                            break
+                        time.sleep(0.025)
+                    gp = next(out.glob("guardian_*.json"))
+                    self.assertEqual(json.loads(gp.read_text())["state"], "armed")
+                    time.sleep(1.0)
+                    p.kill()                                         # an external death, not the guardian's
+                    p.wait()
+                    killed = time.time()
+                finally:
+                    p.stderr.close()
+                for _ in range(400):
+                    g = json.loads(gp.read_text())
+                    if g["state"] != "armed":
+                        break
+                    time.sleep(0.025)
+                self.assertEqual(g["state"], "controller_exited")
+                self.assertFalse((out / C.STARTING).exists())
+                self.assertEqual(ctl(out, {}).run()["outcome"], "PASS")
+                fs = [x for x in rec(out)["sessions"] if x.get("closed") == "failed_start_before_pending"]
+                self.assertEqual([x["session"] for x in fs], [gp.stem[len("guardian_"):]])
+                self.assertAlmostEqual(fs[0]["charged_s"], g["controller_gone_wall"] - g["started_wall"], delta=1e-6)
+                self.assertGreaterEqual(fs[0]["charged_s"], 1.0)
+                self.assertLessEqual(g["controller_gone_wall"], killed + 1.0)
+                MEASURED.setdefault("external_death_before_pending_charged_s", {})[name] = round(fs[0]["charged_s"], 3)
+
+    def test_recovery_during_guardian_receipt_publication(self):
+        """Revision 9 (Stage A A1.2): the guardian kills the stalled controller at its setup deadline and publishes
+        its record only 8 s later; a recovery started in that window finds the record still 'armed' and charges until
+        min(now, setup deadline + margin) - at least the actual interval to the death; the late record is not charged
+        again."""
+        out = new_out()
+        t = time.monotonic()
+        p = subprocess.run(driver(
+            f"o=Path({str(out)!r})\nimport time, pathlib\n"
+            "C.SETUP_DEADLINE_S = 2.0\n"
+            "real = pathlib.Path.mkdir\n"
+            "def mk(self, *a, **k):\n"
+            "    if str(self) == str(o): time.sleep(10**6)\n"
+            "    return real(self, *a, **k)\n"
+            "pathlib.Path.mkdir = mk\n"
+            f"T.ctl(o, {{}}, watchdog_cmd=[T.PY, {str(HERE / 'slow_guardian.py')!r}]).run()\n"),
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120,   # the guardian inherits no pipe
+            env={**os.environ, "SLOW_GUARDIAN_S": "8"})
+        died = time.time()
+        self.assertEqual(p.returncode, -signal.SIGKILL)
+        self.assertLess(time.monotonic() - t, 8.0)                    # the death preceded the guardian's record
+        gp = next(out.glob("guardian_*.json"))
+        g0 = json.loads(gp.read_text())
+        self.assertEqual(g0["state"], "armed")                        # the receipt is not yet published
+        self.assertEqual(ctl(out, {}).run()["outcome"], "PASS")
+        fs = [x for x in rec(out)["sessions"] if x.get("closed") == "failed_start_before_pending"]
+        self.assertEqual(len(fs), 1)
+        self.assertGreaterEqual(fs[0]["charged_s"], died - g0["started_wall"] - 1e-6)
+        for _ in range(600):
+            if json.loads(gp.read_text())["state"] == "killed":
+                break
+            time.sleep(0.025)
+        g = json.loads(gp.read_text())
+        self.assertEqual(g["state"], "killed")
+        self.assertGreaterEqual(fs[0]["charged_s"], g["controller_gone_wall"] - g["started_wall"] - 1e-6)
+        ctl(out, {}).run()                                           # the late receipt is not charged again
+        self.assertEqual(len([x for x in rec(out)["sessions"] if x.get("closed") == "failed_start_before_pending"]), 1)
+        MEASURED["receipt_window_charged_s"] = round(fs[0]["charged_s"], 3)
+
     def test_long_first_persist_with_an_existing_clock(self):
         """Revision 8 (Stage A A2): a closed controller.json exists; the next start's first persist blocks before its
         rename after the guardian was moved past the setup deadline. The longer deadline was durable in the pending

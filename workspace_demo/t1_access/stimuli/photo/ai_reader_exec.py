@@ -1,4 +1,6 @@
-"""AI image-reader qualification, revision 8 (Codex RSC 12a7f20 reader A, B through R052 handoff db8a9e1d: the
+"""AI image-reader qualification, revision 9 (Codex RSC 7fdb937 reader A, B: a late commit is undone and the
+revocation unlinks until the exit; readable pending temporaries count; the first persist is bounded by the
+recovered balance; declared session states). Revision 8 (Codex RSC 12a7f20 reader A, B through R052 handoff db8a9e1d: the
 closure marker's rename is a commit point under the final deadline, a fired deadline tombstones the session; each
 start publishes its own pending file, charged from the process start and never replaced; one id for a start's
 pending entry and its clock session; admit_clock binds every journal session to a unique clock session).
@@ -125,7 +127,7 @@ BOUND_FILES = ["ai_reader_qual_set.json", "ai_reader_qual_key.json", "ai_reader_
                "ai_reader_score.py", "ai_reader_runtime.py", "ai_reader_journal.py", "ai_reader_key.py",
                "ai_reader_frame.py", "ai_reader_qual.py", "AI_READER_JOB.md", "AI_READER_DESIGN.md",
                "stage_a_guard.py", "enforce.py", "memprobe.py", "stage_a_watchdog.py"]
-NEGATIVE = {"cf3e49e", "7048bb8", "5a8d7ac", "1bf9890", "b569f8a", "c036c00", "12a7f20"}
+NEGATIVE = {"cf3e49e", "7048bb8", "5a8d7ac", "1bf9890", "b569f8a", "c036c00", "12a7f20", "7fdb937"}
 
 
 def sha(b: bytes) -> str:
@@ -165,6 +167,29 @@ def package_at_commit(commit: str, repo: Path = stage_a_guard.RSC) -> dict:
         return package(Path(td))
 
 
+# Revision 9 (Codex 7fdb937 reader B3): the declared closed-session states and their charge semantics. A session that
+# RAN is closed on a receipt outcome or "ended" (charged its live seconds, no charge fields) or "crashed" (charged
+# live + tail, tail >= TAIL_S); a "failed_start" opened nothing (live 0, charged its startup interval).
+RAN_CLOSED = ("COMPLETE", "STOPPED", "ended")
+
+
+def session_state_problem(s: dict) -> str | None:
+    c = s.get("closed")
+    num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v >= 0  # noqa
+    if c in RAN_CLOSED:
+        return "closed session carries crash/failed-start charge fields" if ("charged_s" in s or "tail_s" in s) \
+            else None
+    if c == "crashed":
+        if not (num(s.get("charged_s")) and num(s.get("tail_s")) and s["tail_s"] + 1e-9 >= TAIL_S and
+                abs(s["charged_s"] - (s["live_s"] + s["tail_s"])) <= 1e-6):
+            return "crashed session's charge is not its live time + a tail of at least TAIL_S"
+        return None
+    if c == "failed_start":
+        return None if (num(s.get("charged_s")) and s.get("live_s") == 0.0 and "tail_s" not in s) else \
+            "failed start without its charge (or with live time)"
+    return f"undeclared closed state {c!r}"
+
+
 def clock_problems(rec) -> list[str]:
     """Strict, finite, non-negative, typed clock state (R4): checked before ANY work, so altered accounting (a NaN, a
     negative, a string, a bool) can never reach a budget comparison."""
@@ -180,6 +205,10 @@ def clock_problems(rec) -> list[str]:
     for s in rec["sessions"]:
         if not isinstance(s, dict) or not num(s.get("live_s")) or ("charged_s" in s and not num(s["charged_s"])):
             p.append("sessions[]")
+            break
+        bad = session_state_problem(s)
+        if bad:
+            p.append(f"sessions[] {bad}")
             break
     s = rec.get("open_session")
     if s is not None and (not isinstance(s, dict) or not isinstance(s.get("session"), str) or not num(s.get("live_s"))
@@ -204,7 +233,10 @@ def write_marker(path: Path, data: bytes, commit=None) -> None:
         fh.write(data)
         fh.flush()
         os.fsync(fh.fileno())
-    (commit or (lambda fn: fn()))(lambda: os.replace(tmp, path))
+    if commit is None:
+        os.replace(tmp, path)
+    else:
+        commit(lambda: os.replace(tmp, path), undo=lambda: path.unlink(missing_ok=True))
 
 
 class Clock:
@@ -218,7 +250,7 @@ class Clock:
     until now."""
 
     def __init__(self, path: Path, t0: float, cap: float, on_cap=None, pre_s: float = 0.0,
-                 prior_starts: list | None = None, session_id: str | None = None):
+                 prior_starts: list | None = None, session_id: str | None = None, before_persist=None):
         self.path, self.t0, self.cap, self.on_cap, self.pre_s = path, t0, cap, on_cap, pre_s
         self.stop_guard = threading.Event()
         rec = json.loads(path.read_text()) if path.exists() else {"sessions": [], "seconds_total": 0.0,
@@ -272,6 +304,8 @@ class Clock:
         self.base_ready = True
         self.wseq = self.done_seq = 0
         self.capped = False
+        if before_persist is not None:                # revision 9 (reader B2): the setup bound from the RECOVERED total
+            before_persist(rec["seconds_total"])
         self.persist()
         self.thread = threading.Thread(target=self._beat, daemon=True)
         self.thread.start()
@@ -542,11 +576,17 @@ class Deadline:
             th.join(REVOKE_S)
         os._exit(75)
 
-    def commit(self, fn) -> None:
+    def commit(self, fn, undo=None) -> None:
+        """Revision 9 (Codex 7fdb937 reader A): the deadline may latch `fired` WHILE fn runs (it cannot take the lock);
+        fn's late return is then not a commit - `undo` (the marker's removal) runs and the step fails."""
         with self.lk:
             if self.fired:
                 raise RuntimeError("the bounded step's deadline fired before its commit")
             fn()
+            if self.fired:
+                if undo is not None:
+                    undo()
+                raise RuntimeError("the bounded step's deadline fired while its commit ran; the late commit is undone")
             self.committed = True
 
     def __enter__(self):
@@ -594,13 +634,19 @@ class Job:
         sess, jd = self.clock.session, self.clock.path.parent
 
         def revoke() -> None:                          # revision 8 (reader A): an unfinished closure is refused
+            def unlink_until_exit() -> None:           # revision 9: also a marker a late rename publishes
+                while True:
+                    try:
+                        (jd / CLOSED_MARKER).unlink(missing_ok=True)
+                    except OSError:
+                        pass
+                    time.sleep(0.005)
             ths = [threading.Thread(target=lambda: write_json_atomic(jd / CLOSE_TOMBSTONE, {"session": sess}),
                                     daemon=True),
-                   threading.Thread(target=lambda: (jd / CLOSED_MARKER).unlink(missing_ok=True), daemon=True)]
+                   threading.Thread(target=unlink_until_exit, daemon=True)]
             for th in ths:
                 th.start()
-            for th in ths:
-                th.join()
+            ths[0].join()
         self.final_deadline = Deadline(max(0.1, FINAL_WRITE_S - COMMIT_GRACE_S - REVOKE_S),
                                        "the receipt and the clock's closure", revoke=revoke).__enter__()
         return self.rec("receipt", outcome=outcome, reason=reason[:2000], counts=J.counts(self.st),
@@ -646,13 +692,20 @@ class Job:
             if left <= 0:
                 raise SystemExit("refused: the six-hour job allowance is used up; the job holds (this start is "
                                  "charged at the next start)")
+            setup_end = setup_end_wall
             if left < setup_end_wall - time.time():
                 setup.__exit__()                           # the shorter bound first, then its durable record
                 setup = Deadline(left, "setup within the remaining six-hour allowance").__enter__()
-                write_json_atomic(mine, {"start": sid, "start_wall": start_wall, "deadline_wall": time.time() + left})
+                setup_end = time.time() + left
+                write_json_atomic(mine, {"start": sid, "start_wall": start_wall, "deadline_wall": setup_end})
             pend = []
-            for pp in sorted(self.job.glob("clock.starting*.json")):
-                if pp == mine:
+            cands = sorted(self.job.glob("clock.starting*.json"))
+            # revision 9 (reader B1): a pending file whose publication never completed (killed while its temporary
+            # waited at fsync or rename) is still evidence of that start: read it, or charge it conservatively
+            cands += [tp for tp in sorted(self.job.glob("clock.starting*.json.tmp"))
+                      if not tp.with_name(tp.name[:-len(".tmp")]).exists()]
+            for pp in cands:
+                if pp in (mine, mine.with_name(mine.name + ".tmp")):
                     continue
                 try:
                     st = json.loads(pp.read_text())
@@ -662,8 +715,28 @@ class Job:
                     st = {"start": pp.name, "start_wall": None}
                 pend.append((pp, st))
             check_accounting(self.job, self.raw)
-            self.clock = Clock(cp, self.t0, LIMITS["job_clock_s"], on_cap=self._cap_kill, pre_s=pre_s,
-                               prior_starts=[st for _, st in pend], session_id=sid)
+            box = {"setup": setup}
+
+            def bound_first_persist(recovered_total: float) -> None:
+                """Revision 9 (reader B2): the first persist runs under the remaining allowance net of EVERY recovered
+                charge (the crashed open session, the prior pending starts) and of the elapsed setup."""
+                left2 = LIMITS["job_clock_s"] - recovered_total - (pre_s + time.monotonic() - self.t0)
+                if left2 <= 0:
+                    raise SystemExit("refused: the six-hour job allowance is used up once the recovered charges are "
+                                     "counted; the job holds (this start is charged at the next start)")
+                if left2 < box["setup_end"] - time.time():
+                    box["setup"].__exit__()
+                    box["setup"] = Deadline(left2, "the first persist within the recovered remaining allowance") \
+                        .__enter__()
+                    box["setup_end"] = time.time() + left2
+                    write_json_atomic(mine, {"start": sid, "start_wall": start_wall, "deadline_wall": box["setup_end"]})
+            box["setup_end"] = setup_end
+            try:
+                self.clock = Clock(cp, self.t0, LIMITS["job_clock_s"], on_cap=self._cap_kill, pre_s=pre_s,
+                                   prior_starts=[st for _, st in pend], session_id=sid,
+                                   before_persist=bound_first_persist)
+            finally:
+                setup = box["setup"]                       # the live bound, cancelled below in every case
             self.crash("after_clock_persist", 1)           # fixture point: persisted, pending not yet removed
             for pp, _ in pend:                             # absorbed by the clock's first persist
                 pp.unlink(missing_ok=True)
@@ -1088,7 +1161,7 @@ def _admit_clock(clock_path: Path, raw_bytes: bytes, receipt: dict, mk: dict) ->
     ids = [x.get("session") for x in c["sessions"]]
     if len(set(ids)) != len(ids):
         raise SystemExit("refused: the clock names a session twice")
-    ran = {x.get("session") for x in c["sessions"] if x.get("closed") not in ("failed_start",)}
+    ran = {x.get("session") for x in c["sessions"] if x.get("closed") in RAN_CLOSED + ("crashed",)}   # rev 9: declared
     missing = [s for s in dict.fromkeys(opened) if s not in ran]
     if missing:
         raise SystemExit(f"refused: journal sessions {missing[:4]} have no clock session that ran - the clock does "

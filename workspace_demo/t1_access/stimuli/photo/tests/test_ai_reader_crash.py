@@ -618,11 +618,101 @@ class Rev8(Rev7):
             X.admit_clock(cp, raw, recs[-1])
 
 
+class Rev9(Rev8):
+    """Codex RSC 7fdb937, reader A (late return) and B1-B3, across real process exits."""
+
+    def test_late_rename_after_an_early_unlink_does_not_qualify(self):
+        """Reader A: the commit is released only after the deadline fired and the revocation's first unlink found no
+        marker; the tombstone writer blocks (or not, the control). The late rename is undone (and the revocation keeps
+        unlinking until the exit): no marker survives; without a tombstone it is still not admitted."""
+        for block in (True, False):
+            with self.subTest(tombstone_blocked=block):
+                env = {"AIRQ_MARKER_FAIL": "late_release", "AIRQ_FINAL_WRITE_S": "4"}
+                if block:
+                    env["AIRQ_TOMBSTONE_BLOCK"] = "1"
+                p = self.run_env(**env)
+                self.assertIn(p.returncode, (75, 1), p.stderr[-800:])
+                recs, _ = self.journal()
+                self.assertEqual((recs[-1]["t"], recs[-1]["outcome"]), ("receipt", "COMPLETE"))
+                job = self.b["fixture"]["job"]
+                time.sleep(0.2)
+                self.assertFalse((job / X.CLOSED_MARKER).exists(), p.stderr[-800:])
+                self.assertEqual((job / X.CLOSE_TOMBSTONE).exists(), not block)
+                with self.assertRaisesRegex(SystemExit, "no closure marker|tombstone"):
+                    self.admitted()
+
+    def test_readable_incomplete_pending_publication_is_charged(self):
+        """Reader B1: the initial pending write's temporary is written and fsynced, the rename never comes, the setup
+        timer kills the start; the next start reads that temporary and charges the start."""
+        p = self.run_env(AIRQ_PENDING_STALL="1", AIRQ_SETUP_S="1.0")
+        self.assertEqual(p.returncode, 75, p.stderr[-800:])
+        job = self.b["fixture"]["job"]
+        self.assertEqual(self.pending(), [])                              # no completed pending file ...
+        (tp,) = sorted(job.glob("clock.starting*.json.tmp"))              # ... only its readable temporary
+        sid = json.loads(tp.read_text())["start"]
+        p = drive(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr[-800:])
+        fs = [x for x in self.clock()["sessions"] if x.get("session") == sid]
+        self.assertEqual([x["closed"] for x in fs], ["failed_start"])
+        self.assertGreater(fs[0]["charged_s"], 0.5)
+        self.assertEqual(sorted(job.glob("clock.starting*.json.tmp")), [])
+        self.admitted()
+
+    def test_near_cap_recovery_bounds_the_blocked_first_persist(self):
+        """Reader B2: the saved base leaves ample time, but the recovered open session (live + 30 s tail) leaves about
+        3 s; the first persist blocks: the setup bound (20 s here) is shortened to the RECOVERED remainder and the
+        process ends within it (exit 75), not at the 20 s setup timer."""
+        self.root = Path(tempfile.mkdtemp(dir=X.ensure_root()))
+        self.build({})
+        p = drive(self.root, crash="before_begin:1")
+        self.assertEqual(p.returncode, 77, p.stderr[-800:])
+        c = self.clock()
+        self.assertIsNotNone(c["open_session"])
+        cap = c["seconds_total"] + c["open_session"]["live_s"] + X.TAIL_S + 3.0
+        t = time.monotonic()
+        p = self.again(AIRQ_JOB_CLOCK_S=str(cap), AIRQ_SETUP_S="20", AIRQ_BLOCK_FIRST_PERSIST="1")
+        el = time.monotonic() - t
+        self.assertEqual(p.returncode, 75, p.stderr[-800:])
+        self.assertLess(el, 12.0)
+        self.assertIn("recovered remaining allowance", p.stderr)
+
+    def test_undeclared_closed_state_is_refused(self):
+        """Reader B3: a valid two-session COMPLETE; the earlier crashed session rewritten to an undeclared state, the
+        total reduced by its tail and the marker rehashed - refused; a crashed session stripped of its tail too."""
+        self.root = Path(tempfile.mkdtemp(dir=X.ensure_root()))
+        self.build({})
+        self.assertEqual(drive(self.root, crash="before_begin:1").returncode, 77)
+        self.assertEqual(drive(self.root).returncode, 0)
+        self.admitted()
+        recs, _ = self.journal()
+        raw = self.b["fixture"]["raw"].read_bytes()
+        cp = self.b["fixture"]["job"] / "clock.json"
+        c = self.clock()
+        i = next(k for k, x in enumerate(c["sessions"]) if x.get("closed") == "crashed")
+        for name, fn in (("undeclared state", lambda x: {**{k: v for k, v in x.items() if k not in ("charged_s",
+                                                                                                  "tail_s")},
+                                                       "closed": "resumed"}),
+                         ("crashed without its tail", lambda x: {**x, "tail_s": 0.0, "charged_s": x["live_s"]})):
+            with self.subTest(name):
+                ss = [dict(x) for x in c["sessions"]]
+                ss[i] = fn(ss[i])
+                total = sum(x["live_s"] if x.get("closed") not in ("crashed", "failed_start") else x["charged_s"]
+                            for x in ss)
+                b_ = json.dumps({**c, "sessions": ss, "seconds_total": total}, indent=1, sort_keys=True).encode()
+                cp.write_bytes(b_)
+                (self.b["fixture"]["job"] / X.CLOSED_MARKER).write_text(json.dumps(
+                    {"session": ss[-1]["session"], "raw_sha256": J.sha(raw), "clock_sha256": J.sha(b_)}))
+                with self.assertRaisesRegex(SystemExit, "undeclared closed state|tail of at least"):
+                    X.admit_clock(cp, raw, recs[-1])
+
+
 for _name in [n for n in dir(HardKill) if n.startswith("test_")]:
     setattr(Rev6, _name, None)
     setattr(Rev7, _name, None)
 for _name in [n for n in dir(Rev7) if n.startswith("test_")]:
     setattr(Rev8, _name, None)                     # Rev7's (and HardKill's) tests are not collected again
+for _name in [n for n in dir(Rev8) if n.startswith("test_")]:
+    setattr(Rev9, _name, None)
 for _name in [n for n in dir(HardKill) if n.startswith("test_")]:
     setattr(Rev5Recovery, _name, None)             # helpers inherited, HardKill's own tests not collected twice
 

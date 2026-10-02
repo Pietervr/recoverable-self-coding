@@ -15,7 +15,7 @@
   "vision": "mlx-vlm qwen3_5 vision tower in its weight dtype; features cast to the hidden dtype at merge",
   "weights": "4-bit affine (snapshot quantization config)"
  },
- "identity_sha256": "1c7beaa2c5c396ac9001fd40e85ed3cf912fbf3dd94a3b4884739d489926bdd3",
+ "identity_sha256": "5b6bc5bf72b7d14d7228f21f7349a5816cde07ff97c8e96562833be024c7fc4e",
  "jlens": {
   "head": "745a3a894be7043ae5eb7dbbdcec44b68b819411",
   "sitecustomize_sha256": "8b0b2acbe668ef4d994cad710557d57683d98a52c588e9bfe3e6dd1caa43afc9",
@@ -32,10 +32,10 @@
   "image_adapter.py": "2c1c3cedc9559fe8b2f7fd31c82984255ac7072a1f6442fc5a3e098f56f901aa",
   "memprobe.py": "83114f358b74372c3bbe647a5b907903ec6629c172a76adc3d7c13f5a7acd465",
   "stage_a.py": "1024c7eefc26c31ff8108b4a54d21bfd79d08337d8005b21e270737e82699267",
-  "stage_a_controller.py": "b4d9a0d9cda52383957f42e9996f9ae6a15e6b0278a0ed6e4616c8cb17278bd9",
-  "stage_a_guard.py": "519a6cd5b6da6f2281a5ca6c13df793c7f3f20efe41e9af283329909d7458e5e",
+  "stage_a_controller.py": "82856e0f7c4c6d4c0631e7514b637d059363d6a1f810869cf48bbc310c84f9e6",
+  "stage_a_guard.py": "58a2056af5b1999e998b5c127b67b8bf1eaad68e44c34407afdaaccae13a13d5",
   "stage_a_report.py": "62839613895924afcb126dfbf7e970113fc5a4149f4b52572e5ae71bf9845b66",
-  "stage_a_watchdog.py": "5e663afc8ba7c548cb67955b4573c5d8751980f19fec3467479f34cc5b096728"
+  "stage_a_watchdog.py": "bb02ab5d3add4ed1fcedc460c66faf8993a60358f9423079add81c8b47874f4e"
  },
  "machine": "arm64",
  "macos": "27.0",

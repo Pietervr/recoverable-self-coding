@@ -1436,7 +1436,7 @@ class Rev8(unittest.TestCase):
     def run_receipt(self, slow_fallback: bool):
         d = self.adir()
         prog = d / "w" / "logs.py"
-        prog.write_text(LOGS)                                      # complete, equivalence-positive logs; exits at once
+        prog.write_text(LOGS)                                      # complete, PARSEABLE logs (not an equivalent receipt); exits at once
         real_poll, real_read, n = R.LocalCommand.poll, R._read_capped, {"poll": 0, "read": 0}
 
         def poll(self_):
@@ -1464,9 +1464,10 @@ class Rev8(unittest.TestCase):
             R.LocalCommand.poll, R._read_capped = real_poll, real_read
 
     def test_fallback_read_past_the_deadline(self):
-        """The command wrote complete logs and exited in time; the first poll sees the exit, so the loop never reads;
+        """The command wrote complete, parseable logs (content [x], model m, empty feature tags - NOT an equivalent
+        receipt for the configured reader) and exited in time; the first poll sees the exit, so the loop never reads;
         the fallback read and parse complete past the deadline: refused. Control: a prompt fallback read passes the
-        cutoff (any later refusal is about content, not time)."""
+        timing/readability cutoff - it is timely-parse-positive only; its later refusal is about content, not time."""
         msg, n = self.run_receipt(slow_fallback=True)
         self.assertEqual(n["poll"], 1)                             # the fallback branch, not the loop
         self.assertRegex(msg or "", "past its .* deadline")

@@ -32,13 +32,14 @@ R084, 2 October 2026. The whole photo test suite on the exact committed revision
 
 ## Observed before the commit (not in this run)
 
-While building revision 8 (pre-commit, unretained runs) one failure appeared twice and was not reproduced: in a
-multi-class crash-module run, `test_ai_reader_crash.Rev7.test_post_rename_clock_failure_and_stall_do_not_qualify`
-[error] saw a STOPPED receipt where COMPLETE is expected (its reason was not printed); in a 200-test multi-module run
-one unidentified failure in the crash module (the summary was truncated). The same test passed in 8 isolated
-repetitions of its run, in two later crash-class runs, a 32-test crash-module run and this retained run. Its
-assertion now prints the receipt's reason and the driver's stderr, so a recurrence names its cause. It is disclosed
-as an open intermittent observation, not a resolved one.
+While building revision 8, two failures appeared in unretained runs (wording corrected at revision 9, Codex
+`7fdb937`): ONE IDENTIFIED observation - in a multi-class crash-module run,
+`test_ai_reader_crash.Rev7.test_post_rename_clock_failure_and_stall_do_not_qualify` [error] saw a STOPPED receipt
+where COMPLETE is expected, its reason not printed - and ONE UNIDENTIFIED crash-module failure in a 200-test
+multi-module run whose summary was truncated. They are not known to be the same event. The identified test passed in
+8 isolated repetitions of its run, in two later crash-class runs, a 32-test crash-module run and this retained run
+(source-reported repetitions, not retained evidence of the original failure). Its assertion now prints the receipt's
+reason and the driver's stderr. Unresolved; the cause is not known.
 
 ## Retained files (sha256)
 

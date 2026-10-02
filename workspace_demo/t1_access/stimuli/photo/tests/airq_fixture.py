@@ -129,16 +129,50 @@ if __name__ == "__main__":
             if marker_fail == "error":
                 raise OSError("fixture: the marker's write failed")
 
-            def c2(fn):
+            def c2(fn, undo=None):
                 def f():
                     if marker_fail == "stall_before_rename":
                         time.sleep(10 ** 6)
+                    if marker_fail == "late_release":      # revision 9: released AFTER the deadline fired and the
+                        dl = commit.__self__               # revocation's first unlink found no marker
+                        while not dl.fired:
+                            time.sleep(0.005)
+                        time.sleep(0.05)
                     fn()                                   # the rename
                     if marker_fail == "stall_after_rename":   # visible, but the call does not return
                         time.sleep(10 ** 6)
-                return (commit or (lambda g: g()))(f)
+                return commit(f, undo=undo) if commit else f()
             return _wm(path, data, c2)
         X.write_marker = wm
+    if os.environ.get("AIRQ_TOMBSTONE_BLOCK"):             # revision 9 (reader A): the tombstone writer blocks
+        _wj = X.write_json_atomic
+
+        def wj(path, obj, **kw):
+            if Path(path).name == X.CLOSE_TOMBSTONE:
+                time.sleep(10 ** 6)
+            return _wj(path, obj, **kw)
+        X.write_json_atomic = wj
+    if os.environ.get("AIRQ_PENDING_STALL"):               # revision 9 (reader B1): the pending write's temporary is
+        _wj2 = X.write_json_atomic                         # written and fsynced, then the rename never comes
+
+        def wj2(path, obj, **kw):
+            if Path(path).name.startswith("clock.starting."):
+                tmp = Path(path).with_name(Path(path).name + ".tmp")
+                with open(tmp, "w") as fh:
+                    fh.write(json.dumps(obj))
+                    fh.flush()
+                    os.fsync(fh.fileno())
+                time.sleep(10 ** 6)
+            return _wj2(path, obj, **kw)
+        X.write_json_atomic = wj2
+    if os.environ.get("AIRQ_BLOCK_FIRST_PERSIST"):         # revision 9 (reader B2): the clock's first persist blocks
+        _wa3 = X.write_atomic
+
+        def wa3(path, data, **kw):
+            if Path(path).name == "clock.json":
+                time.sleep(10 ** 6)
+            return _wa3(path, data, **kw)
+        X.write_atomic = wa3
     if os.environ.get("AIRQ_JOB_CLOCK_S"):                 # revision 8 (reader B): a cap near the used time
         X.LIMITS["job_clock_s"] = float(os.environ["AIRQ_JOB_CLOCK_S"])
     if os.environ.get("AIRQ_SLOW_CLOCK_READ"):             # revision 8 (reader B): the old clock's read is slow

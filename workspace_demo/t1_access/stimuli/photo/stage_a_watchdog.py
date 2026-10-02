@@ -1,5 +1,5 @@
-"""Photograph arm, Stage A (row 20) and the AI-reader job: the WATCHDOG - revision 8 (the guardian's death
-record carries the protected start's wall time); revision 7 (Codex RSC c036c00 Stage A A, C: ticks
+"""Photograph arm, Stage A (row 20) and the AI-reader job: the WATCHDOG - revision 9 (the guardian's record is durable
+from arming and names every ending: exited, released, killed); revision 8 (its death record carries the start); revision 7 (Codex RSC c036c00 Stage A A, C: ticks
 carry their source observation time, staleness is measured from it, every endpoint is timestamped; the guardian
 creates its record's directory) - revision 6 answered RSC b569f8a Stage A 1-2,
 reader 1; revision 5 answered RSC 1bf9890 A2-A4, R3; framework 8.4 (m)). Revision 6: it retires only when the worker's
@@ -110,7 +110,7 @@ def guardian(a: dict) -> int:
     controller loads anything. It holds an absolute monotonic deadline that the controller may move by writing
     'D <monotonic>' lines to the control pipe (setup deadline first, then the session's cap + margin); it watches
     nothing else, does no I/O on the controller's behalf, and on the deadline SIGKILLs the controller by identity
-    and records when it died. It exits silently when the controller exits."""
+    and records when it died. Revision 9: its record is durable from arming and names every ending."""
     ctl = a["controller"]
     deadline = float(a["deadline_monotonic"])
     fd = int(a["control_fd"])
@@ -121,11 +121,24 @@ def guardian(a: dict) -> int:
                                   flags=select.KQ_EV_ADD | select.KQ_EV_ONESHOT, fflags=select.KQ_NOTE_EXIT)], 0, 0)
     except OSError:
         return 0
+    # Revision 8/9 (Codex 12a7f20 Stage A A1): the protected start is DURABLE before the controller is released - an
+    # 'armed' record (session, the start's wall time, the setup deadline); every ending then rewrites it: the
+    # controller's own exit (observed), its release before its session is durable ('E'), or the deadline kill; a
+    # normal stop of a durable session ('X') writes nothing - controller.json names that session. A record that never got past
+    # 'armed' (a death in between, or a write still in flight) is charged until its setup deadline.
+    base = {"session": a.get("session"), "started_wall": a.get("started_wall"), "deadline_wall": a.get("deadline_wall"),
+            "watchdog_pid": os.getpid()}
+    try:
+        write_record(a["record"], {**base, "state": "armed", "armed_wall": time.time()})
+    except OSError:
+        return 0                                       # not armed: the controller refuses and loads nothing
     sys.stdout.write("ARMED\n")
     sys.stdout.flush()
     buf = b""
     while True:
         if kq.control(None, 1, 0) or not memprobe.same_process(ctl):
+            write_record(a["record"], {**base, "state": "controller_exited", "reason": "controller exited",
+                                       "controller_gone_wall": time.time(), "controller_killed": False})
             return 0
         try:
             chunk = os.read(fd, 4096)
@@ -134,14 +147,18 @@ def guardian(a: dict) -> int:
             for ln in lines:
                 if ln.startswith(b"D "):
                     deadline = float(ln[2:])
+                elif ln.startswith(b"X"):              # a normal stop of a session controller.json names: no write
+                    return 0                           # after the final record (its storage figure stays exact)
+                elif ln.startswith(b"E"):              # ending before the session is durable: the end is recorded
+                    write_record(a["record"], {**base, "state": "released", "released_wall": time.time()})
+                    return 0
         except BlockingIOError:
             pass
         if time.monotonic() >= deadline:
             break
         time.sleep(POLL_S)
-    rec = {"reason": "controller deadline", "session": a.get("session"), "observed_wall": time.time(),
-           "started_wall": a.get("started_wall"),     # the protected start (revision 8: a pre-pending death is charged)
-           "observed_mono": time.monotonic(), "deadline_mono": deadline, "watchdog_pid": os.getpid(), "how": "SIGKILL"}
+    rec = {**base, "state": "killed", "reason": "controller deadline", "observed_wall": time.time(),
+           "observed_mono": time.monotonic(), "deadline_mono": deadline, "how": "SIGKILL"}
     kill_controller(ctl, rec)
     write_record(a["record"], rec)
     return 3

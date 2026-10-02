@@ -1,4 +1,6 @@
-"""Photograph arm, Stage A (row 20): the INDEPENDENT CONTROLLER - revision 8 (Codex RSC 12a7f20 Stage A A: pending
+"""Photograph arm, Stage A (row 20): the INDEPENDENT CONTROLLER - revision 9 (Codex RSC 7fdb937 A1: every
+guardian record of an unnamed start is charged - armed, exited, released or killed, a temporary included);
+revision 8 (Codex RSC 12a7f20 Stage A A: pending
 starts accumulate and are removed only once absorbed; a longer deadline is durable before the guardian moves to
 it; a start that died before publishing its pending entry is charged from its guardian's record); revision 5 (Codex RSC 1bf9890 A2, A3, A4, A5 and A7;
 revision 4 answered RSC 081f17b). A separate process that owns the task lock, the clock, the resource limits,
@@ -28,7 +30,8 @@ reads the worker's exit (kqueue, not reaping), the deadline, the watchdog's live
 memory, every SYS_SAMPLE_S swap and pressure (sysctl, in-process), and writes one tick byte to the watchdog; an
 iteration whose work exceeds SAMPLE_LIMIT_S = 0.05 s stops. A separate I/O thread persists the record and the members
 file every HEARTBEAT_S and sums the output tree; a failure there stops the run through the sampler. The watchdog kills
-the worker group if the ticks stop for TICK_STALE_S = 0.1 s (a hung sampler), and kills the group AND the controller if
+the worker group if no tick's source reading is newer than TICK_STALE_S = 0.15 s (a hung sampler), and kills the
+group AND the controller if
 the durable beat is STALE_S = 10 s old (a blocked controller) or the hard deadline passes.
 
 WHOLE-TASK MEMORY (A3). The task = the controller, the watchdog, the worker and every process in its group or descended
@@ -337,20 +340,44 @@ class Controller:
                 known.add(sid)
         if not self.out.exists():
             return
-        for gp in sorted(self.out.glob("guardian_*.json")):
-            sid = gp.stem[len("guardian_"):]
+        recs = {gp.name[len("guardian_"):-len(".json")]: gp for gp in self.out.glob("guardian_*.json")}
+        for tp in self.out.glob("guardian_*.json.tmp"):   # a record still being published (revision 9)
+            recs.setdefault(tp.name[len("guardian_"):-len(".json.tmp")], tp)
+        for sid in sorted(recs):
             if sid == self.session or sid in known:
                 continue
             try:
-                g = json.loads(gp.read_text())
-            except ValueError:
+                g = json.loads(recs[sid].read_text())
+            except (ValueError, OSError):
                 g = {}
-            st, end = g.get("started_wall"), g.get("controller_gone_wall")
-            charged = max(0.0, end - st) if _num(st) and _num(end) else TAIL_RESERVE_S
+            charged = self._guardian_charge(g if isinstance(g, dict) else {})
             rec["seconds_total"] += charged
             rec["sessions"].append({"session": sid, "live_s": 0.0, "closed": "failed_start_before_pending",
-                                    "charged_s": charged, "start_wall": st, "guardian": g or None})
+                                    "charged_s": charged, "start_wall": g.get("started_wall") if isinstance(g, dict)
+                                    else None, "guardian": g or None, "guardian_file": recs[sid].name})
             known.add(sid)
+
+    @staticmethod
+    def _guardian_charge(g: dict) -> float:
+        """A protected start that died before publishing its pending entry (revision 9, Stage A A1): from its start
+        to the guardian's recorded end (the controller's death - observed or caused - or its release); a record that
+        names no end (the controller died while the guardian was still publishing, or the record stopped at 'armed') is
+        charged on the same boot until min(now, its setup deadline + EXIT_MARGIN_S); unreadable or after a reboot,
+        TAIL_RESERVE_S."""
+        st = g.get("started_wall")
+        if not _num(st):
+            return TAIL_RESERVE_S
+        end = g.get("controller_gone_wall") if _num(g.get("controller_gone_wall")) else g.get("released_wall")
+        if _num(end):
+            return max(0.0, end - st)
+        try:
+            same_boot = memprobe.boot_time() < st
+        except memprobe.Unavailable:
+            same_boot = True
+        if not same_boot:
+            return TAIL_RESERVE_S
+        dl = g.get("deadline_wall")
+        return max(0.0, (min(time.time(), dl + EXIT_MARGIN_S) if _num(dl) else time.time()) - st)
 
     def _validate_accounting(self, rec) -> None:
         """Finite, non-negative, typed accounting before any use (A4)."""
@@ -488,6 +515,7 @@ class Controller:
                                         "controller": self.ident, "guardian": self.guard_ident,
                                         "guardian_deadline_wall": self.guard_deadline_wall}
             self._persist()
+            self.session_durable = True               # controller.json names this session from here (revision 9)
             (self.out / STARTING).unlink(missing_ok=True)   # controller.json now carries every pending start's charge
             if self.rec["swap_baseline"] is None:
                 try:
@@ -530,6 +558,7 @@ class Controller:
         ident = memprobe.proc_info(os.getpid())
         arg = {"mode": "guardian", "controller": ident, "session": self.session, "control_fd": r,
                "started_wall": getattr(self, "run_start_wall", time.time()),
+               "deadline_wall": time.time() + SETUP_DEADLINE_S,
                "deadline_monotonic": time.monotonic() + SETUP_DEADLINE_S,
                "record": str(self.out / f"guardian_{self.session}.json")}
         try:
@@ -558,6 +587,12 @@ class Controller:
         g = getattr(self, "guard", None)
         if g is None:
             return
+        if g.poll() is None and self.guard_w is not None:
+            try:                                   # revision 9: X - a durable session, nothing more to record;
+                os.write(self.guard_w, b"X\n" if getattr(self, "session_durable", False) else b"E\n")   # E - record
+                g.wait(timeout=2.0)
+            except (OSError, subprocess.TimeoutExpired):
+                pass
         if g.poll() is None:
             try:
                 g.terminate()

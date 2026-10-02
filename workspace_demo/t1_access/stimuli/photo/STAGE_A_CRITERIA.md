@@ -1,4 +1,4 @@
-# Stage A (ledger row 20): declared criteria and code, revision 8 (R084, 2 October 2026)
+# Stage A (ledger row 20): declared criteria and code, revision 9 (R084, 2 October 2026)
 
 **Specification:** framework `rsc_t1_two_channel_framework.md` §8.2, §8.4 and §8.6 (Unimog; R052's text).
 
@@ -13,10 +13,11 @@
 | 5 | RSC `2610d8a` | RSC `b569f8a` (combined) | NOT ON BOARD; A1, A7, A8 closed; the memory qualification accepted in principle |
 | 6 | RSC `bb4f076` | RSC `c036c00` (combined) | NOT ON BOARD; kill-first, the guardian, bounded revocation and the 195-count refusal credited |
 | 7 | RSC `068fe30` | RSC `12a7f20` (combined) | NOT ON BOARD; B and D closed; the ~21 GiB/s qualification (C) accepted; coverage, the 60 s closure and the missing-death branch credited |
-| 8 | this commit | — | answers R052's handoff `db8a9e1d`: Stage A condition A of `12a7f20` and the declaration alignment (§000 below) |
+| 8 | RSC `9f696c6` | RSC `7fdb937` (combined) | NOT ON BOARD; A2 and A3 closed; A1's timeout path credited; two A1 transitions and five summary alignments left |
+| 9 | this commit | — | answers R052's handoff `50ab6395`: A1's two transitions (§0000) and the alignments |
 
 No review record of a not-favourable verdict can be named by a go: the guard's supplementary negative list holds
-`f9d2ef3`, `69539bb`, `081f17b`, `1bf9890`, `b569f8a`, `c036c00`, `12a7f20` (row 20; the last four combined) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
+`f9d2ef3`, `69539bb`, `081f17b`, `1bf9890`, `b569f8a`, `c036c00`, `12a7f20`, `7fdb937` (row 20; the last five combined) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
 rejection is the absence of a positive, exactly matching attestation.
 
 **Not reopened** (accepted by Codex at `1bf9890`): the hashes and their relations, the shared strict guard (no schema
@@ -31,8 +32,21 @@ and budget are byte-identical to revision 7.
 
 **No forward has run on any development image.** Every mechanism measurement below is from declared, non-development
 fixtures: synthetic worker processes, the real watchdog, synthetic arrays; no model and no image
-(`controller_fixtures.json`, recorded 2 October 2026 at 10:01 MST on the revision-8 code; every value quoted below is
-from that file).
+(`controller_fixtures.json`, recorded 2 October 2026 at 10:01 MST on the revision-8 code and kept for revision 9,
+whose changes touch no sampling or timing path; the §000/§00 interval, margin and A1–A3 values are from that file;
+values inside the older sections are their own revision's and are marked so).
+
+## 0000. Revision 9: the two A1 transitions of RSC `7fdb937`
+
+| Transition | Where it lives | Fixture (`tests/test_controller.py`) |
+|---|---|---|
+| A1.1 A healthy guardian sees an external controller death before the pending entry | The guardian now writes a durable `armed` record (session, the protected start's wall time, its setup deadline) BEFORE it reports ARMED - the controller loads nothing until then - and rewrites it at every ending of a start controller.json does not yet name: `controller_exited` (the death it observes), `released` (the controller ending before its session is durable - a refusal) or `killed` (its deadline); a normal stop of a session controller.json names writes nothing more (so no write follows the final record and its storage figure stays exact). Recovery charges every record whose session controller.json does not name, start → recorded end, as `failed_start_before_pending`, once. | `test_external_death_before_pending_with_a_healthy_guardian` (directory and lock stalls; the controller SIGKILLed from outside about 1 s after arming, long before its 300 s deadline; the guardian records `controller_exited`; the next start charges exactly death − start; no pending file existed) |
+| A1.2 Recovery while the guardian is still publishing its receipt | A record that names no end - still `armed` because the post-kill write is in flight, or a readable `guardian_*.json.tmp` - is charged on the same boot until min(now, its setup deadline + 5 s), which is at least the interval to the actual death; the later receipt names an already-charged session and is not charged again. | `test_recovery_during_guardian_receipt_publication` (a fixture guardian, `tests/slow_guardian.py`, kills at the 2 s setup deadline and publishes 8 s later; recovery in that window finds `armed`, charges ≥ the measured interval to the death; after the receipt lands, ≥ death − start; a further start does not charge it again) |
+
+Residual, stated as it is: a start is untraceable only if its guardian never published the `armed` record (its own
+write failed or stalled - the controller then refuses after ARM_TIMEOUT_S = 10 s, before any file operation of its
+own, or is killed while waiting); that interval of at most 10 s is not charged. A healthy guardian's observed death,
+its release and its kill are all recorded; a death while the record is unpublished is charged to the setup deadline.
 
 ## 000. Revision 8: condition A of RSC `12a7f20` (continuous, durable failed-start/restart accounting)
 
@@ -44,15 +58,16 @@ from that file).
 
 The floor, stated exactly: a dead OPEN session's tail is never less than 60 s; a FAILED START on the same boot is
 charged its actual interval (start to recorded death, or to min(now, deadline + 5 s)), which can be less than 60 s;
-after a reboot, or for an unreadable entry, 60 s. Residual (disclosed): a start whose guardian also died before
-writing its record leaves no durable trace of that start.
+after a reboot, or for an unreadable entry, 60 s. Residual: as stated in §0000 (revision 8's statement - "a start
+whose guardian also died before writing its record" - omitted the healthy guardian's silent-death branch and the
+receipt-publication window; both are charged since revision 9).
 
 ## 00. Revision 7: the four conditions of RSC `c036c00` (B and D closed, C accepted by `12a7f20`; A completed in §000)
 
 | # | Condition | Where it lives | Fixtures (`tests/test_controller.py` unless named) |
 |---|---|---|---|
-| A | Complete controller coverage and tail charge | The guardian starts before ANY file operation (the output directory's creation included) and lives through the result's output (`run(emit=)`; `main` prints through it). A pending-start record (`controller.starting.json`) is durable before any load; the open session carries the guardian's wall-clock deadline. A dead session or failed start is charged from durable evidence only: a recorded controller death ends the tail; without one, on the same boot (`kern.boottime` earlier than the beat) the tail runs until min(now, the guardian deadline + 5 s); after a reboot the declared 60 s rule. The close charges the WHOLE bounded closure (`CLOSE_CHARGE_S` = finalisation 50 + revocation 5 + exit/output 5 = 60 s = the tail reserve) and moves the guardian's deadline to its end, so a post-close death lies inside the charged total. Diagnostics before an abort or after a kill are written by daemon threads. | `test_directory_stall_before_load_is_guarded` (killed at the shortened setup deadline, run 2.7 s); `test_final_output_stall_is_guarded_and_charged` (PASS admitted, output blocks, killed within the charged closure, run 10.8 s); `test_post_close_death_is_inside_the_charged_closure` (finalisation and both revocations blocked: death before the charged closure's end, not admitted, run 9.7 s); `test_crash_tail_charge` (blocked and no-evidence same-boot tails); `test_failed_start_is_charged`; `test_persistence_after_the_watchdog_retired_is_bounded` |
-| B | Guardian in whole-task memory | The guardian's pid is sampled every iteration (`guardian_lifetime_max`), its final maximum read at finalisation (`guardian_final`; unreadable -> a missing mandatory measurement), both added to the phase and task aggregates. | `test_guardian_in_the_task_aggregate` (lifetime 57.9 MiB; unreadable -> STOPPED) |
+| A | Complete controller coverage and tail charge | The guardian starts before ANY file operation (the output directory's creation included) and lives through the result's output (`run(emit=)`; `main` prints through it). A pending-start record (`controller.starting.json`) is durable before any load; the open session carries the guardian's wall-clock deadline. A dead session or failed start is charged from durable evidence only: a recorded controller death ends the tail; without one, on the same boot (`kern.boottime` earlier than the beat) the tail runs until min(now, the guardian deadline + 5 s); after a reboot the declared 60 s rule. The close charges the WHOLE bounded closure (`CLOSE_CHARGE_S` = finalisation 50 + revocation 5 + exit/output 5 = 60 s = the tail reserve) and moves the guardian's deadline to its end, so a post-close death lies inside the charged total. Diagnostics before an abort or after a kill are written by daemon threads. | `test_directory_stall_before_load_is_guarded` (killed at the shortened setup deadline; revision-7 record 2.7 s, revision-8 record 2.778 s); `test_final_output_stall_is_guarded_and_charged` (PASS admitted, output blocks, killed within the charged closure; revision-7 record 10.8 s, revision-8 11.173 s); `test_post_close_death_is_inside_the_charged_closure` (finalisation and both revocations blocked: death before the charged closure's end, not admitted; revision-7 record 9.7 s, revision-8 10.283 s); `test_crash_tail_charge` (blocked and no-evidence same-boot tails); `test_failed_start_is_charged`; `test_persistence_after_the_watchdog_retired_is_bounded` |
+| B | Guardian in whole-task memory | The guardian's pid is sampled every iteration (`guardian_lifetime_max`), its final maximum read at finalisation (`guardian_final`; unreadable -> a missing mandatory measurement), both added to the phase and task aggregates. | `test_guardian_in_the_task_aggregate` (lifetime: revision-7 record 57.9 MiB, revision-8 58.4 MiB; unreadable -> STOPPED) |
 | C | The timing statement | Each reading's observation instant is kept; the tick sent after a successful reading carries that reading's time (the watchdog measures staleness from it, not from consumption); the stop records the previous successful below-stop reading, the deciding reading, the kill, the leader's death and verified extinction; the watchdog records the tick's source and consumption times, its observation, group extinction and the controller's death. | `test_memory_stop_is_whole_task`, `test_never_returning_first_and_later_sample`, `test_memory_stop_with_blocked_io_kills_first` (values below) |
 | D | Strict authority admission and exact recovery set | `enforce.check_ledger(..., witness_dir=out)` (controller, pre-native and final admission): authority with the intake's domains (non-blank text, try an exact positive int, never bool or float, a real calendar date, 64 lowercase hex), bound to the retained owner file (present, hashing to file_sha256, strict content equal to the authority); consumed tries exactly 1..tries-1 (1..tries for 'interrupted, recovery consumed'); exactly one outstanding entry, for the last try, on an interrupted attempt and none otherwise; no overlap. consumed_by is not required to equal the next session. | `test_stage_a_runner.ValidatorMutations.test_authority_domains_and_witness` (bool / float try, impossible dates, non-hex and wrong digests, an owner differing from the witness - each through the final and the pre-native admission route; the missing witness on the shared checker directly); `test_exact_consumed_and_outstanding_sets` (on the shared checker; the overlap and duplicate variants delete a completed entry and keep its counters - not otherwise-legal counters - and assert the particular recovery diagnostic; both admission routes call the same checker with `witness_dir`); `test_codex_unauthorised_extra_try` |
 
@@ -158,8 +173,9 @@ the leader already exited and only the unrecorded child holding the group;
   one is listed in `missing_measurements` and the outcome is STOPPED.
 - **Prompt stops:** every controller stop SIGKILLs the worker's group at once (no SIGTERM grace); the watchdog too.
 - **The sampler does no file I/O:** the main thread samples (sleep 0.02 s; an iteration whose work exceeds 0.05 s
-  stops) and ticks a pipe to the watchdog; a separate I/O thread persists and sums the storage. A hung sampler (no tick
-  for 0.1 s) makes the watchdog kill the group.
+  stops) and ticks a pipe to the watchdog; a separate I/O thread persists and sums the storage. A hung sampler makes
+  the watchdog kill the group (revision 5 stated no tick for 0.1 s; current: 0.15 s from the reading's own time,
+  §00).
 
 **The observation-to-death interval** — superseded in revision 6 by §0 (the sampler now kills at the decision, before
 any join or persist; the first sample is guarded). Measured (`controller_fixtures.json`, revision 6):
@@ -339,7 +355,7 @@ counts, skips, identity, stdout/stderr); earlier records (`..._rev5_run.md` to `
   measured by the watchdog and charged when longer.
 - **The controller between phases** (no worker watchdog: setup, reconciliation, inter-phase persistence, the report
   checks) is bounded by the guardian (setup 300 s, then the cap + 5 s) and by its own timeouts (reconciliation 10 s per
-  group, finalisation 60 s).
+  group, finalisation 50 s inside the 60 s charged closure: 50 + revocation 5 + exit/output 5).
 - **The completion marker's commit point** is its rename; a failure of the marker's directory fsync that is followed
   by a failure (or block) of BOTH revocation steps would leave an admissible marker after exit 75 — the residual window,
   which needs filesystem failures on both; the tombstone write is directory-fsynced when it returns, the marker's unlink
