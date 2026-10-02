@@ -1,0 +1,33 @@
+{
+ "t": "receipt",
+ "seq": 528,
+ "package_digest": "ffba894e5a8c1ea9ed4d68f9287cbb75fc4e25e50e923dcd525a542d631a8ed8",
+ "mode": "scientific",
+ "outcome": "STOPPED",
+ "reason": "FileNotFoundError: [Errno 2] No such file or directory: '/var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/rq/tmpvg6nsc5s/a/codex_home/tmp/arg0/codex-arg0g7nO0c/applypatch'",
+ "counts": {
+  "attempts": 175,
+  "requests_final": 175,
+  "outcomes": {
+   "interrupted": 1,
+   "ok": 174
+  }
+ },
+ "journal_sha256": "289ecc6bc1bdd359702be6c45dd4294f8f48abd9958e46a97b829477fb098b2d",
+ "raw_bytes_before": 558342,
+ "seconds_total": 1157.377072746749,
+ "limits": {
+  "planned": 600,
+  "max_tries_per_request": 3,
+  "max_attempts": 660,
+  "attempt_timeout_s": 120,
+  "job_clock_s": 21600,
+  "answer_chars": 2000,
+  "raw_bytes": 20971520
+ },
+ "smoke": {
+  "state": "passed",
+  "why": "",
+  "attempt_id": "001.b2df6c4dfae2.1"
+ }
+}

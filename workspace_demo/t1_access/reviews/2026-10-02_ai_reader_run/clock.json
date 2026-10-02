@@ -1,0 +1,16 @@
+{
+ "open_session": null,
+ "seconds_total": 1097.3776413718006,
+ "seconds_total_live": 1097.37718166376,
+ "sessions": [
+  {
+   "beat_wall": 1790981659.9859169,
+   "closed": "STOPPED",
+   "live_s": 1097.377639663755,
+   "opened_wall": 1790980563.2580118,
+   "pid": 9794,
+   "receipt_raw_sha256": "05596c2df054c92401c3a7317b3f77e9979dac98f3ced82e014bb51bb46bbe64",
+   "session": "feffc38bd78e"
+  }
+ ]
+}

@@ -1,0 +1,1 @@
+refused: the job did not complete (no COMPLETE receipt); an incomplete job cannot qualify
