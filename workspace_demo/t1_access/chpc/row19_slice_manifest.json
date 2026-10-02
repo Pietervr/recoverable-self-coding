@@ -4053,7 +4053,7 @@
     "qualification": "chpc/row19_control_compare.py: both control statuses must be terminal and successful (phase final, exit 75 - the ordinary end of a partial-B control - no memory breach), bound to the frozen task, with job ids that are the C1 and C3 jobs bound in the campaign ledger; the interruption record must name the ledger's C2 job and request exactly C2's reserved walltime; any FAILED resample in either chain is non-qualification whatever the parity"
   },
   "code": {
-    "commit": "TBD (RSC): the policy at 5f6333c + the refit slice hooks (ff82dd0; until, should_stop, checkpoint_state and analyze_dataset(interval_result=) in this revision) + the runner, the campaign ledger, the comparator and the watch of this revision; the Lustre clone rsc_slice carries them; the pinned file hashes below are the files at that commit",
+    "commit": "25da9e6 (RSC): the policy at 5f6333c + the refit slice hooks (ff82dd0; until, should_stop, checkpoint_state and analyze_dataset(interval_result=) in this revision) + the runner, the campaign ledger, the comparator and the watch of this revision; the Lustre clone rsc_slice carries them; the pinned file hashes below are the files at that commit",
     "files": {
       "models.py": "28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef",
       "analyze.py": "5177e4a4eca90f6f04dcddc34d4c42c709b3d501b82a2d8919e09eedadfc4d7f",
