@@ -1,0 +1,117 @@
+{
+ "caps": {
+  "aggregate": {
+   "attempts": 2056,
+   "bytes": 9663676416,
+   "seconds": 28800
+  },
+  "row20": {
+   "attempts": 200,
+   "bytes": 1073741824,
+   "seconds": 14400
+  },
+  "row21": {
+   "attempts": 1856,
+   "bytes": 8589934592,
+   "seconds": 14400
+  }
+ },
+ "completed_ids": [
+  "lm-1790915330",
+  "lm_mrope-1790915331",
+  "vlm-1790915350",
+  "lm-1790915385",
+  "lm_mrope-1790915386",
+  "lm_mrope_ctl-1790915386",
+  "vlm-1790915389",
+  "vlm_ctl-1790915389"
+ ],
+ "counters": {
+  "aggregate": {
+   "completed": 8,
+   "failed": 0,
+   "passes": 8,
+   "seconds": 1.7189769744873047,
+   "started": 8
+  },
+  "row20": {
+   "completed": 8,
+   "failed": 0,
+   "passes": 8,
+   "seconds": 1.7189769744873047,
+   "started": 8
+  },
+  "row21": {
+   "completed": 0,
+   "failed": 0,
+   "passes": 0,
+   "seconds": 0.0,
+   "started": 0
+  }
+ },
+ "identities": {
+  "row20": "eng-runtime-agreement"
+ },
+ "log": [
+  {
+   "id": "lm-1790915330",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.5535910129547119
+  },
+  {
+   "id": "lm_mrope-1790915331",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.17386484146118164
+  },
+  {
+   "id": "vlm-1790915350",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.17354512214660645
+  },
+  {
+   "id": "lm-1790915385",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.16942906379699707
+  },
+  {
+   "id": "lm_mrope-1790915386",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.14702200889587402
+  },
+  {
+   "id": "lm_mrope_ctl-1790915386",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.18016910552978516
+  },
+  {
+   "id": "vlm-1790915389",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.1725919246673584
+  },
+  {
+   "id": "vlm_ctl-1790915389",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.14876389503479004
+  }
+ ],
+ "memory_cap": 51539607552,
+ "open_attempt": null,
+ "recovered": [],
+ "swap_baseline": 0
+}

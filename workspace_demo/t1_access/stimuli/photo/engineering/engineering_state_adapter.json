@@ -1,0 +1,116 @@
+{
+ "caps": {
+  "aggregate": {
+   "attempts": 2056,
+   "bytes": 9663676416,
+   "seconds": 28800
+  },
+  "row20": {
+   "attempts": 200,
+   "bytes": 1073741824,
+   "seconds": 14400
+  },
+  "row21": {
+   "attempts": 1856,
+   "bytes": 8589934592,
+   "seconds": 14400
+  }
+ },
+ "completed_ids": [
+  "plain-1790915733",
+  "empty-1790915734",
+  "zero-1790915735",
+  "self_patch-1790915735",
+  "swap-1790915736",
+  "repeat-1790915737",
+  "native-1790915748"
+ ],
+ "counters": {
+  "aggregate": {
+   "completed": 7,
+   "failed": 1,
+   "passes": 8,
+   "seconds": 7.009009599685669,
+   "started": 8
+  },
+  "row20": {
+   "completed": 7,
+   "failed": 1,
+   "passes": 8,
+   "seconds": 7.009009599685669,
+   "started": 8
+  },
+  "row21": {
+   "completed": 0,
+   "failed": 0,
+   "passes": 0,
+   "seconds": 0.0,
+   "started": 0
+  }
+ },
+ "identities": {
+  "row20": "eng-image-adapter-1"
+ },
+ "log": [
+  {
+   "id": "plain-1790915716",
+   "kind": "diagnostic",
+   "ok": false,
+   "passes": 1,
+   "seconds": 0.6839790344238281
+  },
+  {
+   "id": "plain-1790915733",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 1.0331521034240723
+  },
+  {
+   "id": "empty-1790915734",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.8843810558319092
+  },
+  {
+   "id": "zero-1790915735",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.8717849254608154
+  },
+  {
+   "id": "self_patch-1790915735",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.8726949691772461
+  },
+  {
+   "id": "swap-1790915736",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.8839900493621826
+  },
+  {
+   "id": "repeat-1790915737",
+   "kind": "diagnostic",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.8604061603546143
+  },
+  {
+   "id": "native-1790915748",
+   "kind": "native_reference",
+   "ok": true,
+   "passes": 1,
+   "seconds": 0.918621301651001
+  }
+ ],
+ "memory_cap": 51539607552,
+ "open_attempt": null,
+ "recovered": [],
+ "swap_baseline": 0
+}
