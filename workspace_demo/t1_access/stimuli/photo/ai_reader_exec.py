@@ -1,4 +1,5 @@
-"""AI image-reader qualification, revision 9 (Codex RSC 7fdb937 reader A, B: a late commit is undone and the
+"""AI image-reader qualification, revision 10 (Codex RSC dda950b: a live foreign start before the lock is
+ended by its retained identity before its charge is final). Revision 9 (Codex RSC 7fdb937 reader A, B: a late commit is undone and the
 revocation unlinks until the exit; readable pending temporaries count; the first persist is bounded by the
 recovered balance; declared session states). Revision 8 (Codex RSC 12a7f20 reader A, B through R052 handoff db8a9e1d: the
 closure marker's rename is a commit point under the final deadline, a fired deadline tombstones the session; each
@@ -127,7 +128,7 @@ BOUND_FILES = ["ai_reader_qual_set.json", "ai_reader_qual_key.json", "ai_reader_
                "ai_reader_score.py", "ai_reader_runtime.py", "ai_reader_journal.py", "ai_reader_key.py",
                "ai_reader_frame.py", "ai_reader_qual.py", "AI_READER_JOB.md", "AI_READER_DESIGN.md",
                "stage_a_guard.py", "enforce.py", "memprobe.py", "stage_a_watchdog.py"]
-NEGATIVE = {"cf3e49e", "7048bb8", "5a8d7ac", "1bf9890", "b569f8a", "c036c00", "12a7f20", "7fdb937"}
+NEGATIVE = {"cf3e49e", "7048bb8", "5a8d7ac", "1bf9890", "b569f8a", "c036c00", "12a7f20", "7fdb937", "dda950b"}
 
 
 def sha(b: bytes) -> str:
@@ -222,6 +223,28 @@ def _process_age_s() -> float:
     return max(0.0, time.time() - float(i["start"])) if i else 0.0
 
 
+def end_foreign_start(ident) -> float | None:
+    """Revision 10 (Codex dda950b): a foreign start's pending record (final or readable temporary) names no end, and
+    its process may still be ALIVE before the task lock. Holding the lock, this start ends it by its retained identity
+    (SIGKILL), confirms the death and returns that time, so the charge is start -> confirmed end and the pending
+    evidence is removed only after it is final. Not alive: None. Not confirmed dead within 10 s: the job holds
+    (nothing is charged or removed)."""
+    if not isinstance(ident, dict) or not isinstance(ident.get("pid"), int) or ident.get("pid") == os.getpid() or \
+            not memprobe.same_process(ident):
+        return None
+    try:
+        os.kill(ident["pid"], signal.SIGKILL)
+    except ProcessLookupError:
+        return time.time()
+    t = time.monotonic()
+    while memprobe.same_process(ident):
+        if time.monotonic() - t > 10.0:
+            raise SystemExit(f"refused: a foreign reader start (pid {ident['pid']}) is still alive and could not be "
+                             f"ended; the job holds")
+        time.sleep(0.01)
+    return time.time()
+
+
 def write_marker(path: Path, data: bytes, commit=None) -> None:
     """The closure marker (revision 8, reader A): written and fsynced under a temporary name; its RENAME is the
     closure's commit point (run through the final deadline's `commit`) and the last step - no directory fsync follows
@@ -289,7 +312,9 @@ class Clock:
                 same_boot = memprobe.boot_time() < float(st.get("start_wall", 0))
             except (memprobe.Unavailable, TypeError, ValueError):
                 same_boot = True
-            if same_boot and num(st.get("start_wall")) and num(st.get("deadline_wall")):
+            if num(st.get("start_wall")) and num(st.get("ended_wall")):   # ended by this start (revision 10)
+                ch = max(0.0, st["ended_wall"] - st["start_wall"])
+            elif same_boot and num(st.get("start_wall")) and num(st.get("deadline_wall")):
                 ch = max(0.0, min(time.time(), st["deadline_wall"]) - st["start_wall"])
             else:
                 ch = TAIL_S
@@ -675,7 +700,9 @@ class Job:
         # clock; no start replaces another's; the clock absorbs every pending start not yet charged at its first
         # persist and only then are the absorbed files removed - repeated failed starts never erase startup time.
         mine = self.job / f"clock.starting.{sid}.json"
-        write_json_atomic(mine, {"start": sid, "start_wall": start_wall, "deadline_wall": setup_end_wall})
+        me = memprobe.proc_info(os.getpid())          # revision 10: the protected identity, for a later liveness check
+        write_json_atomic(mine, {"start": sid, "start_wall": start_wall, "deadline_wall": setup_end_wall,
+                                 "process": me})
         try:
             lock = TaskLock(self.job)
         except BaseException:
@@ -697,7 +724,8 @@ class Job:
                 setup.__exit__()                           # the shorter bound first, then its durable record
                 setup = Deadline(left, "setup within the remaining six-hour allowance").__enter__()
                 setup_end = time.time() + left
-                write_json_atomic(mine, {"start": sid, "start_wall": start_wall, "deadline_wall": setup_end})
+                write_json_atomic(mine, {"start": sid, "start_wall": start_wall, "deadline_wall": setup_end,
+                                         "process": me})
             pend = []
             cands = sorted(self.job.glob("clock.starting*.json"))
             # revision 9 (reader B1): a pending file whose publication never completed (killed while its temporary
@@ -713,6 +741,9 @@ class Job:
                     st = None
                 if not isinstance(st, dict):
                     st = {"start": pp.name, "start_wall": None}
+                ended = end_foreign_start(st.get("process"))   # revision 10: a live foreign start is ended first
+                if ended is not None:
+                    st = {**st, "ended_wall": ended}
                 pend.append((pp, st))
             check_accounting(self.job, self.raw)
             box = {"setup": setup}
@@ -729,7 +760,8 @@ class Job:
                     box["setup"] = Deadline(left2, "the first persist within the recovered remaining allowance") \
                         .__enter__()
                     box["setup_end"] = time.time() + left2
-                    write_json_atomic(mine, {"start": sid, "start_wall": start_wall, "deadline_wall": box["setup_end"]})
+                    write_json_atomic(mine, {"start": sid, "start_wall": start_wall, "deadline_wall": box["setup_end"],
+                                             "process": me})
             box["setup_end"] = setup_end
             try:
                 self.clock = Clock(cp, self.t0, LIMITS["job_clock_s"], on_cap=self._cap_kill, pre_s=pre_s,

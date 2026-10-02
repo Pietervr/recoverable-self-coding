@@ -173,6 +173,8 @@ if __name__ == "__main__":
                 time.sleep(10 ** 6)
             return _wa3(path, data, **kw)
         X.write_atomic = wa3
+    if os.environ.get("AIRQ_LOCK_STALL"):                  # revision 10: alive before the lock, pending published
+        X.TaskLock = lambda d: time.sleep(10 ** 6)
     if os.environ.get("AIRQ_JOB_CLOCK_S"):                 # revision 8 (reader B): a cap near the used time
         X.LIMITS["job_clock_s"] = float(os.environ["AIRQ_JOB_CLOCK_S"])
     if os.environ.get("AIRQ_SLOW_CLOCK_READ"):             # revision 8 (reader B): the old clock's read is slow

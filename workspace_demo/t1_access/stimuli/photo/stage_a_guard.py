@@ -59,7 +59,7 @@ SNAPSHOT = Path.home() / (".cache/huggingface/hub/models--mlx-community--Qwen3.6
                           "c000ac2c2057d94be3fa931000c31723aac53282")
 LENS = UPSTREAM / "data" / "lens" / "qwen36_27b_neuronpedia_n1000.npz"
 NEGATIVE_REVIEWS = {"f9d2ef3", "69539bb", "081f17b", "cf3e49e", "7048bb8", "5a8d7ac",   # Codex negative records:
-                    "1bf9890", "b569f8a", "c036c00", "12a7f20", "7fdb937"}                            # row 20, AI reader, both
+                    "1bf9890", "b569f8a", "c036c00", "12a7f20", "7fdb937", "dda950b"}                            # row 20, AI reader, both
 LOCAL_CODE = ["stage_a.py", "stage_a_guard.py", "stage_a_report.py", "stage_a_controller.py", "stage_a_watchdog.py",
               "memprobe.py", "enforce.py", "image_adapter.py", "dose.py", "dose_report.py"]
 PACKAGES = ["mlx", "mlx_lm", "mlx_vlm", "transformers", "tokenizers", "safetensors", "numpy", "PIL",

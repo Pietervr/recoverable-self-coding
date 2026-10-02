@@ -594,6 +594,55 @@ class Controller(unittest.TestCase):
                 self.assertLessEqual(g["controller_gone_wall"], killed + 1.0)
                 MEASURED.setdefault("external_death_before_pending_charged_s", {})[name] = round(fs[0]["charged_s"], 3)
 
+    def test_live_foreign_start_before_the_lock(self):
+        """Revision 10 (Codex dda950b, Stage A A1): S1 publishes its armed record and stays ALIVE, stalled in the
+        directory creation or the lock, with its guardian healthy (deadline 300 s); S2 recovers while S1 lives: it ends
+        S1 by its retained identity, confirms the death and charges start -> confirmed end; S1's guardian then records
+        the death; the charge covers that whole interval, once."""
+        stalls = {"directory": ("real = pathlib.Path.mkdir\n"
+                                "def mk(self, *a, **k):\n"
+                                "    if str(self) == str(o): time.sleep(10**6)\n"
+                                "    return real(self, *a, **k)\n"
+                                "pathlib.Path.mkdir = mk\n"),
+                  "lock": "import stage_a_guard\nstage_a_guard.TaskLock = lambda d: time.sleep(10**6)\n"}
+        for name, patch in stalls.items():
+            with self.subTest(name):
+                out = new_out()
+                p = subprocess.Popen(driver(f"o=Path({str(out)!r})\nimport time, pathlib\n" + patch +
+                                            "T.ctl(o, {}).run()\n"), stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.DEVNULL)
+                try:
+                    for _ in range(400):
+                        if out.exists() and list(out.glob("guardian_*.json")):
+                            break
+                        time.sleep(0.025)
+                    gp = next(out.glob("guardian_*.json"))
+                    g0 = json.loads(gp.read_text())
+                    self.assertEqual(g0["state"], "armed")
+                    time.sleep(1.0)
+                    self.assertIsNone(p.poll())                              # S1 is alive when S2 recovers
+                    self.assertTrue(memprobe.same_process(g0["controller"]))
+                    self.assertEqual(ctl(out, {}).run()["outcome"], "PASS")  # S2, in this process
+                    self.assertFalse(memprobe.same_process(g0["controller"]))   # S1 was ended by identity
+                    self.assertEqual(p.wait(timeout=10), -signal.SIGKILL)
+                finally:
+                    if p.poll() is None:
+                        p.kill()
+                        p.wait()
+                fs = [x for x in rec(out)["sessions"] if x.get("closed") == "failed_start_before_pending"]
+                self.assertEqual([x["session"] for x in fs], [gp.stem[len("guardian_"):]])
+                for _ in range(400):
+                    g = json.loads(gp.read_text())
+                    if g["state"] != "armed":
+                        break
+                    time.sleep(0.025)
+                self.assertEqual(g["state"], "controller_exited")
+                self.assertGreaterEqual(fs[0]["charged_s"], g["controller_gone_wall"] - g["started_wall"] - 0.1)
+                self.assertGreaterEqual(fs[0]["charged_s"], 1.0)
+                ctl(out, {}).run()                                           # S3: the late record is not charged again
+                self.assertEqual(len([x for x in rec(out)["sessions"]
+                                      if x.get("closed") == "failed_start_before_pending"]), 1)
+
     def test_recovery_during_guardian_receipt_publication(self):
         """Revision 9 (Stage A A1.2): the guardian kills the stalled controller at its setup deadline and publishes
         its record only 8 s later; a recovery started in that window finds the record still 'armed' and charges until

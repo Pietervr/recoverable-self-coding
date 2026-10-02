@@ -1,4 +1,4 @@
-"""Photograph arm, Stage A (row 20) and the AI-reader job: the WATCHDOG - revision 9 (the guardian's record is durable
+"""Photograph arm, Stage A (row 20) and the AI-reader job: the WATCHDOG - revision 10 (the record retains the controller's identity); revision 9 (the guardian's record is durable
 from arming and names every ending: exited, released, killed); revision 8 (its death record carries the start); revision 7 (Codex RSC c036c00 Stage A A, C: ticks
 carry their source observation time, staleness is measured from it, every endpoint is timestamped; the guardian
 creates its record's directory) - revision 6 answered RSC b569f8a Stage A 1-2,
@@ -127,7 +127,7 @@ def guardian(a: dict) -> int:
     # normal stop of a durable session ('X') writes nothing - controller.json names that session. A record that never got past
     # 'armed' (a death in between, or a write still in flight) is charged until its setup deadline.
     base = {"session": a.get("session"), "started_wall": a.get("started_wall"), "deadline_wall": a.get("deadline_wall"),
-            "watchdog_pid": os.getpid()}
+            "watchdog_pid": os.getpid(), "controller": ctl}   # revision 10: the protected identity, for liveness
     try:
         write_record(a["record"], {**base, "state": "armed", "armed_wall": time.time()})
     except OSError:

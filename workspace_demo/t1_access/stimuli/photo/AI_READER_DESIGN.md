@@ -1,11 +1,32 @@
-# AI image-reader qualification, revision 9: the design and where each condition lives
+# AI image-reader qualification, revision 10: the design and where each condition lives
 
 R084, 2 October 2026. The specification is framework §8.2's reader rule with R052's closures (Unimog, R052's text).
 Revision 5 answers Codex's combined record RSC `1bf9890` (not favourable to revision 4 at RSC `d7a486a`; reader
 conditions 1–7 = R1–R6 there) through R052's handoff `8c9dac2b`. Revision 4 answered RSC `5a8d7ac` (handoff
 `46125389`); its closures stand and are listed after the revision-5 table.
 
-## Revision 9: the conditions of RSC `7fdb937`
+## Revision 10: the condition of RSC `dda950b`
+
+Codex's record RSC `dda950b` (not favourable to revision 9 at `ba4fc75`) closed reader A and B1–B3 as submitted and
+left one boundary, answered here through R052's handoff `ac3b8525`.
+
+| # | Condition | Where it lives | Evidence (`tests/test_ai_reader_crash.py`) |
+|---|---|---|---|
+| B | A foreign start still alive before the task lock | Every pending record (final or temporary) retains the start's process identity (`process`: pid and start time). Holding the lock, a start checks each foreign pending record before absorbing it: if that identity is alive, `end_foreign_start` ends it (SIGKILL by identity), confirms the death and records `ended_wall`; the clock charges start -> confirmed end; not confirmed dead within 10 s, the job HOLDS before anything is charged or removed. The pending evidence is removed only after the clock's first persist that holds the final charge. | `Rev10.test_live_foreign_start_before_the_lock` (S1 alive and stalled before the lock with its final pending file, and with only its readable temporary; its setup timer healthy at 60 s; S2 recovers while S1 lives: S1 ended by identity (exit −9), charged ≥ S2's recovery time − start and < the 60 s bound, pending evidence removed, admitted) |
+
+Declarations qualified (Codex `dda950b`). Late return (revision 9's A): the fixture releases the commit at fired +
+50 ms; it does not witness the first unlink's completion - the ordering evidence is that release time, with the static
+post-return undo and the repeated removal supporting the mechanism (no measured early-unlink timestamp). Marker
+residual - UNAVAILABLE EFFECTIVE REVOCATION: if the tombstone cannot be published AND neither effective removal path
+completes, a matching marker can survive - also after a returned rename whose undo blocks or fails, and for a rename
+still in flight in the kernel at process exit; a power loss can drop the marker's entry (the COMPLETE then does not
+qualify). Revision 9's "any late return the process observes" is withdrawn. Startup residual: readable incomplete
+publication is covered (revision 9) and a live foreign start is ended before its charge is final (revision 10); what
+remains is a start that never got a pending temporary onto disk, bounded by its setup timer.
+
+The retained-output run for this revision: `reviews/2026-10-02_photo_suite_rev10_run.md`.
+
+## Revision 9: the conditions of RSC `7fdb937` (closed by `dda950b`; residual wording qualified in revision 10)
 
 Codex's record RSC `7fdb937` (not favourable to revision 8 at `9f696c6`) closed reader C, credited A's commit-point
 repair and B's repeated-start, elapsed-setup, one-id and missing/duplicate-session repairs, and left A's late-return
@@ -22,11 +43,12 @@ window and three B gaps, answered here through R052's handoff `50ab6395`.
 Residuals, stated as they are. Marker (A): a rename still in flight in the kernel when the process exits after the
 revocation window, with the tombstone writer blocked, can leave a matching marker without a tombstone; a power loss
 can drop the marker's directory entry (only ever non-qualifying). Revision 8's statement ("if both revocation steps
-block") was narrower than the late-return window; that window is closed for any late return the process observes.
+block") was narrower than the late-return window; the remaining residual is stated in revision 10 (unavailable
+effective revocation).
 Startup (B): only a start that never got a pending temporary onto disk (the job directory's creation, or the
 temporary's own creation, stalled) leaves no evidence; it is bounded by the setup timer.
 
-The retained-output run for this revision: `reviews/2026-10-02_photo_suite_rev9_run.md`.
+The retained-output run for revision 9: `reviews/2026-10-02_photo_suite_rev9_run.md` (historical).
 
 ## Revision 8: the conditions of RSC `12a7f20` (A and B completed in revision 9; C closed)
 

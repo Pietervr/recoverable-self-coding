@@ -1,4 +1,5 @@
-"""Photograph arm, Stage A (row 20): the INDEPENDENT CONTROLLER - revision 9 (Codex RSC 7fdb937 A1: every
+"""Photograph arm, Stage A (row 20): the INDEPENDENT CONTROLLER - revision 10 (Codex RSC dda950b: a foreign start still alive
+before the lock is ended by its retained identity before its charge is final); revision 9 (Codex RSC 7fdb937 A1: every
 guardian record of an unnamed start is charged - armed, exited, released or killed, a temporary included);
 revision 8 (Codex RSC 12a7f20 Stage A A: pending
 starts accumulate and are removed only once absorbed; a longer deadline is durable before the guardian moves to
@@ -294,6 +295,26 @@ class Controller:
     def _write_pending(self) -> None:
         write_json_atomic(self.out / STARTING, {"pending": [*self.prior_starts, self.my_start]}, final=True)
 
+    @staticmethod
+    def _end_foreign(ident) -> float | None:
+        """Revision 10 (Codex dda950b): a foreign protected start whose record names no end may still be ALIVE before
+        the task lock. Holding the lock, this start ends it by its retained identity (SIGKILL), confirms the death and
+        returns that time, so the charge is start -> confirmed end, never a provisional start -> now. Not alive: None.
+        Alive and not confirmed dead within GROUP_GONE_S: the run holds (nothing is charged or removed)."""
+        if not isinstance(ident, dict) or not isinstance(ident.get("pid"), int) or not memprobe.same_process(ident):
+            return None
+        try:
+            os.kill(ident["pid"], signal.SIGKILL)
+        except ProcessLookupError:
+            return time.time()
+        t = time.monotonic()
+        while memprobe.same_process(ident):
+            if time.monotonic() - t > GROUP_GONE_S:
+                raise SystemExit(f"refused: a foreign Stage A start (pid {ident['pid']}) is still alive and could not be "
+                                 f"ended; the run holds")
+            time.sleep(0.01)
+        return time.time()
+
     def _failed_start_charge(self, st: dict) -> float:
         """One failed start's charge: from its start to its guardian's recorded controller death if there is one;
         else, on the same boot, until min(now, its last durable deadline + EXIT_MARGIN_S); else (a reboot, or an
@@ -311,6 +332,9 @@ class Controller:
                 g = None
         if g and _num(g.get("controller_gone_wall")):
             return max(0.0, g["controller_gone_wall"] - start)
+        ended = self._end_foreign((g or {}).get("controller"))   # revision 10: alive -> ended first
+        if ended is not None:
+            return max(0.0, ended - start)
         try:
             same_boot = memprobe.boot_time() < start
         except memprobe.Unavailable:
@@ -357,8 +381,8 @@ class Controller:
                                     else None, "guardian": g or None, "guardian_file": recs[sid].name})
             known.add(sid)
 
-    @staticmethod
-    def _guardian_charge(g: dict) -> float:
+    @classmethod
+    def _guardian_charge(cls, g: dict) -> float:
         """A protected start that died before publishing its pending entry (revision 9, Stage A A1): from its start
         to the guardian's recorded end (the controller's death - observed or caused - or its release); a record that
         names no end (the controller died while the guardian was still publishing, or the record stopped at 'armed') is
@@ -370,6 +394,9 @@ class Controller:
         end = g.get("controller_gone_wall") if _num(g.get("controller_gone_wall")) else g.get("released_wall")
         if _num(end):
             return max(0.0, end - st)
+        ended = cls._end_foreign(g.get("controller"))   # revision 10: a live protected start is ended first
+        if ended is not None:
+            return max(0.0, ended - st)
         try:
             same_boot = memprobe.boot_time() < st
         except memprobe.Unavailable:

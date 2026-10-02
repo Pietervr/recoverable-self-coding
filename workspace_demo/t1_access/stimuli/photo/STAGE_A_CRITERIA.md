@@ -1,4 +1,4 @@
-# Stage A (ledger row 20): declared criteria and code, revision 9 (R084, 2 October 2026)
+# Stage A (ledger row 20): declared criteria and code, revision 10 (R084, 2 October 2026)
 
 **Specification:** framework `rsc_t1_two_channel_framework.md` §8.2, §8.4 and §8.6 (Unimog; R052's text).
 
@@ -14,10 +14,11 @@
 | 6 | RSC `bb4f076` | RSC `c036c00` (combined) | NOT ON BOARD; kill-first, the guardian, bounded revocation and the 195-count refusal credited |
 | 7 | RSC `068fe30` | RSC `12a7f20` (combined) | NOT ON BOARD; B and D closed; the ~21 GiB/s qualification (C) accepted; coverage, the 60 s closure and the missing-death branch credited |
 | 8 | RSC `9f696c6` | RSC `7fdb937` (combined) | NOT ON BOARD; A2 and A3 closed; A1's timeout path credited; two A1 transitions and five summary alignments left |
-| 9 | this commit | — | answers R052's handoff `50ab6395`: A1's two transitions (§0000) and the alignments |
+| 9 | RSC `ba4fc75` | RSC `dda950b` (combined) | NOT ON BOARD; A1.1 and A1.2 closed as submitted; alignments a–d accepted; a live foreign start before the lock left |
+| 10 | this commit | — | answers R052's handoff `ac3b8525`: the live foreign start (§00000) and declarations 1–3 |
 
 No review record of a not-favourable verdict can be named by a go: the guard's supplementary negative list holds
-`f9d2ef3`, `69539bb`, `081f17b`, `1bf9890`, `b569f8a`, `c036c00`, `12a7f20`, `7fdb937` (row 20; the last five combined) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
+`f9d2ef3`, `69539bb`, `081f17b`, `1bf9890`, `b569f8a`, `c036c00`, `12a7f20`, `7fdb937`, `dda950b` (row 20; the last six combined) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
 rejection is the absence of a positive, exactly matching attestation.
 
 **Not reopened** (accepted by Codex at `1bf9890`): the hashes and their relations, the shared strict guard (no schema
@@ -32,9 +33,17 @@ and budget are byte-identical to revision 7.
 
 **No forward has run on any development image.** Every mechanism measurement below is from declared, non-development
 fixtures: synthetic worker processes, the real watchdog, synthetic arrays; no model and no image
-(`controller_fixtures.json`, recorded 2 October 2026 at 10:01 MST on the revision-8 code and kept for revision 9,
-whose changes touch no sampling or timing path; the §000/§00 interval, margin and A1–A3 values are from that file;
+(`controller_fixtures.json`, recorded 2 October 2026 at 10:01 MST on the revision-8 code and kept as the PINNED
+SAMPLING/TICK/KILL MEASUREMENTS: revisions 9 and 10 change no sampling, tick or worker-kill path; they DO change the
+guardian's arming and release paths and add the foreign-start reconcile, whose evidence is the revision-9/10 tests
+and the retained suite run, not that file; the §000/§00 interval, margin and A1–A3 values are from that file;
 values inside the older sections are their own revision's and are marked so).
+
+## 00000. Revision 10: a live foreign start before the lock (RSC `dda950b`)
+
+| Path | Where it lives | Fixture (`tests/test_controller.py`) |
+|---|---|---|
+| A foreign start S1 published its `armed` record (or a pending entry) and is still ALIVE before the task lock when S2 recovers | The guardian's record retains the protected controller's identity (pid and start time). Holding the lock, S2 checks every unnamed start whose record names no end: if that identity is alive, S2 ends it (SIGKILL by identity), confirms the death and charges start -> confirmed end (`_end_foreign`, in `_guardian_charge` and `_failed_start_charge`); not confirmed dead within 10 s, the run HOLDS before anything is charged or removed. A dead one keeps the stated bound. The charge is therefore final only once S1 has ended; S1's later guardian record names an already-charged session and is not charged again. | `test_live_foreign_start_before_the_lock` (directory and lock stalls; S1 alive, its guardian healthy with a 300 s deadline; S2 recovers in this process: S1 ended by identity (exit −9), charged ≥ its guardian's recorded death − start; S3 adds nothing) |
 
 ## 0000. Revision 9: the two A1 transitions of RSC `7fdb937`
 
@@ -43,9 +52,12 @@ values inside the older sections are their own revision's and are marked so).
 | A1.1 A healthy guardian sees an external controller death before the pending entry | The guardian now writes a durable `armed` record (session, the protected start's wall time, its setup deadline) BEFORE it reports ARMED - the controller loads nothing until then - and rewrites it at every ending of a start controller.json does not yet name: `controller_exited` (the death it observes), `released` (the controller ending before its session is durable - a refusal) or `killed` (its deadline); a normal stop of a session controller.json names writes nothing more (so no write follows the final record and its storage figure stays exact). Recovery charges every record whose session controller.json does not name, start → recorded end, as `failed_start_before_pending`, once. | `test_external_death_before_pending_with_a_healthy_guardian` (directory and lock stalls; the controller SIGKILLed from outside about 1 s after arming, long before its 300 s deadline; the guardian records `controller_exited`; the next start charges exactly death − start; no pending file existed) |
 | A1.2 Recovery while the guardian is still publishing its receipt | A record that names no end - still `armed` because the post-kill write is in flight, or a readable `guardian_*.json.tmp` - is charged on the same boot until min(now, its setup deadline + 5 s), which is at least the interval to the actual death; the later receipt names an already-charged session and is not charged again. | `test_recovery_during_guardian_receipt_publication` (a fixture guardian, `tests/slow_guardian.py`, kills at the 2 s setup deadline and publishes 8 s later; recovery in that window finds `armed`, charges ≥ the measured interval to the death; after the receipt lands, ≥ death − start; a further start does not charge it again) |
 
-Residual, stated as it is: a start is untraceable only if its guardian never published the `armed` record (its own
-write failed or stalled - the controller then refuses after ARM_TIMEOUT_S = 10 s, before any file operation of its
-own, or is killed while waiting); that interval of at most 10 s is not charged. A healthy guardian's observed death,
+Residual, stated as it is (qualified at revision 10): a start is untraceable only if its guardian never published the
+`armed` record (its own write failed or stalled). The controller then waits ARM_TIMEOUT_S = 10 s, and its cleanup
+before refusing waits up to 2 s for the guardian after the release message and up to 5 s after terminating it
+before kill and reap: nominally 10 + 2 + 5 = 17 s, plus process start-up and signal/reap latency - none of it
+charged, and done before any file operation of its own. This qualifies the residual; it is not a proof about
+arbitrary OS stalls. A healthy guardian's observed death,
 its release and its kill are all recorded; a death while the record is unpublished is charged to the setup deadline.
 
 ## 000. Revision 8: condition A of RSC `12a7f20` (continuous, durable failed-start/restart accounting)
@@ -338,8 +350,8 @@ same five hashes). If one review approves both Stage A and the AI reader, each g
 
 ## 6. Tests (no model)
 
-The retained-output evidence for this package is `reviews/2026-10-02_photo_suite_rev8_run.md` (command, exit status,
-counts, skips, identity, stdout/stderr); earlier records (`..._rev5_run.md` to `..._rev7_run.md`) are historical.
+The retained-output evidence for this package is `reviews/2026-10-02_photo_suite_rev10_run.md` (command, exit status,
+counts, skips, identity, stdout/stderr); earlier records (`..._rev5_run.md` to `..._rev9_run.md`) are historical.
 
 ## 7. Stated limits (not narrowed silently)
 

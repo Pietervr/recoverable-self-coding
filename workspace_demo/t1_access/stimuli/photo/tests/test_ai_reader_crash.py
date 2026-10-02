@@ -706,6 +706,50 @@ class Rev9(Rev8):
                     X.admit_clock(cp, raw, recs[-1])
 
 
+class Rev10(Rev9):
+    """Codex RSC dda950b, the reader's live foreign start before the lock, across real processes."""
+
+    def test_live_foreign_start_before_the_lock(self):
+        """S1 publishes its pending record (final, or only its readable temporary) and stays ALIVE, stalled before
+        the task lock, its setup timer healthy (60 s); S2 recovers while S1 lives: it ends S1 by its retained identity,
+        confirms the death, charges start -> confirmed end, and only then removes the pending evidence; admitted."""
+        for mode in ("final", "temporary"):
+            with self.subTest(mode):
+                self.root = Path(tempfile.mkdtemp(dir=X.ensure_root()))
+                self.build({})
+                env = {**{k: v for k, v in os.environ.items() if k != "AIRQ_CRASH"}, "AIRQ_SETUP_S": "60",
+                       "AIRQ_LOCK_STALL" if mode == "final" else "AIRQ_PENDING_STALL": "1"}
+                s1 = subprocess.Popen([sys.executable, str(DRIVER), str(self.root)], stdout=subprocess.DEVNULL,
+                                      stderr=subprocess.DEVNULL, env=env)
+                job = self.b["fixture"]["job"]
+                try:
+                    pat = "clock.starting.*.json" if mode == "final" else "clock.starting.*.json.tmp"
+                    for _ in range(600):
+                        got = sorted(job.glob(pat)) if job.exists() else []
+                        if got and got[0].stat().st_size:
+                            break
+                        time.sleep(0.025)
+                    time.sleep(0.3)
+                    st = json.loads(got[0].read_text())
+                    self.assertIsNone(s1.poll())                          # S1 is alive when S2 recovers
+                    self.assertTrue(memprobe.same_process(st["process"]))
+                    t_rec = time.time()
+                    p = drive(self.root)                                  # S2
+                    self.assertEqual(p.returncode, 0, p.stderr[-800:])
+                    self.assertFalse(memprobe.same_process(st["process"]))   # S1 was ended by identity
+                    self.assertEqual(s1.wait(timeout=10), -signal.SIGKILL)
+                finally:
+                    if s1.poll() is None:
+                        s1.kill()
+                        s1.wait()
+                fs = [x for x in self.clock()["sessions"] if x.get("session") == st["start"]]
+                self.assertEqual([x["closed"] for x in fs], ["failed_start"])
+                self.assertGreaterEqual(fs[0]["charged_s"], t_rec - st["start_wall"])   # at least to S2's recovery
+                self.assertLess(fs[0]["charged_s"], 60.0)                 # the confirmed end, not the 60 s bound
+                self.assertEqual(sorted(job.glob("clock.starting*")), [])
+                self.admitted()
+
+
 for _name in [n for n in dir(HardKill) if n.startswith("test_")]:
     setattr(Rev6, _name, None)
     setattr(Rev7, _name, None)
@@ -713,6 +757,8 @@ for _name in [n for n in dir(Rev7) if n.startswith("test_")]:
     setattr(Rev8, _name, None)                     # Rev7's (and HardKill's) tests are not collected again
 for _name in [n for n in dir(Rev8) if n.startswith("test_")]:
     setattr(Rev9, _name, None)
+for _name in [n for n in dir(Rev9) if n.startswith("test_")]:
+    setattr(Rev10, _name, None)
 for _name in [n for n in dir(HardKill) if n.startswith("test_")]:
     setattr(Rev5Recovery, _name, None)             # helpers inherited, HardKill's own tests not collected twice
 
