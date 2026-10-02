@@ -1,0 +1,466 @@
+{
+ "seed": 20261006,
+ "a_grid_sha256": "3e86bc49eea49d2db2ef336f7843808f2beff0fc158c54a1bf7f6affa9c9683c",
+ "inputs": [
+  {
+   "kind": "intermediate",
+   "concept": "crow",
+   "level": "-12dB",
+   "index": 0,
+   "carrier": 0,
+   "nonce": "265a59be8d5380af8d53dd76254507f47f09af844568b75ccbf9d87f17185f5c",
+   "a": 0.24362048990749444,
+   "target": "crow",
+   "foil": "horse",
+   "target_id": 9000,
+   "foil_id": 14780,
+   "png_sha256": "0c4bb3a611f1d03d92725b112373aeff533c4204691c4b67bbb1b1993ace67c7",
+   "pixel_values_sha256": "65ecadbb660ed1ff2d1a2b828a32cab8542e6feb590557794345ebc44f45227d",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "clean",
+   "concept": "hamburger",
+   "level": "clean",
+   "index": 1,
+   "carrier": 0,
+   "nonce": "dceab11c1631c3ab4bed4d6f72ac47120b2f6a7f74c47d5fc3b4a1adbc14938e",
+   "a": 1.0,
+   "target": "hamburger",
+   "foil": "chili",
+   "target_id": 85693,
+   "foil_id": 56637,
+   "png_sha256": "f82dd04390c420b929aa4bd0f8e0a3703ffbed75e397beb61bc1cb2243536993",
+   "pixel_values_sha256": "7087bdef5f7774180058f514f23c4f23da5e86a4050b3a6ea857c0da3c0e3f91",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "intermediate",
+   "concept": "hamburger",
+   "level": "-12dB",
+   "index": 2,
+   "carrier": 0,
+   "nonce": "faf61ed9126ea6ad3b7604061dc757f5577f18fd699c265a28cf966bff179bba",
+   "a": 0.24362048990749444,
+   "target": "hamburger",
+   "foil": "chili",
+   "target_id": 85693,
+   "foil_id": 56637,
+   "png_sha256": "454731460768a3bbd8541f48cba3599d6f7f60efc9b9c11d2a289a127e831cb3",
+   "pixel_values_sha256": "3070530cff4f5ab3fa3581d2587eb4acc6c6f0e8694130a4739bb9e6e91f3067",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "intermediate",
+   "concept": "horse",
+   "level": "+0dB",
+   "index": 3,
+   "carrier": 0,
+   "nonce": "6b6ce2b4751d4a6d37e03d89732e005be90589860c0ad6e2d9e00c438a7050b8",
+   "a": 0.7071067811865476,
+   "target": "horse",
+   "foil": "crow",
+   "target_id": 14780,
+   "foil_id": 9000,
+   "png_sha256": "2d44631fdbb0b931a54eec35175f83597e1b12db5dcb6c48b7bbc964fcdc0af7",
+   "pixel_values_sha256": "5186fef0074adf35ad05c1025f25ffd3574225a4f72b28de67284991da0f8f91",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "intermediate",
+   "concept": "chili",
+   "level": "+0dB",
+   "index": 4,
+   "carrier": 0,
+   "nonce": "66c745280b6d41ed97fa65efdc5ffd9133c1afe72f4364c3d4aa21ee072757a5",
+   "a": 0.7071067811865476,
+   "target": "chili",
+   "foil": "hamburger",
+   "target_id": 56637,
+   "foil_id": 85693,
+   "png_sha256": "55247636fecf4baa861dba4e55e413184b02d25ad4ac0d7a96ad3470c1db3182",
+   "pixel_values_sha256": "5752599f3fa6a0771cfb020f1f8ec66e3f7ecc84a8d9eae28da39dbc0557e12f",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "intermediate",
+   "concept": "mask",
+   "level": "-12dB",
+   "index": 5,
+   "carrier": 0,
+   "nonce": "42c1b23406f73f374813c0deee577369be6b40a6818c2aa87b278aa3adc023c3",
+   "a": 0.24362048990749444,
+   "target": "mask",
+   "foil": "jacket",
+   "target_id": 6696,
+   "foil_id": 25372,
+   "png_sha256": "1f895e8b0836937f86d6ff5c6d9dfcbbe2bcaebc953bf67dea54c89e18abcc9b",
+   "pixel_values_sha256": "b810518a98026901824595f1cee254651f9231bfe5b51adf34de8cd110f878c6",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "clean",
+   "concept": "jacket",
+   "level": "clean",
+   "index": 6,
+   "carrier": 0,
+   "nonce": "ee02174f25cfd9cd9a8e810060eba99bd00300c8ca3cc64dc83abcb60f2a6303",
+   "a": 1.0,
+   "target": "jacket",
+   "foil": "mask",
+   "target_id": 25372,
+   "foil_id": 6696,
+   "png_sha256": "559484f14444615b205aaffce0352003b22cb64f8b182374447c0e591f4fd91b",
+   "pixel_values_sha256": "8bb8c0ce9b473da67d16c58ce7c4795f89390e4574ae63d7abbdefc58f300884",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "clean",
+   "concept": "taxi",
+   "level": "clean",
+   "index": 7,
+   "carrier": 0,
+   "nonce": "4fe9e54be7302a2890bb2eeca0a8c267c5aa0e0222195e810e53b7d418e17202",
+   "a": 1.0,
+   "target": "taxi",
+   "foil": "wagon",
+   "target_id": 31432,
+   "foil_id": 58382,
+   "png_sha256": "5393307acc1ebaf9b2e0782e26a61fa6dae13e141fe2610151a134b9051699d3",
+   "pixel_values_sha256": "fceda1d0d08490866d18da5b3c7e6ba3fe061b78e7308835dea392545bc2f27d",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "noise_only",
+   "concept": null,
+   "family_for_edits": "foods",
+   "level": "noise_only",
+   "index": 8,
+   "carrier": 0,
+   "nonce": "c2abb7b3ea4768c3c1095535c98ff7f4144445d18ccdb4a62f584902de3adc4e",
+   "a": 0.0,
+   "target": "chili",
+   "foil": "hamburger",
+   "target_id": 56637,
+   "foil_id": 85693,
+   "png_sha256": "45defb6c3c54f137d041332d354b04d7e86d83a9b382821d0c7646dc758030b9",
+   "pixel_values_sha256": "255a592997da71e52b37ca7d58d0928c166874ecfc017ca496a0efbf2e4f170c",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "clean",
+   "concept": "chili",
+   "level": "clean",
+   "index": 9,
+   "carrier": 0,
+   "nonce": "305e58fc9194adf446a022b8187dbd4afc85b7f569a2800cc50e602938efa7d2",
+   "a": 1.0,
+   "target": "chili",
+   "foil": "hamburger",
+   "target_id": 56637,
+   "foil_id": 85693,
+   "png_sha256": "43297bffc0183ad33cfd6586187571b16bcf5714e6b3232b581ac0624ba38c39",
+   "pixel_values_sha256": "863045009a1d97d183c2cd9a020f04e59321e3b64c463a0e7311ba5af2699c4e",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "intermediate",
+   "concept": "jacket",
+   "level": "+0dB",
+   "index": 10,
+   "carrier": 1,
+   "nonce": "6fda0b2257bdc191b64c330c316d2511739bf76a10cbca3f193078441653f916",
+   "a": 0.7071067811865476,
+   "target": "jacket",
+   "foil": "mask",
+   "target_id": 25372,
+   "foil_id": 6696,
+   "png_sha256": "36b685a454cb145d5ed3fc72f08c999b248a88d2fe124a7232182b03634b65e5",
+   "pixel_values_sha256": "aa6c1a8b53744c9a22c5a84b05650b528348424a024b509b6bd4380ed816fac0",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "intermediate",
+   "concept": "wagon",
+   "level": "-12dB",
+   "index": 11,
+   "carrier": 1,
+   "nonce": "ca11f305552665f4bd49bb3f0caf24538bb28dc94bc444d99c57c4c53fec7548",
+   "a": 0.24362048990749444,
+   "target": "wagon",
+   "foil": "taxi",
+   "target_id": 58382,
+   "foil_id": 31432,
+   "png_sha256": "db4f003221fee1541ab3510a484bb941d37942147bc30669e6e8231b02ccc1f8",
+   "pixel_values_sha256": "590322033e1ddc56a09ea0cef06ebb1660b502108532ed57980d54b912ab44b2",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "clean",
+   "concept": "mask",
+   "level": "clean",
+   "index": 12,
+   "carrier": 1,
+   "nonce": "6e886ffce36910d81a5f2471a307f2352a7e8864434b49ab15cbbe7836a5b863",
+   "a": 1.0,
+   "target": "mask",
+   "foil": "jacket",
+   "target_id": 6696,
+   "foil_id": 25372,
+   "png_sha256": "08d2dab7e3f62b3da5df562bff6ca503717ff3b9a1f660fd3e9148b8a15deb34",
+   "pixel_values_sha256": "bb54a96e8d56750d35f111bed7166acd9deee023812f255bfdb586984b4eaa2e",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "clean",
+   "concept": "crow",
+   "level": "clean",
+   "index": 13,
+   "carrier": 1,
+   "nonce": "4ec3e241c2933c9b91396eb8535b2f503056fa996eb903c8aedf1176290dad0a",
+   "a": 1.0,
+   "target": "crow",
+   "foil": "horse",
+   "target_id": 9000,
+   "foil_id": 14780,
+   "png_sha256": "3d50d7ee2ca4cab60f372d217867448d8707e2e063f29a1ff8cc9c9b9e2e54a5",
+   "pixel_values_sha256": "a6cceb517f539724e5df553544bcf04934c41cb25443f8305fa4bb2baf3ef2a9",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "intermediate",
+   "concept": "taxi",
+   "level": "+0dB",
+   "index": 14,
+   "carrier": 1,
+   "nonce": "f3614ffc61316ac416fde402bb5f8c3710a26e6fa4204c913e24d6db02866982",
+   "a": 0.7071067811865476,
+   "target": "taxi",
+   "foil": "wagon",
+   "target_id": 31432,
+   "foil_id": 58382,
+   "png_sha256": "a0a24b71200471201f5c6441b5ff6e69fd4b2a782b7f4b9e543d5627df33a6af",
+   "pixel_values_sha256": "423124bb8f129d5e3bbdbb3ff55e3146e32798c3ec49181942f4e3177ec314b4",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "clean",
+   "concept": "horse",
+   "level": "clean",
+   "index": 15,
+   "carrier": 1,
+   "nonce": "e81c71cf6669d5272abc6b19c46070a1a1b8421181b92da55b94d67756f7b606",
+   "a": 1.0,
+   "target": "horse",
+   "foil": "crow",
+   "target_id": 14780,
+   "foil_id": 9000,
+   "png_sha256": "00f35c27dd9c5141d85f8eab1172cc5fbb95e5359d1e2416462c20e5b1c7f917",
+   "pixel_values_sha256": "efd555fa87ba6b1fad51118e12e92bdc411bf492dda7d90607a1ed8343ac92a1",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "noise_only",
+   "concept": null,
+   "family_for_edits": "vehicles",
+   "level": "noise_only",
+   "index": 16,
+   "carrier": 1,
+   "nonce": "75ab00b6b7a56a37b46a357887c0f7ee28f09ff3af313ab4074198a88ca025cb",
+   "a": 0.0,
+   "target": "taxi",
+   "foil": "wagon",
+   "target_id": 31432,
+   "foil_id": 58382,
+   "png_sha256": "156f8dd31646c016555537d12aeb390cd96bffcb37b7b4dc7d8efdd4b0154443",
+   "pixel_values_sha256": "6cf996448638423b7fddfc706f520e5cb7452ac5c0ab6f7d364d30f895501180",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "noise_only",
+   "concept": null,
+   "family_for_edits": "animals",
+   "level": "noise_only",
+   "index": 17,
+   "carrier": 1,
+   "nonce": "0b6328b8c3e897af21b796fc1b3e4c8e9a7749e1d5b7638429d0aaea2a40033e",
+   "a": 0.0,
+   "target": "crow",
+   "foil": "horse",
+   "target_id": 9000,
+   "foil_id": 14780,
+   "png_sha256": "c14eb163e6f69b7a2df3e15e5b59e79d51e59985287bb36d245abe4f4244eab8",
+   "pixel_values_sha256": "735b472c07b626e633a842ae4b988e4a4343d7ee24aeae4160a24ed26eaf1a18",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "clean",
+   "concept": "wagon",
+   "level": "clean",
+   "index": 18,
+   "carrier": 1,
+   "nonce": "2f81ce1b83d135d3079b0974c610346fdf513a7462cc714e8dd1f11fe075c370",
+   "a": 1.0,
+   "target": "wagon",
+   "foil": "taxi",
+   "target_id": 58382,
+   "foil_id": 31432,
+   "png_sha256": "fb6a15f00bfdd578b724888cda4354cad5985a21d433fe232ccd4d1aec71e9c9",
+   "pixel_values_sha256": "c67810110b065616290cd38b24f1b6f581ad54f2043bf7543eedc45f1e8b17bc",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  },
+  {
+   "kind": "noise_only",
+   "concept": null,
+   "family_for_edits": "clothing",
+   "level": "noise_only",
+   "index": 19,
+   "carrier": 1,
+   "nonce": "a379d61d939cd315e54d055c5d2d160d1d7200baca59e3b75e6f1f7cfb5d2b7b",
+   "a": 0.0,
+   "target": "jacket",
+   "foil": "mask",
+   "target_id": 25372,
+   "foil_id": 6696,
+   "png_sha256": "0196e3c43f4f28d1d97d1a063e071a208ebd16aa079f7f89d6c6fd033fe7c96b",
+   "pixel_values_sha256": "0b0267d4fb67deaeb8d388ba16b6b7988f490d8a144a049a84bc8102bd531b14",
+   "grid_thw": [
+    1,
+    24,
+    24
+   ]
+  }
+ ],
+ "request_token_ids": [
+  64978,
+  14882,
+  53315,
+  30517,
+  80611,
+  56726,
+  16657,
+  56637,
+  18775,
+  9000,
+  85693,
+  8628,
+  14780,
+  25372,
+  32186,
+  16106,
+  54286,
+  6696,
+  47881,
+  22952,
+  89350,
+  76787,
+  60507,
+  42342,
+  8026,
+  94601,
+  10764,
+  31432,
+  17592,
+  39666,
+  10538,
+  58382
+ ],
+ "cases": [
+  "plain",
+  "empty",
+  "zero",
+  "self_patch",
+  "swap",
+  "ablate",
+  "repeat"
+ ],
+ "native": 1,
+ "edit_layer": 41,
+ "tolerances": {
+  "rel_l2": 0.01,
+  "logit": 0.1
+ },
+ "dev_pool_sha256": "fd7139bcaa2adb66c23621a57fd8a1d78e2004b38aaf9cbca1dfa71f299fd801",
+ "provenance_checks_sha256": "d6f9b58fc4ebc379d0aa23bc230f840b612b6e4e3f678c36bbbbcad81c751211",
+ "planned_passes": {
+  "instrumented": 140,
+  "native": 20,
+  "total": 160
+ }
+}
