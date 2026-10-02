@@ -1,0 +1,38 @@
+{
+  "owner_go": {
+    "by": "Pieter van Rooyen (owner)",
+    "date": "2026-10-02",
+    "words": "go for Stage A and the reader qualification, 2 October"
+  },
+  "package": {
+    "AI_READER_DESIGN.md_sha256": "3b5381a37e46a30eee267f4e217a9701c34c34e39f8804327ae5525ebaea2a08",
+    "AI_READER_JOB.md_sha256": "977742e5cf00b4ced9d6ce60d17d44e6630e02f0adfe993b03d819b33e4a2a14",
+    "ai_reader_delivery.json_sha256": "f79e0bbf524d943691755401b33583dcca8e4a13c3e7066ea2273d7451d691d8",
+    "ai_reader_exec.py_sha256": "f2e3e0e57eee40f8c34fec065eed8ec72e05eb4be8f40641d6a52cac7b15271b",
+    "ai_reader_frame.py_sha256": "cf1e648dbd7617cc8160c73969adbcf4eac0703823ec98ae25056c7ef7ba60d8",
+    "ai_reader_journal.py_sha256": "e067889c4210b91ec220fbd4f63421fb93fc4fd64f14c398f288fcaa3bcf2907",
+    "ai_reader_key.py_sha256": "e063c7ceb08d39ac028e418857a612797516129ed1aa1e96280e22902d660c8f",
+    "ai_reader_qual.py_sha256": "6153bb6fafc63f64f92fee8654cb78cdfac4d6652e31261844d7ac35c2848cdc",
+    "ai_reader_qual_key.json_sha256": "d9c467f39d4d221b8d92059574506b1537140e66b6b9df18db28e15610ef9aea",
+    "ai_reader_qual_set.json_sha256": "27a40db056f377cfdc308640668bd8c705a4312b974cc1f455efb2ce04302302",
+    "ai_reader_runtime.py_sha256": "96235ea8e276b49ee671437776ee45d49a0249db70ce69b17849881fd4cac89e",
+    "ai_reader_score.py_sha256": "c66e6183f41a48dd9ac6aa2d15d5d952a5a0f0b5c15d842f594c11bf91f0aeaf",
+    "cli_version": "codex-cli 0.159.3",
+    "codex_package_json_sha256": "8660ce5bb4e302c2739c7ddcc9974a45fa8d568d123b9066c9135d6dba0ac121",
+    "codex_realpath": "/opt/homebrew/Caskroom/codex/0.159.3/bin/codex",
+    "codex_sha256": "4d210f7c5a18fd0386434df23b5bdbb8c0e7257d3e8a2b30b0769c8bbe99a878",
+    "command_template_sha256": "031e84919341e045907acbc09a210af51449a9d6c249f0bba40d9238469058ba",
+    "enforce.py_sha256": "5d142c94560da93ee08fd4021dd7aa46edba60d13252ed992e44873a0f57ed42",
+    "instructions_sha256": "e2a8ba62a740d571102bca60f77a3e4be04c7a02d2e823b602403a3e6d292790",
+    "memprobe.py_sha256": "83114f358b74372c3bbe647a5b907903ec6629c172a76adc3d7c13f5a7acd465",
+    "package_digest": "ffba894e5a8c1ea9ed4d68f9287cbb75fc4e25e50e923dcd525a542d631a8ed8",
+    "sandbox_exec_sha256": "58839ef01b4eef8aac0d2aa8f9d1c074ae45aafe3533965b030672450064acc8",
+    "stage_a_guard.py_sha256": "71031f606240c0ca93e41f22ceddcf9a78d1968a356803d00fff18b36749db70",
+    "stage_a_watchdog.py_sha256": "7a686c76fea6f9be8f21724d3690847c752a95b78f6389bc2792a9016a15736d"
+  },
+  "review": {
+    "commit": "339018303643d44bbeab087cf2d891553af7dd56",
+    "path": "workspace_demo/t1_access/reviews/2026-10-02_rev10_ai_reader_codex_record.md",
+    "record_sha256": "cac9d3560170807fc251708156c28a18cda65033dc24187ec2315cd8a6f2dd53"
+  }
+}
