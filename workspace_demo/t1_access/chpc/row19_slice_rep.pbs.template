@@ -2,7 +2,7 @@
 #PBS -N t1_row19_slice_rep__REP__
 #PBS -P CSCI1913
 #PBS -q seriallong
-#PBS -l select=1:ncpus=1:mpiprocs=1:nodetype=haswell_reg
+#PBS -l select=1:ncpus=1:mpiprocs=1:mem=8gb:nodetype=haswell_reg
 #PBS -l walltime=144:00:00
 #PBS -o /mnt/lustre/users/pvanrooyen/t1_toolchain/jobs/row19_slice_rep__REP__.__ATTEMPT__.out
 #PBS -e /mnt/lustre/users/pvanrooyen/t1_toolchain/jobs/row19_slice_rep__REP__.__ATTEMPT__.err
@@ -10,7 +10,8 @@
 #PBS -M pgwvanrooyen@sun.ac.za
 # Ledger row 19, stage 1, route A: ONE dataset of the qualification slice (rep __REP__) on one shared Haswell core under
 # the section 7.4 start policy, declared in chpc/row19_slice_manifest.json. The runner stops dispatching 30 minutes before
-# the walltime, flushes and exits 75; the next attempt of this file resumes from the fsynced checkpoint. Submitted ONLY
+# the walltime, flushes and exits 75; the next attempt of this file resumes from the fsynced checkpoint. __TOKEN__ is the
+# campaign reservation made BEFORE this qsub (chpc/row19_ledger.py reserve --kind main --rep __REP__). Submitted ONLY
 # after Codex's review of the launch specification and the owner's go on row 19's slice, under the manifest's budget.
 ulimit -s unlimited
 T=/mnt/lustre/users/pvanrooyen/t1_toolchain
@@ -19,7 +20,7 @@ export NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHON
 echo "host $(hostname)  $(grep -m1 'model name' /proc/cpuinfo)"
 echo "code $(git rev-parse --short HEAD)  start $(date -u +%FT%TZ)  job $PBS_JOBID"
 mkdir -p $T/row19_slice
-$T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep __REP__ --walltime-s 518400 --root $T/row19_slice --job-id $PBS_JOBID 2>&1 | tee -a $T/row19_slice/live_rep__REP__.log
+$T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep __REP__ --walltime-s 518400 --root $T/row19_slice --campaign $T/row19_campaign --job-id $PBS_JOBID --reservation-token __TOKEN__ --kind main 2>&1 | tee -a $T/row19_slice/live_rep__REP__.log
 rc=${PIPESTATUS[0]}
 
 echo "exit $rc  end $(date -u +%FT%TZ)"

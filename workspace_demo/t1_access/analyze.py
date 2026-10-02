@@ -363,8 +363,12 @@ def band_max(delta: np.ndarray, layers: np.ndarray, band=(23, 57)) -> tuple:
 
 
 def analyze_dataset(ds: Dataset, cfg: Config, seed: int, outer_folds: list | None = None,
-                    n_jobs: int = 1, run: dict | None = None) -> dict:
-    """The outcome table for one dataset: per predictor, the band statistics, CIs and the §8.3 decision."""
+                    n_jobs: int = 1, run: dict | None = None, interval_result: dict | None = None) -> dict:
+    """The outcome table for one dataset: per predictor, the band statistics, CIs and the §8.3 decision.
+    `run` supplies the original fits (none are bought); `interval_result` supplies a COMPLETED refit bootstrap of this
+    same dataset identity (none is bought either): it must carry this run's identity, B and seed and must not be
+    partial, else ValueError - the ledger-row-19 runner aggregates its strict, durable chain this way (Codex, 2 Oct
+    2026, launch condition B: the completion step must never start a second, unprotected chain)."""
     run = run_dataset(ds, cfg, seed, outer_folds, n_jobs) if run is None else run
     out = dict(failed=run["failed"], failed_reason=run.get("failed_reason", ""), layers=run["layers"].tolist(),
                convergence_rate=float(np.mean(run["converged"])),
@@ -381,9 +385,17 @@ def analyze_dataset(ds: Dataset, cfg: Config, seed: int, outer_folds: list | Non
     if cfg.interval not in INTERVALS:
         raise ValueError(f"cfg.interval must be one of {INTERVALS}, not {cfg.interval!r}")
     rb = None
-    if cfg.interval == "refit" and not run["failed"]:
+    if cfg.interval == "refit" and not run["failed"] and interval_result is not None:
+        want = dataset_identity(ds, cfg, seed, cfg.n_boot_refit, run["folds"])
+        if interval_result.get("ident") != want or int(interval_result.get("n_rep", -1)) != int(cfg.n_boot_refit) \
+                or int(interval_result.get("seed", -1)) != int(seed) or interval_result.get("partial", False) \
+                or int(interval_result.get("n_done", -1)) != int(cfg.n_boot_refit):
+            raise ValueError("interval_result is not a completed refit bootstrap of this dataset identity, B and seed")
+        rb = interval_result
+    elif cfg.interval == "refit" and not run["failed"]:
         rb = refit_bootstrap(ds, cfg, seed, n_rep=cfg.n_boot_refit, n_jobs=n_jobs, outer_folds=run["folds"],
                              min_usable=cfg.refit_min_usable, checkpoint_dir=cfg.refit_checkpoint_dir)
+    if rb is not None:
         out["interval"] = dict(method="refit", n_rep=rb["n_rep"], n_used=rb["n_used"], n_failed=rb["n_failed"],
                                usable=rb["usable"], policy=rb["policy"], seed=rb["seed"], fit_seconds=rb["fit_seconds"],
                                failed_reasons=rb["failed_reasons"], replicates=rb["replicates"],
@@ -505,6 +517,43 @@ def dataset_identity(ds: Dataset, cfg: Config, seed: int, n_rep: int, outer_fold
     return h.hexdigest()
 
 
+def checkpoint_state(ds: Dataset, cfg: Config, seed: int, n_rep: int, outer_folds: list, checkpoint_path: str) -> dict:
+    """Inspect a refit checkpoint WITHOUT fitting anything (ledger row 19, task admission before the original fit):
+    the identity this run would use, the accepted resample indices, the records this run cannot accept, and whether a
+    trailing fragment is present. Nothing scientific is returned (no statistics)."""
+    rng = np.random.default_rng(seed)
+    idx = stratified_resample(ds.family, n_rep, rng)
+    masks = {b: m for b, m in band_masks(ds.layers, cfg.bands).items() if m.any()}
+    bands = list(masks) + (["ws_minus_early"] if "ws" in masks and "early" in masks else [])
+    ident = dataset_identity(ds, cfg, seed, n_rep, outer_folds)
+    out = dict(ident=ident, exists=os.path.exists(checkpoint_path), accepted=[], rejected=0, duplicates_conflicting=0,
+               tail_fragment=False, lines=0)
+    if not out["exists"]:
+        return out
+    out["tail_fragment"] = bool(_tail_fragment(checkpoint_path))
+    seen = {}
+    with open(checkpoint_path) as fh:
+        for line in fh:
+            if not line.strip():
+                continue
+            out["lines"] += 1
+            try:
+                d = json.loads(line)
+            except Exception:
+                d = None
+            if _record_ok(d, ident, seed, n_rep, idx, bands):
+                r = int(d["rep"])
+                if r in seen and seen[r] != d.get("sha"):
+                    out["duplicates_conflicting"] += 1
+                seen[r] = d.get("sha")
+            else:
+                out["rejected"] += 1
+    if out["tail_fragment"]:
+        out["rejected"] = max(0, out["rejected"] - 1)      # the fragment is repairable, not a rejected record
+    out["accepted"] = sorted(seen)
+    return out
+
+
 def _record_sha(rec: dict) -> str:
     """The checksum of a checkpoint record's complete payload (every field but the checksum itself)."""
     return hashlib.sha256(json.dumps({k: v for k, v in rec.items() if k != "sha"}, sort_keys=True, default=float).encode()).hexdigest()
@@ -564,7 +613,7 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
                     n_jobs: int = 1, outer_folds: list | None = None, min_usable: float = 1.0,
                     checkpoint_path: str | None = None, checkpoint_dir: str | None = None,
                     segment: int | None = None, deadline: float | None = None, strict_restore: bool = False,
-                    durable: bool = False, on_record=None) -> dict:
+                    durable: bool = False, on_record=None, until: int | None = None, should_stop=None) -> dict:
     """Resample whole concepts with replacement within family strata and re-run the ENTIRE per-layer procedure
     (outer folds, inner selection, refit, joint scoring) on every resample; percentile intervals of the band means
     and of ws − early, for EVERY predictor from the same refits (selection, ensemble, historical).
@@ -595,7 +644,13 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
                      only a trailing partial line (an interrupted write) is repaired and counted in `n_tail_repaired`;
       durable        the checkpoint is held under an exclusive lock for the run (a second writer fails at once) and
                      every record is fsynced after its write;
-      on_record      a callback (record dict) after each durable write, for timing and progress ledgers."""
+      on_record      a callback (record dict) after each durable write, for timing and progress ledgers;
+      until          a CUMULATIVE target: only resample indices below `until` are ever dispatched (the recovery control's
+                     fixed index set 0..until-1, the same on a fresh run and on every resume), independent of `segment`,
+                     which bounds this call's NEW work; a chain with every index below `until` done returns with
+                     `target_complete=True` (partial, since B is unchanged);
+      should_stop    a callable checked before each dispatch; True stops the chain at that record boundary
+                     (`stopped_by_request=True`) - the acknowledged campaign-stop boundary."""
     import time as _t
     rng = np.random.default_rng(seed)
     idx = stratified_resample(ds.family, n_rep, rng)
@@ -656,6 +711,8 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
                 else:
                     n_damaged += 1
     todo = [r for r in range(n_rep) if r not in done]
+    if until is not None:
+        todo = [r for r in todo if r < int(until)]
     n_todo_total = len(todo)
     if segment is not None:
         todo = todo[:max(0, int(segment))]
@@ -675,18 +732,22 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
                     if on_record is not None:
                         on_record(rec)
     new = []
-    stopped_at_deadline = False
+    stopped_at_deadline = stopped_by_request = False
     if n_jobs > 1:
         from joblib import Parallel, delayed
         for i in range(0, len(todo), n_jobs):
             if deadline is not None and _t.time() >= deadline:
                 stopped_at_deadline = True; break
+            if should_stop is not None and should_stop():
+                stopped_by_request = True; break
             batch = Parallel(n_jobs=n_jobs)(delayed(one)(r) for r in todo[i:i + n_jobs])
             _save(batch); new += batch
     else:
         for r in todo:
             if deadline is not None and _t.time() >= deadline:
                 stopped_at_deadline = True; break
+            if should_stop is not None and should_stop():
+                stopped_by_request = True; break
             s = one(r)
             _save([s]); new.append(s)
     if lock_fh is not None:
@@ -699,6 +760,8 @@ def refit_bootstrap(ds: Dataset, cfg: Config, seed: int, n_rep: int = N_BOOT_REF
                n_damaged=int(n_damaged), n_tail_repaired=int(n_tail_repaired), ident=ident,
                partial=bool(partial), n_done=len(reps), n_new=len(new), n_todo_before=int(n_todo_total),
                stopped_at_deadline=bool(stopped_at_deadline), segment=(None if segment is None else int(segment)),
+               stopped_by_request=bool(stopped_by_request), until=(None if until is None else int(until)),
+               target_complete=(until is not None and all(r in done or any(s["rep"] == r for s in new) for r in range(int(until)))),
                failed_reasons=[s["failed_reason"] for s in reps if s["failed"]],
                fit_seconds=float(sum(s["fit_seconds"] for s in reps)), predictors={},
                replicates=[dict(rep=s["rep"], failed=s["failed"], failed_reason=s["failed_reason"], stats=s["stats"]) for s in reps])
