@@ -58,7 +58,8 @@ def config_hash(cfg: "A.Config", D: int, layers, seed: int, rho: float = None) -
                     D=int(D), layers=[int(l) for l in layers], seed=int(seed), rho=RHO_LAYERS if rho is None else rho,
                     trap=(M.TRAP_POINTS, M.OUTER_POINTS, M.TRAP_HALFWIDTH, M.PRIOR_HALFWIDTH),
                     newton=(M.NEWTON_STEPS, M.NEWTON_CANDIDATES, M.GRID_POINTS, M.GRID_HALFWIDTH), jitter=M.JITTER_SD,
-                    lbfgsb=M.LBFGSB_OPTIONS)
+                    lbfgsb=M.LBFGSB_OPTIONS, start_policy=cfg.start_policy,
+                    policy=(M.START_POLICY if cfg.start_policy else None), pad_multiple=M.PAD_MULTIPLE)
     h.update(json.dumps(settings, sort_keys=True, default=str).encode())
     return h.hexdigest()[:12]
 
@@ -444,9 +445,9 @@ def expected_gain(name: str, theta: np.ndarray, seed: int = 0, n_per_family: int
                 ref_reproduced=bool(starts_at_best[best] >= REF_MIN_STARTS_AT_BEST),
                 candidates={g: _basin_candidates(runs_by[g]) for g in graded},
                 runs={g: [dict(source=r["source"], batch=r.get("batch", ""),
-                               loglik=round(float(r["loglik"]), 3) if np.isfinite(r["loglik"]) else None,
+                               loglik=float(r["loglik"]) if np.isfinite(r["loglik"]) else None,   # full precision (§7.4 amendment)
                                converged=bool(r["converged"]), nit=int(r["nit"]), x0=r.get("x0"),
-                               theta=[round(float(v), 5) for v in r["theta"]] if np.all(np.isfinite(r["theta"])) else None)
+                               theta=[float(v) for v in r["theta"]] if np.all(np.isfinite(r["theta"])) else None)
                           for r in runs_by[g]] for g in graded})
 
 

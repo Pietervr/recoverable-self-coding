@@ -43,7 +43,10 @@ moments of the TRAINING fold only, start 0 unjittered, starts 1..7 jittered by a
 in the parameter units the optimiser works in — the raw vectors above), each run L-BFGS-B
 (ftol=1e-10, gtol=1e-6, maxiter=2000) on the JAX analytic gradient; converged = L-BFGS-B success; the
 kept solution is the converged run with the highest training log-likelihood, else the best run,
-flagged. Recovery (§9): 16 further starts, then 16 at doubled jitter.
+flagged. Recovery (§9): 16 further starts, then 16 at doubled jitter. The §7.4 amendment of 24 Sept 2026
+(ledger row 4) is implemented as START_POLICY and the `policy_key` argument of `fit`: cold starts plus per-member
+added starts from keyed streams, ties to the lowest start index, PAD_MULTIPLE 64. It is declared, not adopted:
+adoption needs the M2S comparison and the frozen policy's validation, and no row has been produced under it.
 
 Environment: the t1_access venv (Python 3.12, jax CPU, x64). Each process is pinned to ONE XLA thread
 so that dataset-level parallelism (joblib) owns the cores: the XLA CPU client sizes its Eigen
@@ -106,11 +109,67 @@ PRIOR_HALFWIDTH = 6.0            # the prior's range covered (mass beyond 6 tau:
                                  # curvature safeguard, so the fine window never exceeds ±6 tau and the outer intervals
                                  # carry flat tails and second modes (M2H's anchored mean returns to mu_max at both extremes)
 M3V_FLOOR_FRACTION = 0.05
-PAD_MULTIPLE = 512               # trial arrays are padded to a multiple of this so that jit caches are reused
+PAD_MULTIPLE = 64                # trial arrays are padded to a multiple of this so that jit caches are reused; 512 -> 64 under the
+                                 # §7.4 amendment of 24 Sept 2026 (ledger row 4): padding waste 5.3 % at 512 and 0.8 % at 64 over
+                                 # the ten distinct trial totals, numerically inert (log-likelihood and gradients agree to 1e-13)
 
 FAMILY_G = ("M2B", "M2H", "M2S", "M2K")
 FAMILY_X = ("M3", "M3H", "M3V", "M3L")
 ALL_MEMBERS = ("M0",) + FAMILY_G + FAMILY_X
+
+# ----------------------------------------------------------------------------------------------
+# §7.4 start policy (draft amendment of 24 Sept 2026, ledger row 4; implemented 2 Oct 2026, not adopted)
+# ----------------------------------------------------------------------------------------------
+# Per member, the batches of ADDED starts (count, jitter SD) that follow the cold starts, applied identically at
+# the outer and the inner training size and to every use of the fitter when a policy key is supplied. The cold
+# starts are the declared generator's (start 0 unjittered, the rest at JITTER_SD from the caller's stream); each
+# added start draws its jitter from its OWN seeded stream keyed by (member, size, fold, replicate, start index),
+# disjoint from the cold stream and recorded per run. M2S is OPEN: its recipe is set by the paired comparison of
+# cold-only against 64 narrow starts, which has not been run; until then it takes the conservative interim.
+START_POLICY = {
+    "M3H": ((32, 0.50),),
+    "M2H": ((64, 0.25),),
+    "M3V": ((32, 0.25),),
+    "M3":  ((64, 0.25), (16, 0.50)),
+    "M3L": ((64, 0.25), (16, 0.50)),
+    "M2K": ((64, 0.25), (16, 0.50)),
+    "M2B": ((64, 0.25), (16, 0.50)),
+    "M2S": ((64, 0.25),),          # OPEN - conservative interim
+    "M0":  (),
+}
+POLICY_OPEN = ("M2S",)
+POLICY_NAME = "row4-2026-09-24"
+ADDED_STREAM_TAG = 20260924      # leads every added-start stream so that it can never coincide with a cold stream
+SIZE_OUTER, SIZE_INNER = 1, 2    # the "size" element of a policy key
+
+
+def member_code(name: str) -> int:
+    return ALL_MEMBERS.index(name)
+
+
+def added_start_stream(name: str, size: int, fold: int, replicate, start_index: int) -> np.random.Generator:
+    """The seeded stream of ONE added start, keyed by (member, size, fold, replicate, start index). `replicate` may be
+    an int or a tuple of ints (a dataset seed and layer tag stand in for the replicate inside the pipeline)."""
+    rep = [int(replicate)] if np.isscalar(replicate) else [int(r) for r in replicate]
+    return np.random.default_rng([ADDED_STREAM_TAG, member_code(name), int(size), int(fold), *rep, int(start_index)])
+
+
+def added_starts(name: str, base: np.ndarray, key: tuple, policy: dict | None = None) -> tuple:
+    """The policy's added starts for member `name` around the moment start `base`, under key = (size, fold,
+    replicate). Returns (starts (n_added, p), records): one record per start with its key, batch and jitter."""
+    policy = START_POLICY if policy is None else policy
+    size, fold, replicate = key
+    rows, recs, j = [], [], 0
+    for b, (n, jitter) in enumerate(policy.get(name, ())):
+        for _ in range(int(n)):
+            rng = added_start_stream(name, size, fold, replicate, j)
+            rows.append(base + rng.normal(0.0, float(jitter), size=base.size))
+            recs.append(dict(source="added", batch=f"added:{b}:{int(n)}@{float(jitter)}", jitter=float(jitter),
+                             key=(name, int(size), int(fold), replicate, j)))
+            j += 1
+    if not rows:
+        return np.zeros((0, base.size)), []
+    return np.vstack(rows), recs
 
 
 # ----------------------------------------------------------------------------------------------
@@ -569,6 +628,8 @@ class FitResult:
     nit: int = 0
     seconds: float = 0.0
     runs: list = field(default_factory=list)
+    policy: str = ""            # "" = the v1.2 cold-start fit; POLICY_NAME when the §7.4 added starts were run
+    n_added: int = 0            # added starts actually run under the policy
 
     @property
     def flagged(self) -> bool:
@@ -591,37 +652,65 @@ def _pick(runs: list):
     pool = conv if conv else [r for r in runs if np.isfinite(r["loglik"])]
     if not pool:
         return None, len(conv)
-    best = max(pool, key=lambda r: r["loglik"])
+    # the highest finite likelihood; ties broken by the LOWEST start index so the choice is deterministic (§7.4 amendment)
+    best = max(pool, key=lambda r: (r["loglik"], -int(r["start"])))
     return best, len(conv)
 
 
 def fit(name: str, data: Trials, n_gh: int = GH_NODES_DEFAULT, n_starts: int = N_STARTS,
         rng: np.random.Generator | None = None, jitter_sd: float = JITTER_SD,
-        options: dict | None = None, recovery: bool = True) -> FitResult:
-    """Multi-start L-BFGS-B fit of member `name` on `data` (§7.4 v1.2), with the §9 recovery chain."""
+        options: dict | None = None, recovery: bool = True,
+        policy_key: tuple | None = None, policy: dict | None = None) -> FitResult:
+    """Multi-start L-BFGS-B fit of member `name` on `data` (§7.4 v1.2), with the §9 recovery chain.
+
+    `policy_key` = (size, fold, replicate) switches on the §7.4 start policy (ledger row 4): the `n_starts` cold
+    starts from `rng` are followed by START_POLICY[name]'s added starts, each from its own keyed stream; start
+    indices run on across cold, added and recovery starts, and the kept solution is the converged start with the
+    highest finite likelihood, ties to the lowest index. Without a key the v1.2 fit is unchanged."""
     rng = np.random.default_rng(0) if rng is None else rng
     options = dict(LBFGSB_OPTIONS) if options is None else options
     t0 = _time.time()
     starts = starts_from_moments(name, data, n_starts, rng, jitter_sd)
     runs = _run_starts(name, data, starts, n_gh, options)
+    for r in runs:
+        r["source"] = "cold"
+    n_added = 0
+    if policy_key is not None:
+        extra, recs = added_starts(name, starts[0], policy_key, policy)
+        if len(recs):
+            more = _run_starts(name, data, extra, n_gh, options)
+            for r, rec in zip(more, recs):
+                r["start"] += len(runs)
+                r.update(rec)
+            runs += more
+            n_added = len(recs)
     best, n_conv = _pick(runs)
     level = 0
     if recovery and (best is None or n_conv == 0):
         level = 1
         more = starts_from_moments(name, data, N_STARTS_RECOVERY + 1, rng, jitter_sd)[1:]
-        runs += _run_starts(name, data, more, n_gh, options)
+        runs += _offset(_run_starts(name, data, more, n_gh, options), len(runs), "recovery1")
         best, n_conv = _pick(runs)
         if best is None or n_conv == 0:
             level = 2
             more = starts_from_moments(name, data, N_STARTS_RECOVERY + 1, rng, 2.0 * jitter_sd)[1:]
-            runs += _run_starts(name, data, more, n_gh, options)
+            runs += _offset(_run_starts(name, data, more, n_gh, options), len(runs), "recovery2")
             best, n_conv = _pick(runs)
+    pol = POLICY_NAME if policy_key is not None else ""
     if best is None:
         p = MEMBERS[name].n_params
         return FitResult(name, np.full(p, np.nan), -np.inf, False, 0, len(runs), level,
-                         sum(r["nfev"] for r in runs), 0, _time.time() - t0, runs)
+                         sum(r["nfev"] for r in runs), 0, _time.time() - t0, runs, pol, n_added)
     return FitResult(name, best["theta"], best["loglik"], bool(best["converged"]), n_conv, len(runs), level,
-                     sum(r["nfev"] for r in runs), sum(r["nit"] for r in runs), _time.time() - t0, runs)
+                     sum(r["nfev"] for r in runs), sum(r["nit"] for r in runs), _time.time() - t0, runs, pol, n_added)
+
+
+def _offset(runs: list, by: int, source: str) -> list:
+    """Continue the start numbering across batches and tag the batch's source."""
+    for r in runs:
+        r["start"] += by
+        r["source"] = source
+    return runs
 
 
 def gh_node_check(name: str, theta, data: Trials, counts=(64, 96, 128)) -> dict:

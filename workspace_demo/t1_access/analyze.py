@@ -52,8 +52,10 @@ INTERVALS = ("cluster", "refit")    # §8.2 primary (concept-cluster bootstrap o
 class Config:
     members_G: tuple = M.FAMILY_G
     members_X: tuple = M.FAMILY_X
-    n_starts: int = M.N_STARTS          # refits and CAL/PILOT fits
-    n_starts_inner: int = M.N_STARTS    # inner-selection fits (§14 allows 4 if the benchmark requires)
+    n_starts: int = M.N_STARTS          # COLD starts at the outer size (refits and CAL/PILOT fits)
+    n_starts_inner: int = M.N_STARTS    # COLD starts at the inner size (§14 allows 4 if the benchmark requires)
+    start_policy: str = ""             # "" = the v1.2 cold-start fit; M.POLICY_NAME = the §7.4 amendment's per-member
+                                        # added starts (ledger row 4), applied at both sizes and to every fit
     n_gh: int = M.GH_NODES_DEFAULT
     n_outer: int = N_OUTER
     n_inner: int = N_INNER
@@ -162,6 +164,18 @@ def _rng(seed, *tags):
     return np.random.default_rng([int(seed)] + [int(t) for t in tags])
 
 
+def _policy_key(cfg: "Config", size: int, fold: int, seed, layer_tag, inner_fold: int | None = None):
+    """The §7.4 added-start key (size, fold, replicate) or None under the v1.2 fit. Inside the pipeline the
+    replicate is the (seed, layer tag[, inner fold]) tuple: the dataset or resample seed and the layer stand for the
+    replicate, so two resamples of one dataset, or two layers of one resample, never share an added-start stream."""
+    if not cfg.start_policy:
+        return None
+    if cfg.start_policy != M.POLICY_NAME:
+        raise ValueError(f"unknown start policy {cfg.start_policy!r}; models.py implements {M.POLICY_NAME!r}")
+    rep = (int(seed), int(layer_tag)) if inner_fold is None else (int(seed), int(layer_tag), int(inner_fold))
+    return (int(size), int(fold), rep)
+
+
 def layer_pipeline(y: np.ndarray, k: np.ndarray, concept: np.ndarray, family: np.ndarray,
                    outer_folds: list, cfg: Config, seed: int, layer_tag: int = 0,
                    group: np.ndarray | None = None) -> dict:
@@ -201,7 +215,8 @@ def layer_pipeline(y: np.ndarray, k: np.ndarray, concept: np.ndarray, family: np
                     tr_local = np.setdiff1d(np.arange(train_c.size), held)
                     tr_i = _subset(y, k, concept, train_c[tr_local], floor_sd)
                     te_i = _subset(y, k, concept, train_c[held], floor_sd)
-                    r = M.fit(m, tr_i, cfg.n_gh, cfg.n_starts_inner, _rng(seed, layer_tag, f, 2, j, g))
+                    r = M.fit(m, tr_i, cfg.n_gh, cfg.n_starts_inner, _rng(seed, layer_tag, f, 2, j, g),
+                              policy_key=_policy_key(cfg, M.SIZE_INNER, f, seed, layer_tag, g))
                     seconds += r.seconds
                     conv += int(r.converged)
                     sc = M.concept_scores(m, r.theta, te_i, cfg.n_gh) if np.all(np.isfinite(r.theta)) else np.array([np.nan])
@@ -213,7 +228,8 @@ def layer_pipeline(y: np.ndarray, k: np.ndarray, concept: np.ndarray, family: np
                 inner_scores[f, j] = s
                 inner_conv[f, j] = conv / len(inner)
             # refit on all training concepts, score the held-out concepts
-            r = M.fit(m, train, cfg.n_gh, cfg.n_starts, _rng(seed, layer_tag, f, 3, j))
+            r = M.fit(m, train, cfg.n_gh, cfg.n_starts, _rng(seed, layer_tag, f, 3, j),
+                      policy_key=_policy_key(cfg, M.SIZE_OUTER, f, seed, layer_tag))
             seconds += r.seconds
             converged[f, j] = r.converged
             recovery[f, j] = r.recovery
@@ -482,7 +498,9 @@ def dataset_identity(ds: Dataset, cfg: Config, seed: int, n_rep: int, outer_fold
                     n_inner=cfg.n_inner, n_boot=cfg.n_boot, interval=cfg.interval, n_boot_refit=cfg.n_boot_refit,
                     refit_min_usable=cfg.refit_min_usable, members_G=list(cfg.members_G), members_X=list(cfg.members_X),
                     bands=cfg.bands, fit_M0=cfg.fit_M0, seed=int(seed), n_rep=int(n_rep),
-                    folds=[[int(c) for c in f] for f in outer_folds])
+                    folds=[[int(c) for c in f] for f in outer_folds],
+                    start_policy=cfg.start_policy, policy=(M.START_POLICY if cfg.start_policy else None),
+                    policy_open=list(M.POLICY_OPEN), pad_multiple=M.PAD_MULTIPLE)
     h.update(json.dumps(dict(meta=meta, settings=settings, numerical=numerical_snapshot()), sort_keys=True, default=str).encode())
     return h.hexdigest()
 
