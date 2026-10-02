@@ -27,9 +27,9 @@
   "code_sha256": {
    "dose.py": "05d61ea6d199903eb066534e8cc2e7bb73e102b9cfa284f5692f8d75e9bb4302",
    "dose_report.py": "aff4afc3ac18455d0876da042d4202deaf428820ffaf09fde4603e32e14a825a",
-   "pool.py": "045abd38b1b2c4bd7b0e76fb7215fe7fe6b22c5e32b85c2b65b63d056a08c836",
+   "pool.py": "6c85785448c06e0755a747fc9e65f0a327662f554ead4b2eea5ce43cf3f87ea2",
    "image_adapter.py": "d8f85d764ab51b0f8b96fbed7eaf6a8438b5fb46da33aff25cd65fa976885c55",
-   "manifest.py": "6124f952877cfc3c280f3ce0f699f948a9d4b3b13198fcc19c0973f2c558cbe6"
+   "manifest.py": "12d0bef343040ea752d123912b3206ea5ca0e17bd0e9e8082ed150ff6a53c3c3"
   },
   "template_sha256": "9e6096381c10879db3360ddee61492f4ab1e9e964c80acdd726a56910c391e5d",
   "processor": {
@@ -39,86 +39,17 @@
   },
   "pillow": "12.3.0",
   "numpy": "2.5.1",
-  "dev_pool_sha256": "0726bd2dbb8d43aa370f739dff1bd75b47381ec5174c57f965e72d77509db75d",
-  "provenance_checks_sha256": "3f16e1b4b865ac7db98364bd89039d2630205cc0030e90f150150fa5d73f5e1e"
+  "dev_pool_sha256": "fd7139bcaa2adb66c23621a57fd8a1d78e2004b38aaf9cbca1dfa71f299fd801",
+  "provenance_checks_sha256": "d6f9b58fc4ebc379d0aa23bc230f840b612b6e4e3f678c36bbbbcad81c751211"
  },
  "n_records": 32,
  "check_status_counts": {
-  "eligible": 8,
+  "eligible": 32,
   "not_found": 0,
   "ineligible": 0,
-  "pending (before row 21)": 24
+  "pending (before row 21)": 0
  },
  "records": [
-  {
-   "concept": "bull",
-   "synset": "bull.n.01",
-   "wnid": "n02403325",
-   "family": "animals",
-   "e1_token_id": 16319,
-   "role": "DEV-CAL",
-   "stage_a_primary_view": false,
-   "replaces": null,
-   "photo_id": "thingsplus:bull.jpg",
-   "source_group_id": "thingsplus-primary:bull",
-   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
-   "release_file": "bull.jpg",
-   "original_bytes": 607954,
-   "original_sha256": "169ffe3c921f6ea3596b14d9cb85b43f886855ccf6df9772cb1c0fa5c91f7587",
-   "per_image_check": {
-    "status": "pending (before row 21)"
-   },
-   "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
-   },
-   "operations": {
-    "original_sha256": "169ffe3c921f6ea3596b14d9cb85b43f886855ccf6df9772cb1c0fa5c91f7587",
-    "original_size": [
-     1600,
-     1600
-    ],
-    "original_mode": "RGB",
-    "orientation_applied": null,
-    "icc": "none embedded; treated as sRGB",
-    "alpha": "none",
-    "fitted_size": [
-     384,
-     384
-    ],
-    "offset": [
-     0,
-     0
-    ],
-    "padding": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
-   },
-   "clean_canvas": {
-    "png_sha256": "dd73c23ab55366b460f4671e9c1970734e2eeca8e51b04ce6f1ce9d84d97830a",
-    "clip": {
-     "clipped_fraction": 0.0,
-     "clipped_low": 0.0,
-     "clipped_high": 0.0
-    },
-    "processed_tensor_sha256": "577d99351fdef6fa84fe8378a6f984ae6aeeeb0383edfb2a3007c7b3795531ec",
-    "grid_thw": [
-     1,
-     24,
-     24
-    ]
-   },
-   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
-   "recognizability_at_source": 0.571428571,
-   "raters_most_common_label": "bull"
-  },
   {
    "concept": "crow",
    "synset": "crow.n.01",
@@ -131,11 +62,12 @@
    "photo_id": "thingsplus:crow.jpg",
    "source_group_id": "thingsplus-primary:crow",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "crow.jpg",
    "original_bytes": 960218,
    "original_sha256": "609058b9e54c8d791e9003c69311134c7faee05537b078f61c5adbc0cf63db49",
    "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
     "status": "eligible",
     "checked": "2026-10-01",
     "source_url": "https://pixabay.com/photos/crow-bird-animal-corvus-wildlife-3238629/",
@@ -147,8 +79,7 @@
     "notes": "creator's profile asks that people pictures be used editorially; no person in this image"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
+    "capture_and_transformation": "yes",
     "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
@@ -208,11 +139,12 @@
    "photo_id": "thingsplus:horse.jpg",
    "source_group_id": "thingsplus-primary:horse",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "horse.jpg",
    "original_bytes": 1422692,
    "original_sha256": "e2a067d72b3b3368758ed62bf69771c3e03b315a154b64ecf1835f311648a34a",
    "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
     "status": "eligible",
     "checked": "2026-10-01",
     "source_url": "https://pixabay.com/photos/shire-horse-horse-big-horse-1759322/",
@@ -224,8 +156,7 @@
     "notes": "checked as fly's replacement (next in the animals seeded order)"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
+    "capture_and_transformation": "yes",
     "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
@@ -274,6 +205,83 @@
    "raters_most_common_label": "horse"
   },
   {
+   "concept": "pig",
+   "synset": "hog.n.03",
+   "wnid": "n02395406",
+   "family": "animals",
+   "e1_token_id": 22952,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "replaces": "bull",
+   "photo_id": "thingsplus:pig.jpg",
+   "source_group_id": "thingsplus-primary:pig",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
+   "release_file": "pig.jpg",
+   "original_bytes": 1035197,
+   "original_sha256": "db95d65982315c4172594da468def673b0072cb772d260ae69a288bee20ed2f5",
+   "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/pig-alp-rona-furna-sow-happy-pig-214349/",
+    "creator": "Mutinka",
+    "published": "2013-11-20",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 619,
+    "notes": "replacement candidate for bull; stock matches: 9 (incl. calvendo.de)"
+   },
+   "permission": {
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "db95d65982315c4172594da468def673b0072cb772d260ae69a288bee20ed2f5",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "e8284fac78f4a1097110008cb6b2d9179f4acef5e9e65eddb62ac2d62440ca26",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "bedb3766b8ae22d1d7a437c635ce4ee79dee017fc6b6051a8f2165642ce6b63a",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 1.0,
+   "raters_most_common_label": "pig"
+  },
+  {
    "concept": "shark",
    "synset": "shark.n.01",
    "wnid": "n01482330",
@@ -285,17 +293,25 @@
    "photo_id": "thingsplus:shark.jpg",
    "source_group_id": "thingsplus-primary:shark",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "shark.jpg",
    "original_bytes": 710303,
    "original_sha256": "e53e95552265df6f0a944cb3526cd2d35e3babd4d7eb12c591033dce5b87fb52",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/blacktip-shark-shark-dangerous-1294753/",
+    "creator": "Wildfaces",
+    "published": "2016-03-31",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 556,
+    "notes": "matched via copies named blacktip-1294753_1920 (patch.com); also on Pexels (pexels-photo-272742)"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "e53e95552265df6f0a944cb3526cd2d35e3babd4d7eb12c591033dce5b87fb52",
@@ -343,6 +359,83 @@
    "raters_most_common_label": "shark"
   },
   {
+   "concept": "butterfly",
+   "synset": "butterfly.n.01",
+   "wnid": "n02274259",
+   "family": "animals",
+   "e1_token_id": 53315,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": "frog",
+   "photo_id": "thingsplus:butterfly.jpg",
+   "source_group_id": "thingsplus-primary:butterfly",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
+   "release_file": "butterfly.jpg",
+   "original_bytes": 420946,
+   "original_sha256": "b80eedeb0a8ea36ffc4c8c5e30dea228b9924755179366e1cafe37cf61ae7e52",
+   "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/butterfly-flower-pollinate-1568926/",
+    "creator": "kie-ker",
+    "published": "2016-08-04",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 173,
+    "notes": "replacement candidate; stock matches: 10"
+   },
+   "permission": {
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "b80eedeb0a8ea36ffc4c8c5e30dea228b9924755179366e1cafe37cf61ae7e52",
+    "original_size": [
+     1212,
+     1212
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "93e0fe7fa3d200d1e614afcccf2b367e16beee50a07c05ba2782d402f41313bd",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "c55c34a80a1815d8f79b3326564bb4901e5857de60db0dc802f559196e3794c3",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 1.0,
+   "raters_most_common_label": "butterfly"
+  },
+  {
    "concept": "cow",
    "synset": "cow.n.01",
    "wnid": "n02403454",
@@ -354,17 +447,25 @@
    "photo_id": "thingsplus:cow.jpg",
    "source_group_id": "thingsplus-primary:cow",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "cow.jpg",
    "original_bytes": 1392977,
    "original_sha256": "774e981f6e558dd3a36c2c66fb0ccc44a2f6d68de71d23601e6a2aff5994c057",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/meadow-grass-landscape-summer-1728913/",
+    "creator": "Bru-nO",
+    "published": "2016-10-10",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 7,
+    "notes": ""
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "774e981f6e558dd3a36c2c66fb0ccc44a2f6d68de71d23601e6a2aff5994c057",
@@ -412,75 +513,6 @@
    "raters_most_common_label": "cow"
   },
   {
-   "concept": "frog",
-   "synset": "frog.n.01",
-   "wnid": "n01639765",
-   "family": "animals",
-   "e1_token_id": 57859,
-   "role": "DEV-PILOT",
-   "stage_a_primary_view": false,
-   "replaces": null,
-   "photo_id": "thingsplus:frog.jpg",
-   "source_group_id": "thingsplus-primary:frog",
-   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
-   "release_file": "frog.jpg",
-   "original_bytes": 645881,
-   "original_sha256": "b69ef0041691fb3241e2a431485a13f7fc8b39b5db8ff5772c1a7fcbbe5eefcb",
-   "per_image_check": {
-    "status": "pending (before row 21)"
-   },
-   "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
-   },
-   "operations": {
-    "original_sha256": "b69ef0041691fb3241e2a431485a13f7fc8b39b5db8ff5772c1a7fcbbe5eefcb",
-    "original_size": [
-     1600,
-     1600
-    ],
-    "original_mode": "RGB",
-    "orientation_applied": null,
-    "icc": "none embedded; treated as sRGB",
-    "alpha": "none",
-    "fitted_size": [
-     384,
-     384
-    ],
-    "offset": [
-     0,
-     0
-    ],
-    "padding": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
-   },
-   "clean_canvas": {
-    "png_sha256": "a25bb27e549f953647b144caee1747173ef3103bed0e5e3d33dd634af25ed918",
-    "clip": {
-     "clipped_fraction": 0.0,
-     "clipped_low": 0.0,
-     "clipped_high": 0.0
-    },
-    "processed_tensor_sha256": "d369c6613df244032629a435ea5469bc3190e097992941da9d7686b60dae8fa2",
-    "grid_thw": [
-     1,
-     24,
-     24
-    ]
-   },
-   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
-   "recognizability_at_source": 1.0,
-   "raters_most_common_label": "frog"
-  },
-  {
    "concept": "mosquito",
    "synset": "mosquito.n.01",
    "wnid": "n02200198",
@@ -492,17 +524,25 @@
    "photo_id": "thingsplus:mosquito.jpg",
    "source_group_id": "thingsplus-primary:mosquito",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "mosquito.jpg",
    "original_bytes": 498294,
    "original_sha256": "3e2e6c2a2ca870cb688ec873c6da882ea143bfc33121414f6dbe29d9f62bc8e3",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/mosquito-macro-insect-bug-animal-719613/",
+    "creator": "mikadago",
+    "published": "2015-04-13",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 1922,
+    "notes": "matched via copies named mosquito-719613_1920"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "3e2e6c2a2ca870cb688ec873c6da882ea143bfc33121414f6dbe29d9f62bc8e3",
@@ -561,17 +601,25 @@
    "photo_id": "thingsplus:pigeon.jpg",
    "source_group_id": "thingsplus-primary:pigeon",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "pigeon.jpg",
    "original_bytes": 459964,
    "original_sha256": "418acab929ede22c649e674e35e34ae82fddbf20cc2c62cac2af1d75ed6b63e6",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/homing-pigeon-pigeon-2727563/",
+    "creator": "SandeepHanda",
+    "published": "2017-09-07",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 32,
+    "notes": ""
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "418acab929ede22c649e674e35e34ae82fddbf20cc2c62cac2af1d75ed6b63e6",
@@ -619,75 +667,6 @@
    "raters_most_common_label": "pigeon"
   },
   {
-   "concept": "coat",
-   "synset": "coat.n.01",
-   "wnid": "n03057021",
-   "family": "clothing",
-   "e1_token_id": 22162,
-   "role": "DEV-CAL",
-   "stage_a_primary_view": false,
-   "replaces": null,
-   "photo_id": "thingsplus:coat.jpg",
-   "source_group_id": "thingsplus-primary:coat",
-   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
-   "release_file": "coat.jpg",
-   "original_bytes": 678274,
-   "original_sha256": "de889570e24a70857afa50227f170cbfb429b4e7cdc8aa9d7a9c301ec5ff55a7",
-   "per_image_check": {
-    "status": "pending (before row 21)"
-   },
-   "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
-   },
-   "operations": {
-    "original_sha256": "de889570e24a70857afa50227f170cbfb429b4e7cdc8aa9d7a9c301ec5ff55a7",
-    "original_size": [
-     1600,
-     1600
-    ],
-    "original_mode": "RGB",
-    "orientation_applied": null,
-    "icc": "none embedded; treated as sRGB",
-    "alpha": "none",
-    "fitted_size": [
-     384,
-     384
-    ],
-    "offset": [
-     0,
-     0
-    ],
-    "padding": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
-   },
-   "clean_canvas": {
-    "png_sha256": "475c3c1ee359fb86fa3234c62ff0a0ec656936792450593516ca334843e6fd55",
-    "clip": {
-     "clipped_fraction": 0.0,
-     "clipped_low": 0.0,
-     "clipped_high": 0.0
-    },
-    "processed_tensor_sha256": "62e3b390bb21ebaa8cacc65abf889560626ab035c1ce6bc4f28bc1983f5f6769",
-    "grid_thw": [
-     1,
-     24,
-     24
-    ]
-   },
-   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
-   "recognizability_at_source": 0.571428571,
-   "raters_most_common_label": "coat"
-  },
-  {
    "concept": "jacket",
    "synset": "jacket.n.01",
    "wnid": "n03589791",
@@ -699,11 +678,12 @@
    "photo_id": "thingsplus:jacket.jpg",
    "source_group_id": "thingsplus-primary:jacket",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "jacket.jpg",
    "original_bytes": 870476,
    "original_sha256": "46f6a46e4f055f16814955e7079b5dde720238a0b0138554cf235bfd45b87039",
    "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
     "status": "eligible",
     "checked": "2026-10-01",
     "source_url": "https://pixabay.com/photos/jackets-leather-jackets-clothing-357898/",
@@ -715,8 +695,7 @@
     "notes": "checked as suit's replacement after wig; the image shows several leather jackets"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
+    "capture_and_transformation": "yes",
     "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
@@ -776,17 +755,25 @@
    "photo_id": "thingsplus:jeans.jpg",
    "source_group_id": "thingsplus-primary:jeans",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "jeans.jpg",
    "original_bytes": 1045401,
    "original_sha256": "0fdef93daabb3b14c56d252813fbf9cdf88499e109af2f1844a7e6f73612176c",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/jeans-clothes-product-shop-fashion-1816381/",
+    "creator": "Uwe_Jelting",
+    "published": "2015-05-31",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": null,
+    "notes": "TinEye result count not captured (batch timed out); the Pixabay id came from that TinEye result"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "0fdef93daabb3b14c56d252813fbf9cdf88499e109af2f1844a7e6f73612176c",
@@ -834,6 +821,83 @@
    "raters_most_common_label": "jeans"
   },
   {
+   "concept": "lingerie",
+   "synset": "lingerie.n.01",
+   "wnid": "n03673450",
+   "family": "clothing",
+   "e1_token_id": 54286,
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "replaces": "coat",
+   "photo_id": "thingsplus:lingerie.jpg",
+   "source_group_id": "thingsplus-primary:lingerie",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
+   "release_file": "lingerie.jpg",
+   "original_bytes": 891340,
+   "original_sha256": "51f565b7e3a0cb747454d92357734031b9ce24ac98314221f98f78908ba1bcca",
+   "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/doll-dummy-mannequin-tailors-dummy-1524074/",
+    "creator": "MabelAmber",
+    "published": "2016-07-18",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 52,
+    "notes": "replacement candidate; stock matches: 0; lingerie on a tailor's dummy"
+   },
+   "permission": {
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "51f565b7e3a0cb747454d92357734031b9ce24ac98314221f98f78908ba1bcca",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "7e83e5d11fece443571d0bb260cdeb8b3e7862bd5ed891d76951a29fe82319b9",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "cb9bf16eb2c0f1e0287c2774db9bc627fd275ff605bd43258f49b84633d1cd3f",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.357142857,
+   "raters_most_common_label": "lingerie"
+  },
+  {
    "concept": "mask",
    "synset": "mask.n.01",
    "wnid": "n03724870",
@@ -845,11 +909,12 @@
    "photo_id": "thingsplus:mask.jpg",
    "source_group_id": "thingsplus-primary:mask",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "mask.jpg",
    "original_bytes": 499552,
    "original_sha256": "7c9991a64b8f652643ee821f25b4c001fa89398ff9ca981cb57bdf588e8746d3",
    "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
     "status": "eligible",
     "checked": "2026-10-01",
     "source_url": "https://pixabay.com/photos/masks-field-nature-tree-1152278/",
@@ -861,8 +926,7 @@
     "notes": ""
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
+    "capture_and_transformation": "yes",
     "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
@@ -911,6 +975,83 @@
    "raters_most_common_label": "mask"
   },
   {
+   "concept": "hat",
+   "synset": "hat.n.01",
+   "wnid": "n03497657",
+   "family": "clothing",
+   "e1_token_id": 8628,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": "shorts",
+   "photo_id": "thingsplus:hat.jpg",
+   "source_group_id": "thingsplus-primary:hat",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
+   "release_file": "hat.jpg",
+   "original_bytes": 554183,
+   "original_sha256": "5aec9d643405b95128895adfe263dad375f018c445a715ee8b964cb91d807fdc",
+   "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/red-hat-bench-wooden-decoration-3860411/",
+    "creator": "GoranH",
+    "published": "2018-12-08",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 6,
+    "notes": "replacement candidate; stock matches: 0"
+   },
+   "permission": {
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "5aec9d643405b95128895adfe263dad375f018c445a715ee8b964cb91d807fdc",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "a2100a0796403ea8fa3bc4d0ea4d8ced3b91263cd925d303f3dbb56da8e183f6",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "87427250f9bbe0c1fb68da6b3b16346c71a4d437b53acada23d2395ed7cd308c",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.583333333,
+   "raters_most_common_label": "hat"
+  },
+  {
    "concept": "robe",
    "synset": "robe.n.01",
    "wnid": "n04097866",
@@ -922,17 +1063,25 @@
    "photo_id": "thingsplus:robe.jpg",
    "source_group_id": "thingsplus-primary:robe",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "robe.jpg",
    "original_bytes": 636899,
    "original_sha256": "300bb50a067e2efc9685b572e5b59b863e418ff19b5d3bc5a56559cdc74a42d0",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://stocksnap.io/photo/people-robe-3QL8IOYS4Z",
+    "creator": "Samantha Passuello",
+    "published": "first indexed 2017-03-29 (no date on page)",
+    "licence_shown": "CC0 (StockSnap page)",
+    "licence_basis": "CC0 (StockSnap page)",
+    "tineye_results": 175,
+    "notes": "oldest copies named StockSnap_3QL8IOYS4Z; also on Pexels 306739 under the Pexels License"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "300bb50a067e2efc9685b572e5b59b863e418ff19b5d3bc5a56559cdc74a42d0",
@@ -980,144 +1129,6 @@
    "raters_most_common_label": "robe"
   },
   {
-   "concept": "shirt",
-   "synset": "shirt.n.01",
-   "wnid": "n04197391",
-   "family": "clothing",
-   "e1_token_id": 15024,
-   "role": "DEV-PILOT",
-   "stage_a_primary_view": false,
-   "replaces": null,
-   "photo_id": "thingsplus:shirt.jpg",
-   "source_group_id": "thingsplus-primary:shirt",
-   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
-   "release_file": "shirt.jpg",
-   "original_bytes": 820021,
-   "original_sha256": "6880ce37fa8a3430a768ce83ec21b975bc3fcf9dc47a5a70a3ca3586931528c8",
-   "per_image_check": {
-    "status": "pending (before row 21)"
-   },
-   "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
-   },
-   "operations": {
-    "original_sha256": "6880ce37fa8a3430a768ce83ec21b975bc3fcf9dc47a5a70a3ca3586931528c8",
-    "original_size": [
-     1600,
-     1600
-    ],
-    "original_mode": "RGB",
-    "orientation_applied": null,
-    "icc": "none embedded; treated as sRGB",
-    "alpha": "none",
-    "fitted_size": [
-     384,
-     384
-    ],
-    "offset": [
-     0,
-     0
-    ],
-    "padding": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
-   },
-   "clean_canvas": {
-    "png_sha256": "8e642508c472b07c85a02a06a2e60208ec0f8e3a9298a3f6b94293723c6296e3",
-    "clip": {
-     "clipped_fraction": 0.0,
-     "clipped_low": 0.0,
-     "clipped_high": 0.0
-    },
-    "processed_tensor_sha256": "6f254f1b9ad417f25ee481d8ac27cc87051039bf2ebc65f1edccfda161d341a3",
-    "grid_thw": [
-     1,
-     24,
-     24
-    ]
-   },
-   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
-   "recognizability_at_source": 0.941176471,
-   "raters_most_common_label": "shirt"
-  },
-  {
-   "concept": "shorts",
-   "synset": "short_pants.n.01",
-   "wnid": "n04205318",
-   "family": "clothing",
-   "e1_token_id": 34591,
-   "role": "DEV-PILOT",
-   "stage_a_primary_view": false,
-   "replaces": null,
-   "photo_id": "thingsplus:shorts.jpg",
-   "source_group_id": "thingsplus-primary:shorts",
-   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
-   "release_file": "shorts.jpg",
-   "original_bytes": 812650,
-   "original_sha256": "6268cc7d199d938c85643037a75d2919f89ef7ba56692667fe70a1b78c7d31e6",
-   "per_image_check": {
-    "status": "pending (before row 21)"
-   },
-   "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
-   },
-   "operations": {
-    "original_sha256": "6268cc7d199d938c85643037a75d2919f89ef7ba56692667fe70a1b78c7d31e6",
-    "original_size": [
-     1600,
-     1600
-    ],
-    "original_mode": "RGB",
-    "orientation_applied": null,
-    "icc": "none embedded; treated as sRGB",
-    "alpha": "none",
-    "fitted_size": [
-     384,
-     384
-    ],
-    "offset": [
-     0,
-     0
-    ],
-    "padding": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
-   },
-   "clean_canvas": {
-    "png_sha256": "bc4511062b9f9b05087ed1251f4acab2ca2d979728e4a7790b6dad5eeb6e7bd6",
-    "clip": {
-     "clipped_fraction": 0.0,
-     "clipped_low": 0.0,
-     "clipped_high": 0.0
-    },
-    "processed_tensor_sha256": "ac7c622b93d994d197f8a67f06488c064c7c3d8a69a8362b863875c73120a3ed",
-    "grid_thw": [
-     1,
-     24,
-     24
-    ]
-   },
-   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
-   "recognizability_at_source": 0.352941176,
-   "raters_most_common_label": "shorts"
-  },
-  {
    "concept": "sock",
    "synset": "sock.n.01",
    "wnid": "n04254777",
@@ -1129,17 +1140,25 @@
    "photo_id": "thingsplus:sock.jpg",
    "source_group_id": "thingsplus-primary:sock",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "sock.jpg",
    "original_bytes": 912255,
    "original_sha256": "5961fd8fdeb92263928d0b259159cfe4e690ad847b4973c33daa4060965ae159",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/socks-two-grey-deep-wool-woolen-1157528/",
+    "creator": "Klaise",
+    "published": "2016-01-24",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 24,
+    "notes": "stock matches: 0"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "5961fd8fdeb92263928d0b259159cfe4e690ad847b4973c33daa4060965ae159",
@@ -1187,6 +1206,83 @@
    "raters_most_common_label": "sock"
   },
   {
+   "concept": "tie",
+   "synset": "necktie.n.01",
+   "wnid": "n03815615",
+   "family": "clothing",
+   "e1_token_id": 17592,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": "shirt",
+   "photo_id": "thingsplus:tie.jpg",
+   "source_group_id": "thingsplus-primary:tie",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
+   "release_file": "tie.jpg",
+   "original_bytes": 647432,
+   "original_sha256": "83042326a6ab50d98407c87597eb0a3868967da7d8ac02e23939186d76fe9b68",
+   "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/businessman-profession-workwear-676360/",
+    "creator": "not shown on the page (no creator panel)",
+    "published": "2015-03-16",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 22,
+    "notes": "replacement candidate; stock matches: 0; a businessman's torso and tie"
+   },
+   "permission": {
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "83042326a6ab50d98407c87597eb0a3868967da7d8ac02e23939186d76fe9b68",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "a07c5e4e4870521374ed9212b632126dab07b609c82167f2b4fc6563f4c77fc5",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "1198b896a9fe60dd6c68265ee5f3ccbccdeef1f1b27382f505c3f86034225624",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.705882353,
+   "raters_most_common_label": "tie"
+  },
+  {
    "concept": "avocado",
    "synset": "avocado.n.01",
    "wnid": "n07764847",
@@ -1198,17 +1294,25 @@
    "photo_id": "thingsplus:avocado.jpg",
    "source_group_id": "thingsplus-primary:avocado",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "avocado.jpg",
    "original_bytes": 622681,
    "original_sha256": "b3abc86f96456952d22d428e044635011346608d9c2ce33a3c7dba4ae538d115",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/avocado-guacamole-food-green-1712583/",
+    "creator": "Kjokkenutstyr",
+    "published": "2016-10-03",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 358,
+    "notes": "stock matches: 5 (shutterstock among them); a near-duplicate Pixabay 1712584 by the same upload batch also matched"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "b3abc86f96456952d22d428e044635011346608d9c2ce33a3c7dba4ae538d115",
@@ -1267,17 +1371,25 @@
    "photo_id": "thingsplus:caramel.jpg",
    "source_group_id": "thingsplus-primary:caramel",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "caramel.jpg",
    "original_bytes": 709287,
    "original_sha256": "c5c7ec2042b9dbbb989951c7ecc2af51a0a22b4907e589d0a2fa937a391b3a99",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/caramel-sweetness-cute-nibble-480814/",
+    "creator": "Catkin",
+    "published": "2014-10-12",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 13,
+    "notes": "stock matches: 0"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "c5c7ec2042b9dbbb989951c7ecc2af51a0a22b4907e589d0a2fa937a391b3a99",
@@ -1336,11 +1448,12 @@
    "photo_id": "thingsplus:chili.jpg",
    "source_group_id": "thingsplus-primary:chili",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "chili.jpg",
    "original_bytes": 565404,
    "original_sha256": "1fe7bbd6c204ee34f64700963a619e532400cb41cd325cd0437ad6ffd2ec1a9a",
    "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
     "status": "eligible",
     "checked": "2026-10-01",
     "source_url": "https://pixabay.com/photos/chili-con-carne-chili-cook-378952/",
@@ -1352,8 +1465,7 @@
     "notes": "the dish (chili con carne), consistent with THINGS' sense 'chili (stew)', n07864934"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
+    "capture_and_transformation": "yes",
     "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
@@ -1413,11 +1525,12 @@
    "photo_id": "thingsplus:hamburger.jpg",
    "source_group_id": "thingsplus-primary:hamburger",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "hamburger.jpg",
    "original_bytes": 499260,
    "original_sha256": "a5ae90267c852d15a33f273a9bbb970a55864b6d765e953b420408b0add0ec1a",
    "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
     "status": "eligible",
     "checked": "2026-10-01",
     "source_url": "https://pixabay.com/photos/hamburger-burger-sweet-bread-3291829/",
@@ -1429,8 +1542,7 @@
     "notes": ""
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
+    "capture_and_transformation": "yes",
     "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
@@ -1479,6 +1591,83 @@
    "raters_most_common_label": "hamburger"
   },
   {
+   "concept": "candy",
+   "synset": "candy.n.01",
+   "wnid": "n07597365",
+   "family": "foods",
+   "e1_token_id": 30517,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": "meat",
+   "photo_id": "thingsplus:candy.jpg",
+   "source_group_id": "thingsplus-primary:candy",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
+   "release_file": "candy.jpg",
+   "original_bytes": 1071886,
+   "original_sha256": "211821d759d9bfe60a5574a08a4e1db5f69a7bcb2d2792684c8cc7b47d239a0a",
+   "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/candies-gummies-sweets-171342/",
+    "creator": "Shirley810",
+    "published": "2013-08-11",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 981,
+    "notes": "replacement candidate; stock matches: 14"
+   },
+   "permission": {
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "211821d759d9bfe60a5574a08a4e1db5f69a7bcb2d2792684c8cc7b47d239a0a",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "1ec463bdfba01c2dadafc96f0398522c68afa416463296670e5890bace09ae25",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "fe331ffd1ebb1fef0b980dce9559ab010ee1cfa9b38ce8867f3a5d6c7dc60440",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.764705882,
+   "raters_most_common_label": "candy"
+  },
+  {
    "concept": "cheese",
    "synset": "cheese.n.01",
    "wnid": "n07850329",
@@ -1490,17 +1679,25 @@
    "photo_id": "thingsplus:cheese.jpg",
    "source_group_id": "thingsplus-primary:cheese",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "cheese.jpg",
    "original_bytes": 442631,
    "original_sha256": "97f644057ed08198372c624e4149ecbf6c49e1ee62268b5f9a39aea107816f1c",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/cheese-tray-cheeses-french-cheese-1433504/",
+    "creator": "JillWellington",
+    "published": "2016-06-02",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 660,
+    "notes": "stock matches: 3"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "97f644057ed08198372c624e4149ecbf6c49e1ee62268b5f9a39aea107816f1c",
@@ -1548,31 +1745,39 @@
    "raters_most_common_label": "cheese"
   },
   {
-   "concept": "meat",
-   "synset": "meat.n.01",
-   "wnid": "n07649854",
+   "concept": "prune",
+   "synset": "prune.n.01",
+   "wnid": "n07752602",
    "family": "foods",
-   "e1_token_id": 12668,
+   "e1_token_id": 76787,
    "role": "DEV-PILOT",
    "stage_a_primary_view": false,
-   "replaces": null,
-   "photo_id": "thingsplus:meat.jpg",
-   "source_group_id": "thingsplus-primary:meat",
+   "replaces": "wine",
+   "photo_id": "thingsplus:prune.jpg",
+   "source_group_id": "thingsplus-primary:prune",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
-   "release_file": "meat.jpg",
-   "original_bytes": 418429,
-   "original_sha256": "1113bde40dd7052f4f43b0f91b2549ec0e6429bca8975cb1144558173e44d99d",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
+   "release_file": "prune.jpg",
+   "original_bytes": 751286,
+   "original_sha256": "90cdd75901880220dacac6a891522b94e9dc94cf3f345df44ca55a620b6cc195",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/dried-fruits-nuts-brazil-nuts-plums-785243/",
+    "creator": "Regenwolke0",
+    "published": "2015-05-26",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 50,
+    "notes": "replacement candidate; stock matches: 0; the image shows dried fruits, nuts and plums - a sense question for the image audit"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
-    "original_sha256": "1113bde40dd7052f4f43b0f91b2549ec0e6429bca8975cb1144558173e44d99d",
+    "original_sha256": "90cdd75901880220dacac6a891522b94e9dc94cf3f345df44ca55a620b6cc195",
     "original_size": [
      1600,
      1600
@@ -1598,13 +1803,13 @@
     "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
    },
    "clean_canvas": {
-    "png_sha256": "d7dcf216c3229ba0715340643d4e0d735cc1b3abde4e6f5dc201faa1152ad549",
+    "png_sha256": "594bbfcd09f41a03134dce4669c77daa6e0f8da1e7629e8f11a611c2721ee2de",
     "clip": {
      "clipped_fraction": 0.0,
      "clipped_low": 0.0,
      "clipped_high": 0.0
     },
-    "processed_tensor_sha256": "4d03c0101ab93ac16d515a35e04eaf06f514f8fe9f799070e3a0ec71248d15a2",
+    "processed_tensor_sha256": "f8b61b4577316c73bf829573f8f66b3a78e963fac1ce3708d4e32eba1e43d97e",
     "grid_thw": [
      1,
      24,
@@ -1613,8 +1818,8 @@
    },
    "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
    "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
-   "recognizability_at_source": 0.538461538,
-   "raters_most_common_label": "meat"
+   "recognizability_at_source": 0.357142857,
+   "raters_most_common_label": "prune"
   },
   {
    "concept": "tomato",
@@ -1628,17 +1833,25 @@
    "photo_id": "thingsplus:tomato.jpg",
    "source_group_id": "thingsplus-primary:tomato",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "tomato.jpg",
    "original_bytes": 642867,
    "original_sha256": "2fb692d29be3bbfd8e99615d69f5678de947d76ad8ec04a8a6461b0500f6dd93",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/tomatoes-fruits-food-fresh-healthy-3520004/",
+    "creator": "MabelAmber",
+    "published": "2018-07-05",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 206,
+    "notes": "stock matches: 28 (shutterstock, alamy, dreamstime 'red-round-tomato-image368124060')"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "2fb692d29be3bbfd8e99615d69f5678de947d76ad8ec04a8a6461b0500f6dd93",
@@ -1686,75 +1899,6 @@
    "raters_most_common_label": "tomato"
   },
   {
-   "concept": "wine",
-   "synset": "wine.n.01",
-   "wnid": "n07891726",
-   "family": "foods",
-   "e1_token_id": 12701,
-   "role": "DEV-PILOT",
-   "stage_a_primary_view": false,
-   "replaces": null,
-   "photo_id": "thingsplus:wine.jpg",
-   "source_group_id": "thingsplus-primary:wine",
-   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
-   "release_file": "wine.jpg",
-   "original_bytes": 440711,
-   "original_sha256": "93cf5bbcb47fc16af333e9ba5ad2c8a36548f9cd74e13c12237a13ec11c3225f",
-   "per_image_check": {
-    "status": "pending (before row 21)"
-   },
-   "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
-   },
-   "operations": {
-    "original_sha256": "93cf5bbcb47fc16af333e9ba5ad2c8a36548f9cd74e13c12237a13ec11c3225f",
-    "original_size": [
-     1600,
-     1600
-    ],
-    "original_mode": "RGB",
-    "orientation_applied": null,
-    "icc": "none embedded; treated as sRGB",
-    "alpha": "none",
-    "fitted_size": [
-     384,
-     384
-    ],
-    "offset": [
-     0,
-     0
-    ],
-    "padding": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
-   },
-   "clean_canvas": {
-    "png_sha256": "9d092fc15fcc90ae93b1da13d20d49f551be17ce0419d8a08204f47e74661b7f",
-    "clip": {
-     "clipped_fraction": 0.0,
-     "clipped_low": 0.0,
-     "clipped_high": 0.0
-    },
-    "processed_tensor_sha256": "3c559fb8ba550a8401e8a4dbf44be3444dbd04ddfb35f3328c436267d387a5b0",
-    "grid_thw": [
-     1,
-     24,
-     24
-    ]
-   },
-   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
-   "recognizability_at_source": 0.8,
-   "raters_most_common_label": "wine"
-  },
-  {
    "concept": "boat",
    "synset": "boat.n.01",
    "wnid": "n02858304",
@@ -1766,17 +1910,25 @@
    "photo_id": "thingsplus:boat.jpg",
    "source_group_id": "thingsplus-primary:boat",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "boat.jpg",
    "original_bytes": 473889,
    "original_sha256": "604b2cc916fd8718208afacca51abfe4b0d6326cb696af81da4c2241cb67d096",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/boat-rowboat-water-lake-flow-sea-2991443/",
+    "creator": "Bru-nO",
+    "published": "2017-12-01",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 14,
+    "notes": "stock matches: 0"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "604b2cc916fd8718208afacca51abfe4b0d6326cb696af81da4c2241cb67d096",
@@ -1835,17 +1987,25 @@
    "photo_id": "thingsplus:canoe.jpg",
    "source_group_id": "thingsplus-primary:canoe",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "canoe.jpg",
    "original_bytes": 833665,
    "original_sha256": "32d5ea2affb504f579480fa8ff85c335dd5adf92ee3ee416352c4a960f13d2db",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/canoe-outdoors-water-sport-leisure-3755118/",
+    "creator": "plantbasedrhn",
+    "published": "2018-10-18",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 12,
+    "notes": "stock matches: 0"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "32d5ea2affb504f579480fa8ff85c335dd5adf92ee3ee416352c4a960f13d2db",
@@ -1904,11 +2064,12 @@
    "photo_id": "thingsplus:taxi.jpg",
    "source_group_id": "thingsplus-primary:taxi",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "taxi.jpg",
    "original_bytes": 640084,
    "original_sha256": "fbf2a0efcc9d72bd8dbe03973aefc284926c1dd2bb48d3f99ebdb04d1ee5db3a",
    "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
     "status": "eligible",
     "checked": "2026-10-01",
     "source_url": "https://pixabay.com/photos/manhattan-taxis-5th-avenue-932754/",
@@ -1917,11 +2078,10 @@
     "licence_shown": "Pixabay Content License (page banner)",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
     "tineye_results": 327,
-    "notes": "the THINGSplus file is a square crop; TinEye matched it to manhattan-932754 copies (e.g. ibm.com manhattan-932754_640.jpg). Alamy 88994189 and Shutterstock rows were SPONSORED adverts, not matches. Street scene: trademarks/shop signage visible (Pixabay Terms s.5 caution applies to commercial use, not to a research figure)"
+    "notes": "the THINGSplus file is a square crop; TinEye matched it to manhattan-932754 copies (e.g. ibm.com manhattan-932754_640.jpg). TinEye also lists 2 matches in stock collections (Alamy 88994189, Shutterstock 2358195733): the first record called these adverts, which was wrong - TinEye's 'results found in stock' are matches of this image. Street scene with shop signage."
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
+    "capture_and_transformation": "yes",
     "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
@@ -1981,11 +2141,12 @@
    "photo_id": "thingsplus:wagon.jpg",
    "source_group_id": "thingsplus-primary:wagon",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "wagon.jpg",
    "original_bytes": 809552,
    "original_sha256": "f6a04931bed3d798626b72827888a2b77252947fd358490d7e5b0bc48d53e936",
    "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
     "status": "eligible",
     "checked": "2026-10-01",
     "source_url": "https://pixabay.com/photos/west-usa-desert-ancient-of-wood-2048829/",
@@ -1997,8 +2158,7 @@
     "notes": "also on Pexels (pexels-photo-327318)"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
+    "capture_and_transformation": "yes",
     "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
@@ -2047,75 +2207,6 @@
    "raters_most_common_label": "wagon"
   },
   {
-   "concept": "helicopter",
-   "synset": "helicopter.n.01",
-   "wnid": "n03512147",
-   "family": "vehicles",
-   "e1_token_id": 33866,
-   "role": "DEV-PILOT",
-   "stage_a_primary_view": false,
-   "replaces": null,
-   "photo_id": "thingsplus:helicopter.jpg",
-   "source_group_id": "thingsplus-primary:helicopter",
-   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
-   "release_file": "helicopter.jpg",
-   "original_bytes": 470148,
-   "original_sha256": "56f6e7235bc25e8a83dec9e63fde81c9e44835b0834ee8e13f370edda6fb1eda",
-   "per_image_check": {
-    "status": "pending (before row 21)"
-   },
-   "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
-   },
-   "operations": {
-    "original_sha256": "56f6e7235bc25e8a83dec9e63fde81c9e44835b0834ee8e13f370edda6fb1eda",
-    "original_size": [
-     1600,
-     1600
-    ],
-    "original_mode": "RGB",
-    "orientation_applied": null,
-    "icc": "none embedded; treated as sRGB",
-    "alpha": "none",
-    "fitted_size": [
-     384,
-     384
-    ],
-    "offset": [
-     0,
-     0
-    ],
-    "padding": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
-   },
-   "clean_canvas": {
-    "png_sha256": "4148050f7eb90c04bbe73891afd4852d99e924bdaf622dde3b6b31b65314ffb5",
-    "clip": {
-     "clipped_fraction": 0.0,
-     "clipped_low": 0.0,
-     "clipped_high": 0.0
-    },
-    "processed_tensor_sha256": "d9e2f0bbbe1b8a76b08290499605473033c47b4a0e73c374b298e6b8acb50f08",
-    "grid_thw": [
-     1,
-     24,
-     24
-    ]
-   },
-   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
-   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
-   "recognizability_at_source": 0.933333333,
-   "raters_most_common_label": "helicopter"
-  },
-  {
    "concept": "jet",
    "synset": "jet.n.01",
    "wnid": "n03595860",
@@ -2127,17 +2218,25 @@
    "photo_id": "thingsplus:jet.jpg",
    "source_group_id": "thingsplus-primary:jet",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "jet.jpg",
    "original_bytes": 832745,
    "original_sha256": "5e234283548cfbf4b294d849b746704e64e4b8b32bc07d23f982d1cd179f57cd",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Green_Flag_West_11-08.jpg",
+    "creator": "Senior Airman Brett Clashman, U.S. Air Force",
+    "published": "2011-06-22 (taken)",
+    "licence_shown": "Public domain (Commons LicenseShortName; US military work, VIRIN 110622-F-KX404-022, dvidshub 419218)",
+    "licence_basis": "Public domain (Commons LicenseShortName; US military work, VIRIN 110622-F-KX404-022, dvidshub 419218)",
+    "tineye_results": 2409,
+    "notes": "documented PD (US federal work); stock matches: 16 (alamy, shutterstock resellers)"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "5e234283548cfbf4b294d849b746704e64e4b8b32bc07d23f982d1cd179f57cd",
@@ -2196,17 +2295,25 @@
    "photo_id": "thingsplus:ship.jpg",
    "source_group_id": "thingsplus-primary:ship",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "ship.jpg",
    "original_bytes": 525770,
    "original_sha256": "5382a30a270ffb2661868ebe4d7eab536157c11bdca4591360a8962d1cd4952e",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://commons.wikimedia.org/wiki/File:%D0%9A%D1%80%D1%83%D0%B7%D0%B5%D0%BD%D1%88%D1%82%D0%B5%D1%80%D0%BD_Radich.JPG",
+    "creator": "Żeglarz (Wikimedia Commons)",
+    "published": "2007 (taken)",
+    "licence_shown": "Public domain (Commons LicenseShortName)",
+    "licence_basis": "Public domain (Commons LicenseShortName)",
+    "tineye_results": 154,
+    "notes": "documented PD on the file page (also an edited derivative File:Крузенштерн_Radich-1.jpg, PD); stock matches: 5"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "5382a30a270ffb2661868ebe4d7eab536157c11bdca4591360a8962d1cd4952e",
@@ -2254,6 +2361,83 @@
    "raters_most_common_label": "ship"
   },
   {
+   "concept": "skateboard",
+   "synset": "skateboard.n.01",
+   "wnid": "n04225987",
+   "family": "vehicles",
+   "e1_token_id": 94601,
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": "helicopter",
+   "photo_id": "thingsplus:skateboard.jpg",
+   "source_group_id": "thingsplus-primary:skateboard",
+   "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
+   "release_file": "skateboard.jpg",
+   "original_bytes": 622059,
+   "original_sha256": "0466e07dc81df92cf4d0f4e5f4d6b8201e23ba5609c9ff757e43115b8d5cfecd",
+   "per_image_check": {
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/skateboard-skateboarding-outdoor-1636265/",
+    "creator": "khoahuynh",
+    "published": "2016-09-02",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 71,
+    "notes": "replacement candidate; stock matches: 4"
+   },
+   "permission": {
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
+   },
+   "operations": {
+    "original_sha256": "0466e07dc81df92cf4d0f4e5f4d6b8201e23ba5609c9ff757e43115b8d5cfecd",
+    "original_size": [
+     1600,
+     1600
+    ],
+    "original_mode": "RGB",
+    "orientation_applied": null,
+    "icc": "none embedded; treated as sRGB",
+    "alpha": "none",
+    "fitted_size": [
+     384,
+     384
+    ],
+    "offset": [
+     0,
+     0
+    ],
+    "padding": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "resize": "Pillow 12.3.0 Image.resize BICUBIC, reducing_gap=None, per channel in mode F (float32)"
+   },
+   "clean_canvas": {
+    "png_sha256": "386a23b68bb8dab1d0ee30b742dc7fbd809a05ad68c0f0f9078d10330f85ded0",
+    "clip": {
+     "clipped_fraction": 0.0,
+     "clipped_low": 0.0,
+     "clipped_high": 0.0
+    },
+    "processed_tensor_sha256": "9f7674853c9a6d6bb35e573476065aca2667f1948f2e2a06e5224639531cbefd",
+    "grid_thw": [
+     1,
+     24,
+     24
+    ]
+   },
+   "capture_time_fields": "dose nonce, mask draws, trial positions and delivered tensors are assigned and hashed per trial at capture (row 20/21 schedules), not here",
+   "image_and_sense_audit": "pending: the grayscale normalised clean stimulus, by the owner or a separately qualified image reader (proposal in the readiness report)",
+   "recognizability_at_source": 0.933333333,
+   "raters_most_common_label": "skateboard"
+  },
+  {
    "concept": "truck",
    "synset": "truck.n.01",
    "wnid": "n04490091",
@@ -2265,17 +2449,25 @@
    "photo_id": "thingsplus:truck.jpg",
    "source_group_id": "thingsplus-primary:truck",
    "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-   "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+   "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
    "release_file": "truck.jpg",
    "original_bytes": 834171,
    "original_sha256": "c0cc6599f8e1b9d8d161db810636e37ecd4787184d2222dc70e00e0b209a9067",
    "per_image_check": {
-    "status": "pending (before row 21)"
+    "label": "found by the per-image check, 2026-10-01",
+    "status": "eligible",
+    "checked": "2026-10-01",
+    "source_url": "https://pixabay.com/photos/semi-trailer-truck-road-follower-534577/",
+    "creator": "falco",
+    "published": "2014-11-17",
+    "licence_shown": "Pixabay Content License (banner)",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)",
+    "tineye_results": 603,
+    "notes": "matched via copies named semi-trailers-534577_150; stock matches: 0"
    },
    "permission": {
-    "transformation": "yes (collective grant; CC0 at source where checked eligible)",
-    "internal_capture": "yes",
-    "publication_and_redistribution": "not decided: per-image check pending"
+    "capture_and_transformation": "yes",
+    "publication_and_redistribution": "publishable with the source record (CC0 at source)"
    },
    "operations": {
     "original_sha256": "c0cc6599f8e1b9d8d161db810636e37ecd4787184d2222dc70e00e0b209a9067",

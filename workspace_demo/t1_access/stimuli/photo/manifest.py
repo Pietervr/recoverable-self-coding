@@ -1,13 +1,13 @@
 """Photograph arm, desk gate: the per-photo manifest of framework §8.2 for the 32 development roles (P = 1 so far:
 the THINGSplus primary view; the Stage B second view is added when found and cleared).
 
-TERMS (R052's reading, framework §8.2, handoffs 41b67d26 and the check result 20035321):
-  release   (i)  development captures rest on the THINGSplus release's collective grant, recorded per image: the zip,
-                 notice and LICENSE hashes, OSF ids, the download date, the file and its hash, the misattribution
-                 caveat, and "creator / original URL: not supplied by the release" - never guessed;
-  check     (ii) the per-image source check (provenance_checks.json): source URL, creator, published date, licence
-                 shown and basis, status, date. It is the ONLY field that decides publication; for an image not yet
-                 checked it reads "pending (before row 21)".
+TERMS (framework §8.2 as decided by R052, handoffs 41b67d26 and a89ddc24 - option A): BOTH field sets per image.
+  release   the THINGSplus release fields: zip, notice and LICENSE hashes, OSF ids, the download date, the file and
+            its hash, the misattribution caveat, and "creator / original URL: not supplied by the release";
+  check     "found by the per-image check, <date>" (provenance_checks.json): source URL, creator, published date, the
+            licence line read and its basis, status. The check GATES CAPTURE as well as publication: an image enters
+            any capture only when its check is 'eligible' (CC0 or documented PD at source; Pixabay: published before
+            2019-01-09). The collective grant alone admits nothing. Unchecked reads "pending (before row 21)".
 Fields that exist only at capture time (dose nonce, trial positions, delivered tensor per trial) are marked as
 assigned at capture; the clean-canvas pixel hashes and geometry are computed here, pixels only, no model.
 
@@ -79,10 +79,11 @@ def main() -> int:
         c = checks.get(r["concept"])
         if c is None:
             check = {"status": "pending (before row 21)"}
-            publish = "not decided: per-image check pending"
+            publish = "not admitted: per-image check pending"
         else:
-            check = {k: c[k] for k in ("status", "checked", "source_url", "creator", "published", "licence_shown",
-                                       "licence_basis", "tineye_results", "notes")}
+            check = {"label": f"found by the per-image check, {c['checked']}",
+                     **{k: c[k] for k in ("status", "checked", "source_url", "creator", "published", "licence_shown",
+                                          "licence_basis", "tineye_results", "notes")}}
             publish = {"eligible": "publishable with the source record (CC0 at source)",
                        "not_found": "by reference only (filename and hash), never redistributed",
                        "ineligible": "not publishable; replaced"}[c["status"]]
@@ -92,11 +93,12 @@ def main() -> int:
             "replaces": r.get("replaces"),
             "photo_id": f"thingsplus:{r['thingsplus_image']}", "source_group_id": f"thingsplus-primary:{r['concept']}",
             "view": "THINGSplus primary view (view 1); Stage B second view: search pending",
-            "release_basis": "reading (i): the THINGSplus collective grant (see 'release')",
+            "release_basis": "THINGSplus release fields (see 'release'); admission is by the per-image check",
             "release_file": r["thingsplus_image"], "original_bytes": len(raw), "original_sha256": sha(raw),
             "per_image_check": check,
-            "permission": {"transformation": "yes (collective grant; CC0 at source where checked eligible)",
-                           "internal_capture": "yes", "publication_and_redistribution": publish},
+            "permission": {"capture_and_transformation": "yes" if c and c["status"] == "eligible" else
+                           "no: not admitted until the per-image check is eligible",
+                           "publication_and_redistribution": publish},
             "operations": geom, "clean_canvas": {"png_sha256": sha(png), "clip": clip,
                                                  "processed_tensor_sha256": sha(np.ascontiguousarray(
                                                      np.asarray(out["pixel_values"], dtype=np.float32)).tobytes()),

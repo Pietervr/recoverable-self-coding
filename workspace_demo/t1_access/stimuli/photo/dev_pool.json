@@ -20,7 +20,7 @@
   "_concepts-metadata_things.tsv": "3f05b6b748d1e1b685e15130d2487bff63f86e1f4da94a2a5d9e7dec073a48eb",
   "_images-metadata_things.tsv": "fd5b17635f0f6528f58decaf5a089587593708862d4ee7a2a72cd8aa57ce013c"
  },
- "script_sha256": "045abd38b1b2c4bd7b0e76fb7215fe7fe6b22c5e32b85c2b65b63d056a08c836",
+ "script_sha256": "6c85785448c06e0755a747fc9e65f0a327662f554ead4b2eea5ce43cf3f87ea2",
  "qualified_counts": {
   "animals": 36,
   "foods": 46,
@@ -1501,19 +1501,6 @@
  },
  "roles": [
   {
-   "concept": "bull",
-   "name": "bull",
-   "wnid": "n02403325",
-   "synset": "bull.n.01",
-   "family": "animals",
-   "e1_token_id": 16319,
-   "thingsplus_image": "bull.jpg",
-   "recognizability": 0.571428571,
-   "most_common_label": "bull",
-   "role": "DEV-CAL",
-   "stage_a_primary_view": false
-  },
-  {
    "concept": "crow",
    "name": "crow",
    "wnid": "n01579028",
@@ -1541,6 +1528,20 @@
    "replaces": "fly"
   },
   {
+   "concept": "pig",
+   "name": "pig",
+   "wnid": "n02395406",
+   "synset": "hog.n.03",
+   "family": "animals",
+   "e1_token_id": 22952,
+   "thingsplus_image": "pig.jpg",
+   "recognizability": 1.0,
+   "most_common_label": "pig",
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "replaces": "bull"
+  },
+  {
    "concept": "shark",
    "name": "shark",
    "wnid": "n01482330",
@@ -1554,6 +1555,20 @@
    "stage_a_primary_view": false
   },
   {
+   "concept": "butterfly",
+   "name": "butterfly",
+   "wnid": "n02274259",
+   "synset": "butterfly.n.01",
+   "family": "animals",
+   "e1_token_id": 53315,
+   "thingsplus_image": "butterfly.jpg",
+   "recognizability": 1.0,
+   "most_common_label": "butterfly",
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": "frog"
+  },
+  {
    "concept": "cow",
    "name": "cow",
    "wnid": "n02403454",
@@ -1563,19 +1578,6 @@
    "thingsplus_image": "cow.jpg",
    "recognizability": 1.0,
    "most_common_label": "cow",
-   "role": "DEV-PILOT",
-   "stage_a_primary_view": false
-  },
-  {
-   "concept": "frog",
-   "name": "frog",
-   "wnid": "n01639765",
-   "synset": "frog.n.01",
-   "family": "animals",
-   "e1_token_id": 57859,
-   "thingsplus_image": "frog.jpg",
-   "recognizability": 1.0,
-   "most_common_label": "frog",
    "role": "DEV-PILOT",
    "stage_a_primary_view": false
   },
@@ -1606,19 +1608,6 @@
    "stage_a_primary_view": false
   },
   {
-   "concept": "coat",
-   "name": "coat",
-   "wnid": "n03057021",
-   "synset": "coat.n.01",
-   "family": "clothing",
-   "e1_token_id": 22162,
-   "thingsplus_image": "coat.jpg",
-   "recognizability": 0.571428571,
-   "most_common_label": "coat",
-   "role": "DEV-CAL",
-   "stage_a_primary_view": false
-  },
-  {
    "concept": "jacket",
    "name": "jacket",
    "wnid": "n03589791",
@@ -1646,6 +1635,20 @@
    "stage_a_primary_view": false
   },
   {
+   "concept": "lingerie",
+   "name": "lingerie",
+   "wnid": "n03673450",
+   "synset": "lingerie.n.01",
+   "family": "clothing",
+   "e1_token_id": 54286,
+   "thingsplus_image": "lingerie.jpg",
+   "recognizability": 0.357142857,
+   "most_common_label": "lingerie",
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "replaces": "coat"
+  },
+  {
    "concept": "mask",
    "name": "mask",
    "wnid": "n03724870",
@@ -1657,6 +1660,20 @@
    "most_common_label": "mask",
    "role": "DEV-CAL",
    "stage_a_primary_view": true
+  },
+  {
+   "concept": "hat",
+   "name": "hat",
+   "wnid": "n03497657",
+   "synset": "hat.n.01",
+   "family": "clothing",
+   "e1_token_id": 8628,
+   "thingsplus_image": "hat.jpg",
+   "recognizability": 0.583333333,
+   "most_common_label": "hat",
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": "shorts"
   },
   {
    "concept": "robe",
@@ -1672,32 +1689,6 @@
    "stage_a_primary_view": false
   },
   {
-   "concept": "shirt",
-   "name": "shirt",
-   "wnid": "n04197391",
-   "synset": "shirt.n.01",
-   "family": "clothing",
-   "e1_token_id": 15024,
-   "thingsplus_image": "shirt.jpg",
-   "recognizability": 0.941176471,
-   "most_common_label": "shirt",
-   "role": "DEV-PILOT",
-   "stage_a_primary_view": false
-  },
-  {
-   "concept": "shorts",
-   "name": "shorts",
-   "wnid": "n04205318",
-   "synset": "short_pants.n.01",
-   "family": "clothing",
-   "e1_token_id": 34591,
-   "thingsplus_image": "shorts.jpg",
-   "recognizability": 0.352941176,
-   "most_common_label": "shorts",
-   "role": "DEV-PILOT",
-   "stage_a_primary_view": false
-  },
-  {
    "concept": "sock",
    "name": "sock",
    "wnid": "n04254777",
@@ -1709,6 +1700,20 @@
    "most_common_label": "sock",
    "role": "DEV-PILOT",
    "stage_a_primary_view": false
+  },
+  {
+   "concept": "tie",
+   "name": "tie",
+   "wnid": "n03815615",
+   "synset": "necktie.n.01",
+   "family": "clothing",
+   "e1_token_id": 17592,
+   "thingsplus_image": "tie.jpg",
+   "recognizability": 0.705882353,
+   "most_common_label": "tie",
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": "shirt"
   },
   {
    "concept": "avocado",
@@ -1763,6 +1768,20 @@
    "stage_a_primary_view": true
   },
   {
+   "concept": "candy",
+   "name": "candy",
+   "wnid": "n07597365",
+   "synset": "candy.n.01",
+   "family": "foods",
+   "e1_token_id": 30517,
+   "thingsplus_image": "candy.jpg",
+   "recognizability": 0.764705882,
+   "most_common_label": "candy",
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": "meat"
+  },
+  {
    "concept": "cheese",
    "name": "cheese",
    "wnid": "n07850329",
@@ -1776,17 +1795,18 @@
    "stage_a_primary_view": false
   },
   {
-   "concept": "meat",
-   "name": "meat",
-   "wnid": "n07649854",
-   "synset": "meat.n.01",
+   "concept": "prune",
+   "name": "prune",
+   "wnid": "n07752602",
+   "synset": "prune.n.01",
    "family": "foods",
-   "e1_token_id": 12668,
-   "thingsplus_image": "meat.jpg",
-   "recognizability": 0.538461538,
-   "most_common_label": "meat",
+   "e1_token_id": 76787,
+   "thingsplus_image": "prune.jpg",
+   "recognizability": 0.357142857,
+   "most_common_label": "prune",
    "role": "DEV-PILOT",
-   "stage_a_primary_view": false
+   "stage_a_primary_view": false,
+   "replaces": "wine"
   },
   {
    "concept": "tomato",
@@ -1798,19 +1818,6 @@
    "thingsplus_image": "tomato.jpg",
    "recognizability": 1.0,
    "most_common_label": "tomato",
-   "role": "DEV-PILOT",
-   "stage_a_primary_view": false
-  },
-  {
-   "concept": "wine",
-   "name": "wine",
-   "wnid": "n07891726",
-   "synset": "wine.n.01",
-   "family": "foods",
-   "e1_token_id": 12701,
-   "thingsplus_image": "wine.jpg",
-   "recognizability": 0.8,
-   "most_common_label": "wine",
    "role": "DEV-PILOT",
    "stage_a_primary_view": false
   },
@@ -1867,19 +1874,6 @@
    "stage_a_primary_view": true
   },
   {
-   "concept": "helicopter",
-   "name": "helicopter",
-   "wnid": "n03512147",
-   "synset": "helicopter.n.01",
-   "family": "vehicles",
-   "e1_token_id": 33866,
-   "thingsplus_image": "helicopter.jpg",
-   "recognizability": 0.933333333,
-   "most_common_label": "helicopter",
-   "role": "DEV-PILOT",
-   "stage_a_primary_view": false
-  },
-  {
    "concept": "jet",
    "name": "jet",
    "wnid": "n03595860",
@@ -1906,6 +1900,20 @@
    "stage_a_primary_view": false
   },
   {
+   "concept": "skateboard",
+   "name": "skateboard",
+   "wnid": "n04225987",
+   "synset": "skateboard.n.01",
+   "family": "vehicles",
+   "e1_token_id": 94601,
+   "thingsplus_image": "skateboard.jpg",
+   "recognizability": 0.933333333,
+   "most_common_label": "skateboard",
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "replaces": "helicopter"
+  },
+  {
    "concept": "truck",
    "name": "truck",
    "wnid": "n04490091",
@@ -1919,7 +1927,7 @@
    "stage_a_primary_view": false
   }
  ],
- "provenance_checks_sha256": "3f16e1b4b865ac7db98364bd89039d2630205cc0030e90f150150fa5d73f5e1e",
+ "provenance_checks_sha256": "d6f9b58fc4ebc379d0aa23bc230f840b612b6e4e3f678c36bbbbcad81c751211",
  "replacements": [
   {
    "family": "animals",
@@ -1953,12 +1961,154 @@
     "published": "2014-06-10",
     "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)"
    }
+  },
+  {
+   "family": "animals",
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "out": "bull",
+   "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source",
+   "skipped": [],
+   "in": "pig",
+   "in_check": {
+    "source_url": "https://pixabay.com/photos/pig-alp-rona-furna-sow-happy-pig-214349/",
+    "published": "2013-11-20",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)"
+   }
+  },
+  {
+   "family": "animals",
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "out": "frog",
+   "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source",
+   "skipped": [
+    {
+     "concept": "monkey",
+     "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source"
+    },
+    {
+     "concept": "ant",
+     "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source"
+    },
+    {
+     "concept": "bug",
+     "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source"
+    }
+   ],
+   "in": "butterfly",
+   "in_check": {
+    "source_url": "https://pixabay.com/photos/butterfly-flower-pollinate-1568926/",
+    "published": "2016-08-04",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)"
+   }
+  },
+  {
+   "family": "clothing",
+   "role": "DEV-CAL",
+   "stage_a_primary_view": false,
+   "out": "coat",
+   "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source",
+   "skipped": [
+    {
+     "concept": "wig",
+     "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source"
+    }
+   ],
+   "in": "lingerie",
+   "in_check": {
+    "source_url": "https://pixabay.com/photos/doll-dummy-mannequin-tailors-dummy-1524074/",
+    "published": "2016-07-18",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)"
+   }
+  },
+  {
+   "family": "clothing",
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "out": "shirt",
+   "reason": "Pexels License ('Free'; pexels.com/license: 'All photos and videos on Pexels are free to use')",
+   "skipped": [
+    {
+     "concept": "wig",
+     "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source"
+    }
+   ],
+   "in": "tie",
+   "in_check": {
+    "source_url": "https://pixabay.com/photos/businessman-profession-workwear-676360/",
+    "published": "2015-03-16",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)"
+   }
+  },
+  {
+   "family": "clothing",
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "out": "shorts",
+   "reason": "Adobe Stock (royalty licence)",
+   "skipped": [
+    {
+     "concept": "wig",
+     "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source"
+    }
+   ],
+   "in": "hat",
+   "in_check": {
+    "source_url": "https://pixabay.com/photos/red-hat-bench-wooden-decoration-3860411/",
+    "published": "2018-12-08",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)"
+   }
+  },
+  {
+   "family": "foods",
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "out": "meat",
+   "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source",
+   "skipped": [],
+   "in": "candy",
+   "in_check": {
+    "source_url": "https://pixabay.com/photos/candies-gummies-sweets-171342/",
+    "published": "2013-08-11",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)"
+   }
+  },
+  {
+   "family": "foods",
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "out": "wine",
+   "reason": "Shutterstock (royalty licence)",
+   "skipped": [],
+   "in": "prune",
+   "in_check": {
+    "source_url": "https://pixabay.com/photos/dried-fruits-nuts-brazil-nuts-plums-785243/",
+    "published": "2015-05-26",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)"
+   }
+  },
+  {
+   "family": "vehicles",
+   "role": "DEV-PILOT",
+   "stage_a_primary_view": false,
+   "out": "helicopter",
+   "reason": "Pixabay Content License only: published after 2019-01-09, never CC0 at source",
+   "skipped": [],
+   "in": "skateboard",
+   "in_check": {
+    "source_url": "https://pixabay.com/photos/skateboard-skateboarding-outdoor-1636265/",
+    "published": "2016-09-02",
+    "licence_basis": "CC0: published before 2019-01-09 (Pixabay Terms s.4)"
+   }
   }
  ],
  "excluded_from_formal_CAL_PILOT_CONF": [
   "avocado",
   "boat",
   "bull",
+  "butterfly",
+  "candy",
   "canoe",
   "caramel",
   "cheese",
@@ -1969,23 +2119,29 @@
   "fly",
   "frog",
   "hamburger",
+  "hat",
   "helicopter",
   "horse",
   "jacket",
   "jeans",
   "jet",
+  "lingerie",
   "mask",
   "meat",
   "mosquito",
+  "pig",
   "pigeon",
+  "prune",
   "robe",
   "shark",
   "ship",
   "shirt",
   "shorts",
+  "skateboard",
   "sock",
   "suit",
   "taxi",
+  "tie",
   "tomato",
   "truck",
   "wagon",

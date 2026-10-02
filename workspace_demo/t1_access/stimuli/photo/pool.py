@@ -31,7 +31,8 @@ declared rule, so no replacement is chosen by hand. All 32 are excluded from any
 
 PROVENANCE. provenance_checks.json holds the per-image source checks of R052's terms reading (framework §8.2 (ii)).
 A role concept whose check is 'ineligible' is replaced AFTER the roles are drawn (so no other role moves) by the next
-concept in its family's seeded order past the first eight that is unused and not itself ineligible; it inherits the
+concept in its family's seeded order past the first eight that is unused and not itself ineligible, taking the
+rejections in the order their checks were recorded (so a replacement once made never moves); it inherits the
 role and the Stage A flag. The replacement must carry a check of its own (eligible or not_found), or the run stops
 and asks for that check first. Every replacement is logged with its reason in dev_pool.json 'replacements'; the
 replaced concept stays excluded from formal CAL, PILOT and CONF.
@@ -148,10 +149,12 @@ def main() -> int:
     checks = {c["concept"]: c for c in json.loads(checks_path.read_text())["checks"]} if checks_path.exists() else {}
     replacements = []
     used = {x["concept"] for x in roles}
-    for i, x in enumerate(roles):
-        c = checks.get(x["concept"])
-        if not c or c["status"] != "ineligible":
-            continue
+    check_order = list(checks)                        # the order the checks were recorded
+    pending = sorted((i for i, x in enumerate(roles)
+                      if checks.get(x["concept"], {}).get("status") == "ineligible"),
+                     key=lambda i: check_order.index(roles[i]["concept"]))
+    for i in pending:                                 # earliest-recorded rejection first: a replacement once made
+        x, c = roles[i], checks[roles[i]["concept"]]  # never moves when a later check rejects another concept
         by_name = {r["concept"]: r for r in qualified[x["family"]]}
         skipped = []
         for cand in order[x["family"]][PER_FAMILY:]:
