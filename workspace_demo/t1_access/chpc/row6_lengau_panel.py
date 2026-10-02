@@ -20,7 +20,6 @@ T1 = os.getcwd() if os.path.exists(os.path.join(os.getcwd(), "analyze.py")) else
 sys.path.insert(0, T1)
 os.chdir(T1)
 import analyze as A, simulate as S
-from joblib import Parallel, delayed
 
 GAIN = "sim_results/gain_sens600/gain_calibration_D4.json"
 SEED, D, LAYERS = 2026, 4, (41,)
@@ -30,6 +29,11 @@ PANEL = [("M3", {"scale": 0.5465000938917843}, 0),
          ("M3", {"scale": 0.5465000938917843}, 40)]
 NUM = ("selection_ws_point", "selection_ws_lo", "selection_ws_hi", "selection_ws_se")
 OUT = sys.argv[1] if len(sys.argv) > 1 else "row6_lengau_rows.csv"
+# which declared reps this process runs: all three sequentially by default, or one (single-core jobs). The toolchain's
+# joblib workers cannot spawn under the image loader (a child python finds the host libc), so no process parallelism.
+REPS = [int(x) for x in sys.argv[2].split(",")] if len(sys.argv) > 2 else [0, 20, 40]
+PANEL = [(n, k, rp) for (n, k, rp) in PANEL if rp in REPS]
+assert PANEL, "no declared rep selected"
 
 cfg = A.Config(n_starts_inner=4, interval="cluster")
 code_hash = S.config_hash(cfg, D, LAYERS, SEED)
@@ -43,12 +47,10 @@ for (name, kw) in points:
 print("panel:", [(n, json.dumps(k, sort_keys=True), rp) for n, k, rp in PANEL], flush=True)
 
 t0 = time.time()
-out = Parallel(n_jobs=3)(
-    delayed(S.one_replicate)(n, k, rp, D, LAYERS, None, cfg, SEED,
-                             ex.get((n, json.dumps(k, sort_keys=True))), code_hash)
-    for n, k, rp in PANEL)
+out = [S.one_replicate(n, k, rp, D, LAYERS, None, cfg, SEED, ex.get((n, json.dumps(k, sort_keys=True))), code_hash)
+       for n, k, rp in PANEL]                       # sequential, one process, one core
 wall = (time.time() - t0) / 60
-print(f"lengau re-run of three datasets: {wall:.1f} min wall", flush=True)
+print(f"lengau re-run of {len(PANEL)} dataset(s) {REPS}: {wall:.1f} min wall", flush=True)
 
 import numpy, scipy, joblib, jax, jaxlib
 env = (f"python {sys.version.split()[0]} jax {jax.__version__} jaxlib {jaxlib.__version__} numpy {numpy.__version__} "
@@ -61,5 +63,5 @@ with open(OUT, "w", newline="") as f:
         w.writerow([n, json.dumps(k, sort_keys=True), rp, code_hash,
                     *[m.get(q) for q in NUM], m.get("selection_decision"), m.get("failed", 0),
                     m.get("failed_reason", ""), m.get("fit_seconds", ""), env])
-print(f"wrote {OUT}: 3 rows (quantities only; the comparison runs on the Mac)", flush=True)
+print(f"wrote {OUT}: {len(PANEL)} row(s) (quantities only; the comparison runs on the Mac)", flush=True)
 print("technical failures:", [m.get("failed_reason") for m in out if str(m.get("failed", "0")) not in ("0", "False", "false")] or "none")

@@ -4,7 +4,9 @@ setting returned - so sens600 stays blinded. Tolerance 1e-6 nat/trial, declared 
 import csv, json, sys, os
 T1 = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 AWS = os.path.join(T1, "sim_results/sens600/power_D4.csv")
-LENGAU = sys.argv[1] if len(sys.argv) > 1 else os.path.join(T1, "chpc/results/row6_lengau_rows.csv")
+import glob
+# one CSV per single-core job (row6_lengau_rows_rep<N>.csv) or one combined file; every file given or found is merged
+LENGAU_FILES = sys.argv[1:] if len(sys.argv) > 1 else sorted(glob.glob(os.path.join(T1, "chpc/results/row6_lengau_rows*.csv")))
 NUM = ("selection_ws_point", "selection_ws_lo", "selection_ws_hi", "selection_ws_se")
 TOL = 1e-6
 SCALE = 0.5465000938917843
@@ -12,7 +14,11 @@ SCALE = 0.5465000938917843
 aws = [r for r in csv.DictReader(open(AWS))
        if r["generator"] == "M3" and abs(json.loads(r["grid"]).get("scale", 0) - SCALE) < 1e-12 and int(r["rep"]) in (0, 20, 40)]
 aws = {int(r["rep"]): r for r in aws}
-len_rows = {int(r["rep"]): r for r in csv.DictReader(open(LENGAU))}
+len_rows = {}
+for fpath in LENGAU_FILES:
+    for r in csv.DictReader(open(fpath)):
+        assert int(r["rep"]) not in len_rows, f"rep {r['rep']} appears twice across {LENGAU_FILES}"
+        len_rows[int(r["rep"])] = r
 assert sorted(aws) == [0, 20, 40] == sorted(len_rows), (sorted(aws), sorted(len_rows))
 for rp in (0, 20, 40):
     assert aws[rp]["code_hash"] == len_rows[rp]["code_hash"] == "625798e9e7f4", "code hash mismatch"

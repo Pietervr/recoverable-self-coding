@@ -1,0 +1,23 @@
+#!/bin/bash
+#PBS -N t1_row6_rep__REP__
+#PBS -P CSCI1913
+#PBS -q serial
+#PBS -l select=1:ncpus=1:mpiprocs=1:nodetype=haswell_reg
+#PBS -l walltime=03:00:00
+#PBS -o /mnt/lustre/users/pvanrooyen/t1_toolchain/jobs/row6_parity_rep__REP__.out
+#PBS -e /mnt/lustre/users/pvanrooyen/t1_toolchain/jobs/row6_parity_rep__REP__.err
+#PBS -m ae
+#PBS -M pgwvanrooyen@sun.ac.za
+# Ledger row 6 extended to Lengau: ONE of the three declared sens600 datasets (rep __REP__) on one shared Haswell core
+# under the pinned cloud library set and the code of f7e69b1 (hash 625798e9e7f4); the quantities go to its own CSV and
+# the blinded comparison runs on the Mac. Three such jobs, at most 9 core-hours in all. One process per job because the
+# toolchain's joblib workers cannot spawn under the image loader. Submitted on the owner's go of 2 October 2026.
+ulimit -s unlimited
+T=/mnt/lustre/users/pvanrooyen/t1_toolchain
+cd $T/rsc/workspace_demo/t1_access
+export NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+echo "host $(hostname)  $(grep -m1 'model name' /proc/cpuinfo)"
+echo "code $(git rev-parse --short HEAD)  start $(date -u +%FT%TZ)"
+$T/t1py -c 'import sys, jax, jaxlib, numpy, scipy, joblib; print("python", sys.version.split()[0], "jax", jax.__version__, "jaxlib", jaxlib.__version__, "numpy", numpy.__version__, "scipy", scipy.__version__, "joblib", joblib.__version__)'
+time $T/t1py $T/jobs/row6_lengau_panel.py $T/jobs/row6_lengau_rows_rep__REP__.csv __REP__
+echo "end $(date -u +%FT%TZ)"
