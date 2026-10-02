@@ -48,7 +48,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
 <div class="wrap">
 <header>
   <h1>T1 Validation Tracker</h1>
-  <p class="sub">Entropy SI lane · updated <span id="upd">2 Oct 2026, 20:45 UTC</span> · Unimog <code>236fcc1f</code>, RSC <code>4e26d03</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
+  <p class="sub">Entropy SI lane · updated <span id="upd">2 Oct 2026, 21:40 UTC</span> · Unimog <code>24664398</code>, RSC <code>b6f25b1</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
 </header>
 
 <section class="two">
@@ -74,8 +74,8 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
     <tr><th>Run</th><th>Purpose</th><th>Where</th><th>State</th><th>Progress</th><th>Time</th></tr>
     <tr><td class="w">Row 18 · benchmark</td><td>How fast a Lengau core is on this workload.</td><td class="n">serial · 1 core</td><td><span class="pill ok">done 1 Oct</span></td><td>4.7× the Mac core, 1.3× the AWS core. Programme fits.<div class="bar ok"><i style="width:100%"></i></div></td><td class="n">113 min</td></tr>
     <tr><td class="w">Row 6 · parity</td><td>Can Lengau rows pool with published ones?</td><td class="n">serial · 3 × 1 core</td><td><span class="pill ok">pass 2 Oct</span></td><td>Max deviation 7.1e-08 nat/trial, decisions identical.<div class="bar ok"><i style="width:100%"></i></div></td><td class="n">77 min · 3.6 core-h</td></tr>
-    <tr><td class="w">Row 19 · stage 0</td><td>Cost of one full layer under the §7.4 start policy. Sizes the slice and the reference bank.</td><td class="n">serial · 1 core · job 7516261</td><td><span class="pill run">running</span></td><td>Started 16:59 UTC; output arrives at job end.<div class="bar run"><i style="width:16%"></i></div><span class="small">3.8 h of ≤ 24 h walltime</span></td><td class="n">≤ 24 h</td></tr>
-    <tr><td class="w">Row 19 · stage 1 slice</td><td>Prove the refit chain runs and resumes across jobs; measure per-resample time and memory. Reads no coverage.</td><td class="n">seriallong · 3 × 1 core + control</td><td><span class="pill wait">ready</span></td><td>Code done and tested; clone <code>rsc_slice</code> verified; launch spec with Codex. Needs: stage-0 addendum, Codex review, owner go.<div class="bar"><i style="width:0%"></i></div></td><td class="n">10–22 d per chain · cap 1,500 core-h</td></tr>
+    <tr><td class="w">Row 19 · stage 0</td><td>Cost of one full layer under the §7.4 start policy. Sizes the slice and the reference bank.</td><td class="n">serial · 1 core · job 7516261</td><td><span class="pill run">running</span></td><td>Started 16:59 UTC; output arrives at job end. Reserved in the campaign ledger.<div class="bar run"><i style="width:20%"></i></div><span class="small">4.7 h of ≤ 24 h walltime</span></td><td class="n">≤ 24 h</td></tr>
+    <tr><td class="w">Row 19 · stage 1 slice</td><td>Prove the refit chain runs and resumes across jobs; measure per-resample time and memory. Reads no coverage.</td><td class="n">seriallong · 3 × 1 core + control</td><td><span class="pill wait">ready</span></td><td>Launch spec rev 1 held by Codex on eight conditions (two would have broken the first job); all eight implemented, 34 tests, clone verified, campaign ledger live. Rev 2 with Codex. Needs: Codex review, stage-0 addendum, owner go.<div class="bar"><i style="width:0%"></i></div></td><td class="n">10–22 d per chain · cap 1,500 core-h</td></tr>
     <tr><td class="w">ω = 1 reference bank</td><td>The policy-matched target the coverage reading needs.</td><td class="n">normal · packed 24/node</td><td><span class="pill wait">planned</span></td><td>Row written after stage 0 sizes it.</td><td class="n">≈ 1 day wall</td></tr>
     <tr><td class="w">Row 19 · stage 2 screen</td><td>100 datasets at ω = 1: does refitting reach 0.90? Futility at 83 of 100.</td><td class="n">seriallong · packed 12/job</td><td><span class="pill wait">planned</span></td><td>Costed from the slice's measured rate; own go.</td><td class="n">2–5 weeks wall</td></tr>
     <tr><td class="w">Misspecification battery</td><td>The paper's disclosure of what the assay gets wrong off-model.</td><td class="n">normal · packed</td><td><span class="pill wait">planned</span></td><td>Row to write after stage 0.</td><td class="n">≈ 2,400 core-h · &lt; 1 day</td></tr>
@@ -88,8 +88,8 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
   <h2>Mac runs · photograph arm</h2>
   <div class="tbl"><table>
     <tr><th>Run</th><th>Purpose</th><th>Where</th><th>State</th><th>Progress</th><th>Time</th></tr>
-    <tr><td class="w">Row 20 · Stage A</td><td>Native fidelity and resource profile of the capture instrument on 20 development images.</td><td class="n">Mac · 1 worker</td><td><span class="pill hold">rev 10 building</span></td><td>Nine Codex reviews, none favourable; revision 9 closed every submitted counterexample, one live-start accounting boundary left. R084 builds revision 10.<div class="bar"><i style="width:90%"></i></div></td><td class="n">≤ 4 h · 194 of 200 forwards</td></tr>
-    <tr><td class="w">AI reader qualification</td><td>Can the Codex reader name 61 of 63 easy grayscale images? Gates the audit reader.</td><td class="n">Mac · codex 0.159.3</td><td><span class="pill hold">rev 10 building</span></td><td>Same package round as Stage A; one boundary left.<div class="bar"><i style="width:90%"></i></div></td><td class="n">≤ 6 h · ≤ 660 attempts</td></tr>
+    <tr><td class="w">Row 20 · Stage A</td><td>Native fidelity and resource profile of the capture instrument on 20 development images.</td><td class="n">Mac · 1 worker</td><td><span class="pill hold">rev 10 building</span></td><td>Nine Codex reviews, none favourable; revision 9 closed every submitted counterexample, one live-start accounting boundary left. Revision 10 committed by R084 (RSC fbfb7db); its brief and hashes next, then Codex.<div class="bar"><i style="width:92%"></i></div></td><td class="n">≤ 4 h · 194 of 200 forwards</td></tr>
+    <tr><td class="w">AI reader qualification</td><td>Can the Codex reader name 61 of 63 easy grayscale images? Gates the audit reader.</td><td class="n">Mac · codex 0.159.3</td><td><span class="pill hold">rev 10 building</span></td><td>Same package round as Stage A; one boundary left; revision 10 committed.<div class="bar"><i style="width:92%"></i></div></td><td class="n">≤ 6 h · ≤ 660 attempts</td></tr>
     <tr><td class="w">Row 21 · Stage B</td><td>Held-out qualification of the development instrument.</td><td class="n">Mac · 1 worker</td><td><span class="pill wait">after A</span></td><td>Held for Stage A and the freeze gates.</td><td class="n">≤ 4 h · 1,856 forwards</td></tr>
     <tr><td class="w">Text arm</td><td>The same assay on text, with a stronger reader.</td><td class="n">Mac</td><td><span class="pill wait">undeclared</span></td><td>Waits on the owner's reader and acceptance rule, due 15 Oct.</td><td class="n">—</td></tr>
   </table></div>
@@ -100,7 +100,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
     <h2>Allocation</h2>
     <dl class="kv">
       <dt>Used</dt><dd>≈ 9 core-h of 100,000 (rows 18, 6, failed submissions, stage 0 so far)</dd>
-      <dt>Reserved</dt><dd>500 (row 18) + 1,500 (row 19 slice)</dd>
+      <dt>Reserved</dt><dd>500 (row 18) + 1,500 (row 19 campaign ledger: 24 live for stage 0)</dd>
       <dt>Programme</dt><dd>≈ 53,000 shared cores · 70,000–80,000 packed</dd>
       <dt>Window</dt><dd>to 23 Mar 2027 · at 240 cores the whole allocation is 17 days</dd>
     </dl>
