@@ -1,7 +1,7 @@
 {
   "row": 19,
   "stage": "qualification slice (stage 1), route A: sequential, checkpointed, one core per dataset",
-  "declared": "2026-10-02, R052; revision 3 after Codex's launch reviews 523249d (A-H) and e44f804 (R1-R7); PROPOSED - runs only after Codex's review of this revision and the owner's go",
+  "declared": "2026-10-02, R052; revision 4 after Codex's launch reviews 523249d (A-H), e44f804 (R1-R7) and 6d8a597 (remaining R2-R7); PROPOSED - runs only after Codex's review of this revision and the owner's go",
   "purpose": "measure the refit chain under the section 7.4 start policy on Lengau - per-resample time, the original fit, peak memory, utilisation - and prove checkpointed recovery across PBS jobs on an exact-index subchain; this slice reads NO coverage (no policy-matched reference exists yet) and produces no scientific row; its status files carry the completed chain's aggregation for the record, which is not read before the slice report",
   "setting": {
     "generator": "M2S",
@@ -4049,15 +4049,16 @@
     "W_int": null,
     "W_int_rule": "ONE prospective rule: C1 runs FIRST (with the three main datasets); C2 is reserved and submitted only after C1's original fit and its first three resamples have been recorded (status/timing of C1 on Lustre), with W_int = C1's measured original seconds + 3 x the median of those first resamples, rounded up to the minute, and in any case between original + 1 and original + 19 resamples and below 48 h; stage 0 (a same-shaped M3H layer) is a planning proxy for the first-record allowance only, never the W_int source; a C2 killed inside the original, ended cooperatively or completed normally is recorded NON-QUALIFICATION, never a passing control; C1's 48 h must cover its original + 20 refits + start-up and flush, else a legal control endpoint is declared prospectively before C1 is submitted",
     "interruption_record": "<C2 root>/c2_interruption.json written by the operator from qstat -xf and the checkpoint: job_id, exit_status (int), walltime_requested_s, walltime_used_s, pbs_killed (bool), accepted_records_before (int, from checkpoint_state), original_cache_reused (bool, from C3's status), tail_fragment_present (bool, from checkpoint_state before C3)",
-    "launch_order": "C1 + main rep 0, 1, 2 together on the owner's go; C2 after C1's first records set W_int; C3 after C2's kill; every one through a prior reservation"
+    "launch_order": "C1 + main rep 0, 1, 2 together on the owner's go; C2 after C1's first records set W_int; C3 after C2's kill; every one through a prior reservation",
+    "qualification": "chpc/row19_control_compare.py: both control statuses must be terminal and successful (phase final, exit 75 - the ordinary end of a partial-B control - no memory breach), bound to the frozen task, with job ids that are the C1 and C3 jobs bound in the campaign ledger; the interruption record must name the ledger's C2 job and request exactly C2's reserved walltime; any FAILED resample in either chain is non-qualification whatever the parity"
   },
   "code": {
-    "commit": "22668d6 (RSC): the policy at 5f6333c + the refit slice hooks (ff82dd0; until, should_stop, checkpoint_state and analyze_dataset(interval_result=) in this revision) + the runner, the campaign ledger, the comparator and the watch of this revision; the Lustre clone rsc_slice carries them; the pinned file hashes below are the files at that commit",
+    "commit": "TBD (RSC): the policy at 5f6333c + the refit slice hooks (ff82dd0; until, should_stop, checkpoint_state and analyze_dataset(interval_result=) in this revision) + the runner, the campaign ledger, the comparator and the watch of this revision; the Lustre clone rsc_slice carries them; the pinned file hashes below are the files at that commit",
     "files": {
       "models.py": "28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef",
       "analyze.py": "5177e4a4eca90f6f04dcddc34d4c42c709b3d501b82a2d8919e09eedadfc4d7f",
       "simulate.py": "f588b9121be48ec553ab95e4dda5736941865498922468b5868c96758d0afe57",
-      "chpc/row19_slice.py": "7da3505d5fccee2eb39220a090fa039c268521f2088d9e6af2da139f6f904256",
+      "chpc/row19_slice.py": "674604c9689cc3b19557161663808806e184b57af5ad555bb14cdf0541e05467",
       "chpc/row19_ledger.py": "d5cdcc7110478db962b25f84999ff462aed5083caf54463b60a1d01b62fe9aa7"
     },
     "policy_config_hash": "edcfdf4300f3 (D = 4, layer 41, seed 2026, refit, four inner cold starts; the slice's own hash is recomputed and recorded by the runner)"
@@ -4071,7 +4072,7 @@
     "joblib": "1.5.3",
     "machine": "x86_64",
     "toolchain": "/mnt/lustre/users/pvanrooyen/t1_toolchain (t1py = the pinned wrapper above, t1site, rootfs python:3.12.10-slim-bookworm), clone rsc_slice (dedicated to this slice; never a tree another job uses)",
-    "threads": "NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 JAX_PLATFORMS=cpu, all set by the runner before any import and verified at admission; no joblib workers (they cannot spawn under the image loader)",
+    "threads": "NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 set and JAX_PLATFORMS=cpu assigned unconditionally by the runner before any import; the observed backend must equal 'cpu' and every cap must read '1' at admission, else exit 4; no joblib workers (they cannot spawn under the image loader)",
     "wrapper": "/mnt/lustre/users/pvanrooyen/t1_toolchain/t1py",
     "wrapper_sha256": "f9c3ff028982d04e9186b62bed8e63da999348c584491bd67f1d79071bad926c",
     "backend": "cpu",
@@ -4094,7 +4095,7 @@
     "mem_stop_gib": 6,
     "memory_rule": "select=1:ncpus=1:mem=8gb on every job; the runner requests a stop at the next record boundary and exits 4 (HELD) when its ru_maxrss exceeds 6 GiB; PBS kills at 8 GB; row 18 measured about 1 GiB for one full layer",
     "submission_rule": "chpc/row19_ledger.py reserve refuses a fifth reservation for a dataset and any reservation that would breach the cap",
-    "log_rule": "each job streams its stdout and stderr through tee to <root>/live_*.log; the PBS script keeps BOTH pipe statuses (the runner's and tee's), writes the terminal 'exit <rc> tee <rc>' line to the PBS output AND to the live log, and exits with the runner's status; a live log without its terminal line is an incomplete observation (the watch alarms), and a tee failure is recorded, never hidden"
+    "log_rule": "each job streams its stdout and stderr through tee to <root>/live_*.log; the PBS script captures the pipe's statuses as one array (the runner's and tee's), writes the terminal line 'exit <rc> tee <tee_rc> job <PBS job id> end <time>' to the PBS output AND to the live log, prints LOGGER FAILURE when tee failed or the witness could not be written, and exits with the runner's status; the watch requires, for every ended job, its own live log with a terminal line naming that job id and a logger status of 0, and treats an absent log, an old attempt's line or a non-zero logger status as an alarm; the externally killed C2 is judged by its interruption record"
   },
   "storage": {
     "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_slice",
@@ -4104,7 +4105,8 @@
     "backup": "every poll of chpc/row19_watch.py pulls the campaign ledger and each root's task bindings, status, timing, checkpoint, original-cache and live-log files to RSC chpc/results/row19_slice/live/ (held and interrupted evidence included); Lustre purges files older than 90 days and is not backed up",
     "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_campaign",
     "ledger": "<campaign>/budget.json under <campaign>/budget.lock: ONE counter for every root, control and stage 0 (chpc/row19_ledger.py); a reservation is made BEFORE qsub, bound to the PBS job id, marked live by the runner, and settled only from qstat -xf resources_used.walltime x cores; a killed or vanished job keeps its full reservation until settled",
-    "task_binding": "<root>/task_<rep>.json (manifest sha, rep, resolved seed, identity, B, target, paths) + <root>/task_<rep>.lock (exclusive owner for the whole run)"
+    "task_binding": "<root>/task_<rep>.json (manifest sha, rep, resolved seed, identity, B, target, paths) + <root>/task_<rep>.lock (exclusive owner for the whole run)",
+    "task_index": "<root>/task_index.json under <root>/task_index.lock: read-merge-write under the lock, so concurrent reps never lose one another's entries"
   },
   "budget": {
     "core_hours_cap": 1500,
@@ -4117,8 +4119,8 @@
     "deadline": "no new resample after walltime - reserve; exit 75 (resume)",
     "budget": "exit 4 before any fit when the cap would be breached",
     "second_writer": "exit 4 when the dataset's checkpoint lock is held",
-    "memory": "ru_maxrss above 6 GiB: diagnosed at admission (held before any original work), before every dispatch (stop at the next record boundary), and after the last record and on no-work restores (a completed chain with a breached peak exits 4, never 0); an in-flight fit finishes under the declared rule - no instantaneous enforcement; PBS kills at the 8 GB request",
-    "stop_request": "<campaign>/STOP or STOP_rep<N> (each carries a request id): checked BEFORE the original fit (a request present at admission buys nothing: exit 75, acknowledged 'before the original'), before EVERY dispatch, and after the last durable record and on a no-work restore; the acknowledgment names the request id, scope, job and boundary; an old acknowledgment never satisfies a new request",
+    "memory": "ru_maxrss above 6 GiB: diagnosed at admission (held before any original work), before every dispatch (stop at the next record boundary), after the last record, and again after aggregation and at the terminal boundary (a completed chain with a breached peak exits 4, never 0, its results retained); an in-flight fit finishes under the declared rule - no instantaneous enforcement; PBS kills at the 8 GB request",
+    "stop_request": "<campaign>/STOP or STOP_rep<N> (each carries a request id): checked BEFORE the original fit (a request present at admission buys nothing: exit 75, acknowledged 'before the original'), before EVERY dispatch, after the last durable record, and again after aggregation (acknowledged 'after aggregation'); the acknowledgment names the request id, scope, job and boundary; an old acknowledgment never satisfies a new request",
     "task": "a task binding that differs from the one started in the root, a missing binding beside prior evidence for the rep (task index, status, timing, acknowledgment, checkpoint or cache), a rep outside datasets.reps, a resolved seed differing from the declared one, a role/target/kill-mode contract that does not match the kind, a second owner, a checkpoint with rejected or conflicting records, fewer accepted records than the per-record watermark, or a missing/damaged/undecodable original cache beside committed records: exit 4",
     "reservation": "no reservation token, or one not bound to this PBS job, kind, rep and root: exit 4 before anything"
   },
@@ -4126,12 +4128,14 @@
     "per durable record: fit seconds and ru_maxrss at that record (timing_<rep>.jsonl; the record is fsynced first, then the timing line and the watermark)",
     "the original run: wall seconds of run_dataset in this process when computed fresh (jit compilation INCLUDED, NOT separated); the cached value when restored",
     "compilation proxy ONLY: the first new resample's excess over the median new resample of the same job (status first_new_fit_s, median_new_fit_s)",
-    "aggregation_seconds: the completed chain's aggregation; publication_seconds: the final status/ACK/task/ledger writes",
-    "wall_seconds_main: from main() start to the final publication (imports before main excluded; wrapper and PBS start-up NOT measured)",
-    "cpu_seconds_lifetime and maxrss_bytes: RUSAGE_SELF of the whole process (imports included), so utilisation mixes scopes - stated in every status",
+    "aggregation_seconds: the completed chain's aggregation only",
+    "publication_seconds: the status, acknowledgment and task writes after aggregation, EXCLUDING the final status rewrite and the ledger's runner_end write",
+    "wall_seconds_main: from main() start to the terminal boundary after those writes (imports before main, the final status rewrite, the ledger write, wrapper and PBS start-up all EXCLUDED)",
+    "cpu_seconds_lifetime and maxrss_bytes: RUSAGE_SELF of the whole process (imports included), sampled at the terminal boundary; utilisation mixes the two scopes - stated in every status",
+    "memory diagnosis: sampled at admission, before every dispatch, after the last record and again after aggregation; an in-flight fit finishes",
     "scheduler-accounted allocated time per job (qstat -xf), settled into the campaign ledger by the operator: the authoritative cost",
-    "resamples accepted per job and across jobs, counted from strict checkpoint records (the watch), cross-checked against timing rows",
-    "recovery: n_resumed, n_tail_repaired, n_damaged, the watermark, stop acknowledgments with their request id and boundary, per start"
+    "resamples accepted per job and across jobs, counted from records passing the comparator's complete contract (the watch), cross-checked by index against timing rows",
+    "recovery: n_resumed, n_tail_repaired, n_damaged, the per-record watermark, stop acknowledgments with their request id and boundary, per start"
   ],
   "not_in_this_slice": [
     "coverage against any reference (no policy-matched reference bank exists; the historical omega 1 reference is sensitivity evidence only)",

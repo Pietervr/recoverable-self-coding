@@ -1,31 +1,40 @@
 """Ledger row 19: read the qualification slice LIVE from the Mac (owner, 2 Oct: "evaluate as the results come in";
-Codex 523249d G; e44f804 R4/R5: no false green, expected jobs from the ledger, fresh per-poll snapshots, checkpoint-
-derived progress and failures, PBS observation failures named, stop acknowledgments bound to the current request).
+Codex 523249d G; e44f804 R4/R5; 6d8a597 R4: the full record contract, a per-job progress baseline, attributed terminal
+and logger evidence, the externally killed C2 exempt from a normal terminal line).
 
 Every poll pulls a FRESH snapshot into its own staging directory (never merged into an older copy), then rotates it
 into `results/row19_slice/live/` and keeps the previous snapshot under `archive/`. A failed or partial pull is an
 ALARM, never a green. The expected evidence is derived from the campaign ledger (every reservation, its job id and its
 state) - not from whatever files happen to exist: a live job must publish its task binding within the start-up
-allowance, then its first accepted record within the original-fit allowance; accepted, failed and non-finite records
-are counted from strict checkpoint records (checksum, identity, seed, B, draw, schema) that the manifest and the
-task binding define, not from timing rows; timing rows are cross-checked against them. --qstat asks the login node for
-every bound job's state; a failed observation or an absent id is named and alarmed (unknown is not green). Nothing
-scientific is displayed or interpreted: a status file's result/interval and the records' stats are loaded and dropped.
+allowance, then its first accepted record within the original-fit allowance measured from THIS job's start (older
+jobs' timing rows never anchor a running job's clock); accepted, failed and non-finite records are counted from
+records that pass the comparator's complete contract (checksum, identity, seed, B, the identity's draw, every
+predictor and band finite unless failed with a string reason, finite fit seconds); timing rows are cross-checked by
+index against accepted records. Every ENDED entry must show its own attributed terminal evidence: its role's live log
+present, a terminal line naming its job id, and a logger status of 0 - an absent log, an old attempt's line, a
+missing or non-zero logger status are alarms; the externally killed C2 is exempt from the normal terminal line and
+is judged by its interruption record instead. --qstat asks the login node for every bound job's state; a failed
+observation or an absent id is named and alarmed (unknown is not green). Nothing scientific is displayed or
+interpreted: a status file's result/interval and the records' stats are loaded and dropped.
 
     python chpc/row19_watch.py --manifest chpc/row19_slice_manifest.json [--expect-original-s S] [--expect-fit-s LO HI]
                                [--startup-allowance-s 900] [--stall-h 4] [--qstat] [--no-pull]
 Exit 1 on any alarm (R052 then submits nothing further until it is diagnosed); 0 only on fresh evidence with no alarm.
 Poll cadence: every 2 hours while any reservation is live.
 """
-import argparse, glob, json, os, shutil, subprocess, sys, time, hashlib, math
+import argparse, glob, json, os, re, shutil, subprocess, sys, time, math
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+from row19_control_compare import expected_contract, validate_record
+
 HOST = "chpc-scp"
 LOGIN = "lengau"
 LIVE_DIR = os.path.join(HERE, "results", "row19_slice", "live")
 ARCHIVE_DIR = os.path.join(HERE, "results", "row19_slice", "archive")
 NEVER_SHOWN = ("result", "interval", "stats")
 LIVE_STATES = ("reserved", "bound", "live")
+TERMINAL = re.compile(r"^exit (?P<rc>\S+) tee (?P<tee>\S*) job (?P<job>\S+) end ")
 
 
 def sh(cmd, timeout=180):
@@ -34,10 +43,6 @@ def sh(cmd, timeout=180):
         return r.returncode, r.stdout, r.stderr
     except Exception as e:
         return 255, "", str(e)
-
-
-def record_sha(rec):
-    return hashlib.sha256(json.dumps({k: v for k, v in rec.items() if k != "sha"}, sort_keys=True, default=float).encode()).hexdigest()
 
 
 def fresh_snapshot(campaign, roots):
@@ -66,14 +71,13 @@ def fresh_snapshot(campaign, roots):
 
 
 def qstat_states(job_ids):
-    """{job_id: state} from one `qstat -x` on the login node; 'gone' for an id the scheduler no longer lists; None on failure."""
+    """{job_id: state} from one `qstat -xf` on the login node; 'gone' for an id the scheduler no longer lists; None on failure."""
     if not job_ids:
         return {}
     rc, out, err = sh(["ssh", "-o", "ConnectTimeout=15", "-o", "BatchMode=yes", LOGIN, "qstat -xf " + " ".join(job_ids) + " 2>&1"])
     if rc != 0 and not out:
         return None
-    states = {}
-    cur = None
+    states, cur = {}, None
     for line in out.splitlines():
         if line.startswith("Job Id:"):
             cur = line.split(":", 1)[1].strip()
@@ -82,18 +86,8 @@ def qstat_states(job_ids):
     return {j: states.get(j, "gone") for j in job_ids}
 
 
-def task_contract(manifest, binding):
-    """Expected draws and bands for a task binding; None with a reason when the binding is not this manifest's."""
-    sys.path.insert(0, os.path.join(HERE, ".."))
-    from row19_control_compare import expected_contract
-    try:
-        return expected_contract(manifest, binding), ""
-    except Exception as e:
-        return None, str(e)
-
-
-def checkpoint_metadata(path, ex):
-    """Accepted indices, failed indices, finite-fit metadata and problems from STRICT records; statistics dropped."""
+def checkpoint_metadata(path, ex, target):
+    """Accepted indices, failed indices, fit seconds and problems from records passing the COMPLETE contract; stats dropped."""
     acc, failed, fits, problems = set(), set(), {}, []
     if not os.path.exists(path):
         return acc, failed, fits, problems, False
@@ -107,24 +101,32 @@ def checkpoint_metadata(path, ex):
             if tail and i == len(body) - 1:
                 continue
             problems.append(f"line {i+1}: not JSON"); continue
-        if not isinstance(d, dict) or record_sha(d) != d.get("sha"):
-            problems.append(f"line {i+1}: checksum rejected"); continue
-        if d.get("ident") != ex["ident"] or d.get("seed") != ex["seed"] or d.get("n_rep") != ex["n_rep"]:
-            problems.append(f"line {i+1}: identity/seed/B rejected"); continue
-        r = d.get("rep")
-        if not isinstance(r, int) or isinstance(r, bool) or not (0 <= r < ex["n_rep"]) or d.get("chosen") != ex["draws"][r]:
-            problems.append(f"line {i+1}: index or draw rejected"); continue
-        if not isinstance(d.get("failed"), bool) or not isinstance(d.get("stats"), dict) or sorted(d["stats"]) != sorted(ex["predictors"]):
-            problems.append(f"line {i+1}: schema rejected"); continue
-        fs = d.get("fit_seconds")
-        if isinstance(fs, bool) or not isinstance(fs, (int, float)) or not math.isfinite(fs) or fs < 0:
-            problems.append(f"line {i+1}: fit_seconds rejected"); continue
+        why = validate_record(d, ex, target)
+        if why:
+            problems.append(f"line {i+1}: {why}"); continue
+        r = d["rep"]
         if r in acc:
             problems.append(f"line {i+1}: index {r} twice"); continue
-        acc.add(r); fits[r] = float(fs)
+        acc.add(r); fits[r] = float(d["fit_seconds"])
         if d["failed"]:
             failed.add(r)
     return acc, failed, fits, problems, tail
+
+
+def expected_log(lr, e):
+    """The live log an entry must have written: main -> live_rep<N>.log; a control -> live_ctl_<kind>.log."""
+    return os.path.join(lr, f"live_rep{e['rep']}.log" if e["kind"] == "main" else f"live_ctl_{e['kind']}.log")
+
+
+def terminal_evidence(lp, job_id):
+    """(found, rc, tee) for the terminal line attributed to THIS job id in a live log; found False when absent."""
+    if not os.path.exists(lp):
+        return False, None, None
+    for line in reversed(open(lp, errors="replace").read().splitlines()):
+        m = TERMINAL.match(line)
+        if m and m.group("job") == job_id:
+            return True, m.group("rc"), m.group("tee")
+    return False, None, None
 
 
 def main(argv=None):
@@ -147,7 +149,6 @@ def main(argv=None):
             print("--expect-fit-s must be finite and ordered"); return 1
     if a.expect_original_s is not None and not (math.isfinite(a.expect_original_s) and a.expect_original_s > 0):
         print("--expect-original-s must be finite and positive"); return 1
-    # 1. the ledger: which roots and jobs to expect (a first local read decides the roots to pull; the pull refreshes it)
     led_local = os.path.join(LIVE_DIR, "campaign", "budget.json")
     roots = set()
     if os.path.exists(led_local):
@@ -184,7 +185,6 @@ def main(argv=None):
     print(f"  ledger: cap {cap}  spent {spent:.1f}  live reserved {live:.1f}  entries {len(entries)}")
     if cap and spent + live > float(cap) + 1e-9:
         alarms.append("ledger: spent + live reserved exceeds the cap")
-    # 2. PBS observation of every bound or live job
     bound = [e for e in entries if e.get("job_id") and e.get("state") in ("bound", "live")]
     qs = None
     if a.qstat and bound:
@@ -199,24 +199,39 @@ def main(argv=None):
             stops[os.path.basename(p)] = dict(id="unreadable")
     if stops:
         notes.append("stop request(s): " + ", ".join(f"{k} id {v.get('id')}" for k, v in stops.items()))
-    # 3. every expected job and dataset
+    contracts = {}
     for e in entries:
         if e.get("state") not in LIVE_STATES:
             continue
         root = e["root"]; rep = e.get("rep"); lr = os.path.join(LIVE_DIR, os.path.basename(root.rstrip("/")))
         q = (qs or {}).get(e.get("job_id")) if qs is not None else ("-" if not a.qstat else "unknown")
         started = e.get("runner_started"); ended = e.get("runner_exit")
-        phase = "settled" if e["state"] == "settled" else "ended" if ended is not None else "running" if started else "queued/not started"
+        phase = "ended" if ended is not None else "running" if started else "queued/not started"
         print(f"\n  {e['kind']:<6} rep {rep} attempt {e['attempt']} {e['state']:<8} job {e.get('job_id')} PBS {q}  {phase}  "
               f"{e['reserved_core_h']:.0f} core-h reserved, runner exit {ended}")
         if e["state"] == "live" and ended == 4:
             alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: HELD (exit 4) - diagnose before any resubmission")
-        if a.qstat and e.get("job_id") and q in ("gone", "F", "E") and ended is None:
+        if a.qstat and e.get("job_id") and q in ("gone", "F", "E") and ended is None and e["kind"] != "c2":
             alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: PBS says {q} but the runner never ended - killed or crashed; keep the reservation")
         if a.qstat and e.get("job_id") and q == "unknown":
             alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: PBS state unknown")
         if e["kind"] == "stage0" or rep is None:
             continue
+        # terminal and logger evidence, attributed to this job
+        if ended is not None:
+            lp = expected_log(lr, e)
+            found, rc, tee = terminal_evidence(lp, e.get("job_id") or "")
+            if not os.path.exists(lp):
+                alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: ended but its live log {os.path.basename(lp)} is absent")
+            elif not found:
+                alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: ended but no terminal line names this job in {os.path.basename(lp)} (truncated stream or an old attempt's line)")
+            else:
+                if rc != str(ended):
+                    alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: terminal line exit {rc} differs from the ledger's runner exit {ended}")
+                if tee != "0":
+                    alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: logger status {tee!r} (tee failed or unknown): the live log is not a complete observation")
+        elif e["kind"] == "c2" and e.get("job_id") and (q in ("gone", "F", "E") or os.path.exists(os.path.join(lr, "c2_interruption.json"))):
+            notes.append(f"c2 job {e.get('job_id')}: externally killed by design; judged by c2_interruption.json, not by a terminal line")
         tp = os.path.join(lr, f"task_{rep}.json")
         if not os.path.exists(tp):
             if started and ended is None and now - started > a.startup_allowance_s:
@@ -227,13 +242,20 @@ def main(argv=None):
                 print(f"    no task binding yet ({phase})")
             continue
         task = json.load(open(tp)); b = task["binding"]
-        ex, why = task_contract(a.manifest, b)
+        key = (root, rep)
+        if key not in contracts:
+            try:
+                contracts[key] = (expected_contract(a.manifest, b), "")
+            except Exception as ex_:
+                contracts[key] = (None, str(ex_))
+        ex, why = contracts[key]
         if ex is None:
             alarms.append(f"rep {rep}: task binding is not this manifest's ({why})"); continue
-        ck = os.path.join(lr, "ckpt", os.path.basename(b["ckpt"]))
-        acc, failed, fits, problems, tail = checkpoint_metadata(ck, ex)
         target = ex["n_rep"] if b.get("until") is None else int(b["until"])
+        ck = os.path.join(lr, "ckpt", os.path.basename(b["ckpt"]))
+        acc, failed, fits, problems, tail = checkpoint_metadata(ck, ex, ex["n_rep"])
         rows = [json.loads(l) for l in open(os.path.join(lr, f"timing_{rep}.jsonl")).read().splitlines() if l.strip()] if os.path.exists(os.path.join(lr, f"timing_{rep}.jsonl")) else []
+        mine = [r for r in rows if r.get("job") == e.get("job_id")]
         sp = os.path.join(lr, f"status_{rep}.json")
         st = {}
         if os.path.exists(sp):
@@ -243,11 +265,11 @@ def main(argv=None):
         running = e["state"] == "live" and ended is None
         fvals = sorted(v for r, v in fits.items() if r not in failed)
         rate_h = None
-        if len(rows) >= 2 and rows[-1]["t"] > rows[0]["t"]:
-            rate_h = (len(rows) - 1) / (rows[-1]["t"] - rows[0]["t"]) * 3600
+        if len(mine) >= 2 and mine[-1]["t"] > mine[0]["t"]:
+            rate_h = (len(mine) - 1) / (mine[-1]["t"] - mine[0]["t"]) * 3600
         left = max(0, target - len(acc))
-        print(f"    dataset rep {rep}: accepted {len(acc)}/{target} from strict checkpoint records, failed {len(failed)}, timing rows {len(rows)}, "
-              f"watermark {task.get('expected_accepted')}, status phase {st.get('phase', 'none yet')}")
+        print(f"    dataset rep {rep}: accepted {len(acc)}/{target} from strict checkpoint records, failed {len(failed)}, timing rows {len(rows)} "
+              f"({len(mine)} this job), watermark {task.get('expected_accepted')}, status phase {st.get('phase', 'none yet')}")
         if st:
             print(f"      last job {st.get('job')}: exit {st.get('exit')} new {st.get('n_new')} resumed {st.get('n_resumed')} tail-repaired "
                   f"{st.get('n_tail_repaired')} damaged {st.get('n_damaged')} partial={st.get('partial')} target_complete={st.get('target_complete')} "
@@ -262,6 +284,9 @@ def main(argv=None):
             alarms.append(f"rep {rep}: checkpoint holds {len(acc)} accepted but the watermark says {task['expected_accepted']}")
         if failed:
             alarms.append(f"rep {rep}: failed resample(s) in the checkpoint {sorted(failed)[:10]}")
+        foreign_rows = [r.get("rep") for r in rows if r.get("rep") not in acc]
+        if foreign_rows:
+            alarms.append(f"rep {rep}: timing rows name indices with no accepted record {foreign_rows[:5]}")
         if len(rows) < len(acc) - 1:
             notes.append(f"rep {rep}: {len(acc) - len(rows)} accepted record(s) have no timing row (committed before the timing write)")
         if a.expect_fit_s and fvals:
@@ -271,23 +296,14 @@ def main(argv=None):
         if st.get("memory_breach") or st.get("stop_reason", {}).get("memory"):
             alarms.append(f"rep {rep}: memory stop")
         if running:
-            last_t = rows[-1]["t"] if rows else None
-            if not acc:
-                allow = ((a.expect_original_s or 0) + 2 * (a.expect_fit_s[1] if a.expect_fit_s else 0)) or a.stall_h * 3600
-                if now - started > allow:
-                    alarms.append(f"rep {rep}: no accepted record {((now-started)/3600):.1f} h after the job started (allowance {allow/3600:.1f} h)")
-            elif last_t and now - last_t > a.stall_h * 3600:
-                alarms.append(f"rep {rep}: no new record for {((now-last_t)/3600):.1f} h while running")
-        # live logs: the terminal witness and HELD lines
-        for lp in sorted(glob.glob(os.path.join(lr, f"live_rep{rep}.log")) + glob.glob(os.path.join(lr, "live_ctl_*.log"))):
-            txt = open(lp, errors="replace").read().splitlines()
-            if any(l.startswith("HELD:") for l in txt[-5:]):
-                alarms.append(f"{os.path.basename(lp)}: HELD - " + next(l for l in reversed(txt) if l.startswith("HELD:"))[:120])
-            if ended is not None and not any(l.startswith("exit ") for l in txt[-3:]):
-                alarms.append(f"{os.path.basename(lp)}: the runner ended but the live log has no terminal 'exit' line (logger failure or truncated stream)")
-            if txt:
-                print(f"      {os.path.basename(lp)}: {txt[-1][:140]}")
-        # the current stop request and its acknowledgment
+            # the progress baseline is THIS job's start, moved forward only by this job's own validated timing rows
+            baseline = max([started] + [r["t"] for r in mine if r.get("rep") in acc])
+            allow_first = ((a.expect_original_s or 0) + 2 * (a.expect_fit_s[1] if a.expect_fit_s else 0)) or a.stall_h * 3600
+            if not mine and now - baseline > allow_first:
+                alarms.append(f"rep {rep}: no record from this job {((now-baseline)/3600):.1f} h after it started "
+                              f"({len(acc)} restored record(s) do not count; allowance {allow_first/3600:.1f} h)")
+            elif mine and now - baseline > a.stall_h * 3600:
+                alarms.append(f"rep {rep}: no new record for {((now-baseline)/3600):.1f} h while running")
         cur = stops.get(f"STOP_rep{rep}") or stops.get("STOP")
         if cur:
             ackp = os.path.join(lr, f"STOP_ACK_rep{rep}.json")
@@ -295,11 +311,17 @@ def main(argv=None):
             if ack and ack.get("request_id") == cur.get("id"):
                 print(f"      stop {cur.get('id')} acknowledged at boundary '{ack.get('boundary')}' by job {ack.get('job')}")
             elif running:
-                last_t = rows[-1]["t"] if rows else None
+                last_t = mine[-1]["t"] if mine else None
                 allow = (a.expect_fit_s[1] if a.expect_fit_s else a.stall_h * 3600)
                 boundary_passed = last_t is not None and last_t > float(cur.get("requested", 0))
                 if boundary_passed or now - float(cur.get("requested", 0)) > allow:
                     alarms.append(f"rep {rep}: stop {cur.get('id')} not acknowledged past a record boundary (old ack {ack.get('request_id') if ack else None})")
+        for lp in sorted(glob.glob(os.path.join(lr, f"live_rep{rep}.log")) + glob.glob(os.path.join(lr, "live_ctl_*.log"))):
+            txt = open(lp, errors="replace").read().splitlines()
+            if any(l.startswith("HELD:") for l in txt[-5:]):
+                alarms.append(f"{os.path.basename(lp)}: HELD - " + next(l for l in reversed(txt) if l.startswith("HELD:"))[:120])
+            if txt:
+                print(f"      {os.path.basename(lp)}: {txt[-1][:140]}")
     for n in notes:
         print("\n  note:", n)
     print("\n  ALARMS:" if alarms else ("\n  no alarms (fresh evidence)" if fresh else "\n  no alarms IN THE LOCAL CACHE (not fresh evidence)"))

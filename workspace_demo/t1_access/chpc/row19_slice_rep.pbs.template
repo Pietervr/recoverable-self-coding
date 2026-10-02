@@ -21,7 +21,8 @@ echo "host $(hostname)  $(grep -m1 'model name' /proc/cpuinfo)"
 echo "code $(git rev-parse --short HEAD)  start $(date -u +%FT%TZ)  job $PBS_JOBID"
 mkdir -p $T/row19_slice
 $T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep __REP__ --walltime-s 518400 --root $T/row19_slice --campaign $T/row19_campaign --job-id $PBS_JOBID --reservation-token __TOKEN__ --kind main 2>&1 | tee -a $T/row19_slice/live_rep__REP__.log
-rc=${PIPESTATUS[0]}; tee_rc=${PIPESTATUS[1]}
+ps=("${PIPESTATUS[@]}"); rc=${ps[0]}; tee_rc=${ps[1]}
 
-echo "exit $rc tee $tee_rc  end $(date -u +%FT%TZ)" | tee -a $T/row19_slice/live_rep__REP__.log
+echo "exit $rc tee $tee_rc job $PBS_JOBID end $(date -u +%FT%TZ)" | tee -a $T/row19_slice/live_rep__REP__.log
+w=$?; if [ $w -ne 0 ] || [ "$tee_rc" != "0" ]; then echo "LOGGER FAILURE: tee $tee_rc, terminal witness write rc $w"; fi
 exit $rc

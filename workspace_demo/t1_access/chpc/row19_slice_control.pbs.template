@@ -12,8 +12,10 @@
 # unchanged B = 200 identity), declared in chpc/row19_slice_manifest.json 'control':
 #   C1  normal     : --until 20 in its own root (row19_slice_ctl_normal), no interruption, 48 h walltime (__KIND__ c1, __KILL_FLAG__ empty)
 #   C2  interrupted: --until 20 --pbs-kill-control in a second root (row19_slice_ctl_interrupted) under walltime W_int
-#                    (__WALLTIME__, from the addendum): no cooperative deadline, PBS kills it; the fsynced checkpoint holds the
-#                    completed resamples; the operator writes c2_interruption.json from qstat -xf (__KIND__ c2)
+#                    (__WALLTIME__ = C1's measured original + 3 x the median of its first three resamples, rounded up to the
+#                    minute; reserved and submitted only after C1 recorded them): no cooperative deadline, PBS kills it; the
+#                    fsynced checkpoint holds the completed resamples; the operator writes c2_interruption.json from qstat -xf
+#                    and the checkpoint (__KIND__ c2)
 #   C3  resume     : --until 20 in C2's root, 48 h walltime: resumes to the fixed target 0..19 (strict restore, no re-fit
 #                    of a completed resample, the original run from its validated cache) (__KIND__ c3)
 # __TOKEN__ is each run's campaign reservation, made BEFORE its qsub (chpc/row19_ledger.py reserve --kind c1|c2|c3 --rep 0).
@@ -26,7 +28,8 @@ echo "host $(hostname)  $(grep -m1 'model name' /proc/cpuinfo)"
 echo "code $(git rev-parse --short HEAD)  start $(date -u +%FT%TZ)  job $PBS_JOBID  mode __MODE__"
 mkdir -p $T/__ROOT__
 $T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep 0 --until 20 __KILL_FLAG__ --walltime-s __WALLTIME_S__ --root $T/__ROOT__ --campaign $T/row19_campaign --job-id $PBS_JOBID --reservation-token __TOKEN__ --kind __KIND__ 2>&1 | tee -a $T/__ROOT__/live_ctl___MODE__.log
-rc=${PIPESTATUS[0]}; tee_rc=${PIPESTATUS[1]}
+ps=("${PIPESTATUS[@]}"); rc=${ps[0]}; tee_rc=${ps[1]}
 
-echo "exit $rc tee $tee_rc  end $(date -u +%FT%TZ)" | tee -a $T/__ROOT__/live_ctl___MODE__.log
+echo "exit $rc tee $tee_rc job $PBS_JOBID end $(date -u +%FT%TZ)" | tee -a $T/__ROOT__/live_ctl___MODE__.log
+w=$?; if [ $w -ne 0 ] || [ "$tee_rc" != "0" ]; then echo "LOGGER FAILURE: tee $tee_rc, terminal witness write rc $w"; fi
 exit $rc

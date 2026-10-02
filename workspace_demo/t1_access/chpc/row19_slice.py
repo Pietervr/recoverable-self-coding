@@ -27,7 +27,7 @@ companion cluster interval retained; the measurement scopes stated as they are.
 """
 import os
 os.environ["NPROC"] = "1"; os.environ["OMP_NUM_THREADS"] = "1"; os.environ["MKL_NUM_THREADS"] = "1"; os.environ["OPENBLAS_NUM_THREADS"] = "1"
-os.environ.setdefault("JAX_PLATFORMS", "cpu")
+os.environ["JAX_PLATFORMS"] = "cpu"
 import sys, json, time, argparse, hashlib, resource, platform, base64, fcntl, math
 HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = os.getcwd() if os.path.exists(os.path.join(os.getcwd(), "analyze.py")) else os.path.abspath(os.path.join(HERE, ".."))
@@ -106,8 +106,9 @@ def run_problems(run, ds, cfg, folds):
         return p
     L, C = ds.n_layers, ds.n_concepts
     members = run["members"]
-    if not (isinstance(members, list) and members and all(isinstance(m, str) for m in members)):
-        return ["members is not a non-empty list of names"]
+    if not (isinstance(members, (list, tuple)) and members and all(isinstance(m, str) for m in members)):
+        return ["members is not a non-empty sequence of names"]
+    members = list(members)                                         # Config.members is a tuple; the cache decodes a list
     Mn = len(members)
     if not (isinstance(run["layers"], np.ndarray) and run["layers"].shape == (L,) and np.array_equal(run["layers"], np.asarray(ds.layers))):
         p.append("layers differ from the dataset's")
@@ -131,8 +132,19 @@ def run_problems(run, ds, cfg, folds):
         p.append(f"logq is not an array of shape ({L}, {Mn}, {C})")
     if not (isinstance(run["n_c"], np.ndarray) and run["n_c"].shape == (C,)):
         p.append(f"n_c is not an array of shape ({C},)")
-    if not (isinstance(run["selected"], list) and len(run["selected"]) == L):
-        p.append(f"selected is not a list of length {L}")
+    sel = run["selected"]
+    if not (isinstance(sel, (list, tuple)) and len(sel) == L):
+        p.append(f"selected is not a sequence of length {L}")
+    else:
+        for li, layer_sel in enumerate(sel):
+            if not (isinstance(layer_sel, (list, tuple)) and len(layer_sel) == len(folds)):
+                p.append(f"selected[{li}] is not one (G, X) pair per fold"); continue
+            for pair in layer_sel:
+                if not (isinstance(pair, (list, tuple)) and len(pair) == 2 and all(isinstance(m, str) and m in members for m in pair)):
+                    p.append(f"selected[{li}] holds a pair that is not two member names"); break
+    nc = run["n_c"]
+    if isinstance(nc, np.ndarray) and nc.shape == (C,) and not (nc.dtype.kind in "iu" and np.all(nc > 0)):
+        p.append("n_c is not positive integer counts")
     for k in ("converged", "inner_conv", "inner_nonfinite", "recovery"):
         v = run[k]
         if not (isinstance(v, np.ndarray) and v.ndim >= 2 and v.shape[0] == L and v.shape[1] == len(folds)):
@@ -228,6 +240,27 @@ def check_code(man):
     return got, bad
 
 
+def _index_read(index_path):
+    lk = open(index_path + ".lock", "a+")
+    try:
+        fcntl.flock(lk.fileno(), fcntl.LOCK_EX)
+        return json.load(open(index_path)) if os.path.exists(index_path) else {}
+    finally:
+        fcntl.flock(lk.fileno(), fcntl.LOCK_UN); lk.close()
+
+
+def _index_merge(index_path, key, value):
+    """Read-merge-write of the shared task index under its lock: concurrent reps never lose one another's entries."""
+    lk = open(index_path + ".lock", "a+")
+    try:
+        fcntl.flock(lk.fileno(), fcntl.LOCK_EX)
+        idx = json.load(open(index_path)) if os.path.exists(index_path) else {}
+        idx[key] = value
+        write_atomic(index_path, idx)
+    finally:
+        fcntl.flock(lk.fileno(), fcntl.LOCK_UN); lk.close()
+
+
 def maxrss_bytes():
     ru = resource.getrusage(resource.RUSAGE_SELF)
     return int(ru.ru_maxrss) * (1024 if platform.system() == "Linux" else 1)
@@ -284,6 +317,16 @@ def main(argv=None):
             return held(f"control role {kind}: rep must be {ctl.get('rep')} and --until must be {ctl.get('target')}")
         if (kind == "c2") != bool(a.pbs_kill_control):
             return held(f"control role {kind}: --pbs-kill-control is {'required' if kind == 'c2' else 'not allowed'}")
+    # R2: the resolved seed and its declared value, before any reservation (they need only the manifest and the rep)
+    st = man["setting"]; c = man["cfg"]
+    kw = dict(st["grid"])
+    ds_seed = S.dataset_seed(st["generator"], kw, int(a.rep), int(st["D"]), int(man["datasets"]["seed_base"]))
+    excluded = set(int(x) for x in man["datasets"].get("excluded_resolved_seeds", []))
+    if ds_seed in excluded:
+        return held(f"resolved dataset seed {ds_seed} is in the declared exclusion set")
+    declared = man["datasets"].get("resolved_seeds", {})
+    if str(a.rep) in declared and int(declared[str(a.rep)]) != int(ds_seed):
+        return held(f"resolved seed {ds_seed} differs from the declared {declared[str(a.rep)]} for rep {a.rep}")
     # R1: the campaign reservation, bound to this job with this job's filled request, before anything else
     ledger = CampaignLedger(campaign, man["budget"]["core_hours_cap"])
     if not a.no_reservation:
@@ -307,19 +350,10 @@ def main(argv=None):
     code_exit = HELD
     stop_reason = {}
     try:
-        st = man["setting"]; c = man["cfg"]
         cfg = A.Config(start_policy=c["start_policy"], interval=c["interval"], n_boot_refit=int(c["n_boot_refit"]),
                        n_starts=int(c["n_starts"]), n_starts_inner=int(c["n_starts_inner"]),
                        refit_min_usable=float(c["refit_min_usable"]), n_outer=int(c["n_outer"]), n_inner=int(c["n_inner"]))
-        kw = dict(st["grid"])
         theta = S.generator_theta(st["generator"], **kw)
-        ds_seed = S.dataset_seed(st["generator"], kw, int(a.rep), int(st["D"]), int(man["datasets"]["seed_base"]))
-        excluded = set(int(x) for x in man["datasets"].get("excluded_resolved_seeds", []))
-        if ds_seed in excluded:
-            return held(f"resolved dataset seed {ds_seed} is in the declared exclusion set")
-        declared = man["datasets"].get("resolved_seeds", {})
-        if str(a.rep) in declared and int(declared[str(a.rep)]) != int(ds_seed):
-            return held(f"resolved seed {ds_seed} differs from the declared {declared[str(a.rep)]} for rep {a.rep}")
         ds = S.make_dataset(st["generator"], theta, n_per_family=int(st["n_per_family"]), D=int(st["D"]),
                             layers=np.array(st["layers"]), rho=float(st["rho"]), seed=ds_seed)
         ds.meta.update(generator=st["generator"], theta=[float(x) for x in theta], D=int(st["D"]), rho=float(st["rho"]), seed=int(ds_seed))
@@ -333,7 +367,7 @@ def main(argv=None):
         # R2/D: fresh versus recovering, decided from the root's task index and prior evidence BEFORE any binding is created
         binding = dict(manifest_sha=manifest_sha, rep=int(a.rep), ds_seed=int(ds_seed), ident=ident, code_hash=code_hash,
                        policy=cfg.start_policy, n_rep=int(cfg.n_boot_refit), until=a.until, ckpt=ckpt_path, orig=orig_path)
-        index = json.load(open(index_path)) if os.path.exists(index_path) else {}
+        index = _index_read(index_path)
         if os.path.exists(task_path):
             task = json.load(open(task_path))
             diff = [k for k in binding if task.get("binding", {}).get(k) != binding[k]]
@@ -350,8 +384,7 @@ def main(argv=None):
                                        "file); a crash between the two leaves it at most one record behind, which the next start "
                                        "tolerates; it never decreases")
             write_atomic(task_path, task)
-            index[str(a.rep)] = dict(ident=ident, created=time.time())
-            write_atomic(index_path, index)
+            _index_merge(index_path, str(a.rep), dict(ident=ident, created=time.time()))
         # D: inspect the checkpoint without fitting, against the per-record watermark
         cs = A.checkpoint_state(ds, cfg, ds_seed, cfg.n_boot_refit, folds, ckpt_path)
         if cs["rejected"] or cs["duplicates_conflicting"]:
@@ -455,35 +488,45 @@ def main(argv=None):
                                         cluster_ws=res["predictors"][p].get("cluster", {}).get("ws")) for p in A.PREDICTORS}
             status["interval"] = {k: v for k, v in res.get("interval", {}).items() if k != "replicates"}
             status["aggregation_seconds"] = time.time() - t_f
+        # R5: the current request and the sampled peak are refreshed AFTER aggregation (a crossing inside it counts)
+        t_pub = time.time()
+        stopped_by_request = stopped_by_request or ledger.stop_requested(int(a.rep))
+        memory_breach = memory_breach or over_memory()
+        if memory_breach:
+            stop_reason.setdefault("memory", maxrss_bytes())
         if memory_breach:
             code_exit = HELD
         elif rb["partial"]:
             code_exit = RESUME
         else:
             code_exit = DONE
-        t_pub = time.time()
-        wall = t_pub - t_main
         ru = resource.getrusage(resource.RUSAGE_SELF)
-        status.update(phase="final", wall_seconds_main=wall, cpu_seconds_lifetime=ru.ru_utime + ru.ru_stime,
-                      utilisation=(ru.ru_utime + ru.ru_stime) / max(wall, 1e-9), maxrss_bytes=maxrss_bytes(), exit=code_exit,
-                      measurement_scope="wall_seconds_main runs from main() start (imports before main excluded) to this publication; "
-                                        "cpu_seconds_lifetime and maxrss_bytes are RUSAGE_SELF for the whole process (imports included), so "
-                                        "utilisation mixes the two scopes; aggregation_seconds is the aggregation only; publication_seconds "
-                                        "(below) is the final status/ACK/task/ledger writes; wrapper and PBS start-up are not measured here; "
-                                        "scheduler-accounted allocated time is settled in the campaign ledger",
+        status.update(phase="final", stopped_by_request=stopped_by_request, memory_breach=memory_breach, stop_reason=stop_reason,
+                      cpu_seconds_lifetime=ru.ru_utime + ru.ru_stime, maxrss_bytes=maxrss_bytes(), exit=code_exit,
+                      measurement_scope="wall_seconds_main runs from main() start (imports before main excluded) to the terminal boundary "
+                                        "after the status, acknowledgment and task writes and BEFORE the final status rewrite and the ledger's "
+                                        "runner_end write (those two are excluded); cpu_seconds_lifetime and maxrss_bytes are RUSAGE_SELF for "
+                                        "the whole process (imports included), so utilisation mixes the two scopes; aggregation_seconds is the "
+                                        "aggregation only; publication_seconds is the status, acknowledgment and task writes after aggregation, "
+                                        "excluding the final status rewrite and the ledger write; wrapper and PBS start-up are not measured; "
+                                        "compilation is not measured; scheduler-accounted allocated time is settled in the campaign ledger",
                       finished=t_pub)
         write_atomic(status_path, status)
         if stopped_by_request:
-            ack("after the last durable record" if rb["n_new"] else ("no work remaining" if not rb["partial"] else "no work bought"), rb["n_done"])
+            ack("after aggregation" if (not rb["partial"] and rb["n_new"]) else "after the last durable record" if rb["n_new"]
+                else ("no work remaining" if not rb["partial"] else "no work bought"), rb["n_done"])
         task["runs"].append(dict(job=a.job_id, kind=kind, started=t_main, ended=time.time(), exit=code_exit, n_done=rb["n_done"], n_new=rb["n_new"]))
         task["expected_accepted"] = max(int(task.get("expected_accepted", 0)), int(rb["n_done"]))
         write_atomic(task_path, task)
-        status["publication_seconds"] = time.time() - t_pub
+        t_term = time.time()
+        status["publication_seconds"] = t_term - t_pub
+        status["wall_seconds_main"] = t_term - t_main
+        status["utilisation"] = (ru.ru_utime + ru.ru_stime) / max(t_term - t_main, 1e-9)
         write_atomic(status_path, status)
         if code_exit == HELD:
             return held(f"memory stop: maxrss {maxrss_bytes()/2**30:.2f} GiB exceeds {mem_stop/2**30:.2f} GiB; chain flushed at a record boundary")
         print(f"rep {a.rep}: {'COMPLETE' if code_exit == DONE else 'PARTIAL (resume)'}: done {rb['n_done']}/{cfg.n_boot_refit}, "
-              f"new {rb['n_new']}, resumed {rb['n_resumed']}, wall {wall/60:.1f} min, maxrss {status['maxrss_bytes']/2**30:.2f} GiB"
+              f"new {rb['n_new']}, resumed {rb['n_resumed']}, wall {status['wall_seconds_main']/60:.1f} min, maxrss {status['maxrss_bytes']/2**30:.2f} GiB"
               + (f", target 0..{int(a.until)-1} complete" if rb["target_complete"] else "")
               + (", stopped by request" if stopped_by_request else ""), flush=True)
         return code_exit

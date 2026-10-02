@@ -1,14 +1,16 @@
-"""Ledger row 19, the recovery control (Codex 523249d E/F; e44f804 R3): compare the normal subchain (C1) with the
-interrupted-then-resumed subchain (C3) on the declared fixed target 0..target-1 under the unchanged B identity, and say
-SEPARATELY whether (1) the scientific outputs agree and (2) the control is technically QUALIFIED as a recovery
+"""Ledger row 19, the recovery control (Codex 523249d E/F; e44f804 R3; 6d8a597 R3): compare the normal subchain (C1) with
+the interrupted-then-resumed subchain (C3) on the declared fixed target 0..target-1 under the unchanged B identity, and
+say SEPARATELY whether (1) the scientific outputs agree and (2) the control is technically QUALIFIED as a recovery
 control. Every supplied file is validated on its own first against the FROZEN task: the dataset is rebuilt from the
 manifest and the task binding, so each record's drawn concepts must equal the draw this identity makes for its index,
 each record's checksum is recomputed, its statistics must hold every predictor and band as finite numbers unless the
 record is marked failed with a string reason, its identity, seed and B must be the task's, and the index set must be
-exactly the target. The status files must show C1 fresh and C3 resumed, both bound to the task (identity, code hash,
-policy, seed, B, target) with typed roles; the interruption record must be typed, name the C2 job bound in the
-campaign ledger, and show a real walltime kill with at least one and fewer than `target` accepted records before it,
-equal to what C3 resumed. A parity of identically FAILED resamples is reported as parity but is NOT a qualification.
+exactly the target. The status files must be TERMINAL and successful (phase final, exit 75 - the ordinary end of a
+partial-B control - no memory breach, no held state), bound to the task (identity, code hash, policy, seed, B, target)
+with typed roles, and their job ids must be the C1 and C3 jobs bound in the campaign ledger; C1 fresh and C3 resumed.
+The interruption record must be typed, name the C2 job bound in the ledger, request exactly the walltime that C2's
+reservation carries, and show a real walltime kill with at least one and fewer than `target` accepted records before
+it, equal to what C3 resumed. Any FAILED resample in either chain is non-qualification, whatever the parity.
 
     python chpc/row19_control_compare.py --manifest M --task <task_0.json> --c1 <ckpt> --c3 <ckpt>
            --status-c1 <status> --status-c3 <status> --interruption <c2_interruption.json> --ledger <budget.json> [--target 20]
@@ -22,6 +24,7 @@ import json, sys, argparse, hashlib, math
 
 SCIENTIFIC = ("rep", "chosen", "stats", "failed", "failed_reason", "ident", "seed", "n_rep")
 EXCLUDED = ("fit_seconds", "sha")
+CONTROL_EXIT = 75          # a partial-B control ends with "resume" (its target is complete, B is not)
 
 
 def record_sha(rec):
@@ -63,7 +66,35 @@ def expected_contract(manifest_path, task_binding):
     bands = list(masks) + (["ws_minus_early"] if "ws" in masks and "early" in masks else [])
     return dict(ident=ident, seed=seed, n_rep=n_rep, draws={i: [int(x) for x in idx[i]] for i in range(n_rep)}, bands=bands,
                 predictors=list(A.PREDICTORS), code_hash=S.config_hash(cfg, int(st["D"]), st["layers"], seed, float(st["rho"])),
-                policy=cfg.start_policy)
+                policy=cfg.start_policy, rep=rep)
+
+
+def validate_record(d, ex, target):
+    """The complete per-record contract against the frozen task; a reason string, or '' when the record is accepted."""
+    if not isinstance(d, dict) or any(k not in d for k in SCIENTIFIC + ("sha", "fit_seconds")):
+        return "missing fields"
+    if record_sha(d) != d["sha"]:
+        return "checksum mismatch"
+    if d["ident"] != ex["ident"] or d["n_rep"] != ex["n_rep"] or d["seed"] != ex["seed"]:
+        return "identity, seed or B differs from the frozen task"
+    if not _is_int(d["rep"]) or not (0 <= d["rep"] < target):
+        return f"index {d['rep']!r} outside the target 0..{target-1}"
+    if d["chosen"] != ex["draws"][d["rep"]]:
+        return f"drawn concepts differ from the identity's draw for index {d['rep']}"
+    if not isinstance(d["failed"], bool) or not isinstance(d["failed_reason"], str):
+        return "failed/failed_reason malformed"
+    if not (_is_num(d["fit_seconds"]) and math.isfinite(d["fit_seconds"]) and d["fit_seconds"] >= 0):
+        return "fit_seconds not finite and non-negative"
+    s = d["stats"]
+    if not isinstance(s, dict) or sorted(s) != sorted(ex["predictors"]):
+        return "stats do not hold exactly the predictors"
+    for p, bs in s.items():
+        if not isinstance(bs, dict) or sorted(bs) != sorted(ex["bands"]):
+            return f"stats[{p}] does not hold exactly the bands"
+        for b, v in bs.items():
+            if not _is_num(v) or (not d["failed"] and not math.isfinite(v)):
+                return f"stats[{p}][{b}] is missing, non-numeric, or non-finite on a record not marked failed"
+    return ""
 
 
 def load_validated(path, ex, target):
@@ -79,34 +110,9 @@ def load_validated(path, ex, target):
                 d = json.loads(line)
             except Exception:
                 problems.append(f"{path}:{lineno}: not JSON"); continue
-            if not isinstance(d, dict) or any(k not in d for k in SCIENTIFIC + ("sha", "fit_seconds")):
-                problems.append(f"{path}:{lineno}: missing fields"); continue
-            if record_sha(d) != d["sha"]:
-                problems.append(f"{path}:{lineno}: checksum mismatch"); continue
-            if d["ident"] != ex["ident"] or d["n_rep"] != ex["n_rep"] or d["seed"] != ex["seed"]:
-                problems.append(f"{path}:{lineno}: identity, seed or B differs from the frozen task"); continue
-            if not _is_int(d["rep"]) or not (0 <= d["rep"] < target):
-                problems.append(f"{path}:{lineno}: index {d['rep']!r} outside the target 0..{target-1}"); continue
-            if d["chosen"] != ex["draws"][d["rep"]]:
-                problems.append(f"{path}:{lineno}: drawn concepts differ from the identity's draw for index {d['rep']}"); continue
-            if not isinstance(d["failed"], bool) or not isinstance(d["failed_reason"], str):
-                problems.append(f"{path}:{lineno}: failed/failed_reason malformed"); continue
-            if not (_is_num(d["fit_seconds"]) and math.isfinite(d["fit_seconds"]) and d["fit_seconds"] >= 0):
-                problems.append(f"{path}:{lineno}: fit_seconds not finite and non-negative"); continue
-            s = d["stats"]
-            if not isinstance(s, dict) or sorted(s) != sorted(ex["predictors"]):
-                problems.append(f"{path}:{lineno}: stats do not hold exactly the predictors"); continue
-            bad = False
-            for p, bs in s.items():
-                if not isinstance(bs, dict) or sorted(bs) != sorted(ex["bands"]):
-                    bad = True; break
-                for b, v in bs.items():
-                    if not _is_num(v) or (not d["failed"] and not math.isfinite(v)):
-                        bad = True; break
-                if bad:
-                    break
-            if bad:
-                problems.append(f"{path}:{lineno}: a statistic is missing, non-numeric, or non-finite on a record not marked failed"); continue
+            why = validate_record(d, ex, target)
+            if why:
+                problems.append(f"{path}:{lineno}: {why}"); continue
             if d["rep"] in recs:
                 problems.append(f"{path}:{lineno}: index {d['rep']} recorded twice"); continue
             recs[d["rep"]] = d
@@ -123,7 +129,7 @@ def main(argv=None):
     ap.add_argument("--c1", required=True); ap.add_argument("--c3", required=True)
     ap.add_argument("--status-c1", required=True); ap.add_argument("--status-c3", required=True)
     ap.add_argument("--interruption", required=True, help="C2's interruption record (PBS accounting + records before the kill)")
-    ap.add_argument("--ledger", required=True, help="the campaign ledger budget.json (binds the C2 job id)")
+    ap.add_argument("--ledger", required=True, help="the campaign ledger budget.json (binds the C1, C2 and C3 jobs)")
     ap.add_argument("--target", type=int, default=20)
     a = ap.parse_args(argv)
     qual, diffs = [], []
@@ -136,6 +142,11 @@ def main(argv=None):
         print(f"the frozen task cannot be rebuilt from the manifest: {e}")
         print("  PARITY: not comparable\n  QUALIFIED AS A RECOVERY CONTROL: NO")
         return 3
+    try:
+        led = json.load(open(a.ledger))
+        entries = {k: [e for e in led["entries"].values() if e.get("kind") == k and e.get("rep") == int(task["rep"])] for k in ("c1", "c2", "c3")}
+    except Exception as e:
+        print(f"ledger unreadable: {e}"); led, entries = None, {"c1": [], "c2": [], "c3": []}
     c1, p1 = load_validated(a.c1, ex, a.target)
     c3, p3 = load_validated(a.c3, ex, a.target)
     qual += p1 + p3
@@ -143,29 +154,39 @@ def main(argv=None):
     for name, s_, role, fresh in (("C1", s1, "c1", True), ("C3", s3, "c3", False)):
         if s_.get("kind") != role:
             qual.append(f"status {name}: role is {s_.get('kind')!r}, not {role!r}")
+        if s_.get("phase") != "final":
+            qual.append(f"status {name}: not a terminal status (phase {s_.get('phase')!r})")
+        if s_.get("exit") != CONTROL_EXIT:
+            qual.append(f"status {name}: exit {s_.get('exit')!r} is not the control's successful end ({CONTROL_EXIT})")
+        if s_.get("memory_breach") is not False:
+            qual.append(f"status {name}: memory breach recorded or not stated")
         if s_.get("ident") != ex["ident"] or s_.get("code_hash") != ex["code_hash"] or s_.get("policy") != ex["policy"] \
                 or s_.get("seed") != ex["seed"] or s_.get("n_rep") != ex["n_rep"]:
             qual.append(f"status {name}: identity/code hash/policy/seed/B are not the frozen task's")
         if s_.get("until") != a.target:
             qual.append(f"status {name}: not bound to the target {a.target}")
-        if not isinstance(s_.get("job"), str) or not s_.get("job"):
-            qual.append(f"status {name}: no job id")
         if s_.get("n_damaged", 0):
             qual.append(f"status {name}: damaged records were recomputed")
         if s_.get("target_complete") is not True:
             qual.append(f"status {name}: did not report the target complete")
+        bound = [e for e in entries[role] if e.get("job_id")]
+        if not (isinstance(s_.get("job"), str) and s_.get("job") and any(e["job_id"] == s_["job"] for e in bound)):
+            qual.append(f"status {name}: job {s_.get('job')!r} is not a {role} job bound in the campaign ledger")
         if fresh and not (s_.get("n_resumed") == 0 and s_.get("original_cached") is False):
             qual.append("status C1: not a fresh run (something resumed or the original came from a cache)")
         if not fresh and not (_is_int(s_.get("n_resumed")) and s_.get("n_resumed") >= 1 and s_.get("original_cached") is True):
             qual.append("status C3: not a resumed run (nothing resumed, or the original was recomputed)")
     try:
         it = json.load(open(a.interruption))
-        led = json.load(open(a.ledger))
-        c2 = [e for e in led["entries"].values() if e.get("kind") == "c2" and e.get("rep") == int(task["rep"])]
-        if len(c2) != 1 or not c2[0].get("job_id"):
+        c2 = [e for e in entries["c2"] if e.get("job_id")]
+        if len(c2) != 1:
             qual.append("ledger: no single bound C2 reservation for this rep")
-        elif it.get("job_id") != c2[0]["job_id"]:
-            qual.append(f"interruption: job id {it.get('job_id')!r} is not the C2 job bound in the ledger ({c2[0]['job_id']})")
+        else:
+            if it.get("job_id") != c2[0]["job_id"]:
+                qual.append(f"interruption: job id {it.get('job_id')!r} is not the C2 job bound in the ledger ({c2[0]['job_id']})")
+            wr = it.get("walltime_requested_s")
+            if not (_is_num(wr) and math.isfinite(wr) and abs(wr - float(c2[0]["walltime_s"])) <= 1.0):
+                qual.append(f"interruption: requested walltime {wr!r} is not C2's reserved walltime {c2[0]['walltime_s']}")
         if it.get("pbs_killed") is not True:
             qual.append("interruption: pbs_killed is not exactly true (cooperative end or normal completion is non-qualification)")
         if not _is_int(it.get("exit_status")) or it.get("exit_status") == 0:
@@ -183,7 +204,11 @@ def main(argv=None):
         if "tail_fragment_present" not in it or not isinstance(it["tail_fragment_present"], bool):
             qual.append("interruption: whether a lost in-flight record/tail fragment was present is not recorded as a bool")
     except Exception as e:
-        qual.append(f"interruption or ledger unreadable: {e}")
+        qual.append(f"interruption record unreadable: {e}")
+    # any failed procedure is non-qualification, independent of parity
+    n_failed = sum(1 for r in c1.values() if r["failed"]) + sum(1 for r in c3.values() if r["failed"])
+    if n_failed:
+        qual.append(f"{n_failed} FAILED resample record(s) across the chains: a failed procedure qualifies nothing, whatever the parity")
     parity_ok = not p1 and not p3
     if parity_ok:
         for r in range(a.target):
@@ -194,9 +219,6 @@ def main(argv=None):
             if extra:
                 diffs.append(f"index {r}: unexpected fields {sorted(extra)}")
         parity_ok = not diffs
-    any_failed = parity_ok and any(c1[r]["failed"] for r in c1)
-    if any_failed:
-        qual.append(f"{sum(c1[r]['failed'] for r in c1)} resample(s) FAILED in both chains: parity of failures is not a working procedure")
     print(f"ROW 19 RECOVERY CONTROL, target 0..{a.target-1}, B = {ex['n_rep']}, identity {ex['ident'][:16]}")
     print(f"  C1 {len(c1)} validated record(s), C3 {len(c3)}; validation problems {len(p1) + len(p3)}")
     for x in (p1 + p3)[:20]:
@@ -205,7 +227,7 @@ def main(argv=None):
         print("   -", x)
     print(f"  PARITY: {'AGREE - every scientific field of the resumed chain equals the normal chain on the target' if parity_ok else 'DIFFER or not comparable'}")
     print(f"  QUALIFIED AS A RECOVERY CONTROL: {'YES' if not qual else 'NO'}")
-    for x in qual[:20]:
+    for x in qual[:24]:
         print("   -", x)
     return (0 if parity_ok else 1) + (0 if not qual else 2)
 
