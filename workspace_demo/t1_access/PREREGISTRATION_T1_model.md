@@ -134,9 +134,11 @@ pattern: `has_legs` and `has_4_legs`; `has_wheels`, `has_4_wheels`, `has_>_4_whe
 `beh_-_eats` and `beh_-_eats_peanuts` — 70 such pairs across 77 eligible concepts. Features are also merged
 when they share a Snowball (Porter2) stem or a WordNet derivational link, and proper nouns and brand names are
 removed. Unmerged duplication would let a concept's twelve clauses be a few ideas restated, which flattens the
-$k$-graded curve of §5 for a reason that has nothing to do with the model. McRae's taxonomic features
-(`an_animal`, `a_mammal`, `a_vehicle`) are family words by construction and rule F removes them, consistently:
-`CV_No_Tax` is blank for exactly those rows.
+$k$-graded curve of §5 for a reason that has nothing to do with the model. Taxonomic rows — the source's own
+relation label: `a_bird`, `a_fruit`, `an_insect` as well as `an_animal`, `a_mammal`, `a_vehicle` — are removed as a
+rule of their own (T); the family words among them fall under rule F as well, and `CV_No_Tax` is blank for exactly
+the taxonomic rows. Whether T should narrow to the literal family words, which name the family and nothing else,
+is an open decision; its measured cost is in the recorded fragility below.
 
 **Decisiveness is settled by the naming test, not by cue validity.** Cue validity ranks candidates so that a
 concept's twelve clauses span a range of evidence strength; it does not gate them. An absolute floor on cue
@@ -182,23 +184,26 @@ test**, and it runs in text before any capture. §3's rule stands untouched: no 
 clause is dropped on the model under test's output, and none of its output is read while building the bank.
 The residual risk is stated rather than dismissed — if the reader model and the model under test share a blind
 spot, stimulus construction is indirectly correlated with the system being measured. Its direction is
-conservative: the test removes clauses that give the concept away, which makes the evidence gradient longer,
-never shorter. The per-clause record carries the concept, the feature statement, its production frequency, its
-cited cue validity and the naming-test outcome with the reader model and version, so any reader can recompute
-every decisiveness call in the bank.
-
-**Recorded fragility, and it is not small.** **The design does not stand on McRae alone.** Measured for the
-adopted three-family design, where E2 tests only the three families in the bank (RSC 2646bf1,
-`stimuli/norms_bank/pool_sources_three.json`), McRae's eligible counts at ≥ 12 features after E2 and E1 are
-animals 33, foods 15, vehicles 17 — 65 against the 99 that CONF, CAL and PILOT require together with the one
-BACKGROUND concept per family the allocation rule guarantees. CSLB's concepts are therefore load-bearing, and
-CSLB's data is available only on request. Until that access is settled the pooled figures (animals 57, foods 42,
-vehicles 29 — 128) are an **upper bound**, because CSLB's 63 three-family candidates are counted without the ≥ 12
-feature filter, which can only reduce them; at least 34 of the 63 must survive it. CSLB is load-bearing a second
-way, through the pairing. Allocating in proportion to the eligible pool on McRae alone gives animals 33/65 of every
-split — 32.49 of CONF's 64 and 8.12 of CAL's and PILOT's 16 — above the half that $a \le b + c$ allows, in all
-three splits; pooled, 28.50 and 7.12, inside it. On McRae alone, proportion and pairability conflict in every
-split, and the rule's cap would bind at exactly half with no slack. **Vehicles is the binding family.** If its realised eligible count falls below what the
+conservative: the test removes clauses that give the concept away, which makes the evidence gradie**Recorded fragility, and it is not small.** **The design does not stand on McRae alone, and under the rules of this
+section as written it does not stand on McRae and Feats either.** Counted on *usable* features — after rules T, F, N,
+X, P and D above — with the dominant sense, E2 and then E1, for the adopted three families (R084, RSC 3cd3786,
+`stimuli/norms_bank/CLEAN_ELIGIBILITY.md` and `clean_eligibility.json`): McRae alone gives 46 concepts at twelve
+features and 65 at ten; McRae with Feats (Borovsky, Peters, Cox & McRae 2023, adopted as a second source under the
+pooling rule recorded there) gives animals 25, foods 15, vehicles 11 — **51 at twelve** — and 36/23/18 — **77 at
+ten** — against the 99 that CONF, CAL and PILOT require together with one BACKGROUND concept per family. Raw feature
+counts overstate this: the earlier figures of 65 and 85, and the pooled bound of 128, counted features before the
+usable-feature rules and are withdrawn. The joint integer allocation (every split with all three families, none
+above half, backgrounds reserved first) is infeasible at every single-token count under the rules as written. The one
+configuration that fills the bank is ten clauses together with answer names of up to two tokens: 114, with the witness
+CONF 32/21/11, CAL 8/5/3, PILOT 8/5/3, BACKGROUND 13/2/3 and animals at the half-bound in every split; that is a change
+to the readout, not to the stimuli, because a two-token answer has no single answer-position logit, and it is recorded
+as a measured bound and not a proposal. Of the rules, T costs 16 concepts at twelve and 8 at ten; narrowing it to the
+literal family words would give 67 and 85, still short, and is the open decision noted above. CSLB (requested 1
+October 2026) remains an unfiltered set of 63 three-family candidates whose features have not been seen; Hovhannisyan
+et al. 2021 is a conditional third source whose usable count under these rules is unmeasured. **Vehicles is the
+binding family at every count.** The question therefore stands as this section raised it: whether the bank can be
+built from published norms under these rules, or which rule, source or channel changes — a decision recorded for
+15 October 2026. binding family.** If its realised eligible count falls below what the
 allocation needs, three families cannot be filled, and since three is already the floor set by the competitor
 rule, the question returns to whether this bank can be built from published norms at all.
 
@@ -897,3 +902,4 @@ lists, amplitudes, outcomes); this document.
 | 2026-09-24 | Draft amendment, §3.1: acceptance becomes TWO-SIDED — at most two of twelve clauses named alone, AND the concept named from the eight clauses of three seeded draws; derivational variants merged before selection (Snowball stem or WordNet derivational link) and proper and brand names removed; and the source recorded as under question, with McRae and CSLB named as candidate primary sources to be measured | R084's materials trial: a one-sided ceiling rewards vagueness, and the only accepted concept passed with 0 of 12 named because a reader given its clauses answered globe, ball, beans and coin — so a $k = 8$ packet would not identify it either, and decisiveness had returned to the renderer. Lemmatising leaves derivations unmerged, so twelve features can be four ideas restated (36 pairs in sixteen concepts) and *glue*'s rarest two were *elmer* and *elmers*. And Buchanan's feature column holds content words cut from free-text prose rather than feature statements, so the relation — which is what a clause asserts — is authored, and the citation would be decorative |
 | 2026-09-24 | Draft amendment, §3 and §3.1: the source becomes McRae (CSLB pooled) and the bank becomes **three families** — animals, foods, vehicles. CONF stays 64 so §10 is unchanged; stratification drops from eight levels to three; per-family role counts become unequal and seeded in proportion to each family's eligible pool; the background list becomes a declared 3–3–2 balance rotating by seed, since one clause per family no longer fills eight slots; merging becomes subsumption over the feature's word set | McRae carries the relation and ships the authors' own cue validity (`CV_No_Tax`), so the clause is rendered from a cited statement rather than authored from a cited topic word. But McRae and CSLB are concrete-object norms: neither norms people, and only animals, foods and vehicles can be filled. McRae alone gives 58 eligible across those three against the 96 CONF, CAL and PILOT need, so CSLB is load-bearing and its data is gated; vehicles is the binding family |
 | 2026-09-26 | Draft amendment, §3.1: the recorded fragility re-measured for the adopted three-family design (R084, RSC 2646bf1). McRae alone 33/15/17 = 65 against 99 (CONF 64 + CAL 16 + PILOT 16 + one BACKGROUND per family), not 58 against 96 — the earlier figures were the eight-family scenario's, where E2 also excluded concepts touching the five families since dropped; pooled upper bound 57/42/29 = 128; CSLB must supply at least 34 of its 63 three-family candidates at ≥ 12 features. Added: on McRae alone, proportional allocation puts animals over the half-share pairing limit in every split. Vehicles stays the binding family. |
+| 2026-10-02 | Draft amendment, §3.1: Feats (Borovsky, Peters, Cox & McRae 2023) adopted as a second source under a declared pooling rule (R084, RSC 3cd3786); the recorded fragility restated on USABLE features — single token 51 of 99 at twelve (25/15/11), 77 at ten; only ten clauses with two-token names reaches 114; rule T's wording corrected (taxonomic rows are not all family words) and its narrowing left open at a measured cost of 16/8; the raw figures 65, 85 and 128 withdrawn; CSLB and Hovhannisyan unmeasured under these rules. Decision point 15 October 2026. |
