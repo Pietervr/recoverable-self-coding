@@ -5,25 +5,24 @@ Buchanan. Nothing selected, rendered or frozen; no clause rendered on Buchanan s
 
 ## Where this stands now
 
-**Decided 24 Sept (§3 at RSC 9b7927b): the bank moves to McRae and to three families — animals,
-foods, vehicles.** The eight-family measurement below is the evidence that decided it and is kept
-as that record.
+**Sources (1 Oct):** McRae, with **Feats** (Borovsky, Peters, Cox & McRae 2023, CC BY 4.0) adopted beside it; CSLB
+requested again on 1 Oct after the 24 Sept request bounced, with **15 October 2026** as the decision point. **Design:**
+three families (animals, foods, vehicles), twelve clauses, single-token answers (§3 at RSC 9b7927b).
 
-The adopted design's own counts (RSC 2646bf1, scenario `adopted_three`, where E2 tests only the three
-families in the bank):
+**Eligibility is now counted on USABLE features**, after every rule of §3.1 — see `CLEAN_ELIGIBILITY.md`. The
+counts this document gave earlier were raw-feature ceilings (Codex's finding 3, RSC 99277aa):
 
-| | animals | foods | vehicles | total | needed |
-|---|---:|---:|---:|---:|---:|
-| McRae alone | 33 | 15 | 17 | **65** | 99 |
-| McRae + CSLB-only upper bound | 57 | 42 | 29 | **128** | 99 |
+| needed 99 | twelve | ten |
+|---|---:|---:|
+| McRae alone | 46 | 65 |
+| McRae + Feats | **51** | **77** |
+| McRae + Feats, up to two tokens (upper bound) | 72 | 114 |
 
-Needed is CONF 64 + CAL 16 + PILOT 16 + one BACKGROUND per family. **CSLB is load-bearing** — McRae
-alone is 34 short, so CSLB must supply at least 34 of its 63 three-family candidates at ≥ 12 features.
-It is also load-bearing for **pairing**: cross-family pairs need every family at no more than half of
-each split, and on McRae-alone proportions animals would take 32.49 of CONF's 64 and 8.12 of CAL's and
-PILOT's 16, over that limit in all three; pooled, 28.50 and 7.12. The CSLB file was requested by the
-owner on 24 Sept, reply by 8 October. **Nothing is built until it arrives and R052 sends the step-2
-handoff.**
+Only ten clauses with two-token answers fills the bank. The taxonomic-row rule alone costs 16 concepts at twelve.
+**Nothing is built until R052 settles the design after 15 October and sends the step-2 handoff.**
+
+CSLB's three-family candidates (63, counted from its published concept list) remain an upper bound until the file
+arrives; its features have not been seen, so no usable count exists for it.
 
 ## The eight-family answer (the evidence for the decision)
 

@@ -51,6 +51,7 @@ class McRae:
         self.frequency: dict[tuple[str, str], int] = {}
         self.cue_validity: dict[tuple[str, str], float] = {}
         self.relation: dict[str, str] = {}
+        self.relation_of: dict[tuple[str, str], str] = {}   # per row: the provenance record uses this one
         self.n_rows = 0
         for line in lines[1:]:
             if not line.strip():
@@ -70,6 +71,7 @@ class McRae:
             except (ValueError, IndexError):
                 pass
             self.relation[feature] = f[col["BR_Label"]].strip()
+            self.relation_of[(concept, feature)] = f[col["BR_Label"]].strip()
         self.all_cues = dict(features)
         # concepts are single words by construction in this set; keep the same guard as Buchanan
         self.features = {c: fs for c, fs in features.items() if c.isalpha()}

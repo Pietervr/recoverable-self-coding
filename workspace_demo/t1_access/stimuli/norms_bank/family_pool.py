@@ -1,5 +1,9 @@
 """Step 1a: assign normed cues to bank families by WordNet hypernym subtree, and apply E2.
 
+F3 HERE COUNTS RAW FEATURES, so every count this script reports is a CEILING, not eligibility (Codex finding 3,
+RSC 99277aa). Eligibility of record for the adopted design is clean_eligibility.py, which counts USABLE features
+after §3.1's rules (usable.py). This script stays as the record of the earlier Buchanan and eight-family scenarios.
+
 Why WordNet and not the features themselves: assigning families from feature keywords was tried and
 fails - "metal"/"fabric"/"material" sweep every metal object into materials, and the disjointness
 rule then strips tools to 6 and vehicles to 12, below the 16 the design needs. WordNet's noun
