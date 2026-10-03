@@ -48,7 +48,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
 <div class="wrap">
 <header>
   <h1>T1 Validation Tracker</h1>
-  <p class="sub">Entropy SI lane · updated <span id="upd">3 Oct 2026, 03:30 UTC</span> · Unimog <code>21c60a3c</code>, RSC <code>bdf9928</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
+  <p class="sub">Entropy SI lane · updated <span id="upd">3 Oct 2026, 05:00 UTC</span> · Unimog <code>5b50c454</code>, RSC <code>5eb51a8</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
 </header>
 
 <section class="two">
@@ -88,8 +88,8 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
   <h2>Mac runs · photograph arm</h2>
   <div class="tbl"><table>
     <tr><th>Run</th><th>Purpose</th><th>Where</th><th>State</th><th>Progress</th><th>Time</th></tr>
-    <tr><td class="w">Row 20 · Stage A</td><td>Native fidelity and resource profile of the capture instrument on 20 development images.</td><td class="n">Mac · 1 worker</td><td><span class="pill hold">stopped, rev 11</span></td><td>Ran 2 Oct on the go: instrumented phase complete (158 attempts, 31 GiB, 249 s), then a controller race stopped it before the native phase. No fidelity result. Repair in revision 11 with R084, then Codex, then your authorised recovery with counters carried (26 forwards left).<div class="bar run"><i style="width:55%"></i></div></td><td class="n">≤ 4 h · 194 of 200 forwards</td></tr>
-    <tr><td class="w">AI reader qualification</td><td>Can the Codex reader name 61 of 63 easy grayscale images? Gates the audit reader.</td><td class="n">Mac · codex 0.159.3</td><td><span class="pill hold">stopped, rev 11</span></td><td>Ran 2 Oct on the go: 175 of 600 requests, then a transient Codex helper file broke the directory measure; stopped, gate not measured. Repair in revision 11, then Codex, then a fresh job (your ruling on the allowance).<div class="bar run"><i style="width:29%"></i></div></td><td class="n">≤ 6 h · ≤ 660 attempts</td></tr>
+    <tr><td class="w">Row 20 · Stage A</td><td>Native fidelity and resource profile of the capture instrument on 20 development images.</td><td class="n">Mac · 1 worker</td><td><span class="pill hold">rev 12 building</span></td><td>Ran 2 Oct: instrumented phase complete (158 attempts, 31 GiB, 249 s), stopped by a controller race before the native phase. Revision 11 fixed the race and added your terminal release; Codex held it on three items (admitting the old phase under the new identity, a gates-phase hold, the live controls during the wait). Revision 12 with R084.<div class="bar run"><i style="width:60%"></i></div></td><td class="n">≤ 4 h · 194 of 200 forwards</td></tr>
+    <tr><td class="w">AI reader qualification</td><td>Can the Codex reader name 61 of 63 easy grayscale images? Gates the audit reader.</td><td class="n">Mac · codex 0.159.3</td><td><span class="pill ok">favourable again</span></td><td>Ran 2 Oct: 175 of 600, stopped by a vanished helper file. Revision 11 fixed it and Codex attested it. A fresh job with its own full envelope runs on it unchanged once you choose that and give the go; the 2 Oct spend is disclosed beside it.<div class="bar run"><i style="width:29%"></i></div></td><td class="n">≤ 6 h · ≤ 660 attempts</td></tr>
     <tr><td class="w">Row 21 · Stage B</td><td>Held-out qualification of the development instrument.</td><td class="n">Mac · 1 worker</td><td><span class="pill wait">after A</span></td><td>Held for Stage A and the freeze gates.</td><td class="n">≤ 4 h · 1,856 forwards</td></tr>
     <tr><td class="w">Text arm</td><td>The same assay on text, with a stronger reader.</td><td class="n">Mac</td><td><span class="pill wait">undeclared</span></td><td>Waits on the owner's reader and acceptance rule, due 15 Oct.</td><td class="n">—</td></tr>
   </table></div>
@@ -108,7 +108,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
   <div>
     <h2>Open with the owner</h2>
     <ul>
-      <li><b>Stage A and reader.</b> Both stopped on execution races on 2 Oct. Rulings needed once revision 11 is favourable: authorise the Stage A recovery with counters carried; a fresh reader job under the same envelope with the spent part carried (recommended).</li>
+      <li><b>Reader.</b> Choose (a), a fresh job with its own 660-attempt, 6-hour envelope (recommended; runs now on the attested package), and give the dated go. <b>Stage A.</b> Your release of the terminal attempt comes with revision 12's favourable record.</li>
       <li><b>Slice.</b> Go given 2 Oct. Next decision after the slice report goes to Codex: the 100-dataset screen (stage 2), its own costing and go.</li>
       <li><b>Text arm.</b> Reader and acceptance rule by 15 Oct.</li>
     </ul>
