@@ -1,0 +1,24 @@
+#!/bin/bash
+#PBS -N t1_row19_policy_bench
+#PBS -P CSCI1913
+#PBS -q serial
+#PBS -l select=1:ncpus=1:mpiprocs=1:nodetype=haswell_reg
+#PBS -l walltime=24:00:00
+#PBS -o /mnt/lustre/users/pvanrooyen/t1_toolchain/jobs/row19_policy_bench.out
+#PBS -e /mnt/lustre/users/pvanrooyen/t1_toolchain/jobs/row19_policy_bench.err
+#PBS -m ae
+#PBS -M pgwvanrooyen@sun.ac.za
+# Ledger row 19, stage 0 (rsc_t1_simulation_design.md section 12): the COST of the section 7.4 start policy on one
+# Lengau core - the nine per-member fits and one full layer of the section-8 pipeline at D = 4 under the policy
+# (models.START_POLICY at RSC 5f6333c; the Lustre clone rsc_policy on branch policy-5f6333c, byte-identical files),
+# the same dataset and shape as row 18's benchmark so the ratio to the v1.2 fitter is like for like. One core on the
+# shared serial queue; cap 24 core-hours of row 19's 1,500-hour slice reserve. No row is produced, nothing is pooled.
+ulimit -s unlimited
+T=/mnt/lustre/users/pvanrooyen/t1_toolchain
+cd $T/rsc_policy/workspace_demo/t1_access
+export NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+echo "host $(hostname)  $(grep -m1 'model name' /proc/cpuinfo)"
+echo "code $(git rev-parse --short HEAD)  models.py $(sha256sum models.py | cut -c1-16)  start $(date -u +%FT%TZ)"
+$T/t1py -c 'import sys, jax, jaxlib, numpy, scipy, joblib; print("python", sys.version.split()[0], "jax", jax.__version__, "jaxlib", jaxlib.__version__, "numpy", numpy.__version__, "scipy", scipy.__version__, "joblib", joblib.__version__)'
+time $T/t1py bench.py --D 4 --layer --n-starts-inner 4 --policy
+echo "end $(date -u +%FT%TZ)"

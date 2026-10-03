@@ -1,0 +1,61 @@
+Job Id: 7516261.sched01
+    Job_Name = t1_row19_policy_bench
+    Job_Owner = pvanrooyen@login2.cm.cluster
+    resources_used.cpupercent = 100
+    resources_used.cput = 10:04:11
+    resources_used.mem = 1497512kb
+    resources_used.ncpus = 1
+    resources_used.vmem = 5532916kb
+    resources_used.walltime = 09:51:08
+    job_state = F
+    queue = serial
+    server = sched01
+    Checkpoint = u
+    ctime = Fri Oct  2 19:00:53 2026
+    Error_Path = login2.cm.cluster:/mnt/lustre/users/pvanrooyen/t1_toolchain/jo
+	bs/row19_policy_bench.err
+    exec_host = cnode1195/7
+    exec_vnode = (cnode1195:ncpus=1)
+    Hold_Types = n
+    Join_Path = n
+    Keep_Files = n
+    Mail_Points = ae
+    Mail_Users = pgwvanrooyen@sun.ac.za
+    mtime = Sat Oct  3 04:52:47 2026
+    Output_Path = login2.cm.cluster:/mnt/lustre/users/pvanrooyen/t1_toolchain/j
+	obs/row19_policy_bench.out
+    Priority = 0
+    qtime = Fri Oct  2 19:00:53 2026
+    Rerunable = True
+    Resource_List.mpiprocs = 1
+    Resource_List.ncpus = 1
+    Resource_List.nodect = 1
+    Resource_List.nodetype = haswell_reg
+    Resource_List.place = free
+    Resource_List.select = 1:ncpus=1:mpiprocs=1:nodetype=haswell_reg
+    Resource_List.walltime = 24:00:00
+    stime = Fri Oct  2 19:01:37 2026
+    session_id = 149366
+    jobdir = /home/pvanrooyen
+    substate = 92
+    Variable_List = PBS_O_SYSTEM=Linux,PBS_O_SHELL=/bin/bash,
+	PBS_O_HOME=/home/pvanrooyen,PBS_O_HOST=login2.cm.cluster,
+	PBS_O_LOGNAME=pvanrooyen,PBS_O_WORKDIR=/home/pvanrooyen,
+	PBS_O_LANG=C.UTF-8,PBS_O_QUEUE=serial,PBS_O_MAIL=/var/mail/pvanrooyen,
+	PBS_O_PATH=/cm/local/apps/gcc/6.1.0/bin:/usr/local/bin:/usr/bin:/opt/i
+	butils/bin:/sbin:/usr/sbin:/cm/local/apps/environment-modules/3.2.10/bi
+	n:/opt/pbs/bin:/opt/dell/srvadmin/bin
+    comment = Job run at Fri Oct 02 at 19:01 on (cnode1195:ncpus=1) and finishe
+	d
+    etime = Fri Oct  2 19:00:53 2026
+    umask = 22
+    run_count = 1
+    eligible_time = 00:00:00
+    Stageout_status = 1
+    Exit_status = 0
+    Submit_arguments = /mnt/lustre/users/pvanrooyen/t1_toolchain/jobs/row19_pol
+	icy_bench.pbs
+    pset = loadshed=cx17
+    history_timestamp = 1790995967
+    project = CSCI1913
+
