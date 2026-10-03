@@ -336,7 +336,10 @@ def _rederive(i: int, r: dict) -> None:
     if complete:
         events, problems = parse_events(ev["text"].encode("utf-8"))
         iso = isolation_problems(events)
-        declared_capacity = o == "provider_failure" and not problems and capacity_refusal(events)   # revision 13
+        # revision 13, repaired in 14 (R2): the declared capacity shape excuses its bare markers for a provider OR a
+        # structural failure; which one is decided below by the retained stderr (structural wins), never waived
+        declared_capacity = o in ("provider_failure", "structural_failure") and not problems and \
+            capacity_refusal(events)
         if (iso or problems) and o not in ("isolation_violation", "overflow") and not declared_capacity:
             _fail(i, f"outcome {o} where the retained events show isolation or malformed lines")
         ea = event_answer(events)

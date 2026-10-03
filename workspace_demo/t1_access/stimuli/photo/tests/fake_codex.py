@@ -130,6 +130,20 @@ if kind == "fail":
 if kind == "structural":
     print("Error loading config: invalid value for model", file=sys.stderr)
     sys.exit(1)
+if kind in ("capacity", "capacity_structural", "capacity_item"):     # reader revisions 13-14
+    CAP = "Selected model is at capacity. Please try a different model."
+    ev("thread.started", thread_id="t")
+    ev("item.completed", item={"id": "item_0", "type": "error", "message": NOTICE})
+    ev("turn.started")
+    if kind == "capacity_item":
+        ev("error", message=CAP, item={"id": "c", "type": "command_execution", "command": "ls"})
+    else:
+        ev("error", message=CAP)
+    ev("turn.failed", error={"message": CAP})
+    print("Reading additional input from stdin...", file=sys.stderr)
+    if kind == "capacity_structural":
+        print("sandbox: operation not permitted", file=sys.stderr)
+    sys.exit(1)
 if kind == "tool":
     answer("thing", tool=True)
 if kind == "tool_exit1":

@@ -1,9 +1,23 @@
-# AI image-reader qualification, revision 13: the design and where each condition lives
+# AI image-reader qualification, revision 14: the design and where each condition lives
 
 R084, 2-3 October 2026. The specification is framework §8.2's reader rule with R052's closures (Unimog, R052's text).
 Revision 5 answers Codex's combined record RSC `1bf9890` (not favourable to revision 4 at RSC `d7a486a`; reader
 conditions 1–7 = R1–R6 there) through R052's handoff `8c9dac2b`. Revision 4 answered RSC `5a8d7ac` (handoff
 `46125389`); its closures stand and are listed after the revision-5 table.
+
+## Revision 14: the two capacity-path repairs of Codex `f363767` (R052 handoff `c323625e`)
+
+Codex's record RSC `f363767` (NOT FAVOURABLE to revision 13 at `57cfb0a`) credited the owned CLI, the 25 pins and the
+exposure, and found two capacity-path defects.
+
+| # | Condition | Where it lives | Evidence (`tests/test_ai_reader.py`, class `Rev14Reader`) |
+|---|---|---|---|
+| R1 | The exemption dropped the exempt error's item checks | `ai_reader_runtime.capacity_refusal`: an exempt capacity error is a BARE marker - its keys exactly `type` and `message`; any `item` or other key disqualifies it - and `isolation_problems` runs on the FULL original stream, which must find nothing but one "error event" entry per bare marker. Revision 13 removed the matching events before the check, so an item inside one went unchecked. | `test_an_item_inside_the_capacity_error_is_isolation` (Codex's command_execution counterexample, a tool item, a malformed item: retained final isolation; a forged provider_failure label refused by the journal); `test_any_extra_key_disqualifies_the_marker` |
+| R2 | Capacity plus structural stderr retried; the journal rejected it | ONE precedence in both places: `classify` returns `structural_failure` (the declared hold, no retry) when the capacity shape meets STRUCTURAL stderr; `_rederive` excuses the bare markers for a provider OR structural failure and its existing stderr rule decides which (structural wins); the journal never ignores structural evidence. | `test_capacity_with_structural_stderr_is_the_structural_hold` (classify and the journal agree; a forged provider label refused; the ordinary capacity control still retryable); `test_executor_capacity_retries_item_is_final_structural_holds` (fake CLI: capacity retried then ok; an item inside the error final isolation; capacity + structural stderr holds after one dispatch, nothing dispatched after it, the journal validates) |
+| D | Declaration | `AI_READER_JOB.md`'s error sentence names the declared capacity exception beside the two notices. Outside the package, `reviews/2026-10-03_reader_cli_0.160.0_features_list.txt`: the owned binary's full `features list` text under the job's flags (evidence only, no pin). | `test_the_job_doc_declares_the_capacity_exception` |
+
+Nothing else changes: the owned CLI, its pins, the delivery receipt (no command change), the exposure statement of
+revision 13 (job (c) under revision 14's package instead of 13's) and everything revision 13 kept.
 
 ## Revision 13: a project-owned CLI, the capacity refusal, the exposure (R052 handoff `09226a88`)
 

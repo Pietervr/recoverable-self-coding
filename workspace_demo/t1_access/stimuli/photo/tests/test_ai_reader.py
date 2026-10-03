@@ -1637,6 +1637,79 @@ class Rev13Reader(unittest.TestCase):
         self.assertNotEqual(R.tree_sha(d), h)
 
 
+
+class Rev14Reader(unittest.TestCase):
+    """Reader revision 14 (Codex RSC f363767): R1 - an exempt capacity error carries NO item and the item checks run on
+    the full stream; R2 - structural stderr wins over the capacity exemption in classify AND in the journal. No model
+    is called; the executor cases use the fake CLI."""
+
+    run_fx, ends = Executor.run_fx, Executor.ends
+    STRUCT = b"Reading additional input from stdin...\nsandbox: operation not permitted\n"
+    CAP = "Selected model is at capacity. Please try a different model."
+
+    def classify(self, text, stderr=b"Reading additional input from stdin...\n", last=None):
+        return R.classify(text.encode(), stderr, last, 1, timed_out=False, overflow=False)
+
+    def forged(self, out, label):
+        bad = dict(out)
+        bad.update({"outcome": label, "retained": False, "isolation_events": [], "answer": None, "answer_len": None,
+                    "answer_sha256": None, "overlength": False})
+        return bad
+
+    def test_an_item_inside_the_capacity_error_is_isolation(self):
+        """Codex's counterexample, and a malformed item: retained final isolation; a forged provider label refused."""
+        for name, item in (("command_execution", {"id": "c", "type": "command_execution", "command": "ls"}),
+                           ("tool", {"id": "t", "type": "mcp_tool_call", "tool": "x"}),
+                           ("malformed", "not an object")):
+            with self.subTest(name):
+                text = CAPACITY_EVENTS.replace(
+                    '{"type":"error","message":"' + self.CAP + '"}',
+                    json.dumps({"type": "error", "message": self.CAP, "item": item}, separators=(",", ":")))
+                events, _ = R.parse_events(text.encode())
+                self.assertFalse(R.capacity_refusal(events))
+                out = self.classify(text)
+                self.assertEqual((out["outcome"], out["retained"]), ("isolation_violation", True))
+                with self.assertRaisesRegex(SystemExit, "isolation"):
+                    J._rederive(0, self.forged(out, "provider_failure"))
+
+    def test_any_extra_key_disqualifies_the_marker(self):
+        text = CAPACITY_EVENTS.replace('{"type":"error","message":"' + self.CAP + '"}',
+                                       '{"type":"error","message":"' + self.CAP + '","code":"x"}')
+        events, _ = R.parse_events(text.encode())
+        self.assertFalse(R.capacity_refusal(events))
+        self.assertEqual(self.classify(text)["outcome"], "isolation_violation")
+
+    def test_capacity_with_structural_stderr_is_the_structural_hold(self):
+        out = self.classify(CAPACITY_EVENTS, stderr=self.STRUCT)
+        self.assertEqual((out["outcome"], out["retained"]), ("structural_failure", False))
+        J._rederive(0, out)                                          # the journal re-derives the same
+        with self.assertRaisesRegex(SystemExit, "structural pattern"):
+            J._rederive(0, self.forged(out, "provider_failure"))     # a retry label on structural evidence: refused
+        plain = self.classify(CAPACITY_EVENTS)                       # beside it: the ordinary capacity control
+        self.assertEqual(plain["outcome"], "provider_failure")
+        J._rederive(0, plain)
+
+    def test_executor_capacity_retries_item_is_final_structural_holds(self):
+        out, recs, root, b = self.run_fx({"rq1c": ["capacity", "ok:thing"], "rq2c": ["capacity_item"]})
+        self.assertEqual(out["outcome"], "COMPLETE")
+        calls = [d["request"] for d in A.dispatches(root)]
+        self.assertEqual((calls.count("rq1c"), calls.count("rq2c")), (2, 1))
+        e = {r["request"]: r["outcome"] for r in self.ends(recs) if r.get("retained")}
+        self.assertEqual((e["rq1c"], e["rq2c"]), ("ok", "isolation_violation"))
+        J.validate(recs, b["sset"], A.DIGEST, **vkw(b))
+        out, recs, root, b = self.run_fx({"rq1c": ["capacity_structural", "ok:thing"]})
+        self.assertEqual(out["outcome"], "STOPPED")
+        self.assertIn("structural", out["reason"])
+        calls = [d["request"] for d in A.dispatches(root)]
+        self.assertEqual(calls.count("rq1c"), 1)                     # no retry past the hold
+        self.assertNotIn("rq2c", calls)                              # nothing dispatched after it
+        J.validate(recs, b["sset"], A.DIGEST, require_complete=False, **vkw(b))
+
+    def test_the_job_doc_declares_the_capacity_exception(self):
+        t = (PHOTO / "AI_READER_JOB.md").read_text()
+        self.assertIn("declared provider-capacity refusal", t)
+
+
 if __name__ == "__main__":
     unittest.main()
 

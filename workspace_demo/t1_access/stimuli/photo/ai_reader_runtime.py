@@ -516,10 +516,13 @@ def is_notice(item: dict) -> bool:
 
 
 def capacity_refusal(events: list[dict]) -> bool:
-    """Revision 13: True only for the declared capacity shape - at least one top-level error event whose message is a
-    declared capacity text, a turn.failed whose error message is one too, NO agent message, and nothing else that
-    isolation_problems would flag (no command, tool, file or other item; no other undeclared error event)."""
-    cap = [e for e in events if e.get("type") == "error" and e.get("message") in CAPACITY_MESSAGES]
+    """Revision 13 (repaired in revision 14, Codex f363767 R1): True only for the declared capacity shape - at least one
+    BARE capacity marker (a top-level error event whose keys are exactly type and message, the message a declared
+    capacity text; any item or other key disqualifies it), a turn.failed whose error message is a declared text too,
+    NO agent message, and isolation_problems on the FULL original stream finding nothing but those bare markers
+    themselves (so every item check still runs; no other undeclared error event)."""
+    cap = [e for e in events if e.get("type") == "error" and set(e) == {"type", "message"}
+           and e.get("message") in CAPACITY_MESSAGES]
     failed = [e for e in events if e.get("type") == "turn.failed"]
     if not cap or not failed:
         return False
@@ -528,7 +531,7 @@ def capacity_refusal(events: list[dict]) -> bool:
     if event_answer(events) is not None or any(isinstance(e.get("item"), dict) and
                                                e["item"].get("type") == "agent_message" for e in events):
         return False
-    return not isolation_problems([e for e in events if not any(e is c for c in cap)])
+    return isolation_problems(events) == ["error event (not a frozen notice)"] * len(cap)
 
 
 def tree_sha(root: Path) -> str:
@@ -644,6 +647,9 @@ def classify(stdout: bytes, stderr: bytes, last_message: str | None, returncode:
     ev["file_answer"] = bounded(file_answer.encode(), FILE_ANSWER_KEEP) if file_answer is not None else None
     if not problems and not overflow and len(stdout) <= EVENTS_KEEP and capacity_refusal(events) and \
             (file_answer is None or not file_answer.strip()):
+        if STRUCTURAL.search(retained_text(ev["stderr"])):    # revision 14 (R2): structural stderr wins - the hold
+            return {**ev, "outcome": "structural_failure", "retained": False, "isolation_events": [],
+                    **bounded_answer(None)}
         return {**ev, "outcome": "provider_failure", "retained": False, "isolation_events": [],   # declared capacity
                 **bounded_answer(None)}
     bad = isolation_problems(events)
