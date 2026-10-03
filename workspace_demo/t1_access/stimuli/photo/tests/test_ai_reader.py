@@ -1710,6 +1710,103 @@ class Rev14Reader(unittest.TestCase):
         self.assertIn("declared provider-capacity refusal", t)
 
 
+class Rev15Reader(unittest.TestCase):
+    """Reader revision 15 (Codex RSC 431f072): the declared capacity exception needs the -o file ABSENT or its COMPLETE
+    text retained exact and blank (<= FILE_ANSWER_KEEP = 2,048 UTF-8 bytes); above that the end is a retained final
+    isolation carrying CAPACITY_UNPROVEN and the job holds. Each case validates the ACTUAL end classify produces through
+    _rederive. No model is called; the executor cases use the fake CLI."""
+
+    run_fx, ends = Executor.run_fx, Executor.ends
+    STRUCT = b"Reading additional input from stdin...\nsandbox: operation not permitted\n"
+    PLAIN = b"Reading additional input from stdin...\n"
+
+    def classify(self, last, stderr):
+        out = R.classify(CAPACITY_EVENTS.encode(), stderr, last, 1, timed_out=False, overflow=False)
+        out["t"] = "end"
+        return out
+
+    def test_the_limit_is_2048_utf8_bytes(self):
+        self.assertEqual(R.FILE_ANSWER_KEEP, 2048)
+        self.assertIn("2,048", R.CAPACITY_UNPROVEN)
+
+    def test_2048_spaces_is_the_declared_capacity_end(self):
+        for stderr, label in ((self.PLAIN, "provider_failure"), (self.STRUCT, "structural_failure")):
+            with self.subTest(label):
+                out = self.classify(" " * 2048, stderr)
+                self.assertEqual((out["outcome"], out["retained"]), (label, False))
+                self.assertTrue(out["file_answer"]["exact"] and "text" in out["file_answer"])
+                J._rederive(0, out)                                  # the actual end re-derives
+
+    def test_2049_spaces_is_final_isolation_with_the_marker(self):
+        for stderr in (self.PLAIN, self.STRUCT):
+            with self.subTest(structural=stderr is self.STRUCT):
+                out = self.classify(" " * 2049, stderr)
+                self.assertEqual((out["outcome"], out["retained"]), ("isolation_violation", True))
+                self.assertEqual(out["isolation_events"][-1], R.CAPACITY_UNPROVEN)
+                self.assertNotIn("text", out["file_answer"])          # head/tail only: blankness unprovable
+                self.assertIsNone(out["answer"])
+                J._rederive(0, out)                                  # the actual end re-derives
+                for label in ("provider_failure", "structural_failure"):     # a retry/structural label: refused
+                    bad = dict(out, outcome=label, retained=False, isolation_events=[])
+                    with self.assertRaises(SystemExit):
+                        J._rederive(0, bad)
+                stripped = dict(out, isolation_events=out["isolation_events"][:-1])   # the marker removed: refused
+                with self.assertRaisesRegex(SystemExit, "marker disagrees"):
+                    J._rederive(0, stripped)
+
+    def test_the_marker_is_refused_where_it_does_not_belong(self):
+        small = self.classify(" " * 10, self.PLAIN)                  # proven blank: no marker allowed
+        forged = dict(small, outcome="isolation_violation", retained=True,
+                      isolation_events=["error event (not a frozen notice)", R.CAPACITY_UNPROVEN])
+        with self.assertRaisesRegex(SystemExit, "marker disagrees"):
+            J._rederive(0, forged)
+
+    def test_controls_absent_empty_received_and_nonblank_oversize(self):
+        self.assertEqual(self.classify(None, self.PLAIN)["outcome"], "provider_failure")
+        self.assertEqual(self.classify("", self.PLAIN)["outcome"], "provider_failure")
+        self.assertEqual(self.classify(None, self.STRUCT)["outcome"], "structural_failure")
+        for last in ("Harmonica", " " * 1500 + "x" + " " * 1500):   # a received answer stays final, no marker
+            out = self.classify(last, self.PLAIN)
+            self.assertEqual(out["outcome"], "isolation_violation")
+            self.assertNotIn(R.CAPACITY_UNPROVEN, out["isolation_events"])
+            self.assertIsNotNone(out["answer"])
+            J._rederive(0, out)
+
+    def test_executor_no_retry_holds_and_the_journal_agrees(self):
+        for kind in ("capacity:2049", "capacity_structural:2049"):
+            with self.subTest(kind):
+                out, recs, root, b = self.run_fx({"rq1c": ["ok:thing"], "rq2c": [kind, "ok:thing"],
+                                                  "rq3c": ["ok:thing"]})
+                self.assertEqual(out["outcome"], "STOPPED")
+                self.assertIn("incomplete -o evidence", out["reason"])
+                calls = [d["request"] for d in A.dispatches(root)]
+                self.assertEqual(calls.count("rq2c"), 1)             # no retry
+                self.assertNotIn("rq3c", calls)                      # nothing dispatched after the hold
+                end = [r for r in self.ends(recs) if r["request"] == "rq2c"][-1]
+                self.assertEqual((end["outcome"], end["retained"]), ("isolation_violation", True))
+                self.assertEqual(end["isolation_events"][-1], R.CAPACITY_UNPROVEN)
+                J.validate(recs, b["sset"], A.DIGEST, require_complete=False, **vkw(b))
+                self.assertIn("incomplete -o evidence", J.holds(J.reconstruct(recs), "rq1c"))   # restart derives the hold
+                with self.assertRaises(SystemExit):                  # nothing runs after the STOPPED receipt
+                    X.run(fixture=b["fixture"])
+                self.assertEqual([d["request"] for d in A.dispatches(root)], calls)
+                with self.assertRaises(SystemExit):                  # admission refuses the held journal
+                    S.score(b["fixture"]["raw"], allow_synthetic=True, sset=b["sset"], key=b["key"],
+                            clock_path=b["fixture"]["job"] / "clock.json", delivery=b["fixture"]["delivery"])
+
+    def test_executor_2048_still_retries_and_completes(self):
+        out, recs, root, b = self.run_fx({"rq1c": ["ok:thing"], "rq2c": ["capacity:2048", "ok:thing"]})
+        self.assertEqual(out["outcome"], "COMPLETE")
+        calls = [d["request"] for d in A.dispatches(root)]
+        self.assertEqual(calls.count("rq2c"), 2)
+        J.validate(recs, b["sset"], A.DIGEST, **vkw(b))
+
+    def test_the_docs_declare_the_byte_limit(self):
+        for name in ("AI_READER_JOB.md", "AI_READER_DESIGN.md"):
+            t = (PHOTO / name).read_text()
+            self.assertIn("2,048 UTF-8 bytes", t, name)
+
+
 if __name__ == "__main__":
     unittest.main()
 

@@ -190,7 +190,7 @@ def pending_quarantine(quarantine_dir: Path, recs: list[dict]) -> list[dict]:
 
 def fresh() -> dict:
     return {"attempts": 0, "tries": {}, "final": {}, "open": None, "open_dispatched": None, "open_recovered": None,
-            "seq": 0, "receipt": None, "outcomes": {}, "structural": False, "ends": {}}
+            "seq": 0, "receipt": None, "outcomes": {}, "structural": False, "capacity_unproven": False, "ends": {}}
 
 
 def apply(st: dict, r: dict) -> dict:
@@ -211,6 +211,8 @@ def apply(st: dict, r: dict) -> dict:
             st["final"][r["request"]] = r
         if r["outcome"] == "structural_failure":
             st["structural"] = True
+        if _unproven_mark(r):                          # revision 15: the capacity end whose -o blankness is unproven
+            st["capacity_unproven"] = True
         st["open"], st["open_dispatched"], st["open_recovered"] = None, None, None
     elif t == "final":
         st["final"][r["request"]] = r
@@ -258,6 +260,8 @@ def holds(st: dict, first_request: str) -> str | None:
     """A reason the job must stop before any further dispatch, derived from durable records; None to proceed."""
     if st["structural"]:
         return "structural failure: the job holds"
+    if st.get("capacity_unproven"):
+        return "capacity refusal with incomplete -o evidence (blank -o file over 2,048 UTF-8 bytes): the job holds"
     s = smoke_status(st, first_request)
     if s["state"] == "held":
         return "smoke: " + s["why"]
@@ -282,6 +286,11 @@ def _bounded_ok(d, keep: int) -> bool:
         return len(d["text"].encode("utf-8", "replace")) <= keep * 4
     return set(d) == {"length", "sha256", "head", "tail", "exact"} and d["length"] > keep and \
         isinstance(d["head"], str) and isinstance(d["tail"], str) and len(d["head"]) <= keep and len(d["tail"]) <= keep
+
+
+def _unproven_mark(r: dict) -> bool:
+    from ai_reader_runtime import CAPACITY_UNPROVEN
+    return r.get("t") == "end" and CAPACITY_UNPROVEN in (r.get("isolation_events") or [])
 
 
 def _fail(i: int, why: str):
@@ -354,6 +363,21 @@ def _rederive(i: int, r: dict) -> None:
         if o in ("provider_failure", "structural_failure") and (ea is not None or any(
                 isinstance(e.get("item"), dict) and e["item"].get("type") == "agent_message" for e in events)):
             _fail(i, f"{o} although the retained events carry an agent message")
+        # revision 15 (Codex RSC 431f072): the capacity shape whose -o blankness cannot be re-derived (no answer, the -o
+        # file present but not retained complete, exact and blank) is EXACTLY the marked end - a retained final
+        # isolation whose recorded isolation events are the stream's own plus the marker; both directions are checked
+        from ai_reader_runtime import CAPACITY_UNPROVEN, FILE_ANSWER_KEEP, file_blank_proven
+        unproven = not problems and capacity_refusal(events) and isinstance(fa, dict) and \
+            not file_blank_proven(fa) and r.get("answer") is None
+        if unproven != (CAPACITY_UNPROVEN in (r.get("isolation_events") or [])):
+            _fail(i, "the incomplete-capacity-evidence marker disagrees with the retained events and -o evidence")
+        if unproven and not (o == "isolation_violation" and r.get("retained") is True and
+                             r.get("isolation_events") == iso + [CAPACITY_UNPROVEN] and
+                             fa.get("sha256") == r.get("file_answer_sha256") and fa["length"] > FILE_ANSWER_KEEP and
+                             "text" not in fa and fa["head"].strip() == "" and fa["tail"].strip() == ""):
+            _fail(i, "a capacity end with unproven -o blankness that is not the declared final isolation and hold")
+    elif _unproven_mark(r):
+        _fail(i, "the incomplete-capacity-evidence marker on events that cannot be re-derived")
     if o in ("provider_failure", "structural_failure"):
         hit = bool(STRUCTURAL.search(retained_text(r["stderr"])))
         if hit != (o == "structural_failure"):
@@ -380,7 +404,7 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
         raise SystemExit(f"refused: raw modes {sorted(map(str, modes))}, expected one of {sorted(MODES)}"
                          + (f" = {mode}" if mode else ""))
     ids, st = set(), {"attempts": 0, "tries": {}, "final": set(), "open": None, "disp": False, "recovered": None,
-                      "structural": False, "outcomes": {}, "prov_by_req": {}}
+                      "structural": False, "capacity_unproven": False, "outcomes": {}, "prov_by_req": {}}
     js = fresh()
     quarantines = set()
     timeout_cap = float((limits or {}).get("attempt_timeout_s", MAX_TIMEOUT_S))
@@ -416,6 +440,8 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
             _fail(i, "the journal does not start with an open record")
         if st["structural"] and t not in ("receipt", "tail_repair"):
             _fail(i, "a record after a structural failure other than a tail repair or the STOPPED receipt")
+        if st["capacity_unproven"] and t not in ("receipt", "tail_repair"):          # revision 15: the same hold
+            _fail(i, "a record after an unproven capacity end other than a tail repair or the STOPPED receipt")
         if t == "receipt" and i != len(recs) - 1:
             _fail(i, "a receipt that is not the last record")
         if t == "open":
@@ -556,6 +582,8 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
                 st["prov_by_req"][r["request"]] = st["prov_by_req"].get(r["request"], 0) + 1
             if o == "structural_failure":
                 st["structural"] = True
+            if _unproven_mark(r):
+                st["capacity_unproven"] = True
             st["open"] = None
         elif t == "final":
             q = r["request"]
@@ -584,6 +612,8 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
                 _fail(i, "COMPLETE with requests not final")
             if st["structural"] and r["outcome"] != "STOPPED":
                 _fail(i, "a structural failure not followed by STOPPED")
+            if st["capacity_unproven"] and r["outcome"] != "STOPPED":
+                _fail(i, "an unproven capacity end not followed by STOPPED")
             sm = smoke_status(js, order[0])
             if r["smoke"].get("state") != sm["state"]:
                 _fail(i, f"receipt smoke {r['smoke'].get('state')} where the journal shows {sm['state']}")

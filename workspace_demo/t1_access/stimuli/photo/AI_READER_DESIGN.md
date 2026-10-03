@@ -1,9 +1,27 @@
-# AI image-reader qualification, revision 14: the design and where each condition lives
+# AI image-reader qualification, revision 15: the design and where each condition lives
 
 R084, 2-3 October 2026. The specification is framework §8.2's reader rule with R052's closures (Unimog, R052's text).
 Revision 5 answers Codex's combined record RSC `1bf9890` (not favourable to revision 4 at RSC `d7a486a`; reader
 conditions 1–7 = R1–R6 there) through R052's handoff `8c9dac2b`. Revision 4 answered RSC `5a8d7ac` (handoff
 `46125389`); its closures stand and are listed after the revision-5 table.
+
+## Revision 15: the capacity path's -o evidence boundary (Codex `431f072`, R052 handoff `71210376`)
+
+Codex's record RSC `431f072` (NOT FAVOURABLE to revision 14 at `7fc9f52`) closed R1, R2 and the declaration and found
+one boundary: a capacity refusal with a blank -o file longer than FILE_ANSWER_KEEP (Codex's case: 2,049 ASCII spaces)
+was labelled retryable (or structural) while `bounded` retained only head and tail, so the journal could not prove the
+file blank and refused the end - after the executor had already retried. Revision 15 takes Codex's narrow policy.
+
+| Item | Where it lives | Fixture (`tests/test_ai_reader.py` Rev15Reader, no request) |
+|---|---|---|
+| The capacity exception (provider retry, or the structural hold with structural stderr) is granted ONLY when the -o file is absent or its COMPLETE text is retained exact and blank: at most FILE_ANSWER_KEEP = 2,048 UTF-8 bytes (`file_blank_proven`). The capacity shape is judged from retained evidence only (complete events, no malformed line, the declared bare markers, no answer). | `ai_reader_runtime.classify`, `file_blank_proven` | `test_2048_spaces_is_the_declared_capacity_end` (ordinary -> provider_failure, structural -> structural_failure; each actual end re-derived) |
+| Above the limit (or any incomplete -o evidence) the end is a retained FINAL isolation whose isolation events are the stream's own plus `CAPACITY_UNPROVEN`; the job HOLDS before any further dispatch (`holds`), and the journal admits only tail repairs and the STOPPED receipt after it - the structural hold's rule. Fail closed, no retry, for the ordinary and the structural variant alike: neither label can be proven. | `classify`, `CAPACITY_UNPROVEN`; `ai_reader_journal.apply`, `holds`, `validate` | `test_2049_spaces_is_final_isolation_with_the_marker` (both variants; retry and structural labels refused; the marker removed refused); `test_executor_no_retry_holds_and_the_journal_agrees` (fake CLI: one dispatch, nothing after, journal valid, restart derives the hold, nothing runs after the receipt, admission refuses) |
+| `_rederive` agrees exactly, both ways: the marker is present IF AND ONLY IF the retained events show the capacity shape, there is no answer and the -o evidence is present but not proven blank; a marked end must be the declared isolation (events = the stream's + the marker, -o digest bound, length over 2,048, head and tail blank). Structural precedence, the full-stream isolation checks and the bare-marker rule are unchanged. | `ai_reader_journal._rederive` | `test_the_marker_is_refused_where_it_does_not_belong`; `test_controls_absent_empty_received_and_nonblank_oversize` (absent/empty -o controls; received and non-blank oversize answers stay final without the marker); every Rev13Reader/Rev14Reader control unchanged |
+| Declaration: the byte limit in UTF-8 bytes | `AI_READER_JOB.md` (the error sentence), this section | `test_the_docs_declare_the_byte_limit` |
+
+Moved from revision 14: `ai_reader_runtime.py`, `ai_reader_journal.py`, `AI_READER_JOB.md`, this file and the digest.
+The limit is 2,048 UTF-8 bytes of the -o file as decoded (UTF-8 with replacement) and re-encoded - for whitespace the
+file's own bytes.
 
 ## Revision 14: the two capacity-path repairs of Codex `f363767` (R052 handoff `c323625e`)
 

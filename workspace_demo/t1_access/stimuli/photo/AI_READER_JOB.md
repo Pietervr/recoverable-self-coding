@@ -1,6 +1,8 @@
 # The AI image-reader qualification: the bounded reader job
 
-R084, 3 October 2026. Revision 14 (handoff `c323625e`, Codex `f363767`): the capacity exemption excuses only bare
+R084, 3 October 2026. Revision 15 (handoff `71210376`, Codex `431f072`): the capacity exception needs the -o file
+absent or retained complete, exact and blank (at most 2,048 UTF-8 bytes); above that the end is final isolation
+and the job holds. Revision 14 (handoff `c323625e`, Codex `f363767`): the capacity exemption excuses only bare
 markers with every item check on the full stream, and structural stderr wins over it. Revision 13 (handoff `09226a88`): the reader's CLI is a project-owned, read-only copy of Codex
 CLI 0.160.0 pinned by path, hashes, version and tree, its update check off; a declared provider-capacity refusal is a
 retryable provider failure. Revision 12 (the owner's decision of 3 October, handoff `ff264083`): the one-or-two-word
@@ -98,8 +100,10 @@ The event stream is classified fail-closed: a tool, command, file, web, MCP or o
 a top-level error event, is ERR_ISOLATION (retained, never retried) whatever the exit status, except two frozen CLI
 notices (the code-mode-disabled notice and the transport-fallback prefix) and the declared provider-capacity refusal
 (revision 13, repaired in 14: bare top-level error markers with the frozen capacity text and nothing else - no item, no
-other key - a turn.failed with that text, no agent message, no other flagged event, a blank or absent -o file: a
-retryable provider failure; with structural stderr, the structural hold instead); a malformed line, an answer without a complete ordered lifecycle
+other key - a turn.failed with that text, no agent message, no other flagged event, an -o file that is absent or
+retained complete, exact and blank - at most 2,048 UTF-8 bytes (revision 15): a retryable provider failure; with
+structural stderr, the structural hold instead; a blank -o file over 2,048 UTF-8 bytes cannot be proven blank from
+the journal, so that end is a retained final ERR_ISOLATION and the job holds); a malformed line, an answer without a complete ordered lifecycle
 (thread.started once and first, turn.started once, each item completed once, exactly one agent message,
 turn.completed once and last with non-negative integer token counts, no turn.failed), or an event answer that differs
 from the `-o` answer is ERR_ISOLATION;

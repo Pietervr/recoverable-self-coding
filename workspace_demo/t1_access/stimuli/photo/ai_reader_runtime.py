@@ -77,6 +77,10 @@ PARSER AND CLASSIFICATION (fail closed; `parse_events`, `lifecycle`, `classify`)
   An answer longer than ANSWER_KEEP characters is never cut silently (excerpt, original length and sha256, overlength).
   The -o file is retained as evidence on every dispatched outcome (FILE_ANSWER_KEEP bytes, length and sha256), so a
   non-answer label can be checked against it.
+  Revision 15 (Codex RSC 431f072): the declared capacity exception (provider retry or structural hold) is granted only
+  when the -o file is ABSENT or its COMPLETE text is retained exact and blank - at most FILE_ANSWER_KEEP = 2,048 UTF-8
+  bytes. A blank -o file above that limit cannot be proven blank from the journal: the end is a retained final
+  ISOLATION carrying CAPACITY_UNPROVEN, and the job HOLDS before any further dispatch (fail closed; no retry).
 """
 
 from __future__ import annotations
@@ -132,6 +136,11 @@ NOTICE_PREFIXES = ("Falling back from WebSockets to HTTPS transport.",)
 # Revision 13: the declared provider-capacity refusal (job (b), request 59adc2d73b07, 3 October 2026). Nothing is received:
 # a RETRYABLE provider failure on exactly the shape `capacity_refusal` checks; any other top-level error stays isolation.
 CAPACITY_MESSAGES = ("Selected model is at capacity. Please try a different model.",)
+# Revision 15 (Codex RSC 431f072): the capacity shape with a blank -o file that is NOT retained complete and exact (over
+# FILE_ANSWER_KEEP UTF-8 bytes) - its blankness cannot be re-derived, so no retry and no structural label: a retained
+# final isolation carrying this marker, and the job holds (ai_reader_journal.holds).
+CAPACITY_UNPROVEN = ("capacity refusal with incomplete -o evidence: a blank -o file over FILE_ANSWER_KEEP (2,048) UTF-8 "
+                     "bytes cannot be re-derived as blank - final, the job holds")
 MACH = ["com.apple.trustd.agent", "com.apple.SecurityServer", "com.apple.SystemConfiguration.configd",
         "com.apple.dnssd.service", "com.apple.system.opendirectoryd.libinfo", "com.apple.system.notification_center",
         "com.apple.logd", "com.apple.diagnosticd"]
@@ -481,6 +490,12 @@ def bounded(b: bytes, keep: int) -> dict:
     return d
 
 
+def file_blank_proven(fa: dict | None) -> bool:
+    """Revision 15: the -o evidence proves 'no answer' - the file is absent, or its complete text is retained exact
+    (<= FILE_ANSWER_KEEP UTF-8 bytes) and blank."""
+    return fa is None or ("text" in fa and fa.get("exact") is True and fa["text"].strip() == "")
+
+
 def retained_text(d: dict) -> str:
     return d["text"] if "text" in d else d["head"] + "\n" + d["tail"]
 
@@ -645,8 +660,15 @@ def classify(stdout: bytes, stderr: bytes, last_message: str | None, returncode:
     answer = ea if ea is not None else (file_answer if file_answer is not None and file_answer.strip() else None)
     ev["file_answer_sha256"] = sha(file_answer.encode()) if file_answer is not None else None
     ev["file_answer"] = bounded(file_answer.encode(), FILE_ANSWER_KEEP) if file_answer is not None else None
-    if not problems and not overflow and len(stdout) <= EVENTS_KEEP and capacity_refusal(events) and \
-            (file_answer is None or not file_answer.strip()):
+    # revision 15: the capacity shape is judged from retained evidence only (complete events, no malformed line, the
+    # declared markers, no answer); an -o file whose blankness the journal cannot re-derive makes it a final isolation
+    # with CAPACITY_UNPROVEN and a hold - whatever the overflow flag, which the journal cannot reconstruct
+    capacity = not problems and len(stdout) <= EVENTS_KEEP and capacity_refusal(events) and \
+        (file_answer is None or not file_answer.strip())
+    if capacity and not file_blank_proven(ev["file_answer"]):
+        return {**ev, "outcome": "isolation_violation", "retained": True,
+                "isolation_events": isolation_problems(events) + [CAPACITY_UNPROVEN], **bounded_answer(None)}
+    if capacity and not overflow:
         if STRUCTURAL.search(retained_text(ev["stderr"])):    # revision 14 (R2): structural stderr wins - the hold
             return {**ev, "outcome": "structural_failure", "retained": False, "isolation_events": [],
                     **bounded_answer(None)}
