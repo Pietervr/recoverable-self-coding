@@ -1,0 +1,8 @@
+dataset (2688, 1) concepts 32 identity 3a2353fd172829ca
+sequential: 3 resamples in 134.8 s
+index 2: shard 27.9 s, bitwise equal to the sequential record: True; failed=False; stats {"selection": {"ws": -0.6688973776108981}, "ensemble": {"ws": -0.6410971163911319}, "histo
+index 1: shard 42.7 s, bitwise equal to the sequential record: True; failed=False; stats {"selection": {"ws": -1.7198434447752857}, "ensemble": {"ws": -1.6863372718559688}, "histo
+index 0: shard 26.8 s, bitwise equal to the sequential record: True; failed=False; stats {"selection": {"ws": -0.9973931837746168}, "ensemble": {"ws": -0.9805271325545856}, "histo
+REAL PARITY: PASS
+
+[exited with code 0]
