@@ -15,6 +15,10 @@ T1 = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(T1, "chpc"))
 spec = importlib.util.spec_from_file_location("row19_watch", os.path.join(T1, "chpc", "row19_watch.py"))
 W = importlib.util.module_from_spec(spec); spec.loader.exec_module(W)
+# The fixtures build their snapshots in a private live directory: the production cache (chpc/results/row19_slice/live) is
+# the slice's actual evidence once the campaign runs and must never be overwritten by a test (3 Oct 2026).
+_TEST_LIVE = tempfile.mkdtemp(prefix="row19_watch_test_")
+W.LIVE_DIR = os.path.join(_TEST_LIVE, "live"); W.ARCHIVE_DIR = os.path.join(_TEST_LIVE, "archive")
 spec2 = importlib.util.spec_from_file_location("row19_slice", os.path.join(T1, "chpc", "row19_slice.py"))
 R19 = importlib.util.module_from_spec(spec2); spec2.loader.exec_module(R19)
 from test_row19_slice import _manifest, _run, _dirs, _Patched
