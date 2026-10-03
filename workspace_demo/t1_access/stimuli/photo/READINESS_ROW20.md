@@ -1,4 +1,4 @@
-# Photograph arm, ledger row 20: readiness, revision 14
+# Photograph arm, ledger row 20: readiness, revision 15
 
 R084 (Claude), 3 October 2026. **Row 20 has no go for this package.** Two actual runs have happened: on 2 October,
 under the owner's go, the revision-10 package ran 158 instrumented forwards on the development images and stopped
@@ -15,8 +15,13 @@ validator call; the transition becomes a chain of declared predecessors (revisio
 revision 12 for native 00-15). **Revision 14** (§R14, Codex `c4bbcb5`, handoff `ee9852d7`): a prepared link whose
 ledger-slot write did not happen is reconciled idempotently on restart (only the slot commit), and the declarations are
 corrected (three records reached two steps at small logits; the rule is relaxed at and above 16, never tighter). Resume
-after Codex's record, the owner's release of the 3 October terminal record and
-the go: native 16-19 and the report.
+after Codex's record. **Revision 15** (§R15, handoff `6dc8029e`): the Mac's unplanned restart on 3 October brought
+macOS 27.0 -> 27.0.1 and the revision-14 resume was refused at the gates (no forward; 71.5 s charged); the identity is
+regenerated on 27.0.1 and the revision-12 -> current link admits exactly that OS pair as a declared, recorded
+difference. Natives 16-19 will be produced on 27.0.1 against references made on 27.0: a PASS is parity across both, a
+FAIL is ambiguous (OS or path). Resume after Codex's record on revision 15 and the owner's go rebound to it (the
+release of the 3 October terminal record is bound and stays valid while TERMINAL's bytes are unchanged): the second
+transition, 15-native re-evaluated, native 16-19 and the report.
 
 **What this answers.** Codex reviewed revision 11 (RSC `308901c`): the reader favourable, Stage A NOT ON BOARD on
 three items (RSC `5eb51a8`) - A1 the 2 October instrumented phase not admitted under the new identity, A2 a gates

@@ -3,7 +3,8 @@
 Revision 5 answers Codex's record RSC 1bf9890 (not favourable to revision 4 at d7a486a) through R052's handoff
 8c9dac2b; the condition-by-condition map is STAGE_A_CRITERIA.md §1; revisions 6-14 in its §0-§R14. Revision 13: the
 native logit criterion in bfloat16 steps at and above 16 (`compare`) and the chained transition (`PREDECESSORS`);
-revision 14: the prepared-link reconciliation in `identity_transition` (Codex c4bbcb5 R1).
+revision 14: the prepared-link reconciliation in `identity_transition` (Codex c4bbcb5 R1); revision 15: macOS
+27.0 -> 27.0.1 as the one declared environment difference of the revision-12 link (`environment_differences`).
 EXPOSURE: two runs - 2 October (revision 10: gates and 158 instrumented forwards, terminal) and 3 October (revision 12:
 16 native forwards, terminal at 15-native) - reviews/2026-10-02_stage_a_run.md, reviews/2026-10-03_stage_a_resume_run.md.
 
@@ -693,6 +694,10 @@ PREDECESSOR = {"package": "Stage A revision 10, RSC fbfb7db", "review": "Codex R
 PREDECESSOR_12_ID = "c0fb2ea0f6c5ef83cdabd414cb7d761ec3aabd9de13ed6022a852a7b590da001"
 PREDECESSOR_12 = {"package": "Stage A revision 12, RSC 620f768", "review": "Codex RSC e7b31f0 (favourable)",
                   "phases": ["native"],
+                  # revision 15 (R052 handoff 6dc8029e): the ONE declared environment difference of this link - the
+                  # machine took macOS 27.0 -> 27.0.1 (build 26A434) in the unplanned restart of 3 October; exactly
+                  # this pair is admitted, nothing else
+                  "environment_differences": {"macos": ["27.0", "27.0.1"]},
                   "identity_body": json.loads(r'''{
  "dispatch": {
   "hidden_dtype": "bfloat16",
@@ -777,7 +782,32 @@ PREDECESSOR_12 = {"package": "Stage A revision 12, RSC 620f768", "review": "Code
 PREDECESSORS = {PREDECESSOR_ID: PREDECESSOR, PREDECESSOR_12_ID: PREDECESSOR_12}
 TRANSITION = "IDENTITY_TRANSITION.json"          # the first recorded transition; later ones IDENTITY_TRANSITION.<n>.json
 FROZEN_KEYS = ("plan_sha256", "manifest_sha256", "positions_receipt_sha256", "packet_py_sha256",
-               "package_file_maps_sha256", "jlens", "lens", "dispatch", "machine", "macos")
+               "package_file_maps_sha256", "jlens", "lens", "dispatch", "machine")
+# Revision 15: `macos` left FROZEN_KEYS and is checked here instead - equal, or exactly a pair the predecessor DECLARES
+# in its environment_differences (only revision 12's 27.0 -> 27.0.1); any other value on either side refuses.
+ENVIRONMENT_KEYS = ("macos",)
+
+
+def os_build() -> str | None:
+    try:
+        return subprocess.run(["/usr/bin/sw_vers", "-buildVersion"], capture_output=True, text=True,
+                              timeout=10).stdout.strip() or None
+    except Exception:                                  # noqa: BLE001 - recorded as unknown, never guessed
+        return None
+
+
+def environment_differences(pred: dict, body: dict, current_ident: dict) -> list[dict]:
+    """The declared environment differences of a transition (revision 15); refuses any undeclared one."""
+    out = []
+    for k in ENVIRONMENT_KEYS:
+        a, b = body.get(k), current_ident.get(k)
+        if a == b:
+            continue
+        if list(pred.get("environment_differences", {}).get(k) or []) != [a, b]:
+            raise SystemExit(f"refused: the environment field {k} differs from the predecessor's ({a!r} -> {b!r}) "
+                             f"and that pair is not declared for this predecessor; its outputs cannot be admitted")
+        out.append({"field": k, "from": a, "to": b, **({"to_build": os_build()} if k == "macos" else {})})
+    return out
 
 
 def transition_record(out: Path) -> dict | None:
@@ -815,6 +845,17 @@ def admitted_phase_identity(out: Path, phase_identity: str, current: str) -> boo
     return started and at == current
 
 
+def attempt_environment(out: Path, aid: str, current: str | None, field: str = "macos") -> str | None:
+    """Revision 15: the environment (macOS) an attempt's committed record was produced on, read from the recorded
+    transitions: the 'from' value of the FIRST link that declares a difference in `field` and lists the attempt among
+    its completed ids; otherwise (completed after every such link, or no such link) the current value."""
+    for t in transition_records(out):
+        for d in t.get("environment_differences") or []:
+            if d.get("field") == field and aid in (t.get("completed_attempts") or []):
+                return d.get("from")
+    return current
+
+
 def identity_transition(ctx, current_ident: dict) -> None:
     """Called by worker_open before the ledger opens: a no-op unless the ledger is bound to a DECLARED predecessor
     and the current package differs from it.
@@ -822,8 +863,10 @@ def identity_transition(ctx, current_ident: dict) -> None:
     TWO WRITES, IN THIS ORDER (revision 14, Codex c4bbcb5 R1): (1) the next transition link (IDENTITY_TRANSITION.json,
     then IDENTITY_TRANSITION.<n>.json), durable; (2) the ledger's identity slot (stage_a_state.json). A death or a failed
     write between them leaves a PREPARED TAIL: the last link runs from the ledger's identity to the current one while
-    the ledger still holds its predecessor. A later start RECONCILES it idempotently - it completes ONLY write (2) - when
-    every condition holds: the tail's from/to equal the ledger's identity and the current package identity; the chain
+    the ledger still holds its predecessor. ENVIRONMENT (revision 15): `macos` is not frozen; it must be equal or
+    exactly a pair the predecessor declares (revision 12: 27.0 -> 27.0.1), recorded in the link's
+    environment_differences with the build string. A later start RECONCILES a prepared tail idempotently - it
+    completes ONLY write (2) - when every condition holds: the tail's from/to equal the ledger's identity and the current package identity; the chain
     before it is unbroken and ends at the ledger's identity; the current TERMINAL_RELEASE.json is valid for the current
     TERMINAL bytes (a release the controller's later failure invalidated cannot be reused - that failure needs its own
     release) and was consumed by no EARLIER link; the frozen inputs equal the predecessor's; no open or interrupted
@@ -860,6 +903,7 @@ def identity_transition(ctx, current_ident: dict) -> None:
     if differ:
         raise SystemExit(f"refused: the frozen inputs differ from the predecessor's ({differ}); its outputs cannot be "
                          f"admitted")
+    env = environment_differences(pred, body, current_ident)          # revision 15
     if st.get("open_attempt") or st.get("interrupted"):
         raise SystemExit("refused: an open or interrupted attempt in the predecessor's ledger; no transition")
     code_old, code_new = body.get("local_code_sha256", {}), current_ident.get("local_code_sha256", {})
@@ -867,7 +911,8 @@ def identity_transition(ctx, current_ident: dict) -> None:
               "local_code_differs": {n: {"from": code_old.get(n), "to": code_new.get(n)}
                                      for n in sorted(set(code_old) | set(code_new))
                                      if code_old.get(n) != code_new.get(n)},
-              "frozen_identical": list(FROZEN_KEYS), "completed_attempts": sorted(st.get("completed", {})),
+              "frozen_identical": list(FROZEN_KEYS), "environment_differences": env,
+              "completed_attempts": sorted(st.get("completed", {})),
               "counters": st.get("counters"), "carry_in": st.get("carry_in")}
     from enforce import write_json_atomic
     if prepared:                                       # revision 14 (R1): complete only the slot commit

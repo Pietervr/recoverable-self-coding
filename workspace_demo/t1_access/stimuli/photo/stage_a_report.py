@@ -524,7 +524,20 @@ def build(out: Path, plan: dict, ledger: dict, *, admissible: bool, session: str
                                                            0.10))):
             W(rep / name, svg.encode())
             outputs[f"report/{name}"] = _sha(svg.encode())
-    md = [f"# Stage A (row 20) report - {record['label']}", "",
+    import stage_a as A                               # revision 15: per-record environment provenance
+    try:
+        cur_os = json.loads(A.IDENTITY.read_text()).get("macos")
+    except Exception:                                  # noqa: BLE001
+        cur_os = None
+    env_links = [(t, d) for t in A.transition_records(out) for d in (t.get("environment_differences") or [])]
+    provenance = ([f"**Environment provenance (revision 15).** The machine's OS changed without the project's doing "
+                   f"(the unplanned restart of 3 October; the revision-14 resume refused at the gates at 16:27 UTC, its "
+                   f"71.5 s charged). " + " ".join(
+                       f"Records completed before the transition {t.get('from', '')[:8]} -> {t.get('to', '')[:8]} "
+                       f"({len(t.get('completed_attempts') or [])}) were produced on {d['field']} {d['from']}; later "
+                       f"records on {d['to']} (build {d.get('to_build')})." for t, d in env_links), ""]
+                  if env_links else [])
+    md = [f"# Stage A (row 20) report - {record['label']}", "", *provenance,
           f"Validator: {'PASS' if record['validator_pass'] else 'FAIL'} ({len(val['failures'])} failures). "
           "Only STAGE_A_FINAL.json, written by the controller after this report, can state PASS.", "",
           f"Unique planned ids {len(planned)}; started {unique_started}; actual tries {tries}.", ""]
@@ -537,13 +550,16 @@ def build(out: Path, plan: dict, ledger: dict, *, admissible: bool, session: str
            "larger magnitude's binade); 0.10 is the floor, not the bound for every logit. The columns describe the "
            "component with the largest absolute difference; the deciding component (largest difference / tolerance) "
            "is in the last two columns and, with its magnitude and steps, in stage_a_report.json and any failure.", "",
+           "Instrumented references (00-19) and their macOS are in the provenance note above; the native column "
+           "'native macOS' is each native record's own (from the transition records). A revision-15 parity FAIL in a "
+           "record produced on a different macOS from its reference is AMBIGUOUS (OS or path).", "",
            "| input | rel L2 max | logit max abs | at magnitude | tolerance there | bf16 steps | worst diff / tolerance "
-           "| at magnitude | argmax equal | pass |",
-           "|---|---|---|---|---|---|---|---|---|---|"] + \
+           "| at magnitude | argmax equal | pass | native macOS |",
+           "|---|---|---|---|---|---|---|---|---|---|---|"] + \
           [f"| {r['index']} | {r['rel_l2_max']:.3g} | {r['logit_max_abs']:.3g} | {r['logit_max_abs_magnitude']:.4g} | "
            f"{r['logit_max_abs_tolerance']:.4g} | {r['logit_max_abs_bf16_steps']} | "
            f"{r['logit_worst_abs'] / r['logit_worst_tolerance']:.3g} | {r['logit_worst_magnitude']:.4g} | "
-           f"{r['argmax_equal']} | {r['pass']} |"
+           f"{r['argmax_equal']} | {r['pass']} | {A.attempt_environment(out, r['id'], cur_os)} |"
            for r in val["parity"]] + \
           ["", "## Stage B", "", "```", json.dumps({"prediction": b, "admission": admission}, indent=1), "```", "",
            "## Interpretation", "", "Not written here: the author inspects the figures and archives "

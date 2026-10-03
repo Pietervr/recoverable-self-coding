@@ -1,4 +1,4 @@
-# Stage A (ledger row 20): declared criteria and code, revision 14 (R084, 3 October 2026)
+# Stage A (ledger row 20): declared criteria and code, revision 15 (R084, 3 October 2026)
 
 **Specification:** framework `rsc_t1_two_channel_framework.md` §8.2, §8.4 and §8.6 (Unimog; R052's text).
 
@@ -19,7 +19,8 @@
 | 11 | RSC `308901c` | RSC `5eb51a8` | NOT ON BOARD (Stage A; the reader favourable): A1 old-package admission, A2 gates hold, A3 live controls in the wait |
 | 12 | RSC `620f768` | RSC `e7b31f0` | FAVOURABLE; the owner's release and go (bound at RSC `cef5e0b`) resumed it on 3 October: STOPPED at 15-native by the frozen logit criterion (`reviews/2026-10-03_stage_a_resume_run.md`) |
 | 13 | RSC `22047ec` | RSC `c4bbcb5` | NOT FAVOURABLE: the criterion and the one compare accepted; the chain, carry and fixture replacement credited; R1 the prepared-link boundary, R2 declarations |
-| 14 | this commit | — | answers R052's handoff `ee9852d7`: R1 reconciliation, R2 corrections (§R14) |
+| 14 | RSC `c22cd32` | RSC `ac60eb8` | FAVOURABLE; the owner's release and go (bound at `28f1fc5`): the resume REFUSED at the gates - the machine's macOS had moved 27.0 -> 27.0.1 (`reviews/2026-10-03_stage_a_rev14_gates_refusal.md`) |
+| 15 | this commit | — | answers R052's handoff `6dc8029e`: macOS 27.0 -> 27.0.1 as one declared transition difference (§R15) |
 
 No review record of a not-favourable verdict can be named by a go: the guard's supplementary negative list holds
 `f9d2ef3`, `69539bb`, `081f17b`, `1bf9890`, `b569f8a`, `c036c00`, `12a7f20`, `7fdb937`, `dda950b` (row 20; the last six combined; the list is in the reader-bound `stage_a_guard.py` and is not extended for `5eb51a8`, so the reader's favourable package stays byte-identical - the general refusal remains the absence of a positive, exactly matching attestation) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
@@ -47,6 +48,29 @@ SAMPLING/TICK/KILL MEASUREMENTS: revisions 9 and 10 change no sampling, tick or 
 guardian's arming and release paths and add the foreign-start reconcile, whose evidence is the revision-9/10 tests
 and the retained suite run, not that file; the §000/§00 interval, margin and A1–A3 values are from that file;
 values inside the older sections are their own revision's and are marked so).
+
+## R15. Revision 15: the machine's macOS moved 27.0 -> 27.0.1 (R052 handoff `6dc8029e`)
+
+**What happened.** The Mac restarted unplanned on the morning of 3 October and took the macOS point update 27.0 ->
+27.0.1 (build 26A434) - not the project's doing. At 16:27 UTC the revision-14 resume (owner's release and go, bound at
+`28f1fc5`) was REFUSED at the gates before any forward: the execution identity's ONLY differing field was `macos`
+(`reviews/2026-10-03_stage_a_rev14_gates_refusal.md`). The refused start was charged 71.5 s (2,169.5 -> 2,240.9 s of
+14,400 s). TERMINAL.json and the owner's release were left unchanged and remain valid.
+
+| # | Item | Where it lives | Fixture |
+|---|---|---|---|
+| 1 | The execution identity regenerated on macOS 27.0.1 | `stage_a_identity.json` (`stage_a.py identity` on this machine) | the gates worker at the resume (the real check) |
+| 2 | `macos` leaves FROZEN_KEYS and becomes ONE DECLARED ENVIRONMENT DIFFERENCE, as narrowly as A1 declared its predecessors: only revision 12 declares `{"macos": ["27.0", "27.0.1"]}`; the revision-12 -> current link is admitted when every remaining frozen field is identical AND the pair is exactly 27.0 -> 27.0.1; any other value on either side refuses (revision 10 declares none). The link records `environment_differences` (field, from, to, the build string from `sw_vers`) beside the differing code files, the release, the completed ids, counters and carry. The first link (revision 10 -> 12, both 27.0) is untouched. The prepared-tail reconciliation compares the recorded difference too. `attempt_environment` derives each record's macOS from the links (completed before the declaring link: its `from`; later: the current). | `stage_a.ENVIRONMENT_KEYS`, `environment_differences`, `os_build`, `identity_transition`, `attempt_environment` | `test_stage_a_runner.Rev15Environment` (7), on a COPY of the real records, no forward: the declared pair admitted and recorded (build = `sw_vers`), link 1 byte-unchanged, counters carried, pre-native admission passes, provenance 00/15-native and the instrumented records 27.0, 16/19-native 27.0.1; refused: current macOS 27.1; a predecessor pair other than the declared one; another frozen field (machine) changed with it; revision 10's body (no declared difference); a prepared tail recorded for another OS pair (slot unchanged). Revision 13/14 classes unchanged and passing; their copies now start with no release (the live directory holds the owner's), and the stale-release case uses the kept 2 October release. |
+| 3 | NO forward is added; the plan stays frozen. Natives 16-19 run on 27.0.1 and are compared with their instrumented references made on 27.0 under the unchanged rule (rel L2 <= 0.01; max(0.10, one bf16 step); identical argmax). A PASS shows parity across the path AND the OS point release; a FAIL in 16-19 is declared, prospectively, AMBIGUOUS between the OS change and the native path, settles nothing, stops Stage A, and only a reviewed control can resolve it. 15-native is re-evaluated from its committed 27.0 outputs (no forward). | the unchanged `compare`; this text | — |
+| 4 | The mixed provenance wherever the result is stated | `stage_a_report`: a provenance note under the header (derived from the links: what was produced on which macOS, the refused start and its charge, the OS change not the project's doing) and a "native macOS" column in the parity table; this section; `READINESS_ROW20.md` | `Rev15Environment.test_report_states_the_mixed_provenance` (source-string scope, as revision 14's label test) |
+
+**The question for Codex.** Is the cross-OS comparison of native 16-19 (references on 27.0, natives on 27.0.1)
+acceptable as declared - a PASS read as parity across both, a FAIL as ambiguous - or must a control forward precede
+them? **What a control would take** (built only if required): one NEW planned attempt, e.g. `00-native-control`,
+re-running committed input 00 natively on 27.0.1 and requiring its residuals and requested logits to equal its own
+27.0 native record (00-native) within the parity rule - bit-identity reported separately; it changes the frozen plan
+(a declared plan difference: one attempt, one forward, inside the 200-forward cap at 191), adds a plan-revision note
+and its own fixture, runs before 16-native, and a FAIL there stops Stage A as an OS-attributable difference.
 
 ## R14. Revision 14: the prepared-link boundary and the declarations of Codex `c4bbcb5`
 
@@ -457,9 +481,9 @@ same five hashes). If one review approves both Stage A and the AI reader, each g
 
 ## 6. Tests (no model)
 
-The retained-output evidence for this package is `reviews/2026-10-03_photo_suite_stage_a_rev14_run.md` (command, exit
+The retained-output evidence for this package is `reviews/2026-10-03_photo_suite_stage_a_rev15_run.md` (command, exit
 status, counts, skips, identity, stdout/stderr); earlier records (`..._rev5_run.md` to `..._rev13_run.md`) are
-historical. Counts are stated as Codex `c4bbcb5` R2 asks: tests collected, distinct cases exercised (the main run's
+historical (`..._rev14_run.md` included). Counts are stated as Codex `c4bbcb5` R2 asks: tests collected, distinct cases exercised (the main run's
 collected minus cases skipped in BOTH runs), passing executions (both runs), each skip by its cause, and the build
 run's repeats of main-run cases. For revision 13's record those were 293 collected, 288 distinct, 299 passing
 executions, 21 skips = 16 WordNet (run in the build row) + 5 old transition cases not rerun, the build's 27 including

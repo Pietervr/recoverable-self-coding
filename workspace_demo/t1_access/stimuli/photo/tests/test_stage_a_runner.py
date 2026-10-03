@@ -1144,7 +1144,9 @@ class Rev13Transition(unittest.TestCase):
 
     def setUp(self):
         self.out = Path(tempfile.mkdtemp()) / "o"
-        shutil.copytree(REAL_RUN, self.out, ignore=shutil.ignore_patterns("LOCK"))
+        # the copy starts with NO release (the live directory may hold the owner's; each test writes the release it
+        # needs); the 2 October one, if kept beside the live record, is copied under its own name
+        shutil.copytree(REAL_RUN, self.out, ignore=shutil.ignore_patterns("LOCK", "TERMINAL_RELEASE.json"))
         self.ctx = stage_a.Ctx(out=self.out, verify_controller=False)
         self.state0 = json.loads((self.out / "stage_a_state.json").read_text())
         self.done0 = (self.out / "INSTRUMENTED_DONE.json").read_bytes()
@@ -1216,6 +1218,11 @@ class Rev13Transition(unittest.TestCase):
                          stage_a.PREDECESSOR_12_ID)
 
     def test_the_2_october_release_does_not_release_the_3_october_record(self):
+        old = self.out / "TERMINAL_RELEASE.2026-10-02.json"
+        if old.exists():
+            shutil.copyfile(old, self.out / "TERMINAL_RELEASE.json")
+        else:                                                                       # reconstructed: the old bytes
+            self.release(terminal_bytes=b"the 2 October terminal record")
         self.assertIsNone(G.terminal_release(self.out))                            # stale: names the old bytes
         with self.assertRaisesRegex(SystemExit, "terminal|release"):
             stage_a.worker_open(self.ctx, "native")
@@ -1365,6 +1372,86 @@ class Rev14PreparedLink(unittest.TestCase):
                     stage_a.worker_open(self.ctx, "native")
                 self.assertEqual(json.loads((self.out / "stage_a_state.json").read_text())["identities"]["row20"],
                                  stage_a.PREDECESSOR_12_ID)
+
+
+
+@unittest.skipUnless((REAL_RUN / "IDENTITY_TRANSITION.json").exists() and (REAL_RUN / "passes" / "15-native.json")
+                     .exists(), "needs the 3 October resume's records")
+class Rev15Environment(unittest.TestCase):
+    """Revision 15 (R052 handoff 6dc8029e): macOS 27.0 -> 27.0.1 as the ONE declared environment difference of the
+    revision-12 -> current link, on a COPY of the real 3 October records (no forward). The current identity is the
+    one regenerated on this machine (27.0.1)."""
+
+    setUp, tearDown, release = Rev13Transition.setUp, Rev13Transition.tearDown, Rev13Transition.release
+    prepare = Rev14PreparedLink.prepare
+
+    def cur(self):
+        return json.loads(self.ctx.identity_path.read_text())
+
+    def test_the_declared_pair_is_admitted_and_recorded(self):
+        self.assertEqual(stage_a.PREDECESSOR_12["identity_body"]["macos"], "27.0")
+        self.assertEqual(self.cur()["macos"], "27.0.1")
+        self.assertNotIn("macos", stage_a.FROZEN_KEYS)
+        self.release()
+        budget, plan, _ = stage_a.worker_open(self.ctx, "native")
+        t2 = json.loads((self.out / "IDENTITY_TRANSITION.2.json").read_text())
+        self.assertEqual([(d["field"], d["from"], d["to"]) for d in t2["environment_differences"]],
+                         [("macos", "27.0", "27.0.1")])
+        self.assertEqual(t2["environment_differences"][0]["to_build"], stage_a.os_build())
+        self.assertNotIn("macos", t2["frozen_identical"])
+        self.assertEqual((self.out / "IDENTITY_TRANSITION.json").read_bytes(), self.t1)    # link 1 untouched
+        self.assertEqual(budget.state["counters"], self.state0["counters"])
+        self.assertEqual(len(stage_a.admit_native(self.ctx, plan, budget)), len(plan["inputs"]))
+        # per-record provenance: 00-15 native and the instrumented records on 27.0; later records on 27.0.1
+        for aid, want in (("00-native", "27.0"), ("15-native", "27.0"), ("03-plain", "27.0"), ("16-native", "27.0.1"),
+                          ("19-native", "27.0.1")):
+            self.assertEqual(stage_a.attempt_environment(self.out, aid, "27.0.1"), want, aid)
+
+    def test_another_current_os_refuses(self):
+        self.release()
+        with self.assertRaisesRegex(SystemExit, "environment field macos"):
+            stage_a.identity_transition(self.ctx, {**self.cur(), "macos": "27.1"})
+        self.assertFalse((self.out / "IDENTITY_TRANSITION.2.json").exists())
+
+    def test_a_predecessor_os_other_than_the_declared_one_refuses(self):
+        self.release()
+        saved = stage_a.PREDECESSOR_12["environment_differences"]
+        stage_a.PREDECESSOR_12["environment_differences"] = {"macos": ["26.9", "27.0.1"]}
+        try:
+            with self.assertRaisesRegex(SystemExit, "environment field macos"):
+                stage_a.identity_transition(self.ctx, self.cur())
+        finally:
+            stage_a.PREDECESSOR_12["environment_differences"] = saved
+        self.assertFalse((self.out / "IDENTITY_TRANSITION.2.json").exists())
+
+    def test_another_frozen_field_changed_with_it_refuses(self):
+        self.release()
+        with self.assertRaisesRegex(SystemExit, "frozen inputs differ"):
+            stage_a.identity_transition(self.ctx, {**self.cur(), "machine": "x86_64"})
+        self.assertFalse((self.out / "IDENTITY_TRANSITION.2.json").exists())
+
+    def test_the_revision_10_predecessor_declares_no_difference(self):
+        self.assertEqual(stage_a.PREDECESSOR.get("environment_differences", {}), {})
+        with self.assertRaisesRegex(SystemExit, "environment field macos"):
+            stage_a.environment_differences(stage_a.PREDECESSOR, stage_a.PREDECESSOR["identity_body"], self.cur())
+
+    def test_a_prepared_tail_for_another_os_pair_refuses(self):
+        self.prepare()
+        t = json.loads((self.out / "IDENTITY_TRANSITION.2.json").read_text())
+        t["environment_differences"] = [{**t["environment_differences"][0], "to": "27.1"}]
+        (self.out / "IDENTITY_TRANSITION.2.json").write_text(json.dumps(t))
+        with self.assertRaisesRegex(SystemExit, "prepared transition record does not match"):
+            stage_a.worker_open(self.ctx, "native")
+        self.assertEqual(json.loads((self.out / "stage_a_state.json").read_text())["identities"]["row20"],
+                         stage_a.PREDECESSOR_12_ID)
+
+    def test_report_states_the_mixed_provenance(self):
+        """Source-string scope (as revision 14's label test): the report's provenance note and OS column exist."""
+        src = Path(R.__file__).read_text()
+        self.assertIn("Environment provenance (revision 15)", src)
+        self.assertIn("| native macOS |", src)
+        self.assertIn("AMBIGUOUS (OS or path)", src)
+        self.assertIn("A.attempt_environment(out, r['id'], cur_os)", src)
 
 
 if __name__ == "__main__":
