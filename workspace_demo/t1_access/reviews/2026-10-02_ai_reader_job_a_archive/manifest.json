@@ -1,0 +1,17 @@
+{
+ "archived_from": {
+  "captures/ai_reader_job/clock.closed.json": {
+   "bytes": 193,
+   "sha256": "8477cfe6bd09f90c1295d2eb95808effe158ce425f1c429faa903dfe278f4a24"
+  },
+  "captures/ai_reader_job/clock.json": {
+   "bytes": 401,
+   "sha256": "f1716784246ca176f30fe2c9caebc106e9d85aee8881924d7b9890a35bbbe46f"
+  },
+  "stimuli/photo/ai_reader_raw_responses.jsonl": {
+   "bytes": 1914856,
+   "sha256": "b8c8bf4f991f6ebd5e90f049999d1d7c7a9df566701380807522277a3fc1ee44"
+  }
+ },
+ "job": "job (a), 2 October 2026 (UTC 3 October): COMPLETE 600 of 600, 600 of 660 attempts, 4,000.8 s; scored NOT ADMITTED (49 of 63 easy gray) under the revision-11 package 6be7d4c8\u2026"
+}
