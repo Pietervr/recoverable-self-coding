@@ -27,6 +27,7 @@ import argparse, glob, json, os, re, shutil, subprocess, sys, time, math
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from row19_control_compare import expected_contract, validate_record
+import row19_identity_oracle as O
 
 HOST = "chpc-scp"
 LOGIN = "lengau"
@@ -274,13 +275,20 @@ def main(argv=None):
         task = json.load(open(tp)); b = task["binding"]
         key = (root, rep)
         if key not in contracts:
+            # The producer-runtime identity oracle (row19_identity_oracle.py): pulled with the root in the same snapshot; used only
+            # when this host's rebuild differs, only from a FRESH snapshot (or the declared local cache) - never after a failed pull.
+            oracle = None
+            op = os.path.join(lr, O.ORACLE_NAME)
+            if (fresh or a.no_pull) and os.path.exists(op):
+                oracle = O.load(op)
             try:
-                contracts[key] = (expected_contract(a.manifest, b), "")
+                contracts[key] = (expected_contract(a.manifest, b, oracle=oracle), "")
             except Exception as ex_:
                 contracts[key] = (None, str(ex_))
         ex, why = contracts[key]
         if ex is None:
             alarms.append(f"rep {rep}: task binding is not this manifest's ({why})"); continue
+        print(f"    identity basis: {ex['basis']}" + (f" - {ex['basis_detail']}" if ex["basis"] != "local" else ""))
         target = ex["n_rep"] if b.get("until") is None else int(b["until"])
         ck = os.path.join(lr, "ckpt", os.path.basename(b["ckpt"]))
         acc, failed, fits, problems, tail = checkpoint_metadata(ck, ex, ex["n_rep"])

@@ -40,8 +40,10 @@ def _is_int(x):
     return isinstance(x, int) and not isinstance(x, bool)
 
 
-def expected_contract(manifest_path, task_binding):
-    """Rebuild the dataset of the frozen task (no fit) and return the expected draws per index and the band names."""
+def expected_contract(manifest_path, task_binding, oracle=None):
+    """Rebuild the dataset of the frozen task (no fit) and return the expected draws per index and the band names.
+    `oracle`: the root's pulled identity_oracle.json (a dict from row19_identity_oracle.load) - consulted ONLY when this
+    host's rebuilt identity differs from the binding's; the returned `basis` is 'local' or 'oracle' with its detail."""
     import numpy as np
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")))
     import analyze as A, simulate as S
@@ -84,14 +86,29 @@ def expected_contract(manifest_path, task_binding):
     if snap.get("models") != json.loads(json.dumps(local_models, default=str)):
         raise ValueError("the producer's snapshot model settings differ from the pinned models.py's")
     ident = A.dataset_identity(ds, cfg, seed, n_rep, folds, numerical=snap)
-    if ident != task_binding["ident"] or n_rep != int(task_binding["n_rep"]):
+    if n_rep != int(task_binding["n_rep"]):
         raise ValueError("the task binding's identity or B is not the manifest's for this rep")
     idx = A.stratified_resample(ds.family, n_rep, np.random.default_rng(seed))
+    basis, basis_detail = "local", "identity reproduced by this host's reconstruction"
+    if ident != task_binding["ident"]:
+        # The producer-runtime identity oracle (chpc/row19_identity_oracle.py; Codex RSC 9d8f706): only when the local
+        # rebuild differs, and only an entry bound to this manifest's bytes and this binding, generated under the pinned
+        # runtime with the binding's snapshot, whose recomputed identity equals the binding's and whose structural digests
+        # (everything but the response bytes, the folds, the full draw matrix) equal this host's reconstruction.
+        if oracle is None:
+            raise ValueError("the task binding's identity or B is not the manifest's for this rep")
+        import row19_identity_oracle as O
+        local_digests, _ = O.structural_digests(ds, folds, idx)
+        ok, detail = O.verify_entry(oracle, manifest_path, task_binding, local_digests)
+        if not ok:
+            raise ValueError("the task binding's identity or B is not the manifest's for this rep, and the oracle cannot supply the "
+                             "fallback: " + "; ".join(detail))
+        ident, basis, basis_detail = task_binding["ident"], "oracle", detail
     masks = {b: m for b, m in A.band_masks(ds.layers, cfg.bands).items() if m.any()}
     bands = list(masks) + (["ws_minus_early"] if "ws" in masks and "early" in masks else [])
     return dict(ident=ident, seed=seed, n_rep=n_rep, draws={i: [int(x) for x in idx[i]] for i in range(n_rep)}, bands=bands,
                 predictors=list(A.PREDICTORS), code_hash=S.config_hash(cfg, int(st["D"]), st["layers"], seed, float(st["rho"])),
-                policy=cfg.start_policy, rep=rep)
+                policy=cfg.start_policy, rep=rep, basis=basis, basis_detail=basis_detail)
 
 
 def validate_record(d, ex, target):
@@ -156,17 +173,26 @@ def main(argv=None):
     ap.add_argument("--interruption", required=True, help="C2's interruption record (PBS accounting + records before the kill)")
     ap.add_argument("--ledger", required=True, help="the campaign ledger budget.json (binds the C1, C2 and C3 jobs)")
     ap.add_argument("--target", type=int, default=20)
+    ap.add_argument("--oracle", default=None, help="the C1 root's pulled identity_oracle.json (row19_identity_oracle.py); consulted only "
+                                                   "when this host's rebuilt identity differs from the task binding's")
     a = ap.parse_args(argv)
     qual, diffs = [], []
     task_doc = json.load(open(a.task)); task = task_doc["binding"]; task_sha = task.get("manifest_sha")
     if task.get("until") is None or int(task["until"]) != a.target:
         qual.append(f"task binding's target {task.get('until')} is not --target {a.target}")
+    oracle = None
+    if a.oracle:
+        import row19_identity_oracle as O
+        oracle = O.load(a.oracle)
+        if oracle is None:
+            print(f"the oracle {a.oracle} is absent: local reconstruction only")
     try:
-        ex = expected_contract(a.manifest, task)
+        ex = expected_contract(a.manifest, task, oracle=oracle)
     except Exception as e:
         print(f"the frozen task cannot be rebuilt from the manifest: {e}")
         print("  PARITY: not comparable\n  QUALIFIED AS A RECOVERY CONTROL: NO")
         return 3
+    print(f"identity basis: {ex['basis']} - {ex['basis_detail']}")
     try:
         led = json.load(open(a.ledger))
         entries = {k: [e for e in led["entries"].values() if e.get("kind") == k and e.get("rep") == int(task["rep"])] for k in ("c1", "c2", "c3")}
