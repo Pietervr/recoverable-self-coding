@@ -1,9 +1,51 @@
-# AI image-reader qualification, revision 11: the design and where each condition lives
+# AI image-reader qualification, revision 12: the design and where each condition lives
 
-R084, 2 October 2026. The specification is framework §8.2's reader rule with R052's closures (Unimog, R052's text).
+R084, 2-3 October 2026. The specification is framework §8.2's reader rule with R052's closures (Unimog, R052's text).
 Revision 5 answers Codex's combined record RSC `1bf9890` (not favourable to revision 4 at RSC `d7a486a`; reader
 conditions 1–7 = R1–R6 there) through R052's handoff `8c9dac2b`. Revision 4 answered RSC `5a8d7ac` (handoff
 `46125389`); its closures stand and are listed after the revision-5 table.
+
+## Revision 12: one matching rule and a one-or-two-word prompt (the owner's decision of 3 October)
+
+Job (a) (revision 11, favourable at Codex RSC `5eb51a8`, the owner's go) ran COMPLETE and was NOT ADMITTED: 49 of 63
+easy gray under the whole-answer key (`reviews/2026-10-02_ai_reader_job_a.md`). Twelve of its 14 easy misses were
+correct recognitions phrased as the noun phrases revision 11's prompt invited ("Toilet paper roll", "Portable
+generator", "Sneakers"): the key measured lexical conformity, not recognition. The owner decided (R052 handoff
+`ff264083`; framework §8.2) to keep free naming, to score the qualification and the image audit by ONE matching rule,
+and to ask for the most common name in one or two words. Job (a) stays NOT ADMITTED under its frozen rule.
+
+| # | Item | Where it lives | Evidence (`tests/test_ai_reader.py`, class `Rev12` under `.venv-build`) |
+|---|---|---|---|
+| A | The shared matching rule | `ai_reader_key.names_concept(answer, concept, entry)`, over the frozen admitted and excluded forms and the recorded synset; WordNet pinned (`_wordnet` checks the zip's sha256 once per process). In order, on the answer as given and with each token singularised (`singular`: the key's inflection policy read backwards): (i) **whole** - equals an admitted form; an excluded form fails (S1-S4 stand); the canonical name or an inflection of ANOTHER released THINGS concept fails (S1's population, all 1,854: "Alpaca" for llama, "Belt buckle" for buckle - the reader named that concept); (ii) **contains** - an admitted form as a whole-word phrase, no head-noun guard; (iii) **hyponym** - a noun sense of the head lemma (the longest whole-word suffix WordNet knows as a noun) is a strict, transitive hyponym (hypernym and instance-hypernym closure) of the target synset; no synset, no (iii). | `test_the_fourteen_easy_misses_of_job_a`, `test_named_cases`, `test_every_excluded_form_still_fails`, `test_singularising_an_admitted_form_never_reaches_an_excluded_one`, `test_wordnet_pin_checked` |
+| B | Both scorers call it | `ai_reader_score.classify_detail` (format before matching, unchanged) then `names_concept`; codes OK_WHOLE / OK_CONTAINS / OK_HYPONYM / ERR_NONMATCH / ERR_MALFORMED (and the other format and status codes as before); the rule label per row, per referral (`rule`: whole / contains / hyponym, or excluded / S1:<ids> on a non-match) and counted (`match_rules`). `audit_alias_map.score` calls the same `classify_detail` with the frozen map's entry; the map's bytes and hash are unchanged (`a3f6ab51…`), its construction reproduced by a rebuild in everything but the two recorded source hashes. | `test_audit_scorer_same_rule_own_entry_point` (whole, contains, hyponym, S1, excluded, a hypernym through `audit_alias_map.score` and `audit_package.score`, equal to the qualification classifier on the map's entry), `test_one_function_in_both_scorers`, `test_audit_map_rebuild_unchanged`, `AuditMap.test_rule_applied_and_inflections` (the map's recorded source hashes are the blobs at its build commit) |
+| C | The prompt | `ai_reader_qual.PROMPT`, word for word the owner's: "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only." The same text is the audit's question 1 (`audit_app/IMAGE_AUDIT_FREEZE.md`). The set was regenerated: its 600 requests (files, bytes, sha256), the delivery order, the items and strata are identical; only the prompt, its hash (`086cd001…`), the revision and two code hashes changed. The delivery receipt was re-rendered locally (`ai_reader_exec.py delivery`, no request; dated 2 October MST, 3 October UTC): image digests, sizes, details and mime byte-identical for all 600, none re-encoded, the instructions hash unchanged (`e2a8ba62…`), the preflight unchanged, the user-text hash changed for all 600, 600 distinct. | `test_prompt_is_the_owners`; `Boundary` (the receipt renders the prompt); the delivery receipt |
+| D | Fixtures (no model) | The 14 easy misses of job (a) with their expected codes - **12 pass, not 11**: "Air conditioning unit" passes by (ii) because "air conditioning" is an admitted form of air_conditioner (a THINGS-listed WordNet synonym); the brief expected a referral. Pearl ("Seashell") and christmas card ("Holiday greeting card": head "greeting card", a hypernym) fail. "paint brush" passes by (ii) (the disclosed residual); "greeting card" and "marlin" fail; "sneakers" passes by (iii); "stretcher" (gurney) and "drums" (bongo) fail - both are other released concepts' names; plurals and articles. | `Rev12` (10 tests) |
+| E | Documents | This section; `AI_READER_JOB.md`; `IMAGE_AUDIT_FREEZE.md` (aggregation under the shared rule; the restated sentence; the exposure statement); the key's rule text (`ai_reader_key.py` docstring); the scorer's docstring. | `test_prompt_is_the_owners` (the freeze carries the prompt) |
+
+**The gate (unchanged, mechanical).** Gray easy accuracy under the shared rule, one-sided exact 95 % lower bound
+>= 0.90: 61 of 63. Declared prospectively, before any revision-12 answer (owner, 3 October; Codex rules on the
+wording): a referral the owner adjudicates as naming the intended object - the picture and the raw answer recorded
+before the decision - is not a reader error, and an admission that rests on such adjudications is reported as
+"admitted with N owner-adjudicated items", never as a mechanical admission. The scorer reports the mechanical result
+and `adjudications_needed`; it records no decision. The audit freeze's sentence "never turns a reader error into a
+pass of the qualification" stands, restated with that distinction.
+
+**Residuals, disclosed.** (ii) has no head-noun guard: the target as a modifier of another object ("paint brush" for
+paint, "toy train" for toy) passes; WordNet cannot disambiguate the head's sense, and for the audit's question such an
+answer is evidence that the stimulus evokes the concept. (iii) reads ANY noun sense of the head, so a rare sense that
+happens to be a hyponym passes. The S1 guard is on the whole answer only: "toilet paper roll" (roll is a released
+concept) passes by (ii), "roll" alone for toilet paper does not.
+
+**Unchanged** (item 5 of the decision): the 300-image set, the strata, easy membership, the key's admitted and
+excluded forms (no alias added, the key file byte-identical, `d9c467f3…`), the alias map's construction, the isolation
+boundary, the journal, the clock, the limits (600 / 660 / 3 / 120 s / 6 h) and S1-S4. The executor, runtime, journal
+and the four files shared with Stage A (`stage_a_guard.py`, `enforce.py`, `memprobe.py`, `stage_a_watchdog.py`) are
+unchanged, so Stage A's revision-12 package is not moved.
+
+**Exposure.** Job (a) sent the 600 qualification requests on 2 October under revision 11; this package has made no
+call. Revision 12 was built knowing job (a)'s answers - the rule is the owner's, fixed before job (b), and job (a)'s
+answers are re-scored under it only as a labelled re-analysis, never for admission
+(`reviews/2026-10-03_ai_reader_job_a_rescore_rev12/`).
 
 ## Revision 11: the 2 October execution race
 
@@ -115,8 +157,8 @@ reader conditions, answered here through R052's handoff `c39df47e`.
 | R6 | Strict admission and idempotent quarantine | Exact key sets per record type (`end` in its recovery, not-sent and classified variants); strict worker and watchdog identities (`memprobe.valid_ident`: pid = pgid = leader, `sec.usec` start, never bool); the begin receipt's image size and detail typed and equal to the frozen delivery, live and in validation; end bookkeeping fields typed (kill, overflow, cleanup, event types, notices, usage); a top-level `error` event is a notice only with a frozen message, else isolation; usage needs non-negative integer input and output tokens; MAX_RECORD per line and the 20 MiB file cap enforced before parsing (`J.read(cap=)`, `validate(raw_bytes=)`, the scorer's admission); one tail_repair per quarantine file, and a crash after the quarantine write but before the truncation records it once. | `Rev5Evidence` (exact schemas, identities, image size/detail, event types, usage, kill; the top-level error event; record and file bounds incl. a final reason expanded past 20 MiB; a duplicate quarantine record); `Rev5Recovery.test_quarantine_crash_before_truncation_one_record` |
 | R7 | Declarations and retained run | This file, `AI_READER_JOB.md` and the module docstrings state revision 5's mechanisms and limits; "no program it may launch" is corrected (the pinned binary may run and fork). The retained-output run of the whole photo suite on this commit: `reviews/2026-10-02_photo_suite_rev5_run.md`. | that record |
 
-**No model has been called, and no image has been shown to any model.** Every check that touches the codex binary is
-local: `--version`, `features list`, `login status`, `debug prompt-input` (the CLI's local rendering of the
+**Exposure (revision 12).** Job (a) of 2 October called the reader with all 600 qualification images under revision 11;
+the revision-12 package has made no call. Every check the package itself runs against the codex binary is local: `--version`, `features list`, `login status`, `debug prompt-input` (the CLI's local rendering of the
 model-visible input), and the exec-invocation receipt — the exact `codex exec` command run with a synthetic 8×8 image
 under the attempt profile with **all network denied by the kernel sandbox**, read from its own log at the instant it
 would sample (nothing can leave the machine).
@@ -141,7 +183,7 @@ would sample (nothing can leave the machine).
 ## What Codex confirmed and what stands unchanged
 
 The redraw, the 300 items at 100 per stratum, 63 easy, the gate 61 of 63 (lower bound 0.9034; 60/63 → 0.8815), the
-noun-phrase task contract, the grayscale gate, colour as a descriptive diagnostic, the referral fields, the nominal
+noun-phrase task contract (revision 12: one or two words, the shared matching rule), the grayscale gate, colour as a descriptive diagnostic, the referral fields, the nominal
 limits 600/660/3/120 s/6 h, the private-qualification exception, S4 kept prospectively with its 13 written exceptions,
 the journal with its hard-kill fixtures, format before matching, the source statements. The 600 requests, their image
 bytes and hashes, the delivery order and the prompt are byte-identical to revision 3.

@@ -1,0 +1,2141 @@
+{
+ "LABEL": "RE-ANALYSIS - NOT A QUALIFICATION RESULT, NEVER ADMISSION (job (a) stays NOT ADMITTED)",
+ "journal_sha256": "b8c8bf4f991f6ebd5e90f049999d1d7c7a9df566701380807522277a3fc1ee44",
+ "key_sha256": "d9c467f39d4d221b8d92059574506b1537140e66b6b9df18db28e15610ef9aea",
+ "ai_reader_key_py_sha256": "274147af5e07b2e2c3b21a69f493e4c4a9567f53fe12b8e05e4ad73adf6e4a66",
+ "ai_reader_score_py_sha256": "3e2ef03ceeb972d0c2e09e6684362913ad1d3b948f365b69669a0d533a25ba19",
+ "rev11_reproduced": {
+  "gray_easy": {
+   "n": 63,
+   "correct": 49
+  },
+  "gray_all": {
+   "n": 300,
+   "correct": 177
+  },
+  "colour_all": {
+   "n": 300,
+   "correct": 184
+  }
+ },
+ "rev12": {
+  "gray_easy": {
+   "n": 63,
+   "correct": 61
+  },
+  "colour_easy": {
+   "n": 63,
+   "correct": 62
+  },
+  "gray_all": {
+   "n": 300,
+   "correct": 231
+  },
+  "colour_all": {
+   "n": 300,
+   "correct": 254
+  },
+  "gray_by_stratum": {
+   "0": {
+    "n": 100,
+    "correct": 55
+   },
+   "1": {
+    "n": 100,
+    "correct": 82
+   },
+   "2": {
+    "n": 100,
+    "correct": 94
+   }
+  },
+  "colour_by_stratum": {
+   "0": {
+    "n": 100,
+    "correct": 69
+   },
+   "1": {
+    "n": 100,
+    "correct": 88
+   },
+   "2": {
+    "n": 100,
+    "correct": 97
+   }
+  },
+  "gray_easy_lower_bound": 0.903419988707412,
+  "required_successes": 61
+ },
+ "rev12_codes": {
+  "gray": {
+   "OK_WHOLE": 177,
+   "OK_CONTAINS": 51,
+   "ERR_NONMATCH": 68,
+   "OK_HYPONYM": 3,
+   "ERR_MALFORMED": 1
+  },
+  "colour": {
+   "OK_WHOLE": 184,
+   "ERR_NONMATCH": 44,
+   "OK_CONTAINS": 68,
+   "ERR_MALFORMED": 2,
+   "OK_HYPONYM": 2
+  }
+ },
+ "s1_guarded": [
+  {
+   "view": "colour",
+   "concept": "bongo",
+   "easy": false,
+   "raw": "Drums",
+   "rule": "S1:drum"
+  },
+  {
+   "view": "colour",
+   "concept": "boxer_shorts",
+   "easy": false,
+   "raw": "Underwear",
+   "rule": "S1:underwear"
+  },
+  {
+   "view": "colour",
+   "concept": "buckle",
+   "easy": false,
+   "raw": "Belt buckle",
+   "rule": "S1:belt_buckle"
+  },
+  {
+   "view": "colour",
+   "concept": "coal",
+   "easy": false,
+   "raw": "Charcoal",
+   "rule": "S1:charcoal"
+  },
+  {
+   "view": "colour",
+   "concept": "dashboard",
+   "easy": false,
+   "raw": "Speedometer",
+   "rule": "S1:speedometer"
+  },
+  {
+   "view": "colour",
+   "concept": "gravy",
+   "easy": false,
+   "raw": "Spoon",
+   "rule": "S1:spoon"
+  },
+  {
+   "view": "colour",
+   "concept": "gurney",
+   "easy": false,
+   "raw": "Stretcher",
+   "rule": "S1:stretcher"
+  },
+  {
+   "view": "colour",
+   "concept": "hatbox",
+   "easy": false,
+   "raw": "Suitcase",
+   "rule": "S1:suitcase"
+  },
+  {
+   "view": "colour",
+   "concept": "llama",
+   "easy": false,
+   "raw": "Alpaca",
+   "rule": "S1:alpaca"
+  },
+  {
+   "view": "colour",
+   "concept": "mail",
+   "easy": false,
+   "raw": "Envelopes",
+   "rule": "S1:envelope"
+  },
+  {
+   "view": "colour",
+   "concept": "pantyhose",
+   "easy": false,
+   "raw": "Stockings",
+   "rule": "S1:stockings"
+  },
+  {
+   "view": "colour",
+   "concept": "thumb",
+   "easy": false,
+   "raw": "Fingers",
+   "rule": "S1:finger"
+  },
+  {
+   "view": "colour",
+   "concept": "wax_paper",
+   "easy": false,
+   "raw": "Cardboard",
+   "rule": "S1:cardboard"
+  },
+  {
+   "view": "colour",
+   "concept": "wood",
+   "easy": false,
+   "raw": "Logs",
+   "rule": "S1:log"
+  },
+  {
+   "view": "gray",
+   "concept": "backscratcher",
+   "easy": false,
+   "raw": "Toothbrush",
+   "rule": "S1:toothbrush"
+  },
+  {
+   "view": "gray",
+   "concept": "bongo",
+   "easy": false,
+   "raw": "Drums",
+   "rule": "S1:drum"
+  },
+  {
+   "view": "gray",
+   "concept": "breathalyzer",
+   "easy": false,
+   "raw": "Car",
+   "rule": "S1:car"
+  },
+  {
+   "view": "gray",
+   "concept": "buckle",
+   "easy": false,
+   "raw": "Belt buckle",
+   "rule": "S1:belt_buckle"
+  },
+  {
+   "view": "gray",
+   "concept": "clay",
+   "easy": false,
+   "raw": "Dough",
+   "rule": "S1:dough"
+  },
+  {
+   "view": "gray",
+   "concept": "coal",
+   "easy": false,
+   "raw": "Cookies",
+   "rule": "S1:cookie"
+  },
+  {
+   "view": "gray",
+   "concept": "collar",
+   "easy": false,
+   "raw": "Belt",
+   "rule": "S1:belt"
+  },
+  {
+   "view": "gray",
+   "concept": "coop",
+   "easy": false,
+   "raw": "Chickens",
+   "rule": "S1:chicken1,chicken2"
+  },
+  {
+   "view": "gray",
+   "concept": "dashboard",
+   "easy": false,
+   "raw": "Speedometer",
+   "rule": "S1:speedometer"
+  },
+  {
+   "view": "gray",
+   "concept": "gourd",
+   "easy": false,
+   "raw": "Pumpkin",
+   "rule": "S1:pumpkin"
+  },
+  {
+   "view": "gray",
+   "concept": "granite",
+   "easy": false,
+   "raw": "Rock",
+   "rule": "S1:rock"
+  },
+  {
+   "view": "gray",
+   "concept": "gurney",
+   "easy": false,
+   "raw": "Stretcher",
+   "rule": "S1:stretcher"
+  },
+  {
+   "view": "gray",
+   "concept": "hatbox",
+   "easy": false,
+   "raw": "Suitcase",
+   "rule": "S1:suitcase"
+  },
+  {
+   "view": "gray",
+   "concept": "highlighter",
+   "easy": false,
+   "raw": "Pens",
+   "rule": "S1:pen"
+  },
+  {
+   "view": "gray",
+   "concept": "llama",
+   "easy": false,
+   "raw": "Alpaca",
+   "rule": "S1:alpaca"
+  },
+  {
+   "view": "gray",
+   "concept": "moccasin",
+   "easy": false,
+   "raw": "Shoes",
+   "rule": "S1:shoe"
+  },
+  {
+   "view": "gray",
+   "concept": "palette",
+   "easy": false,
+   "raw": "Pizza",
+   "rule": "S1:pizza"
+  },
+  {
+   "view": "gray",
+   "concept": "parsley",
+   "easy": false,
+   "raw": "Flowers",
+   "rule": "S1:flower"
+  },
+  {
+   "view": "gray",
+   "concept": "plant",
+   "easy": false,
+   "raw": "Leaves",
+   "rule": "S1:leaf"
+  },
+  {
+   "view": "gray",
+   "concept": "ruby",
+   "easy": false,
+   "raw": "Diamond",
+   "rule": "S1:diamond"
+  },
+  {
+   "view": "gray",
+   "concept": "sandpaper",
+   "easy": false,
+   "raw": "Doorstop",
+   "rule": "S1:doorstop"
+  },
+  {
+   "view": "gray",
+   "concept": "sauerkraut",
+   "easy": false,
+   "raw": "Tongs",
+   "rule": "S1:tongs"
+  },
+  {
+   "view": "gray",
+   "concept": "skewer",
+   "easy": false,
+   "raw": "Sticks",
+   "rule": "S1:stick"
+  },
+  {
+   "view": "gray",
+   "concept": "stirrup",
+   "easy": false,
+   "raw": "Saddle",
+   "rule": "S1:saddle"
+  },
+  {
+   "view": "gray",
+   "concept": "surfboard",
+   "easy": false,
+   "raw": "Kayak",
+   "rule": "S1:kayak"
+  },
+  {
+   "view": "gray",
+   "concept": "tomato_sauce",
+   "easy": false,
+   "raw": "Chili",
+   "rule": "S1:chili"
+  },
+  {
+   "view": "gray",
+   "concept": "viewfinder",
+   "easy": false,
+   "raw": "Microphone",
+   "rule": "S1:microphone"
+  },
+  {
+   "view": "gray",
+   "concept": "washcloth",
+   "easy": false,
+   "raw": "Towel",
+   "rule": "S1:towel"
+  }
+ ],
+ "recovered": [
+  {
+   "view": "colour",
+   "concept": "album",
+   "easy": true,
+   "human": 0.8125,
+   "raw": "Photo album",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "bandage",
+   "easy": true,
+   "human": 0.933333333,
+   "raw": "Adhesive bandages",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "generator",
+   "easy": true,
+   "human": 0.8,
+   "raw": "Portable generator",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "hole",
+   "easy": true,
+   "human": 0.8,
+   "raw": "Hole in a wall",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "hook2",
+   "easy": true,
+   "human": 0.8,
+   "raw": "Metal hook",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "pearl",
+   "easy": true,
+   "human": 0.916666667,
+   "raw": "Seashell with a pearl",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "pillow",
+   "easy": true,
+   "human": 0.823529412,
+   "raw": "Throw pillow",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "scale",
+   "easy": true,
+   "human": 0.857142857,
+   "raw": "Kitchen scale",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "shoe",
+   "easy": true,
+   "human": 1.0,
+   "raw": "Sneakers",
+   "code": "OK_HYPONYM",
+   "rule": "hyponym"
+  },
+  {
+   "view": "colour",
+   "concept": "speaker",
+   "easy": true,
+   "human": 0.916666667,
+   "raw": "Computer speakers",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "table",
+   "easy": true,
+   "human": 1.0,
+   "raw": "Wooden table",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "thread",
+   "easy": true,
+   "human": 0.9375,
+   "raw": "Spool of thread",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "toilet_paper",
+   "easy": true,
+   "human": 0.941176471,
+   "raw": "Toilet paper roll",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "aloe",
+   "easy": false,
+   "human": 0.785714286,
+   "raw": "Aloe vera plant",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "bassinet",
+   "easy": false,
+   "human": 0.235294118,
+   "raw": "Baby bassinet",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "bottle",
+   "easy": false,
+   "human": 0.625,
+   "raw": "Glass bottles",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "bracket",
+   "easy": false,
+   "human": 0.428571429,
+   "raw": "Angle bracket",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "breakfast",
+   "easy": false,
+   "human": 0.294117647,
+   "raw": "Breakfast plate",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "bun",
+   "easy": false,
+   "human": 0.75,
+   "raw": "Sesame seed buns",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "burner",
+   "easy": false,
+   "human": 0.692307692,
+   "raw": "Gas burner",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "canister",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Ceramic canisters",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "cardinal",
+   "easy": false,
+   "human": 0.5,
+   "raw": "Northern cardinal",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "cereal",
+   "easy": false,
+   "human": 0.25,
+   "raw": "Bowl of cereal",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "chime",
+   "easy": false,
+   "human": 0.125,
+   "raw": "Wind chime",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "chute",
+   "easy": false,
+   "human": 0.2,
+   "raw": "Debris chute",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "clover",
+   "easy": false,
+   "human": 0.4,
+   "raw": "Four-leaf clover",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "collar",
+   "easy": false,
+   "human": 0.352941176,
+   "raw": "Dog collar",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "column",
+   "easy": false,
+   "human": 0.733333333,
+   "raw": "Ionic columns",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "corsage",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Wrist corsage",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "cracker",
+   "easy": false,
+   "human": 0.333333333,
+   "raw": "Sesame crackers",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "cream_cheese",
+   "easy": false,
+   "human": 0.2,
+   "raw": "Cream cheese container",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "doily",
+   "easy": false,
+   "human": 0.5,
+   "raw": "Crocheted doily",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "doorknocker",
+   "easy": false,
+   "human": 0.4375,
+   "raw": "Door knocker",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "eyeliner",
+   "easy": false,
+   "human": 0.647058824,
+   "raw": "Liquid eyeliner",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "foam",
+   "easy": false,
+   "human": 0.529411765,
+   "raw": "Acoustic foam",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "garter",
+   "easy": false,
+   "human": 0.5,
+   "raw": "Floral lace garter",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "grinder",
+   "easy": false,
+   "human": 0.222222222,
+   "raw": "Manual coffee grinder",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "gutter",
+   "easy": false,
+   "human": 0.692307692,
+   "raw": "Rain gutter",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "headdress",
+   "easy": false,
+   "human": 0.411764706,
+   "raw": "Feather headdress",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "helmet",
+   "easy": false,
+   "human": 0.357142857,
+   "raw": "Hard hat",
+   "code": "OK_HYPONYM",
+   "rule": "hyponym"
+  },
+  {
+   "view": "colour",
+   "concept": "jar",
+   "easy": false,
+   "human": 0.461538462,
+   "raw": "Glass jar",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "limousine",
+   "easy": false,
+   "human": 0.2,
+   "raw": "Pink limousine",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "magnet",
+   "easy": false,
+   "human": 0.75,
+   "raw": "Horseshoe magnet",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "mascara",
+   "easy": false,
+   "human": 0.533333333,
+   "raw": "Mascara wand",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "moccasin",
+   "easy": false,
+   "human": 0.416666667,
+   "raw": "Beaded moccasins",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "mud",
+   "easy": false,
+   "human": 0.75,
+   "raw": "Mud pool",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "muff",
+   "easy": false,
+   "human": 0.066666667,
+   "raw": "Fur muff",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "origami",
+   "easy": false,
+   "human": 0.125,
+   "raw": "Origami snowmen",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "overalls",
+   "easy": false,
+   "human": 0.307692308,
+   "raw": "Denim overalls",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "palette",
+   "easy": false,
+   "human": 0.375,
+   "raw": "Paint palette",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "pallet",
+   "easy": false,
+   "human": 0.266666667,
+   "raw": "Wooden pallets",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "parfait",
+   "easy": false,
+   "human": 0.294117647,
+   "raw": "Yogurt parfaits",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "pet_food",
+   "easy": false,
+   "human": 0.272727273,
+   "raw": "Dry pet food",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "pinball",
+   "easy": false,
+   "human": 0.272727273,
+   "raw": "Pinball machine",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "pita",
+   "easy": false,
+   "human": 0.666666667,
+   "raw": "Pita bread",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "powder",
+   "easy": false,
+   "human": 0.5,
+   "raw": "Loose face powder",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "roll",
+   "easy": false,
+   "human": 0.25,
+   "raw": "Bread rolls",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "router",
+   "easy": false,
+   "human": 0.5625,
+   "raw": "Wireless router",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "scone",
+   "easy": false,
+   "human": 0.333333333,
+   "raw": "Chocolate chip scone",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "scoop",
+   "easy": false,
+   "human": 0.368421053,
+   "raw": "Wooden scoop",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "skewer",
+   "easy": false,
+   "human": 0.125,
+   "raw": "Wooden skewers",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "tab",
+   "easy": false,
+   "human": 0.35,
+   "raw": "Soda can pull tab",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "taillight",
+   "easy": false,
+   "human": 0.357142857,
+   "raw": "Car taillight",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "tarp",
+   "easy": false,
+   "human": 0.533333333,
+   "raw": "Blue tarp",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "timer",
+   "easy": false,
+   "human": 0.555555556,
+   "raw": "Apple-shaped kitchen timer",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "torso",
+   "easy": false,
+   "human": 0.076923077,
+   "raw": "A man's torso",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "toy",
+   "easy": false,
+   "human": 0.411764706,
+   "raw": "Toy train",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "vise",
+   "easy": false,
+   "human": 0.3125,
+   "raw": "Bench vise",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "wand",
+   "easy": false,
+   "human": 0.294117647,
+   "raw": "Magic wand",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "colour",
+   "concept": "yoke",
+   "easy": false,
+   "human": 0.222222222,
+   "raw": "Ox yoke",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "air_conditioner",
+   "easy": true,
+   "human": 0.923076923,
+   "raw": "Air conditioning unit",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "album",
+   "easy": true,
+   "human": 0.8125,
+   "raw": "Photo album",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "bandage",
+   "easy": true,
+   "human": 0.933333333,
+   "raw": "Adhesive bandages",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "car_door",
+   "easy": true,
+   "human": 0.928571429,
+   "raw": "Car door panel",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "generator",
+   "easy": true,
+   "human": 0.8,
+   "raw": "Portable generator",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "hole",
+   "easy": true,
+   "human": 0.8,
+   "raw": "Hole in a wall",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "paint",
+   "easy": true,
+   "human": 0.933333333,
+   "raw": "Paint dishes",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "pillow",
+   "easy": true,
+   "human": 0.823529412,
+   "raw": "Throw pillow",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "scale",
+   "easy": true,
+   "human": 0.857142857,
+   "raw": "Weighing scale",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "shoe",
+   "easy": true,
+   "human": 1.0,
+   "raw": "Sneakers",
+   "code": "OK_HYPONYM",
+   "rule": "hyponym"
+  },
+  {
+   "view": "gray",
+   "concept": "thread",
+   "easy": true,
+   "human": 0.9375,
+   "raw": "Spool of thread",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "toilet_paper",
+   "easy": true,
+   "human": 0.941176471,
+   "raw": "Toilet paper roll",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "aloe",
+   "easy": false,
+   "human": 0.785714286,
+   "raw": "Aloe vera plant",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "bassinet",
+   "easy": false,
+   "human": 0.235294118,
+   "raw": "Baby bassinet",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "bracket",
+   "easy": false,
+   "human": 0.428571429,
+   "raw": "Metal angle bracket",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "breakfast",
+   "easy": false,
+   "human": 0.294117647,
+   "raw": "Breakfast plate",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "bun",
+   "easy": false,
+   "human": 0.75,
+   "raw": "Sesame seed buns",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "burner",
+   "easy": false,
+   "human": 0.692307692,
+   "raw": "Gas burner",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "canister",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Ceramic canisters",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "cereal",
+   "easy": false,
+   "human": 0.25,
+   "raw": "Bowl of cereal",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "cheesecake",
+   "easy": false,
+   "human": 0.388888889,
+   "raw": "Cheesecake slice",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "chime",
+   "easy": false,
+   "human": 0.125,
+   "raw": "Wind chime",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "chute",
+   "easy": false,
+   "human": 0.2,
+   "raw": "Construction debris chute",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "clover",
+   "easy": false,
+   "human": 0.4,
+   "raw": "Four-leaf clover",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "column",
+   "easy": false,
+   "human": 0.733333333,
+   "raw": "Ionic columns",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "doily",
+   "easy": false,
+   "human": 0.5,
+   "raw": "Lace doily",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "doorknocker",
+   "easy": false,
+   "human": 0.4375,
+   "raw": "Door knocker",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "eyeliner",
+   "easy": false,
+   "human": 0.647058824,
+   "raw": "Liquid eyeliner",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "foam",
+   "easy": false,
+   "human": 0.529411765,
+   "raw": "Egg crate foam",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "grinder",
+   "easy": false,
+   "human": 0.222222222,
+   "raw": "Coffee grinder",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "gutter",
+   "easy": false,
+   "human": 0.692307692,
+   "raw": "Rain gutter",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "headdress",
+   "easy": false,
+   "human": 0.411764706,
+   "raw": "Feather headdress",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "helmet",
+   "easy": false,
+   "human": 0.357142857,
+   "raw": "Hard hat",
+   "code": "OK_HYPONYM",
+   "rule": "hyponym"
+  },
+  {
+   "view": "gray",
+   "concept": "jar",
+   "easy": false,
+   "human": 0.461538462,
+   "raw": "Glass jar",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "mascara",
+   "easy": false,
+   "human": 0.533333333,
+   "raw": "Mascara brush",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "mud",
+   "easy": false,
+   "human": 0.75,
+   "raw": "Mud puddle",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "pallet",
+   "easy": false,
+   "human": 0.266666667,
+   "raw": "Wooden pallets",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "pinball",
+   "easy": false,
+   "human": 0.272727273,
+   "raw": "Pinball machine",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "pita",
+   "easy": false,
+   "human": 0.666666667,
+   "raw": "Pita bread",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "powder",
+   "easy": false,
+   "human": 0.5,
+   "raw": "Jar of powder",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "roll",
+   "easy": false,
+   "human": 0.25,
+   "raw": "Bread rolls",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "router",
+   "easy": false,
+   "human": 0.5625,
+   "raw": "Wi-Fi router",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "scoop",
+   "easy": false,
+   "human": 0.368421053,
+   "raw": "Wooden scoop",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "tab",
+   "easy": false,
+   "human": 0.35,
+   "raw": "Can pull tab",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "taillight",
+   "easy": false,
+   "human": 0.357142857,
+   "raw": "Car taillight",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "terrarium",
+   "easy": false,
+   "human": 0.466666667,
+   "raw": "Glass terrarium",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "timer",
+   "easy": false,
+   "human": 0.555555556,
+   "raw": "Apple-shaped kitchen timer",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "torso",
+   "easy": false,
+   "human": 0.076923077,
+   "raw": "Man’s torso",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "toy",
+   "easy": false,
+   "human": 0.411764706,
+   "raw": "Toy train",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "vise",
+   "easy": false,
+   "human": 0.3125,
+   "raw": "Bench vise",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "wafer",
+   "easy": false,
+   "human": 0.285714286,
+   "raw": "Wafer biscuit",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "wand",
+   "easy": false,
+   "human": 0.294117647,
+   "raw": "Magic wand",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  },
+  {
+   "view": "gray",
+   "concept": "wood",
+   "easy": false,
+   "human": 0.555555556,
+   "raw": "Stack of logs",
+   "code": "OK_HYPONYM",
+   "rule": "hyponym"
+  },
+  {
+   "view": "gray",
+   "concept": "yoke",
+   "easy": false,
+   "human": 0.222222222,
+   "raw": "Ox yoke",
+   "code": "OK_CONTAINS",
+   "rule": "contains"
+  }
+ ],
+ "gray_easy_referrals": [
+  {
+   "item": "f7d4961b2f",
+   "concept": "christmas_card",
+   "human": 0.818181818,
+   "raw": "Holiday greeting card",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "9f5d8717bd",
+   "concept": "pearl",
+   "human": 0.916666667,
+   "raw": "Seashell",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  }
+ ],
+ "gray_referrals": [
+  {
+   "item": "9f5d8717bd",
+   "concept": "pearl",
+   "easy": true,
+   "human": 0.916666667,
+   "raw": "Seashell",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "f7d4961b2f",
+   "concept": "christmas_card",
+   "easy": true,
+   "human": 0.818181818,
+   "raw": "Holiday greeting card",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "a3f18f284c",
+   "concept": "magnet",
+   "easy": false,
+   "human": 0.75,
+   "raw": "U-shaped pipe",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "e582f5749f",
+   "concept": "water_fountain",
+   "easy": false,
+   "human": 0.736842105,
+   "raw": "Fountain",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "8d074608aa",
+   "concept": "air_pump",
+   "easy": false,
+   "human": 0.733333333,
+   "raw": "Bicycle pump",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "49bfc213aa",
+   "concept": "spacesuit",
+   "easy": false,
+   "human": 0.692307692,
+   "raw": "Astronaut",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "4069b185ea",
+   "concept": "sandpaper",
+   "easy": false,
+   "human": 0.625,
+   "raw": "Doorstop",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:doorstop"
+  },
+  {
+   "item": "4fd5f79692",
+   "concept": "smoke_alarm",
+   "easy": false,
+   "human": 0.571428571,
+   "raw": "Smoke detector",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "bc7bd83899",
+   "concept": "clay",
+   "easy": false,
+   "human": 0.5625,
+   "raw": "Dough",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:dough"
+  },
+  {
+   "item": "d049a6fec4",
+   "concept": "footbath",
+   "easy": false,
+   "human": 0.538461538,
+   "raw": "Basin",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "8340fc9e55",
+   "concept": "mail",
+   "easy": false,
+   "human": 0.529411765,
+   "raw": "Stacks of papers",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "79903b953f",
+   "concept": "breathalyzer",
+   "easy": false,
+   "human": 0.5,
+   "raw": "Car",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:car"
+  },
+  {
+   "item": "d4d0a50aa2",
+   "concept": "wreck",
+   "easy": false,
+   "human": 0.461538462,
+   "raw": "Shipwreck",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "10ff105460",
+   "concept": "penlight",
+   "easy": false,
+   "human": 0.428571429,
+   "raw": "Vape pen",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "2a799e6829",
+   "concept": "rim",
+   "easy": false,
+   "human": 0.428571429,
+   "raw": "Car wheel",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "59ecfac678",
+   "concept": "moccasin",
+   "easy": false,
+   "human": 0.416666667,
+   "raw": "Shoes",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:shoe"
+  },
+  {
+   "item": "bf1b445bd4",
+   "concept": "tape_recorder",
+   "easy": false,
+   "human": 0.411764706,
+   "raw": "Cassette player",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "173f0064c9",
+   "concept": "palette",
+   "easy": false,
+   "human": 0.375,
+   "raw": "Pizza",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:pizza"
+  },
+  {
+   "item": "af1feb8963",
+   "concept": "ruby",
+   "easy": false,
+   "human": 0.375,
+   "raw": "Diamond",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:diamond"
+  },
+  {
+   "item": "ade916ed3b",
+   "concept": "marijuana",
+   "easy": false,
+   "human": 0.357142857,
+   "raw": "Cannabis plant",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "db54901aea",
+   "concept": "collar",
+   "easy": false,
+   "human": 0.352941176,
+   "raw": "Belt",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:belt"
+  },
+  {
+   "item": "176d607d2d",
+   "concept": "gasket",
+   "easy": false,
+   "human": 0.352941176,
+   "raw": "Metal disc",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "161d83908f",
+   "concept": "swordfish",
+   "easy": false,
+   "human": 0.352941176,
+   "raw": "Marlin",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "d6db9ef308",
+   "concept": "coyote",
+   "easy": false,
+   "human": 0.333333333,
+   "raw": "Jackal",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "4c50598def",
+   "concept": "sauerkraut",
+   "easy": false,
+   "human": 0.3125,
+   "raw": "Tongs",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:tongs"
+  },
+  {
+   "item": "cde987552c",
+   "concept": "confetti",
+   "easy": false,
+   "human": 0.294117647,
+   "raw": "Dried leaves",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "444d9b4e25",
+   "concept": "parfait",
+   "easy": false,
+   "human": 0.294117647,
+   "raw": "Dessert glasses",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "4c8c8bcb9b",
+   "concept": "eyedropper",
+   "easy": false,
+   "human": 0.285714286,
+   "raw": "Glass bottles",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "30f2564d51",
+   "concept": "parsley",
+   "easy": false,
+   "human": 0.285714286,
+   "raw": "Flowers",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:flower"
+  },
+  {
+   "item": "9ff4a13f3e",
+   "concept": "surfboard",
+   "easy": false,
+   "human": 0.277777778,
+   "raw": "Kayak",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:kayak"
+  },
+  {
+   "item": "552e461549",
+   "concept": "coop",
+   "easy": false,
+   "human": 0.25,
+   "raw": "Chickens",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:chicken1,chicken2"
+  },
+  {
+   "item": "9563ec347c",
+   "concept": "creme_brulee",
+   "easy": false,
+   "human": 0.25,
+   "raw": "Crème brûlée",
+   "code": "ERR_MALFORMED",
+   "rule": null
+  },
+  {
+   "item": "81d282e4e6",
+   "concept": "granite",
+   "easy": false,
+   "human": 0.25,
+   "raw": "Rock",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:rock"
+  },
+  {
+   "item": "6b733c2ba5",
+   "concept": "trailer",
+   "easy": false,
+   "human": 0.25,
+   "raw": "Caravan",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "686ed6852e",
+   "concept": "plant",
+   "easy": false,
+   "human": 0.230769231,
+   "raw": "Leaves",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:leaf"
+  },
+  {
+   "item": "da8fe2dbe3",
+   "concept": "sewage",
+   "easy": false,
+   "human": 0.222222222,
+   "raw": "Drainpipe",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "7fb740c2a8",
+   "concept": "coal",
+   "easy": false,
+   "human": 0.214285714,
+   "raw": "Cookies",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:cookie"
+  },
+  {
+   "item": "8e6827b268",
+   "concept": "cream_cheese",
+   "easy": false,
+   "human": 0.2,
+   "raw": "Yogurt container",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "e6b3ad954c",
+   "concept": "highlighter",
+   "easy": false,
+   "human": 0.2,
+   "raw": "Pens",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:pen"
+  },
+  {
+   "item": "7cc8622190",
+   "concept": "mulch",
+   "easy": false,
+   "human": 0.2,
+   "raw": "Wood chips",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "9fc3bdeac2",
+   "concept": "backscratcher",
+   "easy": false,
+   "human": 0.1875,
+   "raw": "Toothbrush",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:toothbrush"
+  },
+  {
+   "item": "7a27314224",
+   "concept": "washcloth",
+   "easy": false,
+   "human": 0.1875,
+   "raw": "Towel",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:towel"
+  },
+  {
+   "item": "b90d96e0e3",
+   "concept": "icepick",
+   "easy": false,
+   "human": 0.166666667,
+   "raw": "Ice axes",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "e0391a711f",
+   "concept": "viewfinder",
+   "easy": false,
+   "human": 0.142857143,
+   "raw": "Microphone",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:microphone"
+  },
+  {
+   "item": "b37640a9d2",
+   "concept": "cummerbund",
+   "easy": false,
+   "human": 0.133333333,
+   "raw": "Folded paper",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "a6a2800aa9",
+   "concept": "llama",
+   "easy": false,
+   "human": 0.133333333,
+   "raw": "Alpaca",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:alpaca"
+  },
+  {
+   "item": "2d5603d2eb",
+   "concept": "origami",
+   "easy": false,
+   "human": 0.125,
+   "raw": "Paper snowmen",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "10e9c3d4fd",
+   "concept": "skewer",
+   "easy": false,
+   "human": 0.125,
+   "raw": "Sticks",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:stick"
+  },
+  {
+   "item": "4e541595a8",
+   "concept": "wax_paper",
+   "easy": false,
+   "human": 0.125,
+   "raw": "Glass shard",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "963b2c6686",
+   "concept": "tomato_sauce",
+   "easy": false,
+   "human": 0.117647059,
+   "raw": "Chili",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:chili"
+  },
+  {
+   "item": "d0f7291922",
+   "concept": "wineglass",
+   "easy": false,
+   "human": 0.111111111,
+   "raw": "Wine glasses",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "fb2fed95b9",
+   "concept": "pantyhose",
+   "easy": false,
+   "human": 0.1,
+   "raw": "Neckties",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "1264d28976",
+   "concept": "pudding",
+   "easy": false,
+   "human": 0.071428571,
+   "raw": "Chocolate syrup",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "4bad420e00",
+   "concept": "bongo",
+   "easy": false,
+   "human": 0.066666667,
+   "raw": "Drums",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:drum"
+  },
+  {
+   "item": "70d9dce326",
+   "concept": "gourd",
+   "easy": false,
+   "human": 0.066666667,
+   "raw": "Pumpkin",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:pumpkin"
+  },
+  {
+   "item": "91727ca19f",
+   "concept": "muff",
+   "easy": false,
+   "human": 0.066666667,
+   "raw": "Piece of fabric",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "46871a1fb1",
+   "concept": "gurney",
+   "easy": false,
+   "human": 0.0625,
+   "raw": "Stretcher",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:stretcher"
+  },
+  {
+   "item": "d13c20d898",
+   "concept": "stirrup",
+   "easy": false,
+   "human": 0.0625,
+   "raw": "Saddle",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:saddle"
+  },
+  {
+   "item": "9eedcfdb50",
+   "concept": "buckle",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Belt buckle",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:belt_buckle"
+  },
+  {
+   "item": "cd6e785b37",
+   "concept": "corsage",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Flower bouquet",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "551a58a48b",
+   "concept": "crank",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Coffee grinder",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "50e3bd47d0",
+   "concept": "dashboard",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Speedometer",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:speedometer"
+  },
+  {
+   "item": "0d25ffba1e",
+   "concept": "gauze",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Rolled bandage",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "a108e0fe93",
+   "concept": "gopher",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Ground squirrel",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "d647f86955",
+   "concept": "gravy",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Spoon rest",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "a9fb9073a7",
+   "concept": "hatbox",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Suitcase",
+   "code": "ERR_NONMATCH",
+   "rule": "S1:suitcase"
+  },
+  {
+   "item": "6975137444",
+   "concept": "peg",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Wall plugs",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "fbe2c8a0a7",
+   "concept": "taffy",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Bowl of candy",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  },
+  {
+   "item": "93d8898ba9",
+   "concept": "toast",
+   "easy": false,
+   "human": 0.0,
+   "raw": "Slice of bread",
+   "code": "ERR_NONMATCH",
+   "rule": null
+  }
+ ],
+ "gray_referral_count": 69
+}

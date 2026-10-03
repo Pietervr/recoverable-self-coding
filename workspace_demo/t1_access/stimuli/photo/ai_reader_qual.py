@@ -1,4 +1,4 @@
-"""AI image-reader qualification, revision 4: the IMAGES and the reader-side SET (framework §8.2 reader rule, R052
+"""AI image-reader qualification, revision 12: the IMAGES and the reader-side SET (framework §8.2 reader rule, R052
 2 Oct 2026; Codex RSC cf3e49e and 7048bb8, not favourable to revisions 1 and 2; R052 handoffs 7f25830e and 742146ad).
 Nothing here calls a model.
 
@@ -14,8 +14,11 @@ ratings per image here) is a DIFFICULTY REFERENCE and an item diagnostic - not a
 individual human verdicts, and never read as human equivalence. Admission is decided on grayscale only
 (`ai_reader_score.py`); colour is the external human-reference diagnostic.
 
-THE TASK (repair 1): the frozen PROMPT below, alone with one image, in a fresh stateless image-only request - one
-short object noun or noun phrase, or 'unclear'. No label, menu, caption, path, concept, sense, prior answer or the
+THE TASK (revision 12, the owner's decision of 3 October 2026; repair 1 before it): the frozen PROMPT below, alone
+with one image, in a fresh stateless image-only request - the most common name for the object in one or two words, or
+'unclear'. The same prompt is the image audit's question 1. Revision 11's prompt ("one short noun or noun phrase")
+invited the noun phrases its whole-answer key then refused; the answers are now scored by the shared matching rule
+(ai_reader_key.names_concept). No label, menu, caption, path, concept, sense, prior answer or the
 item's other view. This task is separate from the target model's single-token naming convention.
 
 THIS FILE writes, to captures/ai_reader_qual/ (git-ignored), one file per REQUEST named by its opaque request id -
@@ -53,8 +56,8 @@ OUT = HERE.parents[1] / "captures" / "ai_reader_qual"
 SET = HERE / "ai_reader_qual_set.json"
 KEY = HERE / "ai_reader_qual_key.json"
 ORDER_SEED = 20261008
-PROMPT = ("Look at this picture. What is the main object in it? Answer with one short noun or noun phrase that "
-          "names the object, or with the single word 'unclear' if you cannot tell. Reply with the name only.")
+PROMPT = ("Look at this picture. What is the main object in it? Answer with the most common name for the object, "
+          "in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.")
 READER = {"product": "OpenAI Codex CLI (codex exec)", "cli_version": "codex-cli 0.159.3", "model": "gpt-6.1-sol",
           "reasoning_effort": "medium", "delivery": "one image attached with -i to a fresh ephemeral exec session, the "
           "prompt after '--', under a sandbox-exec ALLOWLIST (deny by default: only the codex binary may run; reads "
@@ -102,7 +105,7 @@ def main() -> int:
         if all(item_of[a] != item_of[b] for a, b in zip(order, order[1:])):
             break
     strata = {s: sum(1 for x in d["chosen"] if x["stratum"] == s) for s in (0, 1, 2)}
-    out = {"revision": 4, "note": "Reader-side record of the AI-reader qualification: no labels. The key is "
+    out = {"revision": 12, "note": "Reader-side record of the AI-reader qualification: no labels. The key is "
            "ai_reader_qual_key.json (orchestrator only).", "seed": F.SEED, "order_seed": ORDER_SEED,
            "n_items": len(d["chosen"]), "n_requests": len(requests), "easy_items": sum(x["easy"] for x in d["chosen"]),
            "strata": strata, "cuts": d["cuts"], "frame_size": d["n_frame"],

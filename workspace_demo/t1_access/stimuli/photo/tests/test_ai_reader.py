@@ -1,4 +1,4 @@
-"""AI-reader qualification revision 7: scorer, key, frame, identity, validator, boundary and executor fixtures - no
+"""AI-reader qualification revision 12 (the shared matching rule: class Rev12, under .venv-build); revision 7: scorer, key, frame, identity, validator, boundary and executor fixtures - no
 model is called and no qualification image is shown to anything. Revision 5 (Codex RSC 1bf9890 R1-R6) adds the
 exact=false evidence mutations, strict schema/identity/image/bounds admission, local-receipt cleanup and cap fixtures,
 and the clock's strict validation, guard and lock fixtures. The real codex binary is used only for its local
@@ -61,14 +61,12 @@ class Scoring(unittest.TestCase):
 
     def test_codes_and_format_precedence(self):
         al = ["road sweeper", "road sweepers", "roadsweeper"]
-        self.assertEqual(S.classify("Road sweepers", al)[0], "OK_MATCH")
-        self.assertEqual(S.classify("road", al)[0], "ERR_NONMATCH")
+        self.assertEqual(S.classify("Road sweepers", al)[0], "OK_WHOLE")
         self.assertEqual(S.classify("unclear", al)[0], "ERR_UNCLEAR")
         self.assertEqual(S.classify("", al)[0], "ERR_EMPTY")
         self.assertEqual(S.classify("truck or road sweeper", al)[0], "ERR_MULTIPLE")
         self.assertEqual(S.classify("it is probably a big road sweeper", al)[0], "ERR_EXPLANATORY")
         self.assertEqual(S.classify("r0@d", al)[0], "ERR_MALFORMED")
-        self.assertEqual(S.classify("big road sweeper", al), ("ERR_NONMATCH", True))
         self.assertEqual(S.classify(None, al, "no_response")[0], "ERR_NO_RESPONSE")
         self.assertEqual(S.classify("road sweeper", al, "isolation_violation")[0], "ERR_ISOLATION")
         self.assertEqual(S.classify(None, al, "interrupted")[0], "ERR_INTERRUPTED")
@@ -81,7 +79,7 @@ class Scoring(unittest.TestCase):
     def test_no_alias_trips_a_format_check(self):
         for v in KEY["items"].values():
             for a in v["aliases"]:
-                self.assertEqual(S.classify(a, v["aliases"])[0], "OK_MATCH", a)
+                self.assertEqual(S.classify(a, v, concept=v["concept"])[0], "OK_WHOLE", a)
 
     def test_gate_arithmetic(self):
         self.assertAlmostEqual(S.cp_lower(59, 61), 0.900365, places=5)
@@ -447,6 +445,8 @@ class ScorerAdmission(unittest.TestCase):
         with self.assertRaises(SystemExit):
             S.committed(raw)
 
+    @unittest.skipUnless(HAVE_WN, "needs WordNet (run under .venv-build): a non-matching answer reaches the shared "
+                                  "matching rule's WordNet steps")
     def test_referrals_carry_identity(self):
         root = tmp()
         b = A.build(root, {"rq0g": ["ok:wrong"]})
@@ -458,6 +458,8 @@ class ScorerAdmission(unittest.TestCase):
                   "delivered_image_sha256", "answer_sha256", "answer_len"):
             self.assertIsNotNone(ref[k], k)
         self.assertEqual(ref["raw_answer"], "wrong")
+        self.assertEqual((ref["score"], ref["rule"]), ("ERR_NONMATCH", None))
+        self.assertIsNone(out["admission"]["adjudications_needed"])        # 3 easy items: no k reaches the bound
 
 
 def vkw(b):
@@ -765,13 +767,19 @@ class AuditMap(unittest.TestCase):
         self.assertEqual(m["shared_admitted_strings"], [])
         self.assertEqual(set(m["construction"]), {"things_sources_sha256", "wordnet", "dev_pool_sha256",
                                                   "ai_reader_key_py_sha256", "audit_alias_map_py_sha256"})
-        self.assertEqual(m["construction"]["ai_reader_key_py_sha256"], J.sha((PHOTO / "ai_reader_key.py").read_bytes()))
-        self.assertEqual(m["construction"]["audit_alias_map_py_sha256"],
-                         J.sha((PHOTO / "audit_alias_map.py").read_bytes()))
+        # the map as built (revision 4): its recorded ai_reader_key.py and audit_alias_map.py are the blobs at the map's
+        # own last commit; revision 12 changed their matching code afterwards (Rev12.test_audit_map_rebuild_unchanged)
+        rel = (PHOTO / "audit_alias_map.json").relative_to(G.RSC)
+        built_at = subprocess.run(["git", "-C", str(G.RSC), "log", "-1", "--format=%H", "--", str(rel)],
+                                  capture_output=True, text=True, check=True).stdout.strip()
+        for n in ("ai_reader_key.py", "audit_alias_map.py"):
+            then = subprocess.run(["git", "-C", str(G.RSC), "show", f"{built_at}:{rel.parent / n}"],
+                                  capture_output=True, check=True).stdout
+            self.assertEqual(m["construction"][n.replace(".", "_") + "_sha256"], J.sha(then), n)
 
     def test_scorer_bound_to_the_pinned_map(self):
         import audit_alias_map as M
-        self.assertEqual(M.score("taxi", "Taxis")["code"], "OK_MATCH")
+        self.assertEqual(M.score("taxi", "Taxis")["code"], "OK_WHOLE")
         self.assertEqual(M.score("jeans", "denim")["code"], "ERR_NONMATCH")
         self.assertEqual(M.score("hat", "a hat\nwith a brim")["code"], "ERR_EXPLANATORY")
         d = tmp()
@@ -793,7 +801,7 @@ class AuditMap(unittest.TestCase):
         pins = P.identity()
         self.assertEqual(set(pins), {"audit_alias_map_json_sha256", "ai_reader_score.py_sha256",
                                      "ai_reader_key.py_sha256", "audit_alias_map.py_sha256"})
-        self.assertEqual(P.score("taxi", "Taxis", pins=pins)["code"], "OK_MATCH")
+        self.assertEqual(P.score("taxi", "Taxis", pins=pins)["code"], "OK_WHOLE")
         for k in pins:
             with self.subTest(k):
                 with self.assertRaisesRegex(SystemExit, "differs from the audit package's pins"):
@@ -1541,3 +1549,117 @@ class Rev11(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(HAVE_WN, "needs WordNet (run under .venv-build)")
+class Rev12(unittest.TestCase):
+    """Revision 12 (R052 handoff ff264083 item D; the owner's decision of 3 October 2026): the ONE shared matching rule
+    (ai_reader_key.names_concept) through the qualification scorer and the audit scorer. No model is called."""
+
+    JOB_A_EASY = [("air_conditioner", "Air conditioning unit", "OK_CONTAINS"), ("album", "Photo album", "OK_CONTAINS"),
+                  ("bandage", "Adhesive bandages", "OK_CONTAINS"), ("car_door", "Car door panel", "OK_CONTAINS"),
+                  ("christmas_card", "Holiday greeting card", "ERR_NONMATCH"),
+                  ("generator", "Portable generator", "OK_CONTAINS"), ("hole", "Hole in a wall", "OK_CONTAINS"),
+                  ("paint", "Paint dishes", "OK_CONTAINS"), ("pearl", "Seashell", "ERR_NONMATCH"),
+                  ("pillow", "Throw pillow", "OK_CONTAINS"), ("scale", "Weighing scale", "OK_CONTAINS"),
+                  ("shoe", "Sneakers", "OK_HYPONYM"), ("thread", "Spool of thread", "OK_CONTAINS"),
+                  ("toilet_paper", "Toilet paper roll", "OK_CONTAINS")]
+
+    def item(self, concept):
+        return next(v for v in KEY["items"].values() if v["concept"] == concept)
+
+    def code(self, concept, answer):
+        return S.classify_detail(answer, self.item(concept), "ok", False, concept)
+
+    def test_the_fourteen_easy_misses_of_job_a(self):
+        """12 pass, pearl and the holiday greeting card do not. 'Air conditioning unit' passes by (ii): 'air
+        conditioning' is an admitted form (a THINGS-listed WordNet synonym) - the brief expected a referral."""
+        for concept, answer, want in self.JOB_A_EASY:
+            with self.subTest(concept):
+                self.assertEqual(self.code(concept, answer)[0], want)
+        self.assertEqual(sum(S.correct(self.code(c, a)[0]) for c, a, _ in self.JOB_A_EASY), 12)
+
+    def test_named_cases(self):
+        cases = [("paint", "paint brush", "OK_CONTAINS", "contains"),        # the disclosed modifier residual
+                 ("christmas_card", "greeting card", "ERR_NONMATCH", None),  # a hypernym, not a hyponym
+                 ("swordfish", "marlin", "ERR_NONMATCH", None),
+                 ("shoe", "sneakers", "OK_HYPONYM", "hyponym"), ("shoe", "the sneaker", "OK_HYPONYM", "hyponym"),
+                 ("gurney", "stretcher", "ERR_NONMATCH", "S1:stretcher"), ("bongo", "drums", "ERR_NONMATCH", "S1:drum"),
+                 ("llama", "Alpaca", "ERR_NONMATCH", "S1:alpaca"),         # another released concept's name
+                 ("workbench", "bench", "ERR_NONMATCH", "excluded"),
+                 ("boxer_shorts", "drawers", "ERR_NONMATCH", "excluded"),
+                 ("paint", "The paints.", "OK_WHOLE", "whole"), ("scissors", "a pair of scissors", "OK_WHOLE", "whole"),
+                 ("shoe", "running shoes", "OK_CONTAINS", "contains"),
+                 ("headphones", "Headphones", "OK_WHOLE", "whole")]
+        for concept, answer, code, rule in cases:
+            with self.subTest((concept, answer)):
+                got = self.code(concept, answer)
+                self.assertEqual((got[0], got[2]), (code, rule))
+
+    def test_format_still_first(self):
+        self.assertEqual(self.code("toilet_paper", "toilet paper roll, probably")[0], "ERR_MULTIPLE")
+        self.assertEqual(self.code("shoe", "sneakers\nwhite ones")[0], "ERR_EXPLANATORY")
+        self.assertEqual(self.code("shoe", "unclear")[0], "ERR_UNCLEAR")
+
+    def test_every_excluded_form_still_fails(self):
+        for v in KEY["items"].values():
+            for e in v["excluded_aliases"]:
+                with self.subTest((v["concept"], e["alias"])):
+                    self.assertEqual(self.code(v["concept"], e["alias"])[0], "ERR_NONMATCH")
+
+    def test_singularising_an_admitted_form_never_reaches_an_excluded_one(self):
+        """The order of the rule (an admitted form as given passes before WordNet is read) cannot hide an exclusion:
+        no admitted form singularises to an excluded form of its item."""
+        import ai_reader_key as K
+        for v in KEY["items"].values():
+            excl = {e["alias"] for e in v["excluded_aliases"]}
+            for a in v["aliases"]:
+                self.assertNotIn(" ".join(K.singular(t) for t in a.split()), excl, (v["concept"], a))
+
+    def test_audit_scorer_same_rule_own_entry_point(self):
+        import audit_alias_map as M
+        import audit_package as P
+        cases = [("horse", "Brown horse", "OK_CONTAINS", "contains"), ("horse", "stallion", "OK_HYPONYM", "hyponym"),
+                 ("horse", "Horses", "OK_WHOLE", "whole"), ("horse", "pony", "ERR_NONMATCH", "S1:pony"),
+                 ("horse", "animal", "ERR_NONMATCH", None), ("hat", "fedora", "OK_HYPONYM", "hyponym"),
+                 ("hat", "lid", "ERR_NONMATCH", "excluded"), ("jeans", "denim", "ERR_NONMATCH", "excluded"),
+                 ("taxi", "yellow cab", "OK_CONTAINS", "contains"), ("crow", "bird", "ERR_NONMATCH", "S1:bird")]
+        pins = P.identity()
+        for concept, answer, code, rule in cases:
+            with self.subTest((concept, answer)):
+                got = M.score(concept, answer)
+                self.assertEqual((got["code"], got["rule"], got["pass_name"]), (code, rule, S.correct(code)))
+                self.assertEqual(P.score(concept, answer, pins=pins)["code"], code)
+                m = M.load_frozen()["concepts"][concept]
+                self.assertEqual(got["code"], S.classify(answer, m, concept=concept)[0])
+
+    def test_audit_map_rebuild_unchanged(self):
+        """The frozen map's construction is unchanged by revision 12: a rebuild equals the frozen map in everything but
+        the recorded hashes of ai_reader_key.py and audit_alias_map.py (whose matching code revision 12 changed)."""
+        import audit_alias_map as M
+        frozen = M.load_frozen()
+        now = M.build()
+        for d in (frozen, now):
+            d["construction"].pop("ai_reader_key_py_sha256")
+            d["construction"].pop("audit_alias_map_py_sha256")
+        self.maxDiff = 2000
+        self.assertEqual(now, frozen)
+
+    def test_wordnet_pin_checked(self):
+        import ai_reader_key as K
+        K._wordnet()
+        self.assertEqual(K._WN_CHECKED, [K.WORDNET_PIN])
+
+    def test_one_function_in_both_scorers(self):
+        for n in ("ai_reader_score.py", "audit_alias_map.py"):
+            src = (PHOTO / n).read_text()
+            self.assertNotIn(" in aliases:\n        return \"OK", src, n)
+        self.assertIn("names_concept(n, concept, entry)", (PHOTO / "ai_reader_score.py").read_text())
+        self.assertIn("classify_detail(answer, m[\"concepts\"][concept]", (PHOTO / "audit_alias_map.py").read_text())
+
+    def test_prompt_is_the_owners(self):
+        self.assertEqual(SET["prompt"], "Look at this picture. What is the main object in it? Answer with the most "
+                         "common name for the object, in one or two words, or with the single word 'unclear' if you "
+                         "cannot tell. Reply with the name only.")
+        t = (PHOTO.parents[1] / "audit_app" / "IMAGE_AUDIT_FREEZE.md").read_text()
+        self.assertIn(SET["prompt"], t)

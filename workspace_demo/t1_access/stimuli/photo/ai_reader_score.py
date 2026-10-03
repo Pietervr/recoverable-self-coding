@@ -1,8 +1,9 @@
-"""AI image-reader qualification, revision 6: the mechanical SCORER (orchestrator side; the reader never sees it).
+"""AI image-reader qualification, revision 12: the mechanical SCORER (orchestrator side; the reader never sees it).
 Framework §8.2 reader rule; Codex RSC cf3e49e and 7048bb8; R052 handoffs 7f25830e repairs 1, 2, 4, 7 and 742146ad
-groups 1 and 6; RSC 5a8d7ac closures 1 and 6. Standard library only.
+groups 1 and 6; RSC 5a8d7ac closures 1 and 6; revision 12: the owner's shared matching rule of 3 October 2026 (R052
+handoff ff264083). Standard library plus WordNet 3.0 (pinned) for the matching rule, so it runs under .venv-build:
 
-    python3 stimuli/photo/ai_reader_score.py <raw_responses.jsonl>
+    .venv-build/bin/python stimuli/photo/ai_reader_score.py <raw_responses.jsonl>
 
 ADMISSION OF THE RAW FILE (groups 1 and 6), before any score: the file is tracked and clean in git and its bytes equal
 the committed blob (its sha256 and the commit are carried into the output and every referral); the journal passes the
@@ -26,17 +27,26 @@ an error even when its normalised text would equal an alias):
   ERR_EMPTY           nothing left after normalisation
   ERR_UNCLEAR         exactly 'unclear' (the permitted abstention - an error, never excluded)
   ERR_MULTIPLE        more than one name ('x or y', 'x, y', 'x/y', 'x and y', 'x; y', 'x & y')
-  OK_MATCH            the WHOLE normalised answer equals one of the item's frozen admissible aliases
-  ERR_NONMATCH        a well-formed name that is not an admissible alias
-No admissible alias trips a format check (tested over the key: at most three words, letters, digits, spaces and
-apostrophes, no 'and'/'or'). Broad 'close' credit (an alias as a whole-word run inside the answer) is a DESCRIPTIVE
-column only and never enters a gate.
+  OK_WHOLE            (i) the whole normalised answer equals an admitted form
+  OK_CONTAINS         (ii) an admitted form occurs in the answer as a whole-word phrase
+  OK_HYPONYM          (iii) the answer's head lemma is a strict WordNet hyponym of the recorded target synset
+  ERR_NONMATCH        a well-formed name that names the concept by none of (i)-(iii), or equals an excluded form
+The three OK codes are the SHARED MATCHING RULE (ai_reader_key.names_concept, the one function the audit scorer
+calls too); the answer is read as given and with its tokens singularised under the key's inflection policy, and the
+rule label is recorded per row and per referral. No admitted form trips a format check (tested over the key: at most
+three words, letters, digits, spaces and apostrophes, no 'and'/'or'). The 'close' column (an admitted form as a
+whole-word run inside the answer as given) is descriptive and kept for comparison with revision 11.
 
 COMPLETENESS. Exactly one retained outcome for each of the 600 declared requests (the validator's COMPLETE receipt).
 
-ADMISSION (R052's rule in §8.2, fixed before any answer). Whole-answer admissible naming accuracy on the EASY items
-(human recognizability >= 0.8) on the GRAYSCALE canvas as delivered; admitted iff the one-sided exact (Clopper-Pearson)
-95 % lower bound is >= 0.90: with 63 easy items, 61 of 63 or better (`required_successes`). Nothing else gates.
+ADMISSION (§8.2, fixed before any answer; revision 12 changes the matching only). Accuracy under the shared matching
+rule on the EASY items (human recognizability >= 0.8) on the GRAYSCALE canvas as delivered; admitted mechanically iff
+the one-sided exact (Clopper-Pearson) 95 % lower bound is >= 0.90: with 63 easy items, 61 of 63 or better
+(`required_successes`). Nothing else gates. Declared before any revision-12 answer (owner, 3 October): a referral the
+owner adjudicates as naming the intended object - the picture and the raw answer recorded before the decision - is not
+a reader error; an admission that rests on such adjudications is reported as "admitted with N owner-adjudicated
+items", never as a mechanical admission. This scorer computes the mechanical result and the number of easy gray
+adjudications that admission would need (`adjudications_needed`); it records no decision.
 DESCRIPTIVE (no claim): colour accuracy, the paired colour/gray table with discordant counts, full-panel and
 per-stratum rows with denominators (an empty stratum reports n = 0 and accuracy null), Q1 beside the human mean.
 
@@ -61,7 +71,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import ai_reader_journal as J  # noqa: E402
-from ai_reader_key import KEY, normalise  # noqa: E402
+from ai_reader_key import KEY, names_concept, normalise  # noqa: E402
 
 SET = HERE / "ai_reader_qual_set.json"
 LOWER_BOUND, CONF = 0.90, 0.95
@@ -98,33 +108,56 @@ def required_successes(n: int) -> int | None:
     return None
 
 
-def classify(raw: str | None, aliases: list[str], status: str = "ok", overlength: bool = False) -> tuple[str, bool]:
-    """(reason code, descriptive close). 'OK_MATCH' is the only correct outcome."""
+MATCH_CODES = {"whole": "OK_WHOLE", "contains": "OK_CONTAINS", "hyponym": "OK_HYPONYM"}
+
+
+def correct(code: str) -> bool:
+    return code in MATCH_CODES.values()
+
+
+def classify(raw: str | None, entry, status: str = "ok", overlength: bool = False,
+             concept: str = "") -> tuple[str, bool]:
+    """(reason code, descriptive close); `classify_detail` adds the matching rule's label."""
+    return classify_detail(raw, entry, status, overlength, concept)[:2]
+
+
+def classify_detail(raw: str | None, entry, status: str = "ok", overlength: bool = False,
+                    concept: str = "") -> tuple[str, bool, str | None]:
+    """(reason code, descriptive close, rule label). OK_WHOLE / OK_CONTAINS / OK_HYPONYM are the correct outcomes,
+    decided by the shared matching rule (ai_reader_key.names_concept) after the format checks. `entry` is the frozen key item or
+    audit-map concept (`aliases`, `excluded_aliases`, `synset`); a bare alias list is read as an entry with no
+    exclusions and no synset (synthetic fixtures). `concept` is the intended concept id (the S1 guard of the rule).
+    The third value is the rule label: whole / contains / hyponym on a pass; excluded / S1:<ids> / None on ERR_NONMATCH;
+    None on every format or status code."""
+    if isinstance(entry, (list, tuple)):
+        entry = {"aliases": list(entry), "excluded_aliases": [], "synset": ""}
+    aliases = entry["aliases"]
     if status in STATUS_CODES:
-        return STATUS_CODES[status], False
+        return STATUS_CODES[status], False, None
     if overlength:
-        return "ERR_OVERLENGTH", False
+        return "ERR_OVERLENGTH", False, None
     if status != "ok" or raw is None:
-        return "ERR_NO_RESPONSE", False
+        return "ERR_NO_RESPONSE", False, None
     n = normalise(raw)
     close = any(re.search(r"(^| )" + re.escape(a) + r"( |$)", n) for a in aliases) if n else False
     if re.search(r"[\r\n  ]", raw.strip()):
-        return "ERR_EXPLANATORY", close
+        return "ERR_EXPLANATORY", close, None
     if any((ord(ch) < 32 and ch != "\t") or 127 <= ord(ch) < 160 for ch in raw.strip()):
-        return "ERR_MALFORMED", close
+        return "ERR_MALFORMED", close, None
     if not n:
-        return "ERR_EMPTY", False
+        return "ERR_EMPTY", False, None
     if n == "unclear":
-        return "ERR_UNCLEAR", False
+        return "ERR_UNCLEAR", False, None
     if re.search(r"\b(or|and)\b|[,/;&]", n):
-        return "ERR_MULTIPLE", close
+        return "ERR_MULTIPLE", close, None
     if len(n.split()) > 5 or re.search(r"[.!?:]", n):
-        return "ERR_EXPLANATORY", close
+        return "ERR_EXPLANATORY", close, None
     if not re.fullmatch(r"[a-z0-9' ]+", n):
-        return "ERR_MALFORMED", close
-    if n in aliases:
-        return "OK_MATCH", True
-    return "ERR_NONMATCH", close
+        return "ERR_MALFORMED", close, None
+    ok, rule = names_concept(n, concept, entry)
+    if ok:
+        return MATCH_CODES[rule], close, rule
+    return "ERR_NONMATCH", close, rule
 
 
 def committed(raw_path: Path) -> dict:
@@ -219,9 +252,10 @@ def score(raw_path: Path, *, allow_synthetic: bool = False, package: dict | None
         item, view = reqs[rq]["item"], reqs[rq]["view"]
         k = key["items"][item]
         status = rec["outcome"]
-        code, close = classify(rec.get("answer"), k["aliases"], status, bool(rec.get("overlength")))
+        code, close, rule = classify_detail(rec.get("answer"), k, status, bool(rec.get("overlength")), k["concept"])
         b = a["begins"].get(rec.get("attempt_id"), {})
-        rows[rq] = {"item": item, "view": view, "code": code, "correct": code == "OK_MATCH",
+        rows[rq] = {"item": item, "view": view, "code": code, "correct": correct(code),
+                    "rule": rule,
                     "close_descriptive": close, "raw": rec.get("answer"), "answer_len": rec.get("answer_len"),
                     "answer_sha256": rec.get("answer_sha256"), "attempt_id": rec.get("attempt_id"),
                     "delivered_sha256": (b.get("receipt") or {}).get("image_sha256"),
@@ -261,12 +295,23 @@ def score(raw_path: Path, *, allow_synthetic: bool = False, package: dict | None
                               "delivered_image_sha256": g["delivered_sha256"],
                               "prompt_sha256": sset["prompt_sha256"], "model": sset["reader"],
                               "raw_answer": g["raw"], "answer_len": g["answer_len"], "answer_sha256": g["answer_sha256"],
-                              "question_order": ["free_name"], "score": g["code"], "reason": g["code"], **ident,
+                              "question_order": ["free_name"], "score": g["code"], "reason": g["code"],
+                              "rule": g["rule"],
+                              **ident,
                               "owner_evidence": None, "owner_decision": None, "owner_date": None, "disposition": None})
+    rules = {}
+    for v in rows.values():
+        if correct(v["code"]):
+            rules.setdefault(v["view"], {}).setdefault(v["rule"], 0)
+            rules[v["view"]][v["rule"]] += 1
     out = {"identity": ident, "mode": a["validation"]["mode"],
-           "admission": {"rule": f"gray easy whole-answer accuracy, one-sided exact {int(CONF * 100)}% lower bound "
+           "admission": {"rule": f"gray easy accuracy under the shared matching rule (whole, contains, hyponym), "
+                                 f"one-sided exact {int(CONF * 100)}% lower bound "
                                  f">= {LOWER_BOUND}", "easy_n": len(g_easy), "easy_correct": sum(g_easy),
-                         "required_successes": k_req, "lower_bound": lb, "admitted": lb >= LOWER_BOUND},
+                         "required_successes": k_req, "lower_bound": lb, "admitted": lb >= LOWER_BOUND,
+                         "adjudications_needed": None if k_req is None else max(0, k_req - sum(g_easy)),
+                         "adjudication_rule": "an admission resting on owner adjudications of easy gray referrals is "
+                                              "reported as 'admitted with N owner-adjudicated items'"},
            "descriptive": {
                "colour_easy": rate(view_rows("colour", easy)), "gray_easy": rate(g_easy),
                "colour_all": rate(view_rows("colour")), "gray_all": rate(view_rows("gray")),
@@ -277,7 +322,7 @@ def score(raw_path: Path, *, allow_synthetic: bool = False, package: dict | None
                                      for view in ("colour", "gray")},
                "Q1_colour_accuracy_beside_human_mean": [rate(view_rows("colour"))["accuracy"], human_mean],
                "Q1_note": "descriptive only: a menu-choice human norm is not a free-naming measure"},
-           "reason_codes": codes, "attempts": a["validation"]["attempts"],
+           "reason_codes": codes, "match_rules": rules, "attempts": a["validation"]["attempts"],
            "outcomes": a["validation"]["outcomes"], "referrals": referrals, "referral_count": len(referrals)}
     if out["mode"] != "scientific":
         out = {"WARNING": "SYNTHETIC FIXTURE - NOT A QUALIFICATION RESULT", **out}

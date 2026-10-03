@@ -1,5 +1,5 @@
 {
- "revision": 4,
+ "revision": 12,
  "note": "Reader-side record of the AI-reader qualification: no labels. The key is ai_reader_qual_key.json (orchestrator only).",
  "seed": 20261007,
  "order_seed": 20261008,
@@ -24,8 +24,8 @@
   "A2": 5,
   "A3": 15
  },
- "prompt": "Look at this picture. What is the main object in it? Answer with one short noun or noun phrase that names the object, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
- "prompt_sha256": "506341b5337a9e13bb6210508c8072d4efc9c6d3eace7ca402ec2bd8704c241b",
+ "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+ "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
  "reader": {
   "product": "OpenAI Codex CLI (codex exec)",
   "cli_version": "codex-cli 0.159.3",
@@ -6063,8 +6063,8 @@
  "key_sha256": "d9c467f39d4d221b8d92059574506b1537140e66b6b9df18db28e15610ef9aea",
  "code_sha256": {
   "ai_reader_frame.py": "cf1e648dbd7617cc8160c73969adbcf4eac0703823ec98ae25056c7ef7ba60d8",
-  "ai_reader_key.py": "e063c7ceb08d39ac028e418857a612797516129ed1aa1e96280e22902d660c8f",
-  "ai_reader_qual.py": "6153bb6fafc63f64f92fee8654cb78cdfac4d6652e31261844d7ac35c2848cdc",
+  "ai_reader_key.py": "274147af5e07b2e2c3b21a69f493e4c4a9567f53fe12b8e05e4ad73adf6e4a66",
+  "ai_reader_qual.py": "9072905986d5e86b76fb68f6ab9d6699469d8205269a434994527e4e87ead25c",
   "dose.py": "05d61ea6d199903eb066534e8cc2e7bb73e102b9cfa284f5692f8d75e9bb4302"
  }
 }

@@ -1,11 +1,14 @@
 # The AI image-reader qualification: the bounded reader job
 
-R084, 2 October 2026. Revision 11 (the 2 October execution race, handoff `27d226eb`); revision 10, answering
+R084, 3 October 2026. Revision 12 (the owner's decision of 3 October, handoff `ff264083`): the one-or-two-word
+prompt and the ONE matching rule shared with the image audit (`ai_reader_key.names_concept`); nothing else in this
+job changes. Revision 11 (the 2 October execution race, handoff `27d226eb`); revision 10, answering
 Codex's record RSC `dda950b` (a live foreign start) through R052's handoff `ac3b8525`, was favourable (`3390183`); revision 9 answered RSC `7fdb937` (handoff `50ab6395`); revision 8 answered RSC `12a7f20` (handoff `db8a9e1d`), revision 7 answered RSC `c036c00` (reader A–D, handoff `cdefd254`), revision 6 answered RSC `b569f8a`, revision 5 RSC `1bf9890`, revision 4 RSC `5a8d7ac`. The design and the map from each condition to its code and test are in
 `AI_READER_DESIGN.md`.
 
-**No model has been called.** Nothing in this job runs until R052 has submitted the exact package to Codex, Codex
-has written a favourable review carrying a STAGE-ATTESTATION v1 block (row `aireader`, stage `qualification`, the
+**Exposure.** The reader has been called: job (a) of 2 October sent all 600 qualification requests under the
+revision-11 package (its prompt, its whole-answer rule). The revision-12 package has made no call. Nothing in job (b)
+runs until R052 has submitted the exact package to Codex, Codex has written a favourable review carrying a STAGE-ATTESTATION v1 block (row `aireader`, stage `qualification`, the
 package `ai_reader_exec.py plan` prints), and the owner's go is written into `AIREADER_GO.json`.
 
 | | |
@@ -15,9 +18,9 @@ package `ai_reader_exec.py plan` prints), and the owner's go is written into `AI
 | Boundary | `ai_reader_runtime.py` (the allowlist profile, receipts, parser) |
 | Watchdog | `stage_a_watchdog.py` (shared with row 20), one per attempt: checks the orchestrator's identity, answers ARMED before dispatch, kills the whole group and the recorded members at once on the orchestrator's death, a stale beat or the hard deadline, and kills a blocked orchestrator; it retires only when the group AND every recorded member are gone |
 | Journal | `ai_reader_raw_responses.jsonl` (`ai_reader_journal.py`), committed before scoring |
-| Scorer | `ai_reader_score.py` (orchestrator only) |
+| Scorer | `ai_reader_score.py` (orchestrator only; the shared matching rule needs the pinned WordNet, so it runs under `.venv-build`) |
 | Key | `ai_reader_qual_key.json` (orchestrator only; outside the reader's allowlist) |
-| Images | `captures/ai_reader_qual/<request>.jpg|.png` (600 files, git-ignored), verified against the set before every attempt; the delivered bytes and the normalised user text frozen per request in `ai_reader_delivery.json` (all 600 embedded byte-identically and the prompt rendered, measured 2 October) |
+| Images | `captures/ai_reader_qual/<request>.jpg|.png` (600 files, git-ignored), verified against the set before every attempt; the delivered bytes and the normalised user text frozen per request in `ai_reader_delivery.json` (all 600 embedded byte-identically and the prompt rendered; re-rendered for revision 12's prompt, user text changed for all 600, images byte-identical) |
 
 ## Use of the images (source statement, framework §8.2)
 
@@ -130,27 +133,30 @@ this public dataset is absent from the reader's training data.
 
 ## Order of operations
 
-1. `ai_reader_exec.py delivery` (run 2 October; local) and `ai_reader_exec.py plan`: images, boundary, package.
+1. `ai_reader_exec.py delivery` (re-run for revision 12; local) and `ai_reader_exec.py plan`: images, boundary, package.
 2. Codex's review of the exact committed package.
 3. The owner's go, bound in `AIREADER_GO.json`.
 4. `ai_reader_exec.py run` (resumable within the same limits).
 5. Commit `ai_reader_raw_responses.jsonl`.
-6. `ai_reader_score.py ai_reader_raw_responses.jsonl` (it also requires `captures/ai_reader_job/clock.json` closed on
+6. `.venv-build/bin/python stimuli/photo/ai_reader_score.py stimuli/photo/ai_reader_raw_responses.jsonl` (it also requires `captures/ai_reader_job/clock.json` closed on
    that exact journal: a COMPLETE whose closure did not finish does not qualify).
-7. If admitted, the referrals go to the owner and the audit proceeds under `audit_app/IMAGE_AUDIT_FREEZE.md`; if
-   not, the audit holds. Any other route is a separate owner decision.
+7. If admitted mechanically (61 of 63 easy gray or better under the shared rule), the referrals go to the owner and
+   the audit proceeds under `audit_app/IMAGE_AUDIT_FREEZE.md`. Declared before any revision-12 answer: an easy gray
+   referral the owner adjudicates as naming the intended object - the picture and the raw answer recorded before the
+   decision - is not a reader error, and an admission that rests on such adjudications is reported as "admitted with
+   N owner-adjudicated items" (the scorer reports `adjudications_needed`). Otherwise the audit holds; any other route
+   is a separate owner decision.
 
-## The 2 October job and the next one (the owner's ruling is open)
+## Job (a) and job (b)
 
-The 2 October job is closed: its STOPPED receipt stands, nothing runs after it, and its journal (RSC `f021c53`, 175
-attempts: 174 ok, 1 interrupted) is retained as a disclosed first attempt, never scored. Spent: 175 of 660 attempts,
-1,097.4 s of 21,600 s.
+Job (a) of 2 October 2026 ran under the revision-11 package and the owner's go: COMPLETE, 600 of 600 requests, 600
+of 660 attempts, 4,000.8 s; scored NOT ADMITTED (49 of 63 easy gray under the whole-answer rule;
+`reviews/2026-10-02_ai_reader_job_a.md`). It stays closed and disclosed under its frozen rule; nothing in it is
+re-scored for admission. The first 2 October job (STOPPED after 175 attempts, never scored) is archived at
+`reviews/2026-10-02_ai_reader_first_job_archive/`.
 
-MEASURED CONSTRAINT on the recommended ruling (a fresh job under the same envelope with the spend carried, 485
-attempts and 20,502.6 s remaining): a fresh job asks all 600 requests, which needs at least 600 dispatches - more than
-the 485 remaining even if every request answered first time - so it cannot reach COMPLETE, and the gate could not be
-measured. Feasible alternatives, each the owner's: (a) a fresh job with its own envelope (660 attempts, 6 h), the
-2 October spend disclosed beside it, not carried; (b) continuing the 2 October journal past its receipt for the 425
-requests it has not finalised (the interrupted one stays a final error), within the 485 attempts and 20,502.6 s left
-- this needs a reviewed continuation rule, since the job now refuses to run after a receipt. Neither is implemented in
-this revision; the job runs again only after the ruling and its reviewed package.
+Job (b) runs only on revision 12, after Codex's favourable record and the owner's go: fresh raw and clock state
+(`archive_job_a.py --apply` moves job (a)'s journal and clock into `reviews/2026-10-02_ai_reader_job_a_archive/`),
+its own envelope (600 requests, 660 attempts, 3 per request, 120 s, 6 h), job (a) retained closed beside it.
+A one-off re-analysis of job (a)'s answers under the revision-12 rule, labelled and never admission, is in
+`reviews/2026-10-03_ai_reader_job_a_rescore_rev12/`.

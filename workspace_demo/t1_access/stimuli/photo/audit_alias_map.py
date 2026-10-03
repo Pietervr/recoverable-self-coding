@@ -18,8 +18,15 @@ the rule dress is pruned from clothes and lid from hat; denim is pruned from jea
 CONSTRUCTION IDENTITIES recorded in the map: the THINGS tables and norm description (pinned), WordNet 3.0 (pinned),
 dev_pool.json, ai_reader_key.py and this builder. The FROZEN MAP's sha256 is pinned in audit_app/IMAGE_AUDIT_FREEZE.md
 ('audit_alias_map.json sha256: <hex>'); `score` refuses unless the map on disk has exactly that hash, and scores a
-free name with the qualification scorer's format-before-matching classification (ai_reader_score.classify) against the
-concept's admitted aliases.
+free name with the qualification scorer's format-before-matching classification (ai_reader_score.classify).
+
+MATCHING (revision 12 of the reader package, the owner's decision of 3 October 2026): the ONE shared matching rule,
+ai_reader_key.names_concept - whole answer, whole-word containment of an admitted form, or a WordNet hyponym head of
+the concept's recorded synset; an excluded form, or another released concept's canonical name, never passes -
+applied to the frozen map's entry for the concept (`aliases`, `excluded_aliases`, `synset`). The map's construction
+and bytes are unchanged (its sha256 stays pinned); its `note` and the recorded hashes of ai_reader_key.py and this file
+describe the map as built at revision 4 (revision 12 changed only their matching code; a rebuild reproduces the map
+in everything else - tested). Scoring needs WordNet 3.0 (pinned) and the THINGS tables, so it runs under .venv-build.
 """
 
 import hashlib
@@ -128,14 +135,14 @@ def load_frozen() -> dict:
 
 
 def score(concept: str, answer: str | None, status: str = "ok", overlength: bool = False) -> dict:
-    """The audit's free-name score for one photograph: the qualification scorer's codes (format before matching)
-    against the frozen map's admitted aliases for the intended concept."""
-    from ai_reader_score import classify
+    """The audit's free-name score for one photograph: the qualification scorer's codes (format before matching) and
+    the shared matching rule against the frozen map's entry for the intended concept."""
+    from ai_reader_score import classify_detail, correct
     m = load_frozen()
     if concept not in m["concepts"]:
         raise SystemExit(f"refused: {concept} is not one of the 32 audit concepts")
-    code, close = classify(answer, m["concepts"][concept]["aliases"], status, overlength)
-    return {"concept": concept, "code": code, "pass_name": code == "OK_MATCH", "close_descriptive": close,
+    code, close, rule = classify_detail(answer, m["concepts"][concept], status, overlength, concept)
+    return {"concept": concept, "code": code, "pass_name": correct(code), "rule": rule, "close_descriptive": close,
             "map_sha256": hashlib.sha256(MAP.read_bytes()).hexdigest()}
 
 

@@ -1,5 +1,6 @@
-"""AI image-reader qualification, revision 4: the answer KEY (held by the orchestrator, never sent to the reader).
-Framework §8.2; Codex RSC cf3e49e and 7048bb8; R052 handoffs 7f25830e repairs 2, 3, 7 and 742146ad group 2. Needs
+"""AI image-reader qualification: the answer KEY (held by the orchestrator, never sent to the reader) - its forms as
+revision 4 built them, and from revision 12 the SHARED MATCHING RULE (`names_concept`). Framework §8.2; Codex RSC
+cf3e49e and 7048bb8; R052 handoffs 7f25830e repairs 2, 3, 7, 742146ad group 2 and ff264083 (revision 12). Needs
 WordNet 3.0 (the corpus zip is pinned by sha256 below):
 
     .venv-build/bin/python stimuli/photo/ai_reader_key.py          # writes ai_reader_qual_key.json
@@ -32,13 +33,32 @@ SET - every -s head among the 300 items' candidates is listed in the key (`infle
 as plural-only, among them English plural nouns such as scissors, shorts and drawers but also the Latin binomial part
 'latrans'; 19 it treats as singular), reviewed, and frozen by test. It is not a general grammatical validator. Otherwise
 one regular plural by English orthography, or WordNet's irregular plurals (noun.exc) when it lists any; every
-candidate must lemmatise back to the head (`_morphy`). No stemming, no substring credit, no hand-added alias.
+candidate must lemmatise back to the head (`_morphy`). No stemming and no hand-added alias in the key's forms.
+
+THE SHARED MATCHING RULE (revision 12; the owner's decision of 3 October 2026, framework §8.2), `names_concept`, the
+one function the qualification scorer and the image audit's scorer both call, over the frozen forms above. After
+`normalise` (and, failing (i)-(ii) on the answer as given, with each token singularised by this inflection policy read
+backwards: a token is replaced by the base whose generated plural it is), an answer names the concept when ANY of
+  (i)   whole:    the whole answer equals an admitted form;
+  (ii)  contains: an admitted form occurs in the answer as a whole-word phrase ('toilet paper roll', 'spool of
+                  thread', 'air conditioning unit'); no head-noun guard, so the target as a modifier of another
+                  object ('paint brush' for paint) passes - a disclosed residual, and for the audit's question (does
+                  the stimulus evoke the concept) such an answer is evidence that it does;
+  (iii) hyponym:  a noun sense of the answer's head lemma - the LONGEST whole-word suffix WordNet 3.0 knows as a noun
+                  lemma - is a strict, transitive hyponym of the recorded target synset ('sneakers' -> sneaker ->
+                  shoe.n.01 counts; 'holiday greeting card' -> greeting card, a hypernym of christmas card, does not;
+                  'stretcher' for gurney, 'drums' for bongo, 'marlin' for swordfish do not). An item without a recorded
+                  synset cannot pass by (iii).
+An answer equal to one of the item's excluded forms never passes (S1-S4 stand), and neither does an answer equal to
+the canonical name or an inflection of ANOTHER released THINGS concept (S1's population: 'alpaca' for llama, 'belt
+buckle' for buckle - the reader named that concept). The admitted forms are unchanged: no alias is added, and
+everything else is a referral decided by the owner with the picture.
 
 NORMALISATION, the same for keys and answers (`normalise`): Unicode NFKC, lower case, curly quotes straightened,
 hyphens and underscores read as spaces, whitespace collapsed, surrounding . , ; : ! ? " ' ( ) removed, one leading
-article (a, an, the) dropped. The noun-phrase contract makes the concepts whose admissible forms are all multi-word
-nameable (repair 1): 29 before the specificity rule, 33 after it (roulette_wheel, fire_pit, rocking_chair and
-washing_machine lost their only one-word candidates); 'road sweeper' is a valid whole answer.
+article (a, an, the) dropped. Concepts whose admissible forms are all multi-word stay nameable (repair 1; revision
+12's prompt asks for one or two words): 29 before the specificity rule, 33 after it (roulette_wheel, fire_pit,
+rocking_chair and washing_machine lost their only one-word candidates); 'road sweeper' is a valid whole answer.
 
 The key also carries each item's human norm, the THINGS sense and synset (for referral records), the source pins, the
 rule's audit counts and the reserved concept list (`reserved_concepts`; `assert_not_reserved` for later draw code).
@@ -214,6 +234,104 @@ def aliases_for(uid: str, c: dict, released: dict, others: dict) -> dict:
             infl[a] = forms[1:]
     return {"aliases": sorted(set(admitted)), "validated_plurals": infl, "alias_sources": sources,
             "excluded_aliases": excluded, "equivalences_applied": equiv}
+
+
+_WN_CHECKED = []
+
+
+def _wordnet():
+    """WordNet 3.0 for the matching rule, refused unless the corpus zip equals the pin (checked once per process)."""
+    try:
+        from nltk.corpus import wordnet as wn
+    except ImportError:
+        raise SystemExit("refused: the shared matching rule's hyponym test needs WordNet 3.0 (run under .venv-build)")
+    if not _WN_CHECKED:
+        _WN_CHECKED.append(check_wordnet())
+    return wn
+
+
+def singular(token: str) -> str:
+    """The inflection policy read backwards: a token becomes the base b of which it is a generated plural
+    (`token in plurals(b)`, b one of WordNet's lemmatisations); otherwise it is left as it is."""
+    wn = _wordnet()
+    bases = sorted(b for b in wn._morphy(token, wn.NOUN) if b != token and token in plurals(b))
+    return bases[0] if bases else token
+
+
+def head_lemma(answer: str) -> str | None:
+    """The LONGEST whole-word suffix of the normalised answer that WordNet 3.0 knows as a noun lemma."""
+    wn = _wordnet()
+    toks = answer.split()
+    for i in range(len(toks)):
+        suffix = " ".join(toks[i:])
+        if wn.synsets(suffix.replace(" ", "_"), wn.NOUN):
+            return suffix
+    return None
+
+
+_RELEASED = {}
+
+
+def released_lookup() -> dict:
+    """S1's population for the matching rule: {canonical name or inflection: {concept ids}} over all 1,854 released
+    THINGS concepts, from the pinned tables (checked once per process)."""
+    if not _RELEASED:
+        _wordnet()
+        F.check_sources()
+        concepts, _ = F.read_tables()
+        _RELEASED.update(released_names(concepts))
+    return _RELEASED
+
+
+def names_concept(answer: str, concept: str, entry: dict) -> tuple[bool, str | None]:
+    """THE SHARED MATCHING RULE (revision 12; the owner's decision of 3 October 2026, framework 8.2), the one function
+    the qualification scorer and the audit scorer both call. `answer` is a normalised, well-formed answer (format is
+    checked first by ai_reader_score.classify); `concept` the intended THINGS concept id; `entry` its frozen key item
+    or audit-map entry (`aliases`, `excluded_aliases`, `synset`). The answer is read as given and with each token
+    singularised under the inflection policy (`singular`). In this order:
+      1. the answer equals an admitted form                                   -> (True,  'whole')      (i)
+      2. it equals one of the item's EXCLUDED forms (S1-S4 stand)             -> (False, 'excluded')
+      3. it equals the canonical name or an inflection of ANOTHER released
+         THINGS concept (S1's population, all 1,854; the answer named that
+         concept, not this one: 'alpaca' for llama, 'belt buckle' for buckle) -> (False, 'S1:<ids>')
+      4. an admitted form occurs in it as a whole-word phrase                 -> (True,  'contains')   (ii)
+         no head-noun guard: the target as a modifier of another object ('paint brush' for paint) passes - disclosed;
+      5. a noun sense of its head lemma (`head_lemma`: the longest whole-word
+         suffix WordNet 3.0 knows as a noun lemma) is a strict, transitive
+         hyponym of the recorded target synset                               -> (True,  'hyponym')    (iii)
+         (hypernym and instance-hypernym closure; an item without a synset cannot pass by (iii))
+      otherwise                                                               -> (False, None)
+    Steps 1-3 are applied to the answer as given and to its singularised form. Only step 1 on the answer as given
+    needs nothing else; every other step needs the pinned WordNet and THINGS tables, so a scorer without them refuses
+    instead of guessing."""
+    aliases = entry["aliases"]
+    if answer in aliases:
+        return True, "whole"
+    excluded = {e["alias"] for e in entry.get("excluded_aliases", [])}
+    if answer in excluded:
+        return False, "excluded"
+    wn = _wordnet()
+    sing = " ".join(singular(t) for t in answer.split())
+    forms = list(dict.fromkeys([answer, sing]))
+    if sing in aliases:
+        return True, "whole"
+    if sing in excluded:
+        return False, "excluded"
+    released = released_lookup()
+    other = sorted(set().union(*(released.get(f, set()) for f in forms)) - {concept})
+    if other:
+        return False, "S1:" + ",".join(other)
+    if any(re.search(r"(^| )" + re.escape(a) + r"( |$)", f) for f in forms for a in aliases):
+        return True, "contains"
+    sid = (entry.get("synset") or "").strip()
+    if sid:
+        T = wn.synset_from_pos_and_offset("n", int(sid[1:]))
+        for f in forms:
+            h = head_lemma(f)
+            if h and any(s != T and T in set(s.closure(lambda x: x.hypernyms() + x.instance_hypernyms()))
+                         for s in wn.synsets(h.replace(" ", "_"), wn.NOUN)):
+                return True, "hyponym"
+    return False, None
 
 
 def assert_not_reserved(concepts) -> None:
