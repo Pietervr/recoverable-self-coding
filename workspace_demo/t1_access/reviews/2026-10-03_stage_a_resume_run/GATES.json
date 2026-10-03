@@ -1,0 +1,15 @@
+{
+ "hold": false,
+ "identity": "c0fb2ea0f6c5ef83cdabd414cb7d761ec3aabd9de13ed6022a852a7b590da001",
+ "missing_recovery": [],
+ "package": {
+  "budget_sha256": "9e9eb4dcc8dca396af86ee982b17d1e957e9668b12bda0fd803deb126805c07f",
+  "criteria_sha256": "4e80b9590461dccbada956e82a413dbd46832c885cbdf6dc33ad87b8439e0870",
+  "identity_sha256": "1a01d070da0c18fa871a0e252c9a8c9d98df9df250be10300181fa8696569664",
+  "manifest_sha256": "e816f843700a4a15c4ca56ba71318957e73b77d3560e81a2bf476ff23422f448",
+  "plan_sha256": "3faebf4eab25081cf32652bf025fa8fab9d11bee6f1c9a19a1cf2dbad45417cc"
+ },
+ "passed": true,
+ "reconciled": null,
+ "session": "51d14603dd97"
+}

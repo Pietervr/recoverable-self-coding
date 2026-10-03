@@ -1,0 +1,87 @@
+{"validator_pass": false, "failures": 11}
+{
+ "outcome": "STOPPED",
+ "session": "51d14603dd97",
+ "report_current": true,
+ "report_problems": [],
+ "validator_pass": false,
+ "admissible": true,
+ "terminal": true,
+ "terminal_release": null,
+ "counters": {
+  "ok": true,
+  "detail": []
+ },
+ "seconds_total": 2169.450047340088,
+ "carry_s": 1808.73,
+ "stage_a_seconds": 360.72004734008806,
+ "task_memory_aggregate": 33317693192,
+ "missing_measurements": [],
+ "peaks": {
+  "controller_final": 70107664,
+  "controller_lifetime_max": 70107664,
+  "guardian_final": 60178936,
+  "guardian_lifetime_max": 61948408,
+  "max_iteration_s": {
+   "gates": 0.011877458018716425,
+   "instrumented": 0.0,
+   "report": 0.009992625040467829,
+   "native": 0.013704749988391995
+  },
+  "phase_aggregates": {
+   "36854e9651f8:gates:1": 449679800,
+   "36854e9651f8:instrumented:2": 33317693192,
+   "36854e9651f8:report:3": 753552336,
+   "51d14603dd97:gates:4": 449663944,
+   "51d14603dd97:native:5": 18919980080,
+   "51d14603dd97:report:6": 803015344
+  },
+  "storage_bytes": 380926464,
+  "task_lifetime_sum": 33317693192
+ },
+ "report_receipt_sha256": "15fc052172f201aa97fca8603c7549b1f0e46845ab42a50361e51c1ac6ff9d5b",
+ "controller_sha256": "26e3427080c579609b5ef319b869142d45ddde8137170ed960a70d8051e4b2f4",
+ "stops": [
+  {
+   "at_total_s": 1987.6995163527504,
+   "phase": "controller",
+   "reason": "ControllerStop: instrumented: watchdog exited (0)",
+   "session": "36854e9651f8"
+  },
+  {
+   "phase": "report",
+   "reason": "ControllerStop: report: watchdog exited (0)",
+   "session": "36854e9651f8"
+  },
+  {
+   "phase": "controller",
+   "session": "51d14603dd97",
+   "reason": "ControllerStop: native: worker exited 1",
+   "at_total_s": 2099.0724755900633
+  }
+ ],
+ "time_scope": "seconds_total includes this session's whole bounded closure (60 s = finalisation 50 + revocation 5 + exit/output 5), charged at the close; finalisation is enforced by its timer and the whole closure by the guardian",
+ "stage_b_prediction": {
+  "unique_attempts": 174,
+  "seconds_per_unique_attempt": 2.0731037203453337,
+  "bytes_per_unique_attempt": 2189451.3160919542,
+  "predicted_seconds": 3847.6805049609393,
+  "predicted_bytes": 4063621642.666667,
+  "limit_seconds": 11520.0,
+  "limit_bytes": 6871947673.6,
+  "time_ok": true,
+  "storage_ok": true,
+  "basis": "completed whole-stage rates"
+ },
+ "storage_final": 380964529,
+ "caps_ok_on_final_figures": {
+  "time": true,
+  "storage": true,
+  "memory": true,
+  "attempts": true
+ },
+ "storage_final_check": {
+  "declared": 380964529,
+  "measured_after": 380964528
+ }
+}
