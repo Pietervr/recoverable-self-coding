@@ -1114,6 +1114,13 @@ class Rev13Parity(unittest.TestCase):
         self.assertFalse(r["argmax_equal"])
         self.assertFalse(r["pass"])
 
+    def test_report_labels_the_floor(self):
+        """Revision 14 (Codex c4bbcb5 R2 item 4): the SVG's 0.10 guide is the floor, not the bound for every logit."""
+        src = Path(R.__file__).read_text()
+        self.assertNotIn("(tolerance 0.10)", src)
+        self.assertIn('"floor 0.10; at |logit| >= 16 the bound is one bf16 step)"', src)
+        self.assertIn("0.10 is the floor, not the bound for every logit", src)
+
     def test_one_implementation(self):
         src_a = Path(stage_a.__file__).read_text()
         src_r = Path(R.__file__).read_text()
@@ -1264,6 +1271,100 @@ class Rev13Transition(unittest.TestCase):
             self.skipTest("no retained resume record")
         for n in ("TERMINAL.json", "IDENTITY_TRANSITION.json"):
             self.assertEqual((RESUME_RUN / n).read_bytes(), (REAL_RUN / n).read_bytes(), n)
+
+
+
+@unittest.skipUnless((REAL_RUN / "IDENTITY_TRANSITION.json").exists() and (REAL_RUN / "passes" / "15-native.json")
+                     .exists(), "needs the 3 October resume's records")
+class Rev14PreparedLink(unittest.TestCase):
+    """Revision 14 (Codex c4bbcb5 R1): the prepared-link write boundary. A fault between write (1), the durable second
+    link, and write (2), the ledger slot, is injected on a COPY of the real 3 October records (no forward); the next
+    start reconciles the exact prepared tail idempotently - only the slot commit."""
+
+    setUp, tearDown, release = Rev13Transition.setUp, Rev13Transition.tearDown, Rev13Transition.release
+
+    def prepare(self):
+        """Produce the post-link / pre-slot state by failing write (2) once."""
+        self.release()
+        real = enforce.write_json_atomic
+
+        def failing(path, obj, *a, **k):
+            if Path(path).name == "stage_a_state.json":
+                raise OSError("injected: the ledger slot write fails after the link is durable")
+            return real(path, obj, *a, **k)
+        enforce.write_json_atomic = failing
+        try:
+            with self.assertRaisesRegex(OSError, "injected"):
+                stage_a.worker_open(self.ctx, "native")
+        finally:
+            enforce.write_json_atomic = real
+        self.assertTrue((self.out / "IDENTITY_TRANSITION.2.json").exists())
+        self.assertEqual(json.loads((self.out / "stage_a_state.json").read_text())["identities"]["row20"],
+                         stage_a.PREDECESSOR_12_ID)
+        return (self.out / "IDENTITY_TRANSITION.2.json").read_bytes()
+
+    def snapshot(self):
+        return {p.name: p.read_bytes() for p in sorted(self.out.iterdir()) if p.is_file()}
+
+    def test_fault_between_the_writes_then_retry_reconciles(self):
+        link2 = self.prepare()
+        budget, plan, _ = stage_a.worker_open(self.ctx, "native")                  # the retry
+        cur = json.loads(self.ctx.identity_path.read_text())["identity_sha256"]
+        self.assertEqual(budget.identity, cur)
+        self.assertFalse((self.out / "IDENTITY_TRANSITION.3.json").exists())       # no third link
+        self.assertEqual((self.out / "IDENTITY_TRANSITION.2.json").read_bytes(), link2)
+        self.assertEqual((self.out / "IDENTITY_TRANSITION.json").read_bytes(), self.t1)
+        self.assertEqual((self.out / "INSTRUMENTED_DONE.json").read_bytes(), self.done0)
+        self.assertEqual(budget.state["counters"], self.state0["counters"])
+        self.assertEqual(budget.state["completed"], self.state0["completed"])
+        self.assertEqual(len(stage_a.admit_native(self.ctx, plan, budget)), len(plan["inputs"]))
+
+    def test_repeat_of_the_reconciled_state_writes_nothing(self):
+        self.prepare()
+        stage_a.identity_transition(self.ctx, json.loads(self.ctx.identity_path.read_text()))
+        before = self.snapshot()
+        stage_a.identity_transition(self.ctx, json.loads(self.ctx.identity_path.read_text()))
+        self.assertEqual(self.snapshot(), before)
+
+    def test_prepared_tail_under_an_invalidated_release_refuses_then_a_new_release_reconciles(self):
+        self.prepare()
+        tb = (self.out / "TERMINAL.json").read_bytes()
+        (self.out / "TERMINAL.json").write_bytes(tb.replace(b'"later": [', b'"later": [{"phase": "native", "pid": 1, '
+                                                            b'"reason": "a later failure", "wall": "x"}, ', 1))
+        with self.assertRaisesRegex(SystemExit, "terminal"):                       # the terminal gate first
+            stage_a.worker_open(self.ctx, "native")
+        with self.assertRaisesRegex(SystemExit, "terminal release"):               # and the reconciliation itself
+            stage_a.identity_transition(self.ctx, json.loads(self.ctx.identity_path.read_text()))
+        self.assertEqual(json.loads((self.out / "stage_a_state.json").read_text())["identities"]["row20"],
+                         stage_a.PREDECESSOR_12_ID)
+        self.release()                                                             # the owner's NEW release
+        stage_a.worker_open(self.ctx, "native")
+        self.assertFalse((self.out / "IDENTITY_TRANSITION.3.json").exists())
+
+    def test_prepared_tail_whose_endpoints_differ_refuses(self):
+        self.prepare()
+        for k, v in (("to", "b" * 64), ("from", "c" * 64)):
+            with self.subTest(k):
+                t = json.loads((self.out / "IDENTITY_TRANSITION.2.json").read_text())
+                good = dict(t)
+                t[k] = v
+                (self.out / "IDENTITY_TRANSITION.2.json").write_text(json.dumps(t))
+                with self.assertRaisesRegex(SystemExit, "recorded transitions end"):
+                    stage_a.worker_open(self.ctx, "native")
+                (self.out / "IDENTITY_TRANSITION.2.json").write_text(json.dumps(good))
+
+    def test_prepared_tail_whose_counters_or_ids_differ_refuses(self):
+        self.prepare()
+        good = json.loads((self.out / "IDENTITY_TRANSITION.2.json").read_text())
+        for k, v in (("counters", {**good["counters"], "row20": {**good["counters"]["row20"], "started": 1}}),
+                     ("completed_attempts", good["completed_attempts"][:-1]),
+                     ("frozen_identical", good["frozen_identical"][:-1])):
+            with self.subTest(k):
+                (self.out / "IDENTITY_TRANSITION.2.json").write_text(json.dumps({**good, k: v}))
+                with self.assertRaisesRegex(SystemExit, "prepared transition record does not match"):
+                    stage_a.worker_open(self.ctx, "native")
+                self.assertEqual(json.loads((self.out / "stage_a_state.json").read_text())["identities"]["row20"],
+                                 stage_a.PREDECESSOR_12_ID)
 
 
 if __name__ == "__main__":

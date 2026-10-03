@@ -519,7 +519,8 @@ def build(out: Path, plan: dict, ledger: dict, *, admissible: bool, session: str
                                                              "Relative L2 by layer (tolerance 0.01)", 0.01)),
                           ("logit_max_abs.svg", _svg_lines({"max |logit diff|": [r["logit_max_abs"] for r in
                                                                                  val["parity"]]},
-                                                           "Max |E1 logit difference| by input (tolerance 0.10)",
+                                                           "Max |E1 logit difference| by input (guide: the absolute "
+                                                           "floor 0.10; at |logit| >= 16 the bound is one bf16 step)",
                                                            0.10))):
             W(rep / name, svg.encode())
             outputs[f"report/{name}"] = _sha(svg.encode())
@@ -532,12 +533,17 @@ def build(out: Path, plan: dict, ledger: dict, *, admissible: bool, session: str
                f"{record['unreconciled_open_attempt']}; interrupted tries {record['interrupted']}.", ""]
     md += ["## Failures", ""] + [f"- {f['code']} at {f['where']}: {f['detail']}" for f in val["failures"][:200]] + \
           ["", "## Native parity (recomputed from the committed arrays)", "",
-           "Logit criterion (revision 13): per requested logit, |difference| <= max(0.10, one bfloat16 step at the "
-           "larger magnitude).", "",
-           "| input | rel L2 max | logit max abs | at magnitude | tolerance there | bf16 steps | argmax equal | pass |",
-           "|---|---|---|---|---|---|---|---|"] + \
+           "Logit criterion (revisions 13-14): per requested logit, |difference| <= max(0.10, the bfloat16 step of the "
+           "larger magnitude's binade); 0.10 is the floor, not the bound for every logit. The columns describe the "
+           "component with the largest absolute difference; the deciding component (largest difference / tolerance) "
+           "is in the last two columns and, with its magnitude and steps, in stage_a_report.json and any failure.", "",
+           "| input | rel L2 max | logit max abs | at magnitude | tolerance there | bf16 steps | worst diff / tolerance "
+           "| at magnitude | argmax equal | pass |",
+           "|---|---|---|---|---|---|---|---|---|---|"] + \
           [f"| {r['index']} | {r['rel_l2_max']:.3g} | {r['logit_max_abs']:.3g} | {r['logit_max_abs_magnitude']:.4g} | "
-           f"{r['logit_max_abs_tolerance']:.4g} | {r['logit_max_abs_bf16_steps']} | {r['argmax_equal']} | {r['pass']} |"
+           f"{r['logit_max_abs_tolerance']:.4g} | {r['logit_max_abs_bf16_steps']} | "
+           f"{r['logit_worst_abs'] / r['logit_worst_tolerance']:.3g} | {r['logit_worst_magnitude']:.4g} | "
+           f"{r['argmax_equal']} | {r['pass']} |"
            for r in val["parity"]] + \
           ["", "## Stage B", "", "```", json.dumps({"prediction": b, "admission": admission}, indent=1), "```", "",
            "## Interpretation", "", "Not written here: the author inspects the figures and archives "

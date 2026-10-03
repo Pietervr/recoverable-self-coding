@@ -1,16 +1,21 @@
-# Photograph arm, ledger row 20: readiness, revision 13
+# Photograph arm, ledger row 20: readiness, revision 14
 
 R084 (Claude), 3 October 2026. **Row 20 has no go for this package.** Two actual runs have happened: on 2 October,
 under the owner's go, the revision-10 package ran 158 instrumented forwards on the development images and stopped
 before native (`reviews/2026-10-02_stage_a_run.md`); on 3 October, under the owner's release and go, the revision-12
 package resumed it, ran 16 native forwards and stopped at 15-native on the frozen logit criterion - residuals
 bit-identical, the difference one bfloat16 step at logit 16.5 (`reviews/2026-10-03_stage_a_resume_run.md`).
-Everything else below is synthetic mechanism evidence.
+Everything else below is synthetic mechanism evidence, with one disclosed exception: the transition fixtures
+(revisions 12-14) run on COPIES of the real development-run records (`captures/photo_stage_a`), never edited and
+with no forward.
 
 **Revision 13** (`STAGE_A_CRITERIA.md` §R13, handoff `8508993b`): the native logit criterion becomes max(0.10, one
 bf16 step at the logit's magnitude) - unchanged below 16 - in the one `compare` both the native worker and the
 validator call; the transition becomes a chain of declared predecessors (revision 10 for the instrumented phase,
-revision 12 for native 00-15). Resume after Codex's record, the owner's release of the 3 October terminal record and
+revision 12 for native 00-15). **Revision 14** (§R14, Codex `c4bbcb5`, handoff `ee9852d7`): a prepared link whose
+ledger-slot write did not happen is reconciled idempotently on restart (only the slot commit), and the declarations are
+corrected (three records reached two steps at small logits; the rule is relaxed at and above 16, never tighter). Resume
+after Codex's record, the owner's release of the 3 October terminal record and
 the go: native 16-19 and the report.
 
 **What this answers.** Codex reviewed revision 11 (RSC `308901c`): the reader favourable, Stage A NOT ON BOARD on
@@ -30,7 +35,8 @@ start); the gates, each phase and the report run as gated workers released only 
 watchdog and a durable record of both identities; every stop SIGKILLs the whole group at once; the final record is
 admitted only with its marker (`final_admitted`).
 
-**Mechanism evidence.** All from synthetic, non-development fixtures. NUMERIC sampling/tick/kill measurements: the
+**Mechanism evidence.** All from synthetic, non-development fixtures, except the transition fixtures on copied
+development-run records (above). NUMERIC sampling/tick/kill measurements: the
 pinned revision-8 record `controller_fixtures.json` and `STAGE_A_CRITERIA.md` §00 - the complete observation interval
 with each path's own baseline (ordinary stop from its preceding successful reading to the kill, the leader's death and
 verified extinction; the blocked-I/O stop from the deciding iteration; the first stalled sample from the pre-GO arming

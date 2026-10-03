@@ -27,13 +27,17 @@ controller.json, the report, and the read-only diagnosis `native_diag.py` with i
 | native | rel L2 max | logit max abs | at logit | one bf16 step there | argmax equal |
 |---|---|---|---|---|---|
 | 00 | 0 | 0.0625 | 14.69 | 0.0625 | yes |
-| 01-09, 11, 14 | 0 | 0.03125 | 2.3-6.8 | 0.0156-0.03125 | yes |
+| 01, 08, 11 | 0 | 0.03125 | 2.27-3.53 | 0.015625 (two steps) | yes |
+| 02-07, 09, 14 | 0 | 0.03125 | 4.2-6.8 | 0.03125 | yes |
 | 10, 12, 13 | 0 | 0.0625 | 11.6-15.8 | 0.0625 | yes |
 | **15** | **0** | **0.125** | **16.5** | **0.125** | yes |
 
 Observation (`native_diag.stdout.txt`): in all 16 records the marker-row residuals are bit-identical (relative L2 = 0)
-and the embedded inputs equal the instrumented merge; the largest requested-logit difference is in every record
-exactly one bfloat16 step at that logit's magnitude (`2^(floor(log2|x|) - 7)`). At 15-native the largest requested
-logit is 16.5, where one bf16 step is 0.125 - above the 0.10 absolute tolerance, which is finer than bf16 resolution for
-any logit of magnitude >= 16. This is what the records show; it is not a ruling. Nothing was edited, re-run or released;
+and the embedded inputs equal the instrumented merge; the largest requested-logit difference is one bfloat16 step at
+that logit's magnitude (`2^(floor(log2|x|) - 7)`) in 13 records and TWO steps in 01-, 08- and 11-native (0.03125 at
+3.109, 3.531, 2.266, step 0.015625) - corrected 3 October after Codex `c4bbcb5` R2; the first version of this record
+said "in every record exactly one step", which the retained diagnosis does not support. No rounding cause is
+inferred. At 15-native the largest requested
+logit is 16.5, where one bf16 step is 0.125 - above the 0.10 absolute tolerance, which is finer than one step of the
+binade [16, 32). This is what the records show; it is not a ruling. Nothing was edited, re-run or released;
 the stop stands, and Stage A stays terminal until the owner releases it and a reviewed criterion decides 15-native.

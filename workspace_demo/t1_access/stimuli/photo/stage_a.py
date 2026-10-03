@@ -1,8 +1,9 @@
 """Photograph arm, Stage A (ledger row 20, framework §8.4): native fidelity and profiling - the runner, revision 5.
 
 Revision 5 answers Codex's record RSC 1bf9890 (not favourable to revision 4 at d7a486a) through R052's handoff
-8c9dac2b; the condition-by-condition map is STAGE_A_CRITERIA.md §1; revisions 6-13 in its §0-§R13. Revision 13: the
-native logit criterion in bfloat16 steps at and above 16 (`compare`) and the chained transition (`PREDECESSORS`).
+8c9dac2b; the condition-by-condition map is STAGE_A_CRITERIA.md §1; revisions 6-14 in its §0-§R14. Revision 13: the
+native logit criterion in bfloat16 steps at and above 16 (`compare`) and the chained transition (`PREDECESSORS`);
+revision 14: the prepared-link reconciliation in `identity_transition` (Codex c4bbcb5 R1).
 EXPOSURE: two runs - 2 October (revision 10: gates and 158 instrumented forwards, terminal) and 3 October (revision 12:
 16 native forwards, terminal at 15-native) - reviews/2026-10-02_stage_a_run.md, reviews/2026-10-03_stage_a_resume_run.md.
 
@@ -81,8 +82,10 @@ TOL = {"rel_l2": 0.01, "logit": 0.10}
 
 
 def bf16_step(m: float) -> float:
-    """One bfloat16 unit in the last place at magnitude m: 2^(floor(log2 m) - 7) for m > 0 (8 significand bits);
-    0 for m = 0. frexp keeps the binade exact (m = f * 2^e, 0.5 <= f < 1, so floor(log2 m) = e - 1)."""
+    """The bfloat16 spacing of the binade holding m: 2^(floor(log2 m) - 7) for m > 0 (8 significand bits); 0 for
+    m = 0. compare passes m = the LARGER magnitude, so at a binade boundary the step is coarser than the gap just below
+    (16.0 and 15.9375 are adjacent, 0.0625 apart, while step(16) = 0.125). frexp keeps the binade exact (m = f * 2^e,
+    0.5 <= f < 1, so floor(log2 m) = e - 1)."""
     m = abs(float(m))
     if m == 0.0:
         return 0.0
@@ -814,7 +817,19 @@ def admitted_phase_identity(out: Path, phase_identity: str, current: str) -> boo
 
 def identity_transition(ctx, current_ident: dict) -> None:
     """Called by worker_open before the ledger opens: a no-op unless the ledger is bound to a DECLARED predecessor
-    and the current package differs from it. Writes the next transition record before the ledger's slot moves."""
+    and the current package differs from it.
+
+    TWO WRITES, IN THIS ORDER (revision 14, Codex c4bbcb5 R1): (1) the next transition link (IDENTITY_TRANSITION.json,
+    then IDENTITY_TRANSITION.<n>.json), durable; (2) the ledger's identity slot (stage_a_state.json). A death or a failed
+    write between them leaves a PREPARED TAIL: the last link runs from the ledger's identity to the current one while
+    the ledger still holds its predecessor. A later start RECONCILES it idempotently - it completes ONLY write (2) - when
+    every condition holds: the tail's from/to equal the ledger's identity and the current package identity; the chain
+    before it is unbroken and ends at the ledger's identity; the current TERMINAL_RELEASE.json is valid for the current
+    TERMINAL bytes (a release the controller's later failure invalidated cannot be reused - that failure needs its own
+    release) and was consumed by no EARLIER link; the frozen inputs equal the predecessor's; no open or interrupted
+    attempt; and the tail's recorded predecessor, frozen list, differing code files, completed attempt ids, counters
+    and carry equal the ledger's and the package's now. Otherwise it refuses. A repeat finds the slot already moved and
+    writes nothing; a reconciliation never appends a link, resets a counter or recomputes a record."""
     from stage_a_guard import terminal_release
     sp = ctx.out / "stage_a_state.json"
     if not sp.exists():
@@ -830,13 +845,16 @@ def identity_transition(ctx, current_ident: dict) -> None:
     if sha(json.dumps(body, sort_keys=True).encode()) != have:
         raise SystemExit("refused: the declared predecessor's identity body does not hash to its identity")
     chain = transition_records(ctx.out)
-    if chain and chain[-1].get("to") != have:
+    prepared = bool(chain) and chain[-1].get("from") == have and chain[-1].get("to") == cur and \
+        (len(chain) == 1 or chain[-2].get("to") == have)
+    before = chain[:-1] if prepared else chain
+    if before and before[-1].get("to") != have:
         raise SystemExit("refused: the ledger's identity is not where the recorded transitions end")
     rel = terminal_release(ctx.out)
     if rel is None:
         raise SystemExit("refused: a predecessor's completed phases are admitted only under the owner's terminal "
                          "release (TERMINAL_RELEASE.json naming this run's terminal record)")
-    if any(t.get("release_sha256") == rel["file_sha256"] for t in chain):
+    if any(t.get("release_sha256") == rel["file_sha256"] for t in before):
         raise SystemExit("refused: this terminal release was already consumed by an earlier transition")
     differ = [k for k in FROZEN_KEYS if body.get(k) != current_ident.get(k)]
     if differ:
@@ -845,17 +863,26 @@ def identity_transition(ctx, current_ident: dict) -> None:
     if st.get("open_attempt") or st.get("interrupted"):
         raise SystemExit("refused: an open or interrupted attempt in the predecessor's ledger; no transition")
     code_old, code_new = body.get("local_code_sha256", {}), current_ident.get("local_code_sha256", {})
-    rec = {"from": have, "to": cur, "predecessor": {k: pred[k] for k in ("package", "review", "phases")},
-           "release_sha256": rel["file_sha256"], "wall": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-           "local_code_differs": {n: {"from": code_old.get(n), "to": code_new.get(n)}
-                                  for n in sorted(set(code_old) | set(code_new)) if code_old.get(n) != code_new.get(n)},
-           "frozen_identical": list(FROZEN_KEYS), "completed_attempts": sorted(st.get("completed", {})),
-           "counters": st.get("counters"), "carry_in": st.get("carry_in")}
+    expect = {"from": have, "to": cur, "predecessor": {k: pred[k] for k in ("package", "review", "phases")},
+              "local_code_differs": {n: {"from": code_old.get(n), "to": code_new.get(n)}
+                                     for n in sorted(set(code_old) | set(code_new))
+                                     if code_old.get(n) != code_new.get(n)},
+              "frozen_identical": list(FROZEN_KEYS), "completed_attempts": sorted(st.get("completed", {})),
+              "counters": st.get("counters"), "carry_in": st.get("carry_in")}
     from enforce import write_json_atomic
+    if prepared:                                       # revision 14 (R1): complete only the slot commit
+        tail = chain[-1]
+        bad = sorted(k for k, v in expect.items() if tail.get(k) != v)
+        if bad:
+            raise SystemExit(f"refused: the prepared transition record does not match the ledger and package ({bad})")
+        st["identities"]["row20"] = cur
+        write_json_atomic(sp, st, final=True)
+        return
+    rec = {**expect, "release_sha256": rel["file_sha256"], "wall": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     name = TRANSITION if not chain else f"IDENTITY_TRANSITION.{len(chain) + 1}.json"
-    write_json_atomic(ctx.out / name, rec, final=True)           # durable BEFORE the ledger's slot moves
+    write_json_atomic(ctx.out / name, rec, final=True)           # write (1): durable BEFORE the ledger's slot moves
     st["identities"]["row20"] = cur
-    write_json_atomic(sp, st, final=True)
+    write_json_atomic(sp, st, final=True)                        # write (2)
 
 
 def worker_open(ctx: Ctx, phase: str, *, terminal_gate: bool = True):
