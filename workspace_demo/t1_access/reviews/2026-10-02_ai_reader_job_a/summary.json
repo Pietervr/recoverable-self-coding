@@ -1,0 +1,28 @@
+{
+ "clock_seconds_total": 4000.823198107537,
+ "clock_sessions": [
+  "COMPLETE"
+ ],
+ "end_outcomes": {
+  "ok": 600
+ },
+ "journal_sha256": "b8c8bf4f991f6ebd5e90f049999d1d7c7a9df566701380807522277a3fc1ee44",
+ "receipt": {
+  "outcome": "COMPLETE",
+  "reason": "all 600 requests final",
+  "seconds_total": 4060.8219618165167,
+  "smoke": {
+   "attempt_id": "001.b2df6c4dfae2.1",
+   "state": "passed",
+   "why": ""
+  }
+ },
+ "record_types": {
+  "begin": 600,
+  "dispatched": 600,
+  "end": 600,
+  "open": 1,
+  "receipt": 1
+ },
+ "records": 1802
+}

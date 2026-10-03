@@ -1,0 +1,32 @@
+{
+ "t": "receipt",
+ "seq": 1802,
+ "package_digest": "6be7d4c8fc6b113f4505af166386f8cf3df23446ccfe19df61114bb5d2e4b760",
+ "mode": "scientific",
+ "outcome": "COMPLETE",
+ "reason": "all 600 requests final",
+ "counts": {
+  "attempts": 600,
+  "requests_final": 600,
+  "outcomes": {
+   "ok": 600
+  }
+ },
+ "journal_sha256": "e61357d6f3738c6354288614e917a9fe58e4481f2e1a8bee98884b0dba3210be",
+ "raw_bytes_before": 1914183,
+ "seconds_total": 4060.8219618165167,
+ "limits": {
+  "planned": 600,
+  "max_tries_per_request": 3,
+  "max_attempts": 660,
+  "attempt_timeout_s": 120,
+  "job_clock_s": 21600,
+  "answer_chars": 2000,
+  "raw_bytes": 20971520
+ },
+ "smoke": {
+  "state": "passed",
+  "why": "",
+  "attempt_id": "001.b2df6c4dfae2.1"
+ }
+}
