@@ -1,0 +1,11 @@
+test_full_form_s1_prospectively (stimuli.photo.tests.test_ai_reader.KeyFunctions.test_full_form_s1_prospectively)
+Every ADMITTED full form (inflections included) against every released concept's canonical names and ... ok
+test_inflections (stimuli.photo.tests.test_ai_reader.KeyFunctions.test_inflections) ... ok
+test_rebuild_reproduces_the_key (stimuli.photo.tests.test_ai_reader.KeyFunctions.test_rebuild_reproduces_the_key) ... ok
+test_specificity_rules (stimuli.photo.tests.test_ai_reader.KeyFunctions.test_specificity_rules) ... ok
+test_synonym_residue (stimuli.photo.tests.test_ai_reader.KeyFunctions.test_synonym_residue) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.660s
+
+OK
