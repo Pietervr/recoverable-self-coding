@@ -1,0 +1,33 @@
+{
+ "t": "receipt",
+ "seq": 659,
+ "package_digest": "3e2bcdcc5356cbfaf31af61b473aa46751ec149006620c0d3a66a99466b9ec11",
+ "mode": "scientific",
+ "outcome": "STOPPED",
+ "reason": "SystemExit: refused: prompt-input receipt failed (71): b\"sandbox-exec: execvp() of '/opt/homebrew/Caskroom/codex/0.159.3/bin/codex' failed: No such file or directory\\n\"",
+ "counts": {
+  "attempts": 219,
+  "requests_final": 219,
+  "outcomes": {
+   "isolation_violation": 1,
+   "ok": 218
+  }
+ },
+ "journal_sha256": "316014d63845b1386fe3929ccc1c56d2efd088c58057027444f52afcecf3df82",
+ "raw_bytes_before": 697599,
+ "seconds_total": 1814.0903393486408,
+ "limits": {
+  "planned": 600,
+  "max_tries_per_request": 3,
+  "max_attempts": 660,
+  "attempt_timeout_s": 120,
+  "job_clock_s": 21600,
+  "answer_chars": 2000,
+  "raw_bytes": 20971520
+ },
+ "smoke": {
+  "state": "passed",
+  "why": "",
+  "attempt_id": "001.b2df6c4dfae2.1"
+ }
+}

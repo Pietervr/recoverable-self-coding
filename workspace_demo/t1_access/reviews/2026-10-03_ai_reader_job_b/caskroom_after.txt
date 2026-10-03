@@ -1,0 +1,17 @@
+/opt/homebrew/Caskroom/codex/:
+total 0
+drwxr-xr-x@ 4 pietervanrooyen  admin  128 Oct  3 09:58 .
+drwxrwxr-x  5 pietervanrooyen  admin  160 Oct  1 19:36 ..
+drwxr-xr-x@ 5 pietervanrooyen  admin  160 Oct  3 09:58 .metadata
+drwxr-xr-x@ 6 pietervanrooyen  admin  192 Oct  3 09:58 0.160.0
+
+/opt/homebrew/Caskroom/codex/0.160.0:
+total 8
+drwxr-xr-x@ 6 pietervanrooyen  admin  192 Oct  3 09:58 .
+drwxr-xr-x@ 4 pietervanrooyen  admin  128 Oct  3 09:58 ..
+drwxr-xr-x@ 4 pietervanrooyen  admin  128 Oct  1 10:54 bin
+-rw-r--r--@ 1 pietervanrooyen  admin  200 Oct  1 10:54 codex-package.json
+drwxr-xr-x@ 3 pietervanrooyen  admin   96 Oct  1 10:54 codex-path
+drwxr-xr-x@ 4 pietervanrooyen  admin  128 Oct  1 10:54 codex-resources
+Oct  3 09:58:30 2026 /opt/homebrew/Caskroom/codex/0.160.0
+Oct  3 09:58:34 2026 /opt/homebrew/Caskroom/codex/.metadata
