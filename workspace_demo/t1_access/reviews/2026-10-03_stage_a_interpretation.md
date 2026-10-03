@@ -5,6 +5,10 @@ Date: 2026-10-03
 rel_l2_by_layer.svg sha256: 9c39652debc389f4d0048e03cdee3a50d751a198698a0da047fb69126b31a381
 logit_max_abs.svg sha256: 4a37ba7c28a4d9d449ed102c30ad3c40413bb9b250597d4743b5db482c4458c3
 
+Revised 2026-10-03 after Codex's report review (RSC `b0db0f9`, `reviews/2026-10-03_stage_a_report_codex_record.md`, SHA-256
+`52ed7082…`, YES WITH QUALIFICATIONS): native agreement worded as zero recorded relative-L2 distance, not bit identity; the
+claim narrowed to the recorded rows and requested tokens; the post-failure amendment and the four controller starts stated.
+
 Report read: `captures/photo_stage_a/report/STAGE_A_REPORT.md` (sha256 `b2816de0…`), `stage_a_report.json` (`b0fc6945…`),
 `REPORT_RECEIPT.json` (`c67f327b…`), and `STAGE_A_FINAL.json` (`2a133fcb…`, outcome PASS, admissible, not terminal),
 as retained in `reviews/2026-10-03_stage_a_rev15_resume_run/`. Both figures were rendered and looked at. The validator
@@ -24,7 +28,8 @@ was recomputed by the author from the saved arrays (0 failures; 20 parity rows e
 
 Twenty development images were run. For each: one plain instrumented forward and six sham cases (140 forwards), 16
 mechanics diagnostics, 2 suffix-isolation diagnostics, and one native forward (20). In all, 178 planned forwards, each
-run once. Three criteria were declared before the runs:
+run once. Three criteria categories were declared before the runs (the numerical logit tolerance was later amended;
+see point 3 below):
 
 1. Every sham case must reproduce the plain forward's recorded residuals bit for bit (120 comparisons).
 2. The native forward must agree with the instrumented plain forward: relative L2 distance of the recorded residuals at
@@ -34,8 +39,9 @@ run once. Three criteria were declared before the runs:
 ## What was found
 
 - All 120 sham comparisons are bit-identical. The two encoder-sensitivity inputs differ, as they must.
-- Native against instrumented, all 20 images: the relative L2 distance is exactly 0 in every one of the 64 layers. The
-  recorded residuals are bit-identical on the two paths.
+- Native against instrumented, all 20 images: the recorded relative L2 distance is zero at every saved marker row in
+  every one of the 64 layers. (No byte-equality comparison of the native residuals was made; numerical zero is stated,
+  not bit identity.)
 - The largest requested-logit difference per image is between 0.0195 and 0.0625 for 19 images and 0.125 for image 15.
   The top-scoring requested token is the same on both paths for all 20.
 - Caps: 194 of 200 forwards, 2,338 s of 14,400 s, 33.3 GB peak task memory, 396.8 MB of storage. All hold.
@@ -53,9 +59,12 @@ run once. Three criteria were declared before the runs:
 
 ## What it means, and what it does not
 
-1. On these 20 development images the capture code did not alter the computation it records: the sham edits leave the
-   recorded residuals bit-identical, and the native path gives bit-identical residuals at the recorded rows.
-2. The requested logits are not bit-identical between the paths although the recorded residuals are. The report does
+1. On these 20 development images the sham edits leave the recorded residuals bit-identical (120 explicit comparisons),
+   and the native and instrumented endpoints agree at the recorded rows and requested tokens: zero recorded relative-L2
+   distance, logits within tolerance, the same top token. Images 0-15 compare the two paths within macOS 27.0; images
+   16-19 compare old-macOS instrumented with new-macOS native jointly. This is agreement at the saved rows and the
+   requested token set, not a statement about the whole computation.
+2. The requested logits differ between the paths although the recorded relative-L2 distance is zero. The report does
    not establish why, and no cause is inferred here. The differences are one to six bf16 steps at the logits'
    magnitudes and never change the top-scoring requested token.
 3. **Image 15 passes under a criterion amended after it failed.** On 3 October it stopped the run under the original
@@ -80,7 +89,8 @@ run once. Three criteria were declared before the runs:
 
 ## History that the result carries
 
-Three starts were needed. 2 October: the instrumented phase completed and the controller then stopped on a race in its
+Four controller starts are charged: three that executed forwards and one refused before any forward. 2 October: the
+instrumented phase completed and the controller then stopped on a race in its
 own supervision of the workers ("watchdog exited"; revisions 11-12). 3 October: sixteen native forwards, stopped at image 15 on the tolerance
 (revisions 13-14). 3 October 16:27 UTC: a start refused before any forward because macOS had changed (revision 15). No
 forward was repeated; every counter and every second, including the 71.5 s of the refused start, is carried.
