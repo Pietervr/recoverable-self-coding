@@ -1,0 +1,5 @@
+{
+ "outcome": "REFUSED",
+ "reason": "gates: worker exited 1",
+ "session": "a225b791698a"
+}

@@ -1,0 +1,705 @@
+{
+ "carry_s": 1808.73,
+ "open_session": null,
+ "peaks": {
+  "controller_final": 68190784,
+  "controller_lifetime_max": 70107664,
+  "guardian_final": 60932648,
+  "guardian_lifetime_max": 61948408,
+  "max_iteration_s": {
+   "gates": 0.01552995900010501,
+   "instrumented": 0.0,
+   "native": 0.013704749988391995,
+   "report": 0.009992625040467829
+  },
+  "phase_aggregates": {
+   "36854e9651f8:gates:1": 449679800,
+   "36854e9651f8:instrumented:2": 33317693192,
+   "36854e9651f8:report:3": 753552336,
+   "51d14603dd97:gates:4": 449663944,
+   "51d14603dd97:native:5": 18919980080,
+   "51d14603dd97:report:6": 803015344,
+   "a225b791698a:gates:7": 440390456
+  },
+  "storage_bytes": 380968698,
+  "task_lifetime_sum": 33317693192
+ },
+ "reconciled": [],
+ "seconds_total": 2240.918117555649,
+ "seconds_total_live": 2180.888784972649,
+ "sessions": [
+  {
+   "allowance_s": 60.0,
+   "beat_wall": 1790980377.9874072,
+   "closed": "terminal",
+   "controller": {
+    "pgid": 93861,
+    "pid": 93865,
+    "ppid": 93861,
+    "start": "1790980188.831619"
+   },
+   "guardian": {
+    "pgid": 93941,
+    "pid": 93941,
+    "ppid": 93865,
+    "start": "1790980189.490531"
+   },
+   "guardian_deadline_wall": 1790980438.014415,
+   "live_s": 249.1824480187497,
+   "opened_wall": 1790980190.139568,
+   "pid": 93865,
+   "session": "36854e9651f8"
+  },
+  {
+   "allowance_s": 60.0,
+   "beat_wall": 1791004122.031553,
+   "closed": "terminal",
+   "controller": {
+    "pgid": 47117,
+    "pid": 47119,
+    "ppid": 47117,
+    "start": "1791004070.522547"
+   },
+   "guardian": {
+    "pgid": 47141,
+    "pid": 47141,
+    "ppid": 47119,
+    "start": "1791004071.208135"
+   },
+   "guardian_deadline_wall": 1791004182.0634036,
+   "live_s": 111.53759932133835,
+   "opened_wall": 1791004071.980927,
+   "pid": 47119,
+   "session": "51d14603dd97"
+  },
+  {
+   "allowance_s": 60.0,
+   "beat_wall": 1791044845.709362,
+   "closed": "refused",
+   "controller": {
+    "pgid": 40259,
+    "pid": 40260,
+    "ppid": 40259,
+    "start": "1791044834.270678"
+   },
+   "guardian": {
+    "pgid": 40299,
+    "pid": 40299,
+    "ppid": 40260,
+    "start": "1791044834.958169"
+   },
+   "guardian_deadline_wall": 1791044905.7386813,
+   "live_s": 71.46807021556106,
+   "opened_wall": 1791044835.646931,
+   "pid": 40260,
+   "session": "a225b791698a"
+  }
+ ],
+ "stops": [
+  {
+   "at_total_s": 1987.6995163527504,
+   "phase": "controller",
+   "reason": "ControllerStop: instrumented: watchdog exited (0)",
+   "session": "36854e9651f8"
+  },
+  {
+   "phase": "report",
+   "reason": "ControllerStop: report: watchdog exited (0)",
+   "session": "36854e9651f8"
+  },
+  {
+   "at_total_s": 2099.0724755900633,
+   "phase": "controller",
+   "reason": "ControllerStop: native: worker exited 1",
+   "session": "51d14603dd97"
+  }
+ ],
+ "storage_before_close": 380969023,
+ "swap_baseline": 0,
+ "workers": [
+  {
+   "aggregate": 449679800,
+   "exit_peak": 244482984,
+   "exited_total_s": 1820.0834960607067,
+   "group_clean": true,
+   "group_killed": 0,
+   "leader": {
+    "pgid": 93962,
+    "pid": 93962,
+    "ppid": 93865,
+    "start": "1790980190.140351"
+   },
+   "member_max": {
+    "93962:1790980190.140351": 244482984,
+    "93963:1790980190.142018": 61407736,
+    "94009:1790980191.442155": 2228536,
+    "94012:1790980191.472348": 327800,
+    "94015:1790980191.493432": 1081560,
+    "94021:1790980191.523228": 2392328,
+    "94027:1790980191.572597": 2588936,
+    "94030:1790980191.599586": 2588936,
+    "94035:1790980191.625582": 327800,
+    "94041:1790980191.652832": 2425096,
+    "94364:1790980200.007640": 1048792
+   },
+   "members": {
+    "93962": {
+     "pgid": 93962,
+     "pid": 93962,
+     "ppid": 93865,
+     "start": "1790980190.140351"
+    },
+    "94009": {
+     "pgid": 93962,
+     "pid": 94009,
+     "ppid": 93962,
+     "start": "1790980191.442155"
+    },
+    "94012": {
+     "pgid": 93962,
+     "pid": 94012,
+     "ppid": 93962,
+     "start": "1790980191.472348"
+    },
+    "94015": {
+     "pgid": 93962,
+     "pid": 94015,
+     "ppid": 93962,
+     "start": "1790980191.493432"
+    },
+    "94021": {
+     "pgid": 93962,
+     "pid": 94021,
+     "ppid": 93962,
+     "start": "1790980191.523228"
+    },
+    "94023": {
+     "pgid": 93962,
+     "pid": 94023,
+     "ppid": 93962,
+     "start": "1790980191.542643"
+    },
+    "94027": {
+     "pgid": 93962,
+     "pid": 94027,
+     "ppid": 93962,
+     "start": "1790980191.572597"
+    },
+    "94030": {
+     "pgid": 93962,
+     "pid": 94030,
+     "ppid": 93962,
+     "start": "1790980191.599586"
+    },
+    "94035": {
+     "pgid": 93962,
+     "pid": 94035,
+     "ppid": 93962,
+     "start": "1790980191.625582"
+    },
+    "94041": {
+     "pgid": 93962,
+     "pid": 94041,
+     "ppid": 93962,
+     "start": "1790980191.652832"
+    },
+    "94043": {
+     "pgid": 93962,
+     "pid": 94043,
+     "ppid": 93962,
+     "start": "1790980191.674291"
+    },
+    "94364": {
+     "pgid": 93962,
+     "pid": 94364,
+     "ppid": 93962,
+     "start": "1790980200.007640"
+    }
+   },
+   "members_file": "members_36854e9651f8_gates.json",
+   "phase": "gates",
+   "pid": 93962,
+   "prev_ok_read_mono": 303804.686556208,
+   "reaped": true,
+   "released": true,
+   "released_total_s": 1810.685416768731,
+   "returncode": 0,
+   "session": "36854e9651f8",
+   "spawned_total_s": 1810.0386058527115,
+   "watchdog": {
+    "pgid": 93963,
+    "pid": 93963,
+    "ppid": 93865,
+    "start": "1790980190.142018"
+   },
+   "watchdog_exit": 0,
+   "watchdog_record": "watchdog_36854e9651f8_gates.json"
+  },
+  {
+   "aggregate": 33317693192,
+   "deciding_read_mono": 303972.061225875,
+   "exit_peak": 33124818920,
+   "exited_total_s": 1987.685707810761,
+   "extinction_verified_mono": 303972.353056,
+   "group_clean": true,
+   "group_killed": 0,
+   "how": "SIGKILL",
+   "kill_to_reap_s": 0.0020056250505149364,
+   "killed": true,
+   "leader": {
+    "pgid": 94372,
+    "pid": 94372,
+    "ppid": 93865,
+    "start": "1790980200.186215"
+   },
+   "member_max": {
+    "94372:1790980200.186215": 33124818920,
+    "94373:1790980200.188191": 62079480,
+    "94740:1790980208.918220": 2015496
+   },
+   "members": {
+    "94372": {
+     "pgid": 94372,
+     "pid": 94372,
+     "ppid": 93865,
+     "start": "1790980200.186215"
+    },
+    "94740": {
+     "pgid": 94372,
+     "pid": 94740,
+     "ppid": 94372,
+     "start": "1790980208.918220"
+    }
+   },
+   "members_file": "members_36854e9651f8_instrumented.json",
+   "observation_to_extinction_s": 0.2675468749948777,
+   "phase": "instrumented",
+   "pid": 94372,
+   "prev_ok_read_mono": 303972.061225875,
+   "reaped": true,
+   "released": true,
+   "released_total_s": 1820.7275906437612,
+   "returncode": 0,
+   "session": "36854e9651f8",
+   "spawned_total_s": 1820.0844316437328,
+   "stop": "instrumented: watchdog exited (0)",
+   "stop_leader_dead_mono": 303972.30495725,
+   "stop_leader_dead_s": 0.2194481249898672,
+   "stop_observed_mono": 303972.085509125,
+   "watchdog": {
+    "pgid": 94373,
+    "pid": 94373,
+    "ppid": 93865,
+    "start": "1790980200.188191"
+   },
+   "watchdog_exit": 0,
+   "watchdog_record": "watchdog_36854e9651f8_instrumented.json",
+   "why": "instrumented: watchdog exited (0)"
+  },
+  {
+   "aggregate": 753552336,
+   "deciding_read_mono": 303982.511686,
+   "exit_peak": 562070704,
+   "exited_total_s": 1997.8854238527315,
+   "extinction_verified_mono": 303982.5527885,
+   "group_clean": true,
+   "group_killed": 0,
+   "how": "SIGKILL",
+   "kill_to_reap_s": 0.0021984169725328684,
+   "killed": true,
+   "leader": {
+    "pgid": 1544,
+    "pid": 1544,
+    "ppid": 93865,
+    "start": "1790980367.814682"
+   },
+   "member_max": {
+    "1544:1790980367.814682": 562070704,
+    "1548:1790980367.816802": 61260280,
+    "2212:1790980377.391182": 1442056
+   },
+   "members": {
+    "1544": {
+     "pgid": 1544,
+     "pid": 1544,
+     "ppid": 93865,
+     "start": "1790980367.814682"
+    },
+    "2212": {
+     "pgid": 1544,
+     "pid": 2212,
+     "ppid": 1544,
+     "start": "1790980377.391182"
+    }
+   },
+   "members_file": "members_36854e9651f8_report.json",
+   "observation_to_extinction_s": 0.018839499971363693,
+   "phase": "report",
+   "pid": 1544,
+   "prev_ok_read_mono": 303982.511686,
+   "reaped": true,
+   "released": true,
+   "released_total_s": 1988.5049552687165,
+   "returncode": 0,
+   "session": "36854e9651f8",
+   "spawned_total_s": 1987.712351768762,
+   "stop": "report: watchdog exited (0)",
+   "stop_leader_dead_mono": 303982.540534,
+   "stop_leader_dead_s": 0.006585000024642795,
+   "stop_observed_mono": 303982.533949,
+   "watchdog": {
+    "pgid": 1548,
+    "pid": 1548,
+    "ppid": 93865,
+    "start": "1790980367.816802"
+   },
+   "watchdog_exit": 0,
+   "watchdog_record": "watchdog_36854e9651f8_report.json",
+   "why": "report: watchdog exited (0)"
+  },
+  {
+   "aggregate": 449663944,
+   "exit_peak": 241124288,
+   "exited_total_s": 2070.1019907980995,
+   "group_clean": true,
+   "group_killed": 0,
+   "leader": {
+    "pgid": 47188,
+    "pid": 47188,
+    "ppid": 47119,
+    "start": "1791004071.995179"
+   },
+   "member_max": {
+    "47188:1791004071.995179": 241124288,
+    "47189:1791004071.997141": 62013944,
+    "47253:1791004073.438803": 1261808,
+    "47256:1791004073.461523": 229448,
+    "47260:1791004073.489437": 2588936,
+    "47270:1791004073.512312": 2343224,
+    "47279:1791004073.545491": 1278192,
+    "47287:1791004073.567682": 1999112,
+    "47293:1791004073.589812": 1999112,
+    "47303:1791004073.613060": 1491256,
+    "47323:1791004073.669405": 2605320,
+    "47327:1791004073.691018": 1950008
+   },
+   "members": {
+    "47188": {
+     "pgid": 47188,
+     "pid": 47188,
+     "ppid": 47119,
+     "start": "1791004071.995179"
+    },
+    "47250": {
+     "pgid": 47188,
+     "pid": 47250,
+     "ppid": 47188,
+     "start": "1791004073.404412"
+    },
+    "47253": {
+     "pgid": 47188,
+     "pid": 47253,
+     "ppid": 47188,
+     "start": "1791004073.438803"
+    },
+    "47256": {
+     "pgid": 47188,
+     "pid": 47256,
+     "ppid": 47188,
+     "start": "1791004073.461523"
+    },
+    "47260": {
+     "pgid": 47188,
+     "pid": 47260,
+     "ppid": 47188,
+     "start": "1791004073.489437"
+    },
+    "47270": {
+     "pgid": 47188,
+     "pid": 47270,
+     "ppid": 47188,
+     "start": "1791004073.512312"
+    },
+    "47279": {
+     "pgid": 47188,
+     "pid": 47279,
+     "ppid": 47188,
+     "start": "1791004073.545491"
+    },
+    "47287": {
+     "pgid": 47188,
+     "pid": 47287,
+     "ppid": 47188,
+     "start": "1791004073.567682"
+    },
+    "47293": {
+     "pgid": 47188,
+     "pid": 47293,
+     "ppid": 47188,
+     "start": "1791004073.589812"
+    },
+    "47303": {
+     "pgid": 47188,
+     "pid": 47303,
+     "ppid": 47188,
+     "start": "1791004073.613060"
+    },
+    "47312": {
+     "pgid": 47188,
+     "pid": 47312,
+     "ppid": 47188,
+     "start": "1791004073.635821"
+    },
+    "47323": {
+     "pgid": 47188,
+     "pid": 47323,
+     "ppid": 47188,
+     "start": "1791004073.669405"
+    },
+    "47327": {
+     "pgid": 47188,
+     "pid": 47327,
+     "ppid": 47188,
+     "start": "1791004073.691018"
+    }
+   },
+   "members_file": "members_51d14603dd97_gates.json",
+   "phase": "gates",
+   "pid": 47188,
+   "prev_ok_read_mono": 327687.158707,
+   "reaped": true,
+   "released": true,
+   "released_total_s": 2060.0968436731096,
+   "returncode": 0,
+   "session": "51d14603dd97",
+   "spawned_total_s": 2059.384932882113,
+   "watchdog": {
+    "pgid": 47189,
+    "pid": 47189,
+    "ppid": 47119,
+    "start": "1791004071.997141"
+   },
+   "watchdog_exit": 0,
+   "watchdog_record": "watchdog_51d14603dd97_gates.json"
+  },
+  {
+   "aggregate": 18919980080,
+   "exit_peak": 18726663464,
+   "exited_total_s": 2099.056388298068,
+   "group_clean": true,
+   "group_killed": 0,
+   "leader": {
+    "pgid": 47847,
+    "pid": 47847,
+    "ppid": 47119,
+    "start": "1791004082.727194"
+   },
+   "member_max": {
+    "47847:1791004082.727194": 18726663464,
+    "47848:1791004082.729527": 60801528,
+    "48385:1791004092.042426": 2474248
+   },
+   "members": {
+    "47847": {
+     "pgid": 47847,
+     "pid": 47847,
+     "ppid": 47119,
+     "start": "1791004082.727194"
+    },
+    "48385": {
+     "pgid": 47847,
+     "pid": 48385,
+     "ppid": 47847,
+     "start": "1791004092.042426"
+    }
+   },
+   "members_file": "members_51d14603dd97_native.json",
+   "phase": "native",
+   "pid": 47847,
+   "prev_ok_read_mono": 327716.108144833,
+   "reaped": true,
+   "released": true,
+   "released_total_s": 2070.8306517150672,
+   "returncode": 1,
+   "session": "51d14603dd97",
+   "spawned_total_s": 2070.116938298063,
+   "watchdog": {
+    "pgid": 47848,
+    "pid": 47848,
+    "ppid": 47119,
+    "start": "1791004082.729527"
+   },
+   "watchdog_exit": 0,
+   "watchdog_record": "watchdog_51d14603dd97_native.json"
+  },
+  {
+   "aggregate": 803015344,
+   "exit_peak": 610239664,
+   "exited_total_s": 2109.4181831730716,
+   "group_clean": true,
+   "group_killed": 0,
+   "leader": {
+    "pgid": 49460,
+    "pid": 49460,
+    "ppid": 47119,
+    "start": "1791004111.702795"
+   },
+   "member_max": {
+    "49460:1791004111.702795": 610239664,
+    "49461:1791004111.704659": 60719608
+   },
+   "members": {
+    "49460": {
+     "pgid": 49460,
+     "pid": 49460,
+     "ppid": 47119,
+     "start": "1791004111.702795"
+    },
+    "50168": {
+     "pgid": 49460,
+     "pid": 50168,
+     "ppid": 49460,
+     "start": "1791004121.337881"
+    }
+   },
+   "members_file": "members_51d14603dd97_report.json",
+   "phase": "report",
+   "pid": 49460,
+   "prev_ok_read_mono": 327726.463260375,
+   "reaped": true,
+   "released": true,
+   "released_total_s": 2099.8345155900647,
+   "returncode": 0,
+   "session": "51d14603dd97",
+   "spawned_total_s": 2099.0895811731066,
+   "watchdog": {
+    "pgid": 49461,
+    "pid": 49461,
+    "ppid": 47119,
+    "start": "1791004111.704659"
+   },
+   "watchdog_exit": 0,
+   "watchdog_record": "watchdog_51d14603dd97_report.json"
+  },
+  {
+   "aggregate": 440390456,
+   "exit_peak": 234783680,
+   "exited_total_s": 2180.888780555649,
+   "group_clean": true,
+   "group_killed": 0,
+   "leader": {
+    "pgid": 40361,
+    "pid": 40361,
+    "ppid": 40260,
+    "start": "1791044835.661649"
+   },
+   "member_max": {
+    "40361:1791044835.661649": 234783680,
+    "40362:1791044835.663796": 61047336,
+    "40423:1791044836.985059": 491712,
+    "40426:1791044837.013400": 2507016,
+    "40431:1791044837.040747": 1409264,
+    "40433:1791044837.060487": 1442104,
+    "40436:1791044837.087785": 344208,
+    "40439:1791044837.116100": 671888,
+    "40441:1791044837.135502": 2015544,
+    "40444:1791044837.162127": 1786168,
+    "40447:1791044837.188797": 344208,
+    "40453:1791044837.217215": 1310960,
+    "40780:1791044845.579667": 180296
+   },
+   "members": {
+    "40361": {
+     "pgid": 40361,
+     "pid": 40361,
+     "ppid": 40260,
+     "start": "1791044835.661649"
+    },
+    "40423": {
+     "pgid": 40361,
+     "pid": 40423,
+     "ppid": 40361,
+     "start": "1791044836.985059"
+    },
+    "40426": {
+     "pgid": 40361,
+     "pid": 40426,
+     "ppid": 40361,
+     "start": "1791044837.013400"
+    },
+    "40431": {
+     "pgid": 40361,
+     "pid": 40431,
+     "ppid": 40361,
+     "start": "1791044837.040747"
+    },
+    "40433": {
+     "pgid": 40361,
+     "pid": 40433,
+     "ppid": 40361,
+     "start": "1791044837.060487"
+    },
+    "40436": {
+     "pgid": 40361,
+     "pid": 40436,
+     "ppid": 40361,
+     "start": "1791044837.087785"
+    },
+    "40439": {
+     "pgid": 40361,
+     "pid": 40439,
+     "ppid": 40361,
+     "start": "1791044837.116100"
+    },
+    "40441": {
+     "pgid": 40361,
+     "pid": 40441,
+     "ppid": 40361,
+     "start": "1791044837.135502"
+    },
+    "40444": {
+     "pgid": 40361,
+     "pid": 40444,
+     "ppid": 40361,
+     "start": "1791044837.162127"
+    },
+    "40447": {
+     "pgid": 40361,
+     "pid": 40447,
+     "ppid": 40361,
+     "start": "1791044837.188797"
+    },
+    "40453": {
+     "pgid": 40361,
+     "pid": 40453,
+     "ppid": 40361,
+     "start": "1791044837.217215"
+    },
+    "40780": {
+     "pgid": 40361,
+     "pid": 40780,
+     "ppid": 40361,
+     "start": "1791044845.579667"
+    }
+   },
+   "members_file": "members_a225b791698a_gates.json",
+   "phase": "gates",
+   "pid": 40361,
+   "prev_ok_read_mono": 1513.863338,
+   "reaped": true,
+   "released": true,
+   "released_total_s": 2171.5136060976492,
+   "returncode": 1,
+   "session": "a225b791698a",
+   "spawned_total_s": 2170.8408968896492,
+   "watchdog": {
+    "pgid": 40362,
+    "pid": 40362,
+    "ppid": 40260,
+    "start": "1791044835.663796"
+   },
+   "watchdog_exit": 0,
+   "watchdog_record": "watchdog_a225b791698a_gates.json"
+  }
+ ]
+}
