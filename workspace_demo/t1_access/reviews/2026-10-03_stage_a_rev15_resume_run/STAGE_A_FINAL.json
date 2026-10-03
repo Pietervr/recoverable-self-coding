@@ -1,0 +1,93 @@
+{
+ "admissible": true,
+ "caps_ok_on_final_figures": {
+  "attempts": true,
+  "memory": true,
+  "storage": true,
+  "time": true
+ },
+ "carry_s": 1808.73,
+ "controller_sha256": "afbf529fdf2e8ce548bc27ccc9c80a535b3309a5bc942821e9d88b67328018ed",
+ "counters": {
+  "detail": [],
+  "ok": true
+ },
+ "missing_measurements": [],
+ "outcome": "PASS",
+ "peaks": {
+  "controller_final": 69665392,
+  "controller_lifetime_max": 70107664,
+  "guardian_final": 62505512,
+  "guardian_lifetime_max": 62505512,
+  "max_iteration_s": {
+   "gates": 0.01552995900010501,
+   "instrumented": 0.0,
+   "native": 0.013704749988391995,
+   "report": 0.009992625040467829
+  },
+  "phase_aggregates": {
+   "36854e9651f8:gates:1": 449679800,
+   "36854e9651f8:instrumented:2": 33317693192,
+   "36854e9651f8:report:3": 753552336,
+   "51d14603dd97:gates:4": 449663944,
+   "51d14603dd97:native:5": 18919980080,
+   "51d14603dd97:report:6": 803015344,
+   "a225b791698a:gates:7": 440390456,
+   "f0fbe5704764:gates:8": 451744544,
+   "f0fbe5704764:native:9": 18410699752,
+   "f0fbe5704764:report:10": 818990176
+  },
+  "storage_bytes": 396769604,
+  "task_lifetime_sum": 33317693192
+ },
+ "report_current": true,
+ "report_problems": [],
+ "report_receipt_sha256": "c67f327b0fee37450fc9840eba50f831d36ecf4631be0feca3020aba63b277e9",
+ "seconds_total": 2338.113973380568,
+ "session": "f0fbe5704764",
+ "stage_a_seconds": 529.383973380568,
+ "stage_b_prediction": {
+  "basis": "completed whole-stage rates",
+  "bytes_per_unique_attempt": 2229070.9325842694,
+  "limit_bytes": 6871947673.6,
+  "limit_seconds": 11520.0,
+  "predicted_bytes": 4137155650.8764043,
+  "predicted_seconds": 5519.868846035586,
+  "seconds_per_unique_attempt": 2.9740672661829666,
+  "storage_ok": true,
+  "time_ok": true,
+  "unique_attempts": 178
+ },
+ "stops": [
+  {
+   "at_total_s": 1987.6995163527504,
+   "phase": "controller",
+   "reason": "ControllerStop: instrumented: watchdog exited (0)",
+   "session": "36854e9651f8"
+  },
+  {
+   "phase": "report",
+   "reason": "ControllerStop: report: watchdog exited (0)",
+   "session": "36854e9651f8"
+  },
+  {
+   "at_total_s": 2099.0724755900633,
+   "phase": "controller",
+   "reason": "ControllerStop: native: worker exited 1",
+   "session": "51d14603dd97"
+  }
+ ],
+ "storage_final": 396774626,
+ "task_memory_aggregate": 33317693192,
+ "terminal": false,
+ "terminal_release": {
+  "date": "2026-10-03",
+  "file_sha256": "824bfee7067bf61939fdd3acd654d8ceca3ff31225dfc37fee4a167c8c5b77dd",
+  "owner": "Pieter van Rooyen (owner)",
+  "reason": "Codex's revision-14 Stage A record is favourable at the exact package c22cd32 (RSC ac60eb8); the 3 October resume stopped at 15-native on the frozen absolute logit tolerance, finer than bfloat16's resolution above magnitude 16; revision 14's criterion and chained transition carry the 158 instrumented and 16 native records; the owner releases the 3 October terminal record (item 1 of the owner's reply) so the resume re-evaluates 15-native and runs 16-19-native and the report.",
+  "terminal_sha256": "73e83192daa74c6ed4585e6ffa0032b137ea718d6a0bb66ba98131a4cba0b0ff",
+  "words": "1. and 2. go"
+ },
+ "time_scope": "seconds_total includes this session's whole bounded closure (60 s = finalisation 50 + revocation 5 + exit/output 5), charged at the close; finalisation is enforced by its timer and the whole closure by the guardian",
+ "validator_pass": true
+}

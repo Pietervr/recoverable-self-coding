@@ -1,0 +1,22 @@
+{
+ "first": {
+  "phase": "controller",
+  "pid": 93865,
+  "reason": "ControllerStop: instrumented: watchdog exited (0)",
+  "wall": "2026-10-02T15:32:47-0700"
+ },
+ "later": [
+  {
+   "phase": "native",
+   "pid": 47847,
+   "reason": "StopCheck: 15-native: native parity failed (rel_l2_max 0, logit 0.125, argmax_equal True)",
+   "wall": "2026-10-02T22:08:31-0700"
+  },
+  {
+   "phase": "controller",
+   "pid": 47119,
+   "reason": "ControllerStop: native: worker exited 1",
+   "wall": "2026-10-02T22:08:31-0700"
+  }
+ ]
+}

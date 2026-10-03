@@ -1,0 +1,85 @@
+{
+ "attempts": {
+  "00-native": {
+   "passes/00-native.json": "165075199d9abe20773ab2e693e0204559599f90b0f2d251b9e4ede7714bb468",
+   "passes/00-native.residuals.npy": "51b0427bd25912d12321ab3839bf840d3d74562737623d3d0b1113866e2f4f8b"
+  },
+  "01-native": {
+   "passes/01-native.json": "929f4dcd081cdc4c7dd771eb1f8a79265ad59d998e8beb9e12305538c36ca3d4",
+   "passes/01-native.residuals.npy": "d493a9a17dc808c4ca009021f31d6b392592228020639853728aebc52e281f6e"
+  },
+  "02-native": {
+   "passes/02-native.json": "107cc10b95758efe0cec762def1943218303f964fcf1cb63429ea71d6187ea3f",
+   "passes/02-native.residuals.npy": "3560ef999fa1eccd483fa23a2699aee20f03b863110a2e4de0430e3437ebcb27"
+  },
+  "03-native": {
+   "passes/03-native.json": "61641031402aed47e44d36b13e0b17a5e4d5312d48af08efb3b3d22e69fc1cd3",
+   "passes/03-native.residuals.npy": "d052ed64b6e2f24a7a9816f027f3d6ddd2e0a4e20235e68deabb81643598eebe"
+  },
+  "04-native": {
+   "passes/04-native.json": "08440e1c743841677321cace5cd910e5b9289c575ebf505c498bd677eeafb3f2",
+   "passes/04-native.residuals.npy": "8c1b117e8193996fd085e8a3d6c79aa571a4958cae68f171e98a8c2183e638e9"
+  },
+  "05-native": {
+   "passes/05-native.json": "0b172bdf70254d3098a95cd0aaf037643a00f6d64fa6a760ac9aff7bd50c5ea2",
+   "passes/05-native.residuals.npy": "5c85b192315a8bfcfc579ddf176cfaf2717815c7919f0af851a5cd457e0502bd"
+  },
+  "06-native": {
+   "passes/06-native.json": "7ec1d0b00a9ad386fa7b8924f8bd8d9de002b0003f82a7a28f7ef558331ca1e4",
+   "passes/06-native.residuals.npy": "5dbaad0160891f8525f0a14b0d739937b1445e84a0cb8d1d49a1b272eae44e14"
+  },
+  "07-native": {
+   "passes/07-native.json": "5ce5261f506034bae43b290af1ec19360ebe608dfd32510e29db254994ff86c1",
+   "passes/07-native.residuals.npy": "cfbc9d7760802ec146b33d6344c15ba848cfda4bc10e35b19ecae7e1706ef657"
+  },
+  "08-native": {
+   "passes/08-native.json": "b79b81c1bd4f9b25d6eaeab8faf4e5bf7afef0ac8081fc74929c0ae4af23a49e",
+   "passes/08-native.residuals.npy": "2550093a6568e2dcd7581d49e79252dd1de38b8333b7f466150702f221169346"
+  },
+  "09-native": {
+   "passes/09-native.json": "21273aa99aa6e56d1a0e0440d7a32cedecbcfa4b455eec20faba7f37d1e9ee4c",
+   "passes/09-native.residuals.npy": "e3ec260d7ccfa1b40b4eea71247eb966fc61d307b36ed3cc88a31161866d591e"
+  },
+  "10-native": {
+   "passes/10-native.json": "56b0a7e03e1ed43afdf42ddc7285e7ae6a94f50fa6d6a520e8fecac7be7f230a",
+   "passes/10-native.residuals.npy": "38e08161f6398b768cb35d17a6bc31ca7b0e3ebe9bf4b9e12c574daf5a14c206"
+  },
+  "11-native": {
+   "passes/11-native.json": "875ffbc2c74628b2b80bf68677515b16aef338f606326464cde4b0fd1db547c6",
+   "passes/11-native.residuals.npy": "d3fc5e1054d08929307423afdedbbc50a609e6239dd10ec8dea53a757b35846a"
+  },
+  "12-native": {
+   "passes/12-native.json": "e022a02ca4ee61dfc1cf3aa2d42b62469adc608dbc35003254e2e991747ca7b2",
+   "passes/12-native.residuals.npy": "832736e32d6d0e5557e9789ba3d11400e2b34deaff5fe89d3a3dd2c44bc19620"
+  },
+  "13-native": {
+   "passes/13-native.json": "39ab70250ecb5a7418e812a59b956ce87f38101b2f5b70c0e39d02d398214170",
+   "passes/13-native.residuals.npy": "87aef3644b5cc5c417088c25ec9330a5b8c943e8cca9ee9a4ae5c30706e88dcc"
+  },
+  "14-native": {
+   "passes/14-native.json": "2e60d067e943383883d8003598788d30ed3956eca7524c418a62d666747bfa6a",
+   "passes/14-native.residuals.npy": "9120f80477390dae9b09dcf5e1a97064e5715f4ff0e363fcfbd8df7adf4f5ea4"
+  },
+  "15-native": {
+   "passes/15-native.json": "a6d81da4da8063428bba1b70d8d451fa6eee9ac89f6aff0adbfb6dcdf87e3626",
+   "passes/15-native.residuals.npy": "061bbfa838da1f59bc854e8926415667d8de90d24af5c71d4479a806c0cbfb2d"
+  },
+  "16-native": {
+   "passes/16-native.json": "2b5d38e9e18d3e1227ad22f5a4910fc93fa2a87449aac62e04c0f7af0d33602a",
+   "passes/16-native.residuals.npy": "68283d166c43a366448f4d7f84494b1a618d00bc1a668f38fc9daa680da382c8"
+  },
+  "17-native": {
+   "passes/17-native.json": "e21523d14464e4dc42655ba710d19f2b686b67e84a8cc5af55a18e0b4177a375",
+   "passes/17-native.residuals.npy": "0c79966b9938a03d6553bb56797b95cf97d1b955f1f8d2402f8a508921f6ae59"
+  },
+  "18-native": {
+   "passes/18-native.json": "367ef2383b8897dedd0cf0ceee39e26713d4983cf69becbb31f97263881ab733",
+   "passes/18-native.residuals.npy": "941562b6cf80eb960f5a01e9edf4f1742d46fd246a4136f3a5bfa9583bb87a03"
+  },
+  "19-native": {
+   "passes/19-native.json": "176b655e2d321b209be17c8c7fd3e4b0a3a4eae7682720b4f43601256d0947c5",
+   "passes/19-native.residuals.npy": "24fe85e48014161ec2299d7370ab77ce546baa73dc9be2210103ebd6ea297ef5"
+  }
+ },
+ "phase": "native"
+}

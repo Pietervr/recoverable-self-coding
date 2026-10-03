@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="380" font-family="sans-serif" font-size="11"><rect width="760" height="380" fill="white"/><text x="60" y="18" font-size="13">Max |E1 logit difference| by input (guide: the absolute floor 0.10; at |logit| >= 16 the bound is one bf16 step)</text>
+<line x1="60" y1="114.5" x2="740" y2="114.5" stroke="red" stroke-dasharray="4,3"/>
+<polyline fill="none" stroke="#3366aa" stroke-opacity="0.6" points="60.0,199.1 95.8,269.5 131.6,269.5 167.4,269.5 203.2,269.5 238.9,269.5 274.7,269.5 310.5,269.5 346.3,269.5 382.1,269.5 417.9,199.1 453.7,269.5 489.5,199.1 525.3,199.1 561.1,269.5 596.8,58.2 632.6,269.5 668.4,296.0 704.2,287.2 740.0,269.5"><title>max |logit diff|</title></polyline>
+</svg>
