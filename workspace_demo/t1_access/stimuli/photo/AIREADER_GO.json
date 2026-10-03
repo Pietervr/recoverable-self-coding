@@ -1,38 +1,38 @@
 {
   "owner_go": {
     "by": "Pieter van Rooyen (owner)",
-    "date": "2026-10-02",
-    "words": "Go"
+    "date": "2026-10-03",
+    "words": "1. and 2. go"
   },
   "package": {
-    "AI_READER_DESIGN.md_sha256": "2da524db7b588ada91a4da69f5c255847244e6de1e361f31abe3f737b05b8c77",
-    "AI_READER_JOB.md_sha256": "c29f9b96520e1b4a611d721e43a0c2df282f05db369b8a758cecec9577a455c9",
-    "ai_reader_delivery.json_sha256": "f79e0bbf524d943691755401b33583dcca8e4a13c3e7066ea2273d7451d691d8",
+    "AI_READER_DESIGN.md_sha256": "90079e62135b4517d4f0a5b03cac3a801f5e5419a9ac81c471376a9f40d53e5d",
+    "AI_READER_JOB.md_sha256": "7034a5cfc1162b2bb76f4a0a9315c2f2751ac0ded58ef128e79ae51261d5a6fb",
+    "ai_reader_delivery.json_sha256": "b8c4c0d5f9c24925f3221c7bb7efe57cdca9788cc2894997702bf08a5bb9d1d4",
     "ai_reader_exec.py_sha256": "9ff61681702f47a2971aa1e512fe38492206458391f539cbf483a635caa53a0d",
     "ai_reader_frame.py_sha256": "cf1e648dbd7617cc8160c73969adbcf4eac0703823ec98ae25056c7ef7ba60d8",
     "ai_reader_journal.py_sha256": "e067889c4210b91ec220fbd4f63421fb93fc4fd64f14c398f288fcaa3bcf2907",
-    "ai_reader_key.py_sha256": "e063c7ceb08d39ac028e418857a612797516129ed1aa1e96280e22902d660c8f",
-    "ai_reader_qual.py_sha256": "6153bb6fafc63f64f92fee8654cb78cdfac4d6652e31261844d7ac35c2848cdc",
+    "ai_reader_key.py_sha256": "274147af5e07b2e2c3b21a69f493e4c4a9567f53fe12b8e05e4ad73adf6e4a66",
+    "ai_reader_qual.py_sha256": "9072905986d5e86b76fb68f6ab9d6699469d8205269a434994527e4e87ead25c",
     "ai_reader_qual_key.json_sha256": "d9c467f39d4d221b8d92059574506b1537140e66b6b9df18db28e15610ef9aea",
-    "ai_reader_qual_set.json_sha256": "27a40db056f377cfdc308640668bd8c705a4312b974cc1f455efb2ce04302302",
+    "ai_reader_qual_set.json_sha256": "b3e8969a8cff6f837561274d94ab05b115d978c2d4dae4bd3d79a37c2233794e",
     "ai_reader_runtime.py_sha256": "96235ea8e276b49ee671437776ee45d49a0249db70ce69b17849881fd4cac89e",
-    "ai_reader_score.py_sha256": "c66e6183f41a48dd9ac6aa2d15d5d952a5a0f0b5c15d842f594c11bf91f0aeaf",
+    "ai_reader_score.py_sha256": "3e2ef03ceeb972d0c2e09e6684362913ad1d3b948f365b69669a0d533a25ba19",
     "cli_version": "codex-cli 0.159.3",
     "codex_package_json_sha256": "8660ce5bb4e302c2739c7ddcc9974a45fa8d568d123b9066c9135d6dba0ac121",
     "codex_realpath": "/opt/homebrew/Caskroom/codex/0.159.3/bin/codex",
     "codex_sha256": "4d210f7c5a18fd0386434df23b5bdbb8c0e7257d3e8a2b30b0769c8bbe99a878",
-    "command_template_sha256": "031e84919341e045907acbc09a210af51449a9d6c249f0bba40d9238469058ba",
+    "command_template_sha256": "8492a82984a51242bfd0ab6bb59e140fcf0a34feb21c3c51a560a58abb32d28a",
     "enforce.py_sha256": "5d142c94560da93ee08fd4021dd7aa46edba60d13252ed992e44873a0f57ed42",
     "instructions_sha256": "e2a8ba62a740d571102bca60f77a3e4be04c7a02d2e823b602403a3e6d292790",
     "memprobe.py_sha256": "83114f358b74372c3bbe647a5b907903ec6629c172a76adc3d7c13f5a7acd465",
-    "package_digest": "6be7d4c8fc6b113f4505af166386f8cf3df23446ccfe19df61114bb5d2e4b760",
+    "package_digest": "3e2bcdcc5356cbfaf31af61b473aa46751ec149006620c0d3a66a99466b9ec11",
     "sandbox_exec_sha256": "58839ef01b4eef8aac0d2aa8f9d1c074ae45aafe3533965b030672450064acc8",
     "stage_a_guard.py_sha256": "a801e48edc0281988e86806fcf31206d7da3e220cfa7690c333990a635076750",
     "stage_a_watchdog.py_sha256": "4c6d8723fec88afd59f9b9ff833cb6235462ca6e6c711e199dbc7f6af829b1ed"
   },
   "review": {
-    "commit": "5eb51a8753882d3a470eea44f931a77a3ebfe530",
-    "path": "workspace_demo/t1_access/reviews/2026-10-02_rev11_ai_reader_codex_record.md",
-    "record_sha256": "c336e1a9c0f3ec2212ba559286f0c43b2ba3358e687f1e6968abaa9c559d8481"
+    "commit": "09bbe0e28799d5b1bbe382b017da901279914281",
+    "path": "workspace_demo/t1_access/reviews/2026-10-03_reader_rev12_codex_record.md",
+    "record_sha256": "af2ce6e900a627650c8a39c4a6e4e771652ae072d5d807330f65892a24e639aa"
   }
 }

@@ -1,19 +1,19 @@
 {
   "owner_go": {
     "by": "Pieter van Rooyen (owner)",
-    "date": "2026-10-02",
-    "words": "go"
+    "date": "2026-10-03",
+    "words": "1. and 2. go"
   },
   "package": {
     "budget_sha256": "9e9eb4dcc8dca396af86ee982b17d1e957e9668b12bda0fd803deb126805c07f",
-    "criteria_sha256": "4e80b9590461dccbada956e82a413dbd46832c885cbdf6dc33ad87b8439e0870",
-    "identity_sha256": "1a01d070da0c18fa871a0e252c9a8c9d98df9df250be10300181fa8696569664",
+    "criteria_sha256": "5a4ea075e2cddf068917890b75488c22a80bc2cc4c838078e9d3ada29e9b2be8",
+    "identity_sha256": "85b78de4a5951977ab271c0030bb1127a41d11df4c4babfef21c5eac78ee676b",
     "manifest_sha256": "e816f843700a4a15c4ca56ba71318957e73b77d3560e81a2bf476ff23422f448",
     "plan_sha256": "3faebf4eab25081cf32652bf025fa8fab9d11bee6f1c9a19a1cf2dbad45417cc"
   },
   "review": {
-    "commit": "e7b31f06d668d7629f3263e8b84b7754dd635038",
-    "path": "workspace_demo/t1_access/reviews/2026-10-02_rev12_stage_a_codex_record.md",
-    "record_sha256": "415e0225d4f056f12a1a70d58e4ea1c55a24ba0e3bff2385046b019548a39f35"
+    "commit": "ac60eb8422b2eb9b24a8205058b308a65680384b",
+    "path": "workspace_demo/t1_access/reviews/2026-10-03_rev14_stage_a_codex_record.md",
+    "record_sha256": "f4a07d6f1b77cbc8eb9bd8a1a5792f7110cab08c5f91f3c77f8fe10eecd757ed"
   }
 }
