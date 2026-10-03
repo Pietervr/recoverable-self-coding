@@ -1,13 +1,14 @@
-# Photograph arm, ledger row 20: readiness, revision 11
+# Photograph arm, ledger row 20: readiness, revision 12
 
-R084 (Claude), 2 October 2026. **Row 20 has no go.** No forward has run on any development image.
+R084 (Claude), 2 October 2026. **Row 20 has no go for this package.** One actual run has happened: on 2 October,
+under the owner's go, the revision-10 package ran 158 instrumented forwards on the development images and stopped
+before native (`reviews/2026-10-02_stage_a_run.md`); everything else below is synthetic mechanism evidence.
 
-**What this answers.** Revision 10 (RSC `fbfb7db`) was favourable (Codex RSC `3390183`) and ran under the owner's
-go on 2 October: gates passed, the instrumented phase completed (158 of 158), then the controller stopped on a race
-between a large worker's teardown and the watchdog's retirement - no native phase, no fidelity result
-(`reviews/2026-10-02_stage_a_run.md`). Revision 11 repairs the race and adds the owner's terminal release
-(`STAGE_A_CRITERIA.md` §R11, handoff `27d226eb`); the 2 October attempt resumes only under that release with every
-counter carried.
+**What this answers.** Codex reviewed revision 11 (RSC `308901c`): the reader favourable, Stage A NOT ON BOARD on
+three items (RSC `5eb51a8`) - A1 the 2 October instrumented phase not admitted under the new identity, A2 a gates
+hold not closed, A3 the watchdog-gone wait suspending the live controls. Revision 12 (`STAGE_A_CRITERIA.md` §R12,
+handoff `cfc4a341`) adds the reviewed compatibility transition, the durable gates hold and live controls in the wait,
+and withdraws revision 11's "no sampling, tick or kill path changed". Reader-bound files are not touched.
 
 **The package.** `stage_a.py package` prints the five hashes; the brief to R052 carries the exact values for this
 commit. Inputs, cases and the 178 planned attempts are byte-identical; revision 8 changes no plan constant (plan, manifest
@@ -30,7 +31,9 @@ assertions in the revision-8 to 10 tests and the retained suite run, not values 
 pre-pending stall, a long first persist and two failures during reconciliation (§000); an external death before the
 pending entry and recovery during the guardian's receipt publication (§0000); a live foreign start before the lock
 ended by identity and charged to its confirmed end (§00000); a slow teardown after the phase record
-completing the run, a watchdog gone before a confirmed exit holding, and the owner's terminal release (§R11); strict, witness-bound recovery authority and exact
+completing the run, a watchdog gone before a confirmed exit holding, and the owner's terminal release (§R11);
+the transition admitting the real 2 October records, a gates hold closed and charged, a memory stop inside the
+watchdog-gone wait (§R12); strict, witness-bound recovery authority and exact
 recovery sets in pre-native and final admission.
 
 **The memory margin.** Configured interval 0.16 s from the previous successful reading (ordinary ≤ 0.12 s; stalled

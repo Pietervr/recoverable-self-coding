@@ -359,7 +359,9 @@ def validate(out: Path, plan: dict, state: dict | None, *, identity: str | None 
             v.need(d.get("attempts") == {i: (state["completed"].get(i) or {}).get("outputs") for i in ids},
                    "PHASE_RECORD_MISMATCH", name)
             if ph == "instrumented":
-                v.need(identity is None or d.get("identity") == identity, "PHASE_RECORD_IDENTITY", name)
+                import stage_a as A                   # revision 12: a recorded transition's predecessor (A1)
+                v.need(identity is None or A.admitted_phase_identity(out, d.get("identity"), identity),
+                       "PHASE_RECORD_IDENTITY", name)
     key = lambda r: (r["residuals_sha256"], r["logits_sha256"], r["image"]["features_sha256"])
     bitwise = {}
     for aid, r in recs.items():

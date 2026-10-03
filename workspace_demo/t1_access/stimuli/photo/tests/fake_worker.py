@@ -15,6 +15,7 @@
   spike_exit     touch 1 GiB of host memory and exit at once (faster than a sample): the exit peak must be read
   fill:<bytes>   write <bytes> into the output tree, then block
   alloc:<gib>    touch <gib> GiB of host memory and hold it
+  late_alloc:<s>:<gib>  idle <s>, then touch <gib> GiB and hold it (rev 12)
   exit:<code>    exit with that code
   norecord       exit 0 without writing the phase record
   linger:<phase>:<s>  write the phase record, then linger <s> before exit 0 (a slow teardown; rev 11)
@@ -141,6 +142,13 @@ if mode.startswith("fill:"):
 if mode.startswith("alloc:"):
     import numpy as np
     a = np.ones(int(float(mode.split(":")[1]) * (1 << 30)) // 8)
+    a += 1
+    time.sleep(600)
+if mode.startswith("late_alloc:"):             # revision 12: idle <s>, then touch <gib> GiB and hold it
+    import numpy as np
+    _, delay, gib = mode.split(":")
+    time.sleep(float(delay))
+    a = np.ones(int(float(gib) * (1 << 30)) // 8)
     a += 1
     time.sleep(600)
 if mode.startswith("exit:"):

@@ -1,4 +1,5 @@
-"""Photograph arm, Stage A (row 20): the INDEPENDENT CONTROLLER - revision 11 (the 2 October run: a watchdog gone
+"""Photograph arm, Stage A (row 20): the INDEPENDENT CONTROLLER - revision 12 (Codex 5eb51a8: a gates hold is durable; the
+watchdog-gone wait keeps every live control); revision 11 (the 2 October run: a watchdog gone
 before a confirmed leader exit waits for it, else HOLDS; the owner's terminal release); revision 10 (Codex RSC dda950b: a foreign start still alive
 before the lock is ended by its retained identity before its charge is final); revision 9 (Codex RSC 7fdb937 A1: every
 guardian record of an unnamed start is charged - armed, exited, released or killed, a temporary included);
@@ -558,7 +559,10 @@ class Controller:
                     self._bounded(lambda: self._close("terminal"))
                     return {"outcome": "STOPPED", "reason": "initial system reading failed", "session": self.session}
             if self.use_gates:
-                g = self._gates()
+                try:
+                    g = self._gates()
+                except ControllerHold as exc:           # revision 12 (A2): the gates path holds durably too
+                    return self._hold(str(exc))
                 if g["outcome"] != "PASSED":
                     self._bounded(lambda: self._close(g["outcome"].lower()))
                     return {"outcome": g["outcome"], "reason": g["reason"], "session": self.session}
@@ -1193,6 +1197,7 @@ class Controller:
         last_sys, max_work = 0.0, 0.0
         it0 = time.monotonic()
         pid = self.proc.pid
+        wd_gone_t = None                               # revision 12 (A3): when the watchdog was first seen gone
         try:
             while True:
                 it0 = time.monotonic()
@@ -1203,21 +1208,22 @@ class Controller:
                 if self.elapsed_total() >= deadline:
                     raise ControllerStop(f"{phase}: time limit {deadline:.0f} s reached (row cap {self.cap_s:.0f} s "
                                          f"less reserves)")
-                if self.wd is not None and self.wd.poll() is not None:
-                    # Revision 11 (the 2 October run): a watchdog gone before this controller saw the leader's exit.
-                    # Wait, bounded by GROUP_GONE_S, for the confirmed exit (kqueue): confirmed -> the phase ended and
-                    # goes on to its independent predicates; not confirmed -> the group is killed and the run HOLDS
-                    # with the reason (never a silent terminal on a phase whose done-marker may be committed).
-                    t_w = time.monotonic()
-                    while not self._leader_exited() and time.monotonic() - t_w < GROUP_GONE_S:
-                        time.sleep(0.01)
-                    if self._leader_exited():
-                        break
-                    raise ControllerHold(f"{phase}: watchdog exited ({self.wd.returncode}) and the leader's exit was "
-                                         f"not confirmed within {GROUP_GONE_S:.0f} s")
+                wd_gone = self.wd is not None and self.wd.poll() is not None
+                if wd_gone:
+                    # Revision 11/12 (the 2 October run; Codex 5eb51a8 A3): a watchdog gone before this controller saw
+                    # the leader's exit. The leader's confirmed exit (kqueue, checked at the top of every iteration)
+                    # is awaited for at most GROUP_GONE_S WITHOUT suspending any control: this loop keeps sampling
+                    # memory, swap and pressure and checking the phase deadline, the I/O stop and the iteration limit
+                    # (any breach is the ordinary stop, the group killed first); with no confirmed exit by then the
+                    # group is killed and the run HOLDS. The retired watchdog gives no tick check meanwhile.
+                    wd_gone_t = it0 if wd_gone_t is None else wd_gone_t
+                    if it0 - wd_gone_t > GROUP_GONE_S:
+                        raise ControllerHold(f"{phase}: watchdog exited ({self.wd.returncode}) and the leader's exit "
+                                             f"was not confirmed within {GROUP_GONE_S:.0f} s")
                 try:
                     procs = self.probe.task_processes([pid], {pid})
-                    pids = set(procs) | {os.getpid()} | ({self.wd.pid} if self.wd is not None else set()) | \
+                    pids = set(procs) | {os.getpid()} | ({self.wd.pid} if self.wd is not None and not wd_gone
+                                                         else set()) | \
                         ({self.guard.pid} if getattr(self, "guard", None) is not None else set())
                     t_read = self.t_read_last = time.monotonic()   # this reading's observation instant (rev 7)
                     smp = self.probe.task_sample(pids)

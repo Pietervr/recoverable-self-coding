@@ -980,5 +980,83 @@ class ReviewedPackageBuilder(unittest.TestCase):
             self.build(self.commit())
 
 
+
+REAL_RUN = HERE.parents[2] / "captures" / "photo_stage_a"       # the 2 October run (machine-local, gitignored)
+
+
+@unittest.skipUnless((REAL_RUN / "INSTRUMENTED_DONE.json").exists(), "needs the 2 October run's records")
+class Rev12Transition(unittest.TestCase):
+    """Revision 12 (Codex 5eb51a8 A1): the reviewed compatibility transition, PRODUCED on the REAL revision-10
+    producer records of 2 October (158 instrumented attempts bound to e146ec63, a terminal record) copied - never
+    edited - and resumed under the current package with NO forward: worker_open's transition and the full pre-native
+    admission (every record re-read and re-verified, the instrumented validator)."""
+
+    def setUp(self):
+        self.out = Path(tempfile.mkdtemp()) / "o"
+        shutil.copytree(REAL_RUN, self.out, ignore=shutil.ignore_patterns("LOCK"))
+        self.ctx = stage_a.Ctx(out=self.out, verify_controller=False)
+        self.state0 = json.loads((self.out / "stage_a_state.json").read_text())
+        self.done0 = (self.out / "INSTRUMENTED_DONE.json").read_bytes()
+
+    def tearDown(self):
+        shutil.rmtree(self.out.parent, ignore_errors=True)
+
+    def release(self):
+        tb = (self.out / "TERMINAL.json").read_bytes()
+        (self.out / "TERMINAL_RELEASE.json").write_text(json.dumps(
+            {"terminal_sha256": hashlib.sha256(tb).hexdigest(), "owner": "the owner", "date": "2026-10-02",
+             "words": "release; resume with every counter carried", "reason": "fixture"}))
+
+    def test_resume_admits_the_predecessor_phase_with_counters_carried(self):
+        self.assertEqual(self.state0["identities"]["row20"], stage_a.PREDECESSOR_ID)
+        self.release()
+        budget, plan, _ = stage_a.worker_open(self.ctx, "native")
+        cur = json.loads(self.ctx.identity_path.read_text())["identity_sha256"]
+        self.assertEqual(budget.identity, cur)
+        self.assertNotEqual(cur, stage_a.PREDECESSOR_ID)
+        self.assertEqual(budget.state["counters"], self.state0["counters"])          # carried, none reset
+        self.assertEqual(budget.state["completed"], self.state0["completed"])        # not relabelled or recomputed
+        t = stage_a.transition_record(self.out)
+        self.assertEqual((t["from"], t["to"]), (stage_a.PREDECESSOR_ID, cur))
+        self.assertEqual(t["counters"], self.state0["counters"])
+        self.assertEqual(t["completed_attempts"], sorted(self.state0["completed"]))
+        self.assertIn("stage_a_controller.py", t["local_code_differs"])
+        self.assertEqual((self.out / "INSTRUMENTED_DONE.json").read_bytes(), self.done0)   # still the producer's
+        plains = stage_a.admit_native(self.ctx, plan, budget)                       # every pre-native predicate
+        self.assertEqual(len(plains), len(plan["inputs"]))
+
+    def test_no_release_no_transition(self):
+        with self.assertRaisesRegex(SystemExit, "terminal|release"):
+            stage_a.worker_open(self.ctx, "native")
+        self.assertIsNone(stage_a.transition_record(self.out))
+        self.assertEqual(json.loads((self.out / "stage_a_state.json").read_text())["identities"]["row20"],
+                         stage_a.PREDECESSOR_ID)
+
+    def test_changed_frozen_inputs_refuse(self):
+        self.release()
+        cur = json.loads(self.ctx.identity_path.read_text())
+        with self.assertRaisesRegex(SystemExit, "frozen inputs differ"):
+            stage_a.identity_transition(self.ctx, {**cur, "plan_sha256": "0" * 64})
+        self.assertIsNone(stage_a.transition_record(self.out))
+
+    def test_relabelled_phase_record_refuses(self):
+        self.release()
+        d = json.loads(self.done0)
+        d["identity"] = "f" * 64
+        (self.out / "INSTRUMENTED_DONE.json").write_text(json.dumps(d))
+        budget, plan, _ = stage_a.worker_open(self.ctx, "native")
+        with self.assertRaises(stage_a.StopCheck):
+            stage_a.admit_native(self.ctx, plan, budget)
+
+    def test_undeclared_predecessor_refuses(self):
+        self.release()
+        st = dict(self.state0)
+        st["identities"] = {"row20": "a" * 64}
+        (self.out / "stage_a_state.json").write_text(json.dumps(st))
+        with self.assertRaises(enforce.StopRun):
+            stage_a.worker_open(self.ctx, "native")
+        self.assertIsNone(stage_a.transition_record(self.out))
+
+
 if __name__ == "__main__":
     unittest.main()

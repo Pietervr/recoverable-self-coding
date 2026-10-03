@@ -662,6 +662,46 @@ class Controller(unittest.TestCase):
         self.assertTrue(any(x.get("hold") for x in rec(out)["stops"]))
         self.assertIsNone(rec(out)["open_session"])
 
+    def test_gates_phase_hold_is_closed_and_charged(self):
+        """Revision 12 (Codex 5eb51a8 A2): the GATES worker blocks and its watchdog retires early: the run returns
+        HELD with its session closed and charged (no open session, no terminal record), as for a work phase."""
+        out = new_out()
+        old = C.GROUP_GONE_S
+        C.GROUP_GONE_S = 3.0
+        try:
+            final = ctl(out, {"gates": "block"},
+                        watchdog_cmd=[PY, str(HERE / "fixture_watchdogs.py"), "retire_early"]).run()
+        finally:
+            C.GROUP_GONE_S = old
+        self.assertEqual(final["outcome"], "HELD", final)
+        self.assertIn("gates", final["reason"])
+        r = rec(out)
+        self.assertIsNone(r["open_session"])
+        self.assertEqual(r["sessions"][-1]["closed"], "held")
+        self.assertGreater(r["seconds_total"], CARRY)
+        self.assertIsNone(terminal(out))
+        self.assertFalse(alive([w for w in r["workers"] if w["phase"] == "gates"][0]["pid"]))
+
+    def test_controls_stay_live_during_the_watchdog_gone_wait(self):
+        """Revision 12 (A3): the watchdog retires 1 s after arming; the worker is idle, then at 2.5 s touches 1 GiB
+        over the (lowered) memory stop - INSIDE the 10 s wait for a confirmed exit. The sampler keeps reading memory
+        during that wait: the ordinary memory stop fires (group killed first), not a blind wait to the hold."""
+        out = new_out()
+        old = C.MEM_STOP
+        C.MEM_STOP = 768 << 20
+        t = time.monotonic()
+        try:
+            final = ctl(out, {"instrumented": "late_alloc:2.5:1"},
+                        watchdog_cmd=[PY, str(HERE / "fixture_watchdogs.py"), "retire_early"]).run()
+        finally:
+            C.MEM_STOP = old
+        el = time.monotonic() - t
+        self.assertEqual(final["outcome"], "STOPPED", final)
+        self.assertIn("task memory", terminal(out)["first"]["reason"])
+        w = [x for x in rec(out)["workers"] if x["phase"] == "instrumented"][0]
+        self.assertFalse(alive(w["pid"]))
+        self.assertLess(el, 60.0)
+
     def test_live_foreign_start_before_the_lock(self):
         """Revision 10 (Codex dda950b, Stage A A1): S1 publishes its armed record and stays ALIVE, stalled in the
         directory creation or the lock, with its guardian healthy (deadline 300 s); S2 recovers while S1 lives: it ends

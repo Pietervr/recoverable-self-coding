@@ -1,4 +1,4 @@
-# Stage A (ledger row 20): declared criteria and code, revision 11 (R084, 2 October 2026)
+# Stage A (ledger row 20): declared criteria and code, revision 12 (R084, 2 October 2026)
 
 **Specification:** framework `rsc_t1_two_channel_framework.md` §8.2, §8.4 and §8.6 (Unimog; R052's text).
 
@@ -16,10 +16,11 @@
 | 8 | RSC `9f696c6` | RSC `7fdb937` (combined) | NOT ON BOARD; A2 and A3 closed; A1's timeout path credited; two A1 transitions and five summary alignments left |
 | 9 | RSC `ba4fc75` | RSC `dda950b` (combined) | NOT ON BOARD; A1.1 and A1.2 closed as submitted; alignments a–d accepted; a live foreign start before the lock left |
 | 10 | RSC `fbfb7db` | RSC `3390183` | FAVOURABLE; the owner's go (2 October) ran it: STOPPED by the controller race (`reviews/2026-10-02_stage_a_run.md`) |
-| 11 | this commit | — | answers R052's handoff `27d226eb`: the execution race and the terminal release (§R11) |
+| 11 | RSC `308901c` | RSC `5eb51a8` | NOT ON BOARD (Stage A; the reader favourable): A1 old-package admission, A2 gates hold, A3 live controls in the wait |
+| 12 | this commit | — | answers R052's handoff `cfc4a341`: A1–A3 and the declarations (§R12) |
 
 No review record of a not-favourable verdict can be named by a go: the guard's supplementary negative list holds
-`f9d2ef3`, `69539bb`, `081f17b`, `1bf9890`, `b569f8a`, `c036c00`, `12a7f20`, `7fdb937`, `dda950b` (row 20; the last six combined) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
+`f9d2ef3`, `69539bb`, `081f17b`, `1bf9890`, `b569f8a`, `c036c00`, `12a7f20`, `7fdb937`, `dda950b` (row 20; the last six combined; the list is in the reader-bound `stage_a_guard.py` and is not extended for `5eb51a8`, so the reader's favourable package stays byte-identical - the general refusal remains the absence of a positive, exactly matching attestation) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
 rejection is the absence of a positive, exactly matching attestation.
 
 **Not reopened** (accepted by Codex at `1bf9890`): the hashes and their relations, the shared strict guard (no schema
@@ -32,13 +33,41 @@ envelope's controller constants (finalisation allowance 50 s, revocation 5 s, ex
 guardian setup deadline 300 s) and therefore its budget hash. Revision 8 changes no plan constant: plan, manifest
 and budget are byte-identical to revision 7.
 
-**No forward has run on any development image.** Every mechanism measurement below is from declared, non-development
+**Exposure.** One actual run has happened: under the owner's go, on 2 October 2026, the revision-10 package ran the
+gates and the whole instrumented phase - 158 forwards on the 20 development images - and stopped terminally before
+native (`reviews/2026-10-02_stage_a_run.md`). Every MECHANISM measurement below is from declared, non-development
 fixtures: synthetic worker processes, the real watchdog, synthetic arrays; no model and no image
 (`controller_fixtures.json`, recorded 2 October 2026 at 10:01 MST on the revision-8 code and kept as the PINNED
 SAMPLING/TICK/KILL MEASUREMENTS: revisions 9 and 10 change no sampling, tick or worker-kill path; they DO change the
 guardian's arming and release paths and add the foreign-start reconcile, whose evidence is the revision-9/10 tests
 and the retained suite run, not that file; the §000/§00 interval, margin and A1–A3 values are from that file;
 values inside the older sections are their own revision's and are marked so).
+
+## R12. Revision 12: the three items of RSC `5eb51a8`
+
+| # | Item | Where it lives | Fixture |
+|---|---|---|---|
+| A1 | The predecessor's completed phase admitted under a REVIEWED COMPATIBILITY TRANSITION | `stage_a.identity_transition` (called by `worker_open` before the ledger opens). The one declared predecessor is revision 10 (RSC `fbfb7db`, favourable at `3390183`), inner identity `e146ec63…`, its identity body embedded in `stage_a.py` and checked to hash to it. A transition needs the owner's `TERMINAL_RELEASE.json` naming the run's terminal record, every FROZEN component identical (plan, manifest, positions receipt, packet, package file maps, jlens, lens, dispatch, machine, macOS) and no open or interrupted attempt. It writes `IDENTITY_TRANSITION.json` (from, to, the predecessor's review, the release's sha256, every differing local code file with both hashes, the completed attempt ids, the counters and carry at the transition) BEFORE the ledger's current-identity slot moves. Nothing else changes: `INSTRUMENTED_DONE.json` keeps `e146ec63…` as its producer, no counter is reset, no output relabelled, no attempt recomputed. `admitted_phase_identity` lets pre-native admission and the final validator accept a phase record whose identity is the recorded transition's predecessor; every other predicate is unchanged. Between revision 10 and this package the forward and lens code (`image_adapter.py`, `dose.py`, `dose_report.py`, `memprobe.py`, `enforce.py`) and every frozen input are byte-identical; the differing files are named in the transition record. | `test_stage_a_runner.Rev12Transition` - on a COPY of the REAL 2 October records (158 attempts bound to `e146ec63…`, its terminal record; the originals untouched), NO forward: the transition and the full pre-native admission (all 20 plain inputs re-verified, the instrumented validator) pass with every counter and completed record carried and the producer's phase record byte-unchanged; without a release no transition and the ledger unchanged; changed frozen inputs refuse; a relabelled phase record refuses; an undeclared predecessor is refused by the ledger. (Skipped where that machine-local run is absent.) |
+| A2 | A gates-phase hold is durable | `_run`: `ControllerHold` from `_gates` goes through `_hold` (reason in stops, session closed and charged, no terminal record, no report), as for work and report phases. | `test_controller.test_gates_phase_hold_is_closed_and_charged` (a blocking gates worker, an early-retiring watchdog: HELD returned, no open session, last session closed `held`, seconds charged, no terminal, worker gone) |
+| A3 | The controls stay live during the watchdog-gone wait | `_sample`: the wait for a confirmed exit is no longer a sleep loop - the ordinary loop continues (memory, swap and pressure readings, phase deadline, I/O stop, iteration limit, each breach the ordinary kill-first stop); only the retired watchdog's own checks are absent; past GROUP_GONE_S without a confirmed exit the group is killed and the run HOLDS. The retired watchdog's pid leaves the sampled set. | `test_controller.test_controls_stay_live_during_the_watchdog_gone_wait` (the watchdog retires at 1 s; the worker touches 1 GiB over the lowered stop at 2.5 s, inside the 10 s wait: the ordinary memory stop fires, the worker is killed) |
+
+**What changed, and which pinned numbers stand.** Revision 11 changed the watchdog's RETIREMENT rule (the leader's
+own NOTE_EXIT, registered at arming, with the group and members gone; at arming a leader whose identity no longer
+matches or is unreadable, or whose watch registration raises OSError, counts as already exited - those fallbacks
+qualify "NOTE_EXIT only") and added a NEW CONTROLLER BRANCH: the bounded wait when the watchdog is gone before a
+confirmed exit. That branch lies outside the revision-8 qualified envelope, so "no sampling, tick or kill path
+changed" (revision 11) is withdrawn. In that branch the sampler's own readings continue (revision 12), so the
+ordinary-stop interval (§00: preceding reading → kill 0.0224 s, leader 0.0288 s, extinction 0.062 s) applies to
+memory stops there; the stalled-sampler interval (§00: first and third hung samples, through the watchdog's tick
+check) does NOT apply, because the retired watchdog checks no tick - a sampler that stalls inside that wait is bounded
+only by the guardian's deadline (disclosed residual). The pinned revision-8 `controller_fixtures.json` stands for the
+ordinary stop, the blocked-I/O stop and the hung-sample paths with a live watchdog; it was not re-recorded. The
+revision-10 replay of the teardown fixture (revision 11's brief) is implementer evidence, not a retained reviewer run.
+
+**The 2 October attempt (unchanged rule, now admissible).** It stays TERMINAL in the record; it resumes only under the
+owner's `TERMINAL_RELEASE.json` for that record (TERMINAL.json sha256 `7b2b8462…`) in the same output directory; the
+native worker's `worker_open` performs the transition above; 174 of 200 forwards, 2,057.9 s of 14,400 and 317.5 MB
+are carried; native runs on the remaining 26 forwards.
 
 ## R11. Revision 11: the 2 October execution race and the owner's terminal release
 
@@ -49,7 +78,7 @@ retired watchdog without a confirmed leader exit and stopped terminally.
 
 | Change | Where it lives | Fixture (`tests/test_controller.py`) |
 |---|---|---|
-| The watchdog retires only on the leader's CONFIRMED exit | `stage_a_watchdog.main` registers its own NOTE_EXIT watch on the leader at arming (a leader already gone, or not the recorded process, is exited); retirement needs that confirmed exit AND the group and every recorded member gone. An unanswered `proc_info` alone is a wait under the watchdog's other checks (controller death, deadline, stale beat, stale sampler), never a retirement. This is a RELEASE path of the watchdog; no sampling, tick or kill path changed, so the pinned revision-8 `controller_fixtures.json` stands. | `test_slow_teardown_after_the_phase_record_does_not_stop` - PRODUCED: the worker commits its record, then lingers 1.5 s while the fixture watchdog's `proc_info` no longer answers for it (`tests/fixture_watchdogs.py teardown`, the real kqueue): PASS, native run, no terminal. The same fixture against the revision-10 code (`fbfb7db`) reproduces the 2 October stop exactly: STOPPED, "instrumented: watchdog exited (0)". |
+| The watchdog retires only on the leader's CONFIRMED exit | `stage_a_watchdog.main` registers its own NOTE_EXIT watch on the leader at arming (a leader already gone, or not the recorded process, is exited); retirement needs that confirmed exit AND the group and every recorded member gone. An unanswered `proc_info` alone is a wait under the watchdog's other checks (controller death, deadline, stale beat, stale sampler), never a retirement. (Revision 11's claim that no sampling, tick or kill path changed is withdrawn in §R12.) | `test_slow_teardown_after_the_phase_record_does_not_stop` - PRODUCED: the worker commits its record, then lingers 1.5 s while the fixture watchdog's `proc_info` no longer answers for it (`tests/fixture_watchdogs.py teardown`, the real kqueue): PASS, native run, no terminal. The same fixture against the revision-10 code (`fbfb7db`) reproduces the 2 October stop exactly: STOPPED, "instrumented: watchdog exited (0)". |
 | A watchdog gone before a confirmed exit HOLDS | `_sample`: the controller waits up to GROUP_GONE_S for the confirmed exit (kqueue); confirmed -> the phase ended and goes on to its independent predicates (exit code, durable record, exit peak); not confirmed -> the group is SIGKILLed and the run HOLDS (`ControllerHold` -> `_hold`: the reason in `stops`, the session closed and charged, no TERMINAL record, no report). | `test_watchdog_gone_before_a_confirmed_exit_holds` (a watchdog that exits 1 s after arming, a worker that never exits: HELD, worker gone, no terminal). Control: `test_worker_crash_and_missing_record` - a worker that dies without its record still STOPS. |
 | The owner's release of a terminal record | `stage_a_guard.terminal_release`: `TERMINAL_RELEASE.json` under an exact schema (`terminal_sha256` = the sha256 of TERMINAL.json's exact bytes, owner, date YYYY-MM-DD, words, reason). With a matching release the terminal record is not active: work phases resume; TERMINAL.json stays unchanged as the record; any later failure appends to it, changes its bytes and voids the release. A malformed release refuses. The final record names the release. | `test_owner_release_of_a_terminal_record` (a native failure after the instrumented phase; a later run without a release still holds; with the release the next run resumes - the committed instrumented phase not rerun, native run, seconds carried - to PASS; a later failure voids it; a malformed date refuses) |
 
@@ -371,8 +400,8 @@ same five hashes). If one review approves both Stage A and the AI reader, each g
 
 ## 6. Tests (no model)
 
-The retained-output evidence for this package is `reviews/2026-10-02_photo_suite_rev11_run.md` (command, exit status,
-counts, skips, identity, stdout/stderr); earlier records (`..._rev5_run.md` to `..._rev10_run.md`) are historical.
+The retained-output evidence for this package is `reviews/2026-10-02_photo_suite_rev12_run.md` (command, exit status,
+counts, skips, identity, stdout/stderr); earlier records (`..._rev5_run.md` to `..._rev11_run.md`) are historical.
 
 ## 7. Stated limits (not narrowed silently)
 

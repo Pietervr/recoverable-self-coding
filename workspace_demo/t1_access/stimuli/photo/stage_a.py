@@ -51,6 +51,7 @@ import os
 import random
 import subprocess
 import sys
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
@@ -561,6 +562,163 @@ def recheck_identity(ctx: Ctx, ident: dict) -> None:
         raise StopCheck(f"identity changed during the phase: {bad}")
 
 
+# ================================================================================================================
+# Revision 12 (Codex 5eb51a8 A1): the REVIEWED COMPATIBILITY TRANSITION from a predecessor package's completed phases
+# ================================================================================================================
+# The one declared predecessor: Stage A revision 10 (RSC fbfb7db, favourable at RSC 3390183), whose run of 2 October
+# completed the instrumented phase (158 attempts) and then stopped terminally. Its identity body is embedded here
+# verbatim and must hash to its identity_sha256 (checked at use). A transition from it is admissible only when (1) the
+# owner's TERMINAL_RELEASE.json names the run's terminal record (stage_a_guard.terminal_release), (2) every FROZEN
+# component - plan, manifest, positions receipt, packet, the package file maps, the jlens/lens/dispatch/weights and
+# machine fields - is byte-identical to the current identity's, and (3) the ledger holds no open or interrupted
+# attempt. It then writes IDENTITY_TRANSITION.json (from, to, the predecessor's review, the release's sha256, the
+# differing local code files with both hashes, the completed attempt ids and the counters at the transition) BEFORE
+# the ledger's current-identity slot moves to the current package. Nothing else changes: the completed records stay
+# bound to the predecessor (INSTRUMENTED_DONE.json keeps its identity), no counter is reset, no output relabelled, no
+# attempt recomputed; pre-native admission and the final validator accept a phase record whose identity is the
+# recorded transition's predecessor, with every other predicate unchanged.
+PREDECESSOR_ID = "e146ec63bc32973bb217de6066b57fe1c972bf8cf79a369b19d8efca617b2f38"
+PREDECESSOR = {"package": "Stage A revision 10, RSC fbfb7db", "review": "Codex RSC 3390183 (favourable)",
+               "phases": ["instrumented"],
+               "identity_body": json.loads(r'''{
+ "dispatch": {
+  "hidden_dtype": "bfloat16",
+  "instrumented": {
+   "GDN inference kernel per pass": true,
+   "capture": "jlens_qwen.capture_endpoint._run, one StreamSession.extend per pass",
+   "custom GDN VJP": "recorded (training-only path, unused in a prefill)",
+   "jlens patch_gdn applied": true
+  },
+  "native": {
+   "capture_layer_ids": null,
+   "jlens_qwen imported": false,
+   "prefill": "mlx-vlm get_input_embeddings + language_model(ids, inputs_embeds, fresh cache)"
+  },
+  "vision": "mlx-vlm qwen3_5 vision tower in its weight dtype; features cast to the hidden dtype at merge",
+  "weights": "4-bit affine (snapshot quantization config)"
+ },
+ "jlens": {
+  "head": "745a3a894be7043ae5eb7dbbdcec44b68b819411",
+  "sitecustomize_sha256": "8b0b2acbe668ef4d994cad710557d57683d98a52c588e9bfe3e6dd1caa43afc9",
+  "tracked_diff_sha256": "c5f7fac8b421a3c398bb2a36f4193d909f504573cdb323d5178342e3868926b9"
+ },
+ "lens": {
+  "name": "qwen36_27b_neuronpedia_n1000.npz",
+  "sha256": "1177e8fb529d9d81e8f379c9a5d02b4d11e05b3056f677bb223b7e6e23ce0aed"
+ },
+ "local_code_sha256": {
+  "dose.py": "05d61ea6d199903eb066534e8cc2e7bb73e102b9cfa284f5692f8d75e9bb4302",
+  "dose_report.py": "aff4afc3ac18455d0876da042d4202deaf428820ffaf09fde4603e32e14a825a",
+  "enforce.py": "5d142c94560da93ee08fd4021dd7aa46edba60d13252ed992e44873a0f57ed42",
+  "image_adapter.py": "2c1c3cedc9559fe8b2f7fd31c82984255ac7072a1f6442fc5a3e098f56f901aa",
+  "memprobe.py": "83114f358b74372c3bbe647a5b907903ec6629c172a76adc3d7c13f5a7acd465",
+  "stage_a.py": "1024c7eefc26c31ff8108b4a54d21bfd79d08337d8005b21e270737e82699267",
+  "stage_a_controller.py": "922bea2245ccc381cc7c57e9880aba1b5ca34ed8f9a778936b58714186d28d2a",
+  "stage_a_guard.py": "71031f606240c0ca93e41f22ceddcf9a78d1968a356803d00fff18b36749db70",
+  "stage_a_report.py": "62839613895924afcb126dfbf7e970113fc5a4149f4b52572e5ae71bf9845b66",
+  "stage_a_watchdog.py": "7a686c76fea6f9be8f21724d3690847c752a95b78f6389bc2792a9016a15736d"
+ },
+ "machine": "arm64",
+ "macos": "27.0",
+ "manifest_sha256": "e816f843700a4a15c4ca56ba71318957e73b77d3560e81a2bf476ff23422f448",
+ "package_file_maps_sha256": "1cff193d3a630b6755ca095e93a2dc8445f37ebb8a48eacd0ff8f6fcb39c8ab8",
+ "package_versions": {
+  "PIL": "12.3.0",
+  "huggingface_hub": "1.22.0",
+  "mlx": "0.31.2",
+  "mlx-metal": "0.31.2",
+  "mlx_lm": "0.31.3",
+  "mlx_vlm": "0.6.3",
+  "numpy": "2.5.1",
+  "pydantic": "2.13.5",
+  "safetensors": "0.8.0",
+  "tokenizers": "0.22.2",
+  "transformers": "5.13.0"
+ },
+ "packet_py_sha256": "e4e0b6f8506b3af9f44b610e700ae12ba81cccb97d2982bd231611b2888c2eef",
+ "plan_sha256": "3faebf4eab25081cf32652bf025fa8fab9d11bee6f1c9a19a1cf2dbad45417cc",
+ "positions_receipt_sha256": "db66fe563bc52f67d129d95d72d30d784de29858cf58d1f8db68eff847f1d334",
+ "python": "3.12.14",
+ "row": "20",
+ "snapshot": {
+  "files_sha256": {
+   "chat_template.jinja": "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259",
+   "config.json": "ede24666ac51e6d5ab948a8a1e6c72fc6effd941ba3aabb6dd942eb517c78043",
+   "configuration.json": "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0",
+   "generation_config.json": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+   "model-00001-of-00003.safetensors": "2689680915661f040c50c35244d08b336def279e509e1ca11873f8dd1b0e7ce0",
+   "model-00002-of-00003.safetensors": "a46183727b2c5cd16613fd8395f5e9e7cc4ad679644558cc87c9406fe334463d",
+   "model-00003-of-00003.safetensors": "ac23bf70b1f239a040921d6f93770d74176fd435dbf44e42317053d06c68d702",
+   "model.safetensors.index.json": "13b840162b4cb35c66fef7df072f7dbb4717908204364f5e5d9f9655a2758fa8",
+   "preprocessor_config.json": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+   "processor_config.json": "51c5f33646392e0bf1ed3e96be02504da47406c21c6cb86925d8908d1a6c4da7",
+   "tokenizer.json": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4",
+   "tokenizer_config.json": "e98f1901ac6f0adff67b1d540bfa0c36ac1a0cf59eb72ed78146ef89aafa1182",
+   "video_preprocessor_config.json": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+   "vocab.json": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003"
+  },
+  "id": "c000ac2c2057d94be3fa931000c31723aac53282"
+ },
+ "stage": "A"
+}''')}
+TRANSITION = "IDENTITY_TRANSITION.json"
+FROZEN_KEYS = ("plan_sha256", "manifest_sha256", "positions_receipt_sha256", "packet_py_sha256",
+               "package_file_maps_sha256", "jlens", "lens", "dispatch", "machine", "macos")
+
+
+def transition_record(out: Path) -> dict | None:
+    p = out / TRANSITION
+    return json.loads(p.read_text()) if p.exists() else None
+
+
+def admitted_phase_identity(out: Path, phase_identity: str, current: str) -> bool:
+    """A completed phase's producer identity is admitted under the current one when they are equal, or when the
+    recorded transition maps exactly that predecessor to exactly the current identity (revision 12)."""
+    if phase_identity == current:
+        return True
+    t = transition_record(out)
+    return bool(t) and t.get("from") == phase_identity == PREDECESSOR_ID and t.get("to") == current
+
+
+def identity_transition(ctx, current_ident: dict) -> None:
+    """Called by worker_open before the ledger opens: a no-op unless the ledger is bound to the declared
+    predecessor and the current package differs from it."""
+    from stage_a_guard import terminal_release
+    sp = ctx.out / "stage_a_state.json"
+    if not sp.exists():
+        return
+    st = json.loads(sp.read_text())
+    have, cur = (st.get("identities") or {}).get("row20"), current_ident["identity_sha256"]
+    if have in (None, cur):
+        return
+    if have != PREDECESSOR_ID:
+        return                                         # the ledger refuses the mismatch itself (enforce.Budget)
+    body = PREDECESSOR["identity_body"]
+    if sha(json.dumps(body, sort_keys=True).encode()) != PREDECESSOR_ID:
+        raise SystemExit("refused: the declared predecessor's identity body does not hash to its identity")
+    rel = terminal_release(ctx.out)
+    if rel is None:
+        raise SystemExit("refused: a predecessor's completed phases are admitted only under the owner's terminal "
+                         "release (TERMINAL_RELEASE.json naming this run's terminal record)")
+    differ = [k for k in FROZEN_KEYS if body.get(k) != current_ident.get(k)]
+    if differ:
+        raise SystemExit(f"refused: the frozen inputs differ from the predecessor's ({differ}); its outputs cannot be "
+                         f"admitted")
+    if st.get("open_attempt") or st.get("interrupted"):
+        raise SystemExit("refused: an open or interrupted attempt in the predecessor's ledger; no transition")
+    code_old, code_new = body.get("local_code_sha256", {}), current_ident.get("local_code_sha256", {})
+    rec = {"from": PREDECESSOR_ID, "to": cur, "predecessor": {k: PREDECESSOR[k] for k in ("package", "review", "phases")},
+           "release_sha256": rel["file_sha256"], "wall": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+           "local_code_differs": {n: {"from": code_old.get(n), "to": code_new.get(n)}
+                                  for n in sorted(set(code_old) | set(code_new)) if code_old.get(n) != code_new.get(n)},
+           "frozen_identical": list(FROZEN_KEYS), "completed_attempts": sorted(st.get("completed", {})),
+           "counters": st.get("counters"), "carry_in": st.get("carry_in")}
+    from enforce import write_json_atomic
+    write_json_atomic(ctx.out / TRANSITION, rec, final=True)     # durable BEFORE the ledger's slot moves
+    st["identities"]["row20"] = cur
+    write_json_atomic(sp, st, final=True)
+
+
 def worker_open(ctx: Ctx, phase: str, *, terminal_gate: bool = True):
     """A WORK worker's start: launched by the controller that holds the lock (closure group 3); the terminal gate;
     the frozen inputs; the attempt ledger; consumption of any recovery file that names one of its interrupted tries
@@ -572,7 +730,9 @@ def worker_open(ctx: Ctx, phase: str, *, terminal_gate: bool = True):
     if terminal_gate:
         check_terminal(ctx.out)
     plan, manifest = load_frozen(ctx)
-    ident = json.loads(ctx.identity_path.read_text())["identity_sha256"]
+    cur_ident = json.loads(ctx.identity_path.read_text())
+    identity_transition(ctx, cur_ident)                    # revision 12: a reviewed predecessor's phases (A1)
+    ident = cur_ident["identity_sha256"]
     budget = Budget(ctx.out / "stage_a_state.json", "row20", ident, [ctx.out],
                     os.environ.get("STAGE_A_SESSION", "test"), carry_in=ENGINEERING_CARRY,
                     storage_limit=int(os.environ.get("STAGE_A_STORAGE_LIMIT", 0)) or None, **ctx.budget_kwargs)
@@ -869,7 +1029,8 @@ def admit_native(ctx: Ctx, plan: dict, budget) -> dict:
         raise SystemExit("refused: the instrumented phase has not completed")
     done = json.loads(p.read_text())
     ids = [a["id"] for a in plan["attempts"] if a["phase"] == "instrumented"]
-    if sorted(done["attempts"]) != sorted(ids) or done["identity"] != budget.identity:
+    if sorted(done["attempts"]) != sorted(ids) or \
+            not admitted_phase_identity(ctx.out, done["identity"], budget.identity):      # revision 12 (A1)
         raise StopCheck("INSTRUMENTED_DONE.json does not cover the planned instrumented attempts")
     plains, seen = {}, set()
     for aid in ids:
