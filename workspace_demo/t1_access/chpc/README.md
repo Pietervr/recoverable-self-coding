@@ -55,8 +55,8 @@ jaxlib 0.11.1, numpy 2.4.6, scipy 1.18.0, pandas 3.0.5, joblib 1.5.3, ml_dtypes 
 
 ## What this does not do
 
-No job has been submitted and no core-hour consumed. The timing benchmark of row 18 (M2B,
-M2H, M2S, M3H at D = 4 under `NPROC=1`, like-for-like with the 22 September measurement) is a
-PBS job on the shared `serial` or `test` queue and waits for the owner's go. Everything on
-Lengau is under `/mnt/lustre/users/pvanrooyen/t1_toolchain`; the home directory (15 GB per
-the CHPC wiki) holds nothing.
+This file describes the environment only. It holds no job state: which jobs have run or are
+running on Lengau, and the core-hours they used, are in the ledger (`rsc_t1_simulation_design.md`
+§12, rows 6, 18 and 19) and in each campaign's `budget.json`. Everything on Lengau is under
+`/mnt/lustre/users/pvanrooyen/t1_toolchain`; the home directory (15 GB per the CHPC wiki) holds
+nothing.
