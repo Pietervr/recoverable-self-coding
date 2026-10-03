@@ -294,8 +294,8 @@ def _rederive(i: int, r: dict) -> None:
     with replacement), so parsing it reproduces the events the classifier saw. A stream retained only as head and
     tail cannot be re-derived: such an end is admitted only as a retained final error (isolation or overflow) - never
     as ok, and never as a retryable label."""
-    from ai_reader_runtime import (STRUCTURAL, event_answer, isolation_problems, lifecycle, parse_events,
-                                   retained_text)
+    from ai_reader_runtime import (STRUCTURAL, capacity_refusal, event_answer, isolation_problems, lifecycle,
+                                   parse_events, retained_text)
     o = r["outcome"]
     ev = r["events"]
     complete = "text" in ev
@@ -336,7 +336,8 @@ def _rederive(i: int, r: dict) -> None:
     if complete:
         events, problems = parse_events(ev["text"].encode("utf-8"))
         iso = isolation_problems(events)
-        if (iso or problems) and o not in ("isolation_violation", "overflow"):
+        declared_capacity = o == "provider_failure" and not problems and capacity_refusal(events)   # revision 13
+        if (iso or problems) and o not in ("isolation_violation", "overflow") and not declared_capacity:
             _fail(i, f"outcome {o} where the retained events show isolation or malformed lines")
         ea = event_answer(events)
         if sorted({e["type"] for e in events}) != r.get("event_types"):

@@ -58,9 +58,10 @@ KEY = HERE / "ai_reader_qual_key.json"
 ORDER_SEED = 20261008
 PROMPT = ("Look at this picture. What is the main object in it? Answer with the most common name for the object, "
           "in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.")
-READER = {"product": "OpenAI Codex CLI (codex exec)", "cli_version": "codex-cli 0.159.3", "model": "gpt-6.1-sol",
+READER = {"product": "OpenAI Codex CLI (codex exec)", "cli_version": "codex-cli 0.160.0", "model": "gpt-6.1-sol",
           "reasoning_effort": "medium", "delivery": "one image attached with -i to a fresh ephemeral exec session, the "
-          "prompt after '--', under a sandbox-exec ALLOWLIST (deny by default: only the codex binary may run; reads "
+          "prompt after '--', run from the project-owned read-only copy captures/reader_cli/codex-0.160.0 (revision "
+          "13; the update check off), under a sandbox-exec ALLOWLIST (deny by default: only the codex binary may run; reads "
           "only of the attempt directory with the image, the auth file, the codex binary and the system runtime), "
           "pinned minimal environment, private CODEX_HOME holding only the auth link, user config, rules and optional "
           "instructions off, read-only, web search and tool features disabled (unified_exec cannot be, and no program "

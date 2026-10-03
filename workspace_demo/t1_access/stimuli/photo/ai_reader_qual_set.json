@@ -28,10 +28,10 @@
  "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
  "reader": {
   "product": "OpenAI Codex CLI (codex exec)",
-  "cli_version": "codex-cli 0.159.3",
+  "cli_version": "codex-cli 0.160.0",
   "model": "gpt-6.1-sol",
   "reasoning_effort": "medium",
-  "delivery": "one image attached with -i to a fresh ephemeral exec session, the prompt after '--', under a sandbox-exec ALLOWLIST (deny by default: only the codex binary may run; reads only of the attempt directory with the image, the auth file, the codex binary and the system runtime), pinned minimal environment, private CODEX_HOME holding only the auth link, user config, rules and optional instructions off, read-only, web search and tool features disabled (unified_exec cannot be, and no program but codex may run); the prompt-input and exec-invocation receipts and the JSONL event stream checked (ai_reader_runtime.py, ai_reader_exec.py)"
+  "delivery": "one image attached with -i to a fresh ephemeral exec session, the prompt after '--', run from the project-owned read-only copy captures/reader_cli/codex-0.160.0 (revision 13; the update check off), under a sandbox-exec ALLOWLIST (deny by default: only the codex binary may run; reads only of the attempt directory with the image, the auth file, the codex binary and the system runtime), pinned minimal environment, private CODEX_HOME holding only the auth link, user config, rules and optional instructions off, read-only, web search and tool features disabled (unified_exec cannot be, and no program but codex may run); the prompt-input and exec-invocation receipts and the JSONL event stream checked (ai_reader_runtime.py, ai_reader_exec.py)"
  },
  "release": {
   "zip": {
@@ -6064,7 +6064,7 @@
  "code_sha256": {
   "ai_reader_frame.py": "cf1e648dbd7617cc8160c73969adbcf4eac0703823ec98ae25056c7ef7ba60d8",
   "ai_reader_key.py": "274147af5e07b2e2c3b21a69f493e4c4a9567f53fe12b8e05e4ad73adf6e4a66",
-  "ai_reader_qual.py": "9072905986d5e86b76fb68f6ab9d6699469d8205269a434994527e4e87ead25c",
+  "ai_reader_qual.py": "6a7f905ebb437c97aee7a784673a0b2ac39bf6ef59462cc282c87a6a10fe04f1",
   "dose.py": "05d61ea6d199903eb066534e8cc2e7bb73e102b9cfa284f5692f8d75e9bb4302"
  }
 }

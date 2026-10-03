@@ -29,8 +29,8 @@ environment (`env`); a private CODEX_HOME holding only a symlink to the auth fil
 --ignore-rules have nothing to ignore: measured "loaded rules from 0 files"); `--ephemeral --skip-git-repo-check
 --ignore-user-config --ignore-rules -s read-only`, the CONFIG overrides (model, effort, read-only sandbox mode, web
 search disabled, and the switches that drop the permissions, environment, collaboration-mode, apps and skills
-instructions) and every tool-capable feature in DISABLE turned off - 32 requested, `features list` under the same flags
-showing 31 false and unified_exec true (UNDISABLEABLE, measured); one working directory holding only the image; the
+instructions) and every tool-capable feature in DISABLE turned off - 35 requested (revision 13, 0.160.0), `features list` under the same flags
+showing 34 false and unified_exec true (UNDISABLEABLE, measured); one working directory holding only the image; the
 frozen PROMPT after a `--` separator; stdin /dev/null.
 
 THE PROMPT SEPARATOR (revision 4, measured). `-i` takes several values: in revision 3's order (`-i <image> <prompt>`)
@@ -96,7 +96,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import memprobe  # noqa: E402
 
 HOME = Path.home()
-CODEX = Path("/opt/homebrew/Caskroom/codex/0.159.3/bin/codex")
+# Revision 13 (R052 handoff 09226a88): the reader's CLI is a PROJECT-OWNED, read-only copy (ditto of the Homebrew cask
+# codex 0.160.0, 3 October 2026) that no package manager or updater writes - job (b) stopped when the cask upgraded
+# 0.159.3 under the running job. Pinned by path, binary sha256, manifest sha256, version and a tree hash (tree_sha).
+CODEX_TREE = Path(__file__).resolve().parents[2] / "captures" / "reader_cli" / "codex-0.160.0"
+CODEX = CODEX_TREE / "bin" / "codex"
 CODEX_PACKAGE = CODEX.parents[1] / "codex-package.json"
 SANDBOX_EXEC = Path("/usr/bin/sandbox-exec")
 AUTH = HOME / ".codex" / "auth.json"
@@ -105,7 +109,10 @@ DISABLE = ["apps", "browser_use", "browser_use_external", "browser_use_full_cdp_
            "view_image", "image_generation", "tool_search", "tool_suggest", "multi_agent", "memories", "plugins",
            "plugin_sharing", "remote_plugin", "hooks", "goals", "sleep_tool", "skill_search",
            "skill_mcp_dependency_install", "tool_call_mcp_elicitation", "realtime_conversation", "in_app_browser",
-           "in_app_local_automation", "worktrees", "workspace_dependencies", "write_stdin_approval"]
+           "in_app_local_automation", "worktrees", "workspace_dependencies", "write_stdin_approval",
+           # revision 13 (codex 0.160.0 lists 152 features against 0.159.3's 150; which two are new cannot be told
+           # without the removed binary): three enabled features that bear on updates or execution, all disable-able
+           "in_app_updates", "daemon_auto_start", "unified_exec_zsh_fork"]
 # Measured 2 October 2026 (`codex features list`, no request): unified_exec stays effectively true under
 # --disable unified_exec, -c features.unified_exec=false and every other switch tried. The deprecated
 # web_search_cached / web_search_request disables (revision 3) made exec emit two deprecation 'error' items; web search
@@ -114,13 +121,17 @@ UNDISABLEABLE = ["unified_exec"]
 CONFIG = ['model_reasoning_effort="{effort}"', 'sandbox_mode="read-only"', 'web_search="disabled"',
           "include_permissions_instructions=false", "include_environment_context=false",
           "include_collaboration_mode_instructions=false", "include_apps_instructions=false",
-          "skills.include_instructions=false", "skills.bundled.enabled=false"]
+          "skills.include_instructions=false", "skills.bundled.enabled=false",
+          "check_for_update_on_startup=false"]           # revision 13: the binary's update check pinned off
 BOOKKEEPING = {"thread.started", "turn.started", "turn.completed", "turn.failed", "item.started", "item.updated",
                "item.completed", "error"}
 ALLOWED_ITEM_TYPES = {"agent_message", "reasoning"}
 NOTICES = ("Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable "
            "`features.code_mode_host` and install `codex-code-mode-host`.",)
 NOTICE_PREFIXES = ("Falling back from WebSockets to HTTPS transport.",)
+# Revision 13: the declared provider-capacity refusal (job (b), request 59adc2d73b07, 3 October 2026). Nothing is received:
+# a RETRYABLE provider failure on exactly the shape `capacity_refusal` checks; any other top-level error stays isolation.
+CAPACITY_MESSAGES = ("Selected model is at capacity. Please try a different model.",)
 MACH = ["com.apple.trustd.agent", "com.apple.SecurityServer", "com.apple.SystemConfiguration.configd",
         "com.apple.dnssd.service", "com.apple.system.opendirectoryd.libinfo", "com.apple.system.notification_center",
         "com.apple.logd", "com.apple.diagnosticd"]
@@ -504,6 +515,34 @@ def is_notice(item: dict) -> bool:
     return item.get("type") == "error" and isinstance(m, str) and (m in NOTICES or m.startswith(NOTICE_PREFIXES))
 
 
+def capacity_refusal(events: list[dict]) -> bool:
+    """Revision 13: True only for the declared capacity shape - at least one top-level error event whose message is a
+    declared capacity text, a turn.failed whose error message is one too, NO agent message, and nothing else that
+    isolation_problems would flag (no command, tool, file or other item; no other undeclared error event)."""
+    cap = [e for e in events if e.get("type") == "error" and e.get("message") in CAPACITY_MESSAGES]
+    failed = [e for e in events if e.get("type") == "turn.failed"]
+    if not cap or not failed:
+        return False
+    if any(not isinstance(e.get("error"), dict) or e["error"].get("message") not in CAPACITY_MESSAGES for e in failed):
+        return False
+    if event_answer(events) is not None or any(isinstance(e.get("item"), dict) and
+                                               e["item"].get("type") == "agent_message" for e in events):
+        return False
+    return not isolation_problems([e for e in events if not any(e is c for c in cap)])
+
+
+def tree_sha(root: Path) -> str:
+    """Revision 13: every file under the owned CLI tree, sorted by relative path: path NUL sha256 newline, hashed."""
+    h = hashlib.sha256()
+    for p in sorted(Path(root).rglob("*")):
+        if p.is_file() and not p.is_symlink():
+            h.update(str(p.relative_to(root)).encode() + b"\0" + hashlib.sha256(p.read_bytes()).hexdigest().encode()
+                     + b"\n")
+        elif p.is_symlink():
+            h.update(str(p.relative_to(root)).encode() + b"\0link:" + str(p.readlink()).encode() + b"\n")
+    return h.hexdigest()
+
+
 def isolation_problems(events: list[dict]) -> list[str]:
     bad = []
     for e in events:
@@ -603,6 +642,10 @@ def classify(stdout: bytes, stderr: bytes, last_message: str | None, returncode:
     answer = ea if ea is not None else (file_answer if file_answer is not None and file_answer.strip() else None)
     ev["file_answer_sha256"] = sha(file_answer.encode()) if file_answer is not None else None
     ev["file_answer"] = bounded(file_answer.encode(), FILE_ANSWER_KEEP) if file_answer is not None else None
+    if not problems and not overflow and len(stdout) <= EVENTS_KEEP and capacity_refusal(events) and \
+            (file_answer is None or not file_answer.strip()):
+        return {**ev, "outcome": "provider_failure", "retained": False, "isolation_events": [],   # declared capacity
+                **bounded_answer(None)}
     bad = isolation_problems(events)
     if bad:
         return {**ev, "outcome": "isolation_violation", "retained": True, "isolation_events": bad,

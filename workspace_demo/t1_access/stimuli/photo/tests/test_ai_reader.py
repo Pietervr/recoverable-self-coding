@@ -712,7 +712,7 @@ class Boundary(unittest.TestCase):
         rc, out, err = R.run_local(["/bin/sh"], adir, ["-c", "echo hi"])     # production profile: no other program
         self.assertNotEqual(rc, 0)
         rc, out, err = R.run_local([str(R.CODEX)], adir, ["--version"])
-        self.assertEqual((rc, out.strip()), (0, b"codex-cli 0.159.3"))
+        self.assertEqual((rc, out.strip()), (0, SET["reader"]["cli_version"].encode()))   # the owned copy (rev 13)
         self.assertEqual(R.auth_route([str(R.CODEX)], adir), "Logged in using ChatGPT")
 
     @unittest.skipUnless(HAVE_CODEX, "needs the codex binary")
@@ -720,7 +720,7 @@ class Boundary(unittest.TestCase):
         adir = tmp() / "a"
         img = R.prepare(adir, A.png(9), "x.png")
         f = R.effective_features([str(R.CODEX)], SET["reader"], adir)
-        self.assertEqual((f["requested_disabled"], f["disabled_effective_false"]), (32, 31))
+        self.assertEqual((f["requested_disabled"], f["disabled_effective_false"]), (35, 34))   # revision 13: +3
         self.assertEqual(f["cannot_be_disabled"], {"unified_exec": "true"})
         rc = R.prompt_input([str(R.CODEX)], SET["reader"], adir, img, SET["prompt"])
         self.assertEqual(rc["images"][0]["sha256"], J.sha(A.png(9)))
@@ -1545,6 +1545,96 @@ class Rev11(unittest.TestCase):
                 X.dir_bytes(d)
         finally:
             locked.chmod(0o755)
+
+
+
+CAPACITY_EVENTS = (
+    '{"type":"thread.started","thread_id":"01a102aa-f17d-70e2-a856-1e3f3d30f323"}\n'
+    '{"type":"item.completed","item":{"id":"item_0","type":"error","message":"Code Mode is unavailable because '
+    'code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install '
+    '`codex-code-mode-host`."}}\n'
+    '{"type":"turn.started"}\n'
+    '{"type":"error","message":"Selected model is at capacity. Please try a different model."}\n'
+    '{"type":"turn.failed","error":{"message":"Selected model is at capacity. Please try a different model."}}\n')
+CAPACITY_SHA = "90c6f7b88f5d15d36d53edbccc374adac1e7e85921144b4b710e512b70908623"
+
+
+class Rev13Reader(unittest.TestCase):
+    """Reader revision 13 (R052 handoff 09226a88): the project-owned CLI copy, pinned by path, hashes, version and tree;
+    the update check off; the declared capacity refusal retryable on exactly its evidence shape. No model is called."""
+
+    def test_the_evidence_is_job_b_s(self):
+        import hashlib
+        self.assertEqual(hashlib.sha256(CAPACITY_EVENTS.encode()).hexdigest(), CAPACITY_SHA)
+        for path in (PHOTO / "ai_reader_raw_responses.jsonl",
+                     PHOTO.parents[1] / "reviews" / "2026-10-03_ai_reader_job_b_archive" / "ai_reader_raw_responses.jsonl"):
+            if path.exists():
+                for ln in path.read_bytes().splitlines():
+                    if b"59adc2d73b07" in ln and b'"t": "end"' in ln:
+                        self.assertEqual(json.loads(ln)["events"]["sha256"], CAPACITY_SHA)
+
+    def classify(self, text, last=None):
+        return R.classify(text.encode(), b"Reading additional input from stdin...\n", last, 1, timed_out=False,
+                          overflow=False)
+
+    def test_capacity_refusal_is_retryable_now_and_was_isolation(self):
+        events, problems = R.parse_events(CAPACITY_EVENTS.encode())
+        self.assertEqual(problems, [])
+        self.assertEqual(R.isolation_problems(events), ["error event (not a frozen notice)"])   # revision 12's view
+        out = self.classify(CAPACITY_EVENTS)
+        self.assertEqual((out["outcome"], out["retained"]), ("provider_failure", False))
+        J._rederive(0, out)                                       # the journal admits the label on this evidence
+        out_blank = self.classify(CAPACITY_EVENTS, last="  \n")
+        self.assertEqual(out_blank["outcome"], "provider_failure")
+
+    def test_negatives_stay_isolation(self):
+        agent = '{"type":"item.completed","item":{"id":"item_1","type":"agent_message","text":"Harmonica"}}\n'
+        cmd = '{"type":"item.completed","item":{"id":"item_2","type":"command_execution","command":"ls"}}\n'
+        other = CAPACITY_EVENTS.replace("Selected model is at capacity. Please try a different model.",
+                                        "Something else went wrong.")
+        half = CAPACITY_EVENTS.replace('{"type":"turn.failed","error":{"message":"Selected model is at capacity. '
+                                       'Please try a different model."}}',
+                                       '{"type":"turn.failed","error":{"message":"another failure"}}')
+        cases = {"with an agent message": (CAPACITY_EVENTS + agent, None),
+                 "with a command event": (CAPACITY_EVENTS + cmd, None),
+                 "with non-blank -o text": (CAPACITY_EVENTS, "Harmonica"),
+                 "a different message": (other, None),
+                 "turn.failed with another message": (half, None),
+                 "no turn.failed": (CAPACITY_EVENTS.rsplit('{"type":"turn.failed"', 1)[0], None)}
+        for name, (text, last) in cases.items():
+            with self.subTest(name):
+                self.assertEqual(self.classify(text, last)["outcome"], "isolation_violation")
+
+    def test_the_journal_refuses_the_label_on_another_shape(self):
+        out = self.classify(CAPACITY_EVENTS)
+        bad = dict(out)
+        text = CAPACITY_EVENTS.replace("Selected model is at capacity. Please try a different model.", "other")
+        bad["events"] = R.bounded(text.encode(), R.EVENTS_KEEP)
+        bad["event_types"] = out["event_types"]
+        with self.assertRaisesRegex(SystemExit, "isolation"):
+            J._rederive(0, bad)
+
+    def test_the_owned_binary_and_its_pins(self):
+        self.assertEqual(R.CODEX, R.CODEX_TREE / "bin" / "codex")
+        self.assertIn(str(PHOTO.parents[1] / "captures" / "reader_cli"), str(R.CODEX))
+        self.assertNotIn("Caskroom", str(R.CODEX))
+        self.assertIn("check_for_update_on_startup=false", R.CONFIG)
+        self.assertEqual(SET["reader"]["cli_version"], "codex-cli 0.160.0")
+        if HAVE_CODEX:
+            self.assertFalse(os.access(R.CODEX_TREE, os.W_OK))                  # read-only tree
+            pkg = X.package()
+            self.assertEqual(len(pkg), 25)
+            self.assertEqual(pkg["codex_tree_sha256"], R.tree_sha(R.CODEX_TREE))
+            self.assertEqual(pkg["codex_realpath"], str(R.CODEX.resolve()))
+
+    def test_tree_hash_moves_with_any_file(self):
+        d = tmp() / "t"
+        (d / "bin").mkdir(parents=True)
+        (d / "bin" / "codex").write_bytes(b"x")
+        (d / "codex-package.json").write_text("{}")
+        h = R.tree_sha(d)
+        (d / "extra").write_text("y")
+        self.assertNotEqual(R.tree_sha(d), h)
 
 
 if __name__ == "__main__":

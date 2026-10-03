@@ -1,19 +1,21 @@
 # The AI image-reader qualification: the bounded reader job
 
-R084, 3 October 2026. Revision 12 (the owner's decision of 3 October, handoff `ff264083`): the one-or-two-word
+R084, 3 October 2026. Revision 13 (handoff `09226a88`): the reader's CLI is a project-owned, read-only copy of Codex
+CLI 0.160.0 pinned by path, hashes, version and tree, its update check off; a declared provider-capacity refusal is a
+retryable provider failure. Revision 12 (the owner's decision of 3 October, handoff `ff264083`): the one-or-two-word
 prompt and the ONE matching rule shared with the image audit (`ai_reader_key.names_concept`); nothing else in this
 job changes. Revision 11 (the 2 October execution race, handoff `27d226eb`); revision 10, answering
 Codex's record RSC `dda950b` (a live foreign start) through R052's handoff `ac3b8525`, was favourable (`3390183`); revision 9 answered RSC `7fdb937` (handoff `50ab6395`); revision 8 answered RSC `12a7f20` (handoff `db8a9e1d`), revision 7 answered RSC `c036c00` (reader A–D, handoff `cdefd254`), revision 6 answered RSC `b569f8a`, revision 5 RSC `1bf9890`, revision 4 RSC `5a8d7ac`. The design and the map from each condition to its code and test are in
 `AI_READER_DESIGN.md`.
 
 **Exposure.** The reader has been called: job (a) of 2 October sent all 600 qualification requests under the
-revision-11 package (its prompt, its whole-answer rule). The revision-12 package has made no call. Nothing in job (b)
-runs until R052 has submitted the exact package to Codex, Codex has written a favourable review carrying a STAGE-ATTESTATION v1 block (row `aireader`, stage `qualification`, the
+revision-11 package; job (b) of 3 October sent 219 under revision 12 and stopped when the cask upgrade removed the
+pinned binary. The revision-13 package has made no call. Nothing in job (c) runs until R052 has submitted the exact package to Codex, Codex has written a favourable review carrying a STAGE-ATTESTATION v1 block (row `aireader`, stage `qualification`, the
 package `ai_reader_exec.py plan` prints), and the owner's go is written into `AIREADER_GO.json`.
 
 | | |
 |---|---|
-| Reader | OpenAI Codex CLI 0.159.3 (`/opt/homebrew/Caskroom/codex/0.159.3/bin/codex`, sha256 and package manifest bound), `codex exec`, model `gpt-6.1-sol`, reasoning effort medium. One image per fresh ephemeral session. |
+| Reader | OpenAI Codex CLI 0.160.0, the project-owned read-only copy `captures/reader_cli/codex-0.160.0/bin/codex` (realpath, sha256, package manifest, version and the tree hash bound; `check_for_update_on_startup=false`), `codex exec`, model `gpt-6.1-sol`, reasoning effort medium. One image per fresh ephemeral session. |
 | Executor | `ai_reader_exec.py` (`plan`, `delivery` - both local, no request; `run` - the job) |
 | Boundary | `ai_reader_runtime.py` (the allowlist profile, receipts, parser) |
 | Watchdog | `stage_a_watchdog.py` (shared with row 20), one per attempt: checks the orchestrator's identity, answers ARMED before dispatch, kills the whole group and the recorded members at once on the orchestrator's death, a stale beat or the hard deadline, and kills a blocked orchestrator; it retires only when the group AND every recorded member are gone |
@@ -72,8 +74,8 @@ the home are unreadable wherever they are (measured with the real binary and no 
 
 The command: `codex exec --ephemeral --skip-git-repo-check --ignore-user-config --ignore-rules -s read-only`, the
 pinned model and effort, configuration that sets the read-only sandbox mode, disables web search and drops the
-permissions, environment, collaboration, apps and skills instructions, **32 tool-capable features disabled
-(`features list` under the same flags: 31 false; `unified_exec` stays true in this CLI under every switch, measured,
+permissions, environment, collaboration, apps and skills instructions, **35 tool-capable features disabled
+(revision 13 on 0.160.0; `features list` under the same flags: 34 false; `unified_exec` stays true under every switch, measured,
 and can exec no program but the pinned codex binary)**, `--json` and `-o`, the image with `-i`, then `--` and the frozen prompt; a pinned
 environment of five variables; stdin `/dev/null`.
 
@@ -147,7 +149,7 @@ this public dataset is absent from the reader's training data.
    N owner-adjudicated items" (the scorer reports `adjudications_needed`). Otherwise the audit holds; any other route
    is a separate owner decision.
 
-## Job (a) and job (b)
+## Jobs (a), (b) and (c)
 
 Job (a) of 2 October 2026 ran under the revision-11 package and the owner's go: COMPLETE, 600 of 600 requests, 600
 of 660 attempts, 4,000.8 s; scored NOT ADMITTED (49 of 63 easy gray under the whole-answer rule;
@@ -155,8 +157,14 @@ of 660 attempts, 4,000.8 s; scored NOT ADMITTED (49 of 63 easy gray under the wh
 re-scored for admission. The first 2 October job (STOPPED after 175 attempts, never scored) is archived at
 `reviews/2026-10-02_ai_reader_first_job_archive/`.
 
-Job (b) runs only on revision 12, after Codex's favourable record and the owner's go: fresh raw and clock state
-(`archive_job_a.py --apply` moves job (a)'s journal and clock into `reviews/2026-10-02_ai_reader_job_a_archive/`),
-its own envelope (600 requests, 660 attempts, 3 per request, 120 s, 6 h), job (a) retained closed beside it.
+Job (b) started from fresh raw and clock state (`archive_job_a.py --apply` moved job (a)'s journal and clock into
+`reviews/2026-10-02_ai_reader_job_a_archive/`, RSC `5438e73`), its own envelope (600 requests, 660 attempts, 3 per
+request, 120 s, 6 h), job (a) retained closed beside it.
 A one-off re-analysis of job (a)'s answers under the revision-12 rule, labelled and never admission, is in
 `reviews/2026-10-03_ai_reader_job_a_rescore_rev12/`.
+
+Job (b) ran on 3 October under revision 12 and the owner's go: STOPPED after 219 of 600 requests (218 ok, one
+capacity refusal classified isolation under revision 12) when the Homebrew cask upgrade removed the pinned CLI
+(`reviews/2026-10-03_ai_reader_job_b.md`); never scored, never re-used. Job (c) runs only on revision 13, after
+Codex's favourable record and the owner's go: `archive_job_b.py --apply` moves job (b)'s journal and clock into
+`reviews/2026-10-03_ai_reader_job_b_archive/`; fresh state; its own envelope; all 600 requests re-asked.

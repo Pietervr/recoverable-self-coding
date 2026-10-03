@@ -1,5 +1,5 @@
 {
- "cli_version": "codex-cli 0.159.3",
+ "cli_version": "codex-cli 0.160.0",
  "distinct_user_text": 600,
  "instruction_kinds": [
   "multi_agent.mode_instructions",
@@ -13,9 +13,9 @@
    "cannot_be_disabled": {
     "unified_exec": "true"
    },
-   "disabled_effective_false": 31,
-   "listed_sha256": "ac81b1b3491a48dc6fb29eb83c0bc1a07f60fd656b249dee7a55ecbf798acdce",
-   "requested_disabled": 32,
+   "disabled_effective_false": 34,
+   "listed_sha256": "423641eda3b7452c5d996303910376bc803b8eaa973724b4f93a879001745456",
+   "requested_disabled": 35,
    "web_search": {
     "web_search_cached": "false",
     "web_search_request": "false"
@@ -32,19 +32,19 @@
    "disabled_missing_from_exec": [],
    "effort": "Some(Medium)",
    "equivalent": true,
-   "exec_disabled_false": 31,
+   "exec_disabled_false": 34,
    "exec_unified_exec": "true",
-   "features_compared": 150,
+   "features_compared": 152,
    "features_disagreeing": [],
    "model": "gpt-6.1-sol",
    "sandbox_policy": "ReadOnly { network_access: false }",
-   "tags_sha256": "9a98d59d517c4fba3a07482cfe4bc20ae8721b5f2f43c3064edcac2fd8e7ddff",
+   "tags_sha256": "e455ab9ffdecfee3eac17b48b715159048ed531ffc6878b6a36b3cfd6c749225",
    "unobserved": "the serialised request body (instructions and tool schema as sent) - not observable without a request; the prompt-input receipt covers the instructions as rendered",
    "user_input_exact": true
   }
  },
  "reencoded": 0,
- "rendered": "2026-10-02",
+ "rendered": "2026-10-03",
  "requests": {
   "0006af9dc316": {
    "bytes": 751607,

@@ -148,6 +148,7 @@ def package(root: Path = HERE, codex: Path = R.CODEX) -> dict:
     p["codex_realpath"] = str(Path(codex).resolve())
     p["codex_sha256"] = sha_file(codex)
     p["codex_package_json_sha256"] = sha_file(Path(codex).resolve().parents[1] / "codex-package.json")
+    p["codex_tree_sha256"] = R.tree_sha(Path(codex).resolve().parents[1])      # revision 13: the owned tree
     p["cli_version"] = subprocess.run([str(codex), "--version"], capture_output=True, text=True,
                                       env={"PATH": "/usr/bin:/bin"}, timeout=30).stdout.strip()
     p["sandbox_exec_sha256"] = sha_file(R.SANDBOX_EXEC)

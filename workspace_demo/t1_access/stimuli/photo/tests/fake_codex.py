@@ -25,7 +25,8 @@ FEATURES = ["apps", "browser_use", "browser_use_external", "browser_use_full_cdp
             "view_image", "image_generation", "tool_search", "tool_suggest", "web_search_request", "web_search_cached",
             "multi_agent", "memories", "plugins", "plugin_sharing", "remote_plugin", "hooks", "goals", "sleep_tool",
             "skill_search", "skill_mcp_dependency_install", "tool_call_mcp_elicitation", "realtime_conversation",
-            "in_app_browser", "in_app_local_automation", "worktrees", "workspace_dependencies", "write_stdin_approval"]
+            "in_app_browser", "in_app_local_automation", "worktrees", "workspace_dependencies", "write_stdin_approval",
+            "in_app_updates", "daemon_auto_start", "unified_exec_zsh_fork"]     # reader revision 13's three disables
 
 
 def opt(name):
