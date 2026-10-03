@@ -4050,7 +4050,7 @@
    "simulate.py": "f588b9121be48ec553ab95e4dda5736941865498922468b5868c96758d0afe57",
    "chpc/row19_slice.py": "c67c4c0c776d810480218f0111623481b38598b30a5c5cb68127dcc83c5dacca",
    "chpc/row19_ledger.py": "8cfc7b0d256e5d89e5885eca47bd776ff00720d96e18298ff97db9c7db5a58de",
-   "chpc/row19_shard.py": "f4a7e199f4a582b929696de34180e7d5caa561b3e4e665a7d1269b127a1f890d"
+   "chpc/row19_shard.py": "828d59640f10cc33fcba7d98d075371945ca4b74ddaca841ea86100fc47ff383"
   },
   "policy_config_hash": "edcfdf4300f3 (D = 4, layer 41, seed 2026, refit, four inner cold starts; the slice's own hash is recomputed and recorded by the runner)"
  },
@@ -4075,9 +4075,10 @@
   "cores": 24,
   "walltime_h": 48,
   "nodetype": "haswell_reg",
-  "mem_gb": 56,
-  "mem_stop_gib": 6,
+  "mem_gb": 120,
+  "mem_stop_gib": 4.5,
   "deadline_reserve_s": 1800,
+  "memory_rule": "select=1:ncpus=24:mem=120gb per packed job; the per-worker stop is 4.5 GiB, so 24 workers at their stop total 108 GiB, under the request; the measured node peak under 24 concurrent production refits is NOT known before the pilot (the sequential originals showed 1.3-1.5 GB resident each); the pilot retains the scheduler-accounted job peak and every worker peak, and the view alarms above 90% of the request",
   "note": "one packed job = one haswell node, 24 single-core workers started by the PBS script, each through t1py; the per-user limits read from qmgr on 3 Oct: serial max_run 10 jobs / 240 cores / 48 h; CHPC policy: 240 cores across running and queued jobs"
  },
  "storage": {
@@ -4099,34 +4100,29 @@
   "rule": "enforced by chpc/row19_ledger.py: a reservation (cores x walltime of the FILLED PBS request) is refused when spent + live reservations + it exceeds the cap, when the campaign is already over its cap, when the (kind, rep) has its maximum reservations, or when any number is not finite and positive; the runner is admitted only with a reservation bound to its job id that carries its own cores and walltime; a job's reservation stays live until the operator settles it from qstat -xf allocated time (a killed or vanished job keeps its full reservation); settled is terminal; the manifest's cap must equal the ledger's; on exhaustion of the declared cap the owner's ruling above applies (raise, record, continue); the allocation is the hard stop; nothing is reset"
  },
  "stops": {
-  "identity": "code hashes, environment versions and the dataset identity must equal the manifest's and the checkpoint's, else exit 4 (held)",
-  "damage": "strict restore: an unacceptable checkpoint record holds the run (exit 4) for diagnosis; only a trailing fragment is repaired",
-  "deadline": "no new resample after walltime - reserve; exit 75 (resume)",
-  "budget": "exit 4 before any fit when the cap would be breached",
-  "second_writer": "exit 4 when the dataset's checkpoint lock is held",
-  "memory": "ru_maxrss above 6 GiB: diagnosed at admission (held before any original work), before every dispatch (stop at the next record boundary), after the last record, again after aggregation, and again at the terminal-publication boundary after the status, acknowledgment and task writes (a completed chain with a breached peak exits 4, never 0, its results retained); an in-flight fit finishes under the declared rule - no instantaneous enforcement; PBS kills at the 8 GB request",
-  "stop_request": "<campaign>/STOP or STOP_rep<N> (each carries a request id): checked BEFORE the original fit (a request present at admission buys nothing: exit 75, acknowledged 'before the original'), before EVERY dispatch, after the last durable record, again after aggregation (acknowledged 'after aggregation'), and again at the terminal-publication boundary, where a first request is acknowledged 'at publication' and a request whose id differs from the one already acknowledged is acknowledged 'at publication (replacement)'; the acknowledgment names the request id, scope, job and boundary; an old acknowledgment never satisfies a new request",
-  "task": "a task binding that differs from the one started in the root, a missing binding beside prior evidence for the rep (task index, status, timing, acknowledgment, checkpoint or cache), a rep outside datasets.reps, a resolved seed differing from the declared one, a role/target/kill-mode contract that does not match the kind, a second owner, a checkpoint with rejected or conflicting records, fewer accepted records than the per-record watermark, or a missing/damaged/undecodable original cache beside committed records: exit 4",
-  "reservation": "no reservation token, or one not bound to this PBS job, kind, rep and root: exit 4 before anything"
+  "identity": "every worker and job-start: code hashes, environment versions, the resolved seed and the recomputed dataset identity must equal the manifest's, else exit 4 (HELD)",
+  "binding": "job-start publishes <root>/task_<rep>.json once, under a lock, by hard link (never rewritten); a different binding, or a missing binding beside existing records, HOLDS; a worker never runs without it",
+  "evidence": "a record path holding anything but this task's valid record of that index HOLDS the worker and the planner; a record is never replaced (hard-link publish) and never recomputed",
+  "deadline": "before each resample: no start unless the deadline rule admits it; exit 75; a fit in flight is never interrupted",
+  "stop_request": "<root>/STOP, checked before each resample (exit 75 at that boundary - possibly many hours after the request); there is no request id and no acknowledgment file in this route",
+  "memory": "ru_maxrss against the 4.5 GiB per-worker stop before each resample, after each published record and at the terminal status (also for a fully resumed worker): exit 4 with the evidence kept",
+  "exception": "any exception in a worker ends it with a HELD status naming it; a worker without a status makes job-end exit 4",
+  "budget": "the campaign ledger refuses a reservation beyond the route's envelope; a reservation stays live until settled from qstat -xf",
+  "watch": "any alarm of chpc/row19_shard_status.py stops further submission (the gate needs a fresh zero-alarm receipt); diagnosis is recorded in ledger row 19 before a STOP is cleared"
  },
  "measurements": [
-  "per durable record: fit seconds and ru_maxrss at that record (timing_<rep>.jsonl; the record is fsynced first, then the timing line and the watermark)",
-  "the original run: wall seconds of run_dataset in this process when computed fresh (jit compilation INCLUDED, NOT separated); the cached value when restored",
-  "compilation proxy ONLY: the first new resample's excess over the median new resample of the same job (status first_new_fit_s, median_new_fit_s)",
-  "aggregation_seconds: the completed chain's aggregation only",
-  "publication_seconds: the status, acknowledgment and task writes after aggregation, EXCLUDING the final status rewrite and the ledger's runner_end write",
-  "wall_seconds_main: from main() start to the terminal boundary after those writes (imports before main, the final status rewrite, the ledger write, wrapper and PBS start-up all EXCLUDED)",
-  "cpu_seconds_lifetime and maxrss_bytes: RUSAGE_SELF of the whole process (imports included), sampled at the terminal boundary after any late acknowledgment; ONE peak observation there serves both the memory decision and the stored field; a late acknowledgment and a task exit correction written at that boundary lie after t_term and outside both durations",
-  "memory diagnosis: sampled at admission, before every dispatch, after the last record and again after aggregation; an in-flight fit finishes",
-  "scheduler-accounted allocated time per job (qstat -xf), settled into the campaign ledger by the operator: the authoritative cost",
-  "resamples accepted per job and across jobs, counted from records passing the comparator's complete contract (the watch), cross-checked by index against timing rows",
-  "recovery: n_resumed, n_tail_repaired, n_damaged, the per-record watermark, stop acknowledgments with their request id and boundary, per start"
+  "per accepted record, in its own timing file published BEFORE the record: wall seconds of the resample in this worker, the fit seconds run_dataset reports, the worker's ru_maxrss at that point, job, slot and host",
+  "a record without a valid timing file is INCOMPLETE MEASUREMENT: it is reported and blocks any unqualified distribution over all 600 and any stage-2 costing; it is never recomputed to recover a timing",
+  "per worker status: indices, new, resumed, left, exit, reason, wall, peak memory, cpu seconds",
+  "per job: the scheduler-accounted peak memory, walltime and exit (qstat -xf), the runner's wall and exit in the campaign ledger, node memory lines in the PBS output",
+  "timings are PACKED (24 workers per node) and are reported as packed, never as lone-core timings",
+  "production parity: shard records against validated sequential records of the same identity and index, on the canonical scientific payload with float bits"
  ],
  "not_in_this_slice": [
-  "coverage against any reference (no policy-matched reference bank exists; the historical omega 1 reference is sensitivity evidence only)",
-  "route B (within-dataset parallel resamples)",
-  "the 100-dataset screen",
-  "any change to B, the policy, the seeds or the budget after submission"
+  "no original fit, no original cache, no pooling of shard and sequential records into one chain, no aggregation, no interval, no coverage reading, no stage-2 authority",
+  "no replacement of the recovery control C1/C2/C3, which runs unchanged in the sequential slice",
+  "no joblib workers (they cannot spawn under the image loader); the parallelism is one process per index list, started by the PBS script",
+  "no automatic stop of a fit in flight, no automatic qdel; a stop takes effect at a resample boundary"
  ],
  "live_evaluation": {
   "rule": "chpc/row19_shard_status.py from the Mac at the first records and every 2 hours while any shard job is live: fresh pull or alarm; every record validated against the frozen task; parity with the sequential chain; HELD workers, failed resamples and rejected records are alarms; on any alarm nothing further is submitted until diagnosed and recorded in ledger row 19; a stop is the STOP file in the root (workers exit 75 at their next resample boundary)"
@@ -4137,12 +4133,19 @@
   "per_slot": 3,
   "expect_layer_s": 46800,
   "deadline_margin": 1.25,
+  "sequential_roots": [
+   "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_slice",
+   "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_slice_ctl_normal"
+  ],
+  "sequential_campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_campaign",
+  "allocation_core_h": 100000,
   "identities": {
    "0": "f6a03a7eff618e159690014cf7b2caa4fe1126942c3ee440d8b50714b6527000",
    "1": "808a6e3936fd324ff66a4561bf1d738401664296fe0dd967ee6d44943147bc36",
    "2": "40346e3d0516aa48c27d328481dec03da8a1018fd436370e530915f27c844f55"
   },
-  "deadline_rule": "a worker starts a resample only when the time left to the job's deadline (walltime - 1,800 s) is at least max(expect_layer_s, 1.25 x its longest resample so far); otherwise it exits 75 and the planner reassigns",
+  "deadline_rule": "a worker starts a resample only when the time left to the job's deadline (walltime - 1,800 s) is at least max(expect_layer_s, 1.25 x its longest resample so far); otherwise it exits 75 and the planner reassigns; a HEURISTIC learned from that worker's own timings, not a bound on a fit: a slower fit can cross the deadline and be killed by PBS (its record is then simply absent), and three indices per worker is a plan, not a promise",
+  "gate": "chpc/row19_shard_submit.py refuses: any submission while <root>/STOP exists; a non-pilot submission before <root>/gate/qualified_job1.json exists; a non-pilot submission without <root>/gate/watch_receipt.json that is fresh, zero-alarm and younger than 2,700 s; any plan over damaged evidence or a live job without its plan; one submitter at a time (a lock). The pilot is qualified by chpc/row19_shard_status.py --qualify 1 only on fresh zero-alarm evidence with the job terminal, all planned workers ended 0 or 75, an accepted record per dataset, the scheduler-accounted memory observed, and production parity OBSERVED and equal for all three datasets (the oracle for rep 2)",
   "plan_rule": "chpc/row19_shard_submit.py: DONE = the record file exists; IN FLIGHT = in the plan of a live ledger entry whose runner has not ended; MISSING otherwise; groups of per_slot per rep, interleaved across the reps",
   "parity_rule": "wherever a sequential record (slice C1 / mains) and a shard record exist for one identity and index, their scientific fields (rep, stats, failed, failed_reason, chosen, ident, seed, n_rep) must be bitwise equal; a difference is an alarm and stops further submission until diagnosed",
   "sequential_equivalence": "resample_record reproduces analyze.refit_bootstrap.one + _save; the test pins that source's sha256 7dd4f596...; fixtures: stub pipeline and a real-fit tiny dataset"

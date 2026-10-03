@@ -11,25 +11,37 @@ identity, seed, B, index, draw, statistics and checksum form as a sequential rec
 `analyze._record_ok`; a file of shard records in index order is a valid sequential checkpoint. EVIDENCE that the body is
 the same: the fixtures compare shard records with the sequential path's records field by field, the test pins the
 source text of `one` it was copied from, and in production the shard records for the indices the sequential jobs also
-compute (C1's 0..7, the mains' first records) are compared bitwise (`row19_shard_status.py`).
+compute (C1's 0..7, the mains' first records) are compared on their canonical scientific payload, float bits included
+(`row19_shard_status.py`). The pin holds for THIS analyze.py only: a changed canonical source needs the copy re-verified.
 
 WHAT IT IS NOT. It reads no coverage and aggregates nothing: it produces validated per-index records and timings. The
-interval, the original fit and any coverage reading stay with their own steps and gates.
+interval, the original fit, pooling with sequential records and any coverage reading stay with their own steps and gates.
 
-LAYOUT under the shard root: records/rep<R>/rec_<iii>.json (one record, written temp + fsync + rename, never rewritten);
-timing/rep<R>.job<J>.slot<S>.jsonl; status/job<J>.slot<S>.json; logs/; task_<R>.json (the binding, the runner's shape);
-plans/job_<n>.json. A record that exists and passes `_record_ok` is never recomputed; one that exists and fails HOLDS.
+LAYOUT under the shard root:
+  records/rep<R>/rec_<iii>.json   ONE record; published by temp + fsync + hard LINK (never replaces an existing file)
+  timing/rep<R>/t_<iii>.json      the measurement of that record (wall, fit seconds, peak memory, job, slot, host), published
+                                  the same way BEFORE the record, so every published record has its timing; a timing file
+                                  without a record (a death between the two) is replaced when the index is computed again
+  status/job<J>.slot<S>.json      one per worker, ALWAYS written (also on an exception): indices, new, resumed, left, exit
+  task_<R>.json                   the binding in the runner's shape, published once under a lock, never rewritten
+  plans/job_<n>.json, logs/, gate/ (the operator's watch receipts and the pilot's qualification), STOP
+A record that exists, names THIS index and passes `_record_ok` is never recomputed; any other file at a record path HOLDS.
+
+STOPS (what this implementation enforces, no more): the STOP file and the deadline rule are checked BEFORE each resample
+(a fit in flight is never interrupted, so a stop takes effect at the next resample boundary, possibly many hours later;
+the deadline rule is a heuristic from this worker's own timings, not a bound on a fit); memory (ru_maxrss against the
+per-worker stop) is checked before each resample, after each published record and before the terminal status, and a
+breach HOLDS the worker (exit 4) with the evidence kept - an operational stop, not an invalid record.
 
 SUBCOMMANDS (each a separate process; on Lengau each is run through the pinned wrapper t1py):
-  job-start --manifest M --plan P --job-id J --walltime-s W --reservation-token T     admission of the packed job: environment,
-            code pins, the campaign reservation (kind shard, rep = the job number, 24 cores x W), the task bindings
+  job-start --manifest M --plan P --job-id J --walltime-s W --reservation-token T     admission of the packed job
   worker    --manifest M --rep R --indices 3,7 --slot S --job-id J --deadline-epoch E  one single-core worker
   job-end   --manifest M --plan P --job-id J --reservation-token T --started-epoch E   the runner's wall and exit in the ledger
 Exit codes as the runner's: 0 done, 75 stopped at the deadline or by request with work left (resume), 4 HELD."""
 import os
 os.environ["NPROC"] = "1"; os.environ["OMP_NUM_THREADS"] = "1"; os.environ["MKL_NUM_THREADS"] = "1"; os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["JAX_PLATFORMS"] = "cpu"
-import sys, json, time, argparse, resource, platform
+import sys, json, time, argparse, resource, platform, fcntl, glob, traceback
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = os.path.abspath(os.path.join(HERE, ".."))
@@ -39,7 +51,7 @@ for p in (T1, HERE):
 import numpy as np
 import analyze as A, simulate as S
 import row19_slice as R19
-from row19_ledger import CampaignLedger, write_atomic
+from row19_ledger import CampaignLedger
 
 DONE, RESUME, HELD = 0, 75, 4
 # The source of analyze.refit_bootstrap's `one` that resample_record reproduces (sha256 of its text at the pinned
@@ -62,6 +74,8 @@ def config(man):
 def task(man, rep):
     """The frozen task of a dataset rep: dataset, Config, seed, B, folds, identity, the full draw matrix, the band names."""
     st = man["setting"]; cfg = config(man)
+    if int(rep) not in [int(r) for r in man["datasets"]["reps"]]:
+        raise ValueError(f"rep {rep} is not a declared dataset")
     kw = dict(st["grid"]); theta = S.generator_theta(st["generator"], **kw)
     seed = S.dataset_seed(st["generator"], kw, int(rep), int(st["D"]), int(man["datasets"]["seed_base"]))
     declared = man["datasets"].get("resolved_seeds", {})
@@ -110,9 +124,14 @@ def record_path(root, rep, index):
     return os.path.join(root, "records", f"rep{int(rep)}", f"rec_{int(index):03d}.json")
 
 
-def read_record(path, t):
-    """The record in a file when it exists and passes analyze._record_ok for this task; None when absent; raises when a
-    file is present and unacceptable (it holds the worker: a record is never silently recomputed over evidence)."""
+def timing_path(root, rep, index):
+    return os.path.join(root, "timing", f"rep{int(rep)}", f"t_{int(index):03d}.json")
+
+
+def read_record(path, t, index):
+    """The record in a file when it exists, names THIS index and passes analyze._record_ok for this task; None when absent;
+    raises when a file is present and unacceptable (a record is never silently recomputed over evidence, and a valid
+    record of another index under this index's name is not this index's record)."""
     if not os.path.exists(path):
         return None
     try:
@@ -121,24 +140,42 @@ def read_record(path, t):
         raise ValueError(f"{path}: not JSON ({e})")
     if not A._record_ok(d, t["ident"], t["seed"], t["n_rep"], t["idx"], t["bands"]):
         raise ValueError(f"{path}: a record this task cannot accept (identity, index, draw, payload or checksum)")
+    if d["rep"] != int(index):
+        raise ValueError(f"{path}: holds the record of index {d['rep']}, not of index {int(index)}")
     return d
 
 
-def write_record(path, rec):
+def publish(path, obj, replace=False):
+    """temp + fsync + hard link (never replaces) + directory fsync. `replace` is for a timing file without its record."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
     tmp = f"{path}.tmp.{os.getpid()}"
     with open(tmp, "w") as fh:
-        fh.write(json.dumps(rec) + "\n"); fh.flush(); os.fsync(fh.fileno())
-    if os.path.exists(path):                                   # never replace a record: another writer got there first
-        os.unlink(tmp)
-        raise ValueError(f"{path}: appeared while this worker was computing it (two writers for one index)")
-    os.link(tmp, path)                                         # link fails if the target exists: an atomic no-replace publish
-    os.unlink(tmp)
+        fh.write(json.dumps(obj) + "\n"); fh.flush(); os.fsync(fh.fileno())
+    try:
+        if replace:
+            os.replace(tmp, path)
+        else:
+            try:
+                os.link(tmp, path)                             # fails if the target exists: an atomic no-replace publish
+            except FileExistsError:
+                raise ValueError(f"{path}: already exists (two writers for one index, or a file that appeared meanwhile)")
+            finally:
+                if os.path.exists(tmp):
+                    os.unlink(tmp)
+    finally:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
     dfd = os.open(os.path.dirname(path), os.O_RDONLY)
     try:
         os.fsync(dfd)
     finally:
         os.close(dfd)
+
+
+def write_record(path, rec, index=None):
+    if index is not None and rec.get("rep") != int(index):
+        raise ValueError(f"{path}: refusing to publish the record of index {rec.get('rep')} under index {int(index)}")
+    publish(path, rec)
 
 
 def maxrss_bytes():
@@ -152,6 +189,29 @@ def binding_for(man, manifest_sha, root, rep, t):
                 policy=t["cfg"].start_policy, n_rep=int(t["n_rep"]), until=None,
                 ckpt=os.path.join(root, "records", f"rep{int(rep)}"), orig=os.path.join(root, "orig"),
                 numerical=json.loads(json.dumps(A.numerical_snapshot(), default=str)))
+
+
+def binding_problem(root, rep, b, create):
+    """'' when <root>/task_<rep>.json holds exactly this binding. With `create`, a missing binding is published once (under
+    a lock, by link, never rewritten) - unless shard evidence for that rep already exists without it, which HOLDS."""
+    tp = os.path.join(root, f"task_{rep}.json")
+    os.makedirs(root, exist_ok=True)
+    with open(tp + ".lock", "a+") as lk:
+        fcntl.flock(lk.fileno(), fcntl.LOCK_EX)
+        if os.path.exists(tp):
+            try:
+                old = json.load(open(tp)).get("binding", {})
+            except Exception as e:
+                return f"rep {rep}: the task binding in {root} is unreadable ({e})"
+            diff = [k for k in b if old.get(k) != b[k]] + [k for k in old if k not in b]
+            return f"rep {rep}: the task binding in {root} differs on {diff}" if diff else ""
+        if not create:
+            return f"rep {rep}: no task binding in {root} (job-start publishes it; a worker never does)"
+        evid = glob.glob(os.path.join(root, "records", f"rep{rep}", "rec_*.json")) + glob.glob(os.path.join(root, "timing", f"rep{rep}", "t_*.json"))
+        if evid:
+            return f"rep {rep}: {len(evid)} record/timing file(s) exist in {root} without a task binding; holding, not creating new provenance"
+        publish(tp, dict(binding=b))
+        return ""
 
 
 def admission(man, skip_env):
@@ -190,23 +250,20 @@ def cmd_job_start(a):
         except Exception as ex:
             return held(f"reservation: {ex}")
         print(f"reservation {e['token']}: shard job {plan['job']}, {e['reserved_core_h']:.1f} core-h", flush=True)
-    for sub in ("records", "timing", "status", "logs", "plans"):
+    for sub in ("records", "timing", "status", "logs", "plans", "gate"):
         os.makedirs(os.path.join(root, sub), exist_ok=True)
+    env, _ = R19.check_environment(man)
+    print(f"environment: python {env['python']} jax {env['jax']} numpy {env['numpy']} scipy {env['scipy']} {env['machine']} "
+          f"backend {env['backend']} wrapper {str(env.get('wrapper_sha256'))[:12]}; code pins verified for {sorted(man['code']['files'])}", flush=True)
     idents = man.get("shard", {}).get("identities", {})
     for rep in sorted({int(s["rep"]) for s in slots}):
         t = task(man, rep)
         if str(rep) in idents and idents[str(rep)] != t["ident"]:
             return held(f"rep {rep}: this process computes identity {t['ident'][:16]}, the manifest declares {idents[str(rep)][:16]}")
-        b = binding_for(man, manifest_sha, root, rep, t)
-        tp = os.path.join(root, f"task_{rep}.json")
-        if os.path.exists(tp):
-            old = json.load(open(tp)).get("binding", {})
-            diff = [k for k in b if old.get(k) != b[k]]
-            if diff:
-                return held(f"rep {rep}: the task binding in {root} differs on {diff}")
-        else:
-            write_atomic(tp, dict(binding=b, created=time.time(), created_by=a.job_id))
-        print(f"rep {rep}: seed {t['seed']}, identity {t['ident'][:16]}, B {t['n_rep']}", flush=True)
+        why = binding_problem(root, rep, binding_for(man, manifest_sha, root, rep, t), create=True)
+        if why:
+            return held(why)
+        print(f"rep {rep}: seed {t['seed']}, identity {t['ident'][:16]}, B {t['n_rep']}, binding published or equal", flush=True)
     print(f"job {plan['job']} admitted: {len(slots)} slots, {len(seen)} indices, start {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}", flush=True)
     return DONE
 
@@ -215,64 +272,89 @@ def cmd_worker(a):
     t0 = time.time()
     man = json.load(open(a.manifest)); root = a.root or man["storage"]["root"]
     sh = man.get("shard", {})
-    why = admission(man, a.skip_environment_check)
-    if why:
-        return held(why)
-    try:
-        t = task(man, a.rep)
-    except Exception as e:
-        return held(f"task: {e}")
-    idents = sh.get("identities", {})
-    if str(a.rep) in idents and idents[str(a.rep)] != t["ident"]:
-        return held(f"rep {a.rep}: identity {t['ident'][:16]} is not the manifest's {idents[str(a.rep)][:16]}")
-    indices = [int(x) for x in a.indices.split(",") if x.strip() != ""]
-    if len(set(indices)) != len(indices) or any(not (0 <= i < t["n_rep"]) for i in indices):
-        return held(f"indices {indices} repeat or lie outside 0..{t['n_rep']-1}")
-    mem_stop = float(man["pbs"].get("mem_stop_gib", 0) or 0) * 2 ** 30
-    expect = float(sh.get("expect_layer_s", 0) or 0)
-    margin = float(sh.get("deadline_margin", 1.25))
-    stop_file = os.path.join(root, "STOP")
-    timing = os.path.join(root, "timing", f"rep{a.rep}.job{a.job_id}.slot{a.slot}.jsonl")
     status = os.path.join(root, "status", f"job{a.job_id}.slot{a.slot}.json")
-    for d in (os.path.dirname(timing), os.path.dirname(status)):
-        os.makedirs(d, exist_ok=True)
-    done, resumed, new, longest, reason, code = [], [], [], 0.0, "", DONE
-    print(f"worker job {a.job_id} slot {a.slot}: rep {a.rep} identity {t['ident'][:16]} indices {indices}", flush=True)
-    for i in indices:
-        path = record_path(root, a.rep, i)
+    os.makedirs(os.path.dirname(status), exist_ok=True)
+    st = dict(job=a.job_id, slot=int(a.slot), rep=int(a.rep), ident=None, indices=[], new=[], resumed=[], left=[], exit=HELD, reason="",
+              host=platform.node(), started=t0)
+    def finish(code, reason):
+        st.update(exit=code, reason=reason, left=[i for i in st["indices"] if i not in st["new"] and i not in st["resumed"]],
+                  wall_s=time.time() - t0, maxrss=maxrss_bytes(), cpu_s=sum(resource.getrusage(resource.RUSAGE_SELF)[:2]), ended=time.time())
+        if code == DONE and st["left"]:
+            st["exit"] = code = RESUME
+        R19.write_atomic(status, st)
+        print(f"worker job {a.job_id} slot {a.slot}: exit {code} new {st['new']} resumed {st['resumed']} left {st['left']} {reason}", flush=True)
+        return code
+    try:
+        why = admission(man, a.skip_environment_check)
+        if why:
+            return finish(held(why), why)
         try:
-            if read_record(path, t) is not None:
-                resumed.append(i); done.append(i); continue
-        except ValueError as e:
-            reason, code = str(e), HELD; break
-        if os.path.exists(stop_file):
-            reason, code = "stop requested (STOP file)", RESUME; break
-        if mem_stop and maxrss_bytes() > mem_stop:
-            reason, code = f"memory: maxrss {maxrss_bytes()/2**30:.2f} GiB above the stop", HELD; break
-        need = max(expect, margin * longest)
-        if a.deadline_epoch is not None and time.time() + need > float(a.deadline_epoch):
-            reason, code = f"deadline: {float(a.deadline_epoch) - time.time():.0f} s left, {need:.0f} s needed for the next resample", RESUME; break
-        t1 = time.time()
-        rec = resample_record(t, i)
-        wall = time.time() - t1; longest = max(longest, wall)
+            t = task(man, a.rep)
+        except Exception as e:
+            return finish(held(f"task: {e}"), f"task: {e}")
+        st["ident"] = t["ident"]
+        idents = sh.get("identities", {})
+        if str(a.rep) in idents and idents[str(a.rep)] != t["ident"]:
+            why = f"rep {a.rep}: identity {t['ident'][:16]} is not the manifest's {idents[str(a.rep)][:16]}"
+            return finish(held(why), why)
         try:
-            write_record(path, rec)
-        except ValueError as e:
-            reason, code = str(e), HELD; break
-        with open(timing, "a") as fh:
-            fh.write(json.dumps(dict(rep=int(a.rep), index=int(i), fit_seconds=rec["fit_seconds"], wall_s=wall, failed=rec["failed"],
-                                     maxrss=maxrss_bytes(), t=time.time(), job=a.job_id, slot=int(a.slot))) + "\n")
-            fh.flush(); os.fsync(fh.fileno())
-        new.append(i); done.append(i)
-        print(f"  index {i}: {wall:.0f} s wall, fit {rec['fit_seconds']:.0f} s, failed={rec['failed']}, maxrss {maxrss_bytes()/2**30:.2f} GiB", flush=True)
-    left = [i for i in indices if i not in done]
-    if code == DONE and left:
-        code = RESUME
-    write_atomic(status, dict(job=a.job_id, slot=int(a.slot), rep=int(a.rep), ident=t["ident"], indices=indices, new=new, resumed=resumed,
-                              left=left, exit=code, reason=reason, wall_s=time.time() - t0, maxrss=maxrss_bytes(),
-                              cpu_s=sum(resource.getrusage(resource.RUSAGE_SELF)[:2]), ended=time.time(), host=platform.node()))
-    print(f"worker job {a.job_id} slot {a.slot}: exit {code} new {new} resumed {resumed} left {left} {reason}", flush=True)
-    return code
+            indices = [int(x) for x in a.indices.split(",") if x.strip() != ""]
+        except ValueError:
+            return finish(held("indices are not integers"), "indices are not integers")
+        st["indices"] = indices
+        if len(set(indices)) != len(indices) or any(not (0 <= i < t["n_rep"]) for i in indices):
+            why = f"indices {indices} repeat or lie outside 0..{t['n_rep']-1}"
+            return finish(held(why), why)
+        if not a.no_binding_check:
+            why = binding_problem(root, a.rep, binding_for(man, R19.sha_file(a.manifest), root, a.rep, t), create=False)
+            if why:
+                return finish(held(why), why)
+        mem_stop = float(man["pbs"].get("mem_stop_gib", 0) or 0) * 2 ** 30
+        expect = float(sh.get("expect_layer_s", 0) or 0)
+        margin = float(sh.get("deadline_margin", 1.25))
+        stop_file = os.path.join(root, "STOP")
+        def memory_breach():
+            return bool(mem_stop) and maxrss_bytes() > mem_stop
+        longest = 0.0
+        print(f"worker job {a.job_id} slot {a.slot}: rep {a.rep} identity {t['ident'][:16]} indices {indices}", flush=True)
+        for i in indices:
+            path = record_path(root, a.rep, i)
+            try:
+                if read_record(path, t, i) is not None:
+                    st["resumed"].append(i); continue
+            except ValueError as e:
+                return finish(held(str(e)), str(e))
+            if os.path.exists(stop_file):
+                return finish(RESUME, "stop requested (STOP file)")
+            if memory_breach():
+                why = f"memory: maxrss {maxrss_bytes()/2**30:.2f} GiB above the {mem_stop/2**30:.2f} GiB stop, before index {i}"
+                return finish(held(why), why)
+            need = max(expect, margin * longest)
+            if a.deadline_epoch is not None and time.time() + need > float(a.deadline_epoch):
+                return finish(RESUME, f"deadline: {float(a.deadline_epoch) - time.time():.0f} s left, {need:.0f} s needed for the next resample")
+            t1 = time.time()
+            rec = resample_record(t, i)
+            wall = time.time() - t1; longest = max(longest, wall)
+            try:
+                publish(timing_path(root, a.rep, i), dict(rep=int(a.rep), index=int(i), ident=t["ident"], fit_seconds=rec["fit_seconds"], wall_s=wall,
+                                                          failed=rec["failed"], maxrss=maxrss_bytes(), t=time.time(), job=a.job_id,
+                                                          slot=int(a.slot), host=platform.node()), replace=True)
+                write_record(path, rec, i)
+            except ValueError as e:
+                return finish(held(str(e)), str(e))
+            st["new"].append(i)
+            print(f"  index {i}: {wall:.0f} s wall, fit {rec['fit_seconds']:.0f} s, failed={rec['failed']}, maxrss {maxrss_bytes()/2**30:.2f} GiB", flush=True)
+            if memory_breach():
+                why = f"memory: maxrss {maxrss_bytes()/2**30:.2f} GiB above the {mem_stop/2**30:.2f} GiB stop, after index {i} (its record is published and kept)"
+                return finish(held(why), why)
+        if memory_breach():
+            why = f"memory: maxrss {maxrss_bytes()/2**30:.2f} GiB above the {mem_stop/2**30:.2f} GiB stop at the terminal check"
+            return finish(held(why), why)
+        return finish(DONE, "")
+    except BaseException as e:                                  # a fit, I/O or any other error: ALWAYS a status, never silence
+        why = f"exception: {type(e).__name__}: {e}"
+        traceback.print_exc()
+        return finish(held(why), why)
 
 
 def cmd_job_end(a):
@@ -280,11 +362,17 @@ def cmd_job_end(a):
     codes = []
     for s in plan.get("slots", []):
         p = os.path.join(root, "status", f"job{a.job_id}.slot{s['slot']}.json")
-        codes.append(json.load(open(p)).get("exit") if os.path.exists(p) else None)
-    code = HELD if any(c in (HELD, None) for c in codes) else (RESUME if any(c == RESUME for c in codes) else DONE)
+        try:
+            codes.append(json.load(open(p)).get("exit") if os.path.exists(p) else None)
+        except Exception:
+            codes.append(None)
+    code = HELD if (not codes or any(c not in (DONE, RESUME) for c in codes)) else (RESUME if any(c == RESUME for c in codes) else DONE)
     wall = max(0.0, time.time() - float(a.started_epoch))
     if not a.no_reservation:
-        CampaignLedger(man["storage"]["campaign"], man["budget"]["core_hours_cap"]).runner_end(a.reservation_token, wall, code)
+        try:
+            CampaignLedger(man["storage"]["campaign"], man["budget"]["core_hours_cap"]).runner_end(a.reservation_token, wall, code)
+        except Exception as ex:
+            print(f"job-end: the ledger entry could not be updated ({ex})", flush=True)
     print(f"job {plan['job']} ended: exit {code}; workers exit codes {codes}; wall {wall:.0f} s", flush=True)
     return code
 
@@ -308,6 +396,7 @@ def main(argv=None):
             p.add_argument("--root", default=None); p.add_argument("--rep", type=int, required=True)
             p.add_argument("--indices", required=True); p.add_argument("--slot", type=int, required=True)
             p.add_argument("--deadline-epoch", type=float, default=None)
+            p.add_argument("--no-binding-check", action="store_true", help="the admission smoke only: no task binding is required")
     a = ap.parse_args(argv)
     return {"job-start": cmd_job_start, "worker": cmd_worker, "job-end": cmd_job_end}[a.cmd](a)
 
