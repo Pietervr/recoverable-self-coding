@@ -185,6 +185,22 @@ class CampaignLedger:
                 return
             e.update(runner_ended=time.time(), runner_wall_s=_nonneg(wall_s, "runner wall"), runner_exit=int(exit_code))
 
+    def raise_cap(self, new_cap, note):
+        """The owner's standing instruction (2 Oct 2026): the declared cap is an initial reservation envelope, raised rather than
+        stopping the slice when more core-hours are needed; the allocation (100,000 core-hours) is the only hard stop. Recorded
+        with the old cap, the new cap, the note and the time; the manifest's cap is raised in the same operator step."""
+        new_cap = _pos(new_cap, "new cap")
+        if not isinstance(note, str) or len(note.strip()) < 8:
+            raise RuntimeError("refused: a cap raise needs the owner's ruling as its note")
+        with self.locked() as st:
+            old = float(st["cap_core_h"])
+            if new_cap <= old:
+                raise RuntimeError(f"refused: the new cap {new_cap} does not exceed the current {old}")
+            st.setdefault("cap_history", []).append(dict(old=old, new=new_cap, note=note, t=time.time()))
+            st["cap_core_h"] = new_cap
+        self.cap_arg = new_cap
+        return new_cap
+
     def settle(self, job_id, walltime_s, cores, note=""):
         walltime_s = _nonneg(walltime_s, "settled walltime"); cores = _pos(cores, "cores")
         if not isinstance(note, str) or len(note.strip()) < 8:
@@ -237,6 +253,7 @@ def main(argv=None):
     s = sub.add_parser("settle"); s.add_argument("--job-id", required=True); s.add_argument("--walltime-s", type=float, required=True)
     s.add_argument("--cores", type=int, default=1); s.add_argument("--note", required=True, help="the operator's technical diagnosis of the job's end")
     sub.add_parser("show")
+    rc_ = sub.add_parser("raise-cap"); rc_.add_argument("--to", type=float, required=True); rc_.add_argument("--note", required=True)
     st = sub.add_parser("stop"); st.add_argument("--rep", type=int, default=None)
     sc = sub.add_parser("stop-clear"); sc.add_argument("--rep", type=int, default=None)
     a = ap.parse_args(argv)
@@ -256,6 +273,8 @@ def main(argv=None):
                 print(f"  {e['token']} {e['kind']:<6} rep {str(e.get('rep')):<4} att {e['attempt']} {e['state']:<8} job {e.get('job_id')} "
                       f"{e['cores']}x{e['walltime_s']/3600:.1f}h reserved {e['reserved_core_h']:.1f} settled {e.get('settled_core_h', 0.0):.1f} "
                       f"runner_wall {e.get('runner_wall_s', 0.0)/3600:.2f} h exit {e.get('runner_exit')}")
+    elif a.cmd == "raise-cap":
+        new = L.raise_cap(a.to, a.note); print(f"cap raised to {new:.0f} core-hours (recorded); raise the manifest's budget.core_hours_cap to the same value now")
     elif a.cmd == "stop":
         req = L.stop_request(a.rep); print("stop requested:", L.stop_path(a.rep), req["id"])
     elif a.cmd == "stop-clear":

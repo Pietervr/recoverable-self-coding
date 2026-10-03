@@ -218,11 +218,25 @@ def test_ledger_domains_states_and_terminal_settlement():
     except RuntimeError:
         pass
     st["entries"][t1]["reserved_core_h"] = 40.0; json.dump(st, open(L.path, "w"))
+    # the owner's ruling: a recorded cap raise, never a silent one; a non-increase or a bare note is refused
+    for bad in (lambda: L.raise_cap(50.0, "owner's ruling 2 Oct: continue past 1500"), lambda: L.raise_cap(500.0, "")):
+        try:
+            bad(); raise AssertionError("a bad cap raise was accepted")
+        except RuntimeError:
+            pass
+    assert L.raise_cap(150.0, "owner's ruling 2 Oct: continue past the envelope") == 150.0
+    st = json.load(open(L.path)); assert st["cap_core_h"] == 150.0 and st["cap_history"][0]["old"] == 100.0
+    try:
+        CampaignLedger(c, 100.0).reserve("c3", 9, 1, 1.0, d); raise AssertionError("the old declared cap was accepted after the raise")
+    except RuntimeError:
+        pass
+    L = CampaignLedger(c, 150.0)
+    # concurrent reservations under the lock never lose an entry
     errs = []
     def many(k):
         for i in range(10):
             try:
-                CampaignLedger(c, 100.0).reserve("c3", 100 + k * 10 + i, 1, 1.0, d)
+                CampaignLedger(c, 150.0).reserve("c3", 100 + k * 10 + i, 1, 1.0, d)
             except Exception as e:
                 errs.append(e)
     th = [threading.Thread(target=many, args=(k,)) for k in range(4)]
