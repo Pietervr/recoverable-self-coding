@@ -2,18 +2,18 @@
   "owner_go": {
     "by": "Pieter van Rooyen (owner)",
     "date": "2026-10-02",
-    "words": "go for Stage A and the reader qualification, 2 October"
+    "words": "go"
   },
   "package": {
     "budget_sha256": "9e9eb4dcc8dca396af86ee982b17d1e957e9668b12bda0fd803deb126805c07f",
-    "criteria_sha256": "f05be7a80274226bfb90101fc676170ef610c336ca5fe8d1c87d9321bca1c3f7",
-    "identity_sha256": "04678ddb2360238bc02c7bca850c2c2f1e4d8247e65bd5717b05461baadad158",
+    "criteria_sha256": "4e80b9590461dccbada956e82a413dbd46832c885cbdf6dc33ad87b8439e0870",
+    "identity_sha256": "1a01d070da0c18fa871a0e252c9a8c9d98df9df250be10300181fa8696569664",
     "manifest_sha256": "e816f843700a4a15c4ca56ba71318957e73b77d3560e81a2bf476ff23422f448",
     "plan_sha256": "3faebf4eab25081cf32652bf025fa8fab9d11bee6f1c9a19a1cf2dbad45417cc"
   },
   "review": {
-    "commit": "339018303643d44bbeab087cf2d891553af7dd56",
-    "path": "workspace_demo/t1_access/reviews/2026-10-02_rev10_stage_a_codex_record.md",
-    "record_sha256": "8a7c7475005155f2e6874590d8acd2e1938daebb29ce8600425b26f257d3bb70"
+    "commit": "e7b31f06d668d7629f3263e8b84b7754dd635038",
+    "path": "workspace_demo/t1_access/reviews/2026-10-02_rev12_stage_a_codex_record.md",
+    "record_sha256": "415e0225d4f056f12a1a70d58e4ea1c55a24ba0e3bff2385046b019548a39f35"
   }
 }
