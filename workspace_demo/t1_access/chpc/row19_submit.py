@@ -16,7 +16,8 @@ from row19_ledger import CampaignLedger
 TOOLCHAIN = "/mnt/lustre/users/pvanrooyen/t1_toolchain"
 ROOTS = {"main": "row19_slice", "c1": "row19_slice_ctl_normal", "c2": "row19_slice_ctl_interrupted", "c3": "row19_slice_ctl_interrupted"}
 MODES = {"c1": "normal", "c2": "interrupted", "c3": "resume"}
-WALL = {"main": 144 * 3600, "c1": 48 * 3600, "c3": 48 * 3600}
+WALL = {"main": 144 * 3600, "c1": 144 * 3600, "c3": 144 * 3600}   # C1/C3 on seriallong since the 3 Oct endpoint (manifest control)
+QUEUE = {"c1": "seriallong", "c2": "serial", "c3": "seriallong"}
 
 
 def hms(seconds):
@@ -56,7 +57,8 @@ def main(argv=None):
         name = f"row19_slice_rep{rep}.{a.attempt}.pbs"
     else:
         text = (text.replace("__MODE__", MODES[a.kind]).replace("__KIND__", a.kind).replace("__KILL_FLAG__", "--pbs-kill-control" if a.kind == "c2" else "")
-                .replace("__WALLTIME_S__", str(int(wall))).replace("__WALLTIME__", hms(wall)).replace("__ROOT__", ROOTS[a.kind]).replace("__TOKEN__", token))
+                .replace("__WALLTIME_S__", str(int(wall))).replace("__WALLTIME__", hms(wall)).replace("__ROOT__", ROOTS[a.kind]).replace("__TOKEN__", token)
+                .replace("__QUEUE__", QUEUE[a.kind]).replace("__UNTIL__", str(int(man["control"]["target"]))))
         name = f"row19_ctl_{a.kind}.pbs"
     if "__" in text.replace("__init__", ""):
         left = sorted(set(w for w in text.split() if w.startswith("__") and w.endswith("__")))

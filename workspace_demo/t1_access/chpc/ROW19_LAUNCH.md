@@ -8,6 +8,8 @@ the clone is `$T/rsc_slice` (HEAD must be the reviewed candidate's commits, veri
 
 ## 0. Prerequisites (in this order)
 
+**Endpoint declared 3 Oct after stage 0** (one layer under the policy = 33,635 s; every resample is one layer): the control runs to `--until 8` with C1 and C3 on `seriallong` 144 h; C2 and the W_int rule are unchanged. The addendum below is applied.
+
 1. **Stage 0 settlement.** When `7516261.sched01` ends: `qstat -xf 7516261` → `resources_used.walltime`, `Exit_status`; then
    `$T/t1py chpc/row19_ledger.py --campaign $T/row19_campaign settle --job-id 7516261.sched01 --walltime-s <seconds> --cores 1 --note "qstat -xf: walltime HH:MM:SS, exit N, <how it ended>"`.
    Record the policy-cost result in ledger row 19 (Unimog) first.
@@ -19,13 +21,13 @@ the clone is `$T/rsc_slice` (HEAD must be the reviewed candidate's commits, veri
 
 ## 1. Launch C1 and main reps 0, 1, 2 (each: reserve → fill → qsub → bind)
 
-For `KIND REP WALL` in `c1 0 172800`, `main 0 518400`, `main 1 518400`, `main 2 518400`:
+For `KIND REP WALL` in `c1 0 518400`, `main 0 518400`, `main 1 518400`, `main 2 518400`:
 
 ```sh
 cd $T/rsc_slice/workspace_demo/t1_access
 TOKEN=$($T/t1py chpc/row19_ledger.py --campaign $T/row19_campaign reserve --kind KIND --rep REP --cores 1 --walltime-s WALL --root ROOT | awk '{print $2}' | tr -d :)
 #   ROOT = $T/row19_slice (main) or $T/row19_slice_ctl_normal (c1)
-# fill the template: main -> __REP__, __ATTEMPT__ (1), __TOKEN__;  c1 -> __MODE__=normal, __KIND__=c1, __KILL_FLAG__ (empty), __WALLTIME__=48:00:00, __WALLTIME_S__=172800, __ROOT__=row19_slice_ctl_normal, __TOKEN__
+# fill the template: main -> __REP__, __ATTEMPT__ (1), __TOKEN__;  c1 -> __MODE__=normal, __KIND__=c1, __KILL_FLAG__ (empty), __WALLTIME__=144:00:00, __WALLTIME_S__=518400, __ROOT__=row19_slice_ctl_normal, __QUEUE__=seriallong, __UNTIL__=8 (the manifest's control.target), __TOKEN__
 JOB=$(qsub $T/jobs/<filled>.pbs)
 $T/t1py chpc/row19_ledger.py --campaign $T/row19_campaign bind --token $TOKEN --job-id $JOB
 ```
@@ -37,7 +39,7 @@ Exit 1 = an alarm: submit nothing further until it is diagnosed and recorded in 
 ## 2. C2 after C1's first records
 
 When C1's `status`/`timing_0.jsonl` show the original and three resamples: `W_int = original_seconds + 3 × median(first three
-fit_seconds)`, rounded up to the minute, and in any case between original + 1 and original + 19 resamples and below 48 h. If no
+fit_seconds)`, rounded up to the minute, and in any case between original + 1 and original + 7 resamples and below 48 h. If no
 legal W_int exists, STOP and record non-qualification (never a cooperative or wrong-boundary C2). Reserve `c2` with
 `--walltime-s W_int` in root `$T/row19_slice_ctl_interrupted`; fill `__MODE__=interrupted`, `__KIND__=c2`,
 `__KILL_FLAG__=--pbs-kill-control`, `__WALLTIME__`/`__WALLTIME_S__` = W_int; qsub; bind.
@@ -49,7 +51,7 @@ When PBS reports C2 finished: `qstat -xf <C2 job>` → `Exit_status`, `resources
 fragment is present. Write `$T/row19_slice_ctl_interrupted/c2_interruption.json`:
 `{"job_id", "exit_status" (int), "walltime_requested_s", "walltime_used_s", "pbs_killed" (bool), "accepted_records_before" (int),
 "original_cache_reused" (bool, from C3's status after it runs), "tail_fragment_present" (bool)}`. Settle C2 with its note.
-Reserve `c3` (48 h) in C2's root; fill `__MODE__=resume`, `__KIND__=c3`, `__KILL_FLAG__` empty; qsub; bind.
+Reserve `c3` (144 h, seriallong) in C2's root; fill `__MODE__=resume`, `__KIND__=c3`, `__KILL_FLAG__` empty; qsub; bind.
 
 ## 4. Resumes, stops, settlement
 
@@ -62,6 +64,6 @@ Reserve `c3` (48 h) in C2's root; fill `__MODE__=resume`, `__KIND__=c3`, `__KILL
 ## 5. The slice report (before stage 2)
 
 On the Mac: `python chpc/row19_control_compare.py --manifest ... --task <C1 task_0.json> --c1 <C1 ckpt> --c3 <C3 ckpt>
---status-c1 ... --status-c3 ... --interruption <c2_interruption.json> --ledger <budget.json> --target 20`; per dataset the
+--status-c1 ... --status-c3 ... --interruption <c2_interruption.json> --ledger <budget.json> --target 8`; per dataset the
 per-resample distribution, the original fit, peak memory, utilisation, resamples per job, resumes and recovery counters; the
 measured chain time against 144 h; the cost against the cap; figure and interpretation; to Codex before stage 2 is costed.
