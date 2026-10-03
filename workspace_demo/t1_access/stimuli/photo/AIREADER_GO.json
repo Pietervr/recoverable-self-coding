@@ -2,13 +2,13 @@
   "owner_go": {
     "by": "Pieter van Rooyen (owner)",
     "date": "2026-10-02",
-    "words": "go for Stage A and the reader qualification, 2 October"
+    "words": "Go"
   },
   "package": {
-    "AI_READER_DESIGN.md_sha256": "3b5381a37e46a30eee267f4e217a9701c34c34e39f8804327ae5525ebaea2a08",
-    "AI_READER_JOB.md_sha256": "977742e5cf00b4ced9d6ce60d17d44e6630e02f0adfe993b03d819b33e4a2a14",
+    "AI_READER_DESIGN.md_sha256": "2da524db7b588ada91a4da69f5c255847244e6de1e361f31abe3f737b05b8c77",
+    "AI_READER_JOB.md_sha256": "c29f9b96520e1b4a611d721e43a0c2df282f05db369b8a758cecec9577a455c9",
     "ai_reader_delivery.json_sha256": "f79e0bbf524d943691755401b33583dcca8e4a13c3e7066ea2273d7451d691d8",
-    "ai_reader_exec.py_sha256": "f2e3e0e57eee40f8c34fec065eed8ec72e05eb4be8f40641d6a52cac7b15271b",
+    "ai_reader_exec.py_sha256": "9ff61681702f47a2971aa1e512fe38492206458391f539cbf483a635caa53a0d",
     "ai_reader_frame.py_sha256": "cf1e648dbd7617cc8160c73969adbcf4eac0703823ec98ae25056c7ef7ba60d8",
     "ai_reader_journal.py_sha256": "e067889c4210b91ec220fbd4f63421fb93fc4fd64f14c398f288fcaa3bcf2907",
     "ai_reader_key.py_sha256": "e063c7ceb08d39ac028e418857a612797516129ed1aa1e96280e22902d660c8f",
@@ -25,14 +25,14 @@
     "enforce.py_sha256": "5d142c94560da93ee08fd4021dd7aa46edba60d13252ed992e44873a0f57ed42",
     "instructions_sha256": "e2a8ba62a740d571102bca60f77a3e4be04c7a02d2e823b602403a3e6d292790",
     "memprobe.py_sha256": "83114f358b74372c3bbe647a5b907903ec6629c172a76adc3d7c13f5a7acd465",
-    "package_digest": "ffba894e5a8c1ea9ed4d68f9287cbb75fc4e25e50e923dcd525a542d631a8ed8",
+    "package_digest": "6be7d4c8fc6b113f4505af166386f8cf3df23446ccfe19df61114bb5d2e4b760",
     "sandbox_exec_sha256": "58839ef01b4eef8aac0d2aa8f9d1c074ae45aafe3533965b030672450064acc8",
-    "stage_a_guard.py_sha256": "71031f606240c0ca93e41f22ceddcf9a78d1968a356803d00fff18b36749db70",
-    "stage_a_watchdog.py_sha256": "7a686c76fea6f9be8f21724d3690847c752a95b78f6389bc2792a9016a15736d"
+    "stage_a_guard.py_sha256": "a801e48edc0281988e86806fcf31206d7da3e220cfa7690c333990a635076750",
+    "stage_a_watchdog.py_sha256": "4c6d8723fec88afd59f9b9ff833cb6235462ca6e6c711e199dbc7f6af829b1ed"
   },
   "review": {
-    "commit": "339018303643d44bbeab087cf2d891553af7dd56",
-    "path": "workspace_demo/t1_access/reviews/2026-10-02_rev10_ai_reader_codex_record.md",
-    "record_sha256": "cac9d3560170807fc251708156c28a18cda65033dc24187ec2315cd8a6f2dd53"
+    "commit": "5eb51a8753882d3a470eea44f931a77a3ebfe530",
+    "path": "workspace_demo/t1_access/reviews/2026-10-02_rev11_ai_reader_codex_record.md",
+    "record_sha256": "c336e1a9c0f3ec2212ba559286f0c43b2ba3358e687f1e6968abaa9c559d8481"
   }
 }
