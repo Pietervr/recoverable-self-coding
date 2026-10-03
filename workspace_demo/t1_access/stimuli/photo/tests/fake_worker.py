@@ -1,5 +1,8 @@
 """A synthetic worker for the controller fixtures (no model, no development input). Usage: fake_worker.py <out> <mode>
   gates:ok | gates:hold | gates:refuse      the gates worker: GATES.json passed (exit 0), a hold (exit 4), a refusal
+  sgates:<how>   revision 16: the supplement's gates worker, the same three outcomes in SUPPLEMENT_GATES.json
+  sreceipt:<how> revision 16: the supplement's receipt worker: ok (outcome PASS unless SUPPLEMENT_TERMINAL.json exists),
+                 stopped (outcome STOPPED), extra_key (one more field), bad_hash (a bound output's hash wrong)
   ok:<phase>     write <PHASE>_DONE.json and exit 0; first checks it cannot take the task lock (the controller must
                  hold it) and records that
   report:<how>   the report worker: ok (both figures, md, json, then the receipt last, exact schema); json_then_fail
@@ -52,6 +55,30 @@ if mode.startswith("gates:"):
            "passed": how == "ok", "hold": how == "hold", "hold_reason": "fixture hold" if how == "hold" else None}
     put("GATES.json", json.dumps(rec).encode())
     sys.exit(0 if how == "ok" else 4)
+if mode.startswith("sgates:"):                 # revision 16: the supplement's gates (SUPPLEMENT_GATES.json)
+    how = mode.split(":")[1]
+    if how == "refuse":
+        sys.exit("refused: fixture refusal")
+    rec = {"session": session, "package": {"supplement_plan_sha256": "b" * 64}, "identity": "e" * 64,
+           "passed": how == "ok", "hold": how == "hold", "hold_reason": "fixture hold" if how == "hold" else None}
+    put("SUPPLEMENT_GATES.json", json.dumps(rec).encode())
+    sys.exit(0 if how == "ok" else 4)
+if mode.startswith("sreceipt:"):               # revision 16: the supplement's receipt worker
+    how = mode.split(":")[1]
+    with open(out / "worker_log.jsonl", "a") as f:
+        f.write(json.dumps({"phase": "supplement_receipt", "pid": os.getpid(), "t": time.time()}) + "\n")
+    terminal = (out / "SUPPLEMENT_TERMINAL.json").exists()
+    outputs = {"supplement/comparison_a.json": put("supplement/comparison_a.json", b'{"pass": true}')}
+    if how == "bad_hash":
+        outputs["supplement/comparison_a.json"] = "0" * 64
+    rc = {"session": session, "package": gates.get("package"), "identity": gates.get("identity"),
+          "date": time.strftime("%Y-%m-%d"), "outcome": "STOPPED" if (terminal or how == "stopped") else "PASS",
+          "admissible": gates.get("passed") is True, "reasons": [], "input": {}, "attempts": {}, "comparisons": {},
+          "counters": {}, "compatibility": {}, "outputs": outputs}
+    if how == "extra_key":
+        rc["note"] = "x"
+    put("supplement/SUPPLEMENT_RECEIPT.json", json.dumps(rc).encode())
+    sys.exit(0)
 if mode.startswith("ok:"):
     from stage_a_guard import TaskLock
     try:

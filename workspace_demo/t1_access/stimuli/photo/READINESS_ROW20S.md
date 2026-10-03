@@ -1,0 +1,32 @@
+# Photograph arm, ledger row 20 supplement (the OS bridge): readiness, revision 1
+
+R084 (Claude), 3 October 2026. **The supplement has no go.** It is built and tested only; nothing ran: no forward,
+no model load, no controller session, no `captures/photo_stage_a_supplement/` tree. The accepted Stage A tree
+(`captures/photo_stage_a/`) and the revision-15 package files are byte-identical.
+
+**What it is.** Codex's record RSC `b0db0f9` requires, before row 21's first CAL forward, a row-20 supplement on the
+original DEV-CAL input 00 on the current macOS 27.0.1: one plain instrumented forward (`00-plain-os2701`) compared
+directly with input 00's retained 27.0 record (`00-plain`), and one native forward (`00-native-os2701`) compared
+directly with the new instrumented output - the accepted comparator, both receipts retained. Starts 194 -> 196 of
+200; time, storage and memory charged to row 20. Specification, design and fixture map: `STAGE_A_SUPPLEMENT_CRITERIA.md`.
+
+**The package** (`stage_a.py supplement-package`): `supplement_criteria_sha256`, `supplement_identity_sha256`,
+`supplement_plan_sha256`, `plan_sha256` (the unchanged 178-id plan `3faebf4e...`), `manifest_sha256` (`e816f843...`),
+`budget_sha256` (the supplement envelope). The brief to R052 carries the exact values for the commit.
+
+**Run** (after Codex's record and the owner's go only): `stage_a_controller.py supplement` - the gates (declared
+environment: macOS 27.0.1, build 26A434, arm64), the instrumented worker, the native worker (separate process), the
+receipt; final `SUPPLEMENT_FINAL.json` with its marker. Row 21 calls `stage_a.supplement_receipt_ok(<its identity>)`
+before its first CAL forward and holds on anything but an admitted PASS with a compatible execution.
+
+**Mechanism evidence.** `tests/test_stage_a_supplement.py` (19: the plan, the gates, the two phases and their
+failures, resume without replay, the receipt, the row-21 verifier's holds, and the SupplementController with
+synthetic workers and the real controller, watchdog and guardian) and the retained suite run recorded in `reviews/`.
+No development forward; the Stage A record files are read from a fake run in a temporary tree, and the live tree only
+by the desk plan and load checks.
+
+**Still needed.**
+
+1. R052 submits this exact package to Codex.
+2. Codex's record on it, carrying a favourable attestation (row `20`, stage `A-supplement`) if favourable.
+3. The owner's go bound to the package (`ROW20S_GO.json`).

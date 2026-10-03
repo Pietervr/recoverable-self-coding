@@ -12,6 +12,12 @@ outside and reaps, with a WATCHDOG process (stage_a_watchdog.py) beside it that 
 controller cannot delay.
 
     .venv-image/bin/python stimuli/photo/stage_a_controller.py run      # gates -> instrumented -> native -> report
+    .venv-image/bin/python stimuli/photo/stage_a_controller.py supplement   # revision 16: the row-20 OS bridge
+
+REVISION 16 (the row-20 OS-bridge supplement, Codex b0db0f9): the file and phase names became class attributes
+(Controller.NAMES, GATES_PHASE, REPORT_PHASE, set_terminal_fn, terminal_active_fn) with Stage A's values unchanged;
+SupplementController runs the same mechanism in captures/photo_stage_a_supplement under SUPPLEMENT_NAMES, with row
+20's carried seconds and remaining storage, its own terminal record and receipt check. Nothing below changes for Stage A.
 
 ORDER: clock from the process's own start -> lock -> load and VALIDATE the durable record (finite, non-negative
 accounting; an absent controller.json beside any existing task output is lost accounting and refuses) -> if the last
@@ -126,6 +132,37 @@ REPORT_OUTPUTS = {"report/rel_l2_by_layer.svg", "report/logit_max_abs.svg", "rep
                   "report/stage_a_report.json"}
 RECEIPT_KEYS = {"session", "package", "identity", "date", "outputs", "admissible", "validator_pass"}
 HEX64 = re.compile(r"[0-9a-f]{64}")
+# Revision 16 (the row-20 OS-bridge supplement, Codex b0db0f9): the controller's file and phase names are class
+# attributes so that SupplementController runs under its OWN names in its own output tree and never supersedes,
+# rewrites or reports over the accepted Stage A bundle. Stage A's values are unchanged.
+STAGE_A_NAMES = {"final": FINAL, "admitted": ADMITTED, "aborted": ABORTED, "gates": "GATES.json",
+                 "receipt": "report/REPORT_RECEIPT.json"}
+SUPPLEMENT_NAMES = {"final": "SUPPLEMENT_FINAL.json", "admitted": "SUPPLEMENT_FINAL.ADMITTED.json",
+                    "aborted": "SUPPLEMENT_FINAL.ABORTED.json", "gates": "SUPPLEMENT_GATES.json",
+                    "receipt": "supplement/SUPPLEMENT_RECEIPT.json"}
+SUPPLEMENT_PHASES = ["supplement_instrumented", "supplement_native"]
+SUPPLEMENT_TERMINAL = "SUPPLEMENT_TERMINAL.json"
+SUPPLEMENT_RECEIPT_KEYS = {"session", "package", "identity", "date", "outcome", "admissible", "reasons", "input",
+                           "attempts", "comparisons", "counters", "compatibility", "outputs"}
+
+
+def supplement_set_terminal(out: Path, phase: str, reason: str) -> None:
+    """The supplement's own terminal record (revision 16): a failure STOPS this version. Same schema as Stage A's
+    TERMINAL.json, a different file in the supplement's tree, and NO release path - a stopped supplement is never
+    resumed (no retry, no tolerance revision, no next input)."""
+    p = Path(out) / SUPPLEMENT_TERMINAL
+    entry = {"phase": phase, "reason": str(reason)[:4000], "wall": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+             "pid": os.getpid()}
+    t = json.loads(p.read_text()) if p.exists() else None
+    if t:
+        t.setdefault("later", []).append(entry)
+    else:
+        t = {"first": entry}
+    write_json_atomic(p, t, final=True)
+
+
+def supplement_terminal_active(out: Path) -> bool:
+    return (Path(out) / SUPPLEMENT_TERMINAL).exists()
 
 
 class ControllerStop(RuntimeError):
@@ -156,8 +193,11 @@ def default_system_reader() -> dict:
         raise ControllerStop(str(exc)) from exc
 
 
-def final_admitted(out: Path) -> dict | None:
-    """The final record, only when its admission marker names exactly its bytes and session (A5)."""
+def final_admitted(out: Path, names: dict | None = None) -> dict | None:
+    """The final record, only when its admission marker names exactly its bytes and session (A5). `names` (revision
+    16): the supplement's own final/marker/abort file names (SUPPLEMENT_NAMES); default Stage A's."""
+    names = names or STAGE_A_NAMES
+    FINAL, ADMITTED, ABORTED = names["final"], names["admitted"], names["aborted"]   # noqa: N806
     f, m = Path(out) / FINAL, Path(out) / ADMITTED
     if not (f.exists() and m.exists()):
         return None
@@ -197,7 +237,22 @@ def _process_age_s() -> float:
     return max(0.0, time.time() - float(i["start"])) if i else 0.0
 
 
+def _guard_set_terminal(out: Path, phase: str, reason: str) -> None:
+    from stage_a_guard import set_terminal
+    set_terminal(out, phase, reason)
+
+
+def _guard_terminal_active(out: Path) -> bool:
+    from stage_a_guard import terminal_active
+    return terminal_active(out)
+
+
 class Controller:
+    NAMES = STAGE_A_NAMES                              # revision 16: overridden by SupplementController only
+    GATES_PHASE, REPORT_PHASE = "gates", "report"
+    set_terminal_fn = staticmethod(_guard_set_terminal)
+    terminal_active_fn = staticmethod(_guard_terminal_active)
+
     def __init__(self, out: Path, *, carry_seconds: float, worker_cmd, gates: bool = True,
                  row_cap_s: float | None = None, storage_cap: int | None = None, probe=memprobe,
                  system_reader=None, writer=write_json_atomic, clock=time.monotonic, watchdog_cmd=None,
@@ -492,8 +547,8 @@ class Controller:
         """No earlier PASS survives into this session: the previous final record, its admission marker and the report
         receipt move aside."""
         sup = self.out / "superseded"
-        for p in (self.out / ADMITTED, self.out / ABORTED, self.out / FINAL,
-                  self.out / "report" / "REPORT_RECEIPT.json"):
+        n = self.NAMES
+        for p in (self.out / n["admitted"], self.out / n["aborted"], self.out / n["final"], self.out / n["receipt"]):
             if p.exists():
                 sup.mkdir(exist_ok=True)
                 os.replace(p, sup / f"{p.stem}.{self.session}{p.suffix}")
@@ -522,7 +577,7 @@ class Controller:
             self._stop_guardian()
 
     def _run(self, phases) -> dict:
-        from stage_a_guard import set_terminal
+        set_terminal, terminal_active = self.set_terminal_fn, self.terminal_active_fn
         if True:
             configure_storage([self.out], self.cap_b, self.cap_b - FINAL_RESERVE_BYTES)
             self.start_wall = self.run_start_wall
@@ -566,7 +621,6 @@ class Controller:
                 if g["outcome"] != "PASSED":
                     self._bounded(lambda: self._close(g["outcome"].lower()))
                     return {"outcome": g["outcome"], "reason": g["reason"], "session": self.session}
-            from stage_a_guard import terminal_active
             terminal = terminal_active(self.out)          # rev 11: an owner-released terminal record lets work resume
             try:
                 if not terminal:
@@ -580,11 +634,12 @@ class Controller:
             except (ControllerStop, Exception) as exc:
                 self._stop(set_terminal, "controller", f"{type(exc).__name__}: {exc}")
             try:                                       # the report: always, inside its reserve (STOPPED after a stop)
-                self._phase("report", deadline=self.cap_s - TAIL_RESERVE_S, storage_limit=self.cap_b, report=True)
+                self._phase(self.REPORT_PHASE, deadline=self.cap_s - TAIL_RESERVE_S, storage_limit=self.cap_b,
+                            report=True)
             except ControllerHold as exc:
                 return self._hold(str(exc))
             except Exception as exc:
-                self.rec["stops"].append({"phase": "report", "session": self.session,
+                self.rec["stops"].append({"phase": self.REPORT_PHASE, "session": self.session,
                                           "reason": f"{type(exc).__name__}: {exc}"})
             outcome = "terminal" if terminal_active(self.out) else "completed"
             return self._bounded(lambda: (self._close(outcome), self._finalise())[1])
@@ -697,13 +752,13 @@ class Controller:
 
     def _revoke_tombstone(self) -> None:
         try:
-            self._write(self.out / ABORTED, {"session": self.session, "wall": time.time()})
+            self._write(self.out / self.NAMES["aborted"], {"session": self.session, "wall": time.time()})
         except Exception:                             # noqa: BLE001
             pass
 
     def _unadmit(self) -> None:
         try:
-            m = self.out / ADMITTED
+            m = self.out / self.NAMES["admitted"]
             if m.exists() and json.loads(m.read_text()).get("session") == self.session:
                 _unlink(m)
         except Exception:                             # noqa: BLE001 - best effort; the exit status says no PASS
@@ -711,11 +766,11 @@ class Controller:
 
     def _gates(self) -> dict:
         """The desk gates as a supervised worker (hashing and git cannot block the controller's loop)."""
-        gp = self.out / "GATES.json"
+        gp = self.out / self.NAMES["gates"]
         if gp.exists():
-            os.replace(gp, self.out / "GATES.prev.json")
+            os.replace(gp, gp.with_name(gp.stem + ".prev.json"))
         try:
-            self._phase("gates", deadline=self.cap_s - TAIL_RESERVE_S - STOP_RESERVE_S - REPORT_RESERVE_S,
+            self._phase(self.GATES_PHASE, deadline=self.cap_s - TAIL_RESERVE_S - STOP_RESERVE_S - REPORT_RESERVE_S,
                         storage_limit=self.cap_b - FINAL_RESERVE_BYTES, gates=True)
         except ControllerStop as exc:
             w = self.rec["workers"][-1] if self.rec["workers"] else {}
@@ -1263,15 +1318,137 @@ class Controller:
         return max_work
 
 
+class SupplementController(Controller):
+    """Revision 16: the row-20 OS-bridge supplement (Codex b0db0f9 §"Prospective row21 OS bridge"; STAGE_A_SUPPLEMENT_
+    CRITERIA.md). The same controller - guardian, lock, guarded starts, watchdog, sampler, whole-task memory, durable
+    clock, bounded closure, durable completion - in its OWN output tree (captures/photo_stage_a_supplement) under its
+    OWN names (SUPPLEMENT_NAMES): it supersedes only its own final, marker, abort and receipt; its phases are
+    supplement_gates -> supplement_instrumented -> supplement_native -> supplement_receipt (always, also after a stop);
+    its terminal record is SUPPLEMENT_TERMINAL.json (no release); it never touches captures/photo_stage_a.
+
+    ROW 20'S ENVELOPE, NOT A NEW ONE: carry_seconds is the accepted Stage A's controller seconds_total (pinned in the
+    supplement plan and re-checked at the gates), so time continues against row 20's 4 h; storage_cap is row 20's
+    1 GiB less the frozen Stage A tree's bytes (pinned); memory is per task as before (stop 44 GiB, cap 48 GiB); the
+    attempt counters carry Stage A's 194/193/1/194 into the supplement ledger (stage_a.supplement_open).
+
+    FINAL: PASS only if, in THIS session, the receipt worker exited 0 and wrote supplement/SUPPLEMENT_RECEIPT.json last
+    with exactly SUPPLEMENT_RECEIPT_KEYS, naming this session and the gates' package and identity, outcome PASS and
+    admissible, every bound output present with its sha256; no supplement terminal record; the supplement ledger legal
+    (check_ledger, row 20 <= 200); every mandatory measurement present; every cap holding on the final figures."""
+    NAMES = SUPPLEMENT_NAMES
+    GATES_PHASE, REPORT_PHASE = "supplement_gates", "supplement_receipt"
+    set_terminal_fn = staticmethod(supplement_set_terminal)
+    terminal_active_fn = staticmethod(supplement_terminal_active)
+
+    def run(self, phases=SUPPLEMENT_PHASES, emit=None) -> dict:
+        return super().run(phases=phases, emit=emit)
+
+    def _report_ok(self) -> dict:
+        why = []
+        ws = [w for w in self.rec["workers"] if w.get("session") == self.session and w["phase"] == self.REPORT_PHASE]
+        if not ws or ws[-1].get("returncode") != 0 or ws[-1].get("stop"):
+            why.append("the receipt worker of this session did not exit 0")
+        if any(s.get("phase") == self.REPORT_PHASE and s.get("session") == self.session for s in self.rec["stops"]):
+            why.append("a receipt stop in this session")
+        rp = self.out / self.NAMES["receipt"]
+        try:
+            rc = json.loads(rp.read_text()) if rp.exists() else None
+        except ValueError:
+            rc, _ = None, why.append("the supplement receipt is not JSON")
+        if rc is None:
+            why.append("no supplement receipt")
+        elif not isinstance(rc, dict) or set(rc) != SUPPLEMENT_RECEIPT_KEYS:
+            why.append(f"the supplement receipt's fields are not exactly {sorted(SUPPLEMENT_RECEIPT_KEYS)}")
+        else:
+            g = self.gates_rec or {}
+            if rc["session"] != self.session:
+                why.append("the supplement receipt names another session")
+            if not (isinstance(rc["date"], str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", rc["date"])):
+                why.append("the supplement receipt's date is not YYYY-MM-DD")
+            if rc["outcome"] not in ("PASS", "STOPPED") or not isinstance(rc["admissible"], bool):
+                why.append("the supplement receipt's outcome or admissibility is malformed")
+            if self.use_gates and (rc["package"] != g.get("package") or rc["identity"] != g.get("identity")):
+                why.append("the supplement receipt's package or identity differs from this session's gates")
+            outs = rc["outputs"]
+            if not isinstance(outs, dict) or not outs or \
+                    not all(isinstance(h, str) and HEX64.fullmatch(h) for h in outs.values()):
+                why.append("the supplement receipt binds no outputs, or a malformed hash")
+            else:
+                for rel, h in outs.items():
+                    p = self.out / rel
+                    if not p.exists() or _sha_file(p) != h:
+                        why.append(f"supplement output {rel} missing or changed")
+        return {"ok": not why, "why": why, "receipt": rc, "report": {}}
+
+    def _finalise(self) -> dict:
+        rok = self._report_ok()
+        rc = rok["receipt"] if isinstance(rok["receipt"], dict) else {}
+        terminal = supplement_terminal_active(self.out)
+        cnt = self._counters_ok()
+        mem_peak = self._task_aggregate()
+        missing = self._missing_measurements()
+        n = self.NAMES
+        final = {"outcome": "STOPPED", "kind": "stage_a_supplement", "session": self.session,
+                 "receipt_current": rok["ok"], "receipt_problems": rok["why"],
+                 "receipt_outcome": rc.get("outcome"), "admissible": rc.get("admissible") is True,
+                 "terminal": terminal, "counters": cnt, "seconds_total": self.rec["seconds_total"],
+                 "carry_s": self.rec["carry_s"], "supplement_seconds": self.rec["seconds_total"] - self.rec["carry_s"],
+                 "task_memory_aggregate": mem_peak, "missing_measurements": missing, "peaks": self.rec["peaks"],
+                 "receipt_sha256": _sha_file(self.out / n["receipt"]) if rok["receipt"] is not None else None,
+                 "controller_sha256": _sha_file(self.path), "stops": self.rec["stops"],
+                 "storage_carry_bytes": CAPS["row20"]["bytes"] - self.cap_b,
+                 "time_scope": f"seconds_total = the accepted Stage A's row-20 total (carry) + this tree's sessions, "
+                               f"each including its whole bounded closure ({CLOSE_CHARGE_S:.0f} s)"}
+        size0 = dir_bytes([self.out])
+        mlen = len(json.dumps({"final_sha256": "0" * 64, "session": self.session}, indent=1, sort_keys=True).encode())
+        for _ in range(4):                            # a fixed point: the figure includes this record and its marker
+            final["storage_final"] = size0 + mlen + len(json.dumps(final, indent=1, sort_keys=True).encode())
+            final["row20_storage_final"] = final["storage_final"] + final["storage_carry_bytes"]
+            caps_ok = {"time": self.rec["seconds_total"] <= self.cap_s, "storage": final["storage_final"] <= self.cap_b,
+                       "memory": 0 < mem_peak < CAPS_MEMORY and not missing, "attempts": cnt["ok"]}
+            final["caps_ok_on_final_figures"] = caps_ok
+            final["outcome"] = "PASS" if (rok["ok"] and rc.get("outcome") == "PASS" and rc.get("admissible") is True
+                                          and not terminal and all(caps_ok.values())) else "STOPPED"
+            if size0 + mlen + len(json.dumps(final, indent=1, sort_keys=True).encode()) == final["storage_final"]:
+                break
+        fp = self.out / n["final"]
+        self._write(fp, final)                        # a failure or block here leaves no marker (A5)
+        after = dir_bytes([self.out])
+        if after + mlen != final["storage_final"]:
+            final.update(outcome="STOPPED", storage_final_check={"declared": final["storage_final"],
+                                                                 "measured_after": after + mlen})
+            self._write(fp, final)
+            return final
+        self._write(self.out / n["admitted"], {"final_sha256": _sha_file(fp), "session": self.session})
+        return final
+
+
 def default_worker_cmd(phase: str) -> list[str]:
     return [sys.executable, str(HERE / "stage_a.py"), "worker", phase]
 
 
+def supplement_controller(**kw) -> SupplementController:
+    """The supplement's controller with row 20's carried figures read from the reviewed supplement plan (the gates
+    re-check them against the frozen Stage A tree before anything is spawned)."""
+    import stage_a
+    sp = json.loads(stage_a.SUPP_PLAN.read_text())
+    env = sp["envelope"]
+    return SupplementController(stage_a.SUPP_OUT, carry_seconds=env["seconds_carry"], worker_cmd=default_worker_cmd,
+                                storage_cap=env["cap_bytes"] - env["storage_carry_bytes"], **kw)
+
+
 def main() -> int:
     import stage_a
+    emit = lambda r: (print(json.dumps(r, indent=1, default=str)), sys.stdout.flush())   # noqa: E731
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "run"
+    if cmd == "supplement":                            # revision 16: the row-20 OS-bridge supplement
+        out = supplement_controller(from_process_start=True).run(emit=emit)
+        return {"REFUSED": 2, "HELD": EXIT_HOLD}.get(out["outcome"], 0)
+    if cmd != "run":
+        raise SystemExit(f"unknown command {cmd!r}: run | supplement")
     c = Controller(stage_a.OUT, carry_seconds=stage_a.ENGINEERING_CARRY["seconds"], worker_cmd=default_worker_cmd,
                    from_process_start=True)
-    out = c.run(emit=lambda r: (print(json.dumps(r, indent=1, default=str)), sys.stdout.flush()))
+    out = c.run(emit=emit)
     return {"REFUSED": 2, "HELD": EXIT_HOLD}.get(out["outcome"], 0)
 
 

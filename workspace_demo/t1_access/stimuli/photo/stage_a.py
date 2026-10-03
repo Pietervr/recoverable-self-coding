@@ -4,7 +4,10 @@ Revision 5 answers Codex's record RSC 1bf9890 (not favourable to revision 4 at d
 8c9dac2b; the condition-by-condition map is STAGE_A_CRITERIA.md §1; revisions 6-14 in its §0-§R14. Revision 13: the
 native logit criterion in bfloat16 steps at and above 16 (`compare`) and the chained transition (`PREDECESSORS`);
 revision 14: the prepared-link reconciliation in `identity_transition` (Codex c4bbcb5 R1); revision 15: macOS
-27.0 -> 27.0.1 as the one declared environment difference of the revision-12 link (`environment_differences`).
+27.0 -> 27.0.1 as the one declared environment difference of the revision-12 link (`environment_differences`);
+revision 16: the row-20 OS-bridge supplement (Codex b0db0f9; STAGE_A_SUPPLEMENT_CRITERIA.md) - input 00, two new
+forwards on macOS 27.0.1 in its own tree, two direct comparisons, `supplement_receipt_ok` for row 21. Stage A's own
+paths are unchanged.
 EXPOSURE: two runs - 2 October (revision 10: gates and 158 instrumented forwards, terminal) and 3 October (revision 12:
 16 native forwards, terminal at 15-native) - reviews/2026-10-02_stage_a_run.md, reviews/2026-10-03_stage_a_resume_run.md.
 
@@ -13,6 +16,11 @@ EXPOSURE: two runs - 2 October (revision 10: gates and 158 instrumented forwards
     .venv-image/bin/python stimuli/photo/stage_a.py package       # desk: print the hashes ROW20_GO.json must bind
     .venv-image/bin/python stimuli/photo/stage_a_controller.py run    # after the go: gates -> phases -> report
     (`stage_a.py worker <gates|instrumented|native|report>` is the controller's worker entry, never run by hand)
+    .venv-image/bin/python stimuli/photo/stage_a.py supplement-plan      # rev 16 desk: stage_a_supplement_plan.json
+    .venv-image/bin/python stimuli/photo/stage_a.py supplement-identity  # rev 16 desk: stage_a_supplement_identity.json
+    .venv-image/bin/python stimuli/photo/stage_a.py supplement-package   # rev 16 desk: what ROW20S_GO.json binds
+    .venv-image/bin/python stimuli/photo/stage_a_controller.py supplement   # after Codex + the owner's go only
+    .venv-image/bin/python stimuli/photo/stage_a.py supplement-verify    # desk: row 21's verifier, current execution
 
 WORKERS. GATES: frozen plan and manifest (and the current dev pool and provenance records equal to the plan's
 reviewed pins - A8), positions receipt (present, passing, for this plan), the go under the strict shared guard with the
@@ -408,6 +416,9 @@ class Ctx:
     budget_kwargs: dict = field(default_factory=dict)
     origins_check: Callable | None = None              # () -> None; default: guard.check_imported_origins
     verify_controller: bool = True
+    supp_plan_path: Path | None = None                 # revision 16: the supplement's plan (supplement_ctx)
+    stage_a_out: Path = OUT                            # revision 16: the frozen, accepted Stage A tree (read only)
+    os_build_fn: Callable | None = None                # revision 16: () -> the OS build string; default os_build
 
 
 def package_hashes(ctx: Ctx) -> dict:
@@ -518,25 +529,24 @@ IDENTITY_BLOBS = {"plan_sha256": "stage_a_plan.json", "manifest_sha256": "manife
                   "package_file_maps_sha256": "stage_a_identity_files.json"}
 
 
-def package_at_commit(commit: str, repo: Path = RSC_ROOT, photo: str | None = None) -> dict:
-    """The five package hashes as they were at the reviewed commit, AND proof that the identity committed there
-    describes that commit's own blobs: its identity_sha256 recomputes; every local-source digest, the packet source,
-    the import map, the positions receipt, the plan and the manifest hash to their blobs at the commit (closure
-    group 1). Any disagreement refuses."""
-    photo = photo or str(HERE.relative_to(RSC_ROOT))
-
+def _blob_reader(commit: str, repo: Path) -> Callable[[str], bytes]:
     def blob(rel: str) -> bytes:
         g = subprocess.run(["git", "-C", str(repo), "show", f"{commit}:{rel}"], capture_output=True)
         if g.returncode != 0:
             raise SystemExit(f"refused: {rel} absent at the reviewed commit {commit}")
         return g.stdout
-    b = {k: blob(f"{photo}/{n}") for k, n in (("criteria", "STAGE_A_CRITERIA.md"), ("identity", "stage_a_identity.json"),
-                                               ("plan", "stage_a_plan.json"), ("manifest", "manifest_dev.json"))}
-    ident = json.loads(b["identity"])
+    return blob
+
+
+def _identity_describes_commit(ident: dict, blob: Callable[[str], bytes], photo: str, blobs: dict) -> None:
+    """The identity committed at a reviewed commit hashes to its own identity_sha256, and every local-source digest,
+    the packet source, the import map, the positions receipt, the plan and the manifest hash to their blobs at that
+    commit (closure group 1). Revision 16 factors this out of package_at_commit (unchanged checks and messages) so the
+    supplement's package re-derivation applies it to its own identity and import-map file."""
     body = {k: v for k, v in ident.items() if k != "identity_sha256"}
     if sha(json.dumps(body, sort_keys=True).encode()) != ident.get("identity_sha256"):
         raise SystemExit("refused: the identity at the reviewed commit does not hash to its own identity_sha256")
-    bad = [f"{k} ({n})" for k, n in IDENTITY_BLOBS.items() if sha(blob(f"{photo}/{n}")) != ident.get(k)]
+    bad = [f"{k} ({n})" for k, n in blobs.items() if sha(blob(f"{photo}/{n}")) != ident.get(k)]
     bad += [f"local_code_sha256[{n}]" for n, h in ident.get("local_code_sha256", {}).items()
             if sha(blob(f"{photo}/{n}")) != h]
     t1 = str(Path(photo).parents[1])
@@ -547,6 +557,18 @@ def package_at_commit(commit: str, repo: Path = RSC_ROOT, photo: str | None = No
         bad.append("local_code_sha256 does not cover exactly the declared local code")
     if bad:
         raise SystemExit(f"refused: the identity at the reviewed commit does not describe that commit's blobs: {bad}")
+
+
+def package_at_commit(commit: str, repo: Path = RSC_ROOT, photo: str | None = None) -> dict:
+    """The five package hashes as they were at the reviewed commit, AND proof that the identity committed there
+    describes that commit's own blobs: its identity_sha256 recomputes; every local-source digest, the packet source,
+    the import map, the positions receipt, the plan and the manifest hash to their blobs at the commit (closure
+    group 1). Any disagreement refuses."""
+    photo = photo or str(HERE.relative_to(RSC_ROOT))
+    blob = _blob_reader(commit, repo)
+    b = {k: blob(f"{photo}/{n}") for k, n in (("criteria", "STAGE_A_CRITERIA.md"), ("identity", "stage_a_identity.json"),
+                                               ("plan", "stage_a_plan.json"), ("manifest", "manifest_dev.json"))}
+    _identity_describes_commit(json.loads(b["identity"]), blob, photo, IDENTITY_BLOBS)
     plan = json.loads(b["plan"])
     return {"criteria_sha256": sha(b["criteria"]), "identity_sha256": sha(b["identity"]),
             "plan_sha256": sha(b["plan"]), "manifest_sha256": sha(b["manifest"]),
@@ -1441,6 +1463,728 @@ def run_report(ctx: Ctx | None = None) -> dict:
 
 
 # ================================================================================================================
+# Revision 16: the ROW-20 OS-BRIDGE SUPPLEMENT (Codex b0db0f9 §"Prospective row21 OS bridge"; R052 handoff 8266e5ae
+# item 2; STAGE_A_SUPPLEMENT_CRITERIA.md). Built and tested only: no forward before Codex's record on this package
+# and the owner's go (ROW20S_GO.json, stage "A-supplement").
+# ================================================================================================================
+# The accepted Stage A tree (captures/photo_stage_a) is FROZEN and only read: its ledger, controller record, final,
+# marker, acceptance, transitions and every record stay byte-identical (pinned in the supplement plan, re-checked by
+# every supplement worker). The supplement writes only its own tree (captures/photo_stage_a_supplement): its own
+# ledger, which CARRIES Stage A's row-20 counters (194/193/1/194) so that its two starts are row 20's 195th and
+# 196th of 200; its own controller record, which carries Stage A's row-20 seconds; its own storage cap, row 20's
+# 1 GiB less the frozen tree's bytes. Input 00 (the original DEV-CAL input) only, fixed by id and hashes.
+#   00-plain-os2701   one plain INSTRUMENTED forward on macOS 27.0.1 - comparison (a) against input 00's retained
+#                     27.0 instrumented record 00-plain (the reference = the denominator);
+#   00-native-os2701  one NATIVE forward, same input, same environment - comparison (b) against 00-plain-os2701.
+# Each comparison is the accepted comparator (`compare`, unchanged) plus the bound-identity checks; both receipts are
+# retained. No retry: a failure, an interruption or a refusal after a start STOPS this version (SUPPLEMENT_TERMINAL),
+# preserving counters and results; nothing reopens 00-plain / 00-native or changes the 178-id plan and manifest.
+SUPP_OUT = T1 / "captures" / "photo_stage_a_supplement"
+SUPP_PLAN = HERE / "stage_a_supplement_plan.json"
+SUPP_IDENTITY = HERE / "stage_a_supplement_identity.json"
+SUPP_IDENTITY_FILES = HERE / "stage_a_supplement_identity_files.json"
+SUPP_CRITERIA = HERE / "STAGE_A_SUPPLEMENT_CRITERIA.md"
+SUPP_GO = HERE / "ROW20S_GO.json"
+SUPP_STAGE = "A-supplement"
+SUPP_INPUT = 0
+SUPP_REFERENCE = "00-plain"
+SUPP_INST, SUPP_NAT = "00-plain-os2701", "00-native-os2701"
+SUPP_ATTEMPTS = [
+    {"id": SUPP_INST, "phase": "supplement_instrumented", "kind": "supplement_instrumented", "index": SUPP_INPUT,
+     "case": "plain", "compare_with": SUPP_REFERENCE},
+    {"id": SUPP_NAT, "phase": "supplement_native", "kind": "supplement_native", "index": SUPP_INPUT,
+     "case": "native", "compare_with": SUPP_INST}]
+SUPP_ENVIRONMENT = {"macos": "27.0.1", "build": "26A434", "machine": "arm64"}
+SUPP_COMPARISON_SCHEMA = "stage_a.supplement_comparison.v1"
+SUPP_FROZEN = ("stage_a_state.json", "controller.json", "STAGE_A_FINAL.json", "STAGE_A_FINAL.ADMITTED.json",
+               "report/ACCEPTANCE.json", "report/REPORT_RECEIPT.json", "INSTRUMENTED_DONE.json", "NATIVE_DONE.json")
+SUPP_IDENTITY_BLOBS = {**IDENTITY_BLOBS, "package_file_maps_sha256": "stage_a_supplement_identity_files.json"}
+PROCESSOR_CODE = ("image_adapter.py", "dose.py", "dose_report.py")
+COMPAT_KEYS = ("macos", "build", "machine", "python", "package_versions", "package_file_maps_sha256",
+               "snapshot_sha256", "lens_sha256", "jlens", "dispatch_sha256", "packet_py_sha256",
+               "processor_code_sha256")
+
+
+def supplement_ctx(**kw) -> Ctx:
+    base = dict(out=SUPP_OUT, identity_path=SUPP_IDENTITY, criteria_path=SUPP_CRITERIA, go_path=SUPP_GO,
+                identity_files=SUPP_IDENTITY_FILES, supp_plan_path=SUPP_PLAN)
+    return Ctx(**{**base, **kw})
+
+
+def _dumps_sha(obj) -> str:
+    return sha(json.dumps(obj, sort_keys=True).encode())
+
+
+def stage_a_pins(o: Path) -> dict:
+    """The frozen Stage A tree as the supplement binds it: the files' sha256, the whole tree's bytes, the admitted
+    final, the ledger's identity slot and row-20 counters, the controller's row-20 seconds, and input 00's reference
+    record with its producer identity and environment (from the recorded transitions)."""
+    import stage_a_controller as C
+    from enforce import dir_bytes
+    for rel in ("stage_a_state.json", "controller.json", "STAGE_A_FINAL.json", "STAGE_A_FINAL.ADMITTED.json",
+                "report/ACCEPTANCE.json", "INSTRUMENTED_DONE.json"):
+        if not (o / rel).exists():
+            raise SystemExit(f"refused: the accepted Stage A tree lacks {rel}")
+    fin = C.final_admitted(o)
+    if not fin or fin.get("outcome") != "PASS":
+        raise SystemExit("refused: the Stage A final record is not an admitted PASS")
+    st = json.loads((o / "stage_a_state.json").read_text())
+    if st.get("open_attempt") or st.get("interrupted"):
+        raise SystemExit("refused: the Stage A ledger holds an open or interrupted attempt")
+    ref = st["completed"].get(SUPP_REFERENCE)
+    if not ref or (st["attempts"].get(SUPP_REFERENCE) or {}).get("status") != "completed":
+        raise SystemExit(f"refused: the reference {SUPP_REFERENCE} is not a completed Stage A attempt")
+    return {"files_sha256": {rel: sha_file(o / rel) for rel in SUPP_FROZEN if (o / rel).exists()},
+            "tree_bytes": dir_bytes([o]), "final_session": fin["session"], "final_outcome": fin["outcome"],
+            "ledger_identity": st["identities"]["row20"], "counters_row20": st["counters"]["row20"],
+            "seconds_total": json.loads((o / "controller.json").read_text())["seconds_total"],
+            "reference": {"attempt": SUPP_REFERENCE, "outputs": ref["outputs"],
+                          "producer_identity": json.loads((o / "INSTRUMENTED_DONE.json").read_text())["identity"],
+                          "environment": attempt_environment(o, SUPP_REFERENCE, None)}}
+
+
+def supplement_envelope(stage: dict) -> dict:
+    """Row 20's carried envelope (not row 21's): the two starts and every second, byte and memory sample of the
+    supplement charged to row 20."""
+    from enforce import CAPS, COUNTER_KEYS, MEMORY_CAP
+    c = stage["counters_row20"]
+    env = envelope()
+    after = c["started"] + len(SUPP_ATTEMPTS)
+    if after > CAPS["row20"]["attempts"]:
+        raise SystemExit("refused: the supplement's starts exceed row 20's attempt cap")
+    return {"row": "20", "attempts": [a["id"] for a in SUPP_ATTEMPTS], "starts_before": c["started"],
+            "starts_after": after, "cap_attempts": CAPS["row20"]["attempts"],
+            "in_hand_after": CAPS["row20"]["attempts"] - after,
+            "in_hand_rule": "not a retry budget: a supplement failure stops this version; no retry, no other input, "
+                            "no tolerance revision follows automatically",
+            "carry_in": {**{k: c[k] for k in sorted(COUNTER_KEYS)},
+                         "basis": "the accepted Stage A ledger's row-20 counters (captures/photo_stage_a/"
+                                  "stage_a_state.json, pinned), carried, never reset"},
+            "seconds_carry": stage["seconds_total"], "cap_seconds": CAPS["row20"]["seconds"],
+            "storage_carry_bytes": stage["tree_bytes"], "cap_bytes": CAPS["row20"]["bytes"],
+            "memory_cap": MEMORY_CAP, "controller": env["controller"],
+            "rule": "no attempt id outside the supplement plan; one try each; every warm-up, internal or failed "
+                    "forward is a start; setup, comparison, receipt and closure time, memory and files are row 20's"}
+
+
+def make_supplement_plan(ctx: Ctx) -> dict:
+    """Desk (no model): input 00 fixed by id and every frozen hash, copied from the 178-id plan unchanged."""
+    plan, _ = load_frozen(ctx)
+    x = plan["inputs"][SUPP_INPUT]
+    if x["index"] != SUPP_INPUT:
+        raise SystemExit("refused: plan input 0 is not index 0")
+    stage = stage_a_pins(ctx.stage_a_out)
+    if ctx.stage_a_out == OUT and {k: stage["counters_row20"][k] for k in ("started", "completed", "failed",
+                                                                           "passes")} != \
+            {"started": 194, "completed": 193, "failed": 1, "passes": 194}:
+        raise SystemExit("refused: the accepted Stage A ledger is not at 194/193/1/194")
+    env = supplement_envelope(stage)
+    return {"kind": "stage_a_supplement", "revision": 1, "row": "20", "stage": SUPP_STAGE,
+            "base_plan_sha256": sha_file(ctx.plan_path), "manifest_sha256": sha_file(ctx.manifest_path),
+            "input_id": f"{SUPP_INPUT:02d}", "input": x, "input_sha256": _dumps_sha(x),
+            "manifest_record_sha256": plan["manifest_records_sha256"].get(x["concept"]),
+            "request_tokens": plan["request_tokens"], "request_token_ids": plan["request_token_ids"],
+            "template_sha256": plan["template_sha256"], "capture_layers": LAYERS, "top_k": TOP_K,
+            "comparator": {"rel_l2_max": TOL["rel_l2"], "rel_l2": "per recorded layer ||ref - cand|| / ||ref|| over the "
+                           "three marker rows x 5,120, FP64; the reference norm finite and non-zero",
+                           "logit": "each requested logit |ref - cand| <= max(0.10, one bfloat16 step at the larger "
+                                    "magnitude) (logit_tolerance)",
+                           "argmax": "identical requested-token argmax", "complete": "finite residuals and requested "
+                           "logits, complete records", "bound": "input ids, readout positions, pixels, grid and "
+                           "multimodal positions equal the frozen input; (b) the native merged embeddings equal the "
+                           "new instrumented merge bitwise and one prefill"},
+            "reference": stage["reference"], "attempts": SUPP_ATTEMPTS,
+            "comparisons": [{"pair": "a", "reference": SUPP_REFERENCE, "candidate": SUPP_INST,
+                             "what": "same path across environments (27.0 record -> 27.0.1)"},
+                            {"pair": "b", "reference": SUPP_INST, "candidate": SUPP_NAT,
+                             "what": "path fidelity in the current environment (new instrumented -> new native)"}],
+            "environment": SUPP_ENVIRONMENT, "stage_a": stage, "envelope": env, "budget_sha256": budget_sha256(env),
+            "scope": "one exposed development input; it does not isolate OS causality, re-qualify every image or edit, "
+                     "reproduce the 120 shams on the new OS, or admit PILOT; no Stage B forward is approved by it"}
+
+
+def check_stage_a_frozen(ctx: Ctx, supp: dict) -> None:
+    """The accepted Stage A tree is unchanged since the supplement plan pinned it (every supplement worker)."""
+    from stage_a_guard import terminal_active
+    if terminal_active(ctx.stage_a_out):
+        raise SystemExit("refused: Stage A is terminal (its release no longer matches TERMINAL.json)")
+    now = stage_a_pins(ctx.stage_a_out)
+    bad = sorted(k for k in now if now[k] != supp["stage_a"].get(k))
+    if bad:
+        raise SystemExit(f"refused: the accepted Stage A tree changed since the supplement plan pinned it: {bad}")
+
+
+def load_supplement(ctx: Ctx) -> tuple[dict, dict, dict]:
+    plan, manifest = load_frozen(ctx)
+    supp = json.loads(ctx.supp_plan_path.read_text())
+    checks = {"kind/revision": supp.get("kind") == "stage_a_supplement" and supp.get("revision") == 1,
+              "base plan": supp.get("base_plan_sha256") == sha_file(ctx.plan_path),
+              "manifest": supp.get("manifest_sha256") == sha_file(ctx.manifest_path),
+              "input 00": supp.get("input") == plan["inputs"][SUPP_INPUT] and
+                          supp.get("input_sha256") == _dumps_sha(plan["inputs"][SUPP_INPUT]),
+              "requested tokens": supp.get("request_token_ids") == plan["request_token_ids"] and
+                                  supp.get("request_tokens") == plan["request_tokens"],
+              "attempts": supp.get("attempts") == SUPP_ATTEMPTS,
+              "environment": supp.get("environment") == SUPP_ENVIRONMENT,
+              "envelope": supp.get("envelope") == supplement_envelope(supp.get("stage_a") or {"counters_row20": {}})
+                          if supp.get("stage_a") else False,
+              "budget": supp.get("budget_sha256") == budget_sha256(supp.get("envelope") or {})}
+    bad = [k for k, ok in checks.items() if not ok]
+    if bad:
+        raise SystemExit(f"refused: the supplement plan does not match the frozen plan or the code: {bad}")
+    check_stage_a_frozen(ctx, supp)
+    return plan, supp, manifest
+
+
+def supplement_package_hashes(ctx: Ctx) -> dict:
+    supp = json.loads(ctx.supp_plan_path.read_text())
+    return {"supplement_criteria_sha256": sha_file(ctx.criteria_path),
+            "supplement_identity_sha256": sha_file(ctx.identity_path),
+            "supplement_plan_sha256": sha_file(ctx.supp_plan_path), "plan_sha256": sha_file(ctx.plan_path),
+            "manifest_sha256": sha_file(ctx.manifest_path), "budget_sha256": budget_sha256(supp["envelope"])}
+
+
+def supplement_package_at_commit(commit: str, repo: Path = RSC_ROOT, photo: str | None = None) -> dict:
+    """The supplement's six package hashes as they were at the reviewed commit, with its identity proven to describe
+    that commit's blobs (the same checks as package_at_commit, its own import-map file)."""
+    photo = photo or str(HERE.relative_to(RSC_ROOT))
+    blob = _blob_reader(commit, repo)
+    b = {k: blob(f"{photo}/{n}") for k, n in (("criteria", SUPP_CRITERIA.name), ("identity", SUPP_IDENTITY.name),
+                                               ("supp", SUPP_PLAN.name), ("plan", "stage_a_plan.json"),
+                                               ("manifest", "manifest_dev.json"))}
+    _identity_describes_commit(json.loads(b["identity"]), blob, photo, SUPP_IDENTITY_BLOBS)
+    return {"supplement_criteria_sha256": sha(b["criteria"]), "supplement_identity_sha256": sha(b["identity"]),
+            "supplement_plan_sha256": sha(b["supp"]), "plan_sha256": sha(b["plan"]),
+            "manifest_sha256": sha(b["manifest"]), "budget_sha256": budget_sha256(json.loads(b["supp"])["envelope"])}
+
+
+def _supp_terminal(ctx: Ctx, phase: str, exc: BaseException) -> None:
+    import stage_a_controller as C
+    C.supplement_set_terminal(ctx.out, phase, f"{type(exc).__name__}: {exc}")
+
+
+def run_supplement_gates(ctx: Ctx | None = None) -> int:
+    """The supplement's GATES worker: its terminal record absent; the 178-id plan, manifest and source pins; the
+    supplement plan against them, the code and the frozen Stage A tree; the positions receipt; the go (row 20, stage
+    A-supplement) bound to this exact package re-derived at the reviewed commit; a fresh execution identity equal to
+    the frozen supplement identity; the DECLARED environment (macOS product version AND build, machine) - a product
+    version string alone is not accepted; the gates' own import map; then the supplement ledger's crash
+    reconciliation - an interrupted try STOPS the supplement (no recovery path); the identity rechecked before
+    SUPPLEMENT_GATES.json is committed."""
+    import stage_a_controller as C
+    from enforce import reconcile_open_attempt, write_json_atomic
+    from stage_a_guard import check_imported_origins, execution_identity, require_go
+    ctx = ctx or supplement_ctx()
+    _worker_storage(ctx)
+    session = os.environ.get("STAGE_A_SESSION", "test")
+    if C.supplement_terminal_active(ctx.out):
+        raise SystemExit("refused: the supplement stopped terminally; this version never runs again")
+    plan, supp, _ = load_supplement(ctx)
+    check_receipt(ctx)
+    pkg = supplement_package_hashes(ctx)
+    (ctx.check_go or (lambda c: require_go(c.go_path, pkg, row="20", stage=SUPP_STAGE,
+                                           verify_at_commit=supplement_package_at_commit)))(ctx)
+    frozen = json.loads(ctx.identity_path.read_text())
+    ctx.out.mkdir(parents=True, exist_ok=True)
+    tmp = ctx.out / "identity_files.supplement_gates.json"
+    now = (ctx.compute_identity or (lambda: execution_identity(ctx.plan_path, ctx.manifest_path, ctx.receipt_path,
+                                                               tmp)))()
+    if now["identity_sha256"] != frozen["identity_sha256"]:
+        raise SystemExit(f"refused: execution identity now {now['identity_sha256']} differs from the frozen "
+                         f"supplement identity {frozen['identity_sha256']}")
+    build = (ctx.os_build_fn or os_build)()
+    envd = {"macos": now.get("macos"), "build": build, "machine": now.get("machine")}
+    if envd != supp["environment"]:
+        raise SystemExit(f"refused: the execution environment {envd} is not the declared {supp['environment']}")
+    (ctx.origins_check or (lambda: check_imported_origins(tmp, now["package_file_maps_sha256"])))()
+    st = ctx.out / "stage_a_state.json"
+    reconciled = reconcile_open_attempt(st)
+    if st.exists() and json.loads(st.read_text())["interrupted"]:
+        C.supplement_set_terminal(ctx.out, "supplement_gates", "an interrupted supplement try: this version stops "
+                                  "(no recovery, no retry); counters and results preserved")
+        raise SystemExit("refused: an interrupted supplement try - the supplement stopped terminally")
+    recheck_identity(ctx, now)
+    if sha_file(ctx.supp_plan_path) != pkg["supplement_plan_sha256"]:
+        raise StopCheck("the supplement plan changed during the gates")
+    write_json_atomic(ctx.out / C.SUPPLEMENT_NAMES["gates"],
+                      {"package": pkg, "identity": now["identity_sha256"], "environment": envd,
+                       "reconciled": reconciled, "session": session, "passed": True, "hold": False}, final=True)
+    return 0
+
+
+def supplement_open(ctx: Ctx, phase: str):
+    """A supplement WORK worker's start: under the controller holding the lock; its storage; no supplement terminal;
+    Stage A's own gate (released); the frozen plans, code and Stage A tree; the supplement ledger, created with Stage
+    A's row-20 counters as its carry (so the two starts are 195 and 196 of 200) and refusing any foreign id or an
+    interrupted try (which stops the version)."""
+    import stage_a_controller as C
+    from enforce import Budget
+    from stage_a_guard import check_terminal
+    _check_controller(ctx)
+    _worker_storage(ctx)
+    if C.supplement_terminal_active(ctx.out):
+        raise SystemExit("refused: the supplement stopped terminally; this version never runs again")
+    check_terminal(ctx.stage_a_out)
+    plan, supp, manifest = load_supplement(ctx)
+    ident = json.loads(ctx.identity_path.read_text())["identity_sha256"]
+    carry = supp["envelope"]["carry_in"]
+    budget = Budget(ctx.out / "stage_a_state.json", "row20", ident, [ctx.out],
+                    os.environ.get("STAGE_A_SESSION", "test"), carry_in=carry,
+                    storage_limit=int(os.environ.get("STAGE_A_STORAGE_LIMIT", 0)) or None, **ctx.budget_kwargs)
+    if budget.state["carry_in"].get("row20") != carry:
+        raise SystemExit("refused: the supplement ledger's carry is not the pinned Stage A row-20 counters")
+    foreign = sorted(set(budget.state["attempts"]) - {a["id"] for a in SUPP_ATTEMPTS})
+    if foreign:
+        raise SystemExit(f"refused: the supplement ledger holds ids outside the supplement plan: {foreign}")
+    if budget.state["interrupted"]:
+        raise StopCheck(f"{phase}: an interrupted supplement try {budget.state['interrupted']} - the supplement stops "
+                        f"(no recovery, no retry)")
+    return budget, plan, supp, manifest
+
+
+def _supp_recheck(ctx: Ctx, ident: dict, supp_sha: str) -> None:
+    recheck_identity(ctx, ident)
+    if sha_file(ctx.supp_plan_path) != supp_sha:
+        raise StopCheck("the supplement plan changed during the phase")
+
+
+def _validate_record(rec: dict, arrays: dict, a: dict, x: dict, plan: dict, plain: dict | None = None) -> None:
+    """The phase's full independent predicates (stage_a_report._inst / _nat, unchanged) on a supplement or reference
+    record; the supplement records carry Stage A's own record schemas."""
+    import stage_a_report as R
+    v = R.V()
+    v.need((rec.get("id"), rec.get("index"), rec.get("case"), rec.get("kind")) ==
+           (a["id"], a["index"], a["case"], a["kind"]), "RECORD_ID", a["id"])
+    suffix = {s["base_index"]: s for s in plan["diagnostics"]["suffix_isolation"]}
+    if a["case"] == "native":
+        R._nat(rec, arrays, x, plan, plain, D_MODEL, v, a["id"])
+    else:
+        R._inst(rec, arrays, a, x, plan, suffix, D_MODEL, v, a["id"])
+    if v.failures:
+        raise StopCheck(f"{a['id']}: record fails admission: {[f['code'] for f in v.failures][:6]}")
+
+
+def admit_reference(ctx: Ctx, plan: dict, supp: dict) -> tuple[dict, np.ndarray]:
+    """Input 00's retained 27.0 instrumented record, read from the frozen Stage A tree: its outputs equal the pinned
+    ones and the ledger's, every checksum holds, and it passes the instrumented predicates."""
+    st = json.loads((ctx.stage_a_out / "stage_a_state.json").read_text())
+    outs = (st["completed"].get(SUPP_REFERENCE) or {}).get("outputs")
+    if outs is None or outs != supp["reference"]["outputs"]:
+        raise StopCheck(f"{SUPP_REFERENCE}: the reference outputs differ from the supplement plan's pins")
+    rec, arrays = load_outputs(ctx.stage_a_out, SUPP_REFERENCE, outs)
+    a = next(a for a in plan["attempts"] if a["id"] == SUPP_REFERENCE)
+    _validate_record(rec, arrays, a, plan["inputs"][SUPP_INPUT], plan)
+    return rec, arrays["residuals"]
+
+
+def _bound_checks(x: dict, *recs: dict) -> dict:
+    exp = x["expected"]
+    out = {}
+    for r in recs:
+        img, tag = r["image"], r["id"]
+        out.update({f"{tag}: input ids": r["input_ids_sha256"] == exp["ids_sha256"],
+                    f"{tag}: readout positions": r["readout_positions"] == exp["marker_positions"],
+                    f"{tag}: pixels": img["pixel_values_sha256"] == x["pixel_values_sha256"],
+                    f"{tag}: grid": img["grid_thw"] == x["grid_thw"],
+                    f"{tag}: positions": img["positions_sha256"] == exp["positions_sha256"] ==
+                                         img["effective_positions_sha256"]})
+    return out
+
+
+def compare_pair(pair: str, ref: dict, ref_u16: np.ndarray, cand: dict, cand_f32: np.ndarray, li: np.ndarray,
+                 ln: np.ndarray, bound: dict, diagnostic: dict) -> dict:
+    """One direct comparison receipt: the accepted comparator (`compare`, unchanged: reference = denominator) plus the
+    bound-identity checks. PASS needs both."""
+    row = compare(ref_u16, cand_f32, li, ln)
+    comp_pass = row.pop("pass")
+    bad = [k for k, ok in bound.items() if not ok]
+    return {"record_schema": SUPP_COMPARISON_SCHEMA, "pair": pair, "reference": ref["id"], "candidate": cand["id"],
+            "input_id": f"{SUPP_INPUT:02d}", **row, "comparator_pass": comp_pass, "bound": bound,
+            "bound_failures": bad, "diagnostic": diagnostic, "pass": bool(comp_pass and not bad)}
+
+
+def _write_comparison(ctx: Ctx, row: dict) -> dict:
+    from enforce import write_json_atomic
+    rel = f"supplement/comparison_{row['pair']}.json"
+    (ctx.out / "supplement").mkdir(parents=True, exist_ok=True)
+    write_json_atomic(ctx.out / rel, row, final=True)
+    return {"path": rel, "sha256": sha_file(ctx.out / rel)}
+
+
+def run_supplement_instrumented(ctx: Ctx | None = None) -> dict:
+    ctx = ctx or supplement_ctx()
+    from enforce import write_json_atomic
+    budget, plan, supp, manifest = supplement_open(ctx, "supplement_instrumented")
+    try:
+        supp_sha = sha_file(ctx.supp_plan_path)
+        ident, files = worker_identity(ctx, "supplement_instrumented")
+        ref, ref_res = admit_reference(ctx, plan, supp)
+        inst = (ctx.instrument_factory or default_instrument)()
+        expect = (ctx.post_load or post_load_instrumented)(inst)
+        (ctx.origins_check or (lambda: __import__("stage_a_guard").check_imported_origins(
+            files, ident["package_file_maps_sha256"])))()
+        check_tokenizer(plan, inst.tok)
+        x = plan["inputs"][SUPP_INPUT]
+        px, seq = admit_input(ctx, x, manifest, inst.processor.image_processor, inst.processor, inst.tok)
+        a = SUPP_ATTEMPTS[0]
+        done = budget.completed(a["id"])
+        if done is not None:
+            rec, arrays = load_outputs(ctx.out, a["id"], done)
+        else:
+            with budget.attempt(a["id"], a["kind"], passes=1) as att:
+                r = inst.capture(seq, px["pv"], capture_layers=LAYERS, request_token_ids=plan["request_token_ids"],
+                                 top_k=TOP_K, edits=edits_for(inst.ce, "plain", x, seq, None))
+                validate_pass(r, x, seq, "plain", plan, expect)
+                res = residual_array(r)
+                if sha(res.tobytes()) != r["residuals"]["sha256"]:
+                    raise StopCheck(f"{a['id']}: residual bytes differ from the capture's own hash")
+                rec = {k: r[k] for k in INST_CAPTURE_KEYS}
+                rec.update(record_schema=INST_SCHEMA, id=a["id"], case="plain", index=x["index"], kind=a["kind"],
+                           residuals_meta={k: r["residuals"][k] for k in ("dtype", "shape", "sha256")},
+                           final_logits={k: r["final_logits"][k] for k in ("dtype", "n", "sha256")},
+                           residuals_sha256=r["residuals"]["sha256"], logits_sha256=r["final_logits"]["sha256"])
+                outs = save_outputs(budget, ctx.out, a["id"], {"residuals": res}, rec)
+                rec, arrays = load_outputs(ctx.out, a["id"], outs)      # validated from disk before the commit
+                _validate_record(rec, arrays, a, x, plan)
+                att.commit(outs)
+        _validate_record(rec, arrays, a, x, plan)
+        if rec["final_logits"]["n"] != expect["vocab_rows"]:
+            raise StopCheck(f"{a['id']}: logits length differs from the loaded vocabulary")
+        li = np.array([q["logit"] for q in ref["requested"]], dtype=np.float64)
+        ln = np.array([q["logit"] for q in rec["requested"]], dtype=np.float64)
+        diag = {"residuals_bitwise_equal": rec["residuals_sha256"] == ref["residuals_sha256"],
+                "logits_bitwise_equal": rec["logits_sha256"] == ref["logits_sha256"],
+                "features_bitwise_equal": rec["image"]["features_sha256"] == ref["image"]["features_sha256"],
+                "merge_bitwise_equal": rec["image"]["merge"]["merged_sha256"] ==
+                                       ref["image"]["merge"]["merged_sha256"],
+                "reference_environment": supp["reference"]["environment"],
+                "candidate_environment": supp["environment"]}
+        row = compare_pair("a", ref, ref_res, rec, bf16_to_f32(arrays["residuals"]), li, ln,
+                           _bound_checks(x, ref, rec), diag)
+        written = _write_comparison(ctx, row)
+        if not row["pass"]:
+            raise StopCheck(f"{a['id']}: comparison (a) with {SUPP_REFERENCE} failed: " + (
+                parity_failure(a["id"], row) if not row["comparator_pass"] else f"bound {row['bound_failures']}"))
+        _supp_recheck(ctx, ident, supp_sha)
+        budget.final_size()
+        write_json_atomic(ctx.out / "SUPPLEMENT_INSTRUMENTED_DONE.json",
+                          {"phase": "supplement_instrumented", "attempts": {a["id"]: budget.completed(a["id"])},
+                           "comparison": written, "identity": budget.identity}, final=True)
+        return {"supplement_instrumented": a["id"], "comparison_a": row["pass"],
+                "counters": budget.state["counters"]["row20"]}
+    except BaseException as exc:
+        if not isinstance(exc, SystemExit):
+            _supp_terminal(ctx, "supplement_instrumented", exc)
+        raise
+
+
+def admit_supplement_instrumented(ctx: Ctx, plan: dict, budget) -> tuple[dict, dict]:
+    """Before any native model: the supplement instrumented phase complete - its record committed in the ledger and
+    equal to the phase record, comparison (a) retained and passing, the record passing the instrumented predicates."""
+    p = ctx.out / "SUPPLEMENT_INSTRUMENTED_DONE.json"
+    if not p.exists():
+        raise SystemExit("refused: the supplement instrumented phase has not completed")
+    done = json.loads(p.read_text())
+    a = SUPP_ATTEMPTS[0]
+    outs = budget.completed(a["id"])
+    if outs is None or done.get("attempts") != {a["id"]: outs} or done.get("identity") != budget.identity:
+        raise StopCheck("SUPPLEMENT_INSTRUMENTED_DONE.json does not match the supplement ledger or identity")
+    cp = ctx.out / done["comparison"]["path"]
+    if not cp.exists() or sha_file(cp) != done["comparison"]["sha256"] or json.loads(cp.read_text()).get("pass") \
+            is not True:
+        raise StopCheck("comparison (a) is missing, changed or not passing")
+    rec, arrays = load_outputs(ctx.out, a["id"], outs)
+    _validate_record(rec, arrays, a, plan["inputs"][SUPP_INPUT], plan)
+    return rec, arrays
+
+
+def run_supplement_native(ctx: Ctx | None = None) -> dict:
+    ctx = ctx or supplement_ctx()
+    from enforce import write_json_atomic
+    budget, plan, supp, manifest = supplement_open(ctx, "supplement_native")
+    try:
+        supp_sha = sha_file(ctx.supp_plan_path)
+        ident, files = worker_identity(ctx, "supplement_native")
+        inst, inst_arr = admit_supplement_instrumented(ctx, plan, budget)
+        vmodel, processor, tok, forward = (ctx.native_factory or default_native)()
+        if any(m == "jlens_qwen" or m.startswith("jlens_qwen.") for m in sys.modules):
+            raise StopCheck("jlens_qwen is imported in the native process: the dispatch is not mlx-vlm's own")
+        (ctx.origins_check or (lambda: __import__("stage_a_guard").check_imported_origins(
+            files, ident["package_file_maps_sha256"])))()
+        check_tokenizer(plan, tok)
+        x = plan["inputs"][SUPP_INPUT]
+        px, seq = admit_input(ctx, x, manifest, processor.image_processor, processor, tok)
+        a = SUPP_ATTEMPTS[1]
+        merged = inst["image"]["merge"]["merged_sha256"]
+        req = plan["request_token_ids"]
+        done = budget.completed(a["id"])
+        if done is not None:
+            rec, arrays = load_outputs(ctx.out, a["id"], done)
+        else:
+            with budget.attempt(a["id"], a["kind"], passes=1) as att:
+                nat = forward(vmodel, seq, px["pv"], LAYERS, seq["marker_positions"])
+                res, logits = np.asarray(nat["residuals"], dtype=np.float32), np.asarray(nat["logits"])
+                checks = {"shape": res.shape == (N_LAYERS, N_MARKER, D_MODEL),
+                          "residuals finite": bool(np.all(np.isfinite(res))),
+                          "logits finite": bool(np.all(np.isfinite(logits))),
+                          "logits length == the instrumented vocabulary": int(logits.size) == inst["final_logits"]["n"],
+                          "one prefill": nat["decoder_calls"] == {"min": 1, "max": 1, "layers": N_LAYERS},
+                          "positions": nat["effective_positions_sha256"] == x["expected"]["positions_sha256"],
+                          "merged embeddings == the new instrumented merge (bitwise)":
+                              nat["inputs_embeds_sha256"] == merged}
+                bad = [k for k, ok in checks.items() if not ok]
+                if bad:
+                    raise StopCheck(f"{a['id']}: native checks failed: {bad}")
+                rec = {"record_schema": NAT_SCHEMA, "id": a["id"], "index": x["index"], "case": "native",
+                       "kind": a["kind"], "inputs_embeds_dtype": nat.get("inputs_embeds_dtype"),
+                       "requested_logits": logits[req].astype(np.float64).tolist(),
+                       "logits_sha256": sha(np.ascontiguousarray(logits).tobytes()), "logits_n": int(logits.size),
+                       "residuals_sha256": sha(np.ascontiguousarray(res).tobytes()),
+                       "decoder_calls": nat["decoder_calls"],
+                       "effective_positions_sha256": nat["effective_positions_sha256"],
+                       "inputs_embeds_sha256": nat["inputs_embeds_sha256"],
+                       "inputs_embeds_equal_instrumented_merge": nat["inputs_embeds_sha256"] == merged}
+                outs = save_outputs(budget, ctx.out, a["id"], {"residuals": res}, rec)
+                rec, arrays = load_outputs(ctx.out, a["id"], outs)
+                _validate_record(rec, arrays, a, x, plan, plain=inst)
+                att.commit(outs)
+        _validate_record(rec, arrays, a, x, plan, plain=inst)
+        if rec["logits_n"] != inst["final_logits"]["n"]:
+            raise StopCheck(f"{a['id']}: native logits length differs from the instrumented vocabulary")
+        li = np.array([q["logit"] for q in inst["requested"]], dtype=np.float64)
+        ln = np.asarray(rec["requested_logits"], dtype=np.float64)
+        bound = {**_bound_checks(x, inst),
+                 f"{a['id']}: positions": rec["effective_positions_sha256"] == x["expected"]["positions_sha256"],
+                 f"{a['id']}: one prefill": rec["decoder_calls"] == {"min": 1, "max": 1, "layers": N_LAYERS},
+                 f"{a['id']}: merged embeddings == {inst['id']} merge": rec["inputs_embeds_sha256"] == merged}
+        row = compare_pair("b", inst, inst_arr["residuals"], rec, arrays["residuals"], li, ln, bound,
+                           {"environment": supp["environment"]})
+        written = _write_comparison(ctx, row)
+        if not row["pass"]:
+            raise StopCheck(f"{a['id']}: comparison (b) with {inst['id']} failed: " + (
+                parity_failure(a["id"], row) if not row["comparator_pass"] else f"bound {row['bound_failures']}"))
+        _supp_recheck(ctx, ident, supp_sha)
+        budget.final_size()
+        write_json_atomic(ctx.out / "SUPPLEMENT_NATIVE_DONE.json",
+                          {"phase": "supplement_native", "attempts": {a["id"]: budget.completed(a["id"])},
+                           "comparison": written, "identity": budget.identity}, final=True)
+        return {"supplement_native": a["id"], "comparison_b": row["pass"],
+                "counters": budget.state["counters"]["row20"]}
+    except BaseException as exc:
+        if not isinstance(exc, SystemExit):
+            _supp_terminal(ctx, "supplement_native", exc)
+        raise
+
+
+def supplement_compatibility(ident: dict, build: str | None) -> dict:
+    """What a later package (row 21) must share with the supplement's execution for its PASS to carry: the OS product
+    version AND build, machine, Python, every watched package's version and per-file map, the snapshot files, the
+    lens, the jlens tree, the declared dispatch, the packet and the processor code. Not a product-version string."""
+    return {"identity_sha256": ident["identity_sha256"], "macos": ident["macos"], "build": build,
+            "machine": ident["machine"], "python": ident["python"], "package_versions": ident["package_versions"],
+            "package_file_maps_sha256": ident["package_file_maps_sha256"],
+            "snapshot_sha256": _dumps_sha(ident["snapshot"]), "lens_sha256": ident["lens"]["sha256"],
+            "jlens": ident["jlens"], "dispatch_sha256": _dumps_sha(ident["dispatch"]),
+            "packet_py_sha256": ident["packet_py_sha256"],
+            "processor_code_sha256": {n: ident["local_code_sha256"][n] for n in PROCESSOR_CODE}}
+
+
+def _supp_expected_counters(supp: dict) -> dict:
+    c = supp["envelope"]["carry_in"]
+    n = len(SUPP_ATTEMPTS)
+    return {"started": c["started"] + n, "completed": c["completed"] + n, "failed": c["failed"],
+            "passes": c["passes"] + n}
+
+
+def run_supplement_receipt(ctx: Ctx | None = None) -> dict:
+    """The supplement's RECEIPT worker: always runs after the gates passed (also after a stop), inside the report
+    reserve. Reads its ledger without converting, granting or consuming anything; recomputes the identity and checks
+    its own import map; admissible only with this session's passed gates and an equal identity. outcome PASS needs:
+    admissible; no supplement terminal record; the supplement plan and the frozen Stage A tree unchanged; both ids
+    completed in one try each, no open or interrupted try, the ledger legal and its row-20 counters exactly 196/195/1/
+    196 (= the carry + 2); both phase records present and equal to the ledger; both comparison receipts retained,
+    unchanged and passing. The receipt binds every output by sha256 and is written LAST."""
+    import stage_a_controller as C
+    from enforce import check_ledger, read_ledger, write_json_atomic
+    ctx = ctx or supplement_ctx()
+    _check_controller(ctx)
+    _worker_storage(ctx)
+    gates = json.loads(os.environ.get("STAGE_A_GATES") or "{}")
+    session = os.environ.get("STAGE_A_SESSION", "test")
+    reasons, supp, ident, ident_ok = [], None, None, False
+    try:
+        _, supp, _ = load_supplement(ctx)
+    except SystemExit as exc:
+        reasons.append(str(exc))
+        supp = json.loads(ctx.supp_plan_path.read_text())
+    try:
+        ident, files = worker_identity(ctx, "supplement_receipt")
+        (ctx.origins_check or (lambda: __import__("stage_a_guard").check_imported_origins(
+            files, ident["package_file_maps_sha256"])))()
+        ident_ok = True
+    except SystemExit as exc:
+        reasons.append(f"identity: {exc}")
+    admissible = bool(gates.get("passed") is True and gates.get("session") == session and ident_ok)
+    if not admissible:
+        reasons.append("not admissible (this session's gates and an equal identity are both required)")
+    if C.supplement_terminal_active(ctx.out):
+        t = json.loads((ctx.out / C.SUPPLEMENT_TERMINAL).read_text())
+        reasons.append(f"terminal: {t['first']['phase']}: {t['first']['reason']}")
+    st = read_ledger(ctx.out / "stage_a_state.json")["state"] or {}
+    outputs, attempts = {}, {}
+    for a in SUPP_ATTEMPTS:
+        e, c = (st.get("attempts") or {}).get(a["id"]), (st.get("completed") or {}).get(a["id"])
+        attempts[a["id"]] = {"status": (e or {}).get("status"), "tries": (e or {}).get("tries"),
+                             "outputs": (c or {}).get("outputs")}
+        if not (e and e.get("status") == "completed" and e.get("tries") == 1 and c):
+            reasons.append(f"{a['id']}: not completed in exactly one try")
+        for rel, h in ((c or {}).get("outputs") or {}).items():
+            if not (ctx.out / rel).exists() or sha_file(ctx.out / rel) != h:
+                reasons.append(f"{a['id']}: output {rel} missing or changed")
+            outputs[rel] = h
+    counters = (st.get("counters") or {}).get("row20")
+    if st:
+        probs = check_ledger(st, witness_dir=ctx.out)
+        if probs:
+            reasons.append(f"ledger: {probs[:3]}")
+        if st.get("open_attempt") or st.get("interrupted"):
+            reasons.append("an open or interrupted supplement try")
+        if counters != _supp_expected_counters(supp):
+            reasons.append(f"row-20 counters {counters} are not {_supp_expected_counters(supp)}")
+    else:
+        reasons.append("no supplement ledger")
+    comparisons = {}
+    for pair, done_name, a in (("a", "SUPPLEMENT_INSTRUMENTED_DONE.json", SUPP_ATTEMPTS[0]),
+                               ("b", "SUPPLEMENT_NATIVE_DONE.json", SUPP_ATTEMPTS[1])):
+        dp, cp = ctx.out / done_name, ctx.out / f"supplement/comparison_{pair}.json"
+        row = json.loads(cp.read_text()) if cp.exists() else None
+        if row is not None:
+            outputs[f"supplement/comparison_{pair}.json"] = sha_file(cp)
+            comparisons[pair] = {k: row.get(k) for k in ("reference", "candidate", "rel_l2_max", "rel_l2_argmax_layer",
+                                                         "logit_max_abs", "logit_worst_abs", "logit_worst_tolerance",
+                                                         "logit_within_tolerance", "argmax_equal", "comparator_pass",
+                                                         "bound_failures", "pass")}
+        if not (row and row.get("pass") is True and row.get("reference") == a["compare_with"] and
+                row.get("candidate") == a["id"]):
+            reasons.append(f"comparison ({pair}) absent or not passing")
+        if dp.exists():
+            outputs[done_name] = sha_file(dp)
+            d = json.loads(dp.read_text())
+            if d.get("attempts") != {a["id"]: attempts[a["id"]]["outputs"]} or \
+                    (row is not None and d.get("comparison", {}).get("sha256") != outputs.get(
+                        f"supplement/comparison_{pair}.json")):
+                reasons.append(f"{done_name} differs from the ledger or its comparison")
+        else:
+            reasons.append(f"{done_name} absent")
+    for rel in ("stage_a_state.json", C.SUPPLEMENT_NAMES["gates"], C.SUPPLEMENT_TERMINAL):
+        if (ctx.out / rel).exists():
+            outputs[rel] = sha_file(ctx.out / rel)
+    x = supp["input"]
+    rc = {"session": session, "package": gates.get("package"), "identity": gates.get("identity"),
+          "date": time.strftime("%Y-%m-%d"), "outcome": "PASS" if not reasons else "STOPPED",
+          "admissible": admissible, "reasons": reasons,
+          "input": {"id": supp["input_id"], "input_sha256": supp["input_sha256"], "original_sha256":
+                    x["original_sha256"], "png_sha256": x["png_sha256"], "pixel_values_sha256":
+                    x["pixel_values_sha256"], "grid_thw": x["grid_thw"], "carrier": x["carrier"], "level": x["level"],
+                    "ids_sha256": x["expected"]["ids_sha256"], "positions_sha256": x["expected"]["positions_sha256"],
+                    "request_token_ids_sha256": _dumps_sha(supp["request_token_ids"]),
+                    "template_sha256": supp["template_sha256"]},
+          "attempts": attempts, "comparisons": comparisons, "counters": counters,
+          "compatibility": supplement_compatibility(json.loads(ctx.identity_path.read_text()),
+                                                    (ctx.os_build_fn or os_build)()),
+          "outputs": outputs}
+    if ident_ok:
+        _supp_recheck(ctx, ident, sha_file(ctx.supp_plan_path))      # before the receipt (A1)
+    (ctx.out / "supplement").mkdir(parents=True, exist_ok=True)
+    write_json_atomic(ctx.out / C.SUPPLEMENT_NAMES["receipt"], rc, final=True)
+    return {"outcome": rc["outcome"], "admissible": admissible, "reasons": reasons}
+
+
+def supplement_receipt_ok(current_identity: dict, *, out: Path = SUPP_OUT, supp_plan_path: Path = SUPP_PLAN,
+                          plan_path: Path = PLAN, stage_a_out: Path = OUT, build: str | None = None) -> dict:
+    """ROW 21'S VERIFIER, before its FIRST CAL forward (Codex b0db0f9): ok only if the supplement's final record is an
+    ADMITTED PASS (marker present, no abort), no supplement terminal record, the receipt is the one the final binds,
+    names its session, says PASS and admissible and binds outputs that are all on disk unchanged; both comparisons
+    RE-DERIVED here from the retained arrays and records (the reference from the frozen Stage A tree) pass the
+    accepted comparator and agree with the retained receipts; the ledger holds exactly the two ids in one try each,
+    no open or interrupted try, counters carry + 2; the input is exactly input 00 of the 178-id plan; and the CURRENT
+    execution (current_identity, the OS build now) is compatible on every COMPAT_KEYS field - runtime, processor and
+    code, not a product-version string. Anything else holds (ok False, the reasons listed)."""
+    import stage_a_controller as C
+    from enforce import check_ledger
+    why: list[str] = []
+    res = {"ok": False, "hold": True, "why": why}
+    fin = C.final_admitted(out, C.SUPPLEMENT_NAMES)
+    if fin is None:
+        why.append("no admitted supplement final record (absent, unadmitted, aborted or interrupted)")
+        return res
+    if fin.get("outcome") != "PASS":
+        why.append(f"the supplement final record is {fin.get('outcome')}")
+    if C.supplement_terminal_active(out):
+        why.append("the supplement stopped terminally")
+    rp = out / C.SUPPLEMENT_NAMES["receipt"]
+    if not rp.exists():
+        why.append("no supplement receipt")
+        return res
+    rc = json.loads(rp.read_text())
+    if sha_file(rp) != fin.get("receipt_sha256") or rc.get("session") != fin.get("session"):
+        why.append("the receipt is not the one the admitted final binds")
+    if set(rc) != C.SUPPLEMENT_RECEIPT_KEYS or rc.get("outcome") != "PASS" or rc.get("admissible") is not True:
+        why.append("the receipt is not an admissible PASS with the exact schema")
+    for rel, h in (rc.get("outputs") or {}).items():
+        if not (out / rel).exists() or sha_file(out / rel) != h:
+            why.append(f"bound output {rel} missing or changed")
+    try:
+        supp = json.loads(supp_plan_path.read_text())
+        plan = json.loads(plan_path.read_text())
+        x = plan["inputs"][SUPP_INPUT]
+        if supp.get("input") != x or supp.get("input_sha256") != _dumps_sha(x) or \
+                (rc.get("input") or {}).get("input_sha256") != supp["input_sha256"] or \
+                supp.get("base_plan_sha256") != sha_file(plan_path):
+            why.append("the input is not exactly input 00 of the 178-id plan")
+        if (rc.get("package") or {}).get("supplement_plan_sha256") != sha_file(supp_plan_path):
+            why.append("the receipt's package does not bind this supplement plan")
+        st = json.loads((out / "stage_a_state.json").read_text())
+        ids = {a["id"] for a in SUPP_ATTEMPTS}
+        if set(st["attempts"]) != ids or any(st["attempts"][i] != {"kind": next(a["kind"] for a in SUPP_ATTEMPTS
+                                                                                if a["id"] == i), "passes": 1,
+                                                                   "status": "completed", "tries": 1} for i in ids) \
+                or st.get("open_attempt") or st.get("interrupted") or check_ledger(st, witness_dir=out) or \
+                st["counters"]["row20"] != _supp_expected_counters(supp):
+            why.append("the supplement ledger is not exactly two completed single tries at carry + 2")
+        rref = json.loads((stage_a_out / "stage_a_state.json").read_text())["completed"][SUPP_REFERENCE]["outputs"]
+        if rref != supp["reference"]["outputs"]:
+            why.append("the Stage A reference outputs differ from the supplement plan's pins")
+        ref, ra = load_outputs(stage_a_out, SUPP_REFERENCE, rref)
+        inst, ia = load_outputs(out, SUPP_INST, st["completed"][SUPP_INST]["outputs"])
+        nat, na = load_outputs(out, SUPP_NAT, st["completed"][SUPP_NAT]["outputs"])
+        lr = np.array([q["logit"] for q in ref["requested"]], dtype=np.float64)
+        lis = np.array([q["logit"] for q in inst["requested"]], dtype=np.float64)
+        lna = np.asarray(nat["requested_logits"], dtype=np.float64)
+        for pair, row in (("a", compare(ra["residuals"], bf16_to_f32(ia["residuals"]), lr, lis)),
+                          ("b", compare(ia["residuals"], na["residuals"], lis, lna))):
+            kept = json.loads((out / f"supplement/comparison_{pair}.json").read_text())
+            if not row["pass"] or kept.get("pass") is not True or \
+                    abs(row["rel_l2_max"] - kept["rel_l2_max"]) > 0 or row["argmax_equal"] != kept["argmax_equal"]:
+                why.append(f"comparison ({pair}) does not re-derive to a PASS equal to its retained receipt")
+        if nat["inputs_embeds_sha256"] != inst["image"]["merge"]["merged_sha256"]:
+            why.append("the native merged embeddings differ from the new instrumented merge")
+    except (OSError, KeyError, ValueError, TypeError, StopCheck) as exc:
+        why.append(f"the supplement records cannot be re-derived: {type(exc).__name__}: {exc}")
+    try:
+        cur = supplement_compatibility(current_identity, build if build is not None else os_build())
+        kept = rc.get("compatibility") or {}
+        diff = [k for k in COMPAT_KEYS if cur.get(k) != kept.get(k) or kept.get(k) is None]
+        if diff:
+            why.append(f"the current execution is not compatible with the supplement's: {diff}")
+    except (KeyError, TypeError) as exc:
+        why.append(f"the current identity lacks a compatibility field: {exc}")
+    res.update(ok=not why, hold=bool(why), final_sha256=sha_file(out / C.SUPPLEMENT_NAMES["final"]),
+               receipt_sha256=sha_file(rp))
+    return res
+
+
+# ================================================================================================================
 def main() -> int:
     from enforce import write_json_atomic
     cmd = sys.argv[1] if len(sys.argv) > 1 else "package"
@@ -1467,12 +2211,35 @@ def main() -> int:
     if cmd == "package":
         print(json.dumps(package_hashes(Ctx()), indent=1))
         return 0
+    if cmd == "supplement-plan":                         # revision 16, desk: no model forward
+        p = make_supplement_plan(supplement_ctx())
+        SUPP_PLAN.write_text(json.dumps(p, indent=1, sort_keys=True) + "\n")
+        print(SUPP_PLAN.name, sha_file(SUPP_PLAN))
+        return 0
+    if cmd == "supplement-identity":                     # desk: no model load
+        from stage_a_guard import execution_identity
+        ident = execution_identity(PLAN, MANIFEST, RECEIPT, SUPP_IDENTITY_FILES)
+        SUPP_IDENTITY.write_text(json.dumps(ident, indent=1, sort_keys=True) + "\n")
+        print(ident["identity_sha256"])
+        return 0
+    if cmd == "supplement-package":
+        print(json.dumps(supplement_package_hashes(supplement_ctx()), indent=1))
+        return 0
+    if cmd == "supplement-verify":                       # desk: the row-21 verifier on the current execution
+        from stage_a_guard import execution_identity
+        ident = execution_identity(PLAN, MANIFEST, RECEIPT, None)
+        print(json.dumps(supplement_receipt_ok(ident), indent=1, default=str))
+        return 0
     if cmd == "worker":
         phase = sys.argv[2]
         if phase == "gates":
             return run_gates()
+        if phase == "supplement_gates":
+            return run_supplement_gates()
         try:
-            out = {"instrumented": run_instrumented, "native": run_native, "report": run_report}[phase]()
+            out = {"instrumented": run_instrumented, "native": run_native, "report": run_report,
+                   "supplement_instrumented": run_supplement_instrumented,
+                   "supplement_native": run_supplement_native, "supplement_receipt": run_supplement_receipt}[phase]()
         except Hold as h:
             print(str(h.code), file=sys.stderr)
             return 4
@@ -1483,7 +2250,8 @@ def main() -> int:
             return 1
         print(json.dumps(out, default=str))
         return 0
-    raise SystemExit(f"unknown command {cmd!r}: plan | identity | package | worker <phase>")
+    raise SystemExit(f"unknown command {cmd!r}: plan | identity | package | supplement-plan | supplement-identity | "
+                     f"supplement-package | supplement-verify | worker <phase>")
     out = None
     print(json.dumps(out, default=str))
     return 0
