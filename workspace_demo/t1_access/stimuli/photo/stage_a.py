@@ -1803,6 +1803,31 @@ def compare_pair(pair: str, ref: dict, ref_u16: np.ndarray, cand: dict, cand_f32
             "bound_failures": bad, "diagnostic": diagnostic, "pass": bool(comp_pass and not bad)}
 
 
+def comparison_a(ref: dict, ref_u16: np.ndarray, rec: dict, rec_u16: np.ndarray, x: dict, supp: dict) -> dict:
+    """Comparison (a), built the same way by the worker and by row 21's verifier (revision 2: the verifier re-derives
+    the COMPLETE receipt)."""
+    li = np.array([q["logit"] for q in ref["requested"]], dtype=np.float64)
+    ln = np.array([q["logit"] for q in rec["requested"]], dtype=np.float64)
+    diag = {"residuals_bitwise_equal": rec["residuals_sha256"] == ref["residuals_sha256"],
+            "logits_bitwise_equal": rec["logits_sha256"] == ref["logits_sha256"],
+            "features_bitwise_equal": rec["image"]["features_sha256"] == ref["image"]["features_sha256"],
+            "merge_bitwise_equal": rec["image"]["merge"]["merged_sha256"] == ref["image"]["merge"]["merged_sha256"],
+            "reference_environment": supp["reference"]["environment"], "candidate_environment": supp["environment"]}
+    return compare_pair("a", ref, ref_u16, rec, bf16_to_f32(rec_u16), li, ln, _bound_checks(x, ref, rec), diag)
+
+
+def comparison_b(inst: dict, inst_u16: np.ndarray, rec: dict, rec_f32: np.ndarray, x: dict, supp: dict) -> dict:
+    """Comparison (b), built the same way by the worker and by row 21's verifier."""
+    li = np.array([q["logit"] for q in inst["requested"]], dtype=np.float64)
+    ln = np.asarray(rec["requested_logits"], dtype=np.float64)
+    merged = inst["image"]["merge"]["merged_sha256"]
+    bound = {**_bound_checks(x, inst),
+             f"{rec['id']}: positions": rec["effective_positions_sha256"] == x["expected"]["positions_sha256"],
+             f"{rec['id']}: one prefill": rec["decoder_calls"] == {"min": 1, "max": 1, "layers": N_LAYERS},
+             f"{rec['id']}: merged embeddings == {inst['id']} merge": rec["inputs_embeds_sha256"] == merged}
+    return compare_pair("b", inst, inst_u16, rec, rec_f32, li, ln, bound, {"environment": supp["environment"]})
+
+
 def _write_comparison(ctx: Ctx, row: dict) -> dict:
     from enforce import write_json_atomic
     rel = f"supplement/comparison_{row['pair']}.json"
@@ -1827,40 +1852,27 @@ def run_supplement_instrumented(ctx: Ctx | None = None) -> dict:
         x = plan["inputs"][SUPP_INPUT]
         px, seq = admit_input(ctx, x, manifest, inst.processor.image_processor, inst.processor, inst.tok)
         a = SUPP_ATTEMPTS[0]
-        done = budget.completed(a["id"])
-        if done is not None:
-            rec, arrays = load_outputs(ctx.out, a["id"], done)
-        else:
-            with budget.attempt(a["id"], a["kind"], passes=1) as att:
-                r = inst.capture(seq, px["pv"], capture_layers=LAYERS, request_token_ids=plan["request_token_ids"],
-                                 top_k=TOP_K, edits=edits_for(inst.ce, "plain", x, seq, None))
-                validate_pass(r, x, seq, "plain", plan, expect)
-                res = residual_array(r)
-                if sha(res.tobytes()) != r["residuals"]["sha256"]:
-                    raise StopCheck(f"{a['id']}: residual bytes differ from the capture's own hash")
-                rec = {k: r[k] for k in INST_CAPTURE_KEYS}
-                rec.update(record_schema=INST_SCHEMA, id=a["id"], case="plain", index=x["index"], kind=a["kind"],
-                           residuals_meta={k: r["residuals"][k] for k in ("dtype", "shape", "sha256")},
-                           final_logits={k: r["final_logits"][k] for k in ("dtype", "n", "sha256")},
-                           residuals_sha256=r["residuals"]["sha256"], logits_sha256=r["final_logits"]["sha256"])
-                outs = save_outputs(budget, ctx.out, a["id"], {"residuals": res}, rec)
-                rec, arrays = load_outputs(ctx.out, a["id"], outs)      # validated from disk before the commit
-                _validate_record(rec, arrays, a, x, plan)
-                att.commit(outs)
+        _never_resumed(budget, a)                                     # revision 2: no post-start resumption
+        with budget.attempt(a["id"], a["kind"], passes=1) as att:
+            r = inst.capture(seq, px["pv"], capture_layers=LAYERS, request_token_ids=plan["request_token_ids"],
+                             top_k=TOP_K, edits=edits_for(inst.ce, "plain", x, seq, None))
+            validate_pass(r, x, seq, "plain", plan, expect)
+            res = residual_array(r)
+            if sha(res.tobytes()) != r["residuals"]["sha256"]:
+                raise StopCheck(f"{a['id']}: residual bytes differ from the capture's own hash")
+            rec = {k: r[k] for k in INST_CAPTURE_KEYS}
+            rec.update(record_schema=INST_SCHEMA, id=a["id"], case="plain", index=x["index"], kind=a["kind"],
+                       residuals_meta={k: r["residuals"][k] for k in ("dtype", "shape", "sha256")},
+                       final_logits={k: r["final_logits"][k] for k in ("dtype", "n", "sha256")},
+                       residuals_sha256=r["residuals"]["sha256"], logits_sha256=r["final_logits"]["sha256"])
+            outs = save_outputs(budget, ctx.out, a["id"], {"residuals": res}, rec)
+            rec, arrays = load_outputs(ctx.out, a["id"], outs)      # validated from disk before the commit
+            _validate_record(rec, arrays, a, x, plan)
+            att.commit(outs)
         _validate_record(rec, arrays, a, x, plan)
         if rec["final_logits"]["n"] != expect["vocab_rows"]:
             raise StopCheck(f"{a['id']}: logits length differs from the loaded vocabulary")
-        li = np.array([q["logit"] for q in ref["requested"]], dtype=np.float64)
-        ln = np.array([q["logit"] for q in rec["requested"]], dtype=np.float64)
-        diag = {"residuals_bitwise_equal": rec["residuals_sha256"] == ref["residuals_sha256"],
-                "logits_bitwise_equal": rec["logits_sha256"] == ref["logits_sha256"],
-                "features_bitwise_equal": rec["image"]["features_sha256"] == ref["image"]["features_sha256"],
-                "merge_bitwise_equal": rec["image"]["merge"]["merged_sha256"] ==
-                                       ref["image"]["merge"]["merged_sha256"],
-                "reference_environment": supp["reference"]["environment"],
-                "candidate_environment": supp["environment"]}
-        row = compare_pair("a", ref, ref_res, rec, bf16_to_f32(arrays["residuals"]), li, ln,
-                           _bound_checks(x, ref, rec), diag)
+        row = comparison_a(ref, ref_res, rec, arrays["residuals"], x, supp)
         written = _write_comparison(ctx, row)
         if not row["pass"]:
             raise StopCheck(f"{a['id']}: comparison (a) with {SUPP_REFERENCE} failed: " + (
@@ -1878,6 +1890,15 @@ def run_supplement_instrumented(ctx: Ctx | None = None) -> dict:
         raise
 
 
+def _never_resumed(budget, a: dict) -> None:
+    """Revision 2 (Codex 478196f P1): an endpoint already started - in any status, in any session - is never reloaded,
+    replayed or continued: the supplement is one session from its first start (the controller's restart rule makes
+    the same decision before any worker is spawned; this is the worker's own refusal)."""
+    if a["id"] in budget.state["attempts"]:
+        raise StopCheck(f"{a['id']} was already started ({budget.state['attempts'][a['id']]['status']}): the supplement "
+                        f"never resumes after a start; this version stops")
+
+
 def admit_supplement_instrumented(ctx: Ctx, plan: dict, budget) -> tuple[dict, dict]:
     """Before any native model: the supplement instrumented phase complete - its record committed in the ledger and
     equal to the phase record, comparison (a) retained and passing, the record passing the instrumented predicates."""
@@ -1889,6 +1910,8 @@ def admit_supplement_instrumented(ctx: Ctx, plan: dict, budget) -> tuple[dict, d
     outs = budget.completed(a["id"])
     if outs is None or done.get("attempts") != {a["id"]: outs} or done.get("identity") != budget.identity:
         raise StopCheck("SUPPLEMENT_INSTRUMENTED_DONE.json does not match the supplement ledger or identity")
+    if budget.state["completed"][a["id"]].get("session") != budget.session:     # revision 2: the same session only
+        raise StopCheck(f"{a['id']} was committed in another session: native is never dispatched after an interruption")
     cp = ctx.out / done["comparison"]["path"]
     if not cp.exists() or sha_file(cp) != done["comparison"]["sha256"] or json.loads(cp.read_text()).get("pass") \
             is not True:
@@ -1917,48 +1940,38 @@ def run_supplement_native(ctx: Ctx | None = None) -> dict:
         a = SUPP_ATTEMPTS[1]
         merged = inst["image"]["merge"]["merged_sha256"]
         req = plan["request_token_ids"]
-        done = budget.completed(a["id"])
-        if done is not None:
-            rec, arrays = load_outputs(ctx.out, a["id"], done)
-        else:
-            with budget.attempt(a["id"], a["kind"], passes=1) as att:
-                nat = forward(vmodel, seq, px["pv"], LAYERS, seq["marker_positions"])
-                res, logits = np.asarray(nat["residuals"], dtype=np.float32), np.asarray(nat["logits"])
-                checks = {"shape": res.shape == (N_LAYERS, N_MARKER, D_MODEL),
-                          "residuals finite": bool(np.all(np.isfinite(res))),
-                          "logits finite": bool(np.all(np.isfinite(logits))),
-                          "logits length == the instrumented vocabulary": int(logits.size) == inst["final_logits"]["n"],
-                          "one prefill": nat["decoder_calls"] == {"min": 1, "max": 1, "layers": N_LAYERS},
-                          "positions": nat["effective_positions_sha256"] == x["expected"]["positions_sha256"],
-                          "merged embeddings == the new instrumented merge (bitwise)":
-                              nat["inputs_embeds_sha256"] == merged}
-                bad = [k for k, ok in checks.items() if not ok]
-                if bad:
-                    raise StopCheck(f"{a['id']}: native checks failed: {bad}")
-                rec = {"record_schema": NAT_SCHEMA, "id": a["id"], "index": x["index"], "case": "native",
-                       "kind": a["kind"], "inputs_embeds_dtype": nat.get("inputs_embeds_dtype"),
-                       "requested_logits": logits[req].astype(np.float64).tolist(),
-                       "logits_sha256": sha(np.ascontiguousarray(logits).tobytes()), "logits_n": int(logits.size),
-                       "residuals_sha256": sha(np.ascontiguousarray(res).tobytes()),
-                       "decoder_calls": nat["decoder_calls"],
-                       "effective_positions_sha256": nat["effective_positions_sha256"],
-                       "inputs_embeds_sha256": nat["inputs_embeds_sha256"],
-                       "inputs_embeds_equal_instrumented_merge": nat["inputs_embeds_sha256"] == merged}
-                outs = save_outputs(budget, ctx.out, a["id"], {"residuals": res}, rec)
-                rec, arrays = load_outputs(ctx.out, a["id"], outs)
-                _validate_record(rec, arrays, a, x, plan, plain=inst)
-                att.commit(outs)
+        _never_resumed(budget, a)                                     # revision 2: no post-start resumption
+        with budget.attempt(a["id"], a["kind"], passes=1) as att:
+            nat = forward(vmodel, seq, px["pv"], LAYERS, seq["marker_positions"])
+            res, logits = np.asarray(nat["residuals"], dtype=np.float32), np.asarray(nat["logits"])
+            checks = {"shape": res.shape == (N_LAYERS, N_MARKER, D_MODEL),
+                      "residuals finite": bool(np.all(np.isfinite(res))),
+                      "logits finite": bool(np.all(np.isfinite(logits))),
+                      "logits length == the instrumented vocabulary": int(logits.size) == inst["final_logits"]["n"],
+                      "one prefill": nat["decoder_calls"] == {"min": 1, "max": 1, "layers": N_LAYERS},
+                      "positions": nat["effective_positions_sha256"] == x["expected"]["positions_sha256"],
+                      "merged embeddings == the new instrumented merge (bitwise)":
+                          nat["inputs_embeds_sha256"] == merged}
+            bad = [k for k, ok in checks.items() if not ok]
+            if bad:
+                raise StopCheck(f"{a['id']}: native checks failed: {bad}")
+            rec = {"record_schema": NAT_SCHEMA, "id": a["id"], "index": x["index"], "case": "native",
+                   "kind": a["kind"], "inputs_embeds_dtype": nat.get("inputs_embeds_dtype"),
+                   "requested_logits": logits[req].astype(np.float64).tolist(),
+                   "logits_sha256": sha(np.ascontiguousarray(logits).tobytes()), "logits_n": int(logits.size),
+                   "residuals_sha256": sha(np.ascontiguousarray(res).tobytes()),
+                   "decoder_calls": nat["decoder_calls"],
+                   "effective_positions_sha256": nat["effective_positions_sha256"],
+                   "inputs_embeds_sha256": nat["inputs_embeds_sha256"],
+                   "inputs_embeds_equal_instrumented_merge": nat["inputs_embeds_sha256"] == merged}
+            outs = save_outputs(budget, ctx.out, a["id"], {"residuals": res}, rec)
+            rec, arrays = load_outputs(ctx.out, a["id"], outs)
+            _validate_record(rec, arrays, a, x, plan, plain=inst)
+            att.commit(outs)
         _validate_record(rec, arrays, a, x, plan, plain=inst)
         if rec["logits_n"] != inst["final_logits"]["n"]:
             raise StopCheck(f"{a['id']}: native logits length differs from the instrumented vocabulary")
-        li = np.array([q["logit"] for q in inst["requested"]], dtype=np.float64)
-        ln = np.asarray(rec["requested_logits"], dtype=np.float64)
-        bound = {**_bound_checks(x, inst),
-                 f"{a['id']}: positions": rec["effective_positions_sha256"] == x["expected"]["positions_sha256"],
-                 f"{a['id']}: one prefill": rec["decoder_calls"] == {"min": 1, "max": 1, "layers": N_LAYERS},
-                 f"{a['id']}: merged embeddings == {inst['id']} merge": rec["inputs_embeds_sha256"] == merged}
-        row = compare_pair("b", inst, inst_arr["residuals"], rec, arrays["residuals"], li, ln, bound,
-                           {"environment": supp["environment"]})
+        row = comparison_b(inst, inst_arr["residuals"], rec, arrays["residuals"], x, supp)
         written = _write_comparison(ctx, row)
         if not row["pass"]:
             raise StopCheck(f"{a['id']}: comparison (b) with {inst['id']} failed: " + (
@@ -2158,18 +2171,19 @@ def supplement_receipt_ok(current_identity: dict, *, out: Path = SUPP_OUT, supp_
         ref, ra = load_outputs(stage_a_out, SUPP_REFERENCE, rref)
         inst, ia = load_outputs(out, SUPP_INST, st["completed"][SUPP_INST]["outputs"])
         nat, na = load_outputs(out, SUPP_NAT, st["completed"][SUPP_NAT]["outputs"])
-        lr = np.array([q["logit"] for q in ref["requested"]], dtype=np.float64)
-        lis = np.array([q["logit"] for q in inst["requested"]], dtype=np.float64)
-        lna = np.asarray(nat["requested_logits"], dtype=np.float64)
-        for pair, row in (("a", compare(ra["residuals"], bf16_to_f32(ia["residuals"]), lr, lis)),
-                          ("b", compare(ia["residuals"], na["residuals"], lis, lna))):
+        check_stage_a_frozen(Ctx(stage_a_out=stage_a_out, plan_path=plan_path), supp)   # the parent tree (rev 2)
+        a_ref = next(a for a in plan["attempts"] if a["id"] == SUPP_REFERENCE)
+        _validate_record(ref, ra, a_ref, x, plan)                   # revision 2: every record's full predicates
+        _validate_record(inst, ia, SUPP_ATTEMPTS[0], x, plan)
+        _validate_record(nat, na, SUPP_ATTEMPTS[1], x, plan, plain=inst)
+        for pair, row in (("a", comparison_a(ref, ra["residuals"], inst, ia["residuals"], x, supp)),
+                          ("b", comparison_b(inst, ia["residuals"], nat, na["residuals"], x, supp))):
             kept = json.loads((out / f"supplement/comparison_{pair}.json").read_text())
-            if not row["pass"] or kept.get("pass") is not True or \
-                    abs(row["rel_l2_max"] - kept["rel_l2_max"]) > 0 or row["argmax_equal"] != kept["argmax_equal"]:
-                why.append(f"comparison ({pair}) does not re-derive to a PASS equal to its retained receipt")
+            if not row["pass"] or json.loads(json.dumps(row)) != kept:      # the COMPLETE receipt (revision 2)
+                why.append(f"comparison ({pair}) does not re-derive to a PASS equal to its complete retained receipt")
         if nat["inputs_embeds_sha256"] != inst["image"]["merge"]["merged_sha256"]:
             why.append("the native merged embeddings differ from the new instrumented merge")
-    except (OSError, KeyError, ValueError, TypeError, StopCheck) as exc:
+    except (OSError, KeyError, ValueError, TypeError, StopCheck, SystemExit) as exc:
         why.append(f"the supplement records cannot be re-derived: {type(exc).__name__}: {exc}")
     try:
         cur = supplement_compatibility(current_identity, build if build is not None else os_build())

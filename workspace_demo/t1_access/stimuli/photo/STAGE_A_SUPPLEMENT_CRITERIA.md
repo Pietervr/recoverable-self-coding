@@ -1,4 +1,4 @@
-# Stage A supplement (ledger row 20): the OS bridge before row 21 - declared criteria and code, revision 1 (R084, 3 October 2026)
+# Stage A supplement (ledger row 20): the OS bridge before row 21 - declared criteria and code, revision 2 (R084, 3 October 2026)
 
 **Specification:** Codex's record RSC `b0db0f9` (`reviews/2026-10-03_stage_a_report_codex_record.md`, SHA-256
 `52ed7082...6b90`), §"Prospective row21 OS bridge: form, count and gate"; R052's handoff `8266e5ae` item 2.
@@ -8,7 +8,8 @@ does not cover it.
 
 | Revision | Commit | Codex's review | Verdict |
 |---|---|---|---|
-| 1 | this commit | — | built; with R052 for Codex |
+| 1 | RSC `b67a073` | RSC `478196f` | NOT FAVOURABLE: the separate carried tree and ledger accepted; P1 restart can erase STOPPED |
+| 2 | this commit | — | answers P1 (§R2) and the record's wording points |
 
 ## 1. What it is
 
@@ -36,8 +37,10 @@ and records the receipt: for (a) both records' input ids, readout positions, pix
 positions (frozen = effective) equal input 00's frozen values; for (b) the new instrumented record's bound values,
 the native effective positions, one prefill, and the native merged embeddings equal the new instrumented merge
 bitwise (Stage A's existing native criterion). PASS = comparator AND bound. Bitwise equality of residuals, logits,
-features and merge across (a) is recorded as a labelled diagnostic, not a criterion. Both comparison receipts
-(`supplement/comparison_a.json`, `comparison_b.json`) are written before any stop decision and retained either way.
+features and merge across (a) is recorded as a labelled diagnostic, not a criterion. Each EXECUTED comparison's
+receipt (`supplement/comparison_a.json`, `comparison_b.json`) is written before its own stop decision and retained
+either way; a failure of (a) stops the version before native, so (b) is then recorded absent - native is never spent
+merely to produce a receipt.
 Records: the new ones carry Stage A's own record schemas (`stage_a.instrumented.v4`, `stage_a.native.v4`), so the
 unchanged independent validators `stage_a_report._inst` / `_nat` admit them (from disk, before the commit, and on
 reload); the reference `00-plain` is admitted by `_inst` from the frozen Stage A tree with its pinned outputs.
@@ -104,11 +107,31 @@ tolerance revision, no search for another input. Counters and results stay as th
 runs and records STOPPED; row 21 holds. A refusal before any start (a gate) runs nothing and charges only time.
 Stage A's own `TERMINAL.json` and its release are never written by the supplement.
 
+## R2. Revision 2: no post-start resumption, ever (Codex `478196f` P1)
+
+Codex accepted the separate carried tree and ledger and found that inherited controller paths could STOP without the
+terminal record - a receipt worker's failure, an unreadable native exit peak, a controller crash or hold after the
+instrumented commit - after which a later session superseded the STOPPED final, skipped the DONE phases and could
+regenerate PASS, even with a mandatory native exit-peak measurement lost (the missing-measurement check looked only at
+the current session). Revision 2 makes the supplement ONE SESSION FROM ITS FIRST START:
+
+| Item | Where | Fixture (no forward) |
+|---|---|---|
+| THE RESTART RULE, before anything is moved or spawned: an admitted PASS is final - a later invocation refuses and never supersedes or regenerates it; any start in the supplement ledger without an admitted PASS means an earlier post-start session ended STOPPED, held, crashed or interrupted - this session writes SUPPLEMENT_TERMINAL.json at once (whether or not the first terminal write landed), so no endpoint is dispatched and the receipt can only say STOPPED | `SupplementController._supersede`, `_post_start`, `_terminalise` | `Restart.test_receipt_exit_then_restart`, `test_non_pass_receipt_then_restart`, `test_missing_native_exit_peak_then_restart_even_without_the_terminal` (the terminal deleted before the restart), `test_hold_after_the_instrumented_commit_then_restart`, `test_controller_crash_after_the_instrumented_commit_then_restart` (SIGKILL, the crashed session charged); `Controller.test_a_pass_is_never_superseded_or_regenerated`. Each: no endpoint worker in the new session, counters unchanged (196 or 195), time carried and charged, STOPPED |
+| In-session: a hold after a start, and a STOPPED final after a start (receipt failure, a non-PASS receipt, a missing measurement, an illegal ledger), are terminal at once (best effort; the restart rule does not depend on it) | `_hold`, `_finalise` | the same Restart fixtures (the terminal present after the first session) |
+| Missing mandatory measurements are counted over EVERY session of this tree: a native exit peak lost in an earlier session keeps every later final STOPPED | `SupplementController._missing_measurements` | `test_missing_native_exit_peak_...` (the restart's final still lists it) |
+| The workers refuse too: an endpoint already started (any status, any session) is never reloaded or continued, and native requires the instrumented commit of its OWN session | `stage_a._never_resumed`, `admit_supplement_instrumented` | `Run.test_a_started_endpoint_is_never_resumed` (replaces revision 1's reload test, which Codex noted contradicted the contract), `test_native_needs_the_instrumented_commit_of_its_own_session` |
+| Row 21's verifier now re-derives the COMPLETE comparison receipts (the worker's own `comparison_a` / `comparison_b`, equal field for field), re-validates all three records with `_validate_record`, and runs `check_stage_a_frozen`. Stated limit: the parent pins are eight metadata hashes, the tree's total bytes and the reference checksums - not a whole-tree digest; Stage B keeps its own parent-acceptance gate before CAL. | `supplement_receipt_ok`, `comparison_a`, `comparison_b` | `Run.test_pass_both_comparisons_receipt_and_row21_verifier` (a changed retained receipt holds) |
+
+The closed Stage A resumption policy (Controller) is unchanged; the rule lives only in SupplementController. Moves in
+revision 2: stage_a.py, stage_a_controller.py, this file, READINESS_ROW20S.md and therefore the supplement identity and
+package (the plan and budget unchanged).
+
 ## 7. Which reviewed files move
 
 | File | Moves? | What |
 |---|---|---|
-| `stage_a.py` | YES | revision 16 block: the supplement plan, gates, two worker phases, receipt, verifier, desk commands; `Ctx` gains three defaulted fields; `package_at_commit`'s identity check factored into `_identity_describes_commit` (same checks, same messages). Stage A's own paths unchanged. |
+| `stage_a.py` | YES | revision 16 block: the supplement plan, gates, two worker phases, receipt, verifier, desk commands; `Ctx` gains three defaulted fields; `package_at_commit`'s identity check factored into `_identity_describes_commit` (same checks, same messages). Stage A's own paths unchanged. Correction (revision 2, Codex `478196f`): Stage A's `package_at_commit(HEAD)` REFUSES once this commit moves stage_a.py and the controller (its committed identity describes the accepted `cc1d2cb` code); the accepted bundle stays bound to `cc1d2cb`. |
 | `stage_a_controller.py` | YES | file and phase names as class attributes with Stage A's values; `final_admitted(out, names=None)`; `SupplementController`; `main` takes `run` / `supplement`. Stage A's own paths unchanged. |
 | `tests/fake_worker.py`, `tests/test_stage_a_supplement.py` | YES (tests) | sgates / sreceipt modes; the new fixtures |
 | `stage_a_report.py`, `stage_a_guard.py`, `enforce.py`, `memprobe.py`, `stage_a_watchdog.py` | no | the reader package is unchanged (its digest unaffected) |

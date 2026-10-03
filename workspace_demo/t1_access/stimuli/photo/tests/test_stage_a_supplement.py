@@ -345,7 +345,9 @@ class Run(Base):
             stage_a.run_supplement_native(self.ctx())
         self.assertNotIn(stage_a.SUPP_NAT, self.state()["attempts"])
 
-    def test_resume_reloads_and_never_replays(self):
+    def test_a_started_endpoint_is_never_resumed(self):
+        """Revision 2 (Codex 478196f P1): a committed endpoint is never reloaded or continued by a later run, and native
+        is never dispatched on an instrumented commit from another session."""
         self.gates()
         stage_a.run_supplement_instrumented(self.ctx())
         (self.s / "SUPPLEMENT_INSTRUMENTED_DONE.json").unlink()                   # died after commit, before DONE
@@ -353,9 +355,22 @@ class Run(Base):
         ctx = self.ctx()
         f = ctx.instrument_factory
         ctx.instrument_factory = lambda: (lambda i: (setattr(i, "capture", lambda *a, **k: calls.append(1)), i)[1])(f())
-        stage_a.run_supplement_instrumented(ctx)
-        self.assertEqual(calls, [])                                              # reloaded, not replayed
-        self.assertEqual(self.state()["counters"]["row20"]["started"], 195)
+        with self.assertRaisesRegex(stage_a.StopCheck, "never resumes after a start"):
+            stage_a.run_supplement_instrumented(ctx)
+        self.assertEqual(calls, [])
+        self.assertTrue((self.s / C.SUPPLEMENT_TERMINAL).exists())
+        self.assertEqual(self.state()["counters"]["row20"]["started"], 195)      # preserved
+
+    def test_native_needs_the_instrumented_commit_of_its_own_session(self):
+        self.gates()
+        stage_a.run_supplement_instrumented(self.ctx())
+        os.environ["STAGE_A_SESSION"] = "another"
+        try:
+            with self.assertRaisesRegex(stage_a.StopCheck, "committed in another session"):
+                stage_a.run_supplement_native(self.ctx())
+        finally:
+            os.environ.pop("STAGE_A_SESSION", None)
+        self.assertNotIn(stage_a.SUPP_NAT, self.state()["attempts"])
 
     def test_corrupt_reference_holds(self):
         self.gates()
@@ -372,6 +387,8 @@ class Run(Base):
 # ---- SupplementController with synthetic workers ---------------------------------------------------------------
 OK = {"supplement_gates": "sgates:ok", "supplement_instrumented": "ok:supplement_instrumented",
       "supplement_native": "ok:supplement_native", "supplement_receipt": "sreceipt:ok"}
+SOK = {"supplement_instrumented": "sok:supplement_instrumented:00-plain-os2701",
+       "supplement_native": "sok:supplement_native:00-native-os2701"}
 CARRY = 2338.113973380568
 STAGE_A_BYTES = 396783863
 
@@ -434,7 +451,9 @@ class Controller(unittest.TestCase):
 
     def test_supersedes_only_its_own_names(self):
         self.out.mkdir(parents=True)
-        sctl(self.out, {}).run()
+        first = sctl(self.out, {"supplement_receipt": "sreceipt:stopped"}).run()   # STOPPED before any start
+        self.assertEqual(first["outcome"], "STOPPED")
+        self.assertFalse((self.out / C.SUPPLEMENT_TERMINAL).exists())             # nothing started: not terminal
         (self.out / "STAGE_A_FINAL.json").write_text("{}")                       # a foreign name is never moved
         second = sctl(self.out, {}).run()
         self.assertEqual(second["outcome"], "PASS")
@@ -443,6 +462,15 @@ class Controller(unittest.TestCase):
         self.assertTrue(any(n.startswith("SUPPLEMENT_RECEIPT.") for n in sup))
         self.assertFalse(any(n.startswith("STAGE_A_FINAL") for n in sup))
         self.assertTrue((self.out / "STAGE_A_FINAL.json").exists())
+
+    def test_a_pass_is_never_superseded_or_regenerated(self):
+        final = sctl(self.out, SOK).run()
+        self.assertEqual(final["outcome"], "PASS", final)
+        before = (self.out / C.SUPPLEMENT_NAMES["final"]).read_bytes()
+        with self.assertRaisesRegex(SystemExit, "already PASSED"):
+            sctl(self.out, SOK).run()
+        self.assertEqual((self.out / C.SUPPLEMENT_NAMES["final"]).read_bytes(), before)
+        self.assertEqual(C.final_admitted(self.out, C.SUPPLEMENT_NAMES), final)
 
     def test_gates_refusal_and_hold(self):
         f = sctl(self.out, {"supplement_gates": "sgates:refuse"}).run()
@@ -461,6 +489,115 @@ class Controller(unittest.TestCase):
         self.assertNotEqual(final["outcome"], "PASS")
         r = json.loads((self.out / "controller.json").read_text())
         self.assertNotIn("supplement_instrumented", [w["phase"] for w in r["workers"]])
+
+
+
+class FailOncePeak:
+    """memprobe with exit_peak unavailable once, for the first worker that exits after SUPPLEMENT_NATIVE_DONE.json."""
+
+    def __init__(self, out: Path):
+        import memprobe
+        self.m, self.out, self.fired = memprobe, out, False
+
+    def exit_peak(self, pid):
+        if not self.fired and (self.out / "SUPPLEMENT_NATIVE_DONE.json").exists():
+            self.fired = True
+            raise self.m.Unavailable("fixture: the native exit peak cannot be read")
+        return self.m.exit_peak(pid)
+
+    def __getattr__(self, k):
+        return getattr(self.m, k)
+
+
+DRIVER = ("import sys; sys.path.insert(0, {photo!r}); sys.path.insert(0, {tests!r})\n"
+          "from pathlib import Path\nimport test_stage_a_supplement as T\n"
+          "T.sctl(Path({out!r}), {modes!r}).run()\n")
+
+
+class Restart(unittest.TestCase):
+    """Revision 2 (Codex 478196f P1), no forward: after any start, a STOPPED, held, crashed or interrupted session is
+    terminal; a restart dispatches no endpoint, preserves charges, results and the missing-measurement evidence, and
+    never regenerates a PASS - even when the first terminal write did not land."""
+
+    def setUp(self):
+        self.out = Path(tempfile.mkdtemp()) / "photo_stage_a_supplement"
+
+    def tearDown(self):
+        shutil.rmtree(self.out.parent, ignore_errors=True)
+
+    def ledger(self) -> dict:
+        return json.loads((self.out / "stage_a_state.json").read_text())
+
+    def phases(self, session: str) -> list:
+        r = json.loads((self.out / "controller.json").read_text())
+        return [w["phase"] for w in r["workers"] if w["session"] == session]
+
+    def restart_stays_stopped(self, started: int) -> dict:
+        seconds = json.loads((self.out / "controller.json").read_text())["seconds_total"]
+        again = sctl(self.out, {**SOK}).run()
+        self.assertEqual(again["outcome"], "STOPPED", again)
+        self.assertTrue((self.out / C.SUPPLEMENT_TERMINAL).exists())
+        self.assertFalse({"supplement_instrumented", "supplement_native"} & set(self.phases(again["session"])))
+        self.assertEqual(self.ledger()["counters"]["row20"]["started"], started)          # results kept, no start
+        self.assertGreater(again["seconds_total"], seconds)                               # time carried, charged
+        return again
+
+    def test_receipt_exit_then_restart(self):
+        final = sctl(self.out, {**SOK, "supplement_receipt": "exit:1"}).run()
+        self.assertEqual(final["outcome"], "STOPPED")
+        self.assertTrue((self.out / C.SUPPLEMENT_TERMINAL).exists())                      # terminal at once
+        self.restart_stays_stopped(196)
+
+    def test_non_pass_receipt_then_restart(self):
+        final = sctl(self.out, {**SOK, "supplement_receipt": "sreceipt:stopped"}).run()
+        self.assertEqual(final["outcome"], "STOPPED")
+        self.restart_stays_stopped(196)
+
+    def test_missing_native_exit_peak_then_restart_even_without_the_terminal(self):
+        final = sctl(self.out, SOK, probe=FailOncePeak(self.out)).run()
+        self.assertEqual(final["outcome"], "STOPPED")
+        self.assertTrue(any("supplement_native" in m for m in final["missing_measurements"]))
+        (self.out / C.SUPPLEMENT_TERMINAL).unlink()                                         # the first write "lost"
+        again = self.restart_stays_stopped(196)
+        self.assertTrue(any("supplement_native" in m for m in again["missing_measurements"]))   # never forgotten
+
+    def test_hold_after_the_instrumented_commit_then_restart(self):
+        old = C.GROUP_GONE_S
+        C.GROUP_GONE_S = 3.0
+        try:
+            held = sctl(self.out, {**SOK, "supplement_native": "block"},
+                        watchdog_cmd=[PY, str(HERE / "fixture_watchdogs.py"), "retire_early"]).run()
+        finally:
+            C.GROUP_GONE_S = old
+        self.assertEqual(held["outcome"], "HELD", held)
+        self.assertTrue((self.out / C.SUPPLEMENT_TERMINAL).exists())                      # a post-start hold stops
+        self.assertEqual(self.ledger()["counters"]["row20"]["started"], 195)
+        self.restart_stays_stopped(195)
+
+    def test_controller_crash_after_the_instrumented_commit_then_restart(self):
+        import signal
+        import subprocess
+        modes = {**OK, **SOK, "supplement_native": "family"}
+        p = subprocess.Popen([PY, "-c", DRIVER.format(photo=str(HERE.parent), tests=str(HERE), out=str(self.out),
+                                                      modes=modes)])
+        for _ in range(600):
+            if (self.out / "grandchild.pid").exists():
+                break
+            time.sleep(0.05)
+        time.sleep(0.3)
+        p.send_signal(signal.SIGKILL)
+        p.wait()
+        self.assertFalse((self.out / C.SUPPLEMENT_TERMINAL).exists())                     # no chance to write it
+        gp = int((self.out / "grandchild.pid").read_text())
+        for _ in range(200):
+            import memprobe
+            if memprobe.proc_info(gp) is None:
+                break
+            time.sleep(0.05)
+        again = self.restart_stays_stopped(195)
+        crashed = [x for x in json.loads((self.out / "controller.json").read_text())["sessions"]
+                   if x.get("closed") == "crashed"]
+        self.assertEqual(len(crashed), 1)                                                 # the dead session charged
 
 
 if __name__ == "__main__":

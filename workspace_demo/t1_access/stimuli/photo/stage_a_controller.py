@@ -1326,6 +1326,10 @@ class SupplementController(Controller):
     supplement_gates -> supplement_instrumented -> supplement_native -> supplement_receipt (always, also after a stop);
     its terminal record is SUPPLEMENT_TERMINAL.json (no release); it never touches captures/photo_stage_a.
 
+    REVISION 2 (Codex 478196f P1): one session from the first start - `_supersede` refuses after an admitted PASS and
+    terminalises after any start without one (a STOPPED, held, crashed or interrupted earlier session), `_hold` and a
+    STOPPED `_finalise` after a start terminalise at once, and `_missing_measurements` spans every session.
+
     ROW 20'S ENVELOPE, NOT A NEW ONE: carry_seconds is the accepted Stage A's controller seconds_total (pinned in the
     supplement plan and re-checked at the gates), so time continues against row 20's 4 h; storage_cap is row 20's
     1 GiB less the frozen Stage A tree's bytes (pinned); memory is per task as before (stop 44 GiB, cap 48 GiB); the
@@ -1342,6 +1346,58 @@ class SupplementController(Controller):
 
     def run(self, phases=SUPPLEMENT_PHASES, emit=None) -> dict:
         return super().run(phases=phases, emit=emit)
+
+    # ---- revision 2 (Codex 478196f P1): one session after the first start; nothing post-start is ever resumed ----
+    def _post_start(self) -> bool:
+        """At least one supplement start is durable in the supplement ledger (an attempt in any status)."""
+        sp = self.out / "stage_a_state.json"
+        try:
+            return bool(json.loads(sp.read_text()).get("attempts")) if sp.exists() else False
+        except (OSError, ValueError):
+            return True                                # an unreadable ledger beside a start is treated as post-start
+
+    def _terminalise(self, reason: str) -> None:
+        """Best effort durable terminal record; the restart rule (_supersede) does not depend on it having landed."""
+        try:
+            if not supplement_terminal_active(self.out):
+                supplement_set_terminal(self.out, "controller", reason)
+        except Exception as exc:                       # noqa: BLE001 - recorded; the restart rule still stops
+            self.rec["stops"].append({"phase": "controller", "session": self.session,
+                                      "reason": f"terminal write failed: {exc!r}"})
+
+    def _supersede(self) -> None:
+        """Revision 2. Before anything is moved or spawned: (1) an ADMITTED PASS of this version is final - nothing runs
+        again and it is never superseded or regenerated; (2) a supplement start without an admitted PASS means an
+        earlier post-start session ended STOPPED, held, crashed or interrupted (whether or not its terminal write
+        landed): this session writes SUPPLEMENT_TERMINAL.json now, so no endpoint is dispatched and the receipt can
+        only say STOPPED. Then only this tree's own final, marker, abort and receipt move aside."""
+        fin = final_admitted(self.out, self.NAMES)
+        if fin is not None and fin.get("outcome") == "PASS":
+            raise SystemExit(f"refused: this supplement version already PASSED (session {fin.get('session')}); a PASS "
+                             f"is never superseded or regenerated and nothing runs again")
+        if self._post_start():
+            self._terminalise("a prior post-start session ended without an admitted PASS (STOPPED, held, crashed or "
+                              "interrupted): this version stops; no endpoint is dispatched again")
+        super()._supersede()
+
+    def _hold(self, reason: str) -> dict:
+        """Revision 2: a hold after a start is terminal for the supplement (no resumption)."""
+        if self._post_start():
+            self._terminalise(f"held after a start ({reason}): this version stops")
+        return super()._hold(reason)
+
+    def _missing_measurements(self) -> list[str]:
+        """Revision 2: every released worker of EVERY session of this tree must have its exit peak - a mandatory
+        measurement lost in an earlier session is never forgotten by a later one."""
+        miss = [f"{w['phase']} (session {w.get('session')}): no exit peak ({w.get('exit_peak_error', 'not read')})"
+                for w in self.rec["workers"] if w.get("released") and
+                not (isinstance(w.get("exit_peak"), int) and w["exit_peak"] > 0)]
+        pk = self.rec["peaks"]
+        if not (isinstance(pk.get("controller_final"), int) and pk["controller_final"] > 0):
+            miss.append(f"controller final self sample ({pk.get('controller_final_error', 'absent')})")
+        if not (isinstance(pk.get("guardian_final"), int) and pk["guardian_final"] > 0):
+            miss.append(f"guardian final sample ({pk.get('guardian_final_error', 'absent')})")
+        return miss
 
     def _report_ok(self) -> dict:
         why = []
@@ -1383,10 +1439,16 @@ class SupplementController(Controller):
     def _finalise(self) -> dict:
         rok = self._report_ok()
         rc = rok["receipt"] if isinstance(rok["receipt"], dict) else {}
-        terminal = supplement_terminal_active(self.out)
         cnt = self._counters_ok()
         mem_peak = self._task_aggregate()
         missing = self._missing_measurements()
+        provisional = rok["ok"] and rc.get("outcome") == "PASS" and rc.get("admissible") is True and not missing \
+            and cnt["ok"] and 0 < mem_peak < CAPS_MEMORY and self.rec["seconds_total"] <= self.cap_s
+        if not provisional and self._post_start():     # revision 2: a STOPPED final after a start is terminal first
+            self._terminalise("the final record after a start is STOPPED: " +
+                              "; ".join((rok["why"] + missing + ([] if cnt["ok"] else ["ledger"]))[:4] or
+                                        [f"receipt outcome {rc.get('outcome')}"]))
+        terminal = supplement_terminal_active(self.out)
         n = self.NAMES
         final = {"outcome": "STOPPED", "kind": "stage_a_supplement", "session": self.session,
                  "receipt_current": rok["ok"], "receipt_problems": rok["why"],

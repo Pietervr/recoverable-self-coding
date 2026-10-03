@@ -1,6 +1,8 @@
 """A synthetic worker for the controller fixtures (no model, no development input). Usage: fake_worker.py <out> <mode>
   gates:ok | gates:hold | gates:refuse      the gates worker: GATES.json passed (exit 0), a hold (exit 4), a refusal
   sgates:<how>   revision 16: the supplement's gates worker, the same three outcomes in SUPPLEMENT_GATES.json
+  sok:<phase>:<id>  supplement rev 2: start and commit <id> in a real supplement ledger (carry 194/193/1/194), then
+                 write <PHASE>_DONE.json and exit 0
   sreceipt:<how> revision 16: the supplement's receipt worker: ok (outcome PASS unless SUPPLEMENT_TERMINAL.json exists),
                  stopped (outcome STOPPED), extra_key (one more field), bad_hash (a bound output's hash wrong)
   ok:<phase>     write <PHASE>_DONE.json and exit 0; first checks it cannot take the task lock (the controller must
@@ -63,6 +65,17 @@ if mode.startswith("sgates:"):                 # revision 16: the supplement's g
            "passed": how == "ok", "hold": how == "hold", "hold_reason": "fixture hold" if how == "hold" else None}
     put("SUPPLEMENT_GATES.json", json.dumps(rec).encode())
     sys.exit(0 if how == "ok" else 4)
+if mode.startswith("sok:"):                    # supplement rev 2: a real ledger start + commit, then the phase record
+    _, ph, aid = mode.split(":")
+    from enforce import Budget
+    with open(out / "worker_log.jsonl", "a") as f:
+        f.write(json.dumps({"phase": ph, "pid": os.getpid(), "t": time.time()}) + "\n")
+    b = Budget(out / "stage_a_state.json", "row20", "e" * 64, [out], session,
+               carry_in={"started": 194, "completed": 193, "failed": 1, "passes": 194})
+    with b.attempt(aid, ph, passes=1) as att:
+        att.commit({})
+    (out / f"{ph.upper()}_DONE.json").write_text("{}")
+    sys.exit(0)
 if mode.startswith("sreceipt:"):               # revision 16: the supplement's receipt worker
     how = mode.split(":")[1]
     with open(out / "worker_log.jsonl", "a") as f:
