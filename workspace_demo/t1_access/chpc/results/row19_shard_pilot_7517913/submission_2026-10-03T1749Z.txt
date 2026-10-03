@@ -1,0 +1,40 @@
+== pilot submission 2026-10-03T17:49:06Z clone 782e605 status-lines 0
+rep 0: valid records 0/200, in flight 0, missing 200
+rep 1: valid records 0/200, in flight 0, missing 200
+rep 2: valid records 0/200, in flight 0, missing 200
+planned 1 job(s), 72 indices; 528 missing indices not in this call
+job 1: reserved 4e2c3b6a568a (24 x 48 h = 1152 core-h; spent 0, live 1152 of 24000), submitted 7517913.sched01 on serial, 24 workers, 72 indices
+== submit exit 0
+== campaign
+budget.json
+budget.lock
+== plans, gate
+/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard/gate:
+limits_20261003T174906Z.txt
+
+/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard/plans:
+job_1.json
+== qstat 2026-10-03T17:49:09Z
+Job ID          Username Queue    Jobname    SessID NDS TSK Memory Time  S Time
+--------------- -------- -------- ---------- ------ --- --- ------ ----- - -----
+7516927.sched01 pvanrooy seriallo t1_row19_c 180447   1   1    8gb 144:0 R 14:26
+7516928.sched01 pvanrooy seriallo t1_row19_s 180450   1   1    8gb 144:0 R 14:26
+7516929.sched01 pvanrooy seriallo t1_row19_s 133007   1   1    8gb 144:0 R 14:27
+7516930.sched01 pvanrooy seriallo t1_row19_s 133009   1   1    8gb 144:0 R 14:27
+7517913.sched01 pvanrooy serial   t1_shard_1    --    1  24  120gb 48:00 Q   -- 
+== 2026-10-03T17:49:31Z
+    job_state = Q
+    queue = serial
+    qtime = Sat Oct  3 19:49:09 2026
+    Resource_List.mem = 120gb
+    Resource_List.mpiprocs = 24
+    Resource_List.ncpus = 24
+    Resource_List.nodect = 1
+    Resource_List.nodetype = haswell_reg
+    Resource_List.place = free
+    Resource_List.select = 1:ncpus=24:mpiprocs=24:mem=120gb:nodetype=haswell_re
+    Resource_List.walltime = 48:00:00
+    substate = 10
+    Submit_arguments = /mnt/lustre/users/pvanrooyen/t1_toolchain/jobs/row19_sha
+== free 24-core nodes with >=120gb
+nodes with 24 cores and >=120gb: 888 | of them free and empty: 1
