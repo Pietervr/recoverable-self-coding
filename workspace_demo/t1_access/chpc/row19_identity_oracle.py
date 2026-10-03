@@ -111,7 +111,9 @@ def rebuild(manifest, rep, seed):
 
 
 def effective_snapshot():
-    import analyze as A
+    """This process's snapshot with all three canonical sources LOADED first (the snapshot lists sources as loaded, so a
+    process that has not yet imported simulate.py would otherwise name only two)."""
+    import analyze as A, models, simulate  # noqa: F401 - loading them is the point
     return json.loads(json.dumps(A.numerical_snapshot(), default=str))
 
 
