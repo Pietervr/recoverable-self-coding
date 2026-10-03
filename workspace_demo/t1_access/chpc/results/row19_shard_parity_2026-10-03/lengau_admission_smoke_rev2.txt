@@ -1,0 +1,93 @@
+Applying: T1 row 19 sharded route, revision 2 - Codex 395e49d conditions: fail-closed watc
+== clone rsc_shard HEAD: 782e605 T1 row 19 sharded route, revision 2 - Codex 395e49d conditions: fail-closed watch,
+== git status lines: 0
+== sha256 of the pinned files and the manifest (date 2026-10-03T17:22:27Z, host login2):
+28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef  models.py
+97558aa9c4340f363431c67f2c2d28cd360f2f0998056af7e1702c9e9a021825  analyze.py
+f588b9121be48ec553ab95e4dda5736941865498922468b5868c96758d0afe57  simulate.py
+c67c4c0c776d810480218f0111623481b38598b30a5c5cb68127dcc83c5dacca  chpc/row19_slice.py
+8cfc7b0d256e5d89e5885eca47bd776ff00720d96e18298ff97db9c7db5a58de  chpc/row19_ledger.py
+828d59640f10cc33fcba7d98d075371945ca4b74ddaca841ea86100fc47ff383  chpc/row19_shard.py
+0eae2e6fcbc1dd71d34c20f02f86777e151ed2c2d8a3f6419aa15cee94097102  chpc/row19_shard_manifest.json
+== wrapper: f9c3ff028982d04e9186b62bed8e63da999348c584491bd67f1d79071bad926c  /mnt/lustre/users/pvanrooyen/t1_toolchain/t1py
+== admission smoke rep 0 (worker, no fit: past deadline; --no-binding-check; root row19_shard_smoke)
+worker job smoke slot 0: rep 0 identity f6a03a7eff618e15 indices [0]
+worker job smoke slot 0: exit 75 new [] resumed [] left [0] deadline: -1791048149 s left, 46800 s needed for the next resample
+worker process exit code: 75
+{
+ "cpu_s": 1.690036,
+ "ended": 1791048149.9797916,
+ "exit": 75,
+ "host": "login2",
+ "ident": "f6a03a7eff618e159690014cf7b2caa4fe1126942c3ee440d8b50714b6527000",
+ "indices": [
+  0
+ ],
+ "job": "smoke",
+ "left": [
+  0
+ ],
+ "maxrss": 104943616,
+ "new": [],
+ "reason": "deadline: -1791048149 s left, 46800 s needed for the next resample",
+ "rep": 0,
+ "resumed": [],
+ "slot": 0,
+ "started": 1791048149.8839495,
+ "wall_s": 0.09583306312561035
+}
+== admission smoke rep 1 (worker, no fit: past deadline; --no-binding-check; root row19_shard_smoke)
+worker job smoke slot 0: rep 1 identity 808a6e3936fd324f indices [0]
+worker job smoke slot 0: exit 75 new [] resumed [] left [0] deadline: -1791048151 s left, 46800 s needed for the next resample
+worker process exit code: 75
+{
+ "cpu_s": 1.3933309999999999,
+ "ended": 1791048152.0720258,
+ "exit": 75,
+ "host": "login2",
+ "ident": "808a6e3936fd324ff66a4561bf1d738401664296fe0dd967ee6d44943147bc36",
+ "indices": [
+  0
+ ],
+ "job": "smoke",
+ "left": [
+  0
+ ],
+ "maxrss": 114143232,
+ "new": [],
+ "reason": "deadline: -1791048151 s left, 46800 s needed for the next resample",
+ "rep": 1,
+ "resumed": [],
+ "slot": 0,
+ "started": 1791048151.9642284,
+ "wall_s": 0.10778951644897461
+}
+== admission smoke rep 2 (worker, no fit: past deadline; --no-binding-check; root row19_shard_smoke)
+worker job smoke slot 0: rep 2 identity 40346e3d0516aa48 indices [0]
+worker job smoke slot 0: exit 75 new [] resumed [] left [0] deadline: -1791048153 s left, 46800 s needed for the next resample
+worker process exit code: 75
+{
+ "cpu_s": 1.517155,
+ "ended": 1791048154.2022946,
+ "exit": 75,
+ "host": "login2",
+ "ident": "40346e3d0516aa48c27d328481dec03da8a1018fd436370e530915f27c844f55",
+ "indices": [
+  0
+ ],
+ "job": "smoke",
+ "left": [
+  0
+ ],
+ "maxrss": 109633536,
+ "new": [],
+ "reason": "deadline: -1791048153 s left, 46800 s needed for the next resample",
+ "rep": 2,
+ "resumed": [],
+ "slot": 0,
+ "started": 1791048154.1076686,
+ "wall_s": 0.09461688995361328
+}
+== negative: a wrong pin is refused
+HELD: code hashes differ from the manifest's pins on ['analyze.py']
+worker job smoke slot 1: exit 4 new [] resumed [] left [] code hashes differ from the manifest's pins on ['analyze.py']

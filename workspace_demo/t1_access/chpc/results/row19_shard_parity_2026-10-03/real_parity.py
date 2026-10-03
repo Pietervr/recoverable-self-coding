@@ -6,6 +6,7 @@ os.chdir(T1); sys.path.insert(0, T1); sys.path.insert(0, os.path.join(T1, "chpc"
 import numpy as np
 import analyze as A
 import row19_shard as SH
+import row19_shard_status as ST
 from test_row19_slice import _manifest
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 3
 d = tempfile.mkdtemp(); man = _manifest(d, os.path.join(d, "campaign"), n_boot=8)
@@ -19,7 +20,8 @@ seq = {r["rep"]: r for r in (json.loads(l) for l in open(ck).read().splitlines()
 ok = True
 for i in reversed(range(N)):                      # another order, each index on its own
     t1 = time.time(); r = SH.resample_record(t, i)
-    same = all(r[k] == seq[i][k] for k in ("rep", "stats", "failed", "failed_reason", "chosen", "ident", "seed", "n_rep"))
+    same = ST.payload(r) == ST.payload(seq[i])        # the canonical scientific payload with float BITS (float.hex): +0.0 and -0.0 differ
     ok = ok and same and A._record_ok(r, t["ident"], t["seed"], t["n_rep"], t["idx"], t["bands"])
-    print(f"index {i}: shard {time.time()-t1:.1f} s, bitwise equal to the sequential record: {same}; failed={r['failed']}; stats {json.dumps(r['stats'])[:90]}", flush=True)
-print("REAL PARITY:", "PASS" if ok else "FAIL")
+    print(f"index {i}: shard {time.time()-t1:.1f} s, bit-equal payload to the sequential record: {same}; failed={r['failed']}; stats {json.dumps(r['stats'])[:90]}", flush=True)
+print("REAL PARITY (float bits on the scientific payload):", "PASS" if ok else "FAIL")
+sys.exit(0 if ok else 1)
