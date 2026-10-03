@@ -48,7 +48,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
 <div class="wrap">
 <header>
   <h1>T1 Validation Tracker</h1>
-  <p class="sub">Entropy SI lane · updated <span id="upd">3 Oct 2026, 03:20 UTC</span> · Unimog <code>bc3dd6ad</code>, RSC <code>12e6109</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
+  <p class="sub">Entropy SI lane · updated <span id="upd">3 Oct 2026, 04:00 UTC</span> · Unimog <code>cff5acf5</code>, RSC <code>3ad8ce1</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
 </header>
 
 <section class="two">
@@ -75,7 +75,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
     <tr><td class="w">Row 18 · benchmark</td><td>How fast a Lengau core is on this workload.</td><td class="n">serial · 1 core</td><td><span class="pill ok">done 1 Oct</span></td><td>4.7× the Mac core, 1.3× the AWS core. Programme fits.<div class="bar ok"><i style="width:100%"></i></div></td><td class="n">113 min</td></tr>
     <tr><td class="w">Row 6 · parity</td><td>Can Lengau rows pool with published ones?</td><td class="n">serial · 3 × 1 core</td><td><span class="pill ok">pass 2 Oct</span></td><td>Max deviation 7.1e-08 nat/trial, decisions identical.<div class="bar ok"><i style="width:100%"></i></div></td><td class="n">77 min · 3.6 core-h</td></tr>
     <tr><td class="w">Row 19 · stage 0</td><td>Cost of one full layer under the §7.4 start policy. Sizes the slice and the reference bank.</td><td class="n">serial · 1 core · job 7516261</td><td><span class="pill ok">done 3 Oct</span></td><td>One layer under the policy: 33,635 s on a Lengau core, 5.25× the old-policy layer. Every resample is a full layer, so one dataset at B = 200 is ≈ 1,880 core-hours and the 100-dataset screen ≈ 188,000: more than the whole allocation. Stage 2 needs a cheaper policy or a smaller B (your call after the slice).<div class="bar ok"><i style="width:100%"></i></div><span class="small">9.85 core-h settled</span></td><td class="n">≤ 24 h</td></tr>
-    <tr><td class="w">Row 19 · stage 1 slice</td><td>Prove the refit chain runs and resumes across jobs; measure per-resample time and memory. Reads no coverage.</td><td class="n">seriallong · 3 × 1 core + control</td><td><span class="pill hold">geometry with Codex</span></td><td>Codex ON BOARD after six revisions; your go given 2 Oct; stage 0 settled and the watch expectations fixed. Held one step: at the measured cost the reviewed 48 h recovery control cannot reach its target, so a 144 h / 8-resample control is with Codex for a yes. Then C1 and reps 0–2 launch together; each 144 h main completes ≈ 14 resamples (execution and recovery, not completion).<div class="bar"><i style="width:0%"></i></div></td><td class="n">10–22 d per chain · cap 1,500 core-h</td></tr>
+    <tr><td class="w">Row 19 · stage 1 slice</td><td>Prove the refit chain runs and resumes across jobs; measure per-resample time and memory. Reads no coverage.</td><td class="n">seriallong · 3 × 1 core + control</td><td><span class="pill run">running</span></td><td>Launched 3 Oct 03:20 UTC under your go: the recovery control C1 (144 h, 8 resamples; Codex agreed the geometry after stage 0's cost) and three main datasets (144 h each, ≈ 14 resamples per job; execution and recovery, not completion). Jobs 7516927–7516930, 576 core-hours reserved. Watched from the Mac every 2 h. One known alarm: rep 2's dataset differs between Mac and Lengau at the last bit, so the Mac cannot verify that one by rebuilt identity; a fix for the checker is with Codex. C2 (the kill test) follows C1's first records in ≈ 40 h.<div class="bar run"><i style="width:3%"></i></div><div class="bar"><i style="width:0%"></i></div></td><td class="n">10–22 d per chain · cap 1,500 core-h</td></tr>
     <tr><td class="w">ω = 1 reference bank</td><td>The policy-matched target the coverage reading needs.</td><td class="n">normal · packed 24/node</td><td><span class="pill wait">planned</span></td><td>Row written after stage 0 sizes it.</td><td class="n">≈ 1 day wall</td></tr>
     <tr><td class="w">Row 19 · stage 2 screen</td><td>100 datasets at ω = 1: does refitting reach 0.90? Futility at 83 of 100.</td><td class="n">seriallong · packed 12/job</td><td><span class="pill wait">planned</span></td><td>Costed from the slice's measured rate; own go.</td><td class="n">2–5 weeks wall</td></tr>
     <tr><td class="w">Misspecification battery</td><td>The paper's disclosure of what the assay gets wrong off-model.</td><td class="n">normal · packed</td><td><span class="pill wait">planned</span></td><td>Row to write after stage 0.</td><td class="n">≈ 2,400 core-h · &lt; 1 day</td></tr>
@@ -100,7 +100,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
     <h2>Allocation</h2>
     <dl class="kv">
       <dt>Used</dt><dd>≈ 9 core-h of 100,000 (rows 18, 6, failed submissions, stage 0 so far)</dd>
-      <dt>Reserved</dt><dd>500 (row 18) + 1,500 (row 19 campaign ledger: 24 live for stage 0)</dd>
+      <dt>Reserved</dt><dd>500 (row 18) + 1,500 (row 19 campaign ledger: 576 live for C1 + three mains, 9.85 settled for stage 0)</dd>
       <dt>Programme</dt><dd>≈ 53,000 shared cores · 70,000–80,000 packed</dd>
       <dt>Window</dt><dd>to 23 Mar 2027 · at 240 cores the whole allocation is 17 days</dd>
     </dl>
