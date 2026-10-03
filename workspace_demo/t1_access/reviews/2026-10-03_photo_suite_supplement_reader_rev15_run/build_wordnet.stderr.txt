@@ -1,0 +1,37 @@
+test_full_form_s1_prospectively (stimuli.photo.tests.test_ai_reader.KeyFunctions.test_full_form_s1_prospectively)
+Every ADMITTED full form (inflections included) against every released concept's canonical names and ... ok
+test_inflections (stimuli.photo.tests.test_ai_reader.KeyFunctions.test_inflections) ... ok
+test_rebuild_reproduces_the_key (stimuli.photo.tests.test_ai_reader.KeyFunctions.test_rebuild_reproduces_the_key) ... ok
+test_specificity_rules (stimuli.photo.tests.test_ai_reader.KeyFunctions.test_specificity_rules) ... ok
+test_synonym_residue (stimuli.photo.tests.test_ai_reader.KeyFunctions.test_synonym_residue) ... ok
+test_audit_map_rebuild_unchanged (stimuli.photo.tests.test_ai_reader.Rev12.test_audit_map_rebuild_unchanged)
+The frozen map's construction is unchanged by revision 12: a rebuild equals the frozen map in everything but ... ok
+test_audit_scorer_same_rule_own_entry_point (stimuli.photo.tests.test_ai_reader.Rev12.test_audit_scorer_same_rule_own_entry_point) ... ok
+test_every_excluded_form_still_fails (stimuli.photo.tests.test_ai_reader.Rev12.test_every_excluded_form_still_fails) ... ok
+test_format_still_first (stimuli.photo.tests.test_ai_reader.Rev12.test_format_still_first) ... ok
+test_named_cases (stimuli.photo.tests.test_ai_reader.Rev12.test_named_cases) ... ok
+test_one_function_in_both_scorers (stimuli.photo.tests.test_ai_reader.Rev12.test_one_function_in_both_scorers) ... ok
+test_prompt_is_the_owners (stimuli.photo.tests.test_ai_reader.Rev12.test_prompt_is_the_owners) ... ok
+test_singularising_an_admitted_form_never_reaches_an_excluded_one (stimuli.photo.tests.test_ai_reader.Rev12.test_singularising_an_admitted_form_never_reaches_an_excluded_one)
+The order of the rule (an admitted form as given passes before WordNet is read) cannot hide an exclusion: ... ok
+test_the_fourteen_easy_misses_of_job_a (stimuli.photo.tests.test_ai_reader.Rev12.test_the_fourteen_easy_misses_of_job_a)
+12 pass, pearl and the holiday greeting card do not. 'Air conditioning unit' passes by (ii): 'air ... ok
+test_wordnet_pin_checked (stimuli.photo.tests.test_ai_reader.Rev12.test_wordnet_pin_checked) ... ok
+test_codes_and_format_precedence (stimuli.photo.tests.test_ai_reader.Scoring.test_codes_and_format_precedence) ... ok
+test_gate_arithmetic (stimuli.photo.tests.test_ai_reader.Scoring.test_gate_arithmetic) ... ok
+test_no_alias_trips_a_format_check (stimuli.photo.tests.test_ai_reader.Scoring.test_no_alias_trips_a_format_check) ... ok
+test_normalise (stimuli.photo.tests.test_ai_reader.Scoring.test_normalise) ... ok
+test_freeze_states_the_current_rule (stimuli.photo.tests.test_ai_reader.AuditMap.test_freeze_states_the_current_rule) ... ok
+test_rule_applied_and_inflections (stimuli.photo.tests.test_ai_reader.AuditMap.test_rule_applied_and_inflections) ... ok
+test_scorer_bound_to_the_pinned_map (stimuli.photo.tests.test_ai_reader.AuditMap.test_scorer_bound_to_the_pinned_map) ... ok
+test_scorer_code_bound_in_the_audit_package (stimuli.photo.tests.test_ai_reader.AuditMap.test_scorer_code_bound_in_the_audit_package)
+Codex RSC 1bf9890 A8: the audit scorer's classifier/normalisation source is bound to the pins the audit ... ok
+test_referrals_carry_identity (stimuli.photo.tests.test_ai_reader.ScorerAdmission.test_referrals_carry_identity) ... ok
+test_scientific_mode_refuses_injected_objects (stimuli.photo.tests.test_ai_reader.ScorerAdmission.test_scientific_mode_refuses_injected_objects) ... ok
+test_synthetic_refused_without_flag_and_labelled (stimuli.photo.tests.test_ai_reader.ScorerAdmission.test_synthetic_refused_without_flag_and_labelled) ... ok
+test_untracked_and_tracked_dirty_refused (stimuli.photo.tests.test_ai_reader.ScorerAdmission.test_untracked_and_tracked_dirty_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 3.585s
+
+OK

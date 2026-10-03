@@ -1,0 +1,7 @@
+test_slow_receipt_and_slow_close_share_one_deadline (stimuli.photo.tests.test_ai_reader_crash.Rev6.test_slow_receipt_and_slow_close_share_one_deadline)
+Reader 3: receipt + close past their ONE allowance -> exit 75 and the COMPLETE does not qualify (the clock ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 43.741s
+
+OK

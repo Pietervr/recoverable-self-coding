@@ -1,0 +1,8 @@
+{
+ "supplement_criteria_sha256": "60f7f3661afba0b6f519f1e5154a62fab55c752a5f6fae129cd1eadf19be147e",
+ "supplement_identity_sha256": "c28518ee2e5b26145c1367c8bb7d56c7b8af52ca62b8a25847b69ad1b92ab599",
+ "supplement_plan_sha256": "8e41084050c3a24d684b04a359d36c94714a38c5ec15eec8925c9c34b63eeace",
+ "plan_sha256": "3faebf4eab25081cf32652bf025fa8fab9d11bee6f1c9a19a1cf2dbad45417cc",
+ "manifest_sha256": "e816f843700a4a15c4ca56ba71318957e73b77d3560e81a2bf476ff23422f448",
+ "budget_sha256": "186e7738ccb5179e7212178de5c2342440fd5a471c3bb318e35cb7144bad8799"
+}
