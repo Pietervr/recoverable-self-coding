@@ -403,7 +403,9 @@ def validate(out: Path, plan: dict, state: dict | None, *, identity: str | None 
             v.need(False, "PARITY_STATISTIC", aid, exc)
             continue
         parity.append({"index": x["index"], "id": aid, **row})
-        v.need(row["pass"], "PARITY", aid, (row["rel_l2_max"], row["logit_max_abs"], row["argmax_equal"]))
+        v.need(row["pass"], "PARITY", aid, (row["rel_l2_max"], row["logit_max_abs"], row["argmax_equal"],
+                                            row["logit_worst_abs"], row["logit_worst_magnitude"],
+                                            row["logit_worst_tolerance"]))
     stored = out / "native_parity.json"
     if stored.exists():
         s_rows = json.loads(stored.read_text())
@@ -530,8 +532,12 @@ def build(out: Path, plan: dict, ledger: dict, *, admissible: bool, session: str
                f"{record['unreconciled_open_attempt']}; interrupted tries {record['interrupted']}.", ""]
     md += ["## Failures", ""] + [f"- {f['code']} at {f['where']}: {f['detail']}" for f in val["failures"][:200]] + \
           ["", "## Native parity (recomputed from the committed arrays)", "",
-           "| input | rel L2 max | logit max abs | argmax equal | pass |", "|---|---|---|---|---|"] + \
-          [f"| {r['index']} | {r['rel_l2_max']:.3g} | {r['logit_max_abs']:.3g} | {r['argmax_equal']} | {r['pass']} |"
+           "Logit criterion (revision 13): per requested logit, |difference| <= max(0.10, one bfloat16 step at the "
+           "larger magnitude).", "",
+           "| input | rel L2 max | logit max abs | at magnitude | tolerance there | bf16 steps | argmax equal | pass |",
+           "|---|---|---|---|---|---|---|---|"] + \
+          [f"| {r['index']} | {r['rel_l2_max']:.3g} | {r['logit_max_abs']:.3g} | {r['logit_max_abs_magnitude']:.4g} | "
+           f"{r['logit_max_abs_tolerance']:.4g} | {r['logit_max_abs_bf16_steps']} | {r['argmax_equal']} | {r['pass']} |"
            for r in val["parity"]] + \
           ["", "## Stage B", "", "```", json.dumps({"prediction": b, "admission": admission}, indent=1), "```", "",
            "## Interpretation", "", "Not written here: the author inspects the figures and archives "

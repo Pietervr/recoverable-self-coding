@@ -992,6 +992,10 @@ class Rev12Transition(unittest.TestCase):
     admission (every record re-read and re-verified, the instrumented validator)."""
 
     def setUp(self):
+        st = json.loads((REAL_RUN / "stage_a_state.json").read_text())
+        if st["identities"]["row20"] != stage_a.PREDECESSOR_ID:
+            self.skipTest("the 2 October ledger was moved by the 3 October resume's transition (IDENTITY_TRANSITION"
+                          ".json); the chained transition is PRODUCED by Rev13Transition")
         self.out = Path(tempfile.mkdtemp()) / "o"
         shutil.copytree(REAL_RUN, self.out, ignore=shutil.ignore_patterns("LOCK"))
         self.ctx = stage_a.Ctx(out=self.out, verify_controller=False)
@@ -1056,6 +1060,210 @@ class Rev12Transition(unittest.TestCase):
         with self.assertRaises(enforce.StopRun):
             stage_a.worker_open(self.ctx, "native")
         self.assertIsNone(stage_a.transition_record(self.out))
+
+
+
+def _u16(x: np.ndarray) -> np.ndarray:
+    return (np.asarray(x, dtype=np.float32).view(np.uint32) >> 16).astype(np.uint16)
+
+
+class Rev13Parity(unittest.TestCase):
+    """Revision 13 (R052 handoff 8508993b, A-B): the native logit criterion per requested logit, |d| <= max(0.10, one
+    bfloat16 step at the larger magnitude); rel L2 <= 0.01 and identical argmax unchanged. One implementation,
+    stage_a.compare, decides both the native worker's StopCheck and the final validator's PARITY row. No forward."""
+
+    def row(self, li, ln, nat_scale=1.0):
+        inst = np.ones((stage_a.N_LAYERS, 3), dtype=np.float32)
+        return stage_a.compare(_u16(inst), inst * nat_scale, np.asarray(li, dtype=np.float64),
+                               np.asarray(ln, dtype=np.float64))
+
+    def test_bf16_step(self):
+        for m, step in ((16.5, 0.125), (16.0, 0.125), (15.999, 0.0625), (32.0, 0.25), (3.0, 0.015625),
+                        (0.3, 2.0 ** -9), (0.0, 0.0), (-16.5, 0.125)):
+            self.assertEqual(stage_a.bf16_step(m), step, m)
+        self.assertEqual(stage_a.logit_tolerance(15.999), 0.10)
+        self.assertEqual(stage_a.logit_tolerance(16.0), 0.125)
+        self.assertEqual(stage_a.logit_tolerance(0.0), 0.10)
+
+    def test_cases(self):
+        top = [20.0]                                       # a top logit that keeps the argmax on index 0
+        cases = [("one step at 16.5 passes (15-native)", [16.5], [16.375], True),
+                 ("two steps at 16.5 fail", [16.5], [16.25], False),
+                 ("0.11 at 12.0 fails (unchanged below 16)", [12.0], [12.11], False),
+                 ("0.0625 at 3.0 passes (unchanged)", [3.0], [3.0625], True),
+                 ("0.13 at 16.0 fails (just over one step)", [16.0], [16.13], False),
+                 ("m = 16 exactly, 0.125 passes", [16.0], [15.875], True),
+                 ("m just below 16: 0.10 applies, 0.12 fails", [15.99], [15.87], False),
+                 ("0.10 exactly below 16 passes", [8.0], [8.1], True)]
+        for name, li, ln, ok in cases:
+            with self.subTest(name):
+                r = self.row(top + li, [top[0] + 0.0] + ln)
+                self.assertEqual(r["pass"], ok)
+                self.assertEqual(r["logit_within_tolerance"], ok)
+                if not ok:
+                    msg = stage_a.parity_failure("x-native", r)
+                    self.assertIn("magnitude", msg)
+                    self.assertIn("tolerance", msg)
+
+    def test_argmax_and_rel_l2_still_fail(self):
+        r = self.row([5.0, 1.0], [5.0, 1.0], nat_scale=1.02)                          # rel L2 0.02 > 0.01
+        self.assertTrue(r["logit_within_tolerance"])
+        self.assertFalse(r["pass"])
+        r = self.row([5.0, 4.99], [4.99, 5.0])                                       # within tolerance, argmax swaps
+        self.assertTrue(r["logit_within_tolerance"])
+        self.assertFalse(r["argmax_equal"])
+        self.assertFalse(r["pass"])
+
+    def test_one_implementation(self):
+        src_a = Path(stage_a.__file__).read_text()
+        src_r = Path(R.__file__).read_text()
+        self.assertIn("**compare(pres, nres, li, ln)", src_a)
+        self.assertIn("raise StopCheck(parity_failure(aid, row))", src_a)
+        self.assertIn("row = A.compare(", src_r)
+        self.assertIn('v.need(row["pass"], "PARITY"', src_r)
+        self.assertNotIn('TOL["logit"] and', src_a)                                 # no second, absolute-only test
+
+
+RESUME_RUN = HERE.parents[2] / "reviews" / "2026-10-03_stage_a_resume_run"
+
+
+@unittest.skipUnless((REAL_RUN / "IDENTITY_TRANSITION.json").exists() and (REAL_RUN / "passes" / "15-native.json")
+                     .exists(), "needs the 3 October resume's records")
+class Rev13Transition(unittest.TestCase):
+    """Revision 13 (D): the chained reviewed transition, PRODUCED on the REAL records of the 3 October resume (158
+    instrumented attempts bound to revision 10 / e146ec63 through the first transition, 16 native records committed
+    under revision 12 / c0fb2ea0, the native StopCheck in TERMINAL.json) copied - never edited - and resumed under the
+    current package with NO forward."""
+
+    def setUp(self):
+        self.out = Path(tempfile.mkdtemp()) / "o"
+        shutil.copytree(REAL_RUN, self.out, ignore=shutil.ignore_patterns("LOCK"))
+        self.ctx = stage_a.Ctx(out=self.out, verify_controller=False)
+        self.state0 = json.loads((self.out / "stage_a_state.json").read_text())
+        self.done0 = (self.out / "INSTRUMENTED_DONE.json").read_bytes()
+        self.t1 = (self.out / "IDENTITY_TRANSITION.json").read_bytes()
+
+    def tearDown(self):
+        shutil.rmtree(self.out.parent, ignore_errors=True)
+
+    def release(self, terminal_bytes=None):
+        tb = terminal_bytes if terminal_bytes is not None else (self.out / "TERMINAL.json").read_bytes()
+        (self.out / "TERMINAL_RELEASE.json").write_text(json.dumps(
+            {"terminal_sha256": hashlib.sha256(tb).hexdigest(), "owner": "the owner", "date": "2026-10-03",
+             "words": "release; resume with every counter carried", "reason": "fixture"}))
+
+    def test_the_real_records_are_the_3_october_state(self):
+        self.assertEqual(self.state0["identities"]["row20"], stage_a.PREDECESSOR_12_ID)
+        t = json.loads(self.t1)
+        self.assertEqual((t["from"], t["to"]), (stage_a.PREDECESSOR_ID, stage_a.PREDECESSOR_12_ID))
+        self.assertEqual(json.loads(self.done0)["identity"], stage_a.PREDECESSOR_ID)
+        self.assertEqual(self.state0["counters"]["row20"], {"completed": 189, "failed": 1, "passes": 190,
+                                                           "started": 190})
+        self.assertIn("15-native", (self.out / "TERMINAL.json").read_text())
+
+    def test_resume_admits_both_predecessors_with_counters_carried(self):
+        self.release()
+        budget, plan, _ = stage_a.worker_open(self.ctx, "native")
+        cur = json.loads(self.ctx.identity_path.read_text())["identity_sha256"]
+        self.assertNotIn(cur, stage_a.PREDECESSORS)
+        self.assertEqual(budget.identity, cur)
+        self.assertEqual(budget.state["counters"], self.state0["counters"])          # carried, none reset
+        self.assertEqual(budget.state["completed"], self.state0["completed"])        # not relabelled or recomputed
+        self.assertEqual((self.out / "IDENTITY_TRANSITION.json").read_bytes(), self.t1)   # the first stays as written
+        t2 = json.loads((self.out / "IDENTITY_TRANSITION.2.json").read_text())
+        self.assertEqual((t2["from"], t2["to"]), (stage_a.PREDECESSOR_12_ID, cur))
+        self.assertEqual(t2["predecessor"]["package"], "Stage A revision 12, RSC 620f768")
+        self.assertEqual(t2["counters"], self.state0["counters"])
+        self.assertIn("15-native", t2["completed_attempts"])
+        self.assertIn("stage_a.py", t2["local_code_differs"])
+        self.assertEqual([r["to"] for r in stage_a.transition_records(self.out)], [stage_a.PREDECESSOR_12_ID, cur])
+        self.assertEqual((self.out / "INSTRUMENTED_DONE.json").read_bytes(), self.done0)   # still the producer's
+        self.assertTrue(stage_a.admitted_phase_identity(self.out, stage_a.PREDECESSOR_ID, cur))    # two links
+        self.assertTrue(stage_a.admitted_phase_identity(self.out, stage_a.PREDECESSOR_12_ID, cur))  # one link
+        self.assertFalse(stage_a.admitted_phase_identity(self.out, "f" * 64, cur))
+        plains = stage_a.admit_native(self.ctx, plan, budget)                       # every pre-native predicate
+        self.assertEqual(len(plains), len(plan["inputs"]))
+        # the 16 committed native records re-evaluated under the revision-13 rule (no forward): all pass,
+        # 15-native at exactly one bf16 step
+        rows = {}
+        for i in range(16):
+            aid = f"{i:02d}-native"
+            rec, arrays = stage_a.load_outputs(self.out, aid, budget.completed(aid))
+            prec, pres = plains[i]
+            rows[aid] = stage_a.compare(pres, arrays["residuals"],
+                                        np.array([q["logit"] for q in prec["requested"]], dtype=np.float64),
+                                        np.asarray(rec["requested_logits"], dtype=np.float64))
+        self.assertTrue(all(r["pass"] for r in rows.values()), [a for a, r in rows.items() if not r["pass"]])
+        r15 = rows["15-native"]
+        self.assertEqual((r15["logit_max_abs"], r15["logit_max_abs_magnitude"], r15["logit_max_abs_tolerance"],
+                          r15["logit_max_abs_bf16_steps"]), (0.125, 16.5, 0.125, 1.0))
+        self.assertTrue(all(r["rel_l2_max"] == 0.0 and r["argmax_equal"] for r in rows.values()))
+        # under revision 12's absolute rule exactly 15-native would fail
+        self.assertEqual([a for a, r in rows.items() if r["logit_max_abs"] > 0.10], ["15-native"])
+
+    def test_no_release_no_transition(self):
+        with self.assertRaisesRegex(SystemExit, "terminal|release"):
+            stage_a.worker_open(self.ctx, "native")
+        self.assertFalse((self.out / "IDENTITY_TRANSITION.2.json").exists())
+        self.assertEqual(json.loads((self.out / "stage_a_state.json").read_text())["identities"]["row20"],
+                         stage_a.PREDECESSOR_12_ID)
+
+    def test_the_2_october_release_does_not_release_the_3_october_record(self):
+        self.assertIsNone(G.terminal_release(self.out))                            # stale: names the old bytes
+        with self.assertRaisesRegex(SystemExit, "terminal|release"):
+            stage_a.worker_open(self.ctx, "native")
+
+    def test_changed_frozen_inputs_refuse(self):
+        self.release()
+        cur = json.loads(self.ctx.identity_path.read_text())
+        with self.assertRaisesRegex(SystemExit, "frozen inputs differ"):
+            stage_a.identity_transition(self.ctx, {**cur, "manifest_sha256": "0" * 64})
+        self.assertFalse((self.out / "IDENTITY_TRANSITION.2.json").exists())
+
+    def test_broken_chain_admits_nothing(self):
+        self.release()
+        budget, plan, _ = stage_a.worker_open(self.ctx, "native")
+        (self.out / "IDENTITY_TRANSITION.json").unlink()                           # the first link gone
+        self.assertFalse(stage_a.admitted_phase_identity(self.out, stage_a.PREDECESSOR_ID, budget.identity))
+        with self.assertRaises(stage_a.StopCheck):
+            stage_a.admit_native(self.ctx, plan, budget)
+
+    def test_relabelled_phase_record_refuses(self):
+        self.release()
+        d = json.loads(self.done0)
+        d["identity"] = stage_a.PREDECESSOR_12_ID                                   # relabelled to the later producer
+        (self.out / "INSTRUMENTED_DONE.json").write_text(json.dumps(d))
+        budget, plan, _ = stage_a.worker_open(self.ctx, "native")
+        self.assertTrue(stage_a.admitted_phase_identity(self.out, d["identity"], budget.identity))
+        d["identity"] = "f" * 64
+        (self.out / "INSTRUMENTED_DONE.json").write_text(json.dumps(d))
+        with self.assertRaises(stage_a.StopCheck):
+            stage_a.admit_native(self.ctx, plan, budget)
+
+    def test_ledger_not_where_the_chain_ends_refuses(self):
+        self.release()
+        t = json.loads(self.t1)
+        t["to"] = "b" * 64
+        (self.out / "IDENTITY_TRANSITION.json").write_text(json.dumps(t))
+        with self.assertRaisesRegex(SystemExit, "recorded transitions end"):
+            stage_a.worker_open(self.ctx, "native")
+
+    def test_undeclared_predecessor_refuses(self):
+        self.release()
+        st = dict(self.state0)
+        st["identities"] = {"row20": "a" * 64}
+        (self.out / "stage_a_state.json").write_text(json.dumps(st))
+        with self.assertRaises(enforce.StopRun):
+            stage_a.worker_open(self.ctx, "native")
+        self.assertFalse((self.out / "IDENTITY_TRANSITION.2.json").exists())
+
+    def test_retained_resume_records_match_the_live_ones(self):
+        """The retained copy in reviews/ is the evidence the brief cites: its TERMINAL and transition equal the
+        live records this class copies."""
+        if not RESUME_RUN.exists():
+            self.skipTest("no retained resume record")
+        for n in ("TERMINAL.json", "IDENTITY_TRANSITION.json"):
+            self.assertEqual((RESUME_RUN / n).read_bytes(), (REAL_RUN / n).read_bytes(), n)
 
 
 if __name__ == "__main__":

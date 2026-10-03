@@ -1,8 +1,10 @@
 """Photograph arm, Stage A (ledger row 20, framework §8.4): native fidelity and profiling - the runner, revision 5.
 
 Revision 5 answers Codex's record RSC 1bf9890 (not favourable to revision 4 at d7a486a) through R052's handoff
-8c9dac2b; the condition-by-condition map is STAGE_A_CRITERIA.md §1. NOT RUN: no forward has run on any development
-image.
+8c9dac2b; the condition-by-condition map is STAGE_A_CRITERIA.md §1; revisions 6-13 in its §0-§R13. Revision 13: the
+native logit criterion in bfloat16 steps at and above 16 (`compare`) and the chained transition (`PREDECESSORS`).
+EXPOSURE: two runs - 2 October (revision 10: gates and 158 instrumented forwards, terminal) and 3 October (revision 12:
+16 native forwards, terminal at 15-native) - reviews/2026-10-02_stage_a_run.md, reviews/2026-10-03_stage_a_resume_run.md.
 
     .venv-image/bin/python stimuli/photo/stage_a.py plan          # desk: freeze stage_a_plan.json (no model forward)
     .venv-image/bin/python stimuli/photo/stage_a.py identity      # desk: write stage_a_identity.json (no model load)
@@ -47,6 +49,7 @@ import base64
 import hashlib
 import io
 import json
+import math
 import os
 import random
 import subprocess
@@ -71,6 +74,24 @@ CASES = ["plain", "empty", "zero_steer", "zero_ablate", "zero_swap", "self_patch
 BITWISE = ["empty", "zero_steer", "zero_ablate", "zero_swap", "self_patch", "repeat"]
 MECHANICS = ["swap1", "ablate1"]
 TOL = {"rel_l2": 0.01, "logit": 0.10}
+# Revision 13 (R052 handoff 8508993b): the native logit criterion is per requested logit, |native - instrumented| <=
+# max(TOL["logit"], one bfloat16 step at m = max(|native|, |instrumented|)) - the frozen 0.10 wherever it is coarser
+# than a step (every |logit| < 16), one bf16 step at and above 16 (0.125 for 16-32, 0.25 for 32-64, ...). The native
+# path emits bfloat16 logits: below one representable step a tolerance demands that two roundings coincide.
+
+
+def bf16_step(m: float) -> float:
+    """One bfloat16 unit in the last place at magnitude m: 2^(floor(log2 m) - 7) for m > 0 (8 significand bits);
+    0 for m = 0. frexp keeps the binade exact (m = f * 2^e, 0.5 <= f < 1, so floor(log2 m) = e - 1)."""
+    m = abs(float(m))
+    if m == 0.0:
+        return 0.0
+    _, e = math.frexp(m)
+    return math.ldexp(1.0, e - 1 - 7)
+
+
+def logit_tolerance(m: float) -> float:
+    return max(TOL["logit"], bf16_step(m))
 TOP_K = 50
 INST_SCHEMA, NAT_SCHEMA = "stage_a.instrumented.v4", "stage_a.native.v4"
 INST_CAPTURE_KEYS = ("input_ids_sha256", "n_tokens", "readout_positions", "capture_layers", "requested", "top_ids",
@@ -661,28 +682,139 @@ PREDECESSOR = {"package": "Stage A revision 10, RSC fbfb7db", "review": "Codex R
  },
  "stage": "A"
 }''')}
-TRANSITION = "IDENTITY_TRANSITION.json"
+# Revision 13 (R052 handoff 8508993b, D): the SECOND declared predecessor - Stage A revision 12 (RSC 620f768,
+# favourable at Codex RSC e7b31f0), whose resume of 3 October admitted the revision-10 instrumented phase through the
+# first transition and then committed 16 native records (00- to 15-native) before its frozen logit criterion stopped it
+# terminally at 15-native. Its identity body (stage_a_identity.json at 620f768 without identity_sha256) is embedded
+# verbatim and must hash to its identity at use. The same rule as revision 12's A1 applies to it.
+PREDECESSOR_12_ID = "c0fb2ea0f6c5ef83cdabd414cb7d761ec3aabd9de13ed6022a852a7b590da001"
+PREDECESSOR_12 = {"package": "Stage A revision 12, RSC 620f768", "review": "Codex RSC e7b31f0 (favourable)",
+                  "phases": ["native"],
+                  "identity_body": json.loads(r'''{
+ "dispatch": {
+  "hidden_dtype": "bfloat16",
+  "instrumented": {
+   "GDN inference kernel per pass": true,
+   "capture": "jlens_qwen.capture_endpoint._run, one StreamSession.extend per pass",
+   "custom GDN VJP": "recorded (training-only path, unused in a prefill)",
+   "jlens patch_gdn applied": true
+  },
+  "native": {
+   "capture_layer_ids": null,
+   "jlens_qwen imported": false,
+   "prefill": "mlx-vlm get_input_embeddings + language_model(ids, inputs_embeds, fresh cache)"
+  },
+  "vision": "mlx-vlm qwen3_5 vision tower in its weight dtype; features cast to the hidden dtype at merge",
+  "weights": "4-bit affine (snapshot quantization config)"
+ },
+ "jlens": {
+  "head": "745a3a894be7043ae5eb7dbbdcec44b68b819411",
+  "sitecustomize_sha256": "8b0b2acbe668ef4d994cad710557d57683d98a52c588e9bfe3e6dd1caa43afc9",
+  "tracked_diff_sha256": "c5f7fac8b421a3c398bb2a36f4193d909f504573cdb323d5178342e3868926b9"
+ },
+ "lens": {
+  "name": "qwen36_27b_neuronpedia_n1000.npz",
+  "sha256": "1177e8fb529d9d81e8f379c9a5d02b4d11e05b3056f677bb223b7e6e23ce0aed"
+ },
+ "local_code_sha256": {
+  "dose.py": "05d61ea6d199903eb066534e8cc2e7bb73e102b9cfa284f5692f8d75e9bb4302",
+  "dose_report.py": "aff4afc3ac18455d0876da042d4202deaf428820ffaf09fde4603e32e14a825a",
+  "enforce.py": "5d142c94560da93ee08fd4021dd7aa46edba60d13252ed992e44873a0f57ed42",
+  "image_adapter.py": "2c1c3cedc9559fe8b2f7fd31c82984255ac7072a1f6442fc5a3e098f56f901aa",
+  "memprobe.py": "83114f358b74372c3bbe647a5b907903ec6629c172a76adc3d7c13f5a7acd465",
+  "stage_a.py": "cbb27ef8c280d2c7bc70e9c7b657cb3973df251cfe03ad0b0d72398cc6f59953",
+  "stage_a_controller.py": "3a47736dd5cb1f85c3b0b6bc2f2f189b7d5de359170a428760aefdc4153ae9c5",
+  "stage_a_guard.py": "a801e48edc0281988e86806fcf31206d7da3e220cfa7690c333990a635076750",
+  "stage_a_report.py": "42c134f35d682ca51aa67a936db47850c892a5e2c369c811dd602de646e7a511",
+  "stage_a_watchdog.py": "4c6d8723fec88afd59f9b9ff833cb6235462ca6e6c711e199dbc7f6af829b1ed"
+ },
+ "machine": "arm64",
+ "macos": "27.0",
+ "manifest_sha256": "e816f843700a4a15c4ca56ba71318957e73b77d3560e81a2bf476ff23422f448",
+ "package_file_maps_sha256": "1cff193d3a630b6755ca095e93a2dc8445f37ebb8a48eacd0ff8f6fcb39c8ab8",
+ "package_versions": {
+  "PIL": "12.3.0",
+  "huggingface_hub": "1.22.0",
+  "mlx": "0.31.2",
+  "mlx-metal": "0.31.2",
+  "mlx_lm": "0.31.3",
+  "mlx_vlm": "0.6.3",
+  "numpy": "2.5.1",
+  "pydantic": "2.13.5",
+  "safetensors": "0.8.0",
+  "tokenizers": "0.22.2",
+  "transformers": "5.13.0"
+ },
+ "packet_py_sha256": "e4e0b6f8506b3af9f44b610e700ae12ba81cccb97d2982bd231611b2888c2eef",
+ "plan_sha256": "3faebf4eab25081cf32652bf025fa8fab9d11bee6f1c9a19a1cf2dbad45417cc",
+ "positions_receipt_sha256": "db66fe563bc52f67d129d95d72d30d784de29858cf58d1f8db68eff847f1d334",
+ "python": "3.12.14",
+ "row": "20",
+ "snapshot": {
+  "files_sha256": {
+   "chat_template.jinja": "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259",
+   "config.json": "ede24666ac51e6d5ab948a8a1e6c72fc6effd941ba3aabb6dd942eb517c78043",
+   "configuration.json": "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0",
+   "generation_config.json": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+   "model-00001-of-00003.safetensors": "2689680915661f040c50c35244d08b336def279e509e1ca11873f8dd1b0e7ce0",
+   "model-00002-of-00003.safetensors": "a46183727b2c5cd16613fd8395f5e9e7cc4ad679644558cc87c9406fe334463d",
+   "model-00003-of-00003.safetensors": "ac23bf70b1f239a040921d6f93770d74176fd435dbf44e42317053d06c68d702",
+   "model.safetensors.index.json": "13b840162b4cb35c66fef7df072f7dbb4717908204364f5e5d9f9655a2758fa8",
+   "preprocessor_config.json": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+   "processor_config.json": "51c5f33646392e0bf1ed3e96be02504da47406c21c6cb86925d8908d1a6c4da7",
+   "tokenizer.json": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4",
+   "tokenizer_config.json": "e98f1901ac6f0adff67b1d540bfa0c36ac1a0cf59eb72ed78146ef89aafa1182",
+   "video_preprocessor_config.json": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+   "vocab.json": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003"
+  },
+  "id": "c000ac2c2057d94be3fa931000c31723aac53282"
+ },
+ "stage": "A"
+}''')}
+PREDECESSORS = {PREDECESSOR_ID: PREDECESSOR, PREDECESSOR_12_ID: PREDECESSOR_12}
+TRANSITION = "IDENTITY_TRANSITION.json"          # the first recorded transition; later ones IDENTITY_TRANSITION.<n>.json
 FROZEN_KEYS = ("plan_sha256", "manifest_sha256", "positions_receipt_sha256", "packet_py_sha256",
                "package_file_maps_sha256", "jlens", "lens", "dispatch", "machine", "macos")
 
 
 def transition_record(out: Path) -> dict | None:
+    """The FIRST recorded transition (revision 12's file name)."""
     p = out / TRANSITION
     return json.loads(p.read_text()) if p.exists() else None
 
 
+def transition_records(out: Path) -> list[dict]:
+    """Every recorded transition in order: IDENTITY_TRANSITION.json, then IDENTITY_TRANSITION.2.json, .3, ..."""
+    first = transition_record(out)
+    if first is None:
+        return []
+    recs, n = [first], 2
+    while (out / f"IDENTITY_TRANSITION.{n}.json").exists():
+        recs.append(json.loads((out / f"IDENTITY_TRANSITION.{n}.json").read_text()))
+        n += 1
+    return recs
+
+
 def admitted_phase_identity(out: Path, phase_identity: str, current: str) -> bool:
     """A completed phase's producer identity is admitted under the current one when they are equal, or when the
-    recorded transition maps exactly that predecessor to exactly the current identity (revision 12)."""
+    recorded transitions form an unbroken chain of DECLARED predecessors from exactly that identity to exactly the
+    current one (revision 12: one link; revision 13: rev 10 -> rev 12 -> rev 13)."""
     if phase_identity == current:
         return True
-    t = transition_record(out)
-    return bool(t) and t.get("from") == phase_identity == PREDECESSOR_ID and t.get("to") == current
+    chain, at, started = transition_records(out), phase_identity, False
+    for i, t in enumerate(chain):
+        if i and t.get("from") != chain[i - 1].get("to"):
+            return False                               # a broken chain admits nothing
+        if t.get("from") == at and at in PREDECESSORS:
+            at, started = t.get("to"), True
+        elif started:
+            return False
+    return started and at == current
 
 
 def identity_transition(ctx, current_ident: dict) -> None:
-    """Called by worker_open before the ledger opens: a no-op unless the ledger is bound to the declared
-    predecessor and the current package differs from it."""
+    """Called by worker_open before the ledger opens: a no-op unless the ledger is bound to a DECLARED predecessor
+    and the current package differs from it. Writes the next transition record before the ledger's slot moves."""
     from stage_a_guard import terminal_release
     sp = ctx.out / "stage_a_state.json"
     if not sp.exists():
@@ -691,15 +823,21 @@ def identity_transition(ctx, current_ident: dict) -> None:
     have, cur = (st.get("identities") or {}).get("row20"), current_ident["identity_sha256"]
     if have in (None, cur):
         return
-    if have != PREDECESSOR_ID:
+    if have not in PREDECESSORS:
         return                                         # the ledger refuses the mismatch itself (enforce.Budget)
-    body = PREDECESSOR["identity_body"]
-    if sha(json.dumps(body, sort_keys=True).encode()) != PREDECESSOR_ID:
+    pred = PREDECESSORS[have]
+    body = pred["identity_body"]
+    if sha(json.dumps(body, sort_keys=True).encode()) != have:
         raise SystemExit("refused: the declared predecessor's identity body does not hash to its identity")
+    chain = transition_records(ctx.out)
+    if chain and chain[-1].get("to") != have:
+        raise SystemExit("refused: the ledger's identity is not where the recorded transitions end")
     rel = terminal_release(ctx.out)
     if rel is None:
         raise SystemExit("refused: a predecessor's completed phases are admitted only under the owner's terminal "
                          "release (TERMINAL_RELEASE.json naming this run's terminal record)")
+    if any(t.get("release_sha256") == rel["file_sha256"] for t in chain):
+        raise SystemExit("refused: this terminal release was already consumed by an earlier transition")
     differ = [k for k in FROZEN_KEYS if body.get(k) != current_ident.get(k)]
     if differ:
         raise SystemExit(f"refused: the frozen inputs differ from the predecessor's ({differ}); its outputs cannot be "
@@ -707,14 +845,15 @@ def identity_transition(ctx, current_ident: dict) -> None:
     if st.get("open_attempt") or st.get("interrupted"):
         raise SystemExit("refused: an open or interrupted attempt in the predecessor's ledger; no transition")
     code_old, code_new = body.get("local_code_sha256", {}), current_ident.get("local_code_sha256", {})
-    rec = {"from": PREDECESSOR_ID, "to": cur, "predecessor": {k: PREDECESSOR[k] for k in ("package", "review", "phases")},
+    rec = {"from": have, "to": cur, "predecessor": {k: pred[k] for k in ("package", "review", "phases")},
            "release_sha256": rel["file_sha256"], "wall": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
            "local_code_differs": {n: {"from": code_old.get(n), "to": code_new.get(n)}
                                   for n in sorted(set(code_old) | set(code_new)) if code_old.get(n) != code_new.get(n)},
            "frozen_identical": list(FROZEN_KEYS), "completed_attempts": sorted(st.get("completed", {})),
            "counters": st.get("counters"), "carry_in": st.get("carry_in")}
     from enforce import write_json_atomic
-    write_json_atomic(ctx.out / TRANSITION, rec, final=True)     # durable BEFORE the ledger's slot moves
+    name = TRANSITION if not chain else f"IDENTITY_TRANSITION.{len(chain) + 1}.json"
+    write_json_atomic(ctx.out / name, rec, final=True)           # durable BEFORE the ledger's slot moves
     st["identities"]["row20"] = cur
     write_json_atomic(sp, st, final=True)
 
@@ -731,7 +870,7 @@ def worker_open(ctx: Ctx, phase: str, *, terminal_gate: bool = True):
         check_terminal(ctx.out)
     plan, manifest = load_frozen(ctx)
     cur_ident = json.loads(ctx.identity_path.read_text())
-    identity_transition(ctx, cur_ident)                    # revision 12: a reviewed predecessor's phases (A1)
+    identity_transition(ctx, cur_ident)                    # revisions 12-13: reviewed predecessors' phases (A1, D)
     ident = cur_ident["identity_sha256"]
     budget = Budget(ctx.out / "stage_a_state.json", "row20", ident, [ctx.out],
                     os.environ.get("STAGE_A_SESSION", "test"), carry_in=ENGINEERING_CARRY,
@@ -1083,11 +1222,31 @@ def compare(inst_u16: np.ndarray, nat: np.ndarray, li: np.ndarray, ln: np.ndarra
            "ref_norm_min": float(den.min()), "logit_abs_diff": d.tolist(), "logit_max_abs": float(d.max()),
            "argmax_inst": int(li.argmax()), "argmax_native": int(ln.argmax())}
     stats = [row["rel_l2_max"], row["logit_max_abs"], row["ref_norm_min"], *row["rel_l2_by_layer"]]
-    if not all(np.isfinite(stats)):
+    if not all(np.isfinite(stats)) or not (np.all(np.isfinite(li)) and np.all(np.isfinite(ln))):
         raise StopCheck("a comparison statistic is nonfinite")
+    # revision 13: the per-logit tolerance; the row reports the largest difference with the magnitude, tolerance and
+    # bf16 steps at it, and the worst logit (largest difference / tolerance), which decides the logit criterion
+    mag = np.maximum(np.abs(li), np.abs(ln))
+    tol = np.array([logit_tolerance(m) for m in mag])
+    step = np.array([bf16_step(m) for m in mag])
+    k, w = int(d.argmax()), int((d / tol).argmax())
+    row.update({"logit_max_abs_magnitude": float(mag[k]), "logit_max_abs_tolerance": float(tol[k]),
+                "logit_max_abs_bf16_steps": float(d[k] / step[k]) if step[k] > 0 else None,
+                "logit_worst_index": w, "logit_worst_abs": float(d[w]), "logit_worst_magnitude": float(mag[w]),
+                "logit_worst_tolerance": float(tol[w]),
+                "logit_worst_bf16_steps": float(d[w] / step[w]) if step[w] > 0 else None,
+                "logit_within_tolerance": bool(np.all(d <= tol))})
     row["argmax_equal"] = row["argmax_inst"] == row["argmax_native"]
-    row["pass"] = row["rel_l2_max"] <= TOL["rel_l2"] and row["logit_max_abs"] <= TOL["logit"] and row["argmax_equal"]
+    row["pass"] = row["rel_l2_max"] <= TOL["rel_l2"] and row["logit_within_tolerance"] and row["argmax_equal"]
     return row
+
+
+def parity_failure(aid: str, row: dict) -> str:
+    """The StopCheck text for a failing parity row (revision 13: the worst logit's magnitude, tolerance and steps)."""
+    return (f"{aid}: native parity failed (rel_l2_max {row['rel_l2_max']:.3g}, argmax_equal {row['argmax_equal']}, "
+            f"logit max abs {row['logit_max_abs']:.3g}; worst logit: difference {row['logit_worst_abs']:.4g} at "
+            f"magnitude {row['logit_worst_magnitude']:.4g}, tolerance {row['logit_worst_tolerance']:.4g}, "
+            f"{row['logit_worst_bf16_steps']} bf16 steps)")
 
 
 def run_native(ctx: Ctx | None = None) -> dict:
@@ -1155,8 +1314,7 @@ def run_native(ctx: Ctx | None = None) -> dict:
                    "inputs_embeds_equal_instrumented_merge": rec["inputs_embeds_equal_instrumented_merge"]}
             rows.append(row)
             if not row["pass"]:
-                raise StopCheck(f"{aid}: native parity failed (rel_l2_max {row['rel_l2_max']:.3g}, logit "
-                                f"{row['logit_max_abs']:.3g}, argmax_equal {row['argmax_equal']})")
+                raise StopCheck(parity_failure(aid, row))
         finish_native(ctx, budget, plan, rows, ident)
         return {"native": len(rows), "counters": budget.state["counters"]["row20"]}
     except BaseException as exc:

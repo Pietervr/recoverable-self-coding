@@ -1,4 +1,4 @@
-# Stage A (ledger row 20): declared criteria and code, revision 12 (R084, 2 October 2026)
+# Stage A (ledger row 20): declared criteria and code, revision 13 (R084, 3 October 2026)
 
 **Specification:** framework `rsc_t1_two_channel_framework.md` §8.2, §8.4 and §8.6 (Unimog; R052's text).
 
@@ -17,7 +17,8 @@
 | 9 | RSC `ba4fc75` | RSC `dda950b` (combined) | NOT ON BOARD; A1.1 and A1.2 closed as submitted; alignments a–d accepted; a live foreign start before the lock left |
 | 10 | RSC `fbfb7db` | RSC `3390183` | FAVOURABLE; the owner's go (2 October) ran it: STOPPED by the controller race (`reviews/2026-10-02_stage_a_run.md`) |
 | 11 | RSC `308901c` | RSC `5eb51a8` | NOT ON BOARD (Stage A; the reader favourable): A1 old-package admission, A2 gates hold, A3 live controls in the wait |
-| 12 | this commit | — | answers R052's handoff `cfc4a341`: A1–A3 and the declarations (§R12) |
+| 12 | RSC `620f768` | RSC `e7b31f0` | FAVOURABLE; the owner's release and go (bound at RSC `cef5e0b`) resumed it on 3 October: STOPPED at 15-native by the frozen logit criterion (`reviews/2026-10-03_stage_a_resume_run.md`) |
+| 13 | this commit | — | answers R052's handoff `8508993b`: the native logit criterion in bfloat16 steps above 16, the chained transition (§R13) |
 
 No review record of a not-favourable verdict can be named by a go: the guard's supplementary negative list holds
 `f9d2ef3`, `69539bb`, `081f17b`, `1bf9890`, `b569f8a`, `c036c00`, `12a7f20`, `7fdb937`, `dda950b` (row 20; the last six combined; the list is in the reader-bound `stage_a_guard.py` and is not extended for `5eb51a8`, so the reader's favourable package stays byte-identical - the general refusal remains the absence of a positive, exactly matching attestation) and `cf3e49e`, `7048bb8`, `5a8d7ac` (AI reader). The general
@@ -33,15 +34,44 @@ envelope's controller constants (finalisation allowance 50 s, revocation 5 s, ex
 guardian setup deadline 300 s) and therefore its budget hash. Revision 8 changes no plan constant: plan, manifest
 and budget are byte-identical to revision 7.
 
-**Exposure.** One actual run has happened: under the owner's go, on 2 October 2026, the revision-10 package ran the
+**Exposure.** Two actual runs have happened. Under the owner's go, on 2 October 2026, the revision-10 package ran the
 gates and the whole instrumented phase - 158 forwards on the 20 development images - and stopped terminally before
-native (`reviews/2026-10-02_stage_a_run.md`). Every MECHANISM measurement below is from declared, non-development
+native (`reviews/2026-10-02_stage_a_run.md`). Under the owner's release and go, on 3 October 2026, the revision-12
+package resumed it: the gates, the transition, 16 native forwards (00- to 15-native), then a terminal stop at
+15-native by the frozen logit criterion (`reviews/2026-10-03_stage_a_resume_run.md`); the 158 instrumented records are
+unchanged. Every MECHANISM measurement below is from declared, non-development
 fixtures: synthetic worker processes, the real watchdog, synthetic arrays; no model and no image
 (`controller_fixtures.json`, recorded 2 October 2026 at 10:01 MST on the revision-8 code and kept as the PINNED
 SAMPLING/TICK/KILL MEASUREMENTS: revisions 9 and 10 change no sampling, tick or worker-kill path; they DO change the
 guardian's arming and release paths and add the foreign-start reconcile, whose evidence is the revision-9/10 tests
 and the retained suite run, not that file; the §000/§00 interval, margin and A1–A3 values are from that file;
 values inside the older sections are their own revision's and are marked so).
+
+## R13. Revision 13: the native logit criterion and the chained transition (R052 handoff `8508993b`)
+
+**What the 3 October records show** (`reviews/2026-10-03_stage_a_resume_run/native_diag.stdout.txt`). In all 16 native
+records the marker-row residuals are bit-identical to the instrumented ones (relative L2 = 0), the merged inputs are
+equal and the argmax is equal; the largest requested-logit difference is, in every record, exactly one bfloat16 step
+at that logit's magnitude: 0.03125 (logits 2-7), 0.0625 (11.6-15.8), 0.125 at 16.5 (15-native). The frozen absolute
+0.10 is finer than the bf16 representation's own resolution for any logit of magnitude >= 16: two native paths that
+round differently cannot agree closer than one step there. Below 16 the same 0.10 admits one or more steps and was
+satisfied by every comparison. The defect is one-sided.
+
+| # | Item | Where it lives | Fixture |
+|---|---|---|---|
+| A | The native logit criterion, per requested logit: \|native − instrumented\| ≤ max(0.10, one bfloat16 step at m), m = max(\|native\|, \|instrumented\|), step = 2^(floor(log2 m) − 7) (0 at m = 0, where 0.10 applies). The frozen 0.10 for every \|logit\| < 16; one step at and above 16 (0.125 for 16-32, 0.25 for 32-64). Relative L2 ≤ 0.01 and identical argmax unchanged. | `stage_a.bf16_step`, `logit_tolerance`, `compare` - the ONE implementation called by the native worker (`run_native`, its StopCheck via `parity_failure`) and by the final validator (`stage_a_report`, the PARITY row). The row adds the magnitude, tolerance and bf16 steps at the largest difference and at the worst logit (largest difference / tolerance), and `logit_within_tolerance`; the report's parity table shows them. | `test_stage_a_runner.Rev13Parity`: steps at 16.5, 16.0, just below 16, 32, 3.0, 0.3, 0, −16.5; one step at 16.5 passes; two steps fail; 0.11 at 12.0 fails; 0.0625 at 3.0 passes; 0.13 at 16.0 fails; m = 16 exactly with 0.125 passes; m just below 16 with 0.12 fails; 0.10 below 16 passes; argmax inequality and rel L2 > 0.01 fail whatever the logits; the source check that both sites call `compare` and no absolute-only test remains |
+| D | The chained transition | `stage_a.PREDECESSORS`: revision 10 (`e146ec63…`, the instrumented phase) and revision 12 (`c0fb2ea0…`, RSC `620f768`, favourable at `e7b31f0`; the native records 00-15), each identity body embedded verbatim and checked to hash to it. `identity_transition` moves the ledger from whichever declared predecessor it holds, only where the recorded transitions end, under a terminal release not consumed by an earlier transition, with every frozen component identical and no open or interrupted attempt; it writes the next record (`IDENTITY_TRANSITION.2.json`; the first stays as written) before the slot moves. `admitted_phase_identity` admits a phase record whose identity reaches the current one through an unbroken chain of declared predecessors (rev 10 → rev 12 → rev 13); a broken chain admits nothing. Nothing is relabelled or recomputed; the resume re-evaluates 15-native's committed logits under A and runs 16- to 19-native and the report. | `test_stage_a_runner.Rev13Transition`, on a COPY of the REAL 3 October records (no forward): the copied state is the 3 October one; with a release, the second transition is written, counters (190 started, 189 completed, 1 failed) and completed records carried, the first transition and `INSTRUMENTED_DONE.json` byte-unchanged, the instrumented phase admitted through two links, pre-native admission passes, all 16 committed native records pass A (15-native at exactly one step, 0.125 at 16.5; under revision 12's rule only 15-native fails); without a release, and with the 2 October release (stale), no transition; changed frozen inputs, a ledger not where the chain ends, an undeclared predecessor, a broken chain and a relabelled phase record refuse. `Rev12Transition` now skips: the 2 October ledger it copied was moved by the 3 October transition. |
+
+**Rationale.** The native path emits bfloat16 logits; a tolerance below one representable step is not a fidelity test
+but a demand that two roundings coincide. The 0.10 is kept wherever it is coarser than a step, so nothing the earlier
+comparisons admitted becomes stricter and nothing they refused becomes looser. Not adopted: one step at every logit
+(fails most records at small logits and tests rounding, not fidelity); a relative tolerance (admits two steps at the
+top of a binade and changes the rule everywhere).
+
+**The 3 October attempt.** It stays TERMINAL in the record until the owner's `TERMINAL_RELEASE.json` names its
+TERMINAL.json (which now carries the native StopCheck); then the native worker's `worker_open` performs the second
+transition; 190 of 200 forwards, 2,169.5 s of 14,400 s and the storage are carried; native 16-19 (4 forwards) and the
+report remain.
 
 ## R12. Revision 12: the three items of RSC `5eb51a8`
 
@@ -372,7 +402,8 @@ lifetime after a fall); the B prediction recomputed at finalisation; the interpr
 ## 3. Inputs, cases, tolerances and stops
 
 Unchanged from revision 4 (and 3, 2): relative L2 ≤ 0.01 per marker layer (FP32 in FP64, instrumented norm as
-denominator), maximum E1 logit difference ≤ 0.10, identical argmax, the within-path cases bitwise equal to plain. The
+denominator), E1 logit difference ≤ 0.10 per requested logit - from revision 13 ≤ max(0.10, one bfloat16 step at
+the logit's magnitude) (§R13) - identical argmax, the within-path cases bitwise equal to plain. The
 envelope: 16 carried + 140 + 16 + 2 + 20 = **194 of 200**, 1,808.73 s carried; caps A 200 / 4 h / 1 GiB, task
 memory 48 GiB (stop 44 GiB).
 
@@ -400,8 +431,8 @@ same five hashes). If one review approves both Stage A and the AI reader, each g
 
 ## 6. Tests (no model)
 
-The retained-output evidence for this package is `reviews/2026-10-02_photo_suite_rev12_run.md` (command, exit status,
-counts, skips, identity, stdout/stderr); earlier records (`..._rev5_run.md` to `..._rev11_run.md`) are historical.
+The retained-output evidence for this package is `reviews/2026-10-03_photo_suite_stage_a_rev13_run.md` (command, exit
+status, counts, skips, identity, stdout/stderr); earlier records (`..._rev5_run.md` to `..._rev12_run.md`) are historical.
 
 ## 7. Stated limits (not narrowed silently)
 
