@@ -1,0 +1,100 @@
+{
+ "schema": "row19-shard-watch-3",
+ "time": 1791051013.524498,
+ "fresh": true,
+ "production": true,
+ "alarms": [],
+ "reps": {
+  "0": {
+   "accepted": 0,
+   "failed": 0,
+   "rejected": 0,
+   "no_timing": 0,
+   "overlap": 0,
+   "equal": 0,
+   "basis": "local",
+   "median_wall_s": null,
+   "peak_rss": null
+  },
+  "1": {
+   "accepted": 0,
+   "failed": 0,
+   "rejected": 0,
+   "no_timing": 0,
+   "overlap": 0,
+   "equal": 0,
+   "basis": "local",
+   "median_wall_s": null,
+   "peak_rss": null
+  },
+  "2": {
+   "accepted": 0,
+   "failed": 0,
+   "rejected": 0,
+   "no_timing": 0,
+   "overlap": 0,
+   "equal": 0,
+   "basis": "oracle",
+   "median_wall_s": null,
+   "peak_rss": null
+  }
+ },
+ "jobs": {
+  "1": {
+   "job_id": "7517913.sched01",
+   "state": "R",
+   "terminal": false,
+   "slots": 24,
+   "ended": 0,
+   "exits": [],
+   "runner_exit": null,
+   "mem_kb": 9076620,
+   "reps": [
+    0,
+    1,
+    2
+   ],
+   "pbs_exit": null,
+   "token": "4e2c3b6a568a",
+   "plan_sha256": "e78d26122d19be14abfc5048a811c8c1497efc5635132aca0bc24457ed8d4d10",
+   "slot_table": []
+  }
+ },
+ "manifest": "row19_shard_manifest.json",
+ "bound": {
+  "manifest_sha256": "0eae2e6fcbc1dd71d34c20f02f86777e151ed2c2d8a3f6419aa15cee94097102",
+  "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard",
+  "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard_campaign",
+  "code": {
+   "models.py": "28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef",
+   "analyze.py": "97558aa9c4340f363431c67f2c2d28cd360f2f0998056af7e1702c9e9a021825",
+   "simulate.py": "f588b9121be48ec553ab95e4dda5736941865498922468b5868c96758d0afe57",
+   "chpc/row19_slice.py": "c67c4c0c776d810480218f0111623481b38598b30a5c5cb68127dcc83c5dacca",
+   "chpc/row19_ledger.py": "8cfc7b0d256e5d89e5885eca47bd776ff00720d96e18298ff97db9c7db5a58de",
+   "chpc/row19_shard.py": "828d59640f10cc33fcba7d98d075371945ca4b74ddaca841ea86100fc47ff383"
+  },
+  "wrapper_sha256": "f9c3ff028982d04e9186b62bed8e63da999348c584491bd67f1d79071bad926c",
+  "identities": {
+   "0": "f6a03a7eff618e159690014cf7b2caa4fe1126942c3ee440d8b50714b6527000",
+   "1": "808a6e3936fd324ff66a4561bf1d738401664296fe0dd967ee6d44943147bc36",
+   "2": "40346e3d0516aa48c27d328481dec03da8a1018fd436370e530915f27c844f55"
+  },
+  "binding_manifest_sha": {
+   "0": "0eae2e6fcbc1dd71d34c20f02f86777e151ed2c2d8a3f6419aa15cee94097102",
+   "1": "0eae2e6fcbc1dd71d34c20f02f86777e151ed2c2d8a3f6419aa15cee94097102",
+   "2": "0eae2e6fcbc1dd71d34c20f02f86777e151ed2c2d8a3f6419aa15cee94097102"
+  },
+  "jobs": {
+   "1": {
+    "job_id": "7517913.sched01",
+    "token": "4e2c3b6a568a",
+    "plan_sha256": "e78d26122d19be14abfc5048a811c8c1497efc5635132aca0bc24457ed8d4d10"
+   }
+  }
+ },
+ "ledger": {
+  "cap": 24000.0,
+  "settled": 0,
+  "live": 1152.0
+ }
+}

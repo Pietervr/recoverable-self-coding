@@ -1,0 +1,34 @@
+2026-10-03T18:02:23Z
+ job_state = R; exec_host = cnode0022/0*24; stime = Sat Oct 3 20:01:43 2026; comment = Job run at Sat Oct 03 at 20:01 on (cnode0022:ncpus=24:mem=1258291;
+== 2026-10-03T18:05:21Z
+--------------- -------- -------- ---------- ------ --- --- ------ ----- - -----
+7516927.sched01 pvanrooy seriallo t1_row19_c 180447   1   1    8gb 144:0 R 14:43
+7516928.sched01 pvanrooy seriallo t1_row19_s 180450   1   1    8gb 144:0 R 14:43
+7516929.sched01 pvanrooy seriallo t1_row19_s 133007   1   1    8gb 144:0 R 14:42
+7516930.sched01 pvanrooy seriallo t1_row19_s 133009   1   1    8gb 144:0 R 14:42
+7517913.sched01 pvanrooy serial   t1_shard_1  11650   1  24  120gb 48:00 R 00:03
+== root
+gate
+logs
+plans
+records
+status
+task_0.json
+task_0.json.lock
+task_1.json
+task_1.json.lock
+task_2.json
+task_2.json.lock
+timing
+== bindings
+-rw-rw-r-- 1 pvanrooyen pvanrooyen 1019 Oct  3 20:02 /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard/task_0.json
+-rw-rw-r-- 1 pvanrooyen pvanrooyen 1019 Oct  3 20:02 /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard/task_1.json
+-rw-rw-r-- 1 pvanrooyen pvanrooyen 1019 Oct  3 20:02 /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard/task_2.json
+== status files
+/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard/task_0.json
+/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard/task_1.json
+/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard/task_2.json
+== job output
+-rw-rw-r--  1 pvanrooyen pvanrooyen  7931 Oct  3 19:49 row19_shard_1.pbs
+
+[exited with code 0]

@@ -10,7 +10,13 @@ record or a live job without its plan HOLDS, and the gate admits only the pilot 
 a fresh zero-alarm receipt, never past a STOP. Status view: fails closed on runner exit 4, a terminal job with missing
 or undeclared worker exits, a failed admission, a job that started without bindings, a vanished job, incomplete timing,
 a memory breach, a rejected record, a parity difference (float bits) and absent sequential evidence; zero overlap is
-PENDING; the pilot is qualified only with observed, equal parity for every dataset."""
+PENDING; the pilot is qualified only with observed, equal parity for every dataset.
+Revision 3 (Codex RSC 13a2fea): the later gate PARSES the qualification and the watch receipt and verifies them against
+the manifest file's hash, the root, the campaign, the pins, the task identities and the pilot's PBS id / token / plan
+hash; a non-production, foreign, malformed, non-finite or future-dated document is refused; the reviewer's verdict is a
+required hash-bound record, never overwritten, bounded to a highest job number; the 2,700 s ceiling cannot be raised.
+The view reconciles every worker status with its plan slot EXACTLY (assigned list, new / resumed / left partition, exit
+against left, record and timing provenance by job and slot) and reports a deadline exit slot by slot."""
 import os
 os.environ.setdefault("NPROC", "1")
 import json, tempfile, importlib.util, sys, time, io, contextlib, inspect, hashlib, copy, shutil
@@ -301,16 +307,10 @@ def test_the_planner_validates_evidence_and_the_gate_is_enforced():
         assert "not qualified" in SUB.gate_problems(man2, {1}, False, 8, 2700)
         gate = os.path.join(root, "gate"); os.makedirs(gate, exist_ok=True)
         json.dump({"qualified_job": 1}, open(os.path.join(gate, "qualified_job1.json"), "w"))
-        assert "no watch receipt" in SUB.gate_problems(man2, {1}, False, 8, 2700)
-        rcp = os.path.join(gate, "watch_receipt.json")
-        json.dump({"time": time.time(), "fresh": True, "alarms": ["x"]}, open(rcp, "w"))
-        assert "zero-alarm" in SUB.gate_problems(man2, {1}, False, 8, 2700)
-        json.dump({"time": time.time(), "fresh": False, "alarms": []}, open(rcp, "w"))
-        assert "zero-alarm" in SUB.gate_problems(man2, {1}, False, 8, 2700)
-        json.dump({"time": time.time() - 3000, "fresh": True, "alarms": []}, open(rcp, "w"))
-        assert "old" in SUB.gate_problems(man2, {1}, False, 8, 2700)
-        json.dump({"time": time.time(), "fresh": True, "alarms": []}, open(rcp, "w"))
-        assert SUB.gate_problems(man2, {1}, False, 8, 2700) == ""
+        json.dump({"time": time.time(), "fresh": True, "alarms": []}, open(os.path.join(gate, "watch_receipt.json"), "w"))
+        # revision 3: the mere existence of a qualification and a recent zero-alarm receipt admits NOTHING
+        assert "manifest's path" in SUB.gate_problems(man2, {1}, False, 8, 2700)
+        assert "cannot be read" in SUB.gate_problems(man2, {1}, False, 8, 2700, manifest_path=mp)   # no bindings in this root
         open(os.path.join(root, "STOP"), "w").write("stop")
         assert "STOP" in SUB.gate_problems(man2, {1}, False, 8, 2700) and "STOP" in SUB.gate_problems(man2, set(), True, 1, 2700)
         os.remove(os.path.join(root, "STOP"))
@@ -428,3 +428,226 @@ def test_the_status_view_fails_closed_and_qualifies_only_on_observed_parity():
         rc, out = _view(mp, ok)
         assert rc == 1 and "rep 2: no task binding although" in out and "slot 9, which the plan does not have" in out
         assert "sequential slice's ledger is absent" in out
+
+
+def _gate_fixture():
+    """A finished pilot (job 1) over three datasets with sequential records for parity, viewed and qualified by the status
+    view; its qualification and a watch receipt placed in the root's gate AS IF from production (the view under test
+    switches marks them non-production; the fixture sets the two flags, nothing else)."""
+    d, c = _dirs()
+    man = _manifest(d, c, n_boot=10)
+    for rep in (0, 1, 2):
+        assert _run(d, man, "--job-id", f"j{rep}", "--segment", "2", rep=rep) == R19.RESUME
+    man2, mp, root = _shard_manifest(c, n_boot=10, cores=4, mem_stop_gib=64.0)
+    plan = {"job": 1, "slots": [{"slot": 0, "rep": 0, "indices": [0, 1, 7]}, {"slot": 1, "rep": 1, "indices": [0, 1]}, {"slot": 2, "rep": 2, "indices": [0, 1]}]}
+    tok = _campaign_job(c, root, mp, plan, "sj1")
+    pbs = {"sj1": {"state": "F", "exit": 0, "mem_kb": 2 * 2 ** 20}}
+    _snapshot(d, c, root)
+    rc, out = _view(mp, pbs, "--qualify", "1")
+    assert rc == 0 and "QUALIFIED: job 1 on NON-PRODUCTION evidence" in out, out
+    q = json.load(open(os.path.join(ST.RECEIPTS, "qualified_job1.json")))
+    assert q["production"] is False and q["receipt"]["production"] is False and q["schema"] == ST.QUAL_SCHEMA
+    return dict(d=d, c=c, man=man2, mp=mp, root=root, tok=tok, pbs=pbs, q=q)
+
+
+def _install(fx, q=None, watch=None, age=0.0):
+    """Write the qualification and a watch receipt into the root's gate as production documents."""
+    gate = os.path.join(fx["root"], "gate"); os.makedirs(gate, exist_ok=True)
+    q = copy.deepcopy(fx["q"] if q is None else q)
+    if q.get("production") is False and "receipt" in q and q is not None and q.get("_keep") is None:
+        q["production"] = True; q["receipt"]["production"] = True; q["receipt"]["fresh"] = True
+    q.pop("_keep", None)
+    json.dump(q, open(os.path.join(gate, "qualified_job1.json"), "w"))
+    w = copy.deepcopy(q["receipt"]) if watch is None else copy.deepcopy(watch)
+    if watch is None:
+        w["time"] = time.time() - age
+    json.dump(w, open(os.path.join(gate, "watch_receipt.json"), "w"))
+    return os.path.join(gate, "qualified_job1.json"), os.path.join(gate, "watch_receipt.json")
+
+
+def _gate(fx, planned=(2, 3), max_age=2700, used=(1,)):
+    return SUB.gate_problems(fx["man"], set(used), False, len(planned), max_age, manifest_path=fx["mp"], planned=list(planned))
+
+
+def _adopt(fx, max_job=9, name="reviews/pilot_review_record.md", text="the reviewer's verdict on the pilot evidence: yes\n"):
+    full = os.path.join(fx["root"], "workspace_demo", "t1_access", name)
+    os.makedirs(os.path.dirname(full), exist_ok=True)
+    if not os.path.exists(full):
+        open(full, "w").write(text)
+    return SUB.adopt_review(fx["man"], fx["mp"], name, max_job)
+
+
+def test_the_later_gate_is_bound_to_this_pilot_and_needs_the_adopted_review():
+    with _Patched():
+        fx = _gate_fixture()
+        root, mp, man2 = fx["root"], fx["mp"], fx["man"]
+        qp, wp = _install(fx)
+        # a verified qualification and a fresh bound receipt are still NOT authority: the reviewer's verdict comes first
+        assert "no adopted review" in _gate(fx)
+        assert _adopt(fx, max_job=1).startswith("REFUSED") and "REFUSED" in SUB.adopt_review(man2, mp, "../outside.md", 9)
+        assert "not in the clone" in SUB.adopt_review(man2, mp, "reviews/absent.md", 9)
+        out = _adopt(fx, max_job=9)
+        assert out.startswith("adopted"), out
+        assert _gate(fx) == "" and _gate(fx, planned=range(2, 10)) == ""
+        assert "exceed the highest job number 9" in _gate(fx, planned=(9, 10))
+        assert "never overwritten" in _adopt(fx, max_job=20)                                      # the adopted review is not replaced
+        rv = SUB.review_path(root); raw_rv = open(rv).read()
+        # the watch receipt: age (the ceiling cannot be raised, only lowered), future, non-production, alarms, foreign jobs
+        _install(fx, age=2701); assert "limit 2700 s" in _gate(fx, max_age=10 ** 6)
+        _install(fx, age=700); assert _gate(fx) == "" and "limit 600 s" in _gate(fx, max_age=600)
+        _install(fx, age=-300); assert "future" in _gate(fx)
+        w = copy.deepcopy(fx["q"]["receipt"]); w.update(production=True, fresh=True, time=time.time())
+        for mut, want in ((dict(production=False), "not fresh production evidence"), (dict(fresh=False), "not fresh production evidence"),
+                          (dict(alarms=["x"]), "1 alarm"), (dict(schema="old"), "is not a row19-shard-watch-3"), (dict(time=None), "not a finite number")):
+            _install(fx, watch=dict(w, **mut)); assert want in _gate(fx), (mut, _gate(fx))
+        open(wp, "w").write(json.dumps(dict(w, time=1.0)).replace("1.0", "NaN")); assert "malformed" in _gate(fx)
+        open(wp, "w").write("[1, 2]"); assert "malformed" in _gate(fx)
+        os.remove(wp); assert "no watch receipt" in _gate(fx)
+        for key, val, want in (("manifest_sha256", "0" * 64, "`manifest_sha256`"), ("root", "/elsewhere", "`root`"), ("campaign", "/other", "`campaign`"),
+                               ("code", {}, "`code`"), ("identities", {"0": "x"}, "`identities`")):
+            w2 = copy.deepcopy(w); w2["bound"][key] = val
+            _install(fx, watch=w2); assert "watch receipt is refused" in _gate(fx) and want in _gate(fx)
+        # a NEW shard job in the ledger that the receipt did not see: the receipt no longer covers the campaign
+        L = CampaignLedger(fx["c"], 1500.0); tok2, _ = L.reserve("shard", 2, 4, 3600.0, root)
+        _install(fx); assert "are not the ledger's" in _gate(fx, used=(1, 2), planned=(3,))
+        led = json.load(open(L.path)); del led["entries"][tok2]; json.dump(led, open(L.path, "w"))
+        _install(fx); assert _gate(fx) == ""
+        # the qualification: malformed, old-schema, non-production, future, foreign, altered after the fact
+        for text, want in (("{broken", "malformed"), ("[]", "malformed"), (json.dumps({"qualified_job": 1}), "is not a row19-shard-qualification-3")):
+            open(qp, "w").write(text); assert "qualification is refused" in _gate(fx) and want in _gate(fx)
+        q = copy.deepcopy(fx["q"]); q.update(production=True); q["receipt"].update(production=True, fresh=True)
+        def refused(mutate, want):
+            q2 = copy.deepcopy(q); mutate(q2); q2["_keep"] = True
+            _install(fx, q=q2)
+            got = _gate(fx)
+            assert want in got, (want, got)
+        refused(lambda x: x.update(production=False), "not written from production evidence")
+        refused(lambda x: x.update(qualified_job=2), "not the pilot")
+        refused(lambda x: x.update(qualified_job=True), "not the pilot")
+        refused(lambda x: x.update(time=time.time() + 3600), "future")
+        refused(lambda x: x.update(time=1.0), "predates the pilot's recorded end")
+        refused(lambda x: x["bound"].update(manifest_sha256="0" * 64), "`manifest_sha256` is not this campaign's")
+        refused(lambda x: x["bound"].update(root="/another/root"), "`root` is not this campaign's")
+        refused(lambda x: x["bound"]["jobs"]["1"].update(job_id="another.sched01"), "binding of job 1")
+        refused(lambda x: x["bound"]["jobs"]["1"].update(token="ffffffffffff"), "binding of job 1")
+        refused(lambda x: x["bound"]["jobs"]["1"].update(plan_sha256="0" * 64), "binding of job 1")
+        refused(lambda x: x["bound"]["identities"].update({"2": "0" * 64}), "`identities` is not this campaign's")
+        refused(lambda x: x["receipt"].update(alarms=["x"]), "embedded receipt is refused")
+        refused(lambda x: x["receipt"].update(fresh=False), "embedded receipt is refused")
+        refused(lambda x: x["receipt"].update(time=x["time"] - 5), "not the view it was written from")
+        refused(lambda x: x["receipt"]["bound"]["jobs"]["1"].update(job_id="x"), "embedded receipt is refused")
+        refused(lambda x: x["receipt"]["jobs"]["1"].update(state="R"), "does not show the pilot finished")
+        refused(lambda x: x["receipt"]["jobs"]["1"].update(pbs_exit=4), "does not show the pilot finished")
+        refused(lambda x: x["receipt"]["jobs"]["1"].update(exits=[0, 0, 4]), "does not show the pilot finished")
+        refused(lambda x: x["receipt"]["jobs"]["1"].update(ended=2), "does not show the pilot finished")
+        refused(lambda x: x["receipt"]["jobs"]["1"].update(mem_kb=None), "memory observed")
+        refused(lambda x: x["receipt"]["jobs"]["1"].update(mem_kb=119 * 2 ** 20), "memory observed")
+        refused(lambda x: x["receipt"]["reps"]["2"].update(overlap=0, equal=0), "parity with complete evidence for rep 2")
+        refused(lambda x: x["receipt"]["reps"]["1"].update(equal=1), "parity with complete evidence for rep 1")
+        refused(lambda x: x["receipt"]["reps"]["0"].update(no_timing=1), "parity with complete evidence for rep 0")
+        refused(lambda x: x["receipt"]["reps"].pop("2"), "parity with complete evidence for rep 2")
+        # ANY change to the qualification after the review was adopted is another qualification (here: one harmless field)
+        refused(lambda x: x.update(by="someone"), "another qualification")
+        _install(fx); assert _gate(fx) == ""
+        # the root and the ledger are the reference: a plan edited after the fact, a runner that did not end 0/75, a lost binding
+        pp = os.path.join(root, "plans", "job_1.json"); raw_plan = open(pp).read()
+        open(pp, "w").write(raw_plan + " "); assert "binding of job 1" in _gate(fx)
+        open(pp, "w").write(raw_plan); assert _gate(fx) == ""
+        led = json.load(open(L.path)); keep = copy.deepcopy(led)
+        led["entries"][fx["tok"]]["runner_exit"] = 4; json.dump(led, open(L.path, "w"))
+        assert "does not show the pilot's runner ended 0 or 75" in _gate(fx)
+        json.dump(keep, open(L.path, "w")); assert _gate(fx) == ""
+        t2 = os.path.join(root, "task_2.json"); raw_t2 = open(t2).read()
+        os.remove(t2); assert "cannot be read" in _gate(fx)
+        b = json.loads(raw_t2); b["binding"]["manifest_sha"] = "0" * 64; json.dump(b, open(t2, "w"))
+        assert "names manifest" in _gate(fx)
+        open(t2, "w").write(raw_t2); assert _gate(fx) == ""
+        # a changed manifest is another campaign: its hash is in every binding and every receipt
+        raw_m = open(mp).read(); open(mp, "w").write(raw_m + "\n")
+        assert "names manifest" in _gate(fx)
+        open(mp, "w").write(raw_m); assert _gate(fx) == ""
+        # the review: its record changed in the clone, a malformed review, a future-dated one
+        rec = os.path.join(root, "workspace_demo", "t1_access", "reviews", "pilot_review_record.md"); raw_rec = open(rec).read()
+        open(rec, "w").write(raw_rec + "edited"); assert "not in the clone with the adopted SHA-256" in _gate(fx)
+        open(rec, "w").write(raw_rec); assert _gate(fx) == ""
+        v = json.loads(raw_rv)
+        for mut, want in ((dict(schema="x"), "is not a row19-shard-pilot-review-1"), (dict(time=time.time() + 3600), "future"),
+                          (dict(max_job_number=True), "no highest job number"), (dict(record_path="/abs/path.md"), "relative path"),
+                          (dict(qualification_sha256="0" * 64), "another qualification")):
+            json.dump(dict(v, **mut), open(rv, "w")); assert want in _gate(fx), (mut, _gate(fx))
+        open(rv, "w").write("{"); assert "adopted review is unreadable" in _gate(fx)
+        open(rv, "w").write(raw_rv); assert _gate(fx) == ""
+        open(os.path.join(root, "STOP"), "w").write("stop"); assert "STOP" in _gate(fx)
+        os.remove(os.path.join(root, "STOP"))
+        # an adoption is refused while the qualification in the gate does not verify
+        os.remove(rv); q3 = copy.deepcopy(q); q3["production"] = False; q3["_keep"] = True; _install(fx, q=q3)
+        assert "does not verify" in SUB.adopt_review(man2, mp, "reviews/pilot_review_record.md", 9) and not os.path.exists(rv)
+        # the pins: every pinned file must be in the clone the jobs run from, with the manifest's hash
+        assert sorted(SUB.pin_problems(man2)) == sorted(man2["code"]["files"])
+        base = os.path.join(root, "workspace_demo", "t1_access")
+        for rel in man2["code"]["files"]:
+            os.makedirs(os.path.dirname(os.path.join(base, rel)), exist_ok=True)
+            shutil.copyfile(os.path.join(T1, rel), os.path.join(base, rel))
+        bad = SUB.pin_problems(man2)
+        assert bad == [r for r in sorted(man2["code"]["files"]) if SUB.sha_file(os.path.join(T1, r)) != man2["code"]["files"][r]]
+
+
+def test_the_slot_reconciliation_is_exact_and_timing_is_traced_to_its_plan():
+    with _Patched():
+        fx = _gate_fixture()
+        d, c, mp, root, pbs = fx["d"], fx["c"], fx["mp"], fx["root"], fx["pbs"]
+        rc, out = _view(mp, pbs)
+        assert rc == 0 and "slots: new 7, resumed 0, left 0 index(es)" in out, out
+        q = fx["q"]; t0 = q["receipt"]["jobs"]["1"]["slot_table"][0]
+        assert t0["assigned"] == [0, 1, 7] and t0["new"] == [0, 1, 7] and t0["left"] == [] and t0["exit"] == 0
+        assert q["bound"]["jobs"]["1"]["job_id"] == "sj1" and q["bound"]["jobs"]["1"]["token"] == fx["tok"]
+        assert q["bound"]["manifest_sha256"] == ST.sha_file(mp) and set(q["bound"]["identities"]) == {"0", "1", "2"}
+        lr = os.path.join(ST.LIVE_DIR, "root")
+        sp = os.path.join(lr, "status", "jobsj1.slot0.json")
+        def case(mutate, *wants, reset=True):
+            if reset:
+                _snapshot(d, c, root)
+            mutate()
+            rc, out = _view(mp, pbs, "--qualify", "1")
+            assert rc == 1 and "NOT QUALIFIED" in out, out
+            for w in wants:
+                assert w in out, (w, out)
+        def status(**kw):
+            s = json.load(open(sp)); s.update(kw); json.dump(s, open(sp, "w"))
+        # a status announcing a SUBSET of the plan's list (the gap Codex named), and one in another order
+        case(lambda: status(indices=[0, 1], new=[0, 1]), "assigned indices [0, 1] are not the plan's exact list [0, 1, 7]")
+        case(lambda: status(indices=[7, 0, 1]), "are not the plan's exact list")
+        case(lambda: status(left=[1]), "is not a partition of its indices")
+        case(lambda: status(new=[0, 1], left=[7]), "exit 0 with indices left [7]", "index 7 is reported left but an accepted record with this job's timing exists")
+        case(lambda: status(exit=75), "exit 75 with nothing left")
+        case(lambda: status(new=[0, 1], resumed=[7]), "index 7 is reported resumed but its timing names this job")
+        case(lambda: status(ident="0" * 64), "the status's identity is not the task binding's")
+        case(lambda: status(new="all"), "`new` is not a list of integers")
+        case(lambda: status(job="other"), "the status names job other")
+        case(lambda: os.remove(os.path.join(lr, "records", "rep0", "rec_007.json")), "index 7 is reported new but has no accepted record")
+        tp = os.path.join(lr, "timing", "rep0", "t_001.json")
+        def timing(**kw):
+            t = json.load(open(tp)); t.update(kw); json.dump(t, open(tp, "w"))
+        case(lambda: timing(slot=2), "index 1 is reported new but its timing names job sj1 slot 2", "whose plan does not assign it")
+        case(lambda: timing(job="elsewhere"), "which is not a shard job in the ledger with a plan")
+        # a binding of another manifest in the root
+        def other_manifest():
+            p = os.path.join(lr, "task_1.json"); b = json.load(open(p)); b["binding"]["manifest_sha"] = "0" * 64; json.dump(b, open(p, "w"))
+        case(other_manifest, "rep 1: the task binding")
+        # the scheduler must show the job finished 0 or 75 for a qualification
+        _snapshot(d, c, root)
+        rc, out = _view(mp, {"sj1": {"state": "E", "mem_kb": 2 * 2 ** 20}}, "--qualify", "1")
+        assert rc == 1 and "the scheduler does not show job 1 finished" in out
+        # a deadline exit: reported slot by slot, consistent (no alarm), and the unfinished indices are named
+        man2 = fx["man"]
+        L = CampaignLedger(c, 1500.0); tok2, _ = L.reserve("shard", 2, 4, 3600.0, root)
+        plan2 = {"job": 2, "slots": [{"slot": 0, "rep": 0, "indices": [2, 3]}, {"slot": 1, "rep": 1, "indices": [2, 3]}]}
+        pp2 = os.path.join(root, "plans", "job_2.json"); json.dump(plan2, open(pp2, "w")); L.bind(tok2, "sj2")
+        assert _job_start(mp, pp2, "sj2", "--reservation-token", tok2)[0] == SH.DONE
+        assert _worker(mp, 0, [2, 3], slot=0, job="sj2", binding=True)[0] == SH.DONE
+        assert _worker(mp, 1, [2, 3], slot=1, job="sj2", deadline=time.time() - 1, binding=True)[0] == SH.RESUME
+        _call(["job-end", "--manifest", mp, "--plan", pp2, "--job-id", "sj2", "--reservation-token", tok2, "--started-epoch", str(time.time() - 5),
+               "--skip-environment-check"])
+        _snapshot(d, c, root)
+        rc, out = _view(mp, dict(pbs, sj2={"state": "F", "exit": 75, "mem_kb": 2 ** 20}))
+        assert rc == 0 and "exit 75 (slot, rep, left): [(1, 1, [2, 3])]" in out and "slots: new 2, resumed 0, left 2 index(es)" in out, out

@@ -1,0 +1,18 @@
+ create mode 100644 workspace_demo/t1_access/chpc/row19_shard_status.py
+ create mode 100644 workspace_demo/t1_access/chpc/row19_shard_submit.py
+ create mode 100644 workspace_demo/t1_access/test_row19_shard.py
+rsc_oracle HEAD 782e605 T1 row 19 sharded route, revision 2 - Codex 395e49d  status-lines 0
+0eae2e6fcbc1dd71d34c20f02f86777e151ed2c2d8a3f6419aa15cee94097102  chpc/row19_shard_manifest.json
+f79575f77e352aaf8d92a7e23e6dbe089e8b0d4b42a668e205232d6dda12887e  chpc/row19_identity_oracle.py
+97558aa9c4340f363431c67f2c2d28cd360f2f0998056af7e1702c9e9a021825  analyze.py
+28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef  models.py
+f588b9121be48ec553ab95e4dda5736941865498922468b5868c96758d0afe57  simulate.py
+== generate 2026-10-03T18:07:36Z
+rep 0: usable True identity f6a03a7eff618e15 equals binding True
+rep 1: usable True identity 808a6e3936fd324f equals binding True
+rep 2: usable True identity 40346e3d0516aa48 equals binding True
+wrote /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard/identity_oracle.json (manifest 0eae2e6fcbc1, host login2, snapshot problems [])
+== exit 0 2026-10-03T18:07:42Z
+-rw-rw-r-- 1 pvanrooyen pvanrooyen 6004 Oct  3 20:07 /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard/identity_oracle.json
+8d4d1751b38762501b5c5675ebc8fb9126090dc623620348f1f7f564b6836ab9
+rsc_shard still 782e605 status-lines 0
