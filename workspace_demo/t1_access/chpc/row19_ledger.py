@@ -19,8 +19,10 @@ declared maximum submissions per dataset).
 """
 import os, sys, json, time, fcntl, secrets, argparse, contextlib, math
 
-KINDS = ("main", "c1", "c2", "c3", "stage0")
-MAX_PER_KIND_REP = {"main": 4, "c1": 1, "c2": 1, "c3": 2, "stage0": 1}
+KINDS = ("main", "c1", "c2", "c3", "stage0", "shard")
+# "shard" (3 Oct 2026, the sharded route): one packed job of single-core per-index workers; its `rep` field is the
+# campaign's JOB NUMBER (each job number is reserved once), not a dataset rep - the job's plan names the datasets.
+MAX_PER_KIND_REP = {"main": 4, "c1": 1, "c2": 1, "c3": 2, "stage0": 1, "shard": 1}
 STATES = ("reserved", "bound", "live", "settled")
 LIVE = ("reserved", "bound", "live")
 
