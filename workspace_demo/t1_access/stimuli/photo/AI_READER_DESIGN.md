@@ -1,9 +1,27 @@
-# AI image-reader qualification, revision 15: the design and where each condition lives
+# AI image-reader qualification, revision 16: the design and where each condition lives
 
 R084, 2-3 October 2026. The specification is framework §8.2's reader rule with R052's closures (Unimog, R052's text).
 Revision 5 answers Codex's combined record RSC `1bf9890` (not favourable to revision 4 at RSC `d7a486a`; reader
 conditions 1–7 = R1–R6 there) through R052's handoff `8c9dac2b`. Revision 4 answered RSC `5a8d7ac` (handoff
 `46125389`); its closures stand and are listed after the revision-5 table.
+
+## Revision 16: split UTF-8 whitespace in the retained excerpts (Codex `478196f` P2, R052 handoff `d9587571`)
+
+Codex's record RSC `478196f` (NOT FAVOURABLE to revision 15 at `05bd60b`) credited the ASCII repair, the hold for both
+variants and marking independent of the overflow flag, and found one boundary: `bounded` sliced the -o BYTES at 1,024
+for head and tail and decoded each with replacement, so a blank file of U+3000 (683 x 3 = 2,049 bytes) was correctly
+marked CAPACITY_UNPROVEN but its excerpts carried U+FFFD and `_rederive`'s blank-excerpt check rejected the actual end -
+on restart before the hold reached STOPPED, and in an incomplete validation even after it.
+
+| Item | Where it lives | Fixture (no request) |
+|---|---|---|
+| The head ends and the tail begins on a UTF-8 code-point boundary (the cut moved back / forward past at most three continuation bytes), so no character is split; for invalid UTF-8 the shift is bounded and the bytes still decode with replacement. Applies to every bounded evidence field (events, stderr, -o); the excerpts remain excerpts - never proof of the omitted middle. | `ai_reader_runtime.bounded` | `Rev16Reader.test_excerpts_never_split_a_character` (U+3000, emoji, accented text; head/tail are the text's own prefix/suffix, each <= 1,024 bytes) |
+| Unchanged: the retry or the structural hold only on an absent or COMPLETE exact blank -o file (<= 2,048 UTF-8 bytes); the marker both ways; the full-stream item checks; received-answer guards; both durable holds. | runtime, journal (no change) | `test_2046_bytes_is_the_declared_capacity_end` (682 x U+3000, ordinary -> provider, structural -> structural; actual ends re-derived); `test_2049_bytes_is_the_marked_final_end_and_validates` (both variants; blank excerpts; no retry label) |
+| Recovery: the incomplete journal validates before and after STOPPED; the hold reconstructs; no next dispatch; a crash right after the marked durable end, then restart -> STOPPED, nothing dispatched, journal valid | executor, journal (no change) | `test_executor_holds_and_the_incomplete_journal_validates` (fake CLI capacity:w683 and capacity_structural:w683; capacity:w682 still retries); `test_ai_reader_crash.Rev16` (crash after_end on the marked end, both variants) |
+| Fixture fragility (test only): the Rev6 slow-receipt case raced a 2 s pre-receipt sleep against the 2 s stop timer (3 s allowance less two 0.5 s reserves) - no margin; it is replaced by three deterministic controls each 2 s clear of the timer. Production closure bounds unchanged. | `tests/test_ai_reader_crash.py` | `Rev6.test_slow_receipt_and_slow_close_share_one_deadline` (receipt stall 4 s -> exit 75, no durable receipt; instant receipt + 4 s close -> exit 75, receipt durable but not qualifying; both 0.3 s -> exit 0, qualifies) |
+
+Moved from revision 15: `ai_reader_runtime.py`, `AI_READER_JOB.md` (header; the current-revision statements Codex
+flagged), this file and the digest.
 
 ## Revision 15: the capacity path's -o evidence boundary (Codex `431f072`, R052 handoff `71210376`)
 

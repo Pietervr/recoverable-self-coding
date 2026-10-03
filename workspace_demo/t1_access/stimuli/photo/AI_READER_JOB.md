@@ -1,6 +1,8 @@
 # The AI image-reader qualification: the bounded reader job
 
-R084, 3 October 2026. Revision 15 (handoff `71210376`, Codex `431f072`): the capacity exception needs the -o file
+R084, 3 October 2026. Revision 16 (handoff `d9587571`, Codex `478196f`): retained excerpts are cut on UTF-8 code-point
+boundaries, so a blank -o file of multibyte whitespace keeps blank excerpts and its marked end validates (the retry
+rule is unchanged). Revision 15 (handoff `71210376`, Codex `431f072`): the capacity exception needs the -o file
 absent or retained complete, exact and blank (at most 2,048 UTF-8 bytes); above that the end is final isolation
 and the job holds. Revision 14 (handoff `c323625e`, Codex `f363767`): the capacity exemption excuses only bare
 markers with every item check on the full stream, and structural stderr wins over it. Revision 13 (handoff `09226a88`): the reader's CLI is a project-owned, read-only copy of Codex
@@ -13,7 +15,7 @@ Codex's record RSC `dda950b` (a live foreign start) through R052's handoff `ac3b
 
 **Exposure.** The reader has been called: job (a) of 2 October sent all 600 qualification requests under the
 revision-11 package; job (b) of 3 October sent 219 under revision 12 and stopped when the cask upgrade removed the
-pinned binary. The revision-14 package has made no call. Nothing in job (c) runs until R052 has submitted the exact package to Codex, Codex has written a favourable review carrying a STAGE-ATTESTATION v1 block (row `aireader`, stage `qualification`, the
+pinned binary. No package after revision 12 has made a call; revision 16 is current. Nothing in job (c) runs until R052 has submitted the exact package to Codex, Codex has written a favourable review carrying a STAGE-ATTESTATION v1 block (row `aireader`, stage `qualification`, the
 package `ai_reader_exec.py plan` prints), and the owner's go is written into `AIREADER_GO.json`.
 
 | | |
@@ -173,6 +175,7 @@ A one-off re-analysis of job (a)'s answers under the revision-12 rule, labelled 
 
 Job (b) ran on 3 October under revision 12 and the owner's go: STOPPED after 219 of 600 requests (218 ok, one
 capacity refusal classified isolation under revision 12) when the Homebrew cask upgrade removed the pinned CLI
-(`reviews/2026-10-03_ai_reader_job_b.md`); never scored, never re-used. Job (c) runs only on revision 14, after
-Codex's favourable record and the owner's go: `archive_job_b.py --apply` moves job (b)'s journal and clock into
+(`reviews/2026-10-03_ai_reader_job_b.md`); never scored, never re-used. Job (c) runs only on the current revision (16), after
+Codex's favourable record on that exact package and the owner's go (his standing reader go binds to the first
+favourable exact package R052 verifies): `archive_job_b.py --apply` moves job (b)'s journal and clock into
 `reviews/2026-10-03_ai_reader_job_b_archive/`; fresh state; its own envelope; all 600 requests re-asked.

@@ -484,8 +484,18 @@ def bounded(b: bytes, keep: int) -> dict:
         d["text"] = b.decode("utf-8", "replace")
         d["exact"] = d["text"].encode("utf-8") == b
     else:
-        d["head"] = b[:keep // 2].decode("utf-8", "replace")
-        d["tail"] = b[-keep // 2:].decode("utf-8", "replace")
+        # revision 16 (Codex 431f072 -> 478196f P2): the excerpts are cut on UTF-8 code-point boundaries - the head end
+        # moved back, the tail start moved forward, past at most three continuation bytes - so a character is never
+        # split into U+FFFD and a genuinely blank file's excerpts strip blank. Excerpts are never proof of the omitted
+        # middle (file_blank_proven needs the complete text).
+        h, t = keep // 2, len(b) - keep // 2
+        for _ in range(3):
+            if h > 0 and (b[h] & 0xC0) == 0x80:
+                h -= 1
+            if t < len(b) and (b[t] & 0xC0) == 0x80:
+                t += 1
+        d["head"] = b[:h].decode("utf-8", "replace")
+        d["tail"] = b[t:].decode("utf-8", "replace")
         d["exact"] = False
     return d
 

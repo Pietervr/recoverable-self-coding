@@ -26,6 +26,7 @@ sys.path.insert(0, str(TESTS.parent))
 sys.path.insert(0, str(TESTS))
 import ai_reader_exec as X  # noqa: E402
 import ai_reader_journal as J  # noqa: E402
+import ai_reader_runtime as R  # noqa: E402
 import airq_fixture as A  # noqa: E402
 import memprobe  # noqa: E402
 
@@ -364,28 +365,36 @@ class Rev6(HardKill):
         self.assertTrue(any(w["reason"] == "controller died" and child in w.get("killed", []) for w in wd))
         recs, _ = self.finish_and_check()
 
-    def slow_close_run(self, allowance: float, slow: float) -> tuple:
+    def slow_close_run(self, allowance: float, slow_receipt: float, slow_close: float) -> tuple:
         self.root = Path(tempfile.mkdtemp(dir=X.ensure_root()))
         self.build({})
         env = {**{k: v for k, v in os.environ.items() if k != "AIRQ_CRASH"}, "AIRQ_FINAL_WRITE_S": str(allowance),
-               "AIRQ_SLOW_RECEIPT": str(slow), "AIRQ_SLOW_CLOSE": str(slow)}
+               "AIRQ_SLOW_RECEIPT": str(slow_receipt), "AIRQ_SLOW_CLOSE": str(slow_close)}
         t = time.monotonic()
         p = subprocess.run([sys.executable, str(DRIVER), str(self.root)], capture_output=True, text=True, env=env,
                            timeout=180)
         return p, time.monotonic() - t
 
     def test_slow_receipt_and_slow_close_share_one_deadline(self):
-        """Reader 3: receipt + close past their ONE allowance -> exit 75 and the COMPLETE does not qualify (the clock
-        was never closed on it); within the allowance -> the clock closes naming this journal and it qualifies."""
-        p, el = self.slow_close_run(3.0, 2.0)
+        """Reader 3, made deterministic (reader revision 16, Codex 431f072/478196f): with a 3 s allowance the stop's ONE
+        timer is 3 - 2 x 0.5 = 2 s, armed before the receipt write. The old fixture slept 2 s before the receipt AND 2 s
+        before the close - the receipt's wake and the timer coincided, a race with no margin. Now three distinct
+        controls, each 2 s clear of the timer: (1) a receipt stall of 4 s -> exit 75, no durable receipt, nothing
+        qualifies; (2) an instant receipt and a 4 s close -> exit 75, the receipt durable but the clock never closed on
+        it, so it does not qualify; (3) both 0.3 s -> exit 0 and the closed clock names this journal. Production
+        closure bounds unchanged."""
+        p, _ = self.slow_close_run(3.0, 4.0, 0.0)                                   # (1) the receipt stalls
         self.assertEqual(p.returncode, 75, p.stderr[-1500:])
         recs, _ = self.journal()
-        self.assertEqual((recs[-1]["t"], recs[-1]["outcome"]), ("receipt", "COMPLETE"))   # the receipt is durable ...
+        self.assertNotEqual(recs[-1]["t"], "receipt")                                # never durable
+        p, _ = self.slow_close_run(3.0, 0.0, 4.0)                                   # (2) durable receipt, slow close
+        self.assertEqual(p.returncode, 75, p.stderr[-1500:])
+        recs, _ = self.journal()
+        self.assertEqual((recs[-1]["t"], recs[-1]["outcome"]), ("receipt", "COMPLETE"))
         raw = self.b["fixture"]["raw"].read_bytes()
-        # ... and does not qualify (revision 7: the missing closure marker refuses before the receipt check)
         with self.assertRaisesRegex(SystemExit, "no closure marker|not closed on this receipt"):
             X.admit_clock(self.b["fixture"]["job"] / "clock.json", raw, recs[-1])
-        p, el2 = self.slow_close_run(3.0, 0.3)
+        p, _ = self.slow_close_run(3.0, 0.3, 0.3)                                   # (3) inside the allowance
         self.assertEqual(p.returncode, 0, p.stderr[-1500:])
         recs, _ = self.journal()
         ok = X.admit_clock(self.b["fixture"]["job"] / "clock.json", self.b["fixture"]["raw"].read_bytes(), recs[-1])
@@ -401,6 +410,35 @@ class Rev6(HardKill):
                            timeout=60)
         self.assertEqual(p.returncode, 75, p.stderr[-800:])
         self.assertLess(time.monotonic() - t, 10.0)
+
+
+class Rev16(unittest.TestCase):
+    """Reader revision 16 (Codex 478196f P2): a crash right after the MARKED durable end (U+3000 x 683, 2,049 bytes)
+    and before STOPPED - the restart validates that journal, derives the hold, writes STOPPED and dispatches nothing.
+    (HardKill's helpers are borrowed, not inherited, so its own cases are not run twice.)"""
+
+    setUp, build, journal, crash_at = HardKill.setUp, HardKill.build, HardKill.journal, HardKill.crash_at
+
+    def test_crash_after_the_marked_end_then_restart(self):
+        for kind in ("capacity:w683", "capacity_structural:w683"):
+            with self.subTest(kind):
+                self.root = Path(tempfile.mkdtemp(dir=X.ensure_root()))
+                self.build({"rq1c": ["ok:thing"], "rq2c": [kind, "ok:thing"], "rq3c": ["ok:thing"]})
+                self.crash_at("after_end", 3)                       # rq0c, rq1c, then rq2c
+                recs, _ = self.journal()
+                self.assertEqual(recs[-1]["t"], "end")
+                self.assertEqual(recs[-1]["isolation_events"][-1], R.CAPACITY_UNPROVEN)
+                before = [d["request"] for d in A.dispatches(self.root)]
+                p = drive(self.root)
+                self.assertEqual(p.returncode, 0, p.stderr[-2000:])
+                last = json.loads(p.stdout.strip().splitlines()[-1])
+                self.assertEqual(last["outcome"], "STOPPED")
+                self.assertIn("incomplete -o evidence", last["reason"])
+                self.assertEqual([d["request"] for d in A.dispatches(self.root)], before)   # no next dispatch
+                recs, _ = self.journal()
+                J.validate(recs, self.b["sset"], A.DIGEST, require_complete=False, mode="synthetic-fixture",
+                           delivery=self.b["fixture"]["delivery"],
+                           instructions_sha256=self.b["fixture"]["delivery"]["instructions_sha256"], limits=X.LIMITS)
 
 
 class Rev7(HardKill):

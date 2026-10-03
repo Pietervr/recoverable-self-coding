@@ -7,7 +7,7 @@ Behaviours: ok:<answer> | ok_exit1:<answer> | slow_ok:<seconds>:<answer> | arg0c
 malformed | no_events:<answer> | long | multiline | noimage | block (ignores SIGTERM) | flood (> 1 MiB stdout) |
 quickflood (> 1 MiB stdout, then exit at once) | orphanchild:<answer> (a child ignoring SIGTERM outlives the answer) |
 escape:<answer> (a child leaves the group and persists) | notice:<answer> (the frozen code-mode notice first) | unknown_error:<answer> | two_messages | mismatch (-o differs) |
-completed_not_last | item_without_id | capacity[:<n>] | capacity_structural[:<n>] (n ASCII spaces in -o) |
+completed_not_last | item_without_id | capacity[:<n>|:w<n>] | capacity_structural[:<n>|:w<n>] (n ASCII spaces, or n U+3000, in -o) |
 capacity_item | promptfail (debug prompt-input fails) - FAKE_PROMPT_FAIL=1 in the environment
 of the fixture also makes prompt-input fail.
 """
@@ -141,8 +141,8 @@ if kind in ("capacity", "capacity_structural", "capacity_item"):     # reader re
     else:
         ev("error", message=CAP)
     ev("turn.failed", error={"message": CAP})
-    if rest:                                   # reader revision 15: capacity[_structural]:<n> -> n ASCII spaces in -o
-        last.write_text(" " * int(rest))
+    if rest:                                   # reader revision 15: capacity[_structural]:<n> -> n ASCII spaces in -o;
+        last.write_text("\u3000" * int(rest[1:]) if rest.startswith("w") else " " * int(rest))   # rev 16: w<n> U+3000
     print("Reading additional input from stdin...", file=sys.stderr)
     if kind == "capacity_structural":
         print("sandbox: operation not permitted", file=sys.stderr)

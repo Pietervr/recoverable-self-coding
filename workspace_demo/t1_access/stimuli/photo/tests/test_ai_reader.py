@@ -1807,6 +1807,73 @@ class Rev15Reader(unittest.TestCase):
             self.assertIn("2,048 UTF-8 bytes", t, name)
 
 
+class Rev16Reader(unittest.TestCase):
+    """Reader revision 16 (Codex RSC 478196f P2): retained excerpts are cut on UTF-8 code-point boundaries, so a blank
+    file of MULTIBYTE whitespace (U+3000, three bytes each) yields blank excerpts and its actual marked end validates.
+    The retry stays restricted to absent or complete exact blank evidence. No model is called."""
+
+    run_fx, ends = Executor.run_fx, Executor.ends
+    STRUCT, PLAIN = Rev15Reader.STRUCT, Rev15Reader.PLAIN
+    W = "\u3000"
+
+    def classify(self, last, stderr):
+        out = R.classify(CAPACITY_EVENTS.encode(), stderr, last, 1, timed_out=False, overflow=False)
+        out["t"] = "end"
+        return out
+
+    def test_byte_lengths(self):
+        self.assertEqual((len((self.W * 682).encode()), len((self.W * 683).encode())), (2046, 2049))
+        self.assertEqual((self.W * 683).strip(), "")
+
+    def test_excerpts_never_split_a_character(self):
+        for text in (self.W * 683, "a" + self.W * 700, "\U0001F600" * 600, "é" * 1200):
+            d = R.bounded(text.encode(), R.FILE_ANSWER_KEEP)
+            self.assertNotIn("\ufffd", d["head"] + d["tail"], text[:3])
+            self.assertLessEqual(len(d["head"].encode()), R.FILE_ANSWER_KEEP // 2)
+            self.assertLessEqual(len(d["tail"].encode()), R.FILE_ANSWER_KEEP // 2)
+            self.assertTrue(text.startswith(d["head"]) and text.endswith(d["tail"]))
+        d = R.bounded(b"\x80" * 3000, R.FILE_ANSWER_KEEP)                          # invalid UTF-8: bounded shift only
+        self.assertGreaterEqual(len(d["head"]), 1)
+
+    def test_2046_bytes_is_the_declared_capacity_end(self):
+        for stderr, label in ((self.PLAIN, "provider_failure"), (self.STRUCT, "structural_failure")):
+            with self.subTest(label):
+                out = self.classify(self.W * 682, stderr)
+                self.assertEqual((out["outcome"], out["retained"]), (label, False))
+                self.assertTrue("text" in out["file_answer"] and out["file_answer"]["exact"])
+                J._rederive(0, out)
+
+    def test_2049_bytes_is_the_marked_final_end_and_validates(self):
+        for stderr in (self.PLAIN, self.STRUCT):
+            with self.subTest(structural=stderr is self.STRUCT):
+                out = self.classify(self.W * 683, stderr)
+                self.assertEqual((out["outcome"], out["retained"]), ("isolation_violation", True))
+                self.assertEqual(out["isolation_events"][-1], R.CAPACITY_UNPROVEN)
+                self.assertNotIn("text", out["file_answer"])
+                self.assertEqual((out["file_answer"]["head"].strip(), out["file_answer"]["tail"].strip()), ("", ""))
+                J._rederive(0, out)                                                  # the actual end validates
+                with self.assertRaises(SystemExit):                                  # still no retry label
+                    J._rederive(0, dict(out, outcome="provider_failure", retained=False, isolation_events=[]))
+
+    def test_executor_holds_and_the_incomplete_journal_validates(self):
+        for kind in ("capacity:w683", "capacity_structural:w683"):
+            with self.subTest(kind):
+                out, recs, root, b = self.run_fx({"rq1c": ["ok:thing"], "rq2c": [kind, "ok:thing"],
+                                                  "rq3c": ["ok:thing"]})
+                self.assertEqual(out["outcome"], "STOPPED")
+                self.assertIn("incomplete -o evidence", out["reason"])
+                calls = [d["request"] for d in A.dispatches(root)]
+                self.assertEqual((calls.count("rq2c"), calls.count("rq3c")), (1, 0))
+                J.validate(recs, b["sset"], A.DIGEST, require_complete=False, **vkw(b))
+                body = [r for r in recs if r["t"] != "receipt"]                       # the journal before STOPPED
+                J.validate(body, b["sset"], A.DIGEST, require_complete=False, **vkw(b))
+                self.assertIn("incomplete -o evidence", J.holds(J.reconstruct(body), "rq1c"))
+        out, recs, root, b = self.run_fx({"rq1c": ["ok:thing"], "rq2c": ["capacity:w682", "ok:thing"]})
+        self.assertEqual(out["outcome"], "COMPLETE")                                 # 2,046 bytes: the retry stays
+        self.assertEqual([d["request"] for d in A.dispatches(root)].count("rq2c"), 2)
+        J.validate(recs, b["sset"], A.DIGEST, **vkw(b))
+
+
 if __name__ == "__main__":
     unittest.main()
 
