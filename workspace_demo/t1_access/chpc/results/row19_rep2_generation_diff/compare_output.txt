@@ -1,0 +1,8 @@
+rep 1: n 10752 differing 0 max|delta| 0.0 max rel 0.0
+rep 2: n 10752 differing 98 max|delta| 4.440892098500626e-16 max rel 1.5310417343753117e-14
+   i 8400 mac np.float64(-1.6898099308661085) lengau np.float64(-1.6898099308661083) ulps 1
+   i 8405 mac np.float64(-1.5116396079901198) lengau np.float64(-1.5116396079901195) ulps 1
+   i 8406 mac np.float64(-0.4991930026659375) lengau np.float64(-0.4991930026659376) ulps 1
+   i 8407 mac np.float64(-0.4375954138882384) lengau np.float64(-0.43759541388823847) ulps 1
+   i 8408 mac np.float64(-0.4328199841511241) lengau np.float64(-0.43281998415112416) ulps 1
+   i 8409 mac np.float64(0.0806272420370685) lengau np.float64(0.08062724203706839) ulps 8
