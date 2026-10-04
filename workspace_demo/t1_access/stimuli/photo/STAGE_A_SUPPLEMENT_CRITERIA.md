@@ -1,4 +1,4 @@
-# Stage A supplement (ledger row 20): the OS bridge before row 21 - declared criteria and code, revision 3 (R084, 4 October 2026)
+# Stage A supplement (ledger row 20): the OS bridge before row 21 - declared criteria and code, revision 4 (R084, 4 October 2026)
 
 **Specification:** Codex's record RSC `b0db0f9` (`reviews/2026-10-03_stage_a_report_codex_record.md`, SHA-256
 `52ed7082...6b90`), §"Prospective row21 OS bridge: form, count and gate"; R052's handoff `8266e5ae` item 2.
@@ -10,7 +10,8 @@ does not cover it.
 |---|---|---|---|
 | 1 | RSC `b67a073` | RSC `478196f` | NOT FAVOURABLE: the separate carried tree and ledger accepted; P1 restart can erase STOPPED |
 | 2 | RSC `369e517` | RSC `1abb851` | NOT FAVOURABLE: §R2 credited; P1 a failed terminal recreation let a restart regenerate PASS |
-| 3 | this commit | — | the stop DERIVED from the records, independent of the terminal write (§R3) |
+| 3 | RSC `4baba91` | RSC `410b580` | NOT FAVOURABLE: §R3 credited; P2 a released=False endpoint record read as no start |
+| 4 | this commit | — | any durable endpoint record is start evidence (§R4) |
 
 ## 1. What it is
 
@@ -136,7 +137,7 @@ and final could regenerate PASS. Revision 3 makes the decision structural:
 
 | Item | Where | Fixture (no forward) |
 |---|---|---|
-| `_prior_start_evidence` reads every durable trace of a start from the records themselves - ledger attempts (or an unreadable ledger), a released endpoint worker in controller.json, an endpoint phase record, a pass output, a comparison receipt, the terminal record. Any of them without an admitted PASS sets the REFUSAL in `_supersede`: nothing is superseded; `_gates` returns REFUSED before any worker; `_phase` and `_finalise` refuse outright if ever reached; the session closes charged ("refused", exit 2). SUPPLEMENT_TERMINAL.json is written as the RECORD of that state; if the write fails the refusal stands and says so. | `SupplementController._prior_start_evidence`, `_supersede`, `_gates`, `_phase`, `_finalise` | `Rev3Adversarial.test_crash_with_completed_endpoints_and_a_failing_terminal_write` (both endpoints + DONE committed, controller SIGKILLed during the receipt, terminal absent, the restart's terminal write failing before its rename: REFUSED, no worker, final/receipt/ledger bytes unchanged, the crashed session charged, terminal still absent); `test_receipt_failure_then_lost_terminal_and_a_failing_rewrite`; the five §R2 Restart cases now expect REFUSED with no worker at all |
+| `_prior_start_evidence` reads every durable trace of a start from the records themselves - ledger attempts (or an unreadable ledger), an endpoint worker record in controller.json (revision 4: any, whatever its released flag), an endpoint phase record, a pass output, a comparison receipt, the terminal record. Any of them without an admitted PASS sets the REFUSAL in `_supersede`: nothing is superseded; `_gates` returns REFUSED before any worker; `_phase` and `_finalise` refuse outright if ever reached; the session closes charged ("refused", exit 2). SUPPLEMENT_TERMINAL.json is written as the RECORD of that state; if the write fails the refusal stands and says so. | `SupplementController._prior_start_evidence`, `_supersede`, `_gates`, `_phase`, `_finalise` | `Rev3Adversarial.test_crash_with_completed_endpoints_and_a_failing_terminal_write` (both endpoints + DONE committed, controller SIGKILLed during the receipt, terminal absent, the restart's terminal write failing before its rename: REFUSED, no worker, final/receipt/ledger bytes unchanged, the crashed session charged, terminal still absent); `test_receipt_failure_then_lost_terminal_and_a_failing_rewrite`; the five §R2 Restart cases now expect REFUSED with no worker at all |
 | A PASS needs BOTH endpoints committed by THIS session: the controller (`_endpoints_this_session`), the receipt worker, and row 21's verifier (endpoint sessions = the admitted final's session) | `_finalise`, `run_supplement_receipt`, `supplement_receipt_ok` | `Rev3Adversarial.test_a_pass_needs_both_endpoints_from_this_session` |
 | MY ADVERSARIAL LIST - every way found to bring a second session to an endpoint, a receipt or a final after a start, each refused before any worker: (1) completed endpoints, crashed during the receipt, terminal write failing; (2) receipt failure, terminal lost, rewrite failing; (3) ledger deleted, DONE records remain; (4) ledger and DONE deleted, controller.json's released endpoint workers remain; (5) unreadable ledger; (6) a PASS final whose marker never landed; (7) a PASS final with this session's abort tombstone; (8) a controller built without gates (`_phase` refuses; no worker); (9) endpoints from another session (no PASS); plus the §R2 cases: receipt exit, non-PASS receipt, a lost native exit peak, a hold and a SIGKILL after the instrumented commit; and an admitted PASS is never superseded or regenerated | — | `Rev3Adversarial` (8), `Restart` (5), `Controller.test_a_pass_is_never_superseded_or_regenerated` |
 
@@ -146,6 +147,29 @@ indistinguishable from a fresh one: a new run would start again from the pinned 
 results would be lost with the tree. That is an operator act, not a controller path; the review record and the R052
 tracker are where such a loss would be caught.
 The base Controller and the Stage A policy are unchanged; the rule lives only in SupplementController.
+
+## R4. Revision 4: the release-evidence class (Codex `410b580` P2)
+
+The base `_phase` persists an endpoint worker record with `released=False` (identities durable) BEFORE it writes GO, and
+sets `released=True` only in memory afterwards; the first durable true snapshot comes with a later heartbeat. A SIGKILL
+in between leaves `released=False` although the worker may have received GO; revision 3 read that as no start.
+Revision 4 takes Codex's narrow option: ANY durable record of a supplement endpoint worker is start evidence, whatever
+its flag. The boundary is structural: before that record is persisted no GO can have been sent (GO follows the persist),
+so a crash before it is genuinely pre-start; at or after it, the session refuses. The same records require their exit
+peak in `_missing_measurements`. The release-intent alternative is not needed: the existing pre-GO persist already IS
+that intent, and reading it as such removes the ambiguous window without another write. Base Controller unchanged.
+
+| Item | Where | Fixture (no forward) |
+|---|---|---|
+| Any durable endpoint record (released or not) -> "a durable endpoint worker record" -> refusal | `_prior_start_evidence` | `Rev4ReleaseEvidence.test_crash_after_go_before_the_released_snapshot_live_worker` (open session of a dead controller, endpoint record released=False with a live leader and watchdog: the restart reconciles - kills the group, charges the crashed session - then REFUSES with no worker of any phase, nothing started or generated); `..._dead_worker` (the same with the leader already gone) |
+| The pre-persist boundary is not a start | — | `test_the_boundary_before_the_endpoint_record_is_not_a_start` (a dead session whose last durable record is the gates worker: the restart runs to PASS) |
+| An unreleased endpoint record needs its exit peak | `_missing_measurements` | `test_an_unreleased_endpoint_record_needs_its_exit_peak` |
+| Isolated histories Codex noted were not fixtured alone: pass output only, comparison receipt only, terminal record only - each refused (with the terminal write failing) | `_prior_start_evidence` | `test_pass_output_only`, `test_comparison_receipt_only`, `test_terminal_record_only` |
+
+Coverage, stated precisely (Codex `410b580`): the revision-3 deletion and unreadable-ledger cases assert the refusal,
+the evidence named and no worker in the new session, not every byte; the without-gates case expects SystemExit and leaves
+its own session open for the next start's crash charge; the foreign-session case tests the predicate, not an end-to-end
+final; the admitted-PASS refusal is a SystemExit charged as a pending start. These are the assertions they make.
 
 ## 7. Which reviewed files move
 

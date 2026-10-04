@@ -1329,6 +1329,8 @@ class SupplementController(Controller):
     REVISION 2 (Codex 478196f P1): one session from the first start - `_supersede` refuses after an admitted PASS and
     terminalises after any start without one (a STOPPED, held, crashed or interrupted earlier session), `_hold` and a
     STOPPED `_finalise` after a start terminalise at once, and `_missing_measurements` spans every session.
+    REVISION 4 (Codex 410b580 P2): any durable endpoint worker record is start evidence and needs its exit peak,
+    whatever its `released` flag (the record is persisted before GO; released=True only after it).
     REVISION 3 (Codex 1abb851 P1): the stop is DERIVED from the records (`_prior_start_evidence`), not from the terminal
     file: any prior start without an admitted PASS sets a refusal before supersede, gates, any worker, receipt or final
     (the terminal file is only its record; a failed write still refuses); a PASS needs both endpoints from THIS session.
@@ -1368,9 +1370,12 @@ class SupplementController(Controller):
                 found.append("ledger attempts")
         except (OSError, ValueError):
             found.append("an unreadable ledger")
-        if any(w.get("phase") in SUPPLEMENT_PHASES and w.get("released")
-               for w in (getattr(self, "rec", None) or {}).get("workers", [])):
-            found.append("a released endpoint worker")
+        # revision 4 (Codex 410b580 P2): ANY durable endpoint worker record, released or not - the base _phase persists
+        # the record (released=False) BEFORE it sends GO and marks it released only afterwards, so released=False is a
+        # pre-GO snapshot, not proof that GO was never delivered. Before that persist no GO can have been sent, so a
+        # durable record is exactly the boundary of a possible start.
+        if any(w.get("phase") in SUPPLEMENT_PHASES for w in (getattr(self, "rec", None) or {}).get("workers", [])):
+            found.append("a durable endpoint worker record")
         for name in ("SUPPLEMENT_INSTRUMENTED_DONE.json", "SUPPLEMENT_NATIVE_DONE.json", SUPPLEMENT_TERMINAL):
             if (self.out / name).exists():
                 found.append(name)
@@ -1440,8 +1445,8 @@ class SupplementController(Controller):
         """Revision 2: every released worker of EVERY session of this tree must have its exit peak - a mandatory
         measurement lost in an earlier session is never forgotten by a later one."""
         miss = [f"{w['phase']} (session {w.get('session')}): no exit peak ({w.get('exit_peak_error', 'not read')})"
-                for w in self.rec["workers"] if w.get("released") and
-                not (isinstance(w.get("exit_peak"), int) and w["exit_peak"] > 0)]
+                for w in self.rec["workers"] if (w.get("released") or w.get("phase") in SUPPLEMENT_PHASES) and
+                not (isinstance(w.get("exit_peak"), int) and w["exit_peak"] > 0)]     # rev 4: any endpoint record
         pk = self.rec["peaks"]
         if not (isinstance(pk.get("controller_final"), int) and pk["controller_final"] > 0):
             miss.append(f"controller final self sample ({pk.get('controller_final_error', 'absent')})")

@@ -684,7 +684,7 @@ class Rev3Adversarial(unittest.TestCase):
         with FailingTerminal():
             again = sctl(self.out, SOK).run()
         self.assertEqual(again["outcome"], "REFUSED")
-        self.assertIn("a released endpoint worker", again["reason"])
+        self.assertIn("a durable endpoint worker record", again["reason"])
         self.assertEqual(self.phases(again["session"]), [])
 
     def test_unreadable_ledger(self):
@@ -731,6 +731,130 @@ class Rev3Adversarial(unittest.TestCase):
         (self.out / "stage_a_state.json").write_text(json.dumps({"completed": {
             "00-plain-os2701": {"session": c.session}, "00-native-os2701": {"session": c.session}}}))
         self.assertTrue(c._endpoints_this_session())
+
+
+
+def _sleeper() -> "subprocess.Popen":
+    import subprocess
+    return subprocess.Popen([PY, "-c", "import time; time.sleep(600)"], start_new_session=True)
+
+
+class Rev4ReleaseEvidence(unittest.TestCase):
+    """Revision 4 (Codex 410b580 P2), no forward: the base _phase persists an endpoint record with released=False BEFORE
+    it sends GO and marks it released only after; a crash in between leaves an ambiguous record. Any durable endpoint
+    record is start evidence; the pre-persist boundary (no record) is not."""
+
+    setUp, tearDown, ledger, phases = Restart.setUp, Restart.tearDown, Restart.ledger, Restart.phases
+
+    def crashed_at_the_release_boundary(self, leader_alive: bool) -> dict:
+        """A dead controller's open session whose last durable record is an endpoint worker with released=False and
+        a valid leader/watchdog identity - GO possibly delivered, no ledger attempt, DONE, pass, comparison or terminal."""
+        import memprobe
+        self.out.mkdir(parents=True)
+        worker, wd = _sleeper(), _sleeper()
+        time.sleep(0.2)
+        self.procs = [worker, wd]
+        li, wi = memprobe.proc_info(worker.pid), memprobe.proc_info(wd.pid)
+        if not leader_alive:
+            worker.kill()
+            worker.wait()
+        rec = {"carry_s": CARRY, "seconds_total": CARRY + 30.0, "stops": [], "reconciled": [], "swap_baseline": 0,
+               "sessions": [], "peaks": {"task_lifetime_sum": 0, "phase_aggregates": {}, "storage_bytes": 0,
+                                         "max_iteration_s": {}},
+               "workers": [{"phase": "supplement_gates", "session": "dead", "released": True, "reaped": True,
+                            "returncode": 0, "exit_peak": 1 << 20, "members": {}, "member_max": {}},
+                           {"phase": "supplement_instrumented", "session": "dead", "released": False, "members": {},
+                            "member_max": {}, "leader": li, "watchdog": wi, "spawned_total_s": 20.0}],
+               "open_session": {"session": "dead", "pid": 1, "live_s": 25.0, "opened_wall": time.time() - 30,
+                                "beat_wall": time.time() - 2}}
+        (self.out / "controller.json").write_text(json.dumps(rec))
+        return rec
+
+    def tearDown_procs(self):
+        for p in getattr(self, "procs", []):
+            if p.poll() is None:
+                p.kill()
+                p.wait()
+
+    def assert_refused_and_reconciled(self, started_before):
+        try:
+            again = sctl(self.out, SOK).run()
+        finally:
+            self.tearDown_procs()
+        self.assertEqual(again["outcome"], "REFUSED", again)
+        self.assertIn("a durable endpoint worker record", again["reason"])
+        self.assertEqual(self.phases(again["session"]), [])                               # no worker of any phase
+        r = json.loads((self.out / "controller.json").read_text())
+        crashed = [x for x in r["sessions"] if x.get("closed") == "crashed"]
+        self.assertEqual(len(crashed), 1)                                                 # the dead session charged
+        self.assertGreater(r["seconds_total"], started_before)
+        self.assertEqual(r["sessions"][-1]["closed"], "refused")
+        self.assertFalse((self.out / "stage_a_state.json").exists())                      # nothing started anew
+        for name in (C.SUPPLEMENT_NAMES["final"], C.SUPPLEMENT_NAMES["receipt"]):
+            self.assertFalse((self.out / name).exists())                                  # nothing generated
+        return again
+
+    def test_crash_after_go_before_the_released_snapshot_live_worker(self):
+        rec = self.crashed_at_the_release_boundary(leader_alive=True)
+        self.assert_refused_and_reconciled(rec["seconds_total"])
+        import memprobe
+        self.assertIsNone(memprobe.proc_info(self.procs[0].pid))                          # reconciled (killed)
+
+    def test_crash_after_go_before_the_released_snapshot_dead_worker(self):
+        rec = self.crashed_at_the_release_boundary(leader_alive=False)
+        self.assert_refused_and_reconciled(rec["seconds_total"])
+
+    def test_the_boundary_before_the_endpoint_record_is_not_a_start(self):
+        """Control: a dead session whose last durable record is the GATES worker (no endpoint record persisted, so no
+        GO can have been sent) - the restart is not refused and runs to PASS."""
+        self.out.mkdir(parents=True)
+        rec = {"carry_s": CARRY, "seconds_total": CARRY + 10.0, "stops": [], "reconciled": [], "swap_baseline": 0,
+               "sessions": [], "peaks": {"task_lifetime_sum": 0, "phase_aggregates": {}, "storage_bytes": 0,
+                                         "max_iteration_s": {}},
+               "workers": [{"phase": "supplement_gates", "session": "dead", "released": True, "reaped": True,
+                            "returncode": 0, "exit_peak": 1 << 20, "members": {}, "member_max": {}}],
+               "open_session": {"session": "dead", "pid": 1, "live_s": 8.0, "opened_wall": time.time() - 10,
+                                "beat_wall": time.time() - 2}}
+        (self.out / "controller.json").write_text(json.dumps(rec))
+        final = sctl(self.out, SOK).run()
+        self.assertEqual(final["outcome"], "PASS", final)
+
+    def test_an_unreleased_endpoint_record_needs_its_exit_peak(self):
+        c = sctl(self.out, SOK)
+        c.rec = {"workers": [{"phase": "supplement_native", "session": "x", "released": False}],
+                 "peaks": {"controller_final": 1, "guardian_final": 1}}
+        self.assertTrue(any("supplement_native" in m for m in c._missing_measurements()))
+
+    def isolated_history(self, make) -> dict:
+        self.out.mkdir(parents=True)
+        (self.out / "controller.json").write_text(json.dumps(
+            {"carry_s": CARRY, "seconds_total": CARRY, "sessions": [], "open_session": None, "stops": [],
+             "workers": [], "reconciled": [], "swap_baseline": 0,
+             "peaks": {"task_lifetime_sum": 0, "phase_aggregates": {}, "storage_bytes": 0, "max_iteration_s": {}}}))
+        make()
+        with FailingTerminal():
+            again = sctl(self.out, SOK).run()
+        self.assertEqual(again["outcome"], "REFUSED", again)
+        self.assertEqual(self.phases(again["session"]), [])
+        self.assertFalse((self.out / C.SUPPLEMENT_NAMES["final"]).exists())
+        return again
+
+    def test_pass_output_only(self):
+        def make():
+            (self.out / "passes").mkdir()
+            (self.out / "passes" / "00-plain-os2701.json").write_text("{}")
+        self.assertIn("pass outputs", self.isolated_history(make)["reason"])
+
+    def test_comparison_receipt_only(self):
+        def make():
+            (self.out / "supplement").mkdir()
+            (self.out / "supplement" / "comparison_a.json").write_text("{}")
+        self.assertIn("comparison receipts", self.isolated_history(make)["reason"])
+
+    def test_terminal_record_only(self):
+        def make():
+            C.supplement_set_terminal(self.out, "controller", "fixture")
+        self.assertIn(C.SUPPLEMENT_TERMINAL, self.isolated_history(make)["reason"])
 
 
 if __name__ == "__main__":
