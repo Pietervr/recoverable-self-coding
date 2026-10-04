@@ -1,0 +1,480 @@
+test_bound_files_include_imports (test_ai_reader.Approval.test_bound_files_include_imports) ... ok
+test_mixed_resumed_state_refused (test_ai_reader.Approval.test_mixed_resumed_state_refused) ... ok
+test_modified_dependency_moves_the_package (test_ai_reader.Approval.test_modified_dependency_moves_the_package) ... ok
+test_modified_package_refused (test_ai_reader.Approval.test_modified_package_refused) ... ok
+test_negative_record_refused (test_ai_reader.Approval.test_negative_record_refused) ... ok
+test_nothing_runs_after_a_receipt (test_ai_reader.Approval.test_nothing_runs_after_a_receipt) ... ok
+test_positive_control (test_ai_reader.Approval.test_positive_control) ... ok
+test_reviewed_commit_rederivation (test_ai_reader.Approval.test_reviewed_commit_rederivation) ... ok
+test_strict_schema_on_the_reader_package (test_ai_reader.Approval.test_strict_schema_on_the_reader_package) ... ok
+test_unrelated_approval_refused (test_ai_reader.Approval.test_unrelated_approval_refused) ... ok
+test_freeze_states_the_current_rule (test_ai_reader.AuditMap.test_freeze_states_the_current_rule) ... ok
+test_rule_applied_and_inflections (test_ai_reader.AuditMap.test_rule_applied_and_inflections) ... ok
+test_scorer_bound_to_the_pinned_map (test_ai_reader.AuditMap.test_scorer_bound_to_the_pinned_map) ... ok
+test_scorer_code_bound_in_the_audit_package (test_ai_reader.AuditMap.test_scorer_code_bound_in_the_audit_package)
+Codex RSC 1bf9890 A8: the audit scorer's classifier/normalisation source is bound to the pins the audit ... ok
+test_allowlist_real_binary (test_ai_reader.Boundary.test_allowlist_real_binary)
+The production profile: codex's local subcommands run; reads outside the allowlist and any other program ... ok
+test_effective_features_and_receipts (test_ai_reader.Boundary.test_effective_features_and_receipts) ... ok
+test_event_and_file_answers_must_agree (test_ai_reader.Boundary.test_event_and_file_answers_must_agree) ... ok
+test_events_beyond_retention_are_overflow (test_ai_reader.Boundary.test_events_beyond_retention_are_overflow) ... ok
+test_exec_invocation_receipt (test_ai_reader.Boundary.test_exec_invocation_receipt)
+The exact exec invocation, network denied by the kernel, synthetic image: its submitted input and its ... ok
+test_fail_closed (test_ai_reader.Boundary.test_fail_closed) ... ok
+test_lifecycle_mutations (test_ai_reader.Boundary.test_lifecycle_mutations) ... ok
+test_no_silent_truncation (test_ai_reader.Boundary.test_no_silent_truncation) ... ok
+test_notices (test_ai_reader.Boundary.test_notices) ... ok
+test_pinned_env_and_gate (test_ai_reader.Boundary.test_pinned_env_and_gate) ... ok
+test_prompt_separator_regression (test_ai_reader.Boundary.test_prompt_separator_regression)
+Measured: without '--' the CLI reads the prompt as a second image path and renders no prompt. ... ok
+test_attempt_cap_writes_final_then_stops (test_ai_reader.Executor.test_attempt_cap_writes_final_then_stops) ... ok
+test_clock_beats_without_the_main_thread (test_ai_reader.Executor.test_clock_beats_without_the_main_thread) ... ok
+test_clock_stops_inside_reserve (test_ai_reader.Executor.test_clock_stops_inside_reserve) ... ok
+test_failed_receipt_setup_stops_with_a_receipt (test_ai_reader.Executor.test_failed_receipt_setup_stops_with_a_receipt) ... ok
+test_leader_exit_leaves_no_child (test_ai_reader.Executor.test_leader_exit_leaves_no_child) ... ok
+test_lost_and_inconsistent_accounting_refused (test_ai_reader.Executor.test_lost_and_inconsistent_accounting_refused) ... ok
+test_notice_is_bookkeeping_unknown_error_is_isolation (test_ai_reader.Executor.test_notice_is_bookkeeping_unknown_error_is_isolation) ... ok
+test_overflow_retained_including_quick_exit (test_ai_reader.Executor.test_overflow_retained_including_quick_exit) ... ok
+test_pending_quarantine_recorded (test_ai_reader.Executor.test_pending_quarantine_recorded) ... ok
+test_raw_cap_stops (test_ai_reader.Executor.test_raw_cap_stops) ... ok
+test_receipt_mismatch_holds_before_sending (test_ai_reader.Executor.test_receipt_mismatch_holds_before_sending) ... ok
+test_resumed_journal_validated_before_dispatch (test_ai_reader.Executor.test_resumed_journal_validated_before_dispatch) ... ok
+test_retry_only_without_answer (test_ai_reader.Executor.test_retry_only_without_answer) ... ok
+test_smoke_holds (test_ai_reader.Executor.test_smoke_holds) ... ok
+test_stop_during_open_attempt_reconciles_first (test_ai_reader.Executor.test_stop_during_open_attempt_reconciles_first) ... ok
+test_structural_later_holds (test_ai_reader.Executor.test_structural_later_holds) ... ok
+test_timeout_kills_and_reaps_the_group (test_ai_reader.Executor.test_timeout_kills_and_reaps_the_group) ... ok
+test_counts_and_proportions (test_ai_reader.FrameInvariant.test_counts_and_proportions) ... ok
+test_duplicate_row_refused (test_ai_reader.FrameInvariant.test_duplicate_row_refused) ... ok
+test_equal_ratio_swap_refused (test_ai_reader.FrameInvariant.test_equal_ratio_swap_refused) ... ok
+test_known_release_mismatch_refused (test_ai_reader.FrameInvariant.test_known_release_mismatch_refused) ... ok
+test_real_frame_passes (test_ai_reader.FrameInvariant.test_real_frame_passes) ... ok
+test_retained_close_and_ratio_mutations (test_ai_reader.FrameInvariant.test_retained_close_and_ratio_mutations) ... ok
+test_source_pin_mismatch_refused (test_ai_reader.FrameInvariant.test_source_pin_mismatch_refused) ... ok
+test_full_form_s1_prospectively (test_ai_reader.KeyFunctions.test_full_form_s1_prospectively)
+Every ADMITTED full form (inflections included) against every released concept's canonical names and ... skipped 'needs WordNet (run under .venv-build)'
+test_inflections (test_ai_reader.KeyFunctions.test_inflections) ... skipped 'needs WordNet (run under .venv-build)'
+test_rebuild_reproduces_the_key (test_ai_reader.KeyFunctions.test_rebuild_reproduces_the_key) ... skipped 'needs WordNet (run under .venv-build)'
+test_specificity_rules (test_ai_reader.KeyFunctions.test_specificity_rules) ... skipped 'needs WordNet (run under .venv-build)'
+test_synonym_residue (test_ai_reader.KeyFunctions.test_synonym_residue) ... skipped 'needs WordNet (run under .venv-build)'
+test_counts_frozen (test_ai_reader.KeyIntegrity.test_counts_frozen) ... ok
+test_docstring_counts (test_ai_reader.KeyIntegrity.test_docstring_counts) ... ok
+test_full_forms_prospectively_excluded_with_their_base (test_ai_reader.KeyIntegrity.test_full_forms_prospectively_excluded_with_their_base)
+A generated inflection inherits its base's decision: no excluded base admits any of its forms. ... ok
+test_no_shared_string_but_the_equivalence (test_ai_reader.KeyIntegrity.test_no_shared_string_but_the_equivalence) ... ok
+test_no_synset_items_record_source_and_rationale (test_ai_reader.KeyIntegrity.test_no_synset_items_record_source_and_rationale) ... ok
+test_plural_only_artefacts_gone (test_ai_reader.KeyIntegrity.test_plural_only_artefacts_gone) ... ok
+test_plural_only_heuristic_audited (test_ai_reader.KeyIntegrity.test_plural_only_heuristic_audited) ... ok
+test_source_pins_in_key (test_ai_reader.KeyIntegrity.test_source_pins_in_key) ... ok
+test_specificity_collisions_pruned (test_ai_reader.KeyIntegrity.test_specificity_collisions_pruned) ... ok
+test_wording_matches_the_predicates (test_ai_reader.KeyIntegrity.test_wording_matches_the_predicates) ... ok
+test_continuous_churn (test_ai_reader.Rev11.test_continuous_churn)
+PRODUCED continuously: a thread creates and removes helper directories, files and symlinks while the measure ... ok
+test_entry_removed_between_listing_and_stat (test_ai_reader.Rev11.test_entry_removed_between_listing_and_stat)
+PRODUCED exactly: the listed helper is removed just before its stat; the measure returns what it saw. ... ok
+test_unreadable_directory_still_raises (test_ai_reader.Rev11.test_unreadable_directory_still_raises)
+Control: a directory that cannot be read is not a vanished entry - the measure raises (the run stops). ... ok
+test_audit_map_rebuild_unchanged (test_ai_reader.Rev12.test_audit_map_rebuild_unchanged)
+The frozen map's construction is unchanged by revision 12: a rebuild equals the frozen map in everything but ... skipped 'needs WordNet (run under .venv-build)'
+test_audit_scorer_same_rule_own_entry_point (test_ai_reader.Rev12.test_audit_scorer_same_rule_own_entry_point) ... skipped 'needs WordNet (run under .venv-build)'
+test_every_excluded_form_still_fails (test_ai_reader.Rev12.test_every_excluded_form_still_fails) ... skipped 'needs WordNet (run under .venv-build)'
+test_format_still_first (test_ai_reader.Rev12.test_format_still_first) ... skipped 'needs WordNet (run under .venv-build)'
+test_named_cases (test_ai_reader.Rev12.test_named_cases) ... skipped 'needs WordNet (run under .venv-build)'
+test_one_function_in_both_scorers (test_ai_reader.Rev12.test_one_function_in_both_scorers) ... skipped 'needs WordNet (run under .venv-build)'
+test_prompt_is_the_owners (test_ai_reader.Rev12.test_prompt_is_the_owners) ... skipped 'needs WordNet (run under .venv-build)'
+test_singularising_an_admitted_form_never_reaches_an_excluded_one (test_ai_reader.Rev12.test_singularising_an_admitted_form_never_reaches_an_excluded_one)
+The order of the rule (an admitted form as given passes before WordNet is read) cannot hide an exclusion: ... skipped 'needs WordNet (run under .venv-build)'
+test_the_fourteen_easy_misses_of_job_a (test_ai_reader.Rev12.test_the_fourteen_easy_misses_of_job_a)
+12 pass, pearl and the holiday greeting card do not. 'Air conditioning unit' passes by (ii): 'air ... skipped 'needs WordNet (run under .venv-build)'
+test_wordnet_pin_checked (test_ai_reader.Rev12.test_wordnet_pin_checked) ... skipped 'needs WordNet (run under .venv-build)'
+test_capacity_refusal_is_retryable_now_and_was_isolation (test_ai_reader.Rev13Reader.test_capacity_refusal_is_retryable_now_and_was_isolation) ... ok
+test_negatives_stay_isolation (test_ai_reader.Rev13Reader.test_negatives_stay_isolation) ... ok
+test_the_evidence_is_job_b_s (test_ai_reader.Rev13Reader.test_the_evidence_is_job_b_s) ... ok
+test_the_journal_refuses_the_label_on_another_shape (test_ai_reader.Rev13Reader.test_the_journal_refuses_the_label_on_another_shape) ... ok
+test_the_owned_binary_and_its_pins (test_ai_reader.Rev13Reader.test_the_owned_binary_and_its_pins) ... ok
+test_tree_hash_moves_with_any_file (test_ai_reader.Rev13Reader.test_tree_hash_moves_with_any_file) ... ok
+test_an_item_inside_the_capacity_error_is_isolation (test_ai_reader.Rev14Reader.test_an_item_inside_the_capacity_error_is_isolation)
+Codex's counterexample, and a malformed item: retained final isolation; a forged provider label refused. ... ok
+test_any_extra_key_disqualifies_the_marker (test_ai_reader.Rev14Reader.test_any_extra_key_disqualifies_the_marker) ... ok
+test_capacity_with_structural_stderr_is_the_structural_hold (test_ai_reader.Rev14Reader.test_capacity_with_structural_stderr_is_the_structural_hold) ... ok
+test_executor_capacity_retries_item_is_final_structural_holds (test_ai_reader.Rev14Reader.test_executor_capacity_retries_item_is_final_structural_holds) ... ok
+test_the_job_doc_declares_the_capacity_exception (test_ai_reader.Rev14Reader.test_the_job_doc_declares_the_capacity_exception) ... ok
+test_2048_spaces_is_the_declared_capacity_end (test_ai_reader.Rev15Reader.test_2048_spaces_is_the_declared_capacity_end) ... ok
+test_2049_spaces_is_final_isolation_with_the_marker (test_ai_reader.Rev15Reader.test_2049_spaces_is_final_isolation_with_the_marker) ... ok
+test_controls_absent_empty_received_and_nonblank_oversize (test_ai_reader.Rev15Reader.test_controls_absent_empty_received_and_nonblank_oversize) ... ok
+test_executor_2048_still_retries_and_completes (test_ai_reader.Rev15Reader.test_executor_2048_still_retries_and_completes) ... ok
+test_executor_no_retry_holds_and_the_journal_agrees (test_ai_reader.Rev15Reader.test_executor_no_retry_holds_and_the_journal_agrees) ... ok
+test_the_docs_declare_the_byte_limit (test_ai_reader.Rev15Reader.test_the_docs_declare_the_byte_limit) ... ok
+test_the_limit_is_2048_utf8_bytes (test_ai_reader.Rev15Reader.test_the_limit_is_2048_utf8_bytes) ... ok
+test_the_marker_is_refused_where_it_does_not_belong (test_ai_reader.Rev15Reader.test_the_marker_is_refused_where_it_does_not_belong) ... ok
+test_2046_bytes_is_the_declared_capacity_end (test_ai_reader.Rev16Reader.test_2046_bytes_is_the_declared_capacity_end) ... ok
+test_2049_bytes_is_the_marked_final_end_and_validates (test_ai_reader.Rev16Reader.test_2049_bytes_is_the_marked_final_end_and_validates) ... ok
+test_byte_lengths (test_ai_reader.Rev16Reader.test_byte_lengths) ... ok
+test_excerpts_never_split_a_character (test_ai_reader.Rev16Reader.test_excerpts_never_split_a_character) ... ok
+test_executor_holds_and_the_incomplete_journal_validates (test_ai_reader.Rev16Reader.test_executor_holds_and_the_incomplete_journal_validates) ... ok
+test_clean_evidence_still_retries (test_ai_reader.Rev17Reader.test_clean_evidence_still_retries) ... ok
+test_codexs_1mib_cut_blank_file (test_ai_reader.Rev17Reader.test_codexs_1mib_cut_blank_file) ... ok
+test_cuts_at_every_offset_into_a_character (test_ai_reader.Rev17Reader.test_cuts_at_every_offset_into_a_character) ... ok
+test_executor_1mib_cut_holds_and_the_journal_agrees (test_ai_reader.Rev17Reader.test_executor_1mib_cut_holds_and_the_journal_agrees) ... ok
+test_incomplete_capture_is_never_an_answer_outside_capacity (test_ai_reader.Rev17Reader.test_incomplete_capture_is_never_an_answer_outside_capacity) ... ok
+test_other_incomplete_or_unclean_capacity_evidence_holds (test_ai_reader.Rev17Reader.test_other_incomplete_or_unclean_capacity_evidence_holds) ... ok
+test_tampered_capture_facts_refused (test_ai_reader.Rev17Reader.test_tampered_capture_facts_refused) ... ok
+test_unestablishable_capacity_in_an_incomplete_stream_holds (test_ai_reader.Rev17Reader.test_unestablishable_capacity_in_an_incomplete_stream_holds)
+My own adversarial case (revision 17): the capacity text in a stream that was not captured AND retained ... ok
+test_blocked_beat_does_not_hold_close (test_ai_reader.Rev5Clock.test_blocked_beat_does_not_hold_close) ... ok
+test_guard_ends_the_process_at_the_cap (test_ai_reader.Rev5Clock.test_guard_ends_the_process_at_the_cap) ... ok
+test_guard_kills_at_the_final_reserve (test_ai_reader.Rev5Clock.test_guard_kills_at_the_final_reserve) ... ok
+test_nonfinite_and_typed_accounting_refused (test_ai_reader.Rev5Clock.test_nonfinite_and_typed_accounting_refused) ... ok
+test_complete_receipt_over_the_cap_refused (test_ai_reader.Rev5Evidence.test_complete_receipt_over_the_cap_refused) ... ok
+test_duplicate_quarantine_record_refused (test_ai_reader.Rev5Evidence.test_duplicate_quarantine_record_refused) ... ok
+test_exact_false_cannot_hide_a_received_answer_or_tool (test_ai_reader.Rev5Evidence.test_exact_false_cannot_hide_a_received_answer_or_tool) ... ok
+test_exact_false_refused_on_resume_before_dispatch (test_ai_reader.Rev5Evidence.test_exact_false_refused_on_resume_before_dispatch) ... ok
+test_exact_schemas_identities_and_image_fields (test_ai_reader.Rev5Evidence.test_exact_schemas_identities_and_image_fields) ... ok
+test_head_tail_evidence_only_for_retained_errors (test_ai_reader.Rev5Evidence.test_head_tail_evidence_only_for_retained_errors) ... ok
+test_received_file_answer_on_a_non_answer_label (test_ai_reader.Rev5Evidence.test_received_file_answer_on_a_non_answer_label) ... ok
+test_record_and_file_bounds (test_ai_reader.Rev5Evidence.test_record_and_file_bounds) ... ok
+test_top_level_error_event_is_never_ignored (test_ai_reader.Rev5Evidence.test_top_level_error_event_is_never_ignored) ... ok
+test_invocation_receipt_deadline_and_cleanup (test_ai_reader.Rev5LocalReceipts.test_invocation_receipt_deadline_and_cleanup) ... ok
+test_leader_first_descendants_killed (test_ai_reader.Rev5LocalReceipts.test_leader_first_descendants_killed) ... ok
+test_quick_exit_over_the_cap_refused (test_ai_reader.Rev5LocalReceipts.test_quick_exit_over_the_cap_refused) ... ok
+test_timeout_refused_and_group_gone (test_ai_reader.Rev5LocalReceipts.test_timeout_refused_and_group_gone) ... ok
+test_ok_file_evidence_bound_on_complete (test_ai_reader.Rev6Evidence.test_ok_file_evidence_bound_on_complete) ... ok
+test_ok_file_evidence_bound_on_resume (test_ai_reader.Rev6Evidence.test_ok_file_evidence_bound_on_resume) ... ok
+test_complete_invocation_logs_after_the_deadline_refused (test_ai_reader.Rev6LocalCommands.test_complete_invocation_logs_after_the_deadline_refused) ... ok
+test_late_exit_is_a_timeout (test_ai_reader.Rev6LocalCommands.test_late_exit_is_a_timeout) ... ok
+test_setup_failure_after_spawn_leaves_no_process (test_ai_reader.Rev6LocalCommands.test_setup_failure_after_spawn_leaves_no_process) ... ok
+test_already_exited_leader_observed_late (test_ai_reader.Rev7.test_already_exited_leader_observed_late) ... ok
+test_complete_logs_observed_after_the_deadline (test_ai_reader.Rev7.test_complete_logs_observed_after_the_deadline) ... ok
+test_overlength_excerpt_and_length_bound_to_the_event_answer (test_ai_reader.Rev7.test_overlength_excerpt_and_length_bound_to_the_event_answer) ... ok
+test_scientific_scoring_refuses_a_caller_clock (test_ai_reader.Rev7.test_scientific_scoring_refuses_a_caller_clock) ... ok
+test_exit_observed_late_at_its_probe (test_ai_reader.Rev8.test_exit_observed_late_at_its_probe)
+The leader exited in time, but the probe that observes it returns only past the deadline (a scheduling ... ok
+test_fallback_read_past_the_deadline (test_ai_reader.Rev8.test_fallback_read_past_the_deadline)
+The command wrote complete, parseable logs (content [x], model m, empty feature tags - NOT an equivalent ... ok
+test_referrals_carry_identity (test_ai_reader.ScorerAdmission.test_referrals_carry_identity) ... skipped "needs WordNet (run under .venv-build): a non-matching answer reaches the shared matching rule's WordNet steps"
+test_scientific_mode_refuses_injected_objects (test_ai_reader.ScorerAdmission.test_scientific_mode_refuses_injected_objects) ... ok
+test_synthetic_refused_without_flag_and_labelled (test_ai_reader.ScorerAdmission.test_synthetic_refused_without_flag_and_labelled) ... ok
+test_untracked_and_tracked_dirty_refused (test_ai_reader.ScorerAdmission.test_untracked_and_tracked_dirty_refused) ... ok
+test_codes_and_format_precedence (test_ai_reader.Scoring.test_codes_and_format_precedence) ... ok
+test_gate_arithmetic (test_ai_reader.Scoring.test_gate_arithmetic) ... ok
+test_no_alias_trips_a_format_check (test_ai_reader.Scoring.test_no_alias_trips_a_format_check) ... ok
+test_normalise (test_ai_reader.Scoring.test_normalise) ... ok
+test_contradictory_evidence (test_ai_reader.Validator.test_contradictory_evidence) ... ok
+test_evidence_required_and_consistent (test_ai_reader.Validator.test_evidence_required_and_consistent) ... ok
+test_illegal_resumed_transitions (test_ai_reader.Validator.test_illegal_resumed_transitions) ... ok
+test_mutations (test_ai_reader.Validator.test_mutations) ... ok
+test_no_response_needs_three_failures (test_ai_reader.Validator.test_no_response_needs_three_failures) ... ok
+test_nonfinite_and_out_of_range (test_ai_reader.Validator.test_nonfinite_and_out_of_range) ... ok
+test_receipt_pins (test_ai_reader.Validator.test_receipt_pins) ... ok
+test_valid_journal_passes (test_ai_reader.Validator.test_valid_journal_passes) ... ok
+test_after_begin_not_dispatched (test_ai_reader_crash.HardKill.test_after_begin_not_dispatched) ... ok
+test_after_dispatch_record_before_go (test_ai_reader_crash.HardKill.test_after_dispatch_record_before_go) ... ok
+test_after_end_answer_durable (test_ai_reader_crash.HardKill.test_after_end_answer_durable) ... ok
+test_after_go_worker_killed_by_the_watchdog (test_ai_reader_crash.HardKill.test_after_go_worker_killed_by_the_watchdog) ... ok
+test_after_response_answer_lost (test_ai_reader_crash.HardKill.test_after_response_answer_lost) ... ok
+test_after_state (test_ai_reader_crash.HardKill.test_after_state) ... ok
+test_attempt1_answer_durable_then_crash_holds (test_ai_reader_crash.HardKill.test_attempt1_answer_durable_then_crash_holds) ... ok
+test_attempt1_not_dispatched_retries (test_ai_reader_crash.HardKill.test_attempt1_not_dispatched_retries) ... ok
+test_attempt1_uncertain_smoke_never_passes (test_ai_reader_crash.HardKill.test_attempt1_uncertain_smoke_never_passes) ... ok
+test_before_begin (test_ai_reader_crash.HardKill.test_before_begin) ... ok
+test_external_sigkill_with_live_worker (test_ai_reader_crash.HardKill.test_external_sigkill_with_live_worker)
+The orchestrator is SIGKILLed with its worker running: the watchdog kills the worker group within its ... ok
+test_first_request_retry_crash_holds (test_ai_reader_crash.HardKill.test_first_request_retry_crash_holds) ... ok
+test_incomplete_tail_quarantined (test_ai_reader_crash.HardKill.test_incomplete_tail_quarantined) ... ok
+test_recovery_persistence (test_ai_reader_crash.HardKill.test_recovery_persistence) ... ok
+test_terminal_no_response (test_ai_reader_crash.HardKill.test_terminal_no_response) ... ok
+test_live_foreign_start_before_the_lock (test_ai_reader_crash.Rev10.test_live_foreign_start_before_the_lock)
+S1 publishes its pending record (final, or only its readable temporary) and stays ALIVE, stalled before ... ok
+test_job_completes_while_the_cli_churns_its_helpers (test_ai_reader_crash.Rev11.test_job_completes_while_the_cli_churns_its_helpers) ... ok
+test_crash_after_the_marked_end_then_restart (test_ai_reader_crash.Rev16.test_crash_after_the_marked_end_then_restart) ... ok
+test_exhausted_resume_stops_before_preflight (test_ai_reader_crash.Rev5Recovery.test_exhausted_resume_stops_before_preflight)
+R4: a resume with too little time left records the recovery and goes straight to STOPPED. ... ok
+test_immediate_restart_kills_unrecorded_members (test_ai_reader_crash.Rev5Recovery.test_immediate_restart_kills_unrecorded_members)
+R3: a crashed attempt whose recorded worker is alive with a child NO record names, and whose watchdog is ... ok
+test_quarantine_crash_before_truncation_one_record (test_ai_reader_crash.Rev5Recovery.test_quarantine_crash_before_truncation_one_record)
+R6: the quarantine file exists but the journal still holds the tail (a crash between the two): one ... ok
+test_structural_after_end_first_and_later_request (test_ai_reader_crash.Rev5Recovery.test_structural_after_end_first_and_later_request)
+R2: a durable structural end, then a crash before STOPPED: the restart goes straight to a valid STOPPED - ... ok
+test_setup_before_the_clock_is_bounded (test_ai_reader_crash.Rev6.test_setup_before_the_clock_is_bounded)
+Reader 3: a stall in check_accounting, before the clock (and its guard) exists, ends at the setup timer. ... ok
+test_slow_receipt_and_slow_close_share_one_deadline (test_ai_reader_crash.Rev6.test_slow_receipt_and_slow_close_share_one_deadline)
+Reader 3, made deterministic (reader revision 16, Codex 431f072/478196f): with a 3 s allowance the stop's ONE ... ok
+test_watchdog_does_not_retire_while_a_recorded_escaped_member_lives (test_ai_reader_crash.Rev6.test_watchdog_does_not_retire_while_a_recorded_escaped_member_lives)
+Reader 1: the leader exits, its recorded child has left the group, and the orchestrator dies before its ... ok
+test_coherent_undercharge_refused (test_ai_reader_crash.Rev7.test_coherent_undercharge_refused)
+Reader B: an alternate clock - total 0, one closed session of 0 s naming the journal, marker consistent - ... ok
+test_failed_start_is_charged_at_the_next_start (test_ai_reader_crash.Rev7.test_failed_start_is_charged_at_the_next_start)
+Reader B: a start killed by its setup timer before the clock's first persist is charged next time. ... ok
+test_marker_failure_after_its_rename_is_removed (test_ai_reader_crash.Rev7.test_marker_failure_after_its_rename_is_removed)
+Reader A (revision 8 path): the marker's write fails before its commit - no marker, not admitted. ... ok
+test_post_rename_clock_failure_and_stall_do_not_qualify (test_ai_reader_crash.Rev7.test_post_rename_clock_failure_and_stall_do_not_qualify)
+Reader A: the closed clock is renamed into place, then its directory fsync fails (or stalls): the COMPLETE ... ok
+test_crash_after_first_persist_is_charged_once (test_ai_reader_crash.Rev8.test_crash_after_first_persist_is_charged_once)
+Reader B: the pending entry and the clock session share one id; a crash after the clock's first persist and ... ok
+test_elapsed_setup_is_charged_and_holds_at_the_cap (test_ai_reader_crash.Rev8.test_elapsed_setup_is_charged_and_holds_at_the_cap)
+Reader B: with 3 s of the allowance left, the old clock's read takes 5 s: the start HOLDS (no fresh ... ok
+test_journal_session_without_its_clock_session_is_refused (test_ai_reader_crash.Rev8.test_journal_session_without_its_clock_session_is_refused)
+Reader B: a valid two-session COMPLETE; dropping the earlier (crashed) clock session, the total reduced to ... ok
+test_marker_commit_stall_does_not_qualify (test_ai_reader_crash.Rev8.test_marker_commit_stall_does_not_qualify)
+Reader A: the marker's commit stalls before its rename, or the rename takes effect but does not return; ... ok
+test_marker_present_beside_its_tombstone_is_refused (test_ai_reader_crash.Rev8.test_marker_present_beside_its_tombstone_is_refused)
+Reader A: a marker that survives (its removal blocked) beside the tombstone naming its session is refused. ... ok
+test_two_failed_starts_then_recovery (test_ai_reader_crash.Rev8.test_two_failed_starts_then_recovery)
+Reader B: S1 and S2 both die before the clock's first persist; S3 charges BOTH (each start publishes its ... ok
+test_late_rename_after_an_early_unlink_does_not_qualify (test_ai_reader_crash.Rev9.test_late_rename_after_an_early_unlink_does_not_qualify)
+Reader A: the commit is released only after the deadline fired and the revocation's first unlink found no ... ok
+test_near_cap_recovery_bounds_the_blocked_first_persist (test_ai_reader_crash.Rev9.test_near_cap_recovery_bounds_the_blocked_first_persist)
+Reader B2: the saved base leaves ample time, but the recovered open session (live + 30 s tail) leaves about ... ok
+test_readable_incomplete_pending_publication_is_charged (test_ai_reader_crash.Rev9.test_readable_incomplete_pending_publication_is_charged)
+Reader B1: the initial pending write's temporary is written and fsynced, the rename never comes, the setup ... ok
+test_undeclared_closed_state_is_refused (test_ai_reader_crash.Rev9.test_undeclared_closed_state_is_refused)
+Reader B3: a valid two-session COMPLETE; the earlier crashed session rewritten to an undeclared state, the ... ok
+test_blocked_writer_watchdog_bounds_worker_and_controller (test_controller.Controller.test_blocked_writer_watchdog_bounds_worker_and_controller)
+The controller's record writer blocks forever: the controller is stuck; the watchdog kills the worker ... ok
+test_controller_death_during_active_work (test_controller.Controller.test_controller_death_during_active_work)
+SIGKILL the controller while its worker (and grandchild) run: the watchdog kills the group; the next ... ok
+test_controls_stay_live_during_the_watchdog_gone_wait (test_controller.Controller.test_controls_stay_live_during_the_watchdog_gone_wait)
+Revision 12 (A3): the watchdog retires 1 s after arming; the worker is idle, then at 2.5 s touches 1 GiB ... stage_a_controller: stop observed at monotonic 45199.157282, previous successful reading at 45199.130605, SIGKILL sent at 45199.159744: instrumented: task memory 1109248928 >= 805306368
+ok
+test_crash_tail_charge (test_controller.Controller.test_crash_tail_charge) ... ok
+test_deadline_kills_a_worker_busy_in_metal (test_controller.Controller.test_deadline_kills_a_worker_busy_in_metal) ... stage_a_controller: stop observed at monotonic 45230.446493, previous successful reading at 45230.416468, SIGKILL sent at 45230.446571: instrumented: time limit 1815 s reached (row cap 2535 s less reserves)
+ok
+test_deadline_kills_a_worker_that_ignores_sigterm (test_controller.Controller.test_deadline_kills_a_worker_that_ignores_sigterm) ... stage_a_controller: stop observed at monotonic 45236.026744, previous successful reading at 45235.996715, SIGKILL sent at 45236.026794: instrumented: time limit 1813 s reached (row cap 2533 s less reserves)
+ok
+test_directory_stall_before_load_is_guarded (test_controller.Controller.test_directory_stall_before_load_is_guarded)
+Stage A A (c036c00): the output directory's creation blocks forever; the guardian, started before ANY file ... ok
+test_escaped_child_killed_by_identity (test_controller.Controller.test_escaped_child_killed_by_identity) ... ok
+test_exit_peak_enters_the_task_aggregate (test_controller.Controller.test_exit_peak_enters_the_task_aggregate) ... ok
+test_exit_spike_over_the_stop_stops (test_controller.Controller.test_exit_spike_over_the_stop_stops) ... stage_a_controller: stop observed at monotonic 45259.192312, previous successful reading at 45259.164065, SIGKILL sent at 45259.194163: instrumented: task memory 1095814024 >= 805306368
+ok
+test_external_death_before_pending_with_a_healthy_guardian (test_controller.Controller.test_external_death_before_pending_with_a_healthy_guardian)
+Revision 9 (Codex 7fdb937, Stage A A1.1): directory creation or the lock blocks; the controller is ... ok
+test_failed_start_is_charged (test_controller.Controller.test_failed_start_is_charged)
+Revision 7: a start that died before its session's first durable record is charged from its pending-start ... ok
+test_final_output_stall_is_guarded_and_charged (test_controller.Controller.test_final_output_stall_is_guarded_and_charged)
+Stage A A: the result's output blocks forever after a PASS; the guardian (deadline moved to the end of the ... ok
+test_gates_phase_hold_is_closed_and_charged (test_controller.Controller.test_gates_phase_hold_is_closed_and_charged)
+Revision 12 (Codex 5eb51a8 A2): the GATES worker blocks and its watchdog retires early: the run returns ... stage_a_controller: stop observed at monotonic 45306.114037, previous successful reading at 45306.089277, SIGKILL sent at 45306.114739: gates: watchdog exited (0) and the leader's exit was not confirmed within 3 s
+ok
+test_guardian_in_the_task_aggregate (test_controller.Controller.test_guardian_in_the_task_aggregate)
+Stage A B: the guardian is sampled, its final maximum read, and both counted; unreadable -> STOPPED. ... ok
+test_immediate_restart_kills_unrecorded_group_members (test_controller.Controller.test_immediate_restart_kills_unrecorded_group_members)
+Immediate restart (A2): the crashed worker's leader is alive with a child no record names, and its ... ok
+test_initial_resource_failure_is_terminal (test_controller.Controller.test_initial_resource_failure_is_terminal) ... ok
+test_leader_exit_with_surviving_child (test_controller.Controller.test_leader_exit_with_surviving_child) ... ok
+test_live_foreign_start_before_the_lock (test_controller.Controller.test_live_foreign_start_before_the_lock)
+Revision 10 (Codex dda950b, Stage A A1): S1 publishes its armed record and stays ALIVE, stalled in the ... ok
+test_long_first_persist_with_an_existing_clock (test_controller.Controller.test_long_first_persist_with_an_existing_clock)
+Revision 8 (Stage A A2): a closed controller.json exists; the next start's first persist blocks before its ... ok
+test_memory_stop_is_whole_task (test_controller.Controller.test_memory_stop_is_whole_task) ... stage_a_controller: stop observed at monotonic 45412.159514, previous successful reading at 45412.129484, SIGKILL sent at 45412.161428: instrumented: task memory 834767584 >= 805306368
+ok
+test_memory_stop_with_blocked_io_kills_first (test_controller.Controller.test_memory_stop_with_blocked_io_kills_first)
+Stage A 1: the memory stop SIGKILLs the group from the sampler BEFORE any join or persist while the I/O ... ok
+test_missing_mandatory_measurements_refuse_pass (test_controller.Controller.test_missing_mandatory_measurements_refuse_pass) ... ok
+test_never_returning_first_and_later_sample (test_controller.Controller.test_never_returning_first_and_later_sample) ... ok
+test_owner_release_of_a_terminal_record (test_controller.Controller.test_owner_release_of_a_terminal_record)
+Revision 11 (the owner's ruling on the 2 October attempt): a terminal stop after the instrumented phase holds ... ok
+test_pass_sequential_lock_held_and_final_figures (test_controller.Controller.test_pass_sequential_lock_held_and_final_figures) ... ok
+test_persistence_after_the_watchdog_retired_is_bounded (test_controller.Controller.test_persistence_after_the_watchdog_retired_is_bounded)
+Stage A 2: a controller-only persist blocks forever after the gates' worker and watchdog are gone; the ... ok
+test_persistence_failure_is_bounded (test_controller.Controller.test_persistence_failure_is_bounded) ... ok
+test_post_close_death_is_inside_the_charged_closure (test_controller.Controller.test_post_close_death_is_inside_the_charged_closure)
+Stage A A: after the close, finalisation blocks and both revocations block; the process ends (bounded abort ... ok
+test_pre_pending_stall_is_charged_at_restart (test_controller.Controller.test_pre_pending_stall_is_charged_at_restart)
+Revision 8 (Codex 12a7f20, Stage A A1): the directory creation or the lock blocks before the pending-start ... ok
+test_recovery_during_guardian_receipt_publication (test_controller.Controller.test_recovery_during_guardian_receipt_publication)
+Revision 9 (Stage A A1.2): the guardian kills the stalled controller at its setup deadline and publishes ... ok
+test_refusal_and_authorisation_hold_are_distinct (test_controller.Controller.test_refusal_and_authorisation_hold_are_distinct) ... refused: fixture refusal
+ok
+test_sampler_unavailable_and_slow (test_controller.Controller.test_sampler_unavailable_and_slow) ... stage_a_controller: stop observed at monotonic 45565.638924, previous successful reading at 45565.614448, SIGKILL sent at 45565.640706: instrumented: memory reading unavailable (test)
+stage_a_controller: stop observed at monotonic 45566.369662, previous successful reading at nan, SIGKILL sent at 45566.374727: report: memory reading unavailable (test)
+stage_a_controller: stop observed at monotonic 45569.846677, previous successful reading at 45569.819234, SIGKILL sent at 45569.915514: instrumented: a sampling iteration took 0.069 s (limit 0.05 s)
+stage_a_controller: stop observed at monotonic 45570.627024, previous successful reading at nan, SIGKILL sent at 45570.706436: report: a sampling iteration took 0.079 s (limit 0.05 s)
+ok
+test_slow_teardown_after_the_phase_record_does_not_stop (test_controller.Controller.test_slow_teardown_after_the_phase_record_does_not_stop)
+Revision 11 (the 2 October run, PRODUCED): the instrumented worker commits INSTRUMENTED_DONE, then lingers ... ok
+test_stale_worker_reconciled_by_identity_only (test_controller.Controller.test_stale_worker_reconciled_by_identity_only)
+A recorded worker of a crashed session that is still alive is killed (identity verified); a live process ... ok
+test_terminal_holds_later_runs_but_report_runs (test_controller.Controller.test_terminal_holds_later_runs_but_report_runs) ... ok
+test_two_failures_during_pending_reconciliation (test_controller.Controller.test_two_failures_during_pending_reconciliation)
+Revision 8 (Stage A A3): S1's pending entry exists; S2 reads it, publishes S1 + S2 and dies while ... ok
+test_watchdog_gone_before_a_confirmed_exit_holds (test_controller.Controller.test_watchdog_gone_before_a_confirmed_exit_holds)
+Revision 11: the watchdog exits while the leader is alive and never exits (tests/fixture_watchdogs.py ... stage_a_controller: stop observed at monotonic 45612.006257, previous successful reading at 45611.982965, SIGKILL sent at 45612.006361: instrumented: watchdog exited (0) and the leader's exit was not confirmed within 3 s
+ok
+test_worker_crash_and_missing_record (test_controller.Controller.test_worker_crash_and_missing_record) ... ok
+test_failed_final_write_leaves_no_pass (test_controller.Finalisation.test_failed_final_write_leaves_no_pass) ... ok
+test_lost_and_invalid_accounting_refused (test_controller.Finalisation.test_lost_and_invalid_accounting_refused) ... ok
+test_marker_failure_after_its_rename_unadmits (test_controller.Finalisation.test_marker_failure_after_its_rename_unadmits) ... ok
+test_over_limit_and_illegal_ledger (test_controller.Finalisation.test_over_limit_and_illegal_ledger) ... ok
+test_post_marker_stall_and_blocked_revocation_are_bounded (test_controller.Finalisation.test_post_marker_stall_and_blocked_revocation_are_bounded)
+Stage A 3: the marker's write stalls after its rename; the allowance fires; revocation (tombstone + ... ok
+test_post_rename_block_is_bounded_and_not_admitted (test_controller.Finalisation.test_post_rename_block_is_bounded_and_not_admitted) ... ok
+test_post_rename_failure_is_not_admitted (test_controller.Finalisation.test_post_rename_failure_is_not_admitted) ... ok
+test_report_failure_modes_prevent_pass (test_controller.Finalisation.test_report_failure_modes_prevent_pass) ... ok
+test_size_mismatch_invalidates_completion (test_controller.Finalisation.test_size_mismatch_invalidates_completion) ... ok
+test_stale_pass_superseded (test_controller.Finalisation.test_stale_pass_superseded) ... ok
+test_storage_cap_edges (test_controller.Finalisation.test_storage_cap_edges) ... stage_a_controller: stop observed at monotonic 45784.655961, previous successful reading at 45784.634665, SIGKILL sent at 45784.656074: instrumented: task storage 5245921 over 4194304
+ok
+test_time_exhausted_spawns_no_work (test_controller.Finalisation.test_time_exhausted_spawns_no_work) ... ok
+test_exit_watch_failure (test_controller.Startup.test_exit_watch_failure) ... ok
+test_first_persist_failure (test_controller.Startup.test_first_persist_failure) ... ok
+test_stale_handles_never_survive_into_the_next_phase (test_controller.Startup.test_stale_handles_never_survive_into_the_next_phase)
+A worker handle left by a failed phase is ended (whole group, reaped) before the next phase spawns. ... ok
+test_watchdog_spawn_failure (test_controller.Startup.test_watchdog_spawn_failure) ... ok
+test_attestation_refusals (test_stage_a_runner.GoAttestation.test_attestation_refusals) ... ok
+test_block_structure (test_stage_a_runner.GoAttestation.test_block_structure) ... ok
+test_extra_null_key_in_both_attestation_and_go (test_stage_a_runner.GoAttestation.test_extra_null_key_in_both_attestation_and_go) ... ok
+test_go_file_refusals (test_stage_a_runner.GoAttestation.test_go_file_refusals) ... ok
+test_good (test_stage_a_runner.GoAttestation.test_good) ... ok
+test_negative_record_supplement (test_stage_a_runner.GoAttestation.test_negative_record_supplement) ... ok
+test_package_changes (test_stage_a_runner.GoAttestation.test_package_changes) ... ok
+test_review_must_descend_from_reviewed_commit (test_stage_a_runner.GoAttestation.test_review_must_descend_from_reviewed_commit) ... ok
+test_reviewed_commit_must_be_a_commit_object (test_stage_a_runner.GoAttestation.test_reviewed_commit_must_be_a_commit_object) ... ok
+test_reviewed_commit_rederivation_is_mandatory (test_stage_a_runner.GoAttestation.test_reviewed_commit_rederivation_is_mandatory) ... ok
+test_changed_frozen_inputs_refuse (test_stage_a_runner.Rev12Transition.test_changed_frozen_inputs_refuse) ... skipped "the 2 October ledger was moved by the 3 October resume's transition (IDENTITY_TRANSITION.json); the chained transition is PRODUCED by Rev13Transition"
+test_no_release_no_transition (test_stage_a_runner.Rev12Transition.test_no_release_no_transition) ... skipped "the 2 October ledger was moved by the 3 October resume's transition (IDENTITY_TRANSITION.json); the chained transition is PRODUCED by Rev13Transition"
+test_relabelled_phase_record_refuses (test_stage_a_runner.Rev12Transition.test_relabelled_phase_record_refuses) ... skipped "the 2 October ledger was moved by the 3 October resume's transition (IDENTITY_TRANSITION.json); the chained transition is PRODUCED by Rev13Transition"
+test_resume_admits_the_predecessor_phase_with_counters_carried (test_stage_a_runner.Rev12Transition.test_resume_admits_the_predecessor_phase_with_counters_carried) ... skipped "the 2 October ledger was moved by the 3 October resume's transition (IDENTITY_TRANSITION.json); the chained transition is PRODUCED by Rev13Transition"
+test_undeclared_predecessor_refuses (test_stage_a_runner.Rev12Transition.test_undeclared_predecessor_refuses) ... skipped "the 2 October ledger was moved by the 3 October resume's transition (IDENTITY_TRANSITION.json); the chained transition is PRODUCED by Rev13Transition"
+test_argmax_and_rel_l2_still_fail (test_stage_a_runner.Rev13Parity.test_argmax_and_rel_l2_still_fail) ... ok
+test_bf16_step (test_stage_a_runner.Rev13Parity.test_bf16_step) ... ok
+test_cases (test_stage_a_runner.Rev13Parity.test_cases) ... ok
+test_one_implementation (test_stage_a_runner.Rev13Parity.test_one_implementation) ... ok
+test_report_labels_the_floor (test_stage_a_runner.Rev13Parity.test_report_labels_the_floor)
+Revision 14 (Codex c4bbcb5 R2 item 4): the SVG's 0.10 guide is the floor, not the bound for every logit. ... ok
+test_broken_chain_admits_nothing (test_stage_a_runner.Rev13Transition.test_broken_chain_admits_nothing) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_changed_frozen_inputs_refuse (test_stage_a_runner.Rev13Transition.test_changed_frozen_inputs_refuse) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_ledger_not_where_the_chain_ends_refuses (test_stage_a_runner.Rev13Transition.test_ledger_not_where_the_chain_ends_refuses) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_no_release_no_transition (test_stage_a_runner.Rev13Transition.test_no_release_no_transition) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_relabelled_phase_record_refuses (test_stage_a_runner.Rev13Transition.test_relabelled_phase_record_refuses) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_resume_admits_both_predecessors_with_counters_carried (test_stage_a_runner.Rev13Transition.test_resume_admits_both_predecessors_with_counters_carried) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_retained_resume_records_match_the_live_ones (test_stage_a_runner.Rev13Transition.test_retained_resume_records_match_the_live_ones)
+The retained copy in reviews/ is the evidence the brief cites: its TERMINAL and transition equal the ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_the_2_october_release_does_not_release_the_3_october_record (test_stage_a_runner.Rev13Transition.test_the_2_october_release_does_not_release_the_3_october_record) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_the_real_records_are_the_3_october_state (test_stage_a_runner.Rev13Transition.test_the_real_records_are_the_3_october_state) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_undeclared_predecessor_refuses (test_stage_a_runner.Rev13Transition.test_undeclared_predecessor_refuses) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_fault_between_the_writes_then_retry_reconciles (test_stage_a_runner.Rev14PreparedLink.test_fault_between_the_writes_then_retry_reconciles) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_prepared_tail_under_an_invalidated_release_refuses_then_a_new_release_reconciles (test_stage_a_runner.Rev14PreparedLink.test_prepared_tail_under_an_invalidated_release_refuses_then_a_new_release_reconciles) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_prepared_tail_whose_counters_or_ids_differ_refuses (test_stage_a_runner.Rev14PreparedLink.test_prepared_tail_whose_counters_or_ids_differ_refuses) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_prepared_tail_whose_endpoints_differ_refuses (test_stage_a_runner.Rev14PreparedLink.test_prepared_tail_whose_endpoints_differ_refuses) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_repeat_of_the_reconciled_state_writes_nothing (test_stage_a_runner.Rev14PreparedLink.test_repeat_of_the_reconciled_state_writes_nothing) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_a_predecessor_os_other_than_the_declared_one_refuses (test_stage_a_runner.Rev15Environment.test_a_predecessor_os_other_than_the_declared_one_refuses) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_a_prepared_tail_for_another_os_pair_refuses (test_stage_a_runner.Rev15Environment.test_a_prepared_tail_for_another_os_pair_refuses) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_another_current_os_refuses (test_stage_a_runner.Rev15Environment.test_another_current_os_refuses) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_another_frozen_field_changed_with_it_refuses (test_stage_a_runner.Rev15Environment.test_another_frozen_field_changed_with_it_refuses) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_report_states_the_mixed_provenance (test_stage_a_runner.Rev15Environment.test_report_states_the_mixed_provenance)
+Source-string scope (as revision 14's label test): the report's provenance note and OS column exist. ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_the_declared_pair_is_admitted_and_recorded (test_stage_a_runner.Rev15Environment.test_the_declared_pair_is_admitted_and_recorded) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_the_revision_10_predecessor_declares_no_difference (test_stage_a_runner.Rev15Environment.test_the_revision_10_predecessor_declares_no_difference) ... skipped 'the live ledger moved past the 3 October pre-resume state (the revision-15 resume of 3 October 18:36 UTC wrote link 2 and natives 16-19); these classes passed on that state in the retained runs 85c92ea, ef11c1f, 93b0a87 and 6bdb207, and the resume itself performed the transition'
+test_identity_not_describing_its_blobs_refused (test_stage_a_runner.ReviewedPackageBuilder.test_identity_not_describing_its_blobs_refused) ... ok
+test_identity_self_hash_refused (test_stage_a_runner.ReviewedPackageBuilder.test_identity_self_hash_refused) ... ok
+test_local_code_mismatch_refused (test_stage_a_runner.ReviewedPackageBuilder.test_local_code_mismatch_refused) ... ok
+test_positive (test_stage_a_runner.ReviewedPackageBuilder.test_positive) ... ok
+test_bitwise_failure_is_terminal_in_both_phases (test_stage_a_runner.StageA.test_bitwise_failure_is_terminal_in_both_phases) ... ok
+test_consistent_nonplain_change_refused_before_native (test_stage_a_runner.StageA.test_consistent_nonplain_change_refused_before_native)
+A6: a non-plain record's input_ids_sha256 changed with every hash (record, ledger, phase record) updated ... ok
+test_corrupt_committed_output_holds (test_stage_a_runner.StageA.test_corrupt_committed_output_holds) ... ok
+test_crash_recovery_is_per_try_and_consumed (test_stage_a_runner.StageA.test_crash_recovery_is_per_try_and_consumed) ... ok
+test_diagnostic_report_confers_nothing (test_stage_a_runner.StageA.test_diagnostic_report_confers_nothing) ... ok
+test_full_pass_validator (test_stage_a_runner.StageA.test_full_pass_validator) ... ok
+test_gates_consume_their_map_and_recheck (test_stage_a_runner.StageA.test_gates_consume_their_map_and_recheck)
+A1: the gates check their own bound map and recheck the identity before GATES.json is committed. ... ok
+test_gates_reconcile_then_hold (test_stage_a_runner.StageA.test_gates_reconcile_then_hold)
+Restart before interruption reconciliation: the GATES worker converts the open attempt durably, then ... ok
+test_native_parity_failure_is_terminal (test_stage_a_runner.StageA.test_native_parity_failure_is_terminal) ... ok
+test_native_refused_before_instrumented (test_stage_a_runner.StageA.test_native_refused_before_instrumented) ... ok
+test_report_consumes_its_map_and_rechecks_before_the_receipt (test_stage_a_runner.StageA.test_report_consumes_its_map_and_rechecks_before_the_receipt) ... ok
+test_resumed_record_admitted_by_the_full_predicates (test_stage_a_runner.StageA.test_resumed_record_admitted_by_the_full_predicates)
+A6: a committed record reloaded on resumption passes the instrumented predicates before use. ... ok
+test_source_records_pinned (test_stage_a_runner.StageA.test_source_records_pinned)
+A8: admission requires the current dev pool and provenance records identical to the plan's pins. ... ok
+test_stopped_report_with_unauthorised_interrupted_attempt (test_stage_a_runner.StageA.test_stopped_report_with_unauthorised_interrupted_attempt)
+A resource-killed open attempt: the report describes it and grants or consumes nothing. ... ok
+test_attempt_without_commit_fails_and_is_never_retried (test_stage_a_runner.Units.test_attempt_without_commit_fails_and_is_never_retried) ... ok
+test_cases (test_stage_a_runner.Units.test_cases) ... ok
+test_code_changed_between_phases (test_stage_a_runner.Units.test_code_changed_between_phases) ... ok
+test_consumed_map_bound_and_origins (test_stage_a_runner.Units.test_consumed_map_bound_and_origins) ... ok
+test_every_writer_reserves (test_stage_a_runner.Units.test_every_writer_reserves)
+Work writes stop at the operational limit; finalisation writes may use the reserve but not pass the cap. ... ok
+test_identity_mismatch_refuses (test_stage_a_runner.Units.test_identity_mismatch_refuses) ... ok
+test_interpretation_status (test_stage_a_runner.Units.test_interpretation_status) ... ok
+test_positions_receipt_absent_failing_stale (test_stage_a_runner.Units.test_positions_receipt_absent_failing_stale) ... ok
+test_storage_reserve_refuses (test_stage_a_runner.Units.test_storage_reserve_refuses) ... ok
+test_worker_identity_must_equal_frozen_and_gates (test_stage_a_runner.Units.test_worker_identity_must_equal_frozen_and_gates) ... ok
+test_authority_domains_and_witness (test_stage_a_runner.ValidatorMutations.test_authority_domains_and_witness)
+Stage A D (c036c00): an authorised history is legal only with the intake's domains AND its retained owner ... ok
+test_boundary_bytes_decoded (test_stage_a_runner.ValidatorMutations.test_boundary_bytes_decoded) ... ok
+test_capture_and_dispatch_metadata (test_stage_a_runner.ValidatorMutations.test_capture_and_dispatch_metadata) ... ok
+test_clean_base_passes (test_stage_a_runner.ValidatorMutations.test_clean_base_passes) ... ok
+test_codex_ledger_counterexample (test_stage_a_runner.ValidatorMutations.test_codex_ledger_counterexample)
+A6, Codex's static counterexample: all tries 0, passes per try 1, row20 started 16, passes 16, completed ... ok
+test_codex_unauthorised_extra_try (test_stage_a_runner.ValidatorMutations.test_codex_unauthorised_extra_try)
+Stage A 4 (b569f8a): one completed attempt's tries 1 -> 2 with NO consumed recovery and counters raised by one ... ok
+test_coherent_zero_negative_and_typed_states (test_stage_a_runner.ValidatorMutations.test_coherent_zero_negative_and_typed_states) ... ok
+test_exact_consumed_and_outstanding_sets (test_stage_a_runner.ValidatorMutations.test_exact_consumed_and_outstanding_sets)
+Stage A D: legal counters and unchanged outputs, but the recovery sets are not exact. ... ok
+test_failing_numbers_marked_pass (test_stage_a_runner.ValidatorMutations.test_failing_numbers_marked_pass) ... ok
+test_hash_tamper (test_stage_a_runner.ValidatorMutations.test_hash_tamper) ... ok
+test_image_rotary_merge_and_features (test_stage_a_runner.ValidatorMutations.test_image_rotary_merge_and_features) ... ok
+test_ledger_consistency (test_stage_a_runner.ValidatorMutations.test_ledger_consistency) ... ok
+test_native_embedding_digest_from_archive (test_stage_a_runner.ValidatorMutations.test_native_embedding_digest_from_archive) ... ok
+test_nonfinite_native (test_stage_a_runner.ValidatorMutations.test_nonfinite_native) ... ok
+test_output_membership (test_stage_a_runner.ValidatorMutations.test_output_membership) ... ok
+test_parity_summary_unbound (test_stage_a_runner.ValidatorMutations.test_parity_summary_unbound) ... ok
+test_phase_record_mismatch_and_identity (test_stage_a_runner.ValidatorMutations.test_phase_record_mismatch_and_identity) ... ok
+test_plain_input_ids_and_token_count (test_stage_a_runner.ValidatorMutations.test_plain_input_ids_and_token_count) ... ok
+test_ranks_top_k_and_logit_dtype (test_stage_a_runner.ValidatorMutations.test_ranks_top_k_and_logit_dtype) ... ok
+test_record_identity_fields (test_stage_a_runner.ValidatorMutations.test_record_identity_fields) ... ok
+test_schema_extra_and_missing_keys (test_stage_a_runner.ValidatorMutations.test_schema_extra_and_missing_keys) ... ok
+test_suffix_leak_and_encoder_insensitive (test_stage_a_runner.ValidatorMutations.test_suffix_leak_and_encoder_insensitive) ... ok
+test_a_pass_is_never_superseded_or_regenerated (test_stage_a_supplement.Controller.test_a_pass_is_never_superseded_or_regenerated) ... ok
+test_gates_refusal_and_hold (test_stage_a_supplement.Controller.test_gates_refusal_and_hold) ... refused: fixture refusal
+ok
+test_pass_under_its_own_names (test_stage_a_supplement.Controller.test_pass_under_its_own_names) ... ok
+test_receipt_failure_modes_prevent_pass (test_stage_a_supplement.Controller.test_receipt_failure_modes_prevent_pass) ... ok
+test_supersedes_only_its_own_names (test_stage_a_supplement.Controller.test_supersedes_only_its_own_names)
+With no start evidence, a stray unadmitted supplement final and receipt move aside; a foreign Stage A name ... ok
+test_time_exhausted_spawns_no_work (test_stage_a_supplement.Controller.test_time_exhausted_spawns_no_work) ... ok
+test_work_failure_writes_the_supplement_terminal_and_the_receipt_still_runs (test_stage_a_supplement.Controller.test_work_failure_writes_the_supplement_terminal_and_the_receipt_still_runs) ... ok
+test_declared_environment_build_not_just_version (test_stage_a_supplement.Gates.test_declared_environment_build_not_just_version) ... ok
+test_go_is_stage_a_supplement_and_binds_the_package (test_stage_a_supplement.Gates.test_go_is_stage_a_supplement_and_binds_the_package) ... ok
+test_interrupted_try_stops_the_supplement (test_stage_a_supplement.Gates.test_interrupted_try_stops_the_supplement) ... ok
+test_input_00_fixed_and_row20_accounting (test_stage_a_supplement.Plan.test_input_00_fixed_and_row20_accounting) ... ok
+test_stage_a_tree_must_stay_frozen (test_stage_a_supplement.Plan.test_stage_a_tree_must_stay_frozen) ... ok
+test_tampered_plan_refused (test_stage_a_supplement.Plan.test_tampered_plan_refused) ... ok
+test_controller_crash_after_the_instrumented_commit_then_restart (test_stage_a_supplement.Restart.test_controller_crash_after_the_instrumented_commit_then_restart) ... ok
+test_hold_after_the_instrumented_commit_then_restart (test_stage_a_supplement.Restart.test_hold_after_the_instrumented_commit_then_restart) ... stage_a_controller: stop observed at monotonic 45968.783862, previous successful reading at 45968.754170, SIGKILL sent at 45968.783957: supplement_native: watchdog exited (0) and the leader's exit was not confirmed within 3 s
+ok
+test_missing_native_exit_peak_then_restart_even_without_the_terminal (test_stage_a_supplement.Restart.test_missing_native_exit_peak_then_restart_even_without_the_terminal) ... ok
+test_non_pass_receipt_then_restart (test_stage_a_supplement.Restart.test_non_pass_receipt_then_restart) ... ok
+test_receipt_exit_then_restart (test_stage_a_supplement.Restart.test_receipt_exit_then_restart) ... ok
+test_a_pass_needs_both_endpoints_from_this_session (test_stage_a_supplement.Rev3Adversarial.test_a_pass_needs_both_endpoints_from_this_session) ... ok
+test_crash_with_completed_endpoints_and_a_failing_terminal_write (test_stage_a_supplement.Rev3Adversarial.test_crash_with_completed_endpoints_and_a_failing_terminal_write) ... ok
+test_final_without_its_marker_or_with_an_abort (test_stage_a_supplement.Rev3Adversarial.test_final_without_its_marker_or_with_an_abort) ... ok
+test_ledger_and_done_records_deleted_controller_record_remains (test_stage_a_supplement.Rev3Adversarial.test_ledger_and_done_records_deleted_controller_record_remains) ... ok
+test_ledger_deleted_done_records_remain (test_stage_a_supplement.Rev3Adversarial.test_ledger_deleted_done_records_remain) ... ok
+test_receipt_failure_then_lost_terminal_and_a_failing_rewrite (test_stage_a_supplement.Rev3Adversarial.test_receipt_failure_then_lost_terminal_and_a_failing_rewrite) ... ok
+test_unreadable_ledger (test_stage_a_supplement.Rev3Adversarial.test_unreadable_ledger) ... ok
+test_without_gates_no_worker_is_spawned (test_stage_a_supplement.Rev3Adversarial.test_without_gates_no_worker_is_spawned) ... ok
+test_an_unreleased_endpoint_record_needs_its_exit_peak (test_stage_a_supplement.Rev4ReleaseEvidence.test_an_unreleased_endpoint_record_needs_its_exit_peak) ... ok
+test_comparison_receipt_only (test_stage_a_supplement.Rev4ReleaseEvidence.test_comparison_receipt_only) ... ok
+test_crash_after_go_before_the_released_snapshot_dead_worker (test_stage_a_supplement.Rev4ReleaseEvidence.test_crash_after_go_before_the_released_snapshot_dead_worker) ... ok
+test_crash_after_go_before_the_released_snapshot_live_worker (test_stage_a_supplement.Rev4ReleaseEvidence.test_crash_after_go_before_the_released_snapshot_live_worker) ... ok
+test_pass_output_only (test_stage_a_supplement.Rev4ReleaseEvidence.test_pass_output_only) ... ok
+test_terminal_record_only (test_stage_a_supplement.Rev4ReleaseEvidence.test_terminal_record_only) ... ok
+test_the_boundary_before_the_endpoint_record_is_not_a_start (test_stage_a_supplement.Rev4ReleaseEvidence.test_the_boundary_before_the_endpoint_record_is_not_a_start)
+Control: a dead session whose last durable record is the GATES worker (no endpoint record persisted, so no ... ok
+test_a_started_endpoint_is_never_resumed (test_stage_a_supplement.Run.test_a_started_endpoint_is_never_resumed)
+Revision 2 (Codex 478196f P1): a committed endpoint is never reloaded or continued by a later run, and native ... ok
+test_comparison_a_failure_stops_and_retains_its_receipt (test_stage_a_supplement.Run.test_comparison_a_failure_stops_and_retains_its_receipt) ... ok
+test_comparison_b_failure_stops (test_stage_a_supplement.Run.test_comparison_b_failure_stops) ... ok
+test_corrupt_reference_holds (test_stage_a_supplement.Run.test_corrupt_reference_holds) ... ok
+test_failed_forward_is_charged_and_stops (test_stage_a_supplement.Run.test_failed_forward_is_charged_and_stops) ... ok
+test_native_needs_the_instrumented_commit_of_its_own_session (test_stage_a_supplement.Run.test_native_needs_the_instrumented_commit_of_its_own_session) ... ok
+test_native_refused_before_the_instrumented_phase (test_stage_a_supplement.Run.test_native_refused_before_the_instrumented_phase) ... ok
+test_pass_both_comparisons_receipt_and_row21_verifier (test_stage_a_supplement.Run.test_pass_both_comparisons_receipt_and_row21_verifier) ... ok
+
+----------------------------------------------------------------------
+Ran 380 tests in 2628.475s
+
+OK (skipped=43)
