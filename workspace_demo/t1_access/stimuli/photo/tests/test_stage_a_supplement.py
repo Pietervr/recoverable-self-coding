@@ -141,8 +141,11 @@ class Base(unittest.TestCase):
         """What SupplementController._finalise writes on a PASS: the final record naming the receipt, then its marker."""
         rp = self.s / C.SUPPLEMENT_NAMES["receipt"]
         rc = json.loads(rp.read_text())
+        crec = json.dumps({"workers": []}).encode()                         # revision 6: the bound durable record
+        (self.s / "controller_at_final_x.json").write_bytes(crec)
         fin = json.dumps({"outcome": "PASS" if rc["outcome"] == "PASS" else "STOPPED", "session": rc["session"],
-                          "receipt_sha256": sha(rp.read_bytes())}).encode()
+                          "receipt_sha256": sha(rp.read_bytes()), "controller_record": "controller_at_final_x.json",
+                          "controller_sha256": sha(crec)}).encode()
         (self.s / C.SUPPLEMENT_NAMES["final"]).write_bytes(fin)
         (self.s / C.SUPPLEMENT_NAMES["admitted"]).write_text(json.dumps({"final_sha256": sha(fin),
                                                                          "session": rc["session"]}))
@@ -858,6 +861,16 @@ class Rev4ReleaseEvidence(unittest.TestCase):
 
 
 
+def fake_ident(pid: int) -> dict:
+    return {"pid": pid, "ppid": 1, "pgid": pid, "start": "1.000000"}
+
+
+def fake_intent(phase: str, session: str, leader: dict | None = None, watchdog: dict | None = None) -> dict:
+    """A schema-valid release intent (identities of processes that do not exist unless given)."""
+    return {"phase": phase, "session": session, "leader": leader or fake_ident(4000001),
+            "watchdog": watchdog or fake_ident(4000002), "wall": 1.0, "members_file": f"members_{session}_{phase}.json"}
+
+
 class Rev5ReleaseIntent(unittest.TestCase):
     """Revision 5 (Codex f716bea P2), no forward: the endpoint's release intent is an append-only file published
     before GO; a stale whole-file replacement of controller.json cannot remove it. Synchronized, not timing-based: each
@@ -929,13 +942,13 @@ class Rev5ReleaseIntent(unittest.TestCase):
 
     def test_rolled_back_record_still_needs_the_intended_exit_peak(self):
         self.out.mkdir(parents=True)
-        C.write_release_intent(self.out, "supplement_native", {"phase": "supplement_native", "session": "s1"})
+        C.write_release_intent(self.out, "supplement_native", fake_intent("supplement_native", "s1"))
         c = sctl(self.out, OK)
         c.rec = {"workers": [{"phase": "supplement_gates", "session": "s1", "released": True, "exit_peak": 5}],
                  "peaks": {"controller_final": 1, "guardian_final": 1}}
         self.assertTrue(any("intended endpoint supplement_native" in m for m in c._missing_measurements()))
         with self.assertRaises(FileExistsError):                              # append-only: never replaced
-            C.write_release_intent(self.out, "supplement_native", {"phase": "x"})
+            C.write_release_intent(self.out, "supplement_native", fake_intent("supplement_native", "s2"))
 
     def test_intent_present_on_both_sides_of_go(self):
         """An intent with no endpoint worker record at all (published, then a crash before or after GO): refused."""
@@ -944,8 +957,8 @@ class Rev5ReleaseIntent(unittest.TestCase):
             {"carry_s": CARRY, "seconds_total": CARRY, "sessions": [], "open_session": None, "stops": [],
              "workers": [], "reconciled": [], "swap_baseline": 0,
              "peaks": {"task_lifetime_sum": 0, "phase_aggregates": {}, "storage_bytes": 0, "max_iteration_s": {}}}))
-        C.write_release_intent(self.out, "supplement_instrumented", {"phase": "supplement_instrumented",
-                                                                     "session": "s1", "leader": None})
+        (self.out / C.SUPPLEMENT_INTENT).mkdir()                             # a partial/invalid intent (raw bytes)
+        (self.out / C.SUPPLEMENT_INTENT / "supplement_instrumented.json").write_text('{"phase": "supplement_instr')
         with FailingTerminal():
             again = sctl(self.out, OK).run()
         self.assertEqual(again["outcome"], "REFUSED")
@@ -976,6 +989,189 @@ class Rev5ReleaseIntent(unittest.TestCase):
         self.assertEqual(final["outcome"], "PASS", final)
         self.assertEqual(sorted(p.name for p in (self.out / C.SUPPLEMENT_INTENT).iterdir()),
                          ["supplement_instrumented.json", "supplement_native.json"])
+
+
+
+class Rev6Cleanup(unittest.TestCase):
+    """Revision 6 (Codex 7e1d1e0), no forward, every write order explicit: lost-group cleanup through the base
+    end_group (departed leader, saved members), the watchdog retired only after confirmed extinction, UNCONFIRMED
+    otherwise; complete, checked intent publication; the final admitted on the durable controller record."""
+
+    def setUp(self):
+        self.out = Path(tempfile.mkdtemp()) / "photo_stage_a_supplement"
+        self.out.mkdir(parents=True)
+        self.procs = []
+
+    def tearDown(self):
+        for p in self.procs:
+            if p.poll() is None:
+                p.kill()
+                p.wait()
+        shutil.rmtree(self.out.parent, ignore_errors=True)
+
+    def spawn(self, code="import time; time.sleep(600)", new_session=True):
+        import subprocess
+        p = subprocess.Popen([PY, "-c", code], start_new_session=new_session)
+        self.procs.append(p)
+        return p
+
+    def ident(self, pid):
+        import memprobe
+        for _ in range(100):
+            i = memprobe.proc_info(pid)
+            if i:
+                return i
+            time.sleep(0.02)
+        raise AssertionError(f"no identity for {pid}")
+
+    def controller(self):
+        c = sctl(self.out, OK)
+        c.rec = {"workers": [], "stops": [], "reconciled": [], "peaks": {}}
+        return c
+
+    def test_departed_leader_with_a_surviving_child_in_its_group(self):
+        import memprobe
+        cf = self.out / "child.pid"
+        leader = self.spawn("import subprocess, sys, time; c = subprocess.Popen([sys.executable, '-c', "
+                            "'import time; time.sleep(600)']); open(%r, 'w').write(str(c.pid)); time.sleep(0.5)" % str(cf))
+        li = self.ident(leader.pid)
+        for _ in range(200):
+            if cf.exists() and cf.read_text():
+                break
+            time.sleep(0.02)
+        child = int(cf.read_text())
+        leader.wait()                                                     # the leader has exited; its child lives on
+        self.assertIsNotNone(memprobe.proc_info(child))
+        wd = self.spawn()
+        wi = self.ident(wd.pid)
+        C.write_release_intent(self.out, "supplement_instrumented", fake_intent("supplement_instrumented", "s1", li, wi))
+        rc, ok = self.controller()._reconcile_intents()
+        self.assertTrue(ok, rc)
+        self.assertTrue(rc[0]["ended"] and rc[0]["confirmed"])
+        self.assertIsNone(memprobe.proc_info(child))                      # the group's survivor ended
+        wd.wait(timeout=5)
+        self.assertIsNone(memprobe.proc_info(wd.pid))                     # then the watchdog, confirmed
+
+    def test_recorded_member_that_escaped_the_group(self):
+        import memprobe
+        leader, escaped, wd = self.spawn(), self.spawn(), self.spawn()     # each in its own session
+        li, ei, wi = self.ident(leader.pid), self.ident(escaped.pid), self.ident(wd.pid)
+        (self.out / "members_s1_supplement_native.json").write_text(json.dumps({str(escaped.pid): ei}))
+        C.write_release_intent(self.out, "supplement_native", fake_intent("supplement_native", "s1", li, wi))
+        rc, ok = self.controller()._reconcile_intents()
+        self.assertTrue(ok, rc)
+        escaped.wait(timeout=5)
+        leader.wait(timeout=5)
+        self.assertIsNone(memprobe.proc_info(escaped.pid))                # ended because its identity was saved
+
+    def test_survivors_keep_the_watchdog_and_refuse_unconfirmed(self):
+        import memprobe
+        leader, wd = self.spawn(), self.spawn()
+        C.write_release_intent(self.out, "supplement_instrumented",
+                               fake_intent("supplement_instrumented", "s1", self.ident(leader.pid), self.ident(wd.pid)))
+        (self.out / "controller.json").write_text(json.dumps(
+            {"carry_s": CARRY, "seconds_total": CARRY, "sessions": [], "open_session": None, "stops": [],
+             "workers": [], "reconciled": [], "swap_baseline": 0,
+             "peaks": {"task_lifetime_sum": 0, "phase_aggregates": {}, "storage_bytes": 0, "max_iteration_s": {}}}))
+        real = memprobe.end_group
+        memprobe.end_group = lambda *a, **k: (_ for _ in ()).throw(memprobe.Survivors("fixture: survivors"))
+        try:
+            again = sctl(self.out, OK).run()
+        finally:
+            memprobe.end_group = real
+        self.assertEqual(again["outcome"], "REFUSED")
+        self.assertIn("UNCONFIRMED", again["reason"])
+        self.assertIsNotNone(memprobe.proc_info(wd.pid))                  # the safeguard kept
+        r = json.loads((self.out / "controller.json").read_text())
+        self.assertFalse(r["reconciled"][-1]["confirmed"])
+
+    def test_a_watchdog_that_does_not_die_is_not_marked_ended(self):
+        import memprobe
+        leader, wd = self.spawn(), self.spawn()
+        wi = self.ident(wd.pid)
+        C.write_release_intent(self.out, "supplement_instrumented",
+                               fake_intent("supplement_instrumented", "s1", self.ident(leader.pid), wi))
+        real, old = memprobe.same_process, C.GROUP_GONE_S
+        memprobe.same_process = lambda i: True if i == wi else real(i)   # it never appears gone
+        C.GROUP_GONE_S = 0.5
+        try:
+            rc, ok = self.controller()._reconcile_intents()
+        finally:
+            memprobe.same_process, C.GROUP_GONE_S = real, old
+        self.assertFalse(ok)
+        self.assertNotIn("ended", rc[0])
+        self.assertIn("watchdog survives", rc[0]["why"])
+
+    def test_publication_writes_every_byte_and_checks_the_record(self):
+        rec = fake_intent("supplement_instrumented", "s1")
+        real = C._os_write
+        try:
+            C._os_write = lambda fd, b: real(fd, bytes(b[:7]))           # short writes: the loop completes them
+            C.write_release_intent(self.out, "supplement_instrumented", rec)
+            self.assertEqual(json.loads((self.out / "intent/supplement_instrumented.json").read_text()), rec)
+            C._os_write = lambda fd, b: 0                                 # no progress: refused
+            with self.assertRaisesRegex(OSError, "no progress"):
+                C.write_release_intent(self.out, "supplement_native", fake_intent("supplement_native", "s1"))
+        finally:
+            C._os_write = real
+        (self.out / "intent/supplement_native.json").unlink()            # the partial file the failure left
+        try:
+            C._os_write = lambda fd, b: real(fd, b"x" * len(b))           # wrong bytes: the read-back refuses
+            with self.assertRaisesRegex(OSError, "read back differ"):
+                C.write_release_intent(self.out, "supplement_native", fake_intent("supplement_native", "s1"))
+        finally:
+            C._os_write = real
+        with self.assertRaisesRegex(ValueError, "not a JSON object"):
+            C.write_release_intent(self.out, "supplement_native", ["not", "an", "object"])
+
+    def test_bad_intent_write_in_a_run_sends_no_go(self):
+        real = C._os_write
+        C._os_write = lambda fd, b: real(fd, b"x" * len(b) if bytes(b).startswith(b'{\n "leader"') else b)  # intents only
+        try:
+            final = sctl(self.out, OK).run()
+        finally:
+            C._os_write = real
+        self.assertEqual(final["outcome"], "STOPPED")
+        r = json.loads((self.out / "controller.json").read_text())
+        w = [x for x in r["workers"] if x["phase"] == "supplement_instrumented"][0]
+        self.assertFalse(w["released"])
+        self.assertIn("release intent could not be published", w["stop"])
+        self.assertFalse((self.out / "stage_a_state.json").exists())
+
+    def test_non_object_intent_is_a_structured_refusal(self):
+        (self.out / C.SUPPLEMENT_INTENT).mkdir()
+        (self.out / C.SUPPLEMENT_INTENT / "supplement_native.json").write_text("[1, 2]")
+        it = C.release_intents(self.out)
+        self.assertEqual((it[0]["unreadable"], it[0]["reason"]), (True, "not a JSON object"))
+        (self.out / "controller.json").write_text(json.dumps(
+            {"carry_s": CARRY, "seconds_total": CARRY, "sessions": [], "open_session": None, "stops": [],
+             "workers": [], "reconciled": [], "swap_baseline": 0,
+             "peaks": {"task_lifetime_sum": 0, "phase_aggregates": {}, "storage_bytes": 0, "max_iteration_s": {}}}))
+        again = sctl(self.out, OK).run()
+        self.assertEqual(again["outcome"], "REFUSED")
+        self.assertIn("UNCONFIRMED", again["reason"])
+
+    def test_an_older_persist_after_close_cannot_be_admitted(self):
+        """An older controller snapshot (gates-only workers) lands after _close and before _finalise: the final is
+        STOPPED on the durable record, binds the immutable copy, and the copy is what row 21 would read."""
+        c = sctl(self.out, OK)
+        real_close = C.SupplementController._close
+
+        def close_then_stale(outcome):
+            real_close(c, outcome)
+            r = json.loads(c.path.read_text())
+            r["workers"] = [w for w in r["workers"] if w["phase"] == "supplement_gates"]
+            c.path.write_text(json.dumps(r))                              # the stale publication, after the close
+        c._close = close_then_stale
+        final = c.run()
+        self.assertEqual(final["outcome"], "STOPPED", final)
+        self.assertTrue(final["durable_missing"])
+        self.assertTrue(any("durable record" in m for m in final["missing_measurements"]))
+        copy = self.out / final["controller_record"]
+        self.assertEqual(sha(copy.read_bytes()), final["controller_sha256"])
+        self.assertTrue(C.intended_peaks_missing(self.out, json.loads(copy.read_text())))
+        fin = C.final_admitted(self.out, C.SUPPLEMENT_NAMES)
+        self.assertNotEqual((fin or {}).get("outcome"), "PASS")
 
 
 if __name__ == "__main__":

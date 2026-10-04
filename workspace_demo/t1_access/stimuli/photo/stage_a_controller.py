@@ -162,40 +162,98 @@ def supplement_set_terminal(out: Path, phase: str, reason: str) -> None:
     write_json_atomic(p, t, final=True)
 
 
-def write_release_intent(out: Path, phase: str, record: dict) -> Path:
-    """Revision 5 (Codex f716bea): the endpoint's RELEASE INTENT, published BEFORE GO and never replaced - created with
-    O_CREAT|O_EXCL (an existing file refuses), written, fsynced, and its directory fsynced. Independent of
-    controller.json, so no whole-file replacement of that record can remove it."""
-    d = Path(out) / SUPPLEMENT_INTENT
-    d.mkdir(parents=True, exist_ok=True)
-    p = d / f"{phase}.json"
-    fd = os.open(p, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+_os_write = os.write                                   # revision 6: a fixture can make a write short or wrong
+
+
+def create_once(path: Path, data: bytes) -> None:
+    """Revision 6: create `path` with O_CREAT|O_EXCL, write EVERY byte (loop on the write's return; no progress is a
+    failure), fsync the file and its directory, then re-read it and require exactly `data`. Any shortfall raises."""
+    path = Path(path)
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
     try:
-        os.write(fd, json.dumps(record, indent=1, sort_keys=True).encode())
+        view, done = memoryview(data), 0
+        while done < len(data):
+            n = _os_write(fd, view[done:])
+            if not isinstance(n, int) or n <= 0:
+                raise OSError(f"{path.name}: write made no progress at byte {done} of {len(data)}")
+            done += n
         os.fsync(fd)
     finally:
         os.close(fd)
-    dfd = os.open(d, os.O_RDONLY)
+    dfd = os.open(path.parent, os.O_RDONLY)
     try:
         os.fsync(dfd)
     finally:
         os.close(dfd)
+    if path.read_bytes() != data:
+        raise OSError(f"{path.name}: the bytes read back differ from the bytes written")
+
+
+INTENT_KEYS = {"phase", "session", "leader", "watchdog", "members_file", "wall"}
+
+
+def intent_problem(rec) -> str | None:
+    """Revision 6: a release intent is a JSON object with exactly INTENT_KEYS, the leader and watchdog valid process
+    identities and the members file named for its session and phase; else the reason it is not."""
+    if not isinstance(rec, dict):
+        return "not a JSON object"
+    if set(rec) != INTENT_KEYS:
+        return f"fields {sorted(rec)} are not exactly {sorted(INTENT_KEYS)}"
+    if not (memprobe.valid_ident(rec["leader"]) and memprobe.valid_ident(rec["watchdog"])):
+        return "the leader or watchdog identity is not a valid process identity"
+    if rec["members_file"] != f"members_{rec['session']}_{rec['phase']}.json" or rec["phase"] not in SUPPLEMENT_PHASES:
+        return "the phase or members file is not the declared one"
+    return None
+
+
+def write_release_intent(out: Path, phase: str, record: dict) -> Path:
+    """Revisions 5-6 (Codex f716bea, 7e1d1e0): the endpoint's RELEASE INTENT, published BEFORE GO and never replaced -
+    created once (create_once: O_EXCL, every byte, file and directory fsync, read back equal), and the record re-parsed
+    and checked (intent_problem) before the caller may send GO. Independent of controller.json."""
+    prob = intent_problem(record)
+    if prob:
+        raise ValueError(f"release intent for {phase}: {prob}")
+    d = Path(out) / SUPPLEMENT_INTENT
+    d.mkdir(parents=True, exist_ok=True)
+    p = d / f"{phase}.json"
+    create_once(p, json.dumps(record, indent=1, sort_keys=True).encode())
+    back = json.loads(p.read_text())
+    prob = intent_problem(back)
+    if prob or back != record:
+        raise OSError(f"release intent for {phase} reads back wrong: {prob or 'content differs'}")
     return p
 
 
 def release_intents(out: Path) -> list[dict]:
-    """Every release-intent record (an unreadable one is still an intent)."""
+    """Every release-intent entry as a structured record: {file, record} when valid, else {file, unreadable, reason}.
+    An unreadable, partial, non-object or foreign entry is still an intent (refusal evidence) - never a TypeError."""
     d = Path(out) / SUPPLEMENT_INTENT
     found = []
-    for p in sorted(d.glob("*.json")) if d.exists() else []:
+    for p in sorted(d.iterdir()) if d.exists() else []:
         try:
-            found.append({**json.loads(p.read_text()), "file": p.name})
-        except (OSError, ValueError):
-            found.append({"file": p.name, "unreadable": True})
-    for p in sorted(d.iterdir()) if d.exists() else []:   # a partial temp or a foreign name is still evidence
-        if not p.name.endswith(".json"):
-            found.append({"file": p.name, "unreadable": True})
+            rec = json.loads(p.read_text())
+            prob = intent_problem(rec)
+        except (OSError, ValueError) as exc:
+            rec, prob = None, f"not readable JSON ({type(exc).__name__})"
+        found.append({"file": p.name, "record": rec} if prob is None else
+                     {"file": p.name, "unreadable": True, "reason": prob})
     return found
+
+
+def intended_peaks_missing(out: Path, rec: dict) -> list[str]:
+    """Revisions 5-6: every release intent needs a worker record of its phase and session with a positive exit peak in
+    the given controller record; an unreadable intent can never be satisfied."""
+    miss = []
+    for it in release_intents(out):
+        r = it.get("record")
+        if r is None:
+            miss.append(f"release intent {it['file']} is unreadable ({it['reason']}): its endpoint's peak cannot be "
+                        f"matched")
+            continue
+        if not any(w.get("phase") == r["phase"] and w.get("session") == r["session"] and
+                   isinstance(w.get("exit_peak"), int) and w["exit_peak"] > 0 for w in (rec or {}).get("workers", [])):
+            miss.append(f"intended endpoint {r['phase']} (session {r['session']}): no exit peak in the controller record")
+    return miss
 
 
 def supplement_terminal_active(out: Path) -> bool:
@@ -1366,6 +1424,10 @@ class SupplementController(Controller):
     REVISION 2 (Codex 478196f P1): one session from the first start - `_supersede` refuses after an admitted PASS and
     terminalises after any start without one (a STOPPED, held, crashed or interrupted earlier session), `_hold` and a
     STOPPED `_finalise` after a start terminalise at once, and `_missing_measurements` spans every session.
+    REVISION 6 (Codex 7e1d1e0): intents are published complete and checked before GO (create_once, intent_problem); a
+    lost group is ended through the base end_group with its saved members, the watchdog retired only after confirmed
+    extinction (else UNCONFIRMED, safeguard kept); the final binds an immutable copy of the DURABLE controller record
+    checked for every intended endpoint's exit peak.
     REVISION 5 (Codex f716bea P2): the endpoint's release intent is an append-only file (intent/<phase>.json, O_EXCL,
     fsynced) published before GO and never replaced; restart evidence, mandatory exit peaks and the reconciliation of
     a group the controller record lost all read it, so no whole-file replacement of controller.json can erase a start.
@@ -1450,11 +1512,14 @@ class SupplementController(Controller):
                              f"is never superseded or regenerated and nothing runs again")
         found = self._prior_start_evidence()
         if found:
-            rc = self._reconcile_intents()              # revision 5: end a group a rolled-back record lost
+            rc, confirmed = self._reconcile_intents()   # revisions 5-6: end a group a rolled-back record lost
             if rc:
-                self.rec["reconciled"].append({"session": self.session, "intents": rc})
+                self.rec["reconciled"].append({"session": self.session, "intents": rc, "confirmed": confirmed})
             self._refusal = (f"refused: a prior supplement start without an admitted PASS ({', '.join(found)}): this "
                              f"version never runs again - no endpoint, receipt or final")
+            if rc and not confirmed:
+                self._refusal += ("; cleanup of an intended endpoint is UNCONFIRMED (its safeguard kept): " +
+                                  "; ".join(x["why"] for x in rc if not x["confirmed"]))
             if not self._terminalise(self._refusal):
                 self._refusal += "; the terminal record could not be written (the refusal does not depend on it)"
             return
@@ -1492,12 +1557,7 @@ class SupplementController(Controller):
         miss = [f"{w['phase']} (session {w.get('session')}): no exit peak ({w.get('exit_peak_error', 'not read')})"
                 for w in self.rec["workers"] if (w.get("released") or w.get("phase") in SUPPLEMENT_PHASES) and
                 not (isinstance(w.get("exit_peak"), int) and w["exit_peak"] > 0)]     # rev 4: any endpoint record
-        for it in release_intents(self.out):           # revision 5: every intended endpoint needs its exit peak
-            have = [w for w in self.rec["workers"] if w.get("phase") == it.get("phase") and
-                    w.get("session") == it.get("session") and isinstance(w.get("exit_peak"), int) and w["exit_peak"] > 0]
-            if not have:
-                miss.append(f"intended endpoint {it.get('phase', it['file'])} (session {it.get('session')}): no exit "
-                            f"peak in the controller record")
+        miss += intended_peaks_missing(self.out, self.rec)     # revision 5: every intended endpoint needs its peak
         pk = self.rec["peaks"]
         if not (isinstance(pk.get("controller_final"), int) and pk["controller_final"] > 0):
             miss.append(f"controller final self sample ({pk.get('controller_final_error', 'absent')})")
@@ -1513,32 +1573,58 @@ class SupplementController(Controller):
         if phase in SUPPLEMENT_PHASES:
             try:
                 write_release_intent(self.out, phase, {"phase": phase, "session": self.session, "leader": w["leader"],
-                                                       "watchdog": self.wd_ident, "wall": time.time()})
+                                                       "watchdog": self.wd_ident, "wall": time.time(),
+                                                       "members_file": w["members_file"]})
             except Exception as exc:                   # noqa: BLE001 - no intent, no GO
                 raise ControllerStop(f"{phase}: the release intent could not be published ({exc!r}); no GO sent")
 
-    def _reconcile_intents(self) -> list:
-        """Revision 5: an intended endpoint whose group the (possibly rolled-back) controller record no longer names is
-        still ended by the identities in its intent record - leader group first, then its watchdog - and confirmed gone."""
-        done = []
+    def _reconcile_intents(self) -> tuple[list, bool]:
+        """Revision 6 (Codex 7e1d1e0): every intended endpoint's group is ended through the ACCEPTED base mechanism -
+        memprobe.end_group with its identity and PGID-reuse checks, EVEN IF the leader has exited, and the validated
+        member identities from the independently saved members_<session>_<phase>.json - and its watchdog is retired ONLY
+        after that extinction is confirmed, then itself confirmed gone. Survivors, an unreadable intent, an unreadable
+        members file or a watchdog that outlives the limit: the safeguard is kept and the cleanup recorded UNCONFIRMED
+        (the base reconciliation's hold-on-error order). Returns (records, all confirmed)."""
+        done, ok = [], True
         for it in release_intents(self.out):
-            for key in ("leader", "watchdog"):
-                ident = it.get(key)
-                if not memprobe.valid_ident(ident) or not memprobe.same_process(ident):
-                    continue
+            r = it.get("record")
+            if r is None:
+                done.append({"intent": it["file"], "confirmed": False, "why": f"unreadable intent: {it['reason']}"})
+                ok = False
+                continue
+            members, why = [], None
+            mp = self.out / r["members_file"]
+            if mp.exists():
                 try:
-                    if key == "leader":
-                        memprobe.end_group(ident, [], limit=GROUP_GONE_S)
-                    else:
-                        os.kill(ident["pid"], signal.SIGKILL)
-                        t = time.monotonic()
-                        while memprobe.same_process(ident) and time.monotonic() - t < GROUP_GONE_S:
-                            time.sleep(0.02)
-                except (memprobe.Survivors, ProcessLookupError) as exc:
-                    done.append({"intent": it["file"], key: ident, "error": repr(exc)})
-                    continue
-                done.append({"intent": it["file"], key: ident, "ended": True})
-        return done
+                    raw = json.loads(mp.read_text())
+                    members = [m for m in (raw.values() if isinstance(raw, dict) else []) if memprobe.valid_ident(m)]
+                except (OSError, ValueError) as exc:
+                    why = f"members file unreadable ({type(exc).__name__})"
+            try:
+                if why:
+                    raise memprobe.Survivors(why)
+                res = memprobe.end_group(r["leader"], members, limit=GROUP_GONE_S)
+            except memprobe.Survivors as exc:
+                done.append({"intent": it["file"], "confirmed": False, "why": f"group not confirmed gone: {exc}",
+                             "watchdog_kept": r["watchdog"]})
+                ok = False
+                continue                                # the safeguard stays (never retired on an unconfirmed group)
+            wd = r["watchdog"]
+            if memprobe.same_process(wd):
+                try:
+                    os.kill(wd["pid"], signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                t = time.monotonic()
+                while memprobe.same_process(wd) and time.monotonic() - t < GROUP_GONE_S:
+                    time.sleep(0.02)
+            if memprobe.same_process(wd):
+                done.append({"intent": it["file"], "confirmed": False, "group": res,
+                             "why": "the watchdog survives SIGKILL past the limit"})
+                ok = False
+                continue
+            done.append({"intent": it["file"], "confirmed": True, "group": res, "ended": True})
+        return done, ok
 
     def _report_ok(self) -> dict:
         why = []
@@ -1580,13 +1666,25 @@ class SupplementController(Controller):
     def _finalise(self) -> dict:
         if self._refusal:                              # revision 3: a refused session never writes a final
             raise SystemExit(self._refusal)
+        with self.wlock:                               # revision 6: no controller write between check, copy and final
+            return self._finalise_locked()
+
+    def _finalise_locked(self) -> dict:
+        """Revision 6 (Codex 7e1d1e0): the final is admitted on the DURABLE controller record, not the in-memory one -
+        its bytes are read from disk under the write lock, checked (every intended endpoint's exit peak present in
+        them), and copied create-once to controller_at_final_<session>.json, whose sha256 the final binds; an older
+        _persist landing later can replace controller.json but not that copy. A missing durable peak is STOPPED."""
+        durable = self.path.read_bytes()
+        durable_missing = intended_peaks_missing(self.out, json.loads(durable))
+        copy_name = f"controller_at_final_{self.session}.json"
+        create_once(self.out / copy_name, durable)
         rok = self._report_ok()
         rc = rok["receipt"] if isinstance(rok["receipt"], dict) else {}
         if not self._endpoints_this_session():         # revision 3: both endpoints made by THIS session
             rok = {**rok, "ok": False, "why": rok["why"] + ["the endpoints were not both committed in this session"]}
         cnt = self._counters_ok()
         mem_peak = self._task_aggregate()
-        missing = self._missing_measurements()
+        missing = self._missing_measurements() + [f"durable record: {m}" for m in durable_missing]
         provisional = rok["ok"] and rc.get("outcome") == "PASS" and rc.get("admissible") is True and not missing \
             and cnt["ok"] and 0 < mem_peak < CAPS_MEMORY and self.rec["seconds_total"] <= self.cap_s
         if not provisional and self._post_start():     # revision 2: a STOPPED final after a start is terminal first
@@ -1602,7 +1700,8 @@ class SupplementController(Controller):
                  "carry_s": self.rec["carry_s"], "supplement_seconds": self.rec["seconds_total"] - self.rec["carry_s"],
                  "task_memory_aggregate": mem_peak, "missing_measurements": missing, "peaks": self.rec["peaks"],
                  "receipt_sha256": _sha_file(self.out / n["receipt"]) if rok["receipt"] is not None else None,
-                 "controller_sha256": _sha_file(self.path), "stops": self.rec["stops"],
+                 "controller_sha256": _sha(durable), "controller_record": copy_name,
+                 "durable_missing": durable_missing, "stops": self.rec["stops"],
                  "storage_carry_bytes": CAPS["row20"]["bytes"] - self.cap_b,
                  "time_scope": f"seconds_total = the accepted Stage A's row-20 total (carry) + this tree's sessions, "
                                f"each including its whole bounded closure ({CLOSE_CHARGE_S:.0f} s)"}

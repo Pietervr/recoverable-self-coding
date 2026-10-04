@@ -1,4 +1,4 @@
-# Stage A supplement (ledger row 20): the OS bridge before row 21 - declared criteria and code, revision 5 (R084, 4 October 2026)
+# Stage A supplement (ledger row 20): the OS bridge before row 21 - declared criteria and code, revision 6 (R084, 4 October 2026)
 
 **Specification:** Codex's record RSC `b0db0f9` (`reviews/2026-10-03_stage_a_report_codex_record.md`, SHA-256
 `52ed7082...6b90`), §"Prospective row21 OS bridge: form, count and gate"; R052's handoff `8266e5ae` item 2.
@@ -12,7 +12,8 @@ does not cover it.
 | 2 | RSC `369e517` | RSC `1abb851` | NOT FAVOURABLE: §R2 credited; P1 a failed terminal recreation let a restart regenerate PASS |
 | 3 | RSC `4baba91` | RSC `410b580` | NOT FAVOURABLE: §R3 credited; P2 a released=False endpoint record read as no start |
 | 4 | RSC `280604d` | RSC `f716bea` | NOT FAVOURABLE: §R4 credited; P2 a stale controller.json snapshot can erase the endpoint record |
-| 5 | this commit | — | an append-only release-intent file per endpoint (§R5) |
+| 5 | RSC `c2a2150` | RSC `7e1d1e0` | NOT FAVOURABLE: the intent credited; P2 cleanup completeness, unchecked publication, final on the in-memory record |
+| 6 | this commit | — | the three bounded repairs (§R6) |
 
 ## 1. What it is
 
@@ -194,8 +195,7 @@ distinct, resumable case. Base Controller unchanged; refusal independent of the 
 | An intent that cannot be created: STOPPED, the endpoint never released, its worker never ran, no ledger | `test_intent_that_cannot_be_created_sends_no_go` |
 | A gates-only refusal leaves no intent; a later run proceeds to PASS (and then holds both intents) | `test_gates_only_refusal_leaves_no_intent_and_a_later_run_proceeds` |
 
-SELF-AUDIT - where supplement start or measurement evidence lives in a whole-file-replaced record, and why it cannot
-now regress to a dispatch or a PASS:
+SELF-AUDIT (revision 5's wording; §R6 below replaces its points 2 and 5 with the precise, fixture-backed statement):
 1. Endpoint worker records in controller.json (the release intent): now duplicated in the append-only intent file,
    which restart, measurement and recovery read. Closed.
 2. Exit peaks in controller.json: a stale snapshot can drop one; every intended endpoint requires its peak, so the
@@ -209,6 +209,30 @@ now regress to a dispatch or a PASS:
    appended by one writer at a time. The final record and its marker are written once at finalisation; an admitted
    PASS is never superseded.
 6. Guardian and watchdog records: one file per session and phase, not replaced across sessions.
+
+## R6. Revision 6: cleanup, publication and the durable final (Codex `7e1d1e0`)
+
+Codex credited the independent intent (it closes the stale-snapshot redispatch) and found three bounded gaps.
+
+| # | Repair | Where | Fixture (`Rev6Cleanup`, no forward, write order explicit) |
+|---|---|---|---|
+| 1 | Lost-group cleanup reuses the ACCEPTED base mechanism: `memprobe.end_group` with its identity and PGID-reuse checks, called even when the intended leader has exited, with the validated member identities from the saved `members_<session>_<phase>.json`; the watchdog is retired only after that extinction is confirmed, and is itself confirmed gone before `ended: True`. Survivors, an unreadable intent or members file, or a watchdog that outlives the limit: the safeguard is kept, the cleanup recorded UNCONFIRMED, and the refusal reason says so (the base reconciliation's hold-on-error order). | `SupplementController._reconcile_intents`, `_supersede` | `test_departed_leader_with_a_surviving_child_in_its_group`; `test_recorded_member_that_escaped_the_group`; `test_survivors_keep_the_watchdog_and_refuse_unconfirmed`; `test_a_watchdog_that_does_not_die_is_not_marked_ended` |
+| 2 | Intent publication is complete and checked before GO: `create_once` (O_EXCL; every byte written, no-progress refused; file and directory fsync; read back equal) and `intent_problem` (a JSON object with exactly the declared fields, valid leader and watchdog identities, the declared members file) on the record before and after the write; any shortfall raises before GO. `release_intents` returns a structured `{unreadable, reason}` for a partial, non-object or foreign entry (never a TypeError): it remains refusal evidence and makes the cleanup UNCONFIRMED. | `create_once`, `intent_problem`, `write_release_intent`, `release_intents` | `test_publication_writes_every_byte_and_checks_the_record` (short writes completed; no progress refused; wrong bytes refused on read-back; a non-object refused); `test_bad_intent_write_in_a_run_sends_no_go`; `test_non_object_intent_is_a_structured_refusal` |
+| 3 | The final is admitted on the DURABLE controller record: `_finalise` holds the controller's write lock, reads the record's bytes from disk, requires every intended endpoint's exit peak in THEM (`intended_peaks_missing`), copies those exact bytes create-once to `controller_at_final_<session>.json` and binds that copy's sha256 (`controller_record`, `controller_sha256`, `durable_missing`); a missing durable peak makes the final STOPPED. Row 21's `supplement_receipt_ok` re-derives the endpoint peaks from that bound copy. | `SupplementController._finalise` / `_finalise_locked`, `intended_peaks_missing`; `stage_a.supplement_receipt_ok` | `test_an_older_persist_after_close_cannot_be_admitted` (a gates-only snapshot written after `_close`: STOPPED, `durable_missing` listed, the copy bound and lacking the peaks, no admitted PASS) |
+
+SELF-AUDIT, STATED PRECISELY (what the code does and the fixtures show; nothing beyond it):
+- Endpoint start evidence: the create-once intent file, read by restart (refusal), measurement and cleanup. Fixtures:
+  Rev5ReleaseIntent, Rev6Cleanup.
+- Endpoint exit peaks: required from every intended endpoint in the in-memory record (`_missing_measurements`) AND in
+  the durable record bytes the final binds (`_finalise_locked`), and re-derived by row 21 from that bound copy. A later
+  replacement of controller.json can change the live file but not the bound copy; row 21 reads the copy. Fixture: the
+  older-persist-after-close case.
+- Session time: NOT newly fixtured. The existing crash-tail path re-charges from the last durable beat (unchanged base
+  behaviour, credited earlier); no fixture here rolls back beat or session-time fields or asserts a charged-time lower
+  bound.
+- The supplement ledger, phase records, pass outputs, comparisons and the receipt keep their existing lifecycle guards
+  (one writer per phase; phase records refused when present); they are not universally create-once, and a storage
+  mismatch can rewrite the final as STOPPED, as declared.
 
 ## 7. Which reviewed files move
 

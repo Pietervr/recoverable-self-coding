@@ -2137,6 +2137,16 @@ def supplement_receipt_ok(current_identity: dict, *, out: Path = SUPP_OUT, supp_
         why.append(f"the supplement final record is {fin.get('outcome')}")
     if C.supplement_terminal_active(out):
         why.append("the supplement stopped terminally")
+    try:                                               # revision 6: the durable controller record the final binds
+        cr = out / str(fin.get("controller_record"))
+        if not cr.is_file() or sha_file(cr) != fin.get("controller_sha256"):
+            why.append("the final's bound controller record is absent or changed")
+        else:
+            miss = C.intended_peaks_missing(out, json.loads(cr.read_text()))
+            if miss:
+                why.append(f"the bound controller record lacks intended endpoint peaks: {miss}")
+    except (OSError, ValueError) as exc:
+        why.append(f"the bound controller record cannot be read: {exc}")
     rp = out / C.SUPPLEMENT_NAMES["receipt"]
     if not rp.exists():
         why.append("no supplement receipt")
