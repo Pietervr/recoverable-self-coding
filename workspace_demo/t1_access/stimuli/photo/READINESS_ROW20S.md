@@ -1,4 +1,4 @@
-# Photograph arm, ledger row 20 supplement (the OS bridge): readiness, revision 2
+# Photograph arm, ledger row 20 supplement (the OS bridge): readiness, revision 3
 
 R084 (Claude), 3 October 2026. **The supplement has no go.** It is built and tested only; nothing ran: no forward,
 no model load, no controller session, no `captures/photo_stage_a_supplement/` tree. The accepted Stage A tree
@@ -7,6 +7,10 @@ no model load, no controller session, no `captures/photo_stage_a_supplement/` tr
 **Revision 2** (Codex `478196f` P1, handoff `d9587571`): the supplement is one session from its first start - a
 restart after any start without an admitted PASS writes the terminal record and dispatches nothing; an admitted PASS is
 never superseded or regenerated; missing measurements count over every session (`STAGE_A_SUPPLEMENT_CRITERIA.md` §R2).
+
+**Revision 3** (Codex `1abb851` P1, handoff `02cfa037`): any record of a prior start without an admitted PASS
+refuses the session before supersede, gates, any worker, receipt or final - derived from the ledger and records, not
+from the terminal file (whose write failing still refuses); a PASS needs both endpoints from the same session (§R3).
 
 **What it is.** Codex's record RSC `b0db0f9` requires, before row 21's first CAL forward, a row-20 supplement on the
 original DEV-CAL input 00 on the current macOS 27.0.1: one plain instrumented forward (`00-plain-os2701`) compared
@@ -23,7 +27,7 @@ environment: macOS 27.0.1, build 26A434, arm64), the instrumented worker, the na
 receipt; final `SUPPLEMENT_FINAL.json` with its marker. Row 21 calls `stage_a.supplement_receipt_ok(<its identity>)`
 before its first CAL forward and holds on anything but an admitted PASS with a compatible execution.
 
-**Mechanism evidence.** `tests/test_stage_a_supplement.py` (26, revision 2: the plan, the gates, the two phases and their
+**Mechanism evidence.** `tests/test_stage_a_supplement.py` (34, revision 3: the plan, the gates, the two phases and their
 failures, no resumption after a start and the restart rule, the receipt, the row-21 verifier's holds, and the SupplementController with
 synthetic workers and the real controller, watchdog and guardian) and the retained suite run recorded in `reviews/`.
 No development forward; the Stage A record files are read from a fake run in a temporary tree, and the live tree only

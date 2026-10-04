@@ -2051,6 +2051,8 @@ def run_supplement_receipt(ctx: Ctx | None = None) -> dict:
                              "outputs": (c or {}).get("outputs")}
         if not (e and e.get("status") == "completed" and e.get("tries") == 1 and c):
             reasons.append(f"{a['id']}: not completed in exactly one try")
+        elif c.get("session") != session:                         # revision 3: this session made both endpoints
+            reasons.append(f"{a['id']}: committed by session {c.get('session')}, not this receipt's {session}")
         for rel, h in ((c or {}).get("outputs") or {}).items():
             if not (ctx.out / rel).exists() or sha_file(ctx.out / rel) != h:
                 reasons.append(f"{a['id']}: output {rel} missing or changed")
@@ -2165,6 +2167,8 @@ def supplement_receipt_ok(current_identity: dict, *, out: Path = SUPP_OUT, supp_
                 or st.get("open_attempt") or st.get("interrupted") or check_ledger(st, witness_dir=out) or \
                 st["counters"]["row20"] != _supp_expected_counters(supp):
             why.append("the supplement ledger is not exactly two completed single tries at carry + 2")
+        if any(st["completed"][i].get("session") != fin.get("session") for i in ids):    # revision 3
+            why.append("the endpoints were not both committed by the session of the admitted final")
         rref = json.loads((stage_a_out / "stage_a_state.json").read_text())["completed"][SUPP_REFERENCE]["outputs"]
         if rref != supp["reference"]["outputs"]:
             why.append("the Stage A reference outputs differ from the supplement plan's pins")

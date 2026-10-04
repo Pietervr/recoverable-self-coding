@@ -1329,6 +1329,9 @@ class SupplementController(Controller):
     REVISION 2 (Codex 478196f P1): one session from the first start - `_supersede` refuses after an admitted PASS and
     terminalises after any start without one (a STOPPED, held, crashed or interrupted earlier session), `_hold` and a
     STOPPED `_finalise` after a start terminalise at once, and `_missing_measurements` spans every session.
+    REVISION 3 (Codex 1abb851 P1): the stop is DERIVED from the records (`_prior_start_evidence`), not from the terminal
+    file: any prior start without an admitted PASS sets a refusal before supersede, gates, any worker, receipt or final
+    (the terminal file is only its record; a failed write still refuses); a PASS needs both endpoints from THIS session.
 
     ROW 20'S ENVELOPE, NOT A NEW ONE: carry_seconds is the accepted Stage A's controller seconds_total (pinned in the
     supplement plan and re-checked at the gates), so time continues against row 20's 4 h; storage_cap is row 20's
@@ -1347,38 +1350,85 @@ class SupplementController(Controller):
     def run(self, phases=SUPPLEMENT_PHASES, emit=None) -> dict:
         return super().run(phases=phases, emit=emit)
 
-    # ---- revision 2 (Codex 478196f P1): one session after the first start; nothing post-start is ever resumed ----
+    # ---- revisions 2-3 (Codex 478196f, 1abb851 P1): one session from the first start; the stop is DERIVED ----------
+    _refusal: str | None = None
+
     def _post_start(self) -> bool:
-        """At least one supplement start is durable in the supplement ledger (an attempt in any status)."""
+        return bool(self._prior_start_evidence())
+
+    def _prior_start_evidence(self) -> list[str]:
+        """Revision 3: every durable trace that a supplement start happened, read from the records themselves - the
+        ledger's attempts (or an unreadable ledger), a released endpoint worker in controller.json, an endpoint phase
+        record, a pass output, a comparison receipt, the terminal record. Never decided by SUPPLEMENT_TERMINAL.json
+        alone."""
+        found = []
         sp = self.out / "stage_a_state.json"
         try:
-            return bool(json.loads(sp.read_text()).get("attempts")) if sp.exists() else False
+            if sp.exists() and json.loads(sp.read_text()).get("attempts"):
+                found.append("ledger attempts")
         except (OSError, ValueError):
-            return True                                # an unreadable ledger beside a start is treated as post-start
+            found.append("an unreadable ledger")
+        if any(w.get("phase") in SUPPLEMENT_PHASES and w.get("released")
+               for w in (getattr(self, "rec", None) or {}).get("workers", [])):
+            found.append("a released endpoint worker")
+        for name in ("SUPPLEMENT_INSTRUMENTED_DONE.json", "SUPPLEMENT_NATIVE_DONE.json", SUPPLEMENT_TERMINAL):
+            if (self.out / name).exists():
+                found.append(name)
+        if (self.out / "passes").exists() and any((self.out / "passes").iterdir()):
+            found.append("pass outputs")
+        if (self.out / "supplement").exists() and list((self.out / "supplement").glob("comparison_*.json")):
+            found.append("comparison receipts")
+        return found
 
-    def _terminalise(self, reason: str) -> None:
-        """Best effort durable terminal record; the restart rule (_supersede) does not depend on it having landed."""
+    def _terminalise(self, reason: str) -> bool:
+        """Best effort durable RECORD of a stop that is already decided; returns whether it is on disk."""
         try:
             if not supplement_terminal_active(self.out):
                 supplement_set_terminal(self.out, "controller", reason)
-        except Exception as exc:                       # noqa: BLE001 - recorded; the restart rule still stops
+            return True
+        except Exception as exc:                       # noqa: BLE001 - recorded; the decision does not depend on it
             self.rec["stops"].append({"phase": "controller", "session": self.session,
                                       "reason": f"terminal write failed: {exc!r}"})
+            return False
 
     def _supersede(self) -> None:
-        """Revision 2. Before anything is moved or spawned: (1) an ADMITTED PASS of this version is final - nothing runs
-        again and it is never superseded or regenerated; (2) a supplement start without an admitted PASS means an
-        earlier post-start session ended STOPPED, held, crashed or interrupted (whether or not its terminal write
-        landed): this session writes SUPPLEMENT_TERMINAL.json now, so no endpoint is dispatched and the receipt can
-        only say STOPPED. Then only this tree's own final, marker, abort and receipt move aside."""
+        """Revisions 2-3. Before anything is moved or spawned: (1) an ADMITTED PASS of this version is final - nothing
+        runs again; (2) ANY prior start without an admitted PASS (_prior_start_evidence) makes this session REFUSE: the
+        refusal is set here, nothing is superseded, the gates return REFUSED before any worker (so no endpoint, receipt
+        or final), and the session closes charged. SUPPLEMENT_TERMINAL.json is written as a RECORD of that state; if
+        the write fails the session still refuses (exit 2) and says so. Otherwise only this tree's own names move."""
         fin = final_admitted(self.out, self.NAMES)
         if fin is not None and fin.get("outcome") == "PASS":
             raise SystemExit(f"refused: this supplement version already PASSED (session {fin.get('session')}); a PASS "
                              f"is never superseded or regenerated and nothing runs again")
-        if self._post_start():
-            self._terminalise("a prior post-start session ended without an admitted PASS (STOPPED, held, crashed or "
-                              "interrupted): this version stops; no endpoint is dispatched again")
+        found = self._prior_start_evidence()
+        if found:
+            self._refusal = (f"refused: a prior supplement start without an admitted PASS ({', '.join(found)}): this "
+                             f"version never runs again - no endpoint, receipt or final")
+            if not self._terminalise(self._refusal):
+                self._refusal += "; the terminal record could not be written (the refusal does not depend on it)"
+            return
         super()._supersede()
+
+    def _gates(self) -> dict:
+        if self._refusal:                              # revision 3: refused before any worker
+            return {"outcome": "REFUSED", "reason": self._refusal}
+        return super()._gates()
+
+    def _phase(self, phase: str, **kw) -> None:
+        if self._refusal:                              # revision 3: no worker of any phase after a refusal
+            raise SystemExit(self._refusal)
+        return super()._phase(phase, **kw)
+
+    def _endpoints_this_session(self) -> bool:
+        """Revision 3: a PASS needs BOTH endpoints committed in the supplement ledger by THIS session."""
+        import stage_a
+        try:
+            st = json.loads((self.out / "stage_a_state.json").read_text())
+        except (OSError, ValueError):
+            return False
+        return all((st.get("completed") or {}).get(i, {}).get("session") == self.session
+                   for i in (stage_a.SUPP_INST, stage_a.SUPP_NAT))
 
     def _hold(self, reason: str) -> dict:
         """Revision 2: a hold after a start is terminal for the supplement (no resumption)."""
@@ -1437,8 +1487,12 @@ class SupplementController(Controller):
         return {"ok": not why, "why": why, "receipt": rc, "report": {}}
 
     def _finalise(self) -> dict:
+        if self._refusal:                              # revision 3: a refused session never writes a final
+            raise SystemExit(self._refusal)
         rok = self._report_ok()
         rc = rok["receipt"] if isinstance(rok["receipt"], dict) else {}
+        if not self._endpoints_this_session():         # revision 3: both endpoints made by THIS session
+            rok = {**rok, "ok": False, "why": rok["why"] + ["the endpoints were not both committed in this session"]}
         cnt = self._counters_ok()
         mem_peak = self._task_aggregate()
         missing = self._missing_measurements()

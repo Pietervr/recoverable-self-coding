@@ -385,8 +385,9 @@ class Run(Base):
 
 
 # ---- SupplementController with synthetic workers ---------------------------------------------------------------
-OK = {"supplement_gates": "sgates:ok", "supplement_instrumented": "ok:supplement_instrumented",
-      "supplement_native": "ok:supplement_native", "supplement_receipt": "sreceipt:ok"}
+OK = {"supplement_gates": "sgates:ok", "supplement_instrumented": "sok:supplement_instrumented:00-plain-os2701",
+      "supplement_native": "sok:supplement_native:00-native-os2701", "supplement_receipt": "sreceipt:ok"}
+NOSTART = {"supplement_instrumented": "ok:supplement_instrumented", "supplement_native": "ok:supplement_native"}
 SOK = {"supplement_instrumented": "sok:supplement_instrumented:00-plain-os2701",
        "supplement_native": "sok:supplement_native:00-native-os2701"}
 CARRY = 2338.113973380568
@@ -432,11 +433,10 @@ class Controller(unittest.TestCase):
         r = json.loads((self.out / "controller.json").read_text())
         self.assertEqual([w["phase"] for w in r["workers"]][-1], "supplement_receipt")
         self.assertNotIn("supplement_native", [w["phase"] for w in r["workers"]])
-        again = sctl(self.out, {}).run()                                          # no release: stays stopped
-        self.assertEqual(again["outcome"], "STOPPED")
-        self.assertNotIn("supplement_instrumented",
-                         [w["phase"] for w in json.loads((self.out / "controller.json").read_text())["workers"]
-                          if w["session"] == again["session"]])
+        again = sctl(self.out, {}).run()                                          # revision 3: refused, no worker
+        self.assertEqual(again["outcome"], "REFUSED")
+        self.assertEqual([w for w in json.loads((self.out / "controller.json").read_text())["workers"]
+                          if w["session"] == again["session"]], [])
 
     def test_receipt_failure_modes_prevent_pass(self):
         for mode in ("sreceipt:stopped", "sreceipt:extra_key", "sreceipt:bad_hash", "exit:1"):
@@ -450,13 +450,19 @@ class Controller(unittest.TestCase):
                 shutil.rmtree(out.parent, ignore_errors=True)
 
     def test_supersedes_only_its_own_names(self):
+        """With no start evidence, a stray unadmitted supplement final and receipt move aside; a foreign Stage A name
+        in the tree is never moved."""
         self.out.mkdir(parents=True)
-        first = sctl(self.out, {"supplement_receipt": "sreceipt:stopped"}).run()   # STOPPED before any start
-        self.assertEqual(first["outcome"], "STOPPED")
-        self.assertFalse((self.out / C.SUPPLEMENT_TERMINAL).exists())             # nothing started: not terminal
-        (self.out / "STAGE_A_FINAL.json").write_text("{}")                       # a foreign name is never moved
+        (self.out / C.SUPPLEMENT_NAMES["final"]).write_text(json.dumps({"outcome": "STOPPED", "session": "x"}))
+        (self.out / "supplement").mkdir()
+        (self.out / C.SUPPLEMENT_NAMES["receipt"]).write_text("{}")
+        (self.out / "STAGE_A_FINAL.json").write_text("{}")
+        (self.out / "controller.json").write_text(json.dumps(
+            {"carry_s": CARRY, "seconds_total": CARRY, "sessions": [], "open_session": None, "stops": [],
+             "workers": [], "reconciled": [], "swap_baseline": 0,
+             "peaks": {"task_lifetime_sum": 0, "phase_aggregates": {}, "storage_bytes": 0, "max_iteration_s": {}}}))
         second = sctl(self.out, {}).run()
-        self.assertEqual(second["outcome"], "PASS")
+        self.assertEqual(second["outcome"], "PASS", second)
         sup = sorted(p.name for p in (self.out / "superseded").iterdir())
         self.assertTrue(any(n.startswith("SUPPLEMENT_FINAL.") for n in sup))
         self.assertTrue(any(n.startswith("SUPPLEMENT_RECEIPT.") for n in sup))
@@ -532,14 +538,23 @@ class Restart(unittest.TestCase):
         r = json.loads((self.out / "controller.json").read_text())
         return [w["phase"] for w in r["workers"] if w["session"] == session]
 
-    def restart_stays_stopped(self, started: int) -> dict:
-        seconds = json.loads((self.out / "controller.json").read_text())["seconds_total"]
-        again = sctl(self.out, {**SOK}).run()
-        self.assertEqual(again["outcome"], "STOPPED", again)
-        self.assertTrue((self.out / C.SUPPLEMENT_TERMINAL).exists())
-        self.assertFalse({"supplement_instrumented", "supplement_native"} & set(self.phases(again["session"])))
-        self.assertEqual(self.ledger()["counters"]["row20"]["started"], started)          # results kept, no start
-        self.assertGreater(again["seconds_total"], seconds)                               # time carried, charged
+    def restart_stays_stopped(self, started: int, **kw) -> dict:
+        """Revision 3: the restart REFUSES before supersede, gates, any worker, receipt or final; results, counters and
+        the earlier final/receipt bytes unchanged; the earlier clock carried and this session charged."""
+        r0 = json.loads((self.out / "controller.json").read_text())
+        keep = {n: (self.out / n).read_bytes() for n in (C.SUPPLEMENT_NAMES["final"], C.SUPPLEMENT_NAMES["receipt"],
+                                                           "stage_a_state.json") if (self.out / n).exists()}
+        again = sctl(self.out, {**SOK}, **kw).run()
+        self.assertEqual(again["outcome"], "REFUSED", again)
+        self.assertIn("prior supplement start without an admitted PASS", again["reason"])
+        self.assertEqual(self.phases(again["session"]), [])                               # no worker at all
+        self.assertEqual({n: (self.out / n).read_bytes() for n in keep}, keep)            # nothing regenerated
+        fin = C.final_admitted(self.out, C.SUPPLEMENT_NAMES)
+        self.assertTrue(fin is None or fin["outcome"] != "PASS")                          # never a PASS
+        self.assertEqual(self.ledger()["counters"]["row20"]["started"], started)
+        r1 = json.loads((self.out / "controller.json").read_text())
+        self.assertGreater(r1["seconds_total"], r0["seconds_total"])                       # carried and charged
+        self.assertEqual(r1["sessions"][-1]["closed"], "refused")
         return again
 
     def test_receipt_exit_then_restart(self):
@@ -558,8 +573,8 @@ class Restart(unittest.TestCase):
         self.assertEqual(final["outcome"], "STOPPED")
         self.assertTrue(any("supplement_native" in m for m in final["missing_measurements"]))
         (self.out / C.SUPPLEMENT_TERMINAL).unlink()                                         # the first write "lost"
-        again = self.restart_stays_stopped(196)
-        self.assertTrue(any("supplement_native" in m for m in again["missing_measurements"]))   # never forgotten
+        self.restart_stays_stopped(196)
+        self.assertTrue((self.out / C.SUPPLEMENT_TERMINAL).exists())                      # recorded again
 
     def test_hold_after_the_instrumented_commit_then_restart(self):
         old = C.GROUP_GONE_S
@@ -594,10 +609,128 @@ class Restart(unittest.TestCase):
             if memprobe.proc_info(gp) is None:
                 break
             time.sleep(0.05)
-        again = self.restart_stays_stopped(195)
+        self.restart_stays_stopped(195)
         crashed = [x for x in json.loads((self.out / "controller.json").read_text())["sessions"]
                    if x.get("closed") == "crashed"]
         self.assertEqual(len(crashed), 1)                                                 # the dead session charged
+
+
+
+class FailingTerminal:
+    """Revision 3: make supplement_set_terminal fail BEFORE its rename (nothing lands on disk)."""
+
+    def __enter__(self):
+        self.real = C.supplement_set_terminal
+        C.supplement_set_terminal = lambda out, phase, reason: (_ for _ in ()).throw(OSError("fixture: pre-rename"))
+        return self
+
+    def __exit__(self, *a):
+        C.supplement_set_terminal = self.real
+
+
+class Rev3Adversarial(unittest.TestCase):
+    """Revision 3 (Codex 1abb851 P1): every way found to bring a second session to an endpoint, a receipt or a final
+    after a start - each refused before any worker, with the terminal write failing where that matters."""
+
+    setUp, tearDown, ledger, phases = Restart.setUp, Restart.tearDown, Restart.ledger, Restart.phases
+    restart_stays_stopped = Restart.restart_stays_stopped
+
+    def first_session_completed_endpoints_no_final(self) -> None:
+        """Both endpoints and their DONE records committed, then the controller SIGKILLed during the receipt - no
+        final, no terminal (the earlier session crashed)."""
+        import signal
+        import subprocess
+        modes = {**OK, **SOK, "supplement_receipt": "block"}
+        p = subprocess.Popen([PY, "-c", DRIVER.format(photo=str(HERE.parent), tests=str(HERE), out=str(self.out),
+                                                      modes=modes)])
+        for _ in range(600):
+            r = json.loads((self.out / "controller.json").read_text()) if (self.out / "controller.json").exists() \
+                else {}
+            if any(w.get("phase") == "supplement_receipt" and w.get("released") for w in r.get("workers", [])):
+                break
+            time.sleep(0.05)
+        time.sleep(0.5)
+        p.send_signal(signal.SIGKILL)
+        p.wait()
+        time.sleep(1.5)                                       # the watchdog ends the orphaned receipt worker
+        self.assertFalse((self.out / C.SUPPLEMENT_TERMINAL).exists())
+        self.assertTrue((self.out / "SUPPLEMENT_NATIVE_DONE.json").exists())
+
+    def test_crash_with_completed_endpoints_and_a_failing_terminal_write(self):
+        self.first_session_completed_endpoints_no_final()
+        with FailingTerminal():
+            again = self.restart_stays_stopped(196)
+        self.assertIn("could not be written", again["reason"])
+        self.assertFalse((self.out / C.SUPPLEMENT_TERMINAL).exists())                     # still refused without it
+
+    def test_receipt_failure_then_lost_terminal_and_a_failing_rewrite(self):
+        sctl(self.out, {**SOK, "supplement_receipt": "exit:1"}).run()
+        (self.out / C.SUPPLEMENT_TERMINAL).unlink()
+        with FailingTerminal():
+            self.restart_stays_stopped(196)
+
+    def test_ledger_deleted_done_records_remain(self):
+        self.first_session_completed_endpoints_no_final()
+        (self.out / "stage_a_state.json").unlink()
+        with FailingTerminal():
+            again = sctl(self.out, SOK).run()
+        self.assertEqual(again["outcome"], "REFUSED")
+        self.assertIn("SUPPLEMENT_NATIVE_DONE.json", again["reason"])
+
+    def test_ledger_and_done_records_deleted_controller_record_remains(self):
+        self.first_session_completed_endpoints_no_final()
+        for n in ("stage_a_state.json", "SUPPLEMENT_INSTRUMENTED_DONE.json", "SUPPLEMENT_NATIVE_DONE.json"):
+            (self.out / n).unlink()
+        with FailingTerminal():
+            again = sctl(self.out, SOK).run()
+        self.assertEqual(again["outcome"], "REFUSED")
+        self.assertIn("a released endpoint worker", again["reason"])
+        self.assertEqual(self.phases(again["session"]), [])
+
+    def test_unreadable_ledger(self):
+        self.first_session_completed_endpoints_no_final()
+        (self.out / "stage_a_state.json").write_text("{not json")
+        with FailingTerminal():
+            again = sctl(self.out, SOK).run()
+        self.assertEqual(again["outcome"], "REFUSED")
+        self.assertIn("unreadable ledger", again["reason"])
+
+    def test_final_without_its_marker_or_with_an_abort(self):
+        final = sctl(self.out, SOK).run()
+        self.assertEqual(final["outcome"], "PASS")
+        (self.out / C.SUPPLEMENT_NAMES["admitted"]).unlink()                                # a crash before the marker
+        with FailingTerminal():
+            self.restart_stays_stopped(196)
+        out2 = Path(tempfile.mkdtemp()) / "s"
+        try:
+            self.out = out2
+            sctl(out2, SOK).run()
+            (out2 / C.SUPPLEMENT_NAMES["aborted"]).write_text(json.dumps(
+                {"session": json.loads((out2 / C.SUPPLEMENT_NAMES["final"]).read_text())["session"]}))
+            with FailingTerminal():
+                self.restart_stays_stopped(196)                                           # an aborted PASS is no PASS
+        finally:
+            shutil.rmtree(out2.parent, ignore_errors=True)
+
+    def test_without_gates_no_worker_is_spawned(self):
+        sctl(self.out, {**SOK, "supplement_receipt": "exit:1"}).run()
+        with self.assertRaisesRegex(SystemExit, "prior supplement start"):
+            sctl(self.out, SOK, gates=False).run()
+        r = json.loads((self.out / "controller.json").read_text())
+        self.assertFalse(any(w["phase"] in ("supplement_instrumented", "supplement_native", "supplement_receipt")
+                             for w in r["workers"][-1:] if w.get("session") not in
+                             {x.get("session") for x in r["sessions"]}))                    # nothing new spawned
+        self.assertEqual(self.ledger()["counters"]["row20"]["started"], 196)
+
+    def test_a_pass_needs_both_endpoints_from_this_session(self):
+        c = sctl(self.out, SOK)
+        self.out.mkdir(parents=True, exist_ok=True)
+        (self.out / "stage_a_state.json").write_text(json.dumps({"completed": {
+            "00-plain-os2701": {"session": "earlier"}, "00-native-os2701": {"session": c.session}}}))
+        self.assertFalse(c._endpoints_this_session())
+        (self.out / "stage_a_state.json").write_text(json.dumps({"completed": {
+            "00-plain-os2701": {"session": c.session}, "00-native-os2701": {"session": c.session}}}))
+        self.assertTrue(c._endpoints_this_session())
 
 
 if __name__ == "__main__":

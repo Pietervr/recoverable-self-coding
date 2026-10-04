@@ -1,4 +1,4 @@
-# Stage A supplement (ledger row 20): the OS bridge before row 21 - declared criteria and code, revision 2 (R084, 3 October 2026)
+# Stage A supplement (ledger row 20): the OS bridge before row 21 - declared criteria and code, revision 3 (R084, 4 October 2026)
 
 **Specification:** Codex's record RSC `b0db0f9` (`reviews/2026-10-03_stage_a_report_codex_record.md`, SHA-256
 `52ed7082...6b90`), §"Prospective row21 OS bridge: form, count and gate"; R052's handoff `8266e5ae` item 2.
@@ -9,7 +9,8 @@ does not cover it.
 | Revision | Commit | Codex's review | Verdict |
 |---|---|---|---|
 | 1 | RSC `b67a073` | RSC `478196f` | NOT FAVOURABLE: the separate carried tree and ledger accepted; P1 restart can erase STOPPED |
-| 2 | this commit | — | answers P1 (§R2) and the record's wording points |
+| 2 | RSC `369e517` | RSC `1abb851` | NOT FAVOURABLE: §R2 credited; P1 a failed terminal recreation let a restart regenerate PASS |
+| 3 | this commit | — | the stop DERIVED from the records, independent of the terminal write (§R3) |
 
 ## 1. What it is
 
@@ -87,7 +88,7 @@ identity slot, counters and seconds, and the reference record's outputs, produce
 | The identity: `execution_identity` on the unchanged 178-id plan, manifest and positions receipt, with its own import-map file | `stage_a_supplement_identity.json` (`stage_a.py supplement-identity`) | the gates worker (the real check) |
 | The package (six hashes) and its re-derivation at the reviewed commit, the identity proven to describe that commit's blobs (`_identity_describes_commit`, factored out of `package_at_commit` with unchanged checks and messages) | `supplement_package_hashes`, `supplement_package_at_commit` | `Gates.test_go_is_stage_a_supplement_and_binds_the_package`; the existing `ReviewedPackageBuilder` and `GoAttestation` classes on `package_at_commit` |
 | GATES: no supplement terminal; the plans, code and frozen tree; the positions receipt; the go (row 20, stage A-supplement) via the shared, unchanged `stage_a_guard.require_go`; a fresh identity equal to the frozen one; the DECLARED ENVIRONMENT - macOS product version AND build AND machine (a version string alone refuses); its own import map; crash reconciliation, where an interrupted try STOPS the supplement | `run_supplement_gates` -> `SUPPLEMENT_GATES.json` | `Gates.test_declared_environment_build_not_just_version` (build 26A999; macOS 27.0); `test_interrupted_try_stops_the_supplement` (start stays charged: 195 started, 2 failed; terminal; later phases refuse) |
-| INSTRUMENTED: worker identity; the reference admitted; the instrument loaded, its import map checked; input 00 admitted (frozen original, PNG, tensor, grid, sequence, processor); one capture; per-pass checks; the record saved, re-read, validated, committed; comparison (a); its receipt; `SUPPLEMENT_INSTRUMENTED_DONE.json` | `run_supplement_instrumented` | `Run.test_pass_...`; `test_comparison_a_failure_stops_and_retains_its_receipt` (receipt kept failing; terminal; 195/194 preserved; both phases then refuse; receipt STOPPED; Stage A's TERMINAL untouched); `test_failed_forward_is_charged_and_stops`; `test_resume_reloads_and_never_replays`; `test_corrupt_reference_holds` (checksum, before any start) |
+| INSTRUMENTED: worker identity; the reference admitted; the instrument loaded, its import map checked; input 00 admitted (frozen original, PNG, tensor, grid, sequence, processor); one capture; per-pass checks; the record saved, re-read, validated, committed; comparison (a); its receipt; `SUPPLEMENT_INSTRUMENTED_DONE.json` | `run_supplement_instrumented` | `Run.test_pass_...`; `test_comparison_a_failure_stops_and_retains_its_receipt` (receipt kept failing; terminal; 195/194 preserved; both phases then refuse; receipt STOPPED; Stage A's TERMINAL untouched); `test_failed_forward_is_charged_and_stops`; `test_a_started_endpoint_is_never_resumed`, `test_native_needs_the_instrumented_commit_of_its_own_session`; `test_corrupt_reference_holds` (checksum, before any start) |
 | NATIVE: a separate worker process (`run_native`'s rule: no jlens_qwen imported); the instrumented phase admitted first (ledger = phase record, comparison (a) retained and passing, record re-validated); one native forward; the native checks; comparison (b); `SUPPLEMENT_NATIVE_DONE.json` | `run_supplement_native` | `Run.test_comparison_b_failure_stops`; `test_native_refused_before_the_instrumented_phase` |
 | RECEIPT: always after passed gates, also after a stop; reads, never converts; admissible only with this session's gates and an equal identity; PASS needs both ids completed in one try, the ledger legal at exactly carry + 2 (196/195/1/196), both phase records equal to the ledger, both comparisons retained and passing, no terminal record, the frozen tree unchanged; binds every output by sha256; written last; records the compatibility fields | `run_supplement_receipt` -> `supplement/SUPPLEMENT_RECEIPT.json` | `Run.test_pass_...` (PASS, every bound output hashed, package and identity = the gates'; the Stage A tree byte-unchanged) |
 | CONTROLLER: the same controller in its own tree under its own names (`SUPPLEMENT_NAMES`), phases supplement_gates -> supplement_instrumented -> supplement_native -> supplement_receipt (always), its own terminal record (no release), row 20's carried seconds and remaining storage; it supersedes only its own final/marker/abort/receipt and never writes Stage A's names | `stage_a_controller.SupplementController`, `supplement_controller()`, `main supplement` | `Controller.test_pass_under_its_own_names` (phase order; marker; no Stage A final, GATES.json, TERMINAL.json or report; clock > carry; row-20 storage figure); `test_work_failure_writes_the_supplement_terminal_and_the_receipt_still_runs` (no rerun after); `test_receipt_failure_modes_prevent_pass` (STOPPED receipt, extra key, wrong hash, exit 1); `test_supersedes_only_its_own_names`; `test_gates_refusal_and_hold`; `test_time_exhausted_spawns_no_work` |
@@ -126,6 +127,25 @@ the current session). Revision 2 makes the supplement ONE SESSION FROM ITS FIRST
 The closed Stage A resumption policy (Controller) is unchanged; the rule lives only in SupplementController. Moves in
 revision 2: stage_a.py, stage_a_controller.py, this file, READINESS_ROW20S.md and therefore the supplement identity and
 package (the plan and budget unchanged).
+
+## R3. Revision 3: the stop is derived, not written (Codex `1abb851` P1)
+
+Codex credited §R2 and found that a restart whose terminal RECREATION failed before its rename only appended a stop
+entry; the base superseder then ran, the gates saw no terminal file, both DONE endpoints were skipped and a new receipt
+and final could regenerate PASS. Revision 3 makes the decision structural:
+
+| Item | Where | Fixture (no forward) |
+|---|---|---|
+| `_prior_start_evidence` reads every durable trace of a start from the records themselves - ledger attempts (or an unreadable ledger), a released endpoint worker in controller.json, an endpoint phase record, a pass output, a comparison receipt, the terminal record. Any of them without an admitted PASS sets the REFUSAL in `_supersede`: nothing is superseded; `_gates` returns REFUSED before any worker; `_phase` and `_finalise` refuse outright if ever reached; the session closes charged ("refused", exit 2). SUPPLEMENT_TERMINAL.json is written as the RECORD of that state; if the write fails the refusal stands and says so. | `SupplementController._prior_start_evidence`, `_supersede`, `_gates`, `_phase`, `_finalise` | `Rev3Adversarial.test_crash_with_completed_endpoints_and_a_failing_terminal_write` (both endpoints + DONE committed, controller SIGKILLed during the receipt, terminal absent, the restart's terminal write failing before its rename: REFUSED, no worker, final/receipt/ledger bytes unchanged, the crashed session charged, terminal still absent); `test_receipt_failure_then_lost_terminal_and_a_failing_rewrite`; the five §R2 Restart cases now expect REFUSED with no worker at all |
+| A PASS needs BOTH endpoints committed by THIS session: the controller (`_endpoints_this_session`), the receipt worker, and row 21's verifier (endpoint sessions = the admitted final's session) | `_finalise`, `run_supplement_receipt`, `supplement_receipt_ok` | `Rev3Adversarial.test_a_pass_needs_both_endpoints_from_this_session` |
+| MY ADVERSARIAL LIST - every way found to bring a second session to an endpoint, a receipt or a final after a start, each refused before any worker: (1) completed endpoints, crashed during the receipt, terminal write failing; (2) receipt failure, terminal lost, rewrite failing; (3) ledger deleted, DONE records remain; (4) ledger and DONE deleted, controller.json's released endpoint workers remain; (5) unreadable ledger; (6) a PASS final whose marker never landed; (7) a PASS final with this session's abort tombstone; (8) a controller built without gates (`_phase` refuses; no worker); (9) endpoints from another session (no PASS); plus the §R2 cases: receipt exit, non-PASS receipt, a lost native exit peak, a hold and a SIGKILL after the instrumented commit; and an admitted PASS is never superseded or regenerated | — | `Rev3Adversarial` (8), `Restart` (5), `Controller.test_a_pass_is_never_superseded_or_regenerated` |
+
+Outside the controller's reach, stated plainly: deleting controller.json while any other file remains is refused by
+the base controller's accounting check before anything runs (unchanged). Deleting the WHOLE supplement tree makes it
+indistinguishable from a fresh one: a new run would start again from the pinned carry, and the earlier starts, time and
+results would be lost with the tree. That is an operator act, not a controller path; the review record and the R052
+tracker are where such a loss would be caught.
+The base Controller and the Stage A policy are unchanged; the rule lives only in SupplementController.
 
 ## 7. Which reviewed files move
 
