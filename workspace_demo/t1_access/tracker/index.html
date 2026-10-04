@@ -50,7 +50,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
 <div class="wrap">
 <header>
   <h1>T1 Validation Tracker</h1>
-  <p class="sub">Entropy SI lane · updated <span id="upd">4 Oct 2026, 03:00 UTC</span> · Unimog <code>1f3ab0cf</code>, RSC <code>8cb9067</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
+  <p class="sub">Entropy SI lane · updated <span id="upd">4 Oct 2026, 04:15 UTC</span> · Unimog <code>1f3ab0cf</code>, RSC <code>8cb9067</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
 </header>
 
 <section class="two">
@@ -92,7 +92,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
   <div class="tbl"><table>
     <tr><th>Run</th><th>Purpose</th><th>Where</th><th>State</th><th>Progress</th><th>Time</th></tr>
     <tr><td class="w">Row 20 · Stage A</td><td>Native fidelity and resource profile of the capture instrument on 20 development images.</td><td class="n">Mac · 1 worker</td><td><span class="pill ok">PASSED, report accepted</span></td><td>Passed 3 Oct; report accepted by Codex. On all 20 development images the two paths agree (zero measured difference, same top answer, scores within tolerance). Caveats: image 15 passes exactly at a tolerance amended after it failed; images 16–19 were compared across the macOS update. Before Stage B: a two-forward bridge check on the new macOS (revision 4 built, to Codex next, then your go).<div class="bar ok"><i style="width:100%"></i></div></td><td class="n">≤ 4 h · 194 of 200 forwards</td></tr>
-    <tr><td class="w">AI reader qualification</td><td>Can the Codex reader name 61 of 63 easy grayscale images? Gates the audit reader.</td><td class="n">Mac · own copy of codex 0.160.0</td><td><span class="pill run">job (c) running</span></td><td>Job (a): 49 of 63, not admitted. Job (b): stopped by a tool upgrade, unscored. The reader now has its own read-only tool copy; revision 17 is favourable and your standing go is bound. Job (c) running: 302 of 600 requests by 02:42 UTC 4 Oct, no holds. Third pass over these images, so it tests the rule, not a blind calibration. Pass mark 61 of 63.<div class="bar run"><i style="width:80%"></i></div></td><td class="n">≤ 6 h · ≤ 660 attempts</td></tr>
+    <tr><td class="w">AI reader qualification</td><td>Can the Codex reader name 61 of 63 easy grayscale images? Gates the audit reader.</td><td class="n">Mac · own copy of codex 0.160.0</td><td><span class="pill ok">admitted (3 adjudicated)</span></td><td>Job (c) finished 4 Oct: 600 of 600 answers, no retries or holds. The frozen gate gave 60 of 63 easy grayscale (61 needed). You adjudicated the three misses as naming the intended object (paint/"Paintbrushes", pearl/"Oyster", christmas card/"Greeting card"): admitted with 3 owner-adjudicated items. Third pass over these images, so it supports the rule rather than being a blind calibration.<div class="bar ok"><i style="width:100%"></i></div></td><td class="n">≤ 6 h · ≤ 660 attempts</td></tr>
     <tr><td class="w">Row 21 · Stage B</td><td>Held-out qualification of the development instrument.</td><td class="n">Mac · 1 worker</td><td><span class="pill wait">after A</span></td><td>Stage A passed; held for the two-forward bridge check on the new macOS, the freeze gates and your go.</td><td class="n">≤ 4 h · 1,856 forwards</td></tr>
     <tr><td class="w">Text arm</td><td>The same assay on text, with a stronger reader.</td><td class="n">Mac</td><td><span class="pill wait">undeclared</span></td><td>Waits on the owner's reader and acceptance rule, due 15 Oct.</td><td class="n">—</td></tr>
   </table></div>
@@ -111,7 +111,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
   <div>
     <h2>Open with the owner</h2>
     <ul>
-      <li><b>Nothing is needed from you right now.</b> The reader's job (c) runs under your standing go. Coming: your go on the two-forward bridge check after Codex's review, then later on Stage B. <b>Stage 2 cost.</b> Your call after the slice's first resamples: fewer starts, a smaller B, or a cheaper inner selection. <b>CHPC.</b> Your email to Werner (300,000 hours, more cores) and your message to Gert (membership of his programme) are drafted for you to send.</li>
+      <li><b>Nothing is needed from you right now.</b> The reader is admitted on your adjudication. Coming: your go on the two-forward bridge check after Codex's review, then later on Stage B. <b>Stage 2 cost.</b> Your call after the slice's first resamples: fewer starts, a smaller B, or a cheaper inner selection. <b>CHPC.</b> Your email to Werner (300,000 hours, more cores) and your message to Gert (membership of his programme) are drafted for you to send.</li>
       <li><b>Slice.</b> Go given 2 Oct. Next decision after the slice report goes to Codex: the 100-dataset screen (stage 2), its own costing and go.</li>
       <li><b>Text arm.</b> Reader and acceptance rule by 15 Oct.</li>
     </ul>
