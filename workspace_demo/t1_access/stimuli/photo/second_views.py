@@ -19,6 +19,13 @@ check before any capture: the Commons file page's licence suffices for an own-wo
 site (Pixabay, Flickr, Unsplash, ...) is checked at that original, recorded in provenance_checks.json.
 
     python3 stimuli/photo/second_views.py
+    python3 stimuli/photo/second_views.py --refresh clothes --retire mask
+
+REFRESH (4 October 2026; R052 ruling 1c, handoff 08f09009): `clothes` replaced `mask` in the roles on 2 October, after
+the 1 October read. `--refresh <concept>` queries ONLY that concept by the same declared query, filters and order, and
+writes its list with its own read date and the sha256 of the list as returned (`refreshed`); `--retire <concept>`
+moves a retired concept's list out of `concepts` into `retired` with the reason. Every other list stays byte-for-byte
+as read on 1 October and is never re-queried.
 """
 
 from __future__ import annotations
@@ -69,7 +76,57 @@ def query(term: str, statement: str) -> list[dict]:
     return out
 
 
+def candidates_for(concept: str) -> list[dict]:
+    """The declared query, filters and order for one concept (unchanged since 1 October)."""
+    seen, cands = set(), []
+    for basis, st in STATEMENTS:
+        for c in query(concept, st):
+            if c["title"] in seen or min(c["width"] or 0, c["height"] or 0) < 384 or NOT_PHOTO.search(c["title"]):
+                continue
+            seen.add(c["title"])
+            credit = re.sub("<[^>]+>", "", c["credit"] or "").strip()
+            cands.append({**c, "credit": credit[:300], "basis": basis,
+                          "own_work": "own work" in credit.lower(),
+                          "credited_elsewhere": re.findall(r"pixabay|flickr|unsplash|pexels|stocksnap", credit, re.I)})
+        time.sleep(1.5)
+    return cands[:N]
+
+
+def refresh(concept: str, retire: str | None) -> int:
+    import hashlib
+    path = HERE / "second_view_candidates.json"
+    result = json.loads(path.read_text())
+    role = next(r for r in json.loads((HERE / "dev_pool.json").read_text())["roles"] if r["concept"] == concept)
+    if concept in result["concepts"]:
+        raise SystemExit(f"refused: {concept} already has a list; a list is never re-queried")
+    cands = candidates_for(concept)
+    when = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    digest = hashlib.sha256(json.dumps(cands, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+    result["concepts"][concept] = {"family": role["family"], "role": role["role"], "n_candidates": len(cands),
+                                   "candidates": cands}
+    result.setdefault("refreshed", {})[concept] = {
+        "read": when, "list_sha256": digest, "query": "the declared query, filters and order of 2026-10-01",
+        "reason": f"{concept} entered the roles on 2026-10-02 (seeded replacement) after the 2026-10-01 read"}
+    if retire:
+        if retire not in result["concepts"]:
+            raise SystemExit(f"refused: {retire} has no list to retire")
+        result.setdefault("retired", {})[retire] = {
+            **result["concepts"].pop(retire),
+            "reason": f"{retire} left the roles on 2026-10-02 (live stock listing crediting another author; "
+                      f"framework 8.2); its list is never audited"}
+    path.write_text(json.dumps(result, indent=1, ensure_ascii=False) + "\n")
+    print(f"{concept}: {len(cands)} candidates, list sha256 {digest}, read {when}; retired: {retire}")
+    return 0
+
+
 def main() -> int:
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--refresh")
+    ap.add_argument("--retire")
+    a = ap.parse_args()
+    if a.refresh:
+        return refresh(a.refresh, a.retire)
     pool = json.loads((HERE / "dev_pool.json").read_text())
     result = {"note": __doc__.split("\n\n")[0], "read": time.strftime("%Y-%m-%d"), "per_concept_max": N,
               "statements": dict(STATEMENTS), "concepts": {}}

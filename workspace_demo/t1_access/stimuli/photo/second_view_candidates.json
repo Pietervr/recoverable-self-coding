@@ -1316,125 +1316,6 @@
     }
    ]
   },
-  "mask": {
-   "family": "clothing",
-   "role": "DEV-CAL",
-   "n_candidates": 8,
-   "candidates": [
-    {
-     "title": "File:Mask Diabo of Portugal used on folk fest and rituals.jpg",
-     "page_url": "https://commons.wikimedia.org/wiki/File:Mask_Diabo_of_Portugal_used_on_folk_fest_and_rituals.jpg",
-     "media_url": "https://upload.wikimedia.org/wikipedia/commons/5/58/Mask_Diabo_of_Portugal_used_on_folk_fest_and_rituals.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-     "width": 3892,
-     "height": 5838,
-     "licence": "CC0",
-     "artist": "<bdi><a href=\"https://www.wikidata.org/wiki/Q115464159\" class=\"extiw\" title=\"d:Q115464159\"><span title=\"developer analyst and photographer from Venezuela\">Wilfredor</span></a></bdi>",
-     "credit": "Own work",
-     "date_original": "2019-12-23 15:33:23",
-     "basis": "CC0",
-     "own_work": true,
-     "credited_elsewhere": []
-    },
-    {
-     "title": "File:Masks in De Barra pub.jpg",
-     "page_url": "https://commons.wikimedia.org/wiki/File:Masks_in_De_Barra_pub.jpg",
-     "media_url": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Masks_in_De_Barra_pub.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-     "width": 6000,
-     "height": 4000,
-     "licence": "CC0",
-     "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Podstawko\" title=\"User:Podstawko\">Podstawko</a>",
-     "credit": "Own work",
-     "date_original": "2023-10-21 14:31:36",
-     "basis": "CC0",
-     "own_work": true,
-     "credited_elsewhere": []
-    },
-    {
-     "title": "File:Gorilla mask.jpg",
-     "page_url": "https://commons.wikimedia.org/wiki/File:Gorilla_mask.jpg",
-     "media_url": "https://upload.wikimedia.org/wikipedia/commons/8/8e/Gorilla_mask.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-     "width": 3120,
-     "height": 4160,
-     "licence": "CC0",
-     "artist": "Saral Shots",
-     "credit": "Own work",
-     "date_original": "2018-12-21 18:04:30",
-     "basis": "CC0",
-     "own_work": true,
-     "credited_elsewhere": []
-    },
-    {
-     "title": "File:Ffp1 mask.jpg",
-     "page_url": "https://commons.wikimedia.org/wiki/File:Ffp1_mask.jpg",
-     "media_url": "https://upload.wikimedia.org/wikipedia/commons/5/57/Ffp1_mask.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-     "width": 4032,
-     "height": 3024,
-     "licence": "CC0",
-     "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Flanoz\" title=\"User:Flanoz\">Flanoz</a>",
-     "credit": "Own work",
-     "date_original": "2 April 2020 (according to <span lang=\"en\" dir=\"ltr\"><a href=\"https://en.wikipedia.org/wiki/Exif\" class=\"extiw\" title=\"en:Exif\">Exif</a></span> data)",
-     "basis": "CC0",
-     "own_work": true,
-     "credited_elsewhere": []
-    },
-    {
-     "title": "File:Mask and glasses.jpg",
-     "page_url": "https://commons.wikimedia.org/wiki/File:Mask_and_glasses.jpg",
-     "media_url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Mask_and_glasses.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-     "width": 3000,
-     "height": 4000,
-     "licence": "CC0",
-     "artist": "Saral Shots",
-     "credit": "Own work",
-     "date_original": "2022-08-21 16:09:21",
-     "basis": "CC0",
-     "own_work": true,
-     "credited_elsewhere": []
-    },
-    {
-     "title": "File:Masks against the transmission of droplet infections and aerosols.png",
-     "page_url": "https://commons.wikimedia.org/wiki/File:Masks_against_the_transmission_of_droplet_infections_and_aerosols.png",
-     "media_url": "https://upload.wikimedia.org/wikipedia/commons/9/97/Masks_against_the_transmission_of_droplet_infections_and_aerosols.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-     "width": 1010,
-     "height": 858,
-     "licence": "CC0",
-     "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Sciencia58\" title=\"User:Sciencia58\">Sciencia58</a>",
-     "credit": "Own work, Redrawing, Sources: [1][2][3][4][5][6][7]",
-     "date_original": "2020-05-04",
-     "basis": "CC0",
-     "own_work": true,
-     "credited_elsewhere": []
-    },
-    {
-     "title": "File:Medical Department - Influenza Epidemic 1918 - MASKS FOR PROTECTION AGAINST INFLUENZA. Elevator operator in New York City, N.Y., wearing mask - NARA - 45499395 (cropped).jpg",
-     "page_url": "https://commons.wikimedia.org/wiki/File:Medical_Department_-_Influenza_Epidemic_1918_-_MASKS_FOR_PROTECTION_AGAINST_INFLUENZA._Elevator_operator_in_New_York_City,_N.Y.,_wearing_mask_-_NARA_-_45499395_(cropped).jpg",
-     "media_url": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Medical_Department_-_Influenza_Epidemic_1918_-_MASKS_FOR_PROTECTION_AGAINST_INFLUENZA._Elevator_operator_in_New_York_City%2C_N.Y.%2C_wearing_mask_-_NARA_-_45499395_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-     "width": 3509,
-     "height": 4726,
-     "licence": "Public domain",
-     "artist": "<div class=\"fn value\">\nUnknown author<span style=\"display: none;\">Unknown author</span> or not provided</div>",
-     "credit": "U.S. National Archives and Records Administration",
-     "date_original": "1917 – 1918",
-     "basis": "PD",
-     "own_work": false,
-     "credited_elsewhere": []
-    },
-    {
-     "title": "File:Making Death Mask Edit 4.jpg",
-     "page_url": "https://commons.wikimedia.org/wiki/File:Making_Death_Mask_Edit_4.jpg",
-     "media_url": "https://upload.wikimedia.org/wikipedia/commons/4/44/Making_Death_Mask_Edit_4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-     "width": 1286,
-     "height": 984,
-     "licence": "Public domain",
-     "artist": "<ul><li><a href=\"//commons.wikimedia.org/wiki/File:Making_death_mask.jpg\" title=\"File:Making death mask.jpg\">Making_death_mask.jpg</a>: Bain News Service</li>\n<li>derivative work: <a href=\"https://en.wikipedia.org/wiki/User:AutoGyro\" class=\"extiw\" title=\"en:User:AutoGyro\">AutoGyro</a> at <a class=\"external text\" data-mw-original-href=\"http://en.wikipedia.org\" href=\"https://en.wikipedia.org\">en.wikipedia</a></li></ul>",
-     "credit": "Making_death_mask.jpg",
-     "date_original": "circa 1908<div style=\"display: none;\">date QS:P,+1908-00-00T00:00:00Z/9,P1480,Q5727902</div>",
-     "basis": "PD",
-     "own_work": false,
-     "credited_elsewhere": []
-    }
-   ]
-  },
   "hat": {
    "family": "clothing",
    "role": "DEV-PILOT",
@@ -3830,6 +3711,255 @@
      "credited_elsewhere": []
     }
    ]
+  },
+  "clothes": {
+   "family": "clothing",
+   "role": "DEV-CAL",
+   "n_candidates": 8,
+   "candidates": [
+    {
+     "title": "File:KIM MATA HIPOL (DRESS).jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:KIM_MATA_HIPOL_(DRESS).jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/1/16/KIM_MATA_HIPOL_%28DRESS%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 1280,
+     "height": 960,
+     "licence": "CC0",
+     "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:SuperRheaV&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:SuperRheaV (page does not exist)\">SuperRheaV</a>",
+     "credit": "Own work",
+     "date_original": "2024-12-28",
+     "basis": "CC0",
+     "own_work": true,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:Girl wearing black dress, pantyhose and red heels.jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Girl_wearing_black_dress,_pantyhose_and_red_heels.jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Girl_wearing_black_dress%2C_pantyhose_and_red_heels.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 836,
+     "height": 1031,
+     "licence": "CC0",
+     "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:StephanieMe&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:StephanieMe (page does not exist)\">StephanieMe</a>",
+     "credit": "Own work",
+     "date_original": "2024-04-23",
+     "basis": "CC0",
+     "own_work": true,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:Dress worn by Styles on Vogue.jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Dress_worn_by_Styles_on_Vogue.jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Dress_worn_by_Styles_on_Vogue.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 3024,
+     "height": 4032,
+     "licence": "CC0",
+     "artist": "<a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/people/17147648@N00\">Clare A was W</a>",
+     "credit": "Fashioning Masculinities: The Art of Menswear exhibit",
+     "date_original": "2022-03-19 10:03",
+     "basis": "CC0",
+     "own_work": false,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:Mizo or Lushai Chin attire in Myanmar.png",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Mizo_or_Lushai_Chin_attire_in_Myanmar.png",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Mizo_or_Lushai_Chin_attire_in_Myanmar.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 1062,
+     "height": 1378,
+     "licence": "CC0",
+     "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Jokomarel&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Jokomarel (page does not exist)\">Jokomarel</a>",
+     "credit": "Own work",
+     "date_original": "2024-06-20",
+     "basis": "CC0",
+     "own_work": true,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:MilliyKiyimlar.jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:MilliyKiyimlar.jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/f/ff/MilliyKiyimlar.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 6240,
+     "height": 4160,
+     "licence": "CC0",
+     "artist": "<a href=\"//commons.wikimedia.org/wiki/User:UzbekistanWikiEditor\" title=\"User:UzbekistanWikiEditor\">UzbekistanWikiEditor</a>",
+     "credit": "Own work",
+     "date_original": "2023-09-22 11:52:41",
+     "basis": "CC0",
+     "own_work": true,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:Ladies wear skirts or dresses in the Kgotla.jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Ladies_wear_skirts_or_dresses_in_the_Kgotla.jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/b/b5/Ladies_wear_skirts_or_dresses_in_the_Kgotla.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 558,
+     "height": 822,
+     "licence": "CC0",
+     "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Bonolo_Nikita_Rankaga&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Bonolo Nikita Rankaga (page does not exist)\">Bonolo Nikita Rankaga</a>",
+     "credit": "Own work",
+     "date_original": "2026-03-26",
+     "basis": "CC0",
+     "own_work": true,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:Dresses form escape maps1.jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Dresses_form_escape_maps1.jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/c/c8/Dresses_form_escape_maps1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 1600,
+     "height": 1200,
+     "licence": "CC0",
+     "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Corvus\" title=\"User:Corvus\">Corvus</a>",
+     "credit": "Own work",
+     "date_original": "2025-08-08",
+     "basis": "CC0",
+     "own_work": true,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:Dresses form escape maps3.jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Dresses_form_escape_maps3.jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/8/80/Dresses_form_escape_maps3.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 1200,
+     "height": 1600,
+     "licence": "CC0",
+     "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Corvus\" title=\"User:Corvus\">Corvus</a>",
+     "credit": "Own work",
+     "date_original": "2025-08-08",
+     "basis": "CC0",
+     "own_work": true,
+     "credited_elsewhere": []
+    }
+   ]
+  }
+ },
+ "refreshed": {
+  "clothes": {
+   "read": "2026-10-04T07:44:58Z",
+   "list_sha256": "59fd15e77b9c11ccdfca5d7fa2913fe0cb23385b5de38f5bc9ed15654b00a928",
+   "query": "the declared query, filters and order of 2026-10-01",
+   "reason": "clothes entered the roles on 2026-10-02 (seeded replacement) after the 2026-10-01 read"
+  }
+ },
+ "retired": {
+  "mask": {
+   "family": "clothing",
+   "role": "DEV-CAL",
+   "n_candidates": 8,
+   "candidates": [
+    {
+     "title": "File:Mask Diabo of Portugal used on folk fest and rituals.jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Mask_Diabo_of_Portugal_used_on_folk_fest_and_rituals.jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/5/58/Mask_Diabo_of_Portugal_used_on_folk_fest_and_rituals.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 3892,
+     "height": 5838,
+     "licence": "CC0",
+     "artist": "<bdi><a href=\"https://www.wikidata.org/wiki/Q115464159\" class=\"extiw\" title=\"d:Q115464159\"><span title=\"developer analyst and photographer from Venezuela\">Wilfredor</span></a></bdi>",
+     "credit": "Own work",
+     "date_original": "2019-12-23 15:33:23",
+     "basis": "CC0",
+     "own_work": true,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:Masks in De Barra pub.jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Masks_in_De_Barra_pub.jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Masks_in_De_Barra_pub.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 6000,
+     "height": 4000,
+     "licence": "CC0",
+     "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Podstawko\" title=\"User:Podstawko\">Podstawko</a>",
+     "credit": "Own work",
+     "date_original": "2023-10-21 14:31:36",
+     "basis": "CC0",
+     "own_work": true,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:Gorilla mask.jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Gorilla_mask.jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/8/8e/Gorilla_mask.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 3120,
+     "height": 4160,
+     "licence": "CC0",
+     "artist": "Saral Shots",
+     "credit": "Own work",
+     "date_original": "2018-12-21 18:04:30",
+     "basis": "CC0",
+     "own_work": true,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:Ffp1 mask.jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Ffp1_mask.jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/5/57/Ffp1_mask.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 4032,
+     "height": 3024,
+     "licence": "CC0",
+     "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Flanoz\" title=\"User:Flanoz\">Flanoz</a>",
+     "credit": "Own work",
+     "date_original": "2 April 2020 (according to <span lang=\"en\" dir=\"ltr\"><a href=\"https://en.wikipedia.org/wiki/Exif\" class=\"extiw\" title=\"en:Exif\">Exif</a></span> data)",
+     "basis": "CC0",
+     "own_work": true,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:Mask and glasses.jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Mask_and_glasses.jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Mask_and_glasses.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 3000,
+     "height": 4000,
+     "licence": "CC0",
+     "artist": "Saral Shots",
+     "credit": "Own work",
+     "date_original": "2022-08-21 16:09:21",
+     "basis": "CC0",
+     "own_work": true,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:Masks against the transmission of droplet infections and aerosols.png",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Masks_against_the_transmission_of_droplet_infections_and_aerosols.png",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/9/97/Masks_against_the_transmission_of_droplet_infections_and_aerosols.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 1010,
+     "height": 858,
+     "licence": "CC0",
+     "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Sciencia58\" title=\"User:Sciencia58\">Sciencia58</a>",
+     "credit": "Own work, Redrawing, Sources: [1][2][3][4][5][6][7]",
+     "date_original": "2020-05-04",
+     "basis": "CC0",
+     "own_work": true,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:Medical Department - Influenza Epidemic 1918 - MASKS FOR PROTECTION AGAINST INFLUENZA. Elevator operator in New York City, N.Y., wearing mask - NARA - 45499395 (cropped).jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Medical_Department_-_Influenza_Epidemic_1918_-_MASKS_FOR_PROTECTION_AGAINST_INFLUENZA._Elevator_operator_in_New_York_City,_N.Y.,_wearing_mask_-_NARA_-_45499395_(cropped).jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Medical_Department_-_Influenza_Epidemic_1918_-_MASKS_FOR_PROTECTION_AGAINST_INFLUENZA._Elevator_operator_in_New_York_City%2C_N.Y.%2C_wearing_mask_-_NARA_-_45499395_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 3509,
+     "height": 4726,
+     "licence": "Public domain",
+     "artist": "<div class=\"fn value\">\nUnknown author<span style=\"display: none;\">Unknown author</span> or not provided</div>",
+     "credit": "U.S. National Archives and Records Administration",
+     "date_original": "1917 – 1918",
+     "basis": "PD",
+     "own_work": false,
+     "credited_elsewhere": []
+    },
+    {
+     "title": "File:Making Death Mask Edit 4.jpg",
+     "page_url": "https://commons.wikimedia.org/wiki/File:Making_Death_Mask_Edit_4.jpg",
+     "media_url": "https://upload.wikimedia.org/wikipedia/commons/4/44/Making_Death_Mask_Edit_4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+     "width": 1286,
+     "height": 984,
+     "licence": "Public domain",
+     "artist": "<ul><li><a href=\"//commons.wikimedia.org/wiki/File:Making_death_mask.jpg\" title=\"File:Making death mask.jpg\">Making_death_mask.jpg</a>: Bain News Service</li>\n<li>derivative work: <a href=\"https://en.wikipedia.org/wiki/User:AutoGyro\" class=\"extiw\" title=\"en:User:AutoGyro\">AutoGyro</a> at <a class=\"external text\" data-mw-original-href=\"http://en.wikipedia.org\" href=\"https://en.wikipedia.org\">en.wikipedia</a></li></ul>",
+     "credit": "Making_death_mask.jpg",
+     "date_original": "circa 1908<div style=\"display: none;\">date QS:P,+1908-00-00T00:00:00Z/9,P1480,Q5727902</div>",
+     "basis": "PD",
+     "own_work": false,
+     "credited_elsewhere": []
+    }
+   ],
+   "reason": "mask left the roles on 2026-10-02 (live stock listing crediting another author; framework 8.2); its list is never audited"
   }
  }
 }

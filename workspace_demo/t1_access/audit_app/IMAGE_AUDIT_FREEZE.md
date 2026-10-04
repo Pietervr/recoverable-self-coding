@@ -5,9 +5,13 @@ R084, 2 October 2026. This answers Codex's record RSC `f9d2ef3` (answer 6.3) and
 reader package (3 October 2026, R052 handoff `ff264083`, the owner's decision of 3 October) changes the free-name
 question and the matching rule below - one rule shared with the qualification scorer - and nothing else here.
 
-**Exposure.** No audit answer exists: no reader has seen any audit item and the page is not deployed. The AI reader
-has seen the 300 qualification images (outside the development pool) in the qualification job (a) of 2 October 2026
-(600 requests, not admitted; `reviews/2026-10-02_ai_reader_job_a.md`); the revision-12 package has made no call.
+**Exposure (updated 4 October 2026; the rules below are unchanged).** No audit answer exists: no reader has seen any
+audit item and the page is not deployed. The AI reader has seen the 300 qualification images (outside the development
+pool) in the qualification jobs: the first job of 2 October (STOPPED after 175 requests, never scored), job (a)
+(600 requests, NOT ADMITTED under the revision-11 rule), job (b) (STOPPED at 219, never scored) and job (c) under
+revision 17 (600 of 600; ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS, `reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md`).
+The audit runs as its own bounded job: `stimuli/photo/AI_AUDIT_JOB.md` (the reader route reused, rounds, limits,
+dispositions); nothing in this freeze is changed by it.
 
 **Not a row-20 gate.** The audit is required for all 32 roles and their second views before row 21. The Stage A
 eight go first, as the audit's own pilot.
