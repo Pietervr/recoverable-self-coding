@@ -178,12 +178,53 @@ def main() -> int:
         else:
             raise SystemExit(f"no eligible replacement left for {x['concept']} in {x['family']}")
 
+    # Audit rejections (4 October 2026; audit revision 4, R052 handoff 6044fd8b): a role the image audit's owner
+    # decision fails with "fail_replace" is replaced by the SAME declared rule as a provenance rejection - the next
+    # concept in its family's seeded order past the first eight that is unused and not ineligible, which must carry a
+    # provenance check of its own (else stop: check it first); processed after the provenance replacements, in the
+    # order the rejections were recorded; it inherits the role and the Stage A flag. The input is
+    # audit_rejections.json, each entry citing the owner's dated decision by file and sha256.
+    rej_path = HERE / "audit_rejections.json"
+    rejections = json.loads(rej_path.read_text())["rejections"] if rej_path.exists() else []
+    for rj in rejections:
+        idx = [i for i, x in enumerate(roles) if x["concept"] == rj["concept"]]
+        if len(idx) != 1:
+            raise SystemExit(f"audit rejection of {rj['concept']}: not exactly one current role holds it")
+        i = idx[0]
+        x = roles[i]
+        by_name = {r["concept"]: r for r in qualified[x["family"]]}
+        skipped = []
+        for cand in order[x["family"]][PER_FAMILY:]:
+            if cand in used:
+                continue
+            cc = checks.get(cand)
+            if cc is None:
+                raise SystemExit(f"replacement for {x['concept']} (image audit): next in order is {cand}, which has "
+                                 "no provenance check yet - check it first")
+            if cc["status"] == "ineligible":
+                skipped.append({"concept": cand, "reason": cc["licence_basis"]})
+                continue
+            roles[i] = {**by_name[cand], "role": x["role"], "stage_a_primary_view": x["stage_a_primary_view"],
+                        "replaces": x["concept"]}
+            used.add(cand)
+            replacements.append({"family": x["family"], "role": x["role"],
+                                 "stage_a_primary_view": x["stage_a_primary_view"], "out": x["concept"],
+                                 "reason": f"image audit: {rj['reason']}", "trigger": "image_audit",
+                                 "decision": {k: rj[k] for k in ("decision_file", "decision_file_sha256", "item",
+                                                                 "date")},
+                                 "skipped": skipped, "in": cand,
+                                 "in_check": {k: cc[k] for k in ("source_url", "published", "licence_basis")}})
+            break
+        else:
+            raise SystemExit(f"no eligible replacement left for {x['concept']} in {x['family']}")
+
     counts = {f: len(v) for f, v in qualified.items()}
     out = {"seed": SEED, "families": FAMILIES, "per_family": PER_FAMILY, "source_digests": digests,
            "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
            "qualified_counts": counts, "qualified": qualified, "seeded_order": order,
            "roles": sorted(roles, key=lambda x: (x["family"], x["role"], x["concept"])),
            "provenance_checks_sha256": hashlib.sha256(checks_path.read_bytes()).hexdigest() if checks else None,
+           "audit_rejections_sha256": hashlib.sha256(rej_path.read_bytes()).hexdigest() if rejections else None,
            "replacements": replacements,
            "excluded_from_formal_CAL_PILOT_CONF": sorted({x["concept"] for x in roles}
                                                          | {r["out"] for r in replacements}),

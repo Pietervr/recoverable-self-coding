@@ -1,0 +1,13 @@
+{
+ "note": "Image-audit rejections that replace a development role (pool.py, by the declared seeded rule). Each entry cites the owner's dated decision by file and sha256. Recorded by R084 from the committed decisions file; never edited after a draw.",
+ "rejections": [
+  {
+   "concept": "caramel",
+   "item": "22270c713bd2",
+   "date": "2026-10-04",
+   "reason": "owner fail_replace of the caramel primary (reader 'Chocolate' [S1], sense no; owner: 'Caramel is tough - could be chocolate'; 'Replace caramel')",
+   "decision_file": "reviews/2026-10-04_image_audit_owner_decisions.json",
+   "decision_file_sha256": "91aef7149011bbe76a3b36765cdc25a47e8c1358e8353d157c2e6438e03efc24"
+  }
+ ]
+}
