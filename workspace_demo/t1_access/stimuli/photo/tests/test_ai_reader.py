@@ -1567,12 +1567,13 @@ class Rev13Reader(unittest.TestCase):
     def test_the_evidence_is_job_b_s(self):
         import hashlib
         self.assertEqual(hashlib.sha256(CAPACITY_EVENTS.encode()).hexdigest(), CAPACITY_SHA)
-        for path in (PHOTO / "ai_reader_raw_responses.jsonl",
-                     PHOTO.parents[1] / "reviews" / "2026-10-03_ai_reader_job_b_archive" / "ai_reader_raw_responses.jsonl"):
-            if path.exists():
-                for ln in path.read_bytes().splitlines():
-                    if b"59adc2d73b07" in ln and b'"t": "end"' in ln:
-                        self.assertEqual(json.loads(ln)["events"]["sha256"], CAPACITY_SHA)
+        # job (b)'s journal lives in its archive since job (c) (4 October); the live journal is job (c)'s, where the same
+        # request is an ordinary ok end - so only the archived job-(b) journal is read, and it must exist
+        path = PHOTO.parents[1] / "reviews" / "2026-10-03_ai_reader_job_b_archive" / "ai_reader_raw_responses.jsonl"
+        self.assertTrue(path.exists(), "job (b)'s archived journal")
+        hits = [ln for ln in path.read_bytes().splitlines() if b"59adc2d73b07" in ln and b'"t": "end"' in ln]
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(json.loads(hits[0])["events"]["sha256"], CAPACITY_SHA)
 
     def classify(self, text, last=None):
         return R.classify(text.encode(), b"Reading additional input from stdin...\n", last, 1, timed_out=False,
