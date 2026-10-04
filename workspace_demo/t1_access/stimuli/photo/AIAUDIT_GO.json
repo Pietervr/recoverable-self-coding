@@ -1,0 +1,53 @@
+{
+  "owner_go": {
+    "by": "Pieter van Rooyen (owner)",
+    "date": "2026-10-04",
+    "words": "standing go given 4 Oct 2026 ~09:3x UTC: 'Go if favorable' (the image audit; bound to revision 3, the first favourable revision)"
+  },
+  "package": {
+    "AI_AUDIT_JOB_md_sha256": "553f08d6cd5d7c81b6e0237670ac841d38f0d4793d98546b036787fa321a1bf7",
+    "IMAGE_AUDIT_FREEZE_md_sha256": "7710b9c6c717115c65de6517d693c9d33dae10a045d6cdb79076e2e2007242df",
+    "ai_audit_delivery_r1_json_sha256": "cdd363316064a315f77217f267af4e1cbd1d76a96e65306d06e98d4d0887bb60",
+    "ai_audit_exec_py_sha256": "991e24bdf824e4401db34a56e3a978c38f899d06d01b4ccf4acab40c356beb24",
+    "ai_audit_key_r1_json_sha256": "d931129d59a19c9385d9e21e052f07e375f3f67800c4c0d28ccaf0d00461ce53",
+    "ai_audit_score_py_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+    "ai_audit_set_py_sha256": "644ebfa4c427b05dc4a5734480b568630d08e9324eb9c3b8406212cfe98521cf",
+    "ai_audit_set_r1_json_sha256": "ffc1c7c46e3ec755f55bc3086338541b9476e16893f160485fad4b1ef6d3df95",
+    "ai_audit_sources_json_sha256": "5127035ca91c1cd1ba23b29f0c83802fa795fe8e0ea257e29484019336b6d7b4",
+    "ai_audit_sources_py_sha256": "16d9d4bb6d18c3e500e8baeb5bb8aef681c29a08b4f9f27976cea6c3b33c7794",
+    "ai_reader_delivery_json_sha256": "14b8cccd0a2ef184f922259fa86747710c57e6dddf70066515a32b7d8fd7eaf5",
+    "ai_reader_exec_py_sha256": "5fbb730d1f10c6c38dc638f06a7d1f57e724ed7efeba8e8a7b93382d783ae097",
+    "ai_reader_journal_py_sha256": "b67d25526c715434b55e6410d1b66046a9437ca48c825c34fabd9705515613a2",
+    "ai_reader_key_py_sha256": "274147af5e07b2e2c3b21a69f493e4c4a9567f53fe12b8e05e4ad73adf6e4a66",
+    "ai_reader_qual_set_json_sha256": "2f16cfe892295bf26ebb4eecc4f76fa9420f91bee5112a8b426d8e9f2d314238",
+    "ai_reader_runtime_py_sha256": "cb78adaa56a34f45430ea26429dbc0aa1c204fc48bbec454f1af35ff42ebec32",
+    "ai_reader_score_py_sha256": "3e2ef03ceeb972d0c2e09e6684362913ad1d3b948f365b69669a0d533a25ba19",
+    "audit_alias_map_json_sha256": "a3f6ab51dbf0dda1148a26bfdc8b671adf91d1edc712fe58ef9ddcffc0397c80",
+    "audit_alias_map_py_sha256": "39088b6e0834c6bbdc704b77d010de7b22eba7afe9637f3bec0be3db0a1e2dd1",
+    "audit_package_py_sha256": "e15b1a192060e20dfe62395211c34600c399fdd134233cb95eec742d787ed0ff",
+    "cli_version": "codex-cli 0.160.0",
+    "codex_package_json_sha256": "404c4c935bf9b7a57fc02b6f0d09ba6b7bbbf15cf14286fc017de2a6c01cab47",
+    "codex_realpath": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/captures/reader_cli/codex-0.160.0/bin/codex",
+    "codex_sha256": "112fae7a5a1223e673c8a1791d32338f37df8b527ff1159bb8adac6c4dbf1b4b",
+    "codex_tree_sha256": "ced09ec2c51c8fd4ae4ccb7e0ccb6b6e76d32633ec842f08be000c2a55ba86fe",
+    "command_template_sha256": "c36c43f34d8658dd14e3e332f1ae354328950eef4a152b9cf79dffcecc51361a",
+    "dev_pool_json_sha256": "fae20dc215d1de329ff81a5687735047c9a92cead1b9642f7cda4f6c2d69ad2d",
+    "dose_py_sha256": "05d61ea6d199903eb066534e8cc2e7bb73e102b9cfa284f5692f8d75e9bb4302",
+    "enforce_py_sha256": "5d142c94560da93ee08fd4021dd7aa46edba60d13252ed992e44873a0f57ed42",
+    "instructions_sha256": "e2a8ba62a740d571102bca60f77a3e4be04c7a02d2e823b602403a3e6d292790",
+    "manifest_dev_json_sha256": "e816f843700a4a15c4ca56ba71318957e73b77d3560e81a2bf476ff23422f448",
+    "memprobe_py_sha256": "83114f358b74372c3bbe647a5b907903ec6629c172a76adc3d7c13f5a7acd465",
+    "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+    "sandbox_exec_sha256": "58839ef01b4eef8aac0d2aa8f9d1c074ae45aafe3533965b030672450064acc8",
+    "second_view_candidates_json_sha256": "430b0ce8794910dcc6bd2aa939fa4ae7453018663667ba3f861b779b68e2d028",
+    "stage_a_guard_py_sha256": "a801e48edc0281988e86806fcf31206d7da3e220cfa7690c333990a635076750",
+    "stage_a_watchdog_py_sha256": "4c6d8723fec88afd59f9b9ff833cb6235462ca6e6c711e199dbc7f6af829b1ed",
+    "things_definitions_sha256": "3f05b6b748d1e1b685e15130d2487bff63f86e1f4da94a2a5d9e7dec073a48eb",
+    "things_images_metadata_sha256": "fd5b17635f0f6528f58decaf5a089587593708862d4ee7a2a72cd8aa57ce013c"
+  },
+  "review": {
+    "commit": "0f35c48108a71ea47e0933c7bf504f244cadf505",
+    "path": "workspace_demo/t1_access/reviews/2026-10-04_image_audit_rev3_codex_record.md",
+    "record_sha256": "da333d620007c1f8cebfa9f42dfb5fc559436ae3c40f8a9f0bb2832ff38e5155"
+  }
+}
