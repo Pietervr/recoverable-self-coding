@@ -1,0 +1,12 @@
+{
+  "note": "The owner's dated decisions on image-audit referrals (rounds 1-2), read by ai_audit_score.resolve. Reader outcomes are never changed: an owner pass is reported as OWNER-PASSED. Recorded by R052 Entropy SI from the owner's words in chat, after he saw the referral sheets (reviews/2026-10-04_image_audit_referrals_r1_r2/, each picture exactly as the reader saw it, with its raw answers).",
+  "owner_words": "Caramel is tough - could be chocolate. Shop and robe are acceptable. Even chili could be soup",
+  "items": {
+    "e909bdc4788c": {"decision": "pass", "date": "2026-10-04", "by": "Pieter van Rooyen (owner)", "evidence": "ship primary 831d014aa406c6e6.png; reader 'Sailboat' (S1); owner: acceptable ('Shop' in his words is ship)"},
+    "879d6339eeed": {"decision": "pass", "date": "2026-10-04", "by": "Pieter van Rooyen (owner)", "evidence": "robe primary 14fd744bdeb6064a.png; reader 'Bathrobe' (S1); owner: acceptable"},
+    "42ef237095a2": {"decision": "pass", "date": "2026-10-04", "by": "Pieter van Rooyen (owner)", "evidence": "chili primary 43297bffc0183ad3.png (a Stage A DEV-CAL primary - passing keeps the accepted Stage A inputs unchanged); reader 'Soup' (S1); owner: 'even chili could be soup'"}
+  },
+  "pending": {
+    "22270c713bd2": "caramel primary dc802ea6b94a862f.png; reader 'Chocolate' (S1), sense no; owner: 'tough - could be chocolate' - decision (pass / fail_replace / fail_hold) not yet given"
+  }
+}
