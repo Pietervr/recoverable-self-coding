@@ -1,0 +1,97 @@
+test_blocked_writer_watchdog_bounds_worker_and_controller (stimuli.photo.tests.test_controller.Controller.test_blocked_writer_watchdog_bounds_worker_and_controller)
+The controller's record writer blocks forever: the controller is stuck; the watchdog kills the worker ... ok
+test_controller_death_during_active_work (stimuli.photo.tests.test_controller.Controller.test_controller_death_during_active_work)
+SIGKILL the controller while its worker (and grandchild) run: the watchdog kills the group; the next ... ok
+test_controls_stay_live_during_the_watchdog_gone_wait (stimuli.photo.tests.test_controller.Controller.test_controls_stay_live_during_the_watchdog_gone_wait)
+Revision 12 (A3): the watchdog retires 1 s after arming; the worker is idle, then at 2.5 s touches 1 GiB ... stage_a_controller: stop observed at monotonic 67704.560805, previous successful reading at 67704.533698, SIGKILL sent at 67704.563106: instrumented: task memory 1077824296 >= 805306368
+ok
+test_crash_tail_charge (stimuli.photo.tests.test_controller.Controller.test_crash_tail_charge) ... ok
+test_deadline_kills_a_worker_busy_in_metal (stimuli.photo.tests.test_controller.Controller.test_deadline_kills_a_worker_busy_in_metal) ... stage_a_controller: stop observed at monotonic 67734.642009, previous successful reading at 67734.615853, SIGKILL sent at 67734.642072: instrumented: time limit 1815 s reached (row cap 2535 s less reserves)
+ok
+test_deadline_kills_a_worker_that_ignores_sigterm (stimuli.photo.tests.test_controller.Controller.test_deadline_kills_a_worker_that_ignores_sigterm) ... stage_a_controller: stop observed at monotonic 67740.162641, previous successful reading at 67740.141184, SIGKILL sent at 67740.162696: instrumented: time limit 1813 s reached (row cap 2533 s less reserves)
+ok
+test_directory_stall_before_load_is_guarded (stimuli.photo.tests.test_controller.Controller.test_directory_stall_before_load_is_guarded)
+Stage A A (c036c00): the output directory's creation blocks forever; the guardian, started before ANY file ... ok
+test_escaped_child_killed_by_identity (stimuli.photo.tests.test_controller.Controller.test_escaped_child_killed_by_identity) ... ok
+test_exit_peak_enters_the_task_aggregate (stimuli.photo.tests.test_controller.Controller.test_exit_peak_enters_the_task_aggregate) ... ok
+test_exit_spike_over_the_stop_stops (stimuli.photo.tests.test_controller.Controller.test_exit_spike_over_the_stop_stops) ... stage_a_controller: stop observed at monotonic 67762.523171, previous successful reading at 67762.493124, SIGKILL sent at 67762.525410: instrumented: task memory 1319357392 >= 805306368
+ok
+test_external_death_before_pending_with_a_healthy_guardian (stimuli.photo.tests.test_controller.Controller.test_external_death_before_pending_with_a_healthy_guardian)
+Revision 9 (Codex 7fdb937, Stage A A1.1): directory creation or the lock blocks; the controller is ... ok
+test_failed_start_is_charged (stimuli.photo.tests.test_controller.Controller.test_failed_start_is_charged)
+Revision 7: a start that died before its session's first durable record is charged from its pending-start ... ok
+test_final_output_stall_is_guarded_and_charged (stimuli.photo.tests.test_controller.Controller.test_final_output_stall_is_guarded_and_charged)
+Stage A A: the result's output blocks forever after a PASS; the guardian (deadline moved to the end of the ... ok
+test_gates_phase_hold_is_closed_and_charged (stimuli.photo.tests.test_controller.Controller.test_gates_phase_hold_is_closed_and_charged)
+Revision 12 (Codex 5eb51a8 A2): the GATES worker blocks and its watchdog retires early: the run returns ... stage_a_controller: stop observed at monotonic 67807.711593, previous successful reading at 67807.687472, SIGKILL sent at 67807.712561: gates: watchdog exited (0) and the leader's exit was not confirmed within 3 s
+ok
+test_guardian_in_the_task_aggregate (stimuli.photo.tests.test_controller.Controller.test_guardian_in_the_task_aggregate)
+Stage A B: the guardian is sampled, its final maximum read, and both counted; unreadable -> STOPPED. ... ok
+test_immediate_restart_kills_unrecorded_group_members (stimuli.photo.tests.test_controller.Controller.test_immediate_restart_kills_unrecorded_group_members)
+Immediate restart (A2): the crashed worker's leader is alive with a child no record names, and its ... ok
+test_initial_resource_failure_is_terminal (stimuli.photo.tests.test_controller.Controller.test_initial_resource_failure_is_terminal) ... ok
+test_leader_exit_with_surviving_child (stimuli.photo.tests.test_controller.Controller.test_leader_exit_with_surviving_child) ... ok
+test_live_foreign_start_before_the_lock (stimuli.photo.tests.test_controller.Controller.test_live_foreign_start_before_the_lock)
+Revision 10 (Codex dda950b, Stage A A1): S1 publishes its armed record and stays ALIVE, stalled in the ... ok
+test_long_first_persist_with_an_existing_clock (stimuli.photo.tests.test_controller.Controller.test_long_first_persist_with_an_existing_clock)
+Revision 8 (Stage A A2): a closed controller.json exists; the next start's first persist blocks before its ... ok
+test_memory_stop_is_whole_task (stimuli.photo.tests.test_controller.Controller.test_memory_stop_is_whole_task) ... stage_a_controller: stop observed at monotonic 67913.898486, previous successful reading at 67913.868457, SIGKILL sent at 67913.900358: instrumented: task memory 869681792 >= 805306368
+ok
+test_memory_stop_with_blocked_io_kills_first (stimuli.photo.tests.test_controller.Controller.test_memory_stop_with_blocked_io_kills_first)
+Stage A 1: the memory stop SIGKILLs the group from the sampler BEFORE any join or persist while the I/O ... ok
+test_missing_mandatory_measurements_refuse_pass (stimuli.photo.tests.test_controller.Controller.test_missing_mandatory_measurements_refuse_pass) ... ok
+test_never_returning_first_and_later_sample (stimuli.photo.tests.test_controller.Controller.test_never_returning_first_and_later_sample) ... ok
+test_owner_release_of_a_terminal_record (stimuli.photo.tests.test_controller.Controller.test_owner_release_of_a_terminal_record)
+Revision 11 (the owner's ruling on the 2 October attempt): a terminal stop after the instrumented phase holds ... ok
+test_pass_sequential_lock_held_and_final_figures (stimuli.photo.tests.test_controller.Controller.test_pass_sequential_lock_held_and_final_figures) ... ok
+test_persistence_after_the_watchdog_retired_is_bounded (stimuli.photo.tests.test_controller.Controller.test_persistence_after_the_watchdog_retired_is_bounded)
+Stage A 2: a controller-only persist blocks forever after the gates' worker and watchdog are gone; the ... ok
+test_persistence_failure_is_bounded (stimuli.photo.tests.test_controller.Controller.test_persistence_failure_is_bounded) ... ok
+test_post_close_death_is_inside_the_charged_closure (stimuli.photo.tests.test_controller.Controller.test_post_close_death_is_inside_the_charged_closure)
+Stage A A: after the close, finalisation blocks and both revocations block; the process ends (bounded abort ... ok
+test_pre_pending_stall_is_charged_at_restart (stimuli.photo.tests.test_controller.Controller.test_pre_pending_stall_is_charged_at_restart)
+Revision 8 (Codex 12a7f20, Stage A A1): the directory creation or the lock blocks before the pending-start ... ok
+test_recovery_during_guardian_receipt_publication (stimuli.photo.tests.test_controller.Controller.test_recovery_during_guardian_receipt_publication)
+Revision 9 (Stage A A1.2): the guardian kills the stalled controller at its setup deadline and publishes ... ok
+test_refusal_and_authorisation_hold_are_distinct (stimuli.photo.tests.test_controller.Controller.test_refusal_and_authorisation_hold_are_distinct) ... refused: fixture refusal
+ok
+test_sampler_unavailable_and_slow (stimuli.photo.tests.test_controller.Controller.test_sampler_unavailable_and_slow) ... stage_a_controller: stop observed at monotonic 68066.895773, previous successful reading at 68066.865727, SIGKILL sent at 68066.897392: instrumented: memory reading unavailable (test)
+stage_a_controller: stop observed at monotonic 68067.592563, previous successful reading at nan, SIGKILL sent at 68067.597335: report: memory reading unavailable (test)
+stage_a_controller: stop observed at monotonic 68071.057778, previous successful reading at 68071.036052, SIGKILL sent at 68071.132530: instrumented: a sampling iteration took 0.075 s (limit 0.05 s)
+stage_a_controller: stop observed at monotonic 68071.830115, previous successful reading at nan, SIGKILL sent at 68071.904615: report: a sampling iteration took 0.074 s (limit 0.05 s)
+ok
+test_slow_teardown_after_the_phase_record_does_not_stop (stimuli.photo.tests.test_controller.Controller.test_slow_teardown_after_the_phase_record_does_not_stop)
+Revision 11 (the 2 October run, PRODUCED): the instrumented worker commits INSTRUMENTED_DONE, then lingers ... ok
+test_stale_worker_reconciled_by_identity_only (stimuli.photo.tests.test_controller.Controller.test_stale_worker_reconciled_by_identity_only)
+A recorded worker of a crashed session that is still alive is killed (identity verified); a live process ... ok
+test_terminal_holds_later_runs_but_report_runs (stimuli.photo.tests.test_controller.Controller.test_terminal_holds_later_runs_but_report_runs) ... ok
+test_two_failures_during_pending_reconciliation (stimuli.photo.tests.test_controller.Controller.test_two_failures_during_pending_reconciliation)
+Revision 8 (Stage A A3): S1's pending entry exists; S2 reads it, publishes S1 + S2 and dies while ... ok
+test_watchdog_gone_before_a_confirmed_exit_holds (stimuli.photo.tests.test_controller.Controller.test_watchdog_gone_before_a_confirmed_exit_holds)
+Revision 11: the watchdog exits while the leader is alive and never exits (tests/fixture_watchdogs.py ... stage_a_controller: stop observed at monotonic 68113.089469, previous successful reading at 68113.059414, SIGKILL sent at 68113.089568: instrumented: watchdog exited (0) and the leader's exit was not confirmed within 3 s
+ok
+test_worker_crash_and_missing_record (stimuli.photo.tests.test_controller.Controller.test_worker_crash_and_missing_record) ... ok
+test_failed_final_write_leaves_no_pass (stimuli.photo.tests.test_controller.Finalisation.test_failed_final_write_leaves_no_pass) ... ok
+test_lost_and_invalid_accounting_refused (stimuli.photo.tests.test_controller.Finalisation.test_lost_and_invalid_accounting_refused) ... ok
+test_marker_failure_after_its_rename_unadmits (stimuli.photo.tests.test_controller.Finalisation.test_marker_failure_after_its_rename_unadmits) ... ok
+test_over_limit_and_illegal_ledger (stimuli.photo.tests.test_controller.Finalisation.test_over_limit_and_illegal_ledger) ... ok
+test_post_marker_stall_and_blocked_revocation_are_bounded (stimuli.photo.tests.test_controller.Finalisation.test_post_marker_stall_and_blocked_revocation_are_bounded)
+Stage A 3: the marker's write stalls after its rename; the allowance fires; revocation (tombstone + ... ok
+test_post_rename_block_is_bounded_and_not_admitted (stimuli.photo.tests.test_controller.Finalisation.test_post_rename_block_is_bounded_and_not_admitted) ... ok
+test_post_rename_failure_is_not_admitted (stimuli.photo.tests.test_controller.Finalisation.test_post_rename_failure_is_not_admitted) ... ok
+test_report_failure_modes_prevent_pass (stimuli.photo.tests.test_controller.Finalisation.test_report_failure_modes_prevent_pass) ... ok
+test_size_mismatch_invalidates_completion (stimuli.photo.tests.test_controller.Finalisation.test_size_mismatch_invalidates_completion) ... ok
+test_stale_pass_superseded (stimuli.photo.tests.test_controller.Finalisation.test_stale_pass_superseded) ... ok
+test_storage_cap_edges (stimuli.photo.tests.test_controller.Finalisation.test_storage_cap_edges) ... stage_a_controller: stop observed at monotonic 68285.180378, previous successful reading at 68285.150090, SIGKILL sent at 68285.180553: instrumented: task storage 5245931 over 4194304
+ok
+test_time_exhausted_spawns_no_work (stimuli.photo.tests.test_controller.Finalisation.test_time_exhausted_spawns_no_work) ... ok
+test_exit_watch_failure (stimuli.photo.tests.test_controller.Startup.test_exit_watch_failure) ... ok
+test_first_persist_failure (stimuli.photo.tests.test_controller.Startup.test_first_persist_failure) ... ok
+test_stale_handles_never_survive_into_the_next_phase (stimuli.photo.tests.test_controller.Startup.test_stale_handles_never_survive_into_the_next_phase)
+A worker handle left by a failed phase is ended (whole group, reaped) before the next phase spawns. ... ok
+test_watchdog_spawn_failure (stimuli.photo.tests.test_controller.Startup.test_watchdog_spawn_failure) ... ok
+
+----------------------------------------------------------------------
+Ran 55 tests in 632.750s
+
+OK
