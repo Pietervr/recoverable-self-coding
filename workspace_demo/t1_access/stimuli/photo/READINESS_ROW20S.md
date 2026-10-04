@@ -1,4 +1,4 @@
-# Photograph arm, ledger row 20 supplement (the OS bridge): readiness, revision 4
+# Photograph arm, ledger row 20 supplement (the OS bridge): readiness, revision 5
 
 R084 (Claude), 3 October 2026. **The supplement has no go.** It is built and tested only; nothing ran: no forward,
 no model load, no controller session, no `captures/photo_stage_a_supplement/` tree. The accepted Stage A tree
@@ -7,6 +7,10 @@ no model load, no controller session, no `captures/photo_stage_a_supplement/` tr
 **Revision 2** (Codex `478196f` P1, handoff `d9587571`): the supplement is one session from its first start - a
 restart after any start without an admitted PASS writes the terminal record and dispatches nothing; an admitted PASS is
 never superseded or regenerated; missing measurements count over every session (`STAGE_A_SUPPLEMENT_CRITERIA.md` §R2).
+
+**Revision 5** (Codex `f716bea` P2, handoff `6d3504b2`): each endpoint's release intent is an append-only file
+published before GO (`intent/<endpoint>.json`), read by restart, measurement and recovery - no whole-file replacement
+of controller.json can erase a start (§R5).
 
 **Revision 4** (Codex `410b580` P2, handoff `d0c368a3`): any durable endpoint worker record - released or not
 - is start evidence, so a crash between GO and the released snapshot still refuses the next session (§R4).
@@ -30,7 +34,7 @@ environment: macOS 27.0.1, build 26A434, arm64), the instrumented worker, the na
 receipt; final `SUPPLEMENT_FINAL.json` with its marker. Row 21 calls `stage_a.supplement_receipt_ok(<its identity>)`
 before its first CAL forward and holds on anything but an admitted PASS with a compatible execution.
 
-**Mechanism evidence.** `tests/test_stage_a_supplement.py` (41, revision 4: the plan, the gates, the two phases and their
+**Mechanism evidence.** `tests/test_stage_a_supplement.py` (47, revision 5: the plan, the gates, the two phases and their
 failures, no resumption after a start and the restart rule, the receipt, the row-21 verifier's holds, and the SupplementController with
 synthetic workers and the real controller, watchdog and guardian) and the retained suite run recorded in `reviews/`.
 No development forward; the Stage A record files are read from a fake run in a temporary tree, and the live tree only

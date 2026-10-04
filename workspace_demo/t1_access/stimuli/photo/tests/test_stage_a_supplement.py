@@ -857,5 +857,126 @@ class Rev4ReleaseEvidence(unittest.TestCase):
         self.assertIn(C.SUPPLEMENT_TERMINAL, self.isolated_history(make)["reason"])
 
 
+
+class Rev5ReleaseIntent(unittest.TestCase):
+    """Revision 5 (Codex f716bea P2), no forward: the endpoint's release intent is an append-only file published
+    before GO; a stale whole-file replacement of controller.json cannot remove it. Synchronized, not timing-based: each
+    case drives the order of the writes explicitly."""
+
+    setUp, ledger, phases = Restart.setUp, Restart.ledger, Restart.phases
+
+    def tearDown(self):
+        import memprobe
+        for pid in getattr(self, "pids", []):                 # assert extinction before teardown (Codex)
+            self.assertIsNone(memprobe.proc_info(pid), f"pid {pid} outlived the restart's reconciliation")
+        shutil.rmtree(self.out.parent, ignore_errors=True)
+
+    def endpoint_released_then_stale_snapshot_and_crash(self, measured_gates: bool):
+        """Session 1 in a subprocess: gates pass, the instrumented worker is released (it blocks, starting nothing
+        durable). Then, in this order: the controller AND its watchdog are SIGKILLed (so the worker survives, as a GO'd
+        endpoint whose watchdog died), and controller.json is replaced by an OLDER snapshot holding only the gates
+        worker (unmeasured, or measured with its exit peak) - exactly what a stale gates I/O writer publishing late
+        leaves behind. The intent file was published before GO."""
+        import signal
+        import subprocess
+        import memprobe
+        modes = {**OK, "supplement_instrumented": "block"}
+        p = subprocess.Popen([PY, "-c", DRIVER.format(photo=str(HERE.parent), tests=str(HERE), out=str(self.out),
+                                                      modes=modes)])
+        intent = self.out / C.SUPPLEMENT_INTENT / "supplement_instrumented.json"
+        for _ in range(600):
+            r = json.loads((self.out / "controller.json").read_text()) if (self.out / "controller.json").exists() \
+                else {}
+            if intent.exists() and any(w.get("phase") == "supplement_instrumented" and w.get("released")
+                                       for w in r.get("workers", [])):
+                break
+            time.sleep(0.05)
+        rec = json.loads(intent.read_text())
+        self.pids = [rec["leader"]["pid"]]
+        os.kill(rec["watchdog"]["pid"], signal.SIGKILL)                      # the endpoint's watchdog dies first
+        p.send_signal(signal.SIGKILL)
+        p.wait()
+        time.sleep(0.3)
+        self.assertIsNotNone(memprobe.proc_info(rec["leader"]["pid"]))       # the GO'd worker still alive
+        r = json.loads((self.out / "controller.json").read_text())
+        gates = [w for w in r["workers"] if w["phase"] == "supplement_gates"]
+        if not measured_gates:
+            gates = [{k: v for k, v in w.items() if k not in ("exit_peak", "reaped", "returncode")} for w in gates]
+        r["workers"] = gates                                                  # the stale gates-only snapshot
+        (self.out / "controller.json").write_text(json.dumps(r))
+        return rec
+
+    def restart_refused(self):
+        again = sctl(self.out, OK).run()
+        self.assertEqual(again["outcome"], "REFUSED", again)
+        self.assertIn("a release-intent record", again["reason"])
+        self.assertEqual(self.phases(again["session"]), [])                  # no worker of any phase
+        r = json.loads((self.out / "controller.json").read_text())
+        self.assertEqual(r["sessions"][-1]["closed"], "refused")
+        self.assertTrue(any(x.get("closed") == "crashed" for x in r["sessions"]))   # charged
+        self.assertTrue(any("intents" in x for x in r["reconciled"]))       # the lost group ended from the intent
+        for n in (C.SUPPLEMENT_NAMES["final"], C.SUPPLEMENT_NAMES["receipt"], "stage_a_state.json"):
+            self.assertFalse((self.out / n).exists())                         # nothing regenerated or started
+        return again
+
+    def test_stale_unmeasured_gates_snapshot_after_the_endpoint_release(self):
+        self.endpoint_released_then_stale_snapshot_and_crash(measured_gates=False)
+        self.restart_refused()
+
+    def test_stale_measured_gates_snapshot_after_the_endpoint_release(self):
+        self.endpoint_released_then_stale_snapshot_and_crash(measured_gates=True)
+        self.restart_refused()
+
+    def test_rolled_back_record_still_needs_the_intended_exit_peak(self):
+        self.out.mkdir(parents=True)
+        C.write_release_intent(self.out, "supplement_native", {"phase": "supplement_native", "session": "s1"})
+        c = sctl(self.out, OK)
+        c.rec = {"workers": [{"phase": "supplement_gates", "session": "s1", "released": True, "exit_peak": 5}],
+                 "peaks": {"controller_final": 1, "guardian_final": 1}}
+        self.assertTrue(any("intended endpoint supplement_native" in m for m in c._missing_measurements()))
+        with self.assertRaises(FileExistsError):                              # append-only: never replaced
+            C.write_release_intent(self.out, "supplement_native", {"phase": "x"})
+
+    def test_intent_present_on_both_sides_of_go(self):
+        """An intent with no endpoint worker record at all (published, then a crash before or after GO): refused."""
+        self.out.mkdir(parents=True)
+        (self.out / "controller.json").write_text(json.dumps(
+            {"carry_s": CARRY, "seconds_total": CARRY, "sessions": [], "open_session": None, "stops": [],
+             "workers": [], "reconciled": [], "swap_baseline": 0,
+             "peaks": {"task_lifetime_sum": 0, "phase_aggregates": {}, "storage_bytes": 0, "max_iteration_s": {}}}))
+        C.write_release_intent(self.out, "supplement_instrumented", {"phase": "supplement_instrumented",
+                                                                     "session": "s1", "leader": None})
+        with FailingTerminal():
+            again = sctl(self.out, OK).run()
+        self.assertEqual(again["outcome"], "REFUSED")
+        self.assertEqual(self.phases(again["session"]), [])
+
+    def test_intent_that_cannot_be_created_sends_no_go(self):
+        real = C.write_release_intent
+        C.write_release_intent = lambda *a, **k: (_ for _ in ()).throw(OSError("fixture: intent not publishable"))
+        try:
+            final = sctl(self.out, OK).run()
+        finally:
+            C.write_release_intent = real
+        self.assertEqual(final["outcome"], "STOPPED")
+        r = json.loads((self.out / "controller.json").read_text())
+        w = [x for x in r["workers"] if x["phase"] == "supplement_instrumented"][0]
+        self.assertFalse(w["released"])                                       # GO never sent
+        self.assertIn("release intent could not be published", w.get("stop", ""))
+        log = (self.out / "worker_log.jsonl").read_text() if (self.out / "worker_log.jsonl").exists() else ""
+        self.assertNotIn("supplement_instrumented", log)                      # the worker never ran
+        self.assertFalse((self.out / "stage_a_state.json").exists())
+        self.assertTrue((self.out / C.SUPPLEMENT_TERMINAL).exists())
+
+    def test_gates_only_refusal_leaves_no_intent_and_a_later_run_proceeds(self):
+        f = sctl(self.out, {"supplement_gates": "sgates:refuse"}).run()
+        self.assertEqual(f["outcome"], "REFUSED")
+        self.assertFalse((self.out / C.SUPPLEMENT_INTENT).exists())
+        final = sctl(self.out, OK).run()
+        self.assertEqual(final["outcome"], "PASS", final)
+        self.assertEqual(sorted(p.name for p in (self.out / C.SUPPLEMENT_INTENT).iterdir()),
+                         ["supplement_instrumented.json", "supplement_native.json"])
+
+
 if __name__ == "__main__":
     unittest.main()

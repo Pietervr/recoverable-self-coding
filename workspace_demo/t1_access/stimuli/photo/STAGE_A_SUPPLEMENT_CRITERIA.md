@@ -1,4 +1,4 @@
-# Stage A supplement (ledger row 20): the OS bridge before row 21 - declared criteria and code, revision 4 (R084, 4 October 2026)
+# Stage A supplement (ledger row 20): the OS bridge before row 21 - declared criteria and code, revision 5 (R084, 4 October 2026)
 
 **Specification:** Codex's record RSC `b0db0f9` (`reviews/2026-10-03_stage_a_report_codex_record.md`, SHA-256
 `52ed7082...6b90`), §"Prospective row21 OS bridge: form, count and gate"; R052's handoff `8266e5ae` item 2.
@@ -11,7 +11,8 @@ does not cover it.
 | 1 | RSC `b67a073` | RSC `478196f` | NOT FAVOURABLE: the separate carried tree and ledger accepted; P1 restart can erase STOPPED |
 | 2 | RSC `369e517` | RSC `1abb851` | NOT FAVOURABLE: §R2 credited; P1 a failed terminal recreation let a restart regenerate PASS |
 | 3 | RSC `4baba91` | RSC `410b580` | NOT FAVOURABLE: §R3 credited; P2 a released=False endpoint record read as no start |
-| 4 | this commit | — | any durable endpoint record is start evidence (§R4) |
+| 4 | RSC `280604d` | RSC `f716bea` | NOT FAVOURABLE: §R4 credited; P2 a stale controller.json snapshot can erase the endpoint record |
+| 5 | this commit | — | an append-only release-intent file per endpoint (§R5) |
 
 ## 1. What it is
 
@@ -170,6 +171,44 @@ Coverage, stated precisely (Codex `410b580`): the revision-3 deletion and unread
 the evidence named and no worker in the new session, not every byte; the without-gates case expects SystemExit and leaves
 its own session open for the next start's crash charge; the foreign-session case tests the predicate, not an end-to-end
 final; the admitted-PASS refusal is a SystemExit charged as a pending start. These are the assertions they make.
+
+## R5. Revision 5: release intent is append-only, outside every replaced record (Codex `f716bea` P2)
+
+`_persist` snapshots controller.json under one lock and writes it under another, so an older gates I/O snapshot can be
+published after the endpoint's persist and GO, replacing the record that carried the release intent. Revision 5 takes
+the separate-record structure: before GO, `SupplementController._arm_watchdog` (called by the base `_phase` after the
+watchdog arms and before its persist and GO) publishes `intent/<endpoint>.json` with O_CREAT|O_EXCL, fsyncs it and its
+directory; it is never rewritten (a second create raises) and never deleted by the controller. If it cannot be created
+the phase stops and the gated worker, which has run nothing, is killed: no GO. Restart evidence
+(`_prior_start_evidence`: "a release-intent record", an unreadable or partial entry included), mandatory measurements
+(`_missing_measurements`: every intended endpoint needs its exit peak in the controller record) and recovery
+(`_reconcile_intents`: the intent's leader group and watchdog ended and confirmed gone, even when the controller record
+no longer names them) all read it. No intent file = no endpoint started, so a genuine gates-only refusal stays a
+distinct, resumable case. Base Controller unchanged; refusal independent of the terminal write.
+
+| Item | Fixture (`Rev5ReleaseIntent`, no forward, the write order driven explicitly) |
+|---|---|
+| A stale gates-only snapshot published after the endpoint's release, then a crash (controller and the endpoint's watchdog SIGKILLed, the GO'd worker left alive): the restart refuses from the intent, ends the lost group from the intent's identities, charges the crashed session, starts and regenerates nothing | `test_stale_unmeasured_gates_snapshot_after_the_endpoint_release`, `test_stale_measured_gates_snapshot_after_the_endpoint_release` (tearDown asserts the recovered worker is gone) |
+| A rolled-back record still needs the intended endpoint's exit peak; the intent cannot be re-created | `test_rolled_back_record_still_needs_the_intended_exit_peak` |
+| An intent with no endpoint record at all (crash on either side of GO): refused | `test_intent_present_on_both_sides_of_go` |
+| An intent that cannot be created: STOPPED, the endpoint never released, its worker never ran, no ledger | `test_intent_that_cannot_be_created_sends_no_go` |
+| A gates-only refusal leaves no intent; a later run proceeds to PASS (and then holds both intents) | `test_gates_only_refusal_leaves_no_intent_and_a_later_run_proceeds` |
+
+SELF-AUDIT - where supplement start or measurement evidence lives in a whole-file-replaced record, and why it cannot
+now regress to a dispatch or a PASS:
+1. Endpoint worker records in controller.json (the release intent): now duplicated in the append-only intent file,
+   which restart, measurement and recovery read. Closed.
+2. Exit peaks in controller.json: a stale snapshot can drop one; every intended endpoint requires its peak, so the
+   loss can only make the final STOPPED (and a restart refuses on the intent) - fail closed, never a PASS.
+3. Session time in controller.json: a stale open-session snapshot carries an older beat; the restart's crash tail runs
+   from that beat to min(now, the guardian's deadline + 5 s) and is never under 60 s, so time is re-charged, not lost;
+   a stale snapshot published after a close re-opens the session and the next start charges it as crashed.
+4. The supplement ledger (stage_a_state.json): written only by the worker processes, one phase at a time, each write
+   extending the state it read at open; the controller never writes it. Monotonic.
+5. Phase records, pass outputs, comparison receipts, the receipt, the intents: write-once files; the terminal record is
+   appended by one writer at a time. The final record and its marker are written once at finalisation; an admitted
+   PASS is never superseded.
+6. Guardian and watchdog records: one file per session and phase, not replaced across sessions.
 
 ## 7. Which reviewed files move
 

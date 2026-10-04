@@ -142,6 +142,7 @@ SUPPLEMENT_NAMES = {"final": "SUPPLEMENT_FINAL.json", "admitted": "SUPPLEMENT_FI
                     "receipt": "supplement/SUPPLEMENT_RECEIPT.json"}
 SUPPLEMENT_PHASES = ["supplement_instrumented", "supplement_native"]
 SUPPLEMENT_TERMINAL = "SUPPLEMENT_TERMINAL.json"
+SUPPLEMENT_INTENT = "intent"                           # revision 5: append-only release-intent records, one per endpoint
 SUPPLEMENT_RECEIPT_KEYS = {"session", "package", "identity", "date", "outcome", "admissible", "reasons", "input",
                            "attempts", "comparisons", "counters", "compatibility", "outputs"}
 
@@ -159,6 +160,42 @@ def supplement_set_terminal(out: Path, phase: str, reason: str) -> None:
     else:
         t = {"first": entry}
     write_json_atomic(p, t, final=True)
+
+
+def write_release_intent(out: Path, phase: str, record: dict) -> Path:
+    """Revision 5 (Codex f716bea): the endpoint's RELEASE INTENT, published BEFORE GO and never replaced - created with
+    O_CREAT|O_EXCL (an existing file refuses), written, fsynced, and its directory fsynced. Independent of
+    controller.json, so no whole-file replacement of that record can remove it."""
+    d = Path(out) / SUPPLEMENT_INTENT
+    d.mkdir(parents=True, exist_ok=True)
+    p = d / f"{phase}.json"
+    fd = os.open(p, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+    try:
+        os.write(fd, json.dumps(record, indent=1, sort_keys=True).encode())
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+    dfd = os.open(d, os.O_RDONLY)
+    try:
+        os.fsync(dfd)
+    finally:
+        os.close(dfd)
+    return p
+
+
+def release_intents(out: Path) -> list[dict]:
+    """Every release-intent record (an unreadable one is still an intent)."""
+    d = Path(out) / SUPPLEMENT_INTENT
+    found = []
+    for p in sorted(d.glob("*.json")) if d.exists() else []:
+        try:
+            found.append({**json.loads(p.read_text()), "file": p.name})
+        except (OSError, ValueError):
+            found.append({"file": p.name, "unreadable": True})
+    for p in sorted(d.iterdir()) if d.exists() else []:   # a partial temp or a foreign name is still evidence
+        if not p.name.endswith(".json"):
+            found.append({"file": p.name, "unreadable": True})
+    return found
 
 
 def supplement_terminal_active(out: Path) -> bool:
@@ -1329,6 +1366,9 @@ class SupplementController(Controller):
     REVISION 2 (Codex 478196f P1): one session from the first start - `_supersede` refuses after an admitted PASS and
     terminalises after any start without one (a STOPPED, held, crashed or interrupted earlier session), `_hold` and a
     STOPPED `_finalise` after a start terminalise at once, and `_missing_measurements` spans every session.
+    REVISION 5 (Codex f716bea P2): the endpoint's release intent is an append-only file (intent/<phase>.json, O_EXCL,
+    fsynced) published before GO and never replaced; restart evidence, mandatory exit peaks and the reconciliation of
+    a group the controller record lost all read it, so no whole-file replacement of controller.json can erase a start.
     REVISION 4 (Codex 410b580 P2): any durable endpoint worker record is start evidence and needs its exit peak,
     whatever its `released` flag (the record is persisted before GO; released=True only after it).
     REVISION 3 (Codex 1abb851 P1): the stop is DERIVED from the records (`_prior_start_evidence`), not from the terminal
@@ -1376,6 +1416,8 @@ class SupplementController(Controller):
         # durable record is exactly the boundary of a possible start.
         if any(w.get("phase") in SUPPLEMENT_PHASES for w in (getattr(self, "rec", None) or {}).get("workers", [])):
             found.append("a durable endpoint worker record")
+        if release_intents(self.out):                  # revision 5: the append-only intent record
+            found.append("a release-intent record")
         for name in ("SUPPLEMENT_INSTRUMENTED_DONE.json", "SUPPLEMENT_NATIVE_DONE.json", SUPPLEMENT_TERMINAL):
             if (self.out / name).exists():
                 found.append(name)
@@ -1408,6 +1450,9 @@ class SupplementController(Controller):
                              f"is never superseded or regenerated and nothing runs again")
         found = self._prior_start_evidence()
         if found:
+            rc = self._reconcile_intents()              # revision 5: end a group a rolled-back record lost
+            if rc:
+                self.rec["reconciled"].append({"session": self.session, "intents": rc})
             self._refusal = (f"refused: a prior supplement start without an admitted PASS ({', '.join(found)}): this "
                              f"version never runs again - no endpoint, receipt or final")
             if not self._terminalise(self._refusal):
@@ -1447,12 +1492,53 @@ class SupplementController(Controller):
         miss = [f"{w['phase']} (session {w.get('session')}): no exit peak ({w.get('exit_peak_error', 'not read')})"
                 for w in self.rec["workers"] if (w.get("released") or w.get("phase") in SUPPLEMENT_PHASES) and
                 not (isinstance(w.get("exit_peak"), int) and w["exit_peak"] > 0)]     # rev 4: any endpoint record
+        for it in release_intents(self.out):           # revision 5: every intended endpoint needs its exit peak
+            have = [w for w in self.rec["workers"] if w.get("phase") == it.get("phase") and
+                    w.get("session") == it.get("session") and isinstance(w.get("exit_peak"), int) and w["exit_peak"] > 0]
+            if not have:
+                miss.append(f"intended endpoint {it.get('phase', it['file'])} (session {it.get('session')}): no exit "
+                            f"peak in the controller record")
         pk = self.rec["peaks"]
         if not (isinstance(pk.get("controller_final"), int) and pk["controller_final"] > 0):
             miss.append(f"controller final self sample ({pk.get('controller_final_error', 'absent')})")
         if not (isinstance(pk.get("guardian_final"), int) and pk["guardian_final"] > 0):
             miss.append(f"guardian final sample ({pk.get('guardian_final_error', 'absent')})")
         return miss
+
+    def _arm_watchdog(self, w: dict, phase: str, deadline: float) -> None:
+        """Revision 5: for an endpoint, the release intent is published (append-only, fsynced) after the watchdog is
+        armed and BEFORE the base _phase persists and writes GO; if it cannot be created the phase stops and its gated
+        worker - which has run nothing - is killed and reaped by the base cleanup: no GO is ever sent."""
+        super()._arm_watchdog(w, phase, deadline)
+        if phase in SUPPLEMENT_PHASES:
+            try:
+                write_release_intent(self.out, phase, {"phase": phase, "session": self.session, "leader": w["leader"],
+                                                       "watchdog": self.wd_ident, "wall": time.time()})
+            except Exception as exc:                   # noqa: BLE001 - no intent, no GO
+                raise ControllerStop(f"{phase}: the release intent could not be published ({exc!r}); no GO sent")
+
+    def _reconcile_intents(self) -> list:
+        """Revision 5: an intended endpoint whose group the (possibly rolled-back) controller record no longer names is
+        still ended by the identities in its intent record - leader group first, then its watchdog - and confirmed gone."""
+        done = []
+        for it in release_intents(self.out):
+            for key in ("leader", "watchdog"):
+                ident = it.get(key)
+                if not memprobe.valid_ident(ident) or not memprobe.same_process(ident):
+                    continue
+                try:
+                    if key == "leader":
+                        memprobe.end_group(ident, [], limit=GROUP_GONE_S)
+                    else:
+                        os.kill(ident["pid"], signal.SIGKILL)
+                        t = time.monotonic()
+                        while memprobe.same_process(ident) and time.monotonic() - t < GROUP_GONE_S:
+                            time.sleep(0.02)
+                except (memprobe.Survivors, ProcessLookupError) as exc:
+                    done.append({"intent": it["file"], key: ident, "error": repr(exc)})
+                    continue
+                done.append({"intent": it["file"], key: ident, "ended": True})
+        return done
 
     def _report_ok(self) -> dict:
         why = []
