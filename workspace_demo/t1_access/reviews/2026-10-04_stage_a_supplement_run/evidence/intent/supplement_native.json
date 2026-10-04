@@ -1,0 +1,18 @@
+{
+ "leader": {
+  "pgid": 35049,
+  "pid": 35049,
+  "ppid": 33990,
+  "start": "1791099289.720874"
+ },
+ "members_file": "members_519de46b0154_supplement_native.json",
+ "phase": "supplement_native",
+ "session": "519de46b0154",
+ "wall": 1791099290.473409,
+ "watchdog": {
+  "pgid": 35050,
+  "pid": 35050,
+  "ppid": 33990,
+  "start": "1791099289.723272"
+ }
+}

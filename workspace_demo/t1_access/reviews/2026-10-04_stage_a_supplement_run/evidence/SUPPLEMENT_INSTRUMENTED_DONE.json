@@ -1,0 +1,14 @@
+{
+ "attempts": {
+  "00-plain-os2701": {
+   "passes/00-plain-os2701.json": "73aaaae751bad5a00fab5c7c810c7c8169a5daa5d626e4269dc1dc3c13f6ec2c",
+   "passes/00-plain-os2701.residuals.npy": "b93f204f9e2e0233445b6694f3eafec8355c0e3de78e01f03337ea95b79e26f4"
+  }
+ },
+ "comparison": {
+  "path": "supplement/comparison_a.json",
+  "sha256": "1f1d3da59e74321a43557c25fd1bee6783c7298f57c0eade3ec8a3ff27cd94cb"
+ },
+ "identity": "98bd31392b1d0277201e05a9320b9b163155549fded6edfd2e4936ae3829d859",
+ "phase": "supplement_instrumented"
+}

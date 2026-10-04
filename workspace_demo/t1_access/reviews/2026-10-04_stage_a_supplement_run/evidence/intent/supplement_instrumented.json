@@ -1,0 +1,18 @@
+{
+ "leader": {
+  "pgid": 34519,
+  "pid": 34519,
+  "ppid": 33990,
+  "start": "1791099274.429551"
+ },
+ "members_file": "members_519de46b0154_supplement_instrumented.json",
+ "phase": "supplement_instrumented",
+ "session": "519de46b0154",
+ "wall": 1791099275.0568929,
+ "watchdog": {
+  "pgid": 34520,
+  "pid": 34520,
+  "ppid": 33990,
+  "start": "1791099274.431418"
+ }
+}

@@ -1,0 +1,54 @@
+{
+ "admissible": true,
+ "caps_ok_on_final_figures": {
+  "attempts": true,
+  "memory": true,
+  "storage": true,
+  "time": true
+ },
+ "carry_s": 2338.113973380568,
+ "controller_record": "controller_at_final_519de46b0154.json",
+ "controller_sha256": "0037511b017955c1fed110a939dfff05db08605c28c55e4e2f06b0735420db58",
+ "counters": {
+  "detail": [],
+  "ok": true
+ },
+ "durable_missing": [],
+ "kind": "stage_a_supplement",
+ "missing_measurements": [],
+ "outcome": "PASS",
+ "peaks": {
+  "controller_final": 70140528,
+  "controller_lifetime_max": 70140528,
+  "guardian_final": 61129256,
+  "guardian_lifetime_max": 61129256,
+  "max_iteration_s": {
+   "supplement_gates": 0.01140033300180221,
+   "supplement_instrumented": 0.005950874998234212,
+   "supplement_native": 0.0057410000008530915,
+   "supplement_receipt": 0.006599542000913061
+  },
+  "phase_aggregates": {
+   "519de46b0154:supplement_gates:1": 448631224,
+   "519de46b0154:supplement_instrumented:2": 33328031544,
+   "519de46b0154:supplement_native:3": 18372311704,
+   "519de46b0154:supplement_receipt:4": 438995584
+  },
+  "storage_bytes": 7724767,
+  "task_lifetime_sum": 33328031544
+ },
+ "receipt_current": true,
+ "receipt_outcome": "PASS",
+ "receipt_problems": [],
+ "receipt_sha256": "9b2c7340ec5d2976dfc8bdfafd955a84007c2916d9a05cc1990dbc105505a19c",
+ "row20_storage_final": 404523535,
+ "seconds_total": 2446.340428310737,
+ "session": "519de46b0154",
+ "stops": [],
+ "storage_carry_bytes": 396783863,
+ "storage_final": 7739672,
+ "supplement_seconds": 108.22645493016898,
+ "task_memory_aggregate": 33328031544,
+ "terminal": false,
+ "time_scope": "seconds_total = the accepted Stage A's row-20 total (carry) + this tree's sessions, each including its whole bounded closure (60 s)"
+}

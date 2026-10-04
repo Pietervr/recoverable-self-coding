@@ -1,0 +1,14 @@
+{
+ "attempts": {
+  "00-native-os2701": {
+   "passes/00-native-os2701.json": "19b94fabafa60807c395a6a845181a5e31d18d5836b9a33e183a895a7eae017e",
+   "passes/00-native-os2701.residuals.npy": "51b0427bd25912d12321ab3839bf840d3d74562737623d3d0b1113866e2f4f8b"
+  }
+ },
+ "comparison": {
+  "path": "supplement/comparison_b.json",
+  "sha256": "295105d0928c8eabf75b2fb847245a2c8f261689e0fefd112be803d0fa6a2f2b"
+ },
+ "identity": "98bd31392b1d0277201e05a9320b9b163155549fded6edfd2e4936ae3829d859",
+ "phase": "supplement_native"
+}
