@@ -1,0 +1,703 @@
+{
+ "delivery_order": [
+  "f01b188de0af",
+  "37a4413de19e",
+  "fb19a395975d",
+  "8fca8564e01c",
+  "c37d8496a4fb",
+  "a4c7e1962441",
+  "2cdbfee41d08",
+  "f2ab95da08c3",
+  "02be1e5fe624",
+  "02bad0ffa0bc",
+  "254cb10ecdf5",
+  "7170737d0fee",
+  "d05306d51a19",
+  "02fa5c9095cc",
+  "510b0f63d306",
+  "6d836c59607d",
+  "e85c20921fe7",
+  "2ac85870d7a0",
+  "a70b78b9ae75",
+  "9bb6751a5fbf",
+  "f166b27fe3cf",
+  "c53b4427385a",
+  "a2f06ed2ce6b",
+  "b1e1cafec64b",
+  "96cc54acaa15",
+  "fbb4e016c6a5",
+  "08a50c55642f",
+  "6b85f20fb491",
+  "ddb21ba56378",
+  "27c8e7aded38",
+  "eb9d5fe16f2e",
+  "2e571f1c7a70",
+  "cbe0bc114bfe",
+  "7dbe0ed12768",
+  "ee9daa836490",
+  "cbd29e17aa98",
+  "6979fca9ff1f",
+  "b6bf760fd80c",
+  "23b7e15db45d",
+  "e62e8e64a935",
+  "d2965f2c3312",
+  "b12e8c7265ce",
+  "b059ae8474fe",
+  "941555a9129e",
+  "de82d206dc9c",
+  "b318299452ef",
+  "5c6e0ad59061",
+  "4e1be6e3e645",
+  "6eaa81889a4b",
+  "5fb2ced84dfe",
+  "4417a4f2f0b6",
+  "2f06a0354b5b",
+  "85dbdef73a7b",
+  "35d3dbb32b4e",
+  "6bfbb45a76aa",
+  "b183e5e14186",
+  "0ab31d74221b",
+  "bfcd28ad1805",
+  "77a52e8eabce",
+  "d99c507f0327"
+ ],
+ "inputs": {
+  "ai_audit_sources_sha256": "5127035ca91c1cd1ba23b29f0c83802fa795fe8e0ea257e29484019336b6d7b4",
+  "dev_pool_sha256": "fae20dc215d1de329ff81a5687735047c9a92cead1b9642f7cda4f6c2d69ad2d",
+  "manifest_dev_sha256": "e816f843700a4a15c4ca56ba71318957e73b77d3560e81a2bf476ff23422f448",
+  "prior_rounds": {
+   "r1": {
+    "attempts": 224,
+    "raw_sha256": "552c7406cc4bd75bb9951eac8fb918df80ba65f018ac5d24145a194c172f6a3c",
+    "score_sha256": "2381d88710c68a916883c03d856d2db14c371af1d18e6894ed3b476778fce510"
+   },
+   "r2": {
+    "attempts": 88,
+    "raw_sha256": "97600acd7d5c0131b8d20110f3543dbc206bdb0b3e7134c14fadc4d3d9741e74",
+    "score_sha256": "25a0243459d264ddd83fb646e40a2b28df7b2621ff5e78f289ea6f90f41fc504"
+   }
+  },
+  "second_view_candidates_sha256": "430b0ce8794910dcc6bd2aa939fa4ae7453018663667ba3f861b779b68e2d028",
+  "things_definitions_sha256": "3f05b6b748d1e1b685e15130d2487bff63f86e1f4da94a2a5d9e7dec073a48eb",
+  "things_images_metadata_sha256": "fd5b17635f0f6528f58decaf5a089587593708862d4ee7a2a72cd8aa57ce013c"
+ },
+ "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+ "n_requests": 60,
+ "note": "Reader-side record of one image-audit round: no labels; the key is ai_audit_key_r3.json (orchestrator only).",
+ "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+ "prompts": {
+  "distinct": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+  "photograph": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+  "sense": "Does this picture show \"{name}\" in this sense: \"{definition}\"? Answer with one word: yes, no or unsure."
+ },
+ "reader": {
+  "cli_version": "codex-cli 0.160.0",
+  "delivery": "one image attached with -i to a fresh ephemeral exec session, the prompt after '--', run from the project-owned read-only copy captures/reader_cli/codex-0.160.0 (revision 13; the update check off), under a sandbox-exec ALLOWLIST (deny by default: only the codex binary may run; reads only of the attempt directory with the image, the auth file, the codex binary and the system runtime), pinned minimal environment, private CODEX_HOME holding only the auth link, user config, rules and optional instructions off, read-only, web search and tool features disabled (unified_exec cannot be, and no program but codex may run); the prompt-input and exec-invocation receipts and the JSONL event stream checked (ai_reader_runtime.py, ai_reader_exec.py)",
+  "model": "gpt-6.1-sol",
+  "product": "OpenAI Codex CLI (codex exec)",
+  "reasoning_effort": "medium"
+ },
+ "requests": [
+  {
+   "bytes": 69222,
+   "file": "1a911d18da39292c.png",
+   "item": "116c1cdb6d16",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "f01b188de0af",
+   "sha256": "1a911d18da39292ccef3aed808afb1779dbb8f7106ca1a6d4c208e9b8743cccf",
+   "view": "second"
+  },
+  {
+   "bytes": 69222,
+   "file": "1a911d18da39292c.png",
+   "item": "116c1cdb6d16",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "a4c7e1962441",
+   "sha256": "1a911d18da39292ccef3aed808afb1779dbb8f7106ca1a6d4c208e9b8743cccf",
+   "view": "second"
+  },
+  {
+   "bytes": 69222,
+   "file": "1a911d18da39292c.png",
+   "item": "116c1cdb6d16",
+   "prompt": "Does this picture show \"crow\" in this sense: \"black birds having a raucous call\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "254cb10ecdf5",
+   "sha256": "1a911d18da39292ccef3aed808afb1779dbb8f7106ca1a6d4c208e9b8743cccf",
+   "view": "second"
+  },
+  {
+   "bytes": 200303,
+   "file": "c3ec8a1bb4bf492a.png",
+   "item": "0c0ef852a497",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "6d836c59607d",
+   "sha256": "c3ec8a1bb4bf492a7b77f901f8583006fd3d14f9b619ea3dfaff3eba9ed2e539",
+   "view": "pair"
+  },
+  {
+   "bytes": 86167,
+   "file": "2c38b809b9084c8f.png",
+   "item": "eb5fd7106644",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "37a4413de19e",
+   "sha256": "2c38b809b9084c8f301017b1c3e37bb3240ac1c39922cd2b1e8889dc4ab87bda",
+   "view": "second"
+  },
+  {
+   "bytes": 86167,
+   "file": "2c38b809b9084c8f.png",
+   "item": "eb5fd7106644",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "2cdbfee41d08",
+   "sha256": "2c38b809b9084c8f301017b1c3e37bb3240ac1c39922cd2b1e8889dc4ab87bda",
+   "view": "second"
+  },
+  {
+   "bytes": 86167,
+   "file": "2c38b809b9084c8f.png",
+   "item": "eb5fd7106644",
+   "prompt": "Does this picture show \"clothes\" in this sense: \"clothing in general\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "7170737d0fee",
+   "sha256": "2c38b809b9084c8f301017b1c3e37bb3240ac1c39922cd2b1e8889dc4ab87bda",
+   "view": "second"
+  },
+  {
+   "bytes": 202034,
+   "file": "6275830227d5e896.png",
+   "item": "a744828056b3",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "e85c20921fe7",
+   "sha256": "6275830227d5e896982649ef4ac30e07f09b8163218fe336b59ebf0d68cbeef6",
+   "view": "pair"
+  },
+  {
+   "bytes": 84684,
+   "file": "946aaa0cc73c3411.png",
+   "item": "446e067734e1",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "fb19a395975d",
+   "sha256": "946aaa0cc73c341155122f10f15dd74fb77641e40add1310652d78f95fdf490b",
+   "view": "second"
+  },
+  {
+   "bytes": 84684,
+   "file": "946aaa0cc73c3411.png",
+   "item": "446e067734e1",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "f2ab95da08c3",
+   "sha256": "946aaa0cc73c341155122f10f15dd74fb77641e40add1310652d78f95fdf490b",
+   "view": "second"
+  },
+  {
+   "bytes": 84684,
+   "file": "946aaa0cc73c3411.png",
+   "item": "446e067734e1",
+   "prompt": "Does this picture show \"chili\" in this sense: \"ground beef and chili peppers or chili powder often with tomatoes and kidney beans\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "d05306d51a19",
+   "sha256": "946aaa0cc73c341155122f10f15dd74fb77641e40add1310652d78f95fdf490b",
+   "view": "second"
+  },
+  {
+   "bytes": 167948,
+   "file": "4ad99eb60ccc6e6c.png",
+   "item": "2721fbca7e2c",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "2ac85870d7a0",
+   "sha256": "4ad99eb60ccc6e6cf123992783c0998573a27dc64070365da0521d1822fb24ea",
+   "view": "pair"
+  },
+  {
+   "bytes": 69565,
+   "file": "25857c257f16e699.png",
+   "item": "cee26805b761",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "8fca8564e01c",
+   "sha256": "25857c257f16e699029301433db5b127aec0523eb130beb9a35a834491d3ba67",
+   "view": "second"
+  },
+  {
+   "bytes": 69565,
+   "file": "25857c257f16e699.png",
+   "item": "cee26805b761",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "02be1e5fe624",
+   "sha256": "25857c257f16e699029301433db5b127aec0523eb130beb9a35a834491d3ba67",
+   "view": "second"
+  },
+  {
+   "bytes": 69565,
+   "file": "25857c257f16e699.png",
+   "item": "cee26805b761",
+   "prompt": "Does this picture show \"taxi\" in this sense: \"a car driven by a person whose job is to take passengers where they want to go in exchange for money\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "02fa5c9095cc",
+   "sha256": "25857c257f16e699029301433db5b127aec0523eb130beb9a35a834491d3ba67",
+   "view": "second"
+  },
+  {
+   "bytes": 172800,
+   "file": "3c60c4dd3f1ce317.png",
+   "item": "8e8e33abae4a",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "a70b78b9ae75",
+   "sha256": "3c60c4dd3f1ce3177060297e4ff512dd82ca0337d780e1edd71a29470d0192ca",
+   "view": "pair"
+  },
+  {
+   "bytes": 74655,
+   "file": "555fc61e496053f7.png",
+   "item": "4d22188f0241",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "c37d8496a4fb",
+   "sha256": "555fc61e496053f76999d2eda4c8e17c0809f9f571fa50111f87fae5e50790b3",
+   "view": "second"
+  },
+  {
+   "bytes": 74655,
+   "file": "555fc61e496053f7.png",
+   "item": "4d22188f0241",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "02bad0ffa0bc",
+   "sha256": "555fc61e496053f76999d2eda4c8e17c0809f9f571fa50111f87fae5e50790b3",
+   "view": "second"
+  },
+  {
+   "bytes": 74655,
+   "file": "555fc61e496053f7.png",
+   "item": "4d22188f0241",
+   "prompt": "Does this picture show \"wagon\" in this sense: \"any of various kinds of wheeled vehicles drawn by an animal or a tractor\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "510b0f63d306",
+   "sha256": "555fc61e496053f76999d2eda4c8e17c0809f9f571fa50111f87fae5e50790b3",
+   "view": "second"
+  },
+  {
+   "bytes": 169520,
+   "file": "cfc9d6cfdf8e3428.png",
+   "item": "fb000546179b",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "9bb6751a5fbf",
+   "sha256": "cfc9d6cfdf8e34283bafed4fe01bb3af04d5ab6751cea9d341c57cd4993af953",
+   "view": "pair"
+  },
+  {
+   "bytes": 104106,
+   "file": "c6817e7edfd2a11e.png",
+   "item": "cbcad2b07eff",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "f166b27fe3cf",
+   "sha256": "c6817e7edfd2a11ef45a32a2a54e508537a72c908072681cc33be9fc2a80a871",
+   "view": "second"
+  },
+  {
+   "bytes": 104106,
+   "file": "c6817e7edfd2a11e.png",
+   "item": "cbcad2b07eff",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "eb9d5fe16f2e",
+   "sha256": "c6817e7edfd2a11ef45a32a2a54e508537a72c908072681cc33be9fc2a80a871",
+   "view": "second"
+  },
+  {
+   "bytes": 104106,
+   "file": "c6817e7edfd2a11e.png",
+   "item": "cbcad2b07eff",
+   "prompt": "Does this picture show \"cow\" in this sense: \"female of domestic cattle: \"`moo-cow' is a child's term\"\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "d2965f2c3312",
+   "sha256": "c6817e7edfd2a11ef45a32a2a54e508537a72c908072681cc33be9fc2a80a871",
+   "view": "second"
+  },
+  {
+   "bytes": 233344,
+   "file": "116621a9d3af9fb8.png",
+   "item": "bd896b01d0d2",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "4417a4f2f0b6",
+   "sha256": "116621a9d3af9fb83e06d1ace3a827e4c05f5363e11f8bd96ff181239d1a3d4e",
+   "view": "pair"
+  },
+  {
+   "bytes": 112480,
+   "file": "e4afe1c428f4eaec.png",
+   "item": "d9c0f9b92c1d",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "c53b4427385a",
+   "sha256": "e4afe1c428f4eaecca6eb7235a165271d59f22c0d30e0a28400998ed5f9569ca",
+   "view": "second"
+  },
+  {
+   "bytes": 112480,
+   "file": "e4afe1c428f4eaec.png",
+   "item": "d9c0f9b92c1d",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "2e571f1c7a70",
+   "sha256": "e4afe1c428f4eaecca6eb7235a165271d59f22c0d30e0a28400998ed5f9569ca",
+   "view": "second"
+  },
+  {
+   "bytes": 112480,
+   "file": "e4afe1c428f4eaec.png",
+   "item": "d9c0f9b92c1d",
+   "prompt": "Does this picture show \"shark\" in this sense: \"any of numerous elongate mostly marine carnivorous fishes with heterocercal caudal fins and tough skin covered with small toothlike scales\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "b12e8c7265ce",
+   "sha256": "e4afe1c428f4eaecca6eb7235a165271d59f22c0d30e0a28400998ed5f9569ca",
+   "view": "second"
+  },
+  {
+   "bytes": 213065,
+   "file": "3a5648287c11bb9b.png",
+   "item": "eae76838bd5d",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "2f06a0354b5b",
+   "sha256": "3a5648287c11bb9b04fae47c5779a36279e092a2893bcd5b141e82d16798b8e5",
+   "view": "pair"
+  },
+  {
+   "bytes": 69846,
+   "file": "4918b9aa0a7b1886.png",
+   "item": "70b8f3c06c83",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "a2f06ed2ce6b",
+   "sha256": "4918b9aa0a7b1886a989dbac5a9b6d60365dc7b4ebd3e4c9d791c93c498f6ecc",
+   "view": "second"
+  },
+  {
+   "bytes": 69846,
+   "file": "4918b9aa0a7b1886.png",
+   "item": "70b8f3c06c83",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "cbe0bc114bfe",
+   "sha256": "4918b9aa0a7b1886a989dbac5a9b6d60365dc7b4ebd3e4c9d791c93c498f6ecc",
+   "view": "second"
+  },
+  {
+   "bytes": 69846,
+   "file": "4918b9aa0a7b1886.png",
+   "item": "70b8f3c06c83",
+   "prompt": "Does this picture show \"hat\" in this sense: \"headdress that protects the head from bad weather; has shaped crown and usually a brim\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "b059ae8474fe",
+   "sha256": "4918b9aa0a7b1886a989dbac5a9b6d60365dc7b4ebd3e4c9d791c93c498f6ecc",
+   "view": "second"
+  },
+  {
+   "bytes": 143967,
+   "file": "3a812e084063e8b6.png",
+   "item": "8d6b05301762",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "85dbdef73a7b",
+   "sha256": "3a812e084063e8b6dca26ea5447a0202370cb6dc2a78a5c453f8e2e1ba501339",
+   "view": "pair"
+  },
+  {
+   "bytes": 48302,
+   "file": "e3621d1dc21171cd.png",
+   "item": "b29cc17c61ce",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "b1e1cafec64b",
+   "sha256": "e3621d1dc21171cd9e672f8c727398f544158ebcdc245e7c81433e89b2f13494",
+   "view": "second"
+  },
+  {
+   "bytes": 48302,
+   "file": "e3621d1dc21171cd.png",
+   "item": "b29cc17c61ce",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "7dbe0ed12768",
+   "sha256": "e3621d1dc21171cd9e672f8c727398f544158ebcdc245e7c81433e89b2f13494",
+   "view": "second"
+  },
+  {
+   "bytes": 48302,
+   "file": "e3621d1dc21171cd.png",
+   "item": "b29cc17c61ce",
+   "prompt": "Does this picture show \"lingerie\" in this sense: \"women's underwear and nightclothes\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "941555a9129e",
+   "sha256": "e3621d1dc21171cd9e672f8c727398f544158ebcdc245e7c81433e89b2f13494",
+   "view": "second"
+  },
+  {
+   "bytes": 142615,
+   "file": "a804f00e67b2ee36.png",
+   "item": "27878266ac68",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "35d3dbb32b4e",
+   "sha256": "a804f00e67b2ee3697fbec8af4d04d16beb6eda2753fd162c41ea08d8691600f",
+   "view": "pair"
+  },
+  {
+   "bytes": 87935,
+   "file": "360c57d238286b24.png",
+   "item": "c99711f30a4c",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "96cc54acaa15",
+   "sha256": "360c57d238286b2466e55d9a4951dd7339b5cff46ffe84f98c61f367e7a8934c",
+   "view": "second"
+  },
+  {
+   "bytes": 87935,
+   "file": "360c57d238286b24.png",
+   "item": "c99711f30a4c",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "ee9daa836490",
+   "sha256": "360c57d238286b2466e55d9a4951dd7339b5cff46ffe84f98c61f367e7a8934c",
+   "view": "second"
+  },
+  {
+   "bytes": 87935,
+   "file": "360c57d238286b24.png",
+   "item": "c99711f30a4c",
+   "prompt": "Does this picture show \"robe\" in this sense: \"any loose flowing garment\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "de82d206dc9c",
+   "sha256": "360c57d238286b2466e55d9a4951dd7339b5cff46ffe84f98c61f367e7a8934c",
+   "view": "second"
+  },
+  {
+   "bytes": 183140,
+   "file": "d72f17d0dc65feee.png",
+   "item": "670da56bf1ce",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "6bfbb45a76aa",
+   "sha256": "d72f17d0dc65feee337e48f0697ee44b95c26232a0c2a7e559845438b673e08c",
+   "view": "pair"
+  },
+  {
+   "bytes": 44458,
+   "file": "f8618ffc8bf344de.png",
+   "item": "94bcba8f8f72",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "fbb4e016c6a5",
+   "sha256": "f8618ffc8bf344dea32f1df0f6e777116fc31ada9ffd1151fd91c115d947f50a",
+   "view": "second"
+  },
+  {
+   "bytes": 44458,
+   "file": "f8618ffc8bf344de.png",
+   "item": "94bcba8f8f72",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "cbd29e17aa98",
+   "sha256": "f8618ffc8bf344dea32f1df0f6e777116fc31ada9ffd1151fd91c115d947f50a",
+   "view": "second"
+  },
+  {
+   "bytes": 44458,
+   "file": "f8618ffc8bf344de.png",
+   "item": "94bcba8f8f72",
+   "prompt": "Does this picture show \"tie\" in this sense: \"neckwear consisting of a long narrow piece of material worn (mostly by men) under a collar and tied in knot at the front\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "b318299452ef",
+   "sha256": "f8618ffc8bf344dea32f1df0f6e777116fc31ada9ffd1151fd91c115d947f50a",
+   "view": "second"
+  },
+  {
+   "bytes": 140594,
+   "file": "9110afb1766d3b53.png",
+   "item": "36a9489a07ae",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "b183e5e14186",
+   "sha256": "9110afb1766d3b538d16b3e4a9b52e0f27ba55bb0a1d7203785c0ef12a5d045c",
+   "view": "pair"
+  },
+  {
+   "bytes": 101394,
+   "file": "8c7667bf2bec293a.png",
+   "item": "d173a5e0e78e",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "08a50c55642f",
+   "sha256": "8c7667bf2bec293ad6418f378d492e7323c0fc482ef9914e0ddeb6d02f5ef851",
+   "view": "second"
+  },
+  {
+   "bytes": 101394,
+   "file": "8c7667bf2bec293a.png",
+   "item": "d173a5e0e78e",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "6979fca9ff1f",
+   "sha256": "8c7667bf2bec293ad6418f378d492e7323c0fc482ef9914e0ddeb6d02f5ef851",
+   "view": "second"
+  },
+  {
+   "bytes": 101394,
+   "file": "8c7667bf2bec293a.png",
+   "item": "d173a5e0e78e",
+   "prompt": "Does this picture show \"candy\" in this sense: \"a rich sweet made of flavored sugar and often combined with fruit or nuts\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "5c6e0ad59061",
+   "sha256": "8c7667bf2bec293ad6418f378d492e7323c0fc482ef9914e0ddeb6d02f5ef851",
+   "view": "second"
+  },
+  {
+   "bytes": 231732,
+   "file": "e5696acecf16a68a.png",
+   "item": "f367674b69fd",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "0ab31d74221b",
+   "sha256": "e5696acecf16a68a487540e7c007a4cf9cbaa172cb6f117444d0f14314ae166f",
+   "view": "pair"
+  },
+  {
+   "bytes": 48587,
+   "file": "b3215a101dec50e9.png",
+   "item": "d713efa1908a",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "6b85f20fb491",
+   "sha256": "b3215a101dec50e9f8724f12a94196fd2b4f1bc1444d7f986c4b83fc958dc0ff",
+   "view": "second"
+  },
+  {
+   "bytes": 48587,
+   "file": "b3215a101dec50e9.png",
+   "item": "d713efa1908a",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "b6bf760fd80c",
+   "sha256": "b3215a101dec50e9f8724f12a94196fd2b4f1bc1444d7f986c4b83fc958dc0ff",
+   "view": "second"
+  },
+  {
+   "bytes": 48587,
+   "file": "b3215a101dec50e9.png",
+   "item": "d713efa1908a",
+   "prompt": "Does this picture show \"caramel\" in this sense: \"firm chewy candy made from caramelized sugar and butter and milk\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "4e1be6e3e645",
+   "sha256": "b3215a101dec50e9f8724f12a94196fd2b4f1bc1444d7f986c4b83fc958dc0ff",
+   "view": "second"
+  },
+  {
+   "bytes": 150608,
+   "file": "4f1bf54bd9a46ce4.png",
+   "item": "c34302e7f1f4",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "bfcd28ad1805",
+   "sha256": "4f1bf54bd9a46ce4733a6206ce1b7cd5d333ad075563edb9723934f979d6d7c6",
+   "view": "pair"
+  },
+  {
+   "bytes": 50975,
+   "file": "78112bf11f54b9d1.png",
+   "item": "14ce26a64ad3",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "ddb21ba56378",
+   "sha256": "78112bf11f54b9d1ea7586a16cc59c099c0216b8d3504e0ca8d9f71bc8763cfe",
+   "view": "second"
+  },
+  {
+   "bytes": 50975,
+   "file": "78112bf11f54b9d1.png",
+   "item": "14ce26a64ad3",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "23b7e15db45d",
+   "sha256": "78112bf11f54b9d1ea7586a16cc59c099c0216b8d3504e0ca8d9f71bc8763cfe",
+   "view": "second"
+  },
+  {
+   "bytes": 50975,
+   "file": "78112bf11f54b9d1.png",
+   "item": "14ce26a64ad3",
+   "prompt": "Does this picture show \"prune\" in this sense: \"dried plum\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "6eaa81889a4b",
+   "sha256": "78112bf11f54b9d1ea7586a16cc59c099c0216b8d3504e0ca8d9f71bc8763cfe",
+   "view": "second"
+  },
+  {
+   "bytes": 150344,
+   "file": "9b9e55c2cd15e649.png",
+   "item": "26953fabdd90",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "77a52e8eabce",
+   "sha256": "9b9e55c2cd15e64945e9025281b3bb5a4ac080653997d7c2cce2b98240ee7b1a",
+   "view": "pair"
+  },
+  {
+   "bytes": 62428,
+   "file": "347c61b7c7377f89.png",
+   "item": "5ed480f02c10",
+   "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",
+   "question": "name",
+   "request": "27c8e7aded38",
+   "sha256": "347c61b7c7377f89889eafb310c034923e01f09a7925cad85f10bfc491a3fc11",
+   "view": "second"
+  },
+  {
+   "bytes": 62428,
+   "file": "347c61b7c7377f89.png",
+   "item": "5ed480f02c10",
+   "prompt": "Is this picture a photograph? Answer with one word: yes, no or unsure.",
+   "question": "photograph",
+   "request": "e62e8e64a935",
+   "sha256": "347c61b7c7377f89889eafb310c034923e01f09a7925cad85f10bfc491a3fc11",
+   "view": "second"
+  },
+  {
+   "bytes": 62428,
+   "file": "347c61b7c7377f89.png",
+   "item": "5ed480f02c10",
+   "prompt": "Does this picture show \"jet\" in this sense: \"an airplane powered by one or more jet engines\"? Answer with one word: yes, no or unsure.",
+   "question": "sense",
+   "request": "5fb2ced84dfe",
+   "sha256": "347c61b7c7377f89889eafb310c034923e01f09a7925cad85f10bfc491a3fc11",
+   "view": "second"
+  },
+  {
+   "bytes": 176690,
+   "file": "5162fecf9987182f.png",
+   "item": "d8675537dcf4",
+   "prompt": "These are two pictures side by side. Is the right picture a different photograph from the left one, not a crop or flip of it? Answer with one word: yes, no or unsure.",
+   "question": "distinct",
+   "request": "d99c507f0327",
+   "sha256": "5162fecf9987182feea444e172798aef48f49d03095e24444337d47b10445145",
+   "view": "pair"
+  }
+ ],
+ "round": 3
+}
