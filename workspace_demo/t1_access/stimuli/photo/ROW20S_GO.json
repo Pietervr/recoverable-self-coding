@@ -1,0 +1,20 @@
+{
+  "owner_go": {
+    "by": "Pieter van Rooyen (owner)",
+    "date": "2026-10-04",
+    "words": "standing go given 4 Oct 2026 ~04:2x UTC: go on the bridge check if Codex is favourable (bound to supplement revision 6, the first favourable revision)"
+  },
+  "package": {
+    "budget_sha256": "186e7738ccb5179e7212178de5c2342440fd5a471c3bb318e35cb7144bad8799",
+    "manifest_sha256": "e816f843700a4a15c4ca56ba71318957e73b77d3560e81a2bf476ff23422f448",
+    "plan_sha256": "3faebf4eab25081cf32652bf025fa8fab9d11bee6f1c9a19a1cf2dbad45417cc",
+    "supplement_criteria_sha256": "83ffd69d8896b3b4f08d78b4fde3cf63fd91e7d36b191af29d3425e2212f5a92",
+    "supplement_identity_sha256": "1acf556481928ceb6771c4d4140e0032b4b88e0bcd51ec67591169517df2c23c",
+    "supplement_plan_sha256": "8e41084050c3a24d684b04a359d36c94714a38c5ec15eec8925c9c34b63eeace"
+  },
+  "review": {
+    "commit": "915913404ad84f5d231df37c191de2bde752882d",
+    "path": "workspace_demo/t1_access/reviews/2026-10-04_stage_a_supplement_rev6_codex_record.md",
+    "record_sha256": "4dfd49e59b56bdfaf6dac6bdde67fcf504e3df2760aa718494e44072d99b927c"
+  }
+}
