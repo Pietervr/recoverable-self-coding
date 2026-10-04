@@ -158,8 +158,12 @@ def derive(k: int, chained: dict | None = None, write: bool = False) -> tuple[by
     """The round-k set and key as bytes, from committed inputs and (k >= 2) the admitted chain only."""
     import ai_audit_exec as A
     k = A.require_round(k)
-    if k > 1 and (not chained or chained.get("round") != k):
-        raise SystemExit(f"refused: round {k} is derived only from its admitted predecessor chain")
+    if k > 1:
+        if not isinstance(chained, dict) or not {"round", "priors", "evidence"} <= set(chained) or \
+                chained["round"] != k or sorted(chained["priors"]) != list(range(1, k)) or \
+                sorted(chained["evidence"]) != list(range(1, k)):
+            raise SystemExit(f"refused: round {k} is derived only from its complete admitted predecessor chain "
+                             f"(round, priors and evidence for rounds 1..{k - 1})")
     pool = json.loads((HERE / "dev_pool.json").read_text())
     manifest = {r["concept"]: r for r in json.loads((HERE / "manifest_dev.json").read_text())["records"]}
     cands = json.loads(SRC.CANDS.read_text())
@@ -249,7 +253,10 @@ def derive(k: int, chained: dict | None = None, write: bool = False) -> tuple[by
                 "dev_pool_sha256": sha((HERE / "dev_pool.json").read_bytes()),
                 "things_definitions_sha256": sha(DEFS.read_bytes()),
                 "things_images_metadata_sha256": sha(IMAGES_TSV.read_bytes()),
-                "prior_rounds": {f"r{j}": v for j, v in sorted((chained or {}).get("evidence", {}).items())}}}
+                # content identity only (revision 3): commit ids and live clock seconds belong to the chain's
+                # admission, not to the derived set - a re-commit of identical bytes must not change the set
+                "prior_rounds": {f"r{j}": {f: v[f] for f in ("raw_sha256", "score_sha256", "attempts")}
+                                 for j, v in sorted((chained or {}).get("evidence", {}).items())}}}
     set_b = (json.dumps(sset, indent=1, sort_keys=True, ensure_ascii=False) + "\n").encode()
     return set_b, key_b
 

@@ -7,7 +7,10 @@ exec-invocation receipt in every preflight, the gate, the watchdog, the journal 
 and its closure, the STOPPED receipt on every stop - with exactly three differences, each stated and fixtured:
   1. CONFIGURATION. `configure(k)` admits round k's predecessor CHAIN (revision 2, below) and then rebinds the executor
      module's eight path/limit names (SET, DELIVERY, IMAGES, JOB, RAW, GO, ATTEMPTS, LIMITS) to round k's audit files,
-     directories and chain-derived limits, in THIS process only; every Job method reads them at call time. The attempts root is /tmp/ra (the qualification's is /tmp/rq: a sweep never touches the
+     directories and chain-derived limits, in THIS process only. Revision 3 (Codex 748c59a): NOT every name is read at
+     call time - the base Job's constructor copies IMAGES, JOB, RAW and ATTEMPTS into instance fields - so AuditJob
+     configures BEFORE constructing the base Job and then asserts its captured paths are round k's own. The inventory
+     of every module-level name the audit inherits, and how each is bound, is in AI_AUDIT_JOB.md ("Inherited state"). The attempts root is /tmp/ra (the qualification's is /tmp/rq: a sweep never touches the
      other job's directories).
   2. ADMISSION. `AuditJob._admit` binds the go as row "aiaudit", stage "audit" against the AUDIT package (below), checks
      the pinned CLI version, re-derives round k's set and key from committed inputs (ai_audit_set.check) and checks the
@@ -283,20 +286,42 @@ def check_delivery(sset: dict, deliv: dict, pin: str) -> None:
             raise SystemExit(f"refused: delivery entry {r['request']} does not match its request")
 
 
+def round_set_check(k: int, chained: dict) -> dict:
+    """Revision 3 (Codex 748c59a finding 2): THE one call of the set check for a round, used by the executor's admission
+    and by `plan` alike - always with the COMPLETE admitted chain (round, priors, evidence), never a part of it."""
+    return S.check(k, chained)
+
+
 class AuditJob(E.Job):
-    """The reviewed Job with the audit's admission. The chain is admitted BEFORE any accounting (`run`: a refused
-    round opens no clock and writes nothing) and AGAIN inside the reviewed admission deadline (`_admit`), which must
-    find the same predecessors and charges; the limits are re-bound from that second admission."""
+    """The reviewed Job with the audit's admission.
+
+    Revision 3 (Codex 748c59a finding 1): the reviewed Job's constructor copies the module's IMAGES, JOB, RAW and
+    ATTEMPTS into instance fields, so the audit CONFIGURES FIRST - the chain admitted and the module names rebound to
+    round k - and only then constructs the base Job; after construction it asserts that every captured path is round
+    k's own (refusing otherwise), before any accounting. The chain is admitted again before the clock (`run`) and again
+    inside the reviewed admission deadline (`_admit`), which must find the same predecessors and charges."""
 
     def __init__(self, k, fixture: dict | None = None, chain: Chain | None = None):
         self.round = require_round(k)
         self.chain = chain
         if fixture is not None and chain is None:
             raise SystemExit("refused: a fixture run needs its own chain")
+        self.lim, self.chained = configure(self.round, chain=chain, fixture=fixture)   # BEFORE the base captures paths
         super().__init__(fixture)
+        self._assert_own_paths()
+
+    def _assert_own_paths(self) -> None:
+        if self.fx is not None:
+            want = (self.fx["images"], self.fx["job"], self.fx["raw"], self.fx["attempts"])
+        else:
+            want = (S.ITEMS, job_dir(self.round), raw_path(self.round), ATTEMPTS)
+        got = (self.images, self.job, self.raw, self.root)
+        if tuple(Path(x) for x in got) != tuple(Path(x) for x in want):
+            raise SystemExit(f"refused: the job's paths {[str(x) for x in got]} are not audit round {self.round}'s own")
 
     def run(self) -> dict:
         self.lim, self.chained = configure(self.round, chain=self.chain, fixture=self.fx)
+        self._assert_own_paths()
         return super().run()
 
     def _readmit(self) -> dict:
@@ -321,7 +346,7 @@ class AuditJob(E.Job):
             self.pkg = package()
             stage_a_guard.NEGATIVE_REVIEWS = stage_a_guard.NEGATIVE_REVIEWS | NEGATIVE
             stage_a_guard.require_go(GO, self.pkg, row=ROW, stage=STAGE, verify_at_commit=package_at_commit)
-            S.check(self.round, chained["priors"])
+            round_set_check(self.round, chained)
             check_delivery(self.sset, self.deliv, self.pkg["instructions_sha256"])
         if self.pkg["cli_version"] != self.sset["reader"]["cli_version"]:
             raise SystemExit("refused: the installed codex CLI is not the pinned version")
@@ -372,7 +397,7 @@ def delivery(k: int) -> dict:
 
 def plan(k: int) -> dict:
     lim, chained = configure(k)
-    S.check(k, chained["priors"])
+    round_set_check(k, chained)
     sset = json.loads(S.set_path(k).read_text())
     check_delivery(sset, json.loads(delivery_path(k).read_text()),
                    json.loads((HERE / "ai_reader_delivery.json").read_text())["instructions_sha256"])
@@ -389,10 +414,16 @@ def run(k: int) -> dict:
     return AuditJob(k).run()
 
 
-if __name__ == "__main__":
-    cmd = sys.argv[1]
+def main(argv: list[str]) -> int:
+    """The public CLI (also the entry point of the fresh-process fixtures)."""
+    cmd = argv[0]
     if cmd == "package":
         print(json.dumps(package(), indent=1))
-    else:
-        k = int(sys.argv[2])
-        print(json.dumps({"delivery": delivery, "plan": plan, "run": run}[cmd](k), indent=1, default=str))
+        return 0
+    k = int(argv[1])
+    print(json.dumps({"delivery": delivery, "plan": plan, "run": run}[cmd](k), indent=1, default=str))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

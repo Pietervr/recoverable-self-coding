@@ -7,7 +7,11 @@ R052's rulings of 4 October 2026 (Unimog `prompts/2026-10-04_r052_to_r084_row21_
 ruling 1, order of work and design points a-f. **Revision 2** answers Codex's not-favourable record RSC `1b17d64`
 (R052 handoff f809933c): a valid positive round at every entry point; later rounds admitted only on an authenticated
 contiguous predecessor chain with charges recomputed from the admitted evidence; the referral rule amended in the
-freeze and here together; the corrections listed under its rulings 1, 6 and the referral-record limits. Row 21 cannot bind a cleared P = 2 manifest until this job, the owner's
+freeze and here together; the corrections listed under its rulings 1, 6 and the referral-record limits. **Revision 3** answers Codex
+`748c59a` (R052 handoff bb856ee7): the job configures BEFORE the base Job is constructed and asserts its captured paths
+are the round's own; the complete admitted chain is passed to the one set check (`round_set_check`) by admission and
+`plan`; fresh-process fixtures through the public CLI (`tests/test_ai_audit_cli.py`); the inventory of inherited
+module state ("Inherited state"). Row 21 cannot bind a cleared P = 2 manifest until this job, the owner's
 referrals and the per-image checks of the accepted second views are done.
 
 **Nothing has been asked.** No audit item has been sent to any reader. No reader call is made before Codex's
@@ -81,7 +85,9 @@ one word and grammatical for plural names (`clothes`, `jeans`); the questions ar
   round k already has a receipt (an ended round is never re-opened and its clock never re-charged), already has a score
   file, or when a job directory exists for a round outside 1..k. The chain is admitted before the clock opens (a
   refusal charges nothing and writes nothing) and again inside the reviewed admission deadline, which must find the
-  same predecessors and charges. One owner go covers these mechanically derived rounds (Codex `1b17d64`); a scope
+  same predecessors and charges. A derived set records its predecessors by CONTENT only (journal and score sha256,
+  attempts): commit ids and live seconds belong to the admission, so re-committing identical bytes never changes a
+  set (revision 3: found by the fresh-process CLI fixture). One owner go covers these mechanically derived rounds (Codex `1b17d64`); a scope
   change, a STOPPED release or an exhausted budget is a separate decision. A round's delivery (`ai_audit_exec.py delivery k`, a local
   rendering, no request) must carry the reader's instruction pin and one entry per request matching its image and
   prompt; every attempt's live receipt is compared with it before anything is sent.
@@ -114,6 +120,24 @@ from the admitted chain, in the audit's own process only; (2) `AuditJob` admits 
 the chain and checks its delivery, inside the reviewed admission deadline; (3) `AuditJob.attempt` sets the request's own
 frozen prompt before the reviewed `attempt`, which compares the live receipt (user text hash, prompt rendered,
 image digest, instructions) with the delivery before anything is sent. The reader package's files are not edited.
+
+## Inherited state (revision 3, Codex `748c59a`): every module-level name the audit takes from the reader executor
+
+An AST inventory of the names the reviewed `ai_reader_exec.Job`, `Clock`, `Deadline`, `admit_clock`,
+`check_accounting`, `ensure_root` and their helpers read from their module, and how the audit binds each:
+
+| Names | Read | Audit binding |
+|---|---|---|
+| `IMAGES`, `JOB`, `RAW`, `ATTEMPTS` | copied into instance fields by `Job.__init__` (`self.images`, `self.job`, `self.raw`, `self.root`) | `AuditJob.__init__` runs `configure(k)` (chain admitted, names rebound) BEFORE the base constructor, then asserts the four captured paths are round k's own (`captures/ai_audit_items`, `captures/ai_audit_job_r<k>`, `ai_audit_raw_r<k>.jsonl`, `/tmp/ra`); refused otherwise, before any accounting; re-asserted in `run` |
+| `ATTEMPTS` | also at call time by `ensure_root` (`delivery`, `plan`) | rebound by `configure` before those calls |
+| `LIMITS` | at call time (`run`, `loop`, `stop`, `rec`, `check_accounting`, `_admit_clock`) | rebound by `configure` to the chain-derived round limits; re-bound by the re-admission inside `_admit` |
+| `SET`, `DELIVERY`, `GO`, `NEGATIVE`, `package`, `package_at_commit` | only by the base `_admit` | `AuditJob._admit` is overridden: the audit set, delivery, go (`AIAUDIT_GO.json`), negative set and the AUDIT package and its re-derivation |
+| `FINAL_S`, `MIN_ATTEMPT_S`, `SETUP_S`, `ADMIT_TIMEOUT_S`, `FINAL_WRITE_S`, `BEAT_S`, `STALE_S`, `TAIL_S`, `GUARD_S`, `CLOSE_WAIT_S`, `COMMIT_GRACE_S`, `REVOKE_S`, `TERM_GRACE_S`, `GONE_S`, `RAW_FINAL_BYTES`, `TEMP_CAP`, `ROOT_CAP`, `CLOSED_MARKER`, `CLOSE_TOMBSTONE`, `RAN_CLOSED`, `WATCHDOG` | at call time | deliberately SHARED: the reviewed timing, cap and closure constants and the watchdog path of the admitted route, unchanged |
+| the module's functions (`preflight`, `dir_bytes`, `read_capture`, `end_recorded`, `end_foreign_start`, `write_marker`, `_synthetic_png`, ...) | at call time | shared, unchanged (parameterised by the instance's paths) |
+| `ai_reader_runtime`: `CODEX`, `CODEX_TREE`, `SANDBOX_EXEC`, `AUTH`, `DISABLE`, `CONFIG`, the classifier constants | at call time | deliberately SHARED: the reader's owned CLI and isolation pins; bound in the audit package by hash |
+| `stage_a_guard.NEGATIVE_REVIEWS` | mutated in-process by the base and the audit `_admit` | the audit adds its own (empty) negative set; the guard's schema and logic are unchanged |
+
+The fresh-process CLI fixtures (`tests/test_ai_audit_cli.py`) exercise this production construction order end to end.
 
 ## Scoring and dispositions (`ai_audit_score.py`, under `.venv-build`)
 
