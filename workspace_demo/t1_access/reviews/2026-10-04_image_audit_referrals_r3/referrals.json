@@ -1,0 +1,251 @@
+[
+ {
+  "round": 3,
+  "item": "d713efa1908a",
+  "kind": "candidate",
+  "concept": "caramel",
+  "rank": 3,
+  "file": "b3215a101dec50e9.png",
+  "sha256": "b3215a101dec50e9f8724f12a94196fd2b4f1bc1444d7f986c4b83fc958dc0ff",
+  "reasons": [
+   "name:ERR_NONMATCH"
+  ],
+  "answers": {
+   "distinct": "yes",
+   "name": "Rice cake",
+   "photograph": "yes",
+   "sense": "yes"
+  },
+  "rules": {}
+ },
+ {
+  "round": 3,
+  "item": "446e067734e1",
+  "kind": "candidate",
+  "concept": "chili",
+  "rank": 3,
+  "file": "946aaa0cc73c3411.png",
+  "sha256": "946aaa0cc73c341155122f10f15dd74fb77641e40add1310652d78f95fdf490b",
+  "reasons": [
+   "name:ERR_NONMATCH"
+  ],
+  "answers": {
+   "distinct": "yes",
+   "name": "Pot",
+   "photograph": "yes",
+   "sense": "yes"
+  },
+  "rules": {
+   "name": "S1:pot"
+  }
+ },
+ {
+  "round": 3,
+  "item": "eb5fd7106644",
+  "kind": "candidate",
+  "concept": "clothes",
+  "rank": 3,
+  "file": "2c38b809b9084c8f.png",
+  "sha256": "2c38b809b9084c8f301017b1c3e37bb3240ac1c39922cd2b1e8889dc4ab87bda",
+  "reasons": [
+   "name:ERR_NONMATCH"
+  ],
+  "answers": {
+   "distinct": "yes",
+   "name": "Dress",
+   "photograph": "yes",
+   "sense": "yes"
+  },
+  "rules": {
+   "name": "excluded"
+  }
+ },
+ {
+  "round": 3,
+  "item": "70b8f3c06c83",
+  "kind": "candidate",
+  "concept": "hat",
+  "rank": 3,
+  "file": "4918b9aa0a7b1886.png",
+  "sha256": "4918b9aa0a7b1886a989dbac5a9b6d60365dc7b4ebd3e4c9d791c93c498f6ecc",
+  "reasons": [
+   "name:ERR_NONMATCH"
+  ],
+  "answers": {
+   "distinct": "yes",
+   "name": "Person",
+   "photograph": "yes",
+   "sense": "yes"
+  },
+  "rules": {}
+ },
+ {
+  "round": 3,
+  "item": "5ed480f02c10",
+  "kind": "candidate",
+  "concept": "jet",
+  "rank": 3,
+  "file": "347c61b7c7377f89.png",
+  "sha256": "347c61b7c7377f89889eafb310c034923e01f09a7925cad85f10bfc491a3fc11",
+  "reasons": [
+   "name:ERR_NONMATCH"
+  ],
+  "answers": {
+   "distinct": "yes",
+   "name": "Airplane",
+   "photograph": "yes",
+   "sense": "yes"
+  },
+  "rules": {
+   "name": "S1:airplane"
+  }
+ },
+ {
+  "round": 3,
+  "item": "b29cc17c61ce",
+  "kind": "candidate",
+  "concept": "lingerie",
+  "rank": 3,
+  "file": "e3621d1dc21171cd.png",
+  "sha256": "e3621d1dc21171cd9e672f8c727398f544158ebcdc245e7c81433e89b2f13494",
+  "reasons": [
+   "name:ERR_NONMATCH",
+   "photograph:NO"
+  ],
+  "answers": {
+   "distinct": "yes",
+   "name": "Woman",
+   "photograph": "no",
+   "sense": "yes"
+  },
+  "rules": {
+   "name": "S1:woman"
+  }
+ },
+ {
+  "round": 3,
+  "item": "14ce26a64ad3",
+  "kind": "candidate",
+  "concept": "prune",
+  "rank": 3,
+  "file": "78112bf11f54b9d1.png",
+  "sha256": "78112bf11f54b9d1ea7586a16cc59c099c0216b8d3504e0ca8d9f71bc8763cfe",
+  "reasons": [
+   "name:ERR_NONMATCH",
+   "sense:NO"
+  ],
+  "answers": {
+   "distinct": "yes",
+   "name": "Woman",
+   "photograph": "yes",
+   "sense": "no"
+  },
+  "rules": {
+   "name": "S1:woman"
+  }
+ },
+ {
+  "round": 3,
+  "item": "c99711f30a4c",
+  "kind": "candidate",
+  "concept": "robe",
+  "rank": 3,
+  "file": "360c57d238286b24.png",
+  "sha256": "360c57d238286b2466e55d9a4951dd7339b5cff46ffe84f98c61f367e7a8934c",
+  "reasons": [
+   "name:ERR_NONMATCH",
+   "sense:NO"
+  ],
+  "answers": {
+   "distinct": "yes",
+   "name": "Beach",
+   "photograph": "yes",
+   "sense": "no"
+  },
+  "rules": {}
+ },
+ {
+  "round": 3,
+  "item": "d9c0f9b92c1d",
+  "kind": "candidate",
+  "concept": "shark",
+  "rank": 3,
+  "file": "e4afe1c428f4eaec.png",
+  "sha256": "e4afe1c428f4eaecca6eb7235a165271d59f22c0d30e0a28400998ed5f9569ca",
+  "reasons": [
+   "photograph:NO"
+  ],
+  "answers": {
+   "distinct": "yes",
+   "name": "Shark",
+   "photograph": "no",
+   "sense": "yes"
+  },
+  "rules": {
+   "name": "whole"
+  }
+ },
+ {
+  "round": 3,
+  "item": "cee26805b761",
+  "kind": "candidate",
+  "concept": "taxi",
+  "rank": 3,
+  "file": "25857c257f16e699.png",
+  "sha256": "25857c257f16e699029301433db5b127aec0523eb130beb9a35a834491d3ba67",
+  "reasons": [
+   "name:ERR_NONMATCH"
+  ],
+  "answers": {
+   "distinct": "yes",
+   "name": "Tram",
+   "photograph": "yes",
+   "sense": "yes"
+  },
+  "rules": {}
+ },
+ {
+  "round": 3,
+  "item": "94bcba8f8f72",
+  "kind": "candidate",
+  "concept": "tie",
+  "rank": 3,
+  "file": "f8618ffc8bf344de.png",
+  "sha256": "f8618ffc8bf344dea32f1df0f6e777116fc31ada9ffd1151fd91c115d947f50a",
+  "reasons": [
+   "photograph:NO",
+   "sense:NO"
+  ],
+  "answers": {
+   "distinct": "yes",
+   "name": "TIE bomber",
+   "photograph": "no",
+   "sense": "no"
+  },
+  "rules": {
+   "name": "contains"
+  }
+ },
+ {
+  "round": 3,
+  "item": "4d22188f0241",
+  "kind": "candidate",
+  "concept": "wagon",
+  "rank": 3,
+  "file": "555fc61e496053f7.png",
+  "sha256": "555fc61e496053f76999d2eda4c8e17c0809f9f571fa50111f87fae5e50790b3",
+  "reasons": [
+   "name:ERR_NONMATCH",
+   "sense:NO"
+  ],
+  "answers": {
+   "distinct": "yes",
+   "name": "Car",
+   "photograph": "yes",
+   "sense": "no"
+  },
+  "rules": {
+   "name": "S1:car"
+  }
+ }
+]
