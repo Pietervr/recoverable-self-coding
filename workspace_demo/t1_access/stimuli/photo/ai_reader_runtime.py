@@ -139,8 +139,9 @@ CAPACITY_MESSAGES = ("Selected model is at capacity. Please try a different mode
 # Revision 15 (Codex RSC 431f072): the capacity shape with a blank -o file that is NOT retained complete and exact (over
 # FILE_ANSWER_KEEP UTF-8 bytes) - its blankness cannot be re-derived, so no retry and no structural label: a retained
 # final isolation carrying this marker, and the job holds (ai_reader_journal.holds).
-CAPACITY_UNPROVEN = ("capacity refusal with incomplete -o evidence: a blank -o file over FILE_ANSWER_KEEP (2,048) UTF-8 "
-                     "bytes cannot be re-derived as blank - final, the job holds")
+CAPACITY_UNPROVEN = ("capacity refusal without complete, proven-clean evidence (incomplete -o evidence or capture, a "
+                     "non-blank -o file, an unretained or incomplete stderr, an overflow; a blank -o file is proven only "
+                     "when captured complete and retained exact at <= 2,048 UTF-8 bytes) - final, the job holds")
 MACH = ["com.apple.trustd.agent", "com.apple.SecurityServer", "com.apple.SystemConfiguration.configd",
         "com.apple.dnssd.service", "com.apple.system.opendirectoryd.libinfo", "com.apple.system.notification_center",
         "com.apple.logd", "com.apple.diagnosticd"]
@@ -656,29 +657,78 @@ def lifecycle_complete(events: list[dict]) -> bool:
     return not lifecycle(events)
 
 
+def capture_record(read: bytes | None, size: int | None, truncated: bool) -> dict | None:
+    """Revision 17: the facts of one capture, recorded AT THE READ - bytes read, the file's size, whether the read cap
+    cut it. None = the file did not exist."""
+    return None if read is None else {"read": len(read), "size": int(size), "truncated": bool(truncated)}
+
+
+def capture_complete(c: dict | None) -> bool:
+    """Revision 17 (Codex 1abb851): a capture is COMPLETE only when nothing was cut and exactly the file's size was
+    read. An absent file is complete (there is nothing to capture). Decoded content never decides this."""
+    return c is None or (c["truncated"] is False and c["read"] == c["size"])
+
+
+def default_capture(stdout: bytes, stderr: bytes, last_message: str | None) -> dict:
+    """For callers that pass already-complete in-memory evidence (the fixtures): every stream captured whole."""
+    lb = None if last_message is None else last_message.encode("utf-8")
+    return {"stdout": capture_record(stdout, len(stdout), False), "stderr": capture_record(stderr, len(stderr), False),
+            "file": capture_record(lb, None if lb is None else len(lb), False)}
+
+
+def capacity_clean(fa: dict | None, stderr_ev: dict, capture: dict, overflow: bool) -> bool:
+    """Revision 17: the ONLY evidence on which the capacity exception (retry, or the structural hold) is granted - the
+    -o file absent, or captured complete AND retained complete, exact and blank; stderr captured complete and retained
+    complete (so the structural decision saw all of it); no overflow. Anything else on the capacity shape is the marked
+    final isolation and the hold."""
+    file_ok = fa is None or (capture_complete(capture.get("file")) and file_blank_proven(fa))
+    return file_ok and capture_complete(capture.get("stderr")) and "text" in stderr_ev and not overflow
+
+
+def capacity_possible(events_ev: dict, capture: dict) -> bool:
+    """Revision 17: a capacity refusal that cannot be ESTABLISHED - the event stream was not captured AND retained whole,
+    yet a declared capacity text is visible in its retained representation. Decided from the retained text on both
+    sides (classifier and journal); the end is a retained final overflow with the hold."""
+    whole = capture_complete(capture.get("stdout")) and "text" in events_ev
+    return not whole and any(m in retained_text(events_ev) for m in CAPACITY_MESSAGES)
+
+
 def classify(stdout: bytes, stderr: bytes, last_message: str | None, returncode: int | None, *, timed_out: bool,
-             overflow: bool) -> dict:
-    """The outcome of one attempt from its retained evidence (see the module docstring for the order)."""
+             overflow: bool, capture: dict | None = None) -> dict:
+    """The outcome of one attempt from its retained evidence (see the module docstring for the order). Revision 17:
+    `capture` holds each stream's read facts (capture_record); an INCOMPLETE capture is provenance, never content - its
+    decoded text is never an answer and never evidence of blankness."""
+    capture = capture if capture is not None else default_capture(stdout, stderr, last_message)
+    overflow = bool(overflow) or not all(capture_complete(capture.get(k)) for k in ("stdout", "stderr", "file"))
     events, problems = parse_events(stdout)
     ev = {"events": bounded(stdout, EVENTS_KEEP), "stderr": bounded(stderr, STDERR_KEEP), "returncode": returncode,
           "timed_out": timed_out, "event_types": sorted({e["type"] for e in events}),
           "notices": sorted({e["item"]["message"][:120] for e in events if isinstance(e.get("item"), dict)
                              and is_notice(e["item"])}),
           "usage": next((e.get("usage") for e in reversed(events) if e["type"] == "turn.completed"), None)}
+    ev["capture"] = capture
     ea = event_answer(events)
     file_answer = last_message if last_message is not None else None
-    answer = ea if ea is not None else (file_answer if file_answer is not None and file_answer.strip() else None)
+    file_complete = capture_complete(capture.get("file"))
+    answer = ea if ea is not None else (file_answer if file_answer is not None and file_complete and
+                                        file_answer.strip() else None)        # rev 17: never from an incomplete capture
     ev["file_answer_sha256"] = sha(file_answer.encode()) if file_answer is not None else None
     ev["file_answer"] = bounded(file_answer.encode(), FILE_ANSWER_KEEP) if file_answer is not None else None
     # revision 15: the capacity shape is judged from retained evidence only (complete events, no malformed line, the
     # declared markers, no answer); an -o file whose blankness the journal cannot re-derive makes it a final isolation
     # with CAPACITY_UNPROVEN and a hold - whatever the overflow flag, which the journal cannot reconstruct
-    capacity = not problems and len(stdout) <= EVENTS_KEEP and capacity_refusal(events) and \
-        (file_answer is None or not file_answer.strip())
-    if capacity and not file_blank_proven(ev["file_answer"]):
+    if capacity_possible(ev["events"], capture):           # revision 17: an unestablishable capacity refusal holds
+        return {**ev, "outcome": "overflow", "retained": True, "isolation_events": [CAPACITY_UNPROVEN],
+                **bounded_answer(None)}
+    # revision 17: the capacity SHAPE from the complete stream only; the exception only on capacity_clean evidence;
+    # every other capacity end is the marked final isolation and the hold (an answer kept only when it is a complete,
+    # non-blank -o file - retained as received text, never retried)
+    capacity = not problems and len(stdout) <= EVENTS_KEEP and capture_complete(capture.get("stdout")) and \
+        capacity_refusal(events)
+    if capacity and not capacity_clean(ev["file_answer"], ev["stderr"], capture, overflow):
         return {**ev, "outcome": "isolation_violation", "retained": True,
-                "isolation_events": isolation_problems(events) + [CAPACITY_UNPROVEN], **bounded_answer(None)}
-    if capacity and not overflow:
+                "isolation_events": isolation_problems(events) + [CAPACITY_UNPROVEN], **bounded_answer(answer)}
+    if capacity:
         if STRUCTURAL.search(retained_text(ev["stderr"])):    # revision 14 (R2): structural stderr wins - the hold
             return {**ev, "outcome": "structural_failure", "retained": False, "isolation_events": [],
                     **bounded_answer(None)}

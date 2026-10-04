@@ -12,6 +12,7 @@ network denied by the kernel sandbox and a synthetic 8x8 image. The hard-kill fi
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import os
 import shutil
@@ -1765,10 +1766,10 @@ class Rev15Reader(unittest.TestCase):
         self.assertEqual(self.classify(None, self.PLAIN)["outcome"], "provider_failure")
         self.assertEqual(self.classify("", self.PLAIN)["outcome"], "provider_failure")
         self.assertEqual(self.classify(None, self.STRUCT)["outcome"], "structural_failure")
-        for last in ("Harmonica", " " * 1500 + "x" + " " * 1500):   # a received answer stays final, no marker
-            out = self.classify(last, self.PLAIN)
+        for last in ("Harmonica", " " * 1500 + "x" + " " * 1500):   # a received answer stays final - and since
+            out = self.classify(last, self.PLAIN)                     # revision 17 it HOLDS (contradictory evidence)
             self.assertEqual(out["outcome"], "isolation_violation")
-            self.assertNotIn(R.CAPACITY_UNPROVEN, out["isolation_events"])
+            self.assertIn(R.CAPACITY_UNPROVEN, out["isolation_events"])
             self.assertIsNotNone(out["answer"])
             J._rederive(0, out)
 
@@ -1872,6 +1873,170 @@ class Rev16Reader(unittest.TestCase):
         self.assertEqual(out["outcome"], "COMPLETE")                                 # 2,046 bytes: the retry stays
         self.assertEqual([d["request"] for d in A.dispatches(root)].count("rq2c"), 2)
         J.validate(recs, b["sset"], A.DIGEST, **vkw(b))
+
+
+class Rev17Reader(unittest.TestCase):
+    """Reader revision 17 (Codex RSC 1abb851): capture completeness is recorded AT THE READ (bytes read, file size,
+    truncation) and carried through classify and the journal; an incomplete capture is never an answer and never
+    blankness; on the capacity shape anything but complete, proven-clean evidence is the marked final isolation and the
+    hold. Cuts are built from real byte prefixes exactly as the executor's 1 MiB read makes them. No model is called."""
+
+    run_fx, ends = Executor.run_fx, Executor.ends
+    STRUCT, PLAIN = Rev15Reader.STRUCT, Rev15Reader.PLAIN
+    CAP_READ = 1 << 20
+
+    def cut(self, file_bytes: bytes, stderr: bytes):
+        """The executor's read: at most 1 MiB of the -o file, decoded with replacement; its facts recorded."""
+        got = file_bytes[:self.CAP_READ]
+        cap = {"stdout": R.capture_record(CAPACITY_EVENTS.encode(), len(CAPACITY_EVENTS.encode()), False),
+               "stderr": R.capture_record(stderr, len(stderr), False),
+               "file": R.capture_record(got, len(file_bytes), len(file_bytes) > self.CAP_READ)}
+        over = not all(R.capture_complete(c) for c in cap.values())
+        out = R.classify(CAPACITY_EVENTS.encode(), stderr, got.decode("utf-8", "replace"), 1, timed_out=False,
+                         overflow=over, capture=cap)
+        out["t"], out["overflow_detail"] = "end", None
+        return out
+
+    def assert_hold(self, out, answer_expected=False):
+        self.assertEqual((out["outcome"], out["retained"]), ("isolation_violation", True))
+        self.assertEqual(out["isolation_events"][-1], R.CAPACITY_UNPROVEN)
+        self.assertEqual(out["answer"] is not None, answer_expected)
+        J._rederive(0, out)                                                         # the ACTUAL end re-derives
+        self.assertTrue(J._capture_ok(out) and J._capture_agrees(out))
+        for label in ("provider_failure", "structural_failure"):
+            with self.assertRaises(SystemExit):
+                J._rederive(0, dict(out, outcome=label, retained=False, isolation_events=[], answer=None))
+        with self.assertRaises(SystemExit):
+            J._rederive(0, dict(out, isolation_events=out["isolation_events"][:-1]))
+
+    def test_codexs_1mib_cut_blank_file(self):
+        f = ("\u3000" * 349526).encode()
+        self.assertEqual((len(f), len(f) % 3, (1 << 20) % 3), (1048578, 0, 1))      # the cut falls 1 byte in
+        for stderr in (self.PLAIN, self.STRUCT):
+            with self.subTest(structural=stderr is self.STRUCT):
+                out = self.cut(f, stderr)
+                self.assertEqual(out["capture"]["file"], {"read": 1 << 20, "size": 1048578, "truncated": True})
+                self.assert_hold(out)                                                # never an answer, never blank
+
+    def test_cuts_at_every_offset_into_a_character(self):
+        cases = {"U+3000 cut 1 byte in": ("\u3000" * 349526).encode(),
+                 "U+3000 cut 2 bytes in": b"  " + ("\u3000" * 349526).encode(),
+                 "U+3000 cut on a boundary (decodes blank)": b" " + ("\u3000" * 349526).encode(),
+                 "4-byte char cut on a boundary": ("\U0001F600" * 262145).encode(),
+                 "4-byte char cut 1 in": b"xxx" + ("\U0001F600" * 262145).encode(),
+                 "4-byte char cut 2 in": b"  " + ("\U0001F600" * 262144).encode() + b"xx",
+                 "4-byte char cut 3 in": b"x" + ("\U0001F600" * 262144).encode() + b"xxx"}
+        offsets = {name: len(f[:1 << 20]) - len(f[:1 << 20].decode("utf-8", "ignore").encode()) for name, f in
+                   cases.items()}                                                   # bytes of the split character kept
+        self.assertEqual([offsets[n] for n in cases], [1, 2, 0, 0, 1, 2, 3])
+        for name, f in cases.items():
+            for stderr in (self.PLAIN, self.STRUCT):
+                with self.subTest(name, structural=stderr is self.STRUCT):
+                    self.assertGreater(len(f), 1 << 20)
+                    self.assert_hold(self.cut(f, stderr))
+
+    def test_other_incomplete_or_unclean_capacity_evidence_holds(self):
+        mk = lambda last, stderr=self.PLAIN, **c: self._custom(last, stderr, **c)    # noqa: E731
+        self.assert_hold(mk("x" * 3000), answer_expected=True)                      # complete non-blank oversize
+        self.assert_hold(mk("Harmonica"), answer_expected=True)                     # complete non-blank short
+        self.assert_hold(mk(" " * 10, file_size=20))                                # read < size (file changed)
+        self.assert_hold(mk(None, stderr=b"x" * (R.STDERR_KEEP + 1)))               # stderr not retained whole
+        self.assert_hold(mk(None, stderr_truncated=True))                           # stderr capture cut
+        self.assert_hold(mk(None, overflow=True))                                   # an overflow
+
+    def _custom(self, last, stderr, file_size=None, stderr_truncated=False, overflow=False):
+        lb = None if last is None else last.encode()
+        cap = {"stdout": R.capture_record(CAPACITY_EVENTS.encode(), len(CAPACITY_EVENTS.encode()), False),
+               "stderr": R.capture_record(stderr, len(stderr), stderr_truncated),
+               "file": None if lb is None else R.capture_record(lb, file_size or len(lb), False)}
+        out = R.classify(CAPACITY_EVENTS.encode(), stderr, last, 1, timed_out=False,
+                         overflow=overflow or not all(R.capture_complete(c) for c in cap.values()), capture=cap)
+        out["t"], out["overflow_detail"] = "end", ("fixture overflow" if overflow else None)
+        return out
+
+    def test_clean_evidence_still_retries(self):
+        for last in (None, "", " " * 2048, "\u3000" * 682):
+            for stderr, label in ((self.PLAIN, "provider_failure"), (self.STRUCT, "structural_failure")):
+                with self.subTest(n=None if last is None else len(last), label=label):
+                    out = self._custom(last, stderr)
+                    self.assertEqual((out["outcome"], out["retained"]), (label, False))
+                    J._rederive(0, out)
+
+    def test_incomplete_capture_is_never_an_answer_outside_capacity(self):
+        ok_events = ('{"type":"thread.started","thread_id":"t"}\n{"type":"turn.started"}\n'
+                     '{"type":"turn.completed","usage":{"input_tokens":1,"output_tokens":1}}\n')
+        f = ("x" * ((1 << 20) + 1)).encode()
+        got = f[:1 << 20]
+        cap = {"stdout": R.capture_record(ok_events.encode(), len(ok_events), False),
+               "stderr": R.capture_record(b"", 0, False), "file": R.capture_record(got, len(f), True)}
+        out = R.classify(ok_events.encode(), b"", got.decode(), 0, timed_out=False, overflow=True, capture=cap)
+        self.assertIsNone(out["answer"])                                            # the cut text is not an answer
+        self.assertEqual(out["outcome"], "overflow")
+        out["t"], out["overflow_detail"] = "end", None
+        J._rederive(0, out)
+        forged = dict(out, answer=got.decode()[:R.ANSWER_KEEP], answer_len=len(got), overlength=True,
+                      answer_sha256=hashlib.sha256(got).hexdigest())
+        with self.assertRaisesRegex(SystemExit, "incomplete -o capture"):
+            J._rederive(0, forged)
+
+    def test_tampered_capture_facts_refused(self):
+        out = self._custom(None, self.PLAIN)
+        self.assertTrue(J._capture_ok(out) and J._capture_agrees(out))
+        bad = json.loads(json.dumps(out))
+        bad["capture"]["stdout"]["read"] += 1
+        self.assertFalse(J._capture_agrees(bad))
+        bad = json.loads(json.dumps(out))
+        bad["capture"]["file"] = {"read": 1, "size": 1, "truncated": False}        # -o capture without -o evidence
+        self.assertFalse(J._capture_agrees(bad))
+        bad = json.loads(json.dumps(out))
+        bad["capture"]["stderr"]["truncated"] = "no"
+        self.assertFalse(J._capture_ok(bad))
+
+    def test_unestablishable_capacity_in_an_incomplete_stream_holds(self):
+        """My own adversarial case (revision 17): the capacity text in a stream that was not captured AND retained
+        whole cannot establish the shape - the end is the marked final overflow and the hold, from the retained text."""
+        filler = '{"type":"item.completed","item":{"id":"r","type":"reasoning","text":"%s"}}\n' % ("x" * 200)
+        big = (filler * 200 + CAPACITY_EVENTS).encode()                          # > EVENTS_KEEP, capacity in the tail
+        self.assertGreater(len(big), R.EVENTS_KEEP)
+        cases = {"oversize stream": (big, R.capture_record(big, len(big), False)),
+                 "captured less than its size": (CAPACITY_EVENTS.encode(),
+                                                 R.capture_record(CAPACITY_EVENTS.encode(), 10 ** 6, False))}
+        for name, (stdout, cs) in cases.items():
+            for stderr in (self.PLAIN, self.STRUCT):
+                with self.subTest(name, structural=stderr is self.STRUCT):
+                    cap = {"stdout": cs, "stderr": R.capture_record(stderr, len(stderr), False), "file": None}
+                    out = R.classify(stdout, stderr, None, 1, timed_out=False, overflow=True, capture=cap)
+                    out["t"], out["overflow_detail"] = "end", None
+                    self.assertEqual((out["outcome"], out["isolation_events"], out["answer"]),
+                                     ("overflow", [R.CAPACITY_UNPROVEN], None))
+                    J._rederive(0, out)
+                    self.assertTrue(J._unproven_mark(out))
+                    with self.assertRaises(SystemExit):
+                        J._rederive(0, dict(out, isolation_events=[]))           # the marker removed: refused
+        flood = (filler * 200).encode()                                         # control: no capacity text, no hold
+        cap = {"stdout": R.capture_record(flood, len(flood), False),
+               "stderr": R.capture_record(b"", 0, False), "file": None}
+        out = R.classify(flood, b"", None, 0, timed_out=False, overflow=True, capture=cap)
+        out["t"], out["overflow_detail"] = "end", None
+        self.assertNotIn(R.CAPACITY_UNPROVEN, out["isolation_events"])
+        J._rederive(0, out)
+
+    def test_executor_1mib_cut_holds_and_the_journal_agrees(self):
+        for kind in ("capacity:w349526", "capacity_structural:w349526"):
+            with self.subTest(kind):
+                out, recs, root, b = self.run_fx({"rq1c": ["ok:thing"], "rq2c": [kind, "ok:thing"],
+                                                  "rq3c": ["ok:thing"]})
+                self.assertEqual(out["outcome"], "STOPPED")
+                self.assertIn("incomplete -o evidence", out["reason"])
+                calls = [d["request"] for d in A.dispatches(root)]
+                self.assertEqual((calls.count("rq2c"), calls.count("rq3c")), (1, 0))
+                end = [r for r in self.ends(recs) if r["request"] == "rq2c"][-1]
+                self.assertEqual(end["capture"]["file"], {"read": 1 << 20, "size": 1048578, "truncated": True})
+                self.assertIsNone(end["answer"])
+                J.validate(recs, b["sset"], A.DIGEST, require_complete=False, **vkw(b))
+                body = [r for r in recs if r["t"] != "receipt"]
+                J.validate(body, b["sset"], A.DIGEST, require_complete=False, **vkw(b))
+                self.assertIn("incomplete -o evidence", J.holds(J.reconstruct(body), "rq1c"))
 
 
 if __name__ == "__main__":

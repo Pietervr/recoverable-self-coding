@@ -455,6 +455,18 @@ def read_capped(p: Path, cap: int) -> tuple[bytes, bool]:
     return b[:cap], len(b) > cap
 
 
+def read_capture(p: Path, cap: int) -> tuple[bytes | None, dict | None]:
+    """Revision 17 (Codex 1abb851): read at most cap bytes AND record the capture's facts at the read - the bytes read,
+    the file's size from fstat on the same open file, and whether the cap cut it (R.capture_record). None, None for an
+    absent file."""
+    if not p.exists():
+        return None, None
+    with open(p, "rb") as fh:
+        size = os.fstat(fh.fileno()).st_size
+        b = fh.read(cap + 1)
+    return b[:cap], R.capture_record(b[:cap], size, len(b) > cap)
+
+
 def dir_bytes(d: Path) -> int:
     """Bytes of the regular files under d (symlinks not followed). Revision 11 (the 2 October run): the Codex CLI
     creates and removes its own helper entries (codex_home/tmp/arg0/...) during an attempt, so an entry listed by the
@@ -1112,12 +1124,15 @@ class Job:
             overflow = f"stdout {so_n}, stderr {se_n} bytes (at exit)"         # a quick-exit overflow
         rcode = self._finish_worker(kq, True)
         self.crash("after_response", n)
-        out, o1 = read_capped(adir / "stdout", R.STDOUT_CAP)
-        err, o2 = read_capped(adir / "stderr", R.STDERR_CAP)
-        last_b, o3 = read_capped(adir / "last.txt", 1 << 20)
-        over = bool(overflow) or o1 or o2 or o3
-        last = last_b.decode("utf-8", "replace") if (adir / "last.txt").exists() else None
-        c = R.classify(out, err, last, rcode, timed_out=timed_out, overflow=over)
+        out, c1 = read_capture(adir / "stdout", R.STDOUT_CAP)            # revision 17: capture facts at the read
+        err, c2 = read_capture(adir / "stderr", R.STDERR_CAP)
+        last_b, c3 = read_capture(adir / "last.txt", 1 << 20)
+        out, err = out or b"", err or b""
+        cap = {"stdout": c1 or R.capture_record(b"", 0, False), "stderr": c2 or R.capture_record(b"", 0, False),
+               "file": c3}
+        over = bool(overflow) or not all(R.capture_complete(cap[k]) for k in cap)
+        last = last_b.decode("utf-8", "replace") if last_b is not None else None
+        c = R.classify(out, err, last, rcode, timed_out=timed_out, overflow=over, capture=cap)
         end = self.rec("end", attempt_id=aid, request=rq, seconds=seconds, kill=kill,
                        overflow_detail=overflow, group_clean=True, **{k: v for k, v in c.items()})
         self.crash("after_end", n)

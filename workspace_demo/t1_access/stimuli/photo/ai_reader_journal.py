@@ -80,7 +80,7 @@ EXACT = {
 }
 CLASSIFY_KEYS = {"events", "stderr", "returncode", "timed_out", "event_types", "notices", "usage",
                  "file_answer_sha256", "file_answer", "outcome", "retained", "isolation_events", "answer",
-                 "answer_len", "answer_sha256", "overlength"}
+                 "answer_len", "answer_sha256", "overlength", "capture"}
 END_KEYS = {"recovery": {"attempt_id", "request", "outcome", "retained", "seconds", "answer"},
             "not_sent": {"attempt_id", "request", "outcome", "retained", "seconds", "answer", "cause"},
             "classified": {"attempt_id", "request", "seconds", "kill", "overflow_detail", "group_clean"} | CLASSIFY_KEYS}
@@ -293,6 +293,38 @@ def _unproven_mark(r: dict) -> bool:
     return r.get("t") == "end" and CAPACITY_UNPROVEN in (r.get("isolation_events") or [])
 
 
+def _overflowed(r: dict) -> bool:
+    """Revision 17: the classifier's overflow flag, reconstructed from the record - the executor's own overflow detail
+    or any incomplete capture."""
+    from ai_reader_runtime import capture_complete
+    cap = r.get("capture") or {}
+    return bool(r.get("overflow_detail")) or not all(capture_complete(cap.get(k)) for k in ("stdout", "stderr", "file"))
+
+
+def _capture_ok(r: dict) -> bool:
+    """Revision 17: the capture facts' exact schema (stdout and stderr always captured; -o captured or None; each read,
+    size and truncation typed); their agreement with the retained evidence is _capture_agrees, after _rederive."""
+    c = r.get("capture")
+    if not isinstance(c, dict) or set(c) != {"stdout", "stderr", "file"}:
+        return False
+    for k in ("stdout", "stderr", "file"):
+        v = c[k]
+        if v is None and k == "file":
+            continue
+        if not (isinstance(v, dict) and set(v) == {"read", "size", "truncated"} and isinstance(v["truncated"], bool)
+                and all(isinstance(v[x], int) and not isinstance(v[x], bool) and v[x] >= 0 for x in ("read", "size"))):
+            return False
+    return True
+
+
+def _capture_agrees(r: dict) -> bool:
+    """Revision 17: the retained stdout/stderr lengths are exactly the bytes the capture read, and the -o capture is
+    present iff -o evidence is retained."""
+    c = r["capture"]
+    return c["stdout"]["read"] == r["events"]["length"] and c["stderr"]["read"] == r["stderr"]["length"] and \
+        (c["file"] is None) == (r.get("file_answer") is None)
+
+
 def _fail(i: int, why: str):
     raise SystemExit(f"refused: raw evidence invalid at record {i + 1}: {why}")
 
@@ -363,21 +395,39 @@ def _rederive(i: int, r: dict) -> None:
         if o in ("provider_failure", "structural_failure") and (ea is not None or any(
                 isinstance(e.get("item"), dict) and e["item"].get("type") == "agent_message" for e in events)):
             _fail(i, f"{o} although the retained events carry an agent message")
-        # revision 15 (Codex RSC 431f072): the capacity shape whose -o blankness cannot be re-derived (no answer, the -o
-        # file present but not retained complete, exact and blank) is EXACTLY the marked end - a retained final
-        # isolation whose recorded isolation events are the stream's own plus the marker; both directions are checked
-        from ai_reader_runtime import CAPACITY_UNPROVEN, FILE_ANSWER_KEEP, file_blank_proven
-        unproven = not problems and capacity_refusal(events) and isinstance(fa, dict) and \
-            not file_blank_proven(fa) and r.get("answer") is None
-        if unproven != (CAPACITY_UNPROVEN in (r.get("isolation_events") or [])):
-            _fail(i, "the incomplete-capacity-evidence marker disagrees with the retained events and -o evidence")
-        if unproven and not (o == "isolation_violation" and r.get("retained") is True and
-                             r.get("isolation_events") == iso + [CAPACITY_UNPROVEN] and
-                             fa.get("sha256") == r.get("file_answer_sha256") and fa["length"] > FILE_ANSWER_KEEP and
-                             "text" not in fa and fa["head"].strip() == "" and fa["tail"].strip() == ""):
-            _fail(i, "a capacity end with unproven -o blankness that is not the declared final isolation and hold")
-    elif _unproven_mark(r):
-        _fail(i, "the incomplete-capacity-evidence marker on events that cannot be re-derived")
+        # revision 17 (Codex RSC 1abb851): the capacity rule re-derived from the RECORDED CAPTURE FACTS, never from
+        # decoded content - the shape (complete stream, captured whole, no malformed line, the declared markers); the
+        # exception only on capacity_clean evidence; every other capacity end is EXACTLY the marked final isolation
+        from ai_reader_runtime import CAPACITY_UNPROVEN, capacity_clean, capacity_possible, capture_complete
+        cap = r["capture"]
+        possible = capacity_possible(ev, cap)
+        shape = not possible and not problems and capture_complete(cap["stdout"]) and capacity_refusal(events)
+        clean = capacity_clean(fa, r["stderr"], cap, _overflowed(r))
+        marked = CAPACITY_UNPROVEN in (r.get("isolation_events") or [])
+        if marked != (possible or (shape and not clean)):
+            _fail(i, "the capacity-hold marker disagrees with the retained events and the recorded capture facts")
+        if possible and not (o == "overflow" and r.get("retained") is True and
+                             r.get("isolation_events") == [CAPACITY_UNPROVEN] and r.get("answer") is None):
+            _fail(i, "an unestablishable capacity refusal that is not the declared final overflow and hold")
+        if shape and not clean and not (o == "isolation_violation" and r.get("retained") is True and
+                                        r.get("isolation_events") == iso + [CAPACITY_UNPROVEN]):
+            _fail(i, "a capacity end without clean evidence that is not the declared final isolation and hold")
+        if shape and clean and o not in ("provider_failure", "structural_failure"):
+            _fail(i, "a capacity end on clean evidence that is not the declared retry or structural hold")
+        if o in ("provider_failure", "structural_failure") and declared_capacity and not clean:
+            _fail(i, f"{o} on capacity evidence that is not complete and proven clean")
+        if r.get("answer") is not None and ea is None and not capture_complete(cap.get("file")):
+            _fail(i, "an answer taken from an incomplete -o capture (provenance, never content)")
+        if o == "ok" and _overflowed(r):
+            _fail(i, "an ok outcome on an incomplete capture or an overflow")
+    else:                                              # revision 17: events retained head/tail only
+        from ai_reader_runtime import CAPACITY_UNPROVEN, capacity_possible
+        possible = capacity_possible(ev, r["capture"])
+        if _unproven_mark(r) != possible:
+            _fail(i, "the capacity-hold marker disagrees with the retained head/tail events")
+        if possible and not (o == "overflow" and r.get("retained") is True and
+                             r.get("isolation_events") == [CAPACITY_UNPROVEN] and r.get("answer") is None):
+            _fail(i, "an unestablishable capacity refusal that is not the declared final overflow and hold")
     if o in ("provider_failure", "structural_failure"):
         hit = bool(STRUCTURAL.search(retained_text(r["stderr"])))
         if hit != (o == "structural_failure"):
@@ -563,6 +613,8 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
                 from ai_reader_runtime import FILE_ANSWER_KEEP, usage_ok
                 k_ = r["kill"]
                 strs = lambda v: isinstance(v, list) and all(isinstance(x, str) for x in v)   # noqa: E731
+                if not _capture_ok(r):
+                    _fail(i, "capture facts malformed or disagreeing with the retained evidence (revision 17)")
                 if not (k_ is None or (isinstance(k_, dict) and set(k_) == {"how", "kill_to_reap_s"} and
                                        k_["how"] in ("SIGTERM", "SIGKILL") and _num(k_["kill_to_reap_s"], 0.0, 1e6))) \
                         or not (r["overflow_detail"] is None or isinstance(r["overflow_detail"], str)) or \
@@ -575,6 +627,8 @@ def validate(recs: list[dict], sset: dict, package_digest: str, *, raw_bytes: by
                     _fail(i, "end bookkeeping fields (kill, overflow, cleanup, event types, notices, usage, -o "
                              "evidence) malformed")
                 _rederive(i, r)
+                if not _capture_agrees(r):
+                    _fail(i, "the recorded capture facts disagree with the retained stream lengths (revision 17)")
             st["outcomes"][o] = st["outcomes"].get(o, 0) + 1
             if r["retained"]:
                 st["final"].add(r["request"])

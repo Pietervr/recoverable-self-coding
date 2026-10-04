@@ -420,7 +420,8 @@ class Rev16(unittest.TestCase):
     setUp, build, journal, crash_at = HardKill.setUp, HardKill.build, HardKill.journal, HardKill.crash_at
 
     def test_crash_after_the_marked_end_then_restart(self):
-        for kind in ("capacity:w683", "capacity_structural:w683"):
+        for kind in ("capacity:w683", "capacity_structural:w683",                   # revision 16
+                     "capacity:w349526", "capacity_structural:w349526"):             # revision 17: the 1 MiB cut
             with self.subTest(kind):
                 self.root = Path(tempfile.mkdtemp(dir=X.ensure_root()))
                 self.build({"rq1c": ["ok:thing"], "rq2c": [kind, "ok:thing"], "rq3c": ["ok:thing"]})
