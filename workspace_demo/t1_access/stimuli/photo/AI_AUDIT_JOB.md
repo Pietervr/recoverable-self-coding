@@ -118,7 +118,10 @@ image digest, instructions) with the delivery before anything is sent. The reade
 ## Scoring and dispositions (`ai_audit_score.py`, under `.venv-build`)
 
 Admission of each round's journal is the reader scorer's chain (committed raw, complete validation, package and go,
-the round's derivation from its admitted predecessors, the finished clock closure). Aggregation is the freeze's: the name under the ONE shared
+the round's derivation from its admitted predecessors, the finished clock closure). The scorer runs under `.venv-build`
+(WordNet), which has no canvas pipeline: it requires the round's set, key and delivery to be committed and has the
+bound set builder re-derive the set and key under `.venv-image` (pinned numpy and Pillow) from the chain the scorer has
+authenticated (`ai_audit_set.py derive-hashes`), comparing their hashes with the committed files. Aggregation is the freeze's: the name under the ONE shared
 matching rule (`audit_package.score`, pinned map and scorer code); the yes/no questions exact after trimming, case and
 one trailing full stop; a primary passes on name, photograph and sense; a candidate also needs its pair's distinct =
 yes.

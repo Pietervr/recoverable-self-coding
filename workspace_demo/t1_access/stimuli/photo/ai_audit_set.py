@@ -42,12 +42,9 @@ import json
 import sys
 from pathlib import Path
 
-import numpy as np
-
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import ai_audit_sources as SRC  # noqa: E402
-import dose  # noqa: E402
 
 ITEMS = HERE.parents[1] / "captures" / "ai_audit_items"
 THINGS = Path.home() / "things-plus"
@@ -86,7 +83,8 @@ def definitions() -> dict:
                 for r in csv.DictReader(f, delimiter="\t")}
 
 
-def _canvas_rgb8(path_or_bytes) -> np.ndarray:
+def _canvas_rgb8(path_or_bytes):
+    import dose                                    # image venv only (numpy, Pillow pinned); imported lazily
     if isinstance(path_or_bytes, (bytes, bytearray)):
         import tempfile
         with tempfile.NamedTemporaryFile(suffix=".img") as t:
@@ -101,6 +99,7 @@ def _canvas_rgb8(path_or_bytes) -> np.ndarray:
 
 
 def primary_png(role: dict, manifest: dict) -> bytes:
+    import dose
     png = dose.to_png(_canvas_rgb8(THINGS / "cc0" / "object_images_CC0" / role["thingsplus_image"]))
     if sha(png) != manifest[role["concept"]]["clean_canvas"]["png_sha256"]:
         raise SystemExit(f"refused: {role['concept']}: the primary canvas is not the manifest's clean canvas")
@@ -108,10 +107,13 @@ def primary_png(role: dict, manifest: dict) -> bytes:
 
 
 def candidate_png(cid: str) -> bytes:
+    import dose
     return dose.to_png(_canvas_rgb8(SRC.load_pinned(cid)))
 
 
 def pair_png(primary: bytes, cand: bytes) -> bytes:
+    import dose
+    import numpy as np
     from PIL import Image
     a = np.asarray(Image.open(io.BytesIO(primary)).convert("RGB"))
     b = np.asarray(Image.open(io.BytesIO(cand)).convert("RGB"))
@@ -284,6 +286,30 @@ def check(k, chained: dict | None) -> dict:
     return {"round": k, "set_sha256": sha(set_b), "key_sha256": sha(key_b)}
 
 
+def derive_hashes(k: int, chained_file: Path) -> dict:
+    """For the scorer (which runs under .venv-build and has no canvas pipeline): round k's set and key hashes derived,
+    under THIS image venv, from a chain the scorer has already authenticated (passed as JSON), and every item file
+    hashed against its request."""
+    import ai_audit_exec as A
+    k = A.require_round(k)
+    chained = json.loads(Path(chained_file).read_text()) if k > 1 else None
+    if chained is not None:
+        chained["priors"] = {int(j): v for j, v in chained["priors"].items()}
+        chained["evidence"] = {int(j): v for j, v in chained["evidence"].items()}
+    set_b, key_b = derive(k, chained, write=False)
+    for r in json.loads(set_b)["requests"]:
+        if sha((ITEMS / r["file"]).read_bytes()) != r["sha256"]:
+            raise SystemExit(f"refused: item file {r['file']} differs from its request")
+    return {"round": k, "set_sha256": sha(set_b), "key_sha256": sha(key_b)}
+
+
 if __name__ == "__main__":
     cmd, k = sys.argv[1], int(sys.argv[2])
-    sys.exit(build(k) if cmd == "build" else (print(json.dumps(check(k, _chained(k)))) or 0))
+    if cmd == "build":
+        sys.exit(build(k))
+    elif cmd == "check":
+        print(json.dumps(check(k, _chained(k))))
+    elif cmd == "derive-hashes":
+        print(json.dumps(derive_hashes(k, Path(sys.argv[3]))))
+    else:
+        raise SystemExit("usage: ai_audit_set.py build|check|derive-hashes <k> [chain.json]")

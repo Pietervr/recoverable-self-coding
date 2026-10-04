@@ -113,7 +113,7 @@ def admit(k: int, *, allow_synthetic: bool = False, fixture: dict | None = None)
     if digest != pkg["package_digest"]:
         raise SystemExit("refused: the journal's package digest is not the audit package recomputed now")
     stage_a_guard.require_go(A.GO, pkg, row=A.ROW, stage=A.STAGE, verify_at_commit=A.package_at_commit)
-    S.check(k, chained["priors"])
+    set_info = check_set_in_image_venv(k, chained)
     sset = json.loads(S.set_path(k).read_text())
     deliv = json.loads(A.delivery_path(k).read_text())
     A.check_delivery(sset, deliv, pkg["instructions_sha256"])
@@ -172,6 +172,33 @@ def resolve(scores: dict, decisions: dict) -> dict:
                         "failed_candidates_pending_owner": pending,
                         "per_image_check": kept["item"] if kept else None}
     return out
+
+
+IMAGE_PY = HERE.parents[1] / ".venv-image" / "bin" / "python"
+
+
+def check_set_in_image_venv(k: int, chained: dict) -> dict:
+    """Round k's set, key and delivery are tracked, clean and byte-equal to their commits, and the set and key equal
+    their derivation from the AUTHENTICATED chain - derived by the bound set builder under the image venv (the canvas
+    pipeline's pinned numpy and Pillow), which this .venv-build process does not have."""
+    import subprocess
+    import tempfile
+    for p in (S.set_path(k), S.key_path(k), A.delivery_path(k)):
+        committed(p)
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as t:
+        json.dump({"round": k, "priors": chained["priors"], "evidence": chained["evidence"]}, t)
+    try:
+        got = subprocess.run([str(IMAGE_PY), str(HERE / "ai_audit_set.py"), "derive-hashes", str(k), t.name],
+                             capture_output=True, text=True, timeout=A.VERIFY_TIMEOUT_S)
+    finally:
+        Path(t.name).unlink(missing_ok=True)
+    if got.returncode != 0:
+        raise SystemExit(f"refused: round {k}'s set derivation failed: {got.stderr.strip()[-600:]}")
+    d = json.loads(got.stdout.strip().splitlines()[-1])
+    if (d.get("round"), d.get("set_sha256"), d.get("key_sha256")) != (k, sha(S.set_path(k).read_bytes()),
+                                                                       sha(S.key_path(k).read_bytes())):
+        raise SystemExit(f"refused: round {k}'s set or key differs from its derivation from the admitted chain")
+    return d
 
 
 def serialise(out: dict) -> bytes:

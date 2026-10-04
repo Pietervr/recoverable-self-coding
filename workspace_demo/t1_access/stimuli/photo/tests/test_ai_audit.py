@@ -372,6 +372,35 @@ class Pure(unittest.TestCase):
                 A.check_delivery(sset, bad, "i")
 
 
+class CrossVenvSetCheck(unittest.TestCase):
+    """The scorer (.venv-build, no canvas pipeline) has the bound set builder re-derive round k's set and key under the
+    image venv and compares their hashes with the committed files (live round 1: committed at the package commit)."""
+
+    def test_committed_round1_set_and_key_rederive_in_the_image_venv(self):
+        d = SC.check_set_in_image_venv(1, {"priors": {}, "evidence": {}})
+        self.assertEqual(d["set_sha256"], sha(S.set_path(1).read_bytes()))
+
+    def test_a_different_set_file_refuses(self):
+        td = Path(tempfile.mkdtemp())
+        orig = S.set_path
+        try:
+            subprocess.run(["git", "-C", str(td), "init", "-q"], check=True)
+            alt = td / "ai_audit_set_r1.json"
+            text = orig(1).read_text()
+            self.assertIn('"n_requests": 224', text)
+            alt.write_text(text.replace('"n_requests": 224', '"n_requests": 225', 1))
+            subprocess.run(["git", "-C", str(td), "add", alt.name], check=True)
+            subprocess.run(["git", "-C", str(td), "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q",
+                            "-m", "x"], check=True)
+            S.set_path = lambda k: alt
+            with self.assertRaises(SystemExit) as cm:
+                SC.check_set_in_image_venv(1, {"priors": {}, "evidence": {}})
+            self.assertIn("differs from its derivation", str(cm.exception.code))
+        finally:
+            S.set_path = orig
+            shutil.rmtree(td, ignore_errors=True)
+
+
 def _items(*rows):
     return {"items": {i: {"concept": c, "kind": kind, "rank": rank, "passed_by_reader": ok}
                       for i, c, kind, rank, ok in rows}}
