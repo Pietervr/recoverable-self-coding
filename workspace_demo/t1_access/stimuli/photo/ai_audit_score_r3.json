@@ -1,0 +1,2179 @@
+{
+ "candidates_failed_listed_for_owner": [
+  {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "059.77a52e8eabce.1",
+     "code": "YES",
+     "delivered_sha256": "9b9e55c2cd15e64945e9025281b3bb5a4ac080653997d7c2cce2b98240ee7b1a",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "77a52e8eabce",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 5,
+     "answer_sha256": "5c3967e73c04beef39bcdecfeea6e9238b48821f4fe33b803fa14750533ed678",
+     "attempt_id": "029.ddb21ba56378.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "78112bf11f54b9d1ea7586a16cc59c099c0216b8d3504e0ca8d9f71bc8763cfe",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Woman",
+     "request": "ddb21ba56378",
+     "rule": "S1:woman"
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "039.23b7e15db45d.1",
+     "code": "YES",
+     "delivered_sha256": "78112bf11f54b9d1ea7586a16cc59c099c0216b8d3504e0ca8d9f71bc8763cfe",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "23b7e15db45d",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "049.6eaa81889a4b.1",
+     "code": "NO",
+     "delivered_sha256": "78112bf11f54b9d1ea7586a16cc59c099c0216b8d3504e0ca8d9f71bc8763cfe",
+     "pass": false,
+     "prompt_sha256": "a0ac220e5dff9379d1da9dcdd22476fcece44ddad04f43d3a45c8ff7aaa0d177",
+     "raw": "no",
+     "request": "6eaa81889a4b",
+     "rule": null
+    }
+   },
+   "candidate": {
+    "licence_statement": "CC0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:Prune_Antoine.png",
+    "rank": 3,
+    "title": "File:Prune Antoine.png"
+   },
+   "commons_original_sha1": "52f6891cf3ec0e815929645a2a2168fcdbd2901c",
+   "concept": "prune",
+   "disposition": null,
+   "family": "foods",
+   "human_n_correct": null,
+   "human_n_ratings": null,
+   "human_recognizability": null,
+   "item": "14ce26a64ad3",
+   "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+   "owner_date": null,
+   "owner_decision": null,
+   "owner_evidence": null,
+   "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+   "png_sha256": "78112bf11f54b9d1ea7586a16cc59c099c0216b8d3504e0ca8d9f71bc8763cfe",
+   "question_order": [
+    "name",
+    "photograph",
+    "sense",
+    "distinct"
+   ],
+   "raw_commit": "1afa2d4ee485f8c580b77c27fcbf86efd6eab2c6",
+   "raw_sha256": "92aad985835bca8bc8cda84e604b2687511ddd0d05a94b86aff56c4341699dcb",
+   "reader_scope": "Reader ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS (job (c), RSC 0f3af76; the owner's adjudication record reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md), on the third pass over an exposed qualification panel: evidence for the prospective rule, not a blind calibration. This audit is the reader's first use on unseen candidate images. Partial stdout text is never an answer; the capacity detector covers visible retained capacity text only (Codex 410b580). A reader pass is a bounded claim about this stimulus and question, not human equivalence.",
+   "reasons": [
+    "name:ERR_NONMATCH",
+    "sense:NO"
+   ],
+   "role": "DEV-PILOT",
+   "round": 3,
+   "scorer_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+   "sense": "dried plum",
+   "set_sha256": "872b455d283204a47caa4cd70a3bcb7d8ba95754e0aba4b80ef4a19a9350e3bb",
+   "source_sha256": "af0ec7d93df8fce83bb302e7954defcf029f95f5f47b7c86055b57e1211aed44",
+   "synset": "prune.n.01",
+   "view": "second"
+  },
+  {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "018.2ac85870d7a0.1",
+     "code": "YES",
+     "delivered_sha256": "4ad99eb60ccc6e6cf123992783c0998573a27dc64070365da0521d1822fb24ea",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "2ac85870d7a0",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 3,
+     "answer_sha256": "5847d11084f33f8fad262951ea3c2afedf1a2232e2ff0089345c917457f8bc2c",
+     "attempt_id": "003.fb19a395975d.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "946aaa0cc73c341155122f10f15dd74fb77641e40add1310652d78f95fdf490b",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Pot",
+     "request": "fb19a395975d",
+     "rule": "S1:pot"
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "008.f2ab95da08c3.1",
+     "code": "YES",
+     "delivered_sha256": "946aaa0cc73c341155122f10f15dd74fb77641e40add1310652d78f95fdf490b",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "f2ab95da08c3",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "013.d05306d51a19.1",
+     "code": "YES",
+     "delivered_sha256": "946aaa0cc73c341155122f10f15dd74fb77641e40add1310652d78f95fdf490b",
+     "pass": true,
+     "prompt_sha256": "6bd97a4ba7a1a5be42f16034028e5a23ad8e33bfec60d3e011dcc350d685c63e",
+     "raw": "yes",
+     "request": "d05306d51a19",
+     "rule": null
+    }
+   },
+   "candidate": {
+    "licence_statement": "CC0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:Chili_con_carne_50_A.jpg",
+    "rank": 3,
+    "title": "File:Chili con carne 50 A.jpg"
+   },
+   "commons_original_sha1": "518ad303ecc979ce7653e3d7cb4bb612b65cc30a",
+   "concept": "chili",
+   "disposition": null,
+   "family": "foods",
+   "human_n_correct": null,
+   "human_n_ratings": null,
+   "human_recognizability": null,
+   "item": "446e067734e1",
+   "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+   "owner_date": null,
+   "owner_decision": null,
+   "owner_evidence": null,
+   "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+   "png_sha256": "946aaa0cc73c341155122f10f15dd74fb77641e40add1310652d78f95fdf490b",
+   "question_order": [
+    "name",
+    "photograph",
+    "sense",
+    "distinct"
+   ],
+   "raw_commit": "1afa2d4ee485f8c580b77c27fcbf86efd6eab2c6",
+   "raw_sha256": "92aad985835bca8bc8cda84e604b2687511ddd0d05a94b86aff56c4341699dcb",
+   "reader_scope": "Reader ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS (job (c), RSC 0f3af76; the owner's adjudication record reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md), on the third pass over an exposed qualification panel: evidence for the prospective rule, not a blind calibration. This audit is the reader's first use on unseen candidate images. Partial stdout text is never an answer; the capacity detector covers visible retained capacity text only (Codex 410b580). A reader pass is a bounded claim about this stimulus and question, not human equivalence.",
+   "reasons": [
+    "name:ERR_NONMATCH"
+   ],
+   "role": "DEV-CAL",
+   "round": 3,
+   "scorer_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+   "sense": "ground beef and chili peppers or chili powder often with tomatoes and kidney beans",
+   "set_sha256": "872b455d283204a47caa4cd70a3bcb7d8ba95754e0aba4b80ef4a19a9350e3bb",
+   "source_sha256": "ce5d30fa7bdc64c64d6e9733f9857fd93f5a607f56bec9581189870557645cbc",
+   "synset": "chili.n.01",
+   "view": "second"
+  },
+  {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "020.9bb6751a5fbf.1",
+     "code": "YES",
+     "delivered_sha256": "cfc9d6cfdf8e34283bafed4fe01bb3af04d5ab6751cea9d341c57cd4993af953",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "9bb6751a5fbf",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 3,
+     "answer_sha256": "a5cdf07dbbc15892dcb64f1553ebb474330393705ce470b22f0194f582234371",
+     "attempt_id": "005.c37d8496a4fb.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "555fc61e496053f76999d2eda4c8e17c0809f9f571fa50111f87fae5e50790b3",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Car",
+     "request": "c37d8496a4fb",
+     "rule": "S1:car"
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "010.02bad0ffa0bc.1",
+     "code": "YES",
+     "delivered_sha256": "555fc61e496053f76999d2eda4c8e17c0809f9f571fa50111f87fae5e50790b3",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "02bad0ffa0bc",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "015.510b0f63d306.1",
+     "code": "NO",
+     "delivered_sha256": "555fc61e496053f76999d2eda4c8e17c0809f9f571fa50111f87fae5e50790b3",
+     "pass": false,
+     "prompt_sha256": "8dd4b2d75e8fb4c692b0ec33b3ef7de6aaacacd8855ed44361780ed7fc7fc99a",
+     "raw": "no",
+     "request": "510b0f63d306",
+     "rule": null
+    }
+   },
+   "candidate": {
+    "licence_statement": "CC0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:2012_Holden_Calais_V_Wagon_(VE_II).jpg",
+    "rank": 3,
+    "title": "File:2012 Holden Calais V Wagon (VE II).jpg"
+   },
+   "commons_original_sha1": "7276093097ae4d76c1f83ec0333bb303265ee9a3",
+   "concept": "wagon",
+   "disposition": null,
+   "family": "vehicles",
+   "human_n_correct": null,
+   "human_n_ratings": null,
+   "human_recognizability": null,
+   "item": "4d22188f0241",
+   "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+   "owner_date": null,
+   "owner_decision": null,
+   "owner_evidence": null,
+   "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+   "png_sha256": "555fc61e496053f76999d2eda4c8e17c0809f9f571fa50111f87fae5e50790b3",
+   "question_order": [
+    "name",
+    "photograph",
+    "sense",
+    "distinct"
+   ],
+   "raw_commit": "1afa2d4ee485f8c580b77c27fcbf86efd6eab2c6",
+   "raw_sha256": "92aad985835bca8bc8cda84e604b2687511ddd0d05a94b86aff56c4341699dcb",
+   "reader_scope": "Reader ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS (job (c), RSC 0f3af76; the owner's adjudication record reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md), on the third pass over an exposed qualification panel: evidence for the prospective rule, not a blind calibration. This audit is the reader's first use on unseen candidate images. Partial stdout text is never an answer; the capacity detector covers visible retained capacity text only (Codex 410b580). A reader pass is a bounded claim about this stimulus and question, not human equivalence.",
+   "reasons": [
+    "name:ERR_NONMATCH",
+    "sense:NO"
+   ],
+   "role": "DEV-CAL",
+   "round": 3,
+   "scorer_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+   "sense": "any of various kinds of wheeled vehicles drawn by an animal or a tractor",
+   "set_sha256": "872b455d283204a47caa4cd70a3bcb7d8ba95754e0aba4b80ef4a19a9350e3bb",
+   "source_sha256": "d88bbf21e08f59ab4d932847cb93e8ee6bdc6366ce633713fd33a97858b8cabe",
+   "synset": "wagon.n.01",
+   "view": "second"
+  },
+  {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "060.d99c507f0327.1",
+     "code": "YES",
+     "delivered_sha256": "5162fecf9987182feea444e172798aef48f49d03095e24444337d47b10445145",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "d99c507f0327",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 8,
+     "answer_sha256": "93bb38e81b0106463882aeb8bff38e1bfc0fcd2fc04778e40827432263bc6bc6",
+     "attempt_id": "030.27c8e7aded38.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "347c61b7c7377f89889eafb310c034923e01f09a7925cad85f10bfc491a3fc11",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Airplane",
+     "request": "27c8e7aded38",
+     "rule": "S1:airplane"
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "040.e62e8e64a935.1",
+     "code": "YES",
+     "delivered_sha256": "347c61b7c7377f89889eafb310c034923e01f09a7925cad85f10bfc491a3fc11",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "e62e8e64a935",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "050.5fb2ced84dfe.1",
+     "code": "YES",
+     "delivered_sha256": "347c61b7c7377f89889eafb310c034923e01f09a7925cad85f10bfc491a3fc11",
+     "pass": true,
+     "prompt_sha256": "32379f1ccc81e7a2a1ecb43a6f116e8dfb82c73bf3eaacc32c0ea232e04112f2",
+     "raw": "yes",
+     "request": "5fb2ced84dfe",
+     "rule": null
+    }
+   },
+   "candidate": {
+    "licence_statement": "CC0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:Czech_Airlines_(lsd_by_SpiceJet)_OK-MEL_at_Bangalore,_Sept_2015.jpg",
+    "rank": 3,
+    "title": "File:Czech Airlines (lsd by SpiceJet) OK-MEL at Bangalore, Sept 2015.jpg"
+   },
+   "commons_original_sha1": "dbc1cfad50a1d59a9b51db66346a9f3ba57d95bd",
+   "concept": "jet",
+   "disposition": null,
+   "family": "vehicles",
+   "human_n_correct": null,
+   "human_n_ratings": null,
+   "human_recognizability": null,
+   "item": "5ed480f02c10",
+   "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+   "owner_date": null,
+   "owner_decision": null,
+   "owner_evidence": null,
+   "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+   "png_sha256": "347c61b7c7377f89889eafb310c034923e01f09a7925cad85f10bfc491a3fc11",
+   "question_order": [
+    "name",
+    "photograph",
+    "sense",
+    "distinct"
+   ],
+   "raw_commit": "1afa2d4ee485f8c580b77c27fcbf86efd6eab2c6",
+   "raw_sha256": "92aad985835bca8bc8cda84e604b2687511ddd0d05a94b86aff56c4341699dcb",
+   "reader_scope": "Reader ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS (job (c), RSC 0f3af76; the owner's adjudication record reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md), on the third pass over an exposed qualification panel: evidence for the prospective rule, not a blind calibration. This audit is the reader's first use on unseen candidate images. Partial stdout text is never an answer; the capacity detector covers visible retained capacity text only (Codex 410b580). A reader pass is a bounded claim about this stimulus and question, not human equivalence.",
+   "reasons": [
+    "name:ERR_NONMATCH"
+   ],
+   "role": "DEV-PILOT",
+   "round": 3,
+   "scorer_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+   "sense": "an airplane powered by one or more jet engines",
+   "set_sha256": "872b455d283204a47caa4cd70a3bcb7d8ba95754e0aba4b80ef4a19a9350e3bb",
+   "source_sha256": "b5efbeee834c9e7f833f3c0f9456da1b948d26403c03caaa43dfdaef36c79e71",
+   "synset": "jet.n.01",
+   "view": "second"
+  },
+  {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "053.85dbdef73a7b.1",
+     "code": "YES",
+     "delivered_sha256": "3a812e084063e8b6dca26ea5447a0202370cb6dc2a78a5c453f8e2e1ba501339",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "85dbdef73a7b",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 6,
+     "answer_sha256": "6007db63e18e532c7399975ed77d2e3900810aa75cad165b8d2e5d8b08085c3d",
+     "attempt_id": "023.a2f06ed2ce6b.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "4918b9aa0a7b1886a989dbac5a9b6d60365dc7b4ebd3e4c9d791c93c498f6ecc",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Person",
+     "request": "a2f06ed2ce6b",
+     "rule": null
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "033.cbe0bc114bfe.1",
+     "code": "YES",
+     "delivered_sha256": "4918b9aa0a7b1886a989dbac5a9b6d60365dc7b4ebd3e4c9d791c93c498f6ecc",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "cbe0bc114bfe",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "043.b059ae8474fe.1",
+     "code": "YES",
+     "delivered_sha256": "4918b9aa0a7b1886a989dbac5a9b6d60365dc7b4ebd3e4c9d791c93c498f6ecc",
+     "pass": true,
+     "prompt_sha256": "d9044260c38020fc57638f11f0657375fa6d5102669f14771ffc1eac5372eeda",
+     "raw": "yes",
+     "request": "b059ae8474fe",
+     "rule": null
+    }
+   },
+   "candidate": {
+    "licence_statement": "CC0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:Person_in_winter_clothing_in_Quebec_City.jpg",
+    "rank": 3,
+    "title": "File:Person in winter clothing in Quebec City.jpg"
+   },
+   "commons_original_sha1": "e926af1a1f8fd2f44897f9655b859e5a1f3d60f7",
+   "concept": "hat",
+   "disposition": null,
+   "family": "clothing",
+   "human_n_correct": null,
+   "human_n_ratings": null,
+   "human_recognizability": null,
+   "item": "70b8f3c06c83",
+   "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+   "owner_date": null,
+   "owner_decision": null,
+   "owner_evidence": null,
+   "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+   "png_sha256": "4918b9aa0a7b1886a989dbac5a9b6d60365dc7b4ebd3e4c9d791c93c498f6ecc",
+   "question_order": [
+    "name",
+    "photograph",
+    "sense",
+    "distinct"
+   ],
+   "raw_commit": "1afa2d4ee485f8c580b77c27fcbf86efd6eab2c6",
+   "raw_sha256": "92aad985835bca8bc8cda84e604b2687511ddd0d05a94b86aff56c4341699dcb",
+   "reader_scope": "Reader ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS (job (c), RSC 0f3af76; the owner's adjudication record reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md), on the third pass over an exposed qualification panel: evidence for the prospective rule, not a blind calibration. This audit is the reader's first use on unseen candidate images. Partial stdout text is never an answer; the capacity detector covers visible retained capacity text only (Codex 410b580). A reader pass is a bounded claim about this stimulus and question, not human equivalence.",
+   "reasons": [
+    "name:ERR_NONMATCH"
+   ],
+   "role": "DEV-PILOT",
+   "round": 3,
+   "scorer_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+   "sense": "headdress that protects the head from bad weather; has shaped crown and usually a brim",
+   "set_sha256": "872b455d283204a47caa4cd70a3bcb7d8ba95754e0aba4b80ef4a19a9350e3bb",
+   "source_sha256": "10c64b4a4398fcc6543c41fa2d5ee04e24b984eee00fbf3c02dc25979e57fb41",
+   "synset": "hat.n.01",
+   "view": "second"
+  },
+  {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "056.b183e5e14186.1",
+     "code": "YES",
+     "delivered_sha256": "9110afb1766d3b538d16b3e4a9b52e0f27ba55bb0a1d7203785c0ef12a5d045c",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "b183e5e14186",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 10,
+     "answer_sha256": "15a689d9051fc1c04e514cabe0586c7eee383ee1740429a9f06d7317306d7c46",
+     "attempt_id": "026.fbb4e016c6a5.1",
+     "code": "OK_CONTAINS",
+     "delivered_sha256": "f8618ffc8bf344dea32f1df0f6e777116fc31ada9ffd1151fd91c115d947f50a",
+     "pass": true,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "TIE bomber",
+     "request": "fbb4e016c6a5",
+     "rule": "contains"
+    },
+    "photograph": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "036.cbd29e17aa98.1",
+     "code": "NO",
+     "delivered_sha256": "f8618ffc8bf344dea32f1df0f6e777116fc31ada9ffd1151fd91c115d947f50a",
+     "pass": false,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "no",
+     "request": "cbd29e17aa98",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "046.b318299452ef.1",
+     "code": "NO",
+     "delivered_sha256": "f8618ffc8bf344dea32f1df0f6e777116fc31ada9ffd1151fd91c115d947f50a",
+     "pass": false,
+     "prompt_sha256": "a864856a2c721ac98ce1351afca9029f56ddcd23c8b538e97e9c96d3d1905f4d",
+     "raw": "no",
+     "request": "b318299452ef",
+     "rule": null
+    }
+   },
+   "candidate": {
+    "licence_statement": "CC0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:TIE_bomber.webp",
+    "rank": 3,
+    "title": "File:TIE bomber.webp"
+   },
+   "commons_original_sha1": "3603008ccb72803f1bf02e1f593beb2d7744c77b",
+   "concept": "tie",
+   "disposition": null,
+   "family": "clothing",
+   "human_n_correct": null,
+   "human_n_ratings": null,
+   "human_recognizability": null,
+   "item": "94bcba8f8f72",
+   "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+   "owner_date": null,
+   "owner_decision": null,
+   "owner_evidence": null,
+   "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+   "png_sha256": "f8618ffc8bf344dea32f1df0f6e777116fc31ada9ffd1151fd91c115d947f50a",
+   "question_order": [
+    "name",
+    "photograph",
+    "sense",
+    "distinct"
+   ],
+   "raw_commit": "1afa2d4ee485f8c580b77c27fcbf86efd6eab2c6",
+   "raw_sha256": "92aad985835bca8bc8cda84e604b2687511ddd0d05a94b86aff56c4341699dcb",
+   "reader_scope": "Reader ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS (job (c), RSC 0f3af76; the owner's adjudication record reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md), on the third pass over an exposed qualification panel: evidence for the prospective rule, not a blind calibration. This audit is the reader's first use on unseen candidate images. Partial stdout text is never an answer; the capacity detector covers visible retained capacity text only (Codex 410b580). A reader pass is a bounded claim about this stimulus and question, not human equivalence.",
+   "reasons": [
+    "photograph:NO",
+    "sense:NO"
+   ],
+   "role": "DEV-PILOT",
+   "round": 3,
+   "scorer_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+   "sense": "neckwear consisting of a long narrow piece of material worn (mostly by men) under a collar and tied in knot at the front",
+   "set_sha256": "872b455d283204a47caa4cd70a3bcb7d8ba95754e0aba4b80ef4a19a9350e3bb",
+   "source_sha256": "d19f149f3c6ea9e1e585233b82b6878e2a324e9e1dd43ce58308c3e524a087a4",
+   "synset": "necktie.n.01",
+   "view": "second"
+  },
+  {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "054.35d3dbb32b4e.1",
+     "code": "YES",
+     "delivered_sha256": "a804f00e67b2ee3697fbec8af4d04d16beb6eda2753fd162c41ea08d8691600f",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "35d3dbb32b4e",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 5,
+     "answer_sha256": "5c3967e73c04beef39bcdecfeea6e9238b48821f4fe33b803fa14750533ed678",
+     "attempt_id": "024.b1e1cafec64b.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "e3621d1dc21171cd9e672f8c727398f544158ebcdc245e7c81433e89b2f13494",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Woman",
+     "request": "b1e1cafec64b",
+     "rule": "S1:woman"
+    },
+    "photograph": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "034.7dbe0ed12768.1",
+     "code": "NO",
+     "delivered_sha256": "e3621d1dc21171cd9e672f8c727398f544158ebcdc245e7c81433e89b2f13494",
+     "pass": false,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "no",
+     "request": "7dbe0ed12768",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "044.941555a9129e.1",
+     "code": "YES",
+     "delivered_sha256": "e3621d1dc21171cd9e672f8c727398f544158ebcdc245e7c81433e89b2f13494",
+     "pass": true,
+     "prompt_sha256": "f0d19112adc3fbb41e79d5e7e708b532806677e27b0d0d55ccc01e8a5682505c",
+     "raw": "yes",
+     "request": "941555a9129e",
+     "rule": null
+    }
+   },
+   "candidate": {
+    "licence_statement": "CC0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:Lingerie.tif",
+    "rank": 3,
+    "title": "File:Lingerie.tif"
+   },
+   "commons_original_sha1": "270921cc5207faabc19a1042dc4b185721b823b4",
+   "concept": "lingerie",
+   "disposition": null,
+   "family": "clothing",
+   "human_n_correct": null,
+   "human_n_ratings": null,
+   "human_recognizability": null,
+   "item": "b29cc17c61ce",
+   "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+   "owner_date": null,
+   "owner_decision": null,
+   "owner_evidence": null,
+   "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+   "png_sha256": "e3621d1dc21171cd9e672f8c727398f544158ebcdc245e7c81433e89b2f13494",
+   "question_order": [
+    "name",
+    "photograph",
+    "sense",
+    "distinct"
+   ],
+   "raw_commit": "1afa2d4ee485f8c580b77c27fcbf86efd6eab2c6",
+   "raw_sha256": "92aad985835bca8bc8cda84e604b2687511ddd0d05a94b86aff56c4341699dcb",
+   "reader_scope": "Reader ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS (job (c), RSC 0f3af76; the owner's adjudication record reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md), on the third pass over an exposed qualification panel: evidence for the prospective rule, not a blind calibration. This audit is the reader's first use on unseen candidate images. Partial stdout text is never an answer; the capacity detector covers visible retained capacity text only (Codex 410b580). A reader pass is a bounded claim about this stimulus and question, not human equivalence.",
+   "reasons": [
+    "name:ERR_NONMATCH",
+    "photograph:NO"
+   ],
+   "role": "DEV-CAL",
+   "round": 3,
+   "scorer_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+   "sense": "women's underwear and nightclothes",
+   "set_sha256": "872b455d283204a47caa4cd70a3bcb7d8ba95754e0aba4b80ef4a19a9350e3bb",
+   "source_sha256": "a91cde85cc8df2646b1545fc6b9a2f1e4ced7aa30988bae04b3c635d04abe1d6",
+   "synset": "lingerie.n.01",
+   "view": "second"
+  },
+  {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "055.6bfbb45a76aa.1",
+     "code": "YES",
+     "delivered_sha256": "d72f17d0dc65feee337e48f0697ee44b95c26232a0c2a7e559845438b673e08c",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "6bfbb45a76aa",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 5,
+     "answer_sha256": "c1624a26107e1a301a54e536e1313c121b4db310913fe9c653caf352645821a2",
+     "attempt_id": "025.96cc54acaa15.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "360c57d238286b2466e55d9a4951dd7339b5cff46ffe84f98c61f367e7a8934c",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Beach",
+     "request": "96cc54acaa15",
+     "rule": null
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "035.ee9daa836490.1",
+     "code": "YES",
+     "delivered_sha256": "360c57d238286b2466e55d9a4951dd7339b5cff46ffe84f98c61f367e7a8934c",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "ee9daa836490",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "045.de82d206dc9c.1",
+     "code": "NO",
+     "delivered_sha256": "360c57d238286b2466e55d9a4951dd7339b5cff46ffe84f98c61f367e7a8934c",
+     "pass": false,
+     "prompt_sha256": "7cea0f376884282eaa6b61334814f192b68c86efb287dba9ae63b873e1c47b5c",
+     "raw": "no",
+     "request": "de82d206dc9c",
+     "rule": null
+    }
+   },
+   "candidate": {
+    "licence_statement": "CC0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:South_East_drainage_-_drain_L_outlet_at_Robe(GN10993).jpg",
+    "rank": 3,
+    "title": "File:South East drainage - drain L outlet at Robe(GN10993).jpg"
+   },
+   "commons_original_sha1": "98862ae01c68430a426d9f3fe2de2b84038f4d4b",
+   "concept": "robe",
+   "disposition": null,
+   "family": "clothing",
+   "human_n_correct": null,
+   "human_n_ratings": null,
+   "human_recognizability": null,
+   "item": "c99711f30a4c",
+   "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+   "owner_date": null,
+   "owner_decision": null,
+   "owner_evidence": null,
+   "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+   "png_sha256": "360c57d238286b2466e55d9a4951dd7339b5cff46ffe84f98c61f367e7a8934c",
+   "question_order": [
+    "name",
+    "photograph",
+    "sense",
+    "distinct"
+   ],
+   "raw_commit": "1afa2d4ee485f8c580b77c27fcbf86efd6eab2c6",
+   "raw_sha256": "92aad985835bca8bc8cda84e604b2687511ddd0d05a94b86aff56c4341699dcb",
+   "reader_scope": "Reader ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS (job (c), RSC 0f3af76; the owner's adjudication record reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md), on the third pass over an exposed qualification panel: evidence for the prospective rule, not a blind calibration. This audit is the reader's first use on unseen candidate images. Partial stdout text is never an answer; the capacity detector covers visible retained capacity text only (Codex 410b580). A reader pass is a bounded claim about this stimulus and question, not human equivalence.",
+   "reasons": [
+    "name:ERR_NONMATCH",
+    "sense:NO"
+   ],
+   "role": "DEV-PILOT",
+   "round": 3,
+   "scorer_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+   "sense": "any loose flowing garment",
+   "set_sha256": "872b455d283204a47caa4cd70a3bcb7d8ba95754e0aba4b80ef4a19a9350e3bb",
+   "source_sha256": "4bfafd33b81b8c25f4e5e4b68e5c8ad56f0892016459effbdf53bcf5120bca63",
+   "synset": "robe.n.01",
+   "view": "second"
+  },
+  {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "019.a70b78b9ae75.1",
+     "code": "YES",
+     "delivered_sha256": "3c60c4dd3f1ce3177060297e4ff512dd82ca0337d780e1edd71a29470d0192ca",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "a70b78b9ae75",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 4,
+     "answer_sha256": "5a72462e41abad14bf6fafa37461fbed95a867c0540b21c29856964add499312",
+     "attempt_id": "004.8fca8564e01c.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "25857c257f16e699029301433db5b127aec0523eb130beb9a35a834491d3ba67",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Tram",
+     "request": "8fca8564e01c",
+     "rule": null
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "009.02be1e5fe624.1",
+     "code": "YES",
+     "delivered_sha256": "25857c257f16e699029301433db5b127aec0523eb130beb9a35a834491d3ba67",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "02be1e5fe624",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "014.02fa5c9095cc.1",
+     "code": "YES",
+     "delivered_sha256": "25857c257f16e699029301433db5b127aec0523eb130beb9a35a834491d3ba67",
+     "pass": true,
+     "prompt_sha256": "babe27a8af9d0732e295230e36808dc304b506af8fb61bbe61cf249f33a5e85c",
+     "raw": "yes",
+     "request": "02fa5c9095cc",
+     "rule": null
+    }
+   },
+   "candidate": {
+    "licence_statement": "CC0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:Taxi_Hype_au_Mans.jpg",
+    "rank": 3,
+    "title": "File:Taxi Hype au Mans.jpg"
+   },
+   "commons_original_sha1": "5ec94ac4d9fedb71e90c923231495d4d96bdc645",
+   "concept": "taxi",
+   "disposition": null,
+   "family": "vehicles",
+   "human_n_correct": null,
+   "human_n_ratings": null,
+   "human_recognizability": null,
+   "item": "cee26805b761",
+   "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+   "owner_date": null,
+   "owner_decision": null,
+   "owner_evidence": null,
+   "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+   "png_sha256": "25857c257f16e699029301433db5b127aec0523eb130beb9a35a834491d3ba67",
+   "question_order": [
+    "name",
+    "photograph",
+    "sense",
+    "distinct"
+   ],
+   "raw_commit": "1afa2d4ee485f8c580b77c27fcbf86efd6eab2c6",
+   "raw_sha256": "92aad985835bca8bc8cda84e604b2687511ddd0d05a94b86aff56c4341699dcb",
+   "reader_scope": "Reader ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS (job (c), RSC 0f3af76; the owner's adjudication record reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md), on the third pass over an exposed qualification panel: evidence for the prospective rule, not a blind calibration. This audit is the reader's first use on unseen candidate images. Partial stdout text is never an answer; the capacity detector covers visible retained capacity text only (Codex 410b580). A reader pass is a bounded claim about this stimulus and question, not human equivalence.",
+   "reasons": [
+    "name:ERR_NONMATCH"
+   ],
+   "role": "DEV-CAL",
+   "round": 3,
+   "scorer_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+   "sense": "a car driven by a person whose job is to take passengers where they want to go in exchange for money",
+   "set_sha256": "872b455d283204a47caa4cd70a3bcb7d8ba95754e0aba4b80ef4a19a9350e3bb",
+   "source_sha256": "d044d7fabbd12a188776a3937fc2553ad892dd3a816ad6306bb1f7f35a862efa",
+   "synset": "cab.n.03",
+   "view": "second"
+  },
+  {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "058.bfcd28ad1805.1",
+     "code": "YES",
+     "delivered_sha256": "4f1bf54bd9a46ce4733a6206ce1b7cd5d333ad075563edb9723934f979d6d7c6",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "bfcd28ad1805",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 9,
+     "answer_sha256": "4cc37e66f4d3dbdd97c8929ccc04e75b865dcddbb15907a91027fbcde2713ca9",
+     "attempt_id": "028.6b85f20fb491.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "b3215a101dec50e9f8724f12a94196fd2b4f1bc1444d7f986c4b83fc958dc0ff",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Rice cake",
+     "request": "6b85f20fb491",
+     "rule": null
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "038.b6bf760fd80c.1",
+     "code": "YES",
+     "delivered_sha256": "b3215a101dec50e9f8724f12a94196fd2b4f1bc1444d7f986c4b83fc958dc0ff",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "b6bf760fd80c",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "048.4e1be6e3e645.1",
+     "code": "YES",
+     "delivered_sha256": "b3215a101dec50e9f8724f12a94196fd2b4f1bc1444d7f986c4b83fc958dc0ff",
+     "pass": true,
+     "prompt_sha256": "90d4863fa4caf400d21a93dd211df0d1e4163e45dfb2559397fef2a1df32cae8",
+     "raw": "yes",
+     "request": "4e1be6e3e645",
+     "rule": null
+    }
+   },
+   "candidate": {
+    "licence_statement": "CC0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:%E3%83%9E%E3%83%AB%E3%82%BB%E3%82%A4%E3%82%AD%E3%83%A3%E3%83%A9%E3%83%A1%E3%83%AB.jpg",
+    "rank": 3,
+    "title": "File:マルセイキャラメル.jpg"
+   },
+   "commons_original_sha1": "e52ac284a182cf1348deec7d51c3597afd16e23a",
+   "concept": "caramel",
+   "disposition": null,
+   "family": "foods",
+   "human_n_correct": null,
+   "human_n_ratings": null,
+   "human_recognizability": null,
+   "item": "d713efa1908a",
+   "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+   "owner_date": null,
+   "owner_decision": null,
+   "owner_evidence": null,
+   "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+   "png_sha256": "b3215a101dec50e9f8724f12a94196fd2b4f1bc1444d7f986c4b83fc958dc0ff",
+   "question_order": [
+    "name",
+    "photograph",
+    "sense",
+    "distinct"
+   ],
+   "raw_commit": "1afa2d4ee485f8c580b77c27fcbf86efd6eab2c6",
+   "raw_sha256": "92aad985835bca8bc8cda84e604b2687511ddd0d05a94b86aff56c4341699dcb",
+   "reader_scope": "Reader ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS (job (c), RSC 0f3af76; the owner's adjudication record reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md), on the third pass over an exposed qualification panel: evidence for the prospective rule, not a blind calibration. This audit is the reader's first use on unseen candidate images. Partial stdout text is never an answer; the capacity detector covers visible retained capacity text only (Codex 410b580). A reader pass is a bounded claim about this stimulus and question, not human equivalence.",
+   "reasons": [
+    "name:ERR_NONMATCH"
+   ],
+   "role": "DEV-CAL",
+   "round": 3,
+   "scorer_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+   "sense": "firm chewy candy made from caramelized sugar and butter and milk",
+   "set_sha256": "872b455d283204a47caa4cd70a3bcb7d8ba95754e0aba4b80ef4a19a9350e3bb",
+   "source_sha256": "e46e32a63d549e8792e027654dd29c209377fd0189ec2883beed2da3ffffcd97",
+   "synset": "caramel.n.01",
+   "view": "second"
+  },
+  {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "052.2f06a0354b5b.1",
+     "code": "YES",
+     "delivered_sha256": "3a5648287c11bb9b04fae47c5779a36279e092a2893bcd5b141e82d16798b8e5",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "2f06a0354b5b",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 5,
+     "answer_sha256": "3565f8adfba6fc45e21baf44dbbd3454a04ff77c3d697c6bb5eefa7eca2db0af",
+     "attempt_id": "022.c53b4427385a.1",
+     "code": "OK_WHOLE",
+     "delivered_sha256": "e4afe1c428f4eaecca6eb7235a165271d59f22c0d30e0a28400998ed5f9569ca",
+     "pass": true,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Shark",
+     "request": "c53b4427385a",
+     "rule": "whole"
+    },
+    "photograph": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "032.2e571f1c7a70.1",
+     "code": "NO",
+     "delivered_sha256": "e4afe1c428f4eaecca6eb7235a165271d59f22c0d30e0a28400998ed5f9569ca",
+     "pass": false,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "no",
+     "request": "2e571f1c7a70",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "042.b12e8c7265ce.1",
+     "code": "YES",
+     "delivered_sha256": "e4afe1c428f4eaecca6eb7235a165271d59f22c0d30e0a28400998ed5f9569ca",
+     "pass": true,
+     "prompt_sha256": "d480061395f879d73bf7f7f25578794fc2f7ad0561dc2056eb0918696c617147",
+     "raw": "yes",
+     "request": "b12e8c7265ce",
+     "rule": null
+    }
+   },
+   "candidate": {
+    "licence_statement": "CC0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:Shark-LithoMosaic.jpg",
+    "rank": 3,
+    "title": "File:Shark-LithoMosaic.jpg"
+   },
+   "commons_original_sha1": "a35b464747e5605ee422f4bf4d8e467c99b094eb",
+   "concept": "shark",
+   "disposition": null,
+   "family": "animals",
+   "human_n_correct": null,
+   "human_n_ratings": null,
+   "human_recognizability": null,
+   "item": "d9c0f9b92c1d",
+   "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+   "owner_date": null,
+   "owner_decision": null,
+   "owner_evidence": null,
+   "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+   "png_sha256": "e4afe1c428f4eaecca6eb7235a165271d59f22c0d30e0a28400998ed5f9569ca",
+   "question_order": [
+    "name",
+    "photograph",
+    "sense",
+    "distinct"
+   ],
+   "raw_commit": "1afa2d4ee485f8c580b77c27fcbf86efd6eab2c6",
+   "raw_sha256": "92aad985835bca8bc8cda84e604b2687511ddd0d05a94b86aff56c4341699dcb",
+   "reader_scope": "Reader ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS (job (c), RSC 0f3af76; the owner's adjudication record reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md), on the third pass over an exposed qualification panel: evidence for the prospective rule, not a blind calibration. This audit is the reader's first use on unseen candidate images. Partial stdout text is never an answer; the capacity detector covers visible retained capacity text only (Codex 410b580). A reader pass is a bounded claim about this stimulus and question, not human equivalence.",
+   "reasons": [
+    "photograph:NO"
+   ],
+   "role": "DEV-CAL",
+   "round": 3,
+   "scorer_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+   "sense": "any of numerous elongate mostly marine carnivorous fishes with heterocercal caudal fins and tough skin covered with small toothlike scales",
+   "set_sha256": "872b455d283204a47caa4cd70a3bcb7d8ba95754e0aba4b80ef4a19a9350e3bb",
+   "source_sha256": "849dbbf9aee2c7075e88e68029134a77120f0030c8a3a02e1401a25bb041722c",
+   "synset": "shark.n.01",
+   "view": "second"
+  },
+  {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "017.e85c20921fe7.1",
+     "code": "YES",
+     "delivered_sha256": "6275830227d5e896982649ef4ac30e07f09b8163218fe336b59ebf0d68cbeef6",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "e85c20921fe7",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 5,
+     "answer_sha256": "2f524af640388c7d2928bdd4de2f291e3a1e4c8772b8c9e204b84312bb97bdee",
+     "attempt_id": "002.37a4413de19e.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "2c38b809b9084c8f301017b1c3e37bb3240ac1c39922cd2b1e8889dc4ab87bda",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Dress",
+     "request": "37a4413de19e",
+     "rule": "excluded"
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "007.2cdbfee41d08.1",
+     "code": "YES",
+     "delivered_sha256": "2c38b809b9084c8f301017b1c3e37bb3240ac1c39922cd2b1e8889dc4ab87bda",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "2cdbfee41d08",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "012.7170737d0fee.1",
+     "code": "YES",
+     "delivered_sha256": "2c38b809b9084c8f301017b1c3e37bb3240ac1c39922cd2b1e8889dc4ab87bda",
+     "pass": true,
+     "prompt_sha256": "10d4bba4cd71b2207fffb129a33ea6966b2966f1bbe0a6dbfa9f73d16d84e2dd",
+     "raw": "yes",
+     "request": "7170737d0fee",
+     "rule": null
+    }
+   },
+   "candidate": {
+    "licence_statement": "CC0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:Dress_worn_by_Styles_on_Vogue.jpg",
+    "rank": 3,
+    "title": "File:Dress worn by Styles on Vogue.jpg"
+   },
+   "commons_original_sha1": "33119f757295f1f185b7bd0780ed188a25eec091",
+   "concept": "clothes",
+   "disposition": null,
+   "family": "clothing",
+   "human_n_correct": null,
+   "human_n_ratings": null,
+   "human_recognizability": null,
+   "item": "eb5fd7106644",
+   "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+   "owner_date": null,
+   "owner_decision": null,
+   "owner_evidence": null,
+   "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+   "png_sha256": "2c38b809b9084c8f301017b1c3e37bb3240ac1c39922cd2b1e8889dc4ab87bda",
+   "question_order": [
+    "name",
+    "photograph",
+    "sense",
+    "distinct"
+   ],
+   "raw_commit": "1afa2d4ee485f8c580b77c27fcbf86efd6eab2c6",
+   "raw_sha256": "92aad985835bca8bc8cda84e604b2687511ddd0d05a94b86aff56c4341699dcb",
+   "reader_scope": "Reader ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS (job (c), RSC 0f3af76; the owner's adjudication record reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md), on the third pass over an exposed qualification panel: evidence for the prospective rule, not a blind calibration. This audit is the reader's first use on unseen candidate images. Partial stdout text is never an answer; the capacity detector covers visible retained capacity text only (Codex 410b580). A reader pass is a bounded claim about this stimulus and question, not human equivalence.",
+   "reasons": [
+    "name:ERR_NONMATCH"
+   ],
+   "role": "DEV-CAL",
+   "round": 3,
+   "scorer_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+   "sense": "clothing in general",
+   "set_sha256": "872b455d283204a47caa4cd70a3bcb7d8ba95754e0aba4b80ef4a19a9350e3bb",
+   "source_sha256": "2b2fb949f7c5c1b89ad3eaf437e8e633c3d660f8461fc757d02fb9efc636d5db",
+   "synset": "apparel.n.01",
+   "view": "second"
+  }
+ ],
+ "charged": {
+  "attempts": 60,
+  "note": "seconds are not recorded here: the chain charges each round's CURRENT admitted clock"
+ },
+ "counts": {
+  "concepts_exhausted": [],
+  "concepts_next_round": [
+   "caramel",
+   "chili",
+   "clothes",
+   "hat",
+   "jet",
+   "lingerie",
+   "prune",
+   "robe",
+   "shark",
+   "taxi",
+   "tie",
+   "wagon"
+  ],
+  "primaries": 0,
+  "primaries_passed": 0,
+  "second_views_selected": 3
+ },
+ "identity": {
+  "key_sha256": "87db9032798e9543bdc3dc425cd561a987fa69899cb5b0711dad7c228ef0a585",
+  "package_digest": "760f8f58aacc77787affb84076fa57f992ebe4b79e98f8d5ade3692bc6cbaa0f",
+  "raw_commit": "1afa2d4ee485f8c580b77c27fcbf86efd6eab2c6",
+  "raw_sha256": "92aad985835bca8bc8cda84e604b2687511ddd0d05a94b86aff56c4341699dcb",
+  "round": 3,
+  "scorer_sha256": "ae9775bae2741cae1936ae430d64fac41e29e6193e90a955c6598810f6450015",
+  "set_sha256": "872b455d283204a47caa4cd70a3bcb7d8ba95754e0aba4b80ef4a19a9350e3bb"
+ },
+ "items": {
+  "116c1cdb6d16": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "016.6d836c59607d.1",
+     "code": "YES",
+     "delivered_sha256": "c3ec8a1bb4bf492a7b77f901f8583006fd3d14f9b619ea3dfaff3eba9ed2e539",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "6d836c59607d",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 5,
+     "answer_sha256": "e0c79437d8ac7cede1983194725c99794cf703a6bf2dc21dc8c6d2f4a1226759",
+     "attempt_id": "001.f01b188de0af.1",
+     "code": "OK_WHOLE",
+     "delivered_sha256": "1a911d18da39292ccef3aed808afb1779dbb8f7106ca1a6d4c208e9b8743cccf",
+     "pass": true,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Crows",
+     "request": "f01b188de0af",
+     "rule": "whole"
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "006.a4c7e1962441.1",
+     "code": "YES",
+     "delivered_sha256": "1a911d18da39292ccef3aed808afb1779dbb8f7106ca1a6d4c208e9b8743cccf",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "a4c7e1962441",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "011.254cb10ecdf5.1",
+     "code": "YES",
+     "delivered_sha256": "1a911d18da39292ccef3aed808afb1779dbb8f7106ca1a6d4c208e9b8743cccf",
+     "pass": true,
+     "prompt_sha256": "b58243c7fb3b888367212d6b1dc5a7a564ee55088b4a06aec990947411ecd9ab",
+     "raw": "yes",
+     "request": "254cb10ecdf5",
+     "rule": null
+    }
+   },
+   "concept": "crow",
+   "kind": "candidate",
+   "passed_by_reader": true,
+   "rank": 3,
+   "reasons": []
+  },
+  "14ce26a64ad3": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "059.77a52e8eabce.1",
+     "code": "YES",
+     "delivered_sha256": "9b9e55c2cd15e64945e9025281b3bb5a4ac080653997d7c2cce2b98240ee7b1a",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "77a52e8eabce",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 5,
+     "answer_sha256": "5c3967e73c04beef39bcdecfeea6e9238b48821f4fe33b803fa14750533ed678",
+     "attempt_id": "029.ddb21ba56378.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "78112bf11f54b9d1ea7586a16cc59c099c0216b8d3504e0ca8d9f71bc8763cfe",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Woman",
+     "request": "ddb21ba56378",
+     "rule": "S1:woman"
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "039.23b7e15db45d.1",
+     "code": "YES",
+     "delivered_sha256": "78112bf11f54b9d1ea7586a16cc59c099c0216b8d3504e0ca8d9f71bc8763cfe",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "23b7e15db45d",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "049.6eaa81889a4b.1",
+     "code": "NO",
+     "delivered_sha256": "78112bf11f54b9d1ea7586a16cc59c099c0216b8d3504e0ca8d9f71bc8763cfe",
+     "pass": false,
+     "prompt_sha256": "a0ac220e5dff9379d1da9dcdd22476fcece44ddad04f43d3a45c8ff7aaa0d177",
+     "raw": "no",
+     "request": "6eaa81889a4b",
+     "rule": null
+    }
+   },
+   "concept": "prune",
+   "kind": "candidate",
+   "passed_by_reader": false,
+   "rank": 3,
+   "reasons": [
+    "name:ERR_NONMATCH",
+    "sense:NO"
+   ]
+  },
+  "446e067734e1": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "018.2ac85870d7a0.1",
+     "code": "YES",
+     "delivered_sha256": "4ad99eb60ccc6e6cf123992783c0998573a27dc64070365da0521d1822fb24ea",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "2ac85870d7a0",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 3,
+     "answer_sha256": "5847d11084f33f8fad262951ea3c2afedf1a2232e2ff0089345c917457f8bc2c",
+     "attempt_id": "003.fb19a395975d.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "946aaa0cc73c341155122f10f15dd74fb77641e40add1310652d78f95fdf490b",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Pot",
+     "request": "fb19a395975d",
+     "rule": "S1:pot"
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "008.f2ab95da08c3.1",
+     "code": "YES",
+     "delivered_sha256": "946aaa0cc73c341155122f10f15dd74fb77641e40add1310652d78f95fdf490b",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "f2ab95da08c3",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "013.d05306d51a19.1",
+     "code": "YES",
+     "delivered_sha256": "946aaa0cc73c341155122f10f15dd74fb77641e40add1310652d78f95fdf490b",
+     "pass": true,
+     "prompt_sha256": "6bd97a4ba7a1a5be42f16034028e5a23ad8e33bfec60d3e011dcc350d685c63e",
+     "raw": "yes",
+     "request": "d05306d51a19",
+     "rule": null
+    }
+   },
+   "concept": "chili",
+   "kind": "candidate",
+   "passed_by_reader": false,
+   "rank": 3,
+   "reasons": [
+    "name:ERR_NONMATCH"
+   ]
+  },
+  "4d22188f0241": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "020.9bb6751a5fbf.1",
+     "code": "YES",
+     "delivered_sha256": "cfc9d6cfdf8e34283bafed4fe01bb3af04d5ab6751cea9d341c57cd4993af953",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "9bb6751a5fbf",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 3,
+     "answer_sha256": "a5cdf07dbbc15892dcb64f1553ebb474330393705ce470b22f0194f582234371",
+     "attempt_id": "005.c37d8496a4fb.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "555fc61e496053f76999d2eda4c8e17c0809f9f571fa50111f87fae5e50790b3",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Car",
+     "request": "c37d8496a4fb",
+     "rule": "S1:car"
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "010.02bad0ffa0bc.1",
+     "code": "YES",
+     "delivered_sha256": "555fc61e496053f76999d2eda4c8e17c0809f9f571fa50111f87fae5e50790b3",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "02bad0ffa0bc",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "015.510b0f63d306.1",
+     "code": "NO",
+     "delivered_sha256": "555fc61e496053f76999d2eda4c8e17c0809f9f571fa50111f87fae5e50790b3",
+     "pass": false,
+     "prompt_sha256": "8dd4b2d75e8fb4c692b0ec33b3ef7de6aaacacd8855ed44361780ed7fc7fc99a",
+     "raw": "no",
+     "request": "510b0f63d306",
+     "rule": null
+    }
+   },
+   "concept": "wagon",
+   "kind": "candidate",
+   "passed_by_reader": false,
+   "rank": 3,
+   "reasons": [
+    "name:ERR_NONMATCH",
+    "sense:NO"
+   ]
+  },
+  "5ed480f02c10": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "060.d99c507f0327.1",
+     "code": "YES",
+     "delivered_sha256": "5162fecf9987182feea444e172798aef48f49d03095e24444337d47b10445145",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "d99c507f0327",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 8,
+     "answer_sha256": "93bb38e81b0106463882aeb8bff38e1bfc0fcd2fc04778e40827432263bc6bc6",
+     "attempt_id": "030.27c8e7aded38.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "347c61b7c7377f89889eafb310c034923e01f09a7925cad85f10bfc491a3fc11",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Airplane",
+     "request": "27c8e7aded38",
+     "rule": "S1:airplane"
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "040.e62e8e64a935.1",
+     "code": "YES",
+     "delivered_sha256": "347c61b7c7377f89889eafb310c034923e01f09a7925cad85f10bfc491a3fc11",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "e62e8e64a935",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "050.5fb2ced84dfe.1",
+     "code": "YES",
+     "delivered_sha256": "347c61b7c7377f89889eafb310c034923e01f09a7925cad85f10bfc491a3fc11",
+     "pass": true,
+     "prompt_sha256": "32379f1ccc81e7a2a1ecb43a6f116e8dfb82c73bf3eaacc32c0ea232e04112f2",
+     "raw": "yes",
+     "request": "5fb2ced84dfe",
+     "rule": null
+    }
+   },
+   "concept": "jet",
+   "kind": "candidate",
+   "passed_by_reader": false,
+   "rank": 3,
+   "reasons": [
+    "name:ERR_NONMATCH"
+   ]
+  },
+  "70b8f3c06c83": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "053.85dbdef73a7b.1",
+     "code": "YES",
+     "delivered_sha256": "3a812e084063e8b6dca26ea5447a0202370cb6dc2a78a5c453f8e2e1ba501339",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "85dbdef73a7b",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 6,
+     "answer_sha256": "6007db63e18e532c7399975ed77d2e3900810aa75cad165b8d2e5d8b08085c3d",
+     "attempt_id": "023.a2f06ed2ce6b.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "4918b9aa0a7b1886a989dbac5a9b6d60365dc7b4ebd3e4c9d791c93c498f6ecc",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Person",
+     "request": "a2f06ed2ce6b",
+     "rule": null
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "033.cbe0bc114bfe.1",
+     "code": "YES",
+     "delivered_sha256": "4918b9aa0a7b1886a989dbac5a9b6d60365dc7b4ebd3e4c9d791c93c498f6ecc",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "cbe0bc114bfe",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "043.b059ae8474fe.1",
+     "code": "YES",
+     "delivered_sha256": "4918b9aa0a7b1886a989dbac5a9b6d60365dc7b4ebd3e4c9d791c93c498f6ecc",
+     "pass": true,
+     "prompt_sha256": "d9044260c38020fc57638f11f0657375fa6d5102669f14771ffc1eac5372eeda",
+     "raw": "yes",
+     "request": "b059ae8474fe",
+     "rule": null
+    }
+   },
+   "concept": "hat",
+   "kind": "candidate",
+   "passed_by_reader": false,
+   "rank": 3,
+   "reasons": [
+    "name:ERR_NONMATCH"
+   ]
+  },
+  "94bcba8f8f72": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "056.b183e5e14186.1",
+     "code": "YES",
+     "delivered_sha256": "9110afb1766d3b538d16b3e4a9b52e0f27ba55bb0a1d7203785c0ef12a5d045c",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "b183e5e14186",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 10,
+     "answer_sha256": "15a689d9051fc1c04e514cabe0586c7eee383ee1740429a9f06d7317306d7c46",
+     "attempt_id": "026.fbb4e016c6a5.1",
+     "code": "OK_CONTAINS",
+     "delivered_sha256": "f8618ffc8bf344dea32f1df0f6e777116fc31ada9ffd1151fd91c115d947f50a",
+     "pass": true,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "TIE bomber",
+     "request": "fbb4e016c6a5",
+     "rule": "contains"
+    },
+    "photograph": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "036.cbd29e17aa98.1",
+     "code": "NO",
+     "delivered_sha256": "f8618ffc8bf344dea32f1df0f6e777116fc31ada9ffd1151fd91c115d947f50a",
+     "pass": false,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "no",
+     "request": "cbd29e17aa98",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "046.b318299452ef.1",
+     "code": "NO",
+     "delivered_sha256": "f8618ffc8bf344dea32f1df0f6e777116fc31ada9ffd1151fd91c115d947f50a",
+     "pass": false,
+     "prompt_sha256": "a864856a2c721ac98ce1351afca9029f56ddcd23c8b538e97e9c96d3d1905f4d",
+     "raw": "no",
+     "request": "b318299452ef",
+     "rule": null
+    }
+   },
+   "concept": "tie",
+   "kind": "candidate",
+   "passed_by_reader": false,
+   "rank": 3,
+   "reasons": [
+    "photograph:NO",
+    "sense:NO"
+   ]
+  },
+  "b29cc17c61ce": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "054.35d3dbb32b4e.1",
+     "code": "YES",
+     "delivered_sha256": "a804f00e67b2ee3697fbec8af4d04d16beb6eda2753fd162c41ea08d8691600f",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "35d3dbb32b4e",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 5,
+     "answer_sha256": "5c3967e73c04beef39bcdecfeea6e9238b48821f4fe33b803fa14750533ed678",
+     "attempt_id": "024.b1e1cafec64b.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "e3621d1dc21171cd9e672f8c727398f544158ebcdc245e7c81433e89b2f13494",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Woman",
+     "request": "b1e1cafec64b",
+     "rule": "S1:woman"
+    },
+    "photograph": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "034.7dbe0ed12768.1",
+     "code": "NO",
+     "delivered_sha256": "e3621d1dc21171cd9e672f8c727398f544158ebcdc245e7c81433e89b2f13494",
+     "pass": false,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "no",
+     "request": "7dbe0ed12768",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "044.941555a9129e.1",
+     "code": "YES",
+     "delivered_sha256": "e3621d1dc21171cd9e672f8c727398f544158ebcdc245e7c81433e89b2f13494",
+     "pass": true,
+     "prompt_sha256": "f0d19112adc3fbb41e79d5e7e708b532806677e27b0d0d55ccc01e8a5682505c",
+     "raw": "yes",
+     "request": "941555a9129e",
+     "rule": null
+    }
+   },
+   "concept": "lingerie",
+   "kind": "candidate",
+   "passed_by_reader": false,
+   "rank": 3,
+   "reasons": [
+    "name:ERR_NONMATCH",
+    "photograph:NO"
+   ]
+  },
+  "c99711f30a4c": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "055.6bfbb45a76aa.1",
+     "code": "YES",
+     "delivered_sha256": "d72f17d0dc65feee337e48f0697ee44b95c26232a0c2a7e559845438b673e08c",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "6bfbb45a76aa",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 5,
+     "answer_sha256": "c1624a26107e1a301a54e536e1313c121b4db310913fe9c653caf352645821a2",
+     "attempt_id": "025.96cc54acaa15.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "360c57d238286b2466e55d9a4951dd7339b5cff46ffe84f98c61f367e7a8934c",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Beach",
+     "request": "96cc54acaa15",
+     "rule": null
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "035.ee9daa836490.1",
+     "code": "YES",
+     "delivered_sha256": "360c57d238286b2466e55d9a4951dd7339b5cff46ffe84f98c61f367e7a8934c",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "ee9daa836490",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "045.de82d206dc9c.1",
+     "code": "NO",
+     "delivered_sha256": "360c57d238286b2466e55d9a4951dd7339b5cff46ffe84f98c61f367e7a8934c",
+     "pass": false,
+     "prompt_sha256": "7cea0f376884282eaa6b61334814f192b68c86efb287dba9ae63b873e1c47b5c",
+     "raw": "no",
+     "request": "de82d206dc9c",
+     "rule": null
+    }
+   },
+   "concept": "robe",
+   "kind": "candidate",
+   "passed_by_reader": false,
+   "rank": 3,
+   "reasons": [
+    "name:ERR_NONMATCH",
+    "sense:NO"
+   ]
+  },
+  "cbcad2b07eff": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "051.4417a4f2f0b6.1",
+     "code": "YES",
+     "delivered_sha256": "116621a9d3af9fb83e06d1ace3a827e4c05f5363e11f8bd96ff181239d1a3d4e",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "4417a4f2f0b6",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 3,
+     "answer_sha256": "71e26099295bfff7876c99a594db9310c856ad57d7bb3c4d14cb5ea2b8789cd7",
+     "attempt_id": "021.f166b27fe3cf.1",
+     "code": "OK_WHOLE",
+     "delivered_sha256": "c6817e7edfd2a11ef45a32a2a54e508537a72c908072681cc33be9fc2a80a871",
+     "pass": true,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Cow",
+     "request": "f166b27fe3cf",
+     "rule": "whole"
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "031.eb9d5fe16f2e.1",
+     "code": "YES",
+     "delivered_sha256": "c6817e7edfd2a11ef45a32a2a54e508537a72c908072681cc33be9fc2a80a871",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "eb9d5fe16f2e",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "041.d2965f2c3312.1",
+     "code": "YES",
+     "delivered_sha256": "c6817e7edfd2a11ef45a32a2a54e508537a72c908072681cc33be9fc2a80a871",
+     "pass": true,
+     "prompt_sha256": "d30f8d09e0eced226a0ddf923bd37d8f238f43e596b29b9471e9d87d060214d6",
+     "raw": "yes",
+     "request": "d2965f2c3312",
+     "rule": null
+    }
+   },
+   "concept": "cow",
+   "kind": "candidate",
+   "passed_by_reader": true,
+   "rank": 3,
+   "reasons": []
+  },
+  "cee26805b761": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "019.a70b78b9ae75.1",
+     "code": "YES",
+     "delivered_sha256": "3c60c4dd3f1ce3177060297e4ff512dd82ca0337d780e1edd71a29470d0192ca",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "a70b78b9ae75",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 4,
+     "answer_sha256": "5a72462e41abad14bf6fafa37461fbed95a867c0540b21c29856964add499312",
+     "attempt_id": "004.8fca8564e01c.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "25857c257f16e699029301433db5b127aec0523eb130beb9a35a834491d3ba67",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Tram",
+     "request": "8fca8564e01c",
+     "rule": null
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "009.02be1e5fe624.1",
+     "code": "YES",
+     "delivered_sha256": "25857c257f16e699029301433db5b127aec0523eb130beb9a35a834491d3ba67",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "02be1e5fe624",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "014.02fa5c9095cc.1",
+     "code": "YES",
+     "delivered_sha256": "25857c257f16e699029301433db5b127aec0523eb130beb9a35a834491d3ba67",
+     "pass": true,
+     "prompt_sha256": "babe27a8af9d0732e295230e36808dc304b506af8fb61bbe61cf249f33a5e85c",
+     "raw": "yes",
+     "request": "02fa5c9095cc",
+     "rule": null
+    }
+   },
+   "concept": "taxi",
+   "kind": "candidate",
+   "passed_by_reader": false,
+   "rank": 3,
+   "reasons": [
+    "name:ERR_NONMATCH"
+   ]
+  },
+  "d173a5e0e78e": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "057.0ab31d74221b.1",
+     "code": "YES",
+     "delivered_sha256": "e5696acecf16a68a487540e7c007a4cf9cbaa172cb6f117444d0f14314ae166f",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "0ab31d74221b",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 5,
+     "answer_sha256": "c2d3bfa8443653d91c5848b16054010e37bb818135bcfc937da1884086c0db21",
+     "attempt_id": "027.08a50c55642f.1",
+     "code": "OK_WHOLE",
+     "delivered_sha256": "8c7667bf2bec293ad6418f378d492e7323c0fc482ef9914e0ddeb6d02f5ef851",
+     "pass": true,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Candy",
+     "request": "08a50c55642f",
+     "rule": "whole"
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "037.6979fca9ff1f.1",
+     "code": "YES",
+     "delivered_sha256": "8c7667bf2bec293ad6418f378d492e7323c0fc482ef9914e0ddeb6d02f5ef851",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "6979fca9ff1f",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "047.5c6e0ad59061.1",
+     "code": "YES",
+     "delivered_sha256": "8c7667bf2bec293ad6418f378d492e7323c0fc482ef9914e0ddeb6d02f5ef851",
+     "pass": true,
+     "prompt_sha256": "f8b8e2f85fc7b8f40b38d32d784702283b5ef8356a0990fd3e37b9bcfb960f7f",
+     "raw": "yes",
+     "request": "5c6e0ad59061",
+     "rule": null
+    }
+   },
+   "concept": "candy",
+   "kind": "candidate",
+   "passed_by_reader": true,
+   "rank": 3,
+   "reasons": []
+  },
+  "d713efa1908a": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "058.bfcd28ad1805.1",
+     "code": "YES",
+     "delivered_sha256": "4f1bf54bd9a46ce4733a6206ce1b7cd5d333ad075563edb9723934f979d6d7c6",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "bfcd28ad1805",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 9,
+     "answer_sha256": "4cc37e66f4d3dbdd97c8929ccc04e75b865dcddbb15907a91027fbcde2713ca9",
+     "attempt_id": "028.6b85f20fb491.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "b3215a101dec50e9f8724f12a94196fd2b4f1bc1444d7f986c4b83fc958dc0ff",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Rice cake",
+     "request": "6b85f20fb491",
+     "rule": null
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "038.b6bf760fd80c.1",
+     "code": "YES",
+     "delivered_sha256": "b3215a101dec50e9f8724f12a94196fd2b4f1bc1444d7f986c4b83fc958dc0ff",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "b6bf760fd80c",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "048.4e1be6e3e645.1",
+     "code": "YES",
+     "delivered_sha256": "b3215a101dec50e9f8724f12a94196fd2b4f1bc1444d7f986c4b83fc958dc0ff",
+     "pass": true,
+     "prompt_sha256": "90d4863fa4caf400d21a93dd211df0d1e4163e45dfb2559397fef2a1df32cae8",
+     "raw": "yes",
+     "request": "4e1be6e3e645",
+     "rule": null
+    }
+   },
+   "concept": "caramel",
+   "kind": "candidate",
+   "passed_by_reader": false,
+   "rank": 3,
+   "reasons": [
+    "name:ERR_NONMATCH"
+   ]
+  },
+  "d9c0f9b92c1d": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "052.2f06a0354b5b.1",
+     "code": "YES",
+     "delivered_sha256": "3a5648287c11bb9b04fae47c5779a36279e092a2893bcd5b141e82d16798b8e5",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "2f06a0354b5b",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 5,
+     "answer_sha256": "3565f8adfba6fc45e21baf44dbbd3454a04ff77c3d697c6bb5eefa7eca2db0af",
+     "attempt_id": "022.c53b4427385a.1",
+     "code": "OK_WHOLE",
+     "delivered_sha256": "e4afe1c428f4eaecca6eb7235a165271d59f22c0d30e0a28400998ed5f9569ca",
+     "pass": true,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Shark",
+     "request": "c53b4427385a",
+     "rule": "whole"
+    },
+    "photograph": {
+     "answer_len": 2,
+     "answer_sha256": "9390298f3fb0c5b160498935d79cb139aef28e1c47358b4bbba61862b9c26e59",
+     "attempt_id": "032.2e571f1c7a70.1",
+     "code": "NO",
+     "delivered_sha256": "e4afe1c428f4eaecca6eb7235a165271d59f22c0d30e0a28400998ed5f9569ca",
+     "pass": false,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "no",
+     "request": "2e571f1c7a70",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "042.b12e8c7265ce.1",
+     "code": "YES",
+     "delivered_sha256": "e4afe1c428f4eaecca6eb7235a165271d59f22c0d30e0a28400998ed5f9569ca",
+     "pass": true,
+     "prompt_sha256": "d480061395f879d73bf7f7f25578794fc2f7ad0561dc2056eb0918696c617147",
+     "raw": "yes",
+     "request": "b12e8c7265ce",
+     "rule": null
+    }
+   },
+   "concept": "shark",
+   "kind": "candidate",
+   "passed_by_reader": false,
+   "rank": 3,
+   "reasons": [
+    "photograph:NO"
+   ]
+  },
+  "eb5fd7106644": {
+   "answers": {
+    "distinct": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "017.e85c20921fe7.1",
+     "code": "YES",
+     "delivered_sha256": "6275830227d5e896982649ef4ac30e07f09b8163218fe336b59ebf0d68cbeef6",
+     "pass": true,
+     "prompt_sha256": "4d7013c7c652a94ba031bd52a214dc27177c0692fc0a284c98b87989eb048e89",
+     "raw": "yes",
+     "request": "e85c20921fe7",
+     "rule": null
+    },
+    "name": {
+     "answer_len": 5,
+     "answer_sha256": "2f524af640388c7d2928bdd4de2f291e3a1e4c8772b8c9e204b84312bb97bdee",
+     "attempt_id": "002.37a4413de19e.1",
+     "code": "ERR_NONMATCH",
+     "delivered_sha256": "2c38b809b9084c8f301017b1c3e37bb3240ac1c39922cd2b1e8889dc4ab87bda",
+     "pass": false,
+     "prompt_sha256": "086cd0014f75d4bcb3c12e6e12695eb43f450b18a4eaf8a69e6ae79d90820fa5",
+     "raw": "Dress",
+     "request": "37a4413de19e",
+     "rule": "excluded"
+    },
+    "photograph": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "007.2cdbfee41d08.1",
+     "code": "YES",
+     "delivered_sha256": "2c38b809b9084c8f301017b1c3e37bb3240ac1c39922cd2b1e8889dc4ab87bda",
+     "pass": true,
+     "prompt_sha256": "59251bca7926959a011ac975b51c0e2f0f98c17298a4908461a024d351529507",
+     "raw": "yes",
+     "request": "2cdbfee41d08",
+     "rule": null
+    },
+    "sense": {
+     "answer_len": 3,
+     "answer_sha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d",
+     "attempt_id": "012.7170737d0fee.1",
+     "code": "YES",
+     "delivered_sha256": "2c38b809b9084c8f301017b1c3e37bb3240ac1c39922cd2b1e8889dc4ab87bda",
+     "pass": true,
+     "prompt_sha256": "10d4bba4cd71b2207fffb129a33ea6966b2966f1bbe0a6dbfa9f73d16d84e2dd",
+     "raw": "yes",
+     "request": "7170737d0fee",
+     "rule": null
+    }
+   },
+   "concept": "clothes",
+   "kind": "candidate",
+   "passed_by_reader": false,
+   "rank": 3,
+   "reasons": [
+    "name:ERR_NONMATCH"
+   ]
+  }
+ },
+ "mode": "scientific",
+ "outcomes": {
+  "ok": 60
+ },
+ "reader_scope": "Reader ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS (job (c), RSC 0f3af76; the owner's adjudication record reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md), on the third pass over an exposed qualification panel: evidence for the prospective rule, not a blind calibration. This audit is the reader's first use on unseen candidate images. Partial stdout text is never an answer; the capacity detector covers visible retained capacity text only (Codex 410b580). A reader pass is a bounded claim about this stimulus and question, not human equivalence.",
+ "referral_count": 0,
+ "referrals": [],
+ "second_views": {
+  "candy": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": "d173a5e0e78e",
+   "rank": 3,
+   "status": "selected"
+  },
+  "caramel": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": null,
+   "status": "next"
+  },
+  "chili": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": null,
+   "status": "next"
+  },
+  "clothes": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": null,
+   "status": "next"
+  },
+  "cow": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": "cbcad2b07eff",
+   "rank": 3,
+   "status": "selected"
+  },
+  "crow": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": "116c1cdb6d16",
+   "rank": 3,
+   "status": "selected"
+  },
+  "hat": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": null,
+   "status": "next"
+  },
+  "jet": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": null,
+   "status": "next"
+  },
+  "lingerie": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": null,
+   "status": "next"
+  },
+  "prune": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": null,
+   "status": "next"
+  },
+  "robe": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": null,
+   "status": "next"
+  },
+  "shark": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": null,
+   "status": "next"
+  },
+  "taxi": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": null,
+   "status": "next"
+  },
+  "tie": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": null,
+   "status": "next"
+  },
+  "wagon": {
+   "audited_ranks": [
+    1,
+    2,
+    3
+   ],
+   "candidate": null,
+   "status": "next"
+  }
+ }
+}
