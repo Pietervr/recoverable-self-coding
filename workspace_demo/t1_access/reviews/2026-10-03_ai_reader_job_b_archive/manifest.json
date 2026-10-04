@@ -1,0 +1,17 @@
+{
+ "archived_from": {
+  "captures/ai_reader_job/clock.closed.json": {
+   "bytes": 193,
+   "sha256": "22efebd524266bd789cb53bd7d2a74b55d8697512bd880ff5871f84f1c74a792"
+  },
+  "captures/ai_reader_job/clock.json": {
+   "bytes": 400,
+   "sha256": "19784f39420060d8a0380cbbb366151d2a6d09732181127e49e00d3f100b7f1e"
+  },
+  "stimuli/photo/ai_reader_raw_responses.jsonl": {
+   "bytes": 698444,
+   "sha256": "734ea772254dcc3d5d0627b078b405d1e4643a6df5415f0e19f1ebadacf65d55"
+  }
+ },
+ "job": "job (b), 3 October 2026: STOPPED after 219 of 600 requests (218 ok, 1 capacity refusal classified isolation), 219 attempts, 1,754.1 s live; the pinned codex 0.159.3 removed by a cask upgrade; never scored, never re-used; revision-12 package 3e2bcdcc\u2026"
+}
