@@ -12,13 +12,15 @@ question, never carrying a prior answer:
   distinct    PROMPTS["distinct"] on ONE side-by-side image: the primary's canvas on the left, the candidate's on
               the right, a 16-pixel 0.5-grey gap                                                  every candidate
 A distinct-view question is the only request that shows two photographs, and it is ordered after both photographs'
-blind names (every name of a round precedes every other question of that round).
+blind names (within each block - round 1's pilot block, then the other 24 - every name precedes every other question
+of that block; requests are stateless).
 
 ORDER. Round 1: the PILOT block - the Stage A eight's primaries and their rank-1 candidates (names, then photograph,
 sense and distinct questions) - then the same for the other 24 concepts. Within a block, by family then concept.
-Round k >= 2 (`derive(k)`): only the concepts whose audited candidates all failed in rounds < k and that still have an
-unaudited candidate with a pinned original: their next candidate by rank, the four questions, names first. The prior
-rounds' COMMITTED score files decide this mechanically (ai_audit_score.py writes them); nobody chooses.
+Round k >= 2 (`derive(k, chained)`): only the concepts whose audited candidates all failed in rounds < k and that still
+have an unaudited candidate with a pinned source: their next candidate by rank, the four questions, names first. The
+ADMITTED predecessor chain (ai_audit_exec.Chain: committed, re-admitted, re-scored predecessors) decides this
+mechanically; derivation never reads a live score file; nobody chooses. A round is an integer 1..8 (require_round).
 
 IDS. Item ids are opaque: a primary keeps the freeze's `sha256("audit-img|<concept>|v1")[:12]`, a candidate its
 `ai_audit_sources.cand_id`, a distinct pair `sha256("audit-pair|<primary>|<candidate>")[:12]`; request ids hash the
@@ -28,6 +30,7 @@ KEY (orchestrator only, like the qualification's) maps items to concepts, roles 
 
     .venv-image/bin/python stimuli/photo/ai_audit_set.py build 1      # writes ai_audit_set_r1.json, ai_audit_key_r1.json
     .venv-image/bin/python stimuli/photo/ai_audit_set.py check 1      # re-derives and compares (what the executor does)
+    (round k >= 2: build/check first admit the authenticated chain 1..k-1)
 """
 
 from __future__ import annotations
@@ -49,6 +52,7 @@ import dose  # noqa: E402
 ITEMS = HERE.parents[1] / "captures" / "ai_audit_items"
 THINGS = Path.home() / "things-plus"
 DEFS = THINGS / "_concepts-metadata_things.tsv"
+IMAGES_TSV = THINGS / "_images-metadata_things.tsv"
 QUAL_SET = HERE / "ai_reader_qual_set.json"
 GAP = 16
 PROMPTS = {
@@ -126,18 +130,12 @@ def _store(png: bytes, write: bool) -> tuple[str, str]:
     return name, h
 
 
-def prior_outcomes(k: int) -> dict:
-    """For each concept, the candidate ranks audited in rounds < k and whether a second view was selected - read from
-    the COMMITTED score files (ai_audit_score.py), which must exist for every earlier round."""
+def prior_outcomes(chained: dict) -> dict:
+    """For each concept, the candidate ranks audited in rounds < k and whether a second view was selected - read ONLY
+    from the admitted chain's authenticated predecessor scores (ai_audit_exec.Chain), never from live files."""
     out = {}
-    for j in range(1, k):
-        p = score_path(j)
-        if not p.exists():
-            raise SystemExit(f"refused: round {k} needs round {j}'s committed score file")
-        sc = json.loads(p.read_text())
-        if sc.get("mode") != "scientific" and not sc.get("synthetic_round_chain"):
-            raise SystemExit(f"refused: round {j}'s score file is not a scientific result")
-        for concept, sv in sc["second_views"].items():
+    for j in sorted(chained["priors"]):
+        for concept, sv in chained["priors"][j]["second_views"].items():
             o = out.setdefault(concept, {"ranks": set(), "selected": None})
             o["ranks"] |= set(sv["audited_ranks"])
             if sv["status"] == "selected":
@@ -145,8 +143,21 @@ def prior_outcomes(k: int) -> dict:
     return out
 
 
-def derive(k: int, write: bool = False) -> tuple[bytes, bytes]:
-    """The round-k set and key as bytes, from committed inputs only."""
+def human_norms() -> dict:
+    """THINGSplus per-image recognition norm of each primary (root image rows of the image table)."""
+    with open(IMAGES_TSV, newline="", encoding="utf-8") as f:
+        return {r["image"]: {"recognizability": float(r["recognizability"]),
+                             "n_ratings": int(float(r["recognizability_N-ratings"])),
+                             "n_correct": int(float(r["recognizability_N-correct"]))}
+                for r in csv.DictReader(f, delimiter="\t") if "/" not in r["image"]}
+
+
+def derive(k: int, chained: dict | None = None, write: bool = False) -> tuple[bytes, bytes]:
+    """The round-k set and key as bytes, from committed inputs and (k >= 2) the admitted chain only."""
+    import ai_audit_exec as A
+    k = A.require_round(k)
+    if k > 1 and (not chained or chained.get("round") != k):
+        raise SystemExit(f"refused: round {k} is derived only from its admitted predecessor chain")
     pool = json.loads((HERE / "dev_pool.json").read_text())
     manifest = {r["concept"]: r for r in json.loads((HERE / "manifest_dev.json").read_text())["records"]}
     cands = json.loads(SRC.CANDS.read_text())
@@ -156,7 +167,8 @@ def derive(k: int, write: bool = False) -> tuple[bytes, bytes]:
     qual = json.loads(QUAL_SET.read_text())
     defs = definitions()
     roles = {r["concept"]: r for r in pool["roles"]}
-    prior = prior_outcomes(k) if k > 1 else {}
+    prior = prior_outcomes(chained) if k > 1 else {}
+    norms = human_norms()
 
     def next_rank(concept: str) -> int | None:
         done = prior.get(concept, {}).get("ranks", set())
@@ -194,7 +206,8 @@ def derive(k: int, write: bool = False) -> tuple[bytes, bytes]:
             if k == 1:
                 key_items[pid] = {"concept": concept, "kind": "primary", "family": r["family"], "role": r["role"],
                                   "stage_a_primary_view": r["stage_a_primary_view"], "synset": r["synset"],
-                                  "definition": defs[concept], "png_sha256": sha(prim)}
+                                  "definition": defs[concept], "png_sha256": sha(prim),
+                                  "human": norms[r["thingsplus_image"]]}
                 per_q["name"].append(add(pid, "primary", "name", prim, qual["prompt"]))
                 per_q["photograph"].append(add(pid, "primary", "photograph", prim, PROMPTS["photograph"]))
                 per_q["sense"].append(add(pid, "primary", "sense", prim, sense))
@@ -208,7 +221,9 @@ def derive(k: int, write: bool = False) -> tuple[bytes, bytes]:
             key_items[cid] = {"concept": concept, "kind": "candidate", "rank": rank, "title": c["title"],
                               "page_url": c["page_url"], "licence_statement": c["basis"], "family": r["family"],
                               "role": r["role"], "synset": r["synset"], "definition": defs[concept],
-                              "original_sha256": pins["items"][cid]["sha256"], "png_sha256": sha(cand),
+                              "source_sha256": pins["items"][cid]["sha256"],
+                              "commons_original_sha1": pins["items"][cid]["original"]["commons_sha1"],
+                              "png_sha256": sha(cand),
                               "pair": prid}
             key_items[prid] = {"concept": concept, "kind": "pair", "primary": pid, "candidate": cid,
                                "png_sha256": sha(pair)}
@@ -231,27 +246,36 @@ def derive(k: int, write: bool = False) -> tuple[bytes, bytes]:
                 "manifest_dev_sha256": sha((HERE / "manifest_dev.json").read_bytes()),
                 "dev_pool_sha256": sha((HERE / "dev_pool.json").read_bytes()),
                 "things_definitions_sha256": sha(DEFS.read_bytes()),
-                "prior_score_sha256": {f"r{j}": sha(score_path(j).read_bytes()) for j in range(1, k)}}}
+                "things_images_metadata_sha256": sha(IMAGES_TSV.read_bytes()),
+                "prior_rounds": {f"r{j}": v for j, v in sorted((chained or {}).get("evidence", {}).items())}}}
     set_b = (json.dumps(sset, indent=1, sort_keys=True, ensure_ascii=False) + "\n").encode()
     return set_b, key_b
 
 
-def build(k: int) -> int:
-    set_b, key_b = derive(k, write=True)
+def _chained(k: int) -> dict | None:
+    if k == 1:
+        return None
+    import ai_audit_exec as A
+    return A.scientific_chain().admit(k)
+
+
+def build(k) -> int:
+    import ai_audit_exec as A
+    k = A.require_round(k)
+    set_b, key_b = derive(k, _chained(k), write=True)
     if not json.loads(set_b)["requests"]:
         print(f"round {k}: nothing to ask (no concept awaits a further candidate)")
         return 0
     set_path(k).write_bytes(set_b)
     key_path(k).write_bytes(key_b)
-    s = json.loads(set_b)
-    print(f"round {k}: {s['n_requests']} requests, set {sha(set_b)[:16]}, key {sha(key_b)[:16]}")
+    print(f"round {k}: {json.loads(set_b)['n_requests']} requests, set {sha(set_b)[:16]}, key {sha(key_b)[:16]}")
     return 0
 
 
-def check(k: int) -> dict:
-    """What the executor and scorer call: the committed round-k set and key equal their derivation, and every image
-    file hashes to its request."""
-    set_b, key_b = derive(k, write=False)
+def check(k, chained: dict | None) -> dict:
+    """What the executor and scorer call: the committed round-k set and key equal their derivation from the ADMITTED
+    chain, and every image file hashes to its request."""
+    set_b, key_b = derive(k, chained, write=False)
     if set_path(k).read_bytes() != set_b or key_path(k).read_bytes() != key_b:
         raise SystemExit(f"refused: round {k}'s set or key differs from its mechanical derivation")
     for r in json.loads(set_b)["requests"]:
@@ -262,4 +286,4 @@ def check(k: int) -> dict:
 
 if __name__ == "__main__":
     cmd, k = sys.argv[1], int(sys.argv[2])
-    sys.exit(build(k) if cmd == "build" else (print(json.dumps(check(k))) or 0))
+    sys.exit(build(k) if cmd == "build" else (print(json.dumps(check(k, _chained(k)))) or 0))

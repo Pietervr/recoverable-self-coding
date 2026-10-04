@@ -5,9 +5,9 @@ REUSE. This module imports the reviewed qualification executor (ai_reader_exec.p
 package) and runs its `Job` - the owned CLI, the deny-by-default allowlist, the per-attempt prompt-input receipt, the
 exec-invocation receipt in every preflight, the gate, the watchdog, the journal with its recovery and holds, the clock
 and its closure, the STOPPED receipt on every stop - with exactly three differences, each stated and fixtured:
-  1. CONFIGURATION. `configure(k)` rebinds the executor module's eight path/limit names (SET, DELIVERY, IMAGES, JOB,
-     RAW, GO, ATTEMPTS, LIMITS) to round k's audit files, directories and limits, in THIS process only; every Job method
-     reads them at call time. The attempts root is /tmp/ra (the qualification's is /tmp/rq: a sweep never touches the
+  1. CONFIGURATION. `configure(k)` admits round k's predecessor CHAIN (revision 2, below) and then rebinds the executor
+     module's eight path/limit names (SET, DELIVERY, IMAGES, JOB, RAW, GO, ATTEMPTS, LIMITS) to round k's audit files,
+     directories and chain-derived limits, in THIS process only; every Job method reads them at call time. The attempts root is /tmp/ra (the qualification's is /tmp/rq: a sweep never touches the
      other job's directories).
   2. ADMISSION. `AuditJob._admit` binds the go as row "aiaudit", stage "audit" against the AUDIT package (below), checks
      the pinned CLI version, re-derives round k's set and key from committed inputs (ai_audit_set.check) and checks the
@@ -22,9 +22,11 @@ only when no answer came back; an answer is final however wrong; the smoke rule 
 LIMITS (AI_READER_JOB.md: "up to 400 reader turns, a separate job with its own frozen state and caps"). The whole
 audit, all rounds: <= 400 attempts and <= 6 h. Round k: planned = its requests; max attempts = min(ceil(1.1 x
 planned), 400 - attempts charged in rounds < k); clock = 6 h - seconds charged in rounds < k; 3 tries per request,
-120 s per attempt, raw journal <= 20 MiB. The charged attempts and seconds of earlier rounds come from their COMMITTED
-score files (ai_audit_score.py, which admits each round's journal and closed clock); a round refuses when its planned
-requests exceed the attempts left.
+120 s per attempt, raw journal <= 20 MiB. Revision 2 (Codex 1b17d64): the round is an integer 1..8 at every entry point,
+and the attempts and seconds of earlier rounds come from the authenticated CHAIN (`Chain`): each predecessor's committed
+raw journal and committed score file, re-admitted and re-scored by the bound scorer (`ai_audit_score.py verify j`
+under .venv-build) to the committed bytes, its charges the re-admitted journal's attempts and CURRENT clock's seconds.
+A round refuses when its planned requests exceed the attempts left or the envelope is exhausted.
 
     .venv-image/bin/python stimuli/photo/ai_audit_exec.py delivery 1   # renders round 1's inputs locally (no request)
     .venv-image/bin/python stimuli/photo/ai_audit_exec.py plan 1       # identity and boundary checks, no request
@@ -44,6 +46,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import ai_audit_set as S  # noqa: E402
+import ai_reader_journal as J  # noqa: E402
 import ai_reader_exec as E  # noqa: E402
 import ai_reader_runtime as R  # noqa: E402
 import stage_a_guard  # noqa: E402
@@ -100,6 +103,7 @@ def package(read=None, codex: Path = R.CODEX) -> dict:
     qual = json.loads(read("ai_reader_qual_set.json"))
     deliv = json.loads(read("ai_reader_delivery.json"))
     p["things_definitions_sha256"] = sha(S.DEFS.read_bytes())
+    p["things_images_metadata_sha256"] = sha(S.IMAGES_TSV.read_bytes())
     p["codex_realpath"] = str(Path(codex).resolve())
     p["codex_sha256"] = E.sha_file(codex)
     p["codex_package_json_sha256"] = E.sha_file(Path(codex).resolve().parents[1] / "codex-package.json")
@@ -131,20 +135,112 @@ def package_at_commit(commit: str, repo: Path = stage_a_guard.RSC) -> dict:
     return package(read)
 
 
-def prior_charges(k: int) -> dict:
-    """Attempts and seconds charged by rounds < k, from their committed score files."""
-    att, secs = 0, 0.0
-    for j in range(1, k):
-        sc = json.loads(S.score_path(j).read_text())
-        att += int(sc["charged"]["attempts"])
-        secs += float(sc["charged"]["seconds"])
-    return {"attempts": att, "seconds": secs}
+MAX_ROUNDS = 8                                         # a list holds at most 8 candidates: at most 8 rounds
+BUILD_PY = HERE.parents[1] / ".venv-build" / "bin" / "python"
+VERIFY_TIMEOUT_S = 900.0
 
 
-def limits(k: int, n_requests: int) -> dict:
-    prior = prior_charges(k)
-    left_att = TOTAL["max_attempts"] - prior["attempts"]
-    left_s = TOTAL["job_clock_s"] - prior["seconds"]
+def require_round(k) -> int:
+    """Revision 2 (Codex 1b17d64 finding 1): a round is a plain int in 1..MAX_ROUNDS - no bool, zero or negative -
+    checked by every entry point (AuditJob, configure, the chain, the set builder) before anything is charged or sent."""
+    if type(k) is not int or not 1 <= k <= MAX_ROUNDS:
+        raise SystemExit(f"refused: round {k!r} is not an integer in 1..{MAX_ROUNDS}")
+    return k
+
+
+def _count(v, what: str) -> int:
+    if type(v) is not int or v < 0:
+        raise SystemExit(f"refused: {what} {v!r} is not a non-negative integer")
+    return v
+
+
+def _secs(v, what: str) -> float:
+    if type(v) not in (int, float) or not math.isfinite(v) or v < 0:
+        raise SystemExit(f"refused: {what} {v!r} is not a finite non-negative number of seconds")
+    return float(v)
+
+
+def subprocess_verify(j: int) -> dict:
+    """The executor's predecessor authentication: the bound scorer, under .venv-build (WordNet), re-admits round j's
+    committed raw journal (complete validation, package, go, set derivation, delivery, the finished CURRENT clock) and
+    its own predecessors, re-scores it, and compares the result byte for byte with the committed score file."""
+    got = subprocess.run([str(BUILD_PY), str(HERE / "ai_audit_score.py"), "verify", str(j)], capture_output=True,
+                         text=True, timeout=VERIFY_TIMEOUT_S)
+    if got.returncode != 0:
+        raise SystemExit(f"refused: round {j} is not an authenticated predecessor: {got.stderr.strip()[-600:]}")
+    try:
+        return json.loads(got.stdout.strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        raise SystemExit(f"refused: round {j}'s verification printed no result")
+
+
+class Chain:
+    """Revision 2 (Codex 1b17d64 findings 1-2): round k is admitted only on a contiguous chain 1..k-1 of authenticated
+    predecessors. For each j: the raw journal AND the score file are tracked, clean and byte-equal to their committed
+    blobs; `verify(j)` re-admits and re-scores round j from that evidence and must reproduce the committed score bytes;
+    the charges are the RE-ADMITTED journal's attempts and the RE-ADMITTED current clock's seconds (strict finite
+    non-negative types), never a field of the score file; the score's mode must be this chain's mode (a synthetic
+    predecessor never enters a scientific chain); a STOPPED, missing or inconsistent predecessor refuses. For a run
+    (`for_run`) also: round k has not ended (a receipt in its journal refuses before any accounting, so an ended round
+    is never re-opened and its clock never re-charged), round k has no score file, and no job directory exists for a
+    round outside 1..k. The aggregate envelope - 400 attempts and 6 h over all rounds - is computed from these charges."""
+
+    def __init__(self, *, verify, committed, raw_path, score_path, job_root: Path, mode: str = "scientific"):
+        self.verify, self.committed, self.mode = verify, committed, mode
+        self.raw_path, self.score_path, self.job_root = raw_path, score_path, Path(job_root)
+
+    def admit(self, k, *, for_run: bool = True) -> dict:
+        k = require_round(k)
+        if for_run:
+            rp = self.raw_path(k)
+            if rp.exists():
+                recs, _ = J.read(rp, cap=PER_ROUND["raw_bytes"])
+                if recs and recs[-1].get("t") == "receipt":
+                    raise SystemExit(f"refused: round {k} ended ({recs[-1].get('outcome')}); nothing runs after a "
+                                     f"receipt and its clock is not re-opened")
+            if self.score_path(k).exists():
+                raise SystemExit(f"refused: round {k} already has a score file")
+            for d in sorted(self.job_root.glob("ai_audit_job_r*")):
+                n = d.name[len("ai_audit_job_r"):]
+                if not n.isdigit() or not 1 <= int(n) <= k:
+                    raise SystemExit(f"refused: a job directory for a round outside 1..{k} exists ({d.name})")
+        priors, att, secs, evidence = {}, 0, 0.0, {}
+        for j in range(1, k):
+            raw_info = self.committed(self.raw_path(j))
+            sc_info = self.committed(self.score_path(j))
+            v = self.verify(j)
+            if not isinstance(v, dict) or v.get("round") != j:
+                raise SystemExit(f"refused: round {j}'s verification is not for round {j}")
+            if v.get("score_sha256") != sc_info["raw_sha256"] or v.get("raw_sha256") != raw_info["raw_sha256"]:
+                raise SystemExit(f"refused: round {j}'s committed score or journal is not the one re-derived now")
+            a, s = _count(v.get("attempts"), f"round {j} attempts"), _secs(v.get("seconds"), f"round {j} seconds")
+            sc = json.loads(sc_info["bytes"])
+            if sc.get("mode") != self.mode or (self.mode == "scientific" and "WARNING" in sc):
+                raise SystemExit(f"refused: round {j}'s score is not a {self.mode} result")
+            ident = sc.get("identity") or {}
+            if ident.get("round") != j or ident.get("raw_sha256") != raw_info["raw_sha256"] or \
+                    (sc.get("charged") or {}).get("attempts") != a:
+                raise SystemExit(f"refused: round {j}'s score does not name its admitted journal and attempts")
+            priors[j], att, secs = sc, att + a, secs + s
+            evidence[j] = {"raw_sha256": raw_info["raw_sha256"], "raw_commit": raw_info["raw_commit"],
+                           "score_sha256": sc_info["raw_sha256"], "score_commit": sc_info["raw_commit"],
+                           "attempts": a, "seconds": s}
+        left_att, left_s = TOTAL["max_attempts"] - att, TOTAL["job_clock_s"] - secs
+        if for_run and (left_att <= 0 or left_s <= E.FINAL_S + E.MIN_ATTEMPT_S):
+            raise SystemExit(f"refused: the audit envelope is exhausted ({att} of {TOTAL['max_attempts']} attempts, "
+                             f"{secs:.0f} of {TOTAL['job_clock_s']} s charged in rounds < {k})")
+        return {"round": k, "priors": priors, "attempts": att, "seconds": secs, "left_attempts": left_att,
+                "left_seconds": left_s, "evidence": evidence}
+
+
+def scientific_chain(verify=None) -> Chain:
+    from ai_reader_score import committed
+    return Chain(verify=verify or subprocess_verify, committed=committed, raw_path=raw_path,
+                 score_path=S.score_path, job_root=CAPTURES)
+
+
+def limits(chained: dict, n_requests: int) -> dict:
+    k, left_att, left_s = chained["round"], chained["left_attempts"], chained["left_seconds"]
     if n_requests <= 0 or n_requests > left_att:
         raise SystemExit(f"refused: round {k} plans {n_requests} requests with {left_att} of "
                          f"{TOTAL['max_attempts']} audit attempts left")
@@ -154,13 +250,23 @@ def limits(k: int, n_requests: int) -> dict:
             "job_clock_s": left_s, **PER_ROUND}
 
 
-def configure(k: int) -> dict:
-    """Rebind the reviewed executor's module configuration to audit round k (this process only)."""
-    sset = json.loads(S.set_path(k).read_text())
-    lim = limits(k, len(sset["requests"]))
-    E.SET, E.DELIVERY, E.IMAGES = S.set_path(k), delivery_path(k), S.ITEMS
-    E.JOB, E.RAW, E.GO, E.ATTEMPTS, E.LIMITS = job_dir(k), raw_path(k), GO, ATTEMPTS, lim
-    return lim
+def configure(k, *, chain: Chain | None = None, fixture: dict | None = None, for_run: bool = True):
+    """Admit round k's chain, then rebind the reviewed executor's module configuration to it (this process only). In
+    fixture mode the fixture's paths stand and only the limits are bound - from the SAME chain admission."""
+    k = require_round(k)
+    if fixture is not None and chain is None:
+        raise SystemExit("refused: a fixture run needs its own chain")
+    chained = (chain or scientific_chain()).admit(k, for_run=for_run)
+    if fixture is not None:
+        n = len(fixture["sset"]["requests"])
+    else:
+        n = len(json.loads(S.set_path(k).read_text())["requests"])
+    lim = limits(chained, n)
+    if fixture is None:
+        E.SET, E.DELIVERY, E.IMAGES = S.set_path(k), delivery_path(k), S.ITEMS
+        E.JOB, E.RAW, E.GO, E.ATTEMPTS = job_dir(k), raw_path(k), GO, ATTEMPTS
+    E.LIMITS = lim
+    return lim, chained
 
 
 def check_delivery(sset: dict, deliv: dict, pin: str) -> None:
@@ -178,20 +284,44 @@ def check_delivery(sset: dict, deliv: dict, pin: str) -> None:
 
 
 class AuditJob(E.Job):
-    def __init__(self, k: int, fixture: dict | None = None):
-        self.round = k
+    """The reviewed Job with the audit's admission. The chain is admitted BEFORE any accounting (`run`: a refused
+    round opens no clock and writes nothing) and AGAIN inside the reviewed admission deadline (`_admit`), which must
+    find the same predecessors and charges; the limits are re-bound from that second admission."""
+
+    def __init__(self, k, fixture: dict | None = None, chain: Chain | None = None):
+        self.round = require_round(k)
+        self.chain = chain
+        if fixture is not None and chain is None:
+            raise SystemExit("refused: a fixture run needs its own chain")
         super().__init__(fixture)
+
+    def run(self) -> dict:
+        self.lim, self.chained = configure(self.round, chain=self.chain, fixture=self.fx)
+        return super().run()
+
+    def _readmit(self) -> dict:
+        lim, again = configure(self.round, chain=self.chain, fixture=self.fx)
+        if (again["attempts"], again["evidence"].keys()) != (self.chained["attempts"],
+                                                             self.chained["evidence"].keys()) or \
+                any(again["evidence"][j]["score_sha256"] != self.chained["evidence"][j]["score_sha256"]
+                    for j in again["evidence"]) or again["seconds"] + 1e-6 < self.chained["seconds"]:
+            raise SystemExit("refused: the predecessor chain changed between the pre-clock and the admission check")
+        self.chained = again
+        return again
 
     def _admit(self) -> None:
         if self.fx:
+            with E.Deadline(E.ADMIT_TIMEOUT_S, "audit chain admission (fixture)"):
+                self._readmit()
             return super()._admit()
-        with E.Deadline(E.ADMIT_TIMEOUT_S, "audit package and go admission"):
+        with E.Deadline(E.ADMIT_TIMEOUT_S, "audit package, chain and go admission"):
+            chained = self._readmit()
             self.sset = json.loads(E.SET.read_text())
             self.deliv = json.loads(E.DELIVERY.read_text())
             self.pkg = package()
             stage_a_guard.NEGATIVE_REVIEWS = stage_a_guard.NEGATIVE_REVIEWS | NEGATIVE
             stage_a_guard.require_go(GO, self.pkg, row=ROW, stage=STAGE, verify_at_commit=package_at_commit)
-            S.check(self.round)
+            S.check(self.round, chained["priors"])
             check_delivery(self.sset, self.deliv, self.pkg["instructions_sha256"])
         if self.pkg["cli_version"] != self.sset["reader"]["cli_version"]:
             raise SystemExit("refused: the installed codex CLI is not the pinned version")
@@ -206,7 +336,7 @@ class AuditJob(E.Job):
 
 def delivery(k: int) -> dict:
     """Render every request of round k locally (no request): image digest, user text hash, prompt rendered."""
-    configure(k)
+    configure(k)                                       # the chain is admitted first (a later round needs its predecessors)
     sset = json.loads(S.set_path(k).read_text())
     codex = [str(R.CODEX)]
     out, instr = {}, set()
@@ -241,8 +371,8 @@ def delivery(k: int) -> dict:
 
 
 def plan(k: int) -> dict:
-    lim = configure(k)
-    S.check(k)
+    lim, chained = configure(k)
+    S.check(k, chained["priors"])
     sset = json.loads(S.set_path(k).read_text())
     check_delivery(sset, json.loads(delivery_path(k).read_text()),
                    json.loads((HERE / "ai_reader_delivery.json").read_text())["instructions_sha256"])
@@ -255,9 +385,8 @@ def plan(k: int) -> dict:
             "package": package()}
 
 
-def run(k: int, fixture: dict | None = None) -> dict:
-    configure(k)
-    return AuditJob(k, fixture).run()
+def run(k: int) -> dict:
+    return AuditJob(k).run()
 
 
 if __name__ == "__main__":

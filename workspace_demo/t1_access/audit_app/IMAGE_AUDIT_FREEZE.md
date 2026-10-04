@@ -4,14 +4,17 @@ R084, 2 October 2026. This answers Codex's record RSC `f9d2ef3` (answer 6.3) and
 §8.2's reader rule as revised by R052 (Unimog `16eb683f`, owner's decision of 2 October 2026). Revision 12 of the
 reader package (3 October 2026, R052 handoff `ff264083`, the owner's decision of 3 October) changes the free-name
 question and the matching rule below - one rule shared with the qualification scorer - and nothing else here.
+**Amendment of 4 October 2026 (before any audit answer; Codex RSC `1b17d64` finding 3, R052's ruling, handoff
+f809933c):** the referral rule for second-view CANDIDATES below ("Referrals and candidate succession"), frozen with
+`stimuli/photo/AI_AUDIT_JOB.md`; every other rule here is unchanged.
 
-**Exposure (updated 4 October 2026; the rules below are unchanged).** No audit answer exists: no reader has seen any
+**Exposure (updated 4 October 2026).** No audit answer exists: no reader has seen any
 audit item and the page is not deployed. The AI reader has seen the 300 qualification images (outside the development
 pool) in the qualification jobs: the first job of 2 October (STOPPED after 175 requests, never scored), job (a)
 (600 requests, NOT ADMITTED under the revision-11 rule), job (b) (STOPPED at 219, never scored) and job (c) under
 revision 17 (600 of 600; ADMITTED WITH 3 OWNER-ADJUDICATED ITEMS, `reviews/2026-10-04_ai_reader_job_c_owner_adjudication.md`).
 The audit runs as its own bounded job: `stimuli/photo/AI_AUDIT_JOB.md` (the reader route reused, rounds, limits,
-dispositions); nothing in this freeze is changed by it.
+dispositions), which applies this freeze as amended on 4 October.
 
 **Not a row-20 gate.** The audit is required for all 32 roles and their second views before row 21. The Stage A
 eight go first, as the audit's own pilot.
@@ -86,11 +89,12 @@ An item **passes on the AI reader alone** when all of these hold:
 - for a second view, distinct = yes.
 
 Any other outcome is a **referral to the owner**: 'unclear', a name the shared rule does not credit, a no or unsure
-answer, or an input or provenance problem. Each referral record carries:
+answer, or an input or provenance problem - for a primary view and for every failed second-view candidate (below).
+Each referral record carries:
 
 - the opaque item and view;
 - the intended concept and sense;
-- the THINGSplus human proportion and rating count;
+- the THINGSplus human proportion and rating count (primary views; a Commons candidate has none);
 - the hashes;
 - the unedited raw answers and the question order;
 - the frozen score;
@@ -105,6 +109,23 @@ picture and the raw answer recorded before the decision - is not a reader error;
 adjudications is reported as "admitted with N owner-adjudicated items", never as a mechanical admission.
 
 Items passed by the AI reader and items adjudicated by the owner are reported separately. Every answer is retained.
+
+### Referrals and candidate succession (amendment of 4 October 2026)
+
+- **Automatic succession.** A second-view candidate the reader does not pass is RETAINED, referred to the owner, and
+  the concept's next candidate in the frozen rank order is audited in the next round automatically - succession never
+  waits for the owner's decision. The candidate the reader passes first in rank order is the mechanical selection.
+- **The owner adjudicates every failed candidate** (pass, or fail), every failed primary view (pass, or fail: replace
+  by the seeded rule, or hold) and every exhausted concept (no candidate passed: Stage B holds for it unless the owner
+  passes a failed candidate). A failed DEV-CAL Stage A primary's referral states that a replacement would change an
+  input of the accepted Stage A bundle and that none is made without the owner's decision and its stated consequence.
+- **The declared order wins.** When the owner passes an EARLIER (higher-ranked) candidate after a later one was
+  selected mechanically, the earlier candidate is kept and the later selection is recorded as superseded; the
+  per-image check (framework 8.2) applies to the candidate finally kept. A candidate passed by neither the reader nor
+  the owner is never kept.
+- **Reader and owner decisions are recorded separately.** No answer becomes a reader pass by an owner decision; no
+  retry, alias or rule change follows from one. If a primary is replaced, its earlier distinct-view judgement does not
+  transfer: the actual final pair is checked when the P = 2 manifest is admitted.
 
 ## Pilot set
 

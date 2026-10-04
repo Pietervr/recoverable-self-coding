@@ -229,11 +229,12 @@
   "ai_audit_sources_sha256": "5127035ca91c1cd1ba23b29f0c83802fa795fe8e0ea257e29484019336b6d7b4",
   "dev_pool_sha256": "fae20dc215d1de329ff81a5687735047c9a92cead1b9642f7cda4f6c2d69ad2d",
   "manifest_dev_sha256": "e816f843700a4a15c4ca56ba71318957e73b77d3560e81a2bf476ff23422f448",
-  "prior_score_sha256": {},
+  "prior_rounds": {},
   "second_view_candidates_sha256": "430b0ce8794910dcc6bd2aa939fa4ae7453018663667ba3f861b779b68e2d028",
-  "things_definitions_sha256": "3f05b6b748d1e1b685e15130d2487bff63f86e1f4da94a2a5d9e7dec073a48eb"
+  "things_definitions_sha256": "3f05b6b748d1e1b685e15130d2487bff63f86e1f4da94a2a5d9e7dec073a48eb",
+  "things_images_metadata_sha256": "fd5b17635f0f6528f58decaf5a089587593708862d4ee7a2a72cd8aa57ce013c"
  },
- "key_sha256": "e6438875df242278192376535f648d289ca4457a374a98d78c9c41e2349388fd",
+ "key_sha256": "d931129d59a19c9385d9e21e052f07e375f3f67800c4c0d28ccaf0d00461ce53",
  "n_requests": 224,
  "note": "Reader-side record of one image-audit round: no labels; the key is ai_audit_key_r1.json (orchestrator only).",
  "prompt": "Look at this picture. What is the main object in it? Answer with the most common name for the object, in one or two words, or with the single word 'unclear' if you cannot tell. Reply with the name only.",

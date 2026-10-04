@@ -4,6 +4,11 @@
    "concept": "boat",
    "definition": "a small vessel for travel on water",
    "family": "vehicles",
+   "human": {
+    "n_correct": 13,
+    "n_ratings": 16,
+    "recognizability": 0.8125
+   },
    "kind": "primary",
    "png_sha256": "506a62a03053134c9d55fa5554b417f546796695b92eb80f7ecae176a2c0d689",
    "role": "DEV-CAL",
@@ -14,6 +19,11 @@
    "concept": "tie",
    "definition": "neckwear consisting of a long narrow piece of material worn (mostly by men) under a collar and tied in knot at the front",
    "family": "clothing",
+   "human": {
+    "n_correct": 12,
+    "n_ratings": 17,
+    "recognizability": 0.705882353
+   },
    "kind": "primary",
    "png_sha256": "a07c5e4e4870521374ed9212b632126dab07b609c82167f2b4fc6563f4c77fc5",
    "role": "DEV-PILOT",
@@ -24,6 +34,11 @@
    "concept": "cow",
    "definition": "female of domestic cattle: \"`moo-cow' is a child's term\"",
    "family": "animals",
+   "human": {
+    "n_correct": 14,
+    "n_ratings": 14,
+    "recognizability": 1.0
+   },
    "kind": "primary",
    "png_sha256": "d95cb9a43a1fece436168eb25a60e5d82c37b1cd0aee392d250e89c2a5405ce6",
    "role": "DEV-PILOT",
@@ -31,17 +46,18 @@
    "synset": "cow.n.01"
   },
   "0912ec10a03b": {
+   "commons_original_sha1": "9537e4b8efb4f8594ffbd85cae9facb0550ee85a",
    "concept": "avocado",
    "definition": "a pear-shaped tropical fruit with green or blackish skin and rich yellowish pulp enclosing a single large seed",
    "family": "foods",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "181453fa80eb088fe40b3cbab250f1cc9c75e93e2a3010a61dac26342c0d8ab0",
    "page_url": "https://commons.wikimedia.org/wiki/File:Persea_americana_from_Canadian_supermarket.jpg",
    "pair": "88920c7cf4c6",
    "png_sha256": "ececd53a864b369d822a68ca948332358fc28377d82b8d02d6108f70f4f6bf19",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "181453fa80eb088fe40b3cbab250f1cc9c75e93e2a3010a61dac26342c0d8ab0",
    "synset": "avocado.n.01",
    "title": "File:Persea americana from Canadian supermarket.jpg"
   },
@@ -56,6 +72,11 @@
    "concept": "canoe",
    "definition": "small and light boat; pointed at both ends; propelled with a paddle",
    "family": "vehicles",
+   "human": {
+    "n_correct": 8,
+    "n_ratings": 16,
+    "recognizability": 0.5
+   },
    "kind": "primary",
    "png_sha256": "872ceeb8a83a3cb2b2618971a0452db8d145f98009f724d5c27f5513bdac6520",
    "role": "DEV-CAL",
@@ -63,17 +84,18 @@
    "synset": "canoe.n.01"
   },
   "19272478a0ec": {
+   "commons_original_sha1": "041c99805b5e2f50d9d6d849e42bba66a8c9e392",
    "concept": "chili",
    "definition": "ground beef and chili peppers or chili powder often with tomatoes and kidney beans",
    "family": "foods",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "b4cea6e3eedfeda11c70e7bcd1c03a4e73e313c6efffc7fe933447eda14d7990",
    "page_url": "https://commons.wikimedia.org/wiki/File:Chili,_Wisconsin.jpg",
    "pair": "88c9b158abe6",
    "png_sha256": "2c0df998c5f45b3c8000f3c5774816028ddef5da6a26ab43f32cd5d9e1751571",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "b4cea6e3eedfeda11c70e7bcd1c03a4e73e313c6efffc7fe933447eda14d7990",
    "synset": "chili.n.01",
    "title": "File:Chili, Wisconsin.jpg"
   },
@@ -81,6 +103,11 @@
    "concept": "horse",
    "definition": "solid-hoofed herbivorous quadruped domesticated since prehistoric times",
    "family": "animals",
+   "human": {
+    "n_correct": 15,
+    "n_ratings": 16,
+    "recognizability": 0.9375
+   },
    "kind": "primary",
    "png_sha256": "00f35c27dd9c5141d85f8eab1172cc5fbb95e5359d1e2416462c20e5b1c7f917",
    "role": "DEV-CAL",
@@ -88,17 +115,18 @@
    "synset": "horse.n.01"
   },
   "1e5ee1cee5e9": {
+   "commons_original_sha1": "7b0846aea69bc1a1954df8b715d5f10c088d772e",
    "concept": "jacket",
    "definition": "a short coat",
    "family": "clothing",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "7c596d97b7e00ee8b173f5477b962ebc78b8a3d51b6f08cf9fdb81ed5795e67d",
    "page_url": "https://commons.wikimedia.org/wiki/File:Suede_jacket_on_a_chair.jpg",
    "pair": "724e4ed4dcb5",
    "png_sha256": "f305eb01976cc9f7703f9b62f5ec01bd1d68ea3c745740ee3a50b89b08f32a18",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "7c596d97b7e00ee8b173f5477b962ebc78b8a3d51b6f08cf9fdb81ed5795e67d",
    "synset": "jacket.n.01",
    "title": "File:Suede jacket on a chair.jpg"
   },
@@ -106,6 +134,11 @@
    "concept": "caramel",
    "definition": "firm chewy candy made from caramelized sugar and butter and milk",
    "family": "foods",
+   "human": {
+    "n_correct": 5,
+    "n_ratings": 13,
+    "recognizability": 0.384615385
+   },
    "kind": "primary",
    "png_sha256": "dc802ea6b94a862fa2550e86d16b3c8efdbc6b2181a0a8c1bbd2b68280ad1c19",
    "role": "DEV-CAL",
@@ -123,6 +156,11 @@
    "concept": "wagon",
    "definition": "any of various kinds of wheeled vehicles drawn by an animal or a tractor",
    "family": "vehicles",
+   "human": {
+    "n_correct": 6,
+    "n_ratings": 13,
+    "recognizability": 0.461538462
+   },
    "kind": "primary",
    "png_sha256": "fb6a15f00bfdd578b724888cda4354cad5985a21d433fe232ccd4d1aec71e9c9",
    "role": "DEV-CAL",
@@ -147,6 +185,11 @@
    "concept": "avocado",
    "definition": "a pear-shaped tropical fruit with green or blackish skin and rich yellowish pulp enclosing a single large seed",
    "family": "foods",
+   "human": {
+    "n_correct": 14,
+    "n_ratings": 16,
+    "recognizability": 0.875
+   },
    "kind": "primary",
    "png_sha256": "5ed3e7194394419735b968e87e5a1e3fe1bdd46e65b3a4166fb9eccc193a5ef6",
    "role": "DEV-CAL",
@@ -157,6 +200,11 @@
    "concept": "cheese",
    "definition": "a solid food prepared from the pressed curd of milk",
    "family": "foods",
+   "human": {
+    "n_correct": 7,
+    "n_ratings": 16,
+    "recognizability": 0.4375
+   },
    "kind": "primary",
    "png_sha256": "be865117ed0306d73e46e170c57e4f89b4c3eddbd3c31be575569aefc6de3671",
    "role": "DEV-PILOT",
@@ -167,6 +215,11 @@
    "concept": "mosquito",
    "definition": "two-winged insect whose female has a long proboscis to pierce the skin and suck the blood of humans and animals",
    "family": "animals",
+   "human": {
+    "n_correct": 14,
+    "n_ratings": 17,
+    "recognizability": 0.823529412
+   },
    "kind": "primary",
    "png_sha256": "9913454e617f8ac46829a325f21587ae866e4f88a1a0bff0ff958f6e39af138d",
    "role": "DEV-PILOT",
@@ -174,17 +227,18 @@
    "synset": "mosquito.n.01"
   },
   "401ec264bcb3": {
+   "commons_original_sha1": "e636fe21b3666ab90f5d28ce8b3b0d998a9fee2b",
    "concept": "jet",
    "definition": "an airplane powered by one or more jet engines",
    "family": "vehicles",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "12561268ba95083e237b276c3076be5309284835a79c6607e1c9d1484fe08bf3",
    "page_url": "https://commons.wikimedia.org/wiki/File:Jet-ucak-kiralama.jpg",
    "pair": "2734eec20264",
    "png_sha256": "1fa49cb2fd6818442e987a53a3baa1edf765acd3ebb1a80b1c288c7c0d7dfc1f",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "12561268ba95083e237b276c3076be5309284835a79c6607e1c9d1484fe08bf3",
    "synset": "jet.n.01",
    "title": "File:Jet-ucak-kiralama.jpg"
   },
@@ -199,6 +253,11 @@
    "concept": "chili",
    "definition": "ground beef and chili peppers or chili powder often with tomatoes and kidney beans",
    "family": "foods",
+   "human": {
+    "n_correct": 5,
+    "n_ratings": 13,
+    "recognizability": 0.384615385
+   },
    "kind": "primary",
    "png_sha256": "43297bffc0183ad33cfd6586187571b16bcf5714e6b3232b581ac0624ba38c39",
    "role": "DEV-CAL",
@@ -220,17 +279,18 @@
    "primary": "59d8c5697dcc"
   },
   "43c573a66c82": {
+   "commons_original_sha1": "3d193426c075843c3d0df685ee9c6c90fe3a93da",
    "concept": "tomato",
    "definition": "mildly acid red or yellow pulpy fruit eaten as a vegetable",
    "family": "foods",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "6c2221ac0615f1e5ca890b954bee09467f88aa60f61a8cd32dfae47bef4bd416",
    "page_url": "https://commons.wikimedia.org/wiki/File:Tomato_Plant_June_%2724.jpg",
    "pair": "d2bed2ef6c23",
    "png_sha256": "535003526c569230bd57b6cc3fe2df27eace545887737d70edbf8aa346239842",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "6c2221ac0615f1e5ca890b954bee09467f88aa60f61a8cd32dfae47bef4bd416",
    "synset": "tomato.n.01",
    "title": "File:Tomato Plant June '24.jpg"
   },
@@ -238,6 +298,11 @@
    "concept": "jacket",
    "definition": "a short coat",
    "family": "clothing",
+   "human": {
+    "n_correct": 4,
+    "n_ratings": 11,
+    "recognizability": 0.363636364
+   },
    "kind": "primary",
    "png_sha256": "559484f14444615b205aaffce0352003b22cb64f8b182374447c0e591f4fd91b",
    "role": "DEV-CAL",
@@ -252,17 +317,18 @@
    "primary": "029b0533ab23"
   },
   "48cd27dd1612": {
+   "commons_original_sha1": "d752bbdfa13a371ac824e26706a095232b6d5245",
    "concept": "canoe",
    "definition": "small and light boat; pointed at both ends; propelled with a paddle",
    "family": "vehicles",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "0ad22e784644821fc996c9b0c8532b13614ade98096546257bb99d482cc7ba2e",
    "page_url": "https://commons.wikimedia.org/wiki/File:Prior_to_Canoe_Event_Competitions,_1936_Olympic_Games.png",
    "pair": "614daf85717b",
    "png_sha256": "789cfecd96dd94fd12a2df3826dee88069c7e68d2a17651379b1ac079a985a1c",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "0ad22e784644821fc996c9b0c8532b13614ade98096546257bb99d482cc7ba2e",
    "synset": "canoe.n.01",
    "title": "File:Prior to Canoe Event Competitions, 1936 Olympic Games.png"
   },
@@ -270,6 +336,11 @@
    "concept": "lingerie",
    "definition": "women's underwear and nightclothes",
    "family": "clothing",
+   "human": {
+    "n_correct": 5,
+    "n_ratings": 14,
+    "recognizability": 0.357142857
+   },
    "kind": "primary",
    "png_sha256": "7e83e5d11fece443571d0bb260cdeb8b3e7862bd5ed891d76951a29fe82319b9",
    "role": "DEV-CAL",
@@ -280,6 +351,11 @@
    "concept": "shark",
    "definition": "any of numerous elongate mostly marine carnivorous fishes with heterocercal caudal fins and tough skin covered with small toothlike scales",
    "family": "animals",
+   "human": {
+    "n_correct": 8,
+    "n_ratings": 12,
+    "recognizability": 0.666666667
+   },
    "kind": "primary",
    "png_sha256": "db46f4a0331e705bee2aadce71a79a73375b96f93d186e0465b125009242cf62",
    "role": "DEV-CAL",
@@ -290,6 +366,11 @@
    "concept": "jet",
    "definition": "an airplane powered by one or more jet engines",
    "family": "vehicles",
+   "human": {
+    "n_correct": 7,
+    "n_ratings": 13,
+    "recognizability": 0.538461538
+   },
    "kind": "primary",
    "png_sha256": "f45f8a7b4971580f40223e38fb7504fc2c2a31504d4f43eb24b5dffa90166460",
    "role": "DEV-PILOT",
@@ -307,6 +388,11 @@
    "concept": "hat",
    "definition": "headdress that protects the head from bad weather; has shaped crown and usually a brim",
    "family": "clothing",
+   "human": {
+    "n_correct": 7,
+    "n_ratings": 12,
+    "recognizability": 0.583333333
+   },
    "kind": "primary",
    "png_sha256": "a2100a0796403ea8fa3bc4d0ea4d8ced3b91263cd925d303f3dbb56da8e183f6",
    "role": "DEV-PILOT",
@@ -317,6 +403,11 @@
    "concept": "hamburger",
    "definition": "a sandwich consisting of a fried cake of minced beef served on a bun, often with other ingredients",
    "family": "foods",
+   "human": {
+    "n_correct": 5,
+    "n_ratings": 14,
+    "recognizability": 0.357142857
+   },
    "kind": "primary",
    "png_sha256": "f82dd04390c420b929aa4bd0f8e0a3703ffbed75e397beb61bc1cb2243536993",
    "role": "DEV-CAL",
@@ -331,17 +422,18 @@
    "primary": "520364284e4c"
   },
   "60bf080903c1": {
+   "commons_original_sha1": "ce2e5eb6b5a671c2db7e3fd888a15f2bfe36ad65",
    "concept": "sock",
    "definition": "hosiery consisting of a cloth covering for the foot; worn inside the shoe; reaches to between the ankle and the knee",
    "family": "clothing",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "13378260bccabcd37c499b4646bc296decfabc2dca46dd221bd8cee9dc7714a2",
    "page_url": "https://commons.wikimedia.org/wiki/File:Villased_sokid,_STM_1998.jpg",
    "pair": "d6199e8f0ad2",
    "png_sha256": "14efc552f927ec1ea904f2e2ce8835da5d63d8d2bc10d92fa75a878a02fcdd53",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "13378260bccabcd37c499b4646bc296decfabc2dca46dd221bd8cee9dc7714a2",
    "synset": "sock.n.01",
    "title": "File:Villased sokid, STM 1998.jpg"
   },
@@ -356,6 +448,11 @@
    "concept": "butterfly",
    "definition": "diurnal insect typically having a slender body with knobbed antennae and broad colorful wings",
    "family": "animals",
+   "human": {
+    "n_correct": 17,
+    "n_ratings": 17,
+    "recognizability": 1.0
+   },
    "kind": "primary",
    "png_sha256": "93e0fe7fa3d200d1e614afcccf2b367e16beee50a07c05ba2782d402f41313bd",
    "role": "DEV-PILOT",
@@ -370,32 +467,34 @@
    "primary": "3ceca9f8ff6f"
   },
   "6ed607622365": {
+   "commons_original_sha1": "9a5fed1aef4c0ed6b57bdeaec76d6815f2949f01",
    "concept": "butterfly",
    "definition": "diurnal insect typically having a slender body with knobbed antennae and broad colorful wings",
    "family": "animals",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "4ace668a1b7d64377db1977c57049ec8e94f4c343843cc2681128adeec43b0ad",
    "page_url": "https://commons.wikimedia.org/wiki/File:Common_Jezebel_Delias_eucharis_by_kadavoor_3.jpg",
    "pair": "d58d30d519b3",
    "png_sha256": "9669417100d395741d3c37943d2d38225fa7d5016adbf252162035979b896c98",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "4ace668a1b7d64377db1977c57049ec8e94f4c343843cc2681128adeec43b0ad",
    "synset": "butterfly.n.01",
    "title": "File:Common Jezebel Delias eucharis by kadavoor 3.jpg"
   },
   "6f352ce3a797": {
+   "commons_original_sha1": "16b3aaaa7c8fc03c7dee992ebf163160dd5519bc",
    "concept": "jeans",
    "definition": "(usually plural) close-fitting trousers of heavy denim for manual work or casual wear",
    "family": "clothing",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "096533351809eadc66690de91590c1f0bda153b5ec2fbe6012274d1e1718545f",
    "page_url": "https://commons.wikimedia.org/wiki/File:Jeans_mexicanos.jpg",
    "pair": "e3a2eb6f53e6",
    "png_sha256": "e4d7376a260142e7bf2ed0f2ac730c0cecfd39b807688f9b825615cfec2b3ea8",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "096533351809eadc66690de91590c1f0bda153b5ec2fbe6012274d1e1718545f",
    "synset": "jean.n.01",
    "title": "File:Jeans mexicanos.jpg"
   },
@@ -407,62 +506,66 @@
    "primary": "4407f36a5c0d"
   },
   "72e2a6fd2bf9": {
+   "commons_original_sha1": "c0e5ee31c6e2fc1c7525f75e9b6ac0a223ee5177",
    "concept": "prune",
    "definition": "dried plum",
    "family": "foods",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "f64be37b38b55883121d31d7fd1871dce9bd812014217dfb8d543164544f4a12",
    "page_url": "https://commons.wikimedia.org/wiki/File:Dried_plums_01.jpg",
    "pair": "efa5efde6b21",
    "png_sha256": "ddfffd7f9d16655a5fa2e57ae340a6306098e14f9c85712c7d5d5e79ebe87d80",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "f64be37b38b55883121d31d7fd1871dce9bd812014217dfb8d543164544f4a12",
    "synset": "prune.n.01",
    "title": "File:Dried plums 01.jpg"
   },
   "74b08d0c26aa": {
+   "commons_original_sha1": "7f3fddbe3eeb3d03fdf1509f5f7cef058ab8c57b",
    "concept": "robe",
    "definition": "any loose flowing garment",
    "family": "clothing",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "746da599a197b56239928b5260398202750f50cec8d9fe3c43f41eead3547db6",
    "page_url": "https://commons.wikimedia.org/wiki/File:Robe_South_Australia(GN05733).jpg",
    "pair": "59ba8ea7518d",
    "png_sha256": "222c92155611eebd6e25cf5f9dbdd6887d79fb92a01e1e41d2cecf5915cd0ea5",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "746da599a197b56239928b5260398202750f50cec8d9fe3c43f41eead3547db6",
    "synset": "robe.n.01",
    "title": "File:Robe South Australia(GN05733).jpg"
   },
   "77dc6a056a05": {
+   "commons_original_sha1": "78b0d93ea69ca0ec1fc40e09af7fb4e591548b12",
    "concept": "tie",
    "definition": "neckwear consisting of a long narrow piece of material worn (mostly by men) under a collar and tied in knot at the front",
    "family": "clothing",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "cf17636c9b723cbf51e1d477f4ace55a4d360956e956dfee63943c4d469d0848",
    "page_url": "https://commons.wikimedia.org/wiki/File:TIE_Fighter.webp",
    "pair": "dcbd9c7f4e03",
    "png_sha256": "eabe49e8bd58d7d5c1bf702fa065dfbd2f23a277973fb990fe45d995edd8b0ea",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "cf17636c9b723cbf51e1d477f4ace55a4d360956e956dfee63943c4d469d0848",
    "synset": "necktie.n.01",
    "title": "File:TIE Fighter.webp"
   },
   "7af669c79f42": {
+   "commons_original_sha1": "48534e2655ae6a11194901af41832ca3f325fc80",
    "concept": "crow",
    "definition": "black birds having a raucous call",
    "family": "animals",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "a9c881ad0b5f6a576e73b8313b36c2cc170babdb65ebed563d25270d398547d2",
    "page_url": "https://commons.wikimedia.org/wiki/File:Crow_bird_and_beach_37.jpg",
    "pair": "31f1ec3603e7",
    "png_sha256": "3b2b398ca795cbcc686fd5a5ae77c7c862c8f122d19749b46468f35f9498aa11",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "a9c881ad0b5f6a576e73b8313b36c2cc170babdb65ebed563d25270d398547d2",
    "synset": "crow.n.01",
    "title": "File:Crow bird and beach 37.jpg"
   },
@@ -470,6 +573,11 @@
    "concept": "prune",
    "definition": "dried plum",
    "family": "foods",
+   "human": {
+    "n_correct": 5,
+    "n_ratings": 14,
+    "recognizability": 0.357142857
+   },
    "kind": "primary",
    "png_sha256": "594bbfcd09f41a03134dce4669c77daa6e0f8da1e7629e8f11a611c2721ee2de",
    "role": "DEV-PILOT",
@@ -477,47 +585,50 @@
    "synset": "prune.n.01"
   },
   "84c9c729e055": {
+   "commons_original_sha1": "f62f7fcc812fbdad4dc39db5d90389fc1ffe64d8",
    "concept": "skateboard",
    "definition": "a board with wheels that is ridden in a standing or crouching position and propelled by foot",
    "family": "vehicles",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "c9812ce9011aaed217ea67652189cb60f3ebb9908064b4019311be8525bad4f8",
    "page_url": "https://commons.wikimedia.org/wiki/File:Skateboard_upside.jpg",
    "pair": "c3f0650d0f3b",
    "png_sha256": "e56c122f88e561dd8142aa0cbf4310e1c6a41eabb0c7c2b8b6518714beafd358",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "c9812ce9011aaed217ea67652189cb60f3ebb9908064b4019311be8525bad4f8",
    "synset": "skateboard.n.01",
    "title": "File:Skateboard upside.jpg"
   },
   "861afedd838c": {
+   "commons_original_sha1": "d0092991bfdefa64c598f9d1c269c57c78dc2f2e",
    "concept": "ship",
    "definition": "a vessel that carries passengers or freight",
    "family": "vehicles",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "c9323e7afc89f549eb15587884baa62a65c8b7d998243507ef9aa8e3218b958f",
    "page_url": "https://commons.wikimedia.org/wiki/File:Ship_at_the_entrance_of_Tokyo_port_7.jpg",
    "pair": "3a13c6a8adb3",
    "png_sha256": "50d5e52c9349fc71b0ec3666500035d2b178aafe1ece6fc8b9ddd93186928e5f",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "c9323e7afc89f549eb15587884baa62a65c8b7d998243507ef9aa8e3218b958f",
    "synset": "ship.n.01",
    "title": "File:Ship at the entrance of Tokyo port 7.jpg"
   },
   "86b45d59a6f6": {
+   "commons_original_sha1": "a48974a3e06f77a219beb696b4061055d190b262",
    "concept": "hat",
    "definition": "headdress that protects the head from bad weather; has shaped crown and usually a brim",
    "family": "clothing",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "173f1ce1214dd6e5cfd2abb1f1f52c3c716fc575d6848f5cfde4f3759b912301",
    "page_url": "https://commons.wikimedia.org/wiki/File:Bowler_hat_on_person.jpg",
    "pair": "437de35457e0",
    "png_sha256": "fcd4de7aebdd71233f2285049aeebd11176d353e41733aaf4e9a7b3314e5f31c",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "173f1ce1214dd6e5cfd2abb1f1f52c3c716fc575d6848f5cfde4f3759b912301",
    "synset": "hat.n.01",
    "title": "File:Bowler hat on person.jpg"
   },
@@ -532,6 +643,11 @@
    "concept": "robe",
    "definition": "any loose flowing garment",
    "family": "clothing",
+   "human": {
+    "n_correct": 6,
+    "n_ratings": 17,
+    "recognizability": 0.352941176
+   },
    "kind": "primary",
    "png_sha256": "14fd744bdeb6064a7cb0c4f77fac96eb291fe53f8f08ea1c7159b75997d786c2",
    "role": "DEV-PILOT",
@@ -556,6 +672,11 @@
    "concept": "taxi",
    "definition": "a car driven by a person whose job is to take passengers where they want to go in exchange for money",
    "family": "vehicles",
+   "human": {
+    "n_correct": 8,
+    "n_ratings": 13,
+    "recognizability": 0.615384615
+   },
    "kind": "primary",
    "png_sha256": "5393307acc1ebaf9b2e0782e26a61fa6dae13e141fe2610151a134b9051699d3",
    "role": "DEV-CAL",
@@ -566,6 +687,11 @@
    "concept": "pig",
    "definition": "domestic swine",
    "family": "animals",
+   "human": {
+    "n_correct": 13,
+    "n_ratings": 13,
+    "recognizability": 1.0
+   },
    "kind": "primary",
    "png_sha256": "e8284fac78f4a1097110008cb6b2d9179f4acef5e9e65eddb62ac2d62440ca26",
    "role": "DEV-CAL",
@@ -587,47 +713,50 @@
    "primary": "d4fa6796cd47"
   },
   "906f688c3828": {
+   "commons_original_sha1": "d191d71d8b3bb412479a68b9ce7cff8f62c79b09",
    "concept": "truck",
    "definition": "an automotive vehicle suitable for hauling",
    "family": "vehicles",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "40f7ca633a634e6bf6e87979f4aa6b92a08d2712297322889445ad2b21c2fa25",
    "page_url": "https://commons.wikimedia.org/wiki/File:20141025_Shockwave_Truck_Alliance_Air_Show_2014-3.jpg",
    "pair": "a3b4073dcf79",
    "png_sha256": "a0cddd31ca38d43fd0b38b0bffbb75c7f3ebcee6dbc96e1010c99842f49c4f1e",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "40f7ca633a634e6bf6e87979f4aa6b92a08d2712297322889445ad2b21c2fa25",
    "synset": "truck.n.01",
    "title": "File:20141025 Shockwave Truck Alliance Air Show 2014-3.jpg"
   },
   "96721ac2bd0e": {
+   "commons_original_sha1": "9b3adb679c06b51685c67eb3c60f5b8188e4261b",
    "concept": "lingerie",
    "definition": "women's underwear and nightclothes",
    "family": "clothing",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "3ae29d5baa32c211b089be45cabd77c799acafa7eeedb5d4c868039f7f2582c1",
    "page_url": "https://commons.wikimedia.org/wiki/File:Man_Wearing_Lingerie.jpg",
    "pair": "e0ecd5c22843",
    "png_sha256": "e28e62184726e506a3abe27f84cf459005f1c03e7c285627e11464e4effc5912",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "3ae29d5baa32c211b089be45cabd77c799acafa7eeedb5d4c868039f7f2582c1",
    "synset": "lingerie.n.01",
    "title": "File:Man Wearing Lingerie.jpg"
   },
   "969e00e69928": {
+   "commons_original_sha1": "e7a1e6a79631c41a8b4c59ed56f3bc8ba84884d3",
    "concept": "shark",
    "definition": "any of numerous elongate mostly marine carnivorous fishes with heterocercal caudal fins and tough skin covered with small toothlike scales",
    "family": "animals",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "ce1e9e360d7e01bda100b6638c59fb567ec7361d7d9f7bee0e32876b4c8616cc",
    "page_url": "https://commons.wikimedia.org/wiki/File:Shark_(jan_Koko).png",
    "pair": "606d16f20d0e",
    "png_sha256": "29bf42da329ada428237552a5c2c612c266a77c0d6635f960011bd8bbb4605bf",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "ce1e9e360d7e01bda100b6638c59fb567ec7361d7d9f7bee0e32876b4c8616cc",
    "synset": "shark.n.01",
    "title": "File:Shark (jan Koko).png"
   },
@@ -635,6 +764,11 @@
    "concept": "skateboard",
    "definition": "a board with wheels that is ridden in a standing or crouching position and propelled by foot",
    "family": "vehicles",
+   "human": {
+    "n_correct": 14,
+    "n_ratings": 15,
+    "recognizability": 0.933333333
+   },
    "kind": "primary",
    "png_sha256": "386a23b68bb8dab1d0ee30b742dc7fbd809a05ad68c0f0f9078d10330f85ded0",
    "role": "DEV-PILOT",
@@ -652,6 +786,11 @@
    "concept": "truck",
    "definition": "an automotive vehicle suitable for hauling",
    "family": "vehicles",
+   "human": {
+    "n_correct": 10,
+    "n_ratings": 13,
+    "recognizability": 0.769230769
+   },
    "kind": "primary",
    "png_sha256": "ebeaa8c9cdb8c04d21bf5c40c6a7c3186b522b6af0071aa541e6520e65e1a49a",
    "role": "DEV-PILOT",
@@ -680,17 +819,18 @@
    "primary": "a19f4c82847f"
   },
   "a45e198edaa0": {
+   "commons_original_sha1": "2502f22a24f8f2bb88ee6e498dc9582384b41632",
    "concept": "boat",
    "definition": "a small vessel for travel on water",
    "family": "vehicles",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "01bfc893103b9a1f359273ee7eb68a7f5603f7548a989fd31a5db2b5c126584d",
    "page_url": "https://commons.wikimedia.org/wiki/File:Fishing_hut,_jetties_and_boats_in_Loddebo.jpg",
    "pair": "45cb1dda95e7",
    "png_sha256": "724331ad4ba3498a6295836908d1669b8621b5e8a612ef797b683733c2d684da",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "01bfc893103b9a1f359273ee7eb68a7f5603f7548a989fd31a5db2b5c126584d",
    "synset": "boat.n.01",
    "title": "File:Fishing hut, jetties and boats in Loddebo.jpg"
   },
@@ -698,6 +838,11 @@
    "concept": "crow",
    "definition": "black birds having a raucous call",
    "family": "animals",
+   "human": {
+    "n_correct": 14,
+    "n_ratings": 17,
+    "recognizability": 0.823529412
+   },
    "kind": "primary",
    "png_sha256": "3d50d7ee2ca4cab60f372d217867448d8707e2e063f29a1ff8cc9c9b9e2e54a5",
    "role": "DEV-CAL",
@@ -708,6 +853,11 @@
    "concept": "clothes",
    "definition": "clothing in general",
    "family": "clothing",
+   "human": {
+    "n_correct": 6,
+    "n_ratings": 16,
+    "recognizability": 0.375
+   },
    "kind": "primary",
    "png_sha256": "38eb17a87988559879e7d49d77b8f4c5941c8fede7337d1680c320d77bdca2a7",
    "role": "DEV-CAL",
@@ -715,47 +865,50 @@
    "synset": "apparel.n.01"
   },
   "b055f1502d74": {
+   "commons_original_sha1": "47ac5015b6fd79e0b97b620a49912e215193b87f",
    "concept": "pig",
    "definition": "domestic swine",
    "family": "animals",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "56b0e116fac1dae2525636634748f81c94bcb2e84f8db58dab2d7d27e16063aa",
    "page_url": "https://commons.wikimedia.org/wiki/File:Sus_scrofa_domesticus,_miniature_pig,_juvenile.jpg",
    "pair": "4376dc51c415",
    "png_sha256": "dce2d2a43c299cb9b66e6aafb74ef334effa36fd190b20d098d0a4ed8164655f",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "56b0e116fac1dae2525636634748f81c94bcb2e84f8db58dab2d7d27e16063aa",
    "synset": "hog.n.03",
    "title": "File:Sus scrofa domesticus, miniature pig, juvenile.jpg"
   },
   "b623c8e37ab5": {
+   "commons_original_sha1": "070060879f18223ae699de8416ce237e01f81ba7",
    "concept": "candy",
    "definition": "a rich sweet made of flavored sugar and often combined with fruit or nuts",
    "family": "foods",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "700e0e98911bf41e63d9c9d49d183e35c91a29fcf3666be42b2dd946359c7a04",
    "page_url": "https://commons.wikimedia.org/wiki/File:Barrels_of_Candy_in_a_Candy_Shop_in_Savannah,_GA.jpg",
    "pair": "9c2a7de98ca7",
    "png_sha256": "657a00fc553f4cd743bf097ba3efb71ba0b7b34c3f9c627611391b2fe842e634",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "700e0e98911bf41e63d9c9d49d183e35c91a29fcf3666be42b2dd946359c7a04",
    "synset": "candy.n.01",
    "title": "File:Barrels of Candy in a Candy Shop in Savannah, GA.jpg"
   },
   "b990635b0d40": {
+   "commons_original_sha1": "e55d531880e1d9ce5b99f1eedd84dad517d5a42e",
    "concept": "taxi",
    "definition": "a car driven by a person whose job is to take passengers where they want to go in exchange for money",
    "family": "vehicles",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "d55e6ea2bc19d5b19ef88ac6a5091bdea936af32c58f4a79342e0e7727edabb7",
    "page_url": "https://commons.wikimedia.org/wiki/File:Public_transport_share_taxi_in_Maracaibo_city,_Zulia,_Venezuela.jpg",
    "pair": "122777ab81d8",
    "png_sha256": "e695e5333bdb73c419554aeb8e4e6ea94af704767e9c1d122755e53eb1b3b510",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "d55e6ea2bc19d5b19ef88ac6a5091bdea936af32c58f4a79342e0e7727edabb7",
    "synset": "cab.n.03",
    "title": "File:Public transport share taxi in Maracaibo city, Zulia, Venezuela.jpg"
   },
@@ -763,6 +916,11 @@
    "concept": "tomato",
    "definition": "mildly acid red or yellow pulpy fruit eaten as a vegetable",
    "family": "foods",
+   "human": {
+    "n_correct": 15,
+    "n_ratings": 15,
+    "recognizability": 1.0
+   },
    "kind": "primary",
    "png_sha256": "483ec77b5945a34a5e6df78e5b62c4f342455e664e6a4334255b6164757a5687",
    "role": "DEV-PILOT",
@@ -777,47 +935,50 @@
    "primary": "96eabb434a12"
   },
   "c47c79563fd8": {
+   "commons_original_sha1": "fd9a104c5ef3d4c639cbd0ef8baf3d0a9fc8a62f",
    "concept": "clothes",
    "definition": "clothing in general",
    "family": "clothing",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "486057b8f6ffd247c91465c696fad995df66a497dc1b5c99763cd12754ae576f",
    "page_url": "https://commons.wikimedia.org/wiki/File:KIM_MATA_HIPOL_(DRESS).jpg",
    "pair": "8724eb5b1933",
    "png_sha256": "6778c31fb15458aedceb6d08cbba43f86734baa53832182b0bb7ada8cc894e24",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "486057b8f6ffd247c91465c696fad995df66a497dc1b5c99763cd12754ae576f",
    "synset": "apparel.n.01",
    "title": "File:KIM MATA HIPOL (DRESS).jpg"
   },
   "c61bcf391b85": {
+   "commons_original_sha1": "b8b8021d8cfb90e542e03fedbb690221a65b7b44",
    "concept": "cow",
    "definition": "female of domestic cattle: \"`moo-cow' is a child's term\"",
    "family": "animals",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "c7c9a4af13a0fa134635ba5b0afff8c584dc89d3bb3e86c2665cbf55aa769270",
    "page_url": "https://commons.wikimedia.org/wiki/File:Charolais_cattle,_Sierra_Nevada,_Venezuela.jpg",
    "pair": "a2fbe2d791f6",
    "png_sha256": "b56e6acf23f6e9a3e267883607f0be1db8908f50b2f9ed29875872313af38dcc",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "c7c9a4af13a0fa134635ba5b0afff8c584dc89d3bb3e86c2665cbf55aa769270",
    "synset": "cow.n.01",
    "title": "File:Charolais cattle, Sierra Nevada, Venezuela.jpg"
   },
   "c98c2be3ea37": {
+   "commons_original_sha1": "ed7f64b49516b2c919ab7c66fabe0a2db44a0b40",
    "concept": "mosquito",
    "definition": "two-winged insect whose female has a long proboscis to pierce the skin and suck the blood of humans and animals",
    "family": "animals",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "0f251cf87c90661c0eddd5a49e31a59f4b99ae1756b3eab57ad176b08c9316d7",
    "page_url": "https://commons.wikimedia.org/wiki/File:Mosquito_on_human_skin.jpg",
    "pair": "a2f854304621",
    "png_sha256": "c8e6a26d80bd4aa712a2c4fa059e0c372a1ebb909b2a2b90f868a0689a075c36",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "0f251cf87c90661c0eddd5a49e31a59f4b99ae1756b3eab57ad176b08c9316d7",
    "synset": "mosquito.n.01",
    "title": "File:Mosquito on human skin.jpg"
   },
@@ -836,17 +997,18 @@
    "primary": "290c7066c493"
   },
   "d2a7bbf53a59": {
+   "commons_original_sha1": "61fc308196ba52f9f9c6b56d755b1710ed3c4f99",
    "concept": "horse",
    "definition": "solid-hoofed herbivorous quadruped domesticated since prehistoric times",
    "family": "animals",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "00ccd1da714ff8e59ace624c5413d83eb94761759faca64dfc56d409c2b4eda2",
    "page_url": "https://commons.wikimedia.org/wiki/File:Rosa_Bonheur,_The_Horse_Fair,_1852%E2%80%9355.jpg",
    "pair": "ce603bc1f9ae",
    "png_sha256": "568a60f5195094b27e3d056888594654a39a34377e290b2d4586538bd084109d",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "00ccd1da714ff8e59ace624c5413d83eb94761759faca64dfc56d409c2b4eda2",
    "synset": "horse.n.01",
    "title": "File:Rosa Bonheur, The Horse Fair, 1852–55.jpg"
   },
@@ -861,6 +1023,11 @@
    "concept": "pigeon",
    "definition": "wild and domesticated birds having a heavy body and short legs",
    "family": "animals",
+   "human": {
+    "n_correct": 7,
+    "n_ratings": 9,
+    "recognizability": 0.777777778
+   },
    "kind": "primary",
    "png_sha256": "456ecbd28f9205b409ab73ffc13506db4e349429899e9835a0aa98bf0d965b8d",
    "role": "DEV-PILOT",
@@ -885,6 +1052,11 @@
    "concept": "jeans",
    "definition": "(usually plural) close-fitting trousers of heavy denim for manual work or casual wear",
    "family": "clothing",
+   "human": {
+    "n_correct": 11,
+    "n_ratings": 15,
+    "recognizability": 0.733333333
+   },
    "kind": "primary",
    "png_sha256": "0bf36f54e8cf3f473b75145312fe4000809fd9de33746a3e6db8d62e34d69dea",
    "role": "DEV-CAL",
@@ -895,6 +1067,11 @@
    "concept": "sock",
    "definition": "hosiery consisting of a cloth covering for the foot; worn inside the shoe; reaches to between the ankle and the knee",
    "family": "clothing",
+   "human": {
+    "n_correct": 15,
+    "n_ratings": 18,
+    "recognizability": 0.833333333
+   },
    "kind": "primary",
    "png_sha256": "00cbdbe6bde523c25b217af4d85ee468394a9b343ff770f56cbed8c8e1c06957",
    "role": "DEV-PILOT",
@@ -923,17 +1100,18 @@
    "primary": "d88068ae0e50"
   },
   "e71763205d3a": {
+   "commons_original_sha1": "9b153b86e5e353884666e2b1e8b9a65e364760e6",
    "concept": "pigeon",
    "definition": "wild and domesticated birds having a heavy body and short legs",
    "family": "animals",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "d2f2acb7360c749bdd567e1383a2ac80e02fd9722f088030b1e3b1168e081c19",
    "page_url": "https://commons.wikimedia.org/wiki/File:Pigeon_bird_Columbidae.jpg",
    "pair": "8fd46c72371f",
    "png_sha256": "2ec0e4cd15027b8dfdc169977af044972a35199ae051197e4f0dc0790e2b6dda",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "d2f2acb7360c749bdd567e1383a2ac80e02fd9722f088030b1e3b1168e081c19",
    "synset": "pigeon.n.01",
    "title": "File:Pigeon bird Columbidae.jpg"
   },
@@ -941,6 +1119,11 @@
    "concept": "ship",
    "definition": "a vessel that carries passengers or freight",
    "family": "vehicles",
+   "human": {
+    "n_correct": 7,
+    "n_ratings": 15,
+    "recognizability": 0.466666667
+   },
    "kind": "primary",
    "png_sha256": "831d014aa406c6e673f668dbcc77ada49ac20f317942a34a4bd628b7a39bfe67",
    "role": "DEV-PILOT",
@@ -955,47 +1138,50 @@
    "primary": "7b23cb984c52"
   },
   "f0f2c15dfe90": {
+   "commons_original_sha1": "821bb162f836e1f5576498d2812f80f71706b384",
    "concept": "hamburger",
    "definition": "a sandwich consisting of a fried cake of minced beef served on a bun, often with other ingredients",
    "family": "foods",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "35175b1d8de791ac2c3da84bae25ccf65f473e63fe85af974d11d9f1834f76f2",
    "page_url": "https://commons.wikimedia.org/wiki/File:Big_Mac_hamburger.jpg",
    "pair": "4175fa4dace2",
    "png_sha256": "7d9376200951e4b5a9e1e9b95047442f81accdd92d27566ab90ef994fbcd73d6",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "35175b1d8de791ac2c3da84bae25ccf65f473e63fe85af974d11d9f1834f76f2",
    "synset": "hamburger.n.01",
    "title": "File:Big Mac hamburger.jpg"
   },
   "f124291f2f6b": {
+   "commons_original_sha1": "ebe1a0889fe6cc322f5dff63a5af93e372ceb58b",
    "concept": "caramel",
    "definition": "firm chewy candy made from caramelized sugar and butter and milk",
    "family": "foods",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "fd70e12a804b54a6a149955317b214922a6fbaae78e3312f159a6109e3eed393",
    "page_url": "https://commons.wikimedia.org/wiki/File:Korean_basil_caramel_of_brand_%22index%22.jpg",
    "pair": "8bb5ee0355a8",
    "png_sha256": "3d9792a5e608012c479d0a79fb70011f0b376c6b45eadbc01f4a087791979d22",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "fd70e12a804b54a6a149955317b214922a6fbaae78e3312f159a6109e3eed393",
    "synset": "caramel.n.01",
    "title": "File:Korean basil caramel of brand \"index\".jpg"
   },
   "fb6702e2a4dd": {
+   "commons_original_sha1": "e4891b7594df0c6896504087dac92491182be447",
    "concept": "cheese",
    "definition": "a solid food prepared from the pressed curd of milk",
    "family": "foods",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "9549cdbcf8b04512422caa058db95accdc64bef3642aea9950bdd550a2bdde4c",
    "page_url": "https://commons.wikimedia.org/wiki/File:Nationally-branded_cheese_ball_(%D0%91%D0%BE%D0%B1%D1%80%D0%BE%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D1%81%D1%8B%D1%80%D0%B7%D0%B0%D0%B2%D0%BE%D0%B4).jpg",
    "pair": "696396be48fe",
    "png_sha256": "f54a489cd3cc592bd05cc083663e9e775d20f616806d165be0383f85e4cec1b4",
    "rank": 1,
    "role": "DEV-PILOT",
+   "source_sha256": "9549cdbcf8b04512422caa058db95accdc64bef3642aea9950bdd550a2bdde4c",
    "synset": "cheese.n.01",
    "title": "File:Nationally-branded cheese ball (Бобровский сырзавод).jpg"
   },
@@ -1003,6 +1189,11 @@
    "concept": "candy",
    "definition": "a rich sweet made of flavored sugar and often combined with fruit or nuts",
    "family": "foods",
+   "human": {
+    "n_correct": 13,
+    "n_ratings": 17,
+    "recognizability": 0.764705882
+   },
    "kind": "primary",
    "png_sha256": "1ec463bdfba01c2dadafc96f0398522c68afa416463296670e5890bace09ae25",
    "role": "DEV-PILOT",
@@ -1010,17 +1201,18 @@
    "synset": "candy.n.01"
   },
   "fe8a8fc6ad93": {
+   "commons_original_sha1": "c4ab39af52d3f8c2f03718bd5cf91a4704e26874",
    "concept": "wagon",
    "definition": "any of various kinds of wheeled vehicles drawn by an animal or a tractor",
    "family": "vehicles",
    "kind": "candidate",
    "licence_statement": "CC0",
-   "original_sha256": "f3a428ea322e47a5aa168e2bfb002d91c6ab127745ef483d64ec20bef017a888",
    "page_url": "https://commons.wikimedia.org/wiki/File:1993_Chevrolet_Cavalier_VL_wagon_in_Bright_Aqua_Metallic,_rear_right,_2-7-2021.jpg",
    "pair": "d0069fa765e0",
    "png_sha256": "0ac06b43387ca80018f4032c310fbd9e8ce493b240a39daa9896e9dec0ab05e1",
    "rank": 1,
    "role": "DEV-CAL",
+   "source_sha256": "f3a428ea322e47a5aa168e2bfb002d91c6ab127745ef483d64ec20bef017a888",
    "synset": "wagon.n.01",
    "title": "File:1993 Chevrolet Cavalier VL wagon in Bright Aqua Metallic, rear right, 2-7-2021.jpg"
   }
