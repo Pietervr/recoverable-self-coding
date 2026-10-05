@@ -20,9 +20,28 @@ export NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHON
 echo "host $(hostname)  $(grep -m1 'model name' /proc/cpuinfo)"
 echo "code $(git rev-parse --short HEAD)  start $(date -u +%FT%TZ)  job $PBS_JOBID"
 mkdir -p $T/row19_slice
-$T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep __REP__ --walltime-s 518400 --root $T/row19_slice --campaign $T/row19_campaign --job-id $PBS_JOBID --reservation-token __TOKEN__ --kind main 2>&1 | tee -a $T/row19_slice/live_rep__REP__.log
-ps=("${PIPESTATUS[@]}"); rc=${ps[0]}; tee_rc=${ps[1]}
+# PROCESS RECYCLING (5 Oct 2026, after four of four long processes died after 41-57 h with an LLVM "Cannot allocate memory"
+# while resident memory was 2.6 of 8 GB - most likely the per-process memory-mapping limit, vm.max_map_count 65,530, exhausted
+# by repeated XLA compilation): the unchanged runner is called with --segment 1, so each process computes at most ONE new
+# resample and exits 75; the loop starts a FRESH process for the next one. The runner resumes from its fsynced checkpoint and
+# its cached original fit on every call, under the same reservation and job id. The loop stops when a call returns anything
+# but 75, when a call adds no new record (a stop request, the control target or the deadline), or when less than RECYCLE_SAFE_S
+# of walltime is left for another resample (so no resample is cut by the PBS walltime).
+JOB_START=$(date +%s); JOB_END=$((JOB_START + 518400)); RECYCLE_SAFE_S=86400
+LOG=$T/row19_slice/live_rep__REP__.log
+calls=0; rc=75; tee_rc=0
+while :; do
+  now=$(date +%s)
+  if [ $((JOB_END - now)) -lt $RECYCLE_SAFE_S ]; then echo "recycle: $((JOB_END - now)) s left, below $RECYCLE_SAFE_S s for another resample; exit 75" | tee -a $LOG; rc=75; break; fi
+  calls=$((calls + 1)); echo "recycle: call $calls start $(date -u +%FT%TZ)" | tee -a $LOG
+  CALL_OUT=$(mktemp)
+  $T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep __REP__ --walltime-s 518400 --root $T/row19_slice --campaign $T/row19_campaign --job-id $PBS_JOBID --reservation-token __TOKEN__ --kind main --segment 1 2>&1 | tee -a $LOG | tee $CALL_OUT
+  ps=("${PIPESTATUS[@]}"); rc=${ps[0]}; tee_rc=${ps[1]}
+  new=$(grep -o "new [0-9]*," $CALL_OUT | tail -1 | tr -dc '0-9'); rm -f $CALL_OUT
+  if [ "$rc" != "75" ]; then break; fi
+  if [ -z "$new" ] || [ "$new" = "0" ]; then echo "recycle: call $calls added no record; exit 75" | tee -a $LOG; break; fi
+done
 
-echo "exit $rc tee $tee_rc job $PBS_JOBID end $(date -u +%FT%TZ)" | tee -a $T/row19_slice/live_rep__REP__.log
+echo "exit $rc tee $tee_rc job $PBS_JOBID end $(date -u +%FT%TZ) calls $calls" | tee -a $LOG
 w=$?; if [ $w -ne 0 ] || [ "$tee_rc" != "0" ]; then echo "LOGGER FAILURE: tee $tee_rc, terminal witness write rc $w"; fi
 exit $rc
