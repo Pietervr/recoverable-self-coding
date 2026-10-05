@@ -175,7 +175,9 @@ def lifecycle(e, lp, q, now, gap_allowance_s):
     recycling    - the job's live log announces recycled calls for this job id;
     between      - a recycled job between calls: the last process ended 75, no job-final line names this job, and either PBS
                    says R or (unobserved) the gap is still within the allowance;
-    job_ended    - the job itself is over: PBS says gone/F/E, or the process ended and the job is not between calls;
+    final        - a job-final line names this job id (the wrapper's own witness that the JOB ended);
+    job_ended    - the job itself is over: its own job-final line, PBS gone/F/E, or the process ended and the job is not
+                   between calls (the final line counts whatever PBS shows and whether or not the process recorded its end);
     gap_s        - seconds since the last process ended (between calls), else None."""
     started, ended_t, ex = e.get("runner_started"), e.get("runner_ended"), e.get("runner_exit")
     process_done = ex is not None and (ended_t is None or started is None or ended_t >= started)
@@ -187,8 +189,9 @@ def lifecycle(e, lp, q, now, gap_allowance_s):
     if process_done and recycling and ex == 75 and not found and not pbs_ended and ended_t is not None:
         gap = now - ended_t
         between = q == "R" or (q in ("-", None) and gap <= gap_allowance_s)
-    job_ended = pbs_ended or (process_done and not between)
-    return dict(process_done=process_done, recycling=recycling, calls=calls, between=between, job_ended=job_ended, gap_s=gap)
+    job_ended = found or pbs_ended or (process_done and not between)
+    return dict(process_done=process_done, recycling=recycling, calls=calls, between=between, job_ended=job_ended, gap_s=gap,
+                final=found)
 
 
 def main(argv=None):
@@ -284,6 +287,11 @@ def main(argv=None):
         if a.qstat and e.get("job_id") and q in PBS_ENDED and not lc["process_done"] and e["kind"] != "c2":
             alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: PBS says {q} but the runner's latest process never ended - killed or crashed"
                           + (f" (the exit {ended} on the ledger belongs to an earlier call)" if ended is not None else "") + "; keep the reservation")
+        if lc["final"] and not lc["process_done"] and e["kind"] != "c2":
+            alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: its job-final line exit "
+                          f"{terminal_evidence(expected_log(lr, e), e.get('job_id') or '')[1]} but the runner's latest process never recorded "
+                          f"its end - a native failure or kill" + (f" (the exit {ended} on the ledger belongs to an earlier call)" if ended is not None else "")
+                          + "; keep the reservation")
         if (lc["recycling"] and lc["process_done"] and ended == 75 and lc["gap_s"] is not None and not lc["between"]
                 and q not in PBS_ENDED):
             alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: {lc['gap_s']/60:.0f} min since call {lc['calls'][-1][0]} ended, no new call and "
@@ -293,7 +301,7 @@ def main(argv=None):
         if e["kind"] == "stage0" or rep is None:
             continue
         # terminal and logger evidence, attributed to this job
-        if lc["job_ended"] and (ended is not None or lc["recycling"]) and not killed_c2:
+        if lc["job_ended"] and (ended is not None or lc["recycling"] or lc["final"]) and not killed_c2:
             lp = expected_log(lr, e)
             found, rc, tee = terminal_evidence(lp, e.get("job_id") or "")
             if not os.path.exists(lp):

@@ -201,6 +201,8 @@ def test_expected_jobs_held_exits_and_stop_ack():
     rc, out = _watch(mp)
     assert rc == 1 and "HELD (exit 4)" in out and "ended (exit 4) without a task binding" in out
     _set_entry("j1", runner_exit=None, runner_ended=None, runner_started=time.time() - 7200)
+    # a running job has no job-final line of its own (Codex 71dee38: that line alone ends the job)
+    open(os.path.join(lr, "live_rep0.log"), "w").write("rep 0: running\n")
     json.dump(dict(id="new1", requested=time.time() - 7000, scope="rep0"), open(os.path.join(W.LIVE_DIR, "campaign", "STOP_rep0"), "w"))
     json.dump(dict(request_id="old0", boundary="x", job="j1"), open(os.path.join(lr, "STOP_ACK_rep0.json"), "w"))
     rc, out = _watch(mp, "--stall-h", "0.5")

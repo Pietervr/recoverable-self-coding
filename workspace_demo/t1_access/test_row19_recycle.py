@@ -93,6 +93,7 @@ tee() {
   local n; n=$(cat $FAKE_STATE 2>/dev/null || echo 0)
   if [ "$1" = "-a" ] && [ -n "$FAIL_LIVE_AT" ] && [ "$n" = "$FAIL_LIVE_AT" ] && [ ! -e $T/live_failed ]; then touch $T/live_failed; return 1; fi
   if [ "$1" != "-a" ] && [ -n "$FAIL_CAP_AT" ] && [ "$n" = "$FAIL_CAP_AT" ] && [ ! -e $T/cap_failed ]; then touch $T/cap_failed; return 2; fi
+  if [ "$1" = "-a" ] && [ -n "$FAIL_MARK_AT" ] && [ ! -e $T/mark_failed ] && tail -1 "$2" | grep -q "call $FAIL_MARK_AT start"; then touch $T/mark_failed; return 3; fi
   return $rc
 }
 '''
@@ -113,7 +114,7 @@ def _loop_with_tee_failure(tmp, script_lines, **fail):
     sh = os.path.join(tmp, "job.sh")
     open(sh, "w").write("#!/bin/bash\nT=%s\nPBS_JOBID=J1\n%s\n%s" % (tmp, _FAIL_TEE, body))
     env = dict(os.environ, FAKE_STATE=os.path.join(tmp, "state"), FAKE_SCRIPT=script,
-               FAIL_LIVE_AT=str(fail.get("live", "")), FAIL_CAP_AT=str(fail.get("cap", "")))
+               FAIL_LIVE_AT=str(fail.get("live", "")), FAIL_CAP_AT=str(fail.get("cap", "")), FAIL_MARK_AT=str(fail.get("mark", "")))
     r = subprocess.run(["bash", sh], capture_output=True, text=True, env=env, timeout=60)
     calls = int(open(os.path.join(tmp, "state")).read()) if os.path.exists(os.path.join(tmp, "state")) else 0
     return r.returncode, calls, open(os.path.join(tmp, "row19_slice", "live_rep0.log")).read()
@@ -138,6 +139,13 @@ def test_a_logger_or_capture_failure_stops_the_loop_and_survives_into_the_job_fi
             assert calls == stop_call and "LOGGER FAILURE" in log, (fail, calls, log[-300:])
             found, trc, tee = W.terminal_evidence(os.path.join(tmp, "row19_slice", "live_rep0.log"), "J1")
             assert found and tee == code, (fail, tee)                                   # the watch's logger check alarms on it
+        # the call-start MARKER fails (Codex 71dee38): nothing is dispatched for that call, and the failure is the final tee
+        for at in (1, 2):
+            shutil.rmtree(tmp); tmp = tempfile.mkdtemp()
+            rc, calls, log = _loop_with_tee_failure(tmp, ["75 1", "75 1", "75 1", "0 0"], mark=at)
+            assert calls == at - 1, (at, calls, log[-300:])                             # the runner was not started for call `at`
+            found, trc, tee = W.terminal_evidence(os.path.join(tmp, "row19_slice", "live_rep0.log"), "J1")
+            assert found and tee == "3" and f"recycle: job J1 calls {at - 1}" in log, (at, tee, log[-300:])
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
@@ -176,8 +184,8 @@ def test_the_watch_separates_a_recycled_process_end_from_the_job_end():
 
         # 2. the next call is active: the ledger still carries call 1's exit 75, but its start is newer -> running, and the
         #    live health checks (stall, stop acknowledgment) apply again
-        _set_entry("J1", runner_ended=_t.time() - 600, runner_started=_t.time() - 300)
-        open(log, "a").write(f"recycle: job J1 call 2 start {iso(_t.time() - 300)}\n")
+        _set_entry("J1", runner_ended=_t.time() - 90, runner_started=_t.time() - 60)
+        open(log, "a").write(f"recycle: job J1 call 2 start {iso(_t.time() - 60)}\n")
         rc, out = _watch(mp)
         assert rc == 0 and "running call 2" in out and "no terminal line" not in out, out[-800:]
         rc, out = _watch(mp, "--stall-h", "0")
@@ -195,7 +203,7 @@ def test_the_watch_separates_a_recycled_process_end_from_the_job_end():
 
         # 4. the actual job end: call 2 completed (exit 0), the job-final line names this job, PBS says F -> ended, clean
         _set_entry("J1", runner_ended=_t.time() - 5, runner_exit=0)
-        open(log, "w").write(f"recycle: job J1 call 1 start {iso(t_call1)}\nrecycle: job J1 call 2 start {iso(_t.time() - 300)}\n"
+        open(log, "w").write(f"recycle: job J1 call 1 start {iso(t_call1)}\nrecycle: job J1 call 2 start {iso(_t.time() - 60)}\n"
                              f"recycle: job J1 calls 2\nexit 0 tee 0 job J1 end {iso(_t.time())}\n")
         rc, out = _watch(mp, "--qstat")
         assert rc == 0 and " ended " in out.replace("  ", " "), out[-800:]
@@ -203,5 +211,57 @@ def test_the_watch_separates_a_recycled_process_end_from_the_job_end():
         open(log, "a").write(f"exit 0 tee 1 job J1 end {iso(_t.time())}\n")
         rc, out = _watch(mp, "--qstat")
         assert rc == 1 and "logger status '1'" in out
+    finally:
+        W.qstat_states = keep_q
+
+
+def test_the_jobs_own_final_line_ends_it_whatever_pbs_shows():
+    """Codex RSC 71dee38, finding 1: a native failure leaves the newer start and the stale exit 75 (or no runner fields at
+    all), and the wrapper writes its own job-final line; with PBS unobserved or still R the watch must still treat the job as
+    ended, alarm the unfinished process, and apply the terminal exit and logger checks. Clean active and gap cases stay clean."""
+    import time as _t
+    from test_row19_watch import W, _snapshot, _watch, _set_entry
+    iso = lambda t: _t.strftime("%Y-%m-%dT%H:%M:%SZ", _t.gmtime(t))
+    keep_q = W.qstat_states
+    try:
+        with _Patched():
+            d, c = _dirs()
+            man = _manifest(d, c, n_boot=6)
+            L = CampaignLedger(c, 1500.0); tok, _ = L.reserve("main", 0, 1, 3600.0, d)
+            mp0 = os.path.join(d, "manifest.json"); json.dump(man, open(mp0, "w"))
+            argv = ["--manifest", mp0, "--root", d, "--rep", "0", "--kind", "main", "--walltime-s", "3600", "--skip-environment-check",
+                    "--reservation-token", tok, "--job-id", "J1", "--segment", "1"]
+            t1 = _t.time() - 1
+            with contextlib.redirect_stdout(io.StringIO()):
+                assert R19.main(argv) == R19.RESUME                                     # call 1 ends 75
+            L.runner_start(tok, "J1", "main", 0, d, 1, 3600.0)                           # call 2 starts: newer start, stale exit 75
+            tok2, _ = L.reserve("main", 1, 1, 3600.0, d); L.bind(tok2, "J2")            # a job that never reached runner start
+        mp, lr = _snapshot(d, c, man)
+        log0 = os.path.join(lr, "live_rep0.log")
+        base = f"recycle: job J1 call 1 start {iso(t1)}\nrecycle: job J1 call 2 start {iso(_t.time())}\n"
+        open(log0, "w").write(base)
+        # call 2 active, no final line: clean, under both observations
+        for q, args in (("-", ()), ("R", ("--qstat",))):
+            W.qstat_states = lambda ids, q=q: {j: q for j in ids}
+            rc, out = _watch(mp, *args)
+            assert "running call 2" in out and "J1: its job-final line" not in out, (q, out[-900:])
+        # call 2 died natively; the wrapper's own final line is present
+        open(log0, "w").write(base + f"recycle: job J1 calls 2\nexit 139 tee 0 job J1 end {iso(_t.time())}\n")
+        for q, args in (("-", ()), ("R", ("--qstat",))):
+            W.qstat_states = lambda ids, q=q: {j: q for j in ids}
+            rc, out = _watch(mp, *args)
+            assert rc == 1 and "J1: its job-final line exit 139" in out and "belongs to an earlier call" in out and "differs" in out, (q, out[-900:])
+        # the first call died before the runner started (no runner fields): the final line still ends the job and alarms
+        log1 = os.path.join(lr, "live_rep1.log")
+        open(log1, "w").write(f"recycle: job J2 call 1 start {iso(_t.time())}\nrecycle: job J2 calls 1\nexit 139 tee 0 job J2 end {iso(_t.time())}\n")
+        W.qstat_states = lambda ids: {j: "R" for j in ids}
+        rc, out = _watch(mp, "--qstat")
+        assert rc == 1 and "J2: its job-final line exit 139" in out, out[-900:]
+        os.remove(log1)
+        # a completed job whose final line carries a logger failure, PBS unobserved: the logger alarm still fires
+        _set_entry("J1", runner_ended=_t.time(), runner_exit=0)
+        open(log0, "w").write(base + f"recycle: job J1 calls 2\nexit 0 tee 3 job J1 end {iso(_t.time())}\n")
+        rc, out = _watch(mp)
+        assert rc == 1 and "logger status '3'" in out and "never recorded" not in out, out[-900:]
     finally:
         W.qstat_states = keep_q

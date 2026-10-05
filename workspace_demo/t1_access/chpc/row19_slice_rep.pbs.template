@@ -31,15 +31,22 @@ mkdir -p $T/row19_slice
 # starts, so the watch can tell a process that ended between calls from a job that ended; the job-final line keeps the
 # original grammar "exit <rc> tee <tee> job <id> end <time>" (the call count is on the line before it). The FIRST failure of
 # the live-log tee or of the per-call capture ends the loop and stays in the job-final line: a later call can never
-# overwrite a known incomplete stream.
+# overwrite a known incomplete stream. Every lifecycle marker goes through mark(): its tee status is checked at once and kept
+# in the same sticky field; a failed call-start marker removes the capture file and stops BEFORE the runner is dispatched
+# (Codex RSC 71dee38).
 JOB_START=$(date +%s); JOB_END=$((JOB_START + 518400)); RECYCLE_SAFE_S=86400
 LOG=$T/row19_slice/live_rep__REP__.log
 calls=0; rc=75; tee_rc=0
+mark() { echo "$1" | tee -a $LOG; local r=${PIPESTATUS[1]:-1}; if [ "$r" != "0" ] && [ "$tee_rc" = "0" ]; then tee_rc=$r; fi; return $r; }
 while :; do
   now=$(date +%s)
-  if [ $((JOB_END - now)) -lt $RECYCLE_SAFE_S ]; then echo "recycle: $((JOB_END - now)) s left, below $RECYCLE_SAFE_S s for another resample; exit 75" | tee -a $LOG; rc=75; break; fi
+  if [ $((JOB_END - now)) -lt $RECYCLE_SAFE_S ]; then mark "recycle: $((JOB_END - now)) s left, below $RECYCLE_SAFE_S s for another resample; exit 75"; rc=75; break; fi
   CALL_OUT=$(mktemp) || { tee_rc=1; echo "LOGGER FAILURE: no capture file for call $((calls + 1))" | tee -a $LOG; break; }
-  calls=$((calls + 1)); echo "recycle: job $PBS_JOBID call $calls start $(date -u +%FT%TZ)" | tee -a $LOG
+  if ! mark "recycle: job $PBS_JOBID call $((calls + 1)) start $(date -u +%FT%TZ)"; then
+    rm -f $CALL_OUT; if [ "$tee_rc" = "0" ]; then tee_rc=1; fi
+    echo "LOGGER FAILURE: the call $((calls + 1)) start marker was not written (tee $tee_rc); nothing dispatched"; break
+  fi
+  calls=$((calls + 1))
   $T/t1py chpc/row19_slice.py --manifest chpc/row19_slice_manifest.json --rep __REP__ --walltime-s 518400 --root $T/row19_slice --campaign $T/row19_campaign --job-id $PBS_JOBID --reservation-token __TOKEN__ --kind main --segment 1 2>&1 | tee -a $LOG | tee $CALL_OUT
   ps=("${PIPESTATUS[@]}"); rc=${ps[0]}
   if [ "${ps[1]}" != "0" ]; then tee_rc=${ps[1]}; fi
@@ -47,10 +54,10 @@ while :; do
   new=$(grep -o "new [0-9]*," $CALL_OUT | tail -1 | tr -dc '0-9'); rm -f $CALL_OUT
   if [ "$tee_rc" != "0" ]; then echo "LOGGER FAILURE: call $calls live-log tee ${ps[1]} capture tee ${ps[2]}; the loop stops" | tee -a $LOG; break; fi
   if [ "$rc" != "75" ]; then break; fi
-  if [ -z "$new" ] || [ "$new" = "0" ]; then echo "recycle: call $calls added no record; exit 75" | tee -a $LOG; break; fi
+  if [ -z "$new" ] || [ "$new" = "0" ]; then mark "recycle: call $calls added no record; exit 75"; break; fi
 done
 
-echo "recycle: job $PBS_JOBID calls $calls" | tee -a $LOG
+mark "recycle: job $PBS_JOBID calls $calls"
 echo "exit $rc tee $tee_rc job $PBS_JOBID end $(date -u +%FT%TZ)" | tee -a $LOG
 w=$?; if [ $w -ne 0 ] || [ "$tee_rc" != "0" ]; then echo "LOGGER FAILURE: tee $tee_rc, terminal witness write rc $w"; fi
 exit $rc
