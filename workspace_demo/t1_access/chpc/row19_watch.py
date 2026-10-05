@@ -22,7 +22,7 @@ interpreted: a status file's result/interval and the records' stats are loaded a
 Exit 1 on any alarm (R052 then submits nothing further until it is diagnosed); 0 only on fresh evidence with no alarm.
 Poll cadence: every 2 hours while any reservation is live.
 """
-import argparse, glob, json, os, re, shutil, subprocess, sys, time, math
+import argparse, calendar, glob, json, os, re, shutil, subprocess, sys, time, math
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -36,6 +36,10 @@ ARCHIVE_DIR = os.path.join(HERE, "results", "row19_slice", "archive")
 NEVER_SHOWN = ("result", "interval", "stats")
 LIVE_STATES = ("reserved", "bound", "live")
 TERMINAL = re.compile(r"^exit (?P<rc>\d+) tee (?P<tee>\d*) job (?P<job>\S+) end \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+# Process recycling (template after Codex RSC 0be5547): one runner process per resample inside one PBS job; each call is
+# announced by this line BEFORE the runner starts, so a process end between calls is not mistaken for the job's end.
+CALL_START = re.compile(r"^recycle: job (?P<job>\S+) call (?P<n>\d+) start (?P<t>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)$")
+PBS_ENDED = ("gone", "F", "E")
 
 
 def sh(cmd, timeout=180):
@@ -152,6 +156,41 @@ def terminal_evidence(lp, job_id):
     return False, None, None
 
 
+def call_starts(lp, job_id):
+    """[(call number, epoch seconds)] announced by the recycling template for THIS job id, in log order."""
+    if not os.path.exists(lp):
+        return []
+    out = []
+    for line in open(lp, errors="replace").read().splitlines():
+        m = CALL_START.match(line)
+        if m and m.group("job") == job_id:
+            out.append((int(m.group("n")), calendar.timegm(time.strptime(m.group("t"), "%Y-%m-%dT%H:%M:%SZ"))))
+    return out
+
+
+def lifecycle(e, lp, q, now, gap_allowance_s):
+    """Separate the runner PROCESS from the PBS JOB (Codex RSC 0be5547, repair 1). Returns a dict:
+    process_done - the latest runner process recorded its end (runner_end after the latest runner_start; a stale exit from an
+                   earlier call does not count while a later start is newer);
+    recycling    - the job's live log announces recycled calls for this job id;
+    between      - a recycled job between calls: the last process ended 75, no job-final line names this job, and either PBS
+                   says R or (unobserved) the gap is still within the allowance;
+    job_ended    - the job itself is over: PBS says gone/F/E, or the process ended and the job is not between calls;
+    gap_s        - seconds since the last process ended (between calls), else None."""
+    started, ended_t, ex = e.get("runner_started"), e.get("runner_ended"), e.get("runner_exit")
+    process_done = ex is not None and (ended_t is None or started is None or ended_t >= started)
+    calls = call_starts(lp, e.get("job_id") or "")
+    recycling = bool(calls)
+    found = terminal_evidence(lp, e.get("job_id") or "")[0]
+    pbs_ended = q in PBS_ENDED
+    between, gap = False, None
+    if process_done and recycling and ex == 75 and not found and not pbs_ended and ended_t is not None:
+        gap = now - ended_t
+        between = q == "R" or (q in ("-", None) and gap <= gap_allowance_s)
+    job_ended = pbs_ended or (process_done and not between)
+    return dict(process_done=process_done, recycling=recycling, calls=calls, between=between, job_ended=job_ended, gap_s=gap)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--manifest", default=os.path.join(HERE, "row19_slice_manifest.json"))
@@ -229,24 +268,32 @@ def main(argv=None):
         root = e["root"]; rep = e.get("rep"); lr = os.path.join(LIVE_DIR, os.path.basename(root.rstrip("/")))
         q = (qs or {}).get(e.get("job_id")) if qs is not None else ("-" if not a.qstat else "unknown")
         started = e.get("runner_started"); ended = e.get("runner_exit")
+        lc = lifecycle(e, expected_log(lr, e) if rep is not None else "", q, now, a.startup_allowance_s)
         killed_c2, kill_problem = False, None
         if e["kind"] == "c2" and e.get("job_id") and os.path.exists(os.path.join(lr, "c2_interruption.json")):
             killed_c2, kill_problem = kill_receipt_ok(json.load(open(os.path.join(lr, "c2_interruption.json"))), e)
             if kill_problem:
                 alarms.append(f"c2 job {e.get('job_id')}: interruption record incomplete or contradictory ({kill_problem}); not treated as a known kill")
-        phase = "settled" if e["state"] == "settled" else "killed by PBS (known)" if killed_c2 else "ended" if ended is not None else "running" if started else "queued/not started"
+        phase = ("settled" if e["state"] == "settled" else "killed by PBS (known)" if killed_c2 else "ended" if lc["job_ended"]
+                 else f"between calls ({lc['gap_s']/60:.1f} min since call {lc['calls'][-1][0]} ended)" if lc["between"]
+                 else (f"running call {lc['calls'][-1][0]}" if lc["recycling"] else "running") if started else "queued/not started")
         print(f"\n  {e['kind']:<6} rep {rep} attempt {e['attempt']} {e['state']:<8} job {e.get('job_id')} PBS {q}  {phase}  "
               f"{e['reserved_core_h']:.0f} core-h reserved, runner exit {ended}")
         if e["state"] in ("live", "settled") and ended == 4:
             alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: HELD (exit 4) - diagnose before any resubmission")
-        if a.qstat and e.get("job_id") and q in ("gone", "F", "E") and ended is None and e["kind"] != "c2":
-            alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: PBS says {q} but the runner never ended - killed or crashed; keep the reservation")
+        if a.qstat and e.get("job_id") and q in PBS_ENDED and not lc["process_done"] and e["kind"] != "c2":
+            alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: PBS says {q} but the runner's latest process never ended - killed or crashed"
+                          + (f" (the exit {ended} on the ledger belongs to an earlier call)" if ended is not None else "") + "; keep the reservation")
+        if (lc["recycling"] and lc["process_done"] and ended == 75 and lc["gap_s"] is not None and not lc["between"]
+                and q not in PBS_ENDED):
+            alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: {lc['gap_s']/60:.0f} min since call {lc['calls'][-1][0]} ended, no new call and "
+                          f"no job-final line (allowance {a.startup_allowance_s/60:.0f} min)")
         if a.qstat and e.get("job_id") and q == "unknown":
             alarms.append(f"{e['kind']} rep {rep} job {e.get('job_id')}: PBS state unknown")
         if e["kind"] == "stage0" or rep is None:
             continue
         # terminal and logger evidence, attributed to this job
-        if ended is not None:
+        if lc["job_ended"] and (ended is not None or lc["recycling"]) and not killed_c2:
             lp = expected_log(lr, e)
             found, rc, tee = terminal_evidence(lp, e.get("job_id") or "")
             if not os.path.exists(lp):
@@ -265,9 +312,9 @@ def main(argv=None):
         if not os.path.exists(tp):
             if killed_c2:
                 print(f"    no task binding ({phase}; the interruption record is the evidence)"); continue
-            if started and ended is None and now - started > a.startup_allowance_s:
+            if started and not lc["process_done"] and now - started > a.startup_allowance_s:
                 alarms.append(f"{e['kind']} rep {rep}: live for {(now-started)/60:.0f} min without a task binding (allowance {a.startup_allowance_s/60:.0f} min)")
-            elif started and ended is not None:
+            elif started and lc["process_done"]:
                 alarms.append(f"{e['kind']} rep {rep}: the runner ended (exit {ended}) without a task binding")
             else:
                 print(f"    no task binding yet ({phase})")
@@ -304,7 +351,7 @@ def main(argv=None):
             st = json.load(open(sp))
             for k in NEVER_SHOWN:
                 st.pop(k, None)
-        running = e["state"] == "live" and ended is None and not killed_c2
+        running = e["state"] == "live" and not lc["job_ended"] and not killed_c2
         fvals = sorted(v for r, v in fits.items() if r not in failed)
         rate_h = None
         if len(mine) >= 2 and mine[-1]["t"] > mine[0]["t"]:
@@ -339,7 +386,9 @@ def main(argv=None):
             alarms.append(f"rep {rep}: memory stop")
         if running:
             # the progress baseline is THIS job's start, moved forward only by this job's own validated timing rows
-            baseline = max([started] + [r["t"] for r in mine if r.get("rep") in acc])
+            # (a recycled job's clock starts at its FIRST call, not at the latest process start)
+            first = min([started] + [t for _, t in lc["calls"]])
+            baseline = max([first] + [r["t"] for r in mine if r.get("rep") in acc])
             allow_first = ((a.expect_original_s or 0) + 2 * (a.expect_fit_s[1] if a.expect_fit_s else 0)) or a.stall_h * 3600
             if not mine and now - baseline > allow_first:
                 alarms.append(f"rep {rep}: no record from this job {((now-baseline)/3600):.1f} h after it started "
