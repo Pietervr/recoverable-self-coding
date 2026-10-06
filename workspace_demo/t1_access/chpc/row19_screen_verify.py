@@ -14,11 +14,18 @@ are validated (row19_shard.read_record; analyze._record_ok on the sequential lin
 payload, float bits included. Missing required evidence, an invalid record or any difference is reported; nothing is relabelled.
 
     t1py chpc/row19_screen_verify.py --manifest chpc/row19_screen_manifest.json --role refit
+
+REVISION 2 (Codex RSC a1ce224): only CANONICAL file names count (rec_<iii>.json exactly; any other name in a records
+directory - rec_000_extra.json beside rec_000.json - is reported, never parsed into an index); two valid sequential records
+for one index that differ are a CONFLICT (reported; identical duplicates are harmless); every index the shard root and the
+sequential chain both hold is compared, and index 0 is required for all three anchors.
 """
 import os
 os.environ["NPROC"] = "1"; os.environ["OMP_NUM_THREADS"] = "1"; os.environ["MKL_NUM_THREADS"] = "1"; os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["JAX_PLATFORMS"] = "cpu"
-import sys, json, math, glob, hashlib, argparse, time
+import sys, json, math, glob, hashlib, argparse, time, re
+
+CANON = re.compile(r"^rec_(\d{3})\.json$")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = os.path.abspath(os.path.join(HERE, ".."))
@@ -79,7 +86,9 @@ def anchors(man):
     sman = json.load(open(sp)); sroot = sman["storage"]["root"]; seq_root = an["sequential_root"]
     out = {}
     for r in an["reps"]:
-        e = dict(required=list(an["required_overlap"][str(r)]), compared=[], equal=[], differ=[], missing=[], invalid=[])
+        e = dict(required=list(an["required_overlap"][str(r)]), compared=[], equal=[], differ=[], missing=[], invalid=[], conflict=[])
+        if 0 not in e["required"]:
+            e["invalid"].append("index 0 is not among the required overlaps")
         try:
             t = SH.task(sman, int(r))
         except Exception as ex:
@@ -96,15 +105,21 @@ def anchors(man):
                     e["invalid"].append("sequential line not JSON"); continue
                 if not A._record_ok(d, t["ident"], t["seed"], t["n_rep"], t["idx"], t["bands"]):
                     e["invalid"].append(f"sequential record {d.get('rep')}"); continue
-                seq[int(d["rep"])] = d
+                i = int(d["rep"])
+                if i in seq and payload(seq[i]) != payload(d):
+                    e["conflict"].append(i); continue
+                seq[i] = d
         shard = {}
-        for p in glob.glob(os.path.join(sroot, "records", f"rep{int(r)}", "rec_*.json")):
-            i = int(os.path.basename(p)[4:7])
+        for p in glob.glob(os.path.join(sroot, "records", f"rep{int(r)}", "*")):
+            m = CANON.match(os.path.basename(p))
+            if not m:
+                e["invalid"].append(f"non-canonical file {os.path.basename(p)}"); continue
+            i = int(m.group(1))
             try:
                 shard[i] = SH.read_record(p, t, i)
             except ValueError as ex:
                 e["invalid"].append(str(ex)[:160])
-        both = sorted(set(seq) & set(shard))
+        both = sorted((set(seq) & set(shard)) - set(e["conflict"]))
         for i in e["required"]:
             if i not in both:
                 e["missing"].append(i)
@@ -134,8 +149,11 @@ def main(argv=None):
             if not rs.isdigit() or int(rs) not in reps:
                 units[f"{rs}/?"] = dict(record=dict(ok=False, reason="undeclared rep")); continue
             r = int(rs); t = task(r)
-            for p in sorted(glob.glob(os.path.join(d, "rec_*.json"))):
-                i = int(os.path.basename(p)[4:7]); u = {}
+            for p in sorted(glob.glob(os.path.join(d, "*"))):
+                mm = CANON.match(os.path.basename(p))
+                if not mm:
+                    units[f"{r}/?{os.path.basename(p)}"] = dict(record=dict(ok=False, reason="non-canonical file name")); continue
+                i = int(mm.group(1)); u = {}
                 try:
                     rec = SH.read_record(p, t, i); u["record"] = dict(ok=True, sha=rec["sha"], failed=rec["failed"])
                 except ValueError as ex:

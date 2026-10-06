@@ -34,6 +34,16 @@ reported. ONE look; no subset, no early look, no replacement dataset.
 
     t1py chpc/row19_screen_release.py --screen chpc/row19_screen_manifest.json --originals chpc/row19_screen_orig_manifest.json \\
                                       --target <frozen target> --adoption reviews/<adoption>.json [--out <result.json>]
+
+REVISION 2 (Codex RSC a1ce224, before any numerical adoption or aggregation): (a) the BANK's procedure must be the screen's -
+setting, effective cfg (B excluded), the three canonical sources' pins and the environment, from the hash-bound manifests;
+(b) the target's top-level status, its frozen primary's status and the primary RECOMPUTED from the bank records must all be
+RESOLVED; (c) the target is read ONCE: its bytes are hashed and parsed a single time and that object decides - the path is
+never re-read; (d) the review record must carry the line
+`ADOPT row19-numerical-target target=<target sha256> bank_records=<records sha256> verdict=FAVOURABLE`, so an arbitrary
+tracked text, a design review or a raw-pilot review is not the authority; (e) the result carries every failure: an original's
+failed_reason, each refit chain's n_used / n_failed / failed_reasons, and per-method denominators beside the paired cells;
+(f) the seed check is the controller's revision 2, which reconstructs the whole exclusion contract.
 """
 import os, sys, json, math, glob, hashlib, argparse, subprocess, tempfile
 
@@ -46,7 +56,8 @@ for p in (T1, HERE):
 ADOPTION_SCHEMA = "row19-target-adoption-1"
 RESULT_SCHEMA = "row19-screen-result-1"
 CONSUMER_FILES = ("chpc/row19_screen_release.py", "analyze.py", "models.py", "simulate.py", "chpc/row19_slice.py", "chpc/row19_shard.py",
-                  "chpc/row19_screen_orig.py", "chpc/row19_screen_admit.py", "chpc/row22_target.py", "chpc/row22_bank.py")
+                  "chpc/row19_screen_orig.py", "chpc/row19_screen_admit.py", "chpc/programme_gate.py", "chpc/row22_target.py", "chpc/row22_bank.py")
+CFG_EXEMPT = ("n_boot_refit", "note")
 PRIMARY = ("selection", "ws")
 
 
@@ -67,8 +78,15 @@ def _finite(x):
     return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
 
 
-def seal_problems(screen_path, orig_path, target_path, adoption_rel, check_git=True):
-    """Every reason the release may not compute. Imports only identity/validation helpers, never an aggregation."""
+def load_target(target_path):
+    """(bytes SHA-256, parsed object) from ONE read of the target file."""
+    b = open(target_path, "rb").read()
+    return hashlib.sha256(b).hexdigest(), json.loads(b.decode())
+
+
+def seal_problems(screen_path, orig_path, target_path, adoption_rel, check_git=True, target=None):
+    """Every reason the release may not compute. Imports only identity/validation helpers, never an aggregation.
+    `target` = (sha256, object) from load_target; when given, the path is not read again."""
     why = []
     ad_full = os.path.join(T1, adoption_rel)
     if not os.path.exists(ad_full):
@@ -85,9 +103,13 @@ def seal_problems(screen_path, orig_path, target_path, adoption_rel, check_git=T
     rv_full = os.path.join(T1, rv.get("path", "") or "_none_")
     if not os.path.exists(rv_full) or sha_file(rv_full) != rv.get("sha256") or (check_git and not tracked_unmodified(rv.get("path", ""))):
         why.append("the numerical-target review record is not tracked and unmodified with the adopted SHA-256")
-    if not os.path.exists(target_path) or sha_file(target_path) != ad.get("target_sha256"):
-        return why + ["the target file is absent or not the adopted bytes"]
-    tg = json.load(open(target_path))
+    if target is None:
+        if not os.path.exists(target_path):
+            return why + ["the target file is absent"]
+        target = load_target(target_path)
+    tsha, tg = target
+    if tsha != ad.get("target_sha256"):
+        return why + ["the target file is not the adopted bytes"]
     if tg.get("schema") != "row22-target-1":
         why.append("the target is not a row-22 target document")
     if tg.get("primary") != "/".join(PRIMARY):
@@ -109,6 +131,19 @@ def seal_problems(screen_path, orig_path, target_path, adoption_rel, check_git=T
         return why + ["the bank manifest is not the adopted bytes"]
     bank = json.load(open(bank_path))
     import row22_bank as B, row22_target as TG
+    if bank.get("setting") != screen.get("setting"):
+        why.append("the bank's setting is not the screen's")
+    bc = {k: v for k, v in bank["cfg"].items() if k not in CFG_EXEMPT}; sc = {k: v for k, v in screen["cfg"].items() if k not in CFG_EXEMPT}
+    if bc != sc:
+        why.append(f"the bank's effective cfg is not the screen's ({sorted(k for k in set(bc) | set(sc) if bc.get(k) != sc.get(k))})")
+    for f in ("analyze.py", "models.py", "simulate.py"):
+        if bank["code"]["files"].get(f) != screen["code"]["files"].get(f):
+            why.append(f"the bank's pin of {f} is not the screen's")
+    if bank.get("environment") != screen.get("environment"):
+        why.append("the bank's environment is not the screen's")
+    line = f"ADOPT row19-numerical-target target={tsha} bank_records={tg.get('records_sha256')} verdict=FAVOURABLE"
+    if os.path.exists(rv_full) and line not in [l.strip() for l in open(rv_full).read().splitlines()]:
+        why.append("the numerical-target review record does not carry its ADOPT line for this target and record set")
     if tg.get("manifest_sha256") != sha_file(bank_path):
         why.append("the target was not computed under the adopted bank manifest")
     if TG.rules(bank) != tg.get("rules"):
@@ -135,6 +170,8 @@ def seal_problems(screen_path, orig_path, target_path, adoption_rel, check_git=T
         mine = again.get("/".join(PRIMARY)) or {}
         if any(mine.get(k) != t.get(k) for k in ("mean", "sd", "mcse", "lo", "hi", "n_usable", "status")):
             why.append("recomputing the target from the bank records does not reproduce the frozen primary")
+        if t.get("status") != "RESOLVED" or mine.get("status") != "RESOLVED":
+            why.append("the frozen primary and the recomputed primary are not both RESOLVED")
         if int(t.get("n_attempted", -1)) != len(bank["datasets"]["reps"]):
             why.append("the target's attempted count is not the bank's declared count")
     pins = ad.get("consumer_pins") or {}
@@ -230,15 +267,22 @@ def _aggregate(items, screen):
             res = A.analyze_dataset(t["ds"], t["cfg"], t["seed"], outer_folds=t["folds"], run=got["run"], interval_result=rb)
             p = res["predictors"][PRIMARY[0]]
             refit = p.get(PRIMARY[1], {}); clus = (p.get("cluster") or {}).get(PRIMARY[1], {})
-            out[r] = dict(failed=bool(res["failed"]), refit_usable=bool(p.get("usable")) and not res["failed"],
-                          refit=[refit.get("lo"), refit.get("hi")], cluster=[clus.get("lo"), clus.get("hi")], point=refit.get("point"))
+            iv = res.get("interval") or {}
+            out[r] = dict(failed=bool(res["failed"]), failed_reason=str(res.get("failed_reason", "")),
+                          refit_usable=bool(p.get("usable")) and not res["failed"],
+                          refit=[refit.get("lo"), refit.get("hi")], cluster=[clus.get("lo"), clus.get("hi")], point=refit.get("point"),
+                          refit_n_used=iv.get("n_used"), refit_n_failed=iv.get("n_failed"), refit_failed_reasons=iv.get("failed_reasons"),
+                          predictor_interval=p.get("interval"))
     finally:
         A.run_dataset = keep
     return out
 
 
 def release(screen_path, orig_path, target_path, adoption_rel, check_git=True):
-    why = seal_problems(screen_path, orig_path, target_path, adoption_rel, check_git=check_git)
+    if not os.path.exists(target_path):
+        return dict(status="REFUSED", reasons=["the target file is absent"])
+    target = load_target(target_path)                                       # ONE read: these bytes decide
+    why = seal_problems(screen_path, orig_path, target_path, adoption_rel, check_git=check_git, target=target)
     if why:
         return dict(status="REFUSED", reasons=why)
     screen = json.load(open(screen_path)); origm = json.load(open(orig_path))
@@ -246,15 +290,17 @@ def release(screen_path, orig_path, target_path, adoption_rel, check_git=True):
     if why:
         return dict(status="HELD", reasons=why[:50], n_reasons=len(why))
     per = _aggregate(items, screen)
-    tg = json.load(open(target_path)); t = tg["targets"]["/".join(PRIMARY)]; lo, hi = float(t["lo"]), float(t["hi"])
+    tsha, tg = target; t = tg["targets"]["/".join(PRIMARY)]; lo, hi = float(t["lo"]), float(t["hi"])
     N = int(screen["datasets"]["n_attempted"])
     fin = lambda v: v is not None and all(_finite(x) for x in v)
     refit = [tuple(v["refit"]) for v in per.values() if v["refit_usable"] and fin(v["refit"])]
     clus = [tuple(v["cluster"]) for v in per.values() if not v["failed"] and fin(v["cluster"])]
     r_ok = {r for r, v in per.items() if v["refit_usable"] and fin(v["refit"])}; c_ok = {r for r, v in per.items() if not v["failed"] and fin(v["cluster"])}
     allr = set(per)
-    return dict(schema=RESULT_SCHEMA, status="RELEASED", target=dict(lo=lo, hi=hi, sha256=sha_file(target_path)), n_attempted=N,
-                failed_originals=sorted(r for r, v in per.items() if v["failed"]),
+    return dict(schema=RESULT_SCHEMA, status="RELEASED", target=dict(lo=lo, hi=hi, sha256=tsha), n_attempted=N,
+                failed_originals={str(r): v["failed_reason"] for r, v in per.items() if v["failed"]},
+                refit_unusable={str(r): dict(n_used=v["refit_n_used"], n_failed=v["refit_n_failed"], reasons=v["refit_failed_reasons"])
+                                for r, v in per.items() if not v["refit_usable"]},
                 refit=decide(refit, N, lo, hi), cluster=decide(clus, N, lo, hi),
                 paired=dict(both=len(r_ok & c_ok), refit_only=len(r_ok - c_ok), cluster_only=len(c_ok - r_ok), neither=len(allr - r_ok - c_ok)),
                 per_dataset={str(r): v for r, v in per.items()})

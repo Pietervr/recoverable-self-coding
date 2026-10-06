@@ -28,6 +28,8 @@ import row19_shard as SH
 from test_row19_slice import _manifest, _run, _dirs, _Patched, R19, CALLS
 from row19_ledger import CampaignLedger
 _LIVE = tempfile.mkdtemp(prefix="row19_screen_test_"); SV.LIVE_DIR = os.path.join(_LIVE, "live"); SV.RECEIPTS = os.path.join(_LIVE, "receipts"); SV.BASE = _LIVE
+PG = SA.PG
+PG.programme_funding = lambda man: dict(man["funding"], lock=os.path.join(_LIVE, "programme.lock"))   # tests: the manifest's own test programme
 
 
 def _call(mod, argv):
@@ -62,8 +64,9 @@ def _screen(bank_mp, reps=(3, 4, 5), B=4, extra_excluded=()):
     root = tempfile.mkdtemp(); camp = os.path.join(root, "campaign"); os.makedirs(camp)
     man = _manifest(root, camp, n_boot=B)
     sd = SA.seeds_of(dict(man, datasets={"seed_base": 20261003, "reps": list(reps)}))
-    man["datasets"] = {"seed_base": 20261003, "reps": list(reps), "n_attempted": len(reps), "excluded_resolved_seeds": [1] + list(extra_excluded),
+    man["datasets"] = {"seed_base": 20261003, "reps": list(reps), "n_attempted": len(reps), "excluded_resolved_seeds": [],
                        "resolved_seeds_sha256": SA.seeds_sha256(sd), "bank_manifest": bank_mp, "bank_manifest_sha256": SA.sha_file(bank_mp)}
+    man["datasets"]["excluded_resolved_seeds"] = sorted(SA.exclusion_contract(man)) + list(extra_excluded)
     man["datasets"]["identities"] = {str(r): SH.task(man, r)["ident"] for r in reps}
     man["shard"] = {"toolchain": root, "clone": root, "per_slot": 1, "expect_layer_s": 0.0, "deadline_margin": 1.25,
                     "identities": man["datasets"]["identities"], "sequential_roots": [], "sequential_campaign": camp}
@@ -76,7 +79,9 @@ def _screen(bank_mp, reps=(3, 4, 5), B=4, extra_excluded=()):
     for m in (refit, orig):
         os.makedirs(m["storage"]["campaign"], exist_ok=True)
         bp = os.path.join(root, f"budget_{m['role']}.json"); json.dump({"phases": [{"cap_core_h": 60000.0, "note": "test"}]}, open(bp, "w"))
-        m["budget"]["admission"] = bp; m["funding"]["campaigns"] = [refit["storage"]["campaign"], orig["storage"]["campaign"]]
+        m["budget"]["admission"] = bp
+        m["funding"]["campaigns"] = [dict(path=refit["storage"]["campaign"], may_be_absent=True, root=refit["storage"]["root"]),
+                                     dict(path=orig["storage"]["campaign"], may_be_absent=True, root=orig["storage"]["root"])]
     rp, op = os.path.join(root, "screen_manifest.json"), os.path.join(root, "orig_manifest.json")
     json.dump(refit, open(rp, "w")); json.dump(orig, open(op, "w"))
     return refit, rp, orig, op
@@ -144,10 +149,12 @@ def test_seed_domain_and_identity_checks():
     bank, bmp, _ = _bank()
     refit, rp, orig, op = _screen(bmp)
     assert SA.seed_domain_problem(refit) == ""
-    m = copy.deepcopy(refit); m["datasets"]["excluded_resolved_seeds"] = [SA.seeds_of(refit)[3]]
+    m = copy.deepcopy(refit); m["datasets"]["excluded_resolved_seeds"] = refit["datasets"]["excluded_resolved_seeds"] + [SA.seeds_of(refit)[3]]
     assert "excluded" in SA.seed_domain_problem(m)
     m = copy.deepcopy(refit); m["datasets"]["excluded_resolved_seeds"] = []
     assert "empty" in SA.seed_domain_problem(m)
+    m = copy.deepcopy(refit); m["datasets"]["excluded_resolved_seeds"] = refit["datasets"]["excluded_resolved_seeds"][:-10]
+    assert "not exactly the contract" in SA.seed_domain_problem(m)                                       # a truncated exclusion list refuses
     m = copy.deepcopy(refit); m["datasets"]["identities"].pop("5")
     assert "identity map" in SA.seed_domain_problem(m)
     m = copy.deepcopy(refit); m["datasets"]["bank_manifest_sha256"] = "0" * 64
@@ -156,7 +163,7 @@ def test_seed_domain_and_identity_checks():
     bank2["datasets"]["resolved_seeds_sha256"] = B22.seeds_sha256(B22.resolved_seeds(bank2))
     bp2 = os.path.join(tempfile.mkdtemp(), "b2.json"); json.dump(bank2, open(bp2, "w"))
     m = copy.deepcopy(refit); m["datasets"]["bank_manifest"] = bp2; m["datasets"]["bank_manifest_sha256"] = SA.sha_file(bp2)
-    assert "bank seed" in SA.seed_domain_problem(m)                                                    # derived from the bank manifest, not a caller list
+    assert "bank seed" in SA.seed_domain_problem(m) or "not exactly the contract" in SA.seed_domain_problem(m)                                                    # derived from the bank manifest, not a caller list
     m = copy.deepcopy(refit); m["datasets"]["identities"]["4"] = "1" * 64
     assert "declares" in SA.identity_problem(m, [4]) and SA.identity_problem(refit, [3, 4, 5]) == ""
 
@@ -174,10 +181,18 @@ def test_planner_cap_lineage_and_funding():
     assert [len(j["slots"]) for j in oj] == [20] * 5 and oleft == 0
     L = SA.ledger_for(refit); tok, _ = L.reserve("shard", 1, 24, 108000.0, refit["storage"]["root"])
     before = SA.sha_file(rp)
-    L2 = SA.ledger_for(refit); L2.raise_cap(90000.0, "owner ruling for the test")
+    rc, out = _call(SA, ["--manifest", rp, "--role", "refit", "--raise-cap", "90000", "--note", "owner ruling for the test"])
+    assert rc == 0, out
     st = json.load(open(os.path.join(refit["storage"]["campaign"], "budget.json")))
     assert st["cap_core_h"] == 90000.0 and st["cap_history"][-1]["old"] == 60000.0 and tok in st["entries"]
-    assert SA.sha_file(rp) == before                                                                     # no binding can name a moved manifest
+    assert SA.sha_file(rp) == before and SA.cap_problem(refit) == ""                                    # no binding can name a moved manifest
+    bp = refit["budget"]["admission"]; b = json.load(open(bp))
+    b["phases"].append(dict(cap_core_h=120000.0, note="interrupted", pending=True)); json.dump(b, open(bp, "w"))
+    assert "interrupted" in SA.cap_problem(refit)                                                        # refused until reconciled
+    SA.ledger_for(refit).raise_cap(120000.0, "the ledger step that was interrupted")
+    assert SA.cap_problem(refit) == "" and json.load(open(bp))["phases"][-1]["pending"] is False         # reconciled, nothing reset
+    SA.ledger_for(refit).raise_cap(130000.0, "a raise outside the protocol")
+    assert "not the latest budget phase" in SA.cap_problem(refit)
     assert SA.ledger_for(refit).reserve("shard", 2, 24, 108000.0, refit["storage"]["root"])[0]          # admitted under the raised cap
     assert SA.funding_problem(refit, 1000.0) == ""
     assert "allocation" in SA.funding_problem(refit, 99000.0)                                            # 720 + 720 live + 6 + 99,000 > 100,000
@@ -188,8 +203,8 @@ def test_the_release_refuses_before_any_aggregation():
     refit, rp, orig, op = _screen(bmp)
     _produce(refit, rp, orig, op)
     rv = os.path.join("reviews", f"_test_target_review_{os.getpid()}.md"); ad = os.path.join("reviews", f"_test_adoption_{os.getpid()}.json")
-    open(os.path.join(T1, rv), "w").write("adopts the target\n")
     tg = json.load(open(tgt))
+    open(os.path.join(T1, rv), "w").write(f"adopts the target\nADOPT row19-numerical-target target={REL.sha_file(tgt)} bank_records={tg['records_sha256']} verdict=FAVOURABLE\n")
     good = dict(schema=REL.ADOPTION_SCHEMA, target_sha256=REL.sha_file(tgt), bank_manifest_sha256=REL.sha_file(bmp),
                 bank_binding_sha256=REL.sha_file(os.path.join(bank["storage"]["root"], "bank_binding.json")),
                 manifests=dict(screen=REL.sha_file(rp), originals=REL.sha_file(op)),
@@ -201,6 +216,10 @@ def test_the_release_refuses_before_any_aggregation():
     try:
         A.refit_bootstrap = boom; A.analyze_dataset = boom
         def refused(doc, target=tgt, check_git=False):
+            if target != tgt:                                                                             # the review adopts THIS target, so the
+                t2 = json.load(open(target))                                                              # case reaches the check it is about
+                open(os.path.join(T1, rv), "w").write(f"ADOPT row19-numerical-target target={REL.sha_file(target)} bank_records={t2.get('records_sha256')} verdict=FAVOURABLE\n")
+                doc = dict(doc, review_record=dict(path=rv, sha256=REL.sha_file(os.path.join(T1, rv))))
             json.dump(doc, open(os.path.join(T1, ad), "w"))
             r = REL.release(rp, op, target, ad, check_git=check_git)
             assert r["status"] in ("REFUSED", "HELD"), r
@@ -217,6 +236,15 @@ def test_the_release_refuses_before_any_aggregation():
         assert "record set" in refused(dict(good, target_sha256=REL.sha_file(mp_)), target=mp_)
         shifted = copy.deepcopy(tg); shifted["targets"]["selection/ws"]["lo"] -= 1.0; sp = os.path.join(_LIVE, "shifted.json"); json.dump(shifted, open(sp, "w"))
         assert "does not reproduce" in refused(dict(good, target_sha256=REL.sha_file(sp)), target=sp)
+        half = copy.deepcopy(tg); half["targets"]["selection/ws"]["status"] = "UNRESOLVED"; hp = os.path.join(_LIVE, "half.json"); json.dump(half, open(hp, "w"))
+        assert "both RESOLVED" in refused(dict(good, target_sha256=REL.sha_file(hp)), target=hp)        # a RESOLVED label over an UNRESOLVED primary
+        open(os.path.join(T1, rv), "w").write("adopts the target, no line\n")
+        assert "ADOPT line" in refused(dict(good, review_record=dict(path=rv, sha256=REL.sha_file(os.path.join(T1, rv)))))
+        other = dict(json.load(open(rp)), cfg=dict(json.load(open(rp))["cfg"], n_starts=12)); op2 = os.path.join(_LIVE, "screen_n12.json"); json.dump(other, open(op2, "w"))
+        oo = dict(json.load(open(op)), cfg=other["cfg"]); oo2 = os.path.join(_LIVE, "orig_n12.json"); json.dump(oo, open(oo2, "w"))
+        json.dump(dict(good, manifests=dict(screen=REL.sha_file(op2), originals=REL.sha_file(oo2))), open(os.path.join(T1, ad), "w"))
+        r = REL.release(op2, oo2, tgt, ad, check_git=False)
+        assert r["status"] == "REFUSED" and any("effective cfg" in w for w in r["reasons"]), r                # a bank of another procedure
     finally:
         A.refit_bootstrap, A.analyze_dataset = keep
         for f in (rv, ad):
@@ -229,7 +257,8 @@ def test_an_incomplete_screen_holds_and_a_complete_one_releases_without_fitting(
     refit, rp, orig, op = _screen(bmp)
     _produce(refit, rp, orig, op, skip={(4, 2)})
     rv = os.path.join("reviews", f"_test_target_review_{os.getpid()}.md"); ad = os.path.join("reviews", f"_test_adoption_{os.getpid()}.json")
-    open(os.path.join(T1, rv), "w").write("adopts the target\n")
+    tg = json.load(open(tgt))
+    open(os.path.join(T1, rv), "w").write(f"ADOPT row19-numerical-target target={REL.sha_file(tgt)} bank_records={tg['records_sha256']} verdict=FAVOURABLE\n")
     doc = dict(schema=REL.ADOPTION_SCHEMA, target_sha256=REL.sha_file(tgt), bank_manifest_sha256=REL.sha_file(bmp),
                bank_binding_sha256=REL.sha_file(os.path.join(bank["storage"]["root"], "bank_binding.json")),
                manifests=dict(screen=REL.sha_file(rp), originals=REL.sha_file(op)),
@@ -249,6 +278,17 @@ def test_an_incomplete_screen_holds_and_a_complete_one_releases_without_fitting(
             assert CALLS["run_dataset"] == n1                                                             # not one fit bought by the release
             assert r["refit"]["n_attempted"] == 3 and set(r["paired"]) == {"both", "refit_only", "cluster_only", "neither"}
             assert r["refit"]["decision"] in ("STOP FOR FUTILITY", "not ruled out at this look", "unresolved: no usable interval")
+            assert isinstance(r["failed_originals"], dict) and isinstance(r["refit_unusable"], dict)
+            keep_agg = REL._aggregate
+            def swap_then_aggregate(items, screen):                                                       # the target is replaced mid-release
+                out = keep_agg(items, screen); bad = json.load(open(tgt)); bad["targets"]["selection/ws"]["lo"] = -1e9
+                json.dump(bad, open(tgt, "w")); return out
+            REL._aggregate = swap_then_aggregate
+            try:
+                r2 = REL.release(rp, op, tgt, ad, check_git=False)
+            finally:
+                REL._aggregate = keep_agg
+            assert r2["status"] == "RELEASED" and r2["target"]["lo"] == r["target"]["lo"]                   # decided on the bytes read once
     finally:
         for f in (rv, ad):
             if os.path.exists(os.path.join(T1, f)):
@@ -299,21 +339,53 @@ def test_later_admission_binds_only_started_tasks_and_refuses_stale_or_unadopted
         open(os.path.join(root, f"task_{s['rep']}.json"), "w").write(json.dumps({"binding": {"rep": s["rep"]}}))
     want = SA.expected_bound(refit, rp, "refit")
     assert sorted(int(k) for k in want["bindings"]) == list(range(3, 27))                                 # 24 bound; 27..29 pending, never fabricated
+    anchors = {"problem": "", "reps": {str(a): {"required": [0], "compared": [0], "equal": [0], "differ": [], "missing": [], "invalid": [], "conflict": []} for a in (0, 1, 2)}}
+    adig = hashlib.sha256(json.dumps(anchors, sort_keys=True).encode()).hexdigest()
+    summ = {"1": dict(state="F", exit=0, runner_exit=0, slots=24, ended=24, exits={"0": 24}, left=0, mem_kb=1.0e7, max_worker_maxrss=2.5e9)}
     q = os.path.join(root, "gate", "qualified_refit_job1.json")
-    good_q = dict(schema=SA.QUAL_SCHEMA, role="refit", qualified_job=1, production=True, bound=dict(want, anchors_sha256="a"), receipt=dict(fresh=True, alarms=[]))
+    good_q = dict(schema=SA.QUAL_SCHEMA, role="refit", qualified_job=1, production=True, time=time.time(), bound=dict(want, anchors_sha256=adig),
+                  receipt=dict(fresh=True, production=True, alarms=[], jobs=summ), anchors=anchors)
     json.dump(good_q, open(q, "w"))
     assert SA.qualification_problem(refit, rp, "refit")[0] == ""
-    for bad, msg in ((dict(good_q, bound=dict(want, anchors_sha256=None)), "anchor"), (dict(good_q, role="orig"), "not a production"),
-                     (dict(good_q, bound=dict(good_q["bound"], bindings={k: v for k, v in want["bindings"].items() if k != "3"})), "not bound")):
+    bad_anchor = copy.deepcopy(anchors); bad_anchor["reps"]["2"]["equal"] = []
+    for bad, msg in ((dict(good_q, bound=dict(want, anchors_sha256="a" * 64)), "not the bound one"), (dict(good_q, role="orig"), "not a production"),
+                     (dict(good_q, bound=dict(good_q["bound"], bindings={k: v for k, v in want["bindings"].items() if k != "3"})), "not exactly the root's"),
+                     (dict(good_q, anchors=bad_anchor, bound=dict(good_q["bound"], anchors_sha256=hashlib.sha256(json.dumps(bad_anchor, sort_keys=True).encode()).hexdigest())), "anchor 2"),
+                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": dict(summ["1"], state="E")})), "terminal F"),
+                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": dict(summ["1"], runner_exit=4)})), "terminal F"),
+                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": dict(summ["1"], mem_kb=None)})), "memory"),
+                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": dict(summ["1"], exits={"0": 23, "4": 1})})), "ended 0"),
+                     (dict(good_q, time=True), "finite past time")):
         json.dump(bad, open(q, "w"))
-        assert msg in SA.qualification_problem(refit, rp, "refit")[0], msg
+        assert msg in SA.qualification_problem(refit, rp, "refit")[0], (msg, SA.qualification_problem(refit, rp, "refit")[0])
     json.dump(good_q, open(q, "w"))
     assert "no adopted review" in SA.review_problem(refit, rp, "refit", [2])
     tracked = "reviews/2026-10-06_stage2_screen_design_codex_record.md"
-    assert SA.adopt_review(refit, rp, "refit", tracked, 9).startswith("adopted")
-    assert "no watch receipt" in SA.review_problem(refit, rp, "refit", [2])
-    r = os.path.join(root, "gate", f"watch_refit_{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}.json")
-    good_r = dict(schema=SA.WATCH_SCHEMA, role="refit", production=True, fresh=True, alarms=[], time=time.time(), bound=dict(want, anchors_sha256="a"))
+    assert "does not contain the line" in SA.adopt_review(refit, rp, "refit", tracked, 9)                  # a design review is no pilot verdict
+    qsha = SA.sha_file(q); rv = os.path.join("reviews", f"_test_pilot_review_{os.getpid()}.md")
+    open(os.path.join(T1, rv), "w").write(f"verdict\nADOPT row19-screen-pilot role=refit qualification={qsha} max_job=9\n")
+    keep_t = SA.tracked_unmodified
+    try:
+        assert "not tracked" in SA.adopt_review(refit, rp, "refit", rv, 9)
+        SA.tracked_unmodified = lambda rel: True                                                          # stands in for a committed record
+        assert "does not contain the line" in SA.adopt_review(refit, rp, "refit", rv, 12)                  # the scope must be the verdict's
+        assert SA.adopt_review(refit, rp, "refit", rv, 9).startswith("adopted")
+        assert "no watch receipt" in SA.review_problem(refit, rp, "refit", [2])
+        r = os.path.join(root, "gate", f"watch_refit_{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}.json")
+        good_r = dict(schema=SA.WATCH_SCHEMA, role="refit", production=True, fresh=True, alarms=[], time=time.time(), bound=dict(want, anchors_sha256=adig), anchors=anchors)
+        json.dump(dict(good_r, time=float("nan")), open(r, "w"))
+        assert "within 2700" in SA.review_problem(refit, rp, "refit", [2])
+        json.dump(dict(good_r, anchors=bad_anchor), open(r, "w"))
+        assert "anchor" in SA.review_problem(refit, rp, "refit", [2])
+        _later_receipt_checks(refit, rp, r, good_r)
+    finally:
+        SA.tracked_unmodified = keep_t
+        if os.path.exists(os.path.join(T1, rv)):
+            os.remove(os.path.join(T1, rv))
+
+
+def _later_receipt_checks(refit, rp, r, good_r):
+    root = refit["storage"]["root"]
     json.dump(dict(good_r, time=time.time() - 3000), open(r, "w"))
     assert "within 2700" in SA.review_problem(refit, rp, "refit", [2])
     json.dump(good_r, open(r, "w"))
@@ -321,6 +393,50 @@ def test_later_admission_binds_only_started_tasks_and_refuses_stale_or_unadopted
     assert "up to 9" in SA.review_problem(refit, rp, "refit", [10])
     open(os.path.join(root, "STOP"), "w").write("{}")
     assert "STOP" in SA.gate_problem(refit, rp, "refit", {1}, False, 1, [], 108000.0)
+
+
+def test_the_programme_count_is_strict():
+    bank, bmp, _ = _bank()
+    refit, rp, orig, op = _screen(bmp)
+    f = PG.programme_funding(refit)
+    assert PG.committed_core_h(f)[0] == 6.0                                                              # both ledgers absent, never started
+    os.makedirs(os.path.join(refit["storage"]["root"], "plans"), exist_ok=True); open(os.path.join(refit["storage"]["root"], "plans", "job_1.json"), "w").write("{}")
+    assert "holds plans" in PG.funding_problem(f, 10.0)                                                  # a started campaign without its ledger
+    L = SA.ledger_for(refit); tok, _ = L.reserve("shard", 1, 24, 108000.0, refit["storage"]["root"])
+    assert PG.funding_problem(f, 10.0) == ""
+    lp = os.path.join(refit["storage"]["campaign"], "budget.json")
+    for mut, msg in ((lambda e: e.update(reserved_core_h=True), "finite non-negative reservation"), (lambda e: e.update(reserved_core_h=-5.0), "finite non-negative"),
+                     (lambda e: e.update(state="settled", settled_core_h=None), "settled entry"), (lambda e: e.update(state="odd"), "undeclared state")):
+        st = json.load(open(lp)); mut(st["entries"][tok]); json.dump(st, open(lp, "w"))
+        assert msg in PG.funding_problem(f, 10.0), msg
+        L2 = json.load(open(lp)); L2["entries"][tok] = dict(L2["entries"][tok], state="live", reserved_core_h=720.0, settled_core_h=0.0); json.dump(L2, open(lp, "w"))
+    open(lp, "w").write(open(lp).read().replace('"reserved_core_h": 720.0', '"reserved_core_h": NaN'))
+    assert "non-finite" in PG.funding_problem(f, 10.0)
+    assert "listed twice" in PG.funding_problem(dict(f, campaigns=f["campaigns"] + [f["campaigns"][0]]), 10.0)
+    assert "expected but missing" in PG.funding_problem(dict(f, campaigns=["/nonexistent/campaign"]), 10.0)
+    assert "finite positive" in PG.funding_problem(f, float("nan"))
+
+
+def test_verifier_canonical_names_and_conflicting_duplicates():
+    SVF = _load("row19_screen_verify")
+    d, c = _dirs()
+    with _Patched():
+        man = _manifest(d, c, n_boot=10)
+        assert _run(d, man, "--job-id", "j1", "--segment", "1") in (R19.DONE, R19.RESUME)
+        sroot = tempfile.mkdtemp(); sman = dict(copy.deepcopy(man), storage={"root": sroot, "campaign": c})
+        smp = os.path.join(sroot, "shard_manifest.json"); json.dump(sman, open(smp, "w"))
+        assert _call(SH, ["worker", "--manifest", smp, "--rep", "0", "--indices", "0", "--slot", "0", "--job-id", "x", "--skip-environment-check", "--no-binding-check"])[0] == 0
+    screen = {"anchors": {"reps": [0], "shard_manifest": smp, "shard_manifest_sha256": SVF.sha_file(smp), "sequential_root": d, "required_overlap": {"0": [0]}}}
+    assert SVF.anchors(screen)["reps"]["0"]["equal"] == [0]
+    shutil.copy(SH.record_path(sroot, 0, 0), os.path.join(sroot, "records", "rep0", "rec_000_extra.json"))
+    v = SVF.anchors(screen)["reps"]["0"]
+    assert any("non-canonical" in x for x in v["invalid"])                                              # an alias is reported, not parsed
+    t = SH.task(man, 0); ck = os.path.join(d, "ckpt", f"refit_{t['ident'][:24]}.jsonl")
+    line = open(ck).read().splitlines()[0]; rec = json.loads(line); rec["stats"]["selection"]["ws"] += 1e-9; rec["sha"] = A._record_sha(rec)
+    open(ck, "a").write(json.dumps(rec) + "\n")
+    v = SVF.anchors(screen)["reps"]["0"]
+    assert v["conflict"] == [0] and 0 not in v["equal"]                                                 # a differing duplicate cannot hide
+    assert any("conflicting" in a for a in SV.anchor_alarms({"anchors": {"problem": "", "reps": {"0": v, "1": v, "2": v}}}))
 
 
 def test_the_verifier_compares_anchors_under_their_own_contract():

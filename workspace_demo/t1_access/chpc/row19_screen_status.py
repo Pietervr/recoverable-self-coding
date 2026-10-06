@@ -19,7 +19,14 @@ QUALIFICATION (--qualify 1): fresh production evidence, zero alarms, job 1 termi
 slot ended 0 with every planned unit a valid record with timing, the three anchors equal; refit: job 1's reps all bound.
 
     python chpc/row19_screen_status.py --manifest chpc/row19_screen_manifest.json --role refit [--publish-receipt] [--qualify 1]
-Exit 1 on any alarm or when the evidence is not fresh."""
+Exit 1 on any alarm or when the evidence is not fresh.
+
+REVISION 2 (Codex RSC a1ce224): qualification needs scheduler state F exactly (not E, X or gone), scheduler exit and the
+ledger's runner exit both 0 or 75, finite scheduler memory and finite worker memory for every slot; a refit worker's status
+must name its task's declared identity; a status file for a job or slot no plan assigns is an alarm; every rep of a STARTED
+job (scheduler R or terminal) must have a task binding, checked against the plans rather than the files present; the full
+verifier document is saved beside every receipt and copied to the gate; the anchor verdict itself is embedded in the receipt
+and the qualification (not only its digest); the job summary carries timings, peaks and failures."""
 import os, sys, json, glob, math, time, shutil, hashlib, argparse, subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -127,6 +134,10 @@ def anchor_alarms(verify):
             al.append(f"anchor {r}: {len(e['invalid'])} invalid record(s), e.g. {e['invalid'][0]}")
         if e.get("differ"):
             al.append(f"anchor {r}: payload DIFFERS at {e['differ']}")
+        if e.get("conflict"):
+            al.append(f"anchor {r}: conflicting duplicate sequential records at {e['conflict']}")
+        if 0 not in (e.get("equal") or []):
+            al.append(f"anchor {r}: index 0 is not observed equal")
         if not e.get("equal"):
             al.append(f"anchor {r}: no overlap observed equal")
     return al
@@ -146,7 +157,14 @@ def reconcile(man, role, verify, obs, ledger, live):
         plan = json.load(open(pp)); j = e.get("job_id")
         o = (obs or {}).get(j, {}) if j else {}
         state = o.get("state"); terminal = state in TERMINAL
-        s_sum = dict(job_id=j, state=state, exit=o.get("exit"), slots=len(plan["slots"]), ended=0, exits={}, new=0, resumed=0, left=0)
+        s_sum = dict(job_id=j, state=state, exit=o.get("exit"), runner_exit=e.get("runner_exit"), mem_kb=o.get("mem_kb"),
+                     slots=len(plan["slots"]), ended=0, exits={}, new=0, resumed=0, left=0, max_worker_maxrss=None, max_wall_s=None,
+                     failed_units=[])
+        started = state == "R" or terminal
+        expected_status = {f"job{j}.slot{sl['slot']}.json" for sl in plan["slots"]}
+        for sp in glob.glob(os.path.join(root, "status", f"job{j}.slot*.json")):
+            if os.path.basename(sp) not in expected_status:
+                alarms.append(f"{role} job {n}: status {os.path.basename(sp)} that no plan slot assigns")
         if not j:
             alarms.append(f"{role} job {n}: reserved but not bound to a PBS id")
         if o.get("mem_kb") is not None and o["mem_kb"] > 0.9 * mem_req_kb:
@@ -165,9 +183,19 @@ def reconcile(man, role, verify, obs, ledger, live):
                     alarms.append(f"{role} job {n} slot {sl['slot']}: no worker status after the job ended (read its log)")
                 continue
             s_sum["ended"] += 1; s_sum["exits"][str(st.get("exit"))] = s_sum["exits"].get(str(st.get("exit")), 0) + 1
+            if st.get("job") != j or st.get("slot") != int(sl["slot"]):
+                alarms.append(f"{role} job {n} slot {sl['slot']}: the status names job {st.get('job')} slot {st.get('slot')}")
+            if finite_nonneg(st.get("maxrss")):
+                s_sum["max_worker_maxrss"] = max(s_sum["max_worker_maxrss"] or 0, st["maxrss"])
+            else:
+                alarms.append(f"{role} job {n} slot {sl['slot']}: worker memory is not finite")
+            if finite_nonneg(st.get("wall_s")):
+                s_sum["max_wall_s"] = max(s_sum["max_wall_s"] or 0, st["wall_s"])
             if role == "refit":
                 if st.get("rep") != int(sl["rep"]) or st.get("indices") != [int(i) for i in sl["indices"]]:
                     alarms.append(f"{role} job {n} slot {sl['slot']}: status assignment is not the plan's")
+                if st.get("ident") != man["datasets"]["identities"].get(str(int(sl["rep"]))):
+                    alarms.append(f"{role} job {n} slot {sl['slot']}: the status names another identity than the declared one")
                 key = lambda i: f"{int(sl['rep'])}/{int(i)}"
             else:
                 if st.get("reps") != [int(r) for r in sl["reps"]]:
@@ -186,6 +214,7 @@ def reconcile(man, role, verify, obs, ledger, live):
             if mem_stop and finite_nonneg(st.get("maxrss")) and st["maxrss"] > mem_stop:
                 alarms.append(f"{role} job {n} slot {sl['slot']}: worker memory above the stop")
             s_sum["new"] += len(new); s_sum["resumed"] += len(res); s_sum["left"] += len(left)
+            s_sum["failed_units"] += [u for u in new + res if ((units.get(u) or {}).get("record") or {}).get("failed")]
             for u in new + res:
                 v = units.get(u) or {}
                 if not (v.get("record") or {}).get("ok"):
@@ -194,6 +223,11 @@ def reconcile(man, role, verify, obs, ledger, live):
                     alarms.append(f"{role} unit {u}: no valid timing"); continue
                 if u in new and (v["timing"].get("job") != j or v["timing"].get("slot") != int(sl["slot"])):
                     alarms.append(f"{role} unit {u}: timing names another job or slot")
+        if role == "refit" and started:
+            bound_reps = set((verify.get("bindings") or {}).keys())
+            missing = sorted({int(sl["rep"]) for sl in plan["slots"]} - {int(k) for k in bound_reps if k.isdigit()})
+            if missing:
+                alarms.append(f"{role} job {n}: started, but reps {missing[:5]} have no task binding")
         summary[str(n)] = s_sum
     for u, v in units.items():
         if u not in assigned:
@@ -253,9 +287,14 @@ def main(argv=None):
     bound = dict(manifest_sha256=sha_file(a.manifest), root=man["storage"]["root"], campaign=man["storage"]["campaign"],
                  code=dict(man["code"]["files"]), wrapper_sha256=man.get("environment", {}).get("wrapper_sha256"), jobs=jobs,
                  bindings=bindings, anchors_sha256=sha_bytes(json.dumps(verify.get("anchors"), sort_keys=True).encode()), verify_sha256=vsha)
-    receipt = dict(schema=WATCH_SCHEMA, role=role, time=now, fresh=fresh, production=production, alarms=alarms, bound=bound, jobs=summary)
+    receipt = dict(schema=WATCH_SCHEMA, role=role, time=now, fresh=fresh, production=production, alarms=alarms, bound=bound, jobs=summary,
+                   anchors=verify.get("anchors"))
     os.makedirs(RECEIPTS, exist_ok=True)
     stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(now))
+    vp = os.path.join(RECEIPTS, f"verify_{role}_{stamp}.json")
+    json.dump(verify, open(vp, "w"), sort_keys=True)
+    if production:
+        sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", vp, f"{HOST}:{man['storage']['root']}/gate/{os.path.basename(vp)}"])
     if a.publish_receipt or a.qualify is not None:
         rp = os.path.join(RECEIPTS, f"watch_{role}_{stamp}.json")
         json.dump(receipt, open(rp, "w"), indent=1, allow_nan=False)
@@ -272,8 +311,10 @@ def main(argv=None):
         if not s:
             why.append(f"no {role} job {n} in the ledger")
         else:
-            if s["state"] not in TERMINAL or s["exit"] not in (0, 75):
-                why.append(f"job {n} is not terminal with scheduler exit 0 or 75")
+            if s["state"] != "F" or s["exit"] not in (0, 75) or s.get("runner_exit") not in (0, 75):
+                why.append(f"job {n} is not state F with scheduler and runner exits 0 or 75")
+            if not (finite_nonneg(s.get("mem_kb")) and finite_nonneg(s.get("max_worker_maxrss"))):
+                why.append(f"job {n}: observed scheduler and worker memory are not finite")
             if s["ended"] != s["slots"] or s["exits"] != {"0": s["slots"]} or s["left"]:
                 why.append(f"job {n}: not every planned worker completed its assignment ({s['exits']}, left {s['left']})")
         jn = jobs.get(n)
@@ -287,7 +328,8 @@ def main(argv=None):
         if why:
             print(f"\n  NOT QUALIFIED ({role} job {n}):"); [print("   -", w) for w in why]; return 1
         qp = os.path.join(RECEIPTS, f"qualified_{role}_job{n}.json")
-        json.dump(dict(schema=QUAL_SCHEMA, role=role, qualified_job=int(n), by="R052", time=now, production=True, bound=bound, receipt=receipt),
+        json.dump(dict(schema=QUAL_SCHEMA, role=role, qualified_job=int(n), by="R052", time=now, production=True, bound=bound, receipt=receipt,
+                       anchors=verify.get("anchors"), verify_file=os.path.basename(vp)),
                   open(qp, "w"), indent=1, allow_nan=False)
         rc, _, err = sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", qp, f"{HOST}:{man['storage']['root']}/gate/qualified_{role}_job{n}.json"])
         print(f"\n  QUALIFIED: {role} job {n} ({sha_file(qp)[:16]}) " + ("copied to the gate" if rc == 0 else f"NOT copied (rc {rc})"))

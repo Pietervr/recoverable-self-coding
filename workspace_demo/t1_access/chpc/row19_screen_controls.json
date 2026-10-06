@@ -1,0 +1,51 @@
+{
+ "schema": "row19-screen-controls-1",
+ "note": "The screen manifests are immutable (bindings name their SHA-256). Controller repairs are versioned here instead: each version lists the exact controller bytes; a controller refuses unless its own bytes are the LATEST version's (Codex a1ce224: 'a reviewed committed controller/consumer lineage and exact new pins').",
+ "programme": {
+  "lock": "/mnt/lustre/users/pvanrooyen/t1_toolchain/programme_admission.lock",
+  "campaigns": [
+   "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_campaign",
+   "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard_campaign",
+   "/mnt/lustre/users/pvanrooyen/t1_toolchain/row22_bank_campaign",
+   {
+    "path": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+    "may_be_absent": true,
+    "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen"
+   },
+   {
+    "path": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_orig_campaign",
+    "may_be_absent": true,
+    "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_orig"
+   }
+  ]
+ },
+ "history_manifest": {
+  "path": "chpc/row19_slice_manifest.json",
+  "sha256": "d1a7371ba955039a2aefbcf14fef81b79f4ecd2cbf5c86c4ed8a0be3ffbe056f"
+ },
+ "versions": [
+  {
+   "version": 1,
+   "commit": "fe3c266",
+   "reviewed": "Codex a1ce224 (raw first pilots only)",
+   "files": {
+    "chpc/row19_screen_admit.py": "4eb2c42562d11a9b711ed682da0f3ce92929adeebf6663b61622ee0e2e0b21f5",
+    "chpc/row19_screen_verify.py": "da0bdd818d1faaecbee9353899d6cf95f2f507a96e5d970a460fb424c4f51206",
+    "chpc/row19_screen_status.py": "5536bb6c5f7277fc5aacc96942816ee2eff5e7feb79cf22c974528a9dd61bae8",
+    "chpc/row19_screen_release.py": "407116264ad84b4075a6121e1bb436775e72b7da9b77dcead088683e66d26cdb"
+   }
+  },
+  {
+   "version": 2,
+   "commit": "uncommitted",
+   "reviewed": "pending Codex (repairs for role job 2+ and the release, a1ce224)",
+   "files": {
+    "chpc/row19_screen_admit.py": "53f7b09886b9013f48966537d4ba86e1f9e602c650db1bf8245fd9f18b409fea",
+    "chpc/row19_screen_verify.py": "608caee38e8edea9c798ff94eadfdb74e09e69a78c312d86f48bb4a52a8b2d57",
+    "chpc/row19_screen_status.py": "c5db99943788fb3735228ca636d06b3295010217bb8d90c81a94cb7dc8512f5d",
+    "chpc/row19_screen_release.py": "26c00fa07118441cf8a2ea231c47c818c2346c8b4e9e2800d7556b65774d1367",
+    "chpc/programme_gate.py": "d733bf8f31b50a6ce491ac5bb5ba4aabb0717794ed15874fd50917e4ab1d8fb2"
+   }
+  }
+ ]
+}

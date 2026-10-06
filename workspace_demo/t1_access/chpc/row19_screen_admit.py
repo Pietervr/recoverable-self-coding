@@ -43,6 +43,20 @@ No spent hour is reset, no binding rewritten. The allocation stays the hard stop
     t1py chpc/row19_screen_admit.py --manifest M --role R --adopt-review reviews/<record>.md --max-job-number N
     t1py chpc/row19_screen_admit.py --manifest M --role R --jobs K [--dry-run]
     t1py chpc/row19_screen_admit.py --manifest M --role R --raise-cap NEW --note "<owner ruling>"
+
+REVISION 2 (Codex RSC a1ce224, before any role's job 2): (a) every admission runs inside the PROGRAMME lock
+(chpc/programme_gate.py) with a strict fresh read of all five campaign ledgers - finite non-negative charges, no booleans,
+missing expected ledgers HOLD - so no two admissions anywhere in CSCI1913 interleave; (b) a cap raise is a two-phase
+amendment (the budget phase written `pending`, the ledger raised, the phase committed) and an interrupted one is reconciled
+or refused before any admission; (c) the qualification and the receipt are parsed strictly: finite non-boolean times, the
+embedded receipt's job-1 summary terminal F with scheduler and runner exits 0/75, every worker ended 0, nothing left, finite
+observed memory, the EMBEDDED anchor verdict hashing to the bound digest with index 0 equal on all three anchors and nothing
+differing, missing, invalid or conflicting, and the bound task bindings EXACTLY the root's (every started task, no subset);
+(d) a review is adopted only when its git-tracked, unmodified record contains the line
+`ADOPT row19-screen-pilot role=<role> qualification=<sha256> max_job=<n>` matching the gate's qualification and the request;
+(e) the seed domain reconstructs the whole exclusion contract (the historical list from the slice manifest pinned in
+chpc/row19_screen_controls.json, the three development seeds, the 408 bank seeds) and requires it EXACTLY; (f) the controller
+refuses unless its own bytes and its sibling controllers' are the latest version in chpc/row19_screen_controls.json.
 """
 import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
 
@@ -52,6 +66,8 @@ for p in (T1, HERE):
     if p not in sys.path:
         sys.path.insert(0, p)
 from row19_ledger import CampaignLedger, LIVE
+import programme_gate as PG
+import re, math
 
 ROLES = {"refit": "shard", "orig": "orig"}
 REVIEW_SCHEMA = "row19-screen-review-1"
@@ -83,6 +99,35 @@ def seeds_sha256(seeds):
     return hashlib.sha256(json.dumps([[int(r), int(s)] for r, s in sorted(seeds.items())]).encode()).hexdigest()
 
 
+def _num(x):
+    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
+
+
+def controls():
+    return json.load(open(os.path.join(HERE, "row19_screen_controls.json")))
+
+
+def controls_problem():
+    """'' when every controller's bytes are the latest lineage version's."""
+    v = controls()["versions"][-1]
+    bad = [f for f, h in v["files"].items() if not os.path.exists(os.path.join(T1, f)) or sha_file(os.path.join(T1, f)) != h]
+    return f"the controllers {bad} are not lineage version {v['version']}'s bytes" if bad else ""
+
+
+def exclusion_contract(man):
+    """The exclusion set the screen must declare EXACTLY: the slice manifest's historical list (that manifest pinned by the
+    lineage file), the three development datasets' seeds recomputed, and the bank's seeds recomputed."""
+    hm = controls()["history_manifest"]; hp = os.path.join(T1, hm["path"])
+    if not os.path.exists(hp) or sha_file(hp) != hm["sha256"]:
+        raise RuntimeError("the history manifest is absent or not the pinned bytes")
+    hist = json.load(open(hp))
+    dev = seeds_of(dict(hist, datasets=dict(hist["datasets"], reps=[0, 1, 2])))
+    if sorted(dev.values()) != sorted(int(v) for v in hist["datasets"]["resolved_seeds"].values()):
+        raise RuntimeError("the development seeds do not recompute")
+    bp = os.path.join(T1, man["datasets"]["bank_manifest"]); bank = json.load(open(bp))
+    return set(int(x) for x in hist["datasets"]["excluded_resolved_seeds"]) | set(dev.values()) | set(seeds_of(bank).values())
+
+
 def seed_domain_problem(man):
     """'' when the declared screen seed domain is complete, unique, the declared one and disjoint from every exclusion and from
     the bank's seeds recomputed from the bank manifest named here."""
@@ -110,6 +155,12 @@ def seed_domain_problem(man):
     idents = man["datasets"].get("identities", {})
     if sorted(int(k) for k in idents) != sorted(reps) or any(not isinstance(v, str) or len(v) != 64 for v in idents.values()):
         return "the declared identity map is not complete for every screen rep"
+    try:
+        want = exclusion_contract(man)
+    except RuntimeError as e:
+        return f"the exclusion contract cannot be reconstructed: {e}"
+    if excl != want:
+        return f"the declared exclusions ({len(excl)}) are not exactly the contract ({len(want)}: historical, development, bank)"
     return ""
 
 
@@ -122,17 +173,47 @@ def identity_problem(man, reps):
     return ""
 
 
+def _phases_path(man):
+    a = man["budget"]["admission"]
+    return a if os.path.isabs(a) else os.path.join(T1, a)
+
+
+def cap_problem(man):
+    """'' when the ledger's cap is the latest COMMITTED budget phase; an interrupted amendment is reconciled when the ledger
+    already carries the pending phase's cap, and refused otherwise (nothing is admitted over an unreconciled cap)."""
+    camp = man["storage"]["campaign"]; lp = os.path.join(camp, "budget.json")
+    if not os.path.exists(lp):
+        return ""
+    b = json.load(open(_phases_path(man))); ph = b["phases"]; cap = float(json.load(open(lp))["cap_core_h"])
+    last = ph[-1]
+    if last.get("pending"):
+        if abs(cap - float(last["cap_core_h"])) < 1e-9:
+            last["pending"] = False; last["reconciled"] = time.time()
+            json.dump(b, open(_phases_path(man), "w"), indent=1)
+            return ""
+        return (f"an interrupted cap amendment to {last['cap_core_h']} is pending while the ledger holds {cap}; "
+                f"finish it with --raise-cap {last['cap_core_h']} or retire the pending phase by hand (recorded)")
+    if abs(cap - float(last["cap_core_h"])) > 1e-9:
+        return f"the ledger's cap {cap} is not the latest budget phase's {last['cap_core_h']}"
+    return ""
+
+
 def ledger_for(man):
     """The campaign ledger, created at the initial budget phase when absent, otherwise read at its own (possibly raised) cap."""
     camp = man["storage"]["campaign"]
     if os.path.exists(os.path.join(camp, "budget.json")):
         return CampaignLedger(camp, None)
-    phases = json.load(open(os.path.join(T1, man["budget"]["admission"])))["phases"]
+    phases = json.load(open(_phases_path(man)))["phases"]
     return CampaignLedger(camp, float(phases[0]["cap_core_h"]))
 
 
 def funding_problem(man, proposed_core_h):
-    """Settled + live of every declared campaign + declared other charges + the proposal, against the allocation."""
+    """REVISION 2: the programme gate's strict count (call it inside programme_lock)."""
+    return PG.funding_problem(PG.programme_funding(man), proposed_core_h)
+
+
+def _funding_problem_v1(man, proposed_core_h):
+    """Revision 1's unlocked count, kept for the record; not called."""
     f = man["funding"]; total = float(f.get("other_settled_core_h", 0.0)); seen = []
     for camp in f["campaigns"]:
         p = os.path.join(camp, "budget.json")
@@ -267,11 +348,39 @@ def bound_problem(got, want, jobs):
             w = want["jobs"].get(n)
             if not w or None in w.values() or got["jobs"].get(n) != w:
                 return f"its binding of job {n} is not the ledger's and the root's"
-    for k, v in (got.get("bindings") or {}).items():
-        if want["bindings"].get(k) != v:
-            return f"its task binding of rep {k} is not the root's"
-    if not isinstance(got.get("anchors_sha256"), str):
-        return "no anchor verdict is bound"
+    if (got.get("bindings") or {}) != want["bindings"]:
+        return "its task bindings are not exactly the root's (every started task, no subset, no extra)"
+    if not isinstance(got.get("anchors_sha256"), str) or len(got["anchors_sha256"]) != 64:
+        return "no anchor verdict digest is bound"
+    return ""
+
+
+def anchors_problem(verdict, digest):
+    """The EMBEDDED anchor verdict must hash to the bound digest and show index 0 equal on all three anchors with nothing
+    differing, missing, invalid or conflicting."""
+    if not isinstance(verdict, dict):
+        return "no anchor verdict is embedded"
+    if hashlib.sha256(json.dumps(verdict, sort_keys=True).encode()).hexdigest() != digest:
+        return "the embedded anchor verdict is not the bound one"
+    reps = verdict.get("reps") or {}
+    if verdict.get("problem") or sorted(reps) != ["0", "1", "2"]:
+        return "the anchor verdict does not cover the three development anchors cleanly"
+    for r, e in reps.items():
+        if 0 not in (e.get("equal") or []) or e.get("differ") or e.get("missing") or e.get("invalid") or e.get("conflict"):
+            return f"anchor {r} is not equal at index 0 with nothing differing, missing, invalid or conflicting"
+    return ""
+
+
+def pilot_summary_problem(rec, n="1"):
+    s = (rec.get("jobs") or {}).get(n)
+    if not isinstance(s, dict):
+        return f"the receipt carries no job-{n} summary"
+    if s.get("state") != "F" or s.get("exit") not in (0, 75) or s.get("runner_exit") not in (0, 75):
+        return f"job {n} is not terminal F with scheduler and runner exits 0 or 75"
+    if not (isinstance(s.get("slots"), int) and s.get("ended") == s["slots"] and s.get("exits") == {"0": s["slots"]} and s.get("left") == 0):
+        return f"job {n}: not every planned worker ended 0 with nothing left"
+    if not (_num(s.get("mem_kb")) and _num(s.get("max_worker_maxrss"))):
+        return f"job {n}: observed scheduler and worker memory are not finite"
     return ""
 
 
@@ -294,9 +403,14 @@ def qualification_problem(man, manifest_path, role):
         return f"the qualification is unreadable ({e})", None
     if doc.get("schema") != QUAL_SCHEMA or doc.get("role") != role or doc.get("qualified_job") != 1 or doc.get("production") is not True:
         return f"the qualification is not a production qualification of {role} job 1", None
+    if not _num(doc.get("time")) or doc["time"] > time.time() + 60:
+        return "the qualification's time is not a finite past time", None
     rec = doc.get("receipt") or {}
-    if rec.get("alarms") or rec.get("fresh") is not True:
-        return "the qualification's embedded receipt has alarms or is not fresh", None
+    if rec.get("alarms") != [] or rec.get("fresh") is not True or rec.get("production") is not True:
+        return "the qualification's embedded receipt has alarms, is not fresh or not production", None
+    why = pilot_summary_problem(rec) or anchors_problem(doc.get("anchors"), (doc.get("bound") or {}).get("anchors_sha256"))
+    if why:
+        return f"the qualification: {why}", None
     want = expected_bound(man, manifest_path, role)
     why = bound_problem(doc.get("bound"), want, ["1"])
     if not why and role == "refit":
@@ -318,11 +432,14 @@ def receipt_problem(man, manifest_path, role, now=None):
         return f"the newest receipt is unreadable ({e})"
     if r.get("schema") != WATCH_SCHEMA or r.get("role") != role or r.get("production") is not True or r.get("fresh") is not True:
         return "the newest receipt is not a fresh production receipt of this role"
-    if r.get("alarms"):
-        return f"the newest receipt has {len(r['alarms'])} alarm(s)"
+    if r.get("alarms") != []:
+        return f"the newest receipt has alarm(s) or no alarm list"
     t = r.get("time")
-    if not isinstance(t, (int, float)) or t > now + 60 or now - t > CEILING_S:
+    if not _num(t) or t > now + 60 or now - t > CEILING_S:
         return f"the newest receipt is not within {CEILING_S:.0f} s"
+    why = anchors_problem(r.get("anchors"), (r.get("bound") or {}).get("anchors_sha256"))
+    if why:
+        return f"the newest receipt: {why}"
     why = bound_problem(r.get("bound"), expected_bound(man, manifest_path, role), "all")
     return f"the newest receipt: {why}" if why else ""
 
@@ -344,6 +461,9 @@ def review_problem(man, manifest_path, role, planned):
         return why
     if doc.get("qualification_sha256") != qsha:
         return "the adopted review names another qualification than the one in the gate"
+    line = f"ADOPT row19-screen-pilot role={role} qualification={qsha} max_job={doc['max_job_number']}"
+    if line not in [l.strip() for l in open(full).read().splitlines()]:
+        return "the adopted review record does not carry its ADOPT line"
     return receipt_problem(man, manifest_path, role)
 
 
@@ -356,6 +476,9 @@ def adopt_review(man, manifest_path, role, record_rel, max_job_number):
     why, qsha = qualification_problem(man, manifest_path, role)
     if why:
         return f"REFUSED: {why}"
+    want = f"ADOPT row19-screen-pilot role={role} qualification={qsha} max_job={int(max_job_number)}"
+    if want not in [l.strip() for l in open(full).read().splitlines()]:
+        return f"REFUSED: the review record does not contain the line `{want}` (the reviewer's verdict on THIS qualification and scope)"
     p = os.path.join(man["storage"]["root"], "gate", f"review_{role}.json")
     if os.path.exists(p):
         return f"REFUSED: {p} exists; an adopted review is never overwritten"
@@ -381,6 +504,9 @@ def gate_problem(man, manifest_path, role, used, pilot, n_jobs, jobs, walltime_s
     root = man["storage"]["root"]
     if os.path.exists(os.path.join(root, "STOP")):
         return "a STOP file is present in the role's root"
+    why = controls_problem() or cap_problem(man)
+    if why:
+        return why
     why = seed_domain_problem(man)
     if why:
         return why
@@ -469,11 +595,16 @@ def main(argv=None):
     if a.raise_cap is not None:
         if not a.note or len(a.note.strip()) < 8:
             print("REFUSED: a cap raise needs the owner's ruling as --note"); return 2
-        L = ledger_for(man); new = L.raise_cap(a.raise_cap, a.note)
-        bp = os.path.join(T1, man["budget"]["admission"]); b = json.load(open(bp))
-        b["phases"].append(dict(cap_core_h=new, note=a.note, t=time.time(), campaign=man["storage"]["campaign"]))
-        json.dump(b, open(bp, "w"), indent=1)
-        print(f"cap raised to {new:.0f} (ledger cap_history and {man['budget']['admission']} updated; commit the budget file)"); return 0
+        with PG.programme_lock(PG.programme_funding(man)):
+            why = cap_problem(man)
+            if why:
+                print(f"REFUSED: {why}"); return 2
+            bp = _phases_path(man); b = json.load(open(bp))
+            b["phases"].append(dict(cap_core_h=float(a.raise_cap), note=a.note, t=time.time(), campaign=man["storage"]["campaign"], pending=True))
+            json.dump(b, open(bp, "w"), indent=1)
+            new = ledger_for(man).raise_cap(a.raise_cap, a.note)
+            b["phases"][-1]["pending"] = False; json.dump(b, open(bp, "w"), indent=1)
+        print(f"cap raised to {new:.0f} (ledger cap_history and {man['budget']['admission']} committed; commit the budget file)"); return 0
     n_jobs = 1 if a.pilot else a.jobs
     if not n_jobs or n_jobs < 1:
         print("say --pilot or --jobs N"); return 2
@@ -481,7 +612,7 @@ def main(argv=None):
     toolchain, clone, root = man["shard"]["toolchain"], man["shard"]["clone"], man["storage"]["root"]
     os.makedirs(os.path.join(root, "plans"), exist_ok=True); os.makedirs(os.path.join(root, "gate"), exist_ok=True)
     manifest_rel = os.path.relpath(os.path.abspath(a.manifest), os.path.join(clone, "workspace_demo", "t1_access"))
-    with open(os.path.join(root, "plans", ".submit.lock"), "a+") as lk:
+    with PG.programme_lock(PG.programme_funding(man)), open(os.path.join(root, "plans", ".submit.lock"), "a+") as lk:
         try:
             fcntl.flock(lk.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError:

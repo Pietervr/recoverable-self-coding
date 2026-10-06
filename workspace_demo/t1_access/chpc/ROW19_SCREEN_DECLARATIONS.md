@@ -67,3 +67,32 @@ both manifests declare `budget.core_hours_cap: null`, so the unchanged runner ne
 SHA-256 (named by every binding) never moves; the ledger is created at the initial phase of `row19_screen_budget.json`
 (60,000) / `row19_screen_orig_budget.json` (3,000) and raised only by `--raise-cap NEW --note`, recorded in the ledger's
 cap_history and appended to the budget file. Spent hours are never reset.
+
+## Revision 2 (Codex RSC a1ce224: repairs before any role's job 2 and before any numerical release)
+The manifests are unchanged (the pilots' bindings name them). Controllers are versioned in `chpc/row19_screen_controls.json`
+(version 1 = fe3c266, the reviewed pilot controllers; version 2 = these repairs); a controller refuses unless every controller
+is the latest version's bytes. The lineage file also carries the programme block (lock, campaigns, which new ledgers may be
+absent) and pins the slice manifest from which the historical exclusions are reconstructed.
+- **Programme-wide admission** (`chpc/programme_gate.py`): one lock for CSCI1913; a strict fresh count of all five ledgers
+  (finite non-negative charges, no booleans, NaN refused, a missing expected ledger HOLDS, a new ledger may be absent only if
+  its root has never planned, a campaign listed twice HOLDS). The screen controller admits inside it; the bank, shard and
+  slice controllers are run through `programme_gate.py run --proposal-core-h X -- <command>`, which holds the same lock and
+  checks the same count first. The two raw pilots were admitted under an explicit exclusive window (one pre-check of all
+  ledgers, both reservations back to back, no other admission).
+- **Cap amendments** are two-phase (phase written pending, ledger raised, phase committed); an interrupted one is reconciled
+  when the ledger already carries it and refused otherwise; a raise outside the protocol is refused at admission.
+- **Qualification and receipt** are parsed strictly: finite non-boolean times; the embedded job-1 summary terminal F with
+  scheduler and runner exits 0/75, every worker ended 0, nothing left, finite scheduler and worker memory; the anchor verdict
+  EMBEDDED and hashing to the bound digest, index 0 equal on all three anchors, nothing differing, missing, invalid or
+  conflicting; the bound bindings EXACTLY the root's. A review is adopted only when its tracked record contains
+  `ADOPT row19-screen-pilot role=<role> qualification=<sha256> max_job=<n>` for this qualification and scope.
+- **Status**: qualification needs state F exactly, runner exit 0/75 and finite memory; a worker's status must name its job,
+  slot and declared identity; stray status files and missing bindings of started reps (from the plans, not the files) are
+  alarms; the full verifier document is saved and copied to the gate; the anchor verdict is embedded in receipts.
+- **Anchors**: canonical names only (aliases reported, never parsed); a differing duplicate sequential record is a conflict.
+- **Release**: the bank's setting, effective cfg, canonical pins and environment must be the screen's; the top-level status,
+  the frozen primary and the recomputed primary must all be RESOLVED; the target is read once and those bytes decide; the
+  review record must carry `ADOPT row19-numerical-target target=<sha256> bank_records=<sha256> verdict=FAVOURABLE`; every
+  failure (original reasons, refit n_used / n_failed / reasons) is in the result.
+- **Seeds**: the exclusion list must EQUAL the reconstructed contract (4,000 historical from the pinned slice manifest + 3
+  development + 408 bank = 4,411); a truncated or padded list refuses.
