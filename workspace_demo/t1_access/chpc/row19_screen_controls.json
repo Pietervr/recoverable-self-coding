@@ -97,7 +97,7 @@
   },
   {
    "version": 7,
-   "commit": "see the commit that adds this entry",
+   "commit": "da5c750",
    "reviewed": "pending Codex",
    "files": {
     "chpc/row19_screen_admit.py": "573e5b18835a57b55fa545b3815458b1a59662847318b6fd7046858fa2b32d53",
