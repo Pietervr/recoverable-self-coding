@@ -61,7 +61,7 @@
   },
   {
    "version": 4,
-   "commit": "see the commit that adds this entry",
+   "commit": "506b79d",
    "reviewed": "pending Codex",
    "files": {
     "chpc/row19_screen_admit.py": "1a435dcb376d4a4e46b5bcc69692f6d3033e888a032b7a513cbfb7681f6a3f45",
