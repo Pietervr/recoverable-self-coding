@@ -12,9 +12,17 @@ THE SUBMISSION GATE:
   - a STOP file in the root refuses every submission;
   - the bank's seeds must pass row22_bank.seed_problems (no duplicate, nothing excluded, the declared list);
   - the FIRST bank job is the pilot: `--pilot`, exactly one job, only while the ledger holds no bank entry;
-  - every later submission needs <root>/gate/bank_review.json, written by `--adopt-review <record> --max-job-number N`: the
-    reviewer's committed record of the pilot's actual evidence, named by path and SHA-256 (verified here, in this clone),
-    bounded to a highest job number; never overwritten;
+  - every later submission needs ALL of (revision 2, Codex RSC 97fc278: the first form checked only a path and a hash):
+    (1) <root>/gate/qualified_bank_job1.json, written by row22_bank_status.py --qualify 1 on fresh production evidence with
+        zero alarms, PARSED and its `bound` equal to what THIS process recomputes - the manifest's SHA-256, root, campaign,
+        code pins, wrapper hash, the bank binding file's SHA-256, and job 1's PBS id, token and plan SHA-256 from the ledger
+        and the root;
+    (2) <root>/gate/bank_review.json, written by `--adopt-review <record> --max-job-number N` ONLY when (1) holds: the
+        reviewer's record of the pilot's ACTUAL evidence, tracked by git in this clone and unmodified against HEAD, named by
+        path and SHA-256, bound to the qualification's SHA-256 (which must still be the file in the gate) and to a highest
+        job number; never overwritten. The first-pilot record (RSC 97fc278) must never be adopted here;
+    (3) the newest <root>/gate/bank_watch_*.json: parsed, this schema, production, fresh, zero alarms, at most 2,700 s old,
+        bound to the same values and to EVERY bank job the ledger holds now;
   - before any real submission the manifest's code pins are verified in the clone the jobs run from.
 
     t1py chpc/row22_bank_submit.py --manifest chpc/row22_bank_manifest.json --pilot [--dry-run]
@@ -28,7 +36,11 @@ T1 = os.path.abspath(os.path.join(HERE, ".."))
 sys.path.insert(0, HERE)
 from row19_ledger import CampaignLedger, LIVE
 
-REVIEW_SCHEMA = "row22-bank-review-1"
+REVIEW_SCHEMA = "row22-bank-review-2"
+QUAL_SCHEMA = "row22-bank-qualification-1"
+WATCH_SCHEMA = "row22-bank-watch-1"
+CEILING_S = 2700.0
+BOUND_KEYS = ("manifest_sha256", "root", "campaign", "code", "wrapper_sha256", "bank_binding_sha256")
 
 
 def hms(seconds):
@@ -95,7 +107,91 @@ def plan_jobs(man, n_jobs, per_slot, done, flight, used):
     return jobs, left
 
 
-def review_problem(man, planned):
+def expected_bound(man, manifest_path):
+    """What a qualification or receipt must be bound to, recomputed here from the manifest file, the root and the ledger."""
+    root, campaign = man["storage"]["root"], man["storage"]["campaign"]
+    led = json.load(open(os.path.join(campaign, "budget.json")))
+    jobs = {}
+    for e in led["entries"].values():
+        if e.get("kind") != "bank":
+            continue
+        n = str(int(e["rep"])); pp = os.path.join(root, "plans", f"job_{n}.json")
+        jobs[n] = dict(job_id=e.get("job_id"), token=e.get("token"), plan_sha256=sha_file(pp) if os.path.exists(pp) else None)
+    bp = os.path.join(root, "bank_binding.json")
+    return dict(manifest_sha256=sha_file(manifest_path), root=root, campaign=campaign, code=dict(man["code"]["files"]),
+                wrapper_sha256=man.get("environment", {}).get("wrapper_sha256"),
+                bank_binding_sha256=sha_file(bp) if os.path.exists(bp) else None, jobs=jobs)
+
+
+def bound_problem(got, want, jobs):
+    if not isinstance(got, dict):
+        return "no `bound` object"
+    for k in BOUND_KEYS:
+        if got.get(k) != want[k]:
+            return f"its `{k}` is not this bank's"
+    gj = got.get("jobs")
+    if not isinstance(gj, dict):
+        return "no job bindings"
+    if jobs == "all":
+        if gj != want["jobs"]:
+            return f"its jobs {sorted(gj)} (PBS id, token, plan hash) are not the ledger's {sorted(want['jobs'])} as they are now"
+    else:
+        for n in jobs:
+            w = want["jobs"].get(n)
+            if not w or None in w.values() or gj.get(n) != w:
+                return f"its binding of job {n} is not the ledger's and the root's"
+    return ""
+
+
+def qualification_problem(man, manifest_path):
+    q = os.path.join(man["storage"]["root"], "gate", "qualified_bank_job1.json")
+    if not os.path.exists(q):
+        return "no pilot qualification (gate/qualified_bank_job1.json; row22_bank_status.py --qualify 1)", None
+    try:
+        doc = json.load(open(q))
+    except Exception as e:
+        return f"the qualification is unreadable ({e})", None
+    if doc.get("schema") != QUAL_SCHEMA or doc.get("qualified_job") != 1 or doc.get("production") is not True:
+        return "the qualification is not a production qualification of bank job 1", None
+    rec = doc.get("receipt") or {}
+    if rec.get("alarms") or rec.get("fresh") is not True:
+        return "the qualification's embedded receipt has alarms or is not fresh", None
+    why = bound_problem(doc.get("bound"), expected_bound(man, manifest_path), ["1"])
+    return (f"the qualification: {why}" if why else ""), sha_file(q)
+
+
+def tracked_unmodified(rel):
+    """True when `rel` (relative to workspace_demo/t1_access) is tracked by git in this clone and equal to HEAD."""
+    try:
+        a = subprocess.run(["git", "ls-files", "--error-unmatch", rel], cwd=T1, capture_output=True, text=True)
+        b = subprocess.run(["git", "diff", "--quiet", "HEAD", "--", rel], cwd=T1, capture_output=True, text=True)
+        return a.returncode == 0 and b.returncode == 0
+    except Exception:
+        return False
+
+
+def receipt_problem(man, manifest_path, now=None):
+    now = time.time() if now is None else now
+    gate = os.path.join(man["storage"]["root"], "gate")
+    ps = sorted(glob.glob(os.path.join(gate, "bank_watch_*.json")))
+    if not ps:
+        return "no watch receipt in the gate"
+    try:
+        r = json.load(open(ps[-1]))
+    except Exception as e:
+        return f"the newest receipt is unreadable ({e})"
+    if r.get("schema") != WATCH_SCHEMA or r.get("production") is not True or r.get("fresh") is not True:
+        return "the newest receipt is not a fresh production receipt"
+    if r.get("alarms"):
+        return f"the newest receipt has {len(r['alarms'])} alarm(s)"
+    t = r.get("time")
+    if not isinstance(t, (int, float)) or t > now + 60 or now - t > CEILING_S:
+        return f"the newest receipt is not within {CEILING_S:.0f} s"
+    why = bound_problem(r.get("bound"), expected_bound(man, manifest_path), "all")
+    return f"the newest receipt: {why}" if why else ""
+
+
+def review_problem(man, planned, manifest_path=None):
     """Why a non-pilot submission is not covered by an adopted review ('' when it is)."""
     p = os.path.join(man["storage"]["root"], "gate", "bank_review.json")
     if not os.path.exists(p):
@@ -111,14 +207,30 @@ def review_problem(man, planned):
         return "the adopted review record is not in this clone with the adopted SHA-256"
     if not isinstance(doc.get("max_job_number"), int) or any(int(j) > doc["max_job_number"] for j in planned):
         return f"the adopted review covers job numbers up to {doc.get('max_job_number')}, the plan reaches {max(planned) if planned else '-'}"
+    if manifest_path is not None:
+        why, qsha = qualification_problem(man, manifest_path)
+        if why:
+            return why
+        if doc.get("qualification_sha256") != qsha:
+            return "the adopted review names another qualification than the one in the gate"
+        why = receipt_problem(man, manifest_path)
+        if why:
+            return why
     return ""
 
 
-def adopt_review(man, record_rel, max_job_number):
+def adopt_review(man, record_rel, max_job_number, manifest_path=None):
     root = man["storage"]["root"]
     full = os.path.join(T1, record_rel)
     if not os.path.exists(full):
         return f"REFUSED: {record_rel} is not in this clone"
+    if not tracked_unmodified(record_rel):
+        return f"REFUSED: {record_rel} is not tracked by git in this clone, or differs from HEAD"
+    qsha = None
+    if manifest_path is not None:
+        why, qsha = qualification_problem(man, manifest_path)
+        if why:
+            return f"REFUSED: {why}"
     if not isinstance(max_job_number, int) or max_job_number < 2:
         return "REFUSED: --max-job-number must be an integer of at least 2"
     os.makedirs(os.path.join(root, "gate"), exist_ok=True)
@@ -126,7 +238,7 @@ def adopt_review(man, record_rel, max_job_number):
     if os.path.exists(p):
         return f"REFUSED: {p} exists; an adopted review is never overwritten (retire it by hand, recorded in ledger row 22)"
     doc = dict(schema=REVIEW_SCHEMA, by="R052", time=time.time(), record_path=record_rel, record_sha256=sha_file(full),
-               max_job_number=int(max_job_number))
+               qualification_sha256=qsha, max_job_number=int(max_job_number))
     tmp = p + f".tmp.{os.getpid()}"
     with open(tmp, "w") as fh:
         json.dump(doc, fh, indent=1, allow_nan=False); fh.flush(); os.fsync(fh.fileno())
@@ -134,7 +246,7 @@ def adopt_review(man, record_rel, max_job_number):
     return f"adopted: {record_rel} ({doc['record_sha256'][:16]}), job numbers up to {max_job_number}"
 
 
-def gate_problem(man, used, pilot, n_jobs, planned):
+def gate_problem(man, used, pilot, n_jobs, planned, manifest_path=None):
     root = man["storage"]["root"]
     if os.path.exists(os.path.join(root, "STOP")):
         return "a STOP file is present in the bank root"
@@ -150,7 +262,7 @@ def gate_problem(man, used, pilot, n_jobs, planned):
         return ""
     if not used:
         return "the first bank job is the pilot: say --pilot"
-    return review_problem(man, planned)
+    return review_problem(man, planned, manifest_path)
 
 
 def pin_problems(man, clone):
@@ -202,7 +314,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     man = json.load(open(a.manifest)); bk = man["bank"]
     if a.adopt_review is not None:
-        out = adopt_review(man, a.adopt_review, a.max_job_number)
+        out = adopt_review(man, a.adopt_review, a.max_job_number, a.manifest)
         print(out); return 0 if out.startswith("adopted") else 2
     n_jobs = 1 if a.pilot else a.jobs
     if not n_jobs or n_jobs < 1:
@@ -225,7 +337,7 @@ def main(argv=None):
                 print("   -", p)
             return 2
         jobs, left = plan_jobs(man, n_jobs, per_slot, done, flight, used)
-        why = gate_problem(man, used, a.pilot, n_jobs, [j["job"] for j in jobs])
+        why = gate_problem(man, used, a.pilot, n_jobs, [j["job"] for j in jobs], a.manifest)
         pins = pin_problems(man, clone)
         if pins and not why:
             why = f"the manifest's pins do not hold in the clone the jobs run from: {pins}"

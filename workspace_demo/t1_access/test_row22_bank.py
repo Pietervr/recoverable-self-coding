@@ -20,7 +20,9 @@ sys.path.insert(0, os.path.join(T1, "chpc"))
 def _load(name):
     spec = importlib.util.spec_from_file_location(name, os.path.join(T1, "chpc", name + ".py"))
     m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m); return m
-B, SUB, TG = _load("row22_bank"), _load("row22_bank_submit"), _load("row22_target")
+B, SUB, TG, STV = _load("row22_bank"), _load("row22_bank_submit"), _load("row22_target"), _load("row22_bank_status")
+_TEST_LIVE = tempfile.mkdtemp(prefix="row22_status_test_")
+STV.LIVE_DIR = os.path.join(_TEST_LIVE, "live"); STV.RECEIPTS = os.path.join(_TEST_LIVE, "receipts")
 from test_row19_slice import _manifest, _run, _dirs, _Patched, R19
 from row19_ledger import CampaignLedger
 
@@ -187,14 +189,14 @@ def test_planner_and_gate():
     rec = os.path.join("reviews", f"_test_bank_review_{os.getpid()}.md")
     open(os.path.join(T1, rec), "w").write("favourable\n")
     try:
-        assert SUB.adopt_review(man, rec, 3).startswith("adopted")
-        assert SUB.adopt_review(man, rec, 9).startswith("REFUSED")                                   # never overwritten
-        assert SUB.gate_problem(man, used, False, 1, [2]) == ""
-        assert "up to 3" in SUB.gate_problem(man, used, False, 2, [2, 4])
-        open(os.path.join(T1, rec), "a").write("edited\n")
-        assert "not in this clone with the adopted" in SUB.gate_problem(man, used, False, 1, [2])
+        assert "not tracked by git" in SUB.adopt_review(man, rec, 3)                                  # an untracked file is no review
     finally:
         os.remove(os.path.join(T1, rec))
+    tracked = "reviews/2026-10-06_row22_bank_codex_record.md"                                          # committed, unmodified
+    assert SUB.adopt_review(man, tracked, 3).startswith("adopted")
+    assert SUB.adopt_review(man, tracked, 9).startswith("REFUSED")                                     # never overwritten
+    assert SUB.gate_problem(man, used, False, 1, [2]) == ""
+    assert "up to 3" in SUB.gate_problem(man, used, False, 2, [2, 4])
     open(os.path.join(root, "STOP"), "w").write("{}")
     assert "STOP" in SUB.gate_problem(man, used, False, 1, [2])
     os.makedirs(os.path.join(root, "records"), exist_ok=True)
@@ -253,3 +255,108 @@ def test_freeze_and_evaluator():
     assert any("numerical" in w for w in TG.compatible(doc_ok, bb, TG.sha_file(bp), dict(screen, numerical={})))
     assert any("screen seeds" in w for w in TG.compatible(doc_ok, bb, TG.sha_file(bp), dict(screen, seeds=[screen["bank_seeds"][0]])))
     assert any("not supplied" in w for w in TG.compatible(doc_ok, bb, TG.sha_file(bp), dict(screen, bank_seeds=None)))
+
+
+def _status_snapshot(man, slots_status, verify_reps, ledger_entries):
+    """A constructed local snapshot for row22_bank_status (no pull): plans, statuses and the ledger, plus a verify document."""
+    shutil_root = os.path.join(STV.LIVE_DIR, "root")
+    import shutil
+    shutil.rmtree(STV.LIVE_DIR, ignore_errors=True)
+    os.makedirs(os.path.join(shutil_root, "plans")); os.makedirs(os.path.join(shutil_root, "status")); os.makedirs(os.path.join(STV.LIVE_DIR, "campaign"))
+    json.dump({"job": 1, "slots": [{"slot": 0, "reps": [0]}, {"slot": 1, "reps": [1]}]}, open(os.path.join(shutil_root, "plans", "job_1.json"), "w"))
+    for slot, st in slots_status.items():
+        json.dump(st, open(os.path.join(shutil_root, "status", f"jobP1.slot{slot}.json"), "w"))
+    json.dump({"cap_core_h": 15000.0, "entries": ledger_entries}, open(os.path.join(STV.LIVE_DIR, "campaign", "budget.json"), "w"))
+    vp = os.path.join(_TEST_LIVE, "verify.json")
+    json.dump({"schema": "row22-bank-verify-1", "reps": verify_reps, "seed_problem": "", "environment_bad": [], "code_bad": [], "binding_equal": True}, open(vp, "w"))
+    return vp
+
+
+def _st(reps, new, resumed, left, exit_):
+    return dict(job="P1", reps=reps, new=new, resumed=resumed, left=left, exit=exit_, wall_s=10.0, cpu_s=9.0, maxrss=1.0e9)
+
+
+def _vrep(job="P1", slot=0, ok=True):
+    return {"declared": True, "record": {"ok": ok, "sha": "x", "failed": False} if ok else {"ok": False, "reason": "bad"},
+            "timing": {"ok": True, "job": job, "slot": slot, "wall_s": 5.0, "maxrss": 1.0, "failed": False}}
+
+
+def test_status_reconciles_slots_records_timing_and_scheduler():
+    man, mp = _bank_manifest(n=4)
+    led = {"t1": {"kind": "bank", "rep": 1, "job_id": "P1", "token": "t1", "state": "live", "reserved_core_h": 96.0, "runner_exit": 0}}
+    pbs = os.path.join(_TEST_LIVE, "pbs.json")
+    json.dump({"P1": {"state": "F", "exit": 0, "mem_kb": 1000}}, open(pbs, "w"))
+    vp = _status_snapshot(man, {0: _st([0], [0], [], [], 0), 1: _st([1], [1], [], [], 0)}, {"0": _vrep(slot=0), "1": _vrep(slot=1)}, led)
+    rc, out = _call(STV, ["--manifest", mp, "--no-pull", "--verify-file", vp, "--pbs-file", pbs])
+    assert "ALARMS" not in out and "workers ended 2/2" in out, out
+    rc, out = _call(STV, ["--manifest", mp, "--no-pull", "--verify-file", vp, "--pbs-file", pbs, "--qualify", "1"])
+    assert rc == 1 and "not fresh production evidence" in out                                       # a test snapshot never qualifies
+    cases = [
+        ({0: _st([0], [0], [], [], 0)}, {"0": _vrep(slot=0), "1": _vrep(slot=1)}, "no worker status after the job ended"),
+        ({0: _st([0], [0], [0], [], 0), 1: _st([1], [1], [], [], 0)}, {"0": _vrep(slot=0), "1": _vrep(slot=1)}, "not a partition"),
+        ({0: _st([0], [0], [], [], 4), 1: _st([1], [1], [], [], 0)}, {"0": _vrep(slot=0), "1": _vrep(slot=1)}, "worker exit 4"),
+        ({0: _st([0], [0], [], [], 0), 1: _st([1], [1], [], [], 0)}, {"0": _vrep(slot=0), "1": _vrep(slot=0)}, "timing names job"),
+        ({0: _st([0], [0], [], [], 0), 1: _st([1], [1], [], [], 0)}, {"0": _vrep(slot=0), "1": _vrep(slot=1, ok=False)}, "no valid record"),
+        ({0: _st([0], [0], [], [], 0), 1: _st([1], [1], [], [], 0)}, {"0": _vrep(slot=0), "1": _vrep(slot=1), "3": _vrep(slot=0)}, "foreign evidence"),
+        ({0: _st([0], [], [], [0], 0), 1: _st([1], [1], [], [], 0)}, {"0": _vrep(slot=0), "1": _vrep(slot=1)}, "exit 0 with reps left"),
+    ]
+    for sts, vr, msg in cases:
+        vp = _status_snapshot(man, sts, vr, led)
+        rc, out = _call(STV, ["--manifest", mp, "--no-pull", "--verify-file", vp, "--pbs-file", pbs])
+        assert rc == 1 and msg in out, (msg, out[-600:])
+    vp = _status_snapshot(man, {0: _st([0], [0], [], [], 0), 1: _st([1], [1], [], [], 0)}, {"0": _vrep(slot=0), "1": _vrep(slot=1)},
+                          {"t1": dict(led["t1"], runner_exit=None)})
+    rc, out = _call(STV, ["--manifest", mp, "--no-pull", "--verify-file", vp, "--pbs-file", pbs])
+    assert rc == 1 and "no runner end in the ledger" in out
+    json.dump({"P1": {"state": "F", "exit": 271, "mem_kb": 1000}}, open(pbs, "w"))
+    vp = _status_snapshot(man, {0: _st([0], [0], [], [], 0), 1: _st([1], [1], [], [], 0)}, {"0": _vrep(slot=0), "1": _vrep(slot=1)}, led)
+    rc, out = _call(STV, ["--manifest", mp, "--no-pull", "--verify-file", vp, "--pbs-file", pbs])
+    assert rc == 1 and "exit 271" in out
+
+
+def test_a_failed_scheduler_call_is_a_failed_observation_whatever_its_stdout():
+    keep = STV.sh
+    try:
+        STV.sh = lambda cmd, timeout=600: (1, "Job Id: P1\n    job_state = F\n", "error")
+        obs, why = STV.pbs_observe(["P1"])
+        assert obs is None and "qstat failed" in why
+        STV.sh = lambda cmd, timeout=600: (0, "Job Id: P1\n    job_state = R\n", "")
+        obs, why = STV.pbs_observe(["P1", "P2"])
+        assert obs is None and "did not describe" in why
+        obs, why = STV.pbs_observe(["P1"])
+        assert obs["P1"]["state"] == "R" and why == ""
+    finally:
+        STV.sh = keep
+
+
+def test_later_jobs_need_a_bound_qualification_and_a_fresh_receipt():
+    man, mp = _bank_manifest(n=10, cores=4)
+    root = man["storage"]["root"]; os.makedirs(os.path.join(root, "gate"), exist_ok=True)
+    L = CampaignLedger(man["storage"]["campaign"], 15000.0)
+    tok, _ = L.reserve("bank", 1, 4, 3600.0, root); L.bind(tok, "P1")
+    _plan(man, 1, [[0], [1], [2], [3]])
+    json.dump({"binding": 1}, open(os.path.join(root, "bank_binding.json"), "w"))
+    want = SUB.expected_bound(man, mp)
+    tracked = "reviews/2026-10-06_row22_bank_codex_record.md"
+    assert "no pilot qualification" in SUB.adopt_review(man, tracked, 17, mp)
+    q = os.path.join(root, "gate", "qualified_bank_job1.json")
+    good_q = dict(schema=SUB.QUAL_SCHEMA, qualified_job=1, production=True, bound=want, receipt=dict(fresh=True, alarms=[]))
+    for bad in (dict(good_q, production=False), dict(good_q, receipt=dict(fresh=True, alarms=["x"])),
+                dict(good_q, bound=dict(want, manifest_sha256="0" * 64)), dict(good_q, bound=dict(want, jobs={"1": dict(want["jobs"]["1"], token="other")}))):
+        json.dump(bad, open(q, "w"))
+        assert SUB.adopt_review(man, tracked, 17, mp).startswith("REFUSED"), bad
+    json.dump(good_q, open(q, "w"))
+    assert SUB.adopt_review(man, tracked, 17, mp).startswith("adopted")
+    assert "no watch receipt" in SUB.review_problem(man, [2], mp)
+    r = os.path.join(root, "gate", f"bank_watch_{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}.json")
+    good_r = dict(schema=SUB.WATCH_SCHEMA, production=True, fresh=True, alarms=[], time=time.time(), bound=want)
+    json.dump(dict(good_r, time=time.time() - 3000), open(r, "w"))
+    assert "within 2700" in SUB.review_problem(man, [2], mp)
+    json.dump(dict(good_r, alarms=["a"]), open(r, "w"))
+    assert "alarm" in SUB.review_problem(man, [2], mp)
+    json.dump(good_r, open(r, "w"))
+    assert SUB.review_problem(man, [2], mp) == ""
+    tok2, _ = L.reserve("bank", 2, 4, 3600.0, root); L.bind(tok2, "P2"); _plan(man, 2, [[4]])
+    assert "not the ledger's" in SUB.review_problem(man, [3], mp)                                       # the receipt must bind every job now
+    json.dump(dict(good_q, production=True), open(q, "w")); open(q, "a").write(" ")
+    assert "another qualification" in SUB.review_problem(man, [3], mp) or "not the ledger's" in SUB.review_problem(man, [3], mp)
