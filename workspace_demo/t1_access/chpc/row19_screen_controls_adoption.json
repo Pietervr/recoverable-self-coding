@@ -1,0 +1,15 @@
+{
+ "schema": "row19-screen-controls-adoption-1",
+ "controls_path": "chpc/row19_screen_controls.json",
+ "controls_sha256": "43a099cad12eb234ff501cb596e9f68d8b013dc7c231dbc7de21feafeb8cdd8a",
+ "version": 7,
+ "controls_commit": "42f4023",
+ "review_record": {
+  "path": "reviews/2026-10-06_row19_screen_rev7_codex_record.md",
+  "sha256": "f6f9ab6cbebccdafcecc28911dd533824772315cfafbdb63159812794d8ccd97",
+  "commit": "86f1105",
+  "adopt_line": "ADOPT row19-screen-controls sha256=43a099cad12eb234ff501cb596e9f68d8b013dc7c231dbc7de21feafeb8cdd8a version=7"
+ },
+ "by": "R052 Entropy SI (Claude), session fdb5f471-1679-481f-8198-f3f211cc7447, 2026-10-06",
+ "scope": "controllers for later screen admissions (each role still needs its own actual pilot review and adoption) and the release consumer (still needs an actual numerical-target review and adoption); grants no job, no job-10 replacement, no numerical release"
+}
