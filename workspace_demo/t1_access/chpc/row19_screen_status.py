@@ -39,6 +39,7 @@ qualification name the verifier file and its SHA-256, and the qualification bind
 import os, sys, json, glob, math, time, shutil, hashlib, argparse, subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE); sys.path.insert(0, os.path.abspath(os.path.join(HERE, "..")))
 HOST, LOGIN = "chpc-scp", "lengau"
 BASE = os.path.join(HERE, "results", "row19_screen")
 LIVE_DIR = os.path.join(BASE, "live")
@@ -70,6 +71,10 @@ def finite_nonneg(x):
 
 
 def controls():
+    import programme_gate as _PG                                            # REVISION 4 (C3): the deployment is read only when adopted
+    why = _PG.controls_authority_problem()
+    if why:
+        raise RuntimeError(f"the controls file cannot be trusted: {why}")
     return json.load(open(os.path.join(HERE, "row19_screen_controls.json")))
 
 
@@ -85,10 +90,10 @@ def verify_remote(man, role, manifest_rel):
     doc = json.loads(lines[0])
     if doc.get("schema") != "row19-screen-verify-1" or doc.get("role") != role:
         return None, None, "producer-runtime verify has another schema or role"
-    g = doc.get("generation") or {}
-    latest = controls()["versions"][-1]["version"]
-    if g.get("version") != latest or g.get("controls_problem"):
-        return None, None, f"the producer verifier is generation {g.get('version')} ({g.get('controls_problem')}), not the latest {latest}"
+    import row19_screen_admit as _SA                                       # REVISION 4 (C2): exact digests, explicit clean lineage
+    why = _SA.controls_problem() or _SA.generation_problem(doc.get("generation"))
+    if why:
+        return None, None, f"the producer verifier: {why}"
     return doc, sha_bytes(lines[0].encode()), ""
 
 

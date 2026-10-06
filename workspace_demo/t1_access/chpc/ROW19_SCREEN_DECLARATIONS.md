@@ -122,3 +122,20 @@ absent) and pins the slice manifest from which the historical exclusions are rec
   the unchanged bank/shard/slice controllers and settlements through it remains a COOPERATIVE operating procedure.
 - **R7** ASCII-only canonical names (`rec_[0-9]{3}.json` equal to their formatted index, `rep0|rep[1-9][0-9]*`); a duplicate
   logical coordinate is a conflict.
+
+## Revision 4 (Codex RSC 8bd1451: C1-C4)
+- **C1** A fresh receipt never covers a job whose CURRENT ledger state moved: a job the receipt saw queued/running that has
+  since recorded a runner end (any exit, also a clean one), or a terminal job whose recorded runner exit differs, refuses until
+  the evidence is recollected. Exit codes, counts and `left`/`new`/`resumed` are integers, never booleans, never negative.
+- **C2** The retained verifier document's emitted digests must EQUAL the reviewed pins - its own SHA-256 the latest version's
+  verifier pin, its controls SHA-256 the ADOPTED controls digest - with an explicit empty `controls_problem`, empty
+  environment/code verdicts and clean binding flags; its units must agree with the summaries (per terminal job, the valid units
+  whose timing names it = the summary's `new`; the pilot: every planned unit a valid record with a timing naming its job and
+  slot). The status tool applies the same generation check at ingress.
+- **C3** The controls file is trusted only through `chpc/row19_screen_controls_adoption.json` (git-tracked, unmodified),
+  which names the controls file's exact SHA-256 and a git-tracked, unmodified review record carrying
+  `ADOPT row19-screen-controls sha256=<sha> version=<latest>`. Until it exists, the wrapper, the screen controller and the
+  status tool refuse to read the programme block, the deployment or the history. A controls-only edit (lock path, campaign
+  list) refuses with the code untouched.
+- **C4** A resumed raise reports success only after the ledger's cap AND its latest cap_history entry certify the phase; a
+  ledger above the pending phase, or a cap without its history entry, refuses and leaves the phase pending.

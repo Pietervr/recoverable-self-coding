@@ -50,13 +50,25 @@
   {
    "version": 3,
    "commit": "c512d45",
-   "reviewed": "pending Codex",
+   "reviewed": "Codex 8bd1451: NOT FAVOURABLE (C1-C4); release components favourable",
    "files": {
     "chpc/row19_screen_admit.py": "6d00171b7050104af01c4746cf043d2a4cecfaddcc6d589f4c1caca0ce3ecf27",
     "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
     "chpc/row19_screen_status.py": "bda24d3833490a0a7a89b23160abe56f5b6fb654b24fea69971d6077ecc87830",
     "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
     "chpc/programme_gate.py": "ae968b651342999645192fede3b43a820ef1c9e3716dc0eb4960a13db880ed53"
+   }
+  },
+  {
+   "version": 4,
+   "commit": "see the commit that adds this entry",
+   "reviewed": "pending Codex",
+   "files": {
+    "chpc/row19_screen_admit.py": "1a435dcb376d4a4e46b5bcc69692f6d3033e888a032b7a513cbfb7681f6a3f45",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "40e379530bd8d35ef76a8eacfa8f65793efb1e1769d5238ac385df9dbd5829dd",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "3962468338c2e24c50f5ff402dfe8cb57f64d232ee21c1fdd00d388d16b20956"
    }
   }
  ],

@@ -69,6 +69,19 @@ and whose anchor verdict and binding digests equal the summary's; R4 budget phas
 non-finite constants refused, booleans refused), a proposal is validated BEFORE its pending phase is published, phases are
 written atomically and durably (temp + fsync + rename + directory fsync), an interrupted raise is RESUMED by repeating the
 same `--raise-cap X` or RETIRED by `--retire-pending --note`, and the ledger's latest cap_history entry must match.
+
+REVISION 4 (Codex RSC 8bd1451, C1-C4): C1 a fresh receipt never covers a job whose CURRENT ledger state moved since it was
+observed (a job the receipt saw queued/running that has since recorded a runner end, or a terminal job whose recorded runner exit
+differs) - recollect first; exit codes and counts are strictly typed (integers, never booleans, never negative). C2 the retained
+verifier document's emitted digests must EQUAL the reviewed pins (its own SHA-256 = the latest version's verifier pin; its
+controls SHA-256 = the ADOPTED controls digest), with an explicit clean lineage field, clean environment/code verdicts, clean
+binding flags, and units consistent with the summaries (a completed pilot: every planned unit a valid record with timing naming
+its job and slot; every job: the units whose timing names it equal its summary's `new`). C3 the lineage file is trusted only
+through an independent adoption: chpc/row19_screen_controls_adoption.json (git-tracked, unmodified) names the controls file's
+SHA-256 and a git-tracked, unmodified review record that carries `ADOPT row19-screen-controls sha256=<sha> version=<n>`; the
+controls file must have exactly that SHA-256 and n must be its latest version - before ANY of its programme, deployment or
+history values are used. C4 a resumed raise is reported only after the ledger's cap AND its latest cap_history entry are
+certified equal to the phase; any other combination (a ledger above the pending phase, no history entry) refuses.
 """
 import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
 
@@ -115,12 +128,24 @@ def _num(x):
     return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
 
 
+CONTROLS_ADOPTION = "chpc/row19_screen_controls_adoption.json"
+
+
+def controls_authority_problem():
+    """C3: '' only when the controls file is the adopted, review-bound bytes."""
+    import programme_gate as _PG
+    return _PG.controls_authority_problem()
+
+
 def controls():
     return json.load(open(os.path.join(HERE, "row19_screen_controls.json")))
 
 
 def controls_problem():
-    """'' when every controller's bytes are the latest lineage version's."""
+    """'' when the controls file is adopted (C3) and every controller's bytes are the latest lineage version's."""
+    why = controls_authority_problem()
+    if why:
+        return why
     v = controls()["versions"][-1]
     bad = [f for f, h in v["files"].items() if not os.path.exists(os.path.join(T1, f)) or sha_file(os.path.join(T1, f)) != h]
     return f"the controllers {bad} are not lineage version {v['version']}'s bytes" if bad else ""
@@ -443,12 +468,13 @@ def job_summary_problem(man, n, s, pilot=False):
     if s.get("state") in ("Q", "R", "H", "W", "B"):
         return "" if not pilot else f"job {n} is not terminal"
     want = plan_slots(man, n)
-    if s.get("state") != "F" or s.get("exit") not in (0, 75) or s.get("runner_exit") not in (0, 75) or isinstance(s.get("exit"), bool):
-        return f"job {n} is not terminal F with scheduler and runner exits 0 or 75"
-    if not (_int(s.get("slots")) and s["slots"] == want and _int(s.get("ended")) and s["ended"] == want and _int(s.get("left"))):
+    if s.get("state") != "F" or not (_int(s.get("exit")) and s["exit"] in (0, 75)) or not (_int(s.get("runner_exit")) and s["runner_exit"] in (0, 75)):
+        return f"job {n} is not terminal F with scheduler and runner exits 0 or 75 (integers)"
+    if not (_int(s.get("slots")) and s["slots"] == want and _int(s.get("ended")) and s["ended"] == want and _int(s.get("left")) and s["left"] >= 0
+            and _int(s.get("new")) and s["new"] >= 0 and _int(s.get("resumed")) and s["resumed"] >= 0):
         return f"job {n}: the plan's {want} workers did not all end (summary slots {s.get('slots')}, ended {s.get('ended')})"
     ex = s.get("exits")
-    if not isinstance(ex, dict) or any(k not in ("0", "75") or not _int(v) for k, v in ex.items()) or sum(ex.values()) != want:
+    if not isinstance(ex, dict) or any(k not in ("0", "75") or not _int(v) or v < 0 for k, v in ex.items()) or sum(ex.values()) != want:
         return f"job {n}: worker exits {ex} are not all 0/75 for the plan's {want} workers"
     if pilot and (ex != {"0": want} or s["left"] != 0):
         return f"job {n}: not every planned worker ended 0 with nothing left"
@@ -459,6 +485,71 @@ def job_summary_problem(man, n, s, pilot=False):
 
 def pilot_summary_problem(rec, n="1", man=None):
     return job_summary_problem(man, n, (rec.get("jobs") or {}).get(n), pilot=True) if man is not None else "no manifest to check the plan"
+
+
+def _hex64(x):
+    return isinstance(x, str) and len(x) == 64 and all(c in "0123456789abcdef" for c in x)
+
+
+def generation_problem(g):
+    """C2: the emitted generation must be the latest version with the EXACT reviewed verifier and controls digests."""
+    if not isinstance(g, dict):
+        return "no controller generation"
+    ctl = controls(); latest = ctl["versions"][-1]
+    if g.get("version") != latest["version"] or g.get("latest") != latest["version"]:
+        return f"controller generation {g.get('version')}, not the latest {latest['version']}"
+    if "controls_problem" not in g or g["controls_problem"] != "":
+        return f"the producer's lineage check is not explicitly clean ({g.get('controls_problem')!r})"
+    if not (_hex64(g.get("verify_sha256")) and g["verify_sha256"] == latest["files"].get("chpc/row19_screen_verify.py")):
+        return "the producer verifier's bytes are not the latest version's verifier pin"
+    adopted = json.load(open(os.path.join(T1, CONTROLS_ADOPTION))).get("controls_sha256") if os.path.exists(os.path.join(T1, CONTROLS_ADOPTION)) else None
+    if not (_hex64(g.get("controls_sha256")) and g["controls_sha256"] == adopted):
+        return "the producer's controls file is not the adopted controls bytes"
+    return ""
+
+
+def units_problem(man, v, rec, pilot_job=None):
+    """C2: the retained units agree with the summaries: per job, units whose timing names it = its `new`; the pilot's every
+    planned unit is a valid record with a timing naming its job and slot."""
+    units = v.get("units") or {}
+    for n, sj in (rec.get("jobs") or {}).items():
+        jid = (sj or {}).get("job_id")
+        if (sj or {}).get("state") in TERMINAL_STATES:
+            got = sum(1 for u in units.values() if (u.get("timing") or {}).get("job") == jid and (u.get("record") or {}).get("ok"))
+            if got != sj.get("new"):
+                return f"job {n}: {got} valid unit(s) name it in the retained verifier, the summary claims {sj.get('new')} new"
+    if pilot_job is not None:
+        p = json.load(open(os.path.join(man["storage"]["root"], "plans", f"job_{pilot_job}.json")))
+        jid = rec["jobs"][str(pilot_job)].get("job_id")
+        for sl in p["slots"]:
+            keys = [f"{int(sl['rep'])}/{int(i)}" for i in sl["indices"]] if "rep" in sl else [str(int(r)) for r in sl["reps"]]
+            for k in keys:
+                u = units.get(k) or {}
+                if not (u.get("record") or {}).get("ok") or (u.get("timing") or {}).get("job") != jid or (u.get("timing") or {}).get("slot") != int(sl["slot"]):
+                    return f"pilot unit {k}: no valid record with a timing naming job {jid} slot {sl['slot']} in the retained verifier"
+    return ""
+
+
+TERMINAL_STATES = ("F", "E", "X", "gone")
+
+
+def transition_problem(man, role, r):
+    """C1: the CURRENT ledger must still be what the receipt observed: a job it saw queued or running that has since recorded a
+    runner end, or a terminal job whose recorded runner exit is not the receipt's, refuses until the evidence is recollected."""
+    lp = os.path.join(man["storage"]["campaign"], "budget.json")
+    led = _strict_load(lp) if os.path.exists(lp) else {"entries": {}}
+    by_n = {str(int(e["rep"])): e for e in led["entries"].values() if e.get("kind") == ROLES[role]}
+    for n, sj in (r.get("jobs") or {}).items():
+        e = by_n.get(n)
+        if e is None:
+            return f"job {n} of the receipt is not in the ledger"
+        now_exit = e.get("runner_exit")
+        if sj.get("state") in TERMINAL_STATES:
+            if now_exit != sj.get("runner_exit"):
+                return f"job {n}: the ledger's runner exit {now_exit} is not the receipt's {sj.get('runner_exit')}; recollect"
+        elif now_exit is not None:
+            return f"job {n} has ended (runner exit {now_exit}) since the receipt saw it {sj.get('state')}; recollect before admitting"
+    return ""
 
 
 def verifier_problem(man, bound, anchors, role):
@@ -473,20 +564,27 @@ def verifier_problem(man, bound, anchors, role):
         v = _strict_load(p)
     except ValueError as e:
         return f"the retained verifier document is malformed ({e})"
-    g = v.get("generation") or {}
-    latest = controls()["versions"][-1]["version"]
+    why = generation_problem(v.get("generation"))
+    if why:
+        return f"the retained verifier document: {why}"
     if v.get("schema") != "row19-screen-verify-1" or v.get("role") != role or not _num(v.get("time")):
         return "the retained verifier document has another schema or role, or no time"
     if v.get("manifest_sha256") != bound.get("manifest_sha256"):
         return "the retained verifier document verified another manifest"
-    if g.get("version") != latest or g.get("controls_problem"):
-        return f"the retained verifier document is controller generation {g.get('version')}, not the latest {latest}"
+    if v.get("environment_bad") != [] or v.get("code_bad") != []:
+        return "the retained verifier document reports an environment or code difference (or omits the verdicts)"
+    if any(not (x or {}).get("ok") or not (x or {}).get("declared_ident_equal") for x in (v.get("bindings") or {}).values()):
+        return "the retained verifier document reports a task binding that is not clean"
     if v.get("anchors") != anchors:
         return "the embedded anchor verdict is not the retained verifier's"
     prod = {k: (x or {}).get("sha256") for k, x in (v.get("bindings") or {}).items()}
     if any(prod.get(k) != h for k, h in (bound.get("bindings") or {}).items()):
         return "the bound task bindings are not the retained verifier's digests"
     return ""
+
+
+def _verifier_doc(man, bound):
+    return _strict_load(os.path.join(man["storage"]["root"], "gate", bound["verify_file"]))
 
 
 def tracked_unmodified(rel):
@@ -517,6 +615,8 @@ def qualification_problem(man, manifest_path, role):
         return "the qualification's embedded receipt has alarms, is not fresh or not production", None
     why = (pilot_summary_problem(rec, man=man) or anchors_problem(doc.get("anchors"), (doc.get("bound") or {}).get("anchors_sha256"))
            or verifier_problem(man, doc.get("bound") or {}, doc.get("anchors"), role))
+    if not why:
+        why = units_problem(man, _verifier_doc(man, doc["bound"]), rec, pilot_job=1)
     if why:
         return f"the qualification: {why}", None
     want = expected_bound(man, manifest_path, role)
@@ -561,6 +661,9 @@ def receipt_problem(man, manifest_path, role, now=None):
         why = job_summary_problem(man, n, sj)
         if why:
             return f"the newest receipt: {why}"
+    why = units_problem(man, _verifier_doc(man, r["bound"]), r) or transition_problem(man, role, r)
+    if why:
+        return f"the newest receipt: {why}"
     why = bound_problem(r.get("bound"), expected_bound(man, manifest_path, role), "all")
     return f"the newest receipt: {why}" if why else ""
 
@@ -733,8 +836,13 @@ def main(argv=None):
                     print(f"REFUSED: the new cap {new} is not finite and above the current {cur}"); return 2
                 b["phases"].append(dict(cap_core_h=new, note=a.note, t=time.time(), campaign=man["storage"]["campaign"], pending=True))
                 _durable_write(bp, b)
+            if resume and cur > new + 1e-9:
+                print(f"REFUSED: the ledger already holds {cur}, above the pending phase {new}; reconcile by hand (recorded), nothing changed"); return 2
             if cur < new:
                 ledger_for(man).raise_cap(new, a.note)
+            led = _strict_load(os.path.join(man["storage"]["campaign"], "budget.json")); hist = led.get("cap_history") or []
+            if not (_num(led.get("cap_core_h")) and abs(led["cap_core_h"] - new) < 1e-9 and hist and _num(hist[-1].get("new")) and abs(hist[-1]["new"] - new) < 1e-9):
+                print(f"REFUSED: the ledger's cap {led.get('cap_core_h')} and its latest history entry do not certify {new}; the phase stays pending"); return 2
             b = _phases(man); [x for x in b["phases"] if not x.get("retired")][-1]["pending"] = False; _durable_write(bp, b)
         print(f"cap {'resumed and ' if resume else ''}raised to {new:.0f} (ledger cap_history and {man['budget']['admission']} committed; commit the budget file)"); return 0
     if a.retire_pending:

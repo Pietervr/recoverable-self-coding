@@ -25,6 +25,12 @@ runs a SETTLEMENT inside the same lock and records the committed count before an
 reservation to its actual charge is serialized with admissions and visible to the next one. The older bank, shard and slice
 controllers are not modified: routing their admissions and settlements through this wrapper is a COOPERATIVE operating
 procedure, stated as such - not code enforcement inside them.
+
+REVISION 4 (Codex RSC 8bd1451, C3): the controls file is trusted only through its ADOPTION - chpc/row19_screen_controls_adoption.json,
+git-tracked and unmodified, naming the controls file's exact SHA-256 and a git-tracked, unmodified review record that carries the
+line `ADOPT row19-screen-controls sha256=<that sha> version=<latest version>`; the controls file must be tracked, unmodified and
+have exactly that SHA-256. Until then neither its programme block (lock, campaigns) nor its deployment or history is used: the
+wrapper and the screen controller refuse.
 """
 import os, sys, json, math, time, fcntl, argparse, contextlib, subprocess
 
@@ -162,9 +168,51 @@ def _log(path, rec):
         fh.write(json.dumps(rec) + "\n"); fh.flush(); os.fsync(fh.fileno())
 
 
-def lineage_problem():
-    """'' when this wrapper and the controllers are the latest lineage version's bytes."""
+CONTROLS = "chpc/row19_screen_controls.json"
+CONTROLS_ADOPTION = "chpc/row19_screen_controls_adoption.json"
+HERE_ = os.path.dirname(os.path.abspath(__file__)); T1_ = os.path.abspath(os.path.join(HERE_, ".."))
+
+
+def tracked_unmodified(rel):
+    try:
+        a = subprocess.run(["git", "ls-files", "--error-unmatch", rel], cwd=T1_, capture_output=True, text=True)
+        b = subprocess.run(["git", "diff", "--quiet", "HEAD", "--", rel], cwd=T1_, capture_output=True, text=True)
+        return a.returncode == 0 and b.returncode == 0
+    except Exception:
+        return False
+
+
+def controls_authority_problem():
+    """C3: '' only when the controls file is the adopted, review-bound bytes."""
     import hashlib
+    ap = os.path.join(T1_, CONTROLS_ADOPTION); cp = os.path.join(T1_, CONTROLS)
+    if not os.path.exists(ap):
+        return "the controls file has no adoption (chpc/row19_screen_controls_adoption.json)"
+    for rel in (CONTROLS_ADOPTION, CONTROLS):
+        if not tracked_unmodified(rel):
+            return f"{rel} is not git-tracked and unmodified"
+    try:
+        ad = json.load(open(ap)); ctl = json.load(open(cp))
+    except Exception as e:
+        return f"the controls adoption or file is unreadable ({e})"
+    got = hashlib.sha256(open(cp, "rb").read()).hexdigest()
+    if ad.get("controls_sha256") != got:
+        return "the controls file is not the adopted bytes"
+    rv = ad.get("review_record") or {}; rvp = os.path.join(T1_, rv.get("path", "") or "_none_")
+    if not os.path.exists(rvp) or not tracked_unmodified(rv.get("path", "")) or hashlib.sha256(open(rvp, "rb").read()).hexdigest() != rv.get("sha256"):
+        return "the controls review record is not git-tracked, unmodified, with the adopted SHA-256"
+    line = f"ADOPT row19-screen-controls sha256={got} version={ctl['versions'][-1]['version']}"
+    if line not in [l.strip() for l in open(rvp).read().splitlines()]:
+        return f"the controls review record does not carry `{line}`"
+    return ""
+
+
+def lineage_problem():
+    """'' when the controls file is adopted and this wrapper and the controllers are the latest lineage version's bytes."""
+    import hashlib
+    why = controls_authority_problem()
+    if why:
+        return why
     here = os.path.dirname(os.path.abspath(__file__)); t1 = os.path.abspath(os.path.join(here, ".."))
     try:
         v = json.load(open(os.path.join(here, "row19_screen_controls.json")))["versions"][-1]
@@ -179,6 +227,9 @@ def lineage_problem():
 def programme_funding(man):
     """The programme block: the manifest's `funding` plus the controller lineage's lock path and campaign roots (the screen
     manifests are immutable; the lock and the absent-allowed roots live in chpc/row19_screen_controls.json)."""
+    why = controls_authority_problem()
+    if why:
+        raise RuntimeError(f"the programme block cannot be trusted: {why}")
     here = os.path.dirname(os.path.abspath(__file__))
     ctl = json.load(open(os.path.join(here, "row19_screen_controls.json")))
     f = dict(man["funding"]); f.update(ctl["programme"])
