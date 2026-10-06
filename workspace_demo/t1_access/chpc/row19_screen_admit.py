@@ -96,6 +96,16 @@ slot is an integer equal to the plan's slot; a terminal job's summary must parti
 the planned units) and every planned unit that is not left must have a valid record with valid timing; C4 the automatic
 reconciliation in cap_problem uses the same exact applied-pending certificate as the CLI (cap = pending, latest history
 new = pending AND old = the preceding committed phase); anything else refuses.
+
+REVISION 7 (Codex RSC 8865474): C2 a terminal job's summary carries its HISTORICAL per-unit partition (`partition`: the new,
+resumed and left coordinate lists the status tool reads from that job's own worker statuses), and the admission reconciles
+it, not today's aggregate: the lists partition the job's plan exactly and match the counts; every new unit is a valid record
+whose timing names THIS job in its plan slot; every resumed unit is a valid record whose timing names an EARLIER bound job
+whose plan holds that coordinate in that slot (unbound producers such as P999 and null slots never count); a left unit may
+carry a valid record only from a LATER bound job that planned it (later completion stays legitimate, but it can never
+certify an earlier job's resumption claim). C4 the automatic reconciliation accepts ONLY the applied certificate (latest
+history old = the preceding committed phase, new = pending, cap = pending); the predecessor-only branch never clears a
+pending phase automatically; and the CLI refuses a raise of less than one core-hour.
 """
 import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
 
@@ -281,7 +291,7 @@ def cap_problem(man):
     last = live[-1]
     hist = led.get("cap_history") or []
     if last.get("pending"):
-        if abs(cap - float(last["cap_core_h"])) < 1e-9 and predecessor_problem(man, live, applied_ok=True) == "":
+        if abs(cap - float(last["cap_core_h"])) < 1e-9 and predecessor_problem(man, live, applied_ok=True, applied_only=True) == "":
             last["pending"] = False; last["reconciled"] = time.time(); _durable_write(_phases_path(man), b)
             return ""
         return (f"an interrupted cap amendment to {last['cap_core_h']} is pending while the ledger holds {cap}; resume it with "
@@ -293,7 +303,7 @@ def cap_problem(man):
     return ""
 
 
-def predecessor_problem(man, live, applied_ok):
+def predecessor_problem(man, live, applied_ok, applied_only=False):
     """C4: '' when the ledger still certifies the preceding COMMITTED phase (cap and latest history entry, or no history for the
     first phase) - or, with applied_ok, when it already shows exactly the pending raise from that predecessor."""
     led = _strict_load(os.path.join(man["storage"]["campaign"], "budget.json"))
@@ -304,7 +314,7 @@ def predecessor_problem(man, live, applied_ok):
     pc, pend = float(prev[-1]["cap_core_h"]), float(live[-1]["cap_core_h"])
     first = len(prev) == 1
     hist_ok_prev = (not hist) if first else (bool(hist) and _num(hist[-1].get("new")) and abs(hist[-1]["new"] - pc) < 1e-9)
-    if _num(cap) and abs(cap - pc) < 1e-9 and hist_ok_prev:
+    if not applied_only and _num(cap) and abs(cap - pc) < 1e-9 and hist_ok_prev:
         return ""
     if applied_ok and _num(cap) and abs(cap - pend) < 1e-9 and hist and _num(hist[-1].get("new")) and abs(hist[-1]["new"] - pend) < 1e-9 \
             and _num(hist[-1].get("old")) and abs(hist[-1]["old"] - pc) < 1e-9:
@@ -549,6 +559,7 @@ def units_problem(man, v, rec, pilot_job=None):
     lp = os.path.join(man["storage"]["campaign"], "budget.json")
     led = _strict_load(lp) if os.path.exists(lp) else {"entries": {}}
     bound_id = {str(int(e["rep"])): e.get("job_id") for e in led["entries"].values() if e.get("kind") in ("shard", "orig")}
+    num_of = {jid: int(m) for m, jid in bound_id.items() if jid}
     for n, sj in (rec.get("jobs") or {}).items():
         jid = (sj or {}).get("job_id")
         if jid != bound_id.get(str(n)):
@@ -568,6 +579,9 @@ def units_problem(man, v, rec, pilot_job=None):
             done = [k for k in slot_of if (units.get(k, {}).get("record") or {}).get("ok") and (units.get(k, {}).get("timing") or {}).get("ok") is True]
             if len(done) < sj["new"] + sj["resumed"]:
                 return f"job {n}: only {len(done)} of its planned units have a valid record and timing, the summary claims {sj['new'] + sj['resumed']} done"
+            why = _partition_problem(man, n, sj, units, slot_of, num_of)
+            if why:
+                return why
     if pilot_job is not None:
         p = json.load(open(os.path.join(man["storage"]["root"], "plans", f"job_{pilot_job}.json")))
         jid = rec["jobs"][str(pilot_job)].get("job_id")
@@ -581,6 +595,45 @@ def units_problem(man, v, rec, pilot_job=None):
 
 
 TERMINAL_STATES = ("F", "E", "X", "gone")
+
+
+def _partition_problem(man, n, sj, units, slot_of, num_of):
+    """REVISION 7 C2: the job's own historical new/resumed/left lists against its plan, its counts and supported producers."""
+    part = sj.get("partition")
+    if not isinstance(part, dict) or any(not isinstance(part.get(x), list) or not all(isinstance(k, str) for k in part[x])
+                                         for x in ("new", "resumed", "left")):
+        return f"job {n}: the summary carries no per-unit new/resumed/left lists"
+    new, res, left = part["new"], part["resumed"], part["left"]
+    allk = new + res + left
+    if len(set(allk)) != len(allk) or set(allk) != set(slot_of):
+        return f"job {n}: its new/resumed/left lists are not a partition of its plan"
+    if (len(new), len(res), len(left)) != (sj["new"], sj["resumed"], sj["left"]):
+        return f"job {n}: its lists ({len(new)}/{len(res)}/{len(left)}) are not the summary's counts ({sj['new']}/{sj['resumed']}/{sj['left']})"
+    plans = {}
+
+    def producer(k):
+        u = units.get(k) or {}; t = u.get("timing") or {}
+        if not ((u.get("record") or {}).get("ok") and t.get("ok") is True and _int(t.get("slot"))):
+            return None
+        m = num_of.get(t.get("job"))
+        if m is None:
+            return None
+        if m not in plans:
+            plans[m] = _plan_slot_of(man, m)
+        return m if plans[m].get(k) == t["slot"] else None
+    for k in new:
+        if producer(k) != int(n):
+            return f"job {n}: new unit {k} has no valid record produced by this job in its plan slot"
+    for k in res:
+        m = producer(k)
+        if m is None or m >= int(n):
+            return f"job {n}: resumed unit {k} has no valid record from an earlier bound job that planned it in that slot"
+    for k in left:
+        if ((units.get(k) or {}).get("record") or {}).get("ok"):
+            m = producer(k)
+            if m is None or m <= int(n):
+                return f"job {n}: left unit {k} holds a valid record that is not a later bound job's planned completion"
+    return ""
 
 
 def _plan_slot_of(man, n):
@@ -901,8 +954,8 @@ def main(argv=None):
                 why = cap_problem(man)
                 if why:
                     print(f"REFUSED: {why}"); return 2
-                if not (_num(new) and new > cur):
-                    print(f"REFUSED: the new cap {new} is not finite and above the current {cur}"); return 2
+                if not (_num(new) and new >= cur + 1.0):
+                    print(f"REFUSED: the new cap {new} is not finite and at least one core-hour above the current {cur}"); return 2
                 b["phases"].append(dict(cap_core_h=new, note=a.note, t=time.time(), campaign=man["storage"]["campaign"], pending=True))
                 _durable_write(bp, b)
             if resume and cur > new + 1e-9:

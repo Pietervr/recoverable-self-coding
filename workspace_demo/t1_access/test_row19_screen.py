@@ -365,6 +365,14 @@ def _verify_doc(refit, root, bindings, name, units=None):
     return v
 
 
+def _part(root, n, units, job_id):
+    """The partition the status tool would read from job n's worker statuses, for these fixtures' evidence."""
+    keys = [f"{sl['rep']}/{i}" for sl in json.load(open(os.path.join(root, "plans", f"job_{n}.json")))["slots"] for i in sl["indices"]]
+    new = [k for k in keys if ((units.get(k) or {}).get("timing") or {}).get("job") == job_id]
+    res = [k for k in keys if k not in new and ((units.get(k) or {}).get("record") or {}).get("ok")]
+    return dict(new=sorted(new), resumed=sorted(res), left=sorted(k for k in keys if k not in new and k not in res))
+
+
 def _units(plan, job_id):
     return {f"{s['rep']}/{i}": dict(record=dict(ok=True, sha="s"), timing=dict(ok=True, job=job_id, slot=s["slot"])) for s in plan["slots"] for i in s["indices"]}
 
@@ -389,7 +397,8 @@ def _pilot_setup(n_reps=60):
     want = SA.expected_bound(refit, rp, "refit")
     vsha = _write_verify(refit, rp, root, want["bindings"], "verify_q.json", units=_units(jobs[0], "P1"))
     q = os.path.join(root, "gate", "qualified_refit_job1.json")
-    rec = dict(schema=SA.WATCH_SCHEMA, role="refit", time=time.time(), fresh=True, production=True, alarms=[], jobs={"1": _summary()})
+    rec = dict(schema=SA.WATCH_SCHEMA, role="refit", time=time.time(), fresh=True, production=True, alarms=[],
+               jobs={"1": _summary(partition=_part(root, 1, _units(jobs[0], "P1"), "P1"))})
     good_q = dict(schema=SA.QUAL_SCHEMA, role="refit", qualified_job=1, production=True, time=time.time(),
                   bound=dict(want, anchors_sha256=ADIG, verify_file="verify_q.json", verify_file_sha256=vsha), receipt=rec, anchors=ANCHORS)
     json.dump(good_q, open(q, "w"))
@@ -408,6 +417,9 @@ def _receipt(refit, rp, root, jobs_summ, name="verify_r.json", bindings=None, un
         want = dict(want, bindings=bindings)
     if units is None:
         units = _units(json.load(open(os.path.join(root, "plans", "job_1.json"))), "P1")
+    jobs_summ = {n: (dict(sj, partition=_part(root, n, units, sj.get("job_id")))
+                     if isinstance(sj, dict) and sj.get("state") in SA.TERMINAL_STATES and "partition" not in sj
+                     and os.path.exists(os.path.join(root, "plans", f"job_{n}.json")) else sj) for n, sj in jobs_summ.items()}
     vsha = _write_verify(refit, rp, root, override.pop("verify_bindings", want["bindings"]), name, units=units, mutate=mutate)
     r = os.path.join(root, "gate", f"watch_refit_{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}.json")
     doc = dict(schema=SA.WATCH_SCHEMA, role="refit", production=True, fresh=True, alarms=[], time=time.time(),
@@ -523,6 +535,8 @@ def test_later_admission_binds_only_started_tasks_and_refuses_stale_or_unadopted
         assert "not the plan's 24 units" in SA.review_problem(refit, rp, "refit", [3])                     # the summary must partition the plan
         r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(j2, resumed=2, left=2)}, units=u2)
         assert "the summary claims 22 done" in SA.review_problem(refit, rp, "refit", [3])                  # resumed units must exist as valid records
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(j2, partition=None)}, units=u2)
+        assert "no per-unit" in SA.review_problem(refit, rp, "refit", [3])                                 # R7: the historical lists are required
         for bad in (dict(j2, runner_exit=False), dict(j2, exits={"0": 25, "75": -1}), dict(j2, left=-1)):
             r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": bad}, units=u2)
             assert "job 2" in SA.review_problem(refit, rp, "refit", [3]), bad                             # strict typing
@@ -568,7 +582,7 @@ def test_cap_phases_are_strict_durable_and_recoverable_through_the_cli():
     L = SA.ledger_for(refit); L.reserve("shard", 1, 24, 108000.0, refit["storage"]["root"])
     bp = refit["budget"]["admission"]
     rc, out = _call(SA, ["--manifest", rp, "--role", "refit", "--raise-cap", "50000", "--note", "a lower cap is no raise"])
-    assert rc == 2 and "not finite and above" in out and not any(x.get("pending") for x in json.load(open(bp))["phases"])   # validated BEFORE publishing
+    assert rc == 2 and "at least one core-hour above" in out and not any(x.get("pending") for x in json.load(open(bp))["phases"])   # validated BEFORE publishing
     b = json.load(open(bp)); b["phases"].append(dict(cap_core_h=90000.0, note="interrupted before the ledger", pending=True, campaign=refit["storage"]["campaign"]))
     json.dump(b, open(bp, "w"))
     assert "interrupted" in SA.cap_problem(refit)
@@ -808,3 +822,65 @@ def test_the_automatic_reconciliation_needs_the_exact_applied_certificate():
     b = json.load(open(bp2)); b["phases"].append(dict(cap_core_h=90000.0, note="owner raise", pending=True, campaign=camp2)); json.dump(b, open(bp2, "w"))
     SA.ledger_for(refit2).raise_cap(90000.0, "the interrupted protocol step that did reach the ledger")
     assert SA.cap_problem(refit2) == "" and json.load(open(bp2))["phases"][-1]["pending"] is False         # the exact applied raise reconciles
+
+
+def test_a_job_history_is_its_own_partition_with_supported_producers():
+    refit, rp, root, L, jobs, want, good_q, q = _pilot_setup()
+    rv = _adopt(refit, rp, q); keep_t = SA.tracked_unmodified
+    try:
+        SA.tracked_unmodified = lambda rel: True
+        assert SA.adopt_review(refit, rp, "refit", rv, 9).startswith("adopted")
+        tok2, _ = L.reserve("shard", 2, 24, 108000.0, root); L.bind(tok2, "P2")
+        json.dump(dict(jobs[1], token=tok2), open(os.path.join(root, "plans", "job_2.json"), "w"))
+        for sl in jobs[1]["slots"]:
+            open(os.path.join(root, f"task_{sl['rep']}.json"), "w").write(json.dumps({"binding": {"rep": sl["rep"]}}))
+        sl2 = jobs[1]["slots"]; key = lambda sl: f"{sl['rep']}/{sl['indices'][0]}"
+        u = _units(jobs[0], "P1")
+        u.update({key(sl): dict(record=dict(ok=True), timing=dict(ok=True, job="P2", slot=sl["slot"])) for sl in sl2[:20]})
+        L.runner_end(tok2, 10.0, 0)
+        new20 = sorted(key(sl) for sl in sl2[:20]); a, b, c, d = (key(sl) for sl in sl2[20:])
+        j2 = dict(_summary(), job_id="P2", exits={"0": 20, "75": 4}, left=4, new=20, partition=dict(new=new20, resumed=[], left=sorted([a, b, c, d])))
+        # job 3: completes two of job 2's left units and resumes two units job 2 produced
+        x, y = key(sl2[0]), key(sl2[1])
+        p3 = {"job": 3, "slots": [{"slot": 0, "rep": sl2[20]["rep"], "indices": sl2[20]["indices"]}, {"slot": 1, "rep": sl2[21]["rep"], "indices": sl2[21]["indices"]},
+                                  {"slot": 2, "rep": sl2[0]["rep"], "indices": sl2[0]["indices"]}, {"slot": 3, "rep": sl2[1]["rep"], "indices": sl2[1]["indices"]}]}
+        tok3, _ = L.reserve("shard", 3, 4, 18000.0, root); L.bind(tok3, "P3")
+        json.dump(dict(p3, token=tok3), open(os.path.join(root, "plans", "job_3.json"), "w"))
+        u.update({a: dict(record=dict(ok=True), timing=dict(ok=True, job="P3", slot=0)), b: dict(record=dict(ok=True), timing=dict(ok=True, job="P3", slot=1))})
+        r3 = dict(_summary(), state="R", job_id="P3")
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": j2, "3": r3}, units=u)
+        assert SA.review_problem(refit, rp, "refit", [4]) == ""                                            # truthful 20/0/4, later completion by P3
+        false2 = dict(j2, resumed=2, left=2, exits={"0": 22, "75": 2}, partition=dict(new=new20, resumed=sorted([a, b]), left=sorted([c, d])))
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": false2, "3": r3}, units=u)
+        assert "earlier bound job" in SA.review_problem(refit, rp, "refit", [4])                           # P3's later work cannot certify P2's resumption
+        fake = dict(u); fake.update({c: dict(record=dict(ok=True), timing=dict(ok=True, job="P999", slot=None)),
+                                     d: dict(record=dict(ok=True), timing=dict(ok=True, job="P999", slot=None))})
+        reuse = dict(j2, resumed=2, left=2, exits={"0": 22, "75": 2}, partition=dict(new=new20, resumed=sorted([c, d]), left=sorted([a, b])))
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": reuse, "3": r3}, units=fake)
+        assert "earlier bound job" in SA.review_problem(refit, rp, "refit", [4])                           # an unbound producer / null slot never counts
+        L.runner_end(tok3, 10.0, 0)
+        f3 = dict(_summary(slots=4), job_id="P3", new=2, resumed=2, partition=dict(new=sorted([a, b]), resumed=sorted([x, y]), left=[]))
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": j2, "3": f3}, units=u)
+        assert SA.review_problem(refit, rp, "refit", [4]) == ""                                            # genuine reuse of an earlier producer
+        lie3 = dict(f3, resumed=1, left=1, exits={"0": 3, "75": 1}, partition=dict(new=sorted([a, b]), resumed=[x], left=[y]))
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": j2, "3": lie3}, units=u)
+        assert "left unit" in SA.review_problem(refit, rp, "refit", [4])                                   # a unit done earlier is not left
+    finally:
+        SA.tracked_unmodified = keep_t
+        if os.path.exists(os.path.join(T1, rv)):
+            os.remove(os.path.join(T1, rv))
+
+
+def test_a_sub_tolerance_pending_raise_without_applied_history_never_auto_clears():
+    bank, bmp, _ = _bank()
+    refit, rp, orig, op = _screen(bmp)
+    SA.ledger_for(refit).reserve("shard", 1, 24, 108000.0, refit["storage"]["root"])
+    bp = refit["budget"]["admission"]; camp = refit["storage"]["campaign"]; lp = os.path.join(camp, "budget.json")
+    b = json.load(open(bp)); b["phases"].append(dict(cap_core_h=60000.0000000005, note="an interrupted tiny raise", pending=True, campaign=camp))
+    json.dump(b, open(bp, "w")); before = open(lp).read()
+    assert SA.cap_problem(refit) != ""                                                                      # the predecessor-only branch never clears it
+    assert json.load(open(bp))["phases"][-1]["pending"] is True and open(lp).read() == before                # pending and ledger unchanged
+    rc, out = _call(SA, ["--manifest", rp, "--role", "refit", "--retire-pending", "--note", "retire the interrupted tiny raise"])
+    assert rc == 0, out
+    rc, out = _call(SA, ["--manifest", rp, "--role", "refit", "--raise-cap", "60000.5", "--note", "a raise under one core-hour"])
+    assert rc == 2 and "at least one core-hour" in out and open(lp).read() == before

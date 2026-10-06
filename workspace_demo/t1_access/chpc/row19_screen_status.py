@@ -17,6 +17,8 @@ campaign, code pins, wrapper, every job of the role (PBS id, token, plan SHA-256
 verdict's SHA-256 and the verify document's SHA-256; copied to <root>/gate/watch_<role>_<stamp>.json.
 QUALIFICATION (--qualify 1): fresh production evidence, zero alarms, job 1 terminal with scheduler exit 0 or 75, every planned
 slot ended 0 with every planned unit a valid record with timing, the three anchors equal; refit: job 1's reps all bound.
+REVISION 7 (Codex RSC 8865474 C2): each job summary also carries `partition`, the sorted new / resumed / left coordinate lists
+read from that job's own worker statuses, so the admission reconciles a job's historical outcome, not today's aggregate.
 
     python chpc/row19_screen_status.py --manifest chpc/row19_screen_manifest.json --role refit [--publish-receipt] [--qualify 1]
 Exit 1 on any alarm or when the evidence is not fresh.
@@ -181,7 +183,7 @@ def reconcile(man, role, verify, obs, ledger, live):
         state = o.get("state"); terminal = state in TERMINAL
         s_sum = dict(job_id=j, state=state, exit=o.get("exit"), runner_exit=e.get("runner_exit"), mem_kb=o.get("mem_kb"),
                      slots=len(plan["slots"]), ended=0, exits={}, new=0, resumed=0, left=0, max_worker_maxrss=None, max_wall_s=None,
-                     failed_units=[])
+                     failed_units=[], partition=dict(new=[], resumed=[], left=[]))
         started = state == "R" or terminal
         expected_status.update(f"job{j}.slot{sl['slot']}.json" for sl in plan["slots"])
         if not j:
@@ -239,6 +241,7 @@ def reconcile(man, role, verify, obs, ledger, live):
             if mem_stop and finite_nonneg(st.get("maxrss")) and st["maxrss"] > mem_stop:
                 alarms.append(f"{role} job {n} slot {sl['slot']}: worker memory above the stop")
             s_sum["new"] += len(new); s_sum["resumed"] += len(res); s_sum["left"] += len(left)
+            s_sum["partition"]["new"] += new; s_sum["partition"]["resumed"] += res; s_sum["partition"]["left"] += left
             s_sum["failed_units"] += [u for u in new + res if ((units.get(u) or {}).get("record") or {}).get("failed")]
             for u in new + res:
                 v = units.get(u) or {}
@@ -253,6 +256,7 @@ def reconcile(man, role, verify, obs, ledger, live):
             missing = sorted({int(sl["rep"]) for sl in plan["slots"]} - {int(k) for k in bound_reps if k.isdigit()})
             if missing:
                 alarms.append(f"{role} job {n}: started, but reps {missing[:5]} have no task binding")
+        s_sum["partition"] = {x: sorted(v) for x, v in s_sum["partition"].items()}
         summary[str(n)] = s_sum
     for sp in glob.glob(os.path.join(root, "status", "*")):
         if os.path.basename(sp) not in expected_status:

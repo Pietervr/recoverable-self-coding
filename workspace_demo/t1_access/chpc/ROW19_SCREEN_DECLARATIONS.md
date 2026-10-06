@@ -162,3 +162,23 @@ absent) and pins the slice manifest from which the historical exclusions are rec
 - **C4** The automatic reconciliation in cap_problem uses the CLI's exact applied certificate (cap = pending, latest history
   new = pending AND old = the preceding committed phase). Fixtures: 60 -> 70 -> 90 against committed 60 / pending 90 stays
   pending and refuses; an exact 60 -> 90 reconciles.
+
+## Revision 7 (Codex RSC 8865474: the C2 and C4 remainders)
+- **C2** The admission reconciles a terminal job's HISTORICAL outcome, not today's aggregate. The status tool now writes, per
+  job, `partition`: the sorted new / resumed / left coordinate lists read from that job's own worker statuses. The admission
+  requires them (absent lists refuse), requires that they partition the job's plan exactly and match the summary's counts, and
+  checks each list against supported producers: a new unit is a valid record whose timing names THIS job in its plan slot; a
+  resumed unit is a valid record whose timing names an EARLIER bound job whose plan holds that coordinate in that slot (an
+  unbound producer such as P999 or a null slot never counts, and a later job's work never certifies an earlier resumption);
+  a left unit may hold a valid record only from a LATER bound job that planned it (legitimate later completion). Reused
+  timing is never required to name the resuming job. Fixtures (test_a_job_history_is_its_own_partition_with_supported_producers):
+  truthful P2 20/0/4 with a running P3 completing two of its left units admits; the false P2 20/2/2 resuming P3's units
+  refuses; P2 20/2/2 resuming two P999/null-slot records refuses; P3 terminal 2 new + 2 resumed from P2 admits; P3 claiming
+  as left a unit P2 had produced refuses; a summary with no lists refuses.
+- **C4** The automatic reconciliation accepts ONLY the applied certificate (cap = pending, latest history old = the preceding
+  committed phase, new = pending); predecessor_problem's predecessor-only branch is skipped there (applied_only), so an
+  un-applied predecessor can never clear a pending phase, however small the raise. The CLI also refuses any raise of less than
+  one core-hour. Fixture test_a_sub_tolerance_pending_raise_without_applied_history_never_auto_clears: committed/current
+  60,000, no history, pending 60,000.0000000005 -> cap_problem refuses with the phase pending and the ledger byte-identical;
+  the pending phase retires through the CLI; a 60,000.5 raise refuses. The ordinary wrong-old negative and the exact-applied
+  positive remain.

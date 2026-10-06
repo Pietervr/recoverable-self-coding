@@ -86,11 +86,23 @@
   {
    "version": 6,
    "commit": "e797171",
-   "reviewed": "pending Codex",
+   "reviewed": "Codex 8865474: NOT FAVOURABLE (C2 historical per-job partition and reuse provenance, C4 applied-only automatic certificate)",
    "files": {
     "chpc/row19_screen_admit.py": "8d304fa2e8a36a6ff4ab526e94ff982d25b215e5c2d8335e53978d3af1c3ed90",
     "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
     "chpc/row19_screen_status.py": "40e379530bd8d35ef76a8eacfa8f65793efb1e1769d5238ac385df9dbd5829dd",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0"
+   }
+  },
+  {
+   "version": 7,
+   "commit": "see the commit that adds this entry",
+   "reviewed": "pending Codex",
+   "files": {
+    "chpc/row19_screen_admit.py": "573e5b18835a57b55fa545b3815458b1a59662847318b6fd7046858fa2b32d53",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "dac142fb58991f14fa1616e768b156af42f6ccf15252840ef7a3b6af07c1f7e0",
     "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
     "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0"
    }
