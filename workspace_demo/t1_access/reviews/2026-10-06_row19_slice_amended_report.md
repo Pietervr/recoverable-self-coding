@@ -36,8 +36,12 @@ Lost work is the resample in flight at each crash (no partial record survives; n
 (slice campaign ledger): 255.7 core-hours, including stage 0 (9.85); 432 reserved for the three running mains.
 
 Two operational events: Lustre's oss7/oss8 pair overloaded on 5-6 Oct (CHPC confirmed and cleared it); the two jobs then
-running lost about 13 h each to I/O waits, so rep 0 index 2 and rep 1 index 2 took 109,366 s and 110,117 s of wall (CPU
-19.4 h and 13.4 h of 32.5 h and 26.5 h): wall, not computing, above the 100,848 s ceiling, and reported as such.
+running lost time to I/O waits. Two different time bases, kept apart: (a) JOB SNAPSHOTS at about 6 Oct 17:0x UTC (whole-job
+CPU and elapsed, scheduler): rep 1 (7520953) 19.4 h CPU of 32.5 h elapsed; rep 0 (7521637) 13.4 h CPU of 26.5 h elapsed;
+(b) INDIVIDUAL REFIT durations: rep 0 index 2 took 109,366 s (about 30.38 h) and rep 1 index 2 110,117 s (about 30.59 h) of
+wall. Both exceed the 100,848-s wall ceiling of the health check; they are I/O-confounded wall times, not clean compute
+timings, and the ceiling is unchanged. (Correction of 6 Oct, Codex a1ce224: the first version listed the CPU/elapsed pairs
+unlabelled and in the reverse order of the reps.)
 
 ## Parity: what is established and what is not
 - **Before any crash:** C1 and main rep 0 computed the same dataset independently; their records 0 and 1 are bit-equal on
@@ -53,5 +57,5 @@ Clean resamples on one shared core took 55,665-64,972 s (15.5-18.0 h; median abo
 84-88 ks (about 25 core-hours a resample); peak resident memory 2.1-2.6 GiB, far below the 8 GB request.
 
 ## What it means for stage 2
-The refit chain runs and resumes correctly across jobs and nodes; a single long process does not survive more than about
-two resamples, so the screen runs one resample per process (the shard worker, as built). The slice reads no coverage.
+What was observed is OPERATIONAL RESTORATION and checkpoint/cache reuse across jobs and nodes only - no post-resume
+scientific equivalence follows from it; a single long process does not survive more than about two resamples, so the screen runs one resample per process (the shard worker, as built). The slice reads no coverage.

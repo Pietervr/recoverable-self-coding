@@ -7,7 +7,7 @@ parallel as possible". This package is built for review; it grants itself no adm
 - Reps **3..102** under the slice's seed base 20261003 (`chpc/row19_screen_manifest.json`, `datasets`). Their resolved seeds
   are unique and disjoint from: the slice manifest's historical M2S omega 1/2 identities, the three disclosed development
   datasets' seeds (reps 0..2, which row 19 excludes from the screen) and the 408 bank seeds (row 22). The exclusion list is
-  in the manifest (4,409 seeds); the admission gate and the release RECOMPUTE both the screen domain and the bank domain
+  in the manifest (4,411 seeds: 4,000 historical + 3 development + 408 bank); the admission gate and the release RECOMPUTE both the screen domain and the bank domain
   (from the bank manifest named and hashed here), never trusting a supplied list.
 - The identity map of all 100 was computed in the PRODUCER runtime on Lengau (`make_row19_screen_manifests.py
   --emit-identities`, via t1py in the bank clone); a Mac rebuild carries other runtime labels and never matches (the same is
