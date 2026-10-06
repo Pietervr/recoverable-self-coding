@@ -37,8 +37,8 @@
   },
   {
    "version": 2,
-   "commit": "uncommitted",
-   "reviewed": "pending Codex (repairs for role job 2+ and the release, a1ce224)",
+   "commit": "abbd63d",
+   "reviewed": "Codex ee99ee1: NOT FAVOURABLE (R1-R7)",
    "files": {
     "chpc/row19_screen_admit.py": "53f7b09886b9013f48966537d4ba86e1f9e602c650db1bf8245fd9f18b409fea",
     "chpc/row19_screen_verify.py": "608caee38e8edea9c798ff94eadfdb74e09e69a78c312d86f48bb4a52a8b2d57",
@@ -46,6 +46,22 @@
     "chpc/row19_screen_release.py": "26c00fa07118441cf8a2ea231c47c818c2346c8b4e9e2800d7556b65774d1367",
     "chpc/programme_gate.py": "d733bf8f31b50a6ce491ac5bb5ba4aabb0717794ed15874fd50917e4ab1d8fb2"
    }
+  },
+  {
+   "version": 3,
+   "commit": "see the commit that adds this entry",
+   "reviewed": "pending Codex",
+   "files": {
+    "chpc/row19_screen_admit.py": "6d00171b7050104af01c4746cf043d2a4cecfaddcc6d589f4c1caca0ce3ecf27",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "bda24d3833490a0a7a89b23160abe56f5b6fb654b24fea69971d6077ecc87830",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "ae968b651342999645192fede3b43a820ef1c9e3716dc0eb4960a13db880ed53"
+   }
   }
- ]
+ ],
+ "deployment": {
+  "controller_clone": "/mnt/lustre/users/pvanrooyen/t1_toolchain/rsc_screen_ctl",
+  "rule": "controllers run from this controller-only clone (rsc_screen + the latest lineage version's controller files); the jobs keep running from rsc_screen, whose scientific files, manifests and ledger are never changed under them"
+ }
 }

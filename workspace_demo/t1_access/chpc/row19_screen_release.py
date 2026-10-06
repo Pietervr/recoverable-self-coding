@@ -44,6 +44,12 @@ never re-read; (d) the review record must carry the line
 tracked text, a design review or a raw-pilot review is not the authority; (e) the result carries every failure: an original's
 failed_reason, each refit chain's n_used / n_failed / failed_reasons, and per-method denominators beside the paired cells;
 (f) the seed check is the controller's revision 2, which reconstructs the whole exclusion contract.
+
+REVISION 3 (Codex RSC ee99ee1): R5 the RAW restored chain's counts and reasons are reported per predictor straight from the
+strictly restored chain (n_used, n_failed, failed_reasons) for EVERY dataset - also when the cached original failed, where the
+canonical analysis short-circuits its own interval summary to zeros; the failed original stays out of both denominators and is
+labelled as such, its restored refits never turn it usable. R6 the lineage file chpc/row19_screen_controls.json is a pinned
+consumer file, and the seal also runs the lineage check (every controller the latest version's bytes).
 """
 import os, sys, json, math, glob, hashlib, argparse, subprocess, tempfile
 
@@ -56,7 +62,8 @@ for p in (T1, HERE):
 ADOPTION_SCHEMA = "row19-target-adoption-1"
 RESULT_SCHEMA = "row19-screen-result-1"
 CONSUMER_FILES = ("chpc/row19_screen_release.py", "analyze.py", "models.py", "simulate.py", "chpc/row19_slice.py", "chpc/row19_shard.py",
-                  "chpc/row19_screen_orig.py", "chpc/row19_screen_admit.py", "chpc/programme_gate.py", "chpc/row22_target.py", "chpc/row22_bank.py")
+                  "chpc/row19_screen_orig.py", "chpc/row19_screen_admit.py", "chpc/programme_gate.py", "chpc/row22_target.py", "chpc/row22_bank.py",
+                  "chpc/row19_screen_controls.json")
 CFG_EXEMPT = ("n_boot_refit", "note")
 PRIMARY = ("selection", "ws")
 
@@ -179,6 +186,9 @@ def seal_problems(screen_path, orig_path, target_path, adoption_rel, check_git=T
     if bad:
         why.append(f"the consumer's pins differ on {bad}")
     import row19_screen_admit as SA
+    lp = SA.controls_problem()
+    if lp:
+        why.append(f"controller lineage: {lp}")
     sd = SA.seed_domain_problem(screen)
     if sd:
         why.append(f"seed domain: {sd}")
@@ -268,11 +278,15 @@ def _aggregate(items, screen):
             p = res["predictors"][PRIMARY[0]]
             refit = p.get(PRIMARY[1], {}); clus = (p.get("cluster") or {}).get(PRIMARY[1], {})
             iv = res.get("interval") or {}
+            chain = {pp: dict(n_used=int(v.get("n_used", 0)), n_failed=int(v.get("n_failed", 0)), usable=bool(v.get("usable")))
+                     for pp, v in (rb.get("predictors") or {}).items()}
+            chain_reasons = list(rb.get("failed_reasons") or [])
             out[r] = dict(failed=bool(res["failed"]), failed_reason=str(res.get("failed_reason", "")),
                           refit_usable=bool(p.get("usable")) and not res["failed"],
                           refit=[refit.get("lo"), refit.get("hi")], cluster=[clus.get("lo"), clus.get("hi")], point=refit.get("point"),
                           refit_n_used=iv.get("n_used"), refit_n_failed=iv.get("n_failed"), refit_failed_reasons=iv.get("failed_reasons"),
-                          predictor_interval=p.get("interval"))
+                          predictor_interval=p.get("interval"), raw_chain=chain, raw_chain_failed_reasons=chain_reasons,
+                          unit_status=("original failed: excluded from both methods" if res["failed"] else "original valid"))
     finally:
         A.run_dataset = keep
     return out
@@ -301,6 +315,8 @@ def release(screen_path, orig_path, target_path, adoption_rel, check_git=True):
                 failed_originals={str(r): v["failed_reason"] for r, v in per.items() if v["failed"]},
                 refit_unusable={str(r): dict(n_used=v["refit_n_used"], n_failed=v["refit_n_failed"], reasons=v["refit_failed_reasons"])
                                 for r, v in per.items() if not v["refit_usable"]},
+                raw_chains={str(r): dict(per_predictor=v["raw_chain"], failed_reasons=v["raw_chain_failed_reasons"], unit_status=v["unit_status"])
+                            for r, v in per.items()},
                 refit=decide(refit, N, lo, hi), cluster=decide(clus, N, lo, hi),
                 paired=dict(both=len(r_ok & c_ok), refit_only=len(r_ok - c_ok), cluster_only=len(c_ok - r_ok), neither=len(allr - r_ok - c_ok)),
                 per_dataset={str(r): v for r, v in per.items()})

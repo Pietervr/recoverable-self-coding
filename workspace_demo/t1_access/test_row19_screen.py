@@ -87,9 +87,11 @@ def _screen(bank_mp, reps=(3, 4, 5), B=4, extra_excluded=()):
     return refit, rp, orig, op
 
 
-def _produce(refit, rp, orig, op, skip=()):
-    """Stub originals and every refit record for the screen."""
+def _produce(refit, rp, orig, op, skip=(), wrap=None):
+    """Stub originals and every refit record for the screen; `wrap(stub)` may replace the stub fit inside the patch."""
     with _Patched():
+        if wrap is not None:
+            A.run_dataset = wrap(A.run_dataset)
         reps = refit["datasets"]["reps"]
         rc, out = _call(O, ["worker", "--manifest", op, "--reps", ",".join(map(str, reps)), "--slot", "0", "--job-id", "o1", "--skip-environment-check"])
         assert rc == 0, out
@@ -187,7 +189,7 @@ def test_planner_cap_lineage_and_funding():
     assert st["cap_core_h"] == 90000.0 and st["cap_history"][-1]["old"] == 60000.0 and tok in st["entries"]
     assert SA.sha_file(rp) == before and SA.cap_problem(refit) == ""                                    # no binding can name a moved manifest
     bp = refit["budget"]["admission"]; b = json.load(open(bp))
-    b["phases"].append(dict(cap_core_h=120000.0, note="interrupted", pending=True)); json.dump(b, open(bp, "w"))
+    b["phases"].append(dict(cap_core_h=120000.0, note="interrupted", pending=True, campaign=refit["storage"]["campaign"])); json.dump(b, open(bp, "w"))
     assert "interrupted" in SA.cap_problem(refit)                                                        # refused until reconciled
     SA.ledger_for(refit).raise_cap(120000.0, "the ledger step that was interrupted")
     assert SA.cap_problem(refit) == "" and json.load(open(bp))["phases"][-1]["pending"] is False         # reconciled, nothing reset
@@ -327,72 +329,246 @@ def test_status_anchor_rules_and_a_failed_scheduler_query():
         SV.sh = keep
 
 
-def test_later_admission_binds_only_started_tasks_and_refuses_stale_or_unadopted_evidence():
+ANCHORS = {"problem": "", "reps": {str(a): {"required": [0], "compared": [0], "equal": [0], "differ": [], "missing": [], "invalid": [], "conflict": []} for a in (0, 1, 2)}}
+ADIG = hashlib.sha256(json.dumps(ANCHORS, sort_keys=True).encode()).hexdigest()
+
+
+def _summary(slots=24, **kw):
+    d = dict(state="F", exit=0, runner_exit=0, slots=slots, ended=slots, exits={"0": slots}, left=0, mem_kb=1.0e7, max_worker_maxrss=2.5e9)
+    d.update(kw); return d
+
+
+def _verify_doc(refit, root, bindings, name):
+    """A retained verifier document of the LATEST controller generation, as the status tool writes it to the gate."""
+    latest = SA.controls()["versions"][-1]["version"]
+    v = dict(schema="row19-screen-verify-1", role="refit", time=time.time(), manifest_sha256=None, anchors=ANCHORS, units={},
+             bindings={k: dict(ok=True, sha256=h) for k, h in bindings.items()},
+             generation=dict(version=latest, latest=latest, controls_problem="", verify_sha256="x", controls_sha256="y"))
+    return v
+
+
+def _write_verify(refit, rp, root, bindings, name):
+    v = _verify_doc(refit, root, bindings, name); v["manifest_sha256"] = SA.sha_file(rp)
+    p = os.path.join(root, "gate", name); json.dump(v, open(p, "w")); return SA.sha_file(p)
+
+
+def _pilot_setup(n_reps=60):
     bank, bmp, _ = _bank()
-    refit, rp, orig, op = _screen(bmp, reps=list(range(3, 30)), B=4)
+    refit, rp, orig, op = _screen(bmp, reps=list(range(3, 3 + n_reps)), B=4)
     root = refit["storage"]["root"]
-    L = SA.ledger_for(refit); tok, _ = L.reserve("shard", 1, 24, 108000.0, root); L.bind(tok, "P1")
-    jobs, _ = SA.plan_jobs(refit, "refit", 1, set(), set(), set())
     os.makedirs(os.path.join(root, "plans"), exist_ok=True); os.makedirs(os.path.join(root, "gate"), exist_ok=True)
+    L = SA.ledger_for(refit); tok, _ = L.reserve("shard", 1, 24, 108000.0, root); L.bind(tok, "P1")
+    jobs, _ = SA.plan_jobs(refit, "refit", 2, set(), set(), set())
     json.dump(dict(jobs[0], token=tok), open(os.path.join(root, "plans", "job_1.json"), "w"))
-    for s in jobs[0]["slots"]:                                                                            # job-start binds only the started reps
-        open(os.path.join(root, f"task_{s['rep']}.json"), "w").write(json.dumps({"binding": {"rep": s["rep"]}}))
+    for sl in jobs[0]["slots"]:
+        open(os.path.join(root, f"task_{sl['rep']}.json"), "w").write(json.dumps({"binding": {"rep": sl["rep"]}}))
     want = SA.expected_bound(refit, rp, "refit")
-    assert sorted(int(k) for k in want["bindings"]) == list(range(3, 27))                                 # 24 bound; 27..29 pending, never fabricated
-    anchors = {"problem": "", "reps": {str(a): {"required": [0], "compared": [0], "equal": [0], "differ": [], "missing": [], "invalid": [], "conflict": []} for a in (0, 1, 2)}}
-    adig = hashlib.sha256(json.dumps(anchors, sort_keys=True).encode()).hexdigest()
-    summ = {"1": dict(state="F", exit=0, runner_exit=0, slots=24, ended=24, exits={"0": 24}, left=0, mem_kb=1.0e7, max_worker_maxrss=2.5e9)}
+    vsha = _write_verify(refit, rp, root, want["bindings"], "verify_q.json")
     q = os.path.join(root, "gate", "qualified_refit_job1.json")
-    good_q = dict(schema=SA.QUAL_SCHEMA, role="refit", qualified_job=1, production=True, time=time.time(), bound=dict(want, anchors_sha256=adig),
-                  receipt=dict(fresh=True, production=True, alarms=[], jobs=summ), anchors=anchors)
+    rec = dict(schema=SA.WATCH_SCHEMA, role="refit", time=time.time(), fresh=True, production=True, alarms=[], jobs={"1": _summary()})
+    good_q = dict(schema=SA.QUAL_SCHEMA, role="refit", qualified_job=1, production=True, time=time.time(),
+                  bound=dict(want, anchors_sha256=ADIG, verify_file="verify_q.json", verify_file_sha256=vsha), receipt=rec, anchors=ANCHORS)
     json.dump(good_q, open(q, "w"))
+    return refit, rp, root, L, jobs, want, good_q, q
+
+
+def _adopt(refit, rp, q, max_job=9):
+    qsha = SA.sha_file(q); rv = os.path.join("reviews", f"_test_pilot_review_{os.getpid()}.md")
+    open(os.path.join(T1, rv), "w").write(f"verdict\nADOPT row19-screen-pilot role=refit qualification={qsha} max_job={max_job}\n")
+    return rv
+
+
+def _receipt(refit, rp, root, jobs_summ, name="verify_r.json", bindings=None, **override):
+    want = SA.expected_bound(refit, rp, "refit")
+    if bindings is not None:
+        want = dict(want, bindings=bindings)
+    vsha = _write_verify(refit, rp, root, override.pop("verify_bindings", want["bindings"]), name)
+    r = os.path.join(root, "gate", f"watch_refit_{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}.json")
+    doc = dict(schema=SA.WATCH_SCHEMA, role="refit", production=True, fresh=True, alarms=[], time=time.time(),
+               bound=dict(want, anchors_sha256=ADIG, verify_file=name, verify_file_sha256=vsha), anchors=ANCHORS, jobs=jobs_summ)
+    doc.update(override); json.dump(doc, open(r, "w")); return r, doc
+
+
+def test_later_admission_binds_only_started_tasks_and_refuses_stale_or_unadopted_evidence():
+    refit, rp, root, L, jobs, want, good_q, q = _pilot_setup()
+    assert sorted(int(k) for k in want["bindings"]) == list(range(3, 27))                                 # 24 bound; the rest pending, never fabricated
     assert SA.qualification_problem(refit, rp, "refit")[0] == ""
-    bad_anchor = copy.deepcopy(anchors); bad_anchor["reps"]["2"]["equal"] = []
-    for bad, msg in ((dict(good_q, bound=dict(want, anchors_sha256="a" * 64)), "not the bound one"), (dict(good_q, role="orig"), "not a production"),
+    bad_anchor = copy.deepcopy(ANCHORS); bad_anchor["reps"]["2"]["equal"] = []
+    bdig = hashlib.sha256(json.dumps(bad_anchor, sort_keys=True).encode()).hexdigest()
+    for bad, msg in ((dict(good_q, bound=dict(good_q["bound"], anchors_sha256="a" * 64)), "not the bound one"),
+                     (dict(good_q, role="orig"), "not a production"),
                      (dict(good_q, bound=dict(good_q["bound"], bindings={k: v for k, v in want["bindings"].items() if k != "3"})), "not exactly the root's"),
-                     (dict(good_q, anchors=bad_anchor, bound=dict(good_q["bound"], anchors_sha256=hashlib.sha256(json.dumps(bad_anchor, sort_keys=True).encode()).hexdigest())), "anchor 2"),
-                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": dict(summ["1"], state="E")})), "terminal F"),
-                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": dict(summ["1"], runner_exit=4)})), "terminal F"),
-                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": dict(summ["1"], mem_kb=None)})), "memory"),
-                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": dict(summ["1"], exits={"0": 23, "4": 1})})), "ended 0"),
+                     (dict(good_q, anchors=bad_anchor, bound=dict(good_q["bound"], anchors_sha256=bdig)), "anchor 2"),
+                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": _summary(state="E")})), "terminal F"),
+                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": _summary(runner_exit=4)})), "terminal F"),
+                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": _summary(mem_kb=None)})), "memory"),
+                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": _summary(mem_kb=-1.0)})), "memory"),
+                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": _summary(exits={"0": 23, "4": 1})})), "0/75"),
+                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": _summary(slots=0, ended=0, exits={})})), "workers did not all end"),
+                     (dict(good_q, receipt=dict(good_q["receipt"], jobs={"1": _summary(slots=True)})), "workers did not all end"),
+                     (dict(good_q, receipt=dict(good_q["receipt"], schema="other")), "another schema"),
+                     (dict(good_q, bound=dict(good_q["bound"], verify_file="absent.json")), "absent"),
+                     (dict(good_q, bound=dict(good_q["bound"], verify_file_sha256="0" * 64)), "not the bound bytes"),
                      (dict(good_q, time=True), "finite past time")):
         json.dump(bad, open(q, "w"))
         assert msg in SA.qualification_problem(refit, rp, "refit")[0], (msg, SA.qualification_problem(refit, rp, "refit")[0])
-    json.dump(good_q, open(q, "w"))
-    assert "no adopted review" in SA.review_problem(refit, rp, "refit", [2])
+    v = json.load(open(os.path.join(root, "gate", "verify_q.json"))); v["generation"]["version"] = 1
+    json.dump(v, open(os.path.join(root, "gate", "verify_q.json"), "w"))
+    json.dump(dict(good_q, bound=dict(good_q["bound"], verify_file_sha256=SA.sha_file(os.path.join(root, "gate", "verify_q.json")))), open(q, "w"))
+    assert "generation 1" in SA.qualification_problem(refit, rp, "refit")[0]                               # evidence of an older verifier
+    refit, rp, root, L, jobs, want, good_q, q = _pilot_setup()
     tracked = "reviews/2026-10-06_stage2_screen_design_codex_record.md"
-    assert "does not contain the line" in SA.adopt_review(refit, rp, "refit", tracked, 9)                  # a design review is no pilot verdict
-    qsha = SA.sha_file(q); rv = os.path.join("reviews", f"_test_pilot_review_{os.getpid()}.md")
-    open(os.path.join(T1, rv), "w").write(f"verdict\nADOPT row19-screen-pilot role=refit qualification={qsha} max_job=9\n")
-    keep_t = SA.tracked_unmodified
+    assert "does not contain the line" in SA.adopt_review(refit, rp, "refit", tracked, 9)
+    rv = _adopt(refit, rp, q); keep_t = SA.tracked_unmodified
     try:
         assert "not tracked" in SA.adopt_review(refit, rp, "refit", rv, 9)
-        SA.tracked_unmodified = lambda rel: True                                                          # stands in for a committed record
-        assert "does not contain the line" in SA.adopt_review(refit, rp, "refit", rv, 12)                  # the scope must be the verdict's
+        SA.tracked_unmodified = lambda rel: True
+        assert "does not contain the line" in SA.adopt_review(refit, rp, "refit", rv, 12)
         assert SA.adopt_review(refit, rp, "refit", rv, 9).startswith("adopted")
         assert "no watch receipt" in SA.review_problem(refit, rp, "refit", [2])
-        r = os.path.join(root, "gate", f"watch_refit_{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}.json")
-        good_r = dict(schema=SA.WATCH_SCHEMA, role="refit", production=True, fresh=True, alarms=[], time=time.time(), bound=dict(want, anchors_sha256=adig), anchors=anchors)
-        json.dump(dict(good_r, time=float("nan")), open(r, "w"))
+        r, doc = _receipt(refit, rp, root, {"1": _summary()}, time=float("nan"))
         assert "within 2700" in SA.review_problem(refit, rp, "refit", [2])
-        json.dump(dict(good_r, anchors=bad_anchor), open(r, "w"))
-        assert "anchor" in SA.review_problem(refit, rp, "refit", [2])
-        _later_receipt_checks(refit, rp, r, good_r)
+        r, doc = _receipt(refit, rp, root, {"1": _summary()})
+        assert SA.review_problem(refit, rp, "refit", [2]) == ""
+        assert "up to 9" in SA.review_problem(refit, rp, "refit", [10])
+        # R1 lifecycle: job 2 starts reps 27-50; the frozen job-1 qualification still serves; the receipt binds ALL started tasks
+        tok2, _ = L.reserve("shard", 2, 24, 108000.0, root); L.bind(tok2, "P2")
+        json.dump(dict(jobs[1], token=tok2), open(os.path.join(root, "plans", "job_2.json"), "w"))
+        for sl in jobs[1]["slots"]:
+            open(os.path.join(root, f"task_{sl['rep']}.json"), "w").write(json.dumps({"binding": {"rep": sl["rep"]}}))
+        assert SA.qualification_problem(refit, rp, "refit")[0] == ""                                       # job 1's own scope is unchanged
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(_summary(), state="R")})
+        assert SA.review_problem(refit, rp, "refit", [3]) == ""                                            # job 3 admissible
+        want_all = SA.expected_bound(refit, rp, "refit")
+        omitted = {k: v for k, v in want_all["bindings"].items() if k != "40"}
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(_summary(), state="R")}, bindings=omitted, verify_bindings=omitted)
+        assert "not exactly the root's" in SA.review_problem(refit, rp, "refit", [3])                      # an omitted later binding refuses
+        open(os.path.join(root, "task_40.json"), "w").write("{\"changed\": 1}")
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(_summary(), state="R")}, verify_bindings=want_all["bindings"])
+        assert "retained verifier's digests" in SA.review_problem(refit, rp, "refit", [3])                 # a changed binding refuses
+        open(os.path.join(root, "task_40.json"), "w").write(json.dumps({"binding": {"rep": 40}}))
+        # R2: a terminal follow-on job with a bad runner exit or no memory refuses
+        for bad in (dict(_summary(), runner_exit=4), dict(_summary(), mem_kb=None), dict(_summary(), state="E")):
+            r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": bad})
+            assert "job 2" in SA.review_problem(refit, rp, "refit", [3]), bad
+        r, doc = _receipt(refit, rp, root, {"1": _summary()})
+        assert "every job" in SA.review_problem(refit, rp, "refit", [3])                                  # a receipt must cover every job
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(_summary(), exits={"0": 20, "75": 4}, left=4)})
+        assert SA.review_problem(refit, rp, "refit", [3]) == ""                                            # a deadline stop with work left is legitimate
+        open(os.path.join(root, "STOP"), "w").write("{}")
+        assert "STOP" in SA.gate_problem(refit, rp, "refit", {1}, False, 1, [], 108000.0)
     finally:
         SA.tracked_unmodified = keep_t
         if os.path.exists(os.path.join(T1, rv)):
             os.remove(os.path.join(T1, rv))
 
 
-def _later_receipt_checks(refit, rp, r, good_r):
-    root = refit["storage"]["root"]
-    json.dump(dict(good_r, time=time.time() - 3000), open(r, "w"))
-    assert "within 2700" in SA.review_problem(refit, rp, "refit", [2])
-    json.dump(good_r, open(r, "w"))
-    assert SA.review_problem(refit, rp, "refit", [2]) == ""
-    assert "up to 9" in SA.review_problem(refit, rp, "refit", [10])
-    open(os.path.join(root, "STOP"), "w").write("{}")
-    assert "STOP" in SA.gate_problem(refit, rp, "refit", {1}, False, 1, [], 108000.0)
+def test_status_alarms_every_bad_terminal_job_and_foreign_statuses():
+    bank, bmp, _ = _bank()
+    refit, rp, orig, op = _screen(bmp, reps=list(range(3, 30)), B=4)
+    live = os.path.join(_LIVE, "st"); root = os.path.join(live, "root")
+    os.makedirs(os.path.join(root, "plans")); os.makedirs(os.path.join(root, "status"))
+    plan = {"job": 1, "slots": [{"slot": 0, "rep": 3, "indices": [0]}]}
+    json.dump(plan, open(os.path.join(root, "plans", "job_1.json"), "w"))
+    st = dict(job="P1", slot=0, rep=3, indices=[0], ident=refit["datasets"]["identities"]["3"], new=[0], resumed=[], left=[], exit=0, wall_s=5.0, maxrss=1e9)
+    json.dump(st, open(os.path.join(root, "status", "jobP1.slot0.json"), "w"))
+    led = {"entries": {"t": {"kind": "shard", "rep": 1, "job_id": "P1", "token": "t", "state": "live", "reserved_core_h": 720.0, "runner_exit": 0}}}
+    verify = {"units": {"3/0": {"record": {"ok": True}, "timing": {"ok": True, "job": "P1", "slot": 0}}}, "bindings": {"3": {"ok": True, "declared_ident_equal": True, "sha256": "x"}}}
+    al, summ, jobs = SV.reconcile(refit, "refit", verify, {"P1": {"state": "F", "exit": 0, "mem_kb": 100}}, led, live)
+    assert al == [], al
+    for obs, ledmod, msg in (({"P1": {"state": "F", "exit": 0, "mem_kb": 100}}, dict(runner_exit=4), "runner exit 4"),
+                             ({"P1": {"state": "F", "exit": 0}}, {}, "scheduler memory"),
+                             ({"P1": {"state": "E", "exit": 0, "mem_kb": 100}}, {}, "F with 0/75")):
+        l2 = copy.deepcopy(led); l2["entries"]["t"].update(ledmod)
+        al, _, _ = SV.reconcile(refit, "refit", verify, obs, l2, live)
+        assert any(msg in a for a in al), (msg, al)
+    json.dump(dict(st, job="FOREIGN"), open(os.path.join(root, "status", "jobFOREIGN.slot0.json"), "w"))
+    al, _, _ = SV.reconcile(refit, "refit", verify, {"P1": {"state": "F", "exit": 0, "mem_kb": 100}}, led, live)
+    assert any("no planned job and slot" in a for a in al)
+    os.remove(os.path.join(root, "status", "jobFOREIGN.slot0.json"))
+    json.dump(dict(st, wall_s=None), open(os.path.join(root, "status", "jobP1.slot0.json"), "w"))
+    al, _, _ = SV.reconcile(refit, "refit", verify, {"P1": {"state": "F", "exit": 0, "mem_kb": 100}}, led, live)
+    assert any("wall time" in a for a in al)
+
+
+def test_cap_phases_are_strict_durable_and_recoverable_through_the_cli():
+    bank, bmp, _ = _bank()
+    refit, rp, orig, op = _screen(bmp)
+    L = SA.ledger_for(refit); L.reserve("shard", 1, 24, 108000.0, refit["storage"]["root"])
+    bp = refit["budget"]["admission"]
+    rc, out = _call(SA, ["--manifest", rp, "--role", "refit", "--raise-cap", "50000", "--note", "a lower cap is no raise"])
+    assert rc == 2 and "not finite and above" in out and not any(x.get("pending") for x in json.load(open(bp))["phases"])   # validated BEFORE publishing
+    b = json.load(open(bp)); b["phases"].append(dict(cap_core_h=90000.0, note="interrupted before the ledger", pending=True, campaign=refit["storage"]["campaign"]))
+    json.dump(b, open(bp, "w"))
+    assert "interrupted" in SA.cap_problem(refit)
+    rc, out = _call(SA, ["--manifest", rp, "--role", "refit", "--raise-cap", "90000", "--note", "resume the owner's raise"])
+    assert rc == 0 and "resumed" in out, out
+    assert SA.cap_problem(refit) == "" and json.load(open(os.path.join(refit["storage"]["campaign"], "budget.json")))["cap_core_h"] == 90000.0
+    b = json.load(open(bp)); b["phases"].append(dict(cap_core_h=95000.0, note="never applied", pending=True, campaign=refit["storage"]["campaign"]))
+    json.dump(b, open(bp, "w"))
+    rc, out = _call(SA, ["--manifest", rp, "--role", "refit", "--retire-pending", "--note", "owner withdrew this raise"])
+    assert rc == 0 and "retired" in out and SA.cap_problem(refit) == ""
+    open(bp, "w").write(open(bp).read().replace('"cap_core_h": 90000.0', '"cap_core_h": NaN', 1))
+    assert "malformed" in SA.cap_problem(refit)                                                           # a NaN phase never passes
+
+
+def test_the_release_reports_raw_chain_failures_also_for_a_failed_original():
+    bank, bmp, tgt = _bank()
+    refit, rp, orig, op = _screen(bmp)
+    seed4 = SH.task(refit, 4)["seed"]
+    def wrap(stub):
+        def failing(ds, cfg, seed, outer_folds=None, n_jobs=1):
+            r = stub(ds, cfg, seed, outer_folds=outer_folds)
+            if getattr(ds, "group", None) is None and seed == seed4:
+                r["failed"] = True; r["failed_reason"] = "stub original failure"
+            return r
+        return failing
+    CALLS["fail_all"] = True                                                                             # every stub RESAMPLE flagged failed
+    try:
+        _produce(refit, rp, orig, op, wrap=wrap)
+    finally:
+        CALLS["fail_all"] = False
+    tg = json.load(open(tgt)); rv = os.path.join("reviews", f"_test_target_review_{os.getpid()}.md"); ad = os.path.join("reviews", f"_test_adoption_{os.getpid()}.json")
+    open(os.path.join(T1, rv), "w").write(f"ADOPT row19-numerical-target target={REL.sha_file(tgt)} bank_records={tg['records_sha256']} verdict=FAVOURABLE\n")
+    json.dump(dict(schema=REL.ADOPTION_SCHEMA, target_sha256=REL.sha_file(tgt), bank_manifest_sha256=REL.sha_file(bmp),
+                   bank_binding_sha256=REL.sha_file(os.path.join(bank["storage"]["root"], "bank_binding.json")),
+                   manifests=dict(screen=REL.sha_file(rp), originals=REL.sha_file(op)),
+                   consumer_pins={f: REL.sha_file(os.path.join(T1, f)) for f in REL.CONSUMER_FILES},
+                   review_record=dict(path=rv, sha256=REL.sha_file(os.path.join(T1, rv)))), open(os.path.join(T1, ad), "w"))
+    try:
+        with _Patched():
+            r = REL.release(rp, op, tgt, ad, check_git=False)
+        assert r["status"] == "RELEASED", r.get("reasons")
+        assert "4" in r["failed_originals"] and r["raw_chains"]["4"]["unit_status"].startswith("original failed")
+        B = int(refit["cfg"]["n_boot_refit"])
+        assert r["raw_chains"]["4"]["per_predictor"]["selection"]["n_failed"] == B                       # the restored chain's own counts, not zeros
+        assert len(r["raw_chains"]["4"]["failed_reasons"]) == B
+    finally:
+        for f in (rv, ad):
+            if os.path.exists(os.path.join(T1, f)):
+                os.remove(os.path.join(T1, f))
+
+
+def test_unicode_digit_aliases_are_not_canonical():
+    SVF = _load("row19_screen_verify")
+    assert SVF.canonical_index("rec_000.json") == 0
+    assert SVF.canonical_index("rec_\u0660\u0660\u0660.json") is None                                    # Arabic-Indic zeros
+    assert SVF.canonical_index("rec_\uff10\uff10\uff10.json") is None                                    # full-width zeros
+    assert SVF.canonical_index("rec_000_extra.json") is None and SVF.canonical_index("rec_0000.json") is None
+    assert SVF.REPDIR.match("rep3") and not SVF.REPDIR.match("rep03") and not SVF.REPDIR.match("rep\u0663")
+
+
+def test_the_wrapper_derives_its_proposal_and_checks_the_lineage():
+    bank, bmp, _ = _bank()
+    refit, rp, orig, op = _screen(bmp)
+    assert PG.lineage_problem() == ""
+    rc, out = _call(PG, ["run", "--manifest", rp, "--jobs", "1", "--cores", "24", "--walltime-h", "30", "--", "true"])
+    assert rc == 0, out
+    rc, out = _call(PG, ["run", "--manifest", rp, "--jobs", "200", "--cores", "24", "--walltime-h", "30", "--", "true"])
+    assert rc == 2 and "allocation" in out                                                               # 144,000 derived core-hours refused
+    log = os.path.join(_LIVE, "programme_admissions.jsonl")
+    kinds = [json.loads(l)["kind"] for l in open(log)]
+    assert "admission" in kinds and "refused" in kinds
 
 
 def test_the_programme_count_is_strict():
@@ -410,8 +586,9 @@ def test_the_programme_count_is_strict():
         st = json.load(open(lp)); mut(st["entries"][tok]); json.dump(st, open(lp, "w"))
         assert msg in PG.funding_problem(f, 10.0), msg
         L2 = json.load(open(lp)); L2["entries"][tok] = dict(L2["entries"][tok], state="live", reserved_core_h=720.0, settled_core_h=0.0); json.dump(L2, open(lp, "w"))
-    open(lp, "w").write(open(lp).read().replace('"reserved_core_h": 720.0', '"reserved_core_h": NaN'))
-    assert "non-finite" in PG.funding_problem(f, 10.0)
+    src = open(lp).read(); assert '"reserved_core_h": 720.0' in src                                     # read BEFORE truncating the file
+    open(lp, "w").write(src.replace('"reserved_core_h": 720.0', '"reserved_core_h": NaN'))
+    assert "non-finite NaN" in PG.funding_problem(f, 10.0)
     assert "listed twice" in PG.funding_problem(dict(f, campaigns=f["campaigns"] + [f["campaigns"][0]]), 10.0)
     assert "expected but missing" in PG.funding_problem(dict(f, campaigns=["/nonexistent/campaign"]), 10.0)
     assert "finite positive" in PG.funding_problem(f, float("nan"))

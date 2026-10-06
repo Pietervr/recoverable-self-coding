@@ -96,3 +96,29 @@ absent) and pins the slice manifest from which the historical exclusions are rec
   failure (original reasons, refit n_used / n_failed / reasons) is in the result.
 - **Seeds**: the exclusion list must EQUAL the reconstructed contract (4,000 historical from the pinned slice manifest + 3
   development + 408 bank = 4,411); a truncated or padded list refuses.
+
+## Revision 3 (Codex RSC ee99ee1: R1-R7)
+- **R1** The pilot qualification is checked against job 1's OWN scope (job 1's binding and the bindings of job 1's reps, still
+  the root's bytes); every fresh receipt binds EXACTLY the whole set of started task bindings. Fixture: job 1 adopted, job 2
+  started, job 3 admissible; an omitted or changed later binding refuses.
+- **R2** Every job a receipt summarises is checked against its plan (terminal: state F, scheduler and runner exits 0/75, the
+  plan's exact worker count ended, worker exits only 0/75, finite non-negative memory, integers not booleans); the pilot must
+  show all its workers ended 0. The status view alarms a runner exit outside 0/75, a terminal job without finite memory,
+  a worker without finite wall time, and any status file outside the whole planned job/slot universe.
+- **R3** The verifier runs from the controller-only clone `rsc_screen_ctl` (lineage `deployment`) and stamps its controller
+  generation; a consumer refuses evidence of another generation or with a lineage problem. The full verifier document is
+  saved and copied to the gate, and only a successful copy counts as production. The qualification and receipt name it and
+  its SHA-256; admission re-reads it, checks schema, role, time, manifest and generation, and that its anchor verdict and
+  binding digests equal the summary's. Producer binding digests must equal the local snapshot's.
+- **R4** Budget phases are parsed strictly (finite positive caps, booleans and non-finite constants refused, campaign named);
+  a raise is validated before its pending phase is written; phases are written atomically and durably; an interrupted raise
+  is resumed by repeating the same `--raise-cap` or retired by `--retire-pending --note` (kept in the history); the
+  ledger's cap_history must record the latest phase.
+- **R5** The release reports each dataset's RAW restored chain (per predictor n_used / n_failed, and the failure reasons) also
+  when its original failed; that dataset stays out of both denominators, labelled.
+- **R6** The lineage file is a pinned release consumer file and the release runs the lineage check; the programme wrapper
+  refuses unless it and the controllers are the latest version's bytes, derives its proposal from `--jobs/--cores/--walltime-h`,
+  logs every admission and refusal to programme_admissions.jsonl, and wraps settlements (`settle`) in the same lock. Routing
+  the unchanged bank/shard/slice controllers and settlements through it remains a COOPERATIVE operating procedure.
+- **R7** ASCII-only canonical names (`rec_[0-9]{3}.json` equal to their formatted index, `rep0|rep[1-9][0-9]*`); a duplicate
+  logical coordinate is a conflict.

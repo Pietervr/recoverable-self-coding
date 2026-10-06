@@ -16,6 +16,15 @@ only while holding <toolchain>/programme_admission.lock, after a STRICT fresh re
     t1py chpc/programme_gate.py run --manifest chpc/row19_screen_manifest.json --proposal-core-h 9216 -- <controller command>
         # for the bank, shard and slice controllers (reviewed, unchanged): holds the lock, checks funding with the proposal,
         # runs the controller, releases - so no two admissions anywhere in the programme interleave.
+
+REVISION 3 (Codex RSC ee99ee1, R6 and the operating conditions): the wrapper refuses unless it and the lineage file are the
+latest lineage version's bytes; the proposal is DERIVED from the request - `--jobs N --cores C --walltime-h H` (N x C x H,
+the full filled reservations) - not a free number; every wrapped call is appended to <toolchain>/programme_admissions.jsonl
+with the command, the proposal, the committed count before it and the exit code; `settle -- <row19_ledger settle command>`
+runs a SETTLEMENT inside the same lock and records the committed count before and after, so a settlement that raises a
+reservation to its actual charge is serialized with admissions and visible to the next one. The older bank, shard and slice
+controllers are not modified: routing their admissions and settlements through this wrapper is a COOPERATIVE operating
+procedure, stated as such - not code enforcement inside them.
 """
 import os, sys, json, math, time, fcntl, argparse, contextlib, subprocess
 
@@ -109,10 +118,15 @@ def funding_problem(funding, proposal_core_h):
 def main(argv=None):
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
-    r = sub.add_parser("run"); r.add_argument("--manifest", required=True); r.add_argument("--proposal-core-h", type=float, required=True)
+    r = sub.add_parser("run"); r.add_argument("--manifest", required=True)
+    r.add_argument("--jobs", type=int, required=True); r.add_argument("--cores", type=int, required=True); r.add_argument("--walltime-h", type=float, required=True)
     r.add_argument("rest", nargs=argparse.REMAINDER)
+    st = sub.add_parser("settle"); st.add_argument("--manifest", required=True); st.add_argument("rest", nargs=argparse.REMAINDER)
     c = sub.add_parser("check"); c.add_argument("--manifest", required=True); c.add_argument("--proposal-core-h", type=float, default=1.0)
     a = ap.parse_args(argv)
+    why = lineage_problem()
+    if why:
+        print(f"REFUSED: {why}"); return 2
     man = json.load(open(a.manifest)); funding = programme_funding(man)
     if a.cmd == "check":
         with programme_lock(funding):
@@ -121,11 +135,45 @@ def main(argv=None):
     cmd = a.rest[1:] if a.rest and a.rest[0] == "--" else a.rest
     if not cmd:
         print("say -- <controller command>"); return 2
+    log = os.path.join(os.path.dirname(lock_path(funding)), "programme_admissions.jsonl")
     with programme_lock(funding):
-        why = funding_problem(funding, a.proposal_core_h)
+        before, _ = committed_core_h(funding)
+        if a.cmd == "settle":
+            rc = subprocess.run(cmd).returncode; after, _ = committed_core_h(funding)
+            _log(log, dict(kind="settle", cmd=cmd, committed_before=before, committed_after=after, rc=rc)); return rc
+        if not (a.jobs > 0 and a.cores > 0 and a.walltime_h > 0):
+            print("REFUSED: jobs, cores and walltime must be positive"); return 2
+        proposal = float(a.jobs * a.cores * a.walltime_h)
+        why = funding_problem(funding, proposal)
         if why:
+            _log(log, dict(kind="refused", cmd=cmd, proposal=proposal, committed_before=before, why=why))
             print(f"REFUSED by the programme gate: {why}"); return 2
-        return subprocess.run(cmd).returncode
+        rc = subprocess.run(cmd).returncode; after, _ = committed_core_h(funding)
+        _log(log, dict(kind="admission", cmd=cmd, proposal=proposal, committed_before=before, committed_after=after, rc=rc))
+        if after - before > proposal + 1e-6:
+            print(f"WARNING: the controller committed {after - before:.0f} core-hours, more than the declared {proposal:.0f}; "
+                  f"recorded - every later admission sees the true count")
+        return rc
+
+
+def _log(path, rec):
+    rec["t"] = time.time()
+    with open(path, "a") as fh:
+        fh.write(json.dumps(rec) + "\n"); fh.flush(); os.fsync(fh.fileno())
+
+
+def lineage_problem():
+    """'' when this wrapper and the controllers are the latest lineage version's bytes."""
+    import hashlib
+    here = os.path.dirname(os.path.abspath(__file__)); t1 = os.path.abspath(os.path.join(here, ".."))
+    try:
+        v = json.load(open(os.path.join(here, "row19_screen_controls.json")))["versions"][-1]
+    except Exception as e:
+        return f"the controller lineage is unreadable ({e})"
+    bad = [f for f, h in v["files"].items() if not os.path.exists(os.path.join(t1, f)) or hashlib.sha256(open(os.path.join(t1, f), "rb").read()).hexdigest() != h]
+    if "chpc/programme_gate.py" not in v["files"]:
+        bad.append("chpc/programme_gate.py (not in the lineage)")
+    return f"the controllers {bad} are not lineage version {v['version']}'s bytes" if bad else ""
 
 
 def programme_funding(man):

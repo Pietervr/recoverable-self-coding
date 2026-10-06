@@ -57,6 +57,18 @@ differing, missing, invalid or conflicting, and the bound task bindings EXACTLY 
 (e) the seed domain reconstructs the whole exclusion contract (the historical list from the slice manifest pinned in
 chpc/row19_screen_controls.json, the three development seeds, the 408 bank seeds) and requires it EXACTLY; (f) the controller
 refuses unless its own bytes and its sibling controllers' are the latest version in chpc/row19_screen_controls.json.
+
+REVISION 3 (Codex RSC ee99ee1): R1 the pilot qualification is checked against JOB 1's OWN scope (its job binding and the task
+bindings of its own reps, which must still be the root's), while every fresh receipt must bind EXACTLY the whole current set of
+started task bindings - so job 1's frozen evidence serves every later admission; R2 every job summary a receipt carries is
+validated against its plan (terminal: state F, scheduler and runner exits 0/75, the plan's exact worker count ended, worker
+exits only 0/75, finite non-negative memory, integers that are not booleans), and the pilot summary must show the plan's
+exact worker count all ended 0; R3 the qualification and the receipt name a retained full verifier document in the gate
+whose bytes match the bound digest, whose schema, role, manifest and controller generation (latest, clean lineage) hold,
+and whose anchor verdict and binding digests equal the summary's; R4 budget phases are parsed strictly (finite positive caps,
+non-finite constants refused, booleans refused), a proposal is validated BEFORE its pending phase is published, phases are
+written atomically and durably (temp + fsync + rename + directory fsync), an interrupted raise is RESUMED by repeating the
+same `--raise-cap X` or RETIRED by `--retire-pending --note`, and the ledger's latest cap_history entry must match.
 """
 import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
 
@@ -173,6 +185,41 @@ def identity_problem(man, reps):
     return ""
 
 
+def _strict_load(p):
+    def bad(x):
+        raise ValueError(f"non-finite constant {x}")
+    return json.loads(open(p).read(), parse_constant=bad)
+
+
+def _durable_write(p, obj):
+    tmp = f"{p}.tmp.{os.getpid()}"
+    with open(tmp, "w") as fh:
+        json.dump(obj, fh, indent=1, allow_nan=False); fh.flush(); os.fsync(fh.fileno())
+    os.replace(tmp, p)
+    d = os.open(os.path.dirname(os.path.abspath(p)), os.O_RDONLY)
+    try:
+        os.fsync(d)
+    finally:
+        os.close(d)
+
+
+def _phases(man):
+    """The validated phase list; raises ValueError on anything malformed."""
+    b = _strict_load(_phases_path(man))
+    ph = b.get("phases")
+    if not isinstance(ph, list) or not ph:
+        raise ValueError("no phases")
+    for k, x in enumerate(ph):
+        if not (_num(x.get("cap_core_h")) and x["cap_core_h"] > 0):
+            raise ValueError(f"phase {k}: the cap is not finite and positive")
+        for f in ("pending", "retired"):
+            if f in x and not isinstance(x[f], bool):
+                raise ValueError(f"phase {k}: `{f}` is not a boolean")
+        if k > 0 and x.get("campaign") != man["storage"]["campaign"]:
+            raise ValueError(f"phase {k}: names another campaign")
+    return b
+
+
 def _phases_path(man):
     a = man["budget"]["admission"]
     return a if os.path.isabs(a) else os.path.join(T1, a)
@@ -184,17 +231,26 @@ def cap_problem(man):
     camp = man["storage"]["campaign"]; lp = os.path.join(camp, "budget.json")
     if not os.path.exists(lp):
         return ""
-    b = json.load(open(_phases_path(man))); ph = b["phases"]; cap = float(json.load(open(lp))["cap_core_h"])
-    last = ph[-1]
+    try:
+        b = _phases(man); led = _strict_load(lp)
+    except (ValueError, OSError) as e:
+        return f"the budget phases or the ledger are malformed ({e})"
+    cap = led.get("cap_core_h")
+    if not (_num(cap) and cap > 0):
+        return "the ledger's cap is not finite and positive"
+    live = [x for x in b["phases"] if not x.get("retired")]
+    last = live[-1]
+    hist = led.get("cap_history") or []
     if last.get("pending"):
-        if abs(cap - float(last["cap_core_h"])) < 1e-9:
-            last["pending"] = False; last["reconciled"] = time.time()
-            json.dump(b, open(_phases_path(man), "w"), indent=1)
+        if abs(cap - float(last["cap_core_h"])) < 1e-9 and hist and abs(float(hist[-1].get("new", -1)) - cap) < 1e-9:
+            last["pending"] = False; last["reconciled"] = time.time(); _durable_write(_phases_path(man), b)
             return ""
-        return (f"an interrupted cap amendment to {last['cap_core_h']} is pending while the ledger holds {cap}; "
-                f"finish it with --raise-cap {last['cap_core_h']} or retire the pending phase by hand (recorded)")
+        return (f"an interrupted cap amendment to {last['cap_core_h']} is pending while the ledger holds {cap}; resume it with "
+                f"--raise-cap {last['cap_core_h']} --note ... or retire it with --retire-pending --note ...")
     if abs(cap - float(last["cap_core_h"])) > 1e-9:
         return f"the ledger's cap {cap} is not the latest budget phase's {last['cap_core_h']}"
+    if len(live) > 1 and not (hist and abs(float(hist[-1].get("new", -1)) - cap) < 1e-9):
+        return "the ledger's cap_history does not record the latest phase's raise"
     return ""
 
 
@@ -371,16 +427,65 @@ def anchors_problem(verdict, digest):
     return ""
 
 
-def pilot_summary_problem(rec, n="1"):
-    s = (rec.get("jobs") or {}).get(n)
+def _int(x):
+    return isinstance(x, int) and not isinstance(x, bool)
+
+
+def plan_slots(man, n):
+    p = os.path.join(man["storage"]["root"], "plans", f"job_{n}.json")
+    return len(json.load(open(p))["slots"]) if os.path.exists(p) else None
+
+
+def job_summary_problem(man, n, s, pilot=False):
+    """R2: one job summary against its plan. Queued or running jobs pass; a terminal job must be complete and clean."""
     if not isinstance(s, dict):
-        return f"the receipt carries no job-{n} summary"
-    if s.get("state") != "F" or s.get("exit") not in (0, 75) or s.get("runner_exit") not in (0, 75):
+        return f"job {n}: no summary"
+    if s.get("state") in ("Q", "R", "H", "W", "B"):
+        return "" if not pilot else f"job {n} is not terminal"
+    want = plan_slots(man, n)
+    if s.get("state") != "F" or s.get("exit") not in (0, 75) or s.get("runner_exit") not in (0, 75) or isinstance(s.get("exit"), bool):
         return f"job {n} is not terminal F with scheduler and runner exits 0 or 75"
-    if not (isinstance(s.get("slots"), int) and s.get("ended") == s["slots"] and s.get("exits") == {"0": s["slots"]} and s.get("left") == 0):
+    if not (_int(s.get("slots")) and s["slots"] == want and _int(s.get("ended")) and s["ended"] == want and _int(s.get("left"))):
+        return f"job {n}: the plan's {want} workers did not all end (summary slots {s.get('slots')}, ended {s.get('ended')})"
+    ex = s.get("exits")
+    if not isinstance(ex, dict) or any(k not in ("0", "75") or not _int(v) for k, v in ex.items()) or sum(ex.values()) != want:
+        return f"job {n}: worker exits {ex} are not all 0/75 for the plan's {want} workers"
+    if pilot and (ex != {"0": want} or s["left"] != 0):
         return f"job {n}: not every planned worker ended 0 with nothing left"
-    if not (_num(s.get("mem_kb")) and _num(s.get("max_worker_maxrss"))):
-        return f"job {n}: observed scheduler and worker memory are not finite"
+    if not (_num(s.get("mem_kb")) and s["mem_kb"] >= 0 and _num(s.get("max_worker_maxrss")) and s["max_worker_maxrss"] >= 0):
+        return f"job {n}: observed scheduler and worker memory are not finite and non-negative"
+    return ""
+
+
+def pilot_summary_problem(rec, n="1", man=None):
+    return job_summary_problem(man, n, (rec.get("jobs") or {}).get(n), pilot=True) if man is not None else "no manifest to check the plan"
+
+
+def verifier_problem(man, bound, anchors, role):
+    """R3: the retained full verifier document named by the bound evidence."""
+    name, want = bound.get("verify_file"), bound.get("verify_file_sha256")
+    if not isinstance(name, str) or "/" in name or not isinstance(want, str):
+        return "no retained verifier document is named"
+    p = os.path.join(man["storage"]["root"], "gate", name)
+    if not os.path.exists(p) or sha_file(p) != want:
+        return "the retained verifier document is absent or not the bound bytes"
+    try:
+        v = _strict_load(p)
+    except ValueError as e:
+        return f"the retained verifier document is malformed ({e})"
+    g = v.get("generation") or {}
+    latest = controls()["versions"][-1]["version"]
+    if v.get("schema") != "row19-screen-verify-1" or v.get("role") != role or not _num(v.get("time")):
+        return "the retained verifier document has another schema or role, or no time"
+    if v.get("manifest_sha256") != bound.get("manifest_sha256"):
+        return "the retained verifier document verified another manifest"
+    if g.get("version") != latest or g.get("controls_problem"):
+        return f"the retained verifier document is controller generation {g.get('version')}, not the latest {latest}"
+    if v.get("anchors") != anchors:
+        return "the embedded anchor verdict is not the retained verifier's"
+    prod = {k: (x or {}).get("sha256") for k, x in (v.get("bindings") or {}).items()}
+    if any(prod.get(k) != h for k, h in (bound.get("bindings") or {}).items()):
+        return "the bound task bindings are not the retained verifier's digests"
     return ""
 
 
@@ -406,12 +511,21 @@ def qualification_problem(man, manifest_path, role):
     if not _num(doc.get("time")) or doc["time"] > time.time() + 60:
         return "the qualification's time is not a finite past time", None
     rec = doc.get("receipt") or {}
+    if rec.get("schema") != WATCH_SCHEMA or rec.get("role") != role or not _num(rec.get("time")):
+        return "the qualification's embedded receipt has another schema or role, or no time", None
     if rec.get("alarms") != [] or rec.get("fresh") is not True or rec.get("production") is not True:
         return "the qualification's embedded receipt has alarms, is not fresh or not production", None
-    why = pilot_summary_problem(rec) or anchors_problem(doc.get("anchors"), (doc.get("bound") or {}).get("anchors_sha256"))
+    why = (pilot_summary_problem(rec, man=man) or anchors_problem(doc.get("anchors"), (doc.get("bound") or {}).get("anchors_sha256"))
+           or verifier_problem(man, doc.get("bound") or {}, doc.get("anchors"), role))
     if why:
         return f"the qualification: {why}", None
     want = expected_bound(man, manifest_path, role)
+    if role == "refit":                                                      # R1: job 1's OWN scope, still the root's bytes
+        p1 = json.load(open(os.path.join(man["storage"]["root"], "plans", "job_1.json")))
+        own = {str(int(sl["rep"])) for sl in p1["slots"]}
+        want = dict(want, bindings={k: v for k, v in want["bindings"].items() if k in own})
+        if set(want["bindings"]) != own:
+            return f"the root lacks task bindings of job 1's reps {sorted(own - set(want['bindings']))[:5]}", None
     why = bound_problem(doc.get("bound"), want, ["1"])
     if not why and role == "refit":
         p1 = json.load(open(os.path.join(man["storage"]["root"], "plans", "job_1.json")))
@@ -437,9 +551,16 @@ def receipt_problem(man, manifest_path, role, now=None):
     t = r.get("time")
     if not _num(t) or t > now + 60 or now - t > CEILING_S:
         return f"the newest receipt is not within {CEILING_S:.0f} s"
-    why = anchors_problem(r.get("anchors"), (r.get("bound") or {}).get("anchors_sha256"))
+    why = anchors_problem(r.get("anchors"), (r.get("bound") or {}).get("anchors_sha256")) or verifier_problem(man, r.get("bound") or {}, r.get("anchors"), role)
     if why:
         return f"the newest receipt: {why}"
+    want_jobs = expected_bound(man, manifest_path, role)["jobs"]
+    if sorted((r.get("jobs") or {})) != sorted(want_jobs):
+        return "the newest receipt does not summarise every job of the role"
+    for n, sj in (r.get("jobs") or {}).items():
+        why = job_summary_problem(man, n, sj)
+        if why:
+            return f"the newest receipt: {why}"
     why = bound_problem(r.get("bound"), expected_bound(man, manifest_path, role), "all")
     return f"the newest receipt: {why}" if why else ""
 
@@ -584,6 +705,7 @@ def main(argv=None):
     ap.add_argument("--jobs", type=int, default=None); ap.add_argument("--pilot", action="store_true")
     ap.add_argument("--adopt-review", default=None); ap.add_argument("--max-job-number", type=int, default=None)
     ap.add_argument("--raise-cap", type=float, default=None); ap.add_argument("--note", default=None)
+    ap.add_argument("--retire-pending", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args(argv)
     man = json.load(open(a.manifest)); role = a.role
@@ -596,15 +718,37 @@ def main(argv=None):
         if not a.note or len(a.note.strip()) < 8:
             print("REFUSED: a cap raise needs the owner's ruling as --note"); return 2
         with PG.programme_lock(PG.programme_funding(man)):
-            why = cap_problem(man)
-            if why:
-                print(f"REFUSED: {why}"); return 2
-            bp = _phases_path(man); b = json.load(open(bp))
-            b["phases"].append(dict(cap_core_h=float(a.raise_cap), note=a.note, t=time.time(), campaign=man["storage"]["campaign"], pending=True))
-            json.dump(b, open(bp, "w"), indent=1)
-            new = ledger_for(man).raise_cap(a.raise_cap, a.note)
-            b["phases"][-1]["pending"] = False; json.dump(b, open(bp, "w"), indent=1)
-        print(f"cap raised to {new:.0f} (ledger cap_history and {man['budget']['admission']} committed; commit the budget file)"); return 0
+            new = float(a.raise_cap); bp = _phases_path(man)
+            try:
+                b = _phases(man); cur = float(_strict_load(os.path.join(man["storage"]["campaign"], "budget.json"))["cap_core_h"])
+            except (ValueError, OSError, KeyError) as e:
+                print(f"REFUSED: the phases or the ledger cannot be read ({e})"); return 2
+            live = [x for x in b["phases"] if not x.get("retired")]
+            resume = live[-1].get("pending") and abs(float(live[-1]["cap_core_h"]) - new) < 1e-9
+            if not resume:
+                why = cap_problem(man)
+                if why:
+                    print(f"REFUSED: {why}"); return 2
+                if not (_num(new) and new > cur):
+                    print(f"REFUSED: the new cap {new} is not finite and above the current {cur}"); return 2
+                b["phases"].append(dict(cap_core_h=new, note=a.note, t=time.time(), campaign=man["storage"]["campaign"], pending=True))
+                _durable_write(bp, b)
+            if cur < new:
+                ledger_for(man).raise_cap(new, a.note)
+            b = _phases(man); [x for x in b["phases"] if not x.get("retired")][-1]["pending"] = False; _durable_write(bp, b)
+        print(f"cap {'resumed and ' if resume else ''}raised to {new:.0f} (ledger cap_history and {man['budget']['admission']} committed; commit the budget file)"); return 0
+    if a.retire_pending:
+        if not a.note or len(a.note.strip()) < 8:
+            print("REFUSED: retiring a pending phase needs a --note"); return 2
+        with PG.programme_lock(PG.programme_funding(man)):
+            b = _phases(man); live = [x for x in b["phases"] if not x.get("retired")]
+            if not live[-1].get("pending") or len(live) < 2:
+                print("REFUSED: no pending phase to retire"); return 2
+            cur = float(_strict_load(os.path.join(man["storage"]["campaign"], "budget.json"))["cap_core_h"])
+            if abs(cur - float(live[-1]["cap_core_h"])) < 1e-9:
+                print("REFUSED: the ledger already carries this phase; reconcile it instead"); return 2
+            live[-1].update(retired=True, retired_note=a.note, retired_t=time.time()); _durable_write(_phases_path(man), b)
+        print("pending phase retired (kept in the history)"); return 0
     n_jobs = 1 if a.pilot else a.jobs
     if not n_jobs or n_jobs < 1:
         print("say --pilot or --jobs N"); return 2

@@ -26,7 +26,16 @@ ledger's runner exit both 0 or 75, finite scheduler memory and finite worker mem
 must name its task's declared identity; a status file for a job or slot no plan assigns is an alarm; every rep of a STARTED
 job (scheduler R or terminal) must have a task binding, checked against the plans rather than the files present; the full
 verifier document is saved beside every receipt and copied to the gate; the anchor verdict itself is embedded in the receipt
-and the qualification (not only its digest); the job summary carries timings, peaks and failures."""
+and the qualification (not only its digest); the job summary carries timings, peaks and failures.
+
+REVISION 3 (Codex RSC ee99ee1, R2 and R3): EVERY job, not only job 1: a terminal job must be scheduler state F with scheduler
+and runner exits 0/75 and finite observed scheduler memory; a runner exit outside 0/75 is an alarm whatever the state; every
+ended worker needs finite memory and wall time. The status directory is checked against the WHOLE planned job/slot universe
+(a status of an unplanned job is an alarm). The producer verifier runs from the CONTROLLER clone named in the lineage
+(chpc/row19_screen_controls.json `deployment`), and its document must report the latest controller generation with a clean
+lineage check; the producer's binding digests must equal the local snapshot's (one coherent observation); the full verifier
+document is saved, copied to the gate and only a SUCCESSFUL copy lets the evidence count as production; the receipt and the
+qualification name the verifier file and its SHA-256, and the qualification binds job 1's own tasks only."""
 import os, sys, json, glob, math, time, shutil, hashlib, argparse, subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -60,8 +69,12 @@ def finite_nonneg(x):
     return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x) and x >= 0
 
 
+def controls():
+    return json.load(open(os.path.join(HERE, "row19_screen_controls.json")))
+
+
 def verify_remote(man, role, manifest_rel):
-    clone, tc = man["shard"]["clone"], man["shard"]["toolchain"]
+    clone, tc = controls()["deployment"]["controller_clone"], man["shard"]["toolchain"]
     rc, out, err = sh(["ssh", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", LOGIN,
                        f"cd {clone}/workspace_demo/t1_access && {tc}/t1py chpc/row19_screen_verify.py --manifest {manifest_rel} --role {role}"], timeout=3600)
     if rc != 0:
@@ -72,6 +85,10 @@ def verify_remote(man, role, manifest_rel):
     doc = json.loads(lines[0])
     if doc.get("schema") != "row19-screen-verify-1" or doc.get("role") != role:
         return None, None, "producer-runtime verify has another schema or role"
+    g = doc.get("generation") or {}
+    latest = controls()["versions"][-1]["version"]
+    if g.get("version") != latest or g.get("controls_problem"):
+        return None, None, f"the producer verifier is generation {g.get('version')} ({g.get('controls_problem')}), not the latest {latest}"
     return doc, sha_bytes(lines[0].encode()), ""
 
 
@@ -148,7 +165,7 @@ def reconcile(man, role, verify, obs, ledger, live):
     root = os.path.join(live, "root")
     mem_stop = float(man["pbs"].get("mem_stop_gib", 0) or 0) * 2 ** 30
     mem_req_kb = float(man["pbs"]["mem_gb"]) * 1024 ** 2
-    units = verify.get("units", {}); assigned = set()
+    units = verify.get("units", {}); assigned = set(); expected_status = set()
     for e in sorted((e for e in ledger["entries"].values() if e.get("kind") == KIND[role]), key=lambda e: int(e["rep"])):
         n = int(e["rep"]); pp = os.path.join(root, "plans", f"job_{n}.json")
         jobs[str(n)] = dict(job_id=e.get("job_id"), token=e.get("token"), plan_sha256=sha_file(pp) if os.path.exists(pp) else None)
@@ -161,18 +178,19 @@ def reconcile(man, role, verify, obs, ledger, live):
                      slots=len(plan["slots"]), ended=0, exits={}, new=0, resumed=0, left=0, max_worker_maxrss=None, max_wall_s=None,
                      failed_units=[])
         started = state == "R" or terminal
-        expected_status = {f"job{j}.slot{sl['slot']}.json" for sl in plan["slots"]}
-        for sp in glob.glob(os.path.join(root, "status", f"job{j}.slot*.json")):
-            if os.path.basename(sp) not in expected_status:
-                alarms.append(f"{role} job {n}: status {os.path.basename(sp)} that no plan slot assigns")
+        expected_status.update(f"job{j}.slot{sl['slot']}.json" for sl in plan["slots"])
         if not j:
             alarms.append(f"{role} job {n}: reserved but not bound to a PBS id")
         if o.get("mem_kb") is not None and o["mem_kb"] > 0.9 * mem_req_kb:
             alarms.append(f"{role} job {n}: scheduler memory above 90 % of the request")
-        if terminal and o.get("exit") not in (0, 75):
-            alarms.append(f"{role} job {n} ({j}): scheduler state {state}, exit {o.get('exit')}")
+        if terminal and (state != "F" or o.get("exit") not in (0, 75)):
+            alarms.append(f"{role} job {n} ({j}): terminal as state {state}, scheduler exit {o.get('exit')} (F with 0/75 required)")
         if terminal and e.get("runner_exit") is None:
             alarms.append(f"{role} job {n} ({j}): terminal but no runner end in the ledger")
+        if e.get("runner_exit") not in (None, 0, 75):
+            alarms.append(f"{role} job {n} ({j}): runner exit {e.get('runner_exit')}")
+        if terminal and not finite_nonneg(o.get("mem_kb")):
+            alarms.append(f"{role} job {n} ({j}): no finite observed scheduler memory")
         for sl in plan["slots"]:
             want = ([f"{int(sl['rep'])}/{int(i)}" for i in sl["indices"]] if role == "refit" else [str(int(r)) for r in sl["reps"]])
             assigned.update(want)
@@ -191,6 +209,8 @@ def reconcile(man, role, verify, obs, ledger, live):
                 alarms.append(f"{role} job {n} slot {sl['slot']}: worker memory is not finite")
             if finite_nonneg(st.get("wall_s")):
                 s_sum["max_wall_s"] = max(s_sum["max_wall_s"] or 0, st["wall_s"])
+            else:
+                alarms.append(f"{role} job {n} slot {sl['slot']}: worker wall time is not finite")
             if role == "refit":
                 if st.get("rep") != int(sl["rep"]) or st.get("indices") != [int(i) for i in sl["indices"]]:
                     alarms.append(f"{role} job {n} slot {sl['slot']}: status assignment is not the plan's")
@@ -229,6 +249,9 @@ def reconcile(man, role, verify, obs, ledger, live):
             if missing:
                 alarms.append(f"{role} job {n}: started, but reps {missing[:5]} have no task binding")
         summary[str(n)] = s_sum
+    for sp in glob.glob(os.path.join(root, "status", "*")):
+        if os.path.basename(sp) not in expected_status:
+            alarms.append(f"{role}: status {os.path.basename(sp)!r} that no planned job and slot assigns")
     for u, v in units.items():
         if u not in assigned:
             alarms.append(f"{role} unit {u}: evidence no plan assigns (foreign)")
@@ -284,17 +307,25 @@ def main(argv=None):
     for x in alarms:
         print("   -", x)
     bindings = {os.path.basename(p)[5:-5]: sha_file(p) for p in sorted(glob.glob(os.path.join(live, "root", "task_*.json")))}
+    produced = {k: (v or {}).get("sha256") for k, v in (verify.get("bindings") or {}).items()}
+    if role == "refit" and produced != bindings:
+        alarms.append("the producer's task-binding digests are not the local snapshot's (not one coherent observation; recollect)")
     bound = dict(manifest_sha256=sha_file(a.manifest), root=man["storage"]["root"], campaign=man["storage"]["campaign"],
                  code=dict(man["code"]["files"]), wrapper_sha256=man.get("environment", {}).get("wrapper_sha256"), jobs=jobs,
                  bindings=bindings, anchors_sha256=sha_bytes(json.dumps(verify.get("anchors"), sort_keys=True).encode()), verify_sha256=vsha)
     receipt = dict(schema=WATCH_SCHEMA, role=role, time=now, fresh=fresh, production=production, alarms=alarms, bound=bound, jobs=summary,
-                   anchors=verify.get("anchors"))
+                   anchors=verify.get("anchors"), plan_slots={k: v["slots"] for k, v in summary.items()})
     os.makedirs(RECEIPTS, exist_ok=True)
     stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(now))
     vp = os.path.join(RECEIPTS, f"verify_{role}_{stamp}.json")
     json.dump(verify, open(vp, "w"), sort_keys=True)
+    vsha_saved = sha_file(vp)
     if production:
-        sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", vp, f"{HOST}:{man['storage']['root']}/gate/{os.path.basename(vp)}"])
+        rc, _, err = sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", vp, f"{HOST}:{man['storage']['root']}/gate/{os.path.basename(vp)}"])
+        if rc != 0:
+            alarms.append(f"the full verifier document could not be retained in the gate (rc {rc}); this is not production evidence")
+            production = False; receipt.update(production=False, alarms=alarms)
+    bound["verify_file"] = os.path.basename(vp); bound["verify_file_sha256"] = vsha_saved
     if a.publish_receipt or a.qualify is not None:
         rp = os.path.join(RECEIPTS, f"watch_{role}_{stamp}.json")
         json.dump(receipt, open(rp, "w"), indent=1, allow_nan=False)
@@ -328,7 +359,10 @@ def main(argv=None):
         if why:
             print(f"\n  NOT QUALIFIED ({role} job {n}):"); [print("   -", w) for w in why]; return 1
         qp = os.path.join(RECEIPTS, f"qualified_{role}_job{n}.json")
-        json.dump(dict(schema=QUAL_SCHEMA, role=role, qualified_job=int(n), by="R052", time=now, production=True, bound=bound, receipt=receipt,
+        p1 = json.load(open(os.path.join(live, "root", "plans", f"job_{n}.json")))
+        reps1 = {str(sl["rep"]) for sl in p1["slots"]} if role == "refit" else set()
+        qbound = dict(bound, jobs={n: jobs[n]}, bindings={k: v for k, v in bindings.items() if k in reps1})
+        json.dump(dict(schema=QUAL_SCHEMA, role=role, qualified_job=int(n), by="R052", time=now, production=True, bound=qbound, receipt=receipt,
                        anchors=verify.get("anchors"), verify_file=os.path.basename(vp)),
                   open(qp, "w"), indent=1, allow_nan=False)
         rc, _, err = sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", qp, f"{HOST}:{man['storage']['root']}/gate/qualified_{role}_job{n}.json"])

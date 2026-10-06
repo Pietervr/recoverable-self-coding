@@ -19,13 +19,39 @@ REVISION 2 (Codex RSC a1ce224): only CANONICAL file names count (rec_<iii>.json 
 directory - rec_000_extra.json beside rec_000.json - is reported, never parsed into an index); two valid sequential records
 for one index that differ are a CONFLICT (reported; identical duplicates are harmless); every index the shard root and the
 sequential chain both hold is compared, and index 0 is required for all three anchors.
+
+REVISION 3 (Codex RSC ee99ee1, R3 and R7): file names are ASCII only - `rec_[0-9]{3}.json` and `rep[1-9][0-9]*|rep0` - and must
+equal the formatted name of the coordinate they parse to; two files for one logical (rep, index) are a conflict; the document
+carries its CONTROLLER GENERATION (the lineage version this verifier's bytes belong to, its own SHA-256, the controls file's
+SHA-256 and the lineage check's verdict), so a consumer can refuse evidence produced by another generation.
 """
 import os
 os.environ["NPROC"] = "1"; os.environ["OMP_NUM_THREADS"] = "1"; os.environ["MKL_NUM_THREADS"] = "1"; os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["JAX_PLATFORMS"] = "cpu"
 import sys, json, math, glob, hashlib, argparse, time, re
 
-CANON = re.compile(r"^rec_(\d{3})\.json$")
+CANON = re.compile(r"^rec_([0-9]{3})\.json$", re.ASCII)
+REPDIR = re.compile(r"^rep(0|[1-9][0-9]*)$", re.ASCII)
+
+
+def canonical_index(name):
+    """The index of an exactly formatted ASCII record name, else None."""
+    m = CANON.match(name)
+    return int(m.group(1)) if m and name == f"rec_{int(m.group(1)):03d}.json" else None
+
+
+def generation():
+    """The controller generation of THIS verifier: the lineage version whose files include these bytes."""
+    cp = os.path.join(HERE, "row19_screen_controls.json")
+    me = sha_file(os.path.abspath(__file__))
+    try:
+        ctl = json.load(open(cp)); latest = ctl["versions"][-1]
+        mine = [v["version"] for v in ctl["versions"] if v["files"].get("chpc/row19_screen_verify.py") == me]
+        bad = [f for f, h in latest["files"].items() if not os.path.exists(os.path.join(T1, f)) or sha_file(os.path.join(T1, f)) != h]
+        return dict(verify_sha256=me, controls_sha256=sha_file(cp), version=(mine[-1] if mine else None), latest=latest["version"],
+                    controls_problem=(f"controllers {bad} are not version {latest['version']}" if bad else ""))
+    except Exception as e:
+        return dict(verify_sha256=me, controls_sha256=None, version=None, latest=None, controls_problem=f"lineage unreadable: {e}")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = os.path.abspath(os.path.join(HERE, ".."))
@@ -111,10 +137,11 @@ def anchors(man):
                 seq[i] = d
         shard = {}
         for p in glob.glob(os.path.join(sroot, "records", f"rep{int(r)}", "*")):
-            m = CANON.match(os.path.basename(p))
-            if not m:
-                e["invalid"].append(f"non-canonical file {os.path.basename(p)}"); continue
-            i = int(m.group(1))
+            i = canonical_index(os.path.basename(p))
+            if i is None:
+                e["invalid"].append(f"non-canonical file {os.path.basename(p)!r}"); continue
+            if i in shard:
+                e["conflict"].append(i); continue
             try:
                 shard[i] = SH.read_record(p, t, i)
             except ValueError as ex:
@@ -144,16 +171,18 @@ def main(argv=None):
             tasks[r] = SH.task(man, r)
         return tasks[r]
     if a.role == "refit":
-        for d in sorted(glob.glob(os.path.join(root, "records", "rep*"))):
-            rs = os.path.basename(d)[3:]
-            if not rs.isdigit() or int(rs) not in reps:
-                units[f"{rs}/?"] = dict(record=dict(ok=False, reason="undeclared rep")); continue
-            r = int(rs); t = task(r)
+        seen_reps = set()
+        for d in sorted(glob.glob(os.path.join(root, "records", "*"))):
+            mrep = REPDIR.match(os.path.basename(d))
+            rs = mrep.group(1) if mrep else None
+            if rs is None or int(rs) not in reps or int(rs) in seen_reps:
+                units[f"?{os.path.basename(d)!r}"] = dict(record=dict(ok=False, reason="undeclared, aliased or duplicated rep directory")); continue
+            r = int(rs); seen_reps.add(r); t = task(r)
             for p in sorted(glob.glob(os.path.join(d, "*"))):
-                mm = CANON.match(os.path.basename(p))
-                if not mm:
-                    units[f"{r}/?{os.path.basename(p)}"] = dict(record=dict(ok=False, reason="non-canonical file name")); continue
-                i = int(mm.group(1)); u = {}
+                i = canonical_index(os.path.basename(p))
+                if i is None or f"{r}/{i}" in units:
+                    units[f"{r}/?{os.path.basename(p)!r}"] = dict(record=dict(ok=False, reason="non-canonical or duplicated file name")); continue
+                u = {}
                 try:
                     rec = SH.read_record(p, t, i); u["record"] = dict(ok=True, sha=rec["sha"], failed=rec["failed"])
                 except ValueError as ex:
@@ -199,6 +228,7 @@ def main(argv=None):
                 u["timing"] = None
             units[str(r)] = u
     doc = dict(schema=VERIFY_SCHEMA, role=a.role, time=time.time(), manifest_sha256=msha, environment_bad=bad_env, code_bad=bad_code,
+               generation=generation(),
                units=units, bindings=bindings, anchors=anchors(man))
     print(json.dumps(doc, sort_keys=True, allow_nan=False))
     return 0
