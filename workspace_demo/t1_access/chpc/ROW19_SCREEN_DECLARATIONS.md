@@ -153,3 +153,12 @@ absent) and pins the slice manifest from which the historical exclusions are rec
   Fixtures: an unexpected lower predecessor (60,000 -> 70,000 out of protocol) refuses both resume and retirement; a matching
   pending cap without its history entry refuses; the ordinary pre-ledger recovery still succeeds.
 - The wrapper's docstring example is corrected to `--jobs/--cores/--walltime-h`; its declared limits stay cooperative.
+
+## Revision 6 (Codex RSC 74dae6d: the C2 and C4 remainders)
+- **C2** A unit counts only when its coordinate IS in the job's plan and its timing slot is an integer equal to the plan's
+  slot (an unplanned coordinate with a null slot no longer passes as None == None); a terminal job's summary must partition its
+  plan exactly (new + resumed + left = the planned units) and at least new + resumed of its planned units must carry a valid
+  record with valid timing. Fixtures: unplanned 99/0 with slot null; left 3 of a 24-unit plan; resumed 2 without records.
+- **C4** The automatic reconciliation in cap_problem uses the CLI's exact applied certificate (cap = pending, latest history
+  new = pending AND old = the preceding committed phase). Fixtures: 60 -> 70 -> 90 against committed 60 / pending 90 stays
+  pending and refuses; an exact 60 -> 90 reconciles.

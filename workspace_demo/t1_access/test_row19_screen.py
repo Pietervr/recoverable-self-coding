@@ -516,6 +516,13 @@ def test_later_admission_binds_only_started_tasks_and_refuses_stale_or_unadopted
         foreign = copy.deepcopy(u2); kf = moved[0]; uf = foreign.pop(kf); foreign["99/0"] = uf             # an unplanned coordinate, same count
         r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": j2}, units=foreign)
         assert "invalid, unplanned" in SA.review_problem(refit, rp, "refit", [3])
+        nul = copy.deepcopy(u2); un = nul.pop(kf); un["timing"]["slot"] = None; nul["99/0"] = un            # unplanned AND a null slot (None == None)
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": j2}, units=nul)
+        assert "invalid, unplanned" in SA.review_problem(refit, rp, "refit", [3])
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(j2, left=3)}, units=u2)
+        assert "not the plan's 24 units" in SA.review_problem(refit, rp, "refit", [3])                     # the summary must partition the plan
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(j2, resumed=2, left=2)}, units=u2)
+        assert "the summary claims 22 done" in SA.review_problem(refit, rp, "refit", [3])                  # resumed units must exist as valid records
         for bad in (dict(j2, runner_exit=False), dict(j2, exits={"0": 25, "75": -1}), dict(j2, left=-1)):
             r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": bad}, units=u2)
             assert "job 2" in SA.review_problem(refit, rp, "refit", [3]), bad                             # strict typing
@@ -783,3 +790,21 @@ def test_a_settled_job_without_a_runner_end_invalidates_a_running_receipt():
         SA.tracked_unmodified = keep_t
         if os.path.exists(os.path.join(T1, rv)):
             os.remove(os.path.join(T1, rv))
+
+
+def test_the_automatic_reconciliation_needs_the_exact_applied_certificate():
+    bank, bmp, _ = _bank()
+    refit, rp, orig, op = _screen(bmp)
+    SA.ledger_for(refit).reserve("shard", 1, 24, 108000.0, refit["storage"]["root"])
+    bp = refit["budget"]["admission"]; camp = refit["storage"]["campaign"]
+    b = json.load(open(bp)); b["phases"].append(dict(cap_core_h=90000.0, note="owner raise", pending=True, campaign=camp)); json.dump(b, open(bp, "w"))
+    SA.ledger_for(refit).raise_cap(70000.0, "out of protocol step one")
+    SA.ledger_for(refit).raise_cap(90000.0, "out of protocol step two")                                    # cap and latest new match the pending 90,000
+    assert SA.cap_problem(refit) != "" and json.load(open(bp))["phases"][-1]["pending"] is True            # but old = 70,000, not the committed 60,000
+    bank2, bmp2, _ = _bank()
+    refit2, rp2, _, _ = _screen(bmp2)
+    SA.ledger_for(refit2).reserve("shard", 1, 24, 108000.0, refit2["storage"]["root"])
+    bp2 = refit2["budget"]["admission"]; camp2 = refit2["storage"]["campaign"]
+    b = json.load(open(bp2)); b["phases"].append(dict(cap_core_h=90000.0, note="owner raise", pending=True, campaign=camp2)); json.dump(b, open(bp2, "w"))
+    SA.ledger_for(refit2).raise_cap(90000.0, "the interrupted protocol step that did reach the ledger")
+    assert SA.cap_problem(refit2) == "" and json.load(open(bp2))["phases"][-1]["pending"] is False         # the exact applied raise reconciles

@@ -90,6 +90,12 @@ be the job's bound id; C4 a pending raise is applied only when the ledger still 
 and its latest cap_history entry or none for the first phase), or is reconciled only when the ledger already shows exactly that
 raise (cap = pending, latest history old = preceding, new = pending); a pending phase is retired only when the ledger still
 certifies the preceding phase; anything else refuses and changes nothing.
+
+REVISION 6 (Codex RSC 74dae6d): C2 a unit counts only when its coordinate IS in the job's plan (explicit membership) and its timing
+slot is an integer equal to the plan's slot; a terminal job's summary must partition its plan exactly (new + resumed + left =
+the planned units) and every planned unit that is not left must have a valid record with valid timing; C4 the automatic
+reconciliation in cap_problem uses the same exact applied-pending certificate as the CLI (cap = pending, latest history
+new = pending AND old = the preceding committed phase); anything else refuses.
 """
 import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
 
@@ -275,7 +281,7 @@ def cap_problem(man):
     last = live[-1]
     hist = led.get("cap_history") or []
     if last.get("pending"):
-        if abs(cap - float(last["cap_core_h"])) < 1e-9 and hist and abs(float(hist[-1].get("new", -1)) - cap) < 1e-9:
+        if abs(cap - float(last["cap_core_h"])) < 1e-9 and predecessor_problem(man, live, applied_ok=True) == "":
             last["pending"] = False; last["reconciled"] = time.time(); _durable_write(_phases_path(man), b)
             return ""
         return (f"an interrupted cap amendment to {last['cap_core_h']} is pending while the ledger holds {cap}; resume it with "
@@ -549,13 +555,19 @@ def units_problem(man, v, rec, pilot_job=None):
             return f"job {n}: the summary names PBS id {jid}, the ledger binds {bound_id.get(str(n))}"
         if (sj or {}).get("state") in TERMINAL_STATES:
             slot_of = _plan_slot_of(man, n)
-            good = [k for k, u in units.items() if (u.get("record") or {}).get("ok") and (u.get("timing") or {}).get("ok") is True
-                    and (u.get("timing") or {}).get("job") == jid and slot_of.get(k) == (u.get("timing") or {}).get("slot")]
+            good = [k for k, u in units.items() if k in slot_of and (u.get("record") or {}).get("ok") and (u.get("timing") or {}).get("ok") is True
+                    and (u.get("timing") or {}).get("job") == jid and _int((u.get("timing") or {}).get("slot"))
+                    and slot_of[k] == (u.get("timing") or {}).get("slot")]
             named = [k for k, u in units.items() if (u.get("timing") or {}).get("job") == jid]
             if len(named) != len(good):
                 return f"job {n}: {len(named) - len(good)} unit(s) naming it are invalid, unplanned for it, or in another slot"
             if len(good) != sj.get("new"):
                 return f"job {n}: {len(good)} valid unit(s) name it in the retained verifier, the summary claims {sj.get('new')} new"
+            if not (_int(sj.get("resumed")) and _int(sj.get("left")) and sj["new"] + sj["resumed"] + sj["left"] == len(slot_of)):
+                return f"job {n}: new + resumed + left is not the plan's {len(slot_of)} units"
+            done = [k for k in slot_of if (units.get(k, {}).get("record") or {}).get("ok") and (units.get(k, {}).get("timing") or {}).get("ok") is True]
+            if len(done) < sj["new"] + sj["resumed"]:
+                return f"job {n}: only {len(done)} of its planned units have a valid record and timing, the summary claims {sj['new'] + sj['resumed']} done"
     if pilot_job is not None:
         p = json.load(open(os.path.join(man["storage"]["root"], "plans", f"job_{pilot_job}.json")))
         jid = rec["jobs"][str(pilot_job)].get("job_id")
