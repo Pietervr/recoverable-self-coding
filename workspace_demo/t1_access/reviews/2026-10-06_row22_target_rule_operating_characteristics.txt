@@ -1,0 +1,6 @@
+n = 408, 2000 simulated banks per case; rules {'level': 0.99, 'max_unusable_fraction': 0.01, 'max_halfwidth': 0.1, 'trim_fraction': 0.005, 'stability_z': 3.0, 'primary': {'predictor': 'selection', 'band': 'ws'}}
+  normal                           tail 0.000  precision 0.000  stability 0.003  unusable 0.000  any 0.003
+  t(5) scaled to SD 0.36           tail 0.000  precision 0.000  stability 0.002  unusable 0.000  any 0.002
+  t(3) scaled to SD 0.36           tail 0.003  precision 0.004  stability 0.002  unusable 0.000  any 0.005
+  normal + one dataset at -55      tail 1.000  precision 1.000  stability 0.000  unusable 0.000  any 1.000
+  normal + one dataset at -2650    tail 1.000  precision 1.000  stability 0.000  unusable 0.000  any 1.000

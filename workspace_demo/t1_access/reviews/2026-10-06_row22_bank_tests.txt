@@ -1,0 +1,76 @@
+run 2026-10-06T20:38:59Z
+=== test_row22_bank
+ok    test_the_bank_record_is_the_slice_runners_original_bit_for_bit (0.0s)
+ok    test_worker_publishes_once_never_recomputes_and_holds_on_a_foreign_file (0.0s)
+ok    test_stop_deadline_and_seed_gate (0.0s)
+ok    test_evidence_without_binding_holds_and_job_start_end_use_the_bank_kind (0.0s)
+ok    test_planner_and_gate (0.0s)
+ok    test_target_rules (0.0s)
+ok    test_freeze_and_evaluator (0.0s)
+7 of 7 passed
+=== test_row19_slice
+ok    test_environment_and_code_gates_hold_before_anything (0.0s)
+ok    test_task_domain_is_enforced_before_reservation_or_ownership (0.0s)
+ok    test_reservation_binds_the_filled_request_and_valid_states (0.0s)
+ok    test_ledger_domains_states_and_terminal_settlement (0.2s)
+ok    test_lossless_original_cache_every_leaf_and_each_validator (0.0s)
+ok    test_resume_aggregates_without_buying_a_fit_and_keeps_the_companion (0.0s)
+ok    test_second_owner_is_refused_before_the_original_phase (0.0s)
+ok    test_interrupted_run_advances_the_watermark_and_rollback_is_refused (0.0s)
+ok    test_concurrent_reps_keep_every_task_index_entry_and_a_lost_binding_still_holds (0.0s)
+ok    test_missing_binding_beside_prior_evidence_holds (0.0s)
+ok    test_missing_original_beside_committed_records_holds_unless_authorized (0.0s)
+ok    test_task_binding_mismatch_holds (0.0s)
+ok    test_until_binds_the_control_target_on_fresh_and_resumed_runs (0.0s)
+ok    test_stop_before_the_original_buys_nothing_and_acks_the_current_request (0.0s)
+ok    test_stop_and_memory_at_the_last_fit_aggregation_and_no_work_under_one_binding (0.1s)
+ok    test_memory_stop_at_admission_buys_nothing (0.0s)
+ok    test_deadline_exit_is_resumable_and_c2_has_no_cooperative_deadline (0.0s)
+17 of 17 passed
+=== test_row19_watch
+ok    test_progress_from_the_complete_contract_and_the_cache_is_never_fresh (0.0s)
+ok    test_restored_record_without_timing_still_alarms_on_a_stalled_new_job (0.0s)
+ok    test_terminal_evidence_is_attributed_and_c2_is_exempt (0.1s)
+ok    test_expected_jobs_held_exits_and_stop_ack (0.0s)
+ok    test_missing_ledger_first_record_timeout_and_unordered_range (0.0s)
+5 of 5 passed
+=== test_row19_control_compare
+ok    test_produced_control_agrees_and_qualifies (0.1s)
+ok    test_edited_statistic_is_a_checksum_failure_then_a_parity_difference (0.0s)
+ok    test_record_negatives_are_refused (0.0s)
+ok    test_foreign_complete_target_and_status_binding_are_refused (0.0s)
+ok    test_nonterminal_held_breached_or_unbound_statuses_are_not_qualified (0.0s)
+ok    test_interruption_negatives_are_non_qualification (0.0s)
+ok    test_root_token_and_checkpoint_bindings_are_required (0.0s)
+ok    test_the_opened_files_are_bound_to_their_roles (0.0s)
+ok    test_producer_snapshot_is_verified_and_a_distinct_consumer_reconstructs (0.1s)
+ok    test_c1_that_resumed_is_not_qualified (0.0s)
+ok    test_identically_failed_chains_agree_but_do_not_qualify (0.0s)
+11 of 11 passed
+=== test_row19_oracle
+ok    test_a_genuine_local_mismatch_is_established_only_by_the_producers_oracle (0.0s)
+ok    test_an_oracle_beside_a_local_match_is_not_consulted (0.0s)
+ok    test_every_other_oracle_cannot_supply_the_fallback (0.0s)
+ok    test_the_generator_writes_unusable_entries_for_bindings_it_cannot_establish (0.0s)
+ok    test_the_comparator_establishes_a_perturbed_control_through_the_oracle (0.0s)
+5 of 5 passed
+=== test_row19_shard
+ok    test_the_copied_source_of_one_is_the_pinned_one (0.0s)
+ok    test_shard_records_are_the_sequential_records_and_form_a_sequential_checkpoint (0.0s)
+ok    test_resume_skips_valid_records_and_holds_on_any_other_file (0.0s)
+ok    test_deadline_stop_second_writer_and_a_fit_exception (0.0s)
+ok    test_the_memory_stop_before_after_and_at_the_terminal_check (0.0s)
+ok    test_identity_rep_index_and_binding_guards (0.0s)
+ok    test_job_start_and_end_under_a_shard_reservation (0.0s)
+ok    test_the_planner_validates_evidence_and_the_gate_is_enforced (0.0s)
+ok    test_the_status_view_fails_closed_and_qualifies_only_on_observed_parity (0.1s)
+ok    test_the_later_gate_is_bound_to_this_pilot_and_needs_the_adopted_review (0.1s)
+ok    test_the_slot_reconciliation_is_exact_and_timing_is_traced_to_its_plan (0.3s)
+11 of 11 passed
+=== test_row19_recycle
+ok    test_repeated_single_resample_calls_under_one_job_match_one_chain (0.1s)
+ok    test_the_template_loop_recycles_and_stops_where_declared (2.4s)
+ok    test_a_logger_or_capture_failure_stops_the_loop_and_survives_into_the_job_final_line (2.9s)
+ok    test_the_watch_separates_a_recycled_process_end_from_the_job_end (0.0s)
+ok    test_the_jobs_own_final_line_ends_it_whatever_pbs_shows (0.0s)
+5 of 5 passed
