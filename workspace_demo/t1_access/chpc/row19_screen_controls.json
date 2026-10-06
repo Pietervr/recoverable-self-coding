@@ -73,7 +73,7 @@
   },
   {
    "version": 5,
-   "commit": "see the commit that adds this entry",
+   "commit": "a280b9f",
    "reviewed": "pending Codex",
    "files": {
     "chpc/row19_screen_admit.py": "800c172c0a1785556728ec18f214533d14a026d122328c0ed3bfe46681caeec6",
