@@ -139,3 +139,17 @@ absent) and pins the slice manifest from which the historical exclusions are rec
   list) refuses with the code untouched.
 - **C4** A resumed raise reports success only after the ledger's cap AND its latest cap_history entry certify the phase; a
   ledger above the pending phase, or a cap without its history entry, refuses and leaves the phase pending.
+
+## Revision 5 (Codex RSC f40991e: the C1, C2 and C4 remainders)
+- **C1** A receipt that calls a job queued or running is refused also when the ledger now shows that job SETTLED (a job killed
+  and settled from accounting has no runner end). Fixture: an R receipt, then a settlement without runner end, refused.
+- **C2** A unit counts toward a summary only with a valid record AND `timing.ok` true, with a coordinate in THAT job's plan and
+  that plan's slot; any unit naming the job that fails this refuses; each summary's PBS id must be the ledger's bound id.
+  Fixtures: timing.ok false with correct names; a job-2 summary naming P1; two units in a wrong slot; an unplanned coordinate
+  with unchanged totals - all refused.
+- **C4** A pending raise is applied only when the ledger still certifies the preceding committed phase (its cap, and its latest
+  history entry or none for the first phase), or reconciled only when the ledger shows exactly that raise (old = predecessor,
+  new = pending); retirement only when the ledger still certifies the predecessor; anything else refuses and changes nothing.
+  Fixtures: an unexpected lower predecessor (60,000 -> 70,000 out of protocol) refuses both resume and retirement; a matching
+  pending cap without its history entry refuses; the ordinary pre-ledger recovery still succeeds.
+- The wrapper's docstring example is corrected to `--jobs/--cores/--walltime-h`; its declared limits stay cooperative.

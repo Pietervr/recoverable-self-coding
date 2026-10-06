@@ -13,7 +13,10 @@ only while holding <toolchain>/programme_admission.lock, after a STRICT fresh re
 
     with programme_lock(funding):            # in Python controllers (row19_screen_admit)
         committed, detail = committed_core_h(funding) ...
-    t1py chpc/programme_gate.py run --manifest chpc/row19_screen_manifest.json --proposal-core-h 9216 -- <controller command>
+    t1py chpc/programme_gate.py run --manifest chpc/row19_screen_manifest.json --jobs 8 --cores 24 --walltime-h 48 -- <controller command>
+        # (revision 3+: the proposal is derived from --jobs x --cores x --walltime-h; it must describe the child's FULL filled
+        # requests truthfully - a cooperative condition; refusals after the lineage and funding checks are logged, earlier
+        # parser/lineage refusals print but are not logged)
         # for the bank, shard and slice controllers (reviewed, unchanged): holds the lock, checks funding with the proposal,
         # runs the controller, releases - so no two admissions anywhere in the programme interleave.
 

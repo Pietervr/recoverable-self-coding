@@ -473,14 +473,14 @@ def test_later_admission_binds_only_started_tasks_and_refuses_stale_or_unadopted
         for sl in jobs[1]["slots"]:
             open(os.path.join(root, f"task_{sl['rep']}.json"), "w").write(json.dumps({"binding": {"rep": sl["rep"]}}))
         assert SA.qualification_problem(refit, rp, "refit")[0] == ""                                       # job 1's own scope is unchanged
-        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(_summary(), state="R")})
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(_summary(), state="R", job_id="P2")})
         assert SA.review_problem(refit, rp, "refit", [3]) == ""                                            # job 3 admissible
         want_all = SA.expected_bound(refit, rp, "refit")
         omitted = {k: v for k, v in want_all["bindings"].items() if k != "40"}
-        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(_summary(), state="R")}, bindings=omitted, verify_bindings=omitted)
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(_summary(), state="R", job_id="P2")}, bindings=omitted, verify_bindings=omitted)
         assert "not exactly the root's" in SA.review_problem(refit, rp, "refit", [3])                      # an omitted later binding refuses
         open(os.path.join(root, "task_40.json"), "w").write("{\"changed\": 1}")
-        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(_summary(), state="R")}, verify_bindings=want_all["bindings"])
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(_summary(), state="R", job_id="P2")}, verify_bindings=want_all["bindings"])
         assert "retained verifier's digests" in SA.review_problem(refit, rp, "refit", [3])                 # a changed binding refuses
         open(os.path.join(root, "task_40.json"), "w").write(json.dumps({"binding": {"rep": 40}}))
         # R2: a terminal follow-on job with a bad runner exit or no memory refuses
@@ -489,7 +489,7 @@ def test_later_admission_binds_only_started_tasks_and_refuses_stale_or_unadopted
             assert "job 2" in SA.review_problem(refit, rp, "refit", [3]), bad
         r, doc = _receipt(refit, rp, root, {"1": _summary()})
         assert "every job" in SA.review_problem(refit, rp, "refit", [3])                                  # a receipt must cover every job
-        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(_summary(), state="R")})
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(_summary(), state="R", job_id="P2")})
         assert SA.review_problem(refit, rp, "refit", [3]) == ""
         L.runner_end(tok2, 10.0, 4)                                                                       # C1: job 2 fails after the receipt saw it R
         assert "has ended" in SA.review_problem(refit, rp, "refit", [3])
@@ -503,6 +503,19 @@ def test_later_admission_binds_only_started_tasks_and_refuses_stale_or_unadopted
         assert SA.review_problem(refit, rp, "refit", [3]) == ""                                            # a deadline stop with work left is legitimate
         r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(j2, new=22)}, units=u2)
         assert "summary claims 22" in SA.review_problem(refit, rp, "refit", [3])                           # units must agree with the summary
+        bad_t = copy.deepcopy(u2); k0 = next(k for k, u in bad_t.items() if u["timing"]["job"] == "P2"); bad_t[k0]["timing"]["ok"] = False
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": j2}, units=bad_t)
+        assert "invalid, unplanned" in SA.review_problem(refit, rp, "refit", [3])                         # C2: timing.ok is honoured
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(j2, job_id="P1")}, units=u2)
+        assert "names PBS id P1" in SA.review_problem(refit, rp, "refit", [3])                             # C2: the summary's id is the bound one
+        wrong = copy.deepcopy(u2); moved = [k for k, u in wrong.items() if u["timing"]["job"] == "P2"][:2]
+        for k in moved:
+            wrong[k]["timing"]["slot"] = 23                                                                   # same totals, wrong slots
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": j2}, units=wrong)
+        assert "invalid, unplanned" in SA.review_problem(refit, rp, "refit", [3])
+        foreign = copy.deepcopy(u2); kf = moved[0]; uf = foreign.pop(kf); foreign["99/0"] = uf             # an unplanned coordinate, same count
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": j2}, units=foreign)
+        assert "invalid, unplanned" in SA.review_problem(refit, rp, "refit", [3])
         for bad in (dict(j2, runner_exit=False), dict(j2, exits={"0": 25, "75": -1}), dict(j2, left=-1)):
             r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": bad}, units=u2)
             assert "job 2" in SA.review_problem(refit, rp, "refit", [3]), bad                             # strict typing
@@ -566,7 +579,34 @@ def test_cap_phases_are_strict_durable_and_recoverable_through_the_cli():
     b = json.load(open(bp)); b["phases"].append(dict(cap_core_h=92000.0, note="stale pending", pending=True, campaign=refit["storage"]["campaign"]))
     json.dump(b, open(bp, "w")); SA.ledger_for(refit).raise_cap(120000.0, "an out-of-protocol raise above the phase")
     rc, out = _call(SA, ["--manifest", rp, "--role", "refit", "--raise-cap", "92000", "--note", "resume attempt"])
-    assert rc == 2 and "above the pending phase" in out and json.load(open(bp))["phases"][-1]["pending"] is True   # C4: no false success
+    assert rc == 2 and "does not certify" in out and json.load(open(bp))["phases"][-1]["pending"] is True   # C4: no false success
+    rc, out = _call(SA, ["--manifest", rp, "--role", "refit", "--retire-pending", "--note", "retire attempt over a conflicting ledger"])
+    assert rc == 2 and "does not certify" in out and json.load(open(bp))["phases"][-1]["pending"] is True   # nor a false retirement
+
+
+def test_a_pending_raise_is_applied_only_over_a_certified_predecessor():
+    bank, bmp, _ = _bank()
+    refit, rp, orig, op = _screen(bmp)
+    SA.ledger_for(refit).reserve("shard", 1, 24, 108000.0, refit["storage"]["root"])
+    bp = refit["budget"]["admission"]; camp = refit["storage"]["campaign"]
+    b = json.load(open(bp)); b["phases"].append(dict(cap_core_h=90000.0, note="owner raise", pending=True, campaign=camp)); json.dump(b, open(bp, "w"))
+    SA.ledger_for(refit).raise_cap(70000.0, "an out-of-protocol step to an unexpected lower predecessor")
+    rc, out = _call(SA, ["--manifest", rp, "--role", "refit", "--raise-cap", "90000", "--note", "resume over an uncertified predecessor"])
+    assert rc == 2 and "does not certify" in out
+    led = json.load(open(os.path.join(camp, "budget.json"))); assert led["cap_core_h"] == 70000.0                # nothing changed
+    rc, out = _call(SA, ["--manifest", rp, "--role", "refit", "--retire-pending", "--note", "retire over an uncertified predecessor"])
+    assert rc == 2 and "does not certify" in out
+    bank2, bmp2, _ = _bank()
+    refit2, rp2, _, _ = _screen(bmp2)
+    SA.ledger_for(refit2).reserve("shard", 1, 24, 108000.0, refit2["storage"]["root"])
+    bp2 = refit2["budget"]["admission"]; camp2 = refit2["storage"]["campaign"]
+    b = json.load(open(bp2)); b["phases"].append(dict(cap_core_h=90000.0, note="owner raise", pending=True, campaign=camp2)); json.dump(b, open(bp2, "w"))
+    st = json.load(open(os.path.join(camp2, "budget.json"))); st["cap_core_h"] = 90000.0; json.dump(st, open(os.path.join(camp2, "budget.json"), "w"))
+    rc, out = _call(SA, ["--manifest", rp2, "--role", "refit", "--raise-cap", "90000", "--note", "a matching cap without its history"])
+    assert rc == 2 and "does not certify" in out                                                            # the pending cap without a history entry
+    st["cap_core_h"] = 60000.0; json.dump(st, open(os.path.join(camp2, "budget.json"), "w"))
+    rc, out = _call(SA, ["--manifest", rp2, "--role", "refit", "--raise-cap", "90000", "--note", "the ordinary pre-ledger recovery"])
+    assert rc == 0, out                                                                                     # the certified predecessor recovers
 
 
 def test_the_controls_file_is_trusted_only_through_its_adoption():
@@ -723,3 +763,23 @@ def test_the_verifier_compares_anchors_under_their_own_contract():
     assert v["reps"]["0"]["missing"] == [0]
     screen["anchors"]["shard_manifest_sha256"] = "0" * 64
     assert "not the declared bytes" in SVF.anchors(screen)["problem"]
+
+
+def test_a_settled_job_without_a_runner_end_invalidates_a_running_receipt():
+    refit, rp, root, L, jobs, want, good_q, q = _pilot_setup()
+    rv = _adopt(refit, rp, q); keep_t = SA.tracked_unmodified
+    try:
+        SA.tracked_unmodified = lambda rel: True
+        assert SA.adopt_review(refit, rp, "refit", rv, 9).startswith("adopted")
+        tok2, _ = L.reserve("shard", 2, 24, 108000.0, root); L.bind(tok2, "P2")
+        json.dump(dict(jobs[1], token=tok2), open(os.path.join(root, "plans", "job_2.json"), "w"))
+        for sl in jobs[1]["slots"]:
+            open(os.path.join(root, f"task_{sl['rep']}.json"), "w").write(json.dumps({"binding": {"rep": sl["rep"]}}))
+        r, doc = _receipt(refit, rp, root, {"1": _summary(), "2": dict(_summary(), state="R", job_id="P2")})
+        assert SA.review_problem(refit, rp, "refit", [3]) == ""
+        L.settle("P2", 76.0, 24, "killed by the node after 76 s; no runner end; settled from qstat -xf")      # no runner_end at all
+        assert "SETTLED" in SA.review_problem(refit, rp, "refit", [3])                                       # C1: refused within the window
+    finally:
+        SA.tracked_unmodified = keep_t
+        if os.path.exists(os.path.join(T1, rv)):
+            os.remove(os.path.join(T1, rv))

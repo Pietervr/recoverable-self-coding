@@ -62,13 +62,25 @@
   {
    "version": 4,
    "commit": "506b79d",
-   "reviewed": "pending Codex",
+   "reviewed": "Codex f40991e: NOT FAVOURABLE (C1, C2, C4 remainders); C3 authority favourable component",
    "files": {
     "chpc/row19_screen_admit.py": "1a435dcb376d4a4e46b5bcc69692f6d3033e888a032b7a513cbfb7681f6a3f45",
     "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
     "chpc/row19_screen_status.py": "40e379530bd8d35ef76a8eacfa8f65793efb1e1769d5238ac385df9dbd5829dd",
     "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
     "chpc/programme_gate.py": "3962468338c2e24c50f5ff402dfe8cb57f64d232ee21c1fdd00d388d16b20956"
+   }
+  },
+  {
+   "version": 5,
+   "commit": "see the commit that adds this entry",
+   "reviewed": "pending Codex",
+   "files": {
+    "chpc/row19_screen_admit.py": "800c172c0a1785556728ec18f214533d14a026d122328c0ed3bfe46681caeec6",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "40e379530bd8d35ef76a8eacfa8f65793efb1e1769d5238ac385df9dbd5829dd",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0"
    }
   }
  ],

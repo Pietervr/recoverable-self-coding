@@ -82,6 +82,14 @@ SHA-256 and a git-tracked, unmodified review record that carries `ADOPT row19-sc
 controls file must have exactly that SHA-256 and n must be its latest version - before ANY of its programme, deployment or
 history values are used. C4 a resumed raise is reported only after the ledger's cap AND its latest cap_history entry are
 certified equal to the phase; any other combination (a ledger above the pending phase, no history entry) refuses.
+
+REVISION 5 (Codex RSC f40991e, C1/C2/C4 remainders): C1 a receipt that calls a job queued/running is refused also when the
+ledger now shows that job SETTLED (a killed job settled from accounting has no runner end); C2 a unit counts only with a valid
+record AND a valid timing, and only when its coordinate is in THAT job's plan with that plan's slot; each summary's PBS id must
+be the job's bound id; C4 a pending raise is applied only when the ledger still certifies the preceding committed phase (its cap,
+and its latest cap_history entry or none for the first phase), or is reconciled only when the ledger already shows exactly that
+raise (cap = pending, latest history old = preceding, new = pending); a pending phase is retired only when the ledger still
+certifies the preceding phase; anything else refuses and changes nothing.
 """
 import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
 
@@ -277,6 +285,26 @@ def cap_problem(man):
     if len(live) > 1 and not (hist and abs(float(hist[-1].get("new", -1)) - cap) < 1e-9):
         return "the ledger's cap_history does not record the latest phase's raise"
     return ""
+
+
+def predecessor_problem(man, live, applied_ok):
+    """C4: '' when the ledger still certifies the preceding COMMITTED phase (cap and latest history entry, or no history for the
+    first phase) - or, with applied_ok, when it already shows exactly the pending raise from that predecessor."""
+    led = _strict_load(os.path.join(man["storage"]["campaign"], "budget.json"))
+    cap = led.get("cap_core_h"); hist = led.get("cap_history") or []
+    prev = [x for x in live[:-1] if not x.get("pending")]
+    if not prev:
+        return "no committed phase precedes the pending one"
+    pc, pend = float(prev[-1]["cap_core_h"]), float(live[-1]["cap_core_h"])
+    first = len(prev) == 1
+    hist_ok_prev = (not hist) if first else (bool(hist) and _num(hist[-1].get("new")) and abs(hist[-1]["new"] - pc) < 1e-9)
+    if _num(cap) and abs(cap - pc) < 1e-9 and hist_ok_prev:
+        return ""
+    if applied_ok and _num(cap) and abs(cap - pend) < 1e-9 and hist and _num(hist[-1].get("new")) and abs(hist[-1]["new"] - pend) < 1e-9 \
+            and _num(hist[-1].get("old")) and abs(hist[-1]["old"] - pc) < 1e-9:
+        return ""
+    return (f"the ledger (cap {cap}, latest history {hist[-1] if hist else None}) does not certify the preceding committed phase "
+            f"{pc}{' or exactly the pending raise ' + str(pend) if applied_ok else ''}")
 
 
 def ledger_for(man):
@@ -512,12 +540,22 @@ def units_problem(man, v, rec, pilot_job=None):
     """C2: the retained units agree with the summaries: per job, units whose timing names it = its `new`; the pilot's every
     planned unit is a valid record with a timing naming its job and slot."""
     units = v.get("units") or {}
+    lp = os.path.join(man["storage"]["campaign"], "budget.json")
+    led = _strict_load(lp) if os.path.exists(lp) else {"entries": {}}
+    bound_id = {str(int(e["rep"])): e.get("job_id") for e in led["entries"].values() if e.get("kind") in ("shard", "orig")}
     for n, sj in (rec.get("jobs") or {}).items():
         jid = (sj or {}).get("job_id")
+        if jid != bound_id.get(str(n)):
+            return f"job {n}: the summary names PBS id {jid}, the ledger binds {bound_id.get(str(n))}"
         if (sj or {}).get("state") in TERMINAL_STATES:
-            got = sum(1 for u in units.values() if (u.get("timing") or {}).get("job") == jid and (u.get("record") or {}).get("ok"))
-            if got != sj.get("new"):
-                return f"job {n}: {got} valid unit(s) name it in the retained verifier, the summary claims {sj.get('new')} new"
+            slot_of = _plan_slot_of(man, n)
+            good = [k for k, u in units.items() if (u.get("record") or {}).get("ok") and (u.get("timing") or {}).get("ok") is True
+                    and (u.get("timing") or {}).get("job") == jid and slot_of.get(k) == (u.get("timing") or {}).get("slot")]
+            named = [k for k, u in units.items() if (u.get("timing") or {}).get("job") == jid]
+            if len(named) != len(good):
+                return f"job {n}: {len(named) - len(good)} unit(s) naming it are invalid, unplanned for it, or in another slot"
+            if len(good) != sj.get("new"):
+                return f"job {n}: {len(good)} valid unit(s) name it in the retained verifier, the summary claims {sj.get('new')} new"
     if pilot_job is not None:
         p = json.load(open(os.path.join(man["storage"]["root"], "plans", f"job_{pilot_job}.json")))
         jid = rec["jobs"][str(pilot_job)].get("job_id")
@@ -525,12 +563,25 @@ def units_problem(man, v, rec, pilot_job=None):
             keys = [f"{int(sl['rep'])}/{int(i)}" for i in sl["indices"]] if "rep" in sl else [str(int(r)) for r in sl["reps"]]
             for k in keys:
                 u = units.get(k) or {}
-                if not (u.get("record") or {}).get("ok") or (u.get("timing") or {}).get("job") != jid or (u.get("timing") or {}).get("slot") != int(sl["slot"]):
+                if not (u.get("record") or {}).get("ok") or (u.get("timing") or {}).get("ok") is not True or (u.get("timing") or {}).get("job") != jid or (u.get("timing") or {}).get("slot") != int(sl["slot"]):
                     return f"pilot unit {k}: no valid record with a timing naming job {jid} slot {sl['slot']} in the retained verifier"
     return ""
 
 
 TERMINAL_STATES = ("F", "E", "X", "gone")
+
+
+def _plan_slot_of(man, n):
+    """{unit key: slot} of job n's plan."""
+    p = os.path.join(man["storage"]["root"], "plans", f"job_{n}.json")
+    if not os.path.exists(p):
+        return {}
+    out = {}
+    for sl in json.load(open(p))["slots"]:
+        keys = [f"{int(sl['rep'])}/{int(i)}" for i in sl["indices"]] if "rep" in sl else [str(int(r)) for r in sl["reps"]]
+        for k in keys:
+            out[k] = int(sl["slot"])
+    return out
 
 
 def transition_problem(man, role, r):
@@ -544,6 +595,8 @@ def transition_problem(man, role, r):
         if e is None:
             return f"job {n} of the receipt is not in the ledger"
         now_exit = e.get("runner_exit")
+        if sj.get("state") not in TERMINAL_STATES and e.get("state") == "settled":
+            return f"job {n} has been SETTLED since the receipt saw it {sj.get('state')}; recollect before admitting"
         if sj.get("state") in TERMINAL_STATES:
             if now_exit != sj.get("runner_exit"):
                 return f"job {n}: the ledger's runner exit {now_exit} is not the receipt's {sj.get('runner_exit')}; recollect"
@@ -828,6 +881,10 @@ def main(argv=None):
                 print(f"REFUSED: the phases or the ledger cannot be read ({e})"); return 2
             live = [x for x in b["phases"] if not x.get("retired")]
             resume = live[-1].get("pending") and abs(float(live[-1]["cap_core_h"]) - new) < 1e-9
+            if resume:
+                why = predecessor_problem(man, live, applied_ok=True)
+                if why:
+                    print(f"REFUSED: {why}; nothing changed"); return 2
             if not resume:
                 why = cap_problem(man)
                 if why:
@@ -852,9 +909,9 @@ def main(argv=None):
             b = _phases(man); live = [x for x in b["phases"] if not x.get("retired")]
             if not live[-1].get("pending") or len(live) < 2:
                 print("REFUSED: no pending phase to retire"); return 2
-            cur = float(_strict_load(os.path.join(man["storage"]["campaign"], "budget.json"))["cap_core_h"])
-            if abs(cur - float(live[-1]["cap_core_h"])) < 1e-9:
-                print("REFUSED: the ledger already carries this phase; reconcile it instead"); return 2
+            why = predecessor_problem(man, live, applied_ok=False)
+            if why:
+                print(f"REFUSED: {why}; nothing changed"); return 2
             live[-1].update(retired=True, retired_note=a.note, retired_t=time.time()); _durable_write(_phases_path(man), b)
         print("pending phase retired (kept in the history)"); return 0
     n_jobs = 1 if a.pilot else a.jobs
