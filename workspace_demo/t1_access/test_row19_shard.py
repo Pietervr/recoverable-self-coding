@@ -651,3 +651,35 @@ def test_the_slot_reconciliation_is_exact_and_timing_is_traced_to_its_plan():
         _snapshot(d, c, root)
         rc, out = _view(mp, dict(pbs, sj2={"state": "F", "exit": 75, "mem_kb": 2 ** 20}))
         assert rc == 0 and "exit 75 (slot, rep, left): [(1, 1, [2, 3])]" in out and "slots: new 2, resumed 0, left 2 index(es)" in out, out
+
+
+def test_a_settled_kill_before_any_worker_is_dispositioned_not_alarmed():
+    """8 Oct: job 5 (7523711) was killed by its node 76 s after start, before any worker status or record, and settled
+    from qstat -xf. Its three alarms held every later zero-alarm receipt for good. A job that is terminal, SETTLED in the
+    ledger, has no worker status, no unreadable status and no accepted record is reported DISPOSITIONED instead; an unsettled
+    kill, or one with any status, keeps its alarms."""
+    d, c = _dirs()
+    with _Patched():
+        man = _manifest(d, c, n_boot=10)
+        for rep in (0, 1, 2):
+            assert _run(d, man, "--job-id", f"j{rep}", "--segment", "2", rep=rep) == R19.RESUME
+        man2, mp, root = _shard_manifest(c, n_boot=10, cores=4, mem_stop_gib=64.0)
+        plan1 = {"job": 1, "slots": [{"slot": 0, "rep": 0, "indices": [0, 1, 7]}, {"slot": 1, "rep": 1, "indices": [0, 1]}, {"slot": 2, "rep": 2, "indices": [0, 1]}]}
+        _campaign_job(c, root, mp, plan1, "sj1")
+        plan2 = {"job": 2, "slots": [{"slot": 0, "rep": 0, "indices": [2, 3]}, {"slot": 1, "rep": 1, "indices": [2, 3]}]}
+        _campaign_job(c, root, mp, plan2, "sj2", run_workers=False, end=False)
+        pbs = {"sj1": {"state": "F", "exit": 0, "mem_kb": 2 * 2 ** 20}, "sj2": {"state": "F", "exit": 265, "mem_kb": 9 * 2 ** 20}}
+        _snapshot(d, c, root)
+        rc, out = _view(mp, pbs)                                                                  # killed, NOT settled: alarms
+        assert rc == 1 and "job 2: ended (PBS F) with no terminal status" in out and "never recorded its end" in out
+        assert "PBS Exit_status 265" in out and "DISPOSITIONED" not in out
+        CampaignLedger(c, 1500.0).settle("sj2", 76.0, 4, note="qstat -xf Exit_status 265 after 76 s, no worker status")
+        _snapshot(d, c, root)
+        rc, out = _view(mp, pbs)                                                                  # settled, nothing written: a note
+        assert rc == 0 and "DISPOSITIONED" in out and "never recorded its end" not in out and "Exit_status 265" in out
+        assert "ALARMS" not in out and "PBS Exit_status 265" not in out
+        st = os.path.join(ST.LIVE_DIR, "root", "status")                                          # any worker status: alarms again
+        s = json.load(open(os.path.join(st, "jobsj1.slot0.json"))); s["job"] = "sj2"
+        json.dump(s, open(os.path.join(st, "jobsj2.slot0.json"), "w"))
+        rc, out = _view(mp, pbs)
+        assert rc == 1 and "DISPOSITIONED" not in out and "no terminal status for slot(s) [1]" in out

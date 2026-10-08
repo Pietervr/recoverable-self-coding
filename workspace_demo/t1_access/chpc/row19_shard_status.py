@@ -132,6 +132,29 @@ def payload(rec):
     return json.dumps({k: canon(rec.get(k)) for k in SCI}, sort_keys=True)
 
 
+def pull_tar(remote, local, timeout=600):
+    """Copy a remote directory's contents into `local` as ONE tar stream over ssh. `scp -r` (SFTP) costs round trips per
+    file over the Lengau link: 214 s for 192 files on 8 Oct, so the 814-file root overran the 600-s timeout twice; one
+    stream took 25 s. Both ends' exit codes count; any failure is a failed pull and the staging directory is discarded."""
+    try:
+        src = subprocess.Popen(["ssh", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", HOST, f"tar -C '{remote}' -cf - ."],
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        dst = subprocess.Popen(["tar", "-xf", "-", "-C", local], stdin=src.stdout, stderr=subprocess.PIPE)
+        src.stdout.close()
+        _, derr = dst.communicate(timeout=timeout)
+        _, serr = src.communicate(timeout=60)
+    except subprocess.TimeoutExpired:
+        for p in (src, dst):
+            try:
+                p.kill()
+            except Exception:
+                pass
+        return 124, f"timed out after {timeout} s"
+    if src.returncode != 0:
+        return src.returncode, serr.decode(errors="replace")
+    return dst.returncode, derr.decode(errors="replace")
+
+
 def fresh_snapshot(man):
     """Pull everything this view reads into a new staging directory; rotate it in only when EVERY pull succeeded."""
     sh_ = man["shard"]
@@ -142,7 +165,7 @@ def fresh_snapshot(man):
     problems = []
     for name, remote in pulls:
         local = os.path.join(stage, name); os.makedirs(local, exist_ok=True)
-        rc, out, err = sh(["scp", "-q", "-r", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", f"{HOST}:{remote}/.", local])
+        rc, err = pull_tar(remote, local)
         if rc != 0:
             problems.append(f"pull of {remote} failed (rc {rc}): {err.strip()[:160]}")
     if problems:
@@ -373,7 +396,17 @@ def main(argv=None):
             alarms.append(f"job {n}: the PBS script reports a FAILED ADMISSION (see jobs/row19_shard_{n}.out)")
         if e.get("runner_exit") is not None and e.get("runner_exit") not in OK_EXITS:
             alarms.append(f"job {n}: runner exit {e.get('runner_exit')}")
-        if terminal:
+        produced = sum(len(v) for v in accepted_by_job.get(job, {}).values()) if job else 0
+        dispositioned = (terminal and e.get("state") == "settled" and not sts and not unread and produced == 0
+                         and e.get("runner_ended") is None and "ADMISSION FAILED" not in out_txt)
+        if dispositioned:
+            # A job killed before any worker wrote a status or record, and already settled in the ledger from the scheduler's
+            # accounting, is a closed, charged event with nothing to recover: its indices are no longer in flight and return to
+            # the planner. It is reported, not alarmed, so one settled kill does not hold every later zero-alarm receipt.
+            # Any status, record, unreadable file or unsettled entry keeps the alarms below.
+            print(f"    DISPOSITIONED: ended (PBS {state}, Exit_status {o.get('exit')}) before any worker status or record; settled "
+                  f"{float(e.get('settled_core_h', 0) or 0):.2f} core-h; its planned indices return to the planner")
+        elif terminal:
             missing = sorted(set(slots) - set(sts))
             if missing:
                 alarms.append(f"job {n}: ended (PBS {state}) with no terminal status for slot(s) {missing[:12]}")
@@ -388,7 +421,7 @@ def main(argv=None):
         pp = os.path.join(root, "plans", f"job_{n}.json")
         jobs[n] = dict(job_id=job, state=state, terminal=terminal, slots=len(slots), ended=len(sts), exits=codes, runner_exit=e.get("runner_exit"),
                        mem_kb=mem, reps=sorted({int(s["rep"]) for s in plan["slots"]}), pbs_exit=o.get("exit"), token=e.get("token"),
-                       plan_sha256=(sha_file(pp) if os.path.exists(pp) else None), slot_table=table)
+                       plan_sha256=(sha_file(pp) if os.path.exists(pp) else None), slot_table=table, dispositioned=dispositioned)
     # every accepted record's timing traced to the job, slot and plan that produced it
     for rep in sorted(timing_all):
         for i, t in sorted(timing_all[rep].items()):
