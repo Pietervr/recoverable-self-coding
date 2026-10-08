@@ -71,3 +71,38 @@ lists it as new. A deadline exit 75 is reported per slot with the indices left.
 - A deadline exit (75) may leave planned indices undone; three indices per worker is a plan, not a result.
 - The dry-run artifact's final "exit 0" footer is the shell's, not the refused command's; the refusal is its explicit
   REFUSED line and the absence of a campaign ledger at that time.
+
+## 4. Wave 2, the observer repairs and the adoption scope (Codex RSC `6d8c30a`, 8 October 2026)
+
+Record: `reviews/2026-10-08_actual_evidence_codex_record.md` (SHA-256 `465ae691…`), on exact candidate `d979365`.
+
+- **Where the campaign stands.** 192 accepted records with 192 timings, 64 per development dataset, every one traced to
+  its producing plan, job, slot and new-status. Jobs 2-4 and 6-9 each ended with 24 workers exiting 75 (one new index and
+  two left per worker). Every shard job is settled; nothing is live. 408 indices remain.
+- **Repair (a), FAVOURABLE.** `row19_shard_status.py` (SHA-256 `682f3c16…`) pulls each evidence directory as an ssh
+  tar stream, checks both exit codes, kills both processes on timeout, refuses a failed pull and promotes the staging copy
+  only after every directory succeeds. The pulls are sequential per directory, not one atomic remote snapshot.
+- **Repair (b), FAVOURABLE WITH CONDITIONS.** A job is DISPOSITIONED, not alarmed, only when it is terminal AND settled,
+  has no parsed or unreadable worker status, no accepted record attributed to it, no recorded runner end and no ADMISSION
+  FAILED. Only the missing-status, runner-end and scheduler-exit alarms are suppressed, and only in that closed case; a
+  malformed, partial, status-bearing or unsettled job alarms as before.
+- **Job 5 (`7523711.sched01`).** Its workers DID start: all 24 logs carry their assignment and identity headers. The
+  scheduler's SIGKILL (Exit_status 265) came before any worker terminal status or committed record. Its 0.5067 core-hour
+  charge, its plan and its cause are kept; it earns no completion or recovery credit, and its indices return to the planner.
+  (The commit message of `d979365` calls it a "pre-start kill"; that wording is wrong and is not repeated.)
+- **Adoption scope, FAVOURABLE WITH CONDITIONS, not yet acted on.** The existing `gate/pilot_review.json` (max 9, SHA-256
+  `d4edfc7f…`) is archived with its authority and the reason, recorded in row 19 and R052; a new adoption of the committed
+  record against the UNCHANGED job-1 qualification (`232dd924…`) allows job numbers up to 30 (jobs 10-30: 24 cores,
+  serial, 48 h, 120 GB, 1,800 s reserve; cap 24,000). The max is never edited in place; ledgers and job numbering are
+  never reset. Before any dispatch a fresh zero-alarm production receipt for the whole job set (1-9, then growing) is
+  published AND uploaded within 2,700 s from a successful scheduler observation. The live ledger's bound science pin
+  `8cfc7b0d…` is preserved, whatever the clone's current HEAD.
+- **What max 30 does and does not buy.** 17 more full 1,152 core-hour requests plus the spent total is 24,375.76, above
+  the 24,000 cap; at most 16 unrefunded requests fit. The unchanged planner groups the missing indices in threes, so max 30
+  may leave missing work; it is a ceiling, not a promise to finish the 600.
+- **Owner decision pending.** Codex's second opinion (and Claude's) is to stop this development timing and parity
+  collection at 192 of 600 and give the slots to the fixed screen; the screen's anchors need index 0 on each development
+  dataset, not all 600 records. Until the owner decides, the max-9 adoption stays in the gate and no shard job is submitted.
+- **Queues.** 24-core jobs stay on `serial`. CHPC's Accounts Policy v2.7 sets a global per-user ceiling (240 cores,
+  20 jobs, queued jobs included), so `smp` adds no capacity on present evidence; any `smp` use is a separately reviewed
+  per-submission design and nothing goes to `smp` before it.

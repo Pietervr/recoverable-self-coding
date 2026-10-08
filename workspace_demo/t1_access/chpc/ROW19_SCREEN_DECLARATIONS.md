@@ -182,3 +182,21 @@ absent) and pins the slice manifest from which the historical exclusions are rec
   60,000, no history, pending 60,000.0000000005 -> cap_problem refuses with the phase pending and the ledger byte-identical;
   the pending phase retires through the CLI; a 60,000.5 raise refuses. The ordinary wrong-old negative and the exact-applied
   positive remain.
+
+## Actual pilots adopted (Codex RSC `6d8c30a`, 8 October 2026)
+Record `reviews/2026-10-08_actual_evidence_codex_record.md`; the adopted version-7 controls (`43a099ca…`, judgment
+`86f1105`) are unchanged.
+- **Originals**, pilot `7523819.sched01`: all 20 slots reconcile to reps 3-22, call walls 18.99-22.90 h, worker RSS at most
+  1.26 GiB. `ADOPT row19-screen-pilot role=orig qualification=42ddb685… max_job=5` (cap 3,000: four further 600 core-hour
+  requests plus the pilot). The originals request 20 cores and stay on `serial`.
+- **Refit**, pilot `7523818.sched01`: all 24 slots reconcile to reps 3-26 at index 0, walls 21.68-24.39 h, RSS at most
+  2.32 GiB. `ADOPT row19-screen-pilot role=refit qualification=4bbe4aa6… max_job=100` (cap 60,000). Max 100 is a ceiling
+  under rolling settlement: 100 full 720 core-hour reservations are 72,000, so the cap binds first; 100 jobs make at most
+  2,400 of the 20,000 refits, and the complete screen needs at least 834 jobs (a cap amendment under §7, not this adoption).
+- **Settlement provenance.** The ledger copies Codex reviewed still show the pilots live at 600 / 720 (and the bank's 864).
+  The settlements at 458.53 / 585.83 (594.59 for the bank) are from the scheduler walls, entered through the programme
+  wrapper; each later receipt carries the settled ledgers, which is the proof the copies lacked.
+- **Each later admission** keeps the job-1 qualification and the exact ADOPT line, and needs a fresh whole-role receipt
+  (zero alarms, successful scheduler observation, exact partitions and ledger transitions) at most 2,700 s old.
+- **In flight, 8 October 17:10 UTC.** Originals jobs 2-3 and refit jobs 2-3 running, originals 4-5 queued.
+- No interval, T, coverage or futility decision is authorised by this adoption; §4's seal is untouched.
