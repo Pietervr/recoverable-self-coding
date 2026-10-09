@@ -100,9 +100,15 @@ Record: `reviews/2026-10-08_actual_evidence_codex_record.md` (SHA-256 `465ae691â
 - **What max 30 does and does not buy.** 17 more full 1,152 core-hour requests plus the spent total is 24,375.76, above
   the 24,000 cap; at most 16 unrefunded requests fit. The unchanged planner groups the missing indices in threes, so max 30
   may leave missing work; it is a ceiling, not a promise to finish the 600.
-- **Owner decision pending.** Codex's second opinion (and Claude's) is to stop this development timing and parity
-  collection at 192 of 600 and give the slots to the fixed screen; the screen's anchors need index 0 on each development
-  dataset, not all 600 records. Until the owner decides, the max-9 adoption stays in the gate and no shard job is submitted.
+- **Closed at 192 of 600 (owner, 8 October 2026, ~23:5x UTC: "yes, stop the shard at 192").** The development timing
+  and parity collection ends at 192 records, 64 per dataset; Codex's second opinion in `6d8c30a` and Claude's both favoured
+  it, because the screen's anchors need index 0 on each development dataset, not all 600 records. A `STOP` file in the root
+  (`/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard/STOP`, written 9 Oct 00:14 UTC with the ruling) refuses every
+  further submission; no shard job was queued or running. The max-9 adoption stays in the gate as it is; the max-30 scope
+  above is not used, so `pilot_review.json` is not archived. The ledger (settled 4,791.76, live 0), plans, bindings and
+  records are kept unchanged. What is reported from it is a partial, grouped, deadline-selected development panel: the
+  per-resample timing and memory at 24 per node, and the nine overlap comparisons (indices 0, 1 and 3 per dataset) with the
+  sequential slice. No complete B = 200 endpoint, tail, coverage or restart claim is made from it.
 - **Queues.** 24-core jobs stay on `serial`. CHPC's Accounts Policy v2.7 sets a global per-user ceiling (240 cores,
   20 jobs, queued jobs included), so `smp` adds no capacity on present evidence; any `smp` use is a separately reviewed
   per-submission design and nothing goes to `smp` before it.
