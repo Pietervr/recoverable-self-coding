@@ -203,7 +203,8 @@ Record `reviews/2026-10-08_actual_evidence_codex_record.md`; the adopted version
 
 ## Revision 8 - REPAIRED CANDIDATE, not adopted (Codex R052 record `2026-10-09_refit_wall_kill_codex_record.md`, verdicts 1 and 2)
 The first candidate's bytes (RSC `c1956ef`) were rejected by Codex `5cb9a02` (R1 current record/timing provenance at disposed
-coordinates, R2 the settlement certificate, R3 exact integer cores); the repaired bytes in `chpc/candidate_v8/` supersede them.
+coordinates, R2 the settlement certificate, R3 exact integer cores). Re-review `ce06828` of the repair `28861c4` closed R2 and R3
+and left R1's current-timing measurement contract open; the bytes in `chpc/candidate_v8/` now close it and supersede both.
 Design, line references, SHA-256 pins and test summary: `chpc/ROW19_SCREEN_V8_CANDIDATE.md`. The changed controllers and the
 version-8 controls file are in `chpc/candidate_v8/` (the adopted version 7 stays in place and in force); the new resource policy
 is `chpc/row19_screen_resources.json`. (1) A terminal refit or originals job is DISPOSITIONED (closed-no-record) - reported with

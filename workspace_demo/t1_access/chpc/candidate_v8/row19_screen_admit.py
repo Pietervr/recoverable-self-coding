@@ -130,8 +130,10 @@ envelope (jobs below first_job and every originals job keep the manifest's reque
 `envelope`), the ledger reservation (cores x walltime = 1,152 core-hours at 48 h), the filled PBS request and the job-start /
 deadline arguments (checked in the script text before qsub); every receipt job at or above first_job must show the same envelope
 in its plan, its CURRENT ledger entry and the scheduler's observed walltime request.
-REPAIRS of Codex 5cb9a02 (c1956ef's bytes rejected): R1 a disposed coordinate counts as a later completion only when its CURRENT
-canonical timing (coordinate, declared identity, producer job, integer slot) and record (checksum, coordinate, identity) are the
+REPAIRS of Codex 5cb9a02 (c1956ef's bytes rejected) and ce06828 (28861c4 not favourable on R1's timing validity): R1 a disposed
+coordinate counts as a later completion only when its CURRENT canonical timing (coordinate, declared identity, producer job,
+integer slot, and the verifier's timing_ok measurement contract: wall_s, fit_seconds, maxrss and t present, finite, non-negative
+and non-boolean) and record (checksum, coordinate, identity) are the
 retained verified evidence (current_artifacts_problem); an absent or changed artifact refuses until recollected. R2 the status
 view binds the observed settlement certificate (charge, note, non-negative time, token, PBS id, plan SHA-256) in the disposition;
 admission and the transition check require it EXACTLY equal to the current ledger entry (certificate_problem), and a negative
@@ -742,6 +744,9 @@ def coordinate_files(man, root, role, k):
     return files, [p for p in files if os.path.basename(p) not in exact]
 
 
+TIMING_MEASURES = ("wall_s", "fit_seconds", "maxrss", "t")        # row19_screen_verify.timing_ok (verify.py:93-105), unchanged
+
+
 def current_artifacts_problem(man, root, role, k, u):
     """R1 (Codex 5cb9a02): the CURRENT canonical record and timing files of coordinate k must be the retained verified evidence -
     the timing's coordinate, declared identity, producer job and integer slot, and the record's checksum (refit `sha`, originals
@@ -764,6 +769,9 @@ def current_artifacts_problem(man, root, role, k, u):
         return "its current timing is not this coordinate's under the declared identity"
     if ct.get("job") != t.get("job") or not _int(ct.get("slot")) or ct["slot"] != t.get("slot"):
         return f"its current timing names {ct.get('job')} slot {ct.get('slot')}, not the verified producer {t.get('job')} slot {t.get('slot')}"
+    bad = [f for f in TIMING_MEASURES if not (_num(ct.get(f)) and ct[f] >= 0)]
+    if bad:                                                           # R1 (ce06828): row19_screen_verify.timing_ok's measurement contract
+        return f"its current timing's {bad} are not finite non-negative non-boolean numbers (the verifier's timing contract)"
     try:
         cr = _strict_load(rp_)
     except Exception:
