@@ -1,0 +1,26 @@
+{
+ "run": "b2",
+ "ceiling_usd": 28.0,
+ "attempts": [
+  {
+   "attempt": 1,
+   "state": "rejected",
+   "client_token": "t1-b2-1-15237ee6983f",
+   "request": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/aws_ec2/runs/b2/request_attempt1.json",
+   "lifetime_s": 77400,
+   "max_price": 1.2,
+   "type": "c7a.24xlarge",
+   "ami": "ami-0d53cc9bd365ad65b",
+   "results": "s3://xtenure-cself-pvr-usw2/results/t1_access/aws_bench/b2/attempt_1/",
+   "intent_at": 1791660547.533082,
+   "issues": [
+    {
+     "at": 1791660549.259328,
+     "result": "rejected",
+     "detail": "SpotMaxPriceTooLow: aws ec2 run-instances: aws: [ERROR]: An error occurred (SpotMaxPriceTooLow) when calling the RunInstances operation (reached max retries: 0): Your Spot request price of 1.2 is lower than the minimum required Spot request fulfillment price of 1.7114."
+    }
+   ],
+   "rejection": "SpotMaxPriceTooLow: aws ec2 run-instances: aws: [ERROR]: An error occurred (SpotMaxPriceTooLow) when calling the RunInstances operation (reached max retries: 0): Your Spot request price of 1.2 is lower than the minimum required Spot request fulfillment price of 1.7114."
+  }
+ ]
+}

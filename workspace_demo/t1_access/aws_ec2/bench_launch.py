@@ -16,9 +16,9 @@ was created, or creates exactly one), with bounded backoff, here or by --recover
 taken as proof of absence. launched -> reconciled only by bench_reaper.py on an attributable shutting-down/terminated
 observation.
 
-COST. Row 23 ceiling USD 28.00 cumulative. Worst case per attempt = (lifetime + 900 s reaper grace + 1,800 s reserve for
+COST. Row 23 ceiling USD 42.00 cumulative (owner, 10 Oct; was 28.00). Worst case per attempt = (lifetime + 900 s reaper grace + 1,800 s reserve for
 polling, API retries and volume cleanup) x (MaxPrice 1.20 + 0.0094/h: 40 GB gp3 0.0044 + public IPv4 0.005) + 0.10 S3
-= USD 27.01 at 77,400 s. rejected = 0; reconciled = observed
+= USD 40.36 at 77,400 s. rejected = 0; reconciled = observed
 compute hours (upper bound) at the same rates + any ancillary hours recorded by the reaper; every other state = worst
 case. A new attempt gets only the lifetime the remainder admits and is refused below 72,300 s.
 
@@ -28,8 +28,11 @@ import argparse, contextlib, fcntl, hashlib, json, os, re, subprocess, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROFILE, REGION, BUCKET = "xtenure-read", "us-west-2", "xtenure-cself-pvr-usw2"
-ITYPE, MAXPRICE, ROLE = "c7a.24xlarge", 1.20, "xtenure-ec2-t1-worker"
-ANC_H, S3_FIXED, GRACE_S, RESERVE_S, CEILING = 0.0094, 0.10, 900, 1800, 28.00
+# Owner, 10 Oct 2026 ~19:35 UTC ("yes go"): spot cap 1.80 and row ceiling USD 42 after the live us-west-2 price
+# history showed c7a.24xlarge at 1.71-2.39/h (attempt 1 rejected SpotMaxPriceTooLow at 1.20, charged 0); zone 2a is the
+# only zone under the cap.
+ITYPE, MAXPRICE, ROLE, AZ = "c7a.24xlarge", 1.80, "xtenure-ec2-t1-worker", "us-west-2a"
+ANC_H, S3_FIXED, GRACE_S, RESERVE_S, CEILING = 0.0094, 0.10, 900, 1800, 42.00
 MAX_LIFE_S, MIN_LIFE_S = 77400, 72300
 AMI_PARAM = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
 FILES = {"manifest_A.json": "bench/manifest_A.json", "manifest_B.json": "bench/manifest_B.json", "plan.json": "bench/plan.json",
@@ -253,6 +256,7 @@ def admit(a):
                                             {"Key": "attempt", "Value": str(n)}, {"Key": "Name", "Value": f"t1-bench-{a.run}-{n}"}]}
             for rt in ("instance", "volume")]
     args = ["ec2", "run-instances", "--image-id", ami, "--instance-type", ITYPE, "--count", "1", "--client-token", token,
+            "--placement", f"AvailabilityZone={AZ}",
             "--iam-instance-profile", f"Name={ROLE}",
             "--instance-market-options", json.dumps({"MarketType": "spot", "SpotOptions": {
                 "MaxPrice": f"{MAXPRICE:.2f}", "SpotInstanceType": "one-time", "InstanceInterruptionBehavior": "terminate"}}),
