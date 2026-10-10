@@ -83,17 +83,19 @@ def sha256(path):
     return h.hexdigest()
 
 
-def worst_usd(seconds):
-    return (seconds / 3600) * (MAXPRICE + ANC_H) + S3_FIXED
+def worst_usd(seconds, max_price=None):
+    return (seconds / 3600) * ((MAXPRICE if max_price is None else max_price) + ANC_H) + S3_FIXED
 
 
 def charged(a):
+    """Charged USD of one attempt at ITS OWN spot cap (attempts launched under an earlier cap keep that cap)."""
     if a.get("state") == "rejected":
         return 0.0
+    mp = float(a.get("max_price", MAXPRICE))
     if a.get("state") == "reconciled":
         t = a["terminal"]
-        return (t["compute_s"] / 3600) * MAXPRICE + (t["ancillary_s"] / 3600) * ANC_H + S3_FIXED
-    return worst_usd(a["lifetime_s"] + GRACE_S + RESERVE_S)
+        return (t["compute_s"] / 3600) * mp + (t["ancillary_s"] / 3600) * ANC_H + S3_FIXED
+    return worst_usd(a["lifetime_s"] + GRACE_S + RESERVE_S, mp)
 
 
 def run_dir(run):
