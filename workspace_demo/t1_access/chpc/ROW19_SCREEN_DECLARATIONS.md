@@ -218,3 +218,16 @@ from the pinned policy, bound in plan, ledger, PBS request and receipt; jobs 1-9
 `5cb9a02`): spent 1,892.81 + live 4,320, room 53,787.19 = 46 full 1,152-hour requests under the 60,000 cap - dated arithmetic,
 not fresh accounting or a batch permission (the harness's "49" is a synthetic fixture). Adoption needs a fresh v8 job-1
 qualification per role and a new pilot ADOPT line (see the candidate note, open point 1).
+
+## Current controllers (10 October 2026)
+
+The section above is the dated version-8 candidate record. Version 8 was adopted on 10 October (Codex `fb8957f`; RSC
+`047c280`) with its refit pilot (Codex `454bbc0`, qualification `6cf1a513`). **Version 9 is now in force** (Codex
+`91a567c`; RSC `eabcdcc`; controls `45f840bc`, adoption `42b99b4d`): the only change is the status tools' snapshot pull,
+now one ssh tar stream with explicit remote phases (`chpc/candidate_v9/README.md`), after `scp -r` overran its 900 s
+timeout at ~940 files and blocked refit receipts. The bank status tool carries the same transport change in its own lane
+(`a8585eff`, raw-bank scope and job cap 17 unchanged). The generation-9 refit qualification is `3820ac0e` (18:32:44 UTC,
+zero alarms) and the refit pilot is adopted on it to job 100 (Codex `d64600f`; gate `review_refit.json` `0324ff53`; the v8
+review retired to `gate_retired/`). Each refit admission still needs a fresh whole-role receipt (at most 2,700 s old, zero
+alarms) and passes every planner, binding, disposition, funding, capacity, resource and STOP gate; refit jobs from 10
+request 48 h. Archives: Lengau `archive_screen/v8_before_v9_20261010`, Mac `chpc/results/archive/row19_screen_v8_before_v9_20261010`.
