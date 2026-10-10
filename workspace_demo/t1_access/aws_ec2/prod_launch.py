@@ -53,6 +53,16 @@ def admit(a):
     opm = json.load(open(a.manifest))
     if (opm.get("ec2_production") or {}).get("epoch") != a.epoch or opm["ec2_production"]["derived_from_sha256"] != PROD_SHA:
         sys.exit("REFUSED: the operational manifest is not this epoch's derivation of 43b75f94")
+    stop = [x for x in (os.path.join(a.snapshot, "live", "refit", "root", "STOP"), os.path.join(L.run_dir(run), "STOP")) if os.path.exists(x)]
+    try:
+        if L.aws("s3", "ls", f"s3://{L.BUCKET}/code/t1_access/aws_bench/{run}/STOP").stdout.strip():
+            stop.append("s3 STOP")
+    except L.AwsError as e:
+        if "error" in str(e).lower() or "timeout" in str(e).lower():     # an API failure is not proof of no STOP: fail closed
+            sys.exit(f"REFUSED: the S3 STOP check failed ({e})")
+        # absent object: `aws s3 ls` exits 1 with an empty stderr
+    if stop:
+        sys.exit(f"REFUSED: STOP in force ({stop}) - no new EC2 dispatch")
     try:
         done, lengau, receipt = snapshot_state(a.snapshot, part)
     except ValueError as e:

@@ -92,8 +92,12 @@ while read slot rep idx; do
   run w_slot$slot $C env "${ARM_B[@]}" $T/t1py chpc/row19_shard.py worker --manifest $W/env/manifest_prod.json \
       --rep $rep --indices $idx --slot $slot --job-id $ATTEMPT_ID --deadline-epoch $WORKER_DEADLINE
 done < $W/env/slots.txt
-DECLARED=$(wc -l < $W/env/declared.txt | tr -d ' ')
 ROOT_LIVE=$(cd $C && $T/t1py -c 'import json; print(json.load(open("'$W'/env/manifest_prod.json"))["storage"]["root"])')
+( while true; do                         # common STOP (Codex f3dd3d7 contract 5): the screen's STOP reaches this instance
+    if aws s3 ls "$B/code/t1_access/aws_bench/$RUN/STOP" > /dev/null 2>&1; then  # within 300 s; workers see the root STOP
+      touch "$ROOT_LIVE/STOP"; date -u +%FT%TZ > $W/env/stop_seen.txt; break      # before their next index (each has one:
+    fi; sleep 300; done ) &                                                         # in-flight fits finish, none start)
+DECLARED=$(wc -l < $W/env/declared.txt | tr -d ' ')
 echo "launched $DECLARED declared processes at $(date -u +%FT%TZ)"
 LAST_SYNC=$(date +%s)
 while true; do

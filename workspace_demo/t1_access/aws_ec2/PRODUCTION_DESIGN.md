@@ -79,5 +79,5 @@ writer can then occupy another provider's coordinate, because no coordinate is e
 | 7 memory | 76 workers (176.3 GiB of 192) incl. 4 sentinels; qualified by Q1 at the intended packing | Q1 |
 | 8 budget | `budget_baseline.json` (USD 400 conservative) + production 2,300 / cumulative 3,000 checks before each dispatch, unresolved attempts charged worst case | `tests/test_prod_authority.py` |
 
-Open: common STOP propagation for EC2 (the instance does not yet read the screen's STOP file);
+Open: (common STOP now built: prod_stop.py + S3 STOP polled every 300 s by each instance + launcher refusal);
 the v10 test-suite update (reconcile now returns a 4-tuple).
