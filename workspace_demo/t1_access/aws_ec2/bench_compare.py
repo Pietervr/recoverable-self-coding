@@ -128,7 +128,7 @@ def stage2(ec2, lengau_root, problems):
         man_x = json.load(open(mpath))
         root = os.path.join(ec2, f"root_{arm}")
         canonical_layout(root, problems, arm)
-        clean = exact = failed_both = 0; worst = 0.0; unavailable = 0; walls = []; ratios = []
+        clean = exact = failed_both = timed = 0; worst = 0.0; unavailable = 0; walls = []; ratios = []
         use = {p: dict(both=0, ec2_only=0, lengau_only=0, neither=0) for p in preds}
         for rep in REPS:
             t = tasks[rep]; bad = []
@@ -174,13 +174,13 @@ def stage2(ec2, lengau_root, problems):
             we, wl = float(te["wall_s"]), float(tl["wall_s"])
             if not (math.isfinite(we) and math.isfinite(wl) and we > 0 and wl > 0):
                 problems.append(f"stage 2 arm {arm} rep {rep}: wall not positive and finite (EC2 {we}, Lengau {wl})"); continue
-            walls.append(we); ratios.append(wl / we)
-        out[arm] = dict(declared=len(REPS), validated=clean, payload_exact=exact, failed_both=failed_both,
+            walls.append(we); ratios.append(wl / we); timed += 1
+        out[arm] = dict(declared=len(REPS), validated_records=clean, valid_timing_pairs=timed, payload_exact=exact, failed_both=failed_both,
                         usable_by_predictor=use, max_abs_delta_finite=worst, nonfinite_disagreements=unavailable,
                         ec2_wall_h=(dict(median=statistics.median(walls) / 3600, min=min(walls) / 3600, max=max(walls) / 3600) if walls else None),
                         lengau_over_ec2=(dict(median=statistics.median(ratios), min=min(ratios), max=max(ratios)) if ratios else None))
-        if clean != len(REPS):
-            problems.append(f"stage 2 arm {arm}: {clean} of {len(REPS)} coordinates validated")
+        if clean != len(REPS) or timed != len(REPS):
+            problems.append(f"stage 2 arm {arm}: {clean} records validated and {timed} timing pairs valid of {len(REPS)}")
     return out
 
 
@@ -239,7 +239,11 @@ def main():
     if not os.path.exists(os.path.join(env, "plan.json")) or sha(os.path.join(env, "plan.json")) != PLAN_PIN:
         problems.append("plan.json missing or not the reviewed pin")
     try:
-        oc = json.load(open(os.path.join(env, "outcomes.json")))["outcomes"]
+        ocd = json.load(open(os.path.join(env, "outcomes.json")))
+        oc = ocd["outcomes"]
+        un = ocd.get("unresolved_after_kill")
+        if not (isinstance(un, list) and un == []):
+            problems.append(f"cleanup left unresolved process groups or no typed record of them: {un!r}")
         if sorted(oc) != sorted(NAMES):
             problems.append(f"outcomes name set differs from the 78 declared processes")
         bad = {k: v for k, v in oc.items() if not (isinstance(v, int) and not isinstance(v, bool) and v == 0)}
