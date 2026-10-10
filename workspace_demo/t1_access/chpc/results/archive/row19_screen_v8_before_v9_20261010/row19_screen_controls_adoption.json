@@ -1,0 +1,21 @@
+{
+ "schema": "row19-screen-controls-adoption-1",
+ "controls_path": "chpc/row19_screen_controls.json",
+ "controls_sha256": "9f73622238034ed49cde86d0ee70c31a8bc8e2f1de9535f810eb4081dc49e9d7",
+ "version": 8,
+ "controls_commit": "3648d9b",
+ "review_record": {
+  "path": "reviews/2026-10-10_screen_v8_r1_timing_codex_record.md",
+  "sha256": "e5b934389c9f288e1653f8931ff8b74aa372f42d6820d2ad51bf34b5ebde5c25",
+  "commit": "fb8957f",
+  "adopt_line": "ADOPT row19-screen-controls sha256=9f73622238034ed49cde86d0ee70c31a8bc8e2f1de9535f810eb4081dc49e9d7 version=8"
+ },
+ "by": "R052 Entropy SI (Claude), session fdb5f471-1679-481f-8198-f3f211cc7447, 2026-10-10",
+ "previous": {
+  "version": 7,
+  "controls_sha256": "43a099cad12eb234ff501cb596e9f68d8b013dc7c231dbc7de21feafeb8cdd8a",
+  "adoption_sha256": "c5d3bc7bee4319d0f1c9f3dc64ca65a40a0fbfb7459ea8e2a1cbd9e07e8d113f",
+  "archived": "Lengau row19_screen/archive/v7_before_v8_20261010 (SHA256SUMS ee8bf25a...), Mac chpc/results/archive/row19_screen_v7_before_v8_20261010 (SHA256SUMS bc1c3a88...)"
+ },
+ "scope": "controllers for later screen admissions (closed-no-record disposition; refit jobs >= 10 at the pinned 48 h policy); each role still needs its own actual pilot review and adoption on a v8 qualification; grants no job, no job-10 admission, no numerical release"
+}
