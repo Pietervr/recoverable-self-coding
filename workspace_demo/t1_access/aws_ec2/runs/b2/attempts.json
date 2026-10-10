@@ -21,6 +21,39 @@
     }
    ],
    "rejection": "SpotMaxPriceTooLow: aws ec2 run-instances: aws: [ERROR]: An error occurred (SpotMaxPriceTooLow) when calling the RunInstances operation (reached max retries: 0): Your Spot request price of 1.2 is lower than the minimum required Spot request fulfillment price of 1.7114."
+  },
+  {
+   "attempt": 2,
+   "state": "reconciled",
+   "client_token": "t1-b2-2-98ca588f7560",
+   "request": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/aws_ec2/runs/b2/request_attempt2.json",
+   "lifetime_s": 77400,
+   "max_price": 1.8,
+   "type": "c7a.24xlarge",
+   "ami": "ami-0d53cc9bd365ad65b",
+   "results": "s3://xtenure-cself-pvr-usw2/results/t1_access/aws_bench/b2/attempt_2/",
+   "intent_at": 1791662440.942378,
+   "issues": [
+    {
+     "at": 1791662443.029058,
+     "result": "launched",
+     "detail": "i-0ea88e4c54f41e4d9"
+    }
+   ],
+   "instance": "i-0ea88e4c54f41e4d9",
+   "launch_time": "2026-10-10T20:00:42+00:00",
+   "terminal": {
+    "observed_state": "terminated",
+    "reason": "User initiated",
+    "compute_end": 1791662504.253997,
+    "compute_s": 62.25399708747864,
+    "ancillary_end": 1791662504.8959842,
+    "ancillary_s": 62.895984172821045,
+    "leftover_volumes": [],
+    "terminate_calls": 0,
+    "errors": []
+   },
+   "charged_usd": 0.13
   }
  ]
 }

@@ -202,7 +202,7 @@ def main():
         try:
             d = json.load(open(os.path.join(env, f"attest_{arm}.json")))
             att[arm] = d
-            need = ("profile", "XLA_FLAGS", "threads", "numpy_avx512_active", "openblas_core", "problems")
+            need = ("profile", "XLA_FLAGS", "threads", "numpy_avx512_active", "numpy_dispatch_active", "openblas_core", "problems")
             if not isinstance(d, dict) or any(k not in d for k in need):
                 problems.append(f"attestation {arm}: missing fields")
             elif d["profile"] not in allowed or (arm == "B" and d["profile"] != prof_b):
@@ -213,7 +213,7 @@ def main():
                 problems.append(f"attestation {arm}: OpenBLAS core unavailable")
             else:
                 base = "--xla_cpu_multi_thread_eigen=false --xla_cpu_parallel_codegen_split_count=1"
-                th = d["threads"]; xf = d["XLA_FLAGS"]; av = d["numpy_avx512_active"]
+                th = d["threads"]; xf = d["XLA_FLAGS"]; av = d["numpy_dispatch_active"]
                 typed = (isinstance(xf, str) and xf.startswith(base) and isinstance(th, dict)
                          and sorted(th) == ["MKL_NUM_THREADS", "NPROC", "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS"]
                          and all(v == "1" for v in th.values()) and isinstance(av, list) and all(isinstance(x, str) for x in av))
@@ -222,7 +222,7 @@ def main():
                 else:
                     typed = (typed and "--xla_cpu_max_isa=AVX2" in xf.split() and d.get("OPENBLAS_CORETYPE") == "Haswell"
                              and all("haswell" in v.lower() for v in d["openblas_core"].values())
-                             and (d["profile"] != "B_full" or av == []))
+                             and (d["profile"] != "B_full" or all(x in ("X86_V2", "X86_V3") for x in av)))
                 if not typed:
                     problems.append(f"attestation {arm}: effective values do not match profile {d['profile']}")
         except Exception as ex:

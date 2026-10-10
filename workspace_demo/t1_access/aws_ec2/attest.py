@@ -37,8 +37,9 @@ rec = dict(profile=profile, python=sys.version.split()[0], jax=jax.__version__, 
            XLA_FLAGS=os.environ.get("XLA_FLAGS"), OPENBLAS_CORETYPE=os.environ.get("OPENBLAS_CORETYPE"),
            NPY_DISABLE_CPU_FEATURES=os.environ.get("NPY_DISABLE_CPU_FEATURES"),
            threads={k: os.environ.get(k) for k in ("NPROC", "OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")},
-           numpy_avx512_active=sorted(k for k, v in feats.items() if v and k.startswith("AVX512")),
+           numpy_avx512_active=sorted(k for k, v in feats.items() if v and k.startswith("AVX512")),   # hardware flags (informational)
            numpy_dispatch=dispatch if isinstance(dispatch, (list, tuple)) else None,
+           numpy_dispatch_active=sorted(x for x in (dispatch or []) if feats.get(x)),
            openblas_core=openblas_core())
 base = "--xla_cpu_multi_thread_eigen=false --xla_cpu_parallel_codegen_split_count=1"
 bad = []
@@ -51,8 +52,8 @@ if profile.startswith("B"):
         bad.append("ISA ceiling missing")
     if rec["OPENBLAS_CORETYPE"] != "Haswell":
         bad.append("OPENBLAS_CORETYPE not Haswell")
-    if profile == "B_full" and rec["numpy_avx512_active"]:
-        bad.append("numpy AVX-512 dispatch still active under B_full")
+    if profile == "B_full" and any(x not in ("X86_V2", "X86_V3") for x in rec["numpy_dispatch_active"]):
+        bad.append(f"numpy dispatch above X86_V3 still active under B_full: {rec['numpy_dispatch_active']}")
     if not rec["openblas_core"]:
         bad.append("no loaded OpenBLAS library found: the BLAS core is unavailable, not certified")
     for lib, c in rec["openblas_core"].items():

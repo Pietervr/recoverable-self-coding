@@ -62,7 +62,9 @@ C=$T/rsc_screen/workspace_demo/t1_access; R6=$T/rsc/workspace_demo/t1_access
 
 BASE="--xla_cpu_multi_thread_eigen=false --xla_cpu_parallel_codegen_split_count=1"
 ARM_A=(NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 JAX_PLATFORMS=cpu)
-AVX512=$(env "${ARM_A[@]}" $T/t1py -c 'from numpy._core._multiarray_umath import __cpu_features__ as f; print(" ".join(k for k,v in f.items() if v and k.startswith("AVX512")))') || die "numpy feature probe"
+# numpy's runtime mask applies to its DISPATCH targets only (numpy 2.4: X86_V3, X86_V4, AVX512_ICL, AVX512_SPR); hardware
+# feature names such as AVX512F are ignored. Mask every active dispatch target above X86_V3 (Haswell = X86_V3).
+AVX512=$(env "${ARM_A[@]}" $T/t1py -c 'from numpy._core._multiarray_umath import __cpu_features__ as f, __cpu_dispatch__ as d; print(" ".join(x for x in d if f.get(x) and x not in ("X86_V2", "X86_V3")))') || die "numpy dispatch probe"
 ARM_B=("${ARM_A[@]}" "XLA_FLAGS=$BASE --xla_cpu_max_isa=AVX2" OPENBLAS_CORETYPE=Haswell)
 PROFILE_B=B_nomask
 if [ -n "$AVX512" ] && env "${ARM_B[@]}" "NPY_DISABLE_CPU_FEATURES=$AVX512" $T/t1py -c 'import numpy' > $W/env/npy_mask_check.txt 2>&1; then
