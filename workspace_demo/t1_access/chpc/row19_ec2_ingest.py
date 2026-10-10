@@ -85,7 +85,8 @@ def check_bundle(bundle, att, problems):
         listed[os.path.normpath(f)] = h
     present = {os.path.normpath(os.path.relpath(p, bundle)) for sub in ("root", "env")
                for p in glob.glob(os.path.join(bundle, sub, "**", "*"), recursive=True) if os.path.isfile(p)}
-    present.discard(os.path.normpath("env/upload_verify.json"))
+    for mutable in ("env/upload_verify.json", "env/userdata.log", "env/spot_notice.json", "env/stop_seen.txt"):   # diagnostics
+        present.discard(os.path.normpath(mutable))                                                            # written after hashing
     for f in sorted(present - set(listed)):
         problems.append(f"unlisted file {f}")
     for f, h in sorted(listed.items()):

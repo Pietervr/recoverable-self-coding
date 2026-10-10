@@ -140,7 +140,10 @@ PY
 [ $? -eq 0 ] && [ -s $W/env/outcomes.json ] || { echo "OUTCOMES CERTIFICATE FAILED"; echo "outcomes certificate failed $(date -u +%FT%TZ)" > $W/env/OUTCOMES_FAILED; }
 ROOT=$(cd $C && $T/t1py -c 'import json; print(json.load(open("'$W'/env/manifest_prod.json"))["storage"]["root"])')
 mkdir -p $W/root; cp -r $ROOT/records $ROOT/timing $ROOT/status $W/root/ 2>/dev/null; cp $ROOT/task_*.json $W/root/ 2>/dev/null
-(cd $W && find root env -type f ! -name "*.tmp*" ! -name "BUNDLE_SHA256SUMS" ! -name upload_verify.json | LC_ALL=C sort | xargs sha256sum > BUNDLE_SHA256SUMS) \
+# frozen evidence only: the mutable diagnostics (userdata.log - still appended by tee -, upload_verify.json, spot_notice.json,
+# stop_seen.txt) are written after this point and are excluded here and by the ingestion's unlisted-file check (Codex V10-3)
+(cd $W && find root env -type f ! -name "*.tmp*" ! -name "BUNDLE_SHA256SUMS" ! -name upload_verify.json ! -name userdata.log \
+   ! -name spot_notice.json ! -name stop_seen.txt | LC_ALL=C sort | xargs sha256sum > BUNDLE_SHA256SUMS) \
   || echo "bundle checksum list failed" > $W/env/BUNDLE_FAILED
 echo "end $(date -u +%FT%TZ)"
 final_upload
