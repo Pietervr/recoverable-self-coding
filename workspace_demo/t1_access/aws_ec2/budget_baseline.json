@@ -1,0 +1,7 @@
+{
+ "schema": "t1-aws-budget-baseline-1",
+ "spent_usd": 400.0,
+ "as_of": "2026-10-10",
+ "source": "AWS Cost Explorer read 10 Oct 2026 ~20:45 UTC: USD 2,371.22 from 12 Sept (12 Sept alone 1,984.20, mostly the pre-cap d4v12b run); since 13 Sept about 387.02; rounded UP to 400 to cover the unseparated post-21:50 UTC part of 12 Sept and Cost Explorer lag. Excludes row 23 (runs/b2, charged separately by the ledger). Re-read Cost Explorer and raise this before each production epoch.",
+ "cap": "USD 3,000 further spend from 12 Sept 2026 21:50 UTC (owner)"
+}
