@@ -1,0 +1,42 @@
+{
+ "client_token": "t1-b2-3-00d8db8551c5",
+ "args": [
+  "ec2",
+  "run-instances",
+  "--image-id",
+  "ami-0d53cc9bd365ad65b",
+  "--instance-type",
+  "c7a.24xlarge",
+  "--count",
+  "1",
+  "--client-token",
+  "t1-b2-3-00d8db8551c5",
+  "--placement",
+  "AvailabilityZone=us-west-2a",
+  "--iam-instance-profile",
+  "Name=xtenure-ec2-t1-worker",
+  "--instance-market-options",
+  "{\"MarketType\": \"spot\", \"SpotOptions\": {\"MaxPrice\": \"1.80\", \"SpotInstanceType\": \"one-time\", \"InstanceInterruptionBehavior\": \"terminate\"}}",
+  "--instance-initiated-shutdown-behavior",
+  "terminate",
+  "--block-device-mappings",
+  "[{\"DeviceName\": \"/dev/xvda\", \"Ebs\": {\"VolumeSize\": 40, \"VolumeType\": \"gp3\", \"DeleteOnTermination\": true}}]",
+  "--metadata-options",
+  "HttpTokens=required",
+  "--tag-specifications",
+  "[{\"ResourceType\": \"instance\", \"Tags\": [{\"Key\": \"project\", \"Value\": \"t1\"}, {\"Key\": \"row\", \"Value\": \"23\"}, {\"Key\": \"run\", \"Value\": \"b2\"}, {\"Key\": \"attempt\", \"Value\": \"3\"}, {\"Key\": \"Name\", \"Value\": \"t1-bench-b2-3\"}]}, {\"ResourceType\": \"volume\", \"Tags\": [{\"Key\": \"project\", \"Value\": \"t1\"}, {\"Key\": \"row\", \"Value\": \"23\"}, {\"Key\": \"run\", \"Value\": \"b2\"}, {\"Key\": \"attempt\", \"Value\": \"3\"}, {\"Key\": \"Name\", \"Value\": \"t1-bench-b2-3\"}]}]",
+  "--user-data",
+  "file:///Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/aws_ec2/runs/b2/userdata_attempt3.sh",
+  "--output",
+  "json"
+ ],
+ "userdata_sha256": "d06c957238a3dd7f0ea1779b922aa29d6015cfea9e5ebce3fe36d295d09227df",
+ "sha256": {
+  "t1_toolchain_lengau.tgz": "ec799aafe4347c3e20aedcced23d255a85afb763d24352dfed62705ac5dd4da2",
+  "manifest_A.json": "824837ee54af3f5fe43d67427cfdd335afc99e2f6d846333eb030b0e559053fa",
+  "manifest_B.json": "08e498c447341dee9f462f10a5570eda4ef58e3c5ad9e418dfc7bc8a4b061955",
+  "plan.json": "a67e2e1ce9c9c98455ee7946ec8f141ab50a5a8a473178b89aeaa12957d456d5",
+  "attest.py": "d3851d1d143802e6031af064d68c4b761c02204aff7199453bf54cf19a1c0437",
+  "row6_lengau_panel.py": "76e5670f348032193cd4425b188be09aef8037af69c5ac5b9af8198e6e2e3327"
+ }
+}

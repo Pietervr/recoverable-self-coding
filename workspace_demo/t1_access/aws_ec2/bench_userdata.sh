@@ -73,11 +73,18 @@ fi
 echo "$PROFILE_B" > $W/env/profile_B.txt
 (cd $C && env "${ARM_A[@]}" $T/t1py $W/env/attest.py A $W/env/attest_A.json) || die "arm A attestation"
 (cd $C && env "${ARM_B[@]}" $T/t1py $W/env/attest.py $PROFILE_B $W/env/attest_B.json) || die "arm B attestation ($PROFILE_B)"
+# Job-start per arm. Arm A (native Zen 4) refusing is itself a parity OUTCOME - attempt 3 found the native dataset identity
+# differs from Lengau's, so the unchanged production guards can never accept its records - recorded in ARM_A_REFUSED, its
+# stage-2 workers skipped, its row-6 panel still run. Arm B refusing remains fatal (die): it is the arm under test.
+STAGE2_ARMS="A B"
 for arm in A B; do
   if [ $arm = A ]; then E=("${ARM_A[@]}"); else E=("${ARM_B[@]}"); fi
-  (cd $C && env "${E[@]}" $T/t1py chpc/row19_shard.py job-start --manifest $W/env/manifest_$arm.json --plan $W/env/plan.json \
-      --job-id ec2$arm --walltime-s $((WORKER_DEADLINE - $(date +%s))) --no-reservation > $W/env/job_start_$arm.log 2>&1) \
-      || die "job-start arm $arm refused (see job_start_$arm.log)"
+  if ! (cd $C && env "${E[@]}" $T/t1py chpc/row19_shard.py job-start --manifest $W/env/manifest_$arm.json --plan $W/env/plan.json \
+      --job-id ec2$arm --walltime-s $((WORKER_DEADLINE - $(date +%s))) --no-reservation > $W/env/job_start_$arm.log 2>&1); then
+    [ $arm = B ] && die "job-start arm B refused (see job_start_B.log)"
+    tail -3 $W/env/job_start_A.log > $W/env/ARM_A_REFUSED; STAGE2_ARMS="B"
+    echo "arm A job-start refused (recorded as its outcome): $(tail -1 $W/env/job_start_A.log)"
+  fi
 done
 timeout 300 aws s3 sync $W $OUT --only-show-errors --exclude "*.tmp.*"
 
@@ -85,6 +92,7 @@ declare -A PIDS
 set -m   # job control: every background job below is its own process group (pgid = its pid), so cleanup reaches children
 run() {  # run <name> <cwd> <cmd...>: one declared process; its exit code is published atomically (temp + rename)
   local name=$1 cwd=$2; shift 2
+  echo $name >> $W/env/declared.txt
   ( cd $cwd && "$@" > $W/logs/$name.log 2>&1; c=$?; echo $c > $W/exits/.$name.tmp && mv $W/exits/.$name.tmp $W/exits/$name.code ) &
   PIDS[$name]=$!
 }
@@ -94,12 +102,13 @@ for arm in A B; do
   for rep in 0 20 40; do
     run row6_${arm}_rep$rep $R6 env "${E[@]}" $T/t1py $W/env/row6_lengau_panel.py $W/row6_$arm/row6_rows_rep$rep.csv $rep
   done
+  echo " $STAGE2_ARMS " | grep -q " $arm " || continue
   for i in $(seq 0 35); do
     run w_${arm}_slot$i $C env "${E[@]}" $T/t1py chpc/row19_shard.py worker --manifest $W/env/manifest_$arm.json \
         --rep $((3 + i)) --indices 0 --slot $i --job-id ec2$arm --deadline-epoch $WORKER_DEADLINE
   done
 done
-DECLARED=78
+DECLARED=$(wc -l < $W/env/declared.txt | tr -d ' ')
 echo "launched $DECLARED declared processes at $(date -u +%FT%TZ)"
 LAST_SYNC=$(date +%s)
 while true; do
@@ -125,7 +134,7 @@ echo "cleanup: censored $(wc -l < $W/env/censored.txt), unresolved after KILL $(
 python3 - $W <<'PY'
 import json, os, sys, time
 W = sys.argv[1]
-names = [f"row6_{a}_rep{r}" for a in "AB" for r in (0, 20, 40)] + [f"w_{a}_slot{i}" for a in "AB" for i in range(36)]
+names = open(os.path.join(W, "env", "declared.txt")).read().split()
 censored = set(open(os.path.join(W, "env", "censored.txt")).read().split())
 unresolved = set(open(os.path.join(W, "env", "unresolved.txt")).read().split())
 out = {}
@@ -135,8 +144,8 @@ for n in names:
         continue
     v = open(os.path.join(W, "exits", n + ".code")).read().strip()
     out[n] = int(v)
-assert len(out) == 78
-json.dump(dict(at=time.time(), declared=78, outcomes=out, unresolved_after_kill=sorted(unresolved)), open(os.path.join(W, "env", "outcomes.json"), "w"), indent=1)
+assert len(out) == len(names) == len(set(names))
+json.dump(dict(at=time.time(), declared=len(names), outcomes=out, unresolved_after_kill=sorted(unresolved)), open(os.path.join(W, "env", "outcomes.json"), "w"), indent=1)
 PY
 [ $? -eq 0 ] && [ -s $W/env/outcomes.json ] || { echo "OUTCOMES CERTIFICATE FAILED"; echo "outcomes certificate failed $(date -u +%FT%TZ)" > $W/env/OUTCOMES_FAILED; }
 echo "end $(date -u +%FT%TZ)"
