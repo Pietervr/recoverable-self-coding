@@ -11,6 +11,7 @@ B=s3://xtenure-cself-pvr-usw2
 CODE=$B/code/t1_access/aws_bench/$RUN/attempt_$ATTEMPT
 OUT=$B/results/t1_access/aws_bench/$RUN/attempt_$ATTEMPT
 W=/mnt/bench; mkdir -p $W/env $W/logs $W/exits
+export AWS_DEFAULT_REGION=us-west-2      # every aws call on the instance is S3 against the Oregon bucket (EC2 runs elsewhere)
 exec > >(tee -a $W/env/userdata.log) 2>&1
 
 UP=$(cut -d. -f1 /proc/uptime); NOW=$(date +%s); BOOT=$((NOW - UP)); HARD=$((BOOT + LIFETIME_S))
@@ -39,6 +40,11 @@ final_upload() {  # bounded transfer with a CHECKED disposition, inside the hard
   echo "transfer disposition: verified=$ok (local $nloc, remote $nrem, sync rc $rc, tries $tries)"
 }
 die() { echo "FAILED: $*"; echo "$* (at $(date -u +%FT%TZ))" > $W/env/FAILED; final_upload; shutdown -h now; exit 1; }
+( while true; do                         # spot interruption notice (2-minute warning): record it and push everything now
+    TK=$(curl -s -m 2 -X PUT http://169.254.169.254/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds: 300")
+    if curl -s -f -m 2 -H "X-aws-ec2-metadata-token: $TK" http://169.254.169.254/latest/meta-data/spot/instance-action > $W/env/spot_notice.json 2>/dev/null; then
+      date -u +%FT%TZ >> $W/env/spot_notice.json; timeout 100 aws s3 sync $W $OUT --only-show-errors --exclude "*.tmp.*"; break
+    fi; rm -f $W/env/spot_notice.json; sleep 5; done ) &
 
 T=/mnt/lustre/users/pvanrooyen/t1_toolchain; mkdir -p $T
 cat > $W/env/SHA256SUMS <<'SUMS'
@@ -95,7 +101,7 @@ while true; do
   echo "$(date +%s) $((DECLARED - n)) $(cut -d' ' -f1-3 /proc/loadavg)" >> $W/env/occupancy.txt
   [ "$n" -ge $DECLARED ] && break
   [ "$(date +%s)" -ge $UPLOAD_AT ] && break
-  if [ $(( $(date +%s) - LAST_SYNC )) -ge 1800 ]; then
+  if [ $(( $(date +%s) - LAST_SYNC )) -ge 600 ]; then
     mkdir -p $W/root; cp -r $ROOT_LIVE/records $ROOT_LIVE/timing $ROOT_LIVE/status $W/root/ 2>/dev/null
     timeout 600 aws s3 sync $W $OUT --only-show-errors --exclude "*.tmp.*"; LAST_SYNC=$(date +%s)
   fi

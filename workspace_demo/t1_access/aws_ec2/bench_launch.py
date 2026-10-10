@@ -27,11 +27,14 @@ waits for its heartbeat; without one within 180 s it terminates the instance its
 import argparse, contextlib, fcntl, hashlib, json, os, re, subprocess, sys, time, uuid
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PROFILE, REGION, BUCKET = "xtenure-read", "us-west-2", "xtenure-cself-pvr-usw2"
+PROFILE, REGION, BUCKET = "xtenure-read", "eu-north-1", "xtenure-cself-pvr-usw2"
+S3_REGION = "us-west-2"            # the code/results bucket stays in Oregon; EC2 runs in Stockholm (REGION)
 # Owner, 10 Oct 2026 ~19:35 UTC ("yes go"): spot cap 1.80 and row ceiling USD 42 after the live us-west-2 price
 # history showed c7a.24xlarge at 1.71-2.39/h (attempt 1 rejected SpotMaxPriceTooLow at 1.20, charged 0); zone 2a is the
 # only zone under the cap.
-ITYPE, MAXPRICE, ROLE, AZ = "c7a.24xlarge", 1.80, "xtenure-ec2-t1-worker", "us-west-2a"
+# Owner, 10 Oct ~22:10 UTC: move to eu-north-1 after attempt 4 was reclaimed by AWS in us-west-2a (price unchanged; Spot
+# Advisor: c7a.24xlarge interruption >20%/month there, <5% in eu-north-1; eu-north-1a 0.85/h, 7-day range 0.67-0.94).
+ITYPE, MAXPRICE, ROLE, AZ = "c7a.24xlarge", 1.20, "xtenure-ec2-t1-worker", "eu-north-1a"
 ANC_H, S3_FIXED, GRACE_S, RESERVE_S, CEILING = 0.0094, 0.10, 900, 1800, 42.00
 MAX_LIFE_S, MIN_LIFE_S = 77400, 72300
 AMI_PARAM = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
@@ -61,8 +64,9 @@ def aws(*args, timeout=120):
     env = dict(os.environ)
     if "run-instances" in args:          # one HTTP attempt: a definitive error is then the answer to THIS dispatch,
         env.update(AWS_MAX_ATTEMPTS="1", AWS_RETRY_MODE="standard")   # not to a hidden CLI retry of an unanswered one
+    region = S3_REGION if args and args[0] in ("s3", "s3api") else REGION
     try:
-        p = subprocess.run(["aws", "--profile", PROFILE, "--region", REGION, *args], capture_output=True, text=True, timeout=timeout, env=env)
+        p = subprocess.run(["aws", "--profile", PROFILE, "--region", region, *args], capture_output=True, text=True, timeout=timeout, env=env)
     except subprocess.TimeoutExpired:
         raise AwsError(f"aws {' '.join(args[:2])}: client timeout after {timeout} s")
     if p.returncode != 0:
