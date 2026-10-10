@@ -200,3 +200,16 @@ Record `reviews/2026-10-08_actual_evidence_codex_record.md`; the adopted version
   (zero alarms, successful scheduler observation, exact partitions and ledger transitions) at most 2,700 s old.
 - **In flight, 8 October 17:10 UTC.** Originals jobs 2-3 and refit jobs 2-3 running, originals 4-5 queued.
 - No interval, T, coverage or futility decision is authorised by this adoption; §4's seal is untouched.
+
+## Revision 8 - CANDIDATE, not adopted (Codex R052 record `2026-10-09_refit_wall_kill_codex_record.md`, verdicts 1 and 2)
+Design, line references, SHA-256 pins and test summary: `chpc/ROW19_SCREEN_V8_CANDIDATE.md`. The changed controllers and the
+version-8 controls file are in `chpc/candidate_v8/` (the adopted version 7 stays in place and in force); the new resource policy
+is `chpc/row19_screen_resources.json`. (1) A terminal refit or originals job is DISPOSITIONED (closed-no-record) - reported with
+its actual exit, not alarmed - only when the status view AND, independently, the admission establish: successful terminal
+scheduler observation, current ledger SETTLED with settlement evidence and no runner-end field, no status scoped to its PBS id,
+no record or timing attributable to it, and its retained PBS output naming it without ADMISSION FAILED; its plan's coordinates
+stay uncompleted (origin "plan") until a later bound job completes them; it never qualifies a pilot; its charge stays.
+(2) Refit jobs from 10 request 48 h (serial, 24 cores, 120 GB, reserve 1,800 s, one index per worker; 1,152 core-hours each)
+from the pinned policy, bound in plan, ledger, PBS request and receipt; jobs 1-9 and every originals job keep the manifest's
+30 h. If adopted, §7's "24 x 30 h = 720 core-hours" holds for refit jobs 1-9 only. Adoption needs a fresh v8 job-1
+qualification per role and a new pilot ADOPT line (see the candidate note, open point 1).

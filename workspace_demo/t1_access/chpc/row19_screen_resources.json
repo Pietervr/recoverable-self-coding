@@ -1,0 +1,21 @@
+{
+ "schema": "row19-screen-resources-1",
+ "role": "refit",
+ "manifest_path": "chpc/row19_screen_manifest.json",
+ "manifest_sha256": "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c",
+ "authority": "Codex R052 record reviews/2026-10-09_refit_wall_kill_codex_record.md (SHA-256 25afbca9565af7f30c7b9764956df1235f8750bbc1ef2c7d54671bb0ead7412f), verdict 2: prospective 48-h refit envelope; implementation and adoption review required before job 10",
+ "rule": "Prospective and walltime-only. Refit jobs numbered at or above first_job request this envelope; earlier jobs (1-9) and every originals job keep the frozen manifest's request (30 h). Every field except walltime_h must equal the manifest's pbs block. The manifest, its SHA-256 and every task binding stay unchanged. Pinned in chpc/row19_screen_controls.json; a changed copy refuses.",
+ "envelopes": [
+  {
+   "first_job": 10,
+   "queue": "serial",
+   "cores": 24,
+   "walltime_h": 48,
+   "mem_gb": 120,
+   "nodetype": "haswell_reg",
+   "deadline_reserve_s": 1800,
+   "per_slot": 1,
+   "note": "24 x 48 h = 1,152 core-hours per full request (was 720 at 30 h); START-based worker deadline allowance 172,800 - 1,800 = 171,000 s; cap 60,000 and highest job number 100 unchanged"
+  }
+ ]
+}
