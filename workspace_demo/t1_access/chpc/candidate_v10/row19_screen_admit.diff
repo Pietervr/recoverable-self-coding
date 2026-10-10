@@ -1,0 +1,65 @@
+--- row19_screen_admit.py	2026-10-09 21:59:03
++++ candidate_v10/row19_screen_admit.py	2026-10-10 14:30:52
+@@ -208,6 +208,30 @@
+     return f"the controllers {bad} are not lineage version {v['version']}'s bytes" if bad else ""
+ 
+ 
++def partition(man, manifest_path):
++    """REVISION 10 (Codex f3dd3d7 contract 1): the provider partition named by the LATEST controls version, or None when that
++    version names none. When named, the file must exist with the pinned sha256 and validate against this manifest
++    (row19_partition.load); any failure raises, so the caller HOLDS rather than planning without the guard."""
++    ref = controls()["versions"][-1].get("partition")
++    if not ref:
++        return None
++    import row19_partition as RP
++    pp = os.path.join(T1, ref["path"])
++    if not os.path.exists(pp) or sha_file(pp) != ref["sha256"]:
++        raise ValueError(f"the partition {ref['path']} is missing or not the pinned bytes {ref['sha256'][:12]}")
++    return RP.load(pp, man, sha_file(manifest_path))
++
++
++def partition_problem(jobs, part):
++    """'' unless a planned refit slot names a coordinate the partition gives to another provider (planning AND admission
++    check: also covers any plan supplied, restored or retried from elsewhere)."""
++    if part is None:
++        return ""
++    import row19_partition as RP
++    hits = [(int(s["rep"]), int(i)) for j in jobs for s in j["slots"] for i in s.get("indices", []) if RP.blocked(part, s["rep"], i)]
++    return f"{len(hits)} planned coordinate(s) belong to the {part['provider']} partition epoch {part['epoch']}, e.g. {hits[:3]}" if hits else ""
++
++
+ def exclusion_contract(man):
+     """The exclusion set the screen must declare EXACTLY: the slice manifest's historical list (that manifest pinned by the
+     lineage file), the three development datasets' seeds recomputed, and the bank's seeds recomputed."""
+@@ -449,11 +473,12 @@
+     return done, flight, used, problems
+ 
+ 
+-def plan_jobs(man, role, n_jobs, done, flight, used):
++def plan_jobs(man, role, n_jobs, done, flight, used, part=None):
+     cores = int(man["pbs"]["cores"]); reps = [int(r) for r in man["datasets"]["reps"]]
+     if role == "refit":
+         B = int(man["cfg"]["n_boot_refit"])
+-        order = [(r, [i]) for i in range(B) for r in reps if (r, i) not in done and (r, i) not in flight]
++        import row19_partition as RP                                          # REVISION 10: never plan another provider's block
++        order = [(r, [i]) for i in range(B) for r in reps if (r, i) not in done and (r, i) not in flight and not RP.blocked(part, r, i)]
+     else:
+         order = [r for r in reps if r not in done and r not in flight]
+     jobs, n = [], (max(used) + 1 if used else 1)
+@@ -1433,8 +1458,14 @@
+         print(f"{role}: done {len(done)}, in flight {len(flight)}")
+         if problems:
+             print(f"HELD: {len(problems)} problem(s) in the evidence:"); [print("   -", p) for p in problems[:10]]; return 2
+-        jobs, left = plan_jobs(man, role, n_jobs, done, flight, used)
+-        envs, why = {}, ""
++        try:
++            part = partition(man, a.manifest) if role == "refit" else None
++        except Exception as e:
++            print(f"HELD: the provider partition cannot be trusted: {e}"); return 2
++        if part is not None:
++            print(f"provider partition epoch {part['epoch']}: {part['provider']} owns indices {part['indices'][0]}..{part['indices'][-1]} (k {part['k']})")
++        jobs, left = plan_jobs(man, role, n_jobs, done, flight, used, part)
++        envs, why = {}, partition_problem(jobs, part)
+         for j in jobs:                                                        # REVISION 8: each NEW job's resolved envelope
+             env, w = resolve_envelope(man, a.manifest, role, int(j["job"]))
+             why = why or w; envs[j["job"]] = env

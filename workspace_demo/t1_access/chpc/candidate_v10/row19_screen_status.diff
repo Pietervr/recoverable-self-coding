@@ -1,0 +1,105 @@
+--- row19_screen_status.py	2026-10-10 11:31:23
++++ candidate_v10/row19_screen_status.py	2026-10-10 15:48:55
+@@ -63,6 +63,7 @@
+ HERE = os.path.dirname(os.path.abspath(__file__))
+ sys.path.insert(0, HERE); sys.path.insert(0, os.path.abspath(os.path.join(HERE, "..")))
+ HOST, LOGIN = "chpc-scp", "lengau"
++MANIFEST_PATH = None                                                   # set by main (REVISION 10: the partition check needs it)
+ BASE = os.path.join(HERE, "results", "row19_screen")
+ LIVE_DIR = os.path.join(BASE, "live")
+ RECEIPTS = os.path.join(BASE, "receipts")
+@@ -382,6 +383,57 @@
+     return al
+ 
+ 
++def ec2_reconcile(man, role, units, root, assigned, alarms):
++    """REVISION 10 (Codex f3dd3d7 contract 5): EC2 production attempts are a second producer kind, read from the ingestion
++    register root/ec2/register.json (written only by chpc/row19_ec2_ingest.py). Each attempt's coordinates join `assigned`
++    (so its records are not foreign); an 'ingesting' attempt may still lack records; an 'ingested' one must have, for every
++    coordinate it published, a valid record and a valid timing naming exactly this attempt and slot, its status copied under
++    root/ec2/status/, and every coordinate inside the provider partition. A coordinate claimed by two attempts, an unknown
++    register state, or EC2 evidence while no partition is in force, is an alarm. Returns the per-attempt summary for the
++    receipt's `ec2` field (USD settlement as recorded at ingestion; CHPC core-hours are never mixed in)."""
++    reg_p = os.path.join(root, "ec2", "register.json")
++    if not os.path.exists(reg_p):
++        return {}
++    try:
++        reg = json.load(open(reg_p))
++    except Exception as e:
++        alarms.append(f"the EC2 register is unreadable ({e})"); return {}
++    try:
++        import row19_screen_admit as _SA, row19_partition as _RP
++        part = _SA.partition(man, MANIFEST_PATH)
++    except Exception as e:
++        alarms.append(f"EC2 register present but the provider partition cannot be trusted ({e})"); part = None
++    if part is None:
++        alarms.append("EC2 register present but no provider partition is in force")
++    out, owner = {}, {}
++    for aid, e in sorted((reg.get("attempts") or {}).items()):
++        st = e.get("state"); coords = e.get("coordinates") or {}
++        out[aid] = dict(state=st, epoch=e.get("epoch"), coordinates=len(coords), sentinels_equal=len(e.get("sentinels_equal") or []),
++                        failed=sum(1 for c in coords.values() if c.get("failed")), charged_usd=e.get("charged_usd"),
++                        plan_sha256=e.get("plan_sha256"))
++        if st not in ("ingesting", "ingested"):
++            alarms.append(f"EC2 attempt {aid}: unknown register state {st!r}"); continue
++        for key, ce in coords.items():
++            if key in owner:
++                alarms.append(f"EC2 unit {key}: claimed by attempts {owner[key]} and {aid}"); continue
++            owner[key] = aid; assigned.add(key)
++            r, i = (int(x) for x in key.split("/"))
++            if part is not None and not _RP.blocked(part, r, i):
++                alarms.append(f"EC2 unit {key} ({aid}): outside the provider partition")
++            if st != "ingested" or ce.get("preexisting"):
++                continue
++            v = units.get(key) or {}
++            if not (v.get("record") or {}).get("ok"):
++                alarms.append(f"EC2 unit {key} ({aid}): no valid record"); continue
++            if not (v.get("timing") or {}).get("ok"):
++                alarms.append(f"EC2 unit {key} ({aid}): no valid timing"); continue
++            if v["timing"].get("job") != aid or v["timing"].get("slot") != ce.get("slot"):
++                alarms.append(f"EC2 unit {key}: timing names {v['timing'].get('job')} slot {v['timing'].get('slot')}, not {aid} slot {ce.get('slot')}")
++            if not os.path.exists(os.path.join(root, "ec2", "status", f"{aid}.slot{ce.get('slot')}.json")):
++                alarms.append(f"EC2 unit {key} ({aid}): no worker status copied")
++    return out
++
++
+ def reconcile(man, role, verify, obs, ledger, live):
+     alarms, summary, jobs = [], {}, {}
+     root = os.path.join(live, "root")
+@@ -488,6 +540,7 @@
+         if dispo:
+             s_sum["partition"].update(uncompleted=sorted(_slot_map(root, n)), uncompleted_origin="plan")
+         summary[str(n)] = s_sum
++    ec2 = ec2_reconcile(man, role, units, root, assigned, alarms) if role == "refit" else {}
+     for sp in glob.glob(os.path.join(root, "status", "*")):
+         if os.path.basename(sp) not in expected_status:
+             alarms.append(f"{role}: status {os.path.basename(sp)!r} that no planned job and slot assigns")
+@@ -499,7 +552,7 @@
+     for r, b in (verify.get("bindings") or {}).items():
+         if not b.get("ok") or not b.get("declared_ident_equal"):
+             alarms.append(f"task binding of rep {r}: {b.get('reason') or 'not the declared identity'}")
+-    return alarms, summary, jobs
++    return alarms, summary, jobs, ec2
+ 
+ 
+ def main(argv=None):
+@@ -531,7 +584,9 @@
+     obs, oprob = pbs_observe(ids, a.pbs_file)
+     if oprob:
+         alarms.append(oprob)
+-    al, summary, jobs = reconcile(man, role, verify, obs, ledger, live)
++    global MANIFEST_PATH
++    MANIFEST_PATH = a.manifest
++    al, summary, jobs, ec2 = reconcile(man, role, verify, obs, ledger, live)
+     alarms += al
+     production = fresh and not (a.no_pull or a.verify_file or a.pbs_file)
+     nvalid = sum(1 for v in (verify.get("units") or {}).values() if (v.get("record") or {}).get("ok"))
+@@ -562,7 +617,7 @@
+                  job_outputs={k: dict(file=v["disposition"]["output_file"], sha256=v["disposition"]["output_sha256"])
+                               for k, v in summary.items() if v.get("disposition")})
+     receipt = dict(schema=WATCH_SCHEMA, role=role, time=now, fresh=fresh, production=production, alarms=alarms, bound=bound, jobs=summary,
+-                   anchors=verify.get("anchors"), plan_slots={k: v["slots"] for k, v in summary.items()})
++                   anchors=verify.get("anchors"), plan_slots={k: v["slots"] for k, v in summary.items()}, ec2=ec2)
+     os.makedirs(RECEIPTS, exist_ok=True)
+     stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(now))
+     vp = os.path.join(RECEIPTS, f"verify_{role}_{stamp}.json")

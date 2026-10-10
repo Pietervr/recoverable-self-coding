@@ -65,3 +65,19 @@ writer can then occupy another provider's coordinate, because no coordinate is e
 2. The verifier/status adapter scope (EC2 job kind) and the ingestion rules.
 3. Whether 4 duplicates per instance plus row 23 suffice as the prospective production qualification.
 4. The envelope (USD 2,300) and the unit cost taken from row 23's measured walls.
+
+## 7. Build status against Codex f3dd3d7 (10 Oct 2026, nothing adopted or launched)
+
+| Contract | Built | Evidence |
+|---|---|---|
+| 1 partition binding + cutover | `chpc/row19_partition.py` (immutable epoch declaration bound to manifest, task identities, reps, B, k; cutover over every record and every plan of every ledger entry in any state); v10 admit guard in planning AND admission, partition named and sha-pinned by the controls version (`partition: null` = no change) | `test_row19_partition.py` 15/15; live read-only cutover: Lengau max index 2, block 150-199 unassigned |
+| 2 EC2 claim/budget authority | `aws_ec2/prod_authority.py` + `prod_launch.py`: fixed-order allocation from the block only; ownership from intent until rejected or ingested; immutable plan per attempt; sequence numbers; per-attempt prefixes; reviewed issue/resolve (same token, single-attempt first dispatch) and reaper reused | `tests/test_prod_authority.py` 13/13 (allocation, ownership, fencing, sentinels, both envelopes); launcher stub tests 13/13 |
+| 3 operational derivation | `make_prod_manifest.py`: only root, campaign, cores 76, expect_layer_s (from row 23's MEASURED walls), note; canonical Lengau bindings never written; EC2 bindings kept in the register; B_full only, no fallback | ingestion test: canonical task bindings untouched |
+| 4 ingestion | `chpc/row19_ec2_ingest.py`: bundle checksums and no unlisted file; frozen-task validation; EC2 binding; attempt/slot producer; positive finite timings; sentinel float.hex equality; overlap rules; register journal ingesting -> ingested with hash-checked replay; plan lock | `test_row19_ec2_ingest.py` 8/8 on real Lengau records (sandbox) |
+| 5 provider-aware status | v10 `ec2_reconcile`: register attempts as a second producer kind; coordinates assigned; producer/slot/status/partition checks; double claim and no-partition alarms; receipt `ec2` section (USD only) | `test_row19_ec2_status.py` 9/9 |
+| 6 qualification | `QUALIFICATION_PLAN.md` (Q1/Q2/S, release rule, costs) | declared before results |
+| 7 memory | 76 workers (176.3 GiB of 192) incl. 4 sentinels; qualified by Q1 at the intended packing | Q1 |
+| 8 budget | `budget_baseline.json` (USD 400 conservative) + production 2,300 / cumulative 3,000 checks before each dispatch, unresolved attempts charged worst case | `tests/test_prod_authority.py` |
+
+Open: common STOP propagation for EC2 (the instance does not yet read the screen's STOP file);
+the v10 test-suite update (reconcile now returns a 4-tuple).
