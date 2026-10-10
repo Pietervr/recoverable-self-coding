@@ -29,13 +29,20 @@ echo "boot $BOOT hard $HARD upload_at $UPLOAD_AT worker_deadline $WORKER_DEADLIN
 echo "{\"boot\": $BOOT, \"hard\": $HARD, \"upload_at\": $UPLOAD_AT, \"worker_deadline\": $WORKER_DEADLINE, \"timer_shutdown\": $T1OK, \"timer_systemd\": $T2OK}" > $W/env/window.json
 [ $T1OK = 1 ] || [ $T2OK = 1 ] || { echo "NO STOP TIMER COULD BE INSTALLED"; poweroff; exit 1; }
 
-final_upload() {
-  timeout 900 aws s3 sync $W $OUT --only-show-errors --exclude "*.tmp.*"; local rc=$?
-  local nloc nrem
-  nloc=$(cd $W && find . -type f ! -name "*.tmp.*" | wc -l | tr -d ' ')
-  nrem=$(timeout 120 aws s3 ls --recursive $OUT/ | wc -l | tr -d ' ')
-  echo "{\"sync_rc\": $rc, \"local_files\": $nloc, \"remote_objects\": $nrem, \"at\": $(date +%s)}" > $W/env/upload_verify.json
+final_upload() {  # bounded transfer with a CHECKED disposition, inside the hard deadline (never waived for salvage)
+  local tries=0 rc nloc nrem ok=false
+  while :; do
+    tries=$((tries + 1))
+    timeout 900 aws s3 sync $W $OUT --only-show-errors --exclude "*.tmp.*" --exclude "env/upload_verify.json"; rc=$?
+    nloc=$(cd $W && find . -type f ! -name "*.tmp.*" ! -name ".*" ! -path "./env/upload_verify.json" | wc -l | tr -d ' ')
+    nrem=$(timeout 120 aws s3 ls --recursive $OUT/ | grep -v "env/upload_verify.json" | wc -l | tr -d ' ')
+    if [ $rc -eq 0 ] && [ "$nrem" -ge "$nloc" ] && [ "$nloc" -gt 0 ]; then ok=true; break; fi
+    [ $tries -ge 2 ] && break
+    [ $(( $(date +%s) + 1200 )) -ge $HARD ] && break
+  done
+  echo "{\"transfer_verified\": $ok, \"tries\": $tries, \"sync_rc\": $rc, \"local_files\": $nloc, \"remote_objects\": $nrem, \"at\": $(date +%s)}" > $W/env/upload_verify.json
   timeout 120 aws s3 cp $W/env/upload_verify.json $OUT/env/upload_verify.json --only-show-errors
+  echo "transfer disposition: verified=$ok (local $nloc, remote $nrem, sync rc $rc, tries $tries)"
 }
 die() { echo "FAILED: $*"; echo "$* (at $(date -u +%FT%TZ))" > $W/env/FAILED; final_upload; shutdown -h now; exit 1; }
 
@@ -72,9 +79,11 @@ for arm in A B; do
 done
 timeout 300 aws s3 sync $W $OUT --only-show-errors --exclude "*.tmp.*"
 
-run() {  # run <name> <cwd> <cmd...>: record the exit code of one declared process
+declare -A PIDS
+run() {  # run <name> <cwd> <cmd...>: one declared process; its exit code is published atomically (temp + rename)
   local name=$1 cwd=$2; shift 2
-  ( cd $cwd && "$@" > $W/logs/$name.log 2>&1; echo $? > $W/exits/$name.code ) &
+  ( cd $cwd && "$@" > $W/logs/$name.log 2>&1; c=$?; echo $c > $W/exits/.$name.tmp && mv $W/exits/.$name.tmp $W/exits/$name.code ) &
+  PIDS[$name]=$!
 }
 for arm in A B; do
   if [ $arm = A ]; then E=("${ARM_A[@]}"); else E=("${ARM_B[@]}"); fi
@@ -100,18 +109,27 @@ while true; do
   fi
   sleep 60
 done
+for n in "${!PIDS[@]}"; do [ -f $W/exits/$n.code ] || echo $n; done | sort > $W/env/censored.txt
+pkill -f "row19_shard.py worker"; pkill -f row6_lengau_panel.py
+for n in "${!PIDS[@]}"; do  # reap every declared process (bounded: the kill above ends them)
+  timeout 60 tail --pid=${PIDS[$n]} -f /dev/null 2>/dev/null; wait ${PIDS[$n]} 2>/dev/null
+done
 python3 - $W <<'PY'
 import json, os, sys, time
 W = sys.argv[1]
 names = [f"row6_{a}_rep{r}" for a in "AB" for r in (0, 20, 40)] + [f"w_{a}_slot{i}" for a in "AB" for i in range(36)]
+censored = set(open(os.path.join(W, "env", "censored.txt")).read().split())
 out = {}
 for n in names:
-    p = os.path.join(W, "exits", n + ".code")
-    out[n] = int(open(p).read().strip()) if os.path.exists(p) else "censored at the upload deadline"
-json.dump(dict(at=time.time(), outcomes=out), open(os.path.join(W, "env", "outcomes.json"), "w"), indent=1)
+    if n in censored:
+        out[n] = "censored at the upload deadline"
+        continue
+    v = open(os.path.join(W, "exits", n + ".code")).read().strip()
+    out[n] = int(v)
+assert len(out) == 78
+json.dump(dict(at=time.time(), declared=78, outcomes=out), open(os.path.join(W, "env", "outcomes.json"), "w"), indent=1)
 PY
-pkill -f "row19_shard.py worker" ; pkill -f row6_lengau_panel.py
-sleep 5
+[ $? -eq 0 ] && [ -s $W/env/outcomes.json ] || { echo "OUTCOMES CERTIFICATE FAILED"; echo "outcomes certificate failed $(date -u +%FT%TZ)" > $W/env/OUTCOMES_FAILED; }
 echo "end $(date -u +%FT%TZ)"
 final_upload
 shutdown -h now

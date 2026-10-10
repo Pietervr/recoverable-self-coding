@@ -1,0 +1,67 @@
+--- row22_bank_status.py	2026-10-06 14:06:06
++++ candidate_v9/row22_bank_status.py	2026-10-10 10:32:21
+@@ -28,7 +28,7 @@
+ 
+     python chpc/row22_bank_status.py --manifest chpc/row22_bank_manifest.json [--publish-receipt] [--qualify 1]
+ Exit 1 on any alarm or when the evidence is not fresh."""
+-import os, sys, json, glob, math, time, shutil, hashlib, argparse, subprocess
++import os, sys, json, glob, math, time, shutil, hashlib, argparse, subprocess, shlex, re
+ 
+ HERE = os.path.dirname(os.path.abspath(__file__))
+ HOST, LOGIN = "chpc-scp", "lengau"
+@@ -45,6 +45,46 @@
+         return r.returncode, r.stdout, r.stderr
+     except Exception as e:
+         return 255, "", str(e)
++
++def pull_tree(remote, local, timeout=900):
++    """REVISION 9: copy a remote directory tree in ONE ssh stream (GNU tar on the transfer node -> tar here) instead of
++    scp -r's per-file round trips (~1.1 s per file over the tunnel on 10 Oct: 938 files overran the 900 s pull timeout;
++    the stream takes ~15-25 s). Same source, destination and timeout. Integrity: the remote lists every regular file
++    BEFORE archiving (to stderr), the local extractor must exit 0 (a truncated or corrupt stream fails), the remote tar
++    must exit 0 or 1 (GNU tar's 'file changed as we read it', the live-tree race scp also had), and EVERY file of the
++    pre-archive listing must exist locally (temporary *.tmp.* files excepted: publishers remove them). A file published
++    while the archive streams may or may not be included, exactly as with scp. Returns (0, '') or (255, reason)."""
++    q = shlex.quote(remote)
++    cmd = f"cd {q} && find . -type f | LC_ALL=C sort >&2 && tar -cf - ."
++    src = dst = None
++    try:
++        src = subprocess.Popen(["ssh", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", HOST, cmd],
++                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
++        dst = subprocess.Popen(["tar", "-xf", "-", "-C", local], stdin=src.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
++        src.stdout.close()
++        _, derr = dst.communicate(timeout=timeout)
++        _, serr = src.communicate(timeout=60)
++    except Exception as e:
++        for p in (src, dst):
++            if p is not None:
++                try:
++                    p.kill()
++                except Exception:
++                    pass
++        return 255, f"tar stream: {type(e).__name__}: {e}"
++    serr = serr.decode(errors="replace"); derr = derr.decode(errors="replace")
++    if dst.returncode != 0:
++        return 255, f"local tar rc {dst.returncode}: {derr.strip()[:160]}"
++    if src.returncode not in (0, 1):
++        return 255, f"remote rc {src.returncode}: {serr.strip()[-160:]}"
++    listed = [l[2:] for l in serr.splitlines() if l.startswith("./")]
++    if not listed and os.listdir(local):
++        return 255, "the remote pre-archive listing is empty"
++    missing = [p for p in listed if ".tmp." not in p and not os.path.isfile(os.path.join(local, p))]
++    if missing:
++        return 255, f"{len(missing)} listed file(s) not extracted, e.g. {missing[:3]}"
++    return 0, ""
++
+ 
+ 
+ def sha_bytes(b):
+@@ -83,7 +123,7 @@
+     problems = []
+     for name, remote in (("campaign", man["storage"]["campaign"]), ("root", man["storage"]["root"])):
+         local = os.path.join(stage, name); os.makedirs(local, exist_ok=True)
+-        rc, out, err = sh(["scp", "-q", "-r", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", f"{HOST}:{remote}/.", local], timeout=900)
++        rc, err = pull_tree(remote, local, timeout=900)
+         if rc != 0:
+             problems.append(f"pull of {remote} failed (rc {rc}): {err.strip()[:160]}")
+     if problems:

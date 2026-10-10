@@ -3,25 +3,29 @@
 Plain EC2 spot instances (not SageMaker) running the Lengau toolchain bytes at the Lengau path, so the pinned wrapper
 `t1py`, its sha256 and every library version are identical. Zen 4 (c7a/m7a) has one physical core per vCPU.
 
-## Files (revision 2, after Codex RSC `2cc26ee`)
+## Files (revision 3, after Codex RSC `2cc26ee` and `a2e92b2`)
 
 - `make_bench_manifests.py` -> `bench/manifest_{A,B}.json`, `bench/plan.json`, `bench/SHA256SUMS`: benchmark-only
   operational manifests derived from the production screen manifest `43b75f94` (unchanged); only root, campaign,
   cores 36 and expect_layer_s 68,400 differ.
 - `bench_userdata.sh` - the instance's whole job: two checked stop timers first, fail-closed setup (checksums, wrapper
   pin, attestation, job-start per arm), stage 1 row 6 panel and stage 2 index 0 of reps 3..38 per arm, a recorded
-  outcome for each of the 78 declared processes (or censored at the upload deadline), bounded upload with a
-  local/remote count check, shutdown.
+  outcome for each of the 78 declared processes published atomically (or censored at the upload deadline), a checked
+  outcomes certificate, a bounded transfer with a checked disposition, shutdown.
 - `attest.py` - each arm's EFFECTIVE flags (after models.py's setdefault), numpy dispatch, OpenBLAS core, thread caps;
   exits 3 when the named profile (A, B_full, B_nomask) is not in effect.
-- `bench_launch.py` - one attempt per call: cumulative USD 28.00 row ceiling in `runs/<run>/attempts.json`, duplicate
-  guards, intent and client token written before RunInstances, ambiguous responses reconciled by token; `--dry-run`
-  checks EC2 authorization only (S3 uploads are not exercised).
-- `bench_reaper.py` - run beside every attempt: terminates at launch + lifetime + 600 s if still running and records the
-  observed end of billing (upper bound) and the charge.
-- `bench_compare.py` - runs on Lengau under t1py with the controller tree: frozen-task validation of every record,
-  canonical float.hex payload over exactly the 36 coordinates, failed fits apart, paired timings, deviations only;
-  exit 3 for an incomplete or invalid panel.
+- `bench_launch.py` - admission under an exclusive run lock (shared with the reaper's ledger writes); attempt states
+  intent / launched / rejected (definitive EC2 client error, charged 0) / ambiguous (funded, resolved only by re-issuing
+  the SAME saved request and client token with bounded backoff, or `--recover` after a crash); S3 prefix check fails
+  closed; starts the reaper detached under caffeinate and terminates the instance itself if no heartbeat comes.
+- `bench_reaper.py` - heartbeat every poll; Describe/Terminate errors caught, logged and retried; only an attributable
+  shutting-down/terminated observation ends compute billing; tagged volumes polled to deletion for the ancillary hours;
+  then 'reconciled' under the lock.
+- `bench_compare.py` - runs on Lengau under t1py with the controller tree: pinned arm manifests and plan, full expected
+  task bindings, canonical names only (aliases refused), frozen-task validation, canonical float.hex payload, the
+  procedure's per-predictor usable predicate, non-finite disagreements reported, exact 78 process names all exit 0,
+  typed attestation profiles with a known OpenBLAS core, a valid occupancy timeline, a verified transfer; exit 3 for an
+  incomplete or invalid panel.
 - `iam/` - the two policies the owner creates in the console (below).
 
 Row 23 licenses no pooling: its result feeds a separate prospective production qualification.

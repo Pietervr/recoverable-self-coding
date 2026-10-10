@@ -53,8 +53,13 @@ if profile.startswith("B"):
         bad.append("OPENBLAS_CORETYPE not Haswell")
     if profile == "B_full" and rec["numpy_avx512_active"]:
         bad.append("numpy AVX-512 dispatch still active under B_full")
-    if any(c is not None and "haswell" not in c.lower() for c in rec["openblas_core"].values()):
-        bad.append("an OpenBLAS library does not report a Haswell core")
+    if not rec["openblas_core"]:
+        bad.append("no loaded OpenBLAS library found: the BLAS core is unavailable, not certified")
+    for lib, c in rec["openblas_core"].items():
+        if c is None:
+            bad.append(f"{lib}: OpenBLAS core unavailable (no corename symbol), not certified")
+        elif "haswell" not in c.lower():
+            bad.append(f"{lib}: OpenBLAS reports core {c}, not Haswell")
 rec["problems"] = bad
 json.dump(rec, open(out, "w"), indent=1)
 print(json.dumps(rec))

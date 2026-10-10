@@ -24,6 +24,11 @@ REPS = list(range(3, 39))
 PROD = os.path.join(T1, "chpc", "row19_screen_manifest.json")
 PROD_SHA = "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c"
 NUM = ("selection_ws_point", "selection_ws_lo", "selection_ws_hi", "selection_ws_se")
+SCALE = 0.5465000938917843
+PINS = {"A": "824837ee54af3f5fe43d67427cfdd335afc99e2f6d846333eb030b0e559053fa",
+        "B": "08e498c447341dee9f462f10a5570eda4ef58e3c5ad9e418dfc7bc8a4b061955"}
+PLAN_PIN = "a67e2e1ce9c9c98455ee7946ec8f141ab50a5a8a473178b89aeaa12957d456d5"
+NAMES = [f"row6_{a}_rep{r}" for a in "AB" for r in (0, 20, 40)] + [f"w_{a}_slot{i}" for a in "AB" for i in range(36)]
 
 
 def sha(p):
@@ -68,6 +73,8 @@ def stage1(ec2, ref_dir, problems):
             r, m = rows[rp], ref[rp]
             if r["code_hash"] != m["code_hash"] or r["code_hash"] != "625798e9e7f4":
                 problems.append(f"stage 1 arm {arm} rep {rp}: code hash"); continue
+            if any(x["generator"] != "M3" or abs(json.loads(x["grid"]).get("scale", -1) - SCALE) > 1e-15 for x in (r, m)):
+                problems.append(f"stage 1 arm {arm} rep {rp}: generator/grid is not the declared M3 scale point"); continue
             failed_same &= (r["failed"] == m["failed"])
             for q in NUM:
                 a, b = float(r[q]), float(m[q])
@@ -80,70 +87,91 @@ def stage1(ec2, ref_dir, problems):
     return out
 
 
+def usable(rec, p, bands):
+    """The procedure's own predicate (analyze.refit_bootstrap): not failed and every band of predictor p finite."""
+    return (not rec["failed"]) and all(math.isfinite(float(rec["stats"][p][b])) for b in bands)
+
+
+def canonical_layout(root, problems, arm):
+    want = {f"rep{r}" for r in REPS}
+    for sub, fname in (("records", "rec_000.json"), ("timing", "t_000.json")):
+        d = os.path.join(root, sub)
+        names = set(os.listdir(d)) if os.path.isdir(d) else set()
+        for x in sorted(names - want):
+            problems.append(f"stage 2 arm {arm}: unexpected {sub}/{x} (aliases such as rep03 are refused)")
+        for x in sorted(names & want):
+            got = sorted(os.listdir(os.path.join(d, x)))
+            if got != [fname]:
+                problems.append(f"stage 2 arm {arm}: {sub}/{x} holds {got}, not exactly [{fname}]")
+    tops = {f for f in os.listdir(root)} if os.path.isdir(root) else set()
+    allowed = {f"task_{r}.json" for r in REPS} | {f"task_{r}.json.lock" for r in REPS} | {"records", "timing", "status", "logs", "plans", "gate"}
+    for x in sorted(tops - allowed):
+        problems.append(f"stage 2 arm {arm}: unexpected root entry {x}")
+
+
 def stage2(ec2, lengau_root, problems):
     man = json.load(open(PROD))
     tasks = {rep: SH.task(man, rep) for rep in REPS}
+    preds = list(__import__("analyze").PREDICTORS)
     out = {}
     for arm in ("A", "B"):
         mpath = os.path.join(ec2, "env", f"manifest_{arm}.json")
-        msha = sha(mpath) if os.path.exists(mpath) else None
+        if not os.path.exists(mpath) or sha(mpath) != PINS[arm]:
+            problems.append(f"stage 2 arm {arm}: manifest missing or not the reviewed pin {PINS[arm][:12]}"); continue
+        man_x = json.load(open(mpath))
         root = os.path.join(ec2, f"root_{arm}")
-        found = sorted(int(os.path.basename(d)[3:]) for d in glob.glob(os.path.join(root, "records", "rep*")))
-        extra = [r for r in found if r not in REPS]
-        if extra:
-            problems.append(f"stage 2 arm {arm}: records for undeclared reps {extra}")
-        n_exact = n_usable = n_failed_both = n_failed_mismatch = 0; worst = 0.0; walls = []; ratios = []; bad = []
+        canonical_layout(root, problems, arm)
+        clean = exact = failed_both = 0; worst = 0.0; unavailable = 0; walls = []; ratios = []
+        use = {p: dict(both=0, ec2_only=0, lengau_only=0, neither=0) for p in preds}
         for rep in REPS:
-            t = tasks[rep]
+            t = tasks[rep]; bad = []
             try:
                 e = SH.read_record(SH.record_path(root, rep, 0), t, 0)
                 l = SH.read_record(SH.record_path(lengau_root, rep, 0), t, 0)
             except ValueError as ex:
-                bad.append(f"rep {rep}: {ex}"); continue
+                problems.append(f"stage 2 arm {arm} rep {rep}: {ex}"); continue
             if e is None or l is None:
-                bad.append(f"rep {rep}: {'EC2' if e is None else 'Lengau'} record missing"); continue
-            if sorted(glob.glob(os.path.join(root, "records", f"rep{rep}", "rec_*.json"))) != [SH.record_path(root, rep, 0)]:
-                bad.append(f"rep {rep}: extra or aliased EC2 record files")
-            tp = os.path.join(root, f"task_{rep}.json")
+                problems.append(f"stage 2 arm {arm} rep {rep}: {'EC2' if e is None else 'Lengau'} record missing"); continue
+            want_b = json.loads(json.dumps(SH.binding_for(man_x, PINS[arm], f"/mnt/bench/root_{arm}", rep, t), default=str))
             try:
-                b = json.load(open(tp))["binding"]
-                if b.get("manifest_sha") != msha or b.get("ident") != t["ident"] or b.get("rep") != rep:
-                    bad.append(f"rep {rep}: binding does not name this arm's manifest/identity")
+                got_b = json.load(open(os.path.join(root, f"task_{rep}.json")))["binding"]
+                if got_b != want_b:
+                    bad.append(f"binding differs on {[k for k in want_b if got_b.get(k) != want_b[k]] + [k for k in got_b if k not in want_b]}")
             except Exception as ex:
-                bad.append(f"rep {rep}: binding unreadable ({ex})")
-            te_p, tl_p = SH.timing_path(root, rep, 0), SH.timing_path(lengau_root, rep, 0)
+                bad.append(f"binding unreadable ({ex})")
             try:
-                te, tl = json.load(open(te_p)), json.load(open(tl_p))
+                te = json.load(open(SH.timing_path(root, rep, 0))); tl = json.load(open(SH.timing_path(lengau_root, rep, 0)))
+                why = (V.timing_ok(te, rep=rep, index=0, ident=t["ident"], job=f"ec2{arm}", slot=rep - 3)
+                       or V.timing_ok(tl, rep=rep, index=0, ident=t["ident"]))
+                if why:
+                    bad.append(f"timing {why}")
             except Exception as ex:
-                bad.append(f"rep {rep}: timing unreadable ({ex})"); continue
-            why = V.timing_ok(te, rep=rep, index=0, ident=t["ident"], job=f"ec2{arm}", slot=rep - 3) or V.timing_ok(tl, rep=rep, index=0, ident=t["ident"])
-            if why:
-                bad.append(f"rep {rep}: timing {why}"); continue
-            if e["failed"] or l["failed"]:
-                if e["failed"] and l["failed"]:
-                    n_failed_both += 1
-                else:
-                    n_failed_mismatch += 1
-                continue
-            n_usable += 1
-            if V.payload(e) == V.payload(l):
-                n_exact += 1
-            else:
-                le, ll = dict(numeric_leaves(e["stats"])), dict(numeric_leaves(l["stats"]))
-                if le.keys() != ll.keys():
-                    bad.append(f"rep {rep}: statistic layout differs"); continue
-                worst = max([worst] + [abs(le[k] - ll[k]) for k in le if math.isfinite(le[k]) and math.isfinite(ll[k])])
+                bad.append(f"timing unreadable ({ex})")
+            if bad:
+                problems.extend(f"stage 2 arm {arm} rep {rep}: {x}" for x in bad); continue
+            clean += 1
+            exact += (V.payload(e) == V.payload(l))
+            failed_both += (e["failed"] and l["failed"])
+            for p in preds:
+                ue, ul = usable(e, p, t["bands"]), usable(l, p, t["bands"])
+                use[p]["both" if ue and ul else "ec2_only" if ue else "lengau_only" if ul else "neither"] += 1
+            le, ll = dict(numeric_leaves(e["stats"])), dict(numeric_leaves(l["stats"]))
+            if le.keys() != ll.keys():
+                problems.append(f"stage 2 arm {arm} rep {rep}: statistic layout differs"); continue
+            for k in le:
+                x, y = le[k], ll[k]
+                if math.isfinite(x) and math.isfinite(y):
+                    worst = max(worst, abs(x - y))
+                elif V.canon(x) != V.canon(y):
+                    unavailable += 1
             we, wl = float(te["wall_s"]), float(tl["wall_s"])
-            if we > 0 and wl > 0:
-                walls.append(we); ratios.append(wl / we)
-            else:
-                bad.append(f"rep {rep}: non-positive wall")
-        problems.extend(f"stage 2 arm {arm}: {x}" for x in bad)
-        out[arm] = dict(declared=len(REPS), valid_pairs=n_usable + n_failed_both + n_failed_mismatch, usable_both=n_usable,
-                        payload_exact=n_exact, failed_both=n_failed_both, failed_one_side=n_failed_mismatch,
-                        max_abs_delta_nonexact=worst, invalid=len(bad),
+            walls.append(we); ratios.append(wl / we)
+        out[arm] = dict(declared=len(REPS), validated=clean, payload_exact=exact, failed_both=failed_both,
+                        usable_by_predictor=use, max_abs_delta_finite=worst, nonfinite_disagreements=unavailable,
                         ec2_wall_h=(dict(median=statistics.median(walls) / 3600, min=min(walls) / 3600, max=max(walls) / 3600) if walls else None),
                         lengau_over_ec2=(dict(median=statistics.median(ratios), min=min(ratios), max=max(ratios)) if ratios else None))
+        if clean != len(REPS):
+            problems.append(f"stage 2 arm {arm}: {clean} of {len(REPS)} coordinates validated")
     return out
 
 
@@ -157,30 +185,60 @@ def main():
         sys.exit("the production screen manifest here is not 43b75f94")
     env = os.path.join(a.ec2, "env")
     att = {}
-    for arm in ("A", "B"):
+    try:
+        prof_b = open(os.path.join(env, "profile_B.txt")).read().strip()
+    except Exception:
+        prof_b = None; problems.append("profile_B.txt missing")
+    for arm, allowed in (("A", {"A"}), ("B", {"B_full", "B_nomask"})):
         try:
-            att[arm] = json.load(open(os.path.join(env, f"attest_{arm}.json")))
-            if att[arm].get("problems"):
-                problems.append(f"attestation {arm}: {att[arm]['problems']}")
+            d = json.load(open(os.path.join(env, f"attest_{arm}.json")))
+            att[arm] = d
+            need = ("profile", "XLA_FLAGS", "threads", "numpy_avx512_active", "openblas_core", "problems")
+            if not isinstance(d, dict) or any(k not in d for k in need):
+                problems.append(f"attestation {arm}: missing fields")
+            elif d["profile"] not in allowed or (arm == "B" and d["profile"] != prof_b):
+                problems.append(f"attestation {arm}: profile {d['profile']!r} (profile_B.txt {prof_b!r})")
+            elif not isinstance(d["problems"], list) or d["problems"]:
+                problems.append(f"attestation {arm}: {d['problems']}")
+            elif not isinstance(d["openblas_core"], dict) or not d["openblas_core"] or any(v is None for v in d["openblas_core"].values()):
+                problems.append(f"attestation {arm}: OpenBLAS core unavailable")
         except Exception as ex:
             problems.append(f"attestation {arm} missing ({ex})")
-    if os.path.exists(os.path.join(env, "FAILED")):
-        problems.append("instance reported FAILED: " + open(os.path.join(env, "FAILED")).read().strip())
+    for f in ("FAILED", "OUTCOMES_FAILED"):
+        if os.path.exists(os.path.join(env, f)):
+            problems.append(f"instance reported {f}: " + open(os.path.join(env, f)).read().strip())
+    try:
+        uv = json.load(open(os.path.join(env, "upload_verify.json")))
+        if uv.get("transfer_verified") is not True:
+            problems.append(f"transfer not verified: {uv}")
+    except Exception as ex:
+        problems.append(f"upload_verify.json missing ({ex})")
+    if not os.path.exists(os.path.join(env, "plan.json")) or sha(os.path.join(env, "plan.json")) != PLAN_PIN:
+        problems.append("plan.json missing or not the reviewed pin")
     try:
         oc = json.load(open(os.path.join(env, "outcomes.json")))["outcomes"]
-        nonzero = {k: v for k, v in oc.items() if v != 0}
-        if len(oc) != 78:
-            problems.append(f"outcomes for {len(oc)} of 78 declared processes")
-        if nonzero:
-            problems.append(f"{len(nonzero)} process(es) not exit 0: {nonzero}")
+        if sorted(oc) != sorted(NAMES):
+            problems.append(f"outcomes name set differs from the 78 declared processes")
+        bad = {k: v for k, v in oc.items() if not (isinstance(v, int) and not isinstance(v, bool) and v == 0)}
+        if bad:
+            problems.append(f"{len(bad)} process(es) not exit 0: {bad}")
     except Exception as ex:
-        oc = None; problems.append(f"outcomes.json missing ({ex})")
-    occ = []
+        problems.append(f"outcomes.json missing or unreadable ({ex})")
+    running = []
     try:
-        occ = [l.split() for l in open(os.path.join(env, "occupancy.txt"))]
-    except Exception:
-        problems.append("occupancy.txt missing")
-    running = [int(x[1]) for x in occ if len(x) >= 2]
+        prev = -1.0
+        for line in open(os.path.join(env, "occupancy.txt")):
+            f = line.split()
+            if len(f) != 5:
+                raise ValueError(f"malformed line {line!r}")
+            ts, n = float(f[0]), int(f[1]); [float(x) for x in f[2:]]
+            if ts <= prev or not 0 <= n <= 78:
+                raise ValueError(f"non-monotonic time or count out of range at {line!r}")
+            prev = ts; running.append(n)
+        if not running:
+            raise ValueError("empty")
+    except Exception as ex:
+        problems.append(f"occupancy timeline invalid ({ex})")
     report = dict(profile_B=(att.get("B") or {}).get("profile"), stage1=stage1(a.ec2, a.row6_ref, problems),
                   stage2=stage2(a.ec2, a.lengau_root, problems),
                   occupancy=(dict(samples=len(running), max=max(running), mean=sum(running) / len(running), min=min(running)) if running else None),
