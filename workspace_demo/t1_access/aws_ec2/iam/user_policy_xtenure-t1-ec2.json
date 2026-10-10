@@ -1,0 +1,10 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Sid": "Read", "Effect": "Allow", "Action": ["ec2:Describe*", "ssm:GetParameters", "ssm:GetParameter", "servicequotas:GetServiceQuota", "servicequotas:ListServiceQuotas", "ce:GetCostAndUsage", "ce:GetCostForecast", "ec2:CancelSpotInstanceRequests"], "Resource": "*"},
+    {"Sid": "Launch", "Effect": "Allow", "Action": "ec2:RunInstances", "Resource": "*", "Condition": {"StringEquals": {"aws:RequestedRegion": "us-west-2"}}},
+    {"Sid": "TagOnLaunch", "Effect": "Allow", "Action": "ec2:CreateTags", "Resource": "*", "Condition": {"StringEquals": {"ec2:CreateAction": "RunInstances"}}},
+    {"Sid": "Terminate", "Effect": "Allow", "Action": "ec2:TerminateInstances", "Resource": "*", "Condition": {"StringEquals": {"aws:ResourceTag/project": "t1"}}},
+    {"Sid": "PassWorkerRole", "Effect": "Allow", "Action": "iam:PassRole", "Resource": "arn:aws:iam::763348960464:role/xtenure-ec2-t1-worker"}
+  ]
+}
