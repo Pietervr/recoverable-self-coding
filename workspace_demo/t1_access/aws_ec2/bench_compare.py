@@ -50,6 +50,8 @@ def read_rows(files):
     rows, dup = {}, []
     for f in files:
         for r in csv.DictReader(open(f)):
+            if r.get("rep") not in ("0", "20", "40"):
+                dup.append(f"non-canonical rep {r.get('rep')!r}"); continue
             k = int(r["rep"])
             if k in rows:
                 dup.append(k)
@@ -73,8 +75,13 @@ def stage1(ec2, ref_dir, problems):
             r, m = rows[rp], ref[rp]
             if r["code_hash"] != m["code_hash"] or r["code_hash"] != "625798e9e7f4":
                 problems.append(f"stage 1 arm {arm} rep {rp}: code hash"); continue
-            if any(x["generator"] != "M3" or abs(json.loads(x["grid"]).get("scale", -1) - SCALE) > 1e-15 for x in (r, m)):
-                problems.append(f"stage 1 arm {arm} rep {rp}: generator/grid is not the declared M3 scale point"); continue
+            try:
+                gridok = all(x["generator"] == "M3" and isinstance(json.loads(x["grid"]), dict)
+                             and float(json.loads(x["grid"]).get("scale", "nan")) == SCALE for x in (r, m))
+            except Exception:
+                gridok = False
+            if not gridok:
+                problems.append(f"stage 1 arm {arm} rep {rp}: generator/grid malformed or not the declared M3 scale point"); continue
             failed_same &= (r["failed"] == m["failed"])
             for q in NUM:
                 a, b = float(r[q]), float(m[q])
@@ -165,6 +172,8 @@ def stage2(ec2, lengau_root, problems):
                 elif V.canon(x) != V.canon(y):
                     unavailable += 1
             we, wl = float(te["wall_s"]), float(tl["wall_s"])
+            if not (math.isfinite(we) and math.isfinite(wl) and we > 0 and wl > 0):
+                problems.append(f"stage 2 arm {arm} rep {rep}: wall not positive and finite (EC2 {we}, Lengau {wl})"); continue
             walls.append(we); ratios.append(wl / we)
         out[arm] = dict(declared=len(REPS), validated=clean, payload_exact=exact, failed_both=failed_both,
                         usable_by_predictor=use, max_abs_delta_finite=worst, nonfinite_disagreements=unavailable,
@@ -200,8 +209,22 @@ def main():
                 problems.append(f"attestation {arm}: profile {d['profile']!r} (profile_B.txt {prof_b!r})")
             elif not isinstance(d["problems"], list) or d["problems"]:
                 problems.append(f"attestation {arm}: {d['problems']}")
-            elif not isinstance(d["openblas_core"], dict) or not d["openblas_core"] or any(v is None for v in d["openblas_core"].values()):
+            elif not isinstance(d["openblas_core"], dict) or not d["openblas_core"] or not all(isinstance(v, str) and v for v in d["openblas_core"].values()):
                 problems.append(f"attestation {arm}: OpenBLAS core unavailable")
+            else:
+                base = "--xla_cpu_multi_thread_eigen=false --xla_cpu_parallel_codegen_split_count=1"
+                th = d["threads"]; xf = d["XLA_FLAGS"]; av = d["numpy_avx512_active"]
+                typed = (isinstance(xf, str) and xf.startswith(base) and isinstance(th, dict)
+                         and sorted(th) == ["MKL_NUM_THREADS", "NPROC", "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS"]
+                         and all(v == "1" for v in th.values()) and isinstance(av, list) and all(isinstance(x, str) for x in av))
+                if arm == "A":
+                    typed = typed and xf == base and d.get("OPENBLAS_CORETYPE") is None
+                else:
+                    typed = (typed and "--xla_cpu_max_isa=AVX2" in xf.split() and d.get("OPENBLAS_CORETYPE") == "Haswell"
+                             and all("haswell" in v.lower() for v in d["openblas_core"].values())
+                             and (d["profile"] != "B_full" or av == []))
+                if not typed:
+                    problems.append(f"attestation {arm}: effective values do not match profile {d['profile']}")
         except Exception as ex:
             problems.append(f"attestation {arm} missing ({ex})")
     for f in ("FAILED", "OUTCOMES_FAILED"):
@@ -231,7 +254,9 @@ def main():
             f = line.split()
             if len(f) != 5:
                 raise ValueError(f"malformed line {line!r}")
-            ts, n = float(f[0]), int(f[1]); [float(x) for x in f[2:]]
+            ts, n = float(f[0]), int(f[1]); loads = [float(x) for x in f[2:]]
+            if not all(math.isfinite(x) and x >= 0 for x in [ts] + loads):
+                raise ValueError(f"non-finite or negative value at {line!r}")
             if ts <= prev or not 0 <= n <= 78:
                 raise ValueError(f"non-monotonic time or count out of range at {line!r}")
             prev = ts; running.append(n)

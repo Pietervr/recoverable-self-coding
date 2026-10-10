@@ -5,17 +5,29 @@ the WireGuard tunnel scp (SFTP mode) costs ~1.1 s per file (measured: 127 files 
 files, so every refit receipt now times out ("pull ... failed (rc 255)") and refit refills cannot pass the gate. The
 bank root (733 files) sits just under the limit. Both receipts at 16:5x-17:25Z on 10 Oct failed this way.
 
-Change (the only change in each file): `pull_tree(remote, local, timeout=900)` replaces the scp call - one ssh command
-on the transfer node lists every regular file (sorted, to stderr), then streams `tar -cf - .`; the Mac extracts with
-`tar -xf - -C local`. Accepted only when the local extractor exits 0, the remote exits 0 or 1 (GNU tar's
-'file changed as we read it', the live-tree race scp had too), and every pre-archive file exists locally (temporary
-`*.tmp.*` excepted). Same source paths, destination, timeout and failure reporting (rc 255 + reason); everything after
-the pull (stage/live rotation, job-output fetch, verifier, receipts) is unchanged.
+Change (revision 2 of the candidate, after Codex RSC 137b261 V9-1..V9-3; the only change in each status file):
+`pull_tree(remote, local, timeout=900)` replaces the scp call. The remote half (`_PULL_REMOTE`, run under bash) has
+explicit phases - cd, a complete listing into a remote temp file, the sorted listing on stderr closed by
+`LISTING-END <n>`, GNU tar on stdout closed by `TAR-RC <rc>` - and any failed phase prints `PHASE <name> FAILED` and
+exits non-zero. Locally, ssh's stderr goes to a task-owned temp file (no pipe-capacity deadlock for any listing size),
+and one deadline bounds the whole transfer; on any failure both children are terminated, killed if needed, and reaped.
+Accepted only when the local extractor exits 0, every marker is present, LISTING-END equals the names received,
+TAR-RC is 0 or 1 (GNU tar's 'file changed as we read it', reported in the note) and equals ssh's exit, and every
+listed file exists locally except the publishers' temporary names `<path>.tmp` (row19_ledger.write_atomic) and
+`<path>.tmp.<pid>` (row19_shard.publish, row19_screen_orig). Everything after the pull is unchanged; a failed pull
+keeps the old live snapshot.
 
-Evidence (read-only, 10 Oct ~17:45Z): refit root 950 files in 6.9 s, bank root 736 files in 5.1 s, both rc 0. A first
-version that compared counts after the archive correctly REFUSED a pull during which a refit job-7 worker published
-rec_001/t_001/status (950 vs 947); the pre-listing check above is race-tolerant without dropping any file that existed
-when the pull began.
+Lineage (V9-3): `row19_screen_controls.json` here is the candidate controls file - the adopted v8 file (9f736222...)
+with ONE appended version 9 entry whose pins equal v8's except `chpc/row19_screen_status.py` = this candidate's bytes;
+every other pin was re-hashed against the files on disk. Its own SHA-256 is what a literal ADOPT line would name. Nothing
+is promoted before review; after promotion a fresh generation-9 whole-role observation and qualification from the
+retained pilot evidence, then the digest-bound refit adoption, precede further gated refit admissions (no new pilot fits).
+The bank status change is the bank lane's own transport repair (its raw-bank scope and job cap unchanged).
 
-Files: `row19_screen_status.py` (controls version 9 when adopted), `row22_bank_status.py` (bank lane, not under the
-screen controls), and their `.diff` against the adopted bytes.
+Evidence: `test_pull_tree.py` (stub ssh, local): 60,000-file tree pulled completely (listing ~1.9 MB), missing
+directory -> PHASE cd FAILED, unreadable subdirectory -> PHASE find FAILED, truncated stream refused, a hung remote
+refused at a 3 s deadline with no stray child, temp-name rule exact - ALL PASS for both files. Live read-only pulls
+10 Oct ~18:15Z: refit root 1,019 files in 23.4 s, bank root 768 files in 12.4 s, rc 0.
+
+Files: `row19_screen_status.py`, `row22_bank_status.py`, `row19_screen_controls.json` (candidate), their `.diff`
+against the adopted bytes, `test_pull_tree.py` + `stub_ssh.sh`.

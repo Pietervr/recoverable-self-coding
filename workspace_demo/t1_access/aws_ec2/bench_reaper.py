@@ -6,7 +6,8 @@ be (re)started by hand after a crash:
 
 Every poll writes runs/<run>/reaper_attempt<n>.heartbeat. Describe/Terminate errors and timeouts are caught, logged with
 backoff and retried; an empty or unattributable Describe is NOT a terminal observation (the attempt stays funded).
-From launch + lifetime + 900 s it calls TerminateInstances (idempotent, project=t1 only) on every poll until it observes
+From launch + lifetime + 900 s (the launcher also budgets a further 1,800 s reserve for polling, API retries
+and cleanup) it calls TerminateInstances (idempotent, project=t1 only) on every poll until it observes
 the instance itself in shutting-down or terminated. That observation ends COMPUTE billing (upper bound: the poll time).
 Ancillary resources are accounted separately: the attempt's tagged EBS volumes are polled until none remains (deleted
 on termination; an 'available' leftover is deleted, project=t1 only), and their end time closes the ancillary hours.
@@ -39,12 +40,13 @@ def main():
         now = time.time()
         try:
             found = [i for i in L.find_instances(**{"instance-id": iid}) if i.get("InstanceId") == iid]
+            t_resp = time.time()                       # stamped AFTER the response: an upper bound on the state's onset
             if not found:
                 log("describe returned no attributable instance: unresolved, reservation held")
             else:
                 state = found[0]["State"]["Name"]
                 if state in ("shutting-down", "terminated"):
-                    compute_end = now; reason = found[0].get("StateTransitionReason", ""); break
+                    compute_end = t_resp; reason = found[0].get("StateTransitionReason", ""); break
         except Exception as e:
             errors.append(dict(at=now, op="describe", error=str(e)[:300])); log(f"describe error: {e}")
         if now >= stop_at:
@@ -64,7 +66,7 @@ def main():
                                    f"Name=tag:attempt,Values={a.attempt}", "--output", "json").stdout)
             vols = [(v["VolumeId"], v["State"]) for v in out["Volumes"]]
             if not vols:
-                vols_end = now; break
+                vols_end = time.time(); break          # after the response that shows no volume left
             for vid, st in vols:
                 if st == "available":
                     leftovers.append(vid)

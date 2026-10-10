@@ -18,6 +18,9 @@ def args(run, **kw):
 def fresh(run, mode):
     os.environ["STUB_MODE"] = mode; os.environ["STUB_LOG"] = os.path.join(tmp, f"{run}.log")
     shutil.rmtree(os.path.join(PKG, "runs", run), ignore_errors=True)
+def runs_calls_safe(run):
+    p = os.path.join(tmp, f"{run}.log")
+    return [l for l in open(p) if "run-instances" in l] if os.path.exists(p) else []
 def runs_calls(run):
     return [json.loads(l) for l in open(os.path.join(tmp, f"{run}.log")) if "run-instances" in l]
 ok = True
@@ -44,7 +47,7 @@ fresh("t_amb2", "always_ambiguous")
 with L.run_lock("t_amb2"):
     rc = L.admit(args("t_amb2"))
 att = L.load("t_amb2")["attempts"][-1]
-check("persistent ambiguity stays funded", rc == 3 and att["state"] == "ambiguous" and L.charged(att) > 26)
+check("persistent ambiguity stays funded", rc == 3 and att["state"] == "ambiguous" and L.charged(att) > 26.9)
 try:
     with L.run_lock("t_amb2"):
         L.admit(args("t_amb2")); refused = False
@@ -60,7 +63,7 @@ check("--recover resolves with the same token", rc == 0 and len(toks) == 1 and L
 # 4 crash after intent (state intent, no API answer): new admission refused, --recover issues that token
 fresh("t_crash", "ok")
 with L.run_lock("t_crash"):
-    real = L.finish; L.finish = lambda run, led, att: 99
+    real = L.finish; L.finish = lambda run, led, att, fresh: 99
     L.admit(args("t_crash")); L.finish = real
 att = L.load("t_crash")["attempts"][-1]
 check("crash leaves intent recorded", att["state"] == "intent")
@@ -82,6 +85,53 @@ with L.run_lock("t_conc"):
     th = threading.Thread(target=second); th.start(); th.join()
 check("concurrent launcher refused by the run lock", got.get("second") == "refused")
 
-for r in ("t_amb", "t_rej", "t_amb2", "t_crash", "t_conc"):
+
+# 6 ambiguous first dispatch, then a definitive rejection on replay: NOT released (stays ambiguous, funded)
+fresh("t_ar", "ambiguous_then_reject")
+with L.run_lock("t_ar"):
+    rc = L.admit(args("t_ar"))
+att = L.load("t_ar")["attempts"][-1]
+check("rejection after an unanswered dispatch stays funded", att["state"] == "ambiguous" and "rejected_on_replay" in att and L.charged(att) > 26.9)
+try:
+    with L.run_lock("t_ar"):
+        L.admit(args("t_ar")); refused = False
+except SystemExit as e:
+    refused = "REFUSED" in str(e)
+check("no new attempt after a replay rejection", refused)
+
+# 7 crash-left intent, then a rejection on --recover: NOT released
+fresh("t_cr", "reject")
+with L.run_lock("t_cr"):
+    real = L.finish; L.finish = lambda run, led, att, fresh: 99
+    L.admit(args("t_cr")); L.finish = real
+with L.run_lock("t_cr"):
+    L.recover(args("t_cr", recover=True))
+att = L.load("t_cr")["attempts"][-1]
+check("rejection on a recovered intent stays funded", att["state"] == "ambiguous" and L.charged(att) > 26.9)
+
+# 8 changed user-data bytes: replay refused, attempt stays funded, no RunInstances call
+fresh("t_ud", "ok")
+with L.run_lock("t_ud"):
+    real = L.finish; L.finish = lambda run, led, att, fresh: 99
+    L.admit(args("t_ud")); L.finish = real
+att = L.load("t_ud")["attempts"][-1]
+udp = json.load(open(att["request"]))["args"]; udp = udp[udp.index("--user-data") + 1].replace("file://", "")
+open(udp, "a").write("\n# tampered\n")
+with L.run_lock("t_ud"):
+    rc = L.recover(args("t_ud", recover=True))
+att = L.load("t_ud")["attempts"][-1]
+check("changed user-data refuses the replay, funded", rc == 3 and att["state"] in ("intent", "ambiguous") and not runs_calls_safe("t_ud"))
+
+# 9 supervisor start raises: the launcher terminates the instance itself and keeps it launched/funded
+fresh("t_sup", "ok")
+def boom(run, att): raise OSError("caffeinate missing")
+L.start_reaper = boom
+with L.run_lock("t_sup"):
+    rc = L.admit(args("t_sup"))
+term = os.path.exists(os.path.join(tmp, "t_sup.log.terminated"))
+att = L.load("t_sup")["attempts"][-1]
+check("supervisor failure -> emergency terminate, attempt stays launched", rc == 2 and term and att["state"] == "launched")
+
+for r in ("t_amb", "t_rej", "t_amb2", "t_crash", "t_conc", "t_ar", "t_cr", "t_ud", "t_sup"):
     shutil.rmtree(os.path.join(PKG, "runs", r), ignore_errors=True)
 print("ALL PASS" if ok else "SOME FAILED"); sys.exit(0 if ok else 1)

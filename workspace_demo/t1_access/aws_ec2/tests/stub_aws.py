@@ -16,6 +16,10 @@ if "run-instances" in args:
     n = sum(1 for c in calls if "run-instances" in c)
     if mode == "reject":
         sys.stderr.write("An error occurred (InsufficientInstanceCapacity) when calling the RunInstances operation"); sys.exit(254)
+    if mode == "ambiguous_then_reject":
+        if n == 0:
+            sys.stderr.write("Connect timeout on endpoint URL"); sys.exit(255)
+        sys.stderr.write("An error occurred (UnauthorizedOperation) when calling the RunInstances operation"); sys.exit(254)
     if mode == "ambiguous_then_ok" and n == 0:
         sys.stderr.write("Connect timeout on endpoint URL"); sys.exit(255)
     if mode == "always_ambiguous":
@@ -38,4 +42,6 @@ if "list-objects-v2" in args:
     print(json.dumps({"KeyCount": 0})); sys.exit(0)
 if "get-parameters" in args:
     print(json.dumps({"Parameters": [{"Value": "ami-stub"}]})); sys.exit(0)
+if "terminate-instances" in args:
+    open(log + ".terminated", "a").write(json.dumps(args) + "\n")
 print("{}"); sys.exit(0)

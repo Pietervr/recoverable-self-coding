@@ -16,8 +16,9 @@ was created, or creates exactly one), with bounded backoff, here or by --recover
 taken as proof of absence. launched -> reconciled only by bench_reaper.py on an attributable shutting-down/terminated
 observation.
 
-COST. Row 23 ceiling USD 28.00 cumulative. Worst case per attempt = (lifetime + 900 s reaper grace) x (MaxPrice 1.20 +
-0.0094/h: 40 GB gp3 0.0044 + public IPv4 0.005) + 0.10 S3 = USD 26.40 at 77,400 s. rejected = 0; reconciled = observed
+COST. Row 23 ceiling USD 28.00 cumulative. Worst case per attempt = (lifetime + 900 s reaper grace + 1,800 s reserve for
+polling, API retries and volume cleanup) x (MaxPrice 1.20 + 0.0094/h: 40 GB gp3 0.0044 + public IPv4 0.005) + 0.10 S3
+= USD 27.01 at 77,400 s. rejected = 0; reconciled = observed
 compute hours (upper bound) at the same rates + any ancillary hours recorded by the reaper; every other state = worst
 case. A new attempt gets only the lifetime the remainder admits and is refused below 72,300 s.
 
@@ -28,7 +29,7 @@ import argparse, contextlib, fcntl, hashlib, json, os, re, subprocess, sys, time
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROFILE, REGION, BUCKET = "xtenure-read", "us-west-2", "xtenure-cself-pvr-usw2"
 ITYPE, MAXPRICE, ROLE = "c7a.24xlarge", 1.20, "xtenure-ec2-t1-worker"
-ANC_H, S3_FIXED, GRACE_S, CEILING = 0.0094, 0.10, 900, 28.00
+ANC_H, S3_FIXED, GRACE_S, RESERVE_S, CEILING = 0.0094, 0.10, 900, 1800, 28.00
 MAX_LIFE_S, MIN_LIFE_S = 77400, 72300
 AMI_PARAM = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
 FILES = {"manifest_A.json": "bench/manifest_A.json", "manifest_B.json": "bench/manifest_B.json", "plan.json": "bench/plan.json",
@@ -54,8 +55,11 @@ class AwsError(RuntimeError):
 
 
 def aws(*args, timeout=120):
+    env = dict(os.environ)
+    if "run-instances" in args:          # one HTTP attempt: a definitive error is then the answer to THIS dispatch,
+        env.update(AWS_MAX_ATTEMPTS="1", AWS_RETRY_MODE="standard")   # not to a hidden CLI retry of an unanswered one
     try:
-        p = subprocess.run(["aws", "--profile", PROFILE, "--region", REGION, *args], capture_output=True, text=True, timeout=timeout)
+        p = subprocess.run(["aws", "--profile", PROFILE, "--region", REGION, *args], capture_output=True, text=True, timeout=timeout, env=env)
     except subprocess.TimeoutExpired:
         raise AwsError(f"aws {' '.join(args[:2])}: client timeout after {timeout} s")
     if p.returncode != 0:
@@ -82,7 +86,7 @@ def charged(a):
     if a.get("state") == "reconciled":
         t = a["terminal"]
         return (t["compute_s"] / 3600) * MAXPRICE + (t["ancillary_s"] / 3600) * ANC_H + S3_FIXED
-    return worst_usd(a["lifetime_s"] + GRACE_S)
+    return worst_usd(a["lifetime_s"] + GRACE_S + RESERVE_S)
 
 
 def run_dir(run):
@@ -139,18 +143,30 @@ def issue(req):
         return "ambiguous", f"{type(e).__name__}: {e}"
 
 
-def resolve(run, led, att):
-    """Re-issue the attempt's saved request (same token, same parameters) with bounded backoff until definitive."""
+def resolve(run, led, att, fresh):
+    """Issue / re-issue the attempt's saved request (same token, same parameters, same user-data bytes) with bounded
+    backoff. A definitive client error releases the attempt ('rejected', charged 0) ONLY when it answers the very first
+    dispatch of a fresh admission (single HTTP attempt, no earlier unanswered call, no crash in between). After any
+    unanswered dispatch, or for a recovered intent, a rejection proves nothing about the earlier call: the attempt stays
+    'ambiguous' and funded. Changed user-data bytes refuse the replay and leave it funded."""
     req = json.load(open(att["request"]))
     assert req["client_token"] == att["client_token"]
+    udp = req["args"][req["args"].index("--user-data") + 1].replace("file://", "", 1)
     for i, pause in enumerate((0,) + BACKOFF_S):
         time.sleep(pause)
+        if not os.path.exists(udp) or sha256(udp) != req["userdata_sha256"]:
+            att.setdefault("issues", []).append(dict(at=time.time(), result="refused", detail="user-data bytes changed or missing"))
+            save(run, led)                                   # state unchanged: intent or ambiguous, funded either way
+            print("REFUSED replay: the saved user-data bytes changed; the attempt stays funded"); return None
         state, x = issue(req)
+        first = fresh and i == 0 and not any(z["result"] != "refused" for z in att.get("issues", []))
         att.setdefault("issues", []).append(dict(at=time.time(), result=state, detail=(x["InstanceId"] if state == "launched" else str(x)[:300])))
         if state == "launched":
             att.update(state="launched", instance=x["InstanceId"], launch_time=x["LaunchTime"]); save(run, led); return True
-        if state == "rejected":
+        if state == "rejected" and first:
             att.update(state="rejected", rejection=x); save(run, led); return False
+        if state == "rejected":
+            att["rejected_on_replay"] = x                # not proof that no earlier call created an instance
         att["state"] = "ambiguous"; save(run, led)
     return None
 
@@ -180,8 +196,12 @@ def emergency_terminate(iid):
 
 def after_launch(run, att):
     print(json.dumps({k: att[k] for k in ("attempt", "instance", "launch_time", "lifetime_s", "client_token")}, indent=1))
-    if start_reaper(run, att):
-        print(f"reaper running (heartbeat seen); log runs/{run}/reaper_attempt{att['attempt']}.log")
+    try:
+        started = start_reaper(run, att)
+    except Exception as e:
+        print(f"reaper start failed ({type(e).__name__}: {e})", flush=True); started = False
+    if started:
+        print(f"reaper running (first heartbeat seen - startup proof only); log runs/{run}/reaper_attempt{att['attempt']}.log")
         return 0
     print("NO REAPER HEARTBEAT within 180 s: terminating the instance (fail closed)", flush=True)
     emergency_terminate(att["instance"])
@@ -204,7 +224,7 @@ def admit(a):
     if live:
         sys.exit(f"REFUSED: instance(s) tagged run={a.run} not terminated: {[i['InstanceId'] for i in live]}")
     spent = sum(charged(x) for x in led["attempts"])
-    life = min(MAX_LIFE_S, int(((CEILING - spent - S3_FIXED) / (MAXPRICE + ANC_H)) * 3600) - GRACE_S)
+    life = min(MAX_LIFE_S, int(((CEILING - spent - S3_FIXED) / (MAXPRICE + ANC_H)) * 3600) - GRACE_S - RESERVE_S)
     if life < MIN_LIFE_S:
         sys.exit(f"REFUSED: USD {spent:.2f} charged to row 23 leaves a {life} s lifetime, below the {MIN_LIFE_S} s one attempt needs")
     n = max([x["attempt"] for x in led["attempts"]], default=0) + 1
@@ -240,7 +260,7 @@ def admit(a):
             "--block-device-mappings", json.dumps([{"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": 40, "VolumeType": "gp3", "DeleteOnTermination": True}}]),
             "--metadata-options", "HttpTokens=required",
             "--tag-specifications", json.dumps(tags), "--user-data", f"file://{udp}", "--output", "json"]
-    print(f"attempt {n}: lifetime {life} s, worst USD {worst_usd(life + GRACE_S):.2f}, prior charged USD {spent:.2f}, AMI {ami}")
+    print(f"attempt {n}: lifetime {life} s, worst USD {worst_usd(life + GRACE_S + RESERVE_S):.2f}, prior charged USD {spent:.2f}, AMI {ami}")
     if a.dry_run:
         try:
             aws(*args, "--dry-run")
@@ -256,11 +276,11 @@ def admit(a):
     att = dict(attempt=n, state="intent", client_token=token, request=reqp, lifetime_s=life, max_price=MAXPRICE, type=ITYPE,
                ami=ami, results=f"s3://{BUCKET}/{prefix}", intent_at=time.time())
     led["attempts"].append(att); save(a.run, led)
-    return finish(a.run, led, att)
+    return finish(a.run, led, att, fresh=True)
 
 
-def finish(run, led, att):
-    r = resolve(run, led, att)
+def finish(run, led, att, fresh):
+    r = resolve(run, led, att, fresh)
     if r is True:
         return after_launch(run, att)
     if r is False:
@@ -276,7 +296,7 @@ def recover(a):
     att = next((x for x in reversed(led["attempts"]) if x.get("state") in ("intent", "ambiguous")), None)
     if att is None:
         sys.exit("nothing to recover (no intent/ambiguous attempt)")
-    return finish(a.run, led, att)
+    return finish(a.run, led, att, fresh=False)
 
 
 def main():

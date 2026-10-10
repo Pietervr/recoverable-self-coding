@@ -79,44 +79,91 @@ def sh(cmd, timeout=900):
     except Exception as e:
         return 255, "", str(e)
 
+# The remote half of pull_tree: explicit phases, each reported on stderr; stdout carries ONLY the tar stream.
+_PULL_REMOTE = r"""
+cd -- "$1" || { echo "PHASE cd FAILED" >&2; exit 90; }
+L=$(mktemp) || { echo "PHASE mktemp FAILED" >&2; exit 91; }
+trap 'rm -f "$L"' EXIT
+find . -type f > "$L" || { echo "PHASE find FAILED" >&2; exit 92; }
+LC_ALL=C sort "$L" >&2 || { echo "PHASE sort FAILED" >&2; exit 93; }
+echo "LISTING-END $(wc -l < "$L")" >&2
+tar -cf - .
+rc=$?
+echo "TAR-RC $rc" >&2
+exit $rc
+"""
+# Temporary files of the publishers that write into these trees: row19_ledger.write_atomic (<path>.tmp) and the
+# link-publishers row19_shard.publish / row19_screen_orig (<path>.tmp.<pid>). Only these may vanish during a pull.
+_TMP_NAME = re.compile(r"\.tmp(\.\d+)?$")
+
+
 def pull_tree(remote, local, timeout=900):
-    """REVISION 9: copy a remote directory tree in ONE ssh stream (GNU tar on the transfer node -> tar here) instead of
-    scp -r's per-file round trips (~1.1 s per file over the tunnel on 10 Oct: 938 files overran the 900 s pull timeout;
-    the stream takes ~15-25 s). Same source, destination and timeout. Integrity: the remote lists every regular file
-    BEFORE archiving (to stderr), the local extractor must exit 0 (a truncated or corrupt stream fails), the remote tar
-    must exit 0 or 1 (GNU tar's 'file changed as we read it', the live-tree race scp also had), and EVERY file of the
-    pre-archive listing must exist locally (temporary *.tmp.* files excepted: publishers remove them). A file published
-    while the archive streams may or may not be included, exactly as with scp. Returns (0, '') or (255, reason)."""
-    q = shlex.quote(remote)
-    cmd = f"cd {q} && find . -type f | LC_ALL=C sort >&2 && tar -cf - ."
+    """REVISION 9: copy a remote directory tree in ONE ssh stream instead of scp -r's per-file round trips (~1.1 s per
+    file over the tunnel on 10 Oct 2026: the 938-file refit root overran the 900 s pull). Same source, destination and
+    one bounded deadline. The remote runs explicit phases (cd, a complete file listing written to a remote temp file,
+    the sorted listing on stderr closed by 'LISTING-END <n>', then GNU tar, closed by 'TAR-RC <rc>'). Stderr goes to a
+    task-owned local temp file, so a listing of any size cannot block the stream (no pipe-capacity deadlock). Accepted
+    only when: the local extractor exits 0; every phase marker is present; LISTING-END equals the number of listed
+    names; TAR-RC is 0, or 1 = GNU tar's 'file changed as we read it' (recorded); ssh's own exit equals TAR-RC; and every
+    listed file exists locally except the publishers' temporary names (<path>.tmp, <path>.tmp.<pid>). On any failure or
+    the deadline both children are terminated, then killed, and reaped before returning. Returns (0, note) or
+    (255, reason); the caller keeps the old live snapshot on 255."""
+    import tempfile
+    t_end = time.time() + timeout
+    errf = tempfile.TemporaryFile()
+    cmd = "bash -c " + shlex.quote(_PULL_REMOTE) + " pull " + shlex.quote(remote)
     src = dst = None
-    try:
-        src = subprocess.Popen(["ssh", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", HOST, cmd],
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        dst = subprocess.Popen(["tar", "-xf", "-", "-C", local], stdin=src.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        src.stdout.close()
-        _, derr = dst.communicate(timeout=timeout)
-        _, serr = src.communicate(timeout=60)
-    except Exception as e:
-        for p in (src, dst):
-            if p is not None:
+
+    def reap(*ps):
+        for p in ps:
+            if p is not None and p.poll() is None:
+                p.terminate()
+        for p in ps:
+            if p is None:
+                continue
+            try:
+                p.wait(timeout=10)
+            except Exception:
+                p.kill()
                 try:
-                    p.kill()
+                    p.wait(timeout=10)
                 except Exception:
                     pass
-        return 255, f"tar stream: {type(e).__name__}: {e}"
-    serr = serr.decode(errors="replace"); derr = derr.decode(errors="replace")
+
+    try:
+        src = subprocess.Popen(["ssh", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", HOST, cmd],
+                               stdout=subprocess.PIPE, stderr=errf)
+        dst = subprocess.Popen(["tar", "-xf", "-", "-C", local], stdin=src.stdout, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        src.stdout.close()
+        _, derr = dst.communicate(timeout=max(1.0, t_end - time.time()))
+        src.wait(timeout=max(1.0, t_end - time.time()))
+    except Exception as e:
+        reap(src, dst)
+        return 255, f"tar stream: {type(e).__name__}: {str(e)[:120]}"
+    errf.seek(0); serr = errf.read().decode(errors="replace"); errf.close()
+    lines = serr.splitlines()
     if dst.returncode != 0:
-        return 255, f"local tar rc {dst.returncode}: {derr.strip()[:160]}"
-    if src.returncode not in (0, 1):
-        return 255, f"remote rc {src.returncode}: {serr.strip()[-160:]}"
-    listed = [l[2:] for l in serr.splitlines() if l.startswith("./")]
-    if not listed and os.listdir(local):
-        return 255, "the remote pre-archive listing is empty"
-    missing = [p for p in listed if ".tmp." not in p and not os.path.isfile(os.path.join(local, p))]
+        return 255, f"local tar rc {dst.returncode}: {derr.decode(errors='replace').strip()[:160]}"
+    phase = [l for l in lines if l.startswith("PHASE ")]
+    if phase:
+        return 255, f"remote {phase[0]} (ssh rc {src.returncode})"
+    ends = [l for l in lines if l.startswith("LISTING-END ")]
+    tars = [l for l in lines if l.startswith("TAR-RC ")]
+    if len(ends) != 1 or len(tars) != 1:
+        return 255, f"remote phases incomplete (LISTING-END x{len(ends)}, TAR-RC x{len(tars)}, ssh rc {src.returncode})"
+    listed = [l[2:] for l in lines if l.startswith("./")]
+    try:
+        n_end, tar_rc = int(ends[0].split()[1]), int(tars[0].split()[1])
+    except ValueError:
+        return 255, "remote phase markers unparsable"
+    if n_end != len(listed):
+        return 255, f"listing incomplete: LISTING-END {n_end} vs {len(listed)} names received"
+    if tar_rc not in (0, 1) or src.returncode != tar_rc:
+        return 255, f"remote tar rc {tar_rc}, ssh rc {src.returncode}"
+    missing = [p for p in listed if not _TMP_NAME.search(p) and not os.path.isfile(os.path.join(local, p))]
     if missing:
         return 255, f"{len(missing)} listed file(s) not extracted, e.g. {missing[:3]}"
-    return 0, ""
+    return 0, ("" if tar_rc == 0 else "GNU tar exit 1: a file changed while it was read (live tree)")
 
 
 

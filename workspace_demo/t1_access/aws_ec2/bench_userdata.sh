@@ -10,7 +10,7 @@
 # Stage 1: row 6 panel (3 sens600 datasets, f7e69b1) per arm. Stage 2: worker at index 0 of reps 3..38 per arm.
 # Every prerequisite fails closed (FAILED file, bounded upload, shutdown). Every declared process gets a recorded outcome
 # (exit code, or censored at the upload deadline). Costed window: HARD = boot + __LIFETIME_S__ s; two independent timers
-# are installed and checked first; the Mac-side reaper (bench_reaper.py) terminates by launch + lifetime + 600 s.
+# are installed and checked first; the Mac-side reaper (bench_reaper.py) terminates from launch + lifetime + 900 s.
 set -uo pipefail
 RUN=__RUN__; ATTEMPT=__ATTEMPT__; LIFETIME_S=__LIFETIME_S__
 B=s3://xtenure-cself-pvr-usw2
@@ -80,6 +80,7 @@ done
 timeout 300 aws s3 sync $W $OUT --only-show-errors --exclude "*.tmp.*"
 
 declare -A PIDS
+set -m   # job control: every background job below is its own process group (pgid = its pid), so cleanup reaches children
 run() {  # run <name> <cwd> <cmd...>: one declared process; its exit code is published atomically (temp + rename)
   local name=$1 cwd=$2; shift 2
   ( cd $cwd && "$@" > $W/logs/$name.log 2>&1; c=$?; echo $c > $W/exits/.$name.tmp && mv $W/exits/.$name.tmp $W/exits/$name.code ) &
@@ -110,15 +111,21 @@ while true; do
   sleep 60
 done
 for n in "${!PIDS[@]}"; do [ -f $W/exits/$n.code ] || echo $n; done | sort > $W/env/censored.txt
-pkill -f "row19_shard.py worker"; pkill -f row6_lengau_panel.py
-for n in "${!PIDS[@]}"; do  # reap every declared process (bounded: the kill above ends them)
-  timeout 60 tail --pid=${PIDS[$n]} -f /dev/null 2>/dev/null; wait ${PIDS[$n]} 2>/dev/null
-done
+# bounded cleanup on ONE global deadline (never an unbounded wait): TERM every group, poll, then KILL, poll, record survivors
+CLEAN_END=$(( $(date +%s) + 120 ))
+alive() { for n in "${!PIDS[@]}"; do kill -0 -- -${PIDS[$n]} 2>/dev/null && echo $n; done; }   # any member of the group
+for n in $(alive); do kill -TERM -- -${PIDS[$n]} 2>/dev/null; done
+while [ -n "$(alive)" ] && [ $(date +%s) -lt $((CLEAN_END - 30)) ]; do sleep 2; done
+for n in $(alive); do kill -KILL -- -${PIDS[$n]} 2>/dev/null; done
+while [ -n "$(alive)" ] && [ $(date +%s) -lt $CLEAN_END ]; do sleep 1; done
+alive | sort > $W/env/unresolved.txt
+echo "cleanup: censored $(wc -l < $W/env/censored.txt), unresolved after KILL $(wc -l < $W/env/unresolved.txt)"
 python3 - $W <<'PY'
 import json, os, sys, time
 W = sys.argv[1]
 names = [f"row6_{a}_rep{r}" for a in "AB" for r in (0, 20, 40)] + [f"w_{a}_slot{i}" for a in "AB" for i in range(36)]
 censored = set(open(os.path.join(W, "env", "censored.txt")).read().split())
+unresolved = set(open(os.path.join(W, "env", "unresolved.txt")).read().split())
 out = {}
 for n in names:
     if n in censored:
@@ -127,7 +134,7 @@ for n in names:
     v = open(os.path.join(W, "exits", n + ".code")).read().strip()
     out[n] = int(v)
 assert len(out) == 78
-json.dump(dict(at=time.time(), declared=78, outcomes=out), open(os.path.join(W, "env", "outcomes.json"), "w"), indent=1)
+json.dump(dict(at=time.time(), declared=78, outcomes=out, unresolved_after_kill=sorted(unresolved)), open(os.path.join(W, "env", "outcomes.json"), "w"), indent=1)
 PY
 [ $? -eq 0 ] && [ -s $W/env/outcomes.json ] || { echo "OUTCOMES CERTIFICATE FAILED"; echo "outcomes certificate failed $(date -u +%FT%TZ)" > $W/env/OUTCOMES_FAILED; }
 echo "end $(date -u +%FT%TZ)"
