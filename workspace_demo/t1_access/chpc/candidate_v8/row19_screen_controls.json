@@ -110,11 +110,11 @@
   {
    "version": 8,
    "commit": "candidate: see the commit that adds this entry",
-   "reviewed": "pending Codex (R052 record 2026-10-09 verdicts 1 and 2: closed-no-record disposition, prospective refit resource policy); NOT adopted",
+   "reviewed": "pending Codex (R052 record 2026-10-09 verdicts 1 and 2: closed-no-record disposition, prospective refit resource policy), repaired for Codex 5cb9a02 R1-R3 (the c1956ef bytes were rejected); NOT adopted",
    "files": {
-    "chpc/row19_screen_admit.py": "e62f289bc9e0d970960347af7ad2fa5df079c2d18f17781fa9e93ca5e45a2242",
+    "chpc/row19_screen_admit.py": "054d6d685cfd02ef3a41fd43251807d4133227016695fc2c914e88cbfef60584",
     "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
-    "chpc/row19_screen_status.py": "3457c9e8fb555c4f12747d6dcdaacf258781495b051da397357041ed289905bf",
+    "chpc/row19_screen_status.py": "ae91c8d035e53403b7d664fd1b8ed8e90995c0e88904b8f4915c6dcb13963948",
     "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
     "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0",
     "chpc/row19_screen_resources.json": "f5352bc3ae7c5195e2081baa5685b4533fc8add0d5cfd5c48009e72610bebba0"

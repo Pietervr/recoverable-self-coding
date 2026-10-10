@@ -130,6 +130,13 @@ envelope (jobs below first_job and every originals job keep the manifest's reque
 `envelope`), the ledger reservation (cores x walltime = 1,152 core-hours at 48 h), the filled PBS request and the job-start /
 deadline arguments (checked in the script text before qsub); every receipt job at or above first_job must show the same envelope
 in its plan, its CURRENT ledger entry and the scheduler's observed walltime request.
+REPAIRS of Codex 5cb9a02 (c1956ef's bytes rejected): R1 a disposed coordinate counts as a later completion only when its CURRENT
+canonical timing (coordinate, declared identity, producer job, integer slot) and record (checksum, coordinate, identity) are the
+retained verified evidence (current_artifacts_problem); an absent or changed artifact refuses until recollected. R2 the status
+view binds the observed settlement certificate (charge, note, non-negative time, token, PBS id, plan SHA-256) in the disposition;
+admission and the transition check require it EXACTLY equal to the current ledger entry (certificate_problem), and a negative
+settlement time refuses. R3 the reservation's cores must be an exact non-boolean integer equal to the envelope's, with
+reserved = cores x walltime (no truncation).
 """
 import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
 
@@ -644,9 +651,10 @@ def envelope_problem(man, manifest_path, role, n, plan, entry, sj=None):
         return f"job {n}: the plan does not carry the resolved envelope"
     if len(plan.get("slots") or []) > env["cores"] or (role == "refit" and any(len(sl.get("indices") or []) != 1 for sl in plan.get("slots") or [])):
         return f"job {n}: the plan is not at most {env['cores']} workers of one index each"
-    if not isinstance(entry, dict) or entry.get("token") != plan.get("token") or not _num(entry.get("cores")) or int(entry["cores"]) != env["cores"] \
+    if not isinstance(entry, dict) or entry.get("token") != plan.get("token") or not _int(entry.get("cores")) or entry["cores"] != env["cores"] \
             or not (_num(entry.get("walltime_s")) and abs(entry["walltime_s"] - w) < 1e-6) \
-            or not (_num(entry.get("reserved_core_h")) and abs(entry["reserved_core_h"] - envelope_core_h(env)) < 1e-6):
+            or not (_num(entry.get("reserved_core_h")) and abs(entry["reserved_core_h"] - envelope_core_h(env)) < 1e-6
+                    and abs(entry["reserved_core_h"] - entry["cores"] * entry["walltime_s"] / 3600.0) < 1e-6):                    # R3: no truncation
         return f"job {n}: the ledger reservation is not {env['cores']} x {w:.0f} s = {envelope_core_h(env):.0f} core-hours under the plan's token"
     if sj is not None and env["source"] != "manifest":
         if not (_num(sj.get("plan_walltime_s")) and abs(sj["plan_walltime_s"] - w) < 1e-6):
@@ -734,13 +742,65 @@ def coordinate_files(man, root, role, k):
     return files, [p for p in files if os.path.basename(p) not in exact]
 
 
-def later_completion(units, k, n, num_of, plan_slot_of):
-    """True when coordinate k holds a valid record whose valid timing names a bound job LATER than n that planned k in that slot."""
+def current_artifacts_problem(man, root, role, k, u):
+    """R1 (Codex 5cb9a02): the CURRENT canonical record and timing files of coordinate k must be the retained verified evidence -
+    the timing's coordinate, declared identity, producer job and integer slot, and the record's checksum (refit `sha`, originals
+    `payload_sha`). An absent, unreadable or changed artifact refuses until the evidence is recollected."""
+    t = (u or {}).get("timing") or {}; rec = (u or {}).get("record") or {}
+    if role == "refit":
+        r, i = (int(x) for x in k.split("/"))
+        rp_ = os.path.join(root, "records", f"rep{r}", f"rec_{i:03d}.json"); tp_ = os.path.join(root, "timing", f"rep{r}", f"t_{i:03d}.json")
+        rkey, want_t = "sha", dict(rep=r, index=i)
+    else:
+        r = int(k); pre = man["datasets"]["identities"][str(r)][:24]
+        rp_ = os.path.join(root, "orig", f"orig_{pre}.json"); tp_ = os.path.join(root, "timing", f"o{r:03d}.json")
+        rkey, want_t = "payload_sha", dict(rep=r)
+    ident = man["datasets"]["identities"].get(str(r))
+    try:
+        ct = _strict_load(tp_)
+    except Exception:
+        return "its current timing is absent or unreadable"
+    if not isinstance(ct, dict) or any(ct.get(a) != b or isinstance(ct.get(a), bool) for a, b in want_t.items()) or ct.get("ident") != ident:
+        return "its current timing is not this coordinate's under the declared identity"
+    if ct.get("job") != t.get("job") or not _int(ct.get("slot")) or ct["slot"] != t.get("slot"):
+        return f"its current timing names {ct.get('job')} slot {ct.get('slot')}, not the verified producer {t.get('job')} slot {t.get('slot')}"
+    try:
+        cr = _strict_load(rp_)
+    except Exception:
+        return "its current record is absent or unreadable"
+    want_r = rec.get(rkey)
+    if not isinstance(want_r, str) or not want_r or not isinstance(cr, dict) or cr.get(rkey) != want_r:
+        return "its current record is not the verified record"
+    if role == "refit" and (cr.get("rep") != i or isinstance(cr.get("rep"), bool) or cr.get("ident") != ident):
+        return "its current record is not this coordinate's under the declared identity"
+    return ""
+
+
+def later_completion(man, root, role, units, k, n, num_of, plan_slot_of):
+    """'' when coordinate k holds a valid record whose valid timing names a bound job LATER than n that planned k in that slot,
+    AND its current canonical artifacts are that verified evidence (R1); otherwise the reason."""
     u = units.get(k) or {}; t = u.get("timing") or {}
     if not ((u.get("record") or {}).get("ok") and t.get("ok") is True and _int(t.get("slot"))):
-        return False
+        return "no valid verified record with valid timing"
     m = num_of.get(t.get("job"))
-    return m is not None and m > int(n) and plan_slot_of(m).get(k) == t["slot"]
+    if m is None or m <= int(n) or plan_slot_of(m).get(k) != t["slot"]:
+        return f"the verified producer {t.get('job')} slot {t.get('slot')} is not a later bound job that planned it there"
+    return current_artifacts_problem(man, root, role, k, u)
+
+
+CERT_FIELDS = ("settled_core_h", "settle_note", "settled_at", "token", "job_id")
+
+
+def certificate_problem(d, e):
+    """R2 (Codex 5cb9a02): the settlement certificate the status view observed (charge, note, non-negative time, token, PBS id)
+    must be EXACTLY the current ledger entry's; any replacement refuses until recollected. The charged loss is never rewritten."""
+    if not (_num(d.get("settled_at")) and d["settled_at"] >= 0) or not (_num(d.get("settled_core_h")) and d["settled_core_h"] >= 0) \
+            or not (isinstance(d.get("settle_note"), str) and len(d["settle_note"].strip()) >= 8):
+        return "the receipt binds no valid settlement certificate (charge, note, non-negative time)"
+    diff = [f for f in CERT_FIELDS if d.get(f) != e.get(f) or isinstance(d.get(f), bool)]
+    if diff:
+        return f"the current ledger's settlement certificate differs from the receipt's on {diff}; recollect"
+    return ""
 
 
 def disposition_problem(man, manifest_path, role, n, sj, bound, units):
@@ -765,10 +825,13 @@ def disposition_problem(man, manifest_path, role, n, sj, bound, units):
         return f"job {n}: {len(hits)} current ledger entries"
     e = hits[0]
     if e.get("state") != "settled" or not (_num(e.get("settled_core_h")) and e["settled_core_h"] >= 0) \
-            or not (isinstance(e.get("settle_note"), str) and len(e["settle_note"].strip()) >= 8) or not _num(e.get("settled_at")):
-        return f"job {n}: the CURRENT ledger entry is not SETTLED with settlement evidence (charge, note, time)"
+            or not (isinstance(e.get("settle_note"), str) and len(e["settle_note"].strip()) >= 8) or not (_num(e.get("settled_at")) and e["settled_at"] >= 0):
+        return f"job {n}: the CURRENT ledger entry is not SETTLED with settlement evidence (charge, note, non-negative time)"
     if not (_num(d.get("settled_core_h")) and abs(d["settled_core_h"] - e["settled_core_h"]) < 1e-9):
         return f"job {n}: the disposition's charge {d.get('settled_core_h')} is not the ledger's {e['settled_core_h']}"
+    why = certificate_problem(d, e)                                                    # R2: the exact observed certificate
+    if why:
+        return f"job {n}: {why}"
     if any(e.get(f) is not None for f in ("runner_exit", "runner_ended", "runner_wall_s")):
         return f"job {n}: the ledger records a runner end; it is not a closed-no-record job"
     bj = (bound.get("jobs") or {}).get(n) or {}
@@ -779,7 +842,7 @@ def disposition_problem(man, manifest_path, role, n, sj, bound, units):
         plan = _strict_load(pp)
     except (OSError, ValueError):
         return f"job {n}: its plan is absent or unreadable"
-    if plan.get("token") != e.get("token") or plan.get("job") != int(n) or sha_file(pp) != bj.get("plan_sha256"):
+    if plan.get("token") != e.get("token") or plan.get("job") != int(n) or sha_file(pp) != bj.get("plan_sha256") or d.get("plan_sha256") != bj.get("plan_sha256"):
         return f"job {n}: the plan is not the bound plan of this token and job"
     slot_of = _plan_slot_of(man, n)
     part = sj.get("partition")
@@ -807,8 +870,10 @@ def disposition_problem(man, manifest_path, role, n, sj, bound, units):
         files, odd = coordinate_files(man, root, role, k)
         if odd:
             return f"job {n}: coordinate {k} has temporary or non-canonical output files {[os.path.basename(p) for p in odd][:3]}"
-        if (files or (units.get(k) or {}).get("record") is not None) and not later_completion(units, k, n, num_of, pso):
-            return f"job {n}: coordinate {k} holds output that is not a later bound job's planned completion"
+        if files or (units.get(k) or {}).get("record") is not None:
+            why = later_completion(man, root, role, units, k, n, num_of, pso)
+            if why:
+                return f"job {n}: coordinate {k} holds output that is not a later bound job's planned completion ({why})"
     ob = (bound.get("job_outputs") or {}).get(n) or {}
     op = job_output_path(man, role, n)
     if ob.get("file") != os.path.basename(op) or not _hex64(ob.get("sha256")) or ob["sha256"] != d.get("output_sha256"):
@@ -997,8 +1062,8 @@ def transition_problem(man, role, r):
             d = sj["disposition"] if isinstance(sj["disposition"], dict) else {}
             if e.get("state") != "settled" or any(e.get(f) is not None for f in ("runner_exit", "runner_ended", "runner_wall_s")) \
                     or e.get("job_id") != sj.get("job_id") or not _num(e.get("settled_core_h")) or not _num(d.get("settled_core_h")) \
-                    or abs(e["settled_core_h"] - d["settled_core_h"]) > 1e-9:
-                return f"job {n}: the ledger no longer shows the disposed job as the receipt saw it (SETTLED, same charge and PBS id, no runner end); recollect"
+                    or abs(e["settled_core_h"] - d["settled_core_h"]) > 1e-9 or certificate_problem(d, e):
+                return f"job {n}: the ledger no longer shows the disposed job as the receipt saw it (SETTLED, same settlement certificate and PBS id, no runner end); recollect"
             continue
         if sj.get("state") not in TERMINAL_STATES and e.get("state") == "settled":
             return f"job {n} has been SETTLED since the receipt saw it {sj.get('state')}; recollect before admitting"

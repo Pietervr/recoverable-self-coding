@@ -54,7 +54,10 @@ alarms suppressed; the summary keeps the actual exit, zero ended/new/resumed/lef
 `disposition` (with the output's SHA-256) and accounts the plan's coordinates as `uncompleted` with origin "plan"; the receipt
 binds the output (`bound.job_outputs`). A dispositioned job never qualifies. Every summary also carries the plan's walltime and
 the scheduler's observed walltime request (Resource_List.walltime); a difference between them is an alarm. An unreadable status
-file is an alarm (it used to stop the view)."""
+file is an alarm (it used to stop the view).
+REPAIRS of Codex 5cb9a02: the disposition carries the observed settlement certificate (settle_note, settled_at, token, job_id,
+plan_sha256 beside the charge) for the admission to compare exactly (R2); a later completion at a disposed coordinate also needs
+its current canonical record and timing to be the verified evidence (R1, row19_screen_admit.current_artifacts_problem)."""
 import os, sys, json, glob, math, time, shutil, hashlib, argparse, subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -237,8 +240,10 @@ def closed_no_record(man, role, n, e, plan, j, o, units, ledger, live):
         files, odd = _SA.coordinate_files(man, root, role, k)
         if odd:
             return None, f"coordinate {k}: temporary or non-canonical output files {[os.path.basename(p) for p in odd][:3]}"
-        if (files or (units.get(k) or {}).get("record") is not None) and not _SA.later_completion(units, k, n, num_of, pso):
-            return None, f"coordinate {k} holds output that is not a later bound job's planned completion"
+        if files or (units.get(k) or {}).get("record") is not None:
+            why = _SA.later_completion(man, root, role, units, k, n, num_of, pso)
+            if why:
+                return None, f"coordinate {k} holds output that is not a later bound job's planned completion ({why})"
     name = f"row19_screen_{role}_{n}.out"; p = os.path.join(live, "jobs", name)
     try:
         f = json.load(open(os.path.join(live, "jobs", "_fetch.json"))).get(str(n)) or {}
@@ -257,7 +262,9 @@ def closed_no_record(man, role, n, e, plan, j, o, units, ledger, live):
         return None, "its PBS output reports ADMISSION FAILED"
     if f"job {j}" not in txt:
         return None, f"its PBS output does not name {j}"
+    pp = os.path.join(root, "plans", f"job_{n}.json")
     return dict(kind=_SA.DISPO_KIND, scheduler_state="F", scheduler_exit=o["exit"], settled_core_h=e["settled_core_h"],
+                settle_note=e["settle_note"], settled_at=e["settled_at"], token=e["token"], job_id=j, plan_sha256=sha_file(pp),
                 output_file=name, output_sha256=sha_bytes(b), status_files=0, attributed_units=0, uncompleted=len(keys),
                 note="a charged failed attempt: no completion, no restart or recovery credit; its coordinates return to the planner"), ""
 
