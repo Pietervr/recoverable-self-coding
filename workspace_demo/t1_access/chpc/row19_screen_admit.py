@@ -106,6 +106,39 @@ carry a valid record only from a LATER bound job that planned it (later completi
 certify an earlier job's resumption claim). C4 the automatic reconciliation accepts ONLY the applied certificate (latest
 history old = the preceding committed phase, new = pending, cap = pending); the predecessor-only branch never clears a
 pending phase automatically; and the CLI refuses a raise of less than one core-hour.
+
+REVISION 8 CANDIDATE (Codex R052 record reviews/2026-10-09_refit_wall_kill_codex_record.md, verdicts 1 and 2; NOT adopted):
+(1) CLOSED-NO-RECORD DISPOSITION. A receipt summary that carries `disposition` (kind closed-no-record) is never taken on its word:
+disposition_problem() recomputes, here, every condition from the CURRENT ledger, the root and the PBS output on disk - a fresh
+successful terminal scheduler observation (state F, an observed integer exit kept as observed, finite memory, zero ended / new /
+resumed / left, no worker measurement); the CURRENT ledger entry SETTLED with settlement evidence (finite charge, technical note,
+settlement time) equal to the summary's, its token, PBS id and plan the receipt's and the root's, and NO runner-end field
+(runner_exit, runner_ended, runner_wall_s); no status file scoped to the PBS id (by name, any slot, planned or not, or by its
+parsed `job`), no unreadable status of unknown scope; no unit whose timing names the job, no timing file anywhere that names it
+or cannot be read, and every file at a planned coordinate (record or timing, temporary files included) a valid record whose
+timing names a LATER bound job that planned that coordinate in that slot; and the role/job PBS output
+(<toolchain>/jobs/row19_screen_<role>_<n>.out) present, readable, the bytes the receipt bound (`bound.job_outputs`), naming the
+PBS id and carrying no ADMISSION FAILED. The disposed plan's coordinates are accounted as `uncompleted` with
+`uncompleted_origin` "plan" (no invented worker status); a later bound retry completes them only through its own plan, job and
+slot (the revision-7 producer rule). A dispositioned job never qualifies a pilot. The transition check re-reads the ledger:
+SETTLED, the same charge and PBS id, no runner-end field - else recollect. The loss stays charged; nothing is credited.
+(2) PROSPECTIVE RESOURCE POLICY. chpc/row19_screen_resources.json (pinned in the controls lineage; a changed copy refuses) gives
+refit jobs from `first_job` on a walltime-only envelope (serial / 24 cores / 48 h / 120 GB / 1,800 s reserve / one index per
+worker; every field but the walltime must equal the frozen manifest's, which is never edited). Admission resolves each NEW job's
+envelope (jobs below first_job and every originals job keep the manifest's request), funds the sum of the resolved full requests
+(programme allocation, campaign cap pre-checked before any reservation), and binds it in the plan (`walltime_s`, `queue`,
+`envelope`), the ledger reservation (cores x walltime = 1,152 core-hours at 48 h), the filled PBS request and the job-start /
+deadline arguments (checked in the script text before qsub); every receipt job at or above first_job must show the same envelope
+in its plan, its CURRENT ledger entry and the scheduler's observed walltime request.
+REPAIRS of Codex 5cb9a02 (c1956ef's bytes rejected) and ce06828 (28861c4 not favourable on R1's timing validity): R1 a disposed
+coordinate counts as a later completion only when its CURRENT canonical timing (coordinate, declared identity, producer job,
+integer slot, and the verifier's timing_ok measurement contract: wall_s, fit_seconds, maxrss and t present, finite, non-negative
+and non-boolean) and record (checksum, coordinate, identity) are the
+retained verified evidence (current_artifacts_problem); an absent or changed artifact refuses until recollected. R2 the status
+view binds the observed settlement certificate (charge, note, non-negative time, token, PBS id, plan SHA-256) in the disposition;
+admission and the transition check require it EXACTLY equal to the current ledger entry (certificate_problem), and a negative
+settlement time refuses. R3 the reservation's cores must be an exact non-boolean integer equal to the envelope's, with
+reserved = cores x walltime (no truncation).
 """
 import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
 
@@ -500,6 +533,373 @@ def _int(x):
     return isinstance(x, int) and not isinstance(x, bool)
 
 
+RESOURCES = "chpc/row19_screen_resources.json"
+RES_SCHEMA = "row19-screen-resources-1"
+SERIAL_MAX_WALLTIME_H = 48.0
+ENV_FIXED = ("queue", "cores", "mem_gb", "nodetype", "deadline_reserve_s")
+DISPO_KIND = "closed-no-record"
+
+
+def manifest_envelope(man):
+    """The frozen manifest's request (every originals job, and refit jobs below the policy's first job)."""
+    p = man["pbs"]
+    return dict(queue=p["queue"], cores=int(p["cores"]), walltime_s=float(p["walltime_h"]) * 3600.0, mem_gb=int(p["mem_gb"]),
+                nodetype=p["nodetype"], deadline_reserve_s=int(float(p["deadline_reserve_s"])), source="manifest")
+
+
+def envelope_core_h(env):
+    return env["cores"] * env["walltime_s"] / 3600.0
+
+
+def resources_shape_problem(doc):
+    """The policy's own structure (independent of any manifest)."""
+    if not isinstance(doc, dict) or doc.get("schema") != RES_SCHEMA or doc.get("role") != "refit":
+        return "it has another schema or role"
+    if not _hex64(doc.get("manifest_sha256")):
+        return "it names no manifest SHA-256"
+    envs = doc.get("envelopes")
+    if not isinstance(envs, list) or not envs:
+        return "it has no envelopes"
+    prev = 1
+    for k, x in enumerate(envs):
+        if not isinstance(x, dict) or set(x) - set(ENV_FIXED) - {"first_job", "walltime_h", "per_slot", "note"}:
+            return f"envelope {k} is not an object of the declared fields"
+        if not (_int(x.get("first_job")) and x["first_job"] > prev):
+            return f"envelope {k}: first_job must be an integer above {prev}"
+        prev = x["first_job"]
+        if not (_num(x.get("walltime_h")) and 0 < x["walltime_h"] <= SERIAL_MAX_WALLTIME_H):
+            return f"envelope {k}: walltime_h must be finite, positive and at most {SERIAL_MAX_WALLTIME_H:.0f}"
+        if not (_int(x.get("per_slot")) and x["per_slot"] == 1):
+            return f"envelope {k}: one index per worker (per_slot 1) is required"
+        if not (_int(x.get("deadline_reserve_s")) and 0 < x["deadline_reserve_s"] < x["walltime_h"] * 3600.0):
+            return f"envelope {k}: the deadline reserve is not a positive integer below the walltime"
+    return ""
+
+
+def resolve_envelope(man, manifest_path, role, n):
+    """(envelope, problem) of job n. Originals: the manifest. Refit: the pinned policy (its bytes must be the latest lineage
+    version's pin, its shape valid); below its first job the manifest; from it on the policy's walltime, and then the policy must
+    name THIS manifest and every other field must equal the manifest's (a walltime-only change)."""
+    base = manifest_envelope(man)
+    if role != "refit":
+        return base, ""
+    p = os.path.join(T1, RESOURCES)
+    pin = controls()["versions"][-1]["files"].get(RESOURCES)
+    if not _hex64(pin):
+        return None, "the controls lineage does not pin the resource policy"
+    if not os.path.exists(p) or sha_file(p) != pin:
+        return None, "the resource policy is absent or not the lineage's pinned bytes"
+    try:
+        doc = _strict_load(p)
+    except (OSError, ValueError) as e:
+        return None, f"the resource policy is unreadable ({e})"
+    why = resources_shape_problem(doc)
+    if why:
+        return None, f"the resource policy: {why}"
+    hit = [x for x in doc["envelopes"] if int(n) >= x["first_job"]]
+    if not hit:
+        return base, ""
+    x = hit[-1]
+    if doc["manifest_sha256"] != sha_file(manifest_path):
+        return None, "the resource policy names another manifest"
+    for f in ENV_FIXED:
+        if isinstance(x.get(f), bool) or x.get(f) != base[f]:
+            return None, f"the resource policy's {f} {x.get(f)!r} is not the manifest's {base[f]!r} (walltime-only policy)"
+    if int((man.get("shard") or {}).get("per_slot", 0)) != 1:
+        return None, "the manifest does not run one index per worker"
+    return dict(base, walltime_s=float(x["walltime_h"]) * 3600.0, source=f"{RESOURCES} first_job={x['first_job']}", resources_sha256=pin), ""
+
+
+def policy_first_job(role):
+    """The smallest job number the pinned policy governs (None for originals). Fails closed: a policy that is absent, unpinned,
+    not the pinned bytes or malformed returns 1, so every receipt job is checked and resolve_envelope refuses it."""
+    if role != "refit":
+        return None
+    try:
+        p = os.path.join(T1, RESOURCES); pin = controls()["versions"][-1]["files"].get(RESOURCES)
+        if not _hex64(pin) or sha_file(p) != pin:
+            return 1
+        doc = _strict_load(p)
+        return 1 if resources_shape_problem(doc) else min(int(x["first_job"]) for x in doc["envelopes"])
+    except Exception:
+        return 1
+
+
+def pbs_request_problem(script, env):
+    """The filled PBS request and the job-start / deadline arguments must be exactly the resolved envelope."""
+    w, r = int(round(env["walltime_s"])), int(env["deadline_reserve_s"])
+    need = [f"#PBS -q {env['queue']}\n", f"#PBS -l walltime={hms(w)}\n",
+            f"#PBS -l select=1:ncpus={env['cores']}:mpiprocs={env['cores']}:mem={env['mem_gb']}gb:nodetype={env['nodetype']}\n",
+            f"DEADLINE=$((START + {w} - {r}))\n", f" --walltime-s {w} "]
+    miss = [x.strip() for x in need if x not in script]
+    if miss:
+        return f"the PBS script does not carry the resolved envelope: {miss}"
+    if script.count("walltime=") != 1 or script.count("--walltime-s ") != 1 or script.count("DEADLINE=") != 1:
+        return "the PBS script requests or passes the walltime more than once"
+    return ""
+
+
+def envelope_problem(man, manifest_path, role, n, plan, entry, sj=None):
+    """REVISION 8 (2): one job's plan, CURRENT ledger entry and (optionally) receipt summary against its resolved envelope."""
+    env, why = resolve_envelope(man, manifest_path, role, int(n))
+    if why:
+        return f"job {n}: {why}"
+    w = env["walltime_s"]
+    if not isinstance(plan, dict) or plan.get("job") != int(n):
+        return f"job {n}: no plan of this job"
+    if not (_num(plan.get("walltime_s")) and abs(plan["walltime_s"] - w) < 1e-6) or plan.get("queue") != env["queue"]:
+        return f"job {n}: the plan's request ({plan.get('queue')}, {plan.get('walltime_s')} s) is not the resolved envelope ({env['queue']}, {w:.0f} s)"
+    if env["source"] != "manifest" and plan.get("envelope") != env:
+        return f"job {n}: the plan does not carry the resolved envelope"
+    if len(plan.get("slots") or []) > env["cores"] or (role == "refit" and any(len(sl.get("indices") or []) != 1 for sl in plan.get("slots") or [])):
+        return f"job {n}: the plan is not at most {env['cores']} workers of one index each"
+    if not isinstance(entry, dict) or entry.get("token") != plan.get("token") or not _int(entry.get("cores")) or entry["cores"] != env["cores"] \
+            or not (_num(entry.get("walltime_s")) and abs(entry["walltime_s"] - w) < 1e-6) \
+            or not (_num(entry.get("reserved_core_h")) and abs(entry["reserved_core_h"] - envelope_core_h(env)) < 1e-6
+                    and abs(entry["reserved_core_h"] - entry["cores"] * entry["walltime_s"] / 3600.0) < 1e-6):                    # R3: no truncation
+        return f"job {n}: the ledger reservation is not {env['cores']} x {w:.0f} s = {envelope_core_h(env):.0f} core-hours under the plan's token"
+    if sj is not None and env["source"] != "manifest":
+        if not (_num(sj.get("plan_walltime_s")) and abs(sj["plan_walltime_s"] - w) < 1e-6):
+            return f"job {n}: the receipt's plan walltime {sj.get('plan_walltime_s')} is not the envelope's {w:.0f} s"
+        if not (_num(sj.get("requested_walltime_s")) and abs(sj["requested_walltime_s"] - w) <= 1.0):
+            return f"job {n}: the scheduler's observed walltime request {sj.get('requested_walltime_s')} is not the envelope's {w:.0f} s"
+    return ""
+
+
+def receipt_envelope_problem(man, manifest_path, role, r):
+    """Every receipt job the policy governs, against its plan and CURRENT ledger entry (earlier jobs keep their v7 checks)."""
+    fj = policy_first_job(role)
+    if fj is None:
+        return ""
+    led = _strict_load(os.path.join(man["storage"]["campaign"], "budget.json"))
+    by_n = {str(int(e["rep"])): e for e in led["entries"].values() if e.get("kind") == ROLES[role]}
+    for n, sj in (r.get("jobs") or {}).items():
+        if int(n) < fj:
+            continue
+        pp = os.path.join(man["storage"]["root"], "plans", f"job_{int(n)}.json")
+        try:
+            plan = _strict_load(pp)
+        except (OSError, ValueError):
+            return f"job {n}: its plan is absent or unreadable"
+        why = envelope_problem(man, manifest_path, role, n, plan, by_n.get(str(int(n))), sj if isinstance(sj, dict) else {})
+        if why:
+            return why
+    return ""
+
+
+def job_output_path(man, role, n):
+    return os.path.join(man["shard"]["toolchain"], "jobs", f"row19_screen_{role}_{int(n)}.out")
+
+
+STATUS_NAME = re.compile(r"^job(.+)\.slot([0-9]+)\.json$")
+
+
+def status_scoped(root, jid):
+    """Status files scoped to PBS job jid: by name (any slot, planned or not), by parsed `job`, or unreadable with no job name."""
+    hits = []
+    for p in sorted(glob.glob(os.path.join(root, "status", "*"))):
+        b = os.path.basename(p)
+        if b.startswith(f"job{jid}."):
+            hits.append(b); continue
+        try:
+            d = _strict_load(p)
+        except Exception:
+            if not STATUS_NAME.match(b):
+                hits.append(f"{b} (unreadable, no job named)")
+            continue
+        if not isinstance(d, dict) or d.get("job") == jid:
+            hits.append(b)
+    return hits
+
+
+def timing_scan(root, jid):
+    """Timing files anywhere under the root that name jid, cannot be read, or are not a published .json (a temporary file)."""
+    hits = []
+    for p in sorted(glob.glob(os.path.join(root, "timing", "**", "*"), recursive=True)):
+        if os.path.isdir(p):
+            continue
+        rel = os.path.relpath(p, root)
+        if not p.endswith(".json"):
+            hits.append(f"{rel} (not a published timing)"); continue
+        try:
+            d = _strict_load(p)
+        except Exception:
+            hits.append(f"{rel} (unreadable)"); continue
+        if not isinstance(d, dict) or d.get("job") == jid:
+            hits.append(rel)
+    return hits
+
+
+def coordinate_files(man, root, role, k):
+    """Every file - exact or temporary - that could carry output for coordinate k: its record and its timing."""
+    if role == "refit":
+        r, i = (int(x) for x in k.split("/"))
+        pats = [os.path.join(root, "records", f"rep{r}", f"rec_{i:03d}.json*"), os.path.join(root, "timing", f"rep{r}", f"t_{i:03d}.json*")]
+        exact = {f"rec_{i:03d}.json", f"t_{i:03d}.json"}
+    else:
+        r = int(k); pre = man["datasets"]["identities"][str(r)][:24]
+        pats = [os.path.join(root, "orig", f"orig_{pre}.json*"), os.path.join(root, "timing", f"o{r:03d}.json*")]
+        exact = {f"orig_{pre}.json", f"o{r:03d}.json"}
+    files = sorted(p for pat in pats for p in glob.glob(pat))
+    return files, [p for p in files if os.path.basename(p) not in exact]
+
+
+TIMING_MEASURES = ("wall_s", "fit_seconds", "maxrss", "t")        # row19_screen_verify.timing_ok (verify.py:93-105), unchanged
+
+
+def current_artifacts_problem(man, root, role, k, u):
+    """R1 (Codex 5cb9a02): the CURRENT canonical record and timing files of coordinate k must be the retained verified evidence -
+    the timing's coordinate, declared identity, producer job and integer slot, and the record's checksum (refit `sha`, originals
+    `payload_sha`). An absent, unreadable or changed artifact refuses until the evidence is recollected."""
+    t = (u or {}).get("timing") or {}; rec = (u or {}).get("record") or {}
+    if role == "refit":
+        r, i = (int(x) for x in k.split("/"))
+        rp_ = os.path.join(root, "records", f"rep{r}", f"rec_{i:03d}.json"); tp_ = os.path.join(root, "timing", f"rep{r}", f"t_{i:03d}.json")
+        rkey, want_t = "sha", dict(rep=r, index=i)
+    else:
+        r = int(k); pre = man["datasets"]["identities"][str(r)][:24]
+        rp_ = os.path.join(root, "orig", f"orig_{pre}.json"); tp_ = os.path.join(root, "timing", f"o{r:03d}.json")
+        rkey, want_t = "payload_sha", dict(rep=r)
+    ident = man["datasets"]["identities"].get(str(r))
+    try:
+        ct = _strict_load(tp_)
+    except Exception:
+        return "its current timing is absent or unreadable"
+    if not isinstance(ct, dict) or any(ct.get(a) != b or isinstance(ct.get(a), bool) for a, b in want_t.items()) or ct.get("ident") != ident:
+        return "its current timing is not this coordinate's under the declared identity"
+    if ct.get("job") != t.get("job") or not _int(ct.get("slot")) or ct["slot"] != t.get("slot"):
+        return f"its current timing names {ct.get('job')} slot {ct.get('slot')}, not the verified producer {t.get('job')} slot {t.get('slot')}"
+    bad = [f for f in TIMING_MEASURES if not (_num(ct.get(f)) and ct[f] >= 0)]
+    if bad:                                                           # R1 (ce06828): row19_screen_verify.timing_ok's measurement contract
+        return f"its current timing's {bad} are not finite non-negative non-boolean numbers (the verifier's timing contract)"
+    try:
+        cr = _strict_load(rp_)
+    except Exception:
+        return "its current record is absent or unreadable"
+    want_r = rec.get(rkey)
+    if not isinstance(want_r, str) or not want_r or not isinstance(cr, dict) or cr.get(rkey) != want_r:
+        return "its current record is not the verified record"
+    if role == "refit" and (cr.get("rep") != i or isinstance(cr.get("rep"), bool) or cr.get("ident") != ident):
+        return "its current record is not this coordinate's under the declared identity"
+    return ""
+
+
+def later_completion(man, root, role, units, k, n, num_of, plan_slot_of):
+    """'' when coordinate k holds a valid record whose valid timing names a bound job LATER than n that planned k in that slot,
+    AND its current canonical artifacts are that verified evidence (R1); otherwise the reason."""
+    u = units.get(k) or {}; t = u.get("timing") or {}
+    if not ((u.get("record") or {}).get("ok") and t.get("ok") is True and _int(t.get("slot"))):
+        return "no valid verified record with valid timing"
+    m = num_of.get(t.get("job"))
+    if m is None or m <= int(n) or plan_slot_of(m).get(k) != t["slot"]:
+        return f"the verified producer {t.get('job')} slot {t.get('slot')} is not a later bound job that planned it there"
+    return current_artifacts_problem(man, root, role, k, u)
+
+
+CERT_FIELDS = ("settled_core_h", "settle_note", "settled_at", "token", "job_id")
+
+
+def certificate_problem(d, e):
+    """R2 (Codex 5cb9a02): the settlement certificate the status view observed (charge, note, non-negative time, token, PBS id)
+    must be EXACTLY the current ledger entry's; any replacement refuses until recollected. The charged loss is never rewritten."""
+    if not (_num(d.get("settled_at")) and d["settled_at"] >= 0) or not (_num(d.get("settled_core_h")) and d["settled_core_h"] >= 0) \
+            or not (isinstance(d.get("settle_note"), str) and len(d["settle_note"].strip()) >= 8):
+        return "the receipt binds no valid settlement certificate (charge, note, non-negative time)"
+    diff = [f for f in CERT_FIELDS if d.get(f) != e.get(f) or isinstance(d.get(f), bool)]
+    if diff:
+        return f"the current ledger's settlement certificate differs from the receipt's on {diff}; recollect"
+    return ""
+
+
+def disposition_problem(man, manifest_path, role, n, sj, bound, units):
+    """REVISION 8 (1): '' only when job n is a CLOSED, SETTLED, NO-RECORD job, recomputed here from the current ledger, the root
+    and the PBS output on disk (never the summary's word)."""
+    n = str(int(n)); d = sj.get("disposition") if isinstance(sj, dict) else None
+    if not isinstance(d, dict) or d.get("kind") != DISPO_KIND:
+        return f"job {n}: no closed-no-record disposition"
+    jid = sj.get("job_id")
+    if sj.get("state") != "F" or not _int(sj.get("exit")) or d.get("scheduler_exit") != sj.get("exit"):
+        return f"job {n}: the disposition is not a successful terminal scheduler observation (state F with its observed integer exit)"
+    if not (_num(sj.get("mem_kb")) and sj["mem_kb"] >= 0):
+        return f"job {n}: the disposed job has no finite observed scheduler memory"
+    want = plan_slots(man, n)
+    if not (_int(sj.get("slots")) and sj["slots"] == want and all(_int(sj.get(x)) and sj[x] == 0 for x in ("ended", "new", "resumed", "left"))
+            and sj.get("exits") == {} and sj.get("runner_exit") is None and sj.get("max_worker_maxrss") is None):
+        return f"job {n}: the summary is not a closed job with no worker status, no outcome and no runner end"
+    lp = os.path.join(man["storage"]["campaign"], "budget.json")
+    led = _strict_load(lp)
+    hits = [e for e in led["entries"].values() if e.get("kind") == ROLES[role] and e.get("rep") == int(n)]
+    if len(hits) != 1:
+        return f"job {n}: {len(hits)} current ledger entries"
+    e = hits[0]
+    if e.get("state") != "settled" or not (_num(e.get("settled_core_h")) and e["settled_core_h"] >= 0) \
+            or not (isinstance(e.get("settle_note"), str) and len(e["settle_note"].strip()) >= 8) or not (_num(e.get("settled_at")) and e["settled_at"] >= 0):
+        return f"job {n}: the CURRENT ledger entry is not SETTLED with settlement evidence (charge, note, non-negative time)"
+    if not (_num(d.get("settled_core_h")) and abs(d["settled_core_h"] - e["settled_core_h"]) < 1e-9):
+        return f"job {n}: the disposition's charge {d.get('settled_core_h')} is not the ledger's {e['settled_core_h']}"
+    why = certificate_problem(d, e)                                                    # R2: the exact observed certificate
+    if why:
+        return f"job {n}: {why}"
+    if any(e.get(f) is not None for f in ("runner_exit", "runner_ended", "runner_wall_s")):
+        return f"job {n}: the ledger records a runner end; it is not a closed-no-record job"
+    bj = (bound.get("jobs") or {}).get(n) or {}
+    if not jid or e.get("job_id") != jid or bj.get("job_id") != jid or bj.get("token") != e.get("token"):
+        return f"job {n}: the PBS id or token is not the ledger's"
+    pp = os.path.join(man["storage"]["root"], "plans", f"job_{n}.json")
+    try:
+        plan = _strict_load(pp)
+    except (OSError, ValueError):
+        return f"job {n}: its plan is absent or unreadable"
+    if plan.get("token") != e.get("token") or plan.get("job") != int(n) or sha_file(pp) != bj.get("plan_sha256") or d.get("plan_sha256") != bj.get("plan_sha256"):
+        return f"job {n}: the plan is not the bound plan of this token and job"
+    slot_of = _plan_slot_of(man, n)
+    part = sj.get("partition")
+    if not isinstance(part, dict) or part.get("new") != [] or part.get("resumed") != [] or part.get("left") != [] \
+            or part.get("uncompleted") != sorted(slot_of) or part.get("uncompleted_origin") != "plan":
+        return f"job {n}: the disposed plan's coordinates are not accounted as uncompleted with their plan-derived origin"
+    root = man["storage"]["root"]
+    sc = status_scoped(root, jid)
+    if sc:
+        return f"job {n}: status evidence scoped to {jid} ({sc[:3]}); not a closed-no-record job"
+    named = sorted(k for k, u in units.items() if ((u or {}).get("timing") or {}).get("job") == jid)
+    if named:
+        return f"job {n}: unit(s) {named[:3]} carry timing naming {jid}"
+    ts = timing_scan(root, jid)
+    if ts:
+        return f"job {n}: timing evidence naming {jid} or of unknown attribution ({ts[:3]})"
+    num_of = {x.get("job_id"): int(x["rep"]) for x in led["entries"].values() if x.get("kind") == ROLES[role] and x.get("job_id")}
+    plans = {}
+
+    def pso(m):
+        if m not in plans:
+            plans[m] = _plan_slot_of(man, m)
+        return plans[m]
+    for k in sorted(slot_of):
+        files, odd = coordinate_files(man, root, role, k)
+        if odd:
+            return f"job {n}: coordinate {k} has temporary or non-canonical output files {[os.path.basename(p) for p in odd][:3]}"
+        if files or (units.get(k) or {}).get("record") is not None:
+            why = later_completion(man, root, role, units, k, n, num_of, pso)
+            if why:
+                return f"job {n}: coordinate {k} holds output that is not a later bound job's planned completion ({why})"
+    ob = (bound.get("job_outputs") or {}).get(n) or {}
+    op = job_output_path(man, role, n)
+    if ob.get("file") != os.path.basename(op) or not _hex64(ob.get("sha256")) or ob["sha256"] != d.get("output_sha256"):
+        return f"job {n}: the receipt binds no PBS output for the disposed job"
+    try:
+        b = open(op, "rb").read()
+    except OSError as ex:
+        return f"job {n}: the PBS output {op} is absent or unreadable ({ex}); absence of an admission failure is not proven"
+    if hashlib.sha256(b).hexdigest() != ob["sha256"]:
+        return f"job {n}: the PBS output is not the bytes the receipt bound; recollect"
+    txt = b.decode("utf-8", errors="replace")
+    if "ADMISSION FAILED" in txt:
+        return f"job {n}: the PBS output reports ADMISSION FAILED"
+    if f"job {jid}" not in txt:
+        return f"job {n}: the PBS output does not name {jid}"
+    return ""
+
+
 def plan_slots(man, n):
     p = os.path.join(man["storage"]["root"], "plans", f"job_{n}.json")
     return len(json.load(open(p))["slots"]) if os.path.exists(p) else None
@@ -509,6 +909,8 @@ def job_summary_problem(man, n, s, pilot=False):
     """R2: one job summary against its plan. Queued or running jobs pass; a terminal job must be complete and clean."""
     if not isinstance(s, dict):
         return f"job {n}: no summary"
+    if pilot and s.get("disposition") is not None:
+        return f"job {n}: a dispositioned job never qualifies a pilot"
     if s.get("state") in ("Q", "R", "H", "W", "B"):
         return "" if not pilot else f"job {n} is not terminal"
     want = plan_slots(man, n)
@@ -564,6 +966,10 @@ def units_problem(man, v, rec, pilot_job=None):
         jid = (sj or {}).get("job_id")
         if jid != bound_id.get(str(n)):
             return f"job {n}: the summary names PBS id {jid}, the ledger binds {bound_id.get(str(n))}"
+        if isinstance(sj, dict) and sj.get("disposition") is not None:
+            if [k for k, u in units.items() if (u.get("timing") or {}).get("job") == jid]:
+                return f"job {n}: units name the dispositioned job"
+            continue                                                          # REVISION 8: validated by disposition_problem
         if (sj or {}).get("state") in TERMINAL_STATES:
             slot_of = _plan_slot_of(man, n)
             good = [k for k, u in units.items() if k in slot_of and (u.get("record") or {}).get("ok") and (u.get("timing") or {}).get("ok") is True
@@ -660,6 +1066,13 @@ def transition_problem(man, role, r):
         if e is None:
             return f"job {n} of the receipt is not in the ledger"
         now_exit = e.get("runner_exit")
+        if isinstance(sj, dict) and sj.get("disposition") is not None:
+            d = sj["disposition"] if isinstance(sj["disposition"], dict) else {}
+            if e.get("state") != "settled" or any(e.get(f) is not None for f in ("runner_exit", "runner_ended", "runner_wall_s")) \
+                    or e.get("job_id") != sj.get("job_id") or not _num(e.get("settled_core_h")) or not _num(d.get("settled_core_h")) \
+                    or abs(e["settled_core_h"] - d["settled_core_h"]) > 1e-9 or certificate_problem(d, e):
+                return f"job {n}: the ledger no longer shows the disposed job as the receipt saw it (SETTLED, same settlement certificate and PBS id, no runner end); recollect"
+            continue
         if sj.get("state") not in TERMINAL_STATES and e.get("state") == "settled":
             return f"job {n} has been SETTLED since the receipt saw it {sj.get('state')}; recollect before admitting"
         if sj.get("state") in TERMINAL_STATES:
@@ -775,11 +1188,15 @@ def receipt_problem(man, manifest_path, role, now=None):
     want_jobs = expected_bound(man, manifest_path, role)["jobs"]
     if sorted((r.get("jobs") or {})) != sorted(want_jobs):
         return "the newest receipt does not summarise every job of the role"
+    vdoc = _verifier_doc(man, r["bound"])
     for n, sj in (r.get("jobs") or {}).items():
-        why = job_summary_problem(man, n, sj)
+        if isinstance(sj, dict) and "disposition" in sj:
+            why = disposition_problem(man, manifest_path, role, n, sj, r.get("bound") or {}, vdoc.get("units") or {})
+        else:
+            why = job_summary_problem(man, n, sj)
         if why:
             return f"the newest receipt: {why}"
-    why = units_problem(man, _verifier_doc(man, r["bound"]), r) or transition_problem(man, role, r)
+    why = units_problem(man, vdoc, r) or transition_problem(man, role, r) or receipt_envelope_problem(man, manifest_path, role, r)
     if why:
         return f"the newest receipt: {why}"
     why = bound_problem(r.get("bound"), expected_bound(man, manifest_path, role), "all")
@@ -842,7 +1259,27 @@ def pin_problems(man, clone):
     return bad
 
 
-def gate_problem(man, manifest_path, role, used, pilot, n_jobs, jobs, walltime_s):
+def campaign_cap_problem(man, proposal_core_h):
+    """REVISION 8: the campaign ledger's cap (60,000 for refit) must hold spent + live + every new full request, checked before
+    any reservation (the ledger still refuses each reservation on its own)."""
+    lp = os.path.join(man["storage"]["campaign"], "budget.json")
+    try:
+        if os.path.exists(lp):
+            led = _strict_load(lp); cap = led.get("cap_core_h")
+            spent = sum(float(e["settled_core_h"]) for e in led["entries"].values() if e.get("state") == "settled")
+            live = sum(float(e["reserved_core_h"]) for e in led["entries"].values() if e.get("state") != "settled")
+        else:
+            cap = float(_phases(man)["phases"][0]["cap_core_h"]); spent = live = 0.0
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        return f"the campaign ledger cannot be counted ({e})"
+    if not (_num(cap) and cap > 0):
+        return "the campaign cap is not finite and positive"
+    if spent + live + proposal_core_h > cap + 1e-9:
+        return f"the campaign cap: spent {spent:.1f} + live {live:.1f} + {proposal_core_h:.1f} proposed > {cap:.0f} core-hours"
+    return ""
+
+
+def gate_problem(man, manifest_path, role, used, pilot, n_jobs, jobs, walltime_s, proposal_core_h=None):
     root = man["storage"]["root"]
     if os.path.exists(os.path.join(root, "STOP")):
         return "a STOP file is present in the role's root"
@@ -856,7 +1293,8 @@ def gate_problem(man, manifest_path, role, used, pilot, n_jobs, jobs, walltime_s
     why = identity_problem(man, reps)
     if why:
         return why
-    why = funding_problem(man, len(jobs) * int(man["pbs"]["cores"]) * walltime_s / 3600.0)
+    proposal = proposal_core_h if proposal_core_h is not None else len(jobs) * int(man["pbs"]["cores"]) * walltime_s / 3600.0
+    why = funding_problem(man, proposal) or campaign_cap_problem(man, proposal)
     if why:
         return why
     if pilot:
@@ -996,13 +1434,22 @@ def main(argv=None):
         if problems:
             print(f"HELD: {len(problems)} problem(s) in the evidence:"); [print("   -", p) for p in problems[:10]]; return 2
         jobs, left = plan_jobs(man, role, n_jobs, done, flight, used)
-        why = gate_problem(man, a.manifest, role, used, a.pilot, n_jobs, jobs, walltime_s)
+        envs, why = {}, ""
+        for j in jobs:                                                        # REVISION 8: each NEW job's resolved envelope
+            env, w = resolve_envelope(man, a.manifest, role, int(j["job"]))
+            why = why or w; envs[j["job"]] = env
+        proposal = sum(envelope_core_h(envs[j["job"]]) for j in jobs) if not why else None
+        why = why or gate_problem(man, a.manifest, role, used, a.pilot, n_jobs, jobs, walltime_s, proposal_core_h=proposal)
         pins = pin_problems(man, clone)
         if pins and not why:
             why = f"the manifest's pins do not hold in the clone the jobs run from: {pins}"
         print(f"planned {len(jobs)} job(s), {sum(len(s.get('indices', s.get('reps', []))) for j in jobs for s in j['slots'])} units; {left} not in this call")
         for j in jobs[:3]:
             print(f"  job {j['job']}: " + "; ".join(f"slot {s['slot']} " + (f"rep {s['rep']} {s['indices']}" if role == 'refit' else f"reps {s['reps']}") for s in j["slots"][:4]) + " ...")
+            ev = envs.get(j["job"])
+            if ev:
+                print(f"    envelope: {ev['queue']} {ev['cores']} cores x {ev['walltime_s']/3600:.0f} h ({envelope_core_h(ev):.0f} core-h), {ev['mem_gb']} GB, "
+                      f"reserve {ev['deadline_reserve_s']} s - {ev['source']}")
         if a.dry_run:
             print(f"DRY RUN; the gate {'would REFUSE: ' + why if why else 'would admit this submission'}"); return 0
         if why:
@@ -1010,20 +1457,31 @@ def main(argv=None):
         L = ledger_for(man)
         os.makedirs(os.path.join(toolchain, "jobs"), exist_ok=True)
         for j in jobs:
-            cores = int(man["pbs"]["cores"])
-            token, t = L.reserve(ROLES[role], int(j["job"]), cores, walltime_s, root, f"row19_screen_admit {role} {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}")
+            env = envs[j["job"]]; cores = env["cores"]; wj = env["walltime_s"]; qj = env["queue"]
+            build = refit_pbs_script if role == "refit" else orig_pbs_script
+            why = pbs_request_problem(build(man, j, "TOKEN", wj, qj, toolchain, clone, manifest_rel), env)
+            if why:
+                print(f"{role} job {j['job']}: REFUSED before reserving: {why}"); return 2
+            token, t = L.reserve(ROLES[role], int(j["job"]), cores, wj, root, f"row19_screen_admit {role} {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}")
             pp = os.path.join(root, "plans", f"job_{j['job']}.json")
+            pdoc = dict(j, queue=qj, walltime_s=wj, token=token, created=time.time())
+            if env["source"] != "manifest":
+                pdoc["envelope"] = env
             with open(pp, "w") as fh:
-                json.dump(dict(j, queue=queue, walltime_s=walltime_s, token=token, created=time.time()), fh, indent=1); fh.flush(); os.fsync(fh.fileno())
+                json.dump(pdoc, fh, indent=1); fh.flush(); os.fsync(fh.fileno())
+            entry = [e for e in _strict_load(os.path.join(man["storage"]["campaign"], "budget.json"))["entries"].values() if e.get("token") == token]
+            why = envelope_problem(man, a.manifest, role, j["job"], _strict_load(pp), entry[0] if len(entry) == 1 else None)
             sp = os.path.join(toolchain, "jobs", f"row19_screen_{role}_{j['job']}.pbs")
-            script = (refit_pbs_script(man, j, token, walltime_s, queue, toolchain, clone, manifest_rel) if role == "refit"
-                      else orig_pbs_script(man, j, token, walltime_s, queue, toolchain, clone, manifest_rel))
+            script = build(man, j, token, wj, qj, toolchain, clone, manifest_rel)
+            why = why or pbs_request_problem(script, env)
+            if why:
+                print(f"{role} job {j['job']}: HELD before qsub: {why}; reservation {token} stays reserved and unbound"); return 1
             open(sp, "w").write(script)
             r = subprocess.run(["qsub", sp], capture_output=True, text=True)
             if r.returncode != 0:
                 print(f"{role} job {j['job']}: qsub failed ({r.stderr.strip()[:200]}); reservation {token} stays reserved and unbound"); return 1
             job_id = r.stdout.strip(); L.bind(token, job_id)
-            print(f"{role} job {j['job']}: reserved {token} ({cores} x {walltime_s/3600:.0f} h; spent {t['spent']:.0f}, live {t['live']:.0f} of {t['cap']:.0f}), submitted {job_id}")
+            print(f"{role} job {j['job']}: reserved {token} ({cores} x {wj/3600:.0f} h = {envelope_core_h(env):.0f} core-h; spent {t['spent']:.0f}, live {t['live']:.0f} of {t['cap']:.0f}), submitted {job_id}")
     return 0
 
 

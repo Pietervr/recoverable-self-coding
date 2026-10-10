@@ -37,7 +37,27 @@ ended worker needs finite memory and wall time. The status directory is checked 
 (chpc/row19_screen_controls.json `deployment`), and its document must report the latest controller generation with a clean
 lineage check; the producer's binding digests must equal the local snapshot's (one coherent observation); the full verifier
 document is saved, copied to the gate and only a SUCCESSFUL copy lets the evidence count as production; the receipt and the
-qualification name the verifier file and its SHA-256, and the qualification binds job 1's own tasks only."""
+qualification name the verifier file and its SHA-256, and the qualification binds job 1's own tasks only.
+
+REVISION 8 CANDIDATE (Codex R052 record reviews/2026-10-09_refit_wall_kill_codex_record.md, verdicts 1 and 2; NOT adopted):
+the fresh observation also retrieves the role/job PBS output (<toolchain>/jobs/row19_screen_<role>_<n>.out, written by the PBS
+request row19_screen_admit.py fills) of every job whose ledger entry is settled without a runner end; each retrieval's result is
+kept beside the snapshot (jobs/_fetch.json) - a failed, missing or unreadable retrieval proves nothing and leaves the job's alarms
+in place. A terminal job is DISPOSITIONED (closed-no-record), reported and not alarmed, only when ALL hold: the scheduler
+observation succeeded with state F and an observed integer exit; the ledger entry is SETTLED with settlement evidence (finite
+charge, technical note, settlement time) and carries no runner-end field; its plan is the entry's token and job; no status file
+is scoped to its PBS id (by name, any slot, planned or unplanned, or by parsed `job`) and no status is unreadable with no job named;
+no verifier unit and no timing file anywhere names it, and no timing file is unreadable or temporary; every file at a planned
+coordinate is a valid record whose timing names a LATER bound job that planned it in that slot; and the retrieved PBS output names
+the PBS id and carries no ADMISSION FAILED. Only then are its bad-scheduler-exit, missing-runner-end and missing-worker-status
+alarms suppressed; the summary keeps the actual exit, zero ended/new/resumed/left and absent worker measurements, carries
+`disposition` (with the output's SHA-256) and accounts the plan's coordinates as `uncompleted` with origin "plan"; the receipt
+binds the output (`bound.job_outputs`). A dispositioned job never qualifies. Every summary also carries the plan's walltime and
+the scheduler's observed walltime request (Resource_List.walltime); a difference between them is an alarm. An unreadable status
+file is an alarm (it used to stop the view).
+REPAIRS of Codex 5cb9a02: the disposition carries the observed settlement certificate (settle_note, settled_at, token, job_id,
+plan_sha256 beside the charge) for the admission to compare exactly (R2); a later completion at a disposed coordinate also needs
+its current canonical record and timing to be the verified evidence (R1, row19_screen_admit.current_artifacts_problem)."""
 import os, sys, json, glob, math, time, shutil, hashlib, argparse, subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -110,8 +130,31 @@ def fresh_snapshot(man, role):
             problems.append(f"pull of {remote} failed (rc {rc}): {err.strip()[:160]}")
     if problems:
         shutil.rmtree(stage, ignore_errors=True); return False, problems
+    fetch_job_outputs(man, role, stage)
     shutil.rmtree(live, ignore_errors=True); os.makedirs(LIVE_DIR, exist_ok=True); shutil.move(stage, live)
     return True, []
+
+
+def fetch_job_outputs(man, role, stage):
+    """REVISION 8: the PBS output of every job that could be closed-no-record (its staged ledger entry settled, no runner end),
+    pulled into <stage>/jobs; each result (rc, ok, SHA-256) in jobs/_fetch.json. A failed retrieval is recorded, never fatal: it
+    only means that job cannot be dispositioned in this observation."""
+    jd = os.path.join(stage, "jobs"); os.makedirs(jd, exist_ok=True); res = {}
+    try:
+        led = json.load(open(os.path.join(stage, "campaign", "budget.json")))
+    except Exception:
+        led = {"entries": {}}
+    for e in (led.get("entries") or {}).values():
+        if e.get("kind") != KIND[role] or e.get("state") != "settled" or any(e.get(f) is not None for f in ("runner_exit", "runner_ended", "runner_wall_s")):
+            continue
+        n = int(e["rep"]); name = f"row19_screen_{role}_{n}.out"; local = os.path.join(jd, name)
+        rc, _, err = sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", f"{HOST}:{man['shard']['toolchain']}/jobs/{name}", local])
+        ok = rc == 0 and os.path.isfile(local)
+        if not ok and os.path.exists(local):
+            os.remove(local)
+        res[str(n)] = dict(file=name, rc=rc, ok=ok, sha256=(sha_file(local) if ok else None), err=str(err).strip()[:160])
+    json.dump(res, open(os.path.join(jd, "_fetch.json"), "w"), indent=1)
+    return res
 
 
 def pbs_observe(job_ids, pbs_file=None):
@@ -135,10 +178,95 @@ def pbs_observe(job_ids, pbs_file=None):
                 obs[cur]["exit"] = int(v)
             elif k == "resources_used.mem":
                 obs[cur]["mem_kb"] = int(v[:-2]) if v.endswith("kb") else None
+            elif k == "Resource_List.walltime":
+                obs[cur]["walltime_req_s"] = hms_s(v)
     missing = [j for j in job_ids if j not in obs or not obs[j].get("state")]
     if missing:
         return None, f"qstat returned 0 but did not describe {missing}"
     return obs, ""
+
+
+def hms_s(v):
+    try:
+        h, m, x = (int(p) for p in v.strip().split(":"))
+        return float(h * 3600 + m * 60 + x)
+    except Exception:
+        return None
+
+
+def _slot_map(root, m):
+    p = os.path.join(root, "plans", f"job_{m}.json")
+    if not os.path.exists(p):
+        return {}
+    out = {}
+    for sl in json.load(open(p)).get("slots", []):
+        keys = [f"{int(sl['rep'])}/{int(i)}" for i in sl["indices"]] if "rep" in sl else [str(int(r)) for r in sl["reps"]]
+        for k in keys:
+            out[k] = int(sl["slot"])
+    return out
+
+
+def closed_no_record(man, role, n, e, plan, j, o, units, ledger, live):
+    """REVISION 8: (disposition, '') when job n is a closed, settled, no-record job on THIS observation; (None, reason) otherwise."""
+    import row19_screen_admit as _SA
+    root = os.path.join(live, "root")
+    if o.get("state") != "F" or not isinstance(o.get("exit"), int) or isinstance(o.get("exit"), bool):
+        return None, "the scheduler observation is not state F with an observed exit"
+    if e.get("state") != "settled" or not finite_nonneg(e.get("settled_core_h")) or not finite_nonneg(e.get("settled_at")) \
+            or not (isinstance(e.get("settle_note"), str) and len(e["settle_note"].strip()) >= 8):
+        return None, "the ledger entry is not SETTLED with settlement evidence (charge, note, time)"
+    if any(e.get(f) is not None for f in ("runner_exit", "runner_ended", "runner_wall_s")):
+        return None, "the ledger records a runner end"
+    if not j or not e.get("token") or plan.get("token") != e.get("token") or plan.get("job") != n:
+        return None, "the plan is not this entry's token and job"
+    sc = _SA.status_scoped(root, j)
+    if sc:
+        return None, f"status evidence scoped to {j}: {sc[:3]}"
+    named = sorted(k for k, v in units.items() if ((v or {}).get("timing") or {}).get("job") == j)
+    if named:
+        return None, f"unit(s) {named[:3]} carry timing naming {j}"
+    ts = _SA.timing_scan(root, j)
+    if ts:
+        return None, f"timing evidence naming {j} or of unknown attribution: {ts[:3]}"
+    num_of = {x.get("job_id"): int(x["rep"]) for x in ledger["entries"].values() if x.get("kind") == KIND[role] and x.get("job_id")}
+    maps = {}
+
+    def pso(m):
+        if m not in maps:
+            maps[m] = _slot_map(root, m)
+        return maps[m]
+    keys = sorted(_slot_map(root, n))
+    for k in keys:
+        files, odd = _SA.coordinate_files(man, root, role, k)
+        if odd:
+            return None, f"coordinate {k}: temporary or non-canonical output files {[os.path.basename(p) for p in odd][:3]}"
+        if files or (units.get(k) or {}).get("record") is not None:
+            why = _SA.later_completion(man, root, role, units, k, n, num_of, pso)
+            if why:
+                return None, f"coordinate {k} holds output that is not a later bound job's planned completion ({why})"
+    name = f"row19_screen_{role}_{n}.out"; p = os.path.join(live, "jobs", name)
+    try:
+        f = json.load(open(os.path.join(live, "jobs", "_fetch.json"))).get(str(n)) or {}
+    except Exception:
+        f = {}
+    if not f.get("ok") or f.get("file") != name or not os.path.isfile(p):
+        return None, "its PBS output was not retrieved in this observation (absence of an admission failure is not proven)"
+    try:
+        b = open(p, "rb").read()
+    except OSError:
+        return None, "its retrieved PBS output is unreadable"
+    if sha_bytes(b) != f.get("sha256"):
+        return None, "its retrieved PBS output changed after retrieval"
+    txt = b.decode("utf-8", errors="replace")
+    if "ADMISSION FAILED" in txt:
+        return None, "its PBS output reports ADMISSION FAILED"
+    if f"job {j}" not in txt:
+        return None, f"its PBS output does not name {j}"
+    pp = os.path.join(root, "plans", f"job_{n}.json")
+    return dict(kind=_SA.DISPO_KIND, scheduler_state="F", scheduler_exit=o["exit"], settled_core_h=e["settled_core_h"],
+                settle_note=e["settle_note"], settled_at=e["settled_at"], token=e["token"], job_id=j, plan_sha256=sha_file(pp),
+                output_file=name, output_sha256=sha_bytes(b), status_files=0, attributed_units=0, uncompleted=len(keys),
+                note="a charged failed attempt: no completion, no restart or recovery credit; its coordinates return to the planner"), ""
 
 
 def anchor_alarms(verify):
@@ -183,16 +311,26 @@ def reconcile(man, role, verify, obs, ledger, live):
         state = o.get("state"); terminal = state in TERMINAL
         s_sum = dict(job_id=j, state=state, exit=o.get("exit"), runner_exit=e.get("runner_exit"), mem_kb=o.get("mem_kb"),
                      slots=len(plan["slots"]), ended=0, exits={}, new=0, resumed=0, left=0, max_worker_maxrss=None, max_wall_s=None,
-                     failed_units=[], partition=dict(new=[], resumed=[], left=[]))
+                     failed_units=[], partition=dict(new=[], resumed=[], left=[]),
+                     plan_walltime_s=plan.get("walltime_s"), requested_walltime_s=o.get("walltime_req_s"))
+        dispo, dwhy = None, ""
+        if e.get("runner_exit") is None and terminal:                       # every terminal job without a runner exit is examined
+            dispo, dwhy = closed_no_record(man, role, n, e, plan, j, o, units, ledger, live)
+        if dispo:
+            s_sum["disposition"] = dispo
+        elif dwhy:
+            s_sum["disposition_held"] = dwhy
+        if finite_nonneg(o.get("walltime_req_s")) and finite_nonneg(plan.get("walltime_s")) and abs(o["walltime_req_s"] - plan["walltime_s"]) > 1.0:
+            alarms.append(f"{role} job {n} ({j}): the scheduler's walltime request {o['walltime_req_s']:.0f} s is not the plan's {plan['walltime_s']:.0f} s")
         started = state == "R" or terminal
         expected_status.update(f"job{j}.slot{sl['slot']}.json" for sl in plan["slots"])
         if not j:
             alarms.append(f"{role} job {n}: reserved but not bound to a PBS id")
         if o.get("mem_kb") is not None and o["mem_kb"] > 0.9 * mem_req_kb:
             alarms.append(f"{role} job {n}: scheduler memory above 90 % of the request")
-        if terminal and (state != "F" or o.get("exit") not in (0, 75)):
+        if terminal and not dispo and (state != "F" or o.get("exit") not in (0, 75)):
             alarms.append(f"{role} job {n} ({j}): terminal as state {state}, scheduler exit {o.get('exit')} (F with 0/75 required)")
-        if terminal and e.get("runner_exit") is None:
+        if terminal and not dispo and e.get("runner_exit") is None:
             alarms.append(f"{role} job {n} ({j}): terminal but no runner end in the ledger")
         if e.get("runner_exit") not in (None, 0, 75):
             alarms.append(f"{role} job {n} ({j}): runner exit {e.get('runner_exit')}")
@@ -202,9 +340,12 @@ def reconcile(man, role, verify, obs, ledger, live):
             want = ([f"{int(sl['rep'])}/{int(i)}" for i in sl["indices"]] if role == "refit" else [str(int(r)) for r in sl["reps"]])
             assigned.update(want)
             stp = os.path.join(root, "status", f"job{j}.slot{sl['slot']}.json")
-            st = json.load(open(stp)) if os.path.exists(stp) else None
+            try:
+                st = json.load(open(stp)) if os.path.exists(stp) else None
+            except Exception:
+                alarms.append(f"{role} job {n} slot {sl['slot']}: the worker status is unreadable"); continue
             if st is None:
-                if terminal:
+                if terminal and not dispo:
                     alarms.append(f"{role} job {n} slot {sl['slot']}: no worker status after the job ended (read its log)")
                 continue
             s_sum["ended"] += 1; s_sum["exits"][str(st.get("exit"))] = s_sum["exits"].get(str(st.get("exit")), 0) + 1
@@ -257,6 +398,8 @@ def reconcile(man, role, verify, obs, ledger, live):
             if missing:
                 alarms.append(f"{role} job {n}: started, but reps {missing[:5]} have no task binding")
         s_sum["partition"] = {x: sorted(v) for x, v in s_sum["partition"].items()}
+        if dispo:
+            s_sum["partition"].update(uncompleted=sorted(_slot_map(root, n)), uncompleted_origin="plan")
         summary[str(n)] = s_sum
     for sp in glob.glob(os.path.join(root, "status", "*")):
         if os.path.basename(sp) not in expected_status:
@@ -310,6 +453,13 @@ def main(argv=None):
     for n, s in summary.items():
         print(f"  {role} job {n} {s['job_id']} PBS {s['state']} exit {s['exit']}: workers ended {s['ended']}/{s['slots']} exits {s['exits']}, "
               f"new {s['new']} resumed {s['resumed']} left {s['left']}")
+        if s.get("disposition"):
+            d = s["disposition"]
+            print(f"    DISPOSITIONED (closed-no-record): scheduler exit {d['scheduler_exit']} kept, no worker status, no record; settled "
+                  f"{d['settled_core_h']:.2f} core-h charged; {d['uncompleted']} planned coordinate(s) uncompleted (plan-derived); "
+                  f"PBS output {d['output_file']} {d['output_sha256'][:12]}")
+        elif s.get("disposition_held"):
+            print(f"    not dispositioned: {s['disposition_held']}")
     for r, e in sorted(((verify.get("anchors") or {}).get("reps") or {}).items()):
         print(f"  anchor {r}: required {e.get('required')} compared {len(e.get('compared', []))} equal {len(e.get('equal', []))}")
     print("\n  ALARMS:" if alarms else ("\n  no alarms (fresh evidence)" if fresh else "\n  no alarms, but NOT fresh evidence"))
@@ -321,7 +471,9 @@ def main(argv=None):
         alarms.append("the producer's task-binding digests are not the local snapshot's (not one coherent observation; recollect)")
     bound = dict(manifest_sha256=sha_file(a.manifest), root=man["storage"]["root"], campaign=man["storage"]["campaign"],
                  code=dict(man["code"]["files"]), wrapper_sha256=man.get("environment", {}).get("wrapper_sha256"), jobs=jobs,
-                 bindings=bindings, anchors_sha256=sha_bytes(json.dumps(verify.get("anchors"), sort_keys=True).encode()), verify_sha256=vsha)
+                 bindings=bindings, anchors_sha256=sha_bytes(json.dumps(verify.get("anchors"), sort_keys=True).encode()), verify_sha256=vsha,
+                 job_outputs={k: dict(file=v["disposition"]["output_file"], sha256=v["disposition"]["output_sha256"])
+                              for k, v in summary.items() if v.get("disposition")})
     receipt = dict(schema=WATCH_SCHEMA, role=role, time=now, fresh=fresh, production=production, alarms=alarms, bound=bound, jobs=summary,
                    anchors=verify.get("anchors"), plan_slots={k: v["slots"] for k, v in summary.items()})
     os.makedirs(RECEIPTS, exist_ok=True)
@@ -329,6 +481,8 @@ def main(argv=None):
     vp = os.path.join(RECEIPTS, f"verify_{role}_{stamp}.json")
     json.dump(verify, open(vp, "w"), sort_keys=True)
     vsha_saved = sha_file(vp)
+    for k, ob in bound["job_outputs"].items():                               # REVISION 8: retain the bound PBS output beside the receipt
+        shutil.copy(os.path.join(live, "jobs", ob["file"]), os.path.join(RECEIPTS, f"{ob['file']}.{stamp}"))
     if production:
         rc, _, err = sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", vp, f"{HOST}:{man['storage']['root']}/gate/{os.path.basename(vp)}"])
         if rc != 0:
@@ -355,6 +509,8 @@ def main(argv=None):
                 why.append(f"job {n} is not state F with scheduler and runner exits 0 or 75")
             if not (finite_nonneg(s.get("mem_kb")) and finite_nonneg(s.get("max_worker_maxrss"))):
                 why.append(f"job {n}: observed scheduler and worker memory are not finite")
+            if s.get("disposition") is not None:
+                why.append(f"job {n} is dispositioned (closed-no-record); a dispositioned job never qualifies")
             if s["ended"] != s["slots"] or s["exits"] != {"0": s["slots"]} or s["left"]:
                 why.append(f"job {n}: not every planned worker completed its assignment ({s['exits']}, left {s['left']})")
         jn = jobs.get(n)
