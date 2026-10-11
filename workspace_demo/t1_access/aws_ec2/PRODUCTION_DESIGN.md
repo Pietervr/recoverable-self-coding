@@ -57,7 +57,7 @@ writer can then occupy another provider's coordinate, because no coordinate is e
   the same bytes), every installation logged. A disposition is a two-phase handshake: the Mac REQUESTS it (the attempt keeps
   owning), the installation fences the attempt in the register and writes `ec2/authority/ack_g<N>.json`, and only
   `prod_authority.py disposition-confirm` against that acknowledgement releases ownership on the Mac. Ingested output is
-  released by `ack` against the register's ingested entry. The copy is manual; the handshake, not the copy, is the safety.
+  released by `ack` against the register's ingested entry. `ec2_sync.py cycle` does the copy and the confirmation; the handshake, not the copy, is the safety.
 - **Ingestion** (`chpc/row19_ec2_ingest.py`, Lengau, t1py, controller tree, plan lock): the supplied authority must be the
   root's INSTALLED current inventory; the attempt must be its current owner at its sequence with no disposition request and
   no fenced register entry; the partition is the one the latest adopted controls pin and carries a CANONICAL activation proof
@@ -102,7 +102,7 @@ global lock is deferred until row 23 has ended (its code is not touched while at
 | Repair | Built | Consumer / evidence | Still missing |
 |---|---|---|---|
 | R1-1 adopted activation + provider history | canonical/sandbox modes; lineage-checked proofs; EC2 provenance; per-epoch blocks; malformed plans refused | ingestion, launcher, qualifier, Lengau admission (v11); `test_row19_partition.py` 50, `test_row19_ec2_ingest.py` 60 | adoption of a controls version pinning a real partition |
-| R1-2 authoritative inventory transition | `row19_ec2_root.py install`; two-phase disposition with root acknowledgement; installed view required; missing-inventory alarm | `test_row19_ec2_ingest.py`, `tests/test_prod_authority.py` 54, `test_row19_ec2_status.py` 26 | the operator copy (scp) of each inventory and acknowledgement |
+| R1-2 authoritative inventory transition | `row19_ec2_root.py install`; two-phase disposition with root acknowledgement; installed view required; missing-inventory alarm | `test_row19_ec2_ingest.py`, `tests/test_prod_authority.py` 54, `test_row19_ec2_status.py` 26 | `ec2_sync.py` automates the copy (tests/test_ec2_sync.py); not yet run against Lengau (needs the deployed root tool) |
 | R1-3 admission artifact recheck | `row19_ec2_state.current_problems` | Lengau admission (v11) and Mac launcher; post-watch tamper tests in `test_row19_partition.py` and `tests/test_prod_launch.py` 46 | - |
 | R1-4 finite coverage, S binding, release adoption | finite predicate + `nonfinite_both`; S producer evidence; `release_problem` / `release-adopt` | `test_row19_ec2_qualify.py` 17, `tests/test_prod_authority.py` | an actual qualification and its review |
 | R1-5 STOP | HeadObject 404/NoSuchKey/NotFound is the only absence | `tests/test_prod_launch.py` (timeout, credentials, connection, 403, throttling) | - |

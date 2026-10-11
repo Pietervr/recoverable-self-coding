@@ -53,9 +53,10 @@ actual-result review goes directly to production, inside the USD 2,300 envelope 
 - Lengau side (`../chpc/`): `row19_partition.py` (declare / activate), `row19_ec2_root.py install` (the inventory and the
   disposition fence on the root), `row19_ec2_ingest.py`, `row19_ec2_qualify.py` (certificate), `row19_ec2_shadow.py` (S
   admission), `row19_ec2_state.py` (shared contracts), candidate controls v11 in `candidate_v10r2/`.
-- Operator flow per inventory change: `python3 prod_authority.py inventory` -> scp `runs/inventory/inventory_g<N>.json` to
-  Lengau -> `t1py chpc/row19_ec2_root.py install --manifest chpc/row19_screen_manifest.json --inventory <file>` -> (for a
-  disposition) scp `ec2/authority/ack_g<N>.json` back -> `prod_authority.py disposition-confirm` -> fresh whole-role receipt.
+- Operator flow per inventory change: `python3 ec2_sync.py cycle` (seal a new generation -> copy to Lengau -> `t1py
+  chpc/row19_ec2_root.py install` in the controller tree -> pull `ack_g<N>.json` + `register.json` -> `disposition-confirm` /
+  `ack` on that evidence -> seal and install again when anything was released), then a fresh whole-role receipt. Usable once
+  `row19_ec2_root.py` is deployed with the adopted controls; tests `tests/test_ec2_sync.py` (local transport).
 - `tests/` also hold `test_prod_authority.py`, `test_prod_launch.py`, `test_prod_userdata.py`; the Lengau-side tests are
   `../test_row19_partition.py`, `../test_row19_ec2_ingest.py` (stub, or real records on Lengau), `../test_row19_ec2_status.py`,
   `../test_row19_ec2_qualify.py`, `../test_row19_ec2_shadow.py`.
