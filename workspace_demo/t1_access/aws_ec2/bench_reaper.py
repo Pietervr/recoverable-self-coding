@@ -11,8 +11,12 @@ and cleanup) it calls TerminateInstances (idempotent, project=t1 only) on every 
 the instance itself in shutting-down or terminated. That observation ends COMPUTE billing (upper bound: the poll time).
 Ancillary resources are accounted separately: the attempt's tagged EBS volumes are polled until none remains (deleted
 on termination; an 'available' leftover is deleted, project=t1 only), and their end time closes the ancillary hours.
-Only then does it write state 'reconciled' under the run lock. It never launches anything."""
-import argparse, datetime, json, os, sys, time
+Only then does it write state 'reconciled' under the run lock. It never launches anything.
+
+REVISION 4 (Codex RSC 299f4b7 R2-1): for a production or qualification run (prod-*, qual-*) the reconciliation is written
+under the global authority lock as well (taken first, the launcher's order) and a new inventory generation is sealed at
+once, so the reconciled view is installable; a benchmark run is unchanged."""
+import argparse, contextlib, datetime, json, os, sys, time
 import bench_launch as L
 
 
@@ -78,7 +82,8 @@ def main():
             errors.append(dict(at=now, op="describe-volumes", error=str(e)[:300])); log(f"describe-volumes error: {e}")
         open(hb, "w").write(json.dumps(dict(at=now, state=state, volumes="waiting", errors=len(errors))))
         time.sleep(a.poll_s)
-    with L.run_lock(a.run, blocking=True):
+    paid = a.run.startswith(("prod-", "qual-"))
+    with (authority(a.run) if paid else contextlib.nullcontext()), L.run_lock(a.run, blocking=True):
         led = L.load(a.run)
         for x in led["attempts"]:
             if x["attempt"] == a.attempt:
@@ -89,11 +94,30 @@ def main():
                 x["charged_usd"] = round(report_charge(x), 2)
                 done = x
         L.save(a.run, led)
+        if paid:
+            import prod_authority as PA
+            log(f"inventory sealed: {PA.write_inventory()}")
     total = sum(report_charge(x) for x in led["attempts"])
     tail = (f"row 23 total USD {total:.2f} of {L.CEILING:.2f}" if not any("anc_h" in x for x in led["attempts"])
             else f"run {a.run} total USD {total:.2f} (production/qualification rates; the global authority recomputes every envelope)")
     log(f"attempt {a.attempt} reconciled: compute {done['terminal']['compute_s']/3600:.2f} h, ancillary {done['terminal']['ancillary_s']/3600:.2f} h, "
         f"charged USD {done['charged_usd']:.2f}; {tail}")
+
+
+@contextlib.contextmanager
+def authority(run):
+    """The global authority lock for a production/qualification reconciliation (waits; logs while waiting)."""
+    import prod_authority as PA
+    while True:
+        cm = PA.authority_lock(wait_s=600)
+        try:
+            cm.__enter__(); break
+        except BlockingIOError:
+            log(f"{run}: waiting for the authority lock to record the reconciliation")
+    try:
+        yield
+    finally:
+        cm.__exit__(None, None, None)
 
 
 def report_charge(x):

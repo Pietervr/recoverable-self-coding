@@ -53,10 +53,8 @@ def root_of(manifest=MANIFEST):
 
 
 def seal():
-    """A new generation every time: the root accepts a generation once (same bytes only), and a sealed inventory carries
-    its own time, so re-sealing an installed generation would be refused."""
+    """A new generation every time (prod_authority.write_inventory advances it: R2-1): the root accepts a generation once."""
     with PA.authority_lock(wait_s=60):
-        PA.bump(PA.state())
         p = PA.write_inventory()
     return p, json.load(open(p))
 
@@ -75,6 +73,8 @@ def push_install(tr, root, p, inv, log):
     ack = json.load(open(ackp))
     if ack.get("schema") != ES.ACK_SCHEMA or int(ack.get("generation", -1)) != g or ack.get("inventory_sha256") != inv.get("sha256"):
         log(f"ack_g{g}.json does not acknowledge the inventory just sealed"); return None
+    if (ack.get("mode"), ack.get("root")) != ("canonical", os.path.abspath(root)):
+        log(f"ack_g{g}.json is a {ack.get('mode')} acknowledgement of {ack.get('root')}, not the canonical root {root}"); return None
     return ackp
 
 

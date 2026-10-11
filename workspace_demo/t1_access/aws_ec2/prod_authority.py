@@ -48,7 +48,17 @@ REVISION 3 (Codex RSC 3dc0daf R1-2, R1-4, R1-7).
                qualification admission therefore refuses while any benchmark attempt is unresolved or running, and every
                benchmark charge is counted in the cumulative cap. Each production/qualification attempt records its region
                and zone; an admission refuses while any unresolved attempt was made in another region than the current one,
-               and recovery refuses an attempt of another region (the region is attempt identity, not a global)."""
+               and recovery refuses an attempt of another region (the region is attempt identity, not a global).
+
+REVISION 4 (Codex RSC 299f4b7 R2-1).
+  generations  EVERY seal is a new generation: write_inventory advances the global generation itself and writes
+               runs/inventory/inventory_g<N>.json exactly once (an existing archive is never overwritten); latest.json is
+               the newest seal. The root installs each generation once, so a refresh, a launch (intent, then the dispatch
+               outcome), a reconciliation and a disposition are all installable views, and an acknowledgement of an older
+               generation stays checkable against its immutable archive. Seals read every ledger under the authority lock.
+  root ACK     disposition-confirm accepts only an acknowledgement in mode canonical, of the canonical screen root
+               (CANONICAL_ROOT, the production manifest's storage root) and the production manifest 43b75f94; an isolated
+               S root or a sandbox acknowledgement never releases ownership."""
 import argparse, contextlib, fcntl, glob, hashlib, json, os, sys, time
 import bench_launch as L
 
@@ -62,6 +72,10 @@ T1 = os.path.abspath(os.path.join(HERE, ".."))
 CERT_SCHEMA = "row19-ec2-qualification-certificate-2"
 COVERAGE = {"R1": 18, "R2": 36, "R3": 18}                 # = chpc/row19_ec2_qualify.COVERAGE (predeclared)
 MEM_HOST_LIMIT_GIB, MEM_MIN_SAMPLES = 184.0, 10
+# The qualification code set a release certificate must bind, exactly (= chpc/row19_ec2_qualify.CODE; Codex 299f4b7)
+RELEASE_CODE = sorted(["chpc/row19_ec2_qualify.py", "chpc/row19_ec2_ingest.py", "chpc/row19_ec2_state.py", "chpc/row19_partition.py",
+                       "chpc/row19_ec2_root.py", "chpc/row19_ec2_shadow.py", "chpc/row19_shard.py", "chpc/row19_screen_verify.py",
+                       "aws_ec2/qual_S_plan.json", "chpc/row19_qual_S_manifest.json", "analyze.py", "models.py"])
 # Ancillary per instance-hour for the production/qualification contract (60 GB gp3 at <= USD 0.10/GB-month = 0.0082/h, one
 # public IPv4 0.005/h; rounded up) and a fixed per-attempt allowance for transfer and requests (toolchain 0.22 GB and results
 # <= 1 GB across eu-north-1 <-> Oregon at 0.02/GB, S3 requests of 10-minute syncs over 22 h, reserve).
@@ -74,6 +88,8 @@ LOCK = os.path.join(HERE, "runs", ".authority.lock")
 STATE = os.path.join(HERE, "runs", ".authority_state.json")
 INV_DIR = os.path.join(HERE, "runs", "inventory")
 RELEASE_STATE = os.path.join(HERE, "ec2_release_state.json")
+CANONICAL_ROOT = json.load(open(os.path.join(T1, "chpc", "row19_screen_manifest.json")))["storage"]["root"]
+CANONICAL_MANIFEST_SHA = PROD_SHA
 
 
 def run_name(epoch):
@@ -257,7 +273,9 @@ def release_problem(cert_path, review_path, leds=None):
         return [], "the certificate's ingestion replay did not complete or states no scope"
     b = cert.get("bound") or {}
     stale = [f for f, h in (b.get("code") or {}).items() if not os.path.exists(os.path.join(T1, f)) or L.sha256(os.path.join(T1, f)) != h]
-    if not b.get("code") or stale:
+    if sorted(b.get("code") or {}) != RELEASE_CODE:
+        return [], "the certificate does not bind exactly the qualification code set (prod_authority.RELEASE_CODE)"
+    if stale:
         return [], f"the certificate's code is not the current bytes ({stale[:4]}): re-qualify or review a migration"
     if b.get("manifest_sha256") != PROD_SHA:
         return [], "the certificate is not bound to the production manifest 43b75f94"
@@ -359,19 +377,30 @@ def inventory(leds, gen, rel, now=None):
 
 
 def write_inventory(now=None):
-    """Under the authority lock: seal and write runs/inventory/inventory_g<gen>.json and latest.json. Returns the path."""
-    leds = ledgers(); st = state()
+    """Under the authority lock: advance the generation, seal, write runs/inventory/inventory_g<gen>.json ONCE (never
+    overwritten: R2-1) and latest.json. Returns the archive path."""
+    leds = ledgers()
+    st, _ = bump(state())
     inv = inventory(leds, st["generation"], release_state(leds), now)
     why = ES.inventory_problem(inv, now)
     if why:
         raise RuntimeError(f"the authority produced an invalid inventory: {why}")
     os.makedirs(INV_DIR, exist_ok=True)
     p = os.path.join(INV_DIR, f"inventory_g{st['generation']}.json")
-    for q in (p, os.path.join(INV_DIR, "latest.json")):
-        tmp = q + ".tmp"
-        with open(tmp, "w") as f:
-            json.dump(inv, f, indent=1, sort_keys=True); f.flush(); os.fsync(f.fileno())
-        os.replace(tmp, q)
+    body = json.dumps(inv, indent=1, sort_keys=True)
+    tmp = f"{p}.tmp.{os.getpid()}"
+    with open(tmp, "w") as f:
+        f.write(body); f.flush(); os.fsync(f.fileno())
+    try:
+        os.link(tmp, p)                                   # fails if the archive exists: a generation is sealed once
+    except FileExistsError:
+        os.unlink(tmp)
+        raise RuntimeError(f"{os.path.basename(p)} already exists: a sealed generation is immutable (authority state behind its archives?)")
+    os.unlink(tmp)
+    lp = os.path.join(INV_DIR, "latest.json"); tmp = lp + ".tmp"
+    with open(tmp, "w") as f:
+        f.write(body); f.flush(); os.fsync(f.fileno())
+    os.replace(tmp, lp)
     return p
 
 
@@ -419,6 +448,9 @@ def disposition_confirm(run, n, ack_path):
         raise ValueError(f"attempt is {a.get('ingestion')} with no disposition request")
     if ack.get("schema") != ES.ACK_SCHEMA:
         raise ValueError("not a root acknowledgement")
+    if (ack.get("mode"), ack.get("root"), ack.get("manifest_sha256")) != ("canonical", os.path.abspath(CANONICAL_ROOT), CANONICAL_MANIFEST_SHA):
+        raise ValueError(f"the acknowledgement is not the canonical screen root's ({ack.get('mode')} {ack.get('root')}): "
+                         "only the canonical root's fence releases ownership")
     if key in (ack.get("refused") or {}):
         raise ValueError(f"the root REFUSED the disposition: {ack['refused'][key]} - the attempt keeps owning")
     f = (ack.get("dispositioned") or {}).get(key)
@@ -447,7 +479,7 @@ def main():
             if a.cmd == "budget":
                 print(json.dumps(dict(budget(ledgers()), envelope=PROD_ENVELOPE_USD, cap=CUMULATIVE_CAP_USD, ceilings=QUAL_CEILINGS_USD), indent=1)); return 0
             if a.cmd == "release-adopt":
-                print("released:", release_adopt(a.certificate, a.review)); bump(state())
+                print("released:", release_adopt(a.certificate, a.review))
             if a.cmd in ("ack", "disposition", "disposition-confirm"):
                 with L.run_lock(a.run, wait_s=60):
                     if a.cmd == "ack":
@@ -456,9 +488,7 @@ def main():
                         changed = disposition(a.run, a.attempt, a.reason)
                     else:
                         changed = disposition_confirm(a.run, a.attempt, a.ack)
-                if changed:
-                    bump(state())
-            print(write_inventory()); return 0
+            print(write_inventory()); return 0                               # every seal is a new generation (R2-1)
     except BlockingIOError:
         sys.exit("REFUSED: another authority operation holds runs/.authority.lock")
 

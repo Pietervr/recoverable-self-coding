@@ -12,6 +12,8 @@ PA.LOCK, PA.STATE = os.path.join(TMP, "runs", ".authority.lock"), os.path.join(T
 PA.INV_DIR, PA.RELEASE_STATE = os.path.join(TMP, "runs", "inventory"), os.path.join(TMP, "ec2_release_state.json")
 ROOT = os.path.join(TMP, "lroot"); MAN = os.path.join(TMP, "manifest.json")
 json.dump({"storage": {"root": ROOT}}, open(MAN, "w"))
+RR.CANONICAL_MANIFEST = MAN; RR.PROD_SHA = ES.sha_file(MAN)                    # the stand-in root is THE canonical root here
+PA.CANONICAL_ROOT = ROOT; PA.CANONICAL_MANIFEST_SHA = ES.sha_file(MAN)
 ok = True
 def check(n, c, x=""):
     global ok; ok &= bool(c); print(("PASS " if c else "FAIL ") + n + (f"  [{x}]" if x and not c else ""))
@@ -22,8 +24,8 @@ def att(n, seq, coords, state="reconciled", **kw):
 
 
 class Local:
-    def __init__(self, fail_install=False):
-        self.fail_install, self.installs = fail_install, 0
+    def __init__(self, fail_install=False, sandbox=False):
+        self.fail_install, self.installs, self.sandbox = fail_install, 0, sandbox
     def put(self, src, dst):
         os.makedirs(os.path.dirname(dst), exist_ok=True); shutil.copy(src, dst)
     def get(self, src, dst):
@@ -36,7 +38,7 @@ class Local:
             return 3, "HELD: simulated"
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
-            rc = RR.main(["install", "--manifest", MAN, "--inventory", rinv])
+            rc = RR.main(["install", "--manifest", MAN, "--inventory", rinv] + (["--sandbox"] if self.sandbox else []))
         return rc, buf.getvalue().strip()
 
 logs = []
@@ -89,6 +91,18 @@ class Forging(Local):
             d = json.load(open(dst)); d["inventory_sha256"] = "0" * 64; json.dump(d, open(dst, "w"))
         return r
 check("a pulled acknowledgement of another inventory stops the cycle", SY.cycle(Forging(), ROOT, log) == 3)
+
+# 6 R2-1: a sandbox acknowledgement (a non-canonical installation) stops the cycle; nothing is released
+L.save("prod-e3", {"run": "prod-e3", "attempts": [att(1, 30, [(7, 199)], attempt_id="c1", disposition_request=dict(reason="x", at=1.0))]})
+with PA.authority_lock():
+    PA.bump(PA.state(), sequences=30)
+RR.CANONICAL_MANIFEST = os.path.join(TMP, "elsewhere.json")                # the stand-in is no longer the canonical manifest
+logs.clear(); rc = SY.cycle(Local(), ROOT, log)
+check("R2-1 a non-canonical manifest is refused at installation without --sandbox", rc == 3 and any("not the production screen manifest" in x for x in logs), logs)
+logs.clear(); rc = SY.cycle(Local(sandbox=True), ROOT, log)
+check("R2-1 a sandbox acknowledgement stops the cycle and releases nothing", rc == 3 and PA.owner_of(PA.ledgers(), (7, 199)) == ("prod-e3/1", 30)
+      and any("sandbox" in x for x in logs), logs)
+RR.CANONICAL_MANIFEST = MAN
 
 shutil.rmtree(TMP)
 print("ALL PASS" if ok else "SOME FAILED"); sys.exit(0 if ok else 1)

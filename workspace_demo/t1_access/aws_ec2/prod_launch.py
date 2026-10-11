@@ -39,7 +39,15 @@ lineage intact (row19_partition.activation_problem with the current controls). T
 and installed inventory are rechecked now (row19_ec2_state.current_problems), not trusted from the receipt's metadata. An
 admission refuses while a benchmark attempt is unresolved/running or an unresolved attempt was made in another region
 (prod_authority.exclusion_problem); every attempt and request records its region and zone, and recovery refuses an attempt
-of another region."""
+of another region.
+
+REVISION 4 (Codex RSC 299f4b7 R2-1, R2-2, R2-3). Controls are read only through row19_partition.adopted_controls (the
+current adopted, tracked, unmodified bytes): a later unadopted candidate refuses here as on Lengau. STOP (every source) and
+the receipt's freshness are checked AGAIN after the uploads, immediately before the attempt is journaled and RunInstances is
+issued, and before every issue and re-issue of the saved request (dispatch_guard, passed to bench_launch.finish): a STOP
+written during staging, or a receipt that aged past 2,700 s, dispatches nothing - a never-issued attempt is withdrawn
+('rejected', no instance can exist), an issued one stays ambiguous and funded. After the dispatch outcome (launched /
+rejected / ambiguous) the inventory is sealed again, so every lifecycle state is an installable generation."""
 import argparse, glob, json, math, os, sys, time, uuid
 import bench_launch as L
 import prod_authority as PA
@@ -137,7 +145,11 @@ def inventory_bound_problem(w):
 
 
 def controls_doc():
-    return json.load(open(os.path.join(T1, "chpc", "row19_screen_controls.json")))
+    """The CURRENT adopted controls (R2-2); raises ValueError when the canonical file is not the adopted bytes."""
+    ctl, why = RP.adopted_controls()
+    if why:
+        raise ValueError(why)
+    return ctl
 
 
 def controls_pin():
@@ -167,8 +179,27 @@ def build(contract, part, leds, done, token):
     return [], list(Q2_REPEAT), []
 
 
+def receipt_age_problem(w, now=None):
+    now = time.time() if now is None else now
+    t = w.get("time")
+    if not (isinstance(t, (int, float)) and not isinstance(t, bool) and math.isfinite(t)) or t > now + 60 or now - t > RECEIPT_MAX_AGE_S:
+        return f"the receipt's time {t!r} is no longer within {RECEIPT_MAX_AGE_S} s"
+    return ""
+
+
+def dispatch_guard(run, snapshot, w):
+    """R2-3: called immediately before EVERY RunInstances issue/re-issue; '' lets the call go out."""
+    def guard():
+        return stop_problem(run, snapshot) or receipt_age_problem(w)
+    return guard
+
+
 def admit(a, now=None):
     run = PA.qual_run(a.contract) if a.contract in ("Q1", "Q2") else PA.run_name(a.epoch)
+    try:
+        controls_doc()
+    except ValueError as e:
+        sys.exit(f"REFUSED: {e}")
     leds = PA.ledgers(); led = L.load(run)
     if any(x.get("state") in ("intent", "ambiguous") for x in led["attempts"]):
         sys.exit(f"REFUSED: an attempt of {run} is unresolved - python3 prod_launch.py --contract {a.contract} --epoch {a.epoch} --recover")
@@ -264,6 +295,10 @@ def admit(a, now=None):
         return 1
     for k, p in files.items():
         L.aws("s3", "cp", p, f"s3://{L.BUCKET}/code/t1_access/aws_bench/{run}/attempt_{n}/{k}", "--only-show-errors", timeout=1800)
+    guard = dispatch_guard(run, a.snapshot, w)
+    why = guard()                                                            # R2-3: after staging, before journaling/issue
+    if why:
+        sys.exit(f"REFUSED after staging: {why} - nothing journaled, no RunInstances")
     reqp = os.path.join(d, f"request_attempt{n}.json")
     json.dump(dict(client_token=token, args=args, userdata_sha256=L.sha256(udp), sha256=sums, region=L.REGION, az=L.AZ), open(reqp, "w"), indent=1)
     att = dict(attempt=n, sequence=seq, attempt_id=attempt_id, contract=a.contract, state="intent", client_token=token, request=reqp,
@@ -273,8 +308,10 @@ def admit(a, now=None):
                duplicates=att_view["duplicates"], ingestion="pending",
                results=f"s3://{L.BUCKET}/results/t1_access/aws_bench/{run}/attempt_{n}/", intent_at=time.time(), receipt=receipt)
     led["attempts"].append(att); L.save(run, led)
-    PA.bump(PA.state()); PA.write_inventory()                                # the journal changed: a new inventory to copy
-    return L.finish(run, led, att, fresh=True)
+    PA.write_inventory()                                                     # the intent: a new generation to install
+    rc = L.finish(run, led, att, fresh=True, guard=guard)
+    PA.write_inventory()                                                     # the dispatch outcome: another generation (R2-1)
+    return rc
 
 
 def recover(a):
@@ -289,7 +326,9 @@ def recover(a):
     if why:                                                                  # V10-8: never re-issue a launch under STOP
         sys.exit(f"REFUSED: {why} - the unresolved attempt stays charged at its worst case; resolve it by "
                  f"describe-instances on token {att['client_token']} (the reaper) once STOP is lifted or by hand")
-    return L.finish(run, led, att, fresh=False)
+    rc = L.finish(run, led, att, fresh=False, guard=lambda: stop_problem(run, a.snapshot))   # R2-3: before every re-issue
+    PA.write_inventory()
+    return rc
 
 
 def main():

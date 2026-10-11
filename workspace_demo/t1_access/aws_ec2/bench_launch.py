@@ -23,8 +23,16 @@ compute hours (upper bound) at the same rates + any ancillary hours recorded by 
 case. A new attempt gets only the lifetime the remainder admits and is refused below 72,300 s.
 
 FALLBACK SUPERVISION. After a launch the launcher starts bench_reaper.py detached under caffeinate (no idle sleep) and
-waits for its heartbeat; without one within 180 s it terminates the instance itself (retrying) and exits non-zero."""
-import argparse, contextlib, fcntl, hashlib, json, os, re, subprocess, sys, time, uuid
+waits for its heartbeat; without one within 180 s it terminates the instance itself (retrying) and exits non-zero.
+
+REVISION 4 (Codex RSC 299f4b7: release and operating scope; R2-3). FREEZE: once EC2 qualification or production exists - the
+release state permits qualification, or any runs/qual-*/ or runs/prod-*/ ledger holds an attempt - this launcher refuses
+every fresh benchmark admission AND every benchmark recovery (the benchmark is not under the global authority lock, so it
+is frozen rather than raced; production/qualification admissions already refuse while a benchmark attempt is live). An
+attempt already supervised keeps its reaper in its recorded region. GUARD: finish/resolve take an optional pre-issue check,
+called immediately before EVERY RunInstances issue and re-issue; a non-empty answer issues nothing - a never-issued fresh
+attempt is withdrawn ('rejected', no call was ever made, so no instance can exist), any other stays ambiguous and funded."""
+import argparse, contextlib, fcntl, glob, hashlib, json, os, re, subprocess, sys, time, uuid
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROFILE, REGION, BUCKET = "xtenure-read", "eu-north-1", "xtenure-cself-pvr-usw2"
@@ -152,7 +160,7 @@ def issue(req):
         return "ambiguous", f"{type(e).__name__}: {e}"
 
 
-def resolve(run, led, att, fresh):
+def resolve(run, led, att, fresh, guard=None):
     """Issue / re-issue the attempt's saved request (same token, same parameters, same user-data bytes) with bounded
     backoff. A definitive client error releases the attempt ('rejected', charged 0) ONLY when it answers the very first
     dispatch of a fresh admission (single HTTP attempt, no earlier unanswered call, no crash in between). After any
@@ -167,6 +175,16 @@ def resolve(run, led, att, fresh):
             att.setdefault("issues", []).append(dict(at=time.time(), result="refused", detail="user-data bytes changed or missing"))
             save(run, led)                                   # state unchanged: intent or ambiguous, funded either way
             print("REFUSED replay: the saved user-data bytes changed; the attempt stays funded"); return None
+        why = guard() if guard else ""
+        if why:                                              # R2-3: nothing is issued under STOP or a stale receipt
+            never = not any(z["result"] in ("launched", "rejected", "ambiguous") for z in att.get("issues", []))
+            att.setdefault("issues", []).append(dict(at=time.time(), result="withheld", detail=str(why)[:300]))
+            if fresh and never:
+                att.update(state="rejected", rejection=f"withdrawn before any RunInstances call: {why}"); save(run, led); return False
+            if not never:
+                att["state"] = "ambiguous"                   # an earlier call went out: it may have created an instance
+            save(run, led)
+            print(f"WITHHELD: {why} - the attempt stays {att['state']} and funded"); return None
         state, x = issue(req)
         first = fresh and i == 0 and not any(z["result"] != "refused" for z in att.get("issues", []))
         att.setdefault("issues", []).append(dict(at=time.time(), result=state, detail=(x["InstanceId"] if state == "launched" else str(x)[:300])))
@@ -289,8 +307,8 @@ def admit(a):
     return finish(a.run, led, att, fresh=True)
 
 
-def finish(run, led, att, fresh):
-    r = resolve(run, led, att, fresh)
+def finish(run, led, att, fresh, guard=None):
+    r = resolve(run, led, att, fresh, guard)
     if r is True:
         return after_launch(run, att)
     if r is False:
@@ -309,11 +327,31 @@ def recover(a):
     return finish(a.run, led, att, fresh=False)
 
 
+def freeze_problem():
+    """'' unless EC2 qualification or production exists (see REVISION 4): then benchmarks are frozen."""
+    try:
+        rel = json.load(open(os.path.join(HERE, "ec2_release_state.json")))
+        if (rel.get("qualification") or {}).get("permitted"):
+            return "the release state permits EC2 qualification: benchmark admissions and recoveries are frozen"
+    except Exception as e:
+        return f"the release state is unreadable ({type(e).__name__}): benchmarks frozen (fail closed)"
+    for p in sorted(glob.glob(os.path.join(HERE, "runs", "qual-*", "attempts.json")) + glob.glob(os.path.join(HERE, "runs", "prod-*", "attempts.json"))):
+        try:
+            if json.load(open(p)).get("attempts"):
+                return f"EC2 qualification/production exists ({os.path.basename(os.path.dirname(p))}): benchmarks are frozen"
+        except Exception as e:
+            return f"{p} is unreadable ({type(e).__name__}): benchmarks frozen (fail closed)"
+    return ""
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", required=True); ap.add_argument("--tarball")
     ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--recover", action="store_true")
     a = ap.parse_args()
+    why = freeze_problem()
+    if why:
+        sys.exit(f"REFUSED: {why}")
     try:
         with run_lock(a.run):
             if a.recover:

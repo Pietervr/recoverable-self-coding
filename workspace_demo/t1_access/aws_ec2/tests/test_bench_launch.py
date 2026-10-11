@@ -132,6 +132,43 @@ term = os.path.exists(os.path.join(tmp, "t_sup.log.terminated"))
 att = L.load("t_sup")["attempts"][-1]
 check("supervisor failure -> emergency terminate, attempt stays launched", rc == 2 and term and att["state"] == "launched")
 
-for r in ("t_amb", "t_rej", "t_amb2", "t_crash", "t_conc", "t_ar", "t_cr", "t_ud", "t_sup"):
+# 10 R2-3 pre-issue guard: withheld before the first call -> withdrawn (rejected, no call); after an unanswered call -> ambiguous
+L.start_reaper = lambda run, att: True
+fresh("t_g1", "ok")
+with L.run_lock("t_g1"):
+    real = L.finish; L.finish = lambda run, led, att, fresh: 99
+    L.admit(args("t_g1")); L.finish = real
+led = L.load("t_g1"); att = led["attempts"][-1]
+rc = L.finish("t_g1", led, att, True, guard=lambda: "STOP in force (test)")
+att = L.load("t_g1")["attempts"][-1]
+check("R2-3 a guard refusal before any call withdraws the fresh attempt: rejected, zero RunInstances", rc == 1 and att["state"] == "rejected"
+      and "withdrawn" in att["rejection"] and not runs_calls_safe("t_g1"))
+fresh("t_g2", "always_ambiguous")
+with L.run_lock("t_g2"):
+    real = L.finish; L.finish = lambda run, led, att, fresh: 99
+    L.admit(args("t_g2")); L.finish = real
+led = L.load("t_g2"); att = led["attempts"][-1]; n = {"k": 0}
+def g():
+    n["k"] += 1; return "" if n["k"] == 1 else "STOP in force (test)"
+rc = L.finish("t_g2", led, att, True, guard=g)
+att = L.load("t_g2")["attempts"][-1]
+check("R2-3 a guard refusal before a RE-issue stays ambiguous and funded after exactly one call", rc == 3 and att["state"] == "ambiguous"
+      and len(runs_calls("t_g2")) == 1 and L.charged(att) > 26.9)
+# 11 freeze: once EC2 qualification/production exists, benchmark admissions AND recoveries refuse
+check("freeze: none today (no qualification permitted, no qual-/prod- ledger)", L.freeze_problem() == "")
+fz = tempfile.mkdtemp(); realHERE = L.HERE; L.HERE = fz
+json.dump({"qualification": {"permitted": True}}, open(os.path.join(fz, "ec2_release_state.json"), "w"))
+check("freeze: a release state permitting qualification freezes benchmarks", "frozen" in L.freeze_problem())
+json.dump({"qualification": {"permitted": False}}, open(os.path.join(fz, "ec2_release_state.json"), "w"))
+os.makedirs(os.path.join(fz, "runs", "qual-Q1")); json.dump({"attempts": [{"attempt": 1}]}, open(os.path.join(fz, "runs", "qual-Q1", "attempts.json"), "w"))
+check("freeze: any qualification/production attempt freezes benchmarks", "frozen" in L.freeze_problem())
+os.remove(os.path.join(fz, "ec2_release_state.json"))
+check("freeze: an unreadable release state freezes (fail closed)", "frozen" in L.freeze_problem())
+L.HERE = realHERE; shutil.rmtree(fz)
+env = dict(os.environ); sp = subprocess.run([sys.executable, os.path.join(PKG, "bench_launch.py"), "--run", "t_fz", "--recover"],
+                                            capture_output=True, text=True, env=env, cwd=PKG)
+check("freeze is checked in main before admission and recovery (today: passes to the recovery path)", "frozen" not in sp.stdout + sp.stderr)
+
+for r in ("t_amb", "t_rej", "t_amb2", "t_crash", "t_conc", "t_ar", "t_cr", "t_ud", "t_sup", "t_g1", "t_g2", "t_fz"):
     shutil.rmtree(os.path.join(PKG, "runs", r), ignore_errors=True)
 print("ALL PASS" if ok else "SOME FAILED"); sys.exit(0 if ok else 1)

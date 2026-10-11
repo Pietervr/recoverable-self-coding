@@ -117,8 +117,9 @@ with PA.authority_lock():
 inv = json.load(open(ip))
 check("R1-2 the inventory carries the request and keeps the owner", inv["attempts"]["prod-e1/2"]["disposition_requested"] is True
       and inv["owners"]["5/199"] == ["prod-e1/2", 3] and ES.inventory_problem(inv) == "")
-root = os.path.join(TMP, "lroot")
-ack, probs = ES.install_inventory(root, inv)
+root = os.path.join(TMP, "lroot"); PA.CANONICAL_ROOT = root
+CANON = dict(root=os.path.abspath(root), manifest_sha256=PA.PROD_SHA, mode="canonical")
+ack, probs = ES.install_inventory(root, inv, CANON)
 ackp = ES.ack_path(root, inv["generation"])
 check("R1-2 the root fences the request at installation (register entry dispositioned) and acknowledges it",
       probs == [] and "prod-e1/2" in ack["dispositioned"] and json.load(open(ES.paths(root)["register"]))["attempts"]["a2"]["state"] == "dispositioned")
@@ -136,16 +137,73 @@ with PA.authority_lock():
     PA.bump(PA.state()); inv3 = json.load(open(PA.write_inventory()))
 reg = json.load(open(ES.paths(root)["register"])); reg["attempts"]["a3"] = dict(attempt_id="a3", key="prod-e1/3", sequence=7, state="ingesting", coordinates={})
 json.dump(reg, open(ES.paths(root)["register"], "w"))
-ack3, _ = ES.install_inventory(root, inv3)
+ack3, _ = ES.install_inventory(root, inv3, CANON)
 try:
     PA.disposition_confirm("prod-e1", 3, ES.ack_path(root, inv3["generation"])); check("R1-2 a root refusal (output being ingested) keeps the attempt owning", False)
 except ValueError as e:
     check("R1-2 a root refusal (output being ingested) keeps the attempt owning", "REFUSED" in str(e) and PA.owner_of(PA.ledgers(), (6, 199)) == ("prod-e1/3", 7))
 
+# R2-1: every seal is a new generation, archives are write-once, refresh/state change/delayed acknowledgement install
+with PA.authority_lock():
+    g0 = PA.state()["generation"]; pa_ = PA.write_inventory(); pb_ = PA.write_inventory()
+ga, gb = json.load(open(pa_))["generation"], json.load(open(pb_))["generation"]
+check("R2-1 two seals are two generations, each archived separately", gb == ga + 1 and ga > g0 and pa_ != pb_ and os.path.exists(pa_))
+before = open(pa_).read()
+st_ = json.load(open(PA.STATE)); json.dump(dict(st_, generation=ga - 1), open(PA.STATE, "w"))    # an authority state behind its archives
+try:
+    with PA.authority_lock():
+        PA.write_inventory()
+    check("R2-1 an existing generation archive is never overwritten", False)
+except RuntimeError as e:
+    check("R2-1 an existing generation archive is never overwritten", "immutable" in str(e) and open(pa_).read() == before)
+json.dump(st_, open(PA.STATE, "w"))
+cur = json.load(open(ES.paths(root)["inventory"]))
+_, probs = ES.install_inventory(root, json.load(open(pa_)), CANON); _, probs2 = ES.install_inventory(root, json.load(open(pb_)), CANON)
+check("R2-1 a refresh after an earlier installation installs (new generations, not a reseal of an installed one)", probs == [] and probs2 == [])
+_, probs3 = ES.install_inventory(root, json.load(open(pa_)), CANON)
+check("R2-1 the root still refuses an older generation after a newer one", probs3 and "older" in probs3[0])
+same = json.load(open(pb_)); same["at"] = same["at"] + 1; same = ES.seal(same)
+_, probs4 = ES.install_inventory(root, same, CANON)
+check("R2-1 the root still refuses different bytes at an installed generation", probs4 and "other bytes" in probs4[0])
+# launch -> reconciled: the reconciled view is a new generation and installs
+L.save("prod-e9", {"run": "prod-e9", "attempts": [att(1, 60, state="launched", coords=[(9, 199)])]})
+with PA.authority_lock():
+    pl_ = PA.write_inventory()
+led9 = L.load("prod-e9"); led9["attempts"][0].update(state="reconciled", terminal=dict(compute_s=60, ancillary_s=60)); L.save("prod-e9", led9)
+with PA.authority_lock():
+    pr_ = PA.write_inventory()
+_, p1 = ES.install_inventory(root, json.load(open(pl_)), CANON); _, p2 = ES.install_inventory(root, json.load(open(pr_)), CANON)
+check("R2-1 launch view then reconciled view install as successive generations",
+      p1 == [] and p2 == [] and json.load(open(ES.paths(root)["inventory"]))["attempts"]["prod-e9/1"]["state"] == "reconciled")
+# delayed acknowledgement after a refresh: the request's generation archive stays checkable
+PA.disposition("prod-e9", 1, "no output")
+with PA.authority_lock():
+    pd_ = PA.write_inventory()
+ackd, pd = ES.install_inventory(root, json.load(open(pd_)), CANON)
+with PA.authority_lock():
+    pf_ = PA.write_inventory()                                             # a refresh before the Mac reads the acknowledgement
+ES.install_inventory(root, json.load(open(pf_)), CANON)
+check("R2-1 a delayed acknowledgement confirms after a refresh (its generation archive is immutable)",
+      pd == [] and PA.disposition_confirm("prod-e9", 1, ES.ack_path(root, ackd["generation"])) is True)
+# root identity: a sandbox or another root's acknowledgement never releases
+L.save("prod-e8", {"run": "prod-e8", "attempts": [att(1, 70, state="reconciled", coords=[(8, 199)], terminal=dict(compute_s=60, ancillary_s=60))]})
+PA.disposition("prod-e8", 1, "x")
+with PA.authority_lock():
+    ps_ = PA.write_inventory()
+sroot = os.path.join(TMP, "s_root")
+acks, _ = ES.install_inventory(sroot, json.load(open(ps_)), dict(root=os.path.abspath(sroot), manifest_sha256="e" * 64, mode="sandbox"))
+try:
+    PA.disposition_confirm("prod-e8", 1, ES.ack_path(sroot, acks["generation"])); check("R2-1 an isolated/sandbox root's acknowledgement never releases", False)
+except ValueError as e:
+    check("R2-1 an isolated/sandbox root's acknowledgement never releases", "canonical" in str(e) and PA.owner_of(PA.ledgers(), (8, 199)) == ("prod-e8/1", 70), str(e))
+_, why_id = ES.install_inventory(sroot, json.load(open(ps_)), dict(root=os.path.abspath(root), manifest_sha256="e" * 64, mode="canonical"))
+check("R2-1 an installation naming another root than its own is refused", why_id and "names root" in why_id[0])
+shutil.rmtree(L.run_dir("prod-e8")); shutil.rmtree(L.run_dir("prod-e9"))
+
 # R1-4: release adoption from a validated certificate and a pinned favourable review
 import hashlib
 PA.controls_partition_sha = lambda: "p" * 64
-code = {"chpc/row19_ec2_state.py": L.sha256(os.path.join(PA.T1, "chpc", "row19_ec2_state.py"))}
+code = {f: L.sha256(os.path.join(PA.T1, f)) for f in PA.RELEASE_CODE}
 L.save("qual-Q1", {"run": "qual-Q1", "attempts": [att(1, 50, state="reconciled", plan_sha256="q1plan", attempt_id="ec2-qual-Q1-a1",
                                                        terminal=dict(compute_s=60, ancillary_s=60))]})
 def cert(**kw):
@@ -163,8 +221,10 @@ cp = cert(); check("R1-4 a valid certificate with its favourable review releases
 cp = cert(); rp = review(cp, verdict="pending"); check("R1-4 a review without FAVOURABLE refuses", PA.release_problem(cp, rp)[1] != "")
 cp = cert(); rp = review(cp); os.remove(rp); check("R1-4 a missing review refuses", PA.release_problem(cp, rp)[1] != "")
 cp = cert(); rp = review(cp, keys="qual-Q1/2"); check("R1-4 a review naming other attempts refuses", PA.release_problem(cp, rp)[1] != "")
-cp = cert(bound=dict(code={"chpc/row19_ec2_state.py": "0" * 64}, manifest_sha256=PA.PROD_SHA, partition_sha256="p" * 64, plans={"Q1": "q1plan"}))
-check("R1-4 a certificate bound to other code bytes refuses (stale)", "code" in PA.release_problem(cp, review(cp))[1])
+cp = cert(bound=dict(code=dict(code, **{"chpc/row19_ec2_state.py": "0" * 64}), manifest_sha256=PA.PROD_SHA, partition_sha256="p" * 64, plans={"Q1": "q1plan"}))
+check("R1-4 a certificate bound to other code bytes refuses (stale)", "current bytes" in PA.release_problem(cp, review(cp))[1])
+cp = cert(bound=dict(code={k: v for k, v in code.items() if k != "chpc/row19_shard.py"}, manifest_sha256=PA.PROD_SHA, partition_sha256="p" * 64, plans={"Q1": "q1plan"}))
+check("R2 a certificate binding less than the declared qualification code set refuses", "code set" in PA.release_problem(cp, review(cp))[1])
 cp = cert(bound=dict(code=code, manifest_sha256=PA.PROD_SHA, partition_sha256="e" * 64, plans={"Q1": "q1plan"}))
 check("R1-4 a certificate of another partition refuses (a later epoch needs its own release)", "partition" in PA.release_problem(cp, review(cp))[1])
 cp = cert(released_attempts=["qual-Q1/1", "prod-e1/1"]); check("R1-4 a certificate releasing more than its Q1 refuses", PA.release_problem(cp, review(cp, keys="qual-Q1/1,prod-e1/1"))[1] != "")
