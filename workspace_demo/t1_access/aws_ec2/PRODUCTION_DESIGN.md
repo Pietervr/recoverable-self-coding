@@ -1,7 +1,10 @@
 # T1 row 19 screen on EC2 + Lengau: production design (built, NOT adopted or launched; conditional on row 23)
 
-Status: 11 October 2026, R052. Built as the v11 candidate (RSC `ce78d22` Lengau side, `414d95c` Mac side) after Codex RSC
-`3dc0daf` (R1-1..7); awaiting Codex's review of that exact package. Nothing runs before (a) row 23's arm B passes its
+Status: 11 October 2026, R052. Codex RSC `299f4b7` found the v11 controls (`chpc/candidate_v10r2/`, 6342aa10) FAVOURABLE for
+partition null ONLY (no EC2 activation, register or installed inventory; literal ADOPT in that record, not yet performed)
+and the executable Q1/Q2 authority/ingestion/status and qualification/S/release NOT FAVOURABLE until R2-1..4. Those repairs
+are built as the v10r3 package (RSC `b8d9c58` Lengau side + controls candidate v12 `chpc/candidate_v10r3/` 80d1c6d9, `d622499`
+Mac side) and await Codex's review. Nothing runs before (a) row 23's arm B passes its
 declared success criterion (all 36 refit payloads float-bit identical to Lengau with identities equal, row-6 panel exact,
 comparator valid), (b) a favourable review of the repaired package, and (c) qualification permission in
 `ec2_release_state.json`. Owner: USD 45 for Q1 + Q2 accepted (28 + 17, one attempt each; a retry needs the owner), and
@@ -63,12 +66,21 @@ writer can then occupy another provider's coordinate, because no coordinate is e
   no fenced register entry; the partition is the one the latest adopted controls pin and carries a CANONICAL activation proof
   whose controls lineage still pins it; the bundle passes the full plan / outcome / status / attestation contract;
   comparisons and ownership are rechecked under the lock; STOP or `ec2/HOLD` refuse publication; staged bytes are verified
-  before linking; an ingested replay re-validates every registered file. Ingestion never writes the inventory.
+  before linking; an ingested replay re-validates every registered file. Ingestion never writes the inventory. In canonical
+  mode the controls are read only through `row19_partition.adopted_controls` (R2-2). Replay after the Mac acknowledgement
+  is supported (R2-1): an inventory showing the attempt `ingested` admits the replay branch only (full re-validation); with
+  no ingested register entry it HOLDS - such an inventory can never publish.
 - **Activation** (`chpc/row19_partition.py activate`): canonical only against the adopted canonical controls whose latest
   version pins the partition (the Lengau guard is live before the scan, under the same lock); records EC2-completed
   coordinates as EC2's provenance, never as Lengau claims; each EC2 coordinate must lie in the block of its own epoch's
   partition; malformed plans are unknown claims. Sandbox proofs exist for tests and the qualifier's replay only.
-- **Status/admission** (candidate controls v11, `chpc/candidate_v10r2/`): the receipt's `ec2` section binds `ES.bound(root)`;
+- **Root identity and generations** (R2-1): every Mac seal is a new generation archived once (`inventory_g<N>.json`, never
+  overwritten); launch seals at intent and after the dispatch outcome, the reaper seals after a production/qualification
+  reconciliation. The root's acknowledgement names its root, frozen manifest and mode; `row19_ec2_root.py` grants
+  `canonical` only for the production manifest 43b75f94 at its own root, and the Mac releases ownership only on a canonical
+  acknowledgement of the canonical root. An installed inventory older than 6 h is accepted at admission only while it shows
+  no live or owning attempt.
+- **Status/admission** (candidate controls v12, `chpc/candidate_v10r3/`; v11 in `candidate_v10r2/` unchanged): the receipt's `ec2` section binds `ES.bound(root)`;
   every Lengau refit admission ALSO rechecks, under its lock, every registered canonical record/timing/status and the
   installed inventory (`row19_ec2_state.current_problems`); the Mac launcher does the same on the pulled snapshot. A missing
   inventory alarms whenever a partition is pinned or any EC2 register/activation exists. EC2 coordinates are checked against
@@ -81,23 +93,49 @@ writer can then occupy another provider's coordinate, because no coordinate is e
   `chpc/row19_ec2_qualify.py` writes the schema-2 certificate). The first production instance is NOT the qualification
   instance. Production is released only by `prod_authority.py release-adopt` from a certificate that validates against the
   current code, manifest, partition and the reconciled Q1 attempt, plus a pinned FAVOURABLE actual-result review; the
-  released attempts are derived from the certificate.
+  released attempts are derived from the certificate. Actual-result adoption rule: the certificate binds EXACTLY the
+  qualification code set `prod_authority.RELEASE_CODE` (= `row19_ec2_qualify.CODE`: the qualifier, ingestion, state,
+  partition, root, shadow, shard worker, verifier, S plan, S manifest, analyze, models) at their current bytes; the
+  certificate, both bundles' BUNDLE_SHA256SUMS, plans, operational manifests, S evidence digests and the inventory digest it
+  names are kept immutable as the evidence the review reads. `release_problem` itself rechecks the code set, the production
+  manifest, the current partition pin and the reconciled Q1 attempt; the remaining bound digests are certificate and review
+  attestations, and the inventory legitimately moves on after qualification (no later inventory must equal the
+  qualification copy). The actual-result review must state the FAVOURABLE verdict plainly and emit the literal
+  `RELEASE row19-ec2-qualification certificate=<sha256> attempts=<key>` only then; Q1 is the only released attempt.
 - Every production instance recomputes 4 Lengau-completed sentinels (fixed rule from the token, never by outcome); any
   difference writes `ec2/HOLD`, which holds the attempt's output and refuses every later admission on both providers until
   reviewed. These duplicates are outside the denominator.
 - S (Lengau shadow references) runs through `chpc/row19_ec2_shadow.py`: the existing CampaignLedger kind `shard` and the
   unchanged worker, an isolated root/campaign, jobs 1 and 2 (S1/S2), 24 cores x 48 h, 1,152 core-h each (2,304 reserved),
   under the programme lock and a combined refit+S 60,000 core-h sub-envelope declared in the controls. No new ledger kind.
+  STOP/HOLD (screen STOP, screen `ec2/HOLD`, S root STOP) is rechecked under the programme lock before the reservation and
+  again right before qsub; the S job script mirrors the shared sources into its own root STOP (R2-3). The qualifier accepts
+  only the controls-declared S manifest/root/campaign/plan and binds S timings, task bindings, producer ledger entries and
+  the declaration; provenance is cooperative (bound, not signed) and stated so (R2-4).
 
 ## 6. Exclusion and region
 
 The reviewed row-23 launcher (`bench_launch.py`) is not under the global authority lock. A production or qualification
 admission therefore refuses while any benchmark attempt is unresolved or running; every benchmark charge counts in the
 cumulative cap. Region and zone are recorded per attempt and request; an admission refuses while an unresolved attempt was
-made in another region, and recovery refuses an attempt of another region. Folding the benchmark launcher itself into the
-global lock is deferred until row 23 has ended (its code is not touched while attempt 5 runs).
+made in another region, and recovery refuses an attempt of another region. In the other direction the benchmark is FROZEN
+(not raced): `bench_launch.py` refuses every benchmark admission and every benchmark recovery once the release state
+permits qualification or any `qual-`/`prod-` attempt exists (fail closed on unreadable state). Attempt 5 keeps its running
+reaper (a loaded process; the edit does not touch it), supervised in its recorded region; per-attempt region routing of a
+reaper is a stated operating limit. Every paid issue and re-issue passes a pre-issue guard: STOP from every source and the
+receipt's 2,700 s freshness, rechecked after staging and before each RunInstances call (R2-3).
 
-## 7. Build status (11 Oct 2026, after Codex 3dc0daf R1-1..7; nothing adopted, activated or launched)
+## 7. Build status (11 Oct 2026, after Codex 299f4b7 R2-1..4; nothing adopted, activated or launched)
+
+| Repair (Codex 299f4b7) | Built | Consumers / tests | Still open |
+|---|---|---|---|
+| R2-1 generations, root identity, freshness at use, post-ACK replay | `write_inventory` new generation per seal, write-once archives; ACK names root/manifest/mode; canonical-only confirm; `current_problems` freshness while live/owning; replay branch for `ingested` | `tests/test_prod_authority.py` 64, `tests/test_ec2_sync.py` 12, `test_row19_ec2_ingest.py` 68, `tests/test_prod_launch.py` 54 | `ec2_sync.py` not yet run against Lengau (needs the deployed root tool) |
+| R2-2 current adopted controls | `row19_partition.adopted_controls`; canonical `activation_problem`, Mac launcher, ingestion, qualifier | `test_row19_partition.py` 54, launcher, ingestion, qualifier tests | adoption of a controls version (v11 null-only favourable; v12 pending review) |
+| R2-3 STOP at dispatch | post-staging recheck + pre-issue guard on every issue/re-issue; S recheck under the lock and before qsub; S STOP mirror | `tests/test_prod_launch.py`, `tests/test_bench_launch.py` 20, `test_row19_ec2_shadow.py` 19 | - |
+| R2-4 declared S evidence | declared manifest/root/campaign/plan; timings, task bindings, producer entries, declaration bound; provenance condition stated | `test_row19_ec2_qualify.py` 23 | an actual S run and its review |
+| Operating scope | benchmark freeze; exact release code set; stale ceiling note removed | `tests/test_bench_launch.py`, `tests/test_prod_authority.py` | reaper region routing |
+
+Earlier repairs (Codex 3dc0daf R1-1..7):
 
 | Repair | Built | Consumer / evidence | Still missing |
 |---|---|---|---|

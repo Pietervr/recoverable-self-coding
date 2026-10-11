@@ -35,24 +35,34 @@ Plain EC2 spot instances (not SageMaker) running the Lengau toolchain bytes at t
 
 Row 23 licenses no pooling: its result feeds a separate prospective production qualification.
 
-## Production and qualification (v11 candidate, 11 Oct 2026; built, NOT adopted, activated or launched)
+## Production and qualification (v10r3 package, 11 Oct 2026; built, NOT adopted, activated or launched)
 
-Design `PRODUCTION_DESIGN.md`, qualification `QUALIFICATION_PLAN.md`, repairs for Codex RSC `0483db4` and `3dc0daf`.
+Design `PRODUCTION_DESIGN.md`, qualification `QUALIFICATION_PLAN.md`, repairs for Codex RSC `0483db4`, `3dc0daf` and
+`299f4b7`. Codex `299f4b7`: controls v11 (`../chpc/candidate_v10r2/`, 6342aa10) FAVOURABLE for partition null ONLY (literal
+ADOPT in that record, not performed); executable Q1/Q2 and qualification/S/release held for R2-1..4, now built (RSC
+`b8d9c58` Lengau side + controls candidate v12 `../chpc/candidate_v10r3/` 80d1c6d9, `d622499` Mac side), awaiting review.
 Owner (11 Oct): USD 45 for Q1 + Q2 accepted (28 + 17, one attempt each); a successful qualification with a FAVOURABLE
 actual-result review goes directly to production, inside the USD 2,300 envelope and the USD 3,000 cap.
 
 - `prod_authority.py` (Mac) - the one claim and USD authority over every run: global sequences and fences, a sealed
   inventory, `ack` of ingested output, a two-phase `disposition` / `disposition-confirm` against the Lengau root's
-  acknowledgement, `release-adopt` from a validated certificate and review, benchmark/region exclusion.
+  acknowledgement (canonical root only), `release-adopt` from a validated certificate (exact code set `RELEASE_CODE`) and
+  review, benchmark/region exclusion; every seal is a new, write-once generation.
 - `prod_launch.py` (Mac) - admits `production`, `Q1`, `Q2` under the authority lock: STOP absent only on a proved S3 404,
   release state, canonical activation with its controls lineage, exact operational manifest, a fresh receipt bound to the
-  current inventory, the snapshot's registered EC2 artifacts rechecked, the budget; records region and zone.
+  current inventory, the snapshot's registered EC2 artifacts rechecked, the budget; records region and zone; controls only
+  through `row19_partition.adopted_controls`; STOP and receipt freshness rechecked after staging and before every
+  RunInstances issue and re-issue.
+- `bench_launch.py` - frozen (admission and recovery refused) once qualification is permitted or any qualification /
+  production attempt exists.
 - `prod_userdata.sh`, `prod_stop.py` - the instance contract and the common STOP.
 - `ec2_release_state.json` - row 23 / qualification / production gates, each backed by a pinned file.
 - `qual_S_plan.json` - S's fixed plan (jobs 1 and 2); `make_prod_manifest.py` - operational manifests.
 - Lengau side (`../chpc/`): `row19_partition.py` (declare / activate), `row19_ec2_root.py install` (the inventory and the
   disposition fence on the root), `row19_ec2_ingest.py`, `row19_ec2_qualify.py` (certificate), `row19_ec2_shadow.py` (S
-  admission), `row19_ec2_state.py` (shared contracts), candidate controls v11 in `candidate_v10r2/`.
+  admission), `row19_ec2_state.py` (shared contracts), candidate controls v11 in `candidate_v10r2/` (null-only favourable)
+  and v12 in `candidate_v10r3/` (pending review). `row19_ec2_root.py install` grants a canonical acknowledgement only for the
+  production manifest at its own root; anything else needs `--sandbox`.
 - Operator flow per inventory change: `python3 ec2_sync.py cycle` (seal a new generation -> copy to Lengau -> `t1py
   chpc/row19_ec2_root.py install` in the controller tree -> pull `ack_g<N>.json` + `register.json` -> `disposition-confirm` /
   `ack` on that evidence -> seal and install again when anything was released), then a fresh whole-role receipt. Usable once

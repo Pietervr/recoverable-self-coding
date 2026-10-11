@@ -1,4 +1,4 @@
-# EC2 production qualification plan (predeclared before any production result; Codex f3dd3d7 contract 6, repaired for 0483db4 V10-6/V10-7 and 3dc0daf R1-4/R1-6)
+# EC2 production qualification plan (predeclared before any production result; Codex f3dd3d7 contract 6, repaired for 0483db4 V10-6/V10-7, 3dc0daf R1-4/R1-6 and 299f4b7 R2-3/R2-4)
 
 Status: panel declared 10 October 2026 (R052); release rule, coverage, memory gate, ceilings and construction completed
 11 October 2026, before row 23 has finished and before any qualification or production instance exists. Nothing runs
@@ -6,7 +6,9 @@ until `ec2_release_state.json` permits it (row 23's declared success with its pi
 permission and the owner's acceptance of the ceilings below - given 11 Oct). Nothing here enters the screen denominator
 before release. 11 Oct (Codex 3dc0daf): successful coverage counts FINITE paths only, S is consumed as producer evidence
 (no new ledger kind), memory must be sampled at the full packing, the replay's scope is stated, and production opens only
-through `prod_authority.py release-adopt` from a validated certificate and a FAVOURABLE actual-result review.
+through `prod_authority.py release-adopt` from a validated certificate and a FAVOURABLE actual-result review. 11 Oct (Codex
+299f4b7): the panel, finite coverage and packing rule are favourable; the executable package was held for R2-1..4, now
+built (RSC `b8d9c58`, `d622499`, controls candidate v12 `chpc/candidate_v10r3/`) and awaiting review.
 
 ## Panel (fixed, never chosen by outcome)
 
@@ -30,6 +32,11 @@ attestation, complete worker statuses, records valid against the frozen task). T
    the isolated manifest is the exact derivation; its root holds exactly the fixed plans of jobs 1 and 2; its campaign
    ledger holds kind-shard entries for jobs 1 and 2 only, each producing entry settled with a bound PBS id and a finite
    charge (every attempt kept); every slot has a complete terminal worker status of that PBS id and a timing naming it.
+   S must be THE campaign the current controls declare (`qualification_S`: manifest bytes, root, campaign, plan bytes) -
+   another exact isolated derivation is refused - and every S task binding (`task_<rep>.json`) must be the binding
+   `row19_shard.binding_for` gives under the S manifest. Provenance is cooperative: the worker and the S admission write
+   these files on the single-user Lengau filesystem; the certificate binds their digests (a later change is detectable)
+   but nothing signs who wrote them beyond the ledger's reservation-to-PBS-id binding.
 3. R3: Q2's 24 repeats equal Q1's and S's.
 4. R4: Q1's sentinels equal Lengau; memory at the 76-worker packing measured from the instance's `env/memory.txt` joined
    to `env/occupancy.txt` (both written in the same 60 s supervision iteration, frozen in the bundle): the samples are
@@ -41,6 +48,9 @@ attestation, complete worker statuses, records valid against the frozen task). T
    in the certificate): this demonstrates INGESTION PUBLICATION recovery only. It does not demonstrate producer process or
    host restart, nor interrupted-transfer recovery; the sandbox plan hash differs from the canonical plan, so it says
    nothing about the Mac acknowledgement of the canonical attempt. Producer-side recovery is not claimed by this plan.
+   Replay window of the canonical ingestion (R2-1): before the Mac acknowledgement and AFTER it - an inventory showing the
+   attempt `ingested` admits the replay branch only (every registered file re-validated, nothing published); with no
+   ingested register entry it holds.
 
 **Successful-path coverage (declared now):** R1, R2 and R3 each need at least 75 % of their coordinates fitted
 successfully on BOTH sides: 18/24, 36/48, 18/24. Successful means not failed AND every frozen predictor-band statistic
@@ -51,11 +61,15 @@ fits and non-finite paths are compared like any other payload (flag and reason m
 **Outcomes:** NO_RELEASE on any difference or invalid evidence (no production; report and stop). INCONCLUSIVE when only the
 coverage is short: no release, and no replacement settings or coordinates are chosen by outcome or bought without a new owner
 decision. RELEASE otherwise. The schema-2 certificate binds the code, manifests, partition, activation, plans, bundles,
-inventory, S evidence (manifest, ledger, plans, statuses, records) and the replay; it names the Q1 attempt (key, id,
+inventory, S evidence (manifest, ledger, plans, statuses, records, timings, task bindings, producer entries, the
+controls declaration) and the replay; it names the Q1 attempt (key, id,
 sequence, plan bytes). Production opens only through `prod_authority.py release-adopt`, which validates the certificate
 against the CURRENT code, 43b75f94, the partition the current controls pin and the reconciled Q1 attempt, and requires a
 pinned actual-result review carrying FAVOURABLE and the literal `RELEASE row19-ec2-qualification certificate=<sha256>
 attempts=<keys>`; the released attempts are derived from the certificate. A later epoch needs its own reviewed release.
+The certificate must bind EXACTLY the qualification code set (`prod_authority.RELEASE_CODE` = `row19_ec2_qualify.CODE`);
+its bundles, plans, operational manifests and S evidence are kept immutable for the review; the inventory may move on
+after qualification. The review states the FAVOURABLE verdict plainly and emits the release literal only then.
 
 ## Cost (declared ceilings; the authority enforces them, retries included)
 
@@ -76,14 +90,19 @@ needs a further owner decision. Both parts count against the USD 2,300 productio
 
 S reserves **2,304 core-hours** (2 jobs x 24 cores x 48 h request; about 1,200 expected to be charged) in the CSCI1913
 programme allocation (100,000, programme lock) AND in a combined refit+S sub-envelope of 60,000 core-hours declared in
-controls v11 - the screen refit campaign and S share that one envelope (two separate 60,000 ledgers would not aggregate).
+controls v11 (and the v12 candidate, unchanged) - the screen refit campaign and S share that one envelope (two separate
+60,000 ledgers would not aggregate).
 
 ## What still gates a launch
 
 - **S** is built (`chpc/row19_ec2_shadow.py`: existing CampaignLedger kind `shard`, unchanged worker, isolated root and
-  campaign, programme lock + the combined sub-envelope) but runs only after controls v11 (candidate `chpc/candidate_v10r2/`,
-  which declares `qualification_S`, the S campaign and the sub-envelope) is reviewed and adopted, and the S manifest is in
-  the job clone. No direct qsub and no unreserved run.
+  campaign, programme lock + the combined sub-envelope; STOP/HOLD rechecked under the lock and before qsub, shared STOP
+  mirrored into the S root by the job script) but runs only after a controls version declaring `qualification_S` is
+  reviewed and adopted (v11 `chpc/candidate_v10r2/` is favourable for partition null only; v12 `chpc/candidate_v10r3/`
+  carries the R2 helper repairs, pending review), and the S manifest is in the job clone. No direct qsub and no unreserved
+  run.
+- **Benchmarks freeze** once qualification is permitted or any qualification/production attempt exists
+  (`bench_launch.py`), so no paid launcher outside the global lock runs beside qualification or production.
 - **Row 23's declared success**, a favourable review of the exact repaired package, and the qualification permission record.
 
 ## After release
