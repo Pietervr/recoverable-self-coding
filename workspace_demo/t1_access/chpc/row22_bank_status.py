@@ -25,6 +25,11 @@ EVIDENCE, every call:
      id at F with the same exit from qstat: its zero alarms include the >90 % check on the then-observed memory, recorded as
      `memory_evidence` kind "prior-clean-receipt-check" (file, SHA-256) - a documented pass of that check, not a value;
      otherwise ALARM "no scheduler memory evidence". Absence is never a memory pass.
+     Codex RSC c38779c: (ii)/(iii) read EVERY fresh production receipt, alarmed or not, that saw the same PBS id at F with the
+     same exit: the LARGEST recorded mem_kb (with any qstat value) is the one checked, and a receipt's scheduler-memory alarm
+     for that job is kept as an ALARM (memory_breach) before any fallback; (iii) applies only when no value and no breach
+     exist. (iii) is a limited historical attestation: the old check was conditional (no kb value -> no check), so it
+     supplies neither a measured value nor proof of memory <= 90 %.
 RECONCILIATION per bank job (plan file, ledger entry, scheduler, statuses, verify verdict):
   - a terminal job (scheduler F/E/X/gone) must have a status for EVERY planned slot; a status's reps equal its plan slot's;
     new, resumed and left are disjoint and their union is the slot's reps; exit 0 iff left is empty, 75 with left non-empty,
@@ -230,23 +235,31 @@ def settled_memory_qstat(ids, pbs_file=None):
 
 
 def prior_bank_memory(j, exit_, receipts_dir=None):
-    """(mem_kb or None, evidence) from the newest fresh, production, alarm-free bank receipt that saw j at F with exit_."""
+    """Codex RSC c38779c: what EVERY fresh, production bank receipt (alarmed or not) recorded about PBS id j at state F with
+    exit_ -> (worst, breach, clean): worst = (largest recorded mem_kb, evidence) or None; breach = evidence of the newest
+    receipt carrying a scheduler-memory alarm for that job, or None; clean = evidence of the newest alarm-free receipt that
+    observed it from qstat (the limited historical attestation), or None. Breach evidence is consulted before any fallback."""
+    worst = breach = clean = None
     for p in sorted(glob.glob(os.path.join(receipts_dir or RECEIPTS, "bank_watch_*.json")), reverse=True):
         try:
             r = json.load(open(p))
         except Exception:
             continue
-        if r.get("schema") != WATCH_SCHEMA or r.get("fresh") is not True or r.get("production") is not True or r.get("alarms") != []:
+        if r.get("schema") != WATCH_SCHEMA or r.get("fresh") is not True or r.get("production") is not True \
+                or not isinstance(r.get("alarms"), list):
             continue
-        for sj in (r.get("jobs") or {}).values():
-            if isinstance(sj, dict) and sj.get("job_id") == j and sj.get("state") == "F" and sj.get("exit") == exit_ \
-                    and not isinstance(sj.get("exit"), bool):
-                ev = dict(file=os.path.basename(p), sha256=sha_file(p))
-                if finite_nonneg(sj.get("mem_kb")):
-                    return sj["mem_kb"], dict(ev, kind="prior-receipt-value")
-                if sj.get("observation", "qstat") == "qstat":
-                    return None, dict(ev, kind="prior-clean-receipt-check")
-    return None, None
+        for k, sj in (r.get("jobs") or {}).items():
+            if not (isinstance(sj, dict) and sj.get("job_id") == j and sj.get("state") == "F" and sj.get("exit") == exit_
+                    and not isinstance(sj.get("exit"), bool)):
+                continue
+            ev = dict(file=os.path.basename(p), sha256=sha_file(p))
+            if finite_nonneg(sj.get("mem_kb")) and (worst is None or sj["mem_kb"] > worst[0]):
+                worst = (sj["mem_kb"], dict(ev, kind="prior-receipt-value"))
+            if breach is None and any(isinstance(a, str) and a.startswith(f"bank job {k}: scheduler memory") for a in r["alarms"]):
+                breach = dict(ev, kind="prior-memory-alarm")
+            if clean is None and r["alarms"] == [] and sj.get("observation", "qstat") == "qstat":
+                clean = dict(ev, kind="prior-clean-receipt-check")
+    return worst, breach, clean
 
 
 def pbs_observe(job_ids, pbs_file=None, settled=None, receipts_dir=None):
@@ -262,11 +275,14 @@ def pbs_observe(job_ids, pbs_file=None, settled=None, receipts_dir=None):
             obs[j] = o
     sq = settled_memory_qstat([j for j in job_ids if j in settled], pbs_file)
     for j in [j for j in job_ids if j in settled]:
-        if j in sq:
-            obs[j].update(mem_kb=sq[j], memory_evidence=dict(kind="qstat"))
-        else:
-            m, ev = prior_bank_memory(j, obs[j]["exit"], receipts_dir)
+        worst, breach, clean = prior_bank_memory(j, obs[j]["exit"], receipts_dir)
+        vals = ([(sq[j], dict(kind="qstat"))] if j in sq else []) + ([worst] if worst else [])
+        if vals:                                                            # the largest known value is the one checked
+            m, ev = max(vals, key=lambda x: x[0])
             obs[j].update(mem_kb=m, memory_evidence=ev)
+        else:
+            obs[j].update(mem_kb=None, memory_evidence=breach or clean)
+        obs[j]["memory_breach"] = breach
     ask = [j for j in job_ids if j not in settled]
     if pbs_file:
         q = json.load(open(pbs_file))
@@ -317,6 +333,8 @@ def reconcile(man, verify, obs, ledger):
         s_sum = dict(job_id=j, state=state, exit=o.get("exit"), slots=len(plan["slots"]), ended=0, exits={}, new=0, resumed=0, left=0,
                      observation=o.get("source"), settle_note_sha256=o.get("settle_note_sha256"), mem_kb=o.get("mem_kb"),
                      memory_evidence=o.get("memory_evidence"))
+        if o.get("memory_breach"):
+            alarms.append(f"bank job {n} ({j}): receipt {o['memory_breach']['file']} recorded a scheduler-memory alarm for this terminal job")
         if o.get("source") == "ledger-settlement" and not o.get("memory_evidence"):
             alarms.append(f"bank job {n} ({j}): settled, but no scheduler memory evidence (qstat, a recorded value or a clean receipt's check)")
         if not j:

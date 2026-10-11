@@ -130,5 +130,35 @@ for mem, ev, want, name in ((119537664, dict(kind="qstat"), True, "settled at 95
     o = dict(state="F", exit=0, source="ledger-settlement", settle_note_sha256="x", mem_kb=mem, memory_evidence=ev)
     al, _, _, _ = BANK.reconcile(man, ver, {"1.sched01": o}, led)
     check(f"bank reconcile: {name}", any("memory" in x for x in al) == want)
+# Codex RSC c38779c: a newer same-job breach (95 % + its memory alarm) is never displaced by an older clean receipt
+MEM_ALARM = "bank job 1: scheduler memory 114.0 GiB above 90 % of the request"
+for older, oname in ((dict(job_id="1.sched01", state="F", exit=0, mem_kb=29388268), "older clean 24 %"),
+                     (dict(job_id="1.sched01", state="F", exit=0), "older clean legacy (no value)")):
+    bd2 = tempfile.mkdtemp()
+    json.dump(dict(schema=BANK.WATCH_SCHEMA, fresh=True, production=True, alarms=[], jobs={"1": older}),
+              open(os.path.join(bd2, "bank_watch_20261010T200000Z.json"), "w"))
+    json.dump(dict(schema=BANK.WATCH_SCHEMA, fresh=True, production=True, alarms=[MEM_ALARM],
+                   jobs={"1": dict(job_id="1.sched01", state="F", exit=0, mem_kb=119537664)}),
+              open(os.path.join(bd2, "bank_watch_20261011T030000Z.json"), "w"))
+    BANK.sh = stub(153, "", "qstat: Unknown Job Id 1.sched01")                   # PBS history expired
+    obs, why = BANK.pbs_observe(["1.sched01"], None, settled("1.sched01"), receipts_dir=bd2)
+    o = obs["1.sched01"]
+    check(f"bank: newer 95 % + alarm vs {oname}, expired -> the 95 % value and the breach are kept",
+          why == "" and o["mem_kb"] == 119537664 and o["memory_breach"]["file"] == "bank_watch_20261011T030000Z.json")
+    al, _, _, _ = BANK.reconcile(man, ver, obs, led)
+    check(f"bank reconcile: newer breach vs {oname} -> memory alarms fire",
+          any("above 90 %" in x for x in al) and any("recorded a scheduler-memory alarm" in x for x in al))
+    json.dump(dict(schema=BANK.WATCH_SCHEMA, fresh=True, production=True, alarms=[MEM_ALARM],
+                   jobs={"1": dict(job_id="1.sched01", state="F", exit=0)}),
+              open(os.path.join(bd2, "bank_watch_20261011T030000Z.json"), "w"))   # breach recorded only as an alarm
+    obs, _ = BANK.pbs_observe(["1.sched01"], None, settled("1.sched01"), receipts_dir=bd2)
+    al, _, _, _ = BANK.reconcile(man, ver, obs, led)
+    check(f"bank reconcile: alarm-only breach vs {oname} -> the breach alarm fires", any("recorded a scheduler-memory alarm" in x for x in al))
+bd3 = tempfile.mkdtemp()
+json.dump(dict(schema=BANK.WATCH_SCHEMA, fresh=True, production=True, alarms=["bank job 2: something unrelated"],
+               jobs={"1": dict(job_id="1.sched01", state="F", exit=0)}), open(os.path.join(bd3, "bank_watch_20261011T030000Z.json"), "w"))
+obs, _ = BANK.pbs_observe(["1.sched01"], None, settled("1.sched01"), receipts_dir=bd3)
+check("bank: an unrelated alarm is neither a breach nor a clean check", obs["1.sched01"]["memory_breach"] is None
+      and obs["1.sched01"]["memory_evidence"] is None)
 print(f"\n{'ALL PASS' if not fails else str(len(fails)) + ' FAILED'}")
 sys.exit(1 if fails else 0)
