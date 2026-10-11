@@ -17,6 +17,16 @@ campaign, code pins, wrapper, every job of the role (PBS id, token, plan SHA-256
 verdict's SHA-256 and the verify document's SHA-256; copied to <root>/gate/watch_<role>_<stamp>.json.
 QUALIFICATION (--qualify 1): fresh production evidence, zero alarms, job 1 terminal with scheduler exit 0 or 75, every planned
 slot ended 0 with every planned unit a valid record with timing, the three anchors equal; refit: job 1's reps all bound.
+REVISION 11 (R052 11 Oct, PBS history expiry): (3) asks `qstat -xf` only of the role's jobs whose ledger entry is NOT settled.
+PBS drops finished jobs from its history after a few days and then fails the whole call with "Unknown Job Id" (rc 153), which
+held every receipt. A SETTLED entry is observed from its settlement instead (`settle_note`, written by xf_settle from
+`qstat -xf` at settlement): state F with the note's Exit_status, carried together with the scheduler facts the settlement
+does not hold (scheduler memory, walltime request) from the NEWEST local receipt of this role that is fresh, production and
+alarm-free and observed the SAME PBS id from qstat at state F with the SAME exit. The job summary records `observation`
+"ledger-settlement", the note's SHA-256 and that receipt (`prior_receipt`: file, SHA-256). A settled note without
+`Exit_status <n>` is a failed observation; a settled job no such receipt observed carries no memory and keeps the
+no-finite-memory alarm (fail-closed); an unsettled job qstat cannot describe stays a failed observation. The receipt and
+qualification formats, and the admission's checks of them, are unchanged.
 REVISION 7 (Codex RSC 8865474 C2): each job summary also carries `partition`, the sorted new / resumed / left coordinate lists
 read from that job's own worker statuses, so the admission reconciles a job's historical outcome, not today's aggregate.
 
@@ -245,15 +255,58 @@ def fetch_job_outputs(man, role, stage):
     return res
 
 
-def pbs_observe(job_ids, pbs_file=None):
+def prior_scheduler_observation(role, j, exit_, receipts_dir=None):
+    """REVISION 11: (scheduler facts of PBS id j, {file, sha256}) from the newest local receipt of this role that is fresh,
+    production and alarm-free and observed j from qstat at state F with exit `exit_`; (None, None) when there is none."""
+    for p in sorted(glob.glob(os.path.join(receipts_dir or RECEIPTS, f"watch_{role}_*.json")), reverse=True):
+        try:
+            r = json.load(open(p))
+        except Exception:
+            continue
+        if r.get("schema") != WATCH_SCHEMA or r.get("role") != role or r.get("fresh") is not True or r.get("production") is not True \
+                or r.get("alarms") != []:
+            continue
+        for sj in (r.get("jobs") or {}).values():
+            if isinstance(sj, dict) and sj.get("job_id") == j and sj.get("observation", "qstat") == "qstat" and sj.get("state") == "F" \
+                    and sj.get("exit") == exit_ and not isinstance(sj.get("exit"), bool) and finite_nonneg(sj.get("mem_kb")):
+                return dict(mem_kb=sj["mem_kb"], walltime_req_s=sj.get("requested_walltime_s")), dict(file=os.path.basename(p), sha256=sha_file(p))
+    return None, None
+
+
+def settled_observation(role, e, receipts_dir=None):
+    """REVISION 11: the observation of a SETTLED ledger entry (its settlement's qstat -xf, in settle_note), or None."""
+    note = e.get("settle_note")
+    m = re.search(r"Exit_status (-?\d+)\b", note) if isinstance(note, str) else None
+    if not m or e.get("state") != "settled":
+        return None
+    o = dict(state="F", exit=int(m.group(1)), source="ledger-settlement", settle_note_sha256=sha_bytes(note.encode()))
+    facts, prior = prior_scheduler_observation(role, e.get("job_id"), o["exit"], receipts_dir)
+    if facts:
+        o.update(facts, prior_receipt=prior)
+    return o
+
+
+def pbs_observe(job_ids, pbs_file=None, settled=None, role=None, receipts_dir=None):
+    """REVISION 11: `settled` = {job_id: ledger entry} of the SETTLED entries, observed from their settlement, never asked of qstat."""
+    settled = settled or {}
+    obs = {}
+    for j in job_ids:
+        if j in settled:
+            o = settled_observation(role, settled[j], receipts_dir)
+            if o is None:
+                return None, f"settled job {j}: its settlement note carries no Exit_status (no observation)"
+            obs[j] = o
+    ask = [j for j in job_ids if j not in settled]
     if pbs_file:
-        return json.load(open(pbs_file)), ""
-    if not job_ids:
-        return {}, ""
-    rc, out, err = sh(["ssh", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", LOGIN, "qstat -xf " + " ".join(job_ids)], timeout=300)
+        q = json.load(open(pbs_file))
+        obs.update({j: v for j, v in q.items() if j not in settled})
+        return obs, ""
+    if not ask:
+        return obs, ""
+    rc, out, err = sh(["ssh", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", LOGIN, "qstat -xf " + " ".join(ask)], timeout=300)
     if rc != 0:
         return None, f"qstat failed (rc {rc}): {(err or out).strip()[:160]}"
-    obs, cur = {}, None
+    cur = None
     for line in out.splitlines():
         s = line.strip()
         if s.startswith("Job Id:"):
@@ -268,7 +321,7 @@ def pbs_observe(job_ids, pbs_file=None):
                 obs[cur]["mem_kb"] = int(v[:-2]) if v.endswith("kb") else None
             elif k == "Resource_List.walltime":
                 obs[cur]["walltime_req_s"] = hms_s(v)
-    missing = [j for j in job_ids if j not in obs or not obs[j].get("state")]
+    missing = [j for j in ask if j not in obs or not obs[j].get("state")]
     if missing:
         return None, f"qstat returned 0 but did not describe {missing}"
     return obs, ""
@@ -537,6 +590,8 @@ def reconcile(man, role, verify, obs, ledger, live):
                      slots=len(plan["slots"]), ended=0, exits={}, new=0, resumed=0, left=0, max_worker_maxrss=None, max_wall_s=None,
                      failed_units=[], partition=dict(new=[], resumed=[], left=[]),
                      plan_walltime_s=plan.get("walltime_s"), requested_walltime_s=o.get("walltime_req_s"))
+        if o.get("source") == "ledger-settlement":                          # REVISION 11: the observation's provenance
+            s_sum.update(observation=o["source"], settle_note_sha256=o["settle_note_sha256"], prior_receipt=o.get("prior_receipt"))
         dispo, dwhy = None, ""
         if e.get("runner_exit") is None and terminal:                       # every terminal job without a runner exit is examined
             dispo, dwhy = closed_no_record(man, role, n, e, plan, j, o, units, ledger, live)
@@ -666,7 +721,8 @@ def main(argv=None):
     led_p = os.path.join(live, "campaign", "budget.json")
     ledger = json.load(open(led_p)) if os.path.exists(led_p) else {"entries": {}}
     ids = [e["job_id"] for e in ledger["entries"].values() if e.get("kind") == KIND[role] and e.get("job_id")]
-    obs, oprob = pbs_observe(ids, a.pbs_file)
+    settled = {e["job_id"]: e for e in ledger["entries"].values() if e.get("kind") == KIND[role] and e.get("job_id") and e.get("state") == "settled"}
+    obs, oprob = pbs_observe(ids, a.pbs_file, settled, role)
     if oprob:
         alarms.append(oprob)
     global MANIFEST_PATH

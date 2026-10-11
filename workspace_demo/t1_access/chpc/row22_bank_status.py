@@ -9,8 +9,14 @@ EVIDENCE, every call:
      JSON document) is kept and its SHA-256 bound into the receipt. Records are validated THERE, against the production task
      identities; the Mac never recomputes an identity.
   2. a fresh pull of the bank root and campaign into a new staging directory, rotated in only when EVERY pull succeeded.
-  3. one `qstat -xf` of every bank job id in the ledger: the call must RETURN 0 (a non-zero return is a failed observation
-     whatever its stdout - the defect Codex found in the shard parser) and every id must be either listed or reported unknown.
+  3. one `qstat -xf` of every bank job id in the ledger that is NOT settled: the call must RETURN 0 (a non-zero return is a
+     failed observation whatever its stdout - the defect Codex found in the shard parser) and must describe every id.
+     REVISION (R052 11 Oct, PBS history expiry): a SETTLED entry is not asked of the scheduler - PBS drops finished jobs
+     from its history after a few days and `qstat -xf` then fails "Unknown Job Id" for the whole call. Its observation is
+     the settlement's own (`settle_note`, written by xf_settle from `qstat -xf` at settlement): state F and the exit and
+     walltime the note records, with source "ledger-settlement" and the note's SHA-256 in the receipt. A settled entry
+     whose note carries no `Exit_status <n>` is a failed observation (alarm). An unsettled job qstat cannot describe stays
+     a failed observation (fail-closed). A ledger-sourced observation never qualifies a job (--qualify needs the scheduler).
 RECONCILIATION per bank job (plan file, ledger entry, scheduler, statuses, verify verdict):
   - a terminal job (scheduler F/E/X/gone) must have a status for EVERY planned slot; a status's reps equal its plan slot's;
     new, resumed and left are disjoint and their union is the slot's reps; exit 0 iff left is empty, 75 with left non-empty,
@@ -179,20 +185,43 @@ def fresh_snapshot(man):
     return True, []
 
 
-def pbs_observe(job_ids, pbs_file=None):
-    """({job_id: {state, exit, mem_kb, walltime}}, problem). A non-zero return of qstat is a FAILED observation."""
+def settled_observation(e):
+    """The observation a SETTLED ledger entry carries (its settlement's qstat -xf, in settle_note), or None."""
+    note = e.get("settle_note")
+    m = re.search(r"Exit_status (-?\d+)\b", note) if isinstance(note, str) else None
+    if not m or e.get("state") != "settled":
+        return None
+    w = re.search(r"resources_used\.walltime (\d+:\d\d:\d\d)\b", note)
+    return dict(state="F", exit=int(m.group(1)), walltime=(w.group(1) if w else None), source="ledger-settlement",
+                settle_note_sha256=sha_bytes(note.encode()), settled_at=e.get("settled_at"))
+
+
+def pbs_observe(job_ids, pbs_file=None, settled=None):
+    """({job_id: {state, exit, mem_kb, walltime, source}}, problem). A non-zero return of qstat is a FAILED observation.
+    `settled` = {job_id: ledger entry} of the SETTLED entries: observed from their settlement, never asked of qstat."""
+    settled = settled or {}
+    obs = {}
+    for j in job_ids:
+        if j in settled:
+            o = settled_observation(settled[j])
+            if o is None:
+                return None, f"settled job {j}: its settlement note carries no Exit_status (no observation)"
+            obs[j] = o
+    ask = [j for j in job_ids if j not in settled]
     if pbs_file:
-        return json.load(open(pbs_file)), ""
-    if not job_ids:
-        return {}, ""
-    rc, out, err = sh(["ssh", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", LOGIN, "qstat -xf " + " ".join(job_ids)], timeout=300)
+        q = json.load(open(pbs_file))
+        obs.update({j: dict(v, source="qstat") for j, v in q.items() if j not in settled})
+        return obs, ""
+    if not ask:
+        return obs, ""
+    rc, out, err = sh(["ssh", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", LOGIN, "qstat -xf " + " ".join(ask)], timeout=300)
     if rc != 0:
         return None, f"qstat failed (rc {rc}): {(err or out).strip()[:160]}"
-    obs, cur = {}, None
+    cur = None
     for line in out.splitlines():
         s = line.strip()
         if s.startswith("Job Id:"):
-            cur = s.split(":", 1)[1].strip(); obs[cur] = {"state": None}
+            cur = s.split(":", 1)[1].strip(); obs[cur] = {"state": None, "source": "qstat"}
         elif cur and " = " in s:
             k, v = s.split(" = ", 1)
             if k == "job_state":
@@ -203,7 +232,7 @@ def pbs_observe(job_ids, pbs_file=None):
                 obs[cur]["mem_kb"] = int(v[:-2]) if v.endswith("kb") else None
             elif k == "resources_used.walltime":
                 obs[cur]["walltime"] = v
-    missing = [j for j in job_ids if j not in obs or not obs[j].get("state")]
+    missing = [j for j in ask if j not in obs or not obs[j].get("state")]
     if missing:
         return None, f"qstat returned 0 but did not describe {missing}"
     return obs, ""
@@ -225,7 +254,8 @@ def reconcile(man, verify, obs, ledger):
         plan = json.load(open(pp)); j = e.get("job_id")
         o = (obs or {}).get(j, {}) if j else {}
         state = o.get("state"); terminal = state in TERMINAL
-        s_sum = dict(job_id=j, state=state, exit=o.get("exit"), slots=len(plan["slots"]), ended=0, exits={}, new=0, resumed=0, left=0)
+        s_sum = dict(job_id=j, state=state, exit=o.get("exit"), slots=len(plan["slots"]), ended=0, exits={}, new=0, resumed=0, left=0,
+                     observation=o.get("source"), settle_note_sha256=o.get("settle_note_sha256"))
         if not j:
             alarms.append(f"bank job {n}: reserved but not bound to a PBS id")
         if j and o.get("mem_kb") is not None and o["mem_kb"] > 0.9 * mem_req_kb:
@@ -322,7 +352,8 @@ def main(argv=None):
     if not os.path.exists(led_p):
         alarms.append("the bank ledger is not in the snapshot")
     ids = [e["job_id"] for e in ledger["entries"].values() if e.get("kind") == "bank" and e.get("job_id")]
-    obs, oprob = pbs_observe(ids, a.pbs_file)
+    settled = {e["job_id"]: e for e in ledger["entries"].values() if e.get("kind") == "bank" and e.get("job_id") and e.get("state") == "settled"}
+    obs, oprob = pbs_observe(ids, a.pbs_file, settled)
     if oprob:
         alarms.append(oprob)
     if verify.get("seed_problem"):
@@ -374,6 +405,8 @@ def main(argv=None):
         else:
             if s["state"] not in TERMINAL or s["exit"] != 0:
                 why.append(f"job {n} is not terminal with scheduler exit 0 (state {s['state']}, exit {s['exit']})")
+            if s.get("observation") != "qstat":
+                why.append(f"job {n} is observed from its settlement, not the scheduler (a qualification needs qstat)")
             if s["ended"] != s["slots"] or s["exits"] != {"0": s["slots"]}:
                 why.append(f"job {n}: not every planned worker ended with exit 0 ({s['exits']}, {s['ended']}/{s['slots']})")
             if s["left"]:
