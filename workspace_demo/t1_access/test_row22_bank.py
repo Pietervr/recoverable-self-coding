@@ -244,18 +244,46 @@ def test_freeze_and_evaluator():
     doc = json.load(open(out)); bp = os.path.join(man["storage"]["root"], "bank_binding.json"); bb = json.load(open(bp))
     assert doc["primary"] == "selection/ws" and doc["bank_binding_sha256"] == TG.sha_file(bp)
     doc_ok = dict(doc, status="RESOLVED")
+    # the screen manifest: its own seed base and reps, naming THIS bank manifest (the reviewed seed-domain checker is injected:
+    # its exclusion contract needs the history manifests, tested in the screen admission's own suite)
+    smp = os.path.join(os.path.dirname(mp), "screen_manifest.json")
+    sman = dict(setting=man["setting"], datasets=dict(seed_base=int(man["datasets"]["seed_base"]) + 7, reps=[3, 4, 5],
+                                                      bank_manifest_sha256=TG.sha_file(mp)))
+    json.dump(sman, open(smp, "w"))
+    ok_check = lambda m: ""
     screen = dict(setting=bb["setting"], cfg=dict(bb["cfg"], n_boot_refit=200), code=dict(bb["code"]), numerical=bb["numerical"],
-                  seeds=[1, 2, 3], bank_seeds=list(B.resolved_seeds(man).values()))
-    assert TG.compatible(doc_ok, bb, TG.sha_file(bp), screen) == []
-    assert any("RESOLVED" in w for w in TG.compatible(dict(doc, status="UNRESOLVED"), bb, TG.sha_file(bp), screen))
-    assert any("another bank binding" in w for w in TG.compatible(doc_ok, bb, "0" * 64, screen))
-    assert any("setting" in w for w in TG.compatible(doc_ok, bb, TG.sha_file(bp), dict(screen, setting=dict(bb["setting"], D=8))))
-    assert any("cfg" in w for w in TG.compatible(doc_ok, bb, TG.sha_file(bp), dict(screen, cfg=dict(screen["cfg"], start_policy="old"))))
-    assert any("code pins" in w for w in TG.compatible(doc_ok, bb, TG.sha_file(bp), dict(screen, code=dict(screen["code"], **{"models.py": "x"}))))
-    assert any("numerical" in w for w in TG.compatible(doc_ok, bb, TG.sha_file(bp), dict(screen, numerical={})))
-    assert any("screen seeds" in w for w in TG.compatible(doc_ok, bb, TG.sha_file(bp), dict(screen, seeds=[screen["bank_seeds"][0]])))
-    assert any("not supplied" in w for w in TG.compatible(doc_ok, bb, TG.sha_file(bp), dict(screen, bank_seeds=None)))
-
+                  manifest_sha256=TG.sha_file(smp))
+    C = lambda d=doc_ok, b=bb, bs=None, sc=None, bm=mp, sm=smp, chk=ok_check: TG.compatible(d, b, TG.sha_file(bp) if bs is None else bs,
+                                                                                         screen if sc is None else sc, bm, sm, chk)
+    assert C() == [], C()
+    assert any("RESOLVED" in w for w in C(d=dict(doc, status="UNRESOLVED")))
+    assert any("another bank binding" in w for w in C(bs="0" * 64))
+    assert any("setting" in w for w in C(sc=dict(screen, setting=dict(bb["setting"], D=8))))
+    assert any("cfg" in w for w in C(sc=dict(screen, cfg=dict(screen["cfg"], start_policy="old"))))
+    assert any("code pins" in w for w in C(sc=dict(screen, code=dict(screen["code"], **{"models.py": "x"}))))
+    assert any("numerical" in w for w in C(sc=dict(screen, numerical={})))
+    bank_seeds = sorted(B.resolved_seeds(man).values())
+    # Codex's static counterexample: a bank seed offered as a screen seed with bank_seeds=[] - the lists are never trusted
+    assert any("foreign" in w for w in C(sc=dict(screen, seeds=[bank_seeds[0]], bank_seeds=[])))
+    assert any("foreign" in w for w in C(sc=dict(screen, bank_seeds=bank_seeds[:-1])))
+    assert C(sc=dict(screen, bank_seeds=bank_seeds)) == []                       # a correct supplied list is only compared
+    # real overlap: a screen manifest whose seed base reproduces the bank's seeds
+    omp = os.path.join(os.path.dirname(mp), "screen_overlap.json")
+    json.dump(dict(sman, datasets=dict(sman["datasets"], seed_base=int(man["datasets"]["seed_base"]), reps=[0, 1])), open(omp, "w"))
+    assert any("bank seed(s) are screen seeds" in w for w in C(sm=omp, sc=dict(screen, manifest_sha256=TG.sha_file(omp))))
+    assert any("screen seed domain fails" in w for w in C(chk=lambda m: "a screen seed is in the excluded set"))
+    empty = os.path.join(os.path.dirname(mp), "screen_empty.json")
+    json.dump(dict(sman, datasets=dict(sman["datasets"], reps=[])), open(empty, "w"))
+    assert any("screen seed domain is empty" in w for w in C(sm=empty, sc=dict(screen, manifest_sha256=TG.sha_file(empty))))
+    assert any("screen manifest is missing" in w for w in C(sm=None))
+    assert any("bank manifest is missing" in w for w in C(bm=None))
+    assert any("another screen manifest" in w for w in C(sc=dict(screen, manifest_sha256=None)))
+    fmp = os.path.join(os.path.dirname(mp), "screen_foreign_bank.json")
+    json.dump(dict(sman, datasets=dict(sman["datasets"], bank_manifest_sha256="0" * 64)), open(fmp, "w"))
+    assert any("names another bank manifest" in w for w in C(sm=fmp, sc=dict(screen, manifest_sha256=TG.sha_file(fmp))))
+    assert any("frozen from another bank manifest" in w for w in C(d=dict(doc_ok, manifest_sha256="0" * 64)))
+    assert any("binding names another bank manifest" in w for w in C(b=dict(bb, manifest_sha="0" * 64)))
+    assert any("not the one the bank binding records" in w for w in C(b=dict(bb, seeds_sha256="0" * 64)))
 
 def _status_snapshot(man, slots_status, verify_reps, ledger_entries):
     """A constructed local snapshot for row22_bank_status (no pull): plans, statuses and the ledger, plus a verify document."""

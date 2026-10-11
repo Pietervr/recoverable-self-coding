@@ -22,10 +22,12 @@ FREEZE. `--freeze OUT` writes the target document once (never overwritten): sche
 SHA-256, the SHA-256 over the sorted record checksums, the rules applied, every target, its status. Its own SHA-256 is what
 the review names and what the screen's coverage step must be given.
 
-EVALUATOR. `compatible(target_doc, bank_binding, screen)` returns the reasons a frozen target may NOT score a screen: a status
-other than RESOLVED; a setting, cfg (B excluded: the original fit does not depend on it), start policy, code pin of
-analyze.py / models.py / simulate.py or numerical snapshot that differs from the screen's; any bank seed among the screen's
-resolved seeds; a bank binding that is not the one the target document names.
+EVALUATOR HELPER. `compatible(target_doc, bank_binding, bank_binding_sha, screen, bank_manifest_path, screen_manifest_path)`
+returns reasons a frozen target may NOT score a screen: a status other than RESOLVED; a setting, cfg (B excluded: the original
+fit does not depend on it), start policy, code pin of analyze.py / models.py / simulate.py or numerical snapshot that differs
+from the screen's; a bank binding that is not the one the target document names; and the seed domains, both DERIVED from the
+admitted manifests (never a caller's list) and required disjoint. It is not the whole consumer: the reviewed target digest,
+the numerical body, review authority and the endpoint/coverage seal belong to the separately reviewed consumer.
 
     t1py chpc/row22_target.py --manifest chpc/row22_bank_manifest.json [--freeze <root>/gate/target_omega1.json]
 """
@@ -161,9 +163,27 @@ CFG_KEYS = ("start_policy", "interval", "n_starts", "n_starts_inner", "refit_min
 CODE_FILES = ("analyze.py", "models.py", "simulate.py")
 
 
-def compatible(target_doc, bank_binding, bank_binding_sha, screen):
-    """The reasons a frozen target may NOT score a screen ('[]' = compatible). `screen`: dict(setting, cfg, code (file pins),
-    numerical (the screen binding's snapshot), seeds (iterable of resolved screen dataset seeds))."""
+def _screen_seed_domain_problem(screen_man):
+    """The reviewed screen seed-domain checker (row19_screen_admit.seed_domain_problem: complete, unique, declared, disjoint
+    from the reconstructed historical/development/bank exclusion contract and from the named bank's recomputed seeds)."""
+    import row19_screen_admit as SA
+    return SA.seed_domain_problem(screen_man)
+
+
+def compatible(target_doc, bank_binding, bank_binding_sha, screen, bank_manifest_path, screen_manifest_path,
+               seed_domain_check=_screen_seed_domain_problem):
+    """The reasons a frozen target may NOT score a screen ('[]' = no reason found here). `screen`: dict(setting, cfg, code
+    (file pins), numerical (the screen binding's snapshot), manifest_sha256 (the screen binding's manifest)).
+
+    SEED DOMAINS (Codex 97fc278 / 6d8c30a): both are DERIVED here from the immutable admitted manifests - never taken from the
+    caller. Bank: the manifest the target was frozen from and the binding names, its seeds recomputed (row22_bank.seed_problems:
+    unique, no excluded seed, the declared resolved_seeds_sha256), complete (one per declared rep), equal to the binding's
+    seeds_sha256. Screen: the manifest the screen binding names, naming THIS bank manifest, passing the reviewed screen
+    seed-domain checker, its seeds recomputed and non-empty. Overlap refuses. A caller-supplied `seeds` / `bank_seeds` list is
+    only compared: any difference from the derived domain refuses as foreign. Missing manifests refuse.
+    NOT covered here (they belong to the separately reviewed consumer): the expected reviewed target-file digest, the complete
+    finite ordered numerical body, review authority, and the endpoint/decision/coverage seal."""
+    import row22_bank as R22
     why = []
     if target_doc.get("schema") != TARGET_SCHEMA:
         why.append("not a row-22 target document")
@@ -182,12 +202,52 @@ def compatible(target_doc, bank_binding, bank_binding_sha, screen):
         why.append(f"the code pins differ on {cd}")
     if bank_binding.get("numerical") != screen.get("numerical"):
         why.append("the numerical snapshot differs")
-    if screen.get("bank_seeds") is not None:
-        hit = set(int(s) for s in screen["bank_seeds"]) & set(int(s) for s in screen.get("seeds", []))
+    # bank seed domain
+    bseeds = None
+    if not (bank_manifest_path and os.path.exists(bank_manifest_path)):
+        why.append("the bank manifest is missing")
+    else:
+        bsha = sha_file(bank_manifest_path); bman = json.load(open(bank_manifest_path))
+        if target_doc.get("manifest_sha256") != bsha:
+            why.append("the target was frozen from another bank manifest")
+        if bank_binding.get("manifest_sha") != bsha:
+            why.append("the bank binding names another bank manifest")
+        bp = R22.seed_problems(bman)
+        if bp:
+            why.append(f"the bank seed domain does not recompute: {bp}")
+        else:
+            bseeds = R22.resolved_seeds(bman)
+            if not bseeds or len(bseeds) != len(R22.bank_reps(bman)):
+                why.append("the bank seed domain is empty or incomplete"); bseeds = None
+            elif R22.seeds_sha256(bseeds) != bank_binding.get("seeds_sha256") or bank_binding.get("n") != len(bseeds):
+                why.append("the bank seed domain is not the one the bank binding records"); bseeds = None
+    # screen seed domain
+    sseeds = None
+    if not (screen_manifest_path and os.path.exists(screen_manifest_path)):
+        why.append("the screen manifest is missing")
+    else:
+        ssha = sha_file(screen_manifest_path); sman = json.load(open(screen_manifest_path))
+        if screen.get("manifest_sha256") != ssha:
+            why.append("the screen binding names another screen manifest (or none)")
+        if bank_manifest_path and os.path.exists(bank_manifest_path) and (sman.get("datasets") or {}).get("bank_manifest_sha256") != sha_file(bank_manifest_path):
+            why.append("the screen manifest names another bank manifest")
+        sp = seed_domain_check(sman)
+        if sp:
+            why.append(f"the screen seed domain fails its reviewed check: {sp}")
+        else:
+            st = sman["setting"]; kw = dict(st["grid"])
+            import simulate as S
+            sseeds = {int(r): int(S.dataset_seed(st["generator"], kw, int(r), int(st["D"]), int(sman["datasets"]["seed_base"])))
+                      for r in sman["datasets"]["reps"]}
+            if not sseeds:
+                why.append("the screen seed domain is empty"); sseeds = None
+    if bseeds is not None and sseeds is not None:
+        hit = set(bseeds.values()) & set(sseeds.values())
         if hit:
             why.append(f"{len(hit)} bank seed(s) are screen seeds")
-    else:
-        why.append("the bank's seeds were not supplied for the disjointness check")
+    for key, dom, label in (("bank_seeds", bseeds, "bank"), ("seeds", sseeds, "screen")):
+        if screen.get(key) is not None and (dom is None or sorted(int(x) for x in screen[key]) != sorted(dom.values())):
+            why.append(f"the supplied {label} seed list is not the derived {label} domain (foreign list)")
     return why
 
 
