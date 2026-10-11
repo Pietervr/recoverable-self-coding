@@ -9,7 +9,7 @@ before release. 11 Oct (Codex 3dc0daf): successful coverage counts FINITE paths 
 through `prod_authority.py release-adopt` from a validated certificate and a FAVOURABLE actual-result review. 11 Oct (Codex
 299f4b7): the panel, finite coverage and packing rule are favourable. 11 Oct (Codex cf07869): the R2-1..4 repairs and the
 v12 controls (`chpc/candidate_v10r3/` 80d1c6d9, null-only) are favourable statically; the complete dispatch basis was held
-on D-1 (recovery receipt) and D-2 (benchmark cutover drain), repaired in RSC `e644584`; Codex RSC `1609fa7` found them closed statically and the Q1/Q2/S basis FAVOURABLE, with operating gates (deploy the repaired CLIs and drain pre-repair commands; `qual_permit --record` names that review; keep the controller tree fixed during comparison). Q1/Q2 additionally need the REAL partition: epoch 1 declared k = 40 (`chpc/row19_partition_e1.json`, indices 160..199), pinned by candidate controls v13 (`chpc/candidate_v10r4/`) awaiting review, then adoption and canonical activation. Frozen-plan
+on D-1 (recovery receipt) and D-2 (benchmark cutover drain), repaired in RSC `e644584`; Codex RSC `1609fa7` found them closed statically and the Q1/Q2/S basis FAVOURABLE, with operating gates (deploy the repaired CLIs and drain pre-repair commands; `qual_permit --record` names that review; keep the controller tree fixed during comparison). Q1/Q2 additionally need the REAL partition: epoch 1 declared k = 40 (`chpc/row19_partition_e1.json`, indices 160..199), pinned by controls v13 (`chpc/candidate_v10r4/` d933862e), FAVOURABLE in Codex `64034c5` with the direct v9 -> v13 migration (`chpc/migration_v13/RUNBOOK.md`, prepared, not executed): adoption, canonical activation, fresh receipts and the regenerated refit pilot gate (new qualification hash, its own reviewed max-100 literal, no fit) come first. Frozen-plan
 worst cost Q1 USD 27.9185 + Q2 USD 16.5435 = USD 44.462, inside the accepted USD 45.
 
 ## Panel (fixed, never chosen by outcome)
@@ -100,8 +100,8 @@ controls v11 (and the v12 candidate, unchanged) - the screen refit campaign and 
 - **S** is built (`chpc/row19_ec2_shadow.py`: existing CampaignLedger kind `shard`, unchanged worker, isolated root and
   campaign, programme lock + the combined sub-envelope; STOP/HOLD rechecked under the lock and before qsub, shared STOP
   mirrored into the S root by the job script) but runs only after a controls version declaring `qualification_S` is
-  reviewed and adopted (v11 `chpc/candidate_v10r2/` and v12 `chpc/candidate_v10r3/` are favourable for partition null;
-  neither is adopted yet; the S declaration made in v11 stands unchanged in v12), and the S manifest is in the job clone. No direct qsub and no unreserved
+  reviewed and adopted (v11 and v12 favourable for partition null, never adopted; v13 `d933862e` favourable in `64034c5` and adopted
+  directly from v9 by the migration runbook; the S declaration made in v11 stands unchanged in v12 and v13), and the S manifest is in the job clone. No direct qsub and no unreserved
   run.
 - **The benchmark cutover** (D-2): `qual_permit.py` is the only way to permit qualification; it drains every in-flight
   benchmark command (the shared `runs/.bench_inflight.lock`, taken exclusively, covers commands still waiting or staging

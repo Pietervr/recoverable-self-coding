@@ -5,7 +5,7 @@ Status: 11 October 2026, R052. Codex RSC `cf07869` (review of the v10r3 package)
 opinion, not activation or paid dispatch); the Lengau authority/ACK/generations, post-ACK replay, adopted-controls lineage,
 S STOP/HOLD, qualifier and release binding statically closed; the complete Q1/Q2 dispatch basis held on D-1 (a correctly
 bound current receipt before every recovery re-issue) and D-2 (drain every in-flight benchmark command before qualification
-is permitted). Both are repaired in RSC `e644584` (section 6); Codex RSC `1609fa7` found D-1, D-2 and the finish check F-3 closed statically and the Q1/Q2/S basis FAVOURABLE, with operating gates. Epoch-1 partition DECLARED (11 Oct, RSC candidate): `chpc/row19_partition_e1.json` (sha256 `8d1de408`), k = 40, EC2 owns indices 160..199 of all 100 reps (4,000 coordinates). Why 40: the USD 2,300 production envelope funds ~40-55 indices at the costed rate, so 40 is fundable in full; Lengau's refit runs from index 0 upward and was at index 2 on 10 Oct, far below 160; if either side finishes its share early a new epoch is declared and reviewed. It is pinned by candidate controls v13 (`chpc/candidate_v10r4/`, = v12 + the partition pin; helper bytes unchanged) AWAITING REVIEW - not adopted, not activated. Nothing runs before (a) row 23's arm B passes
+is permitted) - the historical cf07869 snapshot verdict. Both are repaired in RSC `e644584` (section 6); Codex RSC `1609fa7` found D-1, D-2 and the finish check F-3 closed statically and the Q1/Q2/S basis FAVOURABLE, with operating gates. Epoch-1 partition and controls v13 (Codex RSC `64034c5`): FAVOURABLE to adopt exact controls v13 `d933862e` (`chpc/candidate_v10r4/`, = v12 + the partition pin; helper bytes unchanged) pinning `chpc/row19_partition_e1.json` (sha256 `8d1de408`): k = 40, EC2 owns indices 160..199 of all 100 reps (4,000 coordinates; Lengau keeps the complementary 16,000) - a bounded ownership allocation, not a whole-block funding reservation. Migration DIRECT v9 -> v13 (no v12 step): runbook and scripts `chpc/migration_v13/` (prepared, not executed) - archive the adopted v9, promote/deploy v13 + e1 + the S manifest in the job clone, canonical activation under the plan lock, ec2_sync, fresh receipts, ONE regenerated refit pilot qualification from the existing job 1 (a NEW hash, no fit) with its own reviewed max-100 literal (the 3820ac0e literal never authorizes it). Not adopted, not activated. Nothing runs before (a) row 23's arm B passes
 its declared success criterion (valid report, B_full, row-6 panel exact, all 36 refit payloads float-bit identical with
 identities equal; `bench_finish.py`, see README), (b) a favourable review of the repaired package, and (c) qualification
 permission in `ec2_release_state.json`, set only by `qual_permit.py` after the benchmark cutover. Owner: USD 45 for Q1 + Q2 accepted (28 + 17, one attempt each; a retry needs the owner), and
@@ -21,8 +21,8 @@ plans inside it, and the boundary moves only by a new reviewed declaration. No c
 writer can then occupy another provider's coordinate, because no coordinate is ever assignable to both.
 
 - **EC2 block**: indices `[200 - k, 199]` for all 100 reps (reps 3..102), `k` fixed in the epoch declaration
-  `chpc/row19_partition_e1.json` (pinned by sha256 in a controls version; declared k = 40, indices 160..199, candidate
-  controls v13 awaiting review). Lengau keeps its index-major ascending order from index 0 (it was at index 2 on 10 Oct).
+  `chpc/row19_partition_e1.json` (pinned by sha256 in a controls version; declared k = 40, indices 160..199, controls v13
+  FAVOURABLE in Codex `64034c5`, adoption pending). Lengau keeps its index-major ascending order from index 0 (it was at index 2 on 10 Oct).
 - **Lengau guard (controls v10)**: the refit planner refuses any coordinate inside the pinned block; the admission and the
   status view report the block. This is the only Lengau controller change. Lengau would not reach index 200 - k for
   weeks, so the guard is a safety net, not a scheduling constraint.
@@ -38,8 +38,11 @@ writer can then occupy another provider's coordinate, because no coordinate is e
   charged from its ledger on top. Remaining at 11 Oct: about USD 2,450 before row 23's open worst case.
 - One serialized USD ledger (`prod_authority.py`): every production epoch, qualification part and retry against the
   USD 2,300 production envelope; everything against the USD 3,000 cap; per-part qualification ceilings (Q1 28, Q2 17).
-- Unit cost to be MEASURED by row 23 (paired walls under load). `k` = floor(envelope / (100 x measured unit cost)), about
-  40-55 indices. The full screen (about 19,600 refits left) does NOT fit the cap plus the remaining CSCI1913 allocation;
+- Unit cost to be MEASURED by row 23 (paired walls under load). `floor(envelope / (100 x unit cost))` is a PROVISIONAL capped
+  planning estimate, not a funding guarantee: net headroom must first carry the qualification, sentinels and tails, partial
+  batches, interruptions and retries, and the moving baseline; the authority checks each admission, it does not reserve
+  money for the whole block (Codex `64034c5`). Epoch 1 declared k = 40 on that provisional estimate; whether all 4,000
+  coordinates complete inside USD 2,300 is not established. The full screen (about 19,600 refits left) does NOT fit the cap plus the remaining CSCI1913 allocation;
   that is an owner decision (cap lift, HEAL1922, or design), not something this design assumes.
 
 ## 3. EC2 instances (reuse of the reviewed row-23 machinery)
@@ -137,11 +140,11 @@ RunInstances and the attempt keeps its token, region, plan and worst-case fundin
 
 ## 7. Build status (11 Oct 2026, after Codex cf07869; nothing adopted, activated or launched)
 
-| Condition (Codex cf07869) | Built | Consumers / tests | Still open |
+| Condition (Codex cf07869; closures 1609fa7) | Built | Consumers / tests | Still open |
 |---|---|---|---|
-| D-1 receipt at every recovery re-issue | `prod_launch.recover` -> `recovery_receipt` (snapshot receipt vs the pinned partition, age, current inventory binding, attempt carried) + per-issue guard | `tests/test_prod_launch.py` 62 (stale, missing, unrelated state, older generation, attempt not carried -> zero RunInstances and funded; good receipt -> same token; aged guard refuses) | review |
-| D-2 benchmark cutover drain | `bench_launch.inflight` + `cutover_problem` (entry and pre-issue); `qual_permit.py`; `release_state` needs the fence | `tests/test_bench_launch.py` 24, `tests/test_prod_authority.py` 66 | review |
-| F-3 attempt-5 finish | `bench_finish.expected_tree_pins` before and after the comparator | `tests/test_bench_finish.py` 23 | repaired in `3efb8bb` after cf07869; review |
+| D-1 receipt at every recovery re-issue | `prod_launch.recover` -> `recovery_receipt` (snapshot receipt vs the pinned partition, age, current inventory binding, attempt carried) + per-issue guard | `tests/test_prod_launch.py` 62 (stale, missing, unrelated state, older generation, attempt not carried -> zero RunInstances and funded; good receipt -> same token; aged guard refuses) | closed statically (Codex `1609fa7`); operating gate: deploy the repaired CLIs, drain pre-repair commands |
+| D-2 benchmark cutover drain | `bench_launch.inflight` + `cutover_problem` (entry and pre-issue); `qual_permit.py`; `release_state` needs the fence | `tests/test_bench_launch.py` 24, `tests/test_prod_authority.py` 66 | closed statically (Codex `1609fa7`); operating gate: deploy the repaired CLIs, drain pre-repair commands |
+| F-3 attempt-5 finish | `bench_finish.expected_tree_pins` before and after the comparator | `tests/test_bench_finish.py` 23 | closed statically (Codex `1609fa7`); keep the controller tree fixed during comparison |
 
 Historical table - Codex 299f4b7 repairs (closed statically in cf07869):
 

@@ -50,7 +50,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
 <div class="wrap">
 <header>
   <h1>T1 Validation Tracker</h1>
-  <p class="sub">Entropy SI lane · updated <span id="upd">11 Oct 2026, 05:00 UTC</span> · Unimog <code>292e5445</code>, RSC <code>8d9171a</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
+  <p class="sub">Entropy SI lane · updated <span id="upd">11 Oct 2026, 02:45 UTC</span> · Unimog <code>2cb4e968</code>, RSC <code>64034c5</code> · owner record: <code>rsc_t1_simulation_design.md</code> §11c and §12</p>
 </header>
 
 <section class="two">
@@ -96,17 +96,16 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
       Attempt 1 rejected (spot cap below the market, USD 0). Attempt 2 failed closed at the arm-B check (USD 0.13). Attempt 3 showed native Zen 4 does not reproduce Lengau's datasets, so arm A can never feed the screen (USD 0.13). Attempt 4 reclaimed by AWS in Oregon after 1.4 h (USD 2.60). Moved to Stockholm, where interruptions are rare.
       <b>Attempt 5</b> (i-0ac7f4dab4a37a215, eu-north-1a, since 10 Oct 22:28 UTC): arm B admitted all 36 refits with dataset identities equal to Lengau's.
       <b>Row-6 check (11 Oct 00:30 UTC): arm B 12 of 12 quantities identical to Lengau to the last bit</b>, decisions identical; arm A off by at most 7.1e-8.
-      The 36 refits finish ~17–18 UTC today; success = all 36 bit-identical + a valid report. The finishing command is reviewed: Codex (cf07869) accepts it once it also checks Lengau's comparison code against the reviewed copy, which is now built (RSC 3efb8bb).
+      The 36 refits finish ~17–18 UTC today; success = all 36 bit-identical + a valid report. The finishing command is approved: Codex (1609fa7) accepts its --declare for attempt 5, now that it checks Lengau's comparison code against the reviewed copy before and after the comparison (RSC 3efb8bb).
       <div class="bar run"><i style="width:30%"></i></div><span class="small">row 6 done · 36 refits running</span></td>
       <td class="n">USD 2.87 + ≤ 27 · cap 42</td></tr>
     <tr><td class="w">EC2 qualification · Q1, Q2, S</td><td>Before any EC2 result can count: a production-shaped run checked against Lengau, a repeat on a fresh host, and Lengau shadow fits of the EC2 coordinates.</td><td class="n">EC2 · 76 + 24 · Lengau · 48</td><td><span class="pill hold">in review</span></td>
       <td>Plan: Q1 = 48 new + 24 already-done + 4 sentinel refits, all bit-compared; Q2 repeats 24 on a fresh host; S = 48 Lengau shadows (2,304 core-h). Release needs ≥ 75% successful fits on both sides, peak memory ≤ 184 GiB and a replayed ingestion.
-      Code built and repaired over four Codex rounds (V10, R1, R2, then D-1/D-2; ingestion tests 67 of 67 on real Lengau records). Codex (cf07869): the Lengau controls v12 are favourable with EC2 still off, and most of the machinery is closed; two last conditions (a fresh receipt before any relaunch of a stuck attempt, and draining every benchmark command before qualification opens) are repaired (RSC e644584) and back with Codex.
-      <b>You accepted USD 45</b> (Q1 28 + Q2 17, one attempt each; worst case USD 44.46). Launches after row 23 succeeds and Codex is favourable.
+      Code built and repaired over four Codex rounds (V10, R1, R2, then D-1/D-2; ingestion tests 67 of 67 on real Lengau records). Codex (1609fa7): the Q1/Q2/S machinery is favourable, with operating gates. Codex (64034c5): the EC2 block is favourable - EC2 owns resample indices 160–199 of all 100 datasets (4,000 refits; Lengau keeps the other 16,000) - with the Lengau controls v13 that pin it, adopted directly from today's v9. The migration is prepared as a step-by-step runbook (archive v9, deploy v13, activate the block, fresh checks, one regenerated pilot gate with no new fits); it runs after row 23 succeeds. You accepted USD 45</b> (Q1 28 + Q2 17, one attempt each; worst case USD 44.46). Launches after row 23 succeeds and Codex is favourable.
       <div class="bar"><i style="width:0%"></i></div></td>
       <td class="n">≤ USD 45 · 2,304 core-h</td></tr>
     <tr><td class="w">EC2 production</td><td>A fixed block of screen refits run on EC2 beside Lengau, ingested only after qualification.</td><td class="n">spot · 76 per host</td><td><span class="pill wait">after qualification</span></td>
-      <td>Your go (11 Oct): if qualification works, go straight to production. It starts when the qualification's result review issues the release certificate. The USD 2,300 production envelope buys ~40–55 datasets' refits, about 20–25% of what is left; the rest needs a cap lift, HEAL1922 or a design change.</td>
+      <td>Your go (11 Oct): if qualification works, go straight to production. It starts when the qualification's result review issues the release certificate. As a provisional planning estimate, the USD 2,300 production envelope may cover the 40-index block, about 20% of what is left, once qualification, sentinels, partial batches, retries and idle charges are paid; it is not a guarantee. The rest needs a cap lift, HEAL1922 or a design change.</td>
       <td class="n">≤ USD 2,300</td></tr>
   </table></div>
 </section>
@@ -127,7 +126,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
   <div>
     <h2>Allocation</h2>
     <dl class="kv">
-      <dt>Used</dt><dd>17,627 core-h settled in the five campaign ledgers (shard 4,791.8 · bank 4,745.3 · refit 5,569.1 incl. the lost job 3 · originals 2,168.6 · slice 352.2; 11 Oct 03:1x UTC) + a few core-h for rows 18 and 6, of 100,000</dd>
+      <dt>Used</dt><dd>17,627 core-h settled in the five campaign ledgers (shard 4,791.8 · bank 4,745.3 · refit 5,569.1 incl. the lost job 3 · originals 2,168.6 · slice 352.2; 11 Oct ~01:15 UTC) + a few core-h for rows 18 and 6, of 100,000</dd>
       <dt>Reserved</dt><dd>10,224 core-h live: slice 432 · refit 4,608 (jobs 10–13) · bank 5,184 (jobs 9–14).</dd>
       <dt>AWS</dt><dd>~USD 390 spent since 13 Sept (mostly before this lane); row 23 USD 2.87 so far; ~USD 2,600 left of the USD 3,000 cap. Idle charges ~USD 5.40/day (eu-west-1 VPC endpoints from 2 Aug + S3), flagged, untouched.</dd>
       <dt>Programme</dt><dd>≈ 53,000 shared cores · 70,000–80,000 packed</dd>
@@ -140,7 +139,7 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
     <ul>
       <li><b>Decided 11 Oct:</b> USD 45 for qualification Q1 + Q2 accepted; straight to production if it works.</li>
       <li><b>Your decisions are due.</b> (1) Funding the rest of the screen: the cap buys only ~20–25% on EC2; options are a cap lift, HEAL1922, or a design change. (2) The idle AWS charges (~USD 5.40/day). (3) Image-audit referrals and orange's provenance check. (4) How stage 2 splits across CSCI1913 and HEAL1922.</li>
-      <li><b>Lengau is full (11 Oct 03:1x UTC):</b> 10 serial jobs (refit 10–12 + 13 queued, bank 9–14) + the slice's 3. A watcher refills each freed slot.</li>
+      <li><b>Lengau is full (11 Oct ~01:15 UTC):</b> 10 serial jobs (refit 10–12 + 13 queued, bank 9–14) + the slice's 3. A watcher refills each freed slot.</li>
       <li><b>Text arm.</b> Reader and acceptance rule by 15 Oct.</li>
     </ul>
   </div>
