@@ -33,7 +33,14 @@ sha256 BEFORE the first file is written; each coordinate is published timing fir
 verified temp bytes + fsync + hard link (never replacing); the fence is raised; the entry becomes 'ingested' last. A rerun
 finds the 'ingesting' entry and completes it (a present file must be the registered bytes). A rerun of an 'ingested'
 attempt re-validates every registered canonical record/timing/status hash, the plan and the attempt key; any difference
-writes ec2/HOLD. The canonical Lengau task_<rep>.json bindings are never written; EC2 bindings are kept in the register."""
+writes ec2/HOLD. The canonical Lengau task_<rep>.json bindings are never written; EC2 bindings are kept in the register.
+
+REVISION 3 (Codex RSC 3dc0daf R1-1, R1-2). Under the lock the supplied --authority must be byte-for-byte the root's
+INSTALLED current inventory (row19_ec2_root.py install is its only writer, monotonic in generation), so a fresh but
+superseded inventory can never license a late writer; an attempt with a disposition request, or with a 'dispositioned'
+register entry (fenced at installation), is refused. The activation proof must be a CANONICAL one whose controls lineage
+still pins the partition (row19_partition.activation_problem with the current controls); only the qualifier's sandbox
+replay sets ACTIVATION_MODE = "sandbox". Ingestion no longer writes the inventory."""
 import os, sys, json, glob, math, time, fcntl, hashlib, argparse
 
 HERE = os.path.dirname(os.path.abspath(__file__)); T1 = os.path.abspath(os.path.join(HERE, ".."))
@@ -48,6 +55,7 @@ import row19_ec2_state as ES
 HOLD, DONE = 3, 0
 MUTABLE = ("env/upload_verify.json", "env/userdata.log", "env/spot_notice.json", "env/stop_seen.txt", "env/memory_live.txt")
 CONTROLS = os.path.join(HERE, "row19_screen_controls.json")
+ACTIVATION_MODE = "canonical"                       # the qualifier's sandbox replay alone sets "sandbox"
 
 
 def sha_file(p):
@@ -260,6 +268,9 @@ def main(argv=None):
         print(f"HELD: attempt {a.attempt_key} is not in the authority inventory"); return HOLD
     if att.get("state") != "reconciled":
         print(f"HELD: attempt {a.attempt_key} is {att.get('state')}, not reconciled"); return HOLD
+    if att.get("disposition_requested") or att.get("ingestion") != "pending":
+        print(f"HELD: attempt {a.attempt_key} is {att.get('ingestion')}{' with a disposition request' if att.get('disposition_requested') else ''}: nothing of it is ingested")
+        return HOLD
     released = a.attempt_key in ((inv.get("release") or {}).get("released_attempts") or [])
     if not (att["class"] == "production" or (att["class"] == "qualification" and released)):
         print(f"HELD: attempt {a.attempt_key} is {att['class']} and not released: qualification output never enters the root before release")
@@ -269,7 +280,7 @@ def main(argv=None):
         print("HELD: the partition is not the one the latest adopted controls pin"); return HOLD
     actp = RP.activation_path(man, part["epoch"])
     try:
-        why = RP.activation_problem(man, msha, part, psha, json.load(open(actp)))
+        why = RP.activation_problem(man, msha, part, psha, json.load(open(actp)), controls=ctl, mode=ACTIVATION_MODE)
     except Exception as e:
         why = f"no readable activation proof ({type(e).__name__})"
     if why:
@@ -290,6 +301,10 @@ def main(argv=None):
             print("HELD: the plan lock is held (an admission, an activation or another ingestion)"); return HOLD
         if os.path.exists(P["stop"]) or os.path.exists(P["hold"]):
             print(f"HELD: {'STOP' if os.path.exists(P['stop']) else 'ec2/HOLD'} in force - no canonical publication"); return HOLD
+        cur, why = ES.installed_inventory(root)
+        if why or cur.get("sha256") != inv["sha256"]:
+            print(f"HELD: {why or 'the supplied authority is not the root installed current inventory (generation ' + str(cur.get('generation')) + ')'}")
+            return HOLD
         reg = json.load(open(P["register"])) if os.path.exists(P["register"]) else {
             "schema": ES.REGISTER_SCHEMA, "authority_generation": 0, "fence": {}, "attempts": {}}
         if reg.get("schema") != ES.REGISTER_SCHEMA:
@@ -297,6 +312,8 @@ def main(argv=None):
         if inv["generation"] < reg["authority_generation"]:
             print(f"HELD: authority generation {inv['generation']} is older than the {reg['authority_generation']} already consumed"); return HOLD
         e = reg["attempts"].get(att["attempt_id"])
+        if e is not None and e["state"] == "dispositioned":
+            print(f"HELD: {att['attempt_id']} was dispositioned and fenced on this root (generation {e.get('inventory_generation')})"); return HOLD
         if e is not None and e["state"] == "ingested":
             bad = replay_problems(root, e, att["plan_sha256"], a.attempt_key)
             if bad:
@@ -346,9 +363,6 @@ def main(argv=None):
             atomic_json(P["register"], reg)
             print(f"HELD during publication (entry stays 'ingesting' for a checked replay): {ex}"); return HOLD
         e.update(state="ingested", finished=time.time()); atomic_json(P["register"], reg)
-        cur = json.load(open(P["inventory"])) if os.path.exists(P["inventory"]) else None
-        if cur is None or cur.get("generation", 0) < inv["generation"]:
-            atomic_json(P["inventory"], inv)                                   # the status adapter reads the newest view
     print(f"ingested {att['attempt_id']}: {len(e['coordinates'])} coordinates ({published} files published, "
           f"{sum(1 for c in e['coordinates'].values() if c['failed'])} failed fits kept), {len(e['compared_equal'])} comparisons equal")
     return DONE

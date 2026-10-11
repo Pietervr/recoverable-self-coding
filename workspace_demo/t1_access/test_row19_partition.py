@@ -47,9 +47,17 @@ json.dump({"entries": {"a": {"kind": "shard", "rep": 9, "state": "live", "job_id
 probs, _ = RP.cutover_problems(m2, p)
 check("a ledger entry without its plan is an unknown claim -> refused", any("no plan" in x for x in probs))
 
-# the v10 r1 candidate planner never plans the block
-spec = importlib.util.spec_from_file_location("sa10", os.path.join(HERE, "chpc", "candidate_v10r1", "row19_screen_admit.py"))
-SA = importlib.util.module_from_spec(spec); spec.loader.exec_module(SA)
+# R1-1: a plan file that is not a well-formed slot list is an unknown claim, never "no claims"
+for name, doc in (("an empty plan object", {}), ("a slot without indices", {"slots": [{"slot": 0, "rep": 3}]}), ("unreadable JSON", None)):
+    pp_ = os.path.join(root, "plans", "job_7.json")
+    open(pp_, "w").write("{not json" if doc is None else json.dumps(doc))
+    probs, _ = RP.cutover_problems(m2, p)
+    check(f"R1-1 cutover refuses a malformed plan ({name})", any("claims are unknown" in x for x in probs), probs)
+os.remove(os.path.join(root, "plans", "job_7.json"))
+
+# the v11 candidate (candidate_v10r2) planner never plans the block
+spec = importlib.util.spec_from_file_location("sa11", os.path.join(HERE, "chpc", "candidate_v10r2", "row19_screen_admit.py"))
+SA = importlib.util.module_from_spec(spec); spec.loader.exec_module(SA); SA.ACTIVATION_MODE = "sandbox"
 small = json.loads(json.dumps(man)); small["cfg"]["n_boot_refit"] = 200
 done = {(r, i) for r in small["datasets"]["reps"] for i in range(150)}           # everything below the block done
 jobs, left = SA.plan_jobs(small, "refit", 5, done, set(), {1}, p)
@@ -76,13 +84,22 @@ m3 = dict(man, storage={"root": root2, "campaign": os.path.join(d2, "camp")})
 mp3 = os.path.join(d2, "m.json"); json.dump(m3, open(mp3, "w")); ms3 = RP.sha_file(mp3)
 e1 = RP.declare(m3, ms3, 50, 1); f1 = os.path.join(d2, "e1.json"); json.dump(e1, open(f1, "w"))
 ctl = os.path.join(d2, "ctl.json"); json.dump({"versions": [{"version": 10, "partition": {"sha256": RP.sha_file(f1)}}]}, open(ctl, "w"))
-proof, probs = RP.activate(m3, mp3, f1, ctl)
-check("epoch 1 activates on a clean root with the guard live", probs == [] and RP.activation_problem(m3, ms3, e1, RP.sha_file(f1), proof) == "")
-check("activation_problem refuses a proof of another partition", RP.activation_problem(m3, ms3, e1, "c" * 64, proof) != "")
+_, probs = RP.activate(m3, mp3, f1, ctl)
+check("R1-1 a canonical activation refuses any controls file but the adopted canonical one", any("canonical controls" in x for x in probs), probs)
+proof, probs = RP.activate(m3, mp3, f1, ctl, mode="sandbox")
+C1 = json.load(open(ctl))
+check("epoch 1 activates on a clean root with the guard live", probs == [] and RP.activation_problem(m3, ms3, e1, RP.sha_file(f1), proof, C1, "sandbox") == "")
+check("activation_problem refuses a proof of another partition", RP.activation_problem(m3, ms3, e1, "c" * 64, proof, C1, "sandbox") != "")
+check("R1-1 a canonical consumer refuses a sandbox proof", "sandbox" in RP.activation_problem(m3, ms3, e1, RP.sha_file(f1), proof, C1, "canonical"))
+check("R1-1 a consumer with no controls document refuses", RP.activation_problem(m3, ms3, e1, RP.sha_file(f1), proof, None, "sandbox") != "")
+C2 = {"versions": C1["versions"] + [{"version": 11, "partition": None}]}
+check("R1-1 a later controls version that drops the pin makes the proof historical", "historical" in RP.activation_problem(m3, ms3, e1, RP.sha_file(f1), proof, C2, "sandbox"))
+C3 = {"versions": [dict(C1["versions"][0], reviewed="edited")]}
+check("R1-1 a proof whose controls version entry changed refuses", "byte-identical" in RP.activation_problem(m3, ms3, e1, RP.sha_file(f1), proof, C3, "sandbox"))
 json.dump(proof, open(RP.activation_path(m3, 1), "w"))
 e2 = RP.declare(m3, ms3, 40, 2, dict(epoch=1, sha256=RP.sha_file(f1), indices=e1["indices"])); f2 = os.path.join(d2, "e2.json"); json.dump(e2, open(f2, "w"))
 json.dump({"versions": [{"version": 11, "partition": {"sha256": RP.sha_file(f2)}}]}, open(ctl, "w"))
-_, probs = RP.activate(m3, mp3, f2, ctl)
+_, probs = RP.activate(m3, mp3, f2, ctl, mode="sandbox")
 check("a handback without a fresh authority inventory is refused", any("handback" in x for x in probs))
 def inv(owners):
     att = {"prod-e1/1": dict(key="prod-e1/1", run="prod-e1", attempt=1, attempt_id="a1", sequence=1, state="launched", ingestion="pending",
@@ -93,16 +110,16 @@ def inv(owners):
                         owners={"3/155": ["prod-e1/1", 1]} if owners else {}, fence={"3/155": 1}, release={}, usd={}))
 os.makedirs(os.path.dirname(ES.paths(root2)["inventory"]), exist_ok=True)
 json.dump(inv(True), open(ES.paths(root2)["inventory"], "w"))
-_, probs = RP.activate(m3, mp3, f2, ctl)
+_, probs = RP.activate(m3, mp3, f2, ctl, mode="sandbox")
 check("a handed-back coordinate still owned by a live EC2 attempt refuses activation", any("still owned" in x for x in probs), probs)
 json.dump(inv(False), open(ES.paths(root2)["inventory"], "w"))
-_, probs = RP.activate(m3, mp3, f2, ctl)
+_, probs = RP.activate(m3, mp3, f2, ctl, mode="sandbox")
 check("the handback activates once the owning attempt is terminal/fenced", probs == [], probs)
 
 # v10 r1 admission: activation gate and EC2 receipt binding
 SA.controls = lambda: {"versions": [{"version": 11, "partition": {"sha256": RP.sha_file(f2)}}]}
 check("Lengau refit admission HOLDS while the pinned partition is not activated", "not activated" in SA.activation_problem_v10(m3, mp3, e2))
-json.dump(RP.activate(m3, mp3, f2, ctl)[0], open(RP.activation_path(m3, 2), "w"))
+json.dump(RP.activate(m3, mp3, f2, ctl, mode="sandbox")[0], open(RP.activation_path(m3, 2), "w"))
 check("... and proceeds once it is", SA.activation_problem_v10(m3, mp3, e2) == "")
 check("no partition: no activation requirement (null partition unchanged)", SA.activation_problem_v10(m3, mp3, None) == "")
 r = dict(ec2=dict(bound=ES.bound(root2), problems=[]))
@@ -112,4 +129,51 @@ check("a newly journaled inventory refuses the older receipt", "recollect" in SA
 open(ES.paths(root2)["hold"], "w").write("{}")
 check("an ec2/HOLD refuses even a matching receipt", "HOLD" in SA.ec2_receipt_problem(m3, dict(ec2=dict(bound=ES.bound(root2), problems=[]))))
 check("a receipt with no ec2 section refuses", SA.ec2_receipt_problem(m3, {}) != "")
+
+# R1-1 provider-aware history: EC2-published records are not Lengau completions; each must lie in its own epoch's block
+os.remove(ES.paths(root2)["hold"])
+reg_ = dict(schema=ES.REGISTER_SCHEMA, authority_generation=2, fence={"3/155": 1}, attempts={"a1": dict(
+    attempt_id="a1", key="prod-e1/1", sequence=1, state="ingested", partition_sha256=RP.sha_file(f1), epoch=1,
+    coordinates={"3/155": dict(slot=0, preexisting=False, record_sha256="x", timing_sha256="y", status_sha256="z", failed=False)})})
+json.dump(reg_, open(ES.paths(root2)["register"], "w"))
+os.makedirs(os.path.join(root2, "records", "rep3"), exist_ok=True); open(os.path.join(root2, "records", "rep3", "rec_155.json"), "w").write("{}")
+d_, p_, pr_ = RP.lengau_claims(m3)
+check("R1-1 an EC2-published record is not counted as a Lengau completion", (3, 155) not in d_ and pr_ == [], pr_)
+hist = {RP.sha_file(f1): e1}
+check("R1-1 an EC2 coordinate inside its own epoch's block passes the history check", RP.history_problems(m3, ms3, {"versions": []}, hist) == [])
+reg_["attempts"]["a1"]["coordinates"]["3/10"] = reg_["attempts"]["a1"]["coordinates"].pop("3/155"); json.dump(reg_, open(ES.paths(root2)["register"], "w"))
+check("R1-1 an EC2 coordinate outside its own epoch's block is refused", any("outside the block" in x for x in RP.history_problems(m3, ms3, {"versions": []}, hist)))
+check("R1-1 an EC2 entry naming a partition no controls version pins is refused", any("not one any controls" in x for x in RP.history_problems(m3, ms3, {"versions": []}, {})))
+os.remove(ES.paths(root2)["register"])
+
+# R1-3 Lengau admission rechecks the registered canonical artifacts after a clean watch (post-watch tamper)
+idents = man["shard"]["identities"]
+import hashlib as _h
+def put(rel, obj):
+    p_ = os.path.join(root2, rel); os.makedirs(os.path.dirname(p_), exist_ok=True); json.dump(obj, open(p_, "w")); return RP.sha_file(p_)
+stt = dict(job="a1", slot=0, rep=3, ident=idents["3"], indices=[160], new=[160], resumed=[], left=[], exit=0, reason="", wall_s=7e4, cpu_s=7e4,
+           started=1.0, ended=2.0, maxrss=2_400_000_000)
+hs = dict(record_sha256=put("records/rep3/rec_160.json", {"r": 1}), timing_sha256=put("timing/rep3/t_160.json", {"t": 1}),
+          status_sha256=put("ec2/status/a1.slot0.json", stt))
+json.dump(dict(schema=ES.REGISTER_SCHEMA, authority_generation=2, fence={}, attempts={"a1": dict(attempt_id="a1", key="prod-e1/1", sequence=1,
+          state="ingested", partition_sha256=RP.sha_file(f2), epoch=2, coordinates={"3/160": dict(slot=0, preexisting=False, failed=False, **hs)})}),
+          open(ES.paths(root2)["register"], "w"))
+json.dump(inv(False), open(ES.paths(root2)["inventory"], "w"))
+r = dict(ec2=dict(bound=ES.bound(root2), problems=[]))
+check("R1-3 a clean root after the watch admits", SA.ec2_receipt_problem(m3, r) == "", SA.ec2_receipt_problem(m3, r))
+put("timing/rep3/t_160.json", {"t": 2})
+check("R1-3 a canonical timing altered after a clean watch refuses admission (metadata binding unchanged)", "registered" in SA.ec2_receipt_problem(m3, r))
+put("timing/rep3/t_160.json", {"t": 1}); os.remove(os.path.join(root2, "ec2", "status", "a1.slot0.json"))
+check("R1-3 a copied status removed after a clean watch refuses admission", "registered" in SA.ec2_receipt_problem(m3, r))
+put("ec2/status/a1.slot0.json", stt); os.remove(ES.paths(root2)["inventory"]); r = dict(ec2=dict(bound=ES.bound(root2), problems=[]))
+check("R1-2 a missing installed inventory refuses admission whenever EC2 evidence exists", "inventory" in SA.ec2_receipt_problem(m3, r))
+
+# S: the combined refit+S sub-envelope (two 60,000 ledgers would not aggregate)
+cr, cs = os.path.join(d2, "c_refit"), os.path.join(d2, "c_S"); os.makedirs(cr); os.makedirs(cs)
+json.dump(dict(cap_core_h=60000.0, entries={"a": dict(state="settled", settled_core_h=58000.0, reserved_core_h=1152.0)}), open(os.path.join(cr, "budget.json"), "w"))
+json.dump(dict(cap_core_h=2304.0, entries={"b": dict(state="reserved", reserved_core_h=1152.0)}), open(os.path.join(cs, "budget.json"), "w"))
+envs = {"versions": [{"version": 11, "sub_envelopes": [dict(name="refit+S", campaigns=[cr, cs], cap_core_h=60000.0)]}]}
+check("S the combined sub-envelope refuses an S job that fits its own 2,304 cap but not the shared 60,000", "sub-envelope" in SA.sub_envelope_problem(cs, 1152.0, envs))
+check("... and refuses a refit job on the same count (both directions share it)", "sub-envelope" in SA.sub_envelope_problem(cr, 1152.0, envs))
+check("... and passes while the shared total fits", SA.sub_envelope_problem(cs, 100.0, envs) == "")
 print("ALL PASS" if ok else "SOME FAILED"); sys.exit(0 if ok else 1)

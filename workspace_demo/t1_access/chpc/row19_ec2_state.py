@@ -10,7 +10,23 @@ Files under the screen root (written ONLY by the named producer, read by everyon
   STOP                           the common screen STOP (Lengau workers, EC2 admission, EC2 instances via propagation)
 
 `bound(root)` is the digest set a receipt binds and an admission recomputes: a newly journaled attempt (new inventory or
-register bytes), a new activation or a HOLD changes it, so an older receipt can no longer admit anything."""
+register bytes), a new activation or a HOLD changes it, so an older receipt can no longer admit anything.
+
+REVISION 2 (Codex RSC 3dc0daf R1-2, R1-3):
+  install_inventory  the ONLY writer of ec2/authority/inventory.json, run on the Lengau login node UNDER the plan lock
+                     (row19_ec2_root.py install): a sealed, fresh inventory is installed only at a generation strictly above
+                     the installed one (the same generation only with the same bytes - idempotent); every installation is
+                     appended to ec2/authority/installed.jsonl. An attempt the Mac asks to disposition (`disposition_requested`)
+                     is FENCED on the root in the same step: the register gains a 'dispositioned' entry with its key, global
+                     sequence and coordinates (no ingestion of that attempt can ever start), or the request is refused when the
+                     attempt already has an ingesting/ingested entry. The step writes ec2/authority/ack_g<generation>.json
+                     (immutable) naming each fenced and each refused key; the Mac releases ownership ONLY against that
+                     acknowledgement (prod_authority.py disposition-confirm). Ingestion and both admissions use the INSTALLED
+                     view, never a copy supplied beside it.
+  current_problems   what every admission rechecks under its lock beyond the receipt: whenever an activation, a register or
+                     an installed inventory exists, a valid sealed installed inventory; every registered canonical
+                     record/timing/status of every ingested coordinate still the registered bytes, the status still a complete
+                     terminal status of exactly that attempt and slot; a dispositioned entry has published nothing."""
 import hashlib, json, math, os, time
 
 INVENTORY_SCHEMA = "t1-ec2-authority-inventory-1"
@@ -19,6 +35,8 @@ ACTIVATION_SCHEMA = "row19-ec2-activation-1"
 INVENTORY_MAX_AGE_S = 6 * 3600              # an ingestion or a receipt never trusts an older authority view
 ATTEMPT_STATES = ("intent", "launched", "rejected", "ambiguous", "reconciled")
 INGESTION_STATES = ("pending", "ingested", "dispositioned")
+REGISTER_STATES = ("ingesting", "ingested", "dispositioned")
+ACK_SCHEMA = "row19-ec2-authority-ack-1"
 CLASSES = ("production", "qualification")
 WORKER_DONE, WORKER_RESUME, WORKER_HELD = 0, 75, 4
 
@@ -46,7 +64,11 @@ def _int(x):
 def paths(root):
     e = os.path.join(root, "ec2")
     return dict(dir=e, register=os.path.join(e, "register.json"), inventory=os.path.join(e, "authority", "inventory.json"),
-                hold=os.path.join(e, "HOLD"), stop=os.path.join(root, "STOP"))
+                installed=os.path.join(e, "authority", "installed.jsonl"), hold=os.path.join(e, "HOLD"), stop=os.path.join(root, "STOP"))
+
+
+def ack_path(root, generation):
+    return os.path.join(root, "ec2", "authority", f"ack_g{int(generation)}.json")
 
 
 def activation_path(root, epoch):
@@ -107,6 +129,9 @@ def inventory_problem(inv, now=None, max_age=INVENTORY_MAX_AGE_S):
                 return f"attempt {key}: {fld} malformed"
         if not _num(a.get("charged_usd")) or a["charged_usd"] < 0:
             return f"attempt {key}: charged USD missing or negative"
+        if not isinstance(a.get("disposition_requested", False), bool) or (a.get("disposition_requested") and
+                                                                             (a.get("state") != "reconciled" or a.get("ingestion") != "pending")):
+            return f"attempt {key}: a disposition request on an attempt that is not reconciled and pending"
         if owns(a):
             for c in a.get("coordinates", []):
                 k = f"{c[0]}/{c[1]}"
@@ -123,6 +148,137 @@ def inventory_problem(inv, now=None, max_age=INVENTORY_MAX_AGE_S):
             if a.get("state") != "rejected" and fence.get(f"{c[0]}/{c[1]}", -1) < a["sequence"]:
                 return f"fence below attempt {key}'s sequence at {c}"
     return ""
+
+
+def _atomic_json(path, obj):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = f"{path}.tmp.{os.getpid()}"
+    with open(tmp, "w") as fh:
+        json.dump(obj, fh, indent=1, sort_keys=True); fh.flush(); os.fsync(fh.fileno())
+    os.replace(tmp, path)
+
+
+def installed_inventory(root, now=None, max_age=INVENTORY_MAX_AGE_S):
+    """(inventory, '') for the root's installed, valid, sealed inventory (fresh within max_age), else (None, why)."""
+    p = paths(root)["inventory"]
+    if not os.path.exists(p):
+        return None, "no authority inventory is installed on the root"
+    try:
+        inv = json.load(open(p))
+    except Exception as e:
+        return None, f"the installed authority inventory is unreadable ({type(e).__name__})"
+    why = inventory_problem(inv, now, max_age)
+    return (None, f"installed authority inventory: {why}") if why else (inv, "")
+
+
+def install_inventory(root, inv, now=None):
+    """Install `inv` as the root's current view (call ONLY under the plan lock). Returns (ack dict, problems). Monotonic:
+    a strictly newer generation, or the same generation with the same bytes (idempotent). Fences every requested
+    disposition in the register in the same step and writes the immutable acknowledgement."""
+    now = time.time() if now is None else now
+    why = inventory_problem(inv, now)
+    if why:
+        return None, [f"not installed: {why}"]
+    P = paths(root)
+    cur = None
+    if os.path.exists(P["inventory"]):
+        try:
+            cur = json.load(open(P["inventory"]))
+        except Exception:
+            return None, ["the installed inventory is unreadable: repair by hand before installing another"]
+        if not (_int(cur.get("generation")) and isinstance(cur.get("sha256"), str)):
+            return None, ["the installed inventory carries no generation/seal: repair by hand before installing another"]
+        if inv["generation"] < cur["generation"]:
+            return None, [f"generation {inv['generation']} is older than the installed {cur['generation']} (an out-of-order delivery)"]
+        if inv["generation"] == cur["generation"] and inv["sha256"] != cur["sha256"]:
+            return None, [f"generation {inv['generation']} is installed with other bytes"]
+    reg = json.load(open(P["register"])) if os.path.exists(P["register"]) else {
+        "schema": REGISTER_SCHEMA, "authority_generation": 0, "fence": {}, "attempts": {}}
+    if reg.get("schema") != REGISTER_SCHEMA:
+        return None, ["the register is not schema 2"]
+    fenced, refused = {}, {}
+    for key, a in sorted(inv["attempts"].items()):
+        if not a.get("disposition_requested"):
+            continue
+        e = reg["attempts"].get(a["attempt_id"])
+        if e is not None and e.get("state") != "dispositioned":
+            refused[key] = f"the register already holds an {e.get('state')} entry: the output is (being) ingested"; continue
+        if e is not None and (e.get("key") != key or e.get("sequence") != a["sequence"]):
+            refused[key] = "a dispositioned entry of another key/sequence exists under this attempt id"; continue
+        if e is None:
+            reg["attempts"][a["attempt_id"]] = dict(attempt_id=a["attempt_id"], key=key, sequence=a["sequence"], state="dispositioned",
+                                                    cls=a["class"], plan_sha256=a["plan_sha256"], coordinates={},
+                                                    fenced_coordinates=sorted(f"{c[0]}/{c[1]}" for c in a.get("coordinates", [])),
+                                                    inventory_generation=inv["generation"], at=now)
+            for c in a.get("coordinates", []):
+                k = f"{c[0]}/{c[1]}"; reg["fence"][k] = max(reg["fence"].get(k, -1), a["sequence"])
+        fenced[key] = dict(attempt_id=a["attempt_id"], sequence=a["sequence"],
+                           coordinates_sha256=sha_bytes(canonical(sorted(a.get("coordinates", [])))))
+    if fenced:                                    # the register is written only when there is a fence to record
+        reg["authority_generation"] = max(reg.get("authority_generation", 0), inv["generation"])
+        _atomic_json(P["register"], reg)
+    _atomic_json(P["inventory"], inv)
+    with open(P["installed"], "a") as fh:
+        fh.write(json.dumps(dict(generation=inv["generation"], sha256=inv["sha256"], at=now)) + "\n"); fh.flush(); os.fsync(fh.fileno())
+    ack = dict(schema=ACK_SCHEMA, generation=inv["generation"], inventory_sha256=inv["sha256"], dispositioned=fenced,
+               refused=refused, register_sha256=_sha_or_none(P["register"]), at=now)
+    ap = ack_path(root, inv["generation"])
+    if os.path.exists(ap):
+        old = json.load(open(ap))
+        if {k: v for k, v in old.items() if k not in ("at", "register_sha256")} != {k: v for k, v in ack.items() if k not in ("at", "register_sha256")}:
+            return None, [f"{os.path.basename(ap)} exists with another content"]
+        return old, []
+    _atomic_json(ap, ack)
+    return ack, []
+
+
+def current_problems(root, man, require=None):
+    """R1-3: what an admission rechecks under its lock (see the module text). `require` forces the inventory requirement
+    (the caller knows a partition is in force); otherwise it applies whenever EC2 evidence is on the root."""
+    P = paths(root); out = []
+    acts = [f for f in os.listdir(P["dir"]) if f.startswith("activation_e")] if os.path.isdir(P["dir"]) else []
+    evidence = bool(acts) or os.path.exists(P["register"]) or os.path.exists(P["inventory"])
+    if require or evidence:
+        _, why = installed_inventory(root, max_age=float("inf"))
+        if why:
+            out.append(why)
+    if not os.path.exists(P["register"]):
+        return out
+    try:
+        reg = json.load(open(P["register"]))
+        assert reg.get("schema") == REGISTER_SCHEMA
+    except Exception:
+        return out + ["the EC2 register is unreadable or not schema 2"]
+    mem_stop = float(man["pbs"].get("mem_stop_gib", 0) or 0) * 2 ** 30
+    idents = man["shard"]["identities"]
+    for aid, e in sorted((reg.get("attempts") or {}).items()):
+        st = e.get("state")
+        if st not in REGISTER_STATES:
+            out.append(f"EC2 attempt {aid}: unknown register state {st!r}"); continue
+        if st == "dispositioned":
+            if e.get("coordinates"):
+                out.append(f"EC2 attempt {aid}: dispositioned but carries published coordinates")
+            continue
+        if st != "ingested":
+            continue
+        for k, ce in sorted((e.get("coordinates") or {}).items()):
+            if ce.get("preexisting"):
+                continue
+            r, i = (int(x) for x in k.split("/"))
+            sp = os.path.join(root, "ec2", "status", f"{aid}.slot{ce.get('slot')}.json")
+            for what, fp, h in (("record", os.path.join(root, "records", f"rep{r}", f"rec_{i:03d}.json"), ce.get("record_sha256")),
+                                ("timing", os.path.join(root, "timing", f"rep{r}", f"t_{i:03d}.json"), ce.get("timing_sha256")),
+                                ("status", sp, ce.get("status_sha256"))):
+                if not os.path.exists(fp) or sha_file(fp) != h:
+                    out.append(f"EC2 unit {k} ({aid}): canonical {what} is missing or not the registered bytes")
+            if os.path.exists(sp):
+                try:
+                    why = status_problem(json.load(open(sp)), aid, ce.get("slot"), r, i, idents.get(str(r)), mem_stop)
+                except Exception as ex:
+                    why = f"status unreadable ({type(ex).__name__})"
+                if why:
+                    out.append(f"EC2 unit {k} ({aid}): {why}")
+    return out
 
 
 def owns(a):
@@ -182,6 +338,37 @@ CONTRACTS = {
 }
 OPERATIONAL_FIELDS = ["storage.root", "storage.campaign", "pbs.cores", "shard.expect_layer_s", "shard.expect_note", "ec2_production"]
 SETUP_S, UPLOAD_RESERVE_S = 900, 3000
+
+
+S_ROOT = "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/root"
+S_CAMPAIGN = "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign"
+S_RESERVED_CORE_H = 2304.0
+S_FIELDS = ["storage.root", "storage.campaign", "budget.core_hours_cap", "ec2_qualification_shadow"]
+
+
+def derive_isolated_S(prod, prod_sha, root=S_ROOT, campaign=S_CAMPAIGN):
+    """S's isolated operational manifest: the production screen manifest with ONLY its storage (an isolated root and
+    campaign) and its reservation cap (2,304 core-h, both S jobs) changed, plus a marker naming the parent. The science
+    (cfg, setting, datasets, shard identities, code pins, pbs shape) is byte-identical, so the unchanged worker computes the
+    frozen tasks; nothing it writes is in the screen root."""
+    m = json.loads(json.dumps(prod))
+    m["storage"] = {"root": root, "campaign": campaign}
+    m.setdefault("budget", {})["core_hours_cap"] = S_RESERVED_CORE_H
+    m["ec2_qualification_shadow"] = {"derived_from_sha256": prod_sha, "changed": S_FIELDS, "role": "S",
+                                     "rule": "isolated Lengau shadow references for the EC2 qualification; never canonical"}
+    return m
+
+
+def isolated_S_problem(sman, prod, prod_sha):
+    """'' when `sman` is exactly derive_isolated_S of the production manifest for its own root/campaign."""
+    st = sman.get("storage") if isinstance(sman, dict) else None
+    if not isinstance(st, dict) or not isinstance(sman.get("ec2_qualification_shadow"), dict):
+        return "not the isolated S manifest"
+    if st.get("root") == prod["storage"]["root"] or st.get("campaign") == prod["storage"]["campaign"]:
+        return "the S manifest is not isolated from the screen root/campaign"
+    if canonical(sman) != canonical(derive_isolated_S(prod, prod_sha, st.get("root"), st.get("campaign"))):
+        return f"the S manifest is not the exact isolated derivation of {prod_sha[:8]}"
+    return ""
 
 
 def derive_operational(prod, prod_sha, epoch, expect_s, contract):

@@ -1,15 +1,15 @@
 {
- "schema": "t1-ec2-qualification-S-1",
+ "schema": "t1-ec2-qualification-S-2",
  "purpose": "S of QUALIFICATION_PLAN.md: Lengau shadow references for Q1's 48 block coordinates (index 199 and 198, reps 3..26)",
  "science": "the screen manifest 43b75f94 unchanged (shard worker, same frozen tasks); output never enters the screen root",
  "isolated_root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/root",
  "isolated_campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign",
  "reservation_core_h": 2304,
  "charge_estimate_core_h": 1200,
- "funding": "the CSCI1913 refit campaign cap (60,000 core-h) through the programme gate, as two isolated entries",
+ "funding": "the CSCI1913 programme allocation (100,000 core-h, programme lock) AND the combined refit+S sub-envelope of 60,000 core-h declared in the controls version that adopts S (one envelope shared by the screen refit campaign and S's isolated campaign); S's own ledger cap is its 2,304 core-h reservation",
  "jobs": [
   {
-   "job": "S1",
+   "job": 1,
    "cores": 24,
    "walltime_h": 48,
    "reserved_core_h": 1152,
@@ -182,10 +182,11 @@
       199
      ]
     }
-   ]
+   ],
+   "label": "S1"
   },
   {
-   "job": "S2",
+   "job": 2,
    "cores": 24,
    "walltime_h": 48,
    "reserved_core_h": 1152,
@@ -358,8 +359,9 @@
       198
      ]
     }
-   ]
+   ],
+   "label": "S2"
   }
  ],
- "status": "DECLARED, NOT SUBMITTABLE: the Lengau programme gate and admission have no isolated qualification-campaign entry kind yet (consumer missing). Building it is a Lengau-side change that needs its own reviewed controls version; until then S cannot run and the release rule cannot complete."
+ "status": "SUBMITTABLE ONLY through chpc/row19_ec2_shadow.py under a reviewed controls version that declares the isolated campaign (candidate_v10r2, version 11), after row 23's declared success, a favourable review of the repaired package and qualification permission in aws_ec2/ec2_release_state.json. Ledger kind 'shard' and the unchanged worker (Codex RSC 3dc0daf: no new kind needed)."
 }

@@ -4,11 +4,13 @@ attempt state. No fits, no Lengau.    .venv/bin/python test_row19_ec2_status.py"
 import os, sys, json, tempfile, importlib.util, types, time, hashlib
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path[:0] = [HERE, os.path.join(HERE, "chpc")]
 import row19_partition as RP, row19_ec2_state as ES
-spec = importlib.util.spec_from_file_location("sv10r1", os.path.join(HERE, "chpc", "candidate_v10r1", "row19_screen_status.py"))
+spec = importlib.util.spec_from_file_location("sv11", os.path.join(HERE, "chpc", "candidate_v10r2", "row19_screen_status.py"))
 SV = importlib.util.module_from_spec(spec); spec.loader.exec_module(SV)
 man_path = os.path.join(HERE, "chpc", "row19_screen_manifest.json"); man = json.load(open(man_path))
 part = RP.declare(man, RP.sha_file(man_path), 50, 1)
+PF = os.path.join(tempfile.mkdtemp(), "partition_e1.json"); json.dump(part, open(PF, "w")); PSHA = RP.sha_file(PF)
 fake = types.ModuleType("row19_screen_admit"); fake.partition = lambda m, p: part; sys.modules["row19_screen_admit"] = fake
+fake.controls = lambda: {"versions": [{"version": 11, "partition": {"path": PF, "sha256": PSHA}}]}
 SV.MANIFEST_PATH = man_path
 ok = True
 def check(name, cond, extra=""):
@@ -33,7 +35,7 @@ def inventory(atts, at=None):
 
 def setup(state="ingested", inv=None, status_edit=None, drop_status=(), coords=((3, 199), (4, 199))):
     root = tempfile.mkdtemp(); os.makedirs(os.path.join(root, "ec2", "status")); os.makedirs(os.path.join(root, "ec2", "authority"))
-    entry = dict(attempt_id=AID, key=KEY, sequence=1, state=state, epoch=1, coordinates={})
+    entry = dict(attempt_id=AID, key=KEY, sequence=1, state=state, epoch=1, partition_sha256=PSHA, coordinates={})
     units = {}
     for k, (r, i) in enumerate(coords):
         rp = os.path.join(root, "records", f"rep{r}", f"rec_{i:03d}.json"); tp = os.path.join(root, "timing", f"rep{r}", f"t_{i:03d}.json")
@@ -93,7 +95,19 @@ r["attempts"]["ec2-prod-e1-a2"] = dict(r["attempts"][AID], attempt_id="ec2-prod-
 json.dump(r, open(os.path.join(two, "ec2", "register.json"), "w"))
 check("coordinate claimed by two attempts -> alarm", any("claimed by attempts" in a for a in run(two, units)[0]))
 rootp, up = setup(coords=((3, 199), (5, 10)))
-check("coordinate outside the partition -> alarm", any("outside the provider partition" in a for a in run(rootp, up)[0]))
+check("R1-1 coordinate outside the block of its own epoch's partition -> alarm", any("outside the block of its own partition" in a for a in run(rootp, up)[0]))
+rooth, uh = setup(); r = json.load(open(os.path.join(rooth, "ec2", "register.json"))); r["attempts"][AID]["partition_sha256"] = "e" * 64
+json.dump(r, open(os.path.join(rooth, "ec2", "register.json"), "w"))
+check("R1-1 a register entry naming a partition no controls version pins -> alarm", any("not one any controls version pins" in a for a in run(rooth, uh)[0]))
+rootm, um = setup(); os.remove(os.path.join(rootm, "ec2", "authority", "inventory.json"))
+check("R1-2 a register with NO installed inventory -> alarm (never a clean view)", any("no valid authority inventory" in a for a in run(rootm, um)[0]))
+rootd = tempfile.mkdtemp(); os.makedirs(os.path.join(rootd, "ec2", "authority"))
+json.dump(dict(schema=ES.REGISTER_SCHEMA, authority_generation=4, fence={"3/199": 1}, attempts={AID: dict(attempt_id=AID, key=KEY, sequence=1, state="dispositioned",
+          coordinates={}, fenced_coordinates=["3/199"])}), open(os.path.join(rootd, "ec2", "register.json"), "w"))
+json.dump(inventory({KEY: attempt(ingestion="dispositioned")}), open(os.path.join(rootd, "ec2", "authority", "inventory.json"), "w"))
+check("R1-2 a dispositioned (fenced) register entry is a known state, no alarm", run(rootd, {})[0] == [], run(rootd, {})[0])
+emptyp = tempfile.mkdtemp()
+check("R1-2 a pinned partition with no inventory alarms even before any EC2 output", any("no valid authority inventory" in a for a in run(emptyp, {})[0]))
 rooti, ui = setup(state="ingesting"); check("an 'ingesting' attempt without records yet raises no record alarm", run(rooti, {})[0] == [], run(rooti, {})[0])
 rootw, uw = setup(state="weird"); check("unknown register state -> alarm", any("unknown register state" in a for a in run(rootw, uw)[0]))
 rootv = tempfile.mkdtemp(); os.makedirs(os.path.join(rootv, "ec2")); json.dump({"schema": "row19-ec2-register-1", "attempts": {}}, open(os.path.join(rootv, "ec2", "register.json"), "w"))
@@ -101,8 +115,10 @@ check("a schema-1 register -> alarm", any("schema" in a for a in run(rootv, {})[
 fake.partition = lambda m, p: None
 rootn, un = setup(); check("EC2 evidence with no partition in force -> alarm", any("no provider partition" in a for a in run(rootn, un)[0]))
 fake.partition = lambda m, p: part
+ctl_saved = fake.controls; fake.controls = lambda: {"versions": [{"version": 11, "partition": None}]}
 empty = tempfile.mkdtemp(); al, out = run(empty, {})
-check("no EC2 evidence: no alarm, empty attempts, bound of an empty root", al == [] and out["attempts"] == {} and out["bound"] == ES.bound(empty))
+check("null partition, no EC2 evidence: no alarm, empty attempts, bound of an empty root", al == [] and out["attempts"] == {} and out["bound"] == ES.bound(empty))
+fake.controls = ctl_saved
 # STOP propagation (V10-8): the Lengau root STOP reaches every live EC2 run through prod_stop.propagate
 calls = []
 PS = types.ModuleType("prod_stop"); PS.propagate = lambda runs, reason: calls.append(runs) or runs; sys.modules["prod_stop"] = PS

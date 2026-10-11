@@ -1,0 +1,64 @@
+--- /Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/chpc/candidate_v10r1/row19_screen_admit.py	2026-10-10 17:26:35
++++ /Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/chpc/candidate_v10r2/row19_screen_admit.py	2026-10-10 18:08:47
+@@ -157,6 +157,7 @@
+ WATCH_SCHEMA = "row19-screen-watch-1"
+ CEILING_S = 2700.0
+ BOUND_KEYS = ("manifest_sha256", "root", "campaign", "code", "wrapper_sha256")
++ACTIVATION_MODE = "canonical"            # REVISION 11 (Codex 3dc0daf R1-1): tests alone set "sandbox"
+ 
+ 
+ def hms(seconds):
+@@ -246,7 +247,7 @@
+         proof = json.load(open(pp))
+     except Exception as e:
+         return f"the activation proof is unreadable ({e})"
+-    return RP.activation_problem(man, sha_file(manifest_path), part, ref["sha256"], proof)
++    return RP.activation_problem(man, sha_file(manifest_path), part, ref["sha256"], proof, controls=controls(), mode=ACTIVATION_MODE)
+ 
+ 
+ def ec2_receipt_problem(man, r):
+@@ -262,6 +263,11 @@
+         return "an EC2 HOLD is in force (ec2/HOLD): a sentinel or replay difference awaits review"
+     if (r.get("ec2") or {}).get("problems"):
+         return f"the receipt's EC2 view has problems {r['ec2']['problems'][:3]}"
++    # REVISION 11 (Codex 3dc0daf R1-3): the receipt binds metadata only; recheck the current registered canonical
++    # record/timing/status bytes and the installed inventory now, under this admission's lock
++    cur = ES.current_problems(man["storage"]["root"], man, require=bool(controls()["versions"][-1].get("partition")))
++    if cur:
++        return f"the current EC2 artifacts fail their registered contract: {cur[:3]}"
+     return ""
+ 
+ 
+@@ -1336,6 +1342,32 @@
+         return "the campaign cap is not finite and positive"
+     if spent + live + proposal_core_h > cap + 1e-9:
+         return f"the campaign cap: spent {spent:.1f} + live {live:.1f} + {proposal_core_h:.1f} proposed > {cap:.0f} core-hours"
++    return sub_envelope_problem(man["storage"]["campaign"], proposal_core_h)
++
++
++def sub_envelope_problem(campaign, proposal_core_h, ctl=None):
++    """REVISION 11 (Codex 3dc0daf, S): every sub-envelope of the latest controls version that contains `campaign` must hold
++    the committed core-hours (settled + every live reservation) of ALL its campaigns plus this proposal - S and the refit
++    share one 60,000 envelope; two separate ledger caps would not aggregate."""
++    ctl = ctl or controls()
++    for env in ctl["versions"][-1].get("sub_envelopes") or []:
++        if campaign not in env["campaigns"]:
++            continue
++        total = 0.0
++        for c in env["campaigns"]:
++            lp = os.path.join(c, "budget.json")
++            if not os.path.exists(lp):
++                continue
++            try:
++                led = _strict_load(lp)
++                total += sum(float(e["settled_core_h"]) if e.get("state") == "settled" else float(e["reserved_core_h"])
++                             for e in led["entries"].values())
++            except (OSError, ValueError, KeyError, TypeError) as e:
++                return f"the sub-envelope {env['name']}: {lp} cannot be counted ({e})"
++        if not (_num(env.get("cap_core_h")) and env["cap_core_h"] > 0):
++            return f"the sub-envelope {env.get('name')} has no finite positive cap"
++        if total + proposal_core_h > env["cap_core_h"] + 1e-9:
++            return f"the sub-envelope {env['name']}: {total:.1f} committed + {proposal_core_h:.1f} proposed > {env['cap_core_h']:.0f} core-hours"
+     return ""
+ 
+ 

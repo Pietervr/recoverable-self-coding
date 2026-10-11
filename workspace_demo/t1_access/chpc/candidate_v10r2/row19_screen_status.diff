@@ -1,0 +1,72 @@
+--- /Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/chpc/candidate_v10r1/row19_screen_status.py	2026-10-10 17:27:15
++++ /Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/chpc/candidate_v10r2/row19_screen_status.py	2026-10-10 18:08:47
+@@ -425,6 +425,7 @@
+             if k in assigned:
+                 alarms.append(f"EC2-owned coordinate {k} ({inv['owners'][k][0]}) is also in a Lengau plan")
+         out["usd"].update(inventory_generation=inv["generation"], inventory_at=inv["at"])
++    acts = [f for f in os.listdir(P["dir"]) if f.startswith("activation_e")] if os.path.isdir(P["dir"]) else []
+     reg = None
+     if os.path.exists(P["register"]):
+         try:
+@@ -434,14 +435,22 @@
+         except Exception as e:
+             alarms.append(f"the EC2 register is unreadable ({e})")
+     part = None
+-    if reg is not None or inv is not None:
++    import row19_screen_admit as _SA
++    try:
++        pinned = bool(_SA.controls()["versions"][-1].get("partition"))
++    except Exception:
++        pinned = False
++    if reg is not None or inv is not None or acts:
+         try:
+-            import row19_screen_admit as _SA
+             part = _SA.partition(man, MANIFEST_PATH)
+         except Exception as e:
+             alarms.append(f"EC2 evidence present but the provider partition cannot be trusted ({e})")
+-        if part is None:
++        if part is None and reg is not None:
+             alarms.append("EC2 evidence present but no provider partition is in force")
++    # REVISION 11 (Codex 3dc0daf R1-2): an inventory is REQUIRED whenever a partition is pinned or any EC2 register or
++    # activation exists; its absence (or an invalid one) alarms - only the genuinely empty null-partition root is clean
++    if inv is None and (pinned or reg is not None or acts) and not any("authority inventory" in x for x in alarms):
++        alarms.append("EC2 partition/register/activation present but no valid authority inventory is installed on the root")
+     if os.path.exists(P["stop"]) and live_runs:
+         try:
+             sys.path.insert(0, os.path.join(HERE, "..", "aws_ec2"))
+@@ -453,6 +462,10 @@
+     if reg is None:
+         return out
+     import row19_partition as _RP
++    try:                                                  # REVISION 11 (R1-1): each entry against ITS OWN epoch's block
++        hist = _RP.historical_partitions(_SA.controls(), man, ES.sha_file(MANIFEST_PATH))
++    except Exception as e:
++        hist = {}; alarms.append(f"the historical provider partitions cannot be loaded ({type(e).__name__}: {e})")
+     mem_stop = float(man["pbs"].get("mem_stop_gib", 0) or 0) * 2 ** 30
+     idents = man["shard"]["identities"]
+     owner = {}
+@@ -463,15 +476,22 @@
+             alarms.append(f"EC2 attempt {aid}: not in the authority inventory with the register's key and sequence")
+         out["attempts"].setdefault(e.get("key") or aid, {}).update(register_state=st, ingested_coordinates=len(coords),
+                                                                     failed=sum(1 for c in coords.values() if c.get("failed")))
++        if st == "dispositioned":                        # fenced at installation (R1-2): no coordinate may be published
++            if coords:
++                alarms.append(f"EC2 attempt {aid}: dispositioned but carries published coordinates")
++            continue
+         if st not in ("ingesting", "ingested"):
+             alarms.append(f"EC2 attempt {aid}: unknown register state {st!r}"); continue
++        epart = hist.get(e.get("partition_sha256"))
++        if epart is None:
++            alarms.append(f"EC2 attempt {aid}: its partition {str(e.get('partition_sha256'))[:12]} is not one any controls version pins")
+         for key, ce in coords.items():
+             if key in owner:
+                 alarms.append(f"EC2 unit {key}: claimed by attempts {owner[key]} and {aid}"); continue
+             owner[key] = aid; assigned.add(key)
+             r, i = (int(x) for x in key.split("/"))
+-            if part is not None and not _RP.blocked(part, r, i):
+-                alarms.append(f"EC2 unit {key} ({aid}): outside the provider partition")
++            if epart is not None and not _RP.blocked(epart, r, i):
++                alarms.append(f"EC2 unit {key} ({aid}): outside the block of its own partition epoch {epart['epoch']}")
+             if st != "ingested" or ce.get("preexisting"):
+                 continue
+             v = units.get(key) or {}

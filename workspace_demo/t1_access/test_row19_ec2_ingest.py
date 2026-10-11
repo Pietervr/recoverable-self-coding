@@ -51,6 +51,7 @@ else:
 
 import row19_shard as SH, row19_partition as RP, row19_ec2_state as ES
 import row19_ec2_ingest as IG
+IG.ACTIVATION_MODE = "sandbox"                                   # every proof here is a sandbox proof (Codex 3dc0daf R1-1)
 prod = json.load(open(os.path.join(HERE, "chpc", "row19_screen_manifest.json")))
 AID, KEY, SEQ = "ec2-prod-e1-a1", "prod-e1/1", 7
 STATUS0 = dict(exit=0, reason="", left=[], resumed=[], wall_s=70000.0, cpu_s=69000.0, started=1.0, ended=70001.0, maxrss=2_400_000_000, host="ip-10-0-0-1")
@@ -105,7 +106,7 @@ def build(case, contract="production", cls="production"):
     part = RP.declare(man, msha, 199, 1); pp = os.path.join(d, "partition.json"); json.dump(part, open(pp, "w")); psha = sha(pp)
     cp = os.path.join(d, "controls.json"); json.dump({"versions": [{"version": 10, "partition": {"path": "x", "sha256": psha}}]}, open(cp, "w"))
     IG.CONTROLS = cp
-    proof, probs = RP.activate(man, mp, pp, cp)
+    proof, probs = RP.activate(man, mp, pp, cp, mode="sandbox")
     ap_ = RP.activation_path(man, 1); os.makedirs(os.path.dirname(ap_), exist_ok=True); json.dump(proof, open(ap_, "w"))
     opm = ES.derive_operational(man, msha, 1, 75300, contract); opp = os.path.join(d, "op.json"); json.dump(opm, open(opp, "w")); opsha = sha(opp)
     b = os.path.join(d, "bundle"); broot = os.path.join(b, "root"); env = os.path.join(b, "env"); os.makedirs(env)
@@ -142,7 +143,8 @@ def build(case, contract="production", cls="production"):
                duplicates=[], charged_usd=1.0, **{"class": cls})
     inv = inventory({KEY: att})
     ip = os.path.join(d, "inventory.json"); json.dump(inv, open(ip, "w"))
-    return dict(d=d, root=root, mp=mp, pp=pp, opp=opp, ip=ip, b=b, att=att)
+    ES.install_inventory(root, inv)                              # the root's installed current view (R1-2)
+    return dict(d=d, root=root, mp=mp, pp=pp, opp=opp, ip=ip, b=b, att=att, gen=3)
 
 
 def inventory(atts, gen=3, at=None, owners=None, release=None):
@@ -174,8 +176,12 @@ def held(c):
     return os.path.exists(os.path.join(c["root"], "ec2", "HOLD"))
 
 
-def resave_inv(c, **kw):
-    json.dump(inventory({KEY: c["att"]}, **kw), open(c["ip"], "w"))
+def resave_inv(c, install=True, atts=None, **kw):
+    c["gen"] += 1
+    inv = inventory(atts or {KEY: c["att"]}, gen=c["gen"], **kw); json.dump(inv, open(c["ip"], "w"))
+    if install:
+        ES.install_inventory(c["root"], inv)
+    return inv
 
 
 def edit_bundle(c, rel, fn):
@@ -193,7 +199,7 @@ if STUB or fk:
 else:
     print("SKIP failed-fit publication: no failed fit among the real index-1 records copied (covered in STUB mode)", flush=True)
 check("fence raised to the attempt's sequence", R and all(R["fence"][f"{r}/1"] == SEQ for r in REPS))
-check("authority inventory installed on the root for the status adapter", os.path.exists(os.path.join(c["root"], "ec2", "authority", "inventory.json")))
+check("the installed inventory stays the root's view (ingestion never writes it)", json.load(open(os.path.join(c["root"], "ec2", "authority", "inventory.json")))["sha256"] == json.load(open(c["ip"]))["sha256"])
 check("canonical task bindings untouched (none written)", not glob.glob(os.path.join(c["root"], "task_*.json")))
 check("replay of an ingested attempt is re-validated and passes", ingest(c) == 0 and not held(c))
 tp = SH.timing_path(c["root"], 3, 1); t = json.load(open(tp)); t["wall_s"] += 1; json.dump(t, open(tp, "w"))
@@ -260,8 +266,34 @@ check("a plan that is not the attempt's bytes HOLDS", ingest(c) == 3)
 
 # 6 authority: ownership, fence, staleness, generation, release
 c = build("owner"); sums(c["b"]); a2 = dict(c["att"], key="prod-e1/2", attempt=2, attempt_id="ec2-prod-e1-a2", sequence=SEQ + 1)
-json.dump(inventory({KEY: dict(c["att"], ingestion="dispositioned"), "prod-e1/2": a2}), open(c["ip"], "w"))
+resave_inv(c, atts={KEY: dict(c["att"], ingestion="dispositioned"), "prod-e1/2": a2})
 check("a dispositioned attempt whose coordinates were reassigned is refused (late writer)", ingest(c) == 3 and reg(c) is None)
+# R1-2: a fresh, sealed but SUPERSEDED inventory never licenses a late writer; the disposition is fenced on the root
+c = build("superseded"); sums(c["b"]); old = json.load(open(c["ip"]))
+inv4 = resave_inv(c, atts={KEY: dict(c["att"], disposition_requested=True)})
+ack = json.load(open(ES.ack_path(c["root"], c["gen"])))
+check("R1-2 a disposition request is fenced on the root at installation and acknowledged", KEY in ack["dispositioned"]
+      and reg(c)["attempts"][AID]["state"] == "dispositioned")
+json.dump(old, open(c["ip"], "w"))
+check("R1-2 the older fresh sealed inventory (still naming the owner) refuses: not the installed current view", ingest(c) == 3 and reg(c)["attempts"][AID]["state"] == "dispositioned")
+json.dump(inv4, open(c["ip"], "w"))
+check("R1-2 the current inventory refuses the attempt under a disposition request", ingest(c) == 3)
+a_, why = ES.install_inventory(c["root"], old)
+check("R1-2 an out-of-order (older) delivery is refused by the installer", a_ is None and "older" in why[0])
+a_, why = ES.install_inventory(c["root"], inv4)
+check("R1-2 re-installing the same generation and bytes is idempotent (same acknowledgement)", a_ is not None and KEY in a_["dispositioned"])
+c = build("raceing"); sums(c["b"]); calls = {"n": 0}; real = IG.publish_copy
+def flaky2(src, dst, want):
+    calls["n"] += 1
+    if calls["n"] == 2:
+        raise ValueError("crash")
+    return real(src, dst, want)
+IG.publish_copy = flaky2; ingest(c); IG.publish_copy = real
+resave_inv(c, atts={KEY: dict(c["att"], disposition_requested=True)})
+ack = json.load(open(ES.ack_path(c["root"], c["gen"])))
+check("R1-2 a disposition of an attempt already 'ingesting' is refused in the acknowledgement (no release on the Mac)", KEY in ack["refused"] and KEY not in ack["dispositioned"])
+c = build("noinv"); sums(c["b"]); os.remove(ES.paths(c["root"])["inventory"])
+check("R1-2 no installed inventory refuses ingestion", ingest(c) == 3)
 c = build("fence"); sums(c["b"]); os.makedirs(os.path.join(c["root"], "ec2"), exist_ok=True)
 json.dump(dict(schema=ES.REGISTER_SCHEMA, authority_generation=0, fence={"3/1": SEQ + 5}, attempts={}), open(os.path.join(c["root"], "ec2", "register.json"), "w"))
 check("a register fence above the attempt's sequence refuses", ingest(c) == 3)
@@ -303,10 +335,22 @@ except ValueError:
 # 9 activation refuses while the controls do not pin the partition; refuses a reserved block coordinate
 c = build("act2"); man = json.load(open(c["mp"]))
 json.dump({"versions": [{"version": 10, "partition": None}]}, open(IG.CONTROLS, "w"))
-_, probs = RP.activate(man, c["mp"], c["pp"], IG.CONTROLS)
+_, probs = RP.activate(man, c["mp"], c["pp"], IG.CONTROLS, mode="sandbox")
 check("activation refuses while the controls do not pin the partition (guard not live)", any("does not pin" in p for p in probs))
 json.dump({"slots": [{"slot": 0, "rep": 3, "indices": [150]}]}, open(os.path.join(c["root"], "plans", "job_9.json"), "w"))
 json.dump({"versions": [{"version": 10, "partition": {"sha256": sha(c["pp"])}}]}, open(IG.CONTROLS, "w"))
-_, probs = RP.activate(man, c["mp"], c["pp"], IG.CONTROLS)
+_, probs = RP.activate(man, c["mp"], c["pp"], IG.CONTROLS, mode="sandbox")
 check("activation refuses a block coordinate planned by Lengau", any("planned or reserved" in p for p in probs))
+# R1-1: a sandbox proof is never accepted by a canonical consumer; a later controls version that drops the pin invalidates it
+c = build("mode"); sums(c["b"]); IG.ACTIVATION_MODE = "canonical"
+check("R1-1 a canonical ingestion refuses a sandbox activation proof", ingest(c) == 3)
+IG.ACTIVATION_MODE = "sandbox"
+c = build("lineage"); sums(c["b"]); ctl = json.load(open(IG.CONTROLS))
+ctl["versions"].append({"version": 11, "partition": {"path": "x", "sha256": "f" * 64}}); json.dump(ctl, open(IG.CONTROLS, "w"))
+check("R1-1 a proof made under version 10 is historical once version 11 pins another partition", ingest(c) == 3)
+ctl["versions"][-1]["partition"] = ctl["versions"][0]["partition"]; json.dump(ctl, open(IG.CONTROLS, "w"))
+check("... and valid while every later version keeps pinning it", ingest(c) == 0)
+ctl["versions"][0]["reviewed"] = "edited"; json.dump(ctl, open(IG.CONTROLS, "w"))
+c = build("lineage2"); sums(c["b"]); ctl = json.load(open(IG.CONTROLS)); ctl["versions"][0]["reviewed"] = "edited later"; json.dump(ctl, open(IG.CONTROLS, "w"))
+check("R1-1 a proof whose controls version entry changed afterwards refuses", ingest(c) == 3)
 print("ALL PASS" if ok else "SOME FAILED"); sys.exit(0 if ok else 1)
