@@ -1,0 +1,81 @@
+{
+ "profile_B": "B_full",
+ "stage1": {
+  "A": {
+   "exact_quantities": "0/12",
+   "decisions_identical": true,
+   "failed_flags_identical": true,
+   "max_abs_delta": {
+    "selection_ws_point": 5.1812600103569306e-08,
+    "selection_ws_lo": 5.222836422440029e-08,
+    "selection_ws_hi": 7.060821169673631e-08,
+    "selection_ws_se": 4.501001070987554e-09
+   }
+  },
+  "B": {
+   "exact_quantities": "12/12",
+   "decisions_identical": true,
+   "failed_flags_identical": true,
+   "max_abs_delta": {
+    "selection_ws_point": 0.0,
+    "selection_ws_lo": 0.0,
+    "selection_ws_hi": 0.0,
+    "selection_ws_se": 0.0
+   }
+  }
+ },
+ "stage2": {
+  "A": {
+   "refused_at_job_start": true,
+   "reason": "HELD: rep 3: this process computes identity 69e4e6d43b305bea, the manifest declares 9a12f8a51542f2a2"
+  },
+  "B": {
+   "declared": 36,
+   "validated_records": 36,
+   "valid_timing_pairs": 36,
+   "payload_exact": 36,
+   "failed_both": 0,
+   "usable_by_predictor": {
+    "selection": {
+     "both": 36,
+     "ec2_only": 0,
+     "lengau_only": 0,
+     "neither": 0
+    },
+    "ensemble": {
+     "both": 36,
+     "ec2_only": 0,
+     "lengau_only": 0,
+     "neither": 0
+    },
+    "historical": {
+     "both": 36,
+     "ec2_only": 0,
+     "lengau_only": 0,
+     "neither": 0
+    }
+   },
+   "max_abs_delta_finite": 0.0,
+   "nonfinite_disagreements": 0,
+   "ec2_wall_h": {
+    "median": 19.584945776561895,
+    "min": 18.39448627617624,
+    "max": 20.400246309571795
+   },
+   "lengau_over_ec2": {
+    "median": 1.1779339631175303,
+    "min": 1.1407528778211546,
+    "max": 1.2246381911529511
+   }
+  }
+ },
+ "arm_A_refused": "HELD: rep 3: this process computes identity 69e4e6d43b305bea, the manifest declares 9a12f8a51542f2a2",
+ "occupancy": {
+  "samples": 1222,
+  "max": 42,
+  "mean": 34.89198036006547,
+  "min": 0
+ },
+ "problems": [],
+ "valid": true
+}

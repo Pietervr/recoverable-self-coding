@@ -120,6 +120,50 @@
     "errors": []
    },
    "charged_usd": 2.6
+  },
+  {
+   "attempt": 5,
+   "state": "reconciled",
+   "client_token": "t1-b2-5-c6d3e00f9ed2",
+   "request": "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/aws_ec2/runs/b2/request_attempt5.json",
+   "lifetime_s": 77400,
+   "max_price": 1.2,
+   "type": "c7a.24xlarge",
+   "ami": "ami-01e082ac2f79f3918",
+   "results": "s3://xtenure-cself-pvr-usw2/results/t1_access/aws_bench/b2/attempt_5/",
+   "intent_at": 1791671260.927603,
+   "issues": [
+    {
+     "at": 1791671263.6377249,
+     "result": "launched",
+     "detail": "i-0ac7f4dab4a37a215"
+    }
+   ],
+   "instance": "i-0ac7f4dab4a37a215",
+   "launch_time": "2026-10-10T22:27:43+00:00",
+   "terminal": {
+    "observed_state": "terminated",
+    "reason": "User initiated",
+    "compute_end": 1791744822.838687,
+    "compute_s": 73559.83868694305,
+    "ancillary_end": 1791744823.8853009,
+    "ancillary_s": 73560.88530087471,
+    "leftover_volumes": [],
+    "terminate_calls": 0,
+    "errors": [
+     {
+      "at": 1791683254.2021718,
+      "op": "describe",
+      "error": "aws ec2 describe-instances: aws: [ERROR]: Could not connect to the endpoint URL: \"https://ec2.eu-north-1.amazonaws.com/\""
+     },
+     {
+      "at": 1791683466.008441,
+      "op": "describe",
+      "error": "aws ec2 describe-instances: aws: [ERROR]: Could not connect to the endpoint URL: \"https://ec2.eu-north-1.amazonaws.com/\""
+     }
+    ]
+   },
+   "charged_usd": 24.81
   }
  ]
 }

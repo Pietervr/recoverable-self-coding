@@ -2,9 +2,12 @@
  "schema": "t1-ec2-release-state-1",
  "note": "Reviewed release state for EC2 work. Each claim is backed by a file whose sha256 it pins (paths relative to aws_ec2/); prod_authority.release_state() reads a missing or differing file as NOT released. row23 is written only by bench_finish.py --declare (fresh report, reviewed frozen controller tree, comparator exit 0, the recorded criterion); qualification.permitted only by qual_permit.py after the benchmark cutover fence (runs/BENCH_FENCE.json, which release_state also requires); production only by prod_authority.py release-adopt. Each change is committed.",
  "row23": {
-  "declared_success": false,
-  "report_path": null,
-  "report_sha256": null
+  "declared_success": true,
+  "report_path": "runs/b2/bench_report_attempt_5_20261011T185715Z.json",
+  "report_sha256": "154511e687f006001888970bd3d65398b6b37c910221378b7f6c3c63fe63e3a4",
+  "binding_path": "runs/b2/bench_binding_attempt_5_20261011T185715Z.json",
+  "binding_sha256": "ec91ff62a1e582fc36773ccecf83b4e93a1d0972a3db56750b17d15eb1cf6bea",
+  "criterion": "valid report; B_full; arm B row 6 exact 12/12; arm B 36/36 validated, timed, payload-exact, no non-finite disagreement; arm A refused at job-start (verified) or fully validated - recorded before the completed row-23 parity/refit results (owner go committed Unimog 7c6626e6, 10 Oct 21:16:38Z)"
  },
  "qualification": {
   "permitted": false,

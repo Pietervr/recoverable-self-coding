@@ -1,0 +1,22 @@
+{
+ "schema": "row23-bench-report-binding-1",
+ "run": "b2",
+ "attempt": 5,
+ "stamp": "20261011T185715Z",
+ "comparator_exit": 0,
+ "comparator_sha256": "3e8492819d3c1a5fdf4aad4d33772b809884b9f8f425784b33dd91fc85297197",
+ "controller_tree": "/mnt/lustre/users/pvanrooyen/t1_toolchain/rsc_screen_ctl/workspace_demo/t1_access",
+ "tree_pins": {
+  "chpc/row19_shard.py": "828d59640f10cc33fcba7d98d075371945ca4b74ddaca841ea86100fc47ff383",
+  "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+  "chpc/row19_screen_manifest.json": "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c",
+  "analyze.py": "97558aa9c4340f363431c67f2c2d28cd360f2f0998056af7e1702c9e9a021825",
+  "models.py": "28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef",
+  "simulate.py": "f588b9121be48ec553ab95e4dda5736941865498922468b5868c96758d0afe57"
+ },
+ "bundle_sha256": "ff14cc500de63b7218b753c465ef8192084030224c5806c6ca516e5f730b48dc",
+ "bundle_files": 294,
+ "remote_dir": "/home/pvanrooyen/lustre/aws_bench/b2a5/20261011T185715Z",
+ "report_path": "runs/b2/bench_report_attempt_5_20261011T185715Z.json",
+ "report_sha256": "154511e687f006001888970bd3d65398b6b37c910221378b7f6c3c63fe63e3a4"
+}
