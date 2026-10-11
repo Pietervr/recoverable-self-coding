@@ -1,0 +1,27 @@
+{
+ "stage1": {
+  "A": {
+   "exact_quantities": "0/12",
+   "decisions_identical": true,
+   "failed_flags_identical": true,
+   "max_abs_delta": {
+    "selection_ws_point": 5.1812600103569306e-08,
+    "selection_ws_lo": 5.222836422440029e-08,
+    "selection_ws_hi": 7.060821169673631e-08,
+    "selection_ws_se": 4.501001070987554e-09
+   }
+  },
+  "B": {
+   "exact_quantities": "12/12",
+   "decisions_identical": true,
+   "failed_flags_identical": true,
+   "max_abs_delta": {
+    "selection_ws_point": 0.0,
+    "selection_ws_lo": 0.0,
+    "selection_ws_hi": 0.0,
+    "selection_ws_se": 0.0
+   }
+  }
+ },
+ "problems": []
+}
