@@ -85,6 +85,11 @@ def release(q=False, owner=False, prod_ok=False):
         json.dump(dict(outcome="RELEASE", problems=[]), open(os.path.join(TMP, "cert.json"), "w"))
         r["production"].update(released=True, certificate_path="cert.json", certificate_sha256=L.sha256(os.path.join(TMP, "cert.json")))
     json.dump(r, open(PA.RELEASE_STATE, "w"))
+    fp = os.path.join(PA.HERE, "runs", "BENCH_FENCE.json")                 # the cutover fence (qual_permit.py) goes with permission
+    if q:
+        os.makedirs(os.path.dirname(fp), exist_ok=True); open(fp, "w").write("{}")
+    elif os.path.exists(fp):
+        os.remove(fp)
 
 def ns(contract="Q1", **kw):
     return argparse.Namespace(**dict(dict(contract=contract, epoch=1, partition=pp, manifest=ops[contract], snapshot=snap, tarball=tgz, dry_run=False, recover=False), **kw))
@@ -218,4 +223,45 @@ except SystemExit as e:
     check("recovery refuses to re-issue under STOP", "STOP" in str(e))
 os.remove(os.path.join(root, "STOP")); DISPATCH.clear()
 check("recovery re-issues the SAME attempt once STOP is lifted", PL.recover(ns("Q2", recover=True)) == 0 and DISPATCH[-1][2] is False)
+# D-1 (Codex cf07869): every recovery re-issue needs a correctly bound CURRENT receipt; otherwise zero RunInstances, still funded
+led = L.load("qual-Q2"); led["attempts"][0]["state"] = "ambiguous"; L.save("qual-Q2", led)
+def recover_refused(name, why_part):
+    DISPATCH.clear()
+    try:
+        PL.recover(ns("Q2", recover=True)); refused, msg = False, ""
+    except SystemExit as e:
+        refused, msg = True, str(e)
+    a2 = L.load("qual-Q2")["attempts"][0]
+    check(name, refused and why_part in msg and not DISPATCH and a2["state"] == "ambiguous" and L.charged(a2) > 0, msg)
+receipt(time=time.time() - PL.RECEIPT_MAX_AGE_S - 120)
+recover_refused("D-1 a stale receipt: recovery refuses, zero RunInstances, attempt stays ambiguous and funded", "receipt")
+for f in glob.glob(os.path.join(rec, "watch_refit_*.json")):
+    os.remove(f)
+recover_refused("D-1 a missing receipt: recovery refuses, zero RunInstances", "no refit receipt")
+receipt(ec2=dict(bound=dict(ES.bound(root), inventory_sha256="0" * 64)))
+recover_refused("D-1 a fresh receipt bound to another EC2 state (unrelated): recovery refuses, zero RunInstances", "receipt")
+receipt()
+with PA.authority_lock():
+    PA.write_inventory()                                                 # a newer generation the receipt does not bind
+recover_refused("D-1 a fresh receipt of an older inventory generation: recovery refuses, zero RunInstances", "current")
+real_bump = PL.attempt_in_inventory_problem
+receipt(); PL.attempt_in_inventory_problem = lambda run, att: "the current sealed inventory does not carry this unresolved attempt (test)"
+recover_refused("D-1 a fresh receipt whose inventory does not carry this attempt: recovery refuses, zero RunInstances", "does not carry")
+PL.attempt_in_inventory_problem = real_bump
+receipt(); DISPATCH.clear(); seen = []
+stub = L.finish; L.finish = lambda run, led, att, fresh, guard=None: seen.append((guard, guard())) or DISPATCH.append((run, att, fresh)) or 0
+rc = PL.recover(ns("Q2", recover=True)); L.finish = stub
+check("D-1 a correctly bound current receipt: the SAME attempt is re-issued, and its per-issue guard passes at the issue",
+      rc == 0 and len(DISPATCH) == 1 and DISPATCH[-1][2] is False and DISPATCH[-1][1]["client_token"] == L.load("qual-Q2")["attempts"][0]["client_token"]
+      and seen and seen[-1][1] == "", (rc, len(DISPATCH), seen[-1][1] if seen else None))
+import types
+realtime = PL.time; PL.time = types.SimpleNamespace(time=lambda: realtime.time() + PL.RECEIPT_MAX_AGE_S + 200, sleep=realtime.sleep)
+aged = seen[-1][0](); PL.time = realtime
+check("D-1 ... and the same guard refuses a later re-issue once the bound receipt has aged out", "no longer within" in aged, aged)
+DISPATCH.clear()
+try:
+    PL.recover(ns("Q2", recover=True, partition=None)); rq = False
+except SystemExit as e:
+    rq = "--partition" in str(e)
+check("D-1 recovery without --partition refuses (the receipt is validated against it), zero RunInstances", rq and not DISPATCH)
 print("ALL PASS" if ok else "SOME FAILED"); shutil.rmtree(TMP); sys.exit(0 if ok else 1)

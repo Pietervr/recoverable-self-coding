@@ -304,7 +304,7 @@ def admit(a):
     att = dict(attempt=n, state="intent", client_token=token, request=reqp, lifetime_s=life, max_price=MAXPRICE, type=ITYPE,
                ami=ami, results=f"s3://{BUCKET}/{prefix}", intent_at=time.time())
     led["attempts"].append(att); save(a.run, led)
-    return finish(a.run, led, att, fresh=True)
+    return finish(a.run, led, att, fresh=True, guard=cutover_problem)           # D-2: pre-issue fence
 
 
 def finish(run, led, att, fresh, guard=None):
@@ -324,7 +324,41 @@ def recover(a):
     att = next((x for x in reversed(led["attempts"]) if x.get("state") in ("intent", "ambiguous")), None)
     if att is None:
         sys.exit("nothing to recover (no intent/ambiguous attempt)")
-    return finish(a.run, led, att, fresh=False)
+    return finish(a.run, led, att, fresh=False, guard=cutover_problem)          # D-2: pre-issue fence on every re-issue
+
+
+def inflight_path():
+    return os.path.join(HERE, "runs", ".bench_inflight.lock")
+
+
+def fence_path():
+    return os.path.join(HERE, "runs", "BENCH_FENCE.json")
+
+
+@contextlib.contextmanager
+def inflight():
+    """Codex cf07869 D-2: every benchmark admission/recovery command holds this SHARED lock for its whole life, from before its
+    freeze check to after its last RunInstances issue/retry. qual_permit.py takes it EXCLUSIVELY to set the cutover fence, so
+    the fence can only be written once every in-flight benchmark command (including pre-journal waiting/staging ones) has
+    ended - a drain, not an inference from ledger intents. Raises BlockingIOError while the cutover holds it."""
+    os.makedirs(os.path.dirname(inflight_path()), exist_ok=True)
+    fh = open(inflight_path(), "a+")
+    try:
+        fcntl.flock(fh.fileno(), fcntl.LOCK_SH | fcntl.LOCK_NB)
+    except BlockingIOError:
+        fh.close(); raise
+    try:
+        yield
+    finally:
+        fcntl.flock(fh.fileno(), fcntl.LOCK_UN); fh.close()
+
+
+def cutover_problem():
+    """'' unless the qualification cutover fence exists or the freeze applies; checked at entry AND immediately before every
+    RunInstances issue/retry/recovery re-issue (the pre-issue fence)."""
+    if os.path.exists(fence_path()):
+        return "the qualification cutover fence is set (runs/BENCH_FENCE.json): benchmark admissions and recoveries are frozen"
+    return freeze_problem()
 
 
 def freeze_problem():
@@ -349,18 +383,22 @@ def main():
     ap.add_argument("--run", required=True); ap.add_argument("--tarball")
     ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--recover", action="store_true")
     a = ap.parse_args()
-    why = freeze_problem()
-    if why:
-        sys.exit(f"REFUSED: {why}")
     try:
-        with run_lock(a.run):
-            if a.recover:
-                return recover(a)
-            if not a.tarball:
-                sys.exit("--tarball is required to admit an attempt")
-            return admit(a)
+        with inflight():                                                        # D-2: held for the whole command
+            why = cutover_problem()
+            if why:
+                sys.exit(f"REFUSED: {why}")
+            try:
+                with run_lock(a.run):
+                    if a.recover:
+                        return recover(a)
+                    if not a.tarball:
+                        sys.exit("--tarball is required to admit an attempt")
+                    return admit(a)
+            except BlockingIOError:
+                sys.exit(f"REFUSED: another launcher or reaper holds runs/{a.run}/.lock")
     except BlockingIOError:
-        sys.exit(f"REFUSED: another launcher or reaper holds runs/{a.run}/.lock")
+        sys.exit("REFUSED: the qualification cutover holds runs/.bench_inflight.lock - benchmarks are being frozen")
 
 
 if __name__ == "__main__":

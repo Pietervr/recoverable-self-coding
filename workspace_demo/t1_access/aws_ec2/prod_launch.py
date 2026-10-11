@@ -326,9 +326,47 @@ def recover(a):
     if why:                                                                  # V10-8: never re-issue a launch under STOP
         sys.exit(f"REFUSED: {why} - the unresolved attempt stays charged at its worst case; resolve it by "
                  f"describe-instances on token {att['client_token']} (the reaper) once STOP is lifted or by hand")
-    rc = L.finish(run, led, att, fresh=False, guard=lambda: stop_problem(run, a.snapshot))   # R2-3: before every re-issue
+    # D-1 (Codex cf07869): a re-issue needs a correctly bound CURRENT receipt, exactly as fresh admission does after staging -
+    # fresh production refit receipt within RECEIPT_MAX_AGE_S binding the current sealed inventory, and that inventory must
+    # carry THIS attempt (key, id, sequence, plan, unresolved state): an unrelated fresh receipt cannot authorize an old request.
+    # Any failure: REFUSED, zero RunInstances, the attempt keeps its token/region/plan and stays funded at its worst case.
+    w, why = recovery_receipt(a, run, att)
+    if why:
+        sys.exit(f"REFUSED: {why} - no re-issue; the unresolved attempt stays funded at its worst case (token {att['client_token']})")
+    base = dispatch_guard(run, a.snapshot, w)
+    def guard():                                                         # before EVERY re-issue: STOP + receipt age + binding
+        return base() or inventory_bound_problem(w) or attempt_in_inventory_problem(run, att)
+    rc = L.finish(run, led, att, fresh=False, guard=guard)
     PA.write_inventory()
     return rc
+
+
+def attempt_in_inventory_problem(run, att):
+    lp = os.path.join(PA.INV_DIR, "latest.json")
+    try:
+        e = (json.load(open(lp)).get("attempts") or {}).get(f"{run}/{att['attempt']}") or {}
+    except Exception as ex:
+        return f"the sealed inventory is unreadable ({type(ex).__name__})"
+    if (e.get("attempt_id"), e.get("sequence"), e.get("plan_sha256")) != (att["attempt_id"], att["sequence"], att["plan_sha256"]) \
+            or e.get("state") not in ("intent", "ambiguous"):
+        return "the current sealed inventory does not carry this unresolved attempt (id, sequence, plan, state)"
+    return ""
+
+
+def recovery_receipt(a, run, att):
+    """(receipt, '') for a re-issue, or (None, why)."""
+    if not a.partition:
+        return None, "--partition is required to recover (the receipt is validated against it)"
+    try:
+        man_prod = json.load(open(os.path.join(T1, "chpc", "row19_screen_manifest.json")))
+        part = RP.load(a.partition, man_prod, PROD_SHA)
+        if controls_pin() != RP.sha_file(a.partition):
+            return None, "the partition is not the one the latest adopted controls pin"
+        _, _, w = snapshot_state(a.snapshot, part)
+    except (ValueError, OSError, KeyError) as e:
+        return None, f"no correctly bound current receipt ({e})"
+    why = receipt_age_problem(w) or inventory_bound_problem(w) or attempt_in_inventory_problem(run, att)
+    return (None, why) if why else (w, "")
 
 
 def main():

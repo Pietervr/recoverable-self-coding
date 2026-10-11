@@ -1,2 +1,4 @@
 # bench_finish.py downloads whole attempt bundles (sealed screen records) here; they never enter git
 runs/*/fetched/
+# bench_launch.inflight(): the shared benchmark in-flight lock (an empty lock file, never evidence)
+runs/.bench_inflight.lock

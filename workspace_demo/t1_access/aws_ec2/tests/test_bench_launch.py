@@ -63,7 +63,7 @@ check("--recover resolves with the same token", rc == 0 and len(toks) == 1 and L
 # 4 crash after intent (state intent, no API answer): new admission refused, --recover issues that token
 fresh("t_crash", "ok")
 with L.run_lock("t_crash"):
-    real = L.finish; L.finish = lambda run, led, att, fresh: 99
+    real = L.finish; L.finish = lambda run, led, att, fresh, guard=None: 99
     L.admit(args("t_crash")); L.finish = real
 att = L.load("t_crash")["attempts"][-1]
 check("crash leaves intent recorded", att["state"] == "intent")
@@ -102,7 +102,7 @@ check("no new attempt after a replay rejection", refused)
 # 7 crash-left intent, then a rejection on --recover: NOT released
 fresh("t_cr", "reject")
 with L.run_lock("t_cr"):
-    real = L.finish; L.finish = lambda run, led, att, fresh: 99
+    real = L.finish; L.finish = lambda run, led, att, fresh, guard=None: 99
     L.admit(args("t_cr")); L.finish = real
 with L.run_lock("t_cr"):
     L.recover(args("t_cr", recover=True))
@@ -112,7 +112,7 @@ check("rejection on a recovered intent stays funded", att["state"] == "ambiguous
 # 8 changed user-data bytes: replay refused, attempt stays funded, no RunInstances call
 fresh("t_ud", "ok")
 with L.run_lock("t_ud"):
-    real = L.finish; L.finish = lambda run, led, att, fresh: 99
+    real = L.finish; L.finish = lambda run, led, att, fresh, guard=None: 99
     L.admit(args("t_ud")); L.finish = real
 att = L.load("t_ud")["attempts"][-1]
 udp = json.load(open(att["request"]))["args"]; udp = udp[udp.index("--user-data") + 1].replace("file://", "")
@@ -136,7 +136,7 @@ check("supervisor failure -> emergency terminate, attempt stays launched", rc ==
 L.start_reaper = lambda run, att: True
 fresh("t_g1", "ok")
 with L.run_lock("t_g1"):
-    real = L.finish; L.finish = lambda run, led, att, fresh: 99
+    real = L.finish; L.finish = lambda run, led, att, fresh, guard=None: 99
     L.admit(args("t_g1")); L.finish = real
 led = L.load("t_g1"); att = led["attempts"][-1]
 rc = L.finish("t_g1", led, att, True, guard=lambda: "STOP in force (test)")
@@ -145,7 +145,7 @@ check("R2-3 a guard refusal before any call withdraws the fresh attempt: rejecte
       and "withdrawn" in att["rejection"] and not runs_calls_safe("t_g1"))
 fresh("t_g2", "always_ambiguous")
 with L.run_lock("t_g2"):
-    real = L.finish; L.finish = lambda run, led, att, fresh: 99
+    real = L.finish; L.finish = lambda run, led, att, fresh, guard=None: 99
     L.admit(args("t_g2")); L.finish = real
 led = L.load("t_g2"); att = led["attempts"][-1]; n = {"k": 0}
 def g():
@@ -169,6 +169,47 @@ env = dict(os.environ); sp = subprocess.run([sys.executable, os.path.join(PKG, "
                                             capture_output=True, text=True, env=env, cwd=PKG)
 check("freeze is checked in main before admission and recovery (today: passes to the recovery path)", "frozen" not in sp.stdout + sp.stderr)
 
-for r in ("t_amb", "t_rej", "t_amb2", "t_crash", "t_conc", "t_ar", "t_cr", "t_ud", "t_sup", "t_g1", "t_g2", "t_fz"):
+# 12 D-2 cutover: in-flight benchmark commands are drained before qualification is permitted; the pre-issue fence holds
+import prod_authority as PA, qual_permit as QP
+fz = tempfile.mkdtemp(); realHERE, realPA = L.HERE, (PA.HERE, PA.RELEASE_STATE)
+L.HERE = PA.HERE = fz; PA.RELEASE_STATE = os.path.join(fz, "ec2_release_state.json")
+rs = json.load(open(os.path.join(PKG, "ec2_release_state.json")))
+open(os.path.join(fz, "r23.json"), "w").write("{}"); open(os.path.join(fz, "qrec.md"), "w").write("q")
+rs["row23"] = dict(declared_success=True, report_path="r23.json", report_sha256=L.sha256(os.path.join(fz, "r23.json")))
+json.dump(rs, open(PA.RELEASE_STATE, "w"))
+logs = []
+with L.inflight():                                                      # a benchmark command in flight (any phase)
+    rc = QP.permit("qrec.md", wait_s=0.5, log=logs.append)
+check("D-2 an in-flight benchmark command blocks the cutover; nothing changed", rc == 3 and not os.path.exists(L.fence_path())
+      and not json.load(open(PA.RELEASE_STATE))["qualification"].get("permitted"))
+fresh("t_fence", "ok")
+fzfence = os.path.join(fz, "runs", "BENCH_FENCE.json"); os.makedirs(os.path.dirname(fzfence), exist_ok=True)
+L.HERE = realHERE; real_fp = L.fence_path; L.fence_path = lambda: fzfence     # real bench manifests, test fence location
+real_aws = L.aws; hit = {"n": 0}
+def aws_fencing(*a, **k):                                               # the cutover lands while this command is staging
+    if a[:2] == ("s3", "cp") and hit["n"] == 0:
+        hit["n"] = 1; open(L.fence_path(), "w").write("{}")
+    return real_aws(*a, **k)
+L.aws = aws_fencing
+with L.run_lock("t_fence"):
+    rc = L.admit(args("t_fence"))
+L.aws = real_aws
+att = L.load("t_fence")["attempts"][-1]
+check("D-2 a fence set during staging: the pre-issue recheck refuses, zero RunInstances, attempt rejected (never issued)",
+      len(runs_calls_safe("t_fence")) == 0 and att["state"] == "rejected" and "fence" in att.get("rejection", ""))
+sys.argv = ["bench_launch.py", "--run", "t_fence2", "--recover"]           # fence still at the test location
+try:
+    L.main(); refused = False
+except SystemExit as e:
+    refused = "fence" in str(e)
+check("D-2 new benchmark commands refuse once the fence exists", refused)
+L.fence_path = real_fp; L.HERE = fz
+os.remove(L.fence_path())
+rc = QP.permit("qrec.md", wait_s=0.5, log=logs.append)
+check("D-2 with nothing in flight the cutover writes the fence, then permits qualification", rc == 0 and os.path.exists(L.fence_path())
+      and json.load(open(PA.RELEASE_STATE))["qualification"]["permitted"] is True and PA.release_state()["qualification"]["ok"])
+L.HERE = realHERE; PA.HERE, PA.RELEASE_STATE = realPA; shutil.rmtree(fz)
+
+for r in ("t_amb", "t_rej", "t_amb2", "t_crash", "t_conc", "t_ar", "t_cr", "t_ud", "t_sup", "t_g1", "t_g2", "t_fz", "t_fence", "t_fence2"):
     shutil.rmtree(os.path.join(PKG, "runs", r), ignore_errors=True)
 print("ALL PASS" if ok else "SOME FAILED"); sys.exit(0 if ok else 1)

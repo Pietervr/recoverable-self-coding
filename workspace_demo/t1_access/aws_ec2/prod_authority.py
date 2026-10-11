@@ -311,7 +311,8 @@ def release_state(leds=None):
     r23 = r["row23"]; q = r["qualification"]; pr = r["production"]
     r23["ok"] = bool(r23.get("declared_success")) and backed(r23, "report_path", "report_sha256")
     q["ok"] = r23["ok"] and bool(q.get("permitted")) and bool(q.get("owner_accepted_ceilings")) and backed(q, "record_path", "record_sha256") \
-        and q.get("ceilings_usd") == QUAL_CEILINGS_USD
+        and q.get("ceilings_usd") == QUAL_CEILINGS_USD \
+        and os.path.exists(os.path.join(HERE, "runs", "BENCH_FENCE.json"))     # D-2: only after the benchmark cutover (qual_permit.py)
     pr["ok"], pr["derived_released_attempts"], pr["why"] = False, [], "not released"
     if q["ok"] and pr.get("released") and backed(pr, "certificate_path", "certificate_sha256") and backed(pr, "review_path", "review_sha256"):
         keys, why = release_problem(os.path.join(HERE, pr["certificate_path"]), os.path.join(HERE, pr["review_path"]), leds)

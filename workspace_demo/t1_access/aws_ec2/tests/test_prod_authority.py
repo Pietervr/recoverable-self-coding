@@ -237,6 +237,9 @@ r = json.load(open(PA.RELEASE_STATE)); open(os.path.join(TMP, "r23.json"), "w").
 r["row23"] = dict(declared_success=True, report_path="r23.json", report_sha256=L.sha256(os.path.join(TMP, "r23.json")))
 r["qualification"].update(permitted=True, record_path="qrec.md", record_sha256=L.sha256(os.path.join(TMP, "qrec.md")))
 json.dump(r, open(PA.RELEASE_STATE, "w"))
+check("D-2 qualification is not ok without the benchmark cutover fence", not PA.release_state()["qualification"]["ok"])
+os.makedirs(os.path.join(TMP, "runs"), exist_ok=True); open(os.path.join(TMP, "runs", "BENCH_FENCE.json"), "w").write("{}")
+check("D-2 ... and ok once the fence exists", PA.release_state()["qualification"]["ok"])
 check("R1-4 release-adopt writes the production block from the validated certificate", PA.release_adopt("cert.json", "review.md") == ["qual-Q1/1"]
       and PA.release_state()["production"]["ok"] and PA.release_state()["production"]["derived_released_attempts"] == ["qual-Q1/1"])
 r = json.load(open(PA.RELEASE_STATE)); r["production"]["released_attempts"] = ["qual-Q1/1", "qual-Q2/1"]; json.dump(r, open(PA.RELEASE_STATE, "w"))
