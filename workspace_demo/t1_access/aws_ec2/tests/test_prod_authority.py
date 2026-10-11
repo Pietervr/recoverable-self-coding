@@ -2,7 +2,7 @@
 sentinels, every budget envelope (production across epochs, cumulative with the moving baseline, per-part qualification
 ceilings with the owner's acceptance), ack/disposition, the sealed inventory. No AWS; a temporary authority directory.
     python3 tests/test_prod_authority.py"""
-import json, os, sys, shutil, tempfile, time
+import copy, json, os, sys, shutil, tempfile, time
 HERE = os.path.dirname(os.path.abspath(__file__)); PKG = os.path.dirname(HERE); sys.path[:0] = [PKG, os.path.join(PKG, "..", "chpc")]
 import prod_authority as PA, bench_launch as L, row19_partition as RP, row19_ec2_state as ES
 TMP = tempfile.mkdtemp()
@@ -66,7 +66,8 @@ many = {f"prod-e{k}": {"attempts": [att(1, k)]} for k in range(1, 40)} | {"qual-
 check("budget: the production envelope sums every epoch and the qualification", "production envelope" in PA.budget_problem(many, "prod-e40", 1200.0, rel, now))
 check("budget: the cumulative cap includes the baseline and every run (row 23 too)",
       "cumulative cap" in PA.budget_problem({"b2": {"attempts": [dict(attempt=1, state="launched", lifetime_s=77400, max_price=1.20)]}}, "b2", 3000.0 - b0 - 10, rel, now))
-check("budget: qualification refused until the owner accepts the ceilings", "not accepted" in PA.budget_problem({}, "qual-Q1", 27.9, rel, now))
+unaccepted = copy.deepcopy(rel); unaccepted["qualification"]["owner_accepted_ceilings"] = False
+check("budget: qualification refused until the owner accepts the ceilings", "not accepted" in PA.budget_problem({}, "qual-Q1", 27.9, unaccepted, now))
 rel2 = json.loads(json.dumps(rel)); rel2["qualification"]["owner_accepted_ceilings"] = True
 check("budget: Q1 within its ceiling once accepted", PA.budget_problem({}, "qual-Q1", 27.9, rel2, now) == "")
 check("budget: a Q1 retry beyond the ceiling is refused (retries count)",

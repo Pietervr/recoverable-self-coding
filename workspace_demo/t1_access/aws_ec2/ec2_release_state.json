@@ -12,10 +12,11 @@
    "Q1": 28.0,
    "Q2": 17.0
   },
-  "owner_accepted_ceilings": false,
+  "owner_accepted_ceilings": true,
   "record_path": null,
   "record_sha256": null,
-  "ceiling_note": "Q1 worst 22.75 h x (1.20 + 0.014) + 0.30 = 27.92 -> 28; Q2 22.75 h x (0.70 + 0.014) + 0.30 = 16.54 -> 17; total 45 per single attempt each, ABOVE the USD 43 declared on 10 Oct: needs the owner's acceptance; a retry of either part needs a further owner decision (the per-part ceiling counts retries)."
+  "ceiling_note": "Q1 worst 22.75 h x (1.20 + 0.014) + 0.30 = 27.92 -> 28; Q2 22.75 h x (0.70 + 0.014) + 0.30 = 16.54 -> 17; total 45 per single attempt each, ABOVE the USD 43 declared on 10 Oct: needs the owner's acceptance; a retry of either part needs a further owner decision (the per-part ceiling counts retries).",
+  "owner_acceptance": "Owner, 11 Oct 2026 (R052 chat): 'yes, accept USD 45 for Q1+Q2 - but if qual works, go directly to production'. Accepts Q1 USD 28 + Q2 USD 17 = USD 45, one attempt each; a retry still needs a further owner decision. Standing go: on a successful qualification proceed to production without a further owner go (the reviewed release certificate and the USD 2,300 / 3,000 caps still apply)."
  },
  "production": {
   "released": false,
