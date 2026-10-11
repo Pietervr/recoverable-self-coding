@@ -1,0 +1,148 @@
+ingested ec2-prod-e1-a1: 4 coordinates (8 files published, 0 failed fits kept), 4 comparisons equal
+PASS success: 4 work pairs + statuses published, 'ingested', 4 sentinels equal
+SKIP failed-fit publication: no failed fit among the real index-1 records copied (covered in STUB mode)
+PASS fence raised to the attempt's sequence
+PASS the installed inventory stays the root's view (ingestion never writes it)
+PASS canonical task bindings untouched (none written)
+already ingested and re-validated: ec2-prod-e1-a1
+PASS replay of an ingested attempt is re-validated and passes
+HELD: replay of an ingested attempt differs: ['3/1: timing/rep3/t_001.json is not the registered bytes']
+PASS replay after a canonical timing changed HOLDS and writes ec2/HOLD
+ingested ec2-prod-e1-a1: 4 coordinates (8 files published, 0 failed fits kept), 4 comparisons equal
+HELD: replay of an ingested attempt differs: ['4/1: ec2/status/ec2-prod-e1-a1.slot1.json is not the registered bytes']
+PASS replay with a copied status missing HOLDS
+HELD during publication (entry stays 'ingesting' for a checked replay): simulated crash
+ingested ec2-prod-e1-a1: 4 coordinates (6 files published, 0 failed fits kept), 4 comparisons equal
+PASS crash leaves 'ingesting'; replay completes to 'ingested'
+HELD during publication (entry stays 'ingesting' for a checked replay): simulated crash
+HELD during publication (entry stays 'ingesting' for a checked replay): 5/1: the staged unit is not the one journaled
+PASS a staged unit changed after journaling HOLDS the replay
+HELD: 1 problem(s) under the lock; nothing published
+   - SENTINEL MISMATCH at (3, 0): the EC2 payload is not Lengau's (float.hex)
+PASS sentinel mismatch HOLDS, writes ec2/HOLD, nothing published
+HELD: 1 problem(s) under the lock; nothing published
+   - contrary duplicate at (4, 1): a different payload is already in the root
+PASS contrary duplicate HOLDS
+ingested ec2-prod-e1-a1: 4 coordinates (6 files published, 0 failed fits kept), 4 comparisons equal
+PASS identical duplicate counts once (preexisting, no replacement)
+HELD: 1 problem(s); nothing published
+   - unlisted file root/stray.json
+PASS unlisted bundle file HOLDS
+ingested ec2-prod-e1-a1: 4 coordinates (8 files published, 0 failed fits kept), 4 comparisons equal
+PASS V10-3: userdata.log appended after hashing does not fail a healthy bundle
+HELD: 1 problem(s); nothing published
+   - 1 worker(s) not ended with int 0: {'w_slot0': False}
+PASS outcomes with a bool outcome HOLD
+HELD: 1 problem(s); nothing published
+   - 1 worker(s) not ended with int 0: {'w_slot1': '0'}
+PASS outcomes with a string outcome HOLD
+HELD: 1 problem(s); nothing published
+   - outcomes do not name exactly the 8 planned workers
+PASS outcomes with a missing worker outcome HOLD
+HELD: 1 problem(s); nothing published
+   - outcomes do not name exactly the 8 planned workers
+PASS outcomes with an extra worker outcome HOLD
+HELD: 1 problem(s); nothing published
+   - slot 0 (3, 1): status left [1] is not []
+PASS incomplete status (left index) HOLDS
+HELD: 1 problem(s); nothing published
+   - slot 0 (3, 1): status exit 75 is not 0
+PASS incomplete status (resume exit) HOLDS
+HELD: 1 problem(s); nothing published
+   - slot 0 (3, 1): status job '7523818.sched01' is not 'ec2-prod-e1-a1'
+PASS incomplete status (another job) HOLDS
+HELD: 1 problem(s); nothing published
+   - slot 0 (3, 1): status maxrss 5368709120 not positive or above the memory stop
+PASS incomplete status (memory above the stop) HOLDS
+HELD: 1 problem(s); nothing published
+   - slot 0 (3, 1): status wall_s not finite and non-negative
+PASS incomplete status (non-finite wall) HOLDS
+HELD: 1 problem(s); nothing published
+   - slot 1 (4, 1): status missing or unreadable (FileNotFoundError)
+PASS missing worker status HOLDS
+HELD: 1 problem(s); nothing published
+   - attestation profile 'B_nomask' problems []
+PASS a B_nomask attestation HOLDS
+HELD: 1 problem(s); nothing published
+   - attestation numpy dispatch ['X86_V3', 'X86_V4'] above X86_V3
+PASS an attestation with numpy dispatch above X86_V3 HOLDS
+HELD: 1 problem(s); nothing published
+   - plan: coordinate (3, 1) planned twice
+PASS plan naming a coordinate twice HOLDS
+HELD: 1 problem(s); nothing published
+   - plan: plan has 3 sentinel slots, not 4
+PASS plan with three sentinels HOLDS
+HELD: 1 problem(s); nothing published
+   - plan: plan partition_sha256 '0000000000000000000000000000000000000000000000000000000000000000' is not 'b015102568a95ffb3a4768c904a557f487115ad31a32f4126d12bc64344fa2d3'
+PASS plan bound to another partition HOLDS
+HELD: 1 problem(s); nothing published
+   - plan: plan slot numbers are not exactly 0..n-1
+PASS plan slot numbers not 0..n-1 HOLD
+HELD: 1 problem(s); nothing published
+   - the bundle's plan is not the attempt's bytes
+PASS a plan that is not the attempt's bytes HOLDS
+HELD: attempt prod-e1/1 is dispositioned: nothing of it is ingested
+PASS a dispositioned attempt whose coordinates were reassigned is refused (late writer)
+PASS R1-2 a disposition request is fenced on the root at installation and acknowledged
+HELD: the supplied authority is not the root installed current inventory (generation 4)
+PASS R1-2 the older fresh sealed inventory (still naming the owner) refuses: not the installed current view
+HELD: attempt prod-e1/1 is pending with a disposition request: nothing of it is ingested
+PASS R1-2 the current inventory refuses the attempt under a disposition request
+PASS R1-2 an out-of-order (older) delivery is refused by the installer
+PASS R1-2 re-installing the same generation and bytes is idempotent (same acknowledgement)
+HELD during publication (entry stays 'ingesting' for a checked replay): crash
+PASS R1-2 a disposition of an attempt already 'ingesting' is refused in the acknowledgement (no release on the Mac)
+HELD: no authority inventory is installed on the root
+PASS R1-2 no installed inventory refuses ingestion
+HELD: 1 problem(s) under the lock; nothing published
+   - 3/1: fenced at sequence 12 above this attempt's 7 (late writer)
+PASS a register fence above the attempt's sequence refuses
+HELD: authority inventory: the inventory time 1791658540.1731226 is not finite, not in the past or older than 21600 s
+PASS an inventory older than 6 h refuses
+HELD: authority inventory: the inventory time 1791687340.77881 is not finite, not in the past or older than 21600 s
+PASS an inventory from the future refuses
+HELD: authority inventory: the inventory's seal does not match its body
+PASS an inventory whose seal does not match refuses
+HELD: authority generation 3 is older than the 9 already consumed
+PASS an inventory generation older than one already consumed refuses
+HELD: attempt prod-e1/1 is launched, not reconciled
+PASS an attempt not reconciled refuses
+HELD: attempt prod-e1/1 is qualification and not released: qualification output never enters the root before release
+PASS a qualification attempt not released refuses
+ingested ec2-prod-e1-a1: 4 coordinates (8 files published, 0 failed fits kept), 4 comparisons equal
+PASS the same attempt once listed as released ingests
+HELD: the partition is not the one the latest adopted controls pin
+PASS a partition the latest controls do not pin refuses
+HELD: no readable activation proof (FileNotFoundError)
+PASS a partition with no activation proof refuses
+HELD: the operational manifest is not the exact derivation of d087cb12 (differs on ['cfg'])
+PASS an operational manifest that changes science refuses
+HELD: STOP in force - no canonical publication
+PASS the root STOP refuses canonical publication
+HELD: ec2/HOLD in force - no canonical publication
+PASS an ec2/HOLD refuses canonical publication
+PASS publish_copy refuses staged bytes that are not the registered hash
+PASS activation refuses while the controls do not pin the partition (guard not live)
+PASS activation refuses a block coordinate planned by Lengau
+HELD: canonical consumers read only the canonical controls file
+PASS R1-1 a canonical ingestion refuses a sandbox activation proof
+HELD: the partition is not the one the latest adopted controls pin
+PASS R1-1 a proof made under version 10 is historical once version 11 pins another partition
+ingested ec2-prod-e1-a1: 4 coordinates (8 files published, 0 failed fits kept), 4 comparisons equal
+PASS ... and valid while every later version keeps pinning it
+HELD: the activation's controls version 10 is not byte-identical in the current controls
+PASS R1-1 a proof whose controls version entry changed afterwards refuses
+ingested ec2-prod-e1-a1: 4 coordinates (8 files published, 0 failed fits kept), 4 comparisons equal
+PASS post-ACK setup: the attempt ingests
+already ingested and re-validated: ec2-prod-e1-a1
+PASS R2-1 a completed attempt replays and re-validates AFTER the Mac acknowledged it (inventory 'ingested')
+HELD: replay of an ingested attempt differs: ['4/1: timing/rep4/t_001.json is not the registered bytes']
+PASS R2-1 ... and a canonical file changed after the acknowledgement HOLDS that replay
+HELD: the inventory shows prod-e1/1 acknowledged as ingested but the register holds no entry: a replay never publishes
+PASS R2-1 an inventory showing 'ingested' with no register entry never publishes
+HELD: the current controls are not the adopted bytes (the controls file is not the adopted bytes)
+PASS R2-2 a canonical ingestion HOLDS while the canonical controls are not the adopted bytes
+PASS R2-1 an installed inventory over 6 h old showing a live attempt fails the admission recheck now
+PASS R2-1 ... while an old inventory of terminal history only is accepted
+PASS R2-1 an installation must name its own root (identity)
+ALL PASS
