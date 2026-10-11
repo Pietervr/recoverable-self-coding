@@ -58,7 +58,7 @@ Design `PRODUCTION_DESIGN.md`, qualification `QUALIFICATION_PLAN.md`. Current re
 performed; v11 `6342aa10` and its earlier literal stay unchanged); the Lengau authority/ACK/generation, post-ACK replay,
 adopted-controls lineage, S STOP/HOLD, qualifier and release binding statically closed; the complete dispatch basis held
 on D-1 (receipt at every recovery re-issue) and D-2 (drain in-flight benchmark commands before qualification), both
-repaired in RSC `e644584` and awaiting review. Bank evaluator `compatible()` (`9afcc03`) FAVOURABLE within its scope.
+repaired in RSC `e644584`; Codex RSC `1609fa7`: closed statically, the Q1/Q2/S basis FAVOURABLE with operating gates, and `bench_finish --declare` FAVOURABLE for attempt 5. Epoch-1 partition DECLARED (11 Oct, RSC candidate): `chpc/row19_partition_e1.json` (sha256 `8d1de408`), k = 40, EC2 owns indices 160..199 of all 100 reps (4,000 coordinates). Why 40: the USD 2,300 production envelope funds ~40-55 indices at the costed rate, so 40 is fundable in full; Lengau's refit runs from index 0 upward and was at index 2 on 10 Oct, far below 160; if either side finishes its share early a new epoch is declared and reviewed. It is pinned by candidate controls v13 (`chpc/candidate_v10r4/`, = v12 + the partition pin; helper bytes unchanged) AWAITING REVIEW - not adopted, not activated. Bank evaluator `compatible()` (`9afcc03`) FAVOURABLE within its scope.
 Owner (11 Oct): USD 45 for Q1 + Q2 accepted (28 + 17, one attempt each; frozen-plan worst USD 44.462); a successful
 qualification with a FAVOURABLE actual-result review goes directly to production with no further owner go, inside the
 USD 2,300 envelope and the USD 3,000 cap; a retry needs the owner.
@@ -86,7 +86,8 @@ USD 2,300 envelope and the USD 3,000 cap; a retry needs the owner.
 - Lengau side (`../chpc/`): `row19_partition.py` (declare / activate), `row19_ec2_root.py install` (the inventory and the
   disposition fence on the root), `row19_ec2_ingest.py`, `row19_ec2_qualify.py` (certificate), `row19_ec2_shadow.py` (S
   admission), `row19_ec2_state.py` (shared contracts), candidate controls v11 in `candidate_v10r2/` and v12 in
-  `candidate_v10r3/` (both null-only favourable; the S declaration made in v11 stands unchanged in v12). `row19_ec2_root.py install` grants a canonical acknowledgement only for the
+  `candidate_v10r3/` (both null-only favourable; the S declaration made in v11 stands unchanged in v12), v13 in
+  `candidate_v10r4/` (= v12 + the epoch-1 partition pin `row19_partition_e1.json`, k = 40; awaiting review). `row19_ec2_root.py install` grants a canonical acknowledgement only for the
   production manifest at its own root; anything else needs `--sandbox`.
 - Operator flow per inventory change: `python3 ec2_sync.py cycle` (seal a new generation -> copy to Lengau -> `t1py
   chpc/row19_ec2_root.py install` in the controller tree -> pull `ack_g<N>.json` + `register.json` -> `disposition-confirm` /

@@ -5,7 +5,7 @@ Status: 11 October 2026, R052. Codex RSC `cf07869` (review of the v10r3 package)
 opinion, not activation or paid dispatch); the Lengau authority/ACK/generations, post-ACK replay, adopted-controls lineage,
 S STOP/HOLD, qualifier and release binding statically closed; the complete Q1/Q2 dispatch basis held on D-1 (a correctly
 bound current receipt before every recovery re-issue) and D-2 (drain every in-flight benchmark command before qualification
-is permitted). Both are repaired in RSC `e644584` (section 6) and await review. Nothing runs before (a) row 23's arm B passes
+is permitted). Both are repaired in RSC `e644584` (section 6); Codex RSC `1609fa7` found D-1, D-2 and the finish check F-3 closed statically and the Q1/Q2/S basis FAVOURABLE, with operating gates. Epoch-1 partition DECLARED (11 Oct, RSC candidate): `chpc/row19_partition_e1.json` (sha256 `8d1de408`), k = 40, EC2 owns indices 160..199 of all 100 reps (4,000 coordinates). Why 40: the USD 2,300 production envelope funds ~40-55 indices at the costed rate, so 40 is fundable in full; Lengau's refit runs from index 0 upward and was at index 2 on 10 Oct, far below 160; if either side finishes its share early a new epoch is declared and reviewed. It is pinned by candidate controls v13 (`chpc/candidate_v10r4/`, = v12 + the partition pin; helper bytes unchanged) AWAITING REVIEW - not adopted, not activated. Nothing runs before (a) row 23's arm B passes
 its declared success criterion (valid report, B_full, row-6 panel exact, all 36 refit payloads float-bit identical with
 identities equal; `bench_finish.py`, see README), (b) a favourable review of the repaired package, and (c) qualification
 permission in `ec2_release_state.json`, set only by `qual_permit.py` after the benchmark cutover. Owner: USD 45 for Q1 + Q2 accepted (28 + 17, one attempt each; a retry needs the owner), and
@@ -20,8 +20,9 @@ space. The simplest authority is a declared, immutable partition: EC2 owns a fix
 plans inside it, and the boundary moves only by a new reviewed declaration. No cross-provider locking, fencing or late
 writer can then occupy another provider's coordinate, because no coordinate is ever assignable to both.
 
-- **EC2 block**: indices `[200 - k, 199]` for all 100 reps (reps 3..102), `k` fixed in `ec2_block.json` (pinned by
-  sha256 in a controls version). Lengau keeps its index-major ascending order from index 0 (it is at index 2 now).
+- **EC2 block**: indices `[200 - k, 199]` for all 100 reps (reps 3..102), `k` fixed in the epoch declaration
+  `chpc/row19_partition_e1.json` (pinned by sha256 in a controls version; declared k = 40, indices 160..199, candidate
+  controls v13 awaiting review). Lengau keeps its index-major ascending order from index 0 (it was at index 2 on 10 Oct).
 - **Lengau guard (controls v10)**: the refit planner refuses any coordinate inside the pinned block; the admission and the
   status view report the block. This is the only Lengau controller change. Lengau would not reach index 200 - k for
   weeks, so the guard is a safety net, not a scheduling constraint.

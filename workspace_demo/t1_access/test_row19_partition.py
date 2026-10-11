@@ -191,4 +191,42 @@ envs = {"versions": [{"version": 11, "sub_envelopes": [dict(name="refit+S", camp
 check("S the combined sub-envelope refuses an S job that fits its own 2,304 cap but not the shared 60,000", "sub-envelope" in SA.sub_envelope_problem(cs, 1152.0, envs))
 check("... and refuses a refit job on the same count (both directions share it)", "sub-envelope" in SA.sub_envelope_problem(cr, 1152.0, envs))
 check("... and passes while the shared total fits", SA.sub_envelope_problem(cs, 100.0, envs) == "")
+# the v13 candidate (candidate_v10r4): the REAL epoch-1 partition k = 40, pinned exactly; v1-12 and helper bytes unchanged
+C12 = json.load(open(os.path.join(HERE, "chpc", "candidate_v10r3", "row19_screen_controls.json")))
+C13 = json.load(open(os.path.join(HERE, "chpc", "candidate_v10r4", "row19_screen_controls.json")))
+pe1 = os.path.join(HERE, "chpc", "row19_partition_e1.json"); ref = C13["versions"][-1]["partition"]
+check("v13 = v12 + one version; everything else unchanged", C13["versions"][:-1] == C12["versions"]
+      and {k: v for k, v in C13.items() if k != "versions"} == {k: v for k, v in C12.items() if k != "versions"})
+v12e, v13e = C12["versions"][-1], C13["versions"][-1]
+check("v13 differs from v12 only in version, partition and the review note",
+      v13e["version"] == 13 and sorted(k for k in v13e if v13e[k] != v12e.get(k)) == ["partition", "reviewed", "version"])
+check("v13 pins exactly the declared file", ref == {"path": "chpc/row19_partition_e1.json", "sha256": RP.sha_file(pe1)})
+e1 = RP.load(pe1, man, ms)
+check("the declared file is epoch 1, k 40, indices 160..199, all 100 reps, manifest 43b75f94, no predecessor",
+      e1["epoch"] == 1 and e1["k"] == 40 and e1["indices"] == list(range(160, 200)) and e1["reps"] == list(range(3, 103))
+      and ms.startswith("43b75f94") and e1["predecessor"] is None and e1["transferred_indices"] == [])
+check("the declared file is read-only on disk", not os.access(pe1, os.W_OK))
+for f in ("row19_screen_admit.py", "row19_screen_status.py"):
+    check(f"v13 candidate {f} bytes = v12 candidate's", RP.sha_file(os.path.join(HERE, "chpc", "candidate_v10r4", f))
+          == RP.sha_file(os.path.join(HERE, "chpc", "candidate_v10r3", f)))
+spec = importlib.util.spec_from_file_location("sa13", os.path.join(HERE, "chpc", "candidate_v10r4", "row19_screen_admit.py"))
+SA13 = importlib.util.module_from_spec(spec); spec.loader.exec_module(SA13); SA13.controls = lambda: C13
+SA13.T1 = HERE                                                    # deployed, the admit lives in chpc/ under this tree root
+P13 = SA13.partition(man, man_path)
+check("the v13 candidate admission resolves the pinned partition", P13 == e1)
+done = {(r, i) for r in small["datasets"]["reps"] for i in range(160)}
+jobs, left = SA13.plan_jobs(small, "refit", 5, done, set(), {1}, P13)
+check("v13 sandbox planning plans nothing when only the EC2 block is left", jobs == [] and left == 0)
+bad = [{"slots": [{"slot": 0, "rep": 3, "indices": [160]}]}]; fine = [{"slots": [{"slot": 0, "rep": 3, "indices": [159]}]}]
+check("v13 refuses a supplied plan with a block coordinate, passes one just below", SA13.partition_problem(bad, P13) != ""
+      and SA13.partition_problem(fine, P13) == "")
+os.chmod(pe1, 0o644)
+try:
+    SA13.controls = lambda: dict(C13, versions=C13["versions"][:-1] + [dict(v13e, partition=dict(ref, sha256="0" * 64))])
+    SA13.partition(man, man_path); check("a pin that is not the file's bytes refuses", False)
+except ValueError:
+    check("a pin that is not the file's bytes refuses", True)
+finally:
+    os.chmod(pe1, 0o444)
+
 print("ALL PASS" if ok else "SOME FAILED"); sys.exit(0 if ok else 1)

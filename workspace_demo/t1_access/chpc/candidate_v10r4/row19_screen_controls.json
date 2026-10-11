@@ -1,0 +1,317 @@
+{
+ "schema": "row19-screen-controls-1",
+ "note": "The screen manifests are immutable (bindings name their SHA-256). Controller repairs are versioned here instead: each version lists the exact controller bytes; a controller refuses unless its own bytes are the LATEST version's (Codex a1ce224: 'a reviewed committed controller/consumer lineage and exact new pins').",
+ "programme": {
+  "lock": "/mnt/lustre/users/pvanrooyen/t1_toolchain/programme_admission.lock",
+  "campaigns": [
+   "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_campaign",
+   "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_shard_campaign",
+   "/mnt/lustre/users/pvanrooyen/t1_toolchain/row22_bank_campaign",
+   {
+    "path": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+    "may_be_absent": true,
+    "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen"
+   },
+   {
+    "path": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_orig_campaign",
+    "may_be_absent": true,
+    "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_orig"
+   },
+   {
+    "path": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign",
+    "may_be_absent": true,
+    "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/root"
+   }
+  ]
+ },
+ "history_manifest": {
+  "path": "chpc/row19_slice_manifest.json",
+  "sha256": "d1a7371ba955039a2aefbcf14fef81b79f4ecd2cbf5c86c4ed8a0be3ffbe056f"
+ },
+ "versions": [
+  {
+   "version": 1,
+   "commit": "fe3c266",
+   "reviewed": "Codex a1ce224 (raw first pilots only)",
+   "files": {
+    "chpc/row19_screen_admit.py": "4eb2c42562d11a9b711ed682da0f3ce92929adeebf6663b61622ee0e2e0b21f5",
+    "chpc/row19_screen_verify.py": "da0bdd818d1faaecbee9353899d6cf95f2f507a96e5d970a460fb424c4f51206",
+    "chpc/row19_screen_status.py": "5536bb6c5f7277fc5aacc96942816ee2eff5e7feb79cf22c974528a9dd61bae8",
+    "chpc/row19_screen_release.py": "407116264ad84b4075a6121e1bb436775e72b7da9b77dcead088683e66d26cdb"
+   }
+  },
+  {
+   "version": 2,
+   "commit": "abbd63d",
+   "reviewed": "Codex ee99ee1: NOT FAVOURABLE (R1-R7)",
+   "files": {
+    "chpc/row19_screen_admit.py": "53f7b09886b9013f48966537d4ba86e1f9e602c650db1bf8245fd9f18b409fea",
+    "chpc/row19_screen_verify.py": "608caee38e8edea9c798ff94eadfdb74e09e69a78c312d86f48bb4a52a8b2d57",
+    "chpc/row19_screen_status.py": "c5db99943788fb3735228ca636d06b3295010217bb8d90c81a94cb7dc8512f5d",
+    "chpc/row19_screen_release.py": "26c00fa07118441cf8a2ea231c47c818c2346c8b4e9e2800d7556b65774d1367",
+    "chpc/programme_gate.py": "d733bf8f31b50a6ce491ac5bb5ba4aabb0717794ed15874fd50917e4ab1d8fb2"
+   }
+  },
+  {
+   "version": 3,
+   "commit": "c512d45",
+   "reviewed": "Codex 8bd1451: NOT FAVOURABLE (C1-C4); release components favourable",
+   "files": {
+    "chpc/row19_screen_admit.py": "6d00171b7050104af01c4746cf043d2a4cecfaddcc6d589f4c1caca0ce3ecf27",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "bda24d3833490a0a7a89b23160abe56f5b6fb654b24fea69971d6077ecc87830",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "ae968b651342999645192fede3b43a820ef1c9e3716dc0eb4960a13db880ed53"
+   }
+  },
+  {
+   "version": 4,
+   "commit": "506b79d",
+   "reviewed": "Codex f40991e: NOT FAVOURABLE (C1, C2, C4 remainders); C3 authority favourable component",
+   "files": {
+    "chpc/row19_screen_admit.py": "1a435dcb376d4a4e46b5bcc69692f6d3033e888a032b7a513cbfb7681f6a3f45",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "40e379530bd8d35ef76a8eacfa8f65793efb1e1769d5238ac385df9dbd5829dd",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "3962468338c2e24c50f5ff402dfe8cb57f64d232ee21c1fdd00d388d16b20956"
+   }
+  },
+  {
+   "version": 5,
+   "commit": "a280b9f",
+   "reviewed": "Codex 74dae6d: NOT FAVOURABLE (C2 plan membership/partition, C4 automatic reconciliation)",
+   "files": {
+    "chpc/row19_screen_admit.py": "800c172c0a1785556728ec18f214533d14a026d122328c0ed3bfe46681caeec6",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "40e379530bd8d35ef76a8eacfa8f65793efb1e1769d5238ac385df9dbd5829dd",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0"
+   }
+  },
+  {
+   "version": 6,
+   "commit": "e797171",
+   "reviewed": "Codex 8865474: NOT FAVOURABLE (C2 historical per-job partition and reuse provenance, C4 applied-only automatic certificate)",
+   "files": {
+    "chpc/row19_screen_admit.py": "8d304fa2e8a36a6ff4ab526e94ff982d25b215e5c2d8335e53978d3af1c3ed90",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "40e379530bd8d35ef76a8eacfa8f65793efb1e1769d5238ac385df9dbd5829dd",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0"
+   }
+  },
+  {
+   "version": 7,
+   "commit": "da5c750",
+   "reviewed": "pending Codex",
+   "files": {
+    "chpc/row19_screen_admit.py": "573e5b18835a57b55fa545b3815458b1a59662847318b6fd7046858fa2b32d53",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "dac142fb58991f14fa1616e768b156af42f6ccf15252840ef7a3b6af07c1f7e0",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0"
+   }
+  },
+  {
+   "version": 8,
+   "commit": "candidate: see the commit that adds this entry",
+   "reviewed": "pending Codex (R052 record 2026-10-09 verdicts 1 and 2: closed-no-record disposition, prospective refit resource policy), repaired for Codex 5cb9a02 R1-R3 and ce06828 R1 timing contract (the c1956ef and 28861c4 bytes were not favourable); NOT adopted",
+   "files": {
+    "chpc/row19_screen_admit.py": "4fa993ee97d13d491b7afa5374c8ec49a330e64173872737942b0467bb0cb965",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "ae91c8d035e53403b7d664fd1b8ed8e90995c0e88904b8f4915c6dcb13963948",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0",
+    "chpc/row19_screen_resources.json": "f5352bc3ae7c5195e2081baa5685b4533fc8add0d5cfd5c48009e72610bebba0"
+   }
+  },
+  {
+   "version": 9,
+   "commit": "candidate: see the commit that adds this entry",
+   "reviewed": "pending Codex (R052 record 2026-10-10 V9-1..V9-3: the snapshot pull as one ssh tar stream with explicit remote phases, drained stderr, one bounded deadline and reaped children); NOT adopted; v8 authority unchanged",
+   "files": {
+    "chpc/row19_screen_admit.py": "4fa993ee97d13d491b7afa5374c8ec49a330e64173872737942b0467bb0cb965",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "f624fb633e52dd941515e15bc4ce048e72e5077914e675ddac108ef6414bfb4e",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0",
+    "chpc/row19_screen_resources.json": "f5352bc3ae7c5195e2081baa5685b4533fc8add0d5cfd5c48009e72610bebba0"
+   }
+  },
+  {
+   "version": 10,
+   "commit": "candidate: see the commit that adds this entry",
+   "reviewed": "pending Codex: v10 revision 1 = the 0483db4 V10-1..8 repairs (activation gate, EC2 receipt binding, inventory-aware status, shared row19_ec2_state). Supersedes candidate 9e702b6f, whose literal ADOPT (partition null only) stays valid for those exact bytes at RSC 17202f3. NOT adopted; v9 authority unchanged.",
+   "files": {
+    "chpc/row19_screen_admit.py": "57b5243d37acca399b65779e6447332a5ed6c7678de925f6e3e2317f419697ec",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "d2bbfbf85c5f21fbbaa0755bbe57603eb870ce982d06820d4116cd43b2ee2a39",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0",
+    "chpc/row19_screen_resources.json": "f5352bc3ae7c5195e2081baa5685b4533fc8add0d5cfd5c48009e72610bebba0",
+    "chpc/row19_partition.py": "ef36bf4721348684948ae3a40c4fac46f27de2287cef2838dba51b4127e1f17e",
+    "chpc/row19_ec2_ingest.py": "6bbc7a747962dae8d024f1aaf69fde2d2f035f2110ce5bb71c1d58d6150a39a3",
+    "chpc/row19_ec2_state.py": "2ddabba587d4b19fcf064fc8c0473c20a761029fd2048a9b627cc74c55979818",
+    "chpc/row19_ec2_qualify.py": "65dd8f60069ca86ac8ee9fb45da318112833040ee380542ca4c1340d42466291"
+   },
+   "partition": null
+  },
+  {
+   "version": 11,
+   "commit": "candidate: see the commit that adds this entry",
+   "reviewed": "pending Codex: v11 = the v10r1 package + the 3dc0daf R1-1..7 repairs (adopted-lineage activation, installed inventory + root-acknowledged dispositions, admission recheck of registered artifacts, finite coverage, S as producer evidence) and the isolated S campaign (shortest route). Version 10 (b85584c6, partition null) keeps its own literal ADOPT for its exact bytes. NOT adopted; v9 authority unchanged.",
+   "files": {
+    "chpc/row19_screen_admit.py": "a5fac9a96e2073e9c89ca52ced9667692e4d65e838d93feb60b63fa5015fbeca",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "76c11aaabb7ceca6dd684bbac115d7d5ae02e82d779e332ce6c7d3cdc28f1178",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0",
+    "chpc/row19_screen_resources.json": "f5352bc3ae7c5195e2081baa5685b4533fc8add0d5cfd5c48009e72610bebba0",
+    "chpc/row19_partition.py": "bf9f9d501b1956cc38636f44bc488df26812a3b18cb76fe312e0d5d24c470f90",
+    "chpc/row19_ec2_ingest.py": "1308977a44abb709e3d682ad3fee4e42f9fbcca3411df200f9a896f3486f9846",
+    "chpc/row19_ec2_state.py": "536fcb45f4801539dfd69010510b44c30f00656c83f1de96ab8b02f2da8b18de",
+    "chpc/row19_ec2_qualify.py": "45f9e529057c80c3cb7783f8f1ff3e3b431eb7a8e68d79a4e53546d550a2d10f",
+    "chpc/row19_ec2_root.py": "a1e86997fee6578c10736aa314f2a940ed2f00c0c57426ae8bc6b65dd7a501a3",
+    "chpc/row19_ec2_shadow.py": "c23eb9fd3a1abf6605c7561fc5e891b0993efc5b02946c7182893bc5ed97a269",
+    "chpc/row19_qual_S_manifest.json": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "aws_ec2/qual_S_plan.json": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9"
+   },
+   "partition": null,
+   "sub_envelopes": [
+    {
+     "name": "refit+S",
+     "campaigns": [
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign"
+     ],
+     "cap_core_h": 60000.0,
+     "rule": "the screen refit campaign and the isolated S campaign share ONE 60,000 core-h envelope (settled + every live reservation); each admission of either checks it under the programme lock"
+    }
+   ],
+   "qualification_S": {
+    "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/root",
+    "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign",
+    "manifest_path": "chpc/row19_qual_S_manifest.json",
+    "manifest_sha256": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "plan_path": "aws_ec2/qual_S_plan.json",
+    "plan_sha256": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9",
+    "jobs": [
+     1,
+     2
+    ],
+    "reserved_core_h_each": 1152.0,
+    "reserved_core_h": 2304.0,
+    "kind": "shard",
+    "admission": "chpc/row19_ec2_shadow.py",
+    "rule": "isolated root and campaign, outside the canonical denominator; every attempt, retry, status, failure, settlement and STOP kept"
+   }
+  },
+  {
+   "version": 12,
+   "commit": "candidate: see the commit that adds this entry",
+   "reviewed": "pending Codex: v12 = v11 (6342aa10, FAVOURABLE null-only in RSC 299f4b7) + the 299f4b7 repairs R2-1..4 in the pinned helpers (root-identity acknowledgements and freshness at use in row19_ec2_state/row19_ec2_root; current-adoption authentication in row19_partition, ingestion and the qualifier; post-acknowledgement replay; S STOP/HOLD rechecks and mirror in row19_ec2_shadow; declared-S binding with timing/task-binding/producer digests in the qualifier). Programme, sub-envelopes and qualification_S unchanged; admit/status bytes unchanged. Partition null. NOT adopted.",
+   "files": {
+    "chpc/row19_screen_admit.py": "a5fac9a96e2073e9c89ca52ced9667692e4d65e838d93feb60b63fa5015fbeca",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "76c11aaabb7ceca6dd684bbac115d7d5ae02e82d779e332ce6c7d3cdc28f1178",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0",
+    "chpc/row19_screen_resources.json": "f5352bc3ae7c5195e2081baa5685b4533fc8add0d5cfd5c48009e72610bebba0",
+    "chpc/row19_partition.py": "ed6aa177a2c144d277be137212822ae405694dc342bded9bcaf6a50a4d9dd75f",
+    "chpc/row19_ec2_ingest.py": "b697dc366d8fbb06619fa01cbdd5a51460a1c0e2f2bbb3d85d1a1c1a48788639",
+    "chpc/row19_ec2_state.py": "bda200dc1fa01753083b2150e2605bad6aa63cc1ed5d4f56b17858681500cf27",
+    "chpc/row19_ec2_qualify.py": "1fc6b61fca18e4823988ec895266083895cbafcc5f9b6a10a6606e7dcd052ad6",
+    "chpc/row19_ec2_root.py": "ceba9b3285b6bc66fff32bdc79ebbb70f09e5701794e0fa9764b1f253c169005",
+    "chpc/row19_ec2_shadow.py": "ce4dc15c2a73df40c660f1d2db1344b9ae745c5609c4165b57b956995b12c632",
+    "chpc/row19_qual_S_manifest.json": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "aws_ec2/qual_S_plan.json": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9"
+   },
+   "partition": null,
+   "sub_envelopes": [
+    {
+     "name": "refit+S",
+     "campaigns": [
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign"
+     ],
+     "cap_core_h": 60000.0,
+     "rule": "the screen refit campaign and the isolated S campaign share ONE 60,000 core-h envelope (settled + every live reservation); each admission of either checks it under the programme lock"
+    }
+   ],
+   "qualification_S": {
+    "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/root",
+    "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign",
+    "manifest_path": "chpc/row19_qual_S_manifest.json",
+    "manifest_sha256": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "plan_path": "aws_ec2/qual_S_plan.json",
+    "plan_sha256": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9",
+    "jobs": [
+     1,
+     2
+    ],
+    "reserved_core_h_each": 1152.0,
+    "reserved_core_h": 2304.0,
+    "kind": "shard",
+    "admission": "chpc/row19_ec2_shadow.py",
+    "rule": "isolated root and campaign, outside the canonical denominator; every attempt, retry, status, failure, settlement and STOP kept"
+   }
+  },
+  {
+   "version": 13,
+   "commit": "candidate: see the commit that adds this entry",
+   "reviewed": "pending Codex: v13 = v12 (80d1c6d9, FAVOURABLE null-only in RSC cf07869; executable basis FAVOURABLE in RSC 1609fa7) + the REAL epoch-1 partition chpc/row19_partition_e1.json (k = 40: EC2 owns resample indices 160..199 of all 100 screen reps 3..102, 4,000 coordinates, over manifest 43b75f94). Why k = 40: the USD 2,300 production envelope funds roughly 40-55 indices at the costed rate, so 40 is fundable in full; Lengau's refit runs from index 0 upward and had reached index 2 by 10 Oct (refit job 11 began at index 2), far below 160; if either side finishes its share early, a new epoch is declared and reviewed (predecessor named, completed coordinates never transferred). Every helper byte, programme, sub-envelope and qualification_S unchanged from v12; admit/status bytes unchanged. NOT adopted; activation (row19_partition.py activate) only after adoption, under the plan lock.",
+   "files": {
+    "chpc/row19_screen_admit.py": "a5fac9a96e2073e9c89ca52ced9667692e4d65e838d93feb60b63fa5015fbeca",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "76c11aaabb7ceca6dd684bbac115d7d5ae02e82d779e332ce6c7d3cdc28f1178",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0",
+    "chpc/row19_screen_resources.json": "f5352bc3ae7c5195e2081baa5685b4533fc8add0d5cfd5c48009e72610bebba0",
+    "chpc/row19_partition.py": "ed6aa177a2c144d277be137212822ae405694dc342bded9bcaf6a50a4d9dd75f",
+    "chpc/row19_ec2_ingest.py": "b697dc366d8fbb06619fa01cbdd5a51460a1c0e2f2bbb3d85d1a1c1a48788639",
+    "chpc/row19_ec2_state.py": "bda200dc1fa01753083b2150e2605bad6aa63cc1ed5d4f56b17858681500cf27",
+    "chpc/row19_ec2_qualify.py": "1fc6b61fca18e4823988ec895266083895cbafcc5f9b6a10a6606e7dcd052ad6",
+    "chpc/row19_ec2_root.py": "ceba9b3285b6bc66fff32bdc79ebbb70f09e5701794e0fa9764b1f253c169005",
+    "chpc/row19_ec2_shadow.py": "ce4dc15c2a73df40c660f1d2db1344b9ae745c5609c4165b57b956995b12c632",
+    "chpc/row19_qual_S_manifest.json": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "aws_ec2/qual_S_plan.json": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9"
+   },
+   "partition": {
+    "path": "chpc/row19_partition_e1.json",
+    "sha256": "8d1de408b6ef9dc66d4736b6138536de6591f0d29ebdd6fd00a6e43307225608"
+   },
+   "sub_envelopes": [
+    {
+     "name": "refit+S",
+     "campaigns": [
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign"
+     ],
+     "cap_core_h": 60000.0,
+     "rule": "the screen refit campaign and the isolated S campaign share ONE 60,000 core-h envelope (settled + every live reservation); each admission of either checks it under the programme lock"
+    }
+   ],
+   "qualification_S": {
+    "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/root",
+    "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign",
+    "manifest_path": "chpc/row19_qual_S_manifest.json",
+    "manifest_sha256": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "plan_path": "aws_ec2/qual_S_plan.json",
+    "plan_sha256": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9",
+    "jobs": [
+     1,
+     2
+    ],
+    "reserved_core_h_each": 1152.0,
+    "reserved_core_h": 2304.0,
+    "kind": "shard",
+    "admission": "chpc/row19_ec2_shadow.py",
+    "rule": "isolated root and campaign, outside the canonical denominator; every attempt, retry, status, failure, settlement and STOP kept"
+   }
+  }
+ ],
+ "deployment": {
+  "controller_clone": "/mnt/lustre/users/pvanrooyen/t1_toolchain/rsc_screen_ctl",
+  "rule": "controllers run from this controller-only clone (rsc_screen + the latest lineage version's controller files); the jobs keep running from rsc_screen, whose scientific files, manifests and ledger are never changed under them"
+ }
+}

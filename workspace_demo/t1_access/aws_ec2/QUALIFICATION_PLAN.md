@@ -9,7 +9,7 @@ before release. 11 Oct (Codex 3dc0daf): successful coverage counts FINITE paths 
 through `prod_authority.py release-adopt` from a validated certificate and a FAVOURABLE actual-result review. 11 Oct (Codex
 299f4b7): the panel, finite coverage and packing rule are favourable. 11 Oct (Codex cf07869): the R2-1..4 repairs and the
 v12 controls (`chpc/candidate_v10r3/` 80d1c6d9, null-only) are favourable statically; the complete dispatch basis was held
-on D-1 (recovery receipt) and D-2 (benchmark cutover drain), repaired in RSC `e644584` and awaiting review. Frozen-plan
+on D-1 (recovery receipt) and D-2 (benchmark cutover drain), repaired in RSC `e644584`; Codex RSC `1609fa7` found them closed statically and the Q1/Q2/S basis FAVOURABLE, with operating gates (deploy the repaired CLIs and drain pre-repair commands; `qual_permit --record` names that review; keep the controller tree fixed during comparison). Q1/Q2 additionally need the REAL partition: epoch 1 declared k = 40 (`chpc/row19_partition_e1.json`, indices 160..199), pinned by candidate controls v13 (`chpc/candidate_v10r4/`) awaiting review, then adoption and canonical activation. Frozen-plan
 worst cost Q1 USD 27.9185 + Q2 USD 16.5435 = USD 44.462, inside the accepted USD 45.
 
 ## Panel (fixed, never chosen by outcome)
