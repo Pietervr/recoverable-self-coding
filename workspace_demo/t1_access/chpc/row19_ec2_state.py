@@ -26,7 +26,17 @@ REVISION 2 (Codex RSC 3dc0daf R1-2, R1-3):
   current_problems   what every admission rechecks under its lock beyond the receipt: whenever an activation, a register or
                      an installed inventory exists, a valid sealed installed inventory; every registered canonical
                      record/timing/status of every ingested coordinate still the registered bytes, the status still a complete
-                     terminal status of exactly that attempt and slot; a dispositioned entry has published nothing."""
+                     terminal status of exactly that attempt and slot; a dispositioned entry has published nothing.
+
+REVISION 3 (Codex RSC 299f4b7 R2-1):
+  identity           every installation names WHICH root installed it: install_inventory takes the root identity
+                     (root path, frozen manifest sha256, mode canonical|sandbox) and writes it into the acknowledgement;
+                     row19_ec2_root.py install grants mode canonical ONLY for the production screen manifest 43b75f94 at its
+                     own storage root, and the Mac confirms a disposition only against a canonical acknowledgement of the
+                     canonical root (an isolated S root or a sandbox can never release ownership).
+  freshness at use   current_problems accepts an old installed inventory only while it shows no live or owning attempt;
+                     with one, the six-hour freshness is rechecked at the admission's own time (a receipt watched just
+                     before the threshold no longer carries a stale view through its 2,700 s validity)."""
 import hashlib, json, math, os, time
 
 INVENTORY_SCHEMA = "t1-ec2-authority-inventory-1"
@@ -36,7 +46,9 @@ INVENTORY_MAX_AGE_S = 6 * 3600              # an ingestion or a receipt never tr
 ATTEMPT_STATES = ("intent", "launched", "rejected", "ambiguous", "reconciled")
 INGESTION_STATES = ("pending", "ingested", "dispositioned")
 REGISTER_STATES = ("ingesting", "ingested", "dispositioned")
-ACK_SCHEMA = "row19-ec2-authority-ack-1"
+ACK_SCHEMA = "row19-ec2-authority-ack-2"                # revision 3: the acknowledgement names its root identity
+ROOT_MODES = ("canonical", "sandbox")
+LIVE_STATES = ("intent", "launched", "ambiguous")
 CLASSES = ("production", "qualification")
 WORKER_DONE, WORKER_RESUME, WORKER_HELD = 0, 75, 4
 
@@ -171,11 +183,26 @@ def installed_inventory(root, now=None, max_age=INVENTORY_MAX_AGE_S):
     return (None, f"installed authority inventory: {why}") if why else (inv, "")
 
 
-def install_inventory(root, inv, now=None):
+def identity_problem(identity, root):
+    """'' for a root identity {root, manifest_sha256, mode} naming THIS root (R2-1)."""
+    if not isinstance(identity, dict) or identity.get("mode") not in ROOT_MODES:
+        return "no root identity (root, manifest sha256, mode canonical|sandbox)"
+    if identity.get("root") != os.path.abspath(root):
+        return f"the identity names root {identity.get('root')!r}, not {os.path.abspath(root)!r}"
+    if not (isinstance(identity.get("manifest_sha256"), str) and len(identity["manifest_sha256"]) == 64):
+        return "the identity names no frozen manifest sha256"
+    return ""
+
+
+def install_inventory(root, inv, identity, now=None):
     """Install `inv` as the root's current view (call ONLY under the plan lock). Returns (ack dict, problems). Monotonic:
     a strictly newer generation, or the same generation with the same bytes (idempotent). Fences every requested
-    disposition in the register in the same step and writes the immutable acknowledgement."""
+    disposition in the register in the same step and writes the immutable acknowledgement, which names `identity`
+    (identity_problem: this root, its frozen manifest, canonical or sandbox)."""
     now = time.time() if now is None else now
+    why = identity_problem(identity, root)
+    if why:
+        return None, [f"not installed: {why}"]
     why = inventory_problem(inv, now)
     if why:
         return None, [f"not installed: {why}"]
@@ -221,7 +248,8 @@ def install_inventory(root, inv, now=None):
     with open(P["installed"], "a") as fh:
         fh.write(json.dumps(dict(generation=inv["generation"], sha256=inv["sha256"], at=now)) + "\n"); fh.flush(); os.fsync(fh.fileno())
     ack = dict(schema=ACK_SCHEMA, generation=inv["generation"], inventory_sha256=inv["sha256"], dispositioned=fenced,
-               refused=refused, register_sha256=_sha_or_none(P["register"]), at=now)
+               refused=refused, register_sha256=_sha_or_none(P["register"]), at=now,
+               root=identity["root"], manifest_sha256=identity["manifest_sha256"], mode=identity["mode"])
     ap = ack_path(root, inv["generation"])
     if os.path.exists(ap):
         old = json.load(open(ap))
@@ -232,16 +260,26 @@ def install_inventory(root, inv, now=None):
     return ack, []
 
 
-def current_problems(root, man, require=None):
+def live_attempts(inv):
+    """The keys of attempts an inventory shows live (intent/launched/ambiguous) or owning (pending output)."""
+    return sorted(k for k, a in (inv.get("attempts") or {}).items() if a.get("state") in LIVE_STATES or owns(a))
+
+
+def current_problems(root, man, require=None, now=None):
     """R1-3: what an admission rechecks under its lock (see the module text). `require` forces the inventory requirement
-    (the caller knows a partition is in force); otherwise it applies whenever EC2 evidence is on the root."""
+    (the caller knows a partition is in force); otherwise it applies whenever EC2 evidence is on the root. R2-1: an
+    installed inventory older than six hours is accepted only while it shows no live or owning attempt (terminal history)."""
+    now = time.time() if now is None else now
     P = paths(root); out = []
     acts = [f for f in os.listdir(P["dir"]) if f.startswith("activation_e")] if os.path.isdir(P["dir"]) else []
     evidence = bool(acts) or os.path.exists(P["register"]) or os.path.exists(P["inventory"])
     if require or evidence:
-        _, why = installed_inventory(root, max_age=float("inf"))
+        inv, why = installed_inventory(root, now=now, max_age=float("inf"))
         if why:
             out.append(why)
+        elif now - inv["at"] > INVENTORY_MAX_AGE_S and live_attempts(inv):
+            out.append(f"installed authority inventory: {now - inv['at']:.0f} s old (> {INVENTORY_MAX_AGE_S} s) while it shows "
+                       f"live or owning attempts {live_attempts(inv)[:3]}: install a fresh generation")
     if not os.path.exists(P["register"]):
         return out
     try:

@@ -19,7 +19,14 @@ a retry needs a raised S cap, i.e. an owner decision). Admission refuses unless 
   funding    under the programme admission lock: the programme allocation (100,000) AND the combined refit+S sub-envelope
              (60,000) hold every committed reservation plus this job's full 24 x 48 h = 1,152 core-h.
 Then the immutable plan root/plans/job_<n>.json, the reservation, the PBS script (the screen's own refit script with S job
-and file names) and qsub; the token is bound to the PBS id. Settlement, statuses, STOP and job-end are the worker's own."""
+and file names) and qsub; the token is bound to the PBS id. Settlement, statuses, STOP and job-end are the worker's own.
+
+REVISION 2 (Codex RSC 299f4b7 R2-3). Every declared STOP/HOLD source (the S root STOP, the screen root STOP, the screen
+ec2/HOLD) is checked before the programme lock, AGAIN under it immediately before the reservation, and once more
+immediately before qsub (a STOP there submits nothing; the reservation stays reserved and unbound, settled by hand). The
+unchanged worker reads only its own root's STOP, so the S job script mirrors the shared sources into it: from before
+job-start, a bounded 60 s loop writes <S root>/STOP as soon as the screen STOP or ec2/HOLD exists; the script waits only
+for its workers and ends the mirror after them."""
 import os, sys, json, time, hashlib, argparse, subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__)); T1 = os.path.abspath(os.path.join(HERE, ".."))
@@ -98,11 +105,41 @@ def decl_problem(ctl, sman_path, prod):
     return ""
 
 
-def pbs_script(sman, plan, token, toolchain, clone, manifest_rel):
+def stop_sources(sman, prod):
+    return [os.path.join(sman["storage"]["root"], "STOP"), os.path.join(prod["storage"]["root"], "STOP"), ES.paths(prod["storage"]["root"])["hold"]]
+
+
+def stop_problem(sman, prod):
+    found = [p for p in stop_sources(sman, prod) if os.path.exists(p)]
+    return f"STOP/HOLD in force ({found})" if found else ""
+
+
+def pbs_script(sman, plan, token, toolchain, clone, manifest_rel, prod=None):
     s = _sa().refit_pbs_script(sman, plan, token, WALL_S, sman["pbs"]["queue"], toolchain, clone, manifest_rel)
     n = plan["job"]
     s = s.replace(f"#PBS -N t1_screen_{n}", f"#PBS -N t1_qualS_{n}").replace(f"row19_screen_refit_{n}.", f"row19_qualS_{n}.")
-    return s.replace(f"screen refit job {n}", f"EC2 qualification S job {n} ({plan['label']})")
+    s = s.replace(f"screen refit job {n}", f"EC2 qualification S job {n} ({plan['label']})")
+    if prod is None:
+        return s
+    sroot, scr = sman["storage"]["root"], prod["storage"]["root"]
+    lines, out = s.split("\n"), []
+    for ln in lines:
+        if ln.startswith("cd ") and "MIRROR" not in s:
+            out.append(ln)
+            out.append(f"# R2-3: mirror the shared STOP/HOLD into this isolated root (the unchanged worker reads only {sroot}/STOP)")
+            out.append(f"( while true; do if [ -e {scr}/STOP ] || [ -e {scr}/ec2/HOLD ]; then touch {sroot}/STOP; "
+                       f"echo \"shared STOP/HOLD mirrored $(date -u +%FT%TZ)\"; exit 0; fi; sleep 60; done ) &")
+            out.append("MIRROR=$!")
+            out.append(f"sleep 1; [ -e {sroot}/STOP ] && echo \"STOP in force before job-start\"")
+            continue
+        if "chpc/row19_shard.py worker" in ln and ln.endswith(" &"):
+            out.append(ln); out.append('PIDS="$PIDS $!"'); continue
+        if ln == "wait":
+            out.append("wait $PIDS"); out.append("kill $MIRROR 2>/dev/null"); continue
+        if ln.startswith("  exit $rc") and "ADMISSION FAILED" in out[-1]:
+            out.append("  kill $MIRROR 2>/dev/null"); out.append(ln); continue
+        out.append(ln)
+    return "\n".join(out)
 
 
 def admit(a):
@@ -123,9 +160,9 @@ def admit(a):
     cm = os.path.join(clone, "workspace_demo", "t1_access", manifest_rel)
     if not os.path.exists(cm) or sha(cm) != sha(a.s_manifest):
         return f"the isolated manifest is not in the job clone with these bytes ({cm})"
-    for p in (os.path.join(root, "STOP"), os.path.join(prod["storage"]["root"], "STOP"), ES.paths(prod["storage"]["root"])["hold"]):
-        if os.path.exists(p):
-            return f"STOP/HOLD in force ({p})"
+    why = stop_problem(sman, prod)
+    if why:
+        return why
     plan = s_job(a.job)
     pp = os.path.join(root, "plans", f"job_{a.job}.json")
     if os.path.exists(pp):
@@ -135,10 +172,10 @@ def admit(a):
     funding = PG.programme_funding(prod)
     proposal = CORES * WALL_S / 3600.0
     with PG.programme_lock(funding):
-        why = PG.funding_problem(funding, proposal) or SAm.sub_envelope_problem(camp, proposal, ctl)
-        if why:
+        why = stop_problem(sman, prod) or PG.funding_problem(funding, proposal) or SAm.sub_envelope_problem(camp, proposal, ctl)
+        if why:                                          # R2-3: rechecked under the lock, after any wait for it
             return why
-        script0 = pbs_script(sman, plan, "TOKEN", toolchain, clone, manifest_rel)
+        script0 = pbs_script(sman, plan, "TOKEN", toolchain, clone, manifest_rel, prod)
         if a.dry_run:
             print(f"DRY RUN: S job {a.job} ({plan['label']}) would be admitted: {len(plan['slots'])} slots, {proposal:.0f} core-h")
             print(script0); return ""
@@ -151,7 +188,10 @@ def admit(a):
             json.dump(pdoc, fh, indent=1); fh.flush(); os.fsync(fh.fileno())
         os.link(tmp, pp); os.unlink(tmp)
         sp = os.path.join(toolchain, "jobs", f"row19_qualS_{a.job}.pbs")
-        open(sp, "w").write(pbs_script(sman, plan, token, toolchain, clone, manifest_rel))
+        open(sp, "w").write(pbs_script(sman, plan, token, toolchain, clone, manifest_rel, prod))
+        why = stop_problem(sman, prod)
+        if why:                                          # R2-3: the last check before dispatch
+            return f"{why} - not submitted; reservation {token} stays reserved and unbound (settle it by hand)"
         r = subprocess.run(["qsub", sp], capture_output=True, text=True)
         with open(os.path.join(toolchain, "programme_admissions.jsonl"), "a") as fh:
             fh.write(json.dumps(dict(at=time.time(), cmd=f"row19_ec2_shadow --job {a.job}", proposal_core_h=proposal, rc=r.returncode)) + "\n")

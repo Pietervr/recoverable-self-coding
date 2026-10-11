@@ -57,6 +57,11 @@ AID, KEY, SEQ = "ec2-prod-e1-a1", "prod-e1/1", 7
 STATUS0 = dict(exit=0, reason="", left=[], resumed=[], wall_s=70000.0, cpu_s=69000.0, started=1.0, ended=70001.0, maxrss=2_400_000_000, host="ip-10-0-0-1")
 
 
+def SBX(root):
+    """The sandbox root identity every installation in these tests carries (Codex 299f4b7 R2-1)."""
+    return dict(root=os.path.abspath(root), manifest_sha256="5" * 64, mode="sandbox")
+
+
 def fake_record(r, i):
     return reseal(dict(rep=i, ident=f"ident{r}", stats={"ws": {"point": 0.1 * r + i}}, failed=(r == 6), failed_reason="no-converge" if r == 6 else ""))
 
@@ -143,7 +148,7 @@ def build(case, contract="production", cls="production"):
                duplicates=[], charged_usd=1.0, **{"class": cls})
     inv = inventory({KEY: att})
     ip = os.path.join(d, "inventory.json"); json.dump(inv, open(ip, "w"))
-    ES.install_inventory(root, inv)                              # the root's installed current view (R1-2)
+    ES.install_inventory(root, inv, SBX(root))                    # the root's installed current view (R1-2)
     return dict(d=d, root=root, mp=mp, pp=pp, opp=opp, ip=ip, b=b, att=att, gen=3)
 
 
@@ -180,7 +185,7 @@ def resave_inv(c, install=True, atts=None, **kw):
     c["gen"] += 1
     inv = inventory(atts or {KEY: c["att"]}, gen=c["gen"], **kw); json.dump(inv, open(c["ip"], "w"))
     if install:
-        ES.install_inventory(c["root"], inv)
+        ES.install_inventory(c["root"], inv, SBX(c["root"]))
     return inv
 
 
@@ -278,9 +283,9 @@ json.dump(old, open(c["ip"], "w"))
 check("R1-2 the older fresh sealed inventory (still naming the owner) refuses: not the installed current view", ingest(c) == 3 and reg(c)["attempts"][AID]["state"] == "dispositioned")
 json.dump(inv4, open(c["ip"], "w"))
 check("R1-2 the current inventory refuses the attempt under a disposition request", ingest(c) == 3)
-a_, why = ES.install_inventory(c["root"], old)
+a_, why = ES.install_inventory(c["root"], old, SBX(c["root"]))
 check("R1-2 an out-of-order (older) delivery is refused by the installer", a_ is None and "older" in why[0])
-a_, why = ES.install_inventory(c["root"], inv4)
+a_, why = ES.install_inventory(c["root"], inv4, SBX(c["root"]))
 check("R1-2 re-installing the same generation and bytes is idempotent (same acknowledgement)", a_ is not None and KEY in a_["dispositioned"])
 c = build("raceing"); sums(c["b"]); calls = {"n": 0}; real = IG.publish_copy
 def flaky2(src, dst, want):
@@ -353,4 +358,33 @@ check("... and valid while every later version keeps pinning it", ingest(c) == 0
 ctl["versions"][0]["reviewed"] = "edited"; json.dump(ctl, open(IG.CONTROLS, "w"))
 c = build("lineage2"); sums(c["b"]); ctl = json.load(open(IG.CONTROLS)); ctl["versions"][0]["reviewed"] = "edited later"; json.dump(ctl, open(IG.CONTROLS, "w"))
 check("R1-1 a proof whose controls version entry changed afterwards refuses", ingest(c) == 3)
+
+# R2-1: validated replay AFTER the Mac acknowledgement; an 'ingested' inventory never publishes
+c = build("postack"); sums(c["b"])
+check("post-ACK setup: the attempt ingests", ingest(c) == 0)
+acked = dict(c["att"], ingestion="ingested"); resave_inv(c, atts={KEY: acked})
+check("R2-1 a completed attempt replays and re-validates AFTER the Mac acknowledged it (inventory 'ingested')", ingest(c) == 0 and not held(c))
+tp = SH.timing_path(c["root"], 4, 1); t = json.load(open(tp)); t["wall_s"] += 1; json.dump(t, open(tp, "w"))
+check("R2-1 ... and a canonical file changed after the acknowledgement HOLDS that replay", ingest(c) == 3 and held(c))
+c = build("postack2"); sums(c["b"])
+resave_inv(c, atts={KEY: dict(c["att"], ingestion="ingested")})
+check("R2-1 an inventory showing 'ingested' with no register entry never publishes", ingest(c) == 3 and reg(c) is None)
+
+# R2-2: a canonical ingestion reads the controls only through the adoption authority
+c = build("unadopted"); sums(c["b"]); saved = (IG.CONTROLS, IG.ACTIVATION_MODE, RP.controls_adoption_problem)
+IG.CONTROLS = RP.CANONICAL_CONTROLS; IG.ACTIVATION_MODE = "canonical"
+RP.controls_adoption_problem = lambda: "the controls file is not the adopted bytes"
+check("R2-2 a canonical ingestion HOLDS while the canonical controls are not the adopted bytes", ingest(c) == 3 and reg(c) is None)
+IG.CONTROLS, IG.ACTIVATION_MODE, RP.controls_adoption_problem = saved
+
+# R2-1: freshness at use - an installed inventory older than 6 h is accepted only while it shows no live/owning attempt
+c = build("aged"); man = json.load(open(c["mp"])); old_t = time.time() - 7 * 3600
+c["gen"] += 1; inv_old = inventory({KEY: dict(c["att"], state="launched")}, gen=c["gen"], at=old_t)
+_, pr = ES.install_inventory(c["root"], inv_old, SBX(c["root"]), now=old_t + 10)
+check("R2-1 an installed inventory over 6 h old showing a live attempt fails the admission recheck now",
+      pr == [] and any("live or owning" in x for x in ES.current_problems(c["root"], man)))
+c["gen"] += 1; inv_term = inventory({KEY: dict(c["att"], ingestion="ingested")}, gen=c["gen"], at=old_t + 20)
+_, pr = ES.install_inventory(c["root"], inv_term, SBX(c["root"]), now=old_t + 30)
+check("R2-1 ... while an old inventory of terminal history only is accepted", pr == [] and not any("live or owning" in x for x in ES.current_problems(c["root"], man)))
+check("R2-1 an installation must name its own root (identity)", ES.install_inventory(c["root"], inv_term, dict(SBX(c["root"]), root="/elsewhere"))[0] is None)
 print("ALL PASS" if ok else "SOME FAILED"); sys.exit(0 if ok else 1)

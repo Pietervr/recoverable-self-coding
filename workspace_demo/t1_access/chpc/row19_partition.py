@@ -35,7 +35,14 @@ drops or changes the pin invalidates the proof, and a new epoch needs its own ac
 as provenance). Provider-aware history: records the EC2 register published (non-preexisting coordinates of its ingesting/
 ingested entries) are EC2-completed, not Lengau claims; every such coordinate must lie in the block of the partition its
 entry names (looked up through the controls versions' partition pins); completed EC2 coordinates are retained, never
-transferred. A plan file that is not a well-formed slot list is refused, never read as "no claims"."""
+transferred. A plan file that is not a well-formed slot list is refused, never read as "no claims".
+
+REVISION 4 (Codex RSC 299f4b7 R2-2). A canonical consumer authenticates the CURRENT controls before it checks a proof's
+lineage: activation_problem in mode canonical reads the controls ONLY through adopted_controls() - the canonical file while
+it is git-tracked, unmodified and the adopted review-bound bytes (programme_gate.controls_authority_problem) - and refuses a
+supplied controls document that is not exactly those bytes. A later candidate placed at the canonical path without its own
+adoption therefore fails on the Mac and in ingestion exactly as it fails Lengau admission. A proof made under an earlier
+adopted version stays valid under a later ADOPTED version that still pins the same partition (historical reuse)."""
 import os, sys, json, glob, time, fcntl, hashlib, argparse
 
 SCHEMA = "row19-provider-partition-1"
@@ -207,6 +214,28 @@ def entry_sha(entry):
     return hashlib.sha256(json.dumps(entry, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
+def controls_adoption_problem():
+    """'' while the canonical controls file is the adopted, review-bound, git-tracked unmodified bytes (programme_gate)."""
+    try:
+        import programme_gate as PG
+        return PG.controls_authority_problem()
+    except Exception as e:
+        return f"the adoption cannot be checked ({type(e).__name__}: {e})"
+
+
+def adopted_controls(path=CANONICAL_CONTROLS):
+    """(the CURRENT adopted controls document, '') or (None, why) - the only way a canonical consumer reads controls (R2-2)."""
+    if os.path.abspath(path) != os.path.abspath(CANONICAL_CONTROLS):
+        return None, "canonical consumers read only the canonical controls file"
+    why = controls_adoption_problem()
+    if why:
+        return None, f"the current controls are not the adopted bytes ({why})"
+    try:
+        return json.load(open(path)), ""
+    except Exception as e:
+        return None, f"the adopted controls are unreadable ({type(e).__name__})"
+
+
 def activate(man, man_path, part_path, controls_path=CANONICAL_CONTROLS, now=None, mode="canonical"):
     """The serialized cutover (see the module text). Returns (proof dict, problems); writes nothing itself. `mode` canonical
     requires the adopted canonical controls; `sandbox` (tests, the qualifier's replay) takes any controls file and marks the
@@ -222,11 +251,7 @@ def activate(man, man_path, part_path, controls_path=CANONICAL_CONTROLS, now=Non
         if os.path.abspath(controls_path) != os.path.abspath(CANONICAL_CONTROLS):
             problems.append("a canonical activation reads only the canonical controls file (use mode sandbox for any other)")
         else:
-            try:
-                import programme_gate as PG
-                why = PG.controls_authority_problem()
-            except Exception as e:
-                why = f"the adoption cannot be checked ({type(e).__name__}: {e})"
+            why = controls_adoption_problem()
             if why:
                 problems.append(f"the controls are not the adopted bytes ({why}): the Lengau guard is not proved live")
             adoption_sha = sha_file(ADOPTION) if os.path.exists(ADOPTION) else None
@@ -270,7 +295,8 @@ def activation_path(man, epoch):
 def activation_problem(man, man_sha, part, part_sha, proof, controls=None, mode="canonical"):
     """'' when `proof` is THE activation of this partition under this manifest, made in `mode` (consumers: both admissions,
     ingestion, the launcher, the qualifier). With `controls` (the current controls document) the proof's version entry must
-    be byte-identical there and every version from it to the latest must still pin this partition (R1-1)."""
+    be byte-identical there and every version from it to the latest must still pin this partition (R1-1). In mode canonical
+    the controls are the CURRENT ADOPTED ones (adopted_controls, R2-2); a supplied document must be exactly those."""
     if not isinstance(proof, dict) or proof.get("schema") != "row19-ec2-activation-1":
         return "no activation proof"
     if proof.get("mode") != mode:
@@ -281,6 +307,13 @@ def activation_problem(man, man_sha, part, part_sha, proof, controls=None, mode=
             return f"the activation proof's {k} is not this partition's"
     if mode == "canonical" and not (isinstance(proof.get("adoption_sha256"), str) and len(proof["adoption_sha256"]) == 64):
         return "the canonical activation proof names no controls adoption"
+    if mode == "canonical":
+        cur, why = adopted_controls()
+        if why:
+            return why
+        if controls is not None and controls != cur:
+            return "the supplied controls are not the current adopted controls"
+        controls = cur
     if controls is None:
         return "no controls document to check the activation proof's lineage against"
     vs = controls.get("versions") or []

@@ -60,13 +60,15 @@ def s_world(d, man, msha, failed, nan, shadow_missing, s_edit):
             json.dump(dict(job=JID[n], slot=sl["slot"], rep=r, ident=f"ident{r}", indices=[i], new=[i], resumed=[], left=[], exit=0, reason="",
                            wall_s=7e4, cpu_s=7e4, started=1.0, ended=2.0, maxrss=2_400_000_000), open(os.path.join(sroot, "status", f"job{JID[n]}.slot{sl['slot']}.json"), "w"))
     json.dump(dict(cap_core_h=2304.0, entries=entries), open(os.path.join(scamp, "budget.json"), "w"))
+    for r in range(3, 27):                                         # the worker's job-start bindings under the S manifest
+        json.dump(dict(binding=SHs.binding_for(sman, sha(sp), sroot, r, SHs.task(sman, r))), open(os.path.join(sroot, f"task_{r}.json"), "w"))
     if s_edit:
         s_edit(sroot, scamp)
     return sp
 
 
 def world(case, failed=frozenset(), q2_delta=None, lengau_delta=None, shadow_missing=None, mem_peak_kb=150 * 2 ** 20, nan=frozenset(),
-          running=None, s_edit=None):
+          running=None, s_edit=None, decl_edit=None):
     d = os.path.join(tempfile.mkdtemp(), case); os.makedirs(d)
     root = os.path.join(d, "root"); os.makedirs(os.path.join(root, "plans"))
     for r in range(3, 27):
@@ -76,7 +78,11 @@ def world(case, failed=frozenset(), q2_delta=None, lengau_delta=None, shadow_mis
     mp = os.path.join(d, "manifest.json"); json.dump(man, open(mp, "w")); msha = sha(mp)
     smp = s_world(d, man, msha, failed, nan, shadow_missing, s_edit)
     part = RP.declare(man, msha, 2, 1); pp = os.path.join(d, "partition.json"); json.dump(part, open(pp, "w"))
-    cp = os.path.join(d, "ctl.json"); json.dump({"versions": [{"version": 10, "partition": {"sha256": sha(pp)}}]}, open(cp, "w"))
+    sm_ = json.load(open(smp))
+    decl = dict(root=sm_["storage"]["root"], campaign=sm_["storage"]["campaign"], manifest_sha256=sha(smp), plan_sha256=sha(SHD.S_PLAN))
+    if decl_edit:
+        decl.update(decl_edit)
+    cp = os.path.join(d, "ctl.json"); json.dump({"versions": [{"version": 10, "partition": {"sha256": sha(pp)}, "qualification_S": decl}]}, open(cp, "w"))
     Q.CONTROLS = cp
     os.makedirs(os.path.join(root, "ec2")); json.dump(RP.activate(man, mp, pp, cp, mode="sandbox")[0], open(RP.activation_path(man, 1), "w"))
     actsha = sha(RP.activation_path(man, 1))
@@ -171,6 +177,29 @@ def foreign_timing(r, c):
     tp = SHs.timing_path(r, 3, 199); t = json.load(open(tp)); t["job"] = "999.sched01"; json.dump(t, open(tp, "w"))
 rc, cert, _ = world("s_timing", s_edit=foreign_timing)
 check("R1-4 an S record whose timing names another producer: NO_RELEASE", cert["outcome"] == "NO_RELEASE", cert["problems"][:2])
+# R2-4: S is THE declared campaign; its timings, task bindings, producer entries and declaration are bound
+rc, cert, _ = world("s_decl")
+bs = cert["bound"]["s"]
+check("R2-4 the certificate binds S timings, task bindings, producer entries, the declaration and states the provenance condition",
+      all(bs.get(k) for k in ("timings_sha256", "task_bindings_sha256", "producer_entries_sha256", "declaration_sha256")) and "cooperative" in bs.get("provenance", ""))
+rc, cert, _ = world("s_undecl", decl_edit=dict(manifest_sha256="0" * 64))
+check("R2-4 an exact isolated S derivation that is not the controls-declared manifest: NO_RELEASE", cert["outcome"] == "NO_RELEASE"
+      and any("declare" in p for p in cert["problems"]), cert["problems"][:2])
+rc, cert, _ = world("s_undecl_root", decl_edit=dict(root="/elsewhere/qual_S/root"))
+check("R2-4 a declared S root other than the supplied one: NO_RELEASE", cert["outcome"] == "NO_RELEASE", cert["problems"][:2])
+def bad_binding(r, c):
+    p_ = os.path.join(r, "task_5.json"); d_ = json.load(open(p_)); d_["binding"]["rep"] = 6; json.dump(d_, open(p_, "w"))
+rc, cert, _ = world("s_binding", s_edit=bad_binding)
+check("R2-4 an S task binding that is not the S manifest's binding: NO_RELEASE", cert["outcome"] == "NO_RELEASE"
+      and any("task binding" in p for p in cert["problems"]), cert["problems"][:2])
+rc, cert, _ = world("s_nobinding", s_edit=lambda r, c: os.remove(os.path.join(r, "task_7.json")))
+check("R2-4 a missing S task binding: NO_RELEASE", cert["outcome"] == "NO_RELEASE", cert["problems"][:2])
+# R2-2: in canonical mode the controls come only through the adoption authority
+Q.MODE = "canonical"; saved = RP.adopted_controls
+RP.adopted_controls = lambda path=None: (None, "the current controls are not the adopted bytes (test)")
+rc, cert, _ = world("unadopted")
+check("R2-2 a canonical qualifier refuses unadopted controls (NO_RELEASE)", cert["outcome"] == "NO_RELEASE" and any("adopted" in p for p in cert["problems"]), cert["problems"][:2])
+RP.adopted_controls = saved; Q.MODE = "sandbox"
 # R1-6: memory samples must cover the full planned packing
 rc, cert, _ = world("packing", running=40)
 check("R1-6 memory samples taken below the 76-worker packing: NO_RELEASE", cert["outcome"] == "NO_RELEASE" and any("full 76-worker packing" in p for p in cert["problems"]), cert["problems"][:2])

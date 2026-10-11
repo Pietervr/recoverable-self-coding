@@ -45,6 +45,7 @@ check("... and passes once both are backed", SHD.release_problem(rs) == "")
 # a dry-run admission with the programme gate stubbed and the S root/campaign/clone in a sandbox
 d = tempfile.mkdtemp(); sroot, scamp, clone = os.path.join(d, "root"), os.path.join(d, "camp"), os.path.join(d, "clone")
 prod2 = copy.deepcopy(prod); prod2["shard"] = dict(prod["shard"], toolchain=d, clone=clone)
+screen = os.path.join(d, "screen"); os.makedirs(os.path.join(screen, "ec2")); prod2["storage"] = dict(prod["storage"], root=screen)
 sm = ES.derive_isolated_S(prod2, SHD.PROD_SHA, sroot, scamp); smp = os.path.join(HERE, "chpc", "_test_qual_S_manifest.json"); json.dump(sm, open(smp, "w"))
 os.makedirs(os.path.join(clone, "workspace_demo", "t1_access", "chpc")); shutil.copy(smp, os.path.join(clone, "workspace_demo", "t1_access", "chpc", os.path.basename(smp)))
 ctl = copy.deepcopy(CTL); q = ctl["versions"][-1]["qualification_S"]; q.update(root=sroot, campaign=scamp, manifest_sha256=sha(smp))
@@ -61,6 +62,32 @@ a = argparse.Namespace(manifest=mp2, s_manifest=smp, job=1, dry_run=True)
 why = SHD.admit(a); check("a dry-run S admission passes every gate and plans 24 slots without writing", why == "" and not os.path.exists(os.path.join(sroot, "plans")), why)
 open(os.path.join(sroot if os.path.isdir(sroot) else d, "x"), "w").close(); os.makedirs(sroot, exist_ok=True); open(os.path.join(sroot, "STOP"), "w").write("x")
 check("a STOP in the S root refuses", "STOP" in SHD.admit(a)); os.remove(os.path.join(sroot, "STOP"))
+# R2-3: every declared STOP/HOLD source is rechecked under the programme lock and again immediately before qsub
+real_lock = PG.programme_lock
+def stop_during_wait(f):
+    open(os.path.join(screen, "STOP"), "w").write("x"); return real_lock(f)
+PG.programme_lock = stop_during_wait
+why = SHD.admit(argparse.Namespace(manifest=mp2, s_manifest=smp, job=1, dry_run=False))
+check("R2-3 a screen STOP written while waiting for the programme lock refuses S: no plan, no reservation",
+      "STOP" in why and not os.path.exists(os.path.join(sroot, "plans", "job_1.json")) and not os.path.exists(os.path.join(scamp, "budget.json")), why)
+os.remove(os.path.join(screen, "STOP")); PG.programme_lock = real_lock
+real_script = SHD.pbs_script; calls = {"n": 0}
+def hold_before_qsub(*args_, **kw):
+    calls["n"] += 1
+    if args_[2] != "TOKEN":                                       # the real script, written right before qsub
+        open(os.path.join(screen, "ec2", "HOLD"), "w").write("x")
+    return real_script(*args_, **kw)
+SHD.pbs_script = hold_before_qsub
+why = SHD.admit(argparse.Namespace(manifest=mp2, s_manifest=smp, job=2, dry_run=False))
+check("R2-3 a screen ec2/HOLD appearing after the reservation stops the qsub (reservation kept, unbound, stated)",
+      "not submitted" in why and "HOLD" in why, why)
+os.remove(os.path.join(screen, "ec2", "HOLD")); SHD.pbs_script = real_script
+sc = SHD.pbs_script(sm, SHD.s_job(1), "TOK", d, clone, "chpc/x.json", prod2); lines = sc.split("\n")
+check("R2-3 the S job script mirrors the screen STOP and ec2/HOLD into its own root from before job-start",
+      f"touch {sroot}/STOP" in sc and f"{screen}/STOP" in sc and f"{screen}/ec2/HOLD" in sc
+      and sc.index("MIRROR=$!") < sc.index("job-start"))
+check("R2-3 the script waits for its 24 workers only and ends the mirror after them",
+      sum(1 for l in lines if l == 'PIDS="$PIDS $!"') == 24 and "wait $PIDS" in lines and "wait" not in lines and "kill $MIRROR 2>/dev/null" in lines)
 os.makedirs(os.path.join(d, "refit_camp")); json.dump(dict(cap_core_h=60000.0, entries={"t": dict(state="settled", settled_core_h=59500.0, reserved_core_h=1152.0)}),
                                                       open(os.path.join(d, "refit_camp", "budget.json"), "w"))
 check("the combined refit+S sub-envelope refuses S when the refit has used the shared 60,000", "sub-envelope" in SHD.admit(a))

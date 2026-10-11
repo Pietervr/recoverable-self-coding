@@ -39,7 +39,21 @@ REVISION 2 (Codex RSC 3dc0daf R1-4, R1-6):
   recovery   R5 is stated with its exact scope (`replay.scope`): an interrupted INGESTION PUBLICATION on a relocated,
              re-bound sandbox copy of Q1's actual bundle, then a replay and a second replay. It does NOT demonstrate producer
              process/host restart or interrupted-transfer recovery, and its sandbox plan hash differs from the canonical
-             plan, so it says nothing about the Mac acknowledgement of the canonical attempt."""
+             plan, so it says nothing about the Mac acknowledgement of the canonical attempt.
+
+REVISION 3 (Codex RSC 299f4b7 R2-2, R2-4):
+  controls   in mode canonical the controls are read only through row19_partition.adopted_controls (the current adopted bytes).
+  S decl     the S evidence is accepted only for THE S campaign the current controls declare (latest version's
+             `qualification_S`): --s-manifest must be the declared manifest bytes, its root and campaign the declared ones,
+             and the fixed S plan the declared plan bytes - another exact isolated derivation is refused.
+  S bound    the certificate binds, beyond the manifest, ledger, plans, statuses and records: every validated timing file,
+             every S task binding (root/task_<rep>.json, checked equal to row19_shard.binding_for under the S manifest), the
+             producing ledger entries (token, PBS id, reservation, settlement) and the controls declaration itself.
+             PROVENANCE CONDITION (stated, cooperative): these files are written by the unchanged worker and the S admission
+             on the single-user Lengau filesystem; nothing signs them. The bound digests make any later change detectable;
+             they do not prove who wrote the original bytes beyond the ledger's reservation/PBS-id binding.
+  replay     the sandbox replay installs its inventory with a SANDBOX root identity (its acknowledgement can never release
+             a canonical attempt)."""
 import os, sys, json, glob, copy, shutil, hashlib, argparse, time
 
 HERE = os.path.dirname(os.path.abspath(__file__)); T1 = os.path.abspath(os.path.join(HERE, ".."))
@@ -65,7 +79,7 @@ COVERAGE = {"R1": 18, "R2": 36, "R3": 18}
 MEM_HOST_LIMIT_GIB, MEM_MIN_SAMPLES = 184.0, 10
 CODE = ["chpc/row19_ec2_qualify.py", "chpc/row19_ec2_ingest.py", "chpc/row19_ec2_state.py", "chpc/row19_partition.py",
         "chpc/row19_ec2_root.py", "chpc/row19_ec2_shadow.py", "chpc/row19_shard.py", "chpc/row19_screen_verify.py",
-        "aws_ec2/qual_S_plan.json", "analyze.py", "models.py"]
+        "aws_ec2/qual_S_plan.json", "chpc/row19_qual_S_manifest.json", "analyze.py", "models.py"]   # = prod_authority.RELEASE_CODE
 
 
 def sha(p):
@@ -170,15 +184,27 @@ def memory(bundle, problems, workers):
                 peak_host_used_gib=peak, peak_at_full_packing_gib=peak_full, peak_worker_rss_gib=worker_rss_peak, limit_gib=MEM_HOST_LIMIT_GIB)
 
 
-def s_evidence(man, sman_path, problems):
-    """R1-4: S's producer evidence (see the module text). Returns (references {(rep, index): record}, report, bound)."""
+def s_declaration(ctl):
+    q = ((ctl or {}).get("versions") or [{}])[-1].get("qualification_S")
+    return q if isinstance(q, dict) else None
+
+
+def s_evidence(man, sman_path, problems, ctl=None):
+    """R1-4/R2-4: S's producer evidence (see the module text), for THE declared S campaign only. Returns (references
+    {(rep, index): record}, report, bound)."""
     import row19_ec2_shadow as SHD
     sman = json.load(open(sman_path)); why = ES.isolated_S_problem(sman, man, sha_manifest(man))
     if why:
         problems.append(f"S: {why}"); return {}, None, None
     root, camp = sman["storage"]["root"], sman["storage"]["campaign"]
+    decl = s_declaration(ctl)
+    if decl is None:
+        problems.append("S: the current controls declare no qualification_S"); return {}, None, None
+    if (decl.get("root"), decl.get("campaign")) != (root, camp) or decl.get("manifest_sha256") != sha(sman_path) \
+            or decl.get("plan_sha256") != sha(SHD.S_PLAN):
+        problems.append("S: the supplied S manifest/root/campaign/plan are not the ones the current controls declare"); return {}, None, None
     mem_stop = float(sman["pbs"].get("mem_stop_gib", 0) or 0) * 2 ** 30
-    refs, rep, statuses = {}, {}, {}
+    refs, rep, statuses, timings, bindings = {}, {}, {}, {}, {}
     try:
         led = json.load(open(os.path.join(camp, "budget.json")))
     except Exception as e:
@@ -221,10 +247,29 @@ def s_evidence(man, sman_path, problems):
                 rec, why = None, f"record/timing unreadable ({type(e).__name__}: {e})"
             if rec is None or why:
                 problems.append(f"S job {n} ({r}, {i}): {why or 'no record'}"); continue
+            timings[f"{r}/{i}"] = sha(SH.timing_path(root, r, i))
+            if r not in bindings:
+                tp = os.path.join(root, f"task_{r}.json")
+                try:
+                    got_b = json.load(open(tp))["binding"]
+                    want_b = json.loads(json.dumps(SH.binding_for(sman, sha(sman_path), root, r, SH.task(sman, r)), default=str))
+                    if got_b != want_b:
+                        raise ValueError("not the binding row19_shard.binding_for gives under the S manifest")
+                    bindings[r] = sha(tp)
+                except Exception as e:
+                    problems.append(f"S job {n}: task binding task_{r}.json ({type(e).__name__}: {e})"); continue
             refs[(r, i)] = rec
     bound = dict(manifest_sha256=sha(sman_path), ledger_sha256=sha(os.path.join(camp, "budget.json")),
                  plans={p_: sha(os.path.join(root, "plans", p_)) for p_ in plans},
                  statuses_sha256=hashlib.sha256(json.dumps(sorted(statuses.items())).encode()).hexdigest(),
+                 timings_sha256=hashlib.sha256(json.dumps(sorted(timings.items())).encode()).hexdigest(),
+                 task_bindings_sha256=hashlib.sha256(json.dumps(sorted((str(k), v) for k, v in bindings.items())).encode()).hexdigest(),
+                 producer_entries_sha256=hashlib.sha256(json.dumps(sorted(
+                     [dict(token=e.get("token"), rep=e.get("rep"), job_id=e.get("job_id"), state=e.get("state"),
+                           reserved_core_h=e.get("reserved_core_h"), settled_core_h=e.get("settled_core_h")) for e in entries],
+                     key=lambda x: str(x["token"]))).encode()).hexdigest(),
+                 declaration_sha256=hashlib.sha256(ES.canonical(decl)).hexdigest(),
+                 provenance="cooperative: written by the unchanged worker and the S admission; bound, not signed",
                  records_sha256=hashlib.sha256(json.dumps(sorted((f"{r}/{i}", sha(SH.record_path(root, r, i))) for r, i in refs)).encode()).hexdigest())
     return refs, rep, bound
 
@@ -267,7 +312,7 @@ def sandbox_replay(man, part_doc, inv, key, bundle, opp, sandbox, problems):
     sinv = ES.seal(dict(ES.inventory_body(inv), attempts=dict(inv["attempts"], **{key: sa}), at=time.time(),
                         release=dict(production_released=True, released_attempts=[key])))
     ip = os.path.join(sandbox, "inventory.json"); json.dump(sinv, open(ip, "w"))
-    _, why_inst = ES.install_inventory(root, sinv)                         # the sandbox root's installed current view
+    _, why_inst = ES.install_inventory(root, sinv, dict(root=os.path.abspath(root), manifest_sha256=msha, mode="sandbox"))
     why = list(why) + list(why_inst)
     args = ["--manifest", mp, "--partition", pp, "--opmanifest", sopp, "--authority", ip, "--attempt-key", key, "--bundle", sb]
     old_ctl, real, old_mode = IG.CONTROLS, IG.publish_copy, IG.ACTIVATION_MODE
@@ -308,10 +353,16 @@ def main(argv=None):
     why = ES.inventory_problem(inv)
     if why:
         problems.append(f"inventory: {why}")
+    if MODE == "canonical":
+        ctl, why = RP.adopted_controls(CONTROLS)
+        if why:
+            problems.append(f"controls: {why}")
+    else:
+        ctl = json.load(open(CONTROLS))
     if actsha is None:
         problems.append("the partition has no activation proof")
-    else:
-        why = RP.activation_problem(man, msha, part, psha, json.load(open(actp)), controls=json.load(open(CONTROLS)), mode=MODE)
+    elif ctl is not None:
+        why = RP.activation_problem(man, msha, part, psha, json.load(open(actp)), controls=ctl, mode=MODE)
         if why:
             problems.append(f"activation: {why}")
     q1, plan1 = load_bundle(man, inv, a.q1_key, a.q1_bundle, a.q1_opmanifest, psha, actsha, problems) if not problems else ({}, None)
@@ -319,7 +370,7 @@ def main(argv=None):
     parts, mem, rep, srep, sbound = {}, None, None, None, None
     sref = {}
     if not problems:
-        sref, srep, sbound = s_evidence(man, a.s_manifest, problems)
+        sref, srep, sbound = s_evidence(man, a.s_manifest, problems, ctl)
     if not problems:
         if sorted(c for c, u in q1.items() if u["role"] == "qual_lengau") != sorted(Q1_LENGAU) or \
            sorted(c for c, u in q1.items() if u["role"] == "work") != sorted(Q1_BLOCK) or sorted(q2) != sorted(Q2_REPEAT):

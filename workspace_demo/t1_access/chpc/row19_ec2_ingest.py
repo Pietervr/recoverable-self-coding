@@ -40,7 +40,14 @@ INSTALLED current inventory (row19_ec2_root.py install is its only writer, monot
 superseded inventory can never license a late writer; an attempt with a disposition request, or with a 'dispositioned'
 register entry (fenced at installation), is refused. The activation proof must be a CANONICAL one whose controls lineage
 still pins the partition (row19_partition.activation_problem with the current controls); only the qualifier's sandbox
-replay sets ACTIVATION_MODE = "sandbox". Ingestion no longer writes the inventory."""
+replay sets ACTIVATION_MODE = "sandbox". Ingestion no longer writes the inventory.
+
+REVISION 4 (Codex RSC 299f4b7 R2-1, R2-2). In mode canonical the controls are read only through
+row19_partition.adopted_controls (the current adopted, tracked, unmodified bytes); a later unadopted candidate at the
+canonical path HOLDS here exactly as at Lengau admission. A completed attempt can be replayed AFTER the Mac acknowledged it:
+an inventory showing the attempt 'ingested' (not dispositioned, no request) is accepted for the replay branch only - the
+register entry must be 'ingested' and every registered canonical file is re-validated; such an inventory can never start or
+complete a publication."""
 import os, sys, json, glob, math, time, fcntl, hashlib, argparse
 
 HERE = os.path.dirname(os.path.abspath(__file__)); T1 = os.path.abspath(os.path.join(HERE, ".."))
@@ -268,14 +275,21 @@ def main(argv=None):
         print(f"HELD: attempt {a.attempt_key} is not in the authority inventory"); return HOLD
     if att.get("state") != "reconciled":
         print(f"HELD: attempt {a.attempt_key} is {att.get('state')}, not reconciled"); return HOLD
-    if att.get("disposition_requested") or att.get("ingestion") != "pending":
+    replay_only = att.get("ingestion") == "ingested" and not att.get("disposition_requested")   # R2-1: post-ACK replay
+    if not replay_only and (att.get("disposition_requested") or att.get("ingestion") != "pending"):
         print(f"HELD: attempt {a.attempt_key} is {att.get('ingestion')}{' with a disposition request' if att.get('disposition_requested') else ''}: nothing of it is ingested")
         return HOLD
     released = a.attempt_key in ((inv.get("release") or {}).get("released_attempts") or [])
     if not (att["class"] == "production" or (att["class"] == "qualification" and released)):
         print(f"HELD: attempt {a.attempt_key} is {att['class']} and not released: qualification output never enters the root before release")
         return HOLD
-    ctl = json.load(open(CONTROLS)); pin = (ctl["versions"][-1].get("partition") or {}).get("sha256")
+    if ACTIVATION_MODE == "canonical":
+        ctl, why = RP.adopted_controls(CONTROLS)
+        if why:
+            print(f"HELD: {why}"); return HOLD
+    else:
+        ctl = json.load(open(CONTROLS))
+    pin = (ctl["versions"][-1].get("partition") or {}).get("sha256")
     if pin != psha:
         print("HELD: the partition is not the one the latest adopted controls pin"); return HOLD
     actp = RP.activation_path(man, part["epoch"])
@@ -320,6 +334,9 @@ def main(argv=None):
                 hold(root, f"replay of {att['attempt_id']}: {bad[0]}")
                 print(f"HELD: replay of an ingested attempt differs: {bad[:5]}"); return HOLD
             print(f"already ingested and re-validated: {att['attempt_id']}"); return DONE
+        if replay_only:
+            print(f"HELD: the inventory shows {a.attempt_key} acknowledged as ingested but the register holds "
+                  f"{'no entry' if e is None else repr(e['state'])}: a replay never publishes"); return HOLD
         work = {c: u for c, u in units.items() if u["role"] == "work"}
         for c in work:                                                         # current ownership and fence, under the lock
             k = f"{c[0]}/{c[1]}"

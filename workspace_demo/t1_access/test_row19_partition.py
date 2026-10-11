@@ -96,6 +96,21 @@ C2 = {"versions": C1["versions"] + [{"version": 11, "partition": None}]}
 check("R1-1 a later controls version that drops the pin makes the proof historical", "historical" in RP.activation_problem(m3, ms3, e1, RP.sha_file(f1), proof, C2, "sandbox"))
 C3 = {"versions": [dict(C1["versions"][0], reviewed="edited")]}
 check("R1-1 a proof whose controls version entry changed refuses", "byte-identical" in RP.activation_problem(m3, ms3, e1, RP.sha_file(f1), proof, C3, "sandbox"))
+# R2-2: a canonical consumer authenticates the CURRENT adopted controls before the proof's lineage
+cproof = dict(proof, mode="canonical", adoption_sha256="a" * 64)
+saved_ad = RP.adopted_controls
+RP.adopted_controls = lambda path=None: (None, "the current controls are not the adopted bytes (the controls file is not the adopted bytes)")
+check("R2-2 a canonical consumer refuses while the canonical controls are not the adopted bytes (a later unadopted candidate)",
+      "adopted" in RP.activation_problem(m3, ms3, e1, RP.sha_file(f1), cproof, C1, "canonical"))
+RP.adopted_controls = lambda path=None: (C1, "")
+check("R2-2 ... refuses a supplied controls document that is not the current adopted one",
+      "current adopted" in RP.activation_problem(m3, ms3, e1, RP.sha_file(f1), cproof, C2, "canonical"))
+C4 = {"versions": C1["versions"] + [{"version": 11, "partition": C1["versions"][0]["partition"]}]}
+RP.adopted_controls = lambda path=None: (C4, "")
+check("R2-2 a proof made under adopted version 10 stays valid under a later ADOPTED version pinning the same partition",
+      RP.activation_problem(m3, ms3, e1, RP.sha_file(f1), cproof, None, "canonical") == "")
+RP.adopted_controls = saved_ad
+check("R2-2 adopted_controls reads only the canonical controls file", RP.adopted_controls(ctl)[0] is None and "canonical" in RP.adopted_controls(ctl)[1])
 json.dump(proof, open(RP.activation_path(m3, 1), "w"))
 e2 = RP.declare(m3, ms3, 40, 2, dict(epoch=1, sha256=RP.sha_file(f1), indices=e1["indices"])); f2 = os.path.join(d2, "e2.json"); json.dump(e2, open(f2, "w"))
 json.dump({"versions": [{"version": 11, "partition": {"sha256": RP.sha_file(f2)}}]}, open(ctl, "w"))
