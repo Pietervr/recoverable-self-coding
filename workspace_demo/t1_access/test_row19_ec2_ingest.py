@@ -60,6 +60,32 @@ def fake_record(r, i):
     return reseal(dict(rep=i, ident=f"ident{r}", stats={"ws": {"point": 0.1 * r + i}}, failed=(r == 6), failed_reason="no-converge" if r == 6 else ""))
 
 
+def perturb(d, v):
+    """A contrary record that still passes the frozen task: STUB sets the synthetic point; REAL adds v to the first finite
+    numeric leaf of the real statistics (same layout, resealed). No value is printed."""
+    if STUB:
+        return reseal(dict(d, stats={"ws": {"point": v}}))
+    st = copy.deepcopy(d["stats"])
+    def bump(x):
+        if isinstance(x, dict):
+            for k in sorted(x):
+                if isinstance(x[k], (dict, list)):
+                    if bump(x[k]):
+                        return True
+                elif isinstance(x[k], float) and x[k] == x[k] and abs(x[k]) != float("inf"):
+                    x[k] = x[k] + v; return True
+        elif isinstance(x, list):
+            for i, y in enumerate(x):
+                if isinstance(y, (dict, list)):
+                    if bump(y):
+                        return True
+                elif isinstance(y, float) and y == y and abs(y) != float("inf"):
+                    x[i] = y + v; return True
+        return False
+    assert bump(st), "no finite statistic to perturb"
+    return reseal(dict(d, stats=st))
+
+
 def build(case, contract="production", cls="production"):
     d = os.path.join(scratch, case); shutil.rmtree(d, ignore_errors=True); os.makedirs(d)
     root = os.path.join(d, "root"); os.makedirs(os.path.join(root, "plans"))
@@ -160,7 +186,12 @@ def edit_bundle(c, rel, fn):
 c = build("ok"); sums(c["b"]); rc = ingest(c); R = reg(c); e = (R or {"attempts": {}})["attempts"].get(AID, {})
 pub = all(os.path.exists(SH.record_path(c["root"], r, 1)) and sha(SH.record_path(c["root"], r, 1)) == e["coordinates"][f"{r}/1"]["record_sha256"] for r in REPS) if e else False
 check("success: 4 work pairs + statuses published, 'ingested', 4 sentinels equal", rc == 0 and e.get("state") == "ingested" and pub and len(e["compared_equal"]) == 4)
-check("failed fits are published and reported as failed, never dropped", e and e["coordinates"]["6/1"]["failed"] is True and os.path.exists(SH.record_path(c["root"], 6, 1)))
+fk = [k for k, v in (e.get("coordinates") or {}).items() if v.get("failed")] if e else []
+if STUB or fk:
+    k6 = "6/1" if STUB else fk[0]; r6 = int(k6.split("/")[0])
+    check("failed fits are published and reported as failed, never dropped", e and e["coordinates"][k6]["failed"] is True and os.path.exists(SH.record_path(c["root"], r6, 1)))
+else:
+    print("SKIP failed-fit publication: no failed fit among the real index-1 records copied (covered in STUB mode)", flush=True)
 check("fence raised to the attempt's sequence", R and all(R["fence"][f"{r}/1"] == SEQ for r in REPS))
 check("authority inventory installed on the root for the status adapter", os.path.exists(os.path.join(c["root"], "ec2", "authority", "inventory.json")))
 check("canonical task bindings untouched (none written)", not glob.glob(os.path.join(c["root"], "task_*.json")))
@@ -183,14 +214,14 @@ IG.publish_copy = flaky; rc1 = ingest(c); IG.publish_copy = real
 st1 = reg(c)["attempts"][AID]["state"]; rc2 = ingest(c); st2 = reg(c)["attempts"][AID]["state"]
 check("crash leaves 'ingesting'; replay completes to 'ingested'", rc1 == 3 and st1 == "ingesting" and rc2 == 0 and st2 == "ingested")
 c = build("crashswap"); sums(c["b"]); calls["n"] = 0; IG.publish_copy = flaky; ingest(c); IG.publish_copy = real
-edit_bundle(c, "root/records/rep5/rec_001.json", lambda d: reseal(dict(d, stats={"ws": {"point": 9.9}}))); sums(c["b"])
+edit_bundle(c, "root/records/rep5/rec_001.json", lambda d: perturb(d, 9.9)); sums(c["b"])
 check("a staged unit changed after journaling HOLDS the replay", ingest(c) == 3 and reg(c)["attempts"][AID]["state"] == "ingesting")
 
 # 3 comparisons
-c = build("sentinel"); edit_bundle(c, "root/records/rep3/rec_000.json", lambda d: reseal(dict(d, stats={"ws": {"point": 7.0}}))); sums(c["b"])
+c = build("sentinel"); edit_bundle(c, "root/records/rep3/rec_000.json", lambda d: perturb(d, 7.0)); sums(c["b"])
 check("sentinel mismatch HOLDS, writes ec2/HOLD, nothing published", ingest(c) == 3 and held(c) and reg(c) is None)
 c = build("dup"); shutil.copy2(os.path.join(c["b"], "root/records/rep4/rec_001.json"), SH.record_path(c["root"], 4, 1))
-edit_bundle(c, "root/records/rep4/rec_001.json", lambda d: reseal(dict(d, stats={"ws": {"point": 5.5}}))); sums(c["b"])
+edit_bundle(c, "root/records/rep4/rec_001.json", lambda d: perturb(d, 5.5)); sums(c["b"])
 check("contrary duplicate HOLDS", ingest(c) == 3 and held(c))
 c = build("same"); shutil.copy2(os.path.join(c["b"], "root/records/rep4/rec_001.json"), SH.record_path(c["root"], 4, 1)); sums(c["b"])
 check("identical duplicate counts once (preexisting, no replacement)", ingest(c) == 0 and reg(c)["attempts"][AID]["coordinates"]["4/1"]["preexisting"])
