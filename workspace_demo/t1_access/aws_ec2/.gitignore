@@ -1,0 +1,2 @@
+# bench_finish.py downloads whole attempt bundles (sealed screen records) here; they never enter git
+runs/*/fetched/
