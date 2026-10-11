@@ -157,6 +157,7 @@ QUAL_SCHEMA = "row19-screen-qualification-1"
 WATCH_SCHEMA = "row19-screen-watch-1"
 CEILING_S = 2700.0
 BOUND_KEYS = ("manifest_sha256", "root", "campaign", "code", "wrapper_sha256")
+ACTIVATION_MODE = "canonical"            # REVISION 11 (Codex 3dc0daf R1-1): tests alone set "sandbox"
 
 
 def hms(seconds):
@@ -206,6 +207,68 @@ def controls_problem():
     v = controls()["versions"][-1]
     bad = [f for f, h in v["files"].items() if not os.path.exists(os.path.join(T1, f)) or sha_file(os.path.join(T1, f)) != h]
     return f"the controllers {bad} are not lineage version {v['version']}'s bytes" if bad else ""
+
+
+def partition(man, manifest_path):
+    """REVISION 10 (Codex f3dd3d7 contract 1): the provider partition named by the LATEST controls version, or None when that
+    version names none. When named, the file must exist with the pinned sha256 and validate against this manifest
+    (row19_partition.load); any failure raises, so the caller HOLDS rather than planning without the guard."""
+    ref = controls()["versions"][-1].get("partition")
+    if not ref:
+        return None
+    import row19_partition as RP
+    pp = os.path.join(T1, ref["path"])
+    if not os.path.exists(pp) or sha_file(pp) != ref["sha256"]:
+        raise ValueError(f"the partition {ref['path']} is missing or not the pinned bytes {ref['sha256'][:12]}")
+    return RP.load(pp, man, sha_file(manifest_path))
+
+
+def partition_problem(jobs, part):
+    """'' unless a planned refit slot names a coordinate the partition gives to another provider (planning AND admission
+    check: also covers any plan supplied, restored or retried from elsewhere)."""
+    if part is None:
+        return ""
+    import row19_partition as RP
+    hits = [(int(s["rep"]), int(i)) for j in jobs for s in j["slots"] for i in s.get("indices", []) if RP.blocked(part, s["rep"], i)]
+    return f"{len(hits)} planned coordinate(s) belong to the {part['provider']} partition epoch {part['epoch']}, e.g. {hits[:3]}" if hits else ""
+
+
+def activation_problem_v10(man, manifest_path, part):
+    """REVISION 10 (Codex RSC 0483db4 V10-1): while the latest controls pin a partition, Lengau refit admission requires that
+    partition's serialized activation proof (row19_partition.py activate, written under this same plan lock)."""
+    if part is None:
+        return ""
+    import row19_partition as RP
+    ref = controls()["versions"][-1]["partition"]
+    pp = os.path.join(man["storage"]["root"], "ec2", f"activation_e{int(part['epoch'])}.json")
+    if not os.path.exists(pp):
+        return f"partition epoch {part['epoch']} is pinned but not activated (row19_partition.py activate)"
+    try:
+        proof = json.load(open(pp))
+    except Exception as e:
+        return f"the activation proof is unreadable ({e})"
+    return RP.activation_problem(man, sha_file(manifest_path), part, ref["sha256"], proof, controls=controls(), mode=ACTIVATION_MODE)
+
+
+def ec2_receipt_problem(man, r):
+    """REVISION 10 (Codex RSC 0483db4 V10-2): the receipt must bind EXACTLY the EC2 state of the live root as it is now
+    (register, authority inventory, activations, HOLD, STOP): a newly journaled attempt or ingestion refuses until recollected,
+    and a HOLD (sentinel/replay difference) refuses outright."""
+    import row19_ec2_state as ES
+    got = (r.get("ec2") or {}).get("bound") if isinstance(r.get("ec2"), dict) else None
+    want = ES.bound(man["storage"]["root"])
+    if got != want:
+        return "its EC2 binding (register, inventory, activations, HOLD, STOP) is not the root's as it is now; recollect"
+    if want["hold"]:
+        return "an EC2 HOLD is in force (ec2/HOLD): a sentinel or replay difference awaits review"
+    if (r.get("ec2") or {}).get("problems"):
+        return f"the receipt's EC2 view has problems {r['ec2']['problems'][:3]}"
+    # REVISION 11 (Codex 3dc0daf R1-3): the receipt binds metadata only; recheck the current registered canonical
+    # record/timing/status bytes and the installed inventory now, under this admission's lock
+    cur = ES.current_problems(man["storage"]["root"], man, require=bool(controls()["versions"][-1].get("partition")))
+    if cur:
+        return f"the current EC2 artifacts fail their registered contract: {cur[:3]}"
+    return ""
 
 
 def exclusion_contract(man):
@@ -449,11 +512,12 @@ def evidence(man, role, validate=True):
     return done, flight, used, problems
 
 
-def plan_jobs(man, role, n_jobs, done, flight, used):
+def plan_jobs(man, role, n_jobs, done, flight, used, part=None):
     cores = int(man["pbs"]["cores"]); reps = [int(r) for r in man["datasets"]["reps"]]
     if role == "refit":
         B = int(man["cfg"]["n_boot_refit"])
-        order = [(r, [i]) for i in range(B) for r in reps if (r, i) not in done and (r, i) not in flight]
+        import row19_partition as RP                                          # REVISION 10: never plan another provider's block
+        order = [(r, [i]) for i in range(B) for r in reps if (r, i) not in done and (r, i) not in flight and not RP.blocked(part, r, i)]
     else:
         order = [r for r in reps if r not in done and r not in flight]
     jobs, n = [], (max(used) + 1 if used else 1)
@@ -1200,6 +1264,8 @@ def receipt_problem(man, manifest_path, role, now=None):
     if why:
         return f"the newest receipt: {why}"
     why = bound_problem(r.get("bound"), expected_bound(man, manifest_path, role), "all")
+    if not why and role == "refit":
+        why = ec2_receipt_problem(man, r)
     return f"the newest receipt: {why}" if why else ""
 
 
@@ -1276,6 +1342,32 @@ def campaign_cap_problem(man, proposal_core_h):
         return "the campaign cap is not finite and positive"
     if spent + live + proposal_core_h > cap + 1e-9:
         return f"the campaign cap: spent {spent:.1f} + live {live:.1f} + {proposal_core_h:.1f} proposed > {cap:.0f} core-hours"
+    return sub_envelope_problem(man["storage"]["campaign"], proposal_core_h)
+
+
+def sub_envelope_problem(campaign, proposal_core_h, ctl=None):
+    """REVISION 11 (Codex 3dc0daf, S): every sub-envelope of the latest controls version that contains `campaign` must hold
+    the committed core-hours (settled + every live reservation) of ALL its campaigns plus this proposal - S and the refit
+    share one 60,000 envelope; two separate ledger caps would not aggregate."""
+    ctl = ctl or controls()
+    for env in ctl["versions"][-1].get("sub_envelopes") or []:
+        if campaign not in env["campaigns"]:
+            continue
+        total = 0.0
+        for c in env["campaigns"]:
+            lp = os.path.join(c, "budget.json")
+            if not os.path.exists(lp):
+                continue
+            try:
+                led = _strict_load(lp)
+                total += sum(float(e["settled_core_h"]) if e.get("state") == "settled" else float(e["reserved_core_h"])
+                             for e in led["entries"].values())
+            except (OSError, ValueError, KeyError, TypeError) as e:
+                return f"the sub-envelope {env['name']}: {lp} cannot be counted ({e})"
+        if not (_num(env.get("cap_core_h")) and env["cap_core_h"] > 0):
+            return f"the sub-envelope {env.get('name')} has no finite positive cap"
+        if total + proposal_core_h > env["cap_core_h"] + 1e-9:
+            return f"the sub-envelope {env['name']}: {total:.1f} committed + {proposal_core_h:.1f} proposed > {env['cap_core_h']:.0f} core-hours"
     return ""
 
 
@@ -1433,8 +1525,17 @@ def main(argv=None):
         print(f"{role}: done {len(done)}, in flight {len(flight)}")
         if problems:
             print(f"HELD: {len(problems)} problem(s) in the evidence:"); [print("   -", p) for p in problems[:10]]; return 2
-        jobs, left = plan_jobs(man, role, n_jobs, done, flight, used)
-        envs, why = {}, ""
+        try:
+            part = partition(man, a.manifest) if role == "refit" else None
+        except Exception as e:
+            print(f"HELD: the provider partition cannot be trusted: {e}"); return 2
+        if part is not None:
+            print(f"provider partition epoch {part['epoch']}: {part['provider']} owns indices {part['indices'][0]}..{part['indices'][-1]} (k {part['k']})")
+        why_act = activation_problem_v10(man, a.manifest, part)
+        if why_act:
+            print(f"HELD: {why_act}"); return 2
+        jobs, left = plan_jobs(man, role, n_jobs, done, flight, used, part)
+        envs, why = {}, partition_problem(jobs, part)
         for j in jobs:                                                        # REVISION 8: each NEW job's resolved envelope
             env, w = resolve_envelope(man, a.manifest, role, int(j["job"]))
             why = why or w; envs[j["job"]] = env

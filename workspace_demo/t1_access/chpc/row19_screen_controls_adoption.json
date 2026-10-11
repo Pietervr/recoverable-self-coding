@@ -1,26 +1,21 @@
 {
  "schema": "row19-screen-controls-adoption-1",
  "controls_path": "chpc/row19_screen_controls.json",
- "controls_sha256": "45f840bc768f8729155f8ad39bd2f27dbae9525322398867dfff76d9ee310c07",
- "version": 9,
- "controls_commit": "44dc6c4",
+ "controls_sha256": "840840f53543763669a730f0c92d12a7a4484d31dda631576cbaf3f53992f83c",
+ "version": 13,
+ "controls_commit": "43a58d1",
  "review_record": {
-  "path": "reviews/2026-10-10_v9r2_and_row23_rev4_codex_record.md",
-  "sha256": "7f5431fa004d61eb7b7d4dde1665cba7cb0851e8a1e1f86a5e5f8194f1d532a5",
-  "commit": "91a567c",
-  "adopt_line": "ADOPT row19-screen-controls sha256=45f840bc768f8729155f8ad39bd2f27dbae9525322398867dfff76d9ee310c07 version=9"
+  "path": "reviews/2026-10-11_pbs_settled_observation_codex_record.md",
+  "sha256": "1d71afacaf1f8f722b808a9c9bba5f1cc479d5a1609985a5ffab86d8f92f4abd",
+  "commit": "5bab1a9",
+  "adopt_line": "ADOPT row19-screen-controls sha256=840840f53543763669a730f0c92d12a7a4484d31dda631576cbaf3f53992f83c version=13"
  },
- "by": "R052 Entropy SI (Claude), session 4f3f86f3-4576-4ab1-8c68-ab511c6db97c, 2026-10-10",
+ "by": "R052 Entropy SI (Claude)",
  "previous": {
-  "version": 8,
-  "controls_sha256": "9f73622238034ed49cde86d0ee70c31a8bc8e2f1de9535f810eb4081dc49e9d7",
-  "adoption_sha256": "ccddcf71eec6e25e9b925924d6851a88baa869ee51791c92670ffb377091136d",
-  "archived": "Lengau archive_screen/v8_before_v9_20261010 (SHA256SUMS 3f348af5...), Mac chpc/results/archive/row19_screen_v8_before_v9_20261010"
+  "version": 9,
+  "controls_sha256": "45f840bc768f8729155f8ad39bd2f27dbae9525322398867dfff76d9ee310c07",
+  "adoption_sha256": "42b99b4d4ceda4bf985d371d6740e87bc77596490cd2fbe4d07ac7c81d90e1f3",
+  "archived": "Lengau archive_screen/v9_before_v13, Mac chpc/results/archive/row19_screen_v9_before_v13/"
  },
- "bank_transport": {
-  "path": "chpc/row22_bank_status.py",
-  "sha256": "a8585effa87d5a068d416f9331f09add8a7b9c46de0de7afbc719a32b304e33e",
-  "scope": "the bank lane's own transport repair, favourable in Codex 91a567c within the existing raw-bank scope and job cap <= 17; not under the screen controls"
- },
- "scope": "controllers for later screen observations (the snapshot pull as one ssh tar stream); grants no job; a fresh generation-9 whole-role observation and qualification from the retained job-1 pilot evidence and an actual digest-bound refit pilot ADOPT precede any further gated refit admission; no numerical release"
+ "scope": "direct v9 -> v13 (Codex 64034c5; controls 840840f5 per Codex 5bab1a9): controllers + the epoch-1 partition 8d1de408 pinned; grants no job and no EC2 permission; canonical activation under the plan lock, fresh whole-role v13 receipts and an adopted review of the REGENERATED refit pilot qualification (new hash, max job 100, no new fit) precede any further gated refit admission"
 }

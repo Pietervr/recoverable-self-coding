@@ -17,6 +17,16 @@ campaign, code pins, wrapper, every job of the role (PBS id, token, plan SHA-256
 verdict's SHA-256 and the verify document's SHA-256; copied to <root>/gate/watch_<role>_<stamp>.json.
 QUALIFICATION (--qualify 1): fresh production evidence, zero alarms, job 1 terminal with scheduler exit 0 or 75, every planned
 slot ended 0 with every planned unit a valid record with timing, the three anchors equal; refit: job 1's reps all bound.
+REVISION 11 (R052 11 Oct, PBS history expiry): (3) asks `qstat -xf` only of the role's jobs whose ledger entry is NOT settled.
+PBS drops finished jobs from its history after a few days and then fails the whole call with "Unknown Job Id" (rc 153), which
+held every receipt. A SETTLED entry is observed from its settlement instead (`settle_note`, written by xf_settle from
+`qstat -xf` at settlement): state F with the note's Exit_status, carried together with the scheduler facts the settlement
+does not hold (scheduler memory, walltime request) from the NEWEST local receipt of this role that is fresh, production and
+alarm-free and observed the SAME PBS id from qstat at state F with the SAME exit. The job summary records `observation`
+"ledger-settlement", the note's SHA-256 and that receipt (`prior_receipt`: file, SHA-256). A settled note without
+`Exit_status <n>` is a failed observation; a settled job no such receipt observed carries no memory and keeps the
+no-finite-memory alarm (fail-closed); an unsettled job qstat cannot describe stays a failed observation. The receipt and
+qualification formats, and the admission's checks of them, are unchanged.
 REVISION 7 (Codex RSC 8865474 C2): each job summary also carries `partition`, the sorted new / resumed / left coordinate lists
 read from that job's own worker statuses, so the admission reconciles a job's historical outcome, not today's aggregate.
 
@@ -63,6 +73,7 @@ import os, sys, json, glob, math, time, shutil, hashlib, argparse, subprocess, s
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.abspath(os.path.join(HERE, "..")))
 HOST, LOGIN = "chpc-scp", "lengau"
+MANIFEST_PATH = None                                                   # set by main (REVISION 10: the partition check needs it)
 BASE = os.path.join(HERE, "results", "row19_screen")
 LIVE_DIR = os.path.join(BASE, "live")
 RECEIPTS = os.path.join(BASE, "receipts")
@@ -244,15 +255,58 @@ def fetch_job_outputs(man, role, stage):
     return res
 
 
-def pbs_observe(job_ids, pbs_file=None):
+def prior_scheduler_observation(role, j, exit_, receipts_dir=None):
+    """REVISION 11: (scheduler facts of PBS id j, {file, sha256}) from the newest local receipt of this role that is fresh,
+    production and alarm-free and observed j from qstat at state F with exit `exit_`; (None, None) when there is none."""
+    for p in sorted(glob.glob(os.path.join(receipts_dir or RECEIPTS, f"watch_{role}_*.json")), reverse=True):
+        try:
+            r = json.load(open(p))
+        except Exception:
+            continue
+        if r.get("schema") != WATCH_SCHEMA or r.get("role") != role or r.get("fresh") is not True or r.get("production") is not True \
+                or r.get("alarms") != []:
+            continue
+        for sj in (r.get("jobs") or {}).values():
+            if isinstance(sj, dict) and sj.get("job_id") == j and sj.get("observation", "qstat") == "qstat" and sj.get("state") == "F" \
+                    and sj.get("exit") == exit_ and not isinstance(sj.get("exit"), bool) and finite_nonneg(sj.get("mem_kb")):
+                return dict(mem_kb=sj["mem_kb"], walltime_req_s=sj.get("requested_walltime_s")), dict(file=os.path.basename(p), sha256=sha_file(p))
+    return None, None
+
+
+def settled_observation(role, e, receipts_dir=None):
+    """REVISION 11: the observation of a SETTLED ledger entry (its settlement's qstat -xf, in settle_note), or None."""
+    note = e.get("settle_note")
+    m = re.search(r"Exit_status (-?\d+)\b", note) if isinstance(note, str) else None
+    if not m or e.get("state") != "settled":
+        return None
+    o = dict(state="F", exit=int(m.group(1)), source="ledger-settlement", settle_note_sha256=sha_bytes(note.encode()))
+    facts, prior = prior_scheduler_observation(role, e.get("job_id"), o["exit"], receipts_dir)
+    if facts:
+        o.update(facts, prior_receipt=prior)
+    return o
+
+
+def pbs_observe(job_ids, pbs_file=None, settled=None, role=None, receipts_dir=None):
+    """REVISION 11: `settled` = {job_id: ledger entry} of the SETTLED entries, observed from their settlement, never asked of qstat."""
+    settled = settled or {}
+    obs = {}
+    for j in job_ids:
+        if j in settled:
+            o = settled_observation(role, settled[j], receipts_dir)
+            if o is None:
+                return None, f"settled job {j}: its settlement note carries no Exit_status (no observation)"
+            obs[j] = o
+    ask = [j for j in job_ids if j not in settled]
     if pbs_file:
-        return json.load(open(pbs_file)), ""
-    if not job_ids:
-        return {}, ""
-    rc, out, err = sh(["ssh", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", LOGIN, "qstat -xf " + " ".join(job_ids)], timeout=300)
+        q = json.load(open(pbs_file))
+        obs.update({j: v for j, v in q.items() if j not in settled})
+        return obs, ""
+    if not ask:
+        return obs, ""
+    rc, out, err = sh(["ssh", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", LOGIN, "qstat -xf " + " ".join(ask)], timeout=300)
     if rc != 0:
         return None, f"qstat failed (rc {rc}): {(err or out).strip()[:160]}"
-    obs, cur = {}, None
+    cur = None
     for line in out.splitlines():
         s = line.strip()
         if s.startswith("Job Id:"):
@@ -267,7 +321,7 @@ def pbs_observe(job_ids, pbs_file=None):
                 obs[cur]["mem_kb"] = int(v[:-2]) if v.endswith("kb") else None
             elif k == "Resource_List.walltime":
                 obs[cur]["walltime_req_s"] = hms_s(v)
-    missing = [j for j in job_ids if j not in obs or not obs[j].get("state")]
+    missing = [j for j in ask if j not in obs or not obs[j].get("state")]
     if missing:
         return None, f"qstat returned 0 but did not describe {missing}"
     return obs, ""
@@ -382,6 +436,142 @@ def anchor_alarms(verify):
     return al
 
 
+def ec2_reconcile(man, role, units, root, assigned, alarms, now=None):
+    """REVISION 10 r1 (Codex RSC 0483db4 V10-2/V10-4/V10-5/V10-8): EC2 production attempts are a second producer kind.
+    Two sources, both on the root: the Mac claim authority's sealed inventory of EVERY attempt of every run
+    (root/ec2/authority/inventory.json: intent, launched, ambiguous, rejected, reconciled; pending, ingested, dispositioned -
+    failed and no-record attempts included) and the ingestion register (root/ec2/register.json). Alarms: an invalid or
+    unsealed inventory; a stale one while any attempt is still live or owning; a register attempt the inventory does not
+    carry with the same global sequence; an EC2-owned coordinate also in a Lengau plan; a coordinate claimed twice; an
+    unknown register state; EC2 evidence while no partition is in force or outside it; for every published coordinate of an
+    'ingested' attempt, a canonical record/timing/status whose bytes are not the register's or whose content is not a
+    completed terminal status of exactly this attempt and slot. The receipt's `ec2` carries `bound` (ES.bound of the root,
+    which every admission recomputes), the per-attempt states and USD (never mixed with core-hours). A Lengau root STOP while
+    EC2 attempts are live is propagated to every live EC2 run (aws_ec2/prod_stop.propagate); a failure to do so alarms."""
+    import row19_ec2_state as ES
+    now = time.time() if now is None else now
+    out = dict(bound=ES.bound(root), attempts={}, usd=dict(charged=0.0), problems=[])
+    P = ES.paths(root)
+    inv = None
+    if os.path.exists(P["inventory"]):
+        try:
+            inv = json.load(open(P["inventory"]))
+        except Exception as e:
+            alarms.append(f"the EC2 authority inventory is unreadable ({e})")
+        if inv is not None:
+            why = ES.inventory_problem(inv, now, max_age=float("inf"))
+            if why:
+                alarms.append(f"EC2 authority inventory: {why}"); inv = None
+    live_runs = set()
+    if inv is not None:
+        stale = now - inv["at"] > ES.INVENTORY_MAX_AGE_S
+        for key, a in sorted(inv["attempts"].items()):
+            live = a["state"] in ("intent", "launched", "ambiguous") or ES.owns(a)
+            if live:
+                live_runs.add(a["run"])
+            if live and stale:
+                alarms.append(f"EC2 attempt {key} is live/owning but the authority inventory is {now - inv['at']:.0f} s old")
+            out["attempts"][key] = dict(state=a["state"], ingestion=a["ingestion"], cls=a["class"], sequence=a["sequence"],
+                                        coordinates=len(a.get("coordinates", [])), charged_usd=a["charged_usd"])
+            out["usd"]["charged"] += a["charged_usd"]
+        for k in inv["owners"]:
+            if k in assigned:
+                alarms.append(f"EC2-owned coordinate {k} ({inv['owners'][k][0]}) is also in a Lengau plan")
+        out["usd"].update(inventory_generation=inv["generation"], inventory_at=inv["at"])
+    acts = [f for f in os.listdir(P["dir"]) if f.startswith("activation_e")] if os.path.isdir(P["dir"]) else []
+    reg = None
+    if os.path.exists(P["register"]):
+        try:
+            reg = json.load(open(P["register"]))
+            if reg.get("schema") != ES.REGISTER_SCHEMA:
+                alarms.append(f"the EC2 register schema {reg.get('schema')!r} is not {ES.REGISTER_SCHEMA}"); reg = None
+        except Exception as e:
+            alarms.append(f"the EC2 register is unreadable ({e})")
+    part = None
+    import row19_screen_admit as _SA
+    try:
+        pinned = bool(_SA.controls()["versions"][-1].get("partition"))
+    except Exception:
+        pinned = False
+    if reg is not None or inv is not None or acts:
+        try:
+            part = _SA.partition(man, MANIFEST_PATH)
+        except Exception as e:
+            alarms.append(f"EC2 evidence present but the provider partition cannot be trusted ({e})")
+        if part is None and reg is not None:
+            alarms.append("EC2 evidence present but no provider partition is in force")
+    # REVISION 11 (Codex 3dc0daf R1-2): an inventory is REQUIRED whenever a partition is pinned or any EC2 register or
+    # activation exists; its absence (or an invalid one) alarms - only the genuinely empty null-partition root is clean
+    if inv is None and (pinned or reg is not None or acts) and not any("authority inventory" in x for x in alarms):
+        alarms.append("EC2 partition/register/activation present but no valid authority inventory is installed on the root")
+    if os.path.exists(P["stop"]) and live_runs:
+        try:
+            sys.path.insert(0, os.path.join(HERE, "..", "aws_ec2"))
+            import prod_stop as _PS
+            done = _PS.propagate(sorted(live_runs), "Lengau screen root STOP seen by the status receipt")
+            out["stop_propagated"] = done
+        except Exception as e:
+            alarms.append(f"the Lengau STOP could not be propagated to live EC2 runs {sorted(live_runs)} ({type(e).__name__}: {e})")
+    if reg is None:
+        return out
+    import row19_partition as _RP
+    try:                                                  # REVISION 11 (R1-1): each entry against ITS OWN epoch's block
+        hist = _RP.historical_partitions(_SA.controls(), man, ES.sha_file(MANIFEST_PATH))
+    except Exception as e:
+        hist = {}; alarms.append(f"the historical provider partitions cannot be loaded ({type(e).__name__}: {e})")
+    mem_stop = float(man["pbs"].get("mem_stop_gib", 0) or 0) * 2 ** 30
+    idents = man["shard"]["identities"]
+    owner = {}
+    for aid, e in sorted((reg.get("attempts") or {}).items()):
+        st = e.get("state"); coords = e.get("coordinates") or {}
+        ia = (inv or {}).get("attempts", {}).get(e.get("key")) if inv is not None else None
+        if inv is not None and (ia is None or ia.get("sequence") != e.get("sequence") or ia.get("attempt_id") != aid):
+            alarms.append(f"EC2 attempt {aid}: not in the authority inventory with the register's key and sequence")
+        out["attempts"].setdefault(e.get("key") or aid, {}).update(register_state=st, ingested_coordinates=len(coords),
+                                                                    failed=sum(1 for c in coords.values() if c.get("failed")))
+        if st == "dispositioned":                        # fenced at installation (R1-2): no coordinate may be published
+            if coords:
+                alarms.append(f"EC2 attempt {aid}: dispositioned but carries published coordinates")
+            continue
+        if st not in ("ingesting", "ingested"):
+            alarms.append(f"EC2 attempt {aid}: unknown register state {st!r}"); continue
+        epart = hist.get(e.get("partition_sha256"))
+        if epart is None:
+            alarms.append(f"EC2 attempt {aid}: its partition {str(e.get('partition_sha256'))[:12]} is not one any controls version pins")
+        for key, ce in coords.items():
+            if key in owner:
+                alarms.append(f"EC2 unit {key}: claimed by attempts {owner[key]} and {aid}"); continue
+            owner[key] = aid; assigned.add(key)
+            r, i = (int(x) for x in key.split("/"))
+            if epart is not None and not _RP.blocked(epart, r, i):
+                alarms.append(f"EC2 unit {key} ({aid}): outside the block of its own partition epoch {epart['epoch']}")
+            if st != "ingested" or ce.get("preexisting"):
+                continue
+            v = units.get(key) or {}
+            if not (v.get("record") or {}).get("ok"):
+                alarms.append(f"EC2 unit {key} ({aid}): no valid record"); continue
+            if not (v.get("timing") or {}).get("ok"):
+                alarms.append(f"EC2 unit {key} ({aid}): no valid timing"); continue
+            if v["timing"].get("job") != aid or v["timing"].get("slot") != ce.get("slot"):
+                alarms.append(f"EC2 unit {key}: timing names {v['timing'].get('job')} slot {v['timing'].get('slot')}, not {aid} slot {ce.get('slot')}")
+            for what, fp, h in (("record", os.path.join(root, "records", f"rep{r}", f"rec_{i:03d}.json"), ce.get("record_sha256")),
+                                ("timing", os.path.join(root, "timing", f"rep{r}", f"t_{i:03d}.json"), ce.get("timing_sha256"))):
+                if not os.path.exists(fp) or ES.sha_file(fp) != h:
+                    alarms.append(f"EC2 unit {key} ({aid}): canonical {what} is not the register's bytes")
+            sp = os.path.join(root, "ec2", "status", f"{aid}.slot{ce.get('slot')}.json")
+            if not os.path.exists(sp):
+                alarms.append(f"EC2 unit {key} ({aid}): no worker status copied"); continue
+            if ES.sha_file(sp) != ce.get("status_sha256"):
+                alarms.append(f"EC2 unit {key} ({aid}): copied status is not the register's bytes"); continue
+            try:
+                why = ES.status_problem(json.load(open(sp)), aid, ce.get("slot"), r, i, idents.get(str(r)), mem_stop)
+            except Exception as ex:
+                why = f"status unreadable ({ex})"
+            if why:
+                alarms.append(f"EC2 unit {key} ({aid}): {why}")
+    return out
+
+
 def reconcile(man, role, verify, obs, ledger, live):
     alarms, summary, jobs = [], {}, {}
     root = os.path.join(live, "root")
@@ -400,6 +590,8 @@ def reconcile(man, role, verify, obs, ledger, live):
                      slots=len(plan["slots"]), ended=0, exits={}, new=0, resumed=0, left=0, max_worker_maxrss=None, max_wall_s=None,
                      failed_units=[], partition=dict(new=[], resumed=[], left=[]),
                      plan_walltime_s=plan.get("walltime_s"), requested_walltime_s=o.get("walltime_req_s"))
+        if o.get("source") == "ledger-settlement":                          # REVISION 11: the observation's provenance
+            s_sum.update(observation=o["source"], settle_note_sha256=o["settle_note_sha256"], prior_receipt=o.get("prior_receipt"))
         dispo, dwhy = None, ""
         if e.get("runner_exit") is None and terminal:                       # every terminal job without a runner exit is examined
             dispo, dwhy = closed_no_record(man, role, n, e, plan, j, o, units, ledger, live)
@@ -488,6 +680,7 @@ def reconcile(man, role, verify, obs, ledger, live):
         if dispo:
             s_sum["partition"].update(uncompleted=sorted(_slot_map(root, n)), uncompleted_origin="plan")
         summary[str(n)] = s_sum
+    ec2 = ec2_reconcile(man, role, units, root, assigned, alarms) if role == "refit" else {}
     for sp in glob.glob(os.path.join(root, "status", "*")):
         if os.path.basename(sp) not in expected_status:
             alarms.append(f"{role}: status {os.path.basename(sp)!r} that no planned job and slot assigns")
@@ -499,7 +692,7 @@ def reconcile(man, role, verify, obs, ledger, live):
     for r, b in (verify.get("bindings") or {}).items():
         if not b.get("ok") or not b.get("declared_ident_equal"):
             alarms.append(f"task binding of rep {r}: {b.get('reason') or 'not the declared identity'}")
-    return alarms, summary, jobs
+    return alarms, summary, jobs, ec2
 
 
 def main(argv=None):
@@ -528,10 +721,13 @@ def main(argv=None):
     led_p = os.path.join(live, "campaign", "budget.json")
     ledger = json.load(open(led_p)) if os.path.exists(led_p) else {"entries": {}}
     ids = [e["job_id"] for e in ledger["entries"].values() if e.get("kind") == KIND[role] and e.get("job_id")]
-    obs, oprob = pbs_observe(ids, a.pbs_file)
+    settled = {e["job_id"]: e for e in ledger["entries"].values() if e.get("kind") == KIND[role] and e.get("job_id") and e.get("state") == "settled"}
+    obs, oprob = pbs_observe(ids, a.pbs_file, settled, role)
     if oprob:
         alarms.append(oprob)
-    al, summary, jobs = reconcile(man, role, verify, obs, ledger, live)
+    global MANIFEST_PATH
+    MANIFEST_PATH = a.manifest
+    al, summary, jobs, ec2 = reconcile(man, role, verify, obs, ledger, live)
     alarms += al
     production = fresh and not (a.no_pull or a.verify_file or a.pbs_file)
     nvalid = sum(1 for v in (verify.get("units") or {}).values() if (v.get("record") or {}).get("ok"))
@@ -562,7 +758,7 @@ def main(argv=None):
                  job_outputs={k: dict(file=v["disposition"]["output_file"], sha256=v["disposition"]["output_sha256"])
                               for k, v in summary.items() if v.get("disposition")})
     receipt = dict(schema=WATCH_SCHEMA, role=role, time=now, fresh=fresh, production=production, alarms=alarms, bound=bound, jobs=summary,
-                   anchors=verify.get("anchors"), plan_slots={k: v["slots"] for k, v in summary.items()})
+                   anchors=verify.get("anchors"), plan_slots={k: v["slots"] for k, v in summary.items()}, ec2=ec2)
     os.makedirs(RECEIPTS, exist_ok=True)
     stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(now))
     vp = os.path.join(RECEIPTS, f"verify_{role}_{stamp}.json")
