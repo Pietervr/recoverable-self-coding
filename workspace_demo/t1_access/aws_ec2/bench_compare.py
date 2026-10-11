@@ -10,7 +10,8 @@ draw, complete payload, own checksum); payload equality is the verifier's canoni
 (row19_screen_verify.payload over SCI). Exactly reps 3..38 at index 0 per arm: a missing, extra, invalid, unbound or
 unattributed coordinate makes the panel INVALID. Failed fits are counted apart from usable parity. Timings are paired by
 coordinate, identity and producer and must be positive and finite. Exit 0 only for a complete, valid panel (whatever the
-parity outcome); exit 3 otherwise, with the reasons."""
+parity outcome); exit 3 otherwise, with the reasons. A typed arm-A job-start refusal (env/ARM_A_REFUSED, RSC a44f5aa) is arm
+A's recorded outcome: its 36 stage-2 workers are not declared (declared.txt), and any arm-A record present is a problem."""
 import argparse, csv, glob, hashlib, json, math, os, statistics, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -116,12 +117,31 @@ def canonical_layout(root, problems, arm):
         problems.append(f"stage 2 arm {arm}: unexpected root entry {x}")
 
 
-def stage2(ec2, lengau_root, problems):
+def arm_a_refusal(ec2, problems):
+    """RSC a44f5aa: a typed arm-A job-start refusal (native identity differs from the manifest) is arm A's parity outcome;
+    its stage-2 workers are then not declared. Returns the refusal line or None."""
+    p = os.path.join(ec2, "env", "ARM_A_REFUSED")
+    if not os.path.exists(p):
+        return None
+    held = [x for x in open(p).read().splitlines() if x.startswith("HELD:")]
+    if not (held and "computes identity" in held[-1] and "manifest declares" in held[-1]):
+        problems.append("ARM_A_REFUSED present but not a typed identity refusal")
+        return None
+    return held[-1]
+
+
+def stage2(ec2, lengau_root, problems, refused_a=None):
     man = json.load(open(PROD))
     tasks = {rep: SH.task(man, rep) for rep in REPS}
     preds = list(__import__("analyze").PREDICTORS)
     out = {}
     for arm in ("A", "B"):
+        if arm == "A" and refused_a:
+            recs = glob.glob(os.path.join(ec2, "root_A", "records", "*", "*"))
+            if recs:
+                problems.append(f"stage 2 arm A: refused at job-start yet {len(recs)} record file(s) present")
+            out["A"] = dict(refused_at_job_start=True, reason=refused_a)
+            continue
         mpath = os.path.join(ec2, "env", f"manifest_{arm}.json")
         if not os.path.exists(mpath) or sha(mpath) != PINS[arm]:
             problems.append(f"stage 2 arm {arm}: manifest missing or not the reviewed pin {PINS[arm][:12]}"); continue
@@ -238,14 +258,20 @@ def main():
         problems.append(f"upload_verify.json missing ({ex})")
     if not os.path.exists(os.path.join(env, "plan.json")) or sha(os.path.join(env, "plan.json")) != PLAN_PIN:
         problems.append("plan.json missing or not the reviewed pin")
+    refused_a = arm_a_refusal(a.ec2, problems)
     try:
         ocd = json.load(open(os.path.join(env, "outcomes.json")))
         oc = ocd["outcomes"]
         un = ocd.get("unresolved_after_kill")
         if not (isinstance(un, list) and un == []):
             problems.append(f"cleanup left unresolved process groups or no typed record of them: {un!r}")
-        if sorted(oc) != sorted(NAMES):
-            problems.append(f"outcomes name set differs from the 78 declared processes")
+        want = [n for n in NAMES if not (refused_a and n.startswith("w_A_"))]
+        try:
+            decl = open(os.path.join(env, "declared.txt")).read().split()
+        except Exception:
+            decl = None
+        if sorted(oc) != sorted(want) or (decl is not None and sorted(decl) != sorted(want)):
+            problems.append(f"outcomes name set differs from the {len(want)} declared processes")
         bad = {k: v for k, v in oc.items() if not (isinstance(v, int) and not isinstance(v, bool) and v == 0)}
         if bad:
             problems.append(f"{len(bad)} process(es) not exit 0: {bad}")
@@ -269,11 +295,11 @@ def main():
     except Exception as ex:
         problems.append(f"occupancy timeline invalid ({ex})")
     report = dict(profile_B=(att.get("B") or {}).get("profile"), stage1=stage1(a.ec2, a.row6_ref, problems),
-                  stage2=stage2(a.ec2, a.lengau_root, problems),
-                  occupancy=(dict(samples=len(running), max=max(running), mean=sum(running) / len(running), min=min(running)) if running else None),
+                  stage2=stage2(a.ec2, a.lengau_root, problems, refused_a),
+                  arm_A_refused=refused_a, occupancy=(dict(samples=len(running), max=max(running), mean=sum(running) / len(running), min=min(running)) if running else None),
                   problems=problems, valid=not problems)
     json.dump(report, open(a.out, "w"), indent=1)
-    print(json.dumps({k: report[k] for k in ("profile_B", "stage1", "stage2", "occupancy", "valid")}, indent=1))
+    print(json.dumps({k: report[k] for k in ("profile_B", "arm_A_refused", "stage1", "stage2", "occupancy", "valid")}, indent=1))
     for p in problems:
         print("INVALID:", p)
     return 0 if not problems else 3
