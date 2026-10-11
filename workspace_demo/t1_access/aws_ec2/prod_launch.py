@@ -30,7 +30,16 @@ inventory sealed; dispatch through the reviewed issue/resolve and the reaper.
 Plans by contract (row19_ec2_state.CONTRACTS; QUALIFICATION_PLAN.md): production = up to 72 block coordinates in the fixed
 order + 4 sentinels; Q1 = 48 block coordinates (index 199 and 198 of reps 3..26, owned) + 24 Lengau-completed
 coordinates (index 1 and 2 of reps 3..14, duplicates) + 4 sentinels = 76; Q2 = the 24 coordinates index 199 of reps 3..26
-recomputed on a c7a.12xlarge at cap 0.70 (duplicates; Q1 owns them)."""
+recomputed on a c7a.12xlarge at cap 0.70 (duplicates; Q1 owns them).
+
+REVISION 3 (Codex RSC 3dc0daf R1-1, R1-3, R1-5, R1-7). STOP absence is accepted ONLY when S3 answers that the object does
+not exist (HeadObject 404 / NoSuchKey / NotFound); every other outcome - credentials, configuration, connection, timeout,
+throttling, any unparsed failure - refuses admission and recovery. The activation proof must be canonical with its controls
+lineage intact (row19_partition.activation_problem with the current controls). The snapshot root's registered EC2 artifacts
+and installed inventory are rechecked now (row19_ec2_state.current_problems), not trusted from the receipt's metadata. An
+admission refuses while a benchmark attempt is unresolved/running or an unresolved attempt was made in another region
+(prod_authority.exclusion_problem); every attempt and request records its region and zone, and recovery refuses an attempt
+of another region."""
 import argparse, glob, json, math, os, sys, time, uuid
 import bench_launch as L
 import prod_authority as PA
@@ -53,18 +62,36 @@ def s3_stop_key(run=None):
     return f"s3://{L.BUCKET}/code/t1_access/aws_bench/{run + '/' if run else ''}STOP"
 
 
+ABSENT_CODES = ("404", "NoSuchKey", "NotFound")
+MODE = "canonical"                                                        # tests alone set "sandbox"
+
+
+def s3_stop_present(key):
+    """True when the STOP object exists, False ONLY when S3 proves it absent (HeadObject 404/NoSuchKey/NotFound); raises
+    L.AwsError for every other outcome (R1-5: no unproved absence)."""
+    bucket, _, k = key[len("s3://"):].partition("/")
+    try:
+        L.aws("s3api", "head-object", "--bucket", bucket, "--key", k, timeout=30)
+        return True
+    except L.AwsError as e:
+        if e.code in ABSENT_CODES:
+            return False
+        raise
+
+
 def stop_problem(run, snapshot):
-    """Every STOP source; an unreadable S3 answer refuses (fail closed)."""
+    """Every STOP source; anything but a proved absence on S3 refuses (fail closed)."""
     found = [p for p in (os.path.join(L.run_dir(run), "STOP"), os.path.join(PA.HERE, "runs", "STOP"),
                          os.path.join(snapshot, "live", "refit", "root", "STOP"),
                          os.path.join(snapshot, "live", "refit", "root", "ec2", "HOLD")) if os.path.exists(p)]
     for key in (s3_stop_key(run), s3_stop_key()):
         try:
-            if L.aws("s3", "ls", key, timeout=30).stdout.strip():
+            if s3_stop_present(key):
                 found.append(key)
         except L.AwsError as e:
-            if "error" in str(e).lower() or "timeout" in str(e).lower():
-                return f"the S3 STOP check failed ({e})"
+            return f"the S3 STOP check did not prove absence ({e.code or 'no service code'}: {str(e)[:160]})"
+        except Exception as e:
+            return f"the S3 STOP check failed ({type(e).__name__}: {e})"
     return f"STOP/HOLD in force ({found})" if found else ""
 
 
@@ -90,6 +117,9 @@ def snapshot_state(snapshot, part, now=None):
     root = os.path.join(snapshot, "live", "refit", "root")
     if (w.get("ec2") or {}).get("bound") != ES.bound(root):
         raise ValueError("the receipt's EC2 binding is not the snapshot root's")
+    cur = ES.current_problems(root, json.load(open(os.path.join(T1, "chpc", "row19_screen_manifest.json"))), require=True)
+    if cur:                                                                  # R1-3: the artifacts as they are now
+        raise ValueError(f"the snapshot's registered EC2 artifacts or installed inventory fail now: {cur[:3]}")
     return done, os.path.basename(recs[-1]), w
 
 
@@ -106,9 +136,12 @@ def inventory_bound_problem(w):
     return ""
 
 
+def controls_doc():
+    return json.load(open(os.path.join(T1, "chpc", "row19_screen_controls.json")))
+
+
 def controls_pin():
-    ctl = json.load(open(os.path.join(T1, "chpc", "row19_screen_controls.json")))
-    return (ctl["versions"][-1].get("partition") or {}).get("sha256")
+    return (controls_doc()["versions"][-1].get("partition") or {}).get("sha256")
 
 
 def build(contract, part, leds, done, token):
@@ -142,7 +175,10 @@ def admit(a, now=None):
     why = stop_problem(run, a.snapshot)
     if why:
         sys.exit(f"REFUSED: {why} - no new EC2 dispatch")
-    rel = PA.release_state()
+    why = PA.exclusion_problem(leds, L.REGION)
+    if why:
+        sys.exit(f"REFUSED: {why}")
+    rel = PA.release_state(leds)
     gate = rel["qualification"]["ok"] if a.contract in ("Q1", "Q2") else rel["production"]["ok"]
     if not gate:
         sys.exit(f"REFUSED: ec2_release_state.json does not permit {a.contract} (row 23 success / qualification permission and "
@@ -153,7 +189,7 @@ def admit(a, now=None):
         sys.exit("REFUSED: the partition is not this epoch's or not the one the latest adopted controls pin")
     actp = os.path.join(a.snapshot, "live", "refit", "root", "ec2", f"activation_e{a.epoch}.json")
     try:
-        why = RP.activation_problem(man_prod, PROD_SHA, part, psha, json.load(open(actp)))
+        why = RP.activation_problem(man_prod, PROD_SHA, part, psha, json.load(open(actp)), controls=controls_doc(), mode=MODE)
     except Exception as e:
         why = f"no activation proof in the snapshot ({type(e).__name__})"
     if why:
@@ -229,8 +265,9 @@ def admit(a, now=None):
     for k, p in files.items():
         L.aws("s3", "cp", p, f"s3://{L.BUCKET}/code/t1_access/aws_bench/{run}/attempt_{n}/{k}", "--only-show-errors", timeout=1800)
     reqp = os.path.join(d, f"request_attempt{n}.json")
-    json.dump(dict(client_token=token, args=args, userdata_sha256=L.sha256(udp), sha256=sums), open(reqp, "w"), indent=1)
+    json.dump(dict(client_token=token, args=args, userdata_sha256=L.sha256(udp), sha256=sums, region=L.REGION, az=L.AZ), open(reqp, "w"), indent=1)
     att = dict(attempt=n, sequence=seq, attempt_id=attempt_id, contract=a.contract, state="intent", client_token=token, request=reqp,
+               region=L.REGION, az=L.AZ,
                lifetime_s=life, max_price=c["max_price"], anc_h=PA.ANC_H_PROD, s3_fixed=PA.S3_FIXED_PROD, type=c["itype"], ami=ami,
                plan=planp, plan_sha256=L.sha256(planp), coordinates=att_view["coordinates"], sentinels=att_view["sentinels"],
                duplicates=att_view["duplicates"], ingestion="pending",
@@ -246,6 +283,8 @@ def recover(a):
     att = next((x for x in reversed(led["attempts"]) if x.get("state") in ("intent", "ambiguous")), None)
     if att is None:
         sys.exit("nothing to recover")
+    if att.get("region", L.REGION) != L.REGION:                               # R1-7: the region is attempt identity
+        sys.exit(f"REFUSED: the attempt was made in {att.get('region')}; this launcher is set to {L.REGION} - recover it there")
     why = stop_problem(run, a.snapshot)
     if why:                                                                  # V10-8: never re-issue a launch under STOP
         sys.exit(f"REFUSED: {why} - the unresolved attempt stays charged at its worst case; resolve it by "

@@ -16,14 +16,20 @@ def check(n, c, x=""):
     global ok; ok &= bool(c); print(("PASS " if c else "FAIL ") + n + (f"  [{x}]" if x and not c else ""))
 
 # fake aws + dispatch
-S3 = {"stop": set(), "fail": False}; DISPATCH = []
+S3 = {"stop": set(), "fail": None}; DISPATCH = []
+FAILS = {"timeout": L.AwsError("aws s3api head-object: client timeout after 30 s"),
+         "credentials": L.AwsError("aws s3api head-object: Unable to locate credentials. You can configure credentials by running \"aws configure\"."),
+         "connection": L.AwsError("aws s3api head-object: Could not connect to the endpoint URL: \"https://s3.us-west-2.amazonaws.com/\""),
+         "forbidden": L.AwsError("aws s3api head-object: An error occurred (403) when calling the HeadObject operation: Forbidden", "403"),
+         "throttled": L.AwsError("aws s3api head-object: An error occurred (SlowDown) when calling the HeadObject operation", "SlowDown")}
 def fake_aws(*args, timeout=120):
-    if args[:2] == ("s3", "ls"):
+    if args[:2] == ("s3api", "head-object"):
         if S3["fail"]:
-            raise L.AwsError("aws s3 ls: Read timeout on endpoint URL")
-        if args[2] in S3["stop"]:
-            return types.SimpleNamespace(stdout="2026-10-11 STOP")
-        raise L.AwsError("aws s3 ls: ")
+            raise FAILS[S3["fail"]]
+        key = f"s3://{args[args.index('--bucket') + 1]}/{args[args.index('--key') + 1]}"
+        if key in S3["stop"]:
+            return types.SimpleNamespace(stdout="{}")
+        raise L.AwsError("aws s3api head-object: An error occurred (404) when calling the HeadObject operation: Not Found", "404")
     if args[0] == "ssm":
         return types.SimpleNamespace(stdout=json.dumps({"Parameters": [{"Value": "ami-test"}]}))
     return types.SimpleNamespace(stdout="{}")
@@ -35,6 +41,8 @@ tgz = os.path.join(TMP, "t.tgz"); open(tgz, "w").write("toolchain"); L.PINS = di
 prod_path = os.path.join(PKG, "..", "chpc", "row19_screen_manifest.json"); prod = json.load(open(prod_path))
 part = RP.declare(prod, PL.PROD_SHA, 2, 1); pp = os.path.join(TMP, "e1.json"); json.dump(part, open(pp, "w"))
 PL.controls_pin = lambda: RP.sha_file(pp)
+CTL = {"versions": [{"version": 10, "partition": {"path": "chpc/row19_partition_e1.json", "sha256": RP.sha_file(pp)}}]}
+PL.controls_doc = lambda: CTL
 ops = {}
 for c in ("Q1", "Q2", "production"):
     ops[c] = os.path.join(TMP, f"op_{c}.json"); json.dump(ES.derive_operational(prod, PL.PROD_SHA, 1, 75300, c), open(ops[c], "w"), indent=1, sort_keys=True)
@@ -45,7 +53,8 @@ os.makedirs(os.path.join(root, "ec2", "authority")); os.makedirs(rec)
 units = {f"{r}/{i}": {"record": {"ok": True}} for r in range(3, 41) for i in range(3)}
 json.dump({"units": units}, open(os.path.join(rec, "verify_refit_x.json"), "w"))
 m_for_act = dict(prod, storage={"root": root, "campaign": os.path.join(TMP, "camp")})
-proof = dict(schema=ES.ACTIVATION_SCHEMA, epoch=1, partition_sha256=RP.sha_file(pp), manifest_sha256=PL.PROD_SHA, transferred_indices=[])
+proof = dict(schema=ES.ACTIVATION_SCHEMA, mode="canonical", epoch=1, partition_sha256=RP.sha_file(pp), manifest_sha256=PL.PROD_SHA,
+             transferred_indices=[], controls_version=10, controls_entry_sha256=RP.entry_sha(CTL["versions"][0]), adoption_sha256="a" * 64)
 json.dump(proof, open(os.path.join(root, "ec2", "activation_e1.json"), "w"))
 
 def receipt(**kw):
@@ -88,9 +97,38 @@ for name, setup, undo in (
         ("an ec2/HOLD in the snapshot", lambda: open(os.path.join(root, "ec2", "HOLD"), "w").write("x"), lambda: os.remove(os.path.join(root, "ec2", "HOLD"))),
         ("the run's S3 STOP", lambda: S3["stop"].add(PL.s3_stop_key("qual-Q1")), lambda: S3["stop"].clear()),
         ("the global S3 STOP", lambda: S3["stop"].add(PL.s3_stop_key()), lambda: S3["stop"].clear()),
-        ("an S3 STOP check that fails (fail closed)", lambda: S3.update(fail=True), lambda: S3.update(fail=False))):
+        *[(f"an S3 STOP check that does not prove absence ({k}: fail closed, R1-5)", (lambda k=k: S3.update(fail=k)), lambda: S3.update(fail=None))
+          for k in FAILS]):
     setup(); r = admit(ns()); undo()
     check(f"admission refused under {name}", r[0] == "REFUSED" and ("STOP" in r[1]), r)
+# R1-1: a sandbox proof, or a proof whose controls version entry is not in the current controls, refuses
+for name, edit in (("a sandbox activation proof", dict(mode="sandbox")), ("a proof of another controls version entry", dict(controls_entry_sha256="0" * 64))):
+    json.dump(dict(proof, **edit), open(os.path.join(root, "ec2", "activation_e1.json"), "w")); receipt()
+    r = admit(ns()); check(f"R1-1 refused for {name}", r[0] == "REFUSED" and "activation" in r[1], r)
+json.dump(proof, open(os.path.join(root, "ec2", "activation_e1.json"), "w")); receipt()
+# R1-3: registered EC2 artifacts in the snapshot are rechecked now; R1-2: an installed inventory is required
+regp = os.path.join(root, "ec2", "register.json"); tp = os.path.join(root, "timing", "rep3", "t_150.json"); os.makedirs(os.path.dirname(tp))
+json.dump({"t": 1}, open(tp, "w"))
+json.dump(dict(schema=ES.REGISTER_SCHEMA, authority_generation=1, fence={}, attempts={"x": dict(attempt_id="x", key="prod-e1/9", sequence=9, state="ingested",
+          coordinates={"3/150": dict(slot=0, preexisting=False, failed=False, record_sha256="r", timing_sha256=L.sha256(tp), status_sha256="s")})}), open(regp, "w"))
+receipt(); r = admit(ns()); check("R1-3 refused when a registered canonical artifact in the snapshot is not its registered bytes", r[0] == "REFUSED" and "registered" in r[1], r)
+os.remove(regp); os.remove(tp); receipt()
+os.remove(os.path.join(root, "ec2", "authority", "inventory.json")); w = json.load(open(os.path.join(rec, "watch_refit_20261011T000000Z.json")))
+w["ec2"]["bound"] = ES.bound(root); json.dump(w, open(os.path.join(rec, "watch_refit_20261011T000000Z.json"), "w"))
+r = admit(ns()); check("R1-2 refused when the snapshot root has no installed inventory", r[0] == "REFUSED" and "inventory" in r[1], r)
+receipt()
+# R1-7: a live benchmark attempt (its launcher is outside the global lock) and an unresolved attempt in another region refuse
+L.save("b9", {"run": "b9", "attempts": [dict(attempt=1, state="launched", lifetime_s=100, max_price=1.2)]})
+r = admit(ns()); check("R1-7 refused while a benchmark attempt is running (exclusion)", r[0] == "REFUSED" and "benchmark" in r[1], r)
+shutil.rmtree(L.run_dir("b9"))
+L.save("prod-e7", {"run": "prod-e7", "attempts": [dict(attempt=1, sequence=99, attempt_id="z", state="ambiguous", region="us-west-2", contract="production",
+                                                       plan_sha256="p", coordinates=[], lifetime_s=100, max_price=1.2, anc_h=0.014, s3_fixed=0.3)]})
+r = admit(ns()); check("R1-7 refused while an unresolved attempt was made in another region", r[0] == "REFUSED" and "region" in r[1], r)
+try:
+    PL.recover(ns("production", epoch=7, recover=True)); check("R1-7 recovery refuses an attempt of another region", False)
+except SystemExit as e:
+    check("R1-7 recovery refuses an attempt of another region", "us-west-2" in str(e), str(e))
+shutil.rmtree(L.run_dir("prod-e7")); receipt()
 PL.controls_pin = lambda: None
 r = admit(ns()); check("refused when the latest controls do not pin the partition", r[0] == "REFUSED" and "pin" in r[1], r)
 PL.controls_pin = lambda: RP.sha_file(pp)
@@ -119,6 +157,7 @@ check("Q1 admitted: 76 slots = 48 owned block + 24 Lengau duplicates + 4 sentine
 check("Q1 sentinels are Lengau-completed and never among its duplicates", att and not ({tuple(x) for x in att["sentinels"]} & set(PL.Q1_LENGAU)))
 req = json.load(open(att["request"])) if att else {"args": []}
 check("Q1 request: c7a.24xlarge at cap 1.20, 60 GB", "c7a.24xlarge" in req["args"] and '"MaxPrice": "1.20"' in " ".join(req["args"]) and '"VolumeSize": 60' in " ".join(req["args"]))
+check("R1-7 the attempt and its request record the region and zone", att.get("region") == L.REGION and req.get("region") == L.REGION and att.get("az") == L.AZ)
 check("Q1 plan passes its own contract check", ES.plan_problem(plan, "Q1", att, plan["partition_sha256"], plan["opmanifest_sha256"], plan["activation_sha256"]) == "")
 inv = json.load(open(os.path.join(PA.INV_DIR, "latest.json")))
 check("the journal bumped the generation and sealed a new inventory naming Q1 as owner", inv["generation"] == PA.state()["generation"] and inv["owners"].get("3/199", [None])[0] == "qual-Q1/1")

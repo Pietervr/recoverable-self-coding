@@ -3,7 +3,9 @@ contracts 2, 7, 8; repaired for Codex RSC 0483db4 V10-2 and V10-6). Mac only.
 
     python3 prod_authority.py inventory                       # seal the current inventory (copy it to <root>/ec2/authority/)
     python3 prod_authority.py ack --run prod-e1 --attempt 3 --register <pulled root/ec2/register.json>
-    python3 prod_authority.py disposition --run prod-e1 --attempt 3 --reason "<why no output will be ingested>"
+    python3 prod_authority.py disposition --run prod-e1 --attempt 3 --reason "<why no output will be ingested>"   # REQUEST only
+    python3 prod_authority.py disposition-confirm --run prod-e1 --attempt 3 --ack <pulled root/ec2/authority/ack_g<N>.json>
+    python3 prod_authority.py release-adopt --certificate <cert.json> --review <review record .md>   # paths under aws_ec2/
     python3 prod_authority.py budget                          # every envelope, as the next admission would see it
 
 LEDGERS. runs/<run>/attempts.json per run (prod-e<epoch> production, qual-Q1 / qual-Q2 qualification, b2 the row-23
@@ -25,7 +27,28 @@ before any dispatch: (1) production + qualification across ALL epochs and retrie
 spend - the recorded baseline (Cost Explorer through a stated date, with the post-cutoff part of 12 Sept bounded and an
 idle-charge accrual per day after it) + every run under runs/ (row 23 included) - <= USD 3,000 from 12 Sept 2026 21:50 UTC;
 (3) each qualification part's cumulative charge (retries included) <= its declared ceiling, and only once the owner has
-accepted those ceilings in ec2_release_state.json."""
+accepted those ceilings in ec2_release_state.json.
+
+REVISION 3 (Codex RSC 3dc0daf R1-2, R1-4, R1-7).
+  disposition  is a REQUEST: the attempt keeps owning (ingestion stays pending) and the next inventory carries
+               `disposition_requested`; the Lengau root fences it at installation (row19_ec2_root.py install) and writes
+               ack_g<N>.json. `disposition-confirm` releases ownership ONLY against that acknowledgement: it must name this
+               key with this attempt id, sequence and coordinate digest, and its inventory digest must be a sealed inventory
+               of this authority that carried the request. A refusal in the acknowledgement (output already being ingested)
+               keeps the attempt owning.
+  release      production is released ONLY by a validated certificate (release_problem): the qualifier's schema-2
+               certificate with outcome RELEASE, no problems, the predeclared coverage met on finite successful paths, the
+               memory gate at the full packing, the replay; its bound code equal to the current files, its manifest the
+               production 43b75f94, its partition the one the current controls pin (a later epoch needs its own reviewed
+               release), its Q1 attempt the reconciled ledger attempt (key, id, sequence, plan bytes); and a pinned review
+               record carrying `FAVOURABLE` and the literal `RELEASE row19-ec2-qualification certificate=<sha256>
+               attempts=<keys>`. The released attempts are DERIVED from the certificate; a release state listing others is
+               refused. `release-adopt` writes the production block from a passing validation only.
+  exclusion    benchmark launches (bench_launch.py, the reviewed row-23 launcher) are not under this lock; a production or
+               qualification admission therefore refuses while any benchmark attempt is unresolved or running, and every
+               benchmark charge is counted in the cumulative cap. Each production/qualification attempt records its region
+               and zone; an admission refuses while any unresolved attempt was made in another region than the current one,
+               and recovery refuses an attempt of another region (the region is attempt identity, not a global)."""
 import argparse, contextlib, fcntl, glob, hashlib, json, os, sys, time
 import bench_launch as L
 
@@ -34,6 +57,11 @@ sys.path.insert(0, os.path.join(HERE, "..", "chpc"))
 import row19_ec2_state as ES
 
 PROD_ENVELOPE_USD, CUMULATIVE_CAP_USD = 2300.0, 3000.0
+PROD_SHA = "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c"
+T1 = os.path.abspath(os.path.join(HERE, ".."))
+CERT_SCHEMA = "row19-ec2-qualification-certificate-2"
+COVERAGE = {"R1": 18, "R2": 36, "R3": 18}                 # = chpc/row19_ec2_qualify.COVERAGE (predeclared)
+MEM_HOST_LIMIT_GIB, MEM_MIN_SAMPLES = 184.0, 10
 # Ancillary per instance-hour for the production/qualification contract (60 GB gp3 at <= USD 0.10/GB-month = 0.0082/h, one
 # public IPv4 0.005/h; rounded up) and a fixed per-attempt allowance for transfer and requests (toolchain 0.22 GB and results
 # <= 1 GB across eu-north-1 <-> Oregon at 0.02/GB, S3 requests of 10-minute syncs over 22 h, reserve).
@@ -205,9 +233,59 @@ def owner_of(leds, coordinate):
     return owned(leds).get(tuple(coordinate))
 
 
-def release_state():
+def controls_partition_sha():
+    ctl = json.load(open(os.path.join(T1, "chpc", "row19_screen_controls.json")))
+    return (ctl["versions"][-1].get("partition") or {}).get("sha256")
+
+
+def release_problem(cert_path, review_path, leds=None):
+    """(released attempt keys, '') when the certificate and its review release production now; else ([], why). R1-4."""
+    try:
+        cert = json.load(open(cert_path)); csha = L.sha256(cert_path)
+    except Exception as e:
+        return [], f"the certificate is unreadable ({type(e).__name__})"
+    if cert.get("schema") != CERT_SCHEMA or cert.get("outcome") != "RELEASE" or cert.get("problems") != [] or cert.get("coverage_short") != {}:
+        return [], "the certificate is not a schema-2 RELEASE without problems and without short coverage"
+    parts = cert.get("parts") or {}
+    if any((parts.get(k) or {}).get("successful_both", -1) < n for k, n in COVERAGE.items()):
+        return [], "the certificate's finite successful coverage is below the predeclared 18 / 36 / 18"
+    m = cert.get("memory") or {}
+    if not (m.get("samples_at_full_packing", 0) >= MEM_MIN_SAMPLES and 0 < m.get("peak_host_used_gib", 1e9) <= MEM_HOST_LIMIT_GIB):
+        return [], "the certificate's memory evidence does not cover the full packing within the limit"
+    rp = cert.get("replay") or {}
+    if not (rp.get("final_state") == "ingested" and rp.get("hashes_equal") is True and "scope" in rp):
+        return [], "the certificate's ingestion replay did not complete or states no scope"
+    b = cert.get("bound") or {}
+    stale = [f for f, h in (b.get("code") or {}).items() if not os.path.exists(os.path.join(T1, f)) or L.sha256(os.path.join(T1, f)) != h]
+    if not b.get("code") or stale:
+        return [], f"the certificate's code is not the current bytes ({stale[:4]}): re-qualify or review a migration"
+    if b.get("manifest_sha256") != PROD_SHA:
+        return [], "the certificate is not bound to the production manifest 43b75f94"
+    if b.get("partition_sha256") != controls_partition_sha():
+        return [], "the certificate's partition is not the one the current controls pin: a later epoch needs its own reviewed release"
+    q1 = cert.get("q1") or {}; keys = cert.get("released_attempts")
+    if not (isinstance(keys, list) and keys == [q1.get("key")]):
+        return [], "the certificate's released attempts are not exactly its Q1 attempt"
+    leds = ledgers() if leds is None else leds
+    run, _, n = str(q1.get("key")).partition("/")
+    a = next((x for x in leds.get(run, {"attempts": []})["attempts"] if str(x.get("attempt")) == n), None)
+    if a is None or a.get("state") != "reconciled" or (a.get("attempt_id"), a.get("sequence"), a.get("plan_sha256")) != (q1.get("attempt_id"), q1.get("sequence"), q1.get("plan_sha256")):
+        return [], "the certificate's Q1 attempt is not the reconciled ledger attempt (id, sequence, plan bytes)"
+    if (b.get("plans") or {}).get("Q1") != a.get("plan_sha256"):
+        return [], "the certificate's bound Q1 plan is not the attempt's plan"
+    try:
+        text = open(review_path).read()
+    except Exception as e:
+        return [], f"the actual-result review is unreadable ({type(e).__name__})"
+    lit = f"RELEASE row19-ec2-qualification certificate={csha} attempts={','.join(keys)}"
+    if lit not in text.split("\n") or "FAVOURABLE" not in text:
+        return [], "the actual-result review carries no FAVOURABLE verdict with the literal release line for this certificate"
+    return list(keys), ""
+
+
+def release_state(leds=None):
     """The reviewed release state (row 23, qualification, production). Every claim it makes must be backed by a file whose
-    sha256 it pins; a missing or differing file reads as NOT released."""
+    sha256 it pins; a missing or differing file reads as NOT released. Production is released only by release_problem."""
     r = json.load(open(RELEASE_STATE))
     assert r.get("schema") == "t1-ec2-release-state-1", "ec2_release_state.json schema"
     def backed(d, pk="path", hk="sha256"):
@@ -216,11 +294,43 @@ def release_state():
     r23["ok"] = bool(r23.get("declared_success")) and backed(r23, "report_path", "report_sha256")
     q["ok"] = r23["ok"] and bool(q.get("permitted")) and bool(q.get("owner_accepted_ceilings")) and backed(q, "record_path", "record_sha256") \
         and q.get("ceilings_usd") == QUAL_CEILINGS_USD
-    pr["ok"] = q["ok"] and bool(pr.get("released")) and backed(pr, "certificate_path", "certificate_sha256")
-    if pr["ok"]:
-        cert = json.load(open(os.path.join(HERE, pr["certificate_path"])))
-        pr["ok"] = cert.get("outcome") == "RELEASE" and cert.get("problems") == []
+    pr["ok"], pr["derived_released_attempts"], pr["why"] = False, [], "not released"
+    if q["ok"] and pr.get("released") and backed(pr, "certificate_path", "certificate_sha256") and backed(pr, "review_path", "review_sha256"):
+        keys, why = release_problem(os.path.join(HERE, pr["certificate_path"]), os.path.join(HERE, pr["review_path"]), leds)
+        if not why and sorted(pr.get("released_attempts") or []) != sorted(keys):
+            why = "the release state lists other attempts than its certificate releases"
+        pr["ok"], pr["derived_released_attempts"], pr["why"] = (not why), (keys if not why else []), why
     return r
+
+
+def release_adopt(cert_rel, review_rel):
+    """Write the production block from a PASSING release validation (paths relative to aws_ec2/)."""
+    keys, why = release_problem(os.path.join(HERE, cert_rel), os.path.join(HERE, review_rel))
+    if why:
+        raise ValueError(why)
+    r = json.load(open(RELEASE_STATE))
+    r["production"] = dict(released=True, certificate_path=cert_rel, certificate_sha256=L.sha256(os.path.join(HERE, cert_rel)),
+                           review_path=review_rel, review_sha256=L.sha256(os.path.join(HERE, review_rel)), released_attempts=keys)
+    tmp = RELEASE_STATE + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(r, f, indent=1); f.write("\n"); f.flush(); os.fsync(f.fileno())
+    os.replace(tmp, RELEASE_STATE)
+    if not release_state()["production"]["ok"]:
+        raise ValueError("the adopted release state does not validate (row 23 / qualification backing)")
+    return keys
+
+
+def exclusion_problem(leds, region):
+    """R1-7: no production/qualification admission while a benchmark attempt is unresolved or running (its launcher is not
+    under the global lock), nor while an unresolved attempt was made in another region."""
+    for run, l in leds.items():
+        for a in l["attempts"]:
+            live = a.get("state") in ("intent", "launched", "ambiguous")
+            if run_class(run) == "benchmark" and live:
+                return f"benchmark attempt {run}/{a['attempt']} is {a['state']}: benchmark launches are outside the global lock"
+            if run_class(run) in PROD_CLASSES and live and a.get("region", region) != region:
+                return f"attempt {run}/{a['attempt']} is {a['state']} in {a.get('region')}, not {region}: resolve it before changing region"
+    return ""
 
 
 def inventory(leds, gen, rel, now=None):
@@ -236,14 +346,14 @@ def inventory(leds, gen, rel, now=None):
             key = f"{run}/{a['attempt']}"
             atts[key] = dict(key=key, run=run, attempt=a["attempt"], attempt_id=a["attempt_id"], sequence=a["sequence"],
                              state=a["state"], ingestion=a.get("ingestion", "pending"), **{"class": cls}, contract=a["contract"],
+                             disposition_requested=bool(a.get("disposition_request")) and a.get("ingestion", "pending") == "pending",
                              plan_sha256=a["plan_sha256"], coordinates=a.get("coordinates", []), sentinels=a.get("sentinels", []),
                              duplicates=a.get("duplicates", []), charged_usd=round(charged(a), 6))
     own = owned(leds)
     b = budget(leds, now)
     body = dict(schema=ES.INVENTORY_SCHEMA, generation=gen, at=now, attempts=atts,
                 owners={f"{c[0]}/{c[1]}": [k, s] for c, (k, s) in sorted(own.items())}, fence=fence(leds),
-                release=dict(production_released=rel["production"]["ok"], released_attempts=sorted(rel["production"].get("released_attempts") or [])
-                             if rel["production"]["ok"] else []),
+                release=dict(production_released=rel["production"]["ok"], released_attempts=sorted(rel["production"]["derived_released_attempts"])),
                 usd=dict(b, envelope_usd=PROD_ENVELOPE_USD, cap_usd=CUMULATIVE_CAP_USD))
     return ES.seal(body)
 
@@ -251,7 +361,7 @@ def inventory(leds, gen, rel, now=None):
 def write_inventory(now=None):
     """Under the authority lock: seal and write runs/inventory/inventory_g<gen>.json and latest.json. Returns the path."""
     leds = ledgers(); st = state()
-    inv = inventory(leds, st["generation"], release_state(), now)
+    inv = inventory(leds, st["generation"], release_state(leds), now)
     why = ES.inventory_problem(inv, now)
     if why:
         raise RuntimeError(f"the authority produced an invalid inventory: {why}")
@@ -287,11 +397,41 @@ def ack(run, n, register_path):
 
 
 def disposition(run, n, reason):
+    """REQUEST a disposition (R1-2): ownership stays until the root acknowledges the fence (disposition_confirm)."""
     led = L.load(run); a = next(x for x in led["attempts"] if x["attempt"] == n)
     if a.get("state") != "reconciled" or a.get("ingestion") != "pending":
         raise ValueError(f"attempt is {a.get('state')}/{a.get('ingestion')}: only a reconciled pending attempt is dispositioned")
-    a["ingestion"] = "dispositioned"; a["disposition"] = dict(reason=reason, at=time.time())
-    L.save(run, led)
+    if a.get("disposition_request"):
+        return False
+    a["disposition_request"] = dict(reason=reason, at=time.time())
+    L.save(run, led); return True
+
+
+def disposition_confirm(run, n, ack_path):
+    """Release ownership on the root's acknowledgement of the fence (R1-2). Idempotent on the same acknowledgement."""
+    led = L.load(run); a = next(x for x in led["attempts"] if x["attempt"] == n); key = f"{run}/{n}"
+    ack = json.load(open(ack_path)); asha = L.sha256(ack_path)
+    if a.get("ingestion") == "dispositioned":
+        if (a.get("disposition_ack") or {}).get("ack_sha256") != asha:
+            raise ValueError("already confirmed against another acknowledgement")
+        return False
+    if a.get("ingestion") != "pending" or not a.get("disposition_request"):
+        raise ValueError(f"attempt is {a.get('ingestion')} with no disposition request")
+    if ack.get("schema") != ES.ACK_SCHEMA:
+        raise ValueError("not a root acknowledgement")
+    if key in (ack.get("refused") or {}):
+        raise ValueError(f"the root REFUSED the disposition: {ack['refused'][key]} - the attempt keeps owning")
+    f = (ack.get("dispositioned") or {}).get(key)
+    want = dict(attempt_id=a["attempt_id"], sequence=a["sequence"],
+                coordinates_sha256=ES.sha_bytes(ES.canonical(sorted(a.get("coordinates", [])))))
+    if f != want:
+        raise ValueError("the acknowledgement does not fence this attempt (id, sequence, coordinates)")
+    invp = os.path.join(INV_DIR, f"inventory_g{int(ack['generation'])}.json")
+    inv = json.load(open(invp)) if os.path.exists(invp) else {}
+    if inv.get("sha256") != ack.get("inventory_sha256") or not (inv.get("attempts", {}).get(key) or {}).get("disposition_requested"):
+        raise ValueError("the acknowledged inventory is not a sealed inventory of this authority carrying the request")
+    a["ingestion"] = "dispositioned"; a["disposition_ack"] = dict(ack_sha256=asha, generation=ack["generation"], at=time.time())
+    L.save(run, led); return True
 
 
 def main():
@@ -299,17 +439,23 @@ def main():
     sub.add_parser("inventory"); sub.add_parser("budget")
     k = sub.add_parser("ack"); k.add_argument("--run", required=True); k.add_argument("--attempt", type=int, required=True); k.add_argument("--register", required=True)
     d = sub.add_parser("disposition"); d.add_argument("--run", required=True); d.add_argument("--attempt", type=int, required=True); d.add_argument("--reason", required=True)
+    c = sub.add_parser("disposition-confirm"); c.add_argument("--run", required=True); c.add_argument("--attempt", type=int, required=True); c.add_argument("--ack", required=True)
+    r = sub.add_parser("release-adopt"); r.add_argument("--certificate", required=True); r.add_argument("--review", required=True)
     a = ap.parse_args()
     try:
         with authority_lock(wait_s=60):
             if a.cmd == "budget":
                 print(json.dumps(dict(budget(ledgers()), envelope=PROD_ENVELOPE_USD, cap=CUMULATIVE_CAP_USD, ceilings=QUAL_CEILINGS_USD), indent=1)); return 0
-            if a.cmd in ("ack", "disposition"):
+            if a.cmd == "release-adopt":
+                print("released:", release_adopt(a.certificate, a.review)); bump(state())
+            if a.cmd in ("ack", "disposition", "disposition-confirm"):
                 with L.run_lock(a.run, wait_s=60):
                     if a.cmd == "ack":
                         changed = ack(a.run, a.attempt, a.register)
+                    elif a.cmd == "disposition":
+                        changed = disposition(a.run, a.attempt, a.reason)
                     else:
-                        disposition(a.run, a.attempt, a.reason); changed = True
+                        changed = disposition_confirm(a.run, a.attempt, a.ack)
                 if changed:
                     bump(state())
             print(write_inventory()); return 0

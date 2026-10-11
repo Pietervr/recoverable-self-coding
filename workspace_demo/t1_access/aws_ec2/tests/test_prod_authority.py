@@ -106,4 +106,92 @@ try:
     PA.disposition("prod-e1", 2, "x"); check("disposition refuses an unreconciled attempt", False)
 except ValueError:
     check("disposition refuses an unreconciled attempt", True)
+
+# R1-2: disposition is a REQUEST; ownership is released only on the root's acknowledgement of the fence
+save("prod-e1", [x for x in L.load("prod-e1")["attempts"] if x["attempt"] != 2] +
+       [att(2, 3, state="reconciled", coords=[(5, 199)], terminal=dict(compute_s=60, ancillary_s=60))])
+check("R1-2 a disposition request is recorded", PA.disposition("prod-e1", 2, "no output") is True)
+check("R1-2 ... and the attempt still owns its coordinate until the root acknowledges", PA.owner_of(PA.ledgers(), (5, 199)) == ("prod-e1/2", 3))
+with PA.authority_lock():
+    PA.bump(PA.state()); ip = PA.write_inventory()
+inv = json.load(open(ip))
+check("R1-2 the inventory carries the request and keeps the owner", inv["attempts"]["prod-e1/2"]["disposition_requested"] is True
+      and inv["owners"]["5/199"] == ["prod-e1/2", 3] and ES.inventory_problem(inv) == "")
+root = os.path.join(TMP, "lroot")
+ack, probs = ES.install_inventory(root, inv)
+ackp = ES.ack_path(root, inv["generation"])
+check("R1-2 the root fences the request at installation (register entry dispositioned) and acknowledges it",
+      probs == [] and "prod-e1/2" in ack["dispositioned"] and json.load(open(ES.paths(root)["register"]))["attempts"]["a2"]["state"] == "dispositioned")
+forged = dict(json.load(open(ackp)), inventory_sha256="0" * 64); fp = os.path.join(TMP, "forged.json"); json.dump(forged, open(fp, "w"))
+try:
+    PA.disposition_confirm("prod-e1", 2, fp); check("R1-2 confirm refuses an acknowledgement of an inventory this authority did not seal", False)
+except ValueError:
+    check("R1-2 confirm refuses an acknowledgement of an inventory this authority did not seal", True)
+check("R1-2 confirm releases ownership on the genuine acknowledgement", PA.disposition_confirm("prod-e1", 2, ackp) is True
+      and PA.owner_of(PA.ledgers(), (5, 199)) is None)
+check("R1-2 confirm is idempotent on the same acknowledgement", PA.disposition_confirm("prod-e1", 2, ackp) is False)
+save("prod-e1", L.load("prod-e1")["attempts"] + [att(3, 7, state="reconciled", coords=[(6, 199)], terminal=dict(compute_s=60, ancillary_s=60))])
+PA.disposition("prod-e1", 3, "x")
+with PA.authority_lock():
+    PA.bump(PA.state()); inv3 = json.load(open(PA.write_inventory()))
+reg = json.load(open(ES.paths(root)["register"])); reg["attempts"]["a3"] = dict(attempt_id="a3", key="prod-e1/3", sequence=7, state="ingesting", coordinates={})
+json.dump(reg, open(ES.paths(root)["register"], "w"))
+ack3, _ = ES.install_inventory(root, inv3)
+try:
+    PA.disposition_confirm("prod-e1", 3, ES.ack_path(root, inv3["generation"])); check("R1-2 a root refusal (output being ingested) keeps the attempt owning", False)
+except ValueError as e:
+    check("R1-2 a root refusal (output being ingested) keeps the attempt owning", "REFUSED" in str(e) and PA.owner_of(PA.ledgers(), (6, 199)) == ("prod-e1/3", 7))
+
+# R1-4: release adoption from a validated certificate and a pinned favourable review
+import hashlib
+PA.controls_partition_sha = lambda: "p" * 64
+code = {"chpc/row19_ec2_state.py": L.sha256(os.path.join(PA.T1, "chpc", "row19_ec2_state.py"))}
+L.save("qual-Q1", {"run": "qual-Q1", "attempts": [att(1, 50, state="reconciled", plan_sha256="q1plan", attempt_id="ec2-qual-Q1-a1",
+                                                       terminal=dict(compute_s=60, ancillary_s=60))]})
+def cert(**kw):
+    c = dict(schema=PA.CERT_SCHEMA, outcome="RELEASE", problems=[], coverage_short={}, parts={"R1": dict(successful_both=20), "R2": dict(successful_both=40),
+             "R3": dict(successful_both=20)}, memory=dict(samples_at_full_packing=30, peak_host_used_gib=170.0), replay=dict(final_state="ingested",
+             hashes_equal=True, scope="x"), released_attempts=["qual-Q1/1"], q1=dict(key="qual-Q1/1", attempt_id="ec2-qual-Q1-a1", sequence=50, plan_sha256="q1plan"),
+             bound=dict(code=code, manifest_sha256=PA.PROD_SHA, partition_sha256="p" * 64, plans={"Q1": "q1plan"}))
+    for k, v in kw.items():
+        c[k] = v
+    cp = os.path.join(TMP, "cert.json"); json.dump(c, open(cp, "w")); return cp
+def review(cp, verdict="FAVOURABLE", keys="qual-Q1/1"):
+    rp = os.path.join(TMP, "review.md")
+    open(rp, "w").write(f"# actual-result review\n{verdict}\nRELEASE row19-ec2-qualification certificate={L.sha256(cp)} attempts={keys}\n"); return rp
+cp = cert(); check("R1-4 a valid certificate with its favourable review releases exactly Q1", PA.release_problem(cp, review(cp)) == (["qual-Q1/1"], ""))
+cp = cert(); rp = review(cp, verdict="pending"); check("R1-4 a review without FAVOURABLE refuses", PA.release_problem(cp, rp)[1] != "")
+cp = cert(); rp = review(cp); os.remove(rp); check("R1-4 a missing review refuses", PA.release_problem(cp, rp)[1] != "")
+cp = cert(); rp = review(cp, keys="qual-Q1/2"); check("R1-4 a review naming other attempts refuses", PA.release_problem(cp, rp)[1] != "")
+cp = cert(bound=dict(code={"chpc/row19_ec2_state.py": "0" * 64}, manifest_sha256=PA.PROD_SHA, partition_sha256="p" * 64, plans={"Q1": "q1plan"}))
+check("R1-4 a certificate bound to other code bytes refuses (stale)", "code" in PA.release_problem(cp, review(cp))[1])
+cp = cert(bound=dict(code=code, manifest_sha256=PA.PROD_SHA, partition_sha256="e" * 64, plans={"Q1": "q1plan"}))
+check("R1-4 a certificate of another partition refuses (a later epoch needs its own release)", "partition" in PA.release_problem(cp, review(cp))[1])
+cp = cert(released_attempts=["qual-Q1/1", "prod-e1/1"]); check("R1-4 a certificate releasing more than its Q1 refuses", PA.release_problem(cp, review(cp, keys="qual-Q1/1,prod-e1/1"))[1] != "")
+cp = cert(q1=dict(key="qual-Q1/1", attempt_id="ec2-qual-Q1-a1", sequence=50, plan_sha256="other")); check("R1-4 a certificate whose Q1 plan is not the ledger's refuses", PA.release_problem(cp, review(cp))[1] != "")
+cp = cert(parts={"R1": dict(successful_both=20), "R2": dict(successful_both=35), "R3": dict(successful_both=20)})
+check("R1-4 short finite coverage refuses", "coverage" in PA.release_problem(cp, review(cp))[1])
+cp = cert(schema="row19-ec2-qualification-certificate-1"); check("R1-4 a schema-1 certificate refuses", PA.release_problem(cp, review(cp))[1] != "")
+cp = cert(); rp = review(cp)
+r = json.load(open(PA.RELEASE_STATE)); open(os.path.join(TMP, "r23.json"), "w").write("{}"); open(os.path.join(TMP, "qrec.md"), "w").write("q")
+r["row23"] = dict(declared_success=True, report_path="r23.json", report_sha256=L.sha256(os.path.join(TMP, "r23.json")))
+r["qualification"].update(permitted=True, record_path="qrec.md", record_sha256=L.sha256(os.path.join(TMP, "qrec.md")))
+json.dump(r, open(PA.RELEASE_STATE, "w"))
+check("R1-4 release-adopt writes the production block from the validated certificate", PA.release_adopt("cert.json", "review.md") == ["qual-Q1/1"]
+      and PA.release_state()["production"]["ok"] and PA.release_state()["production"]["derived_released_attempts"] == ["qual-Q1/1"])
+r = json.load(open(PA.RELEASE_STATE)); r["production"]["released_attempts"] = ["qual-Q1/1", "qual-Q2/1"]; json.dump(r, open(PA.RELEASE_STATE, "w"))
+check("R1-4 a release state listing other attempts than its certificate is NOT released", not PA.release_state()["production"]["ok"])
+r["production"]["released_attempts"] = ["qual-Q1/1"]; json.dump(r, open(PA.RELEASE_STATE, "w"))
+code["chpc/row19_ec2_state.py"] = "1" * 64; cp2 = cert(); r["production"]["certificate_sha256"] = L.sha256(cp2); json.dump(r, open(PA.RELEASE_STATE, "w"))
+check("R1-4 an adopted release whose certificate no longer matches the current inputs reads NOT released", not PA.release_state()["production"]["ok"])
+
+# R1-7: exclusion
+check("R1-7 a live benchmark attempt excludes production/qualification admission", "benchmark" in PA.exclusion_problem({"b2": {"attempts": [dict(attempt=5, state="launched")]}}, "eu-north-1"))
+check("R1-7 a reconciled benchmark attempt does not", PA.exclusion_problem({"b2": {"attempts": [dict(attempt=5, state="reconciled")]}}, "eu-north-1") == "")
+check("R1-7 an unresolved attempt in another region excludes", "region" in PA.exclusion_problem({"prod-e1": {"attempts": [dict(attempt=1, state="ambiguous", region="us-west-2")]}}, "eu-north-1"))
+import bench_reaper as BR
+pa = att(1, 1, state="reconciled", terminal=dict(compute_s=36000, ancillary_s=37000)); pl = att(2, 2, state="launched")
+ba = dict(attempt=1, state="reconciled", max_price=1.2, terminal=dict(compute_s=3600, ancillary_s=3600))
+check("R1-7 the reaper REPORTS a production/qualification attempt at its own rates (= the authority's charge), a benchmark by the row-23 rule",
+      abs(BR.report_charge(pa) - PA.charged(pa)) < 1e-9 and abs(BR.report_charge(pl) - PA.charged(pl)) < 1e-9 and abs(BR.report_charge(ba) - L.charged(ba)) < 1e-9)
 print("ALL PASS" if ok else "SOME FAILED"); shutil.rmtree(TMP); sys.exit(0 if ok else 1)

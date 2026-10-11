@@ -86,11 +86,28 @@ def main():
                 x["terminal"] = dict(observed_state=state, reason=reason, compute_end=compute_end, compute_s=compute_end - t0,
                                      ancillary_end=vols_end, ancillary_s=vols_end - t0, leftover_volumes=sorted(set(leftovers)),
                                      terminate_calls=terminate_calls, errors=errors)
-                x["charged_usd"] = round(L.charged(x), 2)
+                x["charged_usd"] = round(report_charge(x), 2)
                 done = x
         L.save(a.run, led)
+    total = sum(report_charge(x) for x in led["attempts"])
+    tail = (f"row 23 total USD {total:.2f} of {L.CEILING:.2f}" if not any("anc_h" in x for x in led["attempts"])
+            else f"run {a.run} total USD {total:.2f} (production/qualification rates; the global authority recomputes every envelope)")
     log(f"attempt {a.attempt} reconciled: compute {done['terminal']['compute_s']/3600:.2f} h, ancillary {done['terminal']['ancillary_s']/3600:.2f} h, "
-        f"charged USD {done['charged_usd']:.2f}; row 23 total USD {sum(L.charged(x) for x in led['attempts']):.2f} of {L.CEILING:.2f}")
+        f"charged USD {done['charged_usd']:.2f}; {tail}")
+
+
+def report_charge(x):
+    """The charge REPORTED for one attempt (Codex 3dc0daf R1-7): a production/qualification attempt (it records its own
+    ancillary rate `anc_h` and fixed `s3_fixed`) at those rates and its own cap; a benchmark attempt by the reviewed row-23
+    rule. Reporting only - prod_authority recomputes every envelope independently."""
+    if "anc_h" not in x:
+        return L.charged(x)
+    if x.get("state") == "rejected":
+        return 0.0
+    if x.get("state") == "reconciled":
+        t = x["terminal"]
+        return (t["compute_s"] / 3600) * x["max_price"] + (t["ancillary_s"] / 3600) * x["anc_h"] + x["s3_fixed"]
+    return ((x["lifetime_s"] + L.GRACE_S + L.RESERVE_S) / 3600) * (x["max_price"] + x["anc_h"]) + x["s3_fixed"]
 
 
 if __name__ == "__main__":
