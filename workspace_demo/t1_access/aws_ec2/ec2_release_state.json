@@ -1,6 +1,6 @@
 {
  "schema": "t1-ec2-release-state-1",
- "note": "Reviewed release state for EC2 work. Each claim is backed by a file whose sha256 it pins (paths relative to aws_ec2/); prod_authority.release_state() reads a missing or differing file as NOT released. Changed only by an explicit commit after the named evidence and review exist.",
+ "note": "Reviewed release state for EC2 work. Each claim is backed by a file whose sha256 it pins (paths relative to aws_ec2/); prod_authority.release_state() reads a missing or differing file as NOT released. row23 is written only by bench_finish.py --declare (fresh report, reviewed frozen controller tree, comparator exit 0, the recorded criterion); qualification.permitted only by qual_permit.py after the benchmark cutover fence (runs/BENCH_FENCE.json, which release_state also requires); production only by prod_authority.py release-adopt. Each change is committed.",
  "row23": {
   "declared_success": false,
   "report_path": null,

@@ -1,13 +1,14 @@
 # T1 row 19 screen on EC2 + Lengau: production design (built, NOT adopted or launched; conditional on row 23)
 
-Status: 11 October 2026, R052. Codex RSC `299f4b7` found the v11 controls (`chpc/candidate_v10r2/`, 6342aa10) FAVOURABLE for
-partition null ONLY (no EC2 activation, register or installed inventory; literal ADOPT in that record, not yet performed)
-and the executable Q1/Q2 authority/ingestion/status and qualification/S/release NOT FAVOURABLE until R2-1..4. Those repairs
-are built as the v10r3 package (RSC `b8d9c58` Lengau side + controls candidate v12 `chpc/candidate_v10r3/` 80d1c6d9, `d622499`
-Mac side) and await Codex's review. Nothing runs before (a) row 23's arm B passes its
-declared success criterion (all 36 refit payloads float-bit identical to Lengau with identities equal, row-6 panel exact,
-comparator valid), (b) a favourable review of the repaired package, and (c) qualification permission in
-`ec2_release_state.json`. Owner: USD 45 for Q1 + Q2 accepted (28 + 17, one attempt each; a retry needs the owner), and
+Status: 11 October 2026, R052. Codex RSC `cf07869` (review of the v10r3 package): controls v12 (`chpc/candidate_v10r3/`,
+80d1c6d9) FAVOURABLE for adoption with partition null (literal ADOPT in that record, not yet performed; it is a controls
+opinion, not activation or paid dispatch); the Lengau authority/ACK/generations, post-ACK replay, adopted-controls lineage,
+S STOP/HOLD, qualifier and release binding statically closed; the complete Q1/Q2 dispatch basis held on D-1 (a correctly
+bound current receipt before every recovery re-issue) and D-2 (drain every in-flight benchmark command before qualification
+is permitted). Both are repaired in RSC `e644584` (section 6) and await review. Nothing runs before (a) row 23's arm B passes
+its declared success criterion (valid report, B_full, row-6 panel exact, all 36 refit payloads float-bit identical with
+identities equal; `bench_finish.py`, see README), (b) a favourable review of the repaired package, and (c) qualification
+permission in `ec2_release_state.json`, set only by `qual_permit.py` after the benchmark cutover. Owner: USD 45 for Q1 + Q2 accepted (28 + 17, one attempt each; a retry needs the owner), and
 "if qual works, go directly to production" (11 Oct): a successful qualification with a FAVOURABLE actual-result review and
 its release certificate proceeds to production with no further owner go, inside the USD 2,300 production envelope and the
 USD 3,000 further-spend cap.
@@ -119,23 +120,39 @@ The reviewed row-23 launcher (`bench_launch.py`) is not under the global authori
 admission therefore refuses while any benchmark attempt is unresolved or running; every benchmark charge counts in the
 cumulative cap. Region and zone are recorded per attempt and request; an admission refuses while an unresolved attempt was
 made in another region, and recovery refuses an attempt of another region. In the other direction the benchmark is FROZEN
-(not raced): `bench_launch.py` refuses every benchmark admission and every benchmark recovery once the release state
-permits qualification or any `qual-`/`prod-` attempt exists (fail closed on unreadable state). Attempt 5 keeps its running
-reaper (a loaded process; the edit does not touch it), supervised in its recorded region; per-attempt region routing of a
-reaper is a stated operating limit. Every paid issue and re-issue passes a pre-issue guard: STOP from every source and the
-receipt's 2,700 s freshness, rechecked after staging and before each RunInstances call (R2-3).
+by an explicit cutover (D-2), not inferred from ledger intents: every benchmark command holds `runs/.bench_inflight.lock`
+SHARED from before its entry check to after its last RunInstances issue/retry; `qual_permit.py`, the only way to set
+`qualification.permitted`, takes it EXCLUSIVELY - so every in-flight benchmark command, including one still waiting or
+staging before its first journal entry, has ended - writes the fence `runs/BENCH_FENCE.json` once, then permits; every
+benchmark command refuses at entry and again immediately before every issue, retry and recovery re-issue once the fence
+exists, qualification is permitted or any `qual-`/`prod-` attempt exists (fail closed on unreadable state); and
+`release_state()` reports qualification ok only with the fence. Attempt 5 keeps its running reaper (it never issues
+RunInstances), supervised in its recorded region; per-attempt region routing of a reaper is a stated operating limit.
+Every paid production/qualification issue passes a pre-issue guard: STOP from every source and the receipt's 2,700 s
+freshness after staging and before each RunInstances call (R2-3). `--recover` re-issues only with a correctly bound
+CURRENT receipt - fresh, binding the current sealed inventory, which carries this very attempt (id, sequence, plan,
+unresolved state) - and its guard (STOP, age, binding, attempt) runs before EVERY re-issue; otherwise it refuses with zero
+RunInstances and the attempt keeps its token, region, plan and worst-case funding (D-1).
 
-## 7. Build status (11 Oct 2026, after Codex 299f4b7 R2-1..4; nothing adopted, activated or launched)
+## 7. Build status (11 Oct 2026, after Codex cf07869; nothing adopted, activated or launched)
+
+| Condition (Codex cf07869) | Built | Consumers / tests | Still open |
+|---|---|---|---|
+| D-1 receipt at every recovery re-issue | `prod_launch.recover` -> `recovery_receipt` (snapshot receipt vs the pinned partition, age, current inventory binding, attempt carried) + per-issue guard | `tests/test_prod_launch.py` 62 (stale, missing, unrelated state, older generation, attempt not carried -> zero RunInstances and funded; good receipt -> same token; aged guard refuses) | review |
+| D-2 benchmark cutover drain | `bench_launch.inflight` + `cutover_problem` (entry and pre-issue); `qual_permit.py`; `release_state` needs the fence | `tests/test_bench_launch.py` 24, `tests/test_prod_authority.py` 66 | review |
+| F-3 attempt-5 finish | `bench_finish.expected_tree_pins` before and after the comparator | `tests/test_bench_finish.py` 23 | repaired in `3efb8bb` after cf07869; review |
+
+Historical table - Codex 299f4b7 repairs (closed statically in cf07869):
 
 | Repair (Codex 299f4b7) | Built | Consumers / tests | Still open |
 |---|---|---|---|
 | R2-1 generations, root identity, freshness at use, post-ACK replay | `write_inventory` new generation per seal, write-once archives; ACK names root/manifest/mode; canonical-only confirm; `current_problems` freshness while live/owning; replay branch for `ingested` | `tests/test_prod_authority.py` 64, `tests/test_ec2_sync.py` 12, `test_row19_ec2_ingest.py` 68, `tests/test_prod_launch.py` 54 | `ec2_sync.py` not yet run against Lengau (needs the deployed root tool) |
-| R2-2 current adopted controls | `row19_partition.adopted_controls`; canonical `activation_problem`, Mac launcher, ingestion, qualifier | `test_row19_partition.py` 54, launcher, ingestion, qualifier tests | adoption of a controls version (v11 null-only favourable; v12 pending review) |
+| R2-2 current adopted controls | `row19_partition.adopted_controls`; canonical `activation_problem`, Mac launcher, ingestion, qualifier | `test_row19_partition.py` 54, launcher, ingestion, qualifier tests | adoption of a controls version (v11 and v12 null-only favourable; not yet adopted) |
 | R2-3 STOP at dispatch | post-staging recheck + pre-issue guard on every issue/re-issue; S recheck under the lock and before qsub; S STOP mirror | `tests/test_prod_launch.py`, `tests/test_bench_launch.py` 20, `test_row19_ec2_shadow.py` 19 | - |
 | R2-4 declared S evidence | declared manifest/root/campaign/plan; timings, task bindings, producer entries, declaration bound; provenance condition stated | `test_row19_ec2_qualify.py` 23 | an actual S run and its review |
-| Operating scope | benchmark freeze; exact release code set; stale ceiling note removed | `tests/test_bench_launch.py`, `tests/test_prod_authority.py` | reaper region routing |
+| Operating scope | benchmark freeze (entry-only at v10r3; the drain is D-2 above); exact release code set; stale ceiling note removed | `tests/test_bench_launch.py`, `tests/test_prod_authority.py` | reaper region routing |
 
-Earlier repairs (Codex 3dc0daf R1-1..7):
+Historical table - earlier repairs (Codex 3dc0daf R1-1..7; v11-era wording kept as recorded):
 
 | Repair | Built | Consumer / evidence | Still missing |
 |---|---|---|---|

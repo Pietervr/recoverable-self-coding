@@ -7,8 +7,10 @@ permission and the owner's acceptance of the ceilings below - given 11 Oct). Not
 before release. 11 Oct (Codex 3dc0daf): successful coverage counts FINITE paths only, S is consumed as producer evidence
 (no new ledger kind), memory must be sampled at the full packing, the replay's scope is stated, and production opens only
 through `prod_authority.py release-adopt` from a validated certificate and a FAVOURABLE actual-result review. 11 Oct (Codex
-299f4b7): the panel, finite coverage and packing rule are favourable; the executable package was held for R2-1..4, now
-built (RSC `b8d9c58`, `d622499`, controls candidate v12 `chpc/candidate_v10r3/`) and awaiting review.
+299f4b7): the panel, finite coverage and packing rule are favourable. 11 Oct (Codex cf07869): the R2-1..4 repairs and the
+v12 controls (`chpc/candidate_v10r3/` 80d1c6d9, null-only) are favourable statically; the complete dispatch basis was held
+on D-1 (recovery receipt) and D-2 (benchmark cutover drain), repaired in RSC `e644584` and awaiting review. Frozen-plan
+worst cost Q1 USD 27.9185 + Q2 USD 16.5435 = USD 44.462, inside the accepted USD 45.
 
 ## Panel (fixed, never chosen by outcome)
 
@@ -98,12 +100,19 @@ controls v11 (and the v12 candidate, unchanged) - the screen refit campaign and 
 - **S** is built (`chpc/row19_ec2_shadow.py`: existing CampaignLedger kind `shard`, unchanged worker, isolated root and
   campaign, programme lock + the combined sub-envelope; STOP/HOLD rechecked under the lock and before qsub, shared STOP
   mirrored into the S root by the job script) but runs only after a controls version declaring `qualification_S` is
-  reviewed and adopted (v11 `chpc/candidate_v10r2/` is favourable for partition null only; v12 `chpc/candidate_v10r3/`
-  carries the R2 helper repairs, pending review), and the S manifest is in the job clone. No direct qsub and no unreserved
+  reviewed and adopted (v11 `chpc/candidate_v10r2/` and v12 `chpc/candidate_v10r3/` are favourable for partition null;
+  neither is adopted yet; the S declaration made in v11 stands unchanged in v12), and the S manifest is in the job clone. No direct qsub and no unreserved
   run.
-- **Benchmarks freeze** once qualification is permitted or any qualification/production attempt exists
-  (`bench_launch.py`), so no paid launcher outside the global lock runs beside qualification or production.
-- **Row 23's declared success**, a favourable review of the exact repaired package, and the qualification permission record.
+- **The benchmark cutover** (D-2): `qual_permit.py` is the only way to permit qualification; it drains every in-flight
+  benchmark command (the shared `runs/.bench_inflight.lock`, taken exclusively, covers commands still waiting or staging
+  before their first journal entry), writes the fence `runs/BENCH_FENCE.json` once, then permits. Benchmarks refuse at entry
+  and before every RunInstances issue, retry and recovery once the fence exists, so no paid launcher outside the global lock
+  runs beside qualification or production.
+- **Recovery** (D-1): a Q1/Q2/production re-issue needs a correctly bound current receipt carrying that attempt, checked
+  before every re-issue; otherwise zero RunInstances and the attempt stays funded.
+- **Row 23's declared success** (`bench_finish.py --declare`: fresh staging, controller tree equal to the reviewed frozen
+  copy, comparator exit 0, the recorded criterion), a favourable review of the exact repaired package, and the
+  qualification permission record.
 
 ## After release
 

@@ -96,13 +96,13 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
       Attempt 1 rejected (spot cap below the market, USD 0). Attempt 2 failed closed at the arm-B check (USD 0.13). Attempt 3 showed native Zen 4 does not reproduce Lengau's datasets, so arm A can never feed the screen (USD 0.13). Attempt 4 reclaimed by AWS in Oregon after 1.4 h (USD 2.60). Moved to Stockholm, where interruptions are rare.
       <b>Attempt 5</b> (i-0ac7f4dab4a37a215, eu-north-1a, since 10 Oct 22:28 UTC): arm B admitted all 36 refits with dataset identities equal to Lengau's.
       <b>Row-6 check (11 Oct 00:30 UTC): arm B 12 of 12 quantities identical to Lengau to the last bit</b>, decisions identical; arm A off by at most 7.1e-8.
-      The 36 refits finish ~17–18 UTC today; success = all 36 bit-identical + a valid report.
+      The 36 refits finish ~17–18 UTC today; success = all 36 bit-identical + a valid report. The finishing command is reviewed: Codex (cf07869) accepts it once it also checks Lengau's comparison code against the reviewed copy, which is now built (RSC 3efb8bb).
       <div class="bar run"><i style="width:30%"></i></div><span class="small">row 6 done · 36 refits running</span></td>
       <td class="n">USD 2.87 + ≤ 27 · cap 42</td></tr>
     <tr><td class="w">EC2 qualification · Q1, Q2, S</td><td>Before any EC2 result can count: a production-shaped run checked against Lengau, a repeat on a fresh host, and Lengau shadow fits of the EC2 coordinates.</td><td class="n">EC2 · 76 + 24 · Lengau · 48</td><td><span class="pill hold">in review</span></td>
       <td>Plan: Q1 = 48 new + 24 already-done + 4 sentinel refits, all bit-compared; Q2 repeats 24 on a fresh host; S = 48 Lengau shadows (2,304 core-h). Release needs ≥ 75% successful fits on both sides, peak memory ≤ 184 GiB and a replayed ingestion.
-      Code built and repaired twice for Codex (V10-1..8, then R1-1..7; RSC 4015c09 → 0816240; ingestion tests 59 of 59 on real Lengau records). Codex re-review of this version is queued.
-      <b>You accepted USD 45</b> (Q1 28 + Q2 17, one attempt each). Launches after row 23 succeeds and Codex is favourable.
+      Code built and repaired over four Codex rounds (V10, R1, R2, then D-1/D-2; ingestion tests 67 of 67 on real Lengau records). Codex (cf07869): the Lengau controls v12 are favourable with EC2 still off, and most of the machinery is closed; two last conditions (a fresh receipt before any relaunch of a stuck attempt, and draining every benchmark command before qualification opens) are repaired (RSC e644584) and back with Codex.
+      <b>You accepted USD 45</b> (Q1 28 + Q2 17, one attempt each; worst case USD 44.46). Launches after row 23 succeeds and Codex is favourable.
       <div class="bar"><i style="width:0%"></i></div></td>
       <td class="n">≤ USD 45 · 2,304 core-h</td></tr>
     <tr><td class="w">EC2 production</td><td>A fixed block of screen refits run on EC2 beside Lengau, ingested only after qualification.</td><td class="n">spot · 76 per host</td><td><span class="pill wait">after qualification</span></td>
