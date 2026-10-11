@@ -127,12 +127,12 @@ def inventory_bound_problem(w):
     """The receipt must bind the inventory this authority last sealed, at the current generation."""
     lp = os.path.join(PA.INV_DIR, "latest.json")
     if not os.path.exists(lp):
-        return "no sealed inventory yet (python3 prod_authority.py inventory, copy to <root>/ec2/authority/inventory.json)"
+        return "no sealed inventory yet (python3 prod_authority.py inventory, then install it on Lengau: chpc/row19_ec2_root.py install)"
     inv = json.load(open(lp))
     if inv.get("generation") != PA.state()["generation"]:
         return "the sealed inventory is not the current generation; seal and copy it"
     if (w.get("ec2") or {}).get("bound", {}).get("inventory_sha256") != L.sha256(lp):
-        return "the receipt does not bind the current authority inventory: copy it to Lengau and take a fresh receipt"
+        return "the receipt does not bind the current authority inventory: install it on Lengau (chpc/row19_ec2_root.py install) and take a fresh receipt"
     return ""
 
 

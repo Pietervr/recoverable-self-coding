@@ -35,6 +35,31 @@ Plain EC2 spot instances (not SageMaker) running the Lengau toolchain bytes at t
 
 Row 23 licenses no pooling: its result feeds a separate prospective production qualification.
 
+## Production and qualification (v11 candidate, 11 Oct 2026; built, NOT adopted, activated or launched)
+
+Design `PRODUCTION_DESIGN.md`, qualification `QUALIFICATION_PLAN.md`, repairs for Codex RSC `0483db4` and `3dc0daf`.
+Owner (11 Oct): USD 45 for Q1 + Q2 accepted (28 + 17, one attempt each); a successful qualification with a FAVOURABLE
+actual-result review goes directly to production, inside the USD 2,300 envelope and the USD 3,000 cap.
+
+- `prod_authority.py` (Mac) - the one claim and USD authority over every run: global sequences and fences, a sealed
+  inventory, `ack` of ingested output, a two-phase `disposition` / `disposition-confirm` against the Lengau root's
+  acknowledgement, `release-adopt` from a validated certificate and review, benchmark/region exclusion.
+- `prod_launch.py` (Mac) - admits `production`, `Q1`, `Q2` under the authority lock: STOP absent only on a proved S3 404,
+  release state, canonical activation with its controls lineage, exact operational manifest, a fresh receipt bound to the
+  current inventory, the snapshot's registered EC2 artifacts rechecked, the budget; records region and zone.
+- `prod_userdata.sh`, `prod_stop.py` - the instance contract and the common STOP.
+- `ec2_release_state.json` - row 23 / qualification / production gates, each backed by a pinned file.
+- `qual_S_plan.json` - S's fixed plan (jobs 1 and 2); `make_prod_manifest.py` - operational manifests.
+- Lengau side (`../chpc/`): `row19_partition.py` (declare / activate), `row19_ec2_root.py install` (the inventory and the
+  disposition fence on the root), `row19_ec2_ingest.py`, `row19_ec2_qualify.py` (certificate), `row19_ec2_shadow.py` (S
+  admission), `row19_ec2_state.py` (shared contracts), candidate controls v11 in `candidate_v10r2/`.
+- Operator flow per inventory change: `python3 prod_authority.py inventory` -> scp `runs/inventory/inventory_g<N>.json` to
+  Lengau -> `t1py chpc/row19_ec2_root.py install --manifest chpc/row19_screen_manifest.json --inventory <file>` -> (for a
+  disposition) scp `ec2/authority/ack_g<N>.json` back -> `prod_authority.py disposition-confirm` -> fresh whole-role receipt.
+- `tests/` also hold `test_prod_authority.py`, `test_prod_launch.py`, `test_prod_userdata.py`; the Lengau-side tests are
+  `../test_row19_partition.py`, `../test_row19_ec2_ingest.py` (stub, or real records on Lengau), `../test_row19_ec2_status.py`,
+  `../test_row19_ec2_qualify.py`, `../test_row19_ec2_shadow.py`.
+
 ## Owner's console steps (IAM is denied to the read user; the owner types grants)
 
 1. IAM -> Roles -> Create role -> Trusted entity "AWS service", use case **EC2** -> skip managed policies -> name

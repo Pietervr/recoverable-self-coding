@@ -6,7 +6,7 @@
 
 Sources a launch or a recovery refuses on (prod_launch.stop_problem): the run's and the global local STOP, the run's and
 the global S3 STOP, the Lengau screen root STOP and ec2/HOLD in the pulled snapshot. PROPAGATION of the Lengau common STOP:
-the v10 r1 status tool (chpc/candidate_v10r1/row19_screen_status.py, every whole-role receipt) calls `propagate` for every
+the v11 candidate status tool (chpc/candidate_v10r2/row19_screen_status.py, every whole-role receipt) calls `propagate` for every
 run the authority inventory shows live whenever the pulled root carries STOP; a failure is a receipt alarm, so no
 admission anywhere proceeds on it. The producer of that signal is the Lengau root STOP itself (an operator or a held
 admission writes it); nothing else on Lengau needs to change.

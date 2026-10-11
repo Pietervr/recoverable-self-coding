@@ -3,7 +3,7 @@ write its certificate. Lengau login node, t1py, controller tree; read-only on th
 
     t1py chpc/row19_ec2_qualify.py --manifest chpc/row19_screen_manifest.json --partition chpc/row19_partition_e1.json \
         --authority <inventory.json> --q1-key qual-Q1/1 --q1-bundle <dir> --q1-opmanifest <op Q1> \
-        --q2-key qual-Q2/1 --q2-bundle <dir> --q2-opmanifest <op Q2> --shadow-root <S isolated root> --sandbox <scratch> --out cert.json
+        --q2-key qual-Q2/1 --q2-bundle <dir> --q2-opmanifest <op Q2> --s-manifest chpc/row19_qual_S_manifest.json --sandbox <scratch> --out cert.json
 
 Every bundle first passes the ingestion's own checks (row19_ec2_ingest.check_bundle + plan_units: frozen inventory, plan
 contract, typed outcomes, effective B_full attestation, complete worker statuses, records valid against the frozen task).

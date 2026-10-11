@@ -4,7 +4,7 @@ V10-1, V10-2, V10-4, V10-8). Pure Python, no scientific imports, so the Mac and 
 Files under the screen root (written ONLY by the named producer, read by everyone):
   ec2/activation_e<epoch>.json   row19_partition.py activate (Lengau, under the plan lock): the serialized cutover proof
   ec2/authority/inventory.json   the Mac claim authority's inventory of EVERY EC2 attempt of every run (prod_authority.py
-                                 inventory), copied in by the operator; the newest generation wins, never an older one
+                                 inventory), INSTALLED only by row19_ec2_root.py install (monotonic generation; see below)
   ec2/register.json              row19_ec2_ingest.py: the ingestion journal
   ec2/HOLD                       written by an ingestion that saw a sentinel or replay difference; removed only by hand
   STOP                           the common screen STOP (Lengau workers, EC2 admission, EC2 instances via propagation)
