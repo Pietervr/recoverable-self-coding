@@ -11,7 +11,9 @@ draw, complete payload, own checksum); payload equality is the verifier's canoni
 unattributed coordinate makes the panel INVALID. Failed fits are counted apart from usable parity. Timings are paired by
 coordinate, identity and producer and must be positive and finite. Exit 0 only for a complete, valid panel (whatever the
 parity outcome); exit 3 otherwise, with the reasons. A typed arm-A job-start refusal (env/ARM_A_REFUSED, RSC a44f5aa) is arm
-A's recorded outcome: its 36 stage-2 workers are not declared (declared.txt), and any arm-A record present is a problem."""
+A's recorded outcome: its 36 stage-2 workers are not declared (declared.txt), and any arm-A record present is a problem. The
+refusal counts only with the reviewed arm-A manifest pin and the same HELD line as the retained job_start_A.log; declared.txt
+is required, duplicate-free and exactly the 42 (refused) or 78 names, agreeing with outcomes.json's declared count (Codex 3f67eaf F-1)."""
 import argparse, csv, glob, hashlib, json, math, os, statistics, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -126,6 +128,18 @@ def arm_a_refusal(ec2, problems):
     held = [x for x in open(p).read().splitlines() if x.startswith("HELD:")]
     if not (held and "computes identity" in held[-1] and "manifest declares" in held[-1]):
         problems.append("ARM_A_REFUSED present but not a typed identity refusal")
+        return None
+    # Codex 3f67eaf F-1: the refusal is verified only against the reviewed arm-A manifest and the retained job-start evidence
+    mp = os.path.join(ec2, "env", "manifest_A.json")
+    if not os.path.exists(mp) or sha(mp) != PINS["A"]:
+        problems.append(f"arm A refused, but its manifest is missing or not the reviewed pin {PINS['A'][:12]}")
+        return None
+    try:
+        js = [x for x in open(os.path.join(ec2, "env", "job_start_A.log")).read().splitlines() if x.startswith("HELD:")]
+    except Exception as ex:
+        problems.append(f"arm A refused, but job_start_A.log is unreadable ({ex})"); return None
+    if not js or js[-1] != held[-1]:
+        problems.append("arm A refusal line is not the retained job-start evidence's last HELD line")
         return None
     return held[-1]
 
@@ -265,13 +279,17 @@ def main():
         un = ocd.get("unresolved_after_kill")
         if not (isinstance(un, list) and un == []):
             problems.append(f"cleanup left unresolved process groups or no typed record of them: {un!r}")
-        want = [n for n in NAMES if not (refused_a and n.startswith("w_A_"))]
+        want = [n for n in NAMES if not (refused_a and n.startswith("w_A_"))]      # 42 with a verified A refusal, else 78
         try:
             decl = open(os.path.join(env, "declared.txt")).read().split()
-        except Exception:
-            decl = None
-        if sorted(oc) != sorted(want) or (decl is not None and sorted(decl) != sorted(want)):
+        except Exception as ex:
+            decl = None; problems.append(f"declared.txt missing or unreadable ({ex})")
+        if decl is not None and (len(decl) != len(set(decl)) or sorted(decl) != sorted(want)):
+            problems.append(f"declared.txt is not exactly the {len(want)} expected distinct processes")
+        if not isinstance(oc, dict) or sorted(oc) != sorted(want):
             problems.append(f"outcomes name set differs from the {len(want)} declared processes")
+        if ocd.get("declared") != len(want):
+            problems.append(f"outcomes.json declared count {ocd.get('declared')!r} is not {len(want)}")
         bad = {k: v for k, v in oc.items() if not (isinstance(v, int) and not isinstance(v, bool) and v == 0)}
         if bad:
             problems.append(f"{len(bad)} process(es) not exit 0: {bad}")
