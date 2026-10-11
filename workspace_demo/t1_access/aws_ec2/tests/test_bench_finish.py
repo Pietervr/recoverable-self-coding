@@ -35,6 +35,8 @@ check("arm A fully validated passes", bad(["stage2", "A"], dict(validated_record
 TMP = tempfile.mkdtemp(); S3 = os.path.join(TMP, "s3"); RFS = os.path.join(TMP, "lengau")
 os.makedirs(os.path.join(TMP, "runs")); shutil.copy(os.path.join(PKG, "bench_compare.py"), TMP)
 REL0 = dict(schema="t1-ec2-release-state-1", row23=dict(declared_success=False, report_path=None, report_sha256=None))
+WANT = BF.expected_tree_pins()                                   # from the real reviewed sources, before HERE moves
+BF.expected_tree_pins = lambda t1=None: WANT
 BF.HERE = TMP; BF.REL = os.path.join(TMP, "ec2_release_state.json")
 def reset_rel():
     json.dump(REL0, open(BF.REL, "w"))
@@ -47,8 +49,13 @@ def R(p):
 
 
 class Fake:
-    def __init__(self, rc=0, report=good, tamper=False):
-        self.rc, self.report, self.tamper = rc, report, tamper
+    def __init__(self, rc=0, report=good, tamper=False, wrong_pin=False, drift=False):
+        self.rc, self.report, self.tamper, self.wrong_pin, self.drift = rc, report, tamper, wrong_pin, drift
+    def pins(self, after=False):
+        p = dict(WANT)
+        if self.wrong_pin or (after and self.drift):
+            p["models.py"] = "f" * 64
+        return "".join(f"{h}  {f}\n" for f, h in p.items())
     def fetch(self, run, name, dest):
         os.makedirs(dest); shutil.copytree(os.path.join(S3, run, name), dest, dirs_exist_ok=True)
     def push_tree(self, local_parent, name, remote_dir):
@@ -63,11 +70,13 @@ class Fake:
             raise subprocess.CalledProcessError(1, "scp")
         shutil.copy(R(src), dst)
     def ssh(self, cmd, stdin=None, timeout=0):
+        if "t1py" not in cmd and "bench_compare.py" not in cmd:          # the post-comparator tree re-hash
+            return subprocess.CompletedProcess(cmd, 0, self.pins(after=True), "")
         remote = R(cmd.split("cd ", 1)[1].split(" &&")[0])
         if "sha256sum bench_compare.py" in cmd:
             name = [x for x in os.listdir(remote) if x.startswith("attempt_")][0]
             d, n = BF.bundle_digest(os.path.join(remote, name))
-            pins = "".join(f"{'0' * 64}  {p}\n" for p in BF.TREE_PINS)
+            pins = self.pins()
             out = f"{BF.L.sha256(os.path.join(remote, 'bench_compare.py'))}  bench_compare.py\n{d} {n}\n{pins}"
             return subprocess.CompletedProcess(cmd, 0, out, "")
         if self.report is not None:
@@ -111,6 +120,13 @@ rc = BF.finish(Fake(), "b2", 5, declare=True, stamp="S5", log=logs.append)
 check("a reused stamp (staging directory not new) refuses", rc == 2 and json.load(open(BF.REL)) == REL0)
 rc = BF.finish(Fake(tamper=True), "b2", 5, declare=True, stamp="S6", log=logs.append)
 check("a Lengau copy that differs from the staged bundle refuses", rc == 2 and json.load(open(BF.REL)) == REL0)
+
+rc = BF.finish(Fake(wrong_pin=True), "b2", 5, declare=True, stamp="S7", log=logs.append)
+check("F3: a controller tree that is not the reviewed frozen copy refuses before the comparator", rc == 2 and json.load(open(BF.REL)) == REL0
+      and not os.path.exists(os.path.join(TMP, "runs", "b2", "bench_report_attempt_5_S7.json")))
+rc = BF.finish(Fake(drift=True), "b2", 5, declare=True, stamp="S8", log=logs.append)
+check("F3: a tree that changed while the comparator ran refuses", rc == 2 and json.load(open(BF.REL)) == REL0)
+check("F3: the binding records the six pins equal to the reviewed expectation", bind["tree_pins"] == WANT)
 
 shutil.rmtree(TMP)
 print("ALL PASS" if ok else "SOME FAILED"); sys.exit(0 if ok else 1)

@@ -8,7 +8,9 @@ Every invocation is FRESH (Codex 3f67eaf F-2): a new local staging directory per
 directory, so no destination-only file survives), a new remote directory and a unique report name; the comparator's exit
 status is propagated through ssh (0 complete+valid, 3 complete-but-invalid, anything else = the comparator failed); the
 report is bound (binding_<name>_<stamp>.json) to run, attempt, stamp, the comparator's sha256 (local = remote), the
-controller-tree pins it imported, and the bundle digest computed on the Mac and recomputed on Lengau.
+controller-tree pins it imported, and the bundle digest computed on the Mac and recomputed on Lengau. The six tree hashes
+must equal the reviewed frozen expectation (expected_tree_pins) before the comparator runs and be unchanged after it
+(Codex cf07869 F3); the remote parent is created, the per-invocation leaf must be new.
 
   criterion (bench_finish.criterion): report valid; profile_B == B_full; arm B stage 1 exact 12/12 with identical decisions
   and failed flags; arm B stage 2: 36 validated records, 36 valid timing pairs, payload_exact 36, no non-finite disagreement;
@@ -31,6 +33,32 @@ REL = os.path.join(HERE, "ec2_release_state.json")
 CRITERION_TEXT = ("valid report; B_full; arm B row 6 exact 12/12; arm B 36/36 validated, timed, payload-exact, no non-finite "
                   "disagreement; arm A refused at job-start (verified) or fully validated - recorded before the completed row-23 "
                   "parity/refit results (owner go committed Unimog 7c6626e6, 10 Oct 21:16:38Z)")
+
+
+PROD_SHA = "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c"     # = bench_compare.PROD_SHA
+
+
+def expected_tree_pins(t1=None):
+    """The reviewed frozen expectation for the six controller-tree files the comparator imports (Codex cf07869 F3): the
+    production manifest must be 43b75f94; analyze/models/simulate/row19_shard are its code pins; row19_screen_verify.py is
+    the pin of the ADOPTED controls version (adoption record -> controls bytes -> that version's files)."""
+    t1 = t1 or os.path.join(HERE, "..")
+    mp = os.path.join(t1, "chpc", "row19_screen_manifest.json")
+    if L.sha256(mp) != PROD_SHA:
+        raise ValueError("the local production manifest is not 43b75f94")
+    code = json.load(open(mp))["code"]["files"]
+    ad = json.load(open(os.path.join(t1, "chpc", "row19_screen_controls_adoption.json")))
+    cp = os.path.join(t1, ad["controls_path"])
+    if L.sha256(cp) != ad["controls_sha256"]:
+        raise ValueError("the local controls are not the adopted bytes")
+    ver = [v for v in json.load(open(cp))["versions"] if v["version"] == ad["version"]]
+    if len(ver) != 1:
+        raise ValueError("the adopted controls version is not unique in the controls")
+    want = {f: code[f] for f in ("analyze.py", "models.py", "simulate.py", "chpc/row19_shard.py")}
+    want["chpc/row19_screen_manifest.json"] = PROD_SHA
+    want["chpc/row19_screen_verify.py"] = ver[0]["files"]["chpc/row19_screen_verify.py"]
+    assert sorted(want) == sorted(TREE_PINS)
+    return want
 
 
 def criterion(rep):
@@ -82,7 +110,7 @@ class Lengau:
         return subprocess.run(self.SSH + [cmd], stdin=stdin, capture_output=True, text=stdin is None, timeout=timeout)
 
     def push_tree(self, local_parent, name, remote_dir):
-        r = subprocess.run(self.SSH + [f"mkdir {remote_dir}"], capture_output=True, text=True, timeout=120)
+        r = subprocess.run(self.SSH + [f"mkdir -p {os.path.dirname(remote_dir)} && mkdir {remote_dir}"], capture_output=True, text=True, timeout=120)
         if r.returncode:
             raise RuntimeError(f"remote staging directory not new: {r.stderr.strip()}")
         tar = subprocess.Popen(["tar", "-C", local_parent, "-cf", "-", name], stdout=subprocess.PIPE)
@@ -122,10 +150,18 @@ def finish(tr, run, attempt, declare=False, stamp=None, log=print):
         pins = {ln.split()[1]: ln.split()[0] for ln in lines[2:] if ln.strip()}
         if rcsha != csha or rdigest != digest or int(rn) != nfiles or sorted(pins) != sorted(TREE_PINS):
             raise RuntimeError("the Lengau copy is not the staged bundle / comparator (digest, count or pins differ)")
+        want = expected_tree_pins()
+        bad = sorted(f for f in TREE_PINS if pins[f] != want[f])
+        if bad:
+            raise RuntimeError(f"the controller tree is not the reviewed frozen copy on {bad}")
         r = tr.ssh(f"cd {remote} && {T}/t1py bench_compare.py --tree {CTL} --ec2 {remote}/{name} --lengau-root {T}/row19_screen "
                    f"--row6-ref {T}/jobs --out {remote}/report.json > {remote}/compare.out 2>&1")
         rc = r.returncode
         log(f"comparator exit {rc}")
+        r2 = tr.ssh(f"cd {CTL} && sha256sum {' '.join(TREE_PINS)}")
+        after = {ln.split()[1]: ln.split()[0] for ln in r2.stdout.split("\n") if ln.strip()} if r2.returncode == 0 else {}
+        if after != pins:
+            raise RuntimeError("the controller tree changed (or could not be re-read) while the comparator ran")
         if rc not in (0, 3):
             raise RuntimeError(f"the comparator failed (exit {rc}); no report is used")
         tr.get(f"{remote}/report.json", report)
