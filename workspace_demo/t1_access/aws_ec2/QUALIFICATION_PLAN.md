@@ -100,7 +100,7 @@ controls v11 (and the v12 candidate, unchanged) - the screen refit campaign and 
 - **S** is built (`chpc/row19_ec2_shadow.py`: existing CampaignLedger kind `shard`, unchanged worker, isolated root and
   campaign, programme lock + the combined sub-envelope; STOP/HOLD rechecked under the lock and before qsub, shared STOP
   mirrored into the S root by the job script) but runs only after a controls version declaring `qualification_S` is
-  reviewed and adopted (v11 and v12 favourable for partition null, never adopted; v13 `d933862e` favourable in `64034c5` and adopted
+  reviewed and adopted (v11 and v12 favourable for partition null, never adopted; v13 `d933862e` favourable in `64034c5`, superseded for use by `840840f5` (Codex `5bab1a9`, status REVISION 11 for PBS history expiry), and adopted
   directly from v9 by the migration runbook; the S declaration made in v11 stands unchanged in v12 and v13), and the S manifest is in the job clone. No direct qsub and no unreserved
   run.
 - **The benchmark cutover** (D-2): `qual_permit.py` is the only way to permit qualification; it drains every in-flight

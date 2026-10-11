@@ -17,19 +17,15 @@ EVIDENCE, every call:
      walltime the note records, with source "ledger-settlement" and the note's SHA-256 in the receipt. A settled entry
      whose note carries no `Exit_status <n>` is a failed observation (alarm). An unsettled job qstat cannot describe stays
      a failed observation (fail-closed). A ledger-sourced observation never qualifies a job (--qualify needs the scheduler).
-     MEMORY of a settled job (Codex RSC 5bab1a9 (a): the aggregate >90 % alarm must survive settlement), first that holds:
-     (i) the scheduler still describes it - one separate `qstat -xf` of the settled ids, whose only tolerated failure is
-     "Unknown Job Id" of those ids - and its resources_used.mem is checked as before; (ii) the newest fresh, production,
-     alarm-free bank receipt that recorded this PBS id at state F with the same exit and a finite mem_kb (receipts now
-     record mem_kb) - that value is checked as before; (iii) the newest fresh, production, alarm-free receipt that saw this
-     id at F with the same exit from qstat: its zero alarms include the >90 % check on the then-observed memory, recorded as
-     `memory_evidence` kind "prior-clean-receipt-check" (file, SHA-256) - a documented pass of that check, not a value;
-     otherwise ALARM "no scheduler memory evidence". Absence is never a memory pass.
-     Codex RSC c38779c: (ii)/(iii) read EVERY fresh production receipt, alarmed or not, that saw the same PBS id at F with the
-     same exit: the LARGEST recorded mem_kb (with any qstat value) is the one checked, and a receipt's scheduler-memory alarm
-     for that job is kept as an ALARM (memory_breach) before any fallback; (iii) applies only when no value and no breach
-     exist. (iii) is a limited historical attestation: the old check was conditional (no kb value -> no check), so it
-     supplies neither a measured value nor proof of memory <= 90 %.
+     MEMORY of a settled job (Codex RSC 5bab1a9 (a), c38779c, 5183208: the aggregate >90 % alarm survives settlement).
+     Evidence is read from (i) one separate `qstat -xf` of the settled ids, whose only tolerated failure is "Unknown Job Id"
+     of those ids, and (ii) EVERY fresh production bank receipt, alarmed or not, that recorded the same PBS id at state F
+     with the same exit (receipts record mem_kb and memory_evidence). The checked mem_kb is the LARGEST of the qstat value
+     and the recorded values, checked against 90 % as before; a receipt's scheduler-memory alarm for that job is kept as an
+     ALARM (memory_breach) whatever else holds. Only with no value does a breach or, failing that, the newest alarm-free
+     direct-qstat receipt become the evidence - the latter a LIMITED historical attestation (`prior-clean-receipt-check`,
+     file + SHA-256): the old check was conditional (no kb value -> no check), so it is neither a measured value nor proof
+     of memory <= 90 %. No evidence at all is an ALARM; absence is never a memory pass.
 RECONCILIATION per bank job (plan file, ledger entry, scheduler, statuses, verify verdict):
   - a terminal job (scheduler F/E/X/gone) must have a status for EVERY planned slot; a status's reps equal its plan slot's;
     new, resumed and left are disjoint and their union is the slot's reps; exit 0 iff left is empty, 75 with left non-empty,

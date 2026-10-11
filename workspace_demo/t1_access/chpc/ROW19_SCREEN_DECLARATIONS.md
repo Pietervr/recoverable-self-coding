@@ -231,3 +231,28 @@ zero alarms) and the refit pilot is adopted on it to job 100 (Codex `d64600f`; g
 review retired to `gate_retired/`). Each refit admission still needs a fresh whole-role receipt (at most 2,700 s old, zero
 alarms) and passes every planner, binding, disposition, funding, capacity, resource and STOP gate; refit jobs from 10
 request 48 h. Archives: Lengau `archive_screen/v8_before_v9_20261010`, Mac `chpc/results/archive/row19_screen_v8_before_v9_20261010`.
+
+## PBS history expiry (11 October 2026): status REVISION 11 and the bank memory evidence
+
+PBS drops finished jobs from its history after a few days; `qstat -xf` over every ledger id then fails the whole call
+("Unknown Job Id", rc 153). From 04:16 UTC on 11 October every receipt carried that alarm for the pilots 7523732 (bank)
+and 7523818 (refit), and the gates refused every refill. Neither tool now asks the scheduler for a job's state once its
+ledger entry is SETTLED; the observation is the settlement's own (`settle_note`, written by xf_settle from `qstat -xf`):
+state F and the note's `Exit_status`. A note without one is a failed observation; an unsettled job qstat cannot
+describe stays a failed observation.
+
+- Refit (`candidate_v10r4/row19_screen_status.py` REVISION 11, `eeacc7e3`): scheduler memory and the walltime request are
+  carried from the newest fresh, production, alarm-free direct-qstat receipt of the same PBS id at F with the same exit
+  (none -> the no-finite-memory alarm stays). Receipt and admission formats unchanged. Codex RSC `5bab1a9` FAVOURABLE, with
+  controls v13 re-pinned `840840f5` (literal ADOPT there) replacing `d933862e` for the direct v9 -> v13 migration; the
+  adopted v9 status (`f624fb63`, controls `45f840bc`) is unchanged, so refit refills resume only after that migration.
+  Carried memory is acceptable for the step-8b re-qualification of the existing pilot (no new fit), verified in its
+  new-hash review.
+- Bank (`row22_bank_status.py`, not controls-pinned, `92068987` at RSC `8e4fcfa`): a settled job's checked memory is the
+  largest of the qstat value (while PBS still knows the job) and every value recorded by a fresh production receipt of
+  the same PBS id at F with the same exit, alarmed or not; a recorded scheduler-memory alarm for that job stays an alarm;
+  only with neither does a clean direct-qstat receipt count, as a LIMITED historical attestation (the old check was
+  conditional, so it is neither a measured value nor proof of memory <= 90 %); otherwise an alarm. Codex RSC `5183208`
+  FAVOURABLE for fresh receipts and refills under the existing gates. Used for pilot 7523732 only
+  (bank_watch_20261010T203256Z). Fresh receipt bank_watch_20261011T050934Z, zero alarms; bank job 15 = 7531532.
+- Tests `chpc/test_pbs_settled.py` 31/31.

@@ -108,7 +108,7 @@ obs, _ = BANK.pbs_observe(["1.sched01"], None, settled("1.sched01"), receipts_di
 check("bank: clean receipt that saw F -> documented check, no value", obs["1.sched01"]["mem_kb"] is None
       and obs["1.sched01"]["memory_evidence"]["kind"] == "prior-clean-receipt-check")
 bank_receipt("20261011T060000Z", dict(job_id="1.sched01", state="F", exit=0, mem_kb=119537664))
-bank_receipt("20261011T070000Z", dict(job_id="1.sched01", state="F", exit=0, mem_kb=1), alarms=["x"])   # alarmed: never a source
+bank_receipt("20261011T070000Z", dict(job_id="1.sched01", state="F", exit=0, mem_kb=1), alarms=["x"])   # alarmed, smaller value: the largest value wins
 obs, _ = BANK.pbs_observe(["1.sched01"], None, settled("1.sched01"), receipts_dir=bd)
 check("bank: a recorded value is carried and checked", obs["1.sched01"]["mem_kb"] == 119537664
       and obs["1.sched01"]["memory_evidence"]["kind"] == "prior-receipt-value")
