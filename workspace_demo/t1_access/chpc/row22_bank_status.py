@@ -17,6 +17,14 @@ EVIDENCE, every call:
      walltime the note records, with source "ledger-settlement" and the note's SHA-256 in the receipt. A settled entry
      whose note carries no `Exit_status <n>` is a failed observation (alarm). An unsettled job qstat cannot describe stays
      a failed observation (fail-closed). A ledger-sourced observation never qualifies a job (--qualify needs the scheduler).
+     MEMORY of a settled job (Codex RSC 5bab1a9 (a): the aggregate >90 % alarm must survive settlement), first that holds:
+     (i) the scheduler still describes it - one separate `qstat -xf` of the settled ids, whose only tolerated failure is
+     "Unknown Job Id" of those ids - and its resources_used.mem is checked as before; (ii) the newest fresh, production,
+     alarm-free bank receipt that recorded this PBS id at state F with the same exit and a finite mem_kb (receipts now
+     record mem_kb) - that value is checked as before; (iii) the newest fresh, production, alarm-free receipt that saw this
+     id at F with the same exit from qstat: its zero alarms include the >90 % check on the then-observed memory, recorded as
+     `memory_evidence` kind "prior-clean-receipt-check" (file, SHA-256) - a documented pass of that check, not a value;
+     otherwise ALARM "no scheduler memory evidence". Absence is never a memory pass.
 RECONCILIATION per bank job (plan file, ledger entry, scheduler, statuses, verify verdict):
   - a terminal job (scheduler F/E/X/gone) must have a status for EVERY planned slot; a status's reps equal its plan slot's;
     new, resumed and left are disjoint and their union is the slot's reps; exit 0 iff left is empty, 75 with left non-empty,
@@ -196,7 +204,52 @@ def settled_observation(e):
                 settle_note_sha256=sha_bytes(note.encode()), settled_at=e.get("settled_at"))
 
 
-def pbs_observe(job_ids, pbs_file=None, settled=None):
+def settled_memory_qstat(ids, pbs_file=None):
+    """{job_id: mem_kb} the scheduler still reports for SETTLED ids; only "Unknown Job Id <settled id>" failures are tolerated."""
+    if pbs_file:
+        q = json.load(open(pbs_file))
+        return {j: q[j]["mem_kb"] for j in ids if j in q and finite_nonneg((q[j] or {}).get("mem_kb"))}
+    if not ids:
+        return {}
+    rc, out, err = sh(["ssh", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", LOGIN, "qstat -xf " + " ".join(ids)], timeout=300)
+    errs = [x.strip() for x in str(err or "").splitlines() if x.strip()]
+    if rc != 0 and not (errs and all(re.fullmatch(r"qstat: Unknown Job Id (\S+)", x) and x.split()[-1] in ids for x in errs)):
+        return {}
+    mem, cur, st = {}, None, {}
+    for line in out.splitlines():
+        t = line.strip()
+        if t.startswith("Job Id:"):
+            cur = t.split(":", 1)[1].strip()
+        elif cur in ids and " = " in t:
+            k, v = t.split(" = ", 1)
+            if k == "resources_used.mem" and v.endswith("kb"):
+                mem[cur] = int(v[:-2])
+            elif k == "job_state":
+                st[cur] = v
+    return {j: m for j, m in mem.items() if st.get(j) == "F"}
+
+
+def prior_bank_memory(j, exit_, receipts_dir=None):
+    """(mem_kb or None, evidence) from the newest fresh, production, alarm-free bank receipt that saw j at F with exit_."""
+    for p in sorted(glob.glob(os.path.join(receipts_dir or RECEIPTS, "bank_watch_*.json")), reverse=True):
+        try:
+            r = json.load(open(p))
+        except Exception:
+            continue
+        if r.get("schema") != WATCH_SCHEMA or r.get("fresh") is not True or r.get("production") is not True or r.get("alarms") != []:
+            continue
+        for sj in (r.get("jobs") or {}).values():
+            if isinstance(sj, dict) and sj.get("job_id") == j and sj.get("state") == "F" and sj.get("exit") == exit_ \
+                    and not isinstance(sj.get("exit"), bool):
+                ev = dict(file=os.path.basename(p), sha256=sha_file(p))
+                if finite_nonneg(sj.get("mem_kb")):
+                    return sj["mem_kb"], dict(ev, kind="prior-receipt-value")
+                if sj.get("observation", "qstat") == "qstat":
+                    return None, dict(ev, kind="prior-clean-receipt-check")
+    return None, None
+
+
+def pbs_observe(job_ids, pbs_file=None, settled=None, receipts_dir=None):
     """({job_id: {state, exit, mem_kb, walltime, source}}, problem). A non-zero return of qstat is a FAILED observation.
     `settled` = {job_id: ledger entry} of the SETTLED entries: observed from their settlement, never asked of qstat."""
     settled = settled or {}
@@ -207,6 +260,13 @@ def pbs_observe(job_ids, pbs_file=None, settled=None):
             if o is None:
                 return None, f"settled job {j}: its settlement note carries no Exit_status (no observation)"
             obs[j] = o
+    sq = settled_memory_qstat([j for j in job_ids if j in settled], pbs_file)
+    for j in [j for j in job_ids if j in settled]:
+        if j in sq:
+            obs[j].update(mem_kb=sq[j], memory_evidence=dict(kind="qstat"))
+        else:
+            m, ev = prior_bank_memory(j, obs[j]["exit"], receipts_dir)
+            obs[j].update(mem_kb=m, memory_evidence=ev)
     ask = [j for j in job_ids if j not in settled]
     if pbs_file:
         q = json.load(open(pbs_file))
@@ -255,7 +315,10 @@ def reconcile(man, verify, obs, ledger):
         o = (obs or {}).get(j, {}) if j else {}
         state = o.get("state"); terminal = state in TERMINAL
         s_sum = dict(job_id=j, state=state, exit=o.get("exit"), slots=len(plan["slots"]), ended=0, exits={}, new=0, resumed=0, left=0,
-                     observation=o.get("source"), settle_note_sha256=o.get("settle_note_sha256"))
+                     observation=o.get("source"), settle_note_sha256=o.get("settle_note_sha256"), mem_kb=o.get("mem_kb"),
+                     memory_evidence=o.get("memory_evidence"))
+        if o.get("source") == "ledger-settlement" and not o.get("memory_evidence"):
+            alarms.append(f"bank job {n} ({j}): settled, but no scheduler memory evidence (qstat, a recorded value or a clean receipt's check)")
         if not j:
             alarms.append(f"bank job {n}: reserved but not bound to a PBS id")
         if j and o.get("mem_kb") is not None and o["mem_kb"] > 0.9 * mem_req_kb:

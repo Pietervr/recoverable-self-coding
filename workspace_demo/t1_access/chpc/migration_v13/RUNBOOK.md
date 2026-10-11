@@ -1,7 +1,9 @@
 # Direct v9 -> v13 migration and the EC2 qualification cutover — RUNBOOK
 
 Codex RSC `64034c5` (`reviews/2026-10-11_partition_e1_v13_codex_record.md`, SHA256 `99f059ff…`): FAVOURABLE to adopt exact
-controls v13 `d933862e…` pinning the epoch-1 partition `8d1de408…` (k = 40, indices 160–199 of reps 3–102, 4,000
+controls v13 `d933862e…` (historical); the identity in use is `840840f5…` (Codex RSC `5bab1a9`,
+`reviews/2026-10-11_pbs_settled_observation_codex_record.md`, SHA256 `1d71afac…`: v13 with the status REVISION 11 that observes
+settled jobs from their settlement after PBS history expiry; literal ADOPT there), pinning the epoch-1 partition `8d1de408…` (k = 40, indices 160–199 of reps 3–102, 4,000
 coordinates, a bounded ownership allocation, not a whole-block funding reservation); PREFER direct v9 -> v13, no v12 step.
 Prepared, NOT executed. Every command runs from `workspace_demo/t1_access` on the Mac unless marked Lengau; Lengau scripts
 run as `ssh -o ControlPath=none lengau bash -s < chpc/migration_v13/<script>`. Every step refuses rather than overwrites.
@@ -40,7 +42,7 @@ the three gate/controls lines. Abort if the gate qualification is not 3820ac0e o
 ## 3. Promote v13 on the Mac
 
 `python3 chpc/migration_v13/promote_v13.py --dry-run`, then without `--dry-run`. It checks every v13 pin, the record's
-literal `ADOPT row19-screen-controls sha256=d933862e… version=13`, archives the Mac v9 files and the Mac copy of
+literal `ADOPT row19-screen-controls sha256=840840f5… version=13` (record 1d71afac), archives the Mac v9 files and the Mac copy of
 `qualified_refit_job1.json` to `chpc/results/archive/row19_screen_v9_before_v13/`, copies the candidate controls/admit/status
 into `chpc/` and writes the version-13 adoption record. Commit atomically:
 `git -C <RSC> add <the 3 chpc files + adoption + archive dir> && git -C <RSC> commit -F <msg> -- <same paths>`.
@@ -78,7 +80,10 @@ a. `ssh … bash -s < chpc/migration_v13/rollover_pilot.sh`: verifies the archiv
    `gate_retired/review_refit.v9_qual3820ac0e_max100.json` (read-only). The old d64600f8/3820ac0e authority stays historical.
 b. ONE call: `python3 chpc/row19_screen_status.py --manifest chpc/row19_screen_manifest.json --role refit --publish-receipt --qualify 1`
    - regenerates `qualified_refit_job1.json` from the EXISTING completed pilot job 1 under v13 (new controller/binding/time
-   evidence -> a new hash) and copies it to the gate. Record the new hash `<qsha>`.
+   evidence -> a new hash) and copies it to the gate. Record the new hash `<qsha>`. PBS no longer knows 7523818: its state F /
+   exit 0 come from the settlement note and its scheduler memory/walltime request from `watch_refit_20261010T224529Z.json`
+   (the job summary's `prior_receipt`); Codex 5bab1a9 (c) accepts that, to be verified in the step-8c review (receipt bytes and
+   hash, direct-qstat provenance, same PBS id/F/exit, settlement provenance, carried values).
 c. Route a brief to Codex with the new qualification metadata (hash, bound jobs, receipt, archive SHA256SUMS) for the
    matching literal `ADOPT row19-screen-pilot role=refit qualification=<qsha> max_job=100`. Never reuse the 3820ac0e literal.
 d. After Codex's committed record: `REC=reviews/<record>.md`, copy it to `$T/patches/ctl13.<basename>`, then

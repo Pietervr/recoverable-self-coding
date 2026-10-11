@@ -8,11 +8,11 @@ fail() { echo "PREFLIGHT REFUSED: $*"; exit 3; }
 python3 -c 'import sys; sys.path.insert(0, "aws_ec2"); import prod_authority as PA; r = PA.release_state(); sys.exit(0 if r["row23"]["ok"] else 1)' \
   || fail "row 23 is not declared successful with a backed report (bench_finish.py --declare first)"
 want() { [ "$(shasum -a 256 "$1" | cut -c1-64)" = "$2" ] || fail "$1 is not $2"; }
-want chpc/candidate_v10r4/row19_screen_controls.json d933862e7031acad1c5a864ffec0c9e4b295c4101a88e2e4a1691deef12636da
+want chpc/candidate_v10r4/row19_screen_controls.json 840840f53543763669a730f0c92d12a7a4484d31dda631576cbaf3f53992f83c
 want chpc/row19_partition_e1.json 8d1de408b6ef9dc66d4736b6138536de6591f0d29ebdd6fd00a6e43307225608
-want reviews/2026-10-11_partition_e1_v13_codex_record.md 99f059ffb5cbf97d114e9462b8d60e4e9fb132c4318b1717795e56d0dd4479e5
+want reviews/2026-10-11_pbs_settled_observation_codex_record.md 1d71afacaf1f8f722b808a9c9bba5f1cc479d5a1609985a5ffab86d8f92f4abd
 want chpc/row19_screen_controls.json 45f840bc768f8729155f8ad39bd2f27dbae9525322398867dfff76d9ee310c07
-grep -qx 'ADOPT row19-screen-controls sha256=d933862e7031acad1c5a864ffec0c9e4b295c4101a88e2e4a1691deef12636da version=13' reviews/2026-10-11_partition_e1_v13_codex_record.md \
+grep -qx 'ADOPT row19-screen-controls sha256=840840f53543763669a730f0c92d12a7a4484d31dda631576cbaf3f53992f83c version=13' reviews/2026-10-11_pbs_settled_observation_codex_record.md \
   || fail "the v13 ADOPT literal is not in the review record"
 ssh -o ControlPath=none -o ConnectTimeout=30 -o BatchMode=yes lengau bash -s <<'REMOTE' || fail "Lengau checks failed (above)"
 T=/mnt/lustre/users/pvanrooyen/t1_toolchain; C=$T/rsc_screen_ctl/workspace_demo/t1_access; J=$T/rsc_screen/workspace_demo/t1_access
