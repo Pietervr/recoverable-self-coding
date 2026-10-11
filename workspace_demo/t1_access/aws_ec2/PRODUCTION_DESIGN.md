@@ -21,43 +21,50 @@ writer can then occupy another provider's coordinate, because no coordinate is e
 
 ## 2. Budget and size
 
-- AWS further-spend cap USD 3,000 from 12 Sept 21:50 UTC; Cost Explorer (read 10 Oct): about USD 390 since 13 Sept
-  (USD 2,371 from 12 Sept including the pre-cap d4v12b day). Remaining about USD 2,600; row 23 holds USD 42 of it.
-- Unit cost to be MEASURED by row 23 (paired wall time per refit under load). Planning figure from the live us-west-2 price
-  (c7a.24xlarge 1.71-2.39/h, 80 workers per 96 cores at <= 2.32 GiB each): about USD 0.39-0.55 per refit.
-- Proposal: production envelope USD 2,300 -> `k` = floor(2,300 / (100 x measured unit cost)), about 40-55 indices
-  (4,000-5,500 refits). The full screen (about 19,600 refits left) does NOT fit the current AWS cap plus the remaining
-  CSCI1913 allocation; that is an owner decision (cap lift, HEAL1922, or design), not something this design assumes.
+- AWS further-spend cap USD 3,000 from 12 Sept 21:50 UTC. Recorded baseline (`budget_baseline.json`, schema 2): USD 500
+  through 10 Oct 00:00 UTC (Cost Explorer 13 Sept-9 Oct 383.13 + all of 12 Sept's non-SageMaker 5.42 + a BOUND of 109.20 on
+  12 Sept's post-cutoff SageMaker: 42 d4v12b jobs alive at 21:50 UTC, at most 91 instance-hours, at USD 1.20/h), plus an
+  idle accrual of USD 5.50 per started day after it (VPC endpoints + S3). Every EC2 run under `runs/` (row 23 included) is
+  charged from its ledger on top. Remaining at 11 Oct: about USD 2,450 before row 23's open worst case.
+- One serialized USD ledger (`prod_authority.py`): every production epoch, qualification part and retry against the
+  USD 2,300 production envelope; everything against the USD 3,000 cap; per-part qualification ceilings (Q1 28, Q2 17).
+- Unit cost to be MEASURED by row 23 (paired walls under load). `k` = floor(envelope / (100 x measured unit cost)), about
+  40-55 indices. The full screen (about 19,600 refits left) does NOT fit the cap plus the remaining CSCI1913 allocation;
+  that is an owner decision (cap lift, HEAL1922, or design), not something this design assumes.
 
-## 3. EC2 production jobs (reuse of the reviewed row-23 machinery)
+## 3. EC2 instances (reuse of the reviewed row-23 machinery)
 
-- Same launcher/reaper/ledger (`bench_launch.py` generalized to `prod_launch.py`): run lock, intent + client token,
-  rejected/ambiguous rules, cumulative USD envelope, reaper with heartbeat, attributable terminal accounting.
-- Same instance contract (`bench_userdata.sh` -> `prod_userdata.sh`): Lengau toolchain bytes at the Lengau path, the
-  **B_full** profile only (attested; arm A is refused by the production guards), fail-closed setup, atomic outcomes,
-  bounded cleanup, verified transfer.
-- Production manifest: the screen manifest `43b75f94` itself for science; operational root on the instance; each
-  instance gets an immutable plan of coordinates from the EC2 block (one index per worker, `job-start` bindings).
-- Per instance: c7a.24xlarge, 80 workers; lifetime sized to one refit (about 19-21 h measured) + upload; a worker whose
-  refit cannot finish before the deadline is not started (the worker's own deadline rule).
+- Launcher/reaper/ledger: `prod_launch.py` (contracts `production`, `Q1`, `Q2` from `chpc/row19_ec2_state.CONTRACTS`)
+  under the global authority lock and the run lock; intent + client token, rejected/ambiguous rules, reaper with heartbeat.
+- Instance contract `prod_userdata.sh`: Lengau toolchain bytes at the Lengau path, **B_full** only (attested), fail-closed
+  setup, STOP checked before job-start and before the first worker, bounded 60 s STOP polling, atomic outcomes, bounded
+  cleanup, host memory sampled every 60 s, frozen bundle hashed before the mutable transport logs are written.
+- Operational manifest: the exact derivation of `43b75f94` (`row19_ec2_state.derive_operational`; only root, campaign,
+  cores, expectation, note and the `ec2_production` block), re-derived and byte-compared by the launcher and the ingestion.
+- Production: c7a.24xlarge, **76 workers = up to 72 block coordinates + 4 sentinels** (the Q1 packing); lifetime =
+  measured expectation + 900 s setup + 3,000 s upload reserve; a worker whose refit cannot finish before the deadline is
+  not started (the worker's own deadline rule).
 
 ## 4. Ingestion into the screen root (the reviewed verifier stays the authority)
 
-- `ec2_ingest.py` (Lengau, t1py, controller tree): pulls an attempt's records/timings/bindings/outcomes from S3 into a
-  staging dir; validates every record with `row19_shard.read_record` against the frozen task, the binding against the
-  production manifest, the producer (EC2 attempt id, slot), the timing contract and the block membership; then publishes
-  into the screen root by the same temp + link rule (never replacing). Identical duplicates are reconciled; a
-  contrary duplicate HOLDS.
-- Verifier/status adapter (controls v10): EC2 producers are a second kind of job, keyed by attempt id with their USD
-  settlement instead of PBS/core-hours; whole-role receipts cover both kinds; common STOP file.
+- `chpc/row19_ec2_ingest.py` (Lengau, t1py, controller tree, plan lock): the Mac authority's sealed inventory names the
+  attempt's CURRENT ownership, global sequence and release; the register fence refuses a late writer; the partition must be
+  the one the latest adopted controls pin and must carry its activation proof; the bundle passes the full plan / outcome /
+  status / attestation contract; comparisons and ownership are rechecked under the lock; STOP or `ec2/HOLD` refuse
+  publication; staged bytes are verified before linking; an ingested replay re-validates every registered file.
+- Status/admission (candidate controls v10 r1): the receipt's `ec2` section carries the authority inventory of EVERY attempt
+  state and `ES.bound(root)` (register, inventory, activations, HOLD, STOP), which the Lengau refit admission recomputes; the
+  Mac launcher requires the receipt to bind its current inventory generation. Claims are released on the Mac only by `ack`
+  against the register's ingested entry (idempotent, recoverable) or by an explicit `disposition`.
 
-## 5. Ongoing conflict detection (the production qualification Codex asked for)
+## 5. Ongoing conflict detection and qualification
 
-- Every EC2 instance also recomputes 4 coordinates Lengau has already completed (rotating across indices and reps,
-  chosen by a fixed rule from the coordinate list, never by outcome); their payloads must be float-bit identical or the
-  attempt's records HOLD and production stops for review. These duplicates are qualification work, outside the
-  denominator.
-- First production instance = qualification instance: its whole output is held until its duplicates pass.
+- Qualification is its own predeclared panel BEFORE any production instance (`QUALIFICATION_PLAN.md`: Q1, Q2, S, release
+  rule with successful-path coverage, memory gate and sandbox replay; `chpc/row19_ec2_qualify.py` writes the certificate).
+  The first production instance is NOT the qualification instance.
+- Every production instance recomputes 4 Lengau-completed sentinels (fixed rule from the token, never by outcome); any
+  difference writes `ec2/HOLD`, which holds the attempt's output and refuses every later admission on both providers until
+  reviewed. These duplicates are outside the denominator.
 
 ## 6. Open for review
 
@@ -66,18 +73,15 @@ writer can then occupy another provider's coordinate, because no coordinate is e
 3. Whether 4 duplicates per instance plus row 23 suffice as the prospective production qualification.
 4. The envelope (USD 2,300) and the unit cost taken from row 23's measured walls.
 
-## 7. Build status against Codex f3dd3d7 (10 Oct 2026, nothing adopted or launched)
+## 7. Build status (11 Oct 2026, after Codex 0483db4 V10-1..8; nothing adopted or launched)
 
-| Contract | Built | Evidence |
-|---|---|---|
-| 1 partition binding + cutover | `chpc/row19_partition.py` (immutable epoch declaration bound to manifest, task identities, reps, B, k; cutover over every record and every plan of every ledger entry in any state); v10 admit guard in planning AND admission, partition named and sha-pinned by the controls version (`partition: null` = no change) | `test_row19_partition.py` 15/15; live read-only cutover: Lengau max index 2, block 150-199 unassigned |
-| 2 EC2 claim/budget authority | `aws_ec2/prod_authority.py` + `prod_launch.py`: fixed-order allocation from the block only; ownership from intent until rejected or ingested; immutable plan per attempt; sequence numbers; per-attempt prefixes; reviewed issue/resolve (same token, single-attempt first dispatch) and reaper reused | `tests/test_prod_authority.py` 13/13 (allocation, ownership, fencing, sentinels, both envelopes); launcher stub tests 13/13 |
-| 3 operational derivation | `make_prod_manifest.py`: only root, campaign, cores 76, expect_layer_s (from row 23's MEASURED walls), note; canonical Lengau bindings never written; EC2 bindings kept in the register; B_full only, no fallback | ingestion test: canonical task bindings untouched |
-| 4 ingestion | `chpc/row19_ec2_ingest.py`: bundle checksums and no unlisted file; frozen-task validation; EC2 binding; attempt/slot producer; positive finite timings; sentinel float.hex equality; overlap rules; register journal ingesting -> ingested with hash-checked replay; plan lock | `test_row19_ec2_ingest.py` 8/8 on real Lengau records (sandbox) |
-| 5 provider-aware status | v10 `ec2_reconcile`: register attempts as a second producer kind; coordinates assigned; producer/slot/status/partition checks; double claim and no-partition alarms; receipt `ec2` section (USD only) | `test_row19_ec2_status.py` 9/9 |
-| 6 qualification | `QUALIFICATION_PLAN.md` (Q1/Q2/S, release rule, costs) | declared before results |
-| 7 memory | 76 workers (176.3 GiB of 192) incl. 4 sentinels; qualified by Q1 at the intended packing | Q1 |
-| 8 budget | `budget_baseline.json` (USD 400 conservative) + production 2,300 / cumulative 3,000 checks before each dispatch, unresolved attempts charged worst case | `tests/test_prod_authority.py` |
-
-Open: (common STOP now built: prod_stop.py + S3 STOP polled every 300 s by each instance + launcher refusal);
-the v10 test-suite update (reconcile now returns a 4-tuple).
+| Repair | Built | Consumer / evidence | Still missing |
+|---|---|---|---|
+| V10-1 activation + derivation | `row19_partition.py activate` (plan lock, controls pin required, handback refused while owned), predecessor/transferred indices; exact operational derivation; plan bound to partition/opmanifest/activation/sequence | Lengau refit admission HOLDS while a pinned partition lacks its proof (v10 r1); EC2 launcher and ingestion require proof, pin and exact derivation; `test_row19_partition.py` 31/31 | adoption of a controls version that pins a real partition |
+| V10-2 ownership + receipts | sealed inventory of every attempt (global sequences, owners, fences, generation); ingestion consumes it under the lock; `ack` / `disposition`; receipt `ec2.bound` consumed by both admissions | `test_row19_ec2_ingest.py` 49/49 (stub; same cases on real records on Lengau), `test_row19_ec2_status.py` 22/22, `tests/test_prod_authority.py` 29/29, `tests/test_prod_launch.py` 34/34 | the operator copy of each new inventory to `<root>/ec2/authority/` (scp) |
+| V10-3 frozen bundle | hashing excludes the mutable transport logs (d76391d) | `tests/test_prod_userdata.py`: the verbatim hashing command, then the real post-hash writers | - |
+| V10-4 complete validation | plan / outcome / status / attestation contracts in `row19_ec2_state.py`, used by ingestion, status and the evaluator | ingestion and status tests above (realistic statuses, typed outcomes) | - |
+| V10-5 replay / publication | in-lock rechecks; verified temp bytes; ingested replay re-validation; HOLD on difference | ingestion tests | - |
+| V10-6 budget | one serialized ledger across runs/epochs; moving baseline (schema 2); per-part ceilings Q1 28 / Q2 17 | `tests/test_prod_authority.py` | owner acceptance of USD 45 (> 43 declared) |
+| V10-7 qualification | `prod_launch.py --contract Q1/Q2`; `row19_ec2_qualify.py` (coverage, INCONCLUSIVE, memory gate, sandbox replay, certificate); `qual_S_plan.json` | `test_row19_ec2_qualify.py` 9/9, `tests/test_prod_launch.py` | **S submission on Lengau** (no isolated qualification-campaign entry kind in the programme gate) |
+| V10-8 STOP | checks before job-start and first worker, bounded polling, launcher + recovery on every STOP source, ingestion refuses under STOP/HOLD, propagation of the Lengau root STOP by the v10 r1 status receipt | `tests/test_prod_userdata.py`, `tests/test_prod_launch.py`, `test_row19_ec2_status.py` | - |

@@ -1,0 +1,26 @@
+{
+ "schema": "t1-ec2-release-state-1",
+ "note": "Reviewed release state for EC2 work. Each claim is backed by a file whose sha256 it pins (paths relative to aws_ec2/); prod_authority.release_state() reads a missing or differing file as NOT released. Changed only by an explicit commit after the named evidence and review exist.",
+ "row23": {
+  "declared_success": false,
+  "report_path": null,
+  "report_sha256": null
+ },
+ "qualification": {
+  "permitted": false,
+  "ceilings_usd": {
+   "Q1": 28.0,
+   "Q2": 17.0
+  },
+  "owner_accepted_ceilings": false,
+  "record_path": null,
+  "record_sha256": null,
+  "ceiling_note": "Q1 worst 22.75 h x (1.20 + 0.014) + 0.30 = 27.92 -> 28; Q2 22.75 h x (0.70 + 0.014) + 0.30 = 16.54 -> 17; total 45 per single attempt each, ABOVE the USD 43 declared on 10 Oct: needs the owner's acceptance; a retry of either part needs a further owner decision (the per-part ceiling counts retries)."
+ },
+ "production": {
+  "released": false,
+  "certificate_path": null,
+  "certificate_sha256": null,
+  "released_attempts": []
+ }
+}

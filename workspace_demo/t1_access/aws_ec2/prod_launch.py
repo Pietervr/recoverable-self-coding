@@ -1,17 +1,37 @@
-"""Row 19 screen on EC2, production stage 2: admit and dispatch ONE production instance of a partition epoch.
+"""Row 19 screen on EC2: admit and dispatch ONE instance of a production epoch or of a predeclared qualification part
+(Codex RSC f3dd3d7; repaired for Codex RSC 0483db4 V10-1, V10-2, V10-6, V10-7, V10-8). Mac only.
 
-    python3 prod_launch.py --epoch 1 --partition ../chpc/row19_partition_e1.json --manifest prod/manifest_e1.json \
+    python3 prod_launch.py --contract Q1 --epoch 1 --partition ../chpc/row19_partition_e1.json --manifest prod/manifest_q1_e1.json \
         --snapshot ../chpc/results/row19_screen --tarball ~/aws_t1_bench/t1_toolchain_lengau.tgz [--dry-run]
-    python3 prod_launch.py --epoch 1 --recover      # re-issue an unresolved attempt's SAME request
+    python3 prod_launch.py --contract production --epoch 1 ...      # only after the reviewed production release
+    python3 prod_launch.py --contract production --epoch 1 --recover # re-issue an unresolved attempt's SAME request (STOP-checked)
 
-Under the run lock (shared with the reaper's ledger writes): refuses while any attempt is 'intent' or 'ambiguous' (an
-unresolved launch keeps its coordinates and its worst-case charge); requires a fresh whole-role refit receipt in the
-snapshot (<= 2,700 s); validates the partition and the operational manifest; allocates up to 72 work coordinates from
-the block (prod_authority.allocate) plus 4 sentinels; checks both envelopes with this attempt's worst case; writes the
-immutable plan and request and the attempt (state intent, coordinates owned) BEFORE RunInstances; dispatches through
-the reviewed launcher's issue/resolve (same token on replay, single-attempt first dispatch) and starts the reaper.
-Several production instances may run at once; each one's coordinates are disjoint by construction."""
-import argparse, glob, json, os, sys, time, uuid
+Admission, under the GLOBAL authority lock and the run lock (shared with the reaper), refuses unless ALL hold:
+  STOP     no STOP anywhere: the run's and the global local STOP (runs/STOP), the run's and the global S3 STOP (bounded
+           30 s calls; an API failure is not proof of absence and refuses), the Lengau screen root STOP and ec2/HOLD in the
+           pulled snapshot. Recovery checks the same before re-issuing.
+  release  ec2_release_state.json: Q1/Q2 need row 23's declared success (pinned report) AND qualification permitted with
+           the owner's acceptance of the per-part USD ceilings; production needs the reviewed release certificate (outcome
+           RELEASE). Q2 also needs a reconciled Q1 attempt.
+  inputs   the partition is the one the LATEST adopted controls (chpc/row19_screen_controls.json) pin, and the pulled root
+           carries its serialized activation proof; the operational manifest is the exact derivation of 43b75f94 for this
+           epoch and contract (row19_ec2_state.operational_problem).
+  receipt  the newest whole-role refit receipt is a FRESH PRODUCTION one (explicit true flags, schema, role), alarm-free,
+           finite, not in the future, <= 2,700 s old; it binds the snapshot's EC2 state (ec2.bound = row19_ec2_state.bound of
+           the snapshot root) AND the authority inventory this Mac last sealed, at the CURRENT generation - so a newly
+           journaled attempt refuses until the inventory is copied to Lengau and a new receipt taken. Completion comes from the
+           receipt's own bound verifier document (record ok), not from file names.
+  budget   prod_authority.budget_problem: global production envelope across all epochs/qualification/retries, the cumulative
+           USD 3,000 cap over baseline + every run, the per-part qualification ceiling.
+Then: global sequence reserved, the immutable plan (bound to partition, operational manifest, activation, sequence and the
+contract) and request written, the attempt journaled 'intent' BEFORE RunInstances, the generation bumped and a new
+inventory sealed; dispatch through the reviewed issue/resolve and the reaper.
+
+Plans by contract (row19_ec2_state.CONTRACTS; QUALIFICATION_PLAN.md): production = up to 72 block coordinates in the fixed
+order + 4 sentinels; Q1 = 48 block coordinates (index 199 and 198 of reps 3..26, owned) + 24 Lengau-completed
+coordinates (index 1 and 2 of reps 3..14, duplicates) + 4 sentinels = 76; Q2 = the 24 coordinates index 199 of reps 3..26
+recomputed on a c7a.12xlarge at cap 0.70 (duplicates; Q1 owns them)."""
+import argparse, glob, json, math, os, sys, time, uuid
 import bench_launch as L
 import prod_authority as PA
 
@@ -19,69 +39,162 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = os.path.abspath(os.path.join(HERE, ".."))
 sys.path.insert(0, os.path.join(T1, "chpc"))
 import row19_partition as RP
+import row19_ec2_state as ES
 
 PROD_SHA = "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c"
 RECEIPT_MAX_AGE_S = 2700
+WATCH_SCHEMA = "row19-screen-watch-1"
+Q1_BLOCK = [(r, i) for i in (199, 198) for r in range(3, 27)]
+Q1_LENGAU = [(r, i) for r in range(3, 15) for i in (1, 2)]
+Q2_REPEAT = [(r, 199) for r in range(3, 27)]
 
 
-def snapshot_state(snapshot, part):
-    """(completed coordinates, Lengau-completed coordinates outside the block, receipt) from the status tool's latest
-    FRESH refit snapshot; raises when the newest whole-role receipt is older than the admission limit or alarmed."""
+def s3_stop_key(run=None):
+    return f"s3://{L.BUCKET}/code/t1_access/aws_bench/{run + '/' if run else ''}STOP"
+
+
+def stop_problem(run, snapshot):
+    """Every STOP source; an unreadable S3 answer refuses (fail closed)."""
+    found = [p for p in (os.path.join(L.run_dir(run), "STOP"), os.path.join(PA.HERE, "runs", "STOP"),
+                         os.path.join(snapshot, "live", "refit", "root", "STOP"),
+                         os.path.join(snapshot, "live", "refit", "root", "ec2", "HOLD")) if os.path.exists(p)]
+    for key in (s3_stop_key(run), s3_stop_key()):
+        try:
+            if L.aws("s3", "ls", key, timeout=30).stdout.strip():
+                found.append(key)
+        except L.AwsError as e:
+            if "error" in str(e).lower() or "timeout" in str(e).lower():
+                return f"the S3 STOP check failed ({e})"
+    return f"STOP/HOLD in force ({found})" if found else ""
+
+
+def snapshot_state(snapshot, part, now=None):
+    """(Lengau-verified completed coordinates, receipt name, receipt) from the newest whole-role refit receipt, strictly."""
+    now = time.time() if now is None else now
     recs = sorted(glob.glob(os.path.join(snapshot, "receipts", "watch_refit_*.json")))
     if not recs:
         raise ValueError("no refit receipt in the snapshot")
-    w = json.load(open(recs[-1])); age = time.time() - float(w.get("time", 0))
-    if age > RECEIPT_MAX_AGE_S or w.get("alarms") or not w.get("fresh", True):
-        raise ValueError(f"the newest refit receipt {os.path.basename(recs[-1])} is {age:.0f} s old or not clean")
+    w = json.load(open(recs[-1])); t = w.get("time")
+    if w.get("schema") != WATCH_SCHEMA or w.get("role") != "refit" or w.get("fresh") is not True or w.get("production") is not True:
+        raise ValueError(f"{os.path.basename(recs[-1])} is not a fresh production refit receipt")
+    if w.get("alarms") != []:
+        raise ValueError(f"{os.path.basename(recs[-1])} carries alarms or no alarm list")
+    if not (isinstance(t, (int, float)) and not isinstance(t, bool) and math.isfinite(t)) or t > now + 60 or now - t > RECEIPT_MAX_AGE_S:
+        raise ValueError(f"{os.path.basename(recs[-1])}: time {t!r} not finite, in the future or older than {RECEIPT_MAX_AGE_S} s")
+    b = w.get("bound") or {}
+    vp = os.path.join(snapshot, "receipts", b.get("verify_file") or "-")
+    if not os.path.exists(vp) or L.sha256(vp) != b.get("verify_file_sha256"):
+        raise ValueError("the receipt's bound verifier document is missing or not its bytes")
+    units = json.load(open(vp)).get("units") or {}
+    done = {tuple(int(x) for x in k.split("/")) for k, v in units.items() if (v.get("record") or {}).get("ok")}
     root = os.path.join(snapshot, "live", "refit", "root")
-    done = set()
-    for p in glob.glob(os.path.join(root, "records", "rep*", "rec_*.json")):
-        done.add((int(os.path.basename(os.path.dirname(p))[3:]), int(os.path.basename(p)[4:7])))
+    if (w.get("ec2") or {}).get("bound") != ES.bound(root):
+        raise ValueError("the receipt's EC2 binding is not the snapshot root's")
+    return done, os.path.basename(recs[-1]), w
+
+
+def inventory_bound_problem(w):
+    """The receipt must bind the inventory this authority last sealed, at the current generation."""
+    lp = os.path.join(PA.INV_DIR, "latest.json")
+    if not os.path.exists(lp):
+        return "no sealed inventory yet (python3 prod_authority.py inventory, copy to <root>/ec2/authority/inventory.json)"
+    inv = json.load(open(lp))
+    if inv.get("generation") != PA.state()["generation"]:
+        return "the sealed inventory is not the current generation; seal and copy it"
+    if (w.get("ec2") or {}).get("bound", {}).get("inventory_sha256") != L.sha256(lp):
+        return "the receipt does not bind the current authority inventory: copy it to Lengau and take a fresh receipt"
+    return ""
+
+
+def controls_pin():
+    ctl = json.load(open(os.path.join(T1, "chpc", "row19_screen_controls.json")))
+    return (ctl["versions"][-1].get("partition") or {}).get("sha256")
+
+
+def build(contract, part, leds, done, token):
+    """(work, duplicates, sentinels) for the contract; raises when the predeclared panel cannot be built as declared."""
     lengau = {c for c in done if not RP.blocked(part, *c)}
-    return done, lengau, os.path.basename(recs[-1])
+    if contract == "production":
+        work = PA.allocate(part, leds, done, ES.CONTRACTS["production"]["workers"] - PA.SENTINELS_PER_ATTEMPT)
+        if not work:
+            raise ValueError("the partition block has no free coordinate left")
+        return work, [], PA.sentinels(lengau, token)
+    if contract == "Q1":
+        own = PA.owned(leds)
+        bad = [c for c in Q1_BLOCK if not RP.blocked(part, *c) or c in done or c in own]
+        if bad:
+            raise ValueError(f"Q1's block coordinates are not all free block coordinates, e.g. {bad[:3]}")
+        miss = [c for c in Q1_LENGAU if c not in lengau]
+        if miss:
+            raise ValueError(f"Q1's Lengau duplicates are not all Lengau-completed, e.g. {miss[:3]}")
+        return list(Q1_BLOCK), list(Q1_LENGAU), PA.sentinels(lengau, token, exclude=Q1_LENGAU)
+    q1 = [a for a in leds.get(PA.qual_run("Q1"), {"attempts": []})["attempts"] if a.get("state") == "reconciled"]
+    if not q1:
+        raise ValueError("Q2 compares with Q1: no reconciled Q1 attempt")
+    return [], list(Q2_REPEAT), []
 
 
-def admit(a):
-    run = PA.run_name(a.epoch); led = L.load(run)
-    open_ = [x for x in led["attempts"] if x.get("state") in ("intent", "ambiguous")]
-    if open_:
-        sys.exit(f"REFUSED: attempt {open_[-1]['attempt']} is {open_[-1]['state']} - python3 prod_launch.py --epoch {a.epoch} --recover")
+def admit(a, now=None):
+    run = PA.qual_run(a.contract) if a.contract in ("Q1", "Q2") else PA.run_name(a.epoch)
+    leds = PA.ledgers(); led = L.load(run)
+    if any(x.get("state") in ("intent", "ambiguous") for x in led["attempts"]):
+        sys.exit(f"REFUSED: an attempt of {run} is unresolved - python3 prod_launch.py --contract {a.contract} --epoch {a.epoch} --recover")
+    why = stop_problem(run, a.snapshot)
+    if why:
+        sys.exit(f"REFUSED: {why} - no new EC2 dispatch")
+    rel = PA.release_state()
+    gate = rel["qualification"]["ok"] if a.contract in ("Q1", "Q2") else rel["production"]["ok"]
+    if not gate:
+        sys.exit(f"REFUSED: ec2_release_state.json does not permit {a.contract} (row 23 success / qualification permission and "
+                 f"owner-accepted ceilings / reviewed production release certificate)")
     man_prod = json.load(open(os.path.join(T1, "chpc", "row19_screen_manifest.json")))
-    part = RP.load(a.partition, man_prod, PROD_SHA)
-    if part["epoch"] != a.epoch:
-        sys.exit(f"REFUSED: partition epoch {part['epoch']} is not --epoch {a.epoch}")
-    opm = json.load(open(a.manifest))
-    if (opm.get("ec2_production") or {}).get("epoch") != a.epoch or opm["ec2_production"]["derived_from_sha256"] != PROD_SHA:
-        sys.exit("REFUSED: the operational manifest is not this epoch's derivation of 43b75f94")
-    stop = [x for x in (os.path.join(a.snapshot, "live", "refit", "root", "STOP"), os.path.join(L.run_dir(run), "STOP")) if os.path.exists(x)]
+    part = RP.load(a.partition, man_prod, PROD_SHA); psha = RP.sha_file(a.partition)
+    if part["epoch"] != a.epoch or controls_pin() != psha:
+        sys.exit("REFUSED: the partition is not this epoch's or not the one the latest adopted controls pin")
+    actp = os.path.join(a.snapshot, "live", "refit", "root", "ec2", f"activation_e{a.epoch}.json")
     try:
-        if L.aws("s3", "ls", f"s3://{L.BUCKET}/code/t1_access/aws_bench/{run}/STOP").stdout.strip():
-            stop.append("s3 STOP")
-    except L.AwsError as e:
-        if "error" in str(e).lower() or "timeout" in str(e).lower():     # an API failure is not proof of no STOP: fail closed
-            sys.exit(f"REFUSED: the S3 STOP check failed ({e})")
-        # absent object: `aws s3 ls` exits 1 with an empty stderr
-    if stop:
-        sys.exit(f"REFUSED: STOP in force ({stop}) - no new EC2 dispatch")
-    try:
-        done, lengau, receipt = snapshot_state(a.snapshot, part)
-    except ValueError as e:
-        sys.exit(f"REFUSED: {e}")
-    n_work = PA.WORKERS_PER_INSTANCE - PA.SENTINELS_PER_ATTEMPT
-    work = PA.allocate(part, led, done, n_work)
-    if not work:
-        sys.exit("REFUSED: the partition block has no free coordinate left")
-    n = max([x["attempt"] for x in led["attempts"]], default=0) + 1
-    token = f"t1-{run}-{n}-{uuid.uuid4().hex[:12]}"
-    sent = PA.sentinels(lengau, token)
-    life = int(opm["ec2_production"]["lifetime_s"]); worst = L.worst_usd(life + L.GRACE_S + L.RESERVE_S)
-    why = PA.budget_problem(led, run, worst)
+        why = RP.activation_problem(man_prod, PROD_SHA, part, psha, json.load(open(actp)))
+    except Exception as e:
+        why = f"no activation proof in the snapshot ({type(e).__name__})"
     if why:
         sys.exit(f"REFUSED: {why}")
-    attempt_id = f"ec2-e{a.epoch}-a{n}"
-    plan = {"job": n, "attempt_id": attempt_id, "epoch": a.epoch, "partition_sha256": RP.sha_file(a.partition),
-            "slots": [dict(slot=k, rep=r, indices=[i], role="work") for k, (r, i) in enumerate(work)]
-                     + [dict(slot=len(work) + k, rep=r, indices=[i], role="sentinel") for k, (r, i) in enumerate(sent)]}
+    opm = json.load(open(a.manifest))
+    why = ES.operational_problem(opm, man_prod, PROD_SHA)
+    if why or opm["ec2_production"]["epoch"] != a.epoch or opm["ec2_production"]["contract"] != a.contract:
+        sys.exit(f"REFUSED: {why or 'the operational manifest is not this epoch and contract'}")
+    try:
+        done, receipt, w = snapshot_state(a.snapshot, part, now)
+    except ValueError as e:
+        sys.exit(f"REFUSED: {e}")
+    why = inventory_bound_problem(w)
+    if why:
+        sys.exit(f"REFUSED: {why}")
+    c = ES.CONTRACTS[a.contract]
+    life = PA.QUAL_LIFETIME_S if a.contract in ("Q1", "Q2") else int(opm["ec2_production"]["lifetime_s"])
+    if a.contract in ("Q1", "Q2") and int(opm["ec2_production"]["lifetime_s"]) != life:
+        sys.exit(f"REFUSED: the qualification lifetime is declared {life} s; the manifest says {opm['ec2_production']['lifetime_s']}")
+    worst = PA.worst_usd(life, c["max_price"])
+    why = PA.budget_problem(leds, run, worst, rel, now)
+    if why:
+        sys.exit(f"REFUSED: {why}")
+    st = PA.state(); n = max([x["attempt"] for x in led["attempts"]], default=0) + 1
+    token = f"t1-{run}-{n}-{uuid.uuid4().hex[:12]}"
+    try:
+        work, dup, sent = build(a.contract, part, leds, done, token)
+    except ValueError as e:
+        sys.exit(f"REFUSED: {e}")
+    st, seq = PA.bump(st, sequences=1)
+    attempt_id = f"ec2-{run}-a{n}"
+    roles = ([("work", x) for x in work] + [("qual_lengau" if a.contract == "Q1" else "qual_repeat", x) for x in dup]
+             + [("sentinel", x) for x in sent])
+    plan = {"job": n, "attempt_id": attempt_id, "sequence": seq, "epoch": a.epoch, "contract": a.contract, "partition_sha256": psha,
+            "opmanifest_sha256": L.sha256(a.manifest), "activation_sha256": L.sha256(actp), "instance": dict(c, roles=dict(c["roles"])),
+            "lifetime_s": life, "slots": [dict(slot=k, rep=r, indices=[i], role=role) for k, (role, (r, i)) in enumerate(roles)]}
+    att_view = dict(attempt_id=attempt_id, sequence=seq, coordinates=[list(x) for x in work], sentinels=[list(x) for x in sent],
+                    duplicates=[list(x) for x in dup])
+    why = ES.plan_problem(plan, a.contract, att_view, psha, plan["opmanifest_sha256"], plan["activation_sha256"])
+    if why:
+        sys.exit(f"REFUSED: the built plan fails its own contract ({why})")
     d = L.run_dir(run); planp = os.path.join(d, f"plan_attempt{n}.json")
     json.dump(plan, open(planp, "w"), indent=1)
     files = {"t1_toolchain_lengau.tgz": os.path.expanduser(a.tarball), "manifest_prod.json": a.manifest, "plan.json": planp,
@@ -95,17 +208,17 @@ def admit(a):
     if any(t in ud for t in ("__RUN__", "__ATTEMPT__", "__LIFETIME_S__", "__ATTEMPT_ID__", "__SUMS__")):
         sys.exit("REFUSED: unfilled user-data placeholder")
     udp = os.path.join(d, f"userdata_attempt{n}.sh"); open(udp, "w").write(ud)
-    print(f"{attempt_id}: {len(work)} work coordinates (indices {work[0][1]}..{work[-1][1]}), {len(sent)} sentinels, lifetime {life} s, "
-          f"worst USD {worst:.2f}; receipt {receipt}")
+    print(f"{attempt_id} ({a.contract}, seq {seq}): {len(work)} owned, {len(dup)} duplicates, {len(sent)} sentinels on {c['itype']} "
+          f"cap {c['max_price']:.2f}, lifetime {life} s, worst USD {worst:.2f}; receipt {receipt}")
     ami = json.loads(L.aws("ssm", "get-parameters", "--names", L.AMI_PARAM, "--output", "json").stdout)["Parameters"][0]["Value"]
     tags = [{"ResourceType": rt, "Tags": [{"Key": "project", "Value": "t1"}, {"Key": "row", "Value": "19-ec2"}, {"Key": "run", "Value": run},
                                             {"Key": "attempt", "Value": str(n)}, {"Key": "Name", "Value": attempt_id}]} for rt in ("instance", "volume")]
-    args = ["ec2", "run-instances", "--image-id", ami, "--instance-type", L.ITYPE, "--count", "1", "--client-token", token,
+    args = ["ec2", "run-instances", "--image-id", ami, "--instance-type", c["itype"], "--count", "1", "--client-token", token,
             "--placement", f"AvailabilityZone={L.AZ}", "--iam-instance-profile", f"Name={L.ROLE}",
             "--instance-market-options", json.dumps({"MarketType": "spot", "SpotOptions": {
-                "MaxPrice": f"{L.MAXPRICE:.2f}", "SpotInstanceType": "one-time", "InstanceInterruptionBehavior": "terminate"}}),
+                "MaxPrice": f"{c['max_price']:.2f}", "SpotInstanceType": "one-time", "InstanceInterruptionBehavior": "terminate"}}),
             "--instance-initiated-shutdown-behavior", "terminate",
-            "--block-device-mappings", json.dumps([{"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": 60, "VolumeType": "gp3", "DeleteOnTermination": True}}]),
+            "--block-device-mappings", json.dumps([{"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": c["volume_gb"], "VolumeType": "gp3", "DeleteOnTermination": True}}]),
             "--metadata-options", "HttpTokens=required", "--tag-specifications", json.dumps(tags), "--user-data", f"file://{udp}", "--output", "json"]
     if a.dry_run:
         try:
@@ -117,33 +230,46 @@ def admit(a):
         L.aws("s3", "cp", p, f"s3://{L.BUCKET}/code/t1_access/aws_bench/{run}/attempt_{n}/{k}", "--only-show-errors", timeout=1800)
     reqp = os.path.join(d, f"request_attempt{n}.json")
     json.dump(dict(client_token=token, args=args, userdata_sha256=L.sha256(udp), sha256=sums), open(reqp, "w"), indent=1)
-    att = dict(attempt=n, sequence=n, attempt_id=attempt_id, state="intent", client_token=token, request=reqp, lifetime_s=life,
-               max_price=L.MAXPRICE, type=L.ITYPE, ami=ami, plan=planp, plan_sha256=L.sha256(planp),
-               coordinates=[list(c) for c in work], sentinels=[list(c) for c in sent], ingestion="pending",
+    att = dict(attempt=n, sequence=seq, attempt_id=attempt_id, contract=a.contract, state="intent", client_token=token, request=reqp,
+               lifetime_s=life, max_price=c["max_price"], anc_h=PA.ANC_H_PROD, s3_fixed=PA.S3_FIXED_PROD, type=c["itype"], ami=ami,
+               plan=planp, plan_sha256=L.sha256(planp), coordinates=att_view["coordinates"], sentinels=att_view["sentinels"],
+               duplicates=att_view["duplicates"], ingestion="pending",
                results=f"s3://{L.BUCKET}/results/t1_access/aws_bench/{run}/attempt_{n}/", intent_at=time.time(), receipt=receipt)
     led["attempts"].append(att); L.save(run, led)
+    PA.bump(PA.state()); PA.write_inventory()                                # the journal changed: a new inventory to copy
     return L.finish(run, led, att, fresh=True)
+
+
+def recover(a):
+    run = PA.qual_run(a.contract) if a.contract in ("Q1", "Q2") else PA.run_name(a.epoch)
+    led = L.load(run)
+    att = next((x for x in reversed(led["attempts"]) if x.get("state") in ("intent", "ambiguous")), None)
+    if att is None:
+        sys.exit("nothing to recover")
+    why = stop_problem(run, a.snapshot)
+    if why:                                                                  # V10-8: never re-issue a launch under STOP
+        sys.exit(f"REFUSED: {why} - the unresolved attempt stays charged at its worst case; resolve it by "
+                 f"describe-instances on token {att['client_token']} (the reaper) once STOP is lifted or by hand")
+    return L.finish(run, led, att, fresh=False)
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--epoch", type=int, required=True); ap.add_argument("--partition"); ap.add_argument("--manifest")
+    ap.add_argument("--contract", choices=sorted(ES.CONTRACTS), required=True); ap.add_argument("--epoch", type=int, required=True)
+    ap.add_argument("--partition"); ap.add_argument("--manifest")
     ap.add_argument("--snapshot", default=os.path.join(T1, "chpc", "results", "row19_screen")); ap.add_argument("--tarball")
     ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--recover", action="store_true")
-    a = ap.parse_args(); run = PA.run_name(a.epoch)
+    a = ap.parse_args()
+    run = PA.qual_run(a.contract) if a.contract in ("Q1", "Q2") else PA.run_name(a.epoch)
     try:
-        with L.run_lock(run):
+        with PA.authority_lock(), L.run_lock(run):
             if a.recover:
-                led = L.load(run)
-                att = next((x for x in reversed(led["attempts"]) if x.get("state") in ("intent", "ambiguous")), None)
-                if att is None:
-                    sys.exit("nothing to recover")
-                return L.finish(run, led, att, fresh=False)
+                return recover(a)
             if not (a.partition and a.manifest and a.tarball):
                 sys.exit("--partition, --manifest and --tarball are required to admit an instance")
             return admit(a)
     except BlockingIOError:
-        sys.exit(f"REFUSED: another launcher or reaper holds runs/{run}/.lock")
+        sys.exit(f"REFUSED: another authority operation, launcher or reaper holds the lock")
 
 
 if __name__ == "__main__":

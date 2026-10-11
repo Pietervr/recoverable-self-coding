@@ -1,0 +1,365 @@
+{
+ "schema": "t1-ec2-qualification-S-1",
+ "purpose": "S of QUALIFICATION_PLAN.md: Lengau shadow references for Q1's 48 block coordinates (index 199 and 198, reps 3..26)",
+ "science": "the screen manifest 43b75f94 unchanged (shard worker, same frozen tasks); output never enters the screen root",
+ "isolated_root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/root",
+ "isolated_campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign",
+ "reservation_core_h": 2304,
+ "charge_estimate_core_h": 1200,
+ "funding": "the CSCI1913 refit campaign cap (60,000 core-h) through the programme gate, as two isolated entries",
+ "jobs": [
+  {
+   "job": "S1",
+   "cores": 24,
+   "walltime_h": 48,
+   "reserved_core_h": 1152,
+   "slots": [
+    {
+     "slot": 0,
+     "rep": 3,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 1,
+     "rep": 4,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 2,
+     "rep": 5,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 3,
+     "rep": 6,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 4,
+     "rep": 7,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 5,
+     "rep": 8,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 6,
+     "rep": 9,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 7,
+     "rep": 10,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 8,
+     "rep": 11,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 9,
+     "rep": 12,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 10,
+     "rep": 13,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 11,
+     "rep": 14,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 12,
+     "rep": 15,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 13,
+     "rep": 16,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 14,
+     "rep": 17,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 15,
+     "rep": 18,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 16,
+     "rep": 19,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 17,
+     "rep": 20,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 18,
+     "rep": 21,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 19,
+     "rep": 22,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 20,
+     "rep": 23,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 21,
+     "rep": 24,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 22,
+     "rep": 25,
+     "indices": [
+      199
+     ]
+    },
+    {
+     "slot": 23,
+     "rep": 26,
+     "indices": [
+      199
+     ]
+    }
+   ]
+  },
+  {
+   "job": "S2",
+   "cores": 24,
+   "walltime_h": 48,
+   "reserved_core_h": 1152,
+   "slots": [
+    {
+     "slot": 0,
+     "rep": 3,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 1,
+     "rep": 4,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 2,
+     "rep": 5,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 3,
+     "rep": 6,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 4,
+     "rep": 7,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 5,
+     "rep": 8,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 6,
+     "rep": 9,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 7,
+     "rep": 10,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 8,
+     "rep": 11,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 9,
+     "rep": 12,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 10,
+     "rep": 13,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 11,
+     "rep": 14,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 12,
+     "rep": 15,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 13,
+     "rep": 16,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 14,
+     "rep": 17,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 15,
+     "rep": 18,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 16,
+     "rep": 19,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 17,
+     "rep": 20,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 18,
+     "rep": 21,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 19,
+     "rep": 22,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 20,
+     "rep": 23,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 21,
+     "rep": 24,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 22,
+     "rep": 25,
+     "indices": [
+      198
+     ]
+    },
+    {
+     "slot": 23,
+     "rep": 26,
+     "indices": [
+      198
+     ]
+    }
+   ]
+  }
+ ],
+ "status": "DECLARED, NOT SUBMITTABLE: the Lengau programme gate and admission have no isolated qualification-campaign entry kind yet (consumer missing). Building it is a Lengau-side change that needs its own reviewed controls version; until then S cannot run and the release rule cannot complete."
+}

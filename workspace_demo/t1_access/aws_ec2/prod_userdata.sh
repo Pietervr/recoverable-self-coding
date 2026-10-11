@@ -1,5 +1,5 @@
 #!/bin/bash
-# Row 19 screen on EC2 - PRODUCTION instance (stage 2; Codex RSC f3dd3d7). Derived from the reviewed row-23 instance
+# Row 19 screen on EC2 - PRODUCTION / QUALIFICATION instance (Codex RSC f3dd3d7; STOP and memory repaired for 0483db4 V10-7/8). Derived from the reviewed row-23 instance
 # contract (bench_userdata.sh) with ONE profile: B_full (A's baseline XLA flags + --xla_cpu_max_isa=AVX2,
 # OPENBLAS_CORETYPE=Haswell, numpy dispatch above X86_V3 masked) - the only profile whose datasets reproduce Lengau's
 # identities (row 23 attempt 4). B_nomask is refused here (no fallback). The plan (76 slots: work coordinates from the EC2
@@ -59,6 +59,19 @@ rm -f $W/env/t1_toolchain_lengau.tgz
 echo "f9c3ff028982d04e9186b62bed8e63da999348c584491bd67f1d79071bad926c  $T/t1py" | sha256sum -c || die "t1py is not the pinned wrapper"
 lscpu > $W/env/lscpu.txt; free -g > $W/env/free.txt; uname -a > $W/env/uname.txt
 C=$T/rsc_screen/workspace_demo/t1_access; R6=$T/rsc/workspace_demo/t1_access
+ROOT_LIVE=$(cd $C && $T/t1py -c 'import json; print(json.load(open("'$W'/env/manifest_prod.json"))["storage"]["root"])') || die "manifest root"
+stop_seen() {  # 0 = a STOP is in force; 1 = none; die on an S3 answer that is neither (fail closed). Every call is bounded.
+  [ -f "$ROOT_LIVE/STOP" ] && return 0
+  local k rc
+  for k in "$B/code/t1_access/aws_bench/$RUN/STOP" "$B/code/t1_access/aws_bench/STOP"; do
+    timeout 20 aws s3 ls "$k" > /dev/null 2>&1; rc=$?
+    [ $rc -eq 0 ] && return 0
+    [ $rc -eq 1 ] || die "the S3 STOP check failed (rc $rc) - no fit starts on an unknown STOP state"
+  done
+  return 1
+}
+stop_before_start() { echo "STOP in force $1 - no fit started"; date -u +%FT%TZ > $W/env/stopped_before_start; final_upload; shutdown -h now; exit 0; }
+stop_seen && stop_before_start "before job-start"
 
 BASE="--xla_cpu_multi_thread_eigen=false --xla_cpu_parallel_codegen_split_count=1"
 ARM_A=(NPROC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 JAX_PLATFORMS=cpu)
@@ -88,21 +101,24 @@ run() {  # run <name> <cwd> <cmd...>: one declared process; its exit code is pub
 }
 python3 -c "import json; [print(s['slot'], s['rep'], s['indices'][0]) for s in json.load(open('$W/env/plan.json'))['slots']]" > $W/env/slots.txt \
   || die "plan unreadable"
+stop_seen && stop_before_start "before the first worker"
 while read slot rep idx; do
   run w_slot$slot $C env "${ARM_B[@]}" $T/t1py chpc/row19_shard.py worker --manifest $W/env/manifest_prod.json \
       --rep $rep --indices $idx --slot $slot --job-id $ATTEMPT_ID --deadline-epoch $WORKER_DEADLINE
 done < $W/env/slots.txt
-ROOT_LIVE=$(cd $C && $T/t1py -c 'import json; print(json.load(open("'$W'/env/manifest_prod.json"))["storage"]["root"])')
-( while true; do                         # common STOP (Codex f3dd3d7 contract 5): the screen's STOP reaches this instance
-    if aws s3 ls "$B/code/t1_access/aws_bench/$RUN/STOP" > /dev/null 2>&1; then  # within 300 s; workers see the root STOP
-      touch "$ROOT_LIVE/STOP"; date -u +%FT%TZ > $W/env/stop_seen.txt; break      # before their next index (each has one:
-    fi; sleep 300; done ) &                                                         # in-flight fits finish, none start)
+( while true; do                         # common STOP (V10-8): run or global S3 STOP reaches this instance within ~80 s;
+    for k in "$B/code/t1_access/aws_bench/$RUN/STOP" "$B/code/t1_access/aws_bench/STOP"; do   # bounded calls; workers see the
+      if timeout 20 aws s3 ls "$k" > /dev/null 2>&1; then                                     # root STOP before their index
+        touch "$ROOT_LIVE/STOP"; date -u +%FT%TZ > $W/env/stop_seen.txt; exit 0               # (in-flight fits finish)
+      fi; done; sleep 60; done ) &
 DECLARED=$(wc -l < $W/env/declared.txt | tr -d ' ')
 echo "launched $DECLARED declared processes at $(date -u +%FT%TZ)"
 LAST_SYNC=$(date +%s)
 while true; do
   n=$(ls $W/exits | wc -l | tr -d ' ')
   echo "$(date +%s) $((DECLARED - n)) $(cut -d' ' -f1-3 /proc/loadavg)" >> $W/env/occupancy.txt
+  # host memory (V10-7 gate): time, MemTotal kB, MemAvailable kB, summed RSS kB of every worker process tree
+  echo "$(date +%s) $(awk '/^MemTotal:/{t=$2} /^MemAvailable:/{a=$2} END{print t, a}' /proc/meminfo) $(ps -eo rss=,args= | awk '/row19_shard.py worker/{s+=$1} END{print s+0}')" >> $W/env/memory.txt
   [ "$n" -ge $DECLARED ] && break
   [ "$(date +%s)" -ge $UPLOAD_AT ] && break
   if [ $(( $(date +%s) - LAST_SYNC )) -ge 600 ]; then
@@ -138,7 +154,7 @@ assert len(out) == len(names) == len(set(names))
 json.dump(dict(at=time.time(), declared=len(names), outcomes=out, unresolved_after_kill=sorted(unresolved)), open(os.path.join(W, "env", "outcomes.json"), "w"), indent=1)
 PY
 [ $? -eq 0 ] && [ -s $W/env/outcomes.json ] || { echo "OUTCOMES CERTIFICATE FAILED"; echo "outcomes certificate failed $(date -u +%FT%TZ)" > $W/env/OUTCOMES_FAILED; }
-ROOT=$(cd $C && $T/t1py -c 'import json; print(json.load(open("'$W'/env/manifest_prod.json"))["storage"]["root"])')
+ROOT=$ROOT_LIVE
 mkdir -p $W/root; cp -r $ROOT/records $ROOT/timing $ROOT/status $W/root/ 2>/dev/null; cp $ROOT/task_*.json $W/root/ 2>/dev/null
 # frozen evidence only: the mutable diagnostics (userdata.log - still appended by tee -, upload_verify.json, spot_notice.json,
 # stop_seen.txt) are written after this point and are excluded here and by the ingestion's unlisted-file check (Codex V10-3)

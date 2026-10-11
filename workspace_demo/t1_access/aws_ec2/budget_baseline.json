@@ -1,7 +1,16 @@
 {
- "schema": "t1-aws-budget-baseline-1",
- "spent_usd": 400.0,
- "as_of": "2026-10-10",
- "source": "AWS Cost Explorer read 10 Oct 2026 ~20:45 UTC: USD 2,371.22 from 12 Sept (12 Sept alone 1,984.20, mostly the pre-cap d4v12b run); since 13 Sept about 387.02; rounded UP to 400 to cover the unseparated post-21:50 UTC part of 12 Sept and Cost Explorer lag. Excludes row 23 (runs/b2, charged separately by the ledger). Re-read Cost Explorer and raise this before each production epoch.",
+ "schema": "t1-aws-budget-baseline-2",
+ "spent_usd": 500.0,
+ "through_utc": "2026-10-10T00:00:00Z",
+ "through_epoch": 1791590400,
+ "idle_usd_per_day": 5.5,
+ "derivation": {
+  "cost_explorer_13sep_to_09oct_usd": 383.13,
+  "cost_explorer_12sep_non_sagemaker_whole_day_usd": 5.42,
+  "sagemaker_12sep_after_cutoff_bound_usd": 109.2,
+  "sum_usd": 497.75,
+  "declared_usd": 500.0
+ },
+ "source": "AWS Cost Explorer (profile xtenure-read) read 11 Oct 2026 ~00:40 UTC: USD 387.01 from 13 Sept, of which 10 Oct (partial, 3.88) is replaced by the idle accrual; 12 Sept by service: SageMaker 1,978.78, S3 2.42, VPC 2.90, ECR 0.07, CE 0.03. The 21:50 UTC cutoff cannot be separated at daily granularity, so the post-cutoff part of 12 Sept is BOUNDED: 42 SageMaker training jobs (d4v12b, all ml.c8i.2xlarge, count 1) were alive at 21:50 UTC (describe-training-job, eu-north-1 and us-west-2), at most 2.167 h each before midnight = 91 instance-hours, charged at USD 1.20/instance-hour (above the ~USD 1.09/h implied by 13 Sept and above on-demand) = 109.20; the whole of 12 Sept's non-SageMaker charge is counted. Cost Explorer lags about a day (attempt-4's EC2 charge of 10 Oct was not yet visible): every started day after through_utc accrues idle_usd_per_day (VPC endpoints + S3 = 5.41/day, rounded up), and EC2 attempts are charged by their run ledgers (runs/*), possibly twice once Cost Explorer shows them - a conservative overlap. Re-read and re-declare before each production epoch.",
  "cap": "USD 3,000 further spend from 12 Sept 2026 21:50 UTC (owner)"
 }

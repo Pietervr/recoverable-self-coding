@@ -146,7 +146,8 @@
     "chpc/row19_screen_resources.json": "f5352bc3ae7c5195e2081baa5685b4533fc8add0d5cfd5c48009e72610bebba0",
     "chpc/row19_partition.py": "ef36bf4721348684948ae3a40c4fac46f27de2287cef2838dba51b4127e1f17e",
     "chpc/row19_ec2_ingest.py": "6bbc7a747962dae8d024f1aaf69fde2d2f035f2110ce5bb71c1d58d6150a39a3",
-    "chpc/row19_ec2_state.py": "2ddabba587d4b19fcf064fc8c0473c20a761029fd2048a9b627cc74c55979818"
+    "chpc/row19_ec2_state.py": "2ddabba587d4b19fcf064fc8c0473c20a761029fd2048a9b627cc74c55979818",
+    "chpc/row19_ec2_qualify.py": "65dd8f60069ca86ac8ee9fb45da318112833040ee380542ca4c1340d42466291"
    },
    "partition": null
   }
