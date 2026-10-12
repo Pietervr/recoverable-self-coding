@@ -115,9 +115,9 @@ does not override V15-1.
 
 Static test source has 51 checks: 32 shared-rule checks (four positives and
 28 negatives), six status checks, twelve admission checks and one conditional
-real replay. The orphan-timing counterexample is not covered. The “unattributable
-timing anywhere” negative concerns unreadability rather than a readable orphan
-outside the survivor plan.
+real replay. The orphan-timing counterexample is not covered. The “unknown
+attribution anywhere” negative uses an unpublished `.tmp` timing file, rather
+than a readable published orphan outside the survivor plan.
 
 The conditional real replay (`test_crashed_slot_r14.py:227–252`) uses cached
 local evidence and a retained receipt/verifier; it does not pull fresh evidence.
