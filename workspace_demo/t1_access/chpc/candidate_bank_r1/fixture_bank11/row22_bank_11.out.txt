@@ -1,0 +1,5 @@
+host cnode0359  model name	: Intel(R) Xeon(R) CPU E5-2690 v3 @ 2.60GHz  mem MemTotal:       131918228 kB
+code 012f3f3  start 2026-10-10T19:13:18Z  job 7531003.sched01  bank job 11
+reservation dcb830e255e2: bank job 11, 864.0 core-h
+environment: python 3.12.10 jax 0.11.1 numpy 2.4.6 x86_64 backend cpu; code pins verified for ['analyze.py', 'chpc/row19_ledger.py', 'chpc/row19_shard.py', 'chpc/row19_slice.py', 'chpc/row22_bank.py', 'chpc/row22_target.py', 'models.py', 'simulate.py']; bank binding published or equal
+bank job 11 admitted: 24 slots, 24 datasets, start 2026-10-10T19:14:00Z
