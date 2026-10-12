@@ -1,21 +1,21 @@
 {
  "schema": "row19-screen-controls-adoption-1",
  "controls_path": "chpc/row19_screen_controls.json",
- "controls_sha256": "840840f53543763669a730f0c92d12a7a4484d31dda631576cbaf3f53992f83c",
- "version": 13,
- "controls_commit": "43a58d1",
+ "controls_sha256": "95d9bdfe4e4883b3e04d458a606c34d8504584b65e41344185beb8980df65630",
+ "version": 14,
+ "controls_commit": "70cbfd5",
  "review_record": {
-  "path": "reviews/2026-10-11_pbs_settled_observation_codex_record.md",
-  "sha256": "1d71afacaf1f8f722b808a9c9bba5f1cc479d5a1609985a5ffab86d8f92f4abd",
-  "commit": "5bab1a9",
-  "adopt_line": "ADOPT row19-screen-controls sha256=840840f53543763669a730f0c92d12a7a4484d31dda631576cbaf3f53992f83c version=13"
+  "path": "reviews/2026-10-12_v14_status_r13_codex_record.md",
+  "sha256": "4618b933904f35d1049e2d64e0b7db5e777e0ef458deb54fe6f506bdcc6285a5",
+  "commit": "1de6dc0",
+  "adopt_line": "ADOPT row19-screen-controls sha256=95d9bdfe4e4883b3e04d458a606c34d8504584b65e41344185beb8980df65630 version=14"
  },
  "by": "R052 Entropy SI (Claude)",
  "previous": {
-  "version": 9,
-  "controls_sha256": "45f840bc768f8729155f8ad39bd2f27dbae9525322398867dfff76d9ee310c07",
-  "adoption_sha256": "42b99b4d4ceda4bf985d371d6740e87bc77596490cd2fbe4d07ac7c81d90e1f3",
-  "archived": "Lengau archive_screen/v9_before_v13, Mac chpc/results/archive/row19_screen_v9_before_v13/"
+  "version": 13,
+  "controls_sha256": "840840f53543763669a730f0c92d12a7a4484d31dda631576cbaf3f53992f83c",
+  "adoption_sha256": "150b7f6ff47aa49b5850541655d835ce6d59183dcf02116664505ed3fea98bdf",
+  "archived": "Lengau archive_screen/v13_before_v14, Mac chpc/results/archive/row19_screen_v13_before_v14/"
  },
- "scope": "direct v9 -> v13 (Codex 64034c5; controls 840840f5 per Codex 5bab1a9): controllers + the epoch-1 partition 8d1de408 pinned; grants no job and no EC2 permission; canonical activation under the plan lock, fresh whole-role v13 receipts and an adopted review of the REGENERATED refit pilot qualification (new hash, max job 100, no new fit) precede any further gated refit admission"
+ "scope": "status-only v13 -> v14 (Codex 1de6dc0; REVISION 13: settled refit memory keeps the largest direct value and recorded breaches): every other controller byte, the epoch-1 partition 8d1de408 and the activation unchanged; grants no job and no EC2 permission; fresh whole-role receipts and an adopted review of the REGENERATED refit pilot qualification (new hash, max job 100, no new fit) precede any further gated refit admission"
 }

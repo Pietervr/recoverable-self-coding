@@ -308,6 +308,59 @@
     "admission": "chpc/row19_ec2_shadow.py",
     "rule": "isolated root and campaign, outside the canonical denominator; every attempt, retry, status, failure, settlement and STOP kept"
    }
+  },
+  {
+   "version": 14,
+   "commit": "candidate: see the commit that adds this entry",
+   "reviewed": "pending Codex re-review of REVISION 13: v14 = adopted v13 (840840f5, Codex RSC 5bab1a9) with ONLY chpc/row19_screen_status.py changed. REVISION 12 (status ed7bf067, controls 66ba965e) was NOT FAVOURABLE (Codex RSC 7523370 (a)): a newly observed same-job memory breach could vanish after PBS expiry. REVISION 13 applies the bank's reviewed breach rule (c38779c/5183208) to settled refit jobs: every fresh production receipt, alarmed or not, with the same PBS id at F and the same exit is consulted; only DIRECT observations are consumed (a qstat-observed summary's mem_kb, or the new qstat_mem_kb a settled summary records from this status's own live query - never a carried mem_kb); the largest is checked; a receipt's own '>90 %' alarm for that job is kept as memory_breach and alarms in every later receipt. Tests chpc/test_pbs_settled_r13.py 51/51 (fails against REVISION 12's bytes), chpc/test_pbs_settled.py 31/31. Every other byte, the partition, programme, sub-envelope and qualification_S unchanged. NOT adopted.",
+   "files": {
+    "chpc/row19_screen_admit.py": "a5fac9a96e2073e9c89ca52ced9667692e4d65e838d93feb60b63fa5015fbeca",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "05d952bd67b73a71c3ddea2919b38e5abb1696af03f77a78a1d55f7be80a680b",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0",
+    "chpc/row19_screen_resources.json": "f5352bc3ae7c5195e2081baa5685b4533fc8add0d5cfd5c48009e72610bebba0",
+    "chpc/row19_partition.py": "ed6aa177a2c144d277be137212822ae405694dc342bded9bcaf6a50a4d9dd75f",
+    "chpc/row19_ec2_ingest.py": "b697dc366d8fbb06619fa01cbdd5a51460a1c0e2f2bbb3d85d1a1c1a48788639",
+    "chpc/row19_ec2_state.py": "bda200dc1fa01753083b2150e2605bad6aa63cc1ed5d4f56b17858681500cf27",
+    "chpc/row19_ec2_qualify.py": "1fc6b61fca18e4823988ec895266083895cbafcc5f9b6a10a6606e7dcd052ad6",
+    "chpc/row19_ec2_root.py": "ceba9b3285b6bc66fff32bdc79ebbb70f09e5701794e0fa9764b1f253c169005",
+    "chpc/row19_ec2_shadow.py": "ce4dc15c2a73df40c660f1d2db1344b9ae745c5609c4165b57b956995b12c632",
+    "chpc/row19_qual_S_manifest.json": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "aws_ec2/qual_S_plan.json": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9"
+   },
+   "partition": {
+    "path": "chpc/row19_partition_e1.json",
+    "sha256": "8d1de408b6ef9dc66d4736b6138536de6591f0d29ebdd6fd00a6e43307225608"
+   },
+   "sub_envelopes": [
+    {
+     "name": "refit+S",
+     "campaigns": [
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign"
+     ],
+     "cap_core_h": 60000.0,
+     "rule": "the screen refit campaign and the isolated S campaign share ONE 60,000 core-h envelope (settled + every live reservation); each admission of either checks it under the programme lock"
+    }
+   ],
+   "qualification_S": {
+    "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/root",
+    "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign",
+    "manifest_path": "chpc/row19_qual_S_manifest.json",
+    "manifest_sha256": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "plan_path": "aws_ec2/qual_S_plan.json",
+    "plan_sha256": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9",
+    "jobs": [
+     1,
+     2
+    ],
+    "reserved_core_h_each": 1152.0,
+    "reserved_core_h": 2304.0,
+    "kind": "shard",
+    "admission": "chpc/row19_ec2_shadow.py",
+    "rule": "isolated root and campaign, outside the canonical denominator; every attempt, retry, status, failure, settlement and STOP kept"
+   }
   }
  ],
  "deployment": {
