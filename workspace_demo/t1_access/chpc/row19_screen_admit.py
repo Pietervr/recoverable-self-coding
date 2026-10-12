@@ -139,6 +139,31 @@ view binds the observed settlement certificate (charge, note, non-negative time,
 admission and the transition check require it EXACTLY equal to the current ledger entry (certificate_problem), and a negative
 settlement time refuses. R3 the reservation's cores must be an exact non-boolean integer equal to the envelope's, with
 reserved = cores x walltime (no truncation).
+
+REVISION 14 CANDIDATE (R052 12 Oct; refit job 13 7531397, slot 16 = rep 83 index 2 died of SIGSEGV after an LLVM "Cannot
+allocate memory" during XLA compilation, 22.6 h into its only resample; NOT adopted). CRASHED-WORKER SLOT DISPOSITION: a terminal
+refit job whose only defect is that one or more planned workers died of a fatal signal before writing any status. A Python-level
+failure always writes a status (row19_shard worker's BaseException handler), so a missing status with job-end HELD 4 is either
+such a death or unexplained; crashed_slot_evidence() separates the two and is the ONE implementation (the status view calls it to
+report; this admission recomputes it from the CURRENT ledger, root and PBS output/error bytes and requires the receipt's
+disposition to be exactly equal). All must hold: the scheduler observation is state F with exit 4; the ledger entry is SETTLED
+with its settlement certificate and runner exit 4 (HELD); the plan is the entry's token, job and PBS id; every surviving worker's
+status names this job and slot with exit 0 or 75 (a HELD worker is not a crash), and the status files scoped to the PBS id are
+exactly those; the PBS output names the PBS id, carries no ADMISSION FAILED and exactly one 'job <n> ended: exit 4; workers exit
+codes [...]' line whose list is None exactly at the missing slots and the statuses' exits elsewhere; the PBS error stream carries,
+per missing slot, exactly one bash job-control line naming the job's script (<PBS id>.SC) and a fatal signal (Segmentation fault,
+Bus error, Aborted, Illegal instruction) for THAT slot's exact planned worker command (rep, indices, slot), and no other worker
+death line (Killed / Terminated never qualify: an external kill is not a worker fault); no unit at a crashed coordinate carries
+timing naming the PBS id; EVERY timing file naming the PBS id (V15-1, Codex 5ca7fbd) is readable, at its canonical path
+timing/rep<R>/t_<iii>.json with strict integer rep, index and slot, the path EXACTLY the publisher's formatting of them
+(row19_shard.timing_path: no leading-zero rep alias), and at a SURVIVING worker's planned
+coordinate in that worker's slot (an orphan outside the plan, a wrong slot or a path alias refuses); and every crashed coordinate holds no
+file, or only a later bound job's verified planned completion (R1). The receipt binds the output and error bytes
+(`bound.slot_outputs`); the summary keeps the actual exits (scheduler 4, runner 4), counts only the surviving workers as ended
+and accounts the crashed coordinates as `uncompleted` with origin "crashed-slot". Then, and only then, the scheduler-exit,
+runner-exit and those slots' missing-status alarms are not raised, and the job's units reconcile against its plan minus the
+crashed coordinates. Nothing is credited; the charge stays; the coordinates return to the planner (not done, not in flight); a
+slot-dispositioned job never qualifies a pilot.
 """
 import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
 
@@ -964,6 +989,195 @@ def disposition_problem(man, manifest_path, role, n, sj, bound, units):
     return ""
 
 
+CRASH_KIND = "crashed-worker-no-status"
+HELD_EXIT = 4                                                   # row19_shard.HELD: the job-end code when a worker has no 0/75 status
+SIGNAL_DEATHS = ("Segmentation fault", "Bus error", "Aborted", "Illegal instruction")   # bash's report of a worker killed by its OWN fault
+_SIG_RE = "|".join(re.escape(s) for s in SIGNAL_DEATHS)
+
+
+PBS_SPOOL = "/var/spool/PBS/mom_priv/jobs"
+
+
+def crash_line_re(jid, sl, lustre_root):
+    """The bash job-control line PBS's stderr carries when THIS planned worker died of a fatal signal: refit_pbs_script's exact
+    worker command for this plan slot - the job script in PBS's spool named by the PBS id, the screen manifest (chpc/
+    row19_screen_manifest.json, relative to the job clone), the slot's rep/indices/slot and its log under the campaign root."""
+    idx = ",".join(str(int(i)) for i in sl["indices"])
+    return re.compile(rf"^{re.escape(PBS_SPOOL)}/{re.escape(jid)}\.SC: line \d+: +\d+ ({_SIG_RE})(?: \(core dumped\))? +\$T/t1py chpc/row19_shard\.py worker "
+                      rf"--manifest (?:[^ ]*/)?chpc/row19_screen_manifest\.json --rep {int(sl['rep'])} --indices {idx} --slot {int(sl['slot'])} --job-id \$PBS_JOBID "
+                      rf"--deadline-epoch \$DEADLINE > {re.escape(lustre_root)}/logs/job\$PBS_JOBID\.slot{int(sl['slot'])}\.log 2>&1$")
+
+
+TIMING_REL = re.compile(r"^timing/rep([0-9]+)/t_([0-9]{3})\.json$")
+ANY_DEATH_RE = re.compile(rf"\.SC: line \d+: +\d+ ({_SIG_RE}|Killed|Terminated)")
+END_RE = re.compile(r"^job (\d+) ended: exit (-?\d+); workers exit codes (\[[^\]]*\]); wall \d+ s$")
+
+
+def crashed_slot_evidence(man, role, n, e, plan, jid, obs, out_bytes, err_bytes, units, entries, root=None, slot_map=None):
+    """REVISION 14: (evidence, '') when job n is a terminal, SETTLED refit job whose ONLY defect is that one or more planned
+    workers died of a fatal signal before writing any status (so the job-end code is HELD 4), recomputed from the given ledger
+    entries, the root on disk and the job's PBS output and error bytes; (None, reason) otherwise. Used by the status view (to
+    report and un-alarm) and by the admission (to recompute, never taking the receipt's word)."""
+    import ast
+    n = int(n)
+    if role != "refit":
+        return None, "only refit jobs carry crashed-worker slot dispositions"
+    if (obs or {}).get("state") != "F" or (obs or {}).get("exit") != HELD_EXIT or isinstance((obs or {}).get("exit"), bool):
+        return None, f"the scheduler observation is not state F with exit {HELD_EXIT}"
+    if e.get("state") != "settled" or not (_num(e.get("settled_core_h")) and e["settled_core_h"] >= 0) \
+            or not (_num(e.get("settled_at")) and e["settled_at"] >= 0) or not (isinstance(e.get("settle_note"), str) and len(e["settle_note"].strip()) >= 8):
+        return None, "the ledger entry is not SETTLED with settlement evidence (charge, note, non-negative time)"
+    if e.get("runner_exit") != HELD_EXIT or isinstance(e.get("runner_exit"), bool):
+        return None, f"the ledger's runner exit is {e.get('runner_exit')}, not HELD {HELD_EXIT}"
+    if not jid or e.get("job_id") != jid or not e.get("token") or plan.get("token") != e.get("token") or plan.get("job") != n:
+        return None, "the plan is not this entry's token, job and PBS id"
+    root = root or man["storage"]["root"]; slots = plan.get("slots") or []
+    slot_map = slot_map or (lambda m: _plan_slot_of(man, m))
+    present, missing = {}, []
+    for sl in slots:
+        p = os.path.join(root, "status", f"job{jid}.slot{int(sl['slot'])}.json")
+        if not os.path.exists(p):
+            missing.append(sl); continue
+        try:
+            st = _strict_load(p)
+        except Exception:
+            return None, f"slot {sl['slot']}: its worker status is unreadable"
+        if not isinstance(st, dict) or st.get("job") != jid or st.get("slot") != int(sl["slot"]) or st.get("exit") not in (0, 75) or isinstance(st.get("exit"), bool):
+            return None, f"slot {sl['slot']}: its worker status is not this job's slot with exit 0 or 75 (a HELD worker is not a crash)"
+        present[int(sl["slot"])] = st["exit"]
+    if not missing:
+        return None, "every planned worker wrote a status; nothing crashed"
+    want_scoped = sorted(f"job{jid}.slot{s}.json" for s in present)
+    if sorted(status_scoped(root, jid)) != want_scoped:
+        return None, f"status evidence scoped to {jid} is not exactly the surviving workers' statuses"
+    txt = out_bytes.decode("utf-8", errors="replace")
+    if "ADMISSION FAILED" in txt or f"job {jid}" not in txt:
+        return None, f"the PBS output reports ADMISSION FAILED or does not name {jid}"
+    ends = [m for m in (END_RE.match(l) for l in txt.splitlines()) if m]
+    if len(ends) != 1 or int(ends[0].group(1)) != n or int(ends[0].group(2)) != HELD_EXIT:
+        return None, f"the PBS output does not carry exactly one 'job {n} ended: exit {HELD_EXIT}' line"
+    try:
+        codes = ast.literal_eval(ends[0].group(3))
+    except Exception:
+        return None, "the PBS output's worker exit codes are unparsable"
+    want_codes = [present.get(int(sl["slot"])) for sl in slots]
+    if not isinstance(codes, list) or codes != want_codes:
+        return None, f"the job-end worker codes {codes} are not None exactly at the missing slots and the statuses' exits elsewhere"
+    err = err_bytes.decode("utf-8", errors="replace").splitlines()
+    out_slots = []
+    for sl in missing:
+        rx = crash_line_re(jid, sl, man["storage"]["root"]); hits = [m for m in (rx.match(l) for l in err) if m]
+        if len(hits) != 1:
+            return None, f"slot {sl['slot']}: the PBS error stream does not carry exactly one fatal-signal line for its planned worker"
+        out_slots.append(dict(slot=int(sl["slot"]), rep=int(sl["rep"]), indices=[int(i) for i in sl["indices"]], signal=hits[0].group(1),
+                              err_line=hits[0].group(0)))
+    deaths = [l for l in err if ANY_DEATH_RE.search(l)]
+    if len(deaths) != len(missing):
+        return None, f"the PBS error stream reports {len(deaths)} worker death(s), not exactly the {len(missing)} missing worker(s)"
+    gone = {f"{int(sl['rep'])}/{int(i)}": int(sl["slot"]) for sl in missing for i in sl["indices"]}
+    named = sorted(k for k, u in units.items() if ((u or {}).get("timing") or {}).get("job") == jid and k in gone)
+    if named:
+        return None, f"unit(s) {named[:3]} at a crashed worker's coordinates carry timing naming {jid}"
+    surv = {f"{int(sl['rep'])}/{int(i)}": int(sl["slot"]) for sl in slots if int(sl["slot"]) in present for i in sl["indices"]}
+    for rel in timing_scan(root, jid):                                  # V15-1 (Codex 5ca7fbd): EVERY same-job timing is a survivor's
+        m = TIMING_REL.match(rel)
+        if not m:
+            return None, f"timing evidence of unknown attribution ({rel})"
+        try:
+            t = _strict_load(os.path.join(root, rel))
+        except Exception:
+            return None, f"timing evidence of unknown attribution ({rel})"
+        if not isinstance(t, dict) or t.get("job") != jid or not all(_int(t.get(f)) for f in ("rep", "index", "slot")):
+            return None, f"timing {rel} names {jid} without integer rep, index and slot"
+        if rel != f"timing/rep{t['rep']}/t_{t['index']:03d}.json":          # the publisher's exact path (row19_shard.timing_path)
+            return None, f"timing {rel} is not at its canonical path (it names {t['rep']}/{t['index']})"
+        k = f"{t['rep']}/{t['index']}"
+        if surv.get(k) != t["slot"]:
+            return None, f"timing {rel} names {jid} slot {t['slot']} at {k}, not a surviving worker's planned coordinate and slot"
+    num_of = {x.get("job_id"): int(x["rep"]) for x in entries if x.get("kind") == ROLES[role] and x.get("job_id")}
+    plans = {}
+
+    def pso(m):
+        if m not in plans:
+            plans[m] = slot_map(m)
+        return plans[m]
+    for k in sorted(gone):
+        files, odd = coordinate_files(man, root, role, k)
+        if odd:
+            return None, f"coordinate {k}: temporary or non-canonical output files {[os.path.basename(p) for p in odd][:3]}"
+        if files or (units.get(k) or {}).get("record") is not None:
+            why = later_completion(man, root, role, units, k, n, num_of, pso)
+            if why:
+                return None, f"coordinate {k} holds output that is not a later bound job's planned completion ({why})"
+    pp = os.path.join(root, "plans", f"job_{n}.json")
+    return dict(kind=CRASH_KIND, job_id=jid, scheduler_state="F", scheduler_exit=HELD_EXIT, runner_exit=HELD_EXIT,
+                settled_core_h=e["settled_core_h"], settle_note=e["settle_note"], settled_at=e["settled_at"], token=e["token"],
+                plan_sha256=sha_file(pp), output_file=f"row19_screen_{role}_{n}.out", output_sha256=hashlib.sha256(out_bytes).hexdigest(),
+                error_file=f"row19_screen_{role}_{n}.err", error_sha256=hashlib.sha256(err_bytes).hexdigest(),
+                slots=out_slots, uncompleted=sorted(gone),
+                note="worker(s) killed by a fatal signal before any status or record: charged, no completion or credit; "
+                     "the coordinates return to the planner; the job never qualifies"), ""
+
+
+def job_error_path(man, role, n):
+    return os.path.join(man["shard"]["toolchain"], "jobs", f"row19_screen_{role}_{int(n)}.err")
+
+
+def slot_disposition_problem(man, manifest_path, role, n, sj, bound):
+    """REVISION 14: '' only when the receipt's crashed-worker slot disposition of job n is exactly what crashed_slot_evidence
+    recomputes HERE from the current ledger, root and PBS output/error bytes on disk, the receipt binds those bytes, and the
+    summary accounts the crashed coordinates as uncompleted (origin "crashed-slot") and everything else from the statuses."""
+    n = str(int(n)); d = sj.get("slot_disposition") if isinstance(sj, dict) else None
+    if not isinstance(d, dict) or d.get("kind") != CRASH_KIND:
+        return f"job {n}: no crashed-worker slot disposition"
+    if sj.get("disposition") is not None:
+        return f"job {n}: a job cannot carry both dispositions"
+    jid = sj.get("job_id")
+    led = _strict_load(os.path.join(man["storage"]["campaign"], "budget.json"))
+    hits = [e for e in led["entries"].values() if e.get("kind") == ROLES[role] and e.get("rep") == int(n)]
+    if len(hits) != 1:
+        return f"job {n}: {len(hits)} current ledger entries"
+    e = hits[0]
+    why = certificate_problem(d, e)
+    if why:
+        return f"job {n}: {why}"
+    bj = (bound.get("jobs") or {}).get(n) or {}
+    pp = os.path.join(man["storage"]["root"], "plans", f"job_{n}.json")
+    try:
+        plan = _strict_load(pp)
+    except (OSError, ValueError):
+        return f"job {n}: its plan is absent or unreadable"
+    if not jid or bj.get("job_id") != jid or bj.get("token") != e.get("token") or sha_file(pp) != bj.get("plan_sha256") or d.get("plan_sha256") != bj.get("plan_sha256"):
+        return f"job {n}: the PBS id, token or plan is not the bound one"
+    so = (bound.get("slot_outputs") or {}).get(n) or {}
+    blobs = {}
+    for kind, path, fk, sk in (("out", job_output_path(man, role, n), "output_file", "output_sha256"),
+                               ("err", job_error_path(man, role, n), "error_file", "error_sha256")):
+        b = so.get(kind) or {}
+        if b.get("file") != os.path.basename(path) or b.get("file") != d.get(fk) or not _hex64(b.get("sha256")) or b["sha256"] != d.get(sk):
+            return f"job {n}: the receipt does not bind the PBS {kind} bytes of the disposition"
+        try:
+            blobs[kind] = open(path, "rb").read()
+        except OSError as ex:
+            return f"job {n}: the PBS {kind} file {path} is absent or unreadable ({ex})"
+        if hashlib.sha256(blobs[kind]).hexdigest() != b["sha256"]:
+            return f"job {n}: the PBS {kind} file is not the bytes the receipt bound; recollect"
+    vdoc = _verifier_doc(man, bound)
+    obs = dict(state=sj.get("state"), exit=sj.get("exit"))
+    got, why = crashed_slot_evidence(man, role, n, e, plan, jid, obs, blobs["out"], blobs["err"], vdoc.get("units") or {}, list(led["entries"].values()))
+    if why:
+        return f"job {n}: not a crashed-worker slot disposition ({why})"
+    if got != d:
+        return f"job {n}: the receipt's slot disposition is not what the current evidence gives; recollect"
+    want = plan_slots(man, n); k = len(d["slots"])
+    if not (_int(sj.get("slots")) and sj["slots"] == want and _int(sj.get("ended")) and sj["ended"] == want - k and sj.get("runner_exit") == HELD_EXIT):
+        return f"job {n}: the summary is not {want - k} ended workers of {want} with runner exit {HELD_EXIT}"
+    part = sj.get("partition")
+    if not isinstance(part, dict) or part.get("uncompleted") != d["uncompleted"] or part.get("uncompleted_origin") != "crashed-slot":
+        return f"job {n}: the crashed workers' coordinates are not accounted as uncompleted with origin crashed-slot"
+    return ""
+
+
 def plan_slots(man, n):
     p = os.path.join(man["storage"]["root"], "plans", f"job_{n}.json")
     return len(json.load(open(p))["slots"]) if os.path.exists(p) else None
@@ -975,9 +1189,24 @@ def job_summary_problem(man, n, s, pilot=False):
         return f"job {n}: no summary"
     if pilot and s.get("disposition") is not None:
         return f"job {n}: a dispositioned job never qualifies a pilot"
+    if pilot and s.get("slot_disposition") is not None:
+        return f"job {n}: a slot-dispositioned job never qualifies a pilot"
     if s.get("state") in ("Q", "R", "H", "W", "B"):
         return "" if not pilot else f"job {n} is not terminal"
     want = plan_slots(man, n)
+    if s.get("slot_disposition") is not None:                                 # REVISION 14: validated by slot_disposition_problem
+        k = len((s["slot_disposition"] or {}).get("slots") or [])
+        if s.get("state") != "F" or s.get("exit") != HELD_EXIT or s.get("runner_exit") != HELD_EXIT or isinstance(s.get("exit"), bool) or not k:
+            return f"job {n}: a slot-dispositioned job must be F with scheduler and runner exit {HELD_EXIT} and at least one crashed slot"
+        if not (_int(s.get("slots")) and s["slots"] == want and _int(s.get("ended")) and s["ended"] == want - k and _int(s.get("left")) and s["left"] >= 0
+                and _int(s.get("new")) and s["new"] >= 0 and _int(s.get("resumed")) and s["resumed"] >= 0):
+            return f"job {n}: the plan's {want} workers less {k} crashed did not all end"
+        ex = s.get("exits")
+        if not isinstance(ex, dict) or any(x not in ("0", "75") or not _int(v) or v < 0 for x, v in ex.items()) or sum(ex.values()) != want - k:
+            return f"job {n}: surviving worker exits {ex} are not all 0/75 for {want - k} workers"
+        if not (_num(s.get("mem_kb")) and s["mem_kb"] >= 0 and _num(s.get("max_worker_maxrss")) and s["max_worker_maxrss"] >= 0):
+            return f"job {n}: observed scheduler and worker memory are not finite and non-negative"
+        return ""
     if s.get("state") != "F" or not (_int(s.get("exit")) and s["exit"] in (0, 75)) or not (_int(s.get("runner_exit")) and s["runner_exit"] in (0, 75)):
         return f"job {n} is not terminal F with scheduler and runner exits 0 or 75 (integers)"
     if not (_int(s.get("slots")) and s["slots"] == want and _int(s.get("ended")) and s["ended"] == want and _int(s.get("left")) and s["left"] >= 0
@@ -1036,6 +1265,11 @@ def units_problem(man, v, rec, pilot_job=None):
             continue                                                          # REVISION 8: validated by disposition_problem
         if (sj or {}).get("state") in TERMINAL_STATES:
             slot_of = _plan_slot_of(man, n)
+            if isinstance(sj, dict) and sj.get("slot_disposition") is not None:     # REVISION 14: the crashed coordinates are uncompleted
+                gone = set((sj["slot_disposition"] or {}).get("uncompleted") or [])
+                if not gone or not gone <= set(slot_of) or [k for k in gone if ((units.get(k) or {}).get("timing") or {}).get("job") == jid]:
+                    return f"job {n}: its crashed coordinates are not planned for it, or carry timing naming it"
+                slot_of = {k: v for k, v in slot_of.items() if k not in gone}
             good = [k for k, u in units.items() if k in slot_of and (u.get("record") or {}).get("ok") and (u.get("timing") or {}).get("ok") is True
                     and (u.get("timing") or {}).get("job") == jid and _int((u.get("timing") or {}).get("slot"))
                     and slot_of[k] == (u.get("timing") or {}).get("slot")]
@@ -1136,6 +1370,11 @@ def transition_problem(man, role, r):
                     or e.get("job_id") != sj.get("job_id") or not _num(e.get("settled_core_h")) or not _num(d.get("settled_core_h")) \
                     or abs(e["settled_core_h"] - d["settled_core_h"]) > 1e-9 or certificate_problem(d, e):
                 return f"job {n}: the ledger no longer shows the disposed job as the receipt saw it (SETTLED, same settlement certificate and PBS id, no runner end); recollect"
+            continue
+        if isinstance(sj, dict) and sj.get("slot_disposition") is not None:          # REVISION 14: the same settled certificate
+            d = sj["slot_disposition"] if isinstance(sj["slot_disposition"], dict) else {}
+            if e.get("state") != "settled" or e.get("runner_exit") != HELD_EXIT or e.get("job_id") != sj.get("job_id") or certificate_problem(d, e):
+                return f"job {n}: the ledger no longer shows the slot-disposed job as the receipt saw it (SETTLED, runner exit {HELD_EXIT}, same certificate and PBS id); recollect"
             continue
         if sj.get("state") not in TERMINAL_STATES and e.get("state") == "settled":
             return f"job {n} has been SETTLED since the receipt saw it {sj.get('state')}; recollect before admitting"
@@ -1256,6 +1495,8 @@ def receipt_problem(man, manifest_path, role, now=None):
     for n, sj in (r.get("jobs") or {}).items():
         if isinstance(sj, dict) and "disposition" in sj:
             why = disposition_problem(man, manifest_path, role, n, sj, r.get("bound") or {}, vdoc.get("units") or {})
+        elif isinstance(sj, dict) and "slot_disposition" in sj:                  # REVISION 14
+            why = slot_disposition_problem(man, manifest_path, role, n, sj, r.get("bound") or {}) or job_summary_problem(man, n, sj)
         else:
             why = job_summary_problem(man, n, sj)
         if why:

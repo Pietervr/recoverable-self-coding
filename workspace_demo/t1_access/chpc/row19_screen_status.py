@@ -92,7 +92,19 @@ the scheduler's observed walltime request (Resource_List.walltime); a difference
 file is an alarm (it used to stop the view).
 REPAIRS of Codex 5cb9a02: the disposition carries the observed settlement certificate (settle_note, settled_at, token, job_id,
 plan_sha256 beside the charge) for the admission to compare exactly (R2); a later completion at a disposed coordinate also needs
-its current canonical record and timing to be the verified evidence (R1, row19_screen_admit.current_artifacts_problem)."""
+its current canonical record and timing to be the verified evidence (R1, row19_screen_admit.current_artifacts_problem).
+
+REVISION 14 CANDIDATE (R052 12 Oct, refit job 13 7531397 slot 16 SIGSEGV; NOT adopted): a CRASHED-WORKER SLOT DISPOSITION.
+The fresh observation also retrieves the PBS output AND error stream (<toolchain>/jobs/row19_screen_<role>_<n>.out/.err) of every
+refit job whose ledger entry is settled with runner exit 4 (HELD); results in jobs/_fetch.json under "<n>" and "<n>.err" (a
+failed retrieval proves nothing and leaves the alarms). row19_screen_admit.crashed_slot_evidence (ONE implementation, recomputed
+by the admission) decides, from the snapshot's ledger, root, verifier units and those bytes, whether the job's only defect is
+planned workers killed by their own fatal signal before any status (conditions in the admission's REVISION 14 note). If so the
+summary carries `slot_disposition` (the evidence, both files' SHA-256, the crashed slots with the signal and the exact error
+line), the crashed coordinates are accounted `uncompleted` with origin "crashed-slot", the receipt binds both files
+(`bound.slot_outputs`) and retains copies beside it, and ONLY the scheduler-exit-4, runner-exit-4 and those slots'
+missing-status alarms are not raised; every other check of the job and of its surviving slots is unchanged. Otherwise the
+reason is kept as `slot_disposition_held` and the alarms stand. A slot-dispositioned job never qualifies."""
 import os, sys, json, glob, math, time, shutil, hashlib, argparse, subprocess, shlex, re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -268,14 +280,20 @@ def fetch_job_outputs(man, role, stage):
     except Exception:
         led = {"entries": {}}
     for e in (led.get("entries") or {}).values():
-        if e.get("kind") != KIND[role] or e.get("state") != "settled" or any(e.get(f) is not None for f in ("runner_exit", "runner_ended", "runner_wall_s")):
+        if e.get("kind") != KIND[role] or e.get("state") != "settled":
             continue
-        n = int(e["rep"]); name = f"row19_screen_{role}_{n}.out"; local = os.path.join(jd, name)
-        rc, _, err = sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", f"{HOST}:{man['shard']['toolchain']}/jobs/{name}", local])
-        ok = rc == 0 and os.path.isfile(local)
-        if not ok and os.path.exists(local):
-            os.remove(local)
-        res[str(n)] = dict(file=name, rc=rc, ok=ok, sha256=(sha_file(local) if ok else None), err=str(err).strip()[:160])
+        no_end = not any(e.get(f) is not None for f in ("runner_exit", "runner_ended", "runner_wall_s"))
+        held = role == "refit" and e.get("runner_exit") == 4 and not isinstance(e.get("runner_exit"), bool)   # REVISION 14
+        if not (no_end or held):
+            continue
+        n = int(e["rep"])
+        for key, name in ((str(n), f"row19_screen_{role}_{n}.out"),) + (((f"{n}.err", f"row19_screen_{role}_{n}.err"),) if held else ()):
+            local = os.path.join(jd, name)
+            rc, _, err = sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", f"{HOST}:{man['shard']['toolchain']}/jobs/{name}", local])
+            ok = rc == 0 and os.path.isfile(local)
+            if not ok and os.path.exists(local):
+                os.remove(local)
+            res[key] = dict(file=name, rc=rc, ok=ok, sha256=(sha_file(local) if ok else None), err=str(err).strip()[:160])
     json.dump(res, open(os.path.join(jd, "_fetch.json"), "w"), indent=1)
     return res
 
@@ -491,6 +509,33 @@ def closed_no_record(man, role, n, e, plan, j, o, units, ledger, live):
                 note="a charged failed attempt: no completion, no restart or recovery credit; its coordinates return to the planner"), ""
 
 
+def fetched(live, key, name):
+    """REVISION 14: (bytes, '') of a PBS file this observation retrieved and recorded unchanged, or (None, reason)."""
+    try:
+        f = json.load(open(os.path.join(live, "jobs", "_fetch.json"))).get(key) or {}
+    except Exception:
+        f = {}
+    p = os.path.join(live, "jobs", name)
+    if not f.get("ok") or f.get("file") != name or not os.path.isfile(p):
+        return None, f"{name} was not retrieved in this observation"
+    b = open(p, "rb").read()
+    if sha_bytes(b) != f.get("sha256"):
+        return None, f"{name} changed after retrieval"
+    return b, ""
+
+
+def crashed_slots(man, role, n, e, plan, j, o, units, ledger, live):
+    """REVISION 14: (slot disposition, '') or (None, reason), from row19_screen_admit.crashed_slot_evidence on THIS snapshot."""
+    import row19_screen_admit as _SA
+    ob, why = fetched(live, str(n), f"row19_screen_{role}_{n}.out")
+    eb, why2 = fetched(live, f"{n}.err", f"row19_screen_{role}_{n}.err")
+    if why or why2:
+        return None, why or why2
+    root = os.path.join(live, "root")
+    return _SA.crashed_slot_evidence(man, role, n, e, plan, j, o, ob, eb, units, list(ledger["entries"].values()),
+                                     root=root, slot_map=lambda m: _slot_map(root, m))
+
+
 def anchor_alarms(verify):
     an = verify.get("anchors") or {}
     if an.get("problem"):
@@ -684,6 +729,13 @@ def reconcile(man, role, verify, obs, ledger, live):
             s_sum["disposition"] = dispo
         elif dwhy:
             s_sum["disposition_held"] = dwhy
+        sdispo, crashed = None, set()                                       # REVISION 14: crashed-worker slot disposition
+        if role == "refit" and terminal and e.get("runner_exit") == 4 and not isinstance(e.get("runner_exit"), bool):
+            sdispo, swhy = crashed_slots(man, role, n, e, plan, j, o, units, ledger, live)
+            if sdispo:
+                s_sum["slot_disposition"] = sdispo; crashed = {d["slot"] for d in sdispo["slots"]}
+            else:
+                s_sum["slot_disposition_held"] = swhy
         if finite_nonneg(o.get("walltime_req_s")) and finite_nonneg(plan.get("walltime_s")) and abs(o["walltime_req_s"] - plan["walltime_s"]) > 1.0:
             alarms.append(f"{role} job {n} ({j}): the scheduler's walltime request {o['walltime_req_s']:.0f} s is not the plan's {plan['walltime_s']:.0f} s")
         started = state == "R" or terminal
@@ -692,11 +744,11 @@ def reconcile(man, role, verify, obs, ledger, live):
             alarms.append(f"{role} job {n}: reserved but not bound to a PBS id")
         if o.get("mem_kb") is not None and o["mem_kb"] > 0.9 * mem_req_kb:
             alarms.append(f"{role} job {n}: scheduler memory above 90 % of the request")
-        if terminal and not dispo and (state != "F" or o.get("exit") not in (0, 75)):
+        if terminal and not dispo and not sdispo and (state != "F" or o.get("exit") not in (0, 75)):
             alarms.append(f"{role} job {n} ({j}): terminal as state {state}, scheduler exit {o.get('exit')} (F with 0/75 required)")
         if terminal and not dispo and e.get("runner_exit") is None:
             alarms.append(f"{role} job {n} ({j}): terminal but no runner end in the ledger")
-        if e.get("runner_exit") not in (None, 0, 75):
+        if e.get("runner_exit") not in (None, 0, 75) and not sdispo:
             alarms.append(f"{role} job {n} ({j}): runner exit {e.get('runner_exit')}")
         if terminal and not finite_nonneg(o.get("mem_kb")):
             alarms.append(f"{role} job {n} ({j}): no finite observed scheduler memory")
@@ -709,7 +761,7 @@ def reconcile(man, role, verify, obs, ledger, live):
             except Exception:
                 alarms.append(f"{role} job {n} slot {sl['slot']}: the worker status is unreadable"); continue
             if st is None:
-                if terminal and not dispo:
+                if terminal and not dispo and int(sl["slot"]) not in crashed:
                     alarms.append(f"{role} job {n} slot {sl['slot']}: no worker status after the job ended (read its log)")
                 continue
             s_sum["ended"] += 1; s_sum["exits"][str(st.get("exit"))] = s_sum["exits"].get(str(st.get("exit")), 0) + 1
@@ -764,6 +816,8 @@ def reconcile(man, role, verify, obs, ledger, live):
         s_sum["partition"] = {x: sorted(v) for x, v in s_sum["partition"].items()}
         if dispo:
             s_sum["partition"].update(uncompleted=sorted(_slot_map(root, n)), uncompleted_origin="plan")
+        elif sdispo:
+            s_sum["partition"].update(uncompleted=list(sdispo["uncompleted"]), uncompleted_origin="crashed-slot")
         summary[str(n)] = s_sum
     ec2 = ec2_reconcile(man, role, units, root, assigned, alarms) if role == "refit" else {}
     for sp in glob.glob(os.path.join(root, "status", "*")):
@@ -828,6 +882,14 @@ def main(argv=None):
                   f"PBS output {d['output_file']} {d['output_sha256'][:12]}")
         elif s.get("disposition_held"):
             print(f"    not dispositioned: {s['disposition_held']}")
+        if s.get("slot_disposition"):
+            d = s["slot_disposition"]
+            for c in d["slots"]:
+                print(f"    SLOT-DISPOSITIONED (crashed worker): slot {c['slot']} rep {c['rep']} indices {c['indices']} - {c['signal']}; "
+                      f"no status, no record; coordinates uncompleted (crashed-slot)")
+            print(f"    PBS output {d['output_sha256'][:12]} error {d['error_sha256'][:12]}; settled {d['settled_core_h']:.2f} core-h charged")
+        elif s.get("slot_disposition_held"):
+            print(f"    not slot-dispositioned: {s['slot_disposition_held']}")
     for r, e in sorted(((verify.get("anchors") or {}).get("reps") or {}).items()):
         print(f"  anchor {r}: required {e.get('required')} compared {len(e.get('compared', []))} equal {len(e.get('equal', []))}")
     print("\n  ALARMS:" if alarms else ("\n  no alarms (fresh evidence)" if fresh else "\n  no alarms, but NOT fresh evidence"))
@@ -841,7 +903,10 @@ def main(argv=None):
                  code=dict(man["code"]["files"]), wrapper_sha256=man.get("environment", {}).get("wrapper_sha256"), jobs=jobs,
                  bindings=bindings, anchors_sha256=sha_bytes(json.dumps(verify.get("anchors"), sort_keys=True).encode()), verify_sha256=vsha,
                  job_outputs={k: dict(file=v["disposition"]["output_file"], sha256=v["disposition"]["output_sha256"])
-                              for k, v in summary.items() if v.get("disposition")})
+                              for k, v in summary.items() if v.get("disposition")},
+                 slot_outputs={k: dict(out=dict(file=v["slot_disposition"]["output_file"], sha256=v["slot_disposition"]["output_sha256"]),
+                                       err=dict(file=v["slot_disposition"]["error_file"], sha256=v["slot_disposition"]["error_sha256"]))
+                               for k, v in summary.items() if v.get("slot_disposition")})
     receipt = dict(schema=WATCH_SCHEMA, role=role, time=now, fresh=fresh, production=production, alarms=alarms, bound=bound, jobs=summary,
                    anchors=verify.get("anchors"), plan_slots={k: v["slots"] for k, v in summary.items()}, ec2=ec2)
     os.makedirs(RECEIPTS, exist_ok=True)
@@ -851,6 +916,9 @@ def main(argv=None):
     vsha_saved = sha_file(vp)
     for k, ob in bound["job_outputs"].items():                               # REVISION 8: retain the bound PBS output beside the receipt
         shutil.copy(os.path.join(live, "jobs", ob["file"]), os.path.join(RECEIPTS, f"{ob['file']}.{stamp}"))
+    for k, so in bound["slot_outputs"].items():                              # REVISION 14: retain both bound files
+        for ob in so.values():
+            shutil.copy(os.path.join(live, "jobs", ob["file"]), os.path.join(RECEIPTS, f"{ob['file']}.{stamp}"))
     if production:
         rc, _, err = sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", vp, f"{HOST}:{man['storage']['root']}/gate/{os.path.basename(vp)}"])
         if rc != 0:
@@ -879,6 +947,8 @@ def main(argv=None):
                 why.append(f"job {n}: observed scheduler and worker memory are not finite")
             if s.get("disposition") is not None:
                 why.append(f"job {n} is dispositioned (closed-no-record); a dispositioned job never qualifies")
+            if s.get("slot_disposition") is not None:
+                why.append(f"job {n} is slot-dispositioned (crashed worker); it never qualifies")
             if s["ended"] != s["slots"] or s["exits"] != {"0": s["slots"]} or s["left"]:
                 why.append(f"job {n}: not every planned worker completed its assignment ({s['exits']}, left {s['left']})")
         jn = jobs.get(n)

@@ -1,0 +1,21 @@
+{
+ "schema": "row19-screen-controls-adoption-1",
+ "controls_path": "chpc/row19_screen_controls.json",
+ "controls_sha256": "95d9bdfe4e4883b3e04d458a606c34d8504584b65e41344185beb8980df65630",
+ "version": 14,
+ "controls_commit": "70cbfd5",
+ "review_record": {
+  "path": "reviews/2026-10-12_v14_status_r13_codex_record.md",
+  "sha256": "4618b933904f35d1049e2d64e0b7db5e777e0ef458deb54fe6f506bdcc6285a5",
+  "commit": "1de6dc0",
+  "adopt_line": "ADOPT row19-screen-controls sha256=95d9bdfe4e4883b3e04d458a606c34d8504584b65e41344185beb8980df65630 version=14"
+ },
+ "by": "R052 Entropy SI (Claude)",
+ "previous": {
+  "version": 13,
+  "controls_sha256": "840840f53543763669a730f0c92d12a7a4484d31dda631576cbaf3f53992f83c",
+  "adoption_sha256": "150b7f6ff47aa49b5850541655d835ce6d59183dcf02116664505ed3fea98bdf",
+  "archived": "Lengau archive_screen/v13_before_v14, Mac chpc/results/archive/row19_screen_v13_before_v14/"
+ },
+ "scope": "status-only v13 -> v14 (Codex 1de6dc0; REVISION 13: settled refit memory keeps the largest direct value and recorded breaches): every other controller byte, the epoch-1 partition 8d1de408 and the activation unchanged; grants no job and no EC2 permission; fresh whole-role receipts and an adopted review of the REGENERATED refit pilot qualification (new hash, max job 100, no new fit) precede any further gated refit admission"
+}

@@ -361,6 +361,59 @@
     "admission": "chpc/row19_ec2_shadow.py",
     "rule": "isolated root and campaign, outside the canonical denominator; every attempt, retry, status, failure, settlement and STOP kept"
    }
+  },
+  {
+   "version": 15,
+   "commit": "candidate: see the commit that adds this entry",
+   "reviewed": "pending Codex re-review of REVISION 14 after V15-1 (records RSC ec27287, 485fe70): v15 = adopted v14 (95d9bdfe, Codex RSC 1de6dc0) with ONLY chpc/row19_screen_status.py and chpc/row19_screen_admit.py changed. The first candidate (controls 54e013da, RSC 651c0c5) was NOT FAVOURABLE: an orphan timing naming the crashed job outside its plan passed. Repair in crashed_slot_evidence: EVERY timing file naming the PBS id must be at its canonical path timing/rep<R>/t_<iii>.json with strict integer rep/index/slot and the path EXACTLY the publisher's formatting of them (no leading-zero alias; RSC 806cfe3 was NOT FAVOURABLE on rep067) and at a SURVIVING worker's planned coordinate in that worker's slot; the crash line is tightened to the PBS spool script, chpc/row19_screen_manifest.json and the campaign root's log path. Status bytes unchanged from 651c0c5. Tests chpc/test_crashed_slot_r14.py 71/71 (REAL refit 13 replay zero alarms). NOT adopted.",
+   "files": {
+    "chpc/row19_screen_admit.py": "ac06e803fdb1b3fdb11652017d8d1808f4ace880b8b2bb22463c3694e646d2ac",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "0effcba3977b1d7e76347a4082020633bceaf9ddeec0b05d4255aa9d7b93671b",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0",
+    "chpc/row19_screen_resources.json": "f5352bc3ae7c5195e2081baa5685b4533fc8add0d5cfd5c48009e72610bebba0",
+    "chpc/row19_partition.py": "ed6aa177a2c144d277be137212822ae405694dc342bded9bcaf6a50a4d9dd75f",
+    "chpc/row19_ec2_ingest.py": "b697dc366d8fbb06619fa01cbdd5a51460a1c0e2f2bbb3d85d1a1c1a48788639",
+    "chpc/row19_ec2_state.py": "bda200dc1fa01753083b2150e2605bad6aa63cc1ed5d4f56b17858681500cf27",
+    "chpc/row19_ec2_qualify.py": "1fc6b61fca18e4823988ec895266083895cbafcc5f9b6a10a6606e7dcd052ad6",
+    "chpc/row19_ec2_root.py": "ceba9b3285b6bc66fff32bdc79ebbb70f09e5701794e0fa9764b1f253c169005",
+    "chpc/row19_ec2_shadow.py": "ce4dc15c2a73df40c660f1d2db1344b9ae745c5609c4165b57b956995b12c632",
+    "chpc/row19_qual_S_manifest.json": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "aws_ec2/qual_S_plan.json": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9"
+   },
+   "partition": {
+    "path": "chpc/row19_partition_e1.json",
+    "sha256": "8d1de408b6ef9dc66d4736b6138536de6591f0d29ebdd6fd00a6e43307225608"
+   },
+   "sub_envelopes": [
+    {
+     "name": "refit+S",
+     "campaigns": [
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign"
+     ],
+     "cap_core_h": 60000.0,
+     "rule": "the screen refit campaign and the isolated S campaign share ONE 60,000 core-h envelope (settled + every live reservation); each admission of either checks it under the programme lock"
+    }
+   ],
+   "qualification_S": {
+    "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/root",
+    "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign",
+    "manifest_path": "chpc/row19_qual_S_manifest.json",
+    "manifest_sha256": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "plan_path": "aws_ec2/qual_S_plan.json",
+    "plan_sha256": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9",
+    "jobs": [
+     1,
+     2
+    ],
+    "reserved_core_h_each": 1152.0,
+    "reserved_core_h": 2304.0,
+    "kind": "shard",
+    "admission": "chpc/row19_ec2_shadow.py",
+    "rule": "isolated root and campaign, outside the canonical denominator; every attempt, retry, status, failure, settlement and STOP kept"
+   }
   }
  ],
  "deployment": {
