@@ -12,6 +12,8 @@ output binding, a stray binding, a bad exit without a disposition, and a status 
 REPAIR R1 (Codex RSC 4295ed6) negatives: B1-1 a malformed records/b0240.json beside a valid canonical rep 24, an undeclared
 rep and a directory hold; B1-2 after a clean receipt with a verified job-18 completion, a disk-only timing change (wall_s -1,
 another seed), changed record bytes or a missing bound verification refuse, and the unchanged verified completion passes;
+R2 (Codex RSC 82b7253): an extra records/ or timing/ b024.json followed by a newline beside the valid canonical rep 24 (job 11's
+planned reps empty) holds the status view and refuses the admission; a non-ASCII-digit name holds; the clean inventory passes.
 B1-3 a receipt missing job 11's summary AND output binding refuses; B1-4 missing, falsy or non-list alarms, a non-finite or
 boolean time, and a qualification whose embedded receipt has no alarm list, refuse."""
 import os, sys, json, shutil, tempfile, hashlib, copy
@@ -88,7 +90,7 @@ class World:
     def verify(self):
         reps = {}
         for p in sorted(os.listdir(os.path.join(self.root, "timing"))):
-            if not DP.TIMING_NAME.match(p):
+            if DP.canonical_name(p) is None:
                 continue
             r = int(p[1:4])
             try:
@@ -218,6 +220,26 @@ held("B1-1 a malformed records/b0240.json beside a valid canonical rep 24",
      lambda w: (w.output(24, J1, 0), open(os.path.join(w.root, "records", "b0240.json"), "w").write("{")))
 held("B1-1 an undeclared rep's record", lambda w: open(os.path.join(w.root, "records", "b999.json"), "w").write("{}"))
 held("B1-1 a directory under records/", lambda w: os.makedirs(os.path.join(w.root, "records", "b240.json")))
+
+def nl_world(sub, name="b024.json\n"):
+    w = World(); w.output(24, J1, 0)
+    open(os.path.join(w.root, sub, name), "w").write("{}")
+    return w
+
+for sub in ("records", "timing"):
+    w = nl_world(sub)
+    al, r = w.receipt(); s = w.run()[2]
+    check(f"R2 HOLDS: an extra {sub}/'b024.json\\n' beside valid rep 24", s["11"].get("disposition") is None and j11_alarms(al))
+    w2 = World(); w2.output(24, J1, 0); _, rc = w2.receipt()
+    open(os.path.join(w2.root, sub, "b024.json\n"), "w").write("{}")
+    check(f"R2 admission refuses after an extra {sub}/'b024.json\\n' appears", "not closed-no-record" in SU.dispositions_problem(w2.man, rc))
+    w.close(); w2.close()
+held("R2 a non-ASCII-digit name b\u0662\u0664\u0660.json", lambda w: open(os.path.join(w.root, "records", "b\u0662\u0664\u0660.json"), "w").write("{}"))
+w = World(); w.output(24, J1, 0)
+check("R2 a valid canonical inventory (rep 24 beside job 11) still dispositions", w.run()[2]["11"].get("disposition") is not None)
+check("R2 canonical_name is exact", DP.canonical_name("b024.json") == 24 and DP.canonical_name("b024.json\n") is None
+      and DP.canonical_name("b0240.json") is None and DP.canonical_name("b\u0662\u0664\u0660.json") is None)
+w.close()
 
 def retry_world():
     w = World(); w.plan(18, "tok18", REPS11)

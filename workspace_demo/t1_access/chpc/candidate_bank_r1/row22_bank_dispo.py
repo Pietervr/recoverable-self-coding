@@ -33,13 +33,16 @@ REPAIR R1 (Codex RSC 4295ed6, B1-1 and B1-2):
     (row22_bank_verify.timing_check: this rep, this seed when the caller knows it, finite non-negative wall_s, fit_seconds,
     maxrss and t, a job string and an integer slot), and a verify document is REQUIRED: its record must be valid with the
     CURRENT record bytes' SHA-256 and its timing valid with the same job and slot. The admission passes the verify document
-    the receipt bound (published to the gate beside the receipt) and the task seed."""
+    the receipt bound (published to the gate beside the receipt) and the task seed.
+
+REPAIR R2 (Codex RSC 82b7253): every name test is a FULL match of an ASCII pattern (Python's `$` admits a final newline, and
+`\\d` admits non-ASCII digits that int() accepts), and an evidence name must also equal its reconstruction b<rep:03d>.json."""
 import os, re, json, glob, math, hashlib
 
 DISPO_KIND = "bank-closed-no-record-1"
 RUNNER_END = ("runner_exit", "runner_ended", "runner_wall_s")
-STATUS_NAME = re.compile(r"^job(\S+)\.slot(\d+)\.json$")
-TIMING_NAME = re.compile(r"^b(\d{3})\.json$")
+STATUS_NAME = re.compile(r"job([!-~]+)\.slot([0-9]+)\.json", re.ASCII)
+TIMING_NAME = re.compile(r"b([0-9]{3})\.json", re.ASCII)
 RECORD_NAME = TIMING_NAME
 
 
@@ -85,7 +88,7 @@ def status_scoped(root, jid):
         try:
             d = json.load(open(p))
         except Exception:
-            if not STATUS_NAME.match(b):
+            if not STATUS_NAME.fullmatch(b):
                 hits.append(f"{b} (unreadable, no job named)")
             continue
         if not isinstance(d, dict) or d.get("job") == jid:
@@ -100,7 +103,7 @@ def timing_scan(root, jid):
         if os.path.isdir(p):
             continue
         rel = os.path.relpath(p, root)
-        if not TIMING_NAME.match(os.path.basename(p)) or os.path.dirname(rel) != "timing":
+        if canonical_name(os.path.basename(p)) is None or os.path.dirname(rel) != "timing":
             hits.append(f"{rel} (not a published timing)"); continue
         try:
             d = json.load(open(p))
@@ -111,13 +114,22 @@ def timing_scan(root, jid):
     return hits
 
 
+def canonical_name(b):
+    """R2: the rep of an exact evidence name b<rrr>.json (full ASCII match AND equal to its reconstruction), else None."""
+    m = RECORD_NAME.fullmatch(b)
+    if not m:
+        return None
+    r = int(m.group(1))
+    return r if b == f"b{r:03d}.json" else None
+
+
 def inventory_problem(root, declared):
     """B1-1: '' only when every entry under records/ and timing/ is exactly b<rrr>.json of a declared rep."""
     bad = []
     for sub in ("records", "timing"):
         for p in sorted(glob.glob(os.path.join(root, sub, "**", "*"), recursive=True) + glob.glob(os.path.join(root, sub, ".*"))):
-            rel = os.path.relpath(p, root); m = RECORD_NAME.match(os.path.basename(p))
-            if os.path.isdir(p) or os.path.dirname(rel) != sub or not m or int(m.group(1)) not in declared:
+            rel = os.path.relpath(p, root); r = canonical_name(os.path.basename(p))
+            if os.path.isdir(p) or os.path.dirname(rel) != sub or r is None or r not in declared:
                 bad.append(rel)
     return f"non-canonical bank evidence files {bad[:3]}" if bad else ""
 

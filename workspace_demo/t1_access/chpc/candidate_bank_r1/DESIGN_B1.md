@@ -141,18 +141,38 @@ Read on Lengau, 12 Oct ~08:00Z:
 - **Qualification:** schema 1, job 1, production true, finite time. Its embedded receipt passes the strict B1-4 fields.
   It binds job 1 = `7523732.sched01`, token `d3cf375f72da`, plan `d62408a6…`.
 
-Steps after a favourable record (no science job is touched):
-1. Drain: no bank submitter or status run in flight; jobs 16 and 17 keep running.
-2. Archive `gate/bank_review.json`, its `.tmp` twin and the schema-1 submitter bytes under `gate/archive_schema1_<date>/`,
-   and record it in row 22. The old record and the job-1 qualification stay where they are, unchanged.
-3. Selective copy into `rsc_bank` by `git checkout <reviewed commit> -- ` of exactly these files: `chpc/row22_bank_submit.py`
-   and `chpc/row22_bank_dispo.py`, plus the Codex record(s). Then confirm that every pinned manifest file (ledger
-   `7e8f83b8`, `row22_bank.py`, `row19_shard.py`, …) still hashes to its pin. No bulk copy of `chpc/`.
-4. Promote the status bytes on the Mac (`chpc/row22_bank_status.py`, `chpc/row22_bank_dispo.py`).
-5. Re-adopt under schema 2 with `--adopt-review <B1 record> --max-job-number 18`. This binds to the existing
-   qualification SHA `3c35f086…`, which `adopt_review` re-checks.
-6. Publish a fresh complete bank receipt with zero alarms. The verify document goes first, then the receipt.
-7. Run the job-18 dry run and check the actual plan, PBS script and invocation: job 18, reps 240–263 only, one per slot,
-   serial, 24 cores, 120 GB, `--walltime-h 48` (172,800 s in plan/reservation/PBS/job-start). Each rep must be missing and
-   unreserved. Recheck funding, capacity and STOP inside the cooperative `programme_gate` window. Only then submit, as one
-   job, and record its exec_host.
+Steps after a favourable record (no science job is touched; clarified per Codex RSC 82b7253):
+1. **Promote first.** Copy the reviewed candidate bytes into the canonical Mac paths (`chpc/row22_bank_status.py`,
+   `chpc/row22_bank_submit.py`, the new `chpc/row22_bank_dispo.py`), check that each hash equals the reviewed candidate's,
+   and commit them. That **promotion commit** is the only deployment source.
+2. Drain: no bank submitter or status run is in flight; jobs 16 and 17 keep running.
+3. Archive `gate/bank_review.json`, its `.tmp` twin and the schema-1 submitter bytes under `gate/archive_schema1_<date>/`,
+   and record it in row 22. The old record and the actual job-1 qualification `3c35f086` stay where they are, unchanged.
+4. Selective deployment into `rsc_bank` from the promotion commit, by `git checkout <promotion commit> -- ` of exactly
+   `chpc/row22_bank_submit.py` and `chpc/row22_bank_dispo.py`, plus the Codex record(s). Confirm that the deployed
+   controller hashes equal the promotion's, and that every pinned bank manifest file still hashes to its pin, in
+   particular ledger `7e8f83b8`, not the canonical `9a779702`. No bulk copy of `chpc/`.
+5. Re-adopt under schema 2 with `--adopt-review <record> --max-job-number 18`. It binds the actual qualification SHA
+   `3c35f086`, which `adopt_review` re-checks.
+6. Publish a fresh complete bank receipt with zero alarms. **Confirm both transfers**: the verify document reaches the
+   gate (verify first), then the receipt does. A failed verify copy followed by a copied receipt fails admission closed,
+   and that case is reported.
+7. `--dry-run` prints the proposal and returns **before** any plan, PBS script or reservation is written. So the actual
+   plan and PBS text for job 18 are rendered separately, read-only, with `plan_jobs` and `pbs_script` from the deployed
+   bytes. Check them: job 18, reps 240–263 only, one per slot, serial, 24 cores, 120 GB, 172,800 s. Each rep must be
+   missing and unreserved. Recheck funding, capacity and STOP inside the cooperative `programme_gate` window. Only then
+   run the real submission with `--jobs 1 --walltime-h 48`, as one job, and record its exec_host.
+
+## REPAIR R2 (Codex RSC 82b7253: one remaining B1-1 escape)
+
+Python's `$` admits a final newline, so `records/b024.json` + newline beside a valid rep 24 passed the inventory. Every
+name test in `row22_bank_dispo.py` is now a full match of an ASCII pattern (`fullmatch`, `[0-9]` rather than `\\d`, which
+admits non-ASCII digits that `int()` accepts). An evidence name must also equal its reconstruction `b<rep:03d>.json`
+(`canonical_name`). While doing this I caught and fixed a falsy-zero slip: `b000.json` is rep 0, so the test is
+`is None`. Tests 66/66. The new cases:
+- the newline name in `records/` and in `timing/` holds the status view;
+- the same name appearing after a clean receipt refuses admission;
+- a non-ASCII-digit name holds;
+- the valid inventory still dispositions;
+- `canonical_name` is exact.
+- Actual read-only run of the R2 bytes (12 Oct 08:25Z): zero alarms, job 11 DISPOSITIONED, 336/408, verify `5ee3c8e4…`.
