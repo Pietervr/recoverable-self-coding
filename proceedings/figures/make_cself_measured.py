@@ -30,13 +30,15 @@ ax1.hist(np.log10(R[R > 0]), bins=32, color="#1F4E79", alpha=0.6, label=r"$R_{\m
 ax1.hist(np.log10(C[C > 0]), bins=32, color="#2E7D32", alpha=0.6, label=r"$C_{\mathrm{self}}$ (capacity)")
 ax1.set_xlabel(r"measured rate  ($\log_{10}$, yr$^{-1}$)")
 ax1.set_ylabel("units")
-ax1.set_title(r"(a) $R_{\mathrm{self}}$ and $C_{\mathrm{self}}$ are measurable", fontsize=9)
+ax1.set_title(r"(a) distribution of the two measured rates", fontsize=9)
 ax1.legend(fontsize=8)
 ax1.grid(alpha=0.25)
 
 # (b) measured feasibility margin M = C_self - R_self
 hi = float(max(C.max(), R.max())) * 1.02
-ax2.fill_between([0, hi], [0, hi], 0, color="#2E7D32", alpha=0.07)   # R<C region (reference, not a stability boundary: infinite-server)
+# Round 3, reviewer comment 12: the shaded region below the line suggested a feasible set.
+# The restoration process here is parallel (infinite-server), so the line is a reference
+# marker and no region of this plane is a feasible set. The shading is removed.
 ax2.scatter(C[feasible], R[feasible], s=6, alpha=0.30, color="#1F4E79",
             edgecolors="none", label=r"$R_{\mathrm{self}}<C_{\mathrm{self}}$")
 ax2.scatter(C[~feasible], R[~feasible], s=6, alpha=0.35, color="#C00000",
@@ -45,7 +47,7 @@ ax2.plot([0, hi], [0, hi], "-", color="k", lw=1.2, label=r"$R_{\mathrm{self}}=C_
 ax2.set_xlim(0, hi); ax2.set_ylim(0, hi)
 ax2.set_xlabel(r"measured $C_{\mathrm{self}}$  (yr$^{-1}$)")
 ax2.set_ylabel(r"measured $R_{\mathrm{self}}$  (yr$^{-1}$)")
-ax2.set_title(r"(b) measured margin $\mathcal{M}=C_{\mathrm{self}}-R_{\mathrm{self}}$", fontsize=9)
+ax2.set_title(r"(b) $R_{\mathrm{self}}$ against $C_{\mathrm{self}}$ for each unit", fontsize=9)
 ax2.legend(fontsize=7, loc="upper left", framealpha=0.9)
 ax2.grid(alpha=0.25)
 
