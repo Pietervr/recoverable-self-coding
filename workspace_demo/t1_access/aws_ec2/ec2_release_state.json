@@ -10,14 +10,14 @@
   "criterion": "valid report; B_full; arm B row 6 exact 12/12; arm B 36/36 validated, timed, payload-exact, no non-finite disagreement; arm A refused at job-start (verified) or fully validated - recorded before the completed row-23 parity/refit results (owner go committed Unimog 7c6626e6, 10 Oct 21:16:38Z)"
  },
  "qualification": {
-  "permitted": false,
+  "permitted": true,
   "ceilings_usd": {
    "Q1": 28.0,
    "Q2": 17.0
   },
   "owner_accepted_ceilings": true,
-  "record_path": null,
-  "record_sha256": null,
+  "record_path": "../reviews/2026-10-11_d1d2_f3_codex_record.md",
+  "record_sha256": "636f1e77089578a14ee837bf95fe0f86cc84dbc907f8ced918256b69dbb55c1e",
   "ceiling_note": "Q1 worst 22.75 h x (1.20 + 0.014) + 0.30 = 27.92 -> 28; Q2 22.75 h x (0.70 + 0.014) + 0.30 = 16.54 -> 17; USD 45 for one attempt each, accepted by the owner on 11 Oct (owner_acceptance); a retry of either part needs a further owner decision (the per-part ceiling counts retries).",
   "owner_acceptance": "Owner, 11 Oct 2026 (R052 chat): 'yes, accept USD 45 for Q1+Q2 - but if qual works, go directly to production'. Accepts Q1 USD 28 + Q2 USD 17 = USD 45, one attempt each; a retry still needs a further owner decision. Standing go: on a successful qualification proceed to production without a further owner go (the reviewed release certificate and the USD 2,300 / 3,000 caps still apply)."
  },
