@@ -2,6 +2,7 @@
  "counts": {
   "TV": 1,
   "accordion": 1,
+  "aeroplane": 2,
   "airplane": 1,
   "alligator": 2,
   "almond": 1,
@@ -15,6 +16,7 @@
   "apartment": 1,
   "apple": 1,
   "applesauce": 2,
+  "apricot": 2,
   "apron": 2,
   "aqueduct": 2,
   "arch": 1,
@@ -27,8 +29,10 @@
   "artichoke": 3,
   "ashtray": 3,
   "asparagus": 2,
+  "aspirin": 2,
   "atm": 1,
   "atv": 2,
+  "aubergine": 4,
   "aunt": 1,
   "avocado": 1,
   "axe": 1,
@@ -37,24 +41,30 @@
   "babysitter": 2,
   "backpack": 1,
   "backyard": 1,
+  "bacon": 1,
+  "badge": 1,
   "bag": 1,
   "bagpipe": 2,
+  "bagpipes": 2,
   "ball": 1,
   "balloon": 1,
   "banana": 1,
   "banjo": 2,
   "banner": 1,
   "bar": 1,
+  "barge": 2,
   "barn": 1,
   "barnacles": 2,
   "barometer": 2,
   "barrel": 1,
   "baseball": 1,
   "basement": 1,
+  "basin": 1,
   "basket": 1,
   "basketball": 1,
   "bass": 1,
   "bassoon": 2,
+  "bath": 1,
   "bathroom": 1,
   "bathtub": 1,
   "baton": 2,
@@ -64,6 +74,7 @@
   "beach": 1,
   "beads": 1,
   "beagle": 2,
+  "bean": 1,
   "beanbag": 2,
   "beanie": 2,
   "beans": 1,
@@ -73,15 +84,19 @@
   "bedroom": 1,
   "bee": 1,
   "beehive": 3,
+  "beer": 1,
   "beetle": 1,
   "beets": 2,
   "bell": 1,
+  "bellows": 2,
   "belt": 1,
   "bench": 1,
   "beret": 2,
   "bib": 1,
   "bicycle": 1,
   "bike": 1,
+  "bikini": 1,
+  "bin": 1,
   "binder": 1,
   "binoculars": 3,
   "biplane": 2,
@@ -106,6 +121,7 @@
   "bobber": 2,
   "bolts": 1,
   "bomb": 1,
+  "bone": 1,
   "bonsai": 2,
   "book": 1,
   "bookcase": 2,
@@ -130,6 +146,7 @@
   "bridge": 1,
   "briefcase": 2,
   "broccoli": 1,
+  "brochure": 1,
   "broom": 2,
   "brother": 1,
   "brush": 1,
@@ -153,6 +170,7 @@
   "bus": 1,
   "bush": 1,
   "butter": 1,
+  "buttercup": 2,
   "butterfly": 1,
   "buttocks": 2,
   "button": 1,
@@ -185,14 +203,21 @@
   "cape": 1,
   "car": 1,
   "carabiner": 3,
+  "caravan": 1,
   "cardinal": 1,
   "caribou": 3,
+  "carnation": 2,
+  "carp": 1,
   "carpet": 1,
+  "carriage": 1,
   "carrot": 1,
   "carseat": 2,
   "cart": 1,
+  "castenets": 3,
   "castle": 1,
   "cat": 1,
+  "catalogue": 1,
+  "catapault": 3,
   "catapult": 1,
   "caterpillar": 2,
   "catfish": 2,
@@ -213,6 +238,7 @@
   "chalice": 2,
   "chalk": 1,
   "chalkboard": 2,
+  "champagne": 1,
   "chandelier": 2,
   "chapel": 1,
   "charm": 1,
@@ -224,6 +250,7 @@
   "cherry": 1,
   "chessboard": 2,
   "chest": 1,
+  "chestnut": 2,
   "chick": 1,
   "chickadee": 3,
   "chicken": 1,
@@ -237,6 +264,7 @@
   "chisel": 2,
   "chocolate": 1,
   "church": 1,
+  "cider": 1,
   "cigar": 1,
   "cigarette": 1,
   "circus": 1,
@@ -249,10 +277,13 @@
   "closet": 1,
   "cloud": 1,
   "clown": 1,
+  "club": 1,
   "coat": 1,
+  "cockerel": 3,
   "cockroach": 2,
   "coconut": 1,
   "cod": 1,
+  "codeine": 2,
   "coffee": 1,
   "coffeemaker": 3,
   "coffeepot": 4,
@@ -277,12 +308,14 @@
   "couch": 1,
   "cougar": 1,
   "country": 1,
+  "courgette": 3,
   "cow": 1,
   "cowbell": 2,
   "cowboy": 1,
   "coyote": 2,
   "crab": 1,
   "cracker": 2,
+  "cradle": 2,
   "cranberry": 2,
   "crate": 1,
   "crayfish": 2,
@@ -299,19 +332,27 @@
   "cucumber": 1,
   "cup": 1,
   "cupboard": 1,
+  "currant": 2,
   "curtains": 1,
   "cushion": 1,
+  "cymbal": 3,
   "daddy": 1,
+  "daffodil": 4,
   "dagger": 1,
+  "daisy": 2,
   "dalmatian": 3,
   "dandelion": 3,
   "dart": 1,
   "date": 1,
+  "dates": 1,
+  "deckchair": 2,
   "deer": 1,
   "desk": 1,
   "diaper": 1,
   "diaperbag": 2,
   "dice": 1,
+  "dictionary": 1,
+  "dinghy": 2,
   "dinosaur": 1,
   "diploma": 1,
   "dish": 1,
@@ -330,6 +371,7 @@
   "donut": 2,
   "door": 1,
   "doorknob": 3,
+  "doughnut": 2,
   "dove": 1,
   "downtown": 1,
   "dragonfly": 2,
@@ -361,11 +403,14 @@
   "elevator": 1,
   "elk": 1,
   "elliptical": 2,
+  "elm": 1,
   "emerald": 2,
   "emu": 2,
+  "encyclopaedia": 5,
   "envelope": 1,
   "envelopes": 1,
   "escalator": 2,
+  "eucalyptus": 5,
   "eye": 1,
   "eyeglasses": 3,
   "face": 1,
@@ -378,11 +423,14 @@
   "feather": 1,
   "feet": 1,
   "fence": 1,
+  "fern": 1,
+  "ferry": 1,
   "fez": 1,
   "file": 1,
   "filmreel": 3,
   "finch": 2,
   "finger": 1,
+  "fir": 1,
   "fireman": 2,
   "fireplace": 1,
   "firetruck": 2,
@@ -392,13 +440,16 @@
   "fishtank": 3,
   "flag": 1,
   "flamingo": 2,
+  "flannel": 2,
   "flashlight": 1,
   "flask": 1,
   "flea": 1,
+  "flounder": 2,
   "flour": 1,
   "flower": 1,
   "flute": 1,
   "food": 1,
+  "foot": 1,
   "football": 1,
   "fork": 1,
   "fossil": 1,
@@ -408,6 +459,7 @@
   "freezer": 1,
   "fridge": 1,
   "friend": 1,
+  "frisbee": 2,
   "frog": 1,
   "funnel": 1,
   "galleon": 3,
@@ -421,13 +473,18 @@
   "gavel": 2,
   "gear": 1,
   "geode": 2,
+  "geranium": 2,
+  "gerbil": 2,
+  "gherkin": 3,
   "ghost": 1,
   "gift": 1,
+  "gin": 1,
   "ginger": 1,
   "giraffe": 2,
   "girl": 1,
   "glass": 1,
   "glasses": 1,
+  "glider": 2,
   "globe": 1,
   "glove": 1,
   "gloves": 1,
@@ -464,6 +521,7 @@
   "hairbrush": 2,
   "haircomb": 2,
   "hairdryer": 3,
+  "ham": 1,
   "hamburger": 1,
   "hammer": 1,
   "hammock": 2,
@@ -486,11 +544,14 @@
   "headdress": 2,
   "headphone": 1,
   "hearse": 2,
+  "heart": 1,
   "hedgehog": 2,
   "helicopter": 1,
   "helmet": 1,
   "hen": 1,
   "heron": 2,
+  "herring": 2,
+  "hippo": 2,
   "hippopotamus": 3,
   "hoe": 1,
   "holly": 2,
@@ -504,11 +565,15 @@
   "hotdog": 2,
   "hourglass": 2,
   "house": 1,
+  "houseboat": 2,
   "housefly": 2,
   "hummingbird": 2,
   "husky": 2,
   "hut": 1,
+  "hutch": 2,
+  "hyacinth": 3,
   "hyena": 2,
+  "ibuprofen": 3,
   "ice": 1,
   "iguana": 3,
   "inkwell": 2,
@@ -522,14 +587,17 @@
   "jello": 2,
   "jelly": 1,
   "jellybeans": 2,
+  "jellyfish": 2,
   "jet": 1,
   "joystick": 1,
+  "jug": 1,
   "juice": 1,
   "jukebox": 3,
   "jumprope": 3,
   "kangaroo": 2,
   "kayak": 1,
   "keg": 1,
+  "ketchup": 2,
   "kettle": 1,
   "key": 1,
   "kingfisher": 3,
@@ -539,12 +607,14 @@
   "kitty": 1,
   "kiwi": 2,
   "knee": 1,
+  "knickers": 2,
   "knife": 1,
   "kumquat": 3,
   "laborador": 2,
   "ladder": 1,
   "ladle": 2,
   "lady": 1,
+  "ladybird": 2,
   "ladybug": 2,
   "lamb": 1,
   "lamborghini": 2,
@@ -558,7 +628,9 @@
   "leg": 1,
   "lei": 1,
   "lemon": 1,
+  "lemonade": 2,
   "leopard": 1,
+  "leotard": 3,
   "leotards": 3,
   "lettuce": 1,
   "level": 1,
@@ -566,19 +638,23 @@
   "lightbulb": 3,
   "lighter": 1,
   "lighthouse": 2,
+  "lily": 2,
   "lime": 1,
   "limousine": 3,
   "lion": 1,
   "lips": 1,
   "lipstick": 1,
   "lizard": 1,
+  "llama": 1,
   "loafer": 2,
   "lobster": 1,
   "lock": 1,
   "locker": 1,
+  "locust": 2,
   "log": 1,
   "lollipop": 2,
   "loofah": 3,
+  "lorry": 2,
   "loudspeaker": 2,
   "loveseat": 2,
   "lychee": 3,
@@ -586,6 +662,7 @@
   "mackerel": 3,
   "magazine": 1,
   "magnet": 1,
+  "magpie": 2,
   "mailbox": 1,
   "mailman": 2,
   "mallet": 2,
@@ -597,10 +674,12 @@
   "maraca": 2,
   "marble": 1,
   "margarita": 2,
+  "marigold": 3,
   "marshmallow": 2,
   "martini": 2,
   "mask": 1,
   "mat": 1,
+  "mayonnaise": 3,
   "meat": 1,
   "medal": 1,
   "medicine": 1,
@@ -630,6 +709,8 @@
   "mop": 1,
   "moped": 2,
   "mosque": 1,
+  "mosquito": 1,
+  "moss": 1,
   "moth": 1,
   "motorboat": 2,
   "motorcycle": 1,
@@ -642,11 +723,13 @@
   "mussel": 2,
   "muzzle": 1,
   "nacho": 2,
+  "nail": 1,
   "napkin": 2,
   "neck": 1,
   "necklace": 1,
   "nectarine": 3,
   "needle": 1,
+  "newspaper": 1,
   "nightgown": 3,
   "nightingale": 3,
   "nightstand": 2,
@@ -685,9 +768,11 @@
   "paint": 1,
   "paintbrush": 2,
   "pajamas": 2,
+  "pamphlet": 2,
   "pan": 1,
   "pancake": 2,
   "panda": 1,
+  "pansy": 2,
   "panther": 2,
   "pants": 1,
   "papaya": 2,
@@ -708,12 +793,15 @@
   "pear": 1,
   "pearl": 1,
   "peas": 1,
+  "peeler": 2,
   "peg": 1,
   "pelican": 2,
   "pen": 1,
   "pencil": 1,
   "penguin": 2,
   "penis": 1,
+  "penknife": 2,
+  "pennicillin": 3,
   "penny": 1,
   "people": 1,
   "pepper": 1,
@@ -751,6 +839,7 @@
   "platypus": 3,
   "playground": 1,
   "pliers": 2,
+  "plough": 2,
   "plum": 1,
   "plunger": 2,
   "pocketwatch": 2,
@@ -761,12 +850,16 @@
   "pony": 1,
   "pool": 1,
   "popcorn": 1,
+  "poppy": 2,
   "popsicle": 2,
   "porch": 1,
   "porcupine": 3,
+  "porsche": 2,
   "pot": 1,
   "potato": 1,
   "potty": 2,
+  "pram": 2,
+  "prawn": 2,
   "present": 1,
   "pretzel": 2,
   "printer": 1,
@@ -776,10 +869,12 @@
   "pudding": 1,
   "puffin": 2,
   "pumpkin": 1,
+  "puppet": 1,
   "puppy": 1,
   "purse": 1,
   "pushpin": 2,
   "puzzle": 1,
+  "pyjamas": 3,
   "pyramid": 1,
   "python": 1,
   "rabbit": 1,
@@ -808,6 +903,7 @@
   "refrigerator": 1,
   "reindeer": 2,
   "revolver": 1,
+  "rhino": 2,
   "rhinoceros": 4,
   "rhubarb": 3,
   "rice": 1,
@@ -821,11 +917,13 @@
   "rocket": 1,
   "rockinghorse": 2,
   "rollerblade": 2,
+  "rollerskate": 3,
   "rollerskates": 3,
   "roof": 1,
   "room": 1,
   "rooster": 2,
   "rope": 1,
+  "rose": 1,
   "rowboat": 2,
   "rug": 1,
   "ruler": 1,
@@ -844,12 +942,16 @@
   "sandwich": 1,
   "sarcophagus": 3,
   "sardine": 3,
+  "satchel": 3,
   "satellite": 1,
+  "satsuma": 2,
   "sauce": 1,
   "saucer": 2,
+  "saw": 1,
   "saxophone": 2,
   "scale": 1,
   "scales": 1,
+  "scallop": 2,
   "scalpel": 2,
   "scanner": 1,
   "scarf": 1,
@@ -874,6 +976,7 @@
   "seatbelt": 2,
   "seaweed": 2,
   "sedan": 1,
+  "sellotape": 3,
   "shack": 1,
   "shaker": 2,
   "shark": 1,
@@ -911,6 +1014,7 @@
   "sky": 1,
   "skyscraper": 2,
   "sled": 1,
+  "sledge": 2,
   "sledgehammer": 3,
   "sleigh": 2,
   "slide": 1,
@@ -938,10 +1042,12 @@
   "soup": 1,
   "spade": 2,
   "spaghetti": 1,
+  "spanner": 2,
   "sparrow": 2,
   "spatula": 2,
   "speaker": 1,
   "spear": 1,
+  "speedboat": 2,
   "spider": 1,
   "spinach": 1,
   "spool": 2,
@@ -964,7 +1070,9 @@
   "stereo": 1,
   "stick": 1,
   "stickbug": 2,
+  "stockings": 1,
   "stone": 1,
+  "stool": 1,
   "store": 1,
   "stork": 2,
   "story": 1,
@@ -975,8 +1083,12 @@
   "stroller": 2,
   "submarine": 1,
   "subway": 1,
+  "sugar": 1,
+  "suit": 1,
+  "sultana": 3,
   "sun": 1,
   "sundial": 2,
+  "sunflower": 2,
   "sunglasses": 1,
   "surfboard": 2,
   "swan": 2,
@@ -985,6 +1097,7 @@
   "swing": 1,
   "swingset": 2,
   "sword": 1,
+  "sycamore": 3,
   "syringe": 2,
   "table": 1,
   "tack": 1,
@@ -1004,10 +1117,13 @@
   "telescope": 1,
   "television": 1,
   "tent": 1,
+  "termite": 2,
+  "textbook": 1,
   "thermometer": 1,
   "thermos": 2,
   "thimble": 3,
   "throne": 1,
+  "thumb": 1,
   "tie": 1,
   "tiger": 1,
   "tights": 2,
@@ -1016,6 +1132,7 @@
   "toad": 2,
   "toast": 1,
   "toaster": 1,
+  "tobacco": 1,
   "toe": 1,
   "toilet": 1,
   "tomahawk": 3,
@@ -1051,12 +1168,16 @@
   "truck": 1,
   "trumpet": 1,
   "tuba": 2,
+  "tugboat": 2,
+  "tulip": 2,
   "tummy": 2,
   "tuna": 1,
   "turkey": 1,
   "turnip": 2,
   "turtle": 1,
+  "tweezers": 3,
   "typewriter": 2,
+  "tyre": 1,
   "umbrella": 1,
   "uncle": 1,
   "underpants": 2,
@@ -1064,6 +1185,7 @@
   "urn": 1,
   "vacuum": 1,
   "vagina": 1,
+  "valium": 2,
   "valve": 1,
   "van": 1,
   "vanilla": 1,
@@ -1084,6 +1206,7 @@
   "walkietalkie": 4,
   "walkman": 2,
   "wall": 1,
+  "wallet": 1,
   "walnut": 1,
   "walrus": 2,
   "wand": 1,
@@ -1100,6 +1223,8 @@
   "wheelbarrow": 3,
   "wheelchair": 1,
   "whip": 1,
+  "whisk": 1,
+  "whisky": 1,
   "whistle": 1,
   "willow": 2,
   "wind": 1,
@@ -1114,6 +1239,7 @@
   "work": 1,
   "worm": 1,
   "wreath": 2,
+  "wren": 2,
   "wrench": 1,
   "wrist": 1,
   "wristwatch": 2,
@@ -1122,6 +1248,7 @@
   "yam": 2,
   "yard": 1,
   "yarn": 1,
+  "yoghurt": 2,
   "yogurt": 1,
   "yoyo": 2,
   "zebra": 2,
@@ -1136,6 +1263,10 @@
   ],
   "accordion": [
    83999
+  ],
+  "aeroplane": [
+   161213,
+   36597
   ],
   "airplane": [
    41505
@@ -1178,6 +1309,10 @@
   "applesauce": [
    39332,
    73199
+  ],
+  "apricot": [
+   20404,
+   83449
   ],
   "apron": [
    20404,
@@ -1224,12 +1359,22 @@
    430,
    90459
   ],
+  "aspirin": [
+   23886,
+   258
+  ],
   "atm": [
    67425
   ],
   "atv": [
    506,
    85
+  ],
+  "aubergine": [
+   264,
+   386,
+   2298,
+   472
   ],
   "aunt": [
    48381
@@ -1257,12 +1402,22 @@
   "backyard": [
    34480
   ],
+  "bacon": [
+   39015
+  ],
+  "badge": [
+   23213
+  ],
   "bag": [
    8697
   ],
   "bagpipe": [
    8697,
    13372
+  ],
+  "bagpipes": [
+   8697,
+   83728
   ],
   "ball": [
    4776
@@ -1282,6 +1437,10 @@
   ],
   "bar": [
    3498
+  ],
+  "barge": [
+   292,
+   2657
   ],
   "barn": [
    31253
@@ -1303,6 +1462,9 @@
   "basement": [
    29640
   ],
+  "basin": [
+   55294
+  ],
   "basket": [
    13621
   ],
@@ -1315,6 +1477,9 @@
   "bassoon": [
    20869,
    8737
+  ],
+  "bath": [
+   8617
   ],
   "bathroom": [
    14422
@@ -1348,6 +1513,9 @@
    381,
    31589
   ],
+  "bean": [
+   19804
+  ],
   "beanbag": [
    19804,
    20598
@@ -1380,6 +1548,9 @@
    2549,
    520
   ],
+  "beer": [
+   12514
+  ],
   "beetle": [
    94027
   ],
@@ -1389,6 +1560,10 @@
   ],
   "bell": [
    27491
+  ],
+  "bellows": [
+   27491,
+   4102
   ],
   "belt": [
    18547
@@ -1408,6 +1583,12 @@
   ],
   "bike": [
    12591
+  ],
+  "bikini": [
+   52383
+  ],
+  "bin": [
+   9261
   ],
   "binder": [
    52201
@@ -1499,6 +1680,9 @@
   "bomb": [
    12398
   ],
+  "bone": [
+   16732
+  ],
   "bonsai": [
    78241,
    2075
@@ -1580,6 +1764,9 @@
   "broccoli": [
    75498
   ],
+  "brochure": [
+   76110
+  ],
   "broom": [
    2802,
    315
@@ -1656,6 +1843,10 @@
   ],
   "butter": [
    13696
+  ],
+  "buttercup": [
+   13696,
+   35452
   ],
   "butterfly": [
    53315
@@ -1770,6 +1961,9 @@
    8624,
    261
   ],
+  "caravan": [
+   71157
+  ],
   "cardinal": [
    54006
   ],
@@ -1778,8 +1972,18 @@
    564,
    282
   ],
+  "carnation": [
+   37067,
+   362
+  ],
+  "carp": [
+   37357
+  ],
   "carpet": [
    26950
+  ],
+  "carriage": [
+   49715
   ],
   "carrot": [
    71670
@@ -1791,11 +1995,24 @@
   "cart": [
    7171
   ],
+  "castenets": [
+   6113,
+   268,
+   1367
+  ],
   "castle": [
    31508
   ],
   "cat": [
    7993
+  ],
+  "catalogue": [
+   46922
+  ],
+  "catapault": [
+   7993,
+   385,
+   915
   ],
   "catapult": [
    91808
@@ -1865,6 +2082,9 @@
    40953,
    2402
   ],
+  "champagne": [
+   62122
+  ],
   "chandelier": [
    509,
    75444
@@ -1903,6 +2123,10 @@
   ],
   "chest": [
    14697
+  ],
+  "chestnut": [
+   14697,
+   22608
   ],
   "chick": [
    29758
@@ -1953,6 +2177,9 @@
   "church": [
    8551
   ],
+  "cider": [
+   62857
+  ],
   "cigar": [
    51873
   ],
@@ -1991,8 +2218,16 @@
   "clown": [
    66150
   ],
+  "club": [
+   6135
+  ],
   "coat": [
    22162
+  ],
+  "cockerel": [
+   10945,
+   261,
+   300
   ],
   "cockroach": [
    10945,
@@ -2003,6 +2238,10 @@
   ],
   "cod": [
    19712
+  ],
+  "codeine": [
+   1970,
+   472
   ],
   "coffee": [
    10482
@@ -2086,6 +2325,11 @@
   "country": [
    3046
   ],
+  "courgette": [
+   2013,
+   447,
+   647
+  ],
   "cow": [
    18775
   ],
@@ -2106,6 +2350,10 @@
   "cracker": [
    1505,
    9395
+  ],
+  "cradle": [
+   1505,
+   68934
   ],
   "cranberry": [
    67181,
@@ -2162,17 +2410,36 @@
   "cupboard": [
    82974
   ],
+  "currant": [
+   9512,
+   505
+  ],
   "curtains": [
    51607
   ],
   "cushion": [
    43158
   ],
+  "cymbal": [
+   272,
+   3247,
+   278
+  ],
   "daddy": [
    54648
   ],
+  "daffodil": [
+   293,
+   2562,
+   342,
+   319
+  ],
   "dagger": [
    37933
+  ],
+  "daisy": [
+   293,
+   47412
   ],
   "dalmatian": [
    293,
@@ -2190,6 +2457,13 @@
   "date": [
    2321
   ],
+  "dates": [
+   12348
+  ],
+  "deckchair": [
+   9249,
+   33064
+  ],
   "deer": [
    36791
   ],
@@ -2205,6 +2479,13 @@
   ],
   "dice": [
    21434
+  ],
+  "dictionary": [
+   10675
+  ],
+  "dinghy": [
+   64200,
+   8243
   ],
   "dinosaur": [
    60771
@@ -2267,6 +2548,10 @@
    635,
    651,
    53174
+  ],
+  "doughnut": [
+   29363,
+   22608
   ],
   "dove": [
    45646
@@ -2375,6 +2660,9 @@
    75124,
    908
   ],
+  "elm": [
+   40805
+  ],
   "emerald": [
    945,
    23609
@@ -2382,6 +2670,13 @@
   "emu": [
    945,
    84
+  ],
+  "encyclopaedia": [
+   3107,
+   3228,
+   379,
+   6387,
+   4347
   ],
   "envelope": [
    33256
@@ -2392,6 +2687,13 @@
   "escalator": [
    25590,
    824
+  ],
+  "eucalyptus": [
+   378,
+   1692,
+   5595,
+   409,
+   350
   ],
   "eye": [
    7662
@@ -2433,6 +2735,12 @@
   "fence": [
    23873
   ],
+  "fern": [
+   84023
+  ],
+  "ferry": [
+   49813
+  ],
   "fez": [
    173832
   ],
@@ -2450,6 +2758,9 @@
   ],
   "finger": [
    13907
+  ],
+  "fir": [
+   32865
   ],
   "fireman": [
    3807,
@@ -2486,6 +2797,10 @@
    81702,
    78
   ],
+  "flannel": [
+   1274,
+   2509
+  ],
   "flashlight": [
    75727
   ],
@@ -2494,6 +2809,10 @@
   ],
   "flea": [
    92541
+  ],
+  "flounder": [
+   1274,
+   89706
   ],
   "flour": [
    19223
@@ -2506,6 +2825,9 @@
   ],
   "food": [
    3487
+  ],
+  "foot": [
+   4330
   ],
   "football": [
    8693
@@ -2533,6 +2855,10 @@
   ],
   "friend": [
    4099
+  ],
+  "frisbee": [
+   217527,
+   30976
   ],
   "frog": [
    57859
@@ -2578,11 +2904,27 @@
    3762,
    521
   ],
+  "geranium": [
+   16731,
+   33573
+  ],
+  "gerbil": [
+   16731,
+   47204
+  ],
+  "gherkin": [
+   338,
+   1858,
+   7738
+  ],
   "ghost": [
    19261
   ],
   "gift": [
    7932
+  ],
+  "gin": [
+   44643
   ],
   "ginger": [
    42222
@@ -2599,6 +2941,10 @@
   ],
   "glasses": [
    27233
+  ],
+  "glider": [
+   2682,
+   1713
   ],
   "globe": [
    23170
@@ -2728,6 +3074,9 @@
    51422,
    261
   ],
+  "ham": [
+   13125
+  ],
   "hamburger": [
    85693
   ],
@@ -2810,6 +3159,9 @@
    551,
    2498
   ],
+  "heart": [
+   4593
+  ],
   "hedgehog": [
    40289,
    58578
@@ -2826,6 +3178,14 @@
   "heron": [
    1024,
    263
+  ],
+  "herring": [
+   304,
+   14029
+  ],
+  "hippo": [
+   42115,
+   78
   ],
   "hippopotamus": [
    42115,
@@ -2875,6 +3235,10 @@
   "house": [
    3626
   ],
+  "houseboat": [
+   3626,
+   36516
+  ],
   "housefly": [
    3626,
    20979
@@ -2890,9 +3254,23 @@
   "hut": [
    73286
   ],
+  "hutch": [
+   304,
+   13658
+  ],
+  "hyacinth": [
+   6077,
+   38083,
+   337
+  ],
   "hyena": [
    6077,
    6933
+  ],
+  "ibuprofen": [
+   18106,
+   92777,
+   29364
   ],
   "ice": [
    9561
@@ -2938,11 +3316,18 @@
    49614,
    26455
   ],
+  "jellyfish": [
+   49614,
+   17629
+  ],
   "jet": [
    16106
   ],
   "joystick": [
    59510
+  ],
+  "jug": [
+   21696
   ],
   "juice": [
    22105
@@ -2966,6 +3351,10 @@
   ],
   "keg": [
    162650
+  ],
+  "ketchup": [
+   580,
+   87766
   ],
   "kettle": [
    69862
@@ -2997,6 +3386,10 @@
   "knee": [
    20725
   ],
+  "knickers": [
+   1111,
+   37795
+  ],
   "knife": [
    20773
   ],
@@ -3018,6 +3411,10 @@
   ],
   "lady": [
    16328
+  ],
+  "ladybird": [
+   16328,
+   21892
   ],
   "ladybug": [
    16328,
@@ -3065,8 +3462,17 @@
   "lemon": [
    28503
   ],
+  "lemonade": [
+   28503,
+   986
+  ],
   "leopard": [
    94612
+  ],
+  "leotard": [
+   501,
+   349,
+   552
   ],
   "leotards": [
    501,
@@ -3094,6 +3500,10 @@
    324,
    55965
   ],
+  "lily": [
+   324,
+   1487
+  ],
   "lime": [
    40341
   ],
@@ -3114,6 +3524,9 @@
   "lizard": [
    91536
   ],
+  "llama": [
+   90448
+  ],
   "loafer": [
    182441,
    776
@@ -3127,6 +3540,10 @@
   "locker": [
    33531
   ],
+  "locust": [
+   1282,
+   575
+  ],
   "log": [
    1433
   ],
@@ -3138,6 +3555,10 @@
    750,
    1020,
    1413
+  ],
+  "lorry": [
+   324,
+   8208
   ],
   "loudspeaker": [
    16850,
@@ -3166,6 +3587,10 @@
   ],
   "magnet": [
    31135
+  ],
+  "magpie": [
+   4721,
+   19667
   ],
   "mailbox": [
    44219
@@ -3207,6 +3632,11 @@
    232963,
    6059
   ],
+  "marigold": [
+   3474,
+   339,
+   787
+  ],
   "marshmallow": [
    30942,
    71852
@@ -3220,6 +3650,11 @@
   ],
   "mat": [
    5344
+  ],
+  "mayonnaise": [
+   1189,
+   13072,
+   1029
   ],
   "meat": [
    12668
@@ -3322,6 +3757,12 @@
   "mosque": [
    48328
   ],
+  "mosquito": [
+   47881
+  ],
+  "moss": [
+   74601
+  ],
   "moth": [
    93732
   ],
@@ -3362,6 +3803,9 @@
    13644,
    78
   ],
+  "nail": [
+   29977
+  ],
   "napkin": [
    25035,
    7738
@@ -3379,6 +3823,9 @@
   ],
   "needle": [
    29321
+  ],
+  "newspaper": [
+   16311
   ],
   "nightgown": [
    3603,
@@ -3518,6 +3965,10 @@
    87493,
    27179
   ],
+  "pamphlet": [
+   72284,
+   1112
+  ],
   "pan": [
    6989
   ],
@@ -3527,6 +3978,10 @@
   ],
   "panda": [
    85183
+  ],
+  "pansy": [
+   61631,
+   88
   ],
   "panther": [
    6989,
@@ -3597,6 +4052,10 @@
   "peas": [
    44499
   ],
+  "peeler": [
+   1016,
+   7617
+  ],
   "peg": [
    29686
   ],
@@ -3616,6 +4075,15 @@
   ],
   "penis": [
    22237
+  ],
+  "penknife": [
+   5572,
+   41305
+  ],
+  "pennicillin": [
+   41530,
+   291,
+   58459
   ],
   "penny": [
    47425
@@ -3743,6 +4211,10 @@
    609,
    4659
   ],
+  "plough": [
+   609,
+   1336
+  ],
   "plum": [
    39812
   ],
@@ -3779,6 +4251,10 @@
   "popcorn": [
    67344
   ],
+  "poppy": [
+   2341,
+   3181
+  ],
   "popsicle": [
    46015,
    1935
@@ -3791,6 +4267,10 @@
    35452,
    472
   ],
+  "porsche": [
+   280,
+   42039
+  ],
   "pot": [
    3229
   ],
@@ -3800,6 +4280,14 @@
   "potty": [
    280,
    55705
+  ],
+  "pram": [
+   534,
+   308
+  ],
+  "prawn": [
+   534,
+   6178
   ],
   "present": [
    2945
@@ -3831,6 +4319,9 @@
   "pumpkin": [
    47860
   ],
+  "puppet": [
+   47784
+  ],
   "puppy": [
    39829
   ],
@@ -3843,6 +4334,11 @@
   ],
   "puzzle": [
    23850
+  ],
+  "pyjamas": [
+   4362,
+   73,
+   27179
   ],
   "pyramid": [
    45232
@@ -3942,6 +4438,10 @@
   "revolver": [
    94423
   ],
+  "rhino": [
+   21004,
+   3204
+  ],
   "rhinoceros": [
    21004,
    258,
@@ -3988,6 +4488,11 @@
    27521,
    60614
   ],
+  "rollerskate": [
+   85563,
+   74,
+   344
+  ],
   "rollerskates": [
    85563,
    74,
@@ -4005,6 +4510,9 @@
   ],
   "rope": [
    32313
+  ],
+  "rose": [
+   15537
   ],
   "rowboat": [
    2713,
@@ -4071,8 +4579,17 @@
    552,
    472
   ],
+  "satchel": [
+   274,
+   730,
+   300
+  ],
   "satellite": [
    22486
+  ],
+  "satsuma": [
+   7338,
+   91534
   ],
   "sauce": [
    18607
@@ -4080,6 +4597,9 @@
   "saucer": [
    796,
    57391
+  ],
+  "saw": [
+   5312
   ],
   "saxophone": [
    60883,
@@ -4090,6 +4610,10 @@
   ],
   "scales": [
    27477
+  ],
+  "scallop": [
+   23255,
+   21597
   ],
   "scalpel": [
    23255,
@@ -4175,6 +4699,11 @@
   ],
   "sedan": [
    52899
+  ],
+  "sellotape": [
+   4410,
+   349,
+   1959
   ],
   "shack": [
    73680
@@ -4298,6 +4827,10 @@
   "sled": [
    91152
   ],
+  "sledge": [
+   274,
+   4733
+  ],
   "sledgehammer": [
    274,
    4733,
@@ -4397,6 +4930,10 @@
   "spaghetti": [
    83910
   ],
+  "spanner": [
+   9111,
+   1154
+  ],
   "sparrow": [
    947,
    5855
@@ -4410,6 +4947,10 @@
   ],
   "spear": [
    39514
+  ],
+  "speedboat": [
+   4478,
+   36516
   ],
   "spider": [
    33213
@@ -4487,8 +5028,14 @@
    8941,
    2238
   ],
+  "stockings": [
+   73024
+  ],
   "stone": [
    9506
+  ],
+  "stool": [
+   60945
   ],
   "store": [
    3436
@@ -4523,12 +5070,27 @@
   "subway": [
    41820
   ],
+  "sugar": [
+   12781
+  ],
+  "suit": [
+   7535
+  ],
+  "sultana": [
+   274,
+   484,
+   3253
+  ],
   "sun": [
    6797
   ],
   "sundial": [
    48879,
    518
+  ],
+  "sunflower": [
+   6797,
+   37471
   ],
   "sunglasses": [
    57364
@@ -4557,6 +5119,11 @@
   ],
   "sword": [
    19601
+  ],
+  "sycamore": [
+   274,
+   3228,
+   180130
   ],
   "syringe": [
    6361,
@@ -4626,6 +5193,13 @@
   "tent": [
    15173
   ],
+  "termite": [
+   4496,
+   614
+  ],
+  "textbook": [
+   53235
+  ],
   "thermometer": [
    89016
   ],
@@ -4640,6 +5214,9 @@
   ],
   "throne": [
    42176
+  ],
+  "thumb": [
+   23297
   ],
   "tie": [
    17592
@@ -4666,6 +5243,9 @@
   ],
   "toaster": [
    86727
+  ],
+  "tobacco": [
+   25588
   ],
   "toe": [
    29231
@@ -4788,6 +5368,14 @@
    14506,
    64
   ],
+  "tugboat": [
+   78800,
+   36516
+  ],
+  "tulip": [
+   58884,
+   558
+  ],
   "tummy": [
    259,
    8312
@@ -4805,9 +5393,17 @@
   "turtle": [
    34895
   ],
+  "tweezers": [
+   14127,
+   9825,
+   382
+  ],
   "typewriter": [
    3463,
    70020
+  ],
+  "tyre": [
+   70449
   ],
   "umbrella": [
    46299
@@ -4831,6 +5427,10 @@
   ],
   "vagina": [
    37505
+  ],
+  "valium": [
+   1009,
+   2280
   ],
   "valve": [
    30396
@@ -4902,6 +5502,9 @@
   "wall": [
    6784
   ],
+  "wallet": [
+   14644
+  ],
   "walnut": [
    89435
   ],
@@ -4961,6 +5564,12 @@
   "whip": [
    48391
   ],
+  "whisk": [
+   39317
+  ],
+  "whisky": [
+   77707
+  ],
   "whistle": [
    38240
   ],
@@ -5008,6 +5617,10 @@
    64262,
    572
   ],
+  "wren": [
+   288,
+   1388
+  ],
   "wrench": [
    57478
   ],
@@ -5035,6 +5648,10 @@
   ],
   "yarn": [
    36979
+  ],
+  "yoghurt": [
+   39986,
+   231292
   ],
   "yogurt": [
    52647

@@ -25,7 +25,7 @@ TOKENIZER_SHA256 = "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db7
 
 
 def cue_words() -> list[str]:
-    """Every alphabetic concept label in McRae, Feats and Hovhannisyan, read straight from the files."""
+    """Every alphabetic concept label in McRae, Feats, Hovhannisyan and CSLB, read straight from the files."""
     import csv
     words = set()
     mcrae = Path.home() / "word-norms-mcrae/McRae-BRM-InPress/CONCS_FEATS_concstats_brm.txt"
@@ -43,6 +43,12 @@ def cue_words() -> list[str]:
         for r in csv.reader(fh):
             c = r[0].strip()
             if c.isalpha() and c != "concept":
+                words.add(c)
+    cslb = Path.home() / "word-norms-cslb" / "norms.dat"           # CSLB (12 Oct 2026): concept labels only
+    if cslb.exists():
+        for line in cslb.read_text(encoding="utf-8").splitlines()[1:]:
+            c = line.split("\t")[2].strip()
+            if c.isalpha():
                 words.add(c)
     return sorted(words)
 
