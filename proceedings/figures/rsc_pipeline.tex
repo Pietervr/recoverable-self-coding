@@ -58,7 +58,7 @@
   (4.5,5.0) -- (7.7,5.0);
 \node[align=center, text=model] at (6.1,4.2)
   {$N_{\mathrm{uncert}}(t)$: number waiting\\[-1pt]plus in certification\\[-1pt]
-   $\mathrm{SR}=\langle N_{\mathrm{uncert}}\rangle$};
+   $\mathcal{N}=\langle N_{\mathrm{uncert}}\rangle$};
 
 % sojourn -> deadline test
 \node[test, minimum width=2.2cm, minimum height=1.0cm] (t1) at (10.7,5.6)
@@ -117,7 +117,7 @@
   plot ({14.9+3.0*\t},{0.6+0.115*\t/(1-\t)});
 \draw[line width=0.9pt, draw=model, domain=0:1, samples=70, smooth, variable=\t]
   plot ({14.9+3.0*\t},{0.6+1.9*(1-exp(-4*(1-\t)))});
-\node[text=bad, anchor=east] at (17.6,2.3) {$\mathrm{SR}$};
+\node[text=bad, anchor=east] at (17.6,2.3) {$\mathcal{N}$};
 \node[text=model, anchor=west] at (15.0,2.72) {$P_c$};
 \end{tikzpicture}
 \end{document}
