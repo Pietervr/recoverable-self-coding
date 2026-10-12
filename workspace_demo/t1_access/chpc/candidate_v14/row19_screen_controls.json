@@ -312,11 +312,11 @@
   {
    "version": 14,
    "commit": "candidate: see the commit that adds this entry",
-   "reviewed": "pending Codex: v14 = adopted v13 (840840f5, Codex RSC 5bab1a9, adopted and deployed 11 Oct 19:0xZ, epoch 1 activated) with ONLY chpc/row19_screen_status.py changed: REVISION 12 - settled refit ids also get one tolerant qstat -xf (the bank status's reviewed settled_memory_qstat pattern, Codex RSC 5183208): a settled job PBS still reports at state F contributes its live resources_used.mem and Resource_List.walltime; the checked memory is the larger of live and the REVISION 11 carried value; neither -> the no-finite-memory alarm stays. Why: refit job 10 7530233 was settled 18:30Z 11 Oct before any clean receipt saw it at F, so its memory alarm held every later refit receipt (which then can never be the clean carry source). Every other byte, the partition, programme, sub-envelope and qualification_S unchanged. NOT adopted.",
+   "reviewed": "pending Codex re-review of REVISION 13: v14 = adopted v13 (840840f5, Codex RSC 5bab1a9) with ONLY chpc/row19_screen_status.py changed. REVISION 12 (status ed7bf067, controls 66ba965e) was NOT FAVOURABLE (Codex RSC 7523370 (a)): a newly observed same-job memory breach could vanish after PBS expiry. REVISION 13 applies the bank's reviewed breach rule (c38779c/5183208) to settled refit jobs: every fresh production receipt, alarmed or not, with the same PBS id at F and the same exit is consulted; only DIRECT observations are consumed (a qstat-observed summary's mem_kb, or the new qstat_mem_kb a settled summary records from this status's own live query - never a carried mem_kb); the largest is checked; a receipt's own '>90 %' alarm for that job is kept as memory_breach and alarms in every later receipt. Tests chpc/test_pbs_settled_r13.py 51/51 (fails against REVISION 12's bytes), chpc/test_pbs_settled.py 31/31. Every other byte, the partition, programme, sub-envelope and qualification_S unchanged. NOT adopted.",
    "files": {
     "chpc/row19_screen_admit.py": "a5fac9a96e2073e9c89ca52ced9667692e4d65e838d93feb60b63fa5015fbeca",
     "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
-    "chpc/row19_screen_status.py": "ed7bf067d37345304f3ca35a042a8f6bfb414cddae0cb5ff2a22800e036a5101",
+    "chpc/row19_screen_status.py": "05d952bd67b73a71c3ddea2919b38e5abb1696af03f77a78a1d55f7be80a680b",
     "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
     "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0",
     "chpc/row19_screen_resources.json": "f5352bc3ae7c5195e2081baa5685b4533fc8add0d5cfd5c48009e72610bebba0",

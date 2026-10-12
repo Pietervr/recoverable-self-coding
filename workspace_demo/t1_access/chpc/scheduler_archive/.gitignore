@@ -1,0 +1,3 @@
+# raw qstat -xf captures hold the environment, mail address and home paths: private; only *_extract_*.json is tracked
+refit_jobs_*_qstat_xf_*.txt
+*_qstat_xf_*.txt

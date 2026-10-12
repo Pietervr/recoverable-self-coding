@@ -37,6 +37,21 @@ value and the REVISION 11 carried value; `memory_evidence` in the job summary na
 receipt). Neither source -> no memory and the alarm stays (fail-closed). Expiry still never fails the observation; the state
 and exit stay the settlement's; unsettled ids are unchanged. The receipt and qualification formats and the admission's checks
 are unchanged apart from the added `memory_evidence` field of a ledger-settlement job summary.
+REVISION 13 (Codex RSC 7523370 (a), 12 Oct: a newly observed same-job breach could vanish after PBS expiry, because the
+REVISION 11 selector read only alarm-free receipts with a direct-qstat observation and fell back to an older, lower, clean
+one). The bank status's reviewed rule (Codex c38779c / 5183208) now applies to settled refit jobs, with one restriction that
+keeps carry non-recursive: (i) EVERY fresh production receipt of the role, alarmed or not, that recorded the same PBS id at
+state F with the same exit is consulted; (ii) only DIRECTLY observed memory is consumed - a summary observed from qstat
+(`observation` absent or "qstat") contributes its `mem_kb`, and a ledger-settlement summary contributes only the new field
+`qstat_mem_kb`, written by this status solely from its own live tolerant query of the settled id (with `qstat_walltime_req_s`);
+a ledger-settlement summary's `mem_kb` (possibly itself carried) is never re-carried; (iii) the checked memory is the LARGEST
+of the live value and every directly observed recorded value, and the walltime request comes from the same direct source;
+(iv) a receipt whose alarms carry "<role> job <n>: scheduler memory above 90 %" for that job is kept as `memory_breach`
+(file, SHA-256) and alarms in every later receipt while that original receipt is retained, whatever lower clean value exists;
+other alarms of that receipt are not carried. A settled job first observed by REVISION 13 is therefore durable: its receipt
+holds `qstat_mem_kb`, which later receipts consume after PBS expiry even though the summary is labelled ledger-settlement.
+No direct value at all -> no memory and the no-finite-memory alarm stays (fail-closed; no clean-check fallback for refit).
+`prior_receipt` names the receipt whose value was checked. Qualification and admission are unchanged.
 REVISION 7 (Codex RSC 8865474 C2): each job summary also carries `partition`, the sorted new / resumed / left coordinate lists
 read from that job's own worker statuses, so the admission reconciles a job's historical outcome, not today's aggregate.
 
@@ -265,22 +280,37 @@ def fetch_job_outputs(man, role, stage):
     return res
 
 
-def prior_scheduler_observation(role, j, exit_, receipts_dir=None):
-    """REVISION 11: (scheduler facts of PBS id j, {file, sha256}) from the newest local receipt of this role that is fresh,
-    production and alarm-free and observed j from qstat at state F with exit `exit_`; (None, None) when there is none."""
+def prior_scheduler_memory(role, j, exit_, receipts_dir=None):
+    """REVISION 13 (Codex RSC 7523370 (a); the bank's c38779c rule): what EVERY fresh production receipt of this role, alarmed or
+    not, DIRECTLY observed about PBS id j at state F with exit `exit_` -> (worst, breach). worst = (largest directly observed
+    mem_kb, its walltime request, evidence {kind, file, sha256}) or None: a qstat-observed summary's mem_kb, or a
+    ledger-settlement summary's qstat_mem_kb (never its possibly carried mem_kb). breach = evidence of the newest receipt whose
+    alarms record a scheduler-memory breach for that job, or None."""
+    worst = breach = None
     for p in sorted(glob.glob(os.path.join(receipts_dir or RECEIPTS, f"watch_{role}_*.json")), reverse=True):
         try:
             r = json.load(open(p))
         except Exception:
             continue
         if r.get("schema") != WATCH_SCHEMA or r.get("role") != role or r.get("fresh") is not True or r.get("production") is not True \
-                or r.get("alarms") != []:
+                or not isinstance(r.get("alarms"), list):
             continue
-        for sj in (r.get("jobs") or {}).values():
-            if isinstance(sj, dict) and sj.get("job_id") == j and sj.get("observation", "qstat") == "qstat" and sj.get("state") == "F" \
-                    and sj.get("exit") == exit_ and not isinstance(sj.get("exit"), bool) and finite_nonneg(sj.get("mem_kb")):
-                return dict(mem_kb=sj["mem_kb"], walltime_req_s=sj.get("requested_walltime_s")), dict(file=os.path.basename(p), sha256=sha_file(p))
-    return None, None
+        for k, sj in (r.get("jobs") or {}).items():
+            if not (isinstance(sj, dict) and sj.get("job_id") == j and sj.get("state") == "F" and sj.get("exit") == exit_
+                    and not isinstance(sj.get("exit"), bool)):
+                continue
+            ev = dict(file=os.path.basename(p), sha256=sha_file(p))
+            if sj.get("observation", "qstat") == "qstat":
+                direct = (sj.get("mem_kb"), sj.get("requested_walltime_s"), "prior-receipt-qstat")
+            elif sj.get("observation") == "ledger-settlement":
+                direct = (sj.get("qstat_mem_kb"), sj.get("qstat_walltime_req_s"), "prior-receipt-settled-qstat")
+            else:
+                direct = (None, None, None)
+            if finite_nonneg(direct[0]) and (worst is None or direct[0] > worst[0]):
+                worst = (direct[0], direct[1], dict(ev, kind=direct[2]))
+            if breach is None and any(isinstance(a, str) and a.startswith(f"{role} job {k}: scheduler memory above 90 %") for a in r["alarms"]):
+                breach = dict(ev, kind="prior-memory-alarm")
+    return worst, breach
 
 
 def settled_scheduler_qstat(ids, pbs_file=None):
@@ -319,11 +349,7 @@ def settled_observation(role, e, receipts_dir=None):
     m = re.search(r"Exit_status (-?\d+)\b", note) if isinstance(note, str) else None
     if not m or e.get("state") != "settled":
         return None
-    o = dict(state="F", exit=int(m.group(1)), source="ledger-settlement", settle_note_sha256=sha_bytes(note.encode()))
-    facts, prior = prior_scheduler_observation(role, e.get("job_id"), o["exit"], receipts_dir)
-    if facts:
-        o.update(facts, prior_receipt=prior)
-    return o
+    return dict(state="F", exit=int(m.group(1)), source="ledger-settlement", settle_note_sha256=sha_bytes(note.encode()))
 
 
 def pbs_observe(job_ids, pbs_file=None, settled=None, role=None, receipts_dir=None):
@@ -337,17 +363,20 @@ def pbs_observe(job_ids, pbs_file=None, settled=None, role=None, receipts_dir=No
                 return None, f"settled job {j}: its settlement note carries no Exit_status (no observation)"
             obs[j] = o
     live = settled_scheduler_qstat([j for j in job_ids if j in settled], pbs_file)      # REVISION 12
-    for j in [j for j in job_ids if j in settled]:
-        o, ev = obs[j], []
-        if finite_nonneg(o.get("mem_kb")):
-            ev.append(dict(kind="prior-receipt", **(o.get("prior_receipt") or {})))
+    for j in [j for j in job_ids if j in settled]:                      # REVISION 13: largest DIRECT value; breaches kept
+        o = obs[j]
+        worst, breach = prior_scheduler_memory(role, j, o["exit"], receipts_dir)
+        vals = ([(live[j]["mem_kb"], live[j].get("walltime_req_s"), dict(kind="qstat"))] if j in live else []) + ([worst] if worst else [])
         if j in live:
-            ev.append(dict(kind="qstat"))
-            if not finite_nonneg(o.get("mem_kb")) or live[j]["mem_kb"] > o["mem_kb"]:
-                o["mem_kb"] = live[j]["mem_kb"]
-            if live[j].get("walltime_req_s") is not None and o.get("walltime_req_s") is None:
-                o["walltime_req_s"] = live[j]["walltime_req_s"]
-        o["memory_evidence"] = ev
+            o.update(qstat_mem_kb=live[j]["mem_kb"], qstat_walltime_req_s=live[j].get("walltime_req_s"))
+        if vals:
+            m, w, ev = max(vals, key=lambda x: x[0])
+            o["mem_kb"] = m
+            o["walltime_req_s"] = w if w is not None else next((x[1] for x in vals if x[1] is not None), None)
+            if ev["kind"] != "qstat":
+                o["prior_receipt"] = dict(file=ev["file"], sha256=ev["sha256"])
+        o["memory_evidence"] = [v[2] for v in vals]
+        o["memory_breach"] = breach
     ask = [j for j in job_ids if j not in settled]
     if pbs_file:
         q = json.load(open(pbs_file))
@@ -644,7 +673,10 @@ def reconcile(man, role, verify, obs, ledger, live):
                      plan_walltime_s=plan.get("walltime_s"), requested_walltime_s=o.get("walltime_req_s"))
         if o.get("source") == "ledger-settlement":                          # REVISION 11: the observation's provenance
             s_sum.update(observation=o["source"], settle_note_sha256=o["settle_note_sha256"], prior_receipt=o.get("prior_receipt"),
-                         memory_evidence=o.get("memory_evidence"))
+                         memory_evidence=o.get("memory_evidence"), qstat_mem_kb=o.get("qstat_mem_kb"),
+                         qstat_walltime_req_s=o.get("qstat_walltime_req_s"), memory_breach=o.get("memory_breach"))
+            if o.get("memory_breach"):                                  # REVISION 13: a recorded breach is never displaced
+                alarms.append(f"{role} job {n} ({j}): receipt {o['memory_breach']['file']} recorded a scheduler-memory alarm for this terminal job")
         dispo, dwhy = None, ""
         if e.get("runner_exit") is None and terminal:                       # every terminal job without a runner exit is examined
             dispo, dwhy = closed_no_record(man, role, n, e, plan, j, o, units, ledger, live)
