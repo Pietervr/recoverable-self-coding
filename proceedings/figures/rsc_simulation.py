@@ -262,6 +262,16 @@ for kind in ("MM1", "MD1", "H2M1"):
           f"{CRs.size} loads; largest relative gap {100 * rel.max():.1f}%; "
           f"simulated above exact at {int((series[kind] > exact[kind]).sum())}"
           f" of {CRs.size} loads")
+    # where the misses are (reviewer request 2: "state where the interval misses occur")
+    miss = np.where(~inside)[0]
+    if miss.size:
+        print(f"      misses at CR = "
+              + ", ".join(f"{CRs[i]:.3f} (sim {series[kind][i]:.3f}+-"
+                          f"{series_ci[kind][i]:.3f}, exact {exact[kind][i]:.3f}, "
+                          f"{100 * (series[kind][i] / exact[kind][i] - 1):+.1f}%)"
+                          for i in miss))
+    else:
+        print("      no misses")
     for c in (0.5, 0.8, 0.94, 0.965):
         i = int(np.argmin(np.abs(CRs - c)))
         print(f"      CR={CRs[i]:.3f}  sim {series[kind][i]:8.3f} +- "
