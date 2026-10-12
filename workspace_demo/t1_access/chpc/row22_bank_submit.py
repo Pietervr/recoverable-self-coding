@@ -24,17 +24,35 @@ THE SUBMISSION GATE:
     (3) the newest <root>/gate/bank_watch_*.json: parsed, this schema, production, fresh, zero alarms, at most 2,700 s old,
         bound to the same values and to EVERY bank job the ledger holds now;
   - before any real submission the manifest's code pins are verified in the clone the jobs run from.
+  REVISION B1 CANDIDATE (R052 12 Oct, bank job 11 wall-killed; NOT adopted): a receipt summary that carries `disposition`
+  (kind bank-closed-no-record-1) is never taken on its word. disposition_problem() recomputes it HERE with
+  row22_bank_dispo.closed_no_record (the status view's one implementation) from the CURRENT ledger, the live root and the PBS
+  output on disk (<toolchain>/jobs/row22_bank_<n>.out), observed from the settlement note, and requires the receipt's
+  disposition to be EXACTLY the recomputed one (settlement certificate, exit, token, PBS id, plan SHA-256, output SHA-256,
+  uncompleted reps), the output bound in `bound.job_outputs`, and the summary to show zero ended/new/resumed/left with the
+  plan's reps as uncompleted (origin plan). A replaced certificate, a changed output, a status or timing naming the job,
+  an ADMISSION FAILED or a record at its reps that is not a later bound job's planned completion refuses until recollected.
+  A terminal job in the receipt with an exit other than 0/75 and no disposition refuses. The disposed reps are MISSING to
+  the planner (a settled entry is never in flight) and are planned first by rep order into the next job number, which the
+  adopted review must cover.
+  REPAIR R1 (Codex RSC 4295ed6): B1-2 a later completion at a disposed rep is recomputed against the verify document the
+  receipt bound (gate/verify_*.json whose SHA-256 is bound.verify_sha256; its record SHA-256 must be the CURRENT record bytes')
+  and the producer's timing contract on the CURRENT timing bytes with the task's seed; B1-3 the receipt's summaries, its
+  bound jobs and the current ledger's bank jobs must be the same set, as typed mappings, before any job is validated;
+  B1-4 a receipt (and the qualification's embedded receipt) is clean only with an explicit empty `alarms` list, `fresh` and
+  `production` exactly true, and a finite non-boolean `time` (within the 2,700 s ceiling for the gate receipt).
 
     t1py chpc/row22_bank_submit.py --manifest chpc/row22_bank_manifest.json --pilot [--dry-run]
     t1py chpc/row22_bank_submit.py --manifest chpc/row22_bank_manifest.json --adopt-review reviews/<record>.md --max-job-number 17
     t1py chpc/row22_bank_submit.py --manifest chpc/row22_bank_manifest.json --jobs 4 [--dry-run]
 """
-import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
+import os, sys, json, time, glob, math, fcntl, hashlib, argparse, subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = os.path.abspath(os.path.join(HERE, ".."))
 sys.path.insert(0, HERE)
 from row19_ledger import CampaignLedger, LIVE
+import row22_bank_dispo as DP
 
 REVIEW_SCHEMA = "row22-bank-review-2"
 QUAL_SCHEMA = "row22-bank-qualification-1"
@@ -151,11 +169,12 @@ def qualification_problem(man, manifest_path):
         doc = json.load(open(q))
     except Exception as e:
         return f"the qualification is unreadable ({e})", None
-    if doc.get("schema") != QUAL_SCHEMA or doc.get("qualified_job") != 1 or doc.get("production") is not True:
-        return "the qualification is not a production qualification of bank job 1", None
-    rec = doc.get("receipt") or {}
-    if rec.get("alarms") or rec.get("fresh") is not True:
-        return "the qualification's embedded receipt has alarms or is not fresh", None
+    if not isinstance(doc, dict) or doc.get("schema") != QUAL_SCHEMA or doc.get("qualified_job") != 1 or isinstance(doc.get("qualified_job"), bool) \
+            or doc.get("production") is not True or not finite_time(doc.get("time")):
+        return "the qualification is not a production qualification of bank job 1 with a finite time", None
+    why = clean_receipt_fields(doc.get("receipt"))
+    if why:
+        return f"the qualification's embedded receipt: {why}", None
     why = bound_problem(doc.get("bound"), expected_bound(man, manifest_path), ["1"])
     return (f"the qualification: {why}" if why else ""), sha_file(q)
 
@@ -170,6 +189,29 @@ def tracked_unmodified(rel):
         return False
 
 
+def finite_time(t):
+    return isinstance(t, (int, float)) and not isinstance(t, bool) and math.isfinite(t) and t >= 0
+
+
+def clean_receipt_fields(r, now=None):
+    """B1-4: '' only for a parsed watch receipt with an explicit empty alarm list, fresh and production exactly true, and a finite
+    non-boolean time (with `now`: no later than now + 60 s and no older than the 2,700 s ceiling)."""
+    if not isinstance(r, dict) or r.get("schema") != WATCH_SCHEMA:
+        return "not a watch receipt"
+    if r.get("production") is not True or r.get("fresh") is not True:
+        return "not a fresh production receipt"
+    if not isinstance(r.get("alarms"), list):
+        return "its alarms are not an explicit list"
+    if r["alarms"] != []:
+        return f"{len(r['alarms'])} alarm(s)"
+    t = r.get("time")
+    if not finite_time(t):
+        return "its time is not finite"
+    if now is not None and (t > now + 60 or now - t > CEILING_S):
+        return f"not within {CEILING_S:.0f} s"
+    return ""
+
+
 def receipt_problem(man, manifest_path, now=None):
     now = time.time() if now is None else now
     gate = os.path.join(man["storage"]["root"], "gate")
@@ -180,15 +222,121 @@ def receipt_problem(man, manifest_path, now=None):
         r = json.load(open(ps[-1]))
     except Exception as e:
         return f"the newest receipt is unreadable ({e})"
-    if r.get("schema") != WATCH_SCHEMA or r.get("production") is not True or r.get("fresh") is not True:
-        return "the newest receipt is not a fresh production receipt"
-    if r.get("alarms"):
-        return f"the newest receipt has {len(r['alarms'])} alarm(s)"
-    t = r.get("time")
-    if not isinstance(t, (int, float)) or t > now + 60 or now - t > CEILING_S:
-        return f"the newest receipt is not within {CEILING_S:.0f} s"
+    why = clean_receipt_fields(r, now)
+    if why:
+        return f"the newest receipt: {why}"
     why = bound_problem(r.get("bound"), expected_bound(man, manifest_path), "all")
-    return f"the newest receipt: {why}" if why else ""
+    if why:
+        return f"the newest receipt: {why}"
+    return dispositions_problem(man, r)
+
+
+def disposition_problem(man, n, sj, bound):
+    """REVISION B1: '' only when bank job n is closed-no-record on the CURRENT ledger, root and PBS output, and the receipt's
+    disposition is exactly that recomputation."""
+    n = str(int(n)); d = sj.get("disposition")
+    if not isinstance(d, dict) or d.get("kind") != DP.DISPO_KIND:
+        return f"job {n}: no closed-no-record disposition"
+    root = man["storage"]["root"]
+    try:
+        led = json.load(open(os.path.join(man["storage"]["campaign"], "budget.json")))
+    except Exception as ex:
+        return f"job {n}: the ledger is unreadable ({ex})"
+    entries = list(led["entries"].values())
+    hits = [e for e in entries if e.get("kind") == "bank" and e.get("rep") == int(n)]
+    if len(hits) != 1:
+        return f"job {n}: {len(hits)} current ledger entries"
+    e = hits[0]
+    pp = os.path.join(root, "plans", f"job_{n}.json")
+    try:
+        plan = json.load(open(pp)); psha = sha_file(pp)
+    except Exception:
+        return f"job {n}: its plan is absent or unreadable"
+    name = f"row22_bank_{n}.out"
+    try:
+        ob = open(os.path.join(man["bank"]["toolchain"], "jobs", name), "rb").read()
+    except OSError:
+        ob = None
+    obs = dict(state="F", exit=DP.note_exit(e.get("settle_note")), source="ledger-settlement")
+    vreps, why = bound_verification(man, bound)
+    if why:
+        return f"job {n}: {why}"
+    mine, why = DP.closed_no_record(root, n, e, plan, psha, obs, entries, name, ob, vreps, man["datasets"]["reps"],
+                                    lambda r: task_seed(man, r))
+    if not mine:
+        return f"job {n}: not closed-no-record on the current evidence ({why})"
+    keys = [k for k in mine if k != "observation"]
+    diff = [k for k in keys if d.get(k) != mine[k] or isinstance(d.get(k), bool)]
+    if diff:
+        return f"job {n}: the receipt's disposition differs from the current evidence on {diff}; recollect"
+    bj = (bound.get("jobs") or {}).get(n) or {}
+    if bj.get("job_id") != e.get("job_id") or bj.get("token") != e.get("token") or bj.get("plan_sha256") != psha:
+        return f"job {n}: the receipt's binding is not the ledger's PBS id, token and plan"
+    bo = (bound.get("job_outputs") or {}).get(n) or {}
+    if bo != dict(file=name, sha256=mine["output_sha256"]):
+        return f"job {n}: the receipt does not bind the disposed job's PBS output bytes"
+    if sj.get("state") != "F" or sj.get("exit") != mine["scheduler_exit"] or any(sj.get(k) != 0 for k in ("ended", "new", "resumed", "left")) \
+            or sj.get("exits") != {} or sj.get("partition") != dict(new=[], resumed=[], left=[], uncompleted=mine["uncompleted"], uncompleted_origin="plan"):
+        return f"job {n}: the summary is not a closed job with no worker status and its plan's reps uncompleted"
+    return ""
+
+
+def task_seed(man, r):
+    """The pinned task seed of bank rep r (row22_bank.SH.task, as evidence() and the producer verifier use it)."""
+    import row22_bank as B
+    return int(B.SH.task(man, int(r))["seed"])
+
+
+def bound_verification(man, bound):
+    """B1-2: ({rep: verdict} of the verify document the receipt bound, found in the gate by SHA-256) or (None, reason)."""
+    want = bound.get("verify_sha256")
+    if not isinstance(want, str) or len(want) != 64:
+        return None, "the receipt binds no producer-runtime verification"
+    for p in sorted(glob.glob(os.path.join(man["storage"]["root"], "gate", "verify_*.json")), reverse=True):
+        try:
+            b = open(p, "rb").read()
+        except OSError:
+            continue
+        if hashlib.sha256(b).hexdigest() != want:
+            continue
+        try:
+            doc = json.loads(b)
+        except ValueError:
+            return None, "the bound verification is not JSON"
+        if not isinstance(doc, dict) or doc.get("schema") != "row22-bank-verify-1" or not isinstance(doc.get("reps"), dict):
+            return None, "the bound verification is not a bank verify document"
+        return doc["reps"], ""
+    return None, "the verification the receipt bound is not in the gate"
+
+
+def dispositions_problem(man, r):
+    """REVISION B1: every disposition in the receipt revalidated; a terminal bad exit without one refuses; no stray output binding.
+    R1 (B1-3): summaries, bound jobs and the current ledger's bank jobs are one typed, equal set first."""
+    jobs, bound = r.get("jobs"), r.get("bound")
+    if not isinstance(jobs, dict) or not isinstance(bound, dict) or not isinstance(bound.get("jobs"), dict) \
+            or not isinstance(bound.get("job_outputs", {}), dict):
+        return "the newest receipt: its job summaries or bindings are not mappings"
+    try:
+        led = json.load(open(os.path.join(man["storage"]["campaign"], "budget.json")))
+        current = {str(int(e["rep"])) for e in led["entries"].values() if e.get("kind") == "bank"}
+    except Exception as ex:
+        return f"the newest receipt: the current ledger is unreadable ({ex})"
+    if not (set(jobs) == set(bound["jobs"]) == current):
+        return (f"the newest receipt: summaries {sorted(jobs)}, bound jobs {sorted(bound['jobs'])} and the ledger's "
+                f"bank jobs {sorted(current)} are not one set")
+    for n, sj in sorted(jobs.items(), key=lambda x: int(x[0])):
+        if not isinstance(sj, dict):
+            return f"the newest receipt: job {n} has no summary"
+        if sj.get("disposition") is not None:
+            why = disposition_problem(man, n, sj, bound)
+            if why:
+                return f"the newest receipt: {why}"
+        elif sj.get("state") in ("F", "E", "X", "gone") and sj.get("exit") not in (0, 75):
+            return f"the newest receipt: job {n} ended with exit {sj.get('exit')} and carries no disposition"
+    stray = sorted(set(bound.get("job_outputs") or {}) - {n for n, sj in jobs.items() if isinstance(sj, dict) and sj.get("disposition")})
+    if stray:
+        return f"the newest receipt binds PBS outputs of jobs {stray} that carry no disposition"
+    return ""
 
 
 def review_problem(man, planned, manifest_path=None):
