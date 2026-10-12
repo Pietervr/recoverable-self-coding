@@ -362,7 +362,7 @@ for kind, mk, col, lab in (
 ax2.plot([], [], "-", color="#6B6B6B", lw=1.4,
          label="exact (Proposition 1)")
 ax2.set_xlabel(r"capacity ratio $\mathrm{CR}$", fontsize=LAB)
-ax2.set_ylabel(r"stability index $\mathrm{SR}$ (mean backlog)", fontsize=LAB)
+ax2.set_ylabel(r"uncertified backlog $\mathcal{N}$", fontsize=LAB)
 ax2.set_xlim(0.3, 1.0)
 ax2.set_title(r"(b) $(1-\mathrm{CR})^{-1}$ divergence", fontsize=9.5)
 ax2.legend(fontsize=7.5, loc="upper left")
@@ -381,11 +381,12 @@ for rho, col_a, col_r, mk in ((0.5, "#4C8FBD", "#E58C8A", "o"),
 ax3.plot(PLOS, PLOS, ":", color="#6B6B6B", lw=1.0)
 ax3.text(0.55, 0.47, r"$p_{\mathrm{lo}}$ (accuracy floor)", fontsize=7.5,
          color="#6B6B6B", rotation=35)
-ax3.set_xlabel(r"time-out accuracy $p_{\mathrm{lo}}$ "
+ax3.set_xlabel(r"accuracy floor $p_{\mathrm{lo}}$ "
                r"($p_{\mathrm{hi}}=0.95$)", fontsize=LAB)
 ax3.set_ylabel("fraction", fontsize=LAB)
 ax3.set_ylim(0, 1.0)
-ax3.set_title("(c) the ordering is not the coupling", fontsize=9.5)
+ax3.set_title(r"(c) accuracy and recoverability against $p_{\mathrm{lo}}$",
+              fontsize=9.5)
 ax3.legend(fontsize=7.5, loc="upper left")
 ax3.tick_params(labelsize=TICK)
 ax3.grid(alpha=0.25)
