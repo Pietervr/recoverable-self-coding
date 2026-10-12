@@ -6,11 +6,12 @@ allocate memory` and `releaseMappedMemory failed with error: Cannot allocate mem
 bash reported `Segmentation fault` for that exact worker command (`fixture_refit13/row19_screen_refit_13.err`). No status, record
 or timing exists for 83/2 (Lengau `records/rep83/` and `timing/rep83/` hold only indices 0 and 1). The other 23 workers ended 0.
 
-**What it was not.** Not the node or the job running out of memory: no other slot of job 13 (several were still fitting at
-01:36Z) and no other refit log ever logged the error; job 13's scheduler memory was 46,155,404 kB (38 % of the 120 GB request);
-the worker's resident set is ~1-3 GB. `ulimit -v` is unlimited and `vm.overcommit_memory` is 0 on the nodes examined.
+**What the observations argue against (not proven).** Node- or job-wide memory exhaustion is unlikely: no other slot of job 13
+(several were still fitting at 01:36Z) and no other refit log ever logged the error; job 13's scheduler memory was 46,155,404 kB
+(36.7 % of the 120 GB request); worker resident sets are ~1-3 GB. `ulimit -v` is unlimited on the login node and `vm.overcommit_memory`
+is 0 on the login node, cnode0359 and cnode0982 (cnode0892 itself was not read).
 
-**Most likely cause: the per-process memory-map limit.** `vm.max_map_count` = 65,530 on the login node and the compute nodes
+**Operator hypothesis: the per-process memory-map limit.** `vm.max_map_count` = 65,530 on the login node and the compute nodes
 read (cnode0359, cnode0982). Read-only `/proc/<pid>/maps` samples of running workers on 12 Oct ~04:50Z:
 
 | process | age | mappings | of which anonymous |

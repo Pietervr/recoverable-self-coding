@@ -154,7 +154,9 @@ codes [...]' line whose list is None exactly at the missing slots and the status
 per missing slot, exactly one bash job-control line naming the job's script (<PBS id>.SC) and a fatal signal (Segmentation fault,
 Bus error, Aborted, Illegal instruction) for THAT slot's exact planned worker command (rep, indices, slot), and no other worker
 death line (Killed / Terminated never qualify: an external kill is not a worker fault); no unit at a crashed coordinate carries
-timing naming the PBS id, every timing naming it is readable and at a surviving coordinate; and every crashed coordinate holds no
+timing naming the PBS id; EVERY timing file naming the PBS id (V15-1, Codex 5ca7fbd) is readable, at its canonical path
+timing/rep<R>/t_<iii>.json with strict integer rep, index and slot equal to that path, and at a SURVIVING worker's planned
+coordinate in that worker's slot (an orphan outside the plan, a wrong slot or a path alias refuses); and every crashed coordinate holds no
 file, or only a later bound job's verified planned completion (R1). The receipt binds the output and error bytes
 (`bound.slot_outputs`); the summary keeps the actual exits (scheduler 4, runner 4), counts only the surviving workers as ended
 and accounts the crashed coordinates as `uncompleted` with origin "crashed-slot". Then, and only then, the scheduler-exit,
@@ -992,15 +994,20 @@ SIGNAL_DEATHS = ("Segmentation fault", "Bus error", "Aborted", "Illegal instruct
 _SIG_RE = "|".join(re.escape(s) for s in SIGNAL_DEATHS)
 
 
-def crash_line_re(jid, sl):
-    """The bash job-control line PBS's stderr carries when THIS planned worker died of a fatal signal (refit_pbs_script's exact
-    worker command for this plan slot; the script path names the PBS id)."""
+PBS_SPOOL = "/var/spool/PBS/mom_priv/jobs"
+
+
+def crash_line_re(jid, sl, lustre_root):
+    """The bash job-control line PBS's stderr carries when THIS planned worker died of a fatal signal: refit_pbs_script's exact
+    worker command for this plan slot - the job script in PBS's spool named by the PBS id, the screen manifest (chpc/
+    row19_screen_manifest.json, relative to the job clone), the slot's rep/indices/slot and its log under the campaign root."""
     idx = ",".join(str(int(i)) for i in sl["indices"])
-    return re.compile(rf"^\S*/{re.escape(jid)}\.SC: line \d+: +\d+ ({_SIG_RE})(?: \(core dumped\))? +\$T/t1py chpc/row19_shard\.py worker "
-                      rf"--manifest \S+ --rep {int(sl['rep'])} --indices {idx} --slot {int(sl['slot'])} --job-id \$PBS_JOBID "
-                      rf"--deadline-epoch \$DEADLINE > \S+/logs/job\$PBS_JOBID\.slot{int(sl['slot'])}\.log 2>&1$")
+    return re.compile(rf"^{re.escape(PBS_SPOOL)}/{re.escape(jid)}\.SC: line \d+: +\d+ ({_SIG_RE})(?: \(core dumped\))? +\$T/t1py chpc/row19_shard\.py worker "
+                      rf"--manifest (?:[^ ]*/)?chpc/row19_screen_manifest\.json --rep {int(sl['rep'])} --indices {idx} --slot {int(sl['slot'])} --job-id \$PBS_JOBID "
+                      rf"--deadline-epoch \$DEADLINE > {re.escape(lustre_root)}/logs/job\$PBS_JOBID\.slot{int(sl['slot'])}\.log 2>&1$")
 
 
+TIMING_REL = re.compile(r"^timing/rep([0-9]+)/t_([0-9]{3})\.json$")
 ANY_DEATH_RE = re.compile(rf"\.SC: line \d+: +\d+ ({_SIG_RE}|Killed|Terminated)")
 END_RE = re.compile(r"^job (\d+) ended: exit (-?\d+); workers exit codes (\[[^\]]*\]); wall \d+ s$")
 
@@ -1058,7 +1065,7 @@ def crashed_slot_evidence(man, role, n, e, plan, jid, obs, out_bytes, err_bytes,
     err = err_bytes.decode("utf-8", errors="replace").splitlines()
     out_slots = []
     for sl in missing:
-        rx = crash_line_re(jid, sl); hits = [m for m in (rx.match(l) for l in err) if m]
+        rx = crash_line_re(jid, sl, man["storage"]["root"]); hits = [m for m in (rx.match(l) for l in err) if m]
         if len(hits) != 1:
             return None, f"slot {sl['slot']}: the PBS error stream does not carry exactly one fatal-signal line for its planned worker"
         out_slots.append(dict(slot=int(sl["slot"]), rep=int(sl["rep"]), indices=[int(i) for i in sl["indices"]], signal=hits[0].group(1),
@@ -1070,15 +1077,22 @@ def crashed_slot_evidence(man, role, n, e, plan, jid, obs, out_bytes, err_bytes,
     named = sorted(k for k, u in units.items() if ((u or {}).get("timing") or {}).get("job") == jid and k in gone)
     if named:
         return None, f"unit(s) {named[:3]} at a crashed worker's coordinates carry timing naming {jid}"
-    for rel in timing_scan(root, jid):
-        if not rel.endswith(".json") or "(" in rel:
+    surv = {f"{int(sl['rep'])}/{int(i)}": int(sl["slot"]) for sl in slots if int(sl["slot"]) in present for i in sl["indices"]}
+    for rel in timing_scan(root, jid):                                  # V15-1 (Codex 5ca7fbd): EVERY same-job timing is a survivor's
+        m = TIMING_REL.match(rel)
+        if not m:
             return None, f"timing evidence of unknown attribution ({rel})"
         try:
             t = _strict_load(os.path.join(root, rel))
         except Exception:
             return None, f"timing evidence of unknown attribution ({rel})"
-        if not isinstance(t, dict) or t.get("slot") in gone.values() or f"{t.get('rep')}/{t.get('index')}" in gone:
-            return None, f"timing {rel} names {jid} at a crashed worker's slot or coordinate"
+        if not isinstance(t, dict) or t.get("job") != jid or not all(_int(t.get(f)) for f in ("rep", "index", "slot")):
+            return None, f"timing {rel} names {jid} without integer rep, index and slot"
+        if (t["rep"], t["index"]) != (int(m.group(1)), int(m.group(2))):
+            return None, f"timing {rel} is not at its canonical path (it names {t['rep']}/{t['index']})"
+        k = f"{t['rep']}/{t['index']}"
+        if surv.get(k) != t["slot"]:
+            return None, f"timing {rel} names {jid} slot {t['slot']} at {k}, not a surviving worker's planned coordinate and slot"
     num_of = {x.get("job_id"): int(x["rep"]) for x in entries if x.get("kind") == ROLES[role] and x.get("job_id")}
     plans = {}
 

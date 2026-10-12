@@ -40,7 +40,7 @@ OUT = ("host cnode0892\ncode aac02ca  start 2026-10-11T02:55:25Z  job 7531397.sc
 def crash(slot=1, rep=83, idx="2", sig="Segmentation fault", jid=JID):
     return (f"/var/spool/PBS/mom_priv/jobs/{jid}.SC: line 53: 55789 {sig}      $T/t1py chpc/row19_shard.py worker --manifest "
             f"../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep {rep} --indices {idx} --slot {slot} "
-            f"--job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/x/row19_screen/logs/job$PBS_JOBID.slot{slot}.log 2>&1\n")
+            f"--job-id $PBS_JOBID --deadline-epoch $DEADLINE > {{ROOT}}/logs/job$PBS_JOBID.slot{slot}.log 2>&1\n")
 
 
 ERR = crash()
@@ -79,7 +79,7 @@ def fixture(statuses=None, extra_files=()):
 
 def ev(man, units, e=None, obs=None, out=OUT, err=ERR, plan=None, jid=JID):
     plan = plan or json.load(open(os.path.join(man["storage"]["root"], "plans", f"job_{N}.json")))
-    e = e or entry()
+    e = e or entry(); err = err.replace("{ROOT}", man["storage"]["root"])
     return SA.crashed_slot_evidence(man, "refit", N, e, plan, jid, obs or dict(state="F", exit=4), out.encode(), err.encode(), units, [e])
 
 
@@ -88,7 +88,7 @@ d, root, man, units = fixture()
 got, why = ev(man, units)
 check("positive: one SIGSEGV worker, others 0 -> disposition", why == "" and got["kind"] == SA.CRASH_KIND
       and [c["slot"] for c in got["slots"]] == [1] and got["uncompleted"] == ["83/2"] and got["slots"][0]["signal"] == "Segmentation fault"
-      and got["output_sha256"] == hashlib.sha256(OUT.encode()).hexdigest() and got["error_sha256"] == hashlib.sha256(ERR.encode()).hexdigest())
+      and got["output_sha256"] == hashlib.sha256(OUT.encode()).hexdigest() and got["error_sha256"] == hashlib.sha256(ERR.replace("{ROOT}", root).encode()).hexdigest())
 check("orig role never", ev.__call__ and SA.crashed_slot_evidence(man, "orig", N, entry(), {}, JID, dict(state="F", exit=4), b"", b"", {}, [])[0] is None)
 check("scheduler exit 271 (walltime kill) -> no", ev(man, units, obs=dict(state="F", exit=271))[0] is None)
 check("scheduler state E -> no", ev(man, units, obs=dict(state="E", exit=4))[0] is None)
@@ -136,12 +136,39 @@ man9["datasets"]["identities"] = {"83": "I83"}
 units9["83/2"] = dict(record=dict(ok=True, sha="z"), timing=dict(ok=True, job="7532000.sched01", slot=5))
 e14 = dict(kind="shard", rep=14, job_id="7532000.sched01", token="t14", state="settled")
 got9, why9 = SA.crashed_slot_evidence(man9, "refit", N, entry(), json.load(open(os.path.join(root9, "plans", f"job_{N}.json"))), JID,
-                                      dict(state="F", exit=4), OUT.encode(), ERR.encode(), units9, [entry(), e14])
+                                      dict(state="F", exit=4), OUT.encode(), ERR.replace("{ROOT}", root9).encode(), units9, [entry(), e14])
 check("a later bound job's verified completion at the crashed coordinate -> allowed", why9 == "" and got9["uncompleted"] == ["83/2"])
 
+# V15-1 (Codex 5ca7fbd): EVERY timing naming the crashed job must be a surviving worker's planned coordinate in its slot
+def tim(rep_, idx, slot, **kw):
+    d = dict(rep=rep_, index=idx, job=JID, slot=slot, wall_s=1, fit_seconds=1, maxrss=1, t=1); d.update(kw); return json.dumps(d)
+
+
+V151 = [("orphan timing-only outside the plan (Codex's trace rep999/777 slot 0)", "timing/rep999/t_777.json", tim(999, 777, 0)),
+        ("timing at a surviving coordinate in the WRONG slot", "timing/rep67/t_002.json", tim(67, 2, 2)),
+        ("timing at a planned coordinate of another index (not planned)", "timing/rep67/t_003.json", tim(67, 3, 0)),
+        ("timing with no slot field", "timing/rep67/t_002.json", json.dumps(dict(rep=67, index=2, job=JID))),
+        ("timing with a boolean slot", "timing/rep84/t_002.json", tim(84, 2, True)),
+        ("timing with a string index", "timing/rep84/t_002.json", tim(84, "2", 2)),
+        ("path alias: rep67/t_002 content claims 84/2", "timing/rep67/t_002.json", tim(84, 2, 2)),
+        ("non-canonical path (subdirectory)", "timing/rep67/old/t_002.json", tim(67, 2, 0)),
+        ("non-canonical name (t_2.json)", "timing/rep67/t_2.json", tim(67, 2, 0))]
+for label, rel, body in V151:
+    dv, rootv, manv, unitsv = fixture(extra_files=[(rel, body)])
+    got_v, why_v = ev(manv, unitsv)
+    check(f"V15-1 shared rule: {label} -> no ({why_v[:70]})", got_v is None and why_v != "")
+dv, rootv, manv, unitsv = fixture(extra_files=[("timing/rep999/t_777.json", tim(999, 777, 0, job="7000000.sched01"))])
+check("V15-1 shared rule: an out-of-plan timing naming ANOTHER job is not this job's evidence -> still yes", ev(manv, unitsv)[1] == "")
+check("tightened regex: a log path outside the campaign root -> no",
+      ev(man, units, err=ERR.replace("{ROOT}/logs", "/elsewhere/logs"))[0] is None)
+check("tightened regex: another manifest -> no", ev(man, units, err=ERR.replace("chpc/row19_screen_manifest.json", "chpc/other_manifest.json"))[0] is None)
+check("tightened regex: a script outside the PBS spool -> no", ev(man, units, err=ERR.replace("/var/spool/PBS/mom_priv/jobs/", "/tmp/"))[0] is None)
+
+
 # ---- the status view: reconcile with the fetched files ----------------------------------------------------------------------
-def live_fixture(with_err=True, err=ERR):
-    d, root, man, units = fixture()
+def live_fixture(with_err=True, err=ERR, extra_files=()):
+    d, root, man, units = fixture(extra_files=extra_files)
+    err = err.replace("{ROOT}", man["storage"]["root"])
     live = os.path.join(d, "live"); shutil.copytree(root, os.path.join(live, "root"))
     os.makedirs(os.path.join(live, "jobs")); os.makedirs(os.path.join(live, "campaign"))
     fetch = {}
@@ -188,7 +215,7 @@ def admit_fixture():
     al, summ, jobs, _ = R.reconcile(man_, "refit", verify_, obs_, ledger_, live_)
     root = man_["storage"]["root"]; os.makedirs(man_["storage"]["campaign"]); os.makedirs(os.path.join(man_["shard"]["toolchain"], "jobs"))
     json.dump(ledger_, open(os.path.join(man_["storage"]["campaign"], "budget.json"), "w"))
-    for name, body in ((f"row19_screen_refit_{N}.out", OUT), (f"row19_screen_refit_{N}.err", ERR)):
+    for name, body in ((f"row19_screen_refit_{N}.out", OUT), (f"row19_screen_refit_{N}.err", ERR.replace("{ROOT}", root))):
         open(os.path.join(man_["shard"]["toolchain"], "jobs", name), "w").write(body)
     json.dump(verify_, open(os.path.join(root, "gate", "verify_refit_x.json"), "w"))
     d = summ[str(N)]["slot_disposition"]
@@ -223,6 +250,22 @@ sj4 = copy.deepcopy(sj); sj4["disposition"] = dict(kind="closed-no-record")
 check("admission: both dispositions at once -> refused", "both" in SA.slot_disposition_problem(man_, None, "refit", N, sj4, bound))
 sj5 = copy.deepcopy(sj); sj5["ended"] = 3
 check("admission: summary claiming every worker ended -> refused", SA.job_summary_problem(man_, str(N), sj5) != "")
+
+# V15-1 through the consumers: the status view keeps all three alarms; the admission refuses a receipt disposition
+man_, verify_, obs_, ledger_, live_ = live_fixture(extra_files=[("timing/rep999/t_777.json", tim(999, 777, 0))])
+al, summ, _, _ = R.reconcile(man_, "refit", verify_, obs_, ledger_, live_)
+check("V15-1 status: orphan same-job timing -> all three alarms stand, reason kept",
+      all(any(t in a for a in al) for t in THREE) and "slot_disposition" not in summ[str(N)] and "rep999" in summ[str(N)].get("slot_disposition_held", ""))
+man_, sj, bound, ledger_ = admit_fixture()
+p_orphan = os.path.join(man_["storage"]["root"], "timing", "rep999"); os.makedirs(p_orphan)
+open(os.path.join(p_orphan, "t_777.json"), "w").write(tim(999, 777, 0))
+why_o = SA.slot_disposition_problem(man_, None, "refit", N, sj, bound)
+check(f"V15-1 admission: an orphan written after the receipt -> refused ({why_o[:60]})", "not a crashed-worker slot disposition" in why_o and "rep999" in why_o)
+os.remove(os.path.join(p_orphan, "t_777.json"))
+open(os.path.join(man_["storage"]["root"], "timing", "rep67", "t_002.json"), "w").write(tim(67, 2, 2))
+check("V15-1 admission: a survivor's timing rewritten to the wrong slot -> refused",
+      "not a crashed-worker slot disposition" in SA.slot_disposition_problem(man_, None, "refit", N, sj, bound))
+
 
 # ---- replay on the REAL refit 13 bytes and the local snapshot (skipped when absent) ------------------------------------------
 REAL = os.environ.get("R13_FIXTURE", os.path.join(CAND, "fixture_refit13"))   # row19_screen_refit_13.out/.err as retrieved from Lengau
