@@ -99,3 +99,60 @@ zero-alarm receipt) rather than in code. The admission half of this candidate is
    exec_host is recorded. If it lands on cnode0358 or cnode0359, that is reported before the result is interpreted.
 4. The loss stays: 864.76 core-h is charged, job 11 gets no completion or recovery credit, the job number is consumed, and
    the plan, the output and the settlement are kept.
+
+## REPAIR R1 (Codex RSC 4295ed6: four bounded evidence-gate repairs)
+
+- **B1-1, strict inventory** (`row22_bank_dispo.inventory_problem`). Every entry under `records/` and `timing/` must be
+  exactly `b<rrr>.json` (three digits) of a declared rep. Anything else holds the disposition and is never mapped onto
+  another rep: `b0240.json`, an undeclared rep, a directory, a dot-file, a temporary file.
+- **B1-2, later completion checked on current bytes.** The status view now keeps the verify document's exact bytes
+  (the line whose SHA-256 is `bound.verify_sha256`). With `--publish-receipt` it copies them to `gate/verify_<stamp>.json`
+  before the receipt. The admission finds that document in the gate by SHA-256, and without it refuses. It then requires
+  the verified record's `file_sha256` to equal the current record bytes. It also applies the producer's timing contract
+  (`row22_bank_verify.timing_check`: rep, task seed via the pinned `row22_bank.SH.task`, finite non-negative
+  wall_s/fit_seconds/maxrss/t, job string, integer slot) to the current timing bytes. A later completion is never
+  accepted without a verify document; the status view holds as well.
+- **B1-3, one job set** (`dispositions_problem`). The receipt's summaries, `bound.jobs`, `bound.job_outputs` and the
+  current ledger's bank jobs must all be typed mappings, and the summaries, the bound jobs and the ledger's jobs must be
+  equal sets, before any job is validated.
+- **B1-4, strict clean fields** (`clean_receipt_fields`). Both the gate receipt and the qualification's embedded receipt
+  need `alarms` to be an explicit empty list, `fresh` and `production` exactly true, and a finite non-boolean `time`. The
+  gate receipt must also fall inside the past/future bounds. The qualification itself needs a finite time.
+
+**Tests:** 59/59 ALL OK. The 22 new cases are each of Codex's traces as a negative: b0240 beside a valid canonical rep 24;
+the timing changed to wall_s -1 or to another seed after a clean receipt; changed record bytes; a bound verification
+missing from the gate; job 11's summary and output binding removed; malformed alarms and time. The unchanged verified
+job-18 completion is the positive case.
+
+**Actual run of the repaired bytes** (read-only, separate directories, nothing published, 12 Oct 07:59Z): fresh snapshot,
+336/408 valid, verify `2818a5f6…` (the saved file hashes to exactly that value). Job 11 is DISPOSITIONED (exit 271,
+864.76 core-h, 24 reps uncompleted, output `f5f1f988…`), with **no alarms**.
+
+## Route (a): the migration, with the evidence collected so far
+
+Read on Lengau, 12 Oct ~08:00Z:
+- **Clone `rsc_bank`:** HEAD `012f3f3`. It runs the c1ce93e submitter `31685d01…` (`REVIEW_SCHEMA row22-bank-review-1`).
+  Its pinned `row19_ledger.py` is `7e8f83b8…`, which is the manifest pin and not the current canonical `9a779702…`. That
+  ledger provides `reserve(kind, rep, cores, walltime_s, root, note)` and `bind(token, job_id)`, the API the candidate
+  submitter uses. The pinned `row22_bank.py` is `2f98db3e…`.
+- **Gate:** `bank_review.json` (schema 1, record `reviews/2026-10-08_actual_evidence_codex_record.md` `465ae691…`, max 17),
+  its stale `bank_review.json.tmp.31370` (identical 258 bytes, left over from the hard-link adoption), and
+  `qualified_bank_job1.json` `3c35f086…`.
+- **Qualification:** schema 1, job 1, production true, finite time. Its embedded receipt passes the strict B1-4 fields.
+  It binds job 1 = `7523732.sched01`, token `d3cf375f72da`, plan `d62408a6…`.
+
+Steps after a favourable record (no science job is touched):
+1. Drain: no bank submitter or status run in flight; jobs 16 and 17 keep running.
+2. Archive `gate/bank_review.json`, its `.tmp` twin and the schema-1 submitter bytes under `gate/archive_schema1_<date>/`,
+   and record it in row 22. The old record and the job-1 qualification stay where they are, unchanged.
+3. Selective copy into `rsc_bank` by `git checkout <reviewed commit> -- ` of exactly these files: `chpc/row22_bank_submit.py`
+   and `chpc/row22_bank_dispo.py`, plus the Codex record(s). Then confirm that every pinned manifest file (ledger
+   `7e8f83b8`, `row22_bank.py`, `row19_shard.py`, …) still hashes to its pin. No bulk copy of `chpc/`.
+4. Promote the status bytes on the Mac (`chpc/row22_bank_status.py`, `chpc/row22_bank_dispo.py`).
+5. Re-adopt under schema 2 with `--adopt-review <B1 record> --max-job-number 18`. This binds to the existing
+   qualification SHA `3c35f086…`, which `adopt_review` re-checks.
+6. Publish a fresh complete bank receipt with zero alarms. The verify document goes first, then the receipt.
+7. Run the job-18 dry run and check the actual plan, PBS script and invocation: job 18, reps 240–263 only, one per slot,
+   serial, 24 cores, 120 GB, `--walltime-h 48` (172,800 s in plan/reservation/PBS/job-start). Each rep must be missing and
+   unreserved. Recheck funding, capacity and STOP inside the cooperative `programme_gate` window. Only then submit, as one
+   job, and record its exec_host.

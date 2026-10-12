@@ -8,7 +8,12 @@ bound completion, a missing/failed/changed PBS output retrieval, ADMISSION FAILE
 exit differing from the observed exit all hold; a later bound retry (job 18) completes the reps without lifting the
 disposition and is credited to job 18 only; the memory alarm survives a disposition; an ordinary exit-0 job is unchanged;
 the admission recomputes and refuses a forged charge, a changed output, a missing
-output binding, a stray binding, a bad exit without a disposition, and a status appearing after the receipt."""
+output binding, a stray binding, a bad exit without a disposition, and a status appearing after the receipt.
+REPAIR R1 (Codex RSC 4295ed6) negatives: B1-1 a malformed records/b0240.json beside a valid canonical rep 24, an undeclared
+rep and a directory hold; B1-2 after a clean receipt with a verified job-18 completion, a disk-only timing change (wall_s -1,
+another seed), changed record bytes or a missing bound verification refuse, and the unchanged verified completion passes;
+B1-3 a receipt missing job 11's summary AND output binding refuses; B1-4 missing, falsy or non-list alarms, a non-finite or
+boolean time, and a qualification whose embedded receipt has no alarm list, refuse."""
 import os, sys, json, shutil, tempfile, hashlib, copy
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -17,6 +22,7 @@ sys.path[:0] = [HERE, CHPC]
 import row22_bank_dispo as DP
 import row22_bank_status as ST
 import row22_bank_submit as SU
+SU.task_seed = lambda man, r: 1                 # the synthetic timings carry seed 1 (the real one imports the pinned task)
 
 OUT = open(os.path.join(HERE, "fixture_bank11", "row22_bank_11.out.txt"), "rb").read()
 J11, J1, J18 = "7531003.sched01", "7523732.sched01", "7539999.sched01"
@@ -103,7 +109,9 @@ class World:
 
     def receipt(self):
         al, _, summary, jobs, outputs = self.run()
-        bound = dict(jobs=jobs, job_outputs=outputs)
+        line = json.dumps(dict(schema="row22-bank-verify-1", reps=self.verify()["reps"]), sort_keys=True)
+        open(os.path.join(self.root, "gate", "verify_20261012T000000Z.json"), "w").write(line)
+        bound = dict(jobs=jobs, job_outputs=outputs, verify_sha256=hashlib.sha256(line.encode()).hexdigest())
         return al, dict(jobs=summary, bound=bound)
 
     def close(self):
@@ -203,6 +211,65 @@ w.close()
 w = World(); al, r = w.receipt()
 w.led["entries"]["dcb830e255e2"]["settle_note"] = NOTE11 + " resettled"; w.save()
 check("admission refuses a replaced settlement certificate", "differs" in SU.dispositions_problem(w.man, r))
+w.close()
+
+# 7. REPAIR R1
+held("B1-1 a malformed records/b0240.json beside a valid canonical rep 24",
+     lambda w: (w.output(24, J1, 0), open(os.path.join(w.root, "records", "b0240.json"), "w").write("{")))
+held("B1-1 an undeclared rep's record", lambda w: open(os.path.join(w.root, "records", "b999.json"), "w").write("{}"))
+held("B1-1 a directory under records/", lambda w: os.makedirs(os.path.join(w.root, "records", "b240.json")))
+
+def retry_world():
+    w = World(); w.plan(18, "tok18", REPS11)
+    w.led["entries"]["tok18"] = dict(kind="bank", rep=18, token="tok18", job_id=J18, state="live", reserved_core_h=1152.0, walltime_s=172800.0)
+    w.save()
+    for i, r in enumerate(REPS11):
+        w.output(r, J18, i)
+    return w
+
+def tamper_timing(w, **kv):
+    tp = os.path.join(w.root, "timing", "b245.json"); t = json.load(open(tp)); t.update(kv); json.dump(t, open(tp, "w"))
+
+w = retry_world(); al, r = w.receipt()
+check("B1-2 the unchanged verified later completion passes the admission", not j11_alarms(al) and SU.dispositions_problem(w.man, r) == "")
+tamper_timing(w, wall_s=-1)
+check("B1-2 a disk-only timing wall_s -1 after the receipt refuses", "not closed-no-record" in SU.dispositions_problem(w.man, r))
+w.close()
+w = retry_world(); al, r = w.receipt(); tamper_timing(w, seed=2)
+check("B1-2 a disk-only timing seed change after the receipt refuses", "not closed-no-record" in SU.dispositions_problem(w.man, r))
+w.close()
+w = retry_world(); al, r = w.receipt()
+json.dump(dict(rep=245, replaced=True), open(os.path.join(w.root, "records", "b245.json"), "w"))
+check("B1-2 changed record bytes after the receipt refuse", "not closed-no-record" in SU.dispositions_problem(w.man, r))
+w.close()
+w = retry_world(); al, r = w.receipt()
+for p in os.listdir(os.path.join(w.root, "gate")):
+    os.remove(os.path.join(w.root, "gate", p))
+check("B1-2 a receipt whose bound verification is not in the gate refuses", "not in the gate" in SU.dispositions_problem(w.man, r))
+w.close()
+w = retry_world()
+al, _, s, _, _ = ST.reconcile(w.man, None or dict(reps={}), w.obs(), w.led, live=w.live)
+check("B1-2 the status view without a verification of the later completion holds", s["11"].get("disposition") is None)
+w.close()
+
+w = World(); al, r = w.receipt()
+r2 = copy.deepcopy(r); del r2["jobs"]["11"]; del r2["bound"]["job_outputs"]["11"]
+check("B1-3 a receipt missing job 11's summary and output binding refuses", "not one set" in SU.dispositions_problem(w.man, r2))
+r2 = copy.deepcopy(r); r2["jobs"] = list(r2["jobs"].values())
+check("B1-3 summaries that are not a mapping refuse", "not mappings" in SU.dispositions_problem(w.man, r2))
+w.close()
+
+good = dict(schema=SU.WATCH_SCHEMA, production=True, fresh=True, alarms=[], time=1000.0)
+check("B1-4 a clean receipt passes the field check", SU.clean_receipt_fields(good, now=1100.0) == "")
+for label, bad in (("missing alarms", {k: v for k, v in good.items() if k != "alarms"}), ("alarms None", dict(good, alarms=None)),
+                   ("alarms ''", dict(good, alarms="")), ("alarms {}", dict(good, alarms={})), ("time NaN", dict(good, time=float("nan"))),
+                   ("time True", dict(good, time=True)), ("time missing", {k: v for k, v in good.items() if k != "time"}),
+                   ("fresh 1", dict(good, fresh=1)), ("stale", good)):
+    check(f"B1-4 refuses: {label}", SU.clean_receipt_fields(bad, now=(1100.0 if label != "stale" else 1000.0 + SU.CEILING_S + 1)) != "")
+w = World()
+json.dump(dict(schema=SU.QUAL_SCHEMA, qualified_job=1, production=True, time=1.0, receipt={k: v for k, v in good.items() if k != "alarms"}),
+          open(os.path.join(w.root, "gate", "qualified_bank_job1.json"), "w"))
+check("B1-4 a qualification whose embedded receipt has no alarm list refuses", "embedded receipt" in SU.qualification_problem(w.man, None)[0])
 w.close()
 
 # 6. the planner: settled job 11 is not in flight; its reps are MISSING and planned first into the next number

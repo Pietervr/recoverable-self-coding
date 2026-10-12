@@ -46,6 +46,10 @@ missing-worker-status alarms suppressed (memory alarms and every other check sta
 ended/new/resumed/left, carries `disposition` and `partition` (uncompleted = the plan's reps, origin "plan"); the receipt binds
 the output in `bound.job_outputs`. Otherwise the reason is kept as `disposition_held` and the alarms stand. A dispositioned
 job never qualifies.
+REPAIR R1 (Codex RSC 4295ed6): the disposition passes the declared reps (B1-1 strict inventory) and the verify document; the
+verify document's EXACT bytes (the line whose SHA-256 is bound.verify_sha256) are kept as receipts/verify_<stamp>.json and, with
+--publish-receipt, copied to the gate BEFORE the receipt, so the admission can recompute a later completion against the
+verification the receipt bound (B1-2).
 QUALIFICATION (--qualify 1): only on fresh production evidence with zero alarms, job 1 terminal with scheduler exit 0, every
 planned slot exit 0, every planned rep a valid record with timing, runner end in the ledger; written locally and copied to
 <root>/gate/qualified_bank_job1.json. It is EVIDENCE for the reviewer; the submitter also needs the adopted review.
@@ -187,7 +191,12 @@ def verify_remote(man, manifest_rel):
         return None, None, f"producer-runtime verify output is not JSON ({e})"
     if doc.get("schema") != "row22-bank-verify-1":
         return None, None, "producer-runtime verify has another schema"
+    global VERIFY_LINE
+    VERIFY_LINE = line[0]
     return doc, sha_bytes(line[0].encode()), ""
+
+
+VERIFY_LINE = None
 
 
 def fresh_snapshot(man):
@@ -381,7 +390,8 @@ def reconcile(man, verify, obs, ledger, live=None):
         dispo = None
         if terminal and j and (o.get("exit") not in (0, 75) or e.get("runner_exit") is None):      # REVISION B1
             oname, ob = fetched_output(live, n)
-            dispo, dwhy = DP.closed_no_record(root, n, e, plan, jobs[str(n)]["plan_sha256"], o, entries, oname, ob, vreps)
+            dispo, dwhy = DP.closed_no_record(root, n, e, plan, jobs[str(n)]["plan_sha256"], o, entries, oname, ob, vreps,
+                                              man["datasets"]["reps"])
             if dispo:
                 s_sum["disposition"] = dispo
                 s_sum["partition"] = dict(new=[], resumed=[], left=[], uncompleted=dispo["uncompleted"], uncompleted_origin="plan")
@@ -527,12 +537,16 @@ def main(argv=None):
                  job_outputs=outputs)
     receipt = dict(schema=WATCH_SCHEMA, time=now, fresh=fresh, production=production, alarms=alarms, bound=bound, jobs=summary)
     os.makedirs(RECEIPTS, exist_ok=True)
-    if a.verify_file is None and verify.get("reps") is not None:
-        open(os.path.join(RECEIPTS, f"verify_{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime(now))}.json"), "w").write(json.dumps(verify, sort_keys=True))
+    vp = os.path.join(RECEIPTS, f"verify_{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime(now))}.json")
+    if a.verify_file is None and VERIFY_LINE is not None:
+        open(vp, "w").write(VERIFY_LINE)                                 # the exact bytes whose SHA-256 the receipt binds
     rc_out = 1 if (alarms or not fresh) else 0
     if a.publish_receipt or a.qualify is not None:
         rp = os.path.join(RECEIPTS, f"bank_watch_{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime(now))}.json")
         json.dump(receipt, open(rp, "w"), indent=1, allow_nan=False)
+        if production and VERIFY_LINE is not None:                       # R1 (B1-2): the bound verification first
+            rc, _, err = sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", vp, f"{HOST}:{man['storage']['root']}/gate/{os.path.basename(vp)}"])
+            print(f"  verify {os.path.basename(vp)} " + ("copied to the root's gate" if rc == 0 else f"NOT copied (rc {rc}: {err.strip()[:80]})"))
         if production:
             rc, _, err = sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", rp, f"{HOST}:{man['storage']['root']}/gate/{os.path.basename(rp)}"])
             print(f"  receipt {os.path.basename(rp)} " + ("copied to the root's gate" if rc == 0 else f"NOT copied (rc {rc}: {err.strip()[:80]})"))

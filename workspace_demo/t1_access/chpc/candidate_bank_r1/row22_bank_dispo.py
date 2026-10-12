@@ -24,13 +24,23 @@ pinned. closed_no_record() returns (disposition, '') only when ALL hold; otherwi
 The disposition keeps the loss: actual exit, charge, settlement certificate, plan SHA-256, the output's SHA-256, zero worker
 statuses, zero attributed reps, and the planned reps as `uncompleted` with origin "plan". It is a charged failed attempt with
 no completion and no restart or recovery credit; its reps return to the planner as MISSING (the planner already ignores a
-settled entry). A dispositioned job never qualifies."""
+settled entry). A dispositioned job never qualifies.
+
+REPAIR R1 (Codex RSC 4295ed6, B1-1 and B1-2):
+  - B1-1 STRICT INVENTORY: every entry of records/ and timing/ must be exactly b<rrr>.json (three digits) of a DECLARED rep;
+    anything else (b0240.json, a directory, a temporary file, an undeclared rep) holds - it is never mapped onto another rep.
+  - B1-2 LATER COMPLETION ON CURRENT BYTES: the current timing bytes must meet the producer's timing contract
+    (row22_bank_verify.timing_check: this rep, this seed when the caller knows it, finite non-negative wall_s, fit_seconds,
+    maxrss and t, a job string and an integer slot), and a verify document is REQUIRED: its record must be valid with the
+    CURRENT record bytes' SHA-256 and its timing valid with the same job and slot. The admission passes the verify document
+    the receipt bound (published to the gate beside the receipt) and the task seed."""
 import os, re, json, glob, math, hashlib
 
 DISPO_KIND = "bank-closed-no-record-1"
 RUNNER_END = ("runner_exit", "runner_ended", "runner_wall_s")
 STATUS_NAME = re.compile(r"^job(\S+)\.slot(\d+)\.json$")
 TIMING_NAME = re.compile(r"^b(\d{3})\.json$")
+RECORD_NAME = TIMING_NAME
 
 
 def sha_bytes(b):
@@ -101,6 +111,31 @@ def timing_scan(root, jid):
     return hits
 
 
+def inventory_problem(root, declared):
+    """B1-1: '' only when every entry under records/ and timing/ is exactly b<rrr>.json of a declared rep."""
+    bad = []
+    for sub in ("records", "timing"):
+        for p in sorted(glob.glob(os.path.join(root, sub, "**", "*"), recursive=True) + glob.glob(os.path.join(root, sub, ".*"))):
+            rel = os.path.relpath(p, root); m = RECORD_NAME.match(os.path.basename(p))
+            if os.path.isdir(p) or os.path.dirname(rel) != sub or not m or int(m.group(1)) not in declared:
+                bad.append(rel)
+    return f"non-canonical bank evidence files {bad[:3]}" if bad else ""
+
+
+def timing_contract(d, r, seed=None):
+    """B1-2: row22_bank_verify.timing_check's contract applied to current bytes; '' or the reason."""
+    if not isinstance(d, dict) or d.get("bank_rep") != int(r) or isinstance(d.get("bank_rep"), bool):
+        return "the timing names another rep"
+    if seed is not None and (d.get("seed") != seed or isinstance(d.get("seed"), bool)):
+        return "the timing carries another seed"
+    for k in ("wall_s", "fit_seconds", "maxrss", "t"):
+        if not (_num(d.get(k)) and d[k] >= 0):
+            return f"the timing's {k} is not finite and non-negative"
+    if not isinstance(d.get("job"), str) or not _int(d.get("slot")):
+        return "the timing names no job string and integer slot"
+    return ""
+
+
 def rep_files(root, r):
     """(exact files present, temporary/non-canonical files) for bank rep r's record and timing."""
     files, odd = [], []
@@ -120,8 +155,9 @@ def plan_slot_of(root, m):
         return {}
 
 
-def later_completion(root, r, n, entries, verify_reps=None):
-    """'' when rep r holds a record whose valid timing names a bound bank job LATER than n that planned r in that slot."""
+def later_completion(root, r, n, entries, verify_reps, seed=None):
+    """'' when rep r holds a record whose valid timing names a bound bank job LATER than n that planned r in that slot, on the
+    CURRENT bytes and the given verify document (B1-2)."""
     tp, rp = os.path.join(root, "timing", f"b{int(r):03d}.json"), os.path.join(root, "records", f"b{int(r):03d}.json")
     if not (os.path.isfile(tp) and os.path.isfile(rp)):
         return "a record or timing without its partner"
@@ -129,25 +165,29 @@ def later_completion(root, r, n, entries, verify_reps=None):
         t = json.load(open(tp))
     except Exception:
         return "its timing is unreadable"
-    if not isinstance(t, dict) or t.get("bank_rep") != int(r) or not isinstance(t.get("job"), str) or not _int(t.get("slot")):
-        return "its timing names no rep, job and slot"
+    why = timing_contract(t, r, seed)
+    if why:
+        return why
     num_of = {x.get("job_id"): int(x["rep"]) for x in entries if x.get("kind") == "bank" and x.get("job_id")}
     m = num_of.get(t["job"])
     if m is None or m <= int(n) or plan_slot_of(root, m).get(int(r)) != t["slot"]:
         return f"its timing names {t['job']} slot {t['slot']}, not a later bound bank job that planned it there"
-    if verify_reps is not None:
-        v = verify_reps.get(str(int(r))) or {}
-        rec, tim = v.get("record") or {}, v.get("timing") or {}
-        if not (rec.get("ok") and tim.get("ok") and tim.get("job") == t["job"] and tim.get("slot") == t["slot"]
-                and rec.get("file_sha256") == sha_file(rp)):
-            return "the producer runtime does not verify its current record and timing"
+    if not isinstance(verify_reps, dict):
+        return "no producer-runtime verification to accept a later completion against"
+    v = verify_reps.get(str(int(r))) or {}
+    rec, tim = v.get("record") or {}, v.get("timing") or {}
+    if not (rec.get("ok") is True and tim.get("ok") is True and tim.get("job") == t["job"] and tim.get("slot") == t["slot"]
+            and rec.get("file_sha256") == sha_file(rp)):
+        return "the producer runtime does not verify its current record and timing"
     return ""
 
 
-def closed_no_record(root, n, e, plan, plan_sha256, obs, entries, out_name, out_bytes, verify_reps=None):
+def closed_no_record(root, n, e, plan, plan_sha256, obs, entries, out_name, out_bytes, verify_reps, declared, seed_of=None):
     """(disposition, '') when bank job n is closed, settled and record-free on this evidence; (None, reason) otherwise.
     `obs` = the observation {state, exit, source}; `entries` = every current ledger entry; `out_bytes` = the job's PBS output
-    as retrieved in this observation (None when retrieval failed); `verify_reps` = the producer-runtime verify document's reps."""
+    as retrieved in this observation (None when retrieval failed); `verify_reps` = the producer-runtime verify document's reps
+    (None when there is none: then no later completion can be accepted); `declared` = the declared bank reps; `seed_of(r)` =
+    the task seed of rep r when the caller can compute it."""
     o = obs or {}
     if o.get("state") != "F" or not _int(o.get("exit")):
         return None, "the observation is not state F with an observed integer exit"
@@ -162,6 +202,9 @@ def closed_no_record(root, n, e, plan, plan_sha256, obs, entries, out_name, out_
     sc = status_scoped(root, j)
     if sc:
         return None, f"status evidence scoped to {j}: {sc[:3]}"
+    why = inventory_problem(root, set(int(x) for x in declared))
+    if why:
+        return None, why
     ts = timing_scan(root, j)
     if ts:
         return None, f"timing evidence naming {j} or of unknown attribution: {ts[:3]}"
@@ -176,8 +219,8 @@ def closed_no_record(root, n, e, plan, plan_sha256, obs, entries, out_name, out_
         files, odd = rep_files(root, r)
         if odd:
             return None, f"bank rep {r}: temporary or non-canonical files {[os.path.basename(p) for p in odd][:3]}"
-        if files or (verify_reps is not None and (verify_reps.get(str(r)) or {}).get("record") is not None):
-            why = later_completion(root, r, n, entries, verify_reps)
+        if files or (isinstance(verify_reps, dict) and (verify_reps.get(str(r)) or {}).get("record") is not None):
+            why = later_completion(root, r, n, entries, verify_reps, seed_of(r) if seed_of else None)
             if why:
                 return None, f"bank rep {r} holds output that is not a later bound job's planned completion ({why})"
     if out_bytes is None:
