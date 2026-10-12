@@ -1,0 +1,1240 @@
+{
+ "schema": "row19-screen-watch-1",
+ "role": "refit",
+ "time": 1791783799.4749079,
+ "fresh": true,
+ "production": true,
+ "alarms": [],
+ "bound": {
+  "manifest_sha256": "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c",
+  "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen",
+  "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+  "code": {
+   "analyze.py": "97558aa9c4340f363431c67f2c2d28cd360f2f0998056af7e1702c9e9a021825",
+   "models.py": "28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef",
+   "simulate.py": "f588b9121be48ec553ab95e4dda5736941865498922468b5868c96758d0afe57",
+   "chpc/row19_slice.py": "c67c4c0c776d810480218f0111623481b38598b30a5c5cb68127dcc83c5dacca",
+   "chpc/row19_shard.py": "828d59640f10cc33fcba7d98d075371945ca4b74ddaca841ea86100fc47ff383",
+   "chpc/row19_ledger.py": "9a7797029a153769ebff78a9256f5c7874f5ad2204b38dff3ac4701a4b23d494",
+   "chpc/row19_screen_orig.py": "d768b6d8c95c6a5f12a416eb934b3e0453dece79fbabf2f37775cbba4b6ef2c8"
+  },
+  "wrapper_sha256": "f9c3ff028982d04e9186b62bed8e63da999348c584491bd67f1d79071bad926c",
+  "jobs": {
+   "1": {
+    "job_id": "7523818.sched01",
+    "token": "2a25377fe9db",
+    "plan_sha256": "39cbd2eeb7501a24961fdf72ff9c021bad211d492a5bc349df9a4724d1867e94"
+   },
+   "2": {
+    "job_id": "7527351.sched01",
+    "token": "9a62a960f2a8",
+    "plan_sha256": "91ef012ff933d4e4f1bf46f88f0163f64693dce0954658cbd93758869b8421c2"
+   },
+   "3": {
+    "job_id": "7527352.sched01",
+    "token": "8c07fbed7540",
+    "plan_sha256": "4bbbac0020f83b1cb1b40d0c887c7b1c3ed3740639d081ebb12a7615cf5a2e0e"
+   },
+   "4": {
+    "job_id": "7529179.sched01",
+    "token": "ca6d3f796bc5",
+    "plan_sha256": "a149104f9a591c5b3f4cfad74e653aaa030adf0f723b9640da40c78b4e657bd0"
+   },
+   "5": {
+    "job_id": "7529279.sched01",
+    "token": "4374a0cf0cd8",
+    "plan_sha256": "d012d3abd7babb193fd5ad04a2e0ae53d565c73bade7ccd798a01fbb9dc72338"
+   },
+   "6": {
+    "job_id": "7529496.sched01",
+    "token": "e7b6807a9641",
+    "plan_sha256": "db5023e16a145282d632cd2c29c30576bb85130b4955cd6cd0cf9683d7960bb2"
+   },
+   "7": {
+    "job_id": "7529616.sched01",
+    "token": "f41c8f8c25f4",
+    "plan_sha256": "64fe0d46863b3ca28ae5f4d8a41d2a7640f8fd5c13289e19e7f1ed8b81bce7e9"
+   },
+   "8": {
+    "job_id": "7529741.sched01",
+    "token": "e9706aec6cea",
+    "plan_sha256": "15076281d9ee0af8dc9adb0689d7519f3de6a9978f99977fa00dfba18fb2fa0f"
+   },
+   "9": {
+    "job_id": "7529824.sched01",
+    "token": "668cb59e5092",
+    "plan_sha256": "58e620bb54197ac08dd5c1ab728defdc5d0ebc6c04dd5ff0c079c186f8a8a2fe"
+   },
+   "10": {
+    "job_id": "7530233.sched01",
+    "token": "89131210811c",
+    "plan_sha256": "7b911cd977dea9b4d2c8d8df844905626dbfe6ea080c4d4085571549f90525db"
+   },
+   "11": {
+    "job_id": "7531115.sched01",
+    "token": "d706ce9e962b",
+    "plan_sha256": "da9bf38b2cc2b4de090276034ce990fa5117610c9b71de959a07e5f0f50f9ad5"
+   },
+   "12": {
+    "job_id": "7531165.sched01",
+    "token": "4bbbae5b4b84",
+    "plan_sha256": "a7627b24a1def2035b9dffc2d5e3c0d193adfb7f91cdd88ec545246c979c2266"
+   },
+   "13": {
+    "job_id": "7531397.sched01",
+    "token": "b15bb996a3dd",
+    "plan_sha256": "5a6e1bbb99537ccbb297480adfb2b3b8352d7658c9317750104505264a1ffba4"
+   }
+  },
+  "bindings": {
+   "10": "be854166adabdc672c0229253724c52dd4006fdc73fdb277848b8ee49fedac99",
+   "100": "20bf48a5d013568ece3dee52b143ca972185ee85d32a716eedd5af4a55b7c60a",
+   "101": "e8482e71fa9c75794710d03d94b4eaeebdfdb01ab5701c6a8dd033acba80a16b",
+   "102": "47aa822e1c289ddc425435200c1485b6269d758dcfaf42a4038aa058d619b8a7",
+   "11": "d740a1ab5308bd8cd667e10b5ab280952f6f59404c23dc6e9e7341a0472434a5",
+   "12": "6f96c8fff213819009feb612611897cb059f5b96217c3d642fdf9ffeb0d3db66",
+   "13": "a6c7bef3c620c5997ed033f08e2219911b539b4d93f6505f0b2e74c37792ffaf",
+   "14": "50568462bfbc21b6528d2e92c04423ac796de2b59926b840be6377c70ed198e3",
+   "15": "22640d4bbdc249d3821aee7a1e89c8feaad82f64bc54681dfb045f0b72269576",
+   "16": "6fddcf87056da3bc6226755b8367a8288a67f224cbc069093f0a3cd31ae51e5b",
+   "17": "985c5fbf79731121a9434bfb18213a1acd8c35b4ffca770f8e26347cb58a7b5d",
+   "18": "1ca8b526811e3f7c611caa1399524bc47a727d06cb71347cf5adb7e880903c4d",
+   "19": "a07f74f21dc54a5eaaa3937d0d8b3bd1491c3c23c3c69fa0c316f72c1b7d6a83",
+   "20": "e4971f4e7a916a0ba3f50085d57cfaa8bb369a97c200817ba7c75bd90cdf2dd2",
+   "21": "e2e9cba3bdf8f2649bca238fc0c209f7cc61d743df7b97ef6172260abef4b3ce",
+   "22": "eb0f145c5a0d9d49d77f3d570117c47529956f470f3db5acd0914d11a143a117",
+   "23": "90332ca158a31cfc4a7a7e9f02d8d2e45682a6740b4af14cfe46dd3e30c8b3b2",
+   "24": "85356dddf5151dc67a9843fc4e4d3ec0bd6317097c102922901a57528a395c73",
+   "25": "e6eb89581b508cf4e48b175a8f2553cc26eac3ec49da3b215bf778679a529b04",
+   "26": "e6017e891583366beba63d974c15707915220e667366bd5a8cbbae40c197a93c",
+   "27": "cc8e93e80feba788f60ba91c3a82395f612875cf107f94fc0ce1ada9c0c5a042",
+   "28": "bd46763a69526a917075c345fea740dc178c804ee9481707bd5660dd92e1ace5",
+   "29": "fd3479f1174d48e67b84e89de0ce947280295a40279f3e668c5edc3384f0bbe2",
+   "3": "270f4bf8a9ef8f83bbf082ef0ce8abaf4189daa50367cf735de530c269fb2a44",
+   "30": "295b5cf7ca4e7107e24526f7dc624987f16c4871631e97774aa55aaf41fbbc2d",
+   "31": "cdf5e919418aa73249784ae5ccce7aca9ec731de63c45d1d1a9a77de2660dc60",
+   "32": "7ed9734b285ffd7f0bc12a205ad5cd0f218393e17b8a774d4e9f5c63fc4ff016",
+   "33": "65aa20de3a311c8a2d46fd1e1513847510e54ae054c6290d1b76bef9b7ebf542",
+   "34": "2453b9600abd62f60b396d82f7ca8f1e7391bc4b23d485b5417264f7773e65a3",
+   "35": "f4e6f9987c92aba8200d705088739fa98f910afcc04cd7e5b4498917377c2606",
+   "36": "8ff18cca2ad372c9b4951562e37d5636b1dbfb0361136f7149fec33359a2b7d4",
+   "37": "214296126ea07a39d5cb25037320ab10ed21055222d370e5501365988f75042e",
+   "38": "da30f2ae81195dc918d451ce737bf18c81c12e49ad5d8d8edc6f86cdb9db096b",
+   "39": "57b4ddcb8ef79271b49943b9ad00c69752ac24cf021a18c3935b32e64c65608a",
+   "4": "7670fd0b6b110fd2a23eafbe92ba91d3519e18d55d4067c64075360c58d1deb0",
+   "40": "7c1508c57193397af58c738d1aaa9a2763da47c224fdc650dc86a3423ad7887c",
+   "41": "7166baf575c514982a17a5c579ffa1c8847eac029cd9db71580599a7c027e383",
+   "42": "94fc7314df2ac8175a059af6b17feeb650222b6f80401c0c7db428ae64873ec3",
+   "43": "41ad3b13bc32d1ade2ca666e1d4eb1f3930d6fbc2642afe08759b3a9260631bd",
+   "44": "00ee4c32929dbf447c6ec137fd611607bb487a4ba7dd5b15b41b2f8da95e1dda",
+   "45": "e05bef4662aae273e30b5fbbf1f19ad29dade8631e26d34f9066036f003d74a1",
+   "46": "6e9a7914b275719c2f5ec3e2ae96241dfa97a379f2ba234d936f9519e9d9cc69",
+   "47": "8bc015aa27e59e38203d99f93736441237cee247444d1790159b09c1dcec6f9f",
+   "48": "fd921ed7b4b5a0991fe4e593bae15020b4e82f8bcd0121fba2d435bc0bbc9b73",
+   "49": "7acc737c8fa5f8f7a9af79fac3ea631f7eae23320af1191de87c36ecd5710cdf",
+   "5": "8ed0545a8a5bca1daf75a9eba966cf1f59b2e5fa1082d455905302139d083912",
+   "50": "e4c52af52035a810d09b11f0d191fb4c9b3401273eceeb7ececce88028ed1cdb",
+   "51": "bc30683dd5138f5b790d3bec6b0762c029c01a574c2488b8f6b2a798636aa69e",
+   "52": "afaa30e545696eedcf28dab614091cb9e609027bc785e9b3073a1d699345547b",
+   "53": "31dd57d3f12ab81f64ecfe2e52277cc66b30f29232857c21b9d95dcbf5eeab05",
+   "54": "25345503cdce60033fd34d19c862125dbb93187f9d4b9d19aa0620f31a2429ce",
+   "55": "7635a167c5dd5c04a2dfdd1219b8d7c27dff2a5304048035ab885147152f5485",
+   "56": "f7367ee29d0824ee49be0953f71595bfc8d8fadb97e76de875ff61b8c9ed9c02",
+   "57": "c457c6f09c1a27d55fdf84d347fb024a21a42eff5337fbfa2481d50f933c8383",
+   "58": "9ed2e7b5c1888103e946bfab780a3ccbec101eb3a8c9c8079dca610efd6109f6",
+   "59": "bcbf1bfeea23f14e761bf852ac36e8f51e332e5652f1c3a0b6e7156ce7ca187f",
+   "6": "866025f752f2cc00cebe4a17947e68829a8b39a345c2dcfd1319094d9d0f8df0",
+   "60": "4ed2a14ab82826e272704cce96049bfeed170fc6d841ea08fc53bd563a11f657",
+   "61": "133bb122ad279a575fe162080b0068560b27c62da3a400b821931aef13366780",
+   "62": "8d49f59dc1b96d14c634adf994469d1ef31208ac921f145da9692f3fcd71f244",
+   "63": "0e6b76b72439ca44ded65497c12e64ce2eaa6f71ef251477b7327078ec358cba",
+   "64": "71c85dd4474c612c2f7d19cba4e902bfa8a53e5538b37d4580c92b16dc2c8661",
+   "65": "f93d89539e2c77c2f0627efbc41b07168bfa1c5f0e7fd8325993b2b7477bee0c",
+   "66": "1fc7cdb8ef46caa457d879d1a1c4e245fda1a98c00b8dc7729548802c47ade86",
+   "67": "7ba44042e60582d54852a0901b6d98db20696b573b978340f0f6b7b76ccc22b7",
+   "68": "7c9cc439b7478bbabc66223120ec0ba41c1d22c9d9de3b775843d3929e61acec",
+   "69": "a35202ae4ac9758b3aab33e061b408ada0438e7c08805135a29e6be7f03203fb",
+   "7": "e55eefd8f7803d9ec27e702f9a210fed5d2693128cb2997bb932e3c2817ccaab",
+   "70": "4eb4223a0b541181961d3430abdfae739ffc29d2a97a65128614c45b9b142697",
+   "71": "ade6d45acb267fb2e87b732b5d18160fbd72f6e8e920cfb700c4fa8cc4d2dd34",
+   "72": "2e72fec7da7d1532b8b39f837183290d3fbe149660ab5302e3c09f1f3dc41620",
+   "73": "b4256ca17eb2eef4766732952fceec8fbf0c107e75e5ba4b059612b1f084530f",
+   "74": "dc7edeb10c47384f3015f9805612953a479efef5b3059e4dd7545518b6fc7788",
+   "75": "c5ae5e6a1cb4fdf74e80cece7a4bae351fd777093167000ec375965c40940137",
+   "76": "646081db9659a4f5f9f7ff6b40cfc8b3ff7b7d1518698084437ada4e145345db",
+   "77": "9478d1dbb67ff2d06f13f99c49a6904f23f9fd1bc3c44ce127a7b15326b6b067",
+   "78": "9f6db71e602be65740dbcb2a2667278859ef500d246bbf120feffa847dd6b0ed",
+   "79": "4058c9c7d7bd19ee603e893b8a3f98b79c61bcf6c7b21e5d057eccfc08828c4e",
+   "8": "24c7856b71966a48c256e036d75e136586b21520cb2498e7a74b750bf90bf1d2",
+   "80": "dc80383e52c7f10379557542235b924f18bc325f5b5c160da492befd55153826",
+   "81": "98080904b17f9be029f5bd28c5bb1f97c708c0e372134e397280bbf15305d40b",
+   "82": "0aa37a642a1c0aaff5b92bb3cddab893f00f574d29b4e1fda8e825257199ee69",
+   "83": "9cc6e6e5d41ed3ec3d98bb34a29535fac3bd87d84726ac9b82bd0e30e715e496",
+   "84": "ce85901fb356b192ae7c0a46a11fbeca92032a96ca38592df8172c9faab3f5a5",
+   "85": "6f511d1d88247f44f9a504137b1e2c4ac01ec4e5ba3f8373646057c796a31689",
+   "86": "f05799eac7bad3e5abee240432d6e5287ab2e89eba8aa30750d2dac83ef819da",
+   "87": "7615d4cc3e41e7e305a772514e1b308ca5e95a2050f548fb7b7667b30affef94",
+   "88": "643aec0aa4ebdd3bc8030fea2ac5c99d36c911bfa1cd7bdb544c955603baf049",
+   "89": "5d8c272bf0650fbe24040543651538a5e6118cbb2983d912c6838fb02a35e29b",
+   "9": "2e46866fe6e50171498627b5ea2608bd80bb6d0410ee69f2bde56fffd57e217f",
+   "90": "5d91b06069f294d95aaacc9854c02e18924a760e7c56e905de68cf310edaa114",
+   "91": "66e99ae7cd6a086619e70f70242702e7d7ba4c91349b928866e08b4d258f0b6a",
+   "92": "5a63ddbf0dc0c03386ed98494a64ff6e59afc6f1641628c003ee81700d4f343e",
+   "93": "3e6e593e0a6102e9903d134ab3bbec3a73b13e9bf196ec66c1ad15d43ef89d98",
+   "94": "722b931790d6e0b8865c00ece47ba765bede4b9d73271bab7793f88b9d81c71d",
+   "95": "77a21bd8aecff7c7d1e46daf7d449a3628b12c14aacee8a44246d20ee8481e30",
+   "96": "3244b9483c0941178d48063d1bb050972325353139b49aa7c98127571d53366a",
+   "97": "7236417ef340b33c780def58877a523e051a0d46f19ad112713aaaca3a7106ad",
+   "98": "dd3213f1c82a3c43cb1a50205a2f41f6e7ff5d1dfda16f5a9fe2a76777e21cf6",
+   "99": "c662a004edfd02f257c15fe61ce53908c9670613da9b57a05efb85be0b3f1b52"
+  },
+  "anchors_sha256": "3020370084069b514f3e50f721c68242222d056104ac935fc27355980db17266",
+  "verify_sha256": "ac9433edc898f282d9fa52fadd6bf1e723120c290307cbf04a32a0cececee2e9",
+  "job_outputs": {
+   "3": {
+    "file": "row19_screen_refit_3.out",
+    "sha256": "4132a084e81ff79d776ec3eb4f37b4fbdde6bd19072068d459a2c9ee7202a8e7"
+   }
+  },
+  "slot_outputs": {
+   "13": {
+    "out": {
+     "file": "row19_screen_refit_13.out",
+     "sha256": "6acfed16a3430556b2c49b6cd1f432ed689a84fcd3827daf9b8a7d564e41f9bf"
+    },
+    "err": {
+     "file": "row19_screen_refit_13.err",
+     "sha256": "8a222e8d4c9600a174e1cf4aa67d495655ee9b71e021d52c1832ee20d298626d"
+    }
+   }
+  },
+  "verify_file": "verify_refit_20261012T054319Z.json",
+  "verify_file_sha256": "ac9433edc898f282d9fa52fadd6bf1e723120c290307cbf04a32a0cececee2e9"
+ },
+ "jobs": {
+  "1": {
+   "job_id": "7523818.sched01",
+   "state": "F",
+   "exit": 0,
+   "runner_exit": 0,
+   "mem_kb": 47179688,
+   "slots": 24,
+   "ended": 24,
+   "exits": {
+    "0": 24
+   },
+   "new": 24,
+   "resumed": 0,
+   "left": 0,
+   "max_worker_maxrss": 2490564608,
+   "max_wall_s": 87795.35763454437,
+   "failed_units": [],
+   "partition": {
+    "new": [
+     "10/0",
+     "11/0",
+     "12/0",
+     "13/0",
+     "14/0",
+     "15/0",
+     "16/0",
+     "17/0",
+     "18/0",
+     "19/0",
+     "20/0",
+     "21/0",
+     "22/0",
+     "23/0",
+     "24/0",
+     "25/0",
+     "26/0",
+     "3/0",
+     "4/0",
+     "5/0",
+     "6/0",
+     "7/0",
+     "8/0",
+     "9/0"
+    ],
+    "resumed": [],
+    "left": []
+   },
+   "plan_walltime_s": 108000.0,
+   "requested_walltime_s": 108000.0,
+   "observation": "ledger-settlement",
+   "settle_note_sha256": "03293dac9a824d90b04c6641bbc071e80d99804fb188dd98734418696f0b44ac",
+   "prior_receipt": {
+    "file": "watch_refit_20261010T224529Z.json",
+    "sha256": "c6fd4a730829d6b17c4d0855231f63507c92892b0e3e473bc39610c20b8400fa"
+   },
+   "memory_evidence": [
+    {
+     "file": "watch_refit_20261010T224529Z.json",
+     "sha256": "c6fd4a730829d6b17c4d0855231f63507c92892b0e3e473bc39610c20b8400fa",
+     "kind": "prior-receipt-qstat"
+    }
+   ],
+   "qstat_mem_kb": null,
+   "qstat_walltime_req_s": null,
+   "memory_breach": null
+  },
+  "2": {
+   "job_id": "7527351.sched01",
+   "state": "F",
+   "exit": 0,
+   "runner_exit": 0,
+   "mem_kb": 48600444,
+   "slots": 24,
+   "ended": 24,
+   "exits": {
+    "0": 24
+   },
+   "new": 24,
+   "resumed": 0,
+   "left": 0,
+   "max_worker_maxrss": 2547109888,
+   "max_wall_s": 87922.66535377502,
+   "failed_units": [],
+   "partition": {
+    "new": [
+     "27/0",
+     "28/0",
+     "29/0",
+     "30/0",
+     "31/0",
+     "32/0",
+     "33/0",
+     "34/0",
+     "35/0",
+     "36/0",
+     "37/0",
+     "38/0",
+     "39/0",
+     "40/0",
+     "41/0",
+     "42/0",
+     "43/0",
+     "44/0",
+     "45/0",
+     "46/0",
+     "47/0",
+     "48/0",
+     "49/0",
+     "50/0"
+    ],
+    "resumed": [],
+    "left": []
+   },
+   "plan_walltime_s": 108000.0,
+   "requested_walltime_s": 108000.0,
+   "observation": "ledger-settlement",
+   "settle_note_sha256": "fc363467033a50beee73e618499ed7204d2d60ef9e2333791ef933448405f0d8",
+   "prior_receipt": null,
+   "memory_evidence": [
+    {
+     "kind": "qstat"
+    },
+    {
+     "file": "watch_refit_20261012T053917Z.json",
+     "sha256": "5685a492344c359c87126f035946b2cc45372f237164e390b6e44b8588dc8e5a",
+     "kind": "prior-receipt-settled-qstat"
+    }
+   ],
+   "qstat_mem_kb": 48600444,
+   "qstat_walltime_req_s": 108000.0,
+   "memory_breach": null
+  },
+  "3": {
+   "job_id": "7527352.sched01",
+   "state": "F",
+   "exit": 271,
+   "runner_exit": null,
+   "mem_kb": 43489816,
+   "slots": 24,
+   "ended": 0,
+   "exits": {},
+   "new": 0,
+   "resumed": 0,
+   "left": 0,
+   "max_worker_maxrss": null,
+   "max_wall_s": null,
+   "failed_units": [],
+   "partition": {
+    "new": [],
+    "resumed": [],
+    "left": [],
+    "uncompleted": [
+     "51/0",
+     "52/0",
+     "53/0",
+     "54/0",
+     "55/0",
+     "56/0",
+     "57/0",
+     "58/0",
+     "59/0",
+     "60/0",
+     "61/0",
+     "62/0",
+     "63/0",
+     "64/0",
+     "65/0",
+     "66/0",
+     "67/0",
+     "68/0",
+     "69/0",
+     "70/0",
+     "71/0",
+     "72/0",
+     "73/0",
+     "74/0"
+    ],
+    "uncompleted_origin": "plan"
+   },
+   "plan_walltime_s": 108000.0,
+   "requested_walltime_s": 108000.0,
+   "observation": "ledger-settlement",
+   "settle_note_sha256": "0e565c00586f9ccfe9b7e95ea4137181cbdc5d9338f762a0a52c0f14d8a8a09c",
+   "prior_receipt": null,
+   "memory_evidence": [
+    {
+     "kind": "qstat"
+    },
+    {
+     "file": "watch_refit_20261012T053917Z.json",
+     "sha256": "5685a492344c359c87126f035946b2cc45372f237164e390b6e44b8588dc8e5a",
+     "kind": "prior-receipt-settled-qstat"
+    }
+   ],
+   "qstat_mem_kb": 43489816,
+   "qstat_walltime_req_s": 108000.0,
+   "memory_breach": null,
+   "disposition": {
+    "kind": "closed-no-record",
+    "scheduler_state": "F",
+    "scheduler_exit": 271,
+    "settled_core_h": 720.5533333333333,
+    "settle_note": "refit job 3, scheduler walltime kill on cnode0358, no fit finished: qstat -xf Exit_status 271, resources_used.walltime 30:01:23, job_state F",
+    "settled_at": 1791583905.4641526,
+    "token": "8c07fbed7540",
+    "job_id": "7527352.sched01",
+    "plan_sha256": "4bbbac0020f83b1cb1b40d0c887c7b1c3ed3740639d081ebb12a7615cf5a2e0e",
+    "output_file": "row19_screen_refit_3.out",
+    "output_sha256": "4132a084e81ff79d776ec3eb4f37b4fbdde6bd19072068d459a2c9ee7202a8e7",
+    "status_files": 0,
+    "attributed_units": 0,
+    "uncompleted": 24,
+    "note": "a charged failed attempt: no completion, no restart or recovery credit; its coordinates return to the planner"
+   }
+  },
+  "4": {
+   "job_id": "7529179.sched01",
+   "state": "F",
+   "exit": 0,
+   "runner_exit": 0,
+   "mem_kb": 43237276,
+   "slots": 24,
+   "ended": 24,
+   "exits": {
+    "0": 24
+   },
+   "new": 24,
+   "resumed": 0,
+   "left": 0,
+   "max_worker_maxrss": 2614886400,
+   "max_wall_s": 89604.23361945152,
+   "failed_units": [],
+   "partition": {
+    "new": [
+     "75/0",
+     "76/0",
+     "77/0",
+     "78/0",
+     "79/0",
+     "80/0",
+     "81/0",
+     "82/0",
+     "83/0",
+     "84/0",
+     "85/0",
+     "86/0",
+     "87/0",
+     "88/0",
+     "89/0",
+     "90/0",
+     "91/0",
+     "92/0",
+     "93/0",
+     "94/0",
+     "95/0",
+     "96/0",
+     "97/0",
+     "98/0"
+    ],
+    "resumed": [],
+    "left": []
+   },
+   "plan_walltime_s": 108000.0,
+   "requested_walltime_s": 108000.0,
+   "observation": "ledger-settlement",
+   "settle_note_sha256": "3c15f1f7b540554d3b9849499f018c92af5ab3972ba7cd7bdab24641fc700570",
+   "prior_receipt": null,
+   "memory_evidence": [
+    {
+     "kind": "qstat"
+    },
+    {
+     "file": "watch_refit_20261012T053917Z.json",
+     "sha256": "5685a492344c359c87126f035946b2cc45372f237164e390b6e44b8588dc8e5a",
+     "kind": "prior-receipt-settled-qstat"
+    }
+   ],
+   "qstat_mem_kb": 43237276,
+   "qstat_walltime_req_s": 108000.0,
+   "memory_breach": null
+  },
+  "5": {
+   "job_id": "7529279.sched01",
+   "state": "F",
+   "exit": 0,
+   "runner_exit": 0,
+   "mem_kb": 46117924,
+   "slots": 24,
+   "ended": 24,
+   "exits": {
+    "0": 24
+   },
+   "new": 24,
+   "resumed": 0,
+   "left": 0,
+   "max_worker_maxrss": 2509942784,
+   "max_wall_s": 101413.079580307,
+   "failed_units": [],
+   "partition": {
+    "new": [
+     "10/1",
+     "100/0",
+     "101/0",
+     "102/0",
+     "11/1",
+     "12/1",
+     "13/1",
+     "14/1",
+     "15/1",
+     "16/1",
+     "17/1",
+     "18/1",
+     "19/1",
+     "20/1",
+     "21/1",
+     "22/1",
+     "3/1",
+     "4/1",
+     "5/1",
+     "6/1",
+     "7/1",
+     "8/1",
+     "9/1",
+     "99/0"
+    ],
+    "resumed": [],
+    "left": []
+   },
+   "plan_walltime_s": 108000.0,
+   "requested_walltime_s": 108000.0,
+   "observation": "ledger-settlement",
+   "settle_note_sha256": "b8b682bb2e903647183d3470c9775997803d92864cba1382ce7cc115b334748c",
+   "prior_receipt": null,
+   "memory_evidence": [
+    {
+     "kind": "qstat"
+    },
+    {
+     "file": "watch_refit_20261012T053917Z.json",
+     "sha256": "5685a492344c359c87126f035946b2cc45372f237164e390b6e44b8588dc8e5a",
+     "kind": "prior-receipt-settled-qstat"
+    }
+   ],
+   "qstat_mem_kb": 46117924,
+   "qstat_walltime_req_s": 108000.0,
+   "memory_breach": null
+  },
+  "6": {
+   "job_id": "7529496.sched01",
+   "state": "F",
+   "exit": 0,
+   "runner_exit": 0,
+   "mem_kb": 47058732,
+   "slots": 24,
+   "ended": 24,
+   "exits": {
+    "0": 24
+   },
+   "new": 24,
+   "resumed": 0,
+   "left": 0,
+   "max_worker_maxrss": 2577969152,
+   "max_wall_s": 88128.37197470665,
+   "failed_units": [],
+   "partition": {
+    "new": [
+     "23/1",
+     "24/1",
+     "25/1",
+     "26/1",
+     "27/1",
+     "28/1",
+     "29/1",
+     "30/1",
+     "31/1",
+     "32/1",
+     "33/1",
+     "34/1",
+     "35/1",
+     "36/1",
+     "37/1",
+     "38/1",
+     "39/1",
+     "40/1",
+     "41/1",
+     "42/1",
+     "43/1",
+     "44/1",
+     "45/1",
+     "46/1"
+    ],
+    "resumed": [],
+    "left": []
+   },
+   "plan_walltime_s": 108000.0,
+   "requested_walltime_s": 108000.0,
+   "observation": "ledger-settlement",
+   "settle_note_sha256": "e9d81a7075bb618ff3be6856d01a1ee968964bc91378ceb667afd88f706603a3",
+   "prior_receipt": null,
+   "memory_evidence": [
+    {
+     "kind": "qstat"
+    },
+    {
+     "file": "watch_refit_20261012T053917Z.json",
+     "sha256": "5685a492344c359c87126f035946b2cc45372f237164e390b6e44b8588dc8e5a",
+     "kind": "prior-receipt-settled-qstat"
+    }
+   ],
+   "qstat_mem_kb": 47058732,
+   "qstat_walltime_req_s": 108000.0,
+   "memory_breach": null
+  },
+  "7": {
+   "job_id": "7529616.sched01",
+   "state": "F",
+   "exit": 0,
+   "runner_exit": 0,
+   "mem_kb": 46740900,
+   "slots": 24,
+   "ended": 24,
+   "exits": {
+    "0": 24
+   },
+   "new": 24,
+   "resumed": 0,
+   "left": 0,
+   "max_worker_maxrss": 2395246592,
+   "max_wall_s": 91030.1950507164,
+   "failed_units": [],
+   "partition": {
+    "new": [
+     "47/1",
+     "48/1",
+     "49/1",
+     "50/1",
+     "51/1",
+     "52/1",
+     "53/1",
+     "54/1",
+     "55/1",
+     "56/1",
+     "57/1",
+     "58/1",
+     "59/1",
+     "60/1",
+     "61/1",
+     "62/1",
+     "63/1",
+     "64/1",
+     "65/1",
+     "66/1",
+     "67/1",
+     "68/1",
+     "69/1",
+     "70/1"
+    ],
+    "resumed": [],
+    "left": []
+   },
+   "plan_walltime_s": 108000.0,
+   "requested_walltime_s": 108000.0,
+   "observation": "ledger-settlement",
+   "settle_note_sha256": "45953bbdaa606a56c6925ee33617194a6c28526471c0d1f4a94dcd7ad2722459",
+   "prior_receipt": null,
+   "memory_evidence": [
+    {
+     "kind": "qstat"
+    },
+    {
+     "file": "watch_refit_20261012T053917Z.json",
+     "sha256": "5685a492344c359c87126f035946b2cc45372f237164e390b6e44b8588dc8e5a",
+     "kind": "prior-receipt-settled-qstat"
+    }
+   ],
+   "qstat_mem_kb": 46740900,
+   "qstat_walltime_req_s": 108000.0,
+   "memory_breach": null
+  },
+  "8": {
+   "job_id": "7529741.sched01",
+   "state": "F",
+   "exit": 0,
+   "runner_exit": 0,
+   "mem_kb": 44639736,
+   "slots": 24,
+   "ended": 24,
+   "exits": {
+    "0": 24
+   },
+   "new": 24,
+   "resumed": 0,
+   "left": 0,
+   "max_worker_maxrss": 2448244736,
+   "max_wall_s": 88625.02779078484,
+   "failed_units": [],
+   "partition": {
+    "new": [
+     "71/1",
+     "72/1",
+     "73/1",
+     "74/1",
+     "75/1",
+     "76/1",
+     "77/1",
+     "78/1",
+     "79/1",
+     "80/1",
+     "81/1",
+     "82/1",
+     "83/1",
+     "84/1",
+     "85/1",
+     "86/1",
+     "87/1",
+     "88/1",
+     "89/1",
+     "90/1",
+     "91/1",
+     "92/1",
+     "93/1",
+     "94/1"
+    ],
+    "resumed": [],
+    "left": []
+   },
+   "plan_walltime_s": 108000.0,
+   "requested_walltime_s": 108000.0,
+   "observation": "ledger-settlement",
+   "settle_note_sha256": "2cfd9c4dce5df1c62a4da51d38fa9d30db5ead0d3078899da1ae2ea239b9f14f",
+   "prior_receipt": null,
+   "memory_evidence": [
+    {
+     "kind": "qstat"
+    },
+    {
+     "file": "watch_refit_20261012T053917Z.json",
+     "sha256": "5685a492344c359c87126f035946b2cc45372f237164e390b6e44b8588dc8e5a",
+     "kind": "prior-receipt-settled-qstat"
+    }
+   ],
+   "qstat_mem_kb": 44639736,
+   "qstat_walltime_req_s": 108000.0,
+   "memory_breach": null
+  },
+  "9": {
+   "job_id": "7529824.sched01",
+   "state": "F",
+   "exit": 0,
+   "runner_exit": 0,
+   "mem_kb": 48735532,
+   "slots": 24,
+   "ended": 24,
+   "exits": {
+    "0": 24
+   },
+   "new": 24,
+   "resumed": 0,
+   "left": 0,
+   "max_worker_maxrss": 2606108672,
+   "max_wall_s": 92050.98616456985,
+   "failed_units": [],
+   "partition": {
+    "new": [
+     "10/2",
+     "100/1",
+     "101/1",
+     "102/1",
+     "11/2",
+     "12/2",
+     "13/2",
+     "14/2",
+     "15/2",
+     "16/2",
+     "17/2",
+     "18/2",
+     "3/2",
+     "4/2",
+     "5/2",
+     "6/2",
+     "7/2",
+     "8/2",
+     "9/2",
+     "95/1",
+     "96/1",
+     "97/1",
+     "98/1",
+     "99/1"
+    ],
+    "resumed": [],
+    "left": []
+   },
+   "plan_walltime_s": 108000.0,
+   "requested_walltime_s": 108000.0,
+   "observation": "ledger-settlement",
+   "settle_note_sha256": "246e88a2f699a36e414ddffd22b5845e5e6a75fbb277079d6bdae001cf9dff62",
+   "prior_receipt": null,
+   "memory_evidence": [
+    {
+     "kind": "qstat"
+    },
+    {
+     "file": "watch_refit_20261012T053917Z.json",
+     "sha256": "5685a492344c359c87126f035946b2cc45372f237164e390b6e44b8588dc8e5a",
+     "kind": "prior-receipt-settled-qstat"
+    }
+   ],
+   "qstat_mem_kb": 48735532,
+   "qstat_walltime_req_s": 108000.0,
+   "memory_breach": null
+  },
+  "10": {
+   "job_id": "7530233.sched01",
+   "state": "F",
+   "exit": 0,
+   "runner_exit": 0,
+   "mem_kb": 48345148,
+   "slots": 24,
+   "ended": 24,
+   "exits": {
+    "0": 24
+   },
+   "new": 24,
+   "resumed": 0,
+   "left": 0,
+   "max_worker_maxrss": 2489044992,
+   "max_wall_s": 87384.57177972794,
+   "failed_units": [],
+   "partition": {
+    "new": [
+     "51/0",
+     "52/0",
+     "53/0",
+     "54/0",
+     "55/0",
+     "56/0",
+     "57/0",
+     "58/0",
+     "59/0",
+     "60/0",
+     "61/0",
+     "62/0",
+     "63/0",
+     "64/0",
+     "65/0",
+     "66/0",
+     "67/0",
+     "68/0",
+     "69/0",
+     "70/0",
+     "71/0",
+     "72/0",
+     "73/0",
+     "74/0"
+    ],
+    "resumed": [],
+    "left": []
+   },
+   "plan_walltime_s": 172800.0,
+   "requested_walltime_s": 172800.0,
+   "observation": "ledger-settlement",
+   "settle_note_sha256": "ca4875e0c5d3e1939cb5aaa1d1f9511b60a7deaedad38b778af7237e21b08cb5",
+   "prior_receipt": null,
+   "memory_evidence": [
+    {
+     "kind": "qstat"
+    },
+    {
+     "file": "watch_refit_20261012T053917Z.json",
+     "sha256": "5685a492344c359c87126f035946b2cc45372f237164e390b6e44b8588dc8e5a",
+     "kind": "prior-receipt-settled-qstat"
+    }
+   ],
+   "qstat_mem_kb": 48345148,
+   "qstat_walltime_req_s": 172800.0,
+   "memory_breach": null
+  },
+  "11": {
+   "job_id": "7531115.sched01",
+   "state": "F",
+   "exit": 0,
+   "runner_exit": 0,
+   "mem_kb": 43053568,
+   "slots": 24,
+   "ended": 24,
+   "exits": {
+    "0": 24
+   },
+   "new": 24,
+   "resumed": 0,
+   "left": 0,
+   "max_worker_maxrss": 2486849536,
+   "max_wall_s": 93159.5392100811,
+   "failed_units": [],
+   "partition": {
+    "new": [
+     "19/2",
+     "20/2",
+     "21/2",
+     "22/2",
+     "23/2",
+     "24/2",
+     "25/2",
+     "26/2",
+     "27/2",
+     "28/2",
+     "29/2",
+     "30/2",
+     "31/2",
+     "32/2",
+     "33/2",
+     "34/2",
+     "35/2",
+     "36/2",
+     "37/2",
+     "38/2",
+     "39/2",
+     "40/2",
+     "41/2",
+     "42/2"
+    ],
+    "resumed": [],
+    "left": []
+   },
+   "plan_walltime_s": 172800.0,
+   "requested_walltime_s": 172800.0,
+   "observation": "ledger-settlement",
+   "settle_note_sha256": "50419c42f4369f57579f54e23a0977f6afd8287690f4125989973fc022dbd54e",
+   "prior_receipt": null,
+   "memory_evidence": [
+    {
+     "kind": "qstat"
+    },
+    {
+     "file": "watch_refit_20261012T053917Z.json",
+     "sha256": "5685a492344c359c87126f035946b2cc45372f237164e390b6e44b8588dc8e5a",
+     "kind": "prior-receipt-settled-qstat"
+    }
+   ],
+   "qstat_mem_kb": 43053568,
+   "qstat_walltime_req_s": 172800.0,
+   "memory_breach": null
+  },
+  "12": {
+   "job_id": "7531165.sched01",
+   "state": "F",
+   "exit": 0,
+   "runner_exit": 0,
+   "mem_kb": 46381180,
+   "slots": 24,
+   "ended": 24,
+   "exits": {
+    "0": 24
+   },
+   "new": 24,
+   "resumed": 0,
+   "left": 0,
+   "max_worker_maxrss": 2522931200,
+   "max_wall_s": 88680.69273805618,
+   "failed_units": [],
+   "partition": {
+    "new": [
+     "43/2",
+     "44/2",
+     "45/2",
+     "46/2",
+     "47/2",
+     "48/2",
+     "49/2",
+     "50/2",
+     "51/2",
+     "52/2",
+     "53/2",
+     "54/2",
+     "55/2",
+     "56/2",
+     "57/2",
+     "58/2",
+     "59/2",
+     "60/2",
+     "61/2",
+     "62/2",
+     "63/2",
+     "64/2",
+     "65/2",
+     "66/2"
+    ],
+    "resumed": [],
+    "left": []
+   },
+   "plan_walltime_s": 172800.0,
+   "requested_walltime_s": 172800.0,
+   "observation": "ledger-settlement",
+   "settle_note_sha256": "c26266ed08846fd14e159c3f4bf643bd04e5d09de3efcc6c6b0adeb109b875f1",
+   "prior_receipt": null,
+   "memory_evidence": [
+    {
+     "kind": "qstat"
+    },
+    {
+     "file": "watch_refit_20261012T053917Z.json",
+     "sha256": "5685a492344c359c87126f035946b2cc45372f237164e390b6e44b8588dc8e5a",
+     "kind": "prior-receipt-settled-qstat"
+    }
+   ],
+   "qstat_mem_kb": 46381180,
+   "qstat_walltime_req_s": 172800.0,
+   "memory_breach": null
+  },
+  "13": {
+   "job_id": "7531397.sched01",
+   "state": "F",
+   "exit": 4,
+   "runner_exit": 4,
+   "mem_kb": 46155404,
+   "slots": 24,
+   "ended": 23,
+   "exits": {
+    "0": 23
+   },
+   "new": 23,
+   "resumed": 0,
+   "left": 0,
+   "max_worker_maxrss": 2693496832,
+   "max_wall_s": 85379.5484097004,
+   "failed_units": [],
+   "partition": {
+    "new": [
+     "67/2",
+     "68/2",
+     "69/2",
+     "70/2",
+     "71/2",
+     "72/2",
+     "73/2",
+     "74/2",
+     "75/2",
+     "76/2",
+     "77/2",
+     "78/2",
+     "79/2",
+     "80/2",
+     "81/2",
+     "82/2",
+     "84/2",
+     "85/2",
+     "86/2",
+     "87/2",
+     "88/2",
+     "89/2",
+     "90/2"
+    ],
+    "resumed": [],
+    "left": [],
+    "uncompleted": [
+     "83/2"
+    ],
+    "uncompleted_origin": "crashed-slot"
+   },
+   "plan_walltime_s": 172800.0,
+   "requested_walltime_s": 172800.0,
+   "observation": "ledger-settlement",
+   "settle_note_sha256": "213ddccff88c52e4a310ece762df67d56af4f9803901f67b013fdeba5ff3d5ea",
+   "prior_receipt": null,
+   "memory_evidence": [
+    {
+     "kind": "qstat"
+    },
+    {
+     "file": "watch_refit_20261012T053917Z.json",
+     "sha256": "5685a492344c359c87126f035946b2cc45372f237164e390b6e44b8588dc8e5a",
+     "kind": "prior-receipt-settled-qstat"
+    }
+   ],
+   "qstat_mem_kb": 46155404,
+   "qstat_walltime_req_s": 172800.0,
+   "memory_breach": null,
+   "slot_disposition": {
+    "kind": "crashed-worker-no-status",
+    "job_id": "7531397.sched01",
+    "scheduler_state": "F",
+    "scheduler_exit": 4,
+    "runner_exit": 4,
+    "settled_core_h": 570.4533333333334,
+    "settle_note": "refit job 13: qstat -xf Exit_status 4, resources_used.walltime 23:46:08, job_state F",
+    "settled_at": 1791773119.9934938,
+    "token": "b15bb996a3dd",
+    "plan_sha256": "5a6e1bbb99537ccbb297480adfb2b3b8352d7658c9317750104505264a1ffba4",
+    "output_file": "row19_screen_refit_13.out",
+    "output_sha256": "6acfed16a3430556b2c49b6cd1f432ed689a84fcd3827daf9b8a7d564e41f9bf",
+    "error_file": "row19_screen_refit_13.err",
+    "error_sha256": "8a222e8d4c9600a174e1cf4aa67d495655ee9b71e021d52c1832ee20d298626d",
+    "slots": [
+     {
+      "slot": 16,
+      "rep": 83,
+      "indices": [
+       2
+      ],
+      "signal": "Segmentation fault",
+      "err_line": "/var/spool/PBS/mom_priv/jobs/7531397.sched01.SC: line 53: 55789 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 83 --indices 2 --slot 16 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot16.log 2>&1"
+     }
+    ],
+    "uncompleted": [
+     "83/2"
+    ],
+    "note": "worker(s) killed by a fatal signal before any status or record: charged, no completion or credit; the coordinates return to the planner; the job never qualifies"
+   }
+  }
+ },
+ "anchors": {
+  "problem": "",
+  "reps": {
+   "0": {
+    "compared": [
+     0,
+     1,
+     3,
+     5,
+     6,
+     9
+    ],
+    "conflict": [],
+    "differ": [],
+    "equal": [
+     0,
+     1,
+     3,
+     5,
+     6,
+     9
+    ],
+    "ident": "f6a03a7eff618e159690014cf7b2caa4fe1126942c3ee440d8b50714b6527000",
+    "invalid": [],
+    "missing": [],
+    "required": [
+     0
+    ]
+   },
+   "1": {
+    "compared": [
+     0,
+     1,
+     3,
+     5,
+     6,
+     9
+    ],
+    "conflict": [],
+    "differ": [],
+    "equal": [
+     0,
+     1,
+     3,
+     5,
+     6,
+     9
+    ],
+    "ident": "808a6e3936fd324ff66a4561bf1d738401664296fe0dd967ee6d44943147bc36",
+    "invalid": [],
+    "missing": [],
+    "required": [
+     0
+    ]
+   },
+   "2": {
+    "compared": [
+     0,
+     1,
+     3,
+     5,
+     6
+    ],
+    "conflict": [],
+    "differ": [],
+    "equal": [
+     0,
+     1,
+     3,
+     5,
+     6
+    ],
+    "ident": "40346e3d0516aa48c27d328481dec03da8a1018fd436370e530915f27c844f55",
+    "invalid": [],
+    "missing": [],
+    "required": [
+     0
+    ]
+   }
+  },
+  "shard_manifest_sha256": "0eae2e6fcbc1dd71d34c20f02f86777e151ed2c2d8a3f6419aa15cee94097102"
+ },
+ "plan_slots": {
+  "1": 24,
+  "2": 24,
+  "3": 24,
+  "4": 24,
+  "5": 24,
+  "6": 24,
+  "7": 24,
+  "8": 24,
+  "9": 24,
+  "10": 24,
+  "11": 24,
+  "12": 24,
+  "13": 24
+ },
+ "ec2": {
+  "bound": {
+   "register_sha256": null,
+   "inventory_sha256": "c9f2b20052c1c96c317f37b67577ebb0660b0580e947d8b4b4fcad4f25d5e71a",
+   "activations": {
+    "activation_e1.json": "ce044720ca115d84959a22b5dd6f078f4beb6e8a8a470aedf5df8e5f271f7c96"
+   },
+   "hold": false,
+   "stop": false
+  },
+  "attempts": {},
+  "usd": {
+   "charged": 0.0,
+   "inventory_generation": 2,
+   "inventory_at": 1791745410.609907
+  },
+  "problems": []
+ }
+}

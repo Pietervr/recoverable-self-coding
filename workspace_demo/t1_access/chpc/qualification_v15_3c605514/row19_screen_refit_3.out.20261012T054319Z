@@ -1,0 +1,29 @@
+host cnode0358  model name	: Intel(R) Xeon(R) CPU E5-2690 v3 @ 2.60GHz
+code aac02ca  start 2026-10-08T15:52:54Z  job 7527352.sched01  screen refit job 3
+reservation 8c07fbed7540: shard job 3, 720.0 core-h
+environment: python 3.12.10 jax 0.11.1 numpy 2.4.6 scipy 1.18.0 x86_64 backend cpu wrapper f9c3ff028982; code pins verified for ['analyze.py', 'chpc/row19_ledger.py', 'chpc/row19_screen_orig.py', 'chpc/row19_shard.py', 'chpc/row19_slice.py', 'models.py', 'simulate.py']
+rep 51: seed 431376187, identity 4db7bdd97dd7025d, B 200, binding published or equal
+rep 52: seed 1138038485, identity 9633aa2706b93e98, B 200, binding published or equal
+rep 53: seed 408179099, identity 9970b46cb3d7c0ae, B 200, binding published or equal
+rep 54: seed 838682275, identity 4758b28b25bff158, B 200, binding published or equal
+rep 55: seed 1380319551, identity a837b62129a5285e, B 200, binding published or equal
+rep 56: seed 660953139, identity 43d5eef13f509aac, B 200, binding published or equal
+rep 57: seed 677223492, identity 1c88005d406b5bf6, B 200, binding published or equal
+rep 58: seed 1435398817, identity db38e70837d02204, B 200, binding published or equal
+rep 59: seed 283899322, identity 53d1fdbb4b1a6889, B 200, binding published or equal
+rep 60: seed 1646695353, identity 13c052ea3b9856be, B 200, binding published or equal
+rep 61: seed 686061016, identity 5dbba4b448ec8bbf, B 200, binding published or equal
+rep 62: seed 1182386621, identity c8d998aee77f9109, B 200, binding published or equal
+rep 63: seed 230430070, identity 1515b96d7d9b87e5, B 200, binding published or equal
+rep 64: seed 1337957206, identity bee4bb954244c3d9, B 200, binding published or equal
+rep 65: seed 1653898710, identity 8bf9774aea1b8d09, B 200, binding published or equal
+rep 66: seed 90465411, identity 6ed61c0ab344c618, B 200, binding published or equal
+rep 67: seed 1743794613, identity 45a99c4817c90c30, B 200, binding published or equal
+rep 68: seed 74244369, identity 1bb87223a3f318d4, B 200, binding published or equal
+rep 69: seed 1979833433, identity d70a37da240f5725, B 200, binding published or equal
+rep 70: seed 856381833, identity 2babe4f1bd9c424b, B 200, binding published or equal
+rep 71: seed 2072782270, identity 530afac83c9f5630, B 200, binding published or equal
+rep 72: seed 1591621902, identity bf2d260988aafbd2, B 200, binding published or equal
+rep 73: seed 605481162, identity f864cbf6100a713b, B 200, binding published or equal
+rep 74: seed 517504413, identity d0179a598194c6ba, B 200, binding published or equal
+job 3 admitted: 24 slots, 24 indices, start 2026-10-08T15:53:25Z

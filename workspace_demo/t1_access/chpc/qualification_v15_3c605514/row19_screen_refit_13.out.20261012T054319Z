@@ -1,0 +1,31 @@
+host cnode0892  model name	: Intel(R) Xeon(R) CPU E5-2690 v3 @ 2.60GHz
+code aac02ca  start 2026-10-11T02:55:25Z  job 7531397.sched01  screen refit job 13
+reservation b15bb996a3dd: shard job 13, 1152.0 core-h
+environment: python 3.12.10 jax 0.11.1 numpy 2.4.6 scipy 1.18.0 x86_64 backend cpu wrapper f9c3ff028982; code pins verified for ['analyze.py', 'chpc/row19_ledger.py', 'chpc/row19_screen_orig.py', 'chpc/row19_shard.py', 'chpc/row19_slice.py', 'models.py', 'simulate.py']
+rep 67: seed 1743794613, identity 45a99c4817c90c30, B 200, binding published or equal
+rep 68: seed 74244369, identity 1bb87223a3f318d4, B 200, binding published or equal
+rep 69: seed 1979833433, identity d70a37da240f5725, B 200, binding published or equal
+rep 70: seed 856381833, identity 2babe4f1bd9c424b, B 200, binding published or equal
+rep 71: seed 2072782270, identity 530afac83c9f5630, B 200, binding published or equal
+rep 72: seed 1591621902, identity bf2d260988aafbd2, B 200, binding published or equal
+rep 73: seed 605481162, identity f864cbf6100a713b, B 200, binding published or equal
+rep 74: seed 517504413, identity d0179a598194c6ba, B 200, binding published or equal
+rep 75: seed 1456447511, identity fa10141c9de6cc85, B 200, binding published or equal
+rep 76: seed 808103244, identity 3e26751ab54fb195, B 200, binding published or equal
+rep 77: seed 1285659551, identity 5b334696f6be89c2, B 200, binding published or equal
+rep 78: seed 83561339, identity 3ee31079eaedee5c, B 200, binding published or equal
+rep 79: seed 1230111100, identity 2d727657f2202c82, B 200, binding published or equal
+rep 80: seed 1905956156, identity cb547aa1ab9a1f6b, B 200, binding published or equal
+rep 81: seed 427458763, identity aaa929624f2cb5b4, B 200, binding published or equal
+rep 82: seed 1269591507, identity 2cc2eff362b3c40b, B 200, binding published or equal
+rep 83: seed 846078496, identity fb323d26b36cd91e, B 200, binding published or equal
+rep 84: seed 1196142763, identity c0a23db751631064, B 200, binding published or equal
+rep 85: seed 1976289963, identity 965d97324b13dc51, B 200, binding published or equal
+rep 86: seed 2066060414, identity 1e60491e8def343c, B 200, binding published or equal
+rep 87: seed 984213738, identity b77b49580f7ea844, B 200, binding published or equal
+rep 88: seed 94173243, identity 0b5c78ef28340ee1, B 200, binding published or equal
+rep 89: seed 697935574, identity 2c52ced78ca10815, B 200, binding published or equal
+rep 90: seed 17001611, identity 6a3677bc3dc4dac7, B 200, binding published or equal
+job 13 admitted: 24 slots, 24 indices, start 2026-10-11T02:57:55Z
+job 13 ended: exit 4; workers exit codes [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, None, 0, 0, 0, 0, 0, 0, 0]; wall 85567 s
+exit 4 job 7531397.sched01 end 2026-10-12T02:41:32Z
