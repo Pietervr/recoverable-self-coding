@@ -155,7 +155,8 @@ per missing slot, exactly one bash job-control line naming the job's script (<PB
 Bus error, Aborted, Illegal instruction) for THAT slot's exact planned worker command (rep, indices, slot), and no other worker
 death line (Killed / Terminated never qualify: an external kill is not a worker fault); no unit at a crashed coordinate carries
 timing naming the PBS id; EVERY timing file naming the PBS id (V15-1, Codex 5ca7fbd) is readable, at its canonical path
-timing/rep<R>/t_<iii>.json with strict integer rep, index and slot equal to that path, and at a SURVIVING worker's planned
+timing/rep<R>/t_<iii>.json with strict integer rep, index and slot, the path EXACTLY the publisher's formatting of them
+(row19_shard.timing_path: no leading-zero rep alias), and at a SURVIVING worker's planned
 coordinate in that worker's slot (an orphan outside the plan, a wrong slot or a path alias refuses); and every crashed coordinate holds no
 file, or only a later bound job's verified planned completion (R1). The receipt binds the output and error bytes
 (`bound.slot_outputs`); the summary keeps the actual exits (scheduler 4, runner 4), counts only the surviving workers as ended
@@ -1088,7 +1089,7 @@ def crashed_slot_evidence(man, role, n, e, plan, jid, obs, out_bytes, err_bytes,
             return None, f"timing evidence of unknown attribution ({rel})"
         if not isinstance(t, dict) or t.get("job") != jid or not all(_int(t.get(f)) for f in ("rep", "index", "slot")):
             return None, f"timing {rel} names {jid} without integer rep, index and slot"
-        if (t["rep"], t["index"]) != (int(m.group(1)), int(m.group(2))):
+        if rel != f"timing/rep{t['rep']}/t_{t['index']:03d}.json":          # the publisher's exact path (row19_shard.timing_path)
             return None, f"timing {rel} is not at its canonical path (it names {t['rep']}/{t['index']})"
         k = f"{t['rep']}/{t['index']}"
         if surv.get(k) != t["slot"]:

@@ -152,7 +152,10 @@ V151 = [("orphan timing-only outside the plan (Codex's trace rep999/777 slot 0)"
         ("timing with a string index", "timing/rep84/t_002.json", tim(84, "2", 2)),
         ("path alias: rep67/t_002 content claims 84/2", "timing/rep67/t_002.json", tim(84, 2, 2)),
         ("non-canonical path (subdirectory)", "timing/rep67/old/t_002.json", tim(67, 2, 0)),
-        ("non-canonical name (t_2.json)", "timing/rep67/t_2.json", tim(67, 2, 0))]
+        ("non-canonical name (t_2.json)", "timing/rep67/t_2.json", tim(67, 2, 0)),
+        ("leading-zero rep alias rep067/t_002 beside the canonical survivor, contradictory provenance (Codex 485fe70)",
+         "timing/rep067/t_002.json", tim(67, 2, 0, wall_s=999999, host="elsewhere", ident="not-the-declared-one")),
+        ("leading-zero index alias t_0002", "timing/rep67/t_0002.json", tim(67, 2, 0))]
 for label, rel, body in V151:
     dv, rootv, manv, unitsv = fixture(extra_files=[(rel, body)])
     got_v, why_v = ev(manv, unitsv)
@@ -252,6 +255,10 @@ sj5 = copy.deepcopy(sj); sj5["ended"] = 3
 check("admission: summary claiming every worker ended -> refused", SA.job_summary_problem(man_, str(N), sj5) != "")
 
 # V15-1 through the consumers: the status view keeps all three alarms; the admission refuses a receipt disposition
+man_, verify_, obs_, ledger_, live_ = live_fixture(extra_files=[("timing/rep067/t_002.json", tim(67, 2, 0, wall_s=999999))])
+al, summ, _, _ = R.reconcile(man_, "refit", verify_, obs_, ledger_, live_)
+check("V15-1 status: rep067 alias beside the canonical survivor -> all three alarms stand",
+      all(any(t in a for a in al) for t in THREE) and "rep067" in summ[str(N)].get("slot_disposition_held", ""))
 man_, verify_, obs_, ledger_, live_ = live_fixture(extra_files=[("timing/rep999/t_777.json", tim(999, 777, 0))])
 al, summ, _, _ = R.reconcile(man_, "refit", verify_, obs_, ledger_, live_)
 check("V15-1 status: orphan same-job timing -> all three alarms stand, reason kept",
@@ -265,6 +272,11 @@ os.remove(os.path.join(p_orphan, "t_777.json"))
 open(os.path.join(man_["storage"]["root"], "timing", "rep67", "t_002.json"), "w").write(tim(67, 2, 2))
 check("V15-1 admission: a survivor's timing rewritten to the wrong slot -> refused",
       "not a crashed-worker slot disposition" in SA.slot_disposition_problem(man_, None, "refit", N, sj, bound))
+man_, sj, bound, ledger_ = admit_fixture()
+p_alias = os.path.join(man_["storage"]["root"], "timing", "rep067"); os.makedirs(p_alias)
+open(os.path.join(p_alias, "t_002.json"), "w").write(tim(67, 2, 0, wall_s=999999))
+why_a = SA.slot_disposition_problem(man_, None, "refit", N, sj, bound)
+check(f"V15-1 admission: rep067 alias written after the receipt -> refused ({why_a[:50]})", "not a crashed-worker slot disposition" in why_a and "rep067" in why_a)
 
 
 # ---- replay on the REAL refit 13 bytes and the local snapshot (skipped when absent) ------------------------------------------
