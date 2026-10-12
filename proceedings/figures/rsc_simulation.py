@@ -54,12 +54,19 @@ M >= ln2/Dt, i.e. CR <= 1 - ln2/(mu*Dt) (= 0.827 for mu=1, Dt=4).
 Outputs rsc_simulation.pdf next to this file, and prints the summary numbers
 quoted in the text. Deterministic: fixed seeds via SeedSequence spawning.
 """
+import sys
 from pathlib import Path
 
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+# The deadline-abandonment comparison of panel (a) (round 3, reviewer request 4). The closed
+# form is derived and checked against simulation in checks/abandonment_variant.py; it is
+# imported rather than copied so that the figure and the check cannot drift apart.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "checks"))
+from abandonment_variant import pc_abandon            # noqa: E402
 
 mu = 1.0           # certification service rate
 N = 40000          # commitments simulated per replication per CR value
@@ -271,6 +278,15 @@ for rho in (0.5, 0.94):
 print()
 print(f"derived shading boundary: CR <= 1 - ln2/(mu*Dt) = {CR_SHADE:.3f}")
 
+print()
+print("panel (a) -- deadline abandonment (M/M/1+D, patience D = Dt), exact")
+print("  CR     P_c lossless  P_c abandon  recov lossless  recov abandon")
+for c in (0.3, 0.5, 0.7, 0.85, 0.94, 0.965, 1.0, 1.2):
+    lam = c * mu
+    pa = pc_abandon(lam, mu=mu, dt=Dt, d=Dt)
+    pl = 1.0 - np.exp(-(mu - lam) * Dt) if lam < mu else float("nan")
+    print(f"  {c:<6.3f} {pl:>12.4f} {pa:>12.4f} {pl ** 2:>15.4f} {pa ** 2:>14.4f}")
+
 # =====================================================================
 # Robustness: horizon dependence (unchanged protocol, now with warm-up)
 # =====================================================================
@@ -310,12 +326,17 @@ ax1.errorbar(CRs, accuracy_cpl, yerr=accc_ci, fmt="^--", color="#4C8FBD",
              label="accuracy (coupled)")
 ax1.errorbar(CRs, recover, yerr=rec_ci, fmt="s-", color="#C00000", ms=3.5,
              lw=1.8, elinewidth=0.8, capsize=1.5, label="recoverability")
+# Deadline abandonment: a commitment that cannot begin certification within Dt leaves the
+# queue (M/M/1+D with patience D = Dt). Exact, from the stationary workload law.
+cr_ab = np.linspace(0.30, 1.00, 200)
+ax1.plot(cr_ab, [pc_abandon(c * mu, mu=mu, dt=Dt, d=Dt) ** 2 for c in cr_ab], "--",
+         color="#E07B39", lw=1.6, label="recoverability, abandonment")
 ax1.set_xlabel(r"capacity ratio $\mathrm{CR}$", fontsize=LAB)
 ax1.set_ylabel("fraction", fontsize=LAB)
 ax1.set_ylim(0, 1.0)
 ax1.set_xlim(0.3, 1.0)
-ax1.set_title("(a) accuracy holds, recoverability collapses", fontsize=9.5)
-ax1.legend(fontsize=8, loc="lower left")
+ax1.set_title("(a) accuracy and recoverability against load", fontsize=9.5)
+ax1.legend(fontsize=7.2, loc="lower left")
 ax1.tick_params(labelsize=TICK)
 ax1.grid(alpha=0.25)
 
