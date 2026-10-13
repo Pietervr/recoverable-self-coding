@@ -71,7 +71,7 @@ concept is selected or dropped on model performance; difficulty is a recorded co
 **Clue bank.** 12 descriptive clauses per concept, each stating one published normed feature statement of that concept (§3.1), 8–14 tokens each, written and audited by
 two readers against a checklist (true of the concept; not containing the concept's name, an
 inflection, or an accepted token variant; not naming the family). Clue identities are kept in every
-record; single-clue difficulty is measured on CAL (§5) as a covariate. Clauses are present-tense predicate fragments with the concept as implied subject; the checker (`stimuli/check_clues.py`) is stricter than the checklist (no surface form of any bank concept, no family word of any family, 8–14 tokens as rendered), and the writing guideline keeps a clause informative but rarely decisive alone (no capital, city, language, currency, inventor or synonym). At most 2 of a concept's 12 clauses may identify it alone to a knowledgeable reader; they are recorded under a "decisive" key and audited by the two readers. Named terms tied to a concept (local words, named dishes, peoples, works, myths, makers, cities), idioms and dates that pin a concept are removed. The rule is applied in text only, before any capture. Whether a trial's inserted clues include a decisive clause is recorded as a trial covariate, and no clause is dropped on model output.
+record; single-clue difficulty is measured on CAL (§5) as a covariate. Clauses are present-tense predicate fragments with the concept as implied subject; the checker (`stimuli/check_clues.py`) is stricter than the checklist (no surface form of any bank concept, no family word of any family, 8–14 tokens as rendered), and the writing guideline keeps a clause informative but rarely decisive alone (no capital, city, language, currency, inventor or synonym). At most 2 of a concept's 10 clauses (ten since 13 October 2026; were 12) may identify it alone to a knowledgeable reader; they are recorded under a "decisive" key and audited by the two readers. Named terms tied to a concept (local words, named dishes, peoples, works, myths, makers, cities), idioms and dates that pin a concept are removed. The rule is applied in text only, before any capture. Whether a trial's inserted clues include a decisive clause is recorded as a trial covariate, and no clause is dropped on model output.
 ### 3.1 The bank is built from published feature norms (draft amendment, 24 Sept 2026)
 
 The concepts, the facts their clauses state and the decisiveness of each clause come from published human
@@ -133,14 +133,15 @@ not, is 11 for each. E1 is what binds there, not the source, and E1 is a decode 
 form is what makes the answer-position logit readable — so it was not relaxed to retain a family name.
 
 **Ten usable features per concept (owner, 13 October 2026; was twelve).** A concept is eligible only with
-≥ 10 usable features. The threshold was set as the clause count restated - selection took twelve, one per clause - so
-lowering it to ten carries the clause count with it; how many clauses a concept supplies, and with it the single-clause
-ceiling and the packet draws below, is R052's ruling, pending at this revision (the text below still states twelve). Before selection, features are merged **by subsumption** — two features merge when
+≥ 10 usable features, and **every concept supplies exactly ten clauses**, one per selected feature (owner, 13
+October 2026: "a"), including a concept with eleven or more usable features - so there is no unequal clause count and
+no clause-count covariate. The threshold is that count restated: a concept with eight features cannot supply its ten
+clauses. Before selection, features are merged **by subsumption** — two features merge when
 one's word set contains the other's, the more specific representing the pair. That is McRae's duplication
 pattern: `has_legs` and `has_4_legs`; `has_wheels`, `has_4_wheels`, `has_>_4_wheels` and `has_18_wheels`;
 `beh_-_eats` and `beh_-_eats_peanuts` — 70 such pairs across 77 eligible concepts. Features are also merged
 when they share a Snowball (Porter2) stem or a WordNet derivational link, and proper nouns and brand names are
-removed. Unmerged duplication would let a concept's twelve clauses be a few ideas restated, which flattens the
+removed. Unmerged duplication would let a concept's ten clauses be a few ideas restated, which flattens the
 $k$-graded curve of §5 for a reason that has nothing to do with the model. Taxonomic rows — the source's own
 relation label: `a_bird`, `a_fruit`, `an_insect` as well as `an_animal`, `a_mammal`, `a_vehicle` — are removed as a
 rule of their own (T); the family words among them fall under rule F as well, and `CV_No_Tax` is blank for exactly
@@ -148,7 +149,7 @@ the taxonomic rows. Whether T should narrow to the literal family words, which n
 is an open decision; its measured cost is in the recorded fragility below.
 
 **Decisiveness is settled by the naming test, not by cue validity.** Cue validity ranks candidates so that a
-concept's twelve clauses span a range of evidence strength; it does not gate them. An absolute floor on cue
+concept's ten clauses span a range of evidence strength; it does not gate them. An absolute floor on cue
 validity was specified and withdrawn, and the reason is worth keeping: a production-norm sharing count records
 how many concepts elicited a feature, not how many things the feature is true of, so it overstates
 decisiveness. The measurement showed it directly — *leather* was named from "soft", its most widely shared
@@ -157,9 +158,9 @@ presented alone to a reader model, which attempts to name the concept, and a cla
 named. That measures the property instead of inferring it.
 
 **Acceptance is two-sided, and both sides are required.** *The ceiling*, on single clauses: at most two of the
-twelve are named when each is presented alone, and those two are the concept's marked decisive clauses. *The
-floor*, on the packet: the concept **is** named from the eight clauses of a seeded draw, on three independent
-draws, all three. A ceiling alone rewards vagueness — the way to pass a concept becomes to write clauses that
+ten are named when each is presented alone, and those two are the concept's marked decisive clauses. *The
+floor*, on the packet: the concept **is** named from the eight clauses of a seeded draw - eight of its ten, so
+$\binom{10}{8} = 45$ distinct clause sets - on three independent draws, all three. A ceiling alone rewards vagueness — the way to pass a concept becomes to write clauses that
 identify nothing, which hands decisiveness back to whoever writes them. It was observed happening: a concept
 passed with 0 of 12 named because a reader given its clauses answered globe, ball, beans, stamp and coin, so a
 $k = 8$ packet would not have identified it either. The floor sits at eight clauses on seeded draws because
@@ -169,10 +170,13 @@ evidence is in.
 
 **Selection, rendering and acceptance are one seeded loop.** Because a clause's decisiveness is known only
 once it is rendered and tested, the draw cannot be a set fixed in advance. The seed fixes an **order** over
-each family's eligible concepts. The order is walked; for each concept twelve features are selected to span
-the cue-validity range, rendered, and put through both sides of the test. A concept that fails is re-selected
-once from its remaining features where it has any to spare, and only a concept that still fails, or that has
-exactly twelve features and so no freedom to re-select, is passed over. Every acceptance, re-selection and
+each family's eligible concepts. The order is walked; for each concept ten features are selected to span
+the cue-validity range by a deterministic rule - the two rarest first (the decisive candidates), then eight at evenly
+spaced positions across the rest of the concept's features in sharing-count order (`stimuli/norms_bank/
+select_features.py`); no randomness enters within a concept, the seed fixes only the order over concepts - rendered,
+and put through both sides of the test. A concept that fails is re-selected once from its remaining features where it
+has any to spare (the same rule one step further from the rare end), and only a concept that still fails, or that has
+exactly ten features and so no freedom to re-select, is passed over. Every acceptance, re-selection and
 pass-over is recorded with its reason and its position in the order, so the bank is reproducible from the seed
 and the source alone, and there is no separate eligibility filter for the draw to disagree with.
 
@@ -305,14 +309,14 @@ packet tokens or beyond the capture limit) are rejected at build time, never tru
 
 ## 5. Calibration (CAL) and pilot (PILOT)
 
-**CAL (16 concepts).** Builds the instrument, frozen before CONF is read. Per layer: the R1 decoder
+**CAL (12 concepts).** Builds the instrument, frozen before CONF is read. Per layer: the R1 decoder
 (§6.1) trained on CAL $k=8$ vs $k=0$ packets. $C$ is chosen by 5-fold concept-disjoint CV on CAL with
 feature standardization fitted inside each training fold; selection metric = mean held-out log-loss;
 ties → the smaller $C$. The decoder and standardization are then refitted on all CAL and frozen,
 together with the affine z-scaling of the decision function (mean/SD of the CAL training scores).
-Also on CAL: single-clue difficulty (target log-prob with one clue + 7 background: each CAL concept's clue $i$ alone in the first slot of the first draw with background in the other seven, all six carriers, active condition only, 16 × 12 × 6 = 1,152 captures); the family
+Also on CAL: single-clue difficulty (target log-prob with one clue + 7 background: each CAL concept's clue $i$ alone in the first slot of the first draw with background in the other seven, all six carriers, active condition only, 12 × 10 × 6 = 720 captures under the owner's decisions of 13 October 2026 (16 × 12 × 6 = 1,152 before)); the family
 recovery simulations (§7.5); the CAL layer scores for H3 (§11).
-**PILOT (16 other concepts).** Validates the frozen instrument: held-out-concept accuracy at $k=8$ vs
+**PILOT (12 other concepts).** Validates the frozen instrument: held-out-concept accuracy at $k=8$ vs
 $k=0$ per layer and per family on PILOT is the number reported (CAL's CV score is a selection score,
 not a validation). Places the dose: the closed-set correct rate of §6.3 must cross 0.5 between $k=1$ and $k=4$; if
 not, one interior level is moved (e.g. $\{0,1,2,3,4,6,8\} \to \{0,1,2,3,4,5,8\}$) and recorded. Supplies
@@ -965,3 +969,4 @@ lists, amplitudes, outcomes); this document.
 | 2026-10-02 | Draft amendment, §10.1, corrected on Codex's row-19 Lengau review (RSC c3e1d2a): ω = 2's Monte-Carlo SE is 2.678379 (2 MCSE 5.356758), not "2 MCSE 2.678379"; the ten final_2026-09-15 shards are ω = 2's bank and pin nothing at ω = 1, whose historical reference (−0.869513, MCSE 0.011242, old policy) is sensitivity evidence until a policy-matched reference is generated under its own ledger row; the screen is 100 fixed attempted datasets with the 83 cutoff applied only at n = 100; T is a declared 99 % reference confidence set and the one-look allowance 0.035 is stated. |
 | 2026-10-02 | §7.4 start policy IMPLEMENTED at RSC 5f6333c (not adopted): START_POLICY, fit(policy_key), PAD_MULTIPLE 64, the policy in the identity and the code hash, the reference archive at full precision; the v1.2 path unchanged without a key; mechanics tests in test_start_policy.py. The code hash under the policy (D = 4, layer 41, seed 2026, refit, four inner cold starts) is edcfdf4300f3; the legacy cluster configuration now hashes af666f75d0b0 because models.py changed, so no new row can be pooled with the 625798e9e7f4 rows. |
 | 2026-10-13 | Draft amendment, §3 and §3.1, the OWNER'S DECISION of 12-13 October 2026 (R052 handoff f9aac0a7, implemented by R084): CONF stays 64 (§10 unchanged); CAL 12 and PILOT 12 (were 16), BACKGROUND one per family, so 91 are needed; the usable-feature minimum is 10 (was 12) - the clause-count consequence for selection, the ceiling and the packets is R052's pending ruling; CSLB rows of the citation table by reference only (entry id + production frequency, no text; no consent sought). McRae + CSLB (pf >= 5) under the full rules: 39/32/23 = 94, feasible, margin 3 (stimuli/norms_bank/cslb_eligibility.json) |
+| 2026-10-13 | Draft amendment, §3 and §3.1, the OWNER'S RULING on the clause count (13 October 2026, "a"; R052 handoff 1970a4cc, implemented by R084): every concept supplies exactly TEN clauses, one per selected usable feature (two rarest + eight evenly spaced across the sharing-count order, deterministic within a concept), including concepts with more usable features; the single-clause ceiling is at most two of ten; packets hold eight of the ten (C(10,8) = 45 clause sets); the CAL single-clue difficulty set is 12 × 10 × 6 = 720; CAL and PILOT are 12 concepts; replaces the pending-ruling sentence of the 13 October downsize row |

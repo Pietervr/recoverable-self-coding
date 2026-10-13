@@ -1,14 +1,16 @@
-"""Step 2: select a concept's twelve features, spanning the sharing-count range (§3.1).
+"""Step 2: select a concept's TEN features (owner, 13 October 2026; was twelve), spanning the sharing-count range (§3.1).
 
 §3.1 demoted sharing count from a gate (K, withdrawn) to a SELECTION HEURISTIC: it ranks
-candidates so that a concept's twelve clauses span a range of evidence strength instead of
+candidates so that a concept's ten clauses span a range of evidence strength instead of
 clustering. This implements that as a deterministic rule, so the selection is reproducible from
 the seed and the source alone:
 
   - the two rarest features are taken first - they are the decisive candidates, confirmed or not
     by the naming test, which is what now decides decisiveness;
-  - the remaining ten are read off the rest of the concept's features at ten evenly spaced
-    positions across the sharing-count order, so the clause set spans rare to common;
+  - the remaining eight are read off the rest of the concept's features at eight evenly spaced
+    positions across the sharing-count order, so the clause set spans rare to common; a concept with more usable
+    features than ten still supplies exactly ten, chosen by this same deterministic rule (no randomness inside a
+    concept: the seed fixes only the order over concepts);
   - a feature identical to a surface form of its own concept is dropped before selection
     ('paint' is a feature of paint), since check_clues.py rule N would reject the clause anyway.
 
@@ -32,7 +34,7 @@ from norms_parse import Norms  # noqa: E402
 
 SEED = 20260924
 SCENARIO = "final_occupations"
-CLAUSES = 12
+CLAUSES = 10                                  # owner, 13 Oct 2026 (R052 handoff 1970a4cc): ten per concept
 DECISIVE_CANDIDATES = 2
 
 
@@ -47,7 +49,7 @@ def family_order(family: str, words: list[str]) -> list[str]:
 
 
 def select(norms: Norms, cue: str, skip: int = 0) -> list[tuple[str, int]] | None:
-    """Twelve (feature, sharing count) spanning the range, or None if the concept cannot supply them.
+    """Ten (feature, sharing count) spanning the range, or None if the concept cannot supply them.
 
     `skip` drops the `skip` rarest non-decisive candidates, which is how §3.1's single re-selection
     is expressed: the same rule applied one step further from the rare end.
@@ -78,7 +80,7 @@ def main(argv: list[str]) -> int:
     for i, cue in enumerate(order, 1):
         sel = select(norms, cue)
         if sel is None:
-            print(f"{i:>2}. {cue:<11} CANNOT SUPPLY 12")
+            print(f"{i:>2}. {cue:<11} CANNOT SUPPLY {CLAUSES}")
             continue
         spare = len(norms.features[cue]) - CLAUSES
         print(f"{i:>2}. {cue:<11} ({len(norms.features[cue])} features, {spare} spare)")

@@ -99,12 +99,13 @@ def main(build: Path) -> int:
             check(a["slots"] == r["slots"] and a["readout_position"] == r["readout_position"]
                   and a["marker_positions"] == r["marker_positions"], f"V6 {r['trial_id']}")
 
-    want = {("CAL", "primary"): 2688, ("PILOT", "primary"): 2688, ("CONF", "primary"): 21504,
+    # owner, 13 Oct 2026: CAL and PILOT 12 concepts (2,016 = 12 x 6 x 7 x 4), ten clauses (CAL single 12 x 10 x 6 = 720)
+    want = {("CAL", "primary"): 2016, ("PILOT", "primary"): 2016, ("CONF", "primary"): 21504,
             ("CONF", "C1"): 1152, ("CONF", "C2"): 1152}
     for (split, kind), n in want.items():
         for cond in ("active", "noreport"):
             check(counts[(split, kind, cond)] == n, f"V7 {split} {kind} {cond}: {counts[(split, kind, cond)]} != {n}")
-    check(counts[("CAL", "single", "active")] == 1152, "V7 CAL single")
+    check(counts[("CAL", "single", "active")] == 720, "V7 CAL single")
     for f in fails[:40]:
         print("FAIL", f)
     print(f"{'PASS' if not fails else 'FAIL'}: {len(fails)} problems over {len(rows)} rows, {len(groups)} level groups")

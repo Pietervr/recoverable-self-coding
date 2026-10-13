@@ -1,6 +1,6 @@
 """Mechanical checks of the clue bank against the §3 checklist (the two readers audit truth).
 
-Input: one or more clue files, each {"family": <family>, "clues": {<concept id>: [12 clauses]}}.
+Input: one or more clue files, each {"family": <family>, "clues": {<concept id>: [10 clauses]}}.
 Convention (build rule, recorded in the manifest): a clause is a present-tense predicate fragment
 with the concept as its implied subject ("has four legs and a flat seat"), starting lower case
 unless it opens with a proper noun, one line, no terminal full stop. In a packet it is rendered as
@@ -13,7 +13,7 @@ Checks per clause:
   X  no surface form of any other bank concept (clauses travel into other concepts' packets)
   F  no family word of any of the eight families
   S  style: one line, no leading dash, no terminal full stop, no double spaces
-Per concept: exactly 12 clauses, no duplicates; per file: every concept of the family present.
+Per concept: exactly 10 clauses (owner, 13 October 2026; was 12), no duplicates; per file: every concept of the family present.
 
     workspace_demo/upstream/jlens-qwen36/.venv/bin/python workspace_demo/t1_access/stimuli/check_clues.py stimuli/drafts/clues_tools.json
 """
@@ -31,7 +31,7 @@ sys.path.insert(0, str(HERE.parent))
 
 from stimuli.build_concepts import SNAPSHOT  # noqa: E402
 
-TOKENS_MIN, TOKENS_MAX, PER_CONCEPT = 8, 14, 12
+TOKENS_MIN, TOKENS_MAX, PER_CONCEPT = 8, 14, 10   # ten clauses per concept (owner, 13 Oct 2026)
 FAMILY_WORDS = {
     "animals": ["animal", "animals"],
     "countries": ["country", "countries", "nation", "nations"],

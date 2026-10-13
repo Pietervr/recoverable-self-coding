@@ -12,7 +12,7 @@ Construction (every seed derived from build_concepts.SEED):
   its own nor its foil's.
 - Draw (concept, carrier, d), d = 0..D-1 (CAL and PILOT D = 4; CONF built to D = 8, of which
   draws 0-3 form the D = 4 design): a slot permutation sigma of the 8 slots; a permutation pi of
-  the 12 clue indices, applied to the target's clues and, in the controls, to the foil's and the
+  the 10 clue indices (owner, 13 October 2026; was 12 - at k = 8 a packet holds 8 of the 10, C(10,8) = 45 sets), applied to the target's clues and, in the controls, to the foil's and the
   competitor's; and the background list: for each of the 8 families, one of its BACKGROUND
   concepts and one of that concept's clauses, in a seeded order d_1..d_8, with d_j in slot
   sigma(j). Draws are keyed by concept: the target and its C1 foil packet share the background.
@@ -21,7 +21,8 @@ Construction (every seed derived from build_concepts.SEED):
 - C2 (CONF, k in {2,3,4}, draw 0): t_pi(1..k) in sigma(1..k), the competitor's c_pi(j) in
   sigma(j) for j > k; no background.
 - CAL single-clue difficulty (§5; active only): clue i of each CAL concept alone in slot
-  sigma(1) of draw 0 with d_2..d_8 in the other slots, every carrier (16 x 12 x 6 = 1,152).
+  sigma(1) of draw 0 with d_2..d_8 in the other slots, every carrier (CAL x N_CLUES x carriers; 12 x 10 x 6 = 720
+  under the 13 October 2026 design, 16 x 12 x 6 = 1,152 before).
 - Conditions: active = instruction A + "\\nAnswer:" suffix; no-target-report = instruction B, no
   suffix. Positions are asserted identical in both.
 - Prompt scan: each assembled prompt (instruction, carrier, slots, marker, suffix) is searched
@@ -61,7 +62,7 @@ DRAWS = {"CAL": 4, "PILOT": 4, "CONF": 8}
 MAX_PACKET_TOKENS = 160
 CAPTURE_LIMIT = 1024
 MAX_ATTEMPTS = 10
-N_CLUES = 12
+N_CLUES = 10                                  # ten clauses per concept (owner, 13 Oct 2026; was 12)
 
 
 def sha(path: Path) -> str:
