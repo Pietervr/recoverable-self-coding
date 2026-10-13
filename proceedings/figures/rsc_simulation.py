@@ -4,10 +4,10 @@
 An event-driven finite-capacity decoder: candidate commitments arrive at rate
 lambda and must be certified by a single server (rate mu=1); utilization
 rho = lambda/mu = CR. Waiting times follow the Lindley recursion. A commitment is
-*certified* (traceable) if its sojourn (wait+service) falls below the
-certification horizon Dt, and is committed *uncertified* otherwise.
+*certified* if its sojourn (wait+service) falls below the certification horizon
+Dt, and is committed *uncertified* otherwise.
 RECOVERABILITY is the availability of a correction opportunity: the commitment is
-certified (traceable) AND a corrective pass completes within the option-loss
+certified AND a corrective pass completes within the option-loss
 window H. It is scored independently of whether the commitment proves wrong -- a
 correctness-agnostic opportunity measure, not a bound on recovery conditional
 on error.
@@ -46,7 +46,16 @@ alone now runs N_B=400,000 commitments per
 replication with WARMUP_B=50,000 deleted. Panels (a) and (c) and the horizon
 check keep the revision-1 protocol, seeds and numbers.
 
-The shaded admissible region in panel (a) is DERIVED from the horizon law:
+Revision 3 (reviewer request 3): panels (a) and (c) draw the exact outcome model
+as lines through the simulated markers -- independent accuracy p_acc, coupled
+accuracy p_lo+(p_hi-p_lo)F_T(Dt), recoverability F_T(Dt)F_T(H) with
+F_T(x) = 1-exp(-(mu-lambda)x) -- so that the figure shows what the text says: in
+these two panels the simulation checks the implementation of expressions that are
+known in closed form, and it is panel (b) that compares simulation with
+Proposition 1. Panel (a) also carries the exact deadline-abandonment curve
+(checks/abandonment_variant.py), the one variant whose boundary behaviour differs.
+
+The shaded region in panel (a) is DERIVED from the horizon law:
 per-commitment FIRST-PASS certification success Pc = 1-exp(-M*Dt) >= 1/2 iff
 (the plotted recoverability is the smaller two-pass quantity Pc*P(corr<=H))
 M >= ln2/Dt, i.e. CR <= 1 - ln2/(mu*Dt) (= 0.827 for mu=1, Dt=4).
@@ -319,6 +328,16 @@ for horizon in (2.0, 4.0, 8.0):
     print(f"  {horizon:>4.0f}    {out[0.5]:.3f}           {out[0.94]:.3f}"
           f"            {out[0.5]/max(out[0.94],1e-9):.0f}x")
 
+# ---- the closed forms drawn in panels (a) and (c) ----
+# Round 3, reviewer request 3: panels (a) and (c) report an outcome model whose values
+# follow from the M/M/1 sojourn law, so the exact expressions are drawn as the lines and
+# the simulation as markers. P_c = F_T(Dt), recoverability = F_T(Dt) F_T(H), coupled
+# accuracy = p_lo + (p_hi - p_lo) F_T(Dt), independent accuracy = p_acc at every load.
+def sojourn_cdf(x, cr):
+    """M/M/1 sojourn CDF at load cr: F_T(x) = 1 - exp(-(mu - lambda) x)."""
+    return 1.0 - np.exp(-mu * (1.0 - np.asarray(cr, dtype=float)) * x)
+
+
 # ---- figure ----
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(11.6, 3.3))
 LAB = 10        # axis-label font size (referee: enlarge)
@@ -328,14 +347,26 @@ ax1.axvspan(0, CR_SHADE, color="#2E7D32", alpha=0.08)
 ax1.axvline(CR_SHADE, color="#2E7D32", lw=0.9, ls=":")
 ax1.text(CR_SHADE - 0.015, 0.30, r"$P_c\geq\frac{1}{2}$ at $\Delta t{=}4$",
          rotation=90, fontsize=8, color="#2E7D32", ha="right")
-ax1.errorbar(CRs, accuracy, yerr=acc_ci, fmt="o-", color="#1F4E79", ms=3.5,
-             lw=1.8, elinewidth=0.8, capsize=1.5,
+cr_exact = np.linspace(0.30, 0.965, 400)
+f_dt, f_h = sojourn_cdf(Dt, cr_exact), sojourn_cdf(H, cr_exact)
+ax1.plot(cr_exact, np.full_like(cr_exact, p_acc), "-", color="#1F4E79",
+         lw=1.3, alpha=0.9, zorder=1)
+ax1.plot(cr_exact, p_lo + (p_hi - p_lo) * f_dt, "-", color="#4C8FBD",
+         lw=1.3, alpha=0.9, zorder=1)
+ax1.plot(cr_exact, f_dt * f_h, "-", color="#C00000", lw=1.3, alpha=0.9,
+         zorder=1)
+ax1.errorbar(CRs, accuracy, yerr=acc_ci, fmt="o", ls="none", color="#1F4E79",
+             ms=4.2, mfc="none", mew=1.1, elinewidth=0.8, capsize=1.5,
              label="accuracy (independent)")
-ax1.errorbar(CRs, accuracy_cpl, yerr=accc_ci, fmt="^--", color="#4C8FBD",
-             ms=3.5, lw=1.6, elinewidth=0.8, capsize=1.5,
+ax1.errorbar(CRs, accuracy_cpl, yerr=accc_ci, fmt="^", ls="none",
+             color="#4C8FBD", ms=4.2, mfc="none", mew=1.1, elinewidth=0.8,
+             capsize=1.5,
              label="accuracy (coupled)")
-ax1.errorbar(CRs, recover, yerr=rec_ci, fmt="s-", color="#C00000", ms=3.5,
-             lw=1.8, elinewidth=0.8, capsize=1.5, label="recoverability")
+ax1.errorbar(CRs, recover, yerr=rec_ci, fmt="s", ls="none", color="#C00000",
+             ms=4.2, mfc="none", mew=1.1, elinewidth=0.8, capsize=1.5,
+             label="recoverability")
+ax1.plot([], [], "-", color="#6B6B6B", lw=1.3,
+         label="closed form (markers: simulation)")
 # Deadline abandonment: a commitment that cannot begin certification within Dt leaves the
 # queue (M/M/1+D with patience D = Dt). Exact, from the stationary workload law.
 cr_ab = np.linspace(0.30, 1.00, 200)
@@ -369,15 +400,24 @@ ax2.legend(fontsize=7.5, loc="upper left")
 ax2.tick_params(labelsize=TICK)
 ax2.grid(alpha=0.25, which="both")
 
+plos_exact = np.linspace(0.0, 0.9, 200)
 for rho, col_a, col_r, mk in ((0.5, "#4C8FBD", "#E58C8A", "o"),
                               (0.94, "#1F4E79", "#C00000", "s")):
     a, aci, r, rci = sweep[rho]
-    ax3.errorbar(PLOS, a, yerr=aci, fmt=mk + "--", color=col_a, ms=3.5,
-                 lw=1.3, elinewidth=0.8, capsize=1.5,
+    f_dt_r, f_h_r = sojourn_cdf(Dt, rho), sojourn_cdf(H, rho)
+    # accuracy is affine in p_lo, recoverability does not depend on it at all
+    ax3.plot(plos_exact, plos_exact * (1.0 - f_dt_r) + p_hi * f_dt_r, "-",
+             color=col_a, lw=1.3, alpha=0.9, zorder=1)
+    ax3.plot(plos_exact, np.full_like(plos_exact, f_dt_r * f_h_r), "-",
+             color=col_r, lw=1.3, alpha=0.9, zorder=1)
+    ax3.errorbar(PLOS, a, yerr=aci, fmt=mk, ls="none", color=col_a, ms=4.2,
+                 mfc="none", mew=1.1, elinewidth=0.8, capsize=1.5,
                  label=rf"accuracy, $\mathrm{{CR}}={rho}$")
-    ax3.errorbar(PLOS, r, yerr=rci, fmt=mk + "-", color=col_r, ms=3.5,
-                 lw=1.6, elinewidth=0.8, capsize=1.5,
+    ax3.errorbar(PLOS, r, yerr=rci, fmt=mk, ls="none", color=col_r, ms=4.2,
+                 mfc="none", mew=1.1, elinewidth=0.8, capsize=1.5,
                  label=rf"recoverability, $\mathrm{{CR}}={rho}$")
+ax3.plot([], [], "-", color="#6B6B6B", lw=1.3,
+         label="closed form (markers: simulation)")
 ax3.plot(PLOS, PLOS, ":", color="#6B6B6B", lw=1.0)
 ax3.text(0.55, 0.47, r"$p_{\mathrm{lo}}$ (accuracy floor)", fontsize=7.5,
          color="#6B6B6B", rotation=35)
