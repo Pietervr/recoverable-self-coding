@@ -13,7 +13,7 @@ figures) and protocol (every usable-feature rule §3.1 states).
 Two further readings:
   E1<=2   the same chain with E1 relaxed to at most two tokens: an UPPER BOUND for the 15 October decision, not a
           proposal. Its cost is stated in the report: a two-token answer has no single answer-position logit.
-  allocation  for each count triple, whether CONF 64 / CAL 16 / PILOT 16 plus one BACKGROUND per family can be
+  allocation  for each count triple, whether CONF 64 / CAL 12 / PILOT 12 plus one BACKGROUND per family can be
           allocated jointly in integers: all three families present in every split, each <= half of the split
           (so cross-family reciprocal pairs and a third-family competitor exist), role totals disjoint, and the
           background reserve taken FIRST. It reports a reserve-aware largest-remainder witness, or the deficit.
@@ -38,8 +38,10 @@ from feats_parse import Source  # noqa: E402
 from usable import COMMON_CAPITALS, Canon, proper_words, usable, words  # noqa: E402
 
 FAMILIES = ["animals", "foods", "vehicles"]
-SPLITS = [("CONF", 64), ("CAL", 16), ("PILOT", 16)]
-THRESHOLDS = [12, 10]
+# Owner's decision, 13 October 2026 (R052 handoff f9aac0a7): CONF stays 64; CAL 12 and PILOT 12 (were 16 each);
+# one BACKGROUND per family (3); need 91. The usable-feature minimum is 10 (was 12); 12 is still reported.
+SPLITS = [("CONF", 64), ("CAL", 12), ("PILOT", 12)]
+THRESHOLDS = [10, 12]
 TIERS = ["raw", "minimal", "protocol"]
 E1_LIMITS = {"E1": 1, "E1<=2": 2}
 
@@ -95,17 +97,18 @@ def feasible_allocation(n: dict[str, int]) -> dict:
                 if 1 <= c <= half:
                     yield (a, b, c)
 
-    for conf in triples(64):
+    (_, n_conf), (_, n_cal), (_, n_pilot) = SPLITS
+    for conf in triples(n_conf):
         if any(conf[i] > cap[f] for i, f in enumerate(FAMILIES)):
             continue
-        for cal in triples(16):
+        for cal in triples(n_cal):
             rem = [cap[f] - conf[i] - cal[i] for i, f in enumerate(FAMILIES)]
             if min(rem) < 1:
                 continue
-            hi = [min(8, r) for r in rem]
-            if sum(hi) < 16:
+            hi = [min(n_pilot // 2, r) for r in rem]
+            if sum(hi) < n_pilot:
                 continue
-            pilot, left = [1, 1, 1], 13
+            pilot, left = [1, 1, 1], n_pilot - 3
             for i in range(3):
                 add = min(hi[i] - 1, left)
                 pilot[i] += add
@@ -194,8 +197,8 @@ def main() -> int:
 
     caps = sorted({f for s in sources.values() for fs in s.features.values() for f in fs if any(ch.isupper() for ch in f)})
     out = {
-        "design": "three families (animals, foods, vehicles), §3 at RSC 9b7927b; needed CONF 64 + CAL 16 + PILOT 16 "
-                  "+ one BACKGROUND per family = 99",
+        "design": "three families (animals, foods, vehicles); needed CONF 64 + CAL 12 + PILOT 12 + one BACKGROUND per "
+                  "family = 91 (owner, 13 Oct 2026; was CAL 16 + PILOT 16 = 99)",
         "sources": {k: {"digests": v.digests, "composite_sha256": v.sha256, "bookkeeping": v.bookkeeping}
                     for k, v in sources.items()},
         "tokenizer_json_sha256": tok["tokenizer_json_sha256"],

@@ -1,5 +1,5 @@
 {
- "design": "three families (animals, foods, vehicles); needed CONF 64 + CAL 16 + PILOT 16 + one BACKGROUND per family = 99; single-token E1",
+ "design": "three families (animals, foods, vehicles); needed CONF 64 + CAL 12 + PILOT 12 + one BACKGROUND per family = 91 (owner, 13 Oct 2026); usable-feature minimum 10 (12 also reported); single-token E1",
  "baseline_2026_09_26": {
   "rsc": "2646bf1",
   "mcrae_raw_ge12": [
@@ -16,9 +16,9 @@
   ]
  },
  "tokenizer_json_sha256": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4",
- "script_sha256": "526f79dc7f19dfecc9da95de7f127447c9b62fd85fc0c3c9689ad9622817c8e4",
+ "script_sha256": "8d77e0796bb9c7d068dfcae4faaebf4aaa0e97bfe83e2c01d9c632761d670e06",
  "usable_sha256": "97b94f32883d24b7d4d8e339cf541a198e6a91ecfc4ef0ec7aba4c6139a16f8d",
- "clean_eligibility_sha256": "7ec497f3b6a22fe4f4f3779cdce6689d06c32b32261a51ccf7f2ee5f4f4fc135",
+ "clean_eligibility_sha256": "0bbf0d7c42cf9b998c380ca4cdedf530d21e653ea4a9de7995a730fec6091862",
  "licence_note": "CSLB Norms: Copyright (c) and database right 2012-15 Centre for Speech, Language and the Brain (CSLB), Department of Psychology, University of Cambridge. All rights reserved. Devereux, Tyler, Geertzen & Randall (2014), BRM 46(4) 1119-1127, doi:10.3758/s13428-013-0420-4. CSLB, the original collectors and the funders bear no responsibility for this analysis.",
  "sources": {
   "mcrae": {
@@ -94,163 +94,6 @@
  },
  "results": {
   "mcrae": {
-   ">=12|raw": {
-    "counts": {
-     "animals": 33,
-     "foods": 15,
-     "vehicles": 17
-    },
-    "total": 65,
-    "concepts": {
-     "animals": [
-      "ant",
-      "bear",
-      "beetle",
-      "bull",
-      "butterfly",
-      "calf",
-      "camel",
-      "cougar",
-      "cow",
-      "crow",
-      "deer",
-      "dolphin",
-      "eagle",
-      "elephant",
-      "elk",
-      "flea",
-      "fox",
-      "frog",
-      "goat",
-      "hawk",
-      "horse",
-      "lion",
-      "mouse",
-      "owl",
-      "pig",
-      "pigeon",
-      "pony",
-      "python",
-      "rat",
-      "robin",
-      "sheep",
-      "spider",
-      "squirrel"
-     ],
-     "foods": [
-      "apple",
-      "bread",
-      "cabbage",
-      "cheese",
-      "coconut",
-      "grape",
-      "lemon",
-      "orange",
-      "pear",
-      "pickle",
-      "pie",
-      "potato",
-      "prune",
-      "strawberry",
-      "tomato"
-     ],
-     "vehicles": [
-      "airplane",
-      "ambulance",
-      "balloon",
-      "bike",
-      "buggy",
-      "canoe",
-      "car",
-      "jeep",
-      "jet",
-      "missile",
-      "rocket",
-      "ship",
-      "sled",
-      "tractor",
-      "truck",
-      "wagon",
-      "yacht"
-     ]
-    },
-    "allocation": {
-     "available": 65,
-     "needed": 99,
-     "deficit": 34,
-     "feasible": false,
-     "reason": "no joint integer allocation satisfies the half bounds and capacities"
-    }
-   },
-   ">=12|protocol": {
-    "counts": {
-     "animals": 22,
-     "foods": 13,
-     "vehicles": 11
-    },
-    "total": 46,
-    "concepts": {
-     "animals": [
-      "bear",
-      "butterfly",
-      "camel",
-      "cougar",
-      "cow",
-      "deer",
-      "dolphin",
-      "eagle",
-      "elk",
-      "flea",
-      "fox",
-      "frog",
-      "goat",
-      "horse",
-      "lion",
-      "mouse",
-      "pig",
-      "rat",
-      "robin",
-      "sheep",
-      "spider",
-      "squirrel"
-     ],
-     "foods": [
-      "apple",
-      "bread",
-      "cabbage",
-      "cheese",
-      "coconut",
-      "grape",
-      "lemon",
-      "orange",
-      "pear",
-      "pickle",
-      "potato",
-      "prune",
-      "strawberry"
-     ],
-     "vehicles": [
-      "airplane",
-      "ambulance",
-      "balloon",
-      "bike",
-      "canoe",
-      "car",
-      "jet",
-      "missile",
-      "ship",
-      "sled",
-      "yacht"
-     ]
-    },
-    "allocation": {
-     "available": 46,
-     "needed": 99,
-     "deficit": 53,
-     "feasible": false,
-     "reason": "no joint integer allocation satisfies the half bounds and capacities"
-    }
-   },
    ">=10|raw": {
     "counts": {
      "animals": 35,
@@ -342,8 +185,8 @@
     },
     "allocation": {
      "available": 74,
-     "needed": 99,
-     "deficit": 25,
+     "needed": 91,
+     "deficit": 17,
      "feasible": false,
      "reason": "no joint integer allocation satisfies the half bounds and capacities"
     }
@@ -430,26 +273,23 @@
     },
     "allocation": {
      "available": 65,
-     "needed": 99,
-     "deficit": 34,
+     "needed": 91,
+     "deficit": 26,
      "feasible": false,
      "reason": "no joint integer allocation satisfies the half bounds and capacities"
     }
-   }
-  },
-  "mcrae+cslb_pf5": {
+   },
    ">=12|raw": {
     "counts": {
-     "animals": 40,
-     "foods": 34,
-     "vehicles": 22
+     "animals": 33,
+     "foods": 15,
+     "vehicles": 17
     },
-    "total": 96,
+    "total": 65,
     "concepts": {
      "animals": [
       "ant",
       "bear",
-      "bee",
       "beetle",
       "bull",
       "butterfly",
@@ -470,10 +310,6 @@
       "hawk",
       "horse",
       "lion",
-      "lizard",
-      "llama",
-      "monkey",
-      "mosquito",
       "mouse",
       "owl",
       "pig",
@@ -482,67 +318,41 @@
       "python",
       "rat",
       "robin",
-      "shark",
       "sheep",
       "spider",
-      "squirrel",
-      "wolf"
+      "squirrel"
      ],
      "foods": [
       "apple",
-      "bacon",
-      "bean",
-      "beer",
       "bread",
-      "butter",
       "cabbage",
-      "champagne",
       "cheese",
-      "chocolate",
-      "cider",
       "coconut",
-      "coffee",
-      "flour",
       "grape",
-      "ham",
-      "jam",
-      "jelly",
       "lemon",
-      "milk",
       "orange",
       "pear",
       "pickle",
       "pie",
       "potato",
       "prune",
-      "sandwich",
-      "soup",
       "strawberry",
-      "sugar",
-      "tea",
-      "tomato",
-      "whisky",
-      "wine"
+      "tomato"
      ],
      "vehicles": [
       "airplane",
       "ambulance",
       "balloon",
-      "bicycle",
       "bike",
       "buggy",
       "canoe",
       "car",
-      "carriage",
-      "ferry",
       "jeep",
       "jet",
-      "kayak",
       "missile",
       "rocket",
       "ship",
       "sled",
-      "tank",
       "tractor",
       "truck",
       "wagon",
@@ -550,24 +360,23 @@
      ]
     },
     "allocation": {
-     "available": 96,
-     "needed": 99,
-     "deficit": 3,
+     "available": 65,
+     "needed": 91,
+     "deficit": 26,
      "feasible": false,
      "reason": "no joint integer allocation satisfies the half bounds and capacities"
     }
    },
    ">=12|protocol": {
     "counts": {
-     "animals": 29,
-     "foods": 27,
-     "vehicles": 15
+     "animals": 22,
+     "foods": 13,
+     "vehicles": 11
     },
-    "total": 71,
+    "total": 46,
     "concepts": {
      "animals": [
       "bear",
-      "bee",
       "butterfly",
       "camel",
       "cougar",
@@ -582,75 +391,53 @@
       "goat",
       "horse",
       "lion",
-      "lizard",
-      "llama",
-      "monkey",
-      "mosquito",
       "mouse",
       "pig",
       "rat",
       "robin",
-      "shark",
       "sheep",
       "spider",
-      "squirrel",
-      "wolf"
+      "squirrel"
      ],
      "foods": [
       "apple",
-      "bacon",
-      "bean",
-      "beer",
-      "butter",
+      "bread",
       "cabbage",
-      "champagne",
-      "chocolate",
+      "cheese",
       "coconut",
-      "coffee",
-      "flour",
       "grape",
-      "ham",
-      "jam",
-      "jelly",
       "lemon",
-      "milk",
       "orange",
       "pear",
       "pickle",
       "potato",
       "prune",
-      "soup",
-      "strawberry",
-      "sugar",
-      "tea",
-      "whisky"
+      "strawberry"
      ],
      "vehicles": [
       "airplane",
       "ambulance",
       "balloon",
-      "bicycle",
       "bike",
       "canoe",
       "car",
-      "ferry",
       "jet",
-      "kayak",
       "missile",
       "ship",
       "sled",
-      "tank",
       "yacht"
      ]
     },
     "allocation": {
-     "available": 71,
-     "needed": 99,
-     "deficit": 28,
+     "available": 46,
+     "needed": 91,
+     "deficit": 45,
      "feasible": false,
      "reason": "no joint integer allocation satisfies the half bounds and capacities"
     }
-   },
+   }
+  },
+  "mcrae+cslb_pf5": {
    ">=10|raw": {
     "counts": {
      "animals": 43,
@@ -775,27 +562,27 @@
     },
     "allocation": {
      "available": 107,
-     "needed": 99,
+     "needed": 91,
      "deficit": 0,
      "feasible": true,
      "witness": {
       "CONF": [
-       18,
-       22,
+       14,
+       26,
        24
       ],
       "CAL": [
-       8,
-       7,
+       6,
+       5,
        1
       ],
       "PILOT": [
-       8,
-       7,
+       6,
+       5,
        1
       ],
       "BACKGROUND": [
-       9,
+       17,
        1,
        1
       ]
@@ -808,19 +595,19 @@
        16
       ],
       "CAL": [
-       6,
-       6,
-       4
-      ],
-      "PILOT": [
-       7,
        5,
-       4
-      ],
-      "BACKGROUND": [
-       4,
        4,
        3
+      ],
+      "PILOT": [
+       5,
+       4,
+       3
+      ],
+      "BACKGROUND": [
+       7,
+       7,
+       5
       ]
      }
     }
@@ -936,1194 +723,27 @@
     },
     "allocation": {
      "available": 94,
-     "needed": 99,
-     "deficit": 5,
-     "feasible": false,
-     "reason": "no joint integer allocation satisfies the half bounds and capacities"
-    }
-   }
-  },
-  "mcrae+cslb_pf3": {
-   ">=12|raw": {
-    "counts": {
-     "animals": 41,
-     "foods": 35,
-     "vehicles": 22
-    },
-    "total": 98,
-    "concepts": {
-     "animals": [
-      "ant",
-      "bear",
-      "bee",
-      "beetle",
-      "bull",
-      "butterfly",
-      "calf",
-      "camel",
-      "cougar",
-      "cow",
-      "cricket",
-      "crow",
-      "deer",
-      "dolphin",
-      "eagle",
-      "elephant",
-      "elk",
-      "flea",
-      "fox",
-      "frog",
-      "goat",
-      "hawk",
-      "horse",
-      "lion",
-      "lizard",
-      "llama",
-      "monkey",
-      "mosquito",
-      "mouse",
-      "owl",
-      "pig",
-      "pigeon",
-      "pony",
-      "python",
-      "rat",
-      "robin",
-      "shark",
-      "sheep",
-      "spider",
-      "squirrel",
-      "wolf"
-     ],
-     "foods": [
-      "apple",
-      "bacon",
-      "bean",
-      "beer",
-      "bread",
-      "butter",
-      "cabbage",
-      "champagne",
-      "cheese",
-      "chocolate",
-      "cider",
-      "coconut",
-      "coffee",
-      "flour",
-      "gin",
-      "grape",
-      "ham",
-      "jam",
-      "jelly",
-      "lemon",
-      "milk",
-      "orange",
-      "pear",
-      "pickle",
-      "pie",
-      "potato",
-      "prune",
-      "sandwich",
-      "soup",
-      "strawberry",
-      "sugar",
-      "tea",
-      "tomato",
-      "whisky",
-      "wine"
-     ],
-     "vehicles": [
-      "airplane",
-      "ambulance",
-      "balloon",
-      "bicycle",
-      "bike",
-      "buggy",
-      "canoe",
-      "car",
-      "carriage",
-      "ferry",
-      "jeep",
-      "jet",
-      "kayak",
-      "missile",
-      "rocket",
-      "ship",
-      "sled",
-      "tank",
-      "tractor",
-      "truck",
-      "wagon",
-      "yacht"
-     ]
-    },
-    "allocation": {
-     "available": 98,
-     "needed": 99,
-     "deficit": 1,
-     "feasible": false,
-     "reason": "no joint integer allocation satisfies the half bounds and capacities"
-    }
-   },
-   ">=12|protocol": {
-    "counts": {
-     "animals": 30,
-     "foods": 31,
-     "vehicles": 16
-    },
-    "total": 77,
-    "concepts": {
-     "animals": [
-      "bear",
-      "bee",
-      "butterfly",
-      "camel",
-      "cougar",
-      "cow",
-      "cricket",
-      "deer",
-      "dolphin",
-      "eagle",
-      "elk",
-      "flea",
-      "fox",
-      "frog",
-      "goat",
-      "horse",
-      "lion",
-      "lizard",
-      "llama",
-      "monkey",
-      "mosquito",
-      "mouse",
-      "pig",
-      "rat",
-      "robin",
-      "shark",
-      "sheep",
-      "spider",
-      "squirrel",
-      "wolf"
-     ],
-     "foods": [
-      "apple",
-      "bacon",
-      "bean",
-      "beer",
-      "butter",
-      "cabbage",
-      "champagne",
-      "chocolate",
-      "cider",
-      "coconut",
-      "coffee",
-      "flour",
-      "gin",
-      "grape",
-      "ham",
-      "jam",
-      "jelly",
-      "lemon",
-      "milk",
-      "orange",
-      "pear",
-      "pickle",
-      "potato",
-      "prune",
-      "sandwich",
-      "soup",
-      "strawberry",
-      "sugar",
-      "tea",
-      "whisky",
-      "wine"
-     ],
-     "vehicles": [
-      "airplane",
-      "ambulance",
-      "balloon",
-      "bicycle",
-      "bike",
-      "canoe",
-      "car",
-      "carriage",
-      "ferry",
-      "jet",
-      "kayak",
-      "missile",
-      "ship",
-      "sled",
-      "tank",
-      "yacht"
-     ]
-    },
-    "allocation": {
-     "available": 77,
-     "needed": 99,
-     "deficit": 22,
-     "feasible": false,
-     "reason": "no joint integer allocation satisfies the half bounds and capacities"
-    }
-   },
-   ">=10|raw": {
-    "counts": {
-     "animals": 43,
-     "foods": 37,
-     "vehicles": 27
-    },
-    "total": 107,
-    "concepts": {
-     "animals": [
-      "ant",
-      "bear",
-      "bee",
-      "beetle",
-      "bull",
-      "butterfly",
-      "calf",
-      "camel",
-      "cougar",
-      "cow",
-      "cricket",
-      "crow",
-      "deer",
-      "dolphin",
-      "eagle",
-      "elephant",
-      "elk",
-      "flea",
-      "fox",
-      "frog",
-      "goat",
-      "hawk",
-      "horse",
-      "lion",
-      "lizard",
-      "llama",
-      "monkey",
-      "mosquito",
-      "mouse",
-      "owl",
-      "ox",
-      "pig",
-      "pigeon",
-      "pony",
-      "python",
-      "rat",
-      "robin",
-      "shark",
-      "sheep",
-      "spider",
-      "squirrel",
-      "wolf",
-      "worm"
-     ],
-     "foods": [
-      "apple",
-      "avocado",
-      "bacon",
-      "bean",
-      "beer",
-      "bread",
-      "butter",
-      "cabbage",
-      "champagne",
-      "cheese",
-      "chocolate",
-      "cider",
-      "coconut",
-      "coffee",
-      "flour",
-      "gin",
-      "grape",
-      "ham",
-      "jam",
-      "jelly",
-      "lemon",
-      "milk",
-      "orange",
-      "pear",
-      "pickle",
-      "pie",
-      "potato",
-      "prune",
-      "rice",
-      "sandwich",
-      "soup",
-      "strawberry",
-      "sugar",
-      "tea",
-      "tomato",
-      "whisky",
-      "wine"
-     ],
-     "vehicles": [
-      "airplane",
-      "ambulance",
-      "balloon",
-      "bicycle",
-      "bike",
-      "boat",
-      "buggy",
-      "canoe",
-      "car",
-      "carriage",
-      "cart",
-      "ferry",
-      "helicopter",
-      "jeep",
-      "jet",
-      "kayak",
-      "missile",
-      "rocket",
-      "ship",
-      "skateboard",
-      "sled",
-      "tank",
-      "taxi",
-      "tractor",
-      "truck",
-      "wagon",
-      "yacht"
-     ]
-    },
-    "allocation": {
-     "available": 107,
-     "needed": 99,
+     "needed": 91,
      "deficit": 0,
      "feasible": true,
      "witness": {
       "CONF": [
-       18,
-       22,
-       24
-      ],
-      "CAL": [
-       8,
-       7,
-       1
-      ],
-      "PILOT": [
-       8,
-       7,
-       1
-      ],
-      "BACKGROUND": [
-       9,
-       1,
-       1
-      ]
-     },
-     "proportional": {
-      "ok": true,
-      "CONF": [
-       26,
-       22,
-       16
-      ],
-      "CAL": [
-       6,
-       6,
-       4
-      ],
-      "PILOT": [
-       7,
-       5,
-       4
-      ],
-      "BACKGROUND": [
-       4,
-       4,
-       3
-      ]
-     }
-    }
-   },
-   ">=10|protocol": {
-    "counts": {
-     "animals": 40,
-     "foods": 35,
-     "vehicles": 23
-    },
-    "total": 98,
-    "concepts": {
-     "animals": [
-      "ant",
-      "bear",
-      "bee",
-      "beetle",
-      "butterfly",
-      "calf",
-      "camel",
-      "cougar",
-      "cow",
-      "cricket",
-      "crow",
-      "deer",
-      "dolphin",
-      "eagle",
-      "elephant",
-      "elk",
-      "flea",
-      "fox",
-      "frog",
-      "goat",
-      "hawk",
-      "horse",
-      "lion",
-      "lizard",
-      "llama",
-      "monkey",
-      "mosquito",
-      "mouse",
-      "owl",
-      "pig",
-      "pigeon",
-      "python",
-      "rat",
-      "robin",
-      "shark",
-      "sheep",
-      "spider",
-      "squirrel",
-      "wolf",
-      "worm"
-     ],
-     "foods": [
-      "apple",
-      "bacon",
-      "bean",
-      "beer",
-      "bread",
-      "butter",
-      "cabbage",
-      "champagne",
-      "cheese",
-      "chocolate",
-      "cider",
-      "coconut",
-      "coffee",
-      "flour",
-      "gin",
-      "grape",
-      "ham",
-      "jam",
-      "jelly",
-      "lemon",
-      "milk",
-      "orange",
-      "pear",
-      "pickle",
-      "pie",
-      "potato",
-      "prune",
-      "sandwich",
-      "soup",
-      "strawberry",
-      "sugar",
-      "tea",
-      "tomato",
-      "whisky",
-      "wine"
-     ],
-     "vehicles": [
-      "airplane",
-      "ambulance",
-      "balloon",
-      "bicycle",
-      "bike",
-      "boat",
-      "buggy",
-      "canoe",
-      "car",
-      "carriage",
-      "ferry",
-      "helicopter",
-      "jeep",
-      "jet",
-      "kayak",
-      "missile",
-      "rocket",
-      "ship",
-      "sled",
-      "tank",
-      "tractor",
-      "wagon",
-      "yacht"
-     ]
-    },
-    "allocation": {
-     "available": 98,
-     "needed": 99,
-     "deficit": 1,
-     "feasible": false,
-     "reason": "no joint integer allocation satisfies the half bounds and capacities"
-    }
-   }
-  },
-  "mcrae+cslb_pf2": {
-   ">=12|raw": {
-    "counts": {
-     "animals": 41,
-     "foods": 35,
-     "vehicles": 22
-    },
-    "total": 98,
-    "concepts": {
-     "animals": [
-      "ant",
-      "bear",
-      "bee",
-      "beetle",
-      "bull",
-      "butterfly",
-      "calf",
-      "camel",
-      "cougar",
-      "cow",
-      "cricket",
-      "crow",
-      "deer",
-      "dolphin",
-      "eagle",
-      "elephant",
-      "elk",
-      "flea",
-      "fox",
-      "frog",
-      "goat",
-      "hawk",
-      "horse",
-      "lion",
-      "lizard",
-      "llama",
-      "monkey",
-      "mosquito",
-      "mouse",
-      "owl",
-      "pig",
-      "pigeon",
-      "pony",
-      "python",
-      "rat",
-      "robin",
-      "shark",
-      "sheep",
-      "spider",
-      "squirrel",
-      "wolf"
-     ],
-     "foods": [
-      "apple",
-      "bacon",
-      "bean",
-      "beer",
-      "bread",
-      "butter",
-      "cabbage",
-      "champagne",
-      "cheese",
-      "chocolate",
-      "cider",
-      "coconut",
-      "coffee",
-      "flour",
-      "gin",
-      "grape",
-      "ham",
-      "jam",
-      "jelly",
-      "lemon",
-      "milk",
-      "orange",
-      "pear",
-      "pickle",
-      "pie",
-      "potato",
-      "prune",
-      "sandwich",
-      "soup",
-      "strawberry",
-      "sugar",
-      "tea",
-      "tomato",
-      "whisky",
-      "wine"
-     ],
-     "vehicles": [
-      "airplane",
-      "ambulance",
-      "balloon",
-      "bicycle",
-      "bike",
-      "buggy",
-      "canoe",
-      "car",
-      "carriage",
-      "ferry",
-      "jeep",
-      "jet",
-      "kayak",
-      "missile",
-      "rocket",
-      "ship",
-      "sled",
-      "tank",
-      "tractor",
-      "truck",
-      "wagon",
-      "yacht"
-     ]
-    },
-    "allocation": {
-     "available": 98,
-     "needed": 99,
-     "deficit": 1,
-     "feasible": false,
-     "reason": "no joint integer allocation satisfies the half bounds and capacities"
-    }
-   },
-   ">=12|protocol": {
-    "counts": {
-     "animals": 30,
-     "foods": 31,
-     "vehicles": 16
-    },
-    "total": 77,
-    "concepts": {
-     "animals": [
-      "bear",
-      "bee",
-      "butterfly",
-      "camel",
-      "cougar",
-      "cow",
-      "cricket",
-      "deer",
-      "dolphin",
-      "eagle",
-      "elk",
-      "flea",
-      "fox",
-      "frog",
-      "goat",
-      "horse",
-      "lion",
-      "lizard",
-      "llama",
-      "monkey",
-      "mosquito",
-      "mouse",
-      "pig",
-      "rat",
-      "robin",
-      "shark",
-      "sheep",
-      "spider",
-      "squirrel",
-      "wolf"
-     ],
-     "foods": [
-      "apple",
-      "bacon",
-      "bean",
-      "beer",
-      "butter",
-      "cabbage",
-      "champagne",
-      "chocolate",
-      "cider",
-      "coconut",
-      "coffee",
-      "flour",
-      "gin",
-      "grape",
-      "ham",
-      "jam",
-      "jelly",
-      "lemon",
-      "milk",
-      "orange",
-      "pear",
-      "pickle",
-      "potato",
-      "prune",
-      "sandwich",
-      "soup",
-      "strawberry",
-      "sugar",
-      "tea",
-      "whisky",
-      "wine"
-     ],
-     "vehicles": [
-      "airplane",
-      "ambulance",
-      "balloon",
-      "bicycle",
-      "bike",
-      "canoe",
-      "car",
-      "carriage",
-      "ferry",
-      "jet",
-      "kayak",
-      "missile",
-      "ship",
-      "sled",
-      "tank",
-      "yacht"
-     ]
-    },
-    "allocation": {
-     "available": 77,
-     "needed": 99,
-     "deficit": 22,
-     "feasible": false,
-     "reason": "no joint integer allocation satisfies the half bounds and capacities"
-    }
-   },
-   ">=10|raw": {
-    "counts": {
-     "animals": 43,
-     "foods": 37,
-     "vehicles": 27
-    },
-    "total": 107,
-    "concepts": {
-     "animals": [
-      "ant",
-      "bear",
-      "bee",
-      "beetle",
-      "bull",
-      "butterfly",
-      "calf",
-      "camel",
-      "cougar",
-      "cow",
-      "cricket",
-      "crow",
-      "deer",
-      "dolphin",
-      "eagle",
-      "elephant",
-      "elk",
-      "flea",
-      "fox",
-      "frog",
-      "goat",
-      "hawk",
-      "horse",
-      "lion",
-      "lizard",
-      "llama",
-      "monkey",
-      "mosquito",
-      "mouse",
-      "owl",
-      "ox",
-      "pig",
-      "pigeon",
-      "pony",
-      "python",
-      "rat",
-      "robin",
-      "shark",
-      "sheep",
-      "spider",
-      "squirrel",
-      "wolf",
-      "worm"
-     ],
-     "foods": [
-      "apple",
-      "avocado",
-      "bacon",
-      "bean",
-      "beer",
-      "bread",
-      "butter",
-      "cabbage",
-      "champagne",
-      "cheese",
-      "chocolate",
-      "cider",
-      "coconut",
-      "coffee",
-      "flour",
-      "gin",
-      "grape",
-      "ham",
-      "jam",
-      "jelly",
-      "lemon",
-      "milk",
-      "orange",
-      "pear",
-      "pickle",
-      "pie",
-      "potato",
-      "prune",
-      "rice",
-      "sandwich",
-      "soup",
-      "strawberry",
-      "sugar",
-      "tea",
-      "tomato",
-      "whisky",
-      "wine"
-     ],
-     "vehicles": [
-      "airplane",
-      "ambulance",
-      "balloon",
-      "bicycle",
-      "bike",
-      "boat",
-      "buggy",
-      "canoe",
-      "car",
-      "carriage",
-      "cart",
-      "ferry",
-      "helicopter",
-      "jeep",
-      "jet",
-      "kayak",
-      "missile",
-      "rocket",
-      "ship",
-      "skateboard",
-      "sled",
-      "tank",
-      "taxi",
-      "tractor",
-      "truck",
-      "wagon",
-      "yacht"
-     ]
-    },
-    "allocation": {
-     "available": 107,
-     "needed": 99,
-     "deficit": 0,
-     "feasible": true,
-     "witness": {
-      "CONF": [
-       18,
-       22,
-       24
-      ],
-      "CAL": [
-       8,
-       7,
-       1
-      ],
-      "PILOT": [
-       8,
-       7,
-       1
-      ],
-      "BACKGROUND": [
-       9,
-       1,
-       1
-      ]
-     },
-     "proportional": {
-      "ok": true,
-      "CONF": [
-       26,
-       22,
-       16
-      ],
-      "CAL": [
-       6,
-       6,
-       4
-      ],
-      "PILOT": [
-       7,
-       5,
-       4
-      ],
-      "BACKGROUND": [
-       4,
-       4,
-       3
-      ]
-     }
-    }
-   },
-   ">=10|protocol": {
-    "counts": {
-     "animals": 40,
-     "foods": 35,
-     "vehicles": 23
-    },
-    "total": 98,
-    "concepts": {
-     "animals": [
-      "ant",
-      "bear",
-      "bee",
-      "beetle",
-      "butterfly",
-      "calf",
-      "camel",
-      "cougar",
-      "cow",
-      "cricket",
-      "crow",
-      "deer",
-      "dolphin",
-      "eagle",
-      "elephant",
-      "elk",
-      "flea",
-      "fox",
-      "frog",
-      "goat",
-      "hawk",
-      "horse",
-      "lion",
-      "lizard",
-      "llama",
-      "monkey",
-      "mosquito",
-      "mouse",
-      "owl",
-      "pig",
-      "pigeon",
-      "python",
-      "rat",
-      "robin",
-      "shark",
-      "sheep",
-      "spider",
-      "squirrel",
-      "wolf",
-      "worm"
-     ],
-     "foods": [
-      "apple",
-      "bacon",
-      "bean",
-      "beer",
-      "bread",
-      "butter",
-      "cabbage",
-      "champagne",
-      "cheese",
-      "chocolate",
-      "cider",
-      "coconut",
-      "coffee",
-      "flour",
-      "gin",
-      "grape",
-      "ham",
-      "jam",
-      "jelly",
-      "lemon",
-      "milk",
-      "orange",
-      "pear",
-      "pickle",
-      "pie",
-      "potato",
-      "prune",
-      "sandwich",
-      "soup",
-      "strawberry",
-      "sugar",
-      "tea",
-      "tomato",
-      "whisky",
-      "wine"
-     ],
-     "vehicles": [
-      "airplane",
-      "ambulance",
-      "balloon",
-      "bicycle",
-      "bike",
-      "boat",
-      "buggy",
-      "canoe",
-      "car",
-      "carriage",
-      "ferry",
-      "helicopter",
-      "jeep",
-      "jet",
-      "kayak",
-      "missile",
-      "rocket",
-      "ship",
-      "sled",
-      "tank",
-      "tractor",
-      "wagon",
-      "yacht"
-     ]
-    },
-    "allocation": {
-     "available": 98,
-     "needed": 99,
-     "deficit": 1,
-     "feasible": false,
-     "reason": "no joint integer allocation satisfies the half bounds and capacities"
-    }
-   }
-  },
-  "mcrae+cslb_pf5_merged": {
-   ">=12|raw": {
-    "counts": {
-     "animals": 43,
-     "foods": 36,
-     "vehicles": 27
-    },
-    "total": 106,
-    "concepts": {
-     "animals": [
-      "ant",
-      "bear",
-      "bee",
-      "beetle",
-      "bull",
-      "butterfly",
-      "calf",
-      "camel",
-      "cougar",
-      "cow",
-      "crow",
-      "deer",
-      "dolphin",
-      "eagle",
-      "elephant",
-      "elk",
-      "flea",
-      "fox",
-      "frog",
-      "goat",
-      "hawk",
-      "horse",
-      "lion",
-      "lizard",
-      "llama",
-      "monkey",
-      "mosquito",
-      "moth",
-      "mouse",
-      "owl",
-      "ox",
-      "pig",
-      "pigeon",
-      "pony",
-      "python",
-      "rat",
-      "robin",
-      "shark",
-      "sheep",
-      "spider",
-      "squirrel",
-      "wolf",
-      "worm"
-     ],
-     "foods": [
-      "apple",
-      "avocado",
-      "bacon",
-      "bean",
-      "beer",
-      "bread",
-      "butter",
-      "cabbage",
-      "champagne",
-      "cheese",
-      "chocolate",
-      "cider",
-      "coconut",
-      "coffee",
-      "flour",
-      "grape",
-      "ham",
-      "jam",
-      "jelly",
-      "lemon",
-      "milk",
-      "orange",
-      "pear",
-      "pickle",
-      "pie",
-      "potato",
-      "prune",
-      "rice",
-      "sandwich",
-      "soup",
-      "strawberry",
-      "sugar",
-      "tea",
-      "tomato",
-      "whisky",
-      "wine"
-     ],
-     "vehicles": [
-      "airplane",
-      "ambulance",
-      "balloon",
-      "bicycle",
-      "boat",
-      "buggy",
-      "canoe",
-      "car",
-      "carriage",
-      "cart",
-      "ferry",
-      "helicopter",
-      "jeep",
-      "jet",
-      "kayak",
-      "missile",
-      "motorcycle",
-      "rocket",
-      "ship",
-      "skateboard",
-      "sled",
-      "tank",
-      "taxi",
-      "tractor",
-      "truck",
-      "wagon",
-      "yacht"
-     ]
-    },
-    "allocation": {
-     "available": 106,
-     "needed": 99,
-     "deficit": 0,
-     "feasible": true,
-     "witness": {
-      "CONF": [
-       19,
+       23,
        21,
-       24
+       20
       ],
       "CAL": [
-       8,
-       7,
+       6,
+       5,
        1
       ],
       "PILOT": [
-       8,
-       7,
+       6,
+       5,
        1
       ],
       "BACKGROUND": [
-       8,
+       4,
        1,
        1
       ]
@@ -2131,46 +751,48 @@
      "proportional": {
       "ok": true,
       "CONF": [
-       26,
+       27,
        22,
-       16
+       15
       ],
       "CAL": [
-       7,
        5,
-       4
+       4,
+       3
       ],
       "PILOT": [
-       6,
-       6,
-       4
+       5,
+       4,
+       3
       ],
       "BACKGROUND": [
-       4,
-       3,
-       3
+       2,
+       2,
+       2
       ]
      }
     }
    },
-   ">=12|protocol": {
+   ">=12|raw": {
     "counts": {
      "animals": 40,
-     "foods": 33,
-     "vehicles": 25
+     "foods": 34,
+     "vehicles": 22
     },
-    "total": 98,
+    "total": 96,
     "concepts": {
      "animals": [
       "ant",
       "bear",
       "bee",
       "beetle",
+      "bull",
       "butterfly",
       "calf",
       "camel",
       "cougar",
       "cow",
+      "crow",
       "deer",
       "dolphin",
       "eagle",
@@ -2187,25 +809,22 @@
       "llama",
       "monkey",
       "mosquito",
-      "moth",
       "mouse",
       "owl",
-      "ox",
       "pig",
       "pigeon",
       "pony",
+      "python",
       "rat",
       "robin",
       "shark",
       "sheep",
       "spider",
       "squirrel",
-      "wolf",
-      "worm"
+      "wolf"
      ],
      "foods": [
       "apple",
-      "avocado",
       "bacon",
       "bean",
       "beer",
@@ -2215,6 +834,7 @@
       "champagne",
       "cheese",
       "chocolate",
+      "cider",
       "coconut",
       "coffee",
       "flour",
@@ -2230,12 +850,158 @@
       "pie",
       "potato",
       "prune",
-      "rice",
+      "sandwich",
       "soup",
       "strawberry",
       "sugar",
       "tea",
       "tomato",
+      "whisky",
+      "wine"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "buggy",
+      "canoe",
+      "car",
+      "carriage",
+      "ferry",
+      "jeep",
+      "jet",
+      "kayak",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tank",
+      "tractor",
+      "truck",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "allocation": {
+     "available": 96,
+     "needed": 91,
+     "deficit": 0,
+     "feasible": true,
+     "witness": {
+      "CONF": [
+       22,
+       23,
+       19
+      ],
+      "CAL": [
+       6,
+       5,
+       1
+      ],
+      "PILOT": [
+       6,
+       5,
+       1
+      ],
+      "BACKGROUND": [
+       6,
+       1,
+       1
+      ]
+     },
+     "proportional": {
+      "ok": true,
+      "CONF": [
+       27,
+       23,
+       14
+      ],
+      "CAL": [
+       5,
+       4,
+       3
+      ],
+      "PILOT": [
+       5,
+       4,
+       3
+      ],
+      "BACKGROUND": [
+       3,
+       3,
+       2
+      ]
+     }
+    }
+   },
+   ">=12|protocol": {
+    "counts": {
+     "animals": 29,
+     "foods": 27,
+     "vehicles": 15
+    },
+    "total": 71,
+    "concepts": {
+     "animals": [
+      "bear",
+      "bee",
+      "butterfly",
+      "camel",
+      "cougar",
+      "cow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "horse",
+      "lion",
+      "lizard",
+      "llama",
+      "monkey",
+      "mosquito",
+      "mouse",
+      "pig",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "bacon",
+      "bean",
+      "beer",
+      "butter",
+      "cabbage",
+      "champagne",
+      "chocolate",
+      "coconut",
+      "coffee",
+      "flour",
+      "grape",
+      "ham",
+      "jam",
+      "jelly",
+      "lemon",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "potato",
+      "prune",
+      "soup",
+      "strawberry",
+      "sugar",
+      "tea",
       "whisky"
      ],
      "vehicles": [
@@ -2243,10 +1009,132 @@
       "ambulance",
       "balloon",
       "bicycle",
+      "bike",
+      "canoe",
+      "car",
+      "ferry",
+      "jet",
+      "kayak",
+      "missile",
+      "ship",
+      "sled",
+      "tank",
+      "yacht"
+     ]
+    },
+    "allocation": {
+     "available": 71,
+     "needed": 91,
+     "deficit": 20,
+     "feasible": false,
+     "reason": "no joint integer allocation satisfies the half bounds and capacities"
+    }
+   }
+  },
+  "mcrae+cslb_pf3": {
+   ">=10|raw": {
+    "counts": {
+     "animals": 43,
+     "foods": 37,
+     "vehicles": 27
+    },
+    "total": 107,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "bull",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "lizard",
+      "llama",
+      "monkey",
+      "mosquito",
+      "mouse",
+      "owl",
+      "ox",
+      "pig",
+      "pigeon",
+      "pony",
+      "python",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "avocado",
+      "bacon",
+      "bean",
+      "beer",
+      "bread",
+      "butter",
+      "cabbage",
+      "champagne",
+      "cheese",
+      "chocolate",
+      "cider",
+      "coconut",
+      "coffee",
+      "flour",
+      "gin",
+      "grape",
+      "ham",
+      "jam",
+      "jelly",
+      "lemon",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "potato",
+      "prune",
+      "rice",
+      "sandwich",
+      "soup",
+      "strawberry",
+      "sugar",
+      "tea",
+      "tomato",
+      "whisky",
+      "wine"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
       "boat",
       "buggy",
       "canoe",
       "car",
+      "carriage",
       "cart",
       "ferry",
       "helicopter",
@@ -2254,7 +1142,6 @@
       "jet",
       "kayak",
       "missile",
-      "motorcycle",
       "rocket",
       "ship",
       "skateboard",
@@ -2263,17 +1150,1100 @@
       "taxi",
       "tractor",
       "truck",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "allocation": {
+     "available": 107,
+     "needed": 91,
+     "deficit": 0,
+     "feasible": true,
+     "witness": {
+      "CONF": [
+       14,
+       26,
+       24
+      ],
+      "CAL": [
+       6,
+       5,
+       1
+      ],
+      "PILOT": [
+       6,
+       5,
+       1
+      ],
+      "BACKGROUND": [
+       17,
+       1,
+       1
+      ]
+     },
+     "proportional": {
+      "ok": true,
+      "CONF": [
+       26,
+       22,
+       16
+      ],
+      "CAL": [
+       5,
+       4,
+       3
+      ],
+      "PILOT": [
+       5,
+       4,
+       3
+      ],
+      "BACKGROUND": [
+       7,
+       7,
+       5
+      ]
+     }
+    }
+   },
+   ">=10|protocol": {
+    "counts": {
+     "animals": 40,
+     "foods": 35,
+     "vehicles": 23
+    },
+    "total": 98,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "lizard",
+      "llama",
+      "monkey",
+      "mosquito",
+      "mouse",
+      "owl",
+      "pig",
+      "pigeon",
+      "python",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "bacon",
+      "bean",
+      "beer",
+      "bread",
+      "butter",
+      "cabbage",
+      "champagne",
+      "cheese",
+      "chocolate",
+      "cider",
+      "coconut",
+      "coffee",
+      "flour",
+      "gin",
+      "grape",
+      "ham",
+      "jam",
+      "jelly",
+      "lemon",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "potato",
+      "prune",
+      "sandwich",
+      "soup",
+      "strawberry",
+      "sugar",
+      "tea",
+      "tomato",
+      "whisky",
+      "wine"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "carriage",
+      "ferry",
+      "helicopter",
+      "jeep",
+      "jet",
+      "kayak",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tank",
+      "tractor",
+      "wagon",
       "yacht"
      ]
     },
     "allocation": {
      "available": 98,
-     "needed": 99,
-     "deficit": 1,
+     "needed": 91,
+     "deficit": 0,
+     "feasible": true,
+     "witness": {
+      "CONF": [
+       20,
+       24,
+       20
+      ],
+      "CAL": [
+       6,
+       5,
+       1
+      ],
+      "PILOT": [
+       6,
+       5,
+       1
+      ],
+      "BACKGROUND": [
+       8,
+       1,
+       1
+      ]
+     },
+     "proportional": {
+      "ok": true,
+      "CONF": [
+       26,
+       23,
+       15
+      ],
+      "CAL": [
+       5,
+       4,
+       3
+      ],
+      "PILOT": [
+       5,
+       4,
+       3
+      ],
+      "BACKGROUND": [
+       4,
+       4,
+       2
+      ]
+     }
+    }
+   },
+   ">=12|raw": {
+    "counts": {
+     "animals": 41,
+     "foods": 35,
+     "vehicles": 22
+    },
+    "total": 98,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "bull",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "lizard",
+      "llama",
+      "monkey",
+      "mosquito",
+      "mouse",
+      "owl",
+      "pig",
+      "pigeon",
+      "pony",
+      "python",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "bacon",
+      "bean",
+      "beer",
+      "bread",
+      "butter",
+      "cabbage",
+      "champagne",
+      "cheese",
+      "chocolate",
+      "cider",
+      "coconut",
+      "coffee",
+      "flour",
+      "gin",
+      "grape",
+      "ham",
+      "jam",
+      "jelly",
+      "lemon",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "potato",
+      "prune",
+      "sandwich",
+      "soup",
+      "strawberry",
+      "sugar",
+      "tea",
+      "tomato",
+      "whisky",
+      "wine"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "buggy",
+      "canoe",
+      "car",
+      "carriage",
+      "ferry",
+      "jeep",
+      "jet",
+      "kayak",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tank",
+      "tractor",
+      "truck",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "allocation": {
+     "available": 98,
+     "needed": 91,
+     "deficit": 0,
+     "feasible": true,
+     "witness": {
+      "CONF": [
+       21,
+       24,
+       19
+      ],
+      "CAL": [
+       6,
+       5,
+       1
+      ],
+      "PILOT": [
+       6,
+       5,
+       1
+      ],
+      "BACKGROUND": [
+       8,
+       1,
+       1
+      ]
+     },
+     "proportional": {
+      "ok": true,
+      "CONF": [
+       27,
+       23,
+       14
+      ],
+      "CAL": [
+       5,
+       4,
+       3
+      ],
+      "PILOT": [
+       5,
+       4,
+       3
+      ],
+      "BACKGROUND": [
+       4,
+       4,
+       2
+      ]
+     }
+    }
+   },
+   ">=12|protocol": {
+    "counts": {
+     "animals": 30,
+     "foods": 31,
+     "vehicles": 16
+    },
+    "total": 77,
+    "concepts": {
+     "animals": [
+      "bear",
+      "bee",
+      "butterfly",
+      "camel",
+      "cougar",
+      "cow",
+      "cricket",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "horse",
+      "lion",
+      "lizard",
+      "llama",
+      "monkey",
+      "mosquito",
+      "mouse",
+      "pig",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "bacon",
+      "bean",
+      "beer",
+      "butter",
+      "cabbage",
+      "champagne",
+      "chocolate",
+      "cider",
+      "coconut",
+      "coffee",
+      "flour",
+      "gin",
+      "grape",
+      "ham",
+      "jam",
+      "jelly",
+      "lemon",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "potato",
+      "prune",
+      "sandwich",
+      "soup",
+      "strawberry",
+      "sugar",
+      "tea",
+      "whisky",
+      "wine"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "canoe",
+      "car",
+      "carriage",
+      "ferry",
+      "jet",
+      "kayak",
+      "missile",
+      "ship",
+      "sled",
+      "tank",
+      "yacht"
+     ]
+    },
+    "allocation": {
+     "available": 77,
+     "needed": 91,
+     "deficit": 14,
      "feasible": false,
      "reason": "no joint integer allocation satisfies the half bounds and capacities"
     }
+   }
+  },
+  "mcrae+cslb_pf2": {
+   ">=10|raw": {
+    "counts": {
+     "animals": 43,
+     "foods": 37,
+     "vehicles": 27
+    },
+    "total": 107,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "bull",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "lizard",
+      "llama",
+      "monkey",
+      "mosquito",
+      "mouse",
+      "owl",
+      "ox",
+      "pig",
+      "pigeon",
+      "pony",
+      "python",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "avocado",
+      "bacon",
+      "bean",
+      "beer",
+      "bread",
+      "butter",
+      "cabbage",
+      "champagne",
+      "cheese",
+      "chocolate",
+      "cider",
+      "coconut",
+      "coffee",
+      "flour",
+      "gin",
+      "grape",
+      "ham",
+      "jam",
+      "jelly",
+      "lemon",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "potato",
+      "prune",
+      "rice",
+      "sandwich",
+      "soup",
+      "strawberry",
+      "sugar",
+      "tea",
+      "tomato",
+      "whisky",
+      "wine"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "carriage",
+      "cart",
+      "ferry",
+      "helicopter",
+      "jeep",
+      "jet",
+      "kayak",
+      "missile",
+      "rocket",
+      "ship",
+      "skateboard",
+      "sled",
+      "tank",
+      "taxi",
+      "tractor",
+      "truck",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "allocation": {
+     "available": 107,
+     "needed": 91,
+     "deficit": 0,
+     "feasible": true,
+     "witness": {
+      "CONF": [
+       14,
+       26,
+       24
+      ],
+      "CAL": [
+       6,
+       5,
+       1
+      ],
+      "PILOT": [
+       6,
+       5,
+       1
+      ],
+      "BACKGROUND": [
+       17,
+       1,
+       1
+      ]
+     },
+     "proportional": {
+      "ok": true,
+      "CONF": [
+       26,
+       22,
+       16
+      ],
+      "CAL": [
+       5,
+       4,
+       3
+      ],
+      "PILOT": [
+       5,
+       4,
+       3
+      ],
+      "BACKGROUND": [
+       7,
+       7,
+       5
+      ]
+     }
+    }
    },
+   ">=10|protocol": {
+    "counts": {
+     "animals": 40,
+     "foods": 35,
+     "vehicles": 23
+    },
+    "total": 98,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "lizard",
+      "llama",
+      "monkey",
+      "mosquito",
+      "mouse",
+      "owl",
+      "pig",
+      "pigeon",
+      "python",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "bacon",
+      "bean",
+      "beer",
+      "bread",
+      "butter",
+      "cabbage",
+      "champagne",
+      "cheese",
+      "chocolate",
+      "cider",
+      "coconut",
+      "coffee",
+      "flour",
+      "gin",
+      "grape",
+      "ham",
+      "jam",
+      "jelly",
+      "lemon",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "potato",
+      "prune",
+      "sandwich",
+      "soup",
+      "strawberry",
+      "sugar",
+      "tea",
+      "tomato",
+      "whisky",
+      "wine"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "carriage",
+      "ferry",
+      "helicopter",
+      "jeep",
+      "jet",
+      "kayak",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tank",
+      "tractor",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "allocation": {
+     "available": 98,
+     "needed": 91,
+     "deficit": 0,
+     "feasible": true,
+     "witness": {
+      "CONF": [
+       20,
+       24,
+       20
+      ],
+      "CAL": [
+       6,
+       5,
+       1
+      ],
+      "PILOT": [
+       6,
+       5,
+       1
+      ],
+      "BACKGROUND": [
+       8,
+       1,
+       1
+      ]
+     },
+     "proportional": {
+      "ok": true,
+      "CONF": [
+       26,
+       23,
+       15
+      ],
+      "CAL": [
+       5,
+       4,
+       3
+      ],
+      "PILOT": [
+       5,
+       4,
+       3
+      ],
+      "BACKGROUND": [
+       4,
+       4,
+       2
+      ]
+     }
+    }
+   },
+   ">=12|raw": {
+    "counts": {
+     "animals": 41,
+     "foods": 35,
+     "vehicles": 22
+    },
+    "total": 98,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "bull",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "cricket",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "lizard",
+      "llama",
+      "monkey",
+      "mosquito",
+      "mouse",
+      "owl",
+      "pig",
+      "pigeon",
+      "pony",
+      "python",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "bacon",
+      "bean",
+      "beer",
+      "bread",
+      "butter",
+      "cabbage",
+      "champagne",
+      "cheese",
+      "chocolate",
+      "cider",
+      "coconut",
+      "coffee",
+      "flour",
+      "gin",
+      "grape",
+      "ham",
+      "jam",
+      "jelly",
+      "lemon",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "potato",
+      "prune",
+      "sandwich",
+      "soup",
+      "strawberry",
+      "sugar",
+      "tea",
+      "tomato",
+      "whisky",
+      "wine"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "buggy",
+      "canoe",
+      "car",
+      "carriage",
+      "ferry",
+      "jeep",
+      "jet",
+      "kayak",
+      "missile",
+      "rocket",
+      "ship",
+      "sled",
+      "tank",
+      "tractor",
+      "truck",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "allocation": {
+     "available": 98,
+     "needed": 91,
+     "deficit": 0,
+     "feasible": true,
+     "witness": {
+      "CONF": [
+       21,
+       24,
+       19
+      ],
+      "CAL": [
+       6,
+       5,
+       1
+      ],
+      "PILOT": [
+       6,
+       5,
+       1
+      ],
+      "BACKGROUND": [
+       8,
+       1,
+       1
+      ]
+     },
+     "proportional": {
+      "ok": true,
+      "CONF": [
+       27,
+       23,
+       14
+      ],
+      "CAL": [
+       5,
+       4,
+       3
+      ],
+      "PILOT": [
+       5,
+       4,
+       3
+      ],
+      "BACKGROUND": [
+       4,
+       4,
+       2
+      ]
+     }
+    }
+   },
+   ">=12|protocol": {
+    "counts": {
+     "animals": 30,
+     "foods": 31,
+     "vehicles": 16
+    },
+    "total": 77,
+    "concepts": {
+     "animals": [
+      "bear",
+      "bee",
+      "butterfly",
+      "camel",
+      "cougar",
+      "cow",
+      "cricket",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "horse",
+      "lion",
+      "lizard",
+      "llama",
+      "monkey",
+      "mosquito",
+      "mouse",
+      "pig",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf"
+     ],
+     "foods": [
+      "apple",
+      "bacon",
+      "bean",
+      "beer",
+      "butter",
+      "cabbage",
+      "champagne",
+      "chocolate",
+      "cider",
+      "coconut",
+      "coffee",
+      "flour",
+      "gin",
+      "grape",
+      "ham",
+      "jam",
+      "jelly",
+      "lemon",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "potato",
+      "prune",
+      "sandwich",
+      "soup",
+      "strawberry",
+      "sugar",
+      "tea",
+      "whisky",
+      "wine"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "bike",
+      "canoe",
+      "car",
+      "carriage",
+      "ferry",
+      "jet",
+      "kayak",
+      "missile",
+      "ship",
+      "sled",
+      "tank",
+      "yacht"
+     ]
+    },
+    "allocation": {
+     "available": 77,
+     "needed": 91,
+     "deficit": 14,
+     "feasible": false,
+     "reason": "no joint integer allocation satisfies the half bounds and capacities"
+    }
+   }
+  },
+  "mcrae+cslb_pf5_merged": {
    ">=10|raw": {
     "counts": {
      "animals": 44,
@@ -2399,27 +2369,27 @@
     },
     "allocation": {
      "available": 108,
-     "needed": 99,
+     "needed": 91,
      "deficit": 0,
      "feasible": true,
      "witness": {
       "CONF": [
-       18,
-       22,
+       14,
+       26,
        24
       ],
       "CAL": [
-       8,
-       7,
+       6,
+       5,
        1
       ],
       "PILOT": [
-       8,
-       7,
+       6,
+       5,
        1
       ],
       "BACKGROUND": [
-       10,
+       18,
        1,
        1
       ]
@@ -2432,19 +2402,19 @@
        16
       ],
       "CAL": [
-       7,
-       5,
-       4
-      ],
-      "PILOT": [
-       6,
-       6,
-       4
-      ],
-      "BACKGROUND": [
        5,
        4,
        3
+      ],
+      "PILOT": [
+       5,
+       4,
+       3
+      ],
+      "BACKGROUND": [
+       8,
+       7,
+       5
       ]
      }
     }
@@ -2569,27 +2539,27 @@
     },
     "allocation": {
      "available": 103,
-     "needed": 99,
+     "needed": 91,
      "deficit": 0,
      "feasible": true,
      "witness": {
       "CONF": [
-       21,
-       19,
+       17,
+       23,
        24
       ],
       "CAL": [
-       8,
-       7,
+       6,
+       5,
        1
       ],
       "PILOT": [
-       8,
-       7,
+       6,
+       5,
        1
       ],
       "BACKGROUND": [
-       5,
+       13,
        1,
        1
       ]
@@ -2602,19 +2572,357 @@
        17
       ],
       "CAL": [
-       7,
+       5,
+       4,
+       3
+      ],
+      "PILOT": [
+       5,
+       4,
+       3
+      ],
+      "BACKGROUND": [
+       6,
        5,
        4
+      ]
+     }
+    }
+   },
+   ">=12|raw": {
+    "counts": {
+     "animals": 43,
+     "foods": 36,
+     "vehicles": 27
+    },
+    "total": 106,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "bull",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "crow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "lizard",
+      "llama",
+      "monkey",
+      "mosquito",
+      "moth",
+      "mouse",
+      "owl",
+      "ox",
+      "pig",
+      "pigeon",
+      "pony",
+      "python",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "avocado",
+      "bacon",
+      "bean",
+      "beer",
+      "bread",
+      "butter",
+      "cabbage",
+      "champagne",
+      "cheese",
+      "chocolate",
+      "cider",
+      "coconut",
+      "coffee",
+      "flour",
+      "grape",
+      "ham",
+      "jam",
+      "jelly",
+      "lemon",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "potato",
+      "prune",
+      "rice",
+      "sandwich",
+      "soup",
+      "strawberry",
+      "sugar",
+      "tea",
+      "tomato",
+      "whisky",
+      "wine"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "carriage",
+      "cart",
+      "ferry",
+      "helicopter",
+      "jeep",
+      "jet",
+      "kayak",
+      "missile",
+      "motorcycle",
+      "rocket",
+      "ship",
+      "skateboard",
+      "sled",
+      "tank",
+      "taxi",
+      "tractor",
+      "truck",
+      "wagon",
+      "yacht"
+     ]
+    },
+    "allocation": {
+     "available": 106,
+     "needed": 91,
+     "deficit": 0,
+     "feasible": true,
+     "witness": {
+      "CONF": [
+       15,
+       25,
+       24
+      ],
+      "CAL": [
+       6,
+       5,
+       1
       ],
       "PILOT": [
        6,
-       6,
-       4
+       5,
+       1
       ],
       "BACKGROUND": [
+       16,
+       1,
+       1
+      ]
+     },
+     "proportional": {
+      "ok": true,
+      "CONF": [
+       26,
+       22,
+       16
+      ],
+      "CAL": [
+       5,
+       4,
+       3
+      ],
+      "PILOT": [
+       5,
+       4,
+       3
+      ],
+      "BACKGROUND": [
+       7,
+       6,
+       5
+      ]
+     }
+    }
+   },
+   ">=12|protocol": {
+    "counts": {
+     "animals": 40,
+     "foods": 33,
+     "vehicles": 25
+    },
+    "total": 98,
+    "concepts": {
+     "animals": [
+      "ant",
+      "bear",
+      "bee",
+      "beetle",
+      "butterfly",
+      "calf",
+      "camel",
+      "cougar",
+      "cow",
+      "deer",
+      "dolphin",
+      "eagle",
+      "elephant",
+      "elk",
+      "flea",
+      "fox",
+      "frog",
+      "goat",
+      "hawk",
+      "horse",
+      "lion",
+      "lizard",
+      "llama",
+      "monkey",
+      "mosquito",
+      "moth",
+      "mouse",
+      "owl",
+      "ox",
+      "pig",
+      "pigeon",
+      "pony",
+      "rat",
+      "robin",
+      "shark",
+      "sheep",
+      "spider",
+      "squirrel",
+      "wolf",
+      "worm"
+     ],
+     "foods": [
+      "apple",
+      "avocado",
+      "bacon",
+      "bean",
+      "beer",
+      "bread",
+      "butter",
+      "cabbage",
+      "champagne",
+      "cheese",
+      "chocolate",
+      "coconut",
+      "coffee",
+      "flour",
+      "grape",
+      "ham",
+      "jam",
+      "jelly",
+      "lemon",
+      "milk",
+      "orange",
+      "pear",
+      "pickle",
+      "pie",
+      "potato",
+      "prune",
+      "rice",
+      "soup",
+      "strawberry",
+      "sugar",
+      "tea",
+      "tomato",
+      "whisky"
+     ],
+     "vehicles": [
+      "airplane",
+      "ambulance",
+      "balloon",
+      "bicycle",
+      "boat",
+      "buggy",
+      "canoe",
+      "car",
+      "cart",
+      "ferry",
+      "helicopter",
+      "jeep",
+      "jet",
+      "kayak",
+      "missile",
+      "motorcycle",
+      "rocket",
+      "ship",
+      "skateboard",
+      "sled",
+      "tank",
+      "taxi",
+      "tractor",
+      "truck",
+      "yacht"
+     ]
+    },
+    "allocation": {
+     "available": 98,
+     "needed": 91,
+     "deficit": 0,
+     "feasible": true,
+     "witness": {
+      "CONF": [
+       20,
+       22,
+       22
+      ],
+      "CAL": [
+       6,
+       5,
+       1
+      ],
+      "PILOT": [
+       6,
+       5,
+       1
+      ],
+      "BACKGROUND": [
+       8,
+       1,
+       1
+      ]
+     },
+     "proportional": {
+      "ok": true,
+      "CONF": [
+       26,
+       22,
+       16
+      ],
+      "CAL": [
+       5,
+       4,
+       3
+      ],
+      "PILOT": [
+       5,
+       4,
+       3
+      ],
+      "BACKGROUND": [
+       4,
        3,
-       2,
-       2
+       3
       ]
      }
     }

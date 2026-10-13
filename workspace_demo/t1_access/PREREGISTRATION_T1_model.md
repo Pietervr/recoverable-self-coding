@@ -61,9 +61,9 @@ technical failure: it limits the interpretation to the coherence readout.
 
 ## 3. Stimulus population *[frozen at v2: `stimuli/concepts.json`, `stimuli/clues.json`, `stimuli/background.json`, `stimuli/manifest.csv`]*
 
-**Concepts and roles.** single-token concepts in **3 families — animals, foods, vehicles** (§3.1). The confirmation set stays at 64 concepts, so §10's power numbers are unchanged; what changes is the stratification, from eight levels to three. Per-family role counts are no longer equal and are allocated by seed in proportion to each family's eligible pool, subject to CONF totalling 64, CAL 16 and PILOT 16; the realised allocation is fixed by the seeded acceptance loop and recorded at the freeze; token id frozen per concept in the answer
+**Concepts and roles.** single-token concepts in **3 families — animals, foods, vehicles** (§3.1). The confirmation set stays at 64 concepts, so §10's power numbers are unchanged; what changes is the stratification, from eight levels to three. Per-family role counts are no longer equal and are allocated by seed in proportion to each family's eligible pool, subject to CONF totalling 64, CAL 12 and PILOT 12 (owner, 13 October 2026; were 16 each); the realised allocation is fixed by the seeded acceptance loop and recorded at the freeze; token id frozen per concept in the answer
 context (case and leading-space variants enumerated at build time). The frozen id is the lower-case leading-space form (' fox'); case, space and plural variants are enumerated per concept in `concepts.json`. No family now takes a capitalised id. Eligibility uses declared string and token rules only (`stimuli/build_concepts.py`: candidate lists written in advance; E1 the answer-context form is one token; E2 a word that also names a member of another bank family is excluded, 12 exclusions), with seed 20260915 and roles by a derived seed; no model output is read. Seeded assignment per family:
-**BACKGROUND** (never a target, foil or competitor), CAL, PILOT and CONF, with CONF, CAL and PILOT totalling 64, 16 and 16 across the three families and BACKGROUND taking every remaining eligible concept, at least one per family. The totals are what the pairing fixes (32, 8 and 8 pairs, each member the foil of the other), and they are met across families rather than within one: with counts $a \ge b \ge c$ over three families, every concept can be paired outside its own family whenever $a \le b + c$, which the allocation rule must satisfy and record. Roles are
+**BACKGROUND** (never a target, foil or competitor), CAL, PILOT and CONF, with CONF, CAL and PILOT totalling 64, 12 and 12 across the three families and BACKGROUND taking every remaining eligible concept, at least one per family. The totals are what the pairing fixes (32, 6 and 6 pairs, each member the foil of the other), and they are met across families rather than within one: with counts $a \ge b \ge c$ over three families, every concept can be paired outside its own family whenever $a \le b + c$, which the allocation rule must satisfy and record. Roles are
 disjoint by construction: a CAL/PILOT/CONF concept's clues appear only in packets of its own split,
 and only as target, foil or competitor clues; background clauses come only from BACKGROUND concepts.
 So a held-out CONF concept's clues are absent from every training packet of the primary set. No
@@ -107,7 +107,13 @@ reintroduces the circularity the different-developer rule exists to prevent.
 The norms are **held outside this repository and never redistributed**. Each clause cites its source entry —
 concept, feature statement, production frequency and cue validity — and the release publishes that citation
 table, not the database. McRae's terms are non-commercial with a citation stipulation, which citing per clause
-satisfies and which is why the norms cannot sit inside the CC BY 4.0 data release.
+satisfies and which is why the norms cannot sit inside the CC BY 4.0 data release. **CSLB rows are cited by reference
+only** (owner, 13 October 2026): concept, the entry id (the 1-based data-row number of the concept-feature pair in
+`norms.dat` of CSLB Property Norms V1.1) and production frequency, with no feature text, because the CSLB licence
+prohibits making the norms available "in its present form or as converted or modified" without CSLB's written consent
+and no consent is sought; the table carries CSLB's credit line, the Devereux et al. (2014) citation and the licence's
+no-responsibility declaration (`stimuli/norms_bank/citation.py`). The CSLB norms stay outside every repository and
+release.
 
 **Three families: animals, foods, vehicles.** Membership is taxonomic, not ours: a concept belongs to a family
 when **its first WordNet noun synset** (WordNet 3.0, senses ordered by frequency) lies in that family's
@@ -126,9 +132,10 @@ the ceiling over the entire WordNet subtree, every single-token English noun in 
 not, is 11 for each. E1 is what binds there, not the source, and E1 is a decode rule — the single-token answer
 form is what makes the answer-position logit readable — so it was not relaxed to retain a family name.
 
-**Twelve features per concept, and the threshold is that count restated.** A concept is eligible only with
-≥ 12 usable features, because selection takes twelve, one per clause: a concept with eight features cannot
-supply its twelve clauses. Before selection, features are merged **by subsumption** — two features merge when
+**Ten usable features per concept (owner, 13 October 2026; was twelve).** A concept is eligible only with
+≥ 10 usable features. The threshold was set as the clause count restated - selection took twelve, one per clause - so
+lowering it to ten carries the clause count with it; how many clauses a concept supplies, and with it the single-clause
+ceiling and the packet draws below, is R052's ruling, pending at this revision (the text below still states twelve). Before selection, features are merged **by subsumption** — two features merge when
 one's word set contains the other's, the more specific representing the pair. That is McRae's duplication
 pattern: `has_legs` and `has_4_legs`; `has_wheels`, `has_4_wheels`, `has_>_4_wheels` and `has_18_wheels`;
 `beh_-_eats` and `beh_-_eats_peanuts` — 70 such pairs across 77 eligible concepts. Features are also merged
@@ -171,7 +178,8 @@ and the source alone, and there is no separate eligibility filter for the draw t
 
 **Role allocation across three families.** The confirmation set stays at **64 concepts**, so §10's power
 numbers are unchanged; what changes is the stratification, from eight levels to three. CONF, CAL and PILOT
-total 64, 16 and 16 as the pairing fixes them (32, 8 and 8 pairs, each member the foil of the other), and
+total 64, 12 and 12 as the pairing fixes them (32, 6 and 6 pairs, each member the foil of the other; CAL and PILOT were
+16 each until the owner's decision of 13 October 2026, CONF unchanged), and
 those totals are met **across** families rather than within one, so per-family counts are unequal. They are
 allocated by seed in proportion to each family's eligible pool, subject to the pairing being satisfiable:
 with counts $a \ge b \ge c$ over three families every concept can be paired outside its own family whenever
@@ -184,13 +192,21 @@ test**, and it runs in text before any capture. §3's rule stands untouched: no 
 clause is dropped on the model under test's output, and none of its output is read while building the bank.
 The residual risk is stated rather than dismissed — if the reader model and the model under test share a blind
 spot, stimulus construction is indirectly correlated with the system being measured. Its direction is
-conservative: the test removes clauses that give the concept away, which makes the evidence gradie**Recorded fragility, and it is not small.** **The design does not stand on McRae alone, and under the rules of this
+conservative: the test removes clauses that give the concept away, which makes the evidence gradie**Current count (13 October 2026; R084, RSC `stimuli/norms_bank/cslb_eligibility.json`).** With the CSLB norms
+received (12 October 2026) and pooled with McRae - McRae concepts keep McRae's features, CSLB concepts not in McRae
+added with their CSLB features at production frequency ≥ 5 - and every rule of this section, the three families give
+**39 / 32 / 23 = 94 at ten usable features** against the 91 that CONF 64, CAL 12, PILOT 12 and one BACKGROUND per
+family require: a feasible joint allocation (proportional witness CONF 27/22/15, CAL 5/4/3, PILOT 5/4/3, BACKGROUND
+2/2/2), margin 3; 98 at production frequency ≥ 3. At twelve features the same pool gives 71. The history below is the
+record that led to the owner's decision.
+
+**Recorded fragility, and it is not small.** **The design does not stand on McRae alone, and under the rules of this
 section as written it does not stand on McRae and Feats either.** Counted on *usable* features — after rules T, F, N,
 X, P and D above — with the dominant sense, E2 and then E1, for the adopted three families (R084, RSC 3cd3786,
 `stimuli/norms_bank/CLEAN_ELIGIBILITY.md` and `clean_eligibility.json`): McRae alone gives 46 concepts at twelve
 features and 65 at ten; McRae with Feats (Borovsky, Peters, Cox & McRae 2023, adopted as a second source under the
 pooling rule recorded there) gives animals 25, foods 15, vehicles 11 — **51 at twelve** — and 36/23/18 — **77 at
-ten** — against the 99 that CONF, CAL and PILOT require together with one BACKGROUND concept per family. Raw feature
+ten** — against the 99 that CONF, CAL and PILOT then required (CAL and PILOT at 16) together with one BACKGROUND concept per family. Raw feature
 counts overstate this: the earlier figures of 65 and 85, and the pooled bound of 128, counted features before the
 usable-feature rules and are withdrawn. The joint integer allocation (every split with all three families, none
 above half, backgrounds reserved first) is infeasible at every single-token count under the rules as written. The one
@@ -199,12 +215,13 @@ CONF 32/21/11, CAL 8/5/3, PILOT 8/5/3, BACKGROUND 13/2/3 and animals at the half
 to the readout, not to the stimuli, because a two-token answer has no single answer-position logit, and it is recorded
 as a measured bound and not a proposal. Of the rules, T costs 16 concepts at twelve and 8 at ten; narrowing it to the
 literal family words would give 67 and 85, still short, and is the open decision noted above. CSLB (requested 1
-October 2026) remains an unfiltered set of 63 three-family candidates whose features have not been seen. Hovhannisyan
+October 2026) was then an unfiltered set of 63 three-family candidates; its norms arrived on 12 October 2026 and are
+counted above. Hovhannisyan
 et al. 2021 as a conditional third source — absolute cutoff of ≥ 3 productions, no per-concept denominator, no
 published CV, features elicited on a photograph: three gaps labelled on every row, never imputed — measured under
 these same rules (R084, RSC 6153fee, `stimuli/norms_bank/ROUTE_FOUR_FAMILY.md`): three families 52 at twelve and
 89 at ten; with clothing as a fourth family (root `clothing.n.01`, 15 concepts) 62 at twelve and **104 at ten
-against a four-family minimum of 100** (CONF 64 + CAL 16 + PILOT 16 + one BACKGROUND per family), a feasible joint
+against the then four-family minimum of 100** (CONF 64 + CAL 16 + PILOT 16 + one BACKGROUND per family), a feasible joint
 allocation with an aggregate margin of four — counted before naming acceptance, for which no rate on relational
 features has been measured, and resting on 14 Hovhannisyan concepts; 113 without rule T; 90 at a ≥ 5 cutoff. **Vehicles
 is the binding family at every three-family count; on the four-family route no family binds and the aggregate
@@ -254,8 +271,8 @@ density fitting:**
 case-insensitively for the target's and the foil's surface forms and accepted variants; a hit
 regenerates the draw with the next seed (recorded); after ten failures the build stops and the case is decided
 before any capture as a dated amendment that excludes the concept together with its paired foil, so no pair is broken (recorded); no concept is excluded silently.
-**Size.** Primary set per condition: CONF 64 × 6 × 7 × $D$ ($D=4$: 10,752); CAL and PILOT 16 × 6 × 7 × 4
-= 2,688 each. Controls per condition: C1 64 × 6 × 3 = 1,152; C2 1,152. Overlength prompts (> 160
+**Size.** Primary set per condition: CONF 64 × 6 × 7 × $D$ ($D=4$: 10,752); CAL and PILOT 12 × 6 × 7 × 4
+= 2,016 each (16 × 6 × 7 × 4 = 2,688 each before the owner's decision of 13 October 2026). Controls per condition: C1 64 × 6 × 3 = 1,152; C2 1,152. Overlength prompts (> 160
 packet tokens or beyond the capture limit) are rejected at build time, never truncated. "Packet tokens" are the carrier-open through carrier-close lines tokenized alone; the capture limit is 1,024 ids; an overlength item stops the build and is decided like a scan failure. CONF draws are built to $D = 8$; draws 0–3 are the $D = 4$ design and draws 4–7 are used only if §10 adopts $D = 8$.
 
 ## 4. Execution contract *[frozen]*
@@ -947,3 +964,4 @@ lists, amplitudes, outcomes); this document.
 | 2026-10-02 | Draft amendment, §3.1, last: the naming-acceptance rate measured on a 30-concept development sample of the four-family route (R084, RSC af8a668) — 12 of 30 pass as declared (0.40, 0.23–0.59), so 104 becomes about 42 and no relaxation of the two sides reaches 100 at the point estimate; the floor measures the reader's naming ability, and the reader's required capability is recorded as an open protocol choice; Hovhannisyan's photo-conditioned and generic clauses noted. The route is withdrawn as a bank; the 15 October decision now includes the reader and the channel. |
 | 2026-10-02 | Draft amendment, §10.1, corrected on Codex's row-19 Lengau review (RSC c3e1d2a): ω = 2's Monte-Carlo SE is 2.678379 (2 MCSE 5.356758), not "2 MCSE 2.678379"; the ten final_2026-09-15 shards are ω = 2's bank and pin nothing at ω = 1, whose historical reference (−0.869513, MCSE 0.011242, old policy) is sensitivity evidence until a policy-matched reference is generated under its own ledger row; the screen is 100 fixed attempted datasets with the 83 cutoff applied only at n = 100; T is a declared 99 % reference confidence set and the one-look allowance 0.035 is stated. |
 | 2026-10-02 | §7.4 start policy IMPLEMENTED at RSC 5f6333c (not adopted): START_POLICY, fit(policy_key), PAD_MULTIPLE 64, the policy in the identity and the code hash, the reference archive at full precision; the v1.2 path unchanged without a key; mechanics tests in test_start_policy.py. The code hash under the policy (D = 4, layer 41, seed 2026, refit, four inner cold starts) is edcfdf4300f3; the legacy cluster configuration now hashes af666f75d0b0 because models.py changed, so no new row can be pooled with the 625798e9e7f4 rows. |
+| 2026-10-13 | Draft amendment, §3 and §3.1, the OWNER'S DECISION of 12-13 October 2026 (R052 handoff f9aac0a7, implemented by R084): CONF stays 64 (§10 unchanged); CAL 12 and PILOT 12 (were 16), BACKGROUND one per family, so 91 are needed; the usable-feature minimum is 10 (was 12) - the clause-count consequence for selection, the ceiling and the packets is R052's pending ruling; CSLB rows of the citation table by reference only (entry id + production frequency, no text; no consent sought). McRae + CSLB (pf >= 5) under the full rules: 39/32/23 = 94, feasible, margin 3 (stimuli/norms_bank/cslb_eligibility.json) |

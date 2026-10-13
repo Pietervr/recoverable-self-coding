@@ -9,7 +9,7 @@ sense in one adopted family (animals, foods, vehicles); E2 no noun sense in anot
 ' x' is one token (token_counts.json, now including CSLB's single-word labels); F3 >= 12 features at the RAW tier (the
 26 September measure) and at the PROTOCOL tier (§3.1's usable features: T taxonomic rows, F family words, N own name,
 X other bank-concept names, P proper nouns, M merge by subsumption over Porter2-stem / WordNet-derivation classes);
-cues sharing a dominant synset collapse after E1 and F3; the joint CONF 64 / CAL 16 / PILOT 16 + one BACKGROUND per
+cues sharing a dominant synset collapse after E1 and F3; the joint CONF 64 / CAL 12 / PILOT 12 + one BACKGROUND per
 family allocation is checked.
 
 THE POOL. McRae concepts keep McRae's features. A CSLB concept whose label is not a McRae label is a NEW concept with
@@ -53,7 +53,7 @@ NORMS = CSLB_DIR / "norms.dat"
 ZIP_SHA256 = "473eb656398695f9f9f5c8b8a675d4ca3cbdb09391a5946d0a0d4a82038d6e2b"
 NORMS_PREFIX = "d81d5120"                      # the brief's pin of norms.dat (prefix)
 PF_LEVELS = [5, 3, 2]
-THRESHOLDS = [12, 10]
+THRESHOLDS = [10, 12]                          # owner, 13 Oct 2026: the minimum is 10
 TIERS = ["raw", "protocol"]
 
 
@@ -146,8 +146,8 @@ def main() -> int:
     sources["mcrae+cslb_pf5_merged"] = McRaeCSLB(5, merged=True)
     vocab = {w for s in sources.values() for fs in s.features.values() for f in fs for w in words(f)}
     canon = Canon({w for w in vocab if w.isalpha()})
-    out = {"design": "three families (animals, foods, vehicles); needed CONF 64 + CAL 16 + PILOT 16 + one BACKGROUND "
-                     "per family = 99; single-token E1",
+    out = {"design": "three families (animals, foods, vehicles); needed CONF 64 + CAL 12 + PILOT 12 + one BACKGROUND "
+                     "per family = 91 (owner, 13 Oct 2026); usable-feature minimum 10 (12 also reported); single-token E1",
            "baseline_2026_09_26": {"rsc": "2646bf1", "mcrae_raw_ge12": [33, 15, 17, 65],
                                    "pooled_upper_bound_no_feature_filter": [57, 42, 29, 128]},
            "tokenizer_json_sha256": tok["tokenizer_json_sha256"],
@@ -166,7 +166,7 @@ def main() -> int:
         private[name] = r["detail"]
     (HERE / "cslb_eligibility_detail.json").write_text(json.dumps(private, indent=1, ensure_ascii=False) + "\n")
     (HERE / "cslb_eligibility.json").write_text(json.dumps(out, indent=1, ensure_ascii=False, default=list) + "\n")
-    print(f"{'source':<24} {'thr':>4} {'tier':<9} {'animals':>8} {'foods':>6} {'vehicles':>9} {'total':>6}  allocation (need 99)")
+    print(f"{'source':<24} {'thr':>4} {'tier':<9} {'animals':>8} {'foods':>6} {'vehicles':>9} {'total':>6}  allocation (need 91)")
     for name, rs in out["results"].items():
         for key, r in rs.items():
             thr, tier = key.split("|")
