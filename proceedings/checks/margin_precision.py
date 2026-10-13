@@ -340,6 +340,10 @@ def bootstrap_study(kind, rho, n=600_000, warmup=WARMUP, n_boot=200,
     log = build_log(interarr, service)
     t0 = float(log["arrival"][warmup]); t1 = float(log["arrival"][-1])
     est = estimate(log, t0, t1)
+    # estimate() returns the M/M/1 implied probability; the bootstrap point, like the
+    # replication branch above, must carry this queue's own mapping. M/D/1 has none
+    # here, so the entry is nan and the analysis declines to report it.
+    est["pc_implied"] = pc_from_rates(est["lam_hat"], est["mu_hat"], kind)
     sl = slice(warmup, n)
     ia, sv = interarr[sl], service[sl]
     soj = (log["completion"] - log["arrival"])[sl]
@@ -389,7 +393,7 @@ def span_study(mu=10.0, dt_board=2.0):
         se_year = math.sqrt((lam + mu ** 2 / lam) / WEEKS_PER_YEAR)
         crit = {}
         for name, eps, z in (("se_equals_margin", 1.0, 1.0),
-                             ("ci95_excludes_zero", 1.0, 1.96),
+                             ("ci95_half_width_equals_margin", 1.0, 1.96),
                              ("ci95_half_width_10pct", 0.1, 1.96)):
             tau = span_for(lam, mu, 1.0, 1.0, eps, z)
             crit[name] = dict(weeks=tau, years=tau / WEEKS_PER_YEAR)
@@ -411,7 +415,7 @@ def span_study(mu=10.0, dt_board=2.0):
         lam = cr * mu
         tq = relaxation_time(cr, mu)
         for eps, z, name in ((1.0, 1.0, "se_equals_margin"),
-                             (1.0, 1.96, "ci95_excludes_zero"),
+                             (1.0, 1.96, "ci95_half_width_equals_margin"),
                              (0.1, 1.96, "ci95_half_width_10pct")):
             ts = span_for(lam, mu, 1.0, 1.0, eps, z)
             rel.append(dict(cr=cr, criterion=name, span_weeks=ts,
@@ -449,7 +453,9 @@ def board_study(mu=10.0, dt_board=2.0, tau=WEEKS_PER_YEAR, reps=2000,
         clipped = np.maximum(m_hat, 1e-9)
         pc_clipped = 1.0 - np.exp(-clipped * dt_board)
         pc_unclipped = 1.0 - np.exp(-m_hat * dt_board)
-        # share of each 95% confidence set that lies at lambda >= mu
+        # normal-approximation tail weight at lambda >= mu: Phi(-M_hat/SE), placed at
+        # the estimate. It is not a fraction of the 95% interval and not a frequentist
+        # probability that the true margin is negative.
         frac_super = 0.5 * (1.0 + np.vectorize(math.erf)(-m_hat /
                                                          (se_hat * math.sqrt(2))))
         out.append(dict(
@@ -461,7 +467,7 @@ def board_study(mu=10.0, dt_board=2.0, tau=WEEKS_PER_YEAR, reps=2000,
             frac_wrong_sign=float(np.mean(m_hat <= 0)),
             frac_ci_contains_zero=float(np.mean((lo <= 0) & (hi >= 0))),
             frac_ci_entirely_positive=float(np.mean(lo > 0)),
-            mean_supercritical_mass=float(frac_super.mean()),
+            mean_gaussian_tail_lam_ge_mu=float(frac_super.mean()),
             pc_clipped_mean=float(pc_clipped.mean()),
             pc_clipped_median=float(np.median(pc_clipped)),
             frac_pc_invalid=float(np.mean(pc_unclipped < 0)),
@@ -581,8 +587,8 @@ def main() -> int:
         print(f"    wrong sign in {r['frac_wrong_sign']:.1%} of years; "
               f"95% interval contains zero in {r['frac_ci_contains_zero']:.1%}; "
               f"entirely positive in {r['frac_ci_entirely_positive']:.1%}")
-        print(f"    mean mass of the confidence set at lambda >= mu: "
-              f"{r['mean_supercritical_mass']:.1%}; "
+        print(f"    mean Gaussian-tail weight at lambda >= mu: "
+              f"{r['mean_gaussian_tail_lam_ge_mu']:.1%}; "
               f"P_c invalid (negative) in {r['frac_pc_invalid']:.1%} of years")
         print(f"    clipping the margin positive would report P_c = "
               f"{r['pc_clipped_mean']:.3f} on average "
