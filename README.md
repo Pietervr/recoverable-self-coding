@@ -6,21 +6,23 @@ Self-Coding** papers by Pieter van Rooyen:
 - **Special Issue article** — *Entropy, Capacity, and the Continuity of Agency in
   Human–AI Systems: A Recoverable Self-Coding Account* (Entropy, "Complexity"
   section).
-- **Proceedings** — *Recoverable Self-Coding: A Measurable Rate–Capacity Law for Systems
-  That Couple Inference to Irreversible Action* (*Physical Sciences Forum*, Entropy 2026
-  proceedings, manuscript psf-3705961).
+- **Proceedings** — *Recoverable Self-Coding: A Single-Server Queueing Model of
+  Commitment Recoverability* (*Physical Sciences Forum*, Entropy 2026 proceedings,
+  manuscript psf-3705961).
 - **Poster** — Entropy 2026.
 - Foundational paper (separate repo): *First-Order Recoverability Collapse in
   Self-Referential Information Decoders* — code at
   <https://github.com/Pietervr/cascade-collapse>; preprint
   [10.20944/preprints202601.0688](https://doi.org/10.20944/preprints202601.0688).
 
-RSC casts the recoverability of irreversible action as a Shannon-style
-rate–capacity law: a self-decoder holds an induced flux `R_self` below an
-integrative capacity `C_self`, with capacity ratio `CR = R_self/C_self`; the
-uncertified-commitment backlog is modelled as a single-server certification
-queue, and the stability index `SR` (in the proceedings paper, the mean number of
-uncertified commitments) grows as `(1−CR)^−1` near the boundary `CR = 1`.
+RSC asks whether a system that acts irreversibly on what it infers can still undo
+its commitments: a self-decoder holds an induced flux `R_self` below an
+integrative capacity `C_self`, with capacity ratio `CR = R_self/C_self`.
+Certification is modelled as a single-server queue, and its uncertified backlog —
+the mean number of commitments awaiting certification, written `N` in the
+proceedings paper and `sr` in this code, after the stability index of the
+foundational paper — grows as `(1−CR)^−1` near the boundary `CR = 1` wherever the
+arrival or service law has positive variability.
 
 ## Layout
 
@@ -32,9 +34,12 @@ special_issue/
 proceedings/
   figures/    proceedings figure scripts (rsc_pipeline.tex = Figure 1, the schematic;
               make_cself_measured.py = Figure 2; rsc_simulation.py = Figure 3)
-  checks/     proposition1_exact_checks.py: exact, simulation-free checks of Proposition 1
-              (the H2/M/1 root from a closed-form quadratic, the boundary amplitudes,
-              and three worked examples); reads two functions from figures/rsc_simulation.py
+  checks/     the exact and numerical checks + per-check README: proposition1_exact_checks.py
+              (simulation-free checks of Proposition 1), estimator_calibration.py (the
+              estimator recovered from a genuine event log), margin_precision.py (how
+              precisely the margin can be measured, and over what span),
+              abandonment_variant.py (the M/M/1+D scope challenge and the service
+              discipline) and run_length_check.py (the two run protocols)
   cself/      the physiological pipeline: the C_self/R_self estimator + both cohort
               drivers (Synthea -> Figure 2; MIMIC-IV demo -> the Section 3 estimates)
 poster/figures/        poster figure scripts
@@ -42,8 +47,9 @@ poster/figures/        poster figure scripts
 
 `special_issue/figures/README.md` maps each script to its figure and result;
 `proceedings/figures/README.md` gives the run command for each proceedings figure;
-`proceedings/cself/README.md` documents the physiological pipeline and how to
-reproduce its published numbers.
+`proceedings/checks/README.md` gives the run command for each check and states what
+two of them do not establish; `proceedings/cself/README.md` documents the
+physiological pipeline and how to reproduce its published numbers.
 
 ## Running
 
@@ -84,7 +90,17 @@ Both cohorts are **openly available** and neither is redistributed here:
   --download` fetches it and prints the Section 3 aggregates: 78/100 units with
   non-degenerate rates, 44.9% below the reference line, median CR 1.023. The restoration
   process is parallel (infinite-server), so the line is a reference marker and not a
-  stability boundary; the contrast between the cohorts is descriptive only.
+  stability boundary.
+
+**No contrast is drawn between the two cohorts** (round 3, reviewer comment 1). The
+capacity ratio exceeds one only through excursions left open at the end of a record, and
+97.4% of the MIMIC-IV units and 76.3% of the Synthea units end on one; the median
+capacity ratio 1.023 has a bootstrap interval that contains one; excluding the censored
+excursions forces the ratio below one by construction, which is a degeneracy rather than
+a finding; and the two cohorts are not measured on the same analyte panel (9 against 13).
+Both cohorts are kept as evidence that the estimator runs on real event streams of two
+kinds and returns finite rates. A censoring-aware duration estimator is the method a
+future cohort study would need; it is not attempted here.
 
 The same computational procedure is applied to both cohorts, with cohort-specific
 reference bands (textbook ranges for Synthea, MIMIC's own per-assay bands for MIMIC). The full,

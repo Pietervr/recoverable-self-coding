@@ -23,6 +23,10 @@ stability boundary (an infinite-server process is stationary at every load).
 | `synthea_to_cself.py` | Synthea → per-unit `(C_self, R_self, CR, SR)` → `../figures/cself_measured_synthea.csv`, the input to **Figure 2**. |
 | `mimic_demo_cself.py` | MIMIC-IV **demo** → the real-physiology estimates reported in **Section 3**. |
 
+The `SR` column of the estimator and of the shipped CSV is the quantity the proceedings
+paper writes **𝒩** and calls the uncertified backlog; the column name predates that
+choice and is kept so that the released data file is stable.
+
 ## Reproducing Figure 2 (Synthea)
 
 Openly downloadable, no registration:
@@ -59,22 +63,35 @@ below the R_self = C_self line: 44.9%   (vs 90.3% for ambulatory Synthea)
 median CR: 1.023                        (near the reference line)
 ```
 
-Same 13-analyte panel as the Synthea figure, but read against **MIMIC's own
-per-assay reference bands** (`labevents.ref_range_lower/upper`, median per
-`itemid`) rather than textbook ranges.
+The same 13-analyte panel is requested as for the Synthea figure, but read against
+**MIMIC's own per-assay reference bands** (`labevents.ref_range_lower/upper`, median
+per `itemid`) rather than textbook ranges. Only **9** of the 13 resolve a usable band
+in Synthea against **13** in MIMIC-IV, so the two arms are not measured on the same
+panel.
 
-**How to read this.** Absolute rates are *not* comparable across the two cohorts
-— ICU series run over days, ambulatory ones over years — so the dimensionless
-`CR` is the compared quantity. The cohorts differ: most ambulatory units sit
-below the `R_self = C_self` reference line, most critically-ill units at or
-above it. This is a **descriptive contrast, not a validation and not a
-face-validity claim**: the comparison is subject to observation-process
-differences the estimator does not remove (ICU sampling is more frequent and
-illness-triggered; the synthetic cadence follows different rules), `CR` need not
-be invariant to them, and no clinical or causal reading is drawn. No ROC, no lead
-time, no detection claim is made. Matched-cadence analysis, downsampling and
-censoring sensitivity, per-analyte results, bootstrap uncertainty for the median
-`CR`, and detection ROC are future work.
+**How to read this: no contrast is drawn between the cohorts** (round 3, reviewer
+comment 1; the five analyses he asked for were run and are in the paper). Absolute
+rates are not comparable across the two cohorts — ICU series run over days, ambulatory
+ones over years — and the dimensionless `CR` does not repair that, because the cohorts
+differ in the observation scheme rather than in a capacity property:
+
+- `CR` exceeds one only through excursions left open at the end of a record, and
+  **97.4% of MIMIC-IV units and 76.3% of Synthea units end on one**;
+- the median `CR` of 1.023 has a bootstrap interval **[0.904, 1.085]**, which contains
+  one;
+- excluding the censored terminal excursions forces onsets to equal restorations, so
+  `CR` collapses to the busy fraction and cannot exceed one — both cohorts then read
+  100% below the line, which is a **degeneracy, not a finding**;
+- per-analyte `CR` varies by more than an order of magnitude within a cohort, so a
+  single pooled value per unit averages over very different series;
+- the panels differ, as above.
+
+What the two cohorts do show is that the estimator runs on real event streams of two
+kinds and returns finite rates. No clinical, causal or detection claim is drawn, and no
+ROC or lead time is computed. A censoring-aware duration estimator (Kaplan–Meier on
+excursion durations) is the method a future cohort study would need; at 97% censoring it
+would rest almost entirely on extrapolation, and it is not attempted here. Matched-cadence
+analysis, downsampling and a pre-specified detection plan remain future work.
 
 The full MIMIC-IV database is credentialed and carries a DUA. Nothing here
 touches it — only the openly licensed demo.
