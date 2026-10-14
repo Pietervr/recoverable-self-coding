@@ -42,7 +42,9 @@ S3_REGION = "us-west-2"            # the code/results bucket stays in Oregon; EC
 # only zone under the cap.
 # Owner, 10 Oct ~22:10 UTC: move to eu-north-1 after attempt 4 was reclaimed by AWS in us-west-2a (price unchanged; Spot
 # Advisor: c7a.24xlarge interruption >20%/month there, <5% in eu-north-1; eu-north-1a 0.85/h, 7-day range 0.67-0.94).
-ITYPE, MAXPRICE, ROLE, AZ = "c7a.24xlarge", 1.20, "xtenure-ec2-t1-worker", "eu-north-1a"
+# Owner, 14 Oct 2026 ~18:00 UTC ("change instance type etc"): eu-north-1a refused Q1 attempts 2-3 with InsufficientInstanceCapacity
+# (charged 0); move to eu-north-1b, same type and cap (spot 0.86/h at 11:00Z; 1a 0.83, 1c 0.93).
+ITYPE, MAXPRICE, ROLE, AZ = "c7a.24xlarge", 1.20, "xtenure-ec2-t1-worker", "eu-north-1b"
 ANC_H, S3_FIXED, GRACE_S, RESERVE_S, CEILING = 0.0094, 0.10, 900, 1800, 42.00
 MAX_LIFE_S, MIN_LIFE_S = 77400, 72300
 AMI_PARAM = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"

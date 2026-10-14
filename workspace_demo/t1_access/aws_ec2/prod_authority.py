@@ -81,7 +81,7 @@ RELEASE_CODE = sorted(["chpc/row19_ec2_qualify.py", "chpc/row19_ec2_ingest.py", 
 # <= 1 GB across eu-north-1 <-> Oregon at 0.02/GB, S3 requests of 10-minute syncs over 22 h, reserve).
 ANC_H_PROD, S3_FIXED_PROD = 0.014, 0.30
 QUAL_LIFETIME_S = 79200                       # 22 h instance lifetime for Q1 and Q2 (QUALIFICATION_PLAN.md)
-QUAL_CEILINGS_USD = {"Q1": 28.0, "Q2": 17.0}  # = worst of one attempt each, rounded UP; retries need the owner
+QUAL_CEILINGS_USD = {"Q1": 36.0, "Q2": 17.0}  # Q1: attempt 1 (USD 7.13, spot-interrupted) + one owner-approved retry (13 Oct, "1. yes - go"); Q2 one attempt
 SENTINELS_PER_ATTEMPT = 4
 PROD_CLASSES = ("production", "qualification")
 LOCK = os.path.join(HERE, "runs", ".authority.lock")
