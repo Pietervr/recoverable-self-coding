@@ -1,0 +1,34 @@
+Lengau core-hours per refitting resample (M2S omega = 1, D = 4, one layer)
+
+sequential  n= 18  median  17.1 h  quartiles  16.4- 18.6 h  range  15.5- 30.6 h
+packed      n=192  median  23.6 h  quartiles  23.1- 24.1 h  range  21.3- 25.4 h
+
+sequential records (file, resample, job, hours):
+  timing_0.jsonl  0 7516928.sched01  16.96
+  timing_0.jsonl  1 7516928.sched01  15.48
+  timing_0.jsonl  2 7521637.sched01  30.38
+  timing_0.jsonl  3 7521637.sched01  17.56
+  timing_0.jsonl  4 7525940.sched01  15.49
+  timing_0.jsonl  5 7525940.sched01  15.95
+  timing_1.jsonl  0 7516929.sched01  18.05
+  timing_1.jsonl  1 7516929.sched01  16.23
+  timing_1.jsonl  2 7520953.sched01  30.59
+  timing_1.jsonl  3 7523998.sched01  17.31
+  timing_1.jsonl  4 7523998.sched01  19.89
+  timing_1.jsonl  5 7523998.sched01  16.59
+  timing_2.jsonl  0 7516930.sched01  17.77
+  timing_2.jsonl  1 7520111.sched01  16.53
+  timing_2.jsonl  2 7522581.sched01  18.37
+  timing_2.jsonl  3 7522581.sched01  16.99
+  timing_2.jsonl  4 7522581.sched01  19.42
+  timing_2.jsonl  5 7522581.sched01  16.52
+
+packed records: 192 from jobs 7517913.sched01, 7523708.sched01, 7523709.sched01, 7523710.sched01, 7523712.sched01, 7523713.sched01, 7523714.sched01, 7523715.sched01
+  7517913.sched01 n= 24  median  23.7 h  quartiles  23.3- 24.3 h  range  22.1- 25.1 h
+  7523708.sched01 n= 24  median  22.9 h  quartiles  22.6- 23.5 h  range  22.0- 24.8 h
+  7523709.sched01 n= 24  median  23.3 h  quartiles  23.1- 23.5 h  range  21.3- 23.8 h
+  7523710.sched01 n= 24  median  23.6 h  quartiles  23.3- 24.4 h  range  22.7- 25.1 h
+  7523712.sched01 n= 24  median  23.6 h  quartiles  23.2- 24.0 h  range  22.5- 25.0 h
+  7523713.sched01 n= 24  median  23.7 h  quartiles  23.0- 24.1 h  range  22.5- 25.4 h
+  7523714.sched01 n= 24  median  23.8 h  quartiles  23.1- 24.2 h  range  22.6- 24.8 h
+  7523715.sched01 n= 24  median  24.0 h  quartiles  23.5- 24.3 h  range  22.9- 25.3 h

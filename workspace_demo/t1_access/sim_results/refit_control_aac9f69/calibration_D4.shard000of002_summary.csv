@@ -1,0 +1,2 @@
+generator,family,grid,D,n,mixture,graded,inconclusive,failure,n_points,n_usable,n_interval_missing,mean_point,ref_se,sd_point,coverage,mean_se,convergence,inner_convergence,mean_fit_s
+M2B,G,{},4,5,0.0,1.0,0.0,0.0,5,5,0,-0.014784054631231941,0.000956237772967435,0.0021382126630081957,0.8,0.00166946820495124,1.0,1.0,4073.5799999999995

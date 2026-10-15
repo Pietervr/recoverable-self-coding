@@ -1,0 +1,23 @@
+reshaping screen, B = 2000, stratified concept bootstrap, seeds default_rng([20261014, setting, rep])
+setting                       ref  ratio  saved  percentile       basic         bca studentized      normal   mixture calls
+M2B                      -0.01480   0.53  0.935       0.929       0.932       0.930       0.951       0.934   0 0 0 0 0
+M2H tau=0                -0.01482   0.57  0.918       0.918       0.920       0.916       0.946       0.920   0 0 0 0 0
+M2H tau=0.5              -0.03268   0.71  0.819       0.813       0.823       0.810       0.869       0.823   0 0 0 0 0
+M2H tau=1                -0.03745   0.56  0.926       0.925       0.925       0.922       0.943       0.925   0 0 0 0 0
+M2H tau=2                -0.05701   0.58  0.894       0.897       0.888       0.904       0.934       0.898   0 0 0 0 0
+M2K alpha=0              -0.01485   0.58  0.915       0.915       0.910       0.912       0.939       0.913   0 0 0 0 0
+M2K alpha=1              -0.02775   0.63  0.885       0.881       0.882       0.878       0.914       0.882   0 0 0 0 0
+M2K alpha=3              -0.07200   0.55  0.928       0.925       0.922       0.925       0.947       0.923   0 0 0 0 0
+M2S omega=0              -0.01480   0.56  0.917       0.918       0.917       0.917       0.945       0.919   0 0 0 0 0
+M2S omega=0.5            -0.25050   0.69  0.848       0.847       0.843       0.850       0.901       0.856   0 0 0 0 0
+M2S omega=1              -0.86951   1.06  0.780       0.785       0.749       0.820       0.874       0.770   0 0 0 0 0
+M2S omega=2              -5.33435   4.20  0.216       0.217       0.180       0.273       0.359       0.213   0 0 0 0 0
+
+settings (of 12) at which the inclusion rate reaches 0.90:
+  percentile    6   mixture calls over all 12,000 datasets: 0
+  basic         6   mixture calls over all 12,000 datasets: 0
+  bca           7   mixture calls over all 12,000 datasets: 0
+  studentized   9   mixture calls over all 12,000 datasets: 0
+  normal        6   mixture calls over all 12,000 datasets: 0
+ratio = between-replicate SD of the point estimate / mean percentile half-width (about 0.51 for a calibrated normal 95 % interval)
+saved = inclusion of the run's own saved percentile intervals (reference_inclusion_check.py reproduces these)
