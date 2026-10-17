@@ -256,3 +256,36 @@ describe stays a failed observation.
   FAVOURABLE for fresh receipts and refills under the existing gates. Used for pilot 7523732 only
   (bank_watch_20261010T203256Z). Fresh receipt bank_watch_20261011T050934Z, zero alarms; bank job 15 = 7531532.
 - Tests `chpc/test_pbs_settled.py` 31/31.
+
+## Owner adoption of the resized screen (17 October 2026) - ADOPTED IN PRINCIPLE, not yet implemented
+
+The owner adopted Codex's resize design (`reviews/2026-10-17_row19_resize_codex.md`, RSC `08ce9e3`) on 17 Oct 2026,
+choosing five concurrent EC2 instances. Reason: the declared 100 datasets x B = 200 (about 400,000 further Lengau core-h)
+does not fit CSCI1913's 100,000-hour hard stop plus the USD 3,000 AWS cap, and the index-major plan order would leave no
+complete replicate if compute stopped early.
+
+What is adopted, as the design states it:
+- 60 fixed attempted datasets, `S = {r in 3..102 : (r-3) mod 5 in {0,1,2}}` (rep 83 included); omega = 1 only.
+- The interval screened is the 2.5%/97.5% percentile interval of the FIRST 80 records of each dataset's unchanged
+  B = 200 producer stream (a prefix consumer; producer B, seeds, folds and draw matrix stay immutable; `until=80` is not a
+  completed interval).
+- Replicate-complete planning order. One sealed terminal look: STOP FOR FUTILITY if the one-sided 98.5% Clopper-Pearson
+  upper bound at (Kmax, n) is below 0.90 (Kmax <= 48 with all 60 usable), with the attempted-set envelope for unavailable
+  intervals; otherwise "not ruled out at this look", never PASS. Surviving does not validate the interval, other
+  generators or the band, and does not meet the registered report's protocol-freeze condition.
+- Funding: refit+S sub-envelope to 81,000 core-h through the two-phase cap protocol (programme commitment ~98,865 of
+  100,000); EC2 ~USD 1,779 forecast + USD 300 bounded qualification/retry allowance inside the USD 2,300 envelope, five
+  concurrent instances subject to qualification of the 76-worker packing.
+- Crash rule: no third identical attempt after two same-envelope fatal allocation/signal crashes; one budgeted rescue
+  lane; a coordinate still missing stays missing and is reported, never replaced.
+- Omega = 2 deferred; HEAL1922 not used for this screen.
+
+Exposure disclosed: operational completion and crash identities were seen while costing the redesign; the numerical seal
+was not opened.
+
+Not yet done (Codex design s.6, each with its own review): the scientific amendment of PREREGISTRATION_T1_model.md s.10 and
+the Unimog design doc row 19; the prefix release package; the controller/resource package (planner order, S, indices
+< 80, crash rule, 81,000 sub-envelope); the provider epoch (explicit coordinate-set ownership for EC2, not a suffix k); the
+operational migration on the migration_v13 pattern; a fresh budget check before the first admission.
+Until the new controller is active, NO further refit admissions under the old plan (from 17 Oct 2026); running jobs finish
+untouched and are settled as usual.
