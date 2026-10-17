@@ -116,7 +116,7 @@ Where commands run:
      `row19_partition` process (a failed or empty inventory refuses); both `$T/programme_admission.lock` and
      `$T/row19_screen/plans/.submit.lock` exist and a non-blocking SHARED probe succeeds on each (`flock(1)`, else python
      `fcntl.flock(LOCK_SH|LOCK_NB)`; held, missing or unprobeable refuses); `rsc_screen_ctl` is clean (a failed `git status`
-     refuses) at the v15 bytes with no declaration; the gate holds `qualified_refit_job1.json` `3c605514` and an active
+     refuses; "clean" admits only the pinned untracked evidence allowlist below) at the v15 bytes with no declaration; the gate holds `qualified_refit_job1.json` `3c605514` and an active
      `review_refit.json`, and no `scaleup_refit_v16.json`; no budget phase is pending and the ledger cap equals the committed
      60,000 phase; `$T/row19_screen/ec2/activation_e1.json` exists; neither `archive_screen/v15_before_v16`, an archive staging
      directory nor the retired v15 review exists; every archive source exists with its v15 identity (`lengau_archive.py
@@ -129,6 +129,26 @@ Where commands run:
    `PREFLIGHT (Mac only) OK - the Lengau checks were NOT run`, and does not satisfy this step.)
 3. Do not run the Mac's status or receipt commands during steps 2-5. A slot that frees stays empty until step 8.
 
+   **The controller clone's pinned untracked evidence allowlist** (`remote_lib.sh` `CTL_EVIDENCE` = `lengau_archive.py`
+   `UNTRACKED_CTL`). The first live step-1 preflight (17 Oct 2026, past the git 1.8.3 repair) refused because `rsc_screen_ctl`
+   (HEAD `4b2dbd4`) holds exactly three UNTRACKED files, written 12 Oct 18:39 by the row-23 bench comparator / EC2
+   qualification permit. They are evidence copies, not controller authority (nothing in the controller reads them from the
+   clone), so they are kept exactly as they are - never deleted, moved, git-ignored or committed, which would bypass the check:
+   - `aws_ec2/ec2_release_state.json` `80ba0ac5…1d39`
+   - `aws_ec2/runs/b2/bench_report_attempt_5_20261011T185715Z.json` `154511e6…e3a4`
+   - `reviews/2026-10-11_d1d2_f3_codex_record.md` `636f1e77…5c1e`
+
+   `ctl_clean` (used for the controller clone only, by preflight, archive, deploy before and after its commit, and adopt) is a
+   successful `git status --porcelain --untracked-files=all` with no tracked modification, staged change or deletion, whose
+   untracked entries are a subset of these three paths; each present one must be its own physical path (no symlink in any
+   component) and a regular file with exactly its pinned SHA-256; inside a wholly untracked directory on the path to one
+   (`aws_ec2/runs`, `aws_ec2/runs/b2`) every entry must be an allowed file or on its path. Any other untracked file, a hash
+   mismatch, a symlink, an allowed path that is a directory or a stray directory refuses. The strict `git_clean` (no
+   allowlist) is unchanged and is never applied to the controller clone; the scientific clone is proved by its complete
+   science digest list. The three are mandatory archive members (`ctl/untracked/<path>`, step 2), so a missing one refuses
+   the inventory; no payload or pilot record may be one of them; the deploy commit is checked to hold payload paths only, and
+   each stays untracked after it.
+
 ## 2. Archive the adopted v15 state (Lengau, then Mac)
 
 `bash chpc/migration_v16/archive_v15.sh --dry-run` (Mac checks and the plan, no ssh), then `bash chpc/migration_v16/archive_v15.sh`.
@@ -139,6 +159,8 @@ inventory and nothing else:
 - `ctl/HEAD.txt`: the controller clone's HEAD;
 - `ctl/<repo path>` for every file the adopted v15 entry pins (14), plus the v15 controls (`828d3b69`), adoption (`970c29f5`),
   budget phases `chpc/row19_screen_budget.json`, the screen manifest and `chpc/row22_bank_status.py` / `row22_bank_submit.py`;
+- `ctl/untracked/<path>`: the three pinned untracked evidence files of the controller clone (step 1), each with exactly its
+  pinned SHA-256;
 - `gate/...`: the whole gate (`qualified_refit_job1.json` `3c605514`, the active `review_refit.json`, every watch and verify
   receipt, every retained PBS out/err copy), regular files only, with `INVENTORY.gate` captured from the source;
 - `jobs/row19_screen_refit_*` (at least one), with `INVENTORY.jobs`;
@@ -376,7 +398,15 @@ refused on `git -C`, 17 Oct 2026; Lengau runs git 1.8.3.1, util-linux flock 2.23
 Lengau half always runs with a private `lengaubin/git` first on its PATH that rejects `git -C` as 1.8.3 does, echoes
 `rev-parse --absolute-git-dir` as a literal and rejects later options, and the fake `flock` is 2.23 (no `-E`; a `-n` conflict
 exits 1); added tests check the shims, the whole route on them (no rejected call, no python fallback for a decidable lock),
-`ctl_git` still refusing a gitfile or symlinked `.git`, and every Lengau-side Python source statically against 3.6. 42 tests.
+`ctl_git` still refusing a gitfile or symlinked `.git`, and every Lengau-side Python source statically against 3.6. Pinned
+untracked evidence (after the live preflight refused on it, 17 Oct 2026): the fixture controller clone is built as Lengau's (the
+three files untracked with their pinned bytes from the Mac history, `aws_ec2/runs/` wholly untracked); tests check the two
+allowlists are identical, the exact three pass preflight and archive and are archived as `ctl/untracked/<path>` with their
+hashes, the deploy commit holds payload paths only and leaves them untracked and unchanged; a fourth untracked file (beside
+them or elsewhere), a changed hash, a symlinked allowed path or untracked directory, an allowed path turned into a directory
+(empty or not), a stray empty directory in `runs/`, a tracked modification, deletion or staged change refuse preflight and
+archive (deploy too for four of them, before any controller change), a missing one refuses the inventory, and adopt refuses an
+evidence path as its record. 48 tests.
 
 Untested on the Mac: real ssh transport and Lengau's real tools (emulated only: git 1.8.3, `flock(1)` 2.23; not: `realpath`, `base64 -d`, `sha256sum`)
 and Lustre's flock(2) behaviour; a positive `--adopt-review`, `--qualify`, `--raise-cap` and `--adopt-scaleup`; the real

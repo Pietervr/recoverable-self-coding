@@ -5,11 +5,13 @@
 # a subset is never enough.
 #  a. Lengau $T/archive_screen/v15_before_v16 (lengau_archive.py): ctl/HEAD.txt (the controller clone's HEAD); ctl/<path> for
 #     EVERY file the adopted v15 entry pins plus the v15 controls, adoption, budget phases chpc/row19_screen_budget.json, the
-#     screen manifest and the two row-22 bank controllers; the WHOLE gate (qualified_refit_job1.json 3c605514, the active
+#     screen manifest and the two row-22 bank controllers; ctl/untracked/<path> for the three pinned untracked evidence files of
+#     the controller clone (remote_lib.sh CTL_EVIDENCE, exact sha256 each); the WHOLE gate (qualified_refit_job1.json 3c605514, the active
 #     review_refit.json, every receipt and PBS copy) with INVENTORY.gate captured from the source; the refit job scripts
 #     jobs/row19_screen_refit_* (at least one) with INVENTORY.jobs; ledger/row19_screen_campaign_budget.json; SHA256SUMS;
 #     COMPLETE. Every source must exist as a regular file (no symlink), every copy and digest must succeed. Refuses unless the
-#     drain is observed (a checked process inventory and both locks probed free), the controller clone is clean at the v15
+#     drain is observed (a checked process inventory and both locks probed free), the controller clone is clean (ctl_clean: only
+#     the pinned untracked evidence allowlist) at the v15
 #     bytes, the gate qualification is 3c605514 and a review is active.
 #  b. Mac chpc/results/archive/row19_screen_v15_before_v16/ (mac_archive.py): EXACTLY row19_screen_controls.json (828d3b69),
 #     row19_screen_controls_adoption.json (970c29f5), row19_screen_admit.py (ac06e803), row19_screen_status.py (0effcba3),
@@ -63,7 +65,7 @@ drained
 locks_free
 cd "$C" || die "no controller clone $C"
 ctl_git
-git_clean "$C"
+ctl_clean
 for f in chpc/row19_screen_controls.json chpc/row19_screen_controls_adoption.json; do src_file "$C/$f" "$CR" "controller authority $f"; done
 src_file "$G/qualified_refit_job1.json" "$T/row19_screen" "gate qualification"; src_file "$G/review_refit.json" "$T/row19_screen" "active gate review"
 dst_dir "$T/archive_screen" "$T" "archive parent"; dst_absent "$A" "$T/archive_screen" "archive"

@@ -15,6 +15,7 @@ REC=$P1_PATH
 case $REC in reviews/*.md) ;; *) die "the record $REC is not reviews/<name>.md";; esac
 case ${REC#reviews/} in */*|.*) die "the record $REC is not a plain reviews/<name>.md";; esac
 clean_rel "$REC" || die "the record $REC is not a plain relative path"
+not_evidence "$REC" "pilot record"
 GS=$T/row19_screen
 adopt_paths() {   # containment of the record destination (and its reviews/ parent), the controller and gate authority, the new gate review
   dst_dir "$C/reviews" "$CR" "controller reviews directory"
@@ -43,7 +44,7 @@ if [ -e "$REC" ] || [ -L "$REC" ]; then
   cmp -s "$TMPD/rec" "$REC" || die "$REC exists in the controller clone with other bytes"
   git ls-files --error-unmatch -- "$REC" >/dev/null 2>&1 && git diff --quiet HEAD -- "$REC" || die "$REC is not committed in the controller clone"
 else
-  git_clean "$C"
+  ctl_clean
   cp "$TMPD/rec" "$REC" || die "copy failed"
   git add -- "$REC" && git -c user.name=R052 -c user.email=r052@local commit -q -m "Codex record: v16 refit pilot ADOPT max 100 on the regenerated qualification" -- "$REC" \
     || die "git commit of $REC failed (the clone may be dirty: recover explicitly)"

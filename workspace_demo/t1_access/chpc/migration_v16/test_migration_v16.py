@@ -37,6 +37,11 @@ PROD_FILES = sorted(f for f in os.listdir(HERE) if os.path.isfile(os.path.join(H
 QUAL_V15 = "3c605514fb36d6d9f67a2835adf516fa30298caa10c20411bbcbcff74c94592c"
 REAL_SHA256SUM = shutil.which("sha256sum") or "/sbin/sha256sum"
 REAL_GIT = shutil.which("git") or "/usr/bin/git"
+# the controller clone's three pinned UNTRACKED evidence files (live preflight 17 Oct 2026): path relative to the controller's
+# workspace_demo/t1_access, the Mac commit holding exactly those bytes, the pinned sha256 (remote_lib.sh CTL_EVIDENCE)
+EVIDENCE = {"aws_ec2/ec2_release_state.json": ("f2caf7c", "80ba0ac599f617f8c0ee020d75e7c53dcd30c519d783a76dcb6a2f6b9f1a1d39"),
+            "aws_ec2/runs/b2/bench_report_attempt_5_20261011T185715Z.json": ("c12af3e", "154511e687f006001888970bd3d65398b6b37c910221378b7f6c3c63fe63e3a4"),
+            "reviews/2026-10-11_d1d2_f3_codex_record.md": ("1609fa7", "636f1e77089578a14ee837bf95fe0f86cc84dbc907f8ced918256b69dbb55c1e")}
 PROMO_PATHS = ["chpc/row19_screen_controls.json", "chpc/row19_screen_controls_adoption.json", "chpc/row19_screen_admit.py",
                "chpc/row19_screen_status.py", "chpc/row19_screen_designated.json", "chpc/results/archive/row19_screen_v15_before_v16"]
 
@@ -237,6 +242,7 @@ def build_fresh(d):
     write(os.path.join(w.L, "programme_admission.lock"), ""); write(os.path.join(w.L, "row19_screen/plans/.submit.lock"), "")
     write(os.path.join(w.L, "t1py"), FAKE_T1PY, 0o755)
     sh("git", "clone", "-q", REPO, os.path.join(w.L, "rsc_screen_ctl")); sh("git", "clone", "-q", REPO, os.path.join(w.L, "rsc_screen"))
+    lengau_evidence(w)
     write(os.path.join(w.G, "qualified_refit_job1.json"), open(q, "rb").read())
     write(os.path.join(w.G, "review_refit.json"), json.dumps({"schema": "private-test", "role": "refit", "qualification_sha256": QUAL_V15, "max_job_number": 100}) + "\n")
     write(os.path.join(w.G, "watch_refit_1.json"), "{}\n"); write(os.path.join(w.G, "pbs/row19_screen_refit_1.o7600001"), "fake PBS out\n")
@@ -246,6 +252,36 @@ def build_fresh(d):
     w.fake("ps", FAKE_PS); w.fake("sha256sum", FAKE_SHA)
     write(os.path.join(w.lbin, "git"), LENGAU_GIT, 0o755)
     return w
+
+
+def lengau_evidence(w):
+    """The controller clone as observed on Lengau (17 Oct 2026): aws_ec2/runs/ wholly untracked and holding only the b2 bench
+    report, and the three pinned evidence files present UNTRACKED with exactly their pinned bytes (from the Mac history)."""
+    ctl = os.path.join(w.L, "rsc_screen_ctl")
+    sh("git", "-C", ctl, "rm", "-r", "-q", "--cached", "--", T1_REL + "/aws_ec2/runs", *[T1_REL + "/" + p for p in EVIDENCE if "/runs/" not in p])
+    sh("git", "-C", ctl, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "TEST the Lengau controller: evidence untracked")
+    shutil.rmtree(os.path.join(w.C, "aws_ec2/runs"))
+    for p, (c, want) in EVIDENCE.items():
+        b = subprocess.run(["git", "-C", REPO, "show", "%s:%s/%s" % (c, T1_REL, p)], capture_output=True, check=True).stdout
+        need(hashlib.sha256(b).hexdigest() == want, "the Mac history does not hold the pinned bytes of " + p)
+        if os.path.lexists(os.path.join(w.C, p)):
+            os.remove(os.path.join(w.C, p))
+        write(os.path.join(w.C, p), b)
+    need(ctl_untracked(w) == sorted(T1_REL + "/" + p for p in EVIDENCE) and ctl_dirty(w) == [], "the Lengau evidence fixture is wrong")
+
+
+def ctl_status(w):
+    return [l for l in sh("git", "-C", w.C, "status", "--porcelain", "--untracked-files=all").split("\n") if l]
+
+
+def ctl_untracked(w):
+    return sorted(l[3:] for l in ctl_status(w) if l.startswith("?? "))
+
+
+def ctl_dirty(w):
+    """Every status entry except the three pinned untracked evidence files."""
+    ev = {"?? %s/%s" % (T1_REL, p) for p in EVIDENCE}
+    return [l for l in ctl_status(w) if l not in ev]
 
 
 STAGES = {}
@@ -726,7 +762,7 @@ def commit_redirect(w, rel, target):
     shutil.rmtree(src); os.symlink(target, src)
     sh("git", "-C", w.C, "add", "-A", "--", rel)
     sh("git", "-C", w.C, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "TEST redirect " + rel)
-    need(sh("git", "-C", w.C, "status", "--porcelain") == "", "the redirect left the controller clone dirty")
+    need(ctl_dirty(w) == [], "the redirect left the controller clone dirty")
 
 
 def pilot_record(w):
@@ -761,7 +797,7 @@ def t_nested_chpc():
     w = stage("promoted"); victim = os.path.join(w.outside, "victim.py"); write(victim, "outside bytes\n")
     write(os.path.join(w.C, "..", "..", ".git", "info", "exclude"), "*.v16tmp\n")
     os.symlink(victim, os.path.join(w.C, "chpc/row19_screen_status.py.v16tmp"))
-    need(sh("git", "-C", w.C, "status", "--porcelain") == "", "the sibling fixture is not clean")
+    need(ctl_dirty(w) == [], "the sibling fixture is not clean")
     before = tree_digest(w.outside); s0 = w.ctl_state()
     rc, out = w.script("deploy_v16.sh"); refused(rc, out, "temporary sibling")
     need(tree_digest(w.outside) == before and open(victim).read() == "outside bytes\n" and w.ctl_state() == s0, "the sibling was followed")
@@ -919,6 +955,105 @@ def t_lengau_ctl_git_semantics():
     w = stage("fresh"); gd = os.path.join(w.L, "rsc_screen_ctl", ".git"); moved = os.path.join(w.L, "row19_screen", "ctl.git")
     shutil.move(gd, moved); write(gd, "gitdir: %s\n" % moved)                     # an alias elsewhere but still inside $T
     rc, out = w.script("archive_v15.sh"); refused(rc, out, "git directory is"); need(not os.path.exists(w.A), "archived with a gitfile clone")
+
+
+# ------------------------------------------------------------------------------------------------ pinned untracked controller evidence
+@test("evidence allowlist: remote_lib.sh CTL_EVIDENCE and lengau_archive.py UNTRACKED_CTL are the same three pinned files")
+def t_evidence_static():
+    rl = open(os.path.join(HERE, "remote_lib.sh")).read()
+    m = re.search(r'^CTL_EVIDENCE="(.*?)"$', rl, re.S | re.M); need(m is not None, "remote_lib.sh has no CTL_EVIDENCE")
+    sh_list = dict(l.split(" ") for l in m.group(1).split("\n"))
+    sys.path.insert(0, HERE)
+    try:
+        import lengau_archive as LA
+    finally:
+        sys.path.pop(0)
+    want = {p: h for p, (_, h) in EVIDENCE.items()}
+    need(sh_list == want and LA.UNTRACKED_CTL == want, "the allowlists differ: %s / %s" % (sh_list, LA.UNTRACKED_CTL))
+    gc = rl[rl.index("git_clean() {"):rl.index("\n}\n", rl.index("git_clean() {"))]
+    need("CTL_EVIDENCE" not in gc and "untracked" not in gc.split("\n", 1)[1], "the strict git_clean consults an allowlist", gc)
+
+
+@test("evidence allowlist: the exact three pass preflight and archive; the archive holds ctl/untracked/<path> with the pinned hashes")
+def t_evidence_pass():
+    w = stage("fresh")
+    rc, out = w.script("preflight_v16.sh"); need(rc == 0 and "PREFLIGHT OK" in out and "incl. 3 pinned untracked evidence" in out, "preflight", out)
+    rc, out = w.script("archive_v15.sh"); need(rc == 0 and "ARCHIVE OK" in out, "archive", out)
+    sums = dict((l[68:], l[:64]) for l in open(os.path.join(w.A, "SHA256SUMS")).read().splitlines())
+    for p, (_, want) in EVIDENCE.items():
+        a = os.path.join(w.A, "ctl/untracked", p)
+        need(os.path.isfile(a) and hashlib.sha256(open(a, "rb").read()).hexdigest() == want and sums.get("ctl/untracked/" + p) == want,
+             "the archive does not hold ctl/untracked/%s with its pinned hash" % p)
+    need(ctl_untracked(w) == sorted(T1_REL + "/" + p for p in EVIDENCE), "archiving changed the untracked evidence")
+
+
+@test("evidence allowlist: the deploy commit holds payload paths only; the three stay untracked with their bytes")
+def t_evidence_deploy():
+    w = stage("deployed")
+    names = sorted(sh("git", "-C", w.C, "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD").split())
+    need(names and set(names) <= set(T1_REL + "/" + p for p in ["chpc/row19_screen_status.py", "chpc/row19_screen_admit.py", "chpc/row19_screen_designated.json",
+         "chpc/row19_screen_controls.json", "chpc/row19_screen_controls_adoption.json", "reviews/2026-10-17_v16_p80_codex_review.md"]), "deploy commit paths %s" % names)
+    need(ctl_untracked(w) == sorted(T1_REL + "/" + p for p in EVIDENCE) and ctl_dirty(w) == [], "after deploy: %s" % ctl_status(w))
+    for p, (_, want) in EVIDENCE.items():
+        need(hashlib.sha256(open(os.path.join(w.C, p), "rb").read()).hexdigest() == want, "deploy changed " + p)
+        need(sh("git", "-C", w.C, "ls-files", "--", p) == "", "the deployed controller HEAD tracks " + p)
+    rc, out = w.script("deploy_v16.sh"); need(rc == 0 and "DEPLOY OK" in out, "deploy re-run with the evidence present", out)
+
+
+def ev(w, p):
+    return os.path.join(w.C, p)
+
+
+EVIDENCE_REFUSALS = [
+    ("a fourth untracked file beside the bench report", lambda w: write(ev(w, "aws_ec2/runs/b2/extra.json"), "{}\n"), "outside the pinned evidence allowlist"),
+    ("a fourth untracked file elsewhere", lambda w: write(ev(w, "chpc/stray_note.txt"), "x\n"), "outside the pinned evidence allowlist"),
+    ("a changed evidence hash", lambda w: open(ev(w, "aws_ec2/ec2_release_state.json"), "a").write(" "), "not its pinned"),
+    ("a symlinked evidence path", lambda w: (shutil.move(ev(w, "reviews/2026-10-11_d1d2_f3_codex_record.md"), os.path.join(w.outside, "rec.md")),
+                                              os.symlink(os.path.join(w.outside, "rec.md"), ev(w, "reviews/2026-10-11_d1d2_f3_codex_record.md"))),
+     "not its own physical path"),
+    ("a symlinked untracked directory on the evidence path", lambda w: (shutil.move(ev(w, "aws_ec2/runs"), os.path.join(w.outside, "runs")),
+                                                                         os.symlink(os.path.join(w.outside, "runs"), ev(w, "aws_ec2/runs"))),
+     "outside the pinned evidence allowlist"),
+    ("an evidence path turned into an empty directory", lambda w: (os.remove(ev(w, "aws_ec2/ec2_release_state.json")), os.mkdir(ev(w, "aws_ec2/ec2_release_state.json"))),
+     "not an existing regular file"),
+    ("an evidence path turned into a directory with a file", lambda w: (os.remove(ev(w, "aws_ec2/runs/b2/bench_report_attempt_5_20261011T185715Z.json")),
+                                                                         write(ev(w, "aws_ec2/runs/b2/bench_report_attempt_5_20261011T185715Z.json/x"), "x\n")),
+     "outside the pinned evidence allowlist"),
+    ("an extra empty directory inside the untracked runs/", lambda w: os.makedirs(ev(w, "aws_ec2/runs/b2/stray_dir")), "neither pinned evidence nor on its path"),
+    ("a tracked modification", lambda w: open(ev(w, "chpc/row19_partition.py"), "a").write("# drift\n"), "outside the pinned evidence allowlist"),
+    ("a tracked deletion", lambda w: os.remove(ev(w, "chpc/row19_partition.py")), "outside the pinned evidence allowlist"),
+    ("a staged change", lambda w: (open(ev(w, "chpc/row19_partition.py"), "a").write("# drift\n"), sh("git", "-C", w.C, "add", "chpc/row19_partition.py")),
+     "outside the pinned evidence allowlist"),
+]
+
+
+@test("evidence allowlist: a 4th untracked file, a changed hash, symlinks, a directory, a stray dir, tracked changes refuse preflight and archive")
+def t_evidence_refuse():
+    for what, mut, msg in EVIDENCE_REFUSALS:
+        w = stage("fresh"); mut(w); before = tree_digest(w.outside)
+        rc, out = w.script("preflight_v16.sh"); refused(rc, out, msg); need("lengau preflight OK" not in out, what, out)
+        rc, out = w.script("archive_v15.sh"); refused(rc, out, msg)
+        need(not os.path.lexists(w.A) and not os.path.exists(w.MA) and tree_digest(w.outside) == before, "%s: an archive was written" % what)
+
+
+@test("evidence allowlist: deploy refuses before any controller change on a 4th file, a changed hash, a directory; adopt refuses an evidence record")
+def t_evidence_refuse_deploy():
+    for what, mut, msg in [EVIDENCE_REFUSALS[i] for i in (0, 2, 5, 8)]:
+        w = stage("promoted"); mut(w); s0 = w.ctl_state()
+        rc, out = w.script("deploy_v16.sh"); refused(rc, out, msg)
+        need(w.ctl_state() == s0 and not os.path.lexists(proof_dir(w)) and "DEPLOY OK" not in out, "%s: deploy changed something" % what, out)
+    w = stage("deployed"); write(ev(w, "aws_ec2/runs/b2/extra.json"), "{}\n")
+    rc, out = w.script("deploy_v16.sh"); refused(rc, out, "outside the pinned evidence allowlist")
+    w = stage("rolled"); pilot_record(w); s0 = w.ctl_state()
+    rc, out = w.script("lengau.sh", "adopt_pilot16.sh", "--file", "reviews/2026-10-11_d1d2_f3_codex_record.md")
+    refused(rc, out, "pinned untracked evidence file"); need(w.ctl_state() == s0, "adopt changed the controller clone")
+
+
+@test("evidence allowlist: a missing evidence file refuses the archive inventory (preflight) and the archive")
+def t_evidence_missing():
+    w = stage("fresh"); os.remove(ev(w, "aws_ec2/ec2_release_state.json"))
+    rc, out = w.script("preflight_v16.sh"); refused(rc, out, "missing")
+    rc, out = w.script("archive_v15.sh"); refused(rc, out, "missing"); need(not os.path.lexists(w.A), "archived without the evidence")
 
 
 def main(argv):

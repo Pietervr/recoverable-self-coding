@@ -73,7 +73,7 @@ locks_free
 echo "drain observed: no controller command; both locks free (shared non-blocking probe)"
 cd "$C" || die "no controller clone $C"
 ctl_git
-git_clean "$C"
+ctl_clean
 # path resolution: every controller, gate and archive path a later step reads as authority or writes is its own physical path
 for f in chpc/row19_screen_controls.json chpc/row19_screen_controls_adoption.json chpc/row19_screen_admit.py chpc/row19_screen_status.py \
          chpc/row19_screen_manifest.json chpc/row19_screen_budget.json chpc/row19_partition_e1.json; do src_file "$C/$f" "$CR" "controller authority $f"; done

@@ -153,10 +153,66 @@ lock_free() {   # a checked non-blocking SHARED flock on the controllers' own lo
   case $rc in 0) return 0;; 75) die "lock held: $L";; *) die "no reliable lock probe for $L (python fcntl probe exited $rc)";; esac
 }
 locks_free() { local L; for L in $LOCKS; do lock_free "$L"; done; }
-git_clean() {   # git_clean <dir>: a SUCCESSFUL git status with nothing to report
+git_clean() {   # git_clean <dir>: a SUCCESSFUL git status with nothing to report (strict: no allowlist; never the controller clone)
   local st
   st=$(cd -- "$1" && git status --porcelain) || die "git status failed in $1"
   [ -z "$st" ] || { printf '%s\n' "$st" | head -5; die "$1 has uncommitted changes (above)"; }
+}
+# THE CONTROLLER CLONE'S PINNED UNTRACKED EVIDENCE (live preflight 17 Oct 2026): rsc_screen_ctl (HEAD 4b2dbd4) holds exactly these
+# three UNTRACKED files, written 12 Oct 18:39 by the row-23 bench comparator / EC2 qualification permit. They are evidence copies,
+# not controller authority (nothing in the controller reads them from the clone); they are never deleted, moved, ignored or
+# committed by the migration, and the Lengau archive keeps them as ctl/untracked/<path> (lengau_archive.py UNTRACKED_CTL, the same
+# list). Paths are relative to $C; each must be its own physical path and a regular file with exactly its pinned sha256.
+CTL_EVIDENCE="aws_ec2/ec2_release_state.json 80ba0ac599f617f8c0ee020d75e7c53dcd30c519d783a76dcb6a2f6b9f1a1d39
+aws_ec2/runs/b2/bench_report_attempt_5_20261011T185715Z.json 154511e687f006001888970bd3d65398b6b37c910221378b7f6c3c63fe63e3a4
+reviews/2026-10-11_d1d2_f3_codex_record.md 636f1e77089578a14ee837bf95fe0f86cc84dbc907f8ced918256b69dbb55c1e"
+NL='
+'
+in_lines() { case "$NL$2$NL" in *"$NL$1$NL"*) return 0;; esac; return 1; }   # in_lines <line> <newline-separated list>
+ctl_evidence_paths() { printf '%s\n' "$CTL_EVIDENCE" | awk '{print $1}'; }
+not_evidence() {   # not_evidence <path relative to $C> <what>: a migration write/commit path is never a pinned evidence file
+  in_lines "$1" "$(ctl_evidence_paths)" && die "$2: $1 is a pinned untracked evidence file of the controller clone; it is never written or committed"
+  return 0
+}
+ctl_clean() {   # the controller clone is clean: no tracked modification, staged change or deletion, and every untracked entry
+                # (--untracked-files=all) is one of the pinned evidence files, a regular file with its exact sha256; any other
+                # untracked file, a hash mismatch, a symlink, an evidence path that is a directory, or an extra entry inside a
+                # wholly untracked directory on the path to an evidence file refuses. A failed observation refuses.
+  local pre st line p s f x bad="" allowed anc="" d tr ls e
+  pre=${C#"$CR"/}; [ "$pre" != "$C" ] && clean_rel "$pre" || die "the controller work area $C is not beneath $CR"
+  allowed=$(ctl_evidence_paths | sed "s|^|$pre/|") || die "cannot list the pinned controller evidence"
+  st=$(cd -- "$CR" && git status --porcelain --untracked-files=all) || die "git status failed in $CR"
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    case $line in
+      "?? "*) p=${line#"?? "}; in_lines "$p" "$allowed" || bad="$bad$line$NL";;
+      *) bad="$bad$line$NL";;
+    esac
+  done <<<"$st"
+  [ -z "$bad" ] || { printf '%s' "$bad" | head -5; die "$C has uncommitted changes or untracked files outside the pinned evidence allowlist (above)"; }
+  while read -r p s; do
+    [ -n "$p" ] || continue
+    clean_rel "$p" && [ ${#s} = 64 ] || die "malformed pinned evidence entry $p"
+    f=$C/$p
+    if [ -e "$f" ] || [ -L "$f" ]; then
+      src_file "$f" "$CR" "pinned untracked evidence $p"
+      x=$(h "$f") || die "pinned untracked evidence $p: cannot hash $f"
+      [ "$x" = "$s" ] || die "pinned untracked evidence $p is ${x:0:16}, not its pinned ${s:0:16}"
+    fi
+    d=${p%/*}; while [ "$d" != "$p" ] && [ -n "$d" ]; do in_lines "$pre/$d" "$anc" || anc="$anc$pre/$d$NL"; p=$d; d=${d%/*}; done
+  done <<<"$CTL_EVIDENCE"
+  while IFS= read -r d; do   # an ancestor directory holding NO tracked file: everything in it must be evidence or on its path
+    [ -n "$d" ] || continue
+    [ -e "$CR/$d" ] || [ -L "$CR/$d" ] || continue
+    tr=$(cd -- "$CR" && git ls-files -- "$d") || die "git ls-files failed in $CR"
+    [ -z "$tr" ] || continue
+    dst_dir "$CR/$d" "$CR" "untracked directory $d on the path to pinned evidence"
+    ls=$(cd -- "$CR" && find "$d" -mindepth 1) || die "cannot list the untracked directory $CR/$d"
+    while IFS= read -r e; do
+      [ -n "$e" ] || continue
+      in_lines "$e" "$allowed" || in_lines "$e" "$anc" || die "the untracked directory $d holds $e, which is neither pinned evidence nor on its path; refusing"
+    done <<<"$ls"
+  done <<<"$anc"
 }
 sci_manifest() {   # the complete digest list of the job clone's fixed science inventory on stdout, or failure
   local f out names

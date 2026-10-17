@@ -58,6 +58,7 @@ dests() {   # containment of every payload destination and its temporary sibling
   while [ $i -le $NP ]; do
     eval "f=\$P${i}_PATH"
     clean_rel "$f" || die "payload path $f is not a plain relative path"
+    not_evidence "$f" "payload $i"
     dst_file "$C/$f" "$CR" "payload $i destination"
     dst_absent "$C/$f.v16tmp" "$CR" "payload $i temporary sibling"
     i=$((i + 1))
@@ -90,7 +91,7 @@ locks_free
 archive_py verify "$T" || die "the v15 archive does not verify as complete (archive_v15.sh first; never deploy without it)"
 lsums=$(archive_py verify "$T" --get sha256sums) || die "archive verify failed"
 [ "$lsums" = "$LSUMS" ] || die "the Lengau archive (${lsums:0:16}) is not the one the Mac archive names (${LSUMS:0:16})"
-git_clean "$C"
+ctl_clean
 TMPD=$(mktemp -d) || die "mktemp failed"
 same=1; i=1; : > "$TMPD/payload.sums" || die "mktemp failed"
 while [ $i -le $NP ]; do
@@ -176,6 +177,17 @@ else
   git -c user.name=R052 -c user.email=r052@local commit -q -m 'screen controllers: lineage version 16 (admission + status REVISION 16 and the designated-coordinates declaration: the resized screen S x 0..79; RSC 3686a11, review f6896e1); every other controller byte and the epoch-1 partition unchanged' -- $LIST \
     || die "git commit failed (the clone is now dirty: recover explicitly)"
   nhead=$(git rev-parse --verify HEAD) || die "git rev-parse HEAD failed after the commit"
+  # the commit holds payload paths only (an unchanged payload file is not in it): never a pinned untracked evidence file, which
+  # stays untracked exactly as archived
+  cpaths=$(git diff-tree --no-commit-id --name-only -r "$nhead") || die "git diff-tree failed after the commit"
+  [ -n "$cpaths" ] || die "the deployment commit records no path"
+  plist=$(for f in $LIST; do printf '%s/%s\n' "${C#"$CR"/}" "$f"; done)
+  while IFS= read -r f; do
+    in_lines "$f" "$plist" || { printf '%s\n' "$cpaths"; die "the deployment commit holds $f, which is not a payload path (above)"; }
+  done <<<"$cpaths"
+  for f in $(ctl_evidence_paths); do
+    ! git ls-files --error-unmatch -- "$f" >/dev/null 2>&1 || die "pinned untracked evidence $f became tracked"
+  done
   after=$(sci_manifest) || { printf '%s\n' "$after"; record_fail incomplete "$after"; die "the job-clone science after-proof is incomplete; completion refused (failure kept in $PROOF)"; }
   [ "$before" = "$after" ] || { record_fail changed "$after"; die "science bytes changed during the deployment; completion refused (failure kept in $PROOF)"; }
   put "$PROOF" DONE "$(printf 'schema %s\nctl_head_before %s\nctl_head_after %s\npayload %s\nscience_before %s\nscience_after %s' "$PSCHEMA" "$head" "$nhead" "$paysha" "$sb" "$(printf '%s\n' "$after" | sha256sum | cut -c1-64)")"
@@ -183,7 +195,7 @@ else
   echo "science bytes UNCHANGED ($(printf '%s\n' "$after" | wc -l | tr -d ' ') files, complete before and after manifests identical; deploy proof DONE at ctl ${nhead:0:12})"
 fi
 rm -rf "$TMPD"
-git_clean "$C"
+ctl_clean
 git log -1 --format='ctl %h' || die "git log failed"
 for f in $ALL; do src_file "$C/$f" "$CR" "deployed pinned file $f"; done
 echo "== remote"; sha256sum -- $ALL | sort -k2 || die "remote digest of the pinned files failed"

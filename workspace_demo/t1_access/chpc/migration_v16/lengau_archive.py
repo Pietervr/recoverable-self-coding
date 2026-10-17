@@ -9,6 +9,8 @@ completion certificate. lengau.sh embeds this file in every Lengau script and re
 The archive (all files read-only):
     ctl/HEAD.txt                       the controller clone's HEAD (40 hex)
     ctl/<repo path>                    every file the adopted v15 entry pins, plus REQUIRED_CTL below, from rsc_screen_ctl
+    ctl/untracked/<path>               the three pinned UNTRACKED evidence files of rsc_screen_ctl (UNTRACKED_CTL below, the
+                                       same allowlist as remote_lib.sh CTL_EVIDENCE), each with exactly its pinned sha256
     gate/...                           the WHOLE gate (regular files only), listed by INVENTORY.gate as captured from the source
     jobs/row19_screen_refit_*          the refit job scripts, listed by INVENTORY.jobs (at least one)
     ledger/row19_screen_campaign_budget.json   the campaign ledger (a reference copy)
@@ -30,6 +32,13 @@ REQUIRED_CTL = {"chpc/row19_screen_controls.json": V15_CONTROLS, "chpc/row19_scr
                 "chpc/row19_screen_admit.py": V15_ADMIT, "chpc/row19_screen_status.py": V15_STATUS,
                 "chpc/row19_screen_budget.json": None, "chpc/row19_screen_manifest.json": None,
                 "chpc/row22_bank_status.py": None, "chpc/row22_bank_submit.py": None}
+# the controller clone's pinned untracked evidence (live preflight 17 Oct 2026; row-23 bench comparator / EC2 qualification permit
+# copies written 12 Oct 18:39, not controller authority): mandatory archive members, each with exactly its pinned digest
+UNTRACKED_CTL = {"aws_ec2/ec2_release_state.json": "80ba0ac599f617f8c0ee020d75e7c53dcd30c519d783a76dcb6a2f6b9f1a1d39",
+                 "aws_ec2/runs/b2/bench_report_attempt_5_20261011T185715Z.json":
+                     "154511e687f006001888970bd3d65398b6b37c910221378b7f6c3c63fe63e3a4",
+                 "reviews/2026-10-11_d1d2_f3_codex_record.md": "636f1e77089578a14ee837bf95fe0f86cc84dbc907f8ced918256b69dbb55c1e"}
+UNTRACKED_PREFIX = "untracked/"
 TOP = {"COMPLETE", "SHA256SUMS", "INVENTORY.gate", "INVENTORY.jobs", "ctl", "gate", "jobs", "ledger"}
 LEDGER = "ledger/row19_screen_campaign_budget.json"
 LINE = re.compile(r"^([0-9a-f]{64})  \./([A-Za-z0-9._+=@,:~-]+(?:/[A-Za-z0-9._+=@,:~-]+)*)$")
@@ -97,7 +106,8 @@ def ctl_inventory(controls_bytes):
         raise Refuse("the adopted controls' latest entry is not version 15 with pinned files")
     inv = dict(REQUIRED_CTL)
     for f, hsh in v["files"].items():
-        if not isinstance(hsh, str) or not re.match(r"^[0-9a-f]{64}$", hsh) or f.startswith("/") or ".." in f.split("/"):
+        if not isinstance(hsh, str) or not re.match(r"^[0-9a-f]{64}$", hsh) or f.startswith("/") or ".." in f.split("/") \
+                or f.startswith(UNTRACKED_PREFIX) or f in UNTRACKED_CTL:
             raise Refuse("malformed v15 pin %r" % f)
         if inv.get(f) not in (None, hsh):
             raise Refuse("v15 pin for %s disagrees with the adopted identity" % f)
@@ -128,6 +138,8 @@ def sources(T):
     controls = read_regular(os.path.join(P["C"], "chpc/row19_screen_controls.json"))
     for f, want in sorted(ctl_inventory(controls).items()):
         mem.append(("ctl/" + f, os.path.join(P["C"], f), want))
+    for f, want in sorted(UNTRACKED_CTL.items()):
+        mem.append(("ctl/" + UNTRACKED_PREFIX + f, os.path.join(P["C"], f), want))
     gate = walk_files(P["G"], "the gate")
     for need in ("qualified_refit_job1.json", "review_refit.json"):
         if need not in gate:
@@ -154,8 +166,8 @@ def inventory(T):
         if want and sha_bytes(b) != want:
             raise Refuse("%s is not its v15 identity %s" % (src, want[:8]))
         n += 1
-    print("archive sources complete: %d files (ctl %d, gate %d, jobs %d, ledger 1)" % (
-        n, sum(a.startswith("ctl/") for a, _, _ in mem), sum(a.startswith("gate/") for a, _, _ in mem),
+    print("archive sources complete: %d files (ctl %d incl. %d pinned untracked evidence, gate %d, jobs %d, ledger 1)" % (
+        n, sum(a.startswith("ctl/") for a, _, _ in mem), len(UNTRACKED_CTL), sum(a.startswith("gate/") for a, _, _ in mem),
         sum(a.startswith("jobs/") for a, _, _ in mem)))
 
 
@@ -215,7 +227,7 @@ def verify(A):
         raise Refuse("ctl/HEAD.txt is not the certified controller HEAD")
     # the controller inventory, exactly
     inv = ctl_inventory(read_regular(os.path.join(A, "ctl/chpc/row19_screen_controls.json")))
-    want_ctl = {"ctl/" + f for f in inv} | {"ctl/HEAD.txt"}
+    want_ctl = {"ctl/" + f for f in inv} | {"ctl/HEAD.txt"} | {"ctl/" + UNTRACKED_PREFIX + f for f in UNTRACKED_CTL}
     have_ctl = {f for f in listed if f.startswith("ctl/")}
     if have_ctl != want_ctl:
         raise Refuse("the controller files are not exactly the required set (missing %s, extra %s)" % (
@@ -223,6 +235,9 @@ def verify(A):
     for f, want in inv.items():
         if want and sums["ctl/" + f] != want:
             raise Refuse("ctl/%s is not its v15 identity %s" % (f, want[:8]))
+    for f, want in UNTRACKED_CTL.items():
+        if sums["ctl/" + UNTRACKED_PREFIX + f] != want:
+            raise Refuse("ctl/%s%s is not its pinned untracked evidence identity %s" % (UNTRACKED_PREFIX, f, want[:8]))
     # the variable gate and job contents, against the inventories captured from the sources
     for part in ("gate", "jobs"):
         cap = parse_sums(read_regular(os.path.join(A, "INVENTORY." + part)).decode("utf-8", "replace"), "INVENTORY." + part)
