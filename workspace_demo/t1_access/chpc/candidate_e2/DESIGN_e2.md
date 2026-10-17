@@ -20,7 +20,7 @@ Every live and candidate file is a separate copy. At promotion the files below r
 | File (this folder) | SHA-256 | Role | Promoted to |
 |---|---|---|---|
 | `row19_partition.py` | `eabf50c34be2bad3f92e07370966bcc94162cf12cbcefb326cc07a72d49ac0d8` | REVISION 6: schema `row19-provider-partition-2`, `snapshot` (canonical under the plan lock) / `declare2` / `verify2`, schema-2 activation hand-over | `chpc/` (live `ed6aa177`) |
-| `row19_ec2_ingest.py` | `ad660e6718e3bcf6d8772f84bf9bae9554cf702733d40d84b2dbef9e87220295` | REVISION 6: schema 2, owned-work check, per-slot (partial) ingestion; present status never overridden by the censor label; censor list bound; failure evidence journaled and replayed | `chpc/` (live `b697dc36`) |
+| `row19_ec2_ingest.py` | `6ac144c616d330c83fcd5e665bdc48a9396d962e4aacba03c4775e26950ce108` | REVISION 6/7: schema 2, owned-work check, per-slot (partial) ingestion; present status never overridden by the censor label; a present status file must be a JSON object (a present null/list/scalar is never absence, R7); censor list bound; failure evidence journaled and replayed | `chpc/` (live `b697dc36`) |
 | `row19_ec2_qualify.py` | `efff0f95b83a5c53af9681dd13472760c3ee2de164f2ec302690ae63a0473b2e` | REVISION 4: reads schema 2, REFUSES to certify it with the e1 panel | `chpc/` (live `1fc6b61f`) |
 | `aws_ec2/prod_authority.py` | `fd9e67bb6684c27d960f28ae48a92c52575b49f5dfad473f77fda92b55f0101a` | REVISION 6: replicate-complete allocator capped at 57 per replicate per batch, fleet ceiling 5, epoch-2 allowance, funding against the pinned Q2 basis, crash rule on the shared fatal-signal set, ack with classified unproduced | `aws_ec2/` (live `b8ca02b8`) |
 | `aws_ec2/prod_launch.py` | `143c5221c30daac7d1482275bed70ec5bfa323bdff7733748cecd14dc832fa9b` | REVISION 6: schema-2 production plan inside the qualified concentration, fleet + epoch gate (authenticated basis, funded lifetime) in admission | `aws_ec2/` (live `21b7cf57`) |
@@ -190,8 +190,8 @@ release needs `QUALIFICATION_E2.md`.
 
 ### d. Tests (Mac, pure python; `test_results.txt`)
 
-Counts after the REVISION-6 repair: partition 54/54, authority 77/77, ingest 46/46, rules 35/35 (`test_results.txt`; s.7
-lists the new checks). The lists below describe the original checks.
+Counts after the REVISION-7 repair: partition 54/54, authority 77/77, ingest 63/63, rules 35/35 (`test_results.txt`; s.7
+lists the REVISION-6 checks; REVISION 7 adds 17 present-status checks to `test_e2_ingest.py`). The lists below describe the original checks.
 
 - `test_e2_partition.py` **54/54**:
   - regeneration and determinism;

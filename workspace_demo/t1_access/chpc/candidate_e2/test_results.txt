@@ -1,9 +1,9 @@
-# chpc/candidate_e2 test results (2026-10-17 18:57:50Z, Mac, python3 3.14.6; run from workspace_demo/t1_access)
+# chpc/candidate_e2 test results (2026-10-17 19:10:50Z, Mac, python3 3.14.6; run from workspace_demo/t1_access)
 
 ## New epoch-2 tests
 chpc/candidate_e2/test_e2_partition.py: rc 0, 54 passed, 0 failed
 chpc/candidate_e2/test_e2_authority.py: rc 0, 77 passed, 0 failed
-chpc/candidate_e2/test_e2_ingest.py: rc 0, 46 passed, 0 failed
+chpc/candidate_e2/test_e2_ingest.py: rc 0, 63 passed, 0 failed
 chpc/candidate_e2/test_e2_rules.py: rc 0, 35 passed, 0 failed
 
 ## Regression: existing tests, unmodified, LIVE modules vs CANDIDATE modules substituted (regress/run_regress.py)
@@ -26,3 +26,9 @@ Pre-existing failures (identical on live and candidate, not caused by this packa
 REVISION 6 (Codex review reviews/2026-10-17_e2_p80r_codex_review.md A1-A4): new checks are in test_e2_ingest.py (A1, A2
 through ingestion + ACK + allocation, replay provenance), test_e2_authority.py (A2, A3 replay/re-cost, A4 basis), and the new
 test_e2_rules.py (shared classification, R4', snapshot plan lock).
+
+REVISION 7 (Codex re-review reviews/2026-10-17_e2_p80_codex_rereview.md A, P2): test_e2_ingest.py adds two genuine-absence
+positive controls (fatal 139 and censored, status file absent: unproduced) and 15 present, checksummed status files that are
+not JSON objects (null, [], 75, "left", unreadable JSON) under outcomes 139, censored and 75: every one HOLDS with nothing
+published. The two null cases (139 and censored) fail against the c716399 ingest bytes (Codex's probe reproduced) and pass now.
+Regression unchanged: identical live/candidate results as above.

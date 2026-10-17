@@ -98,7 +98,7 @@ def put(p, obj):
 
 
 def build(case, unprod=None, leave=False, work=None, cls="production", outcome_override=None, status_for=None,
-          aid=AID, key=KEY, seq=SEQ, censored_names=None, list_censored=True):
+          aid=AID, key=KEY, seq=SEQ, censored_names=None, list_censored=True, raw_status=None):
     """A sandbox screen root under an ACTIVATED schema-2 epoch 2 (predecessor e1 activated there too) and one EC2 bundle.
     env/censored.txt is the producer's censor list (prod_userdata.sh): by default exactly the censored slots."""
     unprod = unprod or {}
@@ -134,6 +134,9 @@ def build(case, unprod=None, leave=False, work=None, cls="production", outcome_o
             if sl in (status_for or {}):                                 # a non-completion status of that slot
                 st = dict(STATUS0, job=AID, slot=sl, rep=r, ident=f"ident{r}", indices=[i], new=[], left=[i]); st.update(status_for[sl])
                 put(os.path.join(broot, "status", f"job{AID}.slot{sl}.json"), st)
+            elif sl in (raw_status or {}):                               # REVISION 7: present status bytes verbatim (null, list, ...)
+                sp_ = os.path.join(broot, "status", f"job{AID}.slot{sl}.json"); os.makedirs(os.path.dirname(sp_), exist_ok=True)
+                open(sp_, "w").write(raw_status[sl])
             continue
         put(SH.record_path(broot, r, i), rec(r, i)); put(SH.timing_path(broot, r, i), timing(r, i, AID, sl))
         put(os.path.join(broot, "status", f"job{AID}.slot{sl}.json"), dict(STATUS0, job=AID, slot=sl, rep=r, ident=f"ident{r}", indices=[i], new=[i]))
@@ -269,6 +272,20 @@ c = build("a1_cens_extra", unprod={1: 139}, censored_names=["w_slot1"]); rc = in
 check("A1: env/censored.txt naming a slot whose outcome is an exit code HOLDS", rc == 3 and entry(c)[0] is None)
 c = build("a1_cens_unlisted", unprod={1: CENS}, list_censored=False); rc = ingest(c)
 check("A1: env/censored.txt not frozen in BUNDLE_SHA256SUMS HOLDS", rc == 3 and entry(c)[0] is None)
+
+# 5b REVISION 7 (Codex re-review A, P2): a PRESENT status that is not a JSON object is never "no status"
+c = build("r7_absent_139", unprod={1: 139}); rc = ingest(c); e, _ = entry(c)
+check("R7: fatal 139 with the status file actually absent is unproduced (positive control)",
+      rc == 0 and e["unproduced"] == {"25/1": {"slot": 1, "outcome": 139}} and e["failure_evidence"]["unproduced_status"] == {"1": None})
+c = build("r7_absent_cens", unprod={1: CENS}); rc = ingest(c); e, _ = entry(c)
+check("R7: censored with the status file actually absent is unproduced (positive control)",
+      rc == 0 and e["unproduced"] == {"25/1": {"slot": 1, "outcome": CENS}})
+for lab, raw in (("null", "null\n"), ("list", "[]\n"), ("scalar", "75\n"), ("string", '"left"\n'), ("badjson", "{not json\n")):
+    for oname, ocv in (("139", 139), ("cens", CENS), ("75", 75)):
+        c = build(f"r7_{lab}_{oname}", unprod={1: ocv}, raw_status={1: raw}); rc = ingest(c)
+        listed = f"root/status/job{AID}.slot1.json" in open(os.path.join(c["b"], "BUNDLE_SHA256SUMS")).read()
+        check(f"R7: outcome {oname} with a present, checksummed status {raw.strip()!r} HOLDS; nothing published",
+              listed and rc == 3 and entry(c)[0] is None and not published(c, 24, 1) and not published(c, 25, 1))
 
 # 6 REVISION 6 / A2: one fatal-signal set for ingestion, ack and the crash rule (133, 136, 138 through all three)
 PA2 = load_mod("prod_authority", os.path.join(CAND, "aws_ec2", "prod_authority.py"))

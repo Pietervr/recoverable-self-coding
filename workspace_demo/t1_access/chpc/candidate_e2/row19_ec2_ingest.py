@@ -85,7 +85,13 @@ REVISION 6 - CANDIDATE, not adopted (Codex review reviews/2026-10-17_e2_p80r_cod
              env/censored.txt and every unproduced slot's status bytes or their absence) and the computed `unproduced` map;
              the completion of an 'ingesting' entry and every replay of an 'ingested' one recompute it from the supplied
              bundle and HOLD (ec2/HOLD) on any difference. The replay re-validates the fence at every unproduced coordinate
-             (>= this sequence) and never requires that coordinate to stay absent: a later attempt may legitimately complete it."""
+             (>= this sequence) and never requires that coordinate to stay absent: a later attempt may legitimately complete it.
+
+REVISION 7 - CANDIDATE, not adopted (Codex re-review reviews/2026-10-17_e2_p80_codex_rereview.md A, P2). Status presence is
+a filesystem fact kept apart from the parsed value: a PRESENT status file of an unproduced slot must parse to a JSON object
+before its outcome is classified (a present null, list or scalar HOLDS, as does unreadable JSON); the fatal-signal and
+censored "no status" kinds require the file to be actually absent; a present status under RESUME or censoring must pass
+row19_ec2_e2rules.left_status_problem as before."""
 import os, sys, json, glob, math, time, fcntl, hashlib, argparse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -259,14 +265,20 @@ def unproduced_problems(bundle, att, plan, unprod, man):
             out.append(f"unproduced slot {sl} ({r}, {i}, outcome {oc!r}) left output {[os.path.relpath(f, root) for f in left]}: ambiguous")
             continue
         sp = os.path.join(root, "status", f"job{att['attempt_id']}.slot{sl}.json")
-        try:
-            st = json.load(open(sp)) if os.path.exists(sp) else None
-        except Exception:
-            out.append(f"unproduced slot {sl} ({r}, {i}): its status is unreadable"); continue
+        has_status = os.path.lexists(sp)                                   # REVISION 7: presence is a filesystem fact, not a JSON value
+        st = None
+        if has_status:
+            try:
+                st = json.load(open(sp))
+            except Exception:
+                out.append(f"unproduced slot {sl} ({r}, {i}): its status is unreadable"); continue
+            if not isinstance(st, dict):                                   # a present null/list/scalar is unknown evidence, never absence
+                out.append(f"unproduced slot {sl} ({r}, {i}, outcome {oc!r}): its present status is not a JSON object "
+                           f"({type(st).__name__}): held for review"); continue
         k = E2R.kind(oc)
-        if k == "fatal_signal" and st is None:
-            continue                                                       # (a) crashed worker, no status
-        if k in ("resume", "censored") and st is not None:                 # (b)/(c) with a status: never overridden by the label
+        if k == "fatal_signal" and not has_status:
+            continue                                                       # (a) crashed worker, status file actually absent
+        if k in ("resume", "censored") and has_status:                     # (b)/(c) with a status: never overridden by the label
             try:
                 ident = SH.task(man, r)["ident"]
             except Exception as e:
@@ -276,9 +288,9 @@ def unproduced_problems(bundle, att, plan, unprod, man):
                 continue
             out.append(f"unproduced slot {sl} ({r}, {i}, outcome {oc!r}): its present status is not an orderly LEFT status ({why}): held for review")
             continue
-        if k == "censored" and st is None:
-            continue                                                       # (c) still running at the upload deadline, no status
-        out.append(f"unproduced slot {sl} ({r}, {i}): outcome {oc!r} with {'a status' if st is not None else 'no status'} is not a "
+        if k == "censored" and not has_status:
+            continue                                                       # (c) still running at the upload deadline, status file absent
+        out.append(f"unproduced slot {sl} ({r}, {i}): outcome {oc!r} with {'a status' if has_status else 'no status'} is not a "
                    "qualifying non-completion (fatal signal without status, RESUME 75 with an orderly left status, censored): held for review")
     n_work = sum(1 for sl in unprod if by[sl]["role"] == "work")
     if n_work > MAX_UNPRODUCED_WORK:
