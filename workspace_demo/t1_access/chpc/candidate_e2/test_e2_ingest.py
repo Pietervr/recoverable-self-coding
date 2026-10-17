@@ -71,6 +71,7 @@ SH = SHs
 IG.ACTIVATION_MODE = "sandbox"
 PROD = json.load(open(os.path.join(CHPC, "row19_screen_manifest.json")))
 DESIG = json.load(open(os.path.join(CHPC, "candidate_v16", "row19_screen_designated.json")))
+CENS = "censored at the upload deadline"
 W = [24, 25, 28, 29]                                           # EC2-designated replicates; index 0 Lengau's, index 1 EC2 work
 AID, KEY, SEQ = "ec2-prod-e2-a1", "prod-e2/1", 9
 STATUS0 = dict(exit=0, reason="", left=[], resumed=[], wall_s=70000.0, cpu_s=69000.0, started=1.0, ended=70001.0, maxrss=2_400_000_000, host="ip-10-0-0-1")
@@ -96,9 +97,12 @@ def put(p, obj):
     os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(obj, open(p, "w"))
 
 
-def build(case, unprod=None, leave=False, work=None, cls="production", outcome_override=None, status_for=None):
-    """A sandbox screen root under an ACTIVATED schema-2 epoch 2 (predecessor e1 activated there too) and one EC2 bundle."""
+def build(case, unprod=None, leave=False, work=None, cls="production", outcome_override=None, status_for=None,
+          aid=AID, key=KEY, seq=SEQ, censored_names=None, list_censored=True):
+    """A sandbox screen root under an ACTIVATED schema-2 epoch 2 (predecessor e1 activated there too) and one EC2 bundle.
+    env/censored.txt is the producer's censor list (prod_userdata.sh): by default exactly the censored slots."""
     unprod = unprod or {}
+    AID, KEY, SEQ = aid, key, seq
     d = os.path.join(scratch, case); shutil.rmtree(d, ignore_errors=True); os.makedirs(d)
     root = os.path.join(d, "root"); camp = os.path.join(d, "camp"); os.makedirs(os.path.join(root, "plans")); os.makedirs(camp)
     for r in W:
@@ -127,9 +131,9 @@ def build(case, unprod=None, leave=False, work=None, cls="production", outcome_o
     for s in slots:
         r, i, sl = s["rep"], s["indices"][0], s["slot"]
         if sl in unprod and not leave:
-            if sl in (status_for or {}):                                 # an orderly non-completion status of that slot
-                put(os.path.join(broot, "status", f"job{AID}.slot{sl}.json"), dict(STATUS0, job=AID, slot=sl, rep=r, ident=f"ident{r}", indices=[i],
-                                                                                   new=[], left=[i], **status_for[sl]))
+            if sl in (status_for or {}):                                 # a non-completion status of that slot
+                st = dict(STATUS0, job=AID, slot=sl, rep=r, ident=f"ident{r}", indices=[i], new=[], left=[i]); st.update(status_for[sl])
+                put(os.path.join(broot, "status", f"job{AID}.slot{sl}.json"), st)
             continue
         put(SH.record_path(broot, r, i), rec(r, i)); put(SH.timing_path(broot, r, i), timing(r, i, AID, sl))
         put(os.path.join(broot, "status", f"job{AID}.slot{sl}.json"), dict(STATUS0, job=AID, slot=sl, rep=r, ident=f"ident{r}", indices=[i], new=[i]))
@@ -146,24 +150,38 @@ def build(case, unprod=None, leave=False, work=None, cls="production", outcome_o
     if outcome_override:
         oc.update(outcome_override)
     put(os.path.join(env, "outcomes.json"), dict(declared=len(slots), outcomes=oc, unresolved_after_kill=[]))
+    names = sorted(k for k, v in oc.items() if v == CENS) if censored_names is None else censored_names
+    open(os.path.join(env, "censored.txt"), "w").write("".join(f"{n}\n" for n in names))
     lines = [f"{sha(p)}  {os.path.relpath(p, b)}\n" for p in sorted(glob.glob(os.path.join(b, "**", "*"), recursive=True))
-             if os.path.isfile(p) and os.path.relpath(p, b) != "env/upload_verify.json"]
+             if os.path.isfile(p) and os.path.relpath(p, b) != "env/upload_verify.json" and (list_censored or os.path.relpath(p, b) != "env/censored.txt")]
     open(os.path.join(b, "BUNDLE_SHA256SUMS"), "w").write("".join(lines))
     att = dict(key=KEY, run="prod-e2", attempt=1, attempt_id=AID, sequence=SEQ, state="reconciled", ingestion="pending", contract="production",
                plan_sha256=sha(os.path.join(env, "plan.json")), coordinates=[list(c) for c in work], sentinels=[[r, 0] for r in W],
                duplicates=[], charged_usd=20.0, **{"class": cls})
     inv = inventory({KEY: att}, 3); ip = os.path.join(d, "inventory.json"); json.dump(inv, open(ip, "w"))
     ES.install_inventory(root, inv, ident)
-    return dict(root=root, mp=mp, pp=pp, opp=opp, ip=ip, b=b, e2=e2)
+    return dict(root=root, mp=mp, pp=pp, opp=opp, ip=ip, b=b, e2=e2, key=KEY, aid=AID, seq=SEQ, plan_sha256=att["plan_sha256"], work=work)
 
 
 def ingest(c):
-    return IG.main(["--manifest", c["mp"], "--partition", c["pp"], "--opmanifest", c["opp"], "--authority", c["ip"], "--attempt-key", KEY, "--bundle", c["b"]])
+    return IG.main(["--manifest", c["mp"], "--partition", c["pp"], "--opmanifest", c["opp"], "--authority", c["ip"], "--attempt-key", c["key"], "--bundle", c["b"]])
 
 
 def entry(c):
     p = os.path.join(c["root"], "ec2", "register.json")
-    return (json.load(open(p))["attempts"].get(AID) if os.path.exists(p) else None), (json.load(open(p)) if os.path.exists(p) else None)
+    return (json.load(open(p))["attempts"].get(c["aid"]) if os.path.exists(p) else None), (json.load(open(p)) if os.path.exists(p) else None)
+
+
+def resum(c):
+    """Re-list the bundle's checksums after a modification (as a producer-side rewrite would)."""
+    b = c["b"]
+    lines = [f"{sha(p)}  {os.path.relpath(p, b)}\n" for p in sorted(glob.glob(os.path.join(b, "**", "*"), recursive=True))
+             if os.path.isfile(p) and os.path.relpath(p, b) not in ("env/upload_verify.json", "BUNDLE_SHA256SUMS")]
+    open(os.path.join(b, "BUNDLE_SHA256SUMS"), "w").write("".join(lines))
+
+
+def held_file(c):
+    return os.path.exists(ES.paths(c["root"])["hold"])
 
 
 def published(c, r, i):
@@ -204,7 +222,7 @@ check("a deadline-censored worker without output is unproduced too", rc == 0 and
 c = build("sentinel1", unprod={5: 134}); rc = ingest(c); e, _ = entry(c)
 check("one sentinel lost (3 of 4 compared equal) still publishes the 4 work coordinates", rc == 0 and len(e["compared_equal"]) == 3 and len(e["coordinates"]) == 4)
 
-c = build("resume", unprod={3: 75}, status_for={3: dict(exit=75, reason="deadline: the next refit cannot finish")}); rc = ingest(c); e, _ = entry(c)
+c = build("resume", unprod={3: 75}, status_for={3: dict(exit=75, reason="deadline: 120 s left, 900 s needed for the next resample")}); rc = ingest(c); e, _ = entry(c)
 check("the worker's own RESUME exit 75 with a status leaving the coordinate is unproduced (deadline)", rc == 0 and e["unproduced"] == {"29/1": {"slot": 3, "outcome": 75}})
 
 # 3 holds
@@ -226,6 +244,88 @@ check("more unproduced work slots than the bound HOLDS for a resource review", r
 IG.MAX_UNPRODUCED_WORK = 7
 c = build("badstring", outcome_override={"w_slot0": "killed somehow"}); rc = ingest(c)
 check("an outcome that is neither an integer nor the censored marker HOLDS", rc == 3 and entry(c)[0] is None)
+
+# 5 REVISION 6 / A1: a present status is never overridden by the censor marker; the marker is producer evidence
+MEMHELD = dict(exit=4, reason="memory: maxrss above the stop", maxrss=1_000_000_000_000)
+c = build("a1_cens_exit4", unprod={1: CENS}, status_for={1: MEMHELD}); rc = ingest(c)
+check("A1: censored outcome + a present LEFT status with exit 4 / memory reason / maxrss 1e12 HOLDS (Codex's probe)", rc == 3 and entry(c)[0] is None and not published(c, 24, 1))
+c = build("a1_cens_ident", unprod={1: CENS}, status_for={1: dict(exit=75, reason="stop requested (STOP file)", ident="ident999")}); rc = ingest(c)
+check("A1: censored + an orderly-looking status of the WRONG task identity HOLDS", rc == 3 and entry(c)[0] is None)
+c = build("a1_cens_left", unprod={1: CENS}, status_for={1: dict(exit=75, reason="stop requested (STOP file)", left=[])}); rc = ingest(c)
+check("A1: censored + malformed LEFT accounting (left [] for an unproduced index) HOLDS", rc == 3 and entry(c)[0] is None)
+c = build("a1_cens_maxrss", unprod={1: CENS}, status_for={1: dict(exit=75, reason="stop requested (STOP file)", maxrss=10 ** 12)}); rc = ingest(c)
+check("A1: censored + an orderly status whose maxrss is above the memory stop HOLDS", rc == 3 and entry(c)[0] is None)
+c = build("a1_cens_ok", unprod={1: CENS}, status_for={1: dict(exit=75, reason="deadline: 30 s left, 900 s needed for the next resample")}); rc = ingest(c); e, _ = entry(c)
+check("censored + the worker's own orderly deadline LEFT status is unproduced (allowed)", rc == 0 and e["unproduced"] == {"25/1": {"slot": 1, "outcome": CENS}})
+c = build("a1_resume_reason", unprod={1: 75}, status_for={1: dict(exit=75, reason="exception: RuntimeError: x")}); rc = ingest(c)
+check("A1: RESUME 75 whose reason is not an orderly deadline/STOP exit HOLDS", rc == 3 and entry(c)[0] is None)
+c = build("a1_resume_stop", unprod={1: 75}, status_for={1: dict(exit=75, reason="stop requested (STOP file)")}); rc = ingest(c)
+check("RESUME 75 with the STOP reason and full accounting is unproduced (allowed)", rc == 0)
+c = build("a1_resume_exit4", unprod={1: 75}, status_for={1: dict(exit=4, reason="stop requested (STOP file)")}); rc = ingest(c)
+check("A1: outcome 75 with a status that says exit 4 HOLDS (contradictory)", rc == 3 and entry(c)[0] is None)
+c = build("a1_cens_unbound", unprod={1: CENS}, censored_names=[]); rc = ingest(c)
+check("A1: a censored outcome that env/censored.txt does not name HOLDS (the label must be the producer's)", rc == 3 and entry(c)[0] is None)
+c = build("a1_cens_extra", unprod={1: 139}, censored_names=["w_slot1"]); rc = ingest(c)
+check("A1: env/censored.txt naming a slot whose outcome is an exit code HOLDS", rc == 3 and entry(c)[0] is None)
+c = build("a1_cens_unlisted", unprod={1: CENS}, list_censored=False); rc = ingest(c)
+check("A1: env/censored.txt not frozen in BUNDLE_SHA256SUMS HOLDS", rc == 3 and entry(c)[0] is None)
+
+# 6 REVISION 6 / A2: one fatal-signal set for ingestion, ack and the crash rule (133, 136, 138 through all three)
+PA2 = load_mod("prod_authority", os.path.join(CAND, "aws_ec2", "prod_authority.py"))
+import bench_launch as L
+for code in (133, 136, 138):
+    TMP = tempfile.mkdtemp(); L.HERE = PA2.HERE = TMP
+    atts = []
+    cs, rcs = [], []
+    for n in (1, 2):                                                   # each sandbox is ingested right after it is built
+        cs.append(build(f"a2_{code}_{n}", unprod={1: code}, aid=f"ec2-prod-e2-a{n}", key=f"prod-e2/{n}", seq=SEQ + n)); rcs.append(ingest(cs[-1]))
+    for n, cx in zip((1, 2), cs):
+        atts.append(dict(attempt=n, sequence=cx["seq"], attempt_id=cx["aid"], state="reconciled", ingestion="pending", contract="production",
+                         plan_sha256=cx["plan_sha256"], coordinates=[list(w) for w in cx["work"]], lifetime_s=79200, max_price=1.2,
+                         anc_h=PA2.ANC_H_PROD, s3_fixed=PA2.S3_FIXED_PROD, type="c7a.24xlarge", terminal=dict(compute_s=3600, ancillary_s=3600)))
+    L.save("prod-e2", {"run": "prod-e2", "attempts": atts})
+    acks = [PA2.ack("prod-e2", n, os.path.join(cx["root"], "ec2", "register.json")) for n, cx in zip((1, 2), cs)]
+    leds = PA2.ledgers(); ex = PA2.ec2_crash_excluded(leds)
+    check(f"A2: exit {code} without a status is ingested as unproduced (rc 0) in both attempts and both Mac ACKs succeed",
+          rcs == [0, 0] and acks == [True, True] and all(entry(cx)[0]["unproduced"] == {"25/1": {"slot": 1, "outcome": code}} for cx in cs))
+    check(f"A2: two acknowledged same-envelope exit-{code} crashes exclude (25, 1); allocation never issues a third attempt",
+          ex == {(25, 1)} and (25, 1) not in PA2.allocate(cs[0]["e2"], leds, set(), 72, ex) and (24, 1) in PA2.allocate(cs[0]["e2"], leds, set(), 72, ex))
+    shutil.rmtree(TMP)
+import row19_ec2_e2rules as E2R
+check("A2: ingestion's admitted crash set IS the crash counter's set (one shared module, 129..159)",
+      PA2.FATAL_EXITS is E2R.FATAL_SIGNAL_EXITS and IG.E2R is E2R and all(E2R.counts_toward_crash_rule(x) for x in range(129, 160))
+      and not E2R.counts_toward_crash_rule(75) and not E2R.counts_toward_crash_rule(CENS) and not E2R.counts_toward_crash_rule(4))
+
+# 7 replay provenance (follow-up P3): frozen failure evidence compared on completion and on replay; the fence, not absence
+c = build("rp_change", unprod={1: 133}); rc = ingest(c); e, _ = entry(c)
+check("the schema-2 entry journals its frozen failure evidence (sums, outcomes, censor list, unproduced statuses)",
+      rc == 0 and set(e["failure_evidence"]) == {"bundle_sums_sha256", "outcomes_sha256", "censored_sha256", "unproduced_status", "unproduced"}
+      and e["failure_evidence"]["unproduced_status"] == {"1": None})
+op = os.path.join(c["b"], "env", "outcomes.json"); o = json.load(open(op)); o["outcomes"]["w_slot1"] = CENS; json.dump(o, open(op, "w"))
+open(os.path.join(c["b"], "env", "censored.txt"), "w").write("w_slot1\n"); resum(c)
+rc = ingest(c)
+check("replay after rewriting exit 133 to the censor marker (checksums regenerated) HOLDS and writes ec2/HOLD (Codex's probe)", rc == 3 and held_file(c))
+c = build("rp_later", unprod={1: 139}); ingest(c)
+put(SH.record_path(c["root"], 25, 1), rec(25, 1))                   # a LATER attempt legitimately completed the coordinate
+check("a replay does not require an unproduced coordinate to stay absent (a later attempt may complete it)", ingest(c) == 0)
+rp_ = os.path.join(c["root"], "ec2", "register.json"); R = json.load(open(rp_)); R["fence"]["25/1"] = SEQ - 1; json.dump(R, open(rp_, "w"))
+check("... but it re-validates the fence at the unproduced coordinate (a lowered fence HOLDS)", ingest(c) == 3 and held_file(c))
+c = build("rp_ingesting", unprod={1: 139})
+real_pub, calls = IG.publish_copy, [0]
+def stop_after_first(src, dst, want):
+    calls[0] += 1
+    if calls[0] > 1:
+        raise ValueError("forced stop")
+    return real_pub(src, dst, want)
+IG.publish_copy = stop_after_first; rc1 = ingest(c); IG.publish_copy = real_pub
+st1 = entry(c)[0]["state"]
+op = os.path.join(c["b"], "env", "outcomes.json"); o = json.load(open(op)); o["outcomes"]["w_slot1"] = 137; json.dump(o, open(op, "w")); resum(c)
+rc2 = ingest(c)
+check("an interrupted ('ingesting') entry whose bundle evidence changed (139 -> 137) HOLDS on completion, ec2/HOLD written",
+      rc1 == 3 and st1 == "ingesting" and rc2 == 3 and held_file(c) and entry(c)[0]["state"] == "ingesting")
+c = build("rp_ingesting_ok", unprod={1: 139}); calls[0] = 0
+IG.publish_copy = stop_after_first; ingest(c); IG.publish_copy = real_pub
+check("an interrupted entry with the same bundle completes on replay ('ingested')", ingest(c) == 0 and entry(c)[0]["state"] == "ingested")
 
 # 4 all-or-nothing where it was
 c = build("qualification", unprod={1: 139}, cls="qualification")

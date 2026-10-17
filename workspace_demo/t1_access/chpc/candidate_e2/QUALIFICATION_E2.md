@@ -1,6 +1,7 @@
 # EC2 provider epoch 2: qualification plan for the 76-worker packing (PLAN ONLY, not built, not run)
 
-Written 17 October 2026 (R052, Claude), for Codex's review with the epoch-2 package (`DESIGN_e2.md`). Nothing here has run.
+Written 17 October 2026 (R052, Claude), for Codex's review with the epoch-2 package (`DESIGN_e2.md`); revised the same day
+for Codex's review `reviews/2026-10-17_e2_p80r_codex_review.md` (A3, rulings 7 and 12; `DESIGN_e2.md` s.7). Nothing here has run.
 No instance, certificate, release or spending exists or is authorised by this plan. It is declared before any epoch-2
 result exists, as `aws_ec2/QUALIFICATION_PLAN.md` was for epoch 1.
 
@@ -28,10 +29,14 @@ does not itself release a new partition/packing."
 
 So no RELEASE certificate exists for any packing. Epoch 2 also changes three things that the epoch-1 panel did not test:
 
-1. **Concentration.** The replicate-complete allocator fills each 72-slot batch from at most two replicates. Batch 1 is 69
-   coordinates of rep 24 and 3 of rep 25 (17 Oct replay). Q1's packing spread 48 work coordinates over 24 replicates.
-   Codex's point about the Lengau pilot applies here as well: the mixed-replicate run "does not establish peak behavior when
-   workers concentrate on one replicate".
+1. **Concentration.** Q1's packing spread 48 work coordinates over 24 replicates. Codex's point about the Lengau pilot
+   applies here as well: the mixed-replicate run "does not establish peak behavior when workers concentrate on one
+   replicate". The unconstrained ascending allocator would have put 69 work workers on rep 24 (batch 1) and 70 on reps 69
+   and 70 (batches 27 and 28), above anything this panel runs (Codex A3). Production is therefore LIMITED to the shape this
+   panel qualifies: at most `QUALIFIED_REP_SLOTS = 61` of the 76 workers, work and sentinels together, on any one replicate
+   (`row19_ec2_e2rules.py`; the allocator takes at most 57 work coordinates of one replicate per batch, and the launcher
+   refuses a built plan above 61). The 17 Oct replay still gives 46 batches (45 x 72 + 34) and 3,496 paid slots, so the
+   funding is unchanged; the largest replayed plan concentration with sentinels was 58.
 2. **Indices.** Production now computes low indices 0..79 of the 47 EC2 replicates instead of 198/199. The code path is the
    same, but the coordinates are new.
 3. **Per-slot ingestion.** This is the REVISION 5 contract. A batch with a crashed worker publishes the other slots, and the
@@ -44,8 +49,12 @@ So no RELEASE certificate exists for any packing. Epoch 2 also changes three thi
 | E2Q1 | ONE c7a.24xlarge spot instance, eu-north-1b, B_full, cap 1.20, the production contract (76 workers, 22 h lifetime) | **52 work coordinates**: the first 52 owned coordinates in the production allocation order, all of rep 24 on 17 Oct, OWNED by E2Q1 and published as production after release. **20 Lengau-completed duplicates**: the lowest Lengau-completed designated coordinates of the earliest EC2 replicates in ascending (rep, index) order, on 17 Oct reps 24 (0-8), 25 (0-5, 7, 8) and 28 (0-2); they never own. **4 sentinels**: the token rule, never among the duplicates. | 76 |
 | E2Q2 | conditional, at most one | The identical E2Q1 request (same rule, a new token) used ONLY when E2Q1 ends without a usable bundle for a reason outside the route: spot interruption before the memory gate is met, or RunInstances capacity. A failed or INCONCLUSIVE gate is NOT retried (s.3). | 76 |
 
-The duplicates make the packing concentrated: 61 of the 76 workers are on rep 24, and every duplicate shares a replicate
-with work or other duplicates. They also give float-bit parity against Lengau at that packing. Epoch 2 needs no S shadow:
+The duplicates make the packing concentrated: 61 of the 76 workers are on rep 24 (52 work + 9 duplicates), and every
+duplicate shares a replicate with work or other duplicates. **61 is the qualified concentration** that production is held to
+(A3); the token sentinels can only raise E2Q1's own concentration. The release branch must read the bound E2Q1 plan and
+require `max(rep_concentration) >= QUALIFIED_REP_SLOTS` with all 76 workers occupied; if a fresh snapshot changes rep 24's
+composition, the panel is re-declared before any outcome so that one replicate still carries at least 61 workers, or the
+production cap is lowered to what the panel carries and re-costed. They also give float-bit parity against Lengau at that packing. Epoch 2 needs no S shadow:
 the work coordinates have no reference before release, and their parity rests on R1' at the same packing and replicates,
 plus four sentinels in every production batch.
 
@@ -66,22 +75,31 @@ against the frozen task.
    - at least 10 chronological samples with all 76 planned workers running;
    - peak host use (MemTotal - MemAvailable) over every sample at most 184 GiB;
    - every produced worker's maxrss under the 4.5 GiB stop;
-   - **at most 3 unproduced slots** of the 76 (a stricter qualification bound than the production `MAX_UNPRODUCED_WORK = 7`),
-     each of a qualifying kind;
+   - **at most 3 non-completed slots of ALL roles** (work, duplicates, sentinels) of the 76, each of a qualifying kind -
+     implemented explicitly as `row19_ec2_e2rules.qualification_unproduced_problem` (ruling 7). This is stricter than the
+     production `MAX_UNPRODUCED_WORK = 7`. Both bounds are prospective operational choices for adoption, not statistically
+     established safe rates; deadline censoring is not successful resource qualification;
    - every crash signature reported with its slot, coordinate and exit.
 5. **R5'** Ingestion recovery on E2Q1's ACTUAL bundle, relocated into a sandbox root under a sandbox schema-2 epoch with its
    predecessor activated:
    - a forced stop after the first published pair, a replay and a second replay, ending `ingested` with every published
      file the register's bytes;
    - plus the per-slot branch. If E2Q1 had a qualifying unproduced slot it is exercised as it is. Otherwise one work slot's
-     output is removed in the sandbox copy only, labelled SYNTHETIC in the certificate. The ingestion must list it unproduced,
-     fence it, and let a sandbox `ack` release it.
+     output is modified in the sandbox copy only. The modification must be a CONSISTENT qualifying non-completion (ruling 12):
+     the slot's outcome becomes a fatal-signal exit and its record, timing and status are all removed, or it becomes the
+     censored marker with `env/censored.txt` naming it and no record/timing. Removing a completed slot's files while its
+     outcome stays 0 and its status says done is not a valid fixture. The bundle checksums are regenerated, and every
+     modified file is labelled SYNTHETIC in the certificate with its original and modified sha256. The sandbox inventory must
+     present the attempt as class production, deliberately, because ingestion's per-slot branch runs only for schema-2
+     production attempts. The ingestion must list the slot unproduced, fence it, journal its failure evidence, and let a
+     sandbox `ack` release it. A replay of the modified bundle against the unmodified journal must HOLD.
 
    Scope stated as in e1: this demonstrates ingestion publication recovery only. It does not demonstrate producer or host
    restart, nor interrupted-transfer recovery.
-6. **R6'** (mechanical, no instance) The five-instance fleet. These are stubbed-AWS tests of five admissions and five
-   reapers on one `prod-e2` run ledger under the run lock, with the fleet ceiling, the cumulative worst-case reservation and
-   the per-attempt inventory generations. The owner reads the spot quota for eu-north-1 (512 vCPU granted; five instances need
+6. **R6'** (mechanical, no instance; still required, ruling 13) The five-instance fleet. These are stubbed-AWS tests that
+   INTERLEAVE five admissions and five reconciliations on one `prod-e2` run ledger under the global and run locks, proving
+   unique sequences, retained sibling changes, immutable monotone inventory generations, cumulative reservations and the
+   refusal of a sixth admission. The current authority checks use helper dictionaries and source wiring, not this. The owner reads the spot quota for eu-north-1 (512 vCPU granted; five instances need
    480). Attempts 2-3 of Q1 hit InsufficientInstanceCapacity in eu-north-1a, so five-way capacity is not a fact.
 
 **Outcomes.** As in epoch 1:
@@ -90,10 +108,12 @@ against the frozen task.
 - RELEASE otherwise. The release names E2Q1, and its 52 work coordinates may then be ingested as production; the duplicates
   stay evidence.
 
-The certificate (schema 3, NOT built) binds the epoch-2 partition `87edfb9e…`, the funding declaration, the operational
-manifest, the exact code set (`RELEASE_CODE` with the candidate REVISION-5 files), the bundles, plans, inventory and replay.
-`prod_authority.release_problem` needs an epoch-2 branch for it (NOT built): coverage 15/20, R4' and R5' as above, and the
-partition pin = the e2 file.
+The certificate (schema 3, NOT built) binds the epoch-2 partition `87edfb9e…`, the exact funding declaration bytes (with
+its pinned Q2 basis, A4), the exact qualified operational manifest and its lifetime, the exact code set (`RELEASE_CODE`
+with the candidate REVISION-6 files, `row19_ec2_e2rules.py` included), the bundles, plans, inventory and replay.
+`prod_authority.release_problem` needs an epoch-2 branch for it (NOT built): coverage 15/20, R4' and R5' as above, the E2Q1
+concentration >= 61, and the partition pin = the e2 file. A failed or INCONCLUSIVE qualification is not retried by
+outcome; the one external-cause retry (E2Q2) stays bounded. No producer-host restart claim follows from R5'.
 
 ## 4. Cost (inside the USD 300 allowance; `prod_authority.epoch2_problem` enforces it)
 
@@ -109,9 +129,9 @@ needs a new decision" (s.3).
 
 ## 5. After RELEASE
 
-Production admits under the five-instance ceiling. Each instance takes 72 work coordinates in replicate-complete order
-plus 4 token sentinels. Any sentinel difference writes `ec2/HOLD` and stops both providers until reviewed. Per-slot
-non-completions return their coordinates to the pool. A coordinate whose worker died by a fatal signal in two acknowledged
-same-envelope attempts is never allocated a third time: it becomes RESCUE-PENDING, with no EC2 rescue route built. Five
+Production admits under the five-instance ceiling. Each instance takes 72 work coordinates in ascending replicate order,
+at most 57 of one replicate, plus 4 token sentinels, never more than 61 workers on one replicate. Any sentinel difference writes `ec2/HOLD` and stops both providers until reviewed. Per-slot
+non-completions return their coordinates to the pool. A coordinate whose worker died by a fatal signal (any exit 129..159) in two
+acknowledged same-envelope attempts is never allocated a third time: it becomes RESCUE-PENDING, with no EC2 rescue route built. Five
 concurrent instances give about 8.87 days of EC2 service (ceil(46/5) x 21.28 h), before capacity, interruption and review
 delays.

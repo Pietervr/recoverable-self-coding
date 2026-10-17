@@ -76,13 +76,30 @@ s.6 item 5; owner 17 Oct 2026: five concurrent instances, ~USD 1,779 forecast + 
                worst case until reconciled - at most USD 300; the whole epoch at most forecast + allowance; the existing
                USD 2,300 envelope and USD 3,000 cap unchanged. A further attempt needs a new owner decision (s.3).
   crash rule   the EC2 analogue of the design's s.4 rule: `ack` records the attempt's unproduced work slots (ingestion
-               REVISION 5) with their exit; a coordinate whose worker died by a fatal signal (exit 128 + SIGILL/ABRT/BUS/KILL/
-               SEGV) in TWO acknowledged attempts of the same instance contract is never allocated a third time
+               REVISION 5) with their exit; a coordinate whose worker died by a fatal signal (REVISION 6: any exit 129..159,
+               the class ingestion admits) in TWO acknowledged attempts of the same instance contract is never allocated a third time
                (RESCUE-PENDING on EC2; no EC2 rescue route is built). Deadline-censored slots and dispositioned attempts
                (spot interruption, no output) do not count; they consume the allowance instead.
   ack          accepts a register entry whose published coordinates plus its `unproduced` coordinates are exactly the
                attempt's owned coordinates; all of them are released (the unproduced ones are fenced on the root).
-  paths        the module resolves t1_access by name; data (runs/, the baseline, the release state) stay in aws_ec2/."""
+  paths        the module resolves t1_access by name; data (runs/, the baseline, the release state) stay in aws_ec2/.
+
+REVISION 6 - CANDIDATE, not adopted (Codex review reviews/2026-10-17_e2_p80r_codex_review.md A2, A3, A4).
+  crash rule   (A2) the fatal-signal class is the ONE set ingestion admits (row19_ec2_e2rules.FATAL_SIGNAL_EXITS, 129..159):
+               every acknowledged same-envelope outcome of that class counts, so SIGTRAP 133, SIGFPE 136 or SIGUSR1 138 can
+               no longer evade the two-crash cap; `ack` refuses an unproduced outcome of no qualifying class. No
+               external-interruption exemption exists (none has evidence of its cause); exit 137 is SIGKILL, never asserted
+               as OOM without host evidence.
+  packing      (A3) production may not concentrate more workers on one replicate than E2Q1 qualifies:
+               E2_QUALIFIED_REP_SLOTS = 61 (row19_ec2_e2rules.QUALIFIED_REP_SLOTS) of 76 across work and sentinels. The
+               schema-2 allocator takes at most E2_WORK_PER_REP = 61 - 4 = 57 coordinates of one replicate per batch (still
+               ascending (rep, index), so replicates complete in order across consecutive batches); the launcher refuses a
+               built plan above 61 on any replicate. Every non-final batch still fills 72 work slots: 46 batches / 3,496
+               paid slots at the 17 Oct replay, so the funding derivation is unchanged.
+  funding      (A4) the Q2 forecast basis is AUTHENTICATED, not taken from the declaration: funding_problem rederives the
+               declaration from the ledger's reconciled Q2 attempt pinned here by key, attempt id, sequence, plan bytes and
+               the digest of its charge fields (E2_Q2_BASIS), with the declared 24 planned / 23 successful counts as code
+               constants. A coherently regenerated declaration on any other basis, or an edited Q2 ledger, refuses."""
 import argparse, contextlib, fcntl, glob, hashlib, json, math, os, sys, time
 
 SRC = os.path.dirname(os.path.abspath(__file__))
@@ -100,6 +117,7 @@ for _p in (HERE, os.path.join(T1, "chpc"), CAND):           # CAND last inserted
 import bench_launch as L
 import row19_ec2_state as ES
 import row19_partition as RP
+import row19_ec2_e2rules as E2R
 
 PROD_ENVELOPE_USD, CUMULATIVE_CAP_USD = 2300.0, 3000.0
 PROD_SHA = "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c"
@@ -127,7 +145,15 @@ E2_MAX_QUAL_INSTANCES = 2
 E2_WORK_PER_BATCH, E2_SENTINELS, E2_WORKERS = 72, 4, 76
 E2_FUNDING = os.path.join(HERE, "e2_funding.json")
 FUNDING_SCHEMA = "t1-ec2-epoch-funding-1"
-FATAL_EXITS = (132, 134, 135, 137, 139)                   # 128 + SIGILL, SIGABRT, SIGBUS, SIGKILL (OOM killer), SIGSEGV
+FATAL_EXITS = E2R.FATAL_SIGNAL_EXITS                      # REVISION 6 (A2): the ingestion's own set, 128 + signal 1..31
+E2_QUALIFIED_REP_SLOTS = E2R.QUALIFIED_REP_SLOTS            # REVISION 6 (A3): E2Q1's declared per-replicate concentration
+E2_WORK_PER_REP = E2_QUALIFIED_REP_SLOTS - E2_SENTINELS     # 57: four sentinels on the same replicate stay inside 61
+# REVISION 6 (A4): the reviewed forecast basis - the reconciled Q2 attempt, pinned; counts declared (R052 log 16 Oct)
+E2_Q2_BASIS = dict(key="qual-Q2/1", attempt_id="ec2-qual-Q2-a1", sequence=7,
+                   plan_sha256="5d45f4e157a31ffd027e9b35c48f2d54f54c6293e58ba0e88a53573295cac5e1",
+                   charge_fields_sha256="46fd6c92a5d052b79df393c62c8be4161560447496b007780bdc40b3fbdf5092")
+E2_Q2_PLANNED, E2_Q2_SUCCESSFUL = 24, 23
+FUNDING_NOTE = "Q2 basis: the pinned reconciled ledger attempt qual-Q2/1 and its declared 23/24 slot outcome; owner decisions 17 Oct 2026"
 MAX_SAME_ENVELOPE_CRASHES = 2
 LOCK = os.path.join(HERE, "runs", ".authority.lock")
 STATE = os.path.join(HERE, "runs", ".authority_state.json")
@@ -279,9 +305,15 @@ def allocate(part, leds, completed, n, excluded=()):
     owned set, so a batch finishes the earliest replicates' remaining coordinates before it starts the next replicate."""
     own = owned(leds); ex = set(map(tuple, excluded))
     if part.get("schema") == RP.SCHEMA2:
-        order = sorted(RP.owned_set(part))
-    else:
-        order = [(r, i) for i in sorted(part["indices"], reverse=True) for r in part["reps"]]
+        out, per = [], {}                                     # REVISION 6 (A3): at most E2_WORK_PER_REP of one replicate per batch
+        for c in sorted(RP.owned_set(part)):
+            if len(out) >= n:
+                break
+            if c in completed or c in own or c in ex or per.get(c[0], 0) >= E2_WORK_PER_REP:
+                continue
+            out.append(c); per[c[0]] = per.get(c[0], 0) + 1
+        return out
+    order = [(r, i) for i in sorted(part["indices"], reverse=True) for r in part["reps"]]
     return [c for c in order if c not in completed and c not in own and c not in ex][:n]
 
 
@@ -306,7 +338,26 @@ def fleet_problem(leds, ceiling=FLEET_CEILING):
     return ""
 
 
-def funding_e2(part, q2_charged_usd, q2_planned, q2_successful, now_note=""):
+def q2_basis(leds):
+    """REVISION 6 (A4): the authenticated forecast basis - the charge of the PINNED reconciled Q2 ledger attempt (E2_Q2_BASIS:
+    key, attempt id, sequence, plan bytes, charge-field digest), rounded to 1e-6. Raises ValueError otherwise."""
+    run, _, n = E2_Q2_BASIS["key"].partition("/")
+    a = next((x for x in (leds.get(run) or {"attempts": []})["attempts"] if str(x.get("attempt")) == n), None)
+    if a is None or a.get("state") != "reconciled":
+        raise ValueError(f"the pinned Q2 basis attempt {E2_Q2_BASIS['key']} is not a reconciled ledger attempt")
+    if (a.get("attempt_id"), a.get("sequence"), a.get("plan_sha256")) != (E2_Q2_BASIS["attempt_id"], E2_Q2_BASIS["sequence"], E2_Q2_BASIS["plan_sha256"]):
+        raise ValueError("the Q2 ledger attempt is not the pinned one (attempt id, sequence, plan bytes)")
+    try:
+        fields = dict(compute_s=a["terminal"]["compute_s"], ancillary_s=a["terminal"]["ancillary_s"], max_price=a["max_price"],
+                      anc_h=a["anc_h"], s3_fixed=a["s3_fixed"])
+    except (KeyError, TypeError) as e:
+        raise ValueError(f"the Q2 ledger attempt's charge fields are malformed ({type(e).__name__})")
+    if ES.sha_bytes(ES.canonical(fields)) != E2_Q2_BASIS["charge_fields_sha256"]:
+        raise ValueError("the Q2 ledger attempt's charge fields are not the pinned reviewed values")
+    return round(charged(a), 6)
+
+
+def funding_e2(part, q2_charged_usd, q2_planned=E2_Q2_PLANNED, q2_successful=E2_Q2_SUCCESSFUL, now_note=FUNDING_NOTE):
     """The epoch-2 funding declaration, derived (never chosen): base batches from the owned count at 72 work + 4 sentinels per
     76-worker instance; the design's Q2-derived forecasts (planned-slot and successful-slot rates, the higher one carried);
     the declared per-batch funding maximum at the 22 h lifetime; the allowance and its counters from the owner constants."""
@@ -318,8 +369,10 @@ def funding_e2(part, q2_charged_usd, q2_planned, q2_successful, now_note=""):
             "owned_coordinates": owned_n, "work_per_batch": E2_WORK_PER_BATCH, "sentinels_per_batch": E2_SENTINELS,
             "workers_per_instance": E2_WORKERS, "base_batches": base, "paid_slots": slots,
             "forecast": dict(fc, carried_usd=max(fc.values()), basis=dict(q2_charged_usd=round(q2_charged_usd, 6), q2_planned=q2_planned,
-                             q2_successful=q2_successful, note="Q2 (c7a.12xlarge, 24 workers) rates extrapolated to another packing: a "
+                             q2_successful=q2_successful, q2_attempt=dict(E2_Q2_BASIS),
+                             note="Q2 (c7a.12xlarge, 24 workers) rates extrapolated to another packing: a "
                              "cost illustration, not a measured production rate (Codex design s.3)")),
+            "qualified_rep_slots": E2_QUALIFIED_REP_SLOTS, "work_per_rep_per_batch": E2_WORK_PER_REP,
             "worst_per_batch_usd": round(worst, 4), "funding_maxima_all_base_usd": round(base * worst, 3),
             "lifetime_s": QUAL_LIFETIME_S, "allowance_usd": E2_ALLOWANCE_USD, "max_extra_production_batches": E2_MAX_EXTRA_PRODUCTION,
             "max_qualification_instances": E2_MAX_QUAL_INSTANCES, "fleet_ceiling": FLEET_CEILING,
@@ -331,17 +384,18 @@ def funding_e2(part, q2_charged_usd, q2_planned, q2_successful, now_note=""):
                     "all within USD 300; a further attempt needs a new decision", "note": now_note}
 
 
-def funding_problem(fund, part):
-    """'' when the funding declaration is exactly derived from this partition and the owner constants."""
+def funding_problem(fund, part, leds=None):
+    """'' when the funding declaration is exactly the derivation from this partition, the owner constants and the
+    AUTHENTICATED Q2 basis (REVISION 6, A4: the pinned reconciled ledger attempt with the declared 24/23 counts) - never from
+    the basis the declaration itself carries."""
     if not isinstance(fund, dict) or fund.get("schema") != FUNDING_SCHEMA:
         return "no epoch-2 funding declaration"
-    b = (fund.get("forecast") or {}).get("basis") or {}
     try:
-        want = funding_e2(part, b["q2_charged_usd"], b["q2_planned"], b["q2_successful"], fund.get("note", ""))
-    except (KeyError, TypeError, ZeroDivisionError) as e:
-        return f"the funding declaration's basis is malformed ({type(e).__name__})"
+        want = funding_e2(part, q2_basis(ledgers() if leds is None else leds))
+    except ValueError as e:
+        return f"the funding basis cannot be authenticated: {e}"
     if ES.canonical(want) != ES.canonical(fund):
-        return "the funding declaration is not the derivation from this partition and the owner constants"
+        return "the funding declaration is not the derivation from this partition, the owner constants and the pinned Q2 basis"
     return ""
 
 
@@ -386,10 +440,11 @@ def ec2_crash_history(leds):
 
 
 def ec2_crash_excluded(leds, contract="production", itype=None, lifetime_s=QUAL_LIFETIME_S):
-    """Coordinates whose worker died by a fatal signal in >= 2 acknowledged attempts of this envelope: never allocated again."""
+    """Coordinates whose worker died by a fatal signal (REVISION 6: ANY outcome of the class ingestion admits, 129..159) in >= 2
+    acknowledged attempts of this envelope: never allocated again."""
     itype = itype or ES.CONTRACTS[contract]["itype"]; env = [contract, itype, lifetime_s]
     return {c for c, xs in ec2_crash_history(leds).items()
-            if sum(1 for x in xs if type(x["exit"]) is int and x["exit"] in FATAL_EXITS and x["envelope"] == env) >= MAX_SAME_ENVELOPE_CRASHES}
+            if sum(1 for x in xs if E2R.counts_toward_crash_rule(x["exit"]) and x["envelope"] == env) >= MAX_SAME_ENVELOPE_CRASHES}
 
 
 def sentinels(lengau_completed, token, n=SENTINELS_PER_ATTEMPT, exclude=()):
@@ -579,6 +634,9 @@ def ack(run, n, register_path):
         raise ValueError("the register lists a coordinate both published and unproduced")
     if sorted(list(e["coordinates"]) + list(unprod)) != sorted(f"{r}/{i}" for r, i in a["coordinates"]):
         raise ValueError("the register's published + unproduced coordinates are not exactly the attempt's owned coordinates")
+    unk = {k: u for k, u in sorted(unprod.items()) if not isinstance(u, dict) or E2R.kind(u.get("outcome")) is None}
+    if unk:                                                   # REVISION 6 (A2): the shared classification, also here
+        raise ValueError(f"the register lists unproduced outcomes of no qualifying class: {dict(list(unk.items())[:3])}")
     digest = ES.sha_bytes(ES.canonical(e))
     if a.get("ingestion") == "ingested":
         if (a.get("ingest_ack") or {}).get("entry_sha256") != digest:

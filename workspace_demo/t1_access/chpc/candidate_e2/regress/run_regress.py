@@ -1,5 +1,6 @@
 """Regression for the epoch-2 CANDIDATE: run an EXISTING, unmodified test file with the candidate modules substituted for
-their live namesakes (row19_partition, row19_ec2_ingest, row19_ec2_qualify, prod_authority, prod_launch). A meta-path finder
+their live namesakes (row19_partition, row19_ec2_ingest, row19_ec2_qualify, prod_authority, prod_launch; and the
+candidate-only row19_ec2_e2rules, REVISION 6). A meta-path finder
 maps those names to chpc/candidate_e2/ when (and only when) the test imports them, so tests that stub row19_shard before
 importing the ingestion keep working. Nothing is copied over the live files.
 
@@ -11,6 +12,7 @@ CAND = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAP = {"row19_partition": os.path.join(CAND, "row19_partition.py"),
        "row19_ec2_ingest": os.path.join(CAND, "row19_ec2_ingest.py"),
        "row19_ec2_qualify": os.path.join(CAND, "row19_ec2_qualify.py"),
+       "row19_ec2_e2rules": os.path.join(CAND, "row19_ec2_e2rules.py"),     # REVISION 6: candidate-only shared rules
        "prod_authority": os.path.join(CAND, "aws_ec2", "prod_authority.py"),
        "prod_launch": os.path.join(CAND, "aws_ec2", "prod_launch.py")}
 

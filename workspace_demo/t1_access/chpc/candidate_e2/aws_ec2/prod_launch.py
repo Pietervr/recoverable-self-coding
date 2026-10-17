@@ -56,7 +56,17 @@ skipped) + 4 Lengau-completed sentinels on the 76-worker c7a.24xlarge contract. 
 same global authority lock, after the existing envelopes) when the FLEET CEILING of five live production/qualification
 instances is reached (prod_authority.fleet_problem) and, for epoch 2, when the validated funding declaration's bounds would be
 exceeded (prod_authority.epoch2_problem: base batches + 4 extra, 2 qualification instances, USD 300 allowance, forecast +
-allowance). Production stays shut until a reviewed epoch-2 release (QUALIFICATION_E2.md; not built)."""
+allowance). Production stays shut until a reviewed epoch-2 release (QUALIFICATION_E2.md; not built).
+
+REVISION 6 - CANDIDATE, not adopted (Codex review reviews/2026-10-17_e2_p80r_codex_review.md A3, A4, lifetime follow-up).
+  packing   a schema-2 production plan never carries more than prod_authority.E2_QUALIFIED_REP_SLOTS (61, E2Q1's declared
+            concentration) workers of any role on one replicate (row19_ec2_e2rules.concentration_problem on the built
+            slots, sentinels included); the allocator already caps work at 57 per replicate per batch.
+  funding   the epoch gate validates the funding declaration against the AUTHENTICATED Q2 basis of the same ledgers it
+            admits under (prod_authority.funding_problem(fund, part, leds)).
+  lifetime  an epoch-2 admission's lifetime must be the funded lifetime_s of the declaration (79,200 s); the operational
+            manifest maker alone is not the authority. Binding the exact QUALIFIED operational manifest belongs to the
+            epoch-2 release branch (not built)."""
 import argparse, glob, json, math, os, sys, time, uuid
 
 SRC = os.path.dirname(os.path.abspath(__file__))
@@ -69,6 +79,7 @@ HERE = PA.HERE                                               # aws_ec2/ (attest.
 T1 = PA.T1
 import row19_partition as RP
 import row19_ec2_state as ES
+import row19_ec2_e2rules as E2R
 
 PROD_SHA = "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c"
 RECEIPT_MAX_AGE_S = 2700
@@ -176,7 +187,12 @@ def build(contract, part, leds, done, token):
         work = PA.allocate(part, leds, done, ES.CONTRACTS["production"]["workers"] - PA.SENTINELS_PER_ATTEMPT, excluded)
         if not work:
             raise ValueError("the partition block has no free coordinate left")
-        return work, [], PA.sentinels(lengau, token)
+        sent = PA.sentinels(lengau, token)
+        if part.get("schema") == RP.SCHEMA2:                                # REVISION 6 (A3): only the qualified shape
+            why = E2R.concentration_problem([dict(rep=r) for r, _ in work + sent], PA.E2_QUALIFIED_REP_SLOTS)
+            if why:
+                raise ValueError(f"the production plan is outside the qualified packing: {why}")
+        return work, [], sent
     if contract == "Q1":
         own = PA.owned(leds)
         bad = [c for c in Q1_BLOCK if not RP.blocked(part, *c) or c in done or c in own]
@@ -192,8 +208,9 @@ def build(contract, part, leds, done, token):
     return [], list(Q2_REPEAT), []
 
 
-def epoch_problem(part, leds, run, worst):
-    """REVISION 5: a schema-2 epoch admits only inside its validated funding declaration's bounds."""
+def epoch_problem(part, leds, run, worst, lifetime_s=None):
+    """REVISION 5: a schema-2 epoch admits only inside its validated funding declaration's bounds. REVISION 6: validated
+    against the authenticated Q2 basis of these ledgers (A4), at the funded lifetime only."""
     if part.get("schema") != RP.SCHEMA2:
         return ""
     if int(part["epoch"]) != 2:
@@ -202,7 +219,12 @@ def epoch_problem(part, leds, run, worst):
         fund = json.load(open(PA.E2_FUNDING))
     except Exception as e:
         return f"no readable epoch-2 funding declaration ({type(e).__name__})"
-    return PA.funding_problem(fund, part) or PA.epoch2_problem(leds, run, worst, fund)
+    why = PA.funding_problem(fund, part, leds)
+    if why:
+        return why
+    if lifetime_s is None or int(lifetime_s) != int(fund["lifetime_s"]):
+        return f"epoch 2 admits only at the funded lifetime {fund['lifetime_s']} s, not {lifetime_s!r}"
+    return PA.epoch2_problem(leds, run, worst, fund)
 
 
 def receipt_age_problem(w, now=None):
@@ -267,7 +289,7 @@ def admit(a, now=None):
     if a.contract in ("Q1", "Q2") and int(opm["ec2_production"]["lifetime_s"]) != life:
         sys.exit(f"REFUSED: the qualification lifetime is declared {life} s; the manifest says {opm['ec2_production']['lifetime_s']}")
     worst = PA.worst_usd(life, c["max_price"])
-    why = PA.budget_problem(leds, run, worst, rel, now) or PA.fleet_problem(leds) or epoch_problem(part, leds, run, worst)
+    why = PA.budget_problem(leds, run, worst, rel, now) or PA.fleet_problem(leds) or epoch_problem(part, leds, run, worst, life)
     if why:
         sys.exit(f"REFUSED: {why}")
     st = PA.state(); n = max([x["attempt"] for x in led["attempts"]], default=0) + 1

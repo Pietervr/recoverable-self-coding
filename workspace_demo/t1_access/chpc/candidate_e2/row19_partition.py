@@ -65,7 +65,13 @@ ingestion); for schema 2 it is membership in `owned`. Activation of a schema-2 e
 plan lock) that the predecessor's activation is on the root and is the named predecessor, and that the INSTALLED fresh
 authority inventory shows no attempt owning any coordinate outside this epoch's set and no live attempt of an earlier epoch
 (the e1 Q1 attempt must be dispositioned - fenced - first); the cutover scan still refuses any Lengau claim on an owned
-coordinate, so a claim made after the snapshot refuses activation (re-snapshot, re-declare)."""
+coordinate, so a claim made after the snapshot refuses activation (re-snapshot, re-declare).
+
+REVISION 6 - CANDIDATE, not adopted (Codex review reviews/2026-10-17_e2_p80r_codex_review.md, ruling 1). The `snapshot`
+command of the CANONICAL root now takes the common plan lock (<root>/plans/.submit.lock, exclusive, non-blocking: a held
+lock refuses with exit 3) for the whole claims scan, as its text always said; the source block records
+plan_lock "held". A snapshot of a pulled COPY (--root/--campaign) takes no lock on the live root and records plan_lock
+"not taken (copy)"; such a snapshot is candidate input only - the adopted bytes come from the canonical locked one."""
 import os, sys, json, glob, time, fcntl, hashlib, argparse
 
 SCHEMA = "row19-provider-partition-1"
@@ -682,10 +688,19 @@ def main(argv=None):
             sys.exit(f"{a.out} exists: a snapshot is immutable")
         m2 = json.loads(json.dumps(man))
         m2["storage"] = {"root": a.root or man["storage"]["root"], "campaign": a.campaign or man["storage"]["campaign"]}
+        copy = bool(a.root or a.campaign)
         src = {"root": os.path.abspath(m2["storage"]["root"]), "campaign": os.path.abspath(m2["storage"]["campaign"]),
-               "copy": bool(a.root or a.campaign),
+               "copy": copy, "plan_lock": "not taken (copy)" if copy else "held",
                "receipt": os.path.basename(a.receipt) if a.receipt else None, "receipt_sha256": sha_file(a.receipt) if a.receipt else None}
-        snap = claims_snapshot(m2, ms, src)
+        if copy:
+            snap = claims_snapshot(m2, ms, src)
+        else:                                                     # REVISION 6 (ruling 1): the canonical scan under the plan lock
+            with open(os.path.join(man["storage"]["root"], "plans", ".submit.lock"), "a+") as lk:
+                try:
+                    fcntl.flock(lk.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except OSError:
+                    print("HELD: the plan lock is held (an admission, an activation or an ingestion): no snapshot"); return 3
+                snap = claims_snapshot(m2, ms, src)
         json.dump(snap, open(a.out, "w"), indent=1, sort_keys=True)
         print(f"snapshot {a.out} sha256 {sha_file(a.out)}: {snap['counts']}"); return 0
     if a.cmd in ("declare2", "verify2"):

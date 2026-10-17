@@ -3,7 +3,8 @@
 Written 17 October 2026 (R052, Claude). This package is item 5 of the adoption checklist in Codex's resize design
 (`reviews/2026-10-17_row19_resize_codex.md`, RSC `08ce9e3`, s.6). The owner adopted that design in principle on 17 Oct
 (`chpc/ROW19_SCREEN_DECLARATIONS.md`, final section, RSC `58b7b78`), choosing five concurrent EC2 instances. The package is
-for Codex's review.
+for Codex's review. Codex reviewed RSC `b510ba0` (`reviews/2026-10-17_e2_p80r_codex_review.md`, CHANGE 4); this revision
+(REVISION 6 of the changed modules) repairs A1-A4 and applies the rulings that ask for a change - see s.7.
 
 Nothing here is promoted, activated, launched or spent. No AWS command, ssh or Lengau operation was run, and no live file
 outside this folder was edited. `candidate_v16/`, `migration_v16/` and `release_p80/` were read only. The live epoch is
@@ -18,20 +19,21 @@ Every live and candidate file is a separate copy. At promotion the files below r
 
 | File (this folder) | SHA-256 | Role | Promoted to |
 |---|---|---|---|
-| `row19_partition.py` | `7df4039f499659ca88a6157883aca2311c6b827b216363f9c3b4ba072ccb3516` | REVISION 5: schema `row19-provider-partition-2`, `snapshot` / `declare2` / `verify2`, schema-2 activation hand-over | `chpc/` (live `ed6aa177`) |
-| `row19_ec2_ingest.py` | `34171ebed4665a993f78e11a4040a3ae08a8b8941bf283ab63f498fd74cfd2c6` | REVISION 5: schema 2, owned-work check, per-slot (partial) ingestion | `chpc/` (live `b697dc36`) |
+| `row19_partition.py` | `eabf50c34be2bad3f92e07370966bcc94162cf12cbcefb326cc07a72d49ac0d8` | REVISION 6: schema `row19-provider-partition-2`, `snapshot` (canonical under the plan lock) / `declare2` / `verify2`, schema-2 activation hand-over | `chpc/` (live `ed6aa177`) |
+| `row19_ec2_ingest.py` | `ad660e6718e3bcf6d8772f84bf9bae9554cf702733d40d84b2dbef9e87220295` | REVISION 6: schema 2, owned-work check, per-slot (partial) ingestion; present status never overridden by the censor label; censor list bound; failure evidence journaled and replayed | `chpc/` (live `b697dc36`) |
 | `row19_ec2_qualify.py` | `efff0f95b83a5c53af9681dd13472760c3ee2de164f2ec302690ae63a0473b2e` | REVISION 4: reads schema 2, REFUSES to certify it with the e1 panel | `chpc/` (live `1fc6b61f`) |
-| `aws_ec2/prod_authority.py` | `2cedf4bd716f7fee0f6cc08f2da53c13067dce3bf988464b06f19c0be55cabe5` | REVISION 5: replicate-complete allocator, fleet ceiling 5, epoch-2 allowance, EC2 crash rule, ack with unproduced | `aws_ec2/` (live `b8ca02b8`) |
-| `aws_ec2/prod_launch.py` | `6989786e83047e89c6d9f02446c13459dff843b49d0a8b80b6a3e99e236dc2c3` | REVISION 5: schema-2 production plan, fleet + epoch gate in admission | `aws_ec2/` (live `21b7cf57`) |
+| `aws_ec2/prod_authority.py` | `fd9e67bb6684c27d960f28ae48a92c52575b49f5dfad473f77fda92b55f0101a` | REVISION 6: replicate-complete allocator capped at 57 per replicate per batch, fleet ceiling 5, epoch-2 allowance, funding against the pinned Q2 basis, crash rule on the shared fatal-signal set, ack with classified unproduced | `aws_ec2/` (live `b8ca02b8`) |
+| `aws_ec2/prod_launch.py` | `143c5221c30daac7d1482275bed70ec5bfa323bdff7733748cecd14dc832fa9b` | REVISION 6: schema-2 production plan inside the qualified concentration, fleet + epoch gate (authenticated basis, funded lifetime) in admission | `aws_ec2/` (live `21b7cf57`) |
 | `aws_ec2/make_prod_manifest.py` | `ad1f99e2421caab467847602504ba450305ef14ab8edc01d4d9fea5e996571b3` | REVISION 2: epoch >= 2 only at the funded geometry and 22 h lifetime | `aws_ec2/` (live `8da79911`) |
-| `aws_ec2/make_e2_funding.py` | `0a40d4ec793ff539df08e20227c6f695ff8378ae107590521db54ed011a6c82f` | NEW: writes the derived funding declaration | `aws_ec2/` |
+| `aws_ec2/make_e2_funding.py` | `85e1b69cb6c993dfa9a37252f30c91a2afdc10932d389b331d5136a51f743554` | NEW (REVISION 2): writes the funding declaration derived from the pinned Q2 basis | `aws_ec2/` |
 | `row19_partition_e2.json` | `87edfb9edbbc4b5e776f17bcf5cc6a74884e9158d6fa7d1c53f79faa0fa468d9` | the epoch-2 declaration (CANDIDATE bytes; re-declared at migration) | `chpc/` |
 | `claims_snapshot_e2.json` | `043db6096da32372ab193869add3aa130de4e81cece28cb03ef50a13449acefc` | the hashed claims snapshot it was generated from (Mac copy of 17 Oct 17:00Z) | (input; retaken on Lengau) |
-| `aws_ec2/e2_funding.json` | `f4250275d60a4bee7ea43be90662e4d82ed768cd832ded48d1ffbd696662d37a` | the derived epoch-2 funding declaration | `aws_ec2/` |
+| `aws_ec2/e2_funding.json` | `d6f414e8107f25e5de43d6b33764106c6c92dd64440ff33fddf4873416ce4815` | the derived epoch-2 funding declaration (names the pinned Q2 attempt, 61 / 57 packing; same numbers) | `aws_ec2/` |
+| `row19_ec2_e2rules.py` | `a9ea1f61daa577b642739ae781cb179e9a2089d42d3c23fff277d7d4849a3bcc` | NEW (s.7): the one shared classification - fatal-signal set, orderly LEFT status, qualified concentration 61, R4' bound | `chpc/` (and the Lengau controller tree) |
 | `aws_ec2/prod/manifest_production_e2.json` | `e126050536a8459cb1432cf78321e82147c67f5406441fff131a1f543f9f82f9` | epoch-2 operational manifest (`derive_operational`, production, expect 75,300 s) | `aws_ec2/prod/` |
 | `admit_v17_partition_line.diff` | `0fc23704…` | the one Lengau-controller line v17 must change (not applied; see s.5) | (into v17) |
 | `QUALIFICATION_E2.md` | - | item c: the epoch-2 qualification plan (not built, not run) | - |
-| `test_e2_partition.py`, `test_e2_authority.py`, `test_e2_ingest.py`, `regress/run_regress.py`, `test_results.txt` | - | item d: tests and their results | - |
+| `test_e2_partition.py`, `test_e2_authority.py`, `test_e2_ingest.py`, `test_e2_rules.py`, `regress/run_regress.py`, `test_results.txt` | - | item d: tests and their results | - |
 
 Unchanged on purpose:
 - `chpc/row19_ec2_state.py`: the contracts, the plan contract, the inventory and the register schema (the new register field
@@ -56,7 +58,7 @@ only).
 | **EC2 owned** (unclaimed designated coordinates of the 47) | **3,274** | s.3: "3,274 new EC2 coordinates" |
 | Lengau claims on the 47 EC2 replicates inside D | 486 (104 not yet done), all Lengau's | s.3: "including 110 live coordinates" (01:29Z) |
 | e1 block retired | 4,000 (indices 160..199, all reps), nothing transferred to Lengau | s.4, s.5 |
-| **Batches** at 72 work + 4 sentinels / 76 workers | **46** (45 x 72 + 34), 3,496 paid slots; every batch touches at most 2 replicates (batch 1: rep 24 x 69 + rep 25 x 3) | s.3: 46 / 3,496 |
+| **Batches** at 72 work + 4 sentinels / 76 workers | **46** (45 x 72 + 34), 3,496 paid slots; at most 57 work coordinates of one replicate per batch (batch 1: rep 24 x 57 + rep 25 x 15; s.7 A3), 1-3 replicates per batch | s.3: 46 / 3,496 |
 | **Forecast** (Q2 USD 11.700804, 24 planned / 23 successful) | **USD 1,704.42** planned-slot / **1,778.52** successful-slot (carried) | s.3: 1,704.42 / 1,778.52 |
 | Funding maxima, all 46 at worst case | USD 1,284.251 (46 x 27.9185) | s.3: 1,284.251 |
 | Epoch cap = forecast + allowance | USD 2,078.52 | s.3: 2,078.52 |
@@ -188,6 +190,9 @@ release needs `QUALIFICATION_E2.md`.
 
 ### d. Tests (Mac, pure python; `test_results.txt`)
 
+Counts after the REVISION-6 repair: partition 54/54, authority 77/77, ingest 46/46, rules 35/35 (`test_results.txt`; s.7
+lists the new checks). The lists below describe the original checks.
+
 - `test_e2_partition.py` **54/54**:
   - regeneration and determinism;
   - the disjoint cover on the real snapshot (499 / 1,027 / 3,274 / 4,800);
@@ -234,14 +239,18 @@ release needs `QUALIFICATION_E2.md`.
 The live ingestion is all-or-nothing: every outcome must be int 0. The evidence:
 - Q2 lost 1 of 24 slots (exit 139, LLVM ENOMEM + SIGSEGV);
 - Lengau's 35 settled refit jobs had 9 crashed slots in about 807 new coordinates (about 1.1 %);
-- at that rate a 76-slot batch is complete only about 0.989^76 = 43 % of the time; at Q2's rate, about 4 %.
+- as independence illustrations only, not measured batch-completion forecasts (ruling 7): 0.989^76 = 43 %, and at Q2's rate
+  (23/24)^76 = 4 %. Nine crashes among about 807 new Lengau coordinates are not an IID 76-slot production cohort.
 
 All-or-nothing would discard most batches and consume the four-batch allowance at once. REVISION 5 therefore publishes every
 fully valid slot and marks a non-completed slot UNPRODUCED, but only in three kinds:
 - a fatal signal (exit 129..159) with no status - the crashed-worker signature, since the worker writes a status on every
   orderly exit;
 - the worker's RESUME 75 with a status leaving the coordinate;
-- the censored marker.
+- the censored marker, bound to the producer's frozen `env/censored.txt` (REVISION 6).
+
+A present status, under RESUME 75 or the censored marker alike, must be the worker's own orderly LEFT status (exit 75, an
+orderly deadline/STOP reason, full accounting, maxrss within the stop); the censor label never overrides it (s.7 A1).
 
 In all three, no record or timing may be present. Everything else HOLDS the whole attempt as before:
 - exit 4 (the worker's own HELD guard), any other exit, output beside a nonzero outcome;
@@ -250,8 +259,8 @@ In all three, no record or timing may be present. Everything else HOLDS the whol
 - any sentinel mismatch (ec2/HOLD).
 
 The register lists `unproduced` with each exit, and the fence is raised there. The Mac `ack` releases published + unproduced,
-which must equal the owned set exactly, and records the exits. A coordinate whose worker died by a fatal signal (132, 134,
-135, 137, 139) in two acknowledged same-envelope attempts (contract, instance type, lifetime) is never allocated again. This
+which must equal the owned set exactly, and records the exits. A coordinate whose worker died by a fatal signal (REVISION 6:
+any exit 129..159, the set ingestion admits) in two acknowledged same-envelope attempts (contract, instance type, lifetime) is never allocated again. This
 is the EC2 form of s.4's "after two same-envelope fatal allocation/signal crashes, do not issue a third identical attempt".
 No EC2 rescue route is built.
 
@@ -269,13 +278,15 @@ Qualification attempts and every schema-1 epoch keep all-or-nothing.
    evidence only (s.5). A hand-back to Lengau is impossible in this schema.
 4. **Stricter activation hand-over.** No owner outside the epoch and no live attempt of another epoch (e1 checked only the
    handed-back indices). Q2 attempt 1 owns nothing and does not block.
-5. **Allocation order** is strictly ascending (rep, index). Batches concentrate on 1-2 replicates (69 workers on rep 24 in
-   batch 1). Spreading would contradict replicate-complete, so the risk is put to qualification (R4').
+5. **Allocation order** is strictly ascending (rep, index). Codex accepted it mechanically, conditional on A3; REVISION
+   6 caps a batch at 57 work coordinates of one replicate so no plan exceeds E2Q1's 61 (s.7).
 6. **Sentinels** keep the token rule over all Lengau-completed non-owned coordinates. They are not tied to the batch's
    replicates.
 7. **Per-slot ingestion bounds:** 3 qualifying kinds, `MAX_UNPRODUCED_WORK = 7`, `MIN_SENTINELS_COMPARED = 3`, censored
-   allowed, exit 4 holds.
-8. **EC2 crash rule:** fatal exits {132, 134, 135, 137 (OOM killer), 139}, envelope (contract, itype, lifetime), threshold 2.
+   allowed, exit 4 holds. Accepted in principle after A1 and the replay repair (s.7); the limits are prospective operational
+   choices, not statistically established safe rates.
+8. **EC2 crash rule:** changed per A2 - every fatal exit 129..159 (exit 137 is SIGKILL; OOM only with host evidence),
+   envelope (contract, itype, lifetime), threshold 2.
    Censored and dispositioned (spot) attempts do not count; they spend the allowance instead.
 9. **Allowance accounting:** "extra" = production attempts beyond the first 46 non-rejected by sequence; qualification runs
    are named `qual-E2*`; money is at worst case until reconciled; the epoch cap (forecast + allowance) is enforced on top of
@@ -314,7 +325,7 @@ Qualification attempts and every schema-1 epoch keep all-or-nothing.
    `python3 aws_ec2/prod_authority.py disposition --run qual-Q1 --attempt 4 --reason "epoch 2: e1 block retired out of the designated design; Q1 output is qualification evidence only (Codex resize s.5)"`,
    then `python3 aws_ec2/ec2_sync.py cycle`. The root fences the attempt in the register and writes `ack_g<N>`, and sync runs
    `disposition-confirm`. Q2 owns nothing; dispositioning it is optional bookkeeping. The bundles stay on S3 as evidence.
-4. **Final snapshot.** On Lengau under the plan lock, with the candidate `row19_partition.py` (REVISION 5) deployed in the
+4. **Final snapshot.** On Lengau under the plan lock (REVISION 6: the canonical `snapshot` command takes it itself), with the candidate `row19_partition.py` (REVISION 6) deployed in the
    controller tree as data and not yet pinned:
    `row19_partition.py snapshot --manifest chpc/row19_screen_manifest.json --out chpc/claims_snapshot_e2.json`, at a fresh
    zero-alarm receipt. Then `declare2 ... --epoch 2 --out chpc/row19_partition_e2.json`. On the Mac: `verify2`,
@@ -341,3 +352,46 @@ Never, at any step:
 - no pilot refit;
 - no deletion or relabelling of old plans, claims, records or proofs;
 - no AWS spend before the release and the fresh budget check of s.6 item 7.
+
+## 7. REVISION 6: repair for Codex's review of RSC `b510ba0` (A1-A4 and the rulings asking for a change)
+
+Review: `reviews/2026-10-17_e2_p80r_codex_review.md` (CHANGE 4). Everything else Codex accepted is unchanged: the schema-2
+declaration and claims snapshot bytes (`87edfb9e…`, `043db609…`), the owned set and cover, the activation hand-over, the
+fleet ceiling, the allowance counters, the sentinel token rule and the operational manifest.
+
+**One shared module, `row19_ec2_e2rules.py` (new).** Pure, no I/O. Ingestion, the Mac `ack`, the crash counter, the
+launcher and the future qualifier read their rules from it, so they cannot disagree. It must be promoted to `chpc/` and the
+Lengau controller tree, pinned by controls v17 with the other helpers, and bound in the epoch-2 `RELEASE_CODE`.
+
+| Item | Defect (Codex) | Change | Tests |
+|---|---|---|---|
+| A1 | the censor marker accepted a present LEFT status with any exit, so exit 4 + `memory:` + maxrss 1e12 was published around | absent and present status are separate: a present status under RESUME 75 or the marker must pass `left_status_problem` (attempt, slot, rep, task identity, exactly this index left, nothing new/resumed, exit 75, reason `stop requested (STOP file)` or the worker's `deadline: N s left, M s needed for the next resample`, finite times, 0 < maxrss <= stop). The marker is bound to the producer: `env/censored.txt` must be listed in `BUNDLE_SHA256SUMS` and name exactly the censored outcomes | ingest: Codex's probe (censored + exit 4 + memory + 1e12) HOLDS; wrong identity, `left []`, maxrss above stop, non-orderly RESUME reason, 75-vs-exit-4 HOLD; unnamed, extra and unlisted censor list HOLD; orderly deadline/STOP statuses pass. rules: 20 status variants |
+| A2 | ingestion admitted 129..159, the counter counted only {132,134,135,137,139}: two exit-133 crashes left the coordinate allocatable | `FATAL_SIGNAL_EXITS = 129..159` in the shared module is the ONE set: ingestion admits no-status slots of it, `ec2_crash_excluded` counts every member (`PA.FATAL_EXITS` is the same object), `ack` refuses an unproduced outcome of no class. No external-interruption exemption (no evidence of cause exists); exit 137 described as SIGKILL only | ingest: 133, 136 and 138 each through two real sandbox ingestions, two Mac ACKs and allocation - the coordinate is excluded and not allocated a third time. authority: 133/136/138/129/159 exclude; ack refuses exit 1 |
+| A3 | E2Q1 runs 61 workers on one replicate; ordinary production reached 69 (rep 24) and 70 (reps 69, 70) | production limited to the qualified shape: `QUALIFIED_REP_SLOTS = 61` (E2Q1's 52 work + 9 duplicates); the schema-2 allocator takes at most 57 work coordinates of one replicate per batch (ascending order kept, so replicates complete across consecutive batches), and the launcher refuses a built plan with more than 61 workers of any role on a replicate. Re-cost: the replay still gives 46 batches (45 x 72 + 34), 3,496 paid slots, so every funding number is unchanged. `QUALIFICATION_E2.md` binds E2Q1's concentration >= 61 into the (unbuilt) release branch | authority: batch 1 = rep 24 x 57 + rep 25 x 15; batch 2 starts with rep 24's other 12; 46 batches cover 3,274 once; max 57 work per replicate; Codex's 69/70 reproduced for the old order; 230 replayed plans with sentinels <= 61 (max 58); launcher refusal above 61 |
+| A4 | `funding_problem` rederived from the basis inside the declaration, so a coherent regeneration on a doubled Q2 charge passed (epoch cap 3,857.04) | the basis is authenticated: `q2_basis` reads only the ledger attempt pinned in code (`E2_Q2_BASIS`: `qual-Q2/1`, `ec2-qual-Q2-a1`, sequence 7, plan `5d45f4e1…`, charge-field digest `46fd6c92…`), with the 24/23 counts as code constants; `funding_problem(fund, part, leds)` rederives from the admission's own ledgers and never reads the declaration's basis. The declaration now names that attempt and the 61/57 packing; its numbers are unchanged (1,778.52 / 2,078.52 / 46 / 3,496) | authority: Codex's doubled-basis probe refuses; five Q2-ledger edits (compute seconds, cap, plan, sequence, state) refuse; no ledger refuses; launcher gate refuses without the Q2 ledger |
+
+**Rulings applied.**
+- Ruling 1: the canonical `snapshot` command takes the plan lock itself (non-blocking; held lock = exit 3, nothing written)
+  and records `plan_lock: held`; a pulled copy records `not taken (copy)` and is candidate input only (rules tests).
+- Ruling 5: conditional acceptance satisfied by A3.
+- Ruling 6: the sentinel replicate concentration is reported by the authority test (pool of 832 Lengau-completed coordinates
+  on 100 replicates; in 230 replayed plans 15 of 920 sentinels shared a replicate with the batch's work).
+- Ruling 7: R4' "at most 3 non-completions of all roles" is code (`qualification_unproduced_problem`, rules tests); the
+  0.989^76 / (23/24)^76 figures are labelled independence illustrations (s.3).
+- Ruling 8: A2.
+- Rulings 9 and 11: A4; the 23/24 basis remains a planning proxy, not a 76-worker cost model.
+- Ruling 12: `QUALIFICATION_E2.md` R5' now requires a consistent, labelled, bound synthetic modification (outcome, status
+  and files together; never files removed under outcome 0/status done) and a deliberate production-class sandbox run.
+- Follow-up P3, replay provenance: a schema-2 production entry journals `failure_evidence` (the `BUNDLE_SHA256SUMS` bytes,
+  the outcomes, `env/censored.txt`, every unproduced slot's status bytes or absence, the unproduced map). Completing an
+  `ingesting` entry and replaying an `ingested` one recompute it and write `ec2/HOLD` on any difference; the replay checks
+  the fence at each unproduced coordinate, not its absence. Codex's probe (133 rewritten to the marker, checksums
+  regenerated) now HOLDS; a later legitimate record at the coordinate does not.
+- Follow-up P3, lifetime: an epoch-2 admission must run at the funded `lifetime_s` (79,200 s). Binding the exact qualified
+  operational manifest stays with the release branch.
+
+**Still held (unchanged prerequisites; not built here).** Ruling 13 / R6': interleaved five-admission/five-reconciliation
+tests with stubbed AWS. Controls v17 (pinning e2 and the REVISION-6 helpers, `row19_ec2_e2rules.py` included, plus the
+print-line diff). A fresh post-v16 snapshot, declaration and funding review. The e2 contracts, the schema-3 certificate, the
+qualifier and the release branch (with E2Q1 concentration >= 61, the funding bytes and the qualified manifest bound). The
+actual Q1 attempt 4 disposition and fence. Capacity evidence. Production stays shut.

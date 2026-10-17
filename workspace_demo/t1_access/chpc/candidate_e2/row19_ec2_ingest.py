@@ -69,7 +69,23 @@ REVISION 5 - CANDIDATE, not adopted (EC2 provider epoch 2; Codex design reviews/
              fence is raised at those coordinates too, so this attempt can never publish them later; the Mac `ack` releases
              them for re-allocation and counts fatal-signal exits towards the EC2 crash rule (prod_authority REVISION 5).
   epoch 1    unchanged: a schema-1 partition keeps the all-or-nothing contract (every outcome int 0).
-  paths      the module resolves t1_access by name, so it runs from chpc/ (promoted) and from chpc/candidate_e2/."""
+  paths      the module resolves t1_access by name, so it runs from chpc/ (promoted) and from chpc/candidate_e2/.
+
+REVISION 6 - CANDIDATE, not adopted (Codex review reviews/2026-10-17_e2_p80r_codex_review.md A1, A2 and the replay follow-up).
+  classes    the non-completion classes come from ONE shared module, row19_ec2_e2rules (also read by the Mac authority's ack
+             and crash rule), so ingestion and the two-crash counter can never disagree (A2): a fatal signal is any exit
+             129..159 and only WITHOUT a status; every such slot counts toward the crash rule on the Mac.
+  status     a PRESENT status of an unproduced slot is never overridden by the censor marker (A1). Under RESUME 75 and under
+             the censored marker alike it must pass row19_ec2_e2rules.left_status_problem: this attempt/slot/rep/identity,
+             exactly this index left, exit 75 with an orderly deadline/STOP reason, finite times, maxrss within the stop. A
+             HELD exit 4, a memory/identity reason, a wrong identity or malformed LEFT accounting HOLDS the attempt.
+  censor     the censored marker is bound to the producer's frozen evidence: env/censored.txt (written by prod_userdata.sh
+             before cleanup) must be listed in BUNDLE_SHA256SUMS and name exactly the slots whose outcome is the marker.
+  replay     a schema-2 production entry journals its frozen failure evidence (the BUNDLE_SHA256SUMS bytes, the outcomes,
+             env/censored.txt and every unproduced slot's status bytes or their absence) and the computed `unproduced` map;
+             the completion of an 'ingesting' entry and every replay of an 'ingested' one recompute it from the supplied
+             bundle and HOLD (ec2/HOLD) on any difference. The replay re-validates the fence at every unproduced coordinate
+             (>= this sequence) and never requires that coordinate to stay absent: a later attempt may legitimately complete it."""
 import os, sys, json, glob, math, time, fcntl, hashlib, argparse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -87,13 +103,14 @@ import row19_shard as SH
 import row19_screen_verify as V
 import row19_partition as RP
 import row19_ec2_state as ES
+import row19_ec2_e2rules as E2R
 
 HOLD, DONE = 3, 0
 MUTABLE = ("env/upload_verify.json", "env/userdata.log", "env/spot_notice.json", "env/stop_seen.txt", "env/memory_live.txt")
 CONTROLS = os.path.join(CHPC, "row19_screen_controls.json")
 MAX_UNPRODUCED_WORK = 7                                     # of up to 72 work slots (~10 %); more HOLDS for a resource review
 MIN_SENTINELS_COMPARED = 3                                  # of the 4 per attempt
-CENSORED = "censored at the upload deadline"
+CENSORED = E2R.CENSORED
 ACTIVATION_MODE = "canonical"                       # the qualifier's sandbox replay alone sets "sandbox"
 
 
@@ -204,6 +221,15 @@ def check_bundle(bundle, att, plan_args, problems, partial=False):
             if bad:
                 problems.append(f"{len(bad)} worker(s) not ended with {'an integer or the censored marker' if partial else 'int 0'}: "
                                 f"{dict(list(bad.items())[:4])}")
+            if partial:                                                    # REVISION 6 (A1): the censor label is producer evidence
+                cn = os.path.normpath("env/censored.txt")
+                if cn not in listed or not os.path.isfile(os.path.join(bundle, cn)):
+                    problems.append("env/censored.txt (the producer's censor evidence) is not a frozen listed bundle file")
+                else:
+                    named = open(os.path.join(bundle, cn)).read().split()
+                    marked = sorted(k for k, v in out.items() if v == CENSORED)
+                    if len(named) != len(set(named)) or sorted(named) != marked:
+                        problems.append(f"the censored outcomes {marked[:4]} are not exactly env/censored.txt {sorted(named)[:4]}")
         if oc.get("unresolved_after_kill") != []:
             problems.append(f"cleanup left unresolved process groups {oc.get('unresolved_after_kill')}")
         return plan, out
@@ -217,20 +243,15 @@ def unproduced_slots(plan, outcomes):
             if not (type(outcomes.get(f"w_slot{s['slot']}")) is int and outcomes.get(f"w_slot{s['slot']}") == 0)}
 
 
-def _left_status(st, att, sl, r, i, oc):
-    """True for an orderly worker status that names this slot's coordinate as LEFT (not done) with the slot's own exit."""
-    return (isinstance(st, dict) and st.get("job") == att["attempt_id"] and st.get("slot") == sl and st.get("rep") == r
-            and st.get("indices") == [i] and st.get("left") == [i] and st.get("new") == [] and st.get("resumed") == []
-            and (oc == CENSORED or st.get("exit") == oc))
-
-
-def unproduced_problems(bundle, att, plan, unprod):
-    """Each unproduced slot must be one of the three qualifying kinds (module text, REVISION 5) and must have left no record
-    or timing of its coordinate; otherwise the attempt holds. Bounds on how many work slots may be unproduced and how many
-    sentinels must remain to compare."""
+def unproduced_problems(bundle, att, plan, unprod, man):
+    """Each unproduced slot must be one of the three qualifying kinds (module text, REVISION 5/6; classes from
+    row19_ec2_e2rules) and must have left no record or timing of its coordinate; otherwise the attempt holds. A present
+    status must be the worker's own orderly LEFT status (A1), whatever the outcome label. Bounds on how many work slots may
+    be unproduced and how many sentinels must remain to compare."""
     out = []
     root = os.path.join(bundle, "root")
     by = {int(s["slot"]): s for s in plan["slots"]}
+    mem_stop = float(man["pbs"].get("mem_stop_gib", 0) or 0) * 2 ** 30
     for sl, oc in sorted(unprod.items()):
         s = by[sl]; r, i = int(s["rep"]), int(s["indices"][0])
         left = [f for f in (SH.record_path(root, r, i), SH.timing_path(root, r, i)) if os.path.exists(f)]
@@ -242,15 +263,23 @@ def unproduced_problems(bundle, att, plan, unprod):
             st = json.load(open(sp)) if os.path.exists(sp) else None
         except Exception:
             out.append(f"unproduced slot {sl} ({r}, {i}): its status is unreadable"); continue
-        signal = type(oc) is int and 128 < oc < 160
-        if signal and st is None:
+        k = E2R.kind(oc)
+        if k == "fatal_signal" and st is None:
             continue                                                       # (a) crashed worker, no status
-        if type(oc) is int and oc == ES.WORKER_RESUME and _left_status(st, att, sl, r, i, oc):
-            continue                                                       # (b) the worker's own deadline/STOP exit
-        if oc == CENSORED and (st is None or _left_status(st, att, sl, r, i, oc)):
-            continue                                                       # (c) still running at the upload deadline
+        if k in ("resume", "censored") and st is not None:                 # (b)/(c) with a status: never overridden by the label
+            try:
+                ident = SH.task(man, r)["ident"]
+            except Exception as e:
+                out.append(f"unproduced slot {sl} ({r}, {i}): the task identity is unavailable ({type(e).__name__})"); continue
+            why = E2R.left_status_problem(st, att["attempt_id"], sl, r, i, ident, mem_stop)
+            if not why:
+                continue
+            out.append(f"unproduced slot {sl} ({r}, {i}, outcome {oc!r}): its present status is not an orderly LEFT status ({why}): held for review")
+            continue
+        if k == "censored" and st is None:
+            continue                                                       # (c) still running at the upload deadline, no status
         out.append(f"unproduced slot {sl} ({r}, {i}): outcome {oc!r} with {'a status' if st is not None else 'no status'} is not a "
-                   "qualifying non-completion (fatal signal without status, RESUME 75 with a left status, censored): held for review")
+                   "qualifying non-completion (fatal signal without status, RESUME 75 with an orderly left status, censored): held for review")
     n_work = sum(1 for sl in unprod if by[sl]["role"] == "work")
     if n_work > MAX_UNPRODUCED_WORK:
         out.append(f"{n_work} unproduced work slots (> {MAX_UNPRODUCED_WORK}): a packing/resource failure, held for review")
@@ -258,6 +287,19 @@ def unproduced_problems(bundle, att, plan, unprod):
     if n_sent < MIN_SENTINELS_COMPARED:
         out.append(f"only {n_sent} sentinel(s) produced (< {MIN_SENTINELS_COMPARED}): too little parity evidence to publish")
     return out
+
+
+def failure_evidence(bundle, att, plan, unprod, unprod_work):
+    """REVISION 6 (replay follow-up): the frozen failure evidence a schema-2 production entry journals and every completion
+    or replay must find again in the supplied bundle."""
+    def fsha(rel):
+        p = os.path.join(bundle, rel)
+        return sha_file(p) if os.path.isfile(p) else None
+    oc = json.load(open(os.path.join(bundle, "env", "outcomes.json")))
+    return dict(bundle_sums_sha256=fsha("BUNDLE_SHA256SUMS"), outcomes_sha256=ES.sha_bytes(ES.canonical(oc.get("outcomes"))),
+                censored_sha256=fsha(os.path.join("env", "censored.txt")),
+                unproduced_status={str(sl): fsha(os.path.join("root", "status", f"job{att['attempt_id']}.slot{sl}.json")) for sl in sorted(unprod)},
+                unproduced=unprod_work)
 
 
 def plan_units(bundle, man, opman, opsha, att, plan, problems, skip=()):
@@ -327,11 +369,30 @@ def _compare(man, root, units, problems):
     return pre, compared
 
 
-def replay_problems(root, e, plan_sha, key):
-    """An 'ingested' entry re-validated against the root: every registered canonical file is the registered bytes."""
+def evidence_problem(e, evidence):
+    """REVISION 6: '' when the entry's journaled failure evidence is the supplied bundle's (schema-2 production entries)."""
+    if "unproduced" not in e:
+        return ""
+    if e.get("failure_evidence") is None:
+        return "the entry journals no failure evidence"
+    if evidence is None or ES.canonical(e["failure_evidence"]) != ES.canonical(evidence):
+        diff = sorted(k for k in set(e["failure_evidence"]) | set(evidence or {}) if (e["failure_evidence"] or {}).get(k) != (evidence or {}).get(k))
+        return f"the bundle's failure evidence differs from the journal ({diff})"
+    return ""
+
+
+def replay_problems(root, e, plan_sha, key, reg=None, evidence=None):
+    """An 'ingested' entry re-validated against the root: every registered canonical file is the registered bytes; for a
+    schema-2 production entry (REVISION 6) also the frozen failure evidence and the fence at every unproduced coordinate."""
     out = []
     if e.get("plan_sha256") != plan_sha or e.get("key") != key:
         out.append("the ingested entry's plan or attempt key is not this attempt's")
+    why = evidence_problem(e, evidence)
+    if why:
+        out.append(why)
+    for k in sorted(e.get("unproduced") or {}):                                # the fence, never the coordinate's absence
+        if reg is not None and reg["fence"].get(k, -1) < e["sequence"]:
+            out.append(f"{k}: the fence at an unproduced coordinate is below this attempt's sequence")
     for k, ce in sorted(e["coordinates"].items()):
         r, i = (int(x) for x in k.split("/"))
         if ce["preexisting"]:                                                  # Lengau's own record: the verifier owns it
@@ -403,7 +464,7 @@ def main(argv=None):
             problems.append(f"{len(off)} work coordinate(s) are not owned by epoch {part['epoch']}, e.g. {off[:3]}")
     if plan is not None and partial and not problems:
         unprod = unproduced_slots(plan, outcomes)
-        problems += unproduced_problems(a.bundle, att, plan, unprod)
+        problems += unproduced_problems(a.bundle, att, plan, unprod, man)
     units = plan_units(a.bundle, man, opman, opsha, att, plan, problems, skip=set(unprod)) if not problems else {}
     if problems:
         print(f"HELD: {len(problems)} problem(s); nothing published"); [print("   -", p) for p in problems[:20]]; return HOLD
@@ -428,8 +489,12 @@ def main(argv=None):
         e = reg["attempts"].get(att["attempt_id"])
         if e is not None and e["state"] == "dispositioned":
             print(f"HELD: {att['attempt_id']} was dispositioned and fenced on this root (generation {e.get('inventory_generation')})"); return HOLD
+        by_slot = {int(s["slot"]): s for s in plan["slots"]}
+        unprod_work = {f"{int(by_slot[sl]['rep'])}/{int(by_slot[sl]['indices'][0])}": dict(slot=sl, outcome=oc)
+                       for sl, oc in sorted(unprod.items()) if by_slot[sl]["role"] == "work"}
+        evidence = failure_evidence(a.bundle, att, plan, unprod, unprod_work) if partial else None
         if e is not None and e["state"] == "ingested":
-            bad = replay_problems(root, e, att["plan_sha256"], a.attempt_key)
+            bad = replay_problems(root, e, att["plan_sha256"], a.attempt_key, reg, evidence)
             if bad:
                 hold(root, f"replay of {att['attempt_id']}: {bad[0]}")
                 print(f"HELD: replay of an ingested attempt differs: {bad[:5]}"); return HOLD
@@ -438,9 +503,6 @@ def main(argv=None):
             print(f"HELD: the inventory shows {a.attempt_key} acknowledged as ingested but the register holds "
                   f"{'no entry' if e is None else repr(e['state'])}: a replay never publishes"); return HOLD
         work = {c: u for c, u in units.items() if u["role"] == "work"}
-        by_slot = {int(s["slot"]): s for s in plan["slots"]}
-        unprod_work = {f"{int(by_slot[sl]['rep'])}/{int(by_slot[sl]['indices'][0])}": dict(slot=sl, outcome=oc)
-                       for sl, oc in sorted(unprod.items()) if by_slot[sl]["role"] == "work"}
         for c in list(work) + [tuple(int(x) for x in k.split("/")) for k in unprod_work]:   # ownership and fence, under the lock
             k = f"{c[0]}/{c[1]}"
             if inv["owners"].get(k) != [a.attempt_key, att["sequence"]]:
@@ -461,11 +523,15 @@ def main(argv=None):
                                                    ec2_binding=u["binding"])
                                   for (r, i), u in work.items()},
                      compared_equal=compared, outcomes=outcomes, charged_usd=att.get("charged_usd"),
-                     **({"unproduced": unprod_work} if partial else {}))
+                     **({"unproduced": unprod_work, "failure_evidence": evidence} if partial else {}))
             reg["attempts"][att["attempt_id"]] = e
             reg["authority_generation"] = max(reg["authority_generation"], inv["generation"]); atomic_json(P["register"], reg)
         elif e.get("key") != a.attempt_key or e.get("plan_sha256") != att["plan_sha256"]:
             print("HELD: an 'ingesting' entry of another attempt key or plan exists under this id"); return HOLD
+        elif evidence_problem(e, evidence) or ("unproduced" in e and ES.canonical(e["unproduced"]) != ES.canonical(unprod_work)):
+            why = evidence_problem(e, evidence) or "the bundle's unproduced slots differ from the journal"
+            hold(root, f"completion of {att['attempt_id']}: {why}")
+            print(f"HELD: completion of an 'ingesting' attempt: {why}"); return HOLD
         published = 0
         try:
             for key, ce in e["coordinates"].items():
