@@ -1,0 +1,14 @@
+--- a/chpc/candidate_v16/row19_screen_admit.py
++++ b/chpc/row19_screen_admit.py
+@@ -2099,7 +2099,10 @@
+         except Exception as e:
+             print(f"HELD: the provider partition cannot be trusted: {e}"); return 2
+         if part is not None:
+-            print(f"provider partition epoch {part['epoch']}: {part['provider']} owns indices {part['indices'][0]}..{part['indices'][-1]} (k {part['k']})")
++            import row19_partition as _RP                                     # v17: schema 2 has no k / indices (an explicit set)
++            print(f"provider partition epoch {part['epoch']}: {part['provider']} owns "
++                  + (f"{part['owned_count']} explicit coordinates (schema 2, owned {part['owned_sha256'][:12]})" if part.get("schema") == _RP.SCHEMA2
++                     else f"indices {part['indices'][0]}..{part['indices'][-1]} (k {part['k']})"))
+         why_act = activation_problem_v10(man, a.manifest, part)
+         if why_act:
+             print(f"HELD: {why_act}"); return 2

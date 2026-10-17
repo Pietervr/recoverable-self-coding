@@ -1,0 +1,23 @@
+# chpc/candidate_e2 test results (2026-10-17 18:28:57Z, Mac, python3 3.14.6; run from workspace_demo/t1_access)
+
+## New epoch-2 tests
+chpc/candidate_e2/test_e2_partition.py: rc 0, 54 passed, 0 failed
+chpc/candidate_e2/test_e2_authority.py: rc 0, 54 passed, 0 failed
+chpc/candidate_e2/test_e2_ingest.py: rc 0, 22 passed, 0 failed
+
+## Regression: existing tests, unmodified, LIVE modules vs CANDIDATE modules substituted (regress/run_regress.py)
+test_row19_partition.py: live rc 1 63 passed 2 failed | candidate rc 1 63 passed 2 failed | identical failures
+    FAIL v13 differs from v12 only in version, partition and the review note
+    FAIL v13 candidate row19_screen_status.py bytes = v12 candidate's
+test_row19_ec2_ingest.py: live rc 0 68 passed 0 failed | candidate rc 0 68 passed 0 failed | identical failures
+test_row19_ec2_qualify.py: live rc 0 23 passed 0 failed | candidate rc 0 23 passed 0 failed | identical failures
+test_row19_ec2_status.py: live rc 0 26 passed 0 failed | candidate rc 0 26 passed 0 failed | identical failures
+aws_ec2/tests/test_prod_authority.py: live rc 0 66 passed 0 failed | candidate rc 0 66 passed 0 failed | identical failures
+aws_ec2/tests/test_prod_launch.py: live rc 1 61 passed 1 failed | candidate rc 1 61 passed 1 failed | identical failures
+    FAIL a Q1 retry is refused by the per-part ceiling (retries count; owner decision)  [('REFUSED', "REFUSED: Q1's block coordinates are not all free block coordinates, e.g. [(3, 199), (4, 199), (5, 199)]")]
+aws_ec2/tests/test_ec2_sync.py: live rc 0 12 passed 0 failed | candidate rc 0 12 passed 0 failed | identical failures
+chpc/candidate_v16/test_designated_r16.py: live rc 0 80 passed 0 failed | candidate rc 0 80 passed 0 failed | identical failures
+
+Pre-existing failures (identical on live and candidate, not caused by this package):
+- test_row19_partition.py: 2 stale v12/v13 candidate-comparison checks (candidate_v10r3/v10r4 bytes moved on since).
+- aws_ec2/tests/test_prod_launch.py: 1 stale Q1-retry check: since the Q1 ceiling became USD 36 (RSC dc55a75) the fixture retry passes the ceiling and is refused later, on block ownership.
