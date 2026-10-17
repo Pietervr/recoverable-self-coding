@@ -371,9 +371,14 @@ archive, deploy, rollover, adopt); a gate member (`review_refit.json`, `qualifie
 archive capture (rollover). Deploy retry: re-runs after the missing-`simulate.py` and changed-`analyze.py` post-commit
 fixtures HOLD and never print `DEPLOY OK` (science not rewritten, proof evidence unchanged); a deployed clone without its
 proof, with science changed after `DONE`, with an incomplete current manifest or a tampered preserved manifest HOLDS; an
-attempt whose copy failed resumes on its pre-mutation proof. 38 tests.
+attempt whose copy failed resumes on its pre-mutation proof. Lengau tool compatibility (after the live step-1 preflight
+refused on `git -C`, 17 Oct 2026; Lengau runs git 1.8.3.1, util-linux flock 2.23.2, coreutils 8.22, system Python 3.6.8): the
+Lengau half always runs with a private `lengaubin/git` first on its PATH that rejects `git -C` as 1.8.3 does, echoes
+`rev-parse --absolute-git-dir` as a literal and rejects later options, and the fake `flock` is 2.23 (no `-E`; a `-n` conflict
+exits 1); added tests check the shims, the whole route on them (no rejected call, no python fallback for a decidable lock),
+`ctl_git` still refusing a gitfile or symlinked `.git`, and every Lengau-side Python source statically against 3.6. 42 tests.
 
-Untested on the Mac: real ssh transport and Lengau's GNU tools (`flock(1)` exit codes, `realpath`, `base64 -d`, `sha256sum`)
+Untested on the Mac: real ssh transport and Lengau's real tools (emulated only: git 1.8.3, `flock(1)` 2.23; not: `realpath`, `base64 -d`, `sha256sum`)
 and Lustre's flock(2) behaviour; a positive `--adopt-review`, `--qualify`, `--raise-cap` and `--adopt-scaleup`; the real
 controller-clone commit on Lengau.
 

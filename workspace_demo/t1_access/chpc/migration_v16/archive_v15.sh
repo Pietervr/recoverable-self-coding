@@ -71,7 +71,7 @@ pin chpc/row19_screen_controls.json $V15_CONTROLS "controller clone controls (ad
 pin chpc/row19_screen_controls_adoption.json $V15_ADOPTION "controller clone adoption (v15 record)"
 pin "$G/qualified_refit_job1.json" $V15_QUAL "gate qualification"
 [ -f "$G/review_refit.json" ] || die "no active gate review_refit.json"
-head=$(git -C "$C" rev-parse --verify HEAD) || die "git rev-parse HEAD failed in the controller clone"
+head=$(cd -- "$C" && git rev-parse --verify HEAD) || die "git rev-parse HEAD failed in the controller clone"
 archive_py build "$T" "$head" || die "the archive build refused or failed (above); nothing was published"
 archive_py verify "$T" || die "the published archive does not verify (above)"
 REMOTE

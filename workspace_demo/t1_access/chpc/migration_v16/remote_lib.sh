@@ -83,10 +83,18 @@ dst_dir() {   # dst_dir <abs path> <scope> <what>: a directory destination - sco
   scoped "$@"; not_science "$1" "$3"; real_parent "$1" "$3"
   if [ -e "$1" ] || [ -L "$1" ]; then [ -d "$1" ] && [ ! -L "$1" ] || die "$3: $1 exists and is not a real directory; refusing"; fi
 }
+# LENGAU TOOLS (observed 17 Oct 2026, CentOS 7.9): git 1.8.3.1 (no `git -C`, no `rev-parse --absolute-git-dir`), util-linux
+# 2.23.2 flock (no -E/--conflict-exit-code), coreutils 8.22, Python 3.6.8. Every git call runs in a subshell that cds first.
 ctl_git() {   # the controller clone's git work tree and git directory are its own canonical root (no gitfile or alias elsewhere)
-  local top gd
-  top=$(git -C "$C" rev-parse --show-toplevel) || die "git rev-parse failed in $C"
-  gd=$(git -C "$C" rev-parse --absolute-git-dir) || die "git rev-parse --absolute-git-dir failed in $C"
+  local top gr gd
+  top=$(cd -- "$C" && git rev-parse --show-toplevel) || die "git rev-parse failed in $C"
+  gr=$(cd -- "$C" && git rev-parse --git-dir) || die "git rev-parse --git-dir failed in $C"
+  case $gr in
+    "") die "git rev-parse --git-dir printed nothing in $C";;
+    /*) [ "$gr" = "$CR/.git" ] || die "the controller clone's git directory is $gr, not the real $CR/.git; refusing"; gd=$gr;;
+    *) gd=$C/$gr;;
+  esac
+  gd=$(cd -P -- "$gd" 2>/dev/null && pwd -P) || die "the controller clone's git directory $gr does not resolve to a directory; refusing"
   [ "$top" = "$CR" ] || die "the controller clone's work tree is $top, not $CR; refusing"
   [ "$gd" = "$CR/.git" ] && canon "$gd" && [ -d "$gd" ] && [ ! -L "$gd" ] || die "the controller clone's git directory is $gd, not the real $CR/.git; refusing"
 }
@@ -137,8 +145,8 @@ lock_free() {   # a checked non-blocking SHARED flock on the controllers' own lo
   local L=$1 rc
   [ -f "$L" ] || die "lock file $L is missing; it cannot be probed"
   if command -v flock >/dev/null 2>&1; then
-    flock -n -s -E 75 "$L" true; rc=$?
-    case $rc in 0) return 0;; 75) die "lock held: $L";; esac
+    flock -n -s "$L" true; rc=$?          # util-linux 2.23 has no -E: a -n conflict exits 1 (`true` itself never exits 1)
+    case $rc in 0) return 0;; 1) die "lock held: $L";; esac
     echo "flock(1) probe of $L failed (exit $rc); trying the python fcntl probe"
   fi
   "$T/t1py" -c "$LOCK_PY" "$L"; rc=$?
@@ -147,7 +155,7 @@ lock_free() {   # a checked non-blocking SHARED flock on the controllers' own lo
 locks_free() { local L; for L in $LOCKS; do lock_free "$L"; done; }
 git_clean() {   # git_clean <dir>: a SUCCESSFUL git status with nothing to report
   local st
-  st=$(git -C "$1" status --porcelain) || die "git status failed in $1"
+  st=$(cd -- "$1" && git status --porcelain) || die "git status failed in $1"
   [ -z "$st" ] || { printf '%s\n' "$st" | head -5; die "$1 has uncommitted changes (above)"; }
 }
 sci_manifest() {   # the complete digest list of the job clone's fixed science inventory on stdout, or failure

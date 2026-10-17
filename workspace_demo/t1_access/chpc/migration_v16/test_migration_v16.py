@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Private-copy tests for the migration_v16 scripts (Codex review 2026-10-17 R1-R4 and the P3 fast path; Codex re-review
-2026-10-17: P2 nested containment and P2 deploy-retry proof).
+2026-10-17: P2 nested containment and P2 deploy-retry proof; Lengau tool compatibility after the live preflight refused on
+`git -C`, 17 Oct 2026).
 
     python3 chpc/migration_v16/test_migration_v16.py [-k <substring>] [--keep]      (from anywhere)
 
@@ -11,8 +12,16 @@ COPIES the production files into the clone's chpc/migration_v16/ and substitutes
 the `# @root` toolchain root in remote_lib.sh (-> the fake root) and the `# @transport` ssh in lengau.sh (-> a local `bash -s`).
 It refuses a fake root that is not beneath its own temp directory or that resolves to the production toolchain, and checks the
 private copy differs from production on those two lines only. Nothing here runs ssh/scp, touches Lengau or the live tree, or
-writes outside the temp directory (removed at the end unless --keep)."""
-import hashlib, json, os, shutil, signal, stat, subprocess, sys, tempfile, time
+writes outside the temp directory (removed at the end unless --keep).
+
+LENGAU TOOL EMULATION: the private `# @transport` substitution runs the Lengau half with a private `lengaubin/` first on PATH.
+Its `git` emulates Lengau's git 1.8.3.1 for the options this code could reach for - it REJECTS `git -C` exactly as 1.8.3 does
+("Unknown option: -C", exit 129), echoes `rev-parse --absolute-git-dir` back as a literal (1.8.3 prints an unknown flag and
+exits 0) and rejects later options (`--path-format`, `--porcelain=v2`, `--show-superproject-working-tree`, ...); every call
+is logged and every rejection recorded. The fake `flock` emulates util-linux 2.23.2 (no -E/--conflict-exit-code: exit 64;
+a -n conflict exits 1). Every Lengau-side Python source is checked statically against Python 3.6 (t_py36)."""
+import ast, re
+import hashlib, json, os, shlex, shutil, signal, stat, subprocess, sys, tempfile, time
 
 sys.dont_write_bytecode = True
 
@@ -27,6 +36,7 @@ SELF = os.path.basename(__file__)
 PROD_FILES = sorted(f for f in os.listdir(HERE) if os.path.isfile(os.path.join(HERE, f)) and f != SELF and not f.startswith("."))
 QUAL_V15 = "3c605514fb36d6d9f67a2835adf516fa30298caa10c20411bbcbcff74c94592c"
 REAL_SHA256SUM = shutil.which("sha256sum") or "/sbin/sha256sum"
+REAL_GIT = shutil.which("git") or "/usr/bin/git"
 PROMO_PATHS = ["chpc/row19_screen_controls.json", "chpc/row19_screen_controls_adoption.json", "chpc/row19_screen_admit.py",
                "chpc/row19_screen_status.py", "chpc/row19_screen_designated.json", "chpc/results/archive/row19_screen_v15_before_v16"]
 
@@ -89,6 +99,7 @@ class World:
     def __init__(self, d):
         self.d = d; self.mac = os.path.join(d, "mac"); self.t1 = os.path.join(self.mac, T1_REL)
         self.L = os.path.join(d, "lengau"); self.bin = os.path.join(d, "fakebin"); self.outside = os.path.join(d, "outside")
+        self.lbin = os.path.join(d, "lengaubin")      # Lengau-side tool emulation (git 1.8.3), first on the Lengau half's PATH
         self.C = os.path.join(self.L, "rsc_screen_ctl", T1_REL); self.J = os.path.join(self.L, "rsc_screen", T1_REL)
         self.G = os.path.join(self.L, "row19_screen", "gate"); self.A = os.path.join(self.L, "archive_screen", "v15_before_v16")
         self.MA = os.path.join(self.t1, "chpc/results/archive/row19_screen_v15_before_v16")
@@ -114,7 +125,7 @@ class World:
                 src = src.replace(ROOT_LINE, "T_ROOT=%s   # @root (PRIVATE TEST COPY)" % root)
             if f == "lengau.sh":
                 assert src.count(TRANSPORT) == 1, "lengau.sh must carry exactly one production transport"
-                src = src.replace(TRANSPORT, "bash -s")
+                src = src.replace(TRANSPORT, 'PATH=%s:"$PATH" bash -s' % shlex.quote(self.lbin))
             write(os.path.join(dst, f), src, os.stat(os.path.join(HERE, f)).st_mode & 0o777)
         changed = []
         for f in PROD_FILES:
@@ -169,20 +180,48 @@ if [ -f "$d/t1py.nofcntl" ]; then for a in "$@"; do case $a in *fcntl.flock*) ec
 exec python3 "$@"
 """
 FAKE_FLOCK = """#!/usr/bin/env python3
+# util-linux 2.23.2 flock(1) as on Lengau: no -E/--conflict-exit-code (added in 2.25) - a usage error, exit 64; a -n conflict exits 1
 import fcntl, subprocess, sys
-a = sys.argv[1:]; code = 1; nb = False; mode = fcntl.LOCK_EX
+a = sys.argv[1:]; nb = False; mode = fcntl.LOCK_EX
 while a and a[0].startswith("-"):
     x = a.pop(0)
-    if x == "-n": nb = True
-    elif x == "-s": mode = fcntl.LOCK_SH
-    elif x == "-E": code = int(a.pop(0))
+    if x in ("-n", "--nb", "--nonblock"): nb = True
+    elif x in ("-s", "--shared"): mode = fcntl.LOCK_SH
+    elif x in ("-x", "-e", "--exclusive"): mode = fcntl.LOCK_EX
+    else:
+        sys.stderr.write("flock: invalid option -- '%s'\\n" % x.lstrip("-")); sys.exit(64)
 fh = open(a.pop(0), "rb")
 try:
     fcntl.flock(fh.fileno(), mode | (fcntl.LOCK_NB if nb else 0))
 except BlockingIOError:
-    sys.exit(code)
+    sys.exit(1)
 sys.exit(subprocess.call(a))
 """
+LENGAU_GIT = """#!/bin/bash
+# git 1.8.3.1 as on Lengau (private test shim): every call logged; the options 1.8.3 lacks rejected (or, for rev-parse, echoed)
+d=$(cd "$(dirname "$0")" && pwd)
+printf '%%s\\n' "$*" >> "$d/git.log"
+reject() { printf '%%s\\n' "$*" >> "$d/git.rejected"; echo "$1" >&2; exit 129; }
+a=("$@"); i=0
+while [ $i -lt ${#a[@]} ]; do                       # global options before the subcommand
+  case ${a[$i]} in
+    -C) reject "Unknown option: -C" "$*";;
+    --no-optional-locks|--literal-pathspecs|--glob-pathspecs|--noglob-pathspecs|--icase-pathspecs|--super-prefix*|--config-env*) reject "Unknown option: ${a[$i]}" "$*";;
+    -c) i=$((i + 2));;
+    -*) i=$((i + 1));;
+    *) break;;
+  esac
+done
+sub=${a[$i]:-}
+for x in "${a[@]:$((i + 1))}"; do
+  case $sub:$x in
+    rev-parse:--absolute-git-dir) printf '%%s\\n' "$x" >> "$d/git.rejected"; echo "$x"; exit 0;;   # 1.8.3 echoes an unknown flag
+    rev-parse:--path-format*|rev-parse:--show-superproject-working-tree|rev-parse:--show-object-format*|rev-parse:--end-of-options) reject "unsupported in git 1.8.3: $x" "$*";;
+    status:--porcelain=*|status:--ahead-behind|status:--no-ahead-behind|*:--end-of-options) reject "unsupported in git 1.8.3: $x" "$*";;
+  esac
+done
+exec "%s" "$@"
+""" % REAL_GIT
 BROKEN_FLOCK = "#!/bin/bash\necho 'flock: simulated failure' >&2\nexit 64\n"
 
 
@@ -205,6 +244,7 @@ def build_fresh(d):
     write(os.path.join(w.L, "jobs/row19_screen_refit_1.pbs"), "#PBS private test\n")
     write(os.path.join(w.L, "row19_screen_campaign/budget.json"), json.dumps({"cap_core_h": 60000.0, "cap_history": []}) + "\n")
     w.fake("ps", FAKE_PS); w.fake("sha256sum", FAKE_SHA)
+    write(os.path.join(w.lbin, "git"), LENGAU_GIT, 0o755)
     return w
 
 
@@ -583,11 +623,14 @@ def t_lock_held():
             with Holder(os.path.join(w.L, lock)):
                 rc, out = w.script("archive_v15.sh")
             refused(rc, out, "lock held"); need(not os.path.exists(w.A), "archived under a held lock")
+            if with_flock:
+                need("trying the python fcntl probe" not in out, "the 2.23 flock(1) probe did not decide a held lock itself", out)
     w = stage("promoted"); s0 = w.ctl_state()
     with Holder(os.path.join(w.L, "programme_admission.lock")):
         rc, out = w.script("deploy_v16.sh")
     refused(rc, out, "lock held"); need(w.ctl_state() == s0, "deployed under a held lock")
     w = stage("fresh"); w.fake("flock", FAKE_FLOCK); rc, out = w.script("preflight_v16.sh"); need(rc == 0, "flock(1) probe of free locks", out)
+    need("trying the python fcntl probe" not in out, "the 2.23 flock(1) probe did not decide free locks itself", out)
 
 
 @test("R2 failed git status observation refuses (not read as clean)")
@@ -757,6 +800,125 @@ def t_gate_member_symlink():
         rc, out = w.script("lengau.sh", "rollover_pilot_v16.sh"); refused(rc, out, "not its own physical path")
         need(tree_digest(w.outside) == before and os.stat(copy).st_mode & 0o777 == 0o644, "the outside file changed (bytes or mode)")
         need(os.path.islink(src) and not (os.path.isdir(rdir) and os.listdir(rdir)), "something moved")
+
+
+# ------------------------------------------------------------------------------------------------ Lengau tool compatibility
+LENGAU_BODIES = ["remote_lib.sh", "preflight_v16.sh", "archive_v15.sh", "deploy_v16.sh", "rollover_pilot_v16.sh", "adopt_pilot16.sh"]
+PY37_MODULES = {"dataclasses", "contextvars", "importlib.resources", "zoneinfo", "graphlib", "tomllib", "importlib.metadata"}
+PY37_ATTRS = {"isascii", "time_ns", "monotonic_ns", "perf_counter_ns", "nullcontext", "fromisoformat", "removeprefix", "removesuffix",
+              "isqrt", "prod", "cache", "shlex_join", "unlink_missing_ok", "is_relative_to", "readlink_path"}
+
+
+def py36_problems(src, name):
+    """Python >= 3.7 features in src (the Lengau Python is 3.6.8). Grammar via ast feature_version=(3, 7) (the lowest this
+    interpreter accepts: it refuses 3.8+ syntax - walrus, positional-only, match ...), then an AST scan for 3.7+ library use. Every
+    f-string is refused outright on the Lengau side: the 3.8 `{x=}` specifier is indistinguishable from `x={x!r}` in the AST."""
+    try:
+        tree = ast.parse(src, filename=name, feature_version=(3, 7))
+    except SyntaxError as e:
+        return ["%s: syntax newer than 3.7: %s (line %s)" % (name, e.msg, e.lineno)]
+    bad = []
+    for n in ast.walk(tree):
+        ln = getattr(n, "lineno", "?")
+        if isinstance(n, ast.JoinedStr):
+            bad.append("%s:%s f-string (refused on the Lengau side)" % (name, ln))
+        elif isinstance(n, ast.Call):
+            for k in n.keywords:
+                if k.arg in ("capture_output", "text"):
+                    bad.append("%s:%s subprocess %s= (Python 3.7)" % (name, ln, k.arg))
+            if isinstance(n.func, ast.Name) and n.func.id == "breakpoint":
+                bad.append("%s:%s breakpoint() (3.7)" % (name, ln))
+            if isinstance(n.func, ast.Attribute) and n.func.attr == "run" and isinstance(n.func.value, ast.Name) and n.func.value.id == "asyncio":
+                bad.append("%s:%s asyncio.run (3.7)" % (name, ln))
+        elif isinstance(n, ast.Attribute) and n.attr in PY37_ATTRS:
+            bad.append("%s:%s .%s (3.7+)" % (name, ln, n.attr))
+        elif isinstance(n, ast.Import):
+            bad += ["%s:%s import %s (3.7+)" % (name, ln, a.name) for a in n.names if a.name in PY37_MODULES]
+        elif isinstance(n, ast.ImportFrom):
+            if n.module in PY37_MODULES or (n.module == "__future__" and any(a.name == "annotations" for a in n.names)):
+                bad.append("%s:%s from %s import (3.7+)" % (name, ln, n.module))
+    return bad
+
+
+def lengau_python_sources():
+    srcs = {"lengau_archive.py": open(os.path.join(HERE, "lengau_archive.py")).read()}
+    rl = open(os.path.join(HERE, "remote_lib.sh")).read()
+    m = re.search(r"^LOCK_PY='(.*?)'$", rl, re.S | re.M); need(m is not None, "remote_lib.sh has no LOCK_PY")
+    srcs["remote_lib.sh:LOCK_PY"] = m.group(1)
+    for f in LENGAU_BODIES:
+        body = open(os.path.join(HERE, f)).read()
+        if f != "remote_lib.sh":
+            i = body.find("<<'REMOTE'")
+            body = body[i:body.index("\nREMOTE\n", i)] if i >= 0 else body     # the Lengau half only (the Mac half is modern)
+        for j, m in enumerate(re.finditer(r'"\$T/t1py" -c \'([^\']*)\'', body)):
+            srcs["%s:t1py-c#%d" % (f, j + 1)] = m.group(1)
+    return srcs
+
+
+@test("Lengau compat: every Lengau-side Python (lengau_archive.py, LOCK_PY, each t1py -c body) is Python 3.6 code")
+def t_py36():
+    probe = "import subprocess, dataclasses\nr = subprocess.run(['x'], capture_output=True, text=True)\nprint(f'{r}')\n"
+    need(len(py36_problems(probe, "probe")) == 4, "the 3.6 scanner misses known 3.7+ features: %s" % py36_problems(probe, "probe"))
+    need(py36_problems("(y := 1)\n", "walrus"), "the 3.6 scanner misses the walrus")
+    srcs = lengau_python_sources()
+    need(len([k for k in srcs if ":t1py-c#" in k]) == 5, "expected the five t1py -c bodies on the Lengau side: %s" % sorted(srcs))
+    bad = [p for name, src in sorted(srcs.items()) for p in py36_problems(src, name)]
+    need(not bad, "Lengau-side Python uses features newer than 3.6:\n" + "\n".join(bad))
+
+
+@test("Lengau compat: the shims reject git -C, echo --absolute-git-dir (as 1.8.3 does) and reject flock -E (2.23)")
+def t_lengau_shims():
+    w = stage("fresh"); g = os.path.join(w.lbin, "git")
+    r = subprocess.run([g, "-C", w.C, "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    need(r.returncode == 129 and "Unknown option: -C" in r.stderr, "the git shim accepted -C", r.stdout + r.stderr)
+    r = subprocess.run([g, "rev-parse", "--absolute-git-dir"], cwd=w.C, capture_output=True, text=True)
+    need(r.returncode == 0 and r.stdout.strip() == "--absolute-git-dir", "the git shim does not echo --absolute-git-dir like 1.8.3", r.stdout + r.stderr)
+    r = subprocess.run([g, "status", "--porcelain=v2"], cwd=w.C, capture_output=True, text=True); need(r.returncode == 129, "the git shim accepted --porcelain=v2")
+    r = subprocess.run([g, "rev-parse", "--git-dir"], cwd=w.C, capture_output=True, text=True)
+    need(r.returncode == 0 and r.stdout.strip() == os.path.join(w.L, "rsc_screen_ctl", ".git"), "the git shim does not pass 1.8.3 calls through", r.stdout + r.stderr)
+    w.fake("flock", FAKE_FLOCK); lk = os.path.join(w.L, "programme_admission.lock")
+    r = subprocess.run([os.path.join(w.bin, "flock"), "-n", "-s", "-E", "75", lk, "true"], capture_output=True, text=True)
+    need(r.returncode == 64 and "invalid option" in r.stderr, "the flock shim accepted -E", r.stdout + r.stderr)
+    r = subprocess.run([os.path.join(w.bin, "flock"), "-n", "-s", lk, "true"], capture_output=True, text=True); need(r.returncode == 0, "the flock shim on a free lock")
+    with Holder(lk):
+        r = subprocess.run([os.path.join(w.bin, "flock"), "-n", "-s", lk, "true"], capture_output=True, text=True)
+    need(r.returncode == 1, "the 2.23 flock shim does not exit 1 on a -n conflict (exit %d)" % r.returncode)
+
+
+@test("Lengau compat: the whole route (preflight, archive, deploy, re-run, rollover, adopt's checks) runs on git 1.8.3 and flock 2.23")
+def t_lengau_route():
+    w = stage("fresh"); w.fake("flock", FAKE_FLOCK)
+    rc, out = w.script("preflight_v16.sh"); need(rc == 0 and "PREFLIGHT OK" in out, "preflight on git 1.8.3", out)
+    need("trying the python fcntl probe" not in out, "the flock(1) probe fell back to python", out)
+    rc, out = w.script("archive_v15.sh"); need(rc == 0 and "ARCHIVE OK" in out, "archive on git 1.8.3", out)
+    rc, out = w.script("promote_v16.py"); need(rc == 0 and "promoted:" in out, "promote", out); w.commit_promotion()
+    rc, out = w.script("deploy_v16.sh"); need(rc == 0 and "DEPLOY OK" in out and "IDENTICAL" in out, "deploy on git 1.8.3", out)
+    rc, out = w.script("deploy_v16.sh"); need(rc == 0 and "already holds exactly these v16 bytes" in out, "deploy re-run on git 1.8.3", out)
+    rc, out = w.script("lengau.sh", "rollover_pilot_v16.sh"); need(rc == 0 and "retired to" in out, "rollover on git 1.8.3", out)
+    write(os.path.join(w.t1, "reviews/test_pilot_record.md"), "ADOPT row19-screen-pilot role=refit qualification=x max_job=100\n")
+    rc, out = w.script("lengau.sh", "adopt_pilot16.sh", "--file", "reviews/test_pilot_record.md")
+    need("gate qualification is still the v15" in out and "Unknown option" not in out, "adopt reached its qualification check on git 1.8.3", out)
+    log = open(os.path.join(w.lbin, "git.log")).read()
+    for want in ("rev-parse --show-toplevel", "rev-parse --git-dir", "status --porcelain", "rev-parse --verify HEAD", "merge-base --is-ancestor", "commit -q -m"):
+        need(want in log, "the Lengau half never ran `git %s` through the 1.8.3 shim" % want, log)
+    need(not os.path.exists(os.path.join(w.lbin, "git.rejected")), "a Lengau-side git call used an option git 1.8.3 lacks",
+         open(os.path.join(w.lbin, "git.rejected")).read() if os.path.exists(os.path.join(w.lbin, "git.rejected")) else "")
+
+
+@test("Lengau compat: ctl_git still refuses a gitfile .git and a symlinked .git (the reviewed own-root semantics, on git 1.8.3)")
+def t_lengau_ctl_git_semantics():
+    for kind in ("gitfile", "symlink"):
+        w = stage("fresh"); gd = os.path.join(w.L, "rsc_screen_ctl", ".git"); moved = os.path.join(w.outside, "ctl.git")
+        shutil.move(gd, moved)
+        if kind == "gitfile":
+            write(gd, "gitdir: %s\n" % moved)
+        else:
+            os.symlink(moved, gd)
+        rc, out = w.script("preflight_v16.sh"); refused(rc, out, "git directory is")
+        need("Unknown option" not in out and "lengau preflight OK" not in out, "preflight with a %s .git" % kind, out)
+    w = stage("fresh"); gd = os.path.join(w.L, "rsc_screen_ctl", ".git"); moved = os.path.join(w.L, "row19_screen", "ctl.git")
+    shutil.move(gd, moved); write(gd, "gitdir: %s\n" % moved)                     # an alias elsewhere but still inside $T
+    rc, out = w.script("archive_v15.sh"); refused(rc, out, "git directory is"); need(not os.path.exists(w.A), "archived with a gitfile clone")
 
 
 def main(argv):
