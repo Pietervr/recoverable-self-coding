@@ -44,8 +44,28 @@ def sha_bytes(b):
     return hashlib.sha256(b).hexdigest()
 
 
-def read_regular(p):
-    """The bytes of a regular, non-symlink file; anything else refuses."""
+ROOT = None     # the physical toolchain root, set by main(); every source and destination must be canonical beneath it
+
+
+def canon(p, what):
+    """Containment (Codex re-review 2026-10-17, P2): p is its OWN physical path - absolute, lexically clean, no symlink or alias
+    in any existing component - strictly beneath the toolchain root, and never in the scientific job clone. Checked for every
+    source immediately before it is read and for every destination immediately before it is written."""
+    if ROOT is None:
+        raise Refuse("internal: the toolchain root is not set")
+    if not os.path.isabs(p) or os.path.normpath(p) != p or os.path.realpath(p) != p:
+        raise Refuse("%s %s is not its own physical path (a symlink, alias or unclean name in it); refusing" % (what, p))
+    if not p.startswith(ROOT + os.sep):
+        raise Refuse("%s %s is not beneath the toolchain root %s; refusing" % (what, p, ROOT))
+    job = os.path.join(ROOT, "rsc_screen")
+    if p == job or p.startswith(job + os.sep):
+        raise Refuse("%s %s is inside the scientific job clone; refusing" % (what, p))
+    return p
+
+
+def read_regular(p, what="source"):
+    """The bytes of a contained, regular, non-symlink file; anything else refuses."""
+    canon(p, what)
     try:
         st = os.lstat(p)
     except OSError as e:
@@ -53,10 +73,13 @@ def read_regular(p):
     if not stat.S_ISREG(st.st_mode):
         raise Refuse("not a regular file (symlink or special): %s" % p)
     try:
-        with open(p, "rb") as fh:
-            return fh.read()
+        fd = os.open(p, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
     except OSError as e:
         raise Refuse("unreadable: %s (%s)" % (p, e))
+    with os.fdopen(fd, "rb") as fh:
+        if not stat.S_ISREG(os.fstat(fh.fileno()).st_mode):
+            raise Refuse("not a regular file (special): %s" % p)
+        return fh.read()
 
 
 def paths(T):
@@ -85,6 +108,7 @@ def ctl_inventory(controls_bytes):
 def walk_files(root, label):
     """Sorted relative paths of every regular file below root; a symlink or special file refuses."""
     out = []
+    canon(root, label)
     if not os.path.isdir(root) or os.path.islink(root):
         raise Refuse("%s %s is not a real directory" % (label, root))
     for d, dirs, files in os.walk(root, followlinks=False):
@@ -110,6 +134,7 @@ def sources(T):
             raise Refuse("the gate has no %s" % need)
     for f in gate:
         mem.append(("gate/" + f, os.path.join(P["G"], f), V15_QUAL if f == "qualified_refit_job1.json" else None))
+    canon(P["C"], "the controller clone"); canon(P["jobs"], "the job-script directory")
     jobs = sorted(glob.glob(os.path.join(P["jobs"], "row19_screen_refit_*")))
     if not jobs:
         raise Refuse("no refit job scripts %s/row19_screen_refit_*" % P["jobs"])
@@ -159,6 +184,7 @@ def complete_text(sums_sha, head, qual, review):
 
 def verify(A):
     """The complete certificate of archive directory A; returns its identities or raises Refuse."""
+    canon(A, "the archive")
     if not os.path.isdir(A) or os.path.islink(A):
         raise Refuse("%s is not a real directory" % A)
     top = set(os.listdir(A))
@@ -230,8 +256,11 @@ def build(T, head):
     P = paths(T); A = P["A"]
     if not HEX40.match(head):
         raise Refuse("the controller HEAD %r is not a 40-hex commit" % head)
+    canon(P["parent"], "the archive parent"); canon(A, "the archive")
     if os.path.lexists(A):
         raise Refuse("%s already exists; not overwriting (verify it instead)" % A)
+    if os.path.lexists(P["parent"]) and (os.path.islink(P["parent"]) or not os.path.isdir(P["parent"])):
+        raise Refuse("the archive parent %s is not a real directory" % P["parent"])
     os.makedirs(P["parent"], exist_ok=True)
     left = leftovers(P["parent"])
     if left:
@@ -242,14 +271,15 @@ def build(T, head):
         pre[a] = sha_bytes(read_regular(src))
         if want and pre[a] != want:
             raise Refuse("%s is not its v15 identity %s" % (src, want[:8]))
-    stg = os.path.join(P["parent"], ".v15_before_v16.staging.%d" % os.getpid())
+    stg = canon(os.path.join(P["parent"], ".v15_before_v16.staging.%d" % os.getpid()), "the staging directory")
     os.mkdir(stg)
     sums = {}; inv = {"gate": {}, "jobs": {}}
     for a, src, want in mem:
         b = read_regular(src); d = sha_bytes(b)
         if d != pre[a]:
             raise Refuse("%s changed while archiving (staging %s kept)" % (src, stg))
-        dst = os.path.join(stg, a); os.makedirs(os.path.dirname(dst), exist_ok=True)
+        dst = canon(os.path.join(stg, a), "the staged copy"); canon(os.path.dirname(dst), "the staged parent")
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
         with open(dst, "xb") as fh:
             fh.write(b); fh.flush(); os.fsync(fh.fileno())
         if sha_bytes(read_regular(dst)) != d or sha_bytes(read_regular(src)) != d:
@@ -274,6 +304,7 @@ def build(T, head):
         for n in files:
             os.chmod(os.path.join(d, n), 0o444)
     verify(stg)                                   # the whole certificate, before anything is published
+    canon(A, "the archive"); canon(stg, "the staging directory")
     if os.path.lexists(A):
         raise Refuse("%s appeared during the build; staging %s kept" % (A, stg))
     os.rename(stg, A)                             # atomic publish on the same file system
@@ -283,7 +314,12 @@ def build(T, head):
 
 
 def main(argv):
+    global ROOT
     try:
+        if len(argv) >= 2:
+            if not os.path.isabs(argv[1]) or os.path.realpath(argv[1]) != argv[1]:
+                raise Refuse("the toolchain root %s is not its own physical path" % argv[1])
+            ROOT = argv[1]
         if len(argv) >= 2 and argv[0] == "inventory":
             inventory(argv[1]); return 0
         if len(argv) == 3 and argv[0] == "build":

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Private-copy tests for the migration_v16 scripts (Codex review 2026-10-17 R1-R4 and the P3 fast path).
+"""Private-copy tests for the migration_v16 scripts (Codex review 2026-10-17 R1-R4 and the P3 fast path; Codex re-review
+2026-10-17: P2 nested containment and P2 deploy-retry proof).
 
     python3 chpc/migration_v16/test_migration_v16.py [-k <substring>] [--keep]      (from anywhere)
 
@@ -327,8 +328,8 @@ def t_alias_root_ok():
 def t_escape_ctl():
     w = stage("fresh"); ctl = os.path.join(w.L, "rsc_screen_ctl"); tgt = os.path.join(w.outside, "rsc_screen_ctl")
     os.rename(ctl, tgt); os.symlink(tgt, ctl); before = tree_digest(w.outside)
-    rc, out = w.script("preflight_v16.sh"); refused(rc, out, "resolves outside the toolchain root")
-    rc, out = w.script("archive_v15.sh"); refused(rc, out, "resolves outside the toolchain root")
+    rc, out = w.script("preflight_v16.sh"); refused(rc, out, "not its own physical path")
+    rc, out = w.script("archive_v15.sh"); refused(rc, out, "not its own physical path")
     need(tree_digest(w.outside) == before, "something was written outside the fake root")
     need(not os.path.exists(w.MA), "the Mac archive was written after a Lengau refusal")
 
@@ -336,10 +337,10 @@ def t_escape_ctl():
 @test("R4 symlink escape: gate, archive_screen and a gate member pointing outside refuse")
 def t_escape_gate_archive():
     w = stage("fresh"); tgt = os.path.join(w.outside, "gate"); os.rename(w.G, tgt); os.symlink(tgt, w.G)
-    rc, out = w.script("archive_v15.sh"); refused(rc, out, "resolves outside")
+    rc, out = w.script("archive_v15.sh"); refused(rc, out, "not its own physical path")
     w = stage("fresh"); a = os.path.join(w.L, "archive_screen"); tgt = os.path.join(w.outside, "archive_screen")
     os.rmdir(a); os.makedirs(tgt); os.symlink(tgt, a)
-    rc, out = w.script("archive_v15.sh"); refused(rc, out, "resolves outside"); need(os.listdir(tgt) == [], "wrote into the outside archive dir")
+    rc, out = w.script("archive_v15.sh"); refused(rc, out, "not its own physical path"); need(os.listdir(tgt) == [], "wrote into the outside archive dir")
     w = stage("fresh"); write(os.path.join(w.outside, "x.json"), "{}\n"); os.symlink(os.path.join(w.outside, "x.json"), os.path.join(w.G, "x.json"))
     rc, out = w.script("archive_v15.sh"); refused(rc, out, "symlink")
     need(not os.path.exists(w.A) and not [x for x in os.listdir(os.path.join(w.L, "archive_screen")) if "staging" in x], "a refused build left an archive or staging dir")
@@ -352,7 +353,7 @@ def t_escape_adopt():
     write(os.path.join(w.G, "qualified_refit_job1.json"), "{\"regenerated\": true}\n")
     write(os.path.join(w.t1, "reviews/test_pilot_record.md"), "ADOPT row19-screen-pilot role=refit qualification=x max_job=100\n")
     head = sh("git", "-C", tgt, "rev-parse", "HEAD"); before = tree_digest(tgt)
-    rc, out = w.script("lengau.sh", "adopt_pilot16.sh", "--file", "reviews/test_pilot_record.md"); refused(rc, out, "resolves outside")
+    rc, out = w.script("lengau.sh", "adopt_pilot16.sh", "--file", "reviews/test_pilot_record.md"); refused(rc, out, "not its own physical path")
     need(sh("git", "-C", tgt, "rev-parse", "HEAD") == head and tree_digest(tgt) == before, "the outside clone changed")
 
 
@@ -621,6 +622,141 @@ def t_sci_after():
         w = stage("promoted"); hp = os.path.join(w.L, "rsc_screen_ctl/.git/hooks/post-commit")
         write(hp, "#!/bin/bash\n" + hook % w.J + "\n", 0o755)
         rc, out = w.script("deploy_v16.sh"); refused(rc, out, msg); need("DEPLOY OK" not in out, "deploy reported OK")
+
+
+# ------------------------------------------------------------------------------------------------ re-review P2: deploy retry proof
+def proof_dir(w):
+    return os.path.join(w.L, "archive_screen", "v16_deploy_proof")
+
+
+@test("P2 retry: after the missing-simulate.py and changed-analyze.py post-commit fixtures a re-run HOLDS, never DEPLOY OK; science not rewritten")
+def t_retry_after_failed_proof():
+    for hook, msg in (('echo "# drift" >> "%s/analyze.py"', "science bytes changed"), ('rm -f "%s/simulate.py"', "after-proof is incomplete")):
+        w = stage("promoted"); hp = os.path.join(w.L, "rsc_screen_ctl/.git/hooks/post-commit")
+        write(hp, "#!/bin/bash\n" + hook % w.J + "\n", 0o755)
+        rc, out = w.script("deploy_v16.sh"); refused(rc, out, msg); need("DEPLOY OK" not in out, "deploy reported OK", out)
+        pd = proof_dir(w); names = os.listdir(pd)
+        need("intent" in names and "science_before.sha256" in names and "DONE" not in names, "the pre-mutation proof is not kept as it should be: %s" % names)
+        need([n for n in names if n.startswith("after_failed.")], "the failed after-proof was not kept as evidence: %s" % names)
+        jd = tree_digest(os.path.join(w.L, "rsc_screen")); pdd = tree_digest(pd)
+        for _ in range(2):
+            rc, out = w.script("deploy_v16.sh")
+            refused(rc, out, "already holds exactly these v16 bytes", "DEPLOY HELD", "after-proof is unresolved"); need("DEPLOY OK" not in out, "a re-run reported DEPLOY OK", out)
+        need(tree_digest(os.path.join(w.L, "rsc_screen")) == jd, "a re-run changed the scientific clone")
+        need(tree_digest(pd) == pdd, "a re-run changed the kept proof evidence")
+        if "simulate" in hook:
+            need(not os.path.exists(os.path.join(w.J, "simulate.py")), "the scientific clone was rewritten (simulate.py recreated)")
+
+
+@test("P2 retry: a deployed clone without its proof, or whose science changed after DONE, HOLDS; with DONE and equal science it reports OK")
+def t_retry_proof_binding():
+    w = stage("deployed"); rc, out = w.script("deploy_v16.sh")
+    need(rc == 0 and "current manifest equals the preserved pre-mutation manifest" in out and "DEPLOY OK" in out, "re-run with DONE", out)
+    w = stage("deployed"); unlock_tree(proof_dir(w)); shutil.rmtree(proof_dir(w))
+    rc, out = w.script("deploy_v16.sh"); refused(rc, out, "DEPLOY HELD", "no deploy proof"); need("DEPLOY OK" not in out, "OK without a proof", out)
+    w = stage("deployed"); open(os.path.join(w.J, "analyze.py"), "a").write("# later drift\n")
+    rc, out = w.script("deploy_v16.sh"); refused(rc, out, "DEPLOY HELD", "differ from the preserved pre-mutation manifest"); need("DEPLOY OK" not in out, "OK", out)
+    w = stage("deployed"); os.remove(os.path.join(w.J, "simulate.py"))
+    rc, out = w.script("deploy_v16.sh"); refused(rc, out, "DEPLOY HELD", "current science proof is incomplete"); need("DEPLOY OK" not in out, "OK", out)
+    w = stage("deployed"); pd = proof_dir(w); os.chmod(pd, 0o755); p = os.path.join(pd, "science_before.sha256"); os.chmod(p, 0o644)
+    open(p, "a").write("0" * 64 + "  extra\n"); os.chmod(p, 0o444)
+    rc, out = w.script("deploy_v16.sh"); refused(rc, out, "DEPLOY HELD", "not the one its intent record certifies")
+
+
+@test("P2 retry: an attempt that wrote its pre-mutation proof but changed nothing (copy failed) resumes on the same proof")
+def t_retry_reuse_intent():
+    w = stage("promoted"); s0 = w.ctl_state()
+    w.fake("cp", '#!/bin/bash\nfor a in "$@"; do case $a in *.v16tmp) echo "cp: simulated failure" >&2; exit 1;; esac; done\nexec /bin/cp "$@"\n')
+    rc, out = w.script("deploy_v16.sh"); refused(rc, out, "copy of"); need(w.ctl_state() == s0, "the controller clone changed", out)
+    need(sorted(os.listdir(proof_dir(w))) == ["intent", "science_before.sha256"], "the pre-mutation proof is not exactly intent + manifest")
+    os.remove(os.path.join(w.bin, "cp"))
+    rc, out = w.script("deploy_v16.sh"); need(rc == 0 and "reusing the pre-mutation proof" in out and "DEPLOY OK" in out, "resume", out)
+    rc, out = w.script("deploy_v16.sh"); need(rc == 0 and "already holds exactly these v16 bytes" in out and "DEPLOY OK" in out, "re-run after resume", out)
+
+
+# ------------------------------------------------------------------------------------------------ re-review P2: nested containment
+def commit_redirect(w, rel, target):
+    """In the controller clone, replace directory `rel` by a COMMITTED symlink to `target` (holding the same files): a clean tree."""
+    src = os.path.join(w.C, rel)
+    if not os.path.exists(target):
+        shutil.copytree(src, target, symlinks=True)
+    shutil.rmtree(src); os.symlink(target, src)
+    sh("git", "-C", w.C, "add", "-A", "--", rel)
+    sh("git", "-C", w.C, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "TEST redirect " + rel)
+    need(sh("git", "-C", w.C, "status", "--porcelain") == "", "the redirect left the controller clone dirty")
+
+
+def pilot_record(w):
+    write(os.path.join(w.G, "qualified_refit_job1.json"), "{\"regenerated\": true}\n")
+    write(os.path.join(w.t1, "reviews/test_pilot_record.md"), "ADOPT row19-screen-pilot role=refit qualification=x max_job=100\n")
+
+
+@test("P2 nested reviews parent redirected outside the root (committed, clean): adopt and deploy refuse before any copy")
+def t_nested_reviews():
+    w = stage("rolled"); tgt = os.path.join(w.outside, "ctl_reviews"); commit_redirect(w, "reviews", tgt); pilot_record(w)
+    before = tree_digest(w.outside); s0 = w.ctl_state()
+    rc, out = w.script("lengau.sh", "adopt_pilot16.sh", "--file", "reviews/test_pilot_record.md"); refused(rc, out, "not its own physical path")
+    need(tree_digest(w.outside) == before and not os.path.exists(os.path.join(tgt, "test_pilot_record.md")), "the record was written outside")
+    need(w.ctl_state() == s0 and not os.path.lexists(os.path.join(w.G, "review_refit.json")), "the controller clone or the gate changed")
+    w = stage("promoted"); tgt = os.path.join(w.outside, "ctl_reviews"); commit_redirect(w, "reviews", tgt)
+    before = tree_digest(w.outside); s0 = w.ctl_state()
+    rc, out = w.script("deploy_v16.sh"); refused(rc, out, "not its own physical path", "payload 6 destination")
+    need(tree_digest(w.outside) == before and w.ctl_state() == s0 and not os.path.lexists(proof_dir(w)), "deploy wrote before refusing")
+
+
+@test("P2 nested chpc / payload destination and temporary sibling redirected: deploy and archive refuse before any copy")
+def t_nested_chpc():
+    w = stage("promoted"); tgt = os.path.join(w.outside, "ctl_chpc"); commit_redirect(w, "chpc", tgt)
+    before = tree_digest(w.outside); s0 = w.ctl_state()
+    rc, out = w.script("deploy_v16.sh"); refused(rc, out, "not its own physical path", "payload 1 destination")
+    need(tree_digest(w.outside) == before and w.ctl_state() == s0 and not os.path.lexists(proof_dir(w)), "deploy wrote before refusing")
+    w = stage("fresh"); tgt = os.path.join(w.outside, "ctl_chpc"); commit_redirect(w, "chpc", tgt); before = tree_digest(w.outside)
+    rc, out = w.script("archive_v15.sh"); refused(rc, out, "not its own physical path")
+    need(tree_digest(w.outside) == before and not os.path.lexists(w.A) and not os.path.exists(w.MA), "archive wrote before refusing")
+    rc, out = w.script("preflight_v16.sh"); refused(rc, out, "not its own physical path")
+    # an ignored, untracked temporary sibling that is a symlink to an outside file: the tree is clean, the copy would follow it
+    w = stage("promoted"); victim = os.path.join(w.outside, "victim.py"); write(victim, "outside bytes\n")
+    write(os.path.join(w.C, "..", "..", ".git", "info", "exclude"), "*.v16tmp\n")
+    os.symlink(victim, os.path.join(w.C, "chpc/row19_screen_status.py.v16tmp"))
+    need(sh("git", "-C", w.C, "status", "--porcelain") == "", "the sibling fixture is not clean")
+    before = tree_digest(w.outside); s0 = w.ctl_state()
+    rc, out = w.script("deploy_v16.sh"); refused(rc, out, "temporary sibling")
+    need(tree_digest(w.outside) == before and open(victim).read() == "outside bytes\n" and w.ctl_state() == s0, "the sibling was followed")
+    need(not os.path.lexists(proof_dir(w)), "a proof was written before the containment refusal")
+
+
+@test("P2 a controller alias resolving inside the scientific clone refuses every body; scientific bytes unchanged")
+def t_ctl_alias_science():
+    def alias_whole(w):
+        os.rename(os.path.join(w.L, "rsc_screen_ctl"), os.path.join(w.L, "ctl_moved_aside"))
+        os.symlink(os.path.join(w.L, "rsc_screen"), os.path.join(w.L, "rsc_screen_ctl"))
+    def alias_chpc(w):
+        commit_redirect(w, "chpc", os.path.join(w.J, "chpc"))
+    for name, mut, runs in (("fresh", alias_whole, [("preflight_v16.sh",), ("archive_v15.sh",)]),
+                            ("promoted", alias_whole, [("deploy_v16.sh",)]),
+                            ("promoted", alias_chpc, [("deploy_v16.sh",)]),
+                            ("deployed", alias_whole, [("lengau.sh", "rollover_pilot_v16.sh")]),
+                            ("rolled", alias_whole, [("lengau.sh", "adopt_pilot16.sh", "--file", "reviews/test_pilot_record.md")])):
+        w = stage(name); mut(w)
+        if name == "rolled":
+            pilot_record(w)
+        jd = tree_digest(os.path.join(w.L, "rsc_screen")); jh = sh("git", "-C", w.J, "rev-parse", "HEAD"); gd = tree_digest(w.G)
+        for r in runs:
+            rc, out = w.script(*r); refused(rc, out, "not its own physical path")
+        need(tree_digest(os.path.join(w.L, "rsc_screen")) == jd and sh("git", "-C", w.J, "rev-parse", "HEAD") == jh,
+             "the scientific clone changed (%s, %s)" % (name, mut.__name__))
+        need(tree_digest(w.G) == gd, "the gate changed (%s, %s)" % (name, mut.__name__))
+
+
+@test("P2 a gate member changed to a symlink after archive capture: rollover refuses before move/chmod; outside bytes and mode unchanged")
+def t_gate_member_symlink():
+    for member in ("review_refit.json", "qualified_refit_job1.json"):
+        w = stage("deployed"); src = os.path.join(w.G, member); copy = os.path.join(w.outside, member)
+        write(copy, open(src, "rb").read(), 0o644); os.remove(src); os.symlink(copy, src)
+        before = tree_digest(w.outside); rdir = os.path.join(w.L, "row19_screen", "gate_retired")
+        rc, out = w.script("lengau.sh", "rollover_pilot_v16.sh"); refused(rc, out, "not its own physical path")
+        need(tree_digest(w.outside) == before and os.stat(copy).st_mode & 0o777 == 0o644, "the outside file changed (bytes or mode)")
+        need(os.path.islink(src) and not (os.path.isdir(rdir) and os.listdir(rdir)), "something moved")
 
 
 def main(argv):

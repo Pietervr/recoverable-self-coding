@@ -62,7 +62,11 @@ fi
 drained
 locks_free
 cd "$C" || die "no controller clone $C"
+ctl_git
 git_clean "$C"
+for f in chpc/row19_screen_controls.json chpc/row19_screen_controls_adoption.json; do src_file "$C/$f" "$CR" "controller authority $f"; done
+src_file "$G/qualified_refit_job1.json" "$T/row19_screen" "gate qualification"; src_file "$G/review_refit.json" "$T/row19_screen" "active gate review"
+dst_dir "$T/archive_screen" "$T" "archive parent"; dst_absent "$A" "$T/archive_screen" "archive"
 pin chpc/row19_screen_controls.json $V15_CONTROLS "controller clone controls (adopted v15)"
 pin chpc/row19_screen_controls_adoption.json $V15_ADOPTION "controller clone adoption (v15 record)"
 pin "$G/qualified_refit_job1.json" $V15_QUAL "gate qualification"

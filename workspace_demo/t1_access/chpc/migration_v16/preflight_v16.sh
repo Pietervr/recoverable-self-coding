@@ -15,7 +15,10 @@
 #          digest list (fixed inventory, every file read and hashed) is printed.
 #  Every observation is checked: a failed or empty process inventory, a lock that cannot be probed (flock(1) or a python
 #  fcntl.flock(LOCK_SH|LOCK_NB) on the same file), a failed git status or a failed digest REFUSES; none is read as "drained" or
-#  "clean". Every Lengau path must resolve beneath the toolchain root (remote_lib.sh). Workers and reapers are never stopped.
+#  "clean". Every Lengau path must be its own physical path in its canonical scope, the controller and science roots disjoint
+#  (remote_lib.sh); the controller chpc/ and reviews/ directories, its git directory, the authority files and the gate files are
+#  resolved, and no v16 deploy proof exists. Workers and reapers are never stopped.
+#  --local-only is NOT the step-1 preflight: the full run (with ssh) is the first live read-only observation.
 # Usage (from workspace_demo/t1_access):  bash chpc/migration_v16/preflight_v16.sh [--local-only]
 #   --local-only   the Mac checks only (no ssh); the migration still needs a full run.
 # Production route only (lengau.sh); tests run private copies (test_migration_v16.py).
@@ -69,7 +72,17 @@ drained
 locks_free
 echo "drain observed: no controller command; both locks free (shared non-blocking probe)"
 cd "$C" || die "no controller clone $C"
+ctl_git
 git_clean "$C"
+# path resolution: every controller, gate and archive path a later step reads as authority or writes is its own physical path
+for f in chpc/row19_screen_controls.json chpc/row19_screen_controls_adoption.json chpc/row19_screen_admit.py chpc/row19_screen_status.py \
+         chpc/row19_screen_manifest.json chpc/row19_screen_budget.json chpc/row19_partition_e1.json; do src_file "$C/$f" "$CR" "controller authority $f"; done
+dst_dir "$C/chpc" "$CR" "controller chpc directory"; dst_dir "$C/reviews" "$CR" "controller reviews directory"
+dst_file "$C/chpc/row19_screen_designated.json" "$CR" "deploy destination"
+src_file "$G/qualified_refit_job1.json" "$T/row19_screen" "gate qualification"; src_file "$G/review_refit.json" "$T/row19_screen" "active gate review"
+dst_dir "$R" "$T/row19_screen" "retired-review directory"; dst_dir "$T/archive_screen" "$T" "archive parent"
+[ ! -e "$PROOF" ] && [ ! -L "$PROOF" ] || die "a v16 deploy proof $PROOF already exists (migration started before?)"
+echo "paths resolved: controller, gate, archive and proof paths are their own physical paths; controller and science roots disjoint"
 pin chpc/row19_screen_controls.json $V15_CONTROLS "controller clone controls (adopted v15)"
 pin chpc/row19_screen_controls_adoption.json $V15_ADOPTION "controller clone adoption (v15 record)"
 pin chpc/row19_screen_admit.py $V15_ADMIT "controller clone admission (v15)"

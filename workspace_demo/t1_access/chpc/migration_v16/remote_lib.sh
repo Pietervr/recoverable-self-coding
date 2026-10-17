@@ -1,7 +1,10 @@
 # migration_v16 Lengau prelude. lengau.sh sends this file, the embedded archive checker (lengau_archive.py), any payload files
 # and ONE body (from preflight_v16.sh, archive_v15.sh, deploy_v16.sh, rollover_pilot_v16.sh or adopt_pilot16.sh) to Lengau as
 # a single `bash -s` script. Never run alone. The toolchain root below is the fixed production route: there is no test hook
-# in this file or in any production script (tests run private copies; see test_migration_v16.py).
+# in this file or in any production script (tests run private copies; see test_migration_v16.py). Containment: every fixed root
+# below and every authority source / mutation destination a body uses must be its own physical path in its canonical scope
+# (canon, src_file, dst_file, dst_absent, dst_dir), never in the scientific clone; the controller and scientific roots are
+# distinct and disjoint.
 set -u -o pipefail
 umask 022
 V16_PRELUDE=1
@@ -23,6 +26,10 @@ V16_CONTROLS=01976b6a92e7150a82d8397caeb88e5425e0dd051f69bb244bf3f83981e8f220
 SCI="chpc/row19_screen_manifest.json analyze.py models.py simulate.py chpc/row19_shard.py chpc/row19_ledger.py chpc/row19_slice.py chpc/row19_screen_orig.py"
 CTLPAT='row19_screen_(admit|status|verify)|row22_bank_(submit|status)|row19_ec2_|row19_partition'
 
+CR=$T/rsc_screen_ctl                              # the canonical controller clone root (all controller mutations stay beneath it)
+JR=$T/rsc_screen                                  # the canonical scientific job clone root (never a mutation destination)
+PROOF=$T/archive_screen/v16_deploy_proof          # deploy_v16.sh's durable science before/after proof (written before any controller change)
+
 phys() {   # phys <abs path>: its physical path with every symlink resolved; components that do not exist yet are appended as named
   local p=$1 tail="" r
   case $p in /*) ;; *) return 1;; esac
@@ -33,12 +40,68 @@ phys() {   # phys <abs path>: its physical path with every symlink resolved; com
   r=$(realpath -- "$p") || return 1
   printf '%s%s\n' "$r" "$tail"
 }
-inside() { local r; r=$(phys "$1") || return 1; case $r in "$T"/*) return 0;; esac; return 1; }
-# every path any body reads as authority or writes must resolve beneath the physical toolchain root (no alias or symlink escape)
-for p in "$T/rsc_screen_ctl" "$C" "$T/rsc_screen" "$J" "$T/row19_screen" "$G" "$R" "$T/row19_screen/plans" "$T/row19_screen/ec2" \
-         "$T/archive_screen" "$A" "$T/jobs" "$T/row19_screen_campaign" $LOCKS; do
-  inside "$p" || die "$p resolves outside the toolchain root $T (symlink or alias); refusing"
+# CONTAINMENT (Codex re-review 2026-10-17, P2): a path is used only when it is its OWN physical path - lexically clean and with
+# no symlink, alias or special file in any existing component, up to and including the leaf - and lies strictly beneath its
+# intended canonical scope. A root check alone is never enough: every authority source and every mutation destination (and the
+# nearest existing parent of a new one) is checked again immediately before it is used. No mutation destination may lie in the
+# scientific job clone, even though that clone is beneath $T.
+canon() {  # canon <abs path>: lexically clean and physically exactly as named
+  case $1 in /*) ;; *) return 1;; esac
+  case $1 in *//*|*/./*|*/../*|*/.|*/..|*/) return 1;; esac
+  local r; r=$(phys "$1") || return 1
+  [ "$r" = "$1" ]
+}
+clean_rel() {   # clean_rel <relative path>: plain portable components only (no absolute path, no empty, hidden, . or .. component)
+  case $1 in ""|/*|*//*|*/|.*|*/.*) return 1;; esac
+  case $1 in *[!A-Za-z0-9._/+=@,:~-]*) return 1;; esac
+}
+scoped() {   # scoped <abs path> <canonical scope root> <what>
+  canon "$1" || die "$3: $1 is not its own physical path (a symlink, alias or unclean name in it resolves elsewhere); refusing"
+  case $1 in "$2"/*) ;; *) die "$3: $1 is not beneath its scope $2; refusing";; esac
+}
+src_file() {   # src_file <abs path> <scope> <what>: an authority source - scoped, an existing regular file (no symlink, no special)
+  scoped "$@"
+  [ -f "$1" ] && [ ! -L "$1" ] || die "$3: $1 is not an existing regular file; refusing"
+}
+not_science() {   # not_science <abs path> <what>: never inside the scientific job clone
+  case $1 in "$JR"|"$JR"/*) die "$2: $1 is inside the scientific job clone $JR; refusing";; esac
+}
+real_parent() {   # real_parent <abs path> <what>: the nearest EXISTING parent is a real directory (not a file, symlink or special)
+  local a=${1%/*}
+  while [ ! -e "$a" ] && [ ! -L "$a" ]; do a=${a%/*}; [ -n "$a" ] || die "$2: $1 has no existing parent"; done
+  [ -d "$a" ] && [ ! -L "$a" ] || die "$2: the nearest existing parent $a of $1 is not a real directory; refusing"
+}
+dst_file() {   # dst_file <abs path> <scope> <what>: a file mutation destination - scoped, not science, absent or a regular file
+  scoped "$@"; not_science "$1" "$3"; real_parent "$1" "$3"
+  if [ -e "$1" ] || [ -L "$1" ]; then [ -f "$1" ] && [ ! -L "$1" ] || die "$3: $1 exists and is not a regular file; refusing"; fi
+}
+dst_absent() {   # dst_absent <abs path> <scope> <what>: a NEW file or directory destination - as dst_file, and nothing there yet
+  scoped "$@"; not_science "$1" "$3"; real_parent "$1" "$3"
+  [ ! -e "$1" ] && [ ! -L "$1" ] || die "$3: $1 already exists; refusing"
+}
+dst_dir() {   # dst_dir <abs path> <scope> <what>: a directory destination - scoped, not science, absent or a real directory
+  scoped "$@"; not_science "$1" "$3"; real_parent "$1" "$3"
+  if [ -e "$1" ] || [ -L "$1" ]; then [ -d "$1" ] && [ ! -L "$1" ] || die "$3: $1 exists and is not a real directory; refusing"; fi
+}
+ctl_git() {   # the controller clone's git work tree and git directory are its own canonical root (no gitfile or alias elsewhere)
+  local top gd
+  top=$(git -C "$C" rev-parse --show-toplevel) || die "git rev-parse failed in $C"
+  gd=$(git -C "$C" rev-parse --absolute-git-dir) || die "git rev-parse --absolute-git-dir failed in $C"
+  [ "$top" = "$CR" ] || die "the controller clone's work tree is $top, not $CR; refusing"
+  [ "$gd" = "$CR/.git" ] && canon "$gd" && [ -d "$gd" ] && [ ! -L "$gd" ] || die "the controller clone's git directory is $gd, not the real $CR/.git; refusing"
+}
+# the fixed roots: each must be its own physical path beneath the physical toolchain root (no symlink or alias, inside or out)
+for p in "$CR" "$C" "$JR" "$J" "$T/row19_screen" "$G" "$R" "$T/row19_screen/plans" "$T/row19_screen/ec2" \
+         "$T/archive_screen" "$A" "$PROOF" "$T/jobs" "$T/row19_screen_campaign" $LOCKS; do
+  canon "$p" || die "$p is not its own physical path (it resolves to $(phys "$p" 2>/dev/null || echo 'an unsafe target'): a symlink or alias); refusing"
+  case $p in "$T"/*) ;; *) die "$p is not beneath the toolchain root $T; refusing";; esac
 done
+# the controller and scientific roots are distinct and disjoint; no controller, gate or archive root lies in the science clone
+[ "$CR" != "$JR" ] || die "the controller and scientific clone roots are the same path"
+case $CR/ in "$JR"/*) die "the controller clone root $CR lies inside the scientific clone $JR";; esac
+case $JR/ in "$CR"/*) die "the scientific clone root $JR lies inside the controller clone $CR";; esac
+if [ -e "$CR" ] && [ -e "$JR" ] && [ "$CR" -ef "$JR" ]; then die "the controller and scientific clone roots are the same directory"; fi
+for p in "$C" "$G" "$R" "$A" "$PROOF" "$T/archive_screen"; do not_science "$p" "fixed root"; done
 
 h() { local o; o=$(sha256sum -- "$1") || return 1; o=${o%% *}; [ ${#o} = 64 ] || return 1; printf '%s\n' "$o"; }
 pin() {    # pin <file> <sha256> <what>
@@ -90,6 +153,7 @@ git_clean() {   # git_clean <dir>: a SUCCESSFUL git status with nothing to repor
 sci_manifest() {   # the complete digest list of the job clone's fixed science inventory on stdout, or failure
   local f out names
   for f in $SCI; do [ -f "$J/$f" ] && [ -r "$J/$f" ] || { echo "ABORT: job-clone science input missing or unreadable: $f"; return 1; }; done
+  for f in $SCI; do canon "$J/$f" && [ ! -L "$J/$f" ] || { echo "ABORT: job-clone science input is not its own physical path (symlink or alias): $f"; return 1; }; done
   out=$(cd "$J" && sha256sum -- $SCI) || { echo "ABORT: a job-clone science digest command failed"; return 1; }
   names=$(printf '%s\n' "$out" | awk '$1 ~ /^[0-9a-f]{64}$/ && NF == 2 {print $2}') || { echo "ABORT: cannot parse the science digests"; return 1; }
   [ "$names" = "$(printf '%s\n' $SCI)" ] || { echo "ABORT: the science digest list is incomplete or malformed"; return 1; }
