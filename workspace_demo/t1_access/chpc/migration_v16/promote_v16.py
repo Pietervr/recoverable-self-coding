@@ -5,18 +5,26 @@ v15 828d3b69 with chpc/row19_screen_admit.py and chpc/row19_screen_status.py cha
 (REVISION 16: S x 0..79, replicate-complete order, crash rule, first-job-alone scale-up gate, disabled rescue). No v9 replay: the
 epoch-1 activation, bench finish and pilot fit are NOT repeated.
 
-    python3 chpc/migration_v16/promote_v16.py [--dry-run]          (from workspace_demo/t1_access)
+    python3 chpc/migration_v16/promote_v16.py [--dry-run | --check]          (from workspace_demo/t1_access)
 
 Refuses unless: candidate_v16 controls = 01976b6a with latest entry version 16 pinning partition e1 8d1de408; versions 1-15 are
 byte-identical to the adopted controls; the record is a315d7d2, git-tracked, unmodified and holds the literal ADOPT line in HEAD;
 the candidate files are git-tracked and unmodified; every file the v16 entry pins equals its pin (admission, status and
 declaration from candidate_v16/); every other pin equals v15's and the file set is v15's plus the declaration; the Mac archive
-chpc/results/archive/row19_screen_v15_before_v16/ written by archive_v15.sh exists and verifies with the adopted v15 bytes.
+chpc/results/archive/row19_screen_v15_before_v16/ written by archive_v15.sh holds EXACTLY its six named files (the v15 controls,
+adoption, admission, status, the budget phases row19_screen_budget.json and the pilot qualification 3c605514) plus SHA256SUMS
+and its COMPLETE certificate, every digest verifying (mac_archive.py), and candidate versions 1-15 equal the ARCHIVED v15
+controls. These checks run on EVERY invocation, before any state is reported.
 Then (not with --dry-run): copy the declaration, admission, status and LAST the controls into chpc/, and write
 chpc/row19_screen_controls_adoption.json for version 16 (atomically). Idempotent: every promoted file must be either its v15 or
-its v16 bytes; a fully promoted tree reports "already promoted" and an interrupted promotion resumes; anything else refuses.
-Commit the result with explicit paths; deploy with deploy_v16.sh."""
+its v16 bytes and the adoption record either the v15 record or the EXACT version-16 record this script writes; a fully
+promoted tree reports "already promoted" only after the full authority and archive validation, and an interrupted promotion
+resumes; anything else refuses. --check is that full validation as a no-write gate: exit 0 only for a complete, verified
+promotion (deploy_v16.sh requires it). Commit the result with explicit paths; deploy with deploy_v16.sh."""
 import argparse, hashlib, json, os, shutil, subprocess, sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mac_archive  # noqa: E402  (the same folder: the Mac archive's exact inventory and certificate)
 
 T1 = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 CAND = "chpc/candidate_v16/"
@@ -33,7 +41,7 @@ V15 = {CTL: "828d3b69707cc47340c1773b97450c2c17c95679c4daf93c84021d138a4663a5",
        "chpc/row19_screen_status.py": "0effcba3977b1d7e76347a4082020633bceaf9ddeec0b05d4255aa9d7b93671b",
        "chpc/row19_screen_admit.py": "ac06e803fdb1b3fdb11652017d8d1808f4ace880b8b2bb22463c3694e646d2ac"}
 QUAL = ("chpc/results/row19_screen/receipts/qualified_refit_job1.json", "3c605514fb36d6d9f67a2835adf516fa30298caa10c20411bbcbcff74c94592c")
-ARCH = "chpc/results/archive/row19_screen_v15_before_v16/"
+ARCH = mac_archive.ARCH + "/"
 ORDER = (DESIG, "chpc/row19_screen_admit.py", "chpc/row19_screen_status.py", CTL)      # the controls last: never v16 controls over v15 code
 
 
@@ -58,8 +66,8 @@ def problems():
         why.append("candidate controls are not 01976b6a")
     c = json.load(open(os.path.join(T1, CAND, "row19_screen_controls.json"))); v = c["versions"][-1]
     live = sha(CTL)
-    if live == V15[CTL] and c["versions"][:-1] != json.load(open(os.path.join(T1, CTL)))["versions"]:
-        why.append("candidate versions 1-15 are not the adopted controls' versions")
+    if c["versions"][:-1] != json.load(open(os.path.join(T1, ARCH, "row19_screen_controls.json")))["versions"]:
+        why.append("candidate versions 1-15 are not the archived adopted v15 controls' versions")
     if live not in (V15[CTL], V16):
         why.append(f"{CTL} is neither adopted v15 nor v16 ({live[:8]})")
     if v.get("version") != 16 or (v.get("partition") or {}).get("sha256") != PART[1] or (v.get("partition") or {}).get("path") != PART[0]:
@@ -90,24 +98,7 @@ def problems():
 
 
 def archive_problem():
-    A = os.path.join(T1, ARCH); sums = os.path.join(A, "SHA256SUMS")
-    if not os.path.exists(sums):
-        return f"{ARCH} with SHA256SUMS does not exist (run archive_v15.sh first)"
-    want = {os.path.basename(k): h for k, h in V15.items()}; want[os.path.basename(QUAL[0])] = QUAL[1]
-    got = {}
-    for ln in open(sums).read().splitlines():
-        h, _, name = ln.partition("  ")
-        got[name] = h
-    names = sorted(f for f in os.listdir(A) if f != "SHA256SUMS")
-    if sorted(got) != names:
-        return f"{ARCH}SHA256SUMS does not list exactly the archived files"
-    for name in names:
-        if hashlib.sha256(open(os.path.join(A, name), "rb").read()).hexdigest() != got[name]:
-            return f"{ARCH}{name} does not match SHA256SUMS"
-    for name, h in want.items():
-        if got.get(name) != h:
-            return f"{ARCH}{name} is not the adopted v15 bytes {h[:8]}"
-    return ""
+    return mac_archive.problem()
 
 
 def state():
@@ -121,41 +112,8 @@ def state():
     return st
 
 
-def adoption_is_v16():
-    try:
-        ad = json.load(open(os.path.join(T1, ADOPT)))
-    except (OSError, ValueError):
-        return False
-    return ad.get("version") == 16 and ad.get("controls_sha256") == V16 and (ad.get("review_record") or {}).get("adopt_line") == LINE
-
-
-def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--dry-run", action="store_true"); a = ap.parse_args()
-    why, v = problems()
-    if why:
-        print("REFUSED:"); [print("  -", w) for w in why]; return 3
-    st = state(); ad16 = adoption_is_v16()
-    if "other" in st.values():
-        print("REFUSED: promoted paths are neither their v15 nor their v16 bytes:", ", ".join(k for k, s in st.items() if s == "other")); return 3
-    if all(s == "v16" for s in st.values()) and ad16:
-        print("already promoted (chpc controls 01976b6a, admission, status, declaration and the version-16 adoption); nothing to do"); return 0
-    if ad16 and st[CTL] != "v16":
-        print("REFUSED: a version-16 adoption is written over non-v16 controls"); return 3
-    if not ad16 and sha(ADOPT) != V15[ADOPT]:
-        print("REFUSED: the adoption record is neither the adopted v15 record 970c29f5 nor the version-16 record"); return 3
-    why = archive_problem()
-    if why:
-        print(f"REFUSED: {why}"); return 3
-    resume = any(s == "v16" for s in st.values())
-    todo = [rel for rel in ORDER if st[rel] != "v16"]
-    plan = [f"{'resume: ' if resume else ''}copy {', '.join(CAND + os.path.basename(r) for r in todo)} -> chpc/ (controls last)",
-            "write chpc/row19_screen_controls_adoption.json (version 16, review f6896e1), atomically"]
-    if a.dry_run:
-        print(f"DRY RUN - checks pass (Mac archive {ARCH} verifies); would:"); [print("  -", p) for p in plan]
-        print("  pinned files:", len(v["files"])); return 0
-    for rel in todo:
-        dst = os.path.join(T1, rel); tmp = dst + f".tmp.{os.getpid()}"
-        shutil.copyfile(os.path.join(T1, CAND, os.path.basename(rel)), tmp); os.replace(tmp, dst)
+def adoption_v16_bytes():
+    """The exact version-16 adoption record this script writes (deterministic: no time or host field)."""
     ad = {"schema": "row19-screen-controls-adoption-1", "controls_path": CTL, "controls_sha256": V16,
           "version": 16, "controls_commit": "3686a11",
           "review_record": {"path": REC[0], "sha256": REC[1], "commit": REC[2], "adopt_line": LINE},
@@ -170,11 +128,56 @@ def main():
                    "permission and no cap raise (the ledger's 60,000 binds until the two-phase --raise-cap 81000); fresh whole-role v16 "
                    "receipts, an adopted review of the REGENERATED refit pilot qualification (new hash, max job 100, no new fit), ONE "
                    "first new-order job and an adopted scale-up review precede any further gated refit admission"}
+    return (json.dumps(ad, indent=1) + "\n").encode()
+
+
+def adoption_state():
+    """'v15', 'v16' (exactly the record adoption_v16_bytes) or 'other'."""
+    p = os.path.join(T1, ADOPT)
+    if not os.path.isfile(p):
+        return "other"
+    b = open(p, "rb").read()
+    return "v15" if hashlib.sha256(b).hexdigest() == V15[ADOPT] else ("v16" if b == adoption_v16_bytes() else "other")
+
+
+def main():
+    ap = argparse.ArgumentParser(); g = ap.add_mutually_exclusive_group()
+    g.add_argument("--dry-run", action="store_true"); g.add_argument("--check", action="store_true"); a = ap.parse_args()
+    why = archive_problem()                   # the archive first: the version comparison below reads the archived v15 controls
+    if why:
+        print(f"REFUSED: {why}"); return 3
+    why, v = problems()
+    if why:
+        print("REFUSED:"); [print("  -", w) for w in why]; return 3
+    st = state(); ad = adoption_state()
+    if "other" in st.values():
+        print("REFUSED: promoted paths are neither their v15 nor their v16 bytes:", ", ".join(k for k, s in st.items() if s == "other")); return 3
+    if ad == "other":
+        print("REFUSED: the adoption record is neither the adopted v15 record 970c29f5 nor the exact version-16 record"); return 3
+    if ad == "v16" and st[CTL] != "v16":
+        print("REFUSED: a version-16 adoption is written over non-v16 controls"); return 3
+    asum = hashlib.sha256(open(os.path.join(T1, ARCH, "SHA256SUMS"), "rb").read()).hexdigest()[:16]
+    if all(s == "v16" for s in st.values()) and ad == "v16":
+        print(f"already promoted, verified (authority, candidate pins, archive {ARCH} SHA256SUMS {asum} + COMPLETE, the exact "
+              f"version-16 adoption {sha(ADOPT)[:16]}); nothing to do"); return 0
+    if a.check:
+        print("REFUSED: --check: the promotion is not complete:", ", ".join(f"{k}={s}" for k, s in st.items()), f"adoption={ad}"); return 3
+    resume = any(s == "v16" for s in st.values())
+    todo = [rel for rel in ORDER if st[rel] != "v16"]
+    plan = [f"{'resume: ' if resume else ''}copy {', '.join(CAND + os.path.basename(r) for r in todo)} -> chpc/ (controls last)",
+            "write chpc/row19_screen_controls_adoption.json (version 16, review f6896e1), atomically"]
+    if a.dry_run:
+        print(f"DRY RUN - checks pass (Mac archive {ARCH} verifies, SHA256SUMS {asum}); would:"); [print("  -", p) for p in plan]
+        print("  pinned files:", len(v["files"])); return 0
+    for rel in todo:
+        dst = os.path.join(T1, rel); tmp = dst + f".tmp.{os.getpid()}"
+        shutil.copyfile(os.path.join(T1, CAND, os.path.basename(rel)), tmp); os.replace(tmp, dst)
     p = os.path.join(T1, ADOPT); tmp = p + f".tmp.{os.getpid()}"
-    open(tmp, "w").write(json.dumps(ad, indent=1) + "\n"); os.replace(tmp, p)
+    with open(tmp, "wb") as fh:
+        fh.write(adoption_v16_bytes())
+    os.replace(tmp, p)
     print("promoted: controls", sha(CTL)[:16], "admit", sha("chpc/row19_screen_admit.py")[:16], "status", sha("chpc/row19_screen_status.py")[:16],
-          "designated", sha(DESIG)[:16], "adoption", sha(ADOPT)[:16],
-          "archive SHA256SUMS", hashlib.sha256(open(os.path.join(T1, ARCH, "SHA256SUMS"), "rb").read()).hexdigest()[:16])
+          "designated", sha(DESIG)[:16], "adoption", sha(ADOPT)[:16], "archive SHA256SUMS", asum)
     return 0
 
 

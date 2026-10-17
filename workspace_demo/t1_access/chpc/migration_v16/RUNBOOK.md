@@ -1,4 +1,4 @@
-# v15 -> v16 migration (the resized row-19 screen controller) - RUNBOOK, SCRIPTS WRITTEN, NOT EXECUTED
+# v15 -> v16 migration (the resized row-19 screen controller) - RUNBOOK, SCRIPTS REPAIRED (Codex R1-R4), NOT EXECUTED
 
 Codex record `reviews/2026-10-17_v16_p80_codex_review.md` (RSC `f6896e1`, SHA-256 `a315d7d2…`), section A: FAVOURABLE for the
 exact controls `candidate_v16/row19_screen_controls.json` with the literal
@@ -11,19 +11,44 @@ real adopted state, refresh whole-role v16 receipts, regenerate the existing pil
 pilot literal, and admit the intended first job alone."
 
 The step scripts are in this folder: `preflight_v16.sh`, `archive_v15.sh`, `promote_v16.py`, `deploy_v16.sh`,
-`rollover_pilot_v16.sh`, `adopt_pilot16.sh`. They follow `migration_v13/` (preflight, archive, rollover and adopt) and
-`migration_v15/` (promote, deploy). They were written and tested on the Mac on 17 October 2026 against a throwaway clone and a
-fake Lengau toolchain (the `V16_FAKE_LENGAU` / `V16_T` test hook, which refuses any directory without a `FAKE_LENGAU` marker).
-**None of them has been run against the live tree or Lengau.** Nothing in this file has been run.
+`rollover_pilot_v16.sh`, `adopt_pilot16.sh`, with their shared parts `lengau.sh` (the one Mac -> Lengau transport),
+`remote_lib.sh` (the Lengau prelude: fixed toolchain root, containment, drain, lock, git and science-digest checks),
+`lengau_archive.py` (the Lengau archive inventory, build and certificate) and `mac_archive.py` (the Mac archive's). They follow
+`migration_v13/` (preflight, archive, rollover and adopt) and `migration_v15/` (promote, deploy). Codex's review of RSC
+`1d3c873` (`reviews/2026-10-17_migration_v16_codex_review.md`: CHANGE 4) required four repairs, made on 17 October 2026:
+
+- **R1** each archive has a fixed mandatory inventory, is staged, verified in full (every digest and the exact inventory) and
+  published by one atomic rename with a `COMPLETE` certificate; the same certificate is re-verified on reuse, immediately
+  before the controller mutation (step 4) and before the review retirement (step 7.1); `promote_v16.py` requires the six Mac
+  files by name;
+- **R2** every drain observation is checked: a failed or empty process inventory, a lock that cannot be probed (`flock(1)` or a
+  python `fcntl.flock(LOCK_SH|LOCK_NB)` on the same lock files) and a failed `git status` refuse; nothing is read as drained;
+- **R3** the job clone's fixed science inventory (eight files) must exist, read and hash completely before the controller
+  change, and the complete after-manifest must equal it, or the deploy refuses;
+- **R4** the production scripts carry no test hook: the toolchain root (`remote_lib.sh`, `# @root`) and the transport
+  (`lengau.sh`, `# @transport`) are fixed, and every Lengau path any body reads as authority or writes must resolve beneath the
+  physical toolchain root (no symlink or alias escape). Tests run PRIVATE COPIES (see "Tests" below);
+- **P3** the completed-promotion fast path runs the full authority and archive validation; `--check` is that validation as a
+  no-write gate.
+
+The repaired scripts need Codex's re-review before execution (step 0). **None of them has been run against the live tree or
+Lengau.** Nothing in this file has been run.
 
 Where commands run:
 
 - On the Mac, every command runs from `workspace_demo/t1_access` unless marked Lengau.
 - On Lengau, `T=/mnt/lustre/users/pvanrooyen/t1_toolchain`, and controller commands run from the controller clone
   `$T/rsc_screen_ctl/workspace_demo/t1_access` through `$T/t1py`, via `ssh -o ControlPath=none lengau ...`.
-- Lengau-only scripts run as `ssh -o ControlPath=none lengau bash -s < chpc/migration_v16/<script>`.
+- Every Lengau part goes through `lengau.sh`, which sends ONE script (`remote_lib.sh` + `lengau_archive.py` + any payload
+  files + the body) over `ssh -o ControlPath=none -o ConnectTimeout=30 -o BatchMode=yes lengau bash -s`. The Lengau-only bodies
+  run as `bash chpc/migration_v16/lengau.sh rollover_pilot_v16.sh` and
+  `bash chpc/migration_v16/lengau.sh adopt_pilot16.sh --file reviews/<record>.md`; run alone they refuse.
 - Every step refuses rather than overwrites. Every script is safe to re-run: a completed step reports itself, an interrupted one
-  resumes or refuses.
+  resumes or refuses. Partial evidence (a staging directory, a dirty controller clone) is never overwritten or removed: report
+  it and recover it explicitly.
+- A successful drain probe proves one instant only. The operator's coordinated admission hold (refill scripts and slot watcher
+  stopped, no Mac status or controller command) stays in force from step 1 to step 8; no worker or reaper is ever stopped to
+  obtain it.
 
 **Never:**
 
@@ -40,7 +65,7 @@ Where commands run:
 | Gate | Check | Abort if |
 |---|---|---|
 | Review | Codex's committed record carries `ADOPT row19-screen-controls sha256=01976b6a… version=16` for the exact `candidate_v16/row19_screen_controls.json` bytes (`preflight_v16.sh` checks it in HEAD) | no literal, or other bytes |
-| Scripts reviewed | a committed Codex record on THIS folder's scripts (review section A: "finish and review the actual preflight/archive/promote/deploy scripts") | no record, or the scripts changed after it |
+| Scripts reviewed | a committed FAVOURABLE Codex record on THIS folder's repaired scripts (review section A: "finish and review the actual preflight/archive/promote/deploy scripts"; the 17 Oct review of `1d3c873` was CHANGE 4, repaired R1-R4 + P3) and `python3 chpc/migration_v16/test_migration_v16.py` passing on the reviewed bytes | no record, or the scripts changed after it |
 | Old-plan hold | no refit admission since 17 Oct (owner); the refill scripts are not invoked; `slot_watch.sh` is stopped | any admission under v15 after 17 Oct |
 | Running jobs | jobs 37-45 (and whatever is live) keep running; their settlements go through `programme_gate.py run ... settle` as usual | - |
 | Prior packages | none is required for refit admission; the prefix release (s.6 item 3) and the EC2 epoch (item 5) are separate and may follow | - |
@@ -56,12 +81,19 @@ Where commands run:
      version 16 pinning partition e1 `8d1de408`; the review record is `a315d7d2`, committed, and HEAD carries the exact literal;
      the Mac `qualified_refit_job1.json` is `3c605514`; the Mac archive does not exist; no refill, slot-watch or controller
      process of this user runs on the Mac.
-   - Lengau: no `row19_screen_admit|status|verify`, `row22_bank_submit|status`, `row19_ec2_*` or `row19_partition` process on the
-     login node; neither `$T/programme_admission.lock` nor `$T/row19_screen/plans/.submit.lock` is held (a non-blocking shared
-     `flock` probe; a WARN if `flock(1)` is missing); `rsc_screen_ctl` is clean at the v15 bytes with no declaration; the gate
-     holds `qualified_refit_job1.json` `3c605514` and an active `review_refit.json`, and no `scaleup_refit_v16.json`; no budget
-     phase is pending and the ledger cap equals the committed 60,000 phase; `$T/row19_screen/ec2/activation_e1.json` exists;
-     neither `archive_screen/v15_before_v16` nor the retired v15 review exists. It prints the job clone's science hashes.
+   - Lengau: every path the migration touches resolves beneath the physical toolchain root; a SUCCESSFUL, non-empty
+     `ps -u pvanrooyen` shows no `row19_screen_admit|status|verify`, `row22_bank_submit|status`, `row19_ec2_*` or
+     `row19_partition` process (a failed or empty inventory refuses); both `$T/programme_admission.lock` and
+     `$T/row19_screen/plans/.submit.lock` exist and a non-blocking SHARED probe succeeds on each (`flock(1)`, else python
+     `fcntl.flock(LOCK_SH|LOCK_NB)`; held, missing or unprobeable refuses); `rsc_screen_ctl` is clean (a failed `git status`
+     refuses) at the v15 bytes with no declaration; the gate holds `qualified_refit_job1.json` `3c605514` and an active
+     `review_refit.json`, and no `scaleup_refit_v16.json`; no budget phase is pending and the ledger cap equals the committed
+     60,000 phase; `$T/row19_screen/ec2/activation_e1.json` exists; neither `archive_screen/v15_before_v16`, an archive staging
+     directory nor the retired v15 review exists; every archive source exists with its v15 identity (`lengau_archive.py
+     inventory`). It prints the job clone's COMPLETE science digest list (eight files; any missing, unreadable or failed digest
+     refuses).
+   - Mac additionally: `chpc/row19_screen_budget.json` is committed; no Mac archive staging directory exists; the Mac process
+     inventory succeeded.
 
    Expected: `PREFLIGHT OK`. `--local-only` runs the Mac half alone (no ssh); it does not replace the full run.
 3. Do not run the Mac's status or receipt commands during steps 2-5. A slot that frees stays empty until step 8.
@@ -70,24 +102,34 @@ Where commands run:
 
 `bash chpc/migration_v16/archive_v15.sh --dry-run` (Mac checks and the plan, no ssh), then `bash chpc/migration_v16/archive_v15.sh`.
 
-a. Lengau (over ssh): `$T/archive_screen/v15_before_v16/{gate,jobs,ctl,ledger}` with `SHA256SUMS`, all read-only. It copies:
+a. Lengau (over ssh, `lengau_archive.py`): `$T/archive_screen/v15_before_v16/`, every file read-only, with this mandatory
+inventory and nothing else:
 
-- the whole gate: `qualified_refit_job1.json` (`3c605514`), the active `review_refit.json`, every watch and verify receipt, every
-  retained PBS out/err copy;
-- the refit job scripts `jobs/row19_screen_refit_*`;
-- the v15 controller files of `rsc_screen_ctl` and its HEAD;
-- the budget phases `chpc/row19_screen_budget.json` and the campaign ledger `row19_screen_campaign/budget.json`, as reference
-  copies only.
+- `ctl/HEAD.txt`: the controller clone's HEAD;
+- `ctl/<repo path>` for every file the adopted v15 entry pins (14), plus the v15 controls (`828d3b69`), adoption (`970c29f5`),
+  budget phases `chpc/row19_screen_budget.json`, the screen manifest and `chpc/row22_bank_status.py` / `row22_bank_submit.py`;
+- `gate/...`: the whole gate (`qualified_refit_job1.json` `3c605514`, the active `review_refit.json`, every watch and verify
+  receipt, every retained PBS out/err copy), regular files only, with `INVENTORY.gate` captured from the source;
+- `jobs/row19_screen_refit_*` (at least one), with `INVENTORY.jobs`;
+- `ledger/row19_screen_campaign_budget.json` (a reference copy);
+- `SHA256SUMS` (every file but itself and `COMPLETE`), then `COMPLETE` (schema, the `SHA256SUMS` digest, the HEAD, the
+  qualification and the review digest).
 
-It refuses unless the controller clone is clean at the v15 controls and adoption, the gate qualification is `3c605514`, a
-review is active and no controller command runs.
+Every source must exist as a regular file and carry its identity before anything is staged; the build stages in
+`.v15_before_v16.staging.<pid>`, verifies the whole certificate there, then renames it into place. It refuses unless the drain is
+observed (step 1 checks), the controller clone is clean at the v15 controls and adoption, the gate qualification is `3c605514`
+and a review is active.
 
-b. Mac: `chpc/results/archive/row19_screen_v15_before_v16/` - the v15 controls, adoption, admission, status, the budget phases and
-the Mac `qualified_refit_job1.json` (`3c605514`), with `SHA256SUMS`, read-only. `promote_v16.py` requires it.
+b. Mac (`mac_archive.py`): `chpc/results/archive/row19_screen_v15_before_v16/` holding EXACTLY `row19_screen_controls.json`
+(`828d3b69`), `row19_screen_controls_adoption.json` (`970c29f5`), `row19_screen_admit.py` (`ac06e803`),
+`row19_screen_status.py` (`0effcba3`), `row19_screen_budget.json` (committed bytes) and `qualified_refit_job1.json`
+(`3c605514`), plus `SHA256SUMS` and `COMPLETE`, which also records the digest of the Lengau `SHA256SUMS` it was made with.
+Built the same staged way. `promote_v16.py` and `deploy_v16.sh` require it by name.
 
-Expected output: the Lengau archive path, its file count and SHA256SUMS hash and the gate/controls lines; then the Mac archive
-and its six lines; `ARCHIVE OK`. An existing archive whose SHA256SUMS verifies is reported and kept (a re-run after an
-interruption); one that does not verify refuses. If the Lengau half fails, the Mac half is not written.
+Expected output: `archive built …` (file count, `SHA256SUMS` and HEAD), `sha256sums=<64 hex>`, `Mac archive … verifies: 6
+files …`, `ARCHIVE OK`. A re-run accepts an existing archive only if its complete certificate verifies (and the Mac archive
+names that Lengau archive); a malformed, partial, extra, substituted or uncertified archive, or a leftover staging directory,
+refuses and is left exactly as it is. If the Lengau half fails, the Mac half is not written.
 
 ## 3. Promote v16 on the Mac
 
@@ -98,34 +140,47 @@ Run `python3 chpc/migration_v16/promote_v16.py --dry-run`, then run it again wit
 - the review record is `a315d7d2`, git-tracked, unmodified, with the literal in HEAD; the candidate files are committed;
 - every v16 pin equals its file, taking admit, status and `row19_screen_designated.json` from `candidate_v16/`;
 - every other pin equals v15's, and the file set is v15's plus the declaration;
-- the Mac archive from step 2 exists and verifies with the adopted v15 bytes;
-- each of the four live paths is its v15 or its v16 bytes, and the adoption is the v15 record or the version-16 record.
+- the Mac archive from step 2 holds exactly its six named files plus `SHA256SUMS` and `COMPLETE`, every digest verifying, and
+  the candidate's versions 1-15 equal the ARCHIVED v15 controls;
+- each of the four live paths is its v15 or its v16 bytes, and the adoption is the v15 record or EXACTLY the version-16 record
+  this script writes.
 
 It then copies the declaration, admission, status and LAST the controls into `chpc/` and writes
-`chpc/row19_screen_controls_adoption.json` for version 16 (atomic writes). A re-run of a finished promotion prints `already
-promoted`; an interrupted one resumes. Commit atomically (one command):
+`chpc/row19_screen_controls_adoption.json` for version 16 (atomic writes). A re-run of a finished promotion runs every check above first and then prints `already
+promoted, verified …`; an interrupted one resumes. `python3 chpc/migration_v16/promote_v16.py --check` is the same validation
+with no write: exit 0 only for a complete, verified promotion. Commit atomically (one command; the archive path includes its
+`COMPLETE`):
 
     git -C ~/Recoverable-Self-Coding add workspace_demo/t1_access/chpc/row19_screen_controls.json workspace_demo/t1_access/chpc/row19_screen_controls_adoption.json workspace_demo/t1_access/chpc/row19_screen_admit.py workspace_demo/t1_access/chpc/row19_screen_status.py workspace_demo/t1_access/chpc/row19_screen_designated.json workspace_demo/t1_access/chpc/results/archive/row19_screen_v15_before_v16 && git -C ~/Recoverable-Self-Coding commit -F <msg> -- <the same six paths>
 
 ## 4. Deploy to the controller clone (Lengau)
 
-Run `bash chpc/migration_v16/deploy_v16.sh --dry-run`, then run it without `--dry-run`. On the Mac it refuses unless the
-promotion is in place AND committed, and the Mac tree's own authority/lineage/controls/designated checks are empty. It copies
-the six changed files to `$T/patches/ctl16.*` and makes one commit in `rsc_screen_ctl` with the promoted controls, adoption,
-admit, status, the declaration and the review record (refuses unless `archive_screen/v15_before_v16/SHA256SUMS` exists, the
-clone is clean at the v15 controls and no controller command runs). The job clone `rsc_screen` is not touched. A re-run on a
-clone that already holds exactly these bytes makes no commit and repeats the checks.
+Run `bash chpc/migration_v16/deploy_v16.sh --dry-run`, then run it without `--dry-run`.
+
+On the Mac it refuses unless `promote_v16.py --check` passes (full authority, the Mac archive certificate, the exact version-16
+adoption), the six changed files are committed, and the Mac tree's own authority/lineage/controls/designated checks are
+empty. The six files (promoted controls, adoption, admit, status, the declaration and the review record) travel inside the one
+Lengau script, each checked against its Mac SHA-256; nothing is staged in `patches/`.
+
+On Lengau, immediately before the controller change, it refuses unless: the drain is observed (checked process inventory,
+both locks probed free); the archive's complete certificate verifies and its `SHA256SUMS` is the one the Mac archive names;
+`rsc_screen_ctl` is clean, at the v15 bytes, with no declaration, and at the archived HEAD; the gate qualification and active
+review equal the archived ones; and a COMPLETE before-manifest of the job clone's eight science files is taken (every file
+read, every digest command checked). It then makes one commit in `rsc_screen_ctl`, takes the complete after-manifest and
+refuses completion unless it is identical. The job clone `rsc_screen` is never written. A re-run on a clone that already holds
+exactly these bytes makes no commit and repeats the archive check and the checks below. An interrupted copy or commit leaves a
+dirty clone, which every re-run refuses: report it and recover it explicitly before continuing.
 
 Expected output:
 
-- `science bytes UNCHANGED`;
+- `science bytes UNCHANGED (8 files, complete before and after manifests identical)`;
 - `authority '' lineage '' controls ''`;
 - `designated ''` (the `A.designated(m, "chpc/row19_screen_manifest.json")[1]` check, run as `$T/t1py` in the controller clone);
 - the local-vs-remote pin comparison `IDENTICAL` (19 files);
 - `DEPLOY OK`.
 
-The script refuses (exit 3) on any non-empty problem string, a diff or an ABORT line. The e1 activation proof stays valid
-because v16 pins the same partition. Do NOT re-activate.
+The script refuses (exit 3) on any non-empty problem string, a diff, an ABORT line or an incomplete remote run. The e1
+activation proof stays valid because v16 pins the same partition. Do NOT re-activate.
 
 ## 5. Raise the refit campaign cap to 81,000 through the two-phase protocol (Lengau, under the programme lock)
 
@@ -177,10 +232,11 @@ Any `designated set:` alarm stops the migration.
 Under v16 the existing `qualified_refit_job1.json` (`3c605514`) names a v15 generation and is refused, as at the v13 and v15
 cutovers.
 
-1. `ssh -o ControlPath=none lengau bash -s < chpc/migration_v16/rollover_pilot_v16.sh`. It refuses unless v16 is the deployed,
-   adopted controller in `rsc_screen_ctl`, no controller command runs, the archive from step 2 verifies and holds byte-identical
-   copies of the active `review_refit.json` and of `qualified_refit_job1.json` (`3c605514`), and the review is bound to
-   `3c605514`. It then moves the review to `gate_retired/review_refit.v15_qual3c605514_max100.json` (read-only). The
+1. `bash chpc/migration_v16/lengau.sh rollover_pilot_v16.sh`. It refuses unless v16 is the deployed, adopted controller in
+   `rsc_screen_ctl`, the drain is observed (checked process inventory, both locks probed free), the archive from step 2
+   verifies with its complete certificate and certifies byte-identical copies of the active `review_refit.json` and of
+   `qualified_refit_job1.json` (`3c605514`), and the review is bound to `3c605514`. A re-run after the retirement refuses
+   (`retired file exists`), which is the completed state. It then moves the review to `gate_retired/review_refit.v15_qual3c605514_max100.json` (read-only). The
    `3c605514` authority (Codex RSC `66d1e99`) stays historical. Expected: `retired to …`.
 2. Make ONE call:
    `python3 chpc/row19_screen_status.py --manifest chpc/row19_screen_manifest.json --role refit --publish-receipt --qualify 1`.
@@ -191,11 +247,12 @@ cutovers.
    the qualification, the bound receipts and verify document, the retained PBS copies, both archives' SHA256SUMS), commit it with
    explicit paths and route the qualification metadata to Codex for
    `ADOPT row19-screen-pilot role=refit qualification=<qsha> max_job=100`. Never reuse the `3c605514` literal.
-4. After Codex's committed record: `REC=reviews/<record>.md`, then
-   `scp -o ControlPath=none $REC lengau:/mnt/lustre/users/pvanrooyen/t1_toolchain/patches/ctl16.$(basename $REC)` and
-   `ssh -o ControlPath=none lengau "REC=$REC bash -s" < chpc/migration_v16/adopt_pilot16.sh` (the `adopt_pilot13.sh` pattern).
-   It refuses while a review is active or while the gate still holds `3c605514`, commits the record in the controller clone and
-   runs `--adopt-review $REC --max-job-number 100`, which creates the NEW `gate/review_refit.json` and never overwrites one.
+4. After Codex's committed record: `bash chpc/migration_v16/lengau.sh adopt_pilot16.sh --file reviews/<record>.md` (the
+   `adopt_pilot13.sh` pattern; the record travels inside the script, checked against its Mac SHA-256). It refuses while a
+   review is active, while the gate still holds `3c605514`, without an observed drain, or when the controller clone holds the
+   record with other or uncommitted bytes; it commits the record in the controller clone and runs
+   `--adopt-review <record> --max-job-number 100`, which creates the NEW `gate/review_refit.json` and never overwrites one; an
+   adopter refusal is reported as a refusal.
    Expected: `adopted: reviews/<record>.md (…) for refit, qualification <qsha16>, job numbers up to 100`.
 
 Later inventory changes need fresh current receipts (step 6), not another `--qualify`.
@@ -228,7 +285,7 @@ When the new-order job is terminal and settled, collect a fresh receipt. Route t
 - the receipt hash.
 
 After a FAVOURABLE committed record that carries `ADOPT row19-screen-v16-scaleup first_job=<n> job_id=<pbs id> plan=<sha256>`,
-copy the record to `$T/patches/` and commit it in the controller clone as `adopt_pilot16.sh` does (the adopter requires it git-tracked and unmodified there), then run (Lengau, in the controller clone):
+copy the record to `$T/patches/` and commit it in the controller clone with its explicit path, as `adopt_pilot16.sh` does (the adopter requires it git-tracked and unmodified there), then run (Lengau, in the controller clone):
 
     t1py chpc/row19_screen_admit.py --manifest chpc/row19_screen_manifest.json --role refit --adopt-scaleup reviews/<record>.md
 
@@ -240,10 +297,30 @@ allowance on ordinary retries.
 
 ## Operator sequence (summary)
 
-drain -> `preflight_v16.sh` -> `archive_v15.sh` -> `promote_v16.py` (+ Mac commit) -> `deploy_v16.sh` -> `--raise-cap 81000`
-(+ budget commits) -> fresh refit and bank receipts -> `rollover_pilot_v16.sh` -> ONE `--qualify 1` -> Codex
-`ADOPT row19-screen-pilot` literal -> `adopt_pilot16.sh` -> ONE `--jobs 1` -> settled -> Codex `ADOPT row19-screen-v16-scaleup`
-literal -> `--adopt-scaleup` -> refills.
+drain (held to step 8) -> `preflight_v16.sh` -> `archive_v15.sh` -> `promote_v16.py` (+ Mac commit) -> `deploy_v16.sh` ->
+`--raise-cap 81000` (+ budget commits) -> fresh refit and bank receipts -> `lengau.sh rollover_pilot_v16.sh` -> ONE
+`--qualify 1` -> Codex `ADOPT row19-screen-pilot` literal -> `lengau.sh adopt_pilot16.sh --file <record>` -> ONE `--jobs 1` ->
+settled -> Codex `ADOPT row19-screen-v16-scaleup` literal -> `--adopt-scaleup` -> refills.
+
+## Tests (private copies only)
+
+`python3 chpc/migration_v16/test_migration_v16.py` (from anywhere; `-k <substring>` selects, `--keep` keeps the temp world).
+It builds a throwaway world in a fresh private temp directory: a local git clone as the Mac tree, a fake Lengau root (two more
+clones as controller and job clones, gate, locks, ledger, job scripts) and fake `ps` / `sha256sum` / `flock`. It copies the
+production files into the clone and substitutes exactly the `# @root` and `# @transport` lines, refusing a root outside its
+temp directory or aliasing the production toolchain and checking that no other line differs. No ssh, no Lengau, no live-tree
+write. It covers the positive route (preflight, archive, promote, deploy, re-runs, rollover) and the negative paths Codex
+listed: one-file remote archive (archive and deploy), missing ledger / budget phases / controller file / review / job scripts,
+failed checksum command and unreadable source, interrupted build, self-consistent subset and fully regenerated archives,
+archive corruption between creation and deploy (byte flip, extra file, missing `COMPLETE`, writable file), substituted Mac
+sixth file, incomplete Mac archive, the P3 fast path; failed, empty and busy process inventories, unavailable lock probes,
+actually held locks (both files, both probes), a failed `git status`; missing, unreadable, digest-failed, partial and changed
+science inputs (before and after the commit); symlink escapes of the controller clone, gate, archive directory, a gate member
+and an adopt destination, a valid aliased fake root, and bodies run without the prelude.
+
+Untested on the Mac: real ssh transport and Lengau's GNU tools (`flock(1)` exit codes, `realpath`, `base64 -d`, `sha256sum`)
+and Lustre's flock(2) behaviour; a positive `--adopt-review`, `--qualify`, `--raise-cap` and `--adopt-scaleup`; the real
+controller-clone commit on Lengau.
 
 ## Known consequences of v16 (not migration steps)
 
