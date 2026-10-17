@@ -2,7 +2,7 @@
 
 Design: `reviews/2026-10-17_row19_resize_codex.md` ss.1, 2, 5 and 6 item 3; PREREGISTRATION_T1_model.md s.10.1, "Amendment of
 17 October 2026"; chpc/ROW19_SCREEN_DECLARATIONS.md, "Owner adoption of the resized screen". Repaired per Codex's review
-`reviews/2026-10-17_v16_p80_codex_review.md` B1-B4. The adopted B = 200 consumer (`chpc/row19_screen_release.py`) is NOT
+`reviews/2026-10-17_v16_p80_codex_review.md` B1-B4 and its re-review `reviews/2026-10-17_e2_p80r_codex_review.md` B-R1, B-R2. The adopted B = 200 consumer (`chpc/row19_screen_release.py`) is NOT
 changed and stays the only consumer of the declared 100 x B = 200 screen; this module is a separate consumer with its own
 adoption schema, its own review literal and its own pins, so neither consumer can release under the other's adoption.
 
@@ -15,6 +15,11 @@ have drawn; its checksum) and nothing is relabelled, re-drawn or re-identified. 
 approximation of B = 200 (design s.1).
 
 THE SEAL (all before any statistic is computed; any failure REFUSES and computes nothing):
+  0. B-R1: the adoption is read ONCE (`adoption_snapshot`: with check_git git-tracked, unmodified and the bytes read equal to
+     HEAD's blob), parsed once, and that one snapshot is what items 1-3 and the terminal authority judge. The inherited seal's
+     reads of the adoption path are served from the snapshot (the adopted module is not edited; its `open` is redirected for
+     the call only and restored), and the release refuses if the inherited seal did not read it. The release review record is
+     likewise one snapshot (hash and literal from the same bytes).
   1. The adopted consumer's whole seal, unchanged (`row19_screen_release.seal_problems`: target bytes, RESOLVED status, bank
      binding and record set recomputed, both seed domains, controller lineage, consumer pins, manifests), run with THIS
      consumer's adoption schema (`row19-p80-adoption-1`) and THIS consumer's pin list (the adopted list plus this module).
@@ -35,8 +40,12 @@ CERTIFICATE (B1). The fully complete case needs no certificate. An absent origin
   manifests, contract, target, controller = admit / controls / controls version / designated declaration) must equal this
   release's, and the controller files must be pinned by the adoption at their present bytes. Its evidence is then verified
   against the controller's own representation (the v16 controller API, refused when absent): every certified coordinate's
-  attempts must equal EXACTLY the crashed-worker slot dispositions the certificate's bound gate receipts carry (and the newest
-  receipt agrees), they must reach the crash rule's same-envelope maximum in the envelope the next ordinary job uses
+  attempts must equal EXACTLY the crashed-worker slot dispositions the certificate's bound gate receipts carry. B-R2: every
+  bound receipt AND the newest gate receipt (read once, bytes frozen and reported) must be a zero-alarm production refit receipt
+  of the controller's schema with a finite time, bound to this campaign's identity (screen manifest, root, campaign, code,
+  wrapper) with every job binding equal to the ledger's PBS id / token and the plan bytes; the newest must bind every ledger job,
+  and be either a certified receipt (the reviewed state) or a validated successor of the newest certified one (later in path
+  and time, every certified job binding and crash disposition retained), and must agree on the certified coordinates' attempts; they must reach the crash rule's same-envelope maximum in the envelope the next ordinary job uses
   (`crash_excluded`), every attempt's job must be SETTLED in the ledger with its settlement fields bound in the certificate,
   and either (rescue-failed) the bound declaration's rescue route is enabled and exactly one settled rescue-route plan held the
   coordinate after its crashes, or (allowance-exhausted) no rescue plan held it, every rescue job is settled and the finite
@@ -64,7 +73,7 @@ allocated error - with no STOP/decision. The bank's point mean is never substitu
         --originals chpc/row19_screen_orig_manifest.json --target <frozen target> --adoption reviews/<p80 adoption>.json \\
         [--terminal reviews/<terminal certificate>.json --terminal-review reviews/<its review>.md] [--out <result.json>]
 """
-import os, sys, json, glob, math, bisect, hashlib, argparse, contextlib, subprocess
+import os, io, sys, json, glob, math, bisect, hashlib, argparse, builtins, contextlib, subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CHPC = os.path.abspath(os.path.join(HERE, ".."))
@@ -289,14 +298,52 @@ def prefix_interval(records, n, bands, predictors=None, min_usable=REFIT_MIN_USA
 # the seal
 # ------------------------------------------------------------------------------------------------------------------------
 @contextlib.contextmanager
-def _as_p80_consumer():
-    """Run the adopted seal with this consumer's adoption schema and pin list; restored in every case."""
+def _as_p80_consumer(adoption_rel=None, adoption_bytes=None):
+    """Run the adopted seal with this consumer's adoption schema and pin list; restored in every case.
+
+    B-R1: with `adoption_bytes` (the ONE snapshot of the adoption), every open() the adopted seal makes of the adoption path is
+    served from those bytes, so the inherited seal judges exactly the snapshot that the prefix/review checks and the terminal
+    authority then use. The adopted module is pinned and adopted, so it is not edited; its file reads are redirected for the
+    duration of the call only (the module-level `open` name is removed again in `finally`). Yields a one-element counter of the
+    snapshot reads the inherited seal made (it must be at least 1, or the redirection did not take effect)."""
     keep = (R.ADOPTION_SCHEMA, R.CONSUMER_FILES)
+    had_open = "open" in vars(R)
+    keep_open = vars(R).get("open")
+    used = [0]
     R.ADOPTION_SCHEMA, R.CONSUMER_FILES = ADOPTION_SCHEMA, CONSUMER_FILES
+    if adoption_bytes is not None:
+        ad_real = os.path.realpath(os.path.join(R.T1, adoption_rel))
+
+        def _snapshot_open(file, mode="r", *a, **k):
+            if isinstance(file, (str, bytes, os.PathLike)) and os.path.realpath(file) == ad_real:
+                if any(c in mode for c in "wax+"):
+                    raise PermissionError("the adoption snapshot is read-only")
+                used[0] += 1
+                return io.BytesIO(adoption_bytes) if "b" in mode else io.StringIO(adoption_bytes.decode())
+            return builtins.open(file, mode, *a, **k)
+        R.open = _snapshot_open
     try:
-        yield
+        yield used
     finally:
         R.ADOPTION_SCHEMA, R.CONSUMER_FILES = keep
+        if had_open:
+            R.open = keep_open
+        elif "open" in vars(R):
+            del R.open
+
+
+def adoption_snapshot(adoption_rel, check_git=True):
+    """(bytes, sha256, parsed adoption, problem) from ONE read of the adoption (B-R1). With check_git the file must be
+    git-tracked, unmodified and the bytes read must be HEAD's blob. Every later adoption use parses nothing else."""
+    b, sha, w = snapshot(adoption_rel, check_git)
+    if w:
+        return None, sha, None, f"the adoption document: {w}"
+    try:
+        ad = json.loads(b.decode())
+        assert isinstance(ad, dict)
+    except Exception as e:
+        return None, sha, None, f"the adoption document is unreadable ({type(e).__name__})"
+    return b, sha, ad, ""
 
 
 def contract_problems(screen):
@@ -320,22 +367,29 @@ def contract_problems(screen):
     return why
 
 
-def seal_problems(screen_path, orig_path, target, adoption_rel, check_git=True):
-    with _as_p80_consumer():
+def seal_problems(screen_path, orig_path, target, adoption_rel, check_git=True, adoption=None):
+    """Every reason the prefix release may not compute. `adoption` = (bytes, parsed) from adoption_snapshot: the ONE adoption
+    snapshot judged by the inherited seal AND by the prefix/review checks here, and afterwards used by the terminal authority
+    (B-R1). Without it, the snapshot is taken here."""
+    if adoption is None:
+        ab, _s, ad, w = adoption_snapshot(adoption_rel, check_git)
+        if w:
+            return [w]
+    else:
+        ab, ad = adoption
+    with _as_p80_consumer(adoption_rel, ab) as used:
         why = R.seal_problems(screen_path, orig_path, None, adoption_rel, check_git=check_git, target=target)
-    try:
-        ad = json.load(open(os.path.join(T1, adoption_rel)))
-    except Exception as e:
-        return why + [f"the adoption document is unreadable ({e})"]
+    if used[0] < 1:
+        why.append("the inherited seal did not judge the adoption snapshot (B-R1): refused")
     if ad.get("prefix_contract") != CONTRACT:
         why.append("the adoption's prefix_contract is not this consumer's contract")
     if ad.get("prefix_contract_sha256") != contract_sha():
         why.append("the adoption does not name this contract's SHA-256")
     rr = ad.get("release_review_record") or {}
-    rr_full = os.path.join(T1, rr.get("path", "") or "_none_")
-    if not os.path.exists(rr_full) or R.sha_file(rr_full) != rr.get("sha256") or (check_git and not R.tracked_unmodified(rr.get("path", ""))):
+    rrb, rrs, w = snapshot(rr.get("path", "") or "_none_", check_git) if isinstance(rr.get("path", ""), str) else (None, None, "no path")
+    if w or rrs != rr.get("sha256"):
         why.append("the prefix release review record is not tracked and unmodified with the adopted SHA-256")
-    elif release_literal(target[0]) not in [l.strip() for l in open(rr_full).read().splitlines()]:
+    elif release_literal(target[0]) not in [l.strip() for l in rrb.decode(errors="replace").splitlines()]:
         why.append("the prefix release review record does not carry its ADOPT row19-p80-release line for this consumer, target and contract")
     try:
         why += contract_problems(json.load(open(screen_path)))
@@ -390,29 +444,115 @@ def _plan_coords(plan):
     return {(int(s["rep"]), int(i)) for s in plan["slots"] for i in s["indices"]}
 
 
+RECEIPT_BOUND_KEYS = ("manifest_sha256", "root", "campaign", "code", "wrapper_sha256")    # the controller's BOUND_KEYS
+
+
+def _receipt_rel(rel):
+    return (isinstance(rel, str) and os.path.dirname(rel) == "gate" and os.path.basename(rel).startswith("watch_refit_")
+            and rel.endswith(".json") and ".." not in rel)
+
+
+def receipt_identity(screen, adoption):
+    """The `bound` identity a gate receipt of THIS campaign must carry (B-R2): the adopted screen manifest, its root and
+    campaign, its pinned code and wrapper."""
+    return dict(manifest_sha256=(adoption.get("manifests") or {}).get("screen"), root=screen["storage"]["root"],
+                campaign=screen["storage"]["campaign"], code=dict((screen.get("code") or {}).get("files") or {}),
+                wrapper_sha256=(screen.get("environment") or {}).get("wrapper_sha256"))
+
+
+def receipt_problems(doc, C, ident, by_job, plan_sha, every_job=False):
+    """Every reason one gate receipt is not valid evidence of this campaign (B-R2; applied to every certified receipt and to
+    the newest one): a dict of the controller's WATCH_SCHEMA, role refit, production, an empty alarm list, a finite time; its
+    `bound` identity equals this campaign's (manifest, root, campaign, code, wrapper); every job it binds is a ledger job with
+    the ledger's PBS id and token and the plan bytes read here; the jobs it summarises are exactly the jobs it binds; an anchor
+    digest. With every_job (the newest receipt) it must bind every ledger job: current evidence covers the current ledger."""
+    if not isinstance(doc, dict):
+        return ["not a receipt object"]
+    why = []
+    if doc.get("schema") != C.WATCH_SCHEMA:
+        why.append(f"schema {str(doc.get('schema'))[:40]!r} is not the controller's {C.WATCH_SCHEMA}")
+    if doc.get("role") != "refit":
+        why.append(f"role {str(doc.get('role'))[:20]!r} is not refit")
+    if doc.get("production") is not True:
+        why.append("not a production receipt")
+    if not (isinstance(doc.get("alarms"), list) and doc["alarms"] == []):
+        why.append(f"alarms {str(doc.get('alarms'))[:80]} (a zero-alarm receipt is required)")
+    if not _real(doc.get("time")):
+        why.append("no finite time")
+    b = doc.get("bound")
+    if not isinstance(b, dict):
+        return why + ["no `bound` identity: foreign or unbound evidence"]
+    for k in RECEIPT_BOUND_KEYS:
+        if b.get(k) != ident.get(k):
+            why.append(f"its bound {k} is not this campaign's: foreign evidence")
+    bj = b.get("jobs")
+    if not isinstance(bj, dict):
+        return why + ["no job bindings"]
+    for n, v in sorted(bj.items(), key=lambda kv: str(kv[0])):
+        try:
+            k = int(n); assert str(k) == n
+        except Exception:
+            why.append(f"job binding {n!r} is malformed"); continue
+        le = by_job.get(k)
+        if le is None:
+            why.append(f"it binds job {n}, which has no ledger entry: foreign or invented evidence"); continue
+        if v != dict(job_id=le.get("job_id"), token=le.get("token"), plan_sha256=plan_sha.get(k)):
+            why.append(f"its binding of job {n} is not the ledger's PBS id / token and the plan bytes")
+    if not isinstance(doc.get("jobs"), dict) or set(doc["jobs"]) != set(bj):
+        why.append("the jobs it summarises are not exactly the jobs it binds")
+    if every_job and set(bj) != {str(n) for n in by_job}:
+        why.append(f"it does not summarise every ledger job (missing {sorted(set(map(str, by_job)) - set(bj))[:5]}, "
+                   f"extra {sorted(set(bj) - set(map(str, by_job)))[:5]}): stale or foreign current evidence")
+    if not (isinstance(b.get("anchors_sha256"), str) and len(b["anchors_sha256"]) == 64):
+        why.append("no anchor verdict digest is bound")
+    return why
+
+
+def successor_problems(bound, nrel, ndoc):
+    """B-R2: the newest receipt is a validated SUCCESSOR of the certified ones only when it comes after every certified
+    receipt (path order and a strictly later time) and RETAINS their evidence: every job binding of the newest certified
+    receipt unchanged, and every crash disposition (slot_disposition) any certified receipt carries unchanged. Both sides
+    have already passed receipt_problems, so their campaign identity is equal."""
+    why = []
+    last_rel, _s, last = bound[-1]
+    if not nrel > last_rel:
+        why.append(f"it does not follow the newest certified receipt {last_rel} in path order")
+    if not ndoc["time"] > max(d["time"] for _, _, d in bound):
+        why.append("its time is not later than every certified receipt's")
+    nb = ndoc["bound"]["jobs"]
+    for n, v in last["bound"]["jobs"].items():
+        if nb.get(n) != v:
+            why.append(f"it does not retain the certified binding of job {n}")
+    for rel, _s, d in bound:
+        for n, sj in d["jobs"].items():
+            if isinstance(sj, dict) and "slot_disposition" in sj and (ndoc["jobs"].get(n) or {}).get("slot_disposition") != sj["slot_disposition"]:
+                why.append(f"it does not retain the crash disposition of job {n} that {rel} certifies")
+    return why
+
+
 def terminal_authority(cert_rel, review_rel, screen_path, screen, adoption, target_sha, C, check_git=True):
     """({(rep, index): certified entry}, problems, certificate sha256). No certificate -> ({}, [], None): the fully complete
     case needs none. Any problem refuses the certificate as a whole (nothing it names becomes terminal)."""
     if cert_rel is None:
-        return {}, (["a terminal review record was given without a certificate"] if review_rel else []), None
+        return {}, (["a terminal review record was given without a certificate"] if review_rel else []), None, None
     if not review_rel:
-        return None, ["a terminal certificate needs its separate tracked review record (--terminal-review)"], None
+        return None, ["a terminal certificate needs its separate tracked review record (--terminal-review)"], None, None
     cb, csha, w = snapshot(cert_rel, check_git)
     if w:
-        return None, [f"terminal certificate: {w}"], csha
+        return None, [f"terminal certificate: {w}"], csha, None
     rb, _rsha, w = snapshot(review_rel, check_git)
     if w:
-        return None, [f"terminal review record: {w}"], csha
+        return None, [f"terminal review record: {w}"], csha, None
     try:
         cert = json.loads(cb.decode())
     except Exception as e:
-        return None, [f"the terminal certificate is unreadable ({type(e).__name__})"], csha
+        return None, [f"the terminal certificate is unreadable ({type(e).__name__})"], csha, None
     if not isinstance(cert, dict) or cert.get("schema") != TERMINAL_SCHEMA:
-        return None, [f"the terminal certificate is not a {TERMINAL_SCHEMA} document (a free-form declaration is no authority)"], csha
+        return None, [f"the terminal certificate is not a {TERMINAL_SCHEMA} document (a free-form declaration is no authority)"], csha, None
     miss = [n for n in CONTROLLER_API if not hasattr(C, n)]
     if miss:
         return None, [f"the controller in use has no terminal representation ({miss[:3]}...): only the reviewed v16+ controller "
-                      "can supply attempt/crash/ownership evidence"], csha
+                      "can supply attempt/crash/ownership evidence"], csha, None
 
     # ---- identity: campaign / manifests / contract / target / controller, and the review literal over the exact bytes
     why = []
@@ -426,14 +566,14 @@ def terminal_authority(cert_rel, review_rel, screen_path, screen, adoption, targ
             why.append(f"the adoption does not pin the controller's {rel} at its present bytes")
         files[k] = (b, s)
     if why:
-        return None, why, csha
+        return None, why, csha, None
     if os.path.realpath(getattr(C, "__file__", "") or "") != os.path.realpath(os.path.join(T1, CONTROLLER_FILES["admit"])):
-        return None, ["the controller module in use is not the adoption-pinned admit file"], csha
+        return None, ["the controller module in use is not the adoption-pinned admit file"], csha, None
     try:
         controls = json.loads(files["controls"][0].decode()); last = controls["versions"][-1]
         desig = json.loads(files["designated"][0].decode())
     except Exception as e:
-        return None, [f"the controller's controls or designated declaration is unreadable ({type(e).__name__})"], csha
+        return None, [f"the controller's controls or designated declaration is unreadable ({type(e).__name__})"], csha, None
     if (last.get("files") or {}).get(C.DESIGNATED) != files["designated"][1]:
         why.append("the controls' latest version does not pin the designated declaration's present bytes")
     if [int(r) for r in desig.get("reps") or []] != list(DESIGNATED) or desig.get("indices") != dict(start=0, stop=PREFIX):
@@ -452,7 +592,7 @@ def terminal_authority(cert_rel, review_rel, screen_path, screen, adoption, targ
         why.append("the terminal review record does not carry ADOPT row19-p80-terminal for this exact certificate, screen, "
                    "contract, target and controls (an unreviewed or changed certificate)")
     if why:
-        return None, why, csha
+        return None, why, csha, None
 
     # ---- the controller's representation of the attempts: ledger, plans, receipts, EC2 register (each file read once)
     root, camp = screen["storage"]["root"], screen["storage"]["campaign"]
@@ -460,25 +600,25 @@ def terminal_authority(cert_rel, review_rel, screen_path, screen, adoption, targ
         led, _ = _read_once(os.path.join(camp, "budget.json"))
         entries = [e for e in (led.get("entries") or {}).values() if isinstance(e, dict) and e.get("kind") == "shard"]
     except Exception as e:
-        return None, [f"the campaign ledger is unreadable ({type(e).__name__}): attempts and ownership are unknown"], csha
+        return None, [f"the campaign ledger is unreadable ({type(e).__name__}): attempts and ownership are unknown"], csha, None
     by_job = {}
     for e in entries:
         n = e.get("rep")
         if not _int(n) or n in by_job:
             why.append(f"ledger job number {n!r} is malformed or duplicated: ownership ambiguous"); continue
         by_job[n] = e
-    plans = {}
+    plans, plan_sha = {}, {}
     for pp in sorted(glob.glob(os.path.join(root, "plans", "job_*.json"))):
         name = os.path.basename(pp)[4:-5]
         try:
             n = int(name); assert name == str(n)
-            d, _ = _read_once(pp)
+            d, psha = _read_once(pp)
             assert isinstance(d.get("slots"), list) and d["slots"]
             assert all(isinstance(s, dict) and _int(s.get("rep")) and isinstance(s.get("indices"), list) and s["indices"]
                        and all(_int(i) for i in s["indices"]) for s in d["slots"])
         except Exception:
             why.append(f"plan {os.path.basename(pp)} is malformed or unreadable: its claims are unknown (ownership ambiguous)"); continue
-        plans[n] = d
+        plans[n] = d; plan_sha[n] = psha
     for n in by_job:
         if n not in plans:
             why.append(f"ledger job {n} has no plan: its claims are unknown (ownership ambiguous)")
@@ -490,11 +630,11 @@ def terminal_authority(cert_rel, review_rel, screen_path, screen, adoption, targ
     if not (isinstance(receipts, list) and receipts):
         why.append("the certificate binds no gate receipt")
         receipts = []
-    rdocs = []
+    ident = receipt_identity(screen, adoption)
+    rdocs, bound = [], []                                                   # bound: [(rel, sha256, doc)] in path order
     for x in receipts:
         rel = (x or {}).get("path") if isinstance(x, dict) else None
-        if not (isinstance(rel, str) and os.path.dirname(rel) == "gate" and os.path.basename(rel).startswith("watch_refit_")
-                and rel.endswith(".json") and ".." not in rel):
+        if not _receipt_rel(rel):
             why.append(f"a bound receipt path {rel!r} is not a gate/watch_refit_*.json receipt"); continue
         try:
             doc, s = _read_once(os.path.join(root, rel))
@@ -502,15 +642,39 @@ def terminal_authority(cert_rel, review_rel, screen_path, screen, adoption, targ
             why.append(f"the bound receipt {rel} is unreadable ({type(e).__name__})"); continue
         if s != x.get("sha256"):
             why.append(f"the bound receipt {rel} is not the certified bytes"); continue
-        if not (doc.get("schema") == C.WATCH_SCHEMA and doc.get("role") == "refit" and doc.get("production") is True
-                and doc.get("alarms") == []):
-            why.append(f"the bound receipt {rel} is not a zero-alarm production refit receipt"); continue
-        rdocs.append(doc)
+        w = receipt_problems(doc, C, ident, by_job, plan_sha)
+        if w:
+            why += [f"the bound receipt {rel}: {v}" for v in w]; continue
+        rdocs.append(doc); bound.append((rel, s, doc))
+    bound.sort(key=lambda t: t[0])
+    # B-R2: the NEWEST receipt is current evidence; it is read once (bytes frozen and hashed) and must itself be a valid,
+    # zero-alarm production refit receipt of this campaign that summarises every ledger job, AND be either a certified receipt
+    # (the reviewed state) or a validated successor of the newest certified one - never trusted for one parsed sublist alone.
     newest = sorted(glob.glob(os.path.join(root, "gate", "watch_refit_*.json")))
-    try:
-        newest_doc = _read_once(newest[-1])[0] if newest else None
-    except Exception as e:
-        newest_doc = None; why.append(f"the newest gate receipt is unreadable ({type(e).__name__})")
+    newest_doc, current = None, None
+    if newest:
+        nrel = os.path.join("gate", os.path.basename(newest[-1]))
+        try:
+            newest_doc, nsha = _read_once(newest[-1])
+        except Exception as e:
+            newest_doc = None; why.append(f"the newest gate receipt is unreadable ({type(e).__name__})")
+        if newest_doc is not None:
+            w = receipt_problems(newest_doc, C, ident, by_job, plan_sha, every_job=True)
+            if w:
+                why += [f"the newest gate receipt {nrel}: {v}" for v in w]
+            elif bound:
+                rel_ok = {r: s for r, s, _ in bound}
+                if nrel in rel_ok:
+                    if rel_ok[nrel] != nsha:
+                        why.append(f"the newest gate receipt {nrel} is a certified path with other bytes than the certified ones")
+                    else:
+                        current = dict(path=nrel, sha256=nsha, relation="certified (the reviewed state)")
+                else:
+                    w = successor_problems(bound, nrel, newest_doc)
+                    if w:
+                        why += [f"the newest gate receipt {nrel} is not a validated successor of the certified receipts: {v}" for v in w]
+                    else:
+                        current = dict(path=nrel, sha256=nsha, relation=f"validated successor of {bound[-1][0]}")
     if newest_doc is None and not why:
         why.append("no gate receipt exists")
     reg_named = set()
@@ -524,7 +688,7 @@ def terminal_authority(cert_rel, review_rel, screen_path, screen, adoption, targ
         except Exception as e:
             why.append(f"the EC2 register is unreadable ({type(e).__name__}): EC2 ownership unknown")
     if why:
-        return None, why, csha
+        return None, why, csha, None
 
     def env_of(n):
         try:
@@ -548,12 +712,12 @@ def terminal_authority(cert_rel, review_rel, screen_path, screen, adoption, targ
 
     history, bad = history_of(rdocs)
     if bad:
-        return None, [f"the bound receipts disagree on attempts {bad[:3]}"], csha
+        return None, [f"the bound receipts disagree on attempts {bad[:3]}"], csha, None
     newest_hist, _ = history_of([newest_doc])
     nxt = (max(by_job) + 1) if by_job else 1
     env_next = env_of(nxt)
     if env_next is None:
-        return None, [f"the envelope of the next ordinary job ({nxt}) is not resolvable: the crash rule cannot be evaluated"], csha
+        return None, [f"the envelope of the next ordinary job ({nxt}) is not resolvable: the crash rule cannot be evaluated"], csha, None
     excluded = C.crash_excluded(history, env_next)
     rs = desig.get("rescue") or {}
     rescue_on = rs.get("enabled") is True and rs.get("resources") is not None
@@ -635,7 +799,11 @@ def terminal_authority(cert_rel, review_rel, screen_path, screen, adoption, targ
     if cert.get("settlements") != want_settle:
         why.append("the certificate's settlement receipts are not exactly the ledger's settled entries of its attempts")
 
-    # ---- the finite global rescue allowance (allowance-exhausted only)
+    # ---- the finite global rescue allowance (allowance-exhausted only). Codex re-review choice 3: this is a RESERVATION QUOTA
+    # (declared allowance minus the ledger reservations of every rescue job), not charged-hour exhaustion. The "full
+    # reservation" is priced in the next ORDINARY envelope, which is valid only if the future adopted rescue amendment's request
+    # reserves exactly that; otherwise that amendment must price the rescue envelope here (and re-review this consumer). The
+    # branch stays unreachable under the v16 declaration (rescue disabled: a hold, not exhaustion).
     if exhausted_used:
         A_ = rs.get("allowance_core_h")
         jobs_ = {str(n): (by_job.get(n) or {}).get("reserved_core_h") for n in rescue_jobs}
@@ -654,7 +822,7 @@ def terminal_authority(cert_rel, review_rel, screen_path, screen, adoption, targ
                 why.append(f"the rescue allowance is not exhausted: {left:.1f} core-h remain, at least one full reservation ({full:.1f})")
     elif cert.get("rescue_allowance") is not None:
         why.append("the certificate carries rescue-allowance evidence but certifies no allowance-exhausted coordinate")
-    return (None if why else certified), why, csha
+    return (None if why else certified), why, csha, (None if why else current)
 
 
 # ------------------------------------------------------------------------------------------------------------------------
@@ -782,14 +950,16 @@ def release(screen_path, orig_path, target_path, adoption_rel, terminal_rel=None
     if not os.path.exists(target_path):
         return dict(status="REFUSED", reasons=["the target file is absent"])
     target = R.load_target(target_path)                                       # ONE read: these bytes decide
-    why = seal_problems(screen_path, orig_path, target, adoption_rel, check_git=check_git)
+    ab, asha, ad, w = adoption_snapshot(adoption_rel, check_git)              # ONE read of the adoption (B-R1)
+    if w:
+        return dict(status="REFUSED", reasons=[w])
+    why = seal_problems(screen_path, orig_path, target, adoption_rel, check_git=check_git, adoption=(ab, ad))
     if why:
         return dict(status="REFUSED", reasons=why)
     screen = json.load(open(screen_path)); origm = json.load(open(orig_path))
-    ad = json.load(open(os.path.join(T1, adoption_rel)))
     C = controller_module if controller_module is not None else (controller() if terminal_rel is not None else None)
-    certified, twhy, csha = terminal_authority(terminal_rel, terminal_review_rel, screen_path, screen, ad, target[0], C,
-                                               check_git=check_git)
+    certified, twhy, csha, current = terminal_authority(terminal_rel, terminal_review_rel, screen_path, screen, ad, target[0], C,
+                                                        check_git=check_git)
     if twhy:
         return dict(status="HELD", reasons=twhy)
     why, items = collect(screen, origm)
@@ -805,7 +975,8 @@ def release(screen_path, orig_path, target_path, adoption_rel, terminal_rel=None
     tsha, tg = target; t = tg["targets"]["/".join(PRIMARY)]; lo, hi = float(t["lo"]), float(t["hi"])
     refit = [tuple(v["refit"]) for v in per.values() if v["refit_usable"]]
     return dict(schema=RESULT_SCHEMA, status="RELEASED", contract=CONTRACT, contract_sha256=contract_sha(),
-                target=dict(lo=lo, hi=hi, sha256=tsha), terminal_certificate_sha256=csha,
+                target=dict(lo=lo, hi=hi, sha256=tsha), adoption_sha256=asha, terminal_certificate_sha256=csha,
+                terminal_current_receipt=current,
                 terminal_certified={f"{r}/{i}": v for (r, i), v in sorted((certified or {}).items())}, n_attempted=N_DESIGNATED,
                 failed_originals={str(r): v["terminal"]["reason"] for r, v in per.items() if v["terminal"]["terminal"] == "original failed"},
                 unavailable={str(r): v["reason"] for r, v in per.items() if v["status"] != "usable"},

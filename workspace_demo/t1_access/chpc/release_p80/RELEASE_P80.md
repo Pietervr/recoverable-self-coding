@@ -1,7 +1,8 @@
 # Row 19 resized screen: the first-80 prefix release package (CANDIDATE, not adopted)
 
-Status, 17 October 2026: **repaired candidate bytes for Codex re-review** (Codex review
-`reviews/2026-10-17_v16_p80_codex_review.md`, B: CHANGE 4; first candidate RSC `18e490f`). Nothing here is adopted, pinned,
+Status, 17 October 2026: **second repaired candidate bytes for Codex re-review** (Codex review
+`reviews/2026-10-17_v16_p80_codex_review.md`, B: CHANGE 4, first candidate RSC `18e490f`; re-review
+`reviews/2026-10-17_e2_p80r_codex_review.md`, B: CHANGE 2 on repair 1 RSC `9e7e200`). Nothing here is adopted, pinned,
 deployed or run on real data. No sealed record was read, no release was run, nothing was unsealed, no Lengau or AWS operation
 was made. The adopted B = 200 consumer `chpc/row19_screen_release.py`, the v16 candidate controller and every other live file
 are unchanged.
@@ -11,18 +12,27 @@ Design: `reviews/2026-10-17_row19_resize_codex.md` ss.1, 2, 5, 6 item 3; `PREREG
 
 | File | SHA-256 at this commit |
 |---|---|
-| `row19_screen_release_p80.py` (the consumer) | `bef5d79e3e93a09ad204f26bc84d5bfadece5adb31885d8483086290b44f58cf` |
-| `test_row19_screen_release_p80.py` (synthetic tests) | `a8e8cd9271772c1e6f3bc1fbb7ca8fe39a423d2689eeb67668fb613335b3e4a6` |
-| `CONTRACT` (canonical JSON, `contract_sha()`, schema `row19-p80-contract-2`) | `a9b09dcc7369ba059b0de271411d4720b24a8762c5ba55d7f2c885a52eac8495` |
+| `row19_screen_release_p80.py` (the consumer) | `9259f7cfb146d74b3f0725fba55f46c5f06db14a83589e2d21af6ec38209f414` |
+| `test_row19_screen_release_p80.py` (synthetic tests) | `2a3617f1b72601995fc55f94fb40609a571aec918bdf6f24815717e3585f070b` |
+| `CONTRACT` (canonical JSON, `contract_sha()`, schema `row19-p80-contract-2`; unchanged by repair 2) | `a9b09dcc7369ba059b0de271411d4720b24a8762c5ba55d7f2c885a52eac8495` |
 
-Superseded first-candidate hashes (no ADOPT literal was issued for them): consumer `c96ac31b...`, tests `0ca4c5ec...`, contract
-`b32192e2...`.
+Superseded hashes (no ADOPT literal was issued for any): first candidate consumer `c96ac31b...`, tests `0ca4c5ec...`, contract
+`b32192e2...`; repair 1 (RSC `9e7e200`) consumer `bef5d79e...`, tests `a8e8cd92...` (same contract).
 
 Run the tests from `workspace_demo/t1_access`: `.venv/bin/python chpc/release_p80/test_row19_screen_release_p80.py`.
-Result at this commit: **131 / 131 ok, ALL OK** (about 5 s; `test_results.txt`). Codex's caveat on the earlier run still holds:
+Result at this commit: **163 / 163 ok, ALL OK** (about 5 s; `test_results.txt`; repair 1 had 131). Codex's caveat on the earlier run still holds:
 `simulate.make_dataset` stays real inside the fixture and temporary adoption / review / certificate files are written beneath
 `reviews/` and removed at the end; the v16 controller used by the B1 tests is the candidate module loaded under its own name with
 a synthetic `resolve_envelope`.
+
+## 0a. Repair 2 per Codex's re-review B-R1, B-R2
+
+| Finding | What changed |
+|---|---|
+| **B-R1 (P2)** different adoption reads could supply different authority | `release` reads the adoption ONCE (`adoption_snapshot`: one read, hashed; with `check_git` git-tracked, unmodified and the bytes equal to HEAD's blob), parses it once, and passes that snapshot to `seal_problems` and then to `terminal_authority`. Inside `seal_problems` the inherited seal runs under `_as_p80_consumer(adoption_rel, bytes)`, which serves every `open()` of the adoption path in the adopted module from the snapshot; the release refuses if the inherited seal did not read it. The prefix-contract and release-review checks use the same parsed snapshot; the release review record is also one snapshot (hash and literal from the same bytes). The result carries `adoption_sha256`. **Deviation from Codex's literal suggestion:** Codex proposed extending the inherited seal with an optional snapshot argument. The inherited seal is the adopted, pinned `chpc/row19_screen_release.py`, which this package may not change, so the snapshot is injected by redirecting that module's `open` for the call only (restored in `finally`, also when it raises; tested). If the owner prefers the explicit argument, it is a one-parameter change to the adopted consumer and a re-pin. |
+| **B-R2 (P2)** the newest receipt's validity was not checked | One validator, `receipt_problems`, now applies to every certified receipt AND to the newest gate receipt: a dict of the controller's `WATCH_SCHEMA`, role refit, `production` true, `alarms == []`, a finite `time`, and a `bound` identity equal to this campaign's (`manifest_sha256` = the adopted screen manifest, `root`, `campaign`, `code`, `wrapper_sha256`: the controller's `BOUND_KEYS`), every job binding equal to the ledger's PBS id / token and the plan bytes read here (an unknown job refuses), summaries exactly the bound jobs, an anchor digest. The newest receipt must bind every ledger job. It is read once and its path and sha256 are frozen into the result (`terminal_current_receipt`). It must be either a certified receipt (the reviewed state; a certified path with other bytes refuses) or a **validated successor** of the newest certified one (`successor_problems`: later in path order and strictly later in time, every job binding of the newest certified receipt and every crash disposition any certified receipt carries retained unchanged), and the certified coordinates' attempts must still agree. |
+
+Kept unchanged, as Codex accepted: B1-B4 and everything else listed below. The contract is unchanged, so its hash is the same.
 
 ## 0. Repairs per Codex B1-B4
 
@@ -56,7 +66,7 @@ originals, out-of-prefix records unread.
 | Codex B3: the cluster as a companion report | `cluster_companion`: descriptive report, paired availability, containment table; no decision. |
 | s.2 "Keep the one-look design" | `terminality`: every designated dataset must be complete, original-failed, or have every missing prefix coordinate certified. Otherwise `NOT TERMINAL` with the open coordinates only, and no interval, count or decision is computed. The CLI writes a result once (`open(..., "x")`). |
 | s.4 crash rule; Codex B1 "an immutable, independently review-bound terminal certificate" | `terminal_authority` reads the certificate ONCE (`snapshot`: bytes hashed and parsed from one read; with `check_git` the file must be tracked, unmodified and equal to HEAD's blob). A SEPARATE tracked review record (also one snapshot, `--terminal-review`) must carry `ADOPT row19-p80-terminal certificate=<cert sha256> screen=<screen manifest sha256> contract=<contract sha256> target=<target sha256> controls=<controls sha256> verdict=FAVOURABLE`. **Identity:** the certificate's `campaign`, `root`, both manifest hashes, contract, target and `controller` {admit, controls, controls version, designated declaration} must equal this release's. Each controller file must be pinned in the adoption's `consumer_pins` at its present bytes, the controls' latest version must pin the designated declaration, and the module in use must be the pinned admit file with the v16 API (`crash_history`, `crash_excluded`, `lengau_scope`, ...). A v15 controller refuses. |
-| (same) evidence | **Attempts:** the certificate binds gate receipts {path, sha256} (zero-alarm production refit receipts). Each certified coordinate's `crashes` must equal exactly what the controller's own `crash_history` derives from those receipts, and the newest gate receipt must agree. They must reach `crash_excluded` in the envelope the next ordinary job would use (two same-envelope fatal crashes). Every attempt's job needs a ledger entry with its PBS id. **Settlement:** every attempt job must be `settled`, and `settlements` must equal its ledger fields exactly (job_id, reserved, settled core-h, time, note). **Branch:** `rescue-failed` requires the bound declaration's rescue route enabled with resources, and exactly one settled rescue-route plan (`"route": "rescue"`) holding the coordinate after its crashes. `allowance-exhausted` requires that no rescue plan held it, every rescue job is settled, `rescue_allowance` equals {declared allowance, the ledger's rescue reservations, one full reservation}, and the allowance left is below one full reservation. **Ownership:** every plan holding the coordinate belongs to a settled ledger entry (a live entry, a plan without an entry, an entry without a plan or a malformed plan refuses); the coordinate is in Lengau's scope (an unclaimed EC2-designated coordinate waits for the EC2 epoch); no EC2 register attempt names it. Outside-set workers are not examined. |
+| (same) evidence | **Attempts:** the certificate binds gate receipts {path, sha256}. Every bound receipt and the newest receipt must pass `receipt_problems` (section 0a, B-R2), and the newest must be a certified receipt or a validated successor. Each certified coordinate's `crashes` must equal exactly what the controller's own `crash_history` derives from those receipts, and the newest gate receipt must agree. They must reach `crash_excluded` in the envelope the next ordinary job would use (two same-envelope fatal crashes). Every attempt's job needs a ledger entry with its PBS id. **Settlement:** every attempt job must be `settled`, and `settlements` must equal its ledger fields exactly (job_id, reserved, settled core-h, time, note). **Branch:** `rescue-failed` requires the bound declaration's rescue route enabled with resources, and exactly one settled rescue-route plan (`"route": "rescue"`) holding the coordinate after its crashes. `allowance-exhausted` requires that no rescue plan held it, every rescue job is settled, `rescue_allowance` equals {declared allowance, the ledger's rescue reservations, one full reservation}, and the allowance left is below one full reservation. **Ownership:** every plan holding the coordinate belongs to a settled ledger entry (a live entry, a plan without an entry, an entry without a plan or a malformed plan refuses); the coordinate is in Lengau's scope (an unclaimed EC2-designated coordinate waits for the EC2 epoch); no EC2 register attempt names it. Outside-set workers are not examined. |
 | s.6 item 3 "Require the existing independently reviewed RESOLVED numerical target... No numerical release under an old consumer/adoption literal" | The adopted seal (`row19_screen_release.seal_problems`) runs unchanged under this consumer's adoption schema `row19-p80-adoption-1` and pin list. In addition, `prefix_contract` must equal `CONTRACT` with its SHA-256, and a separate tracked release review must carry `ADOPT row19-p80-release consumer=<sha256> target=<sha256> contract=<sha256> verdict=FAVOURABLE`. Tested both ways. |
 
 Attempted-set guard, computed exactly (test output; n = 60 - M):
@@ -120,7 +130,8 @@ complete-case bound never vetoes an all-60 failure. So for M < 30 the rule is ef
 ## 4. Choices the design does not pin down (what this candidate chose)
 
 1. **Reusing the adopted seal.** It is called unchanged, with this module rebinding the adopted module's `ADOPTION_SCHEMA` and
-   `CONSUMER_FILES` inside a context manager that restores them in `finally` (tested). This is for the isolated single-thread
+   `CONSUMER_FILES`, and (B-R1) redirecting its reads of the adoption path to the one snapshot, inside a context manager that
+   restores all three in `finally` (tested, also when the seal raises). This is for the isolated single-thread
    CLI only (Codex accepted it for that scope).
 2. **M** = 60 - n_usable for refit: failed originals, certified missing coordinates and a prefix with any unscored resample all
    count as unavailable (Codex accepted).
@@ -141,10 +152,16 @@ complete-case bound never vetoes an all-60 failure. So for M < 30 the rule is ef
      must adopt that marker or replace it, together with the matching check here.
    - (c) "Exhausted" means the declared allowance minus the ledger reservations of every rescue job is below one full
      reservation in the next ordinary envelope (`envelope_core_h`, 1,152 core-h at 24 x 48 h), with every rescue job settled.
+     Per Codex's ruling on choice 3 this is a finite **reservation quota**, not charged-hour exhaustion (small settlements buy
+     no further attempts). Pricing the full reservation in the next ordinary envelope is valid only if the future adopted
+     rescue amendment's request reserves exactly that; otherwise the amendment must price its rescue envelope here and this
+     consumer is re-reviewed. The amendment must also say whether its quota counts attempts, cumulative reservations or spent
+     hours. The branch is not enabled by this package.
    - (d) An absent original is never certifiable (the originals campaign is settled).
-   - (e) Receipts are checked for schema, role, production and zero alarms and bound by hash. Their slot dispositions are not
-     re-derived from PBS bytes here: admission did that when each receipt was judged, and the certificate review binds the
-     receipt bytes.
+   - (e) Receipts (certified and newest) are checked for schema, role, production, zero alarms, time and campaign/job
+     bindings, and the certified ones are bound by hash. Their slot dispositions are not re-derived from PBS bytes here: the
+     certificate's independent review must establish the receipt / plan / PBS / settlement provenance (Codex choice 4). Newer
+     evidence outside that review is admitted only as a validated successor (B-R2).
 7. **n_usable = 0** returns "unresolved: no usable interval", not a futility stop.
 8. **The cutoff is never hard-coded.** The computed bound is always used, and the test proves it equals Kmax <= 48 at n = 60.
 9. **Out-of-prefix records are not validated.** A damaged index >= 80 does not hold the prefix release; the producer-side

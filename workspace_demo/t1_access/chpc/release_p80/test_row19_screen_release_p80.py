@@ -22,7 +22,18 @@ or computes anything from the sealed screen; nothing is a scientific result.
 9. Parity: the prefix formula over all 200 records equals analyze.refit_bootstrap's strict restore; the cluster companion
    equals analyze.analyze_dataset's; the released refit interval is np.percentile over records 0..79.
 10. The seal: the adopted consumer's adoption schema is refused here, and this adoption is refused by the adopted consumer; a
-   changed contract, a missing release literal or a producer B other than 200 refuses."""
+   changed contract, a missing release literal or a producer B other than 200 refuses.
+11. B-R1 (Codex re-review): ONE adoption snapshot. An adoption replaced after a successful inherited seal (Codex's control
+   flow: the replacement would authorise the certificate, the checked one would not) HOLDS on the checked snapshot; the prefix
+   checks and the inherited seal also judge the snapshot (a replacement written after or just before the inherited seal reads
+   is not seen); an inherited seal that never read the snapshot refuses; the adopted module's open/schema/pins are restored,
+   also when it raises; under check_git an untracked adoption refuses first.
+12. B-R2 (Codex re-review): the NEWEST gate receipt is validated - Codex's fixture (wrong schema, production false, alarms,
+   same crash list) and each defect alone, no alarm list, another role, no time, no bound identity, a foreign campaign or
+   manifest, a job binding not the ledger's (PBS id, plan bytes), an invented job, an omitted ledger job, summaries not bound,
+   not later, not an object - all HOLD; a validated successor is accepted and frozen in the result; a successor dropping a
+   certified crash disposition HOLDS although the certified coordinate's crash list is unchanged; a certified receipt of a
+   foreign root HOLDS."""
 import os, sys, json, copy, glob, math, shutil, tempfile, time, random, importlib.util
 from fractions import Fraction
 os.environ.setdefault("NPROC", "1")
@@ -388,21 +399,48 @@ def entry(n, state="settled"):
 
 
 class Ops:
-    """Writes one scenario's ledger / plans / receipts / register (replacing the previous one)."""
-    def __init__(self, refit):
+    """Writes one scenario's ledger / plans / receipts / register (replacing the previous one). Each receipt carries the
+    campaign's `bound` identity (B-R2: screen manifest, root, campaign, code, wrapper; a job binding per summarised job with the
+    ledger's PBS id / token and the plan bytes) and a time taken from its stamp. With fill (the default) every ledger job a
+    receipt does not name is summarised as an ordinary finished job, so the receipt covers the ledger as the controller's does."""
+    def __init__(self, refit, rp):
+        self.refit, self.rp = refit, rp
         self.root, self.camp = refit["storage"]["root"], refit["storage"]["campaign"]
+        self.ledger = []
+
+    def receipt(self, stamp, jobs, fill=True, **over):
+        """A receipt document over the CURRENT ledger / plans (written by write())."""
+        jobs = dict(jobs)
+        if fill:
+            for e in self.ledger:
+                jobs.setdefault(str(e["rep"]), dict(state="F", exit=0))
+        led = {str(e["rep"]): e for e in self.ledger}
+
+        def binding(n):
+            e = led.get(n) or {}
+            pp = os.path.join(self.root, "plans", f"job_{n}.json")
+            return dict(job_id=e.get("job_id"), token=e.get("token"), plan_sha256=REL.sha_file(pp) if os.path.exists(pp) else None)
+        bound = dict(manifest_sha256=REL.sha_file(self.rp), root=self.root, campaign=self.camp,
+                     code=dict(self.refit["code"]["files"]), wrapper_sha256=(self.refit.get("environment") or {}).get("wrapper_sha256"),
+                     jobs={n: binding(n) for n in jobs}, bindings={}, anchors_sha256="a" * 64)
+        t = time.mktime(time.strptime(stamp, "%Y%m%dT%H%M%SZ"))
+        doc = dict(schema=CAND.WATCH_SCHEMA, role="refit", production=True, fresh=True, alarms=[], time=t, bound=bound, jobs=jobs)
+        doc.update(over)
+        return doc
+
+    def put(self, stamp, doc):
+        rel = f"gate/watch_refit_{stamp}.json"
+        _write(os.path.join(self.root, rel), doc)
+        return dict(path=rel, sha256=REL.sha_file(os.path.join(self.root, rel)))
 
     def write(self, ledger, plans, receipts, register=None):
         for d in ("plans", "gate", "ec2"):
             shutil.rmtree(os.path.join(self.root, d), ignore_errors=True)
+        self.ledger = list(ledger)
         json.dump({"cap_core_h": 81000.0, "entries": {e["token"]: e for e in ledger}}, open(os.path.join(self.camp, "budget.json"), "w"))
         for n, pl in plans.items():
             _write(os.path.join(self.root, "plans", f"job_{n}.json"), pl)
-        out = []
-        for stamp, jobs in receipts:
-            rel = f"gate/watch_refit_{stamp}.json"
-            _write(os.path.join(self.root, rel), dict(schema=CAND.WATCH_SCHEMA, role="refit", production=True, fresh=True, alarms=[], jobs=jobs))
-            out.append(dict(path=rel, sha256=REL.sha_file(os.path.join(self.root, rel))))
+        out = [self.put(stamp, self.receipt(stamp, jobs)) for stamp, jobs in receipts]
         if register is not None:
             _write(os.path.join(self.root, "ec2", "register.json"), register)
         return out
@@ -464,7 +502,7 @@ def certificate(F, refit, rp, op, tgt, receipts, missing, settlements, rescue_al
 def test_release_path():
     bank, bmp, tgt, refit, rp, orig, op, tasks = build()
     root = refit["storage"]["root"]
-    F = Files(); ops = Ops(refit); keep_ctl = dict(P.CONTROLLER_FILES)
+    F = Files(); ops = Ops(refit, rp); keep_ctl = dict(P.CONTROLLER_FILES)
     try:
         ad = adoption(F, bank, bmp, tgt, rp, op)
         n0 = CALLS["run_dataset"]
@@ -623,6 +661,10 @@ def test_certificates(F, ops, bank, bmp, tgt, refit, rp, orig, op, r2, keep_ctl)
           row.get("status") == "unavailable" and row.get("refit_usable") is False and "certified missing" in row.get("reason", "")
           and str(r2) in x["unavailable"] and x["refit"]["M_unavailable"] >= 1 and x["refit"]["n_usable"] == 60 - x["refit"]["M_unavailable"])
     check("its cluster companion stays reported (paired partition)", row.get("cluster_usable") is True and x["cluster_companion"]["paired"]["cluster_only"] >= 1)
+    check("B-R2: the result freezes the newest receipt (path, sha256) as the certified reviewed state",
+          x.get("terminal_current_receipt") == dict(path=rc[0]["path"], sha256=rc[0]["sha256"], relation="certified (the reviewed state)"),
+          str(x.get("terminal_current_receipt")))
+    check("B-R1: the result names the one adoption snapshot it used", x.get("adoption_sha256") == REL.sha_file(os.path.join(T1, ad)))
 
     # ---- refusals (each certificate is otherwise exact and reviewed, so only the named defect differs)
     cr2, rv2 = certificate(F, refit, rp, op, tgt, rc, std_missing(crashes=["one invented attempt"]), settle(1, 2, 3))
@@ -655,9 +697,10 @@ def test_certificates(F, ops, bank, bmp, tgt, refit, rp, orig, op, r2, keep_ctl)
     held(rel_(rp, op, tgt, ad, cr, rv, C=SA_LIVE), "no terminal representation", "the live v15 controller (no crash/ownership representation)")
 
     # still-live / ambiguous ownership
-    ops.write(std_ledger + [entry(4, state="live")], {**std_plans, 4: plan(c)}, [("20261101T000000Z", std_jobs)])
+    rc_l = ops.write(std_ledger + [entry(4, state="live")], {**std_plans, 4: plan(c)}, [("20261101T000000Z", std_jobs)])
+    cr_l, rv_l = certificate(F, refit, rp, op, tgt, rc_l, std_missing(), settle(1, 2, 3))
+    held(rel_(rp, op, tgt, ad, cr_l, rv_l), "still owns it", "a coordinate a live job still owns")
     cr2, rv2 = certificate(F, refit, rp, op, tgt, rc, std_missing(), settle(1, 2, 3))
-    held(rel_(rp, op, tgt, ad, cr2, rv2), "still owns it", "a coordinate a live job still owns")
     ops.write(std_ledger, {**std_plans, 5: plan(c)}, [("20261101T000000Z", std_jobs)])
     held(rel_(rp, op, tgt, ad, cr2, rv2), "ownership ambiguous", "a coordinate in a plan without a ledger entry")
     ops.write(std_ledger, std_plans, [("20261101T000000Z", std_jobs)], register={"attempts": {"a1": {"state": "launched", "coordinates": {f"{r2}/7": {}}}}})
@@ -688,10 +731,10 @@ def test_certificates(F, ops, bank, bmp, tgt, refit, rp, orig, op, r2, keep_ctl)
     rc_b = list(rc); rc_b[0] = dict(rc_b[0], sha256="0" * 64)
     cr2, rv2 = certificate(F, refit, rp, op, tgt, rc_b, std_missing(), settle(1, 2, 3))
     held(rel_(rp, op, tgt, ad, cr2, rv2), "not the certified bytes", "a bound receipt whose bytes changed")
+    rc = ops.write(std_ledger + [entry(4)], {**std_plans, 4: plan(c)}, [("20261101T000000Z", std_jobs)])
     cr2, rv2 = certificate(F, refit, rp, op, tgt, rc, std_missing(), settle(1, 2, 3))
-    _write(os.path.join(root, "gate", "watch_refit_20261102T000000Z.json"),
-           dict(schema=CAND.WATCH_SCHEMA, role="refit", production=True, fresh=True, alarms=[], jobs=dict(std_jobs, **{"4": dict(sdisp("4.s", [c]), state="F")})))
-    held(rel_(rp, op, tgt, ad, cr2, rv2), "newest gate receipt", "a newer receipt carrying a further attempt")
+    ops.put("20261102T000000Z", ops.receipt("20261102T000000Z", dict(std_jobs, **{"4": dict(sdisp("4.s", [c]), state="F")})))
+    held(rel_(rp, op, tgt, ad, cr2, rv2), "the newest gate receipt carries other attempts", "a newer (valid successor) receipt carrying a further attempt")
     rc = ops.write(std_ledger, std_plans, [("20261101T000000Z", std_jobs)])
     bad_settle = settle(1, 2, 3); bad_settle["2"]["settled_core_h"] = 1.0
     cr2, rv2 = certificate(F, refit, rp, op, tgt, rc, std_missing(), bad_settle)
@@ -740,6 +783,135 @@ def test_certificates(F, ops, bank, bmp, tgt, refit, rp, orig, op, r2, keep_ctl)
     x = rel_(rp, op, tgt, ad, cr2, rv2)
     check("B1: a certificate naming a coordinate that holds a valid record HOLDS (never relabelled)",
           x["status"] == "HELD" and any("never relabelled" in w for w in x["reasons"]), str(x.get("reasons"))[:200])
+
+    # ---- B-R2: the NEWEST receipt must itself be valid current evidence of this campaign (Codex's re-review fixture first)
+    ad = setup(True)
+    rc = ops.write(std_ledger, std_plans, [("20261101T000000Z", std_jobs)])
+    cr, rv = certificate(F, refit, rp, op, tgt, rc, std_missing(), settle(1, 2, 3))
+    NEW = "20261102T000000Z"
+
+    def newest(label, needle, doc=None, **over):
+        ops.write(std_ledger, std_plans, [("20261101T000000Z", std_jobs)])           # the certified receipt, same bytes
+        ops.put(NEW, doc if doc is not None else ops.receipt(NEW, std_jobs, **over))
+        held(rel_(rp, op, tgt, ad, cr, rv), needle, "B-R2 " + label)
+    newest("Codex's newer receipt: wrong schema, production false, alarms ['INVALID PROVENANCE'], the same crash list",
+           "the newest gate receipt", schema="row19-screen-watch-0", production=False, alarms=["INVALID PROVENANCE"])
+    newest("a newer receipt of another schema (same crash list)", "is not the controller's", schema="row19-screen-watch-0")
+    newest("a newer non-production receipt (same crash list)", "not a production receipt", production=False)
+    newest("a newer receipt with an alarm (same crash list)", "a zero-alarm receipt is required", alarms=["INVALID PROVENANCE"])
+    newest("a newer receipt without an alarm list", "a zero-alarm receipt is required", alarms=None)
+    newest("a newer receipt of another role", "is not refit", role="orig")
+    newest("a newer receipt without a time", "no finite time", time=None)
+    newest("a newer receipt without a bound identity", "no `bound` identity", bound=None)
+    d = ops.receipt(NEW, std_jobs); d["bound"]["campaign"] = "/elsewhere/row19_screen_campaign"
+    newest("a newer receipt of a foreign campaign", "bound campaign is not this campaign's", doc=d)
+    d = ops.receipt(NEW, std_jobs); d["bound"]["manifest_sha256"] = "0" * 64
+    newest("a newer receipt bound to another screen manifest", "bound manifest_sha256 is not this campaign's", doc=d)
+    d = ops.receipt(NEW, std_jobs); d["bound"]["jobs"]["1"]["job_id"] = "99.s"
+    newest("a newer receipt binding job 1 to another PBS id", "binding of job 1 is not the ledger's", doc=d)
+    d = ops.receipt(NEW, std_jobs); d["bound"]["jobs"]["9"] = dict(job_id="9.s", token="t9", plan_sha256=None); d["jobs"]["9"] = dict(state="F", exit=0)
+    newest("a newer receipt binding a job the ledger does not have", "foreign or invented evidence", doc=d)
+    newest("a newer receipt that omits a ledger job (stale current evidence)", "does not summarise every ledger job",
+           doc=ops.receipt(NEW, {k: v for k, v in std_jobs.items() if k != "3"}, fill=False))
+    d = ops.receipt(NEW, std_jobs); d["jobs"]["7"] = dict(state="F", exit=0)
+    newest("a newer receipt summarising a job it does not bind", "not exactly the jobs it binds", doc=d)
+    newest("a newer receipt that is not later than the certified one", "time is not later", time=0.0)
+    newest("a newer receipt that is not a JSON object", "not a receipt object", doc=[1, 2])
+    # a validated successor (later, same campaign identity, every certified binding and crash disposition retained) is accepted
+    ops.write(std_ledger, std_plans, [("20261101T000000Z", std_jobs)])
+    succ = ops.put(NEW, ops.receipt(NEW, dict(std_jobs, **{"3": dict(state="F", exit=0, note="later summary")})))
+    x = rel_(rp, op, tgt, ad, cr, rv)
+    check("B-R2 ACCEPTS a validated successor receipt (same campaign, later, the certified evidence retained) and freezes it",
+          x["status"] == "RELEASED" and x["terminal_current_receipt"] == dict(path=succ["path"], sha256=succ["sha256"],
+                                                                              relation=f"validated successor of {rc[0]['path']}"),
+          str(x.get("reasons") or x.get("terminal_current_receipt"))[:300])
+    # a successor that rewrites a certified crash disposition (of ANOTHER coordinate) is refused, although the certified
+    # coordinate's own crash list is unchanged: equality of one parsed sublist is not enough
+    jobs13 = dict(std_jobs, **{"1": dict(sdisp("1.s", [c, (3, 0)]), state="F")})
+    rc13 = ops.write(std_ledger, std_plans, [("20261101T000000Z", jobs13)])
+    cr13, rv13 = certificate(F, refit, rp, op, tgt, rc13, std_missing(), settle(1, 2, 3))
+    x = rel_(rp, op, tgt, ad, cr13, rv13)
+    check("B-R2 control: the certificate over a receipt whose job 1 also crashed (3, 0) is accepted", x["status"] == "RELEASED",
+          str(x.get("reasons"))[:200])
+    ops.put(NEW, ops.receipt(NEW, std_jobs))
+    held(rel_(rp, op, tgt, ad, cr13, rv13), "does not retain the crash disposition of job 1",
+         "B-R2 a newer receipt that drops a certified crash disposition while the certified coordinate's crash list is unchanged")
+    ops.write(std_ledger, std_plans, [("20261101T000000Z", std_jobs)])
+    d = ops.receipt(NEW, std_jobs); d["bound"]["jobs"]["2"]["plan_sha256"] = "0" * 64
+    ops.put(NEW, d)
+    held(rel_(rp, op, tgt, ad, cr, rv), "binding of job 2 is not the ledger's", "B-R2 a newer receipt binding job 2 to other plan bytes")
+    # the same validator applies to a certified receipt: foreign certified evidence refuses although its bytes are bound
+    ops.write(std_ledger, std_plans, [])
+    d = ops.receipt("20261101T000000Z", std_jobs); d["bound"]["root"] = "/elsewhere/root"
+    rcf = [ops.put("20261101T000000Z", d)]
+    crf, rvf = certificate(F, refit, rp, op, tgt, rcf, std_missing(), settle(1, 2, 3))
+    held(rel_(rp, op, tgt, ad, crf, rvf), "the bound receipt gate/watch_refit_20261101T000000Z.json: its bound root",
+         "B-R2 a certified (hash-bound) receipt of a foreign root")
+
+    # ---- B-R1: ONE adoption snapshot is judged by the inherited seal, the prefix/review checks and the terminal authority
+    ops.write(std_ledger, std_plans, [("20261101T000000Z", std_jobs)])
+    ad_nopin = adoption(F, bank, bmp, tgt, rp, op); dd = json.load(open(os.path.join(T1, ad_nopin)))
+    del dd["consumer_pins"][P.CONTROLLER_FILES["designated"]]; json.dump(dd, open(os.path.join(T1, ad_nopin), "w"))
+    full_b = open(os.path.join(T1, ad), "rb").read()
+    keep_seal = REL.seal_problems
+
+    def swapping(target_rel, new_bytes, before=False, call=True):
+        def wrapped(*a, **k):
+            if before:
+                open(os.path.join(T1, target_rel), "wb").write(new_bytes)
+            why = keep_seal(*a, **k) if call else []
+            if not before:
+                open(os.path.join(T1, target_rel), "wb").write(new_bytes)
+            return why
+        return wrapped
+
+    def with_swap(rel, new_bytes, **kw):
+        old = open(os.path.join(T1, rel), "rb").read()
+        REL.seal_problems = swapping(rel, new_bytes, **kw)
+        try:
+            return rel_(rp, op, tgt, rel, cr, rv)
+        finally:
+            REL.seal_problems = keep_seal
+            open(os.path.join(T1, rel), "wb").write(old)
+    # Codex's B-R1 control flow: the checked adoption does not pin the controller; a replacement that does is swapped in after
+    # a successful inherited seal. The replacement WOULD authorise the certificate (control) ...
+    scr = json.load(open(rp))
+    _c, tw, _s, _cur = P.terminal_authority(cr, rv, rp, scr, json.loads(full_b.decode()), REL.sha_file(tgt), CAND, check_git=False)
+    _c, tw2, _s, _cur = P.terminal_authority(cr, rv, rp, scr, dd, REL.sha_file(tgt), CAND, check_git=False)
+    check("B-R1 control: the replacement adoption would authorise the certificate; the checked one would not",
+          tw == [] and any("does not pin the controller" in w for w in tw2), str(tw)[:120] + str(tw2)[:120])
+    # ... but the release uses the one snapshot it checked
+    x = with_swap(ad_nopin, full_b)
+    held(x, "does not pin the controller", "B-R1 an adoption replaced after the inherited seal (the terminal authority uses the checked snapshot)")
+    # the earlier prefix/review checks use the same snapshot: a changed prefix contract swapped for the right one after the seal
+    ad_bad = adoption(F, bank, bmp, tgt, rp, op, prefix_contract=dict(copy.deepcopy(P.CONTRACT), prefix=79))
+    x = with_swap(ad_bad, full_b)
+    check("B-R1 the prefix checks judge the snapshot, not a replacement swapped in after the inherited seal",
+          x["status"] == "REFUSED" and any("prefix_contract" in w for w in x["reasons"]), str(x.get("reasons"))[:200])
+    # the inherited seal judges the snapshot too: a good adoption swapped in BEFORE the inherited seal reads is not seen
+    ad_schema = adoption(F, bank, bmp, tgt, rp, op, schema=REL.ADOPTION_SCHEMA)
+    x = with_swap(ad_schema, full_b, before=True)
+    check("B-R1 the inherited seal judges the snapshot (a good adoption written just before it reads is not seen)",
+          x["status"] == "REFUSED" and any("another schema" in w for w in x["reasons"]), str(x.get("reasons"))[:200])
+    check("B-R1 the adopted module's open() is restored after the seal", "open" not in vars(REL))
+    x = with_swap(ad, full_b, call=False)
+    check("B-R1 an inherited seal that never read the snapshot refuses", x["status"] == "REFUSED"
+          and any("did not judge the adoption snapshot" in w for w in x["reasons"]), str(x.get("reasons"))[:200])
+
+    def boom(*a, **k):
+        raise RuntimeError("seal boom")
+    REL.seal_problems = boom
+    try:
+        _raises(lambda: rel_(rp, op, tgt, ad, cr, rv))
+    finally:
+        REL.seal_problems = keep_seal
+    check("B-R1 the adopted module's schema/pins/open() are restored when the inherited seal raises",
+          "open" not in vars(REL) and REL.ADOPTION_SCHEMA == "row19-target-adoption-1" and P.SELF_REL not in REL.CONSUMER_FILES)
+    x = P.release(rp, op, tgt, ad, terminal_rel=cr, terminal_review_rel=rv, check_git=True, controller_module=CAND)
+    check("B-R1 under check_git an adoption that is not git-tracked HEAD bytes refuses before anything is judged",
+          x["status"] == "REFUSED" and x["reasons"] and "not git-tracked" in x["reasons"][0], str(x.get("reasons"))[:200])
+    x = rel_(rp, op, tgt, ad, cr, rv)
+    check("B-R1 the unswapped adoption still releases (the snapshot is the same bytes)", x["status"] == "RELEASED", str(x.get("reasons"))[:200])
 
 
 def test_cli_writes_once():
