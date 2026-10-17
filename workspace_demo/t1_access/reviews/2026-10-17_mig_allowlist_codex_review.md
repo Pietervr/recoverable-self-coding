@@ -1,0 +1,63 @@
+# Migration v16 — controller-evidence allowlist review
+
+17 October 2026. **FAVOURABLE for the narrow repair at RSC `2e6920a3daf1be8f67ddd0687d62820960b71cb0`, with two nonblocking P3 corrections below.** No material tracked-clean, evidence-preservation, archive or mutation-boundary regression was found. The directory inventory has a demonstrated unusual-filename gap, so an unrestricted claim that it admits no other filesystem entry would be false. This review does not claim that live preflight or cutover has succeeded.
+
+## Scope and identities
+
+Read the complete committed brief `Unimog-Projects/prompts/2026-10-17_codex_r052_mig_allowlist_review.txt`, Unimog `ac6d96a18b50fd54a6bacc008b37c667cd1651c6`, SHA256 `a8512f5c48832b1362c1d9164f1a394cb7448ae3e6ea8854ce81a8215ab4a8ad`. Reviewed the complete eight-file `93a4daf8593941cf7f8ebe897c8736266b7c4c68..2e6920a` migration diff and the changed source/test context, with independent readers for the clean-check boundary, archive/preservation and sanitized integration suite. Paths below are relative to `workspace_demo/t1_access/` at the reviewed commit.
+
+Ownership was committed at Unimog `2dab192933d332ff51276d8b8a0cc9fc287513af`, then handoff `4072a9f4-359f-5ae1-9f9c-b7dc5b0ce371` was accepted before review edits. Exact session remains `GPT: R052 Entropy paper`, native `01a0d19e-2127-7051-9a61-6db771088559`. Claude retains implementation, operational dispatch, ledger, frontmatter and current summaries. Only this review file is owned in RSC.
+
+The three literal identities agree across `remote_lib.sh:166–168`, `lengau_archive.py:37–40` and the harness:
+
+- `aws_ec2/ec2_release_state.json` — `80ba0ac599f617f8c0ee020d75e7c53dcd30c519d783a76dcb6a2f6b9f1a1d39`.
+- `aws_ec2/runs/b2/bench_report_attempt_5_20261011T185715Z.json` — `154511e687f006001888970bd3d65398b6b37c910221378b7f6c3c63fe63e3a4`.
+- `reviews/2026-10-11_d1d2_f3_codex_record.md` — `636f1e77089578a14ee837bf95fe0f86cc84dbc907f8ced918256b69dbb55c1e`.
+
+The brief reports these as the three live untracked administrative copies; this pass did not independently access Lengau. Their historical committed metadata bytes were separately pinned for the private integration fixtures.
+
+## Preserved guarantees
+
+**Tracked cleanliness and normal untracked files: favourable.** `ctl_clean:177–216` checks the status command's exit, reads porcelain for the entire controller repository and accepts only `??` entries matching the three repository-root-relative names. Any tracked modification, index change, deletion, conflict or rename reported there refuses. The allowed names are safe ASCII literals; Git quotes unusual untracked filenames, which therefore cannot match them accidentally. Every present evidence file must also pass canonical physical containment, regular-file type and its exact checked SHA256. A changed file, symlink or directory at an allowed name refuses. Strict `git_clean` is unchanged. The scientific clone retains the separate complete eight-file digest proof; it receives no allowlist exception.
+
+**Archive and preservation: favourable.** `lengau_archive.py:141–142,162–168,230–241,283–328` requires all three distinct `ctl/untracked/<path>` members and their fixed hashes, in addition to the existing complete checksum and completion certificates. A recertified archive with a missing, changed or fourth evidence member still refuses. Ordinary controller pins cannot occupy the reserved namespace. The archive reads regular contained sources, copies them exclusively, checks staged bytes against both earlier and fresh source digests, verifies the complete archive and publishes it atomically. It does not move, delete, chmod, ignore or stage the originals. The private fixture confirmed original bytes, mode, mtime and all three untracked status entries were preserved.
+
+`ctl_clean` deliberately accepts an absent evidence member. A **new archive** separately requires all three; do not describe `ctl_clean` as a current-existence fence on every later replay. This distinction is explicit in the brief and does not authorize migration code to remove a copy.
+
+**Writes and commits: favourable.** Exact-name `not_evidence` exclusions run before deployment destinations or a pilot-record destination can be used. Deployment stages and commits the explicit payload list only, checks the resulting commit's names against that list and verifies that the three evidence names did not become tracked (`deploy_v16.sh:175–189`); its final `ctl_clean` checks for dirt or changed evidence again. Adoption rejects the old qualification record as its new review destination before copying (`adopt_pilot16.sh:14–18`). The complete archive, deployed-byte and science-before/after recovery checks remain in place. There is no allowlist shortcut around a held deploy proof or a pilot gate.
+
+**Old Git interface: favourable, with the preceding review's limits.** The added calls retain the directory-subshell route and do not restore global `-C`. Git 1.8.3.1 documents porcelain, repository-root-relative porcelain paths, `--untracked-files=all`, quoted unusual names and `ls-files --error-unmatch`; these are compatible with the clean-check strategy. [Git 1.8.3.1 status documentation](https://raw.githubusercontent.com/git/git/v1.8.3.1/Documentation/git-status.txt), [ls-files documentation](https://raw.githubusercontent.com/git/git/v1.8.3.1/Documentation/git-ls-files.txt). The private restricted-CLI shims still exercise modern host binaries, not an actual Git 1.8.3 installation. The prior upstream flock/shim-description correction and the Python scan's limited scope remain as recorded in `reviews/2026-10-17_mig_compat_codex_review.md`.
+
+## P3 — newline serialization leaves a directory-inventory gap
+
+`remote_lib.sh:210–214` serializes `find` entries with newlines and skips empty lines. Alongside the real pinned bench report, add an **extra empty directory** whose basename is `bench_report_attempt_5_20261011T185715Z.json` followed by one or two literal newline characters. Git does not report the empty directory. Its `find` output splits into the allowed report path and blank lines, so `ctl_clean` returns 0. An ordinary extra empty directory refuses. This reproduces in a live-shaped private controller repository with tracked `aws_ec2/` and `reviews/` anchors and wholly untracked `runs/b2/`.
+
+With an additional private `.git/info/exclude` rule for `workspace_demo/t1_access/aws_ec2/runs/b2/*`, an ignored nonempty file or ignored symlink with that suffix-newline name also passes. This latter extension requires the fixture's ignore rule; no matching rule was found in the candidate's two committed ignore files, and the remote clone's local/global ignores were not observed. An ordinary ignored extra still refuses. Unignored nonempty newline or quote filenames refuse through porcelain.
+
+Use a checked NUL-delimited inventory or a checked Python filesystem walk that compares complete path strings, and add these regression cases. **P3, nonblocking:** this violates the strongest exact-tree wording, but the demonstrated entries do not replace any pinned file, enter the archive, relax tracked cleanliness, gain a deployment destination or acquire authority. No active consumer or write consequence was demonstrated. The narrow migration approval is not a claim that this hardening gap is absent.
+
+## P3 — narrow the claim that no controller reads these copies
+
+The brief, `remote_lib.sh:162–165` and `RUNBOOK.md:135–136` use a blanket no-reader claim. Existing `chpc/row19_ec2_shadow.py:40,55–71` instead declares this clone-relative release-state path and reads it, then hashes the report and qualification-record paths it names. Its `admit()` calls `release_problem()` after the S declaration check. Thus the three copies are potentially inputs to that legacy S route, even though the **v16 migration route** does not consult them as authority.
+
+The runbook already records at line 419 that S is terminal and its hard-coded 60,000 declaration refuses a future S retry under v16. That route is outside the authorized cutover, so this is a nonblocking scope/documentation correction, not evidence of a newly admitted S job. Say that the copies are retained historical administrative evidence and are not authority for the v16 migration path; explicitly retain the terminal-S/retry hold. Do not assert that no controller code can read them or infer fresh EC2 permission from their presence.
+
+## Verification and operational boundary
+
+The independent integration suite passed **48/48 in 311 seconds**, outer exit 0. Pinned source and real migration sources were unchanged. The six added cases exercised the exact-three positive archive/deploy route, eleven preflight/archive mutation scenarios, four pre-deployment mutation refusals, post-deploy dirt, the forbidden evidence-review destination and a missing release-state member. Missing-file runtime coverage individually removes that one member; mandatory all-three coverage also follows from the source inventory and the separate archive checks.
+
+The fresh sanitized snapshot contained 1,247 selected paths and **zero protected paths before checkout or tree hashing**. Every selected committed blob/mode and migration code/test byte matched `2e6920a`; the harness was unmodified. Only the exact three named historical administrative metadata specs were additionally allowed through the source/history filter, with every full hash independently checked, plus the already-reviewed current-HEAD pilot-review read used by promotion. Historical fixture commits were `f2caf7ce2457f1c53fd0d0c90c8240c9b332f72c`, `c12af3e4c26d62d516d2d51a42c8f635975af0a5` and `1609fa7fb68c888e5996bbd81017b2af304e10ae`, respectively. The known ignored administrative pilot-qualification receipt remained the fixed `3c605514…` extra fixture. Other run/output and protected paths were excluded before materialization; explicit read/import/process/network guards supplemented the inspected private destinations. These guards are not an OS sandbox. No protected payload was opened in this pass.
+
+One earlier sanitized attempt was stopped because an additional outer guard incorrectly blocked promotion's legitimate current-HEAD review read. It was an outer-guard false refusal, with no protected read; its incomplete counts are discarded. The final 48/48 used a fresh sanitized world and the corrected narrow guard. Evidence: `/private/tmp/r052_mig_allowlist_suite_review_20261017.md`, `/private/tmp/r052_mig_allowlist_suite_20261017.py/.log` and the provenance record linked there.
+
+Focused synthetic archive checks passed **25/25**, with the actual pin-map equality checked separately from invented fixture bytes. The clean-check counters likewise used synthetic administrative bytes and in-memory/restricted-private-fixture pin substitution; they demonstrate parsing and refusal behavior, not live provenance. Evidence: `/private/tmp/r052_mig_allowlist_archive_review_20261017.md`, `/private/tmp/r052_mig_allowlist_archive_check_20261017.py/.json`; `/private/tmp/r052_mig_allowlist_clean_review_20261017.md` and its linked private proof files.
+
+The prior whole-tree protected-byte hashing incident remains disclosed in `reviews/2026-10-17_mig2_e2n_codex_review.md` (`0b8a2e16`); this pass does not erase it or create blind calibration. No numerical result, actual old-tool/Lustre certification or live operational success follows from administrative fixtures. The prior nonblocking final-DONE-digest/retry P3 in `deploy_v16.sh` remains unchanged and was not rerun.
+
+The bounded scripts-review approval is:
+
+FAVOURABLE row19-screen-migration version=16 scripts_commit=2e6920a3daf1be8f67ddd0687d62820960b71cb0
+
+Existing owner conditional go carries forward: retry the **full live read-only preflight** first, under the coordinated admission/controller hold. `--local-only` is insufficient. Report another refusal; do not manufacture or bypass authority. The same staged archives, promotion/deployment/proof, fresh locked whole-programme funding and supported 81,000 phase under 100,000, fresh whole-role receipts, ONE existing-pilot qualification-metadata call/no fit, stop on NOT QUALIFIED, new exact pilot review/adoption, ONE first new-order job and separate actual-resource scale-up review before refills remain required. E2, p80 and rescue gates are separate; e1 is not reactivated.
+
+No production/source/current-summary/manuscript/ledger edit, real AWS/Lengau/SSH/scheduler/worker operation, scientific fit/draw/numerical release, worktree or push was performed by this review. Foreign files are preserved. All three bounded readers and private runs are complete; no task-owned process, listener or poller remains.
