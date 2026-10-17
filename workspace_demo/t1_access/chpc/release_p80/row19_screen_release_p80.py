@@ -1,10 +1,10 @@
 """Ledger row 19, the RESIZED screen: the first-80 PREFIX release consumer (CANDIDATE, not adopted).
 
 Design: `reviews/2026-10-17_row19_resize_codex.md` ss.1, 2, 5 and 6 item 3; PREREGISTRATION_T1_model.md s.10.1, "Amendment of
-17 October 2026"; chpc/ROW19_SCREEN_DECLARATIONS.md, "Owner adoption of the resized screen". The adopted B = 200 consumer
-(`chpc/row19_screen_release.py`) is NOT changed and stays the only consumer of the declared 100 x B = 200 screen; this module is
-a separate consumer with its own adoption schema, its own review literal and its own pins, so neither consumer can release under
-the other's adoption.
+17 October 2026"; chpc/ROW19_SCREEN_DECLARATIONS.md, "Owner adoption of the resized screen". Repaired per Codex's review
+`reviews/2026-10-17_v16_p80_codex_review.md` B1-B4. The adopted B = 200 consumer (`chpc/row19_screen_release.py`) is NOT
+changed and stays the only consumer of the declared 100 x B = 200 screen; this module is a separate consumer with its own
+adoption schema, its own review literal and its own pins, so neither consumer can release under the other's adoption.
 
 WHAT IS SCREENED. For each of the 60 designated datasets S = {r in 3..102 : (r - 3) mod 5 in {0, 1, 2}} the interval is the
 2.5 % / 97.5 % percentile interval (np.percentile, default linear interpolation, exactly the expression of
@@ -18,36 +18,53 @@ THE SEAL (all before any statistic is computed; any failure REFUSES and computes
   1. The adopted consumer's whole seal, unchanged (`row19_screen_release.seal_problems`: target bytes, RESOLVED status, bank
      binding and record set recomputed, both seed domains, controller lineage, consumer pins, manifests), run with THIS
      consumer's adoption schema (`row19-p80-adoption-1`) and THIS consumer's pin list (the adopted list plus this module).
-  2. The adoption's `prefix_contract` equals this module's CONTRACT exactly (parent B 200, prefix 80, the 60 designated IDs
-     and their rule, refit_min_usable 1.0, 98.5 % one-sided CP, floor 0.90, one terminal look), and the screen manifest is
-     that contract's producer (interval refit, n_boot_refit 200, refit_min_usable 1.0, every designated ID declared with an
-     identity).
+  2. The adoption's `prefix_contract` equals this module's CONTRACT exactly, and the screen manifest is that contract's
+     producer (interval refit, n_boot_refit 200, refit_min_usable 1.0, every designated ID declared with an identity).
   3. A separate git-tracked, unmodified release review record carries
      `ADOPT row19-p80-release consumer=<sha256 of this file> target=<target sha256> contract=<contract sha256> verdict=FAVOURABLE`.
 COLLECTION (validation only, no statistic): per designated dataset, the original (lossless cache, read back) and the records
 at indices 0..79. An unacceptable record or cache HOLDS (wrong parent, seed, B, draw, index or checksum - it is never
 skipped). Out-of-prefix records (80..199) are not read: they stay history and earn no credit.
 TERMINALITY (one look): a decision is emitted only when ALL 60 datasets are terminal - complete (original valid and 80 valid
-records), original failed (recorded reason), or every missing coordinate declared RESCUE-EXHAUSTED in a git-tracked terminal
-document (schema row19-p80-terminal-1) with a reason and attempt provenance. Otherwise NOT TERMINAL: the non-terminal
-coordinates are listed and no interval, count or decision is computed. A declaration naming a coordinate that holds a valid
-record, an undesignated dataset or an index outside 0..79 HOLDS (never relabel a record as missing).
+records), original failed (recorded reason), or every missing prefix coordinate of a valid original covered by a TERMINAL
+CERTIFICATE (B1). The fully complete case needs no certificate. An absent original has no certificate route: NOT TERMINAL.
+  The certificate (schema row19-p80-terminal-cert-1) is immutable and review-bound: its bytes are read ONCE (hashed and parsed
+  from that one snapshot) and must be git-tracked and equal to HEAD's blob; a SEPARATE tracked review record (also one
+  snapshot) must carry `ADOPT row19-p80-terminal certificate=<its sha256> screen=<screen manifest sha256> contract=<contract
+  sha256> target=<target sha256> controls=<controls sha256> verdict=FAVOURABLE`. Its identity fields (campaign, root, both
+  manifests, contract, target, controller = admit / controls / controls version / designated declaration) must equal this
+  release's, and the controller files must be pinned by the adoption at their present bytes. Its evidence is then verified
+  against the controller's own representation (the v16 controller API, refused when absent): every certified coordinate's
+  attempts must equal EXACTLY the crashed-worker slot dispositions the certificate's bound gate receipts carry (and the newest
+  receipt agrees), they must reach the crash rule's same-envelope maximum in the envelope the next ordinary job uses
+  (`crash_excluded`), every attempt's job must be SETTLED in the ledger with its settlement fields bound in the certificate,
+  and either (rescue-failed) the bound declaration's rescue route is enabled and exactly one settled rescue-route plan held the
+  coordinate after its crashes, or (allowance-exhausted) no rescue plan held it, every rescue job is settled and the finite
+  allowance left is below one full reservation. Finally no outstanding ownership: every plan holding the coordinate belongs to
+  a settled ledger entry (a live entry or a plan without an entry refuses), it lies in Lengau's scope (an unclaimed
+  EC2-designated coordinate waits for the EC2 epoch), and no EC2 register attempt names it. A certificate naming a coordinate
+  that holds a valid record, or one of a dataset whose original is absent or failed, HOLDS (never relabel a record as missing).
 AGGREGATION (only after seal + terminality; analyze.run_dataset raises throughout, so nothing can be fitted): per dataset and
 predictor, the 80 statistics; usable only when ALL 80 scored (refit_min_usable = 1.0 over the 80; never the first 80
 successes, never a substitute index); the cluster companion interval from the cached original's fixed scores
 (analyze.band_bootstrap, exactly as analyze.analyze_dataset computes it - independent of B).
-DECISION per method (refit = the screened procedure, cluster = its companion), n_attempted = 60: K_max / K_min over the frozen
-T (every endpoint inside T, both ends of T, a point inside every segment; inclusive ties - the adopted consumer's k_max);
-STOP FOR FUTILITY iff the one-sided 98.5 % Clopper-Pearson upper bound at (K_max, n_usable) < 0.90 AND the all-60 bound at
-(K_max + M, 60) < 0.90, M = 60 - n_usable; otherwise "not ruled out at this look"; never PASS. Reported: [K_min/n, K_max/n],
-the exact 98.5 % one-sided bounds each way at both, the attempted-set envelope [K_min/60, (K_max + M)/60] with its bounds,
-failures, M and the paired partition. The bank's point mean is never substituted for T.
+OVERLAP (B4): K_max / K_min over the frozen T by an exact sorted-endpoint sweep - every closed point (both ends of T, every
+endpoint inside T) and every OPEN segment between consecutive points, counted symbolically (no midpoint is formed, so adjacent
+floats and large finite values are exact); inclusive ties.
+DECISION - refit only (the screened procedure), n_attempted = 60: STOP FOR FUTILITY iff the one-sided 98.5 % Clopper-Pearson
+upper bound at (K_max, n_usable) < 0.90 AND the all-60 bound at (K_max + M, 60) < 0.90, M = 60 - n_usable; otherwise "not
+ruled out at this look"; never PASS. Reported uncertainty (B2) is ONLY the valid sandwich L_CP(K_min, n) .. U_CP(K_max, n)
+(one-sided 98.5 % each; a two-sided 97 % interval conditional on theta_g lying in T, under the binomial assumptions; the bank's
+nominal 1 % is separate) and the attempted-set corners L_CP(K_min, 60) and U_CP(K_max + M, 60). The opposite corners
+L_CP(K_max, n) and U_CP(K_min, n) carry no coverage guarantee and are not computed. The CLUSTER interval (B3) is a COMPANION
+REPORT only - its intervals, paired availability, containment of T and the same descriptive sandwich, labelled as carrying no
+allocated error - with no STOP/decision. The bank's point mean is never substituted for T.
 
     t1py chpc/release_p80/row19_screen_release_p80.py --screen chpc/row19_screen_manifest.json \\
         --originals chpc/row19_screen_orig_manifest.json --target <frozen target> --adoption reviews/<p80 adoption>.json \\
-        [--terminal reviews/<terminal declaration>.json] [--out <result.json>]
+        [--terminal reviews/<terminal certificate>.json --terminal-review reviews/<its review>.md] [--out <result.json>]
 """
-import os, sys, json, math, hashlib, argparse, contextlib
+import os, sys, json, glob, math, bisect, hashlib, argparse, contextlib, subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CHPC = os.path.abspath(os.path.join(HERE, ".."))
@@ -56,11 +73,11 @@ for p in (T1, CHPC):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-import row19_screen_release as R                    # the adopted consumer: its seal, k_max and helpers are reused unchanged
+import row19_screen_release as R                    # the adopted consumer: its seal and helpers are reused unchanged
 
 ADOPTION_SCHEMA = "row19-p80-adoption-1"
-TERMINAL_SCHEMA = "row19-p80-terminal-1"
-RESULT_SCHEMA = "row19-p80-result-1"
+TERMINAL_SCHEMA = "row19-p80-terminal-cert-1"
+RESULT_SCHEMA = "row19-p80-result-2"
 SELF_REL = "chpc/release_p80/row19_screen_release_p80.py"
 CONSUMER_FILES = tuple(R.CONSUMER_FILES) + (SELF_REL,)
 PRIMARY = R.PRIMARY
@@ -69,15 +86,44 @@ PARENT_B = 200
 PREFIX = 80
 REFIT_MIN_USABLE = 1.0
 CP_CONF = 0.985
+TWO_SIDED_CONF = 0.97                                # 1 - 2 x (1 - CP_CONF)
 FLOOR = 0.90
 DESIGNATED = tuple(r for r in range(3, 103) if (r - 3) % 5 in (0, 1, 2))
 N_DESIGNATED = 60
 assert len(DESIGNATED) == N_DESIGNATED and 83 in DESIGNATED
-CONTRACT = dict(schema="row19-p80-contract-1", parent_B=PARENT_B, prefix=PREFIX, prefix_indices="0..79",
+assert abs((1.0 - 2.0 * (1.0 - CP_CONF)) - TWO_SIDED_CONF) < 1e-12
+
+# The controller whose plans / ledger / receipts represent the campaign's attempts (B1). Paths are relative to T1; at release
+# every one must be pinned by the adoption's consumer_pins at its present bytes, and the module in use must be the admit file.
+CONTROLLER_FILES = dict(admit="chpc/row19_screen_admit.py", controls="chpc/row19_screen_controls.json",
+                        designated="chpc/row19_screen_designated.json")
+CONTROLLER_API = ("crash_history", "crash_excluded", "lengau_scope", "designated_coordinates", "env_key", "resolve_envelope",
+                  "envelope_core_h", "DESIGNATED", "WATCH_SCHEMA", "CRASH_KIND")
+RESCUE_ROUTE = "rescue"                              # a rescue-lane plan carries "route": "rescue"
+BRANCHES = ("rescue-failed", "allowance-exhausted")
+SETTLEMENT_FIELDS = ("job_id", "reserved_core_h", "settled_core_h", "settled_at", "settle_note")
+
+SANDWICH_NOTE = ("valid sandwich: for a fixed theta_g in T, P(L_CP(K_min, n) > c) <= 1.5 % and P(U_CP(K_max, n) < c) <= 1.5 %, "
+                 "a two-sided 97 % interval for the coverage c conditional on theta_g lying in T, under the binomial assumptions; "
+                 "the bank's nominal 1 % target error is separate (combined nominal error up to 4 %). The opposite corners "
+                 "L_CP(K_max, n) and U_CP(K_min, n) carry no coverage guarantee and are not reported")
+ENVELOPE_NOTE = ("attempted-set envelope: all M unavailable counted as covering for the upper corner U_CP(K_max + M, 60) and as "
+                 "not covering for the lower corner L_CP(K_min, 60); unavailability stays an operational result")
+COMPANION_NOTE = ("COMPANION REPORT ONLY: no campaign-authoritative STOP/PASS and no allocated error (the adopted 1.5 % screen "
+                  "component is for selection/ws refit coverage); its sandwich is the same CP arithmetic, descriptive. A second "
+                  "formal test would need its own adopted scope and error allocation before release")
+
+CONTRACT = dict(schema="row19-p80-contract-2", parent_B=PARENT_B, prefix=PREFIX, prefix_indices="0..79",
                 designated_rule="r in 3..102, (r - 3) mod 5 in {0, 1, 2}", designated=list(DESIGNATED), n_attempted=N_DESIGNATED,
                 refit_min_usable=REFIT_MIN_USABLE, percentile="numpy.percentile default linear, 2.5 and 97.5",
                 cp_one_sided_conf=CP_CONF, floor=FLOOR, attempted_set_guard="cp_upper(Kmax + M, 60) < floor also required",
-                looks=1, primary="/".join(PRIMARY))
+                looks=1, primary="/".join(PRIMARY), decided="refit only",
+                overlap="exact sorted-endpoint sweep: closed points and symbolic open segments, inclusive ties, no midpoint",
+                uncertainty="L_CP(Kmin, n) .. U_CP(Kmax, n), one-sided 98.5 % each, two-sided 97 % conditional on theta_g in T; "
+                            "attempted set L_CP(Kmin, 60) and U_CP(Kmax + M, 60); no opposite corners",
+                cluster="companion report only: intervals, paired availability, containment, descriptive sandwich; no decision",
+                terminal="complete, original failed, or every missing prefix coordinate of a valid original certified by a "
+                         "review-bound " + TERMINAL_SCHEMA + " certificate (ADOPT row19-p80-terminal); absent original not terminal")
 
 
 def contract_sha():
@@ -89,8 +135,13 @@ def release_literal(target_sha):
             f"contract={contract_sha()} verdict=FAVOURABLE")
 
 
+def terminal_literal(cert_sha, screen_sha, target_sha, controls_sha):
+    return (f"ADOPT row19-p80-terminal certificate={cert_sha} screen={screen_sha} contract={contract_sha()} target={target_sha} "
+            f"controls={controls_sha} verdict=FAVOURABLE")
+
+
 # ------------------------------------------------------------------------------------------------------------------------
-# exact binomial bounds and the decision (pure; no data)
+# exact binomial bounds, the overlap sweep, the report and the decision (pure; no data)
 # ------------------------------------------------------------------------------------------------------------------------
 def cp_upper(k, n, conf=CP_CONF):
     """One-sided exact (Clopper-Pearson) upper confidence bound for a binomial proportion at k of n."""
@@ -101,47 +152,110 @@ def cp_upper(k, n, conf=CP_CONF):
 
 
 def cp_lower(k, n, conf=CP_CONF):
+    """One-sided exact (Clopper-Pearson) lower confidence bound for a binomial proportion at k of n."""
     from scipy.stats import beta
     if not (isinstance(k, int) and isinstance(n, int) and 0 <= k <= n and n > 0):
         raise ValueError(f"cp_lower needs integers 0 <= k <= n, n > 0 (got {k}, {n})")
     return 0.0 if k <= 0 else float(beta.ppf(1.0 - conf, k, n - k + 1))
 
 
-def _candidates(intervals, lo, hi):
-    """Exactly the adopted consumer's candidate set: every endpoint inside T, both ends of T, the midpoint of every segment."""
-    pts = sorted({lo, hi} | {x for a, b in intervals for x in (a, b) if lo <= x <= hi})
-    return list(pts) + [(pts[k] + pts[k + 1]) / 2.0 for k in range(len(pts) - 1)]
+def _real(x):
+    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
+
+
+def overlap_counts(intervals, lo, hi):
+    """[(kind, where, count)] over T = [lo, hi]: the number of closed intervals [a, b] containing theta, for every closed
+    POINT (both ends of T and every endpoint inside T) and every OPEN SEGMENT between consecutive points. The count is constant
+    on each open segment because no endpoint lies strictly inside it, so a segment is handled symbolically: no midpoint is
+    formed (a midpoint can round onto an endpoint between adjacent floats, or overflow for large finite values). Only order
+    comparisons are made. With A, B the sorted left and right endpoints:
+        point v:          #{a <= v <= b} = #{a <= v} - #{b < v}
+        segment (v, w):   #{a <= v, b >= w} = #{a <= v} - #{b <= v}   (no endpoint in (v, w): b < w <=> b <= v; b <= v => a <= v)
+    Inclusive ties: an interval touching v at either end contains v."""
+    if not (_real(lo) and _real(hi) and lo <= hi):
+        raise ValueError(f"T must be finite and ordered (got {lo!r}, {hi!r})")
+    iv = []
+    for x in intervals:
+        a, b = x
+        if not (_real(a) and _real(b) and a <= b):
+            raise ValueError(f"an interval must be finite and ordered (got {x!r})")
+        iv.append((a, b))
+    A = sorted(a for a, _ in iv); B = sorted(b for _, b in iv)
+    pts = sorted({lo, hi} | {x for a, b in iv for x in (a, b) if lo <= x <= hi})
+    out = []
+    for k, v in enumerate(pts):
+        out.append(("point", (v,), bisect.bisect_right(A, v) - bisect.bisect_left(B, v)))
+        if k + 1 < len(pts):
+            out.append(("segment", (v, pts[k + 1]), bisect.bisect_right(A, v) - bisect.bisect_right(B, v)))
+    return out
 
 
 def k_max(intervals, lo, hi):
-    return R.k_max(intervals, lo, hi)
+    """The largest number of intervals containing any theta in T (inclusive), from the exact sweep."""
+    return max(c for _, _, c in overlap_counts(intervals, lo, hi))
 
 
 def k_min(intervals, lo, hi):
-    """The smallest number of intervals containing any theta in T (inclusive): the count is piecewise constant between
-    candidate points, so the minimum over the same candidate set is exact."""
-    return min((sum(1 for a, b in intervals if a <= th <= b) for th in _candidates(intervals, lo, hi)), default=0)
+    """The smallest number of intervals containing any theta in T (inclusive), from the exact sweep (open segments included)."""
+    return min(c for _, _, c in overlap_counts(intervals, lo, hi))
 
 
-def decide(intervals, lo, hi, n_attempted=N_DESIGNATED, all_terminal=False):
-    """The one terminal look. `intervals` are the usable intervals of the n_attempted designated datasets."""
-    if not all_terminal:
-        return dict(decision="REFUSED: not every designated dataset is terminal; no decision at this point")
+def describe(intervals, lo, hi, n_attempted=N_DESIGNATED):
+    """The descriptive report of one method's usable intervals: counts, the empirical range, the VALID CP sandwich and the
+    attempted-set corners. No decision."""
     n = len(intervals); M = int(n_attempted) - n
     if M < 0:
         raise ValueError("more usable intervals than attempted datasets")
-    base = dict(n_attempted=int(n_attempted), n_usable=n, M_unavailable=M, cp_one_sided_conf=CP_CONF, floor=FLOOR)
+    base = dict(n_attempted=int(n_attempted), n_usable=n, M_unavailable=M, cp_one_sided_conf=CP_CONF)
     if n == 0:
-        return dict(base, k_max=None, k_min=None, decision="unresolved: no usable interval")
+        return dict(base, k_max=None, k_min=None)
     kx, kn = k_max(intervals, lo, hi), k_min(intervals, lo, hi)
-    up = cp_upper(kx, n); up_all = cp_upper(kx + M, int(n_attempted))
-    stop = up < FLOOR and up_all < FLOOR
+    na = int(n_attempted)
     return dict(base, k_max=kx, k_min=kn, coverage_range=[kn / n, kx / n],
-                exact=dict(k_max=dict(lower=cp_lower(kx, n), upper=up), k_min=dict(lower=cp_lower(kn, n), upper=cp_upper(kn, n))),
-                attempted_envelope=dict(range=[kn / n_attempted, (kx + M) / n_attempted],
-                                        lower_at_k_min=cp_lower(kn, int(n_attempted)), upper_at_k_max_plus_M=up_all),
-                upper=up, upper_all_attempted=up_all, complete_case_fails=up < FLOOR, attempted_set_fails=up_all < FLOOR,
+                sandwich=dict(lower_at_k_min=cp_lower(kn, n), upper_at_k_max=cp_upper(kx, n), one_sided_conf_each=CP_CONF,
+                              two_sided_conf=TWO_SIDED_CONF, conditional_on="theta_g in T", note=SANDWICH_NOTE),
+                attempted_envelope=dict(range=[kn / na, (kx + M) / na], lower_at_k_min=cp_lower(kn, na),
+                                        upper_at_k_max_plus_M=cp_upper(kx + M, na), note=ENVELOPE_NOTE))
+
+
+def decide(intervals, lo, hi, n_attempted=N_DESIGNATED, all_terminal=False):
+    """The one terminal look of the REFIT method (the only formal decision). `intervals` are the usable intervals of the
+    n_attempted designated datasets."""
+    if not all_terminal:
+        return dict(decision="REFUSED: not every designated dataset is terminal; no decision at this point")
+    d = describe(intervals, lo, hi, n_attempted)
+    d["floor"] = FLOOR
+    if d["n_usable"] == 0:
+        return dict(d, decision="unresolved: no usable interval")
+    up = d["sandwich"]["upper_at_k_max"]; up_all = d["attempted_envelope"]["upper_at_k_max_plus_M"]
+    stop = up < FLOOR and up_all < FLOOR
+    return dict(d, upper=up, upper_all_attempted=up_all, complete_case_fails=up < FLOOR, attempted_set_fails=up_all < FLOOR,
                 decision="STOP FOR FUTILITY" if stop else "not ruled out at this look")
+
+
+def containment(iv, lo, hi):
+    """'contains T' / 'meets T' (overlaps it, not all of it) / 'misses T' for one closed interval."""
+    a, b = iv
+    if a <= lo and hi <= b:
+        return "contains T"
+    return "meets T" if (a <= hi and b >= lo) else "misses T"
+
+
+def cluster_companion(per, lo, hi, n_attempted=N_DESIGNATED):
+    """B3: the cluster interval as a companion report only - its descriptive report, paired availability with refit and the
+    containment cross table on the datasets where both are usable. Carries NO decision."""
+    clus = [tuple(v["cluster"]) for v in per.values() if v["cluster_usable"]]
+    rep = describe(clus, lo, hi, n_attempted)
+    r_ok = {r for r, v in per.items() if v["refit_usable"]}; c_ok = {r for r, v in per.items() if v["cluster_usable"]}
+    kinds = ("contains T", "meets T", "misses T")
+    cross = {k: {j: 0 for j in kinds} for k in kinds}
+    for r in sorted(r_ok & c_ok):
+        cross[containment(tuple(per[r]["refit"]), lo, hi)][containment(tuple(per[r]["cluster"]), lo, hi)] += 1
+    return dict(rep, role=COMPANION_NOTE,
+                paired=dict(both=len(r_ok & c_ok), refit_only=len(r_ok - c_ok), cluster_only=len(c_ok - r_ok),
+                            neither=len(set(per) - r_ok - c_ok)),
+                containment=dict(rows="refit", columns="cluster", datasets="both usable", table=cross,
+                                 cluster_alone={k: sum(1 for r in c_ok if containment(tuple(per[r]["cluster"]), lo, hi) == k) for k in kinds}))
 
 
 # ------------------------------------------------------------------------------------------------------------------------
@@ -231,42 +345,321 @@ def seal_problems(screen_path, orig_path, target, adoption_rel, check_git=True):
 
 
 # ------------------------------------------------------------------------------------------------------------------------
+# B1: the terminal certificate (authority; validation only, no statistic)
+# ------------------------------------------------------------------------------------------------------------------------
+def _git_head_bytes(rel):
+    try:
+        r = subprocess.run(["git", "show", f"HEAD:./{rel}"], cwd=T1, capture_output=True)
+        return r.stdout if r.returncode == 0 else None
+    except Exception:
+        return None
+
+
+def snapshot(rel, check_git=True):
+    """(bytes, sha256, problem) from ONE read of T1/rel; every later use parses these bytes. With check_git the file must be
+    git-tracked and unmodified AND the bytes read must be HEAD's blob (so a change between the read and the check is caught)."""
+    full = os.path.join(T1, rel)
+    try:
+        b = open(full, "rb").read()
+    except OSError as e:
+        return None, None, f"{rel} is absent or unreadable ({type(e).__name__})"
+    sha = hashlib.sha256(b).hexdigest()
+    if check_git and not (R.tracked_unmodified(rel) and _git_head_bytes(rel) == b):
+        return None, sha, f"{rel} is not git-tracked and unmodified (the bytes read are not HEAD's)"
+    return b, sha, ""
+
+
+def _read_once(path):
+    """(parsed JSON, sha256) from one read of an operational file (ledger, plan, receipt, register); raises on failure."""
+    b = open(path, "rb").read()
+    return json.loads(b.decode()), hashlib.sha256(b).hexdigest()
+
+
+def controller():
+    """The pinned controller module (chpc/row19_screen_admit.py). The release verifies it is the adoption-pinned admit file and
+    that it carries the v16 terminal representation (CONTROLLER_API)."""
+    import row19_screen_admit as C
+    return C
+
+
+def _int(x):
+    return isinstance(x, int) and not isinstance(x, bool)
+
+
+def _plan_coords(plan):
+    return {(int(s["rep"]), int(i)) for s in plan["slots"] for i in s["indices"]}
+
+
+def terminal_authority(cert_rel, review_rel, screen_path, screen, adoption, target_sha, C, check_git=True):
+    """({(rep, index): certified entry}, problems, certificate sha256). No certificate -> ({}, [], None): the fully complete
+    case needs none. Any problem refuses the certificate as a whole (nothing it names becomes terminal)."""
+    if cert_rel is None:
+        return {}, (["a terminal review record was given without a certificate"] if review_rel else []), None
+    if not review_rel:
+        return None, ["a terminal certificate needs its separate tracked review record (--terminal-review)"], None
+    cb, csha, w = snapshot(cert_rel, check_git)
+    if w:
+        return None, [f"terminal certificate: {w}"], csha
+    rb, _rsha, w = snapshot(review_rel, check_git)
+    if w:
+        return None, [f"terminal review record: {w}"], csha
+    try:
+        cert = json.loads(cb.decode())
+    except Exception as e:
+        return None, [f"the terminal certificate is unreadable ({type(e).__name__})"], csha
+    if not isinstance(cert, dict) or cert.get("schema") != TERMINAL_SCHEMA:
+        return None, [f"the terminal certificate is not a {TERMINAL_SCHEMA} document (a free-form declaration is no authority)"], csha
+    miss = [n for n in CONTROLLER_API if not hasattr(C, n)]
+    if miss:
+        return None, [f"the controller in use has no terminal representation ({miss[:3]}...): only the reviewed v16+ controller "
+                      "can supply attempt/crash/ownership evidence"], csha
+
+    # ---- identity: campaign / manifests / contract / target / controller, and the review literal over the exact bytes
+    why = []
+    pins = adoption.get("consumer_pins") or {}
+    files = {}
+    for k, rel in CONTROLLER_FILES.items():
+        b, s, w = snapshot(rel, check_git)
+        if w:
+            why.append(f"controller {k}: {w}"); continue
+        if pins.get(rel) != s:
+            why.append(f"the adoption does not pin the controller's {rel} at its present bytes")
+        files[k] = (b, s)
+    if why:
+        return None, why, csha
+    if os.path.realpath(getattr(C, "__file__", "") or "") != os.path.realpath(os.path.join(T1, CONTROLLER_FILES["admit"])):
+        return None, ["the controller module in use is not the adoption-pinned admit file"], csha
+    try:
+        controls = json.loads(files["controls"][0].decode()); last = controls["versions"][-1]
+        desig = json.loads(files["designated"][0].decode())
+    except Exception as e:
+        return None, [f"the controller's controls or designated declaration is unreadable ({type(e).__name__})"], csha
+    if (last.get("files") or {}).get(C.DESIGNATED) != files["designated"][1]:
+        why.append("the controls' latest version does not pin the designated declaration's present bytes")
+    if [int(r) for r in desig.get("reps") or []] != list(DESIGNATED) or desig.get("indices") != dict(start=0, stop=PREFIX):
+        why.append("the controller's designated declaration is not this contract's S x 0..79")
+    man_sha = (adoption.get("manifests") or {})
+    want = dict(schema=TERMINAL_SCHEMA, campaign=screen["storage"]["campaign"], root=screen["storage"]["root"],
+                screen_manifest_sha256=man_sha.get("screen"), originals_manifest_sha256=man_sha.get("originals"),
+                contract_sha256=contract_sha(), target_sha256=target_sha,
+                controller=dict(admit_sha256=files["admit"][1], controls_sha256=files["controls"][1],
+                                controls_version=last.get("version"), designated_sha256=files["designated"][1]))
+    for k, v in want.items():
+        if cert.get(k) != v:
+            why.append(f"the certificate's {k} is not this release's ({str(cert.get(k))[:40]!r}): a foreign or stale certificate")
+    lit = terminal_literal(csha, man_sha.get("screen"), target_sha, files["controls"][1])
+    if lit not in [l.strip() for l in rb.decode(errors="replace").splitlines()]:
+        why.append("the terminal review record does not carry ADOPT row19-p80-terminal for this exact certificate, screen, "
+                   "contract, target and controls (an unreviewed or changed certificate)")
+    if why:
+        return None, why, csha
+
+    # ---- the controller's representation of the attempts: ledger, plans, receipts, EC2 register (each file read once)
+    root, camp = screen["storage"]["root"], screen["storage"]["campaign"]
+    try:
+        led, _ = _read_once(os.path.join(camp, "budget.json"))
+        entries = [e for e in (led.get("entries") or {}).values() if isinstance(e, dict) and e.get("kind") == "shard"]
+    except Exception as e:
+        return None, [f"the campaign ledger is unreadable ({type(e).__name__}): attempts and ownership are unknown"], csha
+    by_job = {}
+    for e in entries:
+        n = e.get("rep")
+        if not _int(n) or n in by_job:
+            why.append(f"ledger job number {n!r} is malformed or duplicated: ownership ambiguous"); continue
+        by_job[n] = e
+    plans = {}
+    for pp in sorted(glob.glob(os.path.join(root, "plans", "job_*.json"))):
+        name = os.path.basename(pp)[4:-5]
+        try:
+            n = int(name); assert name == str(n)
+            d, _ = _read_once(pp)
+            assert isinstance(d.get("slots"), list) and d["slots"]
+            assert all(isinstance(s, dict) and _int(s.get("rep")) and isinstance(s.get("indices"), list) and s["indices"]
+                       and all(_int(i) for i in s["indices"]) for s in d["slots"])
+        except Exception:
+            why.append(f"plan {os.path.basename(pp)} is malformed or unreadable: its claims are unknown (ownership ambiguous)"); continue
+        plans[n] = d
+    for n in by_job:
+        if n not in plans:
+            why.append(f"ledger job {n} has no plan: its claims are unknown (ownership ambiguous)")
+    claims = {}
+    for n, d in plans.items():
+        for c in _plan_coords(d):
+            claims.setdefault(c, set()).add(n)
+    receipts = cert.get("receipts")
+    if not (isinstance(receipts, list) and receipts):
+        why.append("the certificate binds no gate receipt")
+        receipts = []
+    rdocs = []
+    for x in receipts:
+        rel = (x or {}).get("path") if isinstance(x, dict) else None
+        if not (isinstance(rel, str) and os.path.dirname(rel) == "gate" and os.path.basename(rel).startswith("watch_refit_")
+                and rel.endswith(".json") and ".." not in rel):
+            why.append(f"a bound receipt path {rel!r} is not a gate/watch_refit_*.json receipt"); continue
+        try:
+            doc, s = _read_once(os.path.join(root, rel))
+        except Exception as e:
+            why.append(f"the bound receipt {rel} is unreadable ({type(e).__name__})"); continue
+        if s != x.get("sha256"):
+            why.append(f"the bound receipt {rel} is not the certified bytes"); continue
+        if not (doc.get("schema") == C.WATCH_SCHEMA and doc.get("role") == "refit" and doc.get("production") is True
+                and doc.get("alarms") == []):
+            why.append(f"the bound receipt {rel} is not a zero-alarm production refit receipt"); continue
+        rdocs.append(doc)
+    newest = sorted(glob.glob(os.path.join(root, "gate", "watch_refit_*.json")))
+    try:
+        newest_doc = _read_once(newest[-1])[0] if newest else None
+    except Exception as e:
+        newest_doc = None; why.append(f"the newest gate receipt is unreadable ({type(e).__name__})")
+    if newest_doc is None and not why:
+        why.append("no gate receipt exists")
+    reg_named = set()
+    rp = os.path.join(root, "ec2", "register.json")
+    if os.path.exists(rp):
+        try:
+            reg, _ = _read_once(rp)
+            for a in (reg.get("attempts") or {}).values():
+                for k in (a.get("coordinates") or {}):
+                    reg_named.add(tuple(int(v) for v in k.split("/")))
+        except Exception as e:
+            why.append(f"the EC2 register is unreadable ({type(e).__name__}): EC2 ownership unknown")
+    if why:
+        return None, why, csha
+
+    def env_of(n):
+        try:
+            return C.resolve_envelope(screen, screen_path, "refit", int(n))[0]
+        except Exception:
+            return None
+
+    def history_of(docs):
+        seen, bad = {}, []
+        for doc in docs:
+            for c, atts in C.crash_history(doc, env_of).items():
+                for a in atts:
+                    k = (c, a["job"])
+                    if k in seen and seen[k] != a:
+                        bad.append(k)
+                    seen[k] = a
+        h = {}
+        for (c, _n), a in sorted(seen.items(), key=lambda kv: (kv[0][0], kv[0][1])):
+            h.setdefault(c, []).append(a)
+        return h, bad
+
+    history, bad = history_of(rdocs)
+    if bad:
+        return None, [f"the bound receipts disagree on attempts {bad[:3]}"], csha
+    newest_hist, _ = history_of([newest_doc])
+    nxt = (max(by_job) + 1) if by_job else 1
+    env_next = env_of(nxt)
+    if env_next is None:
+        return None, [f"the envelope of the next ordinary job ({nxt}) is not resolvable: the crash rule cannot be evaluated"], csha
+    excluded = C.crash_excluded(history, env_next)
+    rs = desig.get("rescue") or {}
+    rescue_on = rs.get("enabled") is True and rs.get("resources") is not None
+    rescue_jobs = sorted(n for n, d in plans.items() if d.get("route") == RESCUE_ROUTE)
+    if rescue_jobs and not rescue_on:
+        why.append(f"rescue-route plans {rescue_jobs[:3]} exist under a declaration whose rescue route is disabled")
+    scope = C.lengau_scope(desig, set(claims))
+    D = C.designated_coordinates(desig)
+
+    # ---- every certified coordinate
+    certified, needed, exhausted_used = {}, set(), False
+    missing = cert.get("missing")
+    if not (isinstance(missing, list) and missing):
+        why.append("the certificate certifies no coordinate")
+        missing = []
+    for e in missing:
+        rep, idx = (e or {}).get("rep"), (e or {}).get("index")
+        if not (_int(rep) and rep in DESIGNATED and _int(idx) and 0 <= idx < PREFIX):
+            why.append(f"a certificate entry names {rep!r}/{idx!r}: not a designated prefix coordinate (an absent original is not certifiable)"); continue
+        c, tag = (rep, idx), f"certificate {rep}/{idx}"
+        if c in certified:
+            why.append(f"{tag}: certified twice"); continue
+        if c not in D:
+            why.append(f"{tag}: not in the controller's designated set"); continue
+        if c not in scope:
+            why.append(f"{tag}: outside Lengau's scope (an unclaimed EC2-designated coordinate waits for the EC2 epoch): ownership outstanding")
+        if c in reg_named:
+            why.append(f"{tag}: named by an EC2 register attempt: ownership ambiguous")
+        for n in sorted(claims.get(c, ())):
+            le = by_job.get(n)
+            if le is None:
+                why.append(f"{tag}: plan job_{n} has no ledger entry: ownership ambiguous")
+            elif le.get("state") != "settled":
+                why.append(f"{tag}: job {n} ({le.get('state')}) still owns it: live or planned")
+        h = history.get(c, [])
+        if e.get("crashes") != h:
+            why.append(f"{tag}: its attempts are not exactly the crashed-worker dispositions its bound receipts carry (invented or missing attempts)")
+        if newest_hist.get(c, []) != h:
+            why.append(f"{tag}: the newest gate receipt carries other attempts than the certificate's receipts")
+        if c not in excluded:
+            why.append(f"{tag}: below {getattr(C, 'DESIGN_MAX_CRASHES', 2)} same-envelope fatal crashes in the envelope the next "
+                       "ordinary job uses: the ordinary planner may still attempt it (no crash branch)")
+        for a in h:
+            le = by_job.get(a.get("job"))
+            if le is None or le.get("job_id") != a.get("job_id"):
+                why.append(f"{tag}: crash attempt of job {a.get('job')} has no ledger entry with its PBS id")
+            needed.add(a.get("job"))
+        resc = sorted(n for n in rescue_jobs if c in _plan_coords(plans[n]))
+        br = e.get("branch")
+        if br == "rescue-failed":
+            r = e.get("rescue") or {}
+            if not rescue_on:
+                why.append(f"{tag}: the bound declaration's rescue route is disabled: no rescue outcome can exist")
+            elif resc != [r.get("job")]:
+                why.append(f"{tag}: the certified rescue job {r.get('job')!r} is not the one rescue-route plan holding it ({resc})")
+            elif h and r["job"] <= max(a["job"] for a in h):
+                why.append(f"{tag}: the rescue attempt does not follow its crashes")
+            elif (by_job.get(r["job"]) or {}).get("job_id") != r.get("job_id"):
+                why.append(f"{tag}: the rescue job has no ledger entry with its PBS id")
+            else:
+                needed.add(r["job"])
+        elif br == "allowance-exhausted":
+            exhausted_used = True
+            if resc:
+                why.append(f"{tag}: rescue-route plan(s) {resc} held it: its branch is rescue-failed, not allowance-exhausted")
+            if "rescue" in e:
+                why.append(f"{tag}: an allowance-exhausted entry names a rescue attempt")
+        else:
+            why.append(f"{tag}: branch {br!r} is not one of {BRANCHES}")
+        certified[c] = dict(branch=br, crash_jobs=[a.get("job") for a in h], rescue_job=(e.get("rescue") or {}).get("job"))
+
+    # ---- settlement receipts of every attempt, bound exactly
+    want_settle = {}
+    for n in sorted(x for x in needed if _int(x)):
+        le = by_job.get(n) or {}
+        if le.get("state") != "settled":
+            why.append(f"job {n} is not settled: its attempt is not terminal")
+        want_settle[str(n)] = {k: le.get(k) for k in SETTLEMENT_FIELDS}
+    if cert.get("settlements") != want_settle:
+        why.append("the certificate's settlement receipts are not exactly the ledger's settled entries of its attempts")
+
+    # ---- the finite global rescue allowance (allowance-exhausted only)
+    if exhausted_used:
+        A_ = rs.get("allowance_core_h")
+        jobs_ = {str(n): (by_job.get(n) or {}).get("reserved_core_h") for n in rescue_jobs}
+        if not (_real(A_) and A_ > 0):
+            why.append("the bound declaration declares no finite rescue allowance")
+        elif not all(_real(v) and v >= 0 for v in jobs_.values()):
+            why.append("a rescue job has no finite reservation: the allowance cannot be established")
+        else:
+            live = [n for n in rescue_jobs if (by_job.get(n) or {}).get("state") != "settled"]
+            full = C.envelope_core_h(env_next); left = A_ - sum(jobs_.values())
+            if cert.get("rescue_allowance") != dict(allowance_core_h=A_, rescue_jobs=jobs_, full_reservation_core_h=full):
+                why.append("the certificate's rescue-allowance evidence is not the declaration's allowance and the ledger's rescue jobs")
+            if live:
+                why.append(f"rescue job(s) {live[:3]} are not settled: the allowance is not exhausted")
+            if left >= full:
+                why.append(f"the rescue allowance is not exhausted: {left:.1f} core-h remain, at least one full reservation ({full:.1f})")
+    elif cert.get("rescue_allowance") is not None:
+        why.append("the certificate carries rescue-allowance evidence but certifies no allowance-exhausted coordinate")
+    return (None if why else certified), why, csha
+
+
+# ------------------------------------------------------------------------------------------------------------------------
 # collection and terminality (validation only; no statistic)
 # ------------------------------------------------------------------------------------------------------------------------
-def terminal_declarations(terminal_rel, check_git=True):
-    """{(rep, index-or-'original'): entry} from the terminal document, or (None, problems)."""
-    if terminal_rel is None:
-        return {}, [], None
-    full = os.path.join(T1, terminal_rel)
-    if not os.path.exists(full):
-        return None, ["the terminal declaration is absent"], None
-    if check_git and not R.tracked_unmodified(terminal_rel):
-        return None, ["the terminal declaration is not git-tracked and unmodified"], None
-    sha = R.sha_file(full)
-    try:
-        doc = json.load(open(full))
-    except Exception as e:
-        return None, [f"the terminal declaration is unreadable ({e})"], sha
-    why, out = [], {}
-    if doc.get("schema") != TERMINAL_SCHEMA:
-        why.append("the terminal declaration has another schema")
-    for e in doc.get("rescue_exhausted") or []:
-        rep, idx = e.get("rep"), e.get("index")
-        if not (isinstance(rep, int) and not isinstance(rep, bool) and rep in DESIGNATED):
-            why.append(f"a terminal entry names an undesignated dataset {rep!r}"); continue
-        if not (idx == "original" or (isinstance(idx, int) and not isinstance(idx, bool) and 0 <= idx < PREFIX)):
-            why.append(f"a terminal entry for rep {rep} names index {idx!r}, outside the prefix 0..{PREFIX - 1}"); continue
-        if not (isinstance(e.get("reason"), str) and e["reason"].strip()):
-            why.append(f"rep {rep} index {idx}: no recorded reason"); continue
-        att = e.get("attempts")
-        if not (isinstance(att, list) and att and all(isinstance(a, str) and a.strip() for a in att)):
-            why.append(f"rep {rep} index {idx}: no attempt provenance"); continue
-        if (rep, idx) in out:
-            why.append(f"rep {rep} index {idx}: declared twice"); continue
-        out[(rep, idx)] = dict(reason=e["reason"], attempts=list(att))
-    return out, why, sha
-
-
 def collect(screen, origm):
     """Per designated dataset: the validated original (or its absence) and the validated records 0..79. Problems HOLD."""
     import numpy as np, analyze as A, row19_shard as SH, row19_screen_orig as O
@@ -304,34 +697,32 @@ def collect(screen, origm):
     return why, items
 
 
-def terminality(items, decl):
-    """(per-dataset terminal state, non-terminal list, conflicts). No statistic is read."""
+def terminality(items, certified):
+    """(per-dataset terminal state, non-terminal list, conflicts). `certified` = {(rep, index): entry} from a verified
+    terminal certificate ({} without one). No statistic is read."""
     state, open_, conflict = {}, [], []
-    for (r, i), _ in sorted(decl.items(), key=lambda kv: (kv[0][0], str(kv[0][1]))):
+    for (r, i) in sorted(certified):
         it = items.get(r)
         if it is None:
             continue
-        if i == "original" and it["original"] is not None:
-            conflict.append(f"rep {r}: declared original rescue-exhausted but a valid original exists")
-        if isinstance(i, int) and i not in it["missing"]:
-            conflict.append(f"rep {r}: index {i} declared rescue-exhausted but holds a valid record (never relabelled)")
+        if it["original"] is None or bool(it["original"]["run"]["failed"]):
+            conflict.append(f"rep {r}: index {i} certified, but the dataset's original is absent or failed (not certifiable)")
+        elif i not in it["missing"]:
+            conflict.append(f"rep {r}: index {i} certified missing but holds a valid record (never relabelled)")
     for r in DESIGNATED:
         it = items[r]
         if it["original"] is None:
-            if (r, "original") in decl:
-                state[r] = dict(terminal="original rescue-exhausted", reason=decl[(r, "original")]["reason"])
-            else:
-                open_.append(f"rep {r}: no original")
+            open_.append(f"rep {r}: no original (an absent original has no certificate route)")
             continue
         if bool(it["original"]["run"]["failed"]):
             state[r] = dict(terminal="original failed", reason=str(it["original"]["run"].get("failed_reason", "")))
             continue
-        undeclared = [i for i in it["missing"] if (r, i) not in decl]
-        if undeclared:
-            open_.append(f"rep {r}: designated indices {undeclared[:8]}{'...' if len(undeclared) > 8 else ''} missing ({len(undeclared)})")
+        uncert = [i for i in it["missing"] if (r, i) not in certified]
+        if uncert:
+            open_.append(f"rep {r}: designated indices {uncert[:8]}{'...' if len(uncert) > 8 else ''} missing ({len(uncert)})")
         elif it["missing"]:
-            state[r] = dict(terminal="rescue-exhausted", indices=list(it["missing"]),
-                            reasons={str(i): decl[(r, i)]["reason"] for i in it["missing"]})
+            state[r] = dict(terminal="certified missing", indices=list(it["missing"]),
+                            branches={str(i): certified[(r, i)]["branch"] for i in it["missing"]})
         else:
             state[r] = dict(terminal="complete")
     return state, open_, conflict
@@ -379,14 +770,15 @@ def _aggregate(items, state):
                                  f"(refit_min_usable 1.0; record failures {row['record_failed_reasons'][:5]})")
             else:
                 row["status"] = "unavailable"
-                row["reason"] = f"{st['terminal']}: {st.get('reason') or st.get('reasons')}"
+                row["reason"] = f"{st['terminal']}: {st.get('reason') or st.get('branches')}"
             out[r] = row
     finally:
         A.run_dataset = keep
     return out
 
 
-def release(screen_path, orig_path, target_path, adoption_rel, terminal_rel=None, check_git=True):
+def release(screen_path, orig_path, target_path, adoption_rel, terminal_rel=None, terminal_review_rel=None, check_git=True,
+            controller_module=None):
     if not os.path.exists(target_path):
         return dict(status="REFUSED", reasons=["the target file is absent"])
     target = R.load_target(target_path)                                       # ONE read: these bytes decide
@@ -394,13 +786,16 @@ def release(screen_path, orig_path, target_path, adoption_rel, terminal_rel=None
     if why:
         return dict(status="REFUSED", reasons=why)
     screen = json.load(open(screen_path)); origm = json.load(open(orig_path))
-    decl, dwhy, dsha = terminal_declarations(terminal_rel, check_git=check_git)
-    if dwhy:
-        return dict(status="HELD", reasons=dwhy)
+    ad = json.load(open(os.path.join(T1, adoption_rel)))
+    C = controller_module if controller_module is not None else (controller() if terminal_rel is not None else None)
+    certified, twhy, csha = terminal_authority(terminal_rel, terminal_review_rel, screen_path, screen, ad, target[0], C,
+                                               check_git=check_git)
+    if twhy:
+        return dict(status="HELD", reasons=twhy)
     why, items = collect(screen, origm)
     if why:
         return dict(status="HELD", reasons=why[:50], n_reasons=len(why))
-    state, open_, conflict = terminality(items, decl)
+    state, open_, conflict = terminality(items, certified)
     if conflict:
         return dict(status="HELD", reasons=conflict)
     if open_:
@@ -409,16 +804,13 @@ def release(screen_path, orig_path, target_path, adoption_rel, terminal_rel=None
     per = _aggregate(items, state)
     tsha, tg = target; t = tg["targets"]["/".join(PRIMARY)]; lo, hi = float(t["lo"]), float(t["hi"])
     refit = [tuple(v["refit"]) for v in per.values() if v["refit_usable"]]
-    clus = [tuple(v["cluster"]) for v in per.values() if v["cluster_usable"]]
-    r_ok = {r for r, v in per.items() if v["refit_usable"]}; c_ok = {r for r, v in per.items() if v["cluster_usable"]}
-    allr = set(per)
     return dict(schema=RESULT_SCHEMA, status="RELEASED", contract=CONTRACT, contract_sha256=contract_sha(),
-                target=dict(lo=lo, hi=hi, sha256=tsha), terminal_declaration_sha256=dsha, n_attempted=N_DESIGNATED,
+                target=dict(lo=lo, hi=hi, sha256=tsha), terminal_certificate_sha256=csha,
+                terminal_certified={f"{r}/{i}": v for (r, i), v in sorted((certified or {}).items())}, n_attempted=N_DESIGNATED,
                 failed_originals={str(r): v["terminal"]["reason"] for r, v in per.items() if v["terminal"]["terminal"] == "original failed"},
                 unavailable={str(r): v["reason"] for r, v in per.items() if v["status"] != "usable"},
                 refit=decide(refit, lo, hi, N_DESIGNATED, all_terminal=True),
-                cluster=decide(clus, lo, hi, N_DESIGNATED, all_terminal=True),
-                paired=dict(both=len(r_ok & c_ok), refit_only=len(r_ok - c_ok), cluster_only=len(c_ok - r_ok), neither=len(allr - r_ok - c_ok)),
+                cluster_companion=cluster_companion(per, lo, hi, N_DESIGNATED),
                 per_dataset={str(r): v for r, v in per.items()})
 
 
@@ -426,18 +818,20 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--screen", required=True); ap.add_argument("--originals", required=True)
     ap.add_argument("--target", required=True); ap.add_argument("--adoption", required=True)
-    ap.add_argument("--terminal", default=None); ap.add_argument("--out", default=None)
+    ap.add_argument("--terminal", default=None); ap.add_argument("--terminal-review", default=None)
+    ap.add_argument("--out", default=None)
     a = ap.parse_args(argv)
     if a.out and os.path.exists(a.out):
         print(f"REFUSED: {a.out} exists; a release is written once"); return 2
-    res = release(a.screen, a.originals, a.target, a.adoption, terminal_rel=a.terminal)
+    res = release(a.screen, a.originals, a.target, a.adoption, terminal_rel=a.terminal, terminal_review_rel=a.terminal_review)
     if res["status"] != "RELEASED":
         print(f"{res['status']}:"); [print("  -", w) for w in res["reasons"]]; return 2
     if a.out:
         with open(a.out, "x") as fh:
             json.dump(res, fh, indent=1)
+    cc = res["cluster_companion"]
     print(f"RELEASED: refit {res['refit']['decision']} (n {res['refit']['n_usable']}, Kmax {res['refit']['k_max']}, M {res['refit']['M_unavailable']}); "
-          f"cluster {res['cluster']['decision']}; paired {res['paired']}")
+          f"cluster companion (no decision): n {cc['n_usable']}, Kmax {cc['k_max']}; paired {cc['paired']}")
     return 0
 
 

@@ -11,9 +11,10 @@ ok   prefix_interval refuses any record set other than indices 0..79
      one-sided 98.5 % CP upper bounds at n = 60: 47 -> 0.887187, 48 -> 0.899615, 49 -> 0.911749
 ok   CP(48, 60) < 0.90 < CP(49, 60)
 ok   CP(47, 60) < 0.90
+ok   CP values at 47 / 48 / 49 are .887187 / .899615 / .911749
 ok   with all 60 usable the stop region is exactly K_max <= 48  [[46, 47, 48]]
 ok   the bound is 1 at k = n and the rule needs integers
-ok   the decision reports [Kmin/n, Kmax/n], exact bounds and M
+ok   the decision reports [Kmin/n, Kmax/n], the valid sandwich and M
 ok   never PASS
 == test_attempted_set_guard
      K_max 46, M  3: CP(46,57) = 0.906877, CP(49,60) = 0.911749 -> not ruled out at this look
@@ -42,50 +43,106 @@ ok   K_max 46 + M 2 IS a stop (48)
 ok   K_max 47 + M 1 IS a stop (48)
 ok   the guard removes every complete-case stop with K_max + M > 48  [51 complete-case stops vetoed, e.g. [(42, 7), (41, 8), (40, 9)]]
 ok   the complete-case bound never vetoes an all-60 failure on M < 30  [[]]
-== test_k_min_k_max
-ok   k_max is the adopted consumer's
+ok   n_usable 0 is unresolved, never a stop
+== test_k_min_k_max_exact
+ok   B4 adjacent floats: the real 1 + 2^-53 lies strictly between 1.0 and nextafter(1.0) and in neither interval
+ok   B4 adjacent floats [(0,1), (nextafter(1),2)], T = [0,2]: K_min = 0 (the superseded midpoint code gave 1)
+ok   touching endpoints [(0,1),(1,2)], T = [0,2]: K_max 2 (inclusive at 1), K_min 1
+ok   touching endpoints, T = [1,1] (a single point): K_min = K_max = 2
+ok   a degenerate interval [1,1] touching T's end counts inclusively
+ok   large finite values: [(-max, max), (max/2, max)], T = [-max, max]: K_min 1, K_max 2, no overflow (the superseded midpoint overflowed to inf and gave 0)
+ok   the sweep equals exact rational brute force on 300 random cases (half-integers and adjacent floats)
+ok   the sweep's K_max equals the adopted consumer's k_max (K_max is attained at a closed point)
 ok   k_min over T with an uncovered segment
-ok   k_min inclusive at a shared endpoint
 ok   k_min over a T inside every interval
 ok   k_min at a T end just outside one interval
+ok   no interval: K_min = K_max = 0
+ok   non-finite or unordered input is refused
+== test_sandwich_counterexample
+ok   selected counts: K_max = max(x, 60 - x), K_min = 0 (the open segment (0,1)) for every mixture
+     P(L_CP(K_max, 60) > .5) = 0.02734013; U_CP(K_min = 0, 60) = 0.06760160
+ok   the opposite corner L_CP(K_max, 60) exceeds the true .5 with probability .02734013 > .015 (no guarantee)
+ok   the opposite corner U_CP(K_min, 60) = .06760160 < .5 always (no guarantee)
+ok   the reported sandwich L_CP(K_min, 60) .. U_CP(K_max, 60) misses .5 with probability <= .03  [0]
+ok   only the valid sandwich and attempted-set corners are reported (no opposite corner, no 'exact' block)
+ok   the sandwich is labelled one-sided 98.5 % each, two-sided 97 % conditional on theta_g in T, bank error separate
+ok   sandwich values: lower at K_min = 0 is 0, upper at K_max = 31 is CP(31, 60)
+== test_cluster_companion
+ok   B3: the cluster companion carries no decision key and no STOP/PASS outcome anywhere
+ok   companion paired availability
+ok   companion containment cross table (refit rows x cluster columns, both usable)
+ok   companion descriptive counts and sandwich over its 3 usable
 == test_no_decision_before_terminal
 ok   the pure rule refuses before all 60 are terminal
 == test_terminality_states
 ok   a failed original is terminal with its reason, without its records
-ok   an absent original without a declaration is not terminal
-ok   missing undeclared indices are not terminal
+ok   an absent original is not terminal (no certificate route)
+ok   missing uncertified indices are not terminal
 ok   complete datasets are terminal
-ok   declared rescue-exhausted coordinates make every dataset terminal
-ok   declaring a present index is a conflict
-ok   declaring a present original is a conflict
+ok   certified missing coordinates make that dataset terminal
+ok   certifying a present index is a conflict
+ok   certifying a coordinate of a failed-original dataset is a conflict
+== test_snapshot_git
+ok   snapshot: a tracked unmodified file is one read, hashed from those bytes
+ok   snapshot: an untracked file is refused under check_git
+ok   snapshot: an absent file is refused
 == test_cli_writes_once
 ok   the CLI refuses an existing result file before anything else
 == test_release_path
      fixture: 60 designated datasets x 80 stub records, 1.1 s
-ok   complete synthetic fixture RELEASES  [None]
+ok   complete synthetic fixture RELEASES with no certificate  [None]
 ok   the release bought no fit
 ok   60 attempted, n_usable + M = 60
 ok   refit decision is futility-only
+ok   B3: only refit is decided; the cluster is a companion without a decision
+ok   B2: the released refit report carries only the valid sandwich and attempted-set corners
 ok   released refit interval = np.percentile over records 0..79 (selection/ws)
 ok   an out-of-prefix record (even garbage at 150) changes nothing
 ok   prefix formula at n = 200 equals analyze.refit_bootstrap's strict restore (every predictor and band)
-ok   cluster companion equals analyze.analyze_dataset's
-ok   HOLDS: a record of the B = 80 relabelled task (other parent identity, n_rep and draw)  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmpkh_hz07s/screen/records/rep4/rec_004.json: a record this task cannot accept (identity, index, draw,]
-ok   HOLDS: another seed, checksum recomputed  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmpkh_hz07s/screen/records/rep4/rec_004.json: a record this task cannot accept (identity, index, draw,]
-ok   HOLDS: another draw row (index 5's), checksum recomputed  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmpkh_hz07s/screen/records/rep4/rec_004.json: a record this task cannot accept (identity, index, draw,]
-ok   HOLDS: n_rep relabelled to 80, checksum recomputed  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmpkh_hz07s/screen/records/rep4/rec_004.json: a record this task cannot accept (identity, index, draw,]
-ok   HOLDS: a payload edit (checksum mismatch)  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmpkh_hz07s/screen/records/rep4/rec_004.json: a record this task cannot accept (identity, index, draw,]
-ok   HOLDS: index 5's record under index 4's name  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmpkh_hz07s/screen/records/rep4/rec_004.json: holds the record of index 5, not of index 4']]
-ok   HOLDS: another dataset's record  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmpkh_hz07s/screen/records/rep4/rec_004.json: a record this task cannot accept (identity, index, draw,]
-ok   an undeclared missing designated record -> NOT TERMINAL, no interval/count/decision  [['rep 5: designated indices [7] missing (1)']]
-ok   a rescue-exhausted index makes the interval unavailable (index 80 never substitutes)  [rescue-exhausted: {'7': 'two SIGSEGV allocation crashes + one rescue failed'}]
-ok   M counts it
+ok   cluster companion interval equals analyze.analyze_dataset's
+ok   HOLDS: a record of the B = 80 relabelled task (other parent identity, n_rep and draw)  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmp0f23llu7/screen/records/rep4/rec_004.json: a record this task cannot accept (identity, index, draw,]
+ok   HOLDS: another seed, checksum recomputed  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmp0f23llu7/screen/records/rep4/rec_004.json: a record this task cannot accept (identity, index, draw,]
+ok   HOLDS: another draw row (index 5's), checksum recomputed  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmp0f23llu7/screen/records/rep4/rec_004.json: a record this task cannot accept (identity, index, draw,]
+ok   HOLDS: n_rep relabelled to 80, checksum recomputed  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmp0f23llu7/screen/records/rep4/rec_004.json: a record this task cannot accept (identity, index, draw,]
+ok   HOLDS: a payload edit (checksum mismatch)  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmp0f23llu7/screen/records/rep4/rec_004.json: a record this task cannot accept (identity, index, draw,]
+ok   HOLDS: index 5's record under index 4's name  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmp0f23llu7/screen/records/rep4/rec_004.json: holds the record of index 5, not of index 4']]
+ok   HOLDS: another dataset's record  [['rep 4: /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/tmp0f23llu7/screen/records/rep4/rec_004.json: a record this task cannot accept (identity, index, draw,]
+ok   an uncertified missing designated record -> NOT TERMINAL, no interval/count/decision  [['rep 5: designated indices [7] missing (1)']]
+ok   B1 ACCEPTS an exact review-bound certificate (two same-envelope crashes + a settled rescue-route attempt)  [None]
+ok   a certified coordinate makes the interval unavailable (index 80 never substitutes), M counts it
 ok   its cluster companion stays reported (paired partition)
-ok   the terminal declaration's SHA-256 is reported
-ok   a declaration naming a coordinate that holds a valid record HOLDS (never relabelled)  [['rep 5: index 7 declared rescue-exhausted but holds a valid record (never relabelled)']]
-ok   a declaration naming an undesignated dataset HOLDS
-ok   a declaration outside the prefix HOLDS
-ok   a declaration without a reason HOLDS
+ok   B1 refuses: Codex's invented attempt string  [['certificate 5/7: its attempts are not exactly the crashed-worker dispositions its bound receipts carry (invented or missing attempts)']]
+ok   B1 refuses: an extra fabricated attempt (job 9)  [['certificate 5/7: its attempts are not exactly the crashed-worker dispositions its bound receipts carry (invented or missing attempts)']]
+ok   B1 refuses: the superseded free-form declaration (Codex's synthetic reproduction), even with a literal  [['the terminal certificate is not a row19-p80-terminal-cert-1 document (a free-form declaration is no authority)']]
+ok   B1 refuses: a foreign campaign  [["the certificate's campaign is not this release's ('/elsewhere/row19_screen_campaign'): a foreign or stale certificate"]]
+ok   B1 refuses: another target  [["the certificate's target_sha256 is not this release's ('0000000000000000000000000000000000000000'): a foreign or stale certificate"]]
+ok   B1 refuses: another contract  [["the certificate's contract_sha256 is not this release's ('0000000000000000000000000000000000000000'): a foreign or stale certificate"]]
+ok   B1 refuses: another controller identity (controls version)  [['the certificate\'s controller is not this release\'s ("{\'admit_sha256\': \'1b02f336f174147db97514"): a foreign or stale certificate']]
+ok   B1 refuses: a certificate changed after its review  [['the terminal review record does not carry ADOPT row19-p80-terminal for this exact certificate, screen, contract, target and controls (an unreviewed or changed certificate)']]
+ok   B1 refuses: a review record without the ADOPT row19-p80-terminal literal  [['the terminal review record does not carry ADOPT row19-p80-terminal for this exact certificate, screen, contract, target and controls (an unreviewed or changed certificate)']]
+ok   B1 refuses: a certificate without any review record  [['a terminal certificate needs its separate tracked review record (--terminal-review)']]
+ok   B1 refuses: an adoption that does not pin the controller's designated declaration  [["the adoption does not pin the controller's reviews/_test_p80_8646_3_designated_on.json at its present bytes"]]
+ok   B1 refuses: the live v15 controller (no crash/ownership representation)  [["the controller in use has no terminal representation (['crash_history', 'crash_excluded', 'lengau_scope']...): only the reviewed v16+ controller can supply attempt/crash/ownership evidence"]]
+ok   B1 refuses: a coordinate a live job still owns  [['certificate 5/7: job 4 (live) still owns it: live or planned']]
+ok   B1 refuses: a coordinate in a plan without a ledger entry  [['certificate 5/7: plan job_5 has no ledger entry: ownership ambiguous']]
+ok   B1 refuses: a coordinate named by an EC2 register attempt  [['certificate 5/7: named by an EC2 register attempt: ownership ambiguous']]
+ok   B1 refuses: a crash attempt whose job is not settled  [['certificate 5/7: job 2 (live) still owns it: live or planned', 'job 2 is not settled: its attempt is not terminal', "the certificate's settlement receipts are not exactly the ledger's settled entries of its attempts"]]
+ok   B1 refuses: an unclaimed EC2-designated coordinate (waits for the EC2 epoch)  [["certificate 24/3: outside Lengau's scope (an unclaimed EC2-designated coordinate waits for the EC2 epoch): ownership outstanding", 'certificate 24/3: below 2 same-envelope fatal crashes in the envelope the next ordinar]
+ok   B1 refuses: only one fatal crash  [['certificate 5/7: below 2 same-envelope fatal crashes in the envelope the next ordinary job uses: the ordinary planner may still attempt it (no crash branch)']]
+ok   B1 refuses: two crashes in another envelope than the next ordinary job's  [['certificate 5/7: below 2 same-envelope fatal crashes in the envelope the next ordinary job uses: the ordinary planner may still attempt it (no crash branch)']]
+ok   B1 refuses: an attempt whose signal differs from the receipt's  [['certificate 5/7: its attempts are not exactly the crashed-worker dispositions its bound receipts carry (invented or missing attempts)']]
+ok   B1 refuses: a bound receipt whose bytes changed  [['the bound receipt gate/watch_refit_20261101T000000Z.json is not the certified bytes']]
+ok   B1 refuses: a newer receipt carrying a further attempt  [["certificate 5/7: the newest gate receipt carries other attempts than the certificate's receipts"]]
+ok   B1 refuses: a settlement receipt that is not the ledger's  [["the certificate's settlement receipts are not exactly the ledger's settled entries of its attempts"]]
+ok   B1 refuses: the rescue job's settlement not bound  [["the certificate's settlement receipts are not exactly the ledger's settled entries of its attempts"]]
+ok   B1 refuses: allowance-exhausted while a rescue attempt held the coordinate  [['certificate 5/7: rescue-route plan(s) [3] held it: its branch is rescue-failed, not allowance-exhausted', 'the rescue allowance is not exhausted: 1152.0 core-h remain, at least one full reservation (1152.0)']]
+ok   B1 refuses: an allowance with a full reservation left  [['the rescue allowance is not exhausted: 1152.0 core-h remain, at least one full reservation (1152.0)']]
+ok   B1 refuses: exhaustion evidence that omits a rescue job  [["the certificate's rescue-allowance evidence is not the declaration's allowance and the ledger's rescue jobs"]]
+ok   B1 refuses: a rescue-failed claim naming a rescue job that never held it  [['certificate 5/7: the certified rescue job 3 is not the one rescue-route plan holding it ([])', "the certificate's settlement receipts are not exactly the ledger's settled entries of its attempts"]]
+ok   B1 ACCEPTS an exact allowance-exhausted certificate (two crashes; the finite 2,304 core-h allowance fully reserved and settled)  [None]
+ok   B1 refuses: rescue-failed under the v16 declaration (rescue DISABLED)  [["certificate 5/7: the bound declaration's rescue route is disabled: no rescue outcome can exist"]]
+ok   B1 refuses: allowance-exhausted under the v16 declaration (nothing spent: disabled is a hold, not exhaustion)  [['the rescue allowance is not exhausted: 2304.0 core-h remain, at least one full reservation (1152.0)']]
+ok   B1: a certificate naming a coordinate that holds a valid record HOLDS (never relabelled)  [['rep 5: index 8 certified missing but holds a valid record (never relabelled)']]
 ok   one failed designated resample -> interval unavailable (79 of 80), index 80 not used  [79 of 80 designated resamples scored for selection (refit_min_usable 1.0; record failures ['stub failure'])]
 ok   the adopted consumer's adoption schema is refused here
 ok   this adoption is refused by the adopted B = 200 consumer  [REFUSED['the adoption document has another schema']]
@@ -96,6 +153,6 @@ ok   the adopted consumer's schema/pins are restored after the seal
 ok   a producer B other than 200 is refused by the contract
 ok   refit_min_usable other than 1.0 is refused by the contract
 ok   a manifest without rep 83 is refused by the contract
-ok   no fit was bought anywhere in the release path
+ok   no release call fitted anything (fits counted inside release calls only)  [0]
 
-ALL OK
+131 / 131 ok; ALL OK
