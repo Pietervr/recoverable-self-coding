@@ -846,6 +846,33 @@ power to stop is 0.808 at true coverage 0.80, 0.328 at 0.85 and 0.999 at 0.70: a
 decision, weak near the boundary, and the 100- and 200-dataset looks stay failure-only as row 8 already
 declares.
 
+**Amendment of 17 October 2026: the ω = 1 screen resized to the available compute (owner; design RSC
+`workspace_demo/t1_access/reviews/2026-10-17_row19_resize_codex.md`; adoption recorded in
+`chpc/ROW19_SCREEN_DECLARATIONS.md`, RSC `58b7b78`).** The screen above, 100 datasets at B = 200, needs about 400,000
+further Lengau core-hours against a 100,000-hour programme allocation, so it cannot be completed. It is replaced, before
+any numerical release, by the following; the paragraph above is kept as the record of what was first declared.
+*Datasets.* 60 fixed attempted datasets, $S = \{r \in 3..102 : (r-3) \bmod 5 \in \{0,1,2\}\}$, selected by identifier
+only; no dataset is chosen by success, runtime, interval or score, and no seed is replaced. Operational completion and
+crash identities were seen while the redesign was costed and are disclosed as such; the numerical seal was not opened.
+*Resamples.* The interval screened is the 2.5 %/97.5 % percentile interval (NumPy linear interpolation, as implemented)
+of the **first 80** records of each dataset's unchanged B = 200 producer stream; the producer's B, seeds, folds and draw
+matrix are not changed, and a dedicated prefix consumer validates the 80 records against their B = 200 task. B = 80 is
+the procedure being screened, not an approximation shown equivalent to B = 200: each 2.5 % tail holds about two
+resamples, and a result about its coverage $c_{80}$ establishes nothing about $c_{200}$. *The rule.* One sealed terminal
+look, failure-only. With all 60 usable, STOP FOR FUTILITY when the one-sided 98.5 % Clopper–Pearson upper bound at
+$(K_{\max}, n)$ falls below 0.90, which is $K_{\max} \le 48$; the target set $T$ and $K_{\max}$ are as above, so the
+erroneous-stop allowance is at most 0.015 + 0.01 = 0.025, conditional on the reference bank's approximation assumptions.
+If $M$ of the 60 intervals are unavailable, the complete-case bound at the usable $n$ must fail **and** the all-60 bound at
+$K_{\max} + M$ must fail ($K_{\max} + M \le 48$); unavailability is reported, never imputed as a success. Anything not
+stopped is "not ruled out at this look", never a pass. At a known singleton target the probability of stopping is 0.852 at
+true coverage 0.75, 0.551 at 0.80, 0.181 at 0.85 and 0.0146 at 0.90. *Crashes.* A coordinate that has failed twice with
+the same fatal allocation or signal crash is not attempted a third time identically; it has one budgeted rescue attempt
+with the same dataset, seed, folds and numerical environment and more memory, and if that fails it stays missing.
+*ω = 2.* Deferred from this screen to its own design and target plan, funded separately (programme HEAL1922; design
+pending); the two settings are never pooled. *Consequence.* Surviving this screen does not validate the replacement
+interval, any other generator or the model band, and does not meet the §10 condition for freezing the confirmatory
+protocol; that still requires a validation that passes.
+
 ## 11. H3 — causal use *[frozen]*
 
 **Layer selection (independent of CONF).** The §8 pipeline is run on CAL with 4 concept-disjoint
@@ -970,3 +997,4 @@ lists, amplitudes, outcomes); this document.
 | 2026-10-02 | §7.4 start policy IMPLEMENTED at RSC 5f6333c (not adopted): START_POLICY, fit(policy_key), PAD_MULTIPLE 64, the policy in the identity and the code hash, the reference archive at full precision; the v1.2 path unchanged without a key; mechanics tests in test_start_policy.py. The code hash under the policy (D = 4, layer 41, seed 2026, refit, four inner cold starts) is edcfdf4300f3; the legacy cluster configuration now hashes af666f75d0b0 because models.py changed, so no new row can be pooled with the 625798e9e7f4 rows. |
 | 2026-10-13 | Draft amendment, §3 and §3.1, the OWNER'S DECISION of 12-13 October 2026 (R052 handoff f9aac0a7, implemented by R084): CONF stays 64 (§10 unchanged); CAL 12 and PILOT 12 (were 16), BACKGROUND one per family, so 91 are needed; the usable-feature minimum is 10 (was 12) - the clause-count consequence for selection, the ceiling and the packets is R052's pending ruling; CSLB rows of the citation table by reference only (entry id + production frequency, no text; no consent sought). McRae + CSLB (pf >= 5) under the full rules: 39/32/23 = 94, feasible, margin 3 (stimuli/norms_bank/cslb_eligibility.json) |
 | 2026-10-13 | Draft amendment, §3 and §3.1, the OWNER'S RULING on the clause count (13 October 2026, "a"; R052 handoff 1970a4cc, implemented by R084): every concept supplies exactly TEN clauses, one per selected usable feature (two rarest + eight evenly spaced across the sharing-count order, deterministic within a concept), including concepts with more usable features; the single-clause ceiling is at most two of ten; packets hold eight of the ten (C(10,8) = 45 clause sets); the CAL single-clue difficulty set is 12 × 10 × 6 = 720; CAL and PILOT are 12 concepts; replaces the pending-ruling sentence of the 13 October downsize row |
+| 2026-10-17 | Draft amendment, §10.1, the OWNER'S ADOPTION of the resized ω = 1 screen (Codex design `reviews/2026-10-17_row19_resize_codex.md`; ROW19_SCREEN_DECLARATIONS RSC 58b7b78): 60 fixed attempted datasets selected by identifier ($(r-3) \bmod 5 \in \{0,1,2\}$), the interval of the first 80 records of each unchanged B = 200 stream, replicate-complete order, one sealed failure-only look at the one-sided 98.5 % Clopper–Pearson bound ($K_{\max} \le 48$ of 60, with the attempted-set guard for unavailable intervals), the two-crash rescue rule, ω = 2 deferred to its own design on HEAL1922; the 100 × B = 200 screen kept as the record of the first declaration | the declared screen needs about 400,000 further Lengau core-hours against the 100,000-hour CSCI1913 allocation and the USD 3,000 AWS cap, and its index-major order left no complete replicate if compute stopped early |
