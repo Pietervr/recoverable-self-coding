@@ -414,6 +414,60 @@
     "admission": "chpc/row19_ec2_shadow.py",
     "rule": "isolated root and campaign, outside the canonical denominator; every attempt, retry, status, failure, settlement and STOP kept"
    }
+  },
+  {
+   "version": 16,
+   "commit": "candidate: see the commit that adds this entry",
+   "reviewed": "pending Codex review of the row-19 resize controller/resource package (design reviews/2026-10-17_row19_resize_codex.md, RSC 08ce9e3, s.6 item 4; owner adoption 17 Oct 2026): v16 = adopted v15 (828d3b69, Codex RSC f1bede4) with chpc/row19_screen_admit.py and chpc/row19_screen_status.py changed (REVISION 16: the refit planner plans only S x 0..79 within Lengau's scope - its 13 replicates plus its existing claims on the 47 EC2-designated replicates - in replicate-complete order; the crash rule (no third same-envelope attempt after two crashed-worker slot dispositions; rescue-pending report; rescue route declared and disabled); first new-order job alone until an adopted scale-up review), the NEW pinned declaration chpc/row19_screen_designated.json, and the refit+S sub-envelope declared at 81,000 core-h (binding only after the two-phase --raise-cap 81000 at migration; the ledger's 60,000 binds until then). Every other byte, the epoch-1 partition 8d1de408 (unchanged, so the e1 activation stays valid), programme, qualification_S and deployment unchanged. The EC2 coordinate-set epoch is NOT in this package. NOT adopted.",
+   "files": {
+    "chpc/row19_screen_admit.py": "1b02f336f174147db975142f62e3dae947deb14f673345cc99120074deb747a0",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "a9f9180b73438221788d745567603fd267befca8fbc60528e3e7de47421ff64a",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0",
+    "chpc/row19_screen_resources.json": "f5352bc3ae7c5195e2081baa5685b4533fc8add0d5cfd5c48009e72610bebba0",
+    "chpc/row19_partition.py": "ed6aa177a2c144d277be137212822ae405694dc342bded9bcaf6a50a4d9dd75f",
+    "chpc/row19_ec2_ingest.py": "b697dc366d8fbb06619fa01cbdd5a51460a1c0e2f2bbb3d85d1a1c1a48788639",
+    "chpc/row19_ec2_state.py": "bda200dc1fa01753083b2150e2605bad6aa63cc1ed5d4f56b17858681500cf27",
+    "chpc/row19_ec2_qualify.py": "1fc6b61fca18e4823988ec895266083895cbafcc5f9b6a10a6606e7dcd052ad6",
+    "chpc/row19_ec2_root.py": "ceba9b3285b6bc66fff32bdc79ebbb70f09e5701794e0fa9764b1f253c169005",
+    "chpc/row19_ec2_shadow.py": "ce4dc15c2a73df40c660f1d2db1344b9ae745c5609c4165b57b956995b12c632",
+    "chpc/row19_qual_S_manifest.json": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "aws_ec2/qual_S_plan.json": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9",
+    "chpc/row19_screen_designated.json": "a96eb59833ff794d3f9ce0ca09ada03d045a29cb9f8a676dad86f8aba85d5584"
+   },
+   "partition": {
+    "path": "chpc/row19_partition_e1.json",
+    "sha256": "8d1de408b6ef9dc66d4736b6138536de6591f0d29ebdd6fd00a6e43307225608"
+   },
+   "sub_envelopes": [
+    {
+     "name": "refit+S",
+     "campaigns": [
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign"
+     ],
+     "cap_core_h": 81000.0,
+     "rule": "the screen refit campaign and the isolated S campaign share ONE envelope (settled + every live reservation); each admission of either checks it under the programme lock. Version 16 declares 81,000 core-h (design s.3: committed would reach 80,295.47 with 38 ordinary + 2 rescue full reservations); the refit campaign ledger's own cap (60,000 until the migration's two-phase --raise-cap 81000) is checked as well, so the smaller binds"
+    }
+   ],
+   "qualification_S": {
+    "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/root",
+    "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign",
+    "manifest_path": "chpc/row19_qual_S_manifest.json",
+    "manifest_sha256": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "plan_path": "aws_ec2/qual_S_plan.json",
+    "plan_sha256": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9",
+    "jobs": [
+     1,
+     2
+    ],
+    "reserved_core_h_each": 1152.0,
+    "reserved_core_h": 2304.0,
+    "kind": "shard",
+    "admission": "chpc/row19_ec2_shadow.py",
+    "rule": "isolated root and campaign, outside the canonical denominator; every attempt, retry, status, failure, settlement and STOP kept"
+   }
   }
  ],
  "deployment": {

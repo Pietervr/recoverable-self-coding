@@ -104,7 +104,15 @@ summary carries `slot_disposition` (the evidence, both files' SHA-256, the crash
 line), the crashed coordinates are accounted `uncompleted` with origin "crashed-slot", the receipt binds both files
 (`bound.slot_outputs`) and retains copies beside it, and ONLY the scheduler-exit-4, runner-exit-4 and those slots'
 missing-status alarms are not raised; every other check of the job and of its surviving slots is unchanged. Otherwise the
-reason is kept as `slot_disposition_held` and the alarms stand. A slot-dispositioned job never qualifies."""
+reason is kept as `slot_disposition_held` and the alarms stand. A slot-dispositioned job never qualifies.
+
+REVISION 16 CANDIDATE (controls version 16, the resized screen; NOT adopted): the refit view also reports the DESIGNATED set
+(designated_report -> row19_screen_admit.designated_view, the same code the admission dry run prints): S x 0..79 progress, Lengau's
+plannable count, the EC2-designated unclaimed coordinates waiting for the provider-epoch package, history outside the set (kept,
+counted, never planned), the crash history from this receipt's own slot dispositions and the RESCUE-PENDING list (two
+same-envelope crashes; the rescue route declared and disabled). The receipt carries it as `designated` (informational: the
+admission recomputes everything itself). Its only alarm is a declaration the lineage does not pin or that does not recompute from
+the manifest. Every other check, alarm, receipt field and the qualification are unchanged."""
 import os, sys, json, glob, math, time, shutil, hashlib, argparse, subprocess, shlex, re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -834,6 +842,43 @@ def reconcile(man, role, verify, obs, ledger, live):
     return alarms, summary, jobs, ec2
 
 
+def designated_report(man, verify, ledger, live, summary, manifest_path):
+    """REVISION 16 CANDIDATE: (view, problem) - the raw designated-set view of THIS snapshot (row19_screen_admit.designated_view,
+    the ONE implementation the admission dry run prints): progress over S x 0..79, Lengau's plannable count, the EC2-designated
+    unclaimed coordinates that wait for the provider-epoch package, the crash history from THIS receipt's slot dispositions and
+    the rescue-pending list. Informational: it changes no alarm except a declaration the lineage does not pin or that does not
+    recompute (that would hold every admission too)."""
+    import row19_screen_admit as _SA, row19_partition as _RP
+    doc, why = _SA.designated(man, manifest_path)
+    if why:
+        return None, why
+    root = os.path.join(live, "root")
+    done = set()
+    for u, v in (verify.get("units") or {}).items():
+        if (v.get("record") or {}).get("ok"):
+            r, i = u.split("/"); done.add((int(r), int(i)))
+    flight, claimed, probs = set(), set(), []
+    for e in ledger["entries"].values():
+        if e.get("kind") != "shard":
+            continue
+        pp = os.path.join(root, "plans", f"job_{int(e['rep'])}.json")
+        if e.get("state") in _SA.LIVE and e.get("runner_exit") is None and os.path.exists(pp):
+            flight |= _RP.plan_claims(pp, probs)
+    for pp in glob.glob(os.path.join(root, "plans", "job_*.json")):
+        claimed |= _RP.plan_claims(pp, probs)
+    if probs:
+        return None, f"the snapshot's plans are not establishable: {probs[:3]}"
+    used = [int(e["rep"]) for e in ledger["entries"].values() if e.get("kind") == "shard"]
+    env_of = lambda m: _SA.resolve_envelope(man, manifest_path, "refit", m)[0]
+    history = _SA.crash_history(dict(jobs=summary), env_of)
+    part = None
+    try:
+        part = _SA.partition(man, manifest_path)
+    except Exception as e:
+        return None, f"the provider partition cannot be trusted: {e}"
+    return _SA.designated_view(doc, done, flight, claimed, history, env_of((max(used) + 1) if used else 1), part), ""
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--manifest", required=True); ap.add_argument("--role", required=True, choices=("refit", "orig"))
@@ -868,6 +913,11 @@ def main(argv=None):
     MANIFEST_PATH = a.manifest
     al, summary, jobs, ec2 = reconcile(man, role, verify, obs, ledger, live)
     alarms += al
+    desig = None
+    if role == "refit":                                                     # REVISION 16: the designated view (raw, informational)
+        desig, dwhy = designated_report(man, verify, ledger, live, summary, a.manifest)
+        if dwhy:
+            alarms.append(f"designated set: {dwhy}")
     production = fresh and not (a.no_pull or a.verify_file or a.pbs_file)
     nvalid = sum(1 for v in (verify.get("units") or {}).values() if (v.get("record") or {}).get("ok"))
     print(f"ROW 19 SCREEN ({role}), live view at {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(now))}  evidence: "
@@ -890,6 +940,16 @@ def main(argv=None):
             print(f"    PBS output {d['output_sha256'][:12]} error {d['error_sha256'][:12]}; settled {d['settled_core_h']:.2f} core-h charged")
         elif s.get("slot_disposition_held"):
             print(f"    not slot-dispositioned: {s['slot_disposition_held']}")
+    if desig:
+        print(f"  DESIGNATED S x 0..79 ({str(desig['declaration_sha256'])[:12]}): {desig['designated']} coordinates, done {desig['done']}, in flight "
+              f"{desig['in_flight']}, Lengau plannable {desig['lengau_plannable']}, EC2-designated unclaimed (wait for the EC2 epoch package) "
+              f"{desig['ec2_waiting_unclaimed']}; history outside the set kept: done {desig['outside_set_history']['done']}, in flight "
+              f"{desig['outside_set_history']['in_flight']}")
+        for x in desig["rescue_pending"]:
+            print(f"    RESCUE-PENDING {x['coordinate']}: {x['crashes']} same-envelope crash(es), jobs {x['jobs']} - no further ordinary attempt; rescue route disabled"
+                  + ("; an earlier attempt is still running (untouched)" if x["attempt_running"] else ""))
+        if desig["crash_excluded_outside_set"]:
+            print(f"    crash-excluded outside the set (never planned anyway): {desig['crash_excluded_outside_set']}")
     for r, e in sorted(((verify.get("anchors") or {}).get("reps") or {}).items()):
         print(f"  anchor {r}: required {e.get('required')} compared {len(e.get('compared', []))} equal {len(e.get('equal', []))}")
     print("\n  ALARMS:" if alarms else ("\n  no alarms (fresh evidence)" if fresh else "\n  no alarms, but NOT fresh evidence"))
@@ -909,6 +969,8 @@ def main(argv=None):
                                for k, v in summary.items() if v.get("slot_disposition")})
     receipt = dict(schema=WATCH_SCHEMA, role=role, time=now, fresh=fresh, production=production, alarms=alarms, bound=bound, jobs=summary,
                    anchors=verify.get("anchors"), plan_slots={k: v["slots"] for k, v in summary.items()}, ec2=ec2)
+    if desig is not None:
+        receipt["designated"] = desig                                       # REVISION 16: informational; no consumer gates on it
     os.makedirs(RECEIPTS, exist_ok=True)
     stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(now))
     vp = os.path.join(RECEIPTS, f"verify_{role}_{stamp}.json")

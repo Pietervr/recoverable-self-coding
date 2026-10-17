@@ -1,0 +1,21 @@
+{
+ "schema": "row19-screen-controls-adoption-1",
+ "controls_path": "chpc/row19_screen_controls.json",
+ "controls_sha256": "828d3b69707cc47340c1773b97450c2c17c95679c4daf93c84021d138a4663a5",
+ "version": 15,
+ "controls_commit": "b6ea998",
+ "review_record": {
+  "path": "reviews/2026-10-12_v15_r14_alias_repair_codex_record.md",
+  "sha256": "c5167063220722457277f8c963ccfa3011423e2146aed8a0260b30c216c9db47",
+  "commit": "f1bede4",
+  "adopt_line": "ADOPT row19-screen-controls sha256=828d3b69707cc47340c1773b97450c2c17c95679c4daf93c84021d138a4663a5 version=15"
+ },
+ "by": "R052 Entropy SI (Claude)",
+ "previous": {
+  "version": 14,
+  "controls_sha256": "95d9bdfe4e4883b3e04d458a606c34d8504584b65e41344185beb8980df65630",
+  "adoption_sha256": "1b292213feae553c1749d85a41cd31a3664e162c71028d00aa9c6e94f155af12",
+  "archived": "Lengau archive_screen/v14_before_v15, Mac chpc/results/archive/row19_screen_v14_before_v15/"
+ },
+ "scope": "status + admission v14 -> v15 (Codex f1bede4; REVISION 14: crashed-worker slot disposition - a settled refit job whose only defect is planned workers killed by their own fatal signal; its crashed coordinates return to the planner uncompleted, nothing credited, the job never qualifies): every other controller byte, the epoch-1 partition 8d1de408 and the activation unchanged; grants no job and no EC2 permission; fresh whole-role receipts and an adopted review of the REGENERATED refit pilot qualification (new hash, max job 100, no new fit) precede any further gated refit admission"
+}

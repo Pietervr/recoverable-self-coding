@@ -14,8 +14,8 @@ lossless cache read back by row19_slice.read_orig) of a declared rep and index; 
 a live ledger entry of the role's kind whose runner has not ended; a live entry without its plan HOLDS. MISSING = the rest.
 Nothing outside the screen's own roots is ever DONE: the development datasets 0-2 are external parity anchors only.
 
-PLAN: refit - index-major round robin over the declared reps (index 0 of reps 3..102, then index 1, ...), `cores` slots a
-job, so the screen's first job is exactly reps 3..26 at index 0; orig - the missing reps in order, `cores` a job.
+PLAN: refit - (REVISION 16) the designated replicate-complete order over S x 0..79 within Lengau's scope (below); revisions
+1-15 planned index-major over all 100 reps (job 1 = reps 3..26 at index 0); orig - the missing reps in order, `cores` a job.
 
 THE GATE (all must hold; the reason is printed):
   - no STOP file in the role's root; the manifest's code pins hold in the clone the jobs run from;
@@ -164,6 +164,39 @@ and accounts the crashed coordinates as `uncompleted` with origin "crashed-slot"
 runner-exit and those slots' missing-status alarms are not raised, and the job's units reconcile against its plan minus the
 crashed coordinates. Nothing is credited; the charge stays; the coordinates return to the planner (not done, not in flight); a
 slot-dispositioned job never qualifies a pilot.
+
+REVISION 16 CANDIDATE (controls version 16; the owner's adoption of 17 Oct 2026 of Codex's resize design
+reviews/2026-10-17_row19_resize_codex.md, RSC 08ce9e3, s.2-4 and s.6 item 4; NOT adopted). The refit planner only:
+(a) DESIGNATED SET. Planning reads ONE pinned declaration, chpc/row19_screen_designated.json (its SHA-256 in the latest controls
+version's files; a changed copy HOLDS), whose every value is recomputed from the manifest (designated_shape_problem):
+S = {r in 3..102 : (r - 3) mod 5 in {0, 1, 2}} (60 reps, rep 83 included), indices 0..79, the provider split (the smallest 13 IDs
+of S Lengau's, the largest 47 EC2-designated), the crash threshold 2 and the rescue route DISABLED. Nothing outside S x 0..79 is
+ever planned again; records, claims, plans, ledger entries and statuses outside it are kept untouched (no deletion, no relabel)
+and still count everywhere they counted (evidence, receipts, funding); they simply receive no new admission.
+(b) REPLICATE-COMPLETE ORDER (designated_order). Ascending rep within S, ascending index within a rep: the remaining designated
+indices of the earliest unfinished replicates fill a job first. Skipped: validated DONE, every still-owned live/planned
+coordinate (in flight), crash-excluded coordinates, another provider's partition block. Never ordered by speed or success.
+(c) PROVIDER SCOPE (lengau_scope). Lengau plans every designated coordinate of its 13 replicates, plus designated coordinates of
+the 47 EC2-designated replicates that Lengau ALREADY claimed (any plan in any ledger state, row19_partition.lengau_claims): s.3
+"All existing claims/completions retain Lengau provenance", s.4 "Let its declared owner finish/rescue it". Re-planning an
+existing claim never grows the claim set on those replicates; their UNCLAIMED coordinates are left to the separate EC2
+provider-epoch package and are never planned here. The epoch-1 partition (EC2 owns 160..199, now outside the set) stays pinned
+and enforced unchanged, so the e1 activation proof stays valid.
+(d) CRASH RULE (crash_history / crash_excluded). A coordinate with two crashed-worker slot dispositions (REVISION 14: SIGSEGV /
+bus error / abort / illegal instruction, e.g. after LLVM "Cannot allocate memory") in the envelope the next ordinary attempt would
+run in is never planned again by the ordinary planner: it is RESCUE-PENDING, printed by the dry run and the status view. The
+counts come from the newest gate receipt's slot dispositions - the receipt receipt_problem recomputes exactly before any
+admission; the admission refuses when a newer receipt replaced it between planning and the gate, and when a current HELD ledger
+entry is not accounted as a disposition there. The separate rescue route (`--rescue`) is declared and DISABLED: no resources are
+chosen, it always refuses. Running attempts are never touched.
+(e) FIRST NEW-ORDER JOB ALONE (scaleup_problem). Plans carry `order` and `designated_sha256`. While no scale-up is adopted, a call
+plans exactly one job and only when no new-order plan exists; `--adopt-scaleup reviews/<record>.md` writes
+gate/scaleup_refit_v16.json (never overwritten) from a tracked, unmodified record carrying
+`ADOPT row19-screen-v16-scaleup first_job=<n> job_id=<pbs id> plan=<sha256>` for that SETTLED first job.
+(f) Unchanged: the 24-core x 48 h envelope (row19_screen_resources.json), the 4.5 GiB worker stop, reservation accounting, the
+receipt/qualification/review gates, the funding and campaign-cap checks and the scheduler limits. The 81,000 core-h refit+S
+sub-envelope is DECLARED in controls version 16 but binds only after the ledger's cap is raised through the two-phase
+`--raise-cap 81000 --note ...` protocol at migration (chpc/migration_v16/RUNBOOK.md); until then the ledger's 60,000 binds.
 """
 import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
 
@@ -537,12 +570,15 @@ def evidence(man, role, validate=True):
     return done, flight, used, problems
 
 
-def plan_jobs(man, role, n_jobs, done, flight, used, part=None):
+def plan_jobs(man, role, n_jobs, done, flight, used, part=None, order=None):
+    """REVISION 16: the refit role plans ONLY from `order`, the designated replicate-complete order (designated_order: S x 0..79
+    within Lengau's scope, done / in flight / crash-excluded / another provider's block skipped). Revision 15's index-major
+    round robin over all 100 reps and all B indices is retired; without an order the refit planner refuses."""
     cores = int(man["pbs"]["cores"]); reps = [int(r) for r in man["datasets"]["reps"]]
     if role == "refit":
-        B = int(man["cfg"]["n_boot_refit"])
-        import row19_partition as RP                                          # REVISION 10: never plan another provider's block
-        order = [(r, [i]) for i in range(B) for r in reps if (r, i) not in done and (r, i) not in flight and not RP.blocked(part, r, i)]
+        if order is None:
+            raise ValueError("REVISION 16: refit planning needs the designated replicate-complete order")
+        order = list(order)
     else:
         order = [r for r in reps if r not in done and r not in flight]
     jobs, n = [], (max(used) + 1 if used else 1)
@@ -1612,6 +1648,289 @@ def sub_envelope_problem(campaign, proposal_core_h, ctl=None):
     return ""
 
 
+# ---- REVISION 16 CANDIDATE: the resized screen (designated set, replicate-complete order, crash rule, rescue route) ------------
+DESIGNATED = "chpc/row19_screen_designated.json"
+DESIG_SCHEMA = "row19-screen-designated-1"
+DESIGN_REP_RANGE = (3, 102)            # S = {r in 3..102 : (r - 3) mod 5 in {0, 1, 2}} (Codex 2026-10-17 resize design s.2)
+DESIGN_RESIDUES = (0, 1, 2)
+DESIGN_N_LENGAU = 13                   # s.3: "the largest 47 IDs in S ... to EC2 ... The smallest 13 remain Lengau's"
+DESIGN_INDEX_STOP = 80                 # s.1/s.2: indices 0..79 of each unchanged B = 200 producer stream
+DESIGN_MAX_CRASHES = 2                 # s.4: "after two same-envelope fatal allocation/signal crashes, do not issue a third"
+ORDER_MARK = "designated-replicate-complete-1"
+SCALEUP_SCHEMA = "row19-screen-v16-scaleup-1"
+ENV_KEY = ("queue", "cores", "walltime_s", "mem_gb", "nodetype", "deadline_reserve_s")
+
+
+def designated_rule(reps):
+    """The frozen ID-only rule applied to the manifest's declared reps (never to outcomes)."""
+    lo, hi = DESIGN_REP_RANGE
+    return sorted(int(r) for r in reps if lo <= int(r) <= hi and (int(r) - lo) % 5 in DESIGN_RESIDUES)
+
+
+def designated_shape_problem(doc, man, man_sha):
+    """'' when the designated-coordinates declaration is exactly the adopted design recomputed from this manifest: schema, the
+    manifest digest, S by the rule (60 reps, rep 83 included), indices 0..79 within B, the 13/47 provider split, the crash
+    threshold 2 and the rescue route declared DISABLED with no resources. Every value is recomputed; none is trusted."""
+    if not isinstance(doc, dict) or doc.get("schema") != DESIG_SCHEMA:
+        return "it is not a row19-screen-designated-1 declaration"
+    if doc.get("manifest_sha256") != man_sha:
+        return "it names another manifest"
+    S = designated_rule(man["datasets"]["reps"])
+    if doc.get("reps") != S or len(S) != 60 or 83 not in S:
+        return f"its reps are not S recomputed from the manifest ({len(S)} reps by the rule)"
+    ix = doc.get("indices")
+    B = int(man["cfg"]["n_boot_refit"])
+    if not (isinstance(ix, dict) and _int(ix.get("start")) and _int(ix.get("stop")) and ix["start"] == 0
+            and ix["stop"] == DESIGN_INDEX_STOP and ix["stop"] <= B and sorted(ix) == ["start", "stop"]):
+        return f"its indices are not exactly 0..{DESIGN_INDEX_STOP - 1} (start 0, stop {DESIGN_INDEX_STOP}) within B = {B}"
+    pv = doc.get("providers")
+    if not isinstance(pv, dict) or pv.get("lengau_reps") != S[:DESIGN_N_LENGAU] or pv.get("ec2_reps") != S[DESIGN_N_LENGAU:]:
+        return f"its provider split is not the smallest {DESIGN_N_LENGAU} IDs of S to Lengau and the largest {len(S) - DESIGN_N_LENGAU} to EC2"
+    if pv.get("ec2_epoch") is not None:
+        return "it grants EC2 a coordinate set; that is the separate provider-epoch package, never this declaration"
+    cr = doc.get("crash_rule")
+    if not (isinstance(cr, dict) and _int(cr.get("max_same_envelope_crashes")) and cr["max_same_envelope_crashes"] == DESIGN_MAX_CRASHES):
+        return f"its crash rule is not 'no attempt after {DESIGN_MAX_CRASHES} same-envelope crashes'"
+    rs = doc.get("rescue")
+    if not (isinstance(rs, dict) and rs.get("enabled") is False and rs.get("resources") is None):
+        return "its rescue route is not declared DISABLED with no resources (v16 chooses none)"
+    if doc.get("first_job_alone") is not True:
+        return "it does not hold the first new-order job alone until a scale-up review"
+    return ""
+
+
+def designated(man, manifest_path):
+    """(declaration, '') when the latest controls version pins the declaration and its bytes and shape hold; (None, why)."""
+    pin = controls()["versions"][-1]["files"].get(DESIGNATED)
+    p = os.path.join(T1, DESIGNATED)
+    if not _hex64(pin):
+        return None, "the controls lineage does not pin the designated-coordinates declaration"
+    if not os.path.exists(p) or sha_file(p) != pin:
+        return None, "the designated-coordinates declaration is absent or not the lineage's pinned bytes"
+    try:
+        doc = _strict_load(p)
+    except (OSError, ValueError) as e:
+        return None, f"the designated-coordinates declaration is unreadable ({e})"
+    why = designated_shape_problem(doc, man, sha_file(manifest_path))
+    return (None, f"the designated-coordinates declaration: {why}") if why else (dict(doc, _sha256=pin), "")
+
+
+def designated_coordinates(doc):
+    """S x 0..79 (the 4,800 coordinates the screen's terminal look uses)."""
+    return {(r, i) for r in doc["reps"] for i in range(doc["indices"]["start"], doc["indices"]["stop"])}
+
+
+def lengau_scope(doc, claimed):
+    """The coordinates Lengau may plan under this declaration: every designated coordinate of the 13 Lengau replicates, plus the
+    designated coordinates of the 47 EC2-designated replicates that Lengau has ALREADY claimed (ever planned, any ledger state;
+    row19_partition.lengau_claims). s.3: 'All existing claims/completions retain Lengau provenance, including 110 live
+    coordinates on EC2-designated replicates'; s.4: 'A lower-index coordinate ever planned by Lengau is not automatically
+    transferable merely because its worker died. Let its declared owner finish/rescue it.' Lengau's own planning only ever
+    re-plans an existing claim on those replicates, so the claimed set there never grows; their UNCLAIMED coordinates wait for
+    the EC2 provider-epoch package and are never planned here."""
+    lo, hi = doc["indices"]["start"], doc["indices"]["stop"]
+    ec2 = set(doc["providers"]["ec2_reps"])
+    own = {(r, i) for r in doc["providers"]["lengau_reps"] for i in range(lo, hi)}
+    return own | {(int(r), int(i)) for r, i in claimed if int(r) in ec2 and lo <= int(i) < hi}
+
+
+def env_key(env):
+    return tuple(env.get(k) for k in ENV_KEY) if isinstance(env, dict) else None
+
+
+def crash_history(receipt, env_of):
+    """{(rep, index): [attempt, ...]} from the crashed-worker slot dispositions (REVISION 14) a receipt carries - each recomputed
+    and required exact by receipt_problem before any admission - never from a hand list. One attempt per (job, coordinate),
+    with its PBS id, the signal and the job's resolved envelope (env_of(job number) -> envelope or None)."""
+    out = {}
+    for n, sj in sorted(((receipt or {}).get("jobs") or {}).items(), key=lambda kv: int(kv[0])):
+        d = sj.get("slot_disposition") if isinstance(sj, dict) else None
+        if not isinstance(d, dict) or d.get("kind") != CRASH_KIND:
+            continue
+        env = env_of(int(n))
+        for sl in d.get("slots") or []:
+            for i in sl.get("indices") or []:
+                out.setdefault((int(sl["rep"]), int(i)), []).append(dict(job=int(n), job_id=d.get("job_id"), signal=sl.get("signal"),
+                                                                           envelope=list(env_key(env)) if env else None))
+    return out
+
+
+def crash_excluded(history, env_next, max_crashes=DESIGN_MAX_CRASHES):
+    """{coordinate: attempts} whose same-envelope crash count (the envelope the next ordinary attempt would run in) has reached
+    the rule's maximum: the ordinary planner never issues them again. An attempt whose envelope is unknown counts as the same
+    envelope (fail closed)."""
+    k = list(env_key(env_next)) if env_next else None
+    return {c: a for c, a in history.items() if sum(1 for x in a if x["envelope"] is None or x["envelope"] == k) >= max_crashes}
+
+
+def designated_order(doc, done, flight, claimed, excluded, part=None):
+    """REPLICATE-COMPLETE order (s.4): the frozen replicate order is ascending rep within S; within a replicate ascending index;
+    the remaining designated indices of the earliest unfinished replicates fill a job before the next replicate is touched.
+    Validated DONE, every still-owned live/planned coordinate (in flight), every coordinate outside Lengau's scope, every
+    crash-excluded coordinate and every coordinate of another provider's partition block are skipped. No speed, success or
+    runtime enters the order."""
+    import row19_partition as RP
+    scope = lengau_scope(doc, claimed)
+    return [(r, [i]) for (r, i) in sorted(scope) if (r, i) not in done and (r, i) not in flight and (r, i) not in excluded
+            and not RP.blocked(part, r, i)]
+
+
+def designated_view(doc, done, flight, claimed, history, env_next, part=None):
+    """The raw operational view (no statistic): progress over S x 0..79 by provider scope, the crash history and the
+    rescue-pending list. Used by the dry run and by the status view."""
+    D = designated_coordinates(doc); ec2 = set(doc["providers"]["ec2_reps"])
+    scope = lengau_scope(doc, claimed); exc = crash_excluded(history, env_next)
+    order = designated_order(doc, done, flight, claimed, exc, part)
+    key = lambda c: f"{c[0]}/{c[1]}"
+    pending = sorted(c for c in exc if c in D and c not in done)               # a running earlier attempt finishes untouched
+    return dict(declaration_sha256=doc.get("_sha256"), designated=len(D), done=len(D & set(done)),
+                in_flight=len((D & set(flight)) - set(done)), lengau_plannable=len(order),
+                ec2_waiting_unclaimed=len({c for c in D if c[0] in ec2} - scope - set(done) - set(flight)),
+                outside_set_history=dict(done=len(set(done) - D), in_flight=len(set(flight) - D - set(done))),
+                next_coordinates=[f"{r}/{ix[0]}" for r, ix in order[:24]],
+                crash_history={key(c): a for c, a in sorted(history.items())},
+                rescue_pending=[dict(coordinate=key(c), crashes=len(exc[c]), jobs=[x["job"] for x in exc[c]], attempt_running=c in flight)
+                                for c in pending],
+                crash_excluded_outside_set=sorted(key(c) for c in exc if c not in D),
+                rescue_route="declared, DISABLED (no resources chosen); rescue-pending coordinates are never admitted by the ordinary planner")
+
+
+def designated_problem(jobs, doc, done, flight, claimed, excluded, part=None):
+    """ADMISSION check (independent of how a plan was built): every planned refit coordinate lies in Lengau's designated scope,
+    is not done, not in flight, not crash-excluded and not another provider's; one index per slot."""
+    import row19_partition as RP
+    scope = lengau_scope(doc, claimed); bad = []
+    for j in jobs:
+        for s in j["slots"]:
+            if len(s.get("indices") or []) != 1:
+                bad.append(("slot", j["job"], s.get("slot"))); continue
+            c = (int(s["rep"]), int(s["indices"][0]))
+            if c not in scope or c in done or c in flight or c in excluded or RP.blocked(part, *c):
+                bad.append(c)
+    return f"{len(bad)} planned coordinate(s) are outside Lengau's designated scope, done, in flight, crash-excluded or blocked, e.g. {bad[:3]}" if bad else ""
+
+
+def newest_receipt(man, role):
+    """(path, sha256, document) of the newest gate receipt - the same file receipt_problem judges - or (None, None, None)."""
+    ps = sorted(glob.glob(os.path.join(man["storage"]["root"], "gate", f"watch_{role}_*.json")))
+    if not ps:
+        return None, None, None
+    try:
+        return ps[-1], sha_file(ps[-1]), _strict_load(ps[-1])
+    except (OSError, ValueError):
+        return ps[-1], None, None
+
+
+def held_accounting_problem(man, role, receipt):
+    """Every CURRENT ledger refit entry with runner exit HELD 4 must be accounted in the planning receipt as a crashed-worker
+    slot disposition; otherwise its crash history is unknown and nothing is planned."""
+    lp = os.path.join(man["storage"]["campaign"], "budget.json")
+    if not os.path.exists(lp):
+        return ""
+    led = _strict_load(lp); jobs = (receipt or {}).get("jobs") or {}
+    held = sorted(int(e["rep"]) for e in led["entries"].values() if e.get("kind") == ROLES[role] and e.get("runner_exit") == HELD_EXIT
+                  and not isinstance(e.get("runner_exit"), bool))
+    miss = [n for n in held if not isinstance((jobs.get(str(n)) or {}).get("slot_disposition"), dict)]
+    return f"HELD job(s) {miss[:5]} carry no crashed-worker slot disposition in the planning receipt: crash history unknown" if miss else ""
+
+
+def marked_plans(man):
+    """{job number: plan} of every plan in the root written under the v16 order (ORDER_MARK)."""
+    out = {}
+    for pp in glob.glob(os.path.join(man["storage"]["root"], "plans", "job_*.json")):
+        try:
+            d = json.load(open(pp))
+        except Exception:
+            continue
+        if isinstance(d, dict) and d.get("order") == ORDER_MARK:
+            out[int(d["job"])] = d
+    return out
+
+
+def scaleup_problem(man, doc, n_jobs):
+    """s.4: 'Admit the first prospective Lengau job under the new order alone ... Scale-up stays held until that packing/resource
+    review is favourable.' While no adopted scale-up exists: exactly one job per call and no earlier new-order plan. With one:
+    the gate file must be valid (scaleup_doc_problem)."""
+    if not doc.get("first_job_alone"):
+        return ""
+    gp = os.path.join(man["storage"]["root"], "gate", "scaleup_refit_v16.json")
+    marked = marked_plans(man)
+    if not os.path.exists(gp):
+        if marked:
+            return (f"the first new-order job ({sorted(marked)[0]}) exists; scale-up is held until its review is adopted "
+                    f"(--adopt-scaleup reviews/<record>.md)")
+        return "" if n_jobs == 1 else "the first new-order job is admitted ALONE: --jobs 1"
+    return scaleup_doc_problem(man, doc, marked)
+
+
+def scaleup_doc_problem(man, doc, marked):
+    try:
+        g = _strict_load(os.path.join(man["storage"]["root"], "gate", "scaleup_refit_v16.json"))
+    except (OSError, ValueError) as e:
+        return f"the scale-up adoption is unreadable ({e})"
+    if g.get("schema") != SCALEUP_SCHEMA or g.get("designated_sha256") != doc.get("_sha256"):
+        return "the scale-up adoption has another schema or names another designated declaration"
+    first = sorted(marked)[0] if marked else None
+    if first is None or g.get("first_job") != first:
+        return "the scale-up adoption does not name the first new-order job"
+    full = os.path.join(T1, g.get("record_path", "") or "_none_")
+    if not os.path.exists(full) or sha_file(full) != g.get("record_sha256") or not tracked_unmodified(g.get("record_path", "")):
+        return "the scale-up review record is not tracked and unmodified with the adopted SHA-256"
+    if scaleup_line(g["first_job"], g.get("job_id"), g.get("plan_sha256")) not in [l.strip() for l in open(full).read().splitlines()]:
+        return "the scale-up review record does not carry its ADOPT line"
+    pp = os.path.join(man["storage"]["root"], "plans", f"job_{first}.json")
+    if not os.path.exists(pp) or sha_file(pp) != g.get("plan_sha256"):
+        return "the first new-order job's plan is not the reviewed bytes"
+    return ""
+
+
+def scaleup_line(n, job_id, plan_sha):
+    return f"ADOPT row19-screen-v16-scaleup first_job={n} job_id={job_id} plan={plan_sha}"
+
+
+def adopt_scaleup(man, manifest_path, record_rel):
+    """Write gate/scaleup_refit_v16.json from a git-tracked, unmodified review record that carries the literal for THE first
+    new-order job, which must be SETTLED (its terminal evidence reviewed). Never overwritten."""
+    doc, why = designated(man, manifest_path)
+    if why:
+        return f"REFUSED: {why}"
+    full = os.path.join(T1, record_rel)
+    if not os.path.exists(full) or not tracked_unmodified(record_rel):
+        return f"REFUSED: {record_rel} is not tracked by git in this clone, or differs from HEAD"
+    marked = marked_plans(man)
+    if not marked:
+        return "REFUSED: no new-order job exists to review"
+    first = sorted(marked)[0]
+    led = _strict_load(os.path.join(man["storage"]["campaign"], "budget.json"))
+    hits = [e for e in led["entries"].values() if e.get("kind") == "shard" and e.get("rep") == first]
+    if len(hits) != 1 or hits[0].get("state") != "settled" or not hits[0].get("job_id"):
+        return f"REFUSED: the first new-order job {first} is not SETTLED with a PBS id"
+    psha = sha_file(os.path.join(man["storage"]["root"], "plans", f"job_{first}.json"))
+    want = scaleup_line(first, hits[0]["job_id"], psha)
+    if want not in [l.strip() for l in open(full).read().splitlines()]:
+        return f"REFUSED: the review record does not contain the line `{want}`"
+    gp = os.path.join(man["storage"]["root"], "gate", "scaleup_refit_v16.json")
+    if os.path.exists(gp):
+        return f"REFUSED: {gp} exists; a scale-up adoption is never overwritten"
+    g = dict(schema=SCALEUP_SCHEMA, by="R052", time=time.time(), designated_sha256=doc["_sha256"], first_job=first,
+             job_id=hits[0]["job_id"], plan_sha256=psha, record_path=record_rel, record_sha256=sha_file(full))
+    tmp = gp + f".tmp.{os.getpid()}"
+    with open(tmp, "w") as fh:
+        json.dump(g, fh, indent=1, allow_nan=False); fh.flush(); os.fsync(fh.fileno())
+    os.link(tmp, gp); os.remove(tmp)
+    return f"adopted scale-up after new-order job {first} ({hits[0]['job_id']}), record {record_rel}"
+
+
+def rescue_route_problem(doc):
+    """The separate rescue route (s.4: 'one prospective, budgeted rescue lane: same dataset/seed/folds/... lower packing and
+    larger measured headroom, with parity/resource qualification') is DECLARED here and DISABLED: no host, packing or resource
+    envelope has been chosen or qualified, so it always refuses in v16. Enabling it is a separate reviewed amendment."""
+    rs = (doc or {}).get("rescue") or {}
+    if rs.get("enabled") is not True or rs.get("resources") is None:
+        return "the rescue route is declared but DISABLED (no rescue resources chosen or qualified); a separate reviewed amendment enables it"
+    return "the rescue route has no implementation in controls v16"
+
+
 def gate_problem(man, manifest_path, role, used, pilot, n_jobs, jobs, walltime_s, proposal_core_h=None):
     root = man["storage"]["root"]
     if os.path.exists(os.path.join(root, "STOP")):
@@ -1699,10 +2018,19 @@ def main(argv=None):
     ap.add_argument("--raise-cap", type=float, default=None); ap.add_argument("--note", default=None)
     ap.add_argument("--retire-pending", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--adopt-scaleup", default=None); ap.add_argument("--rescue", action="store_true")
     a = ap.parse_args(argv)
     man = json.load(open(a.manifest)); role = a.role
     if man.get("role") != role:
         print(f"REFUSED: {a.manifest} is the {man.get('role')} manifest, not {role}"); return 2
+    if a.rescue:                                                              # REVISION 16: declared, disabled
+        doc, why = designated(man, a.manifest) if role == "refit" else (None, "the rescue route is refit-only")
+        print(f"REFUSED: {why or rescue_route_problem(doc)}"); return 2
+    if a.adopt_scaleup is not None:
+        if role != "refit":
+            print("REFUSED: scale-up adoption is refit-only"); return 2
+        out = adopt_scaleup(man, a.manifest, a.adopt_scaleup); print(out)
+        return 0 if out.startswith("adopted") else 2
     if a.adopt_review is not None:
         out = adopt_review(man, a.manifest, role, a.adopt_review, a.max_job_number); print(out)
         return 0 if out.startswith("adopted") else 2
@@ -1775,13 +2103,53 @@ def main(argv=None):
         why_act = activation_problem_v10(man, a.manifest, part)
         if why_act:
             print(f"HELD: {why_act}"); return 2
-        jobs, left = plan_jobs(man, role, n_jobs, done, flight, used, part)
+        order = desig = None; excluded, claimed, rpath, rsha = {}, set(), None, None
+        if role == "refit":                                                   # REVISION 16: the designated, replicate-complete planner
+            if a.pilot:
+                print("REFUSED: the refit pilot was admitted and adopted long ago; v16 never plans a refit pilot"); return 2
+            desig, why = designated(man, a.manifest)
+            if why:
+                print(f"HELD: {why}"); return 2
+            import row19_partition as RP
+            _ld, claimed, cprob = RP.lengau_claims(man)
+            if cprob:
+                print(f"HELD: Lengau's claims are not establishable: {cprob[:3]}"); return 2
+            rpath, rsha, rdoc = newest_receipt(man, role)
+            if rdoc is None:
+                print("HELD: no readable gate receipt: the crash history (slot dispositions) cannot be established"); return 2
+            why = held_accounting_problem(man, role, rdoc)
+            if why:
+                print(f"HELD: {why}"); return 2
+            used_next = (max(used) + 1) if used else 1
+            env_next, w = resolve_envelope(man, a.manifest, role, used_next)
+            if w:
+                print(f"HELD: {w}"); return 2
+            history = crash_history(rdoc, lambda m: resolve_envelope(man, a.manifest, role, m)[0])
+            excluded = crash_excluded(history, env_next)
+            order = designated_order(desig, done, flight, claimed, excluded, part)
+            view = designated_view(desig, done, flight, claimed, history, env_next, part)
+            print(f"designated S x 0..{DESIGN_INDEX_STOP - 1} ({desig['_sha256'][:12]}): {view['designated']} coordinates, done {view['done']}, "
+                  f"in flight {view['in_flight']}, Lengau plannable {view['lengau_plannable']}, EC2-designated unclaimed (wait for the EC2 "
+                  f"epoch package) {view['ec2_waiting_unclaimed']}; crash history from {os.path.basename(rpath)} ({str(rsha)[:12]})")
+            for x in view["rescue_pending"]:
+                print(f"  RESCUE-PENDING {x['coordinate']}: {x['crashes']} same-envelope crash(es) in jobs {x['jobs']}; no further ordinary attempt"
+                      + ("; an earlier attempt is still running (untouched)" if x["attempt_running"] else ""))
+        jobs, left = plan_jobs(man, role, n_jobs, done, flight, used, part, order=order)
         envs, why = {}, partition_problem(jobs, part)
+        if role == "refit":
+            why = why or designated_problem(jobs, desig, done, flight, claimed, excluded, part) or scaleup_problem(man, desig, n_jobs)
+            keys = {env_key(resolve_envelope(man, a.manifest, role, int(j["job"]))[0]) for j in jobs}
+            if not why and keys and keys != {env_key(env_next)}:
+                why = "the planned jobs do not all run in the envelope the crash rule was evaluated for"
         for j in jobs:                                                        # REVISION 8: each NEW job's resolved envelope
             env, w = resolve_envelope(man, a.manifest, role, int(j["job"]))
             why = why or w; envs[j["job"]] = env
         proposal = sum(envelope_core_h(envs[j["job"]]) for j in jobs) if not why else None
         why = why or gate_problem(man, a.manifest, role, used, a.pilot, n_jobs, jobs, walltime_s, proposal_core_h=proposal)
+        if not why and role == "refit":                                       # REVISION 16: the gate judged the SAME receipt
+            p2, s2, _ = newest_receipt(man, role)
+            if (p2, s2) != (rpath, rsha):
+                why = "a newer receipt arrived between planning and the gate; re-run so planning and the gate read one receipt"
         pins = pin_problems(man, clone)
         if pins and not why:
             why = f"the manifest's pins do not hold in the clone the jobs run from: {pins}"
@@ -1809,6 +2177,8 @@ def main(argv=None):
             pdoc = dict(j, queue=qj, walltime_s=wj, token=token, created=time.time())
             if env["source"] != "manifest":
                 pdoc["envelope"] = env
+            if role == "refit":                                               # REVISION 16: the order and declaration it was planned under
+                pdoc.update(order=ORDER_MARK, designated_sha256=desig["_sha256"])
             with open(pp, "w") as fh:
                 json.dump(pdoc, fh, indent=1); fh.flush(); os.fsync(fh.fileno())
             entry = [e for e in _strict_load(os.path.join(man["storage"]["campaign"], "budget.json"))["entries"].values() if e.get("token") == token]
