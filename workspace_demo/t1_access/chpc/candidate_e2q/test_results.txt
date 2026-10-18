@@ -1,0 +1,37 @@
+# chpc/candidate_e2q test results (2026-10-18 ~22:30Z, Mac, python3; run from workspace_demo/t1_access)
+
+## New epoch-2 qualification tests
+chpc/candidate_e2q/test_e2q_contracts.py: rc 0, 54 passed, 0 failed
+chpc/candidate_e2q/test_e2q_qualify.py:   rc 0, 33 passed, 0 failed
+chpc/candidate_e2q/test_e2q_release.py:   rc 0, 81 passed, 0 failed
+
+## Regression: existing tests, unmodified. BEFORE = live modules and chpc/candidate_e2 modules, run before this package
+## existed; AFTER = the same plus the chpc/candidate_e2q modules substituted (regress/run_regress.py; the candidate_e2 tests
+## through regress/run_e2_tests.py, which redirects their two explicit Mac-module load paths in memory).
+                                                live (before=after)   candidate_e2 (before=after)   candidate_e2q (after)
+test_row19_partition.py                         63 pass / 2 fail      63 / 2                        63 / 2
+test_row19_ec2_ingest.py                        68 / 0                68 / 0                        68 / 0
+test_row19_ec2_qualify.py                       23 / 0                23 / 0                        23 / 0
+test_row19_ec2_status.py                        26 / 0                26 / 0                        26 / 0
+aws_ec2/tests/test_prod_authority.py            66 / 0                66 / 0                        66 / 0
+aws_ec2/tests/test_prod_launch.py               61 / 1                61 / 1                        61 / 1
+aws_ec2/tests/test_ec2_sync.py                  12 / 0                12 / 0                        12 / 0
+chpc/candidate_v16/test_designated_r16.py       78 / 2                78 / 2                        78 / 2
+chpc/candidate_e2/test_e2_partition.py          -                     54 / 0                        54 / 0
+chpc/candidate_e2/test_e2_authority.py          -                     76 / 1                        76 / 1
+chpc/candidate_e2/test_e2_ingest.py             -                     63 / 0                        63 / 0
+chpc/candidate_e2/test_e2_rules.py              -                     35 / 0                        35 / 0
+
+Every failure is identical across live / candidate_e2 / candidate_e2q and was present before this package (suites run
+first at 15:03 PDT on 18 Oct, before any candidate_e2q file existed). None is caused by this package:
+- test_row19_partition.py: 2 stale v12/v13 candidate-comparison checks (unchanged since RSC b510ba0).
+- aws_ec2/tests/test_prod_launch.py: 1 stale Q1-retry check (unchanged since RSC b510ba0).
+- chpc/candidate_v16/test_designated_r16.py: 2 REAL-state checks that the v16 adoption and the live job set have moved on
+  (versions 1-15 vs the adopted controls; rescue-pending 43/4 and 83/2 with their job-37 attempt running). NEW since the
+  candidate_e2 results of 17 Oct; live-state drift, not code.
+- chpc/candidate_e2/test_e2_authority.py: 1 REAL-state check "the reconciled Q1 attempt 4 still OWNS its 48 retired e1
+  coordinates": the ledger now shows qual-Q1 attempt 4 reconciled AND dispositioned (DESIGN_e2.md s.6 step 3 has been
+  performed by another session), so the check's premise is stale. NEW since 17 Oct; live-state drift, not code.
+
+One regression was found and repaired during the build: test_prod_launch "production refused until the reviewed release
+certificate exists" checks for the text "does not permit"; prod_authority.production_release_problem now carries it.

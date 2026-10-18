@@ -1,0 +1,338 @@
+{
+ "claims_snapshot": {
+  "claims_sha256": "39798fef256a76ae444201841317119ce855136a1198d9e7f9e4938dfab8b5bc",
+  "path": "chpc/candidate_e2/claims_snapshot_e2.json",
+  "sha256": "043db6096da32372ab193869add3aa130de4e81cece28cb03ef50a13449acefc"
+ },
+ "concentration": {
+  "max": 61,
+  "max_reps": [
+   24
+  ],
+  "note": "work + duplicates; the token sentinels can only raise it",
+  "per_rep": {
+   "24": 61,
+   "25": 8,
+   "28": 3
+  },
+  "qualified_rep_slots": 61
+ },
+ "contracts": [
+  "E2Q1",
+  "E2Q2"
+ ],
+ "duplicates": [
+  [
+   24,
+   0
+  ],
+  [
+   24,
+   1
+  ],
+  [
+   24,
+   2
+  ],
+  [
+   24,
+   3
+  ],
+  [
+   24,
+   4
+  ],
+  [
+   24,
+   5
+  ],
+  [
+   24,
+   6
+  ],
+  [
+   24,
+   7
+  ],
+  [
+   24,
+   8
+  ],
+  [
+   25,
+   0
+  ],
+  [
+   25,
+   1
+  ],
+  [
+   25,
+   2
+  ],
+  [
+   25,
+   3
+  ],
+  [
+   25,
+   4
+  ],
+  [
+   25,
+   5
+  ],
+  [
+   25,
+   7
+  ],
+  [
+   25,
+   8
+  ],
+  [
+   28,
+   0
+  ],
+  [
+   28,
+   1
+  ],
+  [
+   28,
+   2
+  ]
+ ],
+ "epoch": 2,
+ "expect_s": 75300,
+ "lifetime_s": 79200,
+ "owned_count": 3274,
+ "owned_sha256": "ee31504e4a04dab3d97de41f3f18f4f58806ec8eb36379dc777bbeb7fe2629b6",
+ "partition_sha256": "87edfb9edbbc4b5e776f17bcf5cc6a74884e9158d6fa7d1c53f79faa0fa468d9",
+ "roles": {
+  "qual_lengau": 20,
+  "sentinel": 4,
+  "work": 52
+ },
+ "rule": "QUALIFICATION_E2.md s.2: work = the first 52 owned coordinates in the production allocation order (ascending, <= 57 per replicate); duplicates = the 20 lowest Lengau-completed designated coordinates of the EC2 replicates (ascending); E2Q2 is the identical request under its own contract and run, only after an external-cause end of E2Q1",
+ "runs": {
+  "E2Q1": "qual-E2Q1",
+  "E2Q2": "qual-E2Q2"
+ },
+ "schema": "row19-ec2-e2q-panel-1",
+ "sentinels": {
+  "n": 4,
+  "rule": "prod_authority.sentinels(Lengau-completed non-owned coordinates, attempt token, exclude=duplicates): fixed by the token at admission, never by outcome"
+ },
+ "work": [
+  [
+   24,
+   11
+  ],
+  [
+   24,
+   12
+  ],
+  [
+   24,
+   13
+  ],
+  [
+   24,
+   14
+  ],
+  [
+   24,
+   15
+  ],
+  [
+   24,
+   16
+  ],
+  [
+   24,
+   17
+  ],
+  [
+   24,
+   18
+  ],
+  [
+   24,
+   19
+  ],
+  [
+   24,
+   20
+  ],
+  [
+   24,
+   21
+  ],
+  [
+   24,
+   22
+  ],
+  [
+   24,
+   23
+  ],
+  [
+   24,
+   24
+  ],
+  [
+   24,
+   25
+  ],
+  [
+   24,
+   26
+  ],
+  [
+   24,
+   27
+  ],
+  [
+   24,
+   28
+  ],
+  [
+   24,
+   29
+  ],
+  [
+   24,
+   30
+  ],
+  [
+   24,
+   31
+  ],
+  [
+   24,
+   32
+  ],
+  [
+   24,
+   33
+  ],
+  [
+   24,
+   34
+  ],
+  [
+   24,
+   35
+  ],
+  [
+   24,
+   36
+  ],
+  [
+   24,
+   37
+  ],
+  [
+   24,
+   38
+  ],
+  [
+   24,
+   39
+  ],
+  [
+   24,
+   40
+  ],
+  [
+   24,
+   41
+  ],
+  [
+   24,
+   42
+  ],
+  [
+   24,
+   43
+  ],
+  [
+   24,
+   44
+  ],
+  [
+   24,
+   45
+  ],
+  [
+   24,
+   46
+  ],
+  [
+   24,
+   47
+  ],
+  [
+   24,
+   48
+  ],
+  [
+   24,
+   49
+  ],
+  [
+   24,
+   50
+  ],
+  [
+   24,
+   51
+  ],
+  [
+   24,
+   52
+  ],
+  [
+   24,
+   53
+  ],
+  [
+   24,
+   54
+  ],
+  [
+   24,
+   55
+  ],
+  [
+   24,
+   56
+  ],
+  [
+   24,
+   57
+  ],
+  [
+   24,
+   58
+  ],
+  [
+   24,
+   59
+  ],
+  [
+   24,
+   60
+  ],
+  [
+   24,
+   61
+  ],
+  [
+   24,
+   62
+  ]
+ ],
+ "workers": 76
+}

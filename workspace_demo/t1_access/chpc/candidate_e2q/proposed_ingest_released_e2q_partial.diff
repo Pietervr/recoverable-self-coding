@@ -1,0 +1,14 @@
+--- a/workspace_demo/t1_access/chpc/candidate_e2/row19_ec2_ingest.py
++++ b/workspace_demo/t1_access/chpc/candidate_e2/row19_ec2_ingest.py
+@@ -467,7 +467,10 @@
+         print(f"HELD: {why or 'the operational manifest is not this epoch/contract'}"); return HOLD
+     # --- bundle, units (static) ---
+     schema2 = part.get("schema") == RP.SCHEMA2
+-    partial = schema2 and att["class"] == "production"
++    # PROPOSED (chpc/candidate_e2q/DESIGN_e2q.md s.5 choice 3): a RELEASED epoch-2 qualification attempt (E2Q1/E2Q2) is
++    # ingested with the same per-slot contract as production, since R4' admits up to 3 qualifying non-completions.
++    partial = schema2 and (att["class"] == "production" or (att["class"] == "qualification" and released
++                                                            and att.get("contract") in ("E2Q1", "E2Q2")))
+     plan, outcomes = check_bundle(a.bundle, att, (psha, opsha, sha_file(actp)), problems, partial=partial)
+     unprod = {}
+     if plan is not None and schema2:
