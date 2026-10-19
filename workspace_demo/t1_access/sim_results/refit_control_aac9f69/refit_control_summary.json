@@ -1,0 +1,47 @@
+{
+ "run": "refit_control_aac9f69",
+ "n_datasets": 10,
+ "generator": "M2B",
+ "grid": "{}",
+ "interval_method": [
+  "refit"
+ ],
+ "interval_n_rep": [
+  "50"
+ ],
+ "decisions": {
+  "graded": 10
+ },
+ "reference": {
+  "source": "d4v12b M2B replicate mean",
+  "n": 1000,
+  "theta": -0.014800121968820811,
+  "theta_se": 4.839124844827966e-05
+ },
+ "point_mean": -0.015222863551202673,
+ "point_sd": 0.0017203562408101257,
+ "coverage": {
+  "refit": 0.9,
+  "cluster": 1.0
+ },
+ "coverage_vs_theta_plus_2se": {
+  "refit": 0.9,
+  "cluster": 1.0
+ },
+ "width": {
+  "refit_mean": 0.006010458996044113,
+  "cluster_mean": 0.005985570545660546,
+  "ratio_median": 1.0016299397970876
+ },
+ "claimed_se": {
+  "refit_mean": 0.0016746466309544715,
+  "cluster_mean": 0.00151975097832089,
+  "replicate_sd": 0.0017203562408101257
+ },
+ "convergence": 1.0,
+ "cost": {
+  "fit_hours_mean": 1.1306083333333334,
+  "wall_hours_total": 549.2093333333333
+ },
+ "note": "Ten datasets at one clean null: a coverage estimate here has a Monte-Carlo SE of about 0.09, so it screens for gross failure and cannot establish 0.90. The target is itself estimated from the saved d4v12b rows."
+}

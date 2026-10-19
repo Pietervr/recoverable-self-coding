@@ -1,0 +1,6 @@
+{"rep": 0, "fit_seconds": 61048.286606788635, "failed": false, "t": 1791114908.1176074, "job": "7516928.sched01", "maxrss_bytes": 2331164672}
+{"rep": 1, "fit_seconds": 55720.8900847435, "failed": false, "t": 1791170639.1826153, "job": "7516928.sched01", "maxrss_bytes": 2599497728}
+{"rep": 2, "fit_seconds": 109365.85003399849, "failed": false, "t": 1791320664.6161492, "job": "7521637.sched01", "maxrss_bytes": 2471755776}
+{"rep": 3, "fit_seconds": 63226.46704053879, "failed": false, "t": 1791383903.472156, "job": "7521637.sched01", "maxrss_bytes": 2692083712}
+{"rep": 4, "fit_seconds": 55759.79962563515, "failed": false, "t": 1791468458.319693, "job": "7525940.sched01", "maxrss_bytes": 2286698496}
+{"rep": 5, "fit_seconds": 57423.7841091156, "failed": false, "t": 1791526217.2676153, "job": "7525940.sched01", "maxrss_bytes": 2370355200}

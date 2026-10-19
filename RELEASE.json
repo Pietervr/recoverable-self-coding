@@ -1,16 +1,23 @@
 {
   "format": 1,
-  "title": "Data and code for Testing Two-State Access in Brain and Language Model: Human EEG Reproduction, Simulation Audit, and a Proposed Model Assay",
-  "version": "1.0.0",
+  "title": "Data and code for Auditing a Two-State Access Test Before Its Transfer from Brain to Language Model: Partial EEG Reproduction and Simulation Calibration",
+  "version": "2.0.0",
   "resource_type": "dataset",
   "creator": {
     "name": "Pieter van Rooyen",
     "affiliation": "Stellenbosch University",
     "orcid": "https://orcid.org/0009-0005-7708-8236"
   },
-  "version_doi": "10.5281/zenodo.22741885",
-  "git_tag": "entropy-access-arxiv-v1",
-  "source_url": "https://github.com/Pietervr/recoverable-self-coding/tree/entropy-access-arxiv-v1",
+  "version_doi": null,
+  "concept_doi": "10.5281/zenodo.22741884",
+  "previous_version": {
+    "version": "1.0.0",
+    "version_doi": "10.5281/zenodo.22741885",
+    "git_tag": "entropy-access-arxiv-v1",
+    "commit": "6a3103ea7055c7bc0eaf1010a62d804570005034"
+  },
+  "git_tag": "entropy-access-v2",
+  "source_url": "https://github.com/Pietervr/recoverable-self-coding/tree/entropy-access-v2",
   "licenses": [
     {
       "id": "CC-BY-4.0",
@@ -20,13 +27,15 @@
     },
     {
       "id": "MIT",
-      "scope": "Code, figure-generation scripts and preserved software documentation",
+      "scope": "Code, figure-generation and replay scripts, and preserved software documentation",
       "notice": "LICENSE-MIT.txt"
     }
   ],
-  "upstream_rights": "Source-derived values retain their attribution; upstream CC0 material remains public domain. See README.txt and the preserved human-port README.",
+  "upstream_rights": "Source-derived values retain their attribution; upstream CC0 material remains public domain. Feature norms (CSLB, McRae et al. 2005), pilot captures and the model checkpoint are not redistributed. See README.txt.",
   "upstream_sources": [
     "https://doi.org/10.1038/s41467-021-21393-z",
-    "https://osf.io/aw3t5/"
+    "https://osf.io/aw3t5/",
+    "https://doi.org/10.3758/s13428-013-0420-4",
+    "https://doi.org/10.3758/BF03192726"
   ]
 }

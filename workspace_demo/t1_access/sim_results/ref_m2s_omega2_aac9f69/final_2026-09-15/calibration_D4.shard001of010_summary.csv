@@ -1,0 +1,2 @@
+generator,family,grid,D,n,mixture,graded,inconclusive,failure,n_points,n_usable,n_interval_missing,mean_point,ref_se,sd_point,coverage,mean_se,convergence,inner_convergence,mean_fit_s
+M2S,G,"{""omega"": 2.0}",4,100,0.0,1.0,0.0,0.0,100,100,0,-5.20450658878086,2.206831675815332,22.06831675815332,0.2,3.229361435256805,1.0,1.0,8507.77

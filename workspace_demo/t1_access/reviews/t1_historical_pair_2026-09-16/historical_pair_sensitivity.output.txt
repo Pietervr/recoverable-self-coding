@@ -1,0 +1,21 @@
+12,000 datasets, 12 null settings, decisions seen: graded, inconclusive, mixture
+
+generator  grid                           n  selection                           ensemble                            historical                        
+M2B        {}                          1000  graded 1000                         graded 1000                         graded 1000                       
+M2H        {"tau": 0.0}                1000  graded 1000                         graded 1000                         graded 1000                       
+M2H        {"tau": 0.5}                1000  graded 1000                         graded 1000                         graded 1000                       
+M2H        {"tau": 1.0}                1000  graded 1000                         graded 1000                         graded 975, inconclusive 25       
+M2H        {"tau": 2.0}                1000  graded 1000                         graded 1000                         inconclusive 349, mixture 651     
+M2K        {"alpha": 0.0}              1000  graded 1000                         graded 1000                         graded 1000                       
+M2K        {"alpha": 1.0}              1000  graded 1000                         graded 1000                         graded 1000                       
+M2K        {"alpha": 3.0}              1000  graded 1000                         graded 1000                         graded 1000                       
+M2S        {"omega": 0.0}              1000  graded 1000                         graded 1000                         graded 1000                       
+M2S        {"omega": 0.5}              1000  graded 1000                         graded 1000                         graded 966, inconclusive 34       
+M2S        {"omega": 1.0}              1000  graded 1000                         graded 1000                         graded 846, inconclusive 153, mixture 1
+M2S        {"omega": 2.0}              1000  graded 1000                         graded 1000                         graded 77, inconclusive 586, mixture 337
+
+all settings  selection  graded 12,000
+all settings  ensemble   graded 12,000
+all settings  historical graded 9,864, inconclusive 1,147, mixture 989
+
+wrote /Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/reviews/t1_historical_pair_2026-09-16/historical_pair_counts.csv

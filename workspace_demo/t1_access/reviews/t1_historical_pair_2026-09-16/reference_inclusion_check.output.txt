@@ -1,0 +1,22 @@
+setting                                n    reference  inclusion   below 0.90
+M2B {}                              1000    -0.014800      0.935
+M2H {"tau": 0.0}                    1000    -0.014818      0.918
+M2H {"tau": 0.5}                    1000    -0.032675      0.819  <-- below
+M2H {"tau": 1.0}                    1000    -0.037450      0.926
+M2H {"tau": 2.0}                    1000    -0.057011      0.894  <-- below
+M2K {"alpha": 0.0}                  1000    -0.014850      0.915
+M2K {"alpha": 1.0}                  1000    -0.027751      0.885  <-- below
+M2K {"alpha": 3.0}                  1000    -0.072000      0.928
+M2S {"omega": 0.0}                  1000    -0.014801      0.917
+M2S {"omega": 0.5}                  1000    -0.250496      0.848  <-- below
+M2S {"omega": 1.0}                  1000    -0.869513      0.780  <-- below
+M2S {"omega": 2.0}                  1000    -5.334354      0.216  <-- below
+
+6 settings below the 0.90 floor: M2H {"tau": 0.5} 0.819, M2H {"tau": 2.0} 0.894, M2K {"alpha": 1.0} 0.885, M2S {"omega": 0.5} 0.848, M2S {"omega": 1.0} 0.780, M2S {"omega": 2.0} 0.216
+range of the below-floor rates: 0.216 to 0.894
+
+M2S omega = 2: independent bank of 1000 datasets, mean -6.869911, sample SE 2.678379, median -2.065273, minimum -2,650.300
+  bank mean                           -6.869911   inclusion 0.178
+  bank median                         -2.065273   inclusion 0.754
+  bank mean without the minimum       -4.223835   inclusion 0.282
+  d4v12b own replicate mean           -5.334354   inclusion 0.216
