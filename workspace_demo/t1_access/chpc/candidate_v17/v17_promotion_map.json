@@ -1,0 +1,230 @@
+{
+ "schema": "row19-controls-promotion-map-1",
+ "version": 17,
+ "base": {
+  "controls_sha256": "01976b6a92e7150a82d8397caeb88e5425e0dd051f69bb244bf3f83981e8f220",
+  "adoption_sha256": "523fe18adad603af23425cdd4cb41039b4a287254e36aa55ba34d933b0081411"
+ },
+ "rule": "each row: copy `source` (exactly `sha256`) to `promoted`; the path must hold `previous_sha256` (or be absent when null) or already the new bytes. Order: data and partition, Mac code, helpers, admission, then the controls LAST, then the version-17 adoption record (promote_v17.py). Unchanged v16 pins are not listed (they stay as they are).",
+ "unchanged_v16_pins": [
+  "aws_ec2/qual_S_plan.json",
+  "chpc/programme_gate.py",
+  "chpc/row19_ec2_root.py",
+  "chpc/row19_ec2_shadow.py",
+  "chpc/row19_qual_S_manifest.json",
+  "chpc/row19_screen_designated.json",
+  "chpc/row19_screen_release.py",
+  "chpc/row19_screen_resources.json",
+  "chpc/row19_screen_status.py",
+  "chpc/row19_screen_verify.py"
+ ],
+ "kept_for_provenance": [
+  {
+   "path": "chpc/row19_partition_e1.json",
+   "sha256": "8d1de408b6ef9dc66d4736b6138536de6591f0d29ebdd6fd00a6e43307225608",
+   "why": "pinned by versions 13-16 (unchanged) and named as the e2 predecessor; never deleted or relabelled; its activation proof root/ec2/activation_e1.json stays on the root"
+  }
+ ],
+ "rows": [
+  {
+   "promoted": "chpc/row19_screen_admit.py",
+   "source": "chpc/candidate_v17/row19_screen_admit.py",
+   "sha256": "c3960464db74a282f20da030008fb759a0fad4e1d4d3c7133c98f3b821d6b9ed",
+   "previous_sha256": "1b02f336f174147db975142f62e3dae947deb14f673345cc99120074deb747a0",
+   "group": "pin",
+   "pinned_by_v17": true,
+   "partition_ref": false,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "chpc/row19_partition.py",
+   "source": "chpc/candidate_e2/row19_partition.py",
+   "sha256": "eabf50c34be2bad3f92e07370966bcc94162cf12cbcefb326cc07a72d49ac0d8",
+   "previous_sha256": "ed6aa177a2c144d277be137212822ae405694dc342bded9bcaf6a50a4d9dd75f",
+   "group": "pin",
+   "pinned_by_v17": true,
+   "partition_ref": false,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "chpc/row19_ec2_ingest.py",
+   "source": "chpc/candidate_e2/row19_ec2_ingest.py",
+   "sha256": "6ac144c616d330c83fcd5e665bdc48a9396d962e4aacba03c4775e26950ce108",
+   "previous_sha256": "b697dc366d8fbb06619fa01cbdd5a51460a1c0e2f2bbb3d85d1a1c1a48788639",
+   "group": "pin",
+   "pinned_by_v17": true,
+   "partition_ref": false,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "chpc/row19_ec2_qualify.py",
+   "source": "chpc/candidate_e2q/row19_ec2_qualify.py",
+   "sha256": "73f912b8ba2f4112462f279644da61d69ea40d31e905765839ad7420b3fe29c8",
+   "previous_sha256": "1fc6b61fca18e4823988ec895266083895cbafcc5f9b6a10a6606e7dcd052ad6",
+   "group": "pin",
+   "pinned_by_v17": true,
+   "partition_ref": false,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "chpc/row19_ec2_state.py",
+   "source": "chpc/candidate_e2q/row19_ec2_state.py",
+   "sha256": "7bdedafc7c90ec065217d9a7bbf53b88e1bf31e0c094dc34df730b4028bd038e",
+   "previous_sha256": "bda200dc1fa01753083b2150e2605bad6aa63cc1ed5d4f56b17858681500cf27",
+   "group": "pin",
+   "pinned_by_v17": true,
+   "partition_ref": false,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "chpc/row19_ec2_e2rules.py",
+   "source": "chpc/candidate_e2/row19_ec2_e2rules.py",
+   "sha256": "a9ea1f61daa577b642739ae781cb179e9a2089d42d3c23fff277d7d4849a3bcc",
+   "previous_sha256": null,
+   "group": "pin",
+   "pinned_by_v17": true,
+   "partition_ref": false,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "chpc/row19_ec2_e2qual.py",
+   "source": "chpc/candidate_e2q/row19_ec2_e2qual.py",
+   "sha256": "b3f29816f80974c6f21d215b435c12d6d68d41927e89cd03f45ca614896e8ac8",
+   "previous_sha256": null,
+   "group": "pin",
+   "pinned_by_v17": true,
+   "partition_ref": false,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "chpc/row19_partition_e2.json",
+   "source": "chpc/e2_final/row19_partition_e2.json",
+   "sha256": "48cea639e823abbf39238e3dd7c075f63ba9eca8467009348510e2943ed56fa6",
+   "previous_sha256": null,
+   "group": "part",
+   "pinned_by_v17": false,
+   "partition_ref": true,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "chpc/claims_snapshot_e2.json",
+   "source": "chpc/e2_final/claims_snapshot_e2.json",
+   "sha256": "31cc268ff3247858fc73ac17a3a387b43e17a829d9cdea505958890a97eecb6f",
+   "previous_sha256": null,
+   "group": "data",
+   "pinned_by_v17": false,
+   "partition_ref": false,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "aws_ec2/e2_funding.json",
+   "source": "chpc/e2_final/e2_funding.json",
+   "sha256": "d6f414e8107f25e5de43d6b33764106c6c92dd64440ff33fddf4873416ce4815",
+   "previous_sha256": null,
+   "group": "data",
+   "pinned_by_v17": false,
+   "partition_ref": false,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "aws_ec2/prod/manifest_production_e2.json",
+   "source": "chpc/e2_final/manifest_production_e2.json",
+   "sha256": "e126050536a8459cb1432cf78321e82147c67f5406441fff131a1f543f9f82f9",
+   "previous_sha256": null,
+   "group": "data",
+   "pinned_by_v17": false,
+   "partition_ref": false,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "aws_ec2/prod/manifest_e2q1_e2.json",
+   "source": "chpc/e2_final/manifest_e2q1_e2.json",
+   "sha256": "3ea8cafd736871de715062ca398f36ff98f93f27d1d82bd977c3b72b0f1cfb8b",
+   "previous_sha256": null,
+   "group": "data",
+   "pinned_by_v17": false,
+   "partition_ref": false,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "aws_ec2/prod/manifest_e2q2_e2.json",
+   "source": "chpc/e2_final/manifest_e2q2_e2.json",
+   "sha256": "4af4a64d83c749394c7159814359da716b2a9f9a694cd23fe46157aecd7b0cec",
+   "previous_sha256": null,
+   "group": "data",
+   "pinned_by_v17": false,
+   "partition_ref": false,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "aws_ec2/prod/panel_e2q_e2.json",
+   "source": "chpc/e2_final/panel_e2q_e2.json",
+   "sha256": "f04a5e43634e13bfceaf173e303ebf780f4280de044b6bd97ee9e2c3f711c7a2",
+   "previous_sha256": null,
+   "group": "data",
+   "pinned_by_v17": false,
+   "partition_ref": false,
+   "deploy_lengau": true
+  },
+  {
+   "promoted": "aws_ec2/prod_authority.py",
+   "source": "chpc/candidate_e2q/aws_ec2/prod_authority.py",
+   "sha256": "eee1bcd439f11abe3bc11fcaa905257c02157e4b4a95f506a3b2792fcebd5e65",
+   "previous_sha256": "b8ca02b86bd42ebcdea15c823d0503f81c9a91978dfd3e0e4673028bdd8f5585",
+   "group": "mac",
+   "pinned_by_v17": false,
+   "partition_ref": false,
+   "deploy_lengau": false
+  },
+  {
+   "promoted": "aws_ec2/prod_launch.py",
+   "source": "chpc/candidate_e2q/aws_ec2/prod_launch.py",
+   "sha256": "6bca470910489376d37529fb37772d4a2758d4c71758c990bd17108c6ff6c784",
+   "previous_sha256": "21b7cf5768dced4f831f367b40a250b80a1ed900fe301165c4c312f15ae0f7f3",
+   "group": "mac",
+   "pinned_by_v17": false,
+   "partition_ref": false,
+   "deploy_lengau": false
+  },
+  {
+   "promoted": "aws_ec2/make_prod_manifest.py",
+   "source": "chpc/candidate_e2q/aws_ec2/make_prod_manifest.py",
+   "sha256": "d8412c32f5663350a5029309dffd6183aaf0a0a76afb089f85f8e8208ac01f07",
+   "previous_sha256": "8da7991138a5b5cbf76396dd46c9fadcd9e582acfedfbcbace98ffdc4c5ce11c",
+   "group": "mac",
+   "pinned_by_v17": false,
+   "partition_ref": false,
+   "deploy_lengau": false
+  },
+  {
+   "promoted": "aws_ec2/qual_permit.py",
+   "source": "chpc/candidate_e2q/aws_ec2/qual_permit.py",
+   "sha256": "51653d26c69552ea449c10747672786a77dac67e4ffe183f7ff6b7382433a8ad",
+   "previous_sha256": "c503e795f7ed7bfa393980073df062b41f4eea78a0e9b5039c4aa1314fd56c22",
+   "group": "mac",
+   "pinned_by_v17": false,
+   "partition_ref": false,
+   "deploy_lengau": false
+  },
+  {
+   "promoted": "aws_ec2/make_e2_funding.py",
+   "source": "chpc/candidate_e2/aws_ec2/make_e2_funding.py",
+   "sha256": "85e1b69cb6c993dfa9a37252f30c91a2afdc10932d389b331d5136a51f743554",
+   "previous_sha256": null,
+   "group": "mac",
+   "pinned_by_v17": false,
+   "partition_ref": false,
+   "deploy_lengau": false
+  },
+  {
+   "promoted": "chpc/row19_screen_controls.json",
+   "source": "chpc/candidate_v17/row19_screen_controls.json",
+   "sha256": "92f28b8fbd53a2a13635022ff01d2a76ef75a1986e670311ccfb768f7cdc80aa",
+   "previous_sha256": "01976b6a92e7150a82d8397caeb88e5425e0dd051f69bb244bf3f83981e8f220",
+   "group": "ctl",
+   "pinned_by_v17": false,
+   "partition_ref": false,
+   "deploy_lengau": true
+  }
+ ]
+}

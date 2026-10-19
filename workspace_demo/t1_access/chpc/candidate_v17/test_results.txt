@@ -1,0 +1,78 @@
+# chpc/candidate_v17 test results (2026-10-19, Mac, python3 3.14.6; run from workspace_demo/t1_access)
+
+## New v17 tests
+chpc/candidate_v17/test_v17.py: rc 0, 45 passed, 0 failed
+  1. candidate (24 checks): deterministic build; controls = adopted bytes + ONE insertion; versions 1-16 equal; exactly the
+     seven changed pins; file set v16 + e2rules + e2qual; partition e2 48cea639, v16 e1 8d1de408, sub_envelopes /
+     qualification_S / keys unchanged; e1 provenance (versions 13-16 + e2 predecessor); pins = sources; the qualifier is
+     candidate_e2q's superset (10 replaced lines, none dropped); the state copy changes only its docstring + 2 contracts; the
+     admission = v16 + exactly the diff hunk; Python 3.7 grammar; promote_v17 candidate check incl. verify2 regeneration;
+     promotion order (admission then controls last); archive inventory 13; live tree untouched; 4 tamper refusals; review
+     and archive gates refuse.
+  2. schema-2 admission (4): v16 raises KeyError('indices') at the print line; v17 prints "owns 3274 explicit coordinates
+     (schema 2, owned ee31504e4a04)" and reaches the activation check; the schema-1 (e1) line is byte-identical to v16's;
+     v17 CLI with the REAL activation check -> "HELD: partition epoch 2 is pinned but not activated".
+  3. activation hold (11): no proof -> HOLD; only activation_e1.json (the real Mac copy) -> HOLD; the e1 proof at the e2
+     path -> HOLD; a canonical proof while v16 is the adopted controls -> HOLD; sandbox positive control -> ''; another
+     owned set -> HOLD; a v16-version proof -> historical; a later version dropping the pin -> historical; the e1 proof is
+     historical under v17 and current under v16; a canonical activation from the candidate controls file is refused.
+  4. epoch-1 release path (6): prod_authority (candidate_e2q REVISION 7) on the REAL v17 controls bytes reads the pinned
+     partition as e2 schema 2; e1 certificates bound to e1 or e2 are refused by the schema-2 guard; control: the v16 bytes
+     do not trigger that guard; an epoch-1 production release never admits epoch-2 production; the epoch-2 literal carries
+     epoch=2.
+
+## Regression: chpc/candidate_v17/regress/run_v17_regress.py
+## BEFORE = the v16 state (live modules; the candidate folders' own tests as reviewed); AFTER = the v17 module set
+## (regress/run_one.py: every v17 controls pin + the promoted Mac modules by name; the candidate_v16 admission path in
+## test_e2_partition.py redirected to the v17 admission).
+                                                BEFORE              AFTER
+test_row19_partition.py                         63 pass / 2 fail    63 / 2   (same 2)
+test_row19_ec2_ingest.py                        68 / 0              68 / 0
+test_row19_ec2_qualify.py                       23 / 0              23 / 0
+test_row19_ec2_status.py                        26 / 0              26 / 0
+aws_ec2/tests/test_prod_authority.py            66 / 0              66 / 0
+aws_ec2/tests/test_prod_launch.py               61 / 1              61 / 1   (same 1)
+aws_ec2/tests/test_ec2_sync.py                  12 / 0              12 / 0
+chpc/candidate_e2/test_e2_partition.py          54 / 0              54 / 0   (AFTER: its v16 admission is the v17 admission)
+chpc/candidate_e2/test_e2_authority.py          76 / 1              76 / 1   (same 1)
+chpc/candidate_e2/test_e2_ingest.py             63 / 0              63 / 0
+chpc/candidate_e2/test_e2_rules.py              35 / 0              35 / 0
+chpc/candidate_e2q/test_e2q_contracts.py        54 / 0              54 / 0
+chpc/candidate_e2q/test_e2q_qualify.py          33 / 0              33 / 0
+chpc/candidate_e2q/test_e2q_release.py          81 / 0              81 / 0
+Every count equals chpc/candidate_e2q/test_results.txt (18 Oct). The four failures are pre-existing and identical BEFORE and
+AFTER (explained there): two stale v12/v13 candidate checks, one stale Q1-retry check, and the REAL-state "Q1 attempt 4 still
+OWNS its 48 retired e1 coordinates" (it was dispositioned and fenced on ack_g48, DESIGN_e2 s.6 step 3).
+
+## The admission suites, three configurations
+## BEFORE = chpc/candidate_v16 (adopted v16 admission/status/controls), live modules; AFTER-code = transient world
+## chpc/.v17_world_<pid>_code/ (v17 admission + unchanged status + v16 controls) with the v17 modules; AFTER-v17 = the same
+## world with the v17 controls. Worlds removed after the run.
+                                                BEFORE     AFTER-code   AFTER-v17
+candidate_v16/test_designated_r16.py            78 / 2     77 / 3       77 / 3
+candidate_v16/regress/regress_pbs_settled_r13   51 / 0     51 / 0       51 / 0
+candidate_v16/regress/regress_crashed_slot_r14  70 / 1     70 / 1       70 / 1   (same pre-existing stale refit-13 fixture fail)
+
+test_designated_r16.py differences, each a check of the CONTROLS FILE the suite finds beside the admission, not of the code:
+- all three: "REAL status view: rescue-pending 43/4 (2) and 83/2 (4), both with their job-37 attempt running" - pre-existing
+  live-state drift (job 37 is no longer running), as in candidate_e2q/test_results.txt.
+- BEFORE and AFTER-code: "controls v16: versions 1-15 byte-identical to the adopted controls" - pre-existing (the adopted file
+  now holds version 16 too).
+- AFTER-code only: "controls v16: the pins are the candidate bytes" - the world's v16 controls pin the v16 admission 1b02f336
+  beside the v17 admission c3960464; expected by construction of the code-only world.
+- AFTER-v17: "versions 1-15 byte-identical" now PASSES (v17's versions 1-16 are the adopted file's); the two checks that the
+  LAST entry is the v16 change ("only admit, status and the new declaration differ from v15 ...", "refit+S declared 81,000
+  (v15: 60,000)") read v17 vs v16 and fail by construction.
+Every other check - the declaration, selection, replicate-complete order, skips, the crash rule, history untouched, the CLI
+wiring (dry run, HELD guards, first job alone, receipt swap, --rescue, scale-up hold) and the REAL 17 Oct replay - passes
+identically under the v17 admission and module set.
+
+Limit: the live suites import row19_screen_admit BY NAME from chpc/ (the adopted v16 bytes); run_one.py does not substitute
+it by name, because the admission resolves its T1 and controls from its own folder, so a by-name substitution changes the
+lineage paths rather than the code. The admission change itself (one print line in the refit admission branch) is exercised
+by test_v17.py section 2 and by the three admission suites above.
+
+## Not run here
+- promote_v17.py --check requires the candidate committed (git-tracked, unmodified); it is run after the package commit and
+  its output is appended below in a follow-up commit.
+- No migration_v17 script exists yet (preflight, archive, deploy, rollover, adopt): DESIGN_v17.md s.6.
