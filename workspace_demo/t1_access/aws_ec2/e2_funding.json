@@ -1,0 +1,42 @@
+{
+ "allowance_usd": 300.0,
+ "base_batches": 46,
+ "calendar_days_at_fleet": 8.87,
+ "epoch": 2,
+ "epoch_cap_usd": 2078.52,
+ "fleet_ceiling": 5,
+ "forecast": {
+  "basis": {
+   "note": "Q2 (c7a.12xlarge, 24 workers) rates extrapolated to another packing: a cost illustration, not a measured production rate (Codex design s.3)",
+   "q2_attempt": {
+    "attempt_id": "ec2-qual-Q2-a1",
+    "charge_fields_sha256": "46fd6c92a5d052b79df393c62c8be4161560447496b007780bdc40b3fbdf5092",
+    "key": "qual-Q2/1",
+    "plan_sha256": "5d45f4e157a31ffd027e9b35c48f2d54f54c6293e58ba0e88a53573295cac5e1",
+    "sequence": 7
+   },
+   "q2_charged_usd": 11.700804,
+   "q2_planned": 24,
+   "q2_successful": 23
+  },
+  "carried_usd": 1778.52,
+  "planned_slot_usd": 1704.42,
+  "successful_slot_usd": 1778.52
+ },
+ "funding_maxima_all_base_usd": 1284.251,
+ "lifetime_s": 79200,
+ "max_extra_production_batches": 4,
+ "max_qualification_instances": 2,
+ "note": "Q2 basis: the pinned reconciled ledger attempt qual-Q2/1 and its declared 23/24 slot outcome; owner decisions 17 Oct 2026",
+ "owned_coordinates": 3274,
+ "paid_slots": 3496,
+ "partition_owned_sha256": "ee31504e4a04dab3d97de41f3f18f4f58806ec8eb36379dc777bbeb7fe2629b6",
+ "qualified_rep_slots": 61,
+ "rule": "owner 17 Oct 2026: ~USD 1,779 forecast + USD 300 bounded qualification/retry allowance inside the USD 2,300 production envelope and the USD 3,000 cap; five concurrent instances subject to qualification of the 76-worker packing; the allowance covers at most two new qualification instances and four extra production batches, all within USD 300; a further attempt needs a new decision",
+ "schema": "t1-ec2-epoch-funding-1",
+ "sentinels_per_batch": 4,
+ "work_per_batch": 72,
+ "work_per_rep_per_batch": 57,
+ "workers_per_instance": 76,
+ "worst_per_batch_usd": 27.9185
+}

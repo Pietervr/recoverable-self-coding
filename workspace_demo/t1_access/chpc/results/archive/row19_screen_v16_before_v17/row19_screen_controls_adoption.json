@@ -1,0 +1,21 @@
+{
+ "schema": "row19-screen-controls-adoption-1",
+ "controls_path": "chpc/row19_screen_controls.json",
+ "controls_sha256": "01976b6a92e7150a82d8397caeb88e5425e0dd051f69bb244bf3f83981e8f220",
+ "version": 16,
+ "controls_commit": "3686a11",
+ "review_record": {
+  "path": "reviews/2026-10-17_v16_p80_codex_review.md",
+  "sha256": "a315d7d2f7b91baec3b668e4dcec4c2530ab44d8c07aef597b77e28fdd3d447c",
+  "commit": "f6896e1",
+  "adopt_line": "ADOPT row19-screen-controls sha256=01976b6a92e7150a82d8397caeb88e5425e0dd051f69bb244bf3f83981e8f220 version=16"
+ },
+ "by": "R052 Entropy SI (Claude)",
+ "previous": {
+  "version": 15,
+  "controls_sha256": "828d3b69707cc47340c1773b97450c2c17c95679c4daf93c84021d138a4663a5",
+  "adoption_sha256": "970c29f5fc7832f9ef23d20ecf6ae40e9a8808d99ee0aad5a6e9fe109e4f8f2d",
+  "archived": "Lengau archive_screen/v15_before_v16, Mac chpc/results/archive/row19_screen_v15_before_v16/"
+ },
+ "scope": "admission + status v15 -> v16 and the new designated-coordinates declaration (Codex f6896e1 section A; REVISION 16: the resized screen S x 0..79 of 60 reps, replicate-complete order, Lengau scope = the 13 retained reps plus Lengau's existing claims, the two-crash same-envelope rule with RESCUE-PENDING reporting, the disabled rescue route, the first-new-order-job-alone scale-up gate, and the 81,000 core-h refit+S sub-envelope in the controls): every other controller byte, the epoch-1 partition 8d1de408 and the activation unchanged; grants no job, no EC2 permission and no cap raise (the ledger's 60,000 binds until the two-phase --raise-cap 81000); fresh whole-role v16 receipts, an adopted review of the REGENERATED refit pilot qualification (new hash, max job 100, no new fit), ONE first new-order job and an adopted scale-up review precede any further gated refit admission"
+}

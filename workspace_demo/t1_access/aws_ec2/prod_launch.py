@@ -47,16 +47,69 @@ the receipt's freshness are checked AGAIN after the uploads, immediately before 
 issued, and before every issue and re-issue of the saved request (dispatch_guard, passed to bench_launch.finish): a STOP
 written during staging, or a receipt that aged past 2,700 s, dispatches nothing - a never-issued attempt is withdrawn
 ('rejected', no instance can exist), an issued one stays ambiguous and funded. After the dispatch outcome (launched /
-rejected / ambiguous) the inventory is sealed again, so every lifecycle state is an installable generation."""
-import argparse, glob, json, math, os, sys, time, uuid
-import bench_launch as L
-import prod_authority as PA
+rejected / ambiguous) the inventory is sealed again, so every lifecycle state is an installable generation.
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-T1 = os.path.abspath(os.path.join(HERE, ".."))
-sys.path.insert(0, os.path.join(T1, "chpc"))
+REVISION 5 - CANDIDATE, not adopted (EC2 provider epoch 2; Codex design reviews/2026-10-17_row19_resize_codex.md s.3, s.4,
+s.6 item 5). For a schema-2 partition (explicit coordinate set) the production plan is 72 work coordinates REPLICATE-COMPLETE
+from the owned set (prod_authority.allocate: ascending rep then index; completed, owned and EC2 crash-excluded coordinates
+skipped) + 4 Lengau-completed sentinels on the 76-worker c7a.24xlarge contract. Admission additionally refuses (under the
+same global authority lock, after the existing envelopes) when the FLEET CEILING of five live production/qualification
+instances is reached (prod_authority.fleet_problem) and, for epoch 2, when the validated funding declaration's bounds would be
+exceeded (prod_authority.epoch2_problem: base batches + 4 extra, 2 qualification instances, USD 300 allowance, forecast +
+allowance). Production stays shut until a reviewed epoch-2 release (QUALIFICATION_E2.md; not built).
+
+REVISION 6 - CANDIDATE, not adopted (Codex review reviews/2026-10-17_e2_p80r_codex_review.md A3, A4, lifetime follow-up).
+  packing   a schema-2 production plan never carries more than prod_authority.E2_QUALIFIED_REP_SLOTS (61, E2Q1's declared
+            concentration) workers of any role on one replicate (row19_ec2_e2rules.concentration_problem on the built
+            slots, sentinels included); the allocator already caps work at 57 per replicate per batch.
+  funding   the epoch gate validates the funding declaration against the AUTHENTICATED Q2 basis of the same ledgers it
+            admits under (prod_authority.funding_problem(fund, part, leds)).
+  lifetime  an epoch-2 admission's lifetime must be the funded lifetime_s of the declaration (79,200 s); the operational
+            manifest maker alone is not the authority. Binding the exact QUALIFIED operational manifest belongs to the
+            epoch-2 release branch (not built).
+
+REVISION 7 - CANDIDATE, not adopted (EC2 provider epoch 2 QUALIFICATION, chpc/candidate_e2q/DESIGN_e2q.md;
+chpc/candidate_e2/QUALIFICATION_E2.md s.2, s.5).
+  E2Q       contracts E2Q1 and E2Q2 (row19_ec2_state REVISION 4) admit as runs qual-E2Q1 / qual-E2Q2 of an epoch-2 schema-2
+            partition: the plan is the DECLARED panel (--panel, default aws_ec2/prod/panel_e2q_e2.json, regenerated from the
+            partition and its bound claims snapshot by row19_ec2_e2qual.panel_problem) - its 52 work coordinates, each still
+            free (owned by epoch 2, not completed, not owned by another attempt, not crash-excluded), its 20 duplicates, each
+            Lengau-completed in the receipt, and 4 token sentinels outside the duplicates; the built plan must carry >= 61
+            workers on one replicate. The gate is prod_authority.e2q_admission_problem (qualification_e2 permission; E2Q1 one
+            instance; E2Q2 its own record, only after every E2Q1 attempt was dispositioned, at most one); the money is
+            epoch2_problem's (2 qualification instances inside the USD 300 allowance) at the funded 79,200 s lifetime.
+  release   production of an epoch needs the adopted release OF THAT EPOCH (prod_authority.production_release_problem): an
+            epoch-1 release never admits epoch-2 production, and an epoch-2 production admission must use the production
+            operational manifest the schema-3 certificate bound."""
+import argparse, glob, json, math, os, sys, time, uuid
+
+SRC = os.path.dirname(os.path.abspath(__file__))
+if SRC in sys.path:
+    sys.path.remove(SRC)
+sys.path.insert(0, SRC)
+import prod_authority as PA                                  # resolves t1_access, puts aws_ec2/, chpc/ and the candidate on the path
+import bench_launch as L
+HERE = PA.HERE                                               # aws_ec2/ (attest.py, prod_userdata.sh, runs/); = SRC once promoted
+T1 = PA.T1
 import row19_partition as RP
 import row19_ec2_state as ES
+import row19_ec2_e2rules as E2R
+import row19_ec2_e2qual as EQ
+QUAL_CONTRACTS = ("Q1", "Q2") + EQ.CONTRACTS                 # REVISION 7: every qualification contract (22 h lifetime, qual-* run)
+
+
+def run_of(contract, epoch):
+    return PA.qual_run(contract) if contract in QUAL_CONTRACTS else PA.run_name(epoch)
+
+
+def panel_for(part, psha, panel_path):
+    """REVISION 7: the declared E2Q panel at `panel_path`, validated against the partition and its bound claims snapshot."""
+    panel = json.load(open(panel_path))
+    snapp = os.path.join(T1, (panel.get("claims_snapshot") or {}).get("path") or "-")
+    why = EQ.panel_problem(panel, part, psha, json.load(open(snapp)), L.sha256(snapp))
+    if why:
+        raise ValueError(f"the E2Q panel: {why}")
+    return panel
 
 PROD_SHA = "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c"
 RECEIPT_MAX_AGE_S = 2700
@@ -156,14 +209,36 @@ def controls_pin():
     return (controls_doc()["versions"][-1].get("partition") or {}).get("sha256")
 
 
-def build(contract, part, leds, done, token):
+def build(contract, part, leds, done, token, panel=None):
     """(work, duplicates, sentinels) for the contract; raises when the predeclared panel cannot be built as declared."""
     lengau = {c for c in done if not RP.blocked(part, *c)}
+    if contract in EQ.CONTRACTS:                                         # REVISION 7: the declared epoch-2 panel
+        if part.get("schema") != RP.SCHEMA2 or int(part["epoch"]) != EQ.EPOCH or panel is None:
+            raise ValueError("the E2Q contracts run only on the epoch-2 schema-2 partition with its declared panel")
+        work = [tuple(c) for c in panel["work"]]; dups = [tuple(c) for c in panel["duplicates"]]
+        own = PA.owned(leds); ex = PA.ec2_crash_excluded(leds)
+        bad = [c for c in work if not RP.blocked(part, *c) or c in done or c in own or c in ex]
+        if bad:
+            raise ValueError(f"E2Q's work coordinates are not all free epoch-2 coordinates, e.g. {bad[:3]}")
+        miss = [c for c in dups if c not in lengau]
+        if miss:
+            raise ValueError(f"E2Q's Lengau duplicates are not all Lengau-completed in the receipt, e.g. {miss[:3]}")
+        sent = PA.sentinels(lengau, token, exclude=dups)
+        conc = E2R.rep_concentration([dict(rep=r) for r, _ in work + dups + sent])
+        if len(work) + len(dups) + len(sent) != EQ.WORKERS or max(conc.values()) < E2R.QUALIFIED_REP_SLOTS:
+            raise ValueError(f"the E2Q plan does not carry the declared shape (76 workers, >= {E2R.QUALIFIED_REP_SLOTS} on one replicate)")
+        return work, dups, sent
     if contract == "production":
-        work = PA.allocate(part, leds, done, ES.CONTRACTS["production"]["workers"] - PA.SENTINELS_PER_ATTEMPT)
+        excluded = PA.ec2_crash_excluded(leds) if part.get("schema") == RP.SCHEMA2 else set()
+        work = PA.allocate(part, leds, done, ES.CONTRACTS["production"]["workers"] - PA.SENTINELS_PER_ATTEMPT, excluded)
         if not work:
             raise ValueError("the partition block has no free coordinate left")
-        return work, [], PA.sentinels(lengau, token)
+        sent = PA.sentinels(lengau, token)
+        if part.get("schema") == RP.SCHEMA2:                                # REVISION 6 (A3): only the qualified shape
+            why = E2R.concentration_problem([dict(rep=r) for r, _ in work + sent], PA.E2_QUALIFIED_REP_SLOTS)
+            if why:
+                raise ValueError(f"the production plan is outside the qualified packing: {why}")
+        return work, [], sent
     if contract == "Q1":
         own = PA.owned(leds)
         bad = [c for c in Q1_BLOCK if not RP.blocked(part, *c) or c in done or c in own]
@@ -177,6 +252,25 @@ def build(contract, part, leds, done, token):
     if not q1:
         raise ValueError("Q2 compares with Q1: no reconciled Q1 attempt")
     return [], list(Q2_REPEAT), []
+
+
+def epoch_problem(part, leds, run, worst, lifetime_s=None):
+    """REVISION 5: a schema-2 epoch admits only inside its validated funding declaration's bounds. REVISION 6: validated
+    against the authenticated Q2 basis of these ledgers (A4), at the funded lifetime only."""
+    if part.get("schema") != RP.SCHEMA2:
+        return ""
+    if int(part["epoch"]) != 2:
+        return f"epoch {part['epoch']}: only epoch 2's funding bounds are declared"
+    try:
+        fund = json.load(open(PA.E2_FUNDING))
+    except Exception as e:
+        return f"no readable epoch-2 funding declaration ({type(e).__name__})"
+    why = PA.funding_problem(fund, part, leds)
+    if why:
+        return why
+    if lifetime_s is None or int(lifetime_s) != int(fund["lifetime_s"]):
+        return f"epoch 2 admits only at the funded lifetime {fund['lifetime_s']} s, not {lifetime_s!r}"
+    return PA.epoch2_problem(leds, run, worst, fund)
 
 
 def receipt_age_problem(w, now=None):
@@ -194,8 +288,21 @@ def dispatch_guard(run, snapshot, w):
     return guard
 
 
+def gate_problem(contract, epoch, rel, leds, opmanifest_sha):
+    """REVISION 7: the release-state gate of one admission: Q1/Q2 the epoch-1 qualification permission; E2Q1/E2Q2 the
+    epoch-2 permission and retry rule (prod_authority.e2q_admission_problem); production the adopted release OF THIS EPOCH
+    with, for epoch 2, the operational manifest its certificate bound (prod_authority.production_release_problem)."""
+    if contract in ("Q1", "Q2"):
+        return "" if rel["qualification"]["ok"] else (f"ec2_release_state.json does not permit {contract} (row 23 success / "
+                                                      "qualification permission and owner-accepted ceilings)")
+    if contract in EQ.CONTRACTS:
+        return "" if int(epoch) == EQ.EPOCH and not PA.e2q_admission_problem(contract, rel, leds) else \
+            (PA.e2q_admission_problem(contract, rel, leds) or f"{contract} qualifies epoch {EQ.EPOCH} only")
+    return PA.production_release_problem(rel, epoch, opmanifest_sha)
+
+
 def admit(a, now=None):
-    run = PA.qual_run(a.contract) if a.contract in ("Q1", "Q2") else PA.run_name(a.epoch)
+    run = run_of(a.contract, a.epoch)
     try:
         controls_doc()
     except ValueError as e:
@@ -210,10 +317,9 @@ def admit(a, now=None):
     if why:
         sys.exit(f"REFUSED: {why}")
     rel = PA.release_state(leds)
-    gate = rel["qualification"]["ok"] if a.contract in ("Q1", "Q2") else rel["production"]["ok"]
-    if not gate:
-        sys.exit(f"REFUSED: ec2_release_state.json does not permit {a.contract} (row 23 success / qualification permission and "
-                 f"owner-accepted ceilings / reviewed production release certificate)")
+    why = gate_problem(a.contract, a.epoch, rel, leds, L.sha256(a.manifest) if a.manifest and os.path.exists(a.manifest) else None)
+    if why:
+        sys.exit(f"REFUSED: {why}")
     man_prod = json.load(open(os.path.join(T1, "chpc", "row19_screen_manifest.json")))
     part = RP.load(a.partition, man_prod, PROD_SHA); psha = RP.sha_file(a.partition)
     if part["epoch"] != a.epoch or controls_pin() != psha:
@@ -237,22 +343,23 @@ def admit(a, now=None):
     if why:
         sys.exit(f"REFUSED: {why}")
     c = ES.CONTRACTS[a.contract]
-    life = PA.QUAL_LIFETIME_S if a.contract in ("Q1", "Q2") else int(opm["ec2_production"]["lifetime_s"])
-    if a.contract in ("Q1", "Q2") and int(opm["ec2_production"]["lifetime_s"]) != life:
+    life = PA.QUAL_LIFETIME_S if a.contract in QUAL_CONTRACTS else int(opm["ec2_production"]["lifetime_s"])
+    if a.contract in QUAL_CONTRACTS and int(opm["ec2_production"]["lifetime_s"]) != life:
         sys.exit(f"REFUSED: the qualification lifetime is declared {life} s; the manifest says {opm['ec2_production']['lifetime_s']}")
     worst = PA.worst_usd(life, c["max_price"])
-    why = PA.budget_problem(leds, run, worst, rel, now)
+    why = PA.budget_problem(leds, run, worst, rel, now) or PA.fleet_problem(leds) or epoch_problem(part, leds, run, worst, life)
     if why:
         sys.exit(f"REFUSED: {why}")
     st = PA.state(); n = max([x["attempt"] for x in led["attempts"]], default=0) + 1
     token = f"t1-{run}-{n}-{uuid.uuid4().hex[:12]}"
     try:
-        work, dup, sent = build(a.contract, part, leds, done, token)
-    except ValueError as e:
+        panel = panel_for(part, psha, a.panel or PA.E2Q_PANEL) if a.contract in EQ.CONTRACTS else None
+        work, dup, sent = build(a.contract, part, leds, done, token, panel)
+    except (ValueError, OSError, KeyError) as e:
         sys.exit(f"REFUSED: {e}")
     st, seq = PA.bump(st, sequences=1)
     attempt_id = f"ec2-{run}-a{n}"
-    roles = ([("work", x) for x in work] + [("qual_lengau" if a.contract == "Q1" else "qual_repeat", x) for x in dup]
+    roles = ([("work", x) for x in work] + [("qual_lengau" if a.contract in ("Q1",) + EQ.CONTRACTS else "qual_repeat", x) for x in dup]
              + [("sentinel", x) for x in sent])
     plan = {"job": n, "attempt_id": attempt_id, "sequence": seq, "epoch": a.epoch, "contract": a.contract, "partition_sha256": psha,
             "opmanifest_sha256": L.sha256(a.manifest), "activation_sha256": L.sha256(actp), "instance": dict(c, roles=dict(c["roles"])),
@@ -315,7 +422,7 @@ def admit(a, now=None):
 
 
 def recover(a):
-    run = PA.qual_run(a.contract) if a.contract in ("Q1", "Q2") else PA.run_name(a.epoch)
+    run = run_of(a.contract, a.epoch)
     led = L.load(run)
     att = next((x for x in reversed(led["attempts"]) if x.get("state") in ("intent", "ambiguous")), None)
     if att is None:
@@ -372,11 +479,11 @@ def recovery_receipt(a, run, att):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--contract", choices=sorted(ES.CONTRACTS), required=True); ap.add_argument("--epoch", type=int, required=True)
-    ap.add_argument("--partition"); ap.add_argument("--manifest")
+    ap.add_argument("--partition"); ap.add_argument("--manifest"); ap.add_argument("--panel", default=None)
     ap.add_argument("--snapshot", default=os.path.join(T1, "chpc", "results", "row19_screen")); ap.add_argument("--tarball")
     ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--recover", action="store_true")
     a = ap.parse_args()
-    run = PA.qual_run(a.contract) if a.contract in ("Q1", "Q2") else PA.run_name(a.epoch)
+    run = run_of(a.contract, a.epoch)
     try:
         with PA.authority_lock(), L.run_lock(run):
             if a.recover:

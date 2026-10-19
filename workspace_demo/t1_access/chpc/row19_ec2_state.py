@@ -36,7 +36,18 @@ REVISION 3 (Codex RSC 299f4b7 R2-1):
                      canonical root (an isolated S root or a sandbox can never release ownership).
   freshness at use   current_problems accepts an old installed inventory only while it shows no live or owning attempt;
                      with one, the six-hour freshness is rechecked at the admission's own time (a receipt watched just
-                     before the threshold no longer carries a stale view through its 2,700 s validity)."""
+                     before the threshold no longer carries a stale view through its 2,700 s validity).
+
+REVISION 4 - CANDIDATE, not adopted (EC2 provider epoch 2 qualification, chpc/candidate_e2q/DESIGN_e2q.md;
+chpc/candidate_e2/QUALIFICATION_E2.md s.2). Two instance contracts are ADDED and nothing else changes:
+  E2Q1  the epoch-2 qualification instance: the production geometry (c7a.24xlarge, 76 workers, spot cap 1.20, 60 GB) with
+        roles 52 work (owned) + 20 Lengau-completed duplicates (role qual_lengau, never owning) + 4 sentinels - the declared
+        fixed panel (chpc/candidate_e2q/row19_ec2_e2qual.py derives its coordinates from the bound epoch-2 partition).
+  E2Q2  the conditional identical retry (QUALIFICATION_E2.md s.2): the same geometry and roles under its own contract name,
+        so its plan, operational manifest and ledger run (qual-E2Q2) can never be mistaken for E2Q1's.
+plan_problem already treats every contract other than `production` as an exact slot count and maps role qual_lengau to the
+attempt's duplicates, so the E2Q plans are checked by the unchanged function. Controls v17 must pin THIS file in place of
+the live row19_ec2_state.py (bda200dc), because ingestion's operational_problem and plan_problem read CONTRACTS from it."""
 import hashlib, json, math, os, time
 
 INVENTORY_SCHEMA = "t1-ec2-authority-inventory-1"
@@ -373,6 +384,9 @@ CONTRACTS = {
     "production": dict(itype="c7a.24xlarge", workers=76, max_price=1.20, volume_gb=60, roles={"work": None, "sentinel": 4}),
     "Q1": dict(itype="c7a.24xlarge", workers=76, max_price=1.20, volume_gb=60, roles={"work": 48, "qual_lengau": 24, "sentinel": 4}),
     "Q2": dict(itype="c7a.12xlarge", workers=24, max_price=0.70, volume_gb=60, roles={"qual_repeat": 24}),
+    # REVISION 4 (epoch-2 qualification, QUALIFICATION_E2.md s.2): the production geometry with the declared fixed panel
+    "E2Q1": dict(itype="c7a.24xlarge", workers=76, max_price=1.20, volume_gb=60, roles={"work": 52, "qual_lengau": 20, "sentinel": 4}),
+    "E2Q2": dict(itype="c7a.24xlarge", workers=76, max_price=1.20, volume_gb=60, roles={"work": 52, "qual_lengau": 20, "sentinel": 4}),
 }
 OPERATIONAL_FIELDS = ["storage.root", "storage.campaign", "pbs.cores", "shard.expect_layer_s", "shard.expect_note", "ec2_production"]
 SETUP_S, UPLOAD_RESERVE_S = 900, 3000
