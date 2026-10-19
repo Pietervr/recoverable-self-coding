@@ -120,3 +120,15 @@ Every FAIL line is byte-identical BEFORE and AFTER (diff of the two runs' FAIL l
 inside each run (live vs v17 module set) also agree suite by suite, as in the reviewed run.
 promote_v17.py --check on the real tree needs the repaired sources committed (git-tracked, unmodified); it is run after the
 package commit and appended below.
+
+## After the repair commit (RSC c26835f), real tree, read-only
+$ python3 chpc/candidate_v17/promote_v17.py --check                                                       rc 0
+CANDIDATE OK: controls v17 9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0, 19 map rows + the controls, every pin = its source bytes, versions 1-16 = adopted v16 (the authenticated live v16 base), e2 partition 48cea639 loads and regenerates (verify2)
+live tree: {'v16': 20, 'v17': 0, 'other': 0}
+the adoption literal this candidate needs: ADOPT row19-screen-controls sha256=9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0 version=17
+$ python3 chpc/candidate_v17/promote_v17.py --check-promoted --review reviews/2026-10-19_e2_adoption_codex_review.md   rc 3 (expected refusal)
+REFUSED:
+  - reviews/2026-10-19_e2_adoption_codex_review.md does not carry the literal `ADOPT row19-screen-controls sha256=9ea4e727... version=17`
+  - the Mac archive chpc/results/archive/row19_screen_v16_before_v17/ does not exist (migration_v17 archive step)
+$ python3 chpc/candidate_v17/build_v17.py --check                                                         rc 0
+CHECK OK: the candidate controls and promotion map are the deterministic build from the live v16 base
