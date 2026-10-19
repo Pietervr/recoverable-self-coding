@@ -1,0 +1,83 @@
+migration_v17 - test results (19 October 2026, R052, Claude bounded job). BUILT AND TESTED ONLY: nothing was run against the live
+tree, Lengau or AWS; no ssh, scp, promotion, deployment, activation or adoption took place.
+
+Command:   python3 chpc/migration_v17/test_migration_v17.py        (from workspace_demo/t1_access)
+Host:      macOS 27.0.1, Python 3.14.6, GNU bash 5.3.20, git 2.50.1 (Apple Git-155)
+Result:    37 passed, 0 failed (37 tests, 427 s), exit 0
+
+Bytes tested (sha256):
+  RUNBOOK.md                (documentation; not executed)
+  activate_e2.sh            e1e01607307d56a7b48c5061e7ba7ff2c55e60857e963aebbfab0f6724d32b22
+  adopt_pilot17.sh          1f6001a68f5c96fe76d5e40dae23a6483a2faff84db3b3a0708127f4aa71d060
+  archive_v16.sh            08211ca170022d028d38ec9a63644f04f0f572f9bef6a43c7ced341a7b619c06
+  check_v17.sh              142898919f50de1aebba2e2d33547cf5b4cb089b42fc27ef8fd9f05819d4cf37
+  deploy_v17.sh             2a8decbef084596c4d98f0f365027d6790b5499d264ba7cd1e8d1c25fc1679be
+  ec2_cycle_v17.sh          fcbf59eaa731644edd3ce1fb6099ef6712073a2f9201222a2dd36dfa8ff7859d
+  lengau.sh                 a6e11d4f072b6421a631766d1e6e34d59bd9629390eb2d5175323e7d9318ae18
+  lengau_archive.py         ee39107472f9b6a8bcaadc3e791b281faba01d482b4d2c28174f1f53d9f83270
+  mac_archive.py            a21c46fafb3c11a943422523442368ec67587f30b3bf8e4096555729ceea7aa9
+  package_qual_v17.py       b80c109ec995ed960e8abed5a1ac862d0e99385e2b6c708d406342e030b21a6e
+  preflight_v17.sh          0d20dda75d957ea9fe915f3a8109f93f6db3ff1092044703de9b8cfcfa236f5e
+  receipt_check_v17.py      b1359bee4b40b78f23347d472a29494166a152d63bca56675c3d66f1a1a93a9d
+  remote_lib.sh             735b2f09c9c0261547d2a318032ec33942dde58686fa353058eeaaac3542e0b1
+  rollover_pilot_v17.sh     13db984e2a094c2e328b12ec7fa16977495f92ab76793ff496a0afa5d867225d
+  test_migration_v17.py     93ece7f6bbc8113656b30ba34213bace5860a4e6140c3298308a93e134dd4375
+  v17_package.py            bf176c8d703e0eb000e6e55c6cba421b5995935c96de9cb09622963a0c917a08
+Reviewed package read (unchanged): candidate controls 9ea4e727, promotion map 6bc8bd39, build_v17.py f2a80f42, promote_v17.py
+f0c320c2, review record 48b9cf05; every chpc/candidate_v17, candidate_e2, candidate_e2q and e2_final file unchanged (git status
+clean on those paths after the runs).
+
+PASS ( 0.1s) static: no test hook, one fixed root, one fixed transport, no worker/reaper stop, no AWS call, every shell file parses
+PASS ( 0.1s) static: the composed production Lengau script (each direct body) carries exactly the production root and parses
+PASS ( 0.0s) static: the package identities equal the reviewed ones (controls literal, map, builder, promoter, record) and the archive inventory is build_v17.ARCHIVE
+PASS ( 0.0s) static: CTL_EVIDENCE (remote_lib.sh) and UNTRACKED_CTL (lengau_archive.py) are the same three pinned files
+PASS ( 0.0s) Lengau compat: every Lengau-side Python (lengau_archive.py, LOCK_PY, ACT_PY, INV_PY, each t1py -c body) is 3.6-level code
+PASS ( 1.4s) restricted-CLI shims: git rejects -C and echoes --absolute-git-dir; flock rejects -E and exits 1 on a -n conflict
+PASS ( 0.1s) boundary: a body run without the prelude refuses; lengau.sh refuses any other body; the harness refuses an alias of production
+PASS ( 2.8s) boundary: a valid isolated fake root reached through an alias passes preflight (every path resolves beneath its physical root)
+PASS (31.4s) positive route: preflight, archive (+re-run), promote_v17 (+re-run), commit, deploy (+re-run), pre-cycle, activate (+re-run), post-cycle, rollover (+re-run), package, adopt
+PASS (20.4s) Lengau compat: the whole route runs on the restricted git and flock CLIs (no rejected call, no python fallback for a decidable lock)
+PASS ( 5.2s) preflight refuses (Mac): a changed package byte (promoter, builder, map), an uncommitted record, a held authority lock, a busy Mac
+PASS ( 5.1s) preflight refuses (Mac): live tree not v16 (a promoted path changed / a v17 path present), Mac qualification not 2c7a7ef1, uncommitted budget
+PASS (21.9s) preflight refuses (Lengau): an e2 path already in the controller, activation_e2 present, review not bound to 2c7a7ef1, ledger cap not 81,000, leftovers
+PASS (17.8s) archive: one-file remote archive refuses and is left as it was; missing ledger / e1 proof / controller file / review / jobs refuse
+PASS ( 6.7s) archive: failed checksum / unreadable source refuse; an interrupted build (staging left, Lengau or Mac) refuses and is never removed
+PASS ( 8.5s) archive retry: the Lengau half published but the Mac half failed (budget mismatch) -> nothing on the Mac; repaired, the re-run builds the Mac half
+PASS ( 7.4s) archive: a self-consistently rewritten Lengau archive (ledger or e1 proof dropped) and a substituted Mac member refuse
+PASS ( 0.4s) Mac archive: writable member, foreign COMPLETE, extra file refuse the strict verify; the builder's archive_problems accepts the real one
+PASS (10.0s) promote interruption: a promotion stopped after the controls copy (adoption still v16) - deploy refuses; promote_v17 resumes; deploy proceeds
+PASS (16.2s) deploy refuses before any controller change: one-file / corrupted / regenerated Lengau archive, uncommitted promotion, changed e2 data on the Mac
+PASS (22.1s) deploy: drain observations (ps failed/empty/busy, a held lock, no probe) refuse before any controller change
+PASS (43.3s) deploy: missing/unreadable/digest-failed/partial science refuses before any change; a changed or incomplete after-proof refuses completion
+PASS (29.1s) deploy retry: a copy failure resumes on the pre-mutation proof; a mid-payload failure / a refused commit leave a dirty clone every re-run refuses
+PASS (32.6s) deploy retry: a deployed clone without its proof, with science changed after DONE, or a tampered preserved manifest HOLDS; DONE + equal science is OK
+PASS (11.5s) deploy: payload that does not compile/parse under t1py, or a v17 path already in the controller, refuses before any change
+PASS (10.1s) containment: controller clone, gate, archive dir, ec2 dir or a gate member pointing outside refuse; nothing written outside
+PASS (22.2s) containment: a committed nested chpc / reviews / aws_ec2 redirect refuses deploy and adopt before any copy
+PASS ( 5.1s) containment: a controller alias resolving inside the scientific clone refuses every body; scientific bytes unchanged
+PASS ( 6.5s) controller git: a gitfile or symlinked .git refuses (own-root semantics on the restricted git)
+PASS (20.4s) evidence: the exact three pass and are archived with their hashes; a fourth file, a changed hash, a symlink, a newline-named entry refuse
+PASS ( 9.3s) pre-activation cycle: a failed sync, a stale inventory or an owner outside the e2 set refuses; a re-run seals a new generation
+PASS (14.2s) activation: a held plan lock, refused problems, a crash after the link, a wrong proof, drain failures - each handled; nothing erased
+PASS ( 5.2s) activation before deploy (v16 controller) or with an undeployed proof refuses; rollover/adopt before activation refuse
+PASS (21.9s) post-activation receipts: an alarm, a v16 generation, a receipt without activation_e2, a failed status or bank receipt refuse
+PASS ( 9.7s) rollover: a changed active review or a corrupted archive refuses (nothing moves); a gate member symlink refuses before move/chmod; an interrupted chmod completes on re-run
+PASS ( 0.7s) package: a qualification not regenerated / of another generation / naming a missing receipt refuses; an existing different package refuses
+PASS ( 7.6s) adopt: an active review, the gate still at 2c7a7ef1, a record without THIS qualification's literal, an evidence path, an adopter refusal - each refuses; the gate is never overwritten
+37 passed, 0 failed (37 tests, 427 s)
+
+What is real and what is simulated in these tests:
+  REAL    every production script of this folder (private copies differing only on the # @root and # @transport lines), the
+          reviewed promote_v17.py / build_v17.py (private copies), the real v16 and v17 controller modules imported by the
+          Lengau-side checks (programme_gate lineage, row19_screen_admit designated/partition, row19_partition load and
+          activation_problem, row19_ec2_state installed_inventory/seal), the real prod_authority.py inventory (private tree),
+          real git commits in private repositories, real flock(2) holders.
+  SIMULATED the canonical activation and the --adopt-review adopter (the fake $T/t1py writes a proof built from the real
+          partition/controls the way row19_partition.activate builds it; the adopter writes a synthetic gate review);
+          ec2_sync.py, row19_screen_status.py and row22_bank_status.py are private stubs; the job clone holds synthetic
+          placeholders; ps/sha256sum fault injection; ssh and scp always refuse (no call was attempted in the positive route).
+  NOT TESTED real ssh transport; Lengau's installed git/flock/realpath/base64/sha256sum (restricted CLIs only) and Lustre's
+          flock(2)/rename/chmod; the real activation, ec2_sync cycle, receipts, --qualify and --adopt-review; the real
+          controller-clone commit on Lengau. No protected plant/key/sample file and no scientific source was read: worlds are
+          built from an explicit allowlist (CTL_SET, CAND_SET, the v16 pilot qualification and the three evidence files'
+          pinned bytes from git history).
