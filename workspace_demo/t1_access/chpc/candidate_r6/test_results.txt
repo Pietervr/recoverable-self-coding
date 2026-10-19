@@ -1,0 +1,77 @@
+# chpc/candidate_r6 test results (2026-10-19, Mac, python3 3.14.6, run from workspace_demo/t1_access)
+# python3 chpc/candidate_r6/test_r6_fleet.py: rc 0, 61 passed, 0 failed, 321.6 s wall. Passed on two consecutive runs (this
+# record is the second). Two earlier development runs failed on TEST defects, repaired before these runs: (1) the test read
+# 'reconciled' from the ledger before the reaper had sealed its generation (the reaper saves the ledger, then seals, both
+# under the locks), so a receipt could be taken one generation early and A9 was refused as stale - the test now waits for the
+# reaper to exit; (2) count/assertion bugs (the fake logs each RunInstances twice; idempotent repeated installs; an
+# 'older generation' probe that was newer than the last install). No reviewed code was changed. The first failed run left
+# four fake-tree reaper processes polling the fake EC2; they were killed by hand and the test now kills every process of
+# its tree at exit.
+
+ok   [    0s] tree: every promoted file is its v17 promotion-map bytes
+ok   [    0s] tree: unchanged pins are the v17 controls' pins (programme_gate, row19_ec2_root, verifier, designated)
+ok   [    0s] guard: `aws` resolves to the fake for every subprocess; credentials, profile and proxies point at nothing
+ok   [    0s] tree: the in-process modules are the fake tree's (paths resolve inside it, promoted layout, not a candidate run)
+ok   [    0s] tree: the real adoption gate accepts the fixture adoption of the exact v17 controls (git-tracked, review line)
+ok   [    0s] setup: the REAL release_adopt releases epoch-2 production in the fake tree (bound production manifest)
+ok   [    6s] A1: the first production admission (real locks, ledger, sequence, sealed generations, dispatch, reaper)
+ok   [    6s] A1: global sequence 61 (after qual-Q2 7 and qual-E2Q1 60), 72 work + 4 sentinels, worst-case reserved
+ok   [    6s] A1: intent and dispatch outcome are two new sealed generations (and the sequence reservation bump)
+ok   [    7s] stale receipt: a second admission on the receipt taken before A1 is refused (does not bind the current inventory)
+ok   [    7s] stale receipt: an installed-and-bound receipt older than 2,700 s is refused
+ok   [   13s] A2: admitted on a fresh receipt binding the current generation
+ok   [   18s] A3: admitted
+ok   [   19s] interleave: A4 is inside its locks (paused in an S3 upload)
+ok   [   19s] interleave: a concurrent admission while A4 holds the locks is refused at once (another authority operation holds the lock)
+ok   [   61s] interleave: reaper 1 observes its instance terminated
+ok   [   65s] interleave: ... and cannot record it while A4 holds the global authority lock (attempt 1 still 'launched', reaper alive)
+ok   [   71s] interleave: A4 completes once released
+ok   [   72s] interleave: reaper 1 then records attempt 1 'reconciled'
+ok   [   72s] retained siblings: the ledger and the newest generation carry BOTH changes (A4 launched, attempt 1 reconciled)
+ok   [   72s] generations: no sealed archive ever changed
+ok   [  128s] reaper 2 reconciles attempt 2 (sealing a new generation after the receipt)
+ok   [  129s] stale receipt: a reconciliation sealed after the receipt refuses the next admission
+ok   [  134s] A5: admitted on a receipt taken after the reconciliation
+ok   [  140s] A6: admitted
+ok   [  145s] A7: admitted - five instances live (3, 4, 5, 6, 7)
+ok   [  145s] fleet: exactly five live production/qualification instances
+ok   [  146s] SIXTH ADMISSION REFUSED at five live instances (fleet ceiling): nothing journaled, no RunInstances, no generation
+ok   [  146s] reservations: five live attempts are each reserved at worst case USD 27.9185 in the production total
+ok   [  146s] reservations: the sealed inventory states the same production total
+ok   [  194s] reaper 3 reconciles attempt 3 (four live)
+ok   [  194s] reservations: with the four live worst cases + reconciled charges + baseline, one more worst case would pass USD 3,000 -> refused
+ok   [  200s] A8: admitted at USD 0.50 under the cap (the same reservations, one more worst case fits)
+ok   [  246s] reaper 4 reconciles attempt 4 (four live)
+ok   [  247s] interrupt: A9 journaled its intent and is inside RunInstances (instance created, answer never returned)
+ok   [  247s] interrupt: the killed admission left attempt 9 'intent', funded at worst case, locks released
+ok   [  247s] interrupt: a fresh admission refuses while attempt 9 is unresolved (recover it)
+ok   [  248s] interrupt: recovery on a receipt that does not bind the intent's generation re-issues nothing
+ok   [  253s] recovery: the SAME token is re-issued, the instance the lost call created is adopted, no second instance
+ok   [  253s] replay: a second recovery finds nothing to recover and changes nothing
+ok   [  253s] reaper interrupt: reaper 5 killed
+ok   [  256s] reaper interrupt: with no reaper, attempt 5 stays 'launched' and reserved at worst case
+ok   [  256s] reaper restart: the hand-started reaper reconciles attempt 5 and seals a new generation
+ok   [  256s] reaper replay: a second reaper for a reconciled attempt refuses and changes nothing
+ok   [  262s] A10: admitted (five live again: 6, 7, 8, 9, 10)
+ok   [  262s] fleet: five live before the drain
+ok   [  321s] drain: FIVE reapers reconcile concurrently on the one prod-e2 ledger
+ok   [  321s] drain: every reaper process has exited
+ok   [  321s] drain: the five concurrent reconciliations sealed five distinct new generations
+ok   [  321s] sequences: globally unique across every run and epoch
+ok   [  321s] sequences: prod-e2 sequences strictly increase in admission order; the authority's next sequence is past them all
+ok   [  321s] admissions/reconciliations: 10 admitted, 10 reconciled, each with a terminal record and its own fake instance
+ok   [  321s] ownership: no coordinate was allocated twice (ten production batches and the E2Q1 panel are pairwise disjoint)
+ok   [  321s] ownership: every allocated coordinate is an epoch-2 owned coordinate
+ok   [  322s] generations: every sealed archive is unchanged since first seen, strictly increasing, its own generation, latest = newest
+ok   [  322s] generations: the Lengau installs never went back, and a repeated generation was the same sealed bytes (idempotent)
+ok   [  322s] generations: the real installer refuses an older generation (out-of-order delivery)
+ok   [  322s] reservations: once every attempt is reconciled, the production total is the observed charges only
+ok   [  322s] dispatch: 11 RunInstances calls in all (10 admissions + the one recovery re-issue), never under a refusal
+ok   [  322s] guard: every aws call went to the fake (and only modelled calls were made)
+ok   [  322s] cleanup: no process of the fake tree remains
+
+R6' counts: 9 fresh admissions + 1 recovered (A9); 8 refused admissions/recoveries; prod-e2 attempts 10; reconciled 10; sealed generations 31; RunInstances 11
+61 passed, 0 failed
+real 321.62
+user 4.90
+sys 2.73

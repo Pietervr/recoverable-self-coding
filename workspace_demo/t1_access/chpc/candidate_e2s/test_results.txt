@@ -1,0 +1,106 @@
+# chpc/candidate_e2s test results (2026-10-19, Mac, python3 3.14.6, run from workspace_demo/t1_access)
+# python3 chpc/candidate_e2s/test_e2q_stage.py: rc 0, 97 passed, 0 failed, 25.7 s wall. Synthetic only; no aws/ssh/scp invoked
+# (PATH guards would have logged any call; none did). Every existing file is unchanged, so no regression suite applies.
+
+ok   real: every DATA_PIN is the sha256 of the reviewed chpc/e2_final file it promotes from
+ok   real: DATA_PINS agree with the v17 promotion map rows
+ok   real: ADOPTED_CONTROLS_SHA is the re-reviewed v17 controls (9ea4e727) and the map's controls row
+ok   real: PROD_SHA is the production manifest's bytes
+ok   real: CODE is row19_ec2_e2qual.CODE (the certificate's code set)
+ok   real: every code-set file has a pin in v17's latest version or the manifest's code pins
+ok   real: the v17 pin of the qualifier is the re-reviewed REVISION 6 bytes (1d8eee78) of chpc/candidate_e2q
+ok   real: the verifier's MUTABLE set is the ingestion's (REVISION 8)
+ok   real: the command passes every flag the reviewed qualifier's `e2` parser defines (required ones and --snapshot), once each
+ok   real: the command equals DESIGN_e2q.md s.7 step 6 on every fixed argument, incl. --snapshot chpc/claims_snapshot_e2.json
+ok   real: the staging root is fixed and contained (not inside/over the controller clone, scientific clone, root or campaign)
+ok   real: transfer through chpc-scp, controller commands through lengau
+ok   real transport: the S3 listing uses the read profile in us-west-2 on the exact prefix, and strips it
+ok   real transport: ssh with ControlPath=none, BatchMode and the named host
+ok   real transport: scp with the same options to host:path
+ok   stage: a clean synthetic bundle is collected, verified, staged and re-verified on Lengau
+ok   stage: the remote directory is <REMOTE_T>/ec2_stage/qual-E2Q1/attempt_1/<stamp> with the bundle and the shipped tools BESIDE it
+ok   stage: the Lengau copy's tree digest equals the Mac's and the producer's sealed list is carried unchanged
+ok   stage: every byte goes to Lengau through chpc-scp; every remote command runs on lengau except the push's mkdir
+ok   stage: the receipt binds identity, S3 listing, every member, inventory generation, pins and both tool digests
+ok   stage: no evaluation claim exists after staging alone
+ok   qualify: RELEASE from the stand-in qualifier -> exit 0
+ok   qualify: the qualifier ran with exactly the reviewed command, incl. --snapshot chpc/claims_snapshot_e2.json
+ok   qualify: binding.json binds certificate, receipt, tree digest, pins, installed inventory and the exact command
+ok   qualify: the claim names this stamp
+ok   never mutated: the S3 source, the Mac copy and the Lengau copy are byte-, mode- and mtime-identical after the run
+ok   guard: no real aws/ssh/scp was ever invoked
+ok   replay: qualifying the same stamp again is refused
+ok   replay: staging the claimed attempt again is refused before anything is collected
+ok   tamper: a sealed record changed at S3 -> refused (sealed sha256 differs)
+ok   tamper: the plan replaced at S3 by another sequence's plan -> refused (not the attempt's plan bytes)
+ok   partial: a sealed member missing at S3 -> refused
+ok   partial: no BUNDLE_SHA256SUMS -> refused
+ok   partial: a truncated BUNDLE_SHA256SUMS (last line cut) -> refused
+ok   partial: the producer's transfer not verified -> refused
+ok   partial: env/upload_verify.json absent -> refused
+ok   partial: the instance's BUNDLE_FAILED marker -> refused
+ok   partial: the S3 sync drops an object -> refused (local copy is not the listing)
+ok   partial: a short object after sync -> refused (size differs from the listing)
+ok   extra: an unlisted file under root/ -> refused
+ok   extra: a top-level stray file -> refused
+ok   extra: a log of an unplanned slot -> refused
+ok   extra: a status of another attempt id -> refused
+ok   extra: a mutable diagnostic sealed by an altered list -> refused
+ok   extra: the S3 sync adds an object not in the listing -> refused
+ok   replay: the E2Q2 bundle presented under an E2Q1 attempt -> refused (contract/opmanifest/plan)
+ok   identity: a ledger attempt not reconciled -> refused
+ok   identity: a ledger attempt already ingested -> refused
+ok   identity: a ledger attempt disposition requested -> refused
+ok   identity: a ledger attempt another results prefix -> refused
+ok   identity: a ledger attempt another plan hash -> refused
+ok   identity: a ledger attempt work not the panel's -> refused
+ok   identity: the sealed inventory carries the attempt differently -> refused before any S3 call
+ok   identity: the sealed inventory is not the authority's current generation -> refused
+ok   identity: a Mac pinned input (funding) not its reviewed bytes -> refused
+ok   identity: an epoch-1 run is refused (only qual-E2Q1 / qual-E2Q2)
+ok   transfer tamper: a byte flipped in transit -> refused by the Lengau re-verification
+ok   transfer partial: a member lost in transit -> refused on Lengau
+ok   transfer extra: a file appears in the Lengau copy -> refused
+ok   tool tamper: the shipped verifier altered on Lengau -> refused (not the Mac's bytes)
+ok   tool tamper: the shipped expectation altered on Lengau -> refused
+ok   containment: a symbolic link inside the staging root on the way to the bundle -> refused
+ok   pins: the Lengau qualifier is not the adopted bytes -> refused
+ok   pins: the deployed snapshot chpc/claims_snapshot_e2.json missing on Lengau -> transport failure, nothing claimed
+ok   replay: an existing remote staging directory (same stamp) -> transport refusal, nothing extracted into it
+ok   replay: an existing local staging directory (same stamp) -> refused
+ok   concurrency: a second invocation while one holds runs/<run>/e2q_stage/.lock -> refused
+ok   verifier: the clean copy passes
+ok   verifier: a symbolic link member is refused, never followed
+ok   verifier: a special file is refused
+ok   verifier: an expectation with another sequence is refused
+ok   verifier: an expectation with another partition is refused
+ok   verifier: an expectation with the E2Q2 contract is refused
+ok   verifier: an expectation with other sentinels is refused
+ok   verifier: an expectation with a short panel is refused
+ok   verifier: a re-ordered sealed list (not the producer's C order) is refused
+ok   verifier: a member listed twice is refused
+ok   verifier: a sealed path escaping the bundle is refused
+ok   verifier: reading never changes a byte, mode or mtime
+ok   verifier: a bundle outside the staging root is refused
+ok   E2Q2: a clean qual-E2Q2 bundle stages with its own contract and operational manifest pin
+ok   qualify: a NO_RELEASE certificate is a completed evaluation -> exit 3, bound, claimed
+ok   no retry by outcome: after NO_RELEASE the attempt cannot be staged again
+ok   preflight: an installed inventory of an older generation -> refused, NOTHING claimed
+ok   preflight: an installed inventory within the margin of the qualifier's 6 h limit -> refused, nothing claimed (no NO_RELEASE for a stale view)
+ok   tamper on Lengau after staging -> refused before the claim
+ok   tamper of the Mac staged copy after its receipt -> refused, nothing claimed
+ok   never mutated: a qualifier that writes into the bundle -> refused after the run, no binding, the claim stays
+ok   qualifier failure (exit 1, no certificate) -> exit 2, no certificate used, claim kept
+ok   ... and a retry of the failed evaluation is refused (claimed; DESIGN choice 6)
+ok   stale output: a certificate already at --out -> refused by the remote shell before the claim
+ok   a certificate that binds another bundle -> refused, no binding
+ok   a certificate whose outcome disagrees with the exit status -> refused
+ok   pins: the controller tree changing while the qualifier runs -> refused, no certificate used
+ok   claim race: a claim written between staging and qualification -> refused, the qualifier never runs
+ok   E2Q2: qualified with key qual-E2Q2/<n> and the E2Q2 operational manifest
+ok   guard: no real aws/ssh/scp was ever invoked in any case
+
+97 passed, 0 failed
+real 25.67
+user 5.87
+sys 21.38
