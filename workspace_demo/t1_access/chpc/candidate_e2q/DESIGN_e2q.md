@@ -20,20 +20,21 @@ from there, as `DESIGN_e2.md` s.1 says.
 | File (this folder) | SHA-256 | What | Promoted to |
 |---|---|---|---|
 | `row19_ec2_state.py` | `7bdedafc7c90ec065217d9a7bbf53b88e1bf31e0c094dc34df730b4028bd038e` | REVISION 4: copy of live `bda200dc` + contracts `E2Q1`, `E2Q2` (production geometry; roles 52 work + 20 `qual_lengau` + 4 sentinels). Nothing else changes. | `chpc/` (controls v17 must pin it) |
-| `row19_ec2_e2qual.py` | `b3f29816f80974c6f21d215b435c12d6d68d41927e89cd03f45ca614896e8ac8` | NEW, pure: the declared panel (`derive_panel` / `panel_problem`), the R1'-R5' constants, the epoch-2 code set `CODE`, the release literal, `code_path`, `opmanifest_bytes`, `ack_problem` | `chpc/` (pinned by v17; in the code set) |
-| `row19_ec2_qualify.py` | `73f912b8ba2f4112462f279644da61d69ea40d31e905765839ad7420b3fe29c8` | REVISION 5: copy of candidate_e2 REVISION 4. The epoch-1 path is unchanged. New `e2` command (`main_e2`) writes the SCHEMA-3 certificate, and `sandbox_replay_e2` runs R5'. | `chpc/` |
-| `aws_ec2/prod_authority.py` | `eee1bcd439f11abe3bc11fcaa905257c02157e4b4a95f506a3b2792fcebd5e65` | REVISION 7: copy of candidate_e2 REVISION 6 + `release_problem_e2`, an epoch-1 guard, `E2_RELEASE_CODE`, `pinned_partition`, a `qualification_e2` reading in `release_state`, the released epoch, `e2q_admission_problem`, `production_release_problem` | `aws_ec2/` |
+| `row19_ec2_e2qual.py` | `5ceba55189dd351b2cc5a997b115cdbfd0d84f17397402fa7deb2b3e937025fa` (reviewed `b3f29816`; s.8: the `code_path` docstring now states content binding, code unchanged) | NEW, pure: the declared panel (`derive_panel` / `panel_problem`), the R1'-R5' constants, the epoch-2 code set `CODE`, the release literal, `code_path`, `opmanifest_bytes`, `ack_problem` | `chpc/` (pinned by v17; in the code set) |
+| `row19_ec2_qualify.py` | `1d8eee78fc9427cd9e4cebe09deac37cf4284f0b8a86714dcc9d80cde63cbb29` (REVISION 6, s.8; reviewed REVISION 5 `73f912b8`) | REVISION 5: copy of candidate_e2 REVISION 4. The epoch-1 path is unchanged. New `e2` command (`main_e2`) writes the SCHEMA-3 certificate, and `sandbox_replay_e2` runs R5'. REVISION 6: validated resource evidence (B2), the `--snapshot` command (s.8) | `chpc/` |
+| `aws_ec2/prod_authority.py` | `e4897991aaeaf1dc019c9b73361d288e71464e6f89e416b66d9e3d7601df146d` (REVISION 8, s.8; reviewed REVISION 7 `eee1bcd4`) | REVISION 7: copy of candidate_e2 REVISION 6 + `release_problem_e2`, an epoch-1 guard, `E2_RELEASE_CODE`, `pinned_partition`, a `qualification_e2` reading in `release_state`, the released epoch, `e2q_admission_problem`, `production_release_problem`. REVISION 8: the physical crash envelope (choice 3) | `aws_ec2/` |
 | `aws_ec2/prod_launch.py` | `6bca470910489376d37529fb37772d4a2758d4c71758c990bd17108c6ff6c784` | REVISION 7: copy of candidate_e2 REVISION 6 + E2Q admission from the declared panel (`build`, `panel_for`, `--panel`) and a per-epoch release gate (`gate_problem`) | `aws_ec2/` |
 | `aws_ec2/make_prod_manifest.py` | `d8412c32f5663350a5029309dffd6183aaf0a0a76afb089f85f8e8208ac01f07` | REVISION 3: E2Q1/E2Q2 for epoch 2 at 75,300 s. An E2Q contract REQUIRES `--partition --snapshot --panel-out` and writes the panel; an existing different panel is refused. | `aws_ec2/` |
 | `aws_ec2/qual_permit.py` | `51653d26c69552ea449c10747672786a77dac67e4ffe183f7ff6b7382433a8ad` | REVISION 2: `--epoch2` writes `qualification_e2` (same drain and fence); `--epoch2 --e2q2` writes the E2Q2 record | `aws_ec2/` |
 | `aws_ec2/prod/manifest_e2q1_e2.json` | `3ea8cafd736871de715062ca398f36ff98f93f27d1d82bd977c3b72b0f1cfb8b` | E2Q1 operational manifest (`derive_operational`, epoch 2, expect 75,300 s, lifetime 79,200 s). It does NOT depend on the partition. | `aws_ec2/prod/` |
 | `aws_ec2/prod/manifest_e2q2_e2.json` | `4af4a64d83c749394c7159814359da716b2a9f9a694cd23fe46157aecd7b0cec` | E2Q2 operational manifest (identical geometry and roles, its own contract name) | `aws_ec2/prod/` |
 | `fixture/panel_e2q_e2_candidate87ed.json` | `65f14b2fc8df7a8498c0216a18653a850b92e50a4fd5a0ae9bc7e185ec73c041` | TEST FIXTURE ONLY: the panel the maker derives from the CANDIDATE partition `87edfb9e` and snapshot `043db609`. It is not the final panel. | never promoted (s.6) |
-| `proposed_ingest_released_e2q_partial.diff` | `34c76e57acec11b443090166d43c7c06812ce3f9ef76ca97dbcbcab14ad020a4` | PROPOSED, not applied: one line of `candidate_e2/row19_ec2_ingest.py` (s.5, choice 3). `git apply --check` is clean. | for Codex's ruling |
+| `proposed_ingest_released_e2q_partial.diff` | `34c76e57acec11b443090166d43c7c06812ce3f9ef76ca97dbcbcab14ad020a4` | the proposal Codex accepted in principle (s.5, choice 3). Kept as the reviewed proposal; the applied form is `candidate_e2/row19_ec2_ingest.py` REVISION 8 (s.8 and DESIGN_e2.md s.8), which adds R4' | record |
+| `test_e2q_ingest.py` | (s.8) | NEW, 44 checks: the released E2Q1/E2Q2 per-slot route (publication, exact ACK, holding cases, recovery) and the choice-3 crash ruling (mixed ACK test, envelope controls) | - |
 | `regress/run_regress.py` | `ade1bcb53a9c27778b1865bc57c21d541cc4d8c63a045a2543ad2beb04f7f6a8` | Runs the existing tests unmodified with the e2q modules substituted (the candidate_e2 pattern) | - |
 | `regress/run_e2_tests.py` | `e4d5c6720789398068ef9029f1eed63d26b3480ecc8bf0e4e1cf3df9f41dbba0` | Runs the `candidate_e2/test_e2_*.py` files unmodified on disk, with their two explicit Mac-module paths redirected in memory | - |
 | `test_e2q_contracts.py` | `7cc698f5eca1aad585dfff0067462005032db1e2919c75ae7547cad58a85ba81` | 54 checks: byte-equal regeneration, the panel, the refusals, the contracts, the launcher's E2Q plan | - |
-| `test_e2q_qualify.py` | `20221366c8042867294c07f5804d9a9cc8913b157631738b1337d8a9a4b5b1ec` | 33 checks: the schema-3 certificate on synthetic bundles (clean RELEASE; each single R1'-R5' violation) | - |
+| `test_e2q_qualify.py` | (s.8) | 56 checks (33 reviewed + 23 for s.8): the schema-3 certificate on synthetic bundles (clean RELEASE; each single R1'-R5' violation); B2 counter and parser negatives; the relocated snapshot layout | - |
 | `test_e2q_release.py` | `4910cfc147d7805f64587e589cab46544a8402c19f8c9ede2e9854932562ebe5` | 81 checks: the release branch, its prerequisites, epoch 1 against epoch 2, release_state / release-adopt, the allowance counters, conformance with the qualifier's own certificate and the real `ack` | - |
 | `test_results.txt` | `81aff78e5146ee1dd90274770380b2675b4dabfa3d52251007308393bb869c72` | counts before and after; every pre-existing failure explained | - |
 
@@ -249,7 +250,9 @@ establish:
 - **Staging the E2Q1 bundle on Lengau.** No reviewed tool or runbook was found for staging an EC2 bundle on Lengau for
   ingestion or qualification. The launcher writes results under `s3://<bucket>/results/t1_access/aws_bench/<run>/attempt_<n>/`.
   I can't determine the epoch-1 staging command from the repository. The owning session's EC2 runbook (or the person who
-  staged Q1 attempt 4 for reading) would settle it.
+  staged Q1 attempt 4 for reading) would settle it. The qualification command after staging is settled (s.7 step 6, s.8):
+  it passes the deployed, hash-checked snapshot with `--snapshot chpc/claims_snapshot_e2.json`. The concrete reviewed bundle
+  collection/verification/staging procedure Codex requires before one paid E2Q1 is still not built.
 
 ## 5. Choices Codex must rule on
 
@@ -271,6 +274,8 @@ establish:
    - Related: the crash counter `ec2_crash_history` counts production runs only, and the envelope includes the contract name.
      An E2Q fatal-signal crash therefore never counts toward the two-crash rule. Either accept this (the coordinate returns to
      the production pool) or rule that E2Q crashes count.
+   - **Ruled 19 Oct (CHANGE, B1) and applied (s.8):** the narrow route is in ingestion REVISION 8 with R4' kept, and
+     acknowledged fatal unproduced E2Q owned work counts toward the physical production-envelope two-crash exclusion.
 4. **Unproduced duplicates and sentinels.** They are reported and not compared. The 15/20 denominator stays 20, so an
    unproduced duplicate reduces the coverage headroom; it never fills it. A sentinel mismatch is a problem. At least 3
    produced sentinels are required (ingestion's bound).
@@ -283,9 +288,11 @@ establish:
    `prod_authority.ack` on the qualifier's sandbox register entry (conformance, both cases).
 7. **The epoch-2 review literal** carries `epoch=2`, so an epoch-1-form line never matches. This is a new literal grammar.
 8. **The code set**: the S files dropped; e2rules, e2qual and the state copy added; neither `prod_userdata.sh` nor any Mac
-   file included, as in epoch 1. The pre-promotion resolver `code_path` binds candidate copies, so a candidate certificate
-   never validates against promoted bytes; the reverse holds too. **A certificate from candidate files must be regenerated
-   after promotion.**
+   file included, as in epoch 1. The certificate binds file CONTENT as `{promoted path: sha256}`; the pre-promotion resolver
+   `code_path` reads the candidate copies, the promoted resolver the promoted files, and byte-identical copies yield the same
+   map. The binding is content, not location or installation provenance: a location change alone does not invalidate a
+   certificate. **The actual certificate is generated after deployment and activation, from the deployed files** (Codex
+   ruling 8, 19 Oct; s.8).
 9. **Epoch-2 qualification permission.** It is a new `qualification_e2` block, written only by `qual_permit.py --epoch2`
    (the same drain and fence). Row 23's declared success and the fence are still required. No owner-ceiling acceptance is
    asked, because the bounds are the 17 Oct code constants in `epoch2_problem`.
@@ -354,13 +361,18 @@ Then, only after the reviewed E2Q1 permission record exists:
        t1py chpc/row19_ec2_qualify.py e2 --manifest chpc/row19_screen_manifest.json --partition chpc/row19_partition_e2.json \
            --authority <root>/ec2/authority/inventory.json --key qual-E2Q1/1 --bundle <staged bundle> \
            --opmanifest aws_ec2/prod/manifest_e2q1_e2.json --prod-opmanifest aws_ec2/prod/manifest_production_e2.json \
-           --panel aws_ec2/prod/panel_e2q_e2.json --funding aws_ec2/e2_funding.json --sandbox <scratch> --out <cert_e2q1.json>
+           --panel aws_ec2/prod/panel_e2q_e2.json --snapshot chpc/claims_snapshot_e2.json \
+           --funding aws_ec2/e2_funding.json --sandbox <scratch> --out <cert_e2q1.json>
+
+   `--snapshot` is required in this command (s.8): the reviewed panel `f04a5e43` records `chpc/e2_final/claims_snapshot_e2.json`,
+   which the controller tree does not hold; the deployed copy `chpc/claims_snapshot_e2.json` is refused unless its sha256 and
+   claims digest are the ones the partition binds (`31cc268f`). The panel is not edited.
 
 7. Bring the certificate to `aws_ec2/` on the Mac and commit it. Codex writes the actual-result review. On FAVOURABLE it
    emits `RELEASE row19-ec2-qualification epoch=2 certificate=<sha256> attempts=qual-E2Q1/1`.
 8. `python3 aws_ec2/prod_authority.py release-adopt --certificate <cert> --review <review>`. Then inventory and
-   `ec2_sync.py cycle`. Then canonical ingestion of `qual-E2Q1/1`; with an unproduced slot this needs choice 3's ruling.
-   Then `ack`.
+   `ec2_sync.py cycle`. Then canonical ingestion of `qual-E2Q1/1`, through ingestion REVISION 8's released-E2Q per-slot route
+   when it has a qualifying unproduced slot (s.8). Then `ack`.
 9. Production admissions follow under the five-instance ceiling:
    `prod_launch.py --contract production --epoch 2 --manifest prod/manifest_production_e2.json ...`.
 
@@ -372,3 +384,29 @@ Branches:
   4. the same launch with `--contract E2Q2 --manifest prod/manifest_e2q2_e2.json`.
 - **NO_RELEASE or INCONCLUSIVE**: stop. There is no retry by outcome; return to the owner with a costed alternative
   (QUALIFICATION_E2.md s.3).
+
+## 8. REVISION: repair for Codex's adoption review of 19 Oct (B1, B2, "Before one paid E2Q1", rulings 3, 8, 13)
+
+Review: `reviews/2026-10-19_e2_adoption_codex_review.md` (CHANGE 3: A FAVOURABLE; B CHANGE 2 = B1, B2; C CHANGE 1 = C1).
+Written 19 Oct 2026 (R052, Claude, bounded job). Local candidate repair and tests only: no AWS, ssh, Lengau, promotion,
+deployment, adoption or live-file edit; `chpc/e2_final/` (A, FAVOURABLE) is unchanged, panel `f04a5e43` included. The changed
+reviewed files are edited in place with a revision note in each; their reviewed bytes stay in git at RSC `92a62f6`.
+
+| Review item | Change | Test |
+|---|---|---|
+| B1, the route (choice 3) | `chpc/candidate_e2/row19_ec2_ingest.py` REVISION 8 (`277c51b0`): only schema-2, released, class-qualification E2Q1/E2Q2 joins production's per-slot route, real class kept, every check kept, plus R4' (at most 3 non-completions of all roles). Detail: DESIGN_e2.md s.8 | `test_e2q_ingest.py` s.1-s.3 (44 checks in all); `candidate_e2/test_e2_ingest.py:351` updated |
+| B1, the crash ruling | `aws_ec2/prod_authority.py` REVISION 8 (`e4897991`): `ec2_crash_history` reads production and `qual-E2*` runs, acknowledged ingestions only, the `ingest_ack` unproduced map (owned work only); `crash_envelope` gives E2Q1/E2Q2/production one label only at production's producer geometry (instance type, workers, volume) and the recorded production instance type; the lifetime stays as recorded | `test_e2q_ingest.py` s.4: mixed real E2Q1-ACK + production-ACK excludes the coordinate and the allocator skips it; one alone does not; lifetime, instance type, geometry, epoch-1 Q1, censored, dispositioned, duplicate/sentinel controls do not; REVISION 7's rule on the same ledgers excludes nothing |
+| B2 | `row19_ec2_qualify.py` REVISION 6 (`1d8eee78`): `_timeline` validates every field by kind (unsigned integer; unsigned finite decimal for load averages) and requires strictly increasing time; `resource_observation_problems` checks MemTotal > 0, 0 <= MemAvailable <= MemTotal, RSS >= 0, running workers 0..planned BEFORE any calculation; each occupancy line joins at most one memory sample. A malformed or impossible observation is a problem (NO_RELEASE), never an exception or a release. Occupancy match, peak over all samples, 184 GiB and the status limits unchanged. The method is shared with the epoch-1 path (stricter only) | `test_e2q_qualify.py` s.6: the review's counter (12 samples, total 192 GiB, available 193 GiB) is NO_RELEASE (REVISION 5 gave RELEASE, peak 0.0 - reproduced on the reviewed function bytes); 12 copies of one timestamp NO_RELEASE; one occupancy line over 12 samples NO_RELEASE; a valid positive control RELEASES; 15 parser negatives each a failed verdict, none an exception |
+| Before one paid E2Q1: snapshot path | the reviewed command passes `--snapshot chpc/claims_snapshot_e2.json` (s.7 step 6; qualifier REVISION 6 docstring); panel `f04a5e43` not edited | `test_e2q_qualify.py` s.6: the recorded path absent in the deployed layout refuses without `--snapshot`; with the deployed copy the same panel bytes RELEASE and bind its sha256; a tampered copy refuses |
+| Ruling 8 wording | choice 8 above and the `row19_ec2_e2qual.code_path` docstring (`5ceba551`, docstring only) state content binding, not location | - |
+| Ruling 13 | the per-slot R5' presentation is unchanged; complete evidence still never releases with problems; B2 repaired | as above |
+
+**What is NOT done here (still required, unchanged by this revision).**
+- The concrete reviewed bundle collection/verification/staging procedure before one paid E2Q1 (only the qualification
+  command's snapshot argument is settled).
+- R6' (five interleaved admissions and reconciliations), capacity evidence, the separately reviewed E2Q1 permission record.
+- `migration_v17` (preflight, archives, deploy, rollover, adopt) and its review.
+- The schema-3 certificate itself: generated after deployment and activation from the deployed files.
+
+Counts and the regression are in `test_results.txt`; the controls and promotion map rebuilt on these bytes are in
+`chpc/candidate_v17/DESIGN_v17.md` s.8.

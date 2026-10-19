@@ -57,8 +57,11 @@ CANDIDATE_DIRS = ("chpc/candidate_e2q", "chpc/candidate_e2")   # pre-promotion o
 def code_path(t1, rel, candidate):
     """The file a run uses for the promoted path `rel`: before promotion (`candidate` True: the caller itself runs from a
     chpc/candidate_* folder) the candidate copy when one exists, else the live file; after promotion always t1/rel. A
-    certificate binds these bytes, and the release branch resolves the same way, so a candidate certificate can never be
-    satisfied by promoted bytes or the reverse."""
+    certificate binds the CONTENT of these files as {promoted path: sha256}, and the release branch resolves the same way.
+    Byte-identical candidate and promoted copies therefore give the same map: the binding is content, not location or
+    installation provenance, and a location change alone does not invalidate a certificate (Codex review
+    reviews/2026-10-19_e2_adoption_codex_review.md, choice 8; docstring-only correction, the code is unchanged). The actual
+    certificate is generated after deployment and activation from the deployed files."""
     if candidate and rel.startswith("chpc/"):
         for d in CANDIDATE_DIRS:
             p = os.path.join(t1, d, rel[len("chpc/"):])

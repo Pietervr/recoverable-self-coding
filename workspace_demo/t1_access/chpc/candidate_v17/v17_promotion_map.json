@@ -49,7 +49,7 @@
   {
    "promoted": "chpc/row19_ec2_ingest.py",
    "source": "chpc/candidate_e2/row19_ec2_ingest.py",
-   "sha256": "6ac144c616d330c83fcd5e665bdc48a9396d962e4aacba03c4775e26950ce108",
+   "sha256": "277c51b0a24fee6b151180e99584a831c091ca4b30b6bd999a1221ff364bf54f",
    "previous_sha256": "b697dc366d8fbb06619fa01cbdd5a51460a1c0e2f2bbb3d85d1a1c1a48788639",
    "group": "pin",
    "pinned_by_v17": true,
@@ -59,7 +59,7 @@
   {
    "promoted": "chpc/row19_ec2_qualify.py",
    "source": "chpc/candidate_e2q/row19_ec2_qualify.py",
-   "sha256": "73f912b8ba2f4112462f279644da61d69ea40d31e905765839ad7420b3fe29c8",
+   "sha256": "1d8eee78fc9427cd9e4cebe09deac37cf4284f0b8a86714dcc9d80cde63cbb29",
    "previous_sha256": "1fc6b61fca18e4823988ec895266083895cbafcc5f9b6a10a6606e7dcd052ad6",
    "group": "pin",
    "pinned_by_v17": true,
@@ -89,7 +89,7 @@
   {
    "promoted": "chpc/row19_ec2_e2qual.py",
    "source": "chpc/candidate_e2q/row19_ec2_e2qual.py",
-   "sha256": "b3f29816f80974c6f21d215b435c12d6d68d41927e89cd03f45ca614896e8ac8",
+   "sha256": "5ceba55189dd351b2cc5a997b115cdbfd0d84f17397402fa7deb2b3e937025fa",
    "previous_sha256": null,
    "group": "pin",
    "pinned_by_v17": true,
@@ -169,7 +169,7 @@
   {
    "promoted": "aws_ec2/prod_authority.py",
    "source": "chpc/candidate_e2q/aws_ec2/prod_authority.py",
-   "sha256": "eee1bcd439f11abe3bc11fcaa905257c02157e4b4a95f506a3b2792fcebd5e65",
+   "sha256": "e4897991aaeaf1dc019c9b73361d288e71464e6f89e416b66d9e3d7601df146d",
    "previous_sha256": "b8ca02b86bd42ebcdea15c823d0503f81c9a91978dfd3e0e4673028bdd8f5585",
    "group": "mac",
    "pinned_by_v17": false,
@@ -219,7 +219,7 @@
   {
    "promoted": "chpc/row19_screen_controls.json",
    "source": "chpc/candidate_v17/row19_screen_controls.json",
-   "sha256": "92f28b8fbd53a2a13635022ff01d2a76ef75a1986e670311ccfb768f7cdc80aa",
+   "sha256": "9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0",
    "previous_sha256": "01976b6a92e7150a82d8397caeb88e5425e0dd051f69bb244bf3f83981e8f220",
    "group": "ctl",
    "pinned_by_v17": false,

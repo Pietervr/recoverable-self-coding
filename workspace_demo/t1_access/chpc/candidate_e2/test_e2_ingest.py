@@ -9,7 +9,8 @@ test_row19_ec2_ingest.py STUB mode does). No fits, no Lengau, no AWS.
      failed-fit record;
   3. an unproduced slot that left any record/timing/status HOLDS (ambiguous); too many unproduced work slots or too few
      sentinels HOLD; an unknown outcome string HOLDS;
-  4. a qualification attempt and every schema-1 epoch keep the all-or-nothing contract.
+  4. a qualification attempt and every schema-1 epoch keep the all-or-nothing contract (ingestion REVISION 8: except a RELEASED
+     schema-2 E2Q1/E2Q2 attempt - the source gate is checked here, its behaviour in chpc/candidate_e2q/test_e2q_ingest.py).
 
     python3 chpc/candidate_e2/test_e2_ingest.py               (from workspace_demo/t1_access)"""
 import copy, glob, hashlib, importlib.util, json, os, shutil, sys, tempfile, time, types
@@ -348,8 +349,14 @@ check("an interrupted entry with the same bundle completes on replay ('ingested'
 c = build("qualification", unprod={1: 139}, cls="qualification")
 inv = json.load(open(c["ip"])); rc = ingest(c)
 check("a qualification attempt keeps all-or-nothing (and is refused before release anyway)", rc == 3 and entry(c)[0] is None)
-check("schema-1 epochs keep all-or-nothing: the partial branch is gated on schema 2 + production (source)",
-      'partial = schema2 and att["class"] == "production"' in open(IG.__file__).read())
+# REVISION 8 of the ingestion (Codex review reviews/2026-10-19_e2_adoption_codex_review.md B1): the partial branch is gated on
+# schema 2 + production, or schema 2 + a RELEASED E2Q1/E2Q2 qualification attempt. The released-E2Q behaviour (publication, ACK,
+# R4' max 3, the holding cases, replay) is tested by chpc/candidate_e2q/test_e2q_ingest.py, which loads the E2Q state contracts.
+_src = open(IG.__file__).read()
+check("schema-1 epochs keep all-or-nothing: the partial branch is gated on schema 2 (production, or a RELEASED E2Q1/E2Q2 qualification attempt) (source)",
+      'partial = schema2 and (att["class"] == "production" or e2q_released)' in _src
+      and 'e2q_released = schema2 and att["class"] == "qualification" and released and att.get("contract") in E2Q_CONTRACTS' in _src
+      and IG.E2Q_CONTRACTS == ("E2Q1", "E2Q2"))
 shutil.rmtree(scratch)
 print(f"\n{n_checks[0] - len(fails)}/{n_checks[0]} {'ALL OK' if not fails else f'- {len(fails)} FAILED'}")
 sys.exit(1 if fails else 0)

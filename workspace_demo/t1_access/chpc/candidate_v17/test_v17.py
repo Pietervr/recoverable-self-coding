@@ -9,6 +9,9 @@ Design chpc/candidate_v17/DESIGN_v17.md.
   3. refit admission HOLDS between v17 adoption and the epoch-2 activation (activation_problem_v10), and opens only on an
      activation of THIS partition made under a controls version that still pins it;
   4. the epoch-1 release path cannot open epoch 2 under the REAL v17 controls bytes (prod_authority REVISION 7 guard).
+REVISION 2 (Codex review reviews/2026-10-19_e2_adoption_codex_review.md): build() now takes the authenticated v16 base, so the
+tamper stubs accept it; the qualifier superset check accounts for the B2 rewrite of _timeline/memory. The promotion state
+machine (post-promotion check, retry, interrupted recovery, archive refusals) is tested in private trees by test_v17_promote.py.
 
     python3 chpc/candidate_v17/test_v17.py            (from workspace_demo/t1_access)"""
 import contextlib, copy, difflib, hashlib, importlib.util, io, json, os, shutil, sys, tempfile
@@ -83,8 +86,22 @@ check("the qualifier pinned is candidate_e2q's (the superset of candidate_e2's R
       src["chpc/row19_ec2_qualify.py"]["source"] == "chpc/candidate_e2q/row19_ec2_qualify.py")
 q_e2 = open(os.path.join(E2, "row19_ec2_qualify.py")).read().splitlines(); q_e2q = open(os.path.join(E2Q, "row19_ec2_qualify.py")).read().splitlines()
 removed = [l for l in difflib.ndiff(q_e2, q_e2q) if l.startswith("- ")]
-check("superset: every candidate_e2 qualifier line is in candidate_e2q's except 10 text/label/path lines (each replaced, none dropped)",
-      len(removed) == 10 and "def main_e2" not in "\n".join(q_e2) and any("def main_e2" in l for l in q_e2q), len(removed))
+# REVISION 6 of the qualifier (Codex review 2026-10-19 B2) rewrites _timeline/memory and adds `re` to the import line; those
+# candidate_e2 lines are replaced by the validating versions (resource evidence repair), every other line as before.
+import ast as _ast
+_t = _ast.parse("\n".join(q_e2))
+_b2 = set()
+for _n in _t.body:
+    if isinstance(_n, _ast.FunctionDef) and _n.name in ("_timeline", "memory"):
+        _b2 |= set(range(_n.lineno, _n.end_lineno + 1))
+_b2_text = {q_e2[i - 1] for i in _b2} | {"import os, sys, json, glob, copy, shutil, hashlib, argparse, time"}
+removed_other = [l for l in removed if l[2:] not in _b2_text]
+# REVISION 5 replaced 10 lines: 6 outside memory() (docstring, path search, state import, two "not built" texts, __main__) and
+# 4 inside it (signature, docstring, two Q1 labels); the 4 are now inside the B2 rewrite of _timeline/memory.
+check("superset: every candidate_e2 qualifier line is in candidate_e2q's except REVISION 5's 6 text/label/path lines outside memory() "
+      "(each replaced, none dropped) and the B2 rewrite of _timeline/memory (+ the import line)",
+      len(removed_other) == 6 and "def main_e2" not in "\n".join(q_e2) and any("def main_e2" in l for l in q_e2q)
+      and any("def resource_observation_problems" in l for l in q_e2q), (len(removed), len(removed_other)))
 check("the state module pinned is candidate_e2q's (E2Q contracts); its only change to the live bda200dc is the docstring + 2 contracts",
       [l for l in difflib.ndiff(open(os.path.join(CHPC, "row19_ec2_state.py")).read().splitlines(),
                                 open(os.path.join(E2Q, "row19_ec2_state.py")).read().splitlines()) if l.startswith("- ")]
@@ -115,16 +132,16 @@ check("the live tree is untouched: every promoted path still holds its v16 bytes
 
 # tamper: the candidate check refuses an edited controls copy (in memory: the build is compared byte for byte)
 real_build = B.build
-B.build = lambda: (cb.replace(b'"version": 17', b'"version": 18'), pb)
+B.build = lambda *a_, **k_: (cb.replace(b'"version": 17', b'"version": 18'), pb)
 check("tamper: a candidate controls file that is not the deterministic build refuses", any("deterministic" in w for w in PV.candidate_problems(require_git=False)))
 bad = json.loads(cb); bad["versions"][-1]["files"]["chpc/row19_screen_verify.py"] = "0" * 64
-B.build = lambda: (json.dumps(bad, indent=1).encode(), pb)
+B.build = lambda *a_, **k_: (json.dumps(bad, indent=1).encode(), pb)
 check("tamper: an unchanged pin edited in v17 refuses", any("row19_screen_verify.py" in w for w in PV.candidate_problems(require_git=False)))
 bad = json.loads(cb); bad["versions"][-1]["partition"] = v16["partition"]
-B.build = lambda: (json.dumps(bad, indent=1).encode(), pb)
+B.build = lambda *a_, **k_: (json.dumps(bad, indent=1).encode(), pb)
 check("tamper: v17 still pinning e1 refuses", any("partition reference" in w for w in PV.candidate_problems(require_git=False)))
 bad = json.loads(cb); bad["versions"][3]["reviewed"] += " "
-B.build = lambda: (json.dumps(bad, indent=1).encode(), pb)
+B.build = lambda *a_, **k_: (json.dumps(bad, indent=1).encode(), pb)
 check("tamper: an edited historical version (v4) refuses", any("versions 1-16" in w for w in PV.candidate_problems(require_git=False)))
 B.build = real_build
 check("the review gate refuses without a record, and with a record lacking the v17 literal",

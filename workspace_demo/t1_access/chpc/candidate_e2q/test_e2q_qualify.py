@@ -18,6 +18,13 @@ duplicates, 61 workers on rep 24. One E2Q1 bundle of 76 slots (52 work + 20 dupl
   4. coverage: agreeing failed duplicates leaving < 15 finite successful -> INCONCLUSIVE, never RELEASE;
   5. input refusals: an attempt that is not the declared panel, a tampered panel, an operational manifest at another
      lifetime, an epoch-1 (schema-1) partition, a wrong funding declaration.
+  6. REVISION 6 of the qualifier (Codex review reviews/2026-10-19_e2_adoption_codex_review.md B2 and "Before one paid E2Q1"):
+     the review's full schema-3 counter case (12 full-packing samples, MemTotal 192 GiB, MemAvailable 193 GiB) now refuses;
+     parser negatives (zero/negative total, available outside [0, total], negative RSS, non-integer fields, a repeated or
+     backward timestamp, 12 copies of one timestamp, occupancy outside 0..76, a bad load average, a wrong field count, one
+     occupancy line amplified over 12 memory samples) each give a failed verdict, never an exception or a release; and the
+     RELOCATED snapshot layout: a panel whose recorded snapshot path is absent in the deployed tree refuses without --snapshot,
+     releases with the deployed hash-checked copy passed by --snapshot (the panel bytes untouched), and refuses a tampered copy.
 
     python3 chpc/candidate_e2q/test_e2q_qualify.py              (from workspace_demo/t1_access)"""
 import copy, glob, hashlib, importlib.util, json, os, shutil, sys, tempfile, time, types
@@ -103,7 +110,7 @@ def put(p, obj):
 
 def world(case, unprod=None, status_for=None, raw_status=None, dup_delta=None, sent_delta=None, failed_dups=(), mem_peak_gib=150.0,
           full_samples=12, drop_status=None, att_edit=None, panel_edit=None, op_lifetime=None, use_e1=False, fund_edit=None,
-          corrupt_replay=False):
+          corrupt_replay=False, mem_text=None, occ_text=None, relocate=None):
     unprod = unprod or {}
     d = os.path.join(scratch, case); shutil.rmtree(d, ignore_errors=True); os.makedirs(d)
     root, camp = os.path.join(d, "root"), os.path.join(d, "camp"); os.makedirs(os.path.join(root, "plans")); os.makedirs(camp)
@@ -127,7 +134,17 @@ def world(case, unprod=None, status_for=None, raw_status=None, dup_delta=None, s
         json.dump({"versions": [{"version": 13, "partition": {"path": "x", "sha256": sha(e1p)}}, {"version": 17, "partition": {"path": "y", "sha256": sha(pp)}}]}, open(cp, "w"))
         proof2, probs = RP.activate(man, mp, pp, cp, mode="sandbox"); assert probs == [], probs
         put(RP.activation_path(man, 2), proof2)
-    panel = EQ.derive_panel(e2, sha(pp), snap, sha(sp), sp)
+    snap_arg = None
+    if relocate:                                                    # REVISION 6: the deployed layout lacks the recorded source path
+        recorded = os.path.join(d, "source_evidence", "e2_final", "claims_snapshot_e2.json")   # never created in this tree
+        panel = EQ.derive_panel(e2, sha(pp), snap, sha(sp), recorded)
+        dep = os.path.join(d, "deployed", "chpc", "claims_snapshot_e2.json"); os.makedirs(os.path.dirname(dep))
+        shutil.copyfile(sp, dep)
+        if relocate == "tampered":
+            open(dep, "a").write("\n")                              # same JSON content, other bytes: the sha256 no longer binds
+        snap_arg = None if relocate == "absent" else dep
+    else:
+        panel = EQ.derive_panel(e2, sha(pp), snap, sha(sp), sp)
     if panel_edit:
         panel_edit(panel)
     panp = os.path.join(d, "panel.json"); open(panp, "wb").write(EQ.panel_bytes(panel))
@@ -174,7 +191,11 @@ def world(case, unprod=None, status_for=None, raw_status=None, dup_delta=None, s
     total = 192 * 2 ** 20
     open(os.path.join(env, "memory.txt"), "w").write("".join(f"{60 * t} {total} {total - int(mem_peak_gib * 2 ** 20)} {76 * 2_300_000}\n" for t in range(12)))
     open(os.path.join(env, "occupancy.txt"), "w").write("".join(f"{60 * t} {76 if t < full_samples else 70} 70.0 70.0 70.0\n" for t in range(12)))
-    lines = [f"{sha(p)}  {os.path.relpath(p, b)}\n" for p in sorted(glob.glob(os.path.join(b, "**", "*"), recursive=True))
+    if mem_text is not None:
+        open(os.path.join(env, "memory.txt"), "w").write(mem_text)
+    if occ_text is not None:
+        open(os.path.join(env, "occupancy.txt"), "w").write(occ_text)
+    lines =[f"{sha(p)}  {os.path.relpath(p, b)}\n" for p in sorted(glob.glob(os.path.join(b, "**", "*"), recursive=True))
              if os.path.isfile(p) and os.path.relpath(p, b) != "env/upload_verify.json"]
     open(os.path.join(b, "BUNDLE_SHA256SUMS"), "w").write("".join(lines))
     att = dict(key=KEY, run="qual-E2Q1", attempt=1, attempt_id=AID, sequence=SEQ, state="reconciled", ingestion="pending", contract="E2Q1",
@@ -199,10 +220,11 @@ def world(case, unprod=None, status_for=None, raw_status=None, dup_delta=None, s
     try:
         rc = QU.main_e2(["--manifest", mp, "--partition", e1p if use_e1 else pp, "--authority", ip, "--key", KEY, "--bundle", b,
                          "--opmanifest", ops["E2Q1"], "--prod-opmanifest", ops["production"], "--panel", panp, "--funding", fp,
-                         "--sandbox", os.path.join(d, "sb"), "--out", out])
+                         "--sandbox", os.path.join(d, "sb"), "--out", out] + (["--snapshot", snap_arg] if snap_arg else []))
     finally:
         IG.main = real_main
-    return rc, json.load(open(out)), dict(d=d, root=root, b=b, work=work, dups=dups, panel=panel, sb=os.path.join(d, "sb"))
+    return rc, json.load(open(out)), dict(d=d, root=root, b=b, work=work, dups=dups, panel=panel, sb=os.path.join(d, "sb"), panp=panp,
+                                          snap_sha=sha(sp), snap_arg=snap_arg)
 
 
 def no_release(case, cert, needle):
@@ -302,6 +324,71 @@ rc, cert, _ = world("fund_wrong", fund_edit=dict(lifetime_s=75300))
 check("a funding declaration not at the funded lifetime -> NO_RELEASE", no_release("", cert, "funding:"), cert["problems"][:2])
 rc, cert, _ = world("sentinel_dup", att_edit=lambda a: a.update(sentinels=[[24, 0], [3, 1], [3, 2], [3, 3]]))
 check("a sentinel among the duplicates -> NO_RELEASE", no_release("", cert, "sentinels outside the duplicates"), cert["problems"][:2])
+
+# 6 REVISION 6 (B2): impossible or duplicated resource observations; the relocated snapshot layout
+GIB_KB = 2 ** 20
+TOT = 192 * GIB_KB
+def mem_lines(rows):
+    return "".join(" ".join(str(x) for x in r) + "\n" for r in rows)
+OCC12 = "".join(f"{60 * t} 76 70.0 70.0 70.0\n" for t in range(12))
+rc, cert, _ = world("b2_counter_193", mem_text=mem_lines([(60 * t, TOT, 193 * GIB_KB, 76 * 2_300_000) for t in range(12)]))
+check("B2 counter (the review's case): 12 full-packing samples with MemTotal 192 GiB and MemAvailable 193 GiB -> NO_RELEASE, return 3, "
+      "the impossible observation named (was RELEASE / peak 0.0)",
+      rc == 3 and cert["outcome"] == "NO_RELEASE" and cert["released_attempts"] == [] and no_release("", cert, "physically impossible")
+      and cert["memory"]["valid"] is False, (rc, cert["outcome"], cert["problems"][:2]))
+rc, cert, _ = world("b2_dup_ts", mem_text=mem_lines([(0, TOT, TOT - 150 * GIB_KB, 1)] * 12), occ_text="0 76 70.0 70.0 70.0\n" * 12)
+check("B2 counter: 12 copies of ONE timestamp (memory and occupancy) are not 12 producer samples -> NO_RELEASE",
+      rc == 3 and no_release("", cert, "time repeats"), cert["problems"][:2])
+rc, cert, _ = world("b2_amplified", occ_text="0 76 70.0 70.0 70.0\n")
+check("B2 counter: ONE occupancy line cannot be joined to 12 memory samples (one sample counted, < 10) -> NO_RELEASE",
+      rc == 3 and no_release("", cert, "memory gate: 1 samples at the full 76-worker"), cert["problems"][:2])
+rc, cert, _ = world("b2_valid_control", mem_text=mem_lines([(60 * t, TOT, TOT - 150 * GIB_KB, 76 * 2_300_000) for t in range(12)]), occ_text=OCC12)
+check("B2 positive control: 12 distinct valid samples at 150 GiB -> RELEASE (the gate is not merely closed)",
+      rc == 0 and cert["outcome"] == "RELEASE" and cert["memory"]["samples_at_full_packing"] == 12 and abs(cert["memory"]["peak_host_used_gib"] - 150.0) < 1e-9,
+      cert["problems"][:2])
+pd = os.path.join(scratch, "b2_parser"); os.makedirs(os.path.join(pd, "env"))
+def parse(mem_rows=None, occ=OCC12, mem_raw=None):
+    open(os.path.join(pd, "env", "memory.txt"), "w").write(mem_raw if mem_raw is not None else mem_lines(mem_rows))
+    open(os.path.join(pd, "env", "occupancy.txt"), "w").write(occ)
+    probs = []
+    try:
+        m = QU.memory(pd, probs, 76, label="E2Q1")
+    except Exception as e:                                          # must never happen: a failed verdict, not an exception
+        return "raised", f"{type(e).__name__}: {e}", None
+    return ("refused" if probs else "accepted"), probs, m
+good = [(60 * t, TOT, TOT - 150 * GIB_KB, 76 * 2_300_000) for t in range(12)]
+v, p, m = parse(good)
+check("B2 parser: valid distinct samples are accepted (12 at full packing, peak 150 GiB)", v == "accepted" and m["samples_at_full_packing"] == 12, p)
+NEG = [("zero MemTotal", [(r[0], 0, 0, r[3]) for r in good], None, OCC12),
+       ("negative MemTotal", None, "".join(f"{60 * t} -5 0 1\n" for t in range(12)), OCC12),
+       ("negative MemAvailable", None, "".join(f"{60 * t} {TOT} -1 1\n" for t in range(12)), OCC12),
+       ("MemAvailable above MemTotal", [(r[0], TOT, TOT + 1, r[3]) for r in good], None, OCC12),
+       ("negative worker RSS", None, "".join(f"{60 * t} {TOT} {TOT - 150 * GIB_KB} -7\n" for t in range(12)), OCC12),
+       ("non-integer MemAvailable (decimal)", None, "".join(f"{60 * t} {TOT} 1.5 1\n" for t in range(12)), OCC12),
+       ("non-integer MemAvailable (text)", None, "".join(f"{60 * t} {TOT} abc 1\n" for t in range(12)), OCC12),
+       ("non-integer timestamp", None, "".join(f"{60 * t}.5 {TOT} {TOT - GIB_KB} 1\n" for t in range(12)), OCC12),
+       ("12 copies of one timestamp", [(0, TOT, TOT - 150 * GIB_KB, 1)] * 12, None, OCC12),
+       ("a backward timestamp", [(0, TOT, TOT - GIB_KB, 1), (120, TOT, TOT - GIB_KB, 1), (60, TOT, TOT - GIB_KB, 1)], None, OCC12),
+       ("occupancy above the 76 planned workers", good, None, "".join(f"{60 * t} 77 70.0 70.0 70.0\n" for t in range(12))),
+       ("negative occupancy", good, None, "".join(f"{60 * t} -1 70.0 70.0 70.0\n" for t in range(12))),
+       ("a non-finite load average", good, None, "".join(f"{60 * t} 76 nan 70.0 70.0\n" for t in range(12))),
+       ("a wrong memory field count", None, "".join(f"{60 * t} {TOT} {TOT}\n" for t in range(12)), OCC12),
+       ("a duplicated occupancy timestamp", good, None, OCC12 + "660 76 70.0 70.0 70.0\n")]
+for name, rows, raw, occ in NEG:
+    v, p, m = parse(rows, occ, raw)
+    check(f"B2 parser negative: {name} -> a failed evidence verdict (a problem), never an exception or a release", v == "refused", (v, p))
+rc, cert, w = world("snap_relocated_absent", relocate="absent")
+check("snapshot: the reviewed panel's recorded snapshot path is absent in the deployed tree; without --snapshot the qualifier refuses",
+      rc == 3 and no_release("", cert, "panel:") and any("unreadable" in p_ for p_ in cert["problems"]), cert["problems"][:2])
+rc, cert, w = world("snap_relocated", relocate="deployed")
+check("snapshot: with the deployed copy passed by --snapshot (hash-checked against the partition) the same panel bytes RELEASE, "
+      "binding the snapshot sha256; the panel still records its source path (not edited)",
+      rc == 0 and cert["outcome"] == "RELEASE" and cert["bound"]["claims_snapshot_sha256"] == w["snap_sha"]
+      and json.load(open(w["panp"]))["claims_snapshot"]["path"].endswith(os.path.join("source_evidence", "e2_final", "claims_snapshot_e2.json"))
+      and not os.path.exists(json.load(open(w["panp"]))["claims_snapshot"]["path"]), cert["problems"][:2])
+rc, cert, w = world("snap_relocated_tampered", relocate="tampered")
+check("snapshot: a --snapshot copy whose bytes are not the partition-bound 31cc268f-style digest refuses",
+      rc == 3 and no_release("", cert, "not the one the partition is bound to"), cert["problems"][:2])
 
 shutil.rmtree(scratch, ignore_errors=True)
 print(f"\n{n_checks[0] - len(fails)}/{n_checks[0]} {'ALL OK' if not fails else f'- {len(fails)} FAILED'}")

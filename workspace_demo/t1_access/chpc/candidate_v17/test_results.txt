@@ -88,3 +88,35 @@ REFUSED:
   - the Mac archive chpc/results/archive/row19_screen_v16_before_v17/ does not exist (migration_v17 archive step)
 $ python3 chpc/candidate_v17/build_v17.py --check                                    rc 0
 CHECK OK: the candidate controls and promotion map are the deterministic build
+
+## REVISION for Codex's adoption review (reviews/2026-10-19_e2_adoption_codex_review.md C1 + the rebuilt B1/B2 pins), 19 Oct 2026
+## Mac, python3 3.14.6. BEFORE = the full run made at the start of this job on the reviewed bytes (c05a489/8dbbe91);
+## AFTER = the same runner on the repaired bytes (plus the new suite test_e2q_ingest.py in its plain list).
+chpc/candidate_v17/test_v17.py:          BEFORE 45/45   AFTER 45/45 (tamper stubs take the base; superset check counts the B2 rewrite)
+chpc/candidate_v17/test_v17_promote.py:  NEW            30/30 (private git trees: pre-promotion, interrupted, complete, archive
+                                                       missing/partial/corrupt x4, case (b); live tree untouched)
+build_v17.py:  controls v17 9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0, promotion map
+               6bc8bd3947c398c0200c241725ad5dbb70555a3ee0290012a274a4cf6563df74, base live; --check OK from the live v16 base
+                                                BEFORE (reviewed)   AFTER (repaired)
+test_row19_partition.py                         63 / 2              63 / 2   (same 2)
+test_row19_ec2_ingest.py                        68 / 0              68 / 0
+test_row19_ec2_qualify.py                       23 / 0              23 / 0   (epoch-1 qualifier tests pass with the stricter memory())
+test_row19_ec2_status.py                        26 / 0              26 / 0
+aws_ec2/tests/test_prod_authority.py            66 / 0              66 / 0
+aws_ec2/tests/test_prod_launch.py               61 / 1              61 / 1   (same 1)
+aws_ec2/tests/test_ec2_sync.py                  12 / 0              12 / 0
+chpc/candidate_e2/test_e2_partition.py          54 / 0              54 / 0
+chpc/candidate_e2/test_e2_authority.py          76 / 1              76 / 1   (same 1)
+chpc/candidate_e2/test_e2_ingest.py             63 / 0              63 / 0
+chpc/candidate_e2/test_e2_rules.py              35 / 0              35 / 0
+chpc/candidate_e2q/test_e2q_contracts.py        54 / 0              54 / 0
+chpc/candidate_e2q/test_e2q_qualify.py          33 / 0              56 / 0   (+23 B2/snapshot checks)
+chpc/candidate_e2q/test_e2q_release.py          81 / 0              81 / 0
+chpc/candidate_e2q/test_e2q_ingest.py           -                   44 / 0   (NEW)
+candidate_v16/test_designated_r16.py            78/2, 77/3, 77/3    78/2, 77/3, 77/3 (BEFORE / AFTER-code / AFTER-v17; same FAIL lines)
+regress_pbs_settled_r13                         51/0 x3             51/0 x3
+regress_crashed_slot_r14                        70/1 x3             70/1 x3  (same pre-existing stale refit-13 fixture fail)
+Every FAIL line is byte-identical BEFORE and AFTER (diff of the two runs' FAIL lines: empty). The BEFORE/AFTER columns
+inside each run (live vs v17 module set) also agree suite by suite, as in the reviewed run.
+promote_v17.py --check on the real tree needs the repaired sources committed (git-tracked, unmodified); it is run after the
+package commit and appended below.

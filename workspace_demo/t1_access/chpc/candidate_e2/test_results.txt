@@ -32,3 +32,8 @@ positive controls (fatal 139 and censored, status file absent: unproduced) and 1
 not JSON objects (null, [], 75, "left", unreadable JSON) under outcomes 139, censored and 75: every one HOLDS with nothing
 published. The two null cases (139 and censored) fail against the c716399 ingest bytes (Codex's probe reproduced) and pass now.
 Regression unchanged: identical live/candidate results as above.
+
+REVISION 8 (Codex adoption review reviews/2026-10-19_e2_adoption_codex_review.md B1, 19 Oct): row19_ec2_ingest.py adds the
+released schema-2 E2Q1/E2Q2 per-slot route with R4' (DESIGN_e2.md s.8). test_e2_ingest.py 63/63 (the :351 source assertion now
+checks the REVISION 8 gate); its behaviour is tested by chpc/candidate_e2q/test_e2q_ingest.py 44/44. Regression: see
+chpc/candidate_v17/test_results.txt (19 Oct REVISION section): every suite's count and FAIL lines identical before/after.

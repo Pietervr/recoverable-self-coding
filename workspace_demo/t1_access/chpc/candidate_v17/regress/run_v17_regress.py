@@ -20,7 +20,7 @@ PLAIN = ["test_row19_partition.py", "test_row19_ec2_ingest.py", "test_row19_ec2_
          "aws_ec2/tests/test_prod_authority.py", "aws_ec2/tests/test_prod_launch.py", "aws_ec2/tests/test_ec2_sync.py",
          "chpc/candidate_e2/test_e2_partition.py", "chpc/candidate_e2/test_e2_authority.py", "chpc/candidate_e2/test_e2_ingest.py",
          "chpc/candidate_e2/test_e2_rules.py", "chpc/candidate_e2q/test_e2q_contracts.py", "chpc/candidate_e2q/test_e2q_qualify.py",
-         "chpc/candidate_e2q/test_e2q_release.py"]
+         "chpc/candidate_e2q/test_e2q_release.py", "chpc/candidate_e2q/test_e2q_ingest.py"]   # + test_e2q_ingest (B1 repair, 19 Oct)
 ADMIT = ["test_designated_r16.py", "regress_pbs_settled_r13.py", "regress_crashed_slot_r14.py"]
 OKRE, FAILRE = re.compile(r"^(ok|PASS)\b"), re.compile(r"^FAIL\b")
 

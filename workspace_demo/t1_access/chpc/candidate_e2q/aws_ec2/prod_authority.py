@@ -128,7 +128,25 @@ chpc/candidate_e2/QUALIFICATION_E2.md s.3-s.5; DESIGN_e2.md s.5 second bullet).
                reviewed permission record, written by qual_permit.py --epoch2; E2Q2 additionally `e2q2` with its own record).
                Absent = not permitted. e2q_admission_problem: E2Q1 is ONE non-rejected instance (a capacity rejection is no
                instance); E2Q2 needs its own record, every non-rejected E2Q1 attempt dispositioned, and is at most one. The
-               USD 300 allowance, the 2 qualification instances and 46 + 4 production attempts stay in epoch2_problem."""
+               USD 300 allowance, the 2 qualification instances and 46 + 4 production attempts stay in epoch2_problem.
+
+REVISION 8 - CANDIDATE, not adopted (Codex review reviews/2026-10-19_e2_adoption_codex_review.md B1, the choice-3 ruling;
+replaces the reviewed REVISION 7 bytes eee1bcd4, which stay in git at RSC 92a62f6).
+  crash rule   acknowledged fatal (129..159) UNPRODUCED owned work of a released epoch-2 qualification attempt (runs qual-E2Q1 /
+               qual-E2Q2, ingested through the canonical per-slot route of ingestion REVISION 8 and acknowledged by `ack`) now
+               counts toward the SAME physical two-crash exclusion as production. The crash history (ec2_crash_history) reads
+               production runs and the qual-E2* runs, only attempts acknowledged as ingested, only their `ingest_ack`
+               unproduced map - which lists owned WORK coordinates only, so duplicates and sentinels never enter it - and the
+               counter still counts the fatal-signal class alone (censored / RESUME deadline outcomes never; dispositioned
+               attempts carry no ingest_ack). The envelope label is normalised (crash_envelope): E2Q1, E2Q2 and production
+               are one label ("production") ONLY when the contract's producer geometry (instance type, workers per instance,
+               volume) equals production's AND the attempt's recorded instance type is production's; the lifetime stays in
+               the envelope as recorded, so a different lifetime, instance type or geometry stays a different envelope, and
+               every other contract (epoch-1 Q1/Q2 included) keeps its own label. B_full: every counted entry comes from an
+               `ack` of a register entry, and ingestion publishes only a bundle whose effective attestation is B_full
+               (row19_ec2_state.attestation_problem), the profile every one of the three operational manifests declares.
+  wording      a certificate binds file CONTENT ({promoted path: sha256}); byte-identical candidate and promoted copies
+               resolve to the same map. A location change alone does not invalidate a certificate (DESIGN_e2q choice 8)."""
 import argparse, contextlib, fcntl, glob, hashlib, json, math, os, sys, time
 
 SRC = os.path.dirname(os.path.abspath(__file__))
@@ -463,23 +481,52 @@ def epoch2_problem(leds, run, new_worst, fund):
     return ""
 
 
+CRASH_EQUIVALENT_CONTRACTS = ("production", "E2Q1", "E2Q2")   # REVISION 8 (choice-3 ruling): one physical envelope label
+
+
+def _producer_geometry(contract):
+    c = ES.CONTRACTS.get(contract) or {}
+    return (c.get("itype"), c.get("workers"), c.get("volume_gb"))
+
+
+def crash_envelope(contract, itype, lifetime_s):
+    """REVISION 8: the physical envelope [label, instance type, lifetime] of an attempt. E2Q1/E2Q2/production share the label
+    "production" only when the contract's producer geometry equals production's and the recorded instance type is
+    production's; otherwise the contract name stays the label. The lifetime is never normalised."""
+    label = contract
+    if contract in CRASH_EQUIVALENT_CONTRACTS and _producer_geometry(contract) == _producer_geometry("production") \
+            and itype == ES.CONTRACTS["production"]["itype"]:
+        label = "production"
+    return [label, itype, lifetime_s]
+
+
+def crash_counted_run(run):
+    """REVISION 8: production runs and the epoch-2 qualification runs (qual-E2Q1 / qual-E2Q2) feed the crash history."""
+    return run_class(run) == "production" or is_e2_qual(run)
+
+
 def ec2_crash_history(leds):
-    """{(rep, index): [{attempt, exit, envelope}]} from the acknowledged unproduced slots of production attempts."""
+    """{(rep, index): [{attempt, exit, contract, envelope}]} from the ACKNOWLEDGED unproduced owned-work slots of production
+    attempts and (REVISION 8) of released, canonically ingested epoch-2 qualification attempts; `envelope` is crash_envelope."""
     out = {}
     for run, l in sorted(leds.items()):
-        if run_class(run) != "production":
+        if not crash_counted_run(run):
             continue
         for a in l["attempts"]:
+            if a.get("ingestion") != "ingested":                         # only an acknowledged ingestion (never a disposition)
+                continue
             for k, u in sorted(((a.get("ingest_ack") or {}).get("unproduced") or {}).items()):
                 out.setdefault(tuple(int(x) for x in k.split("/")), []).append(
-                    dict(attempt=f"{run}/{a['attempt']}", exit=u.get("outcome"), envelope=[a.get("contract"), a.get("type"), a.get("lifetime_s")]))
+                    dict(attempt=f"{run}/{a['attempt']}", exit=(u or {}).get("outcome"), contract=a.get("contract"),
+                         envelope=crash_envelope(a.get("contract"), a.get("type"), a.get("lifetime_s"))))
     return out
 
 
 def ec2_crash_excluded(leds, contract="production", itype=None, lifetime_s=QUAL_LIFETIME_S):
     """Coordinates whose worker died by a fatal signal (REVISION 6: ANY outcome of the class ingestion admits, 129..159) in >= 2
-    acknowledged attempts of this envelope: never allocated again."""
-    itype = itype or ES.CONTRACTS[contract]["itype"]; env = [contract, itype, lifetime_s]
+    acknowledged attempts of this physical envelope (REVISION 8: production and released E2Q1/E2Q2 owned work alike when
+    crash_envelope makes them one): never allocated again."""
+    itype = itype or ES.CONTRACTS[contract]["itype"]; env = crash_envelope(contract, itype, lifetime_s)
     return {c for c, xs in ec2_crash_history(leds).items()
             if sum(1 for x in xs if E2R.counts_toward_crash_rule(x["exit"]) and x["envelope"] == env) >= MAX_SAME_ENVELOPE_CRASHES}
 

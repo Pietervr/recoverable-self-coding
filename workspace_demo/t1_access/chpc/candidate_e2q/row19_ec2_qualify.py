@@ -102,8 +102,32 @@ command writing the SCHEMA-3 certificate:
 The certificate binds the exact code set (row19_ec2_e2qual.CODE, resolved to the files actually used), the manifest, the
 partition and its owned digest, the activation, the inventory, the panel, the claims snapshot, the funding bytes, both
 operational manifests and the lifetime, the bundle's BUNDLE_SHA256SUMS, the plan and the replay evidence. Release needs
-prod_authority.py release-adopt (its epoch-2 branch) and a FAVOURABLE actual-result review with the epoch-2 literal."""
-import os, sys, json, glob, copy, shutil, hashlib, argparse, time
+prod_authority.py release-adopt (its epoch-2 branch) and a FAVOURABLE actual-result review with the epoch-2 literal.
+
+REVISION 6 - CANDIDATE, not adopted (Codex review reviews/2026-10-19_e2_adoption_codex_review.md B2 and "Before one paid E2Q1";
+replaces the reviewed REVISION 5 bytes 73f912b8, which stay in git at RSC 92a62f6).
+  resources  memory() validates every memory/occupancy field by kind (unsigned integers; unsigned finite decimals for the load
+             averages) and physical domain (MemTotal > 0, 0 <= MemAvailable <= MemTotal, worker RSS >= 0, running workers
+             0..planned) BEFORE any calculation; a malformed or impossible observation is a failed evidence verdict (a problem,
+             hence NO_RELEASE), never an exception and never a release. Both timelines must be strictly increasing in time and
+             each occupancy line joins at most one memory sample, so the >= 10 full-packing observations are distinct ordered
+             producer samples (12 copies of one timestamp are one observation, refused). The occupancy match, the peak over
+             ALL samples, the 184 GiB ceiling and the produced-worker status limits are unchanged. This repairs the method
+             inherited from epoch 1 and so applies to the epoch-1 `main` path as well; it does not reopen any old result.
+  snapshot   the reviewed panel (aws_ec2/prod/panel_e2q_e2.json, f04a5e43) records its claims snapshot at
+             chpc/e2_final/claims_snapshot_e2.json, while the promotion map deploys it to chpc/claims_snapshot_e2.json. The
+             panel is NOT edited: the reviewed qualification command passes the deployed copy explicitly, and the derivation
+             refuses it unless its sha256 and claims digest are the ones the partition binds (31cc268f):
+    t1py chpc/row19_ec2_qualify.py e2 --manifest chpc/row19_screen_manifest.json --partition chpc/row19_partition_e2.json \
+        --authority <installed inventory> --key qual-E2Q1/1 --bundle <dir> --opmanifest aws_ec2/prod/manifest_e2q1_e2.json \
+        --prod-opmanifest aws_ec2/prod/manifest_production_e2.json --panel aws_ec2/prod/panel_e2q_e2.json \
+        --snapshot chpc/claims_snapshot_e2.json --funding aws_ec2/e2_funding.json --sandbox <scratch> --out cert_e2q1.json
+  R5'        the sandbox still presents the attempt as class production (ruling 12, reviewed); since ingestion REVISION 8 the
+             canonical route for a RELEASED E2Q1/E2Q2 is the same per-slot branch under its real qualification class (tested
+             in chpc/candidate_e2q/test_e2q_ingest.py), so R5' and the canonical ingestion exercise one branch.
+  content    the certificate binds file CONTENT ({promoted path: sha256}, code_bound); byte-identical candidate and promoted
+             copies yield the same map, so a location change alone does not invalidate a certificate (DESIGN_e2q choice 8)."""
+import os, sys, re, json, glob, copy, shutil, hashlib, argparse, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = HERE
@@ -209,37 +233,77 @@ def compare(name, coords, mine, ref_of, problems, out, man=None):
     out[name] = dict(coordinates=len(coords), successful_both=n_ok, failed_both=failed_both, nonfinite_both=nonfinite_both)
 
 
-def _timeline(p, width):
-    rows, prev = [], -1
-    for line in open(p):
+_UINT = re.compile(r"[0-9]+")                              # REVISION 6 (B2): an unsigned decimal integer, nothing else
+_UDEC = re.compile(r"[0-9]+(\.[0-9]+)?")                   # an unsigned finite decimal (the /proc/loadavg fields)
+MEM_KINDS, OCC_KINDS = "uuuu", "uuddd"                     # memory.txt: t MemTotal_kB MemAvailable_kB worker_rss_kB;
+                                                           # occupancy.txt: t running_workers load1 load5 load15 (prod_userdata.sh)
+
+
+def _timeline(p, width, kinds=None):
+    """The rows of one producer timeline. REVISION 6 (B2): each field must be of its declared kind (`kinds`: u = unsigned
+    integer, d = unsigned decimal) BEFORE any calculation, and time must be STRICTLY increasing - a repeated timestamp is the
+    same observation, never a further producer sample (one sample per producer iteration, 60 s apart). Raises ValueError."""
+    rows, prev = [], None
+    for n, line in enumerate(open(p), 1):
         f = line.split()
         if len(f) != width:
-            raise ValueError(f"malformed line {line!r}")
+            raise ValueError(f"line {n}: malformed line {line!r}")
+        for x, k in zip(f, kinds or "u" + "?" * (width - 1)):
+            if k == "u" and not _UINT.fullmatch(x) or k == "d" and not _UDEC.fullmatch(x):
+                raise ValueError(f"line {n}: field {x!r} is not an unsigned {'integer' if k == 'u' else 'decimal'}")
         t = int(f[0])
-        if t < prev:
-            raise ValueError(f"time goes backwards at {line!r}")
+        if prev is not None and t <= prev:
+            raise ValueError(f"line {n}: time {'repeats' if t == prev else 'goes backwards'} at {line!r}: not a distinct ordered "
+                             "producer sample")
         prev = t; rows.append(f)
     return rows
+
+
+def resource_observation_problems(mem, occ, workers):
+    """REVISION 6 (B2): the physical domains of every observation, checked before any calculation: MemTotal > 0, 0 <=
+    MemAvailable <= MemTotal, worker RSS >= 0 (unsigned by kind), running workers within 0..`workers` (the producer counts
+    declared processes not yet exited), load averages unsigned finite (by kind). [] when every observation is possible."""
+    bad = []
+    for f in mem:
+        total, avail = int(f[1]), int(f[2])
+        if total <= 0:
+            bad.append(f"memory t={f[0]}: MemTotal {total} kB is not positive")
+        elif not 0 <= avail <= total:
+            bad.append(f"memory t={f[0]}: MemAvailable {avail} kB is outside [0, MemTotal {total} kB]")
+    for o in occ:
+        if not 0 <= int(o[1]) <= workers:
+            bad.append(f"occupancy t={o[0]}: {o[1]} running workers outside 0..{workers}")
+    return bad
 
 
 def memory(bundle, problems, workers, label="Q1"):
     """R4 memory (R1-6): chronological samples joined to the occupancy line of the same producer iteration (<= 60 s apart);
     >= MEM_MIN_SAMPLES taken at the full planned packing (`workers` running); peak host use <= the limit over ALL samples.
-    REVISION 5: `label` names the attempt in the problem text (E2Q1 / E2Q2 for R4'); the rule is unchanged."""
+    REVISION 5: `label` names the attempt in the problem text (E2Q1 / E2Q2 for R4'); the rule is unchanged.
+    REVISION 6 (B2): every field is validated by kind and physical domain BEFORE any calculation (a malformed or impossible
+    observation is a failed evidence verdict, never an exception and never a release); the timelines must be strictly
+    increasing; each occupancy line joins at most one memory sample, so the >= MEM_MIN_SAMPLES qualifying observations are
+    distinct ordered producer samples; the occupancy match, the peak over ALL samples, the 184 GiB ceiling and the
+    produced-worker status limits are unchanged."""
     try:
-        mem = _timeline(os.path.join(bundle, "env", "memory.txt"), 4)
-        occ = _timeline(os.path.join(bundle, "env", "occupancy.txt"), 5)
+        mem = _timeline(os.path.join(bundle, "env", "memory.txt"), 4, MEM_KINDS)
+        occ = _timeline(os.path.join(bundle, "env", "occupancy.txt"), 5, OCC_KINDS)
     except Exception as e:
-        problems.append(f"{label} memory/occupancy timeline unreadable ({e})"); return None
+        problems.append(f"{label} memory/occupancy timeline unreadable or invalid ({e})"); return None
+    bad = resource_observation_problems(mem, occ, workers)
+    if bad:
+        problems.append(f"{label} memory/occupancy observations are physically impossible ({len(bad)}): {bad[:3]}")
+        return dict(valid=False, invalid_observations=bad[:10], samples=len(mem), workers=workers, limit_gib=MEM_HOST_LIMIT_GIB)
     import bisect
     ot = [int(o[0]) for o in occ]
-    peak = peak_full = worker_rss_peak = 0.0; full = unmatched = 0
+    peak = peak_full = worker_rss_peak = 0.0; full = unmatched = 0; joined = set()
     for f in mem:
         t, used = int(f[0]), (int(f[1]) - int(f[2])) / 2 ** 20
         peak = max(peak, used); worker_rss_peak = max(worker_rss_peak, int(f[3]) / 2 ** 20)
         k = bisect.bisect_right(ot, t) - 1
-        if k < 0 or t - ot[k] > 60:
+        if k < 0 or t - ot[k] > 60 or k in joined:                 # REVISION 6: one occupancy line, one memory sample
             unmatched += 1; continue
+        joined.add(k)
         if int(occ[k][1]) == workers:
             full += 1; peak_full = max(peak_full, used)
     if full < MEM_MIN_SAMPLES or peak > MEM_HOST_LIMIT_GIB:

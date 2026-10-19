@@ -25,7 +25,22 @@ digest verifying (written by the migration_v17 archive step - NOT built in this 
 (previous) bytes or already its v17 bytes, and the adoption record is the v16 record or exactly the version-17 record. It then
 copies data and partition, Mac code, helpers, admission and LAST the controls, then writes the version-17 adoption record
 (atomic replaces). A finished promotion re-runs every check and reports "already promoted"; an interrupted one resumes;
-anything else refuses."""
+anything else refuses.
+
+REVISION 2 (Codex review reviews/2026-10-19_e2_adoption_codex_review.md C1; replaces the reviewed bytes 3b179cc3, which stay in
+git at RSC c05a489). Every command first resolves and authenticates the immutable v16 BASE (build_v17.resolve_base: the live
+controls and adoption while both are exactly v16; otherwise only the completely verified archive) and builds the expected v17
+from it, BEFORE any candidate, state, review or write handling. The reviewed bytes required the live controls to be v16
+(input_problems) and built only from live controls whose latest entry was 16, so after the controls-last copy every
+`--check-promoted`, `--check` and retry refused the state the promoter had just created. Now:
+  --check           passes before, during (base = live, or the archive once the controls are copied) and after promotion;
+  --check-promoted  passes exactly for the COMPLETE verified promotion (every path v17, the exact version-17 adoption record,
+                    review and archive verifying) and refuses an interrupted one with the reason "not complete";
+  retry             a complete promotion re-verifies and writes nothing; one interrupted after the controls copy and before
+                    the adoption write resumes and writes only the adoption record;
+  archive           a missing, partial or corrupt archive refuses wherever the base must come from it.
+Nothing is bypassed: the source, review, archive, adoption and state checks are those of the reviewed bytes. The archive
+inventory and its verification moved to build_v17.py (ARCHIVE, archive_problems), unchanged in content: 13 members."""
 import argparse, hashlib, importlib.util, json, os, re, shutil, subprocess, sys
 
 CAND = os.path.dirname(os.path.abspath(__file__))
@@ -39,12 +54,8 @@ CTL = "chpc/row19_screen_controls.json"
 ADOPT = "chpc/row19_screen_controls_adoption.json"
 V16_CTL, V16_ADOPT = B.ADOPTED_CTL[1], B.ADOPTED_ADOPTION[1]
 NEW_PINS = ("chpc/row19_ec2_e2rules.py", "chpc/row19_ec2_e2qual.py")
-ARCH = "chpc/results/archive/row19_screen_v16_before_v17"
-QUAL = ("chpc/results/row19_screen/receipts/qualified_refit_job1.json", "2c7a7ef1fb903cf0fa75701d2a56d216e98faf14e6638da891afd8bed0bfea44")
-ARCHIVE = dict({os.path.basename(p): (p, h) for p, h in B.PREVIOUS.items() if h is not None},
-               **{"row19_screen_controls.json": (CTL, V16_CTL), "row19_screen_controls_adoption.json": (ADOPT, V16_ADOPT),
-                  "qualified_refit_job1.json": QUAL, "row19_screen_budget.json": ("chpc/row19_screen_budget.json", None)})
-ARCH_SCHEMA = "row19-screen-mac-archive-v16-before-v17-1"
+ARCH, QUAL, ARCHIVE, ARCH_SCHEMA = B.ARCH, B.QUAL, B.ARCHIVE, B.ARCH_SCHEMA     # REVISION 2: one inventory, in build_v17.py
+archive_problems = B.archive_problems
 ORDER_GROUPS = ("part", "data", "mac", "pin")          # then the admission (a pin, moved last among pins), then the controls
 
 
@@ -75,22 +86,22 @@ def rows():
 
 
 def candidate_problems(require_git=True):
-    """Every check of the CANDIDATE (no live state, no review). [] when it verifies."""
-    why = list(B.input_problems())
+    """Every check of the CANDIDATE (no review). [] when it verifies. REVISION 2: the authenticated v16 base is resolved FIRST
+    (build_v17.resolve_base) and everything below is checked against it."""
+    base, why = B.resolve_base()
     if why:
         return why
-    ctl_b, pm_b = B.build()
+    why = list(B.input_problems(base))
+    if why:
+        return why
+    ctl_b, pm_b = B.build(base)
     for rel, b in ((CREL + "row19_screen_controls.json", ctl_b), (CREL + "v17_promotion_map.json", pm_b)):
         if sha_or_none(rel) != hashlib.sha256(b).hexdigest():
             why.append(f"{rel} is not build_v17.py's deterministic bytes")
     c = json.loads(ctl_b)
     pm = json.loads(pm_b)
-    base_doc = json.load(open(os.path.join(T1, CTL))) if sha(CTL) == V16_CTL else None
-    if base_doc is None and os.path.isfile(os.path.join(T1, ARCH, "row19_screen_controls.json")):
-        base_doc = json.load(open(os.path.join(T1, ARCH, "row19_screen_controls.json")))      # promoted: compare with the archived v16
-    if base_doc is None:
-        why.append("neither the live controls nor the archive holds the adopted v16 controls to compare versions 1-16 with")
-    elif c["versions"][:-1] != base_doc["versions"] or {k: v for k, v in c.items() if k != "versions"} != {k: v for k, v in base_doc.items() if k != "versions"}:
+    base_doc = json.loads(base["controls"])
+    if c["versions"][:-1] != base_doc["versions"] or {k: v for k, v in c.items() if k != "versions"} != {k: v for k, v in base_doc.items() if k != "versions"}:
         why.append("candidate versions 1-16 / programme / deployment / history_manifest are not the adopted v16 controls'")
     v17, v16 = c["versions"][-1], c["versions"][-2]
     if v17.get("version") != 17 or v16.get("version") != 16:
@@ -156,35 +167,6 @@ def state():
     return st
 
 
-def archive_problems():
-    d = os.path.join(T1, ARCH)
-    if not os.path.isdir(d):
-        return [f"the Mac archive {ARCH}/ does not exist (migration_v17 archive step)"]
-    why = []
-    names = sorted(os.listdir(d))
-    if names != sorted(list(ARCHIVE) + ["SHA256SUMS", "COMPLETE"]):
-        return [f"the archive holds {names}, not exactly its inventory + SHA256SUMS + COMPLETE"]
-    sums = {}
-    for line in open(os.path.join(d, "SHA256SUMS")).read().splitlines():
-        m = re.match(r"^([0-9a-f]{64})  ([A-Za-z0-9._-]+)$", line)
-        if not m:
-            return ["the archive's SHA256SUMS has a malformed line"]
-        sums[m.group(2)] = m.group(1)
-    if sorted(sums) != sorted(ARCHIVE):
-        why.append("the archive's SHA256SUMS does not list exactly its inventory")
-    for n, (src, fixed) in ARCHIVE.items():
-        h = hashlib.sha256(open(os.path.join(d, n), "rb").read()).hexdigest()
-        if sums.get(n) != h or (fixed is not None and h != fixed):
-            why.append(f"archive member {n} does not verify ({h[:8]})")
-    try:
-        comp = json.load(open(os.path.join(d, "COMPLETE")))
-        if comp.get("schema") != ARCH_SCHEMA or comp.get("sha256sums") != hashlib.sha256(open(os.path.join(d, "SHA256SUMS"), "rb").read()).hexdigest():
-            why.append("the archive's COMPLETE certificate does not name its SHA256SUMS")
-    except Exception as e:
-        why.append(f"the archive's COMPLETE is unreadable ({type(e).__name__})")
-    return why
-
-
 def literal():
     return f"ADOPT row19-screen-controls sha256={sha(CREL + 'row19_screen_controls.json')} version=17"
 
@@ -215,8 +197,10 @@ def adoption_v17_bytes(rec):
                        "archived": "Lengau archive_screen/v16_before_v17, Mac " + ARCH + "/"},
           "scope": "controls v16 -> v17, the EC2 provider epoch-2 adoption (chpc/candidate_v17/DESIGN_v17.md): the partition pin e1 8d1de408 -> "
                    "the final epoch-2 declaration 48cea639 (e1 kept as pinned provenance in versions 13-16 and as the e2 predecessor); the "
-                   "epoch-2 helpers (row19_partition eabf50c3, row19_ec2_ingest 6ac144c6, row19_ec2_e2rules a9ea1f61, row19_ec2_state 7bdedafc, "
-                   "row19_ec2_qualify 73f912b8, row19_ec2_e2qual b3f29816) and the admission's schema-2 print line (c3960464); every other "
+                   f"epoch-2 helpers (row19_partition {B._h('chpc/row19_partition.py')}, row19_ec2_ingest {B._h('chpc/row19_ec2_ingest.py')}, "
+                   f"row19_ec2_e2rules {B._h('chpc/row19_ec2_e2rules.py')}, row19_ec2_state {B._h('chpc/row19_ec2_state.py')}, "
+                   f"row19_ec2_qualify {B._h('chpc/row19_ec2_qualify.py')}, row19_ec2_e2qual {B._h('chpc/row19_ec2_e2qual.py')}) and the "
+                   f"admission's schema-2 print line ({B._h('chpc/row19_screen_admit.py')}); every other "
                    "controller byte unchanged. Lengau refit admission HOLDS until the canonical epoch-2 activation; fresh v17 receipts and a "
                    "regenerated pilot qualification with a NEW pilot literal precede any further refit admission; grants no EC2 qualification "
                    "or production (schema-3 RELEASE + FAVOURABLE actual-result review + release-adopt)"}
@@ -251,7 +235,8 @@ def main(argv=None):
     if a.check:
         counts = {k: sum(1 for s in st.values() if s == k) for k in ("v16", "v17", "other")}
         print(f"CANDIDATE OK: controls v17 {sha(CREL + 'row19_screen_controls.json')}, {len(rows())} map rows + the controls, every pin = its "
-              f"source bytes, versions 1-16 = adopted v16, e2 partition 48cea639 loads and regenerates (verify2)")
+              f"source bytes, versions 1-16 = adopted v16 (the authenticated {B.resolve_base()[0]['source']} v16 base), e2 partition 48cea639 "
+              f"loads and regenerates (verify2)")
         print(f"live tree: {counts} " + ", ".join(f"{k}={s}" for k, s in st.items() if s != "v16"))
         print(f"the adoption literal this candidate needs: {literal()}")
         return 0

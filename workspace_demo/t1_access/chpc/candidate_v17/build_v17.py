@@ -7,13 +7,25 @@ file. Design: chpc/candidate_v17/DESIGN_v17.md. Nothing outside chpc/candidate_v
 v17 = adopted v16 (controls 01976b6a, adoption 523fe18a, Codex RSC f6896e1) with:
   - the partition pin: chpc/row19_partition_e1.json (8d1de408) -> chpc/row19_partition_e2.json (48cea639, the FINAL epoch-2
     declaration in chpc/e2_final/; e1 stays pinned by versions 13-16, unchanged, and is the e2 file's named predecessor);
-  - the helpers: chpc/row19_partition.py, chpc/row19_ec2_ingest.py (candidate_e2, REVISION 6/7), chpc/row19_ec2_qualify.py,
-    chpc/row19_ec2_state.py (candidate_e2q, REVISION 5 / REVISION 4); NEW chpc/row19_ec2_e2rules.py (candidate_e2) and
+  - the helpers: chpc/row19_partition.py, chpc/row19_ec2_ingest.py (candidate_e2, REVISION 8), chpc/row19_ec2_qualify.py,
+    chpc/row19_ec2_state.py (candidate_e2q, REVISION 6 / REVISION 4); NEW chpc/row19_ec2_e2rules.py (candidate_e2) and
     chpc/row19_ec2_e2qual.py (candidate_e2q);
   - chpc/row19_screen_admit.py: the adopted v16 admission with candidate_e2/admit_v17_partition_line.diff applied (one print
     line) - chpc/candidate_v17/row19_screen_admit.py;
-  - every other pin, sub_envelopes and qualification_S byte-equal to v16; versions 1-16 byte-identical to the adopted file."""
-import copy, hashlib, json, os, sys
+  - every other pin, sub_envelopes and qualification_S byte-equal to v16; versions 1-16 byte-identical to the adopted file.
+
+REVISION 2 (Codex review reviews/2026-10-19_e2_adoption_codex_review.md C1; replaces the reviewed bytes 812a2c38, which stay in
+git at RSC c05a489). The builder FIRST resolves and authenticates an immutable v16 BASE (resolve_base) and builds the expected
+v17 from that base, never from whatever the live controls hold:
+  live     the live controls are exactly v16 01976b6a AND the live adoption record exactly 523fe18a (before promotion, and
+           during a promotion interrupted before its controls-last copy);
+  archive  otherwise only the COMPLETELY VERIFIED Mac archive chpc/results/archive/row19_screen_v16_before_v17/ (exactly the
+           13-member inventory + SHA256SUMS + COMPLETE, every digest verifying, the controls and adoption members at their
+           fixed v16 digests) - after, and through, the promotion's controls-last copy.
+Anything else refuses: a missing, partial or corrupt archive is never a base. The archive inventory and its verification live
+here (promote_v17.py reads them), so the builder and the promoter authenticate one base the same way. Pins rebuilt for the
+B1/B2 repairs (ingestion REVISION 8, qualifier REVISION 6, e2qual docstring, prod_authority REVISION 8)."""
+import copy, hashlib, json, os, re, sys
 
 CAND = os.path.dirname(os.path.abspath(__file__))
 CHPC = os.path.dirname(CAND)
@@ -33,11 +45,11 @@ E1 = ("chpc/row19_partition_e1.json", "8d1de408b6ef9dc66d4736b6138536de6591f0d29
 MAP = [
     ("chpc/row19_screen_admit.py", "chpc/candidate_v17/row19_screen_admit.py", "c3960464db74a282f20da030008fb759a0fad4e1d4d3c7133c98f3b821d6b9ed", "pin"),
     ("chpc/row19_partition.py", "chpc/candidate_e2/row19_partition.py", "eabf50c34be2bad3f92e07370966bcc94162cf12cbcefb326cc07a72d49ac0d8", "pin"),
-    ("chpc/row19_ec2_ingest.py", "chpc/candidate_e2/row19_ec2_ingest.py", "6ac144c616d330c83fcd5e665bdc48a9396d962e4aacba03c4775e26950ce108", "pin"),
-    ("chpc/row19_ec2_qualify.py", "chpc/candidate_e2q/row19_ec2_qualify.py", "73f912b8ba2f4112462f279644da61d69ea40d31e905765839ad7420b3fe29c8", "pin"),
+    ("chpc/row19_ec2_ingest.py", "chpc/candidate_e2/row19_ec2_ingest.py", "277c51b0a24fee6b151180e99584a831c091ca4b30b6bd999a1221ff364bf54f", "pin"),
+    ("chpc/row19_ec2_qualify.py", "chpc/candidate_e2q/row19_ec2_qualify.py", "1d8eee78fc9427cd9e4cebe09deac37cf4284f0b8a86714dcc9d80cde63cbb29", "pin"),
     ("chpc/row19_ec2_state.py", "chpc/candidate_e2q/row19_ec2_state.py", "7bdedafc7c90ec065217d9a7bbf53b88e1bf31e0c094dc34df730b4028bd038e", "pin"),
     ("chpc/row19_ec2_e2rules.py", "chpc/candidate_e2/row19_ec2_e2rules.py", "a9ea1f61daa577b642739ae781cb179e9a2089d42d3c23fff277d7d4849a3bcc", "pin"),
-    ("chpc/row19_ec2_e2qual.py", "chpc/candidate_e2q/row19_ec2_e2qual.py", "b3f29816f80974c6f21d215b435c12d6d68d41927e89cd03f45ca614896e8ac8", "pin"),
+    ("chpc/row19_ec2_e2qual.py", "chpc/candidate_e2q/row19_ec2_e2qual.py", "5ceba55189dd351b2cc5a997b115cdbfd0d84f17397402fa7deb2b3e937025fa", "pin"),
     ("chpc/row19_partition_e2.json", "chpc/e2_final/row19_partition_e2.json", "48cea639e823abbf39238e3dd7c075f63ba9eca8467009348510e2943ed56fa6", "part"),
     ("chpc/claims_snapshot_e2.json", "chpc/e2_final/claims_snapshot_e2.json", "31cc268ff3247858fc73ac17a3a387b43e17a829d9cdea505958890a97eecb6f", "data"),
     ("aws_ec2/e2_funding.json", "chpc/e2_final/e2_funding.json", "d6f414e8107f25e5de43d6b33764106c6c92dd64440ff33fddf4873416ce4815", "data"),
@@ -45,7 +57,7 @@ MAP = [
     ("aws_ec2/prod/manifest_e2q1_e2.json", "chpc/e2_final/manifest_e2q1_e2.json", "3ea8cafd736871de715062ca398f36ff98f93f27d1d82bd977c3b72b0f1cfb8b", "data"),
     ("aws_ec2/prod/manifest_e2q2_e2.json", "chpc/e2_final/manifest_e2q2_e2.json", "4af4a64d83c749394c7159814359da716b2a9f9a694cd23fe46157aecd7b0cec", "data"),
     ("aws_ec2/prod/panel_e2q_e2.json", "chpc/e2_final/panel_e2q_e2.json", "f04a5e43634e13bfceaf173e303ebf780f4280de044b6bd97ee9e2c3f711c7a2", "data"),
-    ("aws_ec2/prod_authority.py", "chpc/candidate_e2q/aws_ec2/prod_authority.py", "eee1bcd439f11abe3bc11fcaa905257c02157e4b4a95f506a3b2792fcebd5e65", "mac"),
+    ("aws_ec2/prod_authority.py", "chpc/candidate_e2q/aws_ec2/prod_authority.py", "e4897991aaeaf1dc019c9b73361d288e71464e6f89e416b66d9e3d7601df146d", "mac"),
     ("aws_ec2/prod_launch.py", "chpc/candidate_e2q/aws_ec2/prod_launch.py", "6bca470910489376d37529fb37772d4a2758d4c71758c990bd17108c6ff6c784", "mac"),
     ("aws_ec2/make_prod_manifest.py", "chpc/candidate_e2q/aws_ec2/make_prod_manifest.py", "d8412c32f5663350a5029309dffd6183aaf0a0a76afb089f85f8e8208ac01f07", "mac"),
     ("aws_ec2/qual_permit.py", "chpc/candidate_e2q/aws_ec2/qual_permit.py", "51653d26c69552ea449c10747672786a77dac67e4ffe183f7ff6b7382433a8ad", "mac"),
@@ -69,28 +81,109 @@ PREVIOUS = {
 }
 DEPLOY_GROUPS = ("pin", "part", "data")          # what travels to the Lengau controller clone as tracked files (+ controls, adoption)
 
+def _h(dst):
+    return next(h for d, _s, h, _g in MAP if d == dst)[:8]
+
+
 REVIEWED = ("pending Codex review of controls v17, the EC2 provider epoch-2 adoption (chpc/candidate_v17/DESIGN_v17.md; DESIGN_e2.md "
-            "s.5-s.6 steps 5-7; DESIGN_e2q.md s.4-s.5 choice 1): v17 = adopted v16 (01976b6a, Codex RSC f6896e1) with the partition pin "
+            "s.5-s.6 steps 5-7; DESIGN_e2q.md s.4-s.5 choice 1), repaired for Codex review reviews/2026-10-19_e2_adoption_codex_review.md "
+            "(B1, B2, C1): v17 = adopted v16 (01976b6a, Codex RSC f6896e1) with the partition pin "
             "moved from chpc/row19_partition_e1.json (8d1de408, still pinned by versions 13-16 and named as the e2 predecessor) to the "
             "FINAL epoch-2 declaration chpc/row19_partition_e2.json (48cea639, owned 3,274, from the locked 19 Oct snapshot 31cc268f); "
-            "the epoch-2 helpers chpc/row19_partition.py (eabf50c3), chpc/row19_ec2_ingest.py (6ac144c6), chpc/row19_ec2_e2rules.py "
-            "(a9ea1f61, NEW) from candidate_e2 and chpc/row19_ec2_state.py (7bdedafc, E2Q contracts), chpc/row19_ec2_qualify.py "
-            "(73f912b8, the candidate_e2 REVISION 4 qualifier + the `e2` command), chpc/row19_ec2_e2qual.py (b3f29816, NEW) from "
+            f"the epoch-2 helpers chpc/row19_partition.py ({_h('chpc/row19_partition.py')}), chpc/row19_ec2_ingest.py "
+            f"({_h('chpc/row19_ec2_ingest.py')}, REVISION 8: the released E2Q1/E2Q2 per-slot route), chpc/row19_ec2_e2rules.py "
+            f"({_h('chpc/row19_ec2_e2rules.py')}, NEW) from candidate_e2 and chpc/row19_ec2_state.py ({_h('chpc/row19_ec2_state.py')}, "
+            f"E2Q contracts), chpc/row19_ec2_qualify.py ({_h('chpc/row19_ec2_qualify.py')}, REVISION 6: the `e2` command and validated "
+            f"resource evidence), chpc/row19_ec2_e2qual.py ({_h('chpc/row19_ec2_e2qual.py')}, NEW) from "
             "candidate_e2q; chpc/row19_screen_admit.py = v16 with the one schema-2 print line (candidate_e2/admit_v17_partition_line.diff). "
             "Every other pin, sub_envelopes (refit+S 81,000), qualification_S, programme and deployment unchanged. From adoption until "
             "the canonical epoch-2 activation, Lengau refit admission HOLDS (activation_problem_v10). Grants no EC2 qualification or "
             "production: epoch-2 production needs the E2Q1 qualification, a schema-3 RELEASE certificate, a FAVOURABLE actual-result "
             "review and release-adopt. NOT adopted.")
 
+# REVISION 2 (C1): the immutable v16 base and the Mac archive that carries it through and after the promotion
+ARCH = "chpc/results/archive/row19_screen_v16_before_v17"
+ARCH_SCHEMA = "row19-screen-mac-archive-v16-before-v17-1"
+QUAL = ("chpc/results/row19_screen/receipts/qualified_refit_job1.json", "2c7a7ef1fb903cf0fa75701d2a56d216e98faf14e6638da891afd8bed0bfea44")
+# 13 members: five replaced chpc files (admission, partition module, ingestion, qualifier, state), four replaced Mac files
+# (prod_authority, prod_launch, make_prod_manifest, qual_permit), the v16 controls and adoption record, the v16 pilot
+# qualification 2c7a7ef1 and the committed budget phases. The two NEW chpc helpers (e2rules, e2qual) and the new data/Mac files
+# have no v16 bytes and are not members.
+ARCHIVE = dict({os.path.basename(p): (p, h) for p, h in PREVIOUS.items() if h is not None},
+               **{"row19_screen_controls.json": ADOPTED_CTL, "row19_screen_controls_adoption.json": ADOPTED_ADOPTION,
+                  "qualified_refit_job1.json": QUAL, "row19_screen_budget.json": ("chpc/row19_screen_budget.json", None)})
+
 
 def sha(rel):
     return hashlib.sha256(open(os.path.join(T1, rel), "rb").read()).hexdigest()
 
 
-def input_problems():
+def _bytes_or_none(rel):
+    p = os.path.join(T1, rel)
+    return open(p, "rb").read() if os.path.isfile(p) else None
+
+
+def archive_problems():
+    """[] when the Mac archive holds EXACTLY the ARCHIVE inventory + SHA256SUMS + COMPLETE and every digest verifies."""
+    d = os.path.join(T1, ARCH)
+    if not os.path.isdir(d):
+        return [f"the Mac archive {ARCH}/ does not exist (migration_v17 archive step)"]
     why = []
-    for rel, h in (ADOPTED_CTL, ADOPTED_ADOPTION, ADMIT_DIFF, E1):
-        if sha(rel) != h:
+    names = sorted(os.listdir(d))
+    if names != sorted(list(ARCHIVE) + ["SHA256SUMS", "COMPLETE"]):
+        return [f"the archive holds {names}, not exactly its inventory + SHA256SUMS + COMPLETE"]
+    sums = {}
+    for line in open(os.path.join(d, "SHA256SUMS")).read().splitlines():
+        m = re.match(r"^([0-9a-f]{64})  ([A-Za-z0-9._-]+)$", line)
+        if not m:
+            return ["the archive's SHA256SUMS has a malformed line"]
+        sums[m.group(2)] = m.group(1)
+    if sorted(sums) != sorted(ARCHIVE):
+        why.append("the archive's SHA256SUMS does not list exactly its inventory")
+    for n, (src, fixed) in ARCHIVE.items():
+        h = hashlib.sha256(open(os.path.join(d, n), "rb").read()).hexdigest()
+        if sums.get(n) != h or (fixed is not None and h != fixed):
+            why.append(f"archive member {n} does not verify ({h[:8]})")
+    try:
+        comp = json.load(open(os.path.join(d, "COMPLETE")))
+        if comp.get("schema") != ARCH_SCHEMA or comp.get("sha256sums") != hashlib.sha256(open(os.path.join(d, "SHA256SUMS"), "rb").read()).hexdigest():
+            why.append("the archive's COMPLETE certificate does not name its SHA256SUMS")
+    except Exception as e:
+        why.append(f"the archive's COMPLETE is unreadable ({type(e).__name__})")
+    return why
+
+
+def resolve_base():
+    """(base, problems): the authenticated immutable v16 base - {"source": "live"|"archive", "controls": bytes, "adoption":
+    bytes} - resolved BEFORE any candidate or build check. Live only while the live controls AND adoption are exactly v16;
+    otherwise only the completely verified archive. Never the live controls of any other version."""
+    lc, la = _bytes_or_none(ADOPTED_CTL[0]), _bytes_or_none(ADOPTED_ADOPTION[0])
+    dig = lambda b: hashlib.sha256(b).hexdigest() if b is not None else None
+    if dig(lc) == ADOPTED_CTL[1] and dig(la) == ADOPTED_ADOPTION[1]:
+        return dict(source="live", controls=lc, adoption=la), []
+    why = archive_problems()
+    if why:
+        return None, [f"no authenticated v16 base: the live controls/adoption are not exactly v16 ({(dig(lc) or 'absent')[:8]}/"
+                      f"{(dig(la) or 'absent')[:8]}, want {ADOPTED_CTL[1][:8]}/{ADOPTED_ADOPTION[1][:8]}) and the v16 archive does not "
+                      f"verify: {why[:3]}"]
+    ac = open(os.path.join(T1, ARCH, "row19_screen_controls.json"), "rb").read()
+    aa = open(os.path.join(T1, ARCH, "row19_screen_controls_adoption.json"), "rb").read()
+    if dig(ac) != ADOPTED_CTL[1] or dig(aa) != ADOPTED_ADOPTION[1]:          # already fixed members; checked again where used
+        return None, ["the archived controls/adoption are not v16 01976b6a/523fe18a"]
+    return dict(source="archive", controls=ac, adoption=aa), []
+
+
+def input_problems(base=None):
+    """The base FIRST (resolve_base), then the fixed inputs and every map source."""
+    if base is None:
+        base, why = resolve_base()
+        if why:
+            return why
+    why = []
+    if hashlib.sha256(base["controls"]).hexdigest() != ADOPTED_CTL[1] or hashlib.sha256(base["adoption"]).hexdigest() != ADOPTED_ADOPTION[1]:
+        why.append(f"the {base.get('source')} base is not v16 {ADOPTED_CTL[1][:8]}/{ADOPTED_ADOPTION[1][:8]}")
+    for rel, h in (ADMIT_DIFF, E1):
+        if not os.path.isfile(os.path.join(T1, rel)) or sha(rel) != h:
             why.append(f"{rel} is not {h[:8]}")
     for dst, src, h, _g in MAP:
         if not os.path.isfile(os.path.join(T1, src)) or sha(src) != h:
@@ -98,9 +191,15 @@ def input_problems():
     return why
 
 
-def build():
-    """(controls bytes, promotion-map bytes)."""
-    adopted = open(os.path.join(T1, ADOPTED_CTL[0]), "rb").read()
+def build(base=None):
+    """(controls bytes, promotion-map bytes) built from the authenticated v16 base (resolve_base when not given)."""
+    if base is None:
+        base, why = resolve_base()
+        if why:
+            raise SystemExit("REFUSED: " + "; ".join(why))
+    adopted = base["controls"]
+    if hashlib.sha256(adopted).hexdigest() != ADOPTED_CTL[1]:
+        raise SystemExit("the base controls are not the adopted v16 bytes")
     ctl = json.loads(adopted)
     if (json.dumps(ctl, indent=1)).encode() != adopted:
         raise SystemExit("the adopted controls are not json.dumps(indent=1) bytes: the serialisation would change versions 1-16")
@@ -138,19 +237,20 @@ def build():
 
 
 def main():
-    why = input_problems()
+    base, why = resolve_base()
+    why = why or input_problems(base)
     if why:
         print("REFUSED:"); [print("  -", w) for w in why]; return 3
-    ctl_b, pm_b = build()
+    ctl_b, pm_b = build(base)
     targets = ((os.path.join(CAND, "row19_screen_controls.json"), ctl_b), (os.path.join(CAND, "v17_promotion_map.json"), pm_b))
     if sys.argv[1:] == ["--check"]:
         bad = [p for p, b in targets if not os.path.isfile(p) or open(p, "rb").read() != b]
-        print("CHECK " + ("OK: the candidate controls and promotion map are the deterministic build" if not bad else f"FAILED: {bad}"))
+        print("CHECK " + ("OK: the candidate controls and promotion map are the deterministic build from the " + base["source"] + " v16 base" if not bad else f"FAILED: {bad}"))
         return 3 if bad else 0
     for p, b in targets:
         tmp = p + f".tmp.{os.getpid()}"
         open(tmp, "wb").write(b); os.replace(tmp, p)
-    print("controls v17", hashlib.sha256(ctl_b).hexdigest(), "promotion map", hashlib.sha256(pm_b).hexdigest())
+    print("controls v17", hashlib.sha256(ctl_b).hexdigest(), "promotion map", hashlib.sha256(pm_b).hexdigest(), "base", base["source"])
     return 0
 
 

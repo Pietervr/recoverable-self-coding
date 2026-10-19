@@ -91,7 +91,18 @@ REVISION 7 - CANDIDATE, not adopted (Codex re-review reviews/2026-10-17_e2_p80_c
 a filesystem fact kept apart from the parsed value: a PRESENT status file of an unproduced slot must parse to a JSON object
 before its outcome is classified (a present null, list or scalar HOLDS, as does unreadable JSON); the fatal-signal and
 censored "no status" kinds require the file to be actually absent; a present status under RESUME or censoring must pass
-row19_ec2_e2rules.left_status_problem as before."""
+row19_ec2_e2rules.left_status_problem as before.
+
+REVISION 8 - CANDIDATE, not adopted (Codex review reviews/2026-10-19_e2_adoption_codex_review.md B1; replaces the reviewed
+REVISION 6/7 bytes 6ac144c6, which stay in git at RSC 92a62f6). The per-slot branch also serves a RELEASED epoch-2
+qualification attempt, narrowly: only a schema-2 partition, only class qualification, only an attempt the installed inventory
+lists as released (the same `released` the class gate above reads), and only contract E2Q1 or E2Q2. Such an attempt keeps
+its real class (the register entry records cls "qualification") and passes every check production passes - inventory,
+release, activation, operational manifest, plan, typed outcomes, the censor list, the three qualifying kinds and the
+present-status rules, units, ownership and fence under the lock, comparisons, the journaled failure evidence, completion and
+replay - and in addition R4' (row19_ec2_e2rules.qualification_unproduced_problem): at most 3 non-completed slots of ALL roles
+across the attempt, the qualification-wide bound; production's 7-work-slot bound is not a replacement for it. Every other
+qualification attempt (unreleased, schema 1, or another contract such as epoch-1 Q1) keeps the all-or-nothing contract."""
 import os, sys, json, glob, math, time, fcntl, hashlib, argparse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -118,6 +129,7 @@ MAX_UNPRODUCED_WORK = 7                                     # of up to 72 work s
 MIN_SENTINELS_COMPARED = 3                                  # of the 4 per attempt
 CENSORED = E2R.CENSORED
 ACTIVATION_MODE = "canonical"                       # the qualifier's sandbox replay alone sets "sandbox"
+E2Q_CONTRACTS = ("E2Q1", "E2Q2")                    # REVISION 8 (B1): the released epoch-2 qualification contracts with a per-slot route
 
 
 def sha_file(p):
@@ -467,7 +479,9 @@ def main(argv=None):
         print(f"HELD: {why or 'the operational manifest is not this epoch/contract'}"); return HOLD
     # --- bundle, units (static) ---
     schema2 = part.get("schema") == RP.SCHEMA2
-    partial = schema2 and att["class"] == "production"
+    # REVISION 8 (B1): a RELEASED schema-2 E2Q1/E2Q2 qualification attempt joins production's per-slot route, keeping its class
+    e2q_released = schema2 and att["class"] == "qualification" and released and att.get("contract") in E2Q_CONTRACTS
+    partial = schema2 and (att["class"] == "production" or e2q_released)
     plan, outcomes = check_bundle(a.bundle, att, (psha, opsha, sha_file(actp)), problems, partial=partial)
     unprod = {}
     if plan is not None and schema2:
@@ -477,7 +491,11 @@ def main(argv=None):
     if plan is not None and partial and not problems:
         unprod = unproduced_slots(plan, outcomes)
         problems += unproduced_problems(a.bundle, att, plan, unprod, man)
-    units = plan_units(a.bundle, man, opman, opsha, att, plan, problems, skip=set(unprod)) if not problems else {}
+        if e2q_released:                                                   # REVISION 8 (B1): R4' stays the qualification-wide bound
+            why = E2R.qualification_unproduced_problem(plan["slots"], outcomes)
+            if why:
+                problems.append(f"R4' (released qualification attempt): {why}")
+    units =plan_units(a.bundle, man, opman, opsha, att, plan, problems, skip=set(unprod)) if not problems else {}
     if problems:
         print(f"HELD: {len(problems)} problem(s); nothing published"); [print("   -", p) for p in problems[:20]]; return HOLD
     os.makedirs(os.path.join(root, "ec2", "status"), exist_ok=True)

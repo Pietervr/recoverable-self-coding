@@ -17,12 +17,12 @@ they are; nothing was copied, merged or edited. The only new controller bytes ar
 
 | File | SHA-256 | Role |
 |---|---|---|
-| `row19_screen_controls.json` | `92f28b8fbd53a2a13635022ff01d2a76ef75a1986e670311ccfb768f7cdc80aa` | versions 1-16 byte-identical to the adopted file (one textual insertion); adds version 17 |
+| `row19_screen_controls.json` | `9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0` (s.8; reviewed `92f28b8f`) | versions 1-16 byte-identical to the adopted file (one textual insertion); adds version 17 |
 | `row19_screen_admit.py` | `c3960464db74a282f20da030008fb759a0fad4e1d4d3c7133c98f3b821d6b9ed` | the adopted v16 admission (`1b02f336`) with `candidate_e2/admit_v17_partition_line.diff` (`0fc23704`) applied, nothing else |
-| `v17_promotion_map.json` | `fbb3e0dcf88b522baf2ec04bb625f6337a97998f60b8b5e13d5519098a764873` | every candidate path -> promoted path, with its sha256, its v16 (previous) sha256 and its group |
-| `build_v17.py` | `812a2c38eb500780639216f8eb74f16db59743b72b5c0d5c55222a494bd6af4d` | builds the controls and the map deterministically from the adopted bytes; `--check` compares |
-| `promote_v17.py` | `3b179cc3d809ccb1621b4c2e1fe6302b956099c38ee4156b5e4993c72ed49385` | the promote/check script (promote_v16.py pattern): `--check`, `--check-promoted`, `--dry-run`, real promote. The real promote was NOT run |
-| `test_v17.py` | - | 45 checks (s.4) |
+| `v17_promotion_map.json` | `6bc8bd3947c398c0200c241725ad5dbb70555a3ee0290012a274a4cf6563df74` (s.8; reviewed `fbb3e0dc`) | every candidate path -> promoted path, with its sha256, its v16 (previous) sha256 and its group |
+| `build_v17.py` | `f2a80f42962435fc3a6787d26d838c8b67b5e0c9fe231779890a5868cae72abb` (REVISION 2, s.8; reviewed `812a2c38`) | builds the controls and the map deterministically from the authenticated v16 base (live exact v16, else the verified archive); `--check` compares |
+| `promote_v17.py` | `f0c320c28ef3273b1b62137606372fcab13a9fd4d68765ab826fdae22bb7b5fb` (REVISION 2, s.8; reviewed `3b179cc3`) | the promote/check script (promote_v16.py pattern): `--check`, `--check-promoted`, `--dry-run`, real promote. The real promote was NOT run |
+| `test_v17.py` | - | 45 checks (s.4); `test_v17_promote.py` 30 checks in private trees (s.8) |
 | `regress/run_one.py`, `regress/run_v17_regress.py` | - | regression with the v17 module set substituted (s.4) |
 | `test_results.txt` | - | counts before and after, every difference explained |
 
@@ -34,11 +34,11 @@ At promotion each source is copied to its promoted path. The sources stay where 
 |---|---|---|---|---|
 | `chpc/row19_screen_admit.py` | `chpc/candidate_v17/row19_screen_admit.py` | `c3960464…1d6b9ed` | `1b02f336` | pin |
 | `chpc/row19_partition.py` | `chpc/candidate_e2/row19_partition.py` | `eabf50c3…ac0d8` | `ed6aa177` | pin |
-| `chpc/row19_ec2_ingest.py` | `chpc/candidate_e2/row19_ec2_ingest.py` | `6ac144c6…e108` | `b697dc36` | pin |
-| `chpc/row19_ec2_qualify.py` | `chpc/candidate_e2q/row19_ec2_qualify.py` | `73f912b8…29c8` | `1fc6b61f` | pin |
+| `chpc/row19_ec2_ingest.py` | `chpc/candidate_e2/row19_ec2_ingest.py` | `277c51b0…bf54f` | `b697dc36` | pin |
+| `chpc/row19_ec2_qualify.py` | `chpc/candidate_e2q/row19_ec2_qualify.py` | `1d8eee78…bb29` | `1fc6b61f` | pin |
 | `chpc/row19_ec2_state.py` | `chpc/candidate_e2q/row19_ec2_state.py` | `7bdedafc…038e` | `bda200dc` | pin |
 | `chpc/row19_ec2_e2rules.py` | `chpc/candidate_e2/row19_ec2_e2rules.py` | `a9ea1f61…3bcc` | new | pin |
-| `chpc/row19_ec2_e2qual.py` | `chpc/candidate_e2q/row19_ec2_e2qual.py` | `b3f29816…6e8ac8` | new | pin |
+| `chpc/row19_ec2_e2qual.py` | `chpc/candidate_e2q/row19_ec2_e2qual.py` | `5ceba551…25fa` | new | pin |
 | `chpc/row19_partition_e2.json` | `chpc/e2_final/row19_partition_e2.json` | `48cea639…6fa6` | new | partition reference |
 | `chpc/claims_snapshot_e2.json` | `chpc/e2_final/claims_snapshot_e2.json` | `31cc268f…7eecb6f` | new | data |
 | `aws_ec2/e2_funding.json` | `chpc/e2_final/e2_funding.json` | `d6f414e8…4815` | new | data |
@@ -46,12 +46,12 @@ At promotion each source is copied to its promoted path. The sources stay where 
 | `aws_ec2/prod/manifest_e2q1_e2.json` | `chpc/e2_final/manifest_e2q1_e2.json` | `3ea8cafd…cfb8b` | new | data |
 | `aws_ec2/prod/manifest_e2q2_e2.json` | `chpc/e2_final/manifest_e2q2_e2.json` | `4af4a64d…0cec` | new | data |
 | `aws_ec2/prod/panel_e2q_e2.json` | `chpc/e2_final/panel_e2q_e2.json` | `f04a5e43…c7a2` | new | data |
-| `aws_ec2/prod_authority.py` | `chpc/candidate_e2q/aws_ec2/prod_authority.py` | `eee1bcd4…e65` | `b8ca02b8` | mac |
+| `aws_ec2/prod_authority.py` | `chpc/candidate_e2q/aws_ec2/prod_authority.py` | `e4897991…146d` | `b8ca02b8` | mac |
 | `aws_ec2/prod_launch.py` | `chpc/candidate_e2q/aws_ec2/prod_launch.py` | `6bca4709…c784` | `21b7cf57` | mac |
 | `aws_ec2/make_prod_manifest.py` | `chpc/candidate_e2q/aws_ec2/make_prod_manifest.py` | `d8412c32…f07` | `8da79911` | mac |
 | `aws_ec2/qual_permit.py` | `chpc/candidate_e2q/aws_ec2/qual_permit.py` | `51653d26…a8ad` | `c503e795` | mac |
 | `aws_ec2/make_e2_funding.py` | `chpc/candidate_e2/aws_ec2/make_e2_funding.py` | `85e1b69c…43554` | new | mac |
-| `chpc/row19_screen_controls.json` | `chpc/candidate_v17/row19_screen_controls.json` | `92f28b8f…80aa` | `01976b6a` | controls (LAST) |
+| `chpc/row19_screen_controls.json` | `chpc/candidate_v17/row19_screen_controls.json` | `9ea4e727…83c0` | `01976b6a` | controls (LAST) |
 
 The full 64-hex digests are in the map and in `build_v17.py` (`MAP`, `PREVIOUS`). Groups:
 - **pin**: in the v17 `files` map. Programme lineage then requires each one present at these bytes in every controller tree.
@@ -67,7 +67,7 @@ Kept for provenance, never deleted or relabelled:
 
 ### Which qualifier: candidate_e2q's (superset), not merged
 
-Both `candidate_e2/` and `candidate_e2q/` carry a `row19_ec2_qualify.py`. v17 pins the candidate_e2q copy (`73f912b8`,
+Both `candidate_e2/` and `candidate_e2q/` carry a `row19_ec2_qualify.py`. v17 pins the candidate_e2q copy (`1d8eee78`, REVISION 6 since s.8;
 REVISION 5). By its own text and by a line diff, it is the candidate_e2 REVISION 4 file (`efff0f95`) plus the epoch-2 `e2`
 command.
 
@@ -79,7 +79,9 @@ The diff removes 10 lines, and each one is replaced:
 - 2 problem texts that pointed at "not built";
 - the `__main__` dispatch.
 
-No epoch-1 rule was dropped. `test_v17.py` checks this.
+No epoch-1 rule was dropped. `test_v17.py` checks this. Since s.8 the qualifier is REVISION 6: its B2 rewrite of `_timeline`
+and `memory` (validated resource evidence, stricter for both epochs) replaces those functions and the import line; the other 6
+REVISION 5 replacements are as listed, and `test_v17.py` checks both.
 
 Nothing was merged by hand. The candidate_e2 copy stays the reviewed REVISION 4 evidence and is not promoted.
 
@@ -101,11 +103,11 @@ The version-17 entry is a copy of the v16 entry with these changes:
 | `reviewed` | the v16 text | "pending Codex review of controls v17, the EC2 provider epoch-2 adoption ... NOT adopted." |
 | `files["chpc/row19_screen_admit.py"]` | `1b02f336` | `c3960464` |
 | `files["chpc/row19_partition.py"]` | `ed6aa177` | `eabf50c3` |
-| `files["chpc/row19_ec2_ingest.py"]` | `b697dc36` | `6ac144c6` |
+| `files["chpc/row19_ec2_ingest.py"]` | `b697dc36` | `277c51b0` |
 | `files["chpc/row19_ec2_state.py"]` | `bda200dc` | `7bdedafc` |
-| `files["chpc/row19_ec2_qualify.py"]` | `1fc6b61f` | `73f912b8` |
+| `files["chpc/row19_ec2_qualify.py"]` | `1fc6b61f` | `1d8eee78` |
 | `files["chpc/row19_ec2_e2rules.py"]` | - | `a9ea1f61` (appended) |
-| `files["chpc/row19_ec2_e2qual.py"]` | - | `b3f29816` (appended) |
+| `files["chpc/row19_ec2_e2qual.py"]` | - | `5ceba551` (appended) |
 | `partition` | `chpc/row19_partition_e1.json` `8d1de408` | `chpc/row19_partition_e2.json` `48cea639` |
 
 The remaining keys are byte-equal to v16:
@@ -239,9 +241,9 @@ the qualifier `e2` command). The status view needs no change: it reads the parti
 5. **`aws_ec2/prod/` becomes tracked for the e2 files.** On the Mac this folder is untracked today: the e1 Q1/Q2 operational
    manifests there were never committed and are left as they are. The e2 data files are committed with explicit paths and
    deployed as tracked files, because `ctl_clean` refuses untracked files in the controller clone.
-6. **DESIGN_e2q's choice 3 is not applied.** `proposed_ingest_released_e2q_partial.diff` stays unapplied, so ingestion stays
-   the reviewed `6ac144c6`. If Codex rules for the diff, the ingest pin changes, and v17 must be rebuilt (`build_v17.py`)
-   and re-reviewed BEFORE adoption.
+6. **DESIGN_e2q's choice 3.** Codex ruled CHANGE (B1, 19 Oct). It is applied as ingestion REVISION 8 (`277c51b0`, with R4'
+   kept) and prod_authority REVISION 8 (the physical crash envelope); v17 is rebuilt on those bytes (s.8) and must be
+   re-reviewed at its exact new hash BEFORE adoption.
 7. **One adoption step.** Helpers, data, Mac code, admission and controls are promoted and deployed together (controls last).
    The helpers cannot be staged earlier as authority, because no pin would cover them.
 8. **The pilot rollover is required.** v17's generation change re-qualifies the existing job 1 (no fit, new literal). No
@@ -255,8 +257,13 @@ the qualifier `e2` command). The status view needs no change: it reads the parti
     - `promote_v17.py --check` verifies the candidate against its sources and the adopted bytes, with no review and no live
       state required.
     - `--check-promoted` is the v16-style deploy gate (complete promotion, exact adoption record, review, archive).
-13. **The Mac archive inventory** has 13 members: the v16 bytes of every replaced file (seven chpc and four aws_ec2 files,
-    the controls and the adoption record), the v16 pilot qualification `2c7a7ef1` and the committed budget phases.
+    - Since s.8 (C1) both resolve and authenticate the immutable v16 base FIRST - the live exact v16 controls and adoption,
+      else only the completely verified archive - and work before, during and after promotion as s.8 lists.
+13. **The Mac archive inventory** has 13 members: the v16 bytes of the FIVE replaced chpc files (admission, partition module,
+    ingestion, qualifier, state module) and the FOUR replaced Mac files (prod_authority, prod_launch, make_prod_manifest,
+    qual_permit), the v16 controls and adoption record, the v16 pilot qualification `2c7a7ef1` and the committed budget
+    phases. The two new chpc helpers (e2rules, e2qual) and the new data/Mac files have no v16 bytes and are not members
+    (Codex ruling 13; the inventory itself is unchanged, its description was wrong).
 
 ## 6. Adoption and activation sequence (DESIGN_e2 s.6 steps 5-7 made concrete; NOT run)
 
@@ -407,7 +414,7 @@ Lengau refit admission then resumes under the unchanged v16 scope rules and the 
 
 **9. EC2 epoch-2 qualification** (DESIGN_e2q.md s.7, "Then, only after the reviewed E2Q1 permission record exists"):
 `qual_permit.py --epoch2`, budget, inventory and sync, the receipt, the dry run, ONE E2Q1 instance, staging (still
-undocumented: DESIGN_e2q s.4), `row19_ec2_qualify.py e2`, the actual-result review, `release-adopt`. Production stays shut
+undocumented: DESIGN_e2q s.4), `row19_ec2_qualify.py e2 ... --snapshot chpc/claims_snapshot_e2.json` (DESIGN_e2q s.7 step 6, s.8), the actual-result review, `release-adopt`. Production stays shut
 until then. R6' (five interleaved admissions and reconciliations) and the capacity evidence are still required.
 
 **Never, at any step:**
@@ -428,8 +435,64 @@ until then. R6' (five interleaved admissions and reconciliations) and the capaci
 
 ## 7. Proposed ADOPT literal
 
-    ADOPT row19-screen-controls sha256=92f28b8fbd53a2a13635022ff01d2a76ef75a1986e670311ccfb768f7cdc80aa version=17
+    ADOPT row19-screen-controls sha256=9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0 version=17
 
 This is the v16 grammar. `promote_v17.py` requires exactly this line in a committed, unmodified review record in HEAD. It
 covers the controls and the pinned controller implementation only, not the migration scripts, the pilot rollover, the EC2
 qualification or any release.
+
+## 8. REVISION: repair for Codex's adoption review of 19 Oct (C1, and the pins B1/B2 changed)
+
+Review: `reviews/2026-10-19_e2_adoption_codex_review.md` (CHANGE 3; C CHANGE 1 = C1; the controls hash `92f28b8f` was correct
+for its bytes but is not authorised after the helper repairs). Written 19 Oct 2026 (R052, Claude, bounded job). No promotion,
+deployment, adoption or live-file edit: the live controls are still v16 `01976b6a`, the adoption `523fe18a`, and no archive
+exists in the live tree. Reviewed bytes stay in git at RSC `c05a489`/`8dbbe91`.
+
+**C1, the change.** `build_v17.py` REVISION 2 (`f2a80f42`) and `promote_v17.py` REVISION 2 (`f0c320c2`). Both now resolve
+and authenticate an immutable v16 BASE before any candidate, build, state, review or write handling (`build_v17.resolve_base`):
+- **live**: only while the live controls are exactly `01976b6a` AND the live adoption record exactly `523fe18a`;
+- **archive**: otherwise only the completely verified Mac archive (`archive_problems`: exactly the 13 members + SHA256SUMS +
+  COMPLETE, every digest verifying, the controls and adoption members at their fixed v16 digests).
+The expected v17 controls and map are built from that base (`build(base)`), never from the live controls of another version.
+The archive inventory and its verification moved from the promoter into the builder unchanged in content, so both authenticate
+one base the same way. Every source, review, archive, adoption and state check of the reviewed promoter is kept; no bypass and no
+manual authority edit exists.
+
+**C1, the tests** (`test_v17_promote.py`, 30 checks, all in a PRIVATE temporary git tree holding copies of the files the promoter
+reads; the live tree is checked untouched at the end):
+
+| Case | Result |
+|---|---|
+| before promotion | `--check` 0 from the live base; the real promotion refuses without the archive; `--dry-run` 0 with the archive and a committed review carrying the literal |
+| interrupted after the controls-last copy, before the adoption write (the REAL promote code, the adoption `os.replace` made to fail) | every promoted path v17, adoption v16; `--check` 0 and `build_v17.py --check` 0 from the ARCHIVED base; `--check-promoted` 3 "not complete ... adoption=v16" (not a base refusal); the checks write nothing; the retry copies nothing and writes ONLY the version-17 adoption record |
+| complete | `--check-promoted` 0 "already promoted, verified"; `--check` 0; the retry 0 "nothing to do" with every file's bytes and mtime unchanged; `--dry-run` reports already promoted |
+| missing / partial / corrupt archive (a member changed with SHA256SUMS and COMPLETE regenerated; a SHA256SUMS digest changed; COMPLETE of another schema; an extra file) | `--check`, `--check-promoted`, the retry and `build_v17.py --check` each refuse "no authenticated v16 base"; refusing writes nothing |
+| the review's case (b): exact v17 controls with a changed adoption | `--check-promoted` and the retry refuse on the adoption record; `--check` (which claims no state) passes |
+
+**The rebuilt candidate.** Four sources changed for B1/B2 (DESIGN_e2.md s.8, DESIGN_e2q.md s.8), so the v17 pins and the
+promotion map were rebuilt with `build_v17.py`:
+
+| Promoted path | Reviewed v17 | Now |
+|---|---|---|
+| `chpc/row19_ec2_ingest.py` (pin) | `6ac144c6` | `277c51b0a24fee6b151180e99584a831c091ca4b30b6bd999a1221ff364bf54f` (REVISION 8) |
+| `chpc/row19_ec2_qualify.py` (pin) | `73f912b8` | `1d8eee78fc9427cd9e4cebe09deac37cf4284f0b8a86714dcc9d80cde63cbb29` (REVISION 6) |
+| `chpc/row19_ec2_e2qual.py` (pin) | `b3f29816` | `5ceba55189dd351b2cc5a997b115cdbfd0d84f17397402fa7deb2b3e937025fa` (docstring only) |
+| `aws_ec2/prod_authority.py` (mac) | `eee1bcd4` | `e4897991aaeaf1dc019c9b73361d288e71464e6f89e416b66d9e3d7601df146d` (REVISION 8) |
+| `chpc/candidate_v17/v17_promotion_map.json` | `fbb3e0dc` | `6bc8bd3947c398c0200c241725ad5dbb70555a3ee0290012a274a4cf6563df74` |
+| `chpc/candidate_v17/row19_screen_controls.json` | `92f28b8f` | `9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0` |
+
+Every other pin, the partition `48cea639`, the data files of `chpc/e2_final/` (panel `f04a5e43` included), `sub_envelopes`,
+`qualification_S`, programme, deployment and versions 1-16 are unchanged; the controls are still the adopted bytes plus ONE
+insertion. The v17 `reviewed` text and the adoption-record scope now derive their short hashes from the map, so they cannot go
+stale. `build_v17.py --check` passes from the live base.
+
+**Rulings 8 and 13.** Choice 8 of DESIGN_e2q is corrected there (content binding, not location). Choice 13 above now describes
+the actual 13-member inventory (five replaced chpc files, four replaced Mac files, controls and adoption, qualification and
+budget); the inventory itself did not change.
+
+**For re-review.** Codex re-reviews the exact new bytes. The proposed literal (s.7) is:
+
+    ADOPT row19-screen-controls sha256=9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0 version=17
+
+It authorises nothing until a FAVOURABLE re-review issues it. Still required and unchanged: `migration_v17` and its review, the
+staging procedure before one paid E2Q1, R6', capacity evidence, the pilot rollover, and every EC2 gate of DESIGN_e2q s.4.

@@ -35,3 +35,16 @@ first at 15:03 PDT on 18 Oct, before any candidate_e2q file existed). None is ca
 
 One regression was found and repaired during the build: test_prod_launch "production refused until the reviewed release
 certificate exists" checks for the text "does not permit"; prod_authority.production_release_problem now carries it.
+
+## REVISION for Codex's adoption review (reviews/2026-10-19_e2_adoption_codex_review.md B1, B2, snapshot path), 19 Oct 2026, Mac, python3 3.14.6
+chpc/candidate_e2q/test_e2q_ingest.py:   rc 0, 44 passed, 0 failed  (NEW: released E2Q1/E2Q2 route, exact ACK, holding cases, recovery, choice-3 crash ruling)
+chpc/candidate_e2q/test_e2q_qualify.py:  rc 0, 56 passed, 0 failed  (33 reviewed checks unchanged + 23: B2 counter 192/193 GiB now NO_RELEASE,
+                                         duplicated-timestamp and one-occupancy-line amplification NO_RELEASE, a valid positive control,
+                                         15 parser negatives each a failed verdict (no exception), the relocated --snapshot layout x3)
+chpc/candidate_e2q/test_e2q_contracts.py: rc 0, 54 passed, 0 failed  (unchanged)
+chpc/candidate_e2q/test_e2q_release.py:   rc 0, 81 passed, 0 failed  (unchanged, now against prod_authority REVISION 8)
+B2 counter on the REVIEWED function bytes (73f912b8, AST-selected _timeline/memory): problems [], samples_at_full_packing 12,
+peak_host_used_gib 0.0 - Codex's finding reproduced; on REVISION 6: 'physically impossible (12)', NO_RELEASE.
+Full regression (chpc/candidate_v17/regress/run_v17_regress.py, 15 plain suites + 3 admission suites): every count and every
+FAIL line identical to the run made before this revision; the only differences are the two suites this revision extends
+(test_e2q_qualify 33 -> 56) or adds (test_e2q_ingest 44). Details: chpc/candidate_v17/test_results.txt.

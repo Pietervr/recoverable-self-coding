@@ -20,7 +20,7 @@ Every live and candidate file is a separate copy. At promotion the files below r
 | File (this folder) | SHA-256 | Role | Promoted to |
 |---|---|---|---|
 | `row19_partition.py` | `eabf50c34be2bad3f92e07370966bcc94162cf12cbcefb326cc07a72d49ac0d8` | REVISION 6: schema `row19-provider-partition-2`, `snapshot` (canonical under the plan lock) / `declare2` / `verify2`, schema-2 activation hand-over | `chpc/` (live `ed6aa177`) |
-| `row19_ec2_ingest.py` | `6ac144c616d330c83fcd5e665bdc48a9396d962e4aacba03c4775e26950ce108` | REVISION 6/7: schema 2, owned-work check, per-slot (partial) ingestion; present status never overridden by the censor label; a present status file must be a JSON object (a present null/list/scalar is never absence, R7); censor list bound; failure evidence journaled and replayed | `chpc/` (live `b697dc36`) |
+| `row19_ec2_ingest.py` | `277c51b0a24fee6b151180e99584a831c091ca4b30b6bd999a1221ff364bf54f` | REVISION 8 (s.8; REVISION 6/7 `6ac144c6` reviewed): the released E2Q1/E2Q2 per-slot route under R4's max 3; schema 2, owned-work check, per-slot (partial) ingestion; present status never overridden by the censor label; a present status file must be a JSON object (a present null/list/scalar is never absence, R7); censor list bound; failure evidence journaled and replayed | `chpc/` (live `b697dc36`) |
 | `row19_ec2_qualify.py` | `efff0f95b83a5c53af9681dd13472760c3ee2de164f2ec302690ae63a0473b2e` | REVISION 4: reads schema 2, REFUSES to certify it with the e1 panel | `chpc/` (live `1fc6b61f`) |
 | `aws_ec2/prod_authority.py` | `fd9e67bb6684c27d960f28ae48a92c52575b49f5dfad473f77fda92b55f0101a` | REVISION 6: replicate-complete allocator capped at 57 per replicate per batch, fleet ceiling 5, epoch-2 allowance, funding against the pinned Q2 basis, crash rule on the shared fatal-signal set, ack with classified unproduced | `aws_ec2/` (live `b8ca02b8`) |
 | `aws_ec2/prod_launch.py` | `143c5221c30daac7d1482275bed70ec5bfa323bdff7733748cecd14dc832fa9b` | REVISION 6: schema-2 production plan inside the qualified concentration, fleet + epoch gate (authenticated basis, funded lifetime) in admission | `aws_ec2/` (live `21b7cf57`) |
@@ -260,11 +260,11 @@ In all three, no record or timing may be present. Everything else HOLDS the whol
 
 The register lists `unproduced` with each exit, and the fence is raised there. The Mac `ack` releases published + unproduced,
 which must equal the owned set exactly, and records the exits. A coordinate whose worker died by a fatal signal (REVISION 6:
-any exit 129..159, the set ingestion admits) in two acknowledged same-envelope attempts (contract, instance type, lifetime) is never allocated again. This
+any exit 129..159, the set ingestion admits) in two acknowledged same-envelope attempts (physical envelope: normalised contract label, instance type, lifetime; s.8) is never allocated again. This
 is the EC2 form of s.4's "after two same-envelope fatal allocation/signal crashes, do not issue a third identical attempt".
 No EC2 rescue route is built.
 
-Qualification attempts and every schema-1 epoch keep all-or-nothing.
+Every schema-1 epoch, and every qualification attempt except a RELEASED schema-2 E2Q1/E2Q2 (REVISION 8, s.8), keeps all-or-nothing.
 
 ## 4. Choices the design left open (each needs Codex's view)
 
@@ -286,7 +286,7 @@ Qualification attempts and every schema-1 epoch keep all-or-nothing.
    allowed, exit 4 holds. Accepted in principle after A1 and the replay repair (s.7); the limits are prospective operational
    choices, not statistically established safe rates.
 8. **EC2 crash rule:** changed per A2 - every fatal exit 129..159 (exit 137 is SIGKILL; OOM only with host evidence),
-   envelope (contract, itype, lifetime), threshold 2.
+   envelope (contract, itype, lifetime; REVISION 8 normalises E2Q1/E2Q2/production to one label at production geometry, s.8), threshold 2.
    Censored and dispositioned (spot) attempts do not count; they spend the allowance instead.
 9. **Allowance accounting:** "extra" = production attempts beyond the first 46 non-rejected by sequence; qualification runs
    are named `qual-E2*`; money is at worst case until reconciled; the epoch cap (forecast + allowance) is enforced on top of
@@ -395,3 +395,34 @@ tests with stubbed AWS. Controls v17 (pinning e2 and the REVISION-6 helpers, `ro
 print-line diff). A fresh post-v16 snapshot, declaration and funding review. The e2 contracts, the schema-3 certificate, the
 qualifier and the release branch (with E2Q1 concentration >= 61, the funding bytes and the qualified manifest bound). The
 actual Q1 attempt 4 disposition and fence. Capacity evidence. Production stays shut.
+
+## 8. REVISION 8: the released-E2Q route, for Codex's adoption review of 19 Oct (B1)
+
+Review: `reviews/2026-10-19_e2_adoption_codex_review.md` (CHANGE 3: A FAVOURABLE; B CHANGE 2; C CHANGE 1). Written 19 Oct 2026
+(R052, Claude, bounded job). Local candidate repair and tests only: no AWS, ssh, Lengau, promotion, deployment, adoption or live
+file edit. The B2 and C1 repairs are in `chpc/candidate_e2q/DESIGN_e2q.md` s.8 and `chpc/candidate_v17/DESIGN_v17.md` s.8.
+
+| Review item | Change | Test |
+|---|---|---|
+| B1, the route | `row19_ec2_ingest.py` REVISION 8 (reviewed `6ac144c6` -> `277c51b0a24fee6b151180e99584a831c091ca4b30b6bd999a1221ff364bf54f`): the proposed diff applied in the scope the review set. `partial` is true for schema 2 and either class production or `e2q_released` = class qualification AND listed in the installed inventory's `released_attempts` AND contract in `E2Q_CONTRACTS` = (E2Q1, E2Q2). The register entry keeps `cls` "qualification". Every other check is unchanged and runs for it: inventory, release, activation, operational manifest, plan, typed outcomes, censor list, the three qualifying kinds, present-status rules, units, ownership and fence under the lock, comparisons, journaled failure evidence, completion and replay | `chpc/candidate_e2q/test_e2q_ingest.py` s.1-s.3 |
+| B1, R4' | for `e2q_released` the ingestion also applies `row19_ec2_e2rules.qualification_unproduced_problem`: at most 3 non-completions of ALL roles. Production's 7-work-slot bound still runs but is not the qualification bound | `test_e2q_ingest.py`: 3 non-completions across roles publish; a 4th HOLDS, both with 4 work slots (inside the 7 bound) and mixed across roles |
+| B1, source assertion | `test_e2_ingest.py:351` asserted the old gate text; it now asserts the REVISION 8 gate text and `E2Q_CONTRACTS` | `test_e2_ingest.py` 63/63 |
+| B1, holding cases | unchanged code paths, now exercised for released E2Q | unreleased (with and without a non-completion), schema 1 (released E2Q1 under e1), another qualification contract (released epoch-1 Q1 geometry under e2), exit 4, present-null status, leftover output, missing work output, a duplicate of exit 1, 2 sentinels, a sentinel and a duplicate difference (ec2/HOLD), an unbound censor label: each HOLDS; schema-1 and Q1 positive controls ingest complete |
+| B1, recovery | unchanged code paths | forced stop -> 'ingesting', replay -> 'ingested', second replay; changed evidence on completion (139 -> 137) and on replay (139 -> censored) HOLD with ec2/HOLD |
+| B1, exact ACK | unchanged `ack` | the REAL `prod_authority.ack` releases published 51 + unproduced 1 = the 52 owned coordinates and refuses an entry that misses one |
+| Choice-3 ruling | `chpc/candidate_e2q/aws_ec2/prod_authority.py` REVISION 8 (DESIGN_e2q.md s.8): acknowledged fatal unproduced E2Q owned work counts toward the same physical two-crash exclusion | `test_e2q_ingest.py` s.4 |
+
+**Choice 3, as applied.** The crash history reads production runs and the `qual-E2*` runs, only attempts acknowledged as
+ingested, only their `ingest_ack` unproduced map (owned WORK only, so never duplicates or sentinels), and still counts only the
+fatal-signal class. The envelope label is normalised by `crash_envelope`: E2Q1, E2Q2 and production share the label "production"
+only when the contract's producer geometry (instance type, workers, volume) equals production's and the attempt's recorded
+instance type is production's. The lifetime is never normalised. B_full holds for every counted entry by construction: ingestion
+publishes only an effective B_full attestation, the profile all three operational manifests declare. The mixed test runs two
+real ingestions and two real ACKs (E2Q1 exit 139, production exit 137 at the same coordinate): one alone does not exclude; both
+exclude, and the allocator skips the coordinate while its neighbours stay allocatable. Under REVISION 7's rule (production runs
+only, envelope keyed by contract name) the same ledgers exclude nothing. Controls that do not exclude: a different lifetime, a
+different recorded instance type, a different producer geometry, an epoch-1 Q1 contract, a censored outcome, a dispositioned
+attempt, and crashed duplicate/sentinel slots.
+
+This is the prospective ruling on the exception DESIGN_e2q offered; the declared contract-label rule was not hidden.
+`QUALIFICATION_E2.md` s.5 ("two acknowledged same-envelope attempts") is unchanged: the ruling defines the envelope as physical.
