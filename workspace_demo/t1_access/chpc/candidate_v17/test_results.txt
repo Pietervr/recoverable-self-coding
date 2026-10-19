@@ -76,3 +76,15 @@ by test_v17.py section 2 and by the three admission suites above.
 - promote_v17.py --check requires the candidate committed (git-tracked, unmodified); it is run after the package commit and
   its output is appended below in a follow-up commit.
 - No migration_v17 script exists yet (preflight, archive, deploy, rollover, adopt): DESIGN_v17.md s.6.
+
+## After the package commit (RSC c05a489)
+$ python3 chpc/candidate_v17/promote_v17.py --check                                  rc 0
+CANDIDATE OK: controls v17 92f28b8fbd53a2a13635022ff01d2a76ef75a1986e670311ccfb768f7cdc80aa, 19 map rows + the controls, every pin = its source bytes, versions 1-16 = adopted v16, e2 partition 48cea639 loads and regenerates (verify2)
+live tree: {'v16': 20, 'v17': 0, 'other': 0}
+the adoption literal this candidate needs: ADOPT row19-screen-controls sha256=92f28b8fbd53a2a13635022ff01d2a76ef75a1986e670311ccfb768f7cdc80aa version=17
+$ python3 chpc/candidate_v17/promote_v17.py --dry-run --review reviews/2026-10-17_v16_p80_codex_review.md      rc 3 (expected refusal)
+REFUSED:
+  - reviews/2026-10-17_v16_p80_codex_review.md does not carry the literal `ADOPT row19-screen-controls sha256=92f28b8f... version=17`
+  - the Mac archive chpc/results/archive/row19_screen_v16_before_v17/ does not exist (migration_v17 archive step)
+$ python3 chpc/candidate_v17/build_v17.py --check                                    rc 0
+CHECK OK: the candidate controls and promotion map are the deterministic build
