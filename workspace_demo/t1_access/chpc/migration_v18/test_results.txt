@@ -1,0 +1,85 @@
+migration_v18 - test results (20 October 2026, R052, Claude bounded job). BUILT AND TESTED ONLY: nothing was run against the live
+tree, Lengau or AWS; no ssh, scp, promotion, deployment, rollover or adoption took place.
+
+Command:   python3 chpc/migration_v18/test_migration_v18.py        (from workspace_demo/t1_access)
+Host:      macOS 27.0.1, Python 3.14.6, GNU bash 5.3.20, git 2.50.1 (Apple Git-155)
+Result:    37 passed, 0 failed (37 tests, 376 s), exit 0 (an earlier identical run: 37/0, 377 s)
+
+Frozen fixture: FIXTURE_COMMIT 6d82a737516cd3cfeb71b2087b9e886e62ed8b8c (RSC 6d82a73, the adopted v17 Mac tree); every FROZEN
+member and the 17 v17 pins verified at that commit; only chpc/candidate_v18_nodefail/* read from the working tree (PACKAGE-pinned).
+The v17 suite on the same day: `test_migration_v17.py -k t_positive` FAILS at once ("the live Mac
+chpc/results/row19_screen/receipts/qualified_refit_job1.json is not 2c7a7ef1") - it seeds from the live tree, which is now v17.
+
+Bytes tested (sha256):
+  RUNBOOK.md                 (documentation; not executed) 9dcf3eb71a8b0aa912690e72f44e691a156951ebe0c937f1f3097262e29901c1
+  adopt_pilot18.sh           812baf8acb9651297849f47e8c2d2f14c0bea5263803dc69901102be4c0d917d
+  archive_v17.sh             89a7d1f889276a0bc3f84eb9957fe5b32ca3931c4d405a4486e40dd1b8ca5dcb
+  check_v18.sh               30d7582bdd0882add0486af95444655f4be2fd89a7ea76b67da4d94cd9742c2f
+  deploy_v18.sh              6b9d4b4033e38dfa43c6f512dadfb3af46b9f8624d21df6b56b2aa410e3ba327
+  lengau.sh                  28dbaac81ece9d576d1a0533d9dbb8f6a0d9de5f2bc958505d46496c8351368c
+  lengau_archive.py          b5e56d2a8a33f9c822bdd184390408b61a96d9979300abbf174097764788f750
+  mac_archive.py             020f7ad0dc973572874ddf1edea6cc26aec3755d3cd6716956924787214c9730
+  package_qual_v18.py        0184b4dd32452ed6e13c4be68b340644fdc6d366a3e75f20d562bc328f201160
+  preflight_v18.sh           ea682664a71020d68e5f69edc1b81d6b4ee79330cdd2052cc85744fb3595b47e
+  receipt_check_v18.py       e312d384736271d43487969a0beefa8f15abdb7ea35bb1fe13d0a6cdccd44b0b
+  receipts_v18.sh            0904586a7fa5c6c1b16dd889824bf2af40f718e0f1eb5f974fd52b332cd58350
+  remote_lib.sh              3a0be7bc3650e5f7e68cc81052709d2e41d4bed066ed8107ed30616cce3df5dd
+  rollover_pilot_v18.sh      861910d67b5bc123659105989feb8911abc9ebc17ab7636f1d3a4e3801555c7e
+  test_migration_v18.py      8e1003ca28f1db397dd051e06a7320c25a5ddd254b28428fc4fb077e08cb1129
+  v17_to_v18.diff            838d75614bf3dcfe64e6d1699f6168a379d19cfa5172d45e1de1040c7998db39
+  v18_package.py             6fed9b469733a80e77e91ef09fe1462d0814b4d531ee08e2a106c3cd7f58aed5
+Package read (candidate_v18_nodefail, pinned by v18_package.PACKAGE):
+  row19_screen_controls.json  452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b
+  v18_promotion_map.json      380871da0f0e6c47cccc01fcaaf9cd4b5c6acdba98d8fb06abfbf51960295740
+  build_v18.py                f8ced83a9149bbfe07f3b0a50992d29ebcd0b9829482663fe6d9d1bd0a66c147  (REVISION 2: base-first archive branch; same built bytes)
+  promote_v18.py              964b101b70881324e6c337d18165909da471b2bcb4b9161f9412de71275dc67b  (NEW)
+  row19_screen_nodefail.py f6afeb10, row19_nodefail_capture.py 84d52bdf, row19_screen_status.py 4710544a,
+  row19_screen_admit.py e2260765, evidence_row19_screen_refit_54.nodefail.json 730ea262
+
+The production v18_package.py record pin is PENDING (None, None); the worlds substitute a synthetic record carrying the v18
+literal (the @record tag), and t_record_pending proves the PRODUCTION bytes refuse every gate.
+
+PASS ( 0.1s) static: no test hook, one fixed root, one fixed transport, one PENDING record line, no worker/reaper stop, no AWS/EC2/activation call, no `| grep -q`, every file parses
+PASS ( 0.1s) static: the composed production Lengau script (each direct body) carries exactly the production root and parses
+PASS ( 0.0s) static: the package identities (controls, map, builder, promoter, sources, node evidence) equal the candidate folder; every script constant agrees with build_v18
+PASS ( 0.3s) static: the frozen fixture - one pinned commit, every member at its pinned hash, the 17 v17 pins verified; nothing read from the live controller state
+PASS ( 0.0s) static: CTL_EVIDENCE (remote_lib.sh) and UNTRACKED_CTL (lengau_archive.py) are the same three pinned files
+PASS ( 0.0s) Lengau compat: every Lengau-side Python (lengau_archive.py, LOCK_PY, ACT_PY, each t1py -c body) is 3.6-level code
+PASS ( 0.5s) boundary: a body run without the prelude refuses; lengau.sh refuses any other body; the harness refuses an alias of production
+PASS ( 8.1s) record pin: the PRODUCTION v18_package.py (record PENDING) refuses preflight, check-promoted, payload and every step; a record of other bytes or without the literal refuses
+PASS ( 2.7s) boundary: a valid isolated fake root reached through an alias passes preflight (every path resolves beneath its physical root)
+PASS (19.1s) positive route: preflight, archive (+re-run), promote_v18 (+re-run), commit, deploy (+re-run), receipts, rollover (+re-run), package, adopt; running jobs and epoch 2 untouched
+PASS (14.7s) Lengau compat: the whole route runs on the restricted git and flock CLIs (no rejected call, no python fallback for a decidable lock)
+PASS ( 7.6s) preflight refuses (Mac): a changed package byte (controls, map, builder, promoter, a source, the node evidence), a held authority lock, a busy Mac
+PASS ( 4.7s) preflight refuses (Mac): live tree not v17 (status edited / a v18 path present), Mac qualification not 8fdbf48e, pilot record changed, uncommitted budget
+PASS (29.7s) preflight refuses (Lengau): a v18 path in the controller, no/invalid epoch-2 activation, node document missing/changed, review not bound to 8fdbf48e, ledger cap, leftovers, controller not v17
+PASS (21.4s) archive: one-file remote archive refuses and is left as it was; missing ledger / activation_e2 / node document / pilot record / review / jobs refuse
+PASS ( 6.4s) archive: failed checksum / unreadable source refuse; an interrupted build (staging left, Lengau or Mac) refuses and is never removed
+PASS ( 7.5s) archive retry: the Lengau half published but the Mac half failed (budget mismatch) -> nothing on the Mac; repaired, the re-run builds the Mac half
+PASS ( 4.1s) archive: a self-consistently rewritten Lengau archive (node document, activation_e2 or pilot record dropped) and a substituted Mac member refuse
+PASS ( 0.4s) Mac archive: writable member, foreign COMPLETE, extra file refuse the strict verify; the builder's archive_problems accepts the real one
+PASS ( 6.7s) promote interruption: stopped after the controls copy (adoption still v17) - check-promoted and deploy refuse; promote_v18 resumes from the ARCHIVE base; deploy proceeds
+PASS ( 0.6s) promote base: after the promotion a missing or corrupted Mac archive refuses every promote_v18/build_v18 command (no live v18 base is ever accepted)
+PASS (18.6s) deploy refuses before any controller change: one-file / corrupted Lengau archive, uncommitted promotion, a broken epoch-2 activation, a changed node document
+PASS (20.0s) deploy: drain observations (ps failed/empty, a settlement in flight, a capture running, a held lock, no probe) refuse before any controller change
+PASS (34.6s) deploy: missing/digest-failed/partial science refuses before any change; a changed or incomplete after-proof refuses completion and every re-run HOLDS
+PASS (22.7s) deploy retry: a copy failure resumes on the pre-mutation proof; a mid-payload failure / a refused commit leave a dirty clone every re-run refuses
+PASS (26.1s) deploy retry: a deployed clone without its proof, with science changed after DONE, or a tampered preserved manifest HOLDS; DONE + equal science is OK
+PASS ( 8.3s) deploy: payload that does not compile/parse under t1py, or a v18 path already in the controller, refuses before any change
+PASS ( 6.4s) containment: controller clone, archive dir, gate member, ec2 dir or the node document pointing outside refuse; nothing written outside
+PASS (14.4s) containment: a committed nested chpc / reviews redirect refuses deploy and adopt before any copy; a temporary-sibling symlink is never followed
+PASS ( 3.7s) containment: a controller alias resolving inside the scientific clone refuses every body; scientific bytes unchanged
+PASS ( 5.7s) controller git: a gitfile or symlinked .git refuses (own-root semantics on the restricted git); a corrupt index refuses
+PASS (14.9s) evidence: the exact three pass and are archived with their hashes; a fourth file, a changed hash, a symlink, a newline-named entry refuse
+PASS (30.1s) receipts: an alarm, a v17 generation, no activation_e2, no or another job-54 node disposition, a second node disposition, a failed status or bank receipt refuse; a retry passes
+PASS (11.2s) receipts: the Lengau check refuses before the deploy (controller still v17), without DONE, with epoch 2 broken or the node document changed - no receipt published
+PASS (10.6s) rollover: before the deploy refuses; a changed active review or a corrupted archive refuses (nothing moves); a gate member symlink refuses; an interrupted chmod completes on re-run
+PASS ( 0.8s) package: a qualification not regenerated (8fdbf48e / 2c7a7ef1) / of generation 17 / naming a missing receipt refuses; staging left and a tampered package refuse
+PASS (12.9s) adopt: an active review, the gate still at 8fdbf48e, a record without THIS qualification's literal, an evidence path, an adopter refusal - each refuses; a LARGE record (> 4 KB) is accepted (the pipefail fix) and a large record without the literal refuses
+
+Also re-run after the builder revision: chpc/candidate_v18_nodefail/test_v18_nodefail.py -> 168 passed, 0 failed;
+build_v18.py --check -> OK from the authenticated live v17 base (controls 452b82df, map 380871da unchanged).
+
+Untested on the Mac: real ssh transport and Lengau's real tools (restricted CLIs only) and Lustre's flock/rename/chmod
+behaviour; the real refit/bank receipts (stubbed), the real --qualify and --adopt-review (stubbed/simulated); the real
+controller-clone commit on Lengau; the record pin with the real Codex record (it does not exist yet).

@@ -41,7 +41,8 @@ are REFUSED now; the real `730ea262` evidence is accepted by both.
 | `row19_screen_nodefail.py` | `f6afeb10c8ebdfb2547fe67f344b183262555a6474221ef077c341cd145e92df` (was `96af406e…`) |
 | `row19_screen_controls.json` | `452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b` (was `80214d80…`) |
 | `v18_promotion_map.json` | `380871da0f0e6c47cccc01fcaaf9cd4b5c6acdba98d8fb06abfbf51960295740` (was `d96270d6…`) |
-| `build_v18.py` | unchanged by CHANGE 1 (`41f348c2…`); the migration_v18 job revises it separately (base-first archive branch) |
+| `build_v18.py` | `f8ced83a9149bbfe07f3b0a50992d29ebcd0b9829482663fe6d9d1bd0a66c147` (REVISION 2 for migration_v18: the base-first archive branch; was `41f348c2…`; the built controls and map are byte-identical) |
+| `promote_v18.py` | `964b101b70881324e6c337d18165909da471b2bcb4b9161f9412de71275dc67b` (NEW: the `promote_v17.py` REVISION 2 base-first pattern; `chpc/migration_v18/RUNBOOK.md` step 3) |
 | `row19_nodefail_capture.py` | `84d52bdf…` unchanged (choice 1 (a)) |
 | `evidence_row19_screen_refit_54.nodefail.json` | `730ea262…` unchanged |
 | `row19_screen_status.py` / `row19_screen_admit.py` | `4710544a…` / `e2260765…` unchanged |
@@ -172,7 +173,8 @@ the status view's `--qualify`. Nothing is credited; the 416.47 core-h stay charg
 | `row19_screen_admit.py` | `e22607650058ae2cbb8f19fe3e225d886bd2cc733adf02bb93dbc01d65f719af` | v17 `c3960464` + REVISION 18 (`admit_v17_to_v18.diff`, +106 / -0) |
 | `row19_screen_controls.json` | `452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b` | adopted v17 bytes + ONE appended version-18 entry (`build_v18.py`; reviewed `80214d80`) |
 | `v18_promotion_map.json` | `380871da0f0e6c47cccc01fcaaf9cd4b5c6acdba98d8fb06abfbf51960295740` | the four promoted files + controls, previous bytes, order (reviewed `d96270d6`) |
-| `build_v18.py` | `41f348c26f6f5bc53c807cd503cd22001caf7d085b5b8114406dcbbd5cfba09f` | deterministic builder, `--check` |
+| `build_v18.py` | `f8ced83a9149bbfe07f3b0a50992d29ebcd0b9829482663fe6d9d1bd0a66c147` | deterministic builder, `--check`; REVISION 2 resolves an authenticated v17 base (live exact v17, else only the verified Mac archive `row19_screen_v17_before_v18/`, 8 members incl. the node document) |
+| `promote_v18.py` | `964b101b70881324e6c337d18165909da471b2bcb4b9161f9412de71275dc67b` | NEW: `--check`, `--check-promoted`, `--dry-run`, the promotion and the version-18 adoption record |
 | `test_v18_nodefail.py`, `test_results.txt` | - | 168 checks (111 + 57 for CHANGE 1); regression counts (s.6) |
 
 **Status view (REVISION 18).** Five changes:
