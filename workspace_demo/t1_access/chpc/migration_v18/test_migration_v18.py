@@ -25,7 +25,9 @@ A world is:
   lengaubin/  restricted-CLI shims first on the Lengau half's PATH (git rejects -C; flock rejects -E) as in migration_v17
 The production files are COPIED into mac/.../chpc/migration_v18/ with exactly three tagged lines substituted: the `# @root`
 toolchain root in remote_lib.sh (-> the fake root), the `# @transport` ssh in lengau.sh (-> a local `bash -s`) and the
-`# @record` controls-record pin in v18_package.py (PENDING in production until Codex's verdict -> the world's synthetic record).
+`# @record` controls-record pin in v18_package.py (in production the REAL committed Codex record PROD_REC/PROD_REC_SHA ->
+install(record=True): the world's SYNTHETIC record REC and its own private digest; install(record=False): an explicit private
+PENDING (None, None), so the PENDING refusals still test PENDING and not a wrong/absent record).
 The fake t1py is `python3` for every `-c` snippet and INTERCEPTS only `chpc/row19_screen_admit.py ... --adopt-review` (simulated:
 ok / refuse); ANY other controller script is refused. The refit and bank status commands are private STUBS. Nothing here runs
 ssh/scp, touches Lengau, AWS or the live tree, or writes outside the temp directory (removed at the end unless --keep)."""
@@ -40,7 +42,11 @@ REPO = os.path.abspath(os.path.join(LIVE_T1, "..", ".."))
 PROD_ROOT = "/mnt/lustre/users/pvanrooyen/t1_toolchain"
 TRANSPORT = "ssh -o ControlPath=none -o ConnectTimeout=30 -o BatchMode=yes lengau bash -s"
 ROOT_LINE = "T_ROOT=/mnt/lustre/users/pvanrooyen/t1_toolchain   # @root"
-RECORD_LINE = "REC, REC_SHA = None, None   # @record PENDING: the committed Codex record with the v18 ADOPT literal, and its sha256"
+PROD_REC = "reviews/2026-10-20_v18r2_mig18_codex_review.md"    # the REAL production record (committed at RSC 785f103)
+PROD_REC_SHA = "11ebc12467a50a125f4b583c4d673274e2ff3ea1a2ac0d3e6c03f3725c8cc2c8"
+RECORD_LINE = ('REC, REC_SHA = "%s", "%s"   # @record: the committed Codex record with the v18 ADOPT literal, and its sha256'
+               % (PROD_REC, PROD_REC_SHA))                       # the ONE expected (filled) production assignment
+PENDING_LINE = "REC, REC_SHA = None, None   # @record (PRIVATE TEST COPY: PENDING)"
 SELF = os.path.basename(__file__)
 PROD_FILES = sorted(f for f in os.listdir(HERE) if os.path.isfile(os.path.join(HERE, f)) and f != SELF and not f.startswith(".")
                     and f != "test_results.txt" and not f.endswith(".diff"))
@@ -49,7 +55,7 @@ V17_QUAL = "8fdbf48e998e39a8c0b12900d75e3dfaf4ab64396ade08a17a5cab549c0b5faa"
 V17_CONTROLS = "9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0"
 V18_CONTROLS = "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b"
 NODE_EV_SHA = "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f"
-REC = "reviews/test_v18_controls_record.md"            # the world's SYNTHETIC controls record (the real one does not exist yet)
+REC = "reviews/test_v18_controls_record.md"            # the world's SYNTHETIC controls record (never PROD_REC)
 REC_TEXT = "# PRIVATE TEST RECORD (never production)\n\nADOPT row19-screen-controls sha256=%s version=18\n" % V18_CONTROLS
 REAL_SHA256SUM = shutil.which("sha256sum") or "/sbin/sha256sum"
 REAL_PY = shutil.which("python3") or sys.executable
@@ -386,9 +392,9 @@ class World:
             if f == "lengau.sh":
                 assert src.count(TRANSPORT) == 1, "lengau.sh must carry exactly one production transport"
                 src = src.replace(TRANSPORT, 'PATH=%s:"$PATH" bash -s' % shlex.quote(self.lbin))
-            if f == "v18_package.py" and record:
-                assert src.count(RECORD_LINE) == 1, "v18_package.py must carry exactly one PENDING record line"
-                src = src.replace(RECORD_LINE, rec_line)
+            if f == "v18_package.py":
+                assert src.count(RECORD_LINE) == 1, "v18_package.py must carry exactly one filled production record line"
+                src = src.replace(RECORD_LINE, rec_line if record else PENDING_LINE)
             write(os.path.join(dst, f), src, os.stat(os.path.join(HERE, f)).st_mode & 0o777)
         changed = []
         for f in PROD_FILES:
@@ -396,9 +402,12 @@ class World:
             changed += [(f, x) for x, y in zip(a, b) if x != y]
             if len(a) != len(b):
                 raise Fail("private copy of %s changed its line count" % f)
-        want = ["lengau.sh", "remote_lib.sh"] + (["v18_package.py"] if record else [])
-        if sorted(c[0] for c in changed) != sorted(want) or len(changed) != len(want):
+        want = sorted([("lengau.sh", [l for l in open(os.path.join(HERE, "lengau.sh")).read().splitlines() if TRANSPORT in l][0]),
+                       ("remote_lib.sh", ROOT_LINE), ("v18_package.py", RECORD_LINE)])
+        if sorted(changed) != want:      # root, transport AND record substituted on both paths; nothing else
             raise Fail("the private copy differs from production on other lines: %s" % changed)
+        if open(os.path.join(dst, "v18_package.py")).read().splitlines().count(rec_line if record else PENDING_LINE) != 1:
+            raise Fail("the private v18_package.py does not carry exactly one %s record line" % ("synthetic" if record else "PENDING"))
 
     def run(self, *cmd, timeout=600):
         env = dict(os.environ); env["PATH"] = self.bin + os.pathsep + env["PATH"]
@@ -614,7 +623,7 @@ def pilot_record(w, qsha, name="reviews/test_pilot_v18_record.md", filler=0, lit
 
 
 # ================================================================================================ static and boundary
-@test("static: no test hook, one fixed root, one fixed transport, one PENDING record line, no worker/reaper stop, no AWS/EC2/activation call, no `| grep -q`, every file parses")
+@test("static: no test hook, one fixed root, one fixed transport, one filled real record line, no worker/reaper stop, no AWS/EC2/activation call, no `| grep -q`, every file parses")
 def t_static():
     for f in PROD_FILES:
         s = open(os.path.join(HERE, f)).read()
@@ -637,7 +646,8 @@ def t_static():
     need(open(os.path.join(HERE, "remote_lib.sh")).read().count(ROOT_LINE) == 1, "remote_lib.sh lacks the single fixed root line")
     rec = {f: open(os.path.join(HERE, f)).read().count("# @record") for f in PROD_FILES if f != "RUNBOOK.md"}
     need(sum(rec.values()) == 1 and rec["v18_package.py"] == 1, "exactly one @record line, in v18_package.py: %s" % rec)
-    need(RECORD_LINE in open(os.path.join(HERE, "v18_package.py")).read().splitlines(), "the production @record line is not PENDING (None, None)")
+    need(open(os.path.join(HERE, "v18_package.py")).read().splitlines().count(RECORD_LINE) == 1,
+         "the production @record line is not the one filled real record (%s, %s)" % (PROD_REC, PROD_REC_SHA[:16]))
     for f in ("check_v18.sh", "rollover_pilot_v18.sh", "adopt_pilot18.sh"):
         need("/mnt/lustre" not in open(os.path.join(HERE, f)).read(), "%s names a toolchain root of its own" % f)
     need("PENDINGBUILDER" not in open(os.path.join(HERE, "v18_package.py")).read() + open(os.path.join(HERE, "mac_archive.py")).read()
@@ -659,7 +669,10 @@ def t_identities():
     for p, h in VP.PACKAGE.items():
         need(sha(os.path.join(LIVE_T1, p)) == h, "the candidate %s is not the pinned %s" % (p, h[:8]))
     need(VP.LITERAL == "ADOPT row19-screen-controls sha256=%s version=18" % V18_CONTROLS and VP.V18_CONTROLS == V18_CONTROLS, "literal")
-    need(VP.REC is None and VP.REC_SHA is None, "the production record pin is not PENDING")
+    need(VP.REC == PROD_REC and VP.REC_SHA == PROD_REC_SHA, "the production record pin is not the real record: %s %s" % (VP.REC, VP.REC_SHA))
+    need(PROD_REC != REC and PROD_REC_SHA != hashlib.sha256(REC_TEXT.encode()).hexdigest(), "the synthetic record is not distinct from production")
+    need(sha(os.path.join(LIVE_T1, PROD_REC)) == PROD_REC_SHA, "the real record %s is not %s" % (PROD_REC, PROD_REC_SHA[:16]))
+    need(VP.LITERAL in [l.strip() for l in open(os.path.join(LIVE_T1, PROD_REC)).read().splitlines()], "the real record lacks the literal line")
     rl = open(os.path.join(HERE, "remote_lib.sh")).read()
     for k, v in (("V17_CONTROLS", V17_CONTROLS), ("V18_CONTROLS", V18_CONTROLS), ("V17_QUAL", V17_QUAL), ("V16_QUAL", V16_QUAL),
                  ("NODE_EV_SHA", NODE_EV_SHA), ("V17_ADOPTION", FROZEN["chpc/row19_screen_controls_adoption.json"]),
@@ -781,7 +794,7 @@ def t_boundary():
     w.install()
 
 
-@test("record pin: the PRODUCTION v18_package.py (record PENDING) refuses preflight, check-promoted, payload and every step; a record of other bytes or without the literal refuses")
+@test("record pin: v18_package.py with its record pin explicitly PENDING (install(record=False)) refuses preflight, check-promoted, payload and every step; a record of other bytes or without the literal refuses")
 def t_record_pending():
     w = stage("fresh"); w.install(record=False)
     for args in (("v18_package.py", "preflight"), ("v18_package.py", "payload"), ("preflight_v18.sh",), ("archive_v17.sh",)):

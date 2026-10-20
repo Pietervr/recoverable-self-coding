@@ -22,7 +22,7 @@ import fcntl, hashlib, json, os, re, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = os.path.abspath(os.path.join(HERE, "..", ".."))
 CAND = os.path.join(T1, "chpc", "candidate_v18_nodefail")
-REC, REC_SHA = None, None   # @record PENDING: the committed Codex record with the v18 ADOPT literal, and its sha256
+REC, REC_SHA = "reviews/2026-10-20_v18r2_mig18_codex_review.md", "11ebc12467a50a125f4b583c4d673274e2ff3ea1a2ac0d3e6c03f3725c8cc2c8"   # @record: the committed Codex record with the v18 ADOPT literal, and its sha256
 V18_CONTROLS = "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b"
 LITERAL = "ADOPT row19-screen-controls sha256=%s version=18" % V18_CONTROLS
 PACKAGE = {   # the package identities (DESIGN_v18.md s.0; chpc/candidate_v18_nodefail at RSC 3da2ea3 + the migration commit)
