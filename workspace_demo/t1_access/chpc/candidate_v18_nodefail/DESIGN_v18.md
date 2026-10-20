@@ -5,6 +5,55 @@ the world: no ssh, scp, Lengau, PBS or AWS operation was performed. No adopted o
 the controls (v17 `9ea4e727`), the adoption record (`61ca680e`), the manifest and everything v17 pins were read only. The only new
 bytes are in this folder.
 
+## 0. CHANGE 1 (Codex review 2026-10-20) - the strict evidence decoder; the package this revision asks a verdict on
+
+Codex's review `reviews/2026-10-20_v18_nodefail_codex_review.md` (RSC `6d82a73`) asked for ONE repair group on candidate
+`80214d80`: the evidence validator scanned dictionary values only (a list, nested container or number in `node.comment` passed,
+and the rule then carried that value into `node_comment`), and plain `json.loads` silently kept only the last of duplicate keys
+(a raw first `comment` could sit in the hashed bytes behind a clean second one). It accepted the eleven choices as built (choice
+1: (a), the capture pin `84d52bdf` and the evidence `730ea262` retained unchanged) and found the captured evidence itself clean.
+
+**What changed (`row19_screen_nodefail.py` only; the capture script, status view and admission are byte-unchanged).**
+`evidence_doc_problem` is now a strict decoder, in this order, before any value is used:
+1. size at most 4,096 bytes (unchanged);
+2. `strict_loads`: UTF-8; an `object_pairs_hook` that REFUSES a duplicate key in any object at any depth (nothing is
+   overwritten, so nothing can vanish before validation); NaN / Infinity refused and any number that decodes non-finite
+   (`1e999`) refused;
+3. `shape_problem` against `DOC_TYPES`, the declared type of every field: exact key sets, objects only where declared, NO list
+   anywhere, strings as `str`, integers as non-boolean `int`, the two output flags as `bool`, `captured_at` a finite
+   non-boolean number, the three digests lower-case hex64;
+4. the raw-text rule on EVERY string: at most 160 characters, single line (no CR/LF/tab or other control character, no
+   U+0085/U+2028/U+2029), no ` = `, no `Job Id:`. `node.comment` is therefore a bounded single-line string (possibly empty,
+   still informational - choice 4);
+5. the bytes must be EXACTLY `json.dumps(doc, indent=1, sort_keys=True) + "\n"`, the one serialisation the capture script
+   writes: the retained, hashed bytes then carry nothing the validated document does not (an extra layer beyond the review's
+   ask - open choice A below);
+6. the unchanged semantic checks; every evidence error still fails closed.
+
+Codex's focused probes, run against the reviewed `96af406e` copy and the revision (`test_results.txt`): list comment with raw
+qstat text, nested list, nested object, numeric comment and the duplicate raw-then-clean comment were ACCEPTED by `96af406e` and
+are REFUSED now; the real `730ea262` evidence is accepted by both.
+
+**The rebuilt package (nothing else moved).**
+
+| File | SHA-256 |
+|---|---|
+| `row19_screen_nodefail.py` | `f6afeb10c8ebdfb2547fe67f344b183262555a6474221ef077c341cd145e92df` (was `96af406e…`) |
+| `row19_screen_controls.json` | `452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b` (was `80214d80…`) |
+| `v18_promotion_map.json` | `380871da0f0e6c47cccc01fcaaf9cd4b5c6acdba98d8fb06abfbf51960295740` (was `d96270d6…`) |
+| `build_v18.py` | unchanged by CHANGE 1 (`41f348c2…`); the migration_v18 job revises it separately (base-first archive branch) |
+| `row19_nodefail_capture.py` | `84d52bdf…` unchanged (choice 1 (a)) |
+| `evidence_row19_screen_refit_54.nodefail.json` | `730ea262…` unchanged |
+| `row19_screen_status.py` / `row19_screen_admit.py` | `4710544a…` / `e2260765…` unchanged |
+
+Proposed literal for the NEW package (it authorises nothing until a FAVOURABLE verdict issues it; `80214d80` must not be reused):
+
+    ADOPT row19-screen-controls sha256=452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b version=18
+
+**Open choice A (for Codex).** The canonical-bytes requirement (step 5) is stricter than the review asked. It accepts the
+real capture (its bytes ARE the canonical serialisation) and anything the pinned capture script writes; it refuses a
+hand-reformatted copy. The alternative is to drop step 5 and rely on steps 2-4 alone.
+
 ## 1. The case
 
 Refit job 54 = PBS `7551259.sched01`, plan `job_54` (sha256 `3081274f…`), 24 slots of one coordinate each (slots 0-14 = rep 5
@@ -20,11 +69,14 @@ indices 65-79, slots 15-23 = rep 8 indices 11-19), token `dd8d1b891252`. Facts, 
 | No `row19_screen_refit_54.out` / `.err` (scp: No such file or directory) | `live/refit/jobs/_fetch.json` |
 | Receipt `watch_refit_20261020T201925Z.json`: fresh, production, 24 alarms - all job 54's (exit 265, no runner end, 22 missing statuses); `disposition_held` "status evidence scoped to 7551259.sched01: [slot19, slot20]" | `chpc/results/row19_screen/receipts/` |
 
-**I can't determine the time zone of the printed 20:00:36.** The brief writes "20 Oct 20:00:36"; the R052 log writes "20:00:36Z".
-qstat and pbsnodes print the login node's local time. If that is SAST, the job ended 18:00:36Z, ~20 min after the last mom
-walltime update (stime + 17:21:10 ≈ 17:40Z); if UTC, 2 h 20 min after it. The design does not depend on which: the capture
-script runs qstat/pbsnodes as its own subprocesses and records the UTC offset of that same process, and the validator recomputes
-every epoch from the printed string and that offset. Both readings pass the rule (test part 1).
+**The time zone is now settled by the capture (evidence `730ea262`, UTC offset 7200).** Lengau prints local SAST (UTC+2). The
+printed "20 Oct 20:00:36" is therefore **18:00:36Z**: job start (stime) `2026-10-20T00:19:36Z`, job mtime = pbsnodes
+last_state_change_time `2026-10-20T18:00:36Z` (difference 0 s), capture `2026-10-20T20:43:08.856Z`. Elapsed start-to-end is
+63,660 s against the reported 62,470 s used (17:21:10), below the 171,000 s request-minus-reserve threshold; 24 x 62,470 / 3,600 =
+416.4667 core-h agrees with the settled charge (Codex's independent arithmetic, review s."Captured evidence"). The earlier
+R052 log reading "20:00:36Z" is a dated history entry and stays as written. The design never depended on the zone: the capture
+records the UTC offset of its own process and the validator recomputes every epoch from the printed string and that offset
+(test part 1 still exercises both readings).
 
 Why neither existing class fits: closed-no-record (REVISION 8) needs NO status scoped to the job and a retrieved PBS output with no
 ADMISSION FAILED; the crashed-worker slot disposition (REVISION 14) needs scheduler AND runner exit 4 and one fatal-signal line per
@@ -51,9 +103,11 @@ when ALL hold:
    - a finite `runner_started` (job-start ran, so this is not an admission failure);
    - token, PBS id and job equal to the plan's.
 3. **Node evidence** (`<toolchain>/jobs/row19_screen_refit_<n>.nodefail.json`; strict validator `evidence_doc_problem`):
-   - **Form.** Schema `row19-screen-nodefail-1`, exactly the declared keys at every level, at most 4,096 bytes. Every string is
-     at most 160 characters on one line, with no `key = value` text and no `Job Id:`, so raw scheduler output is refused in any
-     shape. No NaN or Infinity.
+   - **Form (CHANGE 1, s.0).** Schema `row19-screen-nodefail-1`, at most 4,096 bytes, decoded strictly (a duplicate key at any
+     depth refuses; no NaN, Infinity or non-finite number), exactly the declared keys AND declared type of every field at every
+     level (no list or undeclared container anywhere), every string at most 160 characters on one line with no control
+     character, `key = value` text or `Job Id:`, and the bytes exactly the canonical serialisation. Raw scheduler output is
+     refused in any shape.
    - **Provenance.** `capture_sha256` must equal the latest controls version's pin of `chpc/row19_nodefail_capture.py`. Under
      v17 there is no pin, so the class never applies.
    - **Identity.** The job, PBS id, role, state F and exit are the ledger's and the observation's.
@@ -84,6 +138,11 @@ when ALL hold:
    Separately, EVERY timing file naming the PBS id must be a completed worker's planned coordinate in its slot, at its canonical
    path (the V15-1 rule).
 
+   **Assurance limit (Codex review, inherited).** These scans read the CANONICAL coordinate paths. An aliased rep directory
+   (for example a synthetic `records/rep005/rec_065.json`) is not rescanned by the rule; the producer verifier rejects aliased
+   rep directories at collection and the status view keeps its invalid/foreign alarms. This is not a claim that no
+   non-canonical file exists on the filesystem.
+
 **Granted.** The summary carries `node_disposition`:
 - **What it records:** kind, PBS id, scheduler exit, runner exit None, the settlement certificate, plan sha256, evidence file and
   sha256, the node, its state and comment, both epochs and their difference, walltime used, completed/no-status slots,
@@ -107,14 +166,14 @@ the status view's `--qualify`. Nothing is credited; the 416.47 core-h stay charg
 
 | File | SHA-256 | Change |
 |---|---|---|
-| `row19_screen_nodefail.py` | `96af406e3550c62e524ea39d1e863797fcd55fb058ecff3370724737f817914d` | NEW: constants, strict evidence validator, the shared rule |
+| `row19_screen_nodefail.py` | `f6afeb10c8ebdfb2547fe67f344b183262555a6474221ef077c341cd145e92df` | NEW: constants, strict evidence decoder/validator (CHANGE 1; reviewed `96af406e`), the shared rule |
 | `row19_nodefail_capture.py` | `84d52bdfc31725182f7bad53caf1bee88ecf01e1e474a7545b1c3971f655bc9c` | NEW: the owner's Lengau capture script (s.4) |
 | `row19_screen_status.py` | `4710544a3861b688b0f2c89e67a8ba56cf65261a8900d4147658fee576f58232` | v17 `a9f9180b` + REVISION 18 (`status_v17_to_v18.diff`, +64 / -6) |
 | `row19_screen_admit.py` | `e22607650058ae2cbb8f19fe3e225d886bd2cc733adf02bb93dbc01d65f719af` | v17 `c3960464` + REVISION 18 (`admit_v17_to_v18.diff`, +106 / -0) |
-| `row19_screen_controls.json` | `80214d80c6c4e093ed72a47f19bc875daaf686e19f837b13cb20d604b571fd93` | adopted v17 bytes + ONE appended version-18 entry (`build_v18.py`) |
-| `v18_promotion_map.json` | `d96270d65c08d4d61a3e6cd0884f18b5c1ea797c0c21181eb298d106f08e39ed` | the four promoted files + controls, previous bytes, order |
+| `row19_screen_controls.json` | `452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b` | adopted v17 bytes + ONE appended version-18 entry (`build_v18.py`; reviewed `80214d80`) |
+| `v18_promotion_map.json` | `380871da0f0e6c47cccc01fcaaf9cd4b5c6acdba98d8fb06abfbf51960295740` | the four promoted files + controls, previous bytes, order (reviewed `d96270d6`) |
 | `build_v18.py` | `41f348c26f6f5bc53c807cd503cd22001caf7d085b5b8114406dcbbd5cfba09f` | deterministic builder, `--check` |
-| `test_v18_nodefail.py`, `test_results.txt` | - | 111 checks; regression counts (s.6) |
+| `test_v18_nodefail.py`, `test_results.txt` | - | 168 checks (111 + 57 for CHANGE 1); regression counts (s.6) |
 
 **Status view (REVISION 18).** Five changes:
 - **`fetch_job_outputs`.** For a settled refit entry with no runner end whose note's Exit_status is in the kill set, it also
@@ -174,6 +233,11 @@ After v18 is promoted and deployed, the capture script is the pinned file in the
 
 On the 20 Oct 20:19Z snapshot this yields zero alarms (test part 5). The receipt gate can then pass.
 
+**Done: the owner captured the evidence on 20 Oct with the candidate script `84d52bdf` (RSC `7f595ac`; the file is
+`evidence_row19_screen_refit_54.nodefail.json`, `730ea262`, 1,156 bytes, and the original stays at
+`/mnt/lustre/users/pvanrooyen/t1_toolchain/jobs/row19_screen_refit_54.nodefail.json`). Codex accepted it unchanged (choice 1 (a)).
+The paragraphs below are the design-time reasoning, kept as written.**
+
 **TIME-CRITICAL - the evidence can only be captured while BOTH of these hold:**
 - (a) PBS history still holds 7551259 (a few days: REVISION 11 notes the expiry);
 - (b) cnode0240 is still `down`. Once CHPC returns it to service, its `last_state_change_time` no longer dates the loss.
@@ -205,7 +269,8 @@ script's SHA-256 (`84d52bdf…`). If Codex changes the capture script, its pin c
 
 ## 6. Tests (`test_results.txt`)
 
-- **`test_v18_nodefail.py`: 111 passed, 0 failed.** Five parts:
+- **`test_v18_nodefail.py`: 168 passed, 0 failed** (111 before CHANGE 1; part 1b adds 55 strict-decoder checks, part 2 one status
+  check and part 5 one replay with the ACTUAL evidence `730ea262`). Five parts:
   - **Shared rule (61).** The job-54 positive on the REAL local plan, ledger entry and slot-19/20 statuses, plus the refusals the
     brief names:
     - node not down;
@@ -248,13 +313,15 @@ the partition `chpc/row19_partition_e2.json` `48cea639`, `sub_envelopes`, `quali
 |---|---|---|
 | `chpc/row19_screen_admit.py` | `c3960464` | `e2260765…` |
 | `chpc/row19_screen_status.py` | `a9f9180b` | `4710544a…` |
-| `chpc/row19_screen_nodefail.py` | - | `96af406e…` (NEW) |
+| `chpc/row19_screen_nodefail.py` | - | `f6afeb10…` (NEW; CHANGE 1) |
 | `chpc/row19_nodefail_capture.py` | - | `84d52bdf…` (NEW) |
-| `chpc/row19_screen_controls.json` | `9ea4e727` | `80214d80…` (the controls, not a pin) |
+| `chpc/row19_screen_controls.json` | `9ea4e727` | `452b82df…` (the controls, not a pin) |
 
 **Proposed ADOPT literal** (it authorises nothing until a FAVOURABLE review issues it):
 
-    ADOPT row19-screen-controls sha256=80214d80c6c4e093ed72a47f19bc875daaf686e19f837b13cb20d604b571fd93 version=18
+    ADOPT row19-screen-controls sha256=452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b version=18
+
+(The reviewed candidate `80214d80` received CHANGE 1 and no literal; it must not be reused.)
 
 **Is there a lighter "v17.1"? No, not inside the reviewed contract.** Three reasons:
 - **Versions are integers.** Controls versions are integers, and lineage requires every controller tree to hold exactly the
@@ -279,9 +346,11 @@ So v18 needs the full rollover pattern. It is, however, much LIGHTER than v17's 
   consumers (`release_p80`) must re-pin separately before any numerical release (as at v17).
 
 The `migration_v17` scripts are the template, but their package identities and inventories are v17-specific. A `migration_v18`
-package needs its own preflight, archive, deploy and rollover scripts and its own scripts review. **It is NOT built here.**
-`promote_v18.py` and the archive branch of `build_v18.py` are not built either: they wait for Codex's ruling on this design, so the
-pinned bytes do not churn under the migration scripts.
+package needs its own preflight, archive, deploy and rollover scripts and its own scripts review. Codex's review ruled that
+parameterising the v17 implementation into a materialised v18 package is acceptable ("Controls binding and migration ruling");
+that package is `chpc/migration_v18/` (RUNBOOK and scripts, built and tested on private copies only, NOT executed), with
+`promote_v18.py` and the base-first archive branch of `build_v18.py` in this folder. No migration script or execution is
+approved by the controls review; the scripts need their own review.
 
 **Refit admission meanwhile.** It stays held by the 24 alarms. Running jobs continue. The bank (row 22) has its own status and
 gate and is not affected by this disposition.

@@ -194,6 +194,100 @@ no("RAW CAPTURE: a file over 4 KB", ev(man, units, b=ev_bytes(evidence_doc()) + 
 no("RAW CAPTURE: the raw qstat -xf text instead of JSON", ev(man, units, b=b"Job Id: 7551259.sched01\n    job_state = F\n    Exit_status = 265\n"))
 no("a non-finite number in the evidence", ev(man, units, b=ev_bytes(evidence_doc()).replace(b'"captured_at": 1792530000.0', b'"captured_at": NaN')))
 no("a missing key (no source digests)", ev(man, units, doc={k: v for k, v in evidence_doc().items() if k != "source_sha256"}))
+
+# ---- 1b. CHANGE 1 (Codex 20 Oct): the strict decoder and declared types - Codex's focused probes now refuse ---------------------
+RAWC = "Job Id: SYNTHETIC\n    job_state = F\n"
+
+
+def both_no(label, b):
+    """Refused by the validator itself AND by the shared rule (which must never carry the value into a disposition)."""
+    d_, w_ = NF.evidence_doc_problem(b, "refit", N, JID, PIN)
+    g_, w2 = ev(man, units, b=b)
+    check(f"CHANGE 1: {label} -> refused by evidence_doc_problem and the rule ({w_[:80]})", d_ is None and w_ != "" and g_ is None and w2 != "")
+
+
+both_no("Codex probe: comment = a LIST holding raw qstat text", ev_bytes(evidence_doc(node_comment=[RAWC])))
+both_no("comment = a list of clean text", ev_bytes(evidence_doc(node_comment=["node down"])))
+both_no("comment = a nested list", ev_bytes(evidence_doc(node_comment=[[RAWC]])))
+both_no("comment = a nested object", ev_bytes(evidence_doc(node_comment={"raw": RAWC})))
+both_no("comment = a nested object of clean text", ev_bytes(evidence_doc(node_comment={"a": "b"})))
+both_no("comment = an integer", ev_bytes(evidence_doc(node_comment=42)))
+both_no("comment = a float", ev_bytes(evidence_doc(node_comment=1.5)))
+both_no("comment = a boolean", ev_bytes(evidence_doc(node_comment=True)))
+both_no("comment = null", ev_bytes(evidence_doc(node_comment=None)))
+both_no("comment with a tab (control character)", ev_bytes(evidence_doc(node_comment="node down:\tclosed")))
+both_no("comment with a Unicode line separator", ev_bytes(evidence_doc(node_comment="node down job_state F")))
+both_no("comment with an escaped newline (\\u000a)", ev_bytes(evidence_doc()).replace(b'"node down: communication closed"', b'"node down\\u000ajob_state = F"'))
+both_no(f"comment over {NF.MAX_STR} characters", ev_bytes(evidence_doc(node_comment="x" * (NF.MAX_STR + 1))))
+check("CHANGE 1: an EMPTY comment (pbsnodes printed none; the capture writes '') -> still accepted (informational, choice 4)",
+      ev(man, units, doc=evidence_doc(node_comment=""))[1] == "")
+both_no("exec_host = a list", ev_bytes(evidence_doc(exec_host=["cnode0240/0*24"])))
+both_no("a list as the whole qstat object", ev_bytes(evidence_doc(qstat=[1, 2])))
+both_no("the document itself is a list", b'[\n "row19-screen-nodefail-1"\n]\n')
+both_no("source digest = a list of the digest", ev_bytes(evidence_doc(source_sha256=dict(qstat_xf=["a" * 64], pbsnodes="b" * 64))))
+both_no("source digest upper-case (not the declared hex64)", ev_bytes(evidence_doc(source_sha256=dict(qstat_xf="A" * 64, pbsnodes="b" * 64))))
+# wrong types of every kind
+both_no("job = '54' (string)", ev_bytes(evidence_doc(job="54")))
+both_no("job = 54.0 (float)", ev_bytes(evidence_doc(job=54.0)))
+both_no("Exit_status = '265' (string)", ev_bytes(evidence_doc(Exit_status="265")))
+both_no("Exit_status = true (boolean)", ev_bytes(evidence_doc(Exit_status=True)))
+both_no("mtime_epoch = 1792519236.0 (float)", ev_bytes(evidence_doc(mtime_epoch=1792519236.0)))
+both_no("node last_state_change_epoch = string", ev_bytes(evidence_doc(node_last_state_change_epoch="1792519236")))
+both_no("utc_offset_s = 7200.0 (float)", ev_bytes(evidence_doc(utc_offset_s=7200.0)))
+both_no("captured_at = true (boolean)", ev_bytes(evidence_doc(captured_at=True)))
+both_no("captured_at = a string", ev_bytes(evidence_doc(captured_at="1792530000")))
+both_no("pbs_output_present.out = 0 (integer, not boolean)", ev_bytes(evidence_doc(pbs_output_present=dict(out=0, err=False))))
+both_no("pbs_output_present.err = null", ev_bytes(evidence_doc(pbs_output_present=dict(out=False, err=None))))
+both_no("node name = an integer", ev_bytes(evidence_doc(node_name=240)))
+both_no("job_state = a list", ev_bytes(evidence_doc(job_state=["F"])))
+both_no("a number that decodes non-finite (1e999)", ev_bytes(evidence_doc()).replace(b'"captured_at": 1792530000.0', b'"captured_at": 1e999'))
+both_no("-Infinity", ev_bytes(evidence_doc()).replace(b'"captured_at": 1792530000.0', b'"captured_at": -Infinity'))
+# duplicate keys: the value json.loads would silently drop
+clean = ev_bytes(evidence_doc())
+cm = b'  "comment": "node down: communication closed",\n'
+assert cm in clean
+both_no("Codex probe: duplicate comment, RAW first then clean (json.loads keeps only the clean one)",
+        clean.replace(cm, b'  "comment": "Job Id: SYNTHETIC\\n    job_state = F\\n",\n' + cm))
+both_no("duplicate comment, clean first then raw", clean.replace(cm, cm + b'  "comment": "Job Id: SYNTHETIC\\n    job_state = F\\n",\n'))
+both_no("duplicate comment, both clean and identical", clean.replace(cm, cm + cm))
+both_no("duplicate comment, a raw LIST first then clean", clean.replace(cm, b'  "comment": ["Job Id: SYNTHETIC\\n"],\n' + cm))
+ex_l = b'  "Exit_status": 265,\n'
+assert ex_l in clean
+both_no("nested duplicate in qstat: Exit_status 4 then 265", clean.replace(ex_l, b'  "Exit_status": 4,\n' + ex_l))
+both_no("top-level duplicate: job 55 then 54", clean.replace(b' "job": 54,\n', b' "job": 55,\n "job": 54,\n'))
+both_no("duplicate inside source_sha256", clean.replace(b'  "pbsnodes": "' + b"b" * 64 + b'"', b'  "pbsnodes": "' + b"c" * 64 + b'",\n  "pbsnodes": "' + b"b" * 64 + b'"'))
+both_no("a duplicate hidden inside a nested raw object under comment",
+        clean.replace(cm, b'  "comment": {"a": "x", "a": "Job Id: S"},\n'))
+dk = None
+try:
+    NF.strict_loads(b'{"a": {"b": [{"c": 1, "c": 2}]}}')
+except NF.DuplicateKey as e_:
+    dk = str(e_)
+check("CHANGE 1: strict_loads refuses a duplicate key at depth 4 (inside a list inside objects)", dk is not None and "'c'" in dk)
+check("CHANGE 1: strict_loads keeps distinct keys and finite numbers", NF.strict_loads(b'{"a": 1.5, "b": {"c": [1, 2]}}') == {"a": 1.5, "b": {"c": [1, 2]}})
+# canonical bytes
+both_no("the clean content in compact (non-canonical) bytes", json.dumps(evidence_doc(), sort_keys=True).encode())
+both_no("the clean content plus trailing whitespace", clean + b" ")
+both_no("the clean content with keys unsorted", (json.dumps(evidence_doc(), indent=1) + "\n").encode())
+both_no("a UTF-8 BOM before the clean content", b"\xef\xbb\xbf" + clean)
+both_no("non-UTF-8 bytes", clean.replace(b"communication", b"communicati\xff\xfe"))
+# the ACCEPTED capture evidence 730ea262 (unchanged) still passes
+REAL_EV = open(os.path.join(CAND, "evidence_row19_screen_refit_54.nodefail.json"), "rb").read()
+check("CHANGE 1: the accepted job-54 capture evidence is byte-unchanged (730ea262, 1,156 bytes)",
+      hashlib.sha256(REAL_EV).hexdigest() == "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f" and len(REAL_EV) == 1156)
+check("CHANGE 1: the capture script is byte-unchanged (84d52bdf, the accepted pin)",
+      PIN == "84d52bdfc31725182f7bad53caf1bee88ecf01e1e474a7545b1c3971f655bc9c")
+rd, rw = NF.evidence_doc_problem(REAL_EV, "refit", N, JID, PIN)
+check("CHANGE 1: the REAL 730ea262 evidence passes the strict validator (no duplicates, declared types, canonical bytes)",
+      rw == "" and rd["node"]["comment"] == "node down: communication closed" and rd["qstat"]["stime_epoch"] == 1792455576)
+gr, wr = ev(man, units, b=REAL_EV)
+check("CHANGE 1: the REAL 730ea262 evidence still grants the job-54 node disposition (2 kept, 22 uncompleted, +0 s, string comment)",
+      wr == "" and gr["completed"] == ["8/15", "8/16"] and len(gr["uncompleted"]) == 22 and gr["node_change_minus_mtime_s"] == 0
+      and gr["evidence_sha256"] == "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f" and isinstance(gr["node_comment"], str))
+check("CHANGE 1: the REAL evidence under another pin is refused (capture pin binding unchanged)",
+      NF.evidence_doc_problem(REAL_EV, "refit", N, JID, "c" * 64)[0] is None)
+check("CHANGE 1: DOC_TYPES declares no list and every leaf a scalar type",
+      all(isinstance(v, str) or all(isinstance(x, str) for x in v.values()) for v in NF.DOC_TYPES.values()))
 # slots
 st75 = dict(STAT[19], slot=0, rep=5, indices=[65], new=[], left=[65], exit=75)
 d2, root2, man2, units2 = fixture(statuses={0: st75})
@@ -288,6 +382,10 @@ check("status: evidence not retrieved -> every alarm stands (24), reason kept",
 m_, v_, o_, l_, lv_, b_ = live_fixture(doc=evidence_doc(node_state="free"))
 al, summ, _, _ = R.reconcile(m_, "refit", v_, o_, l_, lv_)
 check("status: node not down -> every alarm stands", len(al) == 24 and "not down" in summ[str(N)].get("node_disposition_held", ""))
+m_, v_, o_, l_, lv_, b_ = live_fixture(doc=evidence_doc(node_comment=[RAWC]))
+al, summ, _, _ = R.reconcile(m_, "refit", v_, o_, l_, lv_)
+check("status (CHANGE 1): Codex's raw-text LIST comment -> every alarm stands, no disposition, nothing carried",
+      len(al) == 24 and "node_disposition" not in summ[str(N)] and "not a string" in summ[str(N)].get("node_disposition_held", ""))
 m_, v_, o_, l_, lv_, b_ = live_fixture(statuses={0: st75})
 al, summ, _, _ = R.reconcile(m_, "refit", v_, o_, l_, lv_)
 check("status: a partial status -> the exit/runner/missing alarms stand (plus the partial slot's own)",
@@ -482,6 +580,17 @@ if REAL and os.path.exists(RC_P) and os.path.exists(VF_P):
     check(f"REAL replay: every other job's reconciled outcome equals the v17 receipt's ({len(rc0['jobs']) - 1} jobs)", diff == [])
     check("REAL replay: closed-no-record job 3 and the slot-dispositioned jobs keep their dispositions",
           summ["3"].get("disposition", {}).get("kind") == "closed-no-record" and summ["13"].get("slot_disposition", {}).get("kind") == SA.CRASH_KIND)
+    # CHANGE 1: the same replay with the ACTUAL captured evidence 730ea262 (not the modelled document)
+    live2 = os.path.join(dd, "refit_real_ev"); shutil.copytree(LIVE, live2)
+    fetch2 = json.load(open(os.path.join(live2, "jobs", "_fetch.json")))
+    open(os.path.join(live2, "jobs", name), "wb").write(REAL_EV)
+    fetch2[f"{N}.nodefail"] = dict(file=name, rc=0, ok=True, sha256=hashlib.sha256(REAL_EV).hexdigest())
+    json.dump(fetch2, open(os.path.join(live2, "jobs", "_fetch.json"), "w"))
+    al2, summ2, _, _ = R.reconcile(man0, "refit", json.load(open(VF_P)), obs, json.load(open(os.path.join(live2, "campaign", "budget.json"))), live2)
+    check("REAL replay (CHANGE 1) with the ACTUAL captured evidence 730ea262: ZERO alarms, job 54 dispositioned with that evidence's sha256",
+          al2 == [] and summ2["54"]["node_disposition"]["evidence_sha256"] == hashlib.sha256(REAL_EV).hexdigest()
+          and summ2["54"]["node_disposition"]["no_status_slots"] == NOSTAT)
+    shutil.rmtree(dd, ignore_errors=True)
 else:
     print("skip REAL replay (needs the local live snapshot and the 20 Oct 20:19Z receipt + verifier)")
 

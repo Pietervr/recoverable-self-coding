@@ -528,7 +528,7 @@
   {
    "version": 18,
    "commit": "candidate: see the commit that adds this entry",
-   "reviewed": "pending Codex review of controls v18, the NODE-FAILURE disposition (chpc/candidate_v18_nodefail/DESIGN_v18.md; R052 20 Oct: refit job 54 7551259.sched01 F/265 with exec node cnode0240 down at its end): v18 = adopted v17 (9ea4e727) with chpc/row19_screen_admit.py (e2260765) and chpc/row19_screen_status.py (4710544a) = v17 + REVISION 18, NEW chpc/row19_screen_nodefail.py (96af406e, the one shared rule) and NEW chpc/row19_nodefail_capture.py (84d52bdf, the owner's Lengau capture; evidence must carry this SHA-256). Every other pin, the e2 partition 48cea639, sub_envelopes, qualification_S, programme and deployment unchanged. A node-dispositioned job never qualifies and never counts toward the crash rule. NOT adopted.",
+   "reviewed": "pending Codex review of controls v18, the NODE-FAILURE disposition (chpc/candidate_v18_nodefail/DESIGN_v18.md; R052 20 Oct: refit job 54 7551259.sched01 F/265 with exec node cnode0240 down at its end): v18 = adopted v17 (9ea4e727) with chpc/row19_screen_admit.py (e2260765) and chpc/row19_screen_status.py (4710544a) = v17 + REVISION 18, NEW chpc/row19_screen_nodefail.py (f6afeb10, the one shared rule) and NEW chpc/row19_nodefail_capture.py (84d52bdf, the owner's Lengau capture; evidence must carry this SHA-256). Every other pin, the e2 partition 48cea639, sub_envelopes, qualification_S, programme and deployment unchanged. A node-dispositioned job never qualifies and never counts toward the crash rule. NOT adopted.",
    "files": {
     "chpc/row19_screen_admit.py": "e22607650058ae2cbb8f19fe3e225d886bd2cc733adf02bb93dbc01d65f719af",
     "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
@@ -547,7 +547,7 @@
     "chpc/row19_screen_designated.json": "a96eb59833ff794d3f9ce0ca09ada03d045a29cb9f8a676dad86f8aba85d5584",
     "chpc/row19_ec2_e2rules.py": "a9ea1f61daa577b642739ae781cb179e9a2089d42d3c23fff277d7d4849a3bcc",
     "chpc/row19_ec2_e2qual.py": "5ceba55189dd351b2cc5a997b115cdbfd0d84f17397402fa7deb2b3e937025fa",
-    "chpc/row19_screen_nodefail.py": "96af406e3550c62e524ea39d1e863797fcd55fb058ecff3370724737f817914d",
+    "chpc/row19_screen_nodefail.py": "f6afeb10c8ebdfb2547fe67f344b183262555a6474221ef077c341cd145e92df",
     "chpc/row19_nodefail_capture.py": "84d52bdfc31725182f7bad53caf1bee88ecf01e1e474a7545b1c3971f655bc9c"
    },
    "partition": {

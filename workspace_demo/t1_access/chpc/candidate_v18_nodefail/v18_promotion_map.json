@@ -27,7 +27,7 @@
   {
    "promoted": "chpc/row19_screen_nodefail.py",
    "source": "chpc/candidate_v18_nodefail/row19_screen_nodefail.py",
-   "sha256": "96af406e3550c62e524ea39d1e863797fcd55fb058ecff3370724737f817914d",
+   "sha256": "f6afeb10c8ebdfb2547fe67f344b183262555a6474221ef077c341cd145e92df",
    "previous_sha256": null,
    "group": "pin"
   },
@@ -55,7 +55,7 @@
   {
    "promoted": "chpc/row19_screen_controls.json",
    "source": "chpc/candidate_v18_nodefail/row19_screen_controls.json",
-   "sha256": "80214d80c6c4e093ed72a47f19bc875daaf686e19f837b13cb20d604b571fd93",
+   "sha256": "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b",
    "previous_sha256": "9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0",
    "group": "ctl"
   }

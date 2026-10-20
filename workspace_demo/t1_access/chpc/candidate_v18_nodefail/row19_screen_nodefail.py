@@ -31,12 +31,27 @@ the receipt's copy is never taken on its word). A terminal refit job is DISPOSIT
   (5) a no-status slot's coordinates carry no unit timing naming the job, no temporary/non-canonical file, and no record or
       timing except a LATER bound job's verified planned completion (the R1 rule); its worker log, when present, has no
       "worker job <id> slot <s>: exit" line; EVERY timing file naming the PBS id is a surviving worker's planned coordinate in
-      its slot at its canonical path (the V15-1 rule).
+      its slot at its canonical path (the V15-1 rule). These scans read the CANONICAL coordinate paths only: an aliased rep
+      directory (e.g. records/rep005/) is not rescanned here; the producer verifier rejects it at collection and the status
+      view keeps its invalid/foreign alarms (Codex 20 Oct: an inherited assurance limit, not a claim of absence).
 Then the summary carries `node_disposition`; ONLY the scheduler-exit alarm, the missing-runner-end alarm and the no-status slots'
 missing-status alarms are not raised; every survivor is reconciled exactly as an ordinary worker; the no-status slots'
 coordinates are accounted `uncompleted` with origin "node-failure" and return to the planner. The cause is infrastructure:
 nothing here is a crashed-worker slot disposition, so crash_history (the two-crash rule) never counts these coordinates. The
-charge stays; nothing is credited; a node-dispositioned job never qualifies a pilot."""
+charge stays; nothing is credited; a node-dispositioned job never qualifies a pilot.
+
+CHANGE 1 (Codex review 2026-10-20, reviews/2026-10-20_v18_nodefail_codex_review.md): the evidence validator is a STRICT DECODER.
+The reviewed 96af406e scanned dict values only, so a list, a nested container or a number in `node.comment` passed, and plain
+json.loads kept only the LAST of duplicate keys, so a raw first value could sit in the hashed bytes behind a clean second one.
+evidence_doc_problem now, in this order and before any value is used: (i) bounds the size; (ii) decodes with an
+object_pairs_hook that REFUSES a duplicate key in ANY object at ANY depth (nothing is overwritten, so nothing can vanish), and
+refuses NaN/Infinity and any number that decodes non-finite (1e999); (iii) checks the DECLARED TYPE of every field (DOC_TYPES):
+exact key sets, objects only where declared, NO list anywhere, every string a str, every integer a non-boolean int, the two
+flags booleans, captured_at a finite non-boolean number; (iv) applies the raw-text rule to every string (at most MAX_STR
+characters, single line: no CR/LF/tab, no other control or Unicode line/paragraph separator, no ' = ', no 'Job Id:') -
+node.comment is a bounded single-line string, possibly empty, informational only; (v) requires the bytes to be EXACTLY the
+canonical serialisation json.dumps(doc, indent=1, sort_keys=True) + "\\n" that the capture script writes, so the retained,
+hashed bytes carry nothing the validated document does not; then (vi) the unchanged semantic checks. Evidence errors fail closed."""
 import calendar, hashlib, json, math, os, re, time
 
 SCHEMA = "row19-screen-nodefail-1"
@@ -55,6 +70,19 @@ QSTAT_KEYS = ("job_state", "Exit_status", "exec_host", "stime", "stime_epoch", "
 NODE_KEYS = ("name", "state", "comment", "last_state_change_time", "last_state_change_epoch")
 POUT_KEYS = ("out", "err")
 SRC_KEYS = ("qstat_xf", "pbsnodes")
+STR, INT, NUM, BOOL, HEX = "str", "int", "num", "bool", "hex64"
+# CHANGE 1: the declared type of every evidence field; a nested dict is an object with exactly these keys. No list is declared.
+DOC_TYPES = dict(
+    schema=STR, role=STR, job=INT, job_id=STR, captured_at=NUM, captured_by=STR, capture_sha256=HEX, utc_offset_s=INT,
+    qstat=dict(job_state=STR, Exit_status=INT, exec_host=STR, stime=STR, stime_epoch=INT, mtime=STR, mtime_epoch=INT,
+               resources_used_walltime=STR, resources_used_walltime_s=INT, resources_used_mem_kb=INT, Resource_List_walltime=STR,
+               Resource_List_walltime_s=INT),
+    node=dict(name=STR, state=STR, comment=STR, last_state_change_time=STR, last_state_change_epoch=INT),
+    pbs_output_present=dict(out=BOOL, err=BOOL),
+    source_sha256=dict(qstat_xf=HEX, pbsnodes=HEX))
+assert set(DOC_TYPES) == set(TOP_KEYS) and set(DOC_TYPES["qstat"]) == set(QSTAT_KEYS) and set(DOC_TYPES["node"]) == set(NODE_KEYS) \
+    and set(DOC_TYPES["pbs_output_present"]) == set(POUT_KEYS) and set(DOC_TYPES["source_sha256"]) == set(SRC_KEYS)
+LINE_BREAKS = "\u0085  "
 HOST_PART = re.compile(r"^([A-Za-z0-9._-]+)/[0-9]+(?:\*[0-9]+)?$")
 EXIT_RE = re.compile(r"Exit_status (-?\d+)\b")
 
@@ -127,33 +155,96 @@ def _no_constant(c):
     raise ValueError(f"non-finite constant {c}")
 
 
-def _strings(x):
-    if isinstance(x, str):
-        yield x
-    elif isinstance(x, dict):
-        for v in x.values():
-            for s in _strings(v):
-                yield s
+class DuplicateKey(ValueError):
+    pass
+
+
+def _no_duplicates(pairs):
+    """object_pairs_hook: an object whose pairs repeat a key is refused at decode time, at every nesting level, so no earlier
+    value can be silently overwritten by a later one."""
+    out = {}
+    for k, v in pairs:
+        if k in out:
+            raise DuplicateKey(f"duplicate key {k[:40]!r}")
+        out[k] = v
+    return out
+
+
+def _finite_float(s):
+    v = float(s)
+    if not math.isfinite(v):
+        raise ValueError(f"non-finite number {s[:40]}")
+    return v
+
+
+def strict_loads(b):
+    """The evidence bytes -> the decoded object, refusing (ValueError) non-UTF-8 bytes, a duplicate key in any object at any
+    depth, NaN / Infinity / -Infinity and any number that decodes non-finite."""
+    return json.loads(bytes(b).decode("utf-8"), object_pairs_hook=_no_duplicates, parse_constant=_no_constant,
+                      parse_float=_finite_float)
+
+
+def _raw_text(s):
+    """True when s is not a bounded single-line extracted field (raw scheduler text in any shape)."""
+    return (len(s) > MAX_STR or " = " in s or "Job Id:" in s
+            or any(ord(c) < 0x20 or 0x7f <= ord(c) <= 0x9f or c in LINE_BREAKS for c in s))
+
+
+def shape_problem(x, spec=None, where="evidence"):
+    """'' when x has EXACTLY the declared shape DOC_TYPES (keys, types, no undeclared container anywhere) and every string passes
+    the raw-text rule; else the first reason. Every permitted value is checked; nothing is skipped or coerced."""
+    spec = DOC_TYPES if spec is None else spec
+    if isinstance(spec, dict):
+        if type(x) is not dict:
+            return f"the {where} is not an object (a {type(x).__name__})"
+        if set(x) != set(spec):
+            return f"the {where} does not have exactly the declared keys"
+        for k in sorted(spec):
+            why = shape_problem(x[k], spec[k], f"{where}'s {k}" if where != "evidence" else f"evidence's {k}")
+            if why:
+                return why
+        return ""
+    if spec in (STR, HEX):
+        if type(x) is not str:
+            return f"the {where} is not a string (a {type(x).__name__}): only extracted single-line fields are evidence"
+        if _raw_text(x):
+            return (f"the {where} carries raw scheduler text (over {MAX_STR} characters, a line break or control character, "
+                    "'key = value' or 'Job Id:'); only extracted fields are evidence")
+        if spec == HEX and not _hex64(x):
+            return f"the {where} is not a lower-case SHA-256 hex digest"
+        return ""
+    if spec == INT:
+        return "" if _int(x) else f"the {where} is not an integer (a {type(x).__name__})"
+    if spec == NUM:
+        return "" if _num(x) else f"the {where} is not a finite number (a {type(x).__name__})"
+    if spec == BOOL:
+        return "" if type(x) is bool else f"the {where} is not a boolean (a {type(x).__name__})"
+    return f"the {where} has no declared type"
+
+
+def canonical_bytes(doc):
+    """The one serialisation the capture script writes (and the only one evidence may have)."""
+    return (json.dumps(doc, indent=1, sort_keys=True) + "\n").encode()
 
 
 def evidence_doc_problem(b, role, n, jid, pin):
     """(doc, '') when the evidence bytes are a strict node-failure capture of job n / PBS id jid by the pinned capture script,
-    internally consistent; (None, reason) otherwise. Raw scheduler output is refused: exact key sets, every string at most
-    MAX_STR characters on one line with no 'key = value' or 'Job Id:' text, and the whole file at most MAX_BYTES."""
+    internally consistent; (None, reason) otherwise. CHANGE 1 order (module docstring): size; strict decode (duplicate keys at
+    any depth, non-finite numbers refused); the declared type of every field with no undeclared container; the raw-text rule on
+    every string; the canonical bytes; then the semantic checks."""
     if not isinstance(b, (bytes, bytearray)) or len(b) > MAX_BYTES:
         return None, f"the evidence is not a file of at most {MAX_BYTES} bytes (a raw scheduler capture is never evidence)"
     try:
-        doc = json.loads(b.decode("utf-8"), parse_constant=_no_constant)
+        doc = strict_loads(b)
+    except DuplicateKey as e:
+        return None, f"the evidence repeats a key in one object ({e}); a duplicated field is never evidence"
     except Exception as e:
         return None, f"the evidence is not strict JSON ({type(e).__name__})"
-    if not isinstance(doc, dict) or tuple(sorted(doc)) != tuple(sorted(TOP_KEYS)):
-        return None, "the evidence does not have exactly the declared top-level keys"
-    for k, keys in (("qstat", QSTAT_KEYS), ("node", NODE_KEYS), ("pbs_output_present", POUT_KEYS), ("source_sha256", SRC_KEYS)):
-        if not isinstance(doc[k], dict) or tuple(sorted(doc[k])) != tuple(sorted(keys)):
-            return None, f"the evidence's {k} does not have exactly the declared keys"
-    for s in _strings(doc):
-        if len(s) > MAX_STR or "\n" in s or "\r" in s or " = " in s or "Job Id:" in s:
-            return None, "the evidence carries raw scheduler text (a multi-line, long or 'key = value' string); only extracted fields are evidence"
+    why = shape_problem(doc)
+    if why:
+        return None, why
+    if canonical_bytes(doc) != bytes(b):
+        return None, "the evidence bytes are not the canonical serialisation of their content (json indent=1, sorted keys, one newline)"
     if doc["schema"] != SCHEMA or doc["role"] != role or not _int(doc["job"]) or doc["job"] != int(n) or doc["job_id"] != jid:
         return None, f"the evidence is not schema {SCHEMA} of {role} job {n} ({jid})"
     if doc["captured_by"] != os.path.basename(CAPTURE_REL) or not _hex64(pin) or doc["capture_sha256"] != pin:

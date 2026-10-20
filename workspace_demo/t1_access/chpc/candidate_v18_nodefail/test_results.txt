@@ -1,7 +1,45 @@
 # chpc/candidate_v18_nodefail test results (2026-10-20, Mac, python3 3.14.6; run from workspace_demo/t1_access)
 # Nothing was run against Lengau, PBS or AWS. The live tree (admission c3960464, status a9f9180b, controls 9ea4e727) is untouched.
 
-## New tests: chpc/candidate_v18_nodefail/test_v18_nodefail.py -> rc 0, 111 passed, 0 failed
+## CHANGE 1 (Codex review reviews/2026-10-20_v18_nodefail_codex_review.md) - re-run 20 Oct, after the strict-decoder revision
+Bytes tested: row19_screen_nodefail.py f6afeb10 (reviewed 96af406e), controls 452b82df, promotion map 380871da (build_v18.py
+41f348c2 unchanged; --check OK), capture 84d52bdf and evidence 730ea262 UNCHANGED, status 4710544a and admission e2260765 unchanged,
+test_v18_nodefail.py 1ee2e265.
+
+chpc/candidate_v18_nodefail/test_v18_nodefail.py -> rc 0, 168 passed, 0 failed (the 111 below, all still passing, plus 57):
+  1b. CHANGE 1, shared rule (55): every probe refused by BOTH evidence_doc_problem and node_failure_evidence - Codex's LIST comment
+      holding raw qstat text; list / nested list / nested object (raw and clean) / integer / float / boolean / null comment; tab,
+      U+2028 and escaped \u000a in the comment; a comment over 160 characters; exec_host / qstat / the whole document / a digest
+      as a list; an upper-case digest; wrong types (job "54" and 54.0, Exit_status "265" and true, mtime_epoch float, epoch as a
+      string, utc_offset_s float, captured_at true and a string, the PBS-output flags 0 and null, node name an integer, job_state a
+      list); 1e999 and -Infinity; DUPLICATE KEYS - Codex's raw-then-clean comment, clean-then-raw, identical twice, a raw list
+      then clean, nested in qstat (Exit_status 4 then 265), top level (job 55 then 54), inside source_sha256, inside a nested
+      object under comment; strict_loads refusing a duplicate at depth 4 (inside a list) and keeping distinct keys; NON-CANONICAL
+      bytes (compact, trailing space, unsorted keys, a BOM, non-UTF-8). Accepted: an EMPTY comment; the REAL evidence 730ea262
+      (byte-unchanged, 1,156 bytes; passes the strict validator and still grants job 54's disposition: 8/15 and 8/16 kept, 22
+      uncompleted, +0 s, string comment); the REAL evidence under another pin refused; DOC_TYPES declares no list.
+  2.  status (1): Codex's raw-text LIST comment -> all 24 alarms stand, no disposition, the reason ("not a string") kept.
+  5.  REAL replay (1): the 20 Oct 20:19Z snapshot with the ACTUAL captured evidence 730ea262 -> ZERO alarms, job 54 dispositioned
+      with that evidence's sha256.
+  Which checks need the live snapshot: part 5 (4 checks) needs the local chpc/results/row19_screen/live/refit snapshot and the
+  20 Oct 20:19Z receipt + verifier (present on this Mac; Codex's guarded run had neither and skipped 3); part 1's positive case
+  uses the real plan/ledger/statuses when present, else built-in copies of the same values. Everything else is synthetic.
+
+Codex's focused probes, before/after (scratch copy of the reviewed 96af406e vs f6afeb10, same bytes fed to both):
+  list comment with raw qstat text     | 96af406e: ACCEPTED | CHANGE 1: refused (node's comment is not a string)
+  nested list comment                  | 96af406e: ACCEPTED | CHANGE 1: refused
+  nested object comment                | 96af406e: ACCEPTED | CHANGE 1: refused
+  numeric comment                      | 96af406e: ACCEPTED | CHANGE 1: refused
+  duplicate comment raw-then-clean     | 96af406e: ACCEPTED | CHANGE 1: refused (duplicate key 'comment')
+  real 730ea262 evidence               | 96af406e: ACCEPTED | CHANGE 1: ACCEPTED
+
+Regression after CHANGE 1 (BEFORE = live adopted v17 chpc/, AFTER = this folder; identical to the counts further below):
+  candidate_v16/regress/regress_crashed_slot_r14   70 / 1  and  70 / 1   (the same stale 12-Oct refit-13 replay check)
+  candidate_v16/regress/regress_pbs_settled_r13    51 / 0  and  51 / 0
+  candidate_v16/test_designated_r16.py             76 / 4  and  77 / 3   (transient worlds chpc/.v18_world_<pid>_*, removed;
+                                                                          the same controls-last-entry and live-drift checks)
+
+## Original run (before CHANGE 1): chpc/candidate_v18_nodefail/test_v18_nodefail.py -> rc 0, 111 passed, 0 failed
   1. the shared rule row19_screen_nodefail.node_failure_evidence (61): the POSITIVE job-54 case on the REAL local plan, ledger
      entry and slot-19/20 statuses (22 coordinates uncompleted, 8/15 and 8/16 kept, node change 0 s from mtime, never a crash);
      determinism; a UTC-printing host reading of the same times; 'down,offline'; +100 s inside the tolerance; a later bound
