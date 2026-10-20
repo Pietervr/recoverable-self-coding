@@ -1,0 +1,63 @@
+{
+ "schema": "row19-controls-promotion-map-1",
+ "version": 18,
+ "base": {
+  "controls_sha256": "9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0",
+  "adoption_sha256": "61ca680e932fcb6d32a972c3198b5bd9c029da3955e15dd7acb2e07db125699b"
+ },
+ "rule": "each row: copy `source` (exactly `sha256`) to `promoted`; the path must hold `previous_sha256` (or be absent when null) or already the new bytes. Order: the two new files, the status view, the admission, then the controls LAST, then the version-18 adoption record. Unchanged v17 pins are not listed.",
+ "unchanged_v17_pins": [
+  "aws_ec2/qual_S_plan.json",
+  "chpc/programme_gate.py",
+  "chpc/row19_ec2_e2qual.py",
+  "chpc/row19_ec2_e2rules.py",
+  "chpc/row19_ec2_ingest.py",
+  "chpc/row19_ec2_qualify.py",
+  "chpc/row19_ec2_root.py",
+  "chpc/row19_ec2_shadow.py",
+  "chpc/row19_ec2_state.py",
+  "chpc/row19_partition.py",
+  "chpc/row19_qual_S_manifest.json",
+  "chpc/row19_screen_designated.json",
+  "chpc/row19_screen_release.py",
+  "chpc/row19_screen_resources.json",
+  "chpc/row19_screen_verify.py"
+ ],
+ "rows": [
+  {
+   "promoted": "chpc/row19_screen_nodefail.py",
+   "source": "chpc/candidate_v18_nodefail/row19_screen_nodefail.py",
+   "sha256": "96af406e3550c62e524ea39d1e863797fcd55fb058ecff3370724737f817914d",
+   "previous_sha256": null,
+   "group": "pin"
+  },
+  {
+   "promoted": "chpc/row19_nodefail_capture.py",
+   "source": "chpc/candidate_v18_nodefail/row19_nodefail_capture.py",
+   "sha256": "84d52bdfc31725182f7bad53caf1bee88ecf01e1e474a7545b1c3971f655bc9c",
+   "previous_sha256": null,
+   "group": "pin"
+  },
+  {
+   "promoted": "chpc/row19_screen_status.py",
+   "source": "chpc/candidate_v18_nodefail/row19_screen_status.py",
+   "sha256": "4710544a3861b688b0f2c89e67a8ba56cf65261a8900d4147658fee576f58232",
+   "previous_sha256": "a9f9180b73438221788d745567603fd267befca8fbc60528e3e7de47421ff64a",
+   "group": "pin"
+  },
+  {
+   "promoted": "chpc/row19_screen_admit.py",
+   "source": "chpc/candidate_v18_nodefail/row19_screen_admit.py",
+   "sha256": "e22607650058ae2cbb8f19fe3e225d886bd2cc733adf02bb93dbc01d65f719af",
+   "previous_sha256": "c3960464db74a282f20da030008fb759a0fad4e1d4d3c7133c98f3b821d6b9ed",
+   "group": "pin"
+  },
+  {
+   "promoted": "chpc/row19_screen_controls.json",
+   "source": "chpc/candidate_v18_nodefail/row19_screen_controls.json",
+   "sha256": "80214d80c6c4e093ed72a47f19bc875daaf686e19f837b13cb20d604b571fd93",
+   "previous_sha256": "9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0",
+   "group": "ctl"
+  }
+ ]
+}

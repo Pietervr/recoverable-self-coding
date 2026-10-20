@@ -1,0 +1,152 @@
+diff --git a/workspace_demo/t1_access/chpc/row19_screen_status.py b/workspace_demo/t1_access/chpc/candidate_v18_nodefail/row19_screen_status.py
+index 422422f..173a424 100644
+--- a/workspace_demo/t1_access/chpc/row19_screen_status.py
++++ b/workspace_demo/t1_access/chpc/candidate_v18_nodefail/row19_screen_status.py
+@@ -112,7 +112,20 @@ plannable count, the EC2-designated unclaimed coordinates waiting for the provid
+ counted, never planned), the crash history from this receipt's own slot dispositions and the RESCUE-PENDING list (two
+ same-envelope crashes; the rescue route declared and disabled). The receipt carries it as `designated` (informational: the
+ admission recomputes everything itself). Its only alarm is a declaration the lineage does not pin or that does not recompute from
+-the manifest. Every other check, alarm, receipt field and the qualification are unchanged."""
++the manifest. Every other check, alarm, receipt field and the qualification are unchanged.
++
++REVISION 18 CANDIDATE (controls version 18; R052 20 Oct, refit job 54 7551259.sched01 lost with node cnode0240; NOT adopted;
++chpc/candidate_v18_nodefail/DESIGN_v18.md): a NODE-FAILURE DISPOSITION. The fresh observation also retrieves the node evidence
++file <toolchain>/jobs/row19_screen_refit_<n>.nodefail.json (written once by the owner with chpc/row19_nodefail_capture.py) of
++every refit job whose ledger entry is settled without a runner end and whose settlement note's Exit_status is in the kill set;
++the result is in jobs/_fetch.json under "<n>.nodefail" (a failed retrieval proves nothing and leaves the alarms).
++row19_screen_nodefail.node_failure_evidence (ONE implementation, recomputed by the admission) decides from the snapshot's
++ledger, root, verifier units and those bytes. If it holds, the summary carries `node_disposition`, the no-status slots'
++coordinates are accounted `uncompleted` with origin "node-failure", the receipt binds the evidence (`bound.node_evidence`) and
++retains a copy beside it, and ONLY the scheduler-exit, missing-runner-end and those slots' missing-status alarms are not raised;
++every completed slot is reconciled as an ordinary worker. Otherwise the reason is kept as `node_disposition_held`. The receipt
++prints "DISPOSITIONED (node-failure)". A node-dispositioned job never qualifies, and it is never a crash (the two-crash rule
++reads slot dispositions only)."""
+ import os, sys, json, glob, math, time, shutil, hashlib, argparse, subprocess, shlex, re
+ 
+ HERE = os.path.dirname(os.path.abspath(__file__))
+@@ -295,7 +308,13 @@ def fetch_job_outputs(man, role, stage):
+         if not (no_end or held):
+             continue
+         n = int(e["rep"])
+-        for key, name in ((str(n), f"row19_screen_{role}_{n}.out"),) + (((f"{n}.err", f"row19_screen_{role}_{n}.err"),) if held else ()):
++        nf = ()                                                               # REVISION 18: the node evidence of a possible node failure
++        if role == "refit" and no_end:
++            import row19_screen_nodefail as _NF
++            m = _NF.EXIT_RE.search(e.get("settle_note") or "") if isinstance(e.get("settle_note"), str) else None
++            if m and int(m.group(1)) in _NF.KILL_EXITS:
++                nf = ((f"{n}.nodefail", _NF.evidence_name(role, n)),)
++        for key, name in ((str(n), f"row19_screen_{role}_{n}.out"),) + (((f"{n}.err", f"row19_screen_{role}_{n}.err"),) if held else ()) + nf:
+             local = os.path.join(jd, name)
+             rc, _, err = sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", f"{HOST}:{man['shard']['toolchain']}/jobs/{name}", local])
+             ok = rc == 0 and os.path.isfile(local)
+@@ -544,6 +563,21 @@ def crashed_slots(man, role, n, e, plan, j, o, units, ledger, live):
+                                      root=root, slot_map=lambda m: _slot_map(root, m))
+ 
+ 
++def node_failure(man, role, n, e, plan, j, o, units, ledger, live):
++    """REVISION 18: (node disposition, '') or (None, reason), from row19_screen_nodefail.node_failure_evidence on THIS snapshot."""
++    import row19_screen_nodefail as _NF
++    if role != "refit":
++        return None, "only refit jobs carry node-failure dispositions"
++    if o.get("state") != "F" or o.get("exit") not in _NF.KILL_EXITS or isinstance(o.get("exit"), bool):
++        return None, f"the scheduler observation is not state F with an exit in the node-failure kill set {list(_NF.KILL_EXITS)}"
++    vb, why = fetched(live, f"{n}.nodefail", _NF.evidence_name(role, n))
++    if why:
++        return None, why
++    root = os.path.join(live, "root")
++    return _NF.node_failure_evidence(man, role, n, e, plan, j, o, vb, units, list(ledger["entries"].values()),
++                                     root=root, slot_map=lambda m: _slot_map(root, m), pin=_NF.capture_pin())
++
++
+ def anchor_alarms(verify):
+     an = verify.get("anchors") or {}
+     if an.get("problem"):
+@@ -744,6 +778,13 @@ def reconcile(man, role, verify, obs, ledger, live):
+                 s_sum["slot_disposition"] = sdispo; crashed = {d["slot"] for d in sdispo["slots"]}
+             else:
+                 s_sum["slot_disposition_held"] = swhy
++        ndispo, nodeless = None, set()                                      # REVISION 18: node-failure disposition
++        if role == "refit" and terminal and not dispo and e.get("runner_exit") is None:
++            ndispo, nwhy = node_failure(man, role, n, e, plan, j, o, units, ledger, live)
++            if ndispo:
++                s_sum["node_disposition"] = ndispo; nodeless = set(ndispo["no_status_slots"])
++            else:
++                s_sum["node_disposition_held"] = nwhy
+         if finite_nonneg(o.get("walltime_req_s")) and finite_nonneg(plan.get("walltime_s")) and abs(o["walltime_req_s"] - plan["walltime_s"]) > 1.0:
+             alarms.append(f"{role} job {n} ({j}): the scheduler's walltime request {o['walltime_req_s']:.0f} s is not the plan's {plan['walltime_s']:.0f} s")
+         started = state == "R" or terminal
+@@ -752,9 +793,9 @@ def reconcile(man, role, verify, obs, ledger, live):
+             alarms.append(f"{role} job {n}: reserved but not bound to a PBS id")
+         if o.get("mem_kb") is not None and o["mem_kb"] > 0.9 * mem_req_kb:
+             alarms.append(f"{role} job {n}: scheduler memory above 90 % of the request")
+-        if terminal and not dispo and not sdispo and (state != "F" or o.get("exit") not in (0, 75)):
++        if terminal and not dispo and not sdispo and not ndispo and (state != "F" or o.get("exit") not in (0, 75)):
+             alarms.append(f"{role} job {n} ({j}): terminal as state {state}, scheduler exit {o.get('exit')} (F with 0/75 required)")
+-        if terminal and not dispo and e.get("runner_exit") is None:
++        if terminal and not dispo and not ndispo and e.get("runner_exit") is None:
+             alarms.append(f"{role} job {n} ({j}): terminal but no runner end in the ledger")
+         if e.get("runner_exit") not in (None, 0, 75) and not sdispo:
+             alarms.append(f"{role} job {n} ({j}): runner exit {e.get('runner_exit')}")
+@@ -769,7 +810,7 @@ def reconcile(man, role, verify, obs, ledger, live):
+             except Exception:
+                 alarms.append(f"{role} job {n} slot {sl['slot']}: the worker status is unreadable"); continue
+             if st is None:
+-                if terminal and not dispo and int(sl["slot"]) not in crashed:
++                if terminal and not dispo and int(sl["slot"]) not in crashed and int(sl["slot"]) not in nodeless:
+                     alarms.append(f"{role} job {n} slot {sl['slot']}: no worker status after the job ended (read its log)")
+                 continue
+             s_sum["ended"] += 1; s_sum["exits"][str(st.get("exit"))] = s_sum["exits"].get(str(st.get("exit")), 0) + 1
+@@ -826,6 +867,8 @@ def reconcile(man, role, verify, obs, ledger, live):
+             s_sum["partition"].update(uncompleted=sorted(_slot_map(root, n)), uncompleted_origin="plan")
+         elif sdispo:
+             s_sum["partition"].update(uncompleted=list(sdispo["uncompleted"]), uncompleted_origin="crashed-slot")
++        elif ndispo:                                                        # REVISION 18
++            s_sum["partition"].update(uncompleted=list(ndispo["uncompleted"]), uncompleted_origin="node-failure")
+         summary[str(n)] = s_sum
+     ec2 = ec2_reconcile(man, role, units, root, assigned, alarms) if role == "refit" else {}
+     for sp in glob.glob(os.path.join(root, "status", "*")):
+@@ -940,6 +983,15 @@ def main(argv=None):
+             print(f"    PBS output {d['output_sha256'][:12]} error {d['error_sha256'][:12]}; settled {d['settled_core_h']:.2f} core-h charged")
+         elif s.get("slot_disposition_held"):
+             print(f"    not slot-dispositioned: {s['slot_disposition_held']}")
++        if s.get("node_disposition"):                                       # REVISION 18
++            d = s["node_disposition"]
++            print(f"    DISPOSITIONED (node-failure): scheduler exit {d['scheduler_exit']} kept, no runner end; node {d['node']} {d['node_state']} "
++                  f"({d['node_comment']}) changed {d['node_change_minus_mtime_s']:+d} s from the job's end; completed slots {d['completed_slots']} "
++                  f"kept ({len(d['completed'])} record(s)); {len(d['uncompleted'])} coordinate(s) of no-status slots uncompleted (node-failure, "
++                  f"returned to the planner, not a crash); settled {d['settled_core_h']:.2f} core-h charged; evidence {d['evidence_file']} "
++                  f"{d['evidence_sha256'][:12]}")
++        elif s.get("node_disposition_held"):
++            print(f"    not node-dispositioned: {s['node_disposition_held']}")
+     if desig:
+         print(f"  DESIGNATED S x 0..79 ({str(desig['declaration_sha256'])[:12]}): {desig['designated']} coordinates, done {desig['done']}, in flight "
+               f"{desig['in_flight']}, Lengau plannable {desig['lengau_plannable']}, EC2-designated unclaimed (wait for the EC2 epoch package) "
+@@ -966,7 +1018,9 @@ def main(argv=None):
+                               for k, v in summary.items() if v.get("disposition")},
+                  slot_outputs={k: dict(out=dict(file=v["slot_disposition"]["output_file"], sha256=v["slot_disposition"]["output_sha256"]),
+                                        err=dict(file=v["slot_disposition"]["error_file"], sha256=v["slot_disposition"]["error_sha256"]))
+-                               for k, v in summary.items() if v.get("slot_disposition")})
++                               for k, v in summary.items() if v.get("slot_disposition")},
++                 node_evidence={k: dict(file=v["node_disposition"]["evidence_file"], sha256=v["node_disposition"]["evidence_sha256"])
++                                for k, v in summary.items() if v.get("node_disposition")})
+     receipt = dict(schema=WATCH_SCHEMA, role=role, time=now, fresh=fresh, production=production, alarms=alarms, bound=bound, jobs=summary,
+                    anchors=verify.get("anchors"), plan_slots={k: v["slots"] for k, v in summary.items()}, ec2=ec2)
+     if desig is not None:
+@@ -981,6 +1035,8 @@ def main(argv=None):
+     for k, so in bound["slot_outputs"].items():                              # REVISION 14: retain both bound files
+         for ob in so.values():
+             shutil.copy(os.path.join(live, "jobs", ob["file"]), os.path.join(RECEIPTS, f"{ob['file']}.{stamp}"))
++    for k, ob in bound["node_evidence"].items():                             # REVISION 18: retain the bound node evidence
++        shutil.copy(os.path.join(live, "jobs", ob["file"]), os.path.join(RECEIPTS, f"{ob['file']}.{stamp}"))
+     if production:
+         rc, _, err = sh(["scp", "-q", "-o", "ConnectTimeout=20", "-o", "BatchMode=yes", vp, f"{HOST}:{man['storage']['root']}/gate/{os.path.basename(vp)}"])
+         if rc != 0:
+@@ -1011,6 +1067,8 @@ def main(argv=None):
+                 why.append(f"job {n} is dispositioned (closed-no-record); a dispositioned job never qualifies")
+             if s.get("slot_disposition") is not None:
+                 why.append(f"job {n} is slot-dispositioned (crashed worker); it never qualifies")
++            if s.get("node_disposition") is not None:                       # REVISION 18
++                why.append(f"job {n} is dispositioned (node-failure); a node-dispositioned job never qualifies")
+             if s["ended"] != s["slots"] or s["exits"] != {"0": s["slots"]} or s["left"]:
+                 why.append(f"job {n}: not every planned worker completed its assignment ({s['exits']}, left {s['left']})")
+         jn = jobs.get(n)

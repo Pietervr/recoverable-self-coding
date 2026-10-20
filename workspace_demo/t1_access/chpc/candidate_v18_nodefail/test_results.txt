@@ -1,0 +1,55 @@
+# chpc/candidate_v18_nodefail test results (2026-10-20, Mac, python3 3.14.6; run from workspace_demo/t1_access)
+# Nothing was run against Lengau, PBS or AWS. The live tree (admission c3960464, status a9f9180b, controls 9ea4e727) is untouched.
+
+## New tests: chpc/candidate_v18_nodefail/test_v18_nodefail.py -> rc 0, 111 passed, 0 failed
+  1. the shared rule row19_screen_nodefail.node_failure_evidence (61): the POSITIVE job-54 case on the REAL local plan, ledger
+     entry and slot-19/20 statuses (22 coordinates uncompleted, 8/15 and 8/16 kept, node change 0 s from mtime, never a crash);
+     determinism; a UTC-printing host reading of the same times; 'down,offline'; +100 s inside the tolerance; a later bound
+     job's completion at a no-status coordinate; every worker lost. REFUSALS: node free / offline only; node change +600 s and
+     -3600 s; exit 4; exit 271 (walltime-kill signature) with the node down; boolean exit; state E; captured exit 0; settlement
+     note of another exit; unsettled ledger; no note; a runner end; no runner start; another token; another PBS id / job;
+     another capture script; no pin (v17); two exec nodes; another node; PBS .out present at capture; walltime used at the
+     request less the reserve; request not the plan's; capture before the job end; stime after runner start; a tampered epoch;
+     SAST re-read as UTC; RAW CAPTURE x5 (extra key with qstat text, pasted output, 'key = value' comment, > 4 KB, raw text not
+     JSON); NaN; a missing key; a PARTIAL status (exit 75, work left); a HELD status (exit 4); an unreadable status; a status at
+     an unplanned slot; a temporary status; another host; a survivor ending after mtime; a wrong assignment; an invalid record;
+     a survivor timing in another slot; an orphan record / same-job timing / temp file at a no-status coordinate; an orphan
+     same-job timing outside the plan (V15-1); a leading-zero path alias; a no-status log reporting an exit; a verifier unit
+     naming the job at a no-status coordinate; role orig.
+  2. the status view (11): the 24 job-54 alarms gone and nothing else raised; the summary (exit 265 kept, runner exit None,
+     2 of 24 ended 0, new 2); uncompleted 22 with origin node-failure; closed-no-record still examined and held; evidence not
+     retrieved / node not down / partial status / unsettled ledger / exit 4 -> the alarms stand with the reason kept; a
+     scheduler-memory alarm of a node-dispositioned job is kept; the fetch asks for the evidence of job 54 only (not 271/4 jobs).
+  3. the admission (20): exact recompute; job_summary_problem; NEVER a pilot; units against the plan minus the 22; transition;
+     crash_history and crash_excluded empty (the two-crash rule untouched); held_accounting unaffected; refusals for changed
+     evidence bytes, a .out appearing after the receipt, an edited disposition, a wrong origin, unbound evidence, two
+     dispositions, every worker claimed ended, exit 271, a changed certificate (both checks), a runner end after the receipt,
+     an orphan timing after the receipt, controls pinning no capture script, unplanned uncompleted coordinates.
+  4. the capture script and the candidate controls (16): the capture of job 54 from modelled qstat/pbsnodes text on a SAST
+     host is one strict file under the 4 KB limit with no raw text and the script's own SHA-256, accepted end to end by the rule; refusals
+     (node not down, job not F, two nodes, existing file never overwritten, runner end before any query); a present .out is
+     recorded; controls v18 = v17 versions 1-17 byte-equal + one entry with exactly four pins changed, each this folder's
+     bytes, every other key equal to v17; capture_pin() under the candidate controls = the script's bytes; build_v18 --check;
+     Python 3.7 grammar; the live tree untouched.
+  5. REAL replay (3), cached local evidence, EC2 reconciliation stubbed as in the r14 replay: the 20 Oct 20:19Z refit snapshot
+     (receipt watch_refit_20261020T201925Z: 24 alarms, all job 54's) reconciled by the v18 status view with job 54's MODELLED
+     node evidence gives ZERO alarms; the other 55 jobs' reconciled outcomes equal the v17 receipt's; job 3 (closed-no-record)
+     and job 13 (crashed slot) keep their dispositions. The evidence is modelled (assumed stime); the real capture decides.
+
+## Regression, BEFORE = live adopted v17 controllers (R19_UNDER_TEST=chpc), AFTER = this folder
+                                                BEFORE        AFTER
+candidate_v16/regress/regress_crashed_slot_r14  70 / 1        70 / 1   same 1: the stale 12-Oct refit-13 replay (it reconciles
+                                                                       the CURRENT snapshot against a 12 Oct receipt; job 14's
+                                                                       runner exit 4 etc.), identical alarm list in both
+candidate_v16/regress/regress_pbs_settled_r13   51 / 0        51 / 0
+candidate_v16/test_designated_r16.py            76 / 4        77 / 3   transient worlds chpc/.v18_world_<pid>_* (removed):
+  - both: "controls v16: only admit, status and the new declaration differ from v15 ..." and "refit+S sub-envelope declared
+    81,000 (v15: 60,000)" read the LAST two controls entries (v17/v16 or v18/v17), not v16/v15 - by construction;
+    "REAL status view: rescue-pending ... job-37 attempt running" - live-state drift (as in candidate_v17/test_results.txt).
+  - BEFORE only: "controls v16: versions 1-15 byte-identical to the adopted controls" - the world's controls ARE the adopted
+    file, so its version-slice comparison is off by one; AFTER passes it (v18's versions 1-17 are the adopted file's).
+  Every code check (declaration, selection, order, skips, crash rule, CLI wiring, the REAL 17 Oct replay) passes identically.
+
+Not tested on the Mac: a real capture on Lengau (qstat/pbsnodes formats are modelled on PBS Pro output, not observed here: the
+capture's dry run is the first real test); the full receipt main() path (pull, producer verifier, gate copy); promotion,
+deployment and the pilot rollover; Lengau's t1py version (the candidate files parse at the Python 3.7 grammar level).
