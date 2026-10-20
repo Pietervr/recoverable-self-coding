@@ -17,17 +17,17 @@ migration_v17 reviews established; the per-file differences are in `v17_to_v18.d
        ADOPT row19-screen-controls sha256=452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b version=18
 
    The reviewed `80214d80` received CHANGE 1 and no literal; it is never reused.
-2. **The scripts verdict on this folder at its exact commit**, after the record pin below is filled in.
+2. **The scripts verdict on this folder at its exact commit**, with the record pin below filled (at `8f72842`).
 
-**The record pin.** `v18_package.py` carries ONE line tagged `@record`, PENDING in these bytes:
+**The record pin.** `v18_package.py` carries ONE line tagged `@record`, filled at RSC `8f72842` (20 October 2026) after the
+FAVOURABLE controls verdict in `reviews/2026-10-20_v18r2_mig18_codex_review.md` (committed at `785f103`):
 
-    REC, REC_SHA = None, None   # @record PENDING: ...
+    REC, REC_SHA = "reviews/2026-10-20_v18r2_mig18_codex_review.md", "11ebc12467a50a125f4b583c4d673274e2ff3ea1a2ac0d3e6c03f3725c8cc2c8"   # @record: ...
 
-While it is PENDING every Mac gate (preflight, check-promoted, payload, compare, commit-paths) refuses, so nothing can be archived,
-promoted or deployed. After the controls verdict, that one line is set to the committed Codex record and its SHA-256 (for example
-`REC, REC_SHA = "reviews/2026-10-2x_v18_nodefail_codex_rereview.md", "<64 hex>"   # @record ...`), committed, and the scripts
-review covers those final bytes. The record is then deployed to the controller clone as payload 1 and named by the version-18
-adoption record.
+With the line PENDING (None, None), or naming other bytes or a record without the literal line in HEAD, every Mac gate
+(preflight, check-promoted, payload, compare, commit-paths) refuses, so nothing can be archived, promoted or deployed. The tests
+keep proving that: `install(record=False)` substitutes a private PENDING line. The scripts review must cover these final bytes
+(`8f72842` and later). The record is deployed to the controller clone as payload 1 and named by the version-18 adoption record.
 
 Not authorised by anything here: a fit, a refill, rescue, an EC2 qualification instance or production, a release, the p80 release
 consumers, any scale-up beyond the existing `scaleup_refit_v16.json`, or any new partition, data, EC2 code or activation.
@@ -108,7 +108,7 @@ From step 4 until step 6.4 every NEW refit admission holds (generation 18 receip
 |---|---|---|
 | Controls | the committed Codex record carries the literal for `452b82df`, and `v18_package.py` pins it (record line, sha256) | PENDING, other bytes, no literal in HEAD |
 | Package | controls `452b82df`, map `380871da`, builder `f8ced83a`, promoter `964b101b`, the four sources and `730ea262` (`v18_package.py` PACKAGE; `promote_v18.py --check`) | any byte differs |
-| Scripts reviewed | a committed FAVOURABLE Codex record on THIS folder at its exact commit (with the record line filled), and `python3 chpc/migration_v18/test_migration_v18.py` passing on those bytes | no record, or the scripts changed after it |
+| Scripts reviewed | a committed FAVOURABLE Codex record on THIS folder at its exact commit (record line filled at `8f72842`), and `python3 chpc/migration_v18/test_migration_v18.py` passing on those bytes (37/0 on the filled bytes, `test_results.txt`) | no record, or the scripts changed after it |
 | Hold | the coordinated hold above is in force | any admission during the hold |
 | Node document | `$T/jobs/row19_screen_refit_54.nodefail.json` is still exactly `730ea262` | missing or changed (never recapture by hand: report) |
 | Epoch 2 | `activation_e2.json` is the canonical activation under the adopted v17 | anything else |
@@ -245,7 +245,7 @@ frozen v17 controls - the v17 archive and deploy proof, the node document `730ea
 exactly three tagged lines substituted (`@root`, `@transport`, `@record`); ssh/scp always refuse; the fake `t1py` simulates only
 `--adopt-review`; the two receipt commands are stubs reached through a `python3` wrapper on the Mac PATH (the promoted status
 view stays in place). Covered: the positive route with every re-run (and the running-job state, gate, activation and node
-document unchanged through the deploy), the restricted git/flock route, the PENDING record pin, package-identity refusals,
+document unchanged through the deploy), the restricted git/flock route, the PENDING record pin (substituted privately over the filled production line), package-identity refusals,
 Mac/Lengau preflight refusals, archive completeness/interruption/retry/subset/strict-verify, promotion interruption and the
 archive-only base after promotion, deploy refusals (archive, uncommitted, broken activation, changed node document, drain incl.
 a settlement or capture in flight, science before/after, copy/commit failures, proof binding, payload compile, early v18 path),
