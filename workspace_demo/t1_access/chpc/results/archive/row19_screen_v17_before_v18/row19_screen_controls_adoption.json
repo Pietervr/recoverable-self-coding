@@ -1,0 +1,21 @@
+{
+ "schema": "row19-screen-controls-adoption-1",
+ "controls_path": "chpc/row19_screen_controls.json",
+ "controls_sha256": "9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0",
+ "version": 17,
+ "controls_commit": "c26835f",
+ "review_record": {
+  "path": "reviews/2026-10-19_e2_repair_codex_rereview.md",
+  "sha256": "48b9cf053cbd4f73e40e3e139f84a7ab50eb6c4252e8727bf90953bc1ed88f2b",
+  "commit": "1c948d8",
+  "adopt_line": "ADOPT row19-screen-controls sha256=9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0 version=17"
+ },
+ "by": "R052 Entropy SI (Claude)",
+ "previous": {
+  "version": 16,
+  "controls_sha256": "01976b6a92e7150a82d8397caeb88e5425e0dd051f69bb244bf3f83981e8f220",
+  "adoption_sha256": "523fe18adad603af23425cdd4cb41039b4a287254e36aa55ba34d933b0081411",
+  "archived": "Lengau archive_screen/v16_before_v17, Mac chpc/results/archive/row19_screen_v16_before_v17/"
+ },
+ "scope": "controls v16 -> v17, the EC2 provider epoch-2 adoption (chpc/candidate_v17/DESIGN_v17.md): the partition pin e1 8d1de408 -> the final epoch-2 declaration 48cea639 (e1 kept as pinned provenance in versions 13-16 and as the e2 predecessor); the epoch-2 helpers (row19_partition eabf50c3, row19_ec2_ingest 277c51b0, row19_ec2_e2rules a9ea1f61, row19_ec2_state 7bdedafc, row19_ec2_qualify 1d8eee78, row19_ec2_e2qual 5ceba551) and the admission's schema-2 print line (c3960464); every other controller byte unchanged. Lengau refit admission HOLDS until the canonical epoch-2 activation; fresh v17 receipts and a regenerated pilot qualification with a NEW pilot literal precede any further refit admission; grants no EC2 qualification or production (schema-3 RELEASE + FAVOURABLE actual-result review + release-adopt)"
+}

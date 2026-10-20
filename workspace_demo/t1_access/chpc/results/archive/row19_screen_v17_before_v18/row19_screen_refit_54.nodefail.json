@@ -1,0 +1,39 @@
+{
+ "capture_sha256": "84d52bdfc31725182f7bad53caf1bee88ecf01e1e474a7545b1c3971f655bc9c",
+ "captured_at": 1792528988.856,
+ "captured_by": "row19_nodefail_capture.py",
+ "job": 54,
+ "job_id": "7551259.sched01",
+ "node": {
+  "comment": "node down: communication closed",
+  "last_state_change_epoch": 1792519236,
+  "last_state_change_time": "Tue Oct 20 20:00:36 2026",
+  "name": "cnode0240",
+  "state": "down"
+ },
+ "pbs_output_present": {
+  "err": false,
+  "out": false
+ },
+ "qstat": {
+  "Exit_status": 265,
+  "Resource_List_walltime": "48:00:00",
+  "Resource_List_walltime_s": 172800,
+  "exec_host": "cnode0240/0*24",
+  "job_state": "F",
+  "mtime": "Tue Oct 20 20:00:36 2026",
+  "mtime_epoch": 1792519236,
+  "resources_used_mem_kb": 41763220,
+  "resources_used_walltime": "17:21:10",
+  "resources_used_walltime_s": 62470,
+  "stime": "Tue Oct 20 02:19:36 2026",
+  "stime_epoch": 1792455576
+ },
+ "role": "refit",
+ "schema": "row19-screen-nodefail-1",
+ "source_sha256": {
+  "pbsnodes": "1e0ca2617c69c7ac4b20db74342e336372c8880c9486cdc8a9c1b1d81a27428e",
+  "qstat_xf": "b11872ad974f494307ca30c19a0bff2a1065149e3ae051e36ba9568221ef199b"
+ },
+ "utc_offset_s": 7200
+}

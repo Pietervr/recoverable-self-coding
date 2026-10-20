@@ -197,6 +197,19 @@ gate/scaleup_refit_v16.json (never overwritten) from a tracked, unmodified recor
 receipt/qualification/review gates, the funding and campaign-cap checks and the scheduler limits. The 81,000 core-h refit+S
 sub-envelope is DECLARED in controls version 16 but binds only after the ledger's cap is raised through the two-phase
 `--raise-cap 81000 --note ...` protocol at migration (chpc/migration_v16/RUNBOOK.md); until then the ledger's 60,000 binds.
+
+REVISION 18 CANDIDATE (controls version 18; R052 20 Oct, refit job 54 7551259.sched01 lost with its node cnode0240; NOT adopted;
+chpc/candidate_v18_nodefail/DESIGN_v18.md). NODE-FAILURE DISPOSITION: a receipt summary carrying `node_disposition` (kind
+node-failure) is never taken on its word. node_disposition_problem() recomputes row19_screen_nodefail.node_failure_evidence (the
+ONE implementation the status view calls; its docstring states conditions 1-5) from the CURRENT ledger, the root, the retained
+verifier's units and the node evidence file on disk (<toolchain>/jobs/row19_screen_refit_<n>.nodefail.json, the bytes the
+receipt bound in `bound.node_evidence`, written by the pinned capture script whose SHA-256 the latest controls version pins) and
+requires the receipt's disposition EXACTLY equal; it also refuses when the job's PBS .out or .err file exists NOW (PBS staged the
+job out after all: reclassify). The summary must be F with the kill-set exit, no runner exit, the completed slots ended 0 with
+nothing left and the no-status slots' coordinates uncompleted with origin "node-failure"; units reconcile against the plan
+minus those coordinates; the transition check re-reads the SETTLED certificate. crash_history reads slot dispositions only, so a
+node failure never counts toward the two-crash rule; held_accounting_problem is unchanged (a node-failure job has no runner exit,
+never HELD 4). A node-dispositioned job never qualifies a pilot. Nothing is credited; the charge stays.
 """
 import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
 
@@ -1214,6 +1227,64 @@ def slot_disposition_problem(man, manifest_path, role, n, sj, bound):
     return ""
 
 
+def node_disposition_problem(man, manifest_path, role, n, sj, bound):
+    """REVISION 18: '' only when the receipt's node-failure disposition of job n is exactly what
+    row19_screen_nodefail.node_failure_evidence recomputes HERE from the current ledger, root, retained verifier units and the
+    node evidence bytes on disk (the receipt binds them), no PBS .out/.err of the job exists now, and the summary accounts the
+    no-status slots' coordinates as uncompleted (origin "node-failure") and everything else from the completed statuses."""
+    import row19_screen_nodefail as NF
+    n = str(int(n)); d = sj.get("node_disposition") if isinstance(sj, dict) else None
+    if not isinstance(d, dict) or d.get("kind") != NF.NODE_KIND:
+        return f"job {n}: no node-failure disposition"
+    if sj.get("disposition") is not None or sj.get("slot_disposition") is not None:
+        return f"job {n}: a job carries one disposition at most"
+    jid = sj.get("job_id")
+    led = _strict_load(os.path.join(man["storage"]["campaign"], "budget.json"))
+    hits = [e for e in led["entries"].values() if e.get("kind") == ROLES[role] and e.get("rep") == int(n)]
+    if len(hits) != 1:
+        return f"job {n}: {len(hits)} current ledger entries"
+    e = hits[0]
+    why = certificate_problem(d, e)
+    if why:
+        return f"job {n}: {why}"
+    bj = (bound.get("jobs") or {}).get(n) or {}
+    pp = os.path.join(man["storage"]["root"], "plans", f"job_{n}.json")
+    try:
+        plan = _strict_load(pp)
+    except (OSError, ValueError):
+        return f"job {n}: its plan is absent or unreadable"
+    if not jid or bj.get("job_id") != jid or bj.get("token") != e.get("token") or sha_file(pp) != bj.get("plan_sha256") or d.get("plan_sha256") != bj.get("plan_sha256"):
+        return f"job {n}: the PBS id, token or plan is not the bound one"
+    ne = (bound.get("node_evidence") or {}).get(n) or {}
+    path = NF.evidence_path(man, role, n)
+    if ne.get("file") != os.path.basename(path) or ne.get("file") != d.get("evidence_file") or not _hex64(ne.get("sha256")) or ne["sha256"] != d.get("evidence_sha256"):
+        return f"job {n}: the receipt does not bind the node evidence of the disposition"
+    try:
+        vb = open(path, "rb").read()
+    except OSError as ex:
+        return f"job {n}: the node evidence {path} is absent or unreadable ({ex})"
+    if hashlib.sha256(vb).hexdigest() != ne["sha256"]:
+        return f"job {n}: the node evidence is not the bytes the receipt bound; recollect"
+    for p in (job_output_path(man, role, n), job_error_path(man, role, n)):
+        if os.path.exists(p):
+            return f"job {n}: its PBS file {os.path.basename(p)} exists now (PBS staged the job out): not a node-failure disposition; recollect"
+    vdoc = _verifier_doc(man, bound)
+    obs = dict(state=sj.get("state"), exit=sj.get("exit"))                 # the reserve comes from the plan's envelope (checked
+    got, why = NF.node_failure_evidence(man, role, n, e, plan, jid, obs, vb, vdoc.get("units") or {}, list(led["entries"].values()),
+                                        pin=NF.capture_pin())                # against the resolved one by receipt_envelope_problem)
+    if why:
+        return f"job {n}: not a node-failure disposition ({why})"
+    if got != d:
+        return f"job {n}: the receipt's node disposition is not what the current evidence gives; recollect"
+    want = plan_slots(man, n); k = len(d["no_status_slots"])
+    if not (_int(sj.get("slots")) and sj["slots"] == want and _int(sj.get("ended")) and sj["ended"] == want - k and sj.get("runner_exit") is None):
+        return f"job {n}: the summary is not {want - k} completed workers of {want} with no runner exit"
+    part = sj.get("partition")
+    if not isinstance(part, dict) or part.get("uncompleted") != d["uncompleted"] or part.get("uncompleted_origin") != "node-failure":
+        return f"job {n}: the no-status slots' coordinates are not accounted as uncompleted with origin node-failure"
+    return ""
+
+
 def plan_slots(man, n):
     p = os.path.join(man["storage"]["root"], "plans", f"job_{n}.json")
     return len(json.load(open(p))["slots"]) if os.path.exists(p) else None
@@ -1227,9 +1298,29 @@ def job_summary_problem(man, n, s, pilot=False):
         return f"job {n}: a dispositioned job never qualifies a pilot"
     if pilot and s.get("slot_disposition") is not None:
         return f"job {n}: a slot-dispositioned job never qualifies a pilot"
+    if pilot and s.get("node_disposition") is not None:                      # REVISION 18
+        return f"job {n}: a node-dispositioned job never qualifies a pilot"
     if s.get("state") in ("Q", "R", "H", "W", "B"):
         return "" if not pilot else f"job {n} is not terminal"
     want = plan_slots(man, n)
+    if s.get("node_disposition") is not None:                                 # REVISION 18: validated by node_disposition_problem
+        import row19_screen_nodefail as NF
+        d = s["node_disposition"] if isinstance(s["node_disposition"], dict) else {}
+        k = len(d.get("no_status_slots") or [])
+        if not _int(want):
+            return f"job {n}: no plan to check the node-dispositioned summary against"
+        if s.get("state") != "F" or not _int(s.get("exit")) or s["exit"] not in NF.KILL_EXITS or s.get("runner_exit") is not None:
+            return f"job {n}: a node-dispositioned job must be F with a kill-set exit {list(NF.KILL_EXITS)} and no runner exit"
+        if not (_int(s.get("slots")) and s["slots"] == want and _int(s.get("ended")) and s["ended"] == want - k and _int(s.get("left")) and s["left"] == 0
+                and _int(s.get("new")) and s["new"] >= 0 and _int(s.get("resumed")) and s["resumed"] >= 0 and s["new"] + s["resumed"] == len(d.get("completed") or [])):
+            return f"job {n}: the plan's {want} workers less {k} without status did not all complete"
+        ex = s.get("exits")
+        if not isinstance(ex, dict) or (want - k and ex != {"0": want - k}) or (not want - k and ex != {}):
+            return f"job {n}: completed worker exits {ex} are not all 0 for {want - k} workers"
+        if not (_num(s.get("mem_kb")) and s["mem_kb"] >= 0) or not ((want - k and _num(s.get("max_worker_maxrss")) and s["max_worker_maxrss"] >= 0)
+                                                                     or (not want - k and s.get("max_worker_maxrss") is None)):
+            return f"job {n}: observed scheduler and worker memory are not finite and non-negative"
+        return ""
     if s.get("slot_disposition") is not None:                                 # REVISION 14: validated by slot_disposition_problem
         k = len((s["slot_disposition"] or {}).get("slots") or [])
         if s.get("state") != "F" or s.get("exit") != HELD_EXIT or s.get("runner_exit") != HELD_EXIT or isinstance(s.get("exit"), bool) or not k:
@@ -1305,6 +1396,11 @@ def units_problem(man, v, rec, pilot_job=None):
                 gone = set((sj["slot_disposition"] or {}).get("uncompleted") or [])
                 if not gone or not gone <= set(slot_of) or [k for k in gone if ((units.get(k) or {}).get("timing") or {}).get("job") == jid]:
                     return f"job {n}: its crashed coordinates are not planned for it, or carry timing naming it"
+                slot_of = {k: v for k, v in slot_of.items() if k not in gone}
+            if isinstance(sj, dict) and sj.get("node_disposition") is not None:     # REVISION 18: the no-status slots' coordinates
+                gone = set((sj["node_disposition"] or {}).get("uncompleted") or [])  # are uncompleted (may be empty)
+                if not gone <= set(slot_of) or [k for k in gone if ((units.get(k) or {}).get("timing") or {}).get("job") == jid]:
+                    return f"job {n}: its node-failure coordinates are not planned for it, or carry timing naming it"
                 slot_of = {k: v for k, v in slot_of.items() if k not in gone}
             good = [k for k, u in units.items() if k in slot_of and (u.get("record") or {}).get("ok") and (u.get("timing") or {}).get("ok") is True
                     and (u.get("timing") or {}).get("job") == jid and _int((u.get("timing") or {}).get("slot"))
@@ -1411,6 +1507,12 @@ def transition_problem(man, role, r):
             d = sj["slot_disposition"] if isinstance(sj["slot_disposition"], dict) else {}
             if e.get("state") != "settled" or e.get("runner_exit") != HELD_EXIT or e.get("job_id") != sj.get("job_id") or certificate_problem(d, e):
                 return f"job {n}: the ledger no longer shows the slot-disposed job as the receipt saw it (SETTLED, runner exit {HELD_EXIT}, same certificate and PBS id); recollect"
+            continue
+        if isinstance(sj, dict) and sj.get("node_disposition") is not None:          # REVISION 18: the same settled certificate
+            d = sj["node_disposition"] if isinstance(sj["node_disposition"], dict) else {}
+            if e.get("state") != "settled" or any(e.get(f) is not None for f in ("runner_exit", "runner_ended", "runner_wall_s")) \
+                    or e.get("job_id") != sj.get("job_id") or certificate_problem(d, e):
+                return f"job {n}: the ledger no longer shows the node-disposed job as the receipt saw it (SETTLED, no runner end, same certificate and PBS id); recollect"
             continue
         if sj.get("state") not in TERMINAL_STATES and e.get("state") == "settled":
             return f"job {n} has been SETTLED since the receipt saw it {sj.get('state')}; recollect before admitting"
@@ -1529,10 +1631,14 @@ def receipt_problem(man, manifest_path, role, now=None):
         return "the newest receipt does not summarise every job of the role"
     vdoc = _verifier_doc(man, r["bound"])
     for n, sj in (r.get("jobs") or {}).items():
+        if isinstance(sj, dict) and sum(1 for k in ("disposition", "slot_disposition", "node_disposition") if k in sj) > 1:
+            return f"the newest receipt: job {n} carries more than one disposition"          # REVISION 18
         if isinstance(sj, dict) and "disposition" in sj:
             why = disposition_problem(man, manifest_path, role, n, sj, r.get("bound") or {}, vdoc.get("units") or {})
         elif isinstance(sj, dict) and "slot_disposition" in sj:                  # REVISION 14
             why = slot_disposition_problem(man, manifest_path, role, n, sj, r.get("bound") or {}) or job_summary_problem(man, n, sj)
+        elif isinstance(sj, dict) and "node_disposition" in sj:                  # REVISION 18
+            why = node_disposition_problem(man, manifest_path, role, n, sj, r.get("bound") or {}) or job_summary_problem(man, n, sj)
         else:
             why = job_summary_problem(man, n, sj)
         if why:
