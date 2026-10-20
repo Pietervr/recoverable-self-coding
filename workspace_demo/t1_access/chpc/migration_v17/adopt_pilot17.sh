@@ -40,7 +40,7 @@ locks_free
 TMPD=$(mktemp -d) || die "mktemp failed"
 payload 1 "$TMPD/rec"
 LIT="ADOPT row19-screen-pilot role=refit qualification=$q max_job=100"
-sed 's/^[[:space:]]*//; s/[[:space:]]*$//' "$TMPD/rec" | grep -qxF -- "$LIT" || die "the record does not carry the literal for the gate qualification ${q:0:16}: $LIT"
+sed 's/^[[:space:]]*//; s/[[:space:]]*$//' "$TMPD/rec" | grep -xF -- "$LIT" >/dev/null || die "the record does not carry the literal for the gate qualification ${q:0:16}: $LIT"
 adopt_paths                                  # immediately before the copy and the adopter
 if [ -e "$REC" ] || [ -L "$REC" ]; then
   cmp -s "$TMPD/rec" "$REC" || die "$REC exists in the controller clone with other bytes"
