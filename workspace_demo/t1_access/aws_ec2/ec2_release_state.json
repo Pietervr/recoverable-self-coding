@@ -34,6 +34,12 @@
   "permitted": true,
   "record_path": "prod/permit_e2q1.md",
   "record_sha256": "c3a6899618813c49256b4c5503c53e8c53741063338dbd511b7bbf6dfd587712",
-  "rule": "epoch-2 qualification (QUALIFICATION_E2.md): E2Q1 one instance; bounds in prod_authority.epoch2_problem"
+  "rule": "epoch-2 qualification (QUALIFICATION_E2.md): E2Q1 one instance; bounds in prod_authority.epoch2_problem",
+  "e2q2": {
+   "permitted": true,
+   "record_path": "prod/permit_e2q2.md",
+   "record_sha256": "eac502f7c783fa5bddc35cf6c953648bcd00783baaac350f28641a04d49bd8f7",
+   "rule": "the one conditional identical retry after an external-cause end of E2Q1"
+  }
  }
 }
