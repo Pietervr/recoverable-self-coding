@@ -1,0 +1,295 @@
+diff --git a/workspace_demo/t1_access/chpc/row19_screen_admit.py b/workspace_demo/t1_access/chpc/candidate_v19_oploss/row19_screen_admit.py
+index ed28462..9cde973 100644
+--- a/workspace_demo/t1_access/chpc/row19_screen_admit.py
++++ b/workspace_demo/t1_access/chpc/candidate_v19_oploss/row19_screen_admit.py
+@@ -210,6 +210,23 @@ nothing left and the no-status slots' coordinates uncompleted with origin "node-
+ minus those coordinates; the transition check re-reads the SETTLED certificate. crash_history reads slot dispositions only, so a
+ node failure never counts toward the two-crash rule; held_accounting_problem is unchanged (a node-failure job has no runner exit,
+ never HELD 4). A node-dispositioned job never qualifies a pilot. Nothing is credited; the charge stays.
++
++REVISION 19 CANDIDATE (controls version 19; R052 lean T1 plan item 2, owner-approved 20 Oct 2026; NOT adopted;
++chpc/candidate_v19_oploss/DESIGN_v19.md). OPERATIONAL-LOSS DISPOSITION, the general fallback after closed-no-record, crashed-slot
++and node-failure: operational_loss_evidence() (ONE implementation, called by the status view and recomputed here) grants a
++terminal refit job (state F) that is SETTLED with its certificate, whose settlement note's Exit_status is the observed exit, and
++that is not clean (scheduler exit not 0/75, no runner end, or a runner exit not 0/75), when its evidence is consistent: every
++present status is this job's slot, its planned assignment partitioned into new/resumed/left, and every unit naming the job at
++its coordinates is in its `new`; the statuses scoped to the PBS id are exactly the planned present ones; a recorded runner exit
++is the job-end code those statuses give (row19_shard.cmd_job_end's rule; otherwise a ledger inconsistency); no no-status slot's log
++reports an exit; every no-status coordinate holds no temporary/non-canonical file and either nothing, a verified record of THIS
++job in its planned slot whose current canonical artifacts are that evidence (salvaged: kept as this job's new), or a later bound
++job's verified planned completion (R1); every timing naming the PBS id is canonical and a status's new or salvaged coordinate in
++its planned slot. Granted: the summary carries `operational_loss`, completed statuses (0/75) are reconciled as ordinary workers,
++crashed statuses (any other exit) keep their records and their `left` coordinates, the no-status coordinates (less salvaged)
++are `uncompleted` with origin "operational-loss" and return to the planner, the charge stays. No evidence file is required. The
++admission requires the receipt's disposition EXACTLY equal; an operational-loss job never qualifies a pilot and never counts
++toward the crash rule (crash_history unchanged); held_accounting_problem accepts it for a HELD (runner exit 4) entry.
+ """
+ import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
+ 
+@@ -799,7 +816,8 @@ def envelope_problem(man, manifest_path, role, n, plan, entry, sj=None):
+     if sj is not None and env["source"] != "manifest":
+         if not (_num(sj.get("plan_walltime_s")) and abs(sj["plan_walltime_s"] - w) < 1e-6):
+             return f"job {n}: the receipt's plan walltime {sj.get('plan_walltime_s')} is not the envelope's {w:.0f} s"
+-        if not (_num(sj.get("requested_walltime_s")) and abs(sj["requested_walltime_s"] - w) <= 1.0):
++        unobserved = sj.get("operational_loss") is not None and sj.get("requested_walltime_s") is None   # REVISION 19: PBS history
++        if not unobserved and not (_num(sj.get("requested_walltime_s")) and abs(sj["requested_walltime_s"] - w) <= 1.0):  # expired
+             return f"job {n}: the scheduler's observed walltime request {sj.get('requested_walltime_s')} is not the envelope's {w:.0f} s"
+     return ""
+ 
+@@ -1285,6 +1303,173 @@ def node_disposition_problem(man, manifest_path, role, n, sj, bound):
+     return ""
+ 
+ 
++OPLOSS_KIND = "operational-loss"                                        # REVISION 19
++CLEAN_EXITS = (0, 75)
++OPLOSS_EXIT_RE = re.compile(r"Exit_status (-?\d+)\b")
++RUNNER_END = ("runner_exit", "runner_ended", "runner_wall_s")
++
++
++def operational_loss_evidence(man, role, n, e, plan, jid, obs, units, entries, root=None, slot_map=None):
++    """REVISION 19: (disposition, '') when job n is an operational loss on THIS evidence (module docstring, REVISION 19);
++    (None, reason) otherwise. `obs` is the scheduler observation (state, exit); `e` the ledger entry; `entries` every ledger
++    entry (producer numbering for later completions). Used by the status view (to report and un-alarm) and by the admission (to
++    recompute, never taking the receipt's word)."""
++    n = int(n)
++    if role != "refit":
++        return None, "only refit jobs carry operational-loss dispositions"
++    ex = (obs or {}).get("exit")
++    if (obs or {}).get("state") != "F" or not _int(ex):
++        return None, "the scheduler observation is not state F with an integer exit"
++    ended = any(e.get(f) is not None for f in RUNNER_END)
++    rx = e.get("runner_exit")
++    if ended and not _int(rx):
++        return None, "the ledger records a runner end without an integer runner exit (ledger inconsistency)"
++    if ex in CLEAN_EXITS and ended and rx in CLEAN_EXITS:
++        return None, "a clean terminal job (scheduler and runner exits 0/75) needs no disposition"
++    if e.get("state") != "settled" or not (_num(e.get("settled_core_h")) and e["settled_core_h"] >= 0) \
++            or not (_num(e.get("settled_at")) and e["settled_at"] >= 0) or not (isinstance(e.get("settle_note"), str) and len(e["settle_note"].strip()) >= 8):
++        return None, "the ledger entry is not SETTLED with settlement evidence (charge, note, non-negative time): settling is the operator's step"
++    m = OPLOSS_EXIT_RE.search(e["settle_note"])
++    if not m or int(m.group(1)) != ex:
++        return None, f"the settlement note's Exit_status is not the observed {ex} (ledger inconsistency)"
++    if not jid or e.get("job_id") != jid or not e.get("token") or plan.get("token") != e.get("token") or plan.get("job") != n:
++        return None, "the plan is not this entry's token, job and PBS id"
++    root = root or man["storage"]["root"]; slots = plan.get("slots") or []
++    slot_map = slot_map or (lambda m_: _plan_slot_of(man, m_))
++    present, missing, crashed, allowed = {}, [], [], {}
++    for sl in slots:
++        s = int(sl["slot"]); r = int(sl["rep"]); want = [int(i) for i in sl["indices"]]
++        p = os.path.join(root, "status", f"job{jid}.slot{s}.json")
++        if not os.path.exists(p):
++            missing.append(sl); continue
++        try:
++            st = _strict_load(p)
++        except Exception:
++            return None, f"slot {s}: its worker status is unreadable (corrupt evidence)"
++        if not isinstance(st, dict) or st.get("job") != jid or st.get("slot") != s or not _int(st.get("exit")):
++            return None, f"slot {s}: its status is not this job's slot with an integer exit"
++        lists = [st.get(x) for x in ("new", "resumed", "left")]
++        if st.get("rep") != r or st.get("indices") != want or not all(isinstance(x, list) and all(_int(i) for i in x) for x in lists) \
++                or sorted(st["new"] + st["resumed"] + st["left"]) != sorted(want):
++            return None, f"slot {s}: its status is not its planned assignment partitioned into new/resumed/left"
++        new = {f"{r}/{i}" for i in st["new"]}
++        own = {f"{r}/{i}" for i in want if (((units.get(f"{r}/{i}") or {}).get("timing") or {}).get("job") == jid)}
++        if own - new:
++            return None, f"slot {s}: unit(s) {sorted(own - new)[:3]} carry timing naming {jid} but are not the status's new coordinates"
++        present[s] = st; allowed.update({k: s for k in new})
++        if st["exit"] not in CLEAN_EXITS:
++            crashed.append(dict(slot=s, exit=st["exit"], left=sorted(f"{r}/{i}" for i in st["left"])))
++    want_scoped = sorted(f"job{jid}.slot{s}.json" for s in present)
++    if sorted(status_scoped(root, jid)) != want_scoped:
++        return None, f"status evidence scoped to {jid} is not exactly the planned slots' statuses"
++    if ended:                                                           # job-end's own rule (row19_shard.cmd_job_end)
++        codes = [present[int(sl["slot"])]["exit"] if int(sl["slot"]) in present else None for sl in slots]
++        exp = HELD_EXIT if (not codes or any(c not in CLEAN_EXITS for c in codes)) else (75 if 75 in codes else 0)
++        if rx != exp:
++            return None, f"the ledger's runner exit {rx} is not the job-end code {exp} the statuses give (ledger inconsistency)"
++    for sl in missing:
++        lp = os.path.join(root, "logs", f"job{jid}.slot{int(sl['slot'])}.log")
++        if os.path.exists(lp):
++            try:
++                txt = open(lp, "rb").read().decode("utf-8", errors="replace")
++            except OSError:
++                return None, f"slot {sl['slot']}: its worker log is unreadable"
++            if any(l.startswith(f"worker job {jid} slot {int(sl['slot'])}: exit ") for l in txt.splitlines()):
++                return None, f"slot {sl['slot']}: its worker log reports an exit but no status exists (a missing status is not explained)"
++    num_of = {x.get("job_id"): int(x["rep"]) for x in entries if x.get("kind") == ROLES[role] and x.get("job_id")}
++    plans = {}
++
++    def pso(m_):
++        if m_ not in plans:
++            plans[m_] = slot_map(m_)
++        return plans[m_]
++    gone, salvaged = [], []
++    for sl in missing:
++        s = int(sl["slot"])
++        for i in sl["indices"]:
++            k = f"{int(sl['rep'])}/{int(i)}"
++            files, odd = coordinate_files(man, root, role, k)
++            if odd:
++                return None, f"coordinate {k}: temporary or non-canonical output files {[os.path.basename(p) for p in odd][:3]}"
++            u = units.get(k) or {}; t = u.get("timing") or {}
++            if t.get("job") == jid:
++                if (u.get("record") or {}).get("ok") and t.get("ok") is True and _int(t.get("slot")) and t["slot"] == s \
++                        and not current_artifacts_problem(man, root, role, k, u):
++                    salvaged.append(k); allowed[k] = s; continue
++                return None, f"coordinate {k}: a unit naming {jid} that is not a verified completion in its planned slot {s}"
++            if files or u.get("record") is not None:
++                why = later_completion(man, root, role, units, k, n, num_of, pso)
++                if why:
++                    return None, f"coordinate {k} holds output that is neither this job's verified completion nor a later bound job's ({why})"
++            gone.append(k)
++    for rel in timing_scan(root, jid):                                  # the V15-1 rule: every same-job timing is accounted
++        mt = TIMING_REL.match(rel)
++        if not mt:
++            return None, f"timing evidence of unknown attribution ({rel})"
++        try:
++            t = _strict_load(os.path.join(root, rel))
++        except Exception:
++            return None, f"timing evidence of unknown attribution ({rel})"
++        if not isinstance(t, dict) or t.get("job") != jid or not all(_int(t.get(f)) for f in ("rep", "index", "slot")):
++            return None, f"timing {rel} names {jid} without integer rep, index and slot"
++        if rel != f"timing/rep{t['rep']}/t_{t['index']:03d}.json":
++            return None, f"timing {rel} is not at its canonical path (it names {t['rep']}/{t['index']})"
++        if allowed.get(f"{t['rep']}/{t['index']}") != t["slot"]:
++            return None, f"timing {rel} names {jid} slot {t['slot']}, not a status's new or a salvaged coordinate in its planned slot"
++    pp = os.path.join(root, "plans", f"job_{n}.json")
++    return dict(kind=OPLOSS_KIND, job_id=jid, scheduler_state="F", scheduler_exit=ex, runner_exit=rx if ended else None, runner_end=ended,
++                settled_core_h=e["settled_core_h"], settle_note=e["settle_note"], settled_at=e["settled_at"], token=e["token"],
++                plan_sha256=sha_file(pp), completed_slots=sorted(s for s, st in present.items() if st["exit"] in CLEAN_EXITS),
++                crashed_slots=sorted(crashed, key=lambda c: c["slot"]), no_status_slots=sorted(int(sl["slot"]) for sl in missing),
++                salvaged=sorted(salvaged), uncompleted=sorted(gone), counts_as_crash=False,
++                note="an operational loss (scheduler/worker failure, no evidence file required): charged, no credit; completed slots and "
++                     "salvaged records are kept, no-status coordinates return to the planner, crashed workers' left coordinates too; never "
++                     "a crash, never a pilot"), ""
++
++
++def oploss_disposition_problem(man, manifest_path, role, n, sj, bound):
++    """REVISION 19: '' only when the receipt's operational-loss disposition of job n is exactly what operational_loss_evidence
++    recomputes HERE from the current ledger, root and retained verifier units, and the summary accounts the no-status
++    coordinates (less salvaged) as uncompleted (origin "operational-loss") and everything else from the statuses."""
++    n = str(int(n)); d = sj.get("operational_loss") if isinstance(sj, dict) else None
++    if not isinstance(d, dict) or d.get("kind") != OPLOSS_KIND:
++        return f"job {n}: no operational-loss disposition"
++    if any(sj.get(k) is not None for k in ("disposition", "slot_disposition", "node_disposition")):
++        return f"job {n}: a job carries one disposition at most"
++    jid = sj.get("job_id")
++    led = _strict_load(os.path.join(man["storage"]["campaign"], "budget.json"))
++    hits = [e for e in led["entries"].values() if e.get("kind") == ROLES[role] and e.get("rep") == int(n)]
++    if len(hits) != 1:
++        return f"job {n}: {len(hits)} current ledger entries"
++    e = hits[0]
++    why = certificate_problem(d, e)
++    if why:
++        return f"job {n}: {why}"
++    bj = (bound.get("jobs") or {}).get(n) or {}
++    pp = os.path.join(man["storage"]["root"], "plans", f"job_{n}.json")
++    try:
++        plan = _strict_load(pp)
++    except (OSError, ValueError):
++        return f"job {n}: its plan is absent or unreadable"
++    if not jid or bj.get("job_id") != jid or bj.get("token") != e.get("token") or sha_file(pp) != bj.get("plan_sha256") or d.get("plan_sha256") != bj.get("plan_sha256"):
++        return f"job {n}: the PBS id, token or plan is not the bound one"
++    vdoc = _verifier_doc(man, bound)
++    obs = dict(state=sj.get("state"), exit=sj.get("exit"))
++    got, why = operational_loss_evidence(man, role, n, e, plan, jid, obs, vdoc.get("units") or {}, list(led["entries"].values()))
++    if why:
++        return f"job {n}: not an operational-loss disposition ({why})"
++    if got != d:
++        return f"job {n}: the receipt's operational-loss disposition is not what the current evidence gives; recollect"
++    want = plan_slots(man, n); k = len(d["no_status_slots"])
++    if not (_int(sj.get("slots")) and sj["slots"] == want and _int(sj.get("ended")) and sj["ended"] == want - k and sj.get("runner_exit") == d["runner_exit"]):
++        return f"job {n}: the summary is not {want - k} ended workers of {want} with the ledger's runner exit"
++    part = sj.get("partition")
++    if not isinstance(part, dict) or part.get("uncompleted") != d["uncompleted"] or part.get("uncompleted_origin") != "operational-loss" \
++            or not set(d["salvaged"]) <= set(part.get("new") or []):
++        return f"job {n}: the no-status coordinates are not accounted as uncompleted with origin operational-loss (salvaged as new)"
++    return ""
++
++
+ def plan_slots(man, n):
+     p = os.path.join(man["storage"]["root"], "plans", f"job_{n}.json")
+     return len(json.load(open(p))["slots"]) if os.path.exists(p) else None
+@@ -1300,9 +1485,27 @@ def job_summary_problem(man, n, s, pilot=False):
+         return f"job {n}: a slot-dispositioned job never qualifies a pilot"
+     if pilot and s.get("node_disposition") is not None:                      # REVISION 18
+         return f"job {n}: a node-dispositioned job never qualifies a pilot"
++    if pilot and s.get("operational_loss") is not None:                      # REVISION 19
++        return f"job {n}: an operational-loss job never qualifies a pilot"
+     if s.get("state") in ("Q", "R", "H", "W", "B"):
+         return "" if not pilot else f"job {n} is not terminal"
+     want = plan_slots(man, n)
++    if s.get("operational_loss") is not None:                                 # REVISION 19: validated by oploss_disposition_problem
++        d = s["operational_loss"] if isinstance(s["operational_loss"], dict) else {}
++        k = len(d.get("no_status_slots") or [])
++        if not _int(want):
++            return f"job {n}: no plan to check the operational-loss summary against"
++        if s.get("state") != "F" or not _int(s.get("exit")) or s.get("runner_exit") != d.get("runner_exit") or isinstance(s.get("runner_exit"), bool):
++            return f"job {n}: an operational-loss job must be F with an integer scheduler exit and the disposition's runner exit"
++        if not (_int(s.get("slots")) and s["slots"] == want and _int(s.get("ended")) and s["ended"] == want - k and _int(s.get("left")) and s["left"] >= 0
++                and _int(s.get("new")) and s["new"] >= 0 and _int(s.get("resumed")) and s["resumed"] >= 0):
++            return f"job {n}: the plan's {want} workers less {k} without status are not the ended workers"
++        ex = s.get("exits")
++        if not isinstance(ex, dict) or any(not _int(v) or v < 0 for v in ex.values()) or sum(ex.values()) != want - k:
++            return f"job {n}: worker exits {ex} do not count the {want - k} ended workers"
++        if s.get("mem_kb") is not None and not (_num(s.get("mem_kb")) and s["mem_kb"] >= 0):
++            return f"job {n}: observed scheduler memory is not finite and non-negative"
++        return ""
+     if s.get("node_disposition") is not None:                                 # REVISION 18: validated by node_disposition_problem
+         import row19_screen_nodefail as NF
+         d = s["node_disposition"] if isinstance(s["node_disposition"], dict) else {}
+@@ -1402,6 +1605,11 @@ def units_problem(man, v, rec, pilot_job=None):
+                 if not gone <= set(slot_of) or [k for k in gone if ((units.get(k) or {}).get("timing") or {}).get("job") == jid]:
+                     return f"job {n}: its node-failure coordinates are not planned for it, or carry timing naming it"
+                 slot_of = {k: v for k, v in slot_of.items() if k not in gone}
++            if isinstance(sj, dict) and sj.get("operational_loss") is not None:     # REVISION 19: the no-status coordinates less
++                gone = set((sj["operational_loss"] or {}).get("uncompleted") or [])  # salvaged are uncompleted (may be empty)
++                if not gone <= set(slot_of) or [k for k in gone if ((units.get(k) or {}).get("timing") or {}).get("job") == jid]:
++                    return f"job {n}: its operational-loss coordinates are not planned for it, or carry timing naming it"
++                slot_of = {k: v for k, v in slot_of.items() if k not in gone}
+             good = [k for k, u in units.items() if k in slot_of and (u.get("record") or {}).get("ok") and (u.get("timing") or {}).get("ok") is True
+                     and (u.get("timing") or {}).get("job") == jid and _int((u.get("timing") or {}).get("slot"))
+                     and slot_of[k] == (u.get("timing") or {}).get("slot")]
+@@ -1514,6 +1722,13 @@ def transition_problem(man, role, r):
+                     or e.get("job_id") != sj.get("job_id") or certificate_problem(d, e):
+                 return f"job {n}: the ledger no longer shows the node-disposed job as the receipt saw it (SETTLED, no runner end, same certificate and PBS id); recollect"
+             continue
++        if isinstance(sj, dict) and sj.get("operational_loss") is not None:          # REVISION 19: the same settled certificate
++            d = sj["operational_loss"] if isinstance(sj["operational_loss"], dict) else {}
++            if e.get("state") != "settled" or e.get("runner_exit") != d.get("runner_exit") \
++                    or any(e.get(f) is not None for f in RUNNER_END) != bool(d.get("runner_end")) \
++                    or e.get("job_id") != sj.get("job_id") or certificate_problem(d, e):
++                return f"job {n}: the ledger no longer shows the operational-loss job as the receipt saw it (SETTLED, same runner end, certificate and PBS id); recollect"
++            continue
+         if sj.get("state") not in TERMINAL_STATES and e.get("state") == "settled":
+             return f"job {n} has been SETTLED since the receipt saw it {sj.get('state')}; recollect before admitting"
+         if sj.get("state") in TERMINAL_STATES:
+@@ -1631,14 +1846,16 @@ def receipt_problem(man, manifest_path, role, now=None):
+         return "the newest receipt does not summarise every job of the role"
+     vdoc = _verifier_doc(man, r["bound"])
+     for n, sj in (r.get("jobs") or {}).items():
+-        if isinstance(sj, dict) and sum(1 for k in ("disposition", "slot_disposition", "node_disposition") if k in sj) > 1:
+-            return f"the newest receipt: job {n} carries more than one disposition"          # REVISION 18
++        if isinstance(sj, dict) and sum(1 for k in ("disposition", "slot_disposition", "node_disposition", "operational_loss") if k in sj) > 1:
++            return f"the newest receipt: job {n} carries more than one disposition"          # REVISION 18 / 19
+         if isinstance(sj, dict) and "disposition" in sj:
+             why = disposition_problem(man, manifest_path, role, n, sj, r.get("bound") or {}, vdoc.get("units") or {})
+         elif isinstance(sj, dict) and "slot_disposition" in sj:                  # REVISION 14
+             why = slot_disposition_problem(man, manifest_path, role, n, sj, r.get("bound") or {}) or job_summary_problem(man, n, sj)
+         elif isinstance(sj, dict) and "node_disposition" in sj:                  # REVISION 18
+             why = node_disposition_problem(man, manifest_path, role, n, sj, r.get("bound") or {}) or job_summary_problem(man, n, sj)
++        elif isinstance(sj, dict) and "operational_loss" in sj:                  # REVISION 19
++            why = oploss_disposition_problem(man, manifest_path, role, n, sj, r.get("bound") or {}) or job_summary_problem(man, n, sj)
+         else:
+             why = job_summary_problem(man, n, sj)
+         if why:
+@@ -1936,7 +2153,8 @@ def held_accounting_problem(man, role, receipt):
+     led = _strict_load(lp); jobs = (receipt or {}).get("jobs") or {}
+     held = sorted(int(e["rep"]) for e in led["entries"].values() if e.get("kind") == ROLES[role] and e.get("runner_exit") == HELD_EXIT
+                   and not isinstance(e.get("runner_exit"), bool))
+-    miss = [n for n in held if not isinstance((jobs.get(str(n)) or {}).get("slot_disposition"), dict)]
++    miss = [n for n in held if not isinstance((jobs.get(str(n)) or {}).get("slot_disposition"), dict)
++            and not isinstance((jobs.get(str(n)) or {}).get("operational_loss"), dict)]     # REVISION 19: accounted, not a crash
+     return f"HELD job(s) {miss[:5]} carry no crashed-worker slot disposition in the planning receipt: crash history unknown" if miss else ""
+ 
+ 

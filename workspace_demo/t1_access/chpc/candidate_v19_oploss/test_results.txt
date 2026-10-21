@@ -1,0 +1,102 @@
+Controls v19 candidate (operational-loss disposition) - test results, 20 October 2026 (Mac, python3; nothing run against
+Lengau, PBS or AWS). Commands from workspace_demo/t1_access.
+
+== python3 chpc/candidate_v19_oploss/test_v19_oploss.py
+ok   node loss without evidence: ZERO alarms
+ok   node loss without evidence: node-failure held (evidence not retrieved), operational-loss granted
+ok   node loss without evidence: 4 no-status slots, their 4 coordinates uncompleted (origin operational-loss), records 5/10, 5/11 kept
+ok   node loss without evidence: the scheduler-exit, no-runner-end and 4 missing-status alarms are informational lines (6)
+ok   node loss without evidence: exit 265 and runner exit None kept, charge kept, not a crash
+ok   node loss without evidence: admission recomputes exactly; summary, units, transition and HELD accounting pass 
+ok   node loss without evidence: NEVER a pilot
+ok   node loss without evidence: crash_history counts nothing (the two-crash rule untouched)
+ok   walltime kill 271: ZERO alarms; operational-loss granted
+ok   walltime kill 271: slot 4's verified record of THIS job is salvaged (counted new), only slot 5's coordinate uncompleted
+ok   walltime kill 271: node-failure never examined as granted (271 not in the kill set)
+ok   walltime kill 271: admission recomputes exactly; summary, units, transition and HELD accounting pass 
+ok   walltime kill 271: NEVER a pilot
+ok   walltime kill 271: crash_history counts nothing (the two-crash rule untouched)
+ok   scheduler kill (-11, no status): ZERO alarms; all 6 coordinates uncompleted
+ok   scheduler kill -11: admission recomputes exactly; summary, units, transition and HELD accounting pass 
+ok   scheduler kill -11: NEVER a pilot
+ok   scheduler kill -11: crash_history counts nothing (the two-crash rule untouched)
+ok   scheduler kill with no observed scheduler memory: the memory alarm is informational too
+ok   scheduler kill, memory unobserved: admission recomputes exactly; summary, units, transition and HELD accounting pass 
+ok   scheduler kill, memory unobserved: NEVER a pilot
+ok   scheduler kill, memory unobserved: crash_history counts nothing (the two-crash rule untouched)
+ok   crashed worker exit 4: ZERO alarms; crashed-slot held (no .out/.err), operational-loss granted
+ok   crashed worker exit 4: the scheduler-exit, runner-exit and worker-exit alarms are informational
+ok   crashed worker exit 4: its coordinate stays `left` (returned to the planner), nothing uncompleted, 5 records kept
+ok   crashed worker exit 4: admission recomputes exactly; summary, units, transition and HELD accounting pass 
+ok   crashed worker exit 4: NEVER a pilot
+ok   crashed worker exit 4: crash_history counts nothing (the two-crash rule untouched)
+ok   crashed worker with a wrong identity: granted, but the identity alarm (integrity) still stands
+ok   unsettled terminal job: NOT dispositioned, every alarm stands (exit, runner end, 4 missing statuses), reason names settling
+ok   ledger inconsistency (settlement Exit_status 271, observed 265): refused, alarms stand
+ok   ledger inconsistency (runner exit 0 recorded while a slot has no status): refused, alarms stand
+ok   corrupt status: refused, the unreadable-status alarm and the job's alarms stand
+ok   an unplanned (duplicate) status scoped to the job: refused, the foreign-status alarm stands
+ok   a corrupt record of this job at a no-status coordinate: refused (unverifiable), alarms stand
+ok   a temporary file at a no-status coordinate: refused, alarms stand
+ok   a no-status slot whose log reports an exit: refused, alarms stand
+ok   an orphan same-job timing outside the plan: refused (V15-1), alarms stand
+ok   an invalid record of a completed slot: granted, but its no-valid-record alarm and the invalid-record alarm still stand
+ok   a walltime request that is not the plan's: the alarm stands beside the disposition
+ok   scheduler memory above 90 %: the alarm stands beside the disposition
+ok   anchor and producer-verifier alarms are untouched code paths (anchor_alarms still alarms a difference)
+ok   a clean job (0/0, every slot 0): no alarm, no operational-loss key of any kind
+ok   status --qualify refuses an operational-loss job (code path present)
+ok   refusals base (node loss): admission recomputes exactly; summary, units, transition and HELD accounting pass 
+ok   refusals base (node loss): NEVER a pilot
+ok   refusals base (node loss): crash_history counts nothing (the two-crash rule untouched)
+ok   admission: an edited disposition (one coordinate dropped) -> refused
+ok   admission: wrong uncompleted origin -> refused
+ok   admission: two dispositions on one job -> refused
+ok   admission: a summary claiming every worker ended -> refused
+ok   admission: a summary with another runner exit -> refused
+ok   admission: a changed settlement certificate -> refused (disposition and transition)
+ok   refusals base 2: admission recomputes exactly; summary, units, transition and HELD accounting pass 
+ok   refusals base 2: NEVER a pilot
+ok   refusals base 2: crash_history counts nothing (the two-crash rule untouched)
+ok   admission: a runner end recorded after the receipt -> transition refused
+ok   refusals base 3: admission recomputes exactly; summary, units, transition and HELD accounting pass 
+ok   refusals base 3: NEVER a pilot
+ok   refusals base 3: crash_history counts nothing (the two-crash rule untouched)
+ok   admission: an orphan same-job timing written after the receipt -> refused
+ok   admission: units_problem refuses operational-loss coordinates the job did not plan
+ok   admission: receipt_problem names the operational-loss branch and the four-key one-disposition rule
+ok   admission: an operational-loss job whose walltime request PBS no longer reports passes the envelope check; any other job still refuses
+ok   admission: HELD accounting refuses the same HELD entry when the receipt carries no disposition for it
+   replay of watch_refit_20261021T010040Z.json (65 jobs, receipt alarms 0): []
+ok   REAL replay watch_refit_20261021T010040Z.json: the v19 status view raises ZERO alarms (receipt: 0)
+ok   REAL replay: job 54 is still node-dispositioned on the captured 730ea262, not operational-loss
+ok   REAL replay: every one of the 65 job summaries is byte-equal to the v18 receipt's (closed-no-record, crashed-slot, node-failure byte-stable) []
+ok   REAL replay: closed-no-record job 3 and crashed-slot job 13 keep their dispositions, no job is operational-loss
+ok   controls v19: versions 1-18 byte-equal to the adopted v18 controls (452b82df)
+ok   controls v19: exactly two pins differ (admission, status)
+ok   controls v19: each pin is this folder's bytes
+ok   controls v19: partition e2 48cea639, sub_envelopes, qualification_S and every other key equal v18
+ok   build_v19 --check: deterministic
+ok   Python 3.7 grammar for every candidate file
+ok   the live tree is untouched (admission e2260765, status 4710544a, controls 452b82df)
+
+76 passed, 0 failed
+ALL OK
+
+== regression (chpc/candidate_v16/regress, R19_UNDER_TEST=chpc = live v18 BEFORE, =chpc/candidate_v19_oploss AFTER)
+regress_crashed_slot_r14.candidate_v19_oploss: 68 passed, 3 failed
+    FAIL status: error stream not retrieved -> all three alarms stand, reason kept
+    FAIL status: Killed -> all three alarms stand
+    FAIL REAL refit 13: slot 16 (rep 83 index 2) dispositioned as a Segmentation fault, the receipt's three alarms gone
+regress_crashed_slot_r14.chpc: 70 passed, 1 failed
+    FAIL REAL refit 13: slot 16 (rep 83 index 2) dispositioned as a Segmentation fault, the receipt's three alarms gone
+regress_pbs_settled_r13.candidate_v19_oploss: 51 passed, 0 failed
+regress_pbs_settled_r13.chpc: 51 passed, 0 failed
+
+regress_crashed_slot_r14 AFTER has two failures more than BEFORE, both BY DESIGN: 'error stream not retrieved -> all three
+alarms stand' and 'Killed -> all three alarms stand' (a HELD job whose crash evidence is missing or is a SIGKILL is now an
+operational loss; its alarms are informational). The third failure ('REAL refit 13 ...') is the known stale 12-Oct replay
+and fails identically BEFORE. An earlier draft also turned 'runner exit 0 with a missing status' into an operational loss;
+the rule now refuses it (the ledger's runner exit must be the job-end code the statuses give), so that check passes.
+test_designated_r16 was not run: it writes transient worlds inside chpc/ (outside the two new folders).
+
