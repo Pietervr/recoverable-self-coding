@@ -29,5 +29,11 @@
   "review_sha256": null,
   "released_attempts": [],
   "rule": "written only by `prod_authority.py release-adopt` from a passing release_problem validation: the qualifier's schema-2 RELEASE certificate bound to the current code, 43b75f94, the current controls' partition and the reconciled Q1 attempt, plus a pinned FAVOURABLE actual-result review carrying the literal RELEASE line; the released attempts are derived from the certificate (Codex RSC 3dc0daf R1-4). The owner's standing go (11 Oct) covers the step from a successful qualification with that favourable review to production; no further owner go."
+ },
+ "qualification_e2": {
+  "permitted": true,
+  "record_path": "prod/permit_e2q1.md",
+  "record_sha256": "c3a6899618813c49256b4c5503c53e8c53741063338dbd511b7bbf6dfd587712",
+  "rule": "epoch-2 qualification (QUALIFICATION_E2.md): E2Q1 one instance; bounds in prod_authority.epoch2_problem"
  }
 }
