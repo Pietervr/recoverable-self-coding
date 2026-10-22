@@ -65,7 +65,7 @@ V17_QUAL = "8fdbf48e998e39a8c0b12900d75e3dfaf4ab64396ade08a17a5cab549c0b5faa"
 V17_CONTROLS = "9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0"     # the controls the epoch-2 activation was made under
 V18_QUAL = "530df9a208eb1578282ef564708447fd3b32c5fa1366f388f51059ebcfd70839"
 V18_CONTROLS = "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b"
-V19_CONTROLS = "4d868856905f914858ca224ec0dcb902792646f437fa4a9ddaa75d1b6d729a7d"
+V19_CONTROLS = "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5"
 NODE_EV_SHA = "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f"
 REC = "reviews/test_v19_controls_record.md"            # the world's SYNTHETIC controls record (never PROD_REC)
 REC_TEXT = "# PRIVATE TEST RECORD (never production)\n\nADOPT row19-screen-controls sha256=%s version=19\n" % V19_CONTROLS
@@ -109,7 +109,11 @@ FROZEN_V17 = {"chpc/results/archive/row19_screen_v17_before_v18/row19_screen_con
                   "61ca680e932fcb6d32a972c3198b5bd9c029da3955e15dd7acb2e07db125699b"}
 FROZEN_QUAL = ("chpc/qualification_v18_530df9a2/qualified_refit_job1.json", V18_QUAL)   # -> the Mac receipts copy and the gate copy
 CAND_SET = ["chpc/candidate_v19_oploss/" + f for f in ("row19_screen_controls.json", "v19_promotion_map.json", "build_v19.py",
-            "promote_v19.py", "row19_screen_admit.py", "row19_screen_status.py")]
+            "promote_v19.py", "row19_screen_admit.py", "row19_screen_status.py", "row19_ec2_state.py", "row19_ec2_e2qual.py",
+            "row19_ec2_ingest.py", "manifest_e2q3_e2.json")]
+V19_PINS = ["chpc/row19_screen_status.py", "chpc/row19_screen_admit.py", "chpc/row19_ec2_state.py", "chpc/row19_ec2_e2qual.py",
+            "chpc/row19_ec2_ingest.py"]                       # the five replaced controllers, in map order
+V19_NEW = ["aws_ec2/prod/manifest_e2q3_e2.json"]               # the one NEW data path (E2Q3 on-demand qualifier, owner 21 Oct 2026)
 QUAL_MAC = "chpc/results/row19_screen/receipts/qualified_refit_job1.json"
 
 BASE = None
@@ -341,7 +345,7 @@ if mode == "fail":
     print("ALARMS: - simulated"); sys.exit(1)
 now = time.time(); stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(now))
 v = 18 if mode == "gen18" else 19
-gen = {"version": v, "latest": v, "controls_problem": "", "controls_sha256": "4d868856905f914858ca224ec0dcb902792646f437fa4a9ddaa75d1b6d729a7d",
+gen = {"version": v, "latest": v, "controls_problem": "", "controls_sha256": "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5",
        "verify_sha256": "0" * 64}
 vp = os.path.join(R, "verify_refit_%s.json" % stamp); json.dump({"generation": gen}, open(vp, "w"))
 acts = {"activation_e1.json": "1" * 64} if mode == "noe2" else {"activation_e1.json": "1" * 64, "activation_e2.json": "2" * 64}
@@ -720,10 +724,14 @@ def t_identities():
         sys.path.pop(0)
     m = re.search(r'^V18_REPLACED="(.*?)"$', rl, re.S | re.M)
     rep = dict(l.split(" ") for l in m.group(1).split("\n"))
-    need(rep == {d: p for d, s, p in B.MAP if p}, "V18_REPLACED is not the two replaced pins of build_v19: %s" % rep)
-    need("V19_NEW" not in rl and all(p for d, s, p in B.MAP) and len(B.MAP) == 2, "v19 adds a controller path (it must not)")
-    need(len(B.ARCHIVE) == 8 and B.ARCHIVE["row19_screen_refit_54.nodefail.json"][1] == NODE_EV_SHA
-         and B.ARCHIVE["qualified_refit_job1.json"][1] == V18_QUAL, "the builder's archive inventory is not the 8 members")
+    need(rep == {d: p for d, s, p in B.MAP if p} and [d for d, s, p in B.MAP] == V19_PINS,
+         "V18_REPLACED is not the five replaced pins of build_v19: %s" % rep)
+    m2 = re.search(r'^V19_NEW="(.*?)"$', rl, re.M)
+    need(m2 is not None and m2.group(1).split() == V19_NEW == [d for d, s, p in B.DATA] and all(p for d, s, p in B.MAP)
+         and all(p is None for d, s, p in B.DATA), "V19_NEW is not build_v19's one new data path (the E2Q3 manifest)")
+    need(len(B.ARCHIVE) == 11 and B.ARCHIVE["row19_screen_refit_54.nodefail.json"][1] == NODE_EV_SHA
+         and B.ARCHIVE["qualified_refit_job1.json"][1] == V18_QUAL and not any(d in [x[0] for x in B.ARCHIVE.values()] for d in V19_NEW),
+         "the builder's archive inventory is not the 11 members")
     ma = open(os.path.join(HERE, "mac_archive.py")).read()
     need('BUILDER_SHA = "%s"' % VP.PACKAGE["chpc/candidate_v19_oploss/build_v19.py"] in ma, "mac_archive.py pins another builder")
     for f in ("package_qual_v19.py", "receipt_check_v19.py"):
@@ -865,7 +873,7 @@ def t_positive():
     need(os.path.isfile(os.path.join(w.A, "ctl/reviews/2026-10-20_pilot_v18_operator_record.md")) and
          os.path.isfile(os.path.join(w.A, "gate/scaleup_refit_v16.json")), "the archive lacks the pilot record or the scale-up adoption")
     need("node_evidence %s" % NODE_EV_SHA in open(os.path.join(w.A, "COMPLETE")).read(), "COMPLETE does not certify the node document")
-    need(len(os.listdir(w.MA)) == 10 and os.path.isfile(w.LSF) and sha(w.LSF) == sha(os.path.join(w.A, "SHA256SUMS")), "Mac archive layout / Lengau sums copy")
+    need(len(os.listdir(w.MA)) == 13 and os.path.isfile(w.LSF) and sha(w.LSF) == sha(os.path.join(w.A, "SHA256SUMS")), "Mac archive layout / Lengau sums copy")
     need(sha(os.path.join(w.MA, "row19_screen_refit_54.nodefail.json")) == NODE_EV_SHA, "the Mac archive does not retain the node document")
     rc, out = w.script("archive_v18.sh"); need(rc == 0 and "exists and verifies" in out and "names this Lengau archive" in out, "archive re-run", out)
     rc, out = w.script("preflight_v19.sh"); refused(rc, out, "already exists")
@@ -891,10 +899,12 @@ def t_positive():
          "the science clone, job files, ledger or plans changed (running jobs must survive untouched)")
     need(tree_digest(w.G) == gd and sha(w.ACT2) == act0 and sha(w.NODE_EV) == ev0, "the gate, the activation or the node document changed in the deploy")
     cp = sh("git", "-C", w.CR, "diff", "--name-only", h0, "HEAD").split()
-    need(sorted(cp) == sorted(T1_REL + "/" + p for p in (REC, "chpc/row19_screen_status.py", "chpc/row19_screen_admit.py",
-         "chpc/row19_screen_controls.json", "chpc/row19_screen_controls_adoption.json"))
-         and ctl_untracked(w) == sorted(T1_REL + "/" + p for p in EVIDENCE), "the deploy commit is not exactly the 5 payload paths: %s" % cp)
-    need("payload: 5 files decoded" in out and "lineage version 19" in sh("git", "-C", w.CR, "log", "-1", "--format=%s"), "the 5-file v19 commit", out)
+    need(sorted(cp) == sorted(T1_REL + "/" + p for p in [REC] + V19_PINS + V19_NEW + [
+         "chpc/row19_screen_controls.json", "chpc/row19_screen_controls_adoption.json"])
+         and ctl_untracked(w) == sorted(T1_REL + "/" + p for p in EVIDENCE), "the deploy commit is not exactly the 9 payload paths: %s" % cp)
+    need("payload: 9 files decoded" in out and "lineage version 19" in sh("git", "-C", w.CR, "log", "-1", "--format=%s"), "the 9-file v19 commit", out)
+    need(all(sha(os.path.join(w.C, p)) == sha(os.path.join(LIVE_T1, "chpc/candidate_v19_oploss", os.path.basename(p))) for p in V19_PINS + V19_NEW),
+         "a deployed v19 controller or the E2Q3 manifest is not the candidate bytes")
     need(sha(os.path.join(w.C, "chpc/row19_screen_controls.json")) == V19_CONTROLS, "the v19 controls are not in the controller clone")
     rc, out = w.script("deploy_v19.sh"); need(rc == 0 and "already holds exactly these v19 bytes" in out and "DEPLOY OK" in out, "deploy re-run", out)
     stub_receipts(w)
@@ -945,7 +955,8 @@ def t_lengau_route():
 @test("preflight refuses (Mac): a changed package byte (controls, map, builder, promoter, a source, the node evidence), a held authority lock, a busy Mac")
 def t_preflight_mac():
     for rel in ["chpc/candidate_v19_oploss/" + f for f in ("row19_screen_controls.json", "v19_promotion_map.json", "build_v19.py", "promote_v19.py",
-                "row19_screen_status.py", "row19_screen_admit.py")] + ["chpc/candidate_v18_nodefail/evidence_row19_screen_refit_54.nodefail.json"]:
+                "row19_screen_status.py", "row19_screen_admit.py", "row19_ec2_state.py", "row19_ec2_e2qual.py", "row19_ec2_ingest.py",
+                "manifest_e2q3_e2.json")] + ["chpc/candidate_v18_nodefail/evidence_row19_screen_refit_54.nodefail.json"]:
         w = stage("fresh"); open(os.path.join(w.t1, rel), "a").write("\n")
         rc, out = w.script("preflight_v19.sh"); refused(rc, out, os.path.basename(rel), "not the pinned")
     w = stage("fresh")
@@ -972,10 +983,14 @@ def t_preflight_mac_state():
     rc, out = w.script("preflight_v19.sh"); refused(rc, out, "row19_screen_budget.json")
 
 
-@test("preflight refuses (Lengau): a replaced controller not at its v18 bytes, the retired v17 review missing, no/invalid epoch-2 activation, node document missing/changed, review not bound to 530df9a2, ledger cap, leftovers, controller not v18")
+@test("preflight refuses (Lengau): a replaced controller not at its v18 bytes (status, EC2 state), the new E2Q3 manifest path already present, the retired v17 review missing, no/invalid epoch-2 activation, node document missing/changed, review not bound to 530df9a2, ledger cap, leftovers, controller not v18")
 def t_preflight_lengau():
     w = stage("fresh"); open(os.path.join(w.C, "chpc/row19_screen_status.py"), "a").write("# x\n"); gitc(w.CR, "commit", "-q", "-am", "x")
     rc, out = w.script("preflight_v19.sh"); refused(rc, out, "row19_screen_status.py")
+    w = stage("fresh"); open(os.path.join(w.C, "chpc/row19_ec2_state.py"), "a").write("# x\n"); gitc(w.CR, "commit", "-q", "-am", "x")
+    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "row19_ec2_state.py")
+    w = stage("fresh"); write(os.path.join(w.C, V19_NEW[0]), "{}\n"); gitc(w.CR, "add", "--", T1_REL + "/" + V19_NEW[0]); gitc(w.CR, "commit", "-q", "-m", "x")
+    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "new v19 data path", "already exists")
     w = stage("fresh"); os.remove(os.path.join(w.R, "review_refit.v17_qual8fdbf48e_max100.json")); rc, out = w.script("preflight_v19.sh"); refused(rc, out, "retired v17 review")
     w = stage("fresh"); os.remove(w.ACT2); rc, out = w.script("preflight_v19.sh"); refused(rc, out, "epoch-2 activation proof")
     w = stage("fresh"); d = json.load(open(w.ACT2)); d["owned_sha256"] = "0" * 64; json.dump(d, open(w.ACT2, "w"))
@@ -1089,7 +1104,7 @@ def t_mac_archive_strict():
     w = stage("archived"); os.chmod(w.MA, 0o755); p = os.path.join(w.MA, "COMPLETE"); os.chmod(p, 0o644)
     write(p, "schema row19-screen-mac-archive-v16-before-v18-1\n", 0o444); rc, out = w.script("mac_archive.py", "verify"); refused(rc, out, "COMPLETE")
     w = stage("archived"); os.chmod(w.MA, 0o755); write(os.path.join(w.MA, "notes.txt"), "x\n", 0o444)
-    rc, out = w.script("mac_archive.py", "verify"); refused(rc, out, "not exactly the 8 members")
+    rc, out = w.script("mac_archive.py", "verify"); refused(rc, out, "not exactly the 11 members")
 
 
 # ================================================================================================ step 3: promotion (promote_v19.py)
@@ -1107,8 +1122,8 @@ def t_promote_interrupted():
         sys.path.pop(0)
         for m in ("build_v19", "promote_v19"):
             sys.modules.pop(m, None)
-    need([r["promoted"] for r in order] == ["chpc/row19_screen_status.py", "chpc/row19_screen_admit.py", "chpc/row19_screen_controls.json"],
-         "the promotion order is not status, admission, controls LAST")
+    need([r["promoted"] for r in order] == V19_PINS + V19_NEW + ["chpc/row19_screen_controls.json"],
+         "the promotion order is not status, admission, EC2 state, E2Q module, ingestion, E2Q3 manifest, controls LAST")
     for r in order:                                   # exactly what the real promoter copies, controls last, then STOP (no adoption)
         write(os.path.join(w.t1, r["promoted"]), open(os.path.join(w.t1, r["source"]), "rb").read())
     rc, out = w.promote("--check"); need(rc == 0 and "archive v18 base" in out, "--check during an interrupted promotion (archive base)", out)

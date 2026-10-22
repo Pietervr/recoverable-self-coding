@@ -146,7 +146,28 @@ replaces the reviewed REVISION 7 bytes eee1bcd4, which stay in git at RSC 92a62f
                `ack` of a register entry, and ingestion publishes only a bundle whose effective attestation is B_full
                (row19_ec2_state.attestation_problem), the profile every one of the three operational manifests declares.
   wording      a certificate binds file CONTENT ({promoted path: sha256}); byte-identical candidate and promoted copies
-               resolve to the same map. A location change alone does not invalidate a certificate (DESIGN_e2q choice 8)."""
+               resolve to the same map. A location change alone does not invalidate a certificate (DESIGN_e2q choice 8).
+
+REVISION 9 (owner decision 21 Oct 2026, R052 AskUserQuestion "On-demand E2Q3"; operational change under the lean plan, no Codex
+review of this tooling; chpc/candidate_v19_oploss/DESIGN_v19.md s.7). E2Q1 (12.72 h) and E2Q2 (6.59 h) were both
+spot-interrupted with 0 records. A THIRD epoch-2 qualification attempt E2Q3 - contract E2Q3 of controls v19 (row19_ec2_state
+REVISION 5: the identical geometry, roles, panel and funded lifetime, ON-DEMAND at the worst-case rate 5.60 USD/h), run
+qual-E2Q3 - is admitted under the same rule as E2Q2, one step on:
+  counter      E2_MAX_QUAL_INSTANCES 2 -> 3 (epoch2_problem and the release branch). The funding DECLARATION keeps the 17 Oct
+               number (E2_FUNDED_QUAL_INSTANCES = 2, so aws_ec2/e2_funding.json d6f414e8 still derives byte-equal and every pin
+               of it stands); the owner's 21 Oct decision is the "new decision" its rule names. The money bound is unchanged:
+               every qual-E2 attempt charged (reconciled E2Q1 15.74 + E2Q2 8.30) + the E2Q3 worst case must fit the USD 300
+               allowance, the epoch cap, the USD 2,300 envelope and the USD 3,000 cap.
+  admission    e2q_admission_problem: E2Q3 needs its own permission record (qualification_e2.e2q3, written by
+               qual_permit.py --epoch2 --e2q3), every non-rejected E2Q1 AND E2Q2 attempt reconciled and dispositioned (at least
+               one of each), and is at most one instance. No fourth contract exists.
+  release      an E2Q3 certificate releases only when every non-rejected E2Q1 and E2Q2 attempt is dispositioned.
+  crash rule   E2Q3 joins CRASH_EQUIVALENT_CONTRACTS (same instance type, workers, volume and lifetime as production).
+  money        charged() already prices every attempt at its OWN recorded max_price (worst case until reconciled, observed
+               compute hours after), so an on-demand attempt is charged at 5.60 USD/h, never at a spot rate; bench_reaper's
+               report_charge does the same. The run names are derived (qual_run), so this file still loads against the v18
+               chpc modules, which have no E2Q3 (no E2Q3 admission is possible before v19: prod_launch offers only the
+               contracts row19_ec2_state declares)."""
 import argparse, contextlib, fcntl, glob, hashlib, json, math, os, sys, time
 
 SRC = os.path.dirname(os.path.abspath(__file__))
@@ -191,7 +212,9 @@ PROD_CLASSES = ("production", "qualification")
 FLEET_CEILING = 5
 E2_ALLOWANCE_USD = 300.0
 E2_MAX_EXTRA_PRODUCTION = 4
-E2_MAX_QUAL_INSTANCES = 2
+E2_MAX_QUAL_INSTANCES = 3                     # REVISION 9 (owner 21 Oct 2026): E2Q1, E2Q2 and the on-demand E2Q3
+E2_FUNDED_QUAL_INSTANCES = 2                  # REVISION 9: the 17 Oct funding declaration's own number (e2_funding.json stays byte-equal)
+E2Q_RUNS = {c: f"qual-{c}" for c in ("E2Q1", "E2Q2", "E2Q3")}   # REVISION 9: derived names, loadable against the v18 chpc modules
 E2_WORK_PER_BATCH, E2_SENTINELS, E2_WORKERS = 72, 4, 76
 E2_FUNDING = os.path.join(HERE, "e2_funding.json")
 FUNDING_SCHEMA = "t1-ec2-epoch-funding-1"
@@ -430,7 +453,7 @@ def funding_e2(part, q2_charged_usd, q2_planned=E2_Q2_PLANNED, q2_successful=E2_
             "qualified_rep_slots": E2_QUALIFIED_REP_SLOTS, "work_per_rep_per_batch": E2_WORK_PER_REP,
             "worst_per_batch_usd": round(worst, 4), "funding_maxima_all_base_usd": round(base * worst, 3),
             "lifetime_s": QUAL_LIFETIME_S, "allowance_usd": E2_ALLOWANCE_USD, "max_extra_production_batches": E2_MAX_EXTRA_PRODUCTION,
-            "max_qualification_instances": E2_MAX_QUAL_INSTANCES, "fleet_ceiling": FLEET_CEILING,
+            "max_qualification_instances": E2_FUNDED_QUAL_INSTANCES, "fleet_ceiling": FLEET_CEILING,
             "epoch_cap_usd": round(max(fc.values()) + E2_ALLOWANCE_USD, 2),
             "calendar_days_at_fleet": round(math.ceil(base / FLEET_CEILING) * 21.2811 / 24, 2),
             "rule": "owner 17 Oct 2026: ~USD 1,779 forecast + USD 300 bounded qualification/retry allowance inside the USD 2,300 "
@@ -481,7 +504,7 @@ def epoch2_problem(leds, run, new_worst, fund):
     return ""
 
 
-CRASH_EQUIVALENT_CONTRACTS = ("production", "E2Q1", "E2Q2")   # REVISION 8 (choice-3 ruling): one physical envelope label
+CRASH_EQUIVALENT_CONTRACTS = ("production", "E2Q1", "E2Q2", "E2Q3")   # REVISION 8 (choice-3 ruling): one physical envelope label; E2Q3 REVISION 9
 
 
 def _producer_geometry(contract):
@@ -743,10 +766,14 @@ def release_problem_e2(cert_path, review_path, leds=None):
             or sorted(by.get("qual_lengau", [])) != sorted(panel["duplicates"]) or len(by.get("sentinel", [])) != EQ.SENTINELS \
             or max(conc.values()) < E2_QUALIFIED_REP_SLOTS:
         return [], "the attempt's plan is not the declared panel at the qualified concentration (76 slots, >= 61 on one replicate)"
-    if run == EQ.RUNS["E2Q2"]:
-        e1s = _nonrejected(leds, lambda r: r == EQ.RUNS["E2Q1"])
+    if run == E2Q_RUNS["E2Q2"]:
+        e1s = _nonrejected(leds, lambda r: r == E2Q_RUNS["E2Q1"])
         if not e1s or any(x.get("ingestion") != "dispositioned" for _, x in e1s):
             return [], "an E2Q2 release needs every E2Q1 attempt dispositioned (E2Q1 ended without a usable bundle)"
+    if run == E2Q_RUNS["E2Q3"]:                                          # REVISION 9
+        e1s = _nonrejected(leds, lambda r: r == E2Q_RUNS["E2Q1"]); e2s = _nonrejected(leds, lambda r: r == E2Q_RUNS["E2Q2"])
+        if not e1s or not e2s or any(x.get("ingestion") != "dispositioned" for _, x in e1s + e2s):
+            return [], "an E2Q3 release needs every E2Q1 and E2Q2 attempt dispositioned (both ended without a usable bundle)"
     if len(_nonrejected(leds, is_e2_qual)) > E2_MAX_QUAL_INSTANCES:
         return [], f"more than {E2_MAX_QUAL_INSTANCES} epoch-2 qualification instances exist: the allowance counter is exceeded"
     try:
@@ -764,21 +791,31 @@ def _nonrejected_run(leds, run):
 
 
 def e2q_admission_problem(contract, rel, leds):
-    """REVISION 7: '' when an E2Q1/E2Q2 admission is permitted by the release state and the declared retry rule."""
+    """REVISION 7: '' when an E2Q1/E2Q2 admission is permitted by the release state and the declared retry rule. REVISION 9:
+    and E2Q3 (owner 21 Oct 2026): its own permission record, every non-rejected E2Q1 and E2Q2 attempt dispositioned, at most one."""
     q = rel.get("qualification_e2") or {}
     if not q.get("ok"):
         return ("ec2_release_state.json does not permit the epoch-2 qualification (row 23 success, the benchmark fence and a "
                 "reviewed qualification_e2 permission record written by qual_permit.py --epoch2)")
-    if contract == "E2Q1" and _nonrejected_run(leds, EQ.RUNS["E2Q1"]):
+    if contract == "E2Q1" and _nonrejected_run(leds, E2Q_RUNS["E2Q1"]):
         return "E2Q1 is ONE instance: a further attempt is E2Q2 under its own rule, never a retry by outcome"
     if contract == "E2Q2":
         if not q.get("e2q2_ok"):
             return "E2Q2 needs its own reviewed permission record (qualification_e2.e2q2) naming E2Q1's external-cause end"
-        e1s = _nonrejected_run(leds, EQ.RUNS["E2Q1"])
+        e1s = _nonrejected_run(leds, E2Q_RUNS["E2Q1"])
         if not e1s or any(a.get("state") != "reconciled" or a.get("ingestion") != "dispositioned" for a in e1s):
             return "E2Q2 only after E2Q1 ended without a usable bundle: every non-rejected E2Q1 attempt reconciled and dispositioned"
-        if _nonrejected_run(leds, EQ.RUNS["E2Q2"]):
+        if _nonrejected_run(leds, E2Q_RUNS["E2Q2"]):
             return "E2Q2 is at most one instance"
+    if contract == "E2Q3":                                                   # REVISION 9
+        if not q.get("e2q3_ok"):
+            return "E2Q3 needs its own permission record (qualification_e2.e2q3, qual_permit.py --epoch2 --e2q3) naming the owner decision"
+        e1s, e2s = _nonrejected_run(leds, E2Q_RUNS["E2Q1"]), _nonrejected_run(leds, E2Q_RUNS["E2Q2"])
+        if not e1s or not e2s or any(a.get("state") != "reconciled" or a.get("ingestion") != "dispositioned" for a in e1s + e2s):
+            return ("E2Q3 only after E2Q1 and E2Q2 both ended without a usable bundle: every non-rejected E2Q1 and E2Q2 attempt "
+                    "reconciled and dispositioned")
+        if _nonrejected_run(leds, E2Q_RUNS["E2Q3"]):
+            return "E2Q3 is at most one instance (no fourth qualification attempt exists)"
     return ""
 
 
@@ -814,6 +851,8 @@ def release_state(leds=None):
     q2["ok"] = r23["ok"] and fence_ok and q2.get("permitted") is True and backed(q2, "record_path", "record_sha256")
     e2q2 = q2.get("e2q2") if isinstance(q2.get("e2q2"), dict) else {}
     q2["e2q2_ok"] = q2["ok"] and e2q2.get("permitted") is True and backed(e2q2, "record_path", "record_sha256")
+    e2q3 = q2.get("e2q3") if isinstance(q2.get("e2q3"), dict) else {}           # REVISION 9
+    q2["e2q3_ok"] = q2["ok"] and e2q3.get("permitted") is True and backed(e2q3, "record_path", "record_sha256")
     r["qualification_e2"] = q2
     pr["ok"], pr["derived_released_attempts"], pr["why"], pr["epoch"], pr["production_opmanifest_sha256"] = False, [], "not released", None, None
     if pr.get("released") and backed(pr, "certificate_path", "certificate_sha256") and backed(pr, "review_path", "review_sha256"):

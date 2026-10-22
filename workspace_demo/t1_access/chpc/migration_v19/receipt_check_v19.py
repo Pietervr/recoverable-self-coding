@@ -7,7 +7,7 @@ by receipts_v19.sh; also usable alone.
 Refuses (exit 3) unless the newest chpc/results/row19_screen/receipts/watch_refit_<stamp>.json with time >= --since:
   - is schema/role refit, fresh, production, with an explicitly EMPTY alarm list and the designated view;
   - names a retained verifier document (bound.verify_file) whose bytes match bound.verify_file_sha256 and whose generation is
-    version 19 = latest 19, a clean lineage verdict, and the v19 controls 4d868856;
+    version 19 = latest 19, a clean lineage verdict, and the v19 controls 111c3107;
   - binds EC2 state (ec2.bound) with EXACTLY activation_e1.json and activation_e2.json, no HOLD, no STOP and no EC2 problems
     (epoch 2 stays active through v19);
   - carries refit job 54 as a node-failure disposition (jobs.54.node_disposition, kind node-failure, counts_as_crash false)
@@ -19,7 +19,7 @@ import argparse, glob, hashlib, json, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = os.path.abspath(os.path.join(HERE, "..", ".."))
-V19_CONTROLS = "4d868856905f914858ca224ec0dcb902792646f437fa4a9ddaa75d1b6d729a7d"
+V19_CONTROLS = "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5"
 NODE_EV = ("row19_screen_refit_54.nodefail.json", "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f")
 
 
@@ -87,7 +87,7 @@ def main(argv=None):
     p, why = problems(os.path.abspath(a.receipts), a.since)
     if why:
         print("RECEIPT REFUSED%s:" % ((" (" + os.path.basename(p) + ")") if p else "")); [print("  -", w) for w in why]; return 3
-    print("RECEIPT OK: %s - fresh production, zero alarms, generation 19 (controls 4d868856), designated view, EC2 binding with "
+    print("RECEIPT OK: %s - fresh production, zero alarms, generation 19 (controls 111c3107), designated view, EC2 binding with "
           "activation_e1 and activation_e2, refit job 54 node-dispositioned on the retained evidence 730ea262" % os.path.basename(p))
     return 0
 

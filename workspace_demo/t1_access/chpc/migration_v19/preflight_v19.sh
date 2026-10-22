@@ -1,10 +1,10 @@
 #!/bin/bash
 # Migration v18 -> v19, step 1 (Mac + Lengau; READ-ONLY): the FULL live read-only preflight (the preflight_v18.sh pattern).
 # Refuses unless:
-#  Mac (v19_package.py preflight): the pinned package is exact and committed (candidate controls 4d868856, map b3a1778c, the
-#          builder, the promoter, the two promoted sources, the retained node evidence 730ea262) AND the operator adoption record
+#  Mac (v19_package.py preflight): the pinned package is exact and committed (candidate controls 111c3107, map 8256a584, the
+#          builder, the promoter, the five promoted sources and the E2Q3 manifest, the retained node evidence 730ea262) AND the operator adoption record
 #          is pinned (the v19_package.py record pin), committed and carries the v19 literal IN HEAD; the live chpc/ controls and adoption
-#          are the ADOPTED v18 bytes (452b82df / 3e1fe9a1), committed; each of the two promoted paths holds its v18 bytes,
+#          are the ADOPTED v18 bytes (452b82df / 3e1fe9a1), committed; each of the five promoted pins holds its v18 bytes and the new E2Q3 manifest path is absent,
 #          committed; `promote_v19.py --check` exits 0; the e2 partition is the committed 48cea639;
 #          the Mac qualified_refit_job1.json is the v18 pilot qualification 530df9a2 and its pilot record 67f2b438 is committed;
 #          the budget phases are committed; no Mac archive, Lengau-SHA256SUMS copy or staging directory exists; a successful Mac
@@ -14,7 +14,7 @@
 #          runs on the login node (checked process inventory); both lock files exist and a shared non-blocking probe succeeds on
 #          each; every fixed root and every authority/destination path a later step uses is its own physical path in its scope,
 #          the controller and scientific clone roots disjoint (remote_lib.sh); the controller clone is clean (ctl_clean: only
-#          the three pinned untracked evidence files) at the adopted v18 (controls 452b82df, adoption 3e1fe9a1, the two files v19
+#          the three pinned untracked evidence files) at the adopted v18 (controls 452b82df, adoption 3e1fe9a1, the five files v19
 #          replaces at their v18 bytes, the v18 controls record and the v18 pilot record);
 #          the gate holds qualified_refit_job1.json 530df9a2 and an active review_refit.json bound to it, and the v18 review is
 #          not yet retired; epoch 2 is THE canonical activation under the adopted v18 (activation_e2.json; e1 kept); the
@@ -47,6 +47,7 @@ ctl_clean
 for f in chpc/row19_screen_controls.json chpc/row19_screen_controls_adoption.json chpc/row19_screen_designated.json \
          chpc/row19_screen_manifest.json chpc/row19_screen_budget.json chpc/row19_partition_e2.json; do src_file "$C/$f" "$CR" "controller authority $f"; done
 while read -r f s; do src_file "$C/$f" "$CR" "controller file v19 replaces: $f"; pin "$f" "$s" "controller clone $f (v18)"; done <<<"$V18_REPLACED"
+for f in $V19_NEW; do dst_absent "$C/$f" "$CR" "new v19 data path $f"; done
 for rs in "$V18_REC" "$V18_PILOT_REC"; do
   f=${rs%% *}; s=${rs##* }; src_file "$C/$f" "$CR" "controller record $f"; pin "$f" "$s" "controller clone $f"
   (git ls-files --error-unmatch -- "$f" >/dev/null 2>&1 && git diff --quiet HEAD -- "$f") || die "$f is not committed in the controller clone"

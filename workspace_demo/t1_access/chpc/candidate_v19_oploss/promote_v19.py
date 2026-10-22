@@ -22,11 +22,12 @@ write handling. So:
   the promotion     additionally requires the adoption record (an OPERATOR record under the owner's 20 Oct 2026 rule, or any
                     reviews/<name>.md) git-tracked, unmodified, with the literal
                     `ADOPT row19-screen-controls sha256=<candidate controls sha256> version=19` in HEAD, and the archive verifying
-                    (build_v19.archive_problems); every promoted path must hold its v18 (previous) bytes or already its v19 bytes,
-                    and the adoption record the v18 record 3e1fe9a1 or exactly the version-19 record. It copies, in map order, the
-                    status view, the admission and LAST the controls (atomic replaces), then writes the version-19 adoption
-                    record. A finished promotion re-verifies and writes nothing; one interrupted after the controls copy resumes
-                    and writes only the adoption record; anything else refuses.
+                    (build_v19.archive_problems); every promoted path must hold its v18 (previous) bytes or already its v19 bytes
+                    (a DATA row - a new path - must be absent or already its v19 bytes), and the adoption record the v18 record
+                    3e1fe9a1 or exactly the version-19 record. It copies, in map order, the status view, the admission, the EC2
+                    state, the E2Q module, the ingestion, the E2Q3 operational manifest and LAST the controls (atomic replaces),
+                    then writes the version-19 adoption record. A finished promotion re-verifies and writes nothing; one
+                    interrupted after the controls copy resumes and writes only the adoption record; anything else refuses.
 Nothing is bypassed; a missing, partial or corrupt archive refuses wherever the base must come from it."""
 import argparse, hashlib, json, os, re, shutil, subprocess, sys
 
@@ -42,7 +43,7 @@ ADOPT = "chpc/row19_screen_controls_adoption.json"
 V18_CTL, V18_ADOPT = B.ADOPTED_CTL[1], B.ADOPTED_ADOPTION[1]
 ARCH = B.ARCH
 archive_problems = B.archive_problems
-PREVIOUS = {dst: prev for dst, _src, prev in B.MAP}
+PREVIOUS = {dst: prev for dst, _src, prev in B.MAP + B.DATA}     # DATA: None (a new path)
 
 
 def sha(rel):
@@ -63,7 +64,8 @@ def git_ok(rel):
 
 
 def rows():
-    return [dict(promoted=dst, source=src, sha256=sha(src), group="pin") for dst, src, _prev in B.MAP]
+    return ([dict(promoted=dst, source=src, sha256=sha(src), group="pin") for dst, src, _prev in B.MAP]
+            + [dict(promoted=dst, source=src, sha256=sha(src), group="data") for dst, src, _prev in B.DATA])
 
 
 def candidate_problems(require_git=True):
@@ -114,10 +116,10 @@ def state():
     st = {}
     for r in rows() + [dict(promoted=CTL, sha256=sha(CREL + "row19_screen_controls.json"))]:
         h = sha_or_none(r["promoted"])
-        if h is None:
-            st[r["promoted"]] = "other"; continue
         prev = V18_CTL if r["promoted"] == CTL else PREVIOUS[r["promoted"]]
-        st[r["promoted"]] = "v19" if h == r["sha256"] else ("v18" if h == prev else "other")
+        if h is None:                         # a NEW data path (previous None) is absent in the v18 state; a pin never is
+            st[r["promoted"]] = "v18" if prev is None and not os.path.lexists(os.path.join(T1, r["promoted"])) else "other"; continue
+        st[r["promoted"]] = "v19" if h == r["sha256"] else ("v18" if prev is not None and h == prev else "other")
     return st
 
 
@@ -152,7 +154,11 @@ def adoption_v19_bytes(rec):
                        "archived": "Lengau archive_screen/v18_before_v19, Mac " + ARCH + "/"},
           "scope": "controls v18 -> v19, the OPERATIONAL-LOSS disposition (chpc/candidate_v19_oploss/DESIGN_v19.md): "
                    f"chpc/row19_screen_status.py ({h['chpc/row19_screen_status.py']}) and chpc/row19_screen_admit.py "
-                   f"({h['chpc/row19_screen_admit.py']}) = v18 + REVISION 19; every other controller byte, the v18 node-failure rule, "
+                   f"({h['chpc/row19_screen_admit.py']}) = v18 + REVISION 19; and the E2Q3 on-demand qualifier (owner decision 21 Oct "
+                   f"2026, DESIGN_v19.md s.7): chpc/row19_ec2_state.py ({h['chpc/row19_ec2_state.py']}), chpc/row19_ec2_e2qual.py "
+                   f"({h['chpc/row19_ec2_e2qual.py']}) and chpc/row19_ec2_ingest.py ({h['chpc/row19_ec2_ingest.py']}) add contract E2Q3, "
+                   f"with its operational manifest aws_ec2/prod/manifest_e2q3_e2.json ({h['aws_ec2/prod/manifest_e2q3_e2.json']}); "
+                   "every other controller byte, the v18 node-failure rule, the release rule and panel, "
                    "the e2 partition 48cea639 (epoch 2 stays active) and the funding unchanged. An operational-loss job never "
                    "qualifies and never counts toward the crash rule. Fresh v19 receipts and a regenerated pilot qualification with a "
                    "NEW pilot literal precede any further refit admission"}
@@ -170,7 +176,7 @@ def adoption_state(rec):
 
 
 def order():
-    """The map order (the status view, the admission), then the controls LAST."""
+    """The map order (the pins: status view, admission, EC2 state, E2Q module, ingestion; then the data rows), then the controls LAST."""
     return rows() + [dict(promoted=CTL, source=CREL + "row19_screen_controls.json", sha256=sha(CREL + "row19_screen_controls.json"), group="ctl")]
 
 

@@ -7,7 +7,7 @@
 #   activation, the captured node document 730ea262 in place. Then the refit receipt
 #   `python3 chpc/row19_screen_status.py --manifest chpc/row19_screen_manifest.json --role refit --publish-receipt` (it must exit
 #   0: fresh, production, zero alarms - the v19 status view fetches the node document and dispositions refit job 54),
-#   receipt_check_v19.py on that receipt (generation 19 = latest 19 with controls 4d868856, the designated view, the EC2 binding
+#   receipt_check_v19.py on that receipt (generation 19 = latest 19 with controls 111c3107, the designated view, the EC2 binding
 #   with exactly activation_e1 and activation_e2, no HOLD/STOP/problems, and job 54's node disposition bound to 730ea262), then
 #   the bank receipt `python3 chpc/row22_bank_status.py --manifest <abs>/chpc/row22_bank_manifest.json --publish-receipt`.
 # Re-run: always safe - every receipt is a new file; a failed command stops the script with its exit status and nothing is

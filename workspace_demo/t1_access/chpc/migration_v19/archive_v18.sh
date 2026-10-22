@@ -13,7 +13,7 @@
 #     Refuses unless the drain is observed (checked process inventory, both locks probed free), the controller clone is clean
 #     (ctl_clean) at the v18 controls and adoption, the gate qualification is 530df9a2, a review is active, epoch 2 is the
 #     canonical activation and the node document is in place.
-#  b. Mac chpc/results/archive/row19_screen_v18_before_v19/ (mac_archive.py): EXACTLY the 8 members of build_v19.ARCHIVE with
+#  b. Mac chpc/results/archive/row19_screen_v18_before_v19/ (mac_archive.py): EXACTLY the 11 members of build_v19.ARCHIVE with
 #     SHA256SUMS and the JSON COMPLETE (which records the Lengau archive's SHA256SUMS digest). The Mac budget phases must be the
 #     bytes the Lengau archive certifies. promote_v19.py (build_v19.archive_problems) and deploy_v19.sh require it by name.
 # Re-run: an existing archive is accepted only if its complete certificate verifies; an existing one that does not, or a staging
@@ -42,7 +42,7 @@ fi
 if [ "$DRY" = "--dry-run" ]; then
   echo "DRY RUN - Mac checks pass; would:"
   echo "  - Lengau: verify the sources (lengau_archive.py inventory), then stage, verify and publish \$T/archive_screen/v18_before_v19 with COMPLETE (or verify an existing one)"
-  [ $MAC_DONE = 1 ] && echo "  - Mac: $MA exists and verifies; left as it is" || echo "  - Mac: stage, verify and publish $MA (8 members + SHA256SUMS + COMPLETE), read-only"
+  [ $MAC_DONE = 1 ] && echo "  - Mac: $MA exists and verifies; left as it is" || echo "  - Mac: stage, verify and publish $MA (11 members + SHA256SUMS + COMPLETE), read-only"
   exit 0
 fi
 . chpc/migration_v19/lengau.sh || fail "cannot load chpc/migration_v19/lengau.sh"

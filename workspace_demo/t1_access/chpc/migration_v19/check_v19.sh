@@ -1,5 +1,5 @@
 # Migration v18 -> v19, the READ-ONLY Lengau check before the fresh v19 receipts (step 5; sourced through lengau.sh by
-# receipts_v19.sh). Writes nothing. It refuses unless v19 is the deployed, adopted controller (controls 4d868856, the
+# receipts_v19.sh). Writes nothing. It refuses unless v19 is the deployed, adopted controller (controls 111c3107, the
 # version-19 adoption naming the v18 record 3e1fe9a1, deploy proof DONE and its commit in HEAD's history, ctl_clean), epoch 2 is
 # STILL the canonical activation under the adopted v19 (activation_e2.json; activation_e1.json kept) and the captured node
 # document of refit job 54 is exactly 730ea262 where the v19 status view fetches it (job 54 stays node-dispositioned).

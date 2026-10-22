@@ -329,18 +329,30 @@ real_map = {"chpc/row19_partition_e2.json": "row19_partition_e2.json", "chpc/cla
 import importlib.util
 _spec = importlib.util.spec_from_file_location("e2q_stage_committed", os.path.join(HERE, "e2q_stage.py"))
 REAL = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(REAL)      # a second copy with its committed constants
-check("real: every DATA_PIN is the sha256 of the reviewed chpc/e2_final file it promotes from",
-      all(REAL.DATA_PINS[k] == sha(os.path.join(REAL_FINAL, f)) for k, f in real_map.items()) and sorted(REAL.DATA_PINS) == sorted(real_map))
+E2Q3_MAN = "aws_ec2/prod/manifest_e2q3_e2.json"           # REVISION 2: promoted with controls v19 (its data row), not from e2_final
+check("real: every DATA_PIN but the E2Q3 manifest is the sha256 of the reviewed chpc/e2_final file it promotes from",
+      all(REAL.DATA_PINS[k] == sha(os.path.join(REAL_FINAL, f)) for k, f in real_map.items())
+      and sorted(REAL.DATA_PINS) == sorted(list(real_map) + [E2Q3_MAN]))
 pm = json.load(open(os.path.join(CHPC, "candidate_v17", "v17_promotion_map.json")))
-check("real: DATA_PINS agree with the v17 promotion map rows", all(any(r["promoted"] == k and r["sha256"] == h for r in pm["rows"]) for k, h in REAL.DATA_PINS.items()))
+check("real: DATA_PINS agree with the v17 promotion map rows (E2Q3's manifest: not a v17 path)",
+      all(any(r["promoted"] == k and r["sha256"] == h for r in pm["rows"]) for k, h in REAL.DATA_PINS.items() if k != E2Q3_MAN)
+      and not any(r["promoted"] == E2Q3_MAN for r in pm["rows"]))
 pm18 = json.load(open(os.path.join(CHPC, "candidate_v18_nodefail", "v18_promotion_map.json")))
 check("real: the v18 promotion map promotes none of the DATA_PINS paths (the v17 data pins stand)",
       not any(r["promoted"] in REAL.DATA_PINS for r in pm18["rows"]))
-check("real: ADOPTED_CONTROLS_SHA is the v18 controls (452b82df), the v18 map's controls row, on the v17 base 9ea4e727",
-      REAL.ADOPTED_CONTROLS_SHA == "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b"
-      == sha(os.path.join(CHPC, "candidate_v18_nodefail", "row19_screen_controls.json"))
+pm19 = json.load(open(os.path.join(CHPC, "candidate_v19_oploss", "v19_promotion_map.json")))
+check("real: the E2Q3 manifest pin is the v19 map's NEW data row (previous none) and that row's source bytes; v19 promotes no other DATA_PINS path",
+      [(r["sha256"], r["previous_sha256"], r["group"]) for r in pm19["rows"] if r["promoted"] == E2Q3_MAN] == [(REAL.DATA_PINS[E2Q3_MAN], None, "data")]
+      and sha(os.path.join(CHPC, "candidate_v19_oploss", "manifest_e2q3_e2.json")) == REAL.DATA_PINS[E2Q3_MAN]
+      and not any(r["promoted"] in REAL.DATA_PINS for r in pm19["rows"] if r["promoted"] != E2Q3_MAN))
+check("real: ADOPTED_CONTROLS_SHA is the v19 candidate controls, the v19 map's controls row, on the v18 base 452b82df",
+      REAL.ADOPTED_CONTROLS_SHA == sha(os.path.join(CHPC, "candidate_v19_oploss", "row19_screen_controls.json"))
       and any(r["promoted"] == "chpc/row19_screen_controls.json" and r["sha256"] == REAL.ADOPTED_CONTROLS_SHA
-              and r["previous_sha256"] == sha(os.path.join(CHPC, "candidate_v17", "row19_screen_controls.json")) for r in pm18["rows"]))
+              and r["previous_sha256"] == "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b"
+              == sha(os.path.join(CHPC, "candidate_v18_nodefail", "row19_screen_controls.json")) for r in pm19["rows"]))
+check("real: RUNS / OPMANIFEST carry E2Q1, E2Q2 and E2Q3, each its own run and manifest; the verifier accepts exactly those contracts",
+      REAL.RUNS == {c: f"qual-{c}" for c in ("E2Q1", "E2Q2", "E2Q3")} and REAL.OPMANIFEST == {c: f"aws_ec2/prod/manifest_{c.lower()}_e2.json" for c in REAL.RUNS}
+      and V.E2Q_CONTRACTS == ("E2Q1", "E2Q2", "E2Q3"))
 check("real: PROD_SHA is the production manifest's bytes", REAL.PROD_SHA == sha(os.path.join(CHPC, "row19_screen_manifest.json")))
 eq_src = open(os.path.join(CHPC, "candidate_e2q", "row19_ec2_e2qual.py")).read()
 eq_code = ast.literal_eval(re.search(r"CODE = sorted\((\[.*?\])\)", eq_src, re.S).group(1))
@@ -348,9 +360,18 @@ check("real: CODE is row19_ec2_e2qual.CODE (the certificate's code set)", REAL.C
 v17 = json.load(open(os.path.join(CHPC, "candidate_v17", "row19_screen_controls.json")))["versions"][-1]["files"]
 v18c = json.load(open(os.path.join(CHPC, "candidate_v18_nodefail", "row19_screen_controls.json")))
 v18 = v18c["versions"][-1]["files"]
+v19c = json.load(open(os.path.join(CHPC, "candidate_v19_oploss", "row19_screen_controls.json")))
+v19 = v19c["versions"][-1]["files"]
 mcode = json.load(open(os.path.join(CHPC, "row19_screen_manifest.json")))["code"]["files"]
 check("real: the v18 controls' latest version is version 18",
       v18c["versions"][-1].get("version") == 18)
+v19_moved = sorted(r for r in REAL.CODE if r not in REAL.MANIFEST_CODE and v19.get(r) != v18.get(r))
+check("real: v19 (the controls e2q_stage now pins) moves exactly three qualification code pins - the EC2 state, the E2Q module and the "
+      "ingestion (E2Q3) - each to the candidate bytes; the qualifier and every other code pin stay v18's",
+      v19c["versions"][-1].get("version") == 19
+      and v19_moved == ["chpc/row19_ec2_e2qual.py", "chpc/row19_ec2_ingest.py", "chpc/row19_ec2_state.py"]
+      and all(v19[r] == sha(os.path.join(CHPC, "candidate_v19_oploss", os.path.basename(r))) for r in v19_moved)
+      and v19["chpc/row19_ec2_qualify.py"] == v18["chpc/row19_ec2_qualify.py"], v19_moved)
 check("real: every code-set file has a pin in v18's latest version or the manifest's code pins",
       all((mcode.get(r) if r in REAL.MANIFEST_CODE else v18.get(r)) for r in REAL.CODE))
 check("real: v18 keeps every qualification code pin of v17 unchanged (the v17 -> v18 move is administrative for E2Q)",
@@ -602,6 +623,16 @@ r = do_stage(Fake(), run, nn)
 check("E2Q2: a clean qual-E2Q2 bundle stages with its own contract and operational manifest pin", r[0] == "OK" and r[1][2]["expect"]["contract"] == "E2Q2"
       and r[1][2]["expect"]["opmanifest_sha256"] == S.DATA_PINS["aws_ec2/prod/manifest_e2q2_e2.json"], r)
 
+# E2Q3 (REVISION 2, owner 21 Oct 2026: the on-demand third attempt) is staged by the same procedure
+run, nn, a, pd = fresh("E2Q3")
+r = do_stage(Fake(), run, nn)
+check("E2Q3: a clean qual-E2Q3 bundle stages with its own contract and operational manifest pin", r[0] == "OK" and r[1][2]["expect"]["contract"] == "E2Q3"
+      and r[1][2]["expect"]["opmanifest_sha256"] == S.DATA_PINS["aws_ec2/prod/manifest_e2q3_e2.json"] and run == "qual-E2Q3", r)
+run, nn, a, pd = fresh("E2Q3")
+wjson(os.path.join(pd, "env", "plan.json"), plan_doc(run, nn, "E2Q2", a["sequence"])); seal_sums(pd)
+r = do_stage(Fake(), run, nn)
+check("E2Q3: an E2Q2-contract plan presented under the qual-E2Q3 attempt -> refused (contract / plan bytes)", r[0] == "REFUSED", r)
+
 # ============================================================================================================================
 # 3. qualification-time cases (each on a fresh staged attempt)
 
@@ -687,6 +718,12 @@ r = do_qualify(t, rc12["stamp"], run, nn)
 argv = json.load(open(os.path.join(CTLD, "chpc", ".standin_argv.json")))
 check("E2Q2: qualified with key qual-E2Q2/<n> and the E2Q2 operational manifest", r == ("RC", 0) and argv[argv.index("--key") + 1] == f"{run}/{nn}"
       and argv[argv.index("--opmanifest") + 1] == "aws_ec2/prod/manifest_e2q2_e2.json", (r, argv[-6:]))
+
+run, nn, (sd13, rd13, rc13), t = staged("E2Q3"); mode("release")
+r = do_qualify(t, rc13["stamp"], run, nn)
+argv = json.load(open(os.path.join(CTLD, "chpc", ".standin_argv.json")))
+check("E2Q3: qualified with key qual-E2Q3/<n> and the E2Q3 operational manifest", r == ("RC", 0) and argv[argv.index("--key") + 1] == f"{run}/{nn}"
+      and argv[argv.index("--opmanifest") + 1] == "aws_ec2/prod/manifest_e2q3_e2.json", (r, argv[-6:]))
 
 check("guard: no real aws/ssh/scp was ever invoked in any case", not os.path.exists(GUARD_LOG), open(GUARD_LOG).read() if os.path.exists(GUARD_LOG) else "")
 print(f"\n{n[0] - len(fails)} passed, {len(fails)} failed")

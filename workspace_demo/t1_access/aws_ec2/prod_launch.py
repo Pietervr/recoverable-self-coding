@@ -80,7 +80,16 @@ chpc/candidate_e2/QUALIFICATION_E2.md s.2, s.5).
             epoch2_problem's (2 qualification instances inside the USD 300 allowance) at the funded 79,200 s lifetime.
   release   production of an epoch needs the adopted release OF THAT EPOCH (prod_authority.production_release_problem): an
             epoch-1 release never admits epoch-2 production, and an epoch-2 production admission must use the production
-            operational manifest the schema-3 certificate bound."""
+            operational manifest the schema-3 certificate bound.
+
+REVISION 8 (owner decision 21 Oct 2026, R052 "On-demand E2Q3"; chpc/candidate_v19_oploss/DESIGN_v19.md s.7). Contract E2Q3 of
+controls v19 (row19_ec2_state REVISION 5) admits as run qual-E2Q3 exactly like E2Q2 (the declared panel, the gate
+prod_authority.e2q_admission_problem REVISION 9) but is purchased ON-DEMAND: for a contract whose market is "on-demand"
+(row19_ec2_state.contract_market) the RunInstances request carries NO --instance-market-options (no spot request, no spot cap);
+every other argument is the same, and a spot contract's request is byte-unchanged. The worst case is priced at the contract's
+max_price (5.60 USD/h, the on-demand worst-case rate) and the attempt records that max_price and `market`, so the authority,
+the inventory and the reaper charge its hours at that rate. The instance still self-terminates at its lifetime and the reaper
+terminates it from lifetime + 900 s; there is no spot interruption notice on demand."""
 import argparse, glob, json, math, os, sys, time, uuid
 
 SRC = os.path.dirname(os.path.abspath(__file__))
@@ -96,6 +105,21 @@ import row19_ec2_state as ES
 import row19_ec2_e2rules as E2R
 import row19_ec2_e2qual as EQ
 QUAL_CONTRACTS = ("Q1", "Q2") + EQ.CONTRACTS                 # REVISION 7: every qualification contract (22 h lifetime, qual-* run)
+
+
+def market_of(c):
+    """REVISION 8: the purchase market a contract declares ("spot" when it declares none - every contract before E2Q3)."""
+    return c.get("market", "spot")
+
+
+def market_args(c):
+    """REVISION 8: the RunInstances market arguments - the spot request for a spot contract (unchanged bytes), none on demand."""
+    if market_of(c) == "on-demand":
+        return []
+    if market_of(c) != "spot":
+        raise ValueError(f"unknown purchase market {market_of(c)!r}")
+    return ["--instance-market-options", json.dumps({"MarketType": "spot", "SpotOptions": {
+        "MaxPrice": f"{c['max_price']:.2f}", "SpotInstanceType": "one-time", "InstanceInterruptionBehavior": "terminate"}})]
 
 
 def run_of(contract, epoch):
@@ -343,7 +367,11 @@ def admit(a, now=None):
     if why:
         sys.exit(f"REFUSED: {why}")
     c = ES.CONTRACTS[a.contract]
-    life = PA.QUAL_LIFETIME_S if a.contract in QUAL_CONTRACTS else int(opm["ec2_production"]["lifetime_s"])
+    try:
+        margs = market_args(c)                                               # REVISION 8: spot request, or none on demand
+    except ValueError as e:
+        sys.exit(f"REFUSED: {e}")
+    life =PA.QUAL_LIFETIME_S if a.contract in QUAL_CONTRACTS else int(opm["ec2_production"]["lifetime_s"])
     if a.contract in QUAL_CONTRACTS and int(opm["ec2_production"]["lifetime_s"]) != life:
         sys.exit(f"REFUSED: the qualification lifetime is declared {life} s; the manifest says {opm['ec2_production']['lifetime_s']}")
     worst = PA.worst_usd(life, c["max_price"])
@@ -382,15 +410,14 @@ def admit(a, now=None):
     if any(t in ud for t in ("__RUN__", "__ATTEMPT__", "__LIFETIME_S__", "__ATTEMPT_ID__", "__SUMS__")):
         sys.exit("REFUSED: unfilled user-data placeholder")
     udp = os.path.join(d, f"userdata_attempt{n}.sh"); open(udp, "w").write(ud)
+    rate =(f"cap {c['max_price']:.2f}" if market_of(c) == "spot" else f"ON-DEMAND, charged at {c['max_price']:.2f}/h")
     print(f"{attempt_id} ({a.contract}, seq {seq}): {len(work)} owned, {len(dup)} duplicates, {len(sent)} sentinels on {c['itype']} "
-          f"cap {c['max_price']:.2f}, lifetime {life} s, worst USD {worst:.2f}; receipt {receipt}")
+          f"{rate}, lifetime {life} s, worst USD {worst:.2f}; receipt {receipt}")
     ami = json.loads(L.aws("ssm", "get-parameters", "--names", L.AMI_PARAM, "--output", "json").stdout)["Parameters"][0]["Value"]
     tags = [{"ResourceType": rt, "Tags": [{"Key": "project", "Value": "t1"}, {"Key": "row", "Value": "19-ec2"}, {"Key": "run", "Value": run},
                                             {"Key": "attempt", "Value": str(n)}, {"Key": "Name", "Value": attempt_id}]} for rt in ("instance", "volume")]
     args = ["ec2", "run-instances", "--image-id", ami, "--instance-type", c["itype"], "--count", "1", "--client-token", token,
-            "--placement", f"AvailabilityZone={L.AZ}", "--iam-instance-profile", f"Name={L.ROLE}",
-            "--instance-market-options", json.dumps({"MarketType": "spot", "SpotOptions": {
-                "MaxPrice": f"{c['max_price']:.2f}", "SpotInstanceType": "one-time", "InstanceInterruptionBehavior": "terminate"}}),
+            "--placement", f"AvailabilityZone={L.AZ}", "--iam-instance-profile", f"Name={L.ROLE}"] + margs + [
             "--instance-initiated-shutdown-behavior", "terminate",
             "--block-device-mappings", json.dumps([{"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": c["volume_gb"], "VolumeType": "gp3", "DeleteOnTermination": True}}]),
             "--metadata-options", "HttpTokens=required", "--tag-specifications", json.dumps(tags), "--user-data", f"file://{udp}", "--output", "json"]
@@ -414,6 +441,8 @@ def admit(a, now=None):
                plan=planp, plan_sha256=L.sha256(planp), coordinates=att_view["coordinates"], sentinels=att_view["sentinels"],
                duplicates=att_view["duplicates"], ingestion="pending",
                results=f"s3://{L.BUCKET}/results/t1_access/aws_bench/{run}/attempt_{n}/", intent_at=time.time(), receipt=receipt)
+    if "market" in c:                                                        # REVISION 8: only a contract that declares one
+        att["market"] = market_of(c)
     led["attempts"].append(att); L.save(run, led)
     PA.write_inventory()                                                     # the intent: a new generation to install
     rc = L.finish(run, led, att, fresh=True, guard=guard)

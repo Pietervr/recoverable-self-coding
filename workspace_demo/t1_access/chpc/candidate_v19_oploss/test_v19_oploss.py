@@ -333,20 +333,29 @@ v18, v19 = CTL["versions"][-2], CTL["versions"][-1]
 check("controls v19: versions 1-18 byte-equal to the adopted v18 controls (452b82df)", hashlib.sha256(LIVE_CTL_B).hexdigest() == V18_SHA
       and json.dumps(CTL["versions"][:-1], indent=1) == json.dumps(LIVE_CTL["versions"], indent=1) and v19["version"] == 19)
 changed = sorted(k for k in set(v18["files"]) | set(v19["files"]) if v18["files"].get(k) != v19["files"].get(k))
-check("controls v19: exactly two pins differ (admission, status)", changed == ["chpc/row19_screen_admit.py", "chpc/row19_screen_status.py"])
+V19_PINNED = ("row19_screen_admit.py", "row19_screen_status.py", "row19_ec2_state.py", "row19_ec2_e2qual.py", "row19_ec2_ingest.py")
+check("controls v19: exactly five pins differ (admission, status; EC2 state, E2Q module, ingestion for E2Q3)",
+      changed == sorted(f"chpc/{n}" for n in V19_PINNED) and sorted(v19["files"]) == sorted(v18["files"]))
 check("controls v19: each pin is this folder's bytes", all(v19["files"][f"chpc/{n}"] == hashlib.sha256(open(os.path.join(CAND, n), "rb").read()).hexdigest()
-                                                         for n in ("row19_screen_admit.py", "row19_screen_status.py")))
+                                                         for n in V19_PINNED))
 check("controls v19: partition e2 48cea639, sub_envelopes, qualification_S and every other key equal v18",
       {k: v for k, v in v19.items() if k not in ("version", "commit", "reviewed", "files")} == {k: v for k, v in v18.items() if k not in ("version", "commit", "reviewed", "files")}
       and v19["partition"]["sha256"].startswith("48cea639"))
 check("build_v19 --check: deterministic", subprocess.run([sys.executable, os.path.join(CAND, "build_v19.py"), "--check"], capture_output=True).returncode == 0)
 check("Python 3.7 grammar for every candidate file", all(ast.parse(open(os.path.join(CAND, f)).read(), feature_version=(3, 7)) for f in
-                                                          ("row19_screen_status.py", "row19_screen_admit.py", "build_v19.py", "promote_v19.py")))
-LIVE_PINS = {f: hashlib.sha256(open(os.path.join(T1, f), "rb").read()).hexdigest() for f in ("chpc/row19_screen_admit.py", "chpc/row19_screen_status.py", "chpc/row19_screen_controls.json")}
-check("the live tree is untouched (admission e2260765, status 4710544a, controls 452b82df)",
+                                                          ("row19_screen_status.py", "row19_screen_admit.py", "build_v19.py", "promote_v19.py",
+                                                           "row19_ec2_state.py", "row19_ec2_e2qual.py", "row19_ec2_ingest.py")))
+LIVE_PINS = {f: hashlib.sha256(open(os.path.join(T1, f), "rb").read()).hexdigest() for f in
+             ("chpc/row19_screen_admit.py", "chpc/row19_screen_status.py", "chpc/row19_screen_controls.json", "chpc/row19_ec2_state.py",
+              "chpc/row19_ec2_e2qual.py", "chpc/row19_ec2_ingest.py")}
+check("the live tree is untouched (admission e2260765, status 4710544a, controls 452b82df, EC2 state 7bdedafc, E2Q 5ceba551, ingestion 277c51b0)",
       LIVE_PINS == {"chpc/row19_screen_admit.py": "e22607650058ae2cbb8f19fe3e225d886bd2cc733adf02bb93dbc01d65f719af",
                     "chpc/row19_screen_status.py": "4710544a3861b688b0f2c89e67a8ba56cf65261a8900d4147658fee576f58232",
-                    "chpc/row19_screen_controls.json": V18_SHA})
+                    "chpc/row19_screen_controls.json": V18_SHA,
+                    "chpc/row19_ec2_state.py": "7bdedafc7c90ec065217d9a7bbf53b88e1bf31e0c094dc34df730b4028bd038e",
+                    "chpc/row19_ec2_e2qual.py": "5ceba55189dd351b2cc5a997b115cdbfd0d84f17397402fa7deb2b3e937025fa",
+                    "chpc/row19_ec2_ingest.py": "277c51b0a24fee6b151180e99584a831c091ca4b30b6bd999a1221ff364bf54f"}
+      and not os.path.exists(os.path.join(T1, "aws_ec2", "prod", "manifest_e2q3_e2.json")))
 
 print(f"\n{npass[0]} passed, {len(fails)} failed")
 print("ALL OK" if not fails else f"{len(fails)} FAILED")

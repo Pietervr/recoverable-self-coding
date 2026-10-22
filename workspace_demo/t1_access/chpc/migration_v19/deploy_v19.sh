@@ -1,9 +1,10 @@
 #!/bin/bash
 # Migration v18 -> v19, step 4 (Mac -> Lengau): deploy the promoted and COMMITTED v19 package into the CONTROLLER clone
-# rsc_screen_ctl in ONE commit (the deploy_v18.sh pattern). The 5 payload files - the controls adoption (operator) record, the
-# status view, the admission, then the controls and LAST
-# the adoption record - travel inside the one Lengau script (lengau.sh payload, each checked against its Mac SHA-256). No
-# partition, data, EC2 code or activation is deployed (v19 changes none). The job clone rsc_screen is never written.
+# rsc_screen_ctl in ONE commit (the deploy_v18.sh pattern). The 9 payload files - the controls adoption (operator) record, the
+# status view, the admission, the EC2 state, the E2Q module, the ingestion, the NEW E2Q3 operational manifest
+# (aws_ec2/prod/manifest_e2q3_e2.json, V19_NEW: absent before), then the controls and LAST the adoption record - travel inside
+# the one Lengau script (lengau.sh payload, each checked against its Mac SHA-256). No partition or activation is deployed
+# (v19 changes neither). The job clone rsc_screen is never written.
 # Mac, before anything leaves: v19_package.py check-promoted (the pinned package identities and record, the strict Mac archive
 # certificate, promote_v19.py --check-promoted with the review record, every promoted path, the adoption and the archive
 # committed), the Mac drain, and the Mac tree's own authority/lineage/controls/designated/partition checks.
@@ -40,7 +41,7 @@ LSUMS=$(python3 chpc/migration_v19/mac_archive.py verify --get lengau_sha256sums
 PAYLOAD=$(python3 chpc/migration_v19/v19_package.py payload) || fail "cannot list the payload"
 ALL=$(python3 chpc/migration_v19/v19_package.py compare) || fail "cannot list the compared files"
 PAYLOAD=$(printf '%s\n' "$PAYLOAD" | tr '\n' ' '); ALL=$(printf '%s\n' "$ALL" | tr '\n' ' ')
-[ "$(echo $PAYLOAD | wc -w | tr -d ' ')" = 5 ] || fail "the payload is not the 5 files of the v19 deploy: $PAYLOAD"
+[ "$(echo $PAYLOAD | wc -w | tr -d ' ')" = 9 ] || fail "the payload is not the 9 files of the v19 deploy: $PAYLOAD"
 python3 -c 'import sys; sys.path.insert(0, "chpc"); import programme_gate as PG, row19_screen_admit as A; import json
 m = json.load(open("chpc/row19_screen_manifest.json")); p = A.partition(m, "chpc/row19_screen_manifest.json")
 w = [PG.controls_authority_problem(), PG.lineage_problem(), A.controls_problem(), A.designated(m, "chpc/row19_screen_manifest.json")[1]]
@@ -52,13 +53,13 @@ sys.exit(1 if any(w) or not ok or v != 19 else 0)' || fail "the Mac promoted tre
 LOCAL=$(mktemp -t v19_local) && REMOTE_OUT=$(mktemp -t v19_remote) || fail "mktemp failed"
 shasum -a 256 $ALL | sort -k2 > $LOCAL || fail "cannot hash the local files"
 [ "$(wc -l < $LOCAL | tr -d ' ')" = "$(echo $ALL | wc -w | tr -d ' ')" ] || fail "the local digest list is incomplete"
-echo "== local ($(wc -l < $LOCAL | tr -d ' ') files compared; 5 copied, in order: $PAYLOAD)"; cut -c1-12,65- $LOCAL
+echo "== local ($(wc -l < $LOCAL | tr -d ' ') files compared; 9 copied, in order: $PAYLOAD)"; cut -c1-12,65- $LOCAL
 [ "$DRY" = "--dry-run" ] && { echo "DRY RUN: nothing copied"; rm -f $LOCAL $REMOTE_OUT; exit 0; }
 python3 chpc/migration_v19/v19_package.py drain || fail "the Mac drain is not observed (above)"
 . chpc/migration_v19/lengau.sh || fail "cannot load chpc/migration_v19/lengau.sh"
 FILES=(); for f in $PAYLOAD; do FILES+=(--file "$f"); done
 to_lengau - "${FILES[@]}" --var "ALL=$ALL" --var "LSUMS=$LSUMS" > $REMOTE_OUT 2>&1 <<'REMOTE'
-[ "$NP" = 5 ] || die "expected five payload files, got $NP"
+[ "$NP" = 9 ] || die "expected nine payload files, got $NP"
 cd "$C" || die "no controller clone $C"
 ctl_git
 PSCHEMA=row19-screen-v19-deploy-proof-1
@@ -132,7 +133,7 @@ i=1; while [ $i -le $NP ]; do
   esac
   i=$((i + 1))
 done
-echo "payload: 5 files decoded and verified against their Mac SHA-256 (${paysha:0:16}); the Python payloads compile and the JSON payloads parse under \$T/t1py"
+echo "payload: 9 files decoded and verified against their Mac SHA-256 (${paysha:0:16}); the Python payloads compile and the JSON payloads parse under \$T/t1py"
 head=$(git rev-parse --verify HEAD) || die "git rev-parse HEAD failed"
 if [ $same = 1 ]; then
   echo "controller clone already holds exactly these v19 bytes; no commit"
@@ -159,6 +160,7 @@ else
   done
   v18_current
   while read -r f s; do src_file "$C/$f" "$CR" "controller file v19 replaces: $f"; pin "$f" "$s" "controller clone $f (v18)"; done <<<"$V18_REPLACED"
+  for f in $V19_NEW; do dst_absent "$C/$f" "$CR" "new v19 data path $f"; done
   ahead=$(archive_py verify "$T" --get ctl_head) || die "archive verify failed"
   [ "$head" = "$ahead" ] || die "controller clone HEAD ${head:0:12} is not the archived v18 HEAD ${ahead:0:12}"
   src_file "$G/qualified_refit_job1.json" "$GS" "gate qualification"; src_file "$G/review_refit.json" "$GS" "active gate review"
@@ -185,7 +187,7 @@ else
   fi
   dests
   i=1; LIST=""
-  while [ $i -le $NP ]; do                     # in payload order: record, status, admission, controls, adoption
+  while [ $i -le $NP ]; do                     # in payload order: record, status, admission, EC2 state, E2Q module, ingestion, E2Q3 manifest, controls, adoption
     eval "f=\$P${i}_PATH"
     case $f in */*) dst_dir "$C/${f%/*}" "$CR" "payload $i parent";; esac
     dst_file "$C/$f" "$CR" "payload $i destination"; dst_absent "$C/$f.v19tmp" "$CR" "payload $i temporary sibling"
@@ -197,7 +199,7 @@ else
   done
   ctl_git
   git add -- $LIST || die "git add failed (the clone is now dirty: recover explicitly)"
-  git -c user.name=R052 -c user.email=r052@local commit -q -m 'screen controllers: lineage version 19 (the operational-loss disposition: status view and admission = v18 + REVISION 19; controls 4d868856; operator adoption record); every other controller byte, the node-failure rule, the e2 partition and epoch 2 unchanged; refit admission needs fresh v19 receipts and the regenerated pilot adoption' -- $LIST \
+  git -c user.name=R052 -c user.email=r052@local commit -q -m 'screen controllers: lineage version 19 (the operational-loss disposition: status view and admission = v18 + REVISION 19; the E2Q3 on-demand qualifier: EC2 state, E2Q module and ingestion + the E2Q3 operational manifest; controls 111c3107; operator adoption record); every other controller byte, the node-failure rule, the e2 partition and epoch 2 unchanged; refit admission needs fresh v19 receipts and the regenerated pilot adoption' -- $LIST \
     || die "git commit failed (the clone is now dirty: recover explicitly)"
   nhead=$(git rev-parse --verify HEAD) || die "git rev-parse HEAD failed after the commit"
   # the commit holds payload paths only (an unchanged payload file is not in it): never a pinned untracked evidence file, which

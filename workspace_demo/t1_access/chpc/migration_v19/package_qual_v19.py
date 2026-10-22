@@ -8,7 +8,7 @@ place; every file read-only). Commit it with explicit paths and write the operat
 Refuses unless the Mac qualified_refit_job1.json (written by the ONE metadata-only `--qualify 1` call) is NOT any earlier
 pilot qualification (v18 530df9a2, v17 8fdbf48e, v16 2c7a7ef1, v15 3c605514), is a refit qualification of job 1 from production evidence with
 an alarm-free receipt, and its verifier document (in the receipts folder) reports generation 19 with the v19 controls
-4d868856. The package holds exactly:
+111c3107. The package holds exactly:
   qualified_refit_job1.json                            the regenerated qualification
   verify_refit_<stamp>.json                            the verifier document it names (bytes = its bound digest)
   watch_refit_<stamp>.json (each)                      the receipt the --qualify call published, and every watch receipt the
@@ -27,7 +27,7 @@ OLD_QUALS = {"530df9a208eb1578282ef564708447fd3b32c5fa1366f388f51059ebcfd70839":
              "8fdbf48e998e39a8c0b12900d75e3dfaf4ab64396ade08a17a5cab549c0b5faa": "v17 8fdbf48e",
              "2c7a7ef1fb903cf0fa75701d2a56d216e98faf14e6638da891afd8bed0bfea44": "v16 2c7a7ef1"}
 OLD_PREFIX = {"3c605514": "v15 3c605514"}
-V19_CONTROLS = "4d868856905f914858ca224ec0dcb902792646f437fa4a9ddaa75d1b6d729a7d"
+V19_CONTROLS = "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5"
 MAC_SUMS = os.path.join(T1, "chpc", "results", "archive", "row19_screen_v18_before_v19", "SHA256SUMS")
 LENGAU_SUMS = os.path.join(T1, "chpc", "results", "archive", "row19_screen_v18_before_v19.lengau_SHA256SUMS.txt")
 WATCH = re.compile(r"watch_refit_\d{8}T\d{6}Z\.json")

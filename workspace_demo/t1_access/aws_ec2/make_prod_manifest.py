@@ -29,7 +29,16 @@ does: an E2Q contract therefore REQUIRES --partition and --snapshot (the claims 
 the maker also writes the declared fixed panel (row19_ec2_e2qual.derive_panel) to --panel-out, binding the partition and the
 snapshot. An existing panel file is never overwritten: it must already be the identical derivation (the E2Q2 run of the
 maker re-derives the same panel and checks it), otherwise the maker refuses. When the partition is regenerated (fresh
-post-v16 snapshot), the panel MUST be regenerated with it; the two operational manifests need not be."""
+post-v16 snapshot), the panel MUST be regenerated with it; the two operational manifests need not be.
+
+REVISION 4 (owner decision 21 Oct 2026, R052 "On-demand E2Q3"; chpc/candidate_v19_oploss/DESIGN_v19.md s.7). Contract E2Q3
+(row19_ec2_state REVISION 5, controls v19) is admitted for epoch 2 at the same funded lifetime with the identical geometry and
+roles, purchased ON-DEMAND at the worst-case rate 5.60 (E2Q3_GEOMETRY); its maker run re-derives and accepts the same declared
+panel. Every other contract's check is unchanged. Before controls v19 is promoted the live row19_ec2_state has no E2Q3, so
+--contract E2Q3 is not a choice (the manifest is built from the v19 candidate and promoted with it).
+
+    python3 make_prod_manifest.py --epoch 2 --contract E2Q3 --expect-s 75300 --out prod/manifest_e2q3_e2.json \
+        --partition ../chpc/row19_partition_e2.json --snapshot ../chpc/claims_snapshot_e2.json --panel-out prod/panel_e2q_e2.json"""
 import argparse, hashlib, json, os, sys
 SRC = os.path.dirname(os.path.abspath(__file__))
 T1 = SRC
@@ -50,6 +59,7 @@ PROD_SHA = "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c"
 E2_EXPECT_S = 75300                                    # 79,200 s lifetime - 900 s setup - 3,000 s upload reserve
 E2_GEOMETRY = dict(itype="c7a.24xlarge", workers=76, max_price=1.20, roles={"work": None, "sentinel": 4})
 E2Q_GEOMETRY = dict(itype="c7a.24xlarge", workers=76, max_price=1.20, roles={"work": 52, "qual_lengau": 20, "sentinel": 4})
+E2Q3_GEOMETRY = dict(E2Q_GEOMETRY, max_price=5.60, market="on-demand")     # REVISION 4: the same geometry on-demand
 
 
 def epoch2_problem(epoch, contract, expect_s):
@@ -57,11 +67,12 @@ def epoch2_problem(epoch, contract, expect_s):
     if int(epoch) < 2:
         return ""
     if contract not in ("production",) + EQ.CONTRACTS:
-        return f"epoch {epoch}: only the production and the E2Q1/E2Q2 qualification contracts are declared"
+        return f"epoch {epoch}: only the production and the E2Q qualification contracts ({', '.join(EQ.CONTRACTS)}) are declared"
     if contract in EQ.CONTRACTS and int(epoch) != EQ.EPOCH:
         return f"the E2Q contracts qualify epoch {EQ.EPOCH} only"
-    c = ES.CONTRACTS[contract]; want = E2_GEOMETRY if contract == "production" else E2Q_GEOMETRY
-    if {k: c[k] for k in want} != want:
+    c = ES.CONTRACTS[contract]
+    want = E2_GEOMETRY if contract == "production" else E2Q3_GEOMETRY if contract == "E2Q3" else E2Q_GEOMETRY
+    if {k: c.get(k) for k in want} != want or (contract != "E2Q3" and "market" in c):
         return f"the {contract} contract {c} is not the funded 76-worker geometry {want}"
     if int(expect_s) != E2_EXPECT_S:
         return f"epoch {epoch}: expect {expect_s} s is not the funded 22 h lifetime's {E2_EXPECT_S} s"

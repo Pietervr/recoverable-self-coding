@@ -8,8 +8,14 @@ v19 = adopted v18 (controls 452b82df, adoption 3e1fe9a1) with ONE appended versi
   version 19, commit (candidate text), reviewed (owner-approved operational change text), and files:
     chpc/row19_screen_admit.py    -> this folder's admission (v18 e2260765 + REVISION 19)
     chpc/row19_screen_status.py   -> this folder's status view (v18 4710544a + REVISION 19)
-Every other pin (incl. the v18 node-failure rule and capture script), the partition (e2 48cea639), sub_envelopes,
-qualification_S, programme, deployment and versions 1-18 unchanged.
+    chpc/row19_ec2_state.py       -> this folder's EC2 state (v18 7bdedafc + REVISION 5: contract E2Q3, on-demand)
+    chpc/row19_ec2_e2qual.py      -> this folder's E2Q module (v18 5ceba551 + REVISION 2: E2Q3 in the contract set)
+    chpc/row19_ec2_ingest.py      -> this folder's ingestion (v18 277c51b0 + REVISION 9: E2Q3 on the released per-slot route)
+Every other pin (incl. the v18 node-failure rule and capture script, and the qualifier row19_ec2_qualify.py, which reads the
+contract set from row19_ec2_e2qual), the partition (e2 48cea639), sub_envelopes, qualification_S, programme, deployment and
+versions 1-18 unchanged. The E2Q3 additions are the owner's decision of 21 Oct 2026 (DESIGN_v19.md s.7).
+DATA (not a controls pin, a NEW path promoted beside the pins - the build_v17 `data` group): the E2Q3 operational manifest
+aws_ec2/prod/manifest_e2q3_e2.json (make_prod_manifest.py --contract E2Q3, this folder's copy).
 
 The base-first pattern of build_v18 REVISION 2. The builder FIRST resolves and authenticates an immutable v18 BASE
 (resolve_base) and builds the expected v19 from that base, never from whatever the live controls hold:
@@ -32,6 +38,14 @@ ADOPTED_ADOPTION = ("chpc/row19_screen_controls_adoption.json", "3e1fe9a1ddd10a6
 MAP = [
     ("chpc/row19_screen_status.py", "chpc/candidate_v19_oploss/row19_screen_status.py", "4710544a3861b688b0f2c89e67a8ba56cf65261a8900d4147658fee576f58232"),
     ("chpc/row19_screen_admit.py", "chpc/candidate_v19_oploss/row19_screen_admit.py", "e22607650058ae2cbb8f19fe3e225d886bd2cc733adf02bb93dbc01d65f719af"),
+    # the E2Q3 on-demand qualifier (owner decision 21 Oct 2026; DESIGN_v19.md s.7)
+    ("chpc/row19_ec2_state.py", "chpc/candidate_v19_oploss/row19_ec2_state.py", "7bdedafc7c90ec065217d9a7bbf53b88e1bf31e0c094dc34df730b4028bd038e"),
+    ("chpc/row19_ec2_e2qual.py", "chpc/candidate_v19_oploss/row19_ec2_e2qual.py", "5ceba55189dd351b2cc5a997b115cdbfd0d84f17397402fa7deb2b3e937025fa"),
+    ("chpc/row19_ec2_ingest.py", "chpc/candidate_v19_oploss/row19_ec2_ingest.py", "277c51b0a24fee6b151180e99584a831c091ca4b30b6bd999a1221ff364bf54f"),
+]
+# (promoted path, source path, None): NEW data paths promoted beside the pins, never pinned by the controls (build_v17 `data`)
+DATA = [
+    ("aws_ec2/prod/manifest_e2q3_e2.json", "chpc/candidate_v19_oploss/manifest_e2q3_e2.json", None),
 ]
 
 
@@ -46,9 +60,10 @@ QUAL = ("chpc/results/row19_screen/receipts/qualified_refit_job1.json", "530df9a
 PILOT_REC = ("reviews/2026-10-20_pilot_v18_operator_record.md", "67f2b4383a1b25d7e6921f0c8252514a6fe797e37419af3ddfbb8116753fae87")
 NODE_EVIDENCE = ("chpc/candidate_v18_nodefail/evidence_row19_screen_refit_54.nodefail.json",
                  "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f")
-# 8 members: the v18 bytes of the two replaced controllers (admission, status view), the v18 controls and adoption record, the
-# adopted v18 pilot qualification 530df9a2 and its operator pilot record, the committed budget phases, and the retained captured
-# node document of refit job 54 (still the evidence of its node-failure disposition under v19).
+# 11 members: the v18 bytes of the five replaced controllers (admission, status view, EC2 state, E2Q module, ingestion), the v18
+# controls and adoption record, the adopted v18 pilot qualification 530df9a2 and its operator pilot record, the committed budget
+# phases, and the retained captured node document of refit job 54 (still the evidence of its node-failure disposition under v19).
+# The DATA rows are new paths with no v18 bytes, so nothing of theirs is archived.
 ARCHIVE = {os.path.basename(dst): (dst, prev) for dst, _src, prev in MAP}
 ARCHIVE.update({"row19_screen_controls.json": ADOPTED_CTL, "row19_screen_controls_adoption.json": ADOPTED_ADOPTION,
                 "qualified_refit_job1.json": QUAL, "row19_screen_budget.json": ("chpc/row19_screen_budget.json", None),
@@ -122,7 +137,7 @@ def input_problems(base=None):
     why = []
     if hashlib.sha256(base["controls"]).hexdigest() != ADOPTED_CTL[1] or hashlib.sha256(base["adoption"]).hexdigest() != ADOPTED_ADOPTION[1]:
         why.append(f"the {base.get('source')} base is not v18 {ADOPTED_CTL[1][:8]}/{ADOPTED_ADOPTION[1][:8]}")
-    for _dst, src, _prev in MAP:
+    for _dst, src, _prev in MAP + DATA:
         p = os.path.join(T1, src)
         if os.path.islink(p) or not os.path.isfile(p):
             why.append(f"{src} is missing or not a regular file")
@@ -133,9 +148,13 @@ def reviewed(h):
     return ("owner-approved operational change, R052 lean T1 plan item 2 (20 Oct 2026; no Codex review of operational changes): controls "
             "v19, the OPERATIONAL-LOSS disposition (chpc/candidate_v19_oploss/DESIGN_v19.md): v19 = adopted v18 (452b82df) with "
             f"chpc/row19_screen_admit.py ({h['chpc/row19_screen_admit.py'][:8]}) and chpc/row19_screen_status.py "
-            f"({h['chpc/row19_screen_status.py'][:8]}) = v18 + REVISION 19. Every other pin, the e2 partition 48cea639, sub_envelopes, "
-            "qualification_S, programme and deployment unchanged. An operational-loss job never qualifies and never counts toward the "
-            "crash rule. Adopted by an operator record carrying the ADOPT literal.")
+            f"({h['chpc/row19_screen_status.py'][:8]}) = v18 + REVISION 19; and the E2Q3 ON-DEMAND QUALIFIER (owner decision 21 Oct "
+            f"2026, DESIGN_v19.md s.7): chpc/row19_ec2_state.py ({h['chpc/row19_ec2_state.py'][:8]}, REVISION 5), "
+            f"chpc/row19_ec2_e2qual.py ({h['chpc/row19_ec2_e2qual.py'][:8]}, REVISION 2) and chpc/row19_ec2_ingest.py "
+            f"({h['chpc/row19_ec2_ingest.py'][:8]}, REVISION 9) add contract E2Q3 (the identical geometry and panel, on-demand) and "
+            "nothing else; the release rule is unchanged. Every other pin, the e2 partition 48cea639, sub_envelopes, qualification_S, "
+            "programme and deployment unchanged. An operational-loss job never qualifies and never counts toward the crash rule. "
+            "Adopted by an operator record carrying the ADOPT literal.")
 
 
 def build(base=None):
@@ -168,12 +187,14 @@ def build(base=None):
     out = copy.deepcopy(ctl); out["versions"].append(v19)
     ctl_bytes = json.dumps(out, indent=1).encode()
     rows = [dict(promoted=dst, source=src, sha256=h[dst], previous_sha256=prev, group="pin") for dst, src, prev in MAP]
+    rows += [dict(promoted=dst, source=src, sha256=sha(src), previous_sha256=None, group="data") for dst, src, _p in DATA]
     rows.append(dict(promoted=ADOPTED_CTL[0], source="chpc/candidate_v19_oploss/row19_screen_controls.json",
                      sha256=hashlib.sha256(ctl_bytes).hexdigest(), previous_sha256=ADOPTED_CTL[1], group="ctl"))
     pm = dict(schema="row19-controls-promotion-map-1", version=19, base=dict(controls_sha256=ADOPTED_CTL[1], adoption_sha256=ADOPTED_ADOPTION[1]),
-              rule="each row: copy `source` (exactly `sha256`) to `promoted`; the path must hold `previous_sha256` or already the new "
-                   "bytes. Order: the status view, the admission, then the controls LAST, then the version-19 adoption record. "
-                   "Unchanged v18 pins are not listed.",
+              rule="each row: copy `source` (exactly `sha256`) to `promoted`; the path must hold `previous_sha256` (null: a NEW path, "
+                   "absent before) or already the new bytes. Order: the status view, the admission, the EC2 state, the E2Q module, the "
+                   "ingestion, the E2Q3 operational manifest (data, not pinned by the controls), then the controls LAST, then the "
+                   "version-19 adoption record. Unchanged v18 pins are not listed.",
               unchanged_v18_pins=sorted(f for f in v18["files"] if f not in {m[0] for m in MAP}), rows=rows)
     return ctl_bytes, (json.dumps(pm, indent=1) + "\n").encode()
 

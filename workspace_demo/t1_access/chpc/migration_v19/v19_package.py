@@ -9,11 +9,12 @@ re-pointed). Read only; writes nothing.
     python3 chpc/migration_v19/v19_package.py drain            the Mac drain observation alone
 
 THE PACKAGE (the migration_v18 identity rule, kept: "verify exact new package/map/builder/review identities"): the controls
-literal binds the controls bytes only, so PACKAGE below pins the candidate controls, promotion map, builder, promoter, the two
-promoted sources and the retained node evidence (an archive member); every map source is also checked by promote_v19.py
+literal binds the controls bytes only, so PACKAGE below pins the candidate controls, promotion map, builder, promoter, the five
+promoted sources (status view, admission; EC2 state, E2Q module, ingestion for the E2Q3 on-demand qualifier), the E2Q3
+operational manifest (a NEW data path) and the retained node evidence (an archive member); every map source is also checked by promote_v19.py
 --check. THE RECORD: v19 is an owner-approved operational change (R052 lean T1 plan item 2, 20 Oct 2026; no Codex review), so
 its adoption record is an OPERATOR record - any committed reviews/<name>.md carrying the exact line
-    ADOPT row19-screen-controls sha256=4d868856905f914858ca224ec0dcb902792646f437fa4a9ddaa75d1b6d729a7d version=19
+    ADOPT row19-screen-controls sha256=111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5 version=19
 (the migration_v18 rule: the literal in HEAD and the pinned bytes; who wrote it is not checked). It does NOT exist yet, so the
 single line tagged @record below is PENDING (None, None) and every gate refuses until it names that committed record and its
 SHA-256 - a one-line change the operator makes after committing the record (RUNBOOK step 0).
@@ -24,15 +25,20 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = os.path.abspath(os.path.join(HERE, "..", ".."))
 CAND = os.path.join(T1, "chpc", "candidate_v19_oploss")
 REC, REC_SHA = None, None   # @record: the committed operator record with the v19 ADOPT literal, and its sha256 (PENDING)
-V19_CONTROLS = "4d868856905f914858ca224ec0dcb902792646f437fa4a9ddaa75d1b6d729a7d"
+V19_CONTROLS = "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5"
 LITERAL = "ADOPT row19-screen-controls sha256=%s version=19" % V19_CONTROLS
 PACKAGE = {   # the package identities (chpc/candidate_v19_oploss/DESIGN_v19.md; the candidate commit)
     "chpc/candidate_v19_oploss/row19_screen_controls.json": V19_CONTROLS,
-    "chpc/candidate_v19_oploss/v19_promotion_map.json": "b3a1778c5bec64dac32ec62684cc23b85f45a13bf1789c0b370494a0ebef78b5",
-    "chpc/candidate_v19_oploss/build_v19.py": "c04a17eb119e618673da03f4d9e4cdebb264fdc8fd41c04e60774cb391324759",
-    "chpc/candidate_v19_oploss/promote_v19.py": "b32e161755f692c412ebae6c80321e3f8f08f7dfdbff5dea239439df334d98b5",
+    "chpc/candidate_v19_oploss/v19_promotion_map.json": "8256a58490d868af8c09988f69b91acf70843683bbf0fd2104cd98fc10f7a56e",
+    "chpc/candidate_v19_oploss/build_v19.py": "db66d9d5b0bd9f98110ebde7eaa465ab6011e442558784af7c3aeaeef532e7f8",
+    "chpc/candidate_v19_oploss/promote_v19.py": "31240ba12a5a888c85e0078c07934008c96c683ba5c6179e0f0dfab75c3bd77e",
     "chpc/candidate_v19_oploss/row19_screen_status.py": "258d43293b15f1ae9457cd323f2a4a7b71af79e83695dff51601037991a7cb45",
     "chpc/candidate_v19_oploss/row19_screen_admit.py": "27e066c72ed43919a92083fcf3f035cbee232c2137c2e97832f0e41b1113f9df",
+    # the E2Q3 on-demand qualifier (owner decision 21 Oct 2026; DESIGN_v19.md s.7): three more promoted sources and one data row
+    "chpc/candidate_v19_oploss/row19_ec2_state.py": "a9a32329b827b7b9d0bee27523271424c3d8e6026efd164d4b5fae975e1d487f",
+    "chpc/candidate_v19_oploss/row19_ec2_e2qual.py": "22251f0ffa8c338f9f3f545eccd27391a86da0bcd2aba343cca69735df5dd42c",
+    "chpc/candidate_v19_oploss/row19_ec2_ingest.py": "744ee5c81aba5be7b5160c61ccf6f335d9005d954935865d89106aa54c8fe5cd",
+    "chpc/candidate_v19_oploss/manifest_e2q3_e2.json": "6d59c1f8568945f6121f9f16779aabe30f6334178bb0ba8c9d192a024805e17f",
     "chpc/candidate_v18_nodefail/evidence_row19_screen_refit_54.nodefail.json": "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f",
 }
 V18 = {"chpc/row19_screen_controls.json": "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b",
@@ -84,7 +90,7 @@ def modules():
 def record_problems():
     if REC is None or REC_SHA is None:
         return ["the v19 controls adoption record is not pinned (the v19_package.py record pin is PENDING): no committed operator "
-                "record with the ADOPT literal for the exact package 4d868856 is pinned; nothing may be promoted or deployed"]
+                "record with the ADOPT literal for the exact package 111c3107 is pinned; nothing may be promoted or deployed"]
     why = []
     got = sha_or_none(REC)
     if got != REC_SHA:
@@ -216,20 +222,21 @@ def commit_paths(B=None, PV=None):
 
 
 def payload(B=None, PV=None):
-    """The 5 files deploy_v19.sh carries, in copy order: the controls adoption (operator) record, the map rows in map order (the
-    status view, the admission), then the controls and LAST the adoption record (the promotion's own order)."""
+    """The 9 files deploy_v19.sh carries, in copy order: the controls adoption (operator) record, the map rows in map order (the
+    status view, the admission, the EC2 state, the E2Q module, the ingestion, the NEW E2Q3 operational manifest), then the
+    controls and LAST the adoption record (the promotion's own order)."""
     if B is None:
         B, PV = modules()
     return [REC] + [r["promoted"] for r in PV.rows()] + [CTL, ADOPT]
 
 
 def compare_list(B=None, PV=None):
-    """Every file compared Mac vs controller clone after the deploy: the 19 v19 pins, the controls and adoption, the e2
-    partition and the operator adoption record."""
+    """Every file compared Mac vs controller clone after the deploy: the 19 v19 pins, every promoted map row (incl. the E2Q3
+    data row), the controls and adoption, the e2 partition and the operator adoption record."""
     if B is None:
         B, PV = modules()
     v = json.load(open(os.path.join(T1, CTL)))["versions"][-1]
-    return sorted(set(v["files"]) | {CTL, ADOPT, v["partition"]["path"], REC})
+    return sorted(set(v["files"]) | {r["promoted"] for r in PV.rows()} | {CTL, ADOPT, v["partition"]["path"], REC})
 
 
 def main(argv):
@@ -239,7 +246,7 @@ def main(argv):
         if why:
             print("PREFLIGHT REFUSED (Mac):"); [print("  -", w) for w in why]; return 3
         print("mac preflight OK: the live tree is the adopted v18 (controls 452b82df, adoption 3e1fe9a1), every promoted path at its v18 "
-              "bytes, the pinned package (controls 4d868856, map b3a1778c, builder, promoter, sources, node evidence 730ea262) "
+              "bytes, the pinned package (controls 111c3107, map 8256a584, builder, promoter, sources, node evidence 730ea262) "
               "and the operator adoption record committed with the literal in HEAD, promote_v19.py --check OK, Mac qualification 530df9a2, "
               "no Mac archive, Mac drain observed, EC2 authority lock free"); return 0
     if cmd == "check-promoted":

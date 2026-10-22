@@ -22,7 +22,14 @@ owner-ceiling acceptance here: its bounds (2 qualification instances, 4 extra pr
 constants enforced by prod_authority.epoch2_problem (owner, 17 Oct). --e2q2 writes `qualification_e2.e2q2` only when the
 epoch-2 qualification is already permitted: the conditional retry needs its OWN reviewed record naming E2Q1's
 external-cause end (spot interruption before the memory gate, or capacity) - never a retry by outcome (QUALIFICATION_E2.md
-s.2). The record is a reviewed file; this tool pins its bytes, it does not judge its content."""
+s.2). The record is a reviewed file; this tool pins its bytes, it does not judge its content.
+
+REVISION 3 (owner decision 21 Oct 2026, R052 "On-demand E2Q3"; chpc/candidate_v19_oploss/DESIGN_v19.md s.7). --e2q3 writes
+`qualification_e2.e2q3` {permitted, record_path, record_sha256} only when the epoch-2 qualification AND its e2q2 block are
+already permitted: the third (on-demand) attempt needs its OWN record naming the owner decision and both earlier
+external-cause ends. prod_authority REVISION 9 reads it (absent = not permitted). --e2q2 and --e2q3 are exclusive.
+
+    python3 aws_ec2/qual_permit.py --epoch2 --e2q3 --record prod/permit_e2q3.md                     # REVISION 3"""
 import argparse, fcntl, json, os, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -60,7 +67,7 @@ def _write_state(r):
     os.replace(tmp, PA.RELEASE_STATE)
 
 
-def permit(record_rel, wait_s=600, log=print, epoch2=False, e2q2=False):
+def permit(record_rel, wait_s=600, log=print, epoch2=False, e2q2=False, e2q3=False):
     rp = os.path.join(L.HERE, record_rel)
     if not os.path.exists(rp):
         log(f"REFUSED: the qualification-permission record {record_rel} does not exist"); return 3
@@ -71,7 +78,9 @@ def permit(record_rel, wait_s=600, log=print, epoch2=False, e2q2=False):
         log("REFUSED: the owner has not accepted the qualification ceilings"); return 3
     if e2q2 and not (epoch2 and rel["qualification_e2"]["ok"]):
         log("REFUSED: E2Q2 is permitted only with --epoch2 and after the epoch-2 qualification itself is permitted"); return 3
-    fh = _drain_and_fence(record_rel, wait_s, log)
+    if e2q3 and (e2q2 or not (epoch2 and rel["qualification_e2"]["ok"] and rel["qualification_e2"].get("e2q2_ok"))):
+        log("REFUSED: E2Q3 is permitted only with --epoch2 (not with --e2q2) and after the epoch-2 qualification and E2Q2 are permitted"); return 3
+    fh =_drain_and_fence(record_rel, wait_s, log)
     if fh is None:
         return 3
     try:
@@ -79,6 +88,11 @@ def permit(record_rel, wait_s=600, log=print, epoch2=False, e2q2=False):
         if not epoch2:
             r["qualification"].update(permitted=True, record_path=record_rel, record_sha256=L.sha256(rp))
             what = "qualification"
+        elif e2q3:                                                           # REVISION 3
+            r["qualification_e2"]["e2q3"] = dict(permitted=True, record_path=record_rel, record_sha256=L.sha256(rp),
+                                                 rule="the one on-demand third attempt after external-cause ends of E2Q1 and E2Q2 "
+                                                      "(owner decision 21 Oct 2026)")
+            what = "qualification_e2.e2q3"
         elif not e2q2:
             q2 = r.get("qualification_e2") if isinstance(r.get("qualification_e2"), dict) else {}
             q2.update(permitted=True, record_path=record_rel, record_sha256=L.sha256(rp),
@@ -97,9 +111,9 @@ def permit(record_rel, wait_s=600, log=print, epoch2=False, e2q2=False):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--record", required=True); ap.add_argument("--wait-s", type=float, default=600)
-    ap.add_argument("--epoch2", action="store_true"); ap.add_argument("--e2q2", action="store_true")
+    ap.add_argument("--epoch2", action="store_true"); ap.add_argument("--e2q2", action="store_true"); ap.add_argument("--e2q3", action="store_true")
     a = ap.parse_args()
-    return permit(a.record, a.wait_s, epoch2=a.epoch2, e2q2=a.e2q2)
+    return permit(a.record, a.wait_s, epoch2=a.epoch2, e2q2=a.e2q2, e2q3=a.e2q3)
 
 
 if __name__ == "__main__":

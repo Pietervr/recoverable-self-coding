@@ -9,12 +9,21 @@ Owning runbook for the paid epoch-2 route (20 Oct 2026). Sources: `chpc/candidat
 Codex-reviewed `chpc/candidate_e2s` bytes of `0a72081` (`f742f017`). The stage tool differs from the reviewed `d531b455`
 only in the controls pin, moved to the v18 controls `452b82df` (with its refusal text and docstring). That is an
 administrative change under the owner rule of 20 Oct 2026 and needs no Codex review. v18 keeps every qualification code pin
-of v17, and no data pin moves. Offline tests: `python3 aws_ec2/tests/test_e2q_stage.py` (from `t1_access/`) passes 100/100.
+of v17, and no data pin moves.
+
+**21 Oct 2026 (owner decision "On-demand E2Q3"; `chpc/candidate_v19_oploss/DESIGN_v19.md` s.7).** Both tools were extended for a
+third attempt E2Q3 (REVISION 2 of each): run `qual-E2Q3`, its operational manifest `prod/manifest_e2q3_e2.json` as a new data
+pin, and the controls pin moved to the v19 candidate controls `111c3107`. The verifier is therefore no longer byte-identical to
+the reviewed `f742f017` (only its contract tuple and docstring differ). Both tools now REFUSE every run until controls v19 is
+promoted and deployed; that is intended, because E2Q3 launches after v19. Offline tests: `python3 aws_ec2/tests/test_e2q_stage.py`
+(from `t1_access/`) passes 106/106.
 
 ## Prerequisites (all must hold first)
 
-1. Controls v18 (`452b82df`) are migrated, adopted, promoted and deployed on Lengau, with canonical e2 activation
-   (`chpc/migration_v18/RUNBOOK.md`). The stage tool refuses any other controls bytes on the Mac or on Lengau.
+1. Controls v18 (`452b82df`) were the pinned controls for E2Q1 and E2Q2 (`chpc/migration_v18/RUNBOOK.md`). From 21 Oct the
+   stage tool pins controls v19 (`111c3107`). v19 must therefore be migrated, adopted, promoted and deployed on Lengau, with
+   canonical e2 activation (`chpc/migration_v19/RUNBOOK.md`), before any staging. The tool refuses any other controls bytes on
+   the Mac or on Lengau.
 2. The E2Q1 permission record `aws_ec2/prod/permit_e2q1.md` is committed.
 3. No migration drain is in progress. EC2 tools must not run while the v18 drain does.
 
@@ -55,6 +64,19 @@ of v17, and no data pin moves. Offline tests: `python3 aws_ec2/tests/test_e2q_st
   `disposition` and `ec2_sync`, then a separately reviewed E2Q2 record (`prod/permit_e2q2.md`; it needs its own owner
   record), then `qual_permit.py --epoch2 --e2q2 --record prod/permit_e2q2.md`, then the same launch with
   `--contract E2Q2 --manifest prod/manifest_e2q2_e2.json` and `e2q_stage.py run --run qual-E2Q2 --attempt <n>`.
+- **E2Q2 also ends without a usable bundle (it did: spot-interrupted after 6.59 h, 0 records, USD 8.30, dispositioned g86/g88,
+  21 Oct)**: the owner decided on 21 Oct 2026 to add an ON-DEMAND E2Q3 (`prod/permit_e2q3.md`; contract E2Q3 exists only in
+  controls v19). The order is:
+  1. migrate to controls v19 (`chpc/migration_v19/RUNBOOK.md`; the promotion also writes `prod/manifest_e2q3_e2.json`);
+  2. `python3 aws_ec2/qual_permit.py --epoch2 --e2q3 --record prod/permit_e2q3.md`, and commit the release state;
+  3. `prod_authority.py budget`, `prod_authority.py inventory`, `ec2_sync.py cycle`, and a fresh refit receipt;
+  4. the step-4 launch with `--contract E2Q3 --manifest prod/manifest_e2q3_e2.json`: first `--dry-run`, then live. This is ONE
+     c7a.24xlarge on-demand instance with no spot request, charged at 5.60 USD/h, worst case USD 128.02 against the allowance
+     (E2Q1 15.74 + E2Q2 8.30 + 128.02 = 152.05 of 300). Before the live launch, confirm that the eu-north-1 on-demand vCPU quota
+     for the C family covers 96 vCPU (a dry run checks permissions, not that quota);
+  5. once reconciled: `ec2_sync.py cycle`, then `e2q_stage.py run --run qual-E2Q3 --attempt 1`, then condition A.
+
+  There is no fourth attempt.
 - **NO_RELEASE or INCONCLUSIVE**: stop and go back to the owner with a costed alternative. There is no retry by outcome.
   An administrative NO_RELEASE still consumes the evaluation.
 - **Qualifier exit 2 / crash / timeout / lost reply**: the claim stays consumed. Use condition B. Never re-invoke.

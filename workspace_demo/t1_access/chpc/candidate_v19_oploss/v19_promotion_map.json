@@ -5,17 +5,14 @@
   "controls_sha256": "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b",
   "adoption_sha256": "3e1fe9a1ddd10a6ed160f5f1f9fc3f4f4de707efa3e90259104e7e5670ae1616"
  },
- "rule": "each row: copy `source` (exactly `sha256`) to `promoted`; the path must hold `previous_sha256` or already the new bytes. Order: the status view, the admission, then the controls LAST, then the version-19 adoption record. Unchanged v18 pins are not listed.",
+ "rule": "each row: copy `source` (exactly `sha256`) to `promoted`; the path must hold `previous_sha256` (null: a NEW path, absent before) or already the new bytes. Order: the status view, the admission, the EC2 state, the E2Q module, the ingestion, the E2Q3 operational manifest (data, not pinned by the controls), then the controls LAST, then the version-19 adoption record. Unchanged v18 pins are not listed.",
  "unchanged_v18_pins": [
   "aws_ec2/qual_S_plan.json",
   "chpc/programme_gate.py",
-  "chpc/row19_ec2_e2qual.py",
   "chpc/row19_ec2_e2rules.py",
-  "chpc/row19_ec2_ingest.py",
   "chpc/row19_ec2_qualify.py",
   "chpc/row19_ec2_root.py",
   "chpc/row19_ec2_shadow.py",
-  "chpc/row19_ec2_state.py",
   "chpc/row19_nodefail_capture.py",
   "chpc/row19_partition.py",
   "chpc/row19_qual_S_manifest.json",
@@ -41,9 +38,37 @@
    "group": "pin"
   },
   {
+   "promoted": "chpc/row19_ec2_state.py",
+   "source": "chpc/candidate_v19_oploss/row19_ec2_state.py",
+   "sha256": "a9a32329b827b7b9d0bee27523271424c3d8e6026efd164d4b5fae975e1d487f",
+   "previous_sha256": "7bdedafc7c90ec065217d9a7bbf53b88e1bf31e0c094dc34df730b4028bd038e",
+   "group": "pin"
+  },
+  {
+   "promoted": "chpc/row19_ec2_e2qual.py",
+   "source": "chpc/candidate_v19_oploss/row19_ec2_e2qual.py",
+   "sha256": "22251f0ffa8c338f9f3f545eccd27391a86da0bcd2aba343cca69735df5dd42c",
+   "previous_sha256": "5ceba55189dd351b2cc5a997b115cdbfd0d84f17397402fa7deb2b3e937025fa",
+   "group": "pin"
+  },
+  {
+   "promoted": "chpc/row19_ec2_ingest.py",
+   "source": "chpc/candidate_v19_oploss/row19_ec2_ingest.py",
+   "sha256": "744ee5c81aba5be7b5160c61ccf6f335d9005d954935865d89106aa54c8fe5cd",
+   "previous_sha256": "277c51b0a24fee6b151180e99584a831c091ca4b30b6bd999a1221ff364bf54f",
+   "group": "pin"
+  },
+  {
+   "promoted": "aws_ec2/prod/manifest_e2q3_e2.json",
+   "source": "chpc/candidate_v19_oploss/manifest_e2q3_e2.json",
+   "sha256": "6d59c1f8568945f6121f9f16779aabe30f6334178bb0ba8c9d192a024805e17f",
+   "previous_sha256": null,
+   "group": "data"
+  },
+  {
    "promoted": "chpc/row19_screen_controls.json",
    "source": "chpc/candidate_v19_oploss/row19_screen_controls.json",
-   "sha256": "4d868856905f914858ca224ec0dcb902792646f437fa4a9ddaa75d1b6d729a7d",
+   "sha256": "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5",
    "previous_sha256": "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b",
    "group": "ctl"
   }

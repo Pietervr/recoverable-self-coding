@@ -6,8 +6,9 @@
 # Containment (the migration_v16 rules, Codex re-review 2026-10-17 P2, carried unchanged through v18): every fixed root below and
 # every authority source / mutation destination a body uses must be its own physical path in its canonical scope (canon,
 # src_file, dst_file, dst_absent, dst_dir), never in the scientific clone; the controller and scientific roots are distinct and
-# disjoint. v19 adds NO partition, data, EC2 code, activation step or new controller path (only the status view and the
-# admission change): epoch 2 stays active and is only re-verified.
+# disjoint. v19 adds NO partition, activation step or new controller code path: the status view and the admission change
+# (operational loss), the EC2 state, E2Q module and ingestion change (the E2Q3 on-demand qualifier, owner 21 Oct 2026), and ONE
+# new data file is added (V19_NEW: the E2Q3 operational manifest); epoch 2 stays active and is only re-verified.
 set -u -o pipefail
 umask 022
 V19_PRELUDE=1
@@ -33,7 +34,7 @@ V18_ADOPTION=3e1fe9a1ddd10a6ed160f5f1f9fc3f4f4de707efa3e90259104e7e5670ae1616
 V18_QUAL=530df9a208eb1578282ef564708447fd3b32c5fa1366f388f51059ebcfd70839
 V18_REC="reviews/2026-10-20_v18r2_mig18_codex_review.md 11ebc12467a50a125f4b583c4d673274e2ff3ea1a2ac0d3e6c03f3725c8cc2c8"
 V18_PILOT_REC="reviews/2026-10-20_pilot_v18_operator_record.md 67f2b4383a1b25d7e6921f0c8252514a6fe797e37419af3ddfbb8116753fae87"
-V19_CONTROLS=4d868856905f914858ca224ec0dcb902792646f437fa4a9ddaa75d1b6d729a7d
+V19_CONTROLS=111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5
 E2_PART=48cea639e823abbf39238e3dd7c075f63ba9eca8467009348510e2943ed56fa6
 LEDGER_CAP=81000.0
 # the RETAINED captured node document of refit job 54 (capture script 84d52bdf, Codex choice 1 (a)): it stays where the owner
@@ -41,9 +42,14 @@ LEDGER_CAP=81000.0
 # bytes, the archive keeps a copy and nothing ever rewrites it
 NODE_EV=$T/jobs/row19_screen_refit_54.nodefail.json
 NODE_EV_SHA=730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f
-# the two controller files v19 replaces, at their v18 bytes (chpc/candidate_v19_oploss/build_v19.py MAP); v19 adds no path
+# the five controller files v19 replaces, at their v18 bytes (chpc/candidate_v19_oploss/build_v19.py MAP)
 V18_REPLACED="chpc/row19_screen_status.py 4710544a3861b688b0f2c89e67a8ba56cf65261a8900d4147658fee576f58232
-chpc/row19_screen_admit.py e22607650058ae2cbb8f19fe3e225d886bd2cc733adf02bb93dbc01d65f719af"
+chpc/row19_screen_admit.py e22607650058ae2cbb8f19fe3e225d886bd2cc733adf02bb93dbc01d65f719af
+chpc/row19_ec2_state.py 7bdedafc7c90ec065217d9a7bbf53b88e1bf31e0c094dc34df730b4028bd038e
+chpc/row19_ec2_e2qual.py 5ceba55189dd351b2cc5a997b115cdbfd0d84f17397402fa7deb2b3e937025fa
+chpc/row19_ec2_ingest.py 277c51b0a24fee6b151180e99584a831c091ca4b30b6bd999a1221ff364bf54f"
+# the NEW data paths v19 adds (build_v19.py DATA): absent on the controller clone until the deploy writes them
+V19_NEW="aws_ec2/prod/manifest_e2q3_e2.json"
 RETIRED_V16=$R/review_refit.v16_qual2c7a7ef1_max100.json
 RETIRED_V17=$R/review_refit.v17_qual8fdbf48e_max100.json
 RETIRED_V18=$R/review_refit.v18_qual530df9a2_max100.json
@@ -268,7 +274,7 @@ v18_current() {   # the controller clone is the adopted, deployed v18 (before th
   pin "$C/chpc/row19_screen_controls_adoption.json" $V18_ADOPTION "deployed adoption (v18 record 3e1fe9a1)"
   pin "$C/chpc/row19_screen_controls.json" $V18_CONTROLS "deployed controls (adopted v18)"
 }
-v19_adopted() {   # v19 is the deployed, ADOPTED controller in rsc_screen_ctl: controls 4d868856 and the version-19 adoption naming it
+v19_adopted() {   # v19 is the deployed, ADOPTED controller in rsc_screen_ctl: controls 111c3107 and the version-19 adoption naming it
   adoption_is 19 $V19_CONTROLS $V18_ADOPTION || die "v19 is not the deployed, adopted controller in rsc_screen_ctl (deploy_v19.sh first)"
 }
 deploy_done() {   # the deployment's durable proof is complete (DONE) and its commit is in the controller's history

@@ -30,7 +30,11 @@ read are, member for member, the producer's sealed bundle of the bound attempt a
 The tree digest is bench_finish.bundle_digest's: sha256 of json.dumps(sorted([relative path, file sha256])) over every
 regular file - the identity the Mac and Lengau compare. With --stage-root the bundle must lie strictly inside that
 directory with no symbolic link between it and the bundle (the fixed contained staging path; the root itself may sit
-behind a site symlink such as a Lustre mount alias)."""
+behind a site symlink such as a Lustre mount alias).
+
+REVISION 2 (owner decision 21 Oct 2026, R052 "On-demand E2Q3"; operational change, no Codex review of this tooling): the
+expectation's contract may also be E2Q3 (the on-demand third attempt, same 52 / 20 / 4 roles). Nothing else changes; these
+bytes differ from the reviewed chpc/candidate_e2s copy (f742f017) only by this paragraph and E2Q_CONTRACTS."""
 import argparse, hashlib, json, os, re, stat, sys
 
 SCHEMA = "row19-e2q-stage-verify-1"
@@ -39,6 +43,7 @@ REQUIRED_SEALED = ("env/plan.json", "env/outcomes.json", "env/attest_B.json", "e
 FAIL_MARKERS = ("env/FAILED", "env/OUTCOMES_FAILED", "env/BUNDLE_FAILED")
 SUMS = "BUNDLE_SHA256SUMS"
 EPOCH, WORKERS, LIFETIME_S = 2, 76, 79200
+E2Q_CONTRACTS = ("E2Q1", "E2Q2", "E2Q3")                     # REVISION 2: E2Q3
 _LINE = re.compile(r"^([0-9a-f]{64})  (\S(?:.*\S)?)$")
 _PER_SLOT = re.compile(r"^(logs/w_slot(\d+)\.log|exits/w_slot(\d+)\.code)$")
 EXPECT_KEYS = ("key", "attempt_id", "sequence", "contract", "plan_sha256", "partition_sha256", "opmanifest_sha256", "work",
@@ -109,7 +114,7 @@ def parse_sums(text, problems):
 def expect_problem(e):
     if not isinstance(e, dict) or any(k not in e for k in EXPECT_KEYS):
         return f"the expectation lacks {[k for k in EXPECT_KEYS if not isinstance(e, dict) or k not in e]}"
-    if e["contract"] not in ("E2Q1", "E2Q2") or len(e["work"]) != 52 or len(e["duplicates"]) != 20 or len(e["sentinels"]) != 4:
+    if e["contract"] not in E2Q_CONTRACTS or len(e["work"]) != 52 or len(e["duplicates"]) != 20 or len(e["sentinels"]) != 4:
         return "the expectation is not an E2Q attempt (52 work, 20 duplicates, 4 sentinels)"
     return ""
 

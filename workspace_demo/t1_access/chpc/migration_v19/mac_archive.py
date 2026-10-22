@@ -6,10 +6,11 @@ own check (build_v19.archive_problems).
     python3 chpc/migration_v19/mac_archive.py build <lengau SHA256SUMS sha256> <lengau budget sha256>   (from workspace_demo/t1_access)
     python3 chpc/migration_v19/mac_archive.py verify [--get lengau_sha256sums]
 
-The inventory is build_v19.ARCHIVE itself (8 members: the v18 bytes of the two replaced controllers - admission e2260765 and
-status view 4710544a -, the v18 controls 452b82df and adoption record 3e1fe9a1, the adopted v18 pilot qualification 530df9a2
+The inventory is build_v19.ARCHIVE itself (11 members: the v18 bytes of the five replaced controllers - admission e2260765,
+status view 4710544a, EC2 state 7bdedafc, E2Q module 5ceba551 and ingestion 277c51b0 -, the v18 controls 452b82df and adoption
+record 3e1fe9a1, the adopted v18 pilot qualification 530df9a2
 and its operator pilot record 67f2b438, the committed budget phases and the RETAINED captured node document of refit job 54,
-730ea262), plus SHA256SUMS (`sha256  name`, sorted, those 8) and COMPLETE, a JSON certificate written last:
+730ea262), plus SHA256SUMS (`sha256  name`, sorted, those 11) and COMPLETE, a JSON certificate written last:
     {"budget": <the budget member's sha256>, "lengau_sha256sums": <the Lengau archive's SHA256SUMS digest>,
      "schema": "row19-screen-mac-archive-v18-before-v19-1", "sha256sums": <the digest of SHA256SUMS>}
 (build_v19.archive_problems reads COMPLETE as JSON and requires schema and sha256sums). Every member carries its fixed v18
@@ -21,8 +22,8 @@ import glob, hashlib, json, os, re, stat, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = os.path.abspath(os.path.join(HERE, "..", ".."))
 BUILDER = "chpc/candidate_v19_oploss/build_v19.py"
-BUILDER_SHA = "c04a17eb119e618673da03f4d9e4cdebb264fdc8fd41c04e60774cb391324759"
-N_MEMBERS = 8
+BUILDER_SHA = "db66d9d5b0bd9f98110ebde7eaa465ab6011e442558784af7c3aeaeef532e7f8"
+N_MEMBERS = 11
 LINE = re.compile(r"^([0-9a-f]{64})  ([A-Za-z0-9._-]+)$")
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 

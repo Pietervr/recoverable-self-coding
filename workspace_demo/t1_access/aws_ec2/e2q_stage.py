@@ -3,6 +3,13 @@
 change: the controls pin moved from v17 9ea4e727 to v18 452b82df - owner rule 20 Oct 2026, no Codex review for an
 administrative change; the v18 controls keep every qualification code pin of v17). Mac only.
 
+REVISION 2 (owner decision 21 Oct 2026, R052 "On-demand E2Q3"; chpc/candidate_v19_oploss/DESIGN_v19.md s.7; operational change,
+no Codex review of this tooling). The run qual-E2Q3 (contract E2Q3, the on-demand third attempt) is staged by the same
+procedure: RUNS and OPMANIFEST gain E2Q3, DATA_PINS gains its operational manifest aws_ec2/prod/manifest_e2q3_e2.json (promoted
+and deployed with controls v19), and the controls pin moves to the v19 candidate controls (ADOPTED_CONTROLS_SHA), whose
+qualification code pins include the v19 EC2 state / E2Q module / ingestion. Until v19 is promoted and deployed this tool
+REFUSES every run (the Mac controls are not the pinned bytes) - intended: E2Q3 launches after v19. Every check is unchanged.
+
     python3 e2q_stage.py stage   --run qual-E2Q1 --attempt 1        # collect + verify + stage on Lengau + re-verify there
     python3 e2q_stage.py qualify --run qual-E2Q1 --attempt 1 --stamp <stamp of a verified staging>
     python3 e2q_stage.py run     --run qual-E2Q1 --attempt 1        # both, in one invocation
@@ -36,7 +43,7 @@ PHASES (each refuses on the first failed check; nothing is ever written inside a
   reverify  on the login node (LOGIN_HOST lengau, where the controller commands run; status/ingestion precedent): the shipped
             verifier's sha256 must be the Mac's, it runs under t1py with --stage-root and must report the Mac's tree digest,
             file count and members; the controller tree's qualification inputs (the code set row19_ec2_e2qual.CODE at the
-            adopted v18 / manifest pins, controls, manifest, partition, deployed snapshot, panel, three operational manifests,
+            adopted controls / manifest pins, controls, manifest, partition, deployed snapshot, panel, operational manifests,
             funding) are their pinned bytes; the INSTALLED inventory is the Mac's current generation and seal, carries the
             attempt reconciled and pending, and is fresh with QUALIFY_MARGIN_S to spare (a stale inventory would otherwise end
             in a NO_RELEASE certificate for an administrative reason).
@@ -75,9 +82,9 @@ RESULTS_PREFIX = "results/t1_access/aws_bench"   # = prod_userdata.sh OUT and pr
 AWS_PROFILE, S3_REGION = "xtenure-read", "us-west-2"
 REMOTE_T = "/mnt/lustre/users/pvanrooyen/t1_toolchain"
 TRANSFER_HOST, LOGIN_HOST = "chpc-scp", "lengau"  # ~/.ssh/config: scp.chpc.ac.za (login1, transfer) / lengau (login2)
-RUNS = {"E2Q1": "qual-E2Q1", "E2Q2": "qual-E2Q2"}
+RUNS = {"E2Q1": "qual-E2Q1", "E2Q2": "qual-E2Q2", "E2Q3": "qual-E2Q3"}                   # REVISION 2: E2Q3
 PROD_SHA = "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c"
-ADOPTED_CONTROLS_SHA = "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b"   # v18 (chpc/candidate_v18_nodefail/v18_promotion_map.json controls row)
+ADOPTED_CONTROLS_SHA = "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5"   # v19 (chpc/candidate_v19_oploss/v19_promotion_map.json controls row)
 SNAPSHOT_REL = "chpc/claims_snapshot_e2.json"   # the DEPLOYED snapshot the reviewed command passes explicitly
 DATA_PINS = {                                    # chpc/candidate_v17/v17_promotion_map.json rows (e2_final, Codex A favourable); v18 changes none
     "chpc/row19_partition_e2.json": "48cea639e823abbf39238e3dd7c075f63ba9eca8467009348510e2943ed56fa6",
@@ -85,10 +92,12 @@ DATA_PINS = {                                    # chpc/candidate_v17/v17_promot
     "aws_ec2/prod/panel_e2q_e2.json": "f04a5e43634e13bfceaf173e303ebf780f4280de044b6bd97ee9e2c3f711c7a2",
     "aws_ec2/prod/manifest_e2q1_e2.json": "3ea8cafd736871de715062ca398f36ff98f93f27d1d82bd977c3b72b0f1cfb8b",
     "aws_ec2/prod/manifest_e2q2_e2.json": "4af4a64d83c749394c7159814359da716b2a9f9a694cd23fe46157aecd7b0cec",
+    "aws_ec2/prod/manifest_e2q3_e2.json": "6d59c1f8568945f6121f9f16779aabe30f6334178bb0ba8c9d192a024805e17f",   # REVISION 2: the v19 map's data row
     "aws_ec2/prod/manifest_production_e2.json": "e126050536a8459cb1432cf78321e82147c67f5406441fff131a1f543f9f82f9",
     "aws_ec2/e2_funding.json": "d6f414e8107f25e5de43d6b33764106c6c92dd64440ff33fddf4873416ce4815",
 }
-OPMANIFEST = {"E2Q1": "aws_ec2/prod/manifest_e2q1_e2.json", "E2Q2": "aws_ec2/prod/manifest_e2q2_e2.json"}
+OPMANIFEST = {"E2Q1": "aws_ec2/prod/manifest_e2q1_e2.json", "E2Q2": "aws_ec2/prod/manifest_e2q2_e2.json",
+              "E2Q3": "aws_ec2/prod/manifest_e2q3_e2.json"}
 PROD_OPMANIFEST, PANEL, FUNDING, PARTITION = ("aws_ec2/prod/manifest_production_e2.json", "aws_ec2/prod/panel_e2q_e2.json",
                                               "aws_ec2/e2_funding.json", "chpc/row19_partition_e2.json")
 CODE = sorted(["chpc/row19_ec2_qualify.py", "chpc/row19_ec2_ingest.py", "chpc/row19_ec2_state.py", "chpc/row19_partition.py",
@@ -212,7 +221,7 @@ def tree_pins():
            for rel, h in sorted(DATA_PINS.items()) if not os.path.exists(os.path.join(T1, rel)) or sha(os.path.join(T1, rel)) != h]
     cp, mp = os.path.join(T1, "chpc", "row19_screen_controls.json"), os.path.join(T1, "chpc", "row19_screen_manifest.json")
     if not os.path.exists(cp) or sha(cp) != ADOPTED_CONTROLS_SHA:
-        bad.append("chpc/row19_screen_controls.json (not the adopted v18 bytes)")
+        bad.append("chpc/row19_screen_controls.json (not the adopted v19 bytes: promote and deploy controls v19 first)")
     if not os.path.exists(mp) or sha(mp) != PROD_SHA:
         bad.append("chpc/row19_screen_manifest.json (not 43b75f94)")
     if bad:
