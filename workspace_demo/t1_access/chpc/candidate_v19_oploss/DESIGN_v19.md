@@ -110,6 +110,9 @@ previous none), then the controls LAST, then the version-19 adoption record. The
   "Killed" now become operational losses instead of standing alarms). `test_designated_r16` was not run (it writes transient
   worlds inside `chpc/`).
 - `chpc/migration_v19/test_migration_v19.py` on frozen fixtures (RSC `1a83cbf`): see that folder's `test_results.txt`.
+- Re-run 21 Oct after the E2Q3 fold-in (RSC `fe94e78`): `test_v19_oploss` 76/0 (now with five pins and the E2Q3 files in its
+  controls / grammar / live-tree checks), `test_v19_e2q3` 49/0 (s.7), `aws_ec2/tests/test_e2q_stage.py` 106/0,
+  `test_migration_v19` 37/0, the regression counts identical, `build_v19 --check` and `promote_v19 --check` OK.
 
 ## 6. Limits and choices (where the rule is not the minimal literal reading)
 

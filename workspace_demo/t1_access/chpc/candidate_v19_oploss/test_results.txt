@@ -1,5 +1,14 @@
-Controls v19 candidate (operational-loss disposition) - test results, 20 October 2026 (Mac, python3; nothing run against
-Lengau, PBS or AWS). Commands from workspace_demo/t1_access.
+Controls v19 candidate (operational-loss disposition + the E2Q3 on-demand qualifier) - test results, re-run 21-22 October 2026
+after the E2Q3 fold-in at RSC fe94e78 (Mac, python3; nothing run against Lengau, PBS or AWS). Commands from workspace_demo/t1_access.
+
+== python3 chpc/candidate_v19_oploss/build_v19.py --check
+CHECK OK: the candidate controls and promotion map are the deterministic build from the authenticated live v18 base
+
+== python3 chpc/candidate_v19_oploss/promote_v19.py --check
+CANDIDATE OK: controls v19 111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5, 6 map rows + the controls, every pin = its source bytes, versions 1-18 = adopted v18 (the authenticated live v18 base), partition e2 48cea639 unchanged
+live tree: {'v18': 7, 'v19': 0, 'other': 0} 
+the adoption literal this candidate needs: ADOPT row19-screen-controls sha256=111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5 version=19
+rc=0
 
 == python3 chpc/candidate_v19_oploss/test_v19_oploss.py
 ok   node loss without evidence: ZERO alarms
@@ -67,21 +76,89 @@ ok   admission: units_problem refuses operational-loss coordinates the job did n
 ok   admission: receipt_problem names the operational-loss branch and the four-key one-disposition rule
 ok   admission: an operational-loss job whose walltime request PBS no longer reports passes the envelope check; any other job still refuses
 ok   admission: HELD accounting refuses the same HELD entry when the receipt carries no disposition for it
-   replay of watch_refit_20261021T010040Z.json (65 jobs, receipt alarms 0): []
-ok   REAL replay watch_refit_20261021T010040Z.json: the v19 status view raises ZERO alarms (receipt: 0)
+   replay of watch_refit_20261021T215414Z.json (66 jobs, receipt alarms 0): []
+ok   REAL replay watch_refit_20261021T215414Z.json: the v19 status view raises ZERO alarms (receipt: 0)
 ok   REAL replay: job 54 is still node-dispositioned on the captured 730ea262, not operational-loss
-ok   REAL replay: every one of the 65 job summaries is byte-equal to the v18 receipt's (closed-no-record, crashed-slot, node-failure byte-stable) []
+ok   REAL replay: every one of the 66 job summaries is byte-equal to the v18 receipt's (closed-no-record, crashed-slot, node-failure byte-stable) []
 ok   REAL replay: closed-no-record job 3 and crashed-slot job 13 keep their dispositions, no job is operational-loss
 ok   controls v19: versions 1-18 byte-equal to the adopted v18 controls (452b82df)
-ok   controls v19: exactly two pins differ (admission, status)
+ok   controls v19: exactly five pins differ (admission, status; EC2 state, E2Q module, ingestion for E2Q3)
 ok   controls v19: each pin is this folder's bytes
 ok   controls v19: partition e2 48cea639, sub_envelopes, qualification_S and every other key equal v18
 ok   build_v19 --check: deterministic
 ok   Python 3.7 grammar for every candidate file
-ok   the live tree is untouched (admission e2260765, status 4710544a, controls 452b82df)
+ok   the live tree is untouched (admission e2260765, status 4710544a, controls 452b82df, EC2 state 7bdedafc, E2Q 5ceba551, ingestion 277c51b0)
 
 76 passed, 0 failed
 ALL OK
+
+== python3 chpc/candidate_v19_oploss/test_v19_e2q3.py   (the E2Q3 on-demand qualifier, DESIGN_v19.md s.7)
+ok   state: E2Q3 = E2Q2's geometry and roles (c7a.24xlarge, 76 workers, 60 GB, 52 / 20 / 4) with market on-demand and max_price 5.60
+ok   state: every earlier contract is byte-stable (equal to v18's, no market key) and reads as spot
+ok   state: the candidate only ADDS to the v18 bytes (REVISION 5 text, the E2Q3 contract, contract_market); nothing removed but the docstring close
+ok   e2qual: CONTRACTS / RUNS grow by E2Q3 -> qual-E2Q3; the panel declaration's own fields stay E2Q1/E2Q2 (frozen)
+ok   e2qual: the release rule constants, the certificate code set and the panel schema are unchanged
+ok   e2qual: the only replaced lines are the docstring close, CONTRACTS, RUNS and the panel's contracts/runs fields
+ok   panel: the committed declared panel (f04a5e43) regenerates BYTE-EQUAL under the candidate module and passes panel_problem
+ok   panel: no consumer gates on the panel's `contracts` / `runs` fields (they are declaration text)
+ok   qualifier (unchanged v18 bytes 1d8eee78): it reads the contract set from row19_ec2_e2qual, so qual-E2Q3/<n> is accepted under v19
+ok   ingest: E2Q_CONTRACTS = E2Q1, E2Q2, E2Q3 (the released per-slot route); only that line and the docstring close are replaced
+ok   manifest: the candidate manifest_e2q3_e2.json is exactly the bytes make_prod_manifest writes for E2Q3 (and passes operational_problem)
+ok   manifest: the committed E2Q1 / E2Q2 / production manifests still derive byte-equal under the candidate state module
+ok   manifest: the E2Q3 manifest is not yet at aws_ec2/prod/ (it is promoted with v19, the map's data row)
+ok   plan: the unchanged plan contract accepts the E2Q3 plan and refuses it under the E2Q2 name (the contract is plan identity)
+ok   authority: the real ledgers hold E2Q1/1 (USD 15.74) and E2Q2/1 (USD 8.30), both reconciled and dispositioned
+ok   admission: E2Q3 is admitted when E2Q1 and E2Q2 are both dispositioned and its own permit exists
+ok   admission: refused without its own permission record (qualification_e2.e2q3)
+ok   admission: refused while the E2Q2 attempt is not yet dispositioned
+ok   admission: refused when no E2Q2 attempt exists (E2Q3 follows E2Q2, never replaces it)
+ok   admission: refused while the E2Q1 attempt is not dispositioned
+ok   admission: a second E2Q3 is refused (at most one instance; no fourth attempt)
+ok   admission: a REJECTED E2Q3 (no instance ever existed) does not count
+ok   admission: E2Q1 and E2Q2 stay refused (one instance each)
+ok   money: the E2Q3 worst case is 22.75 h x (5.60 + 0.014) + 0.30 = USD 128.02
+ok   money: allowance 15.74 + 8.30 + 128.02 = 152.05 <= 300 (unrounded sum) - epoch2_problem admits E2Q3; budget_problem routes it to the epoch bound
+ok   money: a worst case 1 cent above the USD 300 allowance remainder is refused; the exact remainder fits
+ok   money: the counter is 3 - with three non-rejected epoch-2 qualification instances a further one is refused
+ok   funding: the declaration aws_ec2/e2_funding.json (d6f414e8) still derives byte-equal (max_qualification_instances stays 2)
+ok   crash rule: E2Q3 shares the production envelope label (same instance type, workers, volume)
+ok   charging: an on-demand attempt is charged at its recorded 5.60 USD/h - worst case until reconciled, observed hours after; the reaper agrees
+ok   release: an E2Q3 certificate releases only with every E2Q1 and E2Q2 attempt dispositioned (the branch exists beside E2Q2's)
+ok   permit: the temporary release state is the real one (qualification_e2 and e2q2 ok, no e2q3 yet)
+ok   permit: --e2q3 together with --e2q2 is refused
+ok   permit: --e2q3 without --epoch2 is refused
+ok   permit: --e2q3 is refused while E2Q2 is not permitted
+ok   permit: --epoch2 --e2q3 writes qualification_e2.e2q3 pinning the record; release_state reads e2q3_ok; the e2q2 block is untouched
+ok   permit: with the permit in place and the real ledgers, the E2Q3 gate opens
+ok   permit: a permit record edited after permission reads as NOT permitted
+ok   launch: every spot contract's market arguments are byte-identical to the pre-REVISION-8 request
+ok   launch: the on-demand E2Q3 request carries NO market options (no spot request)
+ok   launch: an unknown purchase market refuses
+ok   E2Q3 dry run: authorised (DryRunOperation) with no market options, nothing journaled
+ok   E2Q3 live: admitted as qual-E2Q3/1, the declared panel (52 + 20 + 4), worst USD 128.02 printed, ON-DEMAND
+ok   E2Q3 live: the saved RunInstances request has no --instance-market-options; the attempt records max_price 5.60 and market on-demand; the plan's instance carries market on-demand
+ok   E2Q3 live: the authority charges the intent at its worst case USD 128.02; the qualification allowance then holds USD 152.05 of 300
+ok   E2Q3: a second admission on the same state is refused (at most one instance)
+ok   E2Q2 (spot) on the same harness: the market options are exactly the pre-REVISION-8 spot request; no market key in its attempt
+ok   E2Q3 vs E2Q2: the two requests differ ONLY by the two spot-market arguments (token, tags and user-data aside)
+ok   the live tree is untouched: no E2Q3 ledger, the release state has no e2q3 block, the v18 chpc modules in place
+
+49 passed, 0 failed
+ALL OK
+
+== python3 aws_ec2/tests/test_e2q_stage.py   (the staging tool, REVISION 2: E2Q3 cases and the v19 pins)
+106 passed, 0 failed
+(the full listing is printed by the command; the E2Q3 lines: "E2Q3: a clean qual-E2Q3 bundle stages ...", "E2Q3: an E2Q2-contract
+plan presented under the qual-E2Q3 attempt -> refused", "E2Q3: qualified with key qual-E2Q3/<n> and the E2Q3 operational
+manifest", and the "real:" pin checks against the v19 map)
+
+== the other aws_ec2 suites, unchanged results before and after this change (pre-existing epoch-1 failures, not caused here)
+test_prod_authority 54 PASS / 5 FAIL then the known epoch-1 release-adopt ValueError; test_prod_launch 61 / 1; test_ec2_sync 12 / 0;
+test_bench_reaper 1 / 0; test_bench_finish 23 / 0; test_userdata_cleanup 1 / 0; test_bench_launch 1 / 3 (its first four cases,
+before any code this change touched: the benchmark freeze reads the live qualification ledgers).
+
+== python3 chpc/migration_v19/test_migration_v19.py   (see chpc/migration_v19/test_results.txt)
+37 passed, 0 failed (37 tests, 293 s)
 
 == regression (chpc/candidate_v16/regress, R19_UNDER_TEST=chpc = live v18 BEFORE, =chpc/candidate_v19_oploss AFTER)
 regress_crashed_slot_r14.candidate_v19_oploss: 68 passed, 3 failed
@@ -99,4 +176,4 @@ operational loss; its alarms are informational). The third failure ('REAL refit 
 and fails identically BEFORE. An earlier draft also turned 'runner exit 0 with a missing status' into an operational loss;
 the rule now refuses it (the ledger's runner exit must be the job-end code the statuses give), so that check passes.
 test_designated_r16 was not run: it writes transient worlds inside chpc/ (outside the two new folders).
-
+(re-run 21 Oct after the E2Q3 fold-in: identical counts - crashed_slot_r14 70/1 BEFORE, 68/3 AFTER; pbs_settled_r13 51/0 both.)
