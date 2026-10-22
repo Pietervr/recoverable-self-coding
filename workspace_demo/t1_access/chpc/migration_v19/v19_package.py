@@ -24,7 +24,7 @@ import fcntl, hashlib, json, os, re, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = os.path.abspath(os.path.join(HERE, "..", ".."))
 CAND = os.path.join(T1, "chpc", "candidate_v19_oploss")
-REC, REC_SHA = None, None   # @record: the committed operator record with the v19 ADOPT literal, and its sha256 (PENDING)
+REC, REC_SHA = "reviews/2026-10-22_controls_v19_operator_record.md", "afd2b1560b2ea40f913d28eb71da49b383903e281d8edb3291c0f853bb7da27d"   # @record: the committed operator record with the v19 ADOPT literal, and its sha256
 V19_CONTROLS = "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5"
 LITERAL = "ADOPT row19-screen-controls sha256=%s version=19" % V19_CONTROLS
 PACKAGE = {   # the package identities (chpc/candidate_v19_oploss/DESIGN_v19.md; the candidate commit)
