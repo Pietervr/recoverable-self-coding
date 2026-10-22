@@ -1,21 +1,21 @@
 {
  "schema": "row19-screen-controls-adoption-1",
  "controls_path": "chpc/row19_screen_controls.json",
- "controls_sha256": "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b",
- "version": 18,
- "controls_commit": "3da2ea3",
+ "controls_sha256": "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5",
+ "version": 19,
+ "controls_commit": "fe94e78",
  "review_record": {
-  "path": "reviews/2026-10-20_v18r2_mig18_codex_review.md",
-  "sha256": "11ebc12467a50a125f4b583c4d673274e2ff3ea1a2ac0d3e6c03f3725c8cc2c8",
-  "commit": "785f103",
-  "adopt_line": "ADOPT row19-screen-controls sha256=452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b version=18"
+  "path": "reviews/2026-10-22_controls_v19_operator_record.md",
+  "sha256": "afd2b1560b2ea40f913d28eb71da49b383903e281d8edb3291c0f853bb7da27d",
+  "commit": "00f518f",
+  "adopt_line": "ADOPT row19-screen-controls sha256=111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5 version=19"
  },
- "by": "R052 Entropy SI (Claude)",
+ "by": "R052 Entropy SI (Claude), operator record under the owner's 20 Oct 2026 rule",
  "previous": {
-  "version": 17,
-  "controls_sha256": "9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0",
-  "adoption_sha256": "61ca680e932fcb6d32a972c3198b5bd9c029da3955e15dd7acb2e07db125699b",
-  "archived": "Lengau archive_screen/v17_before_v18, Mac chpc/results/archive/row19_screen_v17_before_v18/"
+  "version": 18,
+  "controls_sha256": "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b",
+  "adoption_sha256": "3e1fe9a1ddd10a6ed160f5f1f9fc3f4f4de707efa3e90259104e7e5670ae1616",
+  "archived": "Lengau archive_screen/v18_before_v19, Mac chpc/results/archive/row19_screen_v18_before_v19/"
  },
- "scope": "controls v17 -> v18, the NODE-FAILURE disposition (chpc/candidate_v18_nodefail/DESIGN_v18.md): NEW chpc/row19_screen_nodefail.py (f6afeb10, the one shared rule with the strict evidence decoder) and chpc/row19_nodefail_capture.py (84d52bdf, the owner's Lengau capture; evidence must carry this SHA-256), chpc/row19_screen_status.py (4710544a) and chpc/row19_screen_admit.py (e2260765) = v17 + REVISION 18; every other controller byte, the e2 partition 48cea639 (epoch 2 stays active) and the funding unchanged. A node-dispositioned job never qualifies and never counts toward the crash rule. Fresh v18 receipts and a regenerated pilot qualification with a NEW pilot literal precede any further refit admission"
+ "scope": "controls v18 -> v19, the OPERATIONAL-LOSS disposition (chpc/candidate_v19_oploss/DESIGN_v19.md): chpc/row19_screen_status.py (258d4329) and chpc/row19_screen_admit.py (27e066c7) = v18 + REVISION 19; and the E2Q3 on-demand qualifier (owner decision 21 Oct 2026, DESIGN_v19.md s.7): chpc/row19_ec2_state.py (a9a32329), chpc/row19_ec2_e2qual.py (22251f0f) and chpc/row19_ec2_ingest.py (744ee5c8) add contract E2Q3, with its operational manifest aws_ec2/prod/manifest_e2q3_e2.json (6d59c1f8); every other controller byte, the v18 node-failure rule, the release rule and panel, the e2 partition 48cea639 (epoch 2 stays active) and the funding unchanged. An operational-loss job never qualifies and never counts toward the crash rule. Fresh v19 receipts and a regenerated pilot qualification with a NEW pilot literal precede any further refit admission"
 }

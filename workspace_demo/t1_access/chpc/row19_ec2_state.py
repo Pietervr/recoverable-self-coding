@@ -47,7 +47,15 @@ chpc/candidate_e2/QUALIFICATION_E2.md s.2). Two instance contracts are ADDED and
         so its plan, operational manifest and ledger run (qual-E2Q2) can never be mistaken for E2Q1's.
 plan_problem already treats every contract other than `production` as an exact slot count and maps role qual_lengau to the
 attempt's duplicates, so the E2Q plans are checked by the unchanged function. Controls v17 must pin THIS file in place of
-the live row19_ec2_state.py (bda200dc), because ingestion's operational_problem and plan_problem read CONTRACTS from it."""
+the live row19_ec2_state.py (bda200dc), because ingestion's operational_problem and plan_problem read CONTRACTS from it.
+
+REVISION 5 - controls v19 CANDIDATE (owner decision 21 Oct 2026, R052: "On-demand E2Q3"; chpc/candidate_v19_oploss/DESIGN_v19.md
+s.7). ONE instance contract is ADDED and nothing else changes:
+  E2Q3  the third epoch-2 qualification attempt after E2Q1 and E2Q2 were both spot-interrupted: the identical geometry and
+        roles (c7a.24xlarge, 76 workers, 60 GB, 52 work + 20 duplicates + 4 sentinels, the same declared panel and funded
+        lifetime) under its own contract name and run (qual-E2Q3), with market "on-demand" and max_price 5.60 USD/h - the
+        on-demand worst-case rate used for funding and for every charge (eu-north-1 lists about 5.27). A contract without a
+        `market` key is spot (every earlier contract is byte-unchanged and gains no key)."""
 import hashlib, json, math, os, time
 
 INVENTORY_SCHEMA = "t1-ec2-authority-inventory-1"
@@ -387,7 +395,16 @@ CONTRACTS = {
     # REVISION 4 (epoch-2 qualification, QUALIFICATION_E2.md s.2): the production geometry with the declared fixed panel
     "E2Q1": dict(itype="c7a.24xlarge", workers=76, max_price=1.20, volume_gb=60, roles={"work": 52, "qual_lengau": 20, "sentinel": 4}),
     "E2Q2": dict(itype="c7a.24xlarge", workers=76, max_price=1.20, volume_gb=60, roles={"work": 52, "qual_lengau": 20, "sentinel": 4}),
+    # REVISION 5 (owner 21 Oct 2026): the identical geometry ON-DEMAND; max_price = the on-demand worst-case rate (no spot cap)
+    "E2Q3": dict(itype="c7a.24xlarge", workers=76, max_price=5.60, volume_gb=60, roles={"work": 52, "qual_lengau": 20, "sentinel": 4},
+                 market="on-demand"),
 }
+MARKETS = ("spot", "on-demand")                     # REVISION 5: contract_market(); absent = spot
+
+
+def contract_market(contract):
+    """REVISION 5: the purchase market of an instance contract ("spot" unless the contract declares "on-demand")."""
+    return CONTRACTS[contract].get("market", "spot")
 OPERATIONAL_FIELDS = ["storage.root", "storage.campaign", "pbs.cores", "shard.expect_layer_s", "shard.expect_note", "ec2_production"]
 SETUP_S, UPLOAD_RESERVE_S = 900, 3000
 

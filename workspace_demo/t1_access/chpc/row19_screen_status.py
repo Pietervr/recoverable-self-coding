@@ -125,7 +125,19 @@ coordinates are accounted `uncompleted` with origin "node-failure", the receipt 
 retains a copy beside it, and ONLY the scheduler-exit, missing-runner-end and those slots' missing-status alarms are not raised;
 every completed slot is reconciled as an ordinary worker. Otherwise the reason is kept as `node_disposition_held`. The receipt
 prints "DISPOSITIONED (node-failure)". A node-dispositioned job never qualifies, and it is never a crash (the two-crash rule
-reads slot dispositions only)."""
+reads slot dispositions only).
+
+REVISION 19 CANDIDATE (controls version 19; R052 lean T1 plan item 2, owner-approved 20 Oct 2026; NOT adopted;
+chpc/candidate_v19_oploss/DESIGN_v19.md): an OPERATIONAL-LOSS DISPOSITION, the general fallback. A terminal refit job that none
+of closed-no-record, crashed-slot and node-failure disposition holds is examined by row19_screen_admit.operational_loss_evidence
+(ONE implementation, recomputed by the admission; no evidence file). If it holds, the summary carries `operational_loss`; the
+no-status coordinates (less salvaged records of this job, which count as new) are `uncompleted` with origin "operational-loss";
+and the job's OPERATIONAL alarms - the scheduler-exit, missing-runner-end and runner-exit alarms, the missing-status and
+worker-exit alarms of its slots, and the no-finite-scheduler-memory alarm - are not raised but kept as informational lines
+(summary `informational`, the receipt's top-level `informational` when any, printed as INFORMATIONAL). Every other alarm stands
+(integrity: verifier code/environment, anchors, records, timings, statuses, identities, bindings, foreign evidence; and the
+walltime-request and scheduler-memory-above-90 % alarms). An UNSETTLED terminal job is never dispositioned: its alarms stand
+until the operator settles it. An operational-loss job never qualifies and is never a crash."""
 import os, sys, json, glob, math, time, shutil, hashlib, argparse, subprocess, shlex, re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -578,6 +590,15 @@ def node_failure(man, role, n, e, plan, j, o, units, ledger, live):
                                      root=root, slot_map=lambda m: _slot_map(root, m), pin=_NF.capture_pin())
 
 
+def operational_loss(man, role, n, e, plan, j, o, units, ledger, live):
+    """REVISION 19: (operational-loss disposition, '') or (None, reason), from row19_screen_admit.operational_loss_evidence on
+    THIS snapshot (no evidence file)."""
+    import row19_screen_admit as _SA
+    root = os.path.join(live, "root")
+    return _SA.operational_loss_evidence(man, role, n, e, plan, j, o, units, list(ledger["entries"].values()),
+                                         root=root, slot_map=lambda m: _slot_map(root, m))
+
+
 def anchor_alarms(verify):
     an = verify.get("anchors") or {}
     if an.get("problem"):
@@ -785,6 +806,17 @@ def reconcile(man, role, verify, obs, ledger, live):
                 s_sum["node_disposition"] = ndispo; nodeless = set(ndispo["no_status_slots"])
             else:
                 s_sum["node_disposition_held"] = nwhy
+        odispo, ostat, info = None, set(), []                               # REVISION 19: operational-loss disposition (fallback)
+        unclean = state != "F" or o.get("exit") not in (0, 75) or e.get("runner_exit") not in (0, 75) or isinstance(o.get("exit"), bool)
+        if role == "refit" and terminal and unclean and not dispo and not sdispo and not ndispo:
+            odispo, owhy = operational_loss(man, role, n, e, plan, j, o, units, ledger, live)
+            if odispo:
+                s_sum["operational_loss"] = odispo; ostat = set(odispo["no_status_slots"])
+            else:
+                s_sum["operational_loss_held"] = owhy
+
+        def alarm(msg, operational=False):                                  # REVISION 19: an operational alarm of an
+            (info if operational and odispo else alarms).append(msg)       # operational-loss job is an informational line
         if finite_nonneg(o.get("walltime_req_s")) and finite_nonneg(plan.get("walltime_s")) and abs(o["walltime_req_s"] - plan["walltime_s"]) > 1.0:
             alarms.append(f"{role} job {n} ({j}): the scheduler's walltime request {o['walltime_req_s']:.0f} s is not the plan's {plan['walltime_s']:.0f} s")
         started = state == "R" or terminal
@@ -794,13 +826,13 @@ def reconcile(man, role, verify, obs, ledger, live):
         if o.get("mem_kb") is not None and o["mem_kb"] > 0.9 * mem_req_kb:
             alarms.append(f"{role} job {n}: scheduler memory above 90 % of the request")
         if terminal and not dispo and not sdispo and not ndispo and (state != "F" or o.get("exit") not in (0, 75)):
-            alarms.append(f"{role} job {n} ({j}): terminal as state {state}, scheduler exit {o.get('exit')} (F with 0/75 required)")
+            alarm(f"{role} job {n} ({j}): terminal as state {state}, scheduler exit {o.get('exit')} (F with 0/75 required)", True)
         if terminal and not dispo and not ndispo and e.get("runner_exit") is None:
-            alarms.append(f"{role} job {n} ({j}): terminal but no runner end in the ledger")
+            alarm(f"{role} job {n} ({j}): terminal but no runner end in the ledger", True)
         if e.get("runner_exit") not in (None, 0, 75) and not sdispo:
-            alarms.append(f"{role} job {n} ({j}): runner exit {e.get('runner_exit')}")
+            alarm(f"{role} job {n} ({j}): runner exit {e.get('runner_exit')}", True)
         if terminal and not finite_nonneg(o.get("mem_kb")):
-            alarms.append(f"{role} job {n} ({j}): no finite observed scheduler memory")
+            alarm(f"{role} job {n} ({j}): no finite observed scheduler memory", True)
         for sl in plan["slots"]:
             want = ([f"{int(sl['rep'])}/{int(i)}" for i in sl["indices"]] if role == "refit" else [str(int(r)) for r in sl["reps"]])
             assigned.update(want)
@@ -811,7 +843,7 @@ def reconcile(man, role, verify, obs, ledger, live):
                 alarms.append(f"{role} job {n} slot {sl['slot']}: the worker status is unreadable"); continue
             if st is None:
                 if terminal and not dispo and int(sl["slot"]) not in crashed and int(sl["slot"]) not in nodeless:
-                    alarms.append(f"{role} job {n} slot {sl['slot']}: no worker status after the job ended (read its log)")
+                    alarm(f"{role} job {n} slot {sl['slot']}: no worker status after the job ended (read its log)", int(sl["slot"]) in ostat)
                 continue
             s_sum["ended"] += 1; s_sum["exits"][str(st.get("exit"))] = s_sum["exits"].get(str(st.get("exit")), 0) + 1
             if st.get("job") != j or st.get("slot") != int(sl["slot"]):
@@ -843,7 +875,7 @@ def reconcile(man, role, verify, obs, ledger, live):
             elif ex == 75 and not left:
                 alarms.append(f"{role} job {n} slot {sl['slot']}: exit 75 with nothing left")
             elif ex not in (0, 75):
-                alarms.append(f"{role} job {n} slot {sl['slot']}: worker exit {ex} ({str(st.get('reason'))[:120]})")
+                alarm(f"{role} job {n} slot {sl['slot']}: worker exit {ex} ({str(st.get('reason'))[:120]})", True)
             if mem_stop and finite_nonneg(st.get("maxrss")) and st["maxrss"] > mem_stop:
                 alarms.append(f"{role} job {n} slot {sl['slot']}: worker memory above the stop")
             s_sum["new"] += len(new); s_sum["resumed"] += len(res); s_sum["left"] += len(left)
@@ -869,6 +901,11 @@ def reconcile(man, role, verify, obs, ledger, live):
             s_sum["partition"].update(uncompleted=list(sdispo["uncompleted"]), uncompleted_origin="crashed-slot")
         elif ndispo:                                                        # REVISION 18
             s_sum["partition"].update(uncompleted=list(ndispo["uncompleted"]), uncompleted_origin="node-failure")
+        elif odispo:                                                        # REVISION 19: salvaged records count as this job's new
+            s_sum["new"] += len(odispo["salvaged"]); s_sum["partition"]["new"] = sorted(s_sum["partition"]["new"] + list(odispo["salvaged"]))
+            s_sum["partition"].update(uncompleted=list(odispo["uncompleted"]), uncompleted_origin="operational-loss")
+        if info:
+            s_sum["informational"] = info
         summary[str(n)] = s_sum
     ec2 = ec2_reconcile(man, role, units, root, assigned, alarms) if role == "refit" else {}
     for sp in glob.glob(os.path.join(root, "status", "*")):
@@ -992,6 +1029,16 @@ def main(argv=None):
                   f"{d['evidence_sha256'][:12]}")
         elif s.get("node_disposition_held"):
             print(f"    not node-dispositioned: {s['node_disposition_held']}")
+        if s.get("operational_loss"):                                       # REVISION 19
+            d = s["operational_loss"]
+            print(f"    DISPOSITIONED (operational-loss): scheduler exit {d['scheduler_exit']} runner exit {d['runner_exit']} kept; completed slots "
+                  f"{len(d['completed_slots'])}, crashed {[c['slot'] for c in d['crashed_slots']]}, no status {d['no_status_slots']}; salvaged "
+                  f"{len(d['salvaged'])} record(s); {len(d['uncompleted'])} coordinate(s) uncompleted (operational-loss, returned to the planner, "
+                  f"not a crash); settled {d['settled_core_h']:.2f} core-h charged")
+            for x in s.get("informational") or []:
+                print(f"      informational: {x}")
+        elif s.get("operational_loss_held"):
+            print(f"    not operational-loss: {s['operational_loss_held']}")
     if desig:
         print(f"  DESIGNATED S x 0..79 ({str(desig['declaration_sha256'])[:12]}): {desig['designated']} coordinates, done {desig['done']}, in flight "
               f"{desig['in_flight']}, Lengau plannable {desig['lengau_plannable']}, EC2-designated unclaimed (wait for the EC2 epoch package) "
@@ -1025,6 +1072,9 @@ def main(argv=None):
                    anchors=verify.get("anchors"), plan_slots={k: v["slots"] for k, v in summary.items()}, ec2=ec2)
     if desig is not None:
         receipt["designated"] = desig                                       # REVISION 16: informational; no consumer gates on it
+    info_all = [x for k, v in sorted(summary.items(), key=lambda kv: int(kv[0])) for x in (v.get("informational") or [])]
+    if info_all:
+        receipt["informational"] = info_all                                 # REVISION 19: never alarms; no consumer gates on it
     os.makedirs(RECEIPTS, exist_ok=True)
     stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(now))
     vp = os.path.join(RECEIPTS, f"verify_{role}_{stamp}.json")
@@ -1069,6 +1119,8 @@ def main(argv=None):
                 why.append(f"job {n} is slot-dispositioned (crashed worker); it never qualifies")
             if s.get("node_disposition") is not None:                       # REVISION 18
                 why.append(f"job {n} is dispositioned (node-failure); a node-dispositioned job never qualifies")
+            if s.get("operational_loss") is not None:                       # REVISION 19
+                why.append(f"job {n} is dispositioned (operational-loss); it never qualifies")
             if s["ended"] != s["slots"] or s["exits"] != {"0": s["slots"]} or s["left"]:
                 why.append(f"job {n}: not every planned worker completed its assignment ({s['exits']}, left {s['left']})")
         jn = jobs.get(n)

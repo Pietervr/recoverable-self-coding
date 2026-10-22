@@ -20,7 +20,14 @@ PANEL (QUALIFICATION_E2.md s.2, declared before any epoch-2 result, never chosen
               re-declared before any outcome (or the production cap lowered and re-costed) - QUALIFICATION_E2.md s.2.
 The panel file binds the partition (sha256, owned digest) and the claims snapshot (path, sha256, claims digest). It is
 DERIVED: panel_problem regenerates it from those inputs and requires byte-equal canonical JSON, so it carries no authority
-of its own. It must be regenerated whenever the partition is (DESIGN_e2q.md s.6)."""
+of its own. It must be regenerated whenever the partition is (DESIGN_e2q.md s.6).
+
+REVISION 2 - controls v19 CANDIDATE (owner decision 21 Oct 2026, R052: "On-demand E2Q3"; chpc/candidate_v19_oploss/DESIGN_v19.md
+s.7). The contract set grows by E2Q3 (row19_ec2_state REVISION 5: the identical geometry on-demand), run qual-E2Q3; the release
+rule R1'-R5', the code set, the coverage and every panel coordinate are unchanged. The panel DECLARATION keeps naming the two
+contracts it was declared for (PANEL_CONTRACTS / PANEL_RUNS, frozen), so the committed panel aws_ec2/prod/panel_e2q_e2.json
+(f04a5e43) regenerates byte-equal and stays the one declared panel E2Q3 runs: its `contracts`/`runs` fields are provenance of
+the 17 Oct declaration, never a gate (no consumer reads them; the gates read CONTRACTS / RUNS below)."""
 import hashlib, json, os
 
 import row19_ec2_e2rules as E2R
@@ -28,8 +35,10 @@ import row19_ec2_e2rules as E2R
 PANEL_SCHEMA = "row19-ec2-e2q-panel-1"
 PARTITION_SCHEMA2 = "row19-provider-partition-2"               # = row19_partition.SCHEMA2 (not imported: this module stays pure)
 SNAPSHOT_SCHEMA = "row19-lengau-claims-snapshot-1"             # = row19_partition.SNAPSHOT_SCHEMA
-CONTRACTS = ("E2Q1", "E2Q2")                                    # row19_ec2_state.CONTRACTS (candidate_e2q REVISION 4)
-RUNS = {"E2Q1": "qual-E2Q1", "E2Q2": "qual-E2Q2"}               # prod_authority.qual_run(contract); is_e2_qual counts both
+CONTRACTS = ("E2Q1", "E2Q2", "E2Q3")                            # row19_ec2_state.CONTRACTS (REVISION 4; E2Q3 REVISION 5)
+RUNS = {"E2Q1": "qual-E2Q1", "E2Q2": "qual-E2Q2", "E2Q3": "qual-E2Q3"}   # prod_authority.qual_run(contract); is_e2_qual counts all
+PANEL_CONTRACTS = ("E2Q1", "E2Q2")                              # REVISION 2: the 17 Oct panel declaration's own text (frozen)
+PANEL_RUNS = {"E2Q1": "qual-E2Q1", "E2Q2": "qual-E2Q2"}
 EPOCH = 2
 WORK_N, DUP_N, SENTINELS, WORKERS = 52, 20, 4, 76
 WORK_PER_REP = E2R.QUALIFIED_REP_SLOTS - SENTINELS              # 57: the production allocator's per-replicate cap
@@ -127,7 +136,7 @@ def derive_panel(part, part_sha, snap, snap_sha, snap_path):
     if top < E2R.QUALIFIED_REP_SLOTS:
         raise ValueError(f"the panel puts at most {top} workers on one replicate, below the qualified {E2R.QUALIFIED_REP_SLOTS}: "
                          "re-declare the panel before any outcome, or lower and re-cost the production cap (QUALIFICATION_E2.md s.2)")
-    return {"schema": PANEL_SCHEMA, "epoch": EPOCH, "contracts": list(CONTRACTS), "runs": dict(RUNS),
+    return {"schema": PANEL_SCHEMA, "epoch": EPOCH, "contracts": list(PANEL_CONTRACTS), "runs": dict(PANEL_RUNS),
             "partition_sha256": part_sha, "owned_sha256": part["owned_sha256"], "owned_count": int(part["owned_count"]),
             "claims_snapshot": {"path": snap_path, "sha256": snap_sha, "claims_sha256": snap["claims_sha256"]},
             "workers": WORKERS, "roles": {"work": WORK_N, "qual_lengau": DUP_N, "sentinel": SENTINELS},

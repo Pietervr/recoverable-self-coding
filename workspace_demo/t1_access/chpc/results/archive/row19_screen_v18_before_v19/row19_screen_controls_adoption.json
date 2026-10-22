@@ -1,0 +1,21 @@
+{
+ "schema": "row19-screen-controls-adoption-1",
+ "controls_path": "chpc/row19_screen_controls.json",
+ "controls_sha256": "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b",
+ "version": 18,
+ "controls_commit": "3da2ea3",
+ "review_record": {
+  "path": "reviews/2026-10-20_v18r2_mig18_codex_review.md",
+  "sha256": "11ebc12467a50a125f4b583c4d673274e2ff3ea1a2ac0d3e6c03f3725c8cc2c8",
+  "commit": "785f103",
+  "adopt_line": "ADOPT row19-screen-controls sha256=452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b version=18"
+ },
+ "by": "R052 Entropy SI (Claude)",
+ "previous": {
+  "version": 17,
+  "controls_sha256": "9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0",
+  "adoption_sha256": "61ca680e932fcb6d32a972c3198b5bd9c029da3955e15dd7acb2e07db125699b",
+  "archived": "Lengau archive_screen/v17_before_v18, Mac chpc/results/archive/row19_screen_v17_before_v18/"
+ },
+ "scope": "controls v17 -> v18, the NODE-FAILURE disposition (chpc/candidate_v18_nodefail/DESIGN_v18.md): NEW chpc/row19_screen_nodefail.py (f6afeb10, the one shared rule with the strict evidence decoder) and chpc/row19_nodefail_capture.py (84d52bdf, the owner's Lengau capture; evidence must carry this SHA-256), chpc/row19_screen_status.py (4710544a) and chpc/row19_screen_admit.py (e2260765) = v17 + REVISION 18; every other controller byte, the e2 partition 48cea639 (epoch 2 stays active) and the funding unchanged. A node-dispositioned job never qualifies and never counts toward the crash rule. Fresh v18 receipts and a regenerated pilot qualification with a NEW pilot literal precede any further refit admission"
+}

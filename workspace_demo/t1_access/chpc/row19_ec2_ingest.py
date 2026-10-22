@@ -102,7 +102,11 @@ release, activation, operational manifest, plan, typed outcomes, the censor list
 present-status rules, units, ownership and fence under the lock, comparisons, the journaled failure evidence, completion and
 replay - and in addition R4' (row19_ec2_e2rules.qualification_unproduced_problem): at most 3 non-completed slots of ALL roles
 across the attempt, the qualification-wide bound; production's 7-work-slot bound is not a replacement for it. Every other
-qualification attempt (unreleased, schema 1, or another contract such as epoch-1 Q1) keeps the all-or-nothing contract."""
+qualification attempt (unreleased, schema 1, or another contract such as epoch-1 Q1) keeps the all-or-nothing contract.
+
+REVISION 9 - controls v19 CANDIDATE (owner decision 21 Oct 2026, R052: "On-demand E2Q3"; chpc/candidate_v19_oploss/DESIGN_v19.md
+s.7). E2Q_CONTRACTS grows by E2Q3 (row19_ec2_state REVISION 5: the identical geometry and roles on-demand), so a RELEASED
+E2Q3 attempt takes the same per-slot route under the same checks. Nothing else changes."""
 import os, sys, json, glob, math, time, fcntl, hashlib, argparse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -129,7 +133,7 @@ MAX_UNPRODUCED_WORK = 7                                     # of up to 72 work s
 MIN_SENTINELS_COMPARED = 3                                  # of the 4 per attempt
 CENSORED = E2R.CENSORED
 ACTIVATION_MODE = "canonical"                       # the qualifier's sandbox replay alone sets "sandbox"
-E2Q_CONTRACTS = ("E2Q1", "E2Q2")                    # REVISION 8 (B1): the released epoch-2 qualification contracts with a per-slot route
+E2Q_CONTRACTS = ("E2Q1", "E2Q2", "E2Q3")            # REVISION 8 (B1): the released epoch-2 qualification contracts with a per-slot route; E2Q3 REVISION 9
 
 
 def sha_file(p):
