@@ -1,0 +1,29 @@
+ok   bash -n: every shell script parses (11)
+ok   every Python file compiles (6)
+ok   Lengau-side Python (lengau_archive.py) is 3.6-level grammar
+ok   remote_lib ACT_PY is 3.6-level Python
+ok   remote_lib ACT3_PY is 3.6-level Python
+ok   remote_lib LOCK_PY is 3.6-level Python
+ok   the composed Lengau script for check_v20.sh parses and carries the production root
+ok   the composed Lengau script for close_e3.sh parses and carries the production root
+ok   the composed Lengau script for rollover_pilot_v20.sh parses and carries the production root
+ok   v20_package PACKAGE: every pinned identity is the committed candidate bytes
+ok   v20_package: the @record pin is PENDING (None, None) until the operator record exists
+ok   v20_package: V19 = the live adopted controls/adoption; V19_QUAL = the Mac pilot qualification; the pilot record
+ok   the deploy payload is 7 files: record + partition module, admission, e3, authority + controls + adoption
+ok   mac_archive: the pinned builder is build_v20's bytes and its archive has N_MEMBERS (9) members
+ok   remote_lib: V20_CONTROLS = the candidate controls; V19_CONTROLS/V19_ADOPTION = live; E2_PART/E3_PART = e2/e3
+ok   remote_lib V19_REPLACED: exactly build_v20.MAP's two pins at their live v19 bytes
+ok   remote_lib V20_NEW is exactly the e3 data path (absent on the Mac live tree)
+ok   remote_lib V19_REC names a committed record with its bytes
+ok   remote_lib V19_PILOT_REC names a committed record with its bytes
+ok   lengau_archive: the v19 identities are the live bytes (controls, adoption, admission, status, designated, pilot qualification)
+ok   receipt_check_v20.py: V20_CONTROLS is the candidate controls and the generation is 20/20
+ok   package_qual_v20.py: V20_CONTROLS is the candidate controls and the generation is 20/20
+ok   no leftover v19-package token (the E2Q3 manifest path, 'nine payload', the v19 map 8256a584) in any script
+ok   no script stops a worker or reaper, calls AWS, or runs prod_launch/qual_permit/release-adopt
+post-close designated view: designated 4800, done 1144, in flight 198, Lengau plannable 179, EC2 waiting 3274, rescue-pending 5
+ok   receipt_check_v20 --phase pre on the newest REAL (v19) receipt refuses ONLY its generation (["the verifier generation is not v20 (version 19 latest 19 controls '111c3107636f' lineage '')"])
+ok   receipt_check_v20 --phase post on it also refuses the missing e3 activation and the 3,274 EC2-waiting coordinates
+
+26 passed, 0 failed

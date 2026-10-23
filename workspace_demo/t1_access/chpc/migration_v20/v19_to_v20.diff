@@ -1,0 +1,1768 @@
+--- migration_v19/adopt_pilot19.sh	2026-10-21 17:51:13
++++ migration_v20/adopt_pilot20.sh	2026-10-22 22:47:38
+@@ -1,20 +1,20 @@
+-# Migration v18 -> v19, step 6.4 (Lengau body): adopt the OPERATOR record (owner rule 20 Oct 2026: operational steps are
+-# recorded by the operator, no Codex review) of the REGENERATED v19 refit pilot qualification (new hash, max job 100) - the
+-# adopt_pilot18.sh pattern, WITH the corrected large-record literal check (migration_v17 fix 9df2a1f: no
++# Migration v19 -> v20, step 8.4 (Lengau body): adopt the OPERATOR record (owner rule 20 Oct 2026: operational steps are
++# recorded by the operator, no Codex review) of the REGENERATED v20 refit pilot qualification (new hash, max job 100) - the
++# adopt_pilot19.sh pattern, WITH the corrected large-record literal check (migration_v17 fix 9df2a1f: no
+ # `grep -q` in a pipe under pipefail; remote_lib.sh literal_in). The record must carry
+ #   ADOPT row19-screen-pilot role=refit qualification=<the new qsha> max_job=100
+ # for EXACTLY the qualification now in the gate (checked here before the record is committed in the controller clone, and again
+-# by the supported adopter); the historical 3c605514, 2c7a7ef1, 8fdbf48e and 530df9a2 literals cannot authorize it. Commit the
++# by the supported adopter); the historical 3c605514, 2c7a7ef1, 8fdbf48e and e123d6e5 literals cannot authorize it. Commit the
+ # record on
+ # the Mac, then (from workspace_demo/t1_access):
+-#   bash chpc/migration_v19/lengau.sh adopt_pilot19.sh --file reviews/<record>.md
+-# lengau.sh carries the record inside the script (checked against its Mac SHA-256) and prepends remote_lib.sh. Requires v19
+-# deployed and adopted (deploy proof DONE), epoch 2 still the canonical activation, the v18 review retired (no active review)
+-# and a gate qualification that is none of 530df9a2, 8fdbf48e and 2c7a7ef1. The record destination and its reviews/ parent, the
++#   bash chpc/migration_v20/lengau.sh adopt_pilot20.sh --file reviews/<record>.md
++# lengau.sh carries the record inside the script (checked against its Mac SHA-256) and prepends remote_lib.sh. Requires v20
++# deployed and adopted (deploy proof DONE), epoch 3 (the close) the canonical activation, the v19 review retired (no active review)
++# and a gate qualification that is none of e123d6e5, 8fdbf48e and 2c7a7ef1. The record destination and its reviews/ parent, the
+ # controller authority and the gate paths are containment-checked before the copy. The record is committed in the controller
+ # clone unless that clone already holds exactly these bytes, committed. The adopter creates the NEW gate review_refit.json and
+ # refuses when one exists (never overwrites); an adopter refusal is reported as a refusal and changes no gate file.
+-[ "${V19_PRELUDE:-}" = 1 ] || { echo "run through: bash chpc/migration_v19/lengau.sh adopt_pilot19.sh --file reviews/<record>.md"; exit 1; }
++[ "${V20_PRELUDE:-}" = 1 ] || { echo "run through: bash chpc/migration_v20/lengau.sh adopt_pilot20.sh --file reviews/<record>.md"; exit 1; }
+ [ "$NP" = 1 ] || die "expected exactly one payload (the pilot record), got $NP"
+ REC=$P1_PATH
+ case $REC in reviews/*.md) ;; *) die "the record $REC is not reviews/<name>.md";; esac
+@@ -28,16 +28,18 @@
+   src_file "$G/qualified_refit_job1.json" "$GS" "gate qualification"
+   dst_absent "$G/review_refit.json" "$GS" "new gate review (the adopter's destination)"
+ }
+-[ ! -e "$G/review_refit.json" ] && [ ! -L "$G/review_refit.json" ] || die "an active review exists; retire it first (rollover_pilot_v19.sh)"
++[ ! -e "$G/review_refit.json" ] && [ ! -L "$G/review_refit.json" ] || die "an active review exists; retire it first (rollover_pilot_v20.sh)"
+ cd "$C" || die "no controller clone $C"
+ ctl_git
+ adopt_paths
+-v19_adopted
++v20_adopted
+ deploy_done
+-act2_valid
+-src_file "$RETIRED_V18" "$GS" "the retired v18 review"
++act2_kept
++act3_valid
++src_file "$RETIRED_V19" "$GS" "the retired v19 review"
+ q=$(h "$G/qualified_refit_job1.json") || die "no readable gate qualification"
+-[ "$q" != "$V18_QUAL" ] || die "the gate qualification is still the v18 530df9a2; regenerate it under v19 first (--qualify 1)"
++[ "$q" != "$V19_QUAL" ] || die "the gate qualification is still the v19 e123d6e5; regenerate it under v20 first (--qualify 1)"
++[ "$q" != "$V18_QUAL" ] || die "the gate qualification is the historical v18 530df9a2"
+ [ "$q" != "$V17_QUAL" ] || die "the gate qualification is the historical v17 8fdbf48e"
+ [ "$q" != "$V16_QUAL" ] || die "the gate qualification is the historical v16 2c7a7ef1"
+ drained
+@@ -53,7 +55,7 @@
+ else
+   ctl_clean
+   cp "$TMPD/rec" "$REC" || die "copy failed"
+-  git add -- "$REC" && git -c user.name=R052 -c user.email=r052@local commit -q -m "operator record: v19 refit pilot ADOPT max 100 on the regenerated qualification" -- "$REC" \
++  git add -- "$REC" && git -c user.name=R052 -c user.email=r052@local commit -q -m "operator record: v20 refit pilot ADOPT max 100 on the regenerated qualification" -- "$REC" \
+     || die "git commit of $REC failed (the clone may be dirty: recover explicitly)"
+ fi
+ rm -rf "$TMPD"
+@@ -67,4 +69,4 @@
+ [ $rc = 0 ] || die "the supported adopter refused or failed (exit $rc, above)"
+ src_file "$G/review_refit.json" "$GS" "new gate review"
+ sha256sum -- "$G/review_refit.json" || die "no gate review_refit.json after the adopter"
+-echo "adopt_pilot19 complete"
++echo "adopt_pilot20 complete"
+--- migration_v19/archive_v18.sh	2026-10-21 17:53:07
++++ migration_v20/archive_v19.sh	2026-10-22 22:47:38
+@@ -1,61 +1,61 @@
+ #!/bin/bash
+-# Migration v18 -> v19, step 2 (Mac -> Lengau, then Mac): immutable archives of the ACTUALLY ADOPTED v18 state BEFORE anything
++# Migration v19 -> v20, step 2 (Mac -> Lengau, then Mac): immutable archives of the ACTUALLY ADOPTED v19 state BEFORE anything
+ # changes (the archive_v16.sh pattern). Each archive has a fixed mandatory inventory, is built in a staging directory, verified in
+ # full (every digest AND the exact inventory) and only then published by one atomic rename with a COMPLETE certificate.
+-#  a. Lengau $T/archive_screen/v18_before_v19 (lengau_archive.py): ctl/HEAD.txt; ctl/<path> for EVERY file the adopted v18 entry
+-#     pins plus its partition e2 (48cea639), the e1 declaration (provenance), the v18 controls, adoption, admission, status,
+-#     designated declaration, budget phases, screen manifest, the two row-22 bank controllers, the v18 controls record and the
+-#     v18 pilot record; ctl/untracked/<path> for the three pinned untracked evidence files; the WHOLE gate
+-#     (qualified_refit_job1.json 530df9a2, the active review_refit.json, scaleup_refit_v16.json when present, every receipt and
++#  a. Lengau $T/archive_screen/v19_before_v20 (lengau_archive.py): ctl/HEAD.txt; ctl/<path> for EVERY file the adopted v19 entry
++#     pins plus its partition e2 (48cea639), the e1 declaration (provenance), the v19 controls, adoption, admission, status,
++#     designated declaration, budget phases, screen manifest, the two row-22 bank controllers, the v19 controls record and the
++#     v19 pilot record; ctl/untracked/<path> for the three pinned untracked evidence files; the WHOLE gate
++#     (qualified_refit_job1.json e123d6e5, the active review_refit.json, scaleup_refit_v16.json when present, every receipt and
+ #     PBS copy) with INVENTORY.gate; jobs/row19_screen_refit_* with INVENTORY.jobs, which MUST retain the captured node
+ #     document row19_screen_refit_54.nodefail.json at 730ea262; the ledger reference copy; both activation proofs
+ #     ec2/activation_e1.json and ec2/activation_e2.json; SHA256SUMS; COMPLETE (with the budget and node-evidence digests).
+ #     Refuses unless the drain is observed (checked process inventory, both locks probed free), the controller clone is clean
+-#     (ctl_clean) at the v18 controls and adoption, the gate qualification is 530df9a2, a review is active, epoch 2 is the
++#     (ctl_clean) at the v19 controls and adoption, the gate qualification is e123d6e5, a review is active, epoch 2 is the
+ #     canonical activation and the node document is in place.
+-#  b. Mac chpc/results/archive/row19_screen_v18_before_v19/ (mac_archive.py): EXACTLY the 11 members of build_v19.ARCHIVE with
++#  b. Mac chpc/results/archive/row19_screen_v19_before_v20/ (mac_archive.py): EXACTLY the 9 members of build_v20.ARCHIVE with
+ #     SHA256SUMS and the JSON COMPLETE (which records the Lengau archive's SHA256SUMS digest). The Mac budget phases must be the
+-#     bytes the Lengau archive certifies. promote_v19.py (build_v19.archive_problems) and deploy_v19.sh require it by name.
++#     bytes the Lengau archive certifies. promote_v20.py (build_v20.archive_problems) and deploy_v20.sh require it by name.
+ # Re-run: an existing archive is accepted only if its complete certificate verifies; an existing one that does not, or a staging
+ # directory left by an interrupted build, REFUSES and is left exactly as it is (inspect and recover by hand). If the Lengau half
+ # fails, the Mac half is not written; if the Mac half fails after the Lengau archive was published, a re-run verifies the Lengau
+ # archive and builds the Mac half.
+-# Usage (from workspace_demo/t1_access): bash chpc/migration_v19/archive_v18.sh [--dry-run]
++# Usage (from workspace_demo/t1_access): bash chpc/migration_v20/archive_v19.sh [--dry-run]
+ #   --dry-run   the Mac checks and the plan only: no ssh, nothing written.
+-# Production route only (lengau.sh); tests run private copies (test_migration_v19.py).
++# Production route only (lengau.sh); tests run private copies (test_migration_v20.py).
+ set -u -o pipefail
+ DRY=${1:-}
+ case $DRY in ""|--dry-run) ;; *) echo "ARCHIVE REFUSED: unknown argument $DRY"; exit 3;; esac
+ fail() { echo "ARCHIVE REFUSED: $*"; exit 3; }
+ [ -f chpc/row19_screen_admit.py ] && [ -d reviews ] || fail "run from workspace_demo/t1_access"
+-MA=chpc/results/archive/row19_screen_v18_before_v19
+-ls -d chpc/results/archive/.row19_screen_v18_before_v19.staging* >/dev/null 2>&1 \
+-  && fail "an interrupted Mac archive build left chpc/results/archive/.row19_screen_v18_before_v19.staging*; partial evidence kept, inspect it by hand"
+-python3 chpc/migration_v19/v19_package.py drain || fail "the Mac drain is not observed (above)"
++MA=chpc/results/archive/row19_screen_v19_before_v20
++ls -d chpc/results/archive/.row19_screen_v19_before_v20.staging* >/dev/null 2>&1 \
++  && fail "an interrupted Mac archive build left chpc/results/archive/.row19_screen_v19_before_v20.staging*; partial evidence kept, inspect it by hand"
++python3 chpc/migration_v20/v20_package.py drain || fail "the Mac drain is not observed (above)"
+ if [ -e $MA ] || [ -L $MA ]; then
+-  python3 chpc/migration_v19/mac_archive.py verify || fail "$MA exists but does not verify as the complete v18 archive; not overwriting (inspect by hand)"
++  python3 chpc/migration_v20/mac_archive.py verify || fail "$MA exists but does not verify as the complete v19 archive; not overwriting (inspect by hand)"
+   MAC_DONE=1
+ else
+-  python3 chpc/migration_v19/v19_package.py preflight || fail "the Mac tree is not the adopted v18 state of step 1 (above)"
++  python3 chpc/migration_v20/v20_package.py preflight || fail "the Mac tree is not the adopted v19 state of step 1 (above)"
+   MAC_DONE=0
+ fi
+ if [ "$DRY" = "--dry-run" ]; then
+   echo "DRY RUN - Mac checks pass; would:"
+-  echo "  - Lengau: verify the sources (lengau_archive.py inventory), then stage, verify and publish \$T/archive_screen/v18_before_v19 with COMPLETE (or verify an existing one)"
+-  [ $MAC_DONE = 1 ] && echo "  - Mac: $MA exists and verifies; left as it is" || echo "  - Mac: stage, verify and publish $MA (11 members + SHA256SUMS + COMPLETE), read-only"
++  echo "  - Lengau: verify the sources (lengau_archive.py inventory), then stage, verify and publish \$T/archive_screen/v19_before_v20 with COMPLETE (or verify an existing one)"
++  [ $MAC_DONE = 1 ] && echo "  - Mac: $MA exists and verifies; left as it is" || echo "  - Mac: stage, verify and publish $MA (9 members + SHA256SUMS + COMPLETE), read-only"
+   exit 0
+ fi
+-. chpc/migration_v19/lengau.sh || fail "cannot load chpc/migration_v19/lengau.sh"
++. chpc/migration_v20/lengau.sh || fail "cannot load chpc/migration_v20/lengau.sh"
+ echo "== a. Lengau"
+-OUTF=$(mktemp -t v19_archive) || fail "mktemp failed"
++OUTF=$(mktemp -t v20_archive) || fail "mktemp failed"
+ to_lengau - > "$OUTF" 2>&1 <<'REMOTE'
+ if [ -e "$A" ] || [ -L "$A" ]; then
+   archive_py verify "$T" || die "archive exists and does not verify as complete, not overwriting: $A"
+   echo "archive exists and verifies, left as it is"
+   echo "== SHA256SUMS"; cat "$A/SHA256SUMS" || die "cannot read the archive's SHA256SUMS"; echo "== end SHA256SUMS"; exit 0
+ fi
+-! ls -d "$PS"/.v18_before_v19.staging* >/dev/null 2>&1 \
+-  || die "an interrupted archive build left $PS/.v18_before_v19.staging*; partial evidence kept, inspect and recover it by hand"
++! ls -d "$PS"/.v19_before_v20.staging* >/dev/null 2>&1 \
++  || die "an interrupted archive build left $PS/.v19_before_v20.staging*; partial evidence kept, inspect and recover it by hand"
+ drained
+ locks_free
+ cd "$C" || die "no controller clone $C"
+@@ -64,8 +64,8 @@
+ for f in chpc/row19_screen_controls.json chpc/row19_screen_controls_adoption.json; do src_file "$C/$f" "$CR" "controller authority $f"; done
+ src_file "$G/qualified_refit_job1.json" "$GS" "gate qualification"; src_file "$G/review_refit.json" "$GS" "active gate review"
+ dst_dir "$PS" "$T" "archive parent"; dst_absent "$A" "$PS" "archive"
+-v18_current
+-pin "$G/qualified_refit_job1.json" $V18_QUAL "gate qualification"
++v19_current
++pin "$G/qualified_refit_job1.json" $V19_QUAL "gate qualification"
+ act2_valid
+ node_ev
+ head=$(cd -- "$C" && git rev-parse --verify HEAD) || die "git rev-parse HEAD failed in the controller clone"
+@@ -82,18 +82,18 @@
+ LBUDGET=$(printf '%s\n' "$OUT" | sed -n 's/^budget=\([0-9a-f]\{64\}\)$/\1/p' | tail -1)
+ [ ${#LSUMS} = 64 ] && [ ${#LBUDGET} = 64 ] || fail "the Lengau half did not report its verified SHA256SUMS and budget digests"
+ # the Lengau archive's complete SHA256SUMS, kept on the Mac beside the Mac archive (committed with it in step 3; packaged with the
+-# new pilot qualification in step 6.3): exactly the bytes whose digest the Lengau certificate and the Mac COMPLETE name
+-LS_FILE=chpc/results/archive/row19_screen_v18_before_v19.lengau_SHA256SUMS.txt
+-LS_TMP=$(mktemp -t v19_lsums) || fail "mktemp failed"
++# new pilot qualification in step 8.3): exactly the bytes whose digest the Lengau certificate and the Mac COMPLETE name
++LS_FILE=chpc/results/archive/row19_screen_v19_before_v20.lengau_SHA256SUMS.txt
++LS_TMP=$(mktemp -t v20_lsums) || fail "mktemp failed"
+ printf '%s\n' "$OUT" | sed -n '/^== SHA256SUMS$/,/^== end SHA256SUMS$/p' | sed '1d;$d' > "$LS_TMP" || fail "cannot extract the Lengau SHA256SUMS"
+ [ "$(shasum -a 256 "$LS_TMP" | cut -c1-64)" = "$LSUMS" ] || { rm -f "$LS_TMP"; fail "the Lengau SHA256SUMS text received is not the certified ${LSUMS:0:16}"; }
+ echo "== b. Mac"
+ if [ $MAC_DONE = 1 ]; then
+-  rec=$(python3 chpc/migration_v19/mac_archive.py verify --get lengau_sha256sums) || { rm -f "$LS_TMP"; fail "the Mac archive no longer verifies"; }
++  rec=$(python3 chpc/migration_v20/mac_archive.py verify --get lengau_sha256sums) || { rm -f "$LS_TMP"; fail "the Mac archive no longer verifies"; }
+   [ "$rec" = "$LSUMS" ] || { rm -f "$LS_TMP"; fail "the Mac archive was made with another Lengau archive (${rec:0:16}), not this one (${LSUMS:0:16})"; }
+   echo "Mac archive exists, verifies and names this Lengau archive; left as it is"
+ else
+-  python3 chpc/migration_v19/mac_archive.py build "$LSUMS" "$LBUDGET" || { rm -f "$LS_TMP"; fail "the Mac archive build refused or failed (above)"; }
++  python3 chpc/migration_v20/mac_archive.py build "$LSUMS" "$LBUDGET" || { rm -f "$LS_TMP"; fail "the Mac archive build refused or failed (above)"; }
+ fi
+ # only after the Mac archive names this Lengau archive is its SHA256SUMS kept on the Mac (a failed Mac half leaves nothing there)
+ if [ -e $LS_FILE ] || [ -L $LS_FILE ]; then
+--- migration_v19/check_v19.sh	2026-10-21 17:51:13
++++ migration_v20/check_v20.sh	2026-10-22 22:49:14
+@@ -1,15 +1,23 @@
+-# Migration v18 -> v19, the READ-ONLY Lengau check before the fresh v19 receipts (step 5; sourced through lengau.sh by
+-# receipts_v19.sh). Writes nothing. It refuses unless v19 is the deployed, adopted controller (controls 111c3107, the
+-# version-19 adoption naming the v18 record 3e1fe9a1, deploy proof DONE and its commit in HEAD's history, ctl_clean), epoch 2 is
+-# STILL the canonical activation under the adopted v19 (activation_e2.json; activation_e1.json kept) and the captured node
+-# document of refit job 54 is exactly 730ea262 where the v19 status view fetches it (job 54 stays node-dispositioned).
+-[ "${V19_PRELUDE:-}" = 1 ] || { echo "sourced through lengau.sh by receipts_v19.sh only"; exit 1; }
+-[ "$NP" = 0 ] || die "check_v19.sh takes no payload"
++# Migration v19 -> v20, the READ-ONLY Lengau check before the fresh v20 receipts (steps 5 and 7; sourced through lengau.sh by
++# receipts_v20.sh with PHASE=pre or post). Writes nothing. It refuses unless v20 is the deployed, adopted controller (controls
++# 4e64982b, the version-20 adoption naming the v19 record 2b9f3c78, deploy proof DONE and its commit in HEAD's history,
++# ctl_clean), v20 pins the verified e3 closing declaration (e3_pinned), the e1/e2 activation proofs are unchanged (act2_kept),
++# and - PHASE=pre - no activation_e3.json exists yet, or - PHASE=post - epoch 3 (the close) is THE canonical activation under the
++# adopted v20 (act3_valid); and the captured node document of refit job 54 is exactly 730ea262 (job 54 stays node-dispositioned).
++[ "${V20_PRELUDE:-}" = 1 ] || { echo "sourced through lengau.sh by receipts_v20.sh only"; exit 1; }
++[ "$NP" = 0 ] || die "check_v20.sh takes no payload"
++case ${PHASE:-} in pre|post) ;; *) die "check_v20.sh needs PHASE=pre (before the close) or post (after it)";; esac
+ cd "$C" || die "no controller clone $C"
+ ctl_git
+ ctl_clean
+-v19_adopted
++v20_adopted
+ deploy_done
+-act2_valid
++e3_pinned
++act2_kept
++if [ "$PHASE" = pre ]; then
++  dst_absent "$ACT3" "$GS" "the epoch-3 activation (not yet: the close is step 6)"
++else
++  act3_valid
++fi
+ node_ev
+-echo "lengau check OK: v19 deployed and adopted, deploy proof DONE, epoch 2 still active, node document 730ea262 in place"
++echo "lengau check OK ($PHASE-close): v20 deployed and adopted, deploy proof DONE, e3 pinned, e1/e2 proofs unchanged, $([ "$PHASE" = pre ] && echo 'no e3 activation yet' || echo 'epoch 3 (the close) THE canonical activation'), node document 730ea262 in place"
+--- migration_v19/deploy_v19.sh	2026-10-21 17:52:43
++++ migration_v20/deploy_v20.sh	2026-10-22 22:46:21
+@@ -1,68 +1,71 @@
+ #!/bin/bash
+-# Migration v18 -> v19, step 4 (Mac -> Lengau): deploy the promoted and COMMITTED v19 package into the CONTROLLER clone
+-# rsc_screen_ctl in ONE commit (the deploy_v18.sh pattern). The 9 payload files - the controls adoption (operator) record, the
+-# status view, the admission, the EC2 state, the E2Q module, the ingestion, the NEW E2Q3 operational manifest
+-# (aws_ec2/prod/manifest_e2q3_e2.json, V19_NEW: absent before), then the controls and LAST the adoption record - travel inside
+-# the one Lengau script (lengau.sh payload, each checked against its Mac SHA-256). No partition or activation is deployed
+-# (v19 changes neither). The job clone rsc_screen is never written.
+-# Mac, before anything leaves: v19_package.py check-promoted (the pinned package identities and record, the strict Mac archive
+-# certificate, promote_v19.py --check-promoted with the review record, every promoted path, the adoption and the archive
++# Migration v19 -> v20, step 4 (Mac -> Lengau): deploy the promoted and COMMITTED v20 package into the CONTROLLER clone
++# rsc_screen_ctl in ONE commit (the deploy_v19.sh pattern). The 7 payload files - the controls adoption (operator) record, the
++# partition module, the admission, the NEW e3 closing declaration (chpc/row19_partition_e3.json, V20_NEW: absent before), the
++# Mac authority aws_ec2/prod_authority.py, then the controls and LAST the adoption record - travel inside the one Lengau script
++# (lengau.sh payload, each checked against its Mac SHA-256). The e3 declaration is deployed but NOT activated here: the
++# activation is step 6 (close_v20.sh). From this deploy until that activation every Lengau refit admission HOLDS (the pinned
++# e3 has no proof) and every EC2 admission refuses (closed). The job clone rsc_screen is never written.
++# Mac, before anything leaves: v20_package.py check-promoted (the pinned package identities and record, the strict Mac archive
++# certificate, promote_v20.py --check-promoted with the review record, every promoted path, the adoption and the archive
+ # committed), the Mac drain, and the Mac tree's own authority/lineage/controls/designated/partition checks.
+ # Lengau, IMMEDIATELY before the controller mutation: the drain observed (checked process inventory, both locks probed free),
+ # the Lengau archive's complete certificate and that it is the archive the Mac archive names, the controller clone clean
+-# (ctl_clean) at the adopted v18 bytes AND at the archived HEAD, the gate qualification and active
+-# review equal to the archived ones, epoch 2 the canonical activation under v18, the captured node document 730ea262 in place,
++# (ctl_clean) at the adopted v19 bytes AND at the archived HEAD, the gate qualification and active
++# review equal to the archived ones, epoch 2 the canonical activation under v19, the captured node document 730ea262 in place,
+ # every Python payload compiling under $T/t1py and every JSON payload parsing (nothing executed), and a COMPLETE
+ # before-manifest of the job clone's fixed science inventory. Every payload destination, its temporary sibling and parent, the
+ # controller/gate authority and the proof directory must be its own physical path in its canonical scope and outside the
+ # scientific clone, checked first and again immediately before each copy. Before the first controller write the DEPLOY PROOF
+-# $T/archive_screen/v19_deploy_proof/ is written (science_before.sha256; intent = schema, controller HEAD before, payload
++# $T/archive_screen/v20_deploy_proof/ is written (science_before.sha256; intent = schema, controller HEAD before, payload
+ # digest, manifest digest; read-only). After the commit: a complete after-manifest identical to the before-manifest, then DONE
+ # (both HEADs, payload, before = after; the after digest is the proven-equal before digest, and DONE is read back and checked)
+ # is written; a failed after-proof is kept as after_failed.* and DONE is not written. Then a clean clone, the
+-# controls/lineage/authority, designated and partition checks, EPOCH 2 STILL THE CANONICAL ACTIVATION under the now-adopted v19,
+-# the node document unchanged, and a local-vs-remote comparison of every deployed and pinned file. Any failed or incomplete
++# controls/lineage/authority, designated and partition checks (e3 pinned and verified against e2), the e1/e2 activation proofs
++# unchanged (byte-identical to the archive; e2's is historical under v20 by design), no e3 activation yet, the node document
++# unchanged, and a local-vs-remote comparison of every deployed and pinned file. Any failed or incomplete
+ # observation refuses (exit 3).
+ # Re-run: a controller clone already at exactly these bytes reports DEPLOY OK ONLY with the proof's DONE binding this payload,
+ # the deployed commit in HEAD's history and the CURRENT eight science files equal to the preserved pre-mutation manifest;
+ # otherwise it is an explicit DEPLOY HELD pending verified recovery (never a rewrite of the job clone, never a fit). An attempt
+ # that wrote its proof but changed nothing (clean clone at the recorded HEAD, same payload, same science) resumes on that proof.
+ # An interrupted copy/commit leaves a dirty clone, which every re-run refuses: report it and recover it explicitly.
+-# Usage (from workspace_demo/t1_access): bash chpc/migration_v19/deploy_v19.sh [--dry-run]
++# Usage (from workspace_demo/t1_access): bash chpc/migration_v20/deploy_v20.sh [--dry-run]
+ #   --dry-run   the Mac checks and the local file list only: no ssh, nothing copied.
+-# Production route only (lengau.sh); tests run private copies (test_migration_v19.py).
++# Production route only (lengau.sh); tests run private copies (test_migration_v20.py).
+ set -u -o pipefail
+ DRY=${1:-}
+ case $DRY in ""|--dry-run) ;; *) echo "DEPLOY REFUSED: unknown argument $DRY"; exit 3;; esac
+ fail() { echo "DEPLOY REFUSED: $*"; exit 3; }
+ [ -f chpc/row19_screen_admit.py ] && [ -d reviews ] || fail "run from workspace_demo/t1_access"
+-python3 chpc/migration_v19/v19_package.py check-promoted || fail "the Mac promotion is not complete, committed and verified (above)"
+-LSUMS=$(python3 chpc/migration_v19/mac_archive.py verify --get lengau_sha256sums) || fail "the Mac archive does not verify"
+-PAYLOAD=$(python3 chpc/migration_v19/v19_package.py payload) || fail "cannot list the payload"
+-ALL=$(python3 chpc/migration_v19/v19_package.py compare) || fail "cannot list the compared files"
++python3 chpc/migration_v20/v20_package.py check-promoted || fail "the Mac promotion is not complete, committed and verified (above)"
++LSUMS=$(python3 chpc/migration_v20/mac_archive.py verify --get lengau_sha256sums) || fail "the Mac archive does not verify"
++PAYLOAD=$(python3 chpc/migration_v20/v20_package.py payload) || fail "cannot list the payload"
++ALL=$(python3 chpc/migration_v20/v20_package.py compare) || fail "cannot list the compared files"
+ PAYLOAD=$(printf '%s\n' "$PAYLOAD" | tr '\n' ' '); ALL=$(printf '%s\n' "$ALL" | tr '\n' ' ')
+-[ "$(echo $PAYLOAD | wc -w | tr -d ' ')" = 9 ] || fail "the payload is not the 9 files of the v19 deploy: $PAYLOAD"
++[ "$(echo $PAYLOAD | wc -w | tr -d ' ')" = 7 ] || fail "the payload is not the 7 files of the v20 deploy: $PAYLOAD"
+ python3 -c 'import sys; sys.path.insert(0, "chpc"); import programme_gate as PG, row19_screen_admit as A; import json
+ m = json.load(open("chpc/row19_screen_manifest.json")); p = A.partition(m, "chpc/row19_screen_manifest.json")
+ w = [PG.controls_authority_problem(), PG.lineage_problem(), A.controls_problem(), A.designated(m, "chpc/row19_screen_manifest.json")[1]]
+-ok = p is not None and p.get("schema") == "row19-provider-partition-2" and p.get("epoch") == 2 and p.get("owned_count") == 3274
++ok = p is not None and p.get("schema") == "row19-provider-partition-3" and p.get("epoch") == 3 and p.get("owned_count") == 0 \
++    and p["handed_back"]["count"] == 3274
+ v = json.load(open("chpc/row19_screen_controls.json"))["versions"][-1]["version"]
+ print("mac authority", repr(w[0]), "lineage", repr(w[1]), "controls", repr(w[2]), "designated", repr(w[3]),
+       "partition", (p or {}).get("schema"), "epoch", (p or {}).get("epoch"), "owned", (p or {}).get("owned_count"), "version", v)
+-sys.exit(1 if any(w) or not ok or v != 19 else 0)' || fail "the Mac promoted tree does not pass its own checks (above)"
+-LOCAL=$(mktemp -t v19_local) && REMOTE_OUT=$(mktemp -t v19_remote) || fail "mktemp failed"
++sys.exit(1 if any(w) or not ok or v != 20 else 0)' || fail "the Mac promoted tree does not pass its own checks (above)"
++LOCAL=$(mktemp -t v20_local) && REMOTE_OUT=$(mktemp -t v20_remote) || fail "mktemp failed"
+ shasum -a 256 $ALL | sort -k2 > $LOCAL || fail "cannot hash the local files"
+ [ "$(wc -l < $LOCAL | tr -d ' ')" = "$(echo $ALL | wc -w | tr -d ' ')" ] || fail "the local digest list is incomplete"
+-echo "== local ($(wc -l < $LOCAL | tr -d ' ') files compared; 9 copied, in order: $PAYLOAD)"; cut -c1-12,65- $LOCAL
++echo "== local ($(wc -l < $LOCAL | tr -d ' ') files compared; 7 copied, in order: $PAYLOAD)"; cut -c1-12,65- $LOCAL
+ [ "$DRY" = "--dry-run" ] && { echo "DRY RUN: nothing copied"; rm -f $LOCAL $REMOTE_OUT; exit 0; }
+-python3 chpc/migration_v19/v19_package.py drain || fail "the Mac drain is not observed (above)"
+-. chpc/migration_v19/lengau.sh || fail "cannot load chpc/migration_v19/lengau.sh"
++python3 chpc/migration_v20/v20_package.py drain || fail "the Mac drain is not observed (above)"
++. chpc/migration_v20/lengau.sh || fail "cannot load chpc/migration_v20/lengau.sh"
+ FILES=(); for f in $PAYLOAD; do FILES+=(--file "$f"); done
+ to_lengau - "${FILES[@]}" --var "ALL=$ALL" --var "LSUMS=$LSUMS" > $REMOTE_OUT 2>&1 <<'REMOTE'
+-[ "$NP" = 9 ] || die "expected nine payload files, got $NP"
++[ "$NP" = 7 ] || die "expected seven payload files, got $NP"
+ cd "$C" || die "no controller clone $C"
+ ctl_git
+-PSCHEMA=row19-screen-v19-deploy-proof-1
++PSCHEMA=row19-screen-v20-deploy-proof-1
+ hold() { die "DEPLOY HELD pending verified recovery (the scientific clone is never rewritten and no fit is rerun to resolve it): $*"; }
+ dests() {   # containment of every payload destination, its parent and its temporary sibling (repeated immediately before each copy)
+   local i=1 f
+@@ -72,7 +75,7 @@
+     not_evidence "$f" "payload $i"
+     case $f in */*) dst_dir "$C/${f%/*}" "$CR" "payload $i parent";; esac
+     dst_file "$C/$f" "$CR" "payload $i destination"
+-    dst_absent "$C/$f.v19tmp" "$CR" "payload $i temporary sibling"
++    dst_absent "$C/$f.v20tmp" "$CR" "payload $i temporary sibling"
+     i=$((i + 1))
+   done
+   for f in $ALL; do clean_rel "$f" || die "compared path $f is not a plain relative path"; done
+@@ -109,7 +112,7 @@
+ dests
+ drained
+ locks_free
+-archive_py verify "$T" || die "the v18 archive does not verify as complete (archive_v18.sh first; never deploy without it)"
++archive_py verify "$T" || die "the v19 archive does not verify as complete (archive_v19.sh first; never deploy without it)"
+ lsums=$(archive_py verify "$T" --get sha256sums) || die "archive verify failed"
+ [ "$lsums" = "$LSUMS" ] || die "the Lengau archive (${lsums:0:16}) is not the one the Mac archive names (${LSUMS:0:16})"
+ ctl_clean
+@@ -133,10 +136,10 @@
+   esac
+   i=$((i + 1))
+ done
+-echo "payload: 9 files decoded and verified against their Mac SHA-256 (${paysha:0:16}); the Python payloads compile and the JSON payloads parse under \$T/t1py"
++echo "payload: 7 files decoded and verified against their Mac SHA-256 (${paysha:0:16}); the Python payloads compile and the JSON payloads parse under \$T/t1py"
+ head=$(git rev-parse --verify HEAD) || die "git rev-parse HEAD failed"
+ if [ $same = 1 ]; then
+-  echo "controller clone already holds exactly these v19 bytes; no commit"
++  echo "controller clone already holds exactly these v20 bytes; no commit"
+   # a re-run is complete ONLY with the durable, complete before/after proof of the deployment that put these bytes here, and
+   # only if the science bytes NOW equal the preserved pre-mutation manifest; anything else is an explicit hold
+   proof_intent
+@@ -158,11 +161,11 @@
+   for f in chpc/row19_screen_controls.json chpc/row19_screen_controls_adoption.json chpc/row19_partition_e2.json; do
+     src_file "$C/$f" "$CR" "controller authority $f"
+   done
+-  v18_current
+-  while read -r f s; do src_file "$C/$f" "$CR" "controller file v19 replaces: $f"; pin "$f" "$s" "controller clone $f (v18)"; done <<<"$V18_REPLACED"
+-  for f in $V19_NEW; do dst_absent "$C/$f" "$CR" "new v19 data path $f"; done
++  v19_current
++  while read -r f s; do src_file "$C/$f" "$CR" "controller file v20 replaces: $f"; pin "$f" "$s" "controller clone $f (v19)"; done <<<"$V19_REPLACED"
++  for f in $V20_NEW; do dst_absent "$C/$f" "$CR" "new v20 data path $f"; done
+   ahead=$(archive_py verify "$T" --get ctl_head) || die "archive verify failed"
+-  [ "$head" = "$ahead" ] || die "controller clone HEAD ${head:0:12} is not the archived v18 HEAD ${ahead:0:12}"
++  [ "$head" = "$ahead" ] || die "controller clone HEAD ${head:0:12} is not the archived v19 HEAD ${ahead:0:12}"
+   src_file "$G/qualified_refit_job1.json" "$GS" "gate qualification"; src_file "$G/review_refit.json" "$GS" "active gate review"
+   pin "$G/qualified_refit_job1.json" "$(archive_py verify "$T" --get qualification)" "gate qualification (archived)"
+   pin "$G/review_refit.json" "$(archive_py verify "$T" --get review)" "active gate review (archived)"
+@@ -187,19 +190,19 @@
+   fi
+   dests
+   i=1; LIST=""
+-  while [ $i -le $NP ]; do                     # in payload order: record, status, admission, EC2 state, E2Q module, ingestion, E2Q3 manifest, controls, adoption
++  while [ $i -le $NP ]; do                     # in payload order: record, partition module, admission, e3, authority, controls, adoption
+     eval "f=\$P${i}_PATH"
+     case $f in */*) dst_dir "$C/${f%/*}" "$CR" "payload $i parent";; esac
+-    dst_file "$C/$f" "$CR" "payload $i destination"; dst_absent "$C/$f.v19tmp" "$CR" "payload $i temporary sibling"
+-    cp -- "$TMPD/$i" "$f.v19tmp" || die "copy of $f failed (the clone is now dirty: recover explicitly)"
+-    [ -f "$f.v19tmp" ] && [ ! -L "$f.v19tmp" ] && dst_file "$C/$f" "$CR" "payload $i destination" \
+-      && mv -- "$f.v19tmp" "$f" || die "copy of $f failed (the clone is now dirty: recover explicitly)"
++    dst_file "$C/$f" "$CR" "payload $i destination"; dst_absent "$C/$f.v20tmp" "$CR" "payload $i temporary sibling"
++    cp -- "$TMPD/$i" "$f.v20tmp" || die "copy of $f failed (the clone is now dirty: recover explicitly)"
++    [ -f "$f.v20tmp" ] && [ ! -L "$f.v20tmp" ] && dst_file "$C/$f" "$CR" "payload $i destination" \
++      && mv -- "$f.v20tmp" "$f" || die "copy of $f failed (the clone is now dirty: recover explicitly)"
+     [ "$(h "$f")" = "$(h "$TMPD/$i")" ] || die "$f did not land intact (the clone is now dirty: recover explicitly)"
+     LIST="$LIST $f"; i=$((i + 1))
+   done
+   ctl_git
+   git add -- $LIST || die "git add failed (the clone is now dirty: recover explicitly)"
+-  git -c user.name=R052 -c user.email=r052@local commit -q -m 'screen controllers: lineage version 19 (the operational-loss disposition: status view and admission = v18 + REVISION 19; the E2Q3 on-demand qualifier: EC2 state, E2Q module and ingestion + the E2Q3 operational manifest; controls 111c3107; operator adoption record); every other controller byte, the node-failure rule, the e2 partition and epoch 2 unchanged; refit admission needs fresh v19 receipts and the regenerated pilot adoption' -- $LIST \
++  git -c user.name=R052 -c user.email=r052@local commit -q -m 'screen controllers: lineage version 20 (the EC2 close, owner 23 Oct 2026 route A: partition module REVISION 7 and admission REVISION 20, the e3 closing declaration ca87fb1d pinned, the Mac authority REVISION 10; controls 4e64982b; operator adoption record); every other controller byte and the node-failure rule unchanged; refit admission holds until the e3 activation, fresh v20 receipts and the regenerated pilot adoption' -- $LIST \
+     || die "git commit failed (the clone is now dirty: recover explicitly)"
+   nhead=$(git rev-parse --verify HEAD) || die "git rev-parse HEAD failed after the commit"
+   # the commit holds payload paths only (an unchanged payload file is not in it): never a pinned untracked evidence file, which
+@@ -230,10 +233,12 @@
+ "$T/t1py" -c 'import sys; sys.path.insert(0,"chpc"); import programme_gate as PG, row19_screen_admit as A; print("authority", repr(PG.controls_authority_problem()), "lineage", repr(PG.lineage_problem()), "controls", repr(A.controls_problem()))' || die "the authority check did not run"
+ "$T/t1py" -c 'import sys; sys.path.insert(0,"chpc"); import json, row19_screen_admit as A; m=json.load(open("chpc/row19_screen_manifest.json")); print("designated", repr(A.designated(m, "chpc/row19_screen_manifest.json")[1]))' || die "the designated check did not run"
+ "$T/t1py" -c 'import sys; sys.path.insert(0,"chpc"); import json, row19_screen_admit as A; m=json.load(open("chpc/row19_screen_manifest.json")); p=A.partition(m, "chpc/row19_screen_manifest.json"); print("partition schema %s epoch %s owned %s (%s)" % (p.get("schema"), p.get("epoch"), p.get("owned_count"), str(p.get("owned_sha256"))[:12]))' || die "the partition check did not run"
+-v19_adopted
+-act2_valid
++v20_adopted
++e3_pinned
++act2_kept
++dst_absent "$ACT3" "$GS" "the epoch-3 activation (step 6, close_v20.sh)"
+ node_ev
+-echo "epoch 2 STILL ACTIVE: the canonical activation verifies under the adopted v19; the captured node document is unchanged"
++echo "e3 PINNED, NOT YET ACTIVATED: e1/e2 proofs unchanged; refit admission holds until close_v20.sh; the captured node document is unchanged"
+ echo "lengau deploy body complete"
+ REMOTE
+ rc=$?
+@@ -243,7 +248,7 @@
+ grep -qx "lengau deploy body complete" $REMOTE_OUT || fail "the remote half did not complete"
+ echo "== local vs remote"; diff <(awk '{print $1, $2}' $LOCAL) <(sed -n '/^== remote/,/^== end remote/p' $REMOTE_OUT | grep -E '^[0-9a-f]{64} ' | awk '{print $1, $2}') && echo IDENTICAL || fail "the controller clone differs from the Mac (above)"
+ grep -q "^authority '' lineage '' controls ''$" $REMOTE_OUT && grep -q "^designated ''$" $REMOTE_OUT || fail "a remote authority/lineage/controls/designated problem is not empty (above)"
+-grep -q "^partition schema row19-provider-partition-2 epoch 2 owned 3274 " $REMOTE_OUT || fail "the deployed partition is not schema 2, epoch 2, 3,274 owned (above)"
+-grep -q "^epoch 2 STILL ACTIVE:" $REMOTE_OUT || fail "the epoch-2 activation was not re-verified under v19 (above)"
++grep -q "^partition schema row19-provider-partition-3 epoch 3 owned 0 " $REMOTE_OUT || fail "the deployed partition is not schema 3, epoch 3, owning nothing (above)"
++grep -q "^e3 PINNED, NOT YET ACTIVATED:" $REMOTE_OUT || fail "the e3 pin and the kept e1/e2 proofs were not verified (above)"
+ rm -f $LOCAL $REMOTE_OUT
+-echo "DEPLOY OK - v19 in rsc_screen_ctl; epoch 2 stays active; refit admission holds until fresh v19 receipts and the new pilot adoption (steps 5-6); running jobs continue"
++echo "DEPLOY OK - v20 in rsc_screen_ctl; e3 pinned, not activated: refit admission HOLDS until the close (step 6), fresh receipts and the new pilot adoption; running jobs continue"
+--- migration_v19/lengau.sh	2026-10-21 17:51:13
++++ migration_v20/lengau.sh	2026-10-22 22:44:46
+@@ -1,26 +1,26 @@
+ #!/bin/bash
+-# migration_v19 Mac -> Lengau transport (the migration_v18 lengau.sh, re-pointed). Composes ONE script - remote_lib.sh (the fixed
++# migration_v20 Mac -> Lengau transport (the migration_v19 lengau.sh, re-pointed). Composes ONE script - remote_lib.sh (the fixed
+ # production toolchain root, the drain, lock, git, containment and science-digest checks), the archive checker lengau_archive.py,
+ # any payload files (base64, with their Mac SHA-256) and variables, then the body - and runs it on Lengau with `bash -s`. The
+ # single line tagged transport is the only route off the Mac; there is no test hook (tests substitute that line in private copies
+ # only).
+-#   sourced by preflight_v19.sh, archive_v18.sh, deploy_v19.sh, receipts_v19.sh:   to_lengau <body|-> [--file <rel>]... [--var NAME=VALUE]...
++#   sourced by preflight_v20.sh, archive_v19.sh, deploy_v20.sh, receipts_v20.sh, close_v20.sh:   to_lengau <body|-> [--file <rel>]... [--var NAME=VALUE]...
+ #   direct, from workspace_demo/t1_access:
+-#     bash chpc/migration_v19/lengau.sh rollover_pilot_v19.sh
+-#     bash chpc/migration_v19/lengau.sh adopt_pilot19.sh --file reviews/<record>.md
+-V19_DIR=$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P) || { echo "lengau.sh: cannot locate its folder"; exit 2; }
++#     bash chpc/migration_v20/lengau.sh rollover_pilot_v20.sh
++#     bash chpc/migration_v20/lengau.sh adopt_pilot20.sh --file reviews/<record>.md
++V20_DIR=$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P) || { echo "lengau.sh: cannot locate its folder"; exit 2; }
+ 
+ compose() {   # compose <body file name in this folder, or - for stdin> [--file rel]... [--var NAME=VALUE]...
+   local body=$1 n=0 f s; shift
+-  cat "$V19_DIR/remote_lib.sh" || return 1
+-  printf "IFS= read -r -d '' ARCHIVE_PY <<'V19_PY_EOF'\n" && cat "$V19_DIR/lengau_archive.py" && printf "V19_PY_EOF\n" || return 1
++  cat "$V20_DIR/remote_lib.sh" || return 1
++  printf "IFS= read -r -d '' ARCHIVE_PY <<'V20_PY_EOF'\n" && cat "$V20_DIR/lengau_archive.py" && printf "V20_PY_EOF\n" || return 1
+   while [ $# -gt 0 ]; do
+     case $1 in
+       --file)
+         f=${2:-}; [ -f "$f" ] && [ ! -L "$f" ] || { echo "lengau.sh: payload $f is not a regular file" >&2; return 1; }
+         n=$((n + 1)); s=$(shasum -a 256 -- "$f") || return 1; s=${s%% *}
+         printf 'P%d_PATH=%q\nP%d_SHA=%s\n' $n "$f" $n "$s" || return 1
+-        printf "IFS= read -r -d '' P%d_B64 <<'V19_B64_EOF'\n" $n && base64 -b 76 -i "$f" && printf "\nV19_B64_EOF\n" || return 1
++        printf "IFS= read -r -d '' P%d_B64 <<'V20_B64_EOF'\n" $n && base64 -b 76 -i "$f" && printf "\nV20_B64_EOF\n" || return 1
+         shift 2;;
+       --var)
+         case ${2:-} in [A-Z]*=*) ;; *) echo "lengau.sh: bad --var ${2:-}" >&2; return 1;; esac
+@@ -29,7 +29,7 @@
+     esac
+   done
+   printf 'NP=%d\n' $n
+-  if [ "$body" = - ]; then cat; else cat "$V19_DIR/$body"; fi
++  if [ "$body" = - ]; then cat; else cat "$V20_DIR/$body"; fi
+ }
+ 
+ to_lengau() {   # to_lengau <body|-> [args]: compose, then run on Lengau; returns the remote exit status
+@@ -42,9 +42,9 @@
+   set -u -o pipefail
+   [ -f chpc/row19_screen_admit.py ] && [ -d reviews ] || { echo "run from workspace_demo/t1_access"; exit 2; }
+   case ${1:-} in
+-    rollover_pilot_v19.sh) [ $# = 1 ] || { echo "$1 takes no arguments"; exit 2; };;
+-    adopt_pilot19.sh) [ $# = 3 ] && [ "$2" = --file ] || { echo "usage: lengau.sh adopt_pilot19.sh --file reviews/<record>.md"; exit 2; };;
+-    *) echo "lengau.sh runs only rollover_pilot_v19.sh or adopt_pilot19.sh directly"; exit 2;;
++    rollover_pilot_v20.sh) [ $# = 1 ] || { echo "$1 takes no arguments"; exit 2; };;
++    adopt_pilot20.sh) [ $# = 3 ] && [ "$2" = --file ] || { echo "usage: lengau.sh adopt_pilot20.sh --file reviews/<record>.md"; exit 2; };;
++    *) echo "lengau.sh runs only rollover_pilot_v20.sh or adopt_pilot20.sh directly"; exit 2;;
+   esac
+   to_lengau "$@"
+ fi
+--- migration_v19/lengau_archive.py	2026-10-21 17:51:13
++++ migration_v20/lengau_archive.py	2026-10-22 22:46:49
+@@ -1,26 +1,26 @@
+-"""migration_v19: the Lengau v18_before_v19 recovery archive - its mandatory inventory, its staged construction and its
+-completion certificate (the migration_v18 lengau_archive.py, re-pointed at the adopted v18 state). lengau.sh embeds this file
++"""migration_v20: the Lengau v19_before_v20 recovery archive - its mandatory inventory, its staged construction and its
++completion certificate (the migration_v19 lengau_archive.py, re-pointed at the adopted v19 state). lengau.sh embeds this file
+ in every Lengau script and remote_lib.sh runs it through $T/t1py:
+ 
+-    inventory <T>          every required source exists, is a regular file and carries its v18 identity (read only)
+-    build <T> <ctl_head>   stage, verify, then publish $T/archive_screen/v18_before_v19 atomically (refuses any existing one)
++    inventory <T>          every required source exists, is a regular file and carries its v19 identity (read only)
++    build <T> <ctl_head>   stage, verify, then publish $T/archive_screen/v19_before_v20 atomically (refuses any existing one)
+     verify <T> [--get k]   the complete certificate: exact inventory, every digest, COMPLETE; prints k (ctl_head, review,
+                            qualification, budget, node_evidence, sha256sums, files) when asked
+ 
+ The archive (all files read-only):
+     ctl/HEAD.txt                       the controller clone's HEAD (40 hex)
+-    ctl/<repo path>                    every file the adopted v18 entry pins, its partition reference (e2 48cea639), the e1
+-                                       declaration kept as provenance, the v18 controls review record and the v18 pilot record,
++    ctl/<repo path>                    every file the adopted v19 entry pins, its partition reference (e2 48cea639), the e1
++                                       declaration kept as provenance, the v19 controls review record and the v19 pilot record,
+                                        and REQUIRED_CTL below, from rsc_screen_ctl
+     ctl/untracked/<path>               the three pinned UNTRACKED evidence files of rsc_screen_ctl (UNTRACKED_CTL below, the
+                                        same allowlist as remote_lib.sh CTL_EVIDENCE), each with exactly its pinned sha256
+     gate/...                           the WHOLE gate (regular files only), listed by INVENTORY.gate as captured from the source:
+-                                       the adopted v18 pilot qualification 530df9a2 and its active review among them
++                                       the adopted v19 pilot qualification e123d6e5 and its active review among them
+     jobs/row19_screen_refit_*          the refit job files, listed by INVENTORY.jobs, which MUST include the retained captured
+                                        node document row19_screen_refit_54.nodefail.json at exactly 730ea262
+     ledger/row19_screen_campaign_budget.json   the campaign ledger (a point-in-time reference copy, see below)
+     ec2/activation_e1.json, ec2/activation_e2.json   both activation proofs (provenance; they stay on the root, unchanged;
+-                                       epoch 2 stays active through v19)
++                                       epoch 2 stays active through v20)
+     INVENTORY.gate, INVENTORY.jobs     `sha256  ./path` lines captured from the sources before copying
+     SHA256SUMS                         `sha256  ./path` for every file except SHA256SUMS and COMPLETE, sorted
+     COMPLETE                           written last: schema, the SHA256SUMS digest, ctl_head, qualification, review, budget,
+@@ -33,30 +33,31 @@
+ read ONCE (a complete version, never a torn one) and archived as those bytes; unlike every other member it is not re-read from
+ the source after the copy, so a job ending during the build cannot refuse the archive. It is a reference copy, never a budget
+ authority. A job ending during the build may also add its PBS .out/.err to $T/jobs; INVENTORY.jobs is the set captured at
+-the start, so such a file is simply not in this archive (it is not a v18 identity).
++the start, so such a file is simply not in this archive (it is not a v19 identity).
+ Python 3.6-level code (the Lengau-side rule); run by $T/t1py."""
+ import glob, hashlib, json, os, re, stat, sys
+ 
+-V18_CONTROLS = "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b"
+-V18_ADOPTION = "3e1fe9a1ddd10a6ed160f5f1f9fc3f4f4de707efa3e90259104e7e5670ae1616"
+-V18_ADMIT = "e22607650058ae2cbb8f19fe3e225d886bd2cc733adf02bb93dbc01d65f719af"
+-V18_STATUS = "4710544a3861b688b0f2c89e67a8ba56cf65261a8900d4147658fee576f58232"
+-V18_DESIGNATED = "a96eb59833ff794d3f9ce0ca09ada03d045a29cb9f8a676dad86f8aba85d5584"
+-V18_QUAL = "530df9a208eb1578282ef564708447fd3b32c5fa1366f388f51059ebcfd70839"
++V19_CONTROLS = "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5"
++V19_ADOPTION = "2b9f3c783e1f7ce53cbdafa4a84e66315874512d7afcde6b03783c343ba2939c"
++V19_ADMIT = "27e066c72ed43919a92083fcf3f035cbee232c2137c2e97832f0e41b1113f9df"
++V19_STATUS = "258d43293b15f1ae9457cd323f2a4a7b71af79e83695dff51601037991a7cb45"
++V19_DESIGNATED = "a96eb59833ff794d3f9ce0ca09ada03d045a29cb9f8a676dad86f8aba85d5584"
++V19_QUAL = "e123d6e5d136dfda31ac5f61dd18a2cce31ecc8dea9f1ad27be73d427cc50b02"
+ E1_PATH, E1_SHA = "chpc/row19_partition_e1.json", "8d1de408b6ef9dc66d4736b6138536de6591f0d29ebdd6fd00a6e43307225608"
+ E2_PATH, E2_SHA = "chpc/row19_partition_e2.json", "48cea639e823abbf39238e3dd7c075f63ba9eca8467009348510e2943ed56fa6"
+-V18_REC = ("reviews/2026-10-20_v18r2_mig18_codex_review.md", "11ebc12467a50a125f4b583c4d673274e2ff3ea1a2ac0d3e6c03f3725c8cc2c8")
+-V18_PILOT_REC = ("reviews/2026-10-20_pilot_v18_operator_record.md", "67f2b4383a1b25d7e6921f0c8252514a6fe797e37419af3ddfbb8116753fae87")
++V19_REC = ("reviews/2026-10-22_controls_v19_operator_record.md", "afd2b1560b2ea40f913d28eb71da49b383903e281d8edb3291c0f853bb7da27d")
++V19_PILOT_REC = ("reviews/2026-10-22_pilot_v19_operator_record.md", "26aa4f8dc52be9d7f67fc493bd6002ae4d3b29ca73b77ce9c30082336ff4bde6")
+ NODE_EV_NAME, NODE_EV_SHA = "row19_screen_refit_54.nodefail.json", "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f"
+-SCHEMA = "row19-screen-archive-v18-before-v19-1"
++SCHEMA = "row19-screen-archive-v19-before-v20-1"
+ CTL_REL = "rsc_screen_ctl/workspace_demo/t1_access"
+-REQUIRED_CTL = {"chpc/row19_screen_controls.json": V18_CONTROLS, "chpc/row19_screen_controls_adoption.json": V18_ADOPTION,
+-                "chpc/row19_screen_admit.py": V18_ADMIT, "chpc/row19_screen_status.py": V18_STATUS,
+-                "chpc/row19_screen_designated.json": V18_DESIGNATED, E1_PATH: E1_SHA, E2_PATH: E2_SHA,
+-                V18_REC[0]: V18_REC[1], V18_PILOT_REC[0]: V18_PILOT_REC[1],
++REQUIRED_CTL = {"chpc/row19_screen_controls.json": V19_CONTROLS, "chpc/row19_screen_controls_adoption.json": V19_ADOPTION,
++                "chpc/row19_screen_admit.py": V19_ADMIT, "chpc/row19_screen_status.py": V19_STATUS,
++                "chpc/row19_screen_designated.json": V19_DESIGNATED, E1_PATH: E1_SHA, E2_PATH: E2_SHA,
++                V19_REC[0]: V19_REC[1], V19_PILOT_REC[0]: V19_PILOT_REC[1],
+                 "chpc/row19_screen_budget.json": None, "chpc/row19_screen_manifest.json": None,
+-                "chpc/row22_bank_status.py": None, "chpc/row22_bank_submit.py": None}
+-# the controller clone's pinned untracked evidence (v16 live preflight 17 Oct 2026, carried unchanged through v18; row-23 bench
++                "chpc/row22_bank_status.py": None, "chpc/row22_bank_submit.py": None,
++                "aws_ec2/prod_authority.py": None}   # v20: the Mac authority the deploy replaces (whatever bytes the clone holds)
++# the controller clone's pinned untracked evidence (v16 live preflight 17 Oct 2026, carried unchanged through v19; row-23 bench
+ # comparator / EC2 qualification permit copies written 12 Oct 18:39, historical evidence, not authority for this migration):
+ # mandatory archive members
+ UNTRACKED_CTL = {"aws_ec2/ec2_release_state.json": "80ba0ac599f617f8c0ee020d75e7c53dcd30c519d783a76dcb6a2f6b9f1a1d39",
+@@ -68,7 +69,7 @@
+ LEDGER = "ledger/row19_screen_campaign_budget.json"
+ ACT1 = "ec2/activation_e1.json"
+ ACT2 = "ec2/activation_e2.json"
+-STAGING = ".v18_before_v19.staging"
++STAGING = ".v19_before_v20.staging"
+ LINE = re.compile(r"^([0-9a-f]{64})  \./([A-Za-z0-9._+=@,:~-]+(?:/[A-Za-z0-9._+=@,:~-]+)*)$")
+ HEX40 = re.compile(r"^[0-9a-f]{40}$")
+ HEX64 = re.compile(r"^[0-9a-f]{64}$")
+@@ -125,25 +126,25 @@
+             "ledger": os.path.join(T, "row19_screen_campaign", "budget.json"),
+             "act1": os.path.join(T, "row19_screen", "ec2", "activation_e1.json"),
+             "act2": os.path.join(T, "row19_screen", "ec2", "activation_e2.json"),
+-            "parent": os.path.join(T, "archive_screen"), "A": os.path.join(T, "archive_screen", "v18_before_v19")}
++            "parent": os.path.join(T, "archive_screen"), "A": os.path.join(T, "archive_screen", "v19_before_v20")}
+ 
+ 
+ def ctl_inventory(controls_bytes):
+-    """{repo path: required sha or None} for the controller files: REQUIRED_CTL plus every v18 pin and its partition."""
+-    if sha_bytes(controls_bytes) != V18_CONTROLS:
+-        raise Refuse("the controller controls are not the adopted v18 bytes 452b82df")
++    """{repo path: required sha or None} for the controller files: REQUIRED_CTL plus every v19 pin and its partition."""
++    if sha_bytes(controls_bytes) != V19_CONTROLS:
++        raise Refuse("the controller controls are not the adopted v19 bytes 111c3107")
+     v = json.loads(controls_bytes.decode())["versions"][-1]
+-    if v.get("version") != 18 or not isinstance(v.get("files"), dict) or not v["files"]:
+-        raise Refuse("the adopted controls' latest entry is not version 18 with pinned files")
++    if v.get("version") != 19 or not isinstance(v.get("files"), dict) or not v["files"]:
++        raise Refuse("the adopted controls' latest entry is not version 19 with pinned files")
+     if v.get("partition") != {"path": E2_PATH, "sha256": E2_SHA}:
+-        raise Refuse("the adopted v18 entry does not pin the partition e2 48cea639")
++        raise Refuse("the adopted v19 entry does not pin the partition e2 48cea639")
+     inv = dict(REQUIRED_CTL)
+     for f, hsh in v["files"].items():
+         if not isinstance(hsh, str) or not HEX64.match(hsh) or f.startswith("/") or ".." in f.split("/") \
+                 or f.startswith(UNTRACKED_PREFIX) or f in UNTRACKED_CTL:
+-            raise Refuse("malformed v18 pin %r" % f)
++            raise Refuse("malformed v19 pin %r" % f)
+         if inv.get(f) not in (None, hsh):
+-            raise Refuse("v18 pin for %s disagrees with the adopted identity" % f)
++            raise Refuse("v19 pin for %s disagrees with the adopted identity" % f)
+         inv[f] = hsh
+     return inv
+ 
+@@ -178,7 +179,7 @@
+         if need not in gate:
+             raise Refuse("the gate has no %s" % need)
+     for f in gate:
+-        mem.append(("gate/" + f, os.path.join(P["G"], f), V18_QUAL if f == "qualified_refit_job1.json" else None))
++        mem.append(("gate/" + f, os.path.join(P["G"], f), V19_QUAL if f == "qualified_refit_job1.json" else None))
+     canon(P["C"], "the controller clone"); canon(P["jobs"], "the job-script directory")
+     jobs = sorted(glob.glob(os.path.join(P["jobs"], "row19_screen_refit_*")))
+     if not jobs:
+@@ -201,7 +202,7 @@
+     for a, src, want in mem:
+         b = read_regular(src)
+         if want and sha_bytes(b) != want:
+-            raise Refuse("%s is not its v18 identity %s" % (src, want[:8]))
++            raise Refuse("%s is not its v19 identity %s" % (src, want[:8]))
+         n += 1
+     print("archive sources complete: %d files (ctl %d incl. %d pinned untracked evidence, gate %d, jobs %d incl. the node document, ledger 1, ec2 2)" % (
+         n, sum(a.startswith("ctl/") for a, _, _ in mem), len(UNTRACKED_CTL), sum(a.startswith("gate/") for a, _, _ in mem),
+@@ -274,7 +275,7 @@
+             sorted(want_ctl - have_ctl)[:3], sorted(have_ctl - want_ctl)[:3]))
+     for f, want in inv.items():
+         if want and sums["ctl/" + f] != want:
+-            raise Refuse("ctl/%s is not its v18 identity %s" % (f, want[:8]))
++            raise Refuse("ctl/%s is not its v19 identity %s" % (f, want[:8]))
+     for f, want in UNTRACKED_CTL.items():
+         if sums["ctl/" + UNTRACKED_PREFIX + f] != want:
+             raise Refuse("ctl/%s%s is not its pinned untracked evidence identity %s" % (UNTRACKED_PREFIX, f, want[:8]))
+@@ -288,8 +289,8 @@
+             raise Refuse("%s/ is not exactly the captured INVENTORY.%s" % (part, part))
+         if part == "jobs" and (not have or not all(os.path.basename(f).startswith("row19_screen_refit_") for f in have)):
+             raise Refuse("jobs/ holds no refit job script, or another file")
+-    if sums.get("gate/qualified_refit_job1.json") != V18_QUAL or ident["qualification"] != V18_QUAL:
+-        raise Refuse("the archived gate qualification is not the adopted v18 530df9a2")
++    if sums.get("gate/qualified_refit_job1.json") != V19_QUAL or ident["qualification"] != V19_QUAL:
++        raise Refuse("the archived gate qualification is not the adopted v19 e123d6e5")
+     if sums.get("jobs/" + NODE_EV_NAME) != NODE_EV_SHA or ident["node_evidence"] != NODE_EV_SHA:
+         raise Refuse("the archived jobs/ do not retain the captured node document %s at 730ea262" % NODE_EV_NAME)
+     if "gate/review_refit.json" not in sums or sums["gate/review_refit.json"] != ident["review"]:
+@@ -349,7 +350,7 @@
+             continue
+         pre[a] = sha_bytes(read_regular(src))
+         if want and pre[a] != want:
+-            raise Refuse("%s is not its v18 identity %s" % (src, want[:8]))
++            raise Refuse("%s is not its v19 identity %s" % (src, want[:8]))
+     stg = canon(os.path.join(P["parent"], "%s.%d" % (STAGING, os.getpid())), "the staging directory")
+     os.mkdir(stg)
+     sums = {}; inv = {"gate": {}, "jobs": {}}
+@@ -380,7 +381,7 @@
+     with open(os.path.join(stg, "SHA256SUMS"), "xb") as fh:
+         fh.write(sb)
+     with open(os.path.join(stg, "COMPLETE"), "xb") as fh:
+-        fh.write(complete_text(sha_bytes(sb), head, V18_QUAL, sums["gate/review_refit.json"],
++        fh.write(complete_text(sha_bytes(sb), head, V19_QUAL, sums["gate/review_refit.json"],
+                                sums["ctl/chpc/row19_screen_budget.json"], sums["jobs/" + NODE_EV_NAME]).encode())
+     for d, _, files in os.walk(stg):
+         for n in files:
+--- migration_v19/mac_archive.py	2026-10-21 17:53:07
++++ migration_v20/mac_archive.py	2026-10-22 22:46:37
+@@ -1,19 +1,19 @@
+-"""migration_v19: the Mac v18_before_v19 archive chpc/results/archive/row19_screen_v18_before_v19/ - its exact inventory, staged
+-construction and completion certificate (the migration_v18 mac_archive.py, re-pointed). Used by archive_v18.sh (build, verify)
+-and v19_package.py check-promoted (deploy and every later step). promote_v19.py reads the SAME archive through the builder's
+-own check (build_v19.archive_problems).
++"""migration_v20: the Mac v19_before_v20 archive chpc/results/archive/row19_screen_v19_before_v20/ - its exact inventory, staged
++construction and completion certificate (the migration_v19 mac_archive.py, re-pointed). Used by archive_v19.sh (build, verify)
++and v20_package.py check-promoted (deploy and every later step). promote_v20.py reads the SAME archive through the builder's
++own check (build_v20.archive_problems).
+ 
+-    python3 chpc/migration_v19/mac_archive.py build <lengau SHA256SUMS sha256> <lengau budget sha256>   (from workspace_demo/t1_access)
+-    python3 chpc/migration_v19/mac_archive.py verify [--get lengau_sha256sums]
++    python3 chpc/migration_v20/mac_archive.py build <lengau SHA256SUMS sha256> <lengau budget sha256>   (from workspace_demo/t1_access)
++    python3 chpc/migration_v20/mac_archive.py verify [--get lengau_sha256sums]
+ 
+-The inventory is build_v19.ARCHIVE itself (11 members: the v18 bytes of the five replaced controllers - admission e2260765,
+-status view 4710544a, EC2 state 7bdedafc, E2Q module 5ceba551 and ingestion 277c51b0 -, the v18 controls 452b82df and adoption
+-record 3e1fe9a1, the adopted v18 pilot qualification 530df9a2
+-and its operator pilot record 67f2b438, the committed budget phases and the RETAINED captured node document of refit job 54,
+-730ea262), plus SHA256SUMS (`sha256  name`, sorted, those 11) and COMPLETE, a JSON certificate written last:
++The inventory is build_v20.ARCHIVE itself (9 members: the v19 bytes of the two replaced controllers - the partition module
++eabf50c3 and the admission 27e066c7 - and of the replaced Mac authority prod_authority.py ba726a19, the v19 controls 111c3107
++and adoption record 2b9f3c78, the adopted v19 pilot qualification e123d6e5 and its operator pilot record 26aa4f8d, the
++committed budget phases and the RETAINED captured node document of refit job 54, 730ea262), plus SHA256SUMS (`sha256  name`,
++sorted, those 9) and COMPLETE, a JSON certificate written last:
+     {"budget": <the budget member's sha256>, "lengau_sha256sums": <the Lengau archive's SHA256SUMS digest>,
+-     "schema": "row19-screen-mac-archive-v18-before-v19-1", "sha256sums": <the digest of SHA256SUMS>}
+-(build_v19.archive_problems reads COMPLETE as JSON and requires schema and sha256sums). Every member carries its fixed v18
++     "schema": "row19-screen-mac-archive-v19-before-v20-1", "sha256sums": <the digest of SHA256SUMS>}
++(build_v20.archive_problems reads COMPLETE as JSON and requires schema and sha256sums). Every member carries its fixed v19
+ digest (the budget: its committed bytes, which must equal the budget the Lengau archive certifies). Every file is read-only. A
+ missing, extra, substituted, writable or malformed entry, a staging directory left by an interrupted build, or an archive the
+ builder's archive_problems does not accept refuses; nothing is ever overwritten or removed."""
+@@ -21,9 +21,9 @@
+ 
+ HERE = os.path.dirname(os.path.abspath(__file__))
+ T1 = os.path.abspath(os.path.join(HERE, "..", ".."))
+-BUILDER = "chpc/candidate_v19_oploss/build_v19.py"
+-BUILDER_SHA = "db66d9d5b0bd9f98110ebde7eaa465ab6011e442558784af7c3aeaeef532e7f8"
+-N_MEMBERS = 11
++BUILDER = "chpc/candidate_v20_handback/build_v20.py"
++BUILDER_SHA = "6e82bb13d1e7015866eeccecc7171b0107c42e734c1b434a97f35d4133f40999"
++N_MEMBERS = 9
+ LINE = re.compile(r"^([0-9a-f]{64})  ([A-Za-z0-9._-]+)$")
+ HEX64 = re.compile(r"^[0-9a-f]{64}$")
+ 
+@@ -33,13 +33,13 @@
+ 
+ 
+ def builder():
+-    """build_v19 (the pinned bytes only): its ARCHIVE, ARCH, ARCH_SCHEMA and archive_problems are the inventory."""
++    """build_v20 (the pinned bytes only): its ARCHIVE, ARCH, ARCH_SCHEMA and archive_problems are the inventory."""
+     p = os.path.join(T1, BUILDER)
+     if not os.path.isfile(p) or hashlib.sha256(open(p, "rb").read()).hexdigest() != BUILDER_SHA:
+         raise Refuse("%s is not the pinned builder %s" % (BUILDER, BUILDER_SHA[:8]))
+     sys.path.insert(0, os.path.dirname(p))
+     try:
+-        import build_v19 as B
++        import build_v20 as B
+     finally:
+         sys.path.pop(0)
+     if len(B.ARCHIVE) != N_MEMBERS:
+@@ -83,7 +83,7 @@
+ def verify_dir(B, A, final=True):
+     """The identities of a complete Mac archive at A, or Refuse. final: A is the published path (also the builder's view)."""
+     if not os.path.isdir(A) or os.path.islink(A):
+-        raise Refuse("%s does not exist as a real directory (run archive_v18.sh first)" % os.path.relpath(A, T1))
++        raise Refuse("%s does not exist as a real directory (run archive_v19.sh first)" % os.path.relpath(A, T1))
+     names = set(os.listdir(A))
+     want = set(B.ARCHIVE) | {"SHA256SUMS", "COMPLETE"}
+     if names != want:
+@@ -107,7 +107,7 @@
+         if sha(read_regular(os.path.join(A, name))) != got[name]:
+             raise Refuse("%s/%s does not match SHA256SUMS" % (B.ARCH, name))
+         if pin and got[name] != pin:
+-            raise Refuse("%s/%s is not the adopted v18 bytes %s" % (B.ARCH, name, pin[:8]))
++            raise Refuse("%s/%s is not the adopted v19 bytes %s" % (B.ARCH, name, pin[:8]))
+     cb = read_regular(os.path.join(A, "COMPLETE"))
+     try:
+         comp = json.loads(cb.decode())
+@@ -123,7 +123,7 @@
+     if final:
+         why = B.archive_problems()                  # the reviewed promoter's own view of the same archive
+         if why:
+-            raise Refuse("build_v19.archive_problems refuses the archive: %s" % why[:3])
++            raise Refuse("build_v20.archive_problems refuses the archive: %s" % why[:3])
+     return comp
+ 
+ 
+@@ -154,7 +154,7 @@
+     for name, (src, pin) in B.ARCHIVE.items():
+         b = read_regular(os.path.join(T1, src))
+         if pin and sha(b) != pin:
+-            raise Refuse("%s is not the adopted v18 bytes %s" % (src, pin[:8]))
++            raise Refuse("%s is not the adopted v19 bytes %s" % (src, pin[:8]))
+         data[name] = b
+     if sha(data["row19_screen_budget.json"]) != lengau_budget:
+         raise Refuse("the Mac committed budget phases (%s) are not the controller clone's archived budget (%s)" % (
+@@ -200,7 +200,7 @@
+     except Refuse as e:
+         print("REFUSED: Mac archive: %s" % e); return 3
+     B = builder()
+-    print("Mac archive %s verifies: %d members, SHA256SUMS %s, budget %s, Lengau SHA256SUMS %s; build_v19.archive_problems: []" % (
++    print("Mac archive %s verifies: %d members, SHA256SUMS %s, budget %s, Lengau SHA256SUMS %s; build_v20.archive_problems: []" % (
+         B.ARCH, N_MEMBERS, comp["sha256sums"][:16], comp["budget"][:16], comp["lengau_sha256sums"][:16]))
+     for name in sorted(B.ARCHIVE):
+         print("  %s" % name)
+--- migration_v19/package_qual_v19.py	2026-10-21 17:51:13
++++ migration_v20/package_qual_v20.py	2026-10-22 22:47:38
+@@ -1,20 +1,20 @@
+-"""migration_v19 step 6.3 (Mac): package the REGENERATED v19 pilot qualification for the operator pilot record, on the
+-chpc/migration_v18/package_qual_v18.py pattern. Writes ONLY chpc/qualification_v19_<qsha8>/ (staged, verified, then renamed into
++"""migration_v20 step 8.3 (Mac): package the REGENERATED v20 pilot qualification for the operator pilot record, on the
++chpc/migration_v19/package_qual_v19.py pattern. Writes ONLY chpc/qualification_v20_<qsha8>/ (staged, verified, then renamed into
+ place; every file read-only). Commit it with explicit paths and write the operator pilot record carrying
+     ADOPT row19-screen-pilot role=refit qualification=<qsha> max_job=100
+ 
+-    python3 chpc/migration_v19/package_qual_v19.py [--dry-run]           (from workspace_demo/t1_access)
++    python3 chpc/migration_v20/package_qual_v20.py [--dry-run]           (from workspace_demo/t1_access)
+ 
+ Refuses unless the Mac qualified_refit_job1.json (written by the ONE metadata-only `--qualify 1` call) is NOT any earlier
+-pilot qualification (v18 530df9a2, v17 8fdbf48e, v16 2c7a7ef1, v15 3c605514), is a refit qualification of job 1 from production evidence with
+-an alarm-free receipt, and its verifier document (in the receipts folder) reports generation 19 with the v19 controls
+-111c3107. The package holds exactly:
++pilot qualification (v19 e123d6e5, v18 530df9a2, v17 8fdbf48e, v16 2c7a7ef1, v15 3c605514), is a refit qualification of job 1 from production evidence with
++an alarm-free receipt, and its verifier document (in the receipts folder) reports generation 20 with the v20 controls
++4e64982b. The package holds exactly:
+   qualified_refit_job1.json                            the regenerated qualification
+   verify_refit_<stamp>.json                            the verifier document it names (bytes = its bound digest)
+   watch_refit_<stamp>.json (each)                      the receipt the --qualify call published, and every watch receipt the
+                                                        qualification names
+-  mac_archive_v18_before_v19.SHA256SUMS                the Mac archive's SHA256SUMS
+-  lengau_archive_v18_before_v19.SHA256SUMS.txt         the Lengau archive's SHA256SUMS (kept on the Mac by archive_v18.sh)
++  mac_archive_v19_before_v20.SHA256SUMS                the Mac archive's SHA256SUMS
++  lengau_archive_v19_before_v20.SHA256SUMS.txt         the Lengau archive's SHA256SUMS (kept on the Mac by archive_v19.sh)
+   SHA256SUMS                                           `sha256  name` of the files above, sorted
+ A re-run on an existing package that verifies with exactly these bytes reports it and writes nothing; anything else refuses."""
+ import argparse, hashlib, json, os, re, shutil, sys
+@@ -23,13 +23,14 @@
+ T1 = os.path.abspath(os.path.join(HERE, "..", ".."))
+ REC = os.path.join(T1, "chpc", "results", "row19_screen", "receipts")
+ QUAL = os.path.join(REC, "qualified_refit_job1.json")
+-OLD_QUALS = {"530df9a208eb1578282ef564708447fd3b32c5fa1366f388f51059ebcfd70839": "v18 530df9a2",
++OLD_QUALS = {"e123d6e5d136dfda31ac5f61dd18a2cce31ecc8dea9f1ad27be73d427cc50b02": "v19 e123d6e5",
++             "530df9a208eb1578282ef564708447fd3b32c5fa1366f388f51059ebcfd70839": "v18 530df9a2",
+              "8fdbf48e998e39a8c0b12900d75e3dfaf4ab64396ade08a17a5cab549c0b5faa": "v17 8fdbf48e",
+              "2c7a7ef1fb903cf0fa75701d2a56d216e98faf14e6638da891afd8bed0bfea44": "v16 2c7a7ef1"}
+ OLD_PREFIX = {"3c605514": "v15 3c605514"}
+-V19_CONTROLS = "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5"
+-MAC_SUMS = os.path.join(T1, "chpc", "results", "archive", "row19_screen_v18_before_v19", "SHA256SUMS")
+-LENGAU_SUMS = os.path.join(T1, "chpc", "results", "archive", "row19_screen_v18_before_v19.lengau_SHA256SUMS.txt")
++V20_CONTROLS = "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c"
++MAC_SUMS = os.path.join(T1, "chpc", "results", "archive", "row19_screen_v19_before_v20", "SHA256SUMS")
++LENGAU_SUMS = os.path.join(T1, "chpc", "results", "archive", "row19_screen_v19_before_v20.lengau_SHA256SUMS.txt")
+ WATCH = re.compile(r"watch_refit_\d{8}T\d{6}Z\.json")
+ 
+ 
+@@ -45,7 +46,7 @@
+     qsha = sha(QUAL)
+     old = OLD_QUALS.get(qsha) or OLD_PREFIX.get(qsha[:8])
+     if old:
+-        return qsha, {}, ["the Mac qualification is still the %s (not regenerated under v19)" % old]
++        return qsha, {}, ["the Mac qualification is still the %s (not regenerated under v20)" % old]
+     q = json.load(open(QUAL))
+     rcpt = q.get("receipt") or {}
+     if q.get("role") != "refit" or q.get("qualified_job") != 1 or q.get("production") is not True:
+@@ -61,8 +62,8 @@
+         if (q.get("bound") or {}).get("verify_file_sha256") not in (None, sha(vp)):
+             why.append("the verifier document %s is not the bytes the qualification binds" % vf)
+         g = (json.load(open(vp)) or {}).get("generation") or {}
+-        if not (g.get("version") == 19 and g.get("latest") == 19 and g.get("controls_problem") == "" and g.get("controls_sha256") == V19_CONTROLS):
+-            why.append("the verifier generation is not v19 (version %r, controls %s)" % (g.get("version"), str(g.get("controls_sha256"))[:12]))
++        if not (g.get("version") == 20 and g.get("latest") == 20 and g.get("controls_problem") == "" and g.get("controls_sha256") == V20_CONTROLS):
++            why.append("the verifier generation is not v20 (version %r, controls %s)" % (g.get("version"), str(g.get("controls_sha256"))[:12]))
+         own = "watch_refit_" + vf[len("verify_refit_"):] if vf.startswith("verify_refit_") else None
+         if own:
+             if not os.path.isfile(os.path.join(REC, own)):
+@@ -74,9 +75,9 @@
+             why.append("the qualification names %s, which is not in %s" % (n, os.path.relpath(REC, T1)))
+         else:
+             files[n] = os.path.join(REC, n)
+-    for name, p in (("mac_archive_v18_before_v19.SHA256SUMS", MAC_SUMS), ("lengau_archive_v18_before_v19.SHA256SUMS.txt", LENGAU_SUMS)):
++    for name, p in (("mac_archive_v19_before_v20.SHA256SUMS", MAC_SUMS), ("lengau_archive_v19_before_v20.SHA256SUMS.txt", LENGAU_SUMS)):
+         if not os.path.isfile(p):
+-            why.append("%s is missing (archive_v18.sh)" % os.path.relpath(p, T1))
++            why.append("%s is missing (archive_v19.sh)" % os.path.relpath(p, T1))
+         else:
+             files[name] = p
+     return qsha, files, why
+@@ -104,7 +105,7 @@
+     qsha, files, why = plan()
+     if why:
+         print("PACKAGE REFUSED:"); [print("  -", w) for w in why]; return 3
+-    dst = os.path.join(T1, "chpc", "qualification_v19_%s" % qsha[:8])
++    dst = os.path.join(T1, "chpc", "qualification_v20_%s" % qsha[:8])
+     if os.path.lexists(dst):
+         w = verify(dst, files)
+         if w:
+--- migration_v19/preflight_v19.sh	2026-10-21 17:53:16
++++ migration_v20/preflight_v20.sh	2026-10-22 22:47:38
+@@ -1,12 +1,14 @@
+ #!/bin/bash
+-# Migration v18 -> v19, step 1 (Mac + Lengau; READ-ONLY): the FULL live read-only preflight (the preflight_v18.sh pattern).
++# Migration v19 -> v20, step 1 (Mac + Lengau; READ-ONLY): the FULL live read-only preflight (the preflight_v19.sh pattern).
+ # Refuses unless:
+-#  Mac (v19_package.py preflight): the pinned package is exact and committed (candidate controls 111c3107, map 8256a584, the
+-#          builder, the promoter, the five promoted sources and the E2Q3 manifest, the retained node evidence 730ea262) AND the operator adoption record
+-#          is pinned (the v19_package.py record pin), committed and carries the v19 literal IN HEAD; the live chpc/ controls and adoption
+-#          are the ADOPTED v18 bytes (452b82df / 3e1fe9a1), committed; each of the five promoted pins holds its v18 bytes and the new E2Q3 manifest path is absent,
+-#          committed; `promote_v19.py --check` exits 0; the e2 partition is the committed 48cea639;
+-#          the Mac qualified_refit_job1.json is the v18 pilot qualification 530df9a2 and its pilot record 67f2b438 is committed;
++#  Mac (v20_package.py preflight): the pinned package is exact and committed (candidate controls 4e64982b, map b3335953, the
++#          builder, the promoter, the two promoted controllers, the e3 closing declaration ca87fb1d, the Mac authority 20de63d2, the
++#          retained node evidence 730ea262) AND the operator adoption record is pinned (the v20_package.py record pin), committed and
++#          carries the v20 literal IN HEAD; the live chpc/ controls and adoption are the ADOPTED v19 bytes (111c3107 / 2b9f3c78),
++#          committed; the two promoted pins and the Mac authority hold their v19 bytes and the new e3 path is absent;
++#          `promote_v20.py --check` exits 0; the e2 partition is the committed 48cea639; `prod_authority.py close-check` reports the
++#          EC2 close preconditions MET (RUNBOOK step 0b done);
++#          the Mac qualified_refit_job1.json is the v19 pilot qualification e123d6e5 and its pilot record 26aa4f8d is committed;
+ #          the budget phases are committed; no Mac archive, Lengau-SHA256SUMS copy or staging directory exists; a successful Mac
+ #          process inventory shows no refill, slot-watch, controller, EC2-authority or EC2-reaper process; a shared non-blocking
+ #          probe of the Mac EC2 authority lock succeeds.
+@@ -14,26 +16,28 @@
+ #          runs on the login node (checked process inventory); both lock files exist and a shared non-blocking probe succeeds on
+ #          each; every fixed root and every authority/destination path a later step uses is its own physical path in its scope,
+ #          the controller and scientific clone roots disjoint (remote_lib.sh); the controller clone is clean (ctl_clean: only
+-#          the three pinned untracked evidence files) at the adopted v18 (controls 452b82df, adoption 3e1fe9a1, the five files v19
+-#          replaces at their v18 bytes, the v18 controls record and the v18 pilot record);
+-#          the gate holds qualified_refit_job1.json 530df9a2 and an active review_refit.json bound to it, and the v18 review is
+-#          not yet retired; epoch 2 is THE canonical activation under the adopted v18 (activation_e2.json; e1 kept); the
+-#          captured node document $T/jobs/row19_screen_refit_54.nodefail.json is exactly 730ea262; no archive v18_before_v19,
+-#          staging directory or v19 deploy proof exists; no budget phase is pending and the ledger cap equals the committed
+-#          81,000 phase; every archive source exists with its v18 identity (lengau_archive.py inventory); the job clone's
++#          the three pinned untracked evidence files) at the adopted v19 (controls 111c3107, adoption 2b9f3c78, the two files v20
++#          replaces at their v19 bytes, the v19 controls record and the v19 pilot record);
++#          the gate holds qualified_refit_job1.json e123d6e5 and an active review_refit.json bound to it, the v19 review is not yet
++#          retired and the v18 review is (left by migration_v19); epoch 2 is THE canonical activation under the adopted v19
++#          (activation_e2.json; e1 kept) and no activation_e3.json exists; the root's installed authority inventory shows no live or
++#          owning EC2 attempt (the Lengau view of step 0b); the
++#          captured node document $T/jobs/row19_screen_refit_54.nodefail.json is exactly 730ea262; no archive v19_before_v20,
++#          staging directory or v20 deploy proof exists; no budget phase is pending and the ledger cap equals the committed
++#          81,000 phase; every archive source exists with its v19 identity (lengau_archive.py inventory); the job clone's
+ #          COMPLETE eight-file science digest list is printed.
+ #  Every observation is checked: a failed or empty process inventory, a lock that cannot be probed, a failed git status or a
+ #  failed digest REFUSES; none is read as "drained" or "clean". Workers and reapers are never stopped.
+ #  --local-only is NOT the step-1 preflight: the full run (with ssh) is the first live read-only observation.
+-# Usage (from workspace_demo/t1_access):  bash chpc/migration_v19/preflight_v19.sh [--local-only]
+-# Production route only (lengau.sh); tests run private copies (test_migration_v19.py).
++# Usage (from workspace_demo/t1_access):  bash chpc/migration_v20/preflight_v20.sh [--local-only]
++# Production route only (lengau.sh); tests run private copies (test_migration_v20.py).
+ set -u -o pipefail
+ fail() { echo "PREFLIGHT REFUSED: $*"; exit 3; }
+ [ -f chpc/row19_screen_admit.py ] && [ -d reviews ] || fail "run from workspace_demo/t1_access"
+ case ${1:-} in ""|--local-only) ;; *) fail "unknown argument $1";; esac
+-python3 chpc/migration_v19/v19_package.py preflight || fail "the Mac half refused (above)"
++python3 chpc/migration_v20/v20_package.py preflight || fail "the Mac half refused (above)"
+ [ "${1:-}" = "--local-only" ] && { echo "PREFLIGHT (Mac only) OK - the Lengau checks were NOT run; run without --local-only before step 2"; exit 0; }
+-. chpc/migration_v19/lengau.sh || fail "cannot load chpc/migration_v19/lengau.sh"
++. chpc/migration_v20/lengau.sh || fail "cannot load chpc/migration_v20/lengau.sh"
+ to_lengau - <<'REMOTE' || fail "Lengau checks failed (above)"
+ echo "lengau tools: $(git --version 2>&1 | head -1); $(flock --version 2>&1 | head -1); system $(python3 --version 2>&1 | head -1); t1py $("$T/t1py" -c 'import sys; print(sys.version.split()[0])' 2>&1 | head -1)"
+ "$T/t1py" -c 'import sys; sys.exit(0 if sys.version_info[:2] >= (3, 6) else 1)' || die "\$T/t1py is not a Python >= 3.6 (the Lengau-side code needs it)"
+@@ -46,28 +50,35 @@
+ # path resolution: every controller, gate, ec2 and archive path a later step reads as authority or writes is its own physical path
+ for f in chpc/row19_screen_controls.json chpc/row19_screen_controls_adoption.json chpc/row19_screen_designated.json \
+          chpc/row19_screen_manifest.json chpc/row19_screen_budget.json chpc/row19_partition_e2.json; do src_file "$C/$f" "$CR" "controller authority $f"; done
+-while read -r f s; do src_file "$C/$f" "$CR" "controller file v19 replaces: $f"; pin "$f" "$s" "controller clone $f (v18)"; done <<<"$V18_REPLACED"
+-for f in $V19_NEW; do dst_absent "$C/$f" "$CR" "new v19 data path $f"; done
+-for rs in "$V18_REC" "$V18_PILOT_REC"; do
++while read -r f s; do src_file "$C/$f" "$CR" "controller file v20 replaces: $f"; pin "$f" "$s" "controller clone $f (v19)"; done <<<"$V19_REPLACED"
++for f in $V20_NEW; do dst_absent "$C/$f" "$CR" "new v20 data path $f"; done
++for rs in "$V19_REC" "$V19_PILOT_REC"; do
+   f=${rs%% *}; s=${rs##* }; src_file "$C/$f" "$CR" "controller record $f"; pin "$f" "$s" "controller clone $f"
+   (git ls-files --error-unmatch -- "$f" >/dev/null 2>&1 && git diff --quiet HEAD -- "$f") || die "$f is not committed in the controller clone"
+ done
+ dst_dir "$C/chpc" "$CR" "controller chpc directory"; dst_dir "$C/reviews" "$CR" "controller reviews directory"
+ src_file "$G/qualified_refit_job1.json" "$GS" "gate qualification"; src_file "$G/review_refit.json" "$GS" "active gate review"
+ [ -e "$G/scaleup_refit_v16.json" ] || [ -L "$G/scaleup_refit_v16.json" ] && src_file "$G/scaleup_refit_v16.json" "$GS" "gate scale-up adoption"
+-dst_dir "$R" "$GS" "retired-review directory"; dst_absent "$RETIRED_V18" "$GS" "v18 review retirement target"
+-src_file "$RETIRED_V17" "$GS" "the retired v17 review (left by migration_v18)"
+-dst_dir "$PS" "$T" "archive parent"; dst_absent "$A" "$PS" "archive v18_before_v19"; dst_absent "$PROOF" "$PS" "v19 deploy proof"
+-! ls -d "$PS"/.v18_before_v19.staging* >/dev/null 2>&1 || die "an interrupted archive build left $PS/.v18_before_v19.staging*; inspect it by hand"
++dst_dir "$R" "$GS" "retired-review directory"; dst_absent "$RETIRED_V19" "$GS" "v19 review retirement target"
++src_file "$RETIRED_V18" "$GS" "the retired v18 review (left by migration_v19)"
++dst_absent "$ACT3" "$GS" "the epoch-3 activation (the close happens after the deploy)"
++dst_dir "$PS" "$T" "archive parent"; dst_absent "$A" "$PS" "archive v19_before_v20"; dst_absent "$PROOF" "$PS" "v20 deploy proof"
++! ls -d "$PS"/.v19_before_v20.staging* >/dev/null 2>&1 || die "an interrupted archive build left $PS/.v19_before_v20.staging*; inspect it by hand"
+ echo "paths resolved: controller, gate, ec2, archive and proof paths are their own physical paths; controller and science roots disjoint"
+-v18_current
+-pin "$G/qualified_refit_job1.json" $V18_QUAL "gate qualification (adopted v18 530df9a2)"
+-grep -q -- "$V18_QUAL" "$G/review_refit.json" || die "the active review is not bound to qualification 530df9a2"
+-[ -e "$G/scaleup_refit_v16.json" ] && echo "gate: scaleup_refit_v16.json present (not generation-bound; it stays valid under v19)" \
++v19_current
++pin "$G/qualified_refit_job1.json" $V19_QUAL "gate qualification (adopted v19 e123d6e5)"
++grep -q -- "$V19_QUAL" "$G/review_refit.json" || die "the active review is not bound to qualification e123d6e5"
++[ -e "$G/scaleup_refit_v16.json" ] && echo "gate: scaleup_refit_v16.json present (not generation-bound; it stays valid under v20)" \
+   || echo "gate: no scaleup_refit_v16.json (admission stays first-job-alone until a scale-up adoption)"
+ act2_valid
+ node_ev
+-echo "epoch 2 active (canonical under the adopted v18); captured node document 730ea262 in place"
++echo "epoch 2 active (canonical under the adopted v19); captured node document 730ea262 in place"
++"$T/t1py" -c 'import sys; sys.path.insert(0, "chpc"); import row19_ec2_state as ES
++inv, why = ES.installed_inventory(sys.argv[1], max_age=float("inf"))
++live = ES.live_attempts(inv) if inv else ["(no inventory: %s)" % why]
++print("installed authority inventory: generation %s, owners %d, live or owning %s" % ((inv or {}).get("generation"), len((inv or {}).get("owners") or {}), live))
++sys.exit(1 if (why or live or (inv or {}).get("owners")) else 0)' "$GS" \
++  || die "the root's installed inventory still shows a live or owning EC2 attempt: finish RUNBOOK step 0b (dispositions, ec2_sync) first"
+ "$T/t1py" -c 'import json, sys
+ ph = [x for x in json.load(open("chpc/row19_screen_budget.json"))["phases"] if not x.get("retired")]
+ led = json.load(open(sys.argv[1]))
+@@ -80,4 +91,4 @@
+ printf '%s\n' "$sci" | cut -c1-12,65-
+ echo "lengau preflight OK"
+ REMOTE
+-echo "PREFLIGHT OK: drain confirmed for this instant only - keep the coordinated hold (refill scripts and slot watcher stopped, no controller, settlement, status or EC2 authority command) through step 6 (RUNBOOK); refills resume only after the new pilot adoption"
++echo "PREFLIGHT OK: drain confirmed for this instant only - keep the coordinated hold (refill scripts and slot watcher stopped, no controller, settlement, status or EC2 authority command) through step 8 (RUNBOOK); refills resume only after the new pilot adoption"
+--- migration_v19/receipt_check_v19.py	2026-10-21 17:51:13
++++ migration_v20/receipt_check_v20.py	2026-10-22 22:47:19
+@@ -1,17 +1,18 @@
+-"""migration_v19 step 5 (Mac, read only): the newest refit watch receipt published at or after --since is a v19 receipt that
+-keeps epoch 2 bound and carries the reviewed job-54 node disposition (the migration_v18 receipt_check_v18.py, re-pointed). Used
+-by receipts_v19.sh; also usable alone.
++"""migration_v20 step 5 (Mac, read only): the newest refit watch receipt published at or after --since is a v20 receipt that
++keeps epoch 2 bound and carries the reviewed job-54 node disposition (the migration_v19 receipt_check_v19.py, re-pointed). Used
++by receipts_v20.sh; also usable alone.
+ 
+-    python3 chpc/migration_v19/receipt_check_v19.py --since <epoch seconds> [--receipts chpc/results/row19_screen/receipts]
++    python3 chpc/migration_v20/receipt_check_v20.py --since <epoch seconds> --phase pre|post [--receipts chpc/results/row19_screen/receipts]
+ 
+ Refuses (exit 3) unless the newest chpc/results/row19_screen/receipts/watch_refit_<stamp>.json with time >= --since:
+   - is schema/role refit, fresh, production, with an explicitly EMPTY alarm list and the designated view;
+   - names a retained verifier document (bound.verify_file) whose bytes match bound.verify_file_sha256 and whose generation is
+-    version 19 = latest 19, a clean lineage verdict, and the v19 controls 111c3107;
+-  - binds EC2 state (ec2.bound) with EXACTLY activation_e1.json and activation_e2.json, no HOLD, no STOP and no EC2 problems
+-    (epoch 2 stays active through v19);
++    version 20 = latest 20, a clean lineage verdict, and the v20 controls 4e64982b;
++  - binds EC2 state (ec2.bound) with EXACTLY activation_e1.json and activation_e2.json (--phase pre: before the close) or
++    EXACTLY activation_e1/e2/e3.json (--phase post), no HOLD, no STOP and no EC2 problems; post-close the designated view shows
++    EC2-designated unclaimed 0 and adds up (designated = done + in flight + Lengau plannable + rescue-pending);
+   - carries refit job 54 as a node-failure disposition (jobs.54.node_disposition, kind node-failure, counts_as_crash false)
+-    whose evidence is the retained capture 730ea262, bound as bound.node_evidence.54 with that sha256 (v19: other node or
++    whose evidence is the retained capture 730ea262, bound as bound.node_evidence.54 with that sha256 (v20: other node or
+     operational-loss dispositions are no longer refused here - the admission recomputes every disposition itself).
+ It certifies what the receipt says; the admission recomputes the disposition itself, and the receipt's own freshness and the
+ admission's 2,700 s window stay the controllers' rules."""
+@@ -19,11 +20,11 @@
+ 
+ HERE = os.path.dirname(os.path.abspath(__file__))
+ T1 = os.path.abspath(os.path.join(HERE, "..", ".."))
+-V19_CONTROLS = "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5"
++V20_CONTROLS = "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c"
+ NODE_EV = ("row19_screen_refit_54.nodefail.json", "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f")
+ 
+ 
+-def problems(rdir, since):
++def problems(rdir, since, phase="pre"):
+     cands = []
+     for p in sorted(glob.glob(os.path.join(rdir, "watch_refit_*.json"))):
+         try:
+@@ -53,8 +54,8 @@
+         if hashlib.sha256(open(vp, "rb").read()).hexdigest() != b.get("verify_file_sha256"):
+             why.append("the verifier document %s is not the bytes the receipt binds" % vf)
+         g = (json.load(open(vp)) or {}).get("generation") or {}
+-        if not (g.get("version") == 19 and g.get("latest") == 19 and g.get("controls_problem") == "" and g.get("controls_sha256") == V19_CONTROLS):
+-            why.append("the verifier generation is not v19 (version %r latest %r controls %r lineage %r)" % (
++        if not (g.get("version") == 20 and g.get("latest") == 20 and g.get("controls_problem") == "" and g.get("controls_sha256") == V20_CONTROLS):
++            why.append("the verifier generation is not v20 (version %r latest %r controls %r lineage %r)" % (
+                 g.get("version"), g.get("latest"), str(g.get("controls_sha256"))[:12], g.get("controls_problem")))
+     e = r.get("ec2") or {}
+     eb = e.get("bound") if isinstance(e, dict) else None
+@@ -62,12 +63,22 @@
+         why.append("no EC2 binding")
+     else:
+         acts = eb.get("activations") or {}
+-        if sorted(acts) != ["activation_e1.json", "activation_e2.json"]:
+-            why.append("the EC2 binding names activations %s, not exactly e1 and e2" % sorted(acts))
++        want = ["activation_e1.json", "activation_e2.json"] + (["activation_e3.json"] if phase == "post" else [])
++        if sorted(acts) != want:
++            why.append("the EC2 binding names activations %s, not exactly %s" % (sorted(acts), want))
+         if eb.get("hold") or eb.get("stop"):
+             why.append("an EC2 HOLD or STOP is bound")
+     if isinstance(e, dict) and e.get("problems"):
+         why.append("EC2 problems %s" % e["problems"][:3])
++    d = r.get("designated") if isinstance(r.get("designated"), dict) else {}
++    if phase == "post" and d:
++        pend = len(d.get("rescue_pending") or [])
++        if d.get("ec2_waiting_unclaimed") != 0:
++            why.append("post-close the designated view still shows %r EC2-designated unclaimed coordinates" % d.get("ec2_waiting_unclaimed"))
++        if (d.get("done", 0) + d.get("in_flight", 0) + d.get("lengau_plannable", 0) + pend) != d.get("designated"):
++            why.append("the designated view does not add up: %s" % {k: d.get(k) for k in ("designated", "done", "in_flight", "lengau_plannable")})
++        print("post-close designated view: designated %s, done %s, in flight %s, Lengau plannable %s, EC2 waiting %s, rescue-pending %d" % (
++            d.get("designated"), d.get("done"), d.get("in_flight"), d.get("lengau_plannable"), d.get("ec2_waiting_unclaimed"), pend))
+     jobs = r.get("jobs") if isinstance(r.get("jobs"), dict) else {}
+     nd = (jobs.get("54") or {}).get("node_disposition") if isinstance(jobs.get("54"), dict) else None
+     if not isinstance(nd, dict) or nd.get("kind") != "node-failure" or nd.get("counts_as_crash") is not False \
+@@ -82,13 +93,15 @@
+ def main(argv=None):
+     ap = argparse.ArgumentParser()
+     ap.add_argument("--since", type=float, required=True)
++    ap.add_argument("--phase", choices=("pre", "post"), required=True)
+     ap.add_argument("--receipts", default=os.path.join(T1, "chpc", "results", "row19_screen", "receipts"))
+     a = ap.parse_args(argv)
+-    p, why = problems(os.path.abspath(a.receipts), a.since)
++    p, why = problems(os.path.abspath(a.receipts), a.since, a.phase)
+     if why:
+         print("RECEIPT REFUSED%s:" % ((" (" + os.path.basename(p) + ")") if p else "")); [print("  -", w) for w in why]; return 3
+-    print("RECEIPT OK: %s - fresh production, zero alarms, generation 19 (controls 111c3107), designated view, EC2 binding with "
+-          "activation_e1 and activation_e2, refit job 54 node-dispositioned on the retained evidence 730ea262" % os.path.basename(p))
++    print("RECEIPT OK: %s - fresh production, zero alarms, generation 20 (controls 4e64982b), designated view, EC2 binding with "
++          "activation_e1 and activation_e2%s, refit job 54 node-dispositioned on the retained evidence 730ea262" % (
++              os.path.basename(p), " and activation_e3 (the close; EC2 waiting 0)" if a.phase == "post" else " (pre-close)"))
+     return 0
+ 
+ 
+--- migration_v19/receipts_v19.sh	2026-10-21 17:51:13
++++ migration_v20/receipts_v20.sh	2026-10-22 22:49:14
+@@ -1,14 +1,15 @@
+ #!/bin/bash
+-# Migration v18 -> v19, step 5 (Mac, with a read-only Lengau check): FRESH GENERATION-19 ROLE RECEIPTS (the receipts_v18.sh
+-# pattern, without any EC2 cycle or activation: v19 changes no partition, data or EC2 code, and
+-# epoch 2 stays active).
+-#   Mac: v19_package.py check-promoted; the Mac drain (no refill, slot-watch, controller, EC2-authority or reaper process; the
+-#   authority lock free). Lengau (check_v19.sh): v19 deployed and adopted (deploy proof DONE), epoch 2 still the canonical
+-#   activation, the captured node document 730ea262 in place. Then the refit receipt
++# Migration v19 -> v20, steps 5 (--pre-close) and 7 (--post-close) (Mac, with a read-only Lengau check): FRESH GENERATION-20
++# ROLE RECEIPTS (the receipts_v19.sh pattern; no EC2 cycle here - the close itself is step 6, close_v20.sh).
++#   Mac: v20_package.py check-promoted; the Mac drain (no refill, slot-watch, controller, EC2-authority or reaper process; the
++#   authority lock free). Lengau (check_v20.sh PHASE=pre|post): v20 deployed and adopted (deploy proof DONE), e3 pinned, e1/e2
++#   proofs unchanged, no e3 activation yet (pre) or epoch 3 the canonical activation (post), the node document 730ea262 in
++#   place. Then the refit receipt
+ #   `python3 chpc/row19_screen_status.py --manifest chpc/row19_screen_manifest.json --role refit --publish-receipt` (it must exit
+-#   0: fresh, production, zero alarms - the v19 status view fetches the node document and dispositions refit job 54),
+-#   receipt_check_v19.py on that receipt (generation 19 = latest 19 with controls 111c3107, the designated view, the EC2 binding
+-#   with exactly activation_e1 and activation_e2, no HOLD/STOP/problems, and job 54's node disposition bound to 730ea262), then
++#   0: fresh, production, zero alarms - the v20 status view fetches the node document and dispositions refit job 54),
++#   receipt_check_v20.py --phase pre|post on that receipt (generation 20 = latest 20 with controls 4e64982b, the designated view,
++#   the EC2 binding with exactly activation_e1 and activation_e2 (pre) or e1, e2 and e3 (post: EC2 waiting 0, the view adding
++#   up), no HOLD/STOP/problems, and job 54's node disposition bound to 730ea262), then
+ #   the bank receipt `python3 chpc/row22_bank_status.py --manifest <abs>/chpc/row22_bank_manifest.json --publish-receipt`.
+ # Re-run: always safe - every receipt is a new file; a failed command stops the script with its exit status and nothing is
+ # retried automatically. An alarm stops the migration for review (an alarm about the EC2 authority inventory's age with a live
+@@ -17,15 +18,17 @@
+ set -u -o pipefail
+ fail() { echo "RECEIPTS REFUSED: $*"; exit 3; }
+ [ -f chpc/row19_screen_admit.py ] && [ -d reviews ] || fail "run from workspace_demo/t1_access"
+-[ $# = 0 ] || fail "usage: receipts_v19.sh (no arguments)"
+-python3 chpc/migration_v19/v19_package.py check-promoted || fail "the Mac promotion is not complete, committed and verified (above)"
+-python3 chpc/migration_v19/v19_package.py drain || fail "the Mac drain is not observed (above)"
+-. chpc/migration_v19/lengau.sh || fail "cannot load chpc/migration_v19/lengau.sh"
+-to_lengau check_v19.sh || fail "the Lengau check refused (above); no receipt was published"
++case "${1:-}" in --pre-close) PHASE=pre;; --post-close) PHASE=post;; *) fail "usage: receipts_v20.sh --pre-close (step 5) | --post-close (step 7)";; esac
++[ $# = 1 ] || fail "usage: receipts_v20.sh --pre-close | --post-close"
++python3 chpc/migration_v20/v20_package.py check-promoted || fail "the Mac promotion is not complete, committed and verified (above)"
++python3 chpc/migration_v20/v20_package.py drain || fail "the Mac drain is not observed (above)"
++. chpc/migration_v20/lengau.sh || fail "cannot load chpc/migration_v20/lengau.sh"
++to_lengau check_v20.sh --var "PHASE=$PHASE" || fail "the Lengau check refused (above); no receipt was published"
+ START=$(date +%s) || fail "no clock"
+ python3 chpc/row19_screen_status.py --manifest chpc/row19_screen_manifest.json --role refit --publish-receipt \
+   || fail "the refit receipt is not fresh, production and alarm-free (exit $?, above); stop the migration and report"
+-python3 chpc/migration_v19/receipt_check_v19.py --since "$START" || fail "the refit receipt does not bind the v19 generation, epoch 2 and the job-54 node disposition (above)"
++python3 chpc/migration_v20/receipt_check_v20.py --since "$START" --phase "$PHASE" || fail "the refit receipt does not bind the v20 generation, the $PHASE-close EC2 activations and the job-54 node disposition (above)"
+ python3 chpc/row22_bank_status.py --manifest "$PWD/chpc/row22_bank_manifest.json" --publish-receipt \
+   || fail "the bank receipt exited $? (above); stop and report"
+-echo "V19 RECEIPTS OK - next: bash chpc/migration_v19/lengau.sh rollover_pilot_v19.sh (step 6)"
++[ "$PHASE" = pre ] && echo "V20 RECEIPTS OK (pre-close) - next: bash chpc/migration_v20/close_v20.sh (step 6)" \
++  || echo "V20 RECEIPTS OK (post-close) - next: bash chpc/migration_v20/lengau.sh rollover_pilot_v20.sh (step 8)"
+--- migration_v19/remote_lib.sh	2026-10-21 17:52:11
++++ migration_v20/remote_lib.sh	2026-10-22 22:45:40
+@@ -1,17 +1,19 @@
+-# migration_v19 Lengau prelude (the migration_v18 remote_lib.sh, re-pointed at the adopted v18 state and the v19 package).
+-# lengau.sh sends this file, the embedded archive checker (lengau_archive.py), any payload files and ONE body (preflight_v19.sh,
+-# archive_v18.sh, deploy_v19.sh, check_v19.sh, rollover_pilot_v19.sh or adopt_pilot19.sh) to Lengau as a single `bash -s`
+-# script. Never run alone. The toolchain root below is the fixed production route: there is no test hook in this file or in any
+-# production script (tests run private copies; see test_migration_v19.py).
+-# Containment (the migration_v16 rules, Codex re-review 2026-10-17 P2, carried unchanged through v18): every fixed root below and
++# migration_v20 Lengau prelude (the migration_v19 remote_lib.sh, re-pointed at the adopted v19 state and the v20 package).
++# lengau.sh sends this file, the embedded archive checker (lengau_archive.py), any payload files and ONE body (preflight_v20.sh,
++# archive_v19.sh, deploy_v20.sh, check_v20.sh, close_e3.sh, rollover_pilot_v20.sh or adopt_pilot20.sh) to Lengau as a single
++# `bash -s` script. Never run alone. The toolchain root below is the fixed production route: there is no test hook in this file
++# or in any production script (static checks only so far: static_check_v20.py; the migration_v19 test harness is not re-pointed).
++# Containment (the migration_v16 rules, Codex re-review 2026-10-17 P2, carried unchanged through v19): every fixed root below and
+ # every authority source / mutation destination a body uses must be its own physical path in its canonical scope (canon,
+ # src_file, dst_file, dst_absent, dst_dir), never in the scientific clone; the controller and scientific roots are distinct and
+-# disjoint. v19 adds NO partition, activation step or new controller code path: the status view and the admission change
+-# (operational loss), the EC2 state, E2Q module and ingestion change (the E2Q3 on-demand qualifier, owner 21 Oct 2026), and ONE
+-# new data file is added (V19_NEW: the E2Q3 operational manifest); epoch 2 stays active and is only re-verified.
++# disjoint. v20 is the EC2 CLOSE (owner 23 Oct 2026, route A; chpc/candidate_v20_handback/DESIGN_v20.md): the partition module
++# and the admission change, ONE new data file is added (V20_NEW: the e3 closing declaration, pinned as the v20 partition), the
++# Mac authority aws_ec2/prod_authority.py travels with them, and ONE activation step follows the deploy (close_e3.sh: e3 under
++# the plan lock). Before that step epoch 2's proof is kept byte-identical but is HISTORICAL under v20 (act2_kept); after it
++# epoch 3 is THE canonical activation (act3_valid).
+ set -u -o pipefail
+ umask 022
+-V19_PRELUDE=1
++V20_PRELUDE=1
+ T_ROOT=/mnt/lustre/users/pvanrooyen/t1_toolchain   # @root
+ ME=pvanrooyen
+ die() { echo "ABORT: $*"; exit 1; }
+@@ -19,40 +21,43 @@
+ C=$T/rsc_screen_ctl/workspace_demo/t1_access     # the controller clone (the only clone the migration changes)
+ J=$T/rsc_screen/workspace_demo/t1_access         # the scientific job clone (read only, never changed)
+ GS=$T/row19_screen
+-G=$GS/gate; R=$GS/gate_retired; A=$T/archive_screen/v18_before_v19
++G=$GS/gate; R=$GS/gate_retired; A=$T/archive_screen/v19_before_v20
+ EC2=$GS/ec2; ACT1=$EC2/activation_e1.json; ACT2=$EC2/activation_e2.json
+ LOCKS="$T/programme_admission.lock $GS/plans/.submit.lock"
+-# the adopted v18 state (controls v18 with Codex's record reviews/2026-10-20_v18r2_mig18_codex_review.md; pilot qualification
+-# 530df9a2 with the operator record reviews/2026-10-20_pilot_v18_operator_record.md) and the v19 candidate package
+-# (chpc/candidate_v19_oploss, the operational-loss disposition; owner-approved operational change, operator records)
++# the adopted v19 state (controls v19 with the operator record reviews/2026-10-22_controls_v19_operator_record.md; pilot
++# qualification e123d6e5 with the operator record reviews/2026-10-22_pilot_v19_operator_record.md) and the v20 candidate package
++# (chpc/candidate_v20_handback, the EC2 close; owner decision 23 Oct 2026, operator records)
+ V16_QUAL=2c7a7ef1fb903cf0fa75701d2a56d216e98faf14e6638da891afd8bed0bfea44
+ V17_QUAL=8fdbf48e998e39a8c0b12900d75e3dfaf4ab64396ade08a17a5cab549c0b5faa
++V18_QUAL=530df9a208eb1578282ef564708447fd3b32c5fa1366f388f51059ebcfd70839
+ # the epoch-2 activation proof was made under the adopted v17 (controls 9ea4e727, version 17) and stays the canonical one
+ ACT_CONTROLS=9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0
+-V18_CONTROLS=452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b
+-V18_ADOPTION=3e1fe9a1ddd10a6ed160f5f1f9fc3f4f4de707efa3e90259104e7e5670ae1616
+-V18_QUAL=530df9a208eb1578282ef564708447fd3b32c5fa1366f388f51059ebcfd70839
+-V18_REC="reviews/2026-10-20_v18r2_mig18_codex_review.md 11ebc12467a50a125f4b583c4d673274e2ff3ea1a2ac0d3e6c03f3725c8cc2c8"
+-V18_PILOT_REC="reviews/2026-10-20_pilot_v18_operator_record.md 67f2b4383a1b25d7e6921f0c8252514a6fe797e37419af3ddfbb8116753fae87"
+ V19_CONTROLS=111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5
++V19_ADOPTION=2b9f3c783e1f7ce53cbdafa4a84e66315874512d7afcde6b03783c343ba2939c
++V19_QUAL=e123d6e5d136dfda31ac5f61dd18a2cce31ecc8dea9f1ad27be73d427cc50b02
++V19_REC="reviews/2026-10-22_controls_v19_operator_record.md afd2b1560b2ea40f913d28eb71da49b383903e281d8edb3291c0f853bb7da27d"
++V19_PILOT_REC="reviews/2026-10-22_pilot_v19_operator_record.md 26aa4f8dc52be9d7f67fc493bd6002ae4d3b29ca73b77ce9c30082336ff4bde6"
++V20_CONTROLS=4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c
+ E2_PART=48cea639e823abbf39238e3dd7c075f63ba9eca8467009348510e2943ed56fa6
++E3_PART=ca87fb1da163df10e720e5778542d2bcc5c78f30fc08b6a1cc61d671773f0e6a
++ACT3=$EC2/activation_e3.json
+ LEDGER_CAP=81000.0
+ # the RETAINED captured node document of refit job 54 (capture script 84d52bdf, Codex choice 1 (a)): it stays where the owner
+-# wrote it and is still the evidence of job 54's node-failure disposition under v19; every step checks it is still exactly these
++# wrote it and is still the evidence of job 54's node-failure disposition under v20; every step checks it is still exactly these
+ # bytes, the archive keeps a copy and nothing ever rewrites it
+ NODE_EV=$T/jobs/row19_screen_refit_54.nodefail.json
+ NODE_EV_SHA=730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f
+-# the five controller files v19 replaces, at their v18 bytes (chpc/candidate_v19_oploss/build_v19.py MAP)
+-V18_REPLACED="chpc/row19_screen_status.py 4710544a3861b688b0f2c89e67a8ba56cf65261a8900d4147658fee576f58232
+-chpc/row19_screen_admit.py e22607650058ae2cbb8f19fe3e225d886bd2cc733adf02bb93dbc01d65f719af
+-chpc/row19_ec2_state.py 7bdedafc7c90ec065217d9a7bbf53b88e1bf31e0c094dc34df730b4028bd038e
+-chpc/row19_ec2_e2qual.py 5ceba55189dd351b2cc5a997b115cdbfd0d84f17397402fa7deb2b3e937025fa
+-chpc/row19_ec2_ingest.py 277c51b0a24fee6b151180e99584a831c091ca4b30b6bd999a1221ff364bf54f"
+-# the NEW data paths v19 adds (build_v19.py DATA): absent on the controller clone until the deploy writes them
+-V19_NEW="aws_ec2/prod/manifest_e2q3_e2.json"
++# the two controller files v20 replaces, at their v19 bytes (chpc/candidate_v20_handback/build_v20.py MAP). The Mac authority
++# aws_ec2/prod_authority.py (build_v20.py MAC) is carried in the payload too but NOT pinned here: the controller clone's copy is
++# whatever an earlier deploy left (it is a Mac tool; nothing on Lengau runs it)
++V19_REPLACED="chpc/row19_partition.py eabf50c34be2bad3f92e07370966bcc94162cf12cbcefb326cc07a72d49ac0d8
++chpc/row19_screen_admit.py 27e066c72ed43919a92083fcf3f035cbee232c2137c2e97832f0e41b1113f9df"
++# the NEW data paths v20 adds (build_v20.py DATA): absent on the controller clone until the deploy writes them
++V20_NEW="chpc/row19_partition_e3.json"
+ RETIRED_V16=$R/review_refit.v16_qual2c7a7ef1_max100.json
+ RETIRED_V17=$R/review_refit.v17_qual8fdbf48e_max100.json
+ RETIRED_V18=$R/review_refit.v18_qual530df9a2_max100.json
++RETIRED_V19=$R/review_refit.v19_quale123d6e5_max100.json
+ # the job clone's fixed science inventory: every file must exist, read and hash, before and after any controller change
+ SCI="chpc/row19_screen_manifest.json analyze.py models.py simulate.py chpc/row19_shard.py chpc/row19_ledger.py chpc/row19_slice.py chpc/row19_screen_orig.py"
+ CTLPAT='row19_screen_(admit|status|verify)|row22_bank_(submit|status)|row19_ec2_|row19_partition|row19_ledger|programme_gate|row19_nodefail_capture'
+@@ -60,7 +65,7 @@
+ CR=$T/rsc_screen_ctl                              # the canonical controller clone root (all controller mutations stay beneath it)
+ JR=$T/rsc_screen                                  # the canonical scientific job clone root (never a mutation destination)
+ PS=$T/archive_screen
+-PROOF=$PS/v19_deploy_proof                        # deploy_v19.sh's durable science before/after proof (written before any controller change)
++PROOF=$PS/v20_deploy_proof                        # deploy_v20.sh's durable science before/after proof (written before any controller change)
+ 
+ phys() {   # phys <abs path>: its physical path with every symlink resolved; components that do not exist yet are appended as named
+   local p=$1 tail="" r
+@@ -114,7 +119,7 @@
+ # installed util-linux flock is 2.23.2, coreutils 8.22, system Python 3.6.8; $T/t1py was reported as Python 3.12.10 (Codex
+ # mig_compat review). This code uses only the interfaces those versions provide: every git call runs in a subshell that cds
+ # first (no -C, no --absolute-git-dir); flock is called with -n -s only and a conflict is its default exit 1 (no -E); every
+-# Lengau-side Python (lengau_archive.py, LOCK_PY, each t1py -c body) is 3.6-level code. preflight_v19.sh prints the versions.
++# Lengau-side Python (lengau_archive.py, LOCK_PY, each t1py -c body) is 3.6-level code. preflight_v20.sh prints the versions.
+ ctl_git() {   # the controller clone's git work tree and git directory are its own canonical root (no gitfile or alias elsewhere)
+   local top gr gd
+   top=$(cd -- "$C" && git rev-parse --show-toplevel) || die "git rev-parse failed in $C"
+@@ -129,7 +134,7 @@
+   [ "$gd" = "$CR/.git" ] && canon "$gd" && [ -d "$gd" ] && [ ! -L "$gd" ] || die "the controller clone's git directory is $gd, not the real $CR/.git; refusing"
+ }
+ # the fixed roots: each must be its own physical path beneath the physical toolchain root (no symlink or alias, inside or out)
+-for p in "$CR" "$C" "$JR" "$J" "$GS" "$G" "$R" "$GS/plans" "$EC2" "$ACT1" "$ACT2" \
++for p in "$CR" "$C" "$JR" "$J" "$GS" "$G" "$R" "$GS/plans" "$EC2" "$ACT1" "$ACT2" "$ACT3" \
+          "$PS" "$A" "$PROOF" "$T/jobs" "$NODE_EV" "$T/row19_screen_campaign" $LOCKS; do
+   canon "$p" || die "$p is not its own physical path (it resolves to $(phys "$p" 2>/dev/null || echo 'an unsafe target'): a symlink or alias); refusing"
+   case $p in "$T"/*) ;; *) die "$p is not beneath the toolchain root $T; refusing";; esac
+@@ -269,30 +274,31 @@
+ ok = a.get("version") == int(sys.argv[2]) and a.get("controls_sha256") == sys.argv[3] and (a.get("previous") or {}).get("adoption_sha256") == sys.argv[4]
+ sys.exit(0 if ok else 1)' "$C/chpc/row19_screen_controls_adoption.json" "$1" "$2" "$3"
+ }
+-v18_current() {   # the controller clone is the adopted, deployed v18 (before the v19 deploy): controls 452b82df, adoption 3e1fe9a1
++v19_current() {   # the controller clone is the adopted, deployed v19 (before the v20 deploy): controls 111c3107, adoption 2b9f3c78
+   src_file "$C/chpc/row19_screen_controls_adoption.json" "$CR" "deployed adoption"
+-  pin "$C/chpc/row19_screen_controls_adoption.json" $V18_ADOPTION "deployed adoption (v18 record 3e1fe9a1)"
+-  pin "$C/chpc/row19_screen_controls.json" $V18_CONTROLS "deployed controls (adopted v18)"
++  pin "$C/chpc/row19_screen_controls_adoption.json" $V19_ADOPTION "deployed adoption (v19 record 2b9f3c78)"
++  pin "$C/chpc/row19_screen_controls.json" $V19_CONTROLS "deployed controls (adopted v19)"
+ }
+-v19_adopted() {   # v19 is the deployed, ADOPTED controller in rsc_screen_ctl: controls 111c3107 and the version-19 adoption naming it
+-  adoption_is 19 $V19_CONTROLS $V18_ADOPTION || die "v19 is not the deployed, adopted controller in rsc_screen_ctl (deploy_v19.sh first)"
++v20_adopted() {   # v20 is the deployed, ADOPTED controller in rsc_screen_ctl: controls 4e64982b and the version-20 adoption naming it
++  adoption_is 20 $V20_CONTROLS $V19_ADOPTION || die "v20 is not the deployed, adopted controller in rsc_screen_ctl (deploy_v20.sh first)"
+ }
+ deploy_done() {   # the deployment's durable proof is complete (DONE) and its commit is in the controller's history
+   local dh
+   src_file "$PROOF/DONE" "$PS" "deploy proof DONE"
+-  grep -qx "schema row19-screen-v19-deploy-proof-1" "$PROOF/DONE" || die "the deploy proof DONE has another schema"
++  grep -qx "schema row19-screen-v20-deploy-proof-1" "$PROOF/DONE" || die "the deploy proof DONE has another schema"
+   dh=$(sed -n 's/^ctl_head_after \([0-9a-f]*\)$/\1/p' "$PROOF/DONE")
+   [ ${#dh} = 40 ] || die "the deploy proof DONE names no controller commit"
+-  (cd -- "$C" && git merge-base --is-ancestor "$dh" HEAD) || die "the controller HEAD does not contain the proved v19 deployment commit ${dh:0:12}"
++  (cd -- "$C" && git merge-base --is-ancestor "$dh" HEAD) || die "the controller HEAD does not contain the proved v20 deployment commit ${dh:0:12}"
+ }
+ node_ev() {   # the retained captured node document of refit job 54 is exactly the reviewed bytes, a contained regular file
+   src_file "$NODE_EV" "$T/jobs" "the captured node document of refit job 54"
+   pin "$NODE_EV" $NODE_EV_SHA "the captured node document (730ea262)"
+ }
+-# EPOCH 2 STAYS ACTIVE: the root's activation_e2.json is THE canonical activation of e2 48cea639, made under the adopted v17
+-# (controls_version 17, 9ea4e727 = ACT_CONTROLS), and row19_partition.activation_problem (mode canonical) accepts it under the
+-# CURRENT adopted controls - v18 before the deploy, v19 after it (v18 and v19 keep the v17 entry byte-identical and pin the same
+-# partition).
++# BEFORE THE v20 DEPLOY epoch 2 is active: the root's activation_e2.json is THE canonical activation of e2 48cea639, made under
++# the adopted v17 (controls_version 17, 9ea4e727 = ACT_CONTROLS), and row19_partition.activation_problem (mode canonical) accepts
++# it under the CURRENT adopted v19 (act2_valid; used only while v19 is current). AFTER the deploy v20 pins e3, so the e2 proof is
++# historical by design: act2_kept checks that both proofs stay on the root byte-identical to the archived copies, and
++# act3_valid (after close_e3.sh) that epoch 3 is THE canonical activation under the adopted v20.
+ ACT_PY='import json, os, sys
+ sys.path.insert(0, "chpc")
+ import hashlib, row19_partition as RP
+@@ -315,6 +321,42 @@
+   (cd -- "$C" && "$T/t1py" -c "$ACT_PY" chpc/row19_screen_manifest.json chpc/row19_partition_e2.json "$ACT2" $ACT_CONTROLS) \
+     || die "the root's activation_e2.json is not the canonical epoch-2 activation under the current adopted controls (above): epoch 2 must stay active"
+ }
++act2_kept() {   # after the v20 deploy: e1 and e2's proofs and the e2 declaration are still on the root/clone, byte-identical to the archive
++  local a
++  src_file "$ACT1" "$GS" "epoch-1 activation proof"; src_file "$ACT2" "$GS" "epoch-2 activation proof"
++  src_file "$C/chpc/row19_partition_e2.json" "$CR" "the e2 partition"; pin "$C/chpc/row19_partition_e2.json" $E2_PART "the e2 partition (48cea639)"
++  for a in activation_e1.json activation_e2.json; do
++    src_file "$A/ec2/$a" "$PS" "archived $a"
++    cmp -s "$EC2/$a" "$A/ec2/$a" || die "$EC2/$a is not the archived v19_before_v20 copy: the earlier activations are never changed"
++  done
++}
++e3_pinned() {   # the deployed v20 pins exactly the e3 closing declaration, which loads and verifies against its predecessor
++  src_file "$C/chpc/row19_partition_e3.json" "$CR" "the e3 closing declaration"; pin "$C/chpc/row19_partition_e3.json" $E3_PART "the e3 closing declaration (ca87fb1d)"
++  (cd -- "$C" && "$T/t1py" -c 'import sys; sys.path.insert(0, "chpc"); import json, hashlib, row19_partition as RP, row19_screen_admit as A
++m = json.load(open("chpc/row19_screen_manifest.json")); p = A.partition(m, "chpc/row19_screen_manifest.json")
++ok = p is not None and p.get("schema") == RP.SCHEMA3 and p.get("epoch") == 3 and p.get("owned_count") == 0 and p["handed_back"]["count"] == 3274
++print("pinned partition schema %s epoch %s owned %s handed back %s retained %s" % (p.get("schema"), p.get("epoch"), p.get("owned_count"),
++      p["handed_back"]["count"], p["retained_ec2_completed"]["count"]))
++sys.exit(0 if ok else 1)') || die "the deployed controls do not pin the verified e3 closing declaration (above)"
++}
++ACT3_PY='import json, sys
++sys.path.insert(0, "chpc")
++import hashlib, row19_partition as RP
++man_p, part_p, proof_p = sys.argv[1:4]
++sha = lambda p: hashlib.sha256(open(p, "rb").read()).hexdigest()
++man = json.load(open(man_p)); part = RP.load(part_p, man, sha(man_p))
++proof = json.load(open(proof_p))
++why = RP.activation_problem(man, sha(man_p), part, sha(part_p), proof, mode="canonical")
++extra = [] if (proof.get("epoch") == 3 and proof.get("closed") is True and proof.get("controls_version") == 20) else ["the proof is not the epoch-3 close under version 20"]
++print("activation proof %s: epoch %s closed %s, partition %s, controls version %s; activation_problem %r%s" % (
++    sha(proof_p)[:16], proof.get("epoch"), proof.get("closed"), str(proof.get("partition_sha256"))[:12], proof.get("controls_version"), why,
++    ("; " + "; ".join(extra)) if extra else ""))
++sys.exit(1 if (why or extra) else 0)'
++act3_valid() {   # after close_e3.sh: epoch 3 (the close) is THE canonical activation of e3 under the adopted v20
++  src_file "$ACT3" "$GS" "epoch-3 activation proof (the close)"
++  (cd -- "$C" && "$T/t1py" -c "$ACT3_PY" chpc/row19_screen_manifest.json chpc/row19_partition_e3.json "$ACT3") \
++    || die "the root's activation_e3.json is not the canonical epoch-3 activation under the adopted v20 (above)"
++}
+ literal_in() {   # literal_in <file> <literal>: an exact line (outer whitespace trimmed). NO `grep -q` in a pipe: under pipefail an
+                  # early-exiting grep -q SIGPIPEs sed on a record above its buffer and the check fails although the line is there
+                  # (migration_v17 adopt_pilot17.sh fix 9df2a1f); grep reads all of its input and its output is discarded
+--- migration_v19/rollover_pilot_v19.sh	2026-10-21 17:51:13
++++ migration_v20/rollover_pilot_v20.sh	2026-10-22 22:47:38
+@@ -1,24 +1,24 @@
+-# Migration v18 -> v19, step 6.1 (Lengau body; run from workspace_demo/t1_access on the Mac as
+-#   bash chpc/migration_v19/lengau.sh rollover_pilot_v19.sh
++# Migration v19 -> v20, step 8.1 (Lengau body; run from workspace_demo/t1_access on the Mac as
++#   bash chpc/migration_v20/lengau.sh rollover_pilot_v20.sh
+ # which prepends remote_lib.sh: the fixed toolchain root, containment, drain, lock and archive checks).
+-# The rollover_pilot_v18.sh pattern: retire the ACTIVE v18 refit review (qualification 530df9a2, max 100; operator record
+-# reviews/2026-10-20_pilot_v18_operator_record.md) to gate_retired/review_refit.v18_qual530df9a2_max100.json ONLY after the
+-# v18_before_v19 archive's complete certificate verifies and certifies byte-identical copies of the active review and of
+-# qualified_refit_job1.json, v19 is the deployed, adopted controller (deploy proof DONE) and epoch 2 is still the canonical
++# The rollover_pilot_v19.sh pattern: retire the ACTIVE v19 refit review (qualification e123d6e5, max 100; operator record
++# reviews/2026-10-22_pilot_v19_operator_record.md) to gate_retired/review_refit.v19_quale123d6e5_max100.json ONLY after the
++# v19_before_v20 archive's complete certificate verifies and certifies byte-identical copies of the active review and of
++# qualified_refit_job1.json, v20 is the deployed, adopted controller (deploy proof DONE) and epoch 3 (the close) is the canonical
+ # activation under it (step 4 precedes this one; step 5's receipts must have passed). Admissions must be held: the drain is
+ # observed (checked process inventory, both locks probed free). The retirement source, its target and directory, the gate
+ # qualification and the chmod target are containment-checked immediately before the move and the chmod. Nothing is deleted;
+-# the 530df9a2 authority stays historical (and the older retired v16 and v17 reviews beside it). The gate's scaleup_refit_v16.json is
++# the e123d6e5 authority stays historical (and the older retired v16 and v17 reviews beside it). The gate's scaleup_refit_v16.json is
+ # not touched (it is not generation-bound).
+ # Re-run: once retired (no active review; the retired file holds exactly the archived review bytes) the run reports "already
+ # retired" and exits 0 - also when an interruption fell between the move and the chmod, which the re-run completes (chmod of
+ # the contained, regular retired file only). A retired file with other bytes, or both files present, refuses.
+-# The next step (Mac, ONE call) regenerates the qualification from the EXISTING completed pilot job 1 under v19 - a NEW hash,
++# The next step (Mac, ONE call) regenerates the qualification from the EXISTING completed pilot job 1 under v20 - a NEW hash,
+ # metadata only, no fit:
+ #   python3 chpc/row19_screen_status.py --manifest chpc/row19_screen_manifest.json --role refit --publish-receipt --qualify 1
+-[ "${V19_PRELUDE:-}" = 1 ] || { echo "run through: bash chpc/migration_v19/lengau.sh rollover_pilot_v19.sh"; exit 1; }
+-[ "$NP" = 0 ] || die "rollover_pilot_v19.sh takes no payload"
+-OUT=$RETIRED_V18
++[ "${V20_PRELUDE:-}" = 1 ] || { echo "run through: bash chpc/migration_v20/lengau.sh rollover_pilot_v20.sh"; exit 1; }
++[ "$NP" = 0 ] || die "rollover_pilot_v20.sh takes no payload"
++OUT=$RETIRED_V19
+ gate_paths() {   # containment of the retirement source, its target, the gate authority (repeated before use)
+   src_file "$G/review_refit.json" "$GS" "active gate review (retirement source)"
+   src_file "$G/qualified_refit_job1.json" "$GS" "gate qualification"
+@@ -27,13 +27,14 @@
+ }
+ cd "$C" || die "no controller clone $C"
+ ctl_git
+-v19_adopted
++v20_adopted
+ deploy_done
+-act2_valid
++act2_kept
++act3_valid
+ if [ -e "$OUT" ] || [ -L "$OUT" ]; then
+-  [ ! -e "$G/review_refit.json" ] && [ ! -L "$G/review_refit.json" ] || die "both the retired v18 review $OUT and an active review exist; inspect by hand"
+-  ra=$(archive_py verify "$T" --get review) || die "the v18 archive does not verify as complete (above)"
+-  dst_dir "$R" "$GS" "retired-review directory"; dst_file "$OUT" "$GS" "the retired v18 review"
++  [ ! -e "$G/review_refit.json" ] && [ ! -L "$G/review_refit.json" ] || die "both the retired v19 review $OUT and an active review exist; inspect by hand"
++  ra=$(archive_py verify "$T" --get review) || die "the v19 archive does not verify as complete (above)"
++  dst_dir "$R" "$GS" "retired-review directory"; dst_file "$OUT" "$GS" "the retired v19 review"
+   [ "$(h "$OUT")" = "$ra" ] || die "the retired file $OUT is not the archived review bytes"
+   if [ -w "$OUT" ]; then
+     dst_file "$OUT" "$GS" "chmod target"; chmod a-w "$OUT" || die "chmod failed"
+@@ -42,20 +43,20 @@
+   echo "already retired (verified): $OUT holds the archived review ${ra:0:16}; no active review"
+   exit 0
+ fi
+-[ -e "$G/review_refit.json" ] || [ -L "$G/review_refit.json" ] || die "no active review_refit.json and no retired v18 review; inspect by hand"
++[ -e "$G/review_refit.json" ] || [ -L "$G/review_refit.json" ] || die "no active review_refit.json and no retired v19 review; inspect by hand"
+ gate_paths
+ drained
+ locks_free
+-archive_py verify "$T" || die "the v18 archive does not verify as complete (above)"
+-ra=$(archive_py verify "$T" --get review) || die "the v18 archive does not verify as complete (above)"
+-qa=$(archive_py verify "$T" --get qualification) || die "the v18 archive does not verify as complete (above)"
++archive_py verify "$T" || die "the v19 archive does not verify as complete (above)"
++ra=$(archive_py verify "$T" --get review) || die "the v19 archive does not verify as complete (above)"
++qa=$(archive_py verify "$T" --get qualification) || die "the v19 archive does not verify as complete (above)"
+ gate_paths
+ hr=$(h "$G/review_refit.json") || die "cannot hash the active review"
+ q=$(h "$G/qualified_refit_job1.json") || die "cannot hash the gate qualification"
+ echo "active review ${hr:0:16} archived ${ra:0:16}; qualification ${q:0:16} archived ${qa:0:16}"
+ [ "$hr" = "$ra" ] || die "MISMATCH: the active review is not the archived bytes"
+-[ "$q" = "$V18_QUAL" ] && [ "$q" = "$qa" ] || die "the gate qualification is not the archived 530df9a2"
+-grep -q -- "$V18_QUAL" "$G/review_refit.json" || die "the active review is not bound to qualification 530df9a2"
++[ "$q" = "$V19_QUAL" ] && [ "$q" = "$qa" ] || die "the gate qualification is not the archived e123d6e5"
++grep -q -- "$V19_QUAL" "$G/review_refit.json" || die "the active review is not bound to qualification e123d6e5"
+ dst_dir "$R" "$GS" "retired-review directory"
+ mkdir -p -- "$R" || die "cannot create $R"
+ gate_paths                                   # immediately before the move: a member changed to a symlink since the archive refuses
+--- migration_v19/v19_package.py	2026-10-21 18:13:15
++++ migration_v20/v20_package.py	2026-10-22 22:44:46
+@@ -1,21 +1,22 @@
+-"""migration_v19 (Mac): the exact v19 package and the Mac-side gates every step uses (the migration_v18 v18_package.py,
++"""migration_v20 (Mac): the exact v20 package and the Mac-side gates every step uses (the migration_v19 v19_package.py,
+ re-pointed). Read only; writes nothing.
+ 
+-    python3 chpc/migration_v19/v19_package.py preflight        step 1, the Mac half (the live tree is the adopted v18)
+-    python3 chpc/migration_v19/v19_package.py check-promoted   steps 4-6: the COMPLETE, committed, verified v19 promotion
+-    python3 chpc/migration_v19/v19_package.py commit-paths     step 3: the exact explicit paths of the promotion commit
+-    python3 chpc/migration_v19/v19_package.py payload          step 4: the deploy payload, in copy order (one per line)
+-    python3 chpc/migration_v19/v19_package.py compare          step 4: every file compared Mac vs controller after the deploy
+-    python3 chpc/migration_v19/v19_package.py drain            the Mac drain observation alone
++    python3 chpc/migration_v20/v20_package.py preflight        step 1, the Mac half (the live tree is the adopted v19)
++    python3 chpc/migration_v20/v20_package.py check-promoted   steps 4-6: the COMPLETE, committed, verified v20 promotion
++    python3 chpc/migration_v20/v20_package.py commit-paths     step 3: the exact explicit paths of the promotion commit
++    python3 chpc/migration_v20/v20_package.py payload          step 4: the deploy payload, in copy order (one per line)
++    python3 chpc/migration_v20/v20_package.py compare          step 4: every file compared Mac vs controller after the deploy
++    python3 chpc/migration_v20/v20_package.py drain            the Mac drain observation alone
+ 
+-THE PACKAGE (the migration_v18 identity rule, kept: "verify exact new package/map/builder/review identities"): the controls
+-literal binds the controls bytes only, so PACKAGE below pins the candidate controls, promotion map, builder, promoter, the five
+-promoted sources (status view, admission; EC2 state, E2Q module, ingestion for the E2Q3 on-demand qualifier), the E2Q3
+-operational manifest (a NEW data path) and the retained node evidence (an archive member); every map source is also checked by promote_v19.py
+---check. THE RECORD: v19 is an owner-approved operational change (R052 lean T1 plan item 2, 20 Oct 2026; no Codex review), so
+-its adoption record is an OPERATOR record - any committed reviews/<name>.md carrying the exact line
+-    ADOPT row19-screen-controls sha256=111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5 version=19
+-(the migration_v18 rule: the literal in HEAD and the pinned bytes; who wrote it is not checked). It does NOT exist yet, so the
++THE PACKAGE (the migration_v19 identity rule, kept: "verify exact new package/map/builder/review identities"): the controls
++literal binds the controls bytes only, so PACKAGE below pins the candidate controls, promotion map, builder, promoter, the two
++promoted controller sources (the partition module REVISION 7, the admission REVISION 20), the e3 closing declaration (a NEW data
++path), the Mac authority prod_authority.py REVISION 10 (a replaced Mac tool) and the retained node evidence (an archive member);
++every map source is also checked by promote_v20.py --check. THE RECORD: v20 carries the owner's decision of 23 Oct 2026 (R052,
++route A: the EC2 close); its adoption record is an OPERATOR record (the owner's 20 Oct 2026 rule; the parent session runs one
++Codex review of the candidate before the migration) - any committed reviews/<name>.md carrying the exact line
++    ADOPT row19-screen-controls sha256=4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c version=20
++(the migration_v19 rule: the literal in HEAD and the pinned bytes; who wrote it is not checked). It does NOT exist yet, so the
+ single line tagged @record below is PENDING (None, None) and every gate refuses until it names that committed record and its
+ SHA-256 - a one-line change the operator makes after committing the record (RUNBOOK step 0).
+ Run from workspace_demo/t1_access. Exit 0 = OK, 3 = refused (the reasons are printed)."""
+@@ -23,40 +24,38 @@
+ 
+ HERE = os.path.dirname(os.path.abspath(__file__))
+ T1 = os.path.abspath(os.path.join(HERE, "..", ".."))
+-CAND = os.path.join(T1, "chpc", "candidate_v19_oploss")
+-REC, REC_SHA = "reviews/2026-10-22_controls_v19_operator_record.md", "afd2b1560b2ea40f913d28eb71da49b383903e281d8edb3291c0f853bb7da27d"   # @record: the committed operator record with the v19 ADOPT literal, and its sha256
+-V19_CONTROLS = "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5"
+-LITERAL = "ADOPT row19-screen-controls sha256=%s version=19" % V19_CONTROLS
+-PACKAGE = {   # the package identities (chpc/candidate_v19_oploss/DESIGN_v19.md; the candidate commit)
+-    "chpc/candidate_v19_oploss/row19_screen_controls.json": V19_CONTROLS,
+-    "chpc/candidate_v19_oploss/v19_promotion_map.json": "8256a58490d868af8c09988f69b91acf70843683bbf0fd2104cd98fc10f7a56e",
+-    "chpc/candidate_v19_oploss/build_v19.py": "db66d9d5b0bd9f98110ebde7eaa465ab6011e442558784af7c3aeaeef532e7f8",
+-    "chpc/candidate_v19_oploss/promote_v19.py": "31240ba12a5a888c85e0078c07934008c96c683ba5c6179e0f0dfab75c3bd77e",
+-    "chpc/candidate_v19_oploss/row19_screen_status.py": "258d43293b15f1ae9457cd323f2a4a7b71af79e83695dff51601037991a7cb45",
+-    "chpc/candidate_v19_oploss/row19_screen_admit.py": "27e066c72ed43919a92083fcf3f035cbee232c2137c2e97832f0e41b1113f9df",
+-    # the E2Q3 on-demand qualifier (owner decision 21 Oct 2026; DESIGN_v19.md s.7): three more promoted sources and one data row
+-    "chpc/candidate_v19_oploss/row19_ec2_state.py": "a9a32329b827b7b9d0bee27523271424c3d8e6026efd164d4b5fae975e1d487f",
+-    "chpc/candidate_v19_oploss/row19_ec2_e2qual.py": "22251f0ffa8c338f9f3f545eccd27391a86da0bcd2aba343cca69735df5dd42c",
+-    "chpc/candidate_v19_oploss/row19_ec2_ingest.py": "744ee5c81aba5be7b5160c61ccf6f335d9005d954935865d89106aa54c8fe5cd",
+-    "chpc/candidate_v19_oploss/manifest_e2q3_e2.json": "6d59c1f8568945f6121f9f16779aabe30f6334178bb0ba8c9d192a024805e17f",
++CAND = os.path.join(T1, "chpc", "candidate_v20_handback")
++REC, REC_SHA = None, None   # @record: the committed operator record with the v20 ADOPT literal, and its sha256
++V20_CONTROLS = "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c"
++LITERAL = "ADOPT row19-screen-controls sha256=%s version=20" % V20_CONTROLS
++PACKAGE = {   # the package identities (chpc/candidate_v20_handback/DESIGN_v20.md; the candidate commit)
++    "chpc/candidate_v20_handback/row19_screen_controls.json": V20_CONTROLS,
++    "chpc/candidate_v20_handback/v20_promotion_map.json": "b33359536d11527bda567e3401d5b13d93ee255fb4c39277591dce92b866b140",
++    "chpc/candidate_v20_handback/build_v20.py": "6e82bb13d1e7015866eeccecc7171b0107c42e734c1b434a97f35d4133f40999",
++    "chpc/candidate_v20_handback/promote_v20.py": "4dfd05575cbcea5622db6d5b81d6fe90c10c891d7a23bd57dd6e3aec6e4a9136",
++    "chpc/candidate_v20_handback/row19_partition.py": "a762933779529a20d6f458dd7118105c855ea122353b1eaa168a8b033c6dc17e",
++    "chpc/candidate_v20_handback/row19_screen_admit.py": "7c49bf86c6809941bc982393fb4ae095f7186e0c47665c426c27350a841b08af",
++    # the closing declaration (a NEW data path, pinned by the version entry's `partition`) and the replaced Mac authority
++    "chpc/candidate_v20_handback/row19_partition_e3.json": "ca87fb1da163df10e720e5778542d2bcc5c78f30fc08b6a1cc61d671773f0e6a",
++    "chpc/candidate_v20_handback/aws_ec2/prod_authority.py": "20de63d2fcf6685d96b23cc3543ff72864774ca17cf4983ceabf4a52d73d71e7",
+     "chpc/candidate_v18_nodefail/evidence_row19_screen_refit_54.nodefail.json": "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f",
+ }
+-V18 = {"chpc/row19_screen_controls.json": "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b",
+-       "chpc/row19_screen_controls_adoption.json": "3e1fe9a1ddd10a6ed160f5f1f9fc3f4f4de707efa3e90259104e7e5670ae1616"}
+-V18_QUAL = "530df9a208eb1578282ef564708447fd3b32c5fa1366f388f51059ebcfd70839"
++V19 = {"chpc/row19_screen_controls.json": "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5",
++       "chpc/row19_screen_controls_adoption.json": "2b9f3c783e1f7ce53cbdafa4a84e66315874512d7afcde6b03783c343ba2939c"}
++V19_QUAL = "e123d6e5d136dfda31ac5f61dd18a2cce31ecc8dea9f1ad27be73d427cc50b02"
+ QUAL_PATH = "chpc/results/row19_screen/receipts/qualified_refit_job1.json"
+-PILOT_REC = ("reviews/2026-10-20_pilot_v18_operator_record.md", "67f2b4383a1b25d7e6921f0c8252514a6fe797e37419af3ddfbb8116753fae87")
++PILOT_REC = ("reviews/2026-10-22_pilot_v19_operator_record.md", "26aa4f8dc52be9d7f67fc493bd6002ae4d3b29ca73b77ce9c30082336ff4bde6")
+ E2 = ("chpc/row19_partition_e2.json", "48cea639e823abbf39238e3dd7c075f63ba9eca8467009348510e2943ed56fa6")
+ BUDGET = "chpc/row19_screen_budget.json"
+ ADOPT = "chpc/row19_screen_controls_adoption.json"
+ CTL = "chpc/row19_screen_controls.json"
+ AUTH_LOCK = "aws_ec2/runs/.authority.lock"
+-LS_FILE = "chpc/results/archive/row19_screen_v18_before_v19.lengau_SHA256SUMS.txt"   # archive_v18.sh: the Lengau archive's SHA256SUMS
++LS_FILE = "chpc/results/archive/row19_screen_v19_before_v20.lengau_SHA256SUMS.txt"   # archive_v19.sh: the Lengau archive's SHA256SUMS
+ # Mac processes that must not run during the cutover: the refill scripts and slot watcher, every controller, the EC2 authority
+ # (ec2_sync / prod_authority / launch / permit) and a live EC2 reaper (a live attempt; it is never stopped, the cutover waits)
+ MAC_PAT = re.compile(r"refill_(r1|b1)\.sh|slot_watch\.sh|row19_screen_(admit|status|verify)\.py|row22_bank_(submit|status)\.py|"
+                      r"row19_ec2_|row19_partition\.py|programme_gate\.py|row19_ledger\.py|ec2_sync\.py|prod_authority\.py|"
+-                     r"prod_launch\.py|qual_permit\.py|bench_reaper\.py|promote_v19\.py")
++                     r"prod_launch\.py|qual_permit\.py|bench_reaper\.py|promote_v20\.py")
+ 
+ 
+ def sha(rel):
+@@ -78,19 +77,19 @@
+ 
+ 
+ def modules():
+-    """build_v19 and promote_v19 from candidate_v19_oploss (their identities are checked first: never import other bytes)."""
++    """build_v20 and promote_v20 from candidate_v20_handback (their identities are checked first: never import other bytes)."""
+     bad = [p for p, h in PACKAGE.items() if p.endswith(".py") and sha_or_none(p) != h]
+     if bad:
+-        raise SystemExit("REFUSED: the v19 package code is not the pinned bytes: %s" % bad)
++        raise SystemExit("REFUSED: the v20 package code is not the pinned bytes: %s" % bad)
+     sys.path.insert(0, CAND)
+-    import build_v19 as B, promote_v19 as PV      # noqa: E402
++    import build_v20 as B, promote_v20 as PV      # noqa: E402
+     return B, PV
+ 
+ 
+ def record_problems():
+     if REC is None or REC_SHA is None:
+-        return ["the v19 controls adoption record is not pinned (the v19_package.py record pin is PENDING): no committed operator "
+-                "record with the ADOPT literal for the exact package 111c3107 is pinned; nothing may be promoted or deployed"]
++        return ["the v20 controls adoption record is not pinned (the v20_package.py record pin is PENDING): no committed operator "
++                "record with the ADOPT literal for the exact package 4e64982b is pinned; nothing may be promoted or deployed"]
+     why = []
+     got = sha_or_none(REC)
+     if got != REC_SHA:
+@@ -149,7 +148,7 @@
+ 
+ 
+ def run_promote(*args):
+-    r = subprocess.run([sys.executable, os.path.join(CAND, "promote_v19.py"), *args], cwd=T1, capture_output=True, text=True)
++    r = subprocess.run([sys.executable, os.path.join(CAND, "promote_v20.py"), *args], cwd=T1, capture_output=True, text=True)
+     return r.returncode, (r.stdout + r.stderr).strip()
+ 
+ 
+@@ -158,25 +157,25 @@
+     if why:
+         return why                                # never import the package modules unless their bytes are the pinned ones
+     B, PV = modules()
+-    for rel, h in V18.items():
++    for rel, h in V19.items():
+         if sha_or_none(rel) != h or not committed(rel):
+-            why.append("%s is not the adopted, committed v18 bytes %s" % (rel, h[:8]))
++            why.append("%s is not the adopted, committed v19 bytes %s" % (rel, h[:8]))
+     st = PV.state()
+-    other = {k: v for k, v in st.items() if v != "v18"}
++    other = {k: v for k, v in st.items() if v != "v19"}
+     if other:
+-        why.append("promoted paths are not all at their v18 bytes: %s" % other)
++        why.append("promoted paths are not all at their v19 bytes: %s" % other)
+     for r in PV.rows():
+         prev = PV.PREVIOUS[r["promoted"]]
+         if prev is not None and not committed(r["promoted"]):
+             why.append("%s is not git-tracked and unmodified" % r["promoted"])
+         if prev is None and os.path.lexists(os.path.join(T1, r["promoted"])):
+-            why.append("%s already exists (a v19 path)" % r["promoted"])
++            why.append("%s already exists (a v20 path)" % r["promoted"])
+     if sha_or_none(E2[0]) != E2[1] or not committed(E2[0]):
+         why.append("%s is not the committed e2 48cea639" % E2[0])
+-    if sha_or_none(QUAL_PATH) != V18_QUAL:
+-        why.append("the Mac %s is not the adopted v18 pilot qualification 530df9a2" % QUAL_PATH)
++    if sha_or_none(QUAL_PATH) != V19_QUAL:
++        why.append("the Mac %s is not the adopted v19 pilot qualification e123d6e5" % QUAL_PATH)
+     if sha_or_none(PILOT_REC[0]) != PILOT_REC[1] or not committed(PILOT_REC[0]):
+-        why.append("%s is not the committed v18 pilot record 67f2b438" % PILOT_REC[0])
++        why.append("%s is not the committed v19 pilot record 26aa4f8d" % PILOT_REC[0])
+     if not committed(BUDGET):
+         why.append("%s is not git-tracked and unmodified" % BUDGET)
+     if os.path.lexists(os.path.join(T1, B.ARCH)) or os.path.lexists(os.path.join(T1, LS_FILE)):
+@@ -185,7 +184,13 @@
+         why.append("an interrupted Mac archive build left %s; inspect it by hand" % staging_left(B))
+     rc, out = run_promote("--check")
+     if rc != 0:
+-        why.append("promote_v19.py --check exited %d: %s" % (rc, out[-600:]))
++        why.append("promote_v20.py --check exited %d: %s" % (rc, out[-600:]))
++    # REVISION (v20): the EC2 close must be ready - the Mac half of its preconditions (step 0b) holds NOW (read-only check with the
++    # candidate authority; the promoted one is the same bytes)
++    r = subprocess.run([sys.executable, os.path.join(CAND, "aws_ec2", "prod_authority.py"), "close-check"], cwd=T1, capture_output=True, text=True)
++    if r.returncode != 0 or '"close_preconditions": "MET"' not in r.stdout:
++        why.append("the EC2 close preconditions are NOT MET on the Mac (RUNBOOK step 0b: disposition qual-E2Q3/1 and qual-Q2/1, "
++                   "ec2_sync, disposition-confirm, a fresh inventory): %s" % (r.stdout + r.stderr).strip()[-600:])
+     return why
+ 
+ 
+@@ -203,7 +208,7 @@
+         why.append("%s is not the Lengau SHA256SUMS the Mac archive names (%s)" % (LS_FILE, comp["lengau_sha256sums"][:16]))
+     rc, out = run_promote("--check-promoted", "--review", REC)
+     if rc != 0 or "already promoted, verified" not in out:
+-        why.append("promote_v19.py --check-promoted --review %s exited %d: %s" % (REC, rc, out[-600:]))
++        why.append("promote_v20.py --check-promoted --review %s exited %d: %s" % (REC, rc, out[-600:]))
+     for rel in commit_paths(B, PV):
+         if os.path.isdir(os.path.join(T1, rel)):
+             files = sorted(os.listdir(os.path.join(T1, rel)))
+@@ -222,21 +227,22 @@
+ 
+ 
+ def payload(B=None, PV=None):
+-    """The 9 files deploy_v19.sh carries, in copy order: the controls adoption (operator) record, the map rows in map order (the
+-    status view, the admission, the EC2 state, the E2Q module, the ingestion, the NEW E2Q3 operational manifest), then the
+-    controls and LAST the adoption record (the promotion's own order)."""
++    """The 7 files deploy_v20.sh carries, in copy order: the controls adoption (operator) record, the map rows in map order (the
++    partition module, the admission, the NEW e3 closing declaration, the Mac authority prod_authority.py), then the controls and
++    LAST the adoption record (the promotion's own order)."""
+     if B is None:
+         B, PV = modules()
+     return [REC] + [r["promoted"] for r in PV.rows()] + [CTL, ADOPT]
+ 
+ 
+ def compare_list(B=None, PV=None):
+-    """Every file compared Mac vs controller clone after the deploy: the 19 v19 pins, every promoted map row (incl. the E2Q3
+-    data row), the controls and adoption, the e2 partition and the operator adoption record."""
++    """Every file compared Mac vs controller clone after the deploy: the 19 v20 pins, every promoted map row (incl. the e3 data
++    row and the Mac authority), the controls and adoption, the e3 partition the latest entry pins, e2 (its bound predecessor) and
++    the operator adoption record."""
+     if B is None:
+         B, PV = modules()
+     v = json.load(open(os.path.join(T1, CTL)))["versions"][-1]
+-    return sorted(set(v["files"]) | {r["promoted"] for r in PV.rows()} | {CTL, ADOPT, v["partition"]["path"], REC})
++    return sorted(set(v["files"]) | {r["promoted"] for r in PV.rows()} | {CTL, ADOPT, v["partition"]["path"], E2[0], REC})
+ 
+ 
+ def main(argv):
+@@ -245,15 +251,15 @@
+         why = preflight()
+         if why:
+             print("PREFLIGHT REFUSED (Mac):"); [print("  -", w) for w in why]; return 3
+-        print("mac preflight OK: the live tree is the adopted v18 (controls 452b82df, adoption 3e1fe9a1), every promoted path at its v18 "
+-              "bytes, the pinned package (controls 111c3107, map 8256a584, builder, promoter, sources, node evidence 730ea262) "
+-              "and the operator adoption record committed with the literal in HEAD, promote_v19.py --check OK, Mac qualification 530df9a2, "
+-              "no Mac archive, Mac drain observed, EC2 authority lock free"); return 0
++        print("mac preflight OK: the live tree is the adopted v19 (controls 111c3107, adoption 2b9f3c78), every promoted path at its v19 "
++              "bytes, the pinned package (controls 4e64982b, map b3335953, builder, promoter, sources, e3 ca87fb1d, authority 20de63d2, node evidence 730ea262) "
++              "and the operator adoption record committed with the literal in HEAD, promote_v20.py --check OK, Mac qualification e123d6e5, "
++              "no Mac archive, Mac drain observed, EC2 authority lock free, the EC2 close preconditions MET (close-check)"); return 0
+     if cmd == "check-promoted":
+         why = check_promoted()
+         if why:
+-            print("REFUSED (Mac): the v19 promotion is not complete, committed and verified:"); [print("  -", w) for w in why]; return 3
+-        print("mac v19 promotion OK: complete, committed, archive verifying, package identities exact"); return 0
++            print("REFUSED (Mac): the v20 promotion is not complete, committed and verified:"); [print("  -", w) for w in why]; return 3
++        print("mac v20 promotion OK: complete, committed, archive verifying, package identities exact"); return 0
+     if cmd == "drain":
+         why = drain_problems() + auth_lock_problems()
+         if why:
+--- /dev/null	2026-10-22 22:50:11
++++ migration_v20/close_v20.sh	2026-10-22 22:48:07
+@@ -0,0 +1,33 @@
++#!/bin/bash
++# Migration v19 -> v20, step 6 (Mac -> Lengau): THE EC2 CLOSE (owner decision 23 Oct 2026, route A).
++#   Mac: v20_package.py check-promoted (the complete, committed, verified v20 promotion), the Mac drain, then the Mac half of the
++#        close preconditions with the PROMOTED authority: `python3 aws_ec2/prod_authority.py close-check` must report MET (no
++#        owned coordinate, every attempt reconciled and ingested/dispositioned, the latest sealed inventory current and at most six
++#        hours old). It writes nothing.
++#   Lengau (close_e3.sh): the checks listed there, `row19_partition.py verify3` against the root's register, then the ONE
++#        activation call under the plan lock, then act3_valid.
++# If the installed inventory is older than six hours, first (Mac) `python3 aws_ec2/prod_authority.py inventory` and
++# `python3 aws_ec2/ec2_sync.py cycle`, then re-run this script.
++# Usage (from workspace_demo/t1_access): bash chpc/migration_v20/close_v20.sh [--dry-run]
++#   --dry-run   the Mac checks only: no ssh, nothing written anywhere.
++set -u -o pipefail
++DRY=${1:-}
++case $DRY in ""|--dry-run) ;; *) echo "CLOSE REFUSED: unknown argument $DRY"; exit 3;; esac
++fail() { echo "CLOSE REFUSED: $*"; exit 3; }
++[ -f chpc/row19_screen_admit.py ] && [ -d reviews ] || fail "run from workspace_demo/t1_access"
++python3 chpc/migration_v20/v20_package.py check-promoted || fail "the Mac promotion is not complete, committed and verified (above)"
++python3 chpc/migration_v20/v20_package.py drain || fail "the Mac drain is not observed (above)"
++OUT=$(python3 aws_ec2/prod_authority.py close-check); rc=$?
++printf '%s\n' "$OUT"
++[ $rc = 0 ] && printf '%s\n' "$OUT" | grep -q '"close_preconditions": "MET"' \
++  || fail "the Mac half of the close preconditions is NOT MET (above): finish RUNBOOK step 0b"
++[ "$DRY" = "--dry-run" ] && { echo "DRY RUN - the Mac checks pass; would run close_e3.sh on Lengau (verify3, then the e3 activation under the plan lock)"; exit 0; }
++. chpc/migration_v20/lengau.sh || fail "cannot load chpc/migration_v20/lengau.sh"
++OUTF=$(mktemp -t v20_close) || fail "mktemp failed"
++to_lengau close_e3.sh > "$OUTF" 2>&1; rc=$?
++cat "$OUTF"
++grep -q "ABORT" "$OUTF" && { rm -f "$OUTF"; fail "the Lengau half printed an ABORT (above)"; }
++grep -qx "lengau close body complete" "$OUTF" || { rm -f "$OUTF"; fail "the Lengau half did not complete (exit $rc, above)"; }
++rm -f "$OUTF"
++[ $rc = 0 ] || fail "the Lengau half exited $rc (above)"
++echo "CLOSE OK - epoch 3 active; next: bash chpc/migration_v20/receipts_v20.sh --post-close (step 7)"
+--- /dev/null	2026-10-22 22:50:11
++++ migration_v20/close_e3.sh	2026-10-22 22:47:58
+@@ -0,0 +1,50 @@
++# Migration v19 -> v20, step 6 (Lengau body; sent by close_v20.sh through lengau.sh): THE EC2 CLOSE - the hand-back of the
++# epoch-2 block to Lengau (owner decision 23 Oct 2026, route A; chpc/candidate_v20_handback/DESIGN_v20.md s.4).
++# Refuses unless v20 is the deployed, ADOPTED controller (deploy proof DONE), the controller clone is clean, the adopted v20
++# pins exactly the verified e3 closing declaration ca87fb1d (e3_pinned), the e1/e2 proofs are unchanged (act2_kept), the node
++# document is in place, the drain is observed (checked process inventory, both locks probed free), the root's INSTALLED
++# authority inventory is fresh (six hours) with no owner and no live or owning attempt, and e3 regenerates byte-equal from e2,
++# the designated declaration and the root's OWN register (`row19_partition.py verify3`). Then ONE call:
++#     $T/t1py chpc/row19_partition.py activate --manifest chpc/row19_screen_manifest.json --partition chpc/row19_partition_e3.json
++# which takes the screen's plan lock itself (non-blocking: a held lock refuses with exit 3, nothing written), re-checks every
++# close precondition under that lock (row19_partition.close_problems) and writes the immutable proof $EC2/activation_e3.json.
++# Afterwards act3_valid (epoch 3 THE canonical activation under the adopted v20) and act2_kept again.
++# Re-run: once activation_e3.json exists and verifies, the run reports "already closed" and exits 0; a proof that does not
++# verify refuses (never overwritten or removed). Nothing else is written; no worker, reaper, plan, record or ledger is touched.
++[ "${V20_PRELUDE:-}" = 1 ] || { echo "run through: bash chpc/migration_v20/close_v20.sh"; exit 1; }
++[ "$NP" = 0 ] || die "close_e3.sh takes no payload"
++cd "$C" || die "no controller clone $C"
++ctl_git
++ctl_clean
++v20_adopted
++deploy_done
++e3_pinned
++act2_kept
++node_ev
++if [ -e "$ACT3" ] || [ -L "$ACT3" ]; then
++  act3_valid
++  echo "already closed (verified): $ACT3 is THE canonical epoch-3 activation under the adopted v20; nothing written"
++  echo "lengau close body complete"
++  exit 0
++fi
++dst_absent "$ACT3" "$GS" "the epoch-3 activation proof"
++drained
++locks_free
++"$T/t1py" -c 'import sys, time; sys.path.insert(0, "chpc"); import row19_ec2_state as ES
++inv, why = ES.installed_inventory(sys.argv[1])
++live = ES.live_attempts(inv) if inv else []
++print("installed authority inventory: %s; generation %s, %.0f s old, owners %d, live or owning %s" % (
++    why or "fresh", (inv or {}).get("generation"), time.time() - (inv or {}).get("at", 0), len((inv or {}).get("owners") or {}), live))
++sys.exit(1 if (why or live or (inv or {}).get("owners")) else 0)' "$GS" \
++  || die "the installed inventory is stale (over six hours) or still shows an owner or a live/owning attempt: run prod_authority.py inventory and ec2_sync.py cycle on the Mac (RUNBOOK step 0b/6), then re-run"
++src_file "$EC2/register.json" "$GS" "the root's EC2 register"
++"$T/t1py" chpc/row19_partition.py verify3 --manifest chpc/row19_screen_manifest.json --designated chpc/row19_screen_designated.json \
++  --predecessor chpc/row19_partition_e2.json --register "$EC2/register.json" --partition chpc/row19_partition_e3.json \
++  || die "e3 does not regenerate from e2, the designated declaration and the root's register (an EC2-completed coordinate?): re-declare, never edit"
++"$T/t1py" chpc/row19_partition.py activate --manifest chpc/row19_screen_manifest.json --partition chpc/row19_partition_e3.json; rc=$?
++[ $rc = 0 ] || die "the close activation refused or failed (exit $rc, above); nothing was written unless it printed 'activated'"
++act3_valid
++act2_kept
++node_ev
++echo "CLOSED: epoch 3 activated - EC2 owns nothing, the 3,274 handed-back coordinates are Lengau-plannable; refit admission needs a fresh v20 receipt and the regenerated pilot adoption"
++echo "lengau close body complete"

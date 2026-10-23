@@ -1,5 +1,11 @@
 # EC2 epoch 2 - operating sequence: E2Q1 -> release -> production
 
+**23 Oct 2026: this route is closed.** E2Q3 ended NO_RELEASE (cert 41226aeb, RSC ae70ad3) and the owner chose route A (R052): EC2 is
+finished for row 19 and the 3,274 EC2-designated coordinates go back to Lengau. No further E2Q attempt, release or production
+exists. The close is controls v20 (`chpc/candidate_v20_handback/DESIGN_v20.md`, migration `chpc/migration_v20/RUNBOOK.md`; built
+and tested, not yet adopted): its step 0b dispositions qual-E2Q3/1 and qual-Q2/1, and after v20 `prod_authority.py` refuses every
+row-19 EC2 qualification, production, release and allocation. The sequence below is kept as the record of the route.
+
 Owning runbook for the paid epoch-2 route (20 Oct 2026). Sources: `chpc/candidate_e2q/DESIGN_e2q.md` s.7,
 `chpc/candidate_e2s/DESIGN_e2s.md` s.3, and the two operating conditions of
 `reviews/2026-10-19_mig17_staging_r6_codex_review.md` s.2 (choices 6 and 9). Owner approval: R052 lean plan item 4
