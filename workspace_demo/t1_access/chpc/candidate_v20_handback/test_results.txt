@@ -1,0 +1,167 @@
+controls v20 CANDIDATE - test results, 23 Oct 2026 (Mac, Python 3; from workspace_demo/t1_access)
+
+== python3 chpc/candidate_v20_handback/test_v20_handback.py ==
+# A. the closing declaration e3
+ok   A1 e3 loads from its candidate path; schema 3, epoch 3, predecessor e2 48cea639 at chpc/row19_partition_e2.json
+ok   A2 verify3: e3 is the deterministic declaration from e2 + designated + the register (Mac copy)
+ok   A3 the hand-back is exactly e2's owned set (3274), retained EC2-completed 0, EC2 owns nothing
+ok   A4 blocked() is False on every designated coordinate; transferred_of binds the hand-back digest; is_closed
+ok   A5 the hand-back lies on the 47 EC2-designated replicates x 0..79 and is the 47 LARGEST replicate IDs of S
+ok   A6 every coordinate the E2Q3 claim touched as owned work (52, rep 24) is inside the hand-back; its duplicates and sentinels are Lengau-completed coordinates (never owned)
+ok   A7 a tampered e3 refuses at load: owned_nonempty (/var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/v20_handback_test_lsm)
+ok   A7 a tampered e3 refuses at load: both_handed_back_and_completed (/var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/v20_handback_test_lsm)
+ok   A7 a tampered e3 refuses at load: drop_one (/var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/v20_handback_test_lsm)
+ok   A7 a tampered e3 refuses at load: lengau_replicate (/var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/v20_handback_test_lsm)
+ok   A7 a tampered e3 refuses at load: not_terminal (/var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/v20_handback_test_lsm)
+ok   A7 a tampered e3 refuses at load: predecessor_sha (/var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/v20_handback_test_lsm)
+ok   A7 a tampered e3 refuses at load: predecessor_schema1 (/var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/v20_handback_test_lsm)
+ok   A7 a tampered e3 refuses at load: epoch2 (/var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/v20_handback_test_lsm)
+ok   A7 a tampered e3 refuses at load: extra_field (/var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/v20_handback_test_lsm)
+ok   A7 a tampered e3 refuses at load: cover (/var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/v20_handback_test_lsm)
+ok   A7 a tampered e3 refuses at load: count (/var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/v20_handback_test_lsm)
+ok   A7 a tampered e3 refuses at load: manifest (/var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/v20_handback_test_lsm)
+ok   A8 a hand-back coordinate declared EC2-completed loads structurally but verify3 against the real register refuses
+ok   A9 an EC2-completed coordinate stays completed: declare3 retains 24/11 (and not a preexisting 24/12), hands back 3,273
+ok   A10 terminal: declare3 refuses a schema-3 predecessor; declare2 refuses a schema-3 predecessor; declare3 refuses a schema-1 one
+ok   A11 e1 and e2 still load unchanged under REVISION 7 (blocked/owned_set identical to the v19 module on e2)
+# B. the close activation (sandbox roots seeded from the local Lengau copy; record NAMES only, never contents)
+ok   B1 every precondition holds -> the close activates (sandbox proof, no problem) []
+ok   B2 the proof binds e3, the hand-back digest, owned = empty, closed, the predecessor e2 and the v20 entry
+ok   B3 activation_problem accepts that proof under the v20 controls (sandbox lineage)
+ok   B4 under v20 the e2 activation is HISTORICAL: every e2 consumer (EC2 launcher, ingestion, qualifier) refuses
+ok   B5 refused: live_claim_E2Q3_pending (52 coordinate(s) are still owned by an EC2 attempt (e.g. ['24/11', '24/12', '24/13']): dis)
+ok   B5 refused: undispositioned_Q2_pending (live or owning EC2 attempt(s) ['qual-Q2/1']: every attempt must be rejected, or reconciled)
+ok   B5 refused: live_lease_E2Q3_launched (live or owning EC2 attempt(s) ['qual-E2Q3/1']: every attempt must be rejected, or reconcil)
+ok   B5 refused: stale_inventory_7h (a closing activation needs the root's fresh installed authority inventory: installed autho)
+ok   B5 refused: ec2_completed_in_handback (the register's EC2-completed coordinates on the predecessor's set (1) are not the declared)
+ok   B5 refused: no_predecessor_activation (the predecessor epoch 2 was never activated)
+ok   B6 refused while the latest controls (v19) do not pin e3 (the Lengau guard is not live)
+ok   B7 the close does not touch the live root copy (no activation_e3 written by activate; activation is the CLI's job)
+# C. the planner on the local snapshot (receipt watch_refit_20261023T050233Z)
+   local snapshot: watch_refit_20261023T050233Z.json; done (record names) in D 1142, in flight 240; v19 order 179, v20 order 3453
+ok   C1 the v19 order rebuilt from the local snapshot is the receipt's: plannable 179, first 24 = its next_coordinates; done + in flight 1142 + 200 = the receipt's 1144 + 198 (the local root copy is a few hours older than the receipt: records the running jobs published since are 'in flight' here)
+ok   C2 REVISION 20 with e2 pinned (or no partition) plans EXACTLY the v19 order (no behaviour change before the close)
+ok   C3 the v20 order RESTRICTED to the v19 scope is the v19 order exactly (same coordinates, same sequence)
+ok   C4 the v20 order extends it by exactly the hand-back less done/in flight/excluded (3274 = 3,274) and stays ascending (rep, index)
+   order shape: the first 178 v20 positions are the v19 order's head (the 13 Lengau replicates); then the block's replicates in ascending ID, with 1 old-scope coordinate(s) of the 47 interleaved by (rep, index): [(73, 8)]
+ok   C5 the old-scope coordinates on the 13 Lengau replicates all precede the hand-back (the block = the 47 largest IDs)
+ok   C6 the status/dry-run view after the close: EC2-designated unclaimed 0 (was 3274), Lengau plannable 3458 = 184 + 3,274
+ok   C7 receipt arithmetic: designated 4,800 = done 1,144 + in flight 198 + Lengau plannable (179 -> 3,453) + EC2 waiting (3,274 -> 0) + rescue-pending 5
+ok   C8 the next 10-job round under v20 = the first 240 of the v20 order: the 178 old coordinates on the Lengau replicates, then 62 of the block (rep [24]); the old-scope coordinate(s) on the 47 [(73, 8)] move from v19 position(s) [178] to v20 position(s) [2192] (replicate-complete rule)
+ok   C9 admission checks: designated_problem/partition_problem accept those jobs under e3; under e2 they refuse (blocked/out of scope)
+ok   C10 the crash rule is unchanged: a rescue-pending coordinate is never planned, also under e3
+# D. prod_authority REVISION 10 (terminal close)
+ok   D1 open today (live controls v19): closed_problem '' and the gates answer exactly as the live v19 authority
+ok   D2 v20 pins e3 -> CLOSED (row-19 EC2 is CLOSED: controls version 20 pins the closing e)
+ok   D3 every admission refuses first: exclusion_problem (prod_launch's first gate)
+ok   D4 E2Q1 / E2Q2 / E2Q3 qualification admissions refuse
+ok   D5 production (epoch 2 and any epoch) refuses
+ok   D6 release_problem (release-adopt) refuses
+ok   D7 allocate refuses on e3 and on e2
+ok   D8 release_state: qualification, qualification_e2 (E2Q2/E2Q3) and production all NOT ok, with the close as the reason
+ok   D9 terminal: a later controls version that pins e2 again does not re-open EC2 (any version pinning e3 closes)
+ok   D10 bookkeeping stays: ack/disposition/disposition-confirm/inventory/budget never consult the close (source)
+ok   D11 close-check on the REAL Mac ledgers: NOT MET - E2Q3/1 and qual-Q2/1 pending, 52 owned (4 problems)
+ok   D12 close-check MET once E2Q3/1 and qual-Q2/1 are dispositioned and a fresh current-generation inventory is sealed
+ok   D13 close-check refuses a stale (7 h) or a non-current-generation inventory
+ok   D14 prod_launch (unchanged) calls PA.exclusion_problem before the release gate and before any plan, so every launch refuses at once
+# E. controls v20
+ok   E1 versions 1-19 and every top-level key (programme, deployment, history) equal the adopted v19 controls
+ok   E2 v20 changes exactly two pins (partition module, admission) to this folder's bytes and the partition to e3
+ok   E3 the status view, the EC2 state/ingestion/qualifier/E2Q module and every other pin are unchanged; sub_envelopes refit+S 81,000 and qualification_S equal v19
+ok   E4 funding: the CSCI1913 allocation is ONE declared value (manifest funding.allocation_core_h 100,000; the controls programme block, which programme_gate.programme_funding lets override it, carries no allocation_core_h) - unchanged by v20
+ok   E5 build_v20 --check: the controls and promotion map are the deterministic build from the authenticated v19 base
+ok   E6 Python 3.7 grammar for every candidate Python file
+ok   E7 fit code, estimand, seeds, folds, pass conditions untouched: the manifest (43b75f94) and its code pins are not in the change set
+ok   E8 the live tree is untouched (partition module, admission, controls, adoption, e2, Mac authority, release state)
+
+66 passed, 0 failed
+
+== python3 chpc/candidate_v20_handback/regress/regress_all.py (LIVE v19 modules vs v20 modules substituted) ==
+aws_ec2/tests/test_prod_authority.py: v19 54 pass / 5 fail (rc 1, 0 s); v20 54 pass / 5 fail (rc 1, 0 s)
+aws_ec2/tests/test_prod_launch.py: v19 61 pass / 1 fail (rc 1, 0 s); v20 61 pass / 1 fail (rc 1, 0 s)
+aws_ec2/tests/test_ec2_sync.py: v19 12 pass / 0 fail (rc 0, 0 s); v20 12 pass / 0 fail (rc 0, 0 s)
+chpc/candidate_e2/test_e2_partition.py: v19 54 pass / 0 fail (rc 0, 0 s); v20 54 pass / 0 fail (rc 0, 0 s)
+chpc/candidate_e2/test_e2_authority.py: v19 74 pass / 3 fail (rc 1, 0 s); v20 74 pass / 3 fail (rc 1, 0 s)
+chpc/candidate_e2q/test_e2q_release.py: v19 28 pass / 29 fail (rc 1, 0 s); v20 75 pass / 6 fail (rc 1, 1 s)
+    DIFFERS: ... and then the adopted epoch-2 certificate reads RELEASED for epoch 2 with its bound production manifest  (v19 None, v20 True)
+    DIFFERS: ... and then the adopted epoch-2 certificate reads RELEASED for epoch 2 with its bound production manifest  [the certificate's code is not the current bytes (['  (v19 False, v20 None)
+    DIFFERS: ... while a base production batch (the 46th is base, not allowance) is judged by the epoch cap, not the allowance  (v19 None, v20 True)
+    DIFFERS: E2Q1 admission refused without the qualification_e2 permission  (v19 None, v20 True)
+    DIFFERS: E2Q1 admission: permitted, no earlier instance -> allowed  (v19 None, v20 True)
+    DIFFERS: E2Q2 allowed after E2Q1 was reconciled and dispositioned, with its record  (v19 None, v20 True)
+    DIFFERS: E2Q2 refused while E2Q1 is not dispositioned (it may still hold a usable bundle)  (v19 None, v20 True)
+    DIFFERS: E2Q2 refused without its own reviewed record  (v19 None, v20 True)
+    DIFFERS: a capacity-rejected E2Q1 (no instance ever existed) does not consume E2Q1  (v19 None, v20 True)
+    DIFFERS: a release state listing other attempts than the certificate releases is NOT released  (v19 None, v20 True)
+    DIFFERS: a second E2Q2 is refused  (v19 None, v20 True)
+    DIFFERS: a second non-rejected E2Q1 is refused (no retry by outcome)  (v19 None, v20 True)
+    DIFFERS: a valid schema-3 certificate with its FAVOURABLE epoch-2 review releases exactly the E2Q1 attempt  (v19 None, v20 True)
+    DIFFERS: a valid schema-3 certificate with its FAVOURABLE epoch-2 review releases exactly the E2Q1 attempt  [([], "the certificate's code is not the current bytes (['chp  (v19 False, v20 None)
+    DIFFERS: an E2Q2 release after E2Q1 was dispositioned releases exactly E2Q2  (v19 None, v20 True)
+    DIFFERS: an E2Q2 release after E2Q1 was dispositioned releases exactly E2Q2  [([], "the certificate's code is not the current bytes (['chpc/row19_ec2_e2qual.py', 'chpc/r  (v19 False, v20 None)
+    DIFFERS: an adopted epoch-2 release reads NOT released while the controls pin another partition (live controls: epoch 1)  (v19 None, v20 True)
+    DIFFERS: an epoch-1 release never admits epoch-2 production  (v19 None, v20 True)
+    DIFFERS: conformance (conf_actual): the REAL Mac `ack` accepts the sandbox register entry of the per-slot case (published + unproduced = owned)  (v19 None, v20 True)
+    DIFFERS: conformance (conf_actual): the qualifier's own parts / memory / concentration / unproduced / replay evidence passes the release branch  [the certificate is not   (v19 None, v20 False)
+    DIFFERS: conformance (conf_clean): the REAL Mac `ack` accepts the sandbox register entry of the per-slot case (published + unproduced = owned)  (v19 None, v20 True)
+    DIFFERS: conformance (conf_clean): the qualifier's own parts / memory / concentration / unproduced / replay evidence passes the release branch  [the certificate is not a  (v19 None, v20 False)
+    DIFFERS: epoch2_problem: base 46 + 4 extra production attempts used -> the 51st refuses  (v19 None, v20 True)
+    DIFFERS: epoch2_problem: the allowance money binds - two qualification instances charged USD 279.82 leave no room for a first extra production batch  (v19 None, v20 True)
+    DIFFERS: epoch2_problem: two non-rejected qual-E2 instances -> a third refuses (allowance counter 2)  (v19 None, v20 False)
+    DIFFERS: production admission gate: epoch 2 with another operational manifest refuses  (v19 None, v20 True)
+    DIFFERS: production admission gate: epoch 2 with the bound production manifest passes  (v19 None, v20 True)
+    DIFFERS: production admission gate: the epoch-2 release never admits epoch-1 production  (v19 None, v20 True)
+    DIFFERS: qual_permit --epoch2 --e2q2 writes the E2Q2 record once epoch-2 qualification is permitted  (v19 None, v20 True)
+    DIFFERS: refused: a coherently re-bound funding file on another basis (A4: rederived from the pinned Q2 ledger attempt)  (v19 False, v20 True)
+    DIFFERS: refused: a missing review  (v19 False, v20 True)
+    DIFFERS: refused: a plan at another lifetime  (v19 None, v20 True)
+    DIFFERS: refused: a plan at another lifetime  [([], "the certificate's code is not the current bytes (['chpc/row19_ec2_e2qual.py', 'chpc/row19_ec2_ingest.py', 'chpc/row1  (v19 False, v20 None)
+    DIFFERS: refused: a reconciled attempt whose plan is not the declared panel  (v19 None, v20 True)
+    DIFFERS: refused: a reconciled attempt whose plan is not the declared panel  [([], "the certificate's code is not the current bytes (['chpc/row19_ec2_e2qual.py', 'chpc/r  (v19 False, v20 None)
+    DIFFERS: refused: a review carrying the EPOCH-1 literal form (no epoch=2)  (v19 False, v20 True)
+    DIFFERS: refused: a review naming another attempt  (v19 False, v20 True)
+    DIFFERS: refused: a review without FAVOURABLE  (v19 False, v20 True)
+    DIFFERS: refused: an E2Q2 release while E2Q1 was NOT dispositioned (E2Q2 is the external-cause retry only)  (v19 False, v20 True)
+    DIFFERS: refused: an attempt of another contract  (v19 False, v20 True)
+    DIFFERS: refused: another claims snapshot digest  (v19 False, v20 True)
+    DIFFERS: refused: another lifetime  (v19 False, v20 True)
+    DIFFERS: refused: another manifest  (v19 False, v20 True)
+    DIFFERS: refused: another owned digest  (v19 False, v20 True)
+    DIFFERS: refused: another panel digest  (v19 False, v20 True)
+    DIFFERS: refused: another partition digest  (v19 False, v20 True)
+    DIFFERS: refused: other funding bytes than bound  (v19 False, v20 True)
+    DIFFERS: refused: released attempts beyond the E2Q attempt  (v19 False, v20 True)
+    DIFFERS: refused: the current controls pin epoch 1 (the live controls), not the epoch-2 partition  (v19 False, v20 True)
+    DIFFERS: refused: the ledger attempt is not reconciled  (v19 False, v20 True)
+    DIFFERS: refused: the pinned partition bytes are not at the pinned path  (v19 False, v20 True)
+    DIFFERS: refused: the plan file is not the attempt's plan bytes  (v19 False, v20 True)
+    DIFFERS: refused: the production operational manifest digest differs  (v19 False, v20 True)
+    DIFFERS: refused: the qualified operational manifest digest differs  (v19 False, v20 True)
+    DIFFERS: release-adopt from the valid epoch-2 certificate writes the production block; release_state reads it released for epoch 2  (v19 None, v20 True)
+chpc/candidate_e2q/test_e2q_contracts.py: v19 53 pass / 1 fail (rc 1, 0 s); v20 53 pass / 1 fail (rc 1, 0 s)
+chpc/candidate_v16/test_designated_r16.py: v19 78 pass / 2 fail (rc 1, 0 s); v20 78 pass / 2 fail (rc 1, 0 s)
+chpc/candidate_v19_oploss/test_v19_oploss.py: v19 74 pass / 2 fail (rc 1, 3 s); v20 74 pass / 2 fail (rc 1, 3 s)
+chpc/candidate_v19_oploss/test_v19_e2q3.py: v19 37 pass / 12 fail (rc 1, 0 s); v20 37 pass / 12 fail (rc 1, 0 s)
+
+== the same suites, first run: no substitution (--live, each test's own module paths) vs v20 ==
+aws_ec2/tests/test_prod_authority.py: LIVE 54 pass / 5 fail (rc 1, 0 s); v20 54 pass / 5 fail (rc 1, 0 s)
+aws_ec2/tests/test_prod_launch.py: LIVE 61 pass / 1 fail (rc 1, 0 s); v20 61 pass / 1 fail (rc 1, 0 s)
+aws_ec2/tests/test_ec2_sync.py: LIVE 12 pass / 0 fail (rc 0, 0 s); v20 12 pass / 0 fail (rc 0, 0 s)
+chpc/candidate_e2/test_e2_partition.py: LIVE 54 pass / 0 fail (rc 0, 0 s); v20 54 pass / 0 fail (rc 0, 0 s)
+chpc/candidate_e2/test_e2_authority.py: LIVE 75 pass / 2 fail (rc 1, 0 s); v20 74 pass / 3 fail (rc 1, 0 s)
+    DIFFERS: two qualification instances fit; a third refuses  (live True, v20 False)
+chpc/candidate_e2q/test_e2q_release.py: LIVE 79 pass / 2 fail (rc 1, 1 s); v20 75 pass / 6 fail (rc 1, 1 s)
+    DIFFERS: conformance (conf_actual): the qualifier's own parts / memory / concentration / unproduced / replay evidence passes the release branch  (live True, v20 None)
+    DIFFERS: conformance (conf_actual): the qualifier's own parts / memory / concentration / unproduced / replay evidence passes the release branch  [the certificate is not   (live None, v20 False)
+    DIFFERS: conformance (conf_clean): the qualifier's own parts / memory / concentration / unproduced / replay evidence passes the release branch  (live True, v20 None)
+    DIFFERS: conformance (conf_clean): the qualifier's own parts / memory / concentration / unproduced / replay evidence passes the release branch  [the certificate is not a  (live None, v20 False)
+    DIFFERS: epoch2_problem: two non-rejected qual-E2 instances -> a third refuses (allowance counter 2)  (live True, v20 False)
+    DIFFERS: refused: three non-rejected epoch-2 qualification instances exceed the allowance counter (2)  (live True, v20 False)
+chpc/candidate_e2q/test_e2q_contracts.py: LIVE 53 pass / 1 fail (rc 1, 0 s); v20 53 pass / 1 fail (rc 1, 0 s)
+chpc/candidate_v16/test_designated_r16.py: LIVE 78 pass / 2 fail (rc 1, 0 s); v20 78 pass / 2 fail (rc 1, 0 s)
+chpc/candidate_v19_oploss/test_v19_oploss.py: LIVE 74 pass / 2 fail (rc 1, 3 s); v20 74 pass / 2 fail (rc 1, 3 s)
+chpc/candidate_v19_oploss/test_v19_e2q3.py: LIVE 37 pass / 12 fail (rc 1, 0 s); v20 37 pass / 12 fail (rc 1, 0 s)
+
+build_v20.py --check: OK (deterministic build from the authenticated live v19 base)
+promote_v20.py --check: every check passes except git-tracked/unmodified (the candidate is committed with this file)

@@ -1,0 +1,65 @@
+{
+ "schema": "row19-controls-promotion-map-1",
+ "version": 20,
+ "base": {
+  "controls_sha256": "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5",
+  "adoption_sha256": "2b9f3c783e1f7ce53cbdafa4a84e66315874512d7afcde6b03783c343ba2939c"
+ },
+ "rule": "each row: copy `source` (exactly `sha256`) to `promoted`; the path must hold `previous_sha256` (null: a NEW path, absent before) or already the new bytes. Order: the partition module, the admission, the e3 closing declaration (data: pinned by the version entry's `partition`, not in `files`), the Mac authority (mac: not pinned by the controls), then the controls LAST, then the version-20 adoption record. Unchanged v19 pins are not listed.",
+ "unchanged_v19_pins": [
+  "aws_ec2/qual_S_plan.json",
+  "chpc/programme_gate.py",
+  "chpc/row19_ec2_e2qual.py",
+  "chpc/row19_ec2_e2rules.py",
+  "chpc/row19_ec2_ingest.py",
+  "chpc/row19_ec2_qualify.py",
+  "chpc/row19_ec2_root.py",
+  "chpc/row19_ec2_shadow.py",
+  "chpc/row19_ec2_state.py",
+  "chpc/row19_nodefail_capture.py",
+  "chpc/row19_qual_S_manifest.json",
+  "chpc/row19_screen_designated.json",
+  "chpc/row19_screen_nodefail.py",
+  "chpc/row19_screen_release.py",
+  "chpc/row19_screen_resources.json",
+  "chpc/row19_screen_status.py",
+  "chpc/row19_screen_verify.py"
+ ],
+ "rows": [
+  {
+   "promoted": "chpc/row19_partition.py",
+   "source": "chpc/candidate_v20_handback/row19_partition.py",
+   "sha256": "a762933779529a20d6f458dd7118105c855ea122353b1eaa168a8b033c6dc17e",
+   "previous_sha256": "eabf50c34be2bad3f92e07370966bcc94162cf12cbcefb326cc07a72d49ac0d8",
+   "group": "pin"
+  },
+  {
+   "promoted": "chpc/row19_screen_admit.py",
+   "source": "chpc/candidate_v20_handback/row19_screen_admit.py",
+   "sha256": "7c49bf86c6809941bc982393fb4ae095f7186e0c47665c426c27350a841b08af",
+   "previous_sha256": "27e066c72ed43919a92083fcf3f035cbee232c2137c2e97832f0e41b1113f9df",
+   "group": "pin"
+  },
+  {
+   "promoted": "chpc/row19_partition_e3.json",
+   "source": "chpc/candidate_v20_handback/row19_partition_e3.json",
+   "sha256": "ca87fb1da163df10e720e5778542d2bcc5c78f30fc08b6a1cc61d671773f0e6a",
+   "previous_sha256": null,
+   "group": "data"
+  },
+  {
+   "promoted": "aws_ec2/prod_authority.py",
+   "source": "chpc/candidate_v20_handback/aws_ec2/prod_authority.py",
+   "sha256": "20de63d2fcf6685d96b23cc3543ff72864774ca17cf4983ceabf4a52d73d71e7",
+   "previous_sha256": "ba726a197ab2da5d89a1b8d9615890ab9e49ddf1614191d7fb2a5fc446142ac6",
+   "group": "mac"
+  },
+  {
+   "promoted": "chpc/row19_screen_controls.json",
+   "source": "chpc/candidate_v20_handback/row19_screen_controls.json",
+   "sha256": "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c",
+   "previous_sha256": "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5",
+   "group": "ctl"
+  }
+ ]
+}
