@@ -55,8 +55,13 @@ REQUIRED_CTL = {"chpc/row19_screen_controls.json": V19_CONTROLS, "chpc/row19_scr
                 "chpc/row19_screen_designated.json": V19_DESIGNATED, E1_PATH: E1_SHA, E2_PATH: E2_SHA,
                 V19_REC[0]: V19_REC[1], V19_PILOT_REC[0]: V19_PILOT_REC[1],
                 "chpc/row19_screen_budget.json": None, "chpc/row19_screen_manifest.json": None,
-                "chpc/row22_bank_status.py": None, "chpc/row22_bank_submit.py": None,
-                "aws_ec2/prod_authority.py": None}   # v20: the Mac authority the deploy replaces (whatever bytes the clone holds)
+                "chpc/row22_bank_status.py": None, "chpc/row22_bank_submit.py": None}
+# v20: paths the v20 deploy ADDS to the controller clone that the adopted v19 clone does NOT hold (live preflight 23 Oct 2026:
+# rsc_screen_ctl has never carried the Mac authority). Their ABSENCE is the v19 identity: `inventory`/`build` refuse if one
+# exists, and the archive records it in ctl/ABSENT.txt (one path per line, sorted), which `verify` requires exactly.
+ABSENT_CTL = ("aws_ec2/prod_authority.py",)
+ABSENT_MEMBER = "ctl/ABSENT.txt"
+ABSENT_TEXT = "".join(p + "\n" for p in sorted(ABSENT_CTL))
 # the controller clone's pinned untracked evidence (v16 live preflight 17 Oct 2026, carried unchanged through v19; row-23 bench
 # comparator / EC2 qualification permit copies written 12 Oct 18:39, historical evidence, not authority for this migration):
 # mandatory archive members
@@ -188,6 +193,11 @@ def sources(T):
         raise Refuse("the captured node document %s/%s is missing (it must be retained)" % (P["jobs"], NODE_EV_NAME))
     for j in jobs:
         mem.append(("jobs/" + os.path.basename(j), j, NODE_EV_SHA if os.path.basename(j) == NODE_EV_NAME else None))
+    for f in ABSENT_CTL:                          # v20: absent in v19, recorded as absent (never a member)
+        q = os.path.join(P["C"], f)
+        canon(q, "absent controller path")
+        if os.path.lexists(q):
+            raise Refuse("%s exists on the controller clone; the adopted v19 clone never held it (the v20 deploy adds it)" % q)
     mem.append((LEDGER, P["ledger"], None))
     mem.append((ACT1, P["act1"], None))
     mem.append((ACT2, P["act2"], None))
@@ -204,9 +214,9 @@ def inventory(T):
         if want and sha_bytes(b) != want:
             raise Refuse("%s is not its v19 identity %s" % (src, want[:8]))
         n += 1
-    print("archive sources complete: %d files (ctl %d incl. %d pinned untracked evidence, gate %d, jobs %d incl. the node document, ledger 1, ec2 2)" % (
-        n, sum(a.startswith("ctl/") for a, _, _ in mem), len(UNTRACKED_CTL), sum(a.startswith("gate/") for a, _, _ in mem),
-        sum(a.startswith("jobs/") for a, _, _ in mem)))
+    print("archive sources complete: %d files (ctl %d incl. %d pinned untracked evidence, gate %d, jobs %d incl. the node document, ledger 1, ec2 2); "
+          "absent as in v19: %s" % (n, sum(a.startswith("ctl/") for a, _, _ in mem), len(UNTRACKED_CTL), sum(a.startswith("gate/") for a, _, _ in mem),
+                                   sum(a.startswith("jobs/") for a, _, _ in mem), ", ".join(ABSENT_CTL)))
 
 
 def parse_sums(text, what):
@@ -268,7 +278,7 @@ def verify(A):
         raise Refuse("ctl/HEAD.txt is not the certified controller HEAD")
     # the controller inventory, exactly
     inv = ctl_inventory(read_regular(os.path.join(A, "ctl/chpc/row19_screen_controls.json")))
-    want_ctl = {"ctl/" + f for f in inv} | {"ctl/HEAD.txt"} | {"ctl/" + UNTRACKED_PREFIX + f for f in UNTRACKED_CTL}
+    want_ctl = {"ctl/" + f for f in inv} | {"ctl/HEAD.txt", ABSENT_MEMBER} | {"ctl/" + UNTRACKED_PREFIX + f for f in UNTRACKED_CTL}
     have_ctl = {f for f in listed if f.startswith("ctl/")}
     if have_ctl != want_ctl:
         raise Refuse("the controller files are not exactly the required set (missing %s, extra %s)" % (
@@ -276,6 +286,8 @@ def verify(A):
     for f, want in inv.items():
         if want and sums["ctl/" + f] != want:
             raise Refuse("ctl/%s is not its v19 identity %s" % (f, want[:8]))
+    if read_regular(os.path.join(A, ABSENT_MEMBER)).decode("utf-8", "replace") != ABSENT_TEXT:
+        raise Refuse("%s does not record exactly the paths absent in v19 (%s)" % (ABSENT_MEMBER, ", ".join(ABSENT_CTL)))
     for f, want in UNTRACKED_CTL.items():
         if sums["ctl/" + UNTRACKED_PREFIX + f] != want:
             raise Refuse("ctl/%s%s is not its pinned untracked evidence identity %s" % (UNTRACKED_PREFIX, f, want[:8]))
@@ -371,7 +383,7 @@ def build(T, head):
         sums[a] = d
         if a.split("/")[0] in inv:
             inv[a.split("/")[0]][a] = d
-    extra = {"ctl/HEAD.txt": (head + "\n").encode(), "INVENTORY.gate": sums_text(inv["gate"]).encode(),
+    extra = {"ctl/HEAD.txt": (head + "\n").encode(), ABSENT_MEMBER: ABSENT_TEXT.encode(), "INVENTORY.gate": sums_text(inv["gate"]).encode(),
              "INVENTORY.jobs": sums_text(inv["jobs"]).encode()}
     for a, b in extra.items():
         with open(os.path.join(stg, a), "xb") as fh:

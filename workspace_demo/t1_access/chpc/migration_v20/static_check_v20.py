@@ -52,7 +52,8 @@ sys.path.insert(0, HERE)
 PK = load("v20_package", os.path.join(HERE, "v20_package.py"))
 check("v20_package PACKAGE: every pinned identity is the committed candidate bytes",
       all(sha(p) == h for p, h in PK.PACKAGE.items()))
-check("v20_package: the @record pin is PENDING (None, None) until the operator record exists", PK.REC is None and PK.REC_SHA is None)
+check("v20_package: the @record pin is PENDING, or names a committed operator record with exactly its bytes and the v20 literal",
+      (PK.REC is None and PK.REC_SHA is None) or (sha(PK.REC) == PK.REC_SHA and PK.LITERAL in [l.strip() for l in open(os.path.join(T1, PK.REC)).read().splitlines()]))
 check("v20_package: V19 = the live adopted controls/adoption; V19_QUAL = the Mac pilot qualification; the pilot record",
       all(sha(r) == h for r, h in PK.V19.items()) and sha(PK.QUAL_PATH) == PK.V19_QUAL and sha(PK.PILOT_REC[0]) == PK.PILOT_REC[1])
 B, PV = PK.modules()

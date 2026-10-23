@@ -123,6 +123,7 @@ CAND_SET = ["chpc/candidate_v20_handback/" + f for f in ("row19_screen_controls.
 V20_PINS = ["chpc/row19_partition.py", "chpc/row19_screen_admit.py"]   # the two replaced controllers, in map order
 V20_NEW = ["chpc/row19_partition_e3.json"]                     # the one NEW data path (the e3 closing declaration)
 E3_SHA = "ca87fb1da163df10e720e5778542d2bcc5c78f30fc08b6a1cc61d671773f0e6a"
+CTL_ABSENT_V19 = ("aws_ec2/prod_authority.py",)                # absent from the real v19 controller clone; the v20 deploy adds it
 FIX_INV_SHA = "03cb443304854c0988e2b55aee270d31ec0daf704bef0f835f93e02a71807bfb"   # the frozen sealed g105 inventory (candidate fixture)
 QUAL_MAC = "chpc/results/row19_screen/receipts/qualified_refit_job1.json"
 
@@ -547,6 +548,8 @@ def build_fresh(d):
     write(os.path.join(w.L, "t1py"), FAKE_T1PY, 0o755); write(os.path.join(w.L, "remap_run.py"), REMAP_RUN)
     git_init(w.CR)
     for rel, b in fz.items():
+        if rel in CTL_ABSENT_V19:                 # the REAL v19 controller clone never held the Mac authority (live preflight 23 Oct)
+            continue
         write(os.path.join(w.C, rel), b)
     gitc(w.CR, "add", "-A"); gitc(w.CR, "commit", "-q", "-m", "TEST the controller clone at the adopted v19 (frozen fixture)")
     for p, (c, want) in EVIDENCE.items():
@@ -593,6 +596,10 @@ def build_fresh(d):
     w.fake("ps", FAKE_PS); w.fake("sha256sum", FAKE_SHA); w.fake("ssh", FAKE_NET); w.fake("scp", FAKE_NET)
     write(os.path.join(w.lbin, "git"), LENGAU_GIT, 0o755)
     return w
+
+
+def FROZEN_BYTES(rel):
+    return frozen(rel)
 
 
 def lengau_claims_plan(fz):
@@ -1011,7 +1018,8 @@ def t_positive():
     need(sha(os.path.join(w.A, "jobs/row19_screen_refit_54.nodefail.json")) == NODE_EV_SHA, "the archive does not retain the node document")
     need(sorted(os.listdir(os.path.join(w.A, "ec2"))) == ["activation_e1.json", "activation_e2.json"], "the archive does not hold both activations")
     need(os.path.isfile(os.path.join(w.A, "ctl/reviews/2026-10-22_pilot_v19_operator_record.md")) and
-         os.path.isfile(os.path.join(w.A, "ctl/aws_ec2/prod_authority.py")) and
+         open(os.path.join(w.A, "ctl/ABSENT.txt")).read() == "aws_ec2/prod_authority.py\n" and
+         not os.path.exists(os.path.join(w.A, "ctl/aws_ec2/prod_authority.py")) and
          os.path.isfile(os.path.join(w.A, "gate/scaleup_refit_v16.json")), "the archive lacks the pilot record, the Mac authority or the scale-up adoption")
     need("node_evidence %s" % NODE_EV_SHA in open(os.path.join(w.A, "COMPLETE")).read(), "COMPLETE does not certify the node document")
     need(len(os.listdir(w.MA)) == 11 and os.path.isfile(w.LSF) and sha(w.LSF) == sha(os.path.join(w.A, "SHA256SUMS")), "Mac archive layout (9 + 2) / Lengau sums copy")
@@ -1050,6 +1058,8 @@ def t_positive():
     need(all(sha(os.path.join(w.C, p)) == sha(os.path.join(LIVE_T1, "chpc/candidate_v20_handback", os.path.basename(p))) for p in V20_PINS + V20_NEW),
          "a deployed v20 controller or e3 is not the candidate bytes")
     need(sha(os.path.join(w.C, "chpc/row19_screen_controls.json")) == V20_CONTROLS, "the v20 controls are not in the controller clone")
+    need(sha(os.path.join(w.C, "aws_ec2/prod_authority.py")) == sha(os.path.join(LIVE_T1, "chpc/candidate_v20_handback/aws_ec2/prod_authority.py")),
+         "the deploy did not ADD the Mac authority to the controller clone")
     rc, out = w.script("deploy_v20.sh"); need(rc == 0 and "already holds exactly these v20 bytes" in out and "DEPLOY OK" in out, "deploy re-run", out)
     pr = admission_probe(w)
     need("PROBE partition schema row19-provider-partition-3 epoch 3" in pr and "partition epoch 3 is pinned but not activated" in pr,
@@ -1213,6 +1223,20 @@ def t_archive_incomplete():
     w = stage("fresh"); [os.remove(os.path.join(w.L, "jobs", f)) for f in os.listdir(os.path.join(w.L, "jobs"))]
     rc, out = w.script("archive_v19.sh"); refused(rc, out)
     need(not os.path.exists(w.A), "published without job files")
+
+
+@test("archive: the Mac authority is ABSENT on the v19 controller clone and recorded as absent (ctl/ABSENT.txt); a clone that holds it refuses inventory and build; a rewritten ABSENT record refuses verify")
+def t_archive_absent():
+    w = stage("fresh"); need(not os.path.lexists(os.path.join(w.C, "aws_ec2/prod_authority.py")), "the fixture clone holds the Mac authority")
+    write(os.path.join(w.C, "aws_ec2/prod_authority.py"), FROZEN_BYTES("aws_ec2/prod_authority.py"))
+    gitc(w.CR, "add", "--", T1_REL + "/aws_ec2/prod_authority.py"); gitc(w.CR, "commit", "-q", "-m", "x")
+    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "prod_authority.py exists on the controller clone")
+    rc, out = w.script("archive_v19.sh"); refused(rc, out, "prod_authority.py exists on the controller clone"); need(not os.path.exists(w.A), "archive published")
+    w = stage("archived"); p = os.path.join(w.A, "ctl/ABSENT.txt"); os.chmod(os.path.dirname(p), 0o755); os.chmod(p, 0o644)
+    write(p, "aws_ec2/other.py\n", 0o444)
+    sums = os.path.join(w.A, "SHA256SUMS"); os.chmod(sums, 0o644)
+    t = open(sums).read().replace([l for l in open(sums).read().splitlines() if l.endswith("./ctl/ABSENT.txt")][0][:64], sha(p)); write(sums, t, 0o444)
+    rc, out = w.script("archive_v19.sh"); refused(rc, out, "does not verify")
 
 
 @test("archive: failed checksum / unreadable source refuse; an interrupted build (staging left, Lengau or Mac) refuses and is never removed")

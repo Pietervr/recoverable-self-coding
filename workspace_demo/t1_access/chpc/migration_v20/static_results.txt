@@ -8,7 +8,7 @@ ok   the composed Lengau script for check_v20.sh parses and carries the producti
 ok   the composed Lengau script for close_e3.sh parses and carries the production root
 ok   the composed Lengau script for rollover_pilot_v20.sh parses and carries the production root
 ok   v20_package PACKAGE: every pinned identity is the committed candidate bytes
-ok   v20_package: the @record pin is PENDING (None, None) until the operator record exists
+ok   v20_package: the @record pin is PENDING, or names a committed operator record with exactly its bytes and the v20 literal
 ok   v20_package: V19 = the live adopted controls/adoption; V19_QUAL = the Mac pilot qualification; the pilot record
 ok   the deploy payload is 7 files: record + partition module, admission, e3, authority + controls + adoption
 ok   mac_archive: the pinned builder is build_v20's bytes and its archive has N_MEMBERS (9) members

@@ -107,7 +107,8 @@ literal; revert the controls.
   `row19_ec2_state.owns` counts every pending attempt as owning, and `current_problems` accepts an inventory older than six hours
   only while nothing is owning - with every attempt terminal, Lengau needs no further `ec2_sync` after the close.
 - **Archives** `$T/archive_screen/v19_before_v20` (every v19 pin incl. the partition module and admission, e1, e2, the v19 records,
-  the Mac authority as the controller clone holds it, the whole gate, `jobs/` with the node document, ledger copy, both
+  the RECORDED ABSENCE of the Mac authority (`ctl/ABSENT.txt`: the v19 controller clone never held `aws_ec2/prod_authority.py`; the
+  deploy adds it; live preflight 23 Oct 2026), the whole gate, `jobs/` with the node document, ledger copy, both
   activations) and the 9-member Mac archive `chpc/results/archive/row19_screen_v19_before_v20/`.
 - **Promotion** copies the partition module, the admission, e3 (new path), the Mac authority, then the controls LAST, then the
   version-20 adoption.
@@ -131,7 +132,7 @@ literal; revert the controls.
 
 - `python3 chpc/candidate_v20_handback/test_v20_handback.py`: 77/0 (`DESIGN_v20.md` s.7 and s.11) and the regression set.
 - **`python3 chpc/migration_v20/test_migration_v20.py` - the frozen local REHEARSAL (Codex review 2026-10-23 F2): 39 passed,
-  0 failed** (`test_results.txt`). The migration_v19 end-to-end harness re-pointed at the adopted v19 state (frozen fixture
+  0 failed** (`test_results.txt`; 40 passed after the absent-authority fix of 23 Oct). The migration_v19 end-to-end harness re-pointed at the adopted v19 state (frozen fixture
   commit RSC `add8586`) and the v20 package, with the REAL promotion/archive/deploy/check/close/rollover/adopt bodies and a fake
   Lengau transport that refuses the network (ssh/scp always refuse and are logged; every test asserts nothing tried). The close
   runs the REAL `row19_partition.py verify3` and `activate` CLI (canonical mode, the real plan lock, `close_problems`, the real

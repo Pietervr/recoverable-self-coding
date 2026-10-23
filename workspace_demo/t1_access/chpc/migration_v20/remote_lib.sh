@@ -48,8 +48,9 @@ LEDGER_CAP=81000.0
 NODE_EV=$T/jobs/row19_screen_refit_54.nodefail.json
 NODE_EV_SHA=730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f
 # the two controller files v20 replaces, at their v19 bytes (chpc/candidate_v20_handback/build_v20.py MAP). The Mac authority
-# aws_ec2/prod_authority.py (build_v20.py MAC) is carried in the payload too but NOT pinned here: the controller clone's copy is
-# whatever an earlier deploy left (it is a Mac tool; nothing on Lengau runs it)
+# aws_ec2/prod_authority.py (build_v20.py MAC) is carried in the payload too but NOT pinned here: the adopted v19 controller
+# clone does NOT hold it (live preflight 23 Oct 2026); lengau_archive.py records that absence (ctl/ABSENT.txt) and the deploy
+# ADDS it (it is a Mac tool; nothing on Lengau runs it)
 V19_REPLACED="chpc/row19_partition.py eabf50c34be2bad3f92e07370966bcc94162cf12cbcefb326cc07a72d49ac0d8
 chpc/row19_screen_admit.py 27e066c72ed43919a92083fcf3f035cbee232c2137c2e97832f0e41b1113f9df"
 # the NEW data paths v20 adds (build_v20.py DATA): absent on the controller clone until the deploy writes them

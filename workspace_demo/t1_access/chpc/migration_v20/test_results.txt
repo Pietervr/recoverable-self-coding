@@ -1,4 +1,4 @@
-private test worlds under /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/mig_v20_test__f99r_wl
+private test worlds under /var/folders/x4/1qt84bh971171r4t87ck_y_w0000gn/T/mig_v20_test_q__3opfs
 PASS ( 0.1s) static: no test hook, one fixed root, one fixed transport, one filled real record line, no worker/reaper stop, no AWS/EC2/activation call, no `| grep -q`, every file parses
 PASS ( 0.1s) static: the composed production Lengau script (each direct body) carries exactly the production root and parses
 PASS ( 0.0s) static: the package identities (controls, map, builder, promoter, sources, node evidence) equal the candidate folder; every script constant agrees with build_v20
@@ -6,37 +6,38 @@ PASS ( 0.4s) static: the frozen fixture - one pinned commit, every member at its
 PASS ( 0.0s) static: CTL_EVIDENCE (remote_lib.sh) and UNTRACKED_CTL (lengau_archive.py) are the same three pinned files
 PASS ( 0.0s) Lengau compat: every Lengau-side Python (lengau_archive.py, LOCK_PY, ACT_PY, each t1py -c body) is 3.6-level code
 PASS ( 0.6s) boundary: a body run without the prelude refuses; lengau.sh refuses any other body; the harness refuses an alias of production
-PASS ( 4.2s) record pin: v20_package.py with its record pin explicitly PENDING (install(record=False)) refuses preflight, check-promoted, payload and every step; a record of other bytes or without the literal refuses
-PASS ( 1.7s) boundary: a valid isolated fake root reached through an alias passes preflight (every path resolves beneath its physical root)
-PASS (24.8s) positive route: preflight, archive (+re-run), promote_v20 (+re-run), commit, deploy (+re-run), pre-close receipts, THE CLOSE (canonical CLI activation + re-run), post-close receipts, rollover (+re-run), package, adopt; admission held before the close and before the new pilot review; running jobs and e1/e2 untouched
-PASS (16.5s) Lengau compat: the whole route runs on the restricted git and flock CLIs (no rejected call, no python fallback for a decidable lock)
-PASS ( 8.3s) preflight refuses (Mac): a changed package byte (controls, map, builder, promoter, a source, e3, the authority, the node evidence), a held authority lock, a busy Mac, the close preconditions NOT MET (pending E2Q3, zero-coordinate pending Q2, stale Mac inventory, a launched attempt)
-PASS ( 5.5s) preflight refuses (Mac): live tree not v19 (admission, partition module or Mac authority edited, e3 already present), Mac qualification not e123d6e5, pilot record changed, uncommitted budget
-PASS (22.7s) preflight refuses (Lengau): a replaced controller not at its v19 bytes (partition module, admission), an e3 proof already present, an owning EC2 attempt in the installed inventory, the new e3 path already present, the retired v18 review missing, no/invalid epoch-2 activation, node document missing/changed, review not bound to e123d6e5, ledger cap, leftovers, controller not v19
-PASS (12.2s) archive: one-file remote archive refuses and is left as it was; missing ledger / activation_e2 / node document / pilot record / review / jobs refuse
-PASS ( 3.8s) archive: failed checksum / unreadable source refuse; an interrupted build (staging left, Lengau or Mac) refuses and is never removed
-PASS ( 5.2s) archive retry: the Lengau half published but the Mac half failed (budget mismatch) -> nothing on the Mac; repaired, the re-run builds the Mac half
-PASS ( 1.6s) archive: a self-consistently rewritten Lengau archive (node document, activation_e2 or pilot record dropped) and a substituted Mac member refuse
+PASS ( 4.3s) record pin: v20_package.py with its record pin explicitly PENDING (install(record=False)) refuses preflight, check-promoted, payload and every step; a record of other bytes or without the literal refuses
+PASS ( 1.6s) boundary: a valid isolated fake root reached through an alias passes preflight (every path resolves beneath its physical root)
+PASS (24.7s) positive route: preflight, archive (+re-run), promote_v20 (+re-run), commit, deploy (+re-run), pre-close receipts, THE CLOSE (canonical CLI activation + re-run), post-close receipts, rollover (+re-run), package, adopt; admission held before the close and before the new pilot review; running jobs and e1/e2 untouched
+PASS (16.6s) Lengau compat: the whole route runs on the restricted git and flock CLIs (no rejected call, no python fallback for a decidable lock)
+PASS ( 7.8s) preflight refuses (Mac): a changed package byte (controls, map, builder, promoter, a source, e3, the authority, the node evidence), a held authority lock, a busy Mac, the close preconditions NOT MET (pending E2Q3, zero-coordinate pending Q2, stale Mac inventory, a launched attempt)
+PASS ( 5.2s) preflight refuses (Mac): live tree not v19 (admission, partition module or Mac authority edited, e3 already present), Mac qualification not e123d6e5, pilot record changed, uncommitted budget
+PASS (22.9s) preflight refuses (Lengau): a replaced controller not at its v19 bytes (partition module, admission), an e3 proof already present, an owning EC2 attempt in the installed inventory, the new e3 path already present, the retired v18 review missing, no/invalid epoch-2 activation, node document missing/changed, review not bound to e123d6e5, ledger cap, leftovers, controller not v19
+PASS (11.9s) archive: one-file remote archive refuses and is left as it was; missing ledger / activation_e2 / node document / pilot record / review / jobs refuse
+PASS ( 3.1s) archive: the Mac authority is ABSENT on the v19 controller clone and recorded as absent (ctl/ABSENT.txt); a clone that holds it refuses inventory and build; a rewritten ABSENT record refuses verify
+PASS ( 3.6s) archive: failed checksum / unreadable source refuse; an interrupted build (staging left, Lengau or Mac) refuses and is never removed
+PASS ( 5.3s) archive retry: the Lengau half published but the Mac half failed (budget mismatch) -> nothing on the Mac; repaired, the re-run builds the Mac half
+PASS ( 1.5s) archive: a self-consistently rewritten Lengau archive (node document, activation_e2 or pilot record dropped) and a substituted Mac member refuse
 PASS ( 0.4s) Mac archive: writable member, foreign COMPLETE, extra file refuse the strict verify; the builder's archive_problems accepts the real one
-PASS ( 6.0s) promote interruption: stopped after the controls copy (adoption still v19) - check-promoted and deploy refuse; promote_v20 resumes from the ARCHIVE base; deploy proceeds
+PASS ( 5.8s) promote interruption: stopped after the controls copy (adoption still v19) - check-promoted and deploy refuse; promote_v20 resumes from the ARCHIVE base; deploy proceeds
 PASS ( 0.7s) promote base: after the promotion a missing or corrupted Mac archive refuses every promote_v20/build_v20 command (no live v20 base is ever accepted)
-PASS (13.6s) deploy refuses before any controller change: one-file / corrupted Lengau archive, uncommitted promotion, a broken epoch-2 activation, a changed node document
-PASS (15.8s) deploy: drain observations (ps failed/empty, a settlement in flight, a capture running, a held lock, no probe) refuse before any controller change
-PASS (27.0s) deploy: missing/digest-failed/partial science refuses before any change; a changed or incomplete after-proof refuses completion and every re-run HOLDS
-PASS (18.5s) deploy retry: a copy failure resumes on the pre-mutation proof; a mid-payload failure / a refused commit leave a dirty clone every re-run refuses
-PASS (19.7s) deploy retry: a deployed clone without its proof, with science changed after DONE, or a tampered preserved manifest HOLDS; DONE + equal science is OK
-PASS ( 5.7s) deploy: payload that does not compile/parse under t1py, or a replaced controller not at its v19 bytes, refuses before any change
+PASS (13.7s) deploy refuses before any controller change: one-file / corrupted Lengau archive, uncommitted promotion, a broken epoch-2 activation, a changed node document
+PASS (15.4s) deploy: drain observations (ps failed/empty, a settlement in flight, a capture running, a held lock, no probe) refuse before any controller change
+PASS (26.9s) deploy: missing/digest-failed/partial science refuses before any change; a changed or incomplete after-proof refuses completion and every re-run HOLDS
+PASS (18.3s) deploy retry: a copy failure resumes on the pre-mutation proof; a mid-payload failure / a refused commit leave a dirty clone every re-run refuses
+PASS (19.5s) deploy retry: a deployed clone without its proof, with science changed after DONE, or a tampered preserved manifest HOLDS; DONE + equal science is OK
+PASS ( 5.6s) deploy: payload that does not compile/parse under t1py, or a replaced controller not at its v19 bytes, refuses before any change
 PASS ( 4.7s) containment: controller clone, archive dir, gate member, ec2 dir or the node document pointing outside refuse; nothing written outside
-PASS (13.9s) containment: a committed nested chpc / reviews redirect refuses deploy and adopt before any copy; a temporary-sibling symlink is never followed
-PASS ( 3.3s) containment: a controller alias resolving inside the scientific clone refuses every body; scientific bytes unchanged
-PASS ( 3.3s) controller git: a gitfile or symlinked .git refuses (own-root semantics on the restricted git); a corrupt index refuses
-PASS (10.4s) evidence: the exact three pass and are archived with their hashes; a fourth file, a changed hash, a symlink, a newline-named entry refuse
-PASS (24.1s) receipts: an alarm, a v19 generation, no activation_e2, no or another job-54 node disposition, a failed status or bank receipt refuse; a retry passes; a second node disposition is not refused; post-close: EC2 waiting, a view that does not add up, no e3 binding refuse; the pre-close receipt refuses after the close
-PASS ( 9.2s) receipts: the Lengau check refuses before the deploy (controller still v19), without DONE, with e2's proof changed or missing, the node document changed, post-close before the close - no receipt published
-PASS ( 2.8s) close (CLI, canonical): the real activation refuses under the plan lock - pending E2Q3, zero-coordinate pending Q2, a launched attempt, a 7 h stale inventory, a changed retained set, a missing cover, a held plan lock, the controls not pinning e3 - and writes no proof; the clean state activates and a second activation refuses (immutable)
-PASS (15.4s) close (route): close_v20.sh refuses before the deploy, with the Mac close-check NOT MET, a stale installed inventory, a changed retained set (verify3), a missing cover, a held plan lock, a WRONG pre-existing proof (kept); an interruption right after the proof publication is completed by an idempotent retry
-PASS ( 5.1s) rollover: before the deploy and before the close refuse; a changed active review or a corrupted archive refuses (nothing moves); a gate member symlink refuses; an interrupted chmod completes on re-run
+PASS (13.8s) containment: a committed nested chpc / reviews redirect refuses deploy and adopt before any copy; a temporary-sibling symlink is never followed
+PASS ( 3.4s) containment: a controller alias resolving inside the scientific clone refuses every body; scientific bytes unchanged
+PASS ( 3.2s) controller git: a gitfile or symlinked .git refuses (own-root semantics on the restricted git); a corrupt index refuses
+PASS (10.5s) evidence: the exact three pass and are archived with their hashes; a fourth file, a changed hash, a symlink, a newline-named entry refuse
+PASS (23.5s) receipts: an alarm, a v19 generation, no activation_e2, no or another job-54 node disposition, a failed status or bank receipt refuse; a retry passes; a second node disposition is not refused; post-close: EC2 waiting, a view that does not add up, no e3 binding refuse; the pre-close receipt refuses after the close
+PASS ( 9.1s) receipts: the Lengau check refuses before the deploy (controller still v19), without DONE, with e2's proof changed or missing, the node document changed, post-close before the close - no receipt published
+PASS ( 2.7s) close (CLI, canonical): the real activation refuses under the plan lock - pending E2Q3, zero-coordinate pending Q2, a launched attempt, a 7 h stale inventory, a changed retained set, a missing cover, a held plan lock, the controls not pinning e3 - and writes no proof; the clean state activates and a second activation refuses (immutable)
+PASS (15.3s) close (route): close_v20.sh refuses before the deploy, with the Mac close-check NOT MET, a stale installed inventory, a changed retained set (verify3), a missing cover, a held plan lock, a WRONG pre-existing proof (kept); an interruption right after the proof publication is completed by an idempotent retry
+PASS ( 5.2s) rollover: before the deploy and before the close refuse; a changed active review or a corrupted archive refuses (nothing moves); a gate member symlink refuses; an interrupted chmod completes on re-run
 PASS ( 1.0s) package: a qualification not regenerated (e123d6e5 / 8fdbf48e / 2c7a7ef1) / of generation 19 / naming a missing receipt refuses; staging left and a tampered package refuse
-PASS ( 7.8s) adopt: an active review, the gate still at e123d6e5 (or the historical 8fdbf48e), a record without THIS qualification's literal, an evidence path, an adopter refusal - each refuses; a LARGE record (> 4 KB) is accepted (the pipefail fix) and a large record without the literal refuses
+PASS ( 7.9s) adopt: an active review, the gate still at e123d6e5 (or the historical 8fdbf48e), a record without THIS qualification's literal, an evidence path, an adopter refusal - each refuses; a LARGE record (> 4 KB) is accepted (the pipefail fix) and a large record without the literal refuses
 
-39 passed, 0 failed (39 tests, 316 s)
+40 passed, 0 failed (40 tests, 317 s)

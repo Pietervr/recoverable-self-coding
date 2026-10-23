@@ -489,7 +489,7 @@
    to_lengau "$@"
  fi
 --- migration_v19/lengau_archive.py	2026-10-21 17:51:13
-+++ migration_v20/lengau_archive.py	2026-10-22 22:46:49
++++ migration_v20/lengau_archive.py	2026-10-22 23:45:53
 @@ -1,26 +1,26 @@
 -"""migration_v19: the Lengau v18_before_v19 recovery archive - its mandatory inventory, its staged construction and its
 -completion certificate (the migration_v18 lengau_archive.py, re-pointed at the adopted v18 state). lengau.sh embeds this file
@@ -525,7 +525,7 @@
      INVENTORY.gate, INVENTORY.jobs     `sha256  ./path` lines captured from the sources before copying
      SHA256SUMS                         `sha256  ./path` for every file except SHA256SUMS and COMPLETE, sorted
      COMPLETE                           written last: schema, the SHA256SUMS digest, ctl_head, qualification, review, budget,
-@@ -33,30 +33,31 @@
+@@ -33,30 +33,36 @@
  read ONCE (a complete version, never a torn one) and archived as those bytes; unlike every other member it is not re-read from
  the source after the copy, so a job ending during the build cannot refuse the archive. It is a reference copy, never a budget
  authority. A job ending during the build may also add its PBS .out/.err to $T/jobs; INVENTORY.jobs is the set captured at
@@ -565,15 +565,19 @@
 +                "chpc/row19_screen_designated.json": V19_DESIGNATED, E1_PATH: E1_SHA, E2_PATH: E2_SHA,
 +                V19_REC[0]: V19_REC[1], V19_PILOT_REC[0]: V19_PILOT_REC[1],
                  "chpc/row19_screen_budget.json": None, "chpc/row19_screen_manifest.json": None,
--                "chpc/row22_bank_status.py": None, "chpc/row22_bank_submit.py": None}
+                 "chpc/row22_bank_status.py": None, "chpc/row22_bank_submit.py": None}
 -# the controller clone's pinned untracked evidence (v16 live preflight 17 Oct 2026, carried unchanged through v18; row-23 bench
-+                "chpc/row22_bank_status.py": None, "chpc/row22_bank_submit.py": None,
-+                "aws_ec2/prod_authority.py": None}   # v20: the Mac authority the deploy replaces (whatever bytes the clone holds)
++# v20: paths the v20 deploy ADDS to the controller clone that the adopted v19 clone does NOT hold (live preflight 23 Oct 2026:
++# rsc_screen_ctl has never carried the Mac authority). Their ABSENCE is the v19 identity: `inventory`/`build` refuse if one
++# exists, and the archive records it in ctl/ABSENT.txt (one path per line, sorted), which `verify` requires exactly.
++ABSENT_CTL = ("aws_ec2/prod_authority.py",)
++ABSENT_MEMBER = "ctl/ABSENT.txt"
++ABSENT_TEXT = "".join(p + "\n" for p in sorted(ABSENT_CTL))
 +# the controller clone's pinned untracked evidence (v16 live preflight 17 Oct 2026, carried unchanged through v19; row-23 bench
  # comparator / EC2 qualification permit copies written 12 Oct 18:39, historical evidence, not authority for this migration):
  # mandatory archive members
  UNTRACKED_CTL = {"aws_ec2/ec2_release_state.json": "80ba0ac599f617f8c0ee020d75e7c53dcd30c519d783a76dcb6a2f6b9f1a1d39",
-@@ -68,7 +69,7 @@
+@@ -68,7 +74,7 @@
  LEDGER = "ledger/row19_screen_campaign_budget.json"
  ACT1 = "ec2/activation_e1.json"
  ACT2 = "ec2/activation_e2.json"
@@ -582,7 +586,7 @@
  LINE = re.compile(r"^([0-9a-f]{64})  \./([A-Za-z0-9._+=@,:~-]+(?:/[A-Za-z0-9._+=@,:~-]+)*)$")
  HEX40 = re.compile(r"^[0-9a-f]{40}$")
  HEX64 = re.compile(r"^[0-9a-f]{64}$")
-@@ -125,25 +126,25 @@
+@@ -125,25 +131,25 @@
              "ledger": os.path.join(T, "row19_screen_campaign", "budget.json"),
              "act1": os.path.join(T, "row19_screen", "ec2", "activation_e1.json"),
              "act2": os.path.join(T, "row19_screen", "ec2", "activation_e2.json"),
@@ -617,7 +621,7 @@
          inv[f] = hsh
      return inv
  
-@@ -178,7 +179,7 @@
+@@ -178,7 +184,7 @@
          if need not in gate:
              raise Refuse("the gate has no %s" % need)
      for f in gate:
@@ -626,25 +630,54 @@
      canon(P["C"], "the controller clone"); canon(P["jobs"], "the job-script directory")
      jobs = sorted(glob.glob(os.path.join(P["jobs"], "row19_screen_refit_*")))
      if not jobs:
-@@ -201,7 +202,7 @@
+@@ -187,6 +193,11 @@
+         raise Refuse("the captured node document %s/%s is missing (it must be retained)" % (P["jobs"], NODE_EV_NAME))
+     for j in jobs:
+         mem.append(("jobs/" + os.path.basename(j), j, NODE_EV_SHA if os.path.basename(j) == NODE_EV_NAME else None))
++    for f in ABSENT_CTL:                          # v20: absent in v19, recorded as absent (never a member)
++        q = os.path.join(P["C"], f)
++        canon(q, "absent controller path")
++        if os.path.lexists(q):
++            raise Refuse("%s exists on the controller clone; the adopted v19 clone never held it (the v20 deploy adds it)" % q)
+     mem.append((LEDGER, P["ledger"], None))
+     mem.append((ACT1, P["act1"], None))
+     mem.append((ACT2, P["act2"], None))
+@@ -201,11 +212,11 @@
      for a, src, want in mem:
          b = read_regular(src)
          if want and sha_bytes(b) != want:
 -            raise Refuse("%s is not its v18 identity %s" % (src, want[:8]))
 +            raise Refuse("%s is not its v19 identity %s" % (src, want[:8]))
          n += 1
-     print("archive sources complete: %d files (ctl %d incl. %d pinned untracked evidence, gate %d, jobs %d incl. the node document, ledger 1, ec2 2)" % (
-         n, sum(a.startswith("ctl/") for a, _, _ in mem), len(UNTRACKED_CTL), sum(a.startswith("gate/") for a, _, _ in mem),
-@@ -274,7 +275,7 @@
+-    print("archive sources complete: %d files (ctl %d incl. %d pinned untracked evidence, gate %d, jobs %d incl. the node document, ledger 1, ec2 2)" % (
+-        n, sum(a.startswith("ctl/") for a, _, _ in mem), len(UNTRACKED_CTL), sum(a.startswith("gate/") for a, _, _ in mem),
+-        sum(a.startswith("jobs/") for a, _, _ in mem)))
++    print("archive sources complete: %d files (ctl %d incl. %d pinned untracked evidence, gate %d, jobs %d incl. the node document, ledger 1, ec2 2); "
++          "absent as in v19: %s" % (n, sum(a.startswith("ctl/") for a, _, _ in mem), len(UNTRACKED_CTL), sum(a.startswith("gate/") for a, _, _ in mem),
++                                   sum(a.startswith("jobs/") for a, _, _ in mem), ", ".join(ABSENT_CTL)))
+ 
+ 
+ def parse_sums(text, what):
+@@ -267,14 +278,16 @@
+         raise Refuse("ctl/HEAD.txt is not the certified controller HEAD")
+     # the controller inventory, exactly
+     inv = ctl_inventory(read_regular(os.path.join(A, "ctl/chpc/row19_screen_controls.json")))
+-    want_ctl = {"ctl/" + f for f in inv} | {"ctl/HEAD.txt"} | {"ctl/" + UNTRACKED_PREFIX + f for f in UNTRACKED_CTL}
++    want_ctl = {"ctl/" + f for f in inv} | {"ctl/HEAD.txt", ABSENT_MEMBER} | {"ctl/" + UNTRACKED_PREFIX + f for f in UNTRACKED_CTL}
+     have_ctl = {f for f in listed if f.startswith("ctl/")}
+     if have_ctl != want_ctl:
+         raise Refuse("the controller files are not exactly the required set (missing %s, extra %s)" % (
              sorted(want_ctl - have_ctl)[:3], sorted(have_ctl - want_ctl)[:3]))
      for f, want in inv.items():
          if want and sums["ctl/" + f] != want:
 -            raise Refuse("ctl/%s is not its v18 identity %s" % (f, want[:8]))
 +            raise Refuse("ctl/%s is not its v19 identity %s" % (f, want[:8]))
++    if read_regular(os.path.join(A, ABSENT_MEMBER)).decode("utf-8", "replace") != ABSENT_TEXT:
++        raise Refuse("%s does not record exactly the paths absent in v19 (%s)" % (ABSENT_MEMBER, ", ".join(ABSENT_CTL)))
      for f, want in UNTRACKED_CTL.items():
          if sums["ctl/" + UNTRACKED_PREFIX + f] != want:
              raise Refuse("ctl/%s%s is not its pinned untracked evidence identity %s" % (UNTRACKED_PREFIX, f, want[:8]))
-@@ -288,8 +289,8 @@
+@@ -288,8 +301,8 @@
              raise Refuse("%s/ is not exactly the captured INVENTORY.%s" % (part, part))
          if part == "jobs" and (not have or not all(os.path.basename(f).startswith("row19_screen_refit_") for f in have)):
              raise Refuse("jobs/ holds no refit job script, or another file")
@@ -655,7 +688,7 @@
      if sums.get("jobs/" + NODE_EV_NAME) != NODE_EV_SHA or ident["node_evidence"] != NODE_EV_SHA:
          raise Refuse("the archived jobs/ do not retain the captured node document %s at 730ea262" % NODE_EV_NAME)
      if "gate/review_refit.json" not in sums or sums["gate/review_refit.json"] != ident["review"]:
-@@ -349,7 +350,7 @@
+@@ -349,7 +362,7 @@
              continue
          pre[a] = sha_bytes(read_regular(src))
          if want and pre[a] != want:
@@ -664,7 +697,16 @@
      stg = canon(os.path.join(P["parent"], "%s.%d" % (STAGING, os.getpid())), "the staging directory")
      os.mkdir(stg)
      sums = {}; inv = {"gate": {}, "jobs": {}}
-@@ -380,7 +381,7 @@
+@@ -370,7 +383,7 @@
+         sums[a] = d
+         if a.split("/")[0] in inv:
+             inv[a.split("/")[0]][a] = d
+-    extra = {"ctl/HEAD.txt": (head + "\n").encode(), "INVENTORY.gate": sums_text(inv["gate"]).encode(),
++    extra = {"ctl/HEAD.txt": (head + "\n").encode(), ABSENT_MEMBER: ABSENT_TEXT.encode(), "INVENTORY.gate": sums_text(inv["gate"]).encode(),
+              "INVENTORY.jobs": sums_text(inv["jobs"]).encode()}
+     for a, b in extra.items():
+         with open(os.path.join(stg, a), "xb") as fh:
+@@ -380,7 +393,7 @@
      with open(os.path.join(stg, "SHA256SUMS"), "xb") as fh:
          fh.write(sb)
      with open(os.path.join(stg, "COMPLETE"), "xb") as fh:
@@ -1142,7 +1184,7 @@
 +[ "$PHASE" = pre ] && echo "V20 RECEIPTS OK (pre-close) - next: bash chpc/migration_v20/close_v20.sh (step 6)" \
 +  || echo "V20 RECEIPTS OK (post-close) - next: bash chpc/migration_v20/lengau.sh rollover_pilot_v20.sh (step 8)"
 --- migration_v19/remote_lib.sh	2026-10-21 17:52:11
-+++ migration_v20/remote_lib.sh	2026-10-22 23:33:23
++++ migration_v20/remote_lib.sh	2026-10-22 23:46:16
 @@ -1,17 +1,19 @@
 -# migration_v19 Lengau prelude (the migration_v18 remote_lib.sh, re-pointed at the adopted v18 state and the v19 package).
 -# lengau.sh sends this file, the embedded archive checker (lengau_archive.py), any payload files and ONE body (preflight_v19.sh,
@@ -1173,7 +1215,7 @@
  T_ROOT=/mnt/lustre/users/pvanrooyen/t1_toolchain   # @root
  ME=pvanrooyen
  die() { echo "ABORT: $*"; exit 1; }
-@@ -19,40 +21,43 @@
+@@ -19,40 +21,44 @@
  C=$T/rsc_screen_ctl/workspace_demo/t1_access     # the controller clone (the only clone the migration changes)
  J=$T/rsc_screen/workspace_demo/t1_access         # the scientific job clone (read only, never changed)
  GS=$T/row19_screen
@@ -1222,8 +1264,9 @@
 -# the NEW data paths v19 adds (build_v19.py DATA): absent on the controller clone until the deploy writes them
 -V19_NEW="aws_ec2/prod/manifest_e2q3_e2.json"
 +# the two controller files v20 replaces, at their v19 bytes (chpc/candidate_v20_handback/build_v20.py MAP). The Mac authority
-+# aws_ec2/prod_authority.py (build_v20.py MAC) is carried in the payload too but NOT pinned here: the controller clone's copy is
-+# whatever an earlier deploy left (it is a Mac tool; nothing on Lengau runs it)
++# aws_ec2/prod_authority.py (build_v20.py MAC) is carried in the payload too but NOT pinned here: the adopted v19 controller
++# clone does NOT hold it (live preflight 23 Oct 2026); lengau_archive.py records that absence (ctl/ABSENT.txt) and the deploy
++# ADDS it (it is a Mac tool; nothing on Lengau runs it)
 +V19_REPLACED="chpc/row19_partition.py eabf50c34be2bad3f92e07370966bcc94162cf12cbcefb326cc07a72d49ac0d8
 +chpc/row19_screen_admit.py 27e066c72ed43919a92083fcf3f035cbee232c2137c2e97832f0e41b1113f9df"
 +# the NEW data paths v20 adds (build_v20.py DATA): absent on the controller clone until the deploy writes them
@@ -1235,7 +1278,7 @@
  # the job clone's fixed science inventory: every file must exist, read and hash, before and after any controller change
  SCI="chpc/row19_screen_manifest.json analyze.py models.py simulate.py chpc/row19_shard.py chpc/row19_ledger.py chpc/row19_slice.py chpc/row19_screen_orig.py"
  CTLPAT='row19_screen_(admit|status|verify)|row22_bank_(submit|status)|row19_ec2_|row19_partition|row19_ledger|programme_gate|row19_nodefail_capture'
-@@ -60,7 +65,7 @@
+@@ -60,7 +66,7 @@
  CR=$T/rsc_screen_ctl                              # the canonical controller clone root (all controller mutations stay beneath it)
  JR=$T/rsc_screen                                  # the canonical scientific job clone root (never a mutation destination)
  PS=$T/archive_screen
@@ -1244,7 +1287,7 @@
  
  phys() {   # phys <abs path>: its physical path with every symlink resolved; components that do not exist yet are appended as named
    local p=$1 tail="" r
-@@ -114,7 +119,7 @@
+@@ -114,7 +120,7 @@
  # installed util-linux flock is 2.23.2, coreutils 8.22, system Python 3.6.8; $T/t1py was reported as Python 3.12.10 (Codex
  # mig_compat review). This code uses only the interfaces those versions provide: every git call runs in a subshell that cds
  # first (no -C, no --absolute-git-dir); flock is called with -n -s only and a conflict is its default exit 1 (no -E); every
@@ -1253,7 +1296,7 @@
  ctl_git() {   # the controller clone's git work tree and git directory are its own canonical root (no gitfile or alias elsewhere)
    local top gr gd
    top=$(cd -- "$C" && git rev-parse --show-toplevel) || die "git rev-parse failed in $C"
-@@ -129,7 +134,7 @@
+@@ -129,7 +135,7 @@
    [ "$gd" = "$CR/.git" ] && canon "$gd" && [ -d "$gd" ] && [ ! -L "$gd" ] || die "the controller clone's git directory is $gd, not the real $CR/.git; refusing"
  }
  # the fixed roots: each must be its own physical path beneath the physical toolchain root (no symlink or alias, inside or out)
@@ -1262,7 +1305,7 @@
           "$PS" "$A" "$PROOF" "$T/jobs" "$NODE_EV" "$T/row19_screen_campaign" $LOCKS; do
    canon "$p" || die "$p is not its own physical path (it resolves to $(phys "$p" 2>/dev/null || echo 'an unsafe target'): a symlink or alias); refusing"
    case $p in "$T"/*) ;; *) die "$p is not beneath the toolchain root $T; refusing";; esac
-@@ -269,30 +274,31 @@
+@@ -269,30 +275,31 @@
  ok = a.get("version") == int(sys.argv[2]) and a.get("controls_sha256") == sys.argv[3] and (a.get("previous") or {}).get("adoption_sha256") == sys.argv[4]
  sys.exit(0 if ok else 1)' "$C/chpc/row19_screen_controls_adoption.json" "$1" "$2" "$3"
  }
@@ -1305,7 +1348,7 @@
  ACT_PY='import json, os, sys
  sys.path.insert(0, "chpc")
  import hashlib, row19_partition as RP
-@@ -315,6 +321,42 @@
+@@ -315,6 +322,42 @@
    (cd -- "$C" && "$T/t1py" -c "$ACT_PY" chpc/row19_screen_manifest.json chpc/row19_partition_e2.json "$ACT2" $ACT_CONTROLS) \
      || die "the root's activation_e2.json is not the canonical epoch-2 activation under the current adopted controls (above): epoch 2 must stay active"
  }
@@ -1434,7 +1477,7 @@
  mkdir -p -- "$R" || die "cannot create $R"
  gate_paths                                   # immediately before the move: a member changed to a symlink since the archive refuses
 --- migration_v19/test_migration_v19.py	2026-10-21 17:59:43
-+++ migration_v20/test_migration_v20.py	2026-10-22 23:27:27
++++ migration_v20/test_migration_v20.py	2026-10-22 23:46:16
 @@ -1,37 +1,40 @@
  #!/usr/bin/env python3
 -"""Private-copy tests for the migration_v19 scripts (the migration_v18 test pattern, re-pointed; every Codex finding on
@@ -1551,7 +1594,7 @@
      "chpc/row19_screen_budget.json": "45738358cd716558f9acf65ddac9a3faf4e16bf856db45ba66360b4d0d6129d3",
      "chpc/row19_screen_manifest.json": "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c",
      "chpc/row19_partition_e2.json": "48cea639e823abbf39238e3dd7c075f63ba9eca8467009348510e2943ed56fa6",
-@@ -95,25 +100,30 @@
+@@ -95,25 +100,31 @@
      "chpc/row19_ledger.py": "9a7797029a153769ebff78a9256f5c7874f5ad2204b38dff3ac4701a4b23d494",
      "chpc/row22_bank_status.py": "1ac4b5036ca9550cdd68c711144b9673dcba626765dc58187c56b9857bb4903a",
      "chpc/row22_bank_submit.py": "9665c3292cd01263be315020aac43bcc893c50574d5e69e4211cdbe931d3b8fe",
@@ -1588,11 +1631,12 @@
 +V20_PINS = ["chpc/row19_partition.py", "chpc/row19_screen_admit.py"]   # the two replaced controllers, in map order
 +V20_NEW = ["chpc/row19_partition_e3.json"]                     # the one NEW data path (the e3 closing declaration)
 +E3_SHA = "ca87fb1da163df10e720e5778542d2bcc5c78f30fc08b6a1cc61d671773f0e6a"
++CTL_ABSENT_V19 = ("aws_ec2/prod_authority.py",)                # absent from the real v19 controller clone; the v20 deploy adds it
 +FIX_INV_SHA = "03cb443304854c0988e2b55aee270d31ec0daf704bef0f835f93e02a71807bfb"   # the frozen sealed g105 inventory (candidate fixture)
  QUAL_MAC = "chpc/results/row19_screen/receipts/qualified_refit_job1.json"
  
  BASE = None
-@@ -204,17 +214,17 @@
+@@ -204,17 +215,17 @@
  
  
  def frozen_set():
@@ -1615,7 +1659,7 @@
          out[rel] = b
      return out
  
-@@ -222,11 +232,11 @@
+@@ -222,11 +233,11 @@
  def package_pins():
      sys.path.insert(0, HERE)
      try:
@@ -1630,7 +1674,7 @@
  
  
  # ------------------------------------------------------------------------------------------------ fake tools
-@@ -299,7 +309,12 @@
+@@ -299,7 +310,12 @@
  d=$(cd "$(dirname "$0")" && pwd)
  if [ -f "$d/t1py.nofcntl" ]; then for a in "$@"; do case $a in *fcntl.flock*) echo "simulated: this python has no usable fcntl" >&2; exit 1;; esac; done; fi
  case "${1:-}" in
@@ -1644,7 +1688,7 @@
    chpc/row19_screen_admit.py)
      case " $* " in *" --adopt-review "*) ;; *) echo "test t1py: unexpected controller command $*" >&2; exit 99;; esac
      printf '%s\n' "$*" >> "$d/adopt.log"
-@@ -313,9 +328,27 @@
+@@ -313,9 +329,27 @@
    *) echo "test t1py: refusing $*" >&2; exit 99;;
  esac
  """
@@ -1673,7 +1717,7 @@
  GEN_ACT2 = r'''import hashlib, json, os, sys, time
  sys.path.insert(0, "chpc")
  import row19_partition as RP
-@@ -344,11 +377,19 @@
+@@ -344,11 +378,19 @@
  if mode == "fail":
      print("ALARMS: - simulated"); sys.exit(1)
  now = time.time(); stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(now))
@@ -1695,7 +1739,7 @@
  ev = ("row19_screen_refit_54.nodefail.json", "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f")
  nd = {"kind": "node-failure", "counts_as_crash": False, "evidence_file": ev[0], "evidence_sha256": ev[1] if mode != "otherev" else "3" * 64}
  jobs = {"53": {"exit": 0}, "54": {"exit": 265, "node_disposition": nd}}
-@@ -357,7 +398,7 @@
+@@ -357,7 +399,7 @@
  if mode == "othernode":
      jobs["55"] = {"exit": 265, "node_disposition": dict(nd)}
  rc = {"schema": "row19-screen-watch-test", "role": "refit", "time": now, "fresh": True, "production": True,
@@ -1704,7 +1748,7 @@
        "bound": {"verify_file": os.path.basename(vp), "verify_file_sha256": hashlib.sha256(open(vp, "rb").read()).hexdigest(),
                  "node_evidence": {"54": {"file": ev[0], "sha256": ev[1]}}},
        "ec2": {"bound": {"activations": acts, "hold": False, "stop": False}, "problems": []}}
-@@ -386,12 +427,12 @@
+@@ -386,12 +428,12 @@
          self.CR = os.path.join(self.L, "rsc_screen_ctl"); self.C = os.path.join(self.CR, T1_REL)
          self.J = os.path.join(self.L, "rsc_screen", T1_REL)
          self.GS = os.path.join(self.L, "row19_screen"); self.G = os.path.join(self.GS, "gate"); self.R = os.path.join(self.GS, "gate_retired")
@@ -1722,7 +1766,7 @@
  
      def install(self, root=None, record=True):
          root = root or self.L
-@@ -402,7 +443,7 @@
+@@ -402,7 +444,7 @@
              raise Fail("refusing a fake root that is the production toolchain")
          if not os.path.realpath(self.t1).startswith(base + os.sep):
              raise Fail("refusing a Mac tree outside the harness temp dir")
@@ -1731,7 +1775,7 @@
          if os.path.exists(dst):
              shutil.rmtree(dst)
          os.makedirs(dst)
-@@ -416,9 +457,9 @@
+@@ -416,9 +458,9 @@
              if f == "lengau.sh":
                  assert src.count(TRANSPORT) == 1, "lengau.sh must carry exactly one production transport"
                  src = src.replace(TRANSPORT, 'PATH=%s:"$PATH" bash -s' % shlex.quote(self.lbin))
@@ -1743,7 +1787,7 @@
                  src = src.replace(prod, rec_line if record else PENDING_LINE)
              write(os.path.join(dst, f), src, os.stat(os.path.join(HERE, f)).st_mode & 0o777)
          changed = []
-@@ -428,16 +469,16 @@
+@@ -428,16 +470,16 @@
              if len(a) != len(b):
                  raise Fail("private copy of %s changed its line count" % f)
          want = sorted([("lengau.sh", [l for l in open(os.path.join(HERE, "lengau.sh")).read().splitlines() if TRANSPORT in l][0]),
@@ -1764,7 +1808,7 @@
                  del env[k]
          env["PYTHONDONTWRITEBYTECODE"] = "1"
          r = subprocess.run(list(cmd), cwd=self.t1, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=timeout)
-@@ -445,11 +486,11 @@
+@@ -445,11 +487,11 @@
  
      def script(self, name, *args):
          if name.endswith(".py"):
@@ -1779,7 +1823,7 @@
  
      def ctl_state(self):
          return (sh("git", "-C", self.CR, "rev-parse", "HEAD").strip(), sh("git", "-C", self.CR, "status", "--porcelain", "--untracked-files=all"))
-@@ -458,10 +499,10 @@
+@@ -458,10 +500,10 @@
          write(os.path.join(self.bin, name), data, 0o755)
  
      def commit_promotion(self):
@@ -1792,7 +1836,7 @@
  
      def net_log(self):
          p = os.path.join(self.bin, "net.log")
-@@ -482,7 +523,7 @@
+@@ -482,7 +524,7 @@
  def build_fresh(d):
      w = World(d); os.makedirs(d)
      fz = frozen_set()
@@ -1801,7 +1845,7 @@
      git_init(w.mac)
      for rel, b in fz.items():
          write(os.path.join(w.t1, rel), b)
-@@ -491,23 +532,23 @@
+@@ -491,23 +533,25 @@
          need(os.path.isfile(src) and not os.path.islink(src), "candidate file missing: " + rel)
          write(os.path.join(w.t1, rel), open(src, "rb").read())
      write(os.path.join(w.t1, REC), REC_TEXT)
@@ -1825,13 +1869,15 @@
 +    write(os.path.join(w.L, "t1py"), FAKE_T1PY, 0o755); write(os.path.join(w.L, "remap_run.py"), REMAP_RUN)
      git_init(w.CR)
      for rel, b in fz.items():
++        if rel in CTL_ABSENT_V19:                 # the REAL v19 controller clone never held the Mac authority (live preflight 23 Oct)
++            continue
          write(os.path.join(w.C, rel), b)
 -    gitc(w.CR, "add", "-A"); gitc(w.CR, "commit", "-q", "-m", "TEST the controller clone at the adopted v18 (frozen fixture)")
 +    gitc(w.CR, "add", "-A"); gitc(w.CR, "commit", "-q", "-m", "TEST the controller clone at the adopted v19 (frozen fixture)")
      for p, (c, want) in EVIDENCE.items():
          b = subprocess.run(["git", "-C", REPO, "show", "%s:%s/%s" % (c, T1_REL, p)], capture_output=True, check=True).stdout
          need(hashlib.sha256(b).hexdigest() == want, "the repository history does not hold the pinned bytes of " + p)
-@@ -518,12 +559,13 @@
+@@ -518,12 +562,13 @@
          write(os.path.join(w.J, f), "# synthetic science placeholder %d (%s), private test world\n" % (i, f))
      gitc(os.path.join(w.L, "rsc_screen"), "add", "-A"); gitc(os.path.join(w.L, "rsc_screen"), "commit", "-q", "-m", "TEST synthetic science")
      write(os.path.join(w.G, "qualified_refit_job1.json"), qb)
@@ -1846,7 +1892,7 @@
      write(os.path.join(w.GS, "ec2/activation_e1.json"), json.dumps({"schema": "row19-ec2-activation-1", "epoch": 1,
            "partition_sha256": "8d1de408b6ef9dc66d4736b6138536de6591f0d29ebdd6fd00a6e43307225608"}) + "\n")
      gen = os.path.join(d, "act2_gen_v17", T1_REL); shutil.copytree(w.C, gen, ignore=shutil.ignore_patterns(".git"))
-@@ -545,11 +587,68 @@
+@@ -545,11 +590,72 @@
      write(os.path.join(w.L, "archive_screen/v17_deploy_proof/DONE"), "schema row19-screen-v17-deploy-proof-1\n", 0o444)
      write(os.path.join(w.L, "archive_screen/v17_before_v18/COMPLETE"), "schema row19-screen-archive-v17-before-v18-1 (private test placeholder)\n", 0o444)
      write(os.path.join(w.L, "archive_screen/v18_deploy_proof/DONE"), "schema row19-screen-v18-deploy-proof-1\n", 0o444)
@@ -1856,6 +1902,10 @@
      w.fake("ps", FAKE_PS); w.fake("sha256sum", FAKE_SHA); w.fake("ssh", FAKE_NET); w.fake("scp", FAKE_NET)
      write(os.path.join(w.lbin, "git"), LENGAU_GIT, 0o755)
      return w
+ 
+ 
++def FROZEN_BYTES(rel):
++    return frozen(rel)
 +
 +
 +def lengau_claims_plan(fz):
@@ -1892,7 +1942,7 @@
 +                owners["%d/%d" % tuple(c)] = [k, a["sequence"]]
 +    inv["owners"] = dict(sorted(owners.items())); inv["generation"] = gen
 +    now = time.time()
- 
++
 +    def sealed(a):
 +        return seal(dict(inv, at=now - a))
 +    if lengau:
@@ -1910,12 +1960,12 @@
 +        write(os.path.join(runs, ".authority_state.json"), json.dumps({"generation": gen, "next_sequence": 13}))
 +        mi = json.dumps(sealed(age if mac_age is None else mac_age), indent=1, sort_keys=True)
 +        write(os.path.join(runs, "inventory", "latest.json"), mi); write(os.path.join(runs, "inventory", "inventory_g%d.json" % gen), mi)
- 
++
 +
  def ctl_status(w):
      return [l for l in sh("git", "-C", w.CR, "status", "--porcelain", "--untracked-files=all").split("\n") if l]
  
-@@ -564,7 +663,7 @@
+@@ -564,7 +670,7 @@
  
  
  def stub_receipts(w):
@@ -1924,7 +1974,7 @@
      and the bank controller stay in place (the promotion checks see their real bytes)."""
      write(os.path.join(w.bin, "stub_status.py"), STUB_STATUS); write(os.path.join(w.bin, "stub_bank.py"), STUB_BANK)
      w.fake("python3", PY_WRAPPER)
-@@ -576,7 +675,7 @@
+@@ -576,7 +682,7 @@
              os.remove(os.path.join(w.bin, f))
  
  
@@ -1933,7 +1983,7 @@
  STAGES = {}
  
  
-@@ -584,7 +683,7 @@
+@@ -584,7 +690,7 @@
      """A synthetic regenerated qualification (as the ONE --qualify 1 call writes it): Mac copy + gate copy + receipts."""
      R = os.path.join(w.t1, "chpc/results/row19_screen/receipts"); stamp = "20261021T101010Z"
      vp = os.path.join(R, "verify_refit_%s.json" % stamp)
@@ -1942,7 +1992,7 @@
      write(os.path.join(R, "watch_refit_%s.json" % stamp), json.dumps({"role": "refit", "time": 1.0, "alarms": []}))
      write(os.path.join(R, "watch_refit_20261020T033232Z.json"), json.dumps({"role": "refit", "old": True}))
      q = {"schema": "private-test-qualification", "role": "refit", "qualified_job": 1, "production": True, "verify_file": os.path.basename(vp),
-@@ -605,16 +704,23 @@
+@@ -605,16 +711,23 @@
              prev = stage(ORDER[ORDER.index(name) - 1]); sh("cp", "-cR", prev.d, d); w = World(d)
          w.install()
          if name == "archived":
@@ -1970,7 +2020,7 @@
          elif name == "qualified":
              fake_qualification(w)
          STAGES[name] = w
-@@ -649,7 +755,7 @@
+@@ -649,7 +762,7 @@
      need(ctl_dirty(w) == [], "the redirect left the controller clone dirty", "\n".join(ctl_dirty(w)))
  
  
@@ -1979,7 +2029,7 @@
      p = os.path.join(w.t1, name)
      body = "# test pilot record\n\n```text\n%s\n```\n" % ("ADOPT row19-screen-pilot role=refit qualification=%s max_job=100" % qsha if literal else "no literal")
      body += "".join("filler line %d of the review body to exceed four kilobytes of sed output buffering\n" % i for i in range(filler))
-@@ -663,13 +769,24 @@
+@@ -663,13 +776,24 @@
  def t_static():
      for f in PROD_FILES:
          s = open(os.path.join(HERE, f)).read()
@@ -2008,7 +2058,7 @@
          if f.endswith(".sh"):
              r = subprocess.run(["bash", "-n", os.path.join(HERE, f)], capture_output=True, text=True); need(r.returncode == 0, "bash -n " + f, r.stderr)
              need(not re.search(r"\|\s*grep\s+(-[A-Za-z]*q|--quiet)", s), "%s pipes into grep -q (SIGPIPE under pipefail: the 9df2a1f bug)" % f)
-@@ -681,30 +798,30 @@
+@@ -681,30 +805,30 @@
      need(TRANSPORT in lt, "the transport line is not the fixed production ssh", lt)
      need(open(os.path.join(HERE, "remote_lib.sh")).read().count(ROOT_LINE) == 1, "remote_lib.sh lacks the single fixed root line")
      rec = {f: open(os.path.join(HERE, f)).read().count("# @record") for f in PROD_FILES if f != "RUNBOOK.md"}
@@ -2047,7 +2097,7 @@
      if VP.REC is None:                                # PENDING: the operator record is not written yet
          need(VP.REC_SHA is None, "a half-filled record pin")
      else:                                             # filled: the committed operator record with the exact literal
-@@ -712,41 +829,43 @@
+@@ -712,41 +836,43 @@
          need(sha(os.path.join(LIVE_T1, VP.REC)) == VP.REC_SHA, "the operator record %s is not %s" % (VP.REC, VP.REC_SHA[:16]))
          need(VP.LITERAL in [l.strip() for l in open(os.path.join(LIVE_T1, VP.REC)).read().splitlines()], "the operator record lacks the literal line")
      rl = open(os.path.join(HERE, "remote_lib.sh")).read()
@@ -2113,7 +2163,7 @@
  
  
  @test("static: CTL_EVIDENCE (remote_lib.sh) and UNTRACKED_CTL (lengau_archive.py) are the same three pinned files")
-@@ -763,7 +882,7 @@
+@@ -763,7 +889,7 @@
      need(sh_list == want and LA.UNTRACKED_CTL == want, "the allowlists differ")
  
  
@@ -2122,7 +2172,7 @@
  PY37_MODULES = {"dataclasses", "contextvars", "importlib.resources", "zoneinfo", "graphlib", "tomllib", "importlib.metadata"}
  PY37_ATTRS = {"isascii", "time_ns", "monotonic_ns", "perf_counter_ns", "nullcontext", "fromisoformat", "removeprefix", "removesuffix",
                "isqrt", "prod", "cache", "shlex_join", "is_relative_to"}
-@@ -824,10 +943,10 @@
+@@ -824,10 +950,10 @@
  @test("boundary: a body run without the prelude refuses; lengau.sh refuses any other body; the harness refuses an alias of production")
  def t_boundary():
      w = stage("fresh")
@@ -2136,7 +2186,7 @@
          rc, out = w.script("lengau.sh", b); refused(rc, out, "runs only")
      alias = os.path.join(w.d, "alias_prod"); os.symlink(PROD_ROOT, alias)
      try:
-@@ -837,111 +956,166 @@
+@@ -837,111 +963,169 @@
      w.install()
  
  
@@ -2208,7 +2258,8 @@
 -    need(os.path.isfile(os.path.join(w.A, "ctl/reviews/2026-10-20_pilot_v18_operator_record.md")) and
 -         os.path.isfile(os.path.join(w.A, "gate/scaleup_refit_v16.json")), "the archive lacks the pilot record or the scale-up adoption")
 +    need(os.path.isfile(os.path.join(w.A, "ctl/reviews/2026-10-22_pilot_v19_operator_record.md")) and
-+         os.path.isfile(os.path.join(w.A, "ctl/aws_ec2/prod_authority.py")) and
++         open(os.path.join(w.A, "ctl/ABSENT.txt")).read() == "aws_ec2/prod_authority.py\n" and
++         not os.path.exists(os.path.join(w.A, "ctl/aws_ec2/prod_authority.py")) and
 +         os.path.isfile(os.path.join(w.A, "gate/scaleup_refit_v16.json")), "the archive lacks the pilot record, the Mac authority or the scale-up adoption")
      need("node_evidence %s" % NODE_EV_SHA in open(os.path.join(w.A, "COMPLETE")).read(), "COMPLETE does not certify the node document")
 -    need(len(os.listdir(w.MA)) == 13 and os.path.isfile(w.LSF) and sha(w.LSF) == sha(os.path.join(w.A, "SHA256SUMS")), "Mac archive layout / Lengau sums copy")
@@ -2267,6 +2318,8 @@
 +    need(all(sha(os.path.join(w.C, p)) == sha(os.path.join(LIVE_T1, "chpc/candidate_v20_handback", os.path.basename(p))) for p in V20_PINS + V20_NEW),
 +         "a deployed v20 controller or e3 is not the candidate bytes")
 +    need(sha(os.path.join(w.C, "chpc/row19_screen_controls.json")) == V20_CONTROLS, "the v20 controls are not in the controller clone")
++    need(sha(os.path.join(w.C, "aws_ec2/prod_authority.py")) == sha(os.path.join(LIVE_T1, "chpc/candidate_v20_handback/aws_ec2/prod_authority.py")),
++         "the deploy did not ADD the Mac authority to the controller clone")
 +    rc, out = w.script("deploy_v20.sh"); need(rc == 0 and "already holds exactly these v20 bytes" in out and "DEPLOY OK" in out, "deploy re-run", out)
 +    pr = admission_probe(w)
 +    need("PROBE partition schema row19-provider-partition-3 epoch 3" in pr and "partition epoch 3 is pinned but not activated" in pr,
@@ -2355,7 +2408,7 @@
      log = open(os.path.join(w.lbin, "git.log")).read()
      for want in ("rev-parse --show-toplevel", "rev-parse --git-dir", "status --porcelain --untracked-files=all", "rev-parse --verify HEAD",
                   "merge-base --is-ancestor", "diff-tree --no-commit-id --name-only -r", "ls-files"):
-@@ -952,109 +1126,120 @@
+@@ -952,109 +1136,134 @@
  
  
  # ================================================================================================ step 1: preflight
@@ -2491,6 +2544,20 @@
      need(not os.path.exists(w.A), "published without job files")
  
  
++@test("archive: the Mac authority is ABSENT on the v19 controller clone and recorded as absent (ctl/ABSENT.txt); a clone that holds it refuses inventory and build; a rewritten ABSENT record refuses verify")
++def t_archive_absent():
++    w = stage("fresh"); need(not os.path.lexists(os.path.join(w.C, "aws_ec2/prod_authority.py")), "the fixture clone holds the Mac authority")
++    write(os.path.join(w.C, "aws_ec2/prod_authority.py"), FROZEN_BYTES("aws_ec2/prod_authority.py"))
++    gitc(w.CR, "add", "--", T1_REL + "/aws_ec2/prod_authority.py"); gitc(w.CR, "commit", "-q", "-m", "x")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "prod_authority.py exists on the controller clone")
++    rc, out = w.script("archive_v19.sh"); refused(rc, out, "prod_authority.py exists on the controller clone"); need(not os.path.exists(w.A), "archive published")
++    w = stage("archived"); p = os.path.join(w.A, "ctl/ABSENT.txt"); os.chmod(os.path.dirname(p), 0o755); os.chmod(p, 0o644)
++    write(p, "aws_ec2/other.py\n", 0o444)
++    sums = os.path.join(w.A, "SHA256SUMS"); os.chmod(sums, 0o644)
++    t = open(sums).read().replace([l for l in open(sums).read().splitlines() if l.endswith("./ctl/ABSENT.txt")][0][:64], sha(p)); write(sums, t, 0o444)
++    rc, out = w.script("archive_v19.sh"); refused(rc, out, "does not verify")
++
++
  @test("archive: failed checksum / unreadable source refuse; an interrupted build (staging left, Lengau or Mac) refuses and is never removed")
  def t_archive_interrupted():
 -    w = stage("fresh"); write(os.path.join(w.bin, "sha.fail"), "qualified_refit_job1"); rc, out = w.script("archive_v18.sh"); refused(rc, out, "cannot hash")
@@ -2529,7 +2596,7 @@
  
  
  @test("archive: a self-consistently rewritten Lengau archive (node document, activation_e2 or pilot record dropped) and a substituted Mac member refuse")
-@@ -1064,7 +1249,7 @@
+@@ -1064,7 +1273,7 @@
          sys.modules.pop("lengau_archive", None); import lengau_archive as LA
      finally:
          sys.path.pop(0); sys.modules.pop("lengau_archive", None)
@@ -2538,7 +2605,7 @@
          w = stage("archived"); unlock_tree(w.A); p = os.path.join(w.A, drop); os.remove(p)
          if drop.startswith("jobs/"):
              inv = LA.parse_sums(open(os.path.join(w.A, "INVENTORY.jobs")).read(), "x"); inv.pop(drop)
-@@ -1081,7 +1266,7 @@
+@@ -1081,7 +1290,7 @@
          for d, _, files in os.walk(w.A):
              for n in files:
                  os.chmod(os.path.join(d, n), 0o444)
@@ -2547,7 +2614,7 @@
      w = stage("archived"); os.chmod(w.MA, 0o755)
      for n in os.listdir(w.MA):
          os.chmod(os.path.join(w.MA, n), 0o644)
-@@ -1092,7 +1277,7 @@
+@@ -1092,7 +1301,7 @@
      write(os.path.join(w.MA, "COMPLETE"), json.dumps(comp, indent=1, sort_keys=True) + "\n")
      for n in os.listdir(w.MA):
          os.chmod(os.path.join(w.MA, n), 0o444)
@@ -2556,7 +2623,7 @@
      rc, out = w.promote("--dry-run", "--review", REC); refused(rc, out)
  
  
-@@ -1102,48 +1287,48 @@
+@@ -1102,48 +1311,48 @@
      p = os.path.join(w.MA, "row19_screen_budget.json"); os.chmod(p, 0o644)
      rc, out = w.script("mac_archive.py", "verify"); refused(rc, out, "writable")
      w = stage("archived"); os.chmod(w.MA, 0o755); p = os.path.join(w.MA, "COMPLETE"); os.chmod(p, 0o644)
@@ -2623,7 +2690,7 @@
  
  
  # ================================================================================================ step 4: deploy
-@@ -1152,21 +1337,21 @@
+@@ -1152,21 +1361,21 @@
      def onefile(w):
          unlock_tree(w.A); shutil.rmtree(w.A)
          write(os.path.join(w.A, "gate/qualified_refit_job1.json"), open(os.path.join(w.G, "qualified_refit_job1.json"), "rb").read())
@@ -2650,7 +2717,7 @@
  
  
  @test("deploy: drain observations (ps failed/empty, a settlement in flight, a capture running, a held lock, no probe) refuse before any controller change")
-@@ -1176,105 +1361,106 @@
+@@ -1176,105 +1385,106 @@
               ("ps_u.out", "bash -s\n/x/t1py chpc/row19_nodefail_capture.py --manifest m --role refit --job 55\n", "a controller command runs")]
      for f, data, msg in cases:
          w = stage("promoted"); write(os.path.join(w.bin, f), data); s0 = w.ctl_state()
@@ -2791,7 +2858,7 @@
      need(tree_digest(w.outside) == before and os.path.exists(os.path.join(w.G, "review_refit.json")), "the rollover ran or wrote outside")
  
  
-@@ -1283,16 +1469,16 @@
+@@ -1283,16 +1493,16 @@
      for rel, msg in (("chpc", "payload 2"), ("reviews", "payload 1")):
          w = stage("promoted"); tgt = os.path.join(w.outside, "ctl_" + rel); commit_redirect(w, rel, tgt)
          before = tree_digest(w.outside); s0 = w.ctl_state()
@@ -2813,7 +2880,7 @@
      need(open(victim).read() == "outside bytes\n" and w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "the sibling was followed")
  
  
-@@ -1300,8 +1486,8 @@
+@@ -1300,8 +1510,8 @@
  def t_ctl_alias_science():
      def alias_whole(w):
          os.rename(w.CR, os.path.join(w.L, "ctl_moved_aside")); os.symlink(os.path.join(w.L, "rsc_screen"), w.CR)
@@ -2824,7 +2891,7 @@
          w = stage(name); alias_whole(w)
          jd = tree_digest(os.path.join(w.L, "rsc_screen")); gd = tree_digest(w.G)
          for r in runs:
-@@ -1314,9 +1500,9 @@
+@@ -1314,9 +1524,9 @@
      for kind in ("gitfile", "symlink"):
          w = stage("fresh"); gd = os.path.join(w.CR, ".git"); moved = os.path.join(w.outside, "ctl.git"); shutil.move(gd, moved)
          write(gd, "gitdir: %s\n" % moved) if kind == "gitfile" else os.symlink(moved, gd)
@@ -2836,7 +2903,7 @@
  
  
  # ================================================================================================ evidence allowlist
-@@ -1336,120 +1522,205 @@
+@@ -1336,120 +1546,205 @@
      muts.append(("stray-dir", lambda w: os.makedirs(os.path.join(w.C, "aws_ec2/runs/stray"))))
      for name, mut in muts:
          w = stage("fresh"); mut(w)
@@ -3097,7 +3164,7 @@
      ok = fail = 0; t0 = time.time()
      for name, fn in TESTS:
 --- migration_v19/v19_package.py	2026-10-21 18:13:15
-+++ migration_v20/v20_package.py	2026-10-22 23:08:46
++++ migration_v20/v20_package.py	2026-10-22 23:44:24
 @@ -1,21 +1,22 @@
 -"""migration_v19 (Mac): the exact v19 package and the Mac-side gates every step uses (the migration_v18 v18_package.py,
 +"""migration_v20 (Mac): the exact v20 package and the Mac-side gates every step uses (the migration_v19 v19_package.py,
@@ -3157,7 +3224,7 @@
 -    "chpc/candidate_v19_oploss/row19_ec2_ingest.py": "744ee5c81aba5be7b5160c61ccf6f335d9005d954935865d89106aa54c8fe5cd",
 -    "chpc/candidate_v19_oploss/manifest_e2q3_e2.json": "6d59c1f8568945f6121f9f16779aabe30f6334178bb0ba8c9d192a024805e17f",
 +CAND = os.path.join(T1, "chpc", "candidate_v20_handback")
-+REC, REC_SHA = None, None   # @record: the committed operator record with the v20 ADOPT literal, and its sha256 (PENDING)
++REC, REC_SHA = "reviews/2026-10-23_controls_v20_operator_record.md", "70297db9390ab1b2b7e67866a2f20b38d142c60117b6e3866c7ccd618e29ed9d"   # @record: the committed operator record with the v20 ADOPT literal, and its sha256
 +V20_CONTROLS = "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c"
 +LITERAL = "ADOPT row19-screen-controls sha256=%s version=20" % V20_CONTROLS
 +PACKAGE = {   # the package identities (chpc/candidate_v20_handback/DESIGN_v20.md; the candidate commit)
@@ -3340,7 +3407,7 @@
      if cmd == "drain":
          why = drain_problems() + auth_lock_problems()
          if why:
---- /dev/null	2026-10-22 23:33:42
+--- /dev/null	2026-10-22 23:51:51
 +++ migration_v20/close_v20.sh	2026-10-22 23:16:27
 @@ -0,0 +1,33 @@
 +#!/bin/bash
@@ -3376,7 +3443,7 @@
 +rm -f "$OUTF"
 +[ $rc = 0 ] || fail "the Lengau half exited $rc (above)"
 +echo "CLOSE OK - epoch 3 active; next: bash chpc/migration_v20/receipts_v20.sh --post-close (step 7)"
---- /dev/null	2026-10-22 23:33:42
+--- /dev/null	2026-10-22 23:51:51
 +++ migration_v20/close_e3.sh	2026-10-22 22:47:58
 @@ -0,0 +1,50 @@
 +# Migration v19 -> v20, step 6 (Lengau body; sent by close_v20.sh through lengau.sh): THE EC2 CLOSE - the hand-back of the
