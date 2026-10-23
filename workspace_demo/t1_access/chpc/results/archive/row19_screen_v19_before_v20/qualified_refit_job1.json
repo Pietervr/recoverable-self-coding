@@ -1,0 +1,6177 @@
+{
+ "schema": "row19-screen-qualification-1",
+ "role": "refit",
+ "qualified_job": 1,
+ "by": "R052",
+ "time": 1792634515.623327,
+ "production": true,
+ "bound": {
+  "manifest_sha256": "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c",
+  "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen",
+  "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+  "code": {
+   "analyze.py": "97558aa9c4340f363431c67f2c2d28cd360f2f0998056af7e1702c9e9a021825",
+   "models.py": "28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef",
+   "simulate.py": "f588b9121be48ec553ab95e4dda5736941865498922468b5868c96758d0afe57",
+   "chpc/row19_slice.py": "c67c4c0c776d810480218f0111623481b38598b30a5c5cb68127dcc83c5dacca",
+   "chpc/row19_shard.py": "828d59640f10cc33fcba7d98d075371945ca4b74ddaca841ea86100fc47ff383",
+   "chpc/row19_ledger.py": "9a7797029a153769ebff78a9256f5c7874f5ad2204b38dff3ac4701a4b23d494",
+   "chpc/row19_screen_orig.py": "d768b6d8c95c6a5f12a416eb934b3e0453dece79fbabf2f37775cbba4b6ef2c8"
+  },
+  "wrapper_sha256": "f9c3ff028982d04e9186b62bed8e63da999348c584491bd67f1d79071bad926c",
+  "jobs": {
+   "1": {
+    "job_id": "7523818.sched01",
+    "token": "2a25377fe9db",
+    "plan_sha256": "39cbd2eeb7501a24961fdf72ff9c021bad211d492a5bc349df9a4724d1867e94"
+   }
+  },
+  "bindings": {
+   "10": "be854166adabdc672c0229253724c52dd4006fdc73fdb277848b8ee49fedac99",
+   "11": "d740a1ab5308bd8cd667e10b5ab280952f6f59404c23dc6e9e7341a0472434a5",
+   "12": "6f96c8fff213819009feb612611897cb059f5b96217c3d642fdf9ffeb0d3db66",
+   "13": "a6c7bef3c620c5997ed033f08e2219911b539b4d93f6505f0b2e74c37792ffaf",
+   "14": "50568462bfbc21b6528d2e92c04423ac796de2b59926b840be6377c70ed198e3",
+   "15": "22640d4bbdc249d3821aee7a1e89c8feaad82f64bc54681dfb045f0b72269576",
+   "16": "6fddcf87056da3bc6226755b8367a8288a67f224cbc069093f0a3cd31ae51e5b",
+   "17": "985c5fbf79731121a9434bfb18213a1acd8c35b4ffca770f8e26347cb58a7b5d",
+   "18": "1ca8b526811e3f7c611caa1399524bc47a727d06cb71347cf5adb7e880903c4d",
+   "19": "a07f74f21dc54a5eaaa3937d0d8b3bd1491c3c23c3c69fa0c316f72c1b7d6a83",
+   "20": "e4971f4e7a916a0ba3f50085d57cfaa8bb369a97c200817ba7c75bd90cdf2dd2",
+   "21": "e2e9cba3bdf8f2649bca238fc0c209f7cc61d743df7b97ef6172260abef4b3ce",
+   "22": "eb0f145c5a0d9d49d77f3d570117c47529956f470f3db5acd0914d11a143a117",
+   "23": "90332ca158a31cfc4a7a7e9f02d8d2e45682a6740b4af14cfe46dd3e30c8b3b2",
+   "24": "85356dddf5151dc67a9843fc4e4d3ec0bd6317097c102922901a57528a395c73",
+   "25": "e6eb89581b508cf4e48b175a8f2553cc26eac3ec49da3b215bf778679a529b04",
+   "26": "e6017e891583366beba63d974c15707915220e667366bd5a8cbbae40c197a93c",
+   "3": "270f4bf8a9ef8f83bbf082ef0ce8abaf4189daa50367cf735de530c269fb2a44",
+   "4": "7670fd0b6b110fd2a23eafbe92ba91d3519e18d55d4067c64075360c58d1deb0",
+   "5": "8ed0545a8a5bca1daf75a9eba966cf1f59b2e5fa1082d455905302139d083912",
+   "6": "866025f752f2cc00cebe4a17947e68829a8b39a345c2dcfd1319094d9d0f8df0",
+   "7": "e55eefd8f7803d9ec27e702f9a210fed5d2693128cb2997bb932e3c2817ccaab",
+   "8": "24c7856b71966a48c256e036d75e136586b21520cb2498e7a74b750bf90bf1d2",
+   "9": "2e46866fe6e50171498627b5ea2608bd80bb6d0410ee69f2bde56fffd57e217f"
+  },
+  "anchors_sha256": "fda3c20991aa4a3f57e65daeed0d4e710db760067cecd3d64e8c055202a2d170",
+  "verify_sha256": "71adead390af034eb5376c300c3a4a64c68cc9beb51ab813cab6fe712b0b7aca",
+  "job_outputs": {
+   "3": {
+    "file": "row19_screen_refit_3.out",
+    "sha256": "4132a084e81ff79d776ec3eb4f37b4fbdde6bd19072068d459a2c9ee7202a8e7"
+   }
+  },
+  "slot_outputs": {
+   "13": {
+    "out": {
+     "file": "row19_screen_refit_13.out",
+     "sha256": "6acfed16a3430556b2c49b6cd1f432ed689a84fcd3827daf9b8a7d564e41f9bf"
+    },
+    "err": {
+     "file": "row19_screen_refit_13.err",
+     "sha256": "8a222e8d4c9600a174e1cf4aa67d495655ee9b71e021d52c1832ee20d298626d"
+    }
+   },
+   "14": {
+    "out": {
+     "file": "row19_screen_refit_14.out",
+     "sha256": "215bdd9648c3259286741e51da9a99b15fd157634cf9a02ec0aeb5511044bd44"
+    },
+    "err": {
+     "file": "row19_screen_refit_14.err",
+     "sha256": "59ccdee2e96166ffb114ee94fd3d16f5c50a03466d960f12792b76cfee0c3cfb"
+    }
+   },
+   "17": {
+    "out": {
+     "file": "row19_screen_refit_17.out",
+     "sha256": "b9a0e3b43fea8677adb9ee3e81e407532ffecf51e5bf9f688e8ca587bf81d6e3"
+    },
+    "err": {
+     "file": "row19_screen_refit_17.err",
+     "sha256": "13185f69976ba4e0ad1cf110ca10433334d1c109d483cc40752dd60bd1002ad2"
+    }
+   },
+   "20": {
+    "out": {
+     "file": "row19_screen_refit_20.out",
+     "sha256": "b4f7cdf9f280e3d4294eaa4bb9be63b58eadca1b0f7ad4e496362bfa5d7e8b2e"
+    },
+    "err": {
+     "file": "row19_screen_refit_20.err",
+     "sha256": "3d6ad062b3e3ac1d80f96380fa7a83fe7ab09df6a1034068598d85f01c9aaa99"
+    }
+   },
+   "28": {
+    "out": {
+     "file": "row19_screen_refit_28.out",
+     "sha256": "0482122ac6c68460aa86029607565dbd764ff2448655f17199cb215816b5bc49"
+    },
+    "err": {
+     "file": "row19_screen_refit_28.err",
+     "sha256": "f0df34f574fdb4a230ef8efd352899a24bc8df04bef17703bf62b8ddb53ca620"
+    }
+   },
+   "30": {
+    "out": {
+     "file": "row19_screen_refit_30.out",
+     "sha256": "4aa3707d93b5d1ad9a9f659c3544942c0c564f9ba3662a366c1915623a50d0ad"
+    },
+    "err": {
+     "file": "row19_screen_refit_30.err",
+     "sha256": "0c460d172a7f66b3939f64cf5ad7c0587fc1cbb5b322afd020e607b2c097dcbe"
+    }
+   },
+   "33": {
+    "out": {
+     "file": "row19_screen_refit_33.out",
+     "sha256": "0a2d43cc3331bf354578f05c87370b82f3fe69abdbc7c1bf22d7686696901df6"
+    },
+    "err": {
+     "file": "row19_screen_refit_33.err",
+     "sha256": "6fd7921c59b060f9364c0b7f6884eaf927f2b56469fe1e7f3103ba13b123983a"
+    }
+   },
+   "37": {
+    "out": {
+     "file": "row19_screen_refit_37.out",
+     "sha256": "0fb1ffb95759f1a8c3f18c27401e4972f13d26d6d1de253f1dafe6429ae792de"
+    },
+    "err": {
+     "file": "row19_screen_refit_37.err",
+     "sha256": "4b17cbf98df863204c18fb1e689f2ee678eb52142302342f0834a8b4571ea6d2"
+    }
+   },
+   "38": {
+    "out": {
+     "file": "row19_screen_refit_38.out",
+     "sha256": "b08340677ac852421bb961fb1063d1d3febbd1b0255555fb001a99b3fbc36111"
+    },
+    "err": {
+     "file": "row19_screen_refit_38.err",
+     "sha256": "7e6cf81f8e934e64b74def4b791c40c513fdbedb1651189302da1909f803855c"
+    }
+   },
+   "49": {
+    "out": {
+     "file": "row19_screen_refit_49.out",
+     "sha256": "4f1605b8386661405666c4458d062e2073abe47007b70036240a90b89b679c9a"
+    },
+    "err": {
+     "file": "row19_screen_refit_49.err",
+     "sha256": "0466b93692e94bd86232831d4101918b93f5a92ee5492c9603790783e1c5001b"
+    }
+   },
+   "58": {
+    "out": {
+     "file": "row19_screen_refit_58.out",
+     "sha256": "fbf729e1c2967aea76ac8e3ec6873d5aa5b6f10f4b1c0f144fd0c4af4d760cce"
+    },
+    "err": {
+     "file": "row19_screen_refit_58.err",
+     "sha256": "92ded967bb76a8ead7a4c40822fd787b510738853fb67577cb7f7f07b13014fa"
+    }
+   }
+  },
+  "node_evidence": {
+   "54": {
+    "file": "row19_screen_refit_54.nodefail.json",
+    "sha256": "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f"
+   }
+  },
+  "verify_file": "verify_refit_20261022T020155Z.json",
+  "verify_file_sha256": "71adead390af034eb5376c300c3a4a64c68cc9beb51ab813cab6fe712b0b7aca"
+ },
+ "receipt": {
+  "schema": "row19-screen-watch-1",
+  "role": "refit",
+  "time": 1792634515.623327,
+  "fresh": true,
+  "production": true,
+  "alarms": [],
+  "bound": {
+   "manifest_sha256": "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c",
+   "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen",
+   "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+   "code": {
+    "analyze.py": "97558aa9c4340f363431c67f2c2d28cd360f2f0998056af7e1702c9e9a021825",
+    "models.py": "28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef",
+    "simulate.py": "f588b9121be48ec553ab95e4dda5736941865498922468b5868c96758d0afe57",
+    "chpc/row19_slice.py": "c67c4c0c776d810480218f0111623481b38598b30a5c5cb68127dcc83c5dacca",
+    "chpc/row19_shard.py": "828d59640f10cc33fcba7d98d075371945ca4b74ddaca841ea86100fc47ff383",
+    "chpc/row19_ledger.py": "9a7797029a153769ebff78a9256f5c7874f5ad2204b38dff3ac4701a4b23d494",
+    "chpc/row19_screen_orig.py": "d768b6d8c95c6a5f12a416eb934b3e0453dece79fbabf2f37775cbba4b6ef2c8"
+   },
+   "wrapper_sha256": "f9c3ff028982d04e9186b62bed8e63da999348c584491bd67f1d79071bad926c",
+   "jobs": {
+    "1": {
+     "job_id": "7523818.sched01",
+     "token": "2a25377fe9db",
+     "plan_sha256": "39cbd2eeb7501a24961fdf72ff9c021bad211d492a5bc349df9a4724d1867e94"
+    },
+    "2": {
+     "job_id": "7527351.sched01",
+     "token": "9a62a960f2a8",
+     "plan_sha256": "91ef012ff933d4e4f1bf46f88f0163f64693dce0954658cbd93758869b8421c2"
+    },
+    "3": {
+     "job_id": "7527352.sched01",
+     "token": "8c07fbed7540",
+     "plan_sha256": "4bbbac0020f83b1cb1b40d0c887c7b1c3ed3740639d081ebb12a7615cf5a2e0e"
+    },
+    "4": {
+     "job_id": "7529179.sched01",
+     "token": "ca6d3f796bc5",
+     "plan_sha256": "a149104f9a591c5b3f4cfad74e653aaa030adf0f723b9640da40c78b4e657bd0"
+    },
+    "5": {
+     "job_id": "7529279.sched01",
+     "token": "4374a0cf0cd8",
+     "plan_sha256": "d012d3abd7babb193fd5ad04a2e0ae53d565c73bade7ccd798a01fbb9dc72338"
+    },
+    "6": {
+     "job_id": "7529496.sched01",
+     "token": "e7b6807a9641",
+     "plan_sha256": "db5023e16a145282d632cd2c29c30576bb85130b4955cd6cd0cf9683d7960bb2"
+    },
+    "7": {
+     "job_id": "7529616.sched01",
+     "token": "f41c8f8c25f4",
+     "plan_sha256": "64fe0d46863b3ca28ae5f4d8a41d2a7640f8fd5c13289e19e7f1ed8b81bce7e9"
+    },
+    "8": {
+     "job_id": "7529741.sched01",
+     "token": "e9706aec6cea",
+     "plan_sha256": "15076281d9ee0af8dc9adb0689d7519f3de6a9978f99977fa00dfba18fb2fa0f"
+    },
+    "9": {
+     "job_id": "7529824.sched01",
+     "token": "668cb59e5092",
+     "plan_sha256": "58e620bb54197ac08dd5c1ab728defdc5d0ebc6c04dd5ff0c079c186f8a8a2fe"
+    },
+    "10": {
+     "job_id": "7530233.sched01",
+     "token": "89131210811c",
+     "plan_sha256": "7b911cd977dea9b4d2c8d8df844905626dbfe6ea080c4d4085571549f90525db"
+    },
+    "11": {
+     "job_id": "7531115.sched01",
+     "token": "d706ce9e962b",
+     "plan_sha256": "da9bf38b2cc2b4de090276034ce990fa5117610c9b71de959a07e5f0f50f9ad5"
+    },
+    "12": {
+     "job_id": "7531165.sched01",
+     "token": "4bbbae5b4b84",
+     "plan_sha256": "a7627b24a1def2035b9dffc2d5e3c0d193adfb7f91cdd88ec545246c979c2266"
+    },
+    "13": {
+     "job_id": "7531397.sched01",
+     "token": "b15bb996a3dd",
+     "plan_sha256": "5a6e1bbb99537ccbb297480adfb2b3b8352d7658c9317750104505264a1ffba4"
+    },
+    "14": {
+     "job_id": "7533494.sched01",
+     "token": "eff1ad4d0498",
+     "plan_sha256": "5054b5e405615e342c90552c3c8f1780a452ea6b78d3a8094dfcca7479ca03dc"
+    },
+    "15": {
+     "job_id": "7533500.sched01",
+     "token": "33d91a26ef64",
+     "plan_sha256": "03489457ef7051c53f6f268fac572eb6d56828daa65dad632d7bf15ef41dfa7b"
+    },
+    "16": {
+     "job_id": "7533505.sched01",
+     "token": "53e6b0ae7ba6",
+     "plan_sha256": "bb0fe9afaafea07c038d7ea430a9ef7f0e8bf1dae100dc2e9968bd71967bd634"
+    },
+    "17": {
+     "job_id": "7539371.sched01",
+     "token": "2d26b355372f",
+     "plan_sha256": "d9975ed441acb52124f2c5226071627a9f430b367f0e22178154df149e7f1896"
+    },
+    "18": {
+     "job_id": "7539372.sched01",
+     "token": "68820eb518ac",
+     "plan_sha256": "2e4baf0e0fee4b118d5d8748bb2c4d565b8cb87a8db0d81eac6ef49dc2349b9c"
+    },
+    "19": {
+     "job_id": "7539373.sched01",
+     "token": "9ecbe658b148",
+     "plan_sha256": "4c91899e2314b585992e931f574528047bca5ecc9e3d9d53dfb8195bd63df6db"
+    },
+    "20": {
+     "job_id": "7539374.sched01",
+     "token": "7983c339c345",
+     "plan_sha256": "dcd68d5c6245ad4a3859e5b93a86e84a631407c296ae2b7a6719c6b0ad875a0e"
+    },
+    "21": {
+     "job_id": "7539375.sched01",
+     "token": "37aeba0547b7",
+     "plan_sha256": "835456cd508dfb5f1e2dea063b66b94eceb77461d1804e0ae569f1aba324866d"
+    },
+    "22": {
+     "job_id": "7539376.sched01",
+     "token": "4b546dfea1dd",
+     "plan_sha256": "eb9cc0246094e8cf1fdca06316a6214056ff78490972c16ed913a1b1e4536008"
+    },
+    "23": {
+     "job_id": "7539377.sched01",
+     "token": "42c6da4c0e12",
+     "plan_sha256": "c820674dbf6eda6f2b0ac03dd5a267c501b7b5f092d148ca2e8954e153f80623"
+    },
+    "24": {
+     "job_id": "7539378.sched01",
+     "token": "ce4b06dd66ff",
+     "plan_sha256": "532c079bf2ddcb7e60c11528ad078a8bec6f0647119640e96a12a3662a8bc993"
+    },
+    "25": {
+     "job_id": "7539379.sched01",
+     "token": "3fbd14587680",
+     "plan_sha256": "8d7caed2e87430d2a02a47ca373226cd6d910a99b878cdb17627c3c190eab309"
+    },
+    "26": {
+     "job_id": "7539380.sched01",
+     "token": "b02e7a9a7a3a",
+     "plan_sha256": "dc9f84f05033f61221734d541d235103729681c4656ef46a8eba8c5a331ad206"
+    },
+    "27": {
+     "job_id": "7541626.sched01",
+     "token": "78a69cde6cd7",
+     "plan_sha256": "b8f545c677bfc840d54247a615f714ed45997b8d7d3ad8491672072baff97324"
+    },
+    "28": {
+     "job_id": "7541627.sched01",
+     "token": "99eba846f051",
+     "plan_sha256": "44912cb18e3a1bf15eb456de8eb32408823bf8e10476a8313f684cd56b2749ba"
+    },
+    "29": {
+     "job_id": "7541628.sched01",
+     "token": "9ce0edce49a6",
+     "plan_sha256": "4fbe94ca310b1c4811d095eed25f78d2efbf09bd7bf263ddba1e35373a971cc2"
+    },
+    "30": {
+     "job_id": "7541699.sched01",
+     "token": "e12ce1122f05",
+     "plan_sha256": "f13d5e322d214968b74b32c90933aea7b38a29d2b715fd6264c0996a83b35659"
+    },
+    "31": {
+     "job_id": "7541700.sched01",
+     "token": "f814ea49626d",
+     "plan_sha256": "53d84a964c4ef0725b200656e5dca049d9256d6cc056392a956dd03a633a6716"
+    },
+    "32": {
+     "job_id": "7541701.sched01",
+     "token": "aa7322b8d943",
+     "plan_sha256": "fb3dc22448405cb2b5ff73cfd61c874694a3634639bd44bed88b7f09d15c9a51"
+    },
+    "33": {
+     "job_id": "7541702.sched01",
+     "token": "21ea30cd68d1",
+     "plan_sha256": "218b78b803fd6c70b018d5b9dff3ae38b70153dcf353ecfa409b7886f609e800"
+    },
+    "34": {
+     "job_id": "7541703.sched01",
+     "token": "7076c00c5bca",
+     "plan_sha256": "a6f8aa60fee785f02406b8571f16d75f12003981ba52e7ba348089e0d0966b62"
+    },
+    "35": {
+     "job_id": "7541704.sched01",
+     "token": "ea833ca7b794",
+     "plan_sha256": "f8fdcf29db880ac17046964ed4535bdf95a5635260058fbb3e958534f5d0cf9d"
+    },
+    "36": {
+     "job_id": "7541705.sched01",
+     "token": "e92118511073",
+     "plan_sha256": "4d03cfdb4266b1e9cc7e7e2049600589e5ddfe1500c54fc360bdea12c045aa87"
+    },
+    "37": {
+     "job_id": "7543880.sched01",
+     "token": "00a2285aa737",
+     "plan_sha256": "8d1e6c8f52355c3fcc1383e3d938d8078e23e288718a5c4b86f6cf9dae2a3b3b"
+    },
+    "38": {
+     "job_id": "7543881.sched01",
+     "token": "5ff519c86a88",
+     "plan_sha256": "e84739992b25c0f7b2faf0be89fd7b30de8182e17e8ec9236c5d1f8c52f945f4"
+    },
+    "39": {
+     "job_id": "7543882.sched01",
+     "token": "392d64023deb",
+     "plan_sha256": "24ab8581cf1cc647618b604f1f2410b96b34fd7d74afd7695faced1346e8299e"
+    },
+    "40": {
+     "job_id": "7543883.sched01",
+     "token": "ece05eeff596",
+     "plan_sha256": "85e840654ebba9c0960e97917812c1bef1babe0778965177d6e1890e25538700"
+    },
+    "41": {
+     "job_id": "7543884.sched01",
+     "token": "7d1645380b09",
+     "plan_sha256": "92e6712be6bb8817320478cccc8684ceee645ba8f0e1bbeb3bbb9a97bdba4d10"
+    },
+    "42": {
+     "job_id": "7543885.sched01",
+     "token": "1a2a80ca78db",
+     "plan_sha256": "24318342992e8570301593dc1cf707b9a1f5e0960a0053ff2e643a68d882777f"
+    },
+    "43": {
+     "job_id": "7544144.sched01",
+     "token": "66a37a597ec6",
+     "plan_sha256": "b6567ac7bd44c485dfd09532d8ff401b30c25c475182fb4ad127a34ffe743eed"
+    },
+    "44": {
+     "job_id": "7544145.sched01",
+     "token": "d52813087717",
+     "plan_sha256": "eca57a33f19bb2e308dcdc88db2ec7cb6ce8ce789702595d27afc9a6db2d784b"
+    },
+    "45": {
+     "job_id": "7544146.sched01",
+     "token": "75c8fc870564",
+     "plan_sha256": "0f4176ecb738d2aa138f9bf86c0aa02cd5b9294ce59c13a4bdc66cde65fd413b"
+    },
+    "46": {
+     "job_id": "7545616.sched01",
+     "token": "6064b3592e74",
+     "plan_sha256": "b262d4f68d1682749a0deacbd76612695c9dc3b0150e8c7ed8630f69ebc89d97"
+    },
+    "47": {
+     "job_id": "7551252.sched01",
+     "token": "a31fe34c97de",
+     "plan_sha256": "b5bdede35d5f1abc7bba0ad1b592285df3910193f549f8cd977c60f27b96fda3"
+    },
+    "48": {
+     "job_id": "7551253.sched01",
+     "token": "8a175160535d",
+     "plan_sha256": "fb9a7e6bd475cfbe99acc1819469491c513f68f66cfaf0843afb4804d39fb5d2"
+    },
+    "49": {
+     "job_id": "7551254.sched01",
+     "token": "006f58de6918",
+     "plan_sha256": "ea79c41e3d45b55d5d0ea2993f2903e1c114cdb1d4650e12340c39c703459050"
+    },
+    "50": {
+     "job_id": "7551255.sched01",
+     "token": "9f185ad36969",
+     "plan_sha256": "9533fc88056a65634b22b964355f2cda679dbe31009bd8cb9d4e13777c2335d2"
+    },
+    "51": {
+     "job_id": "7551256.sched01",
+     "token": "906549640b35",
+     "plan_sha256": "2112eee395bcebb3683433da281375c86e27b5de914acd4ccbfba5f404e70925"
+    },
+    "52": {
+     "job_id": "7551257.sched01",
+     "token": "60212a7ebb4f",
+     "plan_sha256": "7a87db611dec4d0e25723fc7542090812198e74746f38c81706c8a9e2849817f"
+    },
+    "53": {
+     "job_id": "7551258.sched01",
+     "token": "0eab17670f64",
+     "plan_sha256": "0c6afb8d4fa6a48b5b70391931700d1c6314f0c9d215e9870cce0b46fb9963b9"
+    },
+    "54": {
+     "job_id": "7551259.sched01",
+     "token": "dd8d1b891252",
+     "plan_sha256": "3081274f88ffcfd333aae246c08f7e6cdb3d7d2e8ab12165ca6b176b7397f5ef"
+    },
+    "55": {
+     "job_id": "7551260.sched01",
+     "token": "270879c7fa09",
+     "plan_sha256": "9ecf76bd5f5471eb5ec0226e4507dd6caaf0ef438e877b43d4015fddf3bf1186"
+    },
+    "56": {
+     "job_id": "7551261.sched01",
+     "token": "7e455fe60e98",
+     "plan_sha256": "192f73f735082d1a0aa00eac67145c2b186cc35c0fbc83eaf1d6f13ad91f814e"
+    },
+    "57": {
+     "job_id": "7557264.sched01",
+     "token": "0490df069fba",
+     "plan_sha256": "60127279f3dd76cf331b9e4dad10c5d71af8a359da040bec16f41dce1443dde0"
+    },
+    "58": {
+     "job_id": "7557265.sched01",
+     "token": "541f531b32d8",
+     "plan_sha256": "67dd5ef1d59061491f678eb5aa66f1158f8ab8f03e8f29585d9fa7609cc1ff84"
+    },
+    "59": {
+     "job_id": "7557266.sched01",
+     "token": "4eddbe0986ba",
+     "plan_sha256": "2eed60f28247ede37df78a2280b267b9a37e502d140a197f24ece8e5a4c71fe3"
+    },
+    "60": {
+     "job_id": "7557267.sched01",
+     "token": "24f5f7019163",
+     "plan_sha256": "1cacf4da391bb13f4f5d9b599b66e6f8221130a8ad72f4a155150d13f48c05ef"
+    },
+    "61": {
+     "job_id": "7557268.sched01",
+     "token": "1152127eb6cf",
+     "plan_sha256": "ad7741cc8cc1a1561a1d3e9ec29fc2c4bda1d2c060604dc97f648098484c327f"
+    },
+    "62": {
+     "job_id": "7557269.sched01",
+     "token": "40089f602d25",
+     "plan_sha256": "372b7044d4058c369040ae180152b1ca03d842b1190b07663f4fce658583b2f9"
+    },
+    "63": {
+     "job_id": "7557270.sched01",
+     "token": "74e9bddf6b21",
+     "plan_sha256": "1bf32da4b3b19dd173f5e479dfc753b4a334744707ef203b37b7c1bfcd530d7d"
+    },
+    "64": {
+     "job_id": "7557271.sched01",
+     "token": "8f094fa9fe44",
+     "plan_sha256": "aa169c3793ab628f10e17bb6e9a5e154723cc77221ba6b2eed955f8b6474b5c9"
+    },
+    "65": {
+     "job_id": "7557272.sched01",
+     "token": "690e1290280f",
+     "plan_sha256": "047273ab6aa6e7bb3c6ac53b9a6378b09f6e89b5d0cc8ce5c3e4e02bb0f45845"
+    },
+    "66": {
+     "job_id": "7557310.sched01",
+     "token": "54a62a25675a",
+     "plan_sha256": "b8977380d83ab3e0a9aad780c65f6f00de7fcb10cd15bff01ceee858d087ab98"
+    }
+   },
+   "bindings": {
+    "10": "be854166adabdc672c0229253724c52dd4006fdc73fdb277848b8ee49fedac99",
+    "100": "20bf48a5d013568ece3dee52b143ca972185ee85d32a716eedd5af4a55b7c60a",
+    "101": "e8482e71fa9c75794710d03d94b4eaeebdfdb01ab5701c6a8dd033acba80a16b",
+    "102": "47aa822e1c289ddc425435200c1485b6269d758dcfaf42a4038aa058d619b8a7",
+    "11": "d740a1ab5308bd8cd667e10b5ab280952f6f59404c23dc6e9e7341a0472434a5",
+    "12": "6f96c8fff213819009feb612611897cb059f5b96217c3d642fdf9ffeb0d3db66",
+    "13": "a6c7bef3c620c5997ed033f08e2219911b539b4d93f6505f0b2e74c37792ffaf",
+    "14": "50568462bfbc21b6528d2e92c04423ac796de2b59926b840be6377c70ed198e3",
+    "15": "22640d4bbdc249d3821aee7a1e89c8feaad82f64bc54681dfb045f0b72269576",
+    "16": "6fddcf87056da3bc6226755b8367a8288a67f224cbc069093f0a3cd31ae51e5b",
+    "17": "985c5fbf79731121a9434bfb18213a1acd8c35b4ffca770f8e26347cb58a7b5d",
+    "18": "1ca8b526811e3f7c611caa1399524bc47a727d06cb71347cf5adb7e880903c4d",
+    "19": "a07f74f21dc54a5eaaa3937d0d8b3bd1491c3c23c3c69fa0c316f72c1b7d6a83",
+    "20": "e4971f4e7a916a0ba3f50085d57cfaa8bb369a97c200817ba7c75bd90cdf2dd2",
+    "21": "e2e9cba3bdf8f2649bca238fc0c209f7cc61d743df7b97ef6172260abef4b3ce",
+    "22": "eb0f145c5a0d9d49d77f3d570117c47529956f470f3db5acd0914d11a143a117",
+    "23": "90332ca158a31cfc4a7a7e9f02d8d2e45682a6740b4af14cfe46dd3e30c8b3b2",
+    "24": "85356dddf5151dc67a9843fc4e4d3ec0bd6317097c102922901a57528a395c73",
+    "25": "e6eb89581b508cf4e48b175a8f2553cc26eac3ec49da3b215bf778679a529b04",
+    "26": "e6017e891583366beba63d974c15707915220e667366bd5a8cbbae40c197a93c",
+    "27": "cc8e93e80feba788f60ba91c3a82395f612875cf107f94fc0ce1ada9c0c5a042",
+    "28": "bd46763a69526a917075c345fea740dc178c804ee9481707bd5660dd92e1ace5",
+    "29": "fd3479f1174d48e67b84e89de0ce947280295a40279f3e668c5edc3384f0bbe2",
+    "3": "270f4bf8a9ef8f83bbf082ef0ce8abaf4189daa50367cf735de530c269fb2a44",
+    "30": "295b5cf7ca4e7107e24526f7dc624987f16c4871631e97774aa55aaf41fbbc2d",
+    "31": "cdf5e919418aa73249784ae5ccce7aca9ec731de63c45d1d1a9a77de2660dc60",
+    "32": "7ed9734b285ffd7f0bc12a205ad5cd0f218393e17b8a774d4e9f5c63fc4ff016",
+    "33": "65aa20de3a311c8a2d46fd1e1513847510e54ae054c6290d1b76bef9b7ebf542",
+    "34": "2453b9600abd62f60b396d82f7ca8f1e7391bc4b23d485b5417264f7773e65a3",
+    "35": "f4e6f9987c92aba8200d705088739fa98f910afcc04cd7e5b4498917377c2606",
+    "36": "8ff18cca2ad372c9b4951562e37d5636b1dbfb0361136f7149fec33359a2b7d4",
+    "37": "214296126ea07a39d5cb25037320ab10ed21055222d370e5501365988f75042e",
+    "38": "da30f2ae81195dc918d451ce737bf18c81c12e49ad5d8d8edc6f86cdb9db096b",
+    "39": "57b4ddcb8ef79271b49943b9ad00c69752ac24cf021a18c3935b32e64c65608a",
+    "4": "7670fd0b6b110fd2a23eafbe92ba91d3519e18d55d4067c64075360c58d1deb0",
+    "40": "7c1508c57193397af58c738d1aaa9a2763da47c224fdc650dc86a3423ad7887c",
+    "41": "7166baf575c514982a17a5c579ffa1c8847eac029cd9db71580599a7c027e383",
+    "42": "94fc7314df2ac8175a059af6b17feeb650222b6f80401c0c7db428ae64873ec3",
+    "43": "41ad3b13bc32d1ade2ca666e1d4eb1f3930d6fbc2642afe08759b3a9260631bd",
+    "44": "00ee4c32929dbf447c6ec137fd611607bb487a4ba7dd5b15b41b2f8da95e1dda",
+    "45": "e05bef4662aae273e30b5fbbf1f19ad29dade8631e26d34f9066036f003d74a1",
+    "46": "6e9a7914b275719c2f5ec3e2ae96241dfa97a379f2ba234d936f9519e9d9cc69",
+    "47": "8bc015aa27e59e38203d99f93736441237cee247444d1790159b09c1dcec6f9f",
+    "48": "fd921ed7b4b5a0991fe4e593bae15020b4e82f8bcd0121fba2d435bc0bbc9b73",
+    "49": "7acc737c8fa5f8f7a9af79fac3ea631f7eae23320af1191de87c36ecd5710cdf",
+    "5": "8ed0545a8a5bca1daf75a9eba966cf1f59b2e5fa1082d455905302139d083912",
+    "50": "e4c52af52035a810d09b11f0d191fb4c9b3401273eceeb7ececce88028ed1cdb",
+    "51": "bc30683dd5138f5b790d3bec6b0762c029c01a574c2488b8f6b2a798636aa69e",
+    "52": "afaa30e545696eedcf28dab614091cb9e609027bc785e9b3073a1d699345547b",
+    "53": "31dd57d3f12ab81f64ecfe2e52277cc66b30f29232857c21b9d95dcbf5eeab05",
+    "54": "25345503cdce60033fd34d19c862125dbb93187f9d4b9d19aa0620f31a2429ce",
+    "55": "7635a167c5dd5c04a2dfdd1219b8d7c27dff2a5304048035ab885147152f5485",
+    "56": "f7367ee29d0824ee49be0953f71595bfc8d8fadb97e76de875ff61b8c9ed9c02",
+    "57": "c457c6f09c1a27d55fdf84d347fb024a21a42eff5337fbfa2481d50f933c8383",
+    "58": "9ed2e7b5c1888103e946bfab780a3ccbec101eb3a8c9c8079dca610efd6109f6",
+    "59": "bcbf1bfeea23f14e761bf852ac36e8f51e332e5652f1c3a0b6e7156ce7ca187f",
+    "6": "866025f752f2cc00cebe4a17947e68829a8b39a345c2dcfd1319094d9d0f8df0",
+    "60": "4ed2a14ab82826e272704cce96049bfeed170fc6d841ea08fc53bd563a11f657",
+    "61": "133bb122ad279a575fe162080b0068560b27c62da3a400b821931aef13366780",
+    "62": "8d49f59dc1b96d14c634adf994469d1ef31208ac921f145da9692f3fcd71f244",
+    "63": "0e6b76b72439ca44ded65497c12e64ce2eaa6f71ef251477b7327078ec358cba",
+    "64": "71c85dd4474c612c2f7d19cba4e902bfa8a53e5538b37d4580c92b16dc2c8661",
+    "65": "f93d89539e2c77c2f0627efbc41b07168bfa1c5f0e7fd8325993b2b7477bee0c",
+    "66": "1fc7cdb8ef46caa457d879d1a1c4e245fda1a98c00b8dc7729548802c47ade86",
+    "67": "7ba44042e60582d54852a0901b6d98db20696b573b978340f0f6b7b76ccc22b7",
+    "68": "7c9cc439b7478bbabc66223120ec0ba41c1d22c9d9de3b775843d3929e61acec",
+    "69": "a35202ae4ac9758b3aab33e061b408ada0438e7c08805135a29e6be7f03203fb",
+    "7": "e55eefd8f7803d9ec27e702f9a210fed5d2693128cb2997bb932e3c2817ccaab",
+    "70": "4eb4223a0b541181961d3430abdfae739ffc29d2a97a65128614c45b9b142697",
+    "71": "ade6d45acb267fb2e87b732b5d18160fbd72f6e8e920cfb700c4fa8cc4d2dd34",
+    "72": "2e72fec7da7d1532b8b39f837183290d3fbe149660ab5302e3c09f1f3dc41620",
+    "73": "b4256ca17eb2eef4766732952fceec8fbf0c107e75e5ba4b059612b1f084530f",
+    "74": "dc7edeb10c47384f3015f9805612953a479efef5b3059e4dd7545518b6fc7788",
+    "75": "c5ae5e6a1cb4fdf74e80cece7a4bae351fd777093167000ec375965c40940137",
+    "76": "646081db9659a4f5f9f7ff6b40cfc8b3ff7b7d1518698084437ada4e145345db",
+    "77": "9478d1dbb67ff2d06f13f99c49a6904f23f9fd1bc3c44ce127a7b15326b6b067",
+    "78": "9f6db71e602be65740dbcb2a2667278859ef500d246bbf120feffa847dd6b0ed",
+    "79": "4058c9c7d7bd19ee603e893b8a3f98b79c61bcf6c7b21e5d057eccfc08828c4e",
+    "8": "24c7856b71966a48c256e036d75e136586b21520cb2498e7a74b750bf90bf1d2",
+    "80": "dc80383e52c7f10379557542235b924f18bc325f5b5c160da492befd55153826",
+    "81": "98080904b17f9be029f5bd28c5bb1f97c708c0e372134e397280bbf15305d40b",
+    "82": "0aa37a642a1c0aaff5b92bb3cddab893f00f574d29b4e1fda8e825257199ee69",
+    "83": "9cc6e6e5d41ed3ec3d98bb34a29535fac3bd87d84726ac9b82bd0e30e715e496",
+    "84": "ce85901fb356b192ae7c0a46a11fbeca92032a96ca38592df8172c9faab3f5a5",
+    "85": "6f511d1d88247f44f9a504137b1e2c4ac01ec4e5ba3f8373646057c796a31689",
+    "86": "f05799eac7bad3e5abee240432d6e5287ab2e89eba8aa30750d2dac83ef819da",
+    "87": "7615d4cc3e41e7e305a772514e1b308ca5e95a2050f548fb7b7667b30affef94",
+    "88": "643aec0aa4ebdd3bc8030fea2ac5c99d36c911bfa1cd7bdb544c955603baf049",
+    "89": "5d8c272bf0650fbe24040543651538a5e6118cbb2983d912c6838fb02a35e29b",
+    "9": "2e46866fe6e50171498627b5ea2608bd80bb6d0410ee69f2bde56fffd57e217f",
+    "90": "5d91b06069f294d95aaacc9854c02e18924a760e7c56e905de68cf310edaa114",
+    "91": "66e99ae7cd6a086619e70f70242702e7d7ba4c91349b928866e08b4d258f0b6a",
+    "92": "5a63ddbf0dc0c03386ed98494a64ff6e59afc6f1641628c003ee81700d4f343e",
+    "93": "3e6e593e0a6102e9903d134ab3bbec3a73b13e9bf196ec66c1ad15d43ef89d98",
+    "94": "722b931790d6e0b8865c00ece47ba765bede4b9d73271bab7793f88b9d81c71d",
+    "95": "77a21bd8aecff7c7d1e46daf7d449a3628b12c14aacee8a44246d20ee8481e30",
+    "96": "3244b9483c0941178d48063d1bb050972325353139b49aa7c98127571d53366a",
+    "97": "7236417ef340b33c780def58877a523e051a0d46f19ad112713aaaca3a7106ad",
+    "98": "dd3213f1c82a3c43cb1a50205a2f41f6e7ff5d1dfda16f5a9fe2a76777e21cf6",
+    "99": "c662a004edfd02f257c15fe61ce53908c9670613da9b57a05efb85be0b3f1b52"
+   },
+   "anchors_sha256": "fda3c20991aa4a3f57e65daeed0d4e710db760067cecd3d64e8c055202a2d170",
+   "verify_sha256": "71adead390af034eb5376c300c3a4a64c68cc9beb51ab813cab6fe712b0b7aca",
+   "job_outputs": {
+    "3": {
+     "file": "row19_screen_refit_3.out",
+     "sha256": "4132a084e81ff79d776ec3eb4f37b4fbdde6bd19072068d459a2c9ee7202a8e7"
+    }
+   },
+   "slot_outputs": {
+    "13": {
+     "out": {
+      "file": "row19_screen_refit_13.out",
+      "sha256": "6acfed16a3430556b2c49b6cd1f432ed689a84fcd3827daf9b8a7d564e41f9bf"
+     },
+     "err": {
+      "file": "row19_screen_refit_13.err",
+      "sha256": "8a222e8d4c9600a174e1cf4aa67d495655ee9b71e021d52c1832ee20d298626d"
+     }
+    },
+    "14": {
+     "out": {
+      "file": "row19_screen_refit_14.out",
+      "sha256": "215bdd9648c3259286741e51da9a99b15fd157634cf9a02ec0aeb5511044bd44"
+     },
+     "err": {
+      "file": "row19_screen_refit_14.err",
+      "sha256": "59ccdee2e96166ffb114ee94fd3d16f5c50a03466d960f12792b76cfee0c3cfb"
+     }
+    },
+    "17": {
+     "out": {
+      "file": "row19_screen_refit_17.out",
+      "sha256": "b9a0e3b43fea8677adb9ee3e81e407532ffecf51e5bf9f688e8ca587bf81d6e3"
+     },
+     "err": {
+      "file": "row19_screen_refit_17.err",
+      "sha256": "13185f69976ba4e0ad1cf110ca10433334d1c109d483cc40752dd60bd1002ad2"
+     }
+    },
+    "20": {
+     "out": {
+      "file": "row19_screen_refit_20.out",
+      "sha256": "b4f7cdf9f280e3d4294eaa4bb9be63b58eadca1b0f7ad4e496362bfa5d7e8b2e"
+     },
+     "err": {
+      "file": "row19_screen_refit_20.err",
+      "sha256": "3d6ad062b3e3ac1d80f96380fa7a83fe7ab09df6a1034068598d85f01c9aaa99"
+     }
+    },
+    "28": {
+     "out": {
+      "file": "row19_screen_refit_28.out",
+      "sha256": "0482122ac6c68460aa86029607565dbd764ff2448655f17199cb215816b5bc49"
+     },
+     "err": {
+      "file": "row19_screen_refit_28.err",
+      "sha256": "f0df34f574fdb4a230ef8efd352899a24bc8df04bef17703bf62b8ddb53ca620"
+     }
+    },
+    "30": {
+     "out": {
+      "file": "row19_screen_refit_30.out",
+      "sha256": "4aa3707d93b5d1ad9a9f659c3544942c0c564f9ba3662a366c1915623a50d0ad"
+     },
+     "err": {
+      "file": "row19_screen_refit_30.err",
+      "sha256": "0c460d172a7f66b3939f64cf5ad7c0587fc1cbb5b322afd020e607b2c097dcbe"
+     }
+    },
+    "33": {
+     "out": {
+      "file": "row19_screen_refit_33.out",
+      "sha256": "0a2d43cc3331bf354578f05c87370b82f3fe69abdbc7c1bf22d7686696901df6"
+     },
+     "err": {
+      "file": "row19_screen_refit_33.err",
+      "sha256": "6fd7921c59b060f9364c0b7f6884eaf927f2b56469fe1e7f3103ba13b123983a"
+     }
+    },
+    "37": {
+     "out": {
+      "file": "row19_screen_refit_37.out",
+      "sha256": "0fb1ffb95759f1a8c3f18c27401e4972f13d26d6d1de253f1dafe6429ae792de"
+     },
+     "err": {
+      "file": "row19_screen_refit_37.err",
+      "sha256": "4b17cbf98df863204c18fb1e689f2ee678eb52142302342f0834a8b4571ea6d2"
+     }
+    },
+    "38": {
+     "out": {
+      "file": "row19_screen_refit_38.out",
+      "sha256": "b08340677ac852421bb961fb1063d1d3febbd1b0255555fb001a99b3fbc36111"
+     },
+     "err": {
+      "file": "row19_screen_refit_38.err",
+      "sha256": "7e6cf81f8e934e64b74def4b791c40c513fdbedb1651189302da1909f803855c"
+     }
+    },
+    "49": {
+     "out": {
+      "file": "row19_screen_refit_49.out",
+      "sha256": "4f1605b8386661405666c4458d062e2073abe47007b70036240a90b89b679c9a"
+     },
+     "err": {
+      "file": "row19_screen_refit_49.err",
+      "sha256": "0466b93692e94bd86232831d4101918b93f5a92ee5492c9603790783e1c5001b"
+     }
+    },
+    "58": {
+     "out": {
+      "file": "row19_screen_refit_58.out",
+      "sha256": "fbf729e1c2967aea76ac8e3ec6873d5aa5b6f10f4b1c0f144fd0c4af4d760cce"
+     },
+     "err": {
+      "file": "row19_screen_refit_58.err",
+      "sha256": "92ded967bb76a8ead7a4c40822fd787b510738853fb67577cb7f7f07b13014fa"
+     }
+    }
+   },
+   "node_evidence": {
+    "54": {
+     "file": "row19_screen_refit_54.nodefail.json",
+     "sha256": "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f"
+    }
+   },
+   "verify_file": "verify_refit_20261022T020155Z.json",
+   "verify_file_sha256": "71adead390af034eb5376c300c3a4a64c68cc9beb51ab813cab6fe712b0b7aca"
+  },
+  "jobs": {
+   "1": {
+    "job_id": "7523818.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 47179688,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2490564608,
+    "max_wall_s": 87795.35763454437,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/0",
+      "11/0",
+      "12/0",
+      "13/0",
+      "14/0",
+      "15/0",
+      "16/0",
+      "17/0",
+      "18/0",
+      "19/0",
+      "20/0",
+      "21/0",
+      "22/0",
+      "23/0",
+      "24/0",
+      "25/0",
+      "26/0",
+      "3/0",
+      "4/0",
+      "5/0",
+      "6/0",
+      "7/0",
+      "8/0",
+      "9/0"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 108000.0,
+    "requested_walltime_s": 108000.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "03293dac9a824d90b04c6641bbc071e80d99804fb188dd98734418696f0b44ac",
+    "prior_receipt": {
+     "file": "watch_refit_20261010T224529Z.json",
+     "sha256": "c6fd4a730829d6b17c4d0855231f63507c92892b0e3e473bc39610c20b8400fa"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261010T224529Z.json",
+      "sha256": "c6fd4a730829d6b17c4d0855231f63507c92892b0e3e473bc39610c20b8400fa",
+      "kind": "prior-receipt-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "2": {
+    "job_id": "7527351.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 48600444,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2547109888,
+    "max_wall_s": 87922.66535377502,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "27/0",
+      "28/0",
+      "29/0",
+      "30/0",
+      "31/0",
+      "32/0",
+      "33/0",
+      "34/0",
+      "35/0",
+      "36/0",
+      "37/0",
+      "38/0",
+      "39/0",
+      "40/0",
+      "41/0",
+      "42/0",
+      "43/0",
+      "44/0",
+      "45/0",
+      "46/0",
+      "47/0",
+      "48/0",
+      "49/0",
+      "50/0"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 108000.0,
+    "requested_walltime_s": 108000.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "fc363467033a50beee73e618499ed7204d2d60ef9e2333791ef933448405f0d8",
+    "prior_receipt": {
+     "file": "watch_refit_20261012T161052Z.json",
+     "sha256": "3165afcc88be2a047f60e3faee8e3ba7014e17868a1e8a66ee3cccedd88e9f6b"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261012T161052Z.json",
+      "sha256": "3165afcc88be2a047f60e3faee8e3ba7014e17868a1e8a66ee3cccedd88e9f6b",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "3": {
+    "job_id": "7527352.sched01",
+    "state": "F",
+    "exit": 271,
+    "runner_exit": null,
+    "mem_kb": 43489816,
+    "slots": 24,
+    "ended": 0,
+    "exits": {},
+    "new": 0,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": null,
+    "max_wall_s": null,
+    "failed_units": [],
+    "partition": {
+     "new": [],
+     "resumed": [],
+     "left": [],
+     "uncompleted": [
+      "51/0",
+      "52/0",
+      "53/0",
+      "54/0",
+      "55/0",
+      "56/0",
+      "57/0",
+      "58/0",
+      "59/0",
+      "60/0",
+      "61/0",
+      "62/0",
+      "63/0",
+      "64/0",
+      "65/0",
+      "66/0",
+      "67/0",
+      "68/0",
+      "69/0",
+      "70/0",
+      "71/0",
+      "72/0",
+      "73/0",
+      "74/0"
+     ],
+     "uncompleted_origin": "plan"
+    },
+    "plan_walltime_s": 108000.0,
+    "requested_walltime_s": 108000.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "0e565c00586f9ccfe9b7e95ea4137181cbdc5d9338f762a0a52c0f14d8a8a09c",
+    "prior_receipt": {
+     "file": "watch_refit_20261012T163613Z.json",
+     "sha256": "72e6ff66c04898b618453196d01cc29c341d869a625991174753acbbade50158"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261012T163613Z.json",
+      "sha256": "72e6ff66c04898b618453196d01cc29c341d869a625991174753acbbade50158",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null,
+    "disposition": {
+     "kind": "closed-no-record",
+     "scheduler_state": "F",
+     "scheduler_exit": 271,
+     "settled_core_h": 720.5533333333333,
+     "settle_note": "refit job 3, scheduler walltime kill on cnode0358, no fit finished: qstat -xf Exit_status 271, resources_used.walltime 30:01:23, job_state F",
+     "settled_at": 1791583905.4641526,
+     "token": "8c07fbed7540",
+     "job_id": "7527352.sched01",
+     "plan_sha256": "4bbbac0020f83b1cb1b40d0c887c7b1c3ed3740639d081ebb12a7615cf5a2e0e",
+     "output_file": "row19_screen_refit_3.out",
+     "output_sha256": "4132a084e81ff79d776ec3eb4f37b4fbdde6bd19072068d459a2c9ee7202a8e7",
+     "status_files": 0,
+     "attributed_units": 0,
+     "uncompleted": 24,
+     "note": "a charged failed attempt: no completion, no restart or recovery credit; its coordinates return to the planner"
+    }
+   },
+   "4": {
+    "job_id": "7529179.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 43237276,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2614886400,
+    "max_wall_s": 89604.23361945152,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "75/0",
+      "76/0",
+      "77/0",
+      "78/0",
+      "79/0",
+      "80/0",
+      "81/0",
+      "82/0",
+      "83/0",
+      "84/0",
+      "85/0",
+      "86/0",
+      "87/0",
+      "88/0",
+      "89/0",
+      "90/0",
+      "91/0",
+      "92/0",
+      "93/0",
+      "94/0",
+      "95/0",
+      "96/0",
+      "97/0",
+      "98/0"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 108000.0,
+    "requested_walltime_s": 108000.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "3c15f1f7b540554d3b9849499f018c92af5ab3972ba7cd7bdab24641fc700570",
+    "prior_receipt": {
+     "file": "watch_refit_20261013T160730Z.json",
+     "sha256": "91b62404d1d83b7e9486c2b821ba95b54a2ee9c2aa7280384a0d7ae3227792cd"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261013T160730Z.json",
+      "sha256": "91b62404d1d83b7e9486c2b821ba95b54a2ee9c2aa7280384a0d7ae3227792cd",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "5": {
+    "job_id": "7529279.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 46117924,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2509942784,
+    "max_wall_s": 101413.079580307,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/1",
+      "100/0",
+      "101/0",
+      "102/0",
+      "11/1",
+      "12/1",
+      "13/1",
+      "14/1",
+      "15/1",
+      "16/1",
+      "17/1",
+      "18/1",
+      "19/1",
+      "20/1",
+      "21/1",
+      "22/1",
+      "3/1",
+      "4/1",
+      "5/1",
+      "6/1",
+      "7/1",
+      "8/1",
+      "9/1",
+      "99/0"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 108000.0,
+    "requested_walltime_s": 108000.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "b8b682bb2e903647183d3470c9775997803d92864cba1382ce7cc115b334748c",
+    "prior_receipt": {
+     "file": "watch_refit_20261013T160730Z.json",
+     "sha256": "91b62404d1d83b7e9486c2b821ba95b54a2ee9c2aa7280384a0d7ae3227792cd"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261013T160730Z.json",
+      "sha256": "91b62404d1d83b7e9486c2b821ba95b54a2ee9c2aa7280384a0d7ae3227792cd",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "6": {
+    "job_id": "7529496.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 47058732,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2577969152,
+    "max_wall_s": 88128.37197470665,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "23/1",
+      "24/1",
+      "25/1",
+      "26/1",
+      "27/1",
+      "28/1",
+      "29/1",
+      "30/1",
+      "31/1",
+      "32/1",
+      "33/1",
+      "34/1",
+      "35/1",
+      "36/1",
+      "37/1",
+      "38/1",
+      "39/1",
+      "40/1",
+      "41/1",
+      "42/1",
+      "43/1",
+      "44/1",
+      "45/1",
+      "46/1"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 108000.0,
+    "requested_walltime_s": 108000.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "e9d81a7075bb618ff3be6856d01a1ee968964bc91378ceb667afd88f706603a3",
+    "prior_receipt": {
+     "file": "watch_refit_20261013T160730Z.json",
+     "sha256": "91b62404d1d83b7e9486c2b821ba95b54a2ee9c2aa7280384a0d7ae3227792cd"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261013T160730Z.json",
+      "sha256": "91b62404d1d83b7e9486c2b821ba95b54a2ee9c2aa7280384a0d7ae3227792cd",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "7": {
+    "job_id": "7529616.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 46740900,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2395246592,
+    "max_wall_s": 91030.1950507164,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "47/1",
+      "48/1",
+      "49/1",
+      "50/1",
+      "51/1",
+      "52/1",
+      "53/1",
+      "54/1",
+      "55/1",
+      "56/1",
+      "57/1",
+      "58/1",
+      "59/1",
+      "60/1",
+      "61/1",
+      "62/1",
+      "63/1",
+      "64/1",
+      "65/1",
+      "66/1",
+      "67/1",
+      "68/1",
+      "69/1",
+      "70/1"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 108000.0,
+    "requested_walltime_s": 108000.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "45953bbdaa606a56c6925ee33617194a6c28526471c0d1f4a94dcd7ad2722459",
+    "prior_receipt": {
+     "file": "watch_refit_20261013T160730Z.json",
+     "sha256": "91b62404d1d83b7e9486c2b821ba95b54a2ee9c2aa7280384a0d7ae3227792cd"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261013T160730Z.json",
+      "sha256": "91b62404d1d83b7e9486c2b821ba95b54a2ee9c2aa7280384a0d7ae3227792cd",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "8": {
+    "job_id": "7529741.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 44639736,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2448244736,
+    "max_wall_s": 88625.02779078484,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "71/1",
+      "72/1",
+      "73/1",
+      "74/1",
+      "75/1",
+      "76/1",
+      "77/1",
+      "78/1",
+      "79/1",
+      "80/1",
+      "81/1",
+      "82/1",
+      "83/1",
+      "84/1",
+      "85/1",
+      "86/1",
+      "87/1",
+      "88/1",
+      "89/1",
+      "90/1",
+      "91/1",
+      "92/1",
+      "93/1",
+      "94/1"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 108000.0,
+    "requested_walltime_s": 108000.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "2cfd9c4dce5df1c62a4da51d38fa9d30db5ead0d3078899da1ae2ea239b9f14f",
+    "prior_receipt": {
+     "file": "watch_refit_20261013T160730Z.json",
+     "sha256": "91b62404d1d83b7e9486c2b821ba95b54a2ee9c2aa7280384a0d7ae3227792cd"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261013T160730Z.json",
+      "sha256": "91b62404d1d83b7e9486c2b821ba95b54a2ee9c2aa7280384a0d7ae3227792cd",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "9": {
+    "job_id": "7529824.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 48735532,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2606108672,
+    "max_wall_s": 92050.98616456985,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/2",
+      "100/1",
+      "101/1",
+      "102/1",
+      "11/2",
+      "12/2",
+      "13/2",
+      "14/2",
+      "15/2",
+      "16/2",
+      "17/2",
+      "18/2",
+      "3/2",
+      "4/2",
+      "5/2",
+      "6/2",
+      "7/2",
+      "8/2",
+      "9/2",
+      "95/1",
+      "96/1",
+      "97/1",
+      "98/1",
+      "99/1"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 108000.0,
+    "requested_walltime_s": 108000.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "246e88a2f699a36e414ddffd22b5845e5e6a75fbb277079d6bdae001cf9dff62",
+    "prior_receipt": {
+     "file": "watch_refit_20261013T160730Z.json",
+     "sha256": "91b62404d1d83b7e9486c2b821ba95b54a2ee9c2aa7280384a0d7ae3227792cd"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261013T160730Z.json",
+      "sha256": "91b62404d1d83b7e9486c2b821ba95b54a2ee9c2aa7280384a0d7ae3227792cd",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "10": {
+    "job_id": "7530233.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 48345148,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2489044992,
+    "max_wall_s": 87384.57177972794,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "51/0",
+      "52/0",
+      "53/0",
+      "54/0",
+      "55/0",
+      "56/0",
+      "57/0",
+      "58/0",
+      "59/0",
+      "60/0",
+      "61/0",
+      "62/0",
+      "63/0",
+      "64/0",
+      "65/0",
+      "66/0",
+      "67/0",
+      "68/0",
+      "69/0",
+      "70/0",
+      "71/0",
+      "72/0",
+      "73/0",
+      "74/0"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "ca4875e0c5d3e1939cb5aaa1d1f9511b60a7deaedad38b778af7237e21b08cb5",
+    "prior_receipt": {
+     "file": "watch_refit_20261014T181325Z.json",
+     "sha256": "6d0b71313c6e9227661f7147667607d2532bedf0cbd262ce042f8861e3c16f3e"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261014T181325Z.json",
+      "sha256": "6d0b71313c6e9227661f7147667607d2532bedf0cbd262ce042f8861e3c16f3e",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "11": {
+    "job_id": "7531115.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 43053568,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2486849536,
+    "max_wall_s": 93159.5392100811,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "19/2",
+      "20/2",
+      "21/2",
+      "22/2",
+      "23/2",
+      "24/2",
+      "25/2",
+      "26/2",
+      "27/2",
+      "28/2",
+      "29/2",
+      "30/2",
+      "31/2",
+      "32/2",
+      "33/2",
+      "34/2",
+      "35/2",
+      "36/2",
+      "37/2",
+      "38/2",
+      "39/2",
+      "40/2",
+      "41/2",
+      "42/2"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "50419c42f4369f57579f54e23a0977f6afd8287690f4125989973fc022dbd54e",
+    "prior_receipt": {
+     "file": "watch_refit_20261014T181325Z.json",
+     "sha256": "6d0b71313c6e9227661f7147667607d2532bedf0cbd262ce042f8861e3c16f3e"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261014T181325Z.json",
+      "sha256": "6d0b71313c6e9227661f7147667607d2532bedf0cbd262ce042f8861e3c16f3e",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "12": {
+    "job_id": "7531165.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 46381180,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2522931200,
+    "max_wall_s": 88680.69273805618,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "43/2",
+      "44/2",
+      "45/2",
+      "46/2",
+      "47/2",
+      "48/2",
+      "49/2",
+      "50/2",
+      "51/2",
+      "52/2",
+      "53/2",
+      "54/2",
+      "55/2",
+      "56/2",
+      "57/2",
+      "58/2",
+      "59/2",
+      "60/2",
+      "61/2",
+      "62/2",
+      "63/2",
+      "64/2",
+      "65/2",
+      "66/2"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "c26266ed08846fd14e159c3f4bf643bd04e5d09de3efcc6c6b0adeb109b875f1",
+    "prior_receipt": {
+     "file": "watch_refit_20261014T181325Z.json",
+     "sha256": "6d0b71313c6e9227661f7147667607d2532bedf0cbd262ce042f8861e3c16f3e"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261014T181325Z.json",
+      "sha256": "6d0b71313c6e9227661f7147667607d2532bedf0cbd262ce042f8861e3c16f3e",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "13": {
+    "job_id": "7531397.sched01",
+    "state": "F",
+    "exit": 4,
+    "runner_exit": 4,
+    "mem_kb": 46155404,
+    "slots": 24,
+    "ended": 23,
+    "exits": {
+     "0": 23
+    },
+    "new": 23,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2693496832,
+    "max_wall_s": 85379.5484097004,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "67/2",
+      "68/2",
+      "69/2",
+      "70/2",
+      "71/2",
+      "72/2",
+      "73/2",
+      "74/2",
+      "75/2",
+      "76/2",
+      "77/2",
+      "78/2",
+      "79/2",
+      "80/2",
+      "81/2",
+      "82/2",
+      "84/2",
+      "85/2",
+      "86/2",
+      "87/2",
+      "88/2",
+      "89/2",
+      "90/2"
+     ],
+     "resumed": [],
+     "left": [],
+     "uncompleted": [
+      "83/2"
+     ],
+     "uncompleted_origin": "crashed-slot"
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "213ddccff88c52e4a310ece762df67d56af4f9803901f67b013fdeba5ff3d5ea",
+    "prior_receipt": {
+     "file": "watch_refit_20261014T181325Z.json",
+     "sha256": "6d0b71313c6e9227661f7147667607d2532bedf0cbd262ce042f8861e3c16f3e"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261014T181325Z.json",
+      "sha256": "6d0b71313c6e9227661f7147667607d2532bedf0cbd262ce042f8861e3c16f3e",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null,
+    "slot_disposition": {
+     "kind": "crashed-worker-no-status",
+     "job_id": "7531397.sched01",
+     "scheduler_state": "F",
+     "scheduler_exit": 4,
+     "runner_exit": 4,
+     "settled_core_h": 570.4533333333334,
+     "settle_note": "refit job 13: qstat -xf Exit_status 4, resources_used.walltime 23:46:08, job_state F",
+     "settled_at": 1791773119.9934938,
+     "token": "b15bb996a3dd",
+     "plan_sha256": "5a6e1bbb99537ccbb297480adfb2b3b8352d7658c9317750104505264a1ffba4",
+     "output_file": "row19_screen_refit_13.out",
+     "output_sha256": "6acfed16a3430556b2c49b6cd1f432ed689a84fcd3827daf9b8a7d564e41f9bf",
+     "error_file": "row19_screen_refit_13.err",
+     "error_sha256": "8a222e8d4c9600a174e1cf4aa67d495655ee9b71e021d52c1832ee20d298626d",
+     "slots": [
+      {
+       "slot": 16,
+       "rep": 83,
+       "indices": [
+        2
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7531397.sched01.SC: line 53: 55789 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 83 --indices 2 --slot 16 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot16.log 2>&1"
+      }
+     ],
+     "uncompleted": [
+      "83/2"
+     ],
+     "note": "worker(s) killed by a fatal signal before any status or record: charged, no completion or credit; the coordinates return to the planner; the job never qualifies"
+    }
+   },
+   "14": {
+    "job_id": "7533494.sched01",
+    "state": "F",
+    "exit": 4,
+    "runner_exit": 4,
+    "mem_kb": 47149248,
+    "slots": 24,
+    "ended": 23,
+    "exits": {
+     "0": 23
+    },
+    "new": 23,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2600570880,
+    "max_wall_s": 94670.1496424675,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/3",
+      "100/2",
+      "101/2",
+      "102/2",
+      "11/3",
+      "12/3",
+      "13/3",
+      "3/3",
+      "4/3",
+      "5/3",
+      "6/3",
+      "7/3",
+      "8/3",
+      "9/3",
+      "91/2",
+      "92/2",
+      "93/2",
+      "94/2",
+      "95/2",
+      "96/2",
+      "97/2",
+      "98/2",
+      "99/2"
+     ],
+     "resumed": [],
+     "left": [],
+     "uncompleted": [
+      "83/2"
+     ],
+     "uncompleted_origin": "crashed-slot"
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "cc1615f4ff95310e07c8e862f5756ba521262bf75b751c57baee748aad42e46f",
+    "prior_receipt": {
+     "file": "watch_refit_20261016T073019Z.json",
+     "sha256": "1eb13fee920c7358d29b81ee6cc106ccbfaa1e36c3c6265b35abc3edc048f983"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261016T073019Z.json",
+      "sha256": "1eb13fee920c7358d29b81ee6cc106ccbfaa1e36c3c6265b35abc3edc048f983",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null,
+    "slot_disposition": {
+     "kind": "crashed-worker-no-status",
+     "job_id": "7533494.sched01",
+     "scheduler_state": "F",
+     "scheduler_exit": 4,
+     "runner_exit": 4,
+     "settled_core_h": 631.64,
+     "settle_note": "refit job 14: qstat -xf Exit_status 4, resources_used.walltime 26:19:06, job_state F",
+     "settled_at": 1791904655.0889308,
+     "token": "eff1ad4d0498",
+     "plan_sha256": "5054b5e405615e342c90552c3c8f1780a452ea6b78d3a8094dfcca7479ca03dc",
+     "output_file": "row19_screen_refit_14.out",
+     "output_sha256": "215bdd9648c3259286741e51da9a99b15fd157634cf9a02ec0aeb5511044bd44",
+     "error_file": "row19_screen_refit_14.err",
+     "error_sha256": "59ccdee2e96166ffb114ee94fd3d16f5c50a03466d960f12792b76cfee0c3cfb",
+     "slots": [
+      {
+       "slot": 0,
+       "rep": 83,
+       "indices": [
+        2
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7533494.sched01.SC: line 53:  8198 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 83 --indices 2 --slot 0 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot0.log 2>&1"
+      }
+     ],
+     "uncompleted": [
+      "83/2"
+     ],
+     "note": "worker(s) killed by a fatal signal before any status or record: charged, no completion or credit; the coordinates return to the planner; the job never qualifies"
+    }
+   },
+   "15": {
+    "job_id": "7533500.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 47001900,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2557845504,
+    "max_wall_s": 93983.99933362007,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "14/3",
+      "15/3",
+      "16/3",
+      "17/3",
+      "18/3",
+      "19/3",
+      "20/3",
+      "21/3",
+      "22/3",
+      "23/3",
+      "24/3",
+      "25/3",
+      "26/3",
+      "27/3",
+      "28/3",
+      "29/3",
+      "30/3",
+      "31/3",
+      "32/3",
+      "33/3",
+      "34/3",
+      "35/3",
+      "36/3",
+      "37/3"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "bde8f782549ce998f49a53531ea36b66032d78e03ff13a550e525563614e3614",
+    "prior_receipt": {
+     "file": "watch_refit_20261016T073019Z.json",
+     "sha256": "1eb13fee920c7358d29b81ee6cc106ccbfaa1e36c3c6265b35abc3edc048f983"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261016T073019Z.json",
+      "sha256": "1eb13fee920c7358d29b81ee6cc106ccbfaa1e36c3c6265b35abc3edc048f983",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "16": {
+    "job_id": "7533505.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 46742440,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2621317120,
+    "max_wall_s": 88497.6436343193,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "38/3",
+      "39/3",
+      "40/3",
+      "41/3",
+      "42/3",
+      "43/3",
+      "44/3",
+      "45/3",
+      "46/3",
+      "47/3",
+      "48/3",
+      "49/3",
+      "50/3",
+      "51/3",
+      "52/3",
+      "53/3",
+      "54/3",
+      "55/3",
+      "56/3",
+      "57/3",
+      "58/3",
+      "59/3",
+      "60/3",
+      "61/3"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "c280be19a00f5ea76c8363f6000f215e37b6273bd55f16710e844b8eb0a42a27",
+    "prior_receipt": {
+     "file": "watch_refit_20261016T045801Z.json",
+     "sha256": "c1c60e22ef07507597c6d5da8753b92b4da88ff81e4c5a37027e87200239756b"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261016T045801Z.json",
+      "sha256": "c1c60e22ef07507597c6d5da8753b92b4da88ff81e4c5a37027e87200239756b",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "17": {
+    "job_id": "7539371.sched01",
+    "state": "F",
+    "exit": 4,
+    "runner_exit": 4,
+    "mem_kb": 47053204,
+    "slots": 24,
+    "ended": 23,
+    "exits": {
+     "0": 23
+    },
+    "new": 23,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2594709504,
+    "max_wall_s": 95536.15947556496,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "62/3",
+      "63/3",
+      "64/3",
+      "65/3",
+      "66/3",
+      "67/3",
+      "68/3",
+      "69/3",
+      "70/3",
+      "71/3",
+      "72/3",
+      "73/3",
+      "74/3",
+      "75/3",
+      "76/3",
+      "77/3",
+      "78/3",
+      "79/3",
+      "80/3",
+      "81/3",
+      "82/3",
+      "83/3",
+      "84/3"
+     ],
+     "resumed": [],
+     "left": [],
+     "uncompleted": [
+      "83/2"
+     ],
+     "uncompleted_origin": "crashed-slot"
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "0ae2df620fd8964727c6084eb8bc2b009dc82598cc76c52117845396c767b828",
+    "prior_receipt": {
+     "file": "watch_refit_20261018T201744Z.json",
+     "sha256": "4e4679a84286dc57edb336bbe62e66f694fa9945df9d6177f7973966cecce61b"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261018T201744Z.json",
+      "sha256": "4e4679a84286dc57edb336bbe62e66f694fa9945df9d6177f7973966cecce61b",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null,
+    "slot_disposition": {
+     "kind": "crashed-worker-no-status",
+     "job_id": "7539371.sched01",
+     "scheduler_state": "F",
+     "scheduler_exit": 4,
+     "runner_exit": 4,
+     "settled_core_h": 637.28,
+     "settle_note": "refit job 17: qstat -xf Exit_status 4, resources_used.walltime 26:33:12, job_state F",
+     "settled_at": 1792096598.6813543,
+     "token": "2d26b355372f",
+     "plan_sha256": "d9975ed441acb52124f2c5226071627a9f430b367f0e22178154df149e7f1896",
+     "output_file": "row19_screen_refit_17.out",
+     "output_sha256": "b9a0e3b43fea8677adb9ee3e81e407532ffecf51e5bf9f688e8ca587bf81d6e3",
+     "error_file": "row19_screen_refit_17.err",
+     "error_sha256": "13185f69976ba4e0ad1cf110ca10433334d1c109d483cc40752dd60bd1002ad2",
+     "slots": [
+      {
+       "slot": 0,
+       "rep": 83,
+       "indices": [
+        2
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7539371.sched01.SC: line 53: 166787 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 83 --indices 2 --slot 0 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot0.log 2>&1"
+      }
+     ],
+     "uncompleted": [
+      "83/2"
+     ],
+     "note": "worker(s) killed by a fatal signal before any status or record: charged, no completion or credit; the coordinates return to the planner; the job never qualifies"
+    }
+   },
+   "18": {
+    "job_id": "7539372.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 43203436,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2499600384,
+    "max_wall_s": 93387.38693475723,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "100/3",
+      "101/3",
+      "102/3",
+      "3/4",
+      "4/4",
+      "5/4",
+      "6/4",
+      "7/4",
+      "8/4",
+      "85/3",
+      "86/3",
+      "87/3",
+      "88/3",
+      "89/3",
+      "90/3",
+      "91/3",
+      "92/3",
+      "93/3",
+      "94/3",
+      "95/3",
+      "96/3",
+      "97/3",
+      "98/3",
+      "99/3"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "16fb1c308a05a2d2dc282137312b35aa1511e037c30443bc11e9b102e1f3b00e",
+    "prior_receipt": {
+     "file": "watch_refit_20261018T192534Z.json",
+     "sha256": "13ec05b595664096cfdac13af1c6840513b5d74623bd09088e5f0ba8916a238d"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261018T192534Z.json",
+      "sha256": "13ec05b595664096cfdac13af1c6840513b5d74623bd09088e5f0ba8916a238d",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "19": {
+    "job_id": "7539373.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 47625912,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2574643200,
+    "max_wall_s": 95589.36163067818,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/4",
+      "11/4",
+      "12/4",
+      "13/4",
+      "14/4",
+      "15/4",
+      "16/4",
+      "17/4",
+      "18/4",
+      "19/4",
+      "20/4",
+      "21/4",
+      "22/4",
+      "23/4",
+      "24/4",
+      "25/4",
+      "26/4",
+      "27/4",
+      "28/4",
+      "29/4",
+      "30/4",
+      "31/4",
+      "32/4",
+      "9/4"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "4cb6c752421754b279195663b410f8d80f6ddf3295d52d73d4bab18111df88c2",
+    "prior_receipt": {
+     "file": "watch_refit_20261018T201744Z.json",
+     "sha256": "4e4679a84286dc57edb336bbe62e66f694fa9945df9d6177f7973966cecce61b"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261018T201744Z.json",
+      "sha256": "4e4679a84286dc57edb336bbe62e66f694fa9945df9d6177f7973966cecce61b",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "20": {
+    "job_id": "7539374.sched01",
+    "state": "F",
+    "exit": 4,
+    "runner_exit": 4,
+    "mem_kb": 48433200,
+    "slots": 24,
+    "ended": 23,
+    "exits": {
+     "0": 23
+    },
+    "new": 23,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2612609024,
+    "max_wall_s": 94069.1435341835,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "33/4",
+      "34/4",
+      "35/4",
+      "36/4",
+      "37/4",
+      "38/4",
+      "39/4",
+      "40/4",
+      "41/4",
+      "42/4",
+      "44/4",
+      "45/4",
+      "46/4",
+      "47/4",
+      "48/4",
+      "49/4",
+      "50/4",
+      "51/4",
+      "52/4",
+      "53/4",
+      "54/4",
+      "55/4",
+      "56/4"
+     ],
+     "resumed": [],
+     "left": [],
+     "uncompleted": [
+      "43/4"
+     ],
+     "uncompleted_origin": "crashed-slot"
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "ab8ecb66b905e4e64f53c1dfaa3e1dd99edfb134174fb26a929076ecb3ce927f",
+    "prior_receipt": {
+     "file": "watch_refit_20261018T192534Z.json",
+     "sha256": "13ec05b595664096cfdac13af1c6840513b5d74623bd09088e5f0ba8916a238d"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261018T192534Z.json",
+      "sha256": "13ec05b595664096cfdac13af1c6840513b5d74623bd09088e5f0ba8916a238d",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null,
+    "slot_disposition": {
+     "kind": "crashed-worker-no-status",
+     "job_id": "7539374.sched01",
+     "scheduler_state": "F",
+     "scheduler_exit": 4,
+     "runner_exit": 4,
+     "settled_core_h": 627.2733333333333,
+     "settle_note": "refit job 20: qstat -xf Exit_status 4, resources_used.walltime 26:08:11, job_state F",
+     "settled_at": 1792096623.5532134,
+     "token": "7983c339c345",
+     "plan_sha256": "dcd68d5c6245ad4a3859e5b93a86e84a631407c296ae2b7a6719c6b0ad875a0e",
+     "output_file": "row19_screen_refit_20.out",
+     "output_sha256": "b4f7cdf9f280e3d4294eaa4bb9be63b58eadca1b0f7ad4e496362bfa5d7e8b2e",
+     "error_file": "row19_screen_refit_20.err",
+     "error_sha256": "3d6ad062b3e3ac1d80f96380fa7a83fe7ab09df6a1034068598d85f01c9aaa99",
+     "slots": [
+      {
+       "slot": 10,
+       "rep": 43,
+       "indices": [
+        4
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7539374.sched01.SC: line 53: 83523 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 43 --indices 4 --slot 10 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot10.log 2>&1"
+      }
+     ],
+     "uncompleted": [
+      "43/4"
+     ],
+     "note": "worker(s) killed by a fatal signal before any status or record: charged, no completion or credit; the coordinates return to the planner; the job never qualifies"
+    }
+   },
+   "21": {
+    "job_id": "7539375.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 46483012,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2641739776,
+    "max_wall_s": 90818.17453765869,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "57/4",
+      "58/4",
+      "59/4",
+      "60/4",
+      "61/4",
+      "62/4",
+      "63/4",
+      "64/4",
+      "65/4",
+      "66/4",
+      "67/4",
+      "68/4",
+      "69/4",
+      "70/4",
+      "71/4",
+      "72/4",
+      "73/4",
+      "74/4",
+      "75/4",
+      "76/4",
+      "77/4",
+      "78/4",
+      "79/4",
+      "80/4"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "180a59810731e386785b1b98972c97ecfa7f517cb3bcc943be5a912580a25917",
+    "prior_receipt": {
+     "file": "watch_refit_20261018T181815Z.json",
+     "sha256": "1eb36959ac3887bc1c23fbea9b1a2f1dff03bb3e19235025c1cb878a95b633ae"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261018T181815Z.json",
+      "sha256": "1eb36959ac3887bc1c23fbea9b1a2f1dff03bb3e19235025c1cb878a95b633ae",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "22": {
+    "job_id": "7539376.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 44252696,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2615517184,
+    "max_wall_s": 93651.6766076088,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "100/4",
+      "101/4",
+      "102/4",
+      "3/5",
+      "4/5",
+      "81/4",
+      "82/4",
+      "83/4",
+      "84/4",
+      "85/4",
+      "86/4",
+      "87/4",
+      "88/4",
+      "89/4",
+      "90/4",
+      "91/4",
+      "92/4",
+      "93/4",
+      "94/4",
+      "95/4",
+      "96/4",
+      "97/4",
+      "98/4",
+      "99/4"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "d39f2c723e514d050377b46579d00536a0f7e3a1eb55c260e85a953cb091f60e",
+    "prior_receipt": {
+     "file": "watch_refit_20261018T192534Z.json",
+     "sha256": "13ec05b595664096cfdac13af1c6840513b5d74623bd09088e5f0ba8916a238d"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261018T192534Z.json",
+      "sha256": "13ec05b595664096cfdac13af1c6840513b5d74623bd09088e5f0ba8916a238d",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "23": {
+    "job_id": "7539377.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 45345516,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2513915904,
+    "max_wall_s": 94719.10574054718,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/5",
+      "11/5",
+      "12/5",
+      "13/5",
+      "14/5",
+      "15/5",
+      "16/5",
+      "17/5",
+      "18/5",
+      "19/5",
+      "20/5",
+      "21/5",
+      "22/5",
+      "23/5",
+      "24/5",
+      "25/5",
+      "26/5",
+      "27/5",
+      "28/5",
+      "5/5",
+      "6/5",
+      "7/5",
+      "8/5",
+      "9/5"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "6ca86b880a0984f02a8965aba97819108a2f69639325cb25734313245b9e9bea",
+    "prior_receipt": {
+     "file": "watch_refit_20261018T192534Z.json",
+     "sha256": "13ec05b595664096cfdac13af1c6840513b5d74623bd09088e5f0ba8916a238d"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261018T192534Z.json",
+      "sha256": "13ec05b595664096cfdac13af1c6840513b5d74623bd09088e5f0ba8916a238d",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "24": {
+    "job_id": "7539378.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 47326748,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2600390656,
+    "max_wall_s": 92771.93235754967,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "29/5",
+      "30/5",
+      "31/5",
+      "32/5",
+      "33/5",
+      "34/5",
+      "35/5",
+      "36/5",
+      "37/5",
+      "38/5",
+      "39/5",
+      "40/5",
+      "41/5",
+      "42/5",
+      "43/5",
+      "44/5",
+      "45/5",
+      "46/5",
+      "47/5",
+      "48/5",
+      "49/5",
+      "50/5",
+      "51/5",
+      "52/5"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "36abed7746d61637ab941ff45f678dcda4b68f28b7df2f982ae0c23ec5ff178d",
+    "prior_receipt": {
+     "file": "watch_refit_20261018T192534Z.json",
+     "sha256": "13ec05b595664096cfdac13af1c6840513b5d74623bd09088e5f0ba8916a238d"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261018T192534Z.json",
+      "sha256": "13ec05b595664096cfdac13af1c6840513b5d74623bd09088e5f0ba8916a238d",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "25": {
+    "job_id": "7539379.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 45081996,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2562596864,
+    "max_wall_s": 90224.20015192032,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "53/5",
+      "54/5",
+      "55/5",
+      "56/5",
+      "57/5",
+      "58/5",
+      "59/5",
+      "60/5",
+      "61/5",
+      "62/5",
+      "63/5",
+      "64/5",
+      "65/5",
+      "66/5",
+      "67/5",
+      "68/5",
+      "69/5",
+      "70/5",
+      "71/5",
+      "72/5",
+      "73/5",
+      "74/5",
+      "75/5",
+      "76/5"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "99868dfc649eb4566ae7f4ab0dc7f179d5f868e20a0b6207bd5fbeae2cb52b80",
+    "prior_receipt": {
+     "file": "watch_refit_20261018T181815Z.json",
+     "sha256": "1eb36959ac3887bc1c23fbea9b1a2f1dff03bb3e19235025c1cb878a95b633ae"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261018T181815Z.json",
+      "sha256": "1eb36959ac3887bc1c23fbea9b1a2f1dff03bb3e19235025c1cb878a95b633ae",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "26": {
+    "job_id": "7539380.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 47162120,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2536210432,
+    "max_wall_s": 86775.45418095589,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "100/5",
+      "77/5",
+      "78/5",
+      "79/5",
+      "80/5",
+      "81/5",
+      "82/5",
+      "83/5",
+      "84/5",
+      "85/5",
+      "86/5",
+      "87/5",
+      "88/5",
+      "89/5",
+      "90/5",
+      "91/5",
+      "92/5",
+      "93/5",
+      "94/5",
+      "95/5",
+      "96/5",
+      "97/5",
+      "98/5",
+      "99/5"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "539285224b5a1daf1c92d5ecabdccb7b4b919eae099fa394f8dd823118fb074c",
+    "prior_receipt": {
+     "file": "watch_refit_20261018T171736Z.json",
+     "sha256": "00b70dd0b0be3e47a32ca34e257ce580136bbae5673e4683ce0651b950ae2793"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261018T171736Z.json",
+      "sha256": "00b70dd0b0be3e47a32ca34e257ce580136bbae5673e4683ce0651b950ae2793",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "27": {
+    "job_id": "7541626.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 45711532,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2574512128,
+    "max_wall_s": 100355.34636473656,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/6",
+      "101/5",
+      "102/5",
+      "11/6",
+      "12/6",
+      "13/6",
+      "14/6",
+      "15/6",
+      "16/6",
+      "17/6",
+      "18/6",
+      "19/6",
+      "20/6",
+      "21/6",
+      "22/6",
+      "23/6",
+      "24/6",
+      "3/6",
+      "4/6",
+      "5/6",
+      "6/6",
+      "7/6",
+      "8/6",
+      "9/6"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "d5acad41389f7d54df40b5348b5115653c78add684e499c3cb1d26287ec13e6e",
+    "prior_receipt": {
+     "file": "watch_refit_20261019T200523Z.json",
+     "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261019T200523Z.json",
+      "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "28": {
+    "job_id": "7541627.sched01",
+    "state": "F",
+    "exit": 4,
+    "runner_exit": 4,
+    "mem_kb": 47768072,
+    "slots": 24,
+    "ended": 23,
+    "exits": {
+     "0": 23
+    },
+    "new": 23,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2456260608,
+    "max_wall_s": 89345.88591122627,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "26/6",
+      "27/6",
+      "28/6",
+      "29/6",
+      "30/6",
+      "31/6",
+      "32/6",
+      "33/6",
+      "34/6",
+      "35/6",
+      "36/6",
+      "37/6",
+      "38/6",
+      "39/6",
+      "40/6",
+      "41/6",
+      "42/6",
+      "43/6",
+      "44/6",
+      "45/6",
+      "46/6",
+      "47/6",
+      "48/6"
+     ],
+     "resumed": [],
+     "left": [],
+     "uncompleted": [
+      "25/6"
+     ],
+     "uncompleted_origin": "crashed-slot"
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "6f1f262ef3a722246105b14cf7faf50a177cd339a3046e85a389106b4d46b8d4",
+    "prior_receipt": {
+     "file": "watch_refit_20261019T200523Z.json",
+     "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261019T200523Z.json",
+      "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null,
+    "slot_disposition": {
+     "kind": "crashed-worker-no-status",
+     "job_id": "7541627.sched01",
+     "scheduler_state": "F",
+     "scheduler_exit": 4,
+     "runner_exit": 4,
+     "settled_core_h": 596.1666666666666,
+     "settle_note": "refit job 28: qstat -xf Exit_status 4, resources_used.walltime 24:50:25, job_state F",
+     "settled_at": 1792190244.441988,
+     "token": "99eba846f051",
+     "plan_sha256": "44912cb18e3a1bf15eb456de8eb32408823bf8e10476a8313f684cd56b2749ba",
+     "output_file": "row19_screen_refit_28.out",
+     "output_sha256": "0482122ac6c68460aa86029607565dbd764ff2448655f17199cb215816b5bc49",
+     "error_file": "row19_screen_refit_28.err",
+     "error_sha256": "f0df34f574fdb4a230ef8efd352899a24bc8df04bef17703bf62b8ddb53ca620",
+     "slots": [
+      {
+       "slot": 0,
+       "rep": 25,
+       "indices": [
+        6
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7541627.sched01.SC: line 53: 130914 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 25 --indices 6 --slot 0 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot0.log 2>&1"
+      }
+     ],
+     "uncompleted": [
+      "25/6"
+     ],
+     "note": "worker(s) killed by a fatal signal before any status or record: charged, no completion or credit; the coordinates return to the planner; the job never qualifies"
+    }
+   },
+   "29": {
+    "job_id": "7541628.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 40204504,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2391015424,
+    "max_wall_s": 124263.5475730896,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "49/6",
+      "50/6",
+      "51/6",
+      "52/6",
+      "53/6",
+      "54/6",
+      "55/6",
+      "56/6",
+      "57/6",
+      "58/6",
+      "59/6",
+      "60/6",
+      "61/6",
+      "62/6",
+      "63/6",
+      "64/6",
+      "65/6",
+      "66/6",
+      "67/6",
+      "68/6",
+      "69/6",
+      "70/6",
+      "71/6",
+      "72/6"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "4354dedad0c60eb3f9e4be286cab2165f42bf9e79d245afbcbae90e442d06f11",
+    "prior_receipt": {
+     "file": "watch_refit_20261020T054719Z.json",
+     "sha256": "45b3b7e5667d6d3b21d7e41b4e50d81ede2233377eacd2a635254740f70a1dfb"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261020T054719Z.json",
+      "sha256": "45b3b7e5667d6d3b21d7e41b4e50d81ede2233377eacd2a635254740f70a1dfb",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "30": {
+    "job_id": "7541699.sched01",
+    "state": "F",
+    "exit": 4,
+    "runner_exit": 4,
+    "mem_kb": 46701108,
+    "slots": 24,
+    "ended": 21,
+    "exits": {
+     "0": 21
+    },
+    "new": 21,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2570752000,
+    "max_wall_s": 92982.88337540627,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "73/6",
+      "74/6",
+      "75/6",
+      "76/6",
+      "77/6",
+      "78/6",
+      "79/6",
+      "80/6",
+      "82/6",
+      "83/6",
+      "84/6",
+      "85/6",
+      "86/6",
+      "87/6",
+      "88/6",
+      "89/6",
+      "90/6",
+      "91/6",
+      "92/6",
+      "93/6",
+      "94/6"
+     ],
+     "resumed": [],
+     "left": [],
+     "uncompleted": [
+      "43/4",
+      "81/6",
+      "83/2"
+     ],
+     "uncompleted_origin": "crashed-slot"
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "83880e87c1c5fbf1085d9c0cb33dc0caca690b0a99688db0e38ad1311b3b12eb",
+    "prior_receipt": {
+     "file": "watch_refit_20261019T200523Z.json",
+     "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261019T200523Z.json",
+      "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null,
+    "slot_disposition": {
+     "kind": "crashed-worker-no-status",
+     "job_id": "7541699.sched01",
+     "scheduler_state": "F",
+     "scheduler_exit": 4,
+     "runner_exit": 4,
+     "settled_core_h": 620.4266666666666,
+     "settle_note": "refit job 30: qstat -xf Exit_status 4, resources_used.walltime 25:51:04, job_state F",
+     "settled_at": 1792190249.9885938,
+     "token": "e12ce1122f05",
+     "plan_sha256": "f13d5e322d214968b74b32c90933aea7b38a29d2b715fd6264c0996a83b35659",
+     "output_file": "row19_screen_refit_30.out",
+     "output_sha256": "4aa3707d93b5d1ad9a9f659c3544942c0c564f9ba3662a366c1915623a50d0ad",
+     "error_file": "row19_screen_refit_30.err",
+     "error_sha256": "0c460d172a7f66b3939f64cf5ad7c0587fc1cbb5b322afd020e607b2c097dcbe",
+     "slots": [
+      {
+       "slot": 0,
+       "rep": 83,
+       "indices": [
+        2
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7541699.sched01.SC: line 53: 188007 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 83 --indices 2 --slot 0 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot0.log 2>&1"
+      },
+      {
+       "slot": 1,
+       "rep": 43,
+       "indices": [
+        4
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7541699.sched01.SC: line 53: 188008 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 43 --indices 4 --slot 1 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot1.log 2>&1"
+      },
+      {
+       "slot": 10,
+       "rep": 81,
+       "indices": [
+        6
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7541699.sched01.SC: line 53: 188017 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 81 --indices 6 --slot 10 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot10.log 2>&1"
+      }
+     ],
+     "uncompleted": [
+      "43/4",
+      "81/6",
+      "83/2"
+     ],
+     "note": "worker(s) killed by a fatal signal before any status or record: charged, no completion or credit; the coordinates return to the planner; the job never qualifies"
+    }
+   },
+   "31": {
+    "job_id": "7541700.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 43207488,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2605494272,
+    "max_wall_s": 87614.79619836807,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/7",
+      "100/6",
+      "101/6",
+      "102/6",
+      "11/7",
+      "12/7",
+      "13/7",
+      "14/7",
+      "15/7",
+      "16/7",
+      "17/7",
+      "18/7",
+      "3/7",
+      "4/7",
+      "5/7",
+      "6/7",
+      "7/7",
+      "8/7",
+      "9/7",
+      "95/6",
+      "96/6",
+      "97/6",
+      "98/6",
+      "99/6"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "943e0548e3de15e0d4ba1853461c9541af23a50087ecacfbc19da6a38a10d38f",
+    "prior_receipt": {
+     "file": "watch_refit_20261019T200523Z.json",
+     "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261019T200523Z.json",
+      "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "32": {
+    "job_id": "7541701.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 48421532,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2497544192,
+    "max_wall_s": 93543.42282772064,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "19/7",
+      "20/7",
+      "21/7",
+      "22/7",
+      "23/7",
+      "24/7",
+      "25/7",
+      "26/7",
+      "27/7",
+      "28/7",
+      "29/7",
+      "30/7",
+      "31/7",
+      "32/7",
+      "33/7",
+      "34/7",
+      "35/7",
+      "36/7",
+      "37/7",
+      "38/7",
+      "39/7",
+      "40/7",
+      "41/7",
+      "42/7"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "e09e368bd9a8d5139a1530056a3f5ef638031983bc91ab75a8cb5c188c1dc422",
+    "prior_receipt": {
+     "file": "watch_refit_20261019T200523Z.json",
+     "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261019T200523Z.json",
+      "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "33": {
+    "job_id": "7541702.sched01",
+    "state": "F",
+    "exit": 4,
+    "runner_exit": 4,
+    "mem_kb": 46554540,
+    "slots": 24,
+    "ended": 23,
+    "exits": {
+     "0": 23
+    },
+    "new": 23,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2517344256,
+    "max_wall_s": 87481.75650930405,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "43/7",
+      "44/7",
+      "45/7",
+      "46/7",
+      "47/7",
+      "48/7",
+      "49/7",
+      "50/7",
+      "51/7",
+      "52/7",
+      "53/7",
+      "54/7",
+      "56/7",
+      "57/7",
+      "58/7",
+      "59/7",
+      "60/7",
+      "61/7",
+      "62/7",
+      "63/7",
+      "64/7",
+      "65/7",
+      "66/7"
+     ],
+     "resumed": [],
+     "left": [],
+     "uncompleted": [
+      "55/7"
+     ],
+     "uncompleted_origin": "crashed-slot"
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "b25eaa6ba3a2580e277b1fe6aa2366b726bd8585a03d30e29c6fdf48750d6023",
+    "prior_receipt": {
+     "file": "watch_refit_20261019T200523Z.json",
+     "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261019T200523Z.json",
+      "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null,
+    "slot_disposition": {
+     "kind": "crashed-worker-no-status",
+     "job_id": "7541702.sched01",
+     "scheduler_state": "F",
+     "scheduler_exit": 4,
+     "runner_exit": 4,
+     "settled_core_h": 583.5133333333333,
+     "settle_note": "refit job 33: qstat -xf Exit_status 4, resources_used.walltime 24:18:47, job_state F",
+     "settled_at": 1792190255.9532032,
+     "token": "21ea30cd68d1",
+     "plan_sha256": "218b78b803fd6c70b018d5b9dff3ae38b70153dcf353ecfa409b7886f609e800",
+     "output_file": "row19_screen_refit_33.out",
+     "output_sha256": "0a2d43cc3331bf354578f05c87370b82f3fe69abdbc7c1bf22d7686696901df6",
+     "error_file": "row19_screen_refit_33.err",
+     "error_sha256": "6fd7921c59b060f9364c0b7f6884eaf927f2b56469fe1e7f3103ba13b123983a",
+     "slots": [
+      {
+       "slot": 12,
+       "rep": 55,
+       "indices": [
+        7
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7541702.sched01.SC: line 53: 85357 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 55 --indices 7 --slot 12 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot12.log 2>&1"
+      }
+     ],
+     "uncompleted": [
+      "55/7"
+     ],
+     "note": "worker(s) killed by a fatal signal before any status or record: charged, no completion or credit; the coordinates return to the planner; the job never qualifies"
+    }
+   },
+   "34": {
+    "job_id": "7541703.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 44035764,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2435620864,
+    "max_wall_s": 89941.39812135696,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "67/7",
+      "68/7",
+      "69/7",
+      "70/7",
+      "71/7",
+      "72/7",
+      "73/7",
+      "74/7",
+      "75/7",
+      "76/7",
+      "77/7",
+      "78/7",
+      "79/7",
+      "80/7",
+      "81/7",
+      "82/7",
+      "83/7",
+      "84/7",
+      "85/7",
+      "86/7",
+      "87/7",
+      "88/7",
+      "89/7",
+      "90/7"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "3c3e6434e1863012aaefa4dc0bbce4cf41a5b472daa0cb020b847c7f9b0d8369",
+    "prior_receipt": {
+     "file": "watch_refit_20261019T200523Z.json",
+     "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261019T200523Z.json",
+      "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "35": {
+    "job_id": "7541704.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 42720492,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2515308544,
+    "max_wall_s": 88999.29945540428,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/8",
+      "100/7",
+      "101/7",
+      "102/7",
+      "11/8",
+      "12/8",
+      "13/8",
+      "14/8",
+      "3/8",
+      "4/8",
+      "5/8",
+      "6/8",
+      "7/8",
+      "8/8",
+      "9/8",
+      "91/7",
+      "92/7",
+      "93/7",
+      "94/7",
+      "95/7",
+      "96/7",
+      "97/7",
+      "98/7",
+      "99/7"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "7bcfa08dc6d43d809ae0cc67e1f391ac3f0e238807a0ae8c086293780cbea510",
+    "prior_receipt": {
+     "file": "watch_refit_20261019T200523Z.json",
+     "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261019T200523Z.json",
+      "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "36": {
+    "job_id": "7541705.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 46902480,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2548891648,
+    "max_wall_s": 94055.09370732307,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "15/8",
+      "16/8",
+      "17/8",
+      "18/8",
+      "19/8",
+      "20/8",
+      "21/8",
+      "22/8",
+      "23/8",
+      "24/8",
+      "25/8",
+      "26/8",
+      "27/8",
+      "28/8",
+      "29/8",
+      "30/8",
+      "31/8",
+      "32/8",
+      "33/8",
+      "34/8",
+      "35/8",
+      "36/8",
+      "37/8",
+      "38/8"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "1818bff78f1bcbc81d2ea44480f715e00ddc8b983fdf6da04027bed9e959addd",
+    "prior_receipt": {
+     "file": "watch_refit_20261019T200523Z.json",
+     "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261019T200523Z.json",
+      "sha256": "97025dcbbbc0f41c7c4071340e4fa6148223411662f9f5e4c476f2269638c39c",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "37": {
+    "job_id": "7543880.sched01",
+    "state": "F",
+    "exit": 4,
+    "runner_exit": 4,
+    "mem_kb": 45438256,
+    "slots": 24,
+    "ended": 19,
+    "exits": {
+     "0": 19
+    },
+    "new": 19,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2399432704,
+    "max_wall_s": 90395.85272431374,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "39/8",
+      "40/8",
+      "41/8",
+      "42/8",
+      "43/8",
+      "44/8",
+      "45/8",
+      "46/8",
+      "47/8",
+      "48/8",
+      "49/8",
+      "50/8",
+      "51/8",
+      "52/8",
+      "53/8",
+      "54/8",
+      "55/8",
+      "56/8",
+      "57/8"
+     ],
+     "resumed": [],
+     "left": [],
+     "uncompleted": [
+      "25/6",
+      "43/4",
+      "55/7",
+      "81/6",
+      "83/2"
+     ],
+     "uncompleted_origin": "crashed-slot"
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "5966b42431b3d42ae6f72540119b4c63280192f8c1d9ca3c55ebf104e529944f",
+    "prior_receipt": {
+     "file": "watch_refit_20261020T231418Z.json",
+     "sha256": "f2491f78c1edc9ae74012638b37422513a9190d4c7d8f670b86bb4b6f81d3015"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261020T231418Z.json",
+      "sha256": "f2491f78c1edc9ae74012638b37422513a9190d4c7d8f670b86bb4b6f81d3015",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null,
+    "slot_disposition": {
+     "kind": "crashed-worker-no-status",
+     "job_id": "7543880.sched01",
+     "scheduler_state": "F",
+     "scheduler_exit": 4,
+     "runner_exit": 4,
+     "settled_core_h": 602.8133333333334,
+     "settle_note": "refit job 37: qstat -xf Exit_status 4, resources_used.walltime 25:07:02, job_state F",
+     "settled_at": 1792341687.755902,
+     "token": "00a2285aa737",
+     "plan_sha256": "8d1e6c8f52355c3fcc1383e3d938d8078e23e288718a5c4b86f6cf9dae2a3b3b",
+     "output_file": "row19_screen_refit_37.out",
+     "output_sha256": "0fb1ffb95759f1a8c3f18c27401e4972f13d26d6d1de253f1dafe6429ae792de",
+     "error_file": "row19_screen_refit_37.err",
+     "error_sha256": "4b17cbf98df863204c18fb1e689f2ee678eb52142302342f0834a8b4571ea6d2",
+     "slots": [
+      {
+       "slot": 0,
+       "rep": 83,
+       "indices": [
+        2
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7543880.sched01.SC: line 53: 50435 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 83 --indices 2 --slot 0 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot0.log 2>&1"
+      },
+      {
+       "slot": 1,
+       "rep": 43,
+       "indices": [
+        4
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7543880.sched01.SC: line 53: 50436 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 43 --indices 4 --slot 1 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot1.log 2>&1"
+      },
+      {
+       "slot": 2,
+       "rep": 25,
+       "indices": [
+        6
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7543880.sched01.SC: line 53: 50437 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 25 --indices 6 --slot 2 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot2.log 2>&1"
+      },
+      {
+       "slot": 3,
+       "rep": 81,
+       "indices": [
+        6
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7543880.sched01.SC: line 53: 50438 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 81 --indices 6 --slot 3 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot3.log 2>&1"
+      },
+      {
+       "slot": 4,
+       "rep": 55,
+       "indices": [
+        7
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7543880.sched01.SC: line 53: 50439 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 55 --indices 7 --slot 4 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot4.log 2>&1"
+      }
+     ],
+     "uncompleted": [
+      "25/6",
+      "43/4",
+      "55/7",
+      "81/6",
+      "83/2"
+     ],
+     "note": "worker(s) killed by a fatal signal before any status or record: charged, no completion or credit; the coordinates return to the planner; the job never qualifies"
+    }
+   },
+   "38": {
+    "job_id": "7543881.sched01",
+    "state": "F",
+    "exit": 4,
+    "runner_exit": 4,
+    "mem_kb": 46914432,
+    "slots": 24,
+    "ended": 23,
+    "exits": {
+     "0": 23
+    },
+    "new": 23,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2509656064,
+    "max_wall_s": 89726.00970244408,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "58/8",
+      "59/8",
+      "60/8",
+      "61/8",
+      "62/8",
+      "63/8",
+      "64/8",
+      "65/8",
+      "66/8",
+      "67/8",
+      "68/8",
+      "69/8",
+      "70/8",
+      "71/8",
+      "72/8",
+      "74/8",
+      "75/8",
+      "76/8",
+      "77/8",
+      "78/8",
+      "79/8",
+      "80/8",
+      "81/8"
+     ],
+     "resumed": [],
+     "left": [],
+     "uncompleted": [
+      "73/8"
+     ],
+     "uncompleted_origin": "crashed-slot"
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "79a1f3aafde8236ec28278a67ea454e994cc62e7be7c177f90d7517c5e8bf984",
+    "prior_receipt": {
+     "file": "watch_refit_20261020T231418Z.json",
+     "sha256": "f2491f78c1edc9ae74012638b37422513a9190d4c7d8f670b86bb4b6f81d3015"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261020T231418Z.json",
+      "sha256": "f2491f78c1edc9ae74012638b37422513a9190d4c7d8f670b86bb4b6f81d3015",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null,
+    "slot_disposition": {
+     "kind": "crashed-worker-no-status",
+     "job_id": "7543881.sched01",
+     "scheduler_state": "F",
+     "scheduler_exit": 4,
+     "runner_exit": 4,
+     "settled_core_h": 598.56,
+     "settle_note": "refit job 38: qstat -xf Exit_status 4, resources_used.walltime 24:56:24, job_state F",
+     "settled_at": 1792341706.5145035,
+     "token": "5ff519c86a88",
+     "plan_sha256": "e84739992b25c0f7b2faf0be89fd7b30de8182e17e8ec9236c5d1f8c52f945f4",
+     "output_file": "row19_screen_refit_38.out",
+     "output_sha256": "b08340677ac852421bb961fb1063d1d3febbd1b0255555fb001a99b3fbc36111",
+     "error_file": "row19_screen_refit_38.err",
+     "error_sha256": "7e6cf81f8e934e64b74def4b791c40c513fdbedb1651189302da1909f803855c",
+     "slots": [
+      {
+       "slot": 15,
+       "rep": 73,
+       "indices": [
+        8
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7543881.sched01.SC: line 53: 38850 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 73 --indices 8 --slot 15 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot15.log 2>&1"
+      }
+     ],
+     "uncompleted": [
+      "73/8"
+     ],
+     "note": "worker(s) killed by a fatal signal before any status or record: charged, no completion or credit; the coordinates return to the planner; the job never qualifies"
+    }
+   },
+   "39": {
+    "job_id": "7543882.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 45947476,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2599497728,
+    "max_wall_s": 91198.0792415142,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "100/8",
+      "101/8",
+      "102/8",
+      "3/9",
+      "4/9",
+      "5/9",
+      "82/8",
+      "83/8",
+      "84/8",
+      "85/8",
+      "86/8",
+      "87/8",
+      "88/8",
+      "89/8",
+      "90/8",
+      "91/8",
+      "92/8",
+      "93/8",
+      "94/8",
+      "95/8",
+      "96/8",
+      "97/8",
+      "98/8",
+      "99/8"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "db4629a697b08da42a710b19d23b3a08fee15abfd66e09a1f0b258dc4382d6f2",
+    "prior_receipt": {
+     "file": "watch_refit_20261020T231418Z.json",
+     "sha256": "f2491f78c1edc9ae74012638b37422513a9190d4c7d8f670b86bb4b6f81d3015"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261020T231418Z.json",
+      "sha256": "f2491f78c1edc9ae74012638b37422513a9190d4c7d8f670b86bb4b6f81d3015",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "40": {
+    "job_id": "7543883.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 44862944,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2430742528,
+    "max_wall_s": 95235.43769526482,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/9",
+      "11/9",
+      "12/9",
+      "13/9",
+      "14/9",
+      "15/9",
+      "16/9",
+      "17/9",
+      "18/9",
+      "19/9",
+      "20/9",
+      "21/9",
+      "22/9",
+      "23/9",
+      "24/9",
+      "25/9",
+      "26/9",
+      "27/9",
+      "28/9",
+      "29/9",
+      "6/9",
+      "7/9",
+      "8/9",
+      "9/9"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "b61d009c8b8e25759531c0292d57069deb442ed8987118f69994af742c64920d",
+    "prior_receipt": {
+     "file": "watch_refit_20261021T010040Z.json",
+     "sha256": "0597eaa00564c8803679c9386696d618468db8e283554569f47eb4d971f6dcbf"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261021T010040Z.json",
+      "sha256": "0597eaa00564c8803679c9386696d618468db8e283554569f47eb4d971f6dcbf",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "41": {
+    "job_id": "7543884.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 47105912,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2571579392,
+    "max_wall_s": 97515.00771307945,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "30/9",
+      "31/9",
+      "32/9",
+      "33/9",
+      "34/9",
+      "35/9",
+      "36/9",
+      "37/9",
+      "38/9",
+      "39/9",
+      "40/9",
+      "41/9",
+      "42/9",
+      "43/9",
+      "44/9",
+      "45/9",
+      "46/9",
+      "47/9",
+      "48/9",
+      "49/9",
+      "50/9",
+      "51/9",
+      "52/9",
+      "53/9"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "2a0233cbd6e3f433033ca197bae7ae78bc4e9525f6d40ecebad0ea0f591e9cac",
+    "prior_receipt": {
+     "file": "watch_refit_20261021T010040Z.json",
+     "sha256": "0597eaa00564c8803679c9386696d618468db8e283554569f47eb4d971f6dcbf"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261021T010040Z.json",
+      "sha256": "0597eaa00564c8803679c9386696d618468db8e283554569f47eb4d971f6dcbf",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "42": {
+    "job_id": "7543885.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 48014616,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2533875712,
+    "max_wall_s": 90519.4585826397,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "54/9",
+      "55/9",
+      "56/9",
+      "57/9",
+      "58/9",
+      "59/9",
+      "60/9",
+      "61/9",
+      "62/9",
+      "63/9",
+      "64/9",
+      "65/9",
+      "66/9",
+      "67/9",
+      "68/9",
+      "69/9",
+      "70/9",
+      "71/9",
+      "72/9",
+      "73/9",
+      "74/9",
+      "75/9",
+      "76/9",
+      "77/9"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "fcc6c9ef5a7d40039a348845d967ed7c81437cba1688b684a0d466d7652f0d92",
+    "prior_receipt": {
+     "file": "watch_refit_20261020T231418Z.json",
+     "sha256": "f2491f78c1edc9ae74012638b37422513a9190d4c7d8f670b86bb4b6f81d3015"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261020T231418Z.json",
+      "sha256": "f2491f78c1edc9ae74012638b37422513a9190d4c7d8f670b86bb4b6f81d3015",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "43": {
+    "job_id": "7544144.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 46201320,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2499497984,
+    "max_wall_s": 88245.32088637352,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "100/9",
+      "101/9",
+      "78/9",
+      "79/9",
+      "80/9",
+      "81/9",
+      "82/9",
+      "83/9",
+      "84/9",
+      "85/9",
+      "86/9",
+      "87/9",
+      "88/9",
+      "89/9",
+      "90/9",
+      "91/9",
+      "92/9",
+      "93/9",
+      "94/9",
+      "95/9",
+      "96/9",
+      "97/9",
+      "98/9",
+      "99/9"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "95ff840c2115fe43593d42a1294fde9f5c099020d34f31b613109e48058221e8",
+    "prior_receipt": {
+     "file": "watch_refit_20261021T015309Z.json",
+     "sha256": "92cfa6d17162cfd2e33b4a19cd9ba60fdec6e259f6cffd763389e8c329ff4cee"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261021T015309Z.json",
+      "sha256": "92cfa6d17162cfd2e33b4a19cd9ba60fdec6e259f6cffd763389e8c329ff4cee",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "44": {
+    "job_id": "7544145.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 46992220,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2592358400,
+    "max_wall_s": 91350.78663754463,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/10",
+      "102/9",
+      "11/10",
+      "12/10",
+      "13/10",
+      "14/10",
+      "15/10",
+      "16/10",
+      "17/10",
+      "18/10",
+      "19/10",
+      "20/10",
+      "21/10",
+      "22/10",
+      "23/10",
+      "24/10",
+      "25/10",
+      "3/10",
+      "4/10",
+      "5/10",
+      "6/10",
+      "7/10",
+      "8/10",
+      "9/10"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "71a9f8f3604bb8829f6996333abb9e4762ab7a5c18562b9a135ede3391fa01d6",
+    "prior_receipt": {
+     "file": "watch_refit_20261021T015309Z.json",
+     "sha256": "92cfa6d17162cfd2e33b4a19cd9ba60fdec6e259f6cffd763389e8c329ff4cee"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261021T015309Z.json",
+      "sha256": "92cfa6d17162cfd2e33b4a19cd9ba60fdec6e259f6cffd763389e8c329ff4cee",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "45": {
+    "job_id": "7544146.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 46221716,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2571018240,
+    "max_wall_s": 96542.61417341232,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "26/10",
+      "27/10",
+      "28/10",
+      "29/10",
+      "30/10",
+      "31/10",
+      "32/10",
+      "33/10",
+      "34/10",
+      "35/10",
+      "36/10",
+      "37/10",
+      "38/10",
+      "39/10",
+      "40/10",
+      "41/10",
+      "42/10",
+      "43/10",
+      "44/10",
+      "45/10",
+      "46/10",
+      "47/10",
+      "48/10",
+      "49/10"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "e27f6020c4bbb01333751c5e5f0ad6f047528867b3944d6bd9b57627b50b6c9a",
+    "prior_receipt": {
+     "file": "watch_refit_20261021T035323Z.json",
+     "sha256": "56dfffa215b4b201d3b344981bd0ec278d003e65063f7d258b90877eb87f0964"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261021T035323Z.json",
+      "sha256": "56dfffa215b4b201d3b344981bd0ec278d003e65063f7d258b90877eb87f0964",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "46": {
+    "job_id": "7545616.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 47748188,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2539323392,
+    "max_wall_s": 86745.80780601501,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "3/11",
+      "3/12",
+      "3/13",
+      "3/14",
+      "3/15",
+      "3/16",
+      "3/17",
+      "3/18",
+      "3/19",
+      "3/20",
+      "3/21",
+      "3/22",
+      "3/23",
+      "3/24",
+      "3/25",
+      "3/26",
+      "3/27",
+      "3/28",
+      "3/29",
+      "3/30",
+      "3/31",
+      "3/32",
+      "3/33",
+      "3/34"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "2d4aaa2979e976bc8538fae30c227d1b279f00bd8275c98e67a5ed144dc7ec0a",
+    "prior_receipt": {
+     "file": "watch_refit_20261021T175309Z.json",
+     "sha256": "1e9c3a19fdde921159f7ea8179ebb2f5caae9ecf8ac12374ea534de0f6404412"
+    },
+    "memory_evidence": [
+     {
+      "file": "watch_refit_20261021T175309Z.json",
+      "sha256": "1e9c3a19fdde921159f7ea8179ebb2f5caae9ecf8ac12374ea534de0f6404412",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": null,
+    "qstat_walltime_req_s": null,
+    "memory_breach": null
+   },
+   "47": {
+    "job_id": "7551252.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 46829680,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2597515264,
+    "max_wall_s": 86358.57705259323,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "3/35",
+      "3/36",
+      "3/37",
+      "3/38",
+      "3/39",
+      "3/40",
+      "3/41",
+      "3/42",
+      "3/43",
+      "3/44",
+      "3/45",
+      "3/46",
+      "3/47",
+      "3/48",
+      "3/49",
+      "3/50",
+      "3/51",
+      "3/52",
+      "3/53",
+      "3/54",
+      "3/55",
+      "3/56",
+      "3/57",
+      "3/58"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "1d5191872a3caf923f9dcb48d86feff0952109ac05546bd66f923b8924989497",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 46829680,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null
+   },
+   "48": {
+    "job_id": "7551253.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 46317876,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2490527744,
+    "max_wall_s": 85390.80134677887,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "3/59",
+      "3/60",
+      "3/61",
+      "3/62",
+      "3/63",
+      "3/64",
+      "3/65",
+      "3/66",
+      "3/67",
+      "3/68",
+      "3/69",
+      "3/70",
+      "3/71",
+      "3/72",
+      "3/73",
+      "3/74",
+      "3/75",
+      "3/76",
+      "3/77",
+      "3/78",
+      "3/79",
+      "4/11",
+      "4/12",
+      "4/13"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "91c14a4374780fdea95d2614710cb5340ae352ba7deb2272aa6144b649d84608",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 46317876,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null
+   },
+   "49": {
+    "job_id": "7551254.sched01",
+    "state": "F",
+    "exit": 4,
+    "runner_exit": 4,
+    "mem_kb": 45371556,
+    "slots": 24,
+    "ended": 23,
+    "exits": {
+     "0": 23
+    },
+    "new": 23,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2507964416,
+    "max_wall_s": 83955.95641875267,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "4/14",
+      "4/15",
+      "4/16",
+      "4/18",
+      "4/19",
+      "4/20",
+      "4/21",
+      "4/22",
+      "4/23",
+      "4/24",
+      "4/25",
+      "4/26",
+      "4/27",
+      "4/28",
+      "4/29",
+      "4/30",
+      "4/31",
+      "4/32",
+      "4/33",
+      "4/34",
+      "4/35",
+      "4/36",
+      "4/37"
+     ],
+     "resumed": [],
+     "left": [],
+     "uncompleted": [
+      "4/17"
+     ],
+     "uncompleted_origin": "crashed-slot"
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "1eafe750d5c0f60fc9fa191841c496a4576020e011961d7cdbd7a9f505ec8e68",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 45371556,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null,
+    "slot_disposition": {
+     "kind": "crashed-worker-no-status",
+     "job_id": "7551254.sched01",
+     "scheduler_state": "F",
+     "scheduler_exit": 4,
+     "runner_exit": 4,
+     "settled_core_h": 561.88,
+     "settle_note": "refit job 49: qstat -xf Exit_status 4, resources_used.walltime 23:24:42, job_state F",
+     "settled_at": 1792538050.70372,
+     "token": "006f58de6918",
+     "plan_sha256": "ea79c41e3d45b55d5d0ea2993f2903e1c114cdb1d4650e12340c39c703459050",
+     "output_file": "row19_screen_refit_49.out",
+     "output_sha256": "4f1605b8386661405666c4458d062e2073abe47007b70036240a90b89b679c9a",
+     "error_file": "row19_screen_refit_49.err",
+     "error_sha256": "0466b93692e94bd86232831d4101918b93f5a92ee5492c9603790783e1c5001b",
+     "slots": [
+      {
+       "slot": 3,
+       "rep": 4,
+       "indices": [
+        17
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7551254.sched01.SC: line 53: 159418 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 4 --indices 17 --slot 3 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot3.log 2>&1"
+      }
+     ],
+     "uncompleted": [
+      "4/17"
+     ],
+     "note": "worker(s) killed by a fatal signal before any status or record: charged, no completion or credit; the coordinates return to the planner; the job never qualifies"
+    }
+   },
+   "50": {
+    "job_id": "7551255.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 48635324,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2534879232,
+    "max_wall_s": 86847.69937252998,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "4/38",
+      "4/39",
+      "4/40",
+      "4/41",
+      "4/42",
+      "4/43",
+      "4/44",
+      "4/45",
+      "4/46",
+      "4/47",
+      "4/48",
+      "4/49",
+      "4/50",
+      "4/51",
+      "4/52",
+      "4/53",
+      "4/54",
+      "4/55",
+      "4/56",
+      "4/57",
+      "4/58",
+      "4/59",
+      "4/60",
+      "4/61"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "e31a8adb6640729e31542cdd36a533726ac03b857580897e1e1e1c6d8578d0fd",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 48635324,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null
+   },
+   "51": {
+    "job_id": "7551256.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 48137424,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2479345664,
+    "max_wall_s": 88462.14939904213,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "4/62",
+      "4/63",
+      "4/64",
+      "4/65",
+      "4/66",
+      "4/67",
+      "4/68",
+      "4/69",
+      "4/70",
+      "4/71",
+      "4/72",
+      "4/73",
+      "4/74",
+      "4/75",
+      "4/76",
+      "4/77",
+      "4/78",
+      "4/79",
+      "5/11",
+      "5/12",
+      "5/13",
+      "5/14",
+      "5/15",
+      "5/16"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "d368f0670505dd2b051d6809774ddae7bfe29aefd059fc81e2a5c49e84ffd88f",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 48137424,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null
+   },
+   "52": {
+    "job_id": "7551257.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 47223652,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2493816832,
+    "max_wall_s": 86333.83389544487,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "5/17",
+      "5/18",
+      "5/19",
+      "5/20",
+      "5/21",
+      "5/22",
+      "5/23",
+      "5/24",
+      "5/25",
+      "5/26",
+      "5/27",
+      "5/28",
+      "5/29",
+      "5/30",
+      "5/31",
+      "5/32",
+      "5/33",
+      "5/34",
+      "5/35",
+      "5/36",
+      "5/37",
+      "5/38",
+      "5/39",
+      "5/40"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "b74f863812c2c52b5a294eb4127bfb500d19c0c72875b30e86e70d24a1c7e419",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 47223652,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null
+   },
+   "53": {
+    "job_id": "7551258.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 46855608,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2577457152,
+    "max_wall_s": 89264.48911571503,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "5/41",
+      "5/42",
+      "5/43",
+      "5/44",
+      "5/45",
+      "5/46",
+      "5/47",
+      "5/48",
+      "5/49",
+      "5/50",
+      "5/51",
+      "5/52",
+      "5/53",
+      "5/54",
+      "5/55",
+      "5/56",
+      "5/57",
+      "5/58",
+      "5/59",
+      "5/60",
+      "5/61",
+      "5/62",
+      "5/63",
+      "5/64"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "b01bfcba64699c7ff46172d1b20213fee23f90bd2c4cbe500063487fe0e64e67",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 46855608,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null
+   },
+   "54": {
+    "job_id": "7551259.sched01",
+    "state": "F",
+    "exit": 265,
+    "runner_exit": null,
+    "mem_kb": 41763220,
+    "slots": 24,
+    "ended": 2,
+    "exits": {
+     "0": 2
+    },
+    "new": 2,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2582990848,
+    "max_wall_s": 61604.266701459885,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "8/15",
+      "8/16"
+     ],
+     "resumed": [],
+     "left": [],
+     "uncompleted": [
+      "5/65",
+      "5/66",
+      "5/67",
+      "5/68",
+      "5/69",
+      "5/70",
+      "5/71",
+      "5/72",
+      "5/73",
+      "5/74",
+      "5/75",
+      "5/76",
+      "5/77",
+      "5/78",
+      "5/79",
+      "8/11",
+      "8/12",
+      "8/13",
+      "8/14",
+      "8/17",
+      "8/18",
+      "8/19"
+     ],
+     "uncompleted_origin": "node-failure"
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "2c288986cfa64240e6b2c7cbdc08179f85e5fa378e5a28617033e1db6c2f24d8",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 41763220,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null,
+    "disposition_held": "status evidence scoped to 7551259.sched01: ['job7551259.sched01.slot19.json', 'job7551259.sched01.slot20.json']",
+    "node_disposition": {
+     "kind": "node-failure",
+     "job_id": "7551259.sched01",
+     "scheduler_state": "F",
+     "scheduler_exit": 265,
+     "runner_exit": null,
+     "settled_core_h": 416.46666666666664,
+     "settle_note": "refit job 54: qstat -xf Exit_status 265, resources_used.walltime 17:21:10, job_state F",
+     "settled_at": 1792527561.3968687,
+     "token": "dd8d1b891252",
+     "plan_sha256": "3081274f88ffcfd333aae246c08f7e6cdb3d7d2e8ab12165ca6b176b7397f5ef",
+     "evidence_file": "row19_screen_refit_54.nodefail.json",
+     "evidence_sha256": "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f",
+     "node": "cnode0240",
+     "node_state": "down",
+     "node_comment": "node down: communication closed",
+     "node_change_epoch": 1792519236,
+     "job_mtime_epoch": 1792519236,
+     "node_change_minus_mtime_s": 0,
+     "walltime_used_s": 62470,
+     "completed_slots": [
+      19,
+      20
+     ],
+     "no_status_slots": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      21,
+      22,
+      23
+     ],
+     "completed": [
+      "8/15",
+      "8/16"
+     ],
+     "uncompleted": [
+      "5/65",
+      "5/66",
+      "5/67",
+      "5/68",
+      "5/69",
+      "5/70",
+      "5/71",
+      "5/72",
+      "5/73",
+      "5/74",
+      "5/75",
+      "5/76",
+      "5/77",
+      "5/78",
+      "5/79",
+      "8/11",
+      "8/12",
+      "8/13",
+      "8/14",
+      "8/17",
+      "8/18",
+      "8/19"
+     ],
+     "counts_as_crash": false,
+     "note": "the execution node was lost (pbsnodes down at the job's end): charged, no completion or credit for the no-status slots, whose coordinates return to the planner and never count toward the crash rule; completed slots keep their records; the job never qualifies"
+    }
+   },
+   "55": {
+    "job_id": "7551260.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 43221504,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2518102016,
+    "max_wall_s": 76211.0877263546,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "8/20",
+      "8/21",
+      "8/22",
+      "8/23",
+      "8/24",
+      "8/25",
+      "8/26",
+      "8/27",
+      "8/28",
+      "8/29",
+      "8/30",
+      "8/31",
+      "8/32",
+      "8/33",
+      "8/34",
+      "8/35",
+      "8/36",
+      "8/37",
+      "8/38",
+      "8/39",
+      "8/40",
+      "8/41",
+      "8/42",
+      "8/43"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "dd20a0e09dc69fdf0db9d5ea885344d0ee928fd276e7b4870155569f0c9dd937",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 43221504,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null
+   },
+   "56": {
+    "job_id": "7551261.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 42757220,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2625028096,
+    "max_wall_s": 77813.52572512627,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "8/44",
+      "8/45",
+      "8/46",
+      "8/47",
+      "8/48",
+      "8/49",
+      "8/50",
+      "8/51",
+      "8/52",
+      "8/53",
+      "8/54",
+      "8/55",
+      "8/56",
+      "8/57",
+      "8/58",
+      "8/59",
+      "8/60",
+      "8/61",
+      "8/62",
+      "8/63",
+      "8/64",
+      "8/65",
+      "8/66",
+      "8/67"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "693c17d3798e36baaff93c67d95213ece80e96eeb0853eb979989553eb187f8f",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 42757220,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null
+   },
+   "57": {
+    "job_id": "7557264.sched01",
+    "state": "R",
+    "exit": null,
+    "runner_exit": null,
+    "mem_kb": 43042996,
+    "slots": 24,
+    "ended": 15,
+    "exits": {
+     "0": 15
+    },
+    "new": 15,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2433212416,
+    "max_wall_s": 89953.02124977112,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "5/65",
+      "5/66",
+      "5/71",
+      "5/72",
+      "5/73",
+      "5/77",
+      "5/78",
+      "8/11",
+      "8/12",
+      "8/13",
+      "8/14",
+      "8/17",
+      "8/18",
+      "8/19",
+      "8/68"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0
+   },
+   "58": {
+    "job_id": "7557265.sched01",
+    "state": "F",
+    "exit": 4,
+    "runner_exit": 4,
+    "mem_kb": 43642576,
+    "slots": 24,
+    "ended": 22,
+    "exits": {
+     "0": 22
+    },
+    "new": 22,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2656985088,
+    "max_wall_s": 89765.93165230751,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "8/69",
+      "8/70",
+      "8/71",
+      "8/72",
+      "8/73",
+      "8/74",
+      "8/75",
+      "8/76",
+      "8/77",
+      "8/78",
+      "8/79",
+      "9/11",
+      "9/13",
+      "9/14",
+      "9/15",
+      "9/16",
+      "9/17",
+      "9/18",
+      "9/19",
+      "9/20",
+      "9/22",
+      "9/23"
+     ],
+     "resumed": [],
+     "left": [],
+     "uncompleted": [
+      "9/12",
+      "9/21"
+     ],
+     "uncompleted_origin": "crashed-slot"
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "32f5e4fc4ab9498538cae585f11489a804659655d0dd1c7cf3d8e2bbca55780d",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 43642576,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null,
+    "slot_disposition": {
+     "kind": "crashed-worker-no-status",
+     "job_id": "7557265.sched01",
+     "scheduler_state": "F",
+     "scheduler_exit": 4,
+     "runner_exit": 4,
+     "settled_core_h": 598.6666666666666,
+     "settle_note": "refit job 58: qstat -xf Exit_status 4, resources_used.walltime 24:56:40, job_state F",
+     "settled_at": 1792634033.3764327,
+     "token": "541f531b32d8",
+     "plan_sha256": "67dd5ef1d59061491f678eb5aa66f1158f8ab8f03e8f29585d9fa7609cc1ff84",
+     "output_file": "row19_screen_refit_58.out",
+     "output_sha256": "fbf729e1c2967aea76ac8e3ec6873d5aa5b6f10f4b1c0f144fd0c4af4d760cce",
+     "error_file": "row19_screen_refit_58.err",
+     "error_sha256": "92ded967bb76a8ead7a4c40822fd787b510738853fb67577cb7f7f07b13014fa",
+     "slots": [
+      {
+       "slot": 12,
+       "rep": 9,
+       "indices": [
+        12
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7557265.sched01.SC: line 53: 37422 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 9 --indices 12 --slot 12 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot12.log 2>&1"
+      },
+      {
+       "slot": 21,
+       "rep": 9,
+       "indices": [
+        21
+       ],
+       "signal": "Segmentation fault",
+       "err_line": "/var/spool/PBS/mom_priv/jobs/7557265.sched01.SC: line 53: 37431 Segmentation fault      $T/t1py chpc/row19_shard.py worker --manifest ../../../rsc_screen_ctl/workspace_demo/t1_access/chpc/row19_screen_manifest.json --rep 9 --indices 21 --slot 21 --job-id $PBS_JOBID --deadline-epoch $DEADLINE > /mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen/logs/job$PBS_JOBID.slot21.log 2>&1"
+      }
+     ],
+     "uncompleted": [
+      "9/12",
+      "9/21"
+     ],
+     "note": "worker(s) killed by a fatal signal before any status or record: charged, no completion or credit; the coordinates return to the planner; the job never qualifies"
+    }
+   },
+   "59": {
+    "job_id": "7557266.sched01",
+    "state": "R",
+    "exit": null,
+    "runner_exit": null,
+    "mem_kb": 47035836,
+    "slots": 24,
+    "ended": 8,
+    "exits": {
+     "0": 8
+    },
+    "new": 8,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2630836224,
+    "max_wall_s": 90141.66191959381,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "9/27",
+      "9/32",
+      "9/33",
+      "9/34",
+      "9/35",
+      "9/37",
+      "9/39",
+      "9/44"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0
+   },
+   "60": {
+    "job_id": "7557267.sched01",
+    "state": "R",
+    "exit": null,
+    "runner_exit": null,
+    "mem_kb": 45745912,
+    "slots": 24,
+    "ended": 8,
+    "exits": {
+     "0": 8
+    },
+    "new": 8,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2391814144,
+    "max_wall_s": 90301.72964334488,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "9/48",
+      "9/49",
+      "9/50",
+      "9/59",
+      "9/63",
+      "9/64",
+      "9/65",
+      "9/71"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0
+   },
+   "61": {
+    "job_id": "7557268.sched01",
+    "state": "R",
+    "exit": null,
+    "runner_exit": null,
+    "mem_kb": 46316240,
+    "slots": 24,
+    "ended": 20,
+    "exits": {
+     "0": 20
+    },
+    "new": 20,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2492694528,
+    "max_wall_s": 90460.62238883972,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/11",
+      "10/12",
+      "10/13",
+      "10/14",
+      "10/15",
+      "10/16",
+      "10/17",
+      "10/18",
+      "10/19",
+      "10/20",
+      "10/21",
+      "10/22",
+      "10/23",
+      "10/24",
+      "10/25",
+      "10/26",
+      "9/72",
+      "9/74",
+      "9/75",
+      "9/76"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0
+   },
+   "62": {
+    "job_id": "7557269.sched01",
+    "state": "R",
+    "exit": null,
+    "runner_exit": null,
+    "mem_kb": 47140924,
+    "slots": 24,
+    "ended": 20,
+    "exits": {
+     "0": 20
+    },
+    "new": 20,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2684911616,
+    "max_wall_s": 90458.6055264473,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/27",
+      "10/28",
+      "10/29",
+      "10/30",
+      "10/31",
+      "10/33",
+      "10/34",
+      "10/36",
+      "10/37",
+      "10/39",
+      "10/40",
+      "10/41",
+      "10/42",
+      "10/43",
+      "10/44",
+      "10/45",
+      "10/46",
+      "10/47",
+      "10/48",
+      "10/49"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0
+   },
+   "63": {
+    "job_id": "7557270.sched01",
+    "state": "R",
+    "exit": null,
+    "runner_exit": null,
+    "mem_kb": 48262488,
+    "slots": 24,
+    "ended": 12,
+    "exits": {
+     "0": 12
+    },
+    "new": 12,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2522923008,
+    "max_wall_s": 90530.99458503723,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/51",
+      "10/53",
+      "10/55",
+      "10/59",
+      "10/60",
+      "10/62",
+      "10/63",
+      "10/65",
+      "10/66",
+      "10/68",
+      "10/73",
+      "10/74"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0
+   },
+   "64": {
+    "job_id": "7557271.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 45831684,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2338054144,
+    "max_wall_s": 86295.9682674408,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "10/75",
+      "10/76",
+      "10/77",
+      "10/78",
+      "10/79",
+      "13/11",
+      "13/12",
+      "13/13",
+      "13/14",
+      "13/15",
+      "13/16",
+      "13/17",
+      "13/18",
+      "13/19",
+      "13/20",
+      "13/21",
+      "13/22",
+      "13/23",
+      "13/24",
+      "13/25",
+      "13/26",
+      "13/27",
+      "13/28",
+      "13/29"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "ec7a4b4ff9926e095901824de6d735820b8b9c683d70b75829b86a6e72b19cbf",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 45831684,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null
+   },
+   "65": {
+    "job_id": "7557272.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 45706864,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2496086016,
+    "max_wall_s": 86053.30119562149,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "13/30",
+      "13/31",
+      "13/32",
+      "13/33",
+      "13/34",
+      "13/35",
+      "13/36",
+      "13/37",
+      "13/38",
+      "13/39",
+      "13/40",
+      "13/41",
+      "13/42",
+      "13/43",
+      "13/44",
+      "13/45",
+      "13/46",
+      "13/47",
+      "13/48",
+      "13/49",
+      "13/50",
+      "13/51",
+      "13/52",
+      "13/53"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "40bd5a515092dadcdfcbecdd62d2d881cb699b35c50b347d7e9cfc32f45c61c2",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 45706864,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null
+   },
+   "66": {
+    "job_id": "7557310.sched01",
+    "state": "F",
+    "exit": 0,
+    "runner_exit": 0,
+    "mem_kb": 48330596,
+    "slots": 24,
+    "ended": 24,
+    "exits": {
+     "0": 24
+    },
+    "new": 24,
+    "resumed": 0,
+    "left": 0,
+    "max_worker_maxrss": 2491305984,
+    "max_wall_s": 85198.08206391335,
+    "failed_units": [],
+    "partition": {
+     "new": [
+      "13/54",
+      "13/55",
+      "13/56",
+      "13/57",
+      "13/58",
+      "13/59",
+      "13/60",
+      "13/61",
+      "13/62",
+      "13/63",
+      "13/64",
+      "13/65",
+      "13/66",
+      "13/67",
+      "13/68",
+      "13/69",
+      "13/70",
+      "13/71",
+      "13/72",
+      "13/73",
+      "13/74",
+      "13/75",
+      "13/76",
+      "13/77"
+     ],
+     "resumed": [],
+     "left": []
+    },
+    "plan_walltime_s": 172800.0,
+    "requested_walltime_s": 172800.0,
+    "observation": "ledger-settlement",
+    "settle_note_sha256": "9d1291b14cd76ed1c560bc3ee2bbd2d0dca0fdbb3c0ecc7f24404a552821ea99",
+    "prior_receipt": null,
+    "memory_evidence": [
+     {
+      "kind": "qstat"
+     },
+     {
+      "file": "watch_refit_20261022T015406Z.json",
+      "sha256": "fdf4d1263caa03b95aee52be0d60a593a0dc0f890531313534a0ae4d134d8eb9",
+      "kind": "prior-receipt-settled-qstat"
+     }
+    ],
+    "qstat_mem_kb": 48330596,
+    "qstat_walltime_req_s": 172800.0,
+    "memory_breach": null
+   }
+  },
+  "anchors": {
+   "problem": "",
+   "reps": {
+    "0": {
+     "compared": [
+      0,
+      1,
+      3,
+      5,
+      6,
+      9,
+      10
+     ],
+     "conflict": [],
+     "differ": [],
+     "equal": [
+      0,
+      1,
+      3,
+      5,
+      6,
+      9,
+      10
+     ],
+     "ident": "f6a03a7eff618e159690014cf7b2caa4fe1126942c3ee440d8b50714b6527000",
+     "invalid": [],
+     "missing": [],
+     "required": [
+      0
+     ]
+    },
+    "1": {
+     "compared": [
+      0,
+      1,
+      3,
+      5,
+      6,
+      9
+     ],
+     "conflict": [],
+     "differ": [],
+     "equal": [
+      0,
+      1,
+      3,
+      5,
+      6,
+      9
+     ],
+     "ident": "808a6e3936fd324ff66a4561bf1d738401664296fe0dd967ee6d44943147bc36",
+     "invalid": [],
+     "missing": [],
+     "required": [
+      0
+     ]
+    },
+    "2": {
+     "compared": [
+      0,
+      1,
+      3,
+      5,
+      6
+     ],
+     "conflict": [],
+     "differ": [],
+     "equal": [
+      0,
+      1,
+      3,
+      5,
+      6
+     ],
+     "ident": "40346e3d0516aa48c27d328481dec03da8a1018fd436370e530915f27c844f55",
+     "invalid": [],
+     "missing": [],
+     "required": [
+      0
+     ]
+    }
+   },
+   "shard_manifest_sha256": "0eae2e6fcbc1dd71d34c20f02f86777e151ed2c2d8a3f6419aa15cee94097102"
+  },
+  "plan_slots": {
+   "1": 24,
+   "2": 24,
+   "3": 24,
+   "4": 24,
+   "5": 24,
+   "6": 24,
+   "7": 24,
+   "8": 24,
+   "9": 24,
+   "10": 24,
+   "11": 24,
+   "12": 24,
+   "13": 24,
+   "14": 24,
+   "15": 24,
+   "16": 24,
+   "17": 24,
+   "18": 24,
+   "19": 24,
+   "20": 24,
+   "21": 24,
+   "22": 24,
+   "23": 24,
+   "24": 24,
+   "25": 24,
+   "26": 24,
+   "27": 24,
+   "28": 24,
+   "29": 24,
+   "30": 24,
+   "31": 24,
+   "32": 24,
+   "33": 24,
+   "34": 24,
+   "35": 24,
+   "36": 24,
+   "37": 24,
+   "38": 24,
+   "39": 24,
+   "40": 24,
+   "41": 24,
+   "42": 24,
+   "43": 24,
+   "44": 24,
+   "45": 24,
+   "46": 24,
+   "47": 24,
+   "48": 24,
+   "49": 24,
+   "50": 24,
+   "51": 24,
+   "52": 24,
+   "53": 24,
+   "54": 24,
+   "55": 24,
+   "56": 24,
+   "57": 24,
+   "58": 24,
+   "59": 24,
+   "60": 24,
+   "61": 24,
+   "62": 24,
+   "63": 24,
+   "64": 24,
+   "65": 24,
+   "66": 24
+  },
+  "ec2": {
+   "bound": {
+    "register_sha256": "b74631e43f98087a3423b7f47ae2a2f95b12776c208d2bd75c04b79353d309d8",
+    "inventory_sha256": "bc01833126119486db586f8893ae31b27c2349be92bddf491660bc121caef589",
+    "activations": {
+     "activation_e1.json": "ce044720ca115d84959a22b5dd6f078f4beb6e8a8a470aedf5df8e5f271f7c96",
+     "activation_e2.json": "108da27592b3c99883a2453ff15f7cc4c833e22ad1184af7c20332735b926272"
+    },
+    "hold": false,
+    "stop": false
+   },
+   "attempts": {
+    "qual-E2Q1/1": {
+     "state": "reconciled",
+     "ingestion": "dispositioned",
+     "cls": "qualification",
+     "sequence": 9,
+     "coordinates": 52,
+     "charged_usd": 15.737884,
+     "register_state": "dispositioned",
+     "ingested_coordinates": 0,
+     "failed": 0
+    },
+    "qual-E2Q2/1": {
+     "state": "reconciled",
+     "ingestion": "dispositioned",
+     "cls": "qualification",
+     "sequence": 10,
+     "coordinates": 52,
+     "charged_usd": 8.295627,
+     "register_state": "dispositioned",
+     "ingested_coordinates": 0,
+     "failed": 0
+    },
+    "qual-Q1/1": {
+     "state": "reconciled",
+     "ingestion": "dispositioned",
+     "cls": "qualification",
+     "sequence": 2,
+     "coordinates": 48,
+     "charged_usd": 7.128875,
+     "register_state": "dispositioned",
+     "ingested_coordinates": 0,
+     "failed": 0
+    },
+    "qual-Q1/2": {
+     "state": "rejected",
+     "ingestion": "pending",
+     "cls": "qualification",
+     "sequence": 3,
+     "coordinates": 48,
+     "charged_usd": 0.0
+    },
+    "qual-Q1/3": {
+     "state": "rejected",
+     "ingestion": "pending",
+     "cls": "qualification",
+     "sequence": 4,
+     "coordinates": 48,
+     "charged_usd": 0.0
+    },
+    "qual-Q1/4": {
+     "state": "reconciled",
+     "ingestion": "dispositioned",
+     "cls": "qualification",
+     "sequence": 5,
+     "coordinates": 48,
+     "charged_usd": 26.135273,
+     "register_state": "dispositioned",
+     "ingested_coordinates": 0,
+     "failed": 0
+    },
+    "qual-Q2/1": {
+     "state": "reconciled",
+     "ingestion": "pending",
+     "cls": "qualification",
+     "sequence": 7,
+     "coordinates": 0,
+     "charged_usd": 11.700804
+    }
+   },
+   "usd": {
+    "charged": 68.998463,
+    "inventory_generation": 88,
+    "inventory_at": 1792626926.8894799
+   },
+   "problems": []
+  },
+  "designated": {
+   "declaration_sha256": "a96eb59833ff794d3f9ce0ca09ada03d045a29cb9f8a676dad86f8aba85d5584",
+   "designated": 4800,
+   "done": 1045,
+   "in_flight": 58,
+   "lengau_plannable": 419,
+   "ec2_waiting_unclaimed": 3274,
+   "outside_set_history": {
+    "done": 417,
+    "in_flight": 0
+   },
+   "next_coordinates": [
+    "9/12",
+    "9/21",
+    "13/78",
+    "13/79",
+    "14/11",
+    "14/12",
+    "14/13",
+    "14/14",
+    "14/15",
+    "14/16",
+    "14/17",
+    "14/18",
+    "14/19",
+    "14/20",
+    "14/21",
+    "14/22",
+    "14/23",
+    "14/24",
+    "14/25",
+    "14/26",
+    "14/27",
+    "14/28",
+    "14/29",
+    "14/30"
+   ],
+   "crash_history": {
+    "4/17": [
+     {
+      "job": 49,
+      "job_id": "7551254.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     }
+    ],
+    "9/12": [
+     {
+      "job": 58,
+      "job_id": "7557265.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     }
+    ],
+    "9/21": [
+     {
+      "job": 58,
+      "job_id": "7557265.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     }
+    ],
+    "25/6": [
+     {
+      "job": 28,
+      "job_id": "7541627.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     },
+     {
+      "job": 37,
+      "job_id": "7543880.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     }
+    ],
+    "43/4": [
+     {
+      "job": 20,
+      "job_id": "7539374.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     },
+     {
+      "job": 30,
+      "job_id": "7541699.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     },
+     {
+      "job": 37,
+      "job_id": "7543880.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     }
+    ],
+    "55/7": [
+     {
+      "job": 33,
+      "job_id": "7541702.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     },
+     {
+      "job": 37,
+      "job_id": "7543880.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     }
+    ],
+    "73/8": [
+     {
+      "job": 38,
+      "job_id": "7543881.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     }
+    ],
+    "81/6": [
+     {
+      "job": 30,
+      "job_id": "7541699.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     },
+     {
+      "job": 37,
+      "job_id": "7543880.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     }
+    ],
+    "83/2": [
+     {
+      "job": 13,
+      "job_id": "7531397.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     },
+     {
+      "job": 14,
+      "job_id": "7533494.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     },
+     {
+      "job": 17,
+      "job_id": "7539371.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     },
+     {
+      "job": 30,
+      "job_id": "7541699.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     },
+     {
+      "job": 37,
+      "job_id": "7543880.sched01",
+      "signal": "Segmentation fault",
+      "envelope": [
+       "serial",
+       24,
+       172800.0,
+       120,
+       "haswell_reg",
+       1800
+      ]
+     }
+    ]
+   },
+   "rescue_pending": [
+    {
+     "coordinate": "25/6",
+     "crashes": 2,
+     "jobs": [
+      28,
+      37
+     ],
+     "attempt_running": false
+    },
+    {
+     "coordinate": "43/4",
+     "crashes": 3,
+     "jobs": [
+      20,
+      30,
+      37
+     ],
+     "attempt_running": false
+    },
+    {
+     "coordinate": "55/7",
+     "crashes": 2,
+     "jobs": [
+      33,
+      37
+     ],
+     "attempt_running": false
+    },
+    {
+     "coordinate": "83/2",
+     "crashes": 5,
+     "jobs": [
+      13,
+      14,
+      17,
+      30,
+      37
+     ],
+     "attempt_running": false
+    }
+   ],
+   "crash_excluded_outside_set": [
+    "81/6"
+   ],
+   "rescue_route": "declared, DISABLED (no resources chosen); rescue-pending coordinates are never admitted by the ordinary planner"
+  }
+ },
+ "anchors": {
+  "problem": "",
+  "reps": {
+   "0": {
+    "compared": [
+     0,
+     1,
+     3,
+     5,
+     6,
+     9,
+     10
+    ],
+    "conflict": [],
+    "differ": [],
+    "equal": [
+     0,
+     1,
+     3,
+     5,
+     6,
+     9,
+     10
+    ],
+    "ident": "f6a03a7eff618e159690014cf7b2caa4fe1126942c3ee440d8b50714b6527000",
+    "invalid": [],
+    "missing": [],
+    "required": [
+     0
+    ]
+   },
+   "1": {
+    "compared": [
+     0,
+     1,
+     3,
+     5,
+     6,
+     9
+    ],
+    "conflict": [],
+    "differ": [],
+    "equal": [
+     0,
+     1,
+     3,
+     5,
+     6,
+     9
+    ],
+    "ident": "808a6e3936fd324ff66a4561bf1d738401664296fe0dd967ee6d44943147bc36",
+    "invalid": [],
+    "missing": [],
+    "required": [
+     0
+    ]
+   },
+   "2": {
+    "compared": [
+     0,
+     1,
+     3,
+     5,
+     6
+    ],
+    "conflict": [],
+    "differ": [],
+    "equal": [
+     0,
+     1,
+     3,
+     5,
+     6
+    ],
+    "ident": "40346e3d0516aa48c27d328481dec03da8a1018fd436370e530915f27c844f55",
+    "invalid": [],
+    "missing": [],
+    "required": [
+     0
+    ]
+   }
+  },
+  "shard_manifest_sha256": "0eae2e6fcbc1dd71d34c20f02f86777e151ed2c2d8a3f6419aa15cee94097102"
+ },
+ "verify_file": "verify_refit_20261022T020155Z.json"
+}

@@ -227,6 +227,19 @@ crashed statuses (any other exit) keep their records and their `left` coordinate
 are `uncompleted` with origin "operational-loss" and return to the planner, the charge stays. No evidence file is required. The
 admission requires the receipt's disposition EXACTLY equal; an operational-loss job never qualifies a pilot and never counts
 toward the crash rule (crash_history unchanged); held_accounting_problem accepts it for a HELD (runner exit 4) entry.
+
+REVISION 20 CANDIDATE (controls version 20; R052 route A, owner decision 23 Oct 2026: EC2 is finished for row 19 and its
+epoch-2 block goes back to Lengau; NOT adopted; chpc/candidate_v20_handback/DESIGN_v20.md). PROVIDER SCOPE after the EC2 CLOSE:
+controls v20 pins the closing epoch e3 (row19_partition REVISION 7, schema row19-provider-partition-3: EC2 owns nothing,
+`handed_back` = every coordinate e2 owned that EC2 never completed). lengau_scope(doc, claimed, part) adds exactly that hand-back
+set to Lengau's scope (13 Lengau replicates + Lengau's claims on the 47 + the hand-back), so the handed-back coordinates are
+planned by the UNCHANGED replicate-complete order (ascending rep within S, ascending index within a replicate; done, in flight,
+crash-excluded and blocked skipped) - the restriction of the new order to the old scope is the v19 order exactly. The crash
+rule, the disabled rescue route, the scale-up gate, the envelope, the 81,000 sub-envelope and the ledger cap, the funding
+gate, the reservation accounting and every receipt/qualification/review gate are unchanged; with no partition, or with a
+schema-1/2 partition, lengau_scope returns the v19 set. The admission's partition line prints the close (schema 3 has no
+owned coordinates and no k/indices). The activation of e3 (row19_partition.py activate) holds every refit admission until it
+is written, exactly as the e1/e2 activations did.
 """
 import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
 
@@ -2043,18 +2056,23 @@ def designated_coordinates(doc):
     return {(r, i) for r in doc["reps"] for i in range(doc["indices"]["start"], doc["indices"]["stop"])}
 
 
-def lengau_scope(doc, claimed):
+def lengau_scope(doc, claimed, part=None):
     """The coordinates Lengau may plan under this declaration: every designated coordinate of the 13 Lengau replicates, plus the
     designated coordinates of the 47 EC2-designated replicates that Lengau has ALREADY claimed (ever planned, any ledger state;
     row19_partition.lengau_claims). s.3: 'All existing claims/completions retain Lengau provenance, including 110 live
     coordinates on EC2-designated replicates'; s.4: 'A lower-index coordinate ever planned by Lengau is not automatically
     transferable merely because its worker died. Let its declared owner finish/rescue it.' Lengau's own planning only ever
     re-plans an existing claim on those replicates, so the claimed set there never grows; their UNCLAIMED coordinates wait for
-    the EC2 provider-epoch package and are never planned here."""
+    the EC2 provider-epoch package and are never planned here.
+    REVISION 20: under a CLOSING partition (schema 3, controls v20) the scope also holds the closing epoch's hand-back set
+    (row19_partition.handed_back: every coordinate the EC2 epoch owned and EC2 never completed), each inside S x 0..79; with
+    no partition or a schema-1/2 one the scope is exactly the REVISION 16 set."""
+    import row19_partition as RP
     lo, hi = doc["indices"]["start"], doc["indices"]["stop"]
     ec2 = set(doc["providers"]["ec2_reps"])
     own = {(r, i) for r in doc["providers"]["lengau_reps"] for i in range(lo, hi)}
-    return own | {(int(r), int(i)) for r, i in claimed if int(r) in ec2 and lo <= int(i) < hi}
+    back = {(r, i) for r, i in RP.handed_back(part) if r in ec2 and lo <= i < hi}
+    return own | {(int(r), int(i)) for r, i in claimed if int(r) in ec2 and lo <= int(i) < hi} | back
 
 
 def env_key(env):
@@ -2093,7 +2111,7 @@ def designated_order(doc, done, flight, claimed, excluded, part=None):
     crash-excluded coordinate and every coordinate of another provider's partition block are skipped. No speed, success or
     runtime enters the order."""
     import row19_partition as RP
-    scope = lengau_scope(doc, claimed)
+    scope = lengau_scope(doc, claimed, part)
     return [(r, [i]) for (r, i) in sorted(scope) if (r, i) not in done and (r, i) not in flight and (r, i) not in excluded
             and not RP.blocked(part, r, i)]
 
@@ -2102,7 +2120,7 @@ def designated_view(doc, done, flight, claimed, history, env_next, part=None):
     """The raw operational view (no statistic): progress over S x 0..79 by provider scope, the crash history and the
     rescue-pending list. Used by the dry run and by the status view."""
     D = designated_coordinates(doc); ec2 = set(doc["providers"]["ec2_reps"])
-    scope = lengau_scope(doc, claimed); exc = crash_excluded(history, env_next)
+    scope = lengau_scope(doc, claimed, part); exc = crash_excluded(history, env_next)
     order = designated_order(doc, done, flight, claimed, exc, part)
     key = lambda c: f"{c[0]}/{c[1]}"
     pending = sorted(c for c in exc if c in D and c not in done)               # a running earlier attempt finishes untouched
@@ -2122,7 +2140,7 @@ def designated_problem(jobs, doc, done, flight, claimed, excluded, part=None):
     """ADMISSION check (independent of how a plan was built): every planned refit coordinate lies in Lengau's designated scope,
     is not done, not in flight, not crash-excluded and not another provider's; one index per slot."""
     import row19_partition as RP
-    scope = lengau_scope(doc, claimed); bad = []
+    scope = lengau_scope(doc, claimed, part); bad = []
     for j in jobs:
         for s in j["slots"]:
             if len(s.get("indices") or []) != 1:
@@ -2424,9 +2442,14 @@ def main(argv=None):
             print(f"HELD: the provider partition cannot be trusted: {e}"); return 2
         if part is not None:
             import row19_partition as _RP                                     # v17: schema 2 has no k / indices (an explicit set)
-            print(f"provider partition epoch {part['epoch']}: {part['provider']} owns "
-                  + (f"{part['owned_count']} explicit coordinates (schema 2, owned {part['owned_sha256'][:12]})" if part.get("schema") == _RP.SCHEMA2
-                     else f"indices {part['indices'][0]}..{part['indices'][-1]} (k {part['k']})"))
+            if part.get("schema") == getattr(_RP, "SCHEMA3", None):           # v20: the closing epoch owns nothing
+                print(f"provider partition epoch {part['epoch']}: {part['provider']} CLOSED (schema 3): owns nothing; "
+                      f"{part['handed_back']['count']} coordinates handed back to Lengau ({part['handed_back']['sha256'][:12]}), "
+                      f"{part['retained_ec2_completed']['count']} EC2-completed retained")
+            else:
+                print(f"provider partition epoch {part['epoch']}: {part['provider']} owns "
+                      + (f"{part['owned_count']} explicit coordinates (schema 2, owned {part['owned_sha256'][:12]})" if part.get("schema") == _RP.SCHEMA2
+                         else f"indices {part['indices'][0]}..{part['indices'][-1]} (k {part['k']})"))
         why_act = activation_problem_v10(man, a.manifest, part)
         if why_act:
             print(f"HELD: {why_act}"); return 2

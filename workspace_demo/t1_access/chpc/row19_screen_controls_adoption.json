@@ -1,21 +1,21 @@
 {
  "schema": "row19-screen-controls-adoption-1",
  "controls_path": "chpc/row19_screen_controls.json",
- "controls_sha256": "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5",
- "version": 19,
- "controls_commit": "fe94e78",
+ "controls_sha256": "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c",
+ "version": 20,
+ "controls_commit": "a8cc1dd",
  "review_record": {
-  "path": "reviews/2026-10-22_controls_v19_operator_record.md",
-  "sha256": "afd2b1560b2ea40f913d28eb71da49b383903e281d8edb3291c0f853bb7da27d",
-  "commit": "00f518f",
-  "adopt_line": "ADOPT row19-screen-controls sha256=111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5 version=19"
+  "path": "reviews/2026-10-23_controls_v20_operator_record.md",
+  "sha256": "70297db9390ab1b2b7e67866a2f20b38d142c60117b6e3866c7ccd618e29ed9d",
+  "commit": "ec751a4",
+  "adopt_line": "ADOPT row19-screen-controls sha256=4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c version=20"
  },
  "by": "R052 Entropy SI (Claude), operator record under the owner's 20 Oct 2026 rule",
  "previous": {
-  "version": 18,
-  "controls_sha256": "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b",
-  "adoption_sha256": "3e1fe9a1ddd10a6ed160f5f1f9fc3f4f4de707efa3e90259104e7e5670ae1616",
-  "archived": "Lengau archive_screen/v18_before_v19, Mac chpc/results/archive/row19_screen_v18_before_v19/"
+  "version": 19,
+  "controls_sha256": "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5",
+  "adoption_sha256": "2b9f3c783e1f7ce53cbdafa4a84e66315874512d7afcde6b03783c343ba2939c",
+  "archived": "Lengau archive_screen/v19_before_v20, Mac chpc/results/archive/row19_screen_v19_before_v20/"
  },
- "scope": "controls v18 -> v19, the OPERATIONAL-LOSS disposition (chpc/candidate_v19_oploss/DESIGN_v19.md): chpc/row19_screen_status.py (258d4329) and chpc/row19_screen_admit.py (27e066c7) = v18 + REVISION 19; and the E2Q3 on-demand qualifier (owner decision 21 Oct 2026, DESIGN_v19.md s.7): chpc/row19_ec2_state.py (a9a32329), chpc/row19_ec2_e2qual.py (22251f0f) and chpc/row19_ec2_ingest.py (744ee5c8) add contract E2Q3, with its operational manifest aws_ec2/prod/manifest_e2q3_e2.json (6d59c1f8); every other controller byte, the v18 node-failure rule, the release rule and panel, the e2 partition 48cea639 (epoch 2 stays active) and the funding unchanged. An operational-loss job never qualifies and never counts toward the crash rule. Fresh v19 receipts and a regenerated pilot qualification with a NEW pilot literal precede any further refit admission"
+ "scope": "controls v19 -> v20, the EC2 CLOSE (route A, owner decision 23 Oct 2026; chpc/candidate_v20_handback/DESIGN_v20.md): chpc/row19_partition.py (a7629337, REVISION 7: the closing schema 3) and chpc/row19_screen_admit.py (7c49bf86, REVISION 20: Lengau's scope gains the hand-back), the closing epoch e3 chpc/row19_partition_e3.json (ca87fb1d) pinned in place of e2 48cea639, and the Mac authority aws_ec2/prod_authority.py (e1381d68, REVISION 10: the terminal close); every other controller byte, the crash rule, the rescue route, sub_envelopes, the ledger cap and the funding unchanged. Lengau refit admission holds until the e3 activation; fresh v20 receipts and a regenerated pilot qualification with a NEW pilot literal precede any further refit admission"
 }

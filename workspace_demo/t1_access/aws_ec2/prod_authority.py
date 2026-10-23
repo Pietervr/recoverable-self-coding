@@ -167,7 +167,24 @@ qual-E2Q3 - is admitted under the same rule as E2Q2, one step on:
                compute hours after), so an on-demand attempt is charged at 5.60 USD/h, never at a spot rate; bench_reaper's
                report_charge does the same. The run names are derived (qual_run), so this file still loads against the v18
                chpc modules, which have no E2Q3 (no E2Q3 admission is possible before v19: prod_launch offers only the
-               contracts row19_ec2_state declares)."""
+               contracts row19_ec2_state declares).
+
+REVISION 10 - CANDIDATE, not adopted (controls v20, the EC2 CLOSE: route A, owner decision 23 Oct 2026, R052;
+chpc/candidate_v20_handback/DESIGN_v20.md). EC2 is finished for row 19: no further EC2 qualification or production.
+  terminal     ec2_closed(): once ANY controls version pins a closing partition (row19_partition REVISION 7, schema
+               row19-provider-partition-3), row-19 EC2 is CLOSED for good - a terminal state, not a missing permit. Then
+               closed_problem() refuses, as the FIRST check of each gate: exclusion_problem (every prod_launch admission,
+               production and qualification of every contract and epoch), e2q_admission_problem, production_release_problem,
+               release_problem (so release-adopt) and allocate; release_state reports every qualification and the production
+               block NOT ok with the close as the reason (so qual_permit refuses as well). Nothing re-opens it: a later controls
+               version that drops the pin leaves the earlier version in the lineage.
+  bookkeeping  inventory, budget, ack, disposition and disposition-confirm keep working (the close needs the last
+               dispositions, and the root keeps installing generations), but no attempt can be added.
+  close-check  `prod_authority.py close-check` (read-only, writes nothing - no generation): the Mac half of the close
+               preconditions (close_precondition_problems) - no owned coordinate, every non-rejected production/qualification
+               attempt reconciled and ingested or dispositioned (no pending disposition request), and the latest sealed
+               inventory the current generation, valid and at most six hours old. The Lengau half is the activation itself
+               (row19_partition.close_problems on the root's installed inventory and register)."""
 import argparse, contextlib, fcntl, glob, hashlib, json, math, os, sys, time
 
 SRC = os.path.dirname(os.path.abspath(__file__))
@@ -239,6 +256,59 @@ INV_DIR = os.path.join(HERE, "runs", "inventory")
 RELEASE_STATE = os.path.join(HERE, "ec2_release_state.json")
 CANONICAL_ROOT = json.load(open(os.path.join(T1, "chpc", "row19_screen_manifest.json")))["storage"]["root"]
 CANONICAL_MANIFEST_SHA = PROD_SHA
+
+
+CLOSE_SCHEMA = "row19-provider-partition-3"   # REVISION 10: = row19_partition.SCHEMA3 (literal: loads against older modules)
+
+
+def ec2_closed(ctl=None):
+    """REVISION 10: (True, why) when ANY controls version pins a closing (schema-3) partition; the close is terminal, so a
+    later version that no longer pins it does not re-open EC2. (False, '') only when EVERY partition reference in the controls
+    history is AUTHENTICATED and none is a close (REVISION 10 repair, Codex review 2026-10-23 F1): each referenced file must
+    exist as a regular file at its path, hash to the reference's sha256 and parse as a JSON object with a schema. A missing,
+    unreadable, hash-mismatched or malformed historical partition - or a malformed reference - is evidence that cannot be
+    classified, so it returns (True, <refusal>): fail closed, never OPEN."""
+    if ctl is None:
+        ctl = json.load(open(os.path.join(T1, "chpc", "row19_screen_controls.json")))
+    vs = ctl.get("versions") if isinstance(ctl, dict) else None
+    if not isinstance(vs, list):
+        return True, "the controls history is unreadable: the EC2 close state cannot be authenticated; refused"
+    for v in vs:
+        ref = v.get("partition") if isinstance(v, dict) else None
+        if not ref:
+            continue
+        rel = ref.get("path") if isinstance(ref, dict) else None
+        want = ref.get("sha256") if isinstance(ref, dict) else None
+        if not (isinstance(rel, str) and rel and isinstance(want, str) and len(want) == 64):
+            return True, (f"controls version {v.get('version') if isinstance(v, dict) else '?'} carries a malformed partition "
+                          "reference: the EC2 close state cannot be authenticated; refused")
+        p = os.path.join(T1, rel)
+        try:
+            if os.path.islink(p) or not os.path.isfile(p):
+                raise OSError("not a regular file")
+            b = open(p, "rb").read()
+            if hashlib.sha256(b).hexdigest() != want:
+                raise ValueError(f"its bytes are not the pinned {want[:12]}")
+            doc = json.loads(b.decode())
+            if not isinstance(doc, dict) or not isinstance(doc.get("schema"), str):
+                raise ValueError("not a partition declaration")
+        except Exception as e:
+            return True, (f"controls version {v.get('version')} pins {rel} ({want[:12]}), which cannot be authenticated "
+                          f"({type(e).__name__}: {e}): the EC2 close state is unknown; refused (fail closed)")
+        if doc.get("schema") == CLOSE_SCHEMA:
+            return True, (f"row-19 EC2 is CLOSED: controls version {v.get('version')} pins the closing epoch {doc.get('epoch')} "
+                          f"({rel}, {want[:12]}); no EC2 qualification, production, release or allocation "
+                          "for row 19 (owner decision 23 Oct 2026, route A; terminal)")
+    return False, ""
+
+
+def closed_problem(ctl=None):
+    """REVISION 10: '' while row-19 EC2 is open; the terminal refusal once it is closed."""
+    try:
+        closed, why = ec2_closed(ctl)
+    except Exception as e:
+        return f"the EC2 close state cannot be read ({type(e).__name__}): refused"
+    return why if closed else ""
 
 
 def run_name(epoch):
@@ -381,6 +451,8 @@ def allocate(part, leds, completed, n, excluded=()):
     """The next n coordinates of the partition, never completed, owned or crash-excluded. Schema 1: the fixed order (index
     199 downward, reps ascending). Schema 2 (REVISION 5): REPLICATE-COMPLETE - ascending (rep, index) over the explicitly
     owned set, so a batch finishes the earliest replicates' remaining coordinates before it starts the next replicate."""
+    if part.get("schema") == CLOSE_SCHEMA or closed_problem():                # REVISION 10: nothing is allocated after the close
+        raise ValueError(closed_problem() or "a closing (schema-3) partition owns nothing: row-19 EC2 is closed")
     own = owned(leds); ex = set(map(tuple, excluded))
     if part.get("schema") == RP.SCHEMA2:
         out, per = [], {}                                     # REVISION 6 (A3): at most E2_WORK_PER_REP of one replicate per batch
@@ -599,7 +671,11 @@ def pinned_partition():
 
 def release_problem(cert_path, review_path, leds=None):
     """(released attempt keys, '') when the certificate and its review release production now; else ([], why). R1-4.
-    REVISION 7: a schema-3 certificate is judged by the epoch-2 branch, everything else by the epoch-1 branch."""
+    REVISION 7: a schema-3 certificate is judged by the epoch-2 branch, everything else by the epoch-1 branch.
+    REVISION 10: nothing is released after the close."""
+    why = closed_problem()
+    if why:
+        return [], why
     try:
         cert = json.load(open(cert_path))
     except Exception as e:
@@ -792,7 +868,11 @@ def _nonrejected_run(leds, run):
 
 def e2q_admission_problem(contract, rel, leds):
     """REVISION 7: '' when an E2Q1/E2Q2 admission is permitted by the release state and the declared retry rule. REVISION 9:
-    and E2Q3 (owner 21 Oct 2026): its own permission record, every non-rejected E2Q1 and E2Q2 attempt dispositioned, at most one."""
+    and E2Q3 (owner 21 Oct 2026): its own permission record, every non-rejected E2Q1 and E2Q2 attempt dispositioned, at most one.
+    REVISION 10: refused for every contract after the close."""
+    why = closed_problem()
+    if why:
+        return why
     q = rel.get("qualification_e2") or {}
     if not q.get("ok"):
         return ("ec2_release_state.json does not permit the epoch-2 qualification (row 23 success, the benchmark fence and a "
@@ -821,7 +901,11 @@ def e2q_admission_problem(contract, rel, leds):
 
 def production_release_problem(rel, epoch, opmanifest_sha):
     """REVISION 7: '' when production of `epoch` is released: the release state's production block is ok, its certificate
-    released THIS epoch, and (epoch 2) the operational manifest is the one the certificate bound."""
+    released THIS epoch, and (epoch 2) the operational manifest is the one the certificate bound. REVISION 10: refused after
+    the close."""
+    why = closed_problem()
+    if why:
+        return why
     pr = rel.get("production") or {}
     if not pr.get("ok"):
         return "ec2_release_state.json does not permit production: no reviewed production release (prod_authority.py release-adopt)"
@@ -862,7 +946,7 @@ def release_state(leds=None):
         except Exception:
             e2 = False
         if not (q2["ok"] if e2 else q["ok"]):                                # each epoch's release needs its own qualification gate
-            return r
+            return _closed_release_state(r)
         keys, why = release_problem(cp, os.path.join(HERE, pr["review_path"]), leds)
         if not why and sorted(pr.get("released_attempts") or []) != sorted(keys):
             why = "the release state lists other attempts than its certificate releases"
@@ -871,6 +955,17 @@ def release_state(leds=None):
             cert = json.load(open(cp))
             pr["epoch"] = EQ.EPOCH if e2 else 1
             pr["production_opmanifest_sha256"] = ((cert.get("bound") or {}).get("opmanifests") or {}).get("production") if e2 else None
+    return _closed_release_state(r)
+
+
+def _closed_release_state(r):
+    """REVISION 10: after the close every qualification permission and the production block read NOT ok, with the reason."""
+    why = closed_problem()
+    r["closed"] = why
+    if why:
+        r["qualification"]["ok"] = False
+        r["qualification_e2"].update(ok=False, e2q2_ok=False, e2q3_ok=False)
+        r["production"].update(ok=False, derived_released_attempts=[], why=why, epoch=None, production_opmanifest_sha256=None)
     return r
 
 
@@ -893,7 +988,11 @@ def release_adopt(cert_rel, review_rel):
 
 def exclusion_problem(leds, region):
     """R1-7: no production/qualification admission while a benchmark attempt is unresolved or running (its launcher is not
-    under the global lock), nor while an unresolved attempt was made in another region."""
+    under the global lock), nor while an unresolved attempt was made in another region. REVISION 10: nor ever after the
+    close (the first check of every prod_launch admission)."""
+    why = closed_problem()
+    if why:
+        return why
     for run, l in leds.items():
         for a in l["attempts"]:
             live = a.get("state") in ("intent", "launched", "ambiguous")
@@ -927,6 +1026,40 @@ def inventory(leds, gen, rel, now=None):
                 release=dict(production_released=rel["production"]["ok"], released_attempts=sorted(rel["production"]["derived_released_attempts"])),
                 usd=dict(b, envelope_usd=PROD_ENVELOPE_USD, cap_usd=CUMULATIVE_CAP_USD))
     return ES.seal(body)
+
+
+def close_precondition_problems(leds, inv, gen, now=None):
+    """REVISION 10: the Mac half of the close preconditions (read-only). `inv` is the latest sealed inventory (runs/inventory/
+    latest.json), `gen` the authority's current generation. [] when the close may be declared and activated."""
+    now = time.time() if now is None else now
+    out = []
+    own = owned(leds)
+    if own:
+        out.append(f"{len(own)} coordinate(s) are still owned (e.g. {sorted(own)[:2]} by {sorted({k for k, _ in own.values()})[:3]})")
+    for run, l in sorted(leds.items()):
+        if run_class(run) not in PROD_CLASSES:
+            continue
+        for a in l["attempts"]:
+            key = f"{run}/{a['attempt']}"
+            if a.get("state") == "rejected":
+                continue
+            if a.get("state") != "reconciled":
+                out.append(f"{key} is {a.get('state')}, not reconciled")
+            elif a.get("ingestion", "pending") not in ("ingested", "dispositioned"):
+                out.append(f"{key} is reconciled but {a.get('ingestion', 'pending')}"
+                           + (" (disposition requested: run ec2_sync, then disposition-confirm)" if a.get("disposition_request")
+                              else " (request its disposition)"))
+    if not isinstance(inv, dict):
+        out.append("no sealed inventory (runs/inventory/latest.json)")
+    else:
+        why = ES.inventory_problem(inv, now)
+        if why:
+            out.append(f"the latest inventory: {why}")
+        elif inv.get("generation") != gen:
+            out.append(f"the latest inventory is generation {inv.get('generation')}, not the current {gen}: seal and install a fresh one")
+        elif ES.live_attempts(inv):
+            out.append(f"the latest inventory still shows live or owning attempts {ES.live_attempts(inv)[:3]}")
+    return out
 
 
 def write_inventory(now=None):
@@ -1033,7 +1166,16 @@ def main():
     d = sub.add_parser("disposition"); d.add_argument("--run", required=True); d.add_argument("--attempt", type=int, required=True); d.add_argument("--reason", required=True)
     c = sub.add_parser("disposition-confirm"); c.add_argument("--run", required=True); c.add_argument("--attempt", type=int, required=True); c.add_argument("--ack", required=True)
     r = sub.add_parser("release-adopt"); r.add_argument("--certificate", required=True); r.add_argument("--review", required=True)
+    sub.add_parser("close-check", help="REVISION 10: the Mac half of the close preconditions (read-only, no generation)")
     a = ap.parse_args()
+    if a.cmd == "close-check":                                               # REVISION 10: read-only, writes nothing
+        lp = os.path.join(INV_DIR, "latest.json")
+        inv = json.load(open(lp)) if os.path.exists(lp) else None
+        probs = close_precondition_problems(ledgers(), inv, state()["generation"])
+        closed = closed_problem()
+        print(json.dumps(dict(close_preconditions="MET" if not probs else "NOT MET", problems=probs,
+                              inventory_generation=(inv or {}).get("generation"), closed=closed or None), indent=1))
+        return 0 if not probs else 3
     try:
         with authority_lock(wait_s=60):
             if a.cmd == "budget":
