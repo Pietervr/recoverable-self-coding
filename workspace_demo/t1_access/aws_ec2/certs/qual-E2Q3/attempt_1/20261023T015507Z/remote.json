@@ -1,0 +1,33 @@
+{
+ "at": 1792720542.8996851,
+ "files": 103,
+ "login_host": "lengau",
+ "remote_dir": "/mnt/lustre/users/pvanrooyen/t1_toolchain/ec2_stage/qual-E2Q3/attempt_1/20261023T015507Z",
+ "schema": "row19-e2q-staging-receipt-1-remote",
+ "stamp": "20261023T015507Z",
+ "transfer_host": "chpc-scp",
+ "tree_pins": {
+  "analyze.py": "97558aa9c4340f363431c67f2c2d28cd360f2f0998056af7e1702c9e9a021825",
+  "aws_ec2/e2_funding.json": "d6f414e8107f25e5de43d6b33764106c6c92dd64440ff33fddf4873416ce4815",
+  "aws_ec2/prod/manifest_e2q1_e2.json": "3ea8cafd736871de715062ca398f36ff98f93f27d1d82bd977c3b72b0f1cfb8b",
+  "aws_ec2/prod/manifest_e2q2_e2.json": "4af4a64d83c749394c7159814359da716b2a9f9a694cd23fe46157aecd7b0cec",
+  "aws_ec2/prod/manifest_e2q3_e2.json": "6d59c1f8568945f6121f9f16779aabe30f6334178bb0ba8c9d192a024805e17f",
+  "aws_ec2/prod/manifest_production_e2.json": "e126050536a8459cb1432cf78321e82147c67f5406441fff131a1f543f9f82f9",
+  "aws_ec2/prod/panel_e2q_e2.json": "f04a5e43634e13bfceaf173e303ebf780f4280de044b6bd97ee9e2c3f711c7a2",
+  "chpc/claims_snapshot_e2.json": "31cc268ff3247858fc73ac17a3a387b43e17a829d9cdea505958890a97eecb6f",
+  "chpc/row19_ec2_e2qual.py": "22251f0ffa8c338f9f3f545eccd27391a86da0bcd2aba343cca69735df5dd42c",
+  "chpc/row19_ec2_e2rules.py": "a9ea1f61daa577b642739ae781cb179e9a2089d42d3c23fff277d7d4849a3bcc",
+  "chpc/row19_ec2_ingest.py": "744ee5c81aba5be7b5160c61ccf6f335d9005d954935865d89106aa54c8fe5cd",
+  "chpc/row19_ec2_qualify.py": "1d8eee78fc9427cd9e4cebe09deac37cf4284f0b8a86714dcc9d80cde63cbb29",
+  "chpc/row19_ec2_root.py": "ceba9b3285b6bc66fff32bdc79ebbb70f09e5701794e0fa9764b1f253c169005",
+  "chpc/row19_ec2_state.py": "a9a32329b827b7b9d0bee27523271424c3d8e6026efd164d4b5fae975e1d487f",
+  "chpc/row19_partition.py": "eabf50c34be2bad3f92e07370966bcc94162cf12cbcefb326cc07a72d49ac0d8",
+  "chpc/row19_partition_e2.json": "48cea639e823abbf39238e3dd7c075f63ba9eca8467009348510e2943ed56fa6",
+  "chpc/row19_screen_controls.json": "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5",
+  "chpc/row19_screen_manifest.json": "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c",
+  "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+  "chpc/row19_shard.py": "828d59640f10cc33fcba7d98d075371945ca4b74ddaca841ea86100fc47ff383",
+  "models.py": "28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef"
+ },
+ "tree_sha256": "76fc8ecb11038357fc89b812d04c3478f6fcb17f16d98bcc400d29014600d39d"
+}

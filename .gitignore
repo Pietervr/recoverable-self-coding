@@ -9,6 +9,7 @@ proceedings/cself/mimic_demo/
 *.aux
 *.log
 *.out
+!workspace_demo/t1_access/aws_ec2/certs/**/qualify.out
 *.toc
 *.synctex.gz
 # python

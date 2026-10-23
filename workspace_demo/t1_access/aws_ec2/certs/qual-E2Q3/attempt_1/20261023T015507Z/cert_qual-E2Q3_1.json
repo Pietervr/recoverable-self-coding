@@ -1,0 +1,909 @@
+{
+ "actual_result_review_required": true,
+ "at": 1792720623.8007882,
+ "attempt": {
+  "attempt_id": "ec2-qual-E2Q3-a1",
+  "contract": "E2Q3",
+  "key": "qual-E2Q3/1",
+  "plan_sha256": "46e9fdf1569a2aae1fbbdca3d6fdf873cdabb19209ad011cda0b4de96b217d81",
+  "run": "qual-E2Q3",
+  "sequence": 12
+ },
+ "bound": {
+  "activation_sha256": "108da27592b3c99883a2453ff15f7cc4c833e22ad1184af7c20332735b926272",
+  "bundle_sha256": "553cbd071f4a6917a6b99ccf6431829dcbde60df2ea2a9199833d320886d5a76",
+  "claims_snapshot_sha256": "31cc268ff3247858fc73ac17a3a387b43e17a829d9cdea505958890a97eecb6f",
+  "code": {
+   "analyze.py": "97558aa9c4340f363431c67f2c2d28cd360f2f0998056af7e1702c9e9a021825",
+   "chpc/row19_ec2_e2qual.py": "22251f0ffa8c338f9f3f545eccd27391a86da0bcd2aba343cca69735df5dd42c",
+   "chpc/row19_ec2_e2rules.py": "a9ea1f61daa577b642739ae781cb179e9a2089d42d3c23fff277d7d4849a3bcc",
+   "chpc/row19_ec2_ingest.py": "744ee5c81aba5be7b5160c61ccf6f335d9005d954935865d89106aa54c8fe5cd",
+   "chpc/row19_ec2_qualify.py": "1d8eee78fc9427cd9e4cebe09deac37cf4284f0b8a86714dcc9d80cde63cbb29",
+   "chpc/row19_ec2_root.py": "ceba9b3285b6bc66fff32bdc79ebbb70f09e5701794e0fa9764b1f253c169005",
+   "chpc/row19_ec2_state.py": "a9a32329b827b7b9d0bee27523271424c3d8e6026efd164d4b5fae975e1d487f",
+   "chpc/row19_partition.py": "eabf50c34be2bad3f92e07370966bcc94162cf12cbcefb326cc07a72d49ac0d8",
+   "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+   "chpc/row19_shard.py": "828d59640f10cc33fcba7d98d075371945ca4b74ddaca841ea86100fc47ff383",
+   "models.py": "28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef"
+  },
+  "funding_sha256": "d6f414e8107f25e5de43d6b33764106c6c92dd64440ff33fddf4873416ce4815",
+  "inventory_sha256": "ccd979fca3bdf389d06c5b975a37dc0e0e041186ac0c6e2c910295df11440784",
+  "lifetime_s": 79200,
+  "manifest_sha256": "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c",
+  "opmanifests": {
+   "production": "e126050536a8459cb1432cf78321e82147c67f5406441fff131a1f543f9f82f9",
+   "qualified": "6d59c1f8568945f6121f9f16779aabe30f6334178bb0ba8c9d192a024805e17f"
+  },
+  "owned_sha256": "ee31504e4a04dab3d97de41f3f18f4f58806ec8eb36379dc777bbeb7fe2629b6",
+  "panel_sha256": "f04a5e43634e13bfceaf173e303ebf780f4280de044b6bd97ee9e2c3f711c7a2",
+  "partition_sha256": "48cea639e823abbf39238e3dd7c075f63ba9eca8467009348510e2943ed56fa6",
+  "plan_sha256": "46e9fdf1569a2aae1fbbdca3d6fdf873cdabb19209ad011cda0b4de96b217d81"
+ },
+ "concentration": null,
+ "coverage_required": {
+  "R1": 15
+ },
+ "coverage_short": {
+  "R1": 0
+ },
+ "epoch": 2,
+ "limitations": [
+  "R2' is validity only (no reference for new work)",
+  "R5' demonstrates ingestion publication recovery only, not producer/host restart or interrupted-transfer recovery",
+  "an unproduced coordinate is never a failed-fit record"
+ ],
+ "max_unproduced": 3,
+ "memory": null,
+ "outcome": "NO_RELEASE",
+ "parts": {},
+ "problems": [
+  "52 unproduced work slots (> 7): a packing/resource failure, held for review",
+  "only 0 sentinel(s) produced (< 3): too little parity evidence to publish",
+  "R4': 76 non-completed qualification slots (> 3 of all roles)"
+ ],
+ "r3": {
+  "note": "QUALIFICATION_E2.md R3' proposes no fresh-host repeat; R1' is the cross-platform parity check at this packing",
+  "performed": false
+ },
+ "released_attempts": [],
+ "replay": null,
+ "schema": "row19-ec2-qualification-certificate-3",
+ "unproduced": [
+  {
+   "coordinate": [
+    24,
+    11
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 0,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    12
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 1,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    13
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 2,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    14
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 3,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    15
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 4,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    16
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 5,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    17
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 6,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    18
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 7,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    19
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 8,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    20
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 9,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    21
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 10,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    22
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 11,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    23
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 12,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    24
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 13,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    25
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 14,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    26
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 15,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    27
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 16,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    28
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 17,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    29
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 18,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    30
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 19,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    31
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 20,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    32
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 21,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    33
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 22,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    34
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 23,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    35
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 24,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    36
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 25,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    37
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 26,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    38
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 27,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    39
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 28,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    40
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 29,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    41
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 30,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    42
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 31,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    43
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 32,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    44
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 33,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    45
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 34,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    46
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 35,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    47
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 36,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    48
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 37,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    49
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 38,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    50
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 39,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    51
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 40,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    52
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 41,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    53
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 42,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    54
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 43,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    55
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 44,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    56
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 45,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    57
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 46,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    58
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 47,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    59
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 48,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    60
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 49,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    61
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 50,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    62
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "work",
+   "slot": 51,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    0
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 52,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    1
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 53,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    2
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 54,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    3
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 55,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    4
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 56,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    5
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 57,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    6
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 58,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    7
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 59,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    8
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 60,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    9
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 61,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    24,
+    10
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 62,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    25,
+    0
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 63,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    25,
+    1
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 64,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    25,
+    2
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 65,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    25,
+    3
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 66,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    25,
+    4
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 67,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    25,
+    5
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 68,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    25,
+    7
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 69,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    25,
+    8
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 70,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    25,
+    9
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "qual_lengau",
+   "slot": 71,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    10,
+    13
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "sentinel",
+   "slot": 72,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    9,
+    20
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "sentinel",
+   "slot": 73,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    10,
+    24
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "sentinel",
+   "slot": 74,
+   "status_present": false
+  },
+  {
+   "coordinate": [
+    97,
+    8
+   ],
+   "kind": "censored",
+   "outcome": "censored at the upload deadline",
+   "role": "sentinel",
+   "slot": 75,
+   "status_present": false
+  }
+ ]
+}
