@@ -50,9 +50,9 @@ new schema, and `declare2`'s refusal of a hand-back is untouched.
 | `row19_partition.py` | `a762933779529a20d6f458dd7118105c855ea122353b1eaa168a8b033c6dc17e` | v19 `eabf50c3` + REVISION 7 (`partition_v19_to_v20.diff`): schema 3 (`declare3`, `schema3_problem`, `close_problems`, `handed_back`, `is_closed`, `completed_of_register`), `declare3`/`verify3` commands; `blocked`/`owned_set`/`transferred_of`/`activate`/`activation_problem`/`cutover_problems` dispatch schema 3. Schema 1/2 code paths unchanged |
 | `row19_screen_admit.py` | `7c49bf86c6809941bc982393fb4ae095f7186e0c47665c426c27350a841b08af` | v19 `27e066c7` + REVISION 20 (`admit_v19_to_v20.diff`): `lengau_scope(doc, claimed, part=None)` adds `RP.handed_back(part)`; its three callers pass `part`; the admission's partition print line handles schema 3 (it would raise KeyError on `part['indices']`) |
 | `row19_partition_e3.json` | `ca87fb1da163df10e720e5778542d2bcc5c78f30fc08b6a1cc61d671773f0e6a` | the closing declaration, `declare3` from e2 `48cea639`, the designated declaration `a96eb598` and the Mac copy of the root register (no ingested entry): handed back 3,274, retained 0, owned 0 |
-| `aws_ec2/prod_authority.py` | `20de63d2fcf6685d96b23cc3543ff72864774ca17cf4983ceabf4a52d73d71e7` | live `ba726a19` + REVISION 10 (`authority_v19_to_v20.diff`): `ec2_closed`/`closed_problem`, the refusals, `release_state` closed, `close_precondition_problems`, the read-only `close-check` command. Not a controls pin (a Mac tool) |
+| `aws_ec2/prod_authority.py` | `e1381d6811a517c3ebae09c1889ed7dafda97431842760ca963e951041b85c87` (repaired, s.11; was `20de63d2`) | live `ba726a19` + REVISION 10 (`authority_v19_to_v20.diff`): `ec2_closed`/`closed_problem`, the refusals, `release_state` closed, `close_precondition_problems`, the read-only `close-check` command. Not a controls pin (a Mac tool) |
 | `row19_screen_controls.json` | `4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c` | adopted v19 `111c3107` versions 1-19 byte-equal + one version-20 entry |
-| `v20_promotion_map.json` | `b33359536d11527bda567e3401d5b13d93ee255fb4c39277591dce92b866b140` | rows: partition module, admission (pins); e3 (data, new path); prod_authority (mac, previous `ba726a19`); the controls last |
+| `v20_promotion_map.json` | `79c78ea737f3123eb864185d5c73d35cdd63a1159e60199704933c8f690c4945` (s.11; was `b3335953`) | rows: partition module, admission (pins); e3 (data, new path); prod_authority (mac, previous `ba726a19`); the controls last |
 | `build_v20.py` / `promote_v20.py` | `6e82bb13…` / `4dfd0557…` | the build_v19/promote_v19 base-first pattern re-pointed at the v19 base (`111c3107` / adoption `2b9f3c78`), the Mac archive `row19_screen_v19_before_v20` (9 members) |
 | `test_v20_handback.py`, `regress/`, `test_results.txt` | - | section 7 |
 
@@ -154,7 +154,7 @@ pins; not worth it for one lift.)
 
 ## 7. Tests (`test_results.txt`)
 
-- `test_v20_handback.py`: **66 passed, 0 failed** - A the declaration (regeneration, split, 12 tamper refusals, a hand-back
+- `test_v20_handback.py`: **66 passed, 0 failed** at a8cc1dd; **77 passed, 0 failed** after the s.11 repair - A the declaration (regeneration, split, 12 tamper refusals, a hand-back
   coordinate claimed completed, retention of an EC2-completed coordinate, terminality, e1/e2 unchanged); B the close activation in
   sandbox roots seeded from the local Lengau copy (record names only): accepted with all preconditions; refused with a live claim
   (E2Q3 pending), an undispositioned attempt (qual-Q2/1 pending), a lease (launched), a stale (7 h) inventory, an EC2-completed
@@ -207,3 +207,36 @@ installed inventory (within six hours), then `t1py chpc/row19_partition.py activ
    migration re-verifies it (`verify3`) against the root's register, and the activation compares the live register again.
 6. `row19_partition.py` is in the epoch-2 release code set (`E2_RELEASE_CODE`); v20 changes its bytes, which would invalidate any
    epoch-2 certificate - irrelevant, since the close refuses every release.
+
+## 11. Repair for Codex's review of 23 Oct (`reviews/2026-10-23_row19_v20_handback_codex.md`, RSC d3a56b4)
+
+**F1 - fail-closed terminal detector.** `prod_authority.ec2_closed()` now authenticates every partition reference in the
+controls history before classifying it: the referenced file must be a regular file (no symlink) at its path, hash to the
+reference's sha256 and parse as a JSON object with a schema. A missing, unreadable, hash-mismatched, malformed or symlinked
+historical partition, or a malformed reference, returns (True, refusal): every gate refuses ("the EC2 close state is unknown;
+refused (fail closed)"), never OPEN. With the authenticated e3 anywhere in the history the result stays CLOSED. On the live v19
+tree every historical reference (e1, e2) authenticates, so today's answers are unchanged (test D1). New tests D9a-D9i: with a
+LATER current pin (a v21 pinning e2) and the historical e3 missing / invalid JSON / replaced by e2's valid schema-2 bytes / a
+symlink to the intact e3 / one byte appended / a directory, `ec2_closed`, `closed_problem`, `exclusion_problem`,
+`e2q_admission_problem` and `production_release_problem` (with otherwise permissive synthetic release inputs) all refuse; the
+intact e3 under the same history reads CLOSED; a malformed reference and a missing e1 in a v19 history refuse.
+Package identities: `aws_ec2/prod_authority.py` `20de63d2` -> `e1381d68`, the promotion map `b3335953` -> `79c78ea7`. **The
+controls sha256 does not change (`4e64982b`)**: the controls pin the partition module and the admission, not the Mac authority
+(it is a map row of group `mac`, as in v19), and neither pinned file changed. The ADOPT literal is therefore unchanged.
+
+**F3 - frozen fixtures.** B5's pending-owner inventory and D11-D13's ledgers are now built from a FROZEN fixture,
+`fixtures/inventory_g105.json` (`03cb4433`, the immutable sealed archive generation 105 in which qual-E2Q3/1 is pending and owns
+52 coordinates and qual-Q2/1 is pending), pinned and checked by B0; D13b adds the zero-coordinate qual-Q2/1-alone case. The live
+Mac close-check is printed as an observation only (today: MET, after the owner's 0b of about 08:00Z, g108/g109). Result:
+`test_v20_handback.py` **77 passed, 0 failed**.
+
+**F2 - the frozen local migration rehearsal:** `chpc/migration_v20/test_migration_v20.py`, **39 passed, 0 failed**
+(`chpc/migration_v20/test_results.txt`; coverage list in `chpc/migration_v20/RUNBOOK.md`, Tests). The migration_v19 harness
+re-pointed at the adopted v19 (frozen fixture RSC `add8586`), the real script bodies, a network-refusing fake Lengau transport,
+and the REAL canonical close (`row19_partition.py verify3` / `activate` CLI, plan lock, `close_problems`, proof publication;
+only the frozen manifest's storage paths are remapped to the fake root). Positive route through the pilot adoption; admission
+held before the close and before the new pilot review (the real v20 admission's gates); the close refusals (pending E2Q3,
+zero-coordinate pending Q2, a launched attempt, stale inventory, changed retained set, missing cover, held plan lock, wrong
+pre-existing proof, v19 controls); an interruption right after the proof publication and the idempotent retry; every existing
+archive / containment / science-preservation / interrupted-deploy check. It caught one real defect, fixed: `close_v20.sh` piped
+into `grep -q` (the 9df2a1f SIGPIPE pattern) - now `grep -F ... >/dev/null`.

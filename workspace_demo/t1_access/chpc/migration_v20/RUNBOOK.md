@@ -1,4 +1,4 @@
-# v19 -> v20 migration (controls v20: the EC2 CLOSE, epoch-2 block handed back to Lengau) - RUNBOOK and SCRIPTS, BUILT, STATICALLY CHECKED, NOT EXECUTED
+# v19 -> v20 migration (controls v20: the EC2 CLOSE, epoch-2 block handed back to Lengau) - RUNBOOK and SCRIPTS, BUILT, REHEARSED LOCALLY (39/0), NOT EXECUTED
 
 Written 23 October 2026 (R052, Claude, bounded job; owner decision 23 Oct 2026 "go with route A"). Nothing in this folder has been
 run against the live tree, Lengau or AWS. It is the `chpc/migration_v19/` route re-pointed at the adopted v19 state and the v20
@@ -24,10 +24,10 @@ existing `scaleup_refit_v16.json`.
 
 ## The package
 
-`chpc/candidate_v20_handback/` (pinned by `v20_package.py` `PACKAGE`): controls `4e64982b`, map `b3335953`, `build_v20.py`
+`chpc/candidate_v20_handback/` (pinned by `v20_package.py` `PACKAGE`): controls `4e64982b`, map `79c78ea7`, `build_v20.py`
 `6e82bb13`, `promote_v20.py` `4dfd0557`, `row19_partition.py` `a7629337` (REVISION 7), `row19_screen_admit.py` `7c49bf86`
 (REVISION 20), `row19_partition_e3.json` `ca87fb1d` (NEW path `chpc/row19_partition_e3.json`), `aws_ec2/prod_authority.py`
-`20de63d2` (REVISION 10, replaces the Mac `ba726a19`), and the retained node document `730ea262` (archive member). Deploy payload:
+`e1381d68` (REVISION 10, replaces the Mac `ba726a19`), and the retained node document `730ea262` (archive member). Deploy payload:
 7 files.
 
 | Step | Script | Where | Writes |
@@ -129,11 +129,30 @@ literal; revert the controls.
 
 ## Tests
 
-- `python3 chpc/candidate_v20_handback/test_v20_handback.py` (66/0) and the regression set (`DESIGN_v20.md` s.7).
-- `python3 chpc/migration_v20/static_check_v20.py` (`static_results.txt`): every script parses, every composed Lengau body parses
-  and carries the production root, Lengau-side Python is 3.6-level, every pin equals the bytes it names, the payload/archive
-  counts, no leftover v19-package token, no worker/AWS/launch call, and `receipt_check_v20` on the newest real (v19) receipt
-  refuses exactly what it must.
-- **Not done:** the migration_v19 end-to-end harness (`test_migration_v19.py`: frozen-fixture worlds, a fake Lengau root, every
-  refusal path) is NOT re-pointed to v20. The scripts are a mechanical re-point of that tested route plus the close step; the
-  re-pointed harness is the remaining verification before a fully tested route (see OPEN in the job report).
+- `python3 chpc/candidate_v20_handback/test_v20_handback.py`: 77/0 (`DESIGN_v20.md` s.7 and s.11) and the regression set.
+- **`python3 chpc/migration_v20/test_migration_v20.py` - the frozen local REHEARSAL (Codex review 2026-10-23 F2): 39 passed,
+  0 failed** (`test_results.txt`). The migration_v19 end-to-end harness re-pointed at the adopted v19 state (frozen fixture
+  commit RSC `add8586`) and the v20 package, with the REAL promotion/archive/deploy/check/close/rollover/adopt bodies and a fake
+  Lengau transport that refuses the network (ssh/scp always refuse and are logged; every test asserts nothing tried). The close
+  runs the REAL `row19_partition.py verify3` and `activate` CLI (canonical mode, the real plan lock, `close_problems`, the real
+  proof publication); the only substitution is a path remap of the frozen manifest's storage to the fake root. Covered:
+  - the positive route: preflight, archive (+re-run), promote (+re-run), commit, deploy (+re-run), pre-close receipts, the close
+    (+ "already closed" re-run; the canonical proof's fields and the CLI call checked), post-close receipts (EC2 waiting 0,
+    plannable 3,453, e1+e2+e3), rollover (+re-run), package, adopt; e1/e2, e3, the node document and running jobs untouched;
+  - admission HELD after the deploy and before the close ("partition epoch 3 is pinned but not activated", read with the real
+    v20 admission), the partition hold gone after the close, and HELD again until the new pilot review ("no adopted review");
+  - the close refusing, with no proof written: pending E2Q3, zero-coordinate pending qual-Q2/1, a launched attempt, a 7 h stale
+    installed inventory, a changed retained set (verify3 on the route; `close_problems` on the CLI), a missing cover, a held plan
+    lock, v19 controls not pinning e3, a WRONG pre-existing proof (kept untouched), the close before the deploy; the Mac
+    close-check NOT MET (pending E2Q3, pending Q2) stops the route before any transport; a second activation refuses (immutable);
+  - an interruption right after the proof publication (the validation after `activate` fails), then an idempotent retry that
+    reports "already closed (verified)" with the proof byte-unchanged;
+  - preflight refusals incl. the close preconditions (pending E2Q3/Q2, stale Mac inventory, launched attempt; an owning attempt in
+    the installed inventory; an e3 proof already present);
+  - the pre-close receipt refusing after the close; post-close receipts refusing EC2 waiting > 0, a view that does not add up and
+    a missing e3 binding; post-close before the close;
+  - every existing migration_v19 check kept: archive, containment, science preservation, interrupted deployment, controller git,
+    evidence, Lengau compat on the restricted git/flock CLIs, record pin, package, adopt (incl. the historical qualifications).
+  The rehearsal found and fixed one real defect: `close_v20.sh` piped into `grep -q` (the 9df2a1f SIGPIPE pattern).
+- `python3 chpc/migration_v20/static_check_v20.py` (`static_results.txt`): parsing, composed bodies, pins, counts, no leftover
+  token, no worker/AWS/launch call, `receipt_check_v20` on the newest real receipt.

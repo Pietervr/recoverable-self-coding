@@ -174,7 +174,15 @@ check("A11 e1 and e2 still load unchanged under REVISION 7 (blocked/owned_set id
 # ---- B. the close activation -------------------------------------------------------------------------------------------
 print("# B. the close activation (sandbox roots seeded from the local Lengau copy; record NAMES only, never contents)")
 NOW = time.time()
-LATEST = json.load(open(os.path.join(T1, "aws_ec2", "runs", "inventory", "latest.json")))
+# F3 repair (Codex review 2026-10-23): the inventory template is a FROZEN fixture - the immutable sealed archive generation 105
+# (E2Q3/1 and qual-Q2/1 still pending, E2Q3 owning its 52 rep-24 coordinates), copied into this folder and pinned - never the
+# movable live latest.json or ledgers
+FIX_INV = os.path.join(CAND, "fixtures", "inventory_g105.json")
+FIX_INV_SHA = "03cb443304854c0988e2b55aee270d31ec0daf704bef0f835f93e02a71807bfb"
+LATEST = json.load(open(FIX_INV))
+check("B0 the frozen inventory fixture is the pinned g105 bytes, sealed, with qual-E2Q3/1 pending owning 52 and qual-Q2/1 pending",
+      sha(FIX_INV) == FIX_INV_SHA and ES.inventory_problem(LATEST, now=LATEST["at"]) == "" and len(LATEST["owners"]) == 52
+      and LATEST["attempts"]["qual-E2Q3/1"]["ingestion"] == "pending" and LATEST["attempts"]["qual-Q2/1"]["ingestion"] == "pending")
 
 
 def inventory(mut=None, at=None, gen=None):
@@ -336,6 +344,8 @@ check("D1 open today (live controls v19): closed_problem '' and the gates answer
 ct = os.path.join(TMP, "t1_closed"); os.makedirs(os.path.join(ct, "chpc"))
 shutil.copyfile(CTL20_PATH, os.path.join(ct, "chpc", "row19_screen_controls.json"))
 shutil.copyfile(E3_PATH, os.path.join(ct, "chpc", "row19_partition_e3.json"))
+for n in ("row19_partition_e1.json", "row19_partition_e2.json"):       # every historical reference must authenticate (F1)
+    shutil.copyfile(os.path.join(CHPC, n), os.path.join(ct, "chpc", n))
 REAL_T1 = PA.T1; PA.T1 = ct
 try:
     cp = PA.closed_problem()
@@ -351,24 +361,68 @@ try:
           and not rel["qualification_e2"]["e2q3_ok"] and not rel["production"]["ok"] and "CLOSED" in rel["production"]["why"] and "CLOSED" in rel["closed"])
     v21 = copy.deepcopy(CTL20); v21["versions"].append(dict(copy.deepcopy(CTL20["versions"][-1]), version=21, partition=CTL20["versions"][-2]["partition"]))
     check("D9 terminal: a later controls version that pins e2 again does not re-open EC2 (any version pinning e3 closes)",
-          PA.ec2_closed(v21)[0] is True)
+          PA.ec2_closed(v21)[0] is True and "CLOSED" in PA.ec2_closed(v21)[1])
+    # F1 repair (Codex review 2026-10-23): with a LATER current pin (v21 -> e2), damaged historical e3 evidence must refuse, never OPEN
+    json.dump(v21, open(os.path.join(ct, "chpc", "row19_screen_controls.json"), "w"), indent=1)
+    e3p = os.path.join(ct, "chpc", "row19_partition_e3.json"); e3b = open(E3_PATH, "rb").read()
+
+    def damaged(name, do):
+        if os.path.lexists(e3p):
+            os.remove(e3p)
+        do()
+        cl, why = PA.ec2_closed()
+        gates = [PA.closed_problem(), PA.exclusion_problem({}, "eu-north-1"), PA.e2q_admission_problem("E2Q1", {"qualification_e2": {"ok": True}}, {}),
+                 PA.production_release_problem({"production": {"ok": True, "epoch": 2, "production_opmanifest_sha256": "x"}}, 2, "x")]
+        check(f"D9{name}: v21 pins e2, historical e3 {name} -> refused, never OPEN ({why[:70]})", cl is True and all(gates))
+    damaged("a missing", lambda: None)
+    damaged("b invalid JSON (same name)", lambda: open(e3p, "w").write("{not json"))
+    damaged("c replaced by e2's valid schema-2 bytes", lambda: shutil.copyfile(os.path.join(CHPC, "row19_partition_e2.json"), e3p))
+    damaged("d a symlink to the intact e3", lambda: os.symlink(E3_PATH, e3p))
+    damaged("e one byte appended", lambda: open(e3p, "wb").write(e3b + b" "))
+    damaged("f a directory", lambda: os.makedirs(e3p))
+    os.rmdir(e3p) if os.path.isdir(e3p) else None
+    open(e3p, "wb").write(e3b)
+    check("D9g intact e3 under the same v21 history -> CLOSED (the authenticated close)", "CLOSED" in PA.closed_problem())
+    mal = json.load(open(os.path.join(CHPC, "row19_screen_controls.json"))); mal["versions"][-1]["partition"] = {"path": "chpc/row19_partition_e2.json"}
+    check("D9h a malformed partition reference (no sha256) in the history refuses", PA.ec2_closed(mal)[0] is True and "malformed" in PA.ec2_closed(mal)[1])
+    v19h = json.load(open(os.path.join(CHPC, "row19_screen_controls.json")))
+    os.remove(os.path.join(ct, "chpc", "row19_partition_e1.json"))
+    check("D9i even a v19 history (no close) whose historical e1 evidence is missing refuses (fail closed)",
+          PA.ec2_closed(v19h)[0] is True and "cannot be authenticated" in PA.ec2_closed(v19h)[1])
 finally:
     PA.T1 = REAL_T1
 check("D10 bookkeeping stays: ack/disposition/disposition-confirm/inventory/budget never consult the close (source)",
       all("closed_problem" not in __import__("inspect").getsource(getattr(PA, f)) for f in ("ack", "disposition", "disposition_confirm", "inventory", "budget")))
-inv_now = json.load(open(os.path.join(PA.INV_DIR, "latest.json")))
-pr_real = PA.close_precondition_problems(leds, inv_now, PA.state()["generation"])
-check(f"D11 close-check on the REAL Mac ledgers: NOT MET - E2Q3/1 and qual-Q2/1 pending, 52 owned ({len(pr_real)} problems)",
-      any("qual-E2Q3/1" in x for x in pr_real) and any("qual-Q2/1" in x for x in pr_real) and any("owned" in x for x in pr_real))
-leds_d = copy.deepcopy(leds)
+# F3 repair: D11-D13 run on ledgers CONSTRUCTED from the frozen g105 fixture (deterministic); the live close-check is printed
+# separately below as an observation, never asserted
+leds_fx = {}
+for k, a in sorted(LATEST["attempts"].items()):
+    leds_fx.setdefault(a["run"], {"attempts": []})["attempts"].append(
+        dict(attempt=a["attempt"], attempt_id=a["attempt_id"], sequence=a["sequence"], state=a["state"], ingestion=a["ingestion"],
+             coordinates=a["coordinates"], contract=a["contract"]))
+GEN = LATEST["generation"]
+inv_fx = ES.seal(dict({k: v for k, v in LATEST.items() if k != "sha256"}, at=NOW - 60))
+pr_fx = PA.close_precondition_problems(leds_fx, inv_fx, GEN, NOW)
+check(f"D11 close-check on the FROZEN g105 state: NOT MET - E2Q3/1 and qual-Q2/1 pending, 52 owned ({len(pr_fx)} problems)",
+      any("qual-E2Q3/1" in x for x in pr_fx) and any("qual-Q2/1" in x for x in pr_fx) and any("owned" in x for x in pr_fx))
+leds_d = copy.deepcopy(leds_fx)
 for run, n in (("qual-E2Q3", 1), ("qual-Q2", 1)):
     a = next(x for x in leds_d[run]["attempts"] if x["attempt"] == n); a["ingestion"] = "dispositioned"
-inv_d = inventory(gen=PA.state()["generation"], at=NOW - 60)
+inv_d = inventory(gen=GEN + 3, at=NOW - 60)
 check("D12 close-check MET once E2Q3/1 and qual-Q2/1 are dispositioned and a fresh current-generation inventory is sealed",
-      PA.close_precondition_problems(leds_d, inv_d, PA.state()["generation"], NOW) == [])
+      PA.close_precondition_problems(leds_d, inv_d, GEN + 3, NOW) == [])
 check("D13 close-check refuses a stale (7 h) or a non-current-generation inventory",
-      PA.close_precondition_problems(leds_d, inventory(gen=PA.state()["generation"], at=NOW - 7 * 3600), PA.state()["generation"], NOW) != []
-      and PA.close_precondition_problems(leds_d, inv_d, PA.state()["generation"] + 1, NOW) != [])
+      PA.close_precondition_problems(leds_d, inventory(gen=GEN + 3, at=NOW - 7 * 3600), GEN + 3, NOW) != []
+      and PA.close_precondition_problems(leds_d, inv_d, GEN + 4, NOW) != [])
+d_one = copy.deepcopy(leds_d)
+next(x for x in d_one["qual-Q2"]["attempts"] if x["attempt"] == 1)["ingestion"] = "pending"
+check("D13b close-check refuses the zero-coordinate qual-Q2/1 alone still pending",
+      any("qual-Q2/1" in x for x in PA.close_precondition_problems(d_one, inv_d, GEN + 3, NOW)))
+try:                                                          # the LIVE observation: printed, never part of the test result
+    _lp = PA.close_precondition_problems(PA.ledgers(), json.load(open(os.path.join(PA.INV_DIR, "latest.json"))), PA.state()["generation"])
+    print(f"   (observation, not a test) live Mac close-check now: {'MET' if not _lp else 'NOT MET ' + str(_lp[:3])}")
+except Exception as _e:
+    print(f"   (observation, not a test) live Mac close-check could not be read: {type(_e).__name__}")
 src_pl = open(os.path.join(T1, "aws_ec2", "prod_launch.py")).read()
 i_ex, i_gate, i_alloc = src_pl.find("why = PA.exclusion_problem(leds"), src_pl.find("why = gate_problem("), src_pl.find("PA.allocate(")
 check("D14 prod_launch (unchanged) calls PA.exclusion_problem before the release gate and before any plan, so every launch refuses at once",

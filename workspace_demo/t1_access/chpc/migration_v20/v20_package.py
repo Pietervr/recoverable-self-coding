@@ -25,19 +25,19 @@ import fcntl, hashlib, json, os, re, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 T1 = os.path.abspath(os.path.join(HERE, "..", ".."))
 CAND = os.path.join(T1, "chpc", "candidate_v20_handback")
-REC, REC_SHA = None, None   # @record: the committed operator record with the v20 ADOPT literal, and its sha256
+REC, REC_SHA = None, None   # @record: the committed operator record with the v20 ADOPT literal, and its sha256 (PENDING)
 V20_CONTROLS = "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c"
 LITERAL = "ADOPT row19-screen-controls sha256=%s version=20" % V20_CONTROLS
 PACKAGE = {   # the package identities (chpc/candidate_v20_handback/DESIGN_v20.md; the candidate commit)
     "chpc/candidate_v20_handback/row19_screen_controls.json": V20_CONTROLS,
-    "chpc/candidate_v20_handback/v20_promotion_map.json": "b33359536d11527bda567e3401d5b13d93ee255fb4c39277591dce92b866b140",
+    "chpc/candidate_v20_handback/v20_promotion_map.json": "79c78ea737f3123eb864185d5c73d35cdd63a1159e60199704933c8f690c4945",
     "chpc/candidate_v20_handback/build_v20.py": "6e82bb13d1e7015866eeccecc7171b0107c42e734c1b434a97f35d4133f40999",
     "chpc/candidate_v20_handback/promote_v20.py": "4dfd05575cbcea5622db6d5b81d6fe90c10c891d7a23bd57dd6e3aec6e4a9136",
     "chpc/candidate_v20_handback/row19_partition.py": "a762933779529a20d6f458dd7118105c855ea122353b1eaa168a8b033c6dc17e",
     "chpc/candidate_v20_handback/row19_screen_admit.py": "7c49bf86c6809941bc982393fb4ae095f7186e0c47665c426c27350a841b08af",
     # the closing declaration (a NEW data path, pinned by the version entry's `partition`) and the replaced Mac authority
     "chpc/candidate_v20_handback/row19_partition_e3.json": "ca87fb1da163df10e720e5778542d2bcc5c78f30fc08b6a1cc61d671773f0e6a",
-    "chpc/candidate_v20_handback/aws_ec2/prod_authority.py": "20de63d2fcf6685d96b23cc3543ff72864774ca17cf4983ceabf4a52d73d71e7",
+    "chpc/candidate_v20_handback/aws_ec2/prod_authority.py": "e1381d6811a517c3ebae09c1889ed7dafda97431842760ca963e951041b85c87",
     "chpc/candidate_v18_nodefail/evidence_row19_screen_refit_54.nodefail.json": "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f",
 }
 V19 = {"chpc/row19_screen_controls.json": "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5",
@@ -252,7 +252,7 @@ def main(argv):
         if why:
             print("PREFLIGHT REFUSED (Mac):"); [print("  -", w) for w in why]; return 3
         print("mac preflight OK: the live tree is the adopted v19 (controls 111c3107, adoption 2b9f3c78), every promoted path at its v19 "
-              "bytes, the pinned package (controls 4e64982b, map b3335953, builder, promoter, sources, e3 ca87fb1d, authority 20de63d2, node evidence 730ea262) "
+              "bytes, the pinned package (controls 4e64982b, map 79c78ea7, builder, promoter, sources, e3 ca87fb1d, authority e1381d68, node evidence 730ea262) "
               "and the operator adoption record committed with the literal in HEAD, promote_v20.py --check OK, Mac qualification e123d6e5, "
               "no Mac archive, Mac drain observed, EC2 authority lock free, the EC2 close preconditions MET (close-check)"); return 0
     if cmd == "check-promoted":

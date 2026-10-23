@@ -1,6 +1,6 @@
 """migration_v20 STATIC checks (Mac, read-only; nothing is sent to Lengau, nothing is written outside a temporary directory).
-The migration_v19 end-to-end harness (test_migration_v19.py, frozen fixtures and a fake Lengau root) is NOT re-pointed for v20;
-these checks cover what can be verified without it.
+The end-to-end rehearsal is test_migration_v20.py (the re-pointed migration_v19 harness plus the close; Codex review
+2026-10-23 F2); these checks are the quick static layer beside it.
 
     python3 chpc/migration_v20/static_check_v20.py          (from workspace_demo/t1_access)"""
 import ast, glob, hashlib, importlib.util, json, os, re, subprocess, sys, tempfile
@@ -88,7 +88,7 @@ for f in ("receipt_check_v20.py", "package_qual_v20.py"):
     check(f"{f}: V20_CONTROLS is the candidate controls and the generation is 20/20",
           ctl20 in open(os.path.join(HERE, f)).read() and 'g.get("version") == 20 and g.get("latest") == 20' in open(os.path.join(HERE, f)).read())
 check("no leftover v19-package token (the E2Q3 manifest path, 'nine payload', the v19 map 8256a584) in any script",
-      not any(t in open(p).read() for p in SH + PY if not p.endswith("static_check_v20.py") for t in ("manifest_e2q3_e2.json", "nine payload", "8256a584")))
+      not any(t in open(p).read() for p in SH + PY if not p.endswith(("static_check_v20.py", "test_migration_v20.py")) for t in ("manifest_e2q3_e2.json", "nine payload", "8256a584")))
 check("no script stops a worker or reaper, calls AWS, or runs prod_launch/qual_permit/release-adopt",
       not any(re.search(r"\b(qdel|aws |prod_launch\.py --|qual_permit\.py --|release-adopt|kill )", open(p).read()) for p in SH))
 RC = load("receipt_check_v20", os.path.join(HERE, "receipt_check_v20.py"))

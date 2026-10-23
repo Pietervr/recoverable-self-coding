@@ -19,7 +19,7 @@ python3 chpc/migration_v20/v20_package.py check-promoted || fail "the Mac promot
 python3 chpc/migration_v20/v20_package.py drain || fail "the Mac drain is not observed (above)"
 OUT=$(python3 aws_ec2/prod_authority.py close-check); rc=$?
 printf '%s\n' "$OUT"
-[ $rc = 0 ] && printf '%s\n' "$OUT" | grep -q '"close_preconditions": "MET"' \
+[ $rc = 0 ] && printf '%s\n' "$OUT" | grep -F '"close_preconditions": "MET"' >/dev/null \
   || fail "the Mac half of the close preconditions is NOT MET (above): finish RUNBOOK step 0b"
 [ "$DRY" = "--dry-run" ] && { echo "DRY RUN - the Mac checks pass; would run close_e3.sh on Lengau (verify3, then the e3 activation under the plan lock)"; exit 0; }
 . chpc/migration_v20/lengau.sh || fail "cannot load chpc/migration_v20/lengau.sh"

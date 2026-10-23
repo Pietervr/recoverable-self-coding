@@ -2,7 +2,7 @@
 # lengau.sh sends this file, the embedded archive checker (lengau_archive.py), any payload files and ONE body (preflight_v20.sh,
 # archive_v19.sh, deploy_v20.sh, check_v20.sh, close_e3.sh, rollover_pilot_v20.sh or adopt_pilot20.sh) to Lengau as a single
 # `bash -s` script. Never run alone. The toolchain root below is the fixed production route: there is no test hook in this file
-# or in any production script (static checks only so far: static_check_v20.py; the migration_v19 test harness is not re-pointed).
+# or in any production script (tests run private copies: test_migration_v20.py; static_check_v20.py).
 # Containment (the migration_v16 rules, Codex re-review 2026-10-17 P2, carried unchanged through v19): every fixed root below and
 # every authority source / mutation destination a body uses must be its own physical path in its canonical scope (canon,
 # src_file, dst_file, dst_absent, dst_dir), never in the scientific clone; the controller and scientific roots are distinct and

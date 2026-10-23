@@ -874,7 +874,7 @@
          w = verify(dst, files)
          if w:
 --- migration_v19/preflight_v19.sh	2026-10-21 17:53:16
-+++ migration_v20/preflight_v20.sh	2026-10-22 22:47:38
++++ migration_v20/preflight_v20.sh	2026-10-22 23:07:35
 @@ -1,12 +1,14 @@
  #!/bin/bash
 -# Migration v18 -> v19, step 1 (Mac + Lengau; READ-ONLY): the FULL live read-only preflight (the preflight_v18.sh pattern).
@@ -886,8 +886,8 @@
 -#          are the ADOPTED v18 bytes (452b82df / 3e1fe9a1), committed; each of the five promoted pins holds its v18 bytes and the new E2Q3 manifest path is absent,
 -#          committed; `promote_v19.py --check` exits 0; the e2 partition is the committed 48cea639;
 -#          the Mac qualified_refit_job1.json is the v18 pilot qualification 530df9a2 and its pilot record 67f2b438 is committed;
-+#  Mac (v20_package.py preflight): the pinned package is exact and committed (candidate controls 4e64982b, map b3335953, the
-+#          builder, the promoter, the two promoted controllers, the e3 closing declaration ca87fb1d, the Mac authority 20de63d2, the
++#  Mac (v20_package.py preflight): the pinned package is exact and committed (candidate controls 4e64982b, map 79c78ea7, the
++#          builder, the promoter, the two promoted controllers, the e3 closing declaration ca87fb1d, the Mac authority e1381d68, the
 +#          retained node evidence 730ea262) AND the operator adoption record is pinned (the v20_package.py record pin), committed and
 +#          carries the v20 literal IN HEAD; the live chpc/ controls and adoption are the ADOPTED v19 bytes (111c3107 / 2b9f3c78),
 +#          committed; the two promoted pins and the Mac authority hold their v19 bytes and the new e3 path is absent;
@@ -1142,7 +1142,7 @@
 +[ "$PHASE" = pre ] && echo "V20 RECEIPTS OK (pre-close) - next: bash chpc/migration_v20/close_v20.sh (step 6)" \
 +  || echo "V20 RECEIPTS OK (post-close) - next: bash chpc/migration_v20/lengau.sh rollover_pilot_v20.sh (step 8)"
 --- migration_v19/remote_lib.sh	2026-10-21 17:52:11
-+++ migration_v20/remote_lib.sh	2026-10-22 22:45:40
++++ migration_v20/remote_lib.sh	2026-10-22 23:33:23
 @@ -1,17 +1,19 @@
 -# migration_v19 Lengau prelude (the migration_v18 remote_lib.sh, re-pointed at the adopted v18 state and the v19 package).
 -# lengau.sh sends this file, the embedded archive checker (lengau_archive.py), any payload files and ONE body (preflight_v19.sh,
@@ -1154,7 +1154,7 @@
 +# lengau.sh sends this file, the embedded archive checker (lengau_archive.py), any payload files and ONE body (preflight_v20.sh,
 +# archive_v19.sh, deploy_v20.sh, check_v20.sh, close_e3.sh, rollover_pilot_v20.sh or adopt_pilot20.sh) to Lengau as a single
 +# `bash -s` script. Never run alone. The toolchain root below is the fixed production route: there is no test hook in this file
-+# or in any production script (static checks only so far: static_check_v20.py; the migration_v19 test harness is not re-pointed).
++# or in any production script (tests run private copies: test_migration_v20.py; static_check_v20.py).
 +# Containment (the migration_v16 rules, Codex re-review 2026-10-17 P2, carried unchanged through v19): every fixed root below and
  # every authority source / mutation destination a body uses must be its own physical path in its canonical scope (canon,
  # src_file, dst_file, dst_absent, dst_dir), never in the scientific clone; the controller and scientific roots are distinct and
@@ -1433,8 +1433,1671 @@
  dst_dir "$R" "$GS" "retired-review directory"
  mkdir -p -- "$R" || die "cannot create $R"
  gate_paths                                   # immediately before the move: a member changed to a symlink since the archive refuses
+--- migration_v19/test_migration_v19.py	2026-10-21 17:59:43
++++ migration_v20/test_migration_v20.py	2026-10-22 23:27:27
+@@ -1,37 +1,40 @@
+ #!/usr/bin/env python3
+-"""Private-copy tests for the migration_v19 scripts (the migration_v18 test pattern, re-pointed; every Codex finding on
+-migration_v16/v17/v18 is a requirement here too).
++"""Private-copy tests (the frozen local REHEARSAL) of the migration_v20 scripts: the migration_v19 harness re-pointed at the
++adopted v19 state and the v20 package, plus the new step 6 (the EC2 close). Codex review 2026-10-23 F2 / F3.
+ 
+-    python3 chpc/migration_v19/test_migration_v19.py [-k <substring>] [--keep]      (from anywhere)
++    python3 chpc/migration_v20/test_migration_v20.py [-k <substring>] [--keep]      (from anywhere)
+ 
+-FROZEN FIXTURES. This harness never seeds a world from live, movable state. The adopted-v18 starting state is read from git
+-objects at ONE pinned commit (FIXTURE_COMMIT, RSC 1a83cbf, where the Mac tree was exactly the adopted v18 with its regenerated
+-pilot qualification 530df9a2 and the operator pilot record) through `git show <commit>:<path>`, and every file is checked
+-against FROZEN (its pinned sha256) or, for the 19 v18 pins, against the frozen v18 controls entry. Only the immutable v19
+-candidate package (chpc/candidate_v19_oploss/*, pinned by v19_package.PACKAGE) is read from the working tree, and the three
+-pinned controller-clone evidence files come from their own pinned commits (as in v18). It never reads, clones or hashes the
+-whole repository, and no protected plant/key/sample file or scientific source: the scientific job clone holds eight synthetic
+-placeholders.
++FROZEN FIXTURES. This harness never seeds a world from live, movable state. The adopted-v19 starting state is read from git
++objects at ONE pinned commit (FIXTURE_COMMIT, RSC add8586, where the Mac tree was exactly the adopted v19 with its regenerated
++pilot qualification e123d6e5 and the operator pilot record) through `git show <commit>:<path>`, and every file is checked
++against FROZEN (its pinned sha256) or, for the 19 v19 pins, against the frozen v19 controls entry. Only the immutable v20
++candidate package (chpc/candidate_v20_handback/*, pinned by v20_package.PACKAGE, incl. the frozen sealed g105 inventory fixture)
++is read from the working tree, and the three pinned controller-clone evidence files come from their own pinned commits. The EC2
++bookkeeping of both sides (Mac ledgers, authority state and sealed inventory; the root's installed inventory and register) is
++CONSTRUCTED from that frozen g105 inventory (ec2_state), never copied from the live runs/. No protected plant/key/sample file or
++scientific source is read: the scientific job clone holds eight synthetic placeholders.
+ A world is:
+-  mac/        a private git repository holding workspace_demo/t1_access/<frozen allowlist + candidate package + a synthetic
+-              controls OPERATOR record carrying the v19 literal>, at the adopted v18
+-  lengau/     a fake toolchain root: rsc_screen_ctl (a private git repository holding the frozen v18 controller set, with the
+-              three pinned evidence files UNTRACKED), rsc_screen (synthetic science), the gate (530df9a2 + an active review bound
+-              to it), gate_retired (the retired v15, v16 and v17 reviews), ec2 (activation_e1.json and a CANONICAL
+-              activation_e2.json generated by the real row19_partition code under the frozen v17 controls, as the v17 migration
+-              made it), the v16_before_v17 / v17_before_v18 archives and v17 / v18 deploy proofs left by earlier migrations,
+-              plans, locks, the ledger, refit job files including the captured node document row19_screen_refit_54.nodefail.json
+-              (730ea262), and a fake t1py
++  mac/        a private git repository holding workspace_demo/t1_access/<frozen allowlist (incl. the v19 Mac authority and
++              bench_launch.py) + candidate package + a synthetic controls OPERATOR record carrying the v20 literal>, at the adopted
++              v19, with constructed aws_ec2/runs/ ledgers and inventory (step 0b done unless a test says otherwise)
++  lengau/     a fake toolchain root: rsc_screen_ctl (the frozen v19 controller set, the three pinned evidence files UNTRACKED),
++              rsc_screen (synthetic science), the gate (e123d6e5 + an active review bound to it), gate_retired (v15-v18 reviews),
++              ec2 (activation_e1.json, a CANONICAL activation_e2.json generated by the real row19_partition code under the frozen
++              v17 controls, the constructed installed inventory and an EC2 register), earlier archives and deploy proofs, a
++              well-formed plan holding Lengau's claims on the 47 (from the frozen e2 claims snapshot) so the close's cover check
++              is real, locks, the ledger, refit job files incl. the captured node document (730ea262), a fake t1py
+   fakebin/    ps, sha256sum (fault injection), ssh and scp (ALWAYS refuse, logged: nothing can leave the Mac)
+-  lengaubin/  restricted-CLI shims first on the Lengau half's PATH (git rejects -C; flock rejects -E) as in migration_v18
+-The production files are COPIED into mac/.../chpc/migration_v19/ with exactly three tagged lines substituted: the `# @root`
++  lengaubin/  restricted-CLI shims first on the Lengau half's PATH (git rejects -C; flock rejects -E)
++The production files are COPIED into mac/.../chpc/migration_v20/ with exactly three tagged lines substituted: the `# @root`
+ toolchain root in remote_lib.sh (-> the fake root), the `# @transport` ssh in lengau.sh (-> a local `bash -s`) and the
+-`# @record` controls-record pin in v19_package.py (in production PENDING until the operator fills it with the committed operator
+-record; install(record=True): the world's SYNTHETIC record REC and its own private digest; install(record=False): an explicit
+-private PENDING (None, None)). The production line may be the PENDING line or one filled line of the exact form.
+-The fake t1py is `python3` for every `-c` snippet and INTERCEPTS only `chpc/row19_screen_admit.py ... --adopt-review` (simulated:
+-ok / refuse); ANY other controller script is refused. The refit and bank status commands are private STUBS. Nothing here runs
+-ssh/scp, touches Lengau, AWS or the live tree, or writes outside the temp directory (removed at the end unless --keep)."""
++`# @record` controls-record pin in v20_package.py (PENDING in production until the operator fills it).
++The fake t1py is `python3` for every `-c` snippet; it runs `chpc/row19_partition.py verify3|activate` as the REAL, unmodified
++script with ONE path remap (remap_run.py: the frozen manifest's storage root/campaign -> the fake root; the manifest bytes and
++every 43b75f94 binding unchanged) - the plan lock, close_problems, the scan and the CANONICAL proof publication are the real
++code; it simulates only `chpc/row19_screen_admit.py ... --adopt-review` (ok / refuse) and refuses every other controller
++script. The refit and bank status commands are private STUBS (scheduler receipt collection only). The admission gates
++(partition, activation_problem_v10, review_problem) are read with the REAL v20 admission in the controller clone (same remap).
++Nothing here runs ssh/scp, touches Lengau, AWS or the live tree, or writes outside the temp directory (removed unless --keep)."""
+ import ast, hashlib, json, os, re, shlex, shutil, signal, stat, subprocess, sys, tempfile, time
+ 
+ sys.dont_write_bytecode = True
+@@ -44,12 +47,12 @@
+ TRANSPORT = "ssh -o ControlPath=none -o ConnectTimeout=30 -o BatchMode=yes lengau bash -s"
+ ROOT_LINE = "T_ROOT=/mnt/lustre/users/pvanrooyen/t1_toolchain   # @root"
+ # the ONE production @record assignment: PENDING until the operator fills it with the committed operator record (RUNBOOK step 0)
+-PROD_PENDING_LINE = "REC, REC_SHA = None, None   # @record: the committed operator record with the v19 ADOPT literal, and its sha256 (PENDING)"
++PROD_PENDING_LINE = "REC, REC_SHA = None, None   # @record: the committed operator record with the v20 ADOPT literal, and its sha256 (PENDING)"
+ FILLED_RE = re.compile(r'^REC, REC_SHA = "(reviews/[A-Za-z0-9._-]+\.md)", "([0-9a-f]{64})"   # @record: [^\n]*$', re.M)
+ 
+ 
+ def record_line(src):
+-    """The single production @record line of v19_package.py (PENDING or filled), or None."""
++    """The single production @record line of v20_package.py (PENDING or filled), or None."""
+     lines = [l for l in src.splitlines() if "# @record" in l]
+     if len(lines) != 1:
+         return None
+@@ -63,12 +66,14 @@
+ V16_QUAL = "2c7a7ef1fb903cf0fa75701d2a56d216e98faf14e6638da891afd8bed0bfea44"
+ V17_QUAL = "8fdbf48e998e39a8c0b12900d75e3dfaf4ab64396ade08a17a5cab549c0b5faa"
+ V17_CONTROLS = "9ea4e727c5d308457a2d5901ef6565522845fb31d52c3c1c0f7dd5a51a9d83c0"     # the controls the epoch-2 activation was made under
+-V18_QUAL = "530df9a208eb1578282ef564708447fd3b32c5fa1366f388f51059ebcfd70839"
++V18_QUAL = "530df9a208eb1578282ef564708447fd3b32c5fa1366f388f51059ebcfd70839"     # historical (v18)
+ V18_CONTROLS = "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b"
++V19_QUAL = "e123d6e5d136dfda31ac5f61dd18a2cce31ecc8dea9f1ad27be73d427cc50b02"
+ V19_CONTROLS = "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5"
++V20_CONTROLS = "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c"
+ NODE_EV_SHA = "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f"
+-REC = "reviews/test_v19_controls_record.md"            # the world's SYNTHETIC controls record (never PROD_REC)
+-REC_TEXT = "# PRIVATE TEST RECORD (never production)\n\nADOPT row19-screen-controls sha256=%s version=19\n" % V19_CONTROLS
++REC = "reviews/test_v20_controls_record.md"            # the world's SYNTHETIC controls record (never PROD_REC)
++REC_TEXT = "# PRIVATE TEST RECORD (never production)\n\nADOPT row19-screen-controls sha256=%s version=20\n" % V20_CONTROLS
+ REAL_SHA256SUM = shutil.which("sha256sum") or "/sbin/sha256sum"
+ REAL_PY = shutil.which("python3") or sys.executable
+ REAL_GIT = shutil.which("git") or "/usr/bin/git"
+@@ -78,10 +83,10 @@
+             "aws_ec2/runs/b2/bench_report_attempt_5_20261011T185715Z.json": ("c12af3e", "154511e687f006001888970bd3d65398b6b37c910221378b7f6c3c63fe63e3a4"),
+             "reviews/2026-10-11_d1d2_f3_codex_record.md": ("1609fa7", "636f1e77089578a14ee837bf95fe0f86cc84dbc907f8ced918256b69dbb55c1e")}
+ # ---- the frozen fixture: ONE pinned commit, every member pinned ------------------------------------------------------------
+-FIXTURE_COMMIT = "1a83cbf8fd22831d91c177f2504988e1b2e74ce4"     # RSC 1a83cbf: the Mac tree at the adopted v18 + pilot 530df9a2 (20 Oct 2026)
++FIXTURE_COMMIT = "add85868210f4b6c20172ac844698ce59faa6755"     # RSC add8586: the Mac tree at the adopted v19 + pilot e123d6e5 (22 Oct 2026)
+ FROZEN = {
+-    "chpc/row19_screen_controls.json": V18_CONTROLS,
+-    "chpc/row19_screen_controls_adoption.json": "3e1fe9a1ddd10a6ed160f5f1f9fc3f4f4de707efa3e90259104e7e5670ae1616",
++    "chpc/row19_screen_controls.json": V19_CONTROLS,
++    "chpc/row19_screen_controls_adoption.json": "2b9f3c783e1f7ce53cbdafa4a84e66315874512d7afcde6b03783c343ba2939c",
+     "chpc/row19_screen_budget.json": "45738358cd716558f9acf65ddac9a3faf4e16bf856db45ba66360b4d0d6129d3",
+     "chpc/row19_screen_manifest.json": "43b75f94e2d6d2caab5134130ff0fe8bfd2a2d652df49a6124394dfab7b5dc1c",
+     "chpc/row19_partition_e2.json": "48cea639e823abbf39238e3dd7c075f63ba9eca8467009348510e2943ed56fa6",
+@@ -95,25 +100,30 @@
+     "chpc/row19_ledger.py": "9a7797029a153769ebff78a9256f5c7874f5ad2204b38dff3ac4701a4b23d494",
+     "chpc/row22_bank_status.py": "1ac4b5036ca9550cdd68c711144b9673dcba626765dc58187c56b9857bb4903a",
+     "chpc/row22_bank_submit.py": "9665c3292cd01263be315020aac43bcc893c50574d5e69e4211cdbe931d3b8fe",
+-    "reviews/2026-10-20_v18r2_mig18_codex_review.md": "11ebc12467a50a125f4b583c4d673274e2ff3ea1a2ac0d3e6c03f3725c8cc2c8",
+-    "reviews/2026-10-20_pilot_v18_operator_record.md": "67f2b4383a1b25d7e6921f0c8252514a6fe797e37419af3ddfbb8116753fae87",
++    "reviews/2026-10-22_controls_v19_operator_record.md": "afd2b1560b2ea40f913d28eb71da49b383903e281d8edb3291c0f853bb7da27d",
++    "reviews/2026-10-22_pilot_v19_operator_record.md": "26aa4f8dc52be9d7f67fc493bd6002ae4d3b29ca73b77ce9c30082336ff4bde6",
+     "reviews/2026-10-17_v16_p80_codex_review.md": "a315d7d2f7b91baec3b668e4dcec4c2530ab44d8c07aef597b77e28fdd3d447c",
+     "reviews/2026-10-19_e2_repair_codex_rereview.md": "48b9cf053cbd4f73e40e3e139f84a7ab50eb6c4252e8727bf90953bc1ed88f2b",
+     "reviews/2026-10-20_pilot_v17_codex_review.md": "75bb50101afa7eebc07e47915afbed32dec92ebf1e68235fe742bf9e5ff0035d",
+     "chpc/candidate_v18_nodefail/evidence_row19_screen_refit_54.nodefail.json": NODE_EV_SHA,
++    # v20: the Mac EC2 authority the promotion replaces (its v19 bytes), the module it imports, and the E2Q3 manifest v19 added
++    "aws_ec2/prod_authority.py": "ba726a197ab2da5d89a1b8d9615890ab9e49ddf1614191d7fb2a5fc446142ac6",
++    "aws_ec2/bench_launch.py": "046aeb1dc7bf41707c0a3bce10ac6dde0ebcefa81111b6ede2095b153b68816c",
++    "aws_ec2/prod/manifest_e2q3_e2.json": "6d59c1f8568945f6121f9f16779aabe30f6334178bb0ba8c9d192a024805e17f",
+ }
+-# the adopted v17 controls and adoption (from the v17_before_v18 Mac archive at FIXTURE_COMMIT): ONLY to generate the canonical
++# the adopted v17 controls and adoption (from the v17_before_v19 Mac archive at FIXTURE_COMMIT): ONLY to generate the canonical
+ # epoch-2 activation the v17 migration made; never written into a Mac or controller tree
+ FROZEN_V17 = {"chpc/results/archive/row19_screen_v17_before_v18/row19_screen_controls.json": V17_CONTROLS,
+               "chpc/results/archive/row19_screen_v17_before_v18/row19_screen_controls_adoption.json":
+                   "61ca680e932fcb6d32a972c3198b5bd9c029da3955e15dd7acb2e07db125699b"}
+-FROZEN_QUAL = ("chpc/qualification_v18_530df9a2/qualified_refit_job1.json", V18_QUAL)   # -> the Mac receipts copy and the gate copy
+-CAND_SET = ["chpc/candidate_v19_oploss/" + f for f in ("row19_screen_controls.json", "v19_promotion_map.json", "build_v19.py",
+-            "promote_v19.py", "row19_screen_admit.py", "row19_screen_status.py", "row19_ec2_state.py", "row19_ec2_e2qual.py",
+-            "row19_ec2_ingest.py", "manifest_e2q3_e2.json")]
+-V19_PINS = ["chpc/row19_screen_status.py", "chpc/row19_screen_admit.py", "chpc/row19_ec2_state.py", "chpc/row19_ec2_e2qual.py",
+-            "chpc/row19_ec2_ingest.py"]                       # the five replaced controllers, in map order
+-V19_NEW = ["aws_ec2/prod/manifest_e2q3_e2.json"]               # the one NEW data path (E2Q3 on-demand qualifier, owner 21 Oct 2026)
++FROZEN_QUAL = ("chpc/qualification_v19_e123d6e5/qualified_refit_job1.json", V19_QUAL)   # -> the Mac receipts copy and the gate copy
++CAND_SET = ["chpc/candidate_v20_handback/" + f for f in ("row19_screen_controls.json", "v20_promotion_map.json", "build_v20.py",
++            "promote_v20.py", "row19_partition.py", "row19_screen_admit.py", "row19_partition_e3.json", "aws_ec2/prod_authority.py",
++            "fixtures/inventory_g105.json")]
++V20_PINS = ["chpc/row19_partition.py", "chpc/row19_screen_admit.py"]   # the two replaced controllers, in map order
++V20_NEW = ["chpc/row19_partition_e3.json"]                     # the one NEW data path (the e3 closing declaration)
++E3_SHA = "ca87fb1da163df10e720e5778542d2bcc5c78f30fc08b6a1cc61d671773f0e6a"
++FIX_INV_SHA = "03cb443304854c0988e2b55aee270d31ec0daf704bef0f835f93e02a71807bfb"   # the frozen sealed g105 inventory (candidate fixture)
+ QUAL_MAC = "chpc/results/row19_screen/receipts/qualified_refit_job1.json"
+ 
+ BASE = None
+@@ -204,17 +214,17 @@
+ 
+ 
+ def frozen_set():
+-    """{rel: bytes} of the whole frozen controller allowlist: FROZEN + the 19 pins of the frozen v18 entry, each verified."""
++    """{rel: bytes} of the whole frozen controller allowlist: FROZEN + the 19 pins of the frozen v19 entry, each verified."""
+     out = {}
+     for rel, want in FROZEN.items():
+         b = frozen(rel)
+         need(hashlib.sha256(b).hexdigest() == want, "frozen fixture %s is not %s" % (rel, want[:8]))
+         out[rel] = b
+-    v18 = json.loads(out["chpc/row19_screen_controls.json"])["versions"][-1]
+-    need(v18["version"] == 18 and len(v18["files"]) == 19, "the frozen controls' latest entry is not v18 with 19 pins")
+-    for rel, want in v18["files"].items():
++    v19 = json.loads(out["chpc/row19_screen_controls.json"])["versions"][-1]
++    need(v19["version"] == 19 and len(v19["files"]) == 19, "the frozen controls' latest entry is not v19 with 19 pins")
++    for rel, want in v19["files"].items():
+         b = frozen(rel)
+-        need(hashlib.sha256(b).hexdigest() == want, "frozen v18 pin %s is not %s" % (rel, want[:8]))
++        need(hashlib.sha256(b).hexdigest() == want, "frozen v19 pin %s is not %s" % (rel, want[:8]))
+         out[rel] = b
+     return out
+ 
+@@ -222,11 +232,11 @@
+ def package_pins():
+     sys.path.insert(0, HERE)
+     try:
+-        sys.modules.pop("v19_package", None)
+-        import v19_package as VP
++        sys.modules.pop("v20_package", None)
++        import v20_package as VP
+         return VP
+     finally:
+-        sys.path.pop(0); sys.modules.pop("v19_package", None)
++        sys.path.pop(0); sys.modules.pop("v20_package", None)
+ 
+ 
+ # ------------------------------------------------------------------------------------------------ fake tools
+@@ -299,7 +309,12 @@
+ d=$(cd "$(dirname "$0")" && pwd)
+ if [ -f "$d/t1py.nofcntl" ]; then for a in "$@"; do case $a in *fcntl.flock*) echo "simulated: this python has no usable fcntl" >&2; exit 1;; esac; done; fi
+ case "${1:-}" in
+-  -c) exec python3 "$@";;
++  -c) if [ -f "$d/t1py.fail_act3" ]; then for a in "$@"; do case $a in *"ACT3"*|*"closed\") is True"*) rm -f "$d/t1py.fail_act3"; echo "simulated interruption right after the proof publication" >&2; exit 1;; esac; done; fi
++      exec python3 "$@";;
++  chpc/row19_partition.py)
++    case "${2:-}" in verify3|activate) ;; *) echo "test t1py: unexpected partition command $*" >&2; exit 99;; esac
++    printf '%s\n' "$*" >> "$d/partition.log"
++    exec python3 "$d/remap_run.py" "$d" "$@";;
+   chpc/row19_screen_admit.py)
+     case " $* " in *" --adopt-review "*) ;; *) echo "test t1py: unexpected controller command $*" >&2; exit 99;; esac
+     printf '%s\n' "$*" >> "$d/adopt.log"
+@@ -313,9 +328,27 @@
+   *) echo "test t1py: refusing $*" >&2; exit 99;;
+ esac
+ """
++# REMAP_RUN: the REAL controller script, unmodified, with ONE path remap - the frozen manifest's storage root/campaign (the
++# production Lengau paths) point at the fake toolchain root; the manifest file's bytes (and so every binding to 43b75f94) are
++# unchanged. Nothing of the activation is stubbed: the plan lock, close_problems, the scan and the proof publication are real.
++REMAP_RUN = r'''import json, runpy, sys
++fake, script = sys.argv[1], sys.argv[2]
++PROD = "/mnt/lustre/users/pvanrooyen/t1_toolchain"
++_load = json.load
++def load(fh, *a, **k):
++    d = _load(fh, *a, **k)
++    st = d.get("storage") if isinstance(d, dict) else None
++    if isinstance(st, dict) and all(isinstance(v, str) for v in st.values()) and any(v.startswith(PROD + "/") for v in st.values()):
++        d["storage"] = {k2: (fake + v[len(PROD):] if v.startswith(PROD + "/") else v) for k2, v in st.items()}
++    return d
++json.load = load
++sys.argv = [script] + sys.argv[3:]
++sys.path.insert(0, "chpc")
++runpy.run_path(script, run_name="__main__")
++'''
+ # the canonical epoch-2 activation, generated ONCE per fresh world by the REAL frozen row19_partition code under the frozen
+ # ADOPTED v17 controls (a private scratch copy of the controller tree with the v17 controls and adoption): it is what the v17
+-# migration left on the root, and what v18 and v19 accept unchanged
++# migration left on the root, and what v19 and v20 accept unchanged
+ GEN_ACT2 = r'''import hashlib, json, os, sys, time
+ sys.path.insert(0, "chpc")
+ import row19_partition as RP
+@@ -344,11 +377,19 @@
+ if mode == "fail":
+     print("ALARMS: - simulated"); sys.exit(1)
+ now = time.time(); stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(now))
+-v = 18 if mode == "gen18" else 19
+-gen = {"version": v, "latest": v, "controls_problem": "", "controls_sha256": "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5",
++v = 19 if mode == "gen19" else 20
++gen = {"version": v, "latest": v, "controls_problem": "", "controls_sha256": "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c",
+        "verify_sha256": "0" * 64}
+ vp = os.path.join(R, "verify_refit_%s.json" % stamp); json.dump({"generation": gen}, open(vp, "w"))
+ acts = {"activation_e1.json": "1" * 64} if mode == "noe2" else {"activation_e1.json": "1" * 64, "activation_e2.json": "2" * 64}
++if mode.startswith("post"):
++    acts["activation_e3.json"] = "3" * 64
++desig = {"declaration_sha256": "a96eb598"}
++if mode.startswith("post"):
++    pend = [{"coordinate": c} for c in ("4/17", "25/6", "43/4", "55/7", "83/2")]
++    desig = {"declaration_sha256": "a96eb598", "designated": 4800, "done": 1144, "in_flight": 198,
++             "lengau_plannable": 3453 if mode != "post_hole" else 3452, "ec2_waiting_unclaimed": 0 if mode != "post_waiting" else 3274,
++             "rescue_pending": pend}
+ ev = ("row19_screen_refit_54.nodefail.json", "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f")
+ nd = {"kind": "node-failure", "counts_as_crash": False, "evidence_file": ev[0], "evidence_sha256": ev[1] if mode != "otherev" else "3" * 64}
+ jobs = {"53": {"exit": 0}, "54": {"exit": 265, "node_disposition": nd}}
+@@ -357,7 +398,7 @@
+ if mode == "othernode":
+     jobs["55"] = {"exit": 265, "node_disposition": dict(nd)}
+ rc = {"schema": "row19-screen-watch-test", "role": "refit", "time": now, "fresh": True, "production": True,
+-      "alarms": ["simulated alarm"] if mode == "alarm" else [], "designated": {"declaration_sha256": "a96eb598"}, "jobs": jobs,
++      "alarms": ["simulated alarm"] if mode == "alarm" else [], "designated": desig, "jobs": jobs,
+       "bound": {"verify_file": os.path.basename(vp), "verify_file_sha256": hashlib.sha256(open(vp, "rb").read()).hexdigest(),
+                 "node_evidence": {"54": {"file": ev[0], "sha256": ev[1]}}},
+       "ec2": {"bound": {"activations": acts, "hold": False, "stop": False}, "problems": []}}
+@@ -386,12 +427,12 @@
+         self.CR = os.path.join(self.L, "rsc_screen_ctl"); self.C = os.path.join(self.CR, T1_REL)
+         self.J = os.path.join(self.L, "rsc_screen", T1_REL)
+         self.GS = os.path.join(self.L, "row19_screen"); self.G = os.path.join(self.GS, "gate"); self.R = os.path.join(self.GS, "gate_retired")
+-        self.A = os.path.join(self.L, "archive_screen", "v18_before_v19"); self.PROOF = os.path.join(self.L, "archive_screen", "v19_deploy_proof")
+-        self.ACT2 = os.path.join(self.GS, "ec2", "activation_e2.json")
++        self.A = os.path.join(self.L, "archive_screen", "v19_before_v20"); self.PROOF = os.path.join(self.L, "archive_screen", "v20_deploy_proof")
++        self.ACT2 = os.path.join(self.GS, "ec2", "activation_e2.json"); self.ACT3 = os.path.join(self.GS, "ec2", "activation_e3.json")
+         self.NODE_EV = os.path.join(self.L, "jobs", "row19_screen_refit_54.nodefail.json")
+-        self.MA = os.path.join(self.t1, "chpc/results/archive/row19_screen_v18_before_v19")
+-        self.LSF = os.path.join(self.t1, "chpc/results/archive/row19_screen_v18_before_v19.lengau_SHA256SUMS.txt")
+-        self.RETIRED = os.path.join(self.R, "review_refit.v18_qual530df9a2_max100.json")
++        self.MA = os.path.join(self.t1, "chpc/results/archive/row19_screen_v19_before_v20")
++        self.LSF = os.path.join(self.t1, "chpc/results/archive/row19_screen_v19_before_v20.lengau_SHA256SUMS.txt")
++        self.RETIRED = os.path.join(self.R, "review_refit.v19_quale123d6e5_max100.json")
+ 
+     def install(self, root=None, record=True):
+         root = root or self.L
+@@ -402,7 +443,7 @@
+             raise Fail("refusing a fake root that is the production toolchain")
+         if not os.path.realpath(self.t1).startswith(base + os.sep):
+             raise Fail("refusing a Mac tree outside the harness temp dir")
+-        dst = os.path.join(self.t1, "chpc", "migration_v19")
++        dst = os.path.join(self.t1, "chpc", "migration_v20")
+         if os.path.exists(dst):
+             shutil.rmtree(dst)
+         os.makedirs(dst)
+@@ -416,9 +457,9 @@
+             if f == "lengau.sh":
+                 assert src.count(TRANSPORT) == 1, "lengau.sh must carry exactly one production transport"
+                 src = src.replace(TRANSPORT, 'PATH=%s:"$PATH" bash -s' % shlex.quote(self.lbin))
+-            if f == "v19_package.py":
++            if f == "v20_package.py":
+                 prod = record_line(src)
+-                assert prod is not None and src.count(prod) == 1, "v19_package.py must carry exactly one production record line"
++                assert prod is not None and src.count(prod) == 1, "v20_package.py must carry exactly one production record line"
+                 src = src.replace(prod, rec_line if record else PENDING_LINE)
+             write(os.path.join(dst, f), src, os.stat(os.path.join(HERE, f)).st_mode & 0o777)
+         changed = []
+@@ -428,16 +469,16 @@
+             if len(a) != len(b):
+                 raise Fail("private copy of %s changed its line count" % f)
+         want = sorted([("lengau.sh", [l for l in open(os.path.join(HERE, "lengau.sh")).read().splitlines() if TRANSPORT in l][0]),
+-                       ("remote_lib.sh", ROOT_LINE), ("v19_package.py", record_line(open(os.path.join(HERE, "v19_package.py")).read()))])
++                       ("remote_lib.sh", ROOT_LINE), ("v20_package.py", record_line(open(os.path.join(HERE, "v20_package.py")).read()))])
+         if sorted(changed) != want:      # root, transport AND record substituted on both paths; nothing else
+             raise Fail("the private copy differs from production on other lines: %s" % changed)
+-        if open(os.path.join(dst, "v19_package.py")).read().splitlines().count(rec_line if record else PENDING_LINE) != 1:
+-            raise Fail("the private v19_package.py does not carry exactly one %s record line" % ("synthetic" if record else "PENDING"))
++        if open(os.path.join(dst, "v20_package.py")).read().splitlines().count(rec_line if record else PENDING_LINE) != 1:
++            raise Fail("the private v20_package.py does not carry exactly one %s record line" % ("synthetic" if record else "PENDING"))
+ 
+     def run(self, *cmd, timeout=600):
+         env = dict(os.environ); env["PATH"] = self.bin + os.pathsep + env["PATH"]
+         for k in list(env):
+-            if k.startswith("V18_") or k.startswith("V19_") or k.startswith("V16_") or k.startswith("GIT_"):
++            if k.startswith("V19_") or k.startswith("V20_") or k.startswith("V16_") or k.startswith("GIT_"):
+                 del env[k]
+         env["PYTHONDONTWRITEBYTECODE"] = "1"
+         r = subprocess.run(list(cmd), cwd=self.t1, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=timeout)
+@@ -445,11 +486,11 @@
+ 
+     def script(self, name, *args):
+         if name.endswith(".py"):
+-            return self.run("python3", "chpc/migration_v19/" + name, *args)
+-        return self.run("bash", "chpc/migration_v19/" + name, *args)
++            return self.run("python3", "chpc/migration_v20/" + name, *args)
++        return self.run("bash", "chpc/migration_v20/" + name, *args)
+ 
+     def promote(self, *args):
+-        return self.run("python3", "chpc/candidate_v19_oploss/promote_v19.py", *args)
++        return self.run("python3", "chpc/candidate_v20_handback/promote_v20.py", *args)
+ 
+     def ctl_state(self):
+         return (sh("git", "-C", self.CR, "rev-parse", "HEAD").strip(), sh("git", "-C", self.CR, "status", "--porcelain", "--untracked-files=all"))
+@@ -458,10 +499,10 @@
+         write(os.path.join(self.bin, name), data, 0o755)
+ 
+     def commit_promotion(self):
+-        rc, out = self.script("v19_package.py", "commit-paths"); need(rc == 0, "commit-paths", out)
++        rc, out = self.script("v20_package.py", "commit-paths"); need(rc == 0, "commit-paths", out)
+         paths = [T1_REL + "/" + p for p in out.split()]
+         sh("git", "-C", self.mac, "add", "--", *paths)
+-        gitc(self.mac, "commit", "-q", "-m", "TEST promote v19 (private world)", "--", *paths)
++        gitc(self.mac, "commit", "-q", "-m", "TEST promote v20 (private world)", "--", *paths)
+ 
+     def net_log(self):
+         p = os.path.join(self.bin, "net.log")
+@@ -482,7 +523,7 @@
+ def build_fresh(d):
+     w = World(d); os.makedirs(d)
+     fz = frozen_set()
+-    # the Mac tree: the frozen adopted v18 allowlist, the v19 candidate package (pinned) and the synthetic controls record
++    # the Mac tree: the frozen adopted v19 allowlist, the v20 candidate package (pinned) and the synthetic controls record
+     git_init(w.mac)
+     for rel, b in fz.items():
+         write(os.path.join(w.t1, rel), b)
+@@ -491,23 +532,23 @@
+         need(os.path.isfile(src) and not os.path.islink(src), "candidate file missing: " + rel)
+         write(os.path.join(w.t1, rel), open(src, "rb").read())
+     write(os.path.join(w.t1, REC), REC_TEXT)
+-    gitc(w.mac, "add", "-A"); gitc(w.mac, "commit", "-q", "-m", "TEST the Mac tree at the adopted v18 (frozen fixture) + the v19 package")
+-    qb = frozen(FROZEN_QUAL[0]); need(hashlib.sha256(qb).hexdigest() == V18_QUAL, "the frozen pilot qualification is not 530df9a2")
++    gitc(w.mac, "add", "-A"); gitc(w.mac, "commit", "-q", "-m", "TEST the Mac tree at the adopted v19 (frozen fixture) + the v20 package")
++    qb = frozen(FROZEN_QUAL[0]); need(hashlib.sha256(qb).hexdigest() == V19_QUAL, "the frozen pilot qualification is not e123d6e5")
+     write(os.path.join(w.t1, QUAL_MAC), qb)
+     write(os.path.join(w.t1, "aws_ec2/runs/.authority.lock"), "")
+     write(os.path.join(w.mac, ".git", "info", "exclude"), "aws_ec2/runs/\n%s/aws_ec2/runs/\n%s/chpc/results/row19_screen/\n" % (T1_REL, T1_REL))
+-    # the fake Lengau root, as the v18 migration left it
++    # the fake Lengau root, as the v19 migration left it
+     for sub in ("jobs", "row19_screen/gate/pbs", "row19_screen/gate_retired", "row19_screen/ec2", "row19_screen/plans",
+                 "row19_screen_campaign", "archive_screen"):
+         os.makedirs(os.path.join(w.L, sub), exist_ok=True)
+     os.makedirs(w.outside); os.makedirs(w.bin)
+     write(os.path.join(w.L, "programme_admission.lock"), ""); write(os.path.join(w.GS, "plans/.submit.lock"), "")
+-    write(os.path.join(w.GS, "plans/job_53.json"), json.dumps({"job": 53, "token": "t53"}) + "\n")
+-    write(os.path.join(w.L, "t1py"), FAKE_T1PY, 0o755)
++    write(os.path.join(w.GS, "plans/job_53.json"), json.dumps(lengau_claims_plan(fz)) + "\n")
++    write(os.path.join(w.L, "t1py"), FAKE_T1PY, 0o755); write(os.path.join(w.L, "remap_run.py"), REMAP_RUN)
+     git_init(w.CR)
+     for rel, b in fz.items():
+         write(os.path.join(w.C, rel), b)
+-    gitc(w.CR, "add", "-A"); gitc(w.CR, "commit", "-q", "-m", "TEST the controller clone at the adopted v18 (frozen fixture)")
++    gitc(w.CR, "add", "-A"); gitc(w.CR, "commit", "-q", "-m", "TEST the controller clone at the adopted v19 (frozen fixture)")
+     for p, (c, want) in EVIDENCE.items():
+         b = subprocess.run(["git", "-C", REPO, "show", "%s:%s/%s" % (c, T1_REL, p)], capture_output=True, check=True).stdout
+         need(hashlib.sha256(b).hexdigest() == want, "the repository history does not hold the pinned bytes of " + p)
+@@ -518,12 +559,13 @@
+         write(os.path.join(w.J, f), "# synthetic science placeholder %d (%s), private test world\n" % (i, f))
+     gitc(os.path.join(w.L, "rsc_screen"), "add", "-A"); gitc(os.path.join(w.L, "rsc_screen"), "commit", "-q", "-m", "TEST synthetic science")
+     write(os.path.join(w.G, "qualified_refit_job1.json"), qb)
+-    write(os.path.join(w.G, "review_refit.json"), json.dumps({"schema": "private-test", "role": "refit", "qualification_sha256": V18_QUAL, "max_job_number": 100}) + "\n")
++    write(os.path.join(w.G, "review_refit.json"), json.dumps({"schema": "private-test", "role": "refit", "qualification_sha256": V19_QUAL, "max_job_number": 100}) + "\n")
+     write(os.path.join(w.G, "watch_refit_1.json"), "{}\n"); write(os.path.join(w.G, "pbs/row19_screen_refit_1.o7600001"), "fake PBS out\n")
+     write(os.path.join(w.G, "scaleup_refit_v16.json"), json.dumps({"schema": "private-test-scaleup", "first_job": 46}) + "\n")
+     write(os.path.join(w.R, "review_refit.v16_qual2c7a7ef1_max100.json"), "{}\n", 0o444)
+     write(os.path.join(w.R, "review_refit.v15_qual3c605514_max100.json"), "{}\n", 0o444)
+     write(os.path.join(w.R, "review_refit.v17_qual8fdbf48e_max100.json"), "{}\n", 0o444)
++    write(os.path.join(w.R, "review_refit.v18_qual530df9a2_max100.json"), "{}\n", 0o444)     # left by migration_v19
+     write(os.path.join(w.GS, "ec2/activation_e1.json"), json.dumps({"schema": "row19-ec2-activation-1", "epoch": 1,
+           "partition_sha256": "8d1de408b6ef9dc66d4736b6138536de6591f0d29ebdd6fd00a6e43307225608"}) + "\n")
+     gen = os.path.join(d, "act2_gen_v17", T1_REL); shutil.copytree(w.C, gen, ignore=shutil.ignore_patterns(".git"))
+@@ -545,11 +587,68 @@
+     write(os.path.join(w.L, "archive_screen/v17_deploy_proof/DONE"), "schema row19-screen-v17-deploy-proof-1\n", 0o444)
+     write(os.path.join(w.L, "archive_screen/v17_before_v18/COMPLETE"), "schema row19-screen-archive-v17-before-v18-1 (private test placeholder)\n", 0o444)
+     write(os.path.join(w.L, "archive_screen/v18_deploy_proof/DONE"), "schema row19-screen-v18-deploy-proof-1\n", 0o444)
++    write(os.path.join(w.L, "archive_screen/v18_before_v19/COMPLETE"), "schema row19-screen-archive-v18-before-v19-1 (private test placeholder)\n", 0o444)
++    write(os.path.join(w.L, "archive_screen/v19_deploy_proof/DONE"), "schema row19-screen-v19-deploy-proof-1\n", 0o444)
++    ec2_state(w)                                       # step 0b DONE: every attempt terminal, a fresh terminal inventory on both sides
+     w.fake("ps", FAKE_PS); w.fake("sha256sum", FAKE_SHA); w.fake("ssh", FAKE_NET); w.fake("scp", FAKE_NET)
+     write(os.path.join(w.lbin, "git"), LENGAU_GIT, 0o755)
+     return w
++
++
++def lengau_claims_plan(fz):
++    """A well-formed plan holding Lengau's claims on the 47 EC2-designated replicates (the e2 claims snapshot, frozen): with the
++    13 Lengau replicates and e2's owned set (the hand-back) they cover S x 0..79, as on the real root."""
++    snap = json.loads(fz["chpc/claims_snapshot_e2.json"]); des = json.loads(fz["chpc/row19_screen_designated.json"])
++    ec2 = set(des["providers"]["ec2_reps"])
++    cl = sorted({(int(r), int(i)) for r, i in snap["lengau_done"] + snap["lengau_planned"] if int(r) in ec2 and 0 <= int(i) < 80})
++    return {"job": 53, "token": "t53", "slots": [{"slot": k, "rep": r, "indices": [i]} for k, (r, i) in enumerate(cl)]}
++
++
++def seal(inv):
++    import importlib.util as _u
++    spec = _u.spec_from_file_location("_es_seal", os.path.join(LIVE_T1, "chpc", "row19_ec2_state.py")); m = _u.module_from_spec(spec)
++    spec.loader.exec_module(m)
++    return m.seal(inv)
++
++
++def ec2_state(w, e2q3="dispositioned", q2="dispositioned", age=60, mac_age=None, gen=109, lengau=True, mac=True, launched=False):
++    """The EC2 bookkeeping BOTH sides see, CONSTRUCTED from the frozen sealed g105 inventory (the candidate fixture): E2Q3/1 and
++    qual-Q2/1 with the given ingestion, owners recomputed, sealed at `now - age` as generation `gen`. Mac: runs/<run>/attempts.json,
++    the authority state and runs/inventory/latest.json (+ its archive). Lengau: the installed ec2/authority/inventory.json and an
++    EC2 register with no published coordinate."""
++    tmpl = json.loads(open(os.path.join(LIVE_T1, "chpc/candidate_v20_handback/fixtures/inventory_g105.json"), "rb").read())
++    need(sha(os.path.join(LIVE_T1, "chpc/candidate_v20_handback/fixtures/inventory_g105.json")) == FIX_INV_SHA, "the frozen g105 fixture moved")
++    inv = {k: v for k, v in tmpl.items() if k != "sha256"}
++    inv["attempts"]["qual-E2Q3/1"]["ingestion"] = e2q3; inv["attempts"]["qual-Q2/1"]["ingestion"] = q2
++    if launched:
++        inv["attempts"]["qual-E2Q3/1"]["state"] = "launched"
++    owners = {}
++    for k, a in sorted(inv["attempts"].items()):
++        if a["class"] in ("production", "qualification") and a["state"] != "rejected" and a["ingestion"] == "pending":
++            for c in a["coordinates"]:
++                owners["%d/%d" % tuple(c)] = [k, a["sequence"]]
++    inv["owners"] = dict(sorted(owners.items())); inv["generation"] = gen
++    now = time.time()
+ 
++    def sealed(a):
++        return seal(dict(inv, at=now - a))
++    if lengau:
++        write(os.path.join(w.GS, "ec2/authority/inventory.json"), json.dumps(sealed(age), indent=1, sort_keys=True))
++        write(os.path.join(w.GS, "ec2/register.json"), json.dumps({"schema": "row19-ec2-register-2", "authority_generation": gen,
++                                                                   "fence": {}, "attempts": {}}, indent=1))
++    if mac:
++        runs = os.path.join(w.t1, "aws_ec2/runs"); leds = {}
++        for k, a in inv["attempts"].items():
++            leds.setdefault(a["run"], []).append(dict(attempt=a["attempt"], attempt_id=a["attempt_id"], sequence=a["sequence"],
++                                                     state=a["state"], ingestion=a["ingestion"], coordinates=a["coordinates"],
++                                                     contract=a["contract"]))
++        for run, atts in leds.items():
++            write(os.path.join(runs, run, "attempts.json"), json.dumps({"run": run, "attempts": atts}, indent=1))
++        write(os.path.join(runs, ".authority_state.json"), json.dumps({"generation": gen, "next_sequence": 13}))
++        mi = json.dumps(sealed(age if mac_age is None else mac_age), indent=1, sort_keys=True)
++        write(os.path.join(runs, "inventory", "latest.json"), mi); write(os.path.join(runs, "inventory", "inventory_g%d.json" % gen), mi)
+ 
++
+ def ctl_status(w):
+     return [l for l in sh("git", "-C", w.CR, "status", "--porcelain", "--untracked-files=all").split("\n") if l]
+ 
+@@ -564,7 +663,7 @@
+ 
+ 
+ def stub_receipts(w):
+-    """The two receipt commands run as private stubs through a python3 wrapper on the Mac PATH; the promoted v19 status view
++    """The two receipt commands run as private stubs through a python3 wrapper on the Mac PATH; the promoted v20 status view
+     and the bank controller stay in place (the promotion checks see their real bytes)."""
+     write(os.path.join(w.bin, "stub_status.py"), STUB_STATUS); write(os.path.join(w.bin, "stub_bank.py"), STUB_BANK)
+     w.fake("python3", PY_WRAPPER)
+@@ -576,7 +675,7 @@
+             os.remove(os.path.join(w.bin, f))
+ 
+ 
+-ORDER = ["fresh", "archived", "promoted", "deployed", "receipted", "rolled", "qualified"]
++ORDER = ["fresh", "archived", "promoted", "deployed", "receipted", "closed", "postreceipted", "rolled", "qualified"]
+ STAGES = {}
+ 
+ 
+@@ -584,7 +683,7 @@
+     """A synthetic regenerated qualification (as the ONE --qualify 1 call writes it): Mac copy + gate copy + receipts."""
+     R = os.path.join(w.t1, "chpc/results/row19_screen/receipts"); stamp = "20261021T101010Z"
+     vp = os.path.join(R, "verify_refit_%s.json" % stamp)
+-    write(vp, json.dumps({"generation": {"version": 19, "latest": 19, "controls_problem": "", "controls_sha256": V19_CONTROLS}}))
++    write(vp, json.dumps({"generation": {"version": 20, "latest": 20, "controls_problem": "", "controls_sha256": V20_CONTROLS}}))
+     write(os.path.join(R, "watch_refit_%s.json" % stamp), json.dumps({"role": "refit", "time": 1.0, "alarms": []}))
+     write(os.path.join(R, "watch_refit_20261020T033232Z.json"), json.dumps({"role": "refit", "old": True}))
+     q = {"schema": "private-test-qualification", "role": "refit", "qualified_job": 1, "production": True, "verify_file": os.path.basename(vp),
+@@ -605,16 +704,23 @@
+             prev = stage(ORDER[ORDER.index(name) - 1]); sh("cp", "-cR", prev.d, d); w = World(d)
+         w.install()
+         if name == "archived":
+-            rc, out = w.script("archive_v18.sh"); need(rc == 0 and "ARCHIVE OK" in out, "stage archive", out)
++            rc, out = w.script("archive_v19.sh"); need(rc == 0 and "ARCHIVE OK" in out, "stage archive", out)
+         elif name == "promoted":
+             rc, out = w.promote("--review", REC); need(rc == 0 and "promoted:" in out, "stage promote", out); w.commit_promotion()
+         elif name == "deployed":
+-            rc, out = w.script("deploy_v19.sh"); need(rc == 0 and "DEPLOY OK" in out, "stage deploy", out)
++            rc, out = w.script("deploy_v20.sh"); need(rc == 0 and "DEPLOY OK" in out, "stage deploy", out)
+         elif name == "receipted":
+-            stub_receipts(w); rc, out = w.script("receipts_v19.sh"); need(rc == 0 and "V19 RECEIPTS OK" in out, "stage receipts", out)
++            stub_receipts(w); rc, out = w.script("receipts_v20.sh", "--pre-close"); need(rc == 0 and "V20 RECEIPTS OK (pre-close)" in out, "stage receipts", out)
+             unstub_receipts(w)
++        elif name == "closed":
++            ec2_state(w)                               # a fresh installed generation right before the close (as the RUNBOOK says)
++            rc, out = w.script("close_v20.sh"); need(rc == 0 and "CLOSE OK" in out and "CLOSED: epoch 3 activated" in out, "stage close", out)
++        elif name == "postreceipted":
++            stub_receipts(w); write(os.path.join(w.t1, "chpc/stub_status.mode"), "post")
++            rc, out = w.script("receipts_v20.sh", "--post-close"); need(rc == 0 and "V20 RECEIPTS OK (post-close)" in out, "stage post receipts", out)
++            os.remove(os.path.join(w.t1, "chpc/stub_status.mode")); unstub_receipts(w)
+         elif name == "rolled":
+-            rc, out = w.script("lengau.sh", "rollover_pilot_v19.sh"); need(rc == 0 and "retired to" in out, "stage rollover", out)
++            rc, out = w.script("lengau.sh", "rollover_pilot_v20.sh"); need(rc == 0 and "retired to" in out, "stage rollover", out)
+         elif name == "qualified":
+             fake_qualification(w)
+         STAGES[name] = w
+@@ -649,7 +755,7 @@
+     need(ctl_dirty(w) == [], "the redirect left the controller clone dirty", "\n".join(ctl_dirty(w)))
+ 
+ 
+-def pilot_record(w, qsha, name="reviews/test_pilot_v19_record.md", filler=0, literal=True):
++def pilot_record(w, qsha, name="reviews/test_pilot_v20_record.md", filler=0, literal=True):
+     p = os.path.join(w.t1, name)
+     body = "# test pilot record\n\n```text\n%s\n```\n" % ("ADOPT row19-screen-pilot role=refit qualification=%s max_job=100" % qsha if literal else "no literal")
+     body += "".join("filler line %d of the review body to exceed four kilobytes of sed output buffering\n" % i for i in range(filler))
+@@ -663,13 +769,24 @@
+ def t_static():
+     for f in PROD_FILES:
+         s = open(os.path.join(HERE, f)).read()
+-        if f == "RUNBOOK.md":
++        if f in ("RUNBOOK.md", "static_check_v20.py", "static_results.txt"):    # docs and the read-only checker (it names the tokens it forbids)
+             continue
+-        for bad in ("FAKE_LENGAU", "V19_FAKE", "V19_T=", "TEST_ROOT", "PRIVATE TEST"):
++        for bad in ("FAKE_LENGAU", "V20_FAKE", "V20_T=", "TEST_ROOT", "PRIVATE TEST"):
+             need(bad not in s, "%s mentions %s" % (f, bad))
+-        for bad in ("qdel", "pkill", "kill ", "killall", "scp ", "aws ", "boto3", "--force", "git add -A", "git add .",
+-                    "ec2_sync.py", "prod_authority.py", "row19_partition.py activate", "partition.py activate"):
++        for bad in ("qdel", "pkill", "kill ", "killall", "scp ", "aws ", "boto3", "--force", "git add -A", "git add ."):
+             need(bad not in s, "%s contains %r" % (f, bad))
++        # v20: the EC2 tools may be NAMED (comments, messages, data paths) but the only executed calls are the read-only
++        # `prod_authority.py close-check` (close_v20.sh, v20_package.py preflight) and, in close_e3.sh ONLY, the one
++        # `row19_partition.py verify3` and the one `row19_partition.py activate` (the close itself); ec2_sync is never run
++        code = [l for l in s.splitlines() if not l.strip().startswith("#")]
++        need(not any(re.search(r"(python3|t1py\S*|sys\.executable)[^#]*ec2_sync\.py", l) for l in code), "%s runs ec2_sync" % f)
++        for l in code:
++            for m in re.finditer(r"prod_authority\.py[\"']?\s*,?\s*[\"']?([A-Za-z][\w-]*)", l):
++                need(m.group(1) == "close-check" or not re.search(r"(python3|sys\.executable|subprocess)", l),
++                     "%s executes prod_authority %s: %s" % (f, m.group(1), l.strip()))
++        acts = [l for l in code if "row19_partition.py activate" in l or "partition.py activate" in l]
++        need(acts == [] if f != "close_e3.sh" else len(acts) == 1 and acts[0].startswith('"$T/t1py" chpc/row19_partition.py activate --manifest'),
++             "%s: activation calls %s" % (f, acts))
+         if f.endswith(".sh"):
+             r = subprocess.run(["bash", "-n", os.path.join(HERE, f)], capture_output=True, text=True); need(r.returncode == 0, "bash -n " + f, r.stderr)
+             need(not re.search(r"\|\s*grep\s+(-[A-Za-z]*q|--quiet)", s), "%s pipes into grep -q (SIGPIPE under pipefail: the 9df2a1f bug)" % f)
+@@ -681,30 +798,30 @@
+     need(TRANSPORT in lt, "the transport line is not the fixed production ssh", lt)
+     need(open(os.path.join(HERE, "remote_lib.sh")).read().count(ROOT_LINE) == 1, "remote_lib.sh lacks the single fixed root line")
+     rec = {f: open(os.path.join(HERE, f)).read().count("# @record") for f in PROD_FILES if f != "RUNBOOK.md"}
+-    need(sum(rec.values()) == 1 and rec["v19_package.py"] == 1, "exactly one @record line, in v19_package.py: %s" % rec)
+-    need(record_line(open(os.path.join(HERE, "v19_package.py")).read()) is not None,
++    need(sum(rec.values()) == 1 and rec["v20_package.py"] == 1, "exactly one @record line, in v20_package.py: %s" % rec)
++    need(record_line(open(os.path.join(HERE, "v20_package.py")).read()) is not None,
+          "the production @record line is neither the PENDING line nor one filled operator-record line")
+-    for f in ("check_v19.sh", "rollover_pilot_v19.sh", "adopt_pilot19.sh"):
++    for f in ("check_v20.sh", "rollover_pilot_v20.sh", "adopt_pilot20.sh"):
+         need("/mnt/lustre" not in open(os.path.join(HERE, f)).read(), "%s names a toolchain root of its own" % f)
+-    need("PENDINGBUILDER" not in open(os.path.join(HERE, "v19_package.py")).read() + open(os.path.join(HERE, "mac_archive.py")).read()
+-         and "PENDINGPROMOTER" not in open(os.path.join(HERE, "v19_package.py")).read(), "a package pin is still a placeholder")
++    need("PENDINGBUILDER" not in open(os.path.join(HERE, "v20_package.py")).read() + open(os.path.join(HERE, "mac_archive.py")).read()
++         and "PENDINGPROMOTER" not in open(os.path.join(HERE, "v20_package.py")).read(), "a package pin is still a placeholder")
+ 
+ 
+ @test("static: the composed production Lengau script (each direct body) carries exactly the production root and parses")
+ def t_compose():
+-    for body in ("rollover_pilot_v19.sh", "adopt_pilot19.sh", "check_v19.sh"):
++    for body in ("rollover_pilot_v20.sh", "adopt_pilot20.sh", "check_v20.sh", "close_e3.sh"):
+         r = subprocess.run(["bash", "-c", '. "$1"; compose "$2"', "x", os.path.join(HERE, "lengau.sh"), body], capture_output=True, text=True)
+         need(r.returncode == 0, "compose %s failed" % body, r.stderr)
+         need(ROOT_LINE in r.stdout and r.stdout.count("T_ROOT=") == 1, "the composed %s does not carry exactly the production root" % body)
+         p = subprocess.run(["bash", "-n"], input=r.stdout, capture_output=True, text=True); need(p.returncode == 0, "composed %s does not parse" % body, p.stderr)
+ 
+ 
+-@test("static: the package identities (controls, map, builder, promoter, sources, node evidence) equal the candidate folder; every script constant agrees with build_v19")
++@test("static: the package identities (controls, map, builder, promoter, sources, node evidence) equal the candidate folder; every script constant agrees with build_v20")
+ def t_identities():
+     VP = package_pins()
+     for p, h in VP.PACKAGE.items():
+         need(sha(os.path.join(LIVE_T1, p)) == h, "the candidate %s is not the pinned %s" % (p, h[:8]))
+-    need(VP.LITERAL == "ADOPT row19-screen-controls sha256=%s version=19" % V19_CONTROLS and VP.V19_CONTROLS == V19_CONTROLS, "literal")
++    need(VP.LITERAL == "ADOPT row19-screen-controls sha256=%s version=20" % V20_CONTROLS and VP.V20_CONTROLS == V20_CONTROLS, "literal")
+     if VP.REC is None:                                # PENDING: the operator record is not written yet
+         need(VP.REC_SHA is None, "a half-filled record pin")
+     else:                                             # filled: the committed operator record with the exact literal
+@@ -712,41 +829,43 @@
+         need(sha(os.path.join(LIVE_T1, VP.REC)) == VP.REC_SHA, "the operator record %s is not %s" % (VP.REC, VP.REC_SHA[:16]))
+         need(VP.LITERAL in [l.strip() for l in open(os.path.join(LIVE_T1, VP.REC)).read().splitlines()], "the operator record lacks the literal line")
+     rl = open(os.path.join(HERE, "remote_lib.sh")).read()
+-    for k, v in (("V18_CONTROLS", V18_CONTROLS), ("V19_CONTROLS", V19_CONTROLS), ("V18_QUAL", V18_QUAL), ("V16_QUAL", V16_QUAL),
++    for k, v in (("V19_CONTROLS", V19_CONTROLS), ("V20_CONTROLS", V20_CONTROLS), ("V19_QUAL", V19_QUAL), ("V16_QUAL", V16_QUAL),
+                  ("V17_QUAL", V17_QUAL), ("ACT_CONTROLS", V17_CONTROLS),
+-                 ("NODE_EV_SHA", NODE_EV_SHA), ("V18_ADOPTION", FROZEN["chpc/row19_screen_controls_adoption.json"]),
++                 ("NODE_EV_SHA", NODE_EV_SHA), ("V19_ADOPTION", FROZEN["chpc/row19_screen_controls_adoption.json"]),
+                  ("E2_PART", FROZEN["chpc/row19_partition_e2.json"])):
+         need("%s=%s" % (k, v) in rl, "remote_lib.sh %s is not %s" % (k, v[:8]))
+-    sys.path.insert(0, os.path.join(LIVE_T1, "chpc", "candidate_v19_oploss"))
++    sys.path.insert(0, os.path.join(LIVE_T1, "chpc", "candidate_v20_handback"))
+     try:
+-        sys.modules.pop("build_v19", None); import build_v19 as B
++        sys.modules.pop("build_v20", None); import build_v20 as B
+     finally:
+         sys.path.pop(0)
+-    m = re.search(r'^V18_REPLACED="(.*?)"$', rl, re.S | re.M)
++    m = re.search(r'^V19_REPLACED="(.*?)"$', rl, re.S | re.M)
+     rep = dict(l.split(" ") for l in m.group(1).split("\n"))
+-    need(rep == {d: p for d, s, p in B.MAP if p} and [d for d, s, p in B.MAP] == V19_PINS,
+-         "V18_REPLACED is not the five replaced pins of build_v19: %s" % rep)
+-    m2 = re.search(r'^V19_NEW="(.*?)"$', rl, re.M)
+-    need(m2 is not None and m2.group(1).split() == V19_NEW == [d for d, s, p in B.DATA] and all(p for d, s, p in B.MAP)
+-         and all(p is None for d, s, p in B.DATA), "V19_NEW is not build_v19's one new data path (the E2Q3 manifest)")
+-    need(len(B.ARCHIVE) == 11 and B.ARCHIVE["row19_screen_refit_54.nodefail.json"][1] == NODE_EV_SHA
+-         and B.ARCHIVE["qualified_refit_job1.json"][1] == V18_QUAL and not any(d in [x[0] for x in B.ARCHIVE.values()] for d in V19_NEW),
+-         "the builder's archive inventory is not the 11 members")
++    need(rep == {d: p for d, s, p in B.MAP if p} and [d for d, s, p in B.MAP] == V20_PINS,
++         "V19_REPLACED is not the two replaced pins of build_v20: %s" % rep)
++    m2 = re.search(r'^V20_NEW="(.*?)"$', rl, re.M)
++    need(m2 is not None and m2.group(1).split() == V20_NEW == [d for d, s, p in B.DATA] and all(p for d, s, p in B.MAP)
++         and all(p is None for d, s, p in B.DATA), "V20_NEW is not build_v20's one new data path (the e3 declaration)")
++    need([d for d, s, p in B.MAC] == ["aws_ec2/prod_authority.py"] and B.ARCHIVE["prod_authority.py"][1] == FROZEN["aws_ec2/prod_authority.py"],
++         "the Mac authority row is not prod_authority.py with its v19 bytes archived")
++    need(len(B.ARCHIVE) == 9 and B.ARCHIVE["row19_screen_refit_54.nodefail.json"][1] == NODE_EV_SHA
++         and B.ARCHIVE["qualified_refit_job1.json"][1] == V19_QUAL and not any(d in [x[0] for x in B.ARCHIVE.values()] for d in V20_NEW),
++         "the builder's archive inventory is not the 9 members")
+     ma = open(os.path.join(HERE, "mac_archive.py")).read()
+-    need('BUILDER_SHA = "%s"' % VP.PACKAGE["chpc/candidate_v19_oploss/build_v19.py"] in ma, "mac_archive.py pins another builder")
+-    for f in ("package_qual_v19.py", "receipt_check_v19.py"):
+-        need(V19_CONTROLS in open(os.path.join(HERE, f)).read(), "%s does not name the v19 controls" % f)
+-    sys.modules.pop("build_v19", None)
++    need('BUILDER_SHA = "%s"' % VP.PACKAGE["chpc/candidate_v20_handback/build_v20.py"] in ma, "mac_archive.py pins another builder")
++    for f in ("package_qual_v20.py", "receipt_check_v20.py"):
++        need(V20_CONTROLS in open(os.path.join(HERE, f)).read(), "%s does not name the v20 controls" % f)
++    sys.modules.pop("build_v20", None)
+ 
+ 
+-@test("static: the frozen fixture - one pinned commit, every member at its pinned hash, the 19 v18 pins verified; nothing read from the live controller state")
++@test("static: the frozen fixture - one pinned commit, every member at its pinned hash, the 19 v19 pins verified; nothing read from the live controller state")
+ def t_frozen():
+     fz = frozen_set()
+-    need(len(fz) == len(FROZEN) + 19, "the frozen allowlist is not FROZEN + 19 v18 pins (%d)" % len(fz))
+-    need(hashlib.sha256(frozen(FROZEN_QUAL[0])).hexdigest() == V18_QUAL, "the frozen qualification is not 530df9a2")
++    need(len(fz) == len(FROZEN) + 19, "the frozen allowlist is not FROZEN + 19 v19 pins (%d)" % len(fz))
++    need(hashlib.sha256(frozen(FROZEN_QUAL[0])).hexdigest() == V19_QUAL, "the frozen qualification is not e123d6e5")
+     need(all(hashlib.sha256(frozen(r)).hexdigest() == h for r, h in FROZEN_V17.items()), "the frozen v17 controls/adoption are not 9ea4e727/61ca680e")
+-    need(not set(FROZEN) & set(CAND_SET) and all(not r.startswith("chpc/candidate_v19") for r in fz), "the frozen set overlaps the candidate package")
+-    need(all(r.startswith("chpc/candidate_v19_oploss/") for r in CAND_SET), "a non-candidate file would be read from the working tree")
++    need(not set(FROZEN) & set(CAND_SET) and all(not r.startswith("chpc/candidate_v20") for r in fz), "the frozen set overlaps the candidate package")
++    need(all(r.startswith("chpc/candidate_v20_handback/") for r in CAND_SET), "a non-candidate file would be read from the working tree")
+ 
+ 
+ @test("static: CTL_EVIDENCE (remote_lib.sh) and UNTRACKED_CTL (lengau_archive.py) are the same three pinned files")
+@@ -763,7 +882,7 @@
+     need(sh_list == want and LA.UNTRACKED_CTL == want, "the allowlists differ")
+ 
+ 
+-LENGAU_BODIES = ["remote_lib.sh", "preflight_v19.sh", "archive_v18.sh", "deploy_v19.sh", "check_v19.sh", "rollover_pilot_v19.sh", "adopt_pilot19.sh"]
++LENGAU_BODIES = ["remote_lib.sh", "preflight_v20.sh", "archive_v19.sh", "deploy_v20.sh", "check_v20.sh", "rollover_pilot_v20.sh", "adopt_pilot20.sh"]
+ PY37_MODULES = {"dataclasses", "contextvars", "importlib.resources", "zoneinfo", "graphlib", "tomllib", "importlib.metadata"}
+ PY37_ATTRS = {"isascii", "time_ns", "monotonic_ns", "perf_counter_ns", "nullcontext", "fromisoformat", "removeprefix", "removesuffix",
+               "isqrt", "prod", "cache", "shlex_join", "is_relative_to"}
+@@ -824,10 +943,10 @@
+ @test("boundary: a body run without the prelude refuses; lengau.sh refuses any other body; the harness refuses an alias of production")
+ def t_boundary():
+     w = stage("fresh")
+-    for b in ("rollover_pilot_v19.sh", "adopt_pilot19.sh", "check_v19.sh"):
+-        rc, out = w.run("bash", "chpc/migration_v19/" + b); refused(rc, out)
++    for b in ("rollover_pilot_v20.sh", "adopt_pilot20.sh", "check_v20.sh"):
++        rc, out = w.run("bash", "chpc/migration_v20/" + b); refused(rc, out)
+         need("ABORT" not in out or "run through" in out or "sourced through" in out, "a body ran without the prelude", out)
+-    for b in ("preflight_v19.sh", "check_v19.sh", "deploy_v19.sh"):
++    for b in ("preflight_v20.sh", "check_v20.sh", "deploy_v20.sh"):
+         rc, out = w.script("lengau.sh", b); refused(rc, out, "runs only")
+     alias = os.path.join(w.d, "alias_prod"); os.symlink(PROD_ROOT, alias)
+     try:
+@@ -837,111 +956,166 @@
+     w.install()
+ 
+ 
+-@test("record pin: v19_package.py with its record pin explicitly PENDING (install(record=False)) refuses preflight, check-promoted, payload and every step; a record of other bytes or without the literal refuses")
++@test("record pin: v20_package.py with its record pin explicitly PENDING (install(record=False)) refuses preflight, check-promoted, payload and every step; a record of other bytes or without the literal refuses")
+ def t_record_pending():
+     w = stage("fresh"); w.install(record=False)
+-    for args in (("v19_package.py", "preflight"), ("v19_package.py", "payload"), ("preflight_v19.sh",), ("archive_v18.sh",)):
++    for args in (("v20_package.py", "preflight"), ("v20_package.py", "payload"), ("preflight_v20.sh",), ("archive_v19.sh",)):
+         rc, out = w.script(*args); refused(rc, out, "PENDING")
+     need(not os.path.exists(w.A) and not os.path.exists(w.MA), "an archive was built without the record pin")
+     w = stage("fresh"); p = os.path.join(w.t1, REC); write(p, REC_TEXT + "edited\n"); gitc(w.mac, "commit", "-q", "-am", "TEST another record")
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "not the pinned record")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "not the pinned record")
+     w = stage("promoted"); w.install(record=False); s0 = w.ctl_state()
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "PENDING"); need(w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "deployed without the record pin")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "PENDING"); need(w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "deployed without the record pin")
+ 
+ 
+ @test("boundary: a valid isolated fake root reached through an alias passes preflight (every path resolves beneath its physical root)")
+ def t_alias_root_ok():
+     w = stage("fresh"); alias = os.path.join(w.d, "alias_root"); os.symlink(w.L, alias); w.install(alias)
+-    rc, out = w.script("preflight_v19.sh"); need(rc == 0 and "PREFLIGHT OK" in out, "preflight through a private alias", out)
++    rc, out = w.script("preflight_v20.sh"); need(rc == 0 and "PREFLIGHT OK" in out, "preflight through a private alias", out)
+ 
+ 
+ # ================================================================================================ the positive route
+-@test("positive route: preflight, archive (+re-run), promote_v19 (+re-run), commit, deploy (+re-run), receipts, rollover (+re-run), package, adopt; running jobs and epoch 2 untouched")
++ADMIT_PROBE = r"""import json, sys
++sys.path.insert(0, "chpc")
++import row19_screen_admit as SA
++mp = "chpc/row19_screen_manifest.json"; man = json.load(open(mp))
++part = SA.partition(man, mp)
++print("PROBE partition schema %s epoch %s" % (part.get("schema"), part.get("epoch")))
++print("PROBE activation %r" % SA.activation_problem_v10(man, mp, part))
++why, _ = SA.qualification_problem(man, mp, "refit")
++print("PROBE review %r" % (SA.review_problem(man, mp, "refit", ["77"]) if not __import__("os").path.exists(man["storage"]["root"] + "/gate/review_refit.json") else "an adopted review exists"))
++"""
++
++
++def admission_probe(w):
++    """The REAL v20 admission's own gates (partition, activation_problem_v10, review_problem) read in the controller clone, with
++    the manifest's storage remapped to the fake root: what a refill would meet."""
++    write(os.path.join(w.L, "admit_probe.py"), ADMIT_PROBE)
++    r = subprocess.run([REAL_PY, "-B", os.path.join(w.L, "remap_run.py"), w.L, os.path.join(w.L, "admit_probe.py")], cwd=w.C,
++                       capture_output=True, text=True)
++    return r.stdout + r.stderr
++
++
++@test("positive route: preflight, archive (+re-run), promote_v20 (+re-run), commit, deploy (+re-run), pre-close receipts, THE CLOSE (canonical CLI activation + re-run), post-close receipts, rollover (+re-run), package, adopt; admission held before the close and before the new pilot review; running jobs and e1/e2 untouched")
+ def t_positive():
+     w = stage("fresh")
+     act0 = sha(w.ACT2); ev0 = sha(w.NODE_EV); run0 = w.running_state()
+-    rc, out = w.script("preflight_v19.sh", "--local-only"); need(rc == 0 and "Lengau checks were NOT run" in out, "local-only", out)
+-    rc, out = w.script("preflight_v19.sh")
++    rc, out = w.script("preflight_v20.sh", "--local-only"); need(rc == 0 and "Lengau checks were NOT run" in out, "local-only", out)
++    rc, out = w.script("preflight_v20.sh")
+     need(rc == 0 and "PREFLIGHT OK" in out and "archive sources complete" in out and "lengau tools:" in out and "mac preflight OK" in out
+-         and "epoch 2 active" in out and "activation_problem ''" in out, "preflight", out)
++         and "epoch 2 active" in out and "activation_problem ''" in out and "live or owning []" in out, "preflight", out)
+     need("gate: scaleup_refit_v16.json present" in out, "preflight did not report the scale-up adoption", out)
+-    rc, out = w.script("archive_v18.sh", "--dry-run"); need(rc == 0 and "DRY RUN" in out and not os.path.exists(w.A), "archive dry run", out)
+-    rc, out = w.script("archive_v18.sh"); need(rc == 0 and "ARCHIVE OK" in out and "archive built" in out, "archive", out)
++    rc, out = w.script("archive_v19.sh", "--dry-run"); need(rc == 0 and "DRY RUN" in out and not os.path.exists(w.A), "archive dry run", out)
++    rc, out = w.script("archive_v19.sh"); need(rc == 0 and "ARCHIVE OK" in out and "archive built" in out, "archive", out)
+     need(set(os.listdir(w.A)) == {"COMPLETE", "SHA256SUMS", "INVENTORY.gate", "INVENTORY.jobs", "ctl", "gate", "jobs", "ledger", "ec2"}, "archive layout")
+     need(sha(os.path.join(w.A, "jobs/row19_screen_refit_54.nodefail.json")) == NODE_EV_SHA, "the archive does not retain the node document")
+     need(sorted(os.listdir(os.path.join(w.A, "ec2"))) == ["activation_e1.json", "activation_e2.json"], "the archive does not hold both activations")
+-    need(os.path.isfile(os.path.join(w.A, "ctl/reviews/2026-10-20_pilot_v18_operator_record.md")) and
+-         os.path.isfile(os.path.join(w.A, "gate/scaleup_refit_v16.json")), "the archive lacks the pilot record or the scale-up adoption")
++    need(os.path.isfile(os.path.join(w.A, "ctl/reviews/2026-10-22_pilot_v19_operator_record.md")) and
++         os.path.isfile(os.path.join(w.A, "ctl/aws_ec2/prod_authority.py")) and
++         os.path.isfile(os.path.join(w.A, "gate/scaleup_refit_v16.json")), "the archive lacks the pilot record, the Mac authority or the scale-up adoption")
+     need("node_evidence %s" % NODE_EV_SHA in open(os.path.join(w.A, "COMPLETE")).read(), "COMPLETE does not certify the node document")
+-    need(len(os.listdir(w.MA)) == 13 and os.path.isfile(w.LSF) and sha(w.LSF) == sha(os.path.join(w.A, "SHA256SUMS")), "Mac archive layout / Lengau sums copy")
++    need(len(os.listdir(w.MA)) == 11 and os.path.isfile(w.LSF) and sha(w.LSF) == sha(os.path.join(w.A, "SHA256SUMS")), "Mac archive layout (9 + 2) / Lengau sums copy")
+     need(sha(os.path.join(w.MA, "row19_screen_refit_54.nodefail.json")) == NODE_EV_SHA, "the Mac archive does not retain the node document")
+-    rc, out = w.script("archive_v18.sh"); need(rc == 0 and "exists and verifies" in out and "names this Lengau archive" in out, "archive re-run", out)
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "already exists")
++    rc, out = w.script("archive_v19.sh"); need(rc == 0 and "exists and verifies" in out and "names this Lengau archive" in out, "archive re-run", out)
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "already exists")
+     rc, out = w.promote("--check-promoted", "--review", REC); refused(rc, out, "not complete")
+     rc, out = w.promote("--dry-run", "--review", REC); need(rc == 0 and "DRY RUN" in out, "promote dry run", out)
+     rc, out = w.promote("--review", REC); need(rc == 0 and "promoted:" in out, "promote", out)
+     rc, out = w.promote("--review", REC); need(rc == 0 and "already promoted, verified" in out, "promote re-run", out)
+-    rc, out = w.promote("--check"); need(rc == 0 and "authenticated archive v18 base" in out, "promote --check after the promotion (archive base)", out)
+-    rc, out = w.run("python3", "chpc/candidate_v19_oploss/build_v19.py", "--check"); need(rc == 0 and "archive v18 base" in out, "build --check after", out)
++    rc, out = w.promote("--check"); need(rc == 0 and "authenticated archive v19 base" in out, "promote --check after the promotion (archive base)", out)
++    rc, out = w.run("python3", "chpc/candidate_v20_handback/build_v20.py", "--check"); need(rc == 0 and "archive v19 base" in out, "build --check after", out)
+     ad = json.load(open(os.path.join(w.t1, "chpc/row19_screen_controls_adoption.json")))
+-    need(ad["version"] == 19 and ad["controls_sha256"] == V19_CONTROLS and ad["previous"]["adoption_sha256"] == FROZEN["chpc/row19_screen_controls_adoption.json"]
+-         and ad["review_record"]["path"] == REC and ad["review_record"]["adopt_line"] in REC_TEXT, "the version-19 adoption record: %s" % ad)
+-    rc, out = w.script("deploy_v19.sh", "--dry-run"); refused(rc, out, "not committed")
++    need(ad["version"] == 20 and ad["controls_sha256"] == V20_CONTROLS and ad["previous"]["adoption_sha256"] == FROZEN["chpc/row19_screen_controls_adoption.json"]
++         and ad["review_record"]["path"] == REC and ad["review_record"]["adopt_line"] in REC_TEXT, "the version-20 adoption record: %s" % ad)
++    need(sha(os.path.join(w.t1, "aws_ec2/prod_authority.py")) == sha(os.path.join(LIVE_T1, "chpc/candidate_v20_handback/aws_ec2/prod_authority.py")),
++         "the Mac authority was not promoted")
++    rc, out = w.script("deploy_v20.sh", "--dry-run"); refused(rc, out, "not committed")
+     w.commit_promotion()
+-    rc, out = w.script("deploy_v19.sh", "--dry-run"); need(rc == 0 and "DRY RUN" in out, "deploy dry run", out)
++    rc, out = w.script("deploy_v20.sh", "--dry-run"); need(rc == 0 and "DRY RUN" in out, "deploy dry run", out)
+     jh = sh("git", "-C", os.path.join(w.L, "rsc_screen"), "rev-parse", "HEAD"); gd = tree_digest(w.G)
+     h0 = sh("git", "-C", w.CR, "rev-parse", "HEAD").strip()
+-    rc, out = w.script("deploy_v19.sh")
+-    need(rc == 0 and "DEPLOY OK" in out and "science bytes UNCHANGED (8 files" in out and "IDENTICAL" in out and "epoch 2 STILL ACTIVE" in out
++    rc, out = w.script("deploy_v20.sh")
++    need(rc == 0 and "DEPLOY OK" in out and "science bytes UNCHANGED (8 files" in out and "IDENTICAL" in out and "e3 PINNED, NOT YET ACTIVATED" in out
+          and "deploy proof written before any controller change" in out and "compile and the JSON payloads parse" in out
+-         and "accepted under the current version 19; activation_problem ''" in out, "deploy", out)
++         and "pinned partition schema row19-provider-partition-3 epoch 3 owned 0 handed back 3274 retained 0" in out, "deploy", out)
+     need(w.running_state() == run0 and sh("git", "-C", os.path.join(w.L, "rsc_screen"), "rev-parse", "HEAD") == jh,
+          "the science clone, job files, ledger or plans changed (running jobs must survive untouched)")
+-    need(tree_digest(w.G) == gd and sha(w.ACT2) == act0 and sha(w.NODE_EV) == ev0, "the gate, the activation or the node document changed in the deploy")
++    need(tree_digest(w.G) == gd and sha(w.ACT2) == act0 and sha(w.NODE_EV) == ev0 and not os.path.exists(w.ACT3),
++         "the gate, the e2 activation or the node document changed in the deploy, or an e3 proof appeared")
+     cp = sh("git", "-C", w.CR, "diff", "--name-only", h0, "HEAD").split()
+-    need(sorted(cp) == sorted(T1_REL + "/" + p for p in [REC] + V19_PINS + V19_NEW + [
++    need(sorted(cp) == sorted(T1_REL + "/" + p for p in [REC] + V20_PINS + V20_NEW + ["aws_ec2/prod_authority.py",
+          "chpc/row19_screen_controls.json", "chpc/row19_screen_controls_adoption.json"])
+-         and ctl_untracked(w) == sorted(T1_REL + "/" + p for p in EVIDENCE), "the deploy commit is not exactly the 9 payload paths: %s" % cp)
+-    need("payload: 9 files decoded" in out and "lineage version 19" in sh("git", "-C", w.CR, "log", "-1", "--format=%s"), "the 9-file v19 commit", out)
+-    need(all(sha(os.path.join(w.C, p)) == sha(os.path.join(LIVE_T1, "chpc/candidate_v19_oploss", os.path.basename(p))) for p in V19_PINS + V19_NEW),
+-         "a deployed v19 controller or the E2Q3 manifest is not the candidate bytes")
+-    need(sha(os.path.join(w.C, "chpc/row19_screen_controls.json")) == V19_CONTROLS, "the v19 controls are not in the controller clone")
+-    rc, out = w.script("deploy_v19.sh"); need(rc == 0 and "already holds exactly these v19 bytes" in out and "DEPLOY OK" in out, "deploy re-run", out)
++         and ctl_untracked(w) == sorted(T1_REL + "/" + p for p in EVIDENCE), "the deploy commit is not exactly the 7 payload paths: %s" % cp)
++    need("payload: 7 files decoded" in out and "lineage version 20" in sh("git", "-C", w.CR, "log", "-1", "--format=%s"), "the 7-file v20 commit", out)
++    need(all(sha(os.path.join(w.C, p)) == sha(os.path.join(LIVE_T1, "chpc/candidate_v20_handback", os.path.basename(p))) for p in V20_PINS + V20_NEW),
++         "a deployed v20 controller or e3 is not the candidate bytes")
++    need(sha(os.path.join(w.C, "chpc/row19_screen_controls.json")) == V20_CONTROLS, "the v20 controls are not in the controller clone")
++    rc, out = w.script("deploy_v20.sh"); need(rc == 0 and "already holds exactly these v20 bytes" in out and "DEPLOY OK" in out, "deploy re-run", out)
++    pr = admission_probe(w)
++    need("PROBE partition schema row19-provider-partition-3 epoch 3" in pr and "partition epoch 3 is pinned but not activated" in pr,
++         "admission is not HELD after the deploy and before the close", pr)
+     stub_receipts(w)
+-    rc, out = w.script("receipts_v19.sh"); need(rc == 0 and "RECEIPT OK" in out and "V19 RECEIPTS OK" in out and "lengau check OK" in out, "receipts", out)
++    rc, out = w.script("receipts_v20.sh", "--pre-close"); need(rc == 0 and "RECEIPT OK" in out and "V20 RECEIPTS OK (pre-close)" in out
++                                                            and "lengau check OK (pre-close)" in out, "pre-close receipts", out)
+     unstub_receipts(w)
+-    rc, out = w.script("lengau.sh", "rollover_pilot_v19.sh"); need(rc == 0 and "retired to" in out, "rollover", out)
++    rc, out = w.script("lengau.sh", "rollover_pilot_v20.sh"); refused(rc, out, "activation_e3.json")      # the pilot follows the close
++    ec2_state(w)
++    rc, out = w.script("close_v20.sh", "--dry-run"); need(rc == 0 and "DRY RUN" in out and '"close_preconditions": "MET"' in out and not os.path.exists(w.ACT3), "close dry run", out)
++    rc, out = w.script("close_v20.sh")
++    need(rc == 0 and "CLOSE OK" in out and "CLOSED: epoch 3 activated" in out and "verified chpc/row19_partition_e3.json" in out
++         and "activated epoch 3" in out and "activation_problem ''" in out, "the close", out)
++    proof = json.load(open(w.ACT3))
++    need(proof["mode"] == "canonical" and proof["epoch"] == 3 and proof["closed"] is True and proof["controls_version"] == 20
++         and proof["partition_sha256"] == E3_SHA and proof["facts"]["lengau_claims_on_owned"] == 0, "the e3 proof is not the canonical close: %s" % proof)
++    need("activate --manifest chpc/row19_screen_manifest.json --partition chpc/row19_partition_e3.json" in open(os.path.join(w.L, "partition.log")).read(),
++         "the close did not run the real activation CLI")
++    p3 = sha(w.ACT3)
++    rc, out = w.script("close_v20.sh"); need(rc == 0 and "already closed (verified)" in out and sha(w.ACT3) == p3, "close re-run", out)
++    pr = admission_probe(w)
++    need("PROBE activation ''" in pr and "no adopted review" not in pr, "after the close the partition hold must be gone", pr)
++    stub_receipts(w); write(os.path.join(w.t1, "chpc/stub_status.mode"), "post")
++    rc, out = w.script("receipts_v20.sh", "--post-close")
++    need(rc == 0 and "V20 RECEIPTS OK (post-close)" in out and "post-close designated view: designated 4800, done 1144, in flight 198, Lengau plannable 3453, EC2 waiting 0" in out
++         and "lengau check OK (post-close)" in out, "post-close receipts", out)
++    os.remove(os.path.join(w.t1, "chpc/stub_status.mode")); unstub_receipts(w)
++    rc, out = w.script("lengau.sh", "rollover_pilot_v20.sh"); need(rc == 0 and "retired to" in out, "rollover", out)
+     need(not os.path.exists(os.path.join(w.G, "review_refit.json")) and os.path.isfile(os.path.join(w.G, "scaleup_refit_v16.json"))
+-         and os.path.isfile(os.path.join(w.R, "review_refit.v16_qual2c7a7ef1_max100.json"))
++         and os.path.isfile(os.path.join(w.R, "review_refit.v18_qual530df9a2_max100.json"))
+          and os.path.isfile(os.path.join(w.R, "review_refit.v17_qual8fdbf48e_max100.json")) and os.path.isfile(w.RETIRED), "rollover moved the wrong file")
+-    rc, out = w.script("lengau.sh", "rollover_pilot_v19.sh"); need(rc == 0 and "already retired (verified)" in out, "rollover re-run", out)
+-    rc, out = w.script("package_qual_v19.py"); refused(rc, out, "still the v18 530df9a2")
++    pr = admission_probe(w)
++    need("PROBE activation ''" in pr and "no adopted review" in pr, "admission is not HELD after the close and before the new pilot review", pr)
++    rc, out = w.script("lengau.sh", "rollover_pilot_v20.sh"); need(rc == 0 and "already retired (verified)" in out, "rollover re-run", out)
++    rc, out = w.script("package_qual_v20.py"); refused(rc, out, "still the v19 e123d6e5")
+     qsha = fake_qualification(w)
+-    rc, out = w.script("package_qual_v19.py"); need(rc == 0 and "packaged" in out and qsha in out, "package", out)
+-    pd = os.path.join(w.t1, "chpc", "qualification_v19_" + qsha[:8])
++    rc, out = w.script("package_qual_v20.py"); need(rc == 0 and "packaged" in out and qsha in out, "package", out)
++    pd = os.path.join(w.t1, "chpc", "qualification_v20_" + qsha[:8])
+     need(sorted(os.listdir(pd)) == sorted(["SHA256SUMS", "qualified_refit_job1.json", "verify_refit_20261021T101010Z.json", "watch_refit_20261021T101010Z.json",
+-         "watch_refit_20261020T033232Z.json", "mac_archive_v18_before_v19.SHA256SUMS", "lengau_archive_v18_before_v19.SHA256SUMS.txt"]), "package layout %s" % os.listdir(pd))
+-    rc, out = w.script("package_qual_v19.py"); need(rc == 0 and "exists and verifies" in out, "package re-run", out)
++         "watch_refit_20261020T033232Z.json", "mac_archive_v19_before_v20.SHA256SUMS", "lengau_archive_v19_before_v20.SHA256SUMS.txt"]), "package layout %s" % os.listdir(pd))
++    rc, out = w.script("package_qual_v20.py"); need(rc == 0 and "exists and verifies" in out, "package re-run", out)
+     rec = pilot_record(w, qsha)
+-    rc, out = w.script("lengau.sh", "adopt_pilot19.sh", "--file", rec); need(rc == 0 and "adopt_pilot19 complete" in out, "adopt", out)
++    rc, out = w.script("lengau.sh", "adopt_pilot20.sh", "--file", rec); need(rc == 0 and "adopt_pilot20 complete" in out, "adopt", out)
+     need(json.load(open(os.path.join(w.G, "review_refit.json")))["qualification_sha256"] == qsha, "the simulated adopter wrote another review")
+-    rc, out = w.script("lengau.sh", "adopt_pilot19.sh", "--file", rec); refused(rc, out, "an active review exists")
+-    need(sha(w.ACT2) == act0 and sha(w.NODE_EV) == ev0 and w.running_state() == run0, "epoch 2, the node document or a running job's state changed")
++    rc, out = w.script("lengau.sh", "adopt_pilot20.sh", "--file", rec); refused(rc, out, "an active review exists")
++    need(sha(w.ACT2) == act0 and sha(w.NODE_EV) == ev0 and sha(w.ACT3) == p3 and w.running_state() == run0,
++         "e2, e3, the node document or a running job's state changed")
+     need(w.net_log() == "", "something tried ssh/scp: " + w.net_log())
+ 
+ 
+ @test("Lengau compat: the whole route runs on the restricted git and flock CLIs (no rejected call, no python fallback for a decidable lock)")
+ def t_lengau_route():
+     w = stage("fresh"); w.fake("flock", FAKE_FLOCK)
+-    rc, out = w.script("preflight_v19.sh"); need(rc == 0 and "PREFLIGHT OK" in out and "trying the python fcntl probe" not in out, "preflight", out)
+-    rc, out = w.script("archive_v18.sh"); need(rc == 0 and "ARCHIVE OK" in out, "archive", out)
++    rc, out = w.script("preflight_v20.sh"); need(rc == 0 and "PREFLIGHT OK" in out and "trying the python fcntl probe" not in out, "preflight", out)
++    rc, out = w.script("archive_v19.sh"); need(rc == 0 and "ARCHIVE OK" in out, "archive", out)
+     rc, out = w.promote("--review", REC); need(rc == 0, "promote", out); w.commit_promotion()
+-    rc, out = w.script("deploy_v19.sh"); need(rc == 0 and "DEPLOY OK" in out, "deploy", out)
+-    rc, out = w.script("deploy_v19.sh"); need(rc == 0 and "DEPLOY OK" in out, "deploy re-run", out)
+-    stub_receipts(w); rc, out = w.script("receipts_v19.sh"); need(rc == 0, "receipts", out); unstub_receipts(w)
+-    rc, out = w.script("lengau.sh", "rollover_pilot_v19.sh"); need(rc == 0, "rollover", out)
++    rc, out = w.script("deploy_v20.sh"); need(rc == 0 and "DEPLOY OK" in out, "deploy", out)
++    rc, out = w.script("deploy_v20.sh"); need(rc == 0 and "DEPLOY OK" in out, "deploy re-run", out)
++    stub_receipts(w); rc, out = w.script("receipts_v20.sh", "--pre-close"); need(rc == 0, "receipts", out); unstub_receipts(w)
++    ec2_state(w); rc, out = w.script("close_v20.sh"); need(rc == 0 and "CLOSE OK" in out and "trying the python fcntl probe" not in out, "close", out)
++    stub_receipts(w); write(os.path.join(w.t1, "chpc/stub_status.mode"), "post")
++    rc, out = w.script("receipts_v20.sh", "--post-close"); need(rc == 0, "post receipts", out); unstub_receipts(w)
++    rc, out = w.script("lengau.sh", "rollover_pilot_v20.sh"); need(rc == 0, "rollover", out)
+     qsha = fake_qualification(w); rec = pilot_record(w, qsha)
+-    rc, out = w.script("lengau.sh", "adopt_pilot19.sh", "--file", rec); need(rc == 0, "adopt", out)
++    rc, out = w.script("lengau.sh", "adopt_pilot20.sh", "--file", rec); need(rc == 0, "adopt", out)
+     log = open(os.path.join(w.lbin, "git.log")).read()
+     for want in ("rev-parse --show-toplevel", "rev-parse --git-dir", "status --porcelain --untracked-files=all", "rev-parse --verify HEAD",
+                  "merge-base --is-ancestor", "diff-tree --no-commit-id --name-only -r", "ls-files"):
+@@ -952,109 +1126,120 @@
+ 
+ 
+ # ================================================================================================ step 1: preflight
+-@test("preflight refuses (Mac): a changed package byte (controls, map, builder, promoter, a source, the node evidence), a held authority lock, a busy Mac")
++@test("preflight refuses (Mac): a changed package byte (controls, map, builder, promoter, a source, e3, the authority, the node evidence), a held authority lock, a busy Mac, the close preconditions NOT MET (pending E2Q3, zero-coordinate pending Q2, stale Mac inventory, a launched attempt)")
+ def t_preflight_mac():
+-    for rel in ["chpc/candidate_v19_oploss/" + f for f in ("row19_screen_controls.json", "v19_promotion_map.json", "build_v19.py", "promote_v19.py",
+-                "row19_screen_status.py", "row19_screen_admit.py", "row19_ec2_state.py", "row19_ec2_e2qual.py", "row19_ec2_ingest.py",
+-                "manifest_e2q3_e2.json")] + ["chpc/candidate_v18_nodefail/evidence_row19_screen_refit_54.nodefail.json"]:
++    for rel in ["chpc/candidate_v20_handback/" + f for f in ("row19_screen_controls.json", "v20_promotion_map.json", "build_v20.py", "promote_v20.py",
++                "row19_partition.py", "row19_screen_admit.py", "row19_partition_e3.json", "aws_ec2/prod_authority.py")] + [
++                "chpc/candidate_v18_nodefail/evidence_row19_screen_refit_54.nodefail.json"]:
+         w = stage("fresh"); open(os.path.join(w.t1, rel), "a").write("\n")
+-        rc, out = w.script("preflight_v19.sh"); refused(rc, out, os.path.basename(rel), "not the pinned")
++        rc, out = w.script("preflight_v20.sh"); refused(rc, out, os.path.basename(rel), "not the pinned")
+     w = stage("fresh")
+     with Holder(os.path.join(w.t1, "aws_ec2/runs/.authority.lock")):
+-        rc, out = w.script("preflight_v19.sh")
++        rc, out = w.script("preflight_v20.sh")
+     refused(rc, out, "authority lock")
+     for line in ("python3 aws_ec2/ec2_sync.py cycle", "caffeinate -i python3 aws_ec2/bench_reaper.py --run qual-E2Q1", "bash refill_r1.sh"):
+         w = stage("fresh"); write(os.path.join(w.bin, "ps_x.out"), "bash -s\n%s\n" % line)
+-        rc, out = w.script("preflight_v19.sh"); refused(rc, out, "runs on the Mac")
+-    w = stage("fresh"); write(os.path.join(w.bin, "ps_x.rc"), "1"); rc, out = w.script("preflight_v19.sh"); refused(rc, out, "Mac process inventory failed")
++        rc, out = w.script("preflight_v20.sh"); refused(rc, out, "runs on the Mac")
++    w = stage("fresh"); write(os.path.join(w.bin, "ps_x.rc"), "1"); rc, out = w.script("preflight_v20.sh"); refused(rc, out, "Mac process inventory failed")
++    # v20 step 0b: the Mac half of the close preconditions (close-check) is part of the preflight
++    for kw, msg in ((dict(e2q3="pending"), "qual-E2Q3/1 is reconciled but pending"), (dict(q2="pending"), "qual-Q2/1 is reconciled but pending"),
++                    (dict(mac_age=7 * 3600), "older than"), (dict(launched=True, e2q3="pending"), "qual-E2Q3/1 is launched")):
++        w = stage("fresh"); ec2_state(w, lengau=False, **kw)
++        rc, out = w.script("preflight_v20.sh"); refused(rc, out, "close preconditions are NOT MET", msg)
+ 
+ 
+-@test("preflight refuses (Mac): live tree not v18 (admission or status edited), Mac qualification not 530df9a2, pilot record changed, uncommitted budget")
++@test("preflight refuses (Mac): live tree not v19 (admission, partition module or Mac authority edited, e3 already present), Mac qualification not e123d6e5, pilot record changed, uncommitted budget")
+ def t_preflight_mac_state():
+     w = stage("fresh"); open(os.path.join(w.t1, "chpc/row19_screen_admit.py"), "a").write("# x\n")
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "row19_screen_admit.py")
+-    w = stage("fresh"); open(os.path.join(w.t1, "chpc/row19_screen_status.py"), "a").write("# x\n")
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "row19_screen_status.py")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "row19_screen_admit.py")
++    w = stage("fresh"); open(os.path.join(w.t1, "chpc/row19_partition.py"), "a").write("# x\n")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "row19_partition.py")
++    w = stage("fresh"); open(os.path.join(w.t1, "aws_ec2/prod_authority.py"), "a").write("# x\n")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "prod_authority.py")
++    w = stage("fresh"); write(os.path.join(w.t1, "chpc/row19_partition_e3.json"), "{}\n")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "row19_partition_e3.json")
+     w = stage("fresh"); write(os.path.join(w.t1, QUAL_MAC), "{}\n")
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "530df9a2")
+-    w = stage("fresh"); open(os.path.join(w.t1, "reviews/2026-10-20_pilot_v18_operator_record.md"), "a").write(" ")
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "pilot record")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "e123d6e5")
++    w = stage("fresh"); open(os.path.join(w.t1, "reviews/2026-10-22_pilot_v19_operator_record.md"), "a").write(" ")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "pilot record")
+     w = stage("fresh"); open(os.path.join(w.t1, "chpc/row19_screen_budget.json"), "a").write(" ")
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "row19_screen_budget.json")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "row19_screen_budget.json")
+ 
+ 
+-@test("preflight refuses (Lengau): a replaced controller not at its v18 bytes (status, EC2 state), the new E2Q3 manifest path already present, the retired v17 review missing, no/invalid epoch-2 activation, node document missing/changed, review not bound to 530df9a2, ledger cap, leftovers, controller not v18")
++@test("preflight refuses (Lengau): a replaced controller not at its v19 bytes (partition module, admission), an e3 proof already present, an owning EC2 attempt in the installed inventory, the new e3 path already present, the retired v18 review missing, no/invalid epoch-2 activation, node document missing/changed, review not bound to e123d6e5, ledger cap, leftovers, controller not v19")
+ def t_preflight_lengau():
+-    w = stage("fresh"); open(os.path.join(w.C, "chpc/row19_screen_status.py"), "a").write("# x\n"); gitc(w.CR, "commit", "-q", "-am", "x")
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "row19_screen_status.py")
+-    w = stage("fresh"); open(os.path.join(w.C, "chpc/row19_ec2_state.py"), "a").write("# x\n"); gitc(w.CR, "commit", "-q", "-am", "x")
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "row19_ec2_state.py")
+-    w = stage("fresh"); write(os.path.join(w.C, V19_NEW[0]), "{}\n"); gitc(w.CR, "add", "--", T1_REL + "/" + V19_NEW[0]); gitc(w.CR, "commit", "-q", "-m", "x")
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "new v19 data path", "already exists")
+-    w = stage("fresh"); os.remove(os.path.join(w.R, "review_refit.v17_qual8fdbf48e_max100.json")); rc, out = w.script("preflight_v19.sh"); refused(rc, out, "retired v17 review")
+-    w = stage("fresh"); os.remove(w.ACT2); rc, out = w.script("preflight_v19.sh"); refused(rc, out, "epoch-2 activation proof")
++    w = stage("fresh"); open(os.path.join(w.C, "chpc/row19_partition.py"), "a").write("# x\n"); gitc(w.CR, "commit", "-q", "-am", "x")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "row19_partition.py")
++    w = stage("fresh"); open(os.path.join(w.C, "chpc/row19_screen_admit.py"), "a").write("# x\n"); gitc(w.CR, "commit", "-q", "-am", "x")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "row19_screen_admit.py")
++    w = stage("fresh"); write(w.ACT3, "{}\n"); rc, out = w.script("preflight_v20.sh"); refused(rc, out, "epoch-3 activation", "already exists")
++    w = stage("fresh"); ec2_state(w, mac=False, e2q3="pending"); rc, out = w.script("preflight_v20.sh"); refused(rc, out, "installed inventory still shows")
++    w = stage("fresh"); write(os.path.join(w.C, V20_NEW[0]), "{}\n"); gitc(w.CR, "add", "--", T1_REL + "/" + V20_NEW[0]); gitc(w.CR, "commit", "-q", "-m", "x")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "new v20 data path", "already exists")
++    w = stage("fresh"); os.remove(os.path.join(w.R, "review_refit.v18_qual530df9a2_max100.json")); rc, out = w.script("preflight_v20.sh"); refused(rc, out, "retired v18 review")
++    w = stage("fresh"); os.remove(w.ACT2); rc, out = w.script("preflight_v20.sh"); refused(rc, out, "epoch-2 activation proof")
+     w = stage("fresh"); d = json.load(open(w.ACT2)); d["owned_sha256"] = "0" * 64; json.dump(d, open(w.ACT2, "w"))
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "not the canonical epoch-2 activation")
+-    w = stage("fresh"); os.remove(w.NODE_EV); rc, out = w.script("preflight_v19.sh"); refused(rc, out, "node document")
+-    w = stage("fresh"); open(w.NODE_EV, "a").write(" "); rc, out = w.script("preflight_v19.sh"); refused(rc, out, "730ea262")
+-    w = stage("fresh"); write(os.path.join(w.G, "review_refit.json"), "{}\n"); rc, out = w.script("preflight_v19.sh"); refused(rc, out, "not bound to qualification 530df9a2")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "not the canonical epoch-2 activation")
++    w = stage("fresh"); os.remove(w.NODE_EV); rc, out = w.script("preflight_v20.sh"); refused(rc, out, "node document")
++    w = stage("fresh"); open(w.NODE_EV, "a").write(" "); rc, out = w.script("preflight_v20.sh"); refused(rc, out, "730ea262")
++    w = stage("fresh"); write(os.path.join(w.G, "review_refit.json"), "{}\n"); rc, out = w.script("preflight_v20.sh"); refused(rc, out, "not bound to qualification e123d6e5")
+     w = stage("fresh"); write(os.path.join(w.L, "row19_screen_campaign/budget.json"), json.dumps({"cap_core_h": 60000.0}))
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "81,000")
+-    w = stage("fresh"); os.makedirs(os.path.join(w.L, "archive_screen/v19_deploy_proof")); rc, out = w.script("preflight_v19.sh"); refused(rc, out, "v19 deploy proof")
+-    w = stage("fresh"); os.makedirs(os.path.join(w.L, "archive_screen/.v18_before_v19.staging.9")); rc, out = w.script("preflight_v19.sh"); refused(rc, out, "interrupted archive build")
+-    w = stage("fresh"); write(w.RETIRED, "{}\n"); rc, out = w.script("preflight_v19.sh"); refused(rc, out, "retirement target")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "81,000")
++    w = stage("fresh"); os.makedirs(os.path.join(w.L, "archive_screen/v20_deploy_proof")); rc, out = w.script("preflight_v20.sh"); refused(rc, out, "v20 deploy proof")
++    w = stage("fresh"); os.makedirs(os.path.join(w.L, "archive_screen/.v19_before_v20.staging.9")); rc, out = w.script("preflight_v20.sh"); refused(rc, out, "interrupted archive build")
++    w = stage("fresh"); write(w.RETIRED, "{}\n"); rc, out = w.script("preflight_v20.sh"); refused(rc, out, "retirement target")
+     w = stage("fresh"); p = os.path.join(w.C, "chpc/row19_screen_controls_adoption.json"); open(p, "a").write(" "); gitc(w.CR, "commit", "-q", "-am", "x")
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "3e1fe9a1")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "2b9f3c78")
+ 
+ 
+ # ================================================================================================ step 2: archives
+ @test("archive: one-file remote archive refuses and is left as it was; missing ledger / activation_e2 / node document / pilot record / review / jobs refuse")
+ def t_archive_incomplete():
+     w = stage("fresh"); write(os.path.join(w.A, "gate/qualified_refit_job1.json"), open(os.path.join(w.G, "qualified_refit_job1.json"), "rb").read())
+-    write(os.path.join(w.A, "SHA256SUMS"), "%s  ./gate/qualified_refit_job1.json\n" % V18_QUAL); before = tree_digest(w.A)
+-    rc, out = w.script("archive_v18.sh"); refused(rc, out, "does not verify as complete")
++    write(os.path.join(w.A, "SHA256SUMS"), "%s  ./gate/qualified_refit_job1.json\n" % V19_QUAL); before = tree_digest(w.A)
++    rc, out = w.script("archive_v19.sh"); refused(rc, out, "does not verify as complete")
+     need(tree_digest(w.A) == before and not os.path.exists(w.MA), "the partial archive changed, or the Mac half ran")
+-    w = stage("fresh"); os.remove(os.path.join(w.L, "row19_screen_campaign/budget.json")); rc, out = w.script("archive_v18.sh"); refused(rc, out, "missing")
++    w = stage("fresh"); os.remove(os.path.join(w.L, "row19_screen_campaign/budget.json")); rc, out = w.script("archive_v19.sh"); refused(rc, out, "missing")
+     need(not os.path.exists(w.A) and not os.path.exists(w.MA), "published without the ledger")
+-    w = stage("fresh"); os.remove(w.ACT2); rc, out = w.script("archive_v18.sh"); refused(rc, out, "activation")
++    w = stage("fresh"); os.remove(w.ACT2); rc, out = w.script("archive_v19.sh"); refused(rc, out, "activation")
+     need(not os.path.exists(w.A), "published without activation_e2")
+-    w = stage("fresh"); os.remove(w.NODE_EV); rc, out = w.script("archive_v18.sh"); refused(rc, out, "node document")
++    w = stage("fresh"); os.remove(w.NODE_EV); rc, out = w.script("archive_v19.sh"); refused(rc, out, "node document")
+     need(not os.path.exists(w.A), "published without the node document")
+-    for f in ("chpc/row22_bank_submit.py", "reviews/2026-10-20_pilot_v18_operator_record.md", "chpc/row19_partition_e1.json"):
++    for f in ("chpc/row22_bank_submit.py", "reviews/2026-10-22_pilot_v19_operator_record.md", "chpc/row19_partition_e1.json"):
+         w = stage("fresh"); sh("git", "-C", w.CR, "rm", "-q", "--", T1_REL + "/" + f); gitc(w.CR, "commit", "-q", "-m", "x")
+-        rc, out = w.script("archive_v18.sh"); refused(rc, out)
++        rc, out = w.script("archive_v19.sh"); refused(rc, out)
+         need(not os.path.exists(w.A) and not os.path.exists(w.MA), "an archive was published without " + f)
+-    w = stage("fresh"); os.remove(os.path.join(w.G, "review_refit.json")); rc, out = w.script("archive_v18.sh"); refused(rc, out, "review_refit.json")
++    w = stage("fresh"); os.remove(os.path.join(w.G, "review_refit.json")); rc, out = w.script("archive_v19.sh"); refused(rc, out, "review_refit.json")
+     w = stage("fresh"); [os.remove(os.path.join(w.L, "jobs", f)) for f in os.listdir(os.path.join(w.L, "jobs"))]
+-    rc, out = w.script("archive_v18.sh"); refused(rc, out)
++    rc, out = w.script("archive_v19.sh"); refused(rc, out)
+     need(not os.path.exists(w.A), "published without job files")
+ 
+ 
+ @test("archive: failed checksum / unreadable source refuse; an interrupted build (staging left, Lengau or Mac) refuses and is never removed")
+ def t_archive_interrupted():
+-    w = stage("fresh"); write(os.path.join(w.bin, "sha.fail"), "qualified_refit_job1"); rc, out = w.script("archive_v18.sh"); refused(rc, out, "cannot hash")
++    w = stage("fresh"); write(os.path.join(w.bin, "sha.fail"), "qualified_refit_job1"); rc, out = w.script("archive_v19.sh"); refused(rc, out, "cannot hash")
+     need(not os.path.exists(w.A), "published after a failed checksum command")
+     w = stage("fresh"); os.chmod(os.path.join(w.G, "watch_refit_1.json"), 0)
+-    rc, out = w.script("archive_v18.sh"); os.chmod(os.path.join(w.G, "watch_refit_1.json"), 0o644); refused(rc, out, "unreadable")
++    rc, out = w.script("archive_v19.sh"); os.chmod(os.path.join(w.G, "watch_refit_1.json"), 0o644); refused(rc, out, "unreadable")
+     need(not os.path.exists(w.A) and not [x for x in os.listdir(os.path.join(w.L, "archive_screen")) if "staging" in x], "published or left staging")
+-    w = stage("fresh"); stg = os.path.join(w.L, "archive_screen/.v18_before_v19.staging.4242"); write(os.path.join(stg, "gate/x"), "partial\n"); before = tree_digest(stg)
+-    rc, out = w.script("archive_v18.sh"); refused(rc, out, "interrupted archive build")
++    w = stage("fresh"); stg = os.path.join(w.L, "archive_screen/.v19_before_v20.staging.4242"); write(os.path.join(stg, "gate/x"), "partial\n"); before = tree_digest(stg)
++    rc, out = w.script("archive_v19.sh"); refused(rc, out, "interrupted archive build")
+     need(tree_digest(stg) == before and not os.path.exists(w.A), "the staging evidence changed")
+-    w = stage("fresh"); os.makedirs(os.path.join(w.t1, "chpc/results/archive/.row19_screen_v18_before_v19.staging.7"))
+-    rc, out = w.script("archive_v18.sh"); refused(rc, out, "interrupted Mac archive build"); need(not os.path.exists(w.A), "the Lengau half ran")
++    w = stage("fresh"); os.makedirs(os.path.join(w.t1, "chpc/results/archive/.row19_screen_v19_before_v20.staging.7"))
++    rc, out = w.script("archive_v19.sh"); refused(rc, out, "interrupted Mac archive build"); need(not os.path.exists(w.A), "the Lengau half ran")
+ 
+ 
+ @test("archive retry: the Lengau half published but the Mac half failed (budget mismatch) -> nothing on the Mac; repaired, the re-run builds the Mac half")
+ def t_archive_retry_mac_half():
+     w = stage("fresh"); p = os.path.join(w.C, "chpc/row19_screen_budget.json"); orig = open(p, "rb").read()
+     write(p, orig.replace(b"81000", b"81000 ") if b"81000" in orig else orig + b" "); gitc(w.CR, "commit", "-q", "-am", "TEST another budget")
+-    rc, out = w.script("archive_v18.sh"); refused(rc, out, "budget phases")
++    rc, out = w.script("archive_v19.sh"); refused(rc, out, "budget phases")
+     need(os.path.isdir(w.A) and not os.path.exists(w.MA) and not os.path.exists(w.LSF), "the Lengau archive was not kept, or the Mac half was written")
+     unlock_tree(w.A); shutil.rmtree(w.A); write(p, orig); gitc(w.CR, "commit", "-q", "-am", "TEST budget restored")
+-    rc, out = w.script("archive_v18.sh"); need(rc == 0 and "ARCHIVE OK" in out, "archive after recovery", out)
+-    w = stage("fresh"); rc, out = w.script("archive_v18.sh"); need(rc == 0, "archive", out)
++    rc, out = w.script("archive_v19.sh"); need(rc == 0 and "ARCHIVE OK" in out, "archive after recovery", out)
++    w = stage("fresh"); rc, out = w.script("archive_v19.sh"); need(rc == 0, "archive", out)
+     unlock_tree(w.MA); shutil.rmtree(w.MA); os.remove(w.LSF)        # an interruption after the Lengau half: no Mac half yet
+-    rc, out = w.script("archive_v18.sh"); need(rc == 0 and "exists and verifies" in out and "Mac archive" in out and os.path.isdir(w.MA) and os.path.isfile(w.LSF), "Mac half resumed", out)
++    rc, out = w.script("archive_v19.sh"); need(rc == 0 and "exists and verifies" in out and "Mac archive" in out and os.path.isdir(w.MA) and os.path.isfile(w.LSF), "Mac half resumed", out)
+ 
+ 
+ @test("archive: a self-consistently rewritten Lengau archive (node document, activation_e2 or pilot record dropped) and a substituted Mac member refuse")
+@@ -1064,7 +1249,7 @@
+         sys.modules.pop("lengau_archive", None); import lengau_archive as LA
+     finally:
+         sys.path.pop(0); sys.modules.pop("lengau_archive", None)
+-    for drop in ("jobs/row19_screen_refit_54.nodefail.json", "ec2/activation_e2.json", "ctl/reviews/2026-10-20_pilot_v18_operator_record.md"):
++    for drop in ("jobs/row19_screen_refit_54.nodefail.json", "ec2/activation_e2.json", "ctl/reviews/2026-10-22_pilot_v19_operator_record.md"):
+         w = stage("archived"); unlock_tree(w.A); p = os.path.join(w.A, drop); os.remove(p)
+         if drop.startswith("jobs/"):
+             inv = LA.parse_sums(open(os.path.join(w.A, "INVENTORY.jobs")).read(), "x"); inv.pop(drop)
+@@ -1081,7 +1266,7 @@
+         for d, _, files in os.walk(w.A):
+             for n in files:
+                 os.chmod(os.path.join(d, n), 0o444)
+-        rc, out = w.script("archive_v18.sh"); refused(rc, out, "does not verify as complete")
++        rc, out = w.script("archive_v19.sh"); refused(rc, out, "does not verify as complete")
+     w = stage("archived"); os.chmod(w.MA, 0o755)
+     for n in os.listdir(w.MA):
+         os.chmod(os.path.join(w.MA, n), 0o644)
+@@ -1092,7 +1277,7 @@
+     write(os.path.join(w.MA, "COMPLETE"), json.dumps(comp, indent=1, sort_keys=True) + "\n")
+     for n in os.listdir(w.MA):
+         os.chmod(os.path.join(w.MA, n), 0o444)
+-    rc, out = w.script("archive_v18.sh"); refused(rc, out, "does not verify")
++    rc, out = w.script("archive_v19.sh"); refused(rc, out, "does not verify")
+     rc, out = w.promote("--dry-run", "--review", REC); refused(rc, out)
+ 
+ 
+@@ -1102,48 +1287,48 @@
+     p = os.path.join(w.MA, "row19_screen_budget.json"); os.chmod(p, 0o644)
+     rc, out = w.script("mac_archive.py", "verify"); refused(rc, out, "writable")
+     w = stage("archived"); os.chmod(w.MA, 0o755); p = os.path.join(w.MA, "COMPLETE"); os.chmod(p, 0o644)
+-    write(p, "schema row19-screen-mac-archive-v16-before-v18-1\n", 0o444); rc, out = w.script("mac_archive.py", "verify"); refused(rc, out, "COMPLETE")
++    write(p, "schema row19-screen-mac-archive-v16-before-v19-1\n", 0o444); rc, out = w.script("mac_archive.py", "verify"); refused(rc, out, "COMPLETE")
+     w = stage("archived"); os.chmod(w.MA, 0o755); write(os.path.join(w.MA, "notes.txt"), "x\n", 0o444)
+-    rc, out = w.script("mac_archive.py", "verify"); refused(rc, out, "not exactly the 11 members")
++    rc, out = w.script("mac_archive.py", "verify"); refused(rc, out, "not exactly the 9 members")
+ 
+ 
+-# ================================================================================================ step 3: promotion (promote_v19.py)
+-@test("promote interruption: stopped after the controls copy (adoption still v18) - check-promoted and deploy refuse; promote_v19 resumes from the ARCHIVE base; deploy proceeds")
++# ================================================================================================ step 3: promotion (promote_v20.py)
++@test("promote interruption: stopped after the controls copy (adoption still v19) - check-promoted and deploy refuse; promote_v20 resumes from the ARCHIVE base; deploy proceeds")
+ def t_promote_interrupted():
+     w = stage("archived")
+-    sys.path.insert(0, os.path.join(w.t1, "chpc", "candidate_v19_oploss"))
++    sys.path.insert(0, os.path.join(w.t1, "chpc", "candidate_v20_handback"))
+     try:
+         import importlib
+-        for m in ("build_v19", "promote_v19"):
++        for m in ("build_v20", "promote_v20"):
+             sys.modules.pop(m, None)
+-        PV = importlib.import_module("promote_v19")
++        PV = importlib.import_module("promote_v20")
+         order = PV.order()
+     finally:
+         sys.path.pop(0)
+-        for m in ("build_v19", "promote_v19"):
++        for m in ("build_v20", "promote_v20"):
+             sys.modules.pop(m, None)
+-    need([r["promoted"] for r in order] == V19_PINS + V19_NEW + ["chpc/row19_screen_controls.json"],
+-         "the promotion order is not status, admission, EC2 state, E2Q module, ingestion, E2Q3 manifest, controls LAST")
++    need([r["promoted"] for r in order] == V20_PINS + V20_NEW + ["aws_ec2/prod_authority.py", "chpc/row19_screen_controls.json"],
++         "the promotion order is not partition module, admission, e3, Mac authority, controls LAST")
+     for r in order:                                   # exactly what the real promoter copies, controls last, then STOP (no adoption)
+         write(os.path.join(w.t1, r["promoted"]), open(os.path.join(w.t1, r["source"]), "rb").read())
+-    rc, out = w.promote("--check"); need(rc == 0 and "archive v18 base" in out, "--check during an interrupted promotion (archive base)", out)
+-    rc, out = w.promote("--check-promoted", "--review", REC); refused(rc, out, "not complete", "adoption=v18")
+-    rc, out = w.script("deploy_v19.sh", "--dry-run"); refused(rc, out, "not complete")
++    rc, out = w.promote("--check"); need(rc == 0 and "archive v19 base" in out, "--check during an interrupted promotion (archive base)", out)
++    rc, out = w.promote("--check-promoted", "--review", REC); refused(rc, out, "not complete", "adoption=v19")
++    rc, out = w.script("deploy_v20.sh", "--dry-run"); refused(rc, out, "not complete")
+     rc, out = w.promote("--review", REC); need(rc == 0 and "promoted:" in out and "adoption" in out, "promote resume", out)
+     w.commit_promotion()
+-    rc, out = w.script("deploy_v19.sh"); need(rc == 0 and "DEPLOY OK" in out, "deploy after the resumed promotion", out)
++    rc, out = w.script("deploy_v20.sh"); need(rc == 0 and "DEPLOY OK" in out, "deploy after the resumed promotion", out)
+ 
+ 
+-@test("promote base: after the promotion a missing or corrupted Mac archive refuses every promote_v19/build_v19 command (no live v19 base is ever accepted)")
++@test("promote base: after the promotion a missing or corrupted Mac archive refuses every promote_v20/build_v20 command (no live v20 base is ever accepted)")
+ def t_promote_base():
+     w = stage("promoted"); unlock_tree(w.MA); shutil.rmtree(w.MA)
+     for args in (("--check",), ("--check-promoted", "--review", REC)):
+-        rc, out = w.promote(*args); refused(rc, out, "no authenticated v18 base")
+-    rc, out = w.run("python3", "chpc/candidate_v19_oploss/build_v19.py", "--check"); refused(rc, out, "no authenticated v18 base")
++        rc, out = w.promote(*args); refused(rc, out, "no authenticated v19 base")
++    rc, out = w.run("python3", "chpc/candidate_v20_handback/build_v20.py", "--check"); refused(rc, out, "no authenticated v19 base")
+     w = stage("promoted"); os.chmod(w.MA, 0o755); p = os.path.join(w.MA, "row19_screen_controls.json"); os.chmod(p, 0o644); open(p, "a").write(" ")
+     rc, out = w.promote("--check"); refused(rc, out, "does not verify")
+     w = stage("archived"); p = os.path.join(w.t1, "chpc/row19_screen_admit.py"); open(p, "a").write("# x\n")
+-    rc, out = w.promote("--review", REC); refused(rc, out, "neither their v18 nor their v19 bytes")
++    rc, out = w.promote("--review", REC); refused(rc, out, "neither their v19 nor their v20 bytes")
+ 
+ 
+ # ================================================================================================ step 4: deploy
+@@ -1152,21 +1337,21 @@
+     def onefile(w):
+         unlock_tree(w.A); shutil.rmtree(w.A)
+         write(os.path.join(w.A, "gate/qualified_refit_job1.json"), open(os.path.join(w.G, "qualified_refit_job1.json"), "rb").read())
+-        write(os.path.join(w.A, "SHA256SUMS"), "%s  ./gate/qualified_refit_job1.json\n" % V18_QUAL)
++        write(os.path.join(w.A, "SHA256SUMS"), "%s  ./gate/qualified_refit_job1.json\n" % V19_QUAL)
+     def flip(w):
+         p = os.path.join(w.A, "gate/review_refit.json"); os.chmod(p, 0o644); open(p, "a").write(" "); os.chmod(p, 0o444)
+     def nocomplete(w):
+         os.chmod(w.A, 0o755); os.remove(os.path.join(w.A, "COMPLETE"))
+     for mut in (onefile, flip, nocomplete):
+         w = stage("promoted"); mut(w); s0 = w.ctl_state()
+-        rc, out = w.script("deploy_v19.sh"); refused(rc, out, "does not verify as complete")
++        rc, out = w.script("deploy_v20.sh"); refused(rc, out, "does not verify as complete")
+         need(w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "the controller clone changed after %s" % mut.__name__)
+     w = stage("archived"); rc, out = w.promote("--review", REC); need(rc == 0, "promote", out); s0 = w.ctl_state()
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "not committed"); need(w.ctl_state() == s0, "deployed an uncommitted promotion")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "not committed"); need(w.ctl_state() == s0, "deployed an uncommitted promotion")
+     w = stage("promoted"); d = json.load(open(w.ACT2)); d["controls_version"] = 16; json.dump(d, open(w.ACT2, "w")); s0 = w.ctl_state()
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "not the canonical epoch-2 activation"); need(w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "deployed")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "not the canonical epoch-2 activation"); need(w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "deployed")
+     w = stage("promoted"); open(w.NODE_EV, "a").write(" "); s0 = w.ctl_state()
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "730ea262"); need(w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "deployed")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "730ea262"); need(w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "deployed")
+ 
+ 
+ @test("deploy: drain observations (ps failed/empty, a settlement in flight, a capture running, a held lock, no probe) refuse before any controller change")
+@@ -1176,105 +1361,106 @@
+              ("ps_u.out", "bash -s\n/x/t1py chpc/row19_nodefail_capture.py --manifest m --role refit --job 55\n", "a controller command runs")]
+     for f, data, msg in cases:
+         w = stage("promoted"); write(os.path.join(w.bin, f), data); s0 = w.ctl_state()
+-        rc, out = w.script("deploy_v19.sh"); refused(rc, out, msg); need(w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "changed: " + msg)
++        rc, out = w.script("deploy_v20.sh"); refused(rc, out, msg); need(w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "changed: " + msg)
+     for with_flock in (False, True):
+         w = stage("promoted"); s0 = w.ctl_state()
+         if with_flock:
+             w.fake("flock", FAKE_FLOCK)
+         with Holder(os.path.join(w.GS, "plans/.submit.lock")):
+-            rc, out = w.script("deploy_v19.sh")
++            rc, out = w.script("deploy_v20.sh")
+         refused(rc, out, "lock held"); need(w.ctl_state() == s0, "deployed under a held lock")
+     w = stage("promoted"); write(os.path.join(w.L, "t1py.nofcntl"), ""); w.fake("flock", BROKEN_FLOCK)
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "no reliable lock probe")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "no reliable lock probe")
+ 
+ 
+ @test("deploy: missing/digest-failed/partial science refuses before any change; a changed or incomplete after-proof refuses completion and every re-run HOLDS")
+ def t_deploy_science():
+     w = stage("promoted"); os.remove(os.path.join(w.J, "analyze.py")); s0 = w.ctl_state()
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "science input missing or unreadable: analyze.py"); need(w.ctl_state() == s0, "changed")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "science input missing or unreadable: analyze.py"); need(w.ctl_state() == s0, "changed")
+     w = stage("promoted"); write(os.path.join(w.bin, "sha.fail"), "simulate.py"); s0 = w.ctl_state()
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "science digest command failed"); need(w.ctl_state() == s0, "changed")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "science digest command failed"); need(w.ctl_state() == s0, "changed")
+     w = stage("promoted"); write(os.path.join(w.bin, "sha.partial"), "row19_slice.py"); s0 = w.ctl_state()
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "incomplete or malformed"); need(w.ctl_state() == s0, "changed")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "incomplete or malformed"); need(w.ctl_state() == s0, "changed")
+     for hook, msg in (('echo "# drift" >> "%s/analyze.py"', "science bytes changed"), ('rm -f "%s/simulate.py"', "after-proof is incomplete")):
+         w = stage("promoted"); write(os.path.join(w.CR, ".git/hooks/post-commit"), "#!/bin/bash\n" + hook % w.J + "\n", 0o755)
+-        rc, out = w.script("deploy_v19.sh"); refused(rc, out, msg); need("DEPLOY OK" not in out, "deploy reported OK", out)
++        rc, out = w.script("deploy_v20.sh"); refused(rc, out, msg); need("DEPLOY OK" not in out, "deploy reported OK", out)
+         names = os.listdir(w.PROOF)
+         need("intent" in names and "DONE" not in names and [n for n in names if n.startswith("after_failed.")], "proof evidence %s" % names)
+         jd = tree_digest(os.path.join(w.L, "rsc_screen")); pdd = tree_digest(w.PROOF)
+         for _ in range(2):
+-            rc, out = w.script("deploy_v19.sh")
+-            refused(rc, out, "already holds exactly these v19 bytes", "DEPLOY HELD", "after-proof is unresolved"); need("DEPLOY OK" not in out, "a re-run reported OK", out)
++            rc, out = w.script("deploy_v20.sh")
++            refused(rc, out, "already holds exactly these v20 bytes", "DEPLOY HELD", "after-proof is unresolved"); need("DEPLOY OK" not in out, "a re-run reported OK", out)
+         need(tree_digest(os.path.join(w.L, "rsc_screen")) == jd and tree_digest(w.PROOF) == pdd, "a re-run changed the science or the proof")
+ 
+ 
+ @test("deploy retry: a copy failure resumes on the pre-mutation proof; a mid-payload failure / a refused commit leave a dirty clone every re-run refuses")
+ def t_deploy_retry():
+     w = stage("promoted"); s0 = w.ctl_state()
+-    w.fake("cp", '#!/bin/bash\nfor a in "$@"; do case $a in *.v19tmp) echo "cp: simulated failure" >&2; exit 1;; esac; done\nexec /bin/cp "$@"\n')
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "copy of"); need(w.ctl_state() == s0, "the controller clone changed", out)
++    w.fake("cp", '#!/bin/bash\nfor a in "$@"; do case $a in *.v20tmp) echo "cp: simulated failure" >&2; exit 1;; esac; done\nexec /bin/cp "$@"\n')
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "copy of"); need(w.ctl_state() == s0, "the controller clone changed", out)
+     need(sorted(os.listdir(w.PROOF)) == ["intent", "science_before.sha256"], "the pre-mutation proof is not exactly intent + manifest")
+     os.remove(os.path.join(w.bin, "cp"))
+-    rc, out = w.script("deploy_v19.sh"); need(rc == 0 and "reusing the pre-mutation proof" in out and "DEPLOY OK" in out, "resume", out)
++    rc, out = w.script("deploy_v20.sh"); need(rc == 0 and "reusing the pre-mutation proof" in out and "DEPLOY OK" in out, "resume", out)
+     w = stage("promoted")
+-    w.fake("cp", '#!/bin/bash\nfor a in "$@"; do case $a in *row19_screen_status.py.v19tmp) echo "cp: simulated failure" >&2; exit 1;; esac; done\nexec /bin/cp "$@"\n')
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "copy of chpc/row19_screen_status.py failed")
++    w.fake("cp", '#!/bin/bash\nfor a in "$@"; do case $a in *row19_screen_admit.py.v20tmp) echo "cp: simulated failure" >&2; exit 1;; esac; done\nexec /bin/cp "$@"\n')
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "copy of chpc/row19_screen_admit.py failed")
+     need(ctl_dirty(w) != [], "a mid-payload failure did not leave the clone dirty")
+     os.remove(os.path.join(w.bin, "cp"))
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "uncommitted changes or untracked files"); need("DEPLOY OK" not in out, "OK on a dirty clone", out)
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "uncommitted changes or untracked files"); need("DEPLOY OK" not in out, "OK on a dirty clone", out)
+     w = stage("promoted"); write(os.path.join(w.CR, ".git/hooks/pre-commit"), "#!/bin/bash\nexit 1\n", 0o755); h0 = w.ctl_state()[0]
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "git commit failed"); need(w.ctl_state()[0] == h0 and ctl_dirty(w) != [], "commit failure state")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "git commit failed"); need(w.ctl_state()[0] == h0 and ctl_dirty(w) != [], "commit failure state")
+     os.remove(os.path.join(w.CR, ".git/hooks/pre-commit"))
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "uncommitted changes")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "uncommitted changes")
+ 
+ 
+ @test("deploy retry: a deployed clone without its proof, with science changed after DONE, or a tampered preserved manifest HOLDS; DONE + equal science is OK")
+ def t_deploy_proof_binding():
+-    w = stage("deployed"); rc, out = w.script("deploy_v19.sh"); need(rc == 0 and "current manifest equals the preserved" in out and "DEPLOY OK" in out, "re-run", out)
++    w = stage("deployed"); rc, out = w.script("deploy_v20.sh"); need(rc == 0 and "current manifest equals the preserved" in out and "DEPLOY OK" in out, "re-run", out)
+     w = stage("deployed"); unlock_tree(w.PROOF); shutil.rmtree(w.PROOF)
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "DEPLOY HELD", "no deploy proof")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "DEPLOY HELD", "no deploy proof")
+     w = stage("deployed"); open(os.path.join(w.J, "analyze.py"), "a").write("# later drift\n")
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "DEPLOY HELD", "differ from the preserved pre-mutation manifest")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "DEPLOY HELD", "differ from the preserved pre-mutation manifest")
+     w = stage("deployed"); os.chmod(w.PROOF, 0o755); p = os.path.join(w.PROOF, "science_before.sha256"); os.chmod(p, 0o644)
+     open(p, "a").write("0" * 64 + "  extra\n"); os.chmod(p, 0o444)
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "DEPLOY HELD", "not the one its intent record certifies")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "DEPLOY HELD", "not the one its intent record certifies")
+     w = stage("deployed"); os.chmod(w.PROOF, 0o755); p = os.path.join(w.PROOF, "DONE"); os.chmod(p, 0o644)
+     write(p, open(p).read().replace("science_after ", "science_after 0"), 0o444)
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "DEPLOY HELD", "does not bind this payload")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "DEPLOY HELD", "does not bind this payload")
+     d = open(os.path.join(stage("deployed").PROOF, "DONE")).read()
+     m = dict(l.split(" ", 1) for l in d.strip().split("\n"))
+-    need(m["science_after"] == m["science_before"] and len(m["science_after"]) == 64 and m["schema"] == "row19-screen-v19-deploy-proof-1", "DONE: %s" % m)
++    need(m["science_after"] == m["science_before"] and len(m["science_after"]) == 64 and m["schema"] == "row19-screen-v20-deploy-proof-1", "DONE: %s" % m)
+ 
+ 
+-@test("deploy: payload that does not compile/parse under t1py, or a replaced controller not at its v18 bytes, refuses before any change")
++@test("deploy: payload that does not compile/parse under t1py, or a replaced controller not at its v19 bytes, refuses before any change")
+ def t_deploy_payload_checks():
+     w = stage("promoted")
+-    t1 = open(os.path.join(w.L, "t1py")).read().replace('  -c) exec python3 "$@";;',
+-                                                         '  -c) case "${2:-}" in *"compile(open(sys.argv[1]"*) echo "SyntaxError (simulated)" >&2; exit 1;; esac; exec python3 "$@";;')
++    t1 = open(os.path.join(w.L, "t1py")).read().replace('      exec python3 "$@";;',
++                                                         '      case "${2:-}" in *"compile(open(sys.argv[1]"*) echo "SyntaxError (simulated)" >&2; exit 1;; esac; exec python3 "$@";;')
++    need(t1 != open(os.path.join(w.L, "t1py")).read(), "the t1py fault was not injected")
+     write(os.path.join(w.L, "t1py"), t1, 0o755); s0 = w.ctl_state()
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "does not compile under"); need(w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "changed")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "does not compile under"); need(w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "changed")
+     w = stage("promoted"); open(os.path.join(w.C, "chpc/row19_screen_admit.py"), "a").write("# drift\n")
+     gitc(w.CR, "commit", "-q", "-am", "x"); s0 = w.ctl_state()
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "row19_screen_admit.py"); need(w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "changed")
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "row19_screen_admit.py"); need(w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "changed")
+ 
+ 
+ # ================================================================================================ containment
+ @test("containment: controller clone, archive dir, gate member, ec2 dir or the node document pointing outside refuse; nothing written outside")
+ def t_escape():
+     w = stage("fresh"); tgt = os.path.join(w.outside, "rsc_screen_ctl"); os.rename(w.CR, tgt); os.symlink(tgt, w.CR); before = tree_digest(w.outside)
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "not its own physical path")
+-    rc, out = w.script("archive_v18.sh"); refused(rc, out, "not its own physical path")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "not its own physical path")
++    rc, out = w.script("archive_v19.sh"); refused(rc, out, "not its own physical path")
+     need(tree_digest(w.outside) == before and not os.path.exists(w.MA), "wrote outside or built the Mac half")
+     w = stage("fresh"); a = os.path.join(w.L, "archive_screen"); tgt = os.path.join(w.outside, "archive_screen"); shutil.move(a, tgt); os.symlink(tgt, a)
+     before = tree_digest(tgt)
+-    rc, out = w.script("archive_v18.sh"); refused(rc, out, "not its own physical path"); need(tree_digest(tgt) == before, "wrote into the outside archive dir")
++    rc, out = w.script("archive_v19.sh"); refused(rc, out, "not its own physical path"); need(tree_digest(tgt) == before, "wrote into the outside archive dir")
+     w = stage("fresh"); write(os.path.join(w.outside, "x.json"), "{}\n"); os.symlink(os.path.join(w.outside, "x.json"), os.path.join(w.G, "x.json"))
+-    rc, out = w.script("archive_v18.sh"); refused(rc, out, "symlink")
++    rc, out = w.script("archive_v19.sh"); refused(rc, out, "symlink")
+     w = stage("fresh"); q = os.path.join(w.outside, "nodefail.json"); shutil.move(w.NODE_EV, q); os.symlink(q, w.NODE_EV)
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "not its own physical path")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "not its own physical path")
+     w = stage("deployed"); e = os.path.join(w.GS, "ec2"); tgt = os.path.join(w.outside, "ec2"); shutil.copytree(e, tgt); shutil.rmtree(e); os.symlink(tgt, e)
+     before = tree_digest(w.outside)
+-    rc, out = w.script("lengau.sh", "rollover_pilot_v19.sh"); refused(rc, out, "not its own physical path")
++    rc, out = w.script("lengau.sh", "rollover_pilot_v20.sh"); refused(rc, out, "not its own physical path")
+     need(tree_digest(w.outside) == before and os.path.exists(os.path.join(w.G, "review_refit.json")), "the rollover ran or wrote outside")
+ 
+ 
+@@ -1283,16 +1469,16 @@
+     for rel, msg in (("chpc", "payload 2"), ("reviews", "payload 1")):
+         w = stage("promoted"); tgt = os.path.join(w.outside, "ctl_" + rel); commit_redirect(w, rel, tgt)
+         before = tree_digest(w.outside); s0 = w.ctl_state()
+-        rc, out = w.script("deploy_v19.sh"); refused(rc, out, "not its own physical path")
++        rc, out = w.script("deploy_v20.sh"); refused(rc, out, "not its own physical path")
+         need(tree_digest(w.outside) == before and w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "deploy wrote before refusing (%s)" % rel)
+     w = stage("qualified"); qsha = sha(os.path.join(w.G, "qualified_refit_job1.json")); rec = pilot_record(w, qsha)
+     tgt = os.path.join(w.outside, "ctl_reviews"); commit_redirect(w, "reviews", tgt); before = tree_digest(w.outside)
+-    rc, out = w.script("lengau.sh", "adopt_pilot19.sh", "--file", rec); refused(rc, out, "not its own physical path")
++    rc, out = w.script("lengau.sh", "adopt_pilot20.sh", "--file", rec); refused(rc, out, "not its own physical path")
+     need(tree_digest(w.outside) == before and not os.path.lexists(os.path.join(w.G, "review_refit.json")), "adopt wrote before refusing")
+     w = stage("promoted"); victim = os.path.join(w.outside, "victim.py"); write(victim, "outside bytes\n")
+-    write(os.path.join(w.CR, ".git", "info", "exclude"), "*.v19tmp\n")
+-    os.symlink(victim, os.path.join(w.C, "chpc/row19_screen_admit.py.v19tmp")); s0 = w.ctl_state()
+-    rc, out = w.script("deploy_v19.sh"); refused(rc, out, "temporary sibling")
++    write(os.path.join(w.CR, ".git", "info", "exclude"), "*.v20tmp\n")
++    os.symlink(victim, os.path.join(w.C, "chpc/row19_screen_admit.py.v20tmp")); s0 = w.ctl_state()
++    rc, out = w.script("deploy_v20.sh"); refused(rc, out, "temporary sibling")
+     need(open(victim).read() == "outside bytes\n" and w.ctl_state() == s0 and not os.path.lexists(w.PROOF), "the sibling was followed")
+ 
+ 
+@@ -1300,8 +1486,8 @@
+ def t_ctl_alias_science():
+     def alias_whole(w):
+         os.rename(w.CR, os.path.join(w.L, "ctl_moved_aside")); os.symlink(os.path.join(w.L, "rsc_screen"), w.CR)
+-    for name, runs in (("fresh", [("preflight_v19.sh",), ("archive_v18.sh",)]), ("promoted", [("deploy_v19.sh",)]),
+-                       ("receipted", [("lengau.sh", "rollover_pilot_v19.sh")])):
++    for name, runs in (("fresh", [("preflight_v20.sh",), ("archive_v19.sh",)]), ("promoted", [("deploy_v20.sh",)]),
++                       ("receipted", [("lengau.sh", "rollover_pilot_v20.sh")])):
+         w = stage(name); alias_whole(w)
+         jd = tree_digest(os.path.join(w.L, "rsc_screen")); gd = tree_digest(w.G)
+         for r in runs:
+@@ -1314,9 +1500,9 @@
+     for kind in ("gitfile", "symlink"):
+         w = stage("fresh"); gd = os.path.join(w.CR, ".git"); moved = os.path.join(w.outside, "ctl.git"); shutil.move(gd, moved)
+         write(gd, "gitdir: %s\n" % moved) if kind == "gitfile" else os.symlink(moved, gd)
+-        rc, out = w.script("preflight_v19.sh"); refused(rc, out, "git directory is"); need("Unknown option" not in out, "used -C", out)
++        rc, out = w.script("preflight_v20.sh"); refused(rc, out, "git directory is"); need("Unknown option" not in out, "used -C", out)
+     w = stage("fresh"); write(os.path.join(w.CR, ".git/index"), b"garbage, not an index")
+-    rc, out = w.script("preflight_v19.sh"); refused(rc, out, "git status failed")
++    rc, out = w.script("preflight_v20.sh"); refused(rc, out, "git status failed")
+ 
+ 
+ # ================================================================================================ evidence allowlist
+@@ -1336,120 +1522,205 @@
+     muts.append(("stray-dir", lambda w: os.makedirs(os.path.join(w.C, "aws_ec2/runs/stray"))))
+     for name, mut in muts:
+         w = stage("fresh"); mut(w)
+-        rc, out = w.script("preflight_v19.sh"); refused(rc, out); need("lengau preflight OK" not in out, "preflight passed with %s" % name, out)
+-        rc, out = w.script("archive_v18.sh"); refused(rc, out); need(not os.path.exists(w.A), "archived with %s" % name)
++        rc, out = w.script("preflight_v20.sh"); refused(rc, out); need("lengau preflight OK" not in out, "preflight passed with %s" % name, out)
++        rc, out = w.script("archive_v19.sh"); refused(rc, out); need(not os.path.exists(w.A), "archived with %s" % name)
+ 
+ 
+ # ================================================================================================ step 5: receipts
+-@test("receipts: an alarm, a v18 generation, no activation_e2, no or another job-54 node disposition, a failed status or bank receipt refuse; a retry passes; a second node disposition is no longer refused (v19)")
++@test("receipts: an alarm, a v19 generation, no activation_e2, no or another job-54 node disposition, a failed status or bank receipt refuse; a retry passes; a second node disposition is not refused; post-close: EC2 waiting, a view that does not add up, no e3 binding refuse; the pre-close receipt refuses after the close")
+ def t_receipts():
+-    for mode, msg in (("alarm", "alarms"), ("gen18", "not v19"), ("noe2", "not exactly e1 and e2"), ("nonode", "refit job 54 is not a node-failure"),
++    for mode, msg in (("alarm", "alarms"), ("gen19", "not v20"), ("noe2", "not exactly"), ("nonode", "refit job 54 is not a node-failure"),
+                       ("otherev", "refit job 54 is not a node-failure"), ("fail", "not fresh, production and alarm-free")):
+         w = stage("deployed"); stub_receipts(w); write(os.path.join(w.t1, "chpc/stub_status.mode"), mode)
+-        rc, out = w.script("receipts_v19.sh"); refused(rc, out, msg); need("V19 RECEIPTS OK" not in out, "OK with " + mode, out)
++        rc, out = w.script("receipts_v20.sh", "--pre-close"); refused(rc, out, msg); need("V20 RECEIPTS OK" not in out, "OK with " + mode, out)
+     w = stage("deployed"); stub_receipts(w); write(os.path.join(w.bin, "stub_bank.mode"), "2")
+-    rc, out = w.script("receipts_v19.sh"); refused(rc, out, "bank receipt exited 2")
++    rc, out = w.script("receipts_v20.sh", "--pre-close"); refused(rc, out, "bank receipt exited 2")
+     w = stage("deployed"); stub_receipts(w)
+-    rc, out = w.script("receipt_check_v19.py", "--since", str(time.time() + 3600)); refused(rc, out, "no refit watch receipt published")
++    rc, out = w.script("receipt_check_v20.py", "--since", str(time.time() + 3600), "--phase", "pre"); refused(rc, out, "no refit watch receipt published")
+     w = stage("deployed"); stub_receipts(w); write(os.path.join(w.t1, "chpc/stub_status.mode"), "alarm")
+-    rc, out = w.script("receipts_v19.sh"); refused(rc, out, "alarms")
++    rc, out = w.script("receipts_v20.sh", "--pre-close"); refused(rc, out, "alarms")
+     os.remove(os.path.join(w.t1, "chpc/stub_status.mode"))
+-    rc, out = w.script("receipts_v19.sh"); need(rc == 0 and "V19 RECEIPTS OK" in out, "receipts retry", out)
+-    w = stage("deployed"); stub_receipts(w); write(os.path.join(w.t1, "chpc/stub_status.mode"), "othernode")   # v19: no longer refused
+-    rc, out = w.script("receipts_v19.sh"); need(rc == 0 and "V19 RECEIPTS OK" in out and "RECEIPT OK" in out, "a second node disposition passes the v19 check", out)
++    rc, out = w.script("receipts_v20.sh", "--pre-close"); need(rc == 0 and "V20 RECEIPTS OK" in out, "receipts retry", out)
++    w = stage("deployed"); stub_receipts(w); write(os.path.join(w.t1, "chpc/stub_status.mode"), "othernode")
++    rc, out = w.script("receipts_v20.sh", "--pre-close"); need(rc == 0 and "V20 RECEIPTS OK" in out and "RECEIPT OK" in out, "a second node disposition passes the v20 check", out)
++    w = stage("deployed"); stub_receipts(w); rc, out = w.script("receipts_v20.sh"); refused(rc, out, "usage")
++    for mode, msg in (("post_waiting", "EC2-designated unclaimed"), ("post_hole", "does not add up"), ("ok", "not exactly")):
++        w = stage("closed"); stub_receipts(w); write(os.path.join(w.t1, "chpc/stub_status.mode"), mode)
++        rc, out = w.script("receipts_v20.sh", "--post-close"); refused(rc, out, msg); need("V20 RECEIPTS OK" not in out, "post OK with " + mode, out)
++    w = stage("closed"); stub_receipts(w)
++    rc, out = w.script("receipts_v20.sh", "--pre-close"); refused(rc, out, "epoch-3 activation", "already exists")
+ 
+ 
+-@test("receipts: the Lengau check refuses before the deploy (controller still v18), without DONE, with epoch 2 broken or the node document changed - no receipt published")
++@test("receipts: the Lengau check refuses before the deploy (controller still v19), without DONE, with e2's proof changed or missing, the node document changed, post-close before the close - no receipt published")
+ def t_receipts_lengau():
+     R = lambda w: os.path.join(w.t1, "chpc/results/row19_screen/receipts")
+     w = stage("promoted"); stub_receipts(w)
+-    rc, out = w.script("receipts_v19.sh"); refused(rc, out, "deployed controls (v19)")
++    rc, out = w.script("receipts_v20.sh", "--pre-close"); refused(rc, out, "deployed controls (v20)")
+     need(not os.path.isdir(R(w)) or not [f for f in os.listdir(R(w)) if f.startswith("watch_refit_")], "a receipt was published")
+     w = stage("deployed"); stub_receipts(w); unlock_tree(w.PROOF); os.remove(os.path.join(w.PROOF, "DONE"))
+-    rc, out = w.script("receipts_v19.sh"); refused(rc, out, "DONE")
++    rc, out = w.script("receipts_v20.sh", "--pre-close"); refused(rc, out, "DONE")
+     w = stage("deployed"); stub_receipts(w); os.remove(w.ACT2)
+-    rc, out = w.script("receipts_v19.sh"); refused(rc, out, "epoch-2 activation proof")
++    rc, out = w.script("receipts_v20.sh", "--pre-close"); refused(rc, out, "epoch-2 activation proof")
++    w = stage("deployed"); stub_receipts(w); d = json.load(open(w.ACT2)); d["at"] = 1.0; json.dump(d, open(w.ACT2, "w"))
++    rc, out = w.script("receipts_v20.sh", "--pre-close"); refused(rc, out, "not the archived v19_before_v20 copy")
+     w = stage("deployed"); stub_receipts(w); open(w.NODE_EV, "a").write(" ")
+-    rc, out = w.script("receipts_v19.sh"); refused(rc, out, "730ea262")
++    rc, out = w.script("receipts_v20.sh", "--pre-close"); refused(rc, out, "730ea262")
++    w = stage("receipted"); stub_receipts(w); write(os.path.join(w.t1, "chpc/stub_status.mode"), "post"); before = set(os.listdir(R(w)))
++    rc, out = w.script("receipts_v20.sh", "--post-close"); refused(rc, out, "epoch-3 activation proof")
++    need(set(os.listdir(R(w))) == before, "a post receipt was published")
+ 
+ 
+-# ================================================================================================ step 6: pilot rollover, package, adoption
+-@test("rollover: before the deploy refuses; a changed active review or a corrupted archive refuses (nothing moves); a gate member symlink refuses; an interrupted chmod completes on re-run")
++# ================================================================================================ step 6: THE CLOSE
++def cli_activate(w):
++    """The REAL activation CLI exactly as close_e3.sh calls it (through the fake t1py: only the manifest's storage is remapped)."""
++    r = subprocess.run([os.path.join(w.L, "t1py"), "chpc/row19_partition.py", "activate", "--manifest", "chpc/row19_screen_manifest.json",
++                        "--partition", "chpc/row19_partition_e3.json"], cwd=w.C, capture_output=True, text=True)
++    return r.returncode, r.stdout + r.stderr
++
++
++@test("close (CLI, canonical): the real activation refuses under the plan lock - pending E2Q3, zero-coordinate pending Q2, a launched attempt, a 7 h stale inventory, a changed retained set, a missing cover, a held plan lock, the controls not pinning e3 - and writes no proof; the clean state activates and a second activation refuses (immutable)")
++def t_close_cli():
++    for name, kw, msg in (("pending E2Q3", dict(e2q3="pending"), "still owned by an EC2 attempt"),
++                          ("pending zero-coordinate Q2", dict(q2="pending"), "live or owning EC2 attempt(s) ['qual-Q2/1']"),
++                          ("launched", dict(launched=True, e2q3="pending"), "live or owning"),
++                          ("stale inventory", dict(age=7 * 3600), "fresh installed authority inventory")):
++        w = stage("receipted"); ec2_state(w, **kw)
++        rc, out = cli_activate(w); need(rc == 3 and msg in out and not os.path.exists(w.ACT3), "the CLI did not refuse: " + name, out)
++    w = stage("receipted"); ec2_state(w)
++    reg = os.path.join(w.GS, "ec2/register.json"); d = json.load(open(reg))
++    d["attempts"]["ec2-prod-e2-a1"] = {"attempt_id": "ec2-prod-e2-a1", "key": "prod-e2/1", "sequence": 99, "state": "ingested",
++                                       "partition_sha256": FROZEN["chpc/row19_partition_e2.json"], "coordinates": {"24/11": {"slot": 0}}}
++    json.dump(d, open(reg, "w"))
++    rc, out = cli_activate(w); need(rc == 3 and "not the declared retained set" in out and not os.path.exists(w.ACT3), "changed retained set", out)
++    w = stage("receipted"); ec2_state(w); os.remove(os.path.join(w.GS, "plans/job_53.json"))
++    rc, out = cli_activate(w); need(rc == 3 and "neither Lengau-scoped nor done" in out and not os.path.exists(w.ACT3), "missing cover", out)
++    w = stage("receipted"); ec2_state(w)
++    with Holder(os.path.join(w.GS, "plans/.submit.lock")):
++        rc, out = cli_activate(w)
++    need(rc == 3 and "HELD: the plan lock is held" in out and not os.path.exists(w.ACT3), "a held plan lock", out)
++    w = stage("archived"); ec2_state(w)                       # v19 still current: the latest controls do not pin e3
++    write(os.path.join(w.C, "chpc/row19_partition_e3.json"), open(os.path.join(LIVE_T1, "chpc/candidate_v20_handback/row19_partition_e3.json"), "rb").read())
++    for f in ("row19_partition.py",):
++        write(os.path.join(w.C, "chpc", f), open(os.path.join(LIVE_T1, "chpc/candidate_v20_handback", f), "rb").read())
++    rc, out = cli_activate(w); need(rc != 0 and not os.path.exists(w.ACT3), "an activation under v19", out)
++    w = stage("receipted"); ec2_state(w)
++    rc, out = cli_activate(w); need(rc == 0 and "activated epoch 3" in out and os.path.isfile(w.ACT3), "the clean state activates", out)
++    p3 = sha(w.ACT3)
++    rc, out = cli_activate(w); need(rc == 3 and "an activation is immutable" in out and sha(w.ACT3) == p3, "a second activation must refuse", out)
++
++
++@test("close (route): close_v20.sh refuses before the deploy, with the Mac close-check NOT MET, a stale installed inventory, a changed retained set (verify3), a missing cover, a held plan lock, a WRONG pre-existing proof (kept); an interruption right after the proof publication is completed by an idempotent retry")
++def t_close_route():
++    w = stage("promoted"); ec2_state(w)
++    rc, out = w.script("close_v20.sh"); refused(rc, out, "deployed controls (v20)"); need(not os.path.exists(w.ACT3), "a proof before the deploy")
++    w = stage("receipted"); ec2_state(w, e2q3="pending")
++    rc, out = w.script("close_v20.sh"); refused(rc, out, "NOT MET", "qual-E2Q3/1"); need(not os.path.exists(w.ACT3) and w.net_log() == "", "proof or transport on NOT MET")
++    w = stage("receipted"); ec2_state(w, q2="pending")
++    rc, out = w.script("close_v20.sh"); refused(rc, out, "NOT MET", "qual-Q2/1"); need(not os.path.exists(w.ACT3), "proof")
++    w = stage("receipted"); ec2_state(w); ec2_state(w, mac=False, age=7 * 3600)
++    rc, out = w.script("close_v20.sh"); refused(rc, out, "stale (over six hours)"); need(not os.path.exists(w.ACT3), "proof on a stale inventory")
++    w = stage("receipted"); ec2_state(w); reg = os.path.join(w.GS, "ec2/register.json"); d = json.load(open(reg))
++    d["attempts"]["ec2-prod-e2-a1"] = {"attempt_id": "ec2-prod-e2-a1", "key": "prod-e2/1", "sequence": 99, "state": "ingested",
++                                       "partition_sha256": FROZEN["chpc/row19_partition_e2.json"], "coordinates": {"24/11": {"slot": 0}}}
++    json.dump(d, open(reg, "w"))
++    rc, out = w.script("close_v20.sh"); refused(rc, out, "does not regenerate"); need(not os.path.exists(w.ACT3), "proof on a changed retained set")
++    w = stage("receipted"); ec2_state(w); os.remove(os.path.join(w.GS, "plans/job_53.json"))
++    rc, out = w.script("close_v20.sh"); refused(rc, out, "neither Lengau-scoped nor done"); need(not os.path.exists(w.ACT3), "proof on a missing cover")
++    w = stage("receipted"); ec2_state(w)
++    with Holder(os.path.join(w.GS, "plans/.submit.lock")):
++        rc, out = w.script("close_v20.sh")
++    refused(rc, out, "lock held"); need(not os.path.exists(w.ACT3), "proof under a held lock")
++    w = stage("receipted"); ec2_state(w); write(w.ACT3, json.dumps({"schema": "row19-ec2-activation-1", "epoch": 3, "mode": "sandbox"}) + "\n"); b0 = sha(w.ACT3)
++    rc, out = w.script("close_v20.sh"); refused(rc, out, "not the canonical epoch-3 activation"); need(sha(w.ACT3) == b0, "the wrong proof was rewritten")
++    w = stage("receipted"); ec2_state(w); write(os.path.join(w.L, "t1py.fail_act3"), "1")
++    rc, out = w.script("close_v20.sh")
++    refused(rc, out, "simulated interruption right after the proof publication")
++    need("activated epoch 3" in out and os.path.isfile(w.ACT3) and not os.path.exists(os.path.join(w.L, "t1py.fail_act3")), "the interruption point", out)
++    p3 = sha(w.ACT3)
++    rc, out = w.script("close_v20.sh"); need(rc == 0 and "already closed (verified)" in out and "CLOSE OK" in out and sha(w.ACT3) == p3, "the idempotent retry", out)
++    pr = admission_probe(w); need("PROBE activation ''" in pr, "after the retried close the partition hold must be gone", pr)
++    need(w.net_log() == "", "something tried ssh/scp: " + w.net_log())
++
++
++# ================================================================================================ step 8: pilot rollover, package, adoption
++@test("rollover: before the deploy and before the close refuse; a changed active review or a corrupted archive refuses (nothing moves); a gate member symlink refuses; an interrupted chmod completes on re-run")
+ def t_rollover():
+-    w = stage("promoted"); rc, out = w.script("lengau.sh", "rollover_pilot_v19.sh"); refused(rc, out, "deployed controls (v19)")
++    w = stage("promoted"); rc, out = w.script("lengau.sh", "rollover_pilot_v20.sh"); refused(rc, out, "deployed controls (v20)")
+     need(os.path.exists(os.path.join(w.G, "review_refit.json")), "moved before the deploy")
+-    w = stage("receipted"); open(os.path.join(w.G, "review_refit.json"), "a").write(" ")
+-    rc, out = w.script("lengau.sh", "rollover_pilot_v19.sh"); refused(rc, out, "MISMATCH"); need(os.path.exists(os.path.join(w.G, "review_refit.json")), "moved")
+-    w = stage("receipted"); p = os.path.join(w.A, "ctl/HEAD.txt"); os.chmod(p, 0o644); write(p, "0" * 40 + "\n"); os.chmod(p, 0o444)
+-    rc, out = w.script("lengau.sh", "rollover_pilot_v19.sh"); refused(rc, out, "does not verify as complete"); need(os.path.exists(os.path.join(w.G, "review_refit.json")), "moved")
++    w = stage("receipted"); rc, out = w.script("lengau.sh", "rollover_pilot_v20.sh"); refused(rc, out, "epoch-3 activation proof")
++    need(os.path.exists(os.path.join(w.G, "review_refit.json")), "moved before the close")
++    w = stage("postreceipted"); open(os.path.join(w.G, "review_refit.json"), "a").write(" ")
++    rc, out = w.script("lengau.sh", "rollover_pilot_v20.sh"); refused(rc, out, "MISMATCH"); need(os.path.exists(os.path.join(w.G, "review_refit.json")), "moved")
++    w = stage("postreceipted"); p = os.path.join(w.A, "ctl/HEAD.txt"); os.chmod(p, 0o644); write(p, "0" * 40 + "\n"); os.chmod(p, 0o444)
++    rc, out = w.script("lengau.sh", "rollover_pilot_v20.sh"); refused(rc, out, "does not verify as complete"); need(os.path.exists(os.path.join(w.G, "review_refit.json")), "moved")
+     for member in ("review_refit.json", "qualified_refit_job1.json"):
+-        w = stage("receipted"); src = os.path.join(w.G, member); copy = os.path.join(w.outside, member)
++        w = stage("postreceipted"); src = os.path.join(w.G, member); copy = os.path.join(w.outside, member)
+         write(copy, open(src, "rb").read(), 0o644); os.remove(src); os.symlink(copy, src); before = tree_digest(w.outside)
+-        rc, out = w.script("lengau.sh", "rollover_pilot_v19.sh"); refused(rc, out, "not its own physical path")
++        rc, out = w.script("lengau.sh", "rollover_pilot_v20.sh"); refused(rc, out, "not its own physical path")
+         need(tree_digest(w.outside) == before and os.stat(copy).st_mode & 0o777 == 0o644 and os.path.islink(src), "something moved or changed")
+-    w = stage("receipted"); ra = sha(os.path.join(w.G, "review_refit.json"))
++    w = stage("postreceipted"); ra = sha(os.path.join(w.G, "review_refit.json"))
+     shutil.move(os.path.join(w.G, "review_refit.json"), w.RETIRED)   # moved, chmod lost
+-    rc, out = w.script("lengau.sh", "rollover_pilot_v19.sh"); need(rc == 0 and "completed the interrupted retirement" in out and not os.access(w.RETIRED, os.W_OK) and sha(w.RETIRED) == ra, "chmod completion", out)
++    rc, out = w.script("lengau.sh", "rollover_pilot_v20.sh"); need(rc == 0 and "completed the interrupted retirement" in out and not os.access(w.RETIRED, os.W_OK) and sha(w.RETIRED) == ra, "chmod completion", out)
+     w = stage("rolled"); write(os.path.join(w.G, "review_refit.json"), "{}\n")
+-    rc, out = w.script("lengau.sh", "rollover_pilot_v19.sh"); refused(rc, out, "both the retired v18 review")
++    rc, out = w.script("lengau.sh", "rollover_pilot_v20.sh"); refused(rc, out, "both the retired v19 review")
+ 
+ 
+-@test("package: a qualification not regenerated (530df9a2 / 8fdbf48e / 2c7a7ef1) / of generation 18 / naming a missing receipt refuses; staging left and a tampered package refuse")
++@test("package: a qualification not regenerated (e123d6e5 / 8fdbf48e / 2c7a7ef1) / of generation 19 / naming a missing receipt refuses; staging left and a tampered package refuse")
+ def t_package():
+-    w = stage("rolled"); rc, out = w.script("package_qual_v19.py"); refused(rc, out, "still the v18 530df9a2")
++    w = stage("rolled"); rc, out = w.script("package_qual_v20.py"); refused(rc, out, "still the v19 e123d6e5")
+     w = stage("rolled"); write(os.path.join(w.t1, QUAL_MAC), frozen("chpc/results/archive/row19_screen_v16_before_v17/qualified_refit_job1.json"))
+-    rc, out = w.script("package_qual_v19.py"); refused(rc, out, "still the v16 2c7a7ef1")
++    rc, out = w.script("package_qual_v20.py"); refused(rc, out, "still the v16 2c7a7ef1")
+     w = stage("rolled"); write(os.path.join(w.t1, QUAL_MAC), frozen("chpc/qualification_v17_8fdbf48e/qualified_refit_job1.json"))
+-    rc, out = w.script("package_qual_v19.py"); refused(rc, out, "still the v17 8fdbf48e")
++    rc, out = w.script("package_qual_v20.py"); refused(rc, out, "still the v17 8fdbf48e")
+     w = stage("qualified"); R = os.path.join(w.t1, "chpc/results/row19_screen/receipts")
+     vp = [f for f in os.listdir(R) if f.startswith("verify_refit_20261021")][0]
+-    write(os.path.join(R, vp), json.dumps({"generation": {"version": 18, "latest": 18, "controls_problem": "", "controls_sha256": V18_CONTROLS}}))
+-    rc, out = w.script("package_qual_v19.py"); refused(rc, out, "not v19")
++    write(os.path.join(R, vp), json.dumps({"generation": {"version": 19, "latest": 19, "controls_problem": "", "controls_sha256": V19_CONTROLS}}))
++    rc, out = w.script("package_qual_v20.py"); refused(rc, out, "not v20")
+     w = stage("qualified"); os.remove(os.path.join(w.t1, "chpc/results/row19_screen/receipts/watch_refit_20261020T033232Z.json"))
+-    rc, out = w.script("package_qual_v19.py"); refused(rc, out, "watch_refit_20261020T033232Z.json")
++    rc, out = w.script("package_qual_v20.py"); refused(rc, out, "watch_refit_20261020T033232Z.json")
+     w = stage("qualified"); qsha = sha(os.path.join(w.t1, QUAL_MAC))
+-    stg = os.path.join(w.t1, "chpc/qualification_v19_%s.staging.77" % qsha[:8]); os.makedirs(stg)
+-    rc, out = w.script("package_qual_v19.py"); refused(rc, out, "interrupted build"); need(os.path.isdir(stg), "the staging evidence was removed")
+-    w = stage("qualified"); rc, out = w.script("package_qual_v19.py"); need(rc == 0, "package", out)
+-    qsha = sha(os.path.join(w.t1, QUAL_MAC)); pd = os.path.join(w.t1, "chpc/qualification_v19_" + qsha[:8])
++    stg = os.path.join(w.t1, "chpc/qualification_v20_%s.staging.77" % qsha[:8]); os.makedirs(stg)
++    rc, out = w.script("package_qual_v20.py"); refused(rc, out, "interrupted build"); need(os.path.isdir(stg), "the staging evidence was removed")
++    w = stage("qualified"); rc, out = w.script("package_qual_v20.py"); need(rc == 0, "package", out)
++    qsha = sha(os.path.join(w.t1, QUAL_MAC)); pd = os.path.join(w.t1, "chpc/qualification_v20_" + qsha[:8])
+     os.chmod(pd, 0o755); p = os.path.join(pd, "watch_refit_20261020T033232Z.json"); os.chmod(p, 0o644); open(p, "a").write(" ")
+-    rc, out = w.script("package_qual_v19.py"); refused(rc, out, "does not verify")
++    rc, out = w.script("package_qual_v20.py"); refused(rc, out, "does not verify")
+ 
+ 
+-@test("adopt: an active review, the gate still at 530df9a2 (or the historical 8fdbf48e), a record without THIS qualification's literal, an evidence path, an adopter refusal - each refuses; a LARGE record (> 4 KB) is accepted (the pipefail fix) and a large record without the literal refuses")
++@test("adopt: an active review, the gate still at e123d6e5 (or the historical 8fdbf48e), a record without THIS qualification's literal, an evidence path, an adopter refusal - each refuses; a LARGE record (> 4 KB) is accepted (the pipefail fix) and a large record without the literal refuses")
+ def t_adopt():
+     w = stage("receipted"); rec = pilot_record(w, "f" * 64)
+-    rc, out = w.script("lengau.sh", "adopt_pilot19.sh", "--file", rec); refused(rc, out, "an active review exists")
++    rc, out = w.script("lengau.sh", "adopt_pilot20.sh", "--file", rec); refused(rc, out, "an active review exists")
+     w = stage("rolled"); rec = pilot_record(w, "f" * 64)
+-    rc, out = w.script("lengau.sh", "adopt_pilot19.sh", "--file", rec); refused(rc, out, "still the v18 530df9a2")
++    rc, out = w.script("lengau.sh", "adopt_pilot20.sh", "--file", rec); refused(rc, out, "still the v19 e123d6e5")
+     w = stage("rolled"); write(os.path.join(w.G, "qualified_refit_job1.json"), frozen("chpc/qualification_v17_8fdbf48e/qualified_refit_job1.json"))
+     rec = pilot_record(w, V17_QUAL)
+-    rc, out = w.script("lengau.sh", "adopt_pilot19.sh", "--file", rec); refused(rc, out, "historical v17 8fdbf48e")
+-    w = stage("qualified"); rec = pilot_record(w, V18_QUAL); h0 = w.ctl_state()[0]
+-    rc, out = w.script("lengau.sh", "adopt_pilot19.sh", "--file", rec); refused(rc, out, "does not carry the literal for the gate qualification")
++    rc, out = w.script("lengau.sh", "adopt_pilot20.sh", "--file", rec); refused(rc, out, "historical v17 8fdbf48e")
++    w = stage("qualified"); rec = pilot_record(w, V19_QUAL); h0 = w.ctl_state()[0]
++    rc, out = w.script("lengau.sh", "adopt_pilot20.sh", "--file", rec); refused(rc, out, "does not carry the literal for the gate qualification")
+     need(w.ctl_state()[0] == h0, "the wrong record was committed in the controller clone")
+     w = stage("qualified"); qsha = sha(os.path.join(w.G, "qualified_refit_job1.json"))
+     p = os.path.join(w.t1, "reviews/2026-10-11_d1d2_f3_codex_record.md"); write(p, "ADOPT row19-screen-pilot role=refit qualification=%s max_job=100\n" % qsha)
+-    rc, out = w.script("lengau.sh", "adopt_pilot19.sh", "--file", "reviews/2026-10-11_d1d2_f3_codex_record.md"); refused(rc, out, "pinned untracked evidence")
++    rc, out = w.script("lengau.sh", "adopt_pilot20.sh", "--file", "reviews/2026-10-11_d1d2_f3_codex_record.md"); refused(rc, out, "pinned untracked evidence")
+     w = stage("qualified"); qsha = sha(os.path.join(w.G, "qualified_refit_job1.json")); rec = pilot_record(w, qsha); write(os.path.join(w.L, "adopt.mode"), "refuse")
+-    rc, out = w.script("lengau.sh", "adopt_pilot19.sh", "--file", rec); refused(rc, out, "the supported adopter refused")
++    rc, out = w.script("lengau.sh", "adopt_pilot20.sh", "--file", rec); refused(rc, out, "the supported adopter refused")
+     need(not os.path.lexists(os.path.join(w.G, "review_refit.json")), "a gate review was written on refusal")
+     os.remove(os.path.join(w.L, "adopt.mode"))
+-    rc, out = w.script("lengau.sh", "adopt_pilot19.sh", "--file", rec); need(rc == 0 and "adopt_pilot19 complete" in out, "adopt retry after the refusal (record already committed)", out)
+-    w = stage("qualified"); qsha = sha(os.path.join(w.G, "qualified_refit_job1.json")); rec = pilot_record(w, qsha, name="reviews/test_pilot_v19_large.md", filler=400)
++    rc, out = w.script("lengau.sh", "adopt_pilot20.sh", "--file", rec); need(rc == 0 and "adopt_pilot20 complete" in out, "adopt retry after the refusal (record already committed)", out)
++    w = stage("qualified"); qsha = sha(os.path.join(w.G, "qualified_refit_job1.json")); rec = pilot_record(w, qsha, name="reviews/test_pilot_v20_large.md", filler=400)
+     need(os.path.getsize(os.path.join(w.t1, rec)) > 16384, "the large record is not large")
+     for _ in range(3):
+         if os.path.lexists(os.path.join(w.G, "review_refit.json")):
+             os.remove(os.path.join(w.G, "review_refit.json"))
+-        rc, out = w.script("lengau.sh", "adopt_pilot19.sh", "--file", rec); need(rc == 0 and "adopt_pilot19 complete" in out, "a large record with the literal at the top (pipefail fix)", out)
+-    w = stage("qualified"); rec = pilot_record(w, "x", name="reviews/test_pilot_v19_large_nolit.md", filler=400, literal=False)
+-    rc, out = w.script("lengau.sh", "adopt_pilot19.sh", "--file", rec); refused(rc, out, "does not carry the literal")
++        rc, out = w.script("lengau.sh", "adopt_pilot20.sh", "--file", rec); need(rc == 0 and "adopt_pilot20 complete" in out, "a large record with the literal at the top (pipefail fix)", out)
++    w = stage("qualified"); rec = pilot_record(w, "x", name="reviews/test_pilot_v20_large_nolit.md", filler=400, literal=False)
++    rc, out = w.script("lengau.sh", "adopt_pilot20.sh", "--file", rec); refused(rc, out, "does not carry the literal")
+ 
+ 
+ def main(argv):
+     global BASE
+     keep = "--keep" in argv; sel = argv[argv.index("-k") + 1] if "-k" in argv else None
+-    BASE = tempfile.mkdtemp(prefix="mig_v19_test_")
++    BASE = tempfile.mkdtemp(prefix="mig_v20_test_")
+     print("private test worlds under", BASE)
+     ok = fail = 0; t0 = time.time()
+     for name, fn in TESTS:
 --- migration_v19/v19_package.py	2026-10-21 18:13:15
-+++ migration_v20/v20_package.py	2026-10-22 22:44:46
++++ migration_v20/v20_package.py	2026-10-22 23:08:46
 @@ -1,21 +1,22 @@
 -"""migration_v19 (Mac): the exact v19 package and the Mac-side gates every step uses (the migration_v18 v18_package.py,
 +"""migration_v20 (Mac): the exact v20 package and the Mac-side gates every step uses (the migration_v19 v19_package.py,
@@ -1494,19 +3157,19 @@
 -    "chpc/candidate_v19_oploss/row19_ec2_ingest.py": "744ee5c81aba5be7b5160c61ccf6f335d9005d954935865d89106aa54c8fe5cd",
 -    "chpc/candidate_v19_oploss/manifest_e2q3_e2.json": "6d59c1f8568945f6121f9f16779aabe30f6334178bb0ba8c9d192a024805e17f",
 +CAND = os.path.join(T1, "chpc", "candidate_v20_handback")
-+REC, REC_SHA = None, None   # @record: the committed operator record with the v20 ADOPT literal, and its sha256
++REC, REC_SHA = None, None   # @record: the committed operator record with the v20 ADOPT literal, and its sha256 (PENDING)
 +V20_CONTROLS = "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c"
 +LITERAL = "ADOPT row19-screen-controls sha256=%s version=20" % V20_CONTROLS
 +PACKAGE = {   # the package identities (chpc/candidate_v20_handback/DESIGN_v20.md; the candidate commit)
 +    "chpc/candidate_v20_handback/row19_screen_controls.json": V20_CONTROLS,
-+    "chpc/candidate_v20_handback/v20_promotion_map.json": "b33359536d11527bda567e3401d5b13d93ee255fb4c39277591dce92b866b140",
++    "chpc/candidate_v20_handback/v20_promotion_map.json": "79c78ea737f3123eb864185d5c73d35cdd63a1159e60199704933c8f690c4945",
 +    "chpc/candidate_v20_handback/build_v20.py": "6e82bb13d1e7015866eeccecc7171b0107c42e734c1b434a97f35d4133f40999",
 +    "chpc/candidate_v20_handback/promote_v20.py": "4dfd05575cbcea5622db6d5b81d6fe90c10c891d7a23bd57dd6e3aec6e4a9136",
 +    "chpc/candidate_v20_handback/row19_partition.py": "a762933779529a20d6f458dd7118105c855ea122353b1eaa168a8b033c6dc17e",
 +    "chpc/candidate_v20_handback/row19_screen_admit.py": "7c49bf86c6809941bc982393fb4ae095f7186e0c47665c426c27350a841b08af",
 +    # the closing declaration (a NEW data path, pinned by the version entry's `partition`) and the replaced Mac authority
 +    "chpc/candidate_v20_handback/row19_partition_e3.json": "ca87fb1da163df10e720e5778542d2bcc5c78f30fc08b6a1cc61d671773f0e6a",
-+    "chpc/candidate_v20_handback/aws_ec2/prod_authority.py": "20de63d2fcf6685d96b23cc3543ff72864774ca17cf4983ceabf4a52d73d71e7",
++    "chpc/candidate_v20_handback/aws_ec2/prod_authority.py": "e1381d6811a517c3ebae09c1889ed7dafda97431842760ca963e951041b85c87",
      "chpc/candidate_v18_nodefail/evidence_row19_screen_refit_54.nodefail.json": "730ea262c65c9e70d9bc39d572d65bd4ea70ac77c52fb3a4e4a1ed9238164b1f",
  }
 -V18 = {"chpc/row19_screen_controls.json": "452b82df0d7184cbe7c1390d5d43787501990d380c4ca275d1db70adc131ba2b",
@@ -1664,7 +3327,7 @@
 -              "and the operator adoption record committed with the literal in HEAD, promote_v19.py --check OK, Mac qualification 530df9a2, "
 -              "no Mac archive, Mac drain observed, EC2 authority lock free"); return 0
 +        print("mac preflight OK: the live tree is the adopted v19 (controls 111c3107, adoption 2b9f3c78), every promoted path at its v19 "
-+              "bytes, the pinned package (controls 4e64982b, map b3335953, builder, promoter, sources, e3 ca87fb1d, authority 20de63d2, node evidence 730ea262) "
++              "bytes, the pinned package (controls 4e64982b, map 79c78ea7, builder, promoter, sources, e3 ca87fb1d, authority e1381d68, node evidence 730ea262) "
 +              "and the operator adoption record committed with the literal in HEAD, promote_v20.py --check OK, Mac qualification e123d6e5, "
 +              "no Mac archive, Mac drain observed, EC2 authority lock free, the EC2 close preconditions MET (close-check)"); return 0
      if cmd == "check-promoted":
@@ -1677,8 +3340,8 @@
      if cmd == "drain":
          why = drain_problems() + auth_lock_problems()
          if why:
---- /dev/null	2026-10-22 22:50:11
-+++ migration_v20/close_v20.sh	2026-10-22 22:48:07
+--- /dev/null	2026-10-22 23:33:42
++++ migration_v20/close_v20.sh	2026-10-22 23:16:27
 @@ -0,0 +1,33 @@
 +#!/bin/bash
 +# Migration v19 -> v20, step 6 (Mac -> Lengau): THE EC2 CLOSE (owner decision 23 Oct 2026, route A).
@@ -1701,7 +3364,7 @@
 +python3 chpc/migration_v20/v20_package.py drain || fail "the Mac drain is not observed (above)"
 +OUT=$(python3 aws_ec2/prod_authority.py close-check); rc=$?
 +printf '%s\n' "$OUT"
-+[ $rc = 0 ] && printf '%s\n' "$OUT" | grep -q '"close_preconditions": "MET"' \
++[ $rc = 0 ] && printf '%s\n' "$OUT" | grep -F '"close_preconditions": "MET"' >/dev/null \
 +  || fail "the Mac half of the close preconditions is NOT MET (above): finish RUNBOOK step 0b"
 +[ "$DRY" = "--dry-run" ] && { echo "DRY RUN - the Mac checks pass; would run close_e3.sh on Lengau (verify3, then the e3 activation under the plan lock)"; exit 0; }
 +. chpc/migration_v20/lengau.sh || fail "cannot load chpc/migration_v20/lengau.sh"
@@ -1713,7 +3376,7 @@
 +rm -f "$OUTF"
 +[ $rc = 0 ] || fail "the Lengau half exited $rc (above)"
 +echo "CLOSE OK - epoch 3 active; next: bash chpc/migration_v20/receipts_v20.sh --post-close (step 7)"
---- /dev/null	2026-10-22 22:50:11
+--- /dev/null	2026-10-22 23:33:42
 +++ migration_v20/close_e3.sh	2026-10-22 22:47:58
 @@ -0,0 +1,50 @@
 +# Migration v19 -> v20, step 6 (Lengau body; sent by close_v20.sh through lengau.sh): THE EC2 CLOSE - the hand-back of the

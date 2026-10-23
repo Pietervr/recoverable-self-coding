@@ -50,7 +50,7 @@
   {
    "promoted": "aws_ec2/prod_authority.py",
    "source": "chpc/candidate_v20_handback/aws_ec2/prod_authority.py",
-   "sha256": "20de63d2fcf6685d96b23cc3543ff72864774ca17cf4983ceabf4a52d73d71e7",
+   "sha256": "e1381d6811a517c3ebae09c1889ed7dafda97431842760ca963e951041b85c87",
    "previous_sha256": "ba726a197ab2da5d89a1b8d9615890ab9e49ddf1614191d7fb2a5fc446142ac6",
    "group": "mac"
   },

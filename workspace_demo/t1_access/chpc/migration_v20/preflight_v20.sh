@@ -1,8 +1,8 @@
 #!/bin/bash
 # Migration v19 -> v20, step 1 (Mac + Lengau; READ-ONLY): the FULL live read-only preflight (the preflight_v19.sh pattern).
 # Refuses unless:
-#  Mac (v20_package.py preflight): the pinned package is exact and committed (candidate controls 4e64982b, map b3335953, the
-#          builder, the promoter, the two promoted controllers, the e3 closing declaration ca87fb1d, the Mac authority 20de63d2, the
+#  Mac (v20_package.py preflight): the pinned package is exact and committed (candidate controls 4e64982b, map 79c78ea7, the
+#          builder, the promoter, the two promoted controllers, the e3 closing declaration ca87fb1d, the Mac authority e1381d68, the
 #          retained node evidence 730ea262) AND the operator adoption record is pinned (the v20_package.py record pin), committed and
 #          carries the v20 literal IN HEAD; the live chpc/ controls and adoption are the ADOPTED v19 bytes (111c3107 / 2b9f3c78),
 #          committed; the two promoted pins and the Mac authority hold their v19 bytes and the new e3 path is absent;

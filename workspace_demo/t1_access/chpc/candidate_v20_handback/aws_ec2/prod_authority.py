@@ -262,23 +262,42 @@ CLOSE_SCHEMA = "row19-provider-partition-3"   # REVISION 10: = row19_partition.S
 
 
 def ec2_closed(ctl=None):
-    """REVISION 10: (True, why) when ANY controls version pins a closing (schema-3) partition whose file declares it; the
-    close is terminal, so a later version that no longer pins it does not re-open EC2. (False, '') otherwise."""
+    """REVISION 10: (True, why) when ANY controls version pins a closing (schema-3) partition; the close is terminal, so a
+    later version that no longer pins it does not re-open EC2. (False, '') only when EVERY partition reference in the controls
+    history is AUTHENTICATED and none is a close (REVISION 10 repair, Codex review 2026-10-23 F1): each referenced file must
+    exist as a regular file at its path, hash to the reference's sha256 and parse as a JSON object with a schema. A missing,
+    unreadable, hash-mismatched or malformed historical partition - or a malformed reference - is evidence that cannot be
+    classified, so it returns (True, <refusal>): fail closed, never OPEN."""
     if ctl is None:
         ctl = json.load(open(os.path.join(T1, "chpc", "row19_screen_controls.json")))
-    for v in ctl.get("versions") or []:
-        ref = v.get("partition") or {}
-        rel = ref.get("path") if isinstance(ref, dict) else None
-        if not rel:
+    vs = ctl.get("versions") if isinstance(ctl, dict) else None
+    if not isinstance(vs, list):
+        return True, "the controls history is unreadable: the EC2 close state cannot be authenticated; refused"
+    for v in vs:
+        ref = v.get("partition") if isinstance(v, dict) else None
+        if not ref:
             continue
+        rel = ref.get("path") if isinstance(ref, dict) else None
+        want = ref.get("sha256") if isinstance(ref, dict) else None
+        if not (isinstance(rel, str) and rel and isinstance(want, str) and len(want) == 64):
+            return True, (f"controls version {v.get('version') if isinstance(v, dict) else '?'} carries a malformed partition "
+                          "reference: the EC2 close state cannot be authenticated; refused")
         p = os.path.join(T1, rel)
         try:
-            doc = json.load(open(p))
-        except Exception:
-            continue
-        if isinstance(doc, dict) and doc.get("schema") == CLOSE_SCHEMA:
+            if os.path.islink(p) or not os.path.isfile(p):
+                raise OSError("not a regular file")
+            b = open(p, "rb").read()
+            if hashlib.sha256(b).hexdigest() != want:
+                raise ValueError(f"its bytes are not the pinned {want[:12]}")
+            doc = json.loads(b.decode())
+            if not isinstance(doc, dict) or not isinstance(doc.get("schema"), str):
+                raise ValueError("not a partition declaration")
+        except Exception as e:
+            return True, (f"controls version {v.get('version')} pins {rel} ({want[:12]}), which cannot be authenticated "
+                          f"({type(e).__name__}: {e}): the EC2 close state is unknown; refused (fail closed)")
+        if doc.get("schema") == CLOSE_SCHEMA:
             return True, (f"row-19 EC2 is CLOSED: controls version {v.get('version')} pins the closing epoch {doc.get('epoch')} "
-                          f"({rel}, {str(ref.get('sha256'))[:12]}); no EC2 qualification, production, release or allocation "
+                          f"({rel}, {want[:12]}); no EC2 qualification, production, release or allocation "
                           "for row 19 (owner decision 23 Oct 2026, route A; terminal)")
     return False, ""
 
