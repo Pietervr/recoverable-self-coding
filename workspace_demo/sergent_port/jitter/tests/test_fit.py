@@ -301,6 +301,13 @@ def test_lift_clips_runaway_coordinates_and_collapses_g_onto_b():
     llG = M.Objective(spG, ds).total_loglik(th)
     thG40 = th.copy(); thG40[spG.layout()["index"]["theta_tau"]] = 0.4
     assert abs(M.Objective(spB, ds).total_loglik(thB) - M.Objective(spG, ds).total_loglik(thG40)) < 1e-6 * abs(llG)
+    # a B2 fit whose kappa underflowed (logkappa = -800, x0 = -4000: the archived m7 case) lifts finitely to B3+
+    spB2 = M.spec("B2")
+    thB2 = F.start_vectors(spB2, F.start_info(spB2, ds))[0][1].copy()
+    ix = spB2.layout()["index"]
+    thB2[ix["logkappa"]], thB2[ix["x0"]] = -800.0, -4000.0
+    lifted2 = F.lift_warm_start(spB2, thB2, spB, infoB, 20.0)
+    assert np.all(np.isfinite(lifted2)) and lifted2[spB.layout()["index"]["logkappa"]] == -800.0
     assert all(np.all(np.isfinite(x)) for _, x in F.smeared_starts(spG, ds, info))
     assert [l.split("|")[0] for l, _ in F.smeared_starts(spG, ds, info)] == ["smA", "smB", "smA", "smB"]
     assert all(np.all(np.isfinite(x)) for _, x in F.smeared_starts(spB.constrained(50.0), ds, infoB))

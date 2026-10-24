@@ -682,11 +682,20 @@ def lift_warm_start(sp_from: M.ModelSpec, theta_from: np.ndarray, sp_to: M.Model
     if sp_to.positive and sp_from.positive:
         gamma_full[b_to.invisible] = gamma[b_to.invisible]
     alpha = M.softplus_inv(np.maximum(P.a[1:], 1e-6))
-    lk = (np.log(P.kappa) if P.kappa is not None else np.log(KAPPA_FALLBACK)) if logkappa is None else logkappa
-    xx = (P.x0 if P.x0 is not None else X0_FALLBACK) if x0 is None else x0
+    if sp_from.family == "B":
+        idx_from = sp_from.layout()["index"]                      # the coordinates themselves, not log(exp(·))
+        lk_from, x0_from = float(theta_from[idx_from["logkappa"]]), float(theta_from[idx_from["x0"]])
+    else:
+        lk_from, x0_from = np.log(KAPPA_FALLBACK), X0_FALLBACK
+    lk = lk_from if logkappa is None else logkappa
+    xx = x0_from if x0 is None else x0
     th = M.pack(sp_to, alpha, gamma_full, lk, xx, s_tau_ms, P.s_g)
     lb, ub = sp_to.bounds()
-    return np.clip(th, lb, ub)
+    th = np.clip(th, lb, ub)
+    if not np.all(np.isfinite(th)):
+        bad = [sp_to.param_names()[i] for i in np.where(~np.isfinite(th))[0]]
+        raise ValueError(f"lift produced non-finite coordinates {bad} from {sp_from.name} to {sp_to.name}")
+    return th
 
 
 def _level5_responses(ds: D.Dataset):
