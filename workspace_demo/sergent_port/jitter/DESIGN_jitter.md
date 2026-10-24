@@ -549,8 +549,16 @@ conversion was wrong). Contingency: both E1 and T3 may need one secant correctio
 TWO 50-set corrections: S4 = 3,307 core-h base, 4,240 worst (`recost_rev7.py`, 24 Oct; the 4,160 figure budgeted
 one). Ideal instance-hours 34.4 base / 44.2 worst; at the design's USD 1.7/h about USD 59 / 75, at the 24 Oct spot
 quote (USD 0.73–1.04/h over seven days, cap 1.20, estimate 0.95) about USD 33 / 42, before barriers, start-up,
-contention and interruptions; the S2 closure instance's measured wall rate (24 Oct) replaces the ideal arithmetic
-before S4a is launched. Inherited Nelder–Mead runs measured at
+contention and interruptions. MEASURED ON AWS (24 Oct, the S2 closure fleet; S2_REPORT 9): the per-core arithmetic
+does not apply to this host. One decision task alone on the c7a.24xlarge's AMD EPYC 9R14 core takes 1,513 s (3.5× the
+M4 core alone); 96 single-threaded workers per host thrash (in 95 min only the lightest participant finished, at
+500-5,000 s); at 48 workers per host the host delivers about 60-70 decision tasks per hour, about one Mac, bound by the
+socket's shared memory bandwidth and not by its cores; the XLA single-thread code-generation flag costs a further 30%
+and is not used. RULE for S4: 48 workers per c7a.24xlarge, no `XLA_FLAGS`, the fleet costed per host. S4 base ≈ 41,000
+decision-task-equivalents ≈ 600-700 host-hours (30-35 h on 20 hosts) = about USD 600 on eu-north-1 spot alone (0.95/h;
+needs the Spot quota raised 512 → 2,048 vCPU) or about USD 2,400 with 15 of the 20 hosts on-demand (4.93/h) under the
+standing 512 Spot + 520 On-Demand vCPU quotas per region; us-west-2a spot was reclaimed wholesale on 24 Oct, eu-north-1b
+held. Inherited Nelder–Mead runs measured at
 22 ms/run, spm_BMS at 0.04 s/call. The start-count accounting below is the rev 6 record of WHAT is fitted; its unit
 costs are superseded by the measured rates.
 - Candidate accounting: "the eight models" on real or recovery data = G0, B0, G2, B2 (reduced, each one fit) plus
@@ -584,8 +592,9 @@ costs are superseded by the measured rates.
   convergence from all starts; completed-dataset throughput at 96-way concurrency; compile time separately); cost
   the frozen manifest from measured rates in starts and runs; set the ledger row cap (Unimog
   `rsc_t1_simulation_design.md` §12 row 24) from that number; confirm headroom under the USD 3,000 AWS cap from the
-  R052 spend trail; put the number to the owner. The USD 400 placeholder in the ledger row is not met by this
-  manifest and is reset at the measured number.
+  R052 spend trail; put the number to the owner. DONE 24 Oct: the Mac benchmark (`results/bench/`), the AWS probe and
+  the closure fleet's throughput (the MEASURED ON AWS paragraph above); row 24 caps S4a + S4b at USD 1,300; the owner
+  was given the measured rate and the fleet options on 24 Oct (20:20Z and 21:14Z).
 - Declared reduction order if the measured cost exceeds the approved cap: (1) starts 4 → 3 in validation replicates
   only if S2 shows the fourth start never changed the selected optimum; (2) merge O3 and O4; (3) T2 to
   development-only; (4) recovery R 25 → 15 with thresholds unchanged and reduced precision stated; (5) profile grid

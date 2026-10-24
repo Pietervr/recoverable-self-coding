@@ -231,11 +231,17 @@ T1-m0-S10 (G3 59.8 ms). At 1 ms the constrained positive-spread fit equals the r
 weight 1.000), at the 2 ms floor it is +5e-5 nat above it (node-0 weight 0.99999), then the profile rises smoothly:
 W2 G +1.75 (5 ms), +4.98 (8), +12.2 (10), +57.3 (20); W2 B +1.83, +5.24, +11.4, +57.1; T1 G +1.17, +3.50, +5.69, +26.9.
 So the region below the 2 ms floor is flat to numerical precision (the floor loses nothing), the 10 ms node spacing
-resolves the first rise, and every constrained fit was AVAILABLE (the finite lifts of R3 at work). PENDING: `--kind
-nodes` on the final W2 set 0 (33 scale nodes, 61 τ nodes, the 7-node prior rule against the archived default),
-`s2.py basins`, `s2.py profiles` (2- vs 4-start
+resolves the first rise, and every constrained fit was AVAILABLE (the finite lifts of R3 at work).
+Basins (`s2.py basins`, `results/s2_aws/basins/{W2,T1,O1}_set0.json` + `summary.json`; 24 Oct on the AWS validators
+host under the final hash): the repaired procedure against complete EM fits from the development starts, set 0 of each
+setting, 20 participant-datasets per candidate. The development starts improved on the repaired procedure on at most
+one dataset in twenty per candidate and by at most 0.201 nat: W2 G2, G3+, B2, B3+ 0/20; T1 G2 1/20 (0.201 nat), G3+
+1/20 (0.057), B2 and B3+ 0/20; O1 G2 0/20, G3+ 1/20 (0.172), B2 0/20, B3+ 1/20 (0.171); no nesting violation. Reading:
+the frozen recipe finds the optimum the development search found, to 0.2 nat, on 19 of 20 datasets or better; the §4.2
+reading does not move; Codex finding 6 is closed with no start added. PENDING: `--kind nodes` on the final W2 set 0
+(33 scale nodes, 61 τ nodes, the 7-node prior rule against the archived default) and `s2.py profiles` (2- vs 4-start
 constrained optima on 100 datasets per family; the profile machinery now has finite lifts, so this validation is
-meaningful for the first time).
+meaningful for the first time) — both running on the AWS closure fleet.
 
 ## 9. Cost (`results/bench/bench_20261024T171350Z.md`, `results/bench/recost_rev7_20261024T171350Z.md`)
 Rev 6: 165 s per participant-dataset (bench_20261024T044019Z: 1.69 s per decision-batch start; S4 1,536 core-h base).
@@ -267,9 +273,42 @@ and about 33 with the contingency and 4-start profiles ("Mac alone about a month
 contention, not an AWS multiplier. Target: c7a.24xlarge = 96 REAL cores (AMD Zen 4, one core per vCPU): 34.4 ideal
 instance-hours base, 44.2 worst; at the design's USD 1.7/h about USD 59 / 75, at the 24 Oct spot quote (0.73-1.04/h
 over seven days, cap 1.20, estimate 0.95) about USD 33 / 42, before start-up, barriers between sequential S4a stages,
-contention and interruptions; the S2 closure instance (24 Oct, 96 workers) supplies the measured target throughput.
-Venue and cap: the owner's decision of 24 Oct (AWS spot, go, inside the USD 3,000 cap with about USD 653 used;
-Unimog `rsc_t1_simulation_design.md` §12 row 24).
+contention and interruptions. The S2 closure fleet measured the target throughput (below); the ideal arithmetic is
+superseded by it. Venue and cap: the owner's decision of 24 Oct (AWS spot, go, inside the USD 3,000 cap with about
+USD 653 used; Unimog `rsc_t1_simulation_design.md` §12 row 24; S4a + S4b capped at USD 1,300 in that row).
+
+**AWS, measured on the S2 closure fleet (24 Oct 2026; c7a.24xlarge = AMD EPYC 9R14, 96 cores, 192 GB; code hash
+6d447ad94463; `aws/s4_spend.json` is the spend trail).**
+- One decision participant-dataset ALONE on one AMD core (W2 set 0 m0, S18; the 8-vCPU probe): 1,513 s wall, 1,569 s
+  CPU; two in parallel 1,375 / 1,492 s. The same task alone on the Mac's M4 core: 435 s (S11: 187 s). The AMD core is
+  about 3.5× slower than the M4 core when each runs alone. Scores: G3 identical to the Mac's to 9 digits, B3 within
+  1e-4 nat/trial (a different ISA, a slightly different EM end point; a development reading, not a gate).
+- 96 workers per host THRASH: in 95 min the five 96-worker hosts finished only the lightest participant (S11), at
+  500-5,156 s and growing, and no heavier participant at all. Not memory capacity (peak RSS per worker 0.70 GB after
+  one task, 0.86 GB after two, on the Mac): the likelihood's per-evaluation intermediates (about 750 trials × 31 × 17
+  nodes × 8 B = 3 MB each, several live at once) fit the Mac's caches and spill to the socket's shared memory system
+  under 96 single-threaded workers.
+- 48 workers per host: about 60-70 decision tasks per host-hour, read off the flagless W2-rev host (S4 2,323 s, S10
+  2,595 s, S11 1,293-1,602 s; the Mac's 12-way contended times 546 / 465 / 357 s): 4-5× the Mac's loaded time per task
+  at 4× the workers, so one c7a.24xlarge delivers about one Mac (72 decision tasks per hour). The host, not the core,
+  is the ceiling.
+- `XLA_FLAGS="--xla_cpu_multi_thread_eigen=false --xla_cpu_parallel_codegen_split_count=1"` (the T1 EC2 tooling's
+  setting) at 48 workers: medium participants 2,846-3,335 s and S11 2,064-2,116 s WITH the flag, against 2,323-2,595 s
+  and 1,293-1,602 s without it — about 30% dearer (the compile step runs single-threaded). Removed from
+  `aws/userdata_s4.sh` for S4 (RSC d748e89); the closure hosts kept it, because a restart loses about half a round.
+- S4 cost at the measured rate: the unit is the host at 48 workers. S4 base 3,307 core-h × 3600 / 289 s ≈ 41,000
+  decision-task-equivalents ≈ 600-700 host-hours ≈ 30-35 h on 20 hosts: about USD 600 on eu-north-1 spot alone
+  (0.95/h), or about USD 2,400 with 15 of the 20 hosts on-demand (4.93/h). Quotas per region: 512 Spot + 520 On-Demand
+  standard vCPU = 5 + 5 hosts; all-spot needs the Spot quota raised 512 → 2,048 vCPU (asked of the owner 24 Oct 21:14Z;
+  the read-only IAM user cannot file it). The mostly on-demand fleet exceeds the USD 1,300 row cap: the owner's quota
+  answer or the declared economies (DESIGN 8 time-priority amendment, about −25%) decides the fleet.
+- Spot capacity: us-west-2a reclaimed the three spot decision hosts and the profiles host wholesale at 21:02-21:04Z
+  (Saturday afternoon Pacific); us-west-2c had no capacity, us-west-2b priced above the 2.20 cap; eu-north-1b held
+  all day. Spot quota accounting releases a few minutes after a termination (MaxSpotInstanceCountExceeded on an
+  immediate retry).
+- The closure fleet: eight hosts (W2/T1/O1 forward and the profiles and checks hosts on eu-north-1b spot at 0.95/h;
+  W2-rev/T1-rev/O1-rev on us-west-2a on-demand at 4.93/h), about USD 20/h from 21:08Z; closed spend USD 10.29 at
+  21:58Z. Wall time and total: appended with the closure.
 
 ## 10. Open for rev 7 and the Codex S3 review
 - §4: Σ by ML within each model (R1) and why; the "no model-independent direction of bias" sentence withdrawn; the
