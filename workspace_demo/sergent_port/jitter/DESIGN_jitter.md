@@ -147,8 +147,13 @@ Shared construction, estimated per participant and fold on training trials only:
   adopted and re-checked against 121. The ±250 ms support is a different latent model, run as a declared sensitivity
   with its own template support.
 - Trial scale g_i ~ LogNormal(−s_g²/2, s_g²), mean 1; s_g ∈ [0, 1.5] box, s_g = 0 exact (the scale parameter does not
-  change the parameter dimension, so no reduced model is needed); Gauss–Hermite 7 nodes checked against 15 at
-  s_g = 1.5 under the same tolerance (15 adopted and checked against 31 if it fails). Fits at the s_g bound are
+  change the parameter dimension, so no reduced model is needed); the scale integral uses an ADAPTIVE Gauss–Hermite
+  rule with 17 nodes in log g, centred and scaled at the posterior mode of each (trial, τ node) by four Newton steps
+  (rev 7, as implemented in `models.py`; the rev 6 text's prior-centred 7-node rule produced a false two-state call
+  on graded data in S2 and is kept only as the comparison arm of the §4 node check). Measured envelope against a fine
+  trapezoid, worst case per (trial, node): 8e-6 nat for s_g ≤ 0.6, 2e-4 at s_g = 1.0, 7e-3 at the s_g = 1.5 box edge
+  (fitted real s_g 0.14–0.77); the node check of §7.7 compares 17 against 33 nodes (and the 7-node prior rule) on a
+  development set under the declared contrast tolerance, and 33 is adopted if 17 fails it. Fits at the s_g bound are
   flagged; a wider-bound (s_g ≤ 2.5, re-checked quadrature) sensitivity is run if any flagged fit is in a participant
   whose Δ_s drives the result. g and τ independent, level-invariant, one shape shifted as a whole: shared
   restrictions, challenged by O3/O4.

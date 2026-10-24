@@ -428,27 +428,33 @@ def development_starts(sp: M.ModelSpec, info: F.StartInfo) -> list:
 
 
 def basin_task(setting: str, r: int, m: int, base_subject: int, bases: dict) -> dict:
-    """Re-run every candidate of the decision batch on fold 0 with the standard four starts PLUS the development
-    starts; report whether a development start improved the selected optimum, and the B ⊇ G nesting of the
-    training objectives."""
+    """Start-basin check, corrected after the Codex S3 review (24 Oct 2026, finding 6): on fold 0 the REPAIRED
+    procedure (the union start set, warm chains, re-seeds, EM) gives each candidate's final optimum; each development
+    start (broad template; near-collapsed two-state) is then run as its own complete EM fit from that start alone, and
+    a development start is MATERIAL when its final end point beats the procedure's final optimum by more than 1e-6
+    relative. Final EM end points are compared with final EM end points. Also reports the B ⊇ G nesting of the
+    procedure's training objectives."""
     os.environ.setdefault("NPROC", "1")
     p = make_synthetic(setting, r, m, base_subject, bases)
     train, _, _, _ = D.fold_datasets(p, D.span("primary"), 0)
-    out = dict(setting=setting, r=r, m=m, base=base_subject, fits={})
+    res = F.fit_all_models(train, F.FitCache(), "primary", ("G3", "B3"))
+    out = dict(setting=setting, r=r, m=m, base=base_subject, data_id=p.data_id, code_hash=M.code_hash(), fits={})
     for name in DECISION_SPECS:
         sp = M.spec(name)
+        proc = res[name]
         info = F.start_info(sp, train)
-        std = F.start_vectors(sp, info)
         dev = development_starts(sp, info)
-        res = F.em_fit(sp, train, starts=std + dev, info=info)
-        conv = [s for s in res.starts if s.status == "CONVERGED"]
-        best_std = min((s.f for s in conv if s.label in {l for l, _ in std}), default=float("inf"))
-        best_dev = min((s.f for s in conv if s.label in {l for l, _ in dev}), default=float("inf"))
-        best_all = min(best_std, best_dev)
-        out["fits"][name] = dict(best_std=best_std, best_dev=best_dev, dev_improved=bool(best_dev < best_std - 1e-6 * max(1.0, abs(best_std))),
-                                 gain_nat=(best_std - best_dev) if np.isfinite(best_dev) and np.isfinite(best_std) else None,
-                                 starts={s.label: dict(status=s.status, f=s.f) for s in res.starts},
-                                 selected_loglik=-best_all if np.isfinite(best_all) else None)
+        dev_fits = {}
+        for label, theta in dev:
+            rd = F.em_fit(sp, train, starts=[(label, theta)], info=info)
+            dev_fits[label] = dict(status=rd.status, loglik=rd.loglik if rd.available else None, em=rd.em_iterations)
+        best_dev = max((v["loglik"] for v in dev_fits.values() if v["loglik"] is not None), default=None)
+        proc_ll = proc.loglik if proc.available else None
+        improved = (best_dev is not None and proc_ll is not None and best_dev > proc_ll + 1e-6 * max(1.0, abs(proc_ll)))
+        out["fits"][name] = dict(procedure_loglik=proc_ll, procedure_status=proc.status, procedure_starts=len(proc.starts),
+                                 dev=dev_fits, best_dev=best_dev, dev_improved=bool(improved),
+                                 gain_nat=(best_dev - proc_ll) if (best_dev is not None and proc_ll is not None) else None,
+                                 selected_loglik=proc_ll)
     for g, b in (("G2", "B2"), ("G3+", "B3+")):
         lg, lb = out["fits"][g]["selected_loglik"], out["fits"][b]["selected_loglik"]
         out[f"nesting_{b}_minus_{g}"] = None if lg is None or lb is None else lb - lg
@@ -489,16 +495,19 @@ PROFILE_REL_TOL, PROFILE_LR_TOL = 1e-6, 0.05
 
 
 def profile_task(setting: str, r: int, m: int, base_subject: int, bases: dict, family: str) -> dict:
-    """Full-data unrestricted fit of the family's full model, then every grid point with FOUR constrained starts
-    (warm, T_B-nearest, and the two further §5 recipes); the 2-start optimum is the best of the first two."""
+    """§5 profile-start validation, corrected after the Codex S3 review (24 Oct 2026, finding 9): the unrestricted
+    reference is the REPAIRED cross-family fitter (both families fitted, so G's B-basin re-seed and B's G-twin chains
+    apply), and at every grid point the TWO-start and the FOUR-start constrained procedures are run SEPARATELY, each as
+    its own EM fit, and compared on their FINAL log-likelihoods. (The earlier form ran one four-start EM fit and read
+    its first two initial-covariance start objectives as the two-start result, which is not the two-start procedure.)"""
     os.environ.setdefault("NPROC", "1")
     p = make_synthetic(setting, r, m, base_subject, bases)
     ds = D.full_dataset(p, D.span("primary"))
     cache = F.FitCache()
-    res = F.fit_all_models(ds, cache, "primary", (family + "3",))
+    res = F.fit_all_models(ds, cache, "primary", ("G3", "B3"))
     unres = res[family + "3"]
-    out = dict(setting=setting, r=r, m=m, base=base_subject, family=family, unrestricted=dict(
-        status=unres.status, selection=unres.selection, loglik=unres.loglik), points={})
+    out = dict(setting=setting, r=r, m=m, base=base_subject, family=family, data_id=p.data_id, code_hash=M.code_hash(),
+               unrestricted=dict(status=unres.status, selection=unres.selection, loglik=unres.loglik), points={})
     if not unres.available:
         return out
     sp_full = M.spec(family + "3+")
@@ -511,17 +520,16 @@ def profile_task(setting: str, r: int, m: int, base_subject: int, bases: dict, f
             out["points"]["0"] = dict(ell2=red.loglik, ell4=red.loglik, status2=red.status, status4=red.status, q2=None, q4=None)
             continue
         sp_c = sp_full.constrained(s)
-        starts = F.constrained_starts(sp_full, sp_c, unres, sp_u, info, 4)
-        r4 = F.em_fit(sp_c, ds, starts=starts, info=info)
-        conv = [st for st in r4.starts if st.status == "CONVERGED"]
-        two = [st for st in conv if st.label in (starts[0][0], starts[1][0])]
-        ell4 = -min(st.f for st in conv) if conv else None
-        ell2 = -min(st.f for st in two) if two else None
-        out["points"][str(s)] = dict(ell2=ell2, ell4=ell4, status2="AVAILABLE" if two else "UNAVAILABLE",
-                                     status4=r4.status,
+        starts4 = F.constrained_starts(sp_full, sp_c, unres, sp_u, info, 4)
+        r2 = F.em_fit(sp_c, ds, starts=starts4[:2], info=info)          # the declared two-start procedure, complete
+        r4 = F.em_fit(sp_c, ds, starts=starts4, info=info)              # the four-start procedure, complete
+        ell2 = r2.loglik if r2.available else None
+        ell4 = r4.loglik if r4.available else None
+        out["points"][str(s)] = dict(ell2=ell2, ell4=ell4, status2=r2.status, status4=r4.status,
                                      q2=None if ell2 is None else 2.0 * (ell_hat - ell2),
                                      q4=None if ell4 is None else 2.0 * (ell_hat - ell4),
-                                     starts={st.label: dict(status=st.status, f=st.f) for st in r4.starts})
+                                     em2=r2.em_iterations, em4=r4.em_iterations,
+                                     starts4={st.label: dict(status=st.status, f=st.f) for st in r4.starts})
     return out
 
 
@@ -544,9 +552,12 @@ def run_profile_validation(n_per_family: int = 100, workers: int = 12) -> dict:
             delayed(profile_task)(setting, r, m, base, bases, family) for setting, r, m, base in tasks)
         with open(os.path.join(PROF_DIR, f"{family}.json"), "w") as f:
             json.dump(rows, f)
-        n_points = n_fail_rel = n_fail_lr = n_unavail2 = n_unavail4 = 0
+        n_points = n_fail_rel = n_fail_lr = n_unavail2 = n_unavail4 = n_unres_unavail = 0
         worst_rel = worst_lr = 0.0
+        expected_points = len(rows) * (len(X.PROFILE_GRID_MS) - 1)
         for row in rows:
+            if row["unrestricted"]["status"] != "AVAILABLE":
+                n_unres_unavail += 1
             for s, pt in row["points"].items():
                 if s == "0":
                     continue
@@ -562,10 +573,15 @@ def run_profile_validation(n_per_family: int = 100, workers: int = 12) -> dict:
                 worst_rel, worst_lr = max(worst_rel, rel), max(worst_lr, lr)
                 n_fail_rel += rel > PROFILE_REL_TOL
                 n_fail_lr += lr > PROFILE_LR_TOL
-        summary[family] = dict(datasets=len(rows), grid_points=n_points, two_start_unavailable=n_unavail2,
-                               four_start_unavailable=n_unavail4, fail_relative=n_fail_rel, fail_lr=n_fail_lr,
-                               worst_relative=worst_rel, worst_lr=worst_lr,
-                               passed=bool(n_fail_rel == 0 and n_fail_lr == 0 and n_unavail2 == 0))
+        # the validation passes only when EVERY promised dataset and grid point was fitted and compared: an unavailable
+        # unrestricted fit or four-start fit is a missing comparison, never a vacuous pass (Codex S3 review, finding 9)
+        complete = (len(rows) == n_per_family and n_points == expected_points and n_unres_unavail == 0 and n_unavail4 == 0)
+        summary[family] = dict(datasets=len(rows), datasets_promised=n_per_family, grid_points=n_points,
+                               grid_points_promised=expected_points, unrestricted_unavailable=n_unres_unavail,
+                               two_start_unavailable=n_unavail2, four_start_unavailable=n_unavail4,
+                               fail_relative=n_fail_rel, fail_lr=n_fail_lr, worst_relative=worst_rel, worst_lr=worst_lr,
+                               complete=complete, code_hash=M.code_hash(),
+                               passed=bool(complete and n_fail_rel == 0 and n_fail_lr == 0 and n_unavail2 == 0))
         print(f"[s2 profiles] {family}: {n_points} grid points on {len(rows)} datasets; relative failures {n_fail_rel}, "
               f"LR failures {n_fail_lr}, 2-start unavailable {n_unavail2}; worst rel {worst_rel:.1e}, worst LR {worst_lr:.3f} -> "
               f"{'PASS' if summary[family]['passed'] else 'FAIL (profiles use 4 starts; re-cost §8)'}", flush=True)

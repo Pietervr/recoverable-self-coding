@@ -11,8 +11,11 @@ import numpy as np
 R = int(sys.argv[1]) if len(sys.argv) > 1 else 5
 WORKERS = int(sys.argv[2]) if len(sys.argv) > 2 else 12
 SUBJECTS = [int(v) for v in sys.argv[3:]] if len(sys.argv) > 3 else [2, 4, 13, 20, 10]
-VARIANTS = ("em", "oracle", "scaled")
+# 'oracle' = the generator's own mu0 AND Sigma (an oracle baseline/covariance comparison); 'oracle_sigma' = the generator's
+# Sigma with the ESTIMATED training-catch mu0, so that Sigma's contribution is isolated (Codex S3 review 24 Oct, finding 5)
+VARIANTS = ("em", "oracle", "oracle_sigma", "scaled")
 OUT = os.path.dirname(os.path.abspath(__file__))
+TAG = os.environ.get("RECOVERY_TAG", "")           # e.g. 'final' -> recovery_check_final.json (provenance kept per run)
 
 
 def task(subject, rep, variant):
@@ -32,19 +35,27 @@ def task(subject, rep, variant):
         wh = D.whitening_from_sigma(cfg.mu0[P], cfg.Sigma[np.ix_(P, P)], 0.0, int(np.sum(p.levels == 0)))
         ds = D.make_dataset(Y, p.levels, sp_, wh, f"{p.data_id}/primary/oracle/full")
         cache = F.FitCache(em=False)
+    elif variant == "oracle_sigma":
+        mu0_est = Y[p.levels == 0].mean(axis=0)                     # the training-catch anchor every scoring fit uses
+        wh = D.whitening_from_sigma(mu0_est, cfg.Sigma[np.ix_(P, P)], 0.0, int(np.sum(p.levels == 0)))
+        ds = D.make_dataset(Y, p.levels, sp_, wh, f"{p.data_id}/primary/oracle_sigma/full")
+        cache = F.FitCache(em=False)
     else:
         ds = D.make_dataset(Y, p.levels, sp_, None, f"{p.data_id}/primary/{variant}/full", "scaled")
         cache = F.FitCache(em=(variant == "em"))
     res = F.fit_all_models(ds, cache, "primary", ("G3", "B3"))
-    out = dict(subject=subject, rep=rep, variant=variant, true_s_tau=cfg.s_tau_ms, true_s_g=cfg.s_g, seconds=time.time() - t0)
-    for sel in ("G3", "B3"):
+    out = dict(subject=subject, rep=rep, variant=variant, true_s_tau=cfg.s_tau_ms, true_s_g=cfg.s_g, seconds=time.time() - t0,
+               data_id=p.data_id, code_hash=M.code_hash())
+    for sel in ("G3", "B3", "G2", "G3+", "B2", "B3+"):
         r = res[sel]
         if r.available:
             Pp = M.unpack(F.selected_spec(sel, r, "primary"), r.theta)
-            out[sel] = dict(selection=r.selection, s_tau=Pp.s_tau_ms, s_g=Pp.s_g, loglik=r.loglik, em=r.em_iterations,
+            out[sel] = dict(selection=r.selection, status=r.status, s_tau=Pp.s_tau_ms, s_g=Pp.s_g, loglik=r.loglik,
+                            em=r.em_iterations, n_starts=len(r.starts), n_converged=r.n_converged,
+                            chain_notes=[n for n in r.notes if "stopped" in n or "accepted" in n or "chain" in n or "retried" in n],
                             A=None if Pp.A is None else [float(v) for v in Pp.A[1:]], bounds=r.bounds_hit)
         else:
-            out[sel] = dict(selection="UNAVAILABLE")
+            out[sel] = dict(selection="UNAVAILABLE", status=r.status, notes=r.notes[-3:])
     return out
 
 
@@ -53,8 +64,12 @@ def main():
     jobs = [(s, rep, v) for v in VARIANTS for s in SUBJECTS for rep in range(R)]
     t0 = time.time()
     rows = Parallel(n_jobs=WORKERS, backend="loky")(delayed(task)(s, rep, v) for s, rep, v in jobs)
-    json.dump(rows, open(os.path.join(OUT, "recovery_check.json"), "w"), indent=1)
-    print(f"{len(rows)} fits in {time.time() - t0:.0f} s")
+    import models as M
+    name = f"recovery_check{('_' + TAG) if TAG else ''}.json"
+    json.dump(dict(code_hash=M.code_hash(), R=R, subjects=SUBJECTS, variants=list(VARIANTS),
+                   utc=time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()), rows=rows),
+              open(os.path.join(OUT, name), "w"), indent=1)
+    print(f"{len(rows)} fits in {time.time() - t0:.0f} s; code {M.code_hash()}; written {name}")
     print("subject | true s_tau s_g | variant | G3 s_tau per replicate (sel) | median | G3 s_g median | B3 s_tau median | B3 A5 median")
     for s in SUBJECTS:
         for v in VARIANTS:

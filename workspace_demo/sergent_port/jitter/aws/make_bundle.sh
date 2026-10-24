@@ -11,10 +11,12 @@ HASH=$(git -C /Users/pietervanrooyen/Recoverable-Self-Coding rev-parse --short H
 OUT=$J/aws/bundle
 mkdir -p "$OUT"
 STAGE=$(mktemp -d)
-mkdir -p "$STAGE/sergent_port/jitter/results/generators" "$STAGE/sergent_port/jitter/results/s4"
-cp "$SP"/fit_models.py "$SP"/bms.py "$SP"/common.py "$STAGE/sergent_port/" 2>/dev/null || cp "$SP"/fit_models.py "$SP"/bms.py "$STAGE/sergent_port/"
+mkdir -p "$STAGE/sergent_port/jitter/results/generators" "$STAGE/sergent_port/jitter/results/s4" "$STAGE/sergent_port/jitter/results/s2/diagnosis" "$STAGE/sergent_port/jitter/aws"
+cp "$SP"/fit_models.py "$SP"/bms.py "$SP"/common.py "$STAGE/sergent_port/"
 cp "$J"/*.py "$STAGE/sergent_port/jitter/"
 cp "$J"/DESIGN_jitter.md "$STAGE/sergent_port/jitter/"
+cp "$J"/results/s2/diagnosis/*.py "$STAGE/sergent_port/jitter/results/s2/diagnosis/"
+cp "$J"/aws/s2_closure.sh "$STAGE/sergent_port/jitter/aws/"
 cp "$J"/results/generators/*.npz "$J"/results/generators/bases_active.json "$STAGE/sergent_port/jitter/results/generators/"
 echo "$HASH" > "$STAGE/sergent_port/jitter/BUNDLE_RSC_HASH"
 tar -C "$STAGE" -czf "$OUT/jitter_bundle_$HASH.tar.gz" sergent_port
