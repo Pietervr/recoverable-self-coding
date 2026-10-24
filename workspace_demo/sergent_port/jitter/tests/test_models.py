@@ -255,6 +255,85 @@ def test_code_hash_is_stable():
     assert M.code_hash() == M.code_hash() and len(M.code_hash()) == 12
 
 
+# ---- the adaptive scale quadrature (S2 repair) ------------------------------------------------
+def _ab_grid():
+    """(A, B) = (m u·v, m²‖v‖²) cases: weak trials, strong trials with sharp likelihoods, anti-correlated trials,
+    likelihood peaks far into the lognormal tail (g* up to 5), and the catch case A = B = 0."""
+    cases = [(0.0, 0.0), (0.2, 0.5), (3.0, 2.0), (30.0, 25.0), (120.0, 40.0), (-5.0, 4.0), (-40.0, 30.0),
+             (250.0, 50.0), (0.05, 100.0), (500.0, 100.0), (1e-3, 1e-3), (60.0, 400.0)]
+    return cases
+
+
+def test_adaptive_scale_integral_matches_dense_reference():
+    """Default nodes (17): within 2e-5 nat of the fine trapezoid for s_g ≤ 1.0 (the §4 contrast tolerance is
+    ~5e-4 nat per trial); 33 nodes within 1e-7 there. At the s_g = 1.5 box edge the rule converges slowly:
+    documented bounds 1e-2 (17) and 5e-4 (33); such fits are flagged (§4) and the S2 node check governs."""
+    x17, w17 = np.polynomial.hermite.hermgauss(M.N_G_NODES)
+    x33, w33 = np.polynomial.hermite.hermgauss(2 * M.N_G_NODES - 1)
+    assert M.N_G_NODES == 17
+    for s_g in (1e-3, 0.1, 0.3, 0.6, 1.0, 1.5):
+        for A, B in _ab_grid():
+            ref = M.log_scale_integral_dense(A, B, s_g)
+            g17 = float(M._adaptive_log_scale_integral(np.array([[A]]), np.array([[B]]), s_g, x17, np.log(w17), xp=np)[0, 0])
+            g33 = float(M._adaptive_log_scale_integral(np.array([[A]]), np.array([[B]]), s_g, x33, np.log(w33), xp=np)[0, 0])
+            if s_g <= 1.0:
+                assert abs(g17 - ref) < 2e-5, (s_g, A, B, g17, ref)
+                assert abs(g33 - ref) < 5e-7, (s_g, A, B, g33, ref)
+            else:
+                assert abs(g17 - ref) < 1e-2 and abs(g33 - ref) < 5e-4, (s_g, A, B, g17, g33, ref)
+    # exactness at the catch case and at s_g = 0 (g ≡ 1)
+    assert abs(float(M._adaptive_log_scale_integral(np.zeros((1, 1)), np.zeros((1, 1)), 0.7, x, np.log(w), xp=np)[0, 0])) < 1e-12
+    v0 = float(M._adaptive_log_scale_integral(np.array([[3.0]]), np.array([[2.0]]), 0.0, x, np.log(w), xp=np)[0, 0])
+    assert abs(v0 - (3.0 - 1.0)) < 1e-9
+
+
+def test_adaptive_default_vs_double_nodes_and_prior_rule_error():
+    x17, w17 = np.polynomial.hermite.hermgauss(17)
+    x33, w33 = np.polynomial.hermite.hermgauss(33)
+    z7, lw7 = M.gh_nodes(7)
+    z15, lw15 = M.gh_nodes(15)
+    prior_err = {7: 0.0, 15: 0.0}
+    for s_g in (0.6, 1.5):
+        for A, B in _ab_grid():
+            ref = M.log_scale_integral_dense(A, B, s_g)
+            a17 = float(M._adaptive_log_scale_integral(np.array([[A]]), np.array([[B]]), s_g, x17, np.log(w17), xp=np)[0, 0])
+            a33 = float(M._adaptive_log_scale_integral(np.array([[A]]), np.array([[B]]), s_g, x33, np.log(w33), xp=np)[0, 0])
+            assert abs(a17 - a33) < (2e-5 if s_g <= 1.0 else 1e-2)
+            for n, (z, lw) in ((7, (z7, lw7)), (15, (z15, lw15))):
+                g = np.exp(-0.5 * s_g ** 2 + s_g * z)
+                prior = float(np.logaddexp.reduce(lw + g * A - 0.5 * g * g * B))
+                prior_err[n] = max(prior_err[n], abs(prior - ref))
+    # the prior-centred rules miss sharp likelihoods by whole nats; this is what the repair removes
+    assert prior_err[7] > 0.5 and prior_err[15] > 0.05
+
+
+def test_jax_rule_equals_numpy_rule_and_exact_reference_per_trial():
+    ds = _synthetic_dataset(n_per_level=4, seed=13)
+    for name in ("G3+", "B2"):
+        sp = M.spec(name)
+        th = _theta(sp)
+        ll = M.Objective(sp, ds).trial_loglik(th)
+        same_rule = M.dense_trial_loglik(sp, th, ds.Y, ds.k, ds.wh.mu0, ds.wh.Sigma)
+        exact = M.dense_trial_loglik(sp, th, ds.Y, ds.k, ds.wh.mu0, ds.wh.Sigma, exact_scale=True)
+        assert np.max(np.abs(ll - same_rule)) < 1e-9
+        assert np.max(np.abs(ll - exact)) < 1e-5, (name, np.max(np.abs(ll - exact)))
+
+
+def test_scale_fixed_models_are_exact_and_unchanged_by_node_count():
+    ds = _synthetic_dataset(n_per_level=4, seed=17)
+    for name in ("G0", "B1+"):
+        a = M.Objective(M.spec(name, n_g_nodes=9), ds).trial_loglik(_theta(M.spec(name)))
+        b = M.Objective(M.spec(name, n_g_nodes=3), ds).trial_loglik(_theta(M.spec(name)))
+        assert np.allclose(a, b, atol=0, rtol=1e-14)
+    # a scale-free model at s_g = 0 equals the scale-fixed model at the same visible parameters
+    spG2, spG0 = M.spec("G2"), M.spec("G0")
+    th2 = _theta(spG2)
+    P = M.unpack(spG2, th2)
+    th0 = M.pack(spG0, M.softplus_inv(P.a[1:]), np.where(P.c > 0, M.softplus_inv(np.maximum(P.c, 1e-300)), -30.0))
+    th2z = th2.copy(); th2z[spG2.layout()["index"]["s_g"]] = 0.0
+    assert np.allclose(M.Objective(spG2, ds).trial_loglik(th2z), M.Objective(spG0, ds).trial_loglik(th0), atol=1e-8)
+
+
 if __name__ == "__main__":
     import inspect
     fails = 0

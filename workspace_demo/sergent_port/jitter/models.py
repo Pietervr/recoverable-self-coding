@@ -11,7 +11,15 @@ Two-state family z_i ~ Bernoulli(A(k_i)); y | z=0 ~ N(μ0, Σ); y | z=1 ~ N( μ0
   τ = 0; a window's template value = mean of T̃ over its 16 sample times.
   τ ~ N(0, s_τ²) truncated to ±150 ms on 31 nodes (10 ms), truncated-normal weights normalised; s_τ ∈ [2, 150] ms in
   POSITIVE-SPREAD models; the exact s_τ = 0 model is REDUCED (one node, shift-only coefficients removed).
-  g ~ LogNormal(−s_g²/2, s_g²) on 7 Gauss–Hermite nodes; s_g ∈ [0, 1.5].
+  g ~ LogNormal(−s_g²/2, s_g²); s_g ∈ [0, 1.5]. S2 numerical repair (24 Oct 2026): the scale integral uses an
+  ADAPTIVE Gauss–Hermite rule in u = log g — per trial and latency node the nodes are centred on the mode of the
+  log-integrand h(u) = −(u − μ_p)²/(2s_g²) + mP e^u − ½m²vv e^{2u} (8 safeguarded Newton steps from the
+  precision-blended likelihood peak) and scaled by its curvature, with the e^{x²} correction (Liu & Pierce 1994),
+  N_G_NODES = 17 (checked against 33). The design's prior-centred rule (7 nodes checked against 15) was found
+  inadequate on the first development set: strong trials have scale likelihoods far sharper than the prior, the
+  7-node rule mis-scored G3 by 2–3.5 nat per fold and the B3 − G3 contrast was still moving at 31 and 61 fixed
+  nodes; the prior-centred rule stays available as `ModelSpec.adaptive_g = False` for the §4 node check. Models
+  without a scale term (G0, G1, B0, B1) integrate nothing: g ≡ 1 exactly.
 
 Models: G0 (s_τ = s_g = 0), G1 (s_τ free), G2 (s_g free), G3 (both); B0–B3 alike. In code the positive-spread
 candidates are the specs "G1+", "G3+", "B1+", "B3+"; the reduced models "G0", "G2", "B0", "B2"; a constrained
@@ -62,7 +70,14 @@ KNOT_SPACING_MS = 60.0
 GAUGE_CENTRE_MS = 450.0
 TAU_NODE_STEP_MS = 10.0
 N_TAU_NODES = 31
-N_G_NODES = 7
+N_G_NODES = 17                # adaptive Gauss–Hermite nodes in log g (checked against 33 in S2). Accuracy against a
+#                               fine trapezoid: < 1e-5 nat per (trial, node) for s_g ≤ 1.0; at the s_g = 1.5 box edge
+#                               (flagged fits) up to 7e-3 at 17 and 2e-4 at 33 nodes — the mode-centred rule converges
+#                               slowly when a wide scale prior meets a likelihood of comparable precision.
+N_G_NODES_PRIOR = 7           # the design's prior-centred rule (kept for the node check)
+NEWTON_STEPS = 4              # the blended start is within Newton's quadratic basin; 4 = 8 steps to 1e-12
+S_G_EPS = 1e-12               # s_g² floor inside the adaptive rule (s_g = 0 sits on the box)
+MODE_CLIP_SD = 12.0           # |û − μ_p| ≤ 12 s_g
 S_TAU_MIN_MS = 2.0
 S_TAU_MAX_MS = 150.0
 S_G_MAX = 1.5
@@ -220,6 +235,7 @@ class ModelSpec:
     span_name: str
     n_tau_nodes: int = N_TAU_NODES
     n_g_nodes: int = N_G_NODES
+    adaptive_g: bool = True     # posterior-centred scale nodes (S2 repair); False = the prior-centred rule
 
     @property
     def positive(self) -> bool:
@@ -285,17 +301,19 @@ class ModelSpec:
 
     def reduced(self) -> "ModelSpec":
         """The corresponding exact-zero model (G0 for G1+, G2 for G3+, …; itself if already reduced)."""
-        return ModelSpec(self.family, False, 0.0, self.scale_free, self.span_name, self.n_tau_nodes, self.n_g_nodes)
+        return ModelSpec(self.family, False, 0.0, self.scale_free, self.span_name, self.n_tau_nodes, self.n_g_nodes,
+                         self.adaptive_g)
 
     def constrained(self, s_tau_ms: float) -> "ModelSpec":
         """The profile model at a fixed spread (the reduced model at 0)."""
         if s_tau_ms <= 0.0:
             return self.reduced()
         return ModelSpec(self.family, False, float(s_tau_ms), self.scale_free, self.span_name,
-                         self.n_tau_nodes, self.n_g_nodes)
+                         self.n_tau_nodes, self.n_g_nodes, self.adaptive_g)
 
 
-def spec(name: str, span_name: str = "primary", n_tau_nodes: int = N_TAU_NODES, n_g_nodes: int = N_G_NODES) -> ModelSpec:
+def spec(name: str, span_name: str = "primary", n_tau_nodes: int = N_TAU_NODES, n_g_nodes: int = N_G_NODES,
+         adaptive_g: bool = True) -> ModelSpec:
     """ModelSpec from a model name: G0 G1+ G2 G3+ B0 B1+ B2 B3+ (the selected names G1/G3/B1/B3 are built from
     their two candidates by fit.py, not here)."""
     fam, rest = name[0], name[1:]
@@ -303,7 +321,7 @@ def spec(name: str, span_name: str = "primary", n_tau_nodes: int = N_TAU_NODES, 
         raise KeyError(name)
     tau_free = rest.endswith("+")
     scale_free = rest[0] in ("2", "3")
-    return ModelSpec(fam, tau_free, 0.0, scale_free, span_name, n_tau_nodes, n_g_nodes)
+    return ModelSpec(fam, tau_free, 0.0, scale_free, span_name, n_tau_nodes, n_g_nodes, adaptive_g)
 
 
 @dataclass
@@ -380,14 +398,53 @@ def _constants(sp: ModelSpec):
     b = sp.basis()
     lay = sp.layout()
     z, logw_g = gh_nodes(sp.n_g_nodes)
+    x, w = np.polynomial.hermite.hermgauss(sp.n_g_nodes)
     gfree = lay["gamma_indices"]
     # gamma scatter: free -> their index, gauge -> 0, the rest (invisible in reduced models) -> c = 0
     return dict(
         Bmat=jnp.asarray(b.Bmat), node0=b.node0, nodes=jnp.asarray(b.nodes_ms), J=b.n_basis, gauge=b.gauge,
         gfree=jnp.asarray(gfree), has_invisible_zero=(not sp.positive),
         zero_mask=jnp.asarray(np.isin(np.arange(b.n_basis), np.concatenate([gfree, [b.gauge]]))),
-        z=jnp.asarray(z), logw_g=jnp.asarray(logw_g), idx=lay["index"], W=b.W,
+        z=jnp.asarray(z), logw_g=jnp.asarray(logw_g), gh_x=jnp.asarray(x), gh_logw=jnp.asarray(np.log(w)),
+        idx=lay["index"], W=b.W,
     )
+
+
+def _adaptive_log_scale_integral(A, B, s_g, gh_x, gh_logw, xp=jnp):
+    """log ∫ LogNormal(g; −s²/2, s²) exp(A g − ½ B g²) dg by adaptive Gauss–Hermite in u = log g, elementwise over
+    the arrays A = m P (n × N_tau) and B = m² vv (n × N_tau). Works with jnp (model) and np (dense reference)."""
+    s2 = s_g * s_g + S_G_EPS
+    s = xp.sqrt(s2)
+    mu_p = -0.5 * s_g * s_g
+    tiny = 1e-30
+    has_peak = (A > 0.0) & (B > tiny)
+    Bsafe = xp.where(B > tiny, B, 1.0)                          # safe denominators: catch trials have A = B = 0
+    gstar = xp.where(has_peak, A / Bsafe, 1.0)
+    u_star = xp.log(gstar)
+    prec_l = xp.where(has_peak, Bsafe * gstar * gstar, 0.0)      # likelihood curvature in u at its peak
+    u = xp.where(has_peak, (mu_p / s2 + u_star * prec_l) / (1.0 / s2 + prec_l), mu_p)
+    # the mode lies between the prior mean and the likelihood peak (A > 0), or below the prior mean (A ≤ 0)
+    lo = xp.where(has_peak, xp.minimum(mu_p, u_star) - 0.5, mu_p - MODE_CLIP_SD * s - 0.5)
+    hi = xp.where(has_peak, xp.maximum(mu_p, u_star) + 0.5, mu_p + 0.5)
+    for _ in range(NEWTON_STEPS):
+        e = xp.exp(u)
+        h1 = -(u - mu_p) / s2 + A * e - B * e * e
+        h2 = -1.0 / s2 + A * e - 2.0 * B * e * e
+        h2 = xp.minimum(h2, -1.0 / s2)                            # safeguard: at least the prior curvature
+        u = xp.clip(u - h1 / h2, lo, hi)
+    e = xp.exp(u)
+    curv = -(-1.0 / s2 + A * e - 2.0 * B * e * e)
+    curv = xp.maximum(curv, 0.1 / s2)
+    sigma_q = 1.0 / xp.sqrt(curv)
+    um = u[..., None] + np.sqrt(2.0) * sigma_q[..., None] * gh_x
+    em = xp.exp(um)
+    h = -(um - mu_p) ** 2 / (2.0 * s2) + A[..., None] * em - 0.5 * B[..., None] * em * em
+    terms = gh_logw + h + gh_x ** 2
+    if xp is jnp:
+        lse = logsumexp(terms, axis=-1)
+    else:
+        lse = np.logaddexp.reduce(terms, axis=-1)
+    return lse + xp.log(sigma_q / s) - 0.5 * np.log(np.pi)
 
 
 def _trial_loglik_impl(theta, U, k, Linv, logdet, sp: ModelSpec, C: dict):
@@ -412,10 +469,6 @@ def _trial_loglik_impl(theta, U, k, Linv, logdet, sp: ModelSpec, C: dict):
         logw_tau = jax.nn.log_softmax(-0.5 * (C["nodes"] / s_tau) ** 2)
     else:
         logw_tau = jnp.zeros(1)
-    # scale nodes
-    s_g = theta[idx["s_g"]] if sp.scale_free else 0.0
-    g = jnp.exp(-0.5 * s_g ** 2 + s_g * C["z"])                                  # (N_g,)
-    logw_g = C["logw_g"]
     if sp.family == "G":
         m = a[k]                                                                 # (n,)
     else:
@@ -433,10 +486,20 @@ def _trial_loglik_impl(theta, U, k, Linv, logdet, sp: ModelSpec, C: dict):
         mH = jnp.concatenate([jnp.zeros(1), a[1:] / A[1:]])
         m = mH[k]
         logA_i, log1mA_i = logA[k], log1mA[k]
-    gm = g[None, None, :] * m[:, None, None]                                     # (n, 1, N_g)
-    logits = (logw_tau[None, :, None] + logw_g[None, None, :]
-              + gm * P[:, :, None] - 0.5 * gm ** 2 * vv[None, :, None])         # (n, N_tau, N_g)
-    lse = logsumexp(logits, axis=(1, 2))                                         # (n,)
+    # the scale integral per trial and latency node
+    if not sp.scale_free:
+        node_terms = m[:, None] * P - 0.5 * (m * m)[:, None] * vv[None, :]       # g ≡ 1 exactly, (n, N_tau)
+    elif sp.adaptive_g:
+        s_g = theta[idx["s_g"]]
+        node_terms = _adaptive_log_scale_integral(m[:, None] * P, (m * m)[:, None] * vv[None, :], s_g,
+                                                  C["gh_x"], C["gh_logw"])
+    else:
+        s_g = theta[idx["s_g"]]
+        g = jnp.exp(-0.5 * s_g ** 2 + s_g * C["z"])                              # prior-centred nodes (N_g,)
+        gm = g[None, None, :] * m[:, None, None]
+        node_terms = logsumexp(C["logw_g"][None, None, :] + gm * P[:, :, None]
+                               - 0.5 * gm ** 2 * vv[None, :, None], axis=2)
+    lse = logsumexp(logw_tau[None, :] + node_terms, axis=1)                      # (n,)
     base = -0.5 * C["W"] * LOG2PI - 0.5 * logdet - 0.5 * uu
     if sp.family == "G":
         return base + lse
@@ -511,16 +574,38 @@ class Objective:
 # ----------------------------------------------------------------------------------------------
 # dense reference implementation (tests, §5 "Correctness")
 # ----------------------------------------------------------------------------------------------
+def log_scale_integral_dense(A: float, B: float, s_g: float, n_u: int = 40001, half_width_sd: float = 12.0) -> float:
+    """Reference: log ∫ LogNormal(g; −s²/2, s²) exp(A g − ½ B g²) dg by a fine trapezoid in u = log g over a
+    window that covers both the prior and the likelihood peak."""
+    if s_g <= 0.0:
+        return float(A - 0.5 * B)
+    mu_p = -0.5 * s_g ** 2
+    s_w = max(s_g, 1e-3)
+    lo, hi = mu_p - half_width_sd * s_w, mu_p + half_width_sd * s_w
+    if A > 0 and B > 0:
+        u_star = np.log(A / B)
+        lo, hi = min(lo, u_star - 12.0 * s_w - 1.0), max(hi, u_star + 12.0 * s_w + 1.0)
+    u = np.linspace(lo, hi, n_u)
+    h = -(u - mu_p) ** 2 / (2 * s_g ** 2) + A * np.exp(u) - 0.5 * B * np.exp(2 * u)
+    du = u[1] - u[0]
+    hm = h.max()
+    return float(hm + np.log(np.trapezoid(np.exp(h - hm), dx=du)) - np.log(s_g * np.sqrt(2 * np.pi)))
+
+
 def dense_trial_loglik(sp: ModelSpec, theta: np.ndarray, Y: np.ndarray, k: np.ndarray, mu0: np.ndarray,
-                       Sigma: np.ndarray) -> np.ndarray:
-    """Direct mixture over the τ and g nodes with scipy's multivariate normal, no whitening."""
+                       Sigma: np.ndarray, exact_scale: bool = False) -> np.ndarray:
+    """Direct mixture over the τ nodes with scipy's multivariate normal, no whitening. The scale integral uses
+    the same rule as the model (adaptive nodes in numpy, or the prior-centred nodes), or, with
+    `exact_scale`, the fine trapezoid reference (then the comparison tests the quadrature itself)."""
     P = unpack(sp, theta)
     b = sp.basis()
     nodes = b.nodes_ms if sp.positive else np.zeros(1)
     w_tau = truncnorm_node_weights(nodes, P.s_tau_ms) if sp.positive else np.ones(1)
     z, logw_g = gh_nodes(sp.n_g_nodes)
-    g = np.exp(-0.5 * P.s_g ** 2 + P.s_g * z)
-    w_g = np.exp(logw_g)
+    x, w = np.polynomial.hermite.hermgauss(sp.n_g_nodes)
+    g_prior = np.exp(-0.5 * P.s_g ** 2 + P.s_g * z)
+    L = np.linalg.cholesky(Sigma)
+    Linv = np.linalg.inv(L)
     out = np.empty(Y.shape[0])
     for i in range(Y.shape[0]):
         ki = int(k[i])
@@ -531,8 +616,21 @@ def dense_trial_loglik(sp: ModelSpec, theta: np.ndarray, Y: np.ndarray, k: np.nd
         comps = []
         for n_, wt in zip(range(nodes.size), w_tau):
             Tt = b.Bmat[n_] @ P.c_tilde
-            for g_, wg in zip(g, w_g):
-                comps.append(np.log(wt * wg) + multivariate_normal.logpdf(Y[i], mu0 + g_ * m * Tt, Sigma))
+            if not sp.scale_free:
+                comps.append(np.log(wt) + multivariate_normal.logpdf(Y[i], mu0 + m * Tt, Sigma))
+                continue
+            u_i = Linv @ (Y[i] - mu0)
+            v = Linv @ Tt
+            A_ = m * float(u_i @ v)
+            B_ = m * m * float(v @ v)
+            base_i = multivariate_normal.logpdf(Y[i], mu0, Sigma)       # −½W log 2π − ½ log|Σ| − ½‖u‖²
+            if exact_scale:
+                val = log_scale_integral_dense(A_, B_, P.s_g)
+            elif sp.adaptive_g:
+                val = float(_adaptive_log_scale_integral(np.array([[A_]]), np.array([[B_]]), P.s_g, x, np.log(w), xp=np)[0, 0])
+            else:
+                val = float(np.logaddexp.reduce(logw_g + g_prior * A_ - 0.5 * g_prior ** 2 * B_))
+            comps.append(np.log(wt) + base_i + val)
         high = np.logaddexp.reduce(comps)
         if sp.family == "G":
             out[i] = high
