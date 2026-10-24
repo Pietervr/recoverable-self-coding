@@ -2,6 +2,7 @@
 selection, the warm-start lift/projection, constrained starts, the cache, cross-validated scoring and the
 generator fits — on tiny synthetic data. No number here is a scientific result.
 Run: ../../t1_access/.venv/bin/python tests/test_fit.py"""
+import json
 import os
 import sys
 import tempfile
@@ -289,6 +290,30 @@ def test_acceptance_keeps_an_exact_warm_start():
         pass
 
 
+def test_acceptance_no_better_exception_only_for_early_end_points():
+    """Codex S3 review finding 3: a stationary end point that ran >= 5 iterations and fails (ii) stays NOT_CONVERGED
+    even when no retry finds anything better; the no-better exception belongs to EARLY (< 5 iterations) end points."""
+    lb = np.full(3, -np.inf); ub = np.full(3, np.inf)
+
+    def crafted(nit, hist):
+        def fake(obj, x0, lb_, ub_, options):
+            x = np.array([1.0, -2.0, 0.5])
+            return dict(x=x, f=1.0, grad=np.zeros(3), nit=nit, nfev=nit + 1, message="crafted", hist=list(hist),
+                        seconds=0.0, pg=0.0)
+        return fake
+
+    orig = F._run_lbfgsb
+    try:
+        F._run_lbfgsb = crafted(10, [2.0, 1.5, 1.2, 1.1, 1.05, 1.02, 1.01, 1.005, 1.002, 1.0])   # moving history: (ii) fails
+        r = F.run_start(_Quad([1.0, -2.0, 0.5]), "late", np.ones(3), lb, ub, seed=1)
+        assert r.status == "NOT_CONVERGED" and not r.early and r.retries == F.MAX_RETRIES
+        F._run_lbfgsb = crafted(0, [1.0])                                                   # exact warm start: EARLY
+        r = F.run_start(_Quad([1.0, -2.0, 0.5]), "warm", np.ones(3), lb, ub, seed=1)
+        assert r.status == "CONVERGED" and r.early
+    finally:
+        F._run_lbfgsb = orig
+
+
 def test_lift_clips_runaway_coordinates_and_collapses_g_onto_b():
     p = _synthetic_participant(n_per_level=30, seed=4, s_tau=30.0, noise=0.4)
     ds = D.full_dataset(p, D.span("primary"))
@@ -339,6 +364,18 @@ def test_em_fit_is_monotone_and_scores_under_its_own_sigma():
     assert r0.em_iterations == 0 and r0.wh is train.wh and r0.em_trace == [r0.loglik]
     assert np.allclose(F.score_heldout(sp, r0, test), M.Objective(sp, train).trial_loglik(r0.theta, test))
     assert r.loglik >= r0.loglik                            # EM can only raise the training log-likelihood
+    # Codex S3 review finding 2: a JSON round trip must preserve the held-out DENSITY, i.e. the fitted whitening
+    back = F.FitResult.from_json(json.loads(json.dumps(r.to_json())))
+    assert back.wh is not None and np.allclose(back.wh.Sigma, r.wh.Sigma) and np.allclose(back.wh.mu0, r.wh.mu0)
+    assert np.allclose(F.score_heldout(sp, back, test), ll_model)
+    with tempfile.TemporaryDirectory() as d:
+        c1 = F.FitCache(d, em=True)
+        r_disk = c1.fit(sp, train)
+        c2 = F.FitCache(d, em=True)
+        r_re = c2.fit(sp, train)
+        assert r_re.wh is not None and np.allclose(F.score_heldout(sp, r_re, test), F.score_heldout(sp, r_disk, test))
+        assert F.FitCache(d, em=False).key(train, sp) != c1.key(train, sp)      # EM mode and code hash are in the key
+        assert M.code_hash() in c1.key(train, sp)
 
 
 def test_repaired_start_set_and_nesting_without_em():

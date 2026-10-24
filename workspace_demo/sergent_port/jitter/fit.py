@@ -304,11 +304,16 @@ def run_start(obj: M.Objective, label: str, x0: np.ndarray, lb: np.ndarray, ub: 
         return min(s, key=lambda r: r["f"]) if s else None
 
     def accepted(best):
-        """CONVERGED: (ii) holds at the best stationary point, or nothing else found a better objective."""
+        """CONVERGED: (ii) holds at the best stationary point, or — ONLY when that point was reached in fewer than
+        EARLY_ITERS iterations (a warm start already at an optimum, the declared EARLY exception) — no other attempt
+        found a better objective. A stationary end point that ran five or more iterations and still fails (ii) is
+        NOT_CONVERGED however the retries fared (Codex S3 review 24 Oct, finding 3)."""
         if best is None:
             return False
         if best["status0"] == "CONVERGED":
             return True
+        if best["nit"] >= EARLY_ITERS:
+            return False
         others = [r for r in runs if r is not best]
         tol = EARLY_AGREE * max(1.0, abs(best["f"]))
         return bool(others) and all((not np.isfinite(r["f"])) or r["f"] >= best["f"] - tol for r in others)
@@ -371,6 +376,9 @@ class FitResult:
                  selection=self.selection, flags=self.flags, candidates=self.candidates,
                  em_iterations=self.em_iterations, em_trace=[float(v) for v in self.em_trace],
                  sigma_logdet=None if self.wh is None else float(self.wh.logdet),
+                 wh=None if self.wh is None else dict(mu0=[float(v) for v in self.wh.mu0],
+                                                      Sigma=[[float(v) for v in row] for row in self.wh.Sigma],
+                                                      shrinkage=float(self.wh.shrinkage), n_catch=int(self.wh.n_catch)),
                  starts=[dict(label=s.label, status=s.status, f=s.f, pg=s.pg, nit=s.nit, nfev=s.nfev,
                               seconds=s.seconds, early=s.early, retries=s.retries, attempts=s.attempts,
                               x=[float(v) for v in s.x]) for s in self.starts])
@@ -378,13 +386,21 @@ class FitResult:
 
     @staticmethod
     def from_json(d: dict) -> "FitResult":
-        """The whitening is not serialised: a result read back scores held-out data under the data's whitening."""
+        """The fitted whitening (μ0, Σ) is serialised and rebuilt, so that a result read back scores held-out data
+        under the MODEL's own Σ exactly as the fresh result did (Codex S3 review 24 Oct, finding 2: the earlier
+        form dropped it and a disk-cache round trip changed the held-out density by several nat). A record without
+        a whitening (rev 6 era) comes back with wh=None and scores under the data's whitening, as it was fitted."""
         starts = [StartResult(s["label"], s["status"], np.asarray(s["x"]), s["f"], s["pg"], s["nit"], s["nfev"],
                               s["seconds"], s["attempts"], s["early"], s["retries"]) for s in d["starts"]]
+        wh = None
+        if d.get("wh") is not None:
+            w = d["wh"]
+            wh = D.whitening_from_sigma(np.asarray(w["mu0"], dtype=np.float64), np.asarray(w["Sigma"], dtype=np.float64),
+                                        float(w.get("shrinkage", 0.0)), int(w.get("n_catch", 0)))
         return FitResult(d["model"], d["ident"], d["status"], None if d["theta"] is None else np.asarray(d["theta"]),
                          d["loglik"], starts, d["n_converged"], d["seconds"], d["code_hash"], d["bounds_hit"],
                          d["clipped"], d["notes"], d.get("selection", ""), d.get("flags", []), d.get("candidates", {}),
-                         None, d.get("em_iterations", 0), d.get("em_trace", []))
+                         wh, d.get("em_iterations", 0), d.get("em_trace", []))
 
 
 def _bounds_hit(sp: M.ModelSpec, theta: np.ndarray) -> list:
@@ -438,10 +454,12 @@ class FitCache:
         if directory:
             os.makedirs(directory, exist_ok=True)
 
-    @staticmethod
-    def key(ds: D.Dataset, sp: M.ModelSpec, recipe: str = "std") -> str:
+    def key(self, ds: D.Dataset, sp: M.ModelSpec, recipe: str = "std") -> str:
+        """Cache identity: data identity, model, quadrature, start recipe, the EM mode of this cache and the code
+        hash — so that a persistent cache written under another construction or another code version can never
+        answer for this one (Codex S3 review 24 Oct, finding 2)."""
         quad = f"t{sp.n_tau_nodes}g{sp.n_g_nodes}{'a' if sp.adaptive_g else 'p'}"
-        return f"{ds.ident}|{sp.name}|{quad}|{recipe}"
+        return f"{ds.ident}|{sp.name}|{quad}|{recipe}|{'em' if self.em else 'fixed'}|{M.code_hash()}"
 
     def _path(self, key: str) -> str:
         return os.path.join(self.dir, hashlib.sha256(key.encode()).hexdigest()[:24] + ".json")

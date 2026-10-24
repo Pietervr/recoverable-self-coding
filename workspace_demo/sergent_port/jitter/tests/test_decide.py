@@ -332,6 +332,26 @@ def test_recovery_flags_three_outcomes():
     assert X.recovery_flags(_stats(r3_ok=False), "G")["flag"] == "NOT ADEQUATE"
 
 
+def test_recovery_r2_r3_judged_per_zero_jitter_setting():
+    """Codex S3 review finding 8 (dilution counterexample): O1 alone at 40% false jitter and 20% false detection
+    with four clean settings must FAIL R2 and R3 - the rates are judged within each setting, never pooled across them
+    (pooled they would read 8% and 4%, both under the thresholds)."""
+    st = _stats()
+    S = st["G"]
+    for s in S["false_jitter"]:
+        S["false_jitter"][s] = [False] * 500
+        S["false_detect"][s] = [False] * 500
+    S["false_jitter"]["O1"] = [True] * 200 + [False] * 300
+    S["false_detect"]["O1"] = [True] * 100 + [False] * 400
+    out = X.recovery_flags(st, "G")
+    assert out["flag"] == "NOT ADEQUATE"
+    assert not out["rules"]["R2"]["passed"] and not out["rules"]["R3"]["passed"]
+    assert out["rules"]["R2"]["settings"]["O1"]["rate"] == 0.4 and not out["rules"]["R2"]["settings"]["O1"]["passed"]
+    assert out["rules"]["R3"]["settings"]["O1"]["rate"] == 0.2 and not out["rules"]["R3"]["settings"]["O1"]["passed"]
+    assert all(v["passed"] for k, v in out["rules"]["R2"]["settings"].items() if k != "O1")
+    assert len(out["rules"]["R2"]["settings"]) == 5 and len(out["rules"]["R3"]["settings"]) == 5
+
+
 def test_zero_only_rejection_event_is_lower_bound_above_20():
     """A hull [2.5, 15] excludes zero but licenses nothing; only lower bound > 20 (the R3 event) counts."""
     hull_small = X.Profile("AVAILABLE", "", 2.5, 15.0, [5.0, 10.0, 15.0], [], {}, {}, 0.0, False, False, 15, [])

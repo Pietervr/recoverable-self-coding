@@ -30,6 +30,7 @@ PROFILE_GRID_MS = (0.0, 5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0, 60.0, 80.0, 100
 DETECT_MS = 20.0
 REF_TOL = 1e-9
 SIX = ("G0", "G2", "G3", "B0", "B2", "B3")
+ZERO_JITTER_SETTINGS = ((0.0, 0.0), (0.0, "fitted"), (0.0, 1.0), "O1", "O2")     # §7.5 R2/R3, each judged on its own
 
 POSITIVE, NEGATIVE, UNRESOLVED, UNAVAILABLE, NONFINITE = "POSITIVE", "NEGATIVE", "UNRESOLVED", "UNAVAILABLE", "NONFINITE"
 
@@ -541,13 +542,19 @@ def recovery_flags(stats: dict, family: str) -> dict:
                 if abs(d["median_rel_bias"]) <= 0.25 and d["rmse"] <= 0.5 * setting[0] and d["completion_ok"]}
     same = passing((40.0, "fitted")) & passing((80.0, "fitted"))
     rules["R1"] = dict(passed=len(same) >= 15, n_same=len(same), configs=sorted(same))
-    # R2: false jitter ŝ_τ > 20 over all zero-jitter replicates
-    fj = [f for setting in ((0.0, 0.0), (0.0, "fitted"), (0.0, 1.0), "O1", "O2") for f in S["false_jitter"][setting]]
-    r2 = pooled_rate(fj)
-    rules["R2"] = dict(passed=(r2["rate"] <= 0.10 and r2["upper"] <= 0.15), **r2)
-    fd = [f for setting in ((0.0, 0.0), (0.0, "fitted"), (0.0, 1.0), "O1", "O2") for f in S["false_detect"][setting]]
-    r3 = pooled_rate(fd)
-    rules["R3"] = dict(passed=(r3["rate"] <= 0.05 and r3["upper"] <= 0.10), **r3)
+    # R2 / R3: the roster-pooled rate is computed SEPARATELY within each of the five zero-jitter settings and every
+    # setting must pass (§7.5 "of each zero-jitter setting"). Pooling across settings would let one failing challenge
+    # hide behind four clean ones (Codex S3 review 24 Oct, finding 8: O1 at 40% false jitter passed a pooled 8%).
+    r2_per, r3_per = {}, {}
+    for setting in ZERO_JITTER_SETTINGS:
+        r2 = pooled_rate(S["false_jitter"][setting])
+        r2["passed"] = bool(r2["rate"] <= 0.10 and r2["upper"] <= 0.15)
+        r2_per[str(setting)] = r2
+        r3 = pooled_rate(S["false_detect"][setting])
+        r3["passed"] = bool(r3["rate"] <= 0.05 and r3["upper"] <= 0.10)
+        r3_per[str(setting)] = r3
+    rules["R2"] = dict(passed=all(v["passed"] for v in r2_per.values()), settings=r2_per)
+    rules["R3"] = dict(passed=all(v["passed"] for v in r3_per.values()), settings=r3_per)
     cov = {}
     ok4 = True
     for setting in ((40.0, "fitted"), (80.0, "fitted")):

@@ -1,0 +1,6 @@
+# S4 per-dataset task files are the AWS run's working set (tens of thousands of small JSONs, synced via S3);
+# only the aggregates (s4a.json, summary.json, summary.md) are committed.
+calibration/
+validation/
+c0/
+rec/
