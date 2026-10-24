@@ -1,0 +1,8 @@
+# generated per launch: the bundle tarballs (8 MB each; the sha256 sidecar is enough provenance), the filled user-data,
+# the run-instances request bodies and probe files. s4_aws.json, s4_instances.json and s4_spend.json ARE committed.
+bundle/*.tar.gz
+userdata_s2closure_*.sh
+userdata_s4a_*.sh
+userdata_s4b_*.sh
+run_*.json
+probe.txt*

@@ -1,0 +1,17 @@
+{
+ "instances": [
+  {
+   "instance_id": "i-0d0257da689f57a49",
+   "mode": "s2closure",
+   "shard": "1/1",
+   "kind": "all",
+   "workers": 96,
+   "market": "spot",
+   "launched_utc": "2026-10-24T18:27:28.526935+00:00",
+   "lifetime_h": 6.0,
+   "instance_type": "c7a.24xlarge",
+   "az": "eu-north-1b",
+   "bundle": "jitter_bundle_20c5f37.tar.gz"
+  }
+ ]
+}

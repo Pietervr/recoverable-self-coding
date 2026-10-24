@@ -1,0 +1,20 @@
+{
+ "utc": "2026-10-24T18:27:49.798240+00:00",
+ "instances": [
+  {
+   "id": "i-0d0257da689f57a49",
+   "state": "running",
+   "type": "c7a.24xlarge",
+   "lifecycle": "spot",
+   "az": "eu-north-1b",
+   "mode": "s2closure",
+   "shard": "1/1",
+   "launched": "2026-10-24T18:27:28+00:00",
+   "hours": 0.01,
+   "est_usd": 0.01
+  }
+ ],
+ "est_running_usd": 0.01,
+ "closed_usd": 0.0,
+ "closed_log": []
+}
