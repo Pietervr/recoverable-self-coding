@@ -72,6 +72,7 @@ LIFT_SPREADS_MS = (20.0, 40.0, 80.0)           #   template; a start fitted to i
 COLLAPSE_X0 = -5.0                             #   lifted at three spreads, and for B the selected G fit collapsed (A -> 1)
 EM_MAX_ITER = 8                                # repair 1: Σ by maximum likelihood within each model (EM outer loop)
 EM_TOL = 1e-6                                  #   relative gain in the total log-likelihood that ends the loop
+RESEED_MIN_NAT = 0.05                          #   a collapsed B this far above G re-seeds G (another basin, not EM noise)
 
 
 def _seed(*parts) -> int:
@@ -460,11 +461,11 @@ class FitCache:
                 json.dump(r.to_json(), f)
 
     def fit(self, sp: M.ModelSpec, ds: D.Dataset, info: StartInfo | None = None, recipe: str = "std",
-            starts: list | None = None) -> FitResult:
+            starts: list | None = None, warm: list | None = None) -> FitResult:
         key = self.key(ds, sp, recipe)
         r = self.get(key)
         if r is None:
-            r = em_fit(sp, ds, starts, info, em=self.em)
+            r = em_fit(sp, ds, starts, info, em=self.em, warm=warm)
             self.put(key, r)
         return r
 
@@ -517,21 +518,91 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
         """The G result that a B model collapses onto (B2 -> G2, B3 -> the selected G3, B0 -> G0, B3+ -> G3)."""
         return out.get("G" + b_name[1:].replace("+", "")) if b_name[0] == "B" else None
 
+    def g_spec(g_result):
+        return (M.spec(g_result.model, span_name, **quad) if g_result.model in M.MODEL_NAMES
+                else selected_spec(g_result.model, g_result, span_name, quad))
+
+    def warm_from_twin(sp_b, g_result, info_b):
+        """The B candidate's warm EM chain from its G twin's own (θ collapsed, Σ)."""
+        if g_result is None or not g_result.available or g_result.wh is None:
+            return None
+        (label, theta), = collapsed_start(sp_b, g_result, g_spec(g_result), info_b)
+        return [(label + "|chain", theta, g_result.wh)]
+
+    def reseed_g(sp_g, g_result, sp_b, b_result, info_g, b_name):
+        """A collapsed B optimum materially above the G optimum (> RESEED_MIN_NAT, i.e. another basin, not EM
+        noise) re-seeds G: projection onto G's coordinates, one EM chain under B's Σ; the better G is kept."""
+        if not (b_result.available and g_result.available and b_result.wh is not None):
+            return g_result
+        PB = M.unpack(sp_b, b_result.theta)
+        if b_result.loglik <= g_result.loglik + RESEED_MIN_NAT or np.any(PB.A[1:] < 0.99):
+            return g_result
+        theta = lift_warm_start(sp_b, b_result.theta, sp_g, info_g, PB.s_tau_ms if sp_g.positive else 20.0)
+        r2 = em_fit(sp_g, ds, [], info_g, em=cache.em, warm=[(f"reseed{b_name}", theta, b_result.wh)])
+        if r2.available and r2.loglik > g_result.loglik:
+            r2.starts = list(g_result.starts) + list(r2.starts)
+            r2.notes = list(g_result.notes) + list(r2.notes)
+            cache.put(cache.key(ds, sp_g), r2)
+            return r2
+        return g_result
+
+    def nest_b(sp_b, b_result, g_result, info_b):
+        """After a G re-seed, one more B chain from the new G point so that l(B) >= l(G) holds again."""
+        w = warm_from_twin(sp_b, g_result, info_b)
+        if w is None:
+            return b_result
+        r2 = em_fit(sp_b, ds, [], info_b, em=cache.em, warm=w)
+        if r2.available and (not b_result.available or r2.loglik > b_result.loglik):
+            r2.starts = list(b_result.starts) + list(r2.starts)
+            r2.notes = list(b_result.notes) + list(r2.notes)
+            cache.put(cache.key(ds, sp_b), r2)
+            return r2
+        return b_result
+
     for name in models:
         if name in M.SELECTED_NAMES:
             red_name, pos_name = M.SELECTED_NAMES[name]
             sp_r, sp_p = M.spec(red_name, span_name, **quad), M.spec(pos_name, span_name, **quad)
-            info_r = info_for(sp_r)
-            red = cache.fit(sp_r, ds, info_r, starts=reduced_starts(sp_r, info_r, g_twin(red_name), span_name, quad))
-            info_p = info_for(sp_p)
-            starts = positive_starts(sp_p, ds, info_p, red, sp_r, g_twin(name), span_name, quad)
-            pos = cache.fit(sp_p, ds, info_p, starts=starts)
+            info_r, info_p = info_for(sp_r), info_for(sp_p)
+            tw_r, tw_p = g_twin(red_name), g_twin(name)
+            red = cache.fit(sp_r, ds, info_r, starts=reduced_starts(sp_r, info_r, tw_r, span_name, quad),
+                            warm=warm_from_twin(sp_r, tw_r, info_r) if sp_r.family == "B" else None)
+            starts = positive_starts(sp_p, ds, info_p, red, sp_r, tw_p, span_name, quad)
+            pos = cache.fit(sp_p, ds, info_p, starts=starts,
+                            warm=warm_from_twin(sp_p, tw_p, info_p) if sp_p.family == "B" else None)
+            if sp_p.family == "B":
+                g_red_name, g_pos_name = M.SELECTED_NAMES["G" + name[1:]]
+                for gn, sp_bb, b_res, info_bb, bn in ((g_red_name, sp_r, red, info_r, red_name),
+                                                      (g_pos_name, sp_p, pos, info_p, pos_name)):
+                    if gn not in out:
+                        continue
+                    sp_gg = M.spec(gn, span_name, **quad)
+                    g_new = reseed_g(sp_gg, out[gn], sp_bb, b_res, info_for(sp_gg), bn)
+                    if g_new is not out[gn]:
+                        out[gn] = g_new
+                        b_res = nest_b(sp_bb, b_res, g_new, info_bb)
+                        if bn == red_name:
+                            red = b_res
+                        else:
+                            pos = b_res
+                if g_red_name in out and g_pos_name in out:
+                    out["G" + name[1:]] = select("G" + name[1:], out[g_red_name], out[g_pos_name],
+                                                 M.spec(g_pos_name, span_name, **quad))
             out[red_name], out[pos_name] = red, pos
             out[name] = select(name, red, pos, sp_p)
         else:
             sp = M.spec(name, span_name, **quad)
             info_s = info_for(sp)
-            out[name] = cache.fit(sp, ds, info_s, starts=reduced_starts(sp, info_s, g_twin(name), span_name, quad))
+            tw = g_twin(name)
+            out[name] = cache.fit(sp, ds, info_s, starts=reduced_starts(sp, info_s, tw, span_name, quad),
+                                  warm=warm_from_twin(sp, tw, info_s) if sp.family == "B" else None)
+            if sp.family == "B" and "G" + name[1:] in out:
+                g_name = "G" + name[1:]
+                sp_gg = M.spec(g_name, span_name, **quad)
+                g_new = reseed_g(sp_gg, out[g_name], sp, out[name], info_for(sp_gg), name)
+                if g_new is not out[g_name]:
+                    out[g_name] = g_new
+                    out[name] = nest_b(sp, out[name], g_new, info_s)
     return out
 
 
@@ -560,29 +631,20 @@ def positive_starts(sp_p: M.ModelSpec, ds: D.Dataset, info: StartInfo, reduced: 
     return starts
 
 
-def em_fit(sp: M.ModelSpec, ds: D.Dataset, starts: list | None = None, info: StartInfo | None = None,
-           options: dict | None = None, em: bool = True, max_iter: int = EM_MAX_ITER, tol: float = EM_TOL) -> FitResult:
-    """Σ by maximum likelihood within the model (S2 repair 1): the multi-start fit under the dataset's starting
-    whitening (the scaled catch covariance), then a generalised EM loop — Σ M-step from the posterior over
-    (branch, τ node, g) at the current θ (`models.m_step_sigma`), re-whitening of the same trials, one warm-started
-    L-BFGS-B solve — until the total log-likelihood gains less than `tol` relative or `max_iter` steps. μ0 stays the
-    training-catch anchor. The result carries the final whitening (`wh`), the EM trace and the archive of the
-    multi-start fit plus the warm solves. The total log-likelihood never decreases (a decrease, impossible for a
-    converged inner solve, ends the loop with a note). `em=False` is the rev 6 construction."""
-    r = fit_model(sp, ds, starts, info, options)
-    r.wh, r.em_iterations, r.em_trace = ds.wh, 0, [float(r.loglik)]
-    if not em or not r.available:
-        return r
-    cur = ds
+def _em_loop(sp: M.ModelSpec, ds: D.Dataset, r: FitResult, cur: D.Dataset, info: StartInfo | None, options,
+             max_iter: int, tol: float, tag: str = "em") -> FitResult:
+    """The generalised EM loop from an AVAILABLE fit `r` on `cur` (the same trials as `ds` under some whitening)."""
     archive, n_conv, notes = list(r.starts), r.n_converged, list(r.notes)
     for it in range(1, max_iter + 1):
         Sigma = M.m_step_sigma(sp, r.theta, cur)
         wh = D.whitening_from_sigma(cur.wh.mu0, Sigma, 0.0, cur.wh.n_catch)
-        nxt = D.rewhiten(ds, wh, f"/em{it}")
-        r2 = fit_model(sp, nxt, [(f"em{it}", r.theta)], info, options)
-        if not r2.available or r2.loglik < r.loglik - 1e-6 * max(1.0, abs(r.loglik)):
-            notes.append(f"EM stopped at step {it}: " + ("inner solve not CONVERGED" if not r2.available else
-                                                          f"objective fell by {r.loglik - r2.loglik:.3g} nat"))
+        nxt = D.rewhiten(ds, wh, f"/{tag}{it}")
+        r2 = fit_model(sp, nxt, [(f"{tag}{it}", r.theta)], info, options)
+        if not r2.available or r2.loglik < r.loglik:
+            # strictly monotone: a decrease, however small (the adaptive quadrature's nodes move with Σ, so the
+            # E-step and the likelihood are not exactly consistent near convergence), ends the chain at `r`
+            notes.append(f"{tag} stopped at step {it}: " + ("inner solve not CONVERGED" if not r2.available else
+                                                             f"objective fell by {r.loglik - r2.loglik:.3g} nat"))
             break
         gain = r2.loglik - r.loglik
         trace = r.em_trace + [float(r2.loglik)]
@@ -594,6 +656,49 @@ def em_fit(sp: M.ModelSpec, ds: D.Dataset, starts: list | None = None, info: Sta
             break
     r.notes = notes
     return r
+
+
+def em_fit(sp: M.ModelSpec, ds: D.Dataset, starts: list | None = None, info: StartInfo | None = None,
+           options: dict | None = None, em: bool = True, max_iter: int = EM_MAX_ITER, tol: float = EM_TOL,
+           warm: list | None = None) -> FitResult:
+    """Σ by maximum likelihood within the model (S2 repair 1): the multi-start fit under the dataset's starting
+    whitening (the scaled catch covariance), then a generalised EM loop — Σ M-step from the posterior over
+    (branch, τ node, g) at the current θ (`models.m_step_sigma`), re-whitening of the same trials, one warm-started
+    L-BFGS-B solve — until the total log-likelihood gains less than `tol` relative or `max_iter` steps. μ0 stays the
+    training-catch anchor. `warm` = [(label, θ, Whitening)] further EM CHAINS, each started from a fitted point of
+    another model under THAT model's Σ (a B candidate from its G twin collapsed, A → 1; a G candidate from a
+    collapsed B that scored higher): the chain's first objective equals the other model's log-likelihood, so the
+    nesting l(B) ≥ l(G) holds by construction in the joint (θ, Σ) space. The best final log-likelihood over the main
+    chain and the warm chains is the result; every start of every chain is archived; `starts=[]` runs the warm
+    chains only. The result carries the final whitening (`wh`) and the EM trace. The total log-likelihood never
+    decreases along a chain (a decrease, impossible for a converged inner solve, ends it with a note). `em=False`
+    is the rev 6 construction (no EM; warm chains then run as single fits under their whitening)."""
+    chains = []
+    if starts is None or len(starts) > 0:
+        r = fit_model(sp, ds, starts, info, options)
+        r.wh, r.em_iterations, r.em_trace = ds.wh, 0, [float(r.loglik)]
+        if em and r.available:
+            r = _em_loop(sp, ds, r, ds, info, options, max_iter, tol)
+        chains.append(("main", r))
+    for label, theta, wh in (warm or []):
+        cur = D.rewhiten(ds, wh, f"/{label}")
+        r = fit_model(sp, cur, [(label, np.asarray(theta, dtype=np.float64))], info, options)
+        r.wh, r.em_iterations, r.em_trace = wh, 0, [float(r.loglik)]
+        if em and r.available:
+            r = _em_loop(sp, ds, r, cur, info, options, max_iter, tol, tag=label)
+        chains.append((label, r))
+    avail = [(lab, r) for lab, r in chains if r.available]
+    if not avail:
+        best_lab, best = chains[0]
+    else:
+        best_lab, best = max(avail, key=lambda t: t[1].loglik)
+    if len(chains) > 1:
+        best.starts = [s for _, r in chains for s in r.starts]
+        best.notes = list(best.notes) + [f"chain {best_lab} selected of " +
+                                         ", ".join(f"{lab} {r.loglik:.2f}" if r.available else f"{lab} UNAVAILABLE"
+                                                   for lab, r in chains)]
+        best.seconds = sum(r.seconds for _, r in chains)
+    return best
 
 
 def score_heldout(sp: M.ModelSpec, r: FitResult, test: D.Dataset) -> np.ndarray:

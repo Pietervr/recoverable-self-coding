@@ -337,13 +337,23 @@ def test_repaired_start_set_and_nesting_without_em():
     train, _, _, _ = D.fold_datasets(p, D.span("primary"), 0)
     res = F.fit_all_models(train, F.FitCache(em=False), "primary", ("G3", "B3"))
     labels = {name: [s.label.split("|")[0] for s in res[name].starts] for name in ("G2", "G3+", "B2", "B3+")}
-    assert len(labels["G2"]) == 4 and labels["B2"].count("collapseG2") == 1
-    assert labels["G3+"].count("smA") == 2 and labels["G3+"].count("liftG2") == 3 and len(labels["G3+"]) == 11
-    assert labels["B3+"].count("liftB2") == 3 and sum(l.startswith("collapse") for l in labels["B3+"]) == 1
-    assert len(labels["B3+"]) == 12
+    # B2: four design starts + the main-chain collapse + the warm chain from G2's own (theta, Sigma); a G may carry
+    # re-seed starts beyond its four
+    assert len(labels["G2"]) >= 4 and labels["B2"].count("collapseG2") == 2 and len(labels["B2"]) == 6
+    assert labels["G3+"].count("smA") == 2 and labels["G3+"].count("liftG2") == 3 and len(labels["G3+"]) >= 11
+    # main-chain collapse + the warm chain (+ one more chain after a G re-seed)
+    assert labels["B3+"].count("liftB2") == 3 and sum(l.startswith("collapse") for l in labels["B3+"]) in (2, 3)
+    assert len(labels["B3+"]) in (13, 14)
     tol = 1e-6 * abs(res["G3+"].loglik)
     assert res["B3+"].loglik >= res["G3+"].loglik - tol and res["B2"].loglik >= res["G2"].loglik - tol
     assert res["G3+"].loglik >= res["G2"].loglik - tol
+    # under the EM construction the warm chains from the G twins' own (theta, Sigma) keep the nesting
+    res = F.fit_all_models(train, F.FitCache(em=True), "primary", ("G3", "B3"))
+    for b, g in (("B2", "G2"), ("B3+", "G3+"), ("B3", "G3")):
+        assert res[b].available and res[g].available
+        assert res[b].loglik >= res[g].loglik - 1e-6 * abs(res[g].loglik), (b, g, res[b].loglik, res[g].loglik)
+    assert any("chain" in n for n in res["B2"].notes) and any(s.label.startswith("collapseG2") for s in res["B2"].starts)
+    assert res["B3+"].wh is not None and res["G3+"].wh is not None and res["B3+"].em_trace[0] <= res["B3+"].loglik
 
 
 if __name__ == "__main__":
