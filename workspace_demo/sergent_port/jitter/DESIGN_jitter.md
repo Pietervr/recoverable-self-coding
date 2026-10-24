@@ -1,12 +1,12 @@
 # Does the human two-state preference survive trial-level latency and scale variation?
 
-Design, revision 5 — 24 October 2026, session R052 Entropy SI. Status: DRAFT for Codex re-review.
-Revs 1–4 (RSC 960e93b, 57c1280, 8d6c195, 78e348c) received NOT FAVOURABLE (reviews under `jitter/reviews/`). The rev 4
-review states that the central predictive comparison is substantially ready and that the template gauge, mean
-matching, full-epoch generators, one-factor controls, conservative unavailable accounting, S4a/S4b split, E1 guard
-band, common-roster attenuation contrasts, O1 continuation and O5 construction stand. Rev 5 closes the profile
-confidence-set and threshold-calibration contract, the attribution antecedent and reference family, the remaining
-implementation branches, and the cost units. Nothing has been run.
+Design, revision 6 — 24 October 2026, session R052 Entropy SI. Status: ACCEPTED FOR IMPLEMENTATION. Rev 5 (RSC
+0ddac98) received FAVOURABLE WITH CONDITIONS (`reviews/2026-10-24_design_v5_codex_review.md`): "the substantive design
+is ready for implementation with bounded conditions". Revs 1–4 (960e93b, 57c1280, 8d6c195, 78e348c) and their reviews
+are the record of how it got here. Rev 6 closes the four conditions — the ZERO-ONLY rejection event aligned with R3,
+the attenuation premise evaluated on R6, the reduced-start lift / certification / profile-reference branches, and the
+candidate-fit scheduling and S2 cost — and is the specification that S1–S2 implement. Their closure is verified by
+Codex at the S3 freeze review together with the code; no further design-only round. Nothing has been run.
 
 ## 0. Stages and what is frozen when
 
@@ -169,18 +169,25 @@ in reduced (s_τ = 0) models. No information criterion is added to a cross-valid
   guaranteed distinct vectors (they coincide on a constant trace); coincidence is logged. Level amplitudes from
   training level means over the span, clipped below at 0.05 decoder units. κ, x0 from a logistic regression of the
   per-trial indicator "mean over the span above the training catch 90th percentile" on level; if separated or with
-  a non-positive slope, κ = 1 per level unit and x0 = 2.5. Nuisance starts by model: G0/B0 (and every reduced
-  candidate): {T_A, T_B} × {amplitudes as computed, amplitudes × 0.5}; G1/B1 positive-spread: {T_A, T_B} × s_τ ∈ {20,
-  40 ms}; G2/B2: {T_A, T_B} × s_g ∈ {0, 0.4}; G3/B3 positive-spread: T_A × {(20, 0), (40, 0.4)}, T_B × {(40, 0), (20,
-  0.4)}. Development (S2) adds a near-collapsed two-state start (A → 1 at all levels) and a broad-template start,
+  a non-positive slope, κ = 1 per level unit and x0 = 2.5. Nuisance starts by model: G0/B0: {T_A, T_B} ×
+  {amplitudes as computed, amplitudes × 0.5}; G1/B1 positive-spread: {T_A, T_B} × s_τ ∈ {20, 40 ms}; G2/B2: {T_A,
+  T_B} × s_g ∈ {0, 0.4}; G3/B3 positive-spread: T_A × {(20, 0), (40, 0.4)}, T_B × {(40, 0), (20, 0.4)}. The REDUCED
+  candidate of G3/B3 IS a G2/B2 fit (free scale) and uses the G2/B2 recipe; the reduced candidate of G1/B1 is G0/B0.
+  A reduced fit is computed once per participant, fold and data identity and cached wherever it is needed (as a model
+  in its own right, as a boundary candidate, as a profile point at s_τ = 0, as a c₀ component). Development (S2) adds a near-collapsed two-state start (A → 1 at all levels) and a broad-template start,
   and reports whether any start beyond the first changed the selected optimum; starts found material are added to
   the frozen recipe at S3 for all models alike.
 - Constrained (profile) fits, §7.5: s_τ fixed at a grid value; the parameters are the full positive-spread vector
   minus s_τ (or the reduced vector at s_τ = 0). Starts: TWO per constrained fit — the unrestricted MLE of the same
-  model (warm start) and the T_B start with the grid value's nearest §5 nuisance start. This is a declared exception
-  to the four-start rule, VALIDATED in S2: on the development sets, 2-start constrained optima must agree with
-  4-start constrained optima to 1e-6 relative in objective at every grid point of every profile; if not, profiles
-  use 4 starts and §8 is re-costed before S3.
+  model (warm start) and the T_B start with the grid value's nearest §5 nuisance start. Warm-start LIFT when the
+  unrestricted solution is REDUCED (it has no shift-only coefficients): keep every fitted visible coordinate and
+  supply the four shift-only coefficients from the floored T_B initialisation (deterministic). At the s_τ = 0 profile
+  point, a positive-spread warm start is PROJECTED onto the reduced coordinates (shift-only coefficients dropped).
+  This is a declared exception to the four-start rule, VALIDATED in S2 on a frozen subset: 100 development
+  participant-datasets per family drawn from the W2 and T1 development sets, every grid point of every profile,
+  2-start versus 4-start constrained optima agreeing to 1e-6 relative in objective AND to 0.05 on the
+  likelihood-ratio scale q(s); if either tolerance fails at any point, profiles use 4 starts and §8 is re-costed
+  before S3.
 - Acceptance: a fit is CONVERGED when all of (i) projected-gradient infinity norm ≤ 1e-5 in scaled units; (ii)
   relative objective change over the last 5 iterations ≤ 1e-9; (iii) finite objective and parameters. If fewer
   than 5 iterations ran, the fit is EARLY: it is re-run once from the same start perturbed by N(0, 0.1²) in scaled
@@ -229,7 +236,10 @@ results are still reported.
   UPPER BOUND (not equivalence): BOUNDED if the upper endpoint of the two-sided 95% interval for Δ_3 < ε, else NOT
     BOUNDED; UNAVAILABLE under the conditions above. POSITIVE and BOUNDED may coexist and are both reported.
   BRIDGE: (i) the unchanged inherited per-window result stands; (ii) held-out per-window marginal predictions of G0
-    and B0 beside it; (iii) joint Δ_0 on the primary span: POSITIVE / NEGATIVE / UNRESOLVED / UNAVAILABLE (≥ 16).
+    and B0 beside it; (iii) joint Δ_0 on the primary span on its own available roster: POSITIVE / NEGATIVE /
+    UNRESOLVED / UNAVAILABLE (≥ 16); (iv) Δ_0 ON R6, the same roster as D, D_scale and D_τ: POSITIVE / NEGATIVE /
+    UNRESOLVED / UNAVAILABLE. The ATTENUATION PREMISE of §9 uses (iv), never (iii), so that the initial advantage and
+    its attenuation are measured on one cohort; the residual Δ_3 on R6 is reported beside it.
   RECOVERY ADEQUATE and JITTER DETECTED, each per family (§7.5). REFERENCE FAMILY for attribution = G (declared
   now, §9): the attribution claim is that a graded account with trial variation explains part of the inherited
   advantage, so the latency term whose identification matters is the graded family's. B's flags are reported.
@@ -267,7 +277,10 @@ stretch is applied to the continuous filtered template before the 16-sample wind
 Mechanism settings W1, W3, W4 are INDEPENDENT draws of configuration sets from the same pool (not paired), each with
 only (s_τ, s_g) set; W1-vs-W3 and W1-vs-W4 therefore use the independent-proportion Newcombe interval (§7.6).
 
-### 7.3 Final-validation manifest (S4b; fits G0, B0, G3, B3; 5 folds × 4 starts = 80 starts per participant-dataset)
+### 7.3 Final-validation manifest (S4b; per fold the FOUR candidate fits that define the selected G3 and B3 — the
+reduced candidates G2 and B2 and the positive-spread G3 and B3 — at 4 starts each: 80 starts per participant-dataset.
+G0/B0 are NOT fitted in the decision batch, because every decision setting needs Δ_3 only; Δ_0 is fitted where it
+is required: the ε benchmark (§7.4, G0/B0 only) and the real data (§6).)
   Graded, well-specified: W1 (s_τ, s_g) = (0, 0); W2 fitted G3; W3 (80 ms, 0); W4 (0, 1.0).         R = 100 each.
   Graded, out of family (zero latency jitter unless stated; s_g at the fitted G3 value unless stated):
     O1 per-trial time stretch about 240 ms: t' = 240 + (t − 240)·exp(ζ_i), ζ_i ~ N(0, 0.25²) truncated to ±0.5; the
@@ -317,17 +330,24 @@ unchanged). No monotone finite-training advantage is guaranteed, so the search i
   pilot λ ∈ {1, 0.75, 0.5, 0.35, 0.25} at R = 20 each (calibration seeds, shared between the two targets);
   reference estimate r(λ) and MC interval at each; an UNAVAILABLE pilot reference removes that λ from the grid; an
   exact hit (target inside a pilot's MC interval) selects that λ directly for certification;
-  bracket: the adjacent remaining pilot pair whose estimates straddle the target; among several, the pair with the
-  larger λ; fewer than two remaining pilots or no bracket → declared SEARCH FAILURE (the setting is UNCERTIFIED; (e)
-  or T3 absent; this is failure of the declared search, not proof that no λ attains the target);
+  exact hits: among several pilots whose MC interval contains the target, the one with the larger λ is selected
+  (tie-break declared); a direct hit has no bracket, so if its certification fails there is NO secant correction and
+  the setting is UNCERTIFIED;
+  bracket (when there is no hit): the adjacent remaining pilot pair whose estimates straddle the target; among
+  several, the pair with the larger λ; fewer than two remaining pilots or no bracket → declared SEARCH FAILURE (the
+  setting is UNCERTIFIED; (e) or T3 absent; this is failure of the declared search, not proof that no λ attains the
+  target);
   interpolate linearly in λ between the bracket's two (λ, r) points; certify at R_ref = 50 fresh calibration seeds:
   CERTIFIED if the certified MC interval lies within target ± 0.15 ε (for E1 this places it inside [1.10, 1.40] ε,
-  above ε by construction);
+  above ε by construction). An UNAVAILABLE certification reference (§7.4 rule) is UNCERTIFIED with no correction. A
+  certified estimate whose interval contains the target but is too wide to lie within ± 0.15 ε is a PRECISION
+  FAILURE: UNCERTIFIED, no correction (the correction is for a missed target, not for MC width);
   otherwise ONE secant correction: the two points are (λ_cert, r_cert) and whichever bracket endpoint lies on the
   other side of the target from r_cert (if both are on the same side, the nearer endpoint); if the secant slope is
   zero or the proposed λ leaves (0, 1], SEARCH FAILURE; re-certify at R_ref = 50 fresh seeds under the same rule;
   failing that, UNCERTIFIED. Both certification attempts are reported. Because two attempts are allowed, each
-  certification interval uses the 97.5% level (t_{0.9875}) so that the stated 95% confidence covers the pair.
+  certification interval uses the 97.5% level (t_{0.9875}) so that the stated nominal 95% confidence covers the
+  pair; the t interval is nominal for the set-score distribution, not exact.
   Targets: E1 1.25 ε; T3 2 ε. λ_E1, λ_T3 and their certified references are frozen by commit before S4b; S4b draws
   fresh validation seeds; no S4a batch feeds a gate, and no S4b batch is used to re-target.
 
@@ -343,20 +363,28 @@ bounds treating replicates as independent given the roster, and per configuratio
 rate for this roster, not a population rate.
 Profile confidence set for s_τ (per participant or synthetic dataset, per family's full model):
   q(s) = 2[ℓ̂ − ℓ_prof(s)], where ℓ̂ is the selected unrestricted objective (§5 zero-boundary construction) and
-  ℓ_prof(s) the constrained optimum at s_τ = s (reduced model at s = 0; §5 constrained starts). If any ℓ_prof(s) >
-  ℓ̂, ℓ̂ is replaced by that value and the unrestricted fit flagged. Grid {0, 5, 10, 15, 20, 30, 40, 50, 60, 80, 100,
-  120, 150} ms. Accepted points: q(0) ≤ c₀ (family-specific boundary critical value, §7.5 calibration) and, for
-  s > 0, q(s) ≤ χ²₁(0.95) = 3.841. Interval: the CONSERVATIVE OUTER HULL of the accepted set — lower bound = the
-  largest grid point below the smallest accepted point that is rejected (or 0 if 0 is accepted), refined by one
-  bisection between it and the smallest accepted point; upper bound symmetric (150 if 150 accepted). Disconnected
-  accepted sets are reported as such and the hull is used (an accepted zero is never discarded by a search near
-  the MLE). Empty accepted set → UNAVAILABLE profile (flagged). A constrained fit UNAVAILABLE at any grid point →
-  UNAVAILABLE profile. "Lower bound > 20 ms" is evaluated on the hull's lower bound.
+  ℓ_prof(s) the constrained optimum at s_τ = s (reduced model at s = 0; §5 constrained starts). Reference rule: if
+  any constrained optimum (grid point or bisection midpoint) exceeds ℓ̂, ℓ̂ is replaced by that value, the
+  unrestricted fit is flagged, and EVERY previously computed q, including q(0), is recomputed against the new ℓ̂; no
+  stale acceptance label is retained. If that recomputation changes the acceptance of a grid point whose endpoint
+  bracket has already been refined, the profile is UNAVAILABLE (declared; this preserves the fixed 15-constrained-fit
+  budget rather than restarting the search). Grid {0, 5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 120, 150} ms. Accepted
+  points: q(0) ≤ c₀ (family-specific boundary critical value) and, for s > 0, q(s) ≤ χ²₁(0.95) = 3.841. Interval:
+  the CONSERVATIVE OUTER HULL of the accepted set — lower bound = the largest rejected grid point below the smallest
+  accepted point (or 0 if 0 is accepted), refined by one bisection between them (midpoint rejected → the rejected
+  endpoint moves to the midpoint; accepted → the rejected endpoint stays); upper bound symmetric (150 if 150 is
+  accepted). Disconnected accepted sets are reported as such and hulled (an accepted zero is never discarded by a
+  search near the MLE). Empty accepted set → UNAVAILABLE profile (flagged). A constrained fit UNAVAILABLE at any grid
+  point or midpoint → UNAVAILABLE profile. "Lower bound > 20 ms" is evaluated on the hull's lower bound. The hull is
+  conservative with respect to the sampled crossings; it is not an exact inversion over every real spread (unseen
+  accepted islands between rejected nodes are not excluded), and the fresh-seed gates validate the frozen
+  grid-and-hull procedure as such.
 Boundary critical value c₀ (per family), S4a, its OWN batch: 500 datasets per family from the (0, fitted) zero-jitter
-  generator on the fixed roster (25 per configuration), two fits each — the unrestricted positive-spread fit and the
-  reduced fit — giving q(0); c₀ = the empirical 95th percentile (type-7 quantile) over AVAILABLE q(0) values; if more
-  than 5% of the 500 are UNAVAILABLE, c₀ is UNAVAILABLE and every profile is UNAVAILABLE. c₀,G and c₀,B are frozen by
-  commit before S4b. The S4b recovery batch never re-estimates c₀.
+  generator on the fixed roster (25 per configuration), two fits each — the positive-spread candidate and the reduced
+  fit — giving the non-negative statistic q(0) = 2[max(ℓ_reduced, ℓ_positive) − ℓ_reduced] (a positive candidate worse
+  than the reduced fit contributes 0, never a negative value); c₀ = the empirical 95th percentile (type-7 quantile)
+  over AVAILABLE q(0) values; if more than 5% of the 500 are UNAVAILABLE, c₀ is UNAVAILABLE and every profile is
+  UNAVAILABLE. c₀,G and c₀,B are frozen by commit before S4b. The S4b recovery batch never re-estimates c₀.
 Statistics per configuration, setting, family, over AVAILABLE replicates: median relative bias of ŝ_τ; RMSE =
   sqrt(mean(ŝ_τ − s_τ)²); boundary-hit frequency; interval coverage; completion fraction. A configuration × setting
   with more than 20% UNAVAILABLE point fits or profiles FAILS that setting.
@@ -373,8 +401,12 @@ RECOVERY ADEQUATE (per family F), all required, all on S4b data:
   R5 the 20 ms boundary actually used by the magnitude claim: at (20, fitted), the fraction of attempted replicates
      whose hull lower bound > 20 ms is ≤ 10% with upper bound ≤ 15% (unavailable counted as detections), and the hull
      covers 20 ms in ≥ 90% with lower bound ≥ 87%. If R5 fails but R1–R4 pass, the flag is ADEQUATE-ZERO-ONLY: the
-     paper may report rejection of the tested zero-jitter explanations and must describe the above-20 ms magnitude
-     as a nominal profile inference, not a calibrated bound.
+     paper may report rejection of the tested zero-jitter explanations ONLY for participants whose real hull lower
+     bound exceeds 20 ms — the same event R3 validated under all five zero-jitter challenges — and must describe
+     the above-20 ms magnitude as a nominal profile inference, not a calibrated bound. A real hull that merely
+     excludes zero (lower bound in (0, 20]) licenses nothing under any flag: zero exclusion by itself was not
+     validated under O1/O2 (a procedure returning ŝ_τ ≈ 10 ms with hull [2.5, 15] on every zero-jitter O1 replicate
+     passes R2 and R3), and c₀ was calibrated at (0, fitted) only. This case is a `decide.py` branch test.
 Otherwise NOT ADEQUATE; the paper reports measured non-identifiability or miscalibration.
 JITTER DETECTED (real data, per family F): the real full-data primary-span hull lower bound exceeds 20 ms in ≥ 10 of
 20 participants in family F's full model (an UNAVAILABLE profile is a non-detection), and the group G3 − G2 (F = G) or
@@ -408,21 +440,30 @@ are drawn. Development, calibration and validation seeds are disjoint and never 
 All in START-level optimisations at the UNMEASURED 30 s/start target; "fit" = 4 starts unless stated; projections at
 assumed rates, not quotes. Inherited Nelder–Mead runs priced at the README-derived, unmeasured 0.14 s/run; BMS
 (1 M Dirichlet draws per call in the unchanged code) priced at an assumed 1 s/call, to be measured.
-- Real data, Mac (free): CV fits 20 × 8 models × 5 folds × 4 × 2 spans = 6,400 starts; generator fits 60 fits = 240
-  starts; unrestricted real full-data fits 20 × 8 × 4 = 640; real profiles 20 × 2 families × 15 constrained × 2 starts
-  = 1,200; sensitivities (±250 support, inherited mean laws, D·R(ρ)·D, floor, s_g bound, whole-epoch contrast) ≈
-  4 × 6,400 = 25,600 starts if all are run; total ≈ 34,000 starts ≈ 285 core-h (several days on 12 Mac cores; the
-  sensitivities can also go to AWS at ≈ USD 4 each ideal).
+- Candidate accounting: "the eight models" on real or recovery data = G0, B0, G2, B2 (reduced, each one fit) plus
+  positive-spread G1, B1, G3, B3, with G1/B1/G3/B3 selected against their cached reduced candidates: 8 fits × 4 starts =
+  32 starts per dataset, reduced fits cached and never refitted. The decision batch (§7.3) = G2, B2, G3+, B3+ = 80
+  starts per participant-dataset. The ε batch = G0, B0 = 40 starts. Generator fits (S1) = G2, G3+, B2, B3+, B0 = 5 fits
+  = 20 starts per participant.
+- Real data, Mac (free): CV fits 20 × 32 × 5 folds × 2 spans = 6,400 starts; generator fits 20 × 20 = 400;
+  unrestricted real full-data fits 20 × 32 = 640; real profiles 20 × 2 families × 15 constrained × 2 starts = 1,200;
+  sensitivities (±250 support, inherited mean laws, D·R(ρ)·D, floor, s_g bound, whole-epoch contrast) ≈ 4 × 6,400 =
+  25,600 starts if all are run; total ≈ 34,200 starts ≈ 285 core-h (several days on 12 Mac cores; the sensitivities
+  can also go to AWS at ≈ USD 4 each ideal).
+- S2 development (Mac where possible, else AWS): three 80-start batches at R = 25 (W2, T1, O1) = 120,000 starts; the
+  profile-start validation on the frozen subset of §5: 2 families × 100 datasets × 13 grid points × 4 starts = 10,400
+  constrained starts (the 2-start subset reused within them); start-basin and numerical experiments ≈ 20,000 starts.
+  ≈ 150,000 starts ≈ 1,250 core-h.
 - AWS, S4a: ε 50 × 20 × 40 = 40,000; pilots 5 × 20 × 20 × 80 = 160,000; certification 2 × 50 × 20 × 80 = 160,000;
   re-certification contingency 160,000; c₀ batches 2 families × 500 × 2 fits × 4 = 8,000. Subtotal 368,000 starts
   (528,000 with the contingency).
-- AWS, S4b: decision manifest 23,000 × 80 = 1,840,000; recovery 26 settings × 25 × 20 × 8 models × 4 = 416,000;
-  recovery profiles 26 × 25 × 20 × 2 families × 15 constrained × 2 starts = 780,000 (1,560,000 if the §5 profile-start
+- AWS, S4b: decision manifest 23,000 × 80 = 1,840,000; recovery 26 settings × 25 × 20 × 32 = 416,000; recovery
+  profiles 26 × 25 × 20 × 2 families × 15 constrained × 2 starts = 780,000 (1,560,000 if the §5 profile-start
   validation fails and 4 starts are required); inherited pipeline 950 sets × 20 × 795 = 15.1 M Nelder–Mead runs ≈
   587 core-h plus 950 × 53 = 50,350 BMS calls ≈ 14 core-h. Subtotal 3,036,000 starts (3,816,000 at 4-start profiles).
-- Totals: 3,404,000 starts ≈ 28,370 core-h + 600 inherited ≈ 29,000 core-h (2-start profiles, no contingency);
-  ≈ 30,300 with the contingency; ≈ 36,800 with 4-start profiles and the contingency. S2 development (R = 25 at three
-  settings, ≈ 120,000 starts ≈ 1,000 core-h) is in addition and runs on the Mac where possible.
+- Totals (AWS, S4a + S4b): 3,404,000 starts ≈ 28,370 core-h + 600 inherited ≈ 29,000 core-h (2-start profiles, no
+  contingency); ≈ 30,300 with the contingency; ≈ 36,800 with 4-start profiles and the contingency. S2 (≈ 1,250
+  core-h) and the real-data work (≈ 285) are in addition and run on the Mac where its calendar allows.
 - At c7a.24xlarge (96 vCPU) and the October spot rate ≈ USD 1.7/h: ≈ USD 510–650 at perfect utilisation; ≈ USD
   920–1,170 at 70% utilisation with a 25% retry reserve; on-demand (≈ USD 5.3/h) ≈ USD 1,600–3,600.
 - Before launch: benchmark one participant's full §4 set, a profile (both start rules), a generator fit, a c₀ pair
@@ -450,9 +491,10 @@ addition. Conditional on the primary licence:
   (interval; recovery status; misspecifications tested)." Not: that the published result rests on no artefact, nor
   that every graded account fails. If RECOVERY is NOT ADEQUATE or JITTER not DETECTED in G, robustness is to a scale
   term and to a latency term the data did not pin down, and the text says so.
-- ATTENUATION PREMISE: any sentence about attenuation OF THE INHERITED ADVANTAGE requires BRIDGE (iii) POSITIVE and
-  D POSITIVE. Without the premise, a POSITIVE D_τ is reported only as "adding latency after scale reduced the
-  scale-only contrast Δ_2", never as attenuation of the inherited advantage.
+- ATTENUATION PREMISE: any sentence about attenuation OF THE INHERITED ADVANTAGE requires Δ_0 ON R6 POSITIVE
+  (BRIDGE (iv), the same cohort as D) and D POSITIVE; the residual reported with it is Δ_3 on R6. BRIDGE (iii) on the
+  wider roster is continuity information, not the premise. Without the premise, a POSITIVE D_τ is reported only as
+  "adding latency after scale reduced the scale-only contrast Δ_2", never as attenuation of the inherited advantage.
 - "Not robust to representing trial variability": the premise, with the residual advantage then reported as
   NEGATIVE, UNRESOLVED or BOUNDED (an UNRESOLVED residual is called unresolved even when D is POSITIVE). A NEGATIVE
   primary with BRIDGE (iii) not POSITIVE is "the joint framing favours the graded family", a framing result.
@@ -462,8 +504,9 @@ addition. Conditional on the primary licence:
   RISE. Short of these, attribution is to trial variability of unidentified form. The decomposition is scale-first
   and declared as such. Even then the supported wording is a decoder-readout latency term, not a physiological
   latency.
-- Under ADEQUATE-ZERO-ONLY, the paper may say the tested zero-jitter explanations are rejected where the real hull
-  excludes zero, and reports the above-20 ms magnitude as a nominal profile inference.
+- Under ADEQUATE-ZERO-ONLY, the paper may say the tested zero-jitter explanations are rejected for the participants
+  whose real hull lower bound exceeds 20 ms (the R3-validated event), and reports the above-20 ms magnitude as a
+  nominal profile inference. A hull that excludes zero without clearing 20 ms licenses no statement.
 - Any statement that graded simulations reproduced features of the inherited preference is made only if §7.6 shows
   it, with the setting named. If the tested latency settings do not reproduce the late plateau, the paper says
   "these tested jitter distributions did not reproduce it", not that the plateau is not a rising-edge artefact.
@@ -495,8 +538,8 @@ none about experience.
 
 ## 11. Files and literature
 
-- This design: `workspace_demo/sergent_port/jitter/DESIGN_jitter.md` (rev 5; rev 1 960e93b, rev 2 57c1280, rev 3
-  8d6c195, rev 4 78e348c). Codex reviews under `jitter/reviews/`.
+- This design: `workspace_demo/sergent_port/jitter/DESIGN_jitter.md` (rev 6; rev 1 960e93b, rev 2 57c1280, rev 3
+  8d6c195, rev 4 78e348c, rev 5 0ddac98). Codex reviews under `jitter/reviews/` (rev 5: FAVOURABLE WITH CONDITIONS).
 - Code (after review): `jitter/{models.py, fit.py, simulate.py, decide.py, bench.py}` with tests; results under
   `jitter/results/`.
 - Inherited code: `sergent_port/fit_models.py` (likelihoods 60–100, Nelder–Mead 102–110, `window_means` 138–143,
