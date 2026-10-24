@@ -8,7 +8,8 @@ takes the same measurements and counts what the manifest actually fits:
 
   decision batch       23,000 participant-datasets × 5 folds × {G2, B2, G3+, B3+}          (S4b) + the S4a sets
   epsilon benchmark     50 sets × 20 datasets × 5 folds × {G0, B0}
-  pilots/certification  (5 × 20 + 2 × 50) sets × 20 datasets of the decision batch, + 50 sets re-certification
+  pilots/certification  (5 × 20 + 2 × 50) sets × 20 datasets of the decision batch, + 2 × 50 sets re-certification
+                        (one secant correction for E1 and one for T3 in the worst case)
   c0 batch              2 families × 500 datasets × (reduced + positive full-data fit)
   recovery              26 settings × 25 × 20 = 13,000 full-data datasets × the eight models
   profiles              13,000 datasets × 2 families × 15 constrained fits (2-start; 4-start extra)
@@ -64,7 +65,9 @@ def recost(d: dict, dev_seconds: float | None) -> dict:
     inh = d["inherited"]
     sec = dict(
         S4a=N["s4a_eps_datasets"] * t_eps + N["s4a_pilot_cert_datasets"] * t_dec + N["s4a_c0_datasets"] * t_c0,
-        S4a_recertification_contingency=N["s4a_recert_datasets"] * t_dec,
+        # both E1 and T3 may need one secant correction (§7.4): budget TWO 50-set re-certifications in the worst case
+        # (Codex S3 review 24 Oct, finding 13; the first re-cost budgeted one)
+        S4a_recertification_contingency=2 * N["s4a_recert_datasets"] * t_dec,
         S4b_decision=N["s4b_decision_datasets"] * t_dec,
         S4b_recovery=N["s4b_recovery_datasets"] * t_rec,
         S4b_profiles_2start=N["s4b_profile_fits"] * t_prof2,
@@ -105,7 +108,13 @@ def markdown(d: dict, r: dict, path: str) -> str:
     for k in ("S4a", "S4a_recertification_contingency", "S4b_decision", "S4b_recovery", "S4b_profiles_2start",
               "S4b_profiles_4start_extra", "S4b_inherited", "S2", "real"):
         L.append(f"| {k} | {c[k]:.0f} |")
-    L.append(f"| **S4 total** | **{r['S4_core_hours_base']:.0f} base, {r['S4_core_hours_worst']:.0f} worst** |")
+    L.append(f"| **S4 total** | **{r['S4_core_hours_base']:.0f} base, {r['S4_core_hours_worst']:.0f} worst** (worst = one correction for E1 AND one for T3, 4-start profiles) |")
+    L.append("")
+    for cores, name in ((96, "c7a.24xlarge, 96 real cores"),):
+        ib, iw = r["S4_core_hours_base"] / cores, r["S4_core_hours_worst"] / cores
+        L.append(f"Ideal instance-hours on one {name}: {ib:.1f} base / {iw:.1f} worst; at USD 0.95/h spot (24 Oct quote) "
+                 f"USD {ib * 0.95:.0f} / {iw * 0.95:.0f}; at the design's USD 1.7/h USD {ib * 1.7:.0f} / {iw * 1.7:.0f}; before start-up, "
+                 f"barriers, contention and interruptions.")
     if r.get("parallel_efficiency") is not None:
         eff = r["parallel_efficiency"]
         L.append("")

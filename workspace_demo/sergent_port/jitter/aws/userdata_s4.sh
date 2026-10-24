@@ -56,7 +56,7 @@ SYNC_PID=$!
   done ) &
 echo "[ud] run start $(date -u +%FT%TZ)"
 case "__MODE__" in
-  s2closure) bash aws/s2_closure.sh __WORKERS__ > results/s2/run_closure.log 2>&1 ;;
+  s2closure) bash aws/s2_closure.sh __WORKERS__ __PART__ > "results/s2/run_closure___PART__.log" 2>&1 ;;
   s4a)       python s4.py s4a --workers __WORKERS__ > results/s4/run_s4a.log 2>&1 ;;
   s4b)       python s4.py s4b --workers __WORKERS__ --shard __SHARD__ --kind __KIND__ > "results/s4/run_s4b___SHARD_TAG__.log" 2>&1 ;;
 esac

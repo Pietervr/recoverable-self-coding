@@ -59,6 +59,35 @@ MANIFEST = {
     "T1": (50, "B", True), "T2": (50, "B", False), "T3": (50, "B", False), "E1": (100, "B", False),
 }
 GRADED = ("W1", "W2", "W3", "W4", "O1", "O2", "O3", "O4", "O5")
+AMENDMENT_NAME = "manifest_amendment.json"     # the §8 time-priority amendment, when invoked (T2, then T3)
+
+
+def amendment_path() -> str:
+    return os.path.join(S4_DIR, AMENDMENT_NAME)
+
+
+def deferred_settings() -> dict:
+    """The declared time-priority deferrals (DESIGN rev 7 §8 amendment): {setting: reason}; empty when none was invoked."""
+    p = amendment_path()
+    if not os.path.exists(p):
+        return {}
+    with open(p) as f:
+        return json.load(f).get("deferred", {})
+
+
+def record_deferral(settings: list, reason: str) -> dict:
+    """Record a time-priority deferral BEFORE the deferred settings' S4b batch would run. Only T2 (development-only) and
+    T3 (its S4b report-only reading; the S4a certification of λ_T3 stays) may be deferred (§8); nothing else is a time
+    reduction. The record carries the time and code hash; `evaluate` reports deferred settings as DEFERRED."""
+    bad = [s for s in settings if s not in ("T2", "T3")]
+    if bad:
+        raise ValueError(f"only T2 and T3 may be deferred (DESIGN rev 7 §8 time-priority amendment); got {bad}")
+    cur = deferred_settings()
+    for s in settings:
+        cur[s] = reason
+    rec = dict(deferred=cur, utc=_time.strftime("%Y%m%dT%H%M%SZ", _time.gmtime()), code_hash=M.code_hash())
+    _write(amendment_path(), rec)
+    return rec
 
 
 # ----------------------------------------------------------------------------------------------
@@ -437,22 +466,56 @@ def s4b_tasks(kind: str = "all") -> list:
     a = load_s4a()
     lam = {k: (a["lambda"].get(k) or {}).get("lam") if (a["lambda"].get(k) or {}).get("status") == "CERTIFIED" else None
            for k in ("E1", "T3")}
+    deferred = deferred_settings()
     tasks = []
     if kind in ("cv", "all"):
         for setting, (R, _fam, inherited) in MANIFEST.items():
             if setting in ("E1", "T3") and lam.get(setting) is None:
-                continue                                               # uninstantiated: reported as absent (§7.3)
+                continue                                               # uninstantiated: reported as ABSENT (§7.3)
+            if setting in deferred:
+                continue                                               # deferred by the §8 amendment: reported as DEFERRED
             tasks += cv_tasks("validation", setting, R, DECISION_MODELS, inherited, lam)
     if kind in ("rec", "all"):
         tasks += rec_tasks()
     return tasks
 
 
-def s4b(workers: int, shard: str | None, kind: str) -> int:
+def s4b(workers: int, shard: str | None, kind: str, defer: list | None = None, defer_reason: str = "") -> int:
     bases = load_bases()
     c0 = load_s4a()["c0"]
+    if defer:
+        print(f"[s4] deferral recorded: {record_deferral(defer, defer_reason)}", flush=True)
     todo = pending(s4b_tasks(kind), shard)
     return run_queue(todo, workers, bases, c0, label=f"S4b {kind} shard {shard or '1/1'}")
+
+
+def manifest_status(a: dict, attempted: dict, rec_counts: dict, deferred: dict | None = None) -> dict:
+    """§7.3/§7.5 completeness BEFORE any licence is read (Codex S3 review 24 Oct 2026, finding 11): every retained
+    setting has its R attempted outcomes (an attempted set = all 20 participant files present), E1/T3 without a
+    CERTIFIED λ are ABSENT by declaration, a setting deferred by the §8 amendment is DEFERRED (declared), and an
+    unfinished required setting is PENDING and withholds the licence — never silently absent. The recovery battery
+    needs all 20 × R_RECOVERY datasets at each of its 14 settings. `attempted` = {setting: n attempted sets};
+    `rec_counts` = {setting key: n result rows}."""
+    deferred = deferred or {}
+    lam = a.get("lambda", {}) or {}
+    settings = {}
+    for setting, (R, _fam, _inh) in MANIFEST.items():
+        if setting in deferred:
+            settings[setting] = dict(state="DEFERRED", reason=deferred[setting], attempted=int(attempted.get(setting, 0)), R=R)
+            continue
+        if setting in ("E1", "T3"):
+            rec = lam.get(setting) or {}
+            if rec.get("status") != "CERTIFIED":
+                settings[setting] = dict(state="ABSENT", reason=f"lambda_{setting} {rec.get('status', 'not run')}: uninstantiated (§7.3)",
+                                         attempted=0, R=R)
+                continue
+        n = int(attempted.get(setting, 0))
+        settings[setting] = dict(state="COMPLETE" if n >= R else "PENDING", attempted=n, R=R)
+    need = len(SUBJECTS) * R_RECOVERY
+    recovery = {k: dict(state="COMPLETE" if int(rec_counts.get(k, 0)) >= need else "PENDING", rows=int(rec_counts.get(k, 0)), need=need)
+                for k in recovery_settings()}
+    pend = [k for k, v in settings.items() if v["state"] == "PENDING"] + [f"rec {k}" for k, v in recovery.items() if v["state"] == "PENDING"]
+    return dict(complete=not pend, pending=pend, settings=settings, recovery=recovery)
 
 
 # ----------------------------------------------------------------------------------------------
@@ -504,6 +567,7 @@ def evaluate() -> dict:
         out["inherited_calls"] = {k: dict(calls=int(sum(v)), sets=len(v)) for k, v in calls.items()}
     # recovery battery
     stats = {}
+    rec_counts = {}
     for fam in ("G", "B"):
         point, false_jitter, false_detect, coverage = {}, {}, {}, {}
         r5 = dict(detect=[], cover=[])
@@ -515,6 +579,7 @@ def evaluate() -> dict:
                     if os.path.exists(pth):
                         with open(pth) as f:
                             rows.append(json.load(f))
+            rec_counts[key] = len(rows)
             if not rows:
                 continue
             if key in ("O1", "O2"):
@@ -561,6 +626,26 @@ def evaluate() -> dict:
             out["recovery"][fam] = X.recovery_flags(stats, fam)
         except KeyError as e:
             out["recovery"][fam] = dict(flag="INCOMPLETE", missing=str(e))
+    # manifest completeness BEFORE any licence (Codex finding 11): gates and flags computed on an incomplete manifest
+    # are PROVISIONAL and license nothing; an unfinished required setting is PENDING, never silently absent
+    man = manifest_status(a, {k: v["attempted"] for k, v in deltas.items()}, rec_counts, deferred_settings())
+    out["manifest"] = man
+    final = bool(man["complete"])
+    for g in ("gate_b", "gate_c", "gate_e", "completion_v2"):
+        out[g]["final"] = final
+    for fam in ("G", "B"):
+        out["recovery"][fam]["provisional"] = not final
+    lam_e1 = (a.get("lambda", {}).get("E1") or {}).get("status") == "CERTIFIED"
+    out["licence_inputs"] = dict(
+        manifest_complete=final,
+        gates_bc_met=bool(final and out["gate_b"]["passed"] and out["gate_c"]["passed"]),
+        v2_sim_met=bool(final and out["completion_v2"]["passed"]),
+        gate_e_met=bool(final and out["gate_e"]["passed"]),
+        epsilon=a["epsilon"], epsilon_available=a["epsilon"] is not None, lambda_e1_certified=bool(lam_e1),
+        recovery_G=(out["recovery"]["G"].get("flag") if final else "INCOMPLETE"),
+        recovery_B=(out["recovery"]["B"].get("flag") if final else "INCOMPLETE"),
+        note=("the manifest is complete: these inputs may feed decide.decide" if final else
+              "PROVISIONAL: the manifest is incomplete (" + ", ".join(man["pending"]) + "); no licence may be read"))
     out["utc"] = _time.strftime("%Y%m%dT%H%M%SZ", _time.gmtime())
     _write(os.path.join(S4_DIR, "summary.json"), out)
     with open(os.path.join(S4_DIR, "summary.md"), "w") as f:
@@ -569,7 +654,13 @@ def evaluate() -> dict:
 
 
 def summary_markdown(out: dict) -> str:
+    man = out.get("manifest", {})
     L = ["# S4 — gates and flags (DESIGN rev 7 §7.3–§7.6)", "",
+         ("MANIFEST COMPLETE — the gates and flags below are final." if man.get("complete") else
+          "MANIFEST PENDING — every gate and flag below is PROVISIONAL and licenses nothing; pending: " + ", ".join(man.get("pending", []))),
+         "settings: " + ", ".join(f"{k} {v['state']} {v['attempted']}/{v['R']}" for k, v in man.get("settings", {}).items()),
+         "recovery: " + ", ".join(f"{k} {v['rows']}/{v['need']}" for k, v in man.get("recovery", {}).items() if v["state"] != "COMPLETE") or "recovery: all 14 settings complete",
+         "",
          f"S4a: ε {out['s4a']['epsilon']}; c₀ {out['s4a']['c0']}; λ {json.dumps(out['s4a']['lam'], default=str)[:400]}", "",
          "| setting | attempted/R | POSITIVE | NEGATIVE | UNRESOLVED | UNAVAILABLE | reference Δ₃ (mean [lo, hi]) |", "|---|---|---|---|---|---|---|"]
     for k, v in out["settings"].items():
@@ -598,6 +689,8 @@ def main():
     q = sub.add_parser("s4b-queue"); q.add_argument("--kind", default="all", choices=["cv", "rec", "all"])
     b4 = sub.add_parser("s4b"); b4.add_argument("--workers", type=int, default=12); b4.add_argument("--shard", default=None)
     b4.add_argument("--kind", default="all", choices=["cv", "rec", "all"])
+    b4.add_argument("--defer", default=None, help="T2 or T2,T3: invoke the §8 time-priority amendment (recorded before the batch)")
+    b4.add_argument("--defer-reason", default="time-priority amendment, DESIGN rev 7 §8 (owner's submission window)")
     sub.add_parser("evaluate")
     sm = sub.add_parser("smoke"); sm.add_argument("--workers", type=int, default=2)
     a = ap.parse_args()
@@ -609,9 +702,9 @@ def main():
     elif a.cmd == "s4b-queue":
         tasks = s4b_tasks(a.kind)
         todo = pending(tasks)
-        print(f"[s4] S4b {a.kind}: {len(tasks)} tasks, {len(todo)} pending")
+        print(f"[s4] S4b {a.kind}: {len(tasks)} tasks, {len(todo)} pending; deferred {deferred_settings() or 'none'}")
     elif a.cmd == "s4b":
-        s4b(a.workers, a.shard, a.kind)
+        s4b(a.workers, a.shard, a.kind, a.defer.split(",") if a.defer else None, a.defer_reason)
     elif a.cmd == "evaluate":
         out = evaluate()
         print(summary_markdown(out))

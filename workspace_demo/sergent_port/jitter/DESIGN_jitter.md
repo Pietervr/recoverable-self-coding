@@ -14,7 +14,10 @@ degenerating under a free 53 × 53 Σ (they stay on Ledoit–Wolf, §7.1). The r
 by maximum likelihood inside each model), §5 (starts, box, acceptance, the EM loop), §7.1 and §8 (re-cost); the limitation
 they expose (strength-dependent latency recovery under a free Σ) is in §7.5 and §10. Under the rev 7 fitter the W2
 development block reads 0 POSITIVE, 8 NEGATIVE, 2 UNRESOLVED (R = 10; 0/1000 nesting violations). What rev 7 does NOT
-change: the estimand (§6), the manifest and pass conditions (§7.3), ε and the λ path (§7.4), the recovery flags (§7.5).
+change: the algebraic estimand (§6: the mean over participants of S_B3 − S_G3), the manifest and pass conditions (§7.3),
+ε and the λ path (§7.4), the recovery flags (§7.5). What it changes about the estimand's MEANING is declared in §6: each
+fitted density now carries its own maximum-likelihood Σ, so the contrast compares complete predictive models with
+separately fitted noise (Codex S3 review 24 Oct, finding 1).
 
 ## 0. Stages and what is frozen when
 
@@ -281,6 +284,13 @@ Primary estimand: the mean over available participants of the paired per-trial h
 span, Δ_s = S_{s,B3} − S_{s,G3}, with its 95% t-interval (n_avail − 1 degrees of freedom; participant as unit). The
 inherited BMS protected exceedance probability is reported beside it as a descriptive convention.
 
+Prediction target under rev 7 (Codex S3 review 24 Oct, finding 1). The field mean(S_B3 − S_G3) is unchanged in form,
+but the densities it compares have changed substantively: each model carries its own maximum-likelihood Σ (§4), so
+S_{s,B3} − S_{s,G3} compares two COMPLETE predictive models with separately fitted noise — including their different
+predictions for held-out catch trials — and a gain is not isolated evidence about occupancy conditional on one fixed
+noise model. The decomposition D, D_scale, D_τ below likewise includes the re-estimation of Σ after each nuisance term
+is added. §9's wording carries this qualification.
+
 Define Δ_j,s = S_{s,Bj} − S_{s,Gj} for j ∈ {0, 2, 3}.
 
 LICENCE of the primary sign (all required; recovery flags are NOT part of it):
@@ -534,7 +544,13 @@ full-data dataset 82 s, constrained profile fit 6.8 s (2-start) / 14.0 s (4-star
 S4 = 3,307 core-h base, 4,160 with re-certification and 4-start profiles; S2 136; real data 20. On the Mac's 12
 performance cores the development block ran 2.08× slower than sequential (600 s per decision dataset), so the Mac's
 own S4 is about 5,300 core-hour-equivalents and about a month of wall time; a cluster with one real core per worker
-sits between. At the spot assumption below: USD 110–220 base, 140–280 worst. Inherited Nelder–Mead runs measured at
+sits between. Target instance: c7a.24xlarge = 96 REAL cores (AMD Zen 4, one core per vCPU; an earlier 48-core
+conversion was wrong). Contingency: both E1 and T3 may need one secant correction (§7.4), so the worst case budgets
+TWO 50-set corrections: S4 = 3,307 core-h base, 4,240 worst (`recost_rev7.py`, 24 Oct; the 4,160 figure budgeted
+one). Ideal instance-hours 34.4 base / 44.2 worst; at the design's USD 1.7/h about USD 59 / 75, at the 24 Oct spot
+quote (USD 0.73–1.04/h over seven days, cap 1.20, estimate 0.95) about USD 33 / 42, before barriers, start-up,
+contention and interruptions; the S2 closure instance's measured wall rate (24 Oct) replaces the ideal arithmetic
+before S4a is launched. Inherited Nelder–Mead runs measured at
 22 ms/run, spm_BMS at 0.04 s/call. The start-count accounting below is the rev 6 record of WHAT is fitted; its unit
 costs are superseded by the measured rates.
 - Candidate accounting: "the eight models" on real or recovery data = G0, B0, G2, B2 (reduced, each one fit) plus
@@ -577,6 +593,18 @@ costs are superseded by the measured rates.
   coarser quadrature than §4 licensed, skipping certification or the c₀ batch, or dropping R5. Any reduction
   re-validates on fresh seeds. If the cap still cannot be met, the licence narrows (ADEQUATE-ZERO-ONLY is the
   declared narrower identification claim) or the study stops.
+- TIME-PRIORITY AMENDMENT (24 Oct 2026, recorded before any S4 draw; Codex S3 review finding 13). The numbered order
+  above is for a cap breach. If the owner's submission window, not the cap, forces a reduction, the order is: FIRST T2
+  to development-only (reduction (3): report-only, about 80 core-h, no gate or flag weakened); SECOND T3's S4b
+  report-only reading deferred to a declared follow-up after first submission, with its S4a search and certification
+  of λ_T3 retained as specified and its S4b power and coverage labelled pending in the paper. Everything else stays:
+  W1–W4, O1–O5, T1, the instantiated E1, the own c₀ calibration and R1–R5 before the corresponding predictive and
+  identification claims, and the W1/W3/W4 mechanism comparison before any attenuation attribution. Start removal has
+  no measurement licensing it and the O3/O4 merger needs a specified combined generator, so neither is a time
+  reduction. A reduced manifest is a predeclared narrower first-submission manifest, validated on fresh seeds, and the
+  paper states what was validated. The lever is `s4.py s4b --defer T2[,T3]`, which records the deferral in
+  `results/s4/manifest_amendment.json`; `s4.py evaluate` then reports the deferred settings as DEFERRED (declared),
+  never as silently absent. At the S4 launch of 24 Oct the amendment was NOT invoked: the full manifest runs.
 - Checkpoint per completed dataset for spot retries; one BLAS/XLA thread per worker; JIT with cached shapes.
 
 ## 9. What each outcome licenses in the paper
@@ -586,7 +614,9 @@ addition. Conditional on the primary licence:
 - PRIMARY POSITIVE: "In this auditory dataset, over 255–705 ms, the two-state family retained a positive held-out
   advantage over the matched graded family after both represented trial-level latency and scale variation
   (interval; recovery status; misspecifications tested)." Not: that the published result rests on no artefact, nor
-  that every graded account fails. If RECOVERY is NOT ADEQUATE or JITTER not DETECTED in G, robustness is to a scale
+  that every graded account fails. The sentence names what is compared: two complete predictive models, each with its
+  own fitted noise covariance (§6); the advantage is not isolated evidence about occupancy under one fixed noise model.
+  If RECOVERY is NOT ADEQUATE or JITTER not DETECTED in G, robustness is to a scale
   term and to a latency term the data did not pin down, and the text says so.
 - ATTENUATION PREMISE: any sentence about attenuation OF THE INHERITED ADVANTAGE requires Δ_0 ON R6 POSITIVE
   (BRIDGE (iv), the same cohort as D) and D POSITIVE; the residual reported with it is Δ_3 on R6. BRIDGE (iii) on the

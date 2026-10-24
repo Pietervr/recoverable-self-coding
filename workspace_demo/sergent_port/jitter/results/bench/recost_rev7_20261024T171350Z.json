@@ -11,7 +11,7 @@
  },
  "core_hours": {
   "S4a": 332.37267590231363,
-  "S4a_recertification_contingency": 80.30235628286998,
+  "S4a_recertification_contingency": 160.60471256573996,
   "S4b_decision": 1846.9541945060093,
   "S4b_recovery": 295.58243334293365,
   "S4b_profiles_2start": 738.9093565089362,
@@ -21,7 +21,7 @@
   "real": 19.909035279069627
  },
  "S4_core_hours_base": 3306.689401779856,
- "S4_core_hours_worst": 4160.271678637891,
+ "S4_core_hours_worst": 4240.574034920761,
  "parallel_efficiency": 0.22482999479615787,
  "dev_block_seconds_per_dataset": 600.0,
  "decision_scaled_by_dev_block": {

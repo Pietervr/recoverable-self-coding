@@ -126,8 +126,8 @@ workers (about 570 s per participant-dataset against 165 s under rev 6).
 | 7 | UNRESOLVED | +0.0003 [−0.0019, +0.0025] | 7/20 | +0.0194 | m12 (S13) fold 0: D4 case |
 | 8 | UNRESOLVED | −0.0006 [−0.0022, +0.0010] | 7/20 | +0.0082 | |
 
-Gate (b) holds on this block (any POSITIVE at R = 10 would be the flag), but the UNRESOLVED sets are not noise: they
-are the D4 mechanism, which is why the block was refit rather than continued.
+No POSITIVE set on this block (gate (b) itself is evaluated at R = 100 in S4b, never here), but the UNRESOLVED sets
+are not noise: they are the D4 mechanism, which is why the block was refit rather than continued.
 
 ### 4.2 Final fitter (D4-patched): W2 sets 0-9 (`results/s2/decision/W2`, 24 Oct 13:02-16:35Z)
 **0 POSITIVE, 8 NEGATIVE, 2 UNRESOLVED**; Δ₃ per participant −0.00116 (sd 0.00192) nat/trial, set means [−0.0016,
@@ -158,12 +158,17 @@ Selection: G3 POSITIVE 973/1000, B3 970/1000; `positive_at_floor` 26-27.
 The two D4 cases are gone: set 5 m4 (S17) and set 7 m12 (S13) no longer carry a single-fold excess, and both sets read
 NEGATIVE. The two remaining UNRESOLVED sets are NOT the D4 signature. Every participant above +0.003 nat/trial (set 4:
 m3 S10 +0.0037, m7 S20 +0.0032, m14 S19 +0.0046; set 8: m10 S19 +0.0060) has the same value before and after the
-patch, small training gaps spread over ALL five folds (S19: 2.6-7.1 nat on every fold) and held-out excesses of 1-4.5
-nat on one to three folds — the declared flexibility of the two-state family (§4: a point mass at zero plus a
-lognormal high branch approximates a wide lognormal amplitude law), largest on S19, the strongest responder of the
-twenty (strength 2.32, s_g 0.76, s_τ 48 ms). It moves set means by at most +0.0005 and produces no POSITIVE set; it is
-recorded here as the residual of D1 for rev 7 and the Codex review, not as a defect to tune. Gate (b) at R = 10:
-holds (the design's ceiling is 1 false POSITIVE in 100).
+patch, small TRAINING gaps on all five folds (S19: 2.6-7.1 nat on every fold) and held-out B3 − G3 fold differences
+that are positive on two to four of the five folds and negative on the rest (set 4 m14: [−1.85, +2.33, −0.15, +4.52,
+−0.61] nat; set 8 m10: [+1.90, +2.31, +1.15, +0.22, −0.05]; the all-fold positivity is the training gaps', not the
+held-out gains'). Largest on S19 (strength 2.32, s_g 0.76, s_τ 48 ms; S14 is the strongest responder of the twenty at
+2.94, S19 the second). Our reading is the declared flexibility of the two-state family (§4: a point mass at zero plus
+a lognormal high branch approximates a wide lognormal amplitude law); it is recorded as a HYPOTHESIS (Codex S3 review,
+finding 4): the records do not identify the cause, do not exclude a residual numerical or covariance effect, and in a
+correctly specified population extra flexibility alone gives B no strictly better population log score at truth. It
+moves set means by at most +0.0005 and produces no POSITIVE set; S4b measures its rate at R = 100. Gate (b) is NOT
+evaluated here: 0 of 10 POSITIVE has a one-sided 95% Clopper–Pearson upper bound of 25.9% on the false-call rate; the
+design's ceiling (≤ 1 in 100) is evaluated at R = 100 in S4b.
 
 ### 4.3 T1 (two-state generators, POSITIVE = detection; power needs about 45/50) — PENDING
 ### 4.4 O1 (time-stretch, graded; POSITIVE = false call) — PENDING
@@ -250,17 +255,21 @@ rev 7 every fit archives its EM steps and chains as starts. Counted per FIT (`re
 | S4b profiles (390,000 constrained fits, 2-start) | 739 |
 | S4b 4-start profiles, extra | 773 |
 | S4b inherited pipeline | 93 |
-| **S4 total** | **3,307 base, 4,160 worst** |
+| **S4 total** | **3,307 base, 4,240 worst** (the contingency counted for BOTH targets: 2 × 80) |
 | S2 development (as costed) | 136 |
 | real data | 20 |
 
-Contention: on the Mac's 12 performance cores the development block ran at 600 task-seconds per decision dataset
-against 289 sequential (factor 2.08; memory bandwidth shared by 12 single-threaded XLA workers), so the Mac's own S4
-cost is about 5,300 core-hour-equivalents base, i.e. about 27 days of wall time for the base manifest and about 33
-with the contingency and 4-start profiles ("Mac alone about a month" stands). A cluster with one real core per worker
-sits between the two numbers. At the design's spot assumption (c7a.24xlarge ≈ USD 1.7/h, 96 vCPU = 48 cores): USD
-110-220 base, 140-280 worst, roughly double under Mac-like contention; on-demand about three times spot. The cap and
-venue are the owner's (Unimog `rsc_t1_simulation_design.md` §12 row 24; USD 3,000 AWS cap, about USD 652 used).
+The worst case budgets one secant correction for E1 AND one for T3 (§7.4 allows one each; the first re-cost of 24 Oct
+budgeted one, 4,160). Contention: on the Mac's 12 performance cores the development block ran at 600 task-seconds per
+decision dataset against 289 sequential (factor 2.08; memory bandwidth shared by 12 single-threaded XLA workers), so
+the Mac's own S4 cost is about 5,300 core-hour-equivalents base, i.e. about 27 days of wall time for the base manifest
+and about 33 with the contingency and 4-start profiles ("Mac alone about a month" stands). The factor is the Mac's own
+contention, not an AWS multiplier. Target: c7a.24xlarge = 96 REAL cores (AMD Zen 4, one core per vCPU): 34.4 ideal
+instance-hours base, 44.2 worst; at the design's USD 1.7/h about USD 59 / 75, at the 24 Oct spot quote (0.73-1.04/h
+over seven days, cap 1.20, estimate 0.95) about USD 33 / 42, before start-up, barriers between sequential S4a stages,
+contention and interruptions; the S2 closure instance (24 Oct, 96 workers) supplies the measured target throughput.
+Venue and cap: the owner's decision of 24 Oct (AWS spot, go, inside the USD 3,000 cap with about USD 653 used;
+Unimog `rsc_t1_simulation_design.md` §12 row 24).
 
 ## 10. Open for rev 7 and the Codex S3 review
 - §4: Σ by ML within each model (R1) and why; the "no model-independent direction of bias" sentence withdrawn; the

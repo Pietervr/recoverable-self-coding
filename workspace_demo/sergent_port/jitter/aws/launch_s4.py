@@ -106,12 +106,13 @@ def probe(c: dict):
             os.remove(fn)
 
 
-def user_data(c: dict, mode: str, shard: str, workers: int, kind: str, lifetime_s: int) -> str:
-    with open(os.path.join(HERE, "userdata_s4.sh")) as f:
+def user_data(c: dict, mode: str, shard: str, workers: int, kind: str, lifetime_s: int, part: str = "all",
+              template: str = "userdata_s4.sh", tag: str | None = None) -> str:
+    with open(os.path.join(HERE, template)) as f:
         txt = f.read()
     rep = dict(BUCKET=c["bucket"], CODE_PREFIX=c["code_prefix"], RESULTS_PREFIX=c["results_prefix"], BUNDLE=latest_bundle(),
-               MODE=mode, SHARD=shard, SHARD_TAG=shard.replace("/", "of"), WORKERS=str(workers), KIND=kind,
-               LIFETIME_S=str(lifetime_s), **PINS)
+               MODE=mode, SHARD=shard, SHARD_TAG=shard.replace("/", "of"), WORKERS=str(workers), KIND=kind, PART=part,
+               LIFETIME_S=str(lifetime_s), TAG=tag or shard.replace("/", "of"), **PINS)
     for k, v in rep.items():
         txt = txt.replace(f"__{k}__", v)
     import re
@@ -120,17 +121,20 @@ def user_data(c: dict, mode: str, shard: str, workers: int, kind: str, lifetime_
     return txt
 
 
-def launch_one(c: dict, mode: str, shard: str, workers: int, kind: str, lifetime_h: float, dry: bool, az: str | None) -> dict:
-    ud = user_data(c, mode, shard, workers, kind, int(lifetime_h * 3600))
-    tag = shard.replace("/", "of")
+def launch_one(c: dict, mode: str, shard: str, workers: int, kind: str, lifetime_h: float, dry: bool, az: str | None,
+               part: str = "all", instance_type: str | None = None, template: str = "userdata_s4.sh") -> dict:
+    """One instance. For mode s2closure `part` selects the closure part (aws/s2_closure.sh: W2 | T1 | O1 | checks | all)
+    and names the instance and its log (24 Oct 2026: the closure is spread over several instances, one part each)."""
+    tag = part if (mode == "s2closure" and part != "all") else shard.replace("/", "of")
+    ud = user_data(c, mode, shard, workers, kind, int(lifetime_h * 3600), part, template, tag)
     ud_path = os.path.join(HERE, f"userdata_{mode}_{tag}.sh")
     with open(ud_path, "w") as f:
         f.write(ud)
     az = az or c["subnet_order"][0]
     tags = [dict(Key="project", Value="t1"), dict(Key="Job", Value=JOB_TAG), dict(Key="Mode", Value=mode),
-            dict(Key="Shard", Value=shard), dict(Key="Name", Value=f"{JOB_TAG}-{mode}-{tag}")]
+            dict(Key="Shard", Value=shard), dict(Key="Part", Value=part), dict(Key="Name", Value=f"{JOB_TAG}-{mode}-{tag}")]
     spec = dict(
-        ImageId=c["ami"], InstanceType=c["instance_type"], MinCount=1, MaxCount=1,
+        ImageId=c["ami"], InstanceType=instance_type or c["instance_type"], MinCount=1, MaxCount=1,
         SubnetId=c["subnets"][az], SecurityGroupIds=[c["security_group_id"]],
         IamInstanceProfile=dict(Name=c["iam_instance_profile"]),
         InstanceInitiatedShutdownBehavior="terminate",
@@ -170,9 +174,10 @@ def launch_one(c: dict, mode: str, shard: str, workers: int, kind: str, lifetime
         else:
             raise
     inst = res["Instances"][0]
-    rec = dict(instance_id=inst["InstanceId"], mode=mode, shard=shard, kind=kind, workers=workers, market=market,
+    rec = dict(instance_id=inst["InstanceId"], mode=mode, shard=shard, part=part, kind=kind, workers=workers, market=market,
                launched_utc=_dt.datetime.now(_dt.timezone.utc).isoformat(), lifetime_h=lifetime_h,
-               instance_type=c["instance_type"], az=inst.get("Placement", {}).get("AvailabilityZone"), bundle=latest_bundle())
+               instance_type=instance_type or c["instance_type"], az=inst.get("Placement", {}).get("AvailabilityZone"),
+               bundle=latest_bundle())
     s = state(); s["instances"].append(rec); save_state(s)
     print(f"[launch] {rec}")
     return rec
@@ -189,11 +194,14 @@ def status(c: dict) -> dict:
             launch = _dt.datetime.fromisoformat(i["LaunchTime"].replace("Z", "+00:00"))
             hours = (now - launch).total_seconds() / 3600.0 if st in ("running", "pending", "shutting-down") else None
             price = c.get("spot_price_estimate_usd_h") if i.get("InstanceLifecycle") == "spot" else c.get("on_demand_usd_h")
+            if i["InstanceType"] != c["instance_type"]:                 # a probe on a small instance: scale by vCPU count
+                price = (price or 0.0) * max(1, i.get("CpuOptions", {}).get("CoreCount", 1) * i.get("CpuOptions", {}).get("ThreadsPerCore", 1)) / 96.0
             spend = (hours or 0.0) * (price or 0.0)
             total += spend
             rows.append(dict(id=i["InstanceId"], state=st, type=i["InstanceType"], lifecycle=i.get("InstanceLifecycle", "on-demand"),
                              az=i.get("Placement", {}).get("AvailabilityZone"), mode=tags.get("Mode"), shard=tags.get("Shard"),
-                             launched=i["LaunchTime"], hours=None if hours is None else round(hours, 2), est_usd=round(spend, 2)))
+                             part=tags.get("Part"), launched=i["LaunchTime"], hours=None if hours is None else round(hours, 2),
+                             est_usd=round(spend, 2)))
     for row in rows:
         print(row)
     prev = {}
@@ -264,7 +272,14 @@ def main():
     la.add_argument("--kind", default="all", choices=["cv", "rec", "all"])
     la.add_argument("--lifetime-h", type=float, default=12.0)
     la.add_argument("--az", default=None)
+    la.add_argument("--part", default="all", choices=["all", "W2", "T1", "O1", "checks"],
+                    help="s2closure only: which part of aws/s2_closure.sh this instance runs")
     la.add_argument("--dry-run", action="store_true")
+    pc = sub.add_parser("probe-core", help="throughput probe on a small instance: thread count, one decision task alone, two in parallel")
+    pc.add_argument("--instance-type", default="c7a.2xlarge")
+    pc.add_argument("--lifetime-h", type=float, default=2.0)
+    pc.add_argument("--az", default=None)
+    pc.add_argument("--dry-run", action="store_true")
     sub.add_parser("status")
     pl = sub.add_parser("pull"); pl.add_argument("--what", default="s4", choices=["s4", "s2"])
     cs = sub.add_parser("close-spend"); cs.add_argument("--usd", type=float, required=True); cs.add_argument("--note", required=True)
@@ -277,11 +292,15 @@ def main():
         probe(c)
     elif a.cmd == "launch":
         if a.mode in ("s2closure", "s4a"):
-            launch_one(c, a.mode, "1/1", a.workers, a.kind, a.lifetime_h, a.dry_run, a.az)
+            launch_one(c, a.mode, "1/1", a.workers, a.kind, a.lifetime_h, a.dry_run, a.az, part=a.part)
         else:
             order = c["subnet_order"]
             for i in range(a.shard_start, a.shards):
                 launch_one(c, "s4b", f"{i}/{a.shards}", a.workers, a.kind, a.lifetime_h, a.dry_run, a.az or order[i % len(order)])
+    elif a.cmd == "probe-core":
+        tag = "probe" + _dt.datetime.now(_dt.timezone.utc).strftime("%H%M")
+        launch_one(c, "probe", tag, 1, "all", a.lifetime_h, a.dry_run, a.az, part="all", instance_type=a.instance_type,
+                   template="userdata_probe.sh")
     elif a.cmd == "status":
         status(c)
     elif a.cmd == "pull":

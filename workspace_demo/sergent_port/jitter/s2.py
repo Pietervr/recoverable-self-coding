@@ -144,7 +144,39 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
                 quad=quad or {}, _xs=xs)
 
 
+PARALLEL_BACKEND = "loky"          # tests switch to "threading" so that a monkeypatched task is seen by the workers
+
+
+def task_paths(setting: str, r: int, m: int) -> tuple:
+    """(json, npz) of one participant-dataset's own result files: the resume unit of the decision batch on an
+    interruptible host. The json lives under decision/<setting>/tasks (synced), the start archive under
+    archive/<setting>/tasks (not synced, not needed for any reading)."""
+    return (os.path.join(DEC_DIR, setting, "tasks", f"set_{r}_m{m}.json"),
+            os.path.join(ARC_DIR, setting, "tasks", f"set_{r}_m{m}.npz"))
+
+
+def decision_task_to_file(setting: str, r: int, m: int, base_subject: int, bases: dict, span_name: str,
+                          json_path: str, npz_path: str) -> str:
+    if os.path.exists(json_path):
+        return json_path
+    row = decision_task(setting, r, m, base_subject, bases, span_name)
+    xs = row.pop("_xs")
+    os.makedirs(os.path.dirname(npz_path), exist_ok=True)
+    np.savez_compressed(npz_path, **xs)
+    os.makedirs(os.path.dirname(json_path), exist_ok=True)
+    tmp = json_path + f".tmp.{os.getpid()}"
+    with open(tmp, "w") as f:
+        json.dump(row, f)
+    os.replace(tmp, json_path)
+    return json_path
+
+
 def run_decision(setting: str, R: int, workers: int, sets=None, span_name: str = "primary"):
+    """Every pending set's participant-datasets in ONE queue (R × 20 tasks), so that a 96-core host is full from the
+    first minute — the set-by-set form (one Parallel call per set of 20) kept 76 of 96 cores idle on the AWS closure
+    of 24 Oct 2026. Each task writes its own file first (the resume unit); the per-set records (set_<r>.json and the
+    archive npz, unchanged in form) are assembled from them after the queue and the task files are removed.
+    `wall_s` of a set is now the SUM of its tasks' seconds; `queue_wall_s` is the queue's wall."""
     from joblib import Parallel, delayed
     bases = load_bases()
     out_dir = os.path.join(DEC_DIR, setting)
@@ -152,29 +184,52 @@ def run_decision(setting: str, R: int, workers: int, sets=None, span_name: str =
     os.makedirs(out_dir, exist_ok=True)
     os.makedirs(arc_dir, exist_ok=True)
     sets = list(range(R)) if sets is None else sets
+    todo = []
     for r in sets:
-        path = os.path.join(out_dir, f"set_{r}.json")
-        if os.path.exists(path):
+        if os.path.exists(os.path.join(out_dir, f"set_{r}.json")):
             print(f"[s2] {setting} set {r}: exists, skipped", flush=True)
-            continue
+        else:
+            todo.append(r)
+    jobs = [(r, m, s) + task_paths(setting, r, m) for r in todo for m, s in enumerate(set_members(setting, r))]
+    pending_jobs = [j for j in jobs if not os.path.exists(j[3])]
+    t0 = _time.time()
+    print(f"[s2] {setting}: {len(todo)} sets, {len(pending_jobs)} of {len(jobs)} participant-datasets pending, "
+          f"{workers} workers, start {_time.strftime('%H:%M:%SZ', _time.gmtime())}", flush=True)
+    if pending_jobs:
+        Parallel(n_jobs=workers, backend=PARALLEL_BACKEND)(
+            delayed(decision_task_to_file)(setting, r, m, s, bases, span_name, jp, npz) for r, m, s, jp, npz in pending_jobs)
+    wall = _time.time() - t0
+    print(f"[s2] {setting}: queue done in {wall:.0f} s", flush=True)
+    for r in todo:
         members = set_members(setting, r)
-        t0 = _time.time()
-        rows = Parallel(n_jobs=workers, backend="loky")(
-            delayed(decision_task)(setting, r, m, s, bases, span_name) for m, s in enumerate(members))
-        xs = {}
-        for row in rows:
-            for k, v in row.pop("_xs").items():
-                xs[f"m{row['m']}_{k}"] = v
+        rows, xs, used = [], {}, []
+        for m in range(len(members)):
+            jp, npz = task_paths(setting, r, m)
+            with open(jp) as f:
+                rows.append(json.load(f))
+            used.append(jp)
+            if os.path.exists(npz):                       # the archive is not synced: tolerate a lost npz after a resume
+                with np.load(npz) as z:
+                    for k in z.files:
+                        xs[f"m{m}_{k}"] = z[k]
+                used.append(npz)
         np.savez_compressed(os.path.join(arc_dir, f"set_{r}.npz"), **xs)
         set_scores = {f"m{row['m']}": row["scores"] for row in rows}
         primary = X.set_primary(set_scores)
         rec = dict(setting=setting, r=r, members=members, primary=primary,
                    delta3={k: (v["B3"] - v["G3"]) for k, v in set_scores.items()},
-                   participants=rows, wall_s=_time.time() - t0, workers=workers, code_hash=M.code_hash())
-        with open(path, "w") as f:
+                   participants=rows, wall_s=float(sum(row["seconds"] for row in rows)), queue_wall_s=wall,
+                   workers=workers, code_hash=M.code_hash())
+        path = os.path.join(out_dir, f"set_{r}.json")
+        tmp = path + f".tmp.{os.getpid()}"
+        with open(tmp, "w") as f:
             json.dump(rec, f)
+        os.replace(tmp, path)
+        for p in used:
+            os.remove(p)
         avail = sum(1 for v in set_scores.values() if np.isfinite(v["B3"] - v["G3"]))
-        print(f"[s2] {setting} set {r}: primary {primary}, {avail}/20 available, {rec['wall_s']:.0f} s", flush=True)
+        print(f"[s2] {setting} set {r}: primary {primary}, {avail}/20 available, {rec['wall_s']:.0f} task-s "
+              f"(mean {rec['wall_s'] / len(rows):.0f} s per participant-dataset)", flush=True)
 
 
 # ----------------------------------------------------------------------------------------------
