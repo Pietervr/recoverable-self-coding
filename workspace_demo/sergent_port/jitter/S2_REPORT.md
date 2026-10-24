@@ -173,11 +173,27 @@ fitter, W2 0-9: 0/1000 violations; no chain ended on a NOT_CONVERGED solve; 35 a
 B improved G3+ on 31% of folds (by > 5 nat on 5%) — the G3+ start set alone still misses optima on about one fold in
 twenty by 5-46 nat, which the B-basin re-seed now recovers by construction (§4.2). T1 and O1: PENDING.
 
-## 7. Start-family usage (which start families were material) — PENDING
-From the archived starts of the final W2/T1/O1 sets: for G3+ and B3+, how often the selected optimum came from each
-family (design T_A/T_B recipes, smeared sm_A/sm_B at 20/40/80/120, lifted G2/B2 at 20/40/80, the G collapse, the warm
-chain, the re-seed chain), and the gain over the best design start. This decides the FROZEN S3 recipe (§5: "starts
-found material are added to the frozen recipe at S3 for all models alike").
+## 7. Start-family usage (which start families were material)
+From the archived starts of the final W2 block (1000 fits per candidate; scratchpad `starts_usage.py decision W2`).
+"Chain" = which EM chain produced the selected optimum (main multi-start chain / warm chain from the G twin under its
+Σ / re-seed chain from B); "first-stage winner" = the family of the best CONVERGED start of the main chain before EM;
+"beat design" = fits where a non-design start exceeded the best §5 design start by > 1e-6 relative.
+
+| candidate | selected optimum from chain | first-stage winner by family | beat design | gain over design (nat): p90 / max |
+|---|---|---|---|---|
+| G2 | main 722, re-seed 278 | design 1000 | 0/1000 | 0.00 / 0.0 |
+| G3+ | main 693, re-seed 307 | smeared 606, design 315, lift 79 | 308/1000 | 2.78 / 987.7 |
+| B2 | main 568, twin chain 432 | design 828, collapse 172 | 105/1000 | 0.44 / 34.2 |
+| B3+ | main 587, twin chain 413 | smeared 529, design 287, lift 73, collapse 111 | 406/1000 | 10.81 / 652.5 |
+
+Start statuses: G2 10,985 CONVERGED / 12 NOT_CONVERGED, G3+ 17,731 / 86, B2 13,354 / 10, B3+ 20,340 / 88; no fit
+UNAVAILABLE. Reading: for the reduced models the four design starts suffice (G2 never improved on by another family;
+B2's collapse start wins 17%). For the positive-spread models the design starts alone would have missed the optimum
+on 31% (G3+) and 41% (B3+) of fits, by up to about 1,000 nat; the SMEARED-kernel starts are the most frequent winners,
+the lifts win 7-8%, and the warm chains (twin and re-seed) supply the selected optimum in 30-43% of fits. Every family
+of R2 is material and the union recipe, with the warm and re-seed chains, is what rev 7 should FREEZE for S3 (§5:
+"starts found material are added to the frozen recipe at S3 for all models alike"). T1/O1: to be appended when their
+blocks land (the same script, `decision T1` / `decision O1`).
 
 ## 8. §4 checks, basins, profile-start validation
 Ranks (`s2.py checks --kind ranks`, `results/s2/checks/ranks.json`, 24 Oct under the final code): the stacked 31-node
