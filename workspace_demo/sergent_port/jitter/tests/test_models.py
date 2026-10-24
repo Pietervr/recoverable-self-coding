@@ -165,6 +165,10 @@ def test_specs_and_parameter_counts():
     lay = M.spec("B3+").layout()["index"]
     assert lb[lay["theta_tau"]] == 0.02 and ub[lay["theta_tau"]] == 1.5
     assert lb[lay["s_g"]] == 0.0 and ub[lay["s_g"]] == 1.5
+    assert abs(ub[lay["logkappa"]] - np.log(50.0)) < 1e-12 and lb[lay["logkappa"]] == -np.inf   # κ ≤ 50 (S2 repair)
+    assert np.all(np.isinf(M.spec("G3+").bounds()[1][:5]))
+    # κ = 50 already a step at integer levels: the neighbour of the active level is within 1e-17 of 0 or 1
+    assert 1.0 / (1.0 + np.exp(50.0 * 0.8)) < 1e-17
 
 
 def test_pack_unpack_roundtrip():

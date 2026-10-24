@@ -54,6 +54,10 @@ from data import N_LEVELS, TAU_TRUNC_MS, Span  # noqa: E402
 jax.config.update("jax_enable_x64", True)
 
 A_MIN = 0.02
+KAPPA_MAX = 50.0              # S2 numerical repair (24 Oct 2026): box κ ≤ 50 per level unit. Beyond ≈ 50 the occupancy
+#                               logistic is a step at the integer levels (neighbours within 1e-17 of 0 or 1), so no fit is
+#                               lost; without the box, B3+ on graded data ran κ to 1e5–1e15 with x0 pinned at a level and
+#                               three of four starts stalled on that ridge at a worse objective than the smooth optimum.
 KNOT_SPACING_MS = 60.0
 GAUGE_CENTRE_MS = 450.0
 TAU_NODE_STEP_MS = 10.0
@@ -258,6 +262,8 @@ class ModelSpec:
         lay = self.layout()
         lb = np.full(lay["n_params"], -np.inf)
         ub = np.full(lay["n_params"], np.inf)
+        if self.family == "B":
+            ub[lay["index"]["logkappa"]] = np.log(KAPPA_MAX)
         if self.tau_free:
             lb[lay["index"]["theta_tau"]] = S_TAU_MIN_MS / TIME_SCALE
             ub[lay["index"]["theta_tau"]] = S_TAU_MAX_MS / TIME_SCALE
