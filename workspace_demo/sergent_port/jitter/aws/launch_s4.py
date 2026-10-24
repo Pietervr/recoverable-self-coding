@@ -37,8 +37,8 @@ PINS = dict(NUMPY="2.5.3", SCIPY="1.18.1", JAX="0.11.1", JOBLIB="1.6.0", PANDAS=
 JOB_TAG = "jitter-s4"
 
 
-def cfg() -> dict:
-    with open(CFG_PATH) as f:
+def cfg(path: str | None = None) -> dict:
+    with open(path or CFG_PATH) as f:
         return json.load(f)
 
 
@@ -179,8 +179,8 @@ def launch_one(c: dict, mode: str, shard: str, workers: int, kind: str, lifetime
     inst = res["Instances"][0]
     rec = dict(instance_id=inst["InstanceId"], mode=mode, shard=shard, part=part, kind=kind, workers=workers, market=market,
                launched_utc=_dt.datetime.now(_dt.timezone.utc).isoformat(), lifetime_h=lifetime_h,
-               instance_type=instance_type or c["instance_type"], az=inst.get("Placement", {}).get("AvailabilityZone"),
-               bundle=latest_bundle())
+               instance_type=instance_type or c["instance_type"], region=c["region"],
+               az=inst.get("Placement", {}).get("AvailabilityZone"), bundle=latest_bundle())
     s = state(); s["instances"].append(rec); save_state(s)
     print(f"[launch] {rec}")
     return rec
@@ -265,6 +265,7 @@ def stop(c: dict, instance: str | None, all_: bool):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--config", default=None, help="another region's config, e.g. aws/s4_aws_usw2.json (default aws/s4_aws.json)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("bundle"); sub.add_parser("probe")
     la = sub.add_parser("launch")
@@ -290,7 +291,7 @@ def main():
     cs = sub.add_parser("close-spend"); cs.add_argument("--usd", type=float, required=True); cs.add_argument("--note", required=True)
     stp = sub.add_parser("stop"); stp.add_argument("--instance", default=None); stp.add_argument("--all", action="store_true")
     a = ap.parse_args()
-    c = cfg()
+    c = cfg(a.config)
     if a.cmd == "bundle":
         bundle(c)
     elif a.cmd == "probe":

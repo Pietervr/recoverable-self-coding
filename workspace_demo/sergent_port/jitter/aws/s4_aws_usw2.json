@@ -1,0 +1,23 @@
+{
+  "profile": "xtenure-read",
+  "region": "us-west-2",
+  "s3_region": "us-west-2",
+  "ami": "ami-0e0fcdc77c6355731",
+  "instance_type": "c7a.24xlarge",
+  "subnets": {"us-west-2a": "subnet-064563534659b7c88", "us-west-2b": "subnet-0664a01c779e61c54", "us-west-2c": "subnet-0410f22dfd4297767", "us-west-2d": "subnet-0257921dc75ab8576"},
+  "subnet_order": ["us-west-2a", "us-west-2c", "us-west-2d", "us-west-2b"],
+  "security_group_id": "sg-0ac5f0bc8cb7dc039",
+  "iam_instance_profile": "xtenure-ec2-t1-worker",
+  "key_name": null,
+  "bucket": "xtenure-cself-pvr-usw2",
+  "code_prefix": "code/t1_access/jitter_s4",
+  "results_prefix": "results/t1_access/jitter_s4",
+  "spot_max_price": "2.20",
+  "spot_price_estimate_usd_h": 1.6,
+  "on_demand_usd_h": 4.93,
+  "on_demand_fallback": false,
+  "root_device": "/dev/xvda",
+  "root_gb": 30,
+  "tags_required": {"project": "t1"},
+  "_note": "second region (24 Oct 2026): its own 512 spot + 512 on-demand vCPU quotas double the fleet; same bucket (in this region), same instance role; AL2023 AMI from SSM /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64; default VPC vpc-004fa3b76d575ca3f; spot c7a.24xlarge 1.56/h in 2a, 2.26 in 2b on 24 Oct"
+}
