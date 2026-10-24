@@ -232,12 +232,35 @@ nodes` on the final W2 set 0 (33 scale nodes, 61 τ nodes, the 7-node prior rule
 constrained optima on 100 datasets per family; the profile machinery now has finite lifts, so this validation is
 meaningful for the first time).
 
-## 9. Cost
-Rev 6: 165 s per participant-dataset (bench_20261024T044019Z: 1.69 s per decision-batch start). Under R1-R4: about
-570 s (EM steps × 11-13 starts) — S4 about ×3.5, roughly 5,500-7,000 core-h before the warm chains. Under D4: PENDING
-(the re-seed now fires on most graded folds — one extra G chain and one extra B chain each — and the inner retries
-add solves; read from the per-set wall times and `bench.py --subject 10` at the end of the chain). The S4 number for
-the owner's cap + venue decision (ledger row 24 in Unimog `rsc_t1_simulation_design.md` §12) comes from that benchmark.
+## 9. Cost (`results/bench/bench_20261024T171350Z.md`, `results/bench/recost_rev7_20261024T171350Z.md`)
+Rev 6: 165 s per participant-dataset (bench_20261024T044019Z: 1.69 s per decision-batch start; S4 1,536 core-h base).
+Final fitter, benchmark run ALONE on S10 after the W2 block and the D5 fix (24 Oct 17:14-17:36Z; generator fits under
+Ledoit-Wolf: G3 80.1 ms / 0.57, B3 60.6 / 0.38, the stored files untouched). Per unit, sequential, one XLA thread:
+decision participant-dataset (5 folds × G2/B2/G3+/B3+) 289 s (rev 6: 135 s); recovery full-data dataset (8 models)
+82 s; constrained profile fit 6.8 s (2-start) / 14.0 s (4-start); ε dataset 1.8 s; c₀ pair 38 s; generator fit 244 s.
+`bench.py`'s own cost table (718 core-h) multiplies rev 6 START counts by per-start seconds and is superseded: under
+rev 7 every fit archives its EM steps and chains as starts. Counted per FIT (`recost_rev7.py`):
+
+| category | core-hours (sequential rate) |
+|---|---|
+| S4a (ε, pilots, certification, c₀) | 332 |
+| S4a re-certification contingency | 80 |
+| S4b decision batch (23,000 participant-datasets) | 1,847 |
+| S4b recovery (13,000 full-data datasets) | 296 |
+| S4b profiles (390,000 constrained fits, 2-start) | 739 |
+| S4b 4-start profiles, extra | 773 |
+| S4b inherited pipeline | 93 |
+| **S4 total** | **3,307 base, 4,160 worst** |
+| S2 development (as costed) | 136 |
+| real data | 20 |
+
+Contention: on the Mac's 12 performance cores the development block ran at 600 task-seconds per decision dataset
+against 289 sequential (factor 2.08; memory bandwidth shared by 12 single-threaded XLA workers), so the Mac's own S4
+cost is about 5,300 core-hour-equivalents base, i.e. about 27 days of wall time for the base manifest and about 33
+with the contingency and 4-start profiles ("Mac alone about a month" stands). A cluster with one real core per worker
+sits between the two numbers. At the design's spot assumption (c7a.24xlarge ≈ USD 1.7/h, 96 vCPU = 48 cores): USD
+110-220 base, 140-280 worst, roughly double under Mac-like contention; on-demand about three times spot. The cap and
+venue are the owner's (Unimog `rsc_t1_simulation_design.md` §12 row 24; USD 3,000 AWS cap, about USD 652 used).
 
 ## 10. Open for rev 7 and the Codex S3 review
 - §4: Σ by ML within each model (R1) and why; the "no model-independent direction of bias" sentence withdrawn; the

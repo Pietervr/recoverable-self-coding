@@ -522,11 +522,16 @@ are drawn. Development, calibration and validation seeds are disjoint and never 
 MEASURED (rev 7). The rev 6 design priced everything at an unmeasured 30 s/start. Two benchmarks replaced that:
 `results/bench/bench_20261024T044019Z.md` under the rev 6 fitter (1.69 s per decision-batch start; S4 = 1,536 core-h
 base, 1,915 with re-certification and 4-start profiles; S2 66; real data 9) and the rev 7 benchmark run alone after the
-W2 development block on 24 Oct (`results/bench/bench_<ts>.md`, the number for the owner's cap and venue decision —
-PENDING at the time of this draft; the W2 development block itself ran at 600 s per participant-dataset on 12 workers,
-about 3.6× the rev 6 rate, so S4 is expected at roughly 5,500–7,000 core-h before that benchmark replaces the
-estimate). Inherited Nelder–Mead runs measured at 21.8 ms/run, spm_BMS at 0.04 s/call. The start-count accounting below
-is the rev 6 record of WHAT is fitted; its unit costs are superseded by the measured rates.
+W2 development block on 24 Oct (`results/bench/bench_20261024T171350Z.md`; counted per fit in
+`results/bench/recost_rev7_20261024T171350Z.md`, because every rev 7 fit archives its EM steps and chains as starts
+and a per-start costing understates it): decision participant-dataset 289 s sequential (rev 6: 135 s), recovery
+full-data dataset 82 s, constrained profile fit 6.8 s (2-start) / 14.0 s (4-start), ε dataset 1.8 s, c₀ pair 38 s;
+S4 = 3,307 core-h base, 4,160 with re-certification and 4-start profiles; S2 136; real data 20. On the Mac's 12
+performance cores the development block ran 2.08× slower than sequential (600 s per decision dataset), so the Mac's
+own S4 is about 5,300 core-hour-equivalents and about a month of wall time; a cluster with one real core per worker
+sits between. At the spot assumption below: USD 110–220 base, 140–280 worst. Inherited Nelder–Mead runs measured at
+22 ms/run, spm_BMS at 0.04 s/call. The start-count accounting below is the rev 6 record of WHAT is fitted; its unit
+costs are superseded by the measured rates.
 - Candidate accounting: "the eight models" on real or recovery data = G0, B0, G2, B2 (reduced, each one fit) plus
   positive-spread G1, B1, G3, B3, with G1/B1/G3/B3 selected against their cached reduced candidates: 8 fits × 4 starts =
   32 starts per dataset, reduced fits cached and never refitted. The decision batch (§7.3) = G2, B2, G3+, B3+ = 80
