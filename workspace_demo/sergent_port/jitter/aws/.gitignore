@@ -6,3 +6,4 @@ userdata_s4a_*.sh
 userdata_s4b_*.sh
 run_*.json
 probe.txt*
+userdata_probe_*.sh
