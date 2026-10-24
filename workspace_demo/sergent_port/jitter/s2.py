@@ -128,9 +128,12 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
                                     candidates=fr.candidates)
             if fr.available:
                 sp = F.selected_spec(sel, fr, span_name, quad)
-                ll = M.Objective(sp, train).trial_loglik(fr.theta, test)
+                ll = F.score_heldout(sp, fr, test)
                 sums[sel].append(float(np.sum(ll)))
                 xs[f"f{fold}_{sel}_theta"] = np.asarray(fr.theta, dtype=np.float32)
+                if fr.wh is not None:
+                    xs[f"f{fold}_{sel}_sigma"] = np.asarray(fr.wh.Sigma, dtype=np.float32)
+                row["fits"][sel].update(em_iterations=fr.em_iterations, em_trace=fr.em_trace)
             else:
                 sums[sel].append(float("nan"))
         folds.append(row)
@@ -387,7 +390,7 @@ def small_spread_check() -> dict:
             for s in (1.0, 2.0, 5.0, 8.0, 10.0, 20.0):
                 sp_c = sp_full.constrained(s)
                 starts = F.constrained_starts(sp_full, sp_c, res[fam + "3"], F.selected_spec(fam + "3", res[fam + "3"], "primary"), info, 2)
-                r = F.fit_model(sp_c, ds, starts=starts, info=info)
+                r = F.em_fit(sp_c, ds, starts=starts, info=info)
                 w0 = float(M.truncnorm_node_weights(M.tau_nodes_ms(), s)[15])
                 prof[str(s)] = dict(ell_minus_reduced=(r.loglik - red.loglik) if r.available else None,
                                     node0_weight=w0, status=r.status)
@@ -437,7 +440,7 @@ def basin_task(setting: str, r: int, m: int, base_subject: int, bases: dict) -> 
         info = F.start_info(sp, train)
         std = F.start_vectors(sp, info)
         dev = development_starts(sp, info)
-        res = F.fit_model(sp, train, starts=std + dev, info=info)
+        res = F.em_fit(sp, train, starts=std + dev, info=info)
         conv = [s for s in res.starts if s.status == "CONVERGED"]
         best_std = min((s.f for s in conv if s.label in {l for l, _ in std}), default=float("inf"))
         best_dev = min((s.f for s in conv if s.label in {l for l, _ in dev}), default=float("inf"))
@@ -509,7 +512,7 @@ def profile_task(setting: str, r: int, m: int, base_subject: int, bases: dict, f
             continue
         sp_c = sp_full.constrained(s)
         starts = F.constrained_starts(sp_full, sp_c, unres, sp_u, info, 4)
-        r4 = F.fit_model(sp_c, ds, starts=starts, info=info)
+        r4 = F.em_fit(sp_c, ds, starts=starts, info=info)
         conv = [st for st in r4.starts if st.status == "CONVERGED"]
         two = [st for st in conv if st.label in (starts[0][0], starts[1][0])]
         ell4 = -min(st.f for st in conv) if conv else None

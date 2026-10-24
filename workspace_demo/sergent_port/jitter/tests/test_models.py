@@ -334,6 +334,88 @@ def test_scale_fixed_models_are_exact_and_unchanged_by_node_count():
     assert np.allclose(M.Objective(spG2, ds).trial_loglik(th2z), M.Objective(spG0, ds).trial_loglik(th0), atol=1e-8)
 
 
+def _dense_scale_moments(A, B, s_g, n_u=40001):
+    """Posterior E[g], E[g²] of g ~ LogNormal(−s²/2, s²) given exp(A g − ½ B g²), by the fine trapezoid in u = log g."""
+    mu_p = -0.5 * s_g ** 2
+    lo, hi = mu_p - 12.0 * s_g, mu_p + 12.0 * s_g
+    if A > 0 and B > 0:
+        u_star = np.log(A / B)
+        lo, hi = min(lo, u_star - 12.0 * s_g - 1.0), max(hi, u_star + 12.0 * s_g + 1.0)
+    u = np.linspace(lo, hi, n_u)
+    h = -(u - mu_p) ** 2 / (2 * s_g ** 2) + A * np.exp(u) - 0.5 * B * np.exp(2 * u)
+    w = np.exp(h - h.max())
+    w /= np.trapezoid(w, u)
+    return float(np.trapezoid(w * np.exp(u), u)), float(np.trapezoid(w * np.exp(2 * u), u))
+
+
+def test_scaled_whitening_and_fallback():
+    rng = np.random.default_rng(3)
+    sp = D.span("primary")
+    k = np.repeat(np.arange(6), 40)
+    Y = rng.normal(size=(k.size, 16)) @ np.diag(np.linspace(0.5, 2.0, 16))
+    wh = D.whitening(Y, k, "scaled")
+    n, p = 40, 16
+    S = np.cov(Y[k == 0].T, bias=True)
+    assert np.allclose(wh.Sigma, S * n / (n - p - 2.0)) and wh.shrinkage == 0.0 and wh.n_catch == 40
+    small = D.whitening(Y[:18 * 6], np.repeat(np.arange(6), 18), "scaled")      # 18 catch trials = p + 2 -> LW
+    assert small.shrinkage > 0.0
+    lw = D.whitening(Y, k, "lw")
+    assert 0.0 < lw.shrinkage < 1.0 and np.allclose(lw.mu0, wh.mu0)
+
+
+def test_posterior_responsibilities_and_scale_moments():
+    ds = _synthetic_dataset(n_per_level=6, seed=5)
+    for name in ("G3+", "B3+", "G2", "B1+"):
+        sp = M.spec(name)
+        th = _theta(sp)
+        obj = M.Objective(sp, ds)
+        U, k, Linv = obj.U[: obj.n_eff], obj.k[: obj.n_eff], obj.Linv
+        R, Eg, Eg2, ph, Tt, m = (np.asarray(v) for v in obj.posterior(th, U, k, Linv))
+        assert R.shape == (ds.n, sp.n_tau_nodes if sp.positive else 1)
+        assert np.allclose(R.sum(axis=1), ph, atol=1e-12)
+        if sp.family == "G":
+            assert np.allclose(ph, (ds.k > 0).astype(float))
+        else:
+            assert np.all(ph[ds.k == 0] == 0.0) and np.all((ph[ds.k > 0] > 0.0) & (ph[ds.k > 0] < 1.0))
+        if not sp.scale_free:
+            assert np.allclose(Eg, 1.0) and np.allclose(Eg2, 1.0)
+        assert np.all(Eg2 >= Eg ** 2 - 1e-9)
+        assert np.allclose(Tt[sp.basis().node0 if sp.positive else 0].mean(), 1.0)      # m_vis normalisation
+    # the moments against the dense trapezoid at a few (trial, node) pairs of G3+
+    sp = M.spec("G3+")
+    th = _theta(sp)
+    P = M.unpack(sp, th)
+    obj = M.Objective(sp, ds)
+    U, k, Linv = obj.U[: obj.n_eff], obj.k[: obj.n_eff], obj.Linv
+    R, Eg, Eg2, ph, Tt, m = (np.asarray(v) for v in obj.posterior(th, U, k, Linv))
+    V = np.asarray(Tt) @ np.asarray(Linv).T
+    Pm = np.asarray(U) @ V.T
+    vv = np.sum(V * V, axis=1)
+    worst = 0.0
+    for i in np.where(ds.k > 0)[0][:4]:
+        for node in (0, 15, 30):
+            A_, B_ = m[i] * Pm[i, node], m[i] ** 2 * vv[node]
+            e1, e2 = _dense_scale_moments(A_, B_, P.s_g)
+            worst = max(worst, abs(Eg[i, node] - e1), abs(Eg2[i, node] - e2))
+    assert worst < 2e-4, worst
+
+
+def test_m_step_sigma_reduces_to_the_residual_covariance_without_response():
+    ds = _synthetic_dataset(n_per_level=8, seed=9)
+    sp = M.spec("G2")
+    th = _theta(sp)
+    th[sp.layout()["index"]["alpha"]] = -40.0                                          # a(k) = softplus(-40) ≈ 0
+    Sigma = M.m_step_sigma(sp, th, ds)
+    r0 = ds.Y - ds.wh.mu0
+    assert np.allclose(Sigma, r0.T @ r0 / ds.n, atol=1e-8)
+    assert np.all(np.linalg.eigvalsh(Sigma) > 0)
+    # with a response the M-step stays symmetric positive definite and smaller along the template than the raw residual
+    sp = M.spec("B3+")
+    th = _theta(sp)
+    Sigma = M.m_step_sigma(sp, th, ds)
+    assert np.allclose(Sigma, Sigma.T) and np.all(np.linalg.eigvalsh(Sigma) > 0)
+
+
 if __name__ == "__main__":
     import inspect
     fails = 0

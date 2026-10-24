@@ -265,6 +265,80 @@ def test_generator_fits_small():
         assert np.allclose(back.a, out["B3"].a) and back.model == "B3" and back.selection == out["B3"].selection
 
 
+def test_acceptance_keeps_an_exact_warm_start():
+    """S2 repair 3: a start AT the optimum converges in zero iterations and is CONVERGED because the perturbed
+    re-run finds nothing better; its end point, not a retry's, is the result."""
+    lb = np.full(3, -np.inf); ub = np.full(3, np.inf)
+    r = F.run_start(_Quad([1.0, -2.0, 0.5]), "warm", np.array([1.0, -2.0, 0.5]), lb, ub, seed=3)
+    assert r.status == "CONVERGED" and r.nit == 0 and abs(r.f) < 1e-12 and r.early
+    assert r.attempts[0]["kind"] == "start" and r.attempts[1]["kind"] == "start/early-rerun"
+    assert np.allclose(r.x, [1.0, -2.0, 0.5], atol=1e-12)
+    try:
+        F.run_start(_Quad([0.0, 0.0, 0.0]), "bad", np.array([np.inf, 0.0, 0.0]), lb, ub, seed=1)
+        assert False, "a non-finite start must be refused"
+    except ValueError:
+        pass
+
+
+def test_lift_clips_runaway_coordinates_and_collapses_g_onto_b():
+    p = _synthetic_participant(n_per_level=30, seed=4, s_tau=30.0, noise=0.4)
+    ds = D.full_dataset(p, D.span("primary"))
+    spG = M.spec("G3+")
+    info = F.start_info(spG, ds)
+    th = F.start_vectors(spG, info)[0][1].copy()
+    gi = spG.layout()["index"]["gamma"]
+    th[gi.start] = -2000.0                                   # a coefficient that ran away along the flat direction
+    lifted = F.lift_warm_start(spG, th, spG.constrained(60.0), info, 60.0)
+    lb, ub = spG.constrained(60.0).bounds()
+    assert np.all(np.isfinite(lifted)) and np.all(lifted >= lb - 1e-12) and np.all(lifted <= ub + 1e-12)
+    assert lifted[spG.constrained(60.0).layout()["index"]["gamma"].start] == M.GAMMA_MIN
+    spB = M.spec("B3+")
+    infoB = F.start_info(spB, ds)
+    thB = F.lift_warm_start(spG, th, spB, infoB, 40.0, np.log(M.KAPPA_MAX), F.COLLAPSE_X0)
+    P = M.unpack(spB, thB)
+    assert np.allclose(P.A[1:], 1.0) and abs(P.s_tau_ms - 40.0) < 1e-9 and np.isclose(P.kappa, M.KAPPA_MAX)
+    # the collapsed point evaluates to the G likelihood
+    llG = M.Objective(spG, ds).total_loglik(th)
+    thG40 = th.copy(); thG40[spG.layout()["index"]["theta_tau"]] = 0.4
+    assert abs(M.Objective(spB, ds).total_loglik(thB) - M.Objective(spG, ds).total_loglik(thG40)) < 1e-6 * abs(llG)
+    assert all(np.all(np.isfinite(x)) for _, x in F.smeared_starts(spG, ds, info))
+    assert [l.split("|")[0] for l, _ in F.smeared_starts(spG, ds, info)] == ["smA", "smB", "smA", "smB"]
+    assert all(np.all(np.isfinite(x)) for _, x in F.smeared_starts(spB.constrained(50.0), ds, infoB))
+
+
+def test_em_fit_is_monotone_and_scores_under_its_own_sigma():
+    p = _synthetic_participant(n_per_level=40, seed=3, s_tau=0.0, noise=0.5)
+    train, test, _, _ = D.fold_datasets(p, D.span("primary"), 0)
+    assert train.wh.shrinkage == 0.0                        # 'scaled' start (32 training catch trials > p + 2)
+    sp = M.spec("G2")
+    r = F.em_fit(sp, train)
+    assert r.available and r.em_iterations >= 1 and r.wh is not None
+    assert all(b >= a - 1e-6 * max(1.0, abs(a)) for a, b in zip(r.em_trace, r.em_trace[1:]))
+    assert r.em_trace[-1] == r.loglik and not np.allclose(r.wh.Sigma, train.wh.Sigma)
+    assert len(r.starts) == 4 + r.em_iterations and r.n_converged <= 4
+    ll_model = F.score_heldout(sp, r, test)
+    ll_data = M.Objective(sp, train).trial_loglik(r.theta, test)
+    assert ll_model.shape == (test.n,) and not np.allclose(ll_model, ll_data)
+    r0 = F.em_fit(sp, train, em=False)
+    assert r0.em_iterations == 0 and r0.wh is train.wh and r0.em_trace == [r0.loglik]
+    assert np.allclose(F.score_heldout(sp, r0, test), M.Objective(sp, train).trial_loglik(r0.theta, test))
+    assert r.loglik >= r0.loglik                            # EM can only raise the training log-likelihood
+
+
+def test_repaired_start_set_and_nesting_without_em():
+    p = _synthetic_participant(n_per_level=40, seed=11, s_tau=40.0, noise=0.4)
+    train, _, _, _ = D.fold_datasets(p, D.span("primary"), 0)
+    res = F.fit_all_models(train, F.FitCache(em=False), "primary", ("G3", "B3"))
+    labels = {name: [s.label.split("|")[0] for s in res[name].starts] for name in ("G2", "G3+", "B2", "B3+")}
+    assert len(labels["G2"]) == 4 and labels["B2"].count("collapseG2") == 1
+    assert labels["G3+"].count("smA") == 2 and labels["G3+"].count("liftG2") == 3 and len(labels["G3+"]) == 11
+    assert labels["B3+"].count("liftB2") == 3 and sum(l.startswith("collapse") for l in labels["B3+"]) == 1
+    assert len(labels["B3+"]) == 12
+    tol = 1e-6 * abs(res["G3+"].loglik)
+    assert res["B3+"].loglik >= res["G3+"].loglik - tol and res["B2"].loglik >= res["G2"].loglik - tol
+    assert res["G3+"].loglik >= res["G2"].loglik - tol
+
+
 if __name__ == "__main__":
     import inspect, traceback
     fails = 0

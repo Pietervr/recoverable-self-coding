@@ -119,7 +119,7 @@ def cv_batch_sequential(p: D.Participant, span_name="primary") -> dict:
         for m in F.FULL_MODELS:
             r = res[m]
             if r.available:
-                ll = M.Objective(F.selected_spec(m, r, span_name), train).trial_loglik(r.theta, test)
+                ll = F.score_heldout(F.selected_spec(m, r, span_name), r, test)
                 fold_sums[m].append(float(np.sum(ll)))
             else:
                 fold_sums[m].append(float("nan"))

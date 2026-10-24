@@ -65,6 +65,13 @@ SMOOTH_WINDOWS = 3            # 90 ms moving average at the 30 ms window step
 KAPPA_FALLBACK, X0_FALLBACK = 1.0, 2.5
 FLOOR_EPS = 1e-9
 FULL_MODELS = ("G0", "G1", "G2", "G3", "B0", "B1", "B2", "B3")
+# S2 repairs (24 Oct 2026), declared for the S3 review:
+SMEAR_SPREADS_MS = (20.0, 40.0, 80.0, 120.0)   # repair 2: template starts fitted through the basis SMEARED by the
+SMEAR_S_G = 0.4                                #   start's own latency kernel (the level-5 mean is the jitter-broadened
+LIFT_SPREADS_MS = (20.0, 40.0, 80.0)           #   template; a start fitted to it slides to s_tau = 0), the reduced fit
+COLLAPSE_X0 = -5.0                             #   lifted at three spreads, and for B the selected G fit collapsed (A -> 1)
+EM_MAX_ITER = 8                                # repair 1: Σ by maximum likelihood within each model (EM outer loop)
+EM_TOL = 1e-6                                  #   relative gain in the total log-likelihood that ends the loop
 
 
 def _seed(*parts) -> int:
@@ -262,47 +269,66 @@ class StartResult:
 
 def run_start(obj: M.Objective, label: str, x0: np.ndarray, lb: np.ndarray, ub: np.ndarray, seed: int,
               options: dict | None = None) -> StartResult:
+    """One §5 start under the acceptance rules as repaired in S2 (24 Oct 2026). Every attempt's end point is
+    archived. The start's RESULT is the best end point among the attempts that satisfy (i) the projected-gradient
+    threshold and (iii) finiteness; it is CONVERGED when that end point also satisfies (ii) the five-iteration
+    relative-change rule, or when it was reached in fewer than five iterations (a warm start at an optimum) and the
+    perturbed re-run and the retries found nothing better than it by 1e-8 relative. Retries (at most two, from the
+    start perturbed by N(0, 0.1²) in scaled units) run while the start is not yet CONVERGED. The rev 6 code let a
+    worse CONVERGED retry replace a better stationary end point and discarded an exact warm start whose perturbed
+    re-run landed in another basin; the lifted profile warm starts were all lost that way."""
     options = dict(LBFGSB_OPTIONS) if options is None else options
     rng = np.random.default_rng(seed)
-    attempts = []
+    attempts, runs = [], []
     t0 = _time.time()
+    x0 = np.asarray(x0, dtype=np.float64)
+    if not np.all(np.isfinite(x0)):
+        raise ValueError(f"start {label} has non-finite coordinates")
 
     def one(x_start, kind):
         run = _run_lbfgsb(obj, x_start, lb, ub, options)
-        st = _assess(run)
-        attempts.append(dict(kind=kind, status=st, f=run["f"], pg=run["pg"], nit=run["nit"], nfev=run["nfev"],
-                             message=run["message"], seconds=run["seconds"]))
-        return run, st
+        run["status0"] = _assess(run)
+        attempts.append(dict(kind=kind, status=run["status0"], f=run["f"], pg=run["pg"], nit=run["nit"],
+                             nfev=run["nfev"], message=run["message"], seconds=run["seconds"]))
+        runs.append(run)
+        return run
 
     def perturbed(x):
         return np.clip(x + rng.normal(0.0, PERTURB_SD, size=x.shape), lb, ub)
 
-    def resolve(x_start, kind):
-        """One attempt with the EARLY pairing rule. Returns (run, status, early_flag)."""
-        run, st = one(x_start, kind)
-        if st != "EARLY":
-            return run, st, False
-        run2, st2 = one(perturbed(x_start), kind + "/early-rerun")
-        both = _ok_i_iii(run) and _ok_i_iii(run2)
-        agree = abs(run["f"] - run2["f"]) <= EARLY_AGREE * max(1.0, abs(run["f"]))
-        best = run if run["f"] <= run2["f"] else run2
-        if both and agree:
-            return best, "CONVERGED", True
-        return best, "EARLY_PAIR_FAILED", True
+    def best_stationary():
+        s = [r for r in runs if _ok_i_iii(r)]
+        return min(s, key=lambda r: r["f"]) if s else None
 
-    run, st, early = resolve(np.asarray(x0, dtype=np.float64), "start")
+    def accepted(best):
+        """CONVERGED: (ii) holds at the best stationary point, or nothing else found a better objective."""
+        if best is None:
+            return False
+        if best["status0"] == "CONVERGED":
+            return True
+        others = [r for r in runs if r is not best]
+        tol = EARLY_AGREE * max(1.0, abs(best["f"]))
+        return bool(others) and all((not np.isfinite(r["f"])) or r["f"] >= best["f"] - tol for r in others)
+
+    first = one(x0, "start")
+    early = first["status0"] == "EARLY"
+    if early:
+        one(perturbed(x0), "start/early-rerun")
     retries = 0
-    best_run, best_st = run, st
-    while best_st != "CONVERGED" and retries < MAX_RETRIES:
+    while not accepted(best_stationary()) and retries < MAX_RETRIES:
         retries += 1
-        run_r, st_r, early_r = resolve(perturbed(np.asarray(x0, dtype=np.float64)), f"retry{retries}")
-        early = early or early_r
-        if st_r == "CONVERGED" or (best_st != "CONVERGED" and np.isfinite(run_r["f"]) and run_r["f"] < best_run["f"]):
-            best_run, best_st = run_r, st_r
+        one(perturbed(x0), f"retry{retries}")
+    best = best_stationary()
+    if best is not None:
+        status = "CONVERGED" if accepted(best) else "NOT_CONVERGED"
+    else:
+        finite = [r for r in runs if np.isfinite(r["f"]) and np.all(np.isfinite(r["x"]))]
+        best = min(finite, key=lambda r: r["f"]) if finite else runs[0]
+        status = "NOT_CONVERGED" if finite else "NONFINITE"
     n_eff = getattr(obj, "n_eff", 1)
     for a in attempts:
         a["f_total"] = a["f"] * n_eff
-    return StartResult(label, best_st, best_run["x"], best_run["f"] * n_eff, best_run["pg"], best_run["nit"],
+    return StartResult(label, status, best["x"], best["f"] * n_eff, best["pg"], best["nit"],
                        sum(a["nfev"] for a in attempts), _time.time() - t0, attempts, early, retries)
 
 
@@ -326,6 +352,9 @@ class FitResult:
     selection: str = ""          # REDUCED | POSITIVE for selected models, "" for candidates
     flags: list = field(default_factory=list)
     candidates: dict = field(default_factory=dict)   # selected models: {"reduced": loglik, "positive": loglik}
+    wh: object = None            # the model's own whitening (μ0, Σ) after the EM loop (S2 repair 1); None = the data's
+    em_iterations: int = 0
+    em_trace: list = field(default_factory=list)     # total log-likelihood after the multi-start fit and each EM step
 
     @property
     def available(self) -> bool:
@@ -337,6 +366,8 @@ class FitResult:
                  loglik=float(self.loglik), n_converged=self.n_converged, seconds=self.seconds,
                  code_hash=self.code_hash, bounds_hit=self.bounds_hit, clipped=self.clipped, notes=self.notes,
                  selection=self.selection, flags=self.flags, candidates=self.candidates,
+                 em_iterations=self.em_iterations, em_trace=[float(v) for v in self.em_trace],
+                 sigma_logdet=None if self.wh is None else float(self.wh.logdet),
                  starts=[dict(label=s.label, status=s.status, f=s.f, pg=s.pg, nit=s.nit, nfev=s.nfev,
                               seconds=s.seconds, early=s.early, retries=s.retries, attempts=s.attempts,
                               x=[float(v) for v in s.x]) for s in self.starts])
@@ -344,11 +375,13 @@ class FitResult:
 
     @staticmethod
     def from_json(d: dict) -> "FitResult":
+        """The whitening is not serialised: a result read back scores held-out data under the data's whitening."""
         starts = [StartResult(s["label"], s["status"], np.asarray(s["x"]), s["f"], s["pg"], s["nit"], s["nfev"],
                               s["seconds"], s["attempts"], s["early"], s["retries"]) for s in d["starts"]]
         return FitResult(d["model"], d["ident"], d["status"], None if d["theta"] is None else np.asarray(d["theta"]),
                          d["loglik"], starts, d["n_converged"], d["seconds"], d["code_hash"], d["bounds_hit"],
-                         d["clipped"], d["notes"], d.get("selection", ""), d.get("flags", []), d.get("candidates", {}))
+                         d["clipped"], d["notes"], d.get("selection", ""), d.get("flags", []), d.get("candidates", {}),
+                         None, d.get("em_iterations", 0), d.get("em_trace", []))
 
 
 def _bounds_hit(sp: M.ModelSpec, theta: np.ndarray) -> list:
@@ -392,11 +425,13 @@ def fit_model(sp: M.ModelSpec, ds: D.Dataset, starts: list | None = None, info: 
 class FitCache:
     """Fits keyed by (dataset identity, model name, start recipe). Reduced fits are computed once per
     participant, fold and data identity and reused as models, boundary candidates, profile points and c₀
-    components (§5). Optional on-disk JSON store."""
+    components (§5). Optional on-disk JSON store. `em` = Σ by maximum likelihood within each model (the repaired
+    default); False = Σ fixed at the dataset's whitening (the rev 6 construction, kept for the S2 comparisons)."""
 
-    def __init__(self, directory: str | None = None):
+    def __init__(self, directory: str | None = None, em: bool = True):
         self.mem = {}
         self.dir = directory
+        self.em = em
         if directory:
             os.makedirs(directory, exist_ok=True)
 
@@ -429,7 +464,7 @@ class FitCache:
         key = self.key(ds, sp, recipe)
         r = self.get(key)
         if r is None:
-            r = fit_model(sp, ds, starts, info)
+            r = em_fit(sp, ds, starts, info, em=self.em)
             self.put(key, r)
         return r
 
@@ -458,7 +493,7 @@ def select(name: str, reduced: FitResult, positive: FitResult, sp_pos: M.ModelSp
             flags.append("positive_unavailable")
     return FitResult(name, src.ident, "AVAILABLE", src.theta, src.loglik, src.starts, src.n_converged,
                      reduced.seconds + positive.seconds, M.code_hash(), src.bounds_hit, src.clipped, src.notes,
-                     sel, flags, cands)
+                     sel, flags, cands, src.wh, src.em_iterations, src.em_trace)
 
 
 def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str | None = None,
@@ -478,18 +513,94 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
             infos[key] = start_info(sp, ds)
         return infos[key]
 
+    def g_twin(b_name):
+        """The G result that a B model collapses onto (B2 -> G2, B3 -> the selected G3, B0 -> G0, B3+ -> G3)."""
+        return out.get("G" + b_name[1:].replace("+", "")) if b_name[0] == "B" else None
+
     for name in models:
         if name in M.SELECTED_NAMES:
             red_name, pos_name = M.SELECTED_NAMES[name]
             sp_r, sp_p = M.spec(red_name, span_name, **quad), M.spec(pos_name, span_name, **quad)
-            red = cache.fit(sp_r, ds, info_for(sp_r))
-            pos = cache.fit(sp_p, ds, info_for(sp_p))
+            info_r = info_for(sp_r)
+            red = cache.fit(sp_r, ds, info_r, starts=reduced_starts(sp_r, info_r, g_twin(red_name), span_name, quad))
+            info_p = info_for(sp_p)
+            starts = positive_starts(sp_p, ds, info_p, red, sp_r, g_twin(name), span_name, quad)
+            pos = cache.fit(sp_p, ds, info_p, starts=starts)
             out[red_name], out[pos_name] = red, pos
             out[name] = select(name, red, pos, sp_p)
         else:
             sp = M.spec(name, span_name, **quad)
-            out[name] = cache.fit(sp, ds, info_for(sp))
+            info_s = info_for(sp)
+            out[name] = cache.fit(sp, ds, info_s, starts=reduced_starts(sp, info_s, g_twin(name), span_name, quad))
     return out
+
+
+def reduced_starts(sp_r: M.ModelSpec, info: StartInfo, g_result: FitResult | None, span_name: str,
+                   quad: dict | None = None) -> list:
+    """A reduced (or any non-selected) model's starts: the four §5 design starts and, for B, its G twin collapsed."""
+    starts = start_vectors(sp_r, info)
+    if sp_r.family == "B" and g_result is not None and g_result.available:
+        sp_g = (M.spec(g_result.model, span_name, **(quad or {})) if g_result.model in M.MODEL_NAMES
+                else selected_spec(g_result.model, g_result, span_name, quad))
+        starts += collapsed_start(sp_r, g_result, sp_g, info)
+    return starts
+
+
+def positive_starts(sp_p: M.ModelSpec, ds: D.Dataset, info: StartInfo, reduced: FitResult | None,
+                    sp_r: M.ModelSpec, g_result: FitResult | None, span_name: str, quad: dict | None = None) -> list:
+    """The repaired start set of a positive-spread candidate (S2 repair 2): the four §5 design starts, the four
+    smeared-kernel template starts, the reduced fit lifted at three spreads and, for B, the selected G fit collapsed
+    to A → 1 (κ = 50, x0 = −5). Each family is labelled so that the S2 basin report can say which were material."""
+    starts = start_vectors(sp_p, info) + smeared_starts(sp_p, ds, info)
+    if reduced is not None and reduced.available:
+        starts += lifted_starts(sp_p, reduced, sp_r, info)
+    if g_result is not None and g_result.available and sp_p.family == "B":
+        sp_g = selected_spec("G" + sp_p.name[1:].replace("+", ""), g_result, span_name, quad)
+        starts += collapsed_start(sp_p, g_result, sp_g, info)
+    return starts
+
+
+def em_fit(sp: M.ModelSpec, ds: D.Dataset, starts: list | None = None, info: StartInfo | None = None,
+           options: dict | None = None, em: bool = True, max_iter: int = EM_MAX_ITER, tol: float = EM_TOL) -> FitResult:
+    """Σ by maximum likelihood within the model (S2 repair 1): the multi-start fit under the dataset's starting
+    whitening (the scaled catch covariance), then a generalised EM loop — Σ M-step from the posterior over
+    (branch, τ node, g) at the current θ (`models.m_step_sigma`), re-whitening of the same trials, one warm-started
+    L-BFGS-B solve — until the total log-likelihood gains less than `tol` relative or `max_iter` steps. μ0 stays the
+    training-catch anchor. The result carries the final whitening (`wh`), the EM trace and the archive of the
+    multi-start fit plus the warm solves. The total log-likelihood never decreases (a decrease, impossible for a
+    converged inner solve, ends the loop with a note). `em=False` is the rev 6 construction."""
+    r = fit_model(sp, ds, starts, info, options)
+    r.wh, r.em_iterations, r.em_trace = ds.wh, 0, [float(r.loglik)]
+    if not em or not r.available:
+        return r
+    cur = ds
+    archive, n_conv, notes = list(r.starts), r.n_converged, list(r.notes)
+    for it in range(1, max_iter + 1):
+        Sigma = M.m_step_sigma(sp, r.theta, cur)
+        wh = D.whitening_from_sigma(cur.wh.mu0, Sigma, 0.0, cur.wh.n_catch)
+        nxt = D.rewhiten(ds, wh, f"/em{it}")
+        r2 = fit_model(sp, nxt, [(f"em{it}", r.theta)], info, options)
+        if not r2.available or r2.loglik < r.loglik - 1e-6 * max(1.0, abs(r.loglik)):
+            notes.append(f"EM stopped at step {it}: " + ("inner solve not CONVERGED" if not r2.available else
+                                                          f"objective fell by {r.loglik - r2.loglik:.3g} nat"))
+            break
+        gain = r2.loglik - r.loglik
+        trace = r.em_trace + [float(r2.loglik)]
+        archive = archive + list(r2.starts)
+        r = FitResult(sp.name, ds.ident, "AVAILABLE", r2.theta, r2.loglik, archive, n_conv, r.seconds + r2.seconds,
+                      M.code_hash(), r2.bounds_hit, r2.clipped, notes, "", [], {}, wh, it, trace)
+        cur = nxt
+        if gain <= tol * max(1.0, abs(r.loglik)):
+            break
+    r.notes = notes
+    return r
+
+
+def score_heldout(sp: M.ModelSpec, r: FitResult, test: D.Dataset) -> np.ndarray:
+    """Per-trial log density of the test trials under the fitted model — whitened with the MODEL's own (μ0, Σ)
+    when the fit carries one (EM), else with the test dataset's whitening (the training fold's starting Σ)."""
+    ds = test if (r.wh is None or r.wh is test.wh) else D.rewhiten(test, r.wh, "/model")
+    return M.Objective(sp, ds).trial_loglik(r.theta)
 
 
 def spec_of(result_name: str, span_name: str) -> M.ModelSpec:
@@ -542,7 +653,7 @@ def cv_scores(p: D.Participant, span_name: str = "primary", cache: FitCache | No
                 sums[m].append(np.nan)
                 continue
             sp = selected_spec(m, r, span_name)
-            ll = M.Objective(sp, train).trial_loglik(r.theta, test)
+            ll = score_heldout(sp, r, test)
             sums[m].append(float(np.sum(ll)))
     n = D.n_scored(p)
     scores = {m: (float(np.sum(sums[m]) / n) if avail[m] else float("nan")) for m in models}
@@ -554,22 +665,86 @@ def cv_scores(p: D.Participant, span_name: str = "primary", cache: FitCache | No
 # ----------------------------------------------------------------------------------------------
 # constrained (profile) fits, §7.5 — the search itself is decide.hull_search
 # ----------------------------------------------------------------------------------------------
-def lift_warm_start(sp_from: M.ModelSpec, theta_from: np.ndarray, sp_to: M.ModelSpec, info: StartInfo) -> np.ndarray:
-    """Map an unrestricted solution onto a constrained model's coordinates: drop θ_τ; REDUCED → positive LIFT
-    supplies the shift-only coefficients from the floored T_B initialisation; positive → reduced PROJECTS
-    (shift-only coefficients dropped)."""
+def lift_warm_start(sp_from: M.ModelSpec, theta_from: np.ndarray, sp_to: M.ModelSpec, info: StartInfo,
+                    s_tau_ms: float = 20.0, logkappa: float | None = None, x0: float | None = None) -> np.ndarray:
+    """Map a fitted vector of `sp_from` onto `sp_to`'s coordinates: REDUCED → positive LIFT supplies the shift-only
+    coefficients from the floored T_B initialisation; positive → reduced PROJECTS (shift-only coefficients dropped);
+    θ_τ (when `sp_to` has it) is set to `s_tau_ms`; the two-state parameters are kept, taken from `logkappa`/`x0`
+    when given (the G → B collapse), or the §5 fallbacks when `sp_from` has none. Every coordinate is clipped to
+    the target box (S2 repair 3: a coefficient that had run below the softplus floor used to be packed as −inf)."""
     P = M.unpack(sp_from, theta_from)
     b_to = sp_to.basis()
-    gamma = np.where(P.c > 0, M.softplus_inv(np.maximum(P.c, 1e-300)), -np.inf)
+    gamma = np.where(P.c > 0, M.softplus_inv(np.maximum(P.c, 1e-300)), M.GAMMA_MIN)
+    gamma = np.maximum(np.where(np.isfinite(gamma), gamma, M.GAMMA_MIN), M.GAMMA_MIN)
     gamma_full = np.array(info.gamma_B, dtype=np.float64)
     vis = [j for j in b_to.visible if j != b_to.gauge]
     gamma_full[vis] = gamma[vis]
     if sp_to.positive and sp_from.positive:
         gamma_full[b_to.invisible] = gamma[b_to.invisible]
-    alpha = M.softplus_inv(P.a[1:])
-    logkappa = np.log(P.kappa) if P.kappa is not None else 0.0
-    x0 = P.x0 if P.x0 is not None else X0_FALLBACK
-    return M.pack(sp_to, alpha, gamma_full, logkappa, x0, 20.0, P.s_g)
+    alpha = M.softplus_inv(np.maximum(P.a[1:], 1e-6))
+    lk = (np.log(P.kappa) if P.kappa is not None else np.log(KAPPA_FALLBACK)) if logkappa is None else logkappa
+    xx = (P.x0 if P.x0 is not None else X0_FALLBACK) if x0 is None else x0
+    th = M.pack(sp_to, alpha, gamma_full, lk, xx, s_tau_ms, P.s_g)
+    lb, ub = sp_to.bounds()
+    return np.clip(th, lb, ub)
+
+
+def _level5_responses(ds: D.Dataset):
+    """The training level-5 mean response about μ0 (raw = T_A's target, smoothed = T_B's)."""
+    R = ds.Y - ds.wh.mu0
+    lev5 = R[ds.k == 5].mean(axis=0) if np.any(ds.k == 5) else R[ds.k == ds.k.max()].mean(axis=0)
+    kern = np.ones(SMOOTH_WINDOWS) / SMOOTH_WINDOWS
+    sm = np.convolve(np.pad(lev5, SMOOTH_WINDOWS // 2, mode="edge"), kern, mode="valid")
+    return lev5, sm
+
+
+def smeared_template_gamma(b: M.Basis, response: np.ndarray, s_tau_ms: float) -> np.ndarray:
+    """Template start for a positive-spread model at spread s (S2 repair 2): non-negative least squares of the
+    basis SMEARED by the truncated-normal latency kernel at s — Σ_τ w_τ(s) Bmat[τ], all J columns, the shift-only
+    ones included — to the level-5 mean response, so that the start's EXPECTED response matches the mean response
+    rather than the template itself (the level-5 mean is the jitter-broadened template). Floor 1e-3, gauge rescale."""
+    w = M.truncnorm_node_weights(b.nodes_ms, s_tau_ms)
+    Bs = np.einsum("n,nwj->wj", w, b.Bmat)
+    coef, _ = nnls(Bs, np.asarray(response, dtype=np.float64))
+    c = np.maximum(coef, COEF_FLOOR)
+    c *= np.log(2.0) / c[b.gauge]
+    return np.maximum(np.asarray(M.softplus_inv(c), dtype=np.float64), M.GAMMA_MIN)
+
+
+def smeared_starts(sp: M.ModelSpec, ds: D.Dataset, info: StartInfo, spreads=SMEAR_SPREADS_MS) -> list:
+    """Four smeared-kernel starts for a positive-spread model: spreads 20/40/80/120 ms, the raw (T_A) and smoothed
+    (T_B) level-5 response alternating, s_g = 0.4 when the model has a scale term."""
+    if not sp.positive:
+        return []
+    b = sp.basis()
+    raw, sm = _level5_responses(ds)
+    alpha = M.softplus_inv(np.maximum(info.a, 1e-6))
+    s_g = SMEAR_S_G if sp.scale_free else 0.0
+    out = []
+    for i, s in enumerate(spreads):
+        resp, tag = (raw, "A") if i % 2 == 0 else (sm, "B")
+        gamma = smeared_template_gamma(b, resp, s)
+        s_eff = s if sp.tau_free else sp.tau_fixed_ms
+        out.append((f"sm{tag}|tau{s:g}|sg{s_g:g}", M.pack(sp, alpha, gamma, info.logkappa, info.x0, s_eff, s_g)))
+    return out
+
+
+def lifted_starts(sp_p: M.ModelSpec, reduced: FitResult, sp_r: M.ModelSpec, info: StartInfo,
+                  spreads=LIFT_SPREADS_MS) -> list:
+    """The cached reduced fit (G2 for G3+, …) lifted onto the positive-spread coordinates at three spreads."""
+    if not reduced.available:
+        return []
+    return [(f"lift{sp_r.name}|tau{s:g}", lift_warm_start(sp_r, reduced.theta, sp_p, info, s)) for s in spreads]
+
+
+def collapsed_start(sp_b: M.ModelSpec, g_result: FitResult, sp_g: M.ModelSpec, info: StartInfo) -> list:
+    """The selected G fit as a B start with A → 1 at every level (κ = 50, x0 = −5): the point of the B family at
+    which it coincides with the G optimum, so that l(B+) ≥ l(G+) holds by construction when it is accepted."""
+    if not g_result.available:
+        return []
+    PG = M.unpack(sp_g, g_result.theta)
+    s = PG.s_tau_ms if (sp_g.positive and PG.s_tau_ms > 0) else LIFT_SPREADS_MS[0]
+    return [(f"collapse{sp_g.name}", lift_warm_start(sp_g, g_result.theta, sp_b, info, s, np.log(M.KAPPA_MAX), COLLAPSE_X0))]
 
 
 def constrained_starts(sp_full: M.ModelSpec, sp_c: M.ModelSpec, unrestricted: FitResult, sp_u: M.ModelSpec,

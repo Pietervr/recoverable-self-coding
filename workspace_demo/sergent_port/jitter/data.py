@@ -185,16 +185,44 @@ class Whitening:
         return (Y - self.mu0) @ self.Linv.T
 
 
-def whitening(Y: np.ndarray, levels: np.ndarray) -> Whitening:
-    catch = Y[levels == 0]
-    if catch.shape[0] < 2:
-        raise ValueError("fewer than two catch trials")
-    mu0 = catch.mean(axis=0)
-    Sigma, rho = ledoit_wolf(catch - mu0)
+WHITENING_METHODS = ("scaled", "lw")
+DEFAULT_WHITENING = "scaled"
+
+
+def whitening_from_sigma(mu0: np.ndarray, Sigma: np.ndarray, shrinkage: float = 0.0, n_catch: int = 0) -> Whitening:
+    """Whitening for a given (μ0, Σ): the EM Σ of a fitted model (S2 repair 1), an oracle Σ, a sensitivity Σ."""
+    Sigma = 0.5 * (np.asarray(Sigma, dtype=np.float64) + np.asarray(Sigma, dtype=np.float64).T)
     L = np.linalg.cholesky(Sigma)
     Linv = np.linalg.inv(L)
     logdet = 2.0 * float(np.sum(np.log(np.diag(L))))
-    return Whitening(mu0, Sigma, L, Linv, logdet, rho, int(catch.shape[0]))
+    return Whitening(np.asarray(mu0, dtype=np.float64), Sigma, L, Linv, logdet, float(shrinkage), int(n_catch))
+
+
+def whitening(Y: np.ndarray, levels: np.ndarray, method: str = DEFAULT_WHITENING) -> Whitening:
+    """μ0 = mean of the catch trials; Σ from the catch deviations by
+      'scaled' (S2 repair 1, 24 Oct 2026): the sample covariance × n/(n − p − 2), the KL-optimal scalar multiple of the
+               Gaussian plug-in (E[S⁻¹] = n/(n − p − 2) Σ⁻¹ for the n-denominator S): its held-out whitened second moment
+               is unbiased and its spectrum is not compressed. It is the STARTING Σ of the within-model EM and the
+               declared cheap construction;
+      'lw'     the rev 6 construction: Ledoit–Wolf shrinkage towards μI. S2 found it compresses the variance along the
+               dominant (template-like) direction by about 10–13% at n ≈ 115 catch trials in 16 windows, an excess the
+               two-state occupancy law absorbs better than the graded scale law (false POSITIVE sets on graded data).
+    The catch-trial count and the shrinkage intensity (0 for 'scaled') are recorded."""
+    catch = Y[levels == 0]
+    n, p = catch.shape
+    if n < 2:
+        raise ValueError("fewer than two catch trials")
+    mu0 = catch.mean(axis=0)
+    X = catch - mu0
+    if method == "lw" or (method == "scaled" and n <= p + 2):
+        # 'scaled' needs n > p + 2 (never binding on the real or synthetic participants: ≥ 110 catch trials in 16
+        # windows, ≥ 140 in 53); below that the Ledoit–Wolf estimate is used and its shrinkage > 0 records the fact
+        Sigma, rho = ledoit_wolf(X)
+    elif method == "scaled":
+        Sigma, rho = (X.T @ X / n) * (n / (n - p - 2.0)), 0.0
+    else:
+        raise KeyError(method)
+    return whitening_from_sigma(mu0, Sigma, rho, n)
 
 
 @dataclass
@@ -216,26 +244,32 @@ class Dataset:
         return int(self.Y.shape[1])
 
 
-def make_dataset(Y: np.ndarray, k: np.ndarray, sp: Span, wh: Whitening | None = None, ident: str = "") -> Dataset:
+def make_dataset(Y: np.ndarray, k: np.ndarray, sp: Span, wh: Whitening | None = None, ident: str = "",
+                 method: str = DEFAULT_WHITENING) -> Dataset:
     Y = np.asarray(Y, dtype=np.float64)
     k = np.asarray(k, dtype=np.int64)
-    wh = whitening(Y, k) if wh is None else wh
+    wh = whitening(Y, k, method) if wh is None else wh
     return Dataset(Y, k, sp, wh, wh.whiten(Y), ident)
 
 
-def fold_datasets(p: Participant, sp: Span, fold: int):
-    """(train, test) Datasets of one block fold; μ0 and Σ from the TRAINING catch trials only."""
+def rewhiten(ds: Dataset, wh: Whitening, suffix: str = "") -> Dataset:
+    """The same trials under another whitening (the EM iterations; scoring a test fold under a model's own Σ)."""
+    return Dataset(ds.Y, ds.k, ds.span, wh, wh.whiten(ds.Y), ds.ident + suffix)
+
+
+def fold_datasets(p: Participant, sp: Span, fold: int, method: str = DEFAULT_WHITENING):
+    """(train, test) Datasets of one block fold; μ0 and the starting Σ from the TRAINING catch trials only."""
     tr, te = folds(p)[fold]
     Y = p.W53[:, sp.windows]
-    train = make_dataset(Y[tr], p.levels[tr], sp, None, f"{p.data_id}/{sp.name}/fold{fold}/train")
+    train = make_dataset(Y[tr], p.levels[tr], sp, None, f"{p.data_id}/{sp.name}/fold{fold}/train", method)
     test = make_dataset(Y[te], p.levels[te], sp, train.wh, f"{p.data_id}/{sp.name}/fold{fold}/test")
     return train, test, tr, te
 
 
-def full_dataset(p: Participant, sp: Span) -> Dataset:
-    """All trials (block 21 included), μ0 and Σ from all catch trials (the §7.1 generator fits and the real
-    full-data fits of §7.5)."""
-    return make_dataset(p.W53[:, sp.windows], p.levels, sp, None, f"{p.data_id}/{sp.name}/full")
+def full_dataset(p: Participant, sp: Span, method: str = DEFAULT_WHITENING) -> Dataset:
+    """All trials (block 21 included), μ0 and the starting Σ from all catch trials (the §7.1 generator fits and the
+    real full-data fits of §7.5)."""
+    return make_dataset(p.W53[:, sp.windows], p.levels, sp, None, f"{p.data_id}/{sp.name}/full", method)
 
 
 def n_scored(p: Participant) -> int:

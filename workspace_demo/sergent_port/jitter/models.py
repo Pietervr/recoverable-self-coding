@@ -82,6 +82,10 @@ MODE_CLIP_SD = 12.0           # |û − μ_p| ≤ 12 s_g
 S_TAU_MIN_MS = 2.0
 S_TAU_MAX_MS = 150.0
 S_G_MAX = 1.5
+GAMMA_MIN = -30.0             # S2 repair 3 (24 Oct 2026): lower box on every template coordinate (c >= 1e-13). Without it
+#                               L-BFGS-B ran coefficients that want to be zero off along the flat direction (archived W2
+#                               set 1: median per-fit minimum gamma -75, 43 of 194 fits below -700, worst -1.9e6), softplus
+#                               underflowed to c = 0 and every lifted warm start was packed with -inf (NONFINITE).
 TIME_SCALE = 100.0            # θ_τ = s_τ / 100 ms
 PAD_MULTIPLE = 64
 LOG2PI = float(np.log(2.0 * np.pi))
@@ -279,6 +283,7 @@ class ModelSpec:
         lay = self.layout()
         lb = np.full(lay["n_params"], -np.inf)
         ub = np.full(lay["n_params"], np.inf)
+        lb[lay["index"]["gamma"]] = GAMMA_MIN
         if self.family == "B":
             ub[lay["index"]["logkappa"]] = np.log(KAPPA_MAX)
         if self.tau_free:
@@ -411,9 +416,10 @@ def _constants(sp: ModelSpec):
     )
 
 
-def _adaptive_log_scale_integral(A, B, s_g, gh_x, gh_logw, xp=jnp):
+def _adaptive_log_scale_integral(A, B, s_g, gh_x, gh_logw, xp=jnp, moments=False):
     """log ∫ LogNormal(g; −s²/2, s²) exp(A g − ½ B g²) dg by adaptive Gauss–Hermite in u = log g, elementwise over
-    the arrays A = m P (n × N_tau) and B = m² vv (n × N_tau). Works with jnp (model) and np (dense reference)."""
+    the arrays A = m P (n × N_tau) and B = m² vv (n × N_tau). Works with jnp (model) and np (dense reference).
+    With `moments`, also the posterior moments E[g | ·], E[g² | ·] under the same nodes (the EM M-step of §5)."""
     s2 = s_g * s_g + S_G_EPS
     s = xp.sqrt(s2)
     mu_p = -0.5 * s_g * s_g
@@ -445,10 +451,18 @@ def _adaptive_log_scale_integral(A, B, s_g, gh_x, gh_logw, xp=jnp):
         lse = logsumexp(terms, axis=-1)
     else:
         lse = np.logaddexp.reduce(terms, axis=-1)
-    return lse + xp.log(sigma_q / s) - 0.5 * np.log(np.pi)
+    out = lse + xp.log(sigma_q / s) - 0.5 * np.log(np.pi)
+    if not moments:
+        return out
+    w = xp.exp(terms - lse[..., None])
+    return out, xp.sum(w * em, axis=-1), xp.sum(w * em * em, axis=-1)
 
 
-def _trial_loglik_impl(theta, U, k, Linv, logdet, sp: ModelSpec, C: dict):
+def _core(theta, U, k, Linv, sp: ModelSpec, C: dict, moments: bool = False):
+    """The computation shared by the per-trial log-likelihood and the EM E-step: the unwhitened window templates
+    Tt (N_tau, W), the latency log-weights, the per-trial response amplitude m (n,), the per-(trial, node) scale
+    integrals node_terms (n, N_tau), ‖u‖² and, for B, the occupancy log-weights per trial; with `moments` also the
+    posterior scale moments Eg, Eg2 (n, N_tau) under the same quadrature (ones when g ≡ 1)."""
     idx = C["idx"]
     alpha = theta[idx["alpha"]]
     a = jnp.concatenate([jnp.zeros(1), jax.nn.softplus(alpha)])                  # (6,)
@@ -470,6 +484,7 @@ def _trial_loglik_impl(theta, U, k, Linv, logdet, sp: ModelSpec, C: dict):
         logw_tau = jax.nn.log_softmax(-0.5 * (C["nodes"] / s_tau) ** 2)
     else:
         logw_tau = jnp.zeros(1)
+    out = dict(uu=uu, logw_tau=logw_tau, Tt=Tt)
     if sp.family == "G":
         m = a[k]                                                                 # (n,)
     else:
@@ -486,35 +501,73 @@ def _trial_loglik_impl(theta, U, k, Linv, logdet, sp: ModelSpec, C: dict):
         log1mA = jnp.concatenate([jnp.zeros(1), jnp.where(floored, jnp.log(1.0 - A_MIN), -jax.nn.softplus(u))])
         mH = jnp.concatenate([jnp.zeros(1), a[1:] / A[1:]])
         m = mH[k]
-        logA_i, log1mA_i = logA[k], log1mA[k]
+        out.update(logA_i=logA[k], log1mA_i=log1mA[k])
+    out["m"] = m
+    Am = m[:, None] * P
+    Bm = (m * m)[:, None] * vv[None, :]
     # the scale integral per trial and latency node
     if not sp.scale_free:
-        node_terms = m[:, None] * P - 0.5 * (m * m)[:, None] * vv[None, :]       # g ≡ 1 exactly, (n, N_tau)
+        node_terms = Am - 0.5 * Bm                                               # g ≡ 1 exactly, (n, N_tau)
+        if moments:
+            out["Eg"] = jnp.ones_like(node_terms)
+            out["Eg2"] = jnp.ones_like(node_terms)
     elif sp.adaptive_g:
         s_g = theta[idx["s_g"]]
-        node_terms = _adaptive_log_scale_integral(m[:, None] * P, (m * m)[:, None] * vv[None, :], s_g,
-                                                  C["gh_x"], C["gh_logw"])
+        if moments:
+            node_terms, out["Eg"], out["Eg2"] = _adaptive_log_scale_integral(Am, Bm, s_g, C["gh_x"], C["gh_logw"],
+                                                                             moments=True)
+        else:
+            node_terms = _adaptive_log_scale_integral(Am, Bm, s_g, C["gh_x"], C["gh_logw"])
     else:
         s_g = theta[idx["s_g"]]
         g = jnp.exp(-0.5 * s_g ** 2 + s_g * C["z"])                              # prior-centred nodes (N_g,)
         gm = g[None, None, :] * m[:, None, None]
-        node_terms = logsumexp(C["logw_g"][None, None, :] + gm * P[:, :, None]
-                               - 0.5 * gm ** 2 * vv[None, :, None], axis=2)
-    lse = logsumexp(logw_tau[None, :] + node_terms, axis=1)                      # (n,)
-    base = -0.5 * C["W"] * LOG2PI - 0.5 * logdet - 0.5 * uu
+        logt = C["logw_g"][None, None, :] + gm * P[:, :, None] - 0.5 * gm ** 2 * vv[None, :, None]
+        node_terms = logsumexp(logt, axis=2)
+        if moments:
+            w = jnp.exp(logt - node_terms[..., None])
+            out["Eg"] = jnp.sum(w * g, axis=-1)
+            out["Eg2"] = jnp.sum(w * g * g, axis=-1)
+    out["node_terms"] = node_terms
+    return out
+
+
+def _trial_loglik_impl(theta, U, k, Linv, logdet, sp: ModelSpec, C: dict):
+    o = _core(theta, U, k, Linv, sp, C)
+    lse = logsumexp(o["logw_tau"][None, :] + o["node_terms"], axis=1)            # (n,)
+    base = -0.5 * C["W"] * LOG2PI - 0.5 * logdet - 0.5 * o["uu"]
     if sp.family == "G":
         return base + lse
     catch = k == 0
-    logA_safe = jnp.where(catch, jnp.log(0.5), logA_i)
-    log1mA_safe = jnp.where(catch, jnp.log(0.5), log1mA_i)
+    logA_safe = jnp.where(catch, jnp.log(0.5), o["logA_i"])
+    log1mA_safe = jnp.where(catch, jnp.log(0.5), o["log1mA_i"])
     mix = jnp.logaddexp(log1mA_safe, logA_safe + lse)
     return base + jnp.where(catch, 0.0, mix)
 
 
+def _posterior_impl(theta, U, k, Linv, sp: ModelSpec, C: dict):
+    """EM E-step (S2 repair 1, 24 Oct 2026): R (n, N_tau) = posterior probability of a response AT latency node τ
+    (rows sum to post_high), Eg and Eg2 (n, N_tau) = posterior scale moments at each node, post_high (n,) = posterior
+    probability of a response (1 on stimulus trials of the graded family, 0 on catch trials), Tt (N_tau, W) the
+    unwhitened window templates and m (n,) the response amplitude — everything the Σ M-step needs."""
+    o = _core(theta, U, k, Linv, sp, C, moments=True)
+    lt = o["logw_tau"][None, :] + o["node_terms"]
+    lse = logsumexp(lt, axis=1)
+    r = jnp.exp(lt - lse[:, None])
+    catch = k == 0
+    if sp.family == "G":
+        post_high = jnp.where(catch, 0.0, 1.0)
+    else:
+        high = o["logA_i"] + lse
+        low = o["log1mA_i"]
+        post_high = jnp.where(catch, 0.0, jnp.exp(high - jnp.logaddexp(low, high)))
+    return r * post_high[:, None], o["Eg"], o["Eg2"], post_high, o["Tt"], o["m"]
+
+
 @lru_cache(maxsize=None)
 def functions(sp: ModelSpec):
-    """(value_and_grad of the negative training log-likelihood, per-trial log-likelihood), both jitted.
-    Signature: f(theta, U, k, mask, Linv, logdet) and g(theta, U, k, Linv, logdet)."""
+    """(value_and_grad of the negative training log-likelihood, per-trial log-likelihood, EM posterior), all jitted.
+    Signatures: f(theta, U, k, mask, Linv, logdet), g(theta, U, k, Linv, logdet), p(theta, U, k, Linv)."""
     C = _constants(sp)
 
     def trial_loglik(theta, U, k, Linv, logdet):
@@ -523,7 +576,32 @@ def functions(sp: ModelSpec):
     def objective(theta, U, k, mask, Linv, logdet):
         return -jnp.sum(mask * trial_loglik(theta, U, k, Linv, logdet))
 
-    return jax.jit(jax.value_and_grad(objective)), jax.jit(trial_loglik)
+    def posterior(theta, U, k, Linv):
+        return _posterior_impl(theta, U, k, Linv, sp, C)
+
+    return jax.jit(jax.value_and_grad(objective)), jax.jit(trial_loglik), jax.jit(posterior)
+
+
+def m_step_sigma(sp: ModelSpec, theta: np.ndarray, ds) -> np.ndarray:
+    """The Σ M-step of the within-model maximum-likelihood noise covariance (S2 repair 1): the posterior expectation
+    of the residual outer product about μ0 (the training-catch anchor, not re-estimated), averaged over the trials:
+      Σ_new = (1/n) Σ_i [ r_i r_iᵀ − Σ_τ R_iτ E[g]_iτ m_i (r_i T̃_τᵀ + T̃_τ r_iᵀ) + Σ_τ R_iτ E[g²]_iτ m_i² T̃_τ T̃_τᵀ ],
+    r_i = y_i − μ0; the low branch (and every catch trial) contributes r_i r_iᵀ only. Symmetrised, with a ridge of
+    1e-10 of the mean eigenvalue."""
+    _, _, post = functions(sp)
+    R, Eg, Eg2, ph, Tt, m = (np.asarray(v, dtype=np.float64) for v in
+                             post(jnp.asarray(theta, dtype=jnp.float64), jnp.asarray(ds.U), jnp.asarray(ds.k),
+                                  jnp.asarray(ds.wh.Linv)))
+    r0 = np.asarray(ds.Y, dtype=np.float64) - ds.wh.mu0
+    n, W = r0.shape
+    S0 = r0.T @ r0
+    Mx = R * Eg * m[:, None]
+    C1 = r0.T @ (Mx @ Tt)
+    wtau = np.sum(R * Eg2 * (m * m)[:, None], axis=0)
+    Q = Tt.T @ (wtau[:, None] * Tt)
+    Sigma = (S0 - C1 - C1.T + Q) / n
+    Sigma = 0.5 * (Sigma + Sigma.T)
+    return Sigma + 1e-10 * (np.trace(Sigma) / W) * np.eye(W)
 
 
 def padded(U: np.ndarray, k: np.ndarray, multiple: int = PAD_MULTIPLE):
@@ -547,7 +625,7 @@ class Objective:
 
     def __init__(self, sp: ModelSpec, ds):
         self.spec = sp
-        self.vg, self.per_trial = functions(sp)
+        self.vg, self.per_trial, self.posterior = functions(sp)
         self.U, self.k, self.mask = padded(ds.U, ds.k)
         self.n_eff = int(ds.k.size)
         self.Linv = jnp.asarray(ds.wh.Linv)
