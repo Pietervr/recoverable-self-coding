@@ -41,7 +41,7 @@ mkdir -p results/s4 results/s2
 aws s3 sync "s3://$BUCKET/$RES/results/s4" results/s4 --quiet || true
 if [ "__MODE__" = "s2closure" ]; then aws s3 sync "s3://$BUCKET/$RES/results/s2" results/s2 --quiet || true; fi
 sync_out() {
-  aws s3 sync results/s4 "s3://$BUCKET/$RES/results/s4" --quiet
+  aws s3 sync results/s4 "s3://$BUCKET/$RES/results/s4" --quiet --exclude "*.tmp.*"
   if [ "__MODE__" = "s2closure" ]; then aws s3 sync results/s2 "s3://$BUCKET/$RES/results/s2" --quiet --exclude "archive/*"; fi
   aws s3 cp /var/log/s4_userdata.log "$LOGKEY" --quiet || true
 }
@@ -57,7 +57,8 @@ SYNC_PID=$!
 echo "[ud] run start $(date -u +%FT%TZ)"
 case "__MODE__" in
   s2closure) bash aws/s2_closure.sh __WORKERS__ __PART__ > "results/s2/run_closure___PART__.log" 2>&1 ;;
-  s4a)       python s4.py s4a --workers __WORKERS__ > results/s4/run_s4a.log 2>&1 ;;
+  s4a)       export S4_S3_RESULTS="s3://$BUCKET/$RES/results/s4"
+             python s4.py s4a --workers __WORKERS__ --shard __SHARD__ --wait-h 20 > "results/s4/run_s4a___SHARD_TAG__.log" 2>&1 ;;
   s4b)       python s4.py s4b --workers __WORKERS__ --shard __SHARD__ --kind __KIND__ > "results/s4/run_s4b___SHARD_TAG__.log" 2>&1 ;;
 esac
 echo "[ud] run rc=$? $(date -u +%FT%TZ)"

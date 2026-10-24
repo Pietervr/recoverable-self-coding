@@ -291,12 +291,14 @@ def main():
     elif a.cmd == "probe":
         probe(c)
     elif a.cmd == "launch":
-        if a.mode in ("s2closure", "s4a"):
+        if a.mode == "s2closure" or (a.mode == "s4a" and a.shards == 1):
             launch_one(c, a.mode, "1/1", a.workers, a.kind, a.lifetime_h, a.dry_run, a.az, part=a.part)
         else:
+            # s4b: disjoint hash shards of one queue. s4a with K > 1: the same deterministic path on K hosts, each
+            # running its hash shard of every batch and waiting for the others at the barriers (s4.py s4a --shard)
             order = c["subnet_order"]
             for i in range(a.shard_start, a.shards):
-                launch_one(c, "s4b", f"{i}/{a.shards}", a.workers, a.kind, a.lifetime_h, a.dry_run, a.az or order[i % len(order)])
+                launch_one(c, a.mode, f"{i}/{a.shards}", a.workers, a.kind, a.lifetime_h, a.dry_run, a.az or order[i % len(order)])
     elif a.cmd == "probe-core":
         tag = "probe" + _dt.datetime.now(_dt.timezone.utc).strftime("%H%M")
         launch_one(c, "probe", tag, 1, "all", a.lifetime_h, a.dry_run, a.az, part="all", instance_type=a.instance_type,

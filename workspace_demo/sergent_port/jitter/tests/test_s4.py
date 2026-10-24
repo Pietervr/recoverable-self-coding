@@ -92,6 +92,55 @@ def test_record_deferral_only_t2_t3_and_drops_their_s4b_tasks():
         s4.S4_DIR = old
 
 
+def _fake_run_queue(tasks, workers, bases, c0=None, label=""):
+    """Writes every task's file with deterministic fake content: EPS gives B0 − G0 = 0.03; a λ setting gives
+    B3 − G3 = 0.03 λ (so ε = 0.01, λ_E1 ≈ 0.417, λ_T3 ≈ 0.667 by linear interpolation); c₀ tasks give a q0."""
+    import hashlib
+    for t in tasks:
+        seed = int(hashlib.sha256(t["path"].encode()).hexdigest()[:8], 16)
+        rng = __import__("numpy").random.default_rng(seed)
+        if t["kind"] == "cv":
+            s = t["setting"]
+            if s == "EPS":
+                sc = {"G0": -15.0, "B0": -15.0 + 0.03 + rng.normal(0, 5e-4)}
+            else:
+                lam = float(s.split("@")[1])
+                sc = {"G3": -15.0, "B3": -15.0 + 0.03 * lam + rng.normal(0, 5e-4)}
+            s4._write(t["path"], dict(scores=sc, m=t["m"], r=t["r"]))
+        else:
+            s4._write(t["path"], dict(q0=float(rng.chisquare(1)) * 0.5))
+    return len(tasks)
+
+
+def test_s4a_sharded_barriers_and_determinism():
+    """Two hosts share one result prefix: each runs its hash shard of every S4a batch; a host with no waiting allowed
+    raises Incomplete at a barrier whose other shard has not landed; the last host writes s4a.json; both compute
+    the same ε, c₀ and λ."""
+    old = (s4.S4_DIR, s4.run_queue, s4.load_bases)
+    s4.S4_DIR = tempfile.mkdtemp()
+    s4.run_queue = _fake_run_queue
+    s4.load_bases = lambda session="active": {}
+    try:
+        for shard, stage in (("0/2", "stage 1"), ("1/2", "CERTE1"), ("0/2", "CERTT3")):
+            try:
+                s4.s4a(1, shard, 0.0)
+                assert False, f"{shard} should have hit a barrier"
+            except s4.Incomplete as e:
+                assert stage in str(e), (shard, str(e))
+        res = s4.s4a(1, "1/2", 0.0)                                   # every batch complete: writes s4a.json
+        assert os.path.exists(os.path.join(s4.S4_DIR, "s4a.json"))
+        assert abs(res["epsilon"] - 0.01) < 1e-3
+        assert res["lambda"]["E1"]["status"] == "CERTIFIED" and abs(res["lambda"]["E1"]["lam"] - 0.4167) < 0.02
+        assert res["lambda"]["T3"]["status"] == "CERTIFIED" and abs(res["lambda"]["T3"]["lam"] - 0.6667) < 0.02
+        res2 = s4.s4a(1, "0/2", 0.0)                                  # the other host, everything present: identical
+        assert res2["epsilon"] == res["epsilon"] and res2["c0"] == res["c0"]
+        assert res2["lambda"]["E1"]["lam"] == res["lambda"]["E1"]["lam"] and res2["lambda"]["T3"]["lam"] == res["lambda"]["T3"]["lam"]
+        res3 = s4.s4a(1, None, 0.0)                                   # a single host never waits and finds everything
+        assert res3["lambda"]["E1"]["lam"] == res["lambda"]["E1"]["lam"]
+    finally:
+        s4.S4_DIR, s4.run_queue, s4.load_bases = old
+
+
 if __name__ == "__main__":
     import inspect
     import traceback

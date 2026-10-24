@@ -396,18 +396,60 @@ def reference_over_sets(stage: str, setting: str, R: int, a: str, b: str, level:
 
 
 # ----------------------------------------------------------------------------------------------
-# S4a: ε, λ path, c₀ (synchronous)
+# S4a: ε, λ path, c₀ (synchronous on one host, or the same deterministic path on K hosts that share the result
+# prefix: every host runs its hash shard of each batch, then waits until the whole batch is present before the
+# selection step, so all K compute the same ε, c₀ and λ and the last one to finish writes s4a.json; 24 Oct 2026, after
+# the AMD core measured several times slower than the Mac's — one host would have needed more than a day)
 # ----------------------------------------------------------------------------------------------
-def s4a(workers: int) -> dict:
-    bases = load_bases()
-    out_path = os.path.join(S4_DIR, "s4a.json")
+class Incomplete(RuntimeError):
+    """A batch is not complete on this host and no waiting was allowed (other shards still running or lost)."""
+
+
+def s3_pull():
+    """Pull the shared result prefix (set by the user-data as S4_S3_RESULTS) into results/s4; no-op without it."""
+    src = os.environ.get("S4_S3_RESULTS")
+    if not src:
+        return False
+    import subprocess
+    out = subprocess.run(["aws", "s3", "sync", src, S4_DIR, "--quiet", "--exclude", "*.tmp.*"], capture_output=True, text=True)
+    if out.returncode != 0:
+        print(f"[s4] s3 pull rc {out.returncode}: {out.stderr.strip()[:200]}", flush=True)
+    return out.returncode == 0
+
+
+def complete_or_wait(tasks: list, shard: str | None, wait_s: float, label: str):
+    """After this host ran its shard: return when every task file of the batch exists; otherwise pull the shared
+    prefix every 2 min for up to wait_s seconds, then raise Incomplete. A single host (shard None) never waits."""
+    t0 = _time.time()
+    while True:
+        missing = [t for t in tasks if not os.path.exists(t["path"])]
+        if not missing:
+            return
+        if shard is None or _time.time() - t0 > wait_s:
+            raise Incomplete(f"{label}: {len(missing)} of {len(tasks)} task files missing after {_time.time() - t0:.0f} s")
+        print(f"[s4] {label}: waiting for {len(missing)} tasks of other shards ({_time.strftime('%H:%M:%SZ', _time.gmtime())})", flush=True)
+        _time.sleep(120)
+        s3_pull()
+
+
+def s4a_stage1_tasks() -> list:
     stage = "calibration"
-    # 1. ε benchmark, λ pilots and the c₀ batches are independent: one queue
     tasks = cv_tasks(stage, "EPS", R_EPS, EPS_MODELS, False)
     for lam in PILOT_LAMBDAS:
         tasks += cv_tasks(stage, f"LAM@{lam:g}", R_PILOT, DECISION_MODELS, False)
     tasks += c0_tasks()
-    run_queue(pending(tasks), workers, bases, label="S4a epsilon + pilots + c0")
+    return tasks
+
+
+def s4a(workers: int, shard: str | None = None, wait_s: float = 0.0) -> dict:
+    bases = load_bases()
+    out_path = os.path.join(S4_DIR, "s4a.json")
+    stage = "calibration"
+    shard = None if shard in (None, "1/1") else shard
+    # 1. ε benchmark, λ pilots and the c₀ batches are independent: one queue (this host's shard of it)
+    tasks = s4a_stage1_tasks()
+    run_queue(pending(tasks, shard), workers, bases, label=f"S4a epsilon + pilots + c0 shard {shard or '1/1'}")
+    complete_or_wait(tasks, shard, wait_s, "S4a stage 1")
     # 2. ε
     bench = reference_over_sets(stage, "EPS", R_EPS, "B0", "G0")
     eps = X.epsilon(bench)
@@ -440,8 +482,9 @@ def s4a(workers: int) -> dict:
 
             def certify(lam_value, _name=target_name):
                 setting = f"CERT{_name}@{lam_value:.6g}"
-                run_queue(pending(cv_tasks(stage, setting, R_CERT, DECISION_MODELS, False)), workers, bases,
-                          label=f"S4a certification {setting}")
+                ct = cv_tasks(stage, setting, R_CERT, DECISION_MODELS, False)
+                run_queue(pending(ct, shard), workers, bases, label=f"S4a certification {setting} shard {shard or '1/1'}")
+                complete_or_wait(ct, shard, wait_s, f"S4a certification {setting}")
                 return reference_over_sets(stage, setting, R_CERT, "B3", "G3", level=0.975)   # 97.5% per attempt
 
             rec = X.lambda_path(pilots, target, eps, certify)
@@ -686,6 +729,8 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("bases")
     a4 = sub.add_parser("s4a"); a4.add_argument("--workers", type=int, default=12)
+    a4.add_argument("--shard", default=None, help="i/K: this host's hash shard of every S4a batch (K hosts share the result prefix)")
+    a4.add_argument("--wait-h", type=float, default=0.0, help="how long a shard waits for the others at each barrier")
     q = sub.add_parser("s4b-queue"); q.add_argument("--kind", default="all", choices=["cv", "rec", "all"])
     b4 = sub.add_parser("s4b"); b4.add_argument("--workers", type=int, default=12); b4.add_argument("--shard", default=None)
     b4.add_argument("--kind", default="all", choices=["cv", "rec", "all"])
@@ -698,7 +743,7 @@ def main():
         b = load_bases()
         print(f"[s4] cached {len(b)} bases with W53 -> {bases_path()}")
     elif a.cmd == "s4a":
-        s4a(a.workers)
+        s4a(a.workers, a.shard, a.wait_h * 3600.0)
     elif a.cmd == "s4b-queue":
         tasks = s4b_tasks(a.kind)
         todo = pending(tasks)

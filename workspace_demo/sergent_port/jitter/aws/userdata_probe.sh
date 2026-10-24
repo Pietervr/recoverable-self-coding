@@ -26,6 +26,7 @@ cd sergent_port/jitter
 ( while true; do sleep 120; aws s3 cp /var/log/s4_userdata.log "$LOGKEY" --quiet || true; done ) &
 cat > /opt/s4/probe.py <<'EOF'
 import os, sys, time
+sys.path.insert(0, os.getcwd())            # the jitter directory (the script itself lives in /opt/s4)
 t_start = time.time()
 def threads():
     return int([l for l in open("/proc/self/status") if l.startswith("Threads:")][0].split()[1])
