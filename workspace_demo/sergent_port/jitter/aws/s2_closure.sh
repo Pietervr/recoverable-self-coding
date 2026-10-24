@@ -63,6 +63,12 @@ validators() {
   echo "[closure] basins start $(date -u +%T)" | tee -a "$LOG"
   python s2.py basins --workers "$W" > results/s2/closure_basins.log 2>&1
   echo "[closure] basins rc=$? $(date -u +%T)" | tee -a "$LOG"
+  profiles
+}
+
+profiles() {
+  # the profile validation (200 tasks) and the recovery rerun (100 fits): a host of their own at a worker count that does
+  # not thrash (48 on 24 Oct), while the basins host finishes its 20-task-per-setting stages
   echo "[closure] profiles start $(date -u +%T)" | tee -a "$LOG"
   python s2.py profiles --n 100 --workers "$W" > results/s2/closure_profiles.log 2>&1
   echo "[closure] profiles rc=$? $(date -u +%T)" | tee -a "$LOG"
@@ -77,6 +83,7 @@ case "$PART" in
   checks)     checks ;;
   nodes)      checks nodes_only ;;
   validators) validators ;;
+  profiles)   profiles ;;
   all)      for S in W2 T1 O1; do decision "$S"; done
             python s2.py summary > results/s2/closure_summary.log 2>&1
             echo "[closure] summary rc=$? $(date -u +%T)" | tee -a "$LOG"

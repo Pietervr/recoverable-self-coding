@@ -16,6 +16,10 @@ LOGKEY="s3://$BUCKET/$RES/logs/userdata___MODE_____TAG__.log"     # TAG = the pa
 ( sleep __LIFETIME_S__; echo "[ud] LIFETIME reached $(date -u +%FT%TZ)"; aws s3 cp /var/log/s4_userdata.log "$LOGKEY" || true; sync; shutdown -h now ) &
 shutdown -h +$(( __LIFETIME_S__ / 60 + 10 )) "jitter worker lifetime" >/dev/null 2>&1 || true
 export NPROC=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
+# one code-generation thread per process at compile time (XLA's default splits each compile over 32 threads; with 96
+# workers compiling at once that is 3,000 threads on 96 cores). The T1 EC2 tooling pins the same flag. 24 Oct 2026: the
+# 96-worker closure hosts finished only the lightest participants, at 500-5,000 s each, in their first 95 minutes.
+export XLA_FLAGS="--xla_cpu_multi_thread_eigen=false --xla_cpu_parallel_codegen_split_count=1"
 dnf -y install python3.12 python3.12-pip >/dev/null 2>&1 || echo "[ud] dnf python3.12 failed (falling back to uv)"
 mkdir -p /opt/s4 && cd /opt/s4
 if command -v python3.12 >/dev/null 2>&1; then
