@@ -268,5 +268,10 @@ venue are the owner's (Unimog `rsc_t1_simulation_design.md` §12 row 24; USD 3,0
   estimand (§5 above) — Codex to weigh, not decided here.
 - §5: the union start recipe (R2) and the start-family report (§7); γ box, finite lifts, the acceptance rule (R3); the
   generalised-EM ascent step, the inner retry and the unguarded re-seed (D4); the EM loop's ≤ 8 steps and 1e-6 tol.
-- §7.4 unchanged. §8 re-costed from the D4 benchmark. §10: the recovery limitation.
+- §7.4 unchanged. §8 re-costed from the rev 7 benchmark (§9). §10: the recovery limitation.
+- The recovery check of §5 (`recovery_check_em_oracle_scaled.txt`) was run under R1-R3 before D4; rerun it under the
+  final fitter (20 min on 12 workers) before rev 7 is frozen, so that the S4 collapse is confirmed not to have been an
+  under-finding artefact.
+- `bench.py`'s cost table is superseded by `recost_rev7.py` (per fit); fold the per-fit accounting into bench.py at a
+  chain boundary (never while a chain runs).
 - Code hash discipline: every result json carries `code_hash`; the pre-D4 and final blocks differ in hash by design.
