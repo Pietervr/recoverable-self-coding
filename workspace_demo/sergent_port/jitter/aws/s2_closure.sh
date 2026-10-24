@@ -28,11 +28,22 @@ decision() {
 }
 
 checks() {
-  # the node check refits W2 set 0 under three quadrature rules against the archived set 0: wait for it on S3
+  # the node check refits W2 set 0 under three quadrature rules against the archived set 0. The W2 host writes
+  # set_0.json only after its whole queue, but set 0's 20 task files land after its first round (the queue runs in set
+  # order): wait for those on S3 and assemble set 0 here.
+  S3W2="s3://${BUCKET:-xtenure-cself-pvr-usw2}/${RES:-results/t1_access/jitter_s4}/results/s2/decision/W2"
   if [ ! -f results/s2/decision/W2/set_0.json ]; then
-    echo "[closure] waiting for W2 set 0 on S3 $(date -u +%T)" | tee -a "$LOG"
-    until aws s3 cp "s3://${BUCKET:-xtenure-cself-pvr-usw2}/${RES:-results/t1_access/jitter_s4}/results/s2/decision/W2/set_0.json" results/s2/decision/W2/set_0.json --quiet 2>/dev/null; do sleep 120; done
-    echo "[closure] W2 set 0 arrived $(date -u +%T)" | tee -a "$LOG"
+    echo "[closure] waiting for W2 set 0 (set_0.json or its 20 task files) on S3 $(date -u +%T)" | tee -a "$LOG"
+    while true; do
+      aws s3 cp "$S3W2/set_0.json" results/s2/decision/W2/set_0.json --quiet 2>/dev/null && break
+      N=$(aws s3 ls "$S3W2/tasks/" 2>/dev/null | grep -c 'set_0_m[0-9]*\.json$')
+      if [ "$N" -ge 20 ]; then
+        aws s3 sync "$S3W2/tasks" results/s2/decision/W2/tasks --quiet --exclude "*" --include "set_0_m*.json"
+        python s2.py assemble --setting W2 --set 0 >> results/s2/closure_assemble.log 2>&1 && break
+      fi
+      sleep 120
+    done
+    echo "[closure] W2 set 0 in hand $(date -u +%T)" | tee -a "$LOG"
   fi
   echo "[closure] checks nodes (W2 set 0) start $(date -u +%T)" | tee -a "$LOG"
   python s2.py checks --kind nodes --setting W2 --set 0 --workers "$W" > results/s2/closure_checks_nodes.log 2>&1

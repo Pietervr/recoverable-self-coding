@@ -201,35 +201,48 @@ def run_decision(setting: str, R: int, workers: int, sets=None, span_name: str =
     wall = _time.time() - t0
     print(f"[s2] {setting}: queue done in {wall:.0f} s", flush=True)
     for r in todo:
-        members = set_members(setting, r)
-        rows, xs, used = [], {}, []
-        for m in range(len(members)):
-            jp, npz = task_paths(setting, r, m)
-            with open(jp) as f:
-                rows.append(json.load(f))
-            used.append(jp)
-            if os.path.exists(npz):                       # the archive is not synced: tolerate a lost npz after a resume
-                with np.load(npz) as z:
-                    for k in z.files:
-                        xs[f"m{m}_{k}"] = z[k]
-                used.append(npz)
-        np.savez_compressed(os.path.join(arc_dir, f"set_{r}.npz"), **xs)
-        set_scores = {f"m{row['m']}": row["scores"] for row in rows}
-        primary = X.set_primary(set_scores)
-        rec = dict(setting=setting, r=r, members=members, primary=primary,
-                   delta3={k: (v["B3"] - v["G3"]) for k, v in set_scores.items()},
-                   participants=rows, wall_s=float(sum(row["seconds"] for row in rows)), queue_wall_s=wall,
-                   workers=workers, code_hash=M.code_hash())
-        path = os.path.join(out_dir, f"set_{r}.json")
-        tmp = path + f".tmp.{os.getpid()}"
-        with open(tmp, "w") as f:
-            json.dump(rec, f)
-        os.replace(tmp, path)
+        assemble_set(setting, r, workers, wall, remove_task_files=True)
+
+
+def assemble_set(setting: str, r: int, workers: int = 0, queue_wall_s: float = 0.0, remove_task_files: bool = True) -> dict:
+    """The per-set record (set_<r>.json + archive npz, the pre-queue form) from the 20 task files of set r. Another host
+    may assemble a set it did not compute (the checks instance assembles W2 set 0 for the node check as soon as the W2
+    host's first round has landed on S3; it keeps the task files)."""
+    out_dir = os.path.join(DEC_DIR, setting)
+    arc_dir = os.path.join(ARC_DIR, setting)
+    os.makedirs(out_dir, exist_ok=True)
+    os.makedirs(arc_dir, exist_ok=True)
+    members = set_members(setting, r)
+    rows, xs, used = [], {}, []
+    for m in range(len(members)):
+        jp, npz = task_paths(setting, r, m)
+        with open(jp) as f:
+            rows.append(json.load(f))
+        used.append(jp)
+        if os.path.exists(npz):                       # the archive is not synced: tolerate a lost npz after a resume
+            with np.load(npz) as z:
+                for k in z.files:
+                    xs[f"m{m}_{k}"] = z[k]
+            used.append(npz)
+    np.savez_compressed(os.path.join(arc_dir, f"set_{r}.npz"), **xs)
+    set_scores = {f"m{row['m']}": row["scores"] for row in rows}
+    primary = X.set_primary(set_scores)
+    rec = dict(setting=setting, r=r, members=members, primary=primary,
+               delta3={k: (v["B3"] - v["G3"]) for k, v in set_scores.items()},
+               participants=rows, wall_s=float(sum(row["seconds"] for row in rows)), queue_wall_s=queue_wall_s,
+               workers=workers, code_hash=M.code_hash())
+    path = os.path.join(out_dir, f"set_{r}.json")
+    tmp = path + f".tmp.{os.getpid()}"
+    with open(tmp, "w") as f:
+        json.dump(rec, f)
+    os.replace(tmp, path)
+    if remove_task_files:
         for p in used:
             os.remove(p)
-        avail = sum(1 for v in set_scores.values() if np.isfinite(v["B3"] - v["G3"]))
-        print(f"[s2] {setting} set {r}: primary {primary}, {avail}/20 available, {rec['wall_s']:.0f} task-s "
-              f"(mean {rec['wall_s'] / len(rows):.0f} s per participant-dataset)", flush=True)
+    avail = sum(1 for v in set_scores.values() if np.isfinite(v["B3"] - v["G3"]))
+    print(f"[s2] {setting} set {r}: primary {primary}, {avail}/20 available, {rec['wall_s']:.0f} task-s "
+          f"(mean {rec['wall_s'] / len(rows):.0f} s per participant-dataset)", flush=True)
+    return rec
 
 
 # ----------------------------------------------------------------------------------------------
@@ -655,6 +668,9 @@ def main():
     d.add_argument("--workers", type=int, default=12)
     d.add_argument("--sets", default=None, help="e.g. 0-4")
     sub.add_parser("summary")
+    asm = sub.add_parser("assemble", help="set_<r>.json from the 20 task files of a set computed elsewhere (task files kept)")
+    asm.add_argument("--setting", required=True, choices=list(SETTINGS))
+    asm.add_argument("--set", type=int, required=True)
     c = sub.add_parser("checks")
     c.add_argument("--kind", required=True, choices=["nodes", "ranks", "smallspread"])
     c.add_argument("--setting", default="W2", choices=list(SETTINGS))
@@ -678,6 +694,8 @@ def main():
         print(summary_markdown(summarize()))
     elif a.cmd == "summary":
         print(summary_markdown(summarize()))
+    elif a.cmd == "assemble":
+        assemble_set(a.setting, a.set, remove_task_files=False)
     elif a.cmd == "checks":
         if a.kind == "nodes":
             node_check(a.setting, a.set, dict(n_g_nodes=33), "g33", a.workers)

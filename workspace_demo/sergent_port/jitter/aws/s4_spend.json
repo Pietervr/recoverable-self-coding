@@ -1,20 +1,105 @@
 {
- "utc": "2026-10-24T18:27:49.798240+00:00",
+ "utc": "2026-10-24T19:15:34.774578+00:00",
  "instances": [
   {
-   "id": "i-0d0257da689f57a49",
+   "id": "i-037dd5ae861e2c772",
    "state": "running",
    "type": "c7a.24xlarge",
    "lifecycle": "spot",
    "az": "eu-north-1b",
    "mode": "s2closure",
    "shard": "1/1",
+   "part": "T1",
+   "launched": "2026-10-24T19:14:32+00:00",
+   "hours": 0.02,
+   "est_usd": 0.02
+  },
+  {
+   "id": "i-087188b1190192c17",
+   "state": "running",
+   "type": "c7a.24xlarge",
+   "lifecycle": "spot",
+   "az": "eu-north-1b",
+   "mode": "s2closure",
+   "shard": "1/1",
+   "part": "W2",
+   "launched": "2026-10-24T19:14:30+00:00",
+   "hours": 0.02,
+   "est_usd": 0.02
+  },
+  {
+   "id": "i-04535600c734ab627",
+   "state": "running",
+   "type": "c7a.24xlarge",
+   "lifecycle": "spot",
+   "az": "eu-north-1b",
+   "mode": "s2closure",
+   "shard": "1/1",
+   "part": "checks",
+   "launched": "2026-10-24T19:14:37+00:00",
+   "hours": 0.02,
+   "est_usd": 0.02
+  },
+  {
+   "id": "i-0d0257da689f57a49",
+   "state": "shutting-down",
+   "type": "c7a.24xlarge",
+   "lifecycle": "spot",
+   "az": "eu-north-1b",
+   "mode": "s2closure",
+   "shard": "1/1",
+   "part": null,
    "launched": "2026-10-24T18:27:28+00:00",
-   "hours": 0.01,
+   "hours": 0.8,
+   "est_usd": 0.76
+  },
+  {
+   "id": "i-02c5acc4f176c6533",
+   "state": "running",
+   "type": "c7a.24xlarge",
+   "lifecycle": "spot",
+   "az": "eu-north-1b",
+   "mode": "s2closure",
+   "shard": "1/1",
+   "part": "O1",
+   "launched": "2026-10-24T19:14:34+00:00",
+   "hours": 0.02,
+   "est_usd": 0.02
+  },
+  {
+   "id": "i-0a58f032262fcc0a7",
+   "state": "terminated",
+   "type": "c7a.2xlarge",
+   "lifecycle": "spot",
+   "az": "eu-north-1b",
+   "mode": "probe",
+   "shard": "probe1906",
+   "part": "all",
+   "launched": "2026-10-24T19:06:21+00:00",
+   "hours": null,
+   "est_usd": 0.0
+  },
+  {
+   "id": "i-05efd976ce1c09ede",
+   "state": "running",
+   "type": "c7a.2xlarge",
+   "lifecycle": "spot",
+   "az": "eu-north-1b",
+   "mode": "probe",
+   "shard": "probe1909",
+   "part": "all",
+   "launched": "2026-10-24T19:09:02+00:00",
+   "hours": 0.11,
    "est_usd": 0.01
   }
  ],
- "est_running_usd": 0.01,
- "closed_usd": 0.0,
- "closed_log": []
+ "est_running_usd": 0.84,
+ "closed_usd": 0.78,
+ "closed_log": [
+  {
+   "utc": "2026-10-24T19:15:33.279423+00:00",
+   "usd": 0.78,
+   "note": "S2 closure worker 1 i-0d0257da689f57a49 18:27-19:16Z (0.82 h spot c7a.24xlarge at 0.95): set-by-set run_decision used 20 of 96 cores, no W2 set finished; terminated, replaced by four part instances"
+  }
+ ]
 }
