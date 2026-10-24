@@ -120,7 +120,7 @@
   }
  ],
  "est_running_usd": 2.71,
- "closed_usd": 0.9,
+ "closed_usd": 7.5,
  "closed_log": [
   {
    "utc": "2026-10-24T19:15:33.279423+00:00",
@@ -131,6 +131,16 @@
    "utc": "2026-10-24T19:18:11.262157+00:00",
    "usd": 0.12,
    "note": "checks part attempt 1 i-04535600c734ab627 19:14-19:22Z: would have idled until the W2 queue ended; replaced"
+  },
+  {
+   "utc": "2026-10-24T20:51:01.303522+00:00",
+   "usd": 4.6,
+   "note": "eu-north-1 decision hosts W2/T1/O1 at 96 workers, 19:14-20:53Z (3 x 1.62 h spot): only the lightest participants finished (10 tasks); replaced by 48-worker hosts with the XLA codegen flag"
+  },
+  {
+   "utc": "2026-10-24T20:51:29.426270+00:00",
+   "usd": 2.0,
+   "note": "us-west-2 reverse hosts T1-rev/O1-rev at 96 workers, 20:16-20:53Z (2 x 0.62 h spot at 1.6): replaced by 48-worker hosts with the XLA codegen flag"
   }
  ]
 }
