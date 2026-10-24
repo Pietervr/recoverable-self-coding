@@ -185,7 +185,7 @@ def oracle_markdown(out: dict) -> str:
 # ----------------------------------------------------------------------------------------------
 def make_whitening(variant: str, Ytr, ktr, cfg: F.GeneratorConfig | None, P=D.PRIMARY_WINDOWS) -> D.Whitening:
     """The STARTING whitening of a variant (the EM variants move Sigma from there)."""
-    base = variant.replace("_em", "")
+    base = {"em": "scaled", "oracle_em": "oracle"}.get(variant, variant)
     if base in ("lw", "scaled"):
         return D.whitening(Ytr, ktr, base)
     if base == "oracle":
