@@ -122,9 +122,12 @@ def user_data(c: dict, mode: str, shard: str, workers: int, kind: str, lifetime_
 
 
 def launch_one(c: dict, mode: str, shard: str, workers: int, kind: str, lifetime_h: float, dry: bool, az: str | None,
-               part: str = "all", instance_type: str | None = None, template: str = "userdata_s4.sh") -> dict:
+               part: str = "all", instance_type: str | None = None, template: str = "userdata_s4.sh",
+               market: str = "spot") -> dict:
     """One instance. For mode s2closure `part` selects the closure part (aws/s2_closure.sh: W2 | T1 | O1 | checks | all)
-    and names the instance and its log (24 Oct 2026: the closure is spread over several instances, one part each)."""
+    and names the instance and its log (24 Oct 2026: the closure is spread over several instances, one part each).
+    `market` = spot (the configured max price) or on-demand (the spot quota is 512 vCPU = five c7a.24xlarge; the
+    on-demand quota another 520, so ten S4b shards run as five spot + five on-demand)."""
     tag = part if (mode == "s2closure" and part != "all") else shard.replace("/", "of")
     ud = user_data(c, mode, shard, workers, kind, int(lifetime_h * 3600), part, template, tag)
     ud_path = os.path.join(HERE, f"userdata_{mode}_{tag}.sh")
@@ -144,7 +147,7 @@ def launch_one(c: dict, mode: str, shard: str, workers: int, kind: str, lifetime
     )
     if c.get("key_name"):
         spec["KeyName"] = c["key_name"]
-    if c.get("spot_max_price") is not None:
+    if c.get("spot_max_price") is not None and market == "spot":
         spec["InstanceMarketOptions"] = dict(MarketType="spot", SpotOptions=dict(MaxPrice=str(c["spot_max_price"]), SpotInstanceType="one-time",
                                                                                 InstanceInterruptionBehavior="terminate"))
     cli = os.path.join(HERE, f"run_{mode}_{tag}.json")
@@ -268,6 +271,8 @@ def main():
     la.add_argument("--mode", required=True, choices=["s2closure", "s4a", "s4b"])
     la.add_argument("--shards", type=int, default=1)
     la.add_argument("--shard-start", type=int, default=0)
+    la.add_argument("--shard-end", type=int, default=None, help="launch shards [shard-start, shard-end) of --shards (default: all)")
+    la.add_argument("--market", default="spot", choices=["spot", "on-demand"])
     la.add_argument("--workers", type=int, default=96)
     la.add_argument("--kind", default="all", choices=["cv", "rec", "all"])
     la.add_argument("--lifetime-h", type=float, default=12.0)
@@ -292,13 +297,14 @@ def main():
         probe(c)
     elif a.cmd == "launch":
         if a.mode == "s2closure" or (a.mode == "s4a" and a.shards == 1):
-            launch_one(c, a.mode, "1/1", a.workers, a.kind, a.lifetime_h, a.dry_run, a.az, part=a.part)
+            launch_one(c, a.mode, "1/1", a.workers, a.kind, a.lifetime_h, a.dry_run, a.az, part=a.part, market=a.market)
         else:
             # s4b: disjoint hash shards of one queue. s4a with K > 1: the same deterministic path on K hosts, each
             # running its hash shard of every batch and waiting for the others at the barriers (s4.py s4a --shard)
             order = c["subnet_order"]
-            for i in range(a.shard_start, a.shards):
-                launch_one(c, a.mode, f"{i}/{a.shards}", a.workers, a.kind, a.lifetime_h, a.dry_run, a.az or order[i % len(order)])
+            for i in range(a.shard_start, a.shards if a.shard_end is None else a.shard_end):
+                launch_one(c, a.mode, f"{i}/{a.shards}", a.workers, a.kind, a.lifetime_h, a.dry_run,
+                           a.az or order[i % len(order)], market=a.market)
     elif a.cmd == "probe-core":
         tag = "probe" + _dt.datetime.now(_dt.timezone.utc).strftime("%H%M")
         launch_one(c, "probe", tag, 1, "all", a.lifetime_h, a.dry_run, a.az, part="all", instance_type=a.instance_type,
