@@ -11,7 +11,7 @@ exec > /var/log/s4_userdata.log 2>&1
 echo "[ud] start $(date -u +%FT%TZ) mode __MODE__ shard __SHARD__ workers __WORKERS__ kind __KIND__ lifetime __LIFETIME_S__ s"
 export AWS_DEFAULT_REGION=us-west-2          # the bucket's region; EC2 metadata calls do not need it
 BUCKET=__BUCKET__; CODE=__CODE_PREFIX__; RES=__RESULTS_PREFIX__
-LOGKEY="s3://$BUCKET/$RES/logs/userdata___MODE_____SHARD_TAG__.log"
+LOGKEY="s3://$BUCKET/$RES/logs/userdata___MODE_____TAG__.log"     # TAG = the part for s2closure, else the shard tag
 # hard stops: shutdown at the lifetime whatever happens (two mechanisms, as the T1 user-data does)
 ( sleep __LIFETIME_S__; echo "[ud] LIFETIME reached $(date -u +%FT%TZ)"; aws s3 cp /var/log/s4_userdata.log "$LOGKEY" || true; sync; shutdown -h now ) &
 shutdown -h +$(( __LIFETIME_S__ / 60 + 10 )) "jitter worker lifetime" >/dev/null 2>&1 || true
