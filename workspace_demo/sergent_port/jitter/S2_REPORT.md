@@ -113,11 +113,41 @@ workers (about 570 s per participant-dataset against 165 s under rev 6).
 Gate (b) holds on this block (any POSITIVE at R = 10 would be the flag), but the UNRESOLVED sets are not noise: they
 are the D4 mechanism, which is why the block was refit rather than continued.
 
-### 4.2 Final fitter (D4-patched): W2 sets 0-9 — PENDING (chain started 24 Oct 13:02Z, about 20-25 min per set)
-To be filled from `results/s2/decision/W2/set_*.json` (scratchpad `peek_sets.py decision W2`, `count_em_stops.py
-decision W2`): primaries, set means and intervals, positives, nesting, EM steps, D4 counters (ascent steps accepted,
-inner retries, re-seed chains run and selected, G REDUCED while B POSITIVE). If UNRESOLVED sets from single-fold
-excesses persist under the patch, S2 STOPS here and records the case for a design decision (no further tuning).
+### 4.2 Final fitter (D4-patched): W2 sets 0-9 (`results/s2/decision/W2`, 24 Oct 13:02-16:35Z)
+**0 POSITIVE, 8 NEGATIVE, 2 UNRESOLVED**; Δ₃ per participant −0.00116 (sd 0.00192) nat/trial, set means [−0.0016,
+−0.0003]; 0/1000 training nesting violations; 0/200 participants UNAVAILABLE; EM median 5 steps; 600 s per
+participant-dataset (1151-1559 s per set of 20 on 12 workers, about 3% over the pre-D4 block).
+
+| set | primary | Δ₃ mean [95% t] nat/trial | positive | max | pre-D4 (§4.1) |
+|---|---|---|---|---|---|
+| 0 | NEGATIVE | −0.0015 [−0.0022, −0.0008] | 4/20 | +0.0001 | NEGATIVE −0.0014 |
+| 1 | NEGATIVE | −0.0012 [−0.0019, −0.0004] | 6/20 | +0.0007 | NEGATIVE −0.0011 |
+| 2 | NEGATIVE | −0.0012 [−0.0019, −0.0004] | 4/20 | +0.0003 | NEGATIVE −0.0016 |
+| 3 | NEGATIVE | −0.0016 [−0.0027, −0.0005] | 3/20 | +0.0009 | NEGATIVE −0.0013 |
+| 4 | UNRESOLVED | −0.0003 [−0.0016, +0.0009] | 7/20 | +0.0046 | UNRESOLVED +0.0004, max +0.0057 |
+| 5 | NEGATIVE | −0.0012 [−0.0021, −0.0004] | 5/20 | +0.0020 | UNRESOLVED +0.0002, max +0.0209 (D4 case) |
+| 6 | NEGATIVE | −0.0014 [−0.0020, −0.0009] | 2/20 | +0.0000 | NEGATIVE −0.0015 |
+| 7 | NEGATIVE | −0.0009 [−0.0016, −0.0002] | 5/20 | +0.0029 | UNRESOLVED +0.0003, max +0.0194 (D4 case) |
+| 8 | UNRESOLVED | −0.0011 [−0.0025, +0.0002] | 5/20 | +0.0060 | UNRESOLVED −0.0006, max +0.0082 |
+| 9 | NEGATIVE | −0.0012 [−0.0018, −0.0005] | 3/20 | +0.0011 | (not run) |
+
+D4 counters over the 1000 folds (`count_em_stops.py decision W2`): no EM chain ended on a NOT_CONVERGED inner solve
+(pre-D4 11); generalised-EM ascent steps accepted 35 (G3+ 17, G2 7, B3+ 5, B2 6), every one of them improving, so the
+4× inner retry never had to fire; two chains each for B2 and B3+ ended on a small objective decrease (as designed).
+The unguarded re-seed from B improved G3+ on 307/1000 folds (gain over G's own chains: median 0.01 nat, p90 8.9,
+> 5 nat on 48, max 46.2) and G2 on 278/1000 (median 0.00, > 5 nat on 2, max 51.2) — a re-seed chain that does not
+improve leaves no trace in the set json, so these are improvement counts. Training gap B3+ − G3+: median 0.12 nat,
+p90 1.85, p99 4.37, max 8.7 (pre-D4 p99 7.65, max 387.9); 8 folds > 5 nat (19); G3 REDUCED while B3 POSITIVE once (3).
+Selection: G3 POSITIVE 973/1000, B3 970/1000; `positive_at_floor` 26-27.
+The two D4 cases are gone: set 5 m4 (S17) and set 7 m12 (S13) no longer carry a single-fold excess, and both sets read
+NEGATIVE. The two remaining UNRESOLVED sets are NOT the D4 signature. Every participant above +0.003 nat/trial (set 4:
+m3 S10 +0.0037, m7 S20 +0.0032, m14 S19 +0.0046; set 8: m10 S19 +0.0060) has the same value before and after the
+patch, small training gaps spread over ALL five folds (S19: 2.6-7.1 nat on every fold) and held-out excesses of 1-4.5
+nat on one to three folds — the declared flexibility of the two-state family (§4: a point mass at zero plus a
+lognormal high branch approximates a wide lognormal amplitude law), largest on S19, the strongest responder of the
+twenty (strength 2.32, s_g 0.76, s_τ 48 ms). It moves set means by at most +0.0005 and produces no POSITIVE set; it is
+recorded here as the residual of D1 for rev 7 and the Codex review, not as a defect to tune. Gate (b) at R = 10:
+holds (the design's ceiling is 1 false POSITIVE in 100).
 
 ### 4.3 T1 (two-state generators, POSITIVE = detection; power needs about 45/50) — PENDING
 ### 4.4 O1 (time-stretch, graded; POSITIVE = false call) — PENDING
@@ -139,7 +169,9 @@ by EM under the graded fit and SHARED by both families for the recovery estimand
 ## 6. Nesting and EM statistics
 Pre-D4 block: 0/900 training nesting violations (the warm chains hold l(B) ≥ l(G) by construction); EM chains ended on a
 NOT_CONVERGED inner solve 11× (G3+ 6, G2 4, B3+ 1) and on a small objective decrease 5× (G2 1, B2 2, B3+ 2). Final
-fitter: PENDING (D4 counters per set from `peek_sets.py`).
+fitter, W2 0-9: 0/1000 violations; no chain ended on a NOT_CONVERGED solve; 35 ascent steps accepted; the re-seed from
+B improved G3+ on 31% of folds (by > 5 nat on 5%) — the G3+ start set alone still misses optima on about one fold in
+twenty by 5-46 nat, which the B-basin re-seed now recovers by construction (§4.2). T1 and O1: PENDING.
 
 ## 7. Start-family usage (which start families were material) — PENDING
 From the archived starts of the final W2/T1/O1 sets: for G3+ and B3+, how often the selected optimum came from each
