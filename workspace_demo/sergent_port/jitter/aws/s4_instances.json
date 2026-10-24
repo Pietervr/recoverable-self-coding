@@ -259,6 +259,51 @@
    "region": "us-west-2",
    "az": "us-west-2a",
    "bundle": "jitter_bundle_571fcd9.tar.gz"
+  },
+  {
+   "instance_id": "i-00e2c2a978971ca84",
+   "mode": "s2closure",
+   "shard": "1/1",
+   "part": "W2-rev",
+   "kind": "all",
+   "workers": 48,
+   "market": "on-demand",
+   "launched_utc": "2026-10-24T21:06:44.230903+00:00",
+   "lifetime_h": 8.0,
+   "instance_type": "c7a.24xlarge",
+   "region": "us-west-2",
+   "az": "us-west-2a",
+   "bundle": "jitter_bundle_571fcd9.tar.gz"
+  },
+  {
+   "instance_id": "i-0ed7c85c6f149118e",
+   "mode": "s2closure",
+   "shard": "1/1",
+   "part": "T1-rev",
+   "kind": "all",
+   "workers": 48,
+   "market": "on-demand",
+   "launched_utc": "2026-10-24T21:06:47.532675+00:00",
+   "lifetime_h": 8.0,
+   "instance_type": "c7a.24xlarge",
+   "region": "us-west-2",
+   "az": "us-west-2a",
+   "bundle": "jitter_bundle_571fcd9.tar.gz"
+  },
+  {
+   "instance_id": "i-0d1da001ef952333b",
+   "mode": "s2closure",
+   "shard": "1/1",
+   "part": "O1-rev",
+   "kind": "all",
+   "workers": 48,
+   "market": "on-demand",
+   "launched_utc": "2026-10-24T21:06:50.572865+00:00",
+   "lifetime_h": 8.0,
+   "instance_type": "c7a.24xlarge",
+   "region": "us-west-2",
+   "az": "us-west-2a",
+   "bundle": "jitter_bundle_571fcd9.tar.gz"
   }
  ]
 }
