@@ -989,9 +989,15 @@ def strength_of(b_whole: M.Basis, a: np.ndarray, c_tilde: np.ndarray) -> float:
 
 def generator_fits(p: D.Participant, cache: FitCache | None = None) -> dict:
     """G3, B3 and B0 on full data, whole-epoch span and support (§7.1). Returns {model: GeneratorConfig} and
-    the FitResults under 'fits'."""
-    cache = FitCache() if cache is None else cache
-    ds = D.full_dataset(p, D.span("whole"))
+    the FitResults under 'fits'. The generator fits use μ0 and the 53 × 53 LEDOIT-WOLF Σ from all catch trials, as
+    §7.1 says — NOT the per-model EM Σ of the primary-span fits (S2 finding D5, 24 Oct 2026: under a free 53 × 53 Σ
+    estimated from about 900 trials the S10 G3 generator fit returned s_τ 24.7 ms, s_g 0.00 against 82.2 ms, 0.56
+    under Ledoit-Wolf — the full covariance absorbs the trial variability the generators exist to carry, and B3
+    collapsed onto G3). An EM cache is refused so that this cannot recur silently."""
+    cache = FitCache(em=False) if cache is None else cache
+    if cache.em:
+        raise ValueError("generator fits use the Ledoit-Wolf Σ (DESIGN §7.1); pass FitCache(em=False)")
+    ds = D.full_dataset(p, D.span("whole"), method="lw")      # §7.1 explicitly; the default "scaled" is the EM start
     res = fit_all_models(ds, cache, "whole", ("G3", "B3", "B0"))
     b = M.basis("whole")
     out = {"fits": {k: v for k, v in res.items()}}

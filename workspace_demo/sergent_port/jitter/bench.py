@@ -347,6 +347,8 @@ def main():
     ap.add_argument("--session", default="active")
     ap.add_argument("--workers", type=int, default=12)
     ap.add_argument("--skip-parallel", action="store_true")
+    ap.add_argument("--write-generators", action="store_true",
+                    help="replace the stored results/generators/S<subject>_* files with this run's generator fits")
     ap.add_argument("--out", default=os.path.join(HERE, "results", "bench"))
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
@@ -359,14 +361,18 @@ def main():
     print(f"[bench] S{a.subject}: generator fits (real data, whole epoch)", flush=True)
     p = D.load_participant(a.subject, a.session)
     t0 = _time.time()
-    gens = F.generator_fits(p, F.FitCache())
+    gens = F.generator_fits(p, F.FitCache(em=False))          # §7.1: Ledoit-Wolf Σ, never the EM Σ (S2 finding D5)
     g_wall = _time.time() - t0
     fits = gens["fits"]
     summary = {n: F.summarize_fit(F.selected_spec(n, fits[n], "whole"), fits[n]) if fits[n].available
                else dict(status="UNAVAILABLE") for n in ("G3", "B3", "B0")}
     for n in ("G3", "B3", "B0"):
-        if gens[n] is not None:
-            gens[n].to_npz(os.path.join(gen_dir, f"S{a.subject}_{a.session}_{n}.npz"))
+        path = os.path.join(gen_dir, f"S{a.subject}_{a.session}_{n}.npz")
+        if gens[n] is not None and (a.write_generators or not os.path.exists(path)):
+            # the stored generator configurations are the S1 record that every S2/S4 batch draws from; a benchmark
+            # never replaces them unless told to (24 Oct 2026 the benchmark silently overwrote S10's with a
+            # degenerate fit while the development chain was about to draw from it)
+            gens[n].to_npz(path)
     cand_fits = [fits[n] for n in ("G2", "G3+", "B2", "B3+", "B0")]
     R["generator"] = dict(wall_s=g_wall, n_starts=sum(len(r.starts) for r in cand_fits), start_stats=_start_stats(cand_fits),
                           summary=summary, strength={n: (gens[n].strength if gens[n] else None) for n in ("G3", "B3", "B0")},

@@ -61,6 +61,22 @@ held-out B3 − G3 +18.6 nat on that fold and within 0.8 on the other four; set 
 at −11722.6, B3+ −11675.0 (gap 47.7, held-out +19.5). Training gap B3+ − G3+ over the 900 folds: median 0.10 nat, p90
 2.1, p99 7.7; 19 folds > 5 nat, 193 > 1 nat; G3 REDUCED while B3 POSITIVE 3×.
 
+### D5 — generator fits under the free 53 × 53 Σ degenerate (found 24 Oct 16:43Z, in the pulled-forward benchmark)
+`bench.py` refits its subject's §7.1 generators before timing anything, and under R1 that refit ran the EM Σ in 53
+dimensions: the S10 G3 generator came back at s_τ 24.7 ms, s_g 0.00 (Ledoit–Wolf: 82.2 ms, 0.56) with B3 collapsed
+onto G3 — with ~900 trials a free 53 × 53 covariance absorbs the latency and scale variability the generators exist to
+carry (the extreme of the strength-dependent collapse of §5). The benchmark also WROTE those fits over
+`results/generators/S10_active_{G3,B3,B0}.npz`, the files every S2/S4 batch draws from, 16:43Z — caught at 16:49Z
+before the chain's second leg started; restored from git (the stored generators are the S1 Ledoit–Wolf fits; the W2
+block, sets 0-9, had finished at 16:35Z on the correct files). A second part of the same finding: R1 made the SCALED
+sample covariance the default whitening (the EM start), so even without EM a generator fit would have used a 53 × 53
+sample covariance from ~150 catch trials; the stored S1 generators carry the Ledoit–Wolf Σ exactly (S10: max
+difference 0, shrinkage 0.059, 152 catch trials), as §7.1 says. Repairs: `generator_fits` whitens with
+`method="lw"` explicitly, defaults to `FitCache(em=False)` and REFUSES an EM cache; `bench.py` and `generators.py` pass
+em=False; the benchmark no longer overwrites stored generators without `--write-generators`; the test asserts no EM
+step, Σ equal to the Ledoit–Wolf estimate and not to the scaled one, and the refusal. DESIGN rev 7 §7.1 says it. The
+benchmark was rerun from scratch after the fix (§9).
+
 ## 3. The repairs (all declared for rev 7 and the Codex S3 review)
 
 R1 Σ by maximum likelihood INSIDE each model — a generalised EM outer loop around the L-BFGS-B solve

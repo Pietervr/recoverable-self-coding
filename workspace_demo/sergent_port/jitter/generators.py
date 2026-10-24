@@ -44,7 +44,7 @@ def fit_one(subject: int, session: str) -> dict:
     os.environ.setdefault("NPROC", "1")
     t0 = _time.time()
     p = D.load_participant(subject, session)
-    out = F.generator_fits(p, F.FitCache())
+    out = F.generator_fits(p, F.FitCache(em=False))          # §7.1: Ledoit-Wolf Σ, never the EM Σ (S2 finding D5)
     row = dict(subject=subject, session=session, n_trials=p.n, level_counts=p.level_counts().tolist(),
                data_id=p.data_id, seconds=_time.time() - t0, code_hash=M.code_hash())
     for name in ("G3", "B3", "B0"):

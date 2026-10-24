@@ -251,13 +251,22 @@ def test_profile_evaluator_and_hull_on_synthetic_jitter():
 
 def test_generator_fits_small():
     p = _synthetic_participant(n_per_level=25)
-    out = F.generator_fits(p, F.FitCache())
+    out = F.generator_fits(p, F.FitCache(em=False))
     for name in ("G3", "B3", "B0"):
         cfg = out[name]
         assert cfg is not None and cfg.mu0.shape == (53,) and cfg.Sigma.shape == (53, 53)
         assert abs(M.basis("whole").m_vis(cfg.c_tilde) - 1.0) < 1e-10 and cfg.a[0] == 0.0
         assert np.isfinite(cfg.strength) and cfg.strength > 0
     assert out["B0"].A is not None and out["B0"].s_tau_ms == 0.0 and out["G3"].kappa is None
+    # §7.1 / S2 finding D5: generator fits run under the dataset's Ledoit-Wolf Σ, never the EM Σ, and refuse an EM cache
+    assert all(out["fits"][n].em_iterations == 0 for n in ("G3+", "B3+", "B0", "G2", "B2"))
+    assert np.allclose(out["G3"].Sigma, D.full_dataset(p, D.span("whole"), method="lw").wh.Sigma)
+    # (on this tiny participant the scaled estimate falls back to Ledoit-Wolf, so the two cannot be told apart here)
+    try:
+        F.generator_fits(p, F.FitCache(em=True))
+        assert False, "an EM cache must be refused for generator fits"
+    except ValueError:
+        pass
     with tempfile.TemporaryDirectory() as d:
         path = os.path.join(d, "g.npz")
         out["B3"].to_npz(path)

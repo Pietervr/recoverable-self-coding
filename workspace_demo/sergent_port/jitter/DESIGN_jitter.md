@@ -1,19 +1,28 @@
 # Does the human two-state preference survive trial-level latency and scale variation?
 
-Design, revision 6 — 24 October 2026, session R052 Entropy SI. Status: ACCEPTED FOR IMPLEMENTATION. Rev 5 (RSC
-0ddac98) received FAVOURABLE WITH CONDITIONS (`reviews/2026-10-24_design_v5_codex_review.md`): "the substantive design
-is ready for implementation with bounded conditions". Revs 1–4 (960e93b, 57c1280, 8d6c195, 78e348c) and their reviews
-are the record of how it got here. Rev 6 closes the four conditions — the ZERO-ONLY rejection event aligned with R3,
-the attenuation premise evaluated on R6, the reduced-start lift / certification / profile-reference branches, and the
-candidate-fit scheduling and S2 cost — and is the specification that S1–S2 implement. Their closure is verified by
-Codex at the S3 freeze review together with the code; no further design-only round. Nothing has been run.
+Design, revision 7 — 24 October 2026, session R052 Entropy SI. Status: S2 COMPLETE ON W2, T1/O1 READINGS PENDING;
+FOR THE CODEX S3 FREEZE REVIEW. Rev 5 (RSC 0ddac98) received FAVOURABLE WITH CONDITIONS
+(`reviews/2026-10-24_design_v5_codex_review.md`); rev 6 closed its four conditions and was the specification S1–S2
+implemented. Revs 1–4 (960e93b, 57c1280, 8d6c195, 78e348c) and their reviews are the record of how it got here.
+Rev 7 records what S2 found and changed (`S2_REPORT.md` is the evidence): the rev 6 fitter read 6 of 19 graded (W2)
+development sets POSITIVE — false two-state calls — and the diagnosis found four defects: D1 the SHARED Ledoit–Wolf
+training-catch Σ (the §4 claim "no model-independent direction of bias" was false under shrinkage: the compressed
+template-direction variance is absorbed by the occupancy law better than by the graded scale law); D2 the four §5 starts
+missing optima by up to 22 nat; D3 template coordinates running off along flat directions, −∞ warm starts and a lossy
+acceptance rule; D4 the EM chain stopping on a failed inner solve and leaving G under-found; D5 the generator fits
+degenerating under a free 53 × 53 Σ (they stay on Ledoit–Wolf, §7.1). The repairs are in §4 (Σ
+by maximum likelihood inside each model), §5 (starts, box, acceptance, the EM loop), §7.1 and §8 (re-cost); the limitation
+they expose (strength-dependent latency recovery under a free Σ) is in §7.5 and §10. Under the rev 7 fitter the W2
+development block reads 0 POSITIVE, 8 NEGATIVE, 2 UNRESOLVED (R = 10; 0/1000 nesting violations). What rev 7 does NOT
+change: the estimand (§6), the manifest and pass conditions (§7.3), ε and the λ path (§7.4), the recovery flags (§7.5).
 
 ## 0. Stages and what is frozen when
 
 S1  Provisional implementation; per-participant GENERATOR fits (§7.1: G3, B3 and B0, full data, whole epoch).
     Parameter values may be inspected; no cross-validated contrast is computed on real data.
-S2  Development on development seeds (W2, T1, O1 at R = 25); numerical repairs; the §4 quadrature, support, rank and
-    small-spread checks; the start-basin report; the profile-start validation of §5.
+S2  Development on development seeds (W2, T1, O1 at R = 25); numerical repairs (rev 7 declares them: §4 Σ, §5 starts,
+    box, acceptance, EM loop); the §4 quadrature, support, rank and small-spread checks; the start-basin report; the
+    profile-start validation of §5.
 S3  FREEZE by commit: code, `decide.py` with branch tests, generator algorithms, the manifest, the ε algorithm, the λ
     search algorithm, the profile construction, the critical-value calibration procedure and counts.
 S4a Reference calibration on calibration seeds: ε; λ pilots, certification, at most one correction (§7.4); the
@@ -82,13 +91,34 @@ Everything below is identical in both families unless the line says otherwise.
 
 Shared construction, estimated per participant and fold on training trials only:
 - Baseline μ0(w): mean of training catch trials. Both families predict exactly μ0 on a no-response trial.
-- Residual covariance Σ (W × W): Ledoit–Wolf shrinkage on training catch deviations about μ0, fixed for all models in
-  that participant and fold. Reported before the contrast is read: held-out catch whitening diagnostics (mean,
-  covariance, excess kurtosis and a normality test of the whitened catch residuals projected on T̃ — a bimodal catch
-  distribution would show here), level-stratified training residual second moments under each fitted model, and
-  the common-covariance sensitivity D·R(ρ)·D (D = per-window training catch residual SDs; R(ρ) AR(1), ρ ∈ [0, 0.999]
-  by ML on the same residuals; one matrix for both families). Σ has no model-independent direction of bias; it is
-  challenged by O5 rather than argued.
+- Residual covariance Σ (W × W): estimated by MAXIMUM LIKELIHOOD INSIDE EACH MODEL (rev 7, S2 repair R1), not shared.
+  Each candidate fit (G2, G3+, B2, B3+ and every constrained or generator fit) runs a generalised EM outer loop around
+  the L-BFGS-B solve: M-step Σ = (1/n) Σᵢ E_post[(yᵢ − μ0 − g m T̃_τ)(·)ᵀ] with the per-(trial, τ node)
+  responsibilities and E[g], E[g²] on the adaptive quadrature nodes (two-state: the low branch contributes rᵢrᵢᵀ);
+  μ0 stays the training-catch mean anchor; the loop starts from the scaled sample catch covariance S × n/(n−p−2) (the
+  KL-optimal scalar multiple of the sample covariance; Ledoit–Wolf kept for the record only), runs at most 8 steps to a
+  1e-6 relative gain, is strictly monotone (§5), and the fit carries its own Σ; HELD-OUT trials are scored under the
+  model's own (μ0, Σ). The zero-boundary selection compares final log-likelihoods, each at its own Σ. Why (S2, W2 set 1
+  oracle test, `S2_REPORT.md` D1): with one shared Σ from ~115 catch trials in 16 dimensions the whitening alone cost
+  0.88 nat/trial against the true density, the estimated Σ under-stated the variance along the template direction by
+  13%, and the two-state occupancy law A(k) absorbed that level-independent excess better than the graded scale law
+  a(k)²(r − 1) did — a systematic advantage for B at the LOW levels on graded data (+0.0058 nat/trial, 16/20
+  participants) that no part of §6 or §7.4 absorbs. Under the oracle Σ the same set read NEGATIVE. The rev 6 sentence
+  "Σ has no model-independent direction of bias" is withdrawn. Declared consequence (§7.5, §10): with Σ free inside
+  the model, latency recovery is strength-dependent — on the weakest responder (S4, strength 0.44) the free Σ absorbs
+  the jitter-induced variance and the fitted spread collapses (median 15 ms vs 63 true) where the oracle Σ recovers it;
+  the recovery battery measures this (R1–R5 carry the strength covariate), and three Σ-structure options for the
+  recovery ESTIMAND are left to the S3 review, not decided here: (a) profiles and recovery with Σ held at the
+  unrestricted fit's EM value; (b) a factor-structured Σ (diagonal + rank-k); (c) Σ estimated under the graded fit and
+  shared by both families for the recovery estimand only. Reported before the contrast is read: held-out catch
+  whitening diagnostics under each model's Σ (mean, covariance, excess kurtosis and a normality test of the whitened
+  catch residuals projected on T̃), level-stratified training residual second moments under each fitted model, and the
+  common-covariance sensitivity D·R(ρ)·D (D = per-window training catch residual SDs; R(ρ) AR(1), ρ ∈ [0, 0.999] by
+  ML on the same residuals; one matrix for both families). Σ is challenged by O5 rather than argued. Residual of D1
+  under the per-model Σ (S2, W2 block): participants built on the strongest responder (S19: strength 2.32, s_g 0.76)
+  still give B3 a held-out edge of +0.003 to +0.006 nat/trial with small training gaps on every fold — the two-state
+  family's declared flexibility (a point mass at zero plus a lognormal high branch approximating a wide lognormal
+  amplitude law), which moves set means by at most +0.0005 and produced no POSITIVE set.
 - Level amplitudes: a(k) = softplus(α_k) > 0 for k = 1..5, a(0) = 0 fixed. Softplus attains no exact zero; the catch
   is anchored at zero by construction. Both families carry exactly these five parameters; the inherited
   logistic-in-level mean laws are a declared sensitivity.
@@ -149,8 +179,12 @@ in reduced (s_τ = 0) models. No information criterion is added to a cross-valid
 ## 5. Fitting
 
 - Maximum marginal likelihood, float64, JAX gradients, L-BFGS-B on the box above with parameter scaling (times in
-  ms/100, amplitudes in decoder units, logits unit). Σ is Cholesky-whitened once per fold; for each τ node the
-  whitened template v_τ = Σ^{-1/2} T̃_τ is recomputed when template parameters change; for whitened data u_i,
+  ms/100, amplitudes in decoder units, logits unit). The optimiser objective is the negative MEAN log-likelihood per
+  training trial (S1 choice: on the summed objective the 1e-5 gradient threshold sits at the float64 floor); archived
+  and reported log-likelihoods are totals in nat. The two-state log-weights log A / log(1 − A) are evaluated in
+  softplus form (S1 choice: sigmoid saturation gave NaN gradients). Σ is Cholesky-whitened for each EM step (§4); for
+  each τ node the whitened template v_τ = Σ^{-1/2} T̃_τ is recomputed when template parameters change; for whitened
+  data u_i,
     q(i, τ, g) = ‖u_i‖² − 2 g m(k_i) (u_i · v_τ) + (g m(k_i))² ‖v_τ‖²,  m = a (graded) or m_H = a/A (two-state high
   branch); all trial–template projections as one matrix product; the two-state low branch is the m = 0 term; the
   branches combine by log-sum-exp with the occupancy weights. No residual tensor over nodes is formed.
@@ -174,27 +208,60 @@ in reduced (s_τ = 0) models. No information criterion is added to a cross-valid
   T_B} × s_g ∈ {0, 0.4}; G3/B3 positive-spread: T_A × {(20, 0), (40, 0.4)}, T_B × {(40, 0), (20, 0.4)}. The REDUCED
   candidate of G3/B3 IS a G2/B2 fit (free scale) and uses the G2/B2 recipe; the reduced candidate of G1/B1 is G0/B0.
   A reduced fit is computed once per participant, fold and data identity and cached wherever it is needed (as a model
-  in its own right, as a boundary candidate, as a profile point at s_τ = 0, as a c₀ component). Development (S2) adds a near-collapsed two-state start (A → 1 at all levels) and a broad-template start,
-  and reports whether any start beyond the first changed the selected optimum; starts found material are added to
-  the frozen recipe at S3 for all models alike.
+  in its own right, as a boundary candidate, as a profile point at s_τ = 0, as a c₀ component).
+  THE REPAIRED START SET (rev 7, S2 repair R2; `S2_REPORT.md` D2 and §7). The four design starts miss optima: a
+  template fitted to the level-5 mean — which is the jitter-BROADENED template — slides to s_τ = 0, and on the W2
+  development block the design starts alone would have missed the positive-spread optimum on 31% (G3+) and 41% (B3+)
+  of fits, by up to about 1,000 nat. The recipe is therefore the UNION, for every positive-spread fit: the four design
+  starts + four SMEARED-kernel template starts (non-negative least squares of the basis smeared by the truncated-normal
+  latency kernel at s ∈ {20, 40, 80, 120} ms, all J columns, to the raw (T_A) and smoothed (T_B) level-5 response
+  alternating, s_g = 0.4 where the model has a scale term) + the cached reduced fit LIFTED at 20, 40 and 80 ms + for the
+  B family the selected G fit COLLAPSED onto B (A → 1 at every level: κ = 50, x0 = −5). Reduced B fits add the G twin's
+  collapse to their four design starts. Every B candidate ALSO runs a warm EM chain from its G twin's own (θ collapsed,
+  Σ), so that l(B) ≥ l(G) holds by construction in the joint (θ, Σ) space; a B optimum more than 0.05 nat above its G
+  twin re-seeds G (B's θ projected onto G, one EM chain under B's Σ; the better G kept) and B re-chains from the new G.
+  S2 usage on W2: the smeared starts win the first stage most often (G3+ 61%, B3+ 53%), the lifts 7–8%, the collapse
+  11–17% for B; the warm and re-seed chains supply the selected optimum in 30–43% of fits; G2 never needed more than
+  its design starts. This union is the recipe FROZEN at S3 for all models alike; the rev 6 development starts (broad
+  template, near-collapsed) are subsumed by the collapse and smeared families.
 - Constrained (profile) fits, §7.5: s_τ fixed at a grid value; the parameters are the full positive-spread vector
   minus s_τ (or the reduced vector at s_τ = 0). Starts: TWO per constrained fit — the unrestricted MLE of the same
   model (warm start) and the T_B start with the grid value's nearest §5 nuisance start. Warm-start LIFT when the
   unrestricted solution is REDUCED (it has no shift-only coefficients): keep every fitted visible coordinate and
   supply the four shift-only coefficients from the floored T_B initialisation (deterministic). At the s_τ = 0 profile
   point, a positive-spread warm start is PROJECTED onto the reduced coordinates (shift-only coefficients dropped).
+  Every lift clips to the target box and refuses a non-finite start (rev 7, repair R3: under rev 6 a coefficient that
+  had run below the softplus floor was packed as −∞ and every profile warm start was discarded at iteration 0, so the
+  rev 6 benchmark's profile timings and intervals were effectively one-start).
   This is a declared exception to the four-start rule, VALIDATED in S2 on a frozen subset: 100 development
   participant-datasets per family drawn from the W2 and T1 development sets, every grid point of every profile,
   2-start versus 4-start constrained optima agreeing to 1e-6 relative in objective AND to 0.05 on the
   likelihood-ratio scale q(s); if either tolerance fails at any point, profiles use 4 starts and §8 is re-costed
   before S3.
-- Acceptance: a fit is CONVERGED when all of (i) projected-gradient infinity norm ≤ 1e-5 in scaled units; (ii)
-  relative objective change over the last 5 iterations ≤ 1e-9; (iii) finite objective and parameters. If fewer
-  than 5 iterations ran, the fit is EARLY: it is re-run once from the same start perturbed by N(0, 0.1²) in scaled
-  coordinates, and the pair is CONVERGED only if both satisfy (i) and (iii) and their objectives agree to 1e-8
-  relative; the better objective is kept. Iteration cap 2,000; two retries from re-seeded perturbed starts
-  (N(0, 0.1²) scaled) on failure. A model whose starts leave no CONVERGED fit is UNAVAILABLE for that participant and
-  fold. The best CONVERGED objective is selected; every start's end point and status is archived.
+- Box on the template coordinates (rev 7, repair R3): γ_j ≥ −30 for every coefficient (c ≥ 1e-13). Without it L-BFGS-B
+  ran coefficients that want to be zero off along the flat direction (archived W2 set 1: median per-fit minimum γ −75,
+  43 of 194 fits below −700, worst −1.9e6) and softplus underflowed to exactly zero.
+- Acceptance (rev 7, repair R3): a START's result is the best end point among its attempts that satisfy (i)
+  projected-gradient infinity norm ≤ 1e-5 in scaled units and (iii) finite objective and parameters; it is CONVERGED
+  when that end point also satisfies (ii) relative objective change over the last 5 iterations ≤ 1e-9, or when it was
+  reached in fewer than 5 iterations (a warm start at an optimum) and the perturbed re-run and the retries found
+  nothing better than it by 1e-8 relative. Fewer than 5 iterations = EARLY → one re-run from the start perturbed by
+  N(0, 0.1²) in scaled coordinates; iteration cap 2,000; at most two retries from re-seeded perturbed starts while the
+  start is not yet CONVERGED. A worse retry never replaces a better stationary end point (rev 6 let it, and discarded
+  exact warm starts whose perturbed re-run landed in another basin). A model whose starts leave no CONVERGED fit is
+  UNAVAILABLE for that participant and fold. The best CONVERGED objective is selected; every attempt's end point and
+  status is archived.
+- The EM loop (rev 7, repairs R1 and D4): from the multi-start optimum under the starting Σ, at most 8 steps of
+  {Σ M-step, re-whitening, one warm-started inner L-BFGS-B solve from the current θ}, ending when the total
+  log-likelihood gains less than 1e-6 relative or would decrease (the adaptive quadrature's nodes move with Σ, so the
+  E-step and the likelihood are not exactly consistent near convergence; a decrease, however small, ends the chain at
+  the previous point). An inner solve that ends NOT_CONVERGED does not end the chain: its best finite end point is
+  accepted as a generalised-EM ascent step whenever it raises the total log-likelihood (the Σ M-step is exact; the
+  θ-step need only not decrease the objective), and otherwise the solve is retried once from the chain point with four
+  times the iteration budget before the chain stops. Under rev 6 + R1–R3 the chain broke at the first failed inner
+  solve and left G at its starting-Σ optimum on 11 of 900 development folds (D4: one fold 388 nat below B with a
+  +18.6 nat held-out excess); under rev 7 no development chain ended that way (35 ascent steps accepted, all
+  improving; `S2_REPORT.md` §4.2). Every EM step is archived as a start of the fit.
 - Score: every out-of-fold trial's log marginal density summed once over the five folds, divided once by the total
   number of scored trials (block 21 excluded): S_{s,m}, nat per trial. The inherited fold-mean convention
   (`fit_models.py:254`) is reported for continuity only.
@@ -258,8 +325,14 @@ unavailable recovery and profile outcomes; an off-grid true spread; a disconnect
 
 ### 7.1 Generator fits (S1)
 Per real participant, three GENERATOR fits on full data (all blocks, no cross-validation), whole-epoch span,
-whole-epoch template support, μ0 and the 53 × 53 Ledoit–Wolf Σ from all catch trials: G3, B3 and B0 (each 4 starts,
-§5). These supply every synthetic configuration (a, T̃, κ, x0, s_τ, s_g, μ0, Σ) in 53 dimensions, so synthetic data
+whole-epoch template support, μ0 and the 53 × 53 Ledoit–Wolf Σ from all catch trials: G3, B3 and B0 (the §5 start
+set). The generator fits do NOT use the per-model EM Σ of §4 (rev 7, S2 finding D5): under a free 53 × 53 Σ
+estimated from about 900 trials the S10 G3 generator fit returned s_τ 24.7 ms and s_g 0.00 against 82.2 ms and 0.56
+under Ledoit–Wolf, with B3 collapsed onto G3 — in 53 dimensions the full covariance absorbs the trial variability the
+generators exist to carry. The generator fit names the Ledoit–Wolf whitening explicitly (the fitter's default
+whitening is the scaled sample covariance, which is only the EM start of §4), refuses an EM cache, and a benchmark
+never replaces the stored generator files. The stored generators (`results/generators/`, S1) carry exactly this
+Ledoit–Wolf Σ (S10: shrinkage 0.059 from 152 catch trials) and are the configurations every S2 and S4 batch draws from. These supply every synthetic configuration (a, T̃, κ, x0, s_τ, s_g, μ0, Σ) in 53 dimensions, so synthetic data
 are generated as 53-window vectors and scored on the primary 16 windows, the whole epoch, and by the inherited
 per-window pipeline alike. Generator fits never substitute for S5 scoring fits; primary-span fits generate nothing.
 Response strength per configuration, a continuous covariate reported with every recovery result (no strata):
@@ -278,9 +351,10 @@ Mechanism settings W1, W3, W4 are INDEPENDENT draws of configuration sets from t
 only (s_τ, s_g) set; W1-vs-W3 and W1-vs-W4 therefore use the independent-proportion Newcombe interval (§7.6).
 
 ### 7.3 Final-validation manifest (S4b; per fold the FOUR candidate fits that define the selected G3 and B3 — the
-reduced candidates G2 and B2 and the positive-spread G3 and B3 — at 4 starts each: 80 starts per participant-dataset.
-G0/B0 are NOT fitted in the decision batch, because every decision setting needs Δ_3 only; Δ_0 is fitted where it
-is required: the ε benchmark (§7.4, G0/B0 only) and the real data (§6).)
+reduced candidates G2 and B2 and the positive-spread G3 and B3 — under the §5 union start set and EM loop (rev 7:
+about 165 first-stage starts and about 310 archived solves per participant-dataset in place of rev 6's 80 starts;
+cost is measured per participant-dataset, §8). G0/B0 are NOT fitted in the decision batch, because every decision
+setting needs Δ_3 only; Δ_0 is fitted where it is required: the ε benchmark (§7.4, G0/B0 only) and the real data (§6).)
   Graded, well-specified: W1 (s_τ, s_g) = (0, 0); W2 fitted G3; W3 (80 ms, 0); W4 (0, 1.0).         R = 100 each.
   Graded, out of family (zero latency jitter unless stated; s_g at the fitted G3 value unless stated):
     O1 per-trial time stretch about 240 ms: t' = 240 + (t − 240)·exp(ζ_i), ζ_i ~ N(0, 0.25²) truncated to ±0.5; the
@@ -298,7 +372,8 @@ is required: the ε benchmark (§7.4, G0/B0 only) and the real data (§6).)
     are unchanged; values below 0.02 generated as is and recorded; halving leaves the logistic family, declared);
     T3 on the §7.4 path at certified reference 2ε.                                        T1, T2, T3: R = 50 each.
   E1 on the §7.4 path at certified reference in [1.10, 1.40] ε (target 1.25 ε).                        R = 100.
-Count: 9 × 100 + 3 × 50 + 100 = 1,150 sets, 23,000 participant-datasets, 1.84 M starts.
+Count: 9 × 100 + 3 × 50 + 100 = 1,150 sets, 23,000 participant-datasets (rev 6 counted 1.84 M starts at 80 per
+participant-dataset; rev 7 costs the batch per participant-dataset from the measured rate, §8).
 Pass conditions (pointwise for the frozen settings; exact one-sided 95% Clopper–Pearson; all-pass is an intersection
 requirement; no simultaneous coverage claimed; none certifies the nominal 2.5% tail of a calibrated interval; the
 tolerated ceilings are stated as such):
@@ -388,6 +463,13 @@ Boundary critical value c₀ (per family), S4a, its OWN batch: 500 datasets per 
 Statistics per configuration, setting, family, over AVAILABLE replicates: median relative bias of ŝ_τ; RMSE =
   sqrt(mean(ŝ_τ − s_τ)²); boundary-hit frequency; interval coverage; completion fraction. A configuration × setting
   with more than 20% UNAVAILABLE point fits or profiles FAILS that setting.
+Declared expectation (rev 7, from the S2 recovery check, `results/s2/diagnosis/recovery_check_em_oracle_scaled.txt`):
+with Σ free inside the model (§4) the latency estimand competes with Σ for the jitter-induced variance along the
+template, and recovery is strength-dependent — on the strongest four of five checked configurations the EM-Σ fit
+matches the oracle-Σ fit (S10 78/82/82 true ms, S13 53/51/54, S20 39/38/42, S2 59/72/67), on the weakest (S4, strength
+0.44) it collapses (15 vs 68 vs 63). R1 ("the SAME ≥ 15 of 20 configurations") therefore carries real risk at the weak
+end of the roster; the battery measures it rather than the design assuming it away, and the three Σ-structure options
+of §4 are the declared remedies if R1 fails, to be weighed at the S3 review.
 RECOVERY ADEQUATE (per family F), all required, all on S4b data:
   R1 point recovery: at s_τ = 40 ms and at 80 ms with fitted s_g, the SAME ≥ 15 of 20 configurations have median
      relative bias within ±25%, RMSE ≤ 50% of the true s_τ, and pass completion, in family F's full model;
@@ -437,9 +519,14 @@ are drawn. Development, calibration and validation seeds are disjoint and never 
 
 ## 8. Compute, venue, cost
 
-All in START-level optimisations at the UNMEASURED 30 s/start target; "fit" = 4 starts unless stated; projections at
-assumed rates, not quotes. Inherited Nelder–Mead runs priced at the README-derived, unmeasured 0.14 s/run; BMS
-(1 M Dirichlet draws per call in the unchanged code) priced at an assumed 1 s/call, to be measured.
+MEASURED (rev 7). The rev 6 design priced everything at an unmeasured 30 s/start. Two benchmarks replaced that:
+`results/bench/bench_20261024T044019Z.md` under the rev 6 fitter (1.69 s per decision-batch start; S4 = 1,536 core-h
+base, 1,915 with re-certification and 4-start profiles; S2 66; real data 9) and the rev 7 benchmark run alone after the
+W2 development block on 24 Oct (`results/bench/bench_<ts>.md`, the number for the owner's cap and venue decision —
+PENDING at the time of this draft; the W2 development block itself ran at 600 s per participant-dataset on 12 workers,
+about 3.6× the rev 6 rate, so S4 is expected at roughly 5,500–7,000 core-h before that benchmark replaces the
+estimate). Inherited Nelder–Mead runs measured at 21.8 ms/run, spm_BMS at 0.04 s/call. The start-count accounting below
+is the rev 6 record of WHAT is fitted; its unit costs are superseded by the measured rates.
 - Candidate accounting: "the eight models" on real or recovery data = G0, B0, G2, B2 (reduced, each one fit) plus
   positive-spread G1, B1, G3, B3, with G1/B1/G3/B3 selected against their cached reduced candidates: 8 fits × 4 starts =
   32 starts per dataset, reduced fits cached and never refitted. The decision batch (§7.3) = G2, B2, G3+, B3+ = 80
@@ -534,14 +621,21 @@ re-analysis are follow-on work. Catch anchoring is a common restriction checked 
 diagnostics; the free-catch sensitivity is withdrawn as non-identifiable. No scale (s_g) interval and no occupancy
 profile are promised. The passive session, the whole-epoch contrast, ±250 ms support, the inherited mean laws,
 D·R(ρ)·D, the A_min floor and the wider s_g bound are declared sensitivities. No claim about the language model and
-none about experience.
+none about experience. Rev 7 adds: the noise covariance is estimated by maximum likelihood inside each model (§4),
+which repairs the systematic two-state advantage of a shared shrinkage Σ but makes latency recovery strength-dependent
+(§7.5); the two-state family retains a small declared flexibility on strong responders with wide amplitude spread
+(point mass at zero plus a lognormal) that the development block shows at +0.003 to +0.006 nat/trial on single
+participants and never as a POSITIVE set. Neither is argued away; both are measured by S4b.
 
 ## 11. Files and literature
 
-- This design: `workspace_demo/sergent_port/jitter/DESIGN_jitter.md` (rev 6; rev 1 960e93b, rev 2 57c1280, rev 3
-  8d6c195, rev 4 78e348c, rev 5 0ddac98). Codex reviews under `jitter/reviews/` (rev 5: FAVOURABLE WITH CONDITIONS).
-- Code (after review): `jitter/{models.py, fit.py, simulate.py, decide.py, bench.py}` with tests; results under
-  `jitter/results/`.
+- This design: `workspace_demo/sergent_port/jitter/DESIGN_jitter.md` (rev 7; rev 1 960e93b, rev 2 57c1280, rev 3
+  8d6c195, rev 4 78e348c, rev 5 0ddac98, rev 6 the commit before the S1 build). Codex reviews under `jitter/reviews/`
+  (rev 5: FAVOURABLE WITH CONDITIONS). S2 evidence: `jitter/S2_REPORT.md`; records `results/s2/decision_rev6/` (rev 6
+  fitter), `results/s2/decision_pre_d4/` (R1–R3 without D4), `results/s2/decision/` (rev 7 fitter),
+  `results/s2/diagnosis/` (oracle test, Σ refits, recovery check), `results/s2/checks/` (§4 ranks, small spread).
+- Code: `jitter/{data.py, models.py, fit.py, simulate.py, decide.py, bench.py, s2.py, diagnose.py}` with tests under
+  `jitter/tests/` (81 tests over four files at rev 7); results under `jitter/results/`.
 - Inherited code: `sergent_port/fit_models.py` (likelihoods 60–100, Nelder–Mead 102–110, `window_means` 138–143,
   `block_folds` 118, score 254), `model_comparison.py`, `bms.py`, `README.md`, `RESULTS_sergent.md`.
 - Literature (verified in the rev 1 review unless marked): Woody 1967 (Med Biol Eng 5:539); Truccolo et al. 2002
