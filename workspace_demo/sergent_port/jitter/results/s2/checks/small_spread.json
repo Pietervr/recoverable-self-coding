@@ -1,0 +1,166 @@
+{
+ "W2-m0-S10": {
+  "G": {
+   "reduced_loglik": -15347.285826907524,
+   "unrestricted": {
+    "selection": "POSITIVE",
+    "s_tau_ms": 84.52475807840032,
+    "loglik": -15077.341994260341
+   },
+   "profile": {
+    "1.0": {
+     "ell_minus_reduced": -5.302354111336172e-09,
+     "node0_weight": 1.0,
+     "status": "AVAILABLE"
+    },
+    "2.0": {
+     "ell_minus_reduced": 5.488607166626025e-05,
+     "node0_weight": 0.9999925467492072,
+     "status": "AVAILABLE"
+    },
+    "5.0": {
+     "ell_minus_reduced": 1.747404459712925,
+     "node0_weight": 0.7865707070419478,
+     "status": "AVAILABLE"
+    },
+    "8.0": {
+     "ell_minus_reduced": 4.976701008245072,
+     "node0_weight": 0.49867459690008875,
+     "status": "AVAILABLE"
+    },
+    "10.0": {
+     "ell_minus_reduced": 12.204567096685423,
+     "node0_weight": 0.3989422782668617,
+     "status": "AVAILABLE"
+    },
+    "20.0": {
+     "ell_minus_reduced": 57.34817270356871,
+     "node0_weight": 0.19947114020071735,
+     "status": "AVAILABLE"
+    }
+   }
+  },
+  "B": {
+   "reduced_loglik": -15345.250424158156,
+   "unrestricted": {
+    "selection": "POSITIVE",
+    "s_tau_ms": 82.49123122590223,
+    "loglik": -15075.929027981265
+   },
+   "profile": {
+    "1.0": {
+     "ell_minus_reduced": 5.718084139516577e-07,
+     "node0_weight": 1.0,
+     "status": "AVAILABLE"
+    },
+    "2.0": {
+     "ell_minus_reduced": 5.724848233512603e-05,
+     "node0_weight": 0.9999925467492072,
+     "status": "AVAILABLE"
+    },
+    "5.0": {
+     "ell_minus_reduced": 1.8317775837240333,
+     "node0_weight": 0.7865707070419478,
+     "status": "AVAILABLE"
+    },
+    "8.0": {
+     "ell_minus_reduced": 5.237425035529668,
+     "node0_weight": 0.49867459690008875,
+     "status": "AVAILABLE"
+    },
+    "10.0": {
+     "ell_minus_reduced": 11.360986895229871,
+     "node0_weight": 0.3989422782668617,
+     "status": "AVAILABLE"
+    },
+    "20.0": {
+     "ell_minus_reduced": 57.089159573011784,
+     "node0_weight": 0.19947114020071735,
+     "status": "AVAILABLE"
+    }
+   }
+  }
+ },
+ "T1-m0-S10": {
+  "G": {
+   "reduced_loglik": -15117.64041114175,
+   "unrestricted": {
+    "selection": "POSITIVE",
+    "s_tau_ms": 59.809144133631435,
+    "loglik": -14983.298867610198
+   },
+   "profile": {
+    "1.0": {
+     "ell_minus_reduced": 3.637978807091713e-12,
+     "node0_weight": 1.0,
+     "status": "AVAILABLE"
+    },
+    "2.0": {
+     "ell_minus_reduced": 4.4666694520856254e-05,
+     "node0_weight": 0.9999925467492072,
+     "status": "AVAILABLE"
+    },
+    "5.0": {
+     "ell_minus_reduced": 1.1711978210823872,
+     "node0_weight": 0.7865707070419478,
+     "status": "AVAILABLE"
+    },
+    "8.0": {
+     "ell_minus_reduced": 3.502201315282946,
+     "node0_weight": 0.49867459690008875,
+     "status": "AVAILABLE"
+    },
+    "10.0": {
+     "ell_minus_reduced": 5.687918818917751,
+     "node0_weight": 0.3989422782668617,
+     "status": "AVAILABLE"
+    },
+    "20.0": {
+     "ell_minus_reduced": 26.854102402088756,
+     "node0_weight": 0.19947114020071735,
+     "status": "AVAILABLE"
+    }
+   }
+  },
+  "B": {
+   "reduced_loglik": -15110.985316925407,
+   "unrestricted": {
+    "selection": "POSITIVE",
+    "s_tau_ms": 57.98077978339437,
+    "loglik": -14970.889911772416
+   },
+   "profile": {
+    "1.0": {
+     "ell_minus_reduced": 9.989162208512425e-08,
+     "node0_weight": 1.0,
+     "status": "AVAILABLE"
+    },
+    "2.0": {
+     "ell_minus_reduced": 2.6191539291176014e-05,
+     "node0_weight": 0.9999925467492072,
+     "status": "AVAILABLE"
+    },
+    "5.0": {
+     "ell_minus_reduced": 1.1881272380178416,
+     "node0_weight": 0.7865707070419478,
+     "status": "AVAILABLE"
+    },
+    "8.0": {
+     "ell_minus_reduced": 3.5376036781635776,
+     "node0_weight": 0.49867459690008875,
+     "status": "AVAILABLE"
+    },
+    "10.0": {
+     "ell_minus_reduced": 5.719688104145462,
+     "node0_weight": 0.3989422782668617,
+     "status": "AVAILABLE"
+    },
+    "20.0": {
+     "ell_minus_reduced": 27.88435932061475,
+     "node0_weight": 0.19947114020071735,
+     "status": "AVAILABLE"
+    }
+   }
+  }
+ }
+}

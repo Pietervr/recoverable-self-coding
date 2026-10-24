@@ -147,10 +147,26 @@ family (design T_A/T_B recipes, smeared sm_A/sm_B at 20/40/80/120, lifted G2/B2 
 chain, the re-seed chain), and the gain over the best design start. This decides the FROZEN S3 recipe (§5: "starts
 found material are added to the frozen recipe at S3 for all models alike").
 
-## 8. §4 checks, basins, profile-start validation — PENDING
-`s2.py checks --kind nodes` (33 scale nodes, 61 τ nodes, the 7-node prior rule against the archived default on W2 set
-0), `--kind ranks`, `--kind smallspread`; `s2.py basins`; `s2.py profiles` (2- vs 4-start constrained optima on 100
-datasets per family; the profile machinery now has finite lifts, so this validation is meaningful for the first time).
+## 8. §4 checks, basins, profile-start validation
+Ranks (`s2.py checks --kind ranks`, `results/s2/checks/ranks.json`, 24 Oct under the final code): the stacked 31-node
+window basis has full rank (primary 496 × 16 → 16, whole 1643 × 35 → 35; smallest/largest singular value 0.043 and
+0.041); the zero-shift visible basis 16 × 12 → 12 and 53 × 31 → 31. The per-trial log-likelihood Jacobian at a generic
+point (W2 set 0 m0 S10 fold 0, θ_τ 40 ms, s_g 0.5, 748 training trials) has FULL rank for every model: G0 16/16, G1+
+21/21, G2 17/17, G3+ 22/22, B0 18/18, B1+ 23/23, B2 19/19, B3+ 24/24 (threshold 1e-8 of the largest singular value).
+The smallest singular values of the positive-spread models (1.2e-5 to 2.7e-5 against a largest of order 1e2, ratio
+1.6e-7 to 6.9e-7) are the shift-only template directions, identified only through shifted nodes as §4 says — locally
+identified, weakly.
+Small spread (`s2.py checks --kind smallspread`, `results/s2/checks/small_spread.json`, final code): ℓ_prof(s) −
+ℓ_reduced at parent spreads 1, 2, 5, 8, 10, 20 ms on W2-m0-S10 (G3 unrestricted POSITIVE at 84.5 ms, B3 at 82.5) and
+T1-m0-S10 (G3 59.8 ms). At 1 ms the constrained positive-spread fit equals the reduced fit (−5e-9 / +6e-7 nat; node-0
+weight 1.000), at the 2 ms floor it is +5e-5 nat above it (node-0 weight 0.99999), then the profile rises smoothly:
+W2 G +1.75 (5 ms), +4.98 (8), +12.2 (10), +57.3 (20); W2 B +1.83, +5.24, +11.4, +57.1; T1 G +1.17, +3.50, +5.69, +26.9.
+So the region below the 2 ms floor is flat to numerical precision (the floor loses nothing), the 10 ms node spacing
+resolves the first rise, and every constrained fit was AVAILABLE (the finite lifts of R3 at work). PENDING: `--kind
+nodes` on the final W2 set 0 (33 scale nodes, 61 τ nodes, the 7-node prior rule against the archived default),
+`s2.py basins`, `s2.py profiles` (2- vs 4-start
+constrained optima on 100 datasets per family; the profile machinery now has finite lifts, so this validation is
+meaningful for the first time).
 
 ## 9. Cost
 Rev 6: 165 s per participant-dataset (bench_20261024T044019Z: 1.69 s per decision-batch start). Under R1-R4: about
