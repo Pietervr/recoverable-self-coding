@@ -1,0 +1,23 @@
+{
+  "profile": "xtenure-read",
+  "region": "us-east-1",
+  "s3_region": "us-west-2",
+  "ami": "ami-04b938437b69a2c9c",
+  "instance_type": "c7a.24xlarge",
+  "subnets": {"us-east-1a": "subnet-054e366973365bf98", "us-east-1b": "subnet-0f09d5101068ec081", "us-east-1c": "subnet-08847adde0701280d", "us-east-1d": "subnet-04710d08f98abf751", "us-east-1f": "subnet-0823a10da2247b215"},
+  "subnet_order": ["us-east-1b", "us-east-1a", "us-east-1d", "us-east-1c", "us-east-1f"],
+  "security_group_id": "sg-0eb157ae1a1e739d7",
+  "iam_instance_profile": "xtenure-ec2-t1-worker",
+  "key_name": null,
+  "bucket": "xtenure-cself-pvr-usw2",
+  "code_prefix": "code/t1_access/jitter_s4",
+  "results_prefix": "results/t1_access/jitter_s4",
+  "spot_max_price": "2.20",
+  "spot_price_estimate_usd_h": 1.45,
+  "on_demand_usd_h": 4.93,
+  "on_demand_fallback": false,
+  "root_device": "/dev/xvda",
+  "root_gb": 30,
+  "tags_required": {"project": "t1"},
+  "_note": "third region (24 Oct 2026): its own 512 spot + 512 on-demand vCPU quotas (five + five c7a.24xlarge) without any quota request; the bucket stays in us-west-2 (cross-region S3, results are megabytes); same instance role (IAM is global); default VPC vpc-001fbdb55896e5260 and its default security group (egress all, no ingress), as in us-west-2; AL2023 AMI from SSM /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64 on 24 Oct; spot c7a.24xlarge 1.38 (1b) to 1.62 (1f) on 24 Oct 22:10Z, no price in 1e (left out)"
+}
