@@ -1,5 +1,5 @@
 {
- "utc": "2026-10-24T19:15:34.774578+00:00",
+ "utc": "2026-10-24T19:53:27.994680+00:00",
  "instances": [
   {
    "id": "i-037dd5ae861e2c772",
@@ -11,8 +11,8 @@
    "shard": "1/1",
    "part": "T1",
    "launched": "2026-10-24T19:14:32+00:00",
-   "hours": 0.02,
-   "est_usd": 0.02
+   "hours": 0.65,
+   "est_usd": 0.62
   },
   {
    "id": "i-087188b1190192c17",
@@ -24,12 +24,12 @@
    "shard": "1/1",
    "part": "W2",
    "launched": "2026-10-24T19:14:30+00:00",
-   "hours": 0.02,
-   "est_usd": 0.02
+   "hours": 0.65,
+   "est_usd": 0.62
   },
   {
    "id": "i-04535600c734ab627",
-   "state": "running",
+   "state": "terminated",
    "type": "c7a.24xlarge",
    "lifecycle": "spot",
    "az": "eu-north-1b",
@@ -37,12 +37,25 @@
    "shard": "1/1",
    "part": "checks",
    "launched": "2026-10-24T19:14:37+00:00",
-   "hours": 0.02,
-   "est_usd": 0.02
+   "hours": null,
+   "est_usd": 0.0
+  },
+  {
+   "id": "i-077b337da018516bd",
+   "state": "running",
+   "type": "c7a.24xlarge",
+   "lifecycle": "spot",
+   "az": "eu-north-1b",
+   "mode": "s2closure",
+   "shard": "1/1",
+   "part": "validators",
+   "launched": "2026-10-24T19:38:06+00:00",
+   "hours": 0.26,
+   "est_usd": 0.24
   },
   {
    "id": "i-0d0257da689f57a49",
-   "state": "shutting-down",
+   "state": "terminated",
    "type": "c7a.24xlarge",
    "lifecycle": "spot",
    "az": "eu-north-1b",
@@ -50,8 +63,8 @@
    "shard": "1/1",
    "part": null,
    "launched": "2026-10-24T18:27:28+00:00",
-   "hours": 0.8,
-   "est_usd": 0.76
+   "hours": null,
+   "est_usd": 0.0
   },
   {
    "id": "i-02c5acc4f176c6533",
@@ -63,8 +76,8 @@
    "shard": "1/1",
    "part": "O1",
    "launched": "2026-10-24T19:14:34+00:00",
-   "hours": 0.02,
-   "est_usd": 0.02
+   "hours": 0.65,
+   "est_usd": 0.62
   },
   {
    "id": "i-0a58f032262fcc0a7",
@@ -80,6 +93,19 @@
    "est_usd": 0.0
   },
   {
+   "id": "i-0ae05ee9efebdf255",
+   "state": "running",
+   "type": "c7a.24xlarge",
+   "lifecycle": "spot",
+   "az": "eu-north-1b",
+   "mode": "s2closure",
+   "shard": "1/1",
+   "part": "checks",
+   "launched": "2026-10-24T19:18:13+00:00",
+   "hours": 0.59,
+   "est_usd": 0.56
+  },
+  {
    "id": "i-05efd976ce1c09ede",
    "state": "running",
    "type": "c7a.2xlarge",
@@ -89,17 +115,22 @@
    "shard": "probe1909",
    "part": "all",
    "launched": "2026-10-24T19:09:02+00:00",
-   "hours": 0.11,
-   "est_usd": 0.01
+   "hours": 0.74,
+   "est_usd": 0.06
   }
  ],
- "est_running_usd": 0.84,
- "closed_usd": 0.78,
+ "est_running_usd": 2.71,
+ "closed_usd": 0.9,
  "closed_log": [
   {
    "utc": "2026-10-24T19:15:33.279423+00:00",
    "usd": 0.78,
    "note": "S2 closure worker 1 i-0d0257da689f57a49 18:27-19:16Z (0.82 h spot c7a.24xlarge at 0.95): set-by-set run_decision used 20 of 96 cores, no W2 set finished; terminated, replaced by four part instances"
+  },
+  {
+   "utc": "2026-10-24T19:18:11.262157+00:00",
+   "usd": 0.12,
+   "note": "checks part attempt 1 i-04535600c734ab627 19:14-19:22Z: would have idled until the W2 queue ended; replaced"
   }
  ]
 }
