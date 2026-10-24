@@ -22,9 +22,9 @@ EOF
 )" | tee -a "$LOG"
 
 decision() {
-  S=$1
-  echo "[closure] decision $S 0-24 start $(date -u +%T)" | tee -a "$LOG"
-  python s2.py decision --setting $S --R 25 --sets 0-24 --workers "$W" > "results/s2/closure_decision_$S.log" 2>&1
+  S=$1; REV=${2:-}
+  echo "[closure] decision $S 0-24 ${REV:+(reverse) }start $(date -u +%T)" | tee -a "$LOG"
+  python s2.py decision --setting $S --R 25 --sets 0-24 --workers "$W" ${REV:+--reverse} > "results/s2/closure_decision_$S${REV:+_rev}.log" 2>&1
   echo "[closure] decision $S rc=$? $(date -u +%T)" | tee -a "$LOG"
 }
 
@@ -73,6 +73,7 @@ validators() {
 
 case "$PART" in
   W2|T1|O1)   decision "$PART" ;;
+  W2-rev|T1-rev|O1-rev) decision "${PART%-rev}" reverse ;;    # a second host on the setting, from the far end of the set list
   checks)     checks ;;
   nodes)      checks nodes_only ;;
   validators) validators ;;

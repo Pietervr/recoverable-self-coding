@@ -190,7 +190,11 @@ def run_decision(setting: str, R: int, workers: int, sets=None, span_name: str =
             print(f"[s2] {setting} set {r}: exists, skipped", flush=True)
         else:
             todo.append(r)
-    jobs = [(r, m, s) + task_paths(setting, r, m) for r in todo for m, s in enumerate(set_members(setting, r))]
+    # a second host on the same setting works the list from its far end (sets reversed by the CLI) and the members of
+    # each set in reverse too, so the two hosts meet in the middle with the least duplicated work
+    rev = len(todo) > 1 and todo[0] > todo[-1]
+    jobs = [(r, m, s) + task_paths(setting, r, m) for r in todo
+            for m, s in (reversed(list(enumerate(set_members(setting, r)))) if rev else enumerate(set_members(setting, r)))]
     pending_jobs = [j for j in jobs if not os.path.exists(j[3])]
     t0 = _time.time()
     print(f"[s2] {setting}: {len(todo)} sets, {len(pending_jobs)} of {len(jobs)} participant-datasets pending, "
@@ -667,6 +671,7 @@ def main():
     d.add_argument("--R", type=int, default=25)
     d.add_argument("--workers", type=int, default=12)
     d.add_argument("--sets", default=None, help="e.g. 0-4")
+    d.add_argument("--reverse", action="store_true", help="work the set list from its far end (a second host on the same setting)")
     sub.add_parser("summary")
     asm = sub.add_parser("assemble", help="set_<r>.json from the 20 task files of a set computed elsewhere (task files kept)")
     asm.add_argument("--setting", required=True, choices=list(SETTINGS))
@@ -686,10 +691,12 @@ def main():
         b = cache_bases()
         print(f"[s2] cached {len(b)} bases")
     elif a.cmd == "decision":
-        sets = None
+        sets = list(range(a.R))
         if a.sets:
             lo, hi = a.sets.split("-")
             sets = list(range(int(lo), int(hi) + 1))
+        if a.reverse:
+            sets = sets[::-1]
         run_decision(a.setting, a.R, a.workers, sets)
         print(summary_markdown(summarize()))
     elif a.cmd == "summary":
