@@ -70,10 +70,11 @@ KNOT_SPACING_MS = 60.0
 GAUGE_CENTRE_MS = 450.0
 TAU_NODE_STEP_MS = 10.0
 N_TAU_NODES = 31
-N_G_NODES = 17                # adaptive Gauss–Hermite nodes in log g (checked against 33 in S2). Accuracy against a
-#                               fine trapezoid: < 1e-5 nat per (trial, node) for s_g ≤ 1.0; at the s_g = 1.5 box edge
-#                               (flagged fits) up to 7e-3 at 17 and 2e-4 at 33 nodes — the mode-centred rule converges
-#                               slowly when a wide scale prior meets a likelihood of comparable precision.
+N_G_NODES = 17                # adaptive Gauss–Hermite nodes in log g (checked against 33 in S2). Measured envelope
+#                               against a fine trapezoid, worst case per (trial, node): 8e-6 nat for s_g ≤ 0.6 (2e-7 at
+#                               33 nodes), 2e-4 at s_g = 1.0 (6e-6), 7e-3 at the s_g = 1.5 box edge (2e-4; such fits
+#                               are flagged) — the mode-centred rule converges slowly when a wide scale prior meets a
+#                               likelihood of comparable precision. Fitted s_g on the real participants: 0.14–0.77.
 N_G_NODES_PRIOR = 7           # the design's prior-centred rule (kept for the node check)
 NEWTON_STEPS = 4              # the blended start is within Newton's quadratic basin; 4 = 8 steps to 1e-12
 S_G_EPS = 1e-12               # s_g² floor inside the adaptive rule (s_g = 0 sits on the box)
