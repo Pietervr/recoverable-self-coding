@@ -416,10 +416,17 @@ def _trial_loglik_impl(theta, U, k, Linv, logdet, sp: ModelSpec, C: dict):
         kap = jnp.exp(theta[idx["logkappa"]])
         x0 = theta[idx["x0"]]
         lev = jnp.arange(1, N_LEVELS, dtype=jnp.float64)
-        A = jnp.concatenate([jnp.zeros(1), jnp.maximum(A_MIN, jax.nn.sigmoid(kap * (lev - x0)))])
+        u = kap * (lev - x0)
+        sig = jax.nn.sigmoid(u)
+        floored = sig < A_MIN
+        A = jnp.concatenate([jnp.zeros(1), jnp.where(floored, A_MIN, sig)])
+        # log A and log(1 − A) in the saturation-safe softplus form (sigmoid(u) rounds to exactly 1 for u > 37,
+        # where log1p(−A) is −inf and its gradient NaN); the floor branch is constant with zero derivative
+        logA = jnp.concatenate([jnp.full(1, -np.inf), jnp.where(floored, jnp.log(A_MIN), -jax.nn.softplus(-u))])
+        log1mA = jnp.concatenate([jnp.zeros(1), jnp.where(floored, jnp.log(1.0 - A_MIN), -jax.nn.softplus(u))])
         mH = jnp.concatenate([jnp.zeros(1), a[1:] / A[1:]])
         m = mH[k]
-        Ai = A[k]
+        logA_i, log1mA_i = logA[k], log1mA[k]
     gm = g[None, None, :] * m[:, None, None]                                     # (n, 1, N_g)
     logits = (logw_tau[None, :, None] + logw_g[None, None, :]
               + gm * P[:, :, None] - 0.5 * gm ** 2 * vv[None, :, None])         # (n, N_tau, N_g)
@@ -428,8 +435,9 @@ def _trial_loglik_impl(theta, U, k, Linv, logdet, sp: ModelSpec, C: dict):
     if sp.family == "G":
         return base + lse
     catch = k == 0
-    A_safe = jnp.where(catch, 0.5, Ai)
-    mix = jnp.logaddexp(jnp.log1p(-A_safe), jnp.log(A_safe) + lse)
+    logA_safe = jnp.where(catch, jnp.log(0.5), logA_i)
+    log1mA_safe = jnp.where(catch, jnp.log(0.5), log1mA_i)
+    mix = jnp.logaddexp(log1mA_safe, logA_safe + lse)
     return base + jnp.where(catch, 0.0, mix)
 
 
@@ -462,12 +470,16 @@ def padded(U: np.ndarray, k: np.ndarray, multiple: int = PAD_MULTIPLE):
 
 
 class Objective:
-    """Callable for scipy: f(theta) -> (negative log-likelihood, gradient) as float64 numpy, on one Dataset."""
+    """Callable for scipy: f(theta) -> (negative MEAN log-likelihood per training trial, gradient) as float64
+    numpy, on one Dataset. The optimiser works on the per-trial mean (S1 choice, declared in fit.py: on the
+    summed objective, ≈ 1.1e4 nat for 750 trials, the §5 gradient threshold 1e-5 lies at the float64 resolution
+    floor and converged optima fail it); `n_eff` converts back to total nat (`total_loglik`)."""
 
     def __init__(self, sp: ModelSpec, ds):
         self.spec = sp
         self.vg, self.per_trial = functions(sp)
         self.U, self.k, self.mask = padded(ds.U, ds.k)
+        self.n_eff = int(ds.k.size)
         self.Linv = jnp.asarray(ds.wh.Linv)
         self.logdet = float(ds.wh.logdet)
         self.n_calls = 0
@@ -475,7 +487,11 @@ class Objective:
     def __call__(self, theta):
         self.n_calls += 1
         v, g = self.vg(jnp.asarray(theta, dtype=jnp.float64), self.U, self.k, self.mask, self.Linv, self.logdet)
-        return float(v), np.asarray(g, dtype=np.float64)
+        return float(v) / self.n_eff, np.asarray(g, dtype=np.float64) / self.n_eff
+
+    def total_loglik(self, theta) -> float:
+        v, _ = self.vg(jnp.asarray(theta, dtype=jnp.float64), self.U, self.k, self.mask, self.Linv, self.logdet)
+        return -float(v)
 
     def trial_loglik(self, theta, ds=None):
         """Per-trial log-likelihood on `ds` (default: the fitted dataset) — the held-out score of §5."""

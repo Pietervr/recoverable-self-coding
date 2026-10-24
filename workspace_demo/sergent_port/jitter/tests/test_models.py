@@ -193,7 +193,8 @@ def test_whitened_matches_dense_all_models():
         rel = np.max(np.abs(ll - ref) / np.maximum(1.0, np.abs(ref)))
         assert rel < 1e-10, (name, rel)
         v, g = ob(th)
-        assert abs(v + ll.sum()) < 1e-9 * max(1.0, abs(v))
+        assert abs(v * ob.n_eff + ll.sum()) < 1e-9 * max(1.0, abs(v * ob.n_eff))   # the optimiser sees the per-trial mean
+        assert abs(ob.total_loglik(th) - ll.sum()) < 1e-9 * max(1.0, abs(ll.sum()))
         assert np.all(np.isfinite(g)) and g.shape == (sp.n_params,)
 
 
@@ -242,7 +243,7 @@ def test_padding_is_neutral():
     th = _theta(sp)
     ob = M.Objective(sp, ds)
     v, _ = ob(th)
-    assert abs(v + ob.trial_loglik(th).sum()) < 1e-9 * abs(v)
+    assert ob.n_eff == 42 and abs(v * 42 + ob.trial_loglik(th).sum()) < 1e-9 * abs(v * 42)
     assert ob.trial_loglik(th).shape == (42,)
 
 
