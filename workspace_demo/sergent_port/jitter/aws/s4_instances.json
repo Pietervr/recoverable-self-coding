@@ -304,6 +304,21 @@
    "region": "us-west-2",
    "az": "us-west-2a",
    "bundle": "jitter_bundle_571fcd9.tar.gz"
+  },
+  {
+   "instance_id": "i-093737e0de910b51c",
+   "mode": "s2closure",
+   "shard": "1/1",
+   "part": "profiles",
+   "kind": "all",
+   "workers": 48,
+   "market": "spot",
+   "launched_utc": "2026-10-24T21:08:33.570029+00:00",
+   "lifetime_h": 6.0,
+   "instance_type": "c7a.24xlarge",
+   "region": "eu-north-1",
+   "az": "eu-north-1b",
+   "bundle": "jitter_bundle_571fcd9.tar.gz"
   }
  ]
 }

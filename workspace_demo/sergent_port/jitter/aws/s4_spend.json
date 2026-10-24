@@ -120,7 +120,7 @@
   }
  ],
  "est_running_usd": 2.71,
- "closed_usd": 9.99,
+ "closed_usd": 10.29,
  "closed_log": [
   {
    "utc": "2026-10-24T19:15:33.279423+00:00",
@@ -151,6 +151,11 @@
    "utc": "2026-10-24T21:06:15.556921+00:00",
    "usd": 1.25,
    "note": "W2-rev host 1 i-0e776837cdf27b149 (48 workers, no XLA flag) 20:16-21:03Z spot-interrupted in us-west-2a; its S11 tasks took 1,293-1,602 s"
+  },
+  {
+   "utc": "2026-10-24T21:08:33.594607+00:00",
+   "usd": 0.3,
+   "note": "profiles host 1 i-03f632bfea381344b us-west-2a spot 20:54-21:04Z reclaimed before any result; relaunched in eu-north-1b"
   }
  ]
 }
