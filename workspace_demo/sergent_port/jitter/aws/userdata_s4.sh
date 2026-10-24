@@ -45,7 +45,7 @@ sync_out() {
   if [ "__MODE__" = "s2closure" ]; then aws s3 sync results/s2 "s3://$BUCKET/$RES/results/s2" --quiet --exclude "archive/*"; fi
   aws s3 cp /var/log/s4_userdata.log "$LOGKEY" --quiet || true
 }
-( while true; do sleep 300; sync_out; echo "[ud] synced $(date -u +%T)"; done ) &
+( while true; do sleep 300; sync_out; echo "[ud] synced $(date -u +%T) load $(cut -d' ' -f1-3 /proc/loadavg) mem_used_GB $(free -g | awk '/Mem:/{print $3"/"$2}') tasks $(find results -name '*.json' -newer /opt/s4/bundle.tar.gz 2>/dev/null | wc -l)"; done ) &
 SYNC_PID=$!
 # spot two-minute notice: flush results, then let the interruption take the instance (resume is cheap: per-dataset files)
 ( TOKEN=""; while true; do
