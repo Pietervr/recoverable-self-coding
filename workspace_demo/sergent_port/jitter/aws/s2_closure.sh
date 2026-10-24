@@ -4,11 +4,12 @@
 # start profile validation, and the recovery check rerun with its oracle-Sigma variant.
 # Run from the jitter directory inside the bundle, with the venv active. Results land under results/s2 (synced to S3 by
 # the user-data loop every 5 min; a relaunch resumes from the synced per-task and per-set files).
-#   usage: bash aws/s2_closure.sh <workers> [all | W2 | T1 | O1 | checks]
+#   usage: bash aws/s2_closure.sh <workers> [all | W2 | T1 | O1 | checks | nodes | validators]
 # PARTS (24 Oct 2026, after the first instance ran the sets one at a time on 20 of 96 cores): one instance per part.
 #   W2 / T1 / O1  the decision batch of that setting, all 25 sets in one queue (s2.run_decision), then its summary line
-#   checks        waits for W2 set 0 on S3 (the node check refits it), then nodes, ranks, small-spread, basins, profiles,
-#                 recovery rerun
+#   nodes         waits for W2 set 0 on S3 (the node check refits it), then nodes, ranks, small-spread
+#   validators    basins, the profile-start validation, the recovery rerun (no W2 set needed)
+#   checks        nodes then validators on one host
 #   all           everything in sequence (the original single-instance form)
 set -uo pipefail
 W=${1:-96}
@@ -51,6 +52,14 @@ checks() {
   python s2.py checks --kind ranks > results/s2/closure_checks_ranks.log 2>&1
   python s2.py checks --kind smallspread > results/s2/closure_checks_smallspread.log 2>&1
   echo "[closure] checks ranks/smallspread done $(date -u +%T)" | tee -a "$LOG"
+  [ "${1:-}" = "nodes_only" ] && return
+  validators
+}
+
+validators() {
+  # basins, the profile-start validation and the recovery rerun need no W2 set: a fifth host runs them beside the node
+  # check (24 Oct 2026: one decision task = 1,513 s alone on the AMD core, 3.6x the Mac's sequential rate, so the
+  # serial checks host would have been the closure's critical path)
   echo "[closure] basins start $(date -u +%T)" | tee -a "$LOG"
   python s2.py basins --workers "$W" > results/s2/closure_basins.log 2>&1
   echo "[closure] basins rc=$? $(date -u +%T)" | tee -a "$LOG"
@@ -63,8 +72,10 @@ checks() {
 }
 
 case "$PART" in
-  W2|T1|O1) decision "$PART" ;;
-  checks)   checks ;;
+  W2|T1|O1)   decision "$PART" ;;
+  checks)     checks ;;
+  nodes)      checks nodes_only ;;
+  validators) validators ;;
   all)      for S in W2 T1 O1; do decision "$S"; done
             python s2.py summary > results/s2/closure_summary.log 2>&1
             echo "[closure] summary rc=$? $(date -u +%T)" | tee -a "$LOG"

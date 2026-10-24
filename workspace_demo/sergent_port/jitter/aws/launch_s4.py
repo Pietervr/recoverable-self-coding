@@ -277,7 +277,7 @@ def main():
     la.add_argument("--kind", default="all", choices=["cv", "rec", "all"])
     la.add_argument("--lifetime-h", type=float, default=12.0)
     la.add_argument("--az", default=None)
-    la.add_argument("--part", default="all", choices=["all", "W2", "T1", "O1", "checks"],
+    la.add_argument("--part", default="all", choices=["all", "W2", "T1", "O1", "checks", "nodes", "validators"],
                     help="s2closure only: which part of aws/s2_closure.sh this instance runs")
     la.add_argument("--dry-run", action="store_true")
     pc = sub.add_parser("probe-core", help="throughput probe on a small instance: thread count, one decision task alone, two in parallel")
