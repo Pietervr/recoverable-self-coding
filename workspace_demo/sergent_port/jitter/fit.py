@@ -72,7 +72,9 @@ LIFT_SPREADS_MS = (20.0, 40.0, 80.0)           #   template; a start fitted to i
 COLLAPSE_X0 = -5.0                             #   lifted at three spreads, and for B the selected G fit collapsed (A -> 1)
 EM_MAX_ITER = 8                                # repair 1: Σ by maximum likelihood within each model (EM outer loop)
 EM_TOL = 1e-6                                  #   relative gain in the total log-likelihood that ends the loop
-RESEED_MIN_NAT = 0.05                          #   a collapsed B this far above G re-seeds G (another basin, not EM noise)
+RESEED_MIN_NAT = 0.05                          #   a B this far above G re-seeds G (another basin, not EM noise)
+EM_RETRY_MAXITER_FACTOR = 4                    # repair D4: an inner EM solve that ends NOT_CONVERGED without improving the
+                                               #   chain point is retried once from that point with this many times the budget
 
 
 def _seed(*parts) -> int:
@@ -530,13 +532,17 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
         return [(label + "|chain", theta, g_result.wh)]
 
     def reseed_g(sp_g, g_result, sp_b, b_result, info_g, b_name):
-        """A collapsed B optimum materially above the G optimum (> RESEED_MIN_NAT, i.e. another basin, not EM
-        noise) re-seeds G: projection onto G's coordinates, one EM chain under B's Σ; the better G is kept."""
+        """A B optimum materially above the G optimum (> RESEED_MIN_NAT, i.e. another basin, not EM noise) re-seeds
+        G: B's θ projected onto G's coordinates (the two-state parameters dropped), one EM chain under B's Σ; the
+        better G is kept. S2 repair D4 (24 Oct 2026): the rule applies to EVERY such B, collapsed or not. The
+        rev 6 + R1-R4 code required every fitted occupancy A(k) ≥ 0.99, which is exactly what never holds when B has
+        found a basin that G's chain missed (W2 set 7 m12 fold 0: G3+ −13704.7 below G2 −13453.5 while B3+ reached
+        −13316.8, and the rescue never fired); on two-state data the attempt costs one chain and changes nothing."""
         if not (b_result.available and g_result.available and b_result.wh is not None):
             return g_result
-        PB = M.unpack(sp_b, b_result.theta)
-        if b_result.loglik <= g_result.loglik + RESEED_MIN_NAT or np.any(PB.A[1:] < 0.99):
+        if b_result.loglik <= g_result.loglik + RESEED_MIN_NAT:
             return g_result
+        PB = M.unpack(sp_b, b_result.theta)
         theta = lift_warm_start(sp_b, b_result.theta, sp_g, info_g, PB.s_tau_ms if sp_g.positive else 20.0)
         r2 = em_fit(sp_g, ds, [], info_g, em=cache.em, warm=[(f"reseed{b_name}", theta, b_result.wh)])
         if r2.available and r2.loglik > g_result.loglik:
@@ -631,30 +637,63 @@ def positive_starts(sp_p: M.ModelSpec, ds: D.Dataset, info: StartInfo, reduced: 
     return starts
 
 
+def _inner_solve(sp: M.ModelSpec, nxt: D.Dataset, theta: np.ndarray, info: StartInfo | None, options, label: str):
+    """One warm-started inner solve of the EM loop on the re-whitened dataset `nxt`. Returns (θ, total log-likelihood,
+    starts, seconds, converged) of the start's end point: the CONVERGED optimum, or the best finite end point of a
+    NOT_CONVERGED start (θ = None and −inf when nothing finite was reached)."""
+    r2 = fit_model(sp, nxt, [(label, theta)], info, options)
+    if r2.available:
+        return r2.theta, r2.loglik, r2.starts, r2.seconds, True
+    s = r2.starts[0]
+    if s.status == "NONFINITE" or not (np.isfinite(s.f) and np.all(np.isfinite(s.x))):
+        return None, -np.inf, r2.starts, r2.seconds, False
+    return np.asarray(s.x, dtype=np.float64), -float(s.f), r2.starts, r2.seconds, False
+
+
 def _em_loop(sp: M.ModelSpec, ds: D.Dataset, r: FitResult, cur: D.Dataset, info: StartInfo | None, options,
              max_iter: int, tol: float, tag: str = "em") -> FitResult:
-    """The generalised EM loop from an AVAILABLE fit `r` on `cur` (the same trials as `ds` under some whitening)."""
-    archive, n_conv, notes = list(r.starts), r.n_converged, list(r.notes)
+    """The generalised EM loop from an AVAILABLE fit `r` on `cur` (the same trials as `ds` under some whitening).
+    S2 repair D4 (24 Oct 2026): an inner solve that ends NOT_CONVERGED no longer ends the chain outright. Its best
+    finite end point is a legitimate generalised-EM step whenever it raises the total log-likelihood (the Σ M-step is
+    exact; the θ-step need only not decrease the objective), so it is accepted, noted, and the chain continues —
+    the next step's warm start then polishes it. When it does not improve, the solve is retried once from the chain
+    point with EM_RETRY_MAXITER_FACTOR times the iteration budget, and only then does the chain stop. Under the
+    rev 6 + R1-R4 code the chain broke at the first NOT_CONVERGED solve (W2 sets 0-8: G3+ 6x, G2 4x, B3+ 1x over
+    900 folds), leaving G at its starting-Σ optimum while B's chains carried on — the D4 under-finding of G (W2 set 7
+    m12 fold 0: G3+ stopped at step 1 at −13704.7, G2 reached −13453.5 in three steps). Every attempt is archived."""
+    archive, n_conv, notes, seconds = list(r.starts), r.n_converged, list(r.notes), r.seconds
     for it in range(1, max_iter + 1):
         Sigma = M.m_step_sigma(sp, r.theta, cur)
         wh = D.whitening_from_sigma(cur.wh.mu0, Sigma, 0.0, cur.wh.n_catch)
         nxt = D.rewhiten(ds, wh, f"/{tag}{it}")
-        r2 = fit_model(sp, nxt, [(f"{tag}{it}", r.theta)], info, options)
-        if not r2.available or r2.loglik < r.loglik:
+        theta2, ll2, st2, sec2, conv2 = _inner_solve(sp, nxt, r.theta, info, options, f"{tag}{it}")
+        archive, seconds = archive + list(st2), seconds + sec2
+        if not conv2 and not ll2 > r.loglik:
+            opts = dict(LBFGSB_OPTIONS if options is None else options)
+            opts["maxiter"] = EM_RETRY_MAXITER_FACTOR * int(opts.get("maxiter", LBFGSB_OPTIONS["maxiter"]))
+            theta2, ll2, st2, sec2, conv2 = _inner_solve(sp, nxt, r.theta, info, opts, f"{tag}{it}|retry")
+            archive, seconds = archive + list(st2), seconds + sec2
+            notes.append(f"{tag} step {it}: inner solve not CONVERGED and not improving, retried with "
+                         f"{opts['maxiter']} iterations")
+        if theta2 is None or ll2 < r.loglik:
             # strictly monotone: a decrease, however small (the adaptive quadrature's nodes move with Σ, so the
             # E-step and the likelihood are not exactly consistent near convergence), ends the chain at `r`
-            notes.append(f"{tag} stopped at step {it}: " + ("inner solve not CONVERGED" if not r2.available else
-                                                             f"objective fell by {r.loglik - r2.loglik:.3g} nat"))
+            notes.append(f"{tag} stopped at step {it}: " + ("inner solve not finite" if theta2 is None else
+                         f"{'inner solve not CONVERGED, ' if not conv2 else ''}objective fell by {r.loglik - ll2:.3g} nat"))
             break
-        gain = r2.loglik - r.loglik
-        trace = r.em_trace + [float(r2.loglik)]
-        archive = archive + list(r2.starts)
-        r = FitResult(sp.name, ds.ident, "AVAILABLE", r2.theta, r2.loglik, archive, n_conv, r.seconds + r2.seconds,
-                      M.code_hash(), r2.bounds_hit, r2.clipped, notes, "", [], {}, wh, it, trace)
+        if not conv2:
+            notes.append(f"{tag} step {it}: inner solve not CONVERGED, accepted as a generalised-EM ascent step "
+                         f"(+{ll2 - r.loglik:.3g} nat)")
+        gain = ll2 - r.loglik
+        trace = r.em_trace + [float(ll2)]
+        P = M.unpack(sp, theta2)
+        clipped = [] if P.clipped is None else [int(v) for v in P.clipped]
+        r = FitResult(sp.name, ds.ident, "AVAILABLE", theta2, ll2, archive, n_conv, seconds, M.code_hash(),
+                      _bounds_hit(sp, theta2), clipped, notes, "", [], {}, wh, it, trace)
         cur = nxt
         if gain <= tol * max(1.0, abs(r.loglik)):
             break
-    r.notes = notes
+    r.notes, r.starts, r.seconds = notes, archive, seconds
     return r
 
 

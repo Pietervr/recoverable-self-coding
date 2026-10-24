@@ -356,6 +356,40 @@ def test_repaired_start_set_and_nesting_without_em():
     assert res["B3+"].wh is not None and res["G3+"].wh is not None and res["B3+"].em_trace[0] <= res["B3+"].loglik
 
 
+def test_d4_em_chain_ascends_and_g_is_reseeded_from_any_better_b():
+    """S2 repair D4 (24 Oct 2026) on the archived case W2 set 7, member 12 (base S13, data ffb97e70fc059930), fold 0:
+    under rev 6 + R1-R4 the G3+ chain stopped at EM step 1 on a NOT_CONVERGED inner solve at −13704.7, below G2
+    (−13453.5, so G3 was REDUCED), while B3+ reached −13316.8 — a training gap of 387.9 nat and a held-out B3 − G3 of
+    +18.6 nat on that fold against within 0.8 on the other four. Under the repaired loop (generalised-EM ascent steps,
+    the inner retry, the unguarded re-seed of G from a better B) G3+ reaches -13320.4 at s_tau 52 ms: its EM step 1 is
+    the accepted ascent step (+377 nat) and the re-seed chain from B3+'s basin ends at the same value, so G3+ stands
+    above G2 (-13451.2) and within a few nat of B3+ (-13316.8); the remaining 3.65 nat is B's genuine two-state
+    structure (occupancy 0.28-0.96 across levels, not a collapsed B), and the held-out B3 - G3 on the fold is -1.2 nat.
+    Asserted: G3+ >= G2, B3+ >= G3+ (nesting), training gap < 5 nat (pre-D4 387.9; 5 nat is the D4 flag level) and
+    held-out B3 - G3 on fold 0 < +2 nat (pre-D4 +18.6). About two minutes on one core."""
+    import s2
+    bases = s2.load_bases()
+    members = s2.set_members("W2", 7)
+    assert members[12] == 13
+    p = s2.make_synthetic("W2", 7, 12, 13, bases)
+    assert p.data_id == "ffb97e70fc059930"
+    train, test, _, _ = D.fold_datasets(p, D.span("primary"), 0)
+    res = F.fit_all_models(train, F.FitCache(), "primary", ("G3", "B3"))
+    g2, g3, b3 = res["G2"].loglik, res["G3+"].loglik, res["B3+"].loglik
+    assert res["G3+"].available and res["B3+"].available
+    assert g3 >= g2 - 1e-6 * abs(g2), (g2, g3)
+    assert b3 >= g3 - 1e-6 * abs(g3), (g3, b3)
+    assert b3 - g3 < 5.0, (g3, b3)
+    held = {sel: float(np.sum(F.score_heldout(F.selected_spec(sel, res[sel], "primary"), res[sel], test)))
+            for sel in ("G3", "B3")}
+    assert held["B3"] - held["G3"] < 2.0, held
+    # no chain in this fold ends on a NOT_CONVERGED inner solve without the retry having been tried
+    for name in ("G2", "G3+", "B2", "B3+"):
+        stops = [n for n in res[name].notes if "stopped at step" in n and "not CONVERGED" in n]
+        retries = [n for n in res[name].notes if "retried with" in n]
+        assert len(stops) <= len(retries), (name, res[name].notes)
+
+
 if __name__ == "__main__":
     import inspect, traceback
     fails = 0

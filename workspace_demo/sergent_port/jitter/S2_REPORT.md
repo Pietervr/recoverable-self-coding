@@ -6,7 +6,7 @@ Everything here is a development reading on development seeds — nothing feeds 
 What this report declares for DESIGN rev 7 and the Codex S3 freeze review: four defects found in S2 (D1-D4), their
 evidence, the repairs, and what the repaired fitter reads on the three development settings.
 
-Code: `jitter/{data,models,fit,decide,simulate,bench,s2,diagnose}.py`, tests `jitter/tests/` (82 tests over four files,
+Code: `jitter/{data,models,fit,decide,simulate,bench,s2,diagnose}.py`, tests `jitter/tests/` (81 tests over four files: 18 fit, 24 models, 29 decide, 10 simulate;
 `../../t1_access/.venv/bin/python tests/<file>.py` -> "ALL OK"). Records: `results/s2/decision_rev6/` (the rev 6
 fitter), `results/s2/decision_pre_d4/` (R1-R4 repaired, before D4), `results/s2/decision/` (final), `results/s2/diagnosis/`.
 
