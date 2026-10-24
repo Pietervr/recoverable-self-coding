@@ -101,7 +101,8 @@ def _start_rows(r: F.FitResult):
                  early=s.early, seconds=s.seconds) for s in r.starts]
 
 
-def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, span_name: str = "primary") -> dict:
+def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, span_name: str = "primary",
+                  quad: dict | None = None) -> dict:
     os.environ.setdefault("NPROC", "1")
     t0 = _time.time()
     p = make_synthetic(setting, r, m, base_subject, bases)
@@ -112,7 +113,7 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
     xs = {}
     for fold in range(5):
         train, test, _, _ = D.fold_datasets(p, sp_, fold)
-        res = F.fit_all_models(train, cache, span_name, ("G3", "B3"))
+        res = F.fit_all_models(train, cache, span_name, ("G3", "B3"), quad)
         row = dict(fold=fold, n_train=train.n, n_test=test.n, shrinkage=train.wh.shrinkage, fits={})
         for name in DECISION_SPECS:
             fr = res[name]
@@ -126,7 +127,7 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
             row["fits"][sel] = dict(status=fr.status, loglik=fr.loglik, selection=fr.selection, flags=fr.flags,
                                     candidates=fr.candidates)
             if fr.available:
-                sp = F.selected_spec(sel, fr, span_name)
+                sp = F.selected_spec(sel, fr, span_name, quad)
                 ll = M.Objective(sp, train).trial_loglik(fr.theta, test)
                 sums[sel].append(float(np.sum(ll)))
                 xs[f"f{fold}_{sel}_theta"] = np.asarray(fr.theta, dtype=np.float32)
@@ -137,7 +138,7 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
     scores = {k: (float(np.nansum(v) / n) if not np.any(np.isnan(v)) else float("nan")) for k, v in sums.items()}
     return dict(setting=setting, r=r, m=m, base=base_subject, data_id=p.data_id, n_trials=p.n, n_scored=n,
                 scores=scores, fold_sums=sums, folds=folds, seconds=_time.time() - t0, code_hash=M.code_hash(),
-                _xs=xs)
+                quad=quad or {}, _xs=xs)
 
 
 def run_decision(setting: str, R: int, workers: int, sets=None, span_name: str = "primary"):
@@ -288,6 +289,288 @@ def summary_markdown(out: dict) -> str:
     return "\n".join(L) + "\n"
 
 
+# ----------------------------------------------------------------------------------------------
+# §4 checks: node counts (refits), Jacobian ranks, small-spread behaviour
+# ----------------------------------------------------------------------------------------------
+CHECK_DIR = os.path.join(S2_DIR, "checks")
+
+
+def node_check(setting: str, r: int, quad: dict, label: str, workers: int) -> dict:
+    """Refit replicate set r of `setting` under `quad` and compare every participant's Δ₃ with the archived
+    (default-rule) Δ₃: pass if max |ΔΔ₃| < one tenth of the set's Δ₃ interval half-width (§4)."""
+    from joblib import Parallel, delayed
+    with open(os.path.join(DEC_DIR, setting, f"set_{r}.json")) as f:
+        ref = json.load(f)
+    bases = load_bases()
+    members = ref["members"]
+    t0 = _time.time()
+    rows = Parallel(n_jobs=workers, backend="loky")(
+        delayed(decision_task)(setting, r, m, s, bases, "primary", quad) for m, s in enumerate(members))
+    d_ref = {f"m{m}": ref["delta3"][f"m{m}"] for m in range(20)}
+    d_new = {f"m{row['m']}": row["scores"]["B3"] - row["scores"]["G3"] for row in rows}
+    both = [k for k in d_ref if np.isfinite(d_ref[k]) and np.isfinite(d_new[k])]
+    vals = np.array([d_ref[k] for k in both])
+    iv = X.t_interval(vals)
+    half = 0.5 * (iv.hi - iv.lo) if np.isfinite(iv.hi) else float("nan")
+    diffs = {k: d_new[k] - d_ref[k] for k in both}
+    worst = max(abs(v) for v in diffs.values()) if diffs else float("nan")
+    out = dict(setting=setting, r=r, label=label, quad=quad, n_compared=len(both), half_width=half,
+               tolerance=0.1 * half, max_abs_change=worst, passed=bool(worst < 0.1 * half), changes=diffs,
+               delta3_ref=d_ref, delta3_new=d_new, primary_ref=ref["primary"],
+               primary_new=X.set_primary({f"m{row['m']}": row["scores"] for row in rows}),
+               seconds=_time.time() - t0,
+               mean_seconds_per_dataset=float(np.mean([row["seconds"] for row in rows])))
+    os.makedirs(CHECK_DIR, exist_ok=True)
+    with open(os.path.join(CHECK_DIR, f"nodes_{label}_{setting}_set{r}.json"), "w") as f:
+        json.dump(out, f, indent=1)
+    print(f"[s2 checks] {label} {setting} set {r}: max |ΔΔ₃| {worst:.2e} vs tolerance {0.1 * half:.2e} -> "
+          f"{'PASS' if out['passed'] else 'FAIL'}; primary {ref['primary']} -> {out['primary_new']}; {out['seconds']:.0f} s", flush=True)
+    return out
+
+
+def rank_checks() -> dict:
+    """Jacobian rank of the per-trial log-likelihood map at a generic point (local identifiability of the full
+    parameter vector) for every model, and the rank of the stacked 31-node window basis (§4)."""
+    import jax
+    import jax.numpy as jnp
+    out = {}
+    for span_name in ("primary", "whole"):
+        b = M.basis(span_name)
+        stacked = b.Bmat.reshape(-1, b.n_basis)
+        sv = np.linalg.svd(stacked, compute_uv=False)
+        out[f"stacked_basis_{span_name}"] = dict(shape=list(stacked.shape), rank=int(np.sum(sv > 1e-10 * sv[0])),
+                                                 n_basis=b.n_basis, min_sv_ratio=float(sv[-1] / sv[0]))
+        b0 = b.Bmat[b.node0][:, b.visible]
+        sv0 = np.linalg.svd(b0, compute_uv=False)
+        out[f"zero_shift_visible_basis_{span_name}"] = dict(shape=list(b0.shape), rank=int(np.sum(sv0 > 1e-10 * sv0[0])))
+    bases = load_bases()
+    p = make_synthetic("W2", 0, 0, 10, bases)
+    train, _, _, _ = D.fold_datasets(p, D.span("primary"), 0)
+    rng = np.random.default_rng(0)
+    for name in M.MODEL_NAMES:
+        sp = M.spec(name)
+        info = F.start_info(sp, train)
+        th = F.start_vectors(sp, info)[0][1] + rng.normal(0, 0.05, size=sp.n_params)
+        if sp.tau_free:
+            th[sp.layout()["index"]["theta_tau"]] = 0.4          # a generic positive spread (40 ms)
+        if sp.scale_free:
+            th[sp.layout()["index"]["s_g"]] = 0.5
+        obj = M.Objective(sp, train)
+        U, k, Linv, logdet = obj.U[: obj.n_eff], obj.k[: obj.n_eff], obj.Linv, obj.logdet
+        Jm = np.asarray(jax.jacfwd(lambda t: obj.per_trial(t, U, k, Linv, logdet))(jnp.asarray(th)))
+        sv = np.linalg.svd(Jm, compute_uv=False)
+        out[name] = dict(n_params=sp.n_params, jacobian_shape=list(Jm.shape),
+                         rank=int(np.sum(sv > 1e-8 * sv[0])), sv_min_over_max=float(sv[-1] / sv[0]),
+                         smallest_sv=[float(v) for v in sv[-4:]])
+    os.makedirs(CHECK_DIR, exist_ok=True)
+    with open(os.path.join(CHECK_DIR, "ranks.json"), "w") as f:
+        json.dump(out, f, indent=1)
+    return out
+
+
+def small_spread_check() -> dict:
+    """ℓ_prof(s) − ℓ_reduced at parent spreads {1, 2, 5, 8, 10} ms (and the node-0 weight) on a development
+    participant: documents the flat region below the 2 ms floor and the node spacing (§4, §5)."""
+    bases = load_bases()
+    out = {}
+    for setting, m, base in (("W2", 0, 10), ("T1", 0, 10)):
+        p = make_synthetic(setting, 0, m, base, bases)
+        ds = D.full_dataset(p, D.span("primary"))
+        cache = F.FitCache()
+        rows = {}
+        for fam in ("G", "B"):
+            res = F.fit_all_models(ds, cache, "primary", (fam + "3",))
+            red = res[fam + "2"]
+            sp_full = M.spec(fam + "3+")
+            info = F.start_info(sp_full, ds)
+            prof = {}
+            for s in (1.0, 2.0, 5.0, 8.0, 10.0, 20.0):
+                sp_c = sp_full.constrained(s)
+                starts = F.constrained_starts(sp_full, sp_c, res[fam + "3"], F.selected_spec(fam + "3", res[fam + "3"], "primary"), info, 2)
+                r = F.fit_model(sp_c, ds, starts=starts, info=info)
+                w0 = float(M.truncnorm_node_weights(M.tau_nodes_ms(), s)[15])
+                prof[str(s)] = dict(ell_minus_reduced=(r.loglik - red.loglik) if r.available else None,
+                                    node0_weight=w0, status=r.status)
+            rows[fam] = dict(reduced_loglik=red.loglik, unrestricted=dict(selection=res[fam + "3"].selection,
+                             s_tau_ms=M.unpack(F.selected_spec(fam + "3", res[fam + "3"], "primary"), res[fam + "3"].theta).s_tau_ms,
+                             loglik=res[fam + "3"].loglik), profile=prof)
+        out[f"{setting}-m{m}-S{base}"] = rows
+    os.makedirs(CHECK_DIR, exist_ok=True)
+    with open(os.path.join(CHECK_DIR, "small_spread.json"), "w") as f:
+        json.dump(out, f, indent=1)
+    return out
+
+
+# ----------------------------------------------------------------------------------------------
+# start basins: the two development starts (§5)
+# ----------------------------------------------------------------------------------------------
+BASIN_DIR = os.path.join(S2_DIR, "basins")
+
+
+def development_starts(sp: M.ModelSpec, info: F.StartInfo) -> list:
+    """The near-collapsed two-state start (A → 1 at all levels: κ = 50, x0 = −5; B family only) and the broad
+    template start (every coefficient at the gauge value, i.e. a flat T̃), with the first recipe's nuisance."""
+    base = F.nuisance_recipes(sp)[0]
+    out = []
+    flat = F.StartInfo(np.zeros(sp.basis().n_basis), np.zeros(sp.basis().n_basis), info.a, info.logkappa, info.x0,
+                       True, info.kappa_fallback)
+    out.append(("broad-template", F.start_vectors(sp, flat, [base])[0][1]))
+    if sp.family == "B":
+        th = F.start_vectors(sp, info, [base])[0][1].copy()
+        lay = sp.layout()["index"]
+        th[lay["logkappa"]] = np.log(M.KAPPA_MAX)
+        th[lay["x0"]] = -5.0
+        out.append(("near-collapsed", th))
+    return out
+
+
+def basin_task(setting: str, r: int, m: int, base_subject: int, bases: dict) -> dict:
+    """Re-run every candidate of the decision batch on fold 0 with the standard four starts PLUS the development
+    starts; report whether a development start improved the selected optimum, and the B ⊇ G nesting of the
+    training objectives."""
+    os.environ.setdefault("NPROC", "1")
+    p = make_synthetic(setting, r, m, base_subject, bases)
+    train, _, _, _ = D.fold_datasets(p, D.span("primary"), 0)
+    out = dict(setting=setting, r=r, m=m, base=base_subject, fits={})
+    for name in DECISION_SPECS:
+        sp = M.spec(name)
+        info = F.start_info(sp, train)
+        std = F.start_vectors(sp, info)
+        dev = development_starts(sp, info)
+        res = F.fit_model(sp, train, starts=std + dev, info=info)
+        conv = [s for s in res.starts if s.status == "CONVERGED"]
+        best_std = min((s.f for s in conv if s.label in {l for l, _ in std}), default=float("inf"))
+        best_dev = min((s.f for s in conv if s.label in {l for l, _ in dev}), default=float("inf"))
+        best_all = min(best_std, best_dev)
+        out["fits"][name] = dict(best_std=best_std, best_dev=best_dev, dev_improved=bool(best_dev < best_std - 1e-6 * max(1.0, abs(best_std))),
+                                 gain_nat=(best_std - best_dev) if np.isfinite(best_dev) and np.isfinite(best_std) else None,
+                                 starts={s.label: dict(status=s.status, f=s.f) for s in res.starts},
+                                 selected_loglik=-best_all if np.isfinite(best_all) else None)
+    for g, b in (("G2", "B2"), ("G3+", "B3+")):
+        lg, lb = out["fits"][g]["selected_loglik"], out["fits"][b]["selected_loglik"]
+        out[f"nesting_{b}_minus_{g}"] = None if lg is None or lb is None else lb - lg
+    return out
+
+
+def run_basins(settings=("W2", "T1", "O1"), r: int = 0, workers: int = 12) -> dict:
+    from joblib import Parallel, delayed
+    bases = load_bases()
+    os.makedirs(BASIN_DIR, exist_ok=True)
+    summary = {}
+    for setting in settings:
+        members = set_members(setting, r)
+        rows = Parallel(n_jobs=workers, backend="loky")(
+            delayed(basin_task)(setting, r, m, s, bases) for m, s in enumerate(members))
+        with open(os.path.join(BASIN_DIR, f"{setting}_set{r}.json"), "w") as f:
+            json.dump(rows, f, indent=1)
+        agg = {}
+        for name in DECISION_SPECS:
+            imp = [row["fits"][name] for row in rows if row["fits"][name]["dev_improved"]]
+            agg[name] = dict(n=len(rows), dev_improved=len(imp),
+                             max_gain_nat=max([x["gain_nat"] for x in imp], default=0.0))
+        viol = {k: sum(1 for row in rows if row[k] is not None and row[k] < -1e-6) for k in ("nesting_B2_minus_G2", "nesting_B3+_minus_G3+")}
+        worst = {k: min([row[k] for row in rows if row[k] is not None], default=0.0) for k in viol}
+        summary[setting] = dict(per_spec=agg, nesting_violations=viol, worst_nesting_deficit_nat=worst)
+        print(f"[s2 basins] {setting}: " + ", ".join(f"{n} dev-improved {a['dev_improved']}/{a['n']} (max {a['max_gain_nat']:.3f} nat)" for n, a in agg.items())
+              + f"; nesting violations {viol}", flush=True)
+    with open(os.path.join(BASIN_DIR, "summary.json"), "w") as f:
+        json.dump(summary, f, indent=1)
+    return summary
+
+
+# ----------------------------------------------------------------------------------------------
+# profile-start validation (§5): 2 vs 4 constrained starts on 100 datasets per family from W2 and T1
+# ----------------------------------------------------------------------------------------------
+PROF_DIR = os.path.join(S2_DIR, "profile_validation")
+PROFILE_REL_TOL, PROFILE_LR_TOL = 1e-6, 0.05
+
+
+def profile_task(setting: str, r: int, m: int, base_subject: int, bases: dict, family: str) -> dict:
+    """Full-data unrestricted fit of the family's full model, then every grid point with FOUR constrained starts
+    (warm, T_B-nearest, and the two further §5 recipes); the 2-start optimum is the best of the first two."""
+    os.environ.setdefault("NPROC", "1")
+    p = make_synthetic(setting, r, m, base_subject, bases)
+    ds = D.full_dataset(p, D.span("primary"))
+    cache = F.FitCache()
+    res = F.fit_all_models(ds, cache, "primary", (family + "3",))
+    unres = res[family + "3"]
+    out = dict(setting=setting, r=r, m=m, base=base_subject, family=family, unrestricted=dict(
+        status=unres.status, selection=unres.selection, loglik=unres.loglik), points={})
+    if not unres.available:
+        return out
+    sp_full = M.spec(family + "3+")
+    sp_u = F.selected_spec(family + "3", unres, "primary")
+    info = F.start_info(sp_full, ds)
+    ell_hat = unres.loglik
+    for s in X.PROFILE_GRID_MS:
+        if s == 0.0:
+            red = res[family + "2"]
+            out["points"]["0"] = dict(ell2=red.loglik, ell4=red.loglik, status2=red.status, status4=red.status, q2=None, q4=None)
+            continue
+        sp_c = sp_full.constrained(s)
+        starts = F.constrained_starts(sp_full, sp_c, unres, sp_u, info, 4)
+        r4 = F.fit_model(sp_c, ds, starts=starts, info=info)
+        conv = [st for st in r4.starts if st.status == "CONVERGED"]
+        two = [st for st in conv if st.label in (starts[0][0], starts[1][0])]
+        ell4 = -min(st.f for st in conv) if conv else None
+        ell2 = -min(st.f for st in two) if two else None
+        out["points"][str(s)] = dict(ell2=ell2, ell4=ell4, status2="AVAILABLE" if two else "UNAVAILABLE",
+                                     status4=r4.status,
+                                     q2=None if ell2 is None else 2.0 * (ell_hat - ell2),
+                                     q4=None if ell4 is None else 2.0 * (ell_hat - ell4),
+                                     starts={st.label: dict(status=st.status, f=st.f) for st in r4.starts})
+    return out
+
+
+def run_profile_validation(n_per_family: int = 100, workers: int = 12) -> dict:
+    """100 development participant-datasets per family drawn alternately from the W2 and T1 sets (set r, member
+    m in order), every grid point, agreement to 1e-6 relative in objective AND 0.05 on the LR scale."""
+    from joblib import Parallel, delayed
+    bases = load_bases()
+    os.makedirs(PROF_DIR, exist_ok=True)
+    summary = {}
+    for family in ("G", "B"):
+        tasks = []
+        i = 0
+        while len(tasks) < n_per_family:
+            setting = ("W2", "T1")[i % 2]
+            r, m = (i // 2) // 20, (i // 2) % 20
+            tasks.append((setting, r, m, set_members(setting, r)[m]))
+            i += 1
+        rows = Parallel(n_jobs=workers, backend="loky")(
+            delayed(profile_task)(setting, r, m, base, bases, family) for setting, r, m, base in tasks)
+        with open(os.path.join(PROF_DIR, f"{family}.json"), "w") as f:
+            json.dump(rows, f)
+        n_points = n_fail_rel = n_fail_lr = n_unavail2 = n_unavail4 = 0
+        worst_rel = worst_lr = 0.0
+        for row in rows:
+            for s, pt in row["points"].items():
+                if s == "0":
+                    continue
+                n_points += 1
+                if pt["ell4"] is None:
+                    n_unavail4 += 1
+                    continue
+                if pt["ell2"] is None:
+                    n_unavail2 += 1
+                    continue
+                rel = abs(pt["ell2"] - pt["ell4"]) / max(1.0, abs(pt["ell4"]))
+                lr = abs(pt["q2"] - pt["q4"])
+                worst_rel, worst_lr = max(worst_rel, rel), max(worst_lr, lr)
+                n_fail_rel += rel > PROFILE_REL_TOL
+                n_fail_lr += lr > PROFILE_LR_TOL
+        summary[family] = dict(datasets=len(rows), grid_points=n_points, two_start_unavailable=n_unavail2,
+                               four_start_unavailable=n_unavail4, fail_relative=n_fail_rel, fail_lr=n_fail_lr,
+                               worst_relative=worst_rel, worst_lr=worst_lr,
+                               passed=bool(n_fail_rel == 0 and n_fail_lr == 0 and n_unavail2 == 0))
+        print(f"[s2 profiles] {family}: {n_points} grid points on {len(rows)} datasets; relative failures {n_fail_rel}, "
+              f"LR failures {n_fail_lr}, 2-start unavailable {n_unavail2}; worst rel {worst_rel:.1e}, worst LR {worst_lr:.3f} -> "
+              f"{'PASS' if summary[family]['passed'] else 'FAIL (profiles use 4 starts; re-cost §8)'}", flush=True)
+    with open(os.path.join(PROF_DIR, "summary.json"), "w") as f:
+        json.dump(summary, f, indent=1)
+    return summary
+
+
 def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -298,6 +581,16 @@ def main():
     d.add_argument("--workers", type=int, default=12)
     d.add_argument("--sets", default=None, help="e.g. 0-4")
     sub.add_parser("summary")
+    c = sub.add_parser("checks")
+    c.add_argument("--kind", required=True, choices=["nodes", "ranks", "smallspread"])
+    c.add_argument("--setting", default="W2", choices=list(SETTINGS))
+    c.add_argument("--set", type=int, default=0)
+    c.add_argument("--workers", type=int, default=12)
+    bsn = sub.add_parser("basins")
+    bsn.add_argument("--workers", type=int, default=12)
+    pr = sub.add_parser("profiles")
+    pr.add_argument("--n", type=int, default=100)
+    pr.add_argument("--workers", type=int, default=12)
     a = ap.parse_args()
     if a.cmd == "bases":
         b = cache_bases()
@@ -311,6 +604,19 @@ def main():
         print(summary_markdown(summarize()))
     elif a.cmd == "summary":
         print(summary_markdown(summarize()))
+    elif a.cmd == "checks":
+        if a.kind == "nodes":
+            node_check(a.setting, a.set, dict(n_g_nodes=33), "g33", a.workers)
+            node_check(a.setting, a.set, dict(n_tau_nodes=61), "tau61", a.workers)
+            node_check(a.setting, a.set, dict(n_g_nodes=7, adaptive_g=False), "prior7", a.workers)
+        elif a.kind == "ranks":
+            print(json.dumps(rank_checks(), indent=1))
+        else:
+            print(json.dumps(small_spread_check(), indent=1))
+    elif a.cmd == "basins":
+        run_basins(workers=a.workers)
+    elif a.cmd == "profiles":
+        run_profile_validation(a.n, a.workers)
 
 
 if __name__ == "__main__":

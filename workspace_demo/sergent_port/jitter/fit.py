@@ -402,7 +402,8 @@ class FitCache:
 
     @staticmethod
     def key(ds: D.Dataset, sp: M.ModelSpec, recipe: str = "std") -> str:
-        return f"{ds.ident}|{sp.name}|{recipe}"
+        quad = f"t{sp.n_tau_nodes}g{sp.n_g_nodes}{'a' if sp.adaptive_g else 'p'}"
+        return f"{ds.ident}|{sp.name}|{quad}|{recipe}"
 
     def _path(self, key: str) -> str:
         return os.path.join(self.dir, hashlib.sha256(key.encode()).hexdigest()[:24] + ".json")
@@ -461,11 +462,13 @@ def select(name: str, reduced: FitResult, positive: FitResult, sp_pos: M.ModelSp
 
 
 def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str | None = None,
-                   models: tuple = FULL_MODELS) -> dict:
+                   models: tuple = FULL_MODELS, quad: dict | None = None) -> dict:
     """The eight models of §4 on one dataset: {name: FitResult}, selected models built from their candidates;
-    also returns the candidates under their spec names. Reduced fits are cached and never refitted."""
+    also returns the candidates under their spec names. Reduced fits are cached and never refitted. `quad`
+    overrides the node counts / rule (n_tau_nodes, n_g_nodes, adaptive_g) for the §4 node checks."""
     cache = FitCache() if cache is None else cache
     span_name = ds.span.name if span_name is None else span_name
+    quad = {} if quad is None else quad
     out = {}
     infos = {}
 
@@ -478,13 +481,13 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
     for name in models:
         if name in M.SELECTED_NAMES:
             red_name, pos_name = M.SELECTED_NAMES[name]
-            sp_r, sp_p = M.spec(red_name, span_name), M.spec(pos_name, span_name)
+            sp_r, sp_p = M.spec(red_name, span_name, **quad), M.spec(pos_name, span_name, **quad)
             red = cache.fit(sp_r, ds, info_for(sp_r))
             pos = cache.fit(sp_p, ds, info_for(sp_p))
             out[red_name], out[pos_name] = red, pos
             out[name] = select(name, red, pos, sp_p)
         else:
-            sp = M.spec(name, span_name)
+            sp = M.spec(name, span_name, **quad)
             out[name] = cache.fit(sp, ds, info_for(sp))
     return out
 
@@ -496,11 +499,12 @@ def spec_of(result_name: str, span_name: str) -> M.ModelSpec:
     return M.spec(result_name, span_name)
 
 
-def selected_spec(name: str, r: FitResult, span_name: str) -> M.ModelSpec:
+def selected_spec(name: str, r: FitResult, span_name: str, quad: dict | None = None) -> M.ModelSpec:
+    quad = {} if quad is None else quad
     if name in M.SELECTED_NAMES:
         red_name, pos_name = M.SELECTED_NAMES[name]
-        return M.spec(red_name if r.selection == "REDUCED" else pos_name, span_name)
-    return M.spec(name, span_name)
+        return M.spec(red_name if r.selection == "REDUCED" else pos_name, span_name, **quad)
+    return M.spec(name, span_name, **quad)
 
 
 # ----------------------------------------------------------------------------------------------
