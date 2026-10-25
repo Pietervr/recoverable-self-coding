@@ -8,3 +8,5 @@ run_*.json
 probe.txt*
 userdata_probe_*.sh
 userdata_xprobe_*.sh
+userdata_cprobe_*.sh
+userdata_cpair_*.sh

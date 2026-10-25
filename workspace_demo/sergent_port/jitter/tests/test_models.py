@@ -416,6 +416,32 @@ def test_m_step_sigma_reduces_to_the_residual_covariance_without_response():
     assert np.allclose(Sigma, Sigma.T) and np.all(np.linalg.eigvalsh(Sigma) > 0)
 
 
+def test_trial_chunked_objective_equals_one_block():
+    """TRIAL_CHUNK (25 Oct 2026, the AWS throughput fix): the training objective summed over 64-trial chunks under a
+    scan with recompute equals the one-block objective in value and gradient to rounding (144 trials -> 192 padded ->
+    three chunks)."""
+    ds = _synthetic_dataset(n_per_level=24, seed=3)
+    saved = M.TRIAL_CHUNK
+    try:
+        for name in ("G2", "G3+", "B3+"):
+            sp = M.spec(name)
+            th = _theta(sp)
+            out = {}
+            for ch in (0, 64):
+                M.TRIAL_CHUNK = ch
+                M.functions.cache_clear()
+                obj = M.Objective(sp, ds)
+                assert obj.U.shape[0] == 192
+                out[ch] = obj(th)
+            v0, g0 = out[0]
+            v1, g1 = out[64]
+            assert abs(v1 - v0) <= 1e-12 * abs(v0), (name, v0, v1)
+            assert np.max(np.abs(g1 - g0)) <= 1e-11 * max(1.0, np.max(np.abs(g0))), name
+    finally:
+        M.TRIAL_CHUNK = saved
+        M.functions.cache_clear()
+
+
 if __name__ == "__main__":
     import inspect
     fails = 0

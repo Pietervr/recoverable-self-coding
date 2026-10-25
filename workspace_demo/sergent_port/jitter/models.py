@@ -105,6 +105,8 @@ GAMMA_MIN = -30.0             # S2 repair 3 (24 Oct 2026): lower box on every te
 #                               underflowed to c = 0 and every lifted warm start was packed with -inf (NONFINITE).
 TIME_SCALE = 100.0            # θ_τ = s_τ / 100 ms
 PAD_MULTIPLE = 64
+# trials per chunk of the training objective (0 = one block, the frozen-code behaviour); a multiple of PAD_MULTIPLE
+TRIAL_CHUNK = int(os.environ.get("JITTER_TRIAL_CHUNK", "0"))
 LOG2PI = float(np.log(2.0 * np.pi))
 
 FAMILIES = ("G", "B")
@@ -591,7 +593,23 @@ def functions(sp: ModelSpec):
         return _trial_loglik_impl(theta, U, k, Linv, logdet, sp, C)
 
     def objective(theta, U, k, mask, Linv, logdet):
-        return -jnp.sum(mask * trial_loglik(theta, U, k, Linv, logdet))
+        n = U.shape[0]
+        if TRIAL_CHUNK <= 0 or n <= TRIAL_CHUNK or n % TRIAL_CHUNK:
+            return -jnp.sum(mask * trial_loglik(theta, U, k, Linv, logdet))
+        # trial chunks under a scan with recompute: each chunk's (CHUNK, N_tau, N_g) intermediates stay in the core's
+        # private cache instead of the whole (n, N_tau, N_g) arrays streaming through the shared memory system
+        nc = n // TRIAL_CHUNK
+        xs = (U.reshape(nc, TRIAL_CHUNK, U.shape[1]), k.reshape(nc, TRIAL_CHUNK), mask.reshape(nc, TRIAL_CHUNK))
+
+        @jax.checkpoint
+        def chunk(theta, Uc, kc, mc):
+            return jnp.sum(mc * trial_loglik(theta, Uc, kc, Linv, logdet))
+
+        def body(acc, x):
+            return acc + chunk(theta, *x), None
+
+        tot, _ = jax.lax.scan(body, jnp.zeros((), dtype=U.dtype), xs)
+        return -tot
 
     def posterior(theta, U, k, Linv):
         return _posterior_impl(theta, U, k, Linv, sp, C)

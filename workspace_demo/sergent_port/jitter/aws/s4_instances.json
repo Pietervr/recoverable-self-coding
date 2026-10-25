@@ -364,6 +364,51 @@
    "region": "eu-north-1",
    "az": "eu-north-1b",
    "bundle": "jitter_bundle_571fcd9.tar.gz"
+  },
+  {
+   "instance_id": "i-01a67b4b2fdc34f49",
+   "mode": "cprobe",
+   "shard": "w96",
+   "part": "64",
+   "kind": "all",
+   "workers": 96,
+   "market": "spot",
+   "launched_utc": "2026-10-25T06:29:37.430324+00:00",
+   "lifetime_h": 1.25,
+   "instance_type": "c7a.24xlarge",
+   "region": "eu-north-1",
+   "az": "eu-north-1b",
+   "bundle": "jitter_bundle_chunk64probe.tar.gz"
+  },
+  {
+   "instance_id": "i-024123e531f72db47",
+   "mode": "cprobe",
+   "shard": "w48",
+   "part": "64",
+   "kind": "all",
+   "workers": 48,
+   "market": "spot",
+   "launched_utc": "2026-10-25T06:29:39.897373+00:00",
+   "lifetime_h": 1.25,
+   "instance_type": "c7a.24xlarge",
+   "region": "eu-north-1",
+   "az": "eu-north-1b",
+   "bundle": "jitter_bundle_chunk64probe.tar.gz"
+  },
+  {
+   "instance_id": "i-084cc72987a687b89",
+   "mode": "cpair",
+   "shard": "w20x2",
+   "part": "all",
+   "kind": "all",
+   "workers": 40,
+   "market": "spot",
+   "launched_utc": "2026-10-25T06:57:03.562814+00:00",
+   "lifetime_h": 1.5,
+   "instance_type": "c7a.24xlarge",
+   "region": "eu-north-1",
+   "az": "eu-north-1b",
+   "bundle": "jitter_bundle_chunk64probe.tar.gz"
   }
  ]
 }

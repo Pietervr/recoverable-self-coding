@@ -1,48 +1,87 @@
 {
- "utc": "2026-10-25T05:12:44.774773+00:00",
+ "utc": "2026-10-25T07:00:15.844141+00:00",
  "instances": [
   {
-   "id": "i-0ed7c85c6f149118e",
+   "id": "i-0a9497f048b17bd1d",
    "state": "terminated",
-   "type": "c7a.24xlarge",
+   "type": "c8g.4xlarge",
    "lifecycle": "on-demand",
-   "az": "us-west-2a",
-   "mode": "s2closure",
-   "shard": "1/1",
-   "part": "T1-rev",
-   "launched": "2026-10-24T21:06:47+00:00",
+   "az": "eu-north-1b",
+   "mode": "xprobe",
+   "shard": "xp-c8g",
+   "part": "base,prof",
+   "launched": "2026-10-25T05:59:54+00:00",
    "hours": null,
    "est_usd": 0.0
   },
   {
-   "id": "i-0d1da001ef952333b",
+   "id": "i-024123e531f72db47",
    "state": "terminated",
    "type": "c7a.24xlarge",
-   "lifecycle": "on-demand",
-   "az": "us-west-2a",
-   "mode": "s2closure",
-   "shard": "1/1",
-   "part": "O1-rev",
-   "launched": "2026-10-24T21:06:50+00:00",
+   "lifecycle": "spot",
+   "az": "eu-north-1b",
+   "mode": "cprobe",
+   "shard": "w48",
+   "part": "64",
+   "launched": "2026-10-25T06:29:39+00:00",
    "hours": null,
    "est_usd": 0.0
   },
   {
-   "id": "i-00e2c2a978971ca84",
+   "id": "i-084cc72987a687b89",
+   "state": "running",
+   "type": "c7a.24xlarge",
+   "lifecycle": "spot",
+   "az": "eu-north-1b",
+   "mode": "cpair",
+   "shard": "w20x2",
+   "part": "all",
+   "launched": "2026-10-25T06:57:03+00:00",
+   "hours": 0.05,
+   "est_usd": 0.05
+  },
+  {
+   "id": "i-0f17cfa2346b9c963",
+   "state": "terminated",
+   "type": "c7a.4xlarge",
+   "lifecycle": "on-demand",
+   "az": "eu-north-1b",
+   "mode": "xprobe",
+   "shard": "xp-c7a",
+   "part": "base,nothunk,prof",
+   "launched": "2026-10-25T05:59:49+00:00",
+   "hours": null,
+   "est_usd": 0.0
+  },
+  {
+   "id": "i-01a67b4b2fdc34f49",
    "state": "terminated",
    "type": "c7a.24xlarge",
+   "lifecycle": "spot",
+   "az": "eu-north-1b",
+   "mode": "cprobe",
+   "shard": "w96",
+   "part": "64",
+   "launched": "2026-10-25T06:29:37+00:00",
+   "hours": null,
+   "est_usd": 0.0
+  },
+  {
+   "id": "i-08485ebe6315c6c89",
+   "state": "terminated",
+   "type": "c7i.4xlarge",
    "lifecycle": "on-demand",
-   "az": "us-west-2a",
-   "mode": "s2closure",
-   "shard": "1/1",
-   "part": "W2-rev",
-   "launched": "2026-10-24T21:06:43+00:00",
+   "az": "eu-north-1b",
+   "mode": "xprobe",
+   "shard": "xp-c7i",
+   "part": "base,nothunk",
+   "launched": "2026-10-25T05:59:51+00:00",
    "hours": null,
    "est_usd": 0.0
   }
  ],
- "est_running_usd": 0.0,
- "closed_usd": 163.84,
+ "est_running_usd": 0.05,
+ "closed_usd": 165.89,
  "closed_log": [
   {
    "utc": "2026-10-24T19:15:33.279423+00:00",
@@ -118,6 +157,16 @@
    "utc": "2026-10-25T05:12:42.835212+00:00",
    "usd": 39.44,
    "note": "S2 closure decision host O1-rev i-0d1da001ef952333b us-west-2a 21:06:50-05:07:01Z (8.00 h on-demand at 4.93, 48 workers): lifetime stop; 298 O1 task files (sets 8-24)"
+  },
+  {
+   "utc": "2026-10-25T06:30:20.822674+00:00",
+   "usd": 1.17,
+   "note": "per-core probe 25 Oct 05:59-06:29Z: c7a.4xlarge i-0f17cfa2346b9c963 0.49 h, c7i.4xlarge i-08485ebe6315c6c89 0.36 h, c8g.4xlarge i-0a9497f048b17bd1d 0.41 h on-demand at 5.6 x 16/96 = 0.93/h (hours x configured rate); all terminated"
+  },
+  {
+   "utc": "2026-10-25T07:00:25.391370+00:00",
+   "usd": 0.88,
+   "note": "chunk host probe 25 Oct 06:29-06:59Z: c7a.24xlarge spot w96 i-01a67b4b2fdc34f49 0.43 h, w48 i-024123e531f72db47 0.50 h at the 0.95 estimate; both self-terminated (all 100 tasks done)"
   }
  ]
 }
