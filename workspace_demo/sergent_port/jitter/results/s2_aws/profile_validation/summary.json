@@ -1,0 +1,34 @@
+{
+ "G": {
+  "datasets": 100,
+  "datasets_promised": 100,
+  "grid_points": 1200,
+  "grid_points_promised": 1200,
+  "unrestricted_unavailable": 0,
+  "two_start_unavailable": 1,
+  "four_start_unavailable": 0,
+  "fail_relative": 425,
+  "fail_lr": 416,
+  "worst_relative": 0.0021330705073639425,
+  "worst_lr": 50.15065842029435,
+  "complete": true,
+  "code_hash": "6d447ad94463",
+  "passed": false
+ },
+ "B": {
+  "datasets": 100,
+  "datasets_promised": 100,
+  "grid_points": 1200,
+  "grid_points_promised": 1200,
+  "unrestricted_unavailable": 0,
+  "two_start_unavailable": 0,
+  "four_start_unavailable": 0,
+  "fail_relative": 326,
+  "fail_lr": 319,
+  "worst_relative": 0.002156153770458058,
+  "worst_lr": 59.61707242053308,
+  "complete": true,
+  "code_hash": "6d447ad94463",
+  "passed": false
+ }
+}

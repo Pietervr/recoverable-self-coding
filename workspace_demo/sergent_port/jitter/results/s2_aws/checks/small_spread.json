@@ -1,0 +1,166 @@
+{
+ "W2-m0-S10": {
+  "G": {
+   "reduced_loglik": -15347.285827112948,
+   "unrestricted": {
+    "selection": "POSITIVE",
+    "s_tau_ms": 84.52472540523112,
+    "loglik": -15077.341994106311
+   },
+   "profile": {
+    "1.0": {
+     "ell_minus_reduced": 2.0141851564403623e-07,
+     "node0_weight": 1.0,
+     "status": "AVAILABLE"
+    },
+    "2.0": {
+     "ell_minus_reduced": 5.509906441147905e-05,
+     "node0_weight": 0.9999925467492072,
+     "status": "AVAILABLE"
+    },
+    "5.0": {
+     "ell_minus_reduced": 1.74740465746072,
+     "node0_weight": 0.7865707070419478,
+     "status": "AVAILABLE"
+    },
+    "8.0": {
+     "ell_minus_reduced": 4.9767012119828,
+     "node0_weight": 0.49867459690008875,
+     "status": "AVAILABLE"
+    },
+    "10.0": {
+     "ell_minus_reduced": 12.204567291893909,
+     "node0_weight": 0.3989422782668617,
+     "status": "AVAILABLE"
+    },
+    "20.0": {
+     "ell_minus_reduced": 57.34817396284416,
+     "node0_weight": 0.19947114020071738,
+     "status": "AVAILABLE"
+    }
+   }
+  },
+  "B": {
+   "reduced_loglik": -15345.25042446093,
+   "unrestricted": {
+    "selection": "POSITIVE",
+    "s_tau_ms": 82.49125887534737,
+    "loglik": -15075.929025299632
+   },
+   "profile": {
+    "1.0": {
+     "ell_minus_reduced": 8.284187060780823e-07,
+     "node0_weight": 1.0,
+     "status": "AVAILABLE"
+    },
+    "2.0": {
+     "ell_minus_reduced": 5.729810982302297e-05,
+     "node0_weight": 0.9999925467492072,
+     "status": "AVAILABLE"
+    },
+    "5.0": {
+     "ell_minus_reduced": 1.8317772120317386,
+     "node0_weight": 0.7865707070419478,
+     "status": "AVAILABLE"
+    },
+    "8.0": {
+     "ell_minus_reduced": 5.237418055310627,
+     "node0_weight": 0.49867459690008875,
+     "status": "AVAILABLE"
+    },
+    "10.0": {
+     "ell_minus_reduced": 11.981437494843703,
+     "node0_weight": 0.3989422782668617,
+     "status": "AVAILABLE"
+    },
+    "20.0": {
+     "ell_minus_reduced": 57.08916011622023,
+     "node0_weight": 0.19947114020071738,
+     "status": "AVAILABLE"
+    }
+   }
+  }
+ },
+ "T1-m0-S10": {
+  "G": {
+   "reduced_loglik": -15117.640411141747,
+   "unrestricted": {
+    "selection": "POSITIVE",
+    "s_tau_ms": 59.80914483776576,
+    "loglik": -14983.298867645497
+   },
+   "profile": {
+    "1.0": {
+     "ell_minus_reduced": -7.275957614183426e-12,
+     "node0_weight": 1.0,
+     "status": "AVAILABLE"
+    },
+    "2.0": {
+     "ell_minus_reduced": 4.466643258638214e-05,
+     "node0_weight": 0.9999925467492072,
+     "status": "AVAILABLE"
+    },
+    "5.0": {
+     "ell_minus_reduced": 1.171197813921026,
+     "node0_weight": 0.7865707070419478,
+     "status": "AVAILABLE"
+    },
+    "8.0": {
+     "ell_minus_reduced": 3.5022013155612512,
+     "node0_weight": 0.49867459690008875,
+     "status": "AVAILABLE"
+    },
+    "10.0": {
+     "ell_minus_reduced": 5.687918818914113,
+     "node0_weight": 0.3989422782668617,
+     "status": "AVAILABLE"
+    },
+    "20.0": {
+     "ell_minus_reduced": 26.85410193165808,
+     "node0_weight": 0.19947114020071738,
+     "status": "AVAILABLE"
+    }
+   }
+  },
+  "B": {
+   "reduced_loglik": -15110.985316957473,
+   "unrestricted": {
+    "selection": "POSITIVE",
+    "s_tau_ms": 57.98077352136389,
+    "loglik": -14970.889911751756
+   },
+   "profile": {
+    "1.0": {
+     "ell_minus_reduced": 4.311368684284389e-08,
+     "node0_weight": 1.0,
+     "status": "AVAILABLE"
+    },
+    "2.0": {
+     "ell_minus_reduced": 2.622286046971567e-05,
+     "node0_weight": 0.9999925467492072,
+     "status": "AVAILABLE"
+    },
+    "5.0": {
+     "ell_minus_reduced": 1.1881272414102568,
+     "node0_weight": 0.7865707070419478,
+     "status": "AVAILABLE"
+    },
+    "8.0": {
+     "ell_minus_reduced": 3.5376036865618516,
+     "node0_weight": 0.49867459690008875,
+     "status": "AVAILABLE"
+    },
+    "10.0": {
+     "ell_minus_reduced": 5.71968814084903,
+     "node0_weight": 0.3989422782668617,
+     "status": "AVAILABLE"
+    },
+    "20.0": {
+     "ell_minus_reduced": 27.88435941300486,
+     "node0_weight": 0.19947114020071738,
+     "status": "AVAILABLE"
+    }
+   }
+  }
+ }
+}
