@@ -75,6 +75,17 @@ EM_TOL = 1e-6                                  #   relative gain in the total lo
 RESEED_MIN_NAT = 0.05                          #   a B this far above G re-seeds G (another basin, not EM noise)
 EM_RETRY_MAXITER_FACTOR = 4                    # repair D4: an inner EM solve that ends NOT_CONVERGED without improving the
                                                #   chain point is retried once from that point with this many times the budget
+NEST_TOL_REL = 1e-6                            # the nesting l(B) >= l(G) is checked to this relative tolerance (25 Oct 2026)
+# The polish (25 Oct 2026, Codex latency/quadrature review finding 11; DESIGN §5): a start whose RETAINED end point is
+# stationary — (i) projected gradient <= PG_TOL and (iii) finite — but NOT_CONVERGED, because (ii) the five-iteration
+# objective-change rule failed or the EARLY exception was refused, and which would otherwise be LOST (it beats every
+# CONVERGED start of the fit, or there is none), gets ONE restart from that end point through run_start again: the same
+# options, the same iteration budget, the same acceptance rules and tolerances. It is accepted only when run_start accepts
+# it. One that still fails while its end point is better than the selected start is a NUMERICAL FAILURE: recorded in the
+# fit (`numerical_failure`, a note naming the lost objective) and carried by every record built from it, never hidden by
+# the worse candidate that stands. The UNAVAILABLE semantics are unchanged. Found on the AWS 31-node reference of W2 set 0
+# (m15 fold 3): the B3+ chain warm-started from the G3+ optimum reached -10944.0075 nat with pg 9.5e-8 after 12 iterations,
+# was retained NOT_CONVERGED, never entered the EM loop, and the main chain 11.5 nat worse was selected (B3 then REDUCED).
 
 
 def _seed(*parts) -> int:
@@ -340,6 +351,40 @@ def run_start(obj: M.Objective, label: str, x0: np.ndarray, lb: np.ndarray, ub: 
                        sum(a["nfev"] for a in attempts), _time.time() - t0, attempts, early, retries)
 
 
+def stationary_unaccepted(s: StartResult) -> bool:
+    """A retained end point that is stationary by the declared criteria — (i) projected gradient <= PG_TOL and (iii)
+    finite — yet NOT_CONVERGED: refused on (ii) the five-iteration objective-change rule, or the EARLY exception was
+    refused because the perturbed re-run found a point better by more than 1e-8 relative. The polish restarts from
+    exactly these points; nothing else is ever polished (a non-stationary end point is an optimiser failure, not a
+    lost optimum)."""
+    return bool(s.status == "NOT_CONVERGED" and np.isfinite(s.f) and np.all(np.isfinite(s.x)) and s.pg <= PG_TOL)
+
+
+def _polish_record(calls: int = 0, accepted: int = 0, seconds: float = 0.0, unaccepted_loglik=None) -> dict:
+    return dict(calls=int(calls), accepted=int(accepted), seconds=float(seconds),
+                unaccepted_loglik=None if unaccepted_loglik is None else float(unaccepted_loglik))
+
+
+def _sum_polish(records) -> dict:
+    """The polish records of several fits (the chains of em_fit, the candidates of select) as one: counts and seconds
+    summed, `unaccepted_loglik` the best stationary end point that no fit could accept (None when there was none)."""
+    recs = [r for r in records if r]
+    un = [r["unaccepted_loglik"] for r in recs if r.get("unaccepted_loglik") is not None]
+    return _polish_record(sum(r.get("calls", 0) for r in recs), sum(r.get("accepted", 0) for r in recs),
+                          sum(r.get("seconds", 0.0) for r in recs), max(un) if un else None)
+
+
+def _failure_against(unaccepted_loglik, selected_loglik, available: bool) -> bool:
+    """The numerical-failure rule: a stationary end point the acceptance rule could not accept stands ABOVE the selected
+    log-likelihood by more than 1e-8 relative (or nothing was selected while such a point exists) — a worse candidate, or
+    none, stands in for an optimum the optimiser reached."""
+    if unaccepted_loglik is None:
+        return False
+    if not available:
+        return True
+    return bool(unaccepted_loglik > selected_loglik + EARLY_AGREE * max(1.0, abs(selected_loglik)))
+
+
 # ----------------------------------------------------------------------------------------------
 # one model on one dataset
 # ----------------------------------------------------------------------------------------------
@@ -366,6 +411,10 @@ class FitResult:
     quad: dict | None = None     # the quadrature that produced θ (n_tau_nodes, n_g_nodes, adaptive_g); a two-pass refit
     #                              (models.QUAD_G_RULE "17then33") adds refit_from, refit_s_g, loglik_before, seconds_before.
     #                              None = a record from before 25 Oct 2026: the caller's spec applies.
+    numerical_failure: bool = False                   # a stationary end point the rule could not accept stands above
+    #                                                   the selected log-likelihood, or a required rescue chain failed
+    #                                                   (25 Oct 2026; the set record carries it)
+    polish: dict = field(default_factory=dict)        # calls, accepted, seconds, unaccepted_loglik (see _polish_record)
 
     @property
     def available(self) -> bool:
@@ -377,6 +426,7 @@ class FitResult:
                  loglik=float(self.loglik), n_converged=self.n_converged, seconds=self.seconds,
                  code_hash=self.code_hash, bounds_hit=self.bounds_hit, clipped=self.clipped, notes=self.notes,
                  selection=self.selection, flags=self.flags, candidates=self.candidates, quad=self.quad,
+                 numerical_failure=bool(self.numerical_failure), polish=dict(self.polish),
                  em_iterations=self.em_iterations, em_trace=[float(v) for v in self.em_trace],
                  sigma_logdet=None if self.wh is None else float(self.wh.logdet),
                  wh=None if self.wh is None else dict(mu0=[float(v) for v in self.wh.mu0],
@@ -403,7 +453,8 @@ class FitResult:
         return FitResult(d["model"], d["ident"], d["status"], None if d["theta"] is None else np.asarray(d["theta"]),
                          d["loglik"], starts, d["n_converged"], d["seconds"], d["code_hash"], d["bounds_hit"],
                          d["clipped"], d["notes"], d.get("selection", ""), d.get("flags", []), d.get("candidates", {}),
-                         wh, d.get("em_iterations", 0), d.get("em_trace", []), d.get("quad"))
+                         wh, d.get("em_iterations", 0), d.get("em_trace", []), d.get("quad"),
+                         bool(d.get("numerical_failure", False)), dict(d.get("polish") or {}))
 
 
 def _quad_of(sp: M.ModelSpec) -> dict:
@@ -424,8 +475,15 @@ def _bounds_hit(sp: M.ModelSpec, theta: np.ndarray) -> list:
 
 
 def fit_model(sp: M.ModelSpec, ds: D.Dataset, starts: list | None = None, info: StartInfo | None = None,
-              options: dict | None = None) -> FitResult:
-    """Multi-start fit of one candidate model (§5). `starts` = [(label, θ0)] overrides the four recipes."""
+              options: dict | None = None, polish: bool = True) -> FitResult:
+    """Multi-start fit of one candidate model (§5). `starts` = [(label, θ0)] overrides the four recipes.
+    `polish` (25 Oct 2026, see the module constants): every start whose retained end point is stationary but
+    NOT_CONVERGED and better than the best CONVERGED start (or the only kind there is) is restarted ONCE from that end
+    point through run_start — same options, budget and acceptance rules; the restart is archived as `<label>|polish` and
+    joins the candidate set only if run_start accepts it. A stationary end point that still stands above the selected
+    start afterwards is a numerical failure (flag + note); it never replaces the acceptance rule's verdict. The EM
+    loop's inner solves pass polish=False: repair D4 governs those (a NOT_CONVERGED ascent step is accepted, retried
+    with a larger budget when it does not improve), and the next step's warm start polishes them."""
     t0 = _time.time()
     info = start_info(sp, ds) if info is None else info
     starts = start_vectors(sp, info) if starts is None else starts
@@ -434,16 +492,47 @@ def fit_model(sp: M.ModelSpec, ds: D.Dataset, starts: list | None = None, info: 
     results = []
     for i, (label, x0) in enumerate(starts):
         results.append(run_start(obj, label, x0, lb, ub, _seed(ds.ident, sp.name, label, i), options))
-    conv = [r for r in results if r.status == "CONVERGED"]
     notes = list(info.notes)
+    pol = _polish_record()
+    if polish:
+        for i, s in enumerate(list(results)):
+            if not stationary_unaccepted(s):
+                continue
+            best_conv = min((r.f for r in results if r.status == "CONVERGED"), default=np.inf)
+            if np.isfinite(best_conv) and not s.f < best_conv - EARLY_AGREE * max(1.0, abs(best_conv)):
+                continue                                  # a CONVERGED start is at least as good: nothing is lost
+            p = run_start(obj, s.label + "|polish", s.x, lb, ub, _seed(ds.ident, sp.name, s.label, i, "polish"), options)
+            results.append(p)
+            pol["calls"] += 1
+            pol["seconds"] += p.seconds
+            if p.status == "CONVERGED":
+                pol["accepted"] += 1
+                notes.append(f"{s.label}: stationary NOT_CONVERGED end point ({-s.f:.3f} nat, pg {s.pg:.2e}, {s.nit} it) "
+                             f"polished and accepted at {-p.f:.3f} nat")
+            else:
+                notes.append(f"{s.label}: stationary NOT_CONVERGED end point ({-s.f:.3f} nat, pg {s.pg:.2e}, {s.nit} it) "
+                             f"not accepted after the polish ({p.status} at {-p.f:.3f} nat)")
+    conv = [r for r in results if r.status == "CONVERGED"]
+    lost = [r for r in results if stationary_unaccepted(r)]
+    pol["unaccepted_loglik"] = max(-r.f for r in lost) if lost else None
     if conv:
         best = min(conv, key=lambda r: (r.f, r.label))
         P = M.unpack(sp, best.x)
         clipped = [] if P.clipped is None else [int(v) for v in P.clipped]
+        failed = _failure_against(pol["unaccepted_loglik"], -best.f, True)
+        if failed:
+            notes.append(f"numerical failure: a stationary end point at {pol['unaccepted_loglik']:.3f} nat could not be "
+                         f"accepted; the selected start stands at {-best.f:.3f} nat")
         return FitResult(sp.name, ds.ident, "AVAILABLE", best.x, -best.f, results, len(conv), _time.time() - t0,
-                         M.code_hash(), _bounds_hit(sp, best.x), clipped, notes, quad=_quad_of(sp))
+                         M.code_hash(), _bounds_hit(sp, best.x), clipped, notes, quad=_quad_of(sp),
+                         numerical_failure=failed, polish=pol)
+    failed = _failure_against(pol["unaccepted_loglik"], -np.inf, False)
+    if failed:
+        notes.append(f"numerical failure: a stationary end point at {pol['unaccepted_loglik']:.3f} nat could not be "
+                     f"accepted and no start is CONVERGED")
     return FitResult(sp.name, ds.ident, "UNAVAILABLE", None, -np.inf, results, 0, _time.time() - t0,
-                     M.code_hash(), [], [], notes + ["no CONVERGED start"], quad=_quad_of(sp))
+                     M.code_hash(), [], [], notes + ["no CONVERGED start"], quad=_quad_of(sp),
+                     numerical_failure=failed, polish=pol)
 
 
 # ----------------------------------------------------------------------------------------------
@@ -509,9 +598,12 @@ def select(name: str, reduced: FitResult, positive: FitResult, sp_pos: M.ModelSp
         if at_floor:
             flags.append("positive_at_floor")
     cands = dict(reduced=float(reduced.loglik), positive=float(positive.loglik))
+    # a numerical failure in EITHER candidate is one of the selected model: the REDUCED/POSITIVE comparison may be wrong
+    nf = bool(reduced.numerical_failure or positive.numerical_failure)
+    pol = _sum_polish([reduced.polish, positive.polish])
     if not reduced.available and not positive.available:
         return FitResult(name, reduced.ident, "UNAVAILABLE", None, -np.inf, [], 0, 0.0, M.code_hash(), [], [],
-                         ["both candidates UNAVAILABLE"], "", flags, cands)
+                         ["both candidates UNAVAILABLE"], "", flags, cands, numerical_failure=nf, polish=pol)
     if positive.available and (not at_floor or not reduced.available) and \
             (not reduced.available or positive.loglik > reduced.loglik):
         src, sel = positive, "POSITIVE"
@@ -523,7 +615,7 @@ def select(name: str, reduced: FitResult, positive: FitResult, sp_pos: M.ModelSp
             flags.append("positive_unavailable")
     return FitResult(name, src.ident, "AVAILABLE", src.theta, src.loglik, src.starts, src.n_converged,
                      reduced.seconds + positive.seconds, M.code_hash(), src.bounds_hit, src.clipped, src.notes,
-                     sel, flags, cands, src.wh, src.em_iterations, src.em_trace, src.quad)
+                     sel, flags, cands, src.wh, src.em_iterations, src.em_trace, src.quad, nf, pol)
 
 
 def two_pass_refit(sp: M.ModelSpec, ds: D.Dataset, r: FitResult, cache: FitCache, info: StartInfo | None = None,
@@ -556,8 +648,12 @@ def two_pass_refit(sp: M.ModelSpec, ds: D.Dataset, r: FitResult, cache: FitCache
     wh = r.wh if r.wh is not None else ds.wh
     r33 = em_fit(sp33, ds, [], info, em=cache.em, warm=[(label, np.asarray(r.theta, dtype=np.float64), wh)])
     if not r33.available:
+        # a refit the rule REQUIRES that fails is a numerical failure of the standing result, not a silent fallback
         r.notes = list(r.notes) + [f"two-pass refit at {M.QUAD_G_REFIT_NODES} scale nodes (s_g {s_g:.3f} > "
-                                   f"{M.QUAD_G_REFIT_SG:g}) ended UNAVAILABLE; the {sp.n_g_nodes}-node result stands"]
+                                   f"{M.QUAD_G_REFIT_SG:g}) ended UNAVAILABLE; the {sp.n_g_nodes}-node result stands "
+                                   f"(numerical failure: the required refit chain was lost)"]
+        r.numerical_failure = True
+        r.polish = _sum_polish([r.polish, r33.polish])
         return r
     r33.starts = list(r.starts) + list(r33.starts)
     r33.notes = list(r.notes) + list(r33.notes) + [
@@ -566,8 +662,26 @@ def two_pass_refit(sp: M.ModelSpec, ds: D.Dataset, r: FitResult, cache: FitCache
     r33.quad = dict(_quad_of(sp33), refit_from=int(sp.n_g_nodes), refit_s_g=s_g, loglik_before=float(r.loglik),
                     seconds_before=float(r.seconds))
     r33.seconds = float(r.seconds) + float(r33.seconds)
+    r33.numerical_failure = bool(r.numerical_failure or r33.numerical_failure)
+    r33.polish = _sum_polish([r.polish, r33.polish])
     cache.put(key, r33)
     return r33
+
+
+def _inherit_refit(r_new: FitResult, r_old: FitResult) -> FitResult:
+    """A rescue chain that replaces a two-pass REFIT keeps the refit's provenance (refit_from, refit_s_g, loglik_before,
+    seconds_before) and its archive, so that quad_rule_record still counts it and its seconds split stays readable."""
+    q_old = r_old.quad or {}
+    if q_old.get("refit_from") is not None and (r_new.quad or {}).get("n_g_nodes") == q_old.get("n_g_nodes"):
+        r_new.quad = dict(r_new.quad or {}, **{k: q_old[k] for k in ("refit_from", "refit_s_g", "loglik_before", "seconds_before")
+                                                if k in q_old})
+    return r_new
+
+
+def _recipe_of(r: FitResult, recipe: str = "std") -> str:
+    """The cache recipe under which a result lives: a two-pass refit carries the `|refit<from>` suffix."""
+    q = r.quad or {}
+    return f"{recipe}|refit{q['refit_from']}" if q.get("refit_from") is not None else recipe
 
 
 def quad_rule_record(fits) -> dict:
@@ -585,18 +699,25 @@ def quad_rule_record(fits) -> dict:
 
 
 def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str | None = None,
-                   models: tuple = FULL_MODELS, quad: dict | None = None) -> dict:
+                   models: tuple = FULL_MODELS, quad: dict | None = None, extra_warm: dict | None = None) -> dict:
     """The eight models of §4 on one dataset: {name: FitResult}, selected models built from their candidates;
     also returns the candidates under their spec names. Reduced fits are cached and never refitted. `quad`
     overrides the node counts / rule (n_tau_nodes, n_g_nodes, adaptive_g) for the §4 node checks. After the whole
     cross-family procedure the two-pass scale quadrature (two_pass_refit; models.QUAD_G_RULE, default "17" = no second
-    pass) refits the scale-free candidates whose fitted s_g exceeds the threshold and rebuilds the selected models from
-    the refitted candidates."""
+    pass) refits the scale-free candidates whose fitted s_g exceeds the threshold, reapplies the cross-family rescues
+    and the nesting check to the pairs touched, and rebuilds the selected models from the refitted candidates.
+    `extra_warm` = {candidate name: [(label, θ, Whitening)]} further warm EM chains for the candidates (the §4 node
+    recheck warm-started from a coarser grid's endpoints); they run beside the twin chains under the same rules."""
     cache = FitCache() if cache is None else cache
     span_name = ds.span.name if span_name is None else span_name
     quad = {} if quad is None else quad
+    extra_warm = {} if extra_warm is None else extra_warm
     out = {}
     infos = {}
+
+    def with_extra(name, warm):
+        w = list(warm or []) + list(extra_warm.get(name, []))
+        return w or None
 
     def info_for(sp):
         key = (sp.positive, sp.family)
@@ -619,13 +740,15 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
         (label, theta), = collapsed_start(sp_b, g_result, g_spec(g_result), info_b)
         return [(label + "|chain", theta, g_result.wh)]
 
-    def reseed_g(sp_g, g_result, sp_b, b_result, info_g, b_name):
+    def reseed_g(sp_g, g_result, sp_b, b_result, info_g, b_name, recipe="std"):
         """A B optimum materially above the G optimum (> RESEED_MIN_NAT, i.e. another basin, not EM noise) re-seeds
         G: B's θ projected onto G's coordinates (the two-state parameters dropped), one EM chain under B's Σ; the
         better G is kept. S2 repair D4 (24 Oct 2026): the rule applies to EVERY such B, collapsed or not. The
         rev 6 + R1-R4 code required every fitted occupancy A(k) ≥ 0.99, which is exactly what never holds when B has
         found a basin that G's chain missed (W2 set 7 m12 fold 0: G3+ −13704.7 below G2 −13453.5 while B3+ reached
-        −13316.8, and the rescue never fired); on two-state data the attempt costs one chain and changes nothing."""
+        −13316.8, and the rescue never fired); on two-state data the attempt costs one chain and changes nothing.
+        A re-seed chain that is lost (UNAVAILABLE) is a numerical failure of the standing G (25 Oct 2026): the rule
+        required it, and G may stand under-found. `recipe` = the cache recipe of the result being replaced."""
         if not (b_result.available and g_result.available and b_result.wh is not None):
             return g_result
         if b_result.loglik <= g_result.loglik + RESEED_MIN_NAT:
@@ -636,12 +759,21 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
         if r2.available and r2.loglik > g_result.loglik:
             r2.starts = list(g_result.starts) + list(r2.starts)
             r2.notes = list(g_result.notes) + list(r2.notes)
-            cache.put(cache.key(ds, sp_g), r2)
+            r2.polish = _sum_polish([g_result.polish, r2.polish])
+            r2.numerical_failure = _failure_against(r2.polish["unaccepted_loglik"], r2.loglik, True)
+            cache.put(cache.key(ds, sp_g, recipe), _inherit_refit(r2, g_result))
             return r2
+        g_result.polish = _sum_polish([g_result.polish, r2.polish])
+        if not r2.available:
+            g_result.notes = list(g_result.notes) + [f"re-seed chain reseed{b_name} from {b_name} ({b_result.loglik:.3f} nat, "
+                                                     f"above G {g_result.loglik:.3f}) ended UNAVAILABLE (numerical failure: "
+                                                     f"the required rescue chain was lost)"]
+            g_result.numerical_failure = True
         return g_result
 
-    def nest_b(sp_b, b_result, g_result, info_b):
-        """After a G re-seed, one more B chain from the new G point so that l(B) >= l(G) holds again."""
+    def nest_b(sp_b, b_result, g_result, info_b, recipe="std"):
+        """After a G re-seed (or a two-pass refit that left B below G), one more B chain from the G point so that
+        l(B) >= l(G) holds again. A lost nest chain is a numerical failure of B (25 Oct 2026)."""
         w = warm_from_twin(sp_b, g_result, info_b)
         if w is None:
             return b_result
@@ -649,9 +781,49 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
         if r2.available and (not b_result.available or r2.loglik > b_result.loglik):
             r2.starts = list(b_result.starts) + list(r2.starts)
             r2.notes = list(b_result.notes) + list(r2.notes)
-            cache.put(cache.key(ds, sp_b), r2)
+            r2.polish = _sum_polish([b_result.polish, r2.polish])
+            r2.numerical_failure = _failure_against(r2.polish["unaccepted_loglik"], r2.loglik, True)
+            cache.put(cache.key(ds, sp_b, recipe), _inherit_refit(r2, b_result))
             return r2
+        b_result.polish = _sum_polish([b_result.polish, r2.polish])
+        if not r2.available:
+            b_result.notes = list(b_result.notes) + [f"nest chain {w[0][0]} from {g_result.model} ({g_result.loglik:.3f} nat) "
+                                                     f"ended UNAVAILABLE (numerical failure: the required rescue chain was lost)"]
+            b_result.numerical_failure = True
         return b_result
+
+    def rescue_pair(gn, bn):
+        """The cross-family rescues and the nesting check on a (G, B) candidate pair AFTER the two-pass second pass
+        (25 Oct 2026, Codex finding 11: the second pass followed the cross-family loop without rerunning them), each
+        model at the quadrature its result records: B below G -> one B chain from G's point under G's Σ (nest_b); B
+        above G by more than RESEED_MIN_NAT -> G re-seeded from B, then B nested again from the new G. A pair left with
+        l(B) < l(G) at the SAME quadrature is a numerical failure of B; at mixed quadratures (one refitted at 33 nodes,
+        the other at 17) the two log-likelihoods are not comparable to NEST_TOL_REL and the deficit is noted only."""
+        g, b = out[gn], out[bn]
+        sp_g, sp_b = selected_spec(gn, g, span_name, quad), selected_spec(bn, b, span_name, quad)
+        info_g, info_b = info_for(sp_g), info_for(sp_b)
+        rg, rb = _recipe_of(g), _recipe_of(b)
+
+        def below(bb, gg):
+            return gg.available and (not bb.available or bb.loglik < gg.loglik - NEST_TOL_REL * max(1.0, abs(gg.loglik)))
+
+        if below(b, g):
+            b = nest_b(sp_b, b, g, info_b, rb)
+        g_new = reseed_g(sp_g, g, sp_b, b, info_g, bn, rg)
+        if g_new is not g:
+            g = g_new
+            b = nest_b(sp_b, b, g, info_b, rb)
+        same_quad = (g.quad or {}).get("n_g_nodes") == (b.quad or {}).get("n_g_nodes")
+        if below(b, g):
+            txt = (f"nesting after the two-pass rescues: l({bn}) {b.loglik:.3f} below l({gn}) {g.loglik:.3f}"
+                   + ("" if same_quad else f" (mixed quadrature {(b.quad or {}).get('n_g_nodes')}/{(g.quad or {}).get('n_g_nodes')} "
+                                           "scale nodes: not comparable)"))
+            b.notes = list(b.notes) + [txt + (" (numerical failure)" if same_quad else "")]
+            if same_quad:
+                b.numerical_failure = True
+        for r_ in (g, b):
+            r_.notes = list(r_.notes) + [f"two-pass second pass: cross-family rescues and nesting check reapplied to ({gn}, {bn})"]
+        out[gn], out[bn] = g, b
 
     for name in models:
         if name in M.SELECTED_NAMES:
@@ -660,10 +832,10 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
             info_r, info_p = info_for(sp_r), info_for(sp_p)
             tw_r, tw_p = g_twin(red_name), g_twin(name)
             red = cache.fit(sp_r, ds, info_r, starts=reduced_starts(sp_r, info_r, tw_r, span_name, quad),
-                            warm=warm_from_twin(sp_r, tw_r, info_r) if sp_r.family == "B" else None)
+                            warm=with_extra(red_name, warm_from_twin(sp_r, tw_r, info_r) if sp_r.family == "B" else None))
             starts = positive_starts(sp_p, ds, info_p, red, sp_r, tw_p, span_name, quad)
             pos = cache.fit(sp_p, ds, info_p, starts=starts,
-                            warm=warm_from_twin(sp_p, tw_p, info_p) if sp_p.family == "B" else None)
+                            warm=with_extra(pos_name, warm_from_twin(sp_p, tw_p, info_p) if sp_p.family == "B" else None))
             if sp_p.family == "B":
                 g_red_name, g_pos_name = M.SELECTED_NAMES["G" + name[1:]]
                 for gn, sp_bb, b_res, info_bb, bn in ((g_red_name, sp_r, red, info_r, red_name),
@@ -689,7 +861,7 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
             info_s = info_for(sp)
             tw = g_twin(name)
             out[name] = cache.fit(sp, ds, info_s, starts=reduced_starts(sp, info_s, tw, span_name, quad),
-                                  warm=warm_from_twin(sp, tw, info_s) if sp.family == "B" else None)
+                                  warm=with_extra(name, warm_from_twin(sp, tw, info_s) if sp.family == "B" else None))
             if sp.family == "B" and "G" + name[1:] in out:
                 g_name = "G" + name[1:]
                 sp_gg = M.spec(g_name, span_name, **quad)
@@ -699,8 +871,9 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
                     out[name] = nest_b(sp, out[name], g_new, info_s)
     if M.QUAD_G_RULE != "17":
         # the second pass of the two-pass scale quadrature: every scale-free candidate whose fitted s_g exceeds the
-        # threshold is refitted at QUAD_G_REFIT_NODES from its own optimum, then the selected models whose candidates
-        # changed are rebuilt (REDUCED/POSITIVE compared at the refitted log-likelihoods)
+        # threshold is refitted at QUAD_G_REFIT_NODES from its own optimum; then (25 Oct 2026) the cross-family rescues
+        # and the nesting check are reapplied to every (G, B) pair one of whose members was refitted; then the selected
+        # models whose candidates changed are rebuilt (REDUCED/POSITIVE compared at the refitted log-likelihoods)
         changed = set()
         for name in [n for n in out if n in M.MODEL_NAMES]:
             sp = M.spec(name, span_name, **quad)
@@ -708,6 +881,12 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
                 r2 = two_pass_refit(sp, ds, out[name], cache, info_for(sp))
                 if r2 is not out[name]:
                     out[name], changed = r2, changed | {name}
+        for bn in [n for n in out if n in M.MODEL_NAMES and n[0] == "B"]:
+            gn = "G" + bn[1:]
+            if gn in out and changed & {gn, bn}:
+                before = (out[gn], out[bn])
+                rescue_pair(gn, bn)
+                changed |= {n for n, r_, r0 in ((gn, out[gn], before[0]), (bn, out[bn], before[1])) if r_ is not r0}
         for name in [n for n in out if n in M.SELECTED_NAMES]:
             red_name, pos_name = M.SELECTED_NAMES[name]
             if changed & {red_name, pos_name} and red_name in out and pos_name in out:
@@ -744,7 +923,7 @@ def _inner_solve(sp: M.ModelSpec, nxt: D.Dataset, theta: np.ndarray, info: Start
     """One warm-started inner solve of the EM loop on the re-whitened dataset `nxt`. Returns (θ, total log-likelihood,
     starts, seconds, converged) of the start's end point: the CONVERGED optimum, or the best finite end point of a
     NOT_CONVERGED start (θ = None and −inf when nothing finite was reached)."""
-    r2 = fit_model(sp, nxt, [(label, theta)], info, options)
+    r2 = fit_model(sp, nxt, [(label, theta)], info, options, polish=False)
     if r2.available:
         return r2.theta, r2.loglik, r2.starts, r2.seconds, True
     s = r2.starts[0]
@@ -792,7 +971,8 @@ def _em_loop(sp: M.ModelSpec, ds: D.Dataset, r: FitResult, cur: D.Dataset, info:
         P = M.unpack(sp, theta2)
         clipped = [] if P.clipped is None else [int(v) for v in P.clipped]
         r = FitResult(sp.name, ds.ident, "AVAILABLE", theta2, ll2, archive, n_conv, seconds, M.code_hash(),
-                      _bounds_hit(sp, theta2), clipped, notes, "", [], {}, wh, it, trace, _quad_of(sp))
+                      _bounds_hit(sp, theta2), clipped, notes, "", [], {}, wh, it, trace, _quad_of(sp),
+                      r.numerical_failure, dict(r.polish))
         cur = nxt
         if gain <= tol * max(1.0, abs(r.loglik)):
             break
@@ -840,6 +1020,19 @@ def em_fit(sp: M.ModelSpec, ds: D.Dataset, starts: list | None = None, info: Sta
                                          ", ".join(f"{lab} {r.loglik:.2f}" if r.available else f"{lab} UNAVAILABLE"
                                                    for lab, r in chains)]
         best.seconds = sum(r.seconds for _, r in chains)
+    # the numerical-failure verdict is taken against the FINAL result over all chains: a stationary end point that no
+    # chain could accept (after its polish) and that stands above the selected log-likelihood — the EM steps may have
+    # carried the selected chain past a point lost inside one chain, in which case nothing was lost
+    best.polish = _sum_polish([r.polish for _, r in chains])
+    un = best.polish["unaccepted_loglik"]
+    flagged_in_chain = any(r.numerical_failure for _, r in chains)
+    best.numerical_failure = _failure_against(un, best.loglik, best.available)
+    if best.numerical_failure and len(chains) > 1:
+        best.notes = list(best.notes) + [f"numerical failure: a stationary end point at {un:.3f} nat in one chain could not "
+                                         f"be accepted; the selected chain stands at {best.loglik:.3f} nat"]
+    elif flagged_in_chain and not best.numerical_failure:
+        best.notes = list(best.notes) + [f"the EM steps carried the selected result ({best.loglik:.3f} nat) past the stationary "
+                                         f"end point lost in a chain ({un:.3f} nat): no numerical failure stands"]
     return best
 
 

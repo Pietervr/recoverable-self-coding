@@ -528,6 +528,135 @@ def test_quad_rule_17then33_refits_above_threshold_only():
         M.QUAD_G_RULE, M.QUAD_G_REFIT_SG = old
 
 
+def _crafted_lbfgsb(rule):
+    """A stand-in for F._run_lbfgsb: `rule(x0)` -> (x_end, f, nit, hist, pg); the objective is ignored."""
+    def fake(obj, x0, lb_, ub_, options):
+        x, f, nit, hist, pg = rule(np.asarray(x0, dtype=np.float64))
+        return dict(x=np.asarray(x, dtype=np.float64), f=float(f), grad=np.zeros(len(x)), nit=int(nit), nfev=int(nit) + 1,
+                    message="crafted", hist=list(hist), seconds=0.0, pg=float(pg))
+    return fake
+
+
+MOVING = [2.0, 1.5, 1.2, 1.1, 1.05, 1.02, 1.01, 1.005, 1.002, 1.0]      # (ii) fails over the last five iterations
+
+
+def test_polish_accepts_a_stationary_unaccepted_end_point_and_flags_a_lost_one():
+    """The polish (25 Oct 2026, Codex latency/quadrature review finding 11). (a) A warm start whose retained end point is
+    stationary (pg 0) but NOT_CONVERGED — ten iterations, a moving objective history, so (ii) fails and the EARLY exception
+    does not apply — is restarted ONCE from that end point under the same rules: the restart stops in zero iterations
+    (EARLY) and its perturbed re-run finds nothing better, so the existing acceptance rule accepts it; the fit is AVAILABLE
+    at that end point, the polish is archived as `<label>|polish`, and no numerical failure stands. (b) A genuinely
+    non-stationary NOT_CONVERGED end point (pg 1e-3 > PG_TOL) is NOT polished: UNAVAILABLE, zero polish calls, no flag
+    (an optimiser failure is not a lost optimum). (c) When the polish itself ends NOT_CONVERGED the stationary end point is
+    recorded as a NUMERICAL FAILURE — in the fit, in an em_fit that selects a worse chain over it, in select, and through a
+    JSON round trip — and the UNAVAILABLE semantics are unchanged. (d) Inner EM solves are never polished (D4 governs)."""
+    ds = _ds()
+    sp = M.spec("G0")
+    info = F.start_info(sp, ds)
+    XSTAR = F.start_vectors(sp, info)[0][1]
+    XFAR = XSTAR + 3.0
+    n_eff = M.Objective(sp, ds).n_eff
+    orig = F._run_lbfgsb
+    try:
+        # (a) stationary at XSTAR from anywhere; a restart AT XSTAR stops in zero iterations
+        def rule_a(x0):
+            if np.allclose(x0, XSTAR, atol=1e-9):
+                return XSTAR, 1.0, 0, [1.0], 0.0
+            return XSTAR, 1.0, 10, MOVING, 0.0
+        F._run_lbfgsb = _crafted_lbfgsb(rule_a)
+        r = F.fit_model(sp, ds, [("warm", XFAR)], info)
+        assert r.available and r.n_converged == 1 and abs(r.loglik + 1.0 * n_eff) < 1e-9
+        assert [s.label for s in r.starts] == ["warm", "warm|polish"]
+        assert r.starts[0].status == "NOT_CONVERGED" and F.stationary_unaccepted(r.starts[0])
+        assert r.starts[1].status == "CONVERGED" and r.starts[1].early and r.starts[1].nit == 0
+        assert r.polish == dict(calls=1, accepted=1, seconds=r.polish["seconds"], unaccepted_loglik=-1.0 * n_eff)
+        assert not r.numerical_failure and any("polished and accepted" in n for n in r.notes)
+        # a polish is not spent on a stationary start that a CONVERGED start already beats
+        def rule_a2(x0):
+            if np.linalg.norm(x0 - XFAR) < 1.0:
+                return XFAR, 0.5, 10, [0.5] * 11, 0.0                 # CONVERGED, better
+            return XSTAR, 1.0, 10, MOVING, 0.0                         # stationary, worse, NOT_CONVERGED
+        F._run_lbfgsb = _crafted_lbfgsb(rule_a2)
+        r = F.fit_model(sp, ds, [("good", XFAR), ("worse", XSTAR - 3.0)], info)
+        assert r.available and r.polish["calls"] == 0 and not r.numerical_failure and abs(r.loglik + 0.5 * n_eff) < 1e-9
+        assert r.polish["unaccepted_loglik"] == -1.0 * n_eff            # recorded, harmless
+        # (b) non-stationary: no polish, no flag
+        F._run_lbfgsb = _crafted_lbfgsb(lambda x0: (XSTAR, 1.0, 10, MOVING, 1e-3))
+        r = F.fit_model(sp, ds, [("warm", XFAR)], info)
+        assert not r.available and r.polish == dict(calls=0, accepted=0, seconds=0.0, unaccepted_loglik=None)
+        assert not r.numerical_failure and len(r.starts) == 1
+        # (c) the polish fails too: UNAVAILABLE with the flag and the lost objective
+        F._run_lbfgsb = _crafted_lbfgsb(lambda x0: (XSTAR, 1.0, 10, MOVING, 0.0))
+        r = F.fit_model(sp, ds, [("warm", XFAR)], info)
+        assert not r.available and r.status == "UNAVAILABLE" and r.numerical_failure
+        assert r.polish["calls"] == 1 and r.polish["accepted"] == 0 and r.polish["unaccepted_loglik"] == -1.0 * n_eff
+        assert any("numerical failure" in n for n in r.notes) and r.starts[1].label == "warm|polish"
+        back = F.FitResult.from_json(json.loads(json.dumps(r.to_json())))
+        assert back.numerical_failure and back.polish == r.polish
+        # em_fit: the main chain converges at a WORSE objective than the lost warm end point -> AVAILABLE, flagged
+        def rule_c(x0):
+            if np.linalg.norm(x0 - XFAR) < 1.0:
+                return XFAR, 2.0, 10, [2.0] * 11, 0.0                 # CONVERGED at f = 2 (worse)
+            return XSTAR, 1.0, 10, MOVING, 0.0                         # stationary at f = 1, never accepted
+        F._run_lbfgsb = _crafted_lbfgsb(rule_c)
+        r = F.em_fit(sp, ds, starts=[("main", XFAR)], info=info, em=False, warm=[("twin", XSTAR - 3.0, ds.wh)])
+        assert r.available and abs(r.loglik + 2.0 * n_eff) < 1e-9 and r.numerical_failure
+        assert r.polish["unaccepted_loglik"] == -1.0 * n_eff and r.polish["calls"] == 1
+        assert any("twin UNAVAILABLE" in n for n in r.notes) and any("numerical failure" in n for n in r.notes)
+        # the flag reaches the selected model
+        s = F.select("G1", r, _stub("G1+", loglik=-3.0 * n_eff, theta=np.zeros(M.spec("G1+").n_params)), M.spec("G1+"))
+        assert s.selection == "REDUCED" and s.numerical_failure and s.polish["unaccepted_loglik"] == -1.0 * n_eff
+        # the same chain, main chain BETTER than the lost end point -> no failure stands
+        def rule_d(x0):
+            if np.linalg.norm(x0 - XFAR) < 1.0:
+                return XFAR, 0.5, 10, [0.5] * 11, 0.0
+            return XSTAR, 1.0, 10, MOVING, 0.0
+        F._run_lbfgsb = _crafted_lbfgsb(rule_d)
+        r = F.em_fit(sp, ds, starts=[("main", XFAR)], info=info, em=False, warm=[("twin", XSTAR - 3.0, ds.wh)])
+        assert r.available and not r.numerical_failure and r.polish["calls"] == 1
+        # (d) the inner EM solve never polishes
+        F._run_lbfgsb = _crafted_lbfgsb(lambda x0: (XSTAR, 1.0, 10, MOVING, 0.0))
+        r = F.fit_model(sp, ds, [("em1", XFAR)], info, polish=False)
+        assert not r.available and r.polish["calls"] == 0 and len(r.starts) == 1 and r.numerical_failure
+    finally:
+        F._run_lbfgsb = orig
+
+
+def test_two_pass_second_pass_reapplies_rescues_and_keeps_nesting():
+    """Two-pass scale quadrature (25 Oct 2026, Codex finding 11): after the 33-node refits the cross-family rescues and the
+    nesting check are reapplied to every (G, B) pair one of whose members was refitted, at the quadrature each result
+    records; l(B) >= l(G) holds afterwards for every pair at the same quadrature, the pairs carry the second-pass note, and
+    a re-seeded or nested result keeps the refit provenance so the rule record still counts it."""
+    train, test = _scaled_fold()
+    r17 = F.fit_all_models(train, F.FitCache(), "primary", ("G2",))["G2"]
+    s_g17 = M.unpack(M.spec("G2"), r17.theta).s_g
+    old = (M.QUAD_G_RULE, M.QUAD_G_REFIT_SG)
+    try:
+        M.QUAD_G_RULE, M.QUAD_G_REFIT_SG = "17then33", 0.5 * s_g17
+        res = F.fit_all_models(train, F.FitCache(), "primary", ("G3", "B3"))
+        touched = 0
+        for g, b in (("G2", "B2"), ("G3+", "B3+")):
+            rg, rb = res[g], res[b]
+            assert rg.available and rb.available
+            refitted = any((r.quad or {}).get("refit_from") is not None for r in (rg, rb))
+            if refitted:
+                touched += 1
+                assert any("two-pass second pass" in n for n in rg.notes) and any("two-pass second pass" in n for n in rb.notes)
+            if (rg.quad or {}).get("n_g_nodes") == (rb.quad or {}).get("n_g_nodes"):
+                assert rb.loglik >= rg.loglik - F.NEST_TOL_REL * abs(rg.loglik), (g, b, rg.loglik, rb.loglik)
+            for r in (rg, rb):
+                if (r.quad or {}).get("refit_from") is not None:
+                    assert r.quad["n_g_nodes"] == 33 and "loglik_before" in r.quad
+        assert touched >= 1                                             # G2's s_g exceeds the threshold by construction
+        rec = F.quad_rule_record([res[n] for n in ("G2", "G3+", "B2", "B3+")])
+        assert rec["per_model"]["G2"]["refitted"] == 1
+        for sel in ("G3", "B3"):
+            src = res[M.SELECTED_NAMES[sel][0] if res[sel].selection == "REDUCED" else M.SELECTED_NAMES[sel][1]]
+            assert res[sel].loglik == src.loglik and res[sel].quad == src.quad
+    finally:
+        M.QUAD_G_RULE, M.QUAD_G_REFIT_SG = old
+
+
 def test_quad_rule_record_in_decision_task_shape():
     """Test (c) at the task level: s2.decision_task's row carries `quad_rule` (rule, thresholds, counts per model) and
     every candidate row its quadrature and fitted s_g — on a stub FitResult set, without fitting."""

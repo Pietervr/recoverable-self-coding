@@ -102,9 +102,15 @@ def _start_rows(r: F.FitResult):
 
 
 def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, span_name: str = "primary",
-                  quad: dict | None = None, g_rule: tuple | None = None) -> dict:
+                  quad: dict | None = None, g_rule: tuple | None = None, archive: bool = False,
+                  extra_warm: dict | None = None) -> dict:
     """`g_rule` = (models.QUAD_G_RULE, models.QUAD_G_REFIT_SG) to apply in THIS process (a loky worker imports models
-    afresh, so the two-pass check passes the rule explicitly as well as through the environment); None = as imported."""
+    afresh, so the two-pass check passes the rule explicitly as well as through the environment); None = as imported.
+    `archive` (the repaired node checks, 25 Oct 2026) adds every candidate's and selected fit's θ (float64) to the row
+    and θ/Σ (float64) to the start archive, so that a check's endpoints can be re-evaluated or transported exactly.
+    `extra_warm` = {(fold, candidate name): [(label, θ, Σ)]} further warm EM chains for the candidates, started under
+    the given Σ with the fold's training-catch μ0 (the 121-node recheck warm-started from the 61-node endpoints).
+    Every candidate row carries `numerical_failure` and the `polish` record; the row lists its failures."""
     os.environ.setdefault("NPROC", "1")
     if g_rule is not None:
         M.QUAD_G_RULE, M.QUAD_G_REFIT_SG = str(g_rule[0]), float(g_rule[1])
@@ -116,9 +122,21 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
     folds = []
     xs = {}
     fits_seen = []
+    failures = []
+    polish = dict(calls=0, accepted=0, seconds=0.0)
+    fit_seconds = 0.0
     for fold in range(5):
         train, test, _, _ = D.fold_datasets(p, sp_, fold)
-        res = F.fit_all_models(train, cache, span_name, ("G3", "B3"), quad)
+        warm = None
+        if extra_warm:
+            warm = {}
+            for name in DECISION_SPECS:
+                chains = extra_warm.get((fold, name)) or extra_warm.get(f"f{fold}_{name}") or []
+                if chains:
+                    warm[name] = [(lab, np.asarray(th, dtype=np.float64),
+                                   D.whitening_from_sigma(train.wh.mu0, np.asarray(Sg, dtype=np.float64), 0.0, train.wh.n_catch))
+                                  for lab, th, Sg in chains]
+        res = F.fit_all_models(train, cache, span_name, ("G3", "B3"), quad, extra_warm=warm or None)
         row = dict(fold=fold, n_train=train.n, n_test=test.n, shrinkage=train.wh.shrinkage, fits={})
         for name in DECISION_SPECS:
             fr = res[name]
@@ -127,14 +145,27 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
             row["fits"][name] = dict(status=fr.status, loglik=fr.loglik, n_converged=fr.n_converged,
                                      bounds_hit=fr.bounds_hit, clipped=fr.clipped, notes=fr.notes,
                                      starts=_start_rows(fr), seconds=fr.seconds, quad=fr.quad,
-                                     s_g=(float(M.unpack(sp_n, fr.theta).s_g) if (fr.available and sp_n.scale_free) else None))
+                                     numerical_failure=bool(fr.numerical_failure), polish=dict(fr.polish),
+                                     em_iterations=fr.em_iterations, em_trace=fr.em_trace,
+                                     s_g=(float(M.unpack(sp_n, fr.theta).s_g) if (fr.available and sp_n.scale_free) else None),
+                                     s_tau_ms=(float(M.unpack(sp_n, fr.theta).s_tau_ms) if fr.available else None))
+            if fr.numerical_failure:
+                failures.append(f"f{fold}_{name}")
+            for k in ("calls", "accepted", "seconds"):
+                polish[k] += (fr.polish or {}).get(k, 0)
+            fit_seconds += fr.seconds
             for i, s in enumerate(fr.starts):
                 xs[f"f{fold}_{name}_s{i}"] = np.asarray(s.x, dtype=np.float32)
+            if archive and fr.available:
+                row["fits"][name]["theta"] = [float(v) for v in fr.theta]
+                xs[f"f{fold}_{name}_theta64"] = np.asarray(fr.theta, dtype=np.float64)
+                if fr.wh is not None:
+                    xs[f"f{fold}_{name}_sigma64"] = np.asarray(fr.wh.Sigma, dtype=np.float64)
         for sel in ("G3", "B3"):
             fr = res[sel]
             fits_seen.append(fr)
             row["fits"][sel] = dict(status=fr.status, loglik=fr.loglik, selection=fr.selection, flags=fr.flags,
-                                    candidates=fr.candidates, quad=fr.quad)
+                                    candidates=fr.candidates, quad=fr.quad, numerical_failure=bool(fr.numerical_failure))
             if fr.available:
                 sp = F.selected_spec(sel, fr, span_name, quad)
                 ll = F.score_heldout(sp, fr, test)
@@ -143,6 +174,11 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
                 if fr.wh is not None:
                     xs[f"f{fold}_{sel}_sigma"] = np.asarray(fr.wh.Sigma, dtype=np.float32)
                 row["fits"][sel].update(em_iterations=fr.em_iterations, em_trace=fr.em_trace)
+                if archive:
+                    row["fits"][sel]["theta"] = [float(v) for v in fr.theta]
+                    xs[f"f{fold}_{sel}_theta64"] = np.asarray(fr.theta, dtype=np.float64)
+                    if fr.wh is not None:
+                        xs[f"f{fold}_{sel}_sigma64"] = np.asarray(fr.wh.Sigma, dtype=np.float64)
             else:
                 sums[sel].append(float("nan"))
         folds.append(row)
@@ -150,7 +186,8 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
     scores = {k: (float(np.nansum(v) / n) if not np.any(np.isnan(v)) else float("nan")) for k, v in sums.items()}
     return dict(setting=setting, r=r, m=m, base=base_subject, data_id=p.data_id, n_trials=p.n, n_scored=n,
                 scores=scores, fold_sums=sums, folds=folds, seconds=_time.time() - t0, code_hash=M.code_hash(),
-                quad=quad or {}, quad_rule=F.quad_rule_record(fits_seen), _xs=xs)
+                quad=quad or {}, quad_rule=F.quad_rule_record(fits_seen), numerical_failures=failures,
+                polish=polish, fit_seconds=fit_seconds, _xs=xs)
 
 
 PARALLEL_BACKEND = "loky"          # tests switch to "threading" so that a monkeypatched task is seen by the workers
@@ -240,10 +277,12 @@ def assemble_set(setting: str, r: int, workers: int = 0, queue_wall_s: float = 0
     np.savez_compressed(os.path.join(arc_dir, f"set_{r}.npz"), **xs)
     set_scores = {f"m{row['m']}": row["scores"] for row in rows}
     primary = X.set_primary(set_scores)
+    failures = [f"m{row['m']}:{k}" for row in rows for k in row.get("numerical_failures", [])]
     rec = dict(setting=setting, r=r, members=members, primary=primary,
                delta3={k: (v["B3"] - v["G3"]) for k, v in set_scores.items()},
                participants=rows, wall_s=float(sum(row["seconds"] for row in rows)), queue_wall_s=queue_wall_s,
-               workers=workers, code_hash=M.code_hash())
+               workers=workers, code_hash=M.code_hash(),
+               numerical_failure=bool(failures), numerical_failures=failures)
     path = os.path.join(out_dir, f"set_{r}.json")
     tmp = path + f".tmp.{os.getpid()}"
     with open(tmp, "w") as f:
@@ -509,6 +548,298 @@ def twopass_check(setting: str, r: int, workers: int, refit_sg: float = M.QUAD_G
           f"within-run multiplier {out['cost']['within_run_multiplier']:.3f}; task seconds {task_tp:.0f} vs archived 17-node {task_17:.0f}; "
           f"primary 17 {arch['primary']} / 33 {ref.get('primary_new')} / two-pass {out['primary_twopass']}; {out['seconds']:.0f} s -> {path}", flush=True)
     return out
+
+
+# ----------------------------------------------------------------------------------------------
+# the repaired same-data, same-code node checks (25 Oct 2026; Codex latency/quadrature review, findings 11, 13, 14)
+# ----------------------------------------------------------------------------------------------
+REPAIR_T_ABS = 8.8322454e-5      # the declared cap on the tolerance: one tenth of the AWS 31-node reference half-width
+REPAIR_RUNS = {                   # label -> (quadrature override, scale rule (QUAD_G_RULE, QUAD_G_REFIT_SG), warm-start source)
+    "A": (dict(n_tau_nodes=31, n_g_nodes=17), ("17", 0.6), None),          # the rule to retain if it passes
+    "B": (dict(n_tau_nodes=61, n_g_nodes=17), ("17", 0.6), None),
+    "C": (dict(n_tau_nodes=31, n_g_nodes=33), ("17", 0.6), None),
+    "D": (dict(n_tau_nodes=31, n_g_nodes=17), ("17then33", 0.6), None),    # the final combined rule: 17 then 33 where s_g > 0.6
+    "E": (dict(n_tau_nodes=121, n_g_nodes=17), ("17", 0.6), "B"),          # the fallback's recheck, warm-started from B
+}
+REPAIR_COMPARISONS = (("A", "B"), ("A", "C"), ("D", "C"), ("B", "E"))      # (candidate, reference)
+
+
+def repair_paths(setting: str, r: int, label: str) -> tuple:
+    stem = os.path.join(CHECK_DIR, f"repair_{setting}_set{r}_{label}")
+    return stem + ".json", stem + ".npz"
+
+
+def repair_status(setting: str, r: int, line: str):
+    """One line per event to results/s2/checks/repair_<setting>_set<r>_status.txt (the parent reads it)."""
+    os.makedirs(CHECK_DIR, exist_ok=True)
+    with open(os.path.join(CHECK_DIR, f"repair_{setting}_set{r}_status.txt"), "a") as f:
+        f.write(f"{_time.strftime('%Y-%m-%dT%H:%M:%SZ', _time.gmtime())} {line}\n")
+
+
+def repair_verify_data(setting: str, r: int, ref: dict) -> list:
+    """Regenerate every participant-dataset of set r from the stored generators and compare its data identity with the
+    archived record's; returns the mismatches (empty = verified)."""
+    bases = load_bases()
+    out = []
+    for m, s in enumerate(ref["members"]):
+        p = make_synthetic(setting, r, m, s, bases)
+        want = ref["participants"][m]["data_id"]
+        if p.data_id != want or ref["participants"][m]["base"] != s:
+            out.append(dict(m=m, base=s, regenerated=p.data_id, archived=want))
+    return out
+
+
+def _warm_from_run(setting: str, r: int, label: str) -> dict:
+    """{m: {(fold, candidate): [(label, θ, Σ)]}} from an archived repair run: every AVAILABLE candidate's float64 θ and
+    Σ (the run must have been made with archive=True)."""
+    jp, npz = repair_paths(setting, r, label)
+    with open(jp) as f:
+        run = json.load(f)
+    out = {}
+    with np.load(npz) as z:
+        for row in run["participants"]:
+            m = row["m"]
+            per = {}
+            for fold in row["folds"]:
+                for name in DECISION_SPECS:
+                    kt, ks = f"m{m}_f{fold['fold']}_{name}_theta64", f"m{m}_f{fold['fold']}_{name}_sigma64"
+                    if kt in z.files and ks in z.files:
+                        per[(fold["fold"], name)] = [(f"warm{label}", z[kt], z[ks])]
+            out[m] = per
+    return out
+
+
+def repair_run(setting: str, r: int, label: str, workers: int) -> dict:
+    """One archived full-procedure run of set r under the quadrature and scale rule of REPAIR_RUNS[label], all twenty
+    participant-datasets in one loky queue (Codex finding 13: no nested parallelism), after the data identities have been
+    verified against the archived Mac record (results/s2/decision/<setting>/set_<r>.json; a mismatch stops the run).
+    Archived per fold and candidate: θ, Σ, training log-likelihood, every start's status/objective/iterations, notes,
+    the boundary selection and candidates, each family's held-out fold sums, task seconds, the polish record and the
+    numerical-failure flags. Written to results/s2/checks/repair_<setting>_set<r>_<label>.{json,npz}."""
+    from joblib import Parallel, delayed
+    quad, rule, warm_src = REPAIR_RUNS[label]
+    with open(os.path.join(DEC_DIR, setting, f"set_{r}.json")) as f:
+        ref = json.load(f)
+    mism = repair_verify_data(setting, r, ref)
+    if mism:
+        repair_status(setting, r, f"{label}: STOPPED before fitting, {len(mism)} data identities differ from the archived record: {mism}")
+        raise SystemExit(f"[s2 repair] {label}: data identities differ from {setting} set {r}: {mism}")
+    os.environ["JITTER_QUAD_G_RULE"], os.environ["JITTER_QUAD_G_REFIT_SG"] = rule[0], f"{rule[1]:g}"
+    M.QUAD_G_RULE, M.QUAD_G_REFIT_SG = rule
+    warm = _warm_from_run(setting, r, warm_src) if warm_src else {}
+    bases = load_bases()
+    members = ref["members"]
+    repair_status(setting, r, f"{label}: START quad {quad} rule {rule} warm_from {warm_src} workers {workers} code {M.code_hash()} "
+                              f"(20/20 data identities verified against the archived record)")
+    t0 = _time.time()
+    rows = Parallel(n_jobs=workers, backend="loky")(
+        delayed(decision_task)(setting, r, m, s, bases, "primary", quad, rule, True, warm.get(m)) for m, s in enumerate(members))
+    rows = sorted(rows, key=lambda row: row["m"])
+    wall = _time.time() - t0
+    xs = {f"m{row['m']}_{k}": v for row in rows for k, v in row.pop("_xs").items()}
+    jp, npz = repair_paths(setting, r, label)
+    os.makedirs(CHECK_DIR, exist_ok=True)
+    np.savez_compressed(npz, **xs)
+    d3 = {f"m{row['m']}": row["scores"]["B3"] - row["scores"]["G3"] for row in rows}
+    vals = [v for v in d3.values()]
+    complete = all(np.isfinite(v) for v in vals)
+    iv = X.t_interval(vals) if complete else None
+    half = 0.5 * (iv.hi - iv.lo) if (iv is not None and np.isfinite(iv.hi)) else float("nan")
+    failures = [f"m{row['m']}:{k}" for row in rows for k in row["numerical_failures"]]
+    pol = dict(calls=sum(row["polish"]["calls"] for row in rows), accepted=sum(row["polish"]["accepted"] for row in rows),
+               seconds=float(sum(row["polish"]["seconds"] for row in rows)))
+    fit_s = float(sum(row["fit_seconds"] for row in rows))
+    task_s = float(sum(row["seconds"] for row in rows))
+    out = dict(setting=setting, r=r, label=label, quad=quad, rule=dict(rule=rule[0], refit_sg=rule[1], refit_nodes=M.QUAD_G_REFIT_NODES),
+               warm_from=warm_src, code_hash=M.code_hash(), workers=workers,
+               utc=_time.strftime("%Y%m%dT%H%M%SZ", _time.gmtime()), data_ids_verified=True,
+               members=members, data_ids=[row["data_id"] for row in rows],
+               delta3=d3, scores={f"m{row['m']}": row["scores"] for row in rows}, fold_sums={f"m{row['m']}": row["fold_sums"] for row in rows},
+               n_available=int(sum(np.isfinite(v) for v in vals)), complete=complete,
+               primary=X.set_primary({f"m{row['m']}": row["scores"] for row in rows}),
+               interval=None if iv is None else dict(mean=iv.mean, lo=iv.lo, hi=iv.hi), half_width=half,
+               numerical_failure=bool(failures), numerical_failures=failures,
+               polish=dict(pol, r_extra_work=(pol["seconds"] / (fit_s - pol["seconds"]) if fit_s > pol["seconds"] > 0 else 0.0)),
+               cost=dict(fit_seconds=fit_s, task_seconds=task_s, mean_task_seconds=task_s / len(rows), queue_wall_seconds=wall),
+               quad_rule=dict(F.quad_rule_record([]), per_model=_merge_counts([row["quad_rule"]["per_model"] for row in rows])),
+               participants=rows)
+    tmp = jp + f".tmp.{os.getpid()}"
+    with open(tmp, "w") as f:
+        json.dump(out, f)
+    os.replace(tmp, jp)
+    repair_status(setting, r, f"{label}: DONE {out['n_available']}/20 available, primary {out['primary']}, half-width "
+                              f"{half:.3e}, numerical failures {len(failures)}, polish {pol['calls']} calls / {pol['accepted']} accepted "
+                              f"({pol['seconds']:.0f} s, r {out['polish']['r_extra_work']:.4f}), task-s {task_s:.0f} (mean {task_s / 20:.0f}), "
+                              f"wall {wall:.0f} s at {workers} workers -> {os.path.relpath(jp, HERE)}")
+    print(f"[s2 repair] {label}: " + open(os.path.join(CHECK_DIR, f"repair_{setting}_set{r}_status.txt")).read().strip().splitlines()[-1], flush=True)
+    return out
+
+
+def _merge_counts(dicts: list) -> dict:
+    out = {}
+    for d in dicts:
+        for name, c in d.items():
+            o = out.setdefault(name, dict(fits=0, refitted=0))
+            o["fits"] += c["fits"]
+            o["refitted"] += c["refitted"]
+    return out
+
+
+def _nesting_rows(run: dict) -> list:
+    """Per participant and fold the training deficits l(B) − l(G) of both candidate pairs, with the quadratures;
+    a deficit beyond NEST_TOL_REL at the SAME scale quadrature is a nesting failure."""
+    out = []
+    for row in run["participants"]:
+        for fold in row["folds"]:
+            for g, b in (("G2", "B2"), ("G3+", "B3+")):
+                fg, fb = fold["fits"][g], fold["fits"][b]
+                if fg["status"] != "AVAILABLE" or fb["status"] != "AVAILABLE":
+                    out.append(dict(m=row["m"], fold=fold["fold"], pair=f"{b}-{g}", deficit=None, same_quad=None,
+                                    failure=True, note="candidate UNAVAILABLE"))
+                    continue
+                qg, qb = (fg.get("quad") or {}).get("n_g_nodes"), (fb.get("quad") or {}).get("n_g_nodes")
+                same = qg == qb
+                deficit = fb["loglik"] - fg["loglik"]
+                fail = bool(same and deficit < -F.NEST_TOL_REL * max(1.0, abs(fg["loglik"])))
+                out.append(dict(m=row["m"], fold=fold["fold"], pair=f"{b}-{g}", deficit=deficit, same_quad=same, failure=fail,
+                                g_nodes=qg, b_nodes=qb))
+    return out
+
+
+def repair_compare(x: dict, y: dict) -> dict:
+    """Candidate run x against reference run y on the full roster (every m0..m19; a participant unavailable in either run
+    is a FAILED check, never a shrunken roster — Codex finding 14 on s2.py:395). Tolerance T = min(REPAIR_T_ABS, one tenth
+    of the reference run's Δ₃ interval half-width); the candidate's own tenth-of-half-width is reported beside it. PASS =
+    all twenty compared, max |Δ₃(x) − Δ₃(y)| < T, no numerical failure in either run, no nesting failure in either run.
+    Reported per participant: the Δ₃ difference, which family moved (ΔS_G3, ΔS_B3), and every selection flip per fold."""
+    roster = [f"m{m}" for m in range(20)]
+    diffs, moved, flips, unavailable = {}, {}, {}, []
+    px = {f"m{row['m']}": row for row in x["participants"]}
+    py = {f"m{row['m']}": row for row in y["participants"]}
+    for k in roster:
+        dx, dy = x["delta3"].get(k, float("nan")), y["delta3"].get(k, float("nan"))
+        if not (np.isfinite(dx) and np.isfinite(dy)):
+            unavailable.append(k)
+            diffs[k] = None
+            continue
+        diffs[k] = dx - dy
+        moved[k] = dict(G3=px[k]["scores"]["G3"] - py[k]["scores"]["G3"], B3=px[k]["scores"]["B3"] - py[k]["scores"]["B3"],
+                        family=("B3" if abs(px[k]["scores"]["B3"] - py[k]["scores"]["B3"]) >= abs(px[k]["scores"]["G3"] - py[k]["scores"]["G3"]) else "G3"))
+        fl = []
+        for fx, fy in zip(px[k]["folds"], py[k]["folds"]):
+            for sel in ("G3", "B3"):
+                sx, sy = fx["fits"][sel].get("selection"), fy["fits"][sel].get("selection")
+                if sx != sy:
+                    fl.append(dict(fold=fx["fold"], model=sel, candidate=sx, reference=sy))
+        flips[k] = fl
+    finite = [abs(v) for v in diffs.values() if v is not None]
+    worst = max(finite) if finite else float("nan")
+    worst_k = max((k for k in diffs if diffs[k] is not None), key=lambda k: abs(diffs[k]), default=None)
+    half_y, half_x = y.get("half_width", float("nan")), x.get("half_width", float("nan"))
+    T = min(REPAIR_T_ABS, 0.1 * half_y) if np.isfinite(half_y) else REPAIR_T_ABS
+    T_both = min(T, 0.1 * half_x) if np.isfinite(half_x) else T
+    nest_x = [n for n in _nesting_rows(x) if n["failure"]]
+    nest_y = [n for n in _nesting_rows(y) if n["failure"]]
+    nf = list(x["numerical_failures"]) + [f"ref:{v}" for v in y["numerical_failures"]]
+    passed = bool(not unavailable and np.isfinite(worst) and worst < T and not nf and not nest_x and not nest_y)
+    return dict(candidate=x["label"], reference=y["label"], quad_candidate=x["quad"], quad_reference=y["quad"],
+                rule_candidate=x["rule"], rule_reference=y["rule"], code_hash=(x["code_hash"], y["code_hash"]),
+                same_code=x["code_hash"] == y["code_hash"], same_data=x["data_ids"] == y["data_ids"],
+                n_compared=20 - len(unavailable), unavailable=unavailable,
+                tolerance=T, tolerance_abs_cap=REPAIR_T_ABS, tenth_half_width_reference=0.1 * half_y, tenth_half_width_candidate=0.1 * half_x,
+                passed_at_min_of_both=bool(passed and (not np.isfinite(worst) or worst < T_both)),
+                max_abs_diff=worst, worst_participant=worst_k, passed=passed,
+                diffs=diffs, over_tolerance=sorted([k for k in diffs if diffs[k] is not None and abs(diffs[k]) >= T], key=lambda k: int(k[1:])),
+                moved=moved, selection_flips={k: v for k, v in flips.items() if v},
+                numerical_failures=nf, nesting_failures=dict(candidate=nest_x, reference=nest_y),
+                primary=dict(candidate=x["primary"], reference=y["primary"]))
+
+
+def repair_summary(setting: str = "W2", r: int = 0) -> dict:
+    """The summary over the runs present: every comparison of REPAIR_COMPARISONS whose two runs exist, the measured r
+    (polish seconds / original fit seconds) per run, the D cost against A and C, the LATENCY RULE outcome. Written to
+    results/s2/checks/repair_<setting>_set<r>_summary.{json,md}."""
+    runs = {}
+    for label in REPAIR_RUNS:
+        jp, _ = repair_paths(setting, r, label)
+        if os.path.exists(jp):
+            with open(jp) as f:
+                runs[label] = json.load(f)
+    comps = {f"{a}_vs_{b}": repair_compare(runs[a], runs[b]) for a, b in REPAIR_COMPARISONS if a in runs and b in runs}
+    per_run = {k: dict(code_hash=v["code_hash"], quad=v["quad"], rule=v["rule"]["rule"], primary=v["primary"], n_available=v["n_available"],
+                       half_width=v["half_width"], interval=v["interval"], numerical_failures=v["numerical_failures"],
+                       polish=v["polish"], cost=v["cost"], workers=v["workers"], utc=v["utc"],
+                       refits=v["quad_rule"]["per_model"], nesting_failures=len([n for n in _nesting_rows(v) if n["failure"]]))
+               for k, v in runs.items()}
+    cost = {}
+    if "A" in runs and "D" in runs:
+        cost["D_over_A_task_seconds"] = runs["D"]["cost"]["task_seconds"] / runs["A"]["cost"]["task_seconds"]
+        cost["D_over_A_fit_seconds"] = runs["D"]["cost"]["fit_seconds"] / runs["A"]["cost"]["fit_seconds"]
+    if "A" in runs and "C" in runs:
+        cost["C_over_A_task_seconds"] = runs["C"]["cost"]["task_seconds"] / runs["A"]["cost"]["task_seconds"]
+    if "A" in runs and "B" in runs:
+        cost["B_over_A_task_seconds"] = runs["B"]["cost"]["task_seconds"] / runs["A"]["cost"]["task_seconds"]
+    hashes = sorted({v["code_hash"] for v in runs.values()})
+    latency = None
+    if "A_vs_B" in comps:
+        latency = ("RETAIN 31 nodes (A vs B passed; no 121 check owed)" if comps["A_vs_B"]["passed"]
+                   else "ADOPT 61 (A vs B failed)" + (f"; B vs E {'PASSED' if comps['B_vs_E']['passed'] else 'FAILED'}" if "B_vs_E" in comps else "; the 61-vs-121 recheck (E) is owed"))
+    out = dict(setting=setting, r=r, utc=_time.strftime("%Y%m%dT%H%M%SZ", _time.gmtime()), runs=per_run, one_code_hash=len(hashes) == 1,
+               code_hashes=hashes, comparisons=comps, cost=cost, latency_rule=latency,
+               verdicts={k: dict(passed=c["passed"], max_abs_diff=c["max_abs_diff"], tolerance=c["tolerance"], worst=c["worst_participant"],
+                                 over=c["over_tolerance"], unavailable=c["unavailable"], numerical_failures=len(c["numerical_failures"]),
+                                 nesting_failures=len(c["nesting_failures"]["candidate"]) + len(c["nesting_failures"]["reference"]))
+                         for k, c in comps.items()})
+    os.makedirs(CHECK_DIR, exist_ok=True)
+    stem = os.path.join(CHECK_DIR, f"repair_{setting}_set{r}_summary")
+    with open(stem + ".json", "w") as f:
+        json.dump(out, f, indent=1)
+    with open(stem + ".md", "w") as f:
+        f.write(repair_summary_markdown(out))
+    return out
+
+
+def repair_summary_markdown(s: dict) -> str:
+    L = [f"# Repaired same-data, same-code node checks — {s['setting']} set {s['r']} ({s['utc']})", "",
+         f"Code hash{'' if s['one_code_hash'] else 'es (NOT one)'}: {', '.join(s['code_hashes'])}. Tolerance T = min({REPAIR_T_ABS:.7e}, "
+         "one tenth of the reference run's Δ₃ interval half-width); PASS needs all twenty participants available in both runs, "
+         "max |Δ₃ difference| < T, no numerical failure and no nesting failure in either run.", ""]
+    L.append("| run | τ nodes | g nodes | rule | available | primary | half-width | numerical failures | nesting failures | polish calls/accepted | r | task-s (mean) | wall s | workers |")
+    L.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    for k, v in s["runs"].items():
+        p, c = v["polish"], v["cost"]
+        L.append(f"| {k} | {v['quad'].get('n_tau_nodes', 31)} | {v['quad'].get('n_g_nodes', 17)} | {v['rule']} | {v['n_available']}/20 | {v['primary']} | "
+                 f"{v['half_width']:.3e} | {len(v['numerical_failures'])} | {v['nesting_failures']} | {p['calls']}/{p['accepted']} | {p['r_extra_work']:.4f} | "
+                 f"{c['task_seconds']:.0f} ({c.get('mean_task_seconds', c['task_seconds'] / 20):.0f}) | {c.get('queue_wall_seconds', float('nan')):.0f} | {v['workers']} |")
+    L.append("")
+    L.append("| comparison | PASS | max abs diff | worst | T | over T | unavailable | numerical failures | nesting failures | selection flips |")
+    L.append("|---|---|---|---|---|---|---|---|---|---|")
+    for k, c in s["comparisons"].items():
+        L.append(f"| {k} | {'PASS' if c['passed'] else 'FAIL'} | {c['max_abs_diff']:.3e} | {c['worst_participant']} | {c['tolerance']:.3e} | "
+                 f"{', '.join(c['over_tolerance']) or '-'} | {', '.join(c['unavailable']) or '-'} | {len(c['numerical_failures'])} | "
+                 f"{len(c['nesting_failures']['candidate']) + len(c['nesting_failures']['reference'])} | "
+                 f"{sum(len(v) for v in c['selection_flips'].values())} |")
+    L.append("")
+    for k, c in s["comparisons"].items():
+        L.append(f"## {k}: per participant (Δ₃ difference; ΔS_G3, ΔS_B3; family that moved; selection flips)")
+        L.append("")
+        L.append("| m | Δ₃ diff | ΔS_G3 | ΔS_B3 | moved | flips |")
+        L.append("|---|---|---|---|---|---|")
+        for m in range(20):
+            key = f"m{m}"
+            d = c["diffs"].get(key)
+            if d is None:
+                L.append(f"| {key} | UNAVAILABLE | | | | |")
+                continue
+            mv = c["moved"][key]
+            fl = "; ".join(f"f{x['fold']} {x['model']} {x['reference']}->{x['candidate']}" for x in c["selection_flips"].get(key, [])) or "-"
+            L.append(f"| {key} | {d:+.3e} | {mv['G3']:+.3e} | {mv['B3']:+.3e} | {mv['family']} | {fl} |")
+        L.append("")
+    if s["cost"]:
+        L.append("Cost: " + ", ".join(f"{k} {v:.4f}" for k, v in s["cost"].items()) + ".")
+        L.append("")
+    L.append(f"LATENCY RULE outcome: {s['latency_rule']}.")
+    return "\n".join(L) + "\n"
 
 
 def rank_checks() -> dict:
@@ -796,6 +1127,11 @@ def main():
     pr = sub.add_parser("profiles")
     pr.add_argument("--n", type=int, default=100)
     pr.add_argument("--workers", type=int, default=12)
+    rp = sub.add_parser("repair", help="the repaired same-data, same-code node checks (REPAIR_RUNS): one archived run, or the summary")
+    rp.add_argument("--label", required=True, choices=list(REPAIR_RUNS) + ["summary"])
+    rp.add_argument("--setting", default="W2", choices=list(SETTINGS))
+    rp.add_argument("--set", type=int, default=0)
+    rp.add_argument("--workers", type=int, default=12)
     a = ap.parse_args()
     if a.cmd == "bases":
         b = cache_bases()
@@ -828,6 +1164,13 @@ def main():
         run_basins(workers=a.workers)
     elif a.cmd == "profiles":
         run_profile_validation(a.n, a.workers)
+    elif a.cmd == "repair":
+        if a.label == "summary":
+            s = repair_summary(a.setting, a.set)
+            print(repair_summary_markdown(s))
+        else:
+            repair_run(a.setting, a.set, a.label, a.workers)
+            print(repair_summary_markdown(repair_summary(a.setting, a.set)))
 
 
 if __name__ == "__main__":
