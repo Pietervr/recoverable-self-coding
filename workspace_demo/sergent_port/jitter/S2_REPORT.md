@@ -628,3 +628,73 @@ logs on S3 under `logs/xprobe_*`, `logs/cprobe_*`; spend in `aws/s4_spend.json`)
 - `bench.py`'s cost table is superseded by `recost_rev7.py` (per fit); fold the per-fit accounting into bench.py at a
   chain boundary (never while a chain runs).
 - Code hash discipline: every result json carries `code_hash`; the pre-D4 and final blocks differ in hash by design.
+
+## 11. Final evidence under the frozen bundle (25 Oct 2026, 09:31-10:52Z; Codex S3 re-review findings 3, 4, 9, closure order 14)
+
+One immutable bundle, `jitter_bundle_80c1e97` (code hash `ca6c7e5547d5`, unchanged since the code job), on c7a.24xlarge
+spot hosts with `JITTER_TRIAL_CHUNK=64`, numpy 2.5.3, scipy 1.18.1, jax/jaxlib 0.11.1, no XLA_FLAGS. Runner
+`aws/userdata_s2final.sh` and `aws/launch_s2final.py` (RSC 80c1e97, ec21d7b, a1139b2, 13ac718). One checks host and 19
+development hosts (disjoint hash shards of W2, T1, O1 at R = 25, 1,500 tasks) over eu-north-1, eu-west-1, us-east-1 and
+us-west-2. Spend about USD 30 (closed total USD 196.79).
+
+### 11.1 Final-rule paired checks: PASS (`results/s2/checks/s2final/`)
+
+W2 development set 0, twenty participants, three complete procedures on one host (eu-north-1, three concurrent
+20-worker pools): F = 61 latency nodes, scale rule 17then33 (the S4 rule); G = 121 latency nodes, 17then33; H = 61 latency
+nodes, blanket 33 scale nodes. All three: 20/20 available, 0 unresolved numerical failures, 0 nesting failures, primary
+NEGATIVE; half-widths 6.426e-4 (F), 6.504e-4 (G), 6.422e-4 (H); task-seconds 30,276 / 54,710 / 39,843.
+
+| pair | max(\|Δμ\|, \|ΔL\|, \|ΔU\|) | T_set | participant max (diagnostic) | verdict |
+|---|---|---|---|---|
+| F vs G | 2.957e-5 | 6.426e-5 | 4.54e-4 | PASS |
+| F vs H | 1.564e-5 | 6.423e-5 | 2.83e-4 | PASS |
+
+Fixed-endpoint cross-evaluation of F's endpoints (no refit): reproduction on F's own grid 2.48e-15; on G's grid
+(121/17then33) every participant contrast moves at most 2.742e-5 < 6.426e-5; on H's grid (61/33) at most 6.39e-7 < 6.423e-5.
+`final_summary` verdict: PASS, the final rule 61/17then33 meets the amended set-level criterion and the fixed-endpoint checks.
+
+Two starts of the checks host were refused before any fitting, and their records are kept in the status file. (1) The
+x86 hosts regenerate the synthetic datasets bit-differently from the Mac: W2 set 0 m0 has data id `2e5907f1d49e5981` on
+AWS and `015aef5aa29ed009` on the Mac, for all twenty members. The 24 Oct AWS closure record and the chunk pair carry the
+AWS ids. The identity guard therefore uses the AWS closure record (`results/s2_aws/decision/W2/set_0.json`, sha256
+a8c21eca...). (2) `repair_run` reads that reference at `results/s2/decision`, so the host places it there. Consequence:
+the synthetic datasets are platform-specific, so every S4 draw, S5 fit and comparison stays on c7a (the DESIGN 8 contract).
+
+### 11.2 Development blocks at R = 25 (`results/s2/decision_final/`)
+
+All 75 sets complete (20/20 participants available in every set); same data identities as the 24 Oct AWS closure in
+every set it completed; code `ca6c7e5547d5` throughout.
+
+| setting | POSITIVE | NEGATIVE | UNRESOLVED | unresolved numerical failures (participant-datasets) | persistent nesting failures | resolved rescues |
+|---|---|---|---|---|---|---|
+| W2 (graded; POSITIVE = false call) | 0 | 18 | 7 | 12 (9) — G3+ 6, G2 5, B3+ 1 | 2 (r7 m9 B3<G3 by 0.17 nat; r12 m11 by 143.1 nat) | 5 |
+| T1 (two-state; POSITIVE = detection) | 25 | 0 | 0 | 19 (18) — G3+ 16, G2 3 | 0 | 6 |
+| O1 (time-stretch; POSITIVE = false call) | 0 | 19 | 6 | 3 (3) — G3+ 2, B3+ 1 | 1 (r8 m17 by 1.41 nat) | 10 |
+
+Against the 24 Oct closure (code `6d447ad94463`, same data): W2 r5 and r9 NEGATIVE -> UNRESOLVED, r19 UNRESOLVED -> NEGATIVE;
+O1 r0, r2, r6, r9, r16 UNRESOLVED -> NEGATIVE; T1 unchanged at 25/25. The closure's 11/6/16 training nesting violations
+are down to 2/0/1 persistent failures after the nest rescue.
+
+**The failure direction.** An unresolved failure makes that candidate UNAVAILABLE (DESIGN 5 (b)), and the boundary
+selection then proceeds without it. When the failed candidate is graded (G3+ or G2), that participant's Δ₃ is inflated
+toward two states: W2 r9 m13 (base S19, failures f1/f2 G3+ and f4 G2) has Δ₃ = +0.181, r5 m9 (S19, f4 G3+) +0.038,
+r9 m6 (S19, f4 G3+) +0.033. These made r5 and r9 UNRESOLVED, not POSITIVE, here. In S4's 100 sets per setting, with the
+≤ 1 of 100 gate, this is a route to a false call. A B3+ failure biases the other way (W2 r12 m11, B3+ failure with a
+143-nat nesting deficit, Δ₃ = −0.085). The persistent nesting failure does not change availability (DESIGN 5 (c)).
+
+**Candidate amendment, read on the same records without refitting**
+(`results/s2/decision_final/reading_amended_failure_rule.json`): a participant-dataset with any unresolved numerical
+failure or persistent nesting failure is UNAVAILABLE for the set statistic (counted by the 16-of-20 roster rule, kept
+out of the interval). Dropped: W2 9, T1 18, O1 4 participant-datasets; no set falls below the roster. Readings: W2
+0 / 19 / 6 (r5 and r9 UNRESOLVED -> NEGATIVE, r7 NEGATIVE -> UNRESOLVED); T1 25/25 POSITIVE; O1 0 / 19 / 6 (unchanged).
+Under either rule the development blocks contain no false call and full detection. The amendment removes the
+asymmetric route; it is put to the Codex FREEZE re-review and is not adopted here.
+
+### 11.3 Platform record
+
+The run fingerprints split by Amazon Linux release: eu-north-1 and us-west-2 ran al2023 2023.12.20261021.0 (Python
+3.12.14, fingerprint `a0d5773d33885ff9`), eu-west-1 and us-east-1 ran 20261026.1 (Python 3.12.15, `d629457b2c1a42a9`);
+about half the participant-datasets of each block carry each. numpy/scipy/jax/jaxlib/joblib/pandas are identical. A
+relaunched shard refused to resume on the other host's run record, which is how this surfaced; each development host now
+keeps its own record (`run_config_<shard>.json`). From RSC 27b9ef4 all four regions use the 20261021.0 release, so S4
+and S5 run under one fingerprint per rule.
