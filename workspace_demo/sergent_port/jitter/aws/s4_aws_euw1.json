@@ -2,7 +2,7 @@
   "profile": "xtenure-read",
   "region": "eu-west-1",
   "s3_region": "us-west-2",
-  "ami": "ami-058f31f10d44d9317",
+  "ami": "ami-058cbf9cc17bf0455",
   "instance_type": "c7a.24xlarge",
   "subnets": {"eu-west-1a": "subnet-0195b8e0d3685fd74", "eu-west-1b": "subnet-00c2a467121894972", "eu-west-1c": "subnet-09f604345f2cc52f9"},
   "subnet_order": ["eu-west-1c", "eu-west-1a", "eu-west-1b"],
