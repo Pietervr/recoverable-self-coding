@@ -58,7 +58,7 @@ if [ "__PART__" = "checks" ]; then
   mkdir -p results/s2_aws/decision/W2
   aws s3 cp "s3://$BUCKET/$RES/results/s2/decision/W2/set_0.json" results/s2_aws/decision/W2/set_0.json --quiet
   echo "a8c21ecad0f7955772e3aa64b86938a0e20f0e441850810114857967491d6fdf  results/s2_aws/decision/W2/set_0.json" | sha256sum -c - || { echo "[s2final] AWS W2 set 0 reference checksum FAILED"; sync_out; shutdown -h now; }
-  mv results/s2/decision/W2/set_0.json results/s2/decision/W2/set_0.mac.json
+  mv results/s2/decision/W2/set_0.json results/s2/decision/W2/set_0.mac.json && cp results/s2_aws/decision/W2/set_0.json results/s2/decision/W2/set_0.json   # repair_run reads DEC_DIR directly
   PIDS=""
   for L in F G H; do
     ( python -u s2.py repair --label $L --setting W2 --set 0 --workers 20 > results/s2/checks/run_repair_$L.log 2>&1; echo "[s2final] repair $L rc=$? $(date -u +%FT%TZ)" ) &
