@@ -580,6 +580,41 @@ after the warm-endpoint repair).**
   163.84**. USD 0.096 per distinct decision task on the six hosts. Nothing tagged Job=jitter-s4 is running in either
   region (status and describe-instances, 25 Oct 05:13Z).
 
+**Where the AWS hours go, and the fix (25 Oct 2026; probes `aws/userdata_xprobe.sh`, `aws/userdata_chunkprobe.sh`;
+logs on S3 under `logs/xprobe_*`, `logs/cprobe_*`; spend in `aws/s4_spend.json`).**
+- One decision task alone (W2 set 0 m0, S18; code 6d447ad94463; jax/jaxlib 0.11.1, numpy 2.5.3, scipy 1.18.1 on every
+  host): AMD EPYC 9R14 (c7a.4xlarge) 1,658 s, Intel Xeon 8488C (c7i.4xlarge) 1,224 s, AWS Graviton4 (c8g.4xlarge)
+  1,351 s, the Mac's M4 core 435 s. An ARM server core is no closer to the M4 than the x86 cores, so the gap is not
+  an instruction-set effect. The XLA legacy-runtime flag no longer exists in jaxlib 0.11.1 (no effect). The Mac's numpy
+  links Accelerate and the hosts' OpenBLAS, which does not matter here (below).
+- cProfile of that task (c8g): 1,321 of 1,354 s inside the compiled value-and-gradient call (69,828 calls, 19 ms
+  each); L-BFGS-B itself 1.7 s, compiles 4 s, device transfers 9 s. So the cost is the likelihood kernel, whose
+  (n, N_tau, N_g) intermediates (n = 768 padded trials × 31 × 17 × 8 B ≈ 3.2 MB each, several live in the backward
+  pass) fit the M4's large caches and spill a server core's 1-2 MB L2; at 48-96 workers per socket they also share
+  the L3 and the memory bandwidth, which is the closure's thrash.
+- The fix: `models.TRIAL_CHUNK` (env `JITTER_TRIAL_CHUNK`, default 0 = one block): the training objective summed over
+  64-trial chunks (≈ 270 kB of intermediates) under `lax.scan` with `jax.checkpoint`. Equal to the one-block objective
+  in value and gradient to 1e-14 relative on G2, B2, G3+, B3+ (tests/test_models.py::
+  test_trial_chunked_objective_equals_one_block); on the Mac 10-20% slower per call (the recompute; the M4's caches
+  hold the whole block).
+- Host probe (c7a.24xlarge spot eu-north-1b, code d3aba729a660, W2 development sets 0-4 = 100 decision tasks, chunk 64):
+  at 96 workers all 100 in 1,437 s; per task median 841 s, p90 1,061, max 1,435; S18 1,002 s (alone and one-block:
+  1,658 s); about 408 tasks per host-hour once all workers are busy (96 × 3600 / mean 847 s), 251 as run. At 48
+  workers median 580 s, about 283 per host-hour. Against the closure's 30.8 per host-hour at 48 workers: 13×. The
+  scores of every task were identical to the last digit at 48 and 96 workers on this host type.
+- PAIRED CHECK (one c7a.24xlarge spot, code d3aba729a660, W2 set 0 with its 20 data identities equal in both runs,
+  chunk 0 and chunk 64 as two concurrent 20-worker pools, 25 Oct 06:57-07:53Z; `aws/userdata_chunkpair.sh`, records
+  `results/s2/checks/chunkpair/{0,64}/m*.json`, judged by `s2.repair_compare` in `chunkpair/compare_64_vs_0.json`):
+  FAIL by the repair rule — max |ΔΔ₃| 6.31e-4 (m7) against T 6.74e-5, over T m0 m6 m7 m12; no selection flips; the
+  one numerical failure is in the one-block run (m15 f4 B3+); no nesting failure; primary NEGATIVE in both; set-mean
+  ΔΔ₃ −1.2e-5; rms of the participant differences 1.58e-4. The two objectives agree to 1e-14 per call, so this is the
+  fitter's own end-point variation under a rounding-level perturbation, and it is the same size as every latency and
+  scale comparison of S2_REPORT 8 (rms 1.4-1.8e-4, set means within 3.8e-5). Per-participant T ≈ 7e-5 is therefore
+  below what the procedure reproduces under any perturbation; the node comparisons of 8 do not separate quadrature
+  error from this floor. Wall: one-block 2,068 s mean, chunked 587 s, on the same host at the same time (3.5×).
+- Probe spend: USD 1.17 (three 16-vCPU on-demand probes) + 0.88 (two spot hosts) + 0.90 (the paired-check host);
+  closed total USD 166.79.
+
 ## 10. Open for rev 7 and the Codex S3 review
 - §4: Σ by ML within each model (R1) and why; the "no model-independent direction of bias" sentence withdrawn; the
   strength-dependent latency recovery under the free Σ declared, with the three Σ-structure options for the recovery

@@ -1,19 +1,6 @@
 {
- "utc": "2026-10-25T07:00:15.844141+00:00",
+ "utc": "2026-10-25T07:54:38.504771+00:00",
  "instances": [
-  {
-   "id": "i-0a9497f048b17bd1d",
-   "state": "terminated",
-   "type": "c8g.4xlarge",
-   "lifecycle": "on-demand",
-   "az": "eu-north-1b",
-   "mode": "xprobe",
-   "shard": "xp-c8g",
-   "part": "base,prof",
-   "launched": "2026-10-25T05:59:54+00:00",
-   "hours": null,
-   "est_usd": 0.0
-  },
   {
    "id": "i-024123e531f72db47",
    "state": "terminated",
@@ -29,7 +16,7 @@
   },
   {
    "id": "i-084cc72987a687b89",
-   "state": "running",
+   "state": "terminated",
    "type": "c7a.24xlarge",
    "lifecycle": "spot",
    "az": "eu-north-1b",
@@ -37,19 +24,6 @@
    "shard": "w20x2",
    "part": "all",
    "launched": "2026-10-25T06:57:03+00:00",
-   "hours": 0.05,
-   "est_usd": 0.05
-  },
-  {
-   "id": "i-0f17cfa2346b9c963",
-   "state": "terminated",
-   "type": "c7a.4xlarge",
-   "lifecycle": "on-demand",
-   "az": "eu-north-1b",
-   "mode": "xprobe",
-   "shard": "xp-c7a",
-   "part": "base,nothunk,prof",
-   "launched": "2026-10-25T05:59:49+00:00",
    "hours": null,
    "est_usd": 0.0
   },
@@ -65,23 +39,10 @@
    "launched": "2026-10-25T06:29:37+00:00",
    "hours": null,
    "est_usd": 0.0
-  },
-  {
-   "id": "i-08485ebe6315c6c89",
-   "state": "terminated",
-   "type": "c7i.4xlarge",
-   "lifecycle": "on-demand",
-   "az": "eu-north-1b",
-   "mode": "xprobe",
-   "shard": "xp-c7i",
-   "part": "base,nothunk",
-   "launched": "2026-10-25T05:59:51+00:00",
-   "hours": null,
-   "est_usd": 0.0
   }
  ],
- "est_running_usd": 0.05,
- "closed_usd": 165.89,
+ "est_running_usd": 0.0,
+ "closed_usd": 166.79,
  "closed_log": [
   {
    "utc": "2026-10-24T19:15:33.279423+00:00",
@@ -167,6 +128,11 @@
    "utc": "2026-10-25T07:00:25.391370+00:00",
    "usd": 0.88,
    "note": "chunk host probe 25 Oct 06:29-06:59Z: c7a.24xlarge spot w96 i-01a67b4b2fdc34f49 0.43 h, w48 i-024123e531f72db47 0.50 h at the 0.95 estimate; both self-terminated (all 100 tasks done)"
+  },
+  {
+   "utc": "2026-10-25T07:54:46.128174+00:00",
+   "usd": 0.9,
+   "note": "chunk paired check 25 Oct 06:57-07:53Z: c7a.24xlarge spot i-084cc72987a687b89 0.95 h at the 0.95 estimate; self-terminated"
   }
  ]
 }

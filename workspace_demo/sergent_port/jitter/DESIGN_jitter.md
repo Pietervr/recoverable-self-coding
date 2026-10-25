@@ -1,7 +1,8 @@
 # Does the human two-state preference survive trial-level latency and scale variation?
 
-Design, revision 7 — 24 October 2026, session R052 Entropy SI. Status: S2 COMPLETE ON W2, T1/O1 READINGS PENDING;
-FOR THE CODEX S3 FREEZE REVIEW. Rev 5 (RSC 0ddac98) received FAVOURABLE WITH CONDITIONS
+Design, revision 7 — 24 October 2026, session R052 Entropy SI. Status (25 Oct): S2 CLOSED on AWS + Mac repair 25 Oct;
+FOR THE CODEX S3 RE-REVIEW (the closure readings S2_REPORT 4.3-4.5, the repaired node checks S2_REPORT 8, the
+throughput fix §8). Rev 5 (RSC 0ddac98) received FAVOURABLE WITH CONDITIONS
 (`reviews/2026-10-24_design_v5_codex_review.md`); rev 6 closed its four conditions and was the specification S1–S2
 implemented. Revs 1–4 (960e93b, 57c1280, 8d6c195, 78e348c) and their reviews are the record of how it got here.
 Rev 7 records what S2 found and changed (`S2_REPORT.md` is the evidence): the rev 6 fitter read 6 of 19 graded (W2)
@@ -574,11 +575,18 @@ does not apply to this host. One decision task alone on the c7a.24xlarge's AMD E
 M4 core alone); 96 single-threaded workers per host thrash (in 95 min only the lightest participant finished, at
 500-5,000 s); at 48 workers per host the host delivers about 60-70 decision tasks per hour, about one Mac, bound by the
 socket's shared memory bandwidth and not by its cores; the XLA single-thread code-generation flag costs a further 30%
-and is not used. RULE for S4: 48 workers per c7a.24xlarge, no `XLA_FLAGS`, the fleet costed per host. S4 base ≈ 41,000
-decision-task-equivalents ≈ 600-700 host-hours (30-35 h on 20 hosts) = about USD 600 on eu-north-1 spot alone (0.95/h;
-needs the Spot quota raised 512 → 2,048 vCPU) or about USD 2,400 with 15 of the 20 hosts on-demand (4.93/h) under the
-standing 512 Spot + 520 On-Demand vCPU quotas per region; us-west-2a spot was reclaimed wholesale on 24 Oct, eu-north-1b
-held. Inherited Nelder–Mead runs measured at
+and is not used. The closure fleet then achieved 30.8 decision tasks per host-hour over 48 host-hours (S2_REPORT 9),
+half the early reading. THE CAUSE AND THE FIX (25 Oct; S2_REPORT 9): 98% of a decision task is the compiled
+value-and-gradient call, whose (n, N_tau, N_g) intermediates (about 3.2 MB each at n = 768) fit the M4's caches and
+spill the AMD core's and the shared socket's (Intel c7i 1,224 s and Graviton4 1,351 s alone: not an ISA effect). The
+training objective summed over 64-trial chunks under a scan with recompute (`models.TRIAL_CHUNK`, env
+`JITTER_TRIAL_CHUNK`; equal to the one-block objective to rounding, tests/test_models.py) ran 100 W2 decision tasks at
+96 workers per c7a.24xlarge in 1,437 s (median 841 s per task; about 408 tasks per host-hour steady state, 13× the
+closure). RULE for S4 (proposed for the S3 re-review): `JITTER_TRIAL_CHUNK=64`, 96 workers per c7a.24xlarge, no
+`XLA_FLAGS`, all S4 fitting on one host type. S4 at 61 latency nodes (1.59× measured): about 65,000
+decision-task-equivalents ≈ 200 host-hours at 80% of the probe rate ≈ 10 h on 20 spot hosts (5 per region in
+eu-north-1, us-east-1, us-west-2, eu-west-1, inside the standing 512 Spot vCPU quota each) ≈ USD 200-300; the full
+manifest, no reduced manifest. us-west-2a spot was reclaimed wholesale on 24 Oct, eu-north-1b held. Inherited Nelder–Mead runs measured at
 22 ms/run, spm_BMS at 0.04 s/call. The start-count accounting below is the rev 6 record of WHAT is fitted; its unit
 costs are superseded by the measured rates.
 - Candidate accounting: "the eight models" on real or recovery data = G0, B0, G2, B2 (reduced, each one fit) plus
