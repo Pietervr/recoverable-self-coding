@@ -446,25 +446,31 @@ def _scaled_fold():
 
 
 def test_quad_rule_17_leaves_everything_unchanged():
-    """Two-pass scale quadrature, test (a): under models.QUAD_G_RULE = "17" (the default) nothing changes — a fit whose
-    s_g is far above the threshold is returned untouched by two_pass_refit (the very same object), every result records
-    17 nodes and no refit, selected_spec resolves to 17 nodes, and the record names the rule with zero refits."""
-    assert M.QUAD_G_RULE == "17" and M.QUAD_G_REFIT_SG == 0.6 and M.QUAD_G_REFIT_NODES == 33
-    train, test = _scaled_fold()
-    cache = F.FitCache()
-    res = F.fit_all_models(train, cache, "primary", ("G2",))
-    r = res["G2"]
-    assert r.available and M.unpack(M.spec("G2"), r.theta).s_g > M.QUAD_G_REFIT_SG      # eligible, were the rule on
-    assert r.quad == dict(n_tau_nodes=31, n_g_nodes=17, adaptive_g=True)
-    assert F.two_pass_refit(M.spec("G2"), train, r, cache, None) is r
-    assert F.selected_spec("G2", r, "primary").n_g_nodes == 17
-    rec = F.quad_rule_record(list(res.values()))
-    assert rec["rule"] == "17" and rec["per_model"] == {"G2": dict(fits=1, refitted=0)}
-    assert "|rule17|" in cache.key(train, M.spec("G2"))
-    # a record without a quadrature (rev 7 era, read back from disk) scores under the caller's spec, as before
-    old = F.FitResult.from_json({k: v for k, v in r.to_json().items() if k != "quad"})
-    assert old.quad is None and F.selected_spec("G2", old, "primary").n_g_nodes == 17
-    assert F.selected_spec("G2", old, "primary", dict(n_g_nodes=33)).n_g_nodes == 33
+    """Two-pass scale quadrature, test (a): the default is now "17then33" (the frozen S4 rule, 25 Oct 2026); under an
+    explicit models.QUAD_G_RULE = "17" (the S2 check runs' override) nothing changes — a fit whose s_g is far above the
+    threshold is returned untouched by two_pass_refit (the very same object), every result records 17 nodes and no refit,
+    selected_spec resolves to 17 nodes, and the record names the rule with zero refits."""
+    assert M.QUAD_G_RULE == "17then33" and M.QUAD_G_REFIT_SG == 0.6 and M.QUAD_G_REFIT_NODES == 33
+    old_rule = M.QUAD_G_RULE
+    try:
+        M.QUAD_G_RULE = "17"
+        train, test = _scaled_fold()
+        cache = F.FitCache()
+        res = F.fit_all_models(train, cache, "primary", ("G2",))
+        r = res["G2"]
+        assert r.available and M.unpack(M.spec("G2"), r.theta).s_g > M.QUAD_G_REFIT_SG      # eligible, were the rule on
+        assert r.quad == dict(n_tau_nodes=61, n_g_nodes=17, adaptive_g=True)
+        assert F.two_pass_refit(M.spec("G2"), train, r, cache, None) is r
+        assert F.selected_spec("G2", r, "primary").n_g_nodes == 17
+        rec = F.quad_rule_record(list(res.values()))
+        assert rec["rule"] == "17" and rec["per_model"] == {"G2": dict(fits=1, refitted=0)}
+        assert "|rule17|" in cache.key(train, M.spec("G2"))
+        # a record without a quadrature (rev 7 era, read back from disk) scores under the caller's spec, as before
+        old = F.FitResult.from_json({k: v for k, v in r.to_json().items() if k != "quad"})
+        assert old.quad is None and F.selected_spec("G2", old, "primary").n_g_nodes == 17
+        assert F.selected_spec("G2", old, "primary", dict(n_g_nodes=33)).n_g_nodes == 33
+    finally:
+        M.QUAD_G_RULE = old_rule
 
 
 def test_quad_rule_17then33_refits_above_threshold_only():
@@ -474,10 +480,12 @@ def test_quad_rule_17then33_refits_above_threshold_only():
     below the threshold (and a model without a scale term) keeps 17 nodes throughout. Test (c): the record names the
     rule and the refit counts per model."""
     train, test = _scaled_fold()
+    old = (M.QUAD_G_RULE, M.QUAD_G_REFIT_SG)
+    M.QUAD_G_RULE = "17"
     r17 = F.fit_all_models(train, F.FitCache(), "primary", ("G2",))["G2"]
+    M.QUAD_G_RULE = old[0]
     s_g17 = M.unpack(M.spec("G2"), r17.theta).s_g
     assert s_g17 > 0.6
-    old = (M.QUAD_G_RULE, M.QUAD_G_REFIT_SG)
     try:
         M.QUAD_G_RULE, M.QUAD_G_REFIT_SG = "17then33", 0.5 * s_g17                    # the fitted s_g EXCEEDS the threshold
         cache = F.FitCache()
@@ -514,7 +522,7 @@ def test_quad_rule_17then33_refits_above_threshold_only():
         # a fit BELOW the threshold is not refitted and keeps 17 nodes throughout
         M.QUAD_G_REFIT_SG = 2.0 * s_g17
         res2 = F.fit_all_models(train, F.FitCache(), "primary", ("G2",))
-        assert res2["G2"].quad == dict(n_tau_nodes=31, n_g_nodes=17, adaptive_g=True)
+        assert res2["G2"].quad == dict(n_tau_nodes=61, n_g_nodes=17, adaptive_g=True)
         assert F.selected_spec("G2", res2["G2"], "primary").n_g_nodes == 17
         assert F.quad_rule_record([res2["G2"]])["per_model"] == {"G2": dict(fits=1, refitted=0)}
         # an unknown rule is refused
@@ -601,7 +609,12 @@ def test_polish_accepts_a_stationary_unaccepted_end_point_and_flags_a_lost_one()
         F._run_lbfgsb = _crafted_lbfgsb(rule_c)
         r = F.em_fit(sp, ds, starts=[("main", XFAR)], info=info, em=False, warm=[("twin", XSTAR - 3.0, ds.wh)])
         assert r.available and abs(r.loglik + 2.0 * n_eff) < 1e-9 and r.numerical_failure
-        assert r.polish["unaccepted_loglik"] == -1.0 * n_eff and r.polish["calls"] == 1
+        # the deterministic rescue (policy (a)) ran its two rounds from the lost end point, each with its own polish, and
+        # did not resolve it: the result leaves em_fit flagged, and finalize_failure would make it UNAVAILABLE
+        assert r.polish["unaccepted_loglik"] == -1.0 * n_eff and r.polish["calls"] == 1 + F.RESCUE_ROUNDS
+        assert r.rescue["rounds"] == F.RESCUE_ROUNDS and not r.rescue["resolved"] and r.rescue["lost_loglik"] == -1.0 * n_eff
+        assert r.rescue["standing_loglik_before"] == -2.0 * n_eff and r.rescue["lost_status"] == "NOT_CONVERGED"
+        assert [s.label for s in r.starts if s.label.startswith("rescue")] == ["rescue1", "rescue1|polish", "rescue2", "rescue2|polish"]
         assert any("twin UNAVAILABLE" in n for n in r.notes) and any("numerical failure" in n for n in r.notes)
         # the flag reaches the selected model
         s = F.select("G1", r, _stub("G1+", loglik=-3.0 * n_eff, theta=np.zeros(M.spec("G1+").n_params)), M.spec("G1+"))
@@ -628,9 +641,11 @@ def test_two_pass_second_pass_reapplies_rescues_and_keeps_nesting():
     records; l(B) >= l(G) holds afterwards for every pair at the same quadrature, the pairs carry the second-pass note, and
     a re-seeded or nested result keeps the refit provenance so the rule record still counts it."""
     train, test = _scaled_fold()
-    r17 = F.fit_all_models(train, F.FitCache(), "primary", ("G2",))["G2"]
-    s_g17 = M.unpack(M.spec("G2"), r17.theta).s_g
     old = (M.QUAD_G_RULE, M.QUAD_G_REFIT_SG)
+    M.QUAD_G_RULE = "17"
+    r17 = F.fit_all_models(train, F.FitCache(), "primary", ("G2",))["G2"]
+    M.QUAD_G_RULE = old[0]
+    s_g17 = M.unpack(M.spec("G2"), r17.theta).s_g
     try:
         M.QUAD_G_RULE, M.QUAD_G_REFIT_SG = "17then33", 0.5 * s_g17
         res = F.fit_all_models(train, F.FitCache(), "primary", ("G3", "B3"))
@@ -668,6 +683,135 @@ def test_quad_rule_record_in_decision_task_shape():
     rec = F.quad_rule_record([a, b, None])
     assert rec["per_model"] == {"G2": dict(fits=1, refitted=1), "G3+": dict(fits=1, refitted=0)} and rec["default_nodes"] == 17
     assert "quad_rule" in s2.decision_task.__code__.co_names or "quad_rule_record" in s2.decision_task.__code__.co_names
+
+
+def test_rescue_resolves_a_lost_end_point_deterministically():
+    """Policy (a) (25 Oct 2026): em_fit's main chain converges at a WORSE objective (f = 2) than a stationary end point of a
+    warm chain (f = 1) that neither the chain's start nor its polish could accept. The rescue restarts from that end point
+    under its own whitening through fit_model — the standard options and the unchanged acceptance rule — and here the
+    restart is accepted, so it becomes the selection: AVAILABLE at the better objective, the failure RESOLVED, the rounds
+    and the before/after log-likelihoods recorded, the rescue start archived. A second identical call gives the identical
+    result (no new randomness)."""
+    ds = _ds()
+    sp = M.spec("G0")
+    info = F.start_info(sp, ds)
+    XSTAR = F.start_vectors(sp, info)[0][1]
+    XFAR = XSTAR + 3.0
+    n_eff = M.Objective(sp, ds).n_eff
+    orig = F._run_lbfgsb
+    calls = {"near": 0}
+
+    def rule(x0):
+        if np.linalg.norm(x0 - XFAR) < 1.0:
+            return XFAR, 2.0, 10, [2.0] * 11, 0.0                     # the main chain: CONVERGED at f = 2
+        if np.linalg.norm(x0 - XSTAR) < 1.0:
+            calls["near"] += 1
+            if calls["near"] > 3:                                        # the polish's three attempts fail, the rescue's do not
+                return XSTAR, 1.0, 10, [1.0] * 11, 0.0
+        return XSTAR, 1.0, 10, MOVING, 0.0                               # stationary at f = 1, refused on (ii)
+
+    try:
+        F._run_lbfgsb = _crafted_lbfgsb(rule)
+        out = []
+        for _ in range(2):
+            calls["near"] = 0
+            r = F.em_fit(sp, ds, starts=[("main", XFAR)], info=info, em=False, warm=[("twin", XSTAR - 3.0, ds.wh)])
+            out.append(r)
+            assert r.available and abs(r.loglik + 1.0 * n_eff) < 1e-9 and not r.numerical_failure
+            assert r.rescue["rounds"] == 1 and r.rescue["resolved"] and r.rescue["kind"] == "lost_end_point"
+            assert r.rescue["standing_loglik_before"] == -2.0 * n_eff and r.rescue["lost_loglik"] == -1.0 * n_eff
+            assert r.rescue["loglik_after"] == -1.0 * n_eff and r.rescue["attempts"][0]["status"] == "AVAILABLE"
+            assert any(s.label == "rescue1" and s.status == "CONVERGED" for s in r.starts)
+            assert any("RESOLVED after 1 rescue round" in n for n in r.notes)
+            assert F.finalize_failure(r) is r and F.usable(r)
+        assert out[0].loglik == out[1].loglik and np.array_equal(out[0].theta, out[1].theta)
+        back = F.FitResult.from_json(json.loads(json.dumps(out[0].to_json())))
+        assert back.rescue["resolved"] and back.unavailable_reason == ""
+    finally:
+        F._run_lbfgsb = orig
+
+
+def test_unresolved_numerical_failure_is_unavailable_at_every_boundary():
+    """Codex S3 re-review finding 7, executed counterexample 1: an AVAILABLE G0 with numerical_failure=True must never reach
+    a record or a score as a clean AVAILABLE. Policy (b): finalize_failure makes it UNAVAILABLE (reason numerical_failure)
+    keeping the standing and lost log-likelihoods; the task summary shows UNAVAILABLE with the flag; score_heldout refuses
+    it; select treats it like any other UNAVAILABLE candidate (the other candidate, flagged by name, no failure carried);
+    a fit already UNAVAILABLE keeps its own reason ("no CONVERGED start") unless it is flagged."""
+    import s4
+    ds = _ds()
+    sp = M.spec("G0")
+    th = F.start_vectors(sp, F.start_info(sp, ds))[0][1]
+    bad = F.FitResult("G0", ds.ident, "AVAILABLE", th, -100.0, [], 4, 1.0, "h", [], [], [], numerical_failure=True,
+                      polish=dict(calls=1, accepted=0, seconds=0.0, unaccepted_loglik=-90.0),
+                      rescue=dict(kind="lost_end_point", rounds=2, resolved=False, lost_loglik=-90.0, lost_status="NOT_CONVERGED"))
+    assert bad.available and not F.usable(bad)
+    fin = F.finalize_failure(bad)
+    assert fin is not bad and not fin.available and fin.unavailable_reason == "numerical_failure" and fin.theta is None
+    assert fin.rescue["standing_loglik"] == -100.0 and fin.rescue["lost_loglik"] == -90.0 and fin.rescue["lost_status"] == "NOT_CONVERGED"
+    assert F.finalize_failure(fin) is fin and bad.available                      # idempotent; the input is not mutated
+    summ = s4._fit_summary(bad, sp)                                              # the review's executed counterexample
+    assert summ["status"] == "UNAVAILABLE" and summ["numerical_failure"] and summ["unavailable_reason"] == "numerical_failure"
+    assert "s_tau_ms" not in summ and summ["rescue"]["standing_loglik"] == -100.0
+    try:
+        F.score_heldout(sp, bad, ds)
+        assert False, "score_heldout must refuse a fit with a standing numerical failure"
+    except ValueError:
+        pass
+    sp1 = M.spec("G1+")
+    th1 = np.zeros(sp1.n_params); th1[sp1.layout()["index"]["theta_tau"]] = 0.3
+    s = F.select("G1", fin, _stub("G1+", loglik=-105.0, theta=th1), sp1)
+    assert s.available and s.selection == "POSITIVE" and not s.numerical_failure
+    assert "reduced_numerical_failure" in s.flags and "reduced_unavailable" in s.flags
+    s = F.select("G1", bad, _stub("G1+", loglik=-105.0, theta=th1), sp1)       # an AVAILABLE flagged candidate taints
+    assert s.numerical_failure and not F.usable(s)
+    plain = _stub("G0", available=False)
+    plain.unavailable_reason = "no_converged_start"
+    assert F.finalize_failure(plain) is plain
+
+
+def _stub_fit(name, ds, loglik, wh=True):
+    sp = M.spec(name)
+    th = F.start_vectors(sp, F.start_info(sp, ds))[0][1]
+    return F.FitResult(name, ds.ident, "AVAILABLE", th, loglik, [], 4, 1.0, M.code_hash(), [], [], [],
+                       wh=(ds.wh if wh else None), quad=F._quad_of(sp))
+
+
+def test_final_nesting_guard_catches_the_review_counterexample():
+    """Codex S3 re-review finding 7, executed counterexample 2: under rule 17, a stub cache with G2 = -100 and B2 = -101 nat,
+    both AVAILABLE and unflagged, used to come back from fit_all_models(..., ('G2', 'B2')) unchanged and unflagged. The final
+    nesting guard (policy (c)) runs on every call: the matched-quadrature deficit first gets the nest rescue (a B chain from
+    G's point) and, when that cannot help (here G carries no Σ, so there is no chain), B2 is recorded as a NESTING FAILURE
+    — counted by nesting_failures, never silently passed and not an availability change. When the nest chain does reach
+    l(B) >= l(G) the pair is rescued and recorded clean."""
+    ds = _ds()
+    old_rule, orig = M.QUAD_G_RULE, F.em_fit
+    try:
+        M.QUAD_G_RULE = "17"
+        cache = F.FitCache()
+        cache.put(cache.key(ds, M.spec("G2")), _stub_fit("G2", ds, -100.0, wh=False))
+        cache.put(cache.key(ds, M.spec("B2")), _stub_fit("B2", ds, -101.0, wh=False))
+        res = F.fit_all_models(ds, cache, "primary", ("G2", "B2"))
+        g2, b2 = res["G2"], res["B2"]
+        assert g2.available and b2.available and g2.loglik == -100.0 and b2.loglik == -101.0
+        assert b2.nesting["failure"] and b2.nesting["vs"] == "G2" and abs(b2.nesting["deficit"] + 1.0) < 1e-12
+        assert b2.nesting["same_quad"] and not b2.nesting["rescued"] and any("NESTING FAILURE" in n for n in b2.notes)
+        assert F.nesting_failures(res) == ["B2<G2"]
+        # the rescue: G carries Σ, the nest chain (em_fit, stubbed) returns B2 above G2
+        def stub_em(sp, ds_, starts=None, info=None, options=None, em=True, max_iter=0, tol=0.0, warm=None):
+            assert sp.name == "B2" and warm and warm[0][0].endswith("|chain")
+            r = _stub_fit("B2", ds_, -99.5)
+            r.starts = [F.StartResult(warm[0][0], "CONVERGED", r.theta, 99.5, 0.0, 10, 11, 0.0, [])]
+            return r
+        F.em_fit = stub_em
+        cache = F.FitCache()
+        cache.put(cache.key(ds, M.spec("G2")), _stub_fit("G2", ds, -100.0))
+        cache.put(cache.key(ds, M.spec("B2")), _stub_fit("B2", ds, -101.0))
+        res = F.fit_all_models(ds, cache, "primary", ("G2", "B2"))
+        b2 = res["B2"]
+        assert b2.loglik == -99.5 and not b2.nesting["failure"] and b2.nesting["rescued"]
+        assert abs(b2.nesting["deficit_before_rescue"] + 1.0) < 1e-12 and F.nesting_failures(res) == []
+    finally:
+        M.QUAD_G_RULE, F.em_fit = old_rule, orig
 
 
 if __name__ == "__main__":

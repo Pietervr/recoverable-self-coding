@@ -86,6 +86,29 @@ NEST_TOL_REL = 1e-6                            # the nesting l(B) >= l(G) is che
 # the worse candidate that stands. The UNAVAILABLE semantics are unchanged. Found on the AWS 31-node reference of W2 set 0
 # (m15 fold 3): the B3+ chain warm-started from the G3+ optimum reached -10944.0075 nat with pg 9.5e-8 after 12 iterations,
 # was retained NOT_CONVERGED, never entered the EM loop, and the main chain 11.5 nat worse was selected (B3 then REDUCED).
+#
+# The NUMERICAL-FAILURE POLICY (25 Oct 2026, the session's decision on Codex S3 re-review finding 7; DESIGN §5):
+#  (a) DETERMINISTIC RESCUE (em_fit): a fit that ends with numerical_failure — a stationary end point the acceptance rule
+#      could not accept stands above the selected log-likelihood, or nothing was selected while one exists — is restarted
+#      from that better end point (its θ, under the whitening (μ0, Σ) it was reached on, then the EM loop where EM
+#      applies), through fit_model with the STANDARD options and the UNCHANGED acceptance rule, for at most RESCUE_ROUNDS
+#      rounds. Seeds are the usual label hashes: no new randomness. An accepted rescue that beats the selected fit becomes
+#      the selection and the failure is RESOLVED; `FitResult.rescue` records the rounds and the before/after values.
+#  (b) An UNRESOLVED failure makes the fit UNAVAILABLE with unavailable_reason "numerical_failure" (finalize_failure, applied
+#      at every exit of the fitter: fit_all_models, profile_evaluator, the task records), so every availability
+#      denominator and gate counts it like any other UNAVAILABLE fit; its diagnostics (the standing and the lost
+#      log-likelihoods, the lost end point's status) stay in `rescue`. No AVAILABLE result leaves the fitter flagged.
+#  (c) The FINAL NESTING GUARD (fit_all_models, every call, whether or not the two-pass rule fired): every G/B candidate
+#      pair and every selected G/B pair at the same quadrature with l(B) − l(G) < −NEST_TOL_REL·max(1, |l(G)|) first gets
+#      the existing nest rescue (one B chain from G's point under G's Σ); a deficit that persists is recorded on B as
+#      `nesting` with failure True — counted by every task record, never silently passed (and never an availability
+#      change: a persistent deficit is a recorded nesting failure, not a numerical failure).
+RESCUE_ROUNDS = 2
+# Profiles (§5; 25 Oct 2026, Codex S3 re-review finding 8): the S2 validation of the two-start exception FAILED (G 425/1200,
+# B 326/1200 grid points), so every production constrained fit uses FOUR starts. profile_evaluator and constrained_starts
+# default to this constant and s4.rec_task / s5.full_task pass it explicitly; two-start calls remain only in the S2
+# validation and benchmark code, which pass n_starts=2 themselves.
+PROFILE_STARTS = 4
 
 
 def _seed(*parts) -> int:
@@ -415,6 +438,15 @@ class FitResult:
     #                                                   the selected log-likelihood, or a required rescue chain failed
     #                                                   (25 Oct 2026; the set record carries it)
     polish: dict = field(default_factory=dict)        # calls, accepted, seconds, unaccepted_loglik (see _polish_record)
+    unavailable_reason: str = ""                      # "" when AVAILABLE; "no_converged_start", "numerical_failure",
+    #                                                   "both_candidates_unavailable" (25 Oct 2026)
+    rescue: dict = field(default_factory=dict)        # the deterministic rescue of policy (a): rounds, the standing and
+    #                                                   the lost log-likelihoods, the lost end point's status, resolved
+    nesting: dict = field(default_factory=dict)       # B results: the final nesting guard's reading against the G twin
+    #                                                   (deficit, tolerance, same quadrature, rescued, failure)
+    lost: object = field(default=None, repr=False, compare=False)   # the best stationary end point no rule accepted, as
+    #                                                   dict(theta, wh, loglik, status, label) — in memory only (the
+    #                                                   rescue runs in the process that found it); never serialised
 
     @property
     def available(self) -> bool:
@@ -427,6 +459,7 @@ class FitResult:
                  code_hash=self.code_hash, bounds_hit=self.bounds_hit, clipped=self.clipped, notes=self.notes,
                  selection=self.selection, flags=self.flags, candidates=self.candidates, quad=self.quad,
                  numerical_failure=bool(self.numerical_failure), polish=dict(self.polish),
+                 unavailable_reason=self.unavailable_reason, rescue=_jsonable(self.rescue), nesting=_jsonable(self.nesting),
                  em_iterations=self.em_iterations, em_trace=[float(v) for v in self.em_trace],
                  sigma_logdet=None if self.wh is None else float(self.wh.logdet),
                  wh=None if self.wh is None else dict(mu0=[float(v) for v in self.wh.mu0],
@@ -454,7 +487,24 @@ class FitResult:
                          d["loglik"], starts, d["n_converged"], d["seconds"], d["code_hash"], d["bounds_hit"],
                          d["clipped"], d["notes"], d.get("selection", ""), d.get("flags", []), d.get("candidates", {}),
                          wh, d.get("em_iterations", 0), d.get("em_trace", []), d.get("quad"),
-                         bool(d.get("numerical_failure", False)), dict(d.get("polish") or {}))
+                         bool(d.get("numerical_failure", False)), dict(d.get("polish") or {}),
+                         d.get("unavailable_reason", "" if d["status"] == "AVAILABLE" else "no_converged_start"),
+                         dict(d.get("rescue") or {}), dict(d.get("nesting") or {}))
+
+
+def _jsonable(v):
+    """Plain JSON values (floats, lists, dicts) from a diagnostics dict that may hold numpy scalars or infinities."""
+    if isinstance(v, dict):
+        return {str(k): _jsonable(x) for k, x in v.items()}
+    if isinstance(v, (list, tuple)):
+        return [_jsonable(x) for x in v]
+    if isinstance(v, (np.floating, float)):
+        return float(v)
+    if isinstance(v, (np.integer,)):
+        return int(v)
+    if isinstance(v, np.bool_):
+        return bool(v)
+    return v
 
 
 def _quad_of(sp: M.ModelSpec) -> dict:
@@ -515,6 +565,10 @@ def fit_model(sp: M.ModelSpec, ds: D.Dataset, starts: list | None = None, info: 
     conv = [r for r in results if r.status == "CONVERGED"]
     lost = [r for r in results if stationary_unaccepted(r)]
     pol["unaccepted_loglik"] = max(-r.f for r in lost) if lost else None
+    best_lost = None
+    if lost:
+        bl = min(lost, key=lambda r: (r.f, r.label))
+        best_lost = dict(theta=np.asarray(bl.x, dtype=np.float64), wh=ds.wh, loglik=-float(bl.f), status=bl.status, label=bl.label)
     if conv:
         best = min(conv, key=lambda r: (r.f, r.label))
         P = M.unpack(sp, best.x)
@@ -525,14 +579,14 @@ def fit_model(sp: M.ModelSpec, ds: D.Dataset, starts: list | None = None, info: 
                          f"accepted; the selected start stands at {-best.f:.3f} nat")
         return FitResult(sp.name, ds.ident, "AVAILABLE", best.x, -best.f, results, len(conv), _time.time() - t0,
                          M.code_hash(), _bounds_hit(sp, best.x), clipped, notes, quad=_quad_of(sp),
-                         numerical_failure=failed, polish=pol)
+                         numerical_failure=failed, polish=pol, lost=best_lost)
     failed = _failure_against(pol["unaccepted_loglik"], -np.inf, False)
     if failed:
         notes.append(f"numerical failure: a stationary end point at {pol['unaccepted_loglik']:.3f} nat could not be "
                      f"accepted and no start is CONVERGED")
     return FitResult(sp.name, ds.ident, "UNAVAILABLE", None, -np.inf, results, 0, _time.time() - t0,
                      M.code_hash(), [], [], notes + ["no CONVERGED start"], quad=_quad_of(sp),
-                     numerical_failure=failed, polish=pol)
+                     numerical_failure=failed, polish=pol, unavailable_reason="no_converged_start", lost=best_lost)
 
 
 # ----------------------------------------------------------------------------------------------
@@ -598,12 +652,19 @@ def select(name: str, reduced: FitResult, positive: FitResult, sp_pos: M.ModelSp
         if at_floor:
             flags.append("positive_at_floor")
     cands = dict(reduced=float(reduced.loglik), positive=float(positive.loglik))
-    # a numerical failure in EITHER candidate is one of the selected model: the REDUCED/POSITIVE comparison may be wrong
-    nf = bool(reduced.numerical_failure or positive.numerical_failure)
+    # a numerical failure in an AVAILABLE candidate is one of the selected model (the REDUCED/POSITIVE comparison may be
+    # wrong); a candidate already made UNAVAILABLE by policy (b) is treated like any other UNAVAILABLE candidate (the
+    # one-candidate rule applies) and named in the flags (25 Oct 2026)
+    nf = bool((reduced.numerical_failure and reduced.available) or (positive.numerical_failure and positive.available))
+    for tag, c in (("reduced", reduced), ("positive", positive)):
+        if not c.available and c.numerical_failure:
+            flags.append(f"{tag}_numerical_failure")
     pol = _sum_polish([reduced.polish, positive.polish])
     if not reduced.available and not positive.available:
         return FitResult(name, reduced.ident, "UNAVAILABLE", None, -np.inf, [], 0, 0.0, M.code_hash(), [], [],
-                         ["both candidates UNAVAILABLE"], "", flags, cands, numerical_failure=nf, polish=pol)
+                         ["both candidates UNAVAILABLE"], "", flags, cands,
+                         numerical_failure=bool(reduced.numerical_failure or positive.numerical_failure), polish=pol,
+                         unavailable_reason="both_candidates_unavailable")
     if positive.available and (not at_floor or not reduced.available) and \
             (not reduced.available or positive.loglik > reduced.loglik):
         src, sel = positive, "POSITIVE"
@@ -615,7 +676,8 @@ def select(name: str, reduced: FitResult, positive: FitResult, sp_pos: M.ModelSp
             flags.append("positive_unavailable")
     return FitResult(name, src.ident, "AVAILABLE", src.theta, src.loglik, src.starts, src.n_converged,
                      reduced.seconds + positive.seconds, M.code_hash(), src.bounds_hit, src.clipped, src.notes,
-                     sel, flags, cands, src.wh, src.em_iterations, src.em_trace, src.quad, nf, pol)
+                     sel, flags, cands, src.wh, src.em_iterations, src.em_trace, src.quad, nf, pol,
+                     rescue=dict(src.rescue or {}))
 
 
 def two_pass_refit(sp: M.ModelSpec, ds: D.Dataset, r: FitResult, cache: FitCache, info: StartInfo | None = None,
@@ -625,10 +687,11 @@ def two_pass_refit(sp: M.ModelSpec, ds: D.Dataset, r: FitResult, cache: FitCache
     is refitted at models.QUAD_G_REFIT_NODES adaptive nodes by ONE EM chain warm-started from its optimum under its own
     Σ — the full start set is not repeated; the inner solve, the acceptance rule and the EM loop are those of em_fit —
     and the refit replaces it everywhere downstream (it carries quad.n_g_nodes = 33, so selected_spec scores its
-    held-out trials at 33 nodes; its archive is the 17-node archive followed by the refit chain). Under "17" (the
-    default: today's behaviour) `r` is returned untouched. Models without a scale term, fits already at 33 or more
-    nodes, the prior-centred rule and UNAVAILABLE fits are never refitted; a refit that ends UNAVAILABLE leaves the
-    17-node result in place with a note. The refit is cached under the 33-node spec with the recipe suffix
+    held-out trials at 33 nodes; its archive is the 17-node archive followed by the refit chain). "17then33" is the
+    default since 25 Oct 2026 (the frozen S4 rule); under an explicit "17" (the S2 check runs) `r` is returned untouched.
+    Models without a scale term, fits already at 33 or more nodes, the prior-centred rule and UNAVAILABLE fits are never
+    refitted; a refit that ends UNAVAILABLE is a numerical failure of the standing 17-node result (the required chain was
+    lost; nothing to restart from), which therefore leaves the fitter UNAVAILABLE by policy (b). The refit is cached under the 33-node spec with the recipe suffix
     "|refit<from>" so that a blanket 33-node fit and a two-pass refit can never answer for each other."""
     if M.QUAD_G_RULE == "17":
         return r
@@ -652,7 +715,7 @@ def two_pass_refit(sp: M.ModelSpec, ds: D.Dataset, r: FitResult, cache: FitCache
         r.notes = list(r.notes) + [f"two-pass refit at {M.QUAD_G_REFIT_NODES} scale nodes (s_g {s_g:.3f} > "
                                    f"{M.QUAD_G_REFIT_SG:g}) ended UNAVAILABLE; the {sp.n_g_nodes}-node result stands "
                                    f"(numerical failure: the required refit chain was lost)"]
-        r.numerical_failure = True
+        _mark_required_chain_lost(r, f"two-pass refit at {M.QUAD_G_REFIT_NODES} scale nodes")
         r.polish = _sum_polish([r.polish, r33.polish])
         return r
     r33.starts = list(r.starts) + list(r33.starts)
@@ -703,9 +766,13 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
     """The eight models of §4 on one dataset: {name: FitResult}, selected models built from their candidates;
     also returns the candidates under their spec names. Reduced fits are cached and never refitted. `quad`
     overrides the node counts / rule (n_tau_nodes, n_g_nodes, adaptive_g) for the §4 node checks. After the whole
-    cross-family procedure the two-pass scale quadrature (two_pass_refit; models.QUAD_G_RULE, default "17" = no second
-    pass) refits the scale-free candidates whose fitted s_g exceeds the threshold, reapplies the cross-family rescues
-    and the nesting check to the pairs touched, and rebuilds the selected models from the refitted candidates.
+    cross-family procedure the two-pass scale quadrature (two_pass_refit; models.QUAD_G_RULE, default "17then33"; an
+    explicit "17" = no second pass) refits the scale-free candidates whose fitted s_g exceeds the threshold, reapplies
+    the cross-family rescues to the pairs touched, and rebuilds the selected models from the refitted candidates. At the
+    exit, on EVERY call (25 Oct 2026, policies (b) and (c)): every result with a standing numerical failure becomes
+    UNAVAILABLE (finalize_failure), every G/B candidate pair and every selected pair at the same quadrature is read by
+    the final nesting guard (one nest rescue for a material deficit; a persistent one is recorded in B's `nesting`), and
+    the selected models are rebuilt from the final candidates.
     `extra_warm` = {candidate name: [(label, θ, Whitening)]} further warm EM chains for the candidates (the §4 node
     recheck warm-started from a coarser grid's endpoints); they run beside the twin chains under the same rules."""
     cache = FitCache() if cache is None else cache
@@ -768,7 +835,7 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
             g_result.notes = list(g_result.notes) + [f"re-seed chain reseed{b_name} from {b_name} ({b_result.loglik:.3f} nat, "
                                                      f"above G {g_result.loglik:.3f}) ended UNAVAILABLE (numerical failure: "
                                                      f"the required rescue chain was lost)"]
-            g_result.numerical_failure = True
+            _mark_required_chain_lost(g_result, f"re-seed from {b_name}")
         return g_result
 
     def nest_b(sp_b, b_result, g_result, info_b, recipe="std"):
@@ -789,7 +856,7 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
         if not r2.available:
             b_result.notes = list(b_result.notes) + [f"nest chain {w[0][0]} from {g_result.model} ({g_result.loglik:.3f} nat) "
                                                      f"ended UNAVAILABLE (numerical failure: the required rescue chain was lost)"]
-            b_result.numerical_failure = True
+            _mark_required_chain_lost(b_result, f"nest from {g_result.model}")
         return b_result
 
     def rescue_pair(gn, bn):
@@ -798,7 +865,9 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
         model at the quadrature its result records: B below G -> one B chain from G's point under G's Σ (nest_b); B
         above G by more than RESEED_MIN_NAT -> G re-seeded from B, then B nested again from the new G. A pair left with
         l(B) < l(G) at the SAME quadrature is a numerical failure of B; at mixed quadratures (one refitted at 33 nodes,
-        the other at 17) the two log-likelihoods are not comparable to NEST_TOL_REL and the deficit is noted only."""
+        the other at 17) the two log-likelihoods are not comparable to NEST_TOL_REL and the deficit is noted only.
+        A deficit left at the same quadrature is no longer marked here: the final nesting guard (policy (c)) reads every
+        pair at the end of fit_all_models and records it as a nesting failure (25 Oct 2026)."""
         g, b = out[gn], out[bn]
         sp_g, sp_b = selected_spec(gn, g, span_name, quad), selected_spec(bn, b, span_name, quad)
         info_g, info_b = info_for(sp_g), info_for(sp_b)
@@ -818,9 +887,7 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
             txt = (f"nesting after the two-pass rescues: l({bn}) {b.loglik:.3f} below l({gn}) {g.loglik:.3f}"
                    + ("" if same_quad else f" (mixed quadrature {(b.quad or {}).get('n_g_nodes')}/{(g.quad or {}).get('n_g_nodes')} "
                                            "scale nodes: not comparable)"))
-            b.notes = list(b.notes) + [txt + (" (numerical failure)" if same_quad else "")]
-            if same_quad:
-                b.numerical_failure = True
+            b.notes = list(b.notes) + [txt + (" (left to the final nesting guard)" if same_quad else "")]
         for r_ in (g, b):
             r_.notes = list(r_.notes) + [f"two-pass second pass: cross-family rescues and nesting check reapplied to ({gn}, {bn})"]
         out[gn], out[bn] = g, b
@@ -891,7 +958,67 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
             red_name, pos_name = M.SELECTED_NAMES[name]
             if changed & {red_name, pos_name} and red_name in out and pos_name in out:
                 out[name] = select(name, out[red_name], out[pos_name], selected_spec(pos_name, out[pos_name], span_name, quad))
+
+    # ---- the exit of the fitter (25 Oct 2026; module constants, policies (b) and (c)) ----
+    def rebuild_selected():
+        for name in [n for n in out if n in M.SELECTED_NAMES]:
+            red_name, pos_name = M.SELECTED_NAMES[name]
+            if red_name in out and pos_name in out:
+                out[name] = select(name, out[red_name], out[pos_name], selected_spec(pos_name, out[pos_name], span_name, quad))
+
+    def reading(g, b):
+        qg, qb = g.quad or {}, b.quad or {}
+        same = (qg.get("n_g_nodes"), qg.get("n_tau_nodes")) == (qb.get("n_g_nodes"), qb.get("n_tau_nodes"))
+        tol = NEST_TOL_REL * max(1.0, abs(g.loglik))
+        d = float(b.loglik - g.loglik)
+        return d, tol, same, bool(same and d < -tol)
+
+    def guard(gn, bn, target):
+        """One G/B pair: a material matched-quadrature deficit gets the nest rescue of `target` (bn itself, or for a selected
+        pair the B candidate of the kind G selected) from G's point under G's Σ; the reading is recorded on out[bn]."""
+        g, b = out[gn], out[bn]
+        if not (g.available and b.available):
+            return
+        d, tol, same, material = reading(g, b)
+        d0, rescued = d, False
+        if material:
+            sp_t = selected_spec(target, out[target], span_name, quad)
+            nb = finalize_failure(nest_b(sp_t, out[target], g, info_for(sp_t), _recipe_of(out[target])))
+            rescued = nb is not out[target] or nb.loglik != out[target].loglik
+            out[target] = nb
+            if target != bn:
+                rebuild_selected()
+            b = out[bn]
+            if b.available:
+                d, tol, same, material = reading(g, b)
+        if not b.available:
+            return
+        b.nesting = dict(vs=gn, deficit=d, deficit_before_rescue=d0, tol=tol, same_quad=same, rescued=bool(rescued),
+                         failure=bool(material), g_loglik=float(g.loglik), b_loglik=float(b.loglik))
+        if material:
+            b.notes = list(b.notes) + [f"NESTING FAILURE (final guard): l({bn}) {b.loglik:.3f} below l({gn}) {g.loglik:.3f} by "
+                                       f"{-d:.3g} nat after the nest rescue (tolerance {tol:.3g})"]
+
+    for name in [n for n in out if n in M.MODEL_NAMES]:
+        out[name] = finalize_failure(out[name])
+    for sfx in ("0", "1+", "2", "3+"):
+        if "G" + sfx in out and "B" + sfx in out:
+            guard("G" + sfx, "B" + sfx, "B" + sfx)
+    rebuild_selected()
+    for sfx in ("1", "3"):
+        gn, bn = "G" + sfx, "B" + sfx
+        if gn in out and bn in out and out[gn].available and out[bn].available:
+            tgt = M.SELECTED_NAMES[bn][0 if out[gn].selection == "REDUCED" else 1]
+            if tgt in out:
+                guard(gn, bn, tgt)
+    for name in list(out):
+        out[name] = finalize_failure(out[name])
     return out
+
+
+def nesting_failures(res: dict) -> list:
+    """The pairs of a fit_all_models dictionary that the final guard left with a material nesting deficit."""
+    return [f"{k}<{(v.nesting or {}).get('vs')}" for k, v in res.items() if v is not None and (v.nesting or {}).get("failure")]
 
 
 def reduced_starts(sp_r: M.ModelSpec, info: StartInfo, g_result: FitResult | None, span_name: str,
@@ -972,7 +1099,7 @@ def _em_loop(sp: M.ModelSpec, ds: D.Dataset, r: FitResult, cur: D.Dataset, info:
         clipped = [] if P.clipped is None else [int(v) for v in P.clipped]
         r = FitResult(sp.name, ds.ident, "AVAILABLE", theta2, ll2, archive, n_conv, seconds, M.code_hash(),
                       _bounds_hit(sp, theta2), clipped, notes, "", [], {}, wh, it, trace, _quad_of(sp),
-                      r.numerical_failure, dict(r.polish))
+                      r.numerical_failure, dict(r.polish), lost=r.lost)
         cur = nxt
         if gain <= tol * max(1.0, abs(r.loglik)):
             break
@@ -1027,18 +1154,125 @@ def em_fit(sp: M.ModelSpec, ds: D.Dataset, starts: list | None = None, info: Sta
     un = best.polish["unaccepted_loglik"]
     flagged_in_chain = any(r.numerical_failure for _, r in chains)
     best.numerical_failure = _failure_against(un, best.loglik, best.available)
+    best.lost = _best_lost([r.lost for _, r in chains])
     if best.numerical_failure and len(chains) > 1:
         best.notes = list(best.notes) + [f"numerical failure: a stationary end point at {un:.3f} nat in one chain could not "
                                          f"be accepted; the selected chain stands at {best.loglik:.3f} nat"]
     elif flagged_in_chain and not best.numerical_failure:
         best.notes = list(best.notes) + [f"the EM steps carried the selected result ({best.loglik:.3f} nat) past the stationary "
                                          f"end point lost in a chain ({un:.3f} nat): no numerical failure stands"]
+    if best.numerical_failure:
+        best = _rescue(sp, ds, best, info, options, em, max_iter, tol)
     return best
+
+
+def _best_lost(eps):
+    eps = [e for e in eps if e is not None]
+    return max(eps, key=lambda e: e["loglik"]) if eps else None
+
+
+def _rescue(sp: M.ModelSpec, ds: D.Dataset, best: FitResult, info: StartInfo | None, options, em: bool, max_iter: int,
+            tol: float) -> FitResult:
+    """Policy (a), the deterministic rescue (25 Oct 2026; see the module constants). `best` ends with a numerical failure:
+    a stationary end point (`best.lost`) above its selected log-likelihood that the acceptance rule refused. Each round
+    restarts from the best such end point seen so far — its θ under the whitening it was reached on — through fit_model
+    with the standard options (the unchanged acceptance rule; the polish included), then the EM loop where EM applies.
+    A rescue that is accepted and beats the standing fit (or there was none) becomes the selection; the failure verdict
+    is retaken against the combined record, and the loop stops when it is resolved or after RESCUE_ROUNDS rounds. Every
+    rescue start is archived. Seeds are the label hashes of run_start: deterministic, no new randomness."""
+    ep = best.lost
+    rec = dict(kind="lost_end_point", rounds=0, standing_loglik_before=(float(best.loglik) if best.available else None),
+               standing_status_before=best.status, lost_loglik=(None if ep is None else float(ep["loglik"])),
+               lost_status=(None if ep is None else ep["status"]), lost_label=(None if ep is None else ep["label"]),
+               attempts=[], resolved=False)
+    cur_best = best
+    while cur_best.numerical_failure and ep is not None and rec["rounds"] < RESCUE_ROUNDS:
+        rec["rounds"] += 1
+        label = f"rescue{rec['rounds']}"
+        cur = D.rewhiten(ds, ep["wh"], f"/{label}")
+        rr = fit_model(sp, cur, [(label, np.asarray(ep["theta"], dtype=np.float64))], info, options)
+        rr.wh, rr.em_iterations, rr.em_trace = ep["wh"], 0, [float(rr.loglik)]
+        if em and rr.available:
+            rr = _em_loop(sp, ds, rr, cur, info, options, max_iter, tol, tag=label)
+        rec["attempts"].append(dict(round=rec["rounds"], start_loglik=float(ep["loglik"]), status=rr.status,
+                                    loglik=(float(rr.loglik) if rr.available else None), em_iterations=int(rr.em_iterations)))
+        pol = _sum_polish([cur_best.polish, rr.polish])
+        lost = _best_lost([cur_best.lost, rr.lost])
+        if rr.available and (not cur_best.available or rr.loglik > cur_best.loglik):
+            rr.starts = list(cur_best.starts) + list(rr.starts)
+            rr.notes = list(cur_best.notes) + list(rr.notes) + [
+                f"rescue round {rec['rounds']}: restarted from the lost end point ({ep['loglik']:.3f} nat, {ep['status']}); "
+                f"accepted at {rr.loglik:.3f} nat and selected"]
+            rr.seconds = float(cur_best.seconds) + float(rr.seconds)
+            new = rr
+        else:
+            new = cur_best
+            new.starts = list(new.starts) + list(rr.starts)
+            new.seconds = float(new.seconds) + float(rr.seconds)
+            new.notes = list(new.notes) + [f"rescue round {rec['rounds']}: restart from the lost end point ({ep['loglik']:.3f} nat) "
+                                           f"ended {rr.status}" + (f" at {rr.loglik:.3f} nat, not above the standing fit"
+                                                                   if rr.available else "")]
+        new.polish = pol
+        new.lost = lost
+        new.numerical_failure = _failure_against(pol["unaccepted_loglik"], new.loglik, new.available)
+        cur_best = new
+        ep = lost
+    rec["resolved"] = not cur_best.numerical_failure
+    rec["loglik_after"] = float(cur_best.loglik) if cur_best.available else None
+    cur_best.rescue = rec
+    cur_best.notes = list(cur_best.notes) + [
+        f"numerical failure {'RESOLVED' if rec['resolved'] else 'UNRESOLVED'} after {rec['rounds']} rescue round(s): standing "
+        f"{rec['standing_loglik_before']} -> {rec['loglik_after']} nat (lost end point {rec['lost_loglik']})"]
+    return cur_best
+
+
+def _mark_required_chain_lost(r: FitResult, what: str) -> FitResult:
+    """A rescue chain that a rule REQUIRED (two-pass refit, G re-seed, B nest) ended UNAVAILABLE: a numerical failure of the
+    standing result with no end point to restart from — unresolved by construction (policy (b) then applies)."""
+    r.numerical_failure = True
+    if not r.rescue:
+        r.rescue = dict(kind="required_chain_lost", chain=what, rounds=0, resolved=False,
+                        standing_loglik_before=(float(r.loglik) if r.available else None))
+    return r
+
+
+def finalize_failure(r: FitResult | None) -> FitResult | None:
+    """Policy (b): a result whose numerical failure stands after the rescue leaves the fitter UNAVAILABLE with reason
+    "numerical_failure" (a copy; the diagnostics — the standing log-likelihood, the lost end point's log-likelihood and
+    status — stay in `rescue`). Idempotent; results without a standing failure are returned unchanged (the same object)."""
+    if r is None or not r.numerical_failure:
+        return r
+    if r.available:
+        res = dict(r.rescue or {}, standing_loglik=float(r.loglik), standing_status="AVAILABLE")
+        res.setdefault("kind", "lost_end_point")
+        res.setdefault("resolved", False)
+        return replace(r, status="UNAVAILABLE", theta=None, loglik=-np.inf, unavailable_reason="numerical_failure",
+                       rescue=res, notes=list(r.notes) + [
+                           f"UNAVAILABLE (numerical_failure, policy (b)): the standing fit at {r.loglik:.3f} nat is not used"])
+    if r.unavailable_reason in ("", "no_converged_start"):
+        return replace(r, unavailable_reason="numerical_failure")
+    return r
+
+
+def usable(r: FitResult | None) -> bool:
+    """The only test a downstream reader may apply: AVAILABLE and no standing numerical failure."""
+    return bool(r is not None and r.available and not r.numerical_failure)
+
+
+def finalized(res: dict) -> dict:
+    """finalize_failure over a fit_all_models dictionary (a boundary guard for records built from it). Selected models
+    whose candidates were finalized are rebuilt only by fit_all_models itself; here a flagged selected result is made
+    UNAVAILABLE like any other."""
+    return {k: finalize_failure(v) for k, v in res.items()}
 
 
 def score_heldout(sp: M.ModelSpec, r: FitResult, test: D.Dataset) -> np.ndarray:
     """Per-trial log density of the test trials under the fitted model — whitened with the MODEL's own (μ0, Σ)
-    when the fit carries one (EM), else with the test dataset's whitening (the training fold's starting Σ)."""
+    when the fit carries one (EM), else with the test dataset's whitening (the training fold's starting Σ). A fit that
+    is not usable (UNAVAILABLE, or a standing numerical failure: policy (b)) is refused — no score may silently come
+    from it (25 Oct 2026)."""
+    if not usable(r):
+        raise ValueError(f"score_heldout: {r.model} is not usable (status {r.status}, numerical_failure {r.numerical_failure})")
     ds = test if (r.wh is None or r.wh is test.wh) else D.rewhiten(test, r.wh, "/model")
     return M.Objective(sp, ds).trial_loglik(r.theta)
 
@@ -1094,7 +1328,7 @@ def cv_scores(p: D.Participant, span_name: str = "primary", cache: FitCache | No
         fits.append({k: v.to_json() for k, v in res.items()})
         for m in models:
             r = res[m]
-            if not r.available:
+            if not usable(r):
                 avail[m] = False
                 sums[m].append(np.nan)
                 continue
@@ -1203,9 +1437,10 @@ def collapsed_start(sp_b: M.ModelSpec, g_result: FitResult, sp_g: M.ModelSpec, i
 
 
 def constrained_starts(sp_full: M.ModelSpec, sp_c: M.ModelSpec, unrestricted: FitResult, sp_u: M.ModelSpec,
-                       info: StartInfo, n_starts: int = 2) -> list:
-    """TWO starts per constrained fit (§5): the warm start and the T_B start with the nearest nuisance start;
-    `n_starts` = 4 adds the remaining §5 recipes (the S2 validation of the two-start exception)."""
+                       info: StartInfo, n_starts: int = PROFILE_STARTS) -> list:
+    """The constrained fit's starts (§5): the warm start and the T_B start with the nearest nuisance start, and with
+    `n_starts` = 4 (PROFILE_STARTS, the production rule since 25 Oct 2026) the remaining §5 recipes; `n_starts` = 2 is
+    the two-start exception, kept for the S2 validation that rejected it."""
     warm = lift_warm_start(sp_u, unrestricted.theta, sp_c, info)
     recipes = [r for r in nuisance_recipes(sp_full) if r.template == "B"]
     s = sp_c.tau_fixed_ms
@@ -1223,14 +1458,24 @@ def constrained_starts(sp_full: M.ModelSpec, sp_c: M.ModelSpec, unrestricted: Fi
 
 
 def profile_evaluator(family: str, ds: D.Dataset, unrestricted: FitResult, span_name: str, cache: FitCache,
-                      info: StartInfo | None = None, n_starts: int = 2):
+                      info: StartInfo | None = None, n_starts: int = PROFILE_STARTS, quad: dict | None = None):
     """Callable s ↦ (ℓ_prof(s) or None if UNAVAILABLE, FitResult) for decide.hull_search. The s = 0 point is the
     cached reduced fit (G2/B2). Every constrained fit goes through the two-pass scale quadrature as well
-    (two_pass_refit; a no-op under the default rule), so that under "17then33" the profile's constrained fits obey the
-    same rule as the unrestricted fit they are compared with — the s = 0 point then resolves to the same refitted
-    reduced fit that fit_all_models produced."""
-    sp_full = M.spec(family + "3+", span_name)
-    sp_u = selected_spec(family + "3", unrestricted, span_name)
+    (two_pass_refit), so that under "17then33" (the default) the profile's constrained fits obey the same rule as the
+    unrestricted fit they are compared with — the s = 0 point then resolves to the same refitted reduced fit that
+    fit_all_models produced. The constrained spec's latency nodes and scale rule are the UNRESTRICTED fit's own (its
+    recorded quadrature: n_tau_nodes, adaptive_g, and the pre-refit scale node count), else `quad`, else the module
+    defaults — never a separately bound default (Codex S3 re-review finding 6). Production uses PROFILE_STARTS = 4
+    starts. Every point leaves through finalize_failure (policy (b))."""
+    q = {} if quad is None else dict(quad)
+    uq = getattr(unrestricted, "quad", None) or {}
+    for k in ("n_tau_nodes", "adaptive_g"):
+        if k in uq:
+            q[k] = uq[k]
+    if "n_g_nodes" in uq:
+        q["n_g_nodes"] = int(uq.get("refit_from") or uq["n_g_nodes"])
+    sp_full = M.spec(family + "3+", span_name, **q)
+    sp_u = selected_spec(family + "3", unrestricted, span_name, q)
     info = start_info(sp_full, ds) if info is None else info
     log = {}
 
@@ -1242,8 +1487,9 @@ def profile_evaluator(family: str, ds: D.Dataset, unrestricted: FitResult, span_
             starts = constrained_starts(sp_full, sp_c, unrestricted, sp_u, info, n_starts)
             r = cache.fit(sp_c, ds, info, recipe=f"prof{n_starts}", starts=starts)
             r = two_pass_refit(sp_c, ds, r, cache, info, recipe=f"prof{n_starts}")
+        r = finalize_failure(r)
         log[float(s_ms)] = r
-        return (r.loglik if r.available else None), r
+        return (r.loglik if usable(r) else None), r
 
     return evaluate, log
 
@@ -1333,3 +1579,143 @@ def summarize_fit(sp: M.ModelSpec, r: FitResult) -> dict:
     if P.s_tau_ms > 0:
         d.update(realised_sd_ms=M.realised_sd_ms(P.s_tau_ms), truncated_sd_ms=M.truncated_parent_sd_ms(P.s_tau_ms))
     return d
+
+
+# ----------------------------------------------------------------------------------------------
+# the run record (25 Oct 2026, Codex S3 re-review finding 6): the numerical contract a production run executes
+# ----------------------------------------------------------------------------------------------
+RUN_CONFIG_NAME = "run_config.json"
+RUNNER_FILES = ("s2.py", "s4.py", "s5.py")
+
+
+def _cpu_model() -> str | None:
+    try:
+        with open("/proc/cpuinfo") as f:
+            for line in f:
+                if line.lower().startswith("model name"):
+                    return line.split(":", 1)[1].strip()
+    except OSError:
+        return None
+    return None
+
+
+def _sha256_file(path: str) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def runner_hash() -> str:
+    """sha256 over the stage runners (s2.py, s4.py, s5.py) beside this module — the part of the bundle that
+    models.code_hash() (the five fitting modules) does not cover."""
+    h = hashlib.sha256()
+    here = os.path.dirname(os.path.abspath(__file__))
+    for name in RUNNER_FILES:
+        p = os.path.join(here, name)
+        if os.path.exists(p):
+            with open(p, "rb") as f:
+                h.update(f.read())
+    return h.hexdigest()[:12]
+
+
+def run_config(gen_dir: str) -> dict:
+    """The numerical contract of this process: the trial chunk actually in force (models.TRIAL_CHUNK, read from
+    JITTER_TRIAL_CHUNK at import), latency and scale node counts, the scale rule with its threshold and refit nodes, the
+    profile starts, the rescue rounds and nesting tolerance, the software versions (numpy, scipy, jax, jaxlib, joblib,
+    pandas, python), the machine and CPU model
+    (/proc/cpuinfo where present), the fitter's code hash and the sha256 of every generator asset in `gen_dir`. The
+    `fingerprint` (config_fingerprint) covers exactly these keys; `runner_hash`, `host`, `utc` and the raw environment
+    value are recorded beside it and are not part of it."""
+    import platform
+    import scipy
+    import jax
+    import jaxlib
+    gens = {}
+    if gen_dir and os.path.isdir(gen_dir):
+        for fn in sorted(os.listdir(gen_dir)):
+            p = os.path.join(gen_dir, fn)
+            if fn.startswith(".") or ".tmp" in fn or not os.path.isfile(p):
+                continue
+            gens[fn] = _sha256_file(p)
+    versions = dict(numpy=np.__version__, scipy=scipy.__version__, jax=jax.__version__, jaxlib=jaxlib.__version__,
+                    python=platform.python_version())
+    for mod in ("joblib", "pandas"):
+        try:
+            versions[mod] = __import__(mod).__version__
+        except ImportError:
+            versions[mod] = None
+    return dict(trial_chunk=int(M.TRIAL_CHUNK), n_tau_nodes=int(M.N_TAU_NODES), n_g_nodes=int(M.N_G_NODES),
+                quad_g_rule=str(M.QUAD_G_RULE), quad_g_refit_sg=float(M.QUAD_G_REFIT_SG),
+                quad_g_refit_nodes=int(M.QUAD_G_REFIT_NODES), profile_starts=int(PROFILE_STARTS),
+                rescue_rounds=int(RESCUE_ROUNDS), nest_tol_rel=float(NEST_TOL_REL),
+                versions=versions, machine=platform.machine(), cpu_model=_cpu_model(), code_hash=M.code_hash(), generators=gens)
+
+
+def config_fingerprint(cfg: dict) -> str:
+    keys = ("trial_chunk", "n_tau_nodes", "n_g_nodes", "quad_g_rule", "quad_g_refit_sg", "quad_g_refit_nodes",
+            "profile_starts", "rescue_rounds", "nest_tol_rel", "versions", "machine", "cpu_model", "code_hash", "generators")
+    blob = json.dumps({k: cfg.get(k) for k in keys}, sort_keys=True)
+    return hashlib.sha256(blob.encode()).hexdigest()[:16]
+
+
+def run_record(gen_dir: str) -> dict:
+    """run_config + its fingerprint + the unfingerprinted context (runner hash, host, utc, the raw environment value)."""
+    import socket
+    cfg = run_config(gen_dir)
+    return dict(cfg, fingerprint=config_fingerprint(cfg), runner_hash=runner_hash(), host=socket.gethostname(),
+                trial_chunk_env=os.environ.get("JITTER_TRIAL_CHUNK"), utc=_time.strftime("%Y%m%dT%H%M%SZ", _time.gmtime()))
+
+
+_FINGERPRINTS = {}
+
+
+def run_fingerprint(gen_dir: str) -> str:
+    """This process's fingerprint (computed once per process and generator directory; every task record carries it)."""
+    if gen_dir not in _FINGERPRINTS:
+        _FINGERPRINTS[gen_dir] = config_fingerprint(run_config(gen_dir))
+    return _FINGERPRINTS[gen_dir]
+
+
+class RunConfigMismatch(SystemExit):
+    """A resumed or dependent run whose numerical contract differs from the recorded one."""
+
+
+def config_differences(a: dict, b: dict) -> list:
+    keys = ("trial_chunk", "n_tau_nodes", "n_g_nodes", "quad_g_rule", "quad_g_refit_sg", "quad_g_refit_nodes",
+            "profile_starts", "rescue_rounds", "nest_tol_rel", "versions", "machine", "cpu_model", "code_hash")
+    out = [f"{k}: recorded {a.get(k)!r}, this process {b.get(k)!r}" for k in keys if a.get(k) != b.get(k)]
+    ga, gb = a.get("generators") or {}, b.get("generators") or {}
+    for fn in sorted(set(ga) | set(gb)):
+        if ga.get(fn) != gb.get(fn):
+            out.append(f"generator asset {fn}: recorded {str(ga.get(fn))[:12]}, this process {str(gb.get(fn))[:12]}")
+    return out
+
+
+def ensure_run_record(directory: str, gen_dir: str, label: str, check_runner: bool = True) -> dict:
+    """At the first start of a run: write <directory>/run_config.json. On a resume: refuse (RunConfigMismatch, a clear
+    message naming every difference) unless this process's fingerprint — and, with `check_runner`, the runner hash —
+    equals the recorded one. Returns the record in force."""
+    path = os.path.join(directory, RUN_CONFIG_NAME)
+    cur = run_record(gen_dir)
+    if os.path.exists(path):
+        with open(path) as f:
+            old = json.load(f)
+        diffs = config_differences(old, cur) if old.get("fingerprint") != cur["fingerprint"] else []
+        if old.get("fingerprint") != cur["fingerprint"] and not diffs:
+            diffs = [f"fingerprint: recorded {old.get('fingerprint')}, this process {cur['fingerprint']}"]
+        if check_runner and old.get("runner_hash") != cur["runner_hash"]:
+            diffs.append(f"runner_hash (s2/s4/s5): recorded {old.get('runner_hash')}, this process {cur['runner_hash']}")
+        if diffs:
+            raise RunConfigMismatch(f"{label} refused: this process does not match the run record {path} "
+                                    f"(written {old.get('utc')} on {old.get('host')}):\n  - " + "\n  - ".join(diffs) +
+                                    "\nResume only with the recorded bundle and environment (e.g. export JITTER_TRIAL_CHUNK=64), "
+                                    "or start a new run in a fresh directory.")
+        return old
+    os.makedirs(directory, exist_ok=True)
+    tmp = path + f".tmp.{os.getpid()}"
+    with open(tmp, "w") as f:
+        json.dump(cur, f, indent=1)
+    os.replace(tmp, path)
+    return cur

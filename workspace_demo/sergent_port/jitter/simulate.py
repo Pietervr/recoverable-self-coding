@@ -88,9 +88,16 @@ def draw_scale(rng: np.random.Generator, n: int, s_g: float) -> np.ndarray:
     return np.exp(rng.normal(-0.5 * s_g ** 2, s_g, size=n))
 
 
+GENERATOR_TAU_NODES = 31     # the latency grid the frozen generator assets (results/generators, §7.1) were fitted on; the
+#                              O5 marginal level mean is the fitted generator's own nodal law, so it stays on that grid
+#                              explicitly when the fitting default moved to 61 nodes (25 Oct 2026) — a generator property,
+#                              not the fitting rule (the W/O/T draws are continuous and use no node grid)
+
+
 def level_means(cfg: GeneratorConfig) -> np.ndarray:
-    """(6, 53) marginal level means μ0 + a(k) E[T̃_τ] under the config's (nodal) latency law."""
-    b = M.basis("whole")
+    """(6, 53) marginal level means μ0 + a(k) E[T̃_τ] under the config's (nodal) latency law, on the grid the generator
+    was fitted on (GENERATOR_TAU_NODES)."""
+    b = M.basis("whole", GENERATOR_TAU_NODES)
     if cfg.s_tau_ms > 0:
         w = M.truncnorm_node_weights(b.nodes_ms, cfg.s_tau_ms)
         ET = np.einsum("n,nw->w", w, np.einsum("nwj,j->nw", b.Bmat, cfg.c_tilde))

@@ -9,7 +9,8 @@ Two-state family z_i ~ Bernoulli(A(k_i)); y | z=0 ~ N(μ0, Σ); y | z=1 ~ N( μ0
   sample-time range ± 150 ms), c_j = softplus(γ_j), the gauge coefficient (visible basis function centred nearest
   450 ms, ties to the earlier) fixed at γ = 0, T̃ = T / m_vis(T) with m_vis = mean of T over the span's windows at
   τ = 0; a window's template value = mean of T̃ over its 16 sample times.
-  τ ~ N(0, s_τ²) truncated to ±150 ms on 31 nodes (10 ms), truncated-normal weights normalised; s_τ ∈ [2, 150] ms in
+  τ ~ N(0, s_τ²) truncated to ±150 ms on 61 nodes (5 ms; 31 nodes / 10 ms until 25 Oct 2026), truncated-normal
+  weights normalised; s_τ ∈ [2, 150] ms in
   POSITIVE-SPREAD models; the exact s_τ = 0 model is REDUCED (one node, shift-only coefficients removed).
   g ~ LogNormal(−s_g²/2, s_g²); s_g ∈ [0, 1.5]. S2 numerical repair (24 Oct 2026): the scale integral uses an
   ADAPTIVE Gauss–Hermite rule in u = log g — per trial and latency node the nodes are centred on the mode of the
@@ -27,7 +28,7 @@ profile fit is the positive-spread vector with s_τ FIXED at a grid value (`spec
 
 Likelihood (§5): Σ is Cholesky-whitened once per fold; u_i = L⁻¹(y_i − μ0), v_τ = L⁻¹ T̃_τ per node;
   log N(y_i | μ0 + g m T̃_τ, Σ) = −½W log 2π − ½ log|Σ| − ½‖u_i‖² + g m (u_i·v_τ) − ½ (g m)² ‖v_τ‖²;
-all trial–template projections are one matrix product U Vᵀ; the (n × 31 × 7) logit tensor is reduced by
+all trial–template projections are one matrix product U Vᵀ; the (n × N_tau × N_g) logit tensor is reduced by
 log-sum-exp over nodes; the two-state low branch is the m = 0 term and the branches combine by log-sum-exp with
 the occupancy weights. No residual tensor over nodes is formed. `dense_trial_loglik` is the direct dense reference
 implementation the tests compare against (1e-10 relative).
@@ -68,8 +69,12 @@ KAPPA_MAX = 50.0              # S2 numerical repair (24 Oct 2026): box κ ≤ 50
 #                               three of four starts stalled on that ridge at a worse objective than the smooth optimum.
 KNOT_SPACING_MS = 60.0
 GAUGE_CENTRE_MS = 450.0
-TAU_NODE_STEP_MS = 10.0
-N_TAU_NODES = 31
+TAU_NODE_STEP_MS = 5.0
+N_TAU_NODES = 61             # the frozen S4 rule (25 Oct 2026, Codex S3 re-review findings 4/6): 61 equally spaced latency
+#                               nodes on ±150 ms. Every default below (ModelSpec, spec, basis, tau_nodes_ms, realised_sd_ms)
+#                               binds THIS value at definition time, so the module constant itself is the frozen setting;
+#                               assigning M.N_TAU_NODES after import changes nothing already defined. The S2 check runs pass
+#                               their node counts explicitly (s2.REPAIR_RUNS).
 N_G_NODES = 17                # adaptive Gauss–Hermite nodes in log g (checked against 33 in S2). Measured envelope
 #                               against a fine trapezoid, worst case per (trial, node): 8e-6 nat for s_g ≤ 0.6 (2e-7 at
 #                               33 nodes), 2e-4 at s_g = 1.0 (6e-6), 7e-3 at the s_g = 1.5 box edge (2e-4; such fits
@@ -78,8 +83,8 @@ N_G_NODES = 17                # adaptive Gauss–Hermite nodes in log g (checked
 N_G_NODES_PRIOR = 7           # the design's prior-centred rule (kept for the node check)
 # The scale-quadrature RULE (declared 25 Oct 2026 for the Codex S3 re-review; implemented in fit.two_pass_refit, applied by
 # fit.fit_all_models and fit.profile_evaluator, so every caller inherits it):
-#   "17"        every scale-free fit at N_G_NODES adaptive nodes (today's behaviour; the default);
-#   "17then33"  every fit runs at 17 nodes as today; afterwards each fitted scale-free model whose fitted s_g EXCEEDS
+#   "17"        every scale-free fit at N_G_NODES adaptive nodes (the S2 behaviour; explicit overrides only);
+#   "17then33"  THE DEFAULT since 25 Oct 2026 (the frozen S4 rule): every fit runs at 17 nodes; afterwards each fitted scale-free model whose fitted s_g EXCEEDS
 #               QUAD_G_REFIT_SG is refitted at QUAD_G_REFIT_NODES nodes by one EM chain warm-started from its 17-node
 #               optimum under its own Σ (the full start set is not repeated), and the refit replaces it everywhere
 #               downstream (selection, held-out scores at 33 nodes, archived starts). The threshold is read off the
@@ -89,7 +94,7 @@ N_G_NODES_PRIOR = 7           # the design's prior-centred rule (kept for the no
 #               S2 two-pass check (s2.py checks --kind twopass) before S3.
 # Both read the environment at import so that loky worker processes see the same rule as the parent (the check sets it;
 # an AWS user-data would export it). FitCache.key carries the rule; every result json records it with the refit counts.
-QUAD_G_RULE = os.environ.get("JITTER_QUAD_G_RULE", "17")
+QUAD_G_RULE = os.environ.get("JITTER_QUAD_G_RULE", "17then33")
 QUAD_G_REFIT_SG = float(os.environ.get("JITTER_QUAD_G_REFIT_SG", "0.6"))
 QUAD_G_REFIT_NODES = 33
 QUAD_G_RULES = ("17", "17then33")
@@ -118,7 +123,7 @@ SELECTED_NAMES = {"G1": ("G0", "G1+"), "G3": ("G2", "G3+"), "B1": ("B0", "B1+"),
 # template basis on a span
 # ----------------------------------------------------------------------------------------------
 def tau_nodes_ms(n_nodes: int = N_TAU_NODES) -> np.ndarray:
-    """Equally spaced latency nodes on ±150 ms (31 → 10 ms); one node = the exact-zero REDUCED model."""
+    """Equally spaced latency nodes on ±150 ms (61 → 5 ms); one node = the exact-zero REDUCED model."""
     if n_nodes == 1:
         return np.zeros(1)
     return np.linspace(-TAU_TRUNC_MS, TAU_TRUNC_MS, n_nodes)
@@ -263,7 +268,7 @@ class ModelSpec:
 
     @property
     def positive(self) -> bool:
-        """Carries the 31 τ nodes and the shift-only coefficients."""
+        """Carries the N_tau τ nodes and the shift-only coefficients."""
         return self.tau_free or self.tau_fixed_ms > 0.0
 
     @property

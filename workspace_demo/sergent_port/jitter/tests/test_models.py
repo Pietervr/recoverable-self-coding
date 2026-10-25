@@ -97,7 +97,7 @@ def test_primary_basis_matches_design():
     assert b.gauge == 7 and abs(b.support_centres_ms[7] - 450.0) < 1e-9
     assert np.allclose(np.diff(b.knots[4:-4]), 60.0)
     assert b.free_indices(True).size == 15 and b.free_indices(False).size == 11
-    assert b.Bmat.shape == (31, 16, 16)
+    assert b.Bmat.shape == (M.N_TAU_NODES, 16, 16) and M.N_TAU_NODES == 61     # the frozen rule (25 Oct 2026)
     # partition of unity, window averaged
     assert np.allclose(b.Bmat.sum(axis=2), 1.0)
     # at zero shift the shift-only functions contribute exactly nothing
@@ -112,7 +112,7 @@ def test_primary_basis_matches_design():
 def test_whole_basis():
     b = M.basis("whole")
     assert b.knots[0] == -450.0 and b.knots[-1] == 1440.0
-    assert b.invisible.size == 4 and b.Bmat.shape == (31, 53, b.n_basis)
+    assert b.invisible.size == 4 and b.Bmat.shape == (61, 53, b.n_basis)
     assert np.allclose(b.Bmat.sum(axis=2), 1.0)
     assert abs(b.support_centres_ms[b.gauge] - 450.0) <= 30.0
 
@@ -130,13 +130,17 @@ def test_window_template_consistent_with_Bmat():
 # ---- quadrature -------------------------------------------------------------------------------
 def test_truncnorm_nodes_and_realised_sd():
     nodes = M.tau_nodes_ms()
-    assert nodes.size == 31 and nodes[0] == -150.0 and np.allclose(np.diff(nodes), 10.0)
+    assert nodes.size == 61 and nodes[0] == -150.0 and np.allclose(np.diff(nodes), 5.0)     # the default: 61 nodes, 5 ms
     w = M.truncnorm_node_weights(nodes, 80.0)
     assert abs(w.sum() - 1.0) < 1e-12
-    assert abs(M.realised_sd_ms(80.0) - 69.3) < 0.1          # design §4: 31-node 69.3 ms
+    assert abs(M.realised_sd_ms(80.0) - 68.73) < 0.01        # 61 nodes: 68.73 ms, nearer the truncated parent
+    assert abs(M.realised_sd_ms(80.0, 31) - 69.3) < 0.1      # design §4: 31-node 69.3 ms
     assert abs(M.truncated_parent_sd_ms(80.0) - 68.1) < 0.1  # design §4: truncated 68.1 ms
-    w2 = M.truncnorm_node_weights(nodes, 2.0)
-    assert w2[15] > 1 - 1e-5                                  # at the 2 ms floor the weights sit on node 0
+    n31 = M.tau_nodes_ms(31)
+    assert n31.size == 31 and np.allclose(np.diff(n31), 10.0)
+    assert M.truncnorm_node_weights(n31, 2.0)[15] > 1 - 1e-5  # at 10 ms spacing the 2 ms floor sits on node 0
+    w2 = M.truncnorm_node_weights(nodes, 2.0)                 # at 5 ms spacing it does not: 0.919 on node 0
+    assert abs(w2[30] - 0.9192) < 1e-3 and np.argmax(w2) == 30
 
 
 def test_gh_lognormal_mean_one():
@@ -231,7 +235,9 @@ def test_reduced_equals_positive_at_vanishing_spread_and_scale():
     """G2 at the same visible parameters equals G3+ with s_τ → floor and s_g equal, up to the node weights at
     2 ms (weight on node 0 is 1 − 1e-6), and the catch anchoring makes level 0 identical."""
     ds = _synthetic_dataset(n_per_level=4, seed=9)
-    red, pos = M.spec("G2"), M.spec("G3+")
+    # a property of the 10 ms (31-node) grid, where the 2 ms floor puts weight 1 − 1e-6 on node 0; at the default 5 ms
+    # spacing the floor keeps 8 % off node 0, so the near-equality is checked on the 31-node spec explicitly
+    red, pos = M.spec("G2", n_tau_nodes=31), M.spec("G3+", n_tau_nodes=31)
     th_r = _theta(red)
     Pr = M.unpack(red, th_r)
     gamma_full = np.where(np.isfinite(M.softplus_inv(Pr.c)), M.softplus_inv(Pr.c), -20.0)
