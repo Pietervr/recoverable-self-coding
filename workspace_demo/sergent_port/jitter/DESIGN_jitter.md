@@ -1,9 +1,10 @@
 # Does the human two-state preference survive trial-level latency and scale variation?
 
-Design, revision 7 — 24 October 2026, session R052 Entropy SI. Status (25 Oct): S2 CLOSED on AWS + Mac repair 25 Oct;
-the Codex S3 re-review (`reviews/2026-10-25_s3_freeze_rereview_codex_review.md`) holds the FREEZE; its code blockers
-are closed at code hash ca6c7e5547d5 (§4, §5, §8), and the final-rule paired checks and the R = 25 development blocks
-under one immutable bundle on c7a.24xlarge are the evidence still owed before S3. Rev 5 (RSC 0ddac98) received FAVOURABLE WITH CONDITIONS
+Design, revision 7 — 24 October 2026, session R052 Entropy SI. Status (25 Oct): **FROZEN (S3)** at RSC 3339521
+(`reviews/2026-10-25_s3_freeze_final_codex_review.md`, FAVOURABLE): JITTER_TRIAL_CHUNK=64, 61 latency nodes, scale rule
+17then33, the amended participant failure rule (§5), four-start profiles, S4 and S5 on c7a.24xlarge (al2023
+2023.12.20261021.0, Python 3.12.14); five-module code hash 531f80ce7cc9. The evidence (S2_REPORT 11) is under bundle
+80c1e97 (code ca6c7e5547d5); the amendment acts at aggregation only and was read on the same records. Rev 5 (RSC 0ddac98) received FAVOURABLE WITH CONDITIONS
 (`reviews/2026-10-24_design_v5_codex_review.md`); rev 6 closed its four conditions and was the specification S1–S2
 implemented. Revs 1–4 (960e93b, 57c1280, 8d6c195, 78e348c) and their reviews are the record of how it got here.
 Rev 7 records what S2 found and changed (`S2_REPORT.md` is the evidence): the rev 6 fitter read 6 of 19 graded (W2)
@@ -322,6 +323,13 @@ in reduced (s_τ = 0) models. No information criterion is added to a cross-valid
   the record. (c) At the end of every fit, each G/B candidate pair (G0/B0, G1+/B1+, G2/B2, G3+/B3+) and selected pair
   (G1/B1, G3/B3) at matched quadrature with l(B) − l(G) < −1e-6·max(1, |l(G)|) receives one nest rescue. A deficit
   that persists is recorded as a nesting failure and counted in every task record; it does not change availability.
+  (d) For S4 calibration and validation and S5 real-data cross-validated score statistics, a participant-dataset carrying
+  any unresolved numerical failure or persistent nesting failure in its required fits is UNAVAILABLE as a whole,
+  contributes no score to any set/group mean, interval, contrast or calibration reference, retains its raw scores and
+  diagnostics in the archive, and counts against the unchanged 16-of-20 roster. (Adopted at the S3 freeze, Codex final
+  review finding 3; `decide.failure_free`, `decide.decision_scores`. Sentence (c) describes the individual fit's status;
+  (d) governs the participant's use in aggregation even when a selected fallback fit is AVAILABLE. Full-data c0
+  calibration and recovery keep their own per-fit/profile availability and attempted-replicate denominators.)
 - Score: every out-of-fold trial's log marginal density summed once over the five folds, divided once by the total
   number of scored trials (block 21 excluded): S_{s,m}, nat per trial. The inherited fold-mean convention
   (`fit_models.py:254`) is reported for continuity only.

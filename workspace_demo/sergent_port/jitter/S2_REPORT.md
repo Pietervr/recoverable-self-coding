@@ -662,12 +662,12 @@ the synthetic datasets are platform-specific, so every S4 draw, S5 fit and compa
 
 ### 11.2 Development blocks at R = 25 (`results/s2/decision_final/`)
 
-All 75 sets complete (20/20 participants available in every set); same data identities as the 24 Oct AWS closure in
+All 75 sets complete (twenty attempted rows in every set; W2 r23 and T1 r7 each have nineteen finite raw primary contrasts); same data identities as the 24 Oct AWS closure in
 every set it completed; code `ca6c7e5547d5` throughout.
 
 | setting | POSITIVE | NEGATIVE | UNRESOLVED | unresolved numerical failures (participant-datasets) | persistent nesting failures | resolved rescues |
 |---|---|---|---|---|---|---|
-| W2 (graded; POSITIVE = false call) | 0 | 18 | 7 | 12 (9) — G3+ 6, G2 5, B3+ 1 | 2 (r7 m9 B3<G3 by 0.17 nat; r12 m11 by 143.1 nat) | 5 |
+| W2 (graded; POSITIVE = false call) | 0 | 18 | 7 | 12 (8; 9 with the nesting exclusions) — G3+ 6, G2 5, B3+ 1 | 2 (r7 m9 B3<G3 by 0.17 nat; r12 m11 by 143.1 nat) | 5 |
 | T1 (two-state; POSITIVE = detection) | 25 | 0 | 0 | 19 (18) — G3+ 16, G2 3 | 0 | 6 |
 | O1 (time-stretch; POSITIVE = false call) | 0 | 19 | 6 | 3 (3) — G3+ 2, B3+ 1 | 1 (r8 m17 by 1.41 nat) | 10 |
 
@@ -688,7 +688,9 @@ failure or persistent nesting failure is UNAVAILABLE for the set statistic (coun
 out of the interval). Dropped: W2 9, T1 18, O1 4 participant-datasets; no set falls below the roster. Readings: W2
 0 / 19 / 6 (r5 and r9 UNRESOLVED -> NEGATIVE, r7 NEGATIVE -> UNRESOLVED); T1 25/25 POSITIVE; O1 0 / 19 / 6 (unchanged).
 Under either rule the development blocks contain no false call and full detection. The amendment removes the
-asymmetric route; it is put to the Codex FREEZE re-review and is not adopted here.
+asymmetric route. **ADOPTED at the S3 freeze** (Codex final review, `reviews/2026-10-25_s3_freeze_final_codex_review.md`
+finding 3; DESIGN 5 (d)): the amended reading W2 0/19/6, T1 25/0/0, O1 0/19/6 is the development reading of record
+under the frozen rule; the raw reading above, its code hash ca6c7e5547d5 and both fingerprints are kept as recorded.
 
 ### 11.3 Platform record
 
