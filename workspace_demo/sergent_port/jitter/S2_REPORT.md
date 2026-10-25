@@ -471,8 +471,8 @@ participant tolerance T = min(8.83e-5, 0.1 × half-width) ≈ 7e-5: A vs B 5.33e
 flips), A vs C 4.98e-4 (m14; eight over), D vs C 4.98e-4, B vs E 3.99e-4 (m14; seven over), D vs A 1.22e-4 (m4; two
 over). A, C, D and E each carry one numerical failure (a re-seed chain from the other family lost after its polish);
 B carries none. No refinement converges at the participant level (rms of the participant differences 1.4-1.8e-4
-between latency rules), while every run's set mean moves by at most 3.8e-5 (set means −0.00147 A, −0.00151 B,
-−0.00153 C, −0.00147 D, −0.00150 E; half-widths 6.8-7.1e-4) and the primary is NEGATIVE in all five. With Codex's
+between latency rules), while the set means stay close (−0.00147 A, −0.00151 B, −0.00153 C, −0.00147 D, −0.00150 E;
+largest pairwise shifts D-C 5.66e-5 and A-C 5.49e-5, A-B 3.77e-5; half-widths 6.8-7.1e-4) and the primary is NEGATIVE in all five. With Codex's
 fixed-parameter finding (contrasts move < 2.7e-5 under 31 → 61 → 121 latency nodes), the reading is that the
 participant-level differences are the fitter's end-point variation, not quadrature error. Under the declared rule
 31 nodes are not retained, 61 are adopted, and the 121 recheck FAILED, so the latency rule goes to the Codex S3
@@ -608,10 +608,10 @@ logs on S3 under `logs/xprobe_*`, `logs/cprobe_*`; spend in `aws/s4_spend.json`)
   FAIL by the repair rule — max |ΔΔ₃| 6.31e-4 (m7) against T 6.74e-5, over T m0 m6 m7 m12; no selection flips; the
   one numerical failure is in the one-block run (m15 f4 B3+); no nesting failure; primary NEGATIVE in both; set-mean
   ΔΔ₃ −1.2e-5; rms of the participant differences 1.58e-4. The two objectives agree to 1e-14 per call, so this is the
-  fitter's own end-point variation under a rounding-level perturbation, and it is the same size as every latency and
-  scale comparison of S2_REPORT 8 (rms 1.4-1.8e-4, set means within 3.8e-5). Per-participant T ≈ 7e-5 is therefore
-  below what the procedure reproduces under any perturbation; the node comparisons of 8 do not separate quadrature
-  error from this floor. Wall: one-block 2,068 s mean, chunked 587 s, on the same host at the same time (3.5×).
+  fitter's end-point sensitivity to summation order, of the same size as the latency and scale comparisons of
+  S2_REPORT 8 (rms 1.4-1.8e-4; set-mean shifts up to 5.7e-5). One rounding perturbation is not an error bound: it shows
+  that a participant maximum from refitted procedures cannot isolate quadrature error here, not that every difference
+  in 8 is optimisation (Codex S3 re-review 25 Oct, finding 3; the amended set-level criterion is DESIGN 4). Wall: one-block 2,068 s mean, chunked 587 s, on the same host at the same time (3.5×).
 - Probe spend: USD 1.17 (three 16-vCPU on-demand probes) + 0.88 (two spot hosts) + 0.90 (the paired-check host);
   closed total USD 166.79.
 

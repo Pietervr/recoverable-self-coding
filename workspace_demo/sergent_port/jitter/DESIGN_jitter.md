@@ -143,15 +143,30 @@ Shared construction, estimated per participant and fold on training trials only:
   filtered response; no second filter. T is fitted separately inside each model with identical basis, support,
   constraints and training-only initialisation; fitted shapes are plotted per participant; a common independently
   estimated template is run as a diagnostic if the contrast depends on them.
-- Trial latency τ_i ~ N(0, s_τ²) truncated to ±150 ms, marginalised on 31 equally spaced nodes (10 ms) with
-  truncated-normal weights normalised to one; s_τ ∈ (0, 150] ms a box parameter in the positive-spread model; the
-  exact s_τ = 0 model is the REDUCED model (one node, shift-only coefficients removed). Parent and realised SD both
-  reported (parent 80 → truncated 68.1 ms, 31-node 69.3 ms). Node check before S3: 31 vs 61 nodes must change every
-  development participant's score contrast by less than one tenth of the contrast's interval half-width, else 61 is
-  adopted and re-checked against 121. Result (25 Oct, same data and code on W2 set 0, S2_REPORT 8): 31 vs 61 FAILED
-  (5.3e-4) and 61 vs 121 FAILED (4.0e-4) at the participant level, while the set mean moved at most 3.8e-5; the rule
-  the S4 manifest uses is set at the Codex S3 re-review. The ±250 ms support is a different latent model, run as a
-  declared sensitivity with its own template support.
+- Trial latency τ_i ~ N(0, s_τ²) truncated to ±150 ms, marginalised on 61 equally spaced nodes (5 ms; rev 7 amendment
+  of 25 Oct, below) with truncated-normal weights normalised to one; s_τ ∈ (0, 150] ms a box parameter in the
+  positive-spread model; the exact s_τ = 0 model is the REDUCED model (one node, shift-only coefficients removed).
+  Parent and realised SD both reported (parent 80 → truncated 68.1 ms). The declared rev 7 node check (31 vs 61 nodes
+  must change every development participant's score contrast by less than one tenth of the contrast's interval
+  half-width, else 61 is adopted and re-checked against 121) FAILED on 25 Oct and stays failed (S2_REPORT 8: 31 vs 61
+  5.3e-4, 61 vs 121 4.0e-4 at the participant level; a same-host rounding-level perturbation alone moved participants
+  by 6.3e-4, S2_REPORT 9). AMENDED CRITERION (development-informed, before validation; Codex S3 re-review 25 Oct,
+  finding 3): Use 61 equally spaced latency nodes on ±150 ms and the exact reduced candidate. Use adaptive scale rule
+  17then33: fit at 17; refit each scale-free candidate with fitted s_g > 0.6 at 33 by the declared warm EM chain,
+  preserving rescues, acceptance and selection. Validate the final combined procedure on all twenty members of
+  development W2 set 0, using identical data, immutable code, runtime pins and host type. Compare it with (i) 121
+  latency nodes under the same scale rule and (ii) blanket 33 scale nodes at 61 latency nodes. For each pair let
+  [L_j, U_j] be its group 95% t interval, h_j = (U_j − L_j)/2, μ_j its mean, and T_set = min(8.8322454e-5,
+  0.1·min(h_1, h_2)) nat/trial. Require identical complete rosters, finite results, no unresolved numerical or
+  material matched-quadrature nesting failure, the same primary sign, and max(|μ_1 − μ_2|, |L_1 − L_2|, |U_1 − U_2|) <
+  T_set. Independently cross-evaluate fixed θ, Σ and μ0 at the final endpoints on the two grids; every participant
+  contrast change must be < T_set. Archive endpoints, both family scores, selections, failures and all comparison
+  values. Refitted participant differences remain reported diagnostics, not a separate maximum-error acceptance gate.
+  A failed check remains failed; change the algorithm and repeat development before S4, never tune this threshold on
+  S4. This criterion targets the primary group decision; it does not certify profile likelihood ratios by
+  cancellation of G/B errors (profile, calibration and recovery validity rest on their own frozen construction and S4
+  tests). The ±250 ms support is a different latent model, run as a declared sensitivity with its own template
+  support.
 - Trial scale g_i ~ LogNormal(−s_g²/2, s_g²), mean 1; s_g ∈ [0, 1.5] box, s_g = 0 exact (the scale parameter does not
   change the parameter dimension, so no reduced model is needed); the scale integral uses an ADAPTIVE Gauss–Hermite
   rule with 17 nodes in log g, centred and scaled at the posterior mode of each (trial, τ node) by four Newton steps
@@ -160,7 +175,8 @@ Shared construction, estimated per participant and fold on training trials only:
   trapezoid, worst case per (trial, node): 8e-6 nat for s_g ≤ 0.6, 2e-4 at s_g = 1.0, 7e-3 at the s_g = 1.5 box edge
   (fitted real s_g 0.14–0.77); the node check of §7.7 compares 17 against 33 nodes (and the 7-node prior rule) on a
   development set under the declared contrast tolerance, and 33 is adopted if 17 fails it. TWO-PASS RULE (declared
-  25 Oct, for the Codex S3 re-review; `models.QUAD_G_RULE = "17then33"`, default `"17"` = the rule above unchanged): every
+  25 Oct; the OPERATIONAL S4/S5 rule under the amended criterion above, `models.QUAD_G_RULE = "17then33"` by default,
+  `"17"` kept for the S2 check arms): every
   fit runs at 17 nodes; afterwards each fitted scale-free model whose fitted s_g exceeds 0.6 is refitted at 33 nodes by
   one EM chain warm-started from its 17-node optimum under its own Σ, and the refit replaces it everywhere downstream
   (selection, held-out scores at 33 nodes, archive); the threshold is the envelope's 8e-6 nat per trial-node bound for
@@ -266,7 +282,10 @@ in reduced (s_τ = 0) models. No information criterion is added to a cross-valid
   participant-datasets per family drawn from the W2 and T1 development sets, every grid point of every profile,
   2-start versus 4-start constrained optima agreeing to 1e-6 relative in objective AND to 0.05 on the
   likelihood-ratio scale q(s); if either tolerance fails at any point, profiles use 4 starts and §8 is re-costed
-  before S3.
+  before S3. RESULT (AWS closure, S2_REPORT 8): FAILED for both families (G 425/1,200 relative failures, worst LR
+  discrepancy 50.2 nat; B 326/1,200, 59.6 nat). OPERATIONAL RULE: every production constrained fit (S4 recovery, S5)
+  uses FOUR starts (the two above plus the next two §5 nuisance starts at the grid value); two-start calls remain only
+  in the validation record.
 - Box on the template coordinates (rev 7, repair R3): γ_j ≥ −30 for every coefficient (c ≥ 1e-13). Without it L-BFGS-B
   ran coefficients that want to be zero off along the flat direction (archived W2 set 1: median per-fit minimum γ −75,
   43 of 194 fits below −700, worst −1.9e6) and softplus underflowed to exactly zero.
@@ -582,11 +601,19 @@ spill the AMD core's and the shared socket's (Intel c7i 1,224 s and Graviton4 1,
 training objective summed over 64-trial chunks under a scan with recompute (`models.TRIAL_CHUNK`, env
 `JITTER_TRIAL_CHUNK`; equal to the one-block objective to rounding, tests/test_models.py) ran 100 W2 decision tasks at
 96 workers per c7a.24xlarge in 1,437 s (median 841 s per task; about 408 tasks per host-hour steady state, 13× the
-closure). RULE for S4 (proposed for the S3 re-review): `JITTER_TRIAL_CHUNK=64`, 96 workers per c7a.24xlarge, no
-`XLA_FLAGS`, all S4 fitting on one host type. S4 at 61 latency nodes (1.59× measured): about 65,000
-decision-task-equivalents ≈ 200 host-hours at 80% of the probe rate ≈ 10 h on 20 spot hosts (5 per region in
-eu-north-1, us-east-1, us-west-2, eu-west-1, inside the standing 512 Spot vCPU quota each) ≈ USD 200-300; the full
-manifest, no reduced manifest. us-west-2a spot was reclaimed wholesale on 24 Oct, eu-north-1b held. Inherited Nelder–Mead runs measured at
+closure; 251 per host-hour as run over that batch of 100, start-up and tail included). RUNTIME AND HOST CONTRACT
+(Codex S3 re-review 25 Oct, findings 5-6): `JITTER_TRIAL_CHUNK=64` exported before Python starts, 96 workers per
+c7a.24xlarge, no `XLA_FLAGS`, the pinned stack (numpy 2.5.3, scipy 1.18.1, jax/jaxlib 0.11.1, joblib 1.6.0, pandas
+3.0.5); ALL S4 AND S5 FITTING on c7a.24xlarge (the Mac may assemble the article; it fits nothing that enters a
+reported number, because transporting the calibrated procedure to another numerical platform has not been checked);
+a run record (`results/s4/run_config.json`: chunk, node counts, scale rule and threshold, profile starts, versions,
+host, code hash, generator asset hashes) is written at the first start and a resumed run or S5 with a different
+record refuses to start. Only the training objective is chunked; held-out densities and the EM posterior are not.
+PROJECTION (not a completed run): S4 at 61 latency nodes (1.59× measured) about 65,000 decision-task-equivalents ≈ 200
+host-hours at 80% of the probe rate ≈ 10 h on 20 spot hosts (5 per region in eu-north-1, us-east-1, us-west-2,
+eu-west-1, inside the standing 512 Spot vCPU quota each) ≈ USD 200-300, before the two-pass refits, four-start profiles
+and barriers; re-costed from the final bundle's development run before launch; the full manifest, no reduced
+manifest; the USD 1,300 S4 row cap and the USD 3,000 overall cap stand. us-west-2a spot was reclaimed wholesale on 24 Oct, eu-north-1b held. Inherited Nelder–Mead runs measured at
 22 ms/run, spm_BMS at 0.04 s/call. The start-count accounting below is the rev 6 record of WHAT is fitted; its unit
 costs are superseded by the measured rates.
 - Candidate accounting: "the eight models" on real or recovery data = G0, B0, G2, B2 (reduced, each one fit) plus
