@@ -5,7 +5,7 @@ generator's own Sigma fixed, (c) 'scaled' fixed. Reports the fitted s_tau / s_g 
 Usage: recovery_check.py <R> <workers> [subjects...]   (development seeds, setting tag 'REC')"""
 import os, sys, json, time
 os.environ.setdefault("NPROC", "1")
-sys.path.insert(0, "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/sergent_port/jitter")
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")))  # the jitter root, wherever the tree lives (the AWS closure of 24 Oct failed on a Mac-only path)
 import numpy as np
 
 R = int(sys.argv[1]) if len(sys.argv) > 1 else 5
