@@ -42,7 +42,7 @@
   }
  ],
  "est_running_usd": 0.0,
- "closed_usd": 166.79,
+ "closed_usd": 196.79,
  "closed_log": [
   {
    "utc": "2026-10-24T19:15:33.279423+00:00",
@@ -133,6 +133,43 @@
    "utc": "2026-10-25T07:54:46.128174+00:00",
    "usd": 0.9,
    "note": "chunk paired check 25 Oct 06:57-07:53Z: c7a.24xlarge spot i-084cc72987a687b89 0.95 h at the 0.95 estimate; self-terminated"
+  },
+  {
+   "utc": "2026-10-25T11:06:23.124449+00:00",
+   "usd": 30.0,
+   "note": "s2final 25 Oct 09:31-10:52Z: checks host (eu-north-1, about 1.1 h incl. two refused starts) + 19 dev shards and three relaunches (9, 13 twice) about 17 host-h at USD 0.8-2.3/h spot; estimate from launch-to-done times, reconcile with Cost Explorer"
+  }
+ ],
+ "launch_log": [
+  {
+   "utc": "2026-10-25T09:33:31.159370+00:00",
+   "run": "s2final",
+   "bundle": "jitter_bundle_80c1e97.tar.gz",
+   "hosts": "20 c7a.24xlarge spot: checks + dev 0-3 eu-north-1, dev 4-8 eu-west-1, dev 9-13 us-east-1, dev 14-18 us-west-2",
+   "spot_usd_h": "eu-north-1 0.79-1.07, eu-west-1 2.08-2.30, us-east-1 1.38-1.52, us-west-2 1.56-2.24",
+   "estimate_usd": "about 50-80 (about 2 h per host at about USD 1.6/h mean); bound by lifetimes (dev 6 h, checks 5 h) about USD 270"
+  },
+  {
+   "utc": "2026-10-25T11:53:47.489988+00:00",
+   "run": "S4a",
+   "bundle": "jitter_bundle_d001516.tar.gz (FREEZE S3, code 531f80ce7cc9)",
+   "hosts": "20 c7a.24xlarge spot, shards 0-4 eu-north-1, 5-9 us-east-1, 10-14 us-west-2 (2b/2c), 15-19 eu-west-1; 96 workers, lifetime 14 h",
+   "estimate_usd": "S4 total (S4a + S4b) about 255 host-h + profiles at about USD 1.6/h = about USD 400-450; S4a bound by lifetime 20 x 14 h x <=2.6 = USD 728 worst; S4 row cap USD 1,300"
+  },
+  {
+   "utc": "2026-10-25T13:05:32.990421+00:00",
+   "run": "S4b rec shards 0-4 of 20",
+   "bundle": "jitter_bundle_d001516.tar.gz",
+   "hosts": "5 c7a.24xlarge ON-DEMAND eu-north-1 (spot slots held by S4a), 96 workers, lifetime 10 h",
+   "estimate_usd": "about 5.5 h x 5 x USD 5.6/h = about USD 155; bound 10 h x 5 x 5.6 = USD 280; plan: cv on the 20 spot hosts after S4a, then rec shards 5-19"
+  },
+  {
+   "utc": "2026-10-25T13:58:51.758630+00:00",
+   "run": "S4b cv shards 0-19 (spot) + rec shards 5-19 (on-demand)",
+   "bundle": "jitter_bundle_d001516.tar.gz",
+   "hosts": "cv: 20 c7a.24xlarge spot (0-4 eu-north-1, 5-9 us-east-1, 10-14 us-west-2, 15-19 eu-west-1); rec: 15 on-demand (5-9 us-east-1, 10-14 us-west-2, 15-19 eu-west-1) beside rec 0-4 on-demand eu-north-1; lifetime 12 h",
+   "estimate_usd": "S4 total about USD 650-700: S4a ~70, cv ~180, rec (20 on-demand x 3.5-4 h x 5.6) ~400-450; cap 1,300",
+   "s4a": "epsilon 0.0114 available; c0 G 6.652, B 8.135; lambda_E1 CERTIFIED at 1.0; T3 SEARCH FAILURE (absent by declaration)"
   }
  ]
 }
