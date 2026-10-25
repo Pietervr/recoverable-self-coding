@@ -375,14 +375,16 @@ def assemble_set(setting: str, r: int, workers: int = 0, queue_wall_s: float = 0
             used.append(npz)
     np.savez_compressed(os.path.join(ad, f"set_{r}.npz"), **xs)
     set_scores = {f"m{row['m']}": row["scores"] for row in rows}
-    primary = X.set_primary(set_scores)
+    # the set statistic follows the participant-level failure rule (decide.failure_free); delta3 keeps every raw value
+    primary = X.set_primary({f"m{row['m']}": X.decision_scores(row) for row in rows})
+    excluded = [f"m{row['m']}" for row in rows if not X.failure_free(row)]
     failures = [f"m{row['m']}:{key}" for row in rows for key in row.get("numerical_failures", [])]
     rescued = [f"m{row['m']}:{key}" for row in rows for key in row.get("rescued", [])]
     nest_fail = [f"m{row['m']}:{key}" for row in rows for key in row.get("nesting_failures", [])]
     material = [f"m{row['m']}:f{fold['fold']}:{n['pair']}" for row in rows for fold in row.get("folds", [])
                 for n in fold.get("nesting", []) if n.get("material")]
     d3 = {k: (v["B3"] - v["G3"]) for k, v in set_scores.items()}
-    fin = [v for v in d3.values() if np.isfinite(v)]
+    fin = [v for k, v in d3.items() if np.isfinite(v) and k not in excluded]
     iv = X.t_interval(fin) if len(fin) >= 2 else None
     ref_check = None
     if out_dir is not None and os.path.abspath(out_dir) != os.path.abspath(DEC_DIR):
@@ -399,7 +401,7 @@ def assemble_set(setting: str, r: int, workers: int = 0, queue_wall_s: float = 0
                participants=rows, wall_s=float(sum(row["seconds"] for row in rows)), queue_wall_s=queue_wall_s,
                workers=workers, code_hash=M.code_hash(),
                numerical_failure=bool(failures), numerical_failures=failures, rescued=rescued, nesting_failures=nest_fail,
-               material_nesting_deficits=material,
+               material_nesting_deficits=material, failure_excluded=excluded,
                run_fingerprints=sorted({str(row.get("run_fingerprint")) for row in rows}), data_ids_vs_reference=ref_check)
     path = os.path.join(jd, f"set_{r}.json")
     tmp = path + f".tmp.{os.getpid()}"

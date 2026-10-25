@@ -228,7 +228,7 @@ def decide_stage(out_dir: str, summ: dict, subjects: list) -> dict:
             with open(p) as f:
                 r = json.load(f)
             cv[f"S{s}"] = r
-            scores[f"S{s}"] = {m: r["scores"].get(m, float("nan")) for m in CV_MODELS}
+            scores[f"S{s}"] = X.decision_scores(r, CV_MODELS)          # failure rule (decide.failure_free)
     li = summ["licence_inputs"]
     dec = X.decide(scores, epsilon=li["epsilon"], epsilon_available=bool(li["epsilon_available"]),
                    lambda_e1_certified=bool(li["lambda_e1_certified"]), gate_e_met=bool(li["gate_e_met"]),

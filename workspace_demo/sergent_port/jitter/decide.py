@@ -186,6 +186,23 @@ def set_primary(set_scores: dict, min_available: int = MIN_ROSTER) -> str:
     return roster_interval({p: contrast(set_scores, p, "B3", "G3") for p in r}, r).sign
 
 
+def failure_free(row: dict) -> bool:
+    """The participant-level failure rule (25 Oct 2026, S2_REPORT 11.2; put to the Codex FREEZE re-review): a
+    participant-dataset whose record carries any unresolved numerical failure (DESIGN 5 (b)) or persistent nesting
+    failure (5 (c)) contributes to no set or group statistic. A failed graded candidate left the boundary selection to a
+    weaker model and inflated Δ₃ toward two states (W2 r9 m13 +0.181); a failed B candidate biases the other way. The
+    participant stays in the record and counts against the 16-of-20 roster like any other UNAVAILABLE participant."""
+    return not (row.get("numerical_failures") or row.get("nesting_failures"))
+
+
+def decision_scores(row: dict, models=("G3", "B3")) -> dict:
+    """{model: score} of one task row for the set and group statistics: NaN for every model when the row is not
+    failure_free (so roster() excludes the participant), else the recorded score (NaN where absent)."""
+    ok = failure_free(row)
+    sc = row.get("scores") or {}
+    return {k: (float(sc[k]) if ok and sc.get(k) is not None else float("nan")) for k in models}
+
+
 # ----------------------------------------------------------------------------------------------
 # profiles (§7.5)
 # ----------------------------------------------------------------------------------------------

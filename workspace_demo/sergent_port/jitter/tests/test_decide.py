@@ -375,6 +375,27 @@ def test_rise_newcombe():
     assert abs(d - 0.2) < 1e-9 and abs(lo - 0.0524) < 1e-3 and abs(hi - 0.3339) < 1e-3
 
 
+def test_failure_rule_excludes_failed_participants_from_the_set_statistic():
+    # 17 clean NEGATIVE participants and three with a failed graded candidate whose Δ₃ is inflated (W2 r9 m13 pattern)
+    rows = [dict(m=i, scores=dict(G3=-1.0, B3=-1.0 - 0.001 - 0.0001 * (i % 5))) for i in range(17)]
+    rows += [dict(m=17 + j, scores=dict(G3=-1.2, B3=-1.0), numerical_failures=["f1_G3+"]) for j in range(2)]
+    rows += [dict(m=19, scores=dict(G3=-1.0, B3=-1.1), nesting_failures=["f0_B3<G3"])]
+    assert not X.failure_free(rows[17]) and not X.failure_free(rows[19]) and X.failure_free(rows[0])
+    sc = {f"m{r['m']}": X.decision_scores(r) for r in rows}
+    assert all(np.isnan(v) for k in ("m17", "m18", "m19") for v in sc[k].values())
+    assert X.roster(sc, ("G3", "B3")) == [f"m{i}" for i in range(17)]
+    assert X.set_primary(sc) == X.NEGATIVE                          # the raw scores would put +0.2 in the interval
+    raw = {f"m{r['m']}": r["scores"] for r in rows}
+    assert X.set_primary(raw) != X.NEGATIVE
+    # four failed participants leave 16: still a set; five leave 15: UNAVAILABLE by the roster rule
+    rows4 = rows[:16] + [dict(m=16, scores=dict(G3=-1.0, B3=-1.0), numerical_failures=["f2_G2"])] + rows[17:]
+    assert X.set_primary({f"m{r['m']}": X.decision_scores(r) for r in rows4}) != X.UNAVAILABLE
+    rows5 = rows4[:15] + [dict(m=15, scores=dict(G3=-1.0, B3=-1.0), numerical_failures=["f0_B3+"])] + rows4[16:]
+    assert X.set_primary({f"m{r['m']}": X.decision_scores(r) for r in rows5}) == X.UNAVAILABLE
+    absent = X.decision_scores(dict(scores=dict(G3=-1.0, B3=None)))
+    assert absent["G3"] == -1.0 and np.isnan(absent["B3"])
+
+
 if __name__ == "__main__":
     import inspect, traceback
     fails = 0

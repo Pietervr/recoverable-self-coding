@@ -463,13 +463,14 @@ def load_set(stage: str, setting: str, r: int) -> dict | None:
 
 
 def set_scores(sset: dict, models=("G3", "B3")) -> dict:
-    return {f"m{row['m']}": {k: row["scores"].get(k, float("nan")) for k in models} for row in sset["rows"]}
+    """Per-participant scores for the set statistics; a row that is not failure-free counts as UNAVAILABLE (decide.failure_free)."""
+    return {f"m{row['m']}": X.decision_scores(row, models) for row in sset["rows"]}
 
 
 def set_mean_delta(sset: dict, a: str, b: str):
-    """Mean over available participants of S_a − S_b (None if fewer than 16 available)."""
-    vals = [row["scores"][a] - row["scores"][b] for row in sset["rows"]
-            if np.isfinite(row["scores"].get(a, np.nan)) and np.isfinite(row["scores"].get(b, np.nan))]
+    """Mean over available, failure-free participants of S_a − S_b (None if fewer than 16 available)."""
+    sc = [X.decision_scores(row, (a, b)) for row in sset["rows"]]
+    vals = [v[a] - v[b] for v in sc if np.isfinite(v[a]) and np.isfinite(v[b])]
     return float(np.mean(vals)) if len(vals) >= X.MIN_ROSTER else None
 
 
