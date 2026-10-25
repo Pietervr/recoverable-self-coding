@@ -147,8 +147,10 @@ Shared construction, estimated per participant and fold on training trials only:
   exact s_τ = 0 model is the REDUCED model (one node, shift-only coefficients removed). Parent and realised SD both
   reported (parent 80 → truncated 68.1 ms, 31-node 69.3 ms). Node check before S3: 31 vs 61 nodes must change every
   development participant's score contrast by less than one tenth of the contrast's interval half-width, else 61 is
-  adopted and re-checked against 121. The ±250 ms support is a different latent model, run as a declared sensitivity
-  with its own template support.
+  adopted and re-checked against 121. Result (25 Oct, same data and code on W2 set 0, S2_REPORT 8): 31 vs 61 FAILED
+  (5.3e-4) and 61 vs 121 FAILED (4.0e-4) at the participant level, while the set mean moved at most 3.8e-5; the rule
+  the S4 manifest uses is set at the Codex S3 re-review. The ±250 ms support is a different latent model, run as a
+  declared sensitivity with its own template support.
 - Trial scale g_i ~ LogNormal(−s_g²/2, s_g²), mean 1; s_g ∈ [0, 1.5] box, s_g = 0 exact (the scale parameter does not
   change the parameter dimension, so no reduced model is needed); the scale integral uses an ADAPTIVE Gauss–Hermite
   rule with 17 nodes in log g, centred and scaled at the posterior mode of each (trial, τ node) by four Newton steps

@@ -461,7 +461,22 @@ at m15 and above the tolerance on m0, m7, m12, m14, m18 — on m0 and m7 the hos
 amount that brings it back onto the Mac's 17-node value — so the 24 Oct FAIL and this one carry a fitter and host
 difference as well as the quadrature. Codex traced the m15 swing to the fitter: a near-optimal B warm chain ends
 NOT_CONVERGED after 12 iterations and is discarded (`reviews/2026-10-25_latency_quadrature_fix_codex_review.md`,
-findings 1, 4, 11). A separate repair job owns the next step; the declared 0.4 retry was not run.
+findings 1, 4, 11). The declared 0.4 retry was not run.
+Repaired same-data, same-code node checks (25 Oct; `s2.py repair`, code 6f0d60ddef91, W2 set 0 regenerated with its 20
+data identities verified against the Mac record, 12 Mac workers; `results/s2/checks/repair_W2_set0_{A..E}.json`,
+`_summary.md`, `_status.txt`). The fitter now polishes stationary-but-unaccepted warm endpoints (Codex finding 11;
+5-8 polishes per run, extra work r ≤ 2e-4) and flags a numerical failure when a lost chain was better than the
+selected one. Runs: A 31/17, B 61/17, C 31/33, D 31/17 two-pass, E 121/17 warm from B. Every comparison FAILS the
+participant tolerance T = min(8.83e-5, 0.1 × half-width) ≈ 7e-5: A vs B 5.33e-4 (m0; six over T; two selection
+flips), A vs C 4.98e-4 (m14; eight over), D vs C 4.98e-4, B vs E 3.99e-4 (m14; seven over), D vs A 1.22e-4 (m4; two
+over). A, C, D and E each carry one numerical failure (a re-seed chain from the other family lost after its polish);
+B carries none. No refinement converges at the participant level (rms of the participant differences 1.4-1.8e-4
+between latency rules), while every run's set mean moves by at most 3.8e-5 (set means −0.00147 A, −0.00151 B,
+−0.00153 C, −0.00147 D, −0.00150 E; half-widths 6.8-7.1e-4) and the primary is NEGATIVE in all five. With Codex's
+fixed-parameter finding (contrasts move < 2.7e-5 under 31 → 61 → 121 latency nodes), the reading is that the
+participant-level differences are the fitter's end-point variation, not quadrature error. Under the declared rule
+31 nodes are not retained, 61 are adopted, and the 121 recheck FAILED, so the latency rule goes to the Codex S3
+re-review before any S4 draw. Cost: B 1.59× A's task-seconds, C 1.09×, D 0.76×, E 3.0×.
 
 ## 9. Cost (`results/bench/bench_20261024T171350Z.md`, `results/bench/recost_rev7_20261024T171350Z.md`)
 Rev 6: 165 s per participant-dataset (bench_20261024T044019Z: 1.69 s per decision-batch start; S4 1,536 core-h base).
