@@ -35,9 +35,14 @@ python -c 'import jax, numpy, scipy, models; print("[s2final] jax", jax.__versio
 mkdir -p results/s2/checks results/s2/decision_final
 if [ "__PART__" = "checks" ]; then SRC=results/s2/checks; DST="s3://$BUCKET/$RES/s2final/checks"; else SRC=results/s2/decision_final; DST="s3://$BUCKET/$RES/s2final/dev"; fi
 # resume: this role's files already on S3 (a spot interruption and relaunch); dev shards are disjoint, so a resumed host sees only its own
-aws s3 sync "$DST" "$SRC" --quiet || true
+# each dev host keeps its OWN run record (the AMIs differ in the Python patch level by region, 3.12.14 vs 3.12.15, so a
+# resumed host must never inherit another host's run_config.json; 25 Oct 10:13Z a relaunched shard refused on it): the record
+# is uploaded as run_config___SHARD_TAG__.json and the shared name is excluded both ways
+aws s3 sync "$DST" "$SRC" --quiet --exclude "*run_config.json" --exclude "run_config_*.json" || true
+aws s3 cp "$DST/run_config___SHARD_TAG__.json" "$SRC/run_config.json" --quiet 2>/dev/null || true
 sync_out() {
-  aws s3 sync "$SRC" "$DST" --quiet --exclude "*.tmp.*"
+  [ -f "$SRC/run_config.json" ] && [ "__PART__" = "dev" ] && cp "$SRC/run_config.json" "$SRC/run_config___SHARD_TAG__.json"
+  aws s3 sync "$SRC" "$DST" --quiet --exclude "*.tmp.*" --exclude "run_config.json"
   # dev: the endpoint archive (the per-task start/endpoint npz, results/s2/archive/decision_final) is kept too
   if [ "__PART__" = "dev" ] && [ -d results/s2/archive/decision_final ]; then aws s3 sync results/s2/archive/decision_final "s3://$BUCKET/$RES/s2final/dev_archive" --quiet --exclude "*.tmp.*"; fi
   aws s3 cp /var/log/s4_userdata.log "$LOGKEY" --quiet || true
