@@ -1,126 +1,48 @@
 {
- "utc": "2026-10-24T19:53:27.994680+00:00",
+ "utc": "2026-10-25T05:12:44.774773+00:00",
  "instances": [
   {
-   "id": "i-037dd5ae861e2c772",
-   "state": "running",
-   "type": "c7a.24xlarge",
-   "lifecycle": "spot",
-   "az": "eu-north-1b",
-   "mode": "s2closure",
-   "shard": "1/1",
-   "part": "T1",
-   "launched": "2026-10-24T19:14:32+00:00",
-   "hours": 0.65,
-   "est_usd": 0.62
-  },
-  {
-   "id": "i-087188b1190192c17",
-   "state": "running",
-   "type": "c7a.24xlarge",
-   "lifecycle": "spot",
-   "az": "eu-north-1b",
-   "mode": "s2closure",
-   "shard": "1/1",
-   "part": "W2",
-   "launched": "2026-10-24T19:14:30+00:00",
-   "hours": 0.65,
-   "est_usd": 0.62
-  },
-  {
-   "id": "i-04535600c734ab627",
+   "id": "i-0ed7c85c6f149118e",
    "state": "terminated",
    "type": "c7a.24xlarge",
-   "lifecycle": "spot",
-   "az": "eu-north-1b",
+   "lifecycle": "on-demand",
+   "az": "us-west-2a",
    "mode": "s2closure",
    "shard": "1/1",
-   "part": "checks",
-   "launched": "2026-10-24T19:14:37+00:00",
+   "part": "T1-rev",
+   "launched": "2026-10-24T21:06:47+00:00",
    "hours": null,
    "est_usd": 0.0
   },
   {
-   "id": "i-077b337da018516bd",
-   "state": "running",
-   "type": "c7a.24xlarge",
-   "lifecycle": "spot",
-   "az": "eu-north-1b",
-   "mode": "s2closure",
-   "shard": "1/1",
-   "part": "validators",
-   "launched": "2026-10-24T19:38:06+00:00",
-   "hours": 0.26,
-   "est_usd": 0.24
-  },
-  {
-   "id": "i-0d0257da689f57a49",
+   "id": "i-0d1da001ef952333b",
    "state": "terminated",
    "type": "c7a.24xlarge",
-   "lifecycle": "spot",
-   "az": "eu-north-1b",
+   "lifecycle": "on-demand",
+   "az": "us-west-2a",
    "mode": "s2closure",
    "shard": "1/1",
-   "part": null,
-   "launched": "2026-10-24T18:27:28+00:00",
+   "part": "O1-rev",
+   "launched": "2026-10-24T21:06:50+00:00",
    "hours": null,
    "est_usd": 0.0
   },
   {
-   "id": "i-02c5acc4f176c6533",
-   "state": "running",
+   "id": "i-00e2c2a978971ca84",
+   "state": "terminated",
    "type": "c7a.24xlarge",
-   "lifecycle": "spot",
-   "az": "eu-north-1b",
+   "lifecycle": "on-demand",
+   "az": "us-west-2a",
    "mode": "s2closure",
    "shard": "1/1",
-   "part": "O1",
-   "launched": "2026-10-24T19:14:34+00:00",
-   "hours": 0.65,
-   "est_usd": 0.62
-  },
-  {
-   "id": "i-0a58f032262fcc0a7",
-   "state": "terminated",
-   "type": "c7a.2xlarge",
-   "lifecycle": "spot",
-   "az": "eu-north-1b",
-   "mode": "probe",
-   "shard": "probe1906",
-   "part": "all",
-   "launched": "2026-10-24T19:06:21+00:00",
+   "part": "W2-rev",
+   "launched": "2026-10-24T21:06:43+00:00",
    "hours": null,
    "est_usd": 0.0
-  },
-  {
-   "id": "i-0ae05ee9efebdf255",
-   "state": "running",
-   "type": "c7a.24xlarge",
-   "lifecycle": "spot",
-   "az": "eu-north-1b",
-   "mode": "s2closure",
-   "shard": "1/1",
-   "part": "checks",
-   "launched": "2026-10-24T19:18:13+00:00",
-   "hours": 0.59,
-   "est_usd": 0.56
-  },
-  {
-   "id": "i-05efd976ce1c09ede",
-   "state": "running",
-   "type": "c7a.2xlarge",
-   "lifecycle": "spot",
-   "az": "eu-north-1b",
-   "mode": "probe",
-   "shard": "probe1909",
-   "part": "all",
-   "launched": "2026-10-24T19:09:02+00:00",
-   "hours": 0.74,
-   "est_usd": 0.06
   }
  ],
- "est_running_usd": 2.71,
- "closed_usd": 10.29,
+ "est_running_usd": 0.0,
+ "closed_usd": 163.84,
  "closed_log": [
   {
    "utc": "2026-10-24T19:15:33.279423+00:00",
@@ -156,6 +78,46 @@
    "utc": "2026-10-24T21:08:33.594607+00:00",
    "usd": 0.3,
    "note": "profiles host 1 i-03f632bfea381344b us-west-2a spot 20:54-21:04Z reclaimed before any result; relaunched in eu-north-1b"
+  },
+  {
+   "utc": "2026-10-25T02:39:54.183799+00:00",
+   "usd": 5.23,
+   "note": "profiles host i-093737e0de910b51c eu-north-1b spot 21:08-02:38Z (5.50 h): profile validation G and B complete, both FAIL the 2-vs-4-start tolerance (4-start profiles, re-cost); the recovery rerun crashed on a Mac-only sys.path in recovery_check.py and is rerun on the Mac"
+  },
+  {
+   "utc": "2026-10-25T02:40:15.124255+00:00",
+   "usd": 7.2,
+   "note": "checks host i-0ae05ee9efebdf255 eu-north-1b spot 19:18-02:53Z (7.58 h): W2 set 0 assembled 23:12Z; node checks g33 FAIL 4.98e-4, tau61 FAIL 4.26e-3, prior7 FAIL 2.53e-2 (tolerance 8.83e-5, set primary NEGATIVE throughout); ranks and small-spread written; stopped before its duplicate validator stage"
+  },
+  {
+   "utc": "2026-10-25T05:12:42.692365+00:00",
+   "usd": 7.6,
+   "note": "S2 closure decision host W2 i-025acb9dd61ce172f eu-north-1b 20:53:29-04:53:40Z (8.00 h spot at the 0.95 estimate, 48 workers): self-terminated at its 8 h lifetime before its queue ended; 215 W2 task files last written by it (sets 0-17)"
+  },
+  {
+   "utc": "2026-10-25T05:12:42.721204+00:00",
+   "usd": 7.6,
+   "note": "S2 closure decision host T1 i-0c18147043a6734d4 eu-north-1b 20:53:31-04:53:43Z (8.00 h spot at the 0.95 estimate, 48 workers): lifetime stop; 213 T1 task files (sets 0-16); T1 complete at 500 by 04:49Z"
+  },
+  {
+   "utc": "2026-10-25T05:12:42.749705+00:00",
+   "usd": 7.6,
+   "note": "S2 closure decision host O1 i-00144a18c25323a08 eu-north-1b 20:53:12-04:53:23Z (8.00 h spot at the 0.95 estimate, 48 workers): lifetime stop; 197 O1 task files (sets 0-12); O1 complete at 500 by 04:54Z"
+  },
+  {
+   "utc": "2026-10-25T05:12:42.778291+00:00",
+   "usd": 39.44,
+   "note": "S2 closure decision host W2-rev i-00e2c2a978971ca84 us-west-2a 21:06:43-05:06:55Z (8.00 h on-demand at 4.93, 48 workers): lifetime stop; 274 W2 task files (sets 8-24); W2 ended at 497/500 (set 11 m8, set 12 m2, set 13 m1 missing), not relaunched"
+  },
+  {
+   "utc": "2026-10-25T05:12:42.807459+00:00",
+   "usd": 39.44,
+   "note": "S2 closure decision host T1-rev i-0ed7c85c6f149118e us-west-2a 21:06:47-05:06:59Z (8.00 h on-demand at 4.93, 48 workers): lifetime stop; 279 T1 task files (sets 9-24)"
+  },
+  {
+   "utc": "2026-10-25T05:12:42.835212+00:00",
+   "usd": 39.44,
+   "note": "S2 closure decision host O1-rev i-0d1da001ef952333b us-west-2a 21:06:50-05:07:01Z (8.00 h on-demand at 4.93, 48 workers): lifetime stop; 298 O1 task files (sets 8-24)"
   }
  ]
 }
