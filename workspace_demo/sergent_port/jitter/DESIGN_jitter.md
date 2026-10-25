@@ -156,7 +156,25 @@ Shared construction, estimated per participant and fold on training trials only:
   on graded data in S2 and is kept only as the comparison arm of the §4 node check). Measured envelope against a fine
   trapezoid, worst case per (trial, node): 8e-6 nat for s_g ≤ 0.6, 2e-4 at s_g = 1.0, 7e-3 at the s_g = 1.5 box edge
   (fitted real s_g 0.14–0.77); the node check of §7.7 compares 17 against 33 nodes (and the 7-node prior rule) on a
-  development set under the declared contrast tolerance, and 33 is adopted if 17 fails it. Fits at the s_g bound are
+  development set under the declared contrast tolerance, and 33 is adopted if 17 fails it. TWO-PASS RULE (declared
+  25 Oct, for the Codex S3 re-review; `models.QUAD_G_RULE = "17then33"`, default `"17"` = the rule above unchanged): every
+  fit runs at 17 nodes; afterwards each fitted scale-free model whose fitted s_g exceeds 0.6 is refitted at 33 nodes by
+  one EM chain warm-started from its 17-node optimum under its own Σ, and the refit replaces it everywhere downstream
+  (selection, held-out scores at 33 nodes, archive); the threshold is the envelope's 8e-6 nat per trial-node bound for
+  s_g ≤ 0.6, not a development result; `FitCache.key` carries the rule and every result json records it with the refit
+  counts per model. Its check (`s2.py checks --kind twopass`; `results/s2/checks/twopass_g_W2_set0.json`, Mac, 25 Oct):
+  W2 set 0 under the rule against the 33-node reference of the 24 Oct node check (`delta3_new` of
+  `nodes_g33_W2_set0.json`, AWS checks host) FAILED — max |Δ₃(two-pass) − Δ₃(33)| 3.70e-3 against the tolerance
+  8.83e-5, four participants over it (m12 +1.8e-4, m14 +6.2e-4, m15 −3.7e-3, m18 −5.1e-4); 193 of the 400 candidate
+  fits (48%: fitted s_g median 0.59, maximum 0.91 on this graded set) were refitted, each moving its training
+  log-likelihood by +0.002 to +0.11 nat; the set primary stayed NEGATIVE under 17, 33 and the two-pass rule. Cost: the
+  warm refits added 1.5% to the fit seconds within the run (task seconds 12,635 against the archived 17-node 12,524 on
+  the same Mac), against about 1.9 for blanket 33. The rule is NOT validated by this check. Two of the four exceedances
+  (m14, m18) are participants with no fit above the threshold, and the reference's own 17-node Δ₃ differs from the Mac's
+  archived 17-node Δ₃ by up to 4.1e-3 (m15; also m0, m7, m12, m14, m18 above the tolerance), so the comparison carries a
+  fitter and host difference as well as the quadrature: Codex traced the m15 swing to the fitter (a near-optimal B warm
+  chain ending NOT_CONVERGED after 12 iterations and discarded; `reviews/2026-10-25_latency_quadrature_fix_codex_review.md`,
+  findings 1, 4, 11). A separate repair job owns the next step; the declared 0.4 retry was not run. Fits at the s_g bound are
   flagged; a wider-bound (s_g ≤ 2.5, re-checked quadrature) sensitivity is run if any flagged fit is in a participant
   whose Δ_s drives the result. g and τ independent, level-invariant, one shape shifted as a whole: shared
   restrictions, challenged by O3/O4.

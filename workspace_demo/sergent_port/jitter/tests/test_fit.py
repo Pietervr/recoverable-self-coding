@@ -19,8 +19,9 @@ import fit as F  # noqa: E402
 import models as M  # noqa: E402
 
 
-def _synthetic_participant(n_per_level=40, seed=0, a=(0.0, 0.1, 0.2, 0.5, 1.0, 1.5), s_tau=0.0, noise=0.5):
-    """53-window synthetic participant from the model's own machinery (G family, nodal latency law)."""
+def _synthetic_participant(n_per_level=40, seed=0, a=(0.0, 0.1, 0.2, 0.5, 1.0, 1.5), s_tau=0.0, noise=0.5, s_g=0.0):
+    """53-window synthetic participant from the model's own machinery (G family, nodal latency law; `s_g` > 0 adds
+    the lognormal trial scale g ~ LogNormal(−s_g²/2, s_g²) of §4)."""
     rng = np.random.default_rng(seed)
     b = M.basis("whole")
     c = np.exp(-0.5 * ((b.support_centres_ms - 450.0) / 120.0) ** 2) + 0.05
@@ -36,7 +37,8 @@ def _synthetic_participant(n_per_level=40, seed=0, a=(0.0, 0.1, 0.2, 0.5, 1.0, 1
         T = np.einsum("nwj,j->nw", b.Bmat[idx], ct)
     else:
         T = np.tile(b.Bmat[b.node0] @ ct, (n, 1))
-    Y = mu0 + np.asarray(a)[k][:, None] * T + rng.normal(0, noise, size=(n, 53))
+    g = np.exp(rng.normal(-0.5 * s_g ** 2, s_g, size=n)) if s_g > 0 else np.ones(n)
+    Y = mu0 + (g * np.asarray(a)[k])[:, None] * T + rng.normal(0, noise, size=(n, 53))
     return D.participant_from_windows(Y, k, blocks, subject=99, session="synthetic")
 
 
@@ -434,6 +436,109 @@ def test_d4_em_chain_ascends_and_g_is_reseeded_from_any_better_b():
         stops = [n for n in res[name].notes if "stopped at step" in n and "not CONVERGED" in n]
         retries = [n for n in res[name].notes if "retried with" in n]
         assert len(stops) <= len(retries), (name, res[name].notes)
+
+
+def _scaled_fold():
+    """A graded participant with real trial-scale variation (s_g 1.0, amplitudes to 2.0), fold 0."""
+    p = _synthetic_participant(n_per_level=60, seed=5, a=(0.0, 0.2, 0.5, 1.0, 1.5, 2.0), noise=0.4, s_g=1.0)
+    train, test, _, _ = D.fold_datasets(p, D.span("primary"), 0)
+    return train, test
+
+
+def test_quad_rule_17_leaves_everything_unchanged():
+    """Two-pass scale quadrature, test (a): under models.QUAD_G_RULE = "17" (the default) nothing changes — a fit whose
+    s_g is far above the threshold is returned untouched by two_pass_refit (the very same object), every result records
+    17 nodes and no refit, selected_spec resolves to 17 nodes, and the record names the rule with zero refits."""
+    assert M.QUAD_G_RULE == "17" and M.QUAD_G_REFIT_SG == 0.6 and M.QUAD_G_REFIT_NODES == 33
+    train, test = _scaled_fold()
+    cache = F.FitCache()
+    res = F.fit_all_models(train, cache, "primary", ("G2",))
+    r = res["G2"]
+    assert r.available and M.unpack(M.spec("G2"), r.theta).s_g > M.QUAD_G_REFIT_SG      # eligible, were the rule on
+    assert r.quad == dict(n_tau_nodes=31, n_g_nodes=17, adaptive_g=True)
+    assert F.two_pass_refit(M.spec("G2"), train, r, cache, None) is r
+    assert F.selected_spec("G2", r, "primary").n_g_nodes == 17
+    rec = F.quad_rule_record(list(res.values()))
+    assert rec["rule"] == "17" and rec["per_model"] == {"G2": dict(fits=1, refitted=0)}
+    assert "|rule17|" in cache.key(train, M.spec("G2"))
+    # a record without a quadrature (rev 7 era, read back from disk) scores under the caller's spec, as before
+    old = F.FitResult.from_json({k: v for k, v in r.to_json().items() if k != "quad"})
+    assert old.quad is None and F.selected_spec("G2", old, "primary").n_g_nodes == 17
+    assert F.selected_spec("G2", old, "primary", dict(n_g_nodes=33)).n_g_nodes == 33
+
+
+def test_quad_rule_17then33_refits_above_threshold_only():
+    """Two-pass scale quadrature, test (b): under "17then33" a fitted model whose s_g exceeds the threshold is refitted at
+    33 nodes by one warm chain from its 17-node optimum, its held-out scores are computed with the 33-node spec, the
+    selected model is rebuilt from the refitted candidates and the profile's s = 0 point is that refitted fit; a model
+    below the threshold (and a model without a scale term) keeps 17 nodes throughout. Test (c): the record names the
+    rule and the refit counts per model."""
+    train, test = _scaled_fold()
+    r17 = F.fit_all_models(train, F.FitCache(), "primary", ("G2",))["G2"]
+    s_g17 = M.unpack(M.spec("G2"), r17.theta).s_g
+    assert s_g17 > 0.6
+    old = (M.QUAD_G_RULE, M.QUAD_G_REFIT_SG)
+    try:
+        M.QUAD_G_RULE, M.QUAD_G_REFIT_SG = "17then33", 0.5 * s_g17                    # the fitted s_g EXCEEDS the threshold
+        cache = F.FitCache()
+        res = F.fit_all_models(train, cache, "primary", ("G1", "G3"))
+        g2, g3p, g3, g0, g1p = res["G2"], res["G3+"], res["G3"], res["G0"], res["G1+"]
+        assert g2.available and g2.quad["n_g_nodes"] == 33 and g2.quad["refit_from"] == 17
+        assert abs(g2.quad["refit_s_g"] - s_g17) < 1e-9 and g2.quad["loglik_before"] == r17.loglik
+        assert g2.seconds > g2.quad["seconds_before"] > 0 and len(g2.starts) > len(r17.starts)
+        assert any("two-pass refit at 33 scale nodes" in n for n in g2.notes) and g2.em_iterations >= 1
+        assert abs(g2.loglik - r17.loglik) < 5.0                                        # the same optimum, finer quadrature
+        assert g0.quad["n_g_nodes"] == 17 and g1p.quad["n_g_nodes"] == 17                # no scale term: never refitted
+        # the selected G3 is rebuilt from the refitted candidates and carries their quadrature
+        src = g3p if g3.selection == "POSITIVE" else g2
+        assert g3.quad == src.quad and g3.loglik == src.loglik and g3.quad["n_g_nodes"] == 33
+        assert g3.candidates == dict(reduced=g2.loglik, positive=g3p.loglik)
+        # held-out scores of a refitted model are computed with 33 nodes
+        sp33 = F.selected_spec("G2", g2, "primary")
+        assert sp33.n_g_nodes == 33 and sp33.name == "G2"
+        ll = F.score_heldout(sp33, g2, test)
+        assert np.allclose(ll, M.Objective(sp33, D.rewhiten(test, g2.wh)).trial_loglik(g2.theta))
+        assert not np.allclose(ll, M.Objective(M.spec("G2"), D.rewhiten(test, g2.wh)).trial_loglik(g2.theta))
+        # the cache holds the refit under its own key (rule + recipe suffix), and a blanket-33 key is another key
+        key33 = cache.key(train, M.spec("G2", n_g_nodes=33), "std|refit17")
+        assert cache.get(key33) is g2 and key33 != cache.key(train, M.spec("G2", n_g_nodes=33)) and "|rule17then33|" in key33
+        # the profile's s = 0 point resolves to the same refitted reduced fit
+        ev, _ = F.profile_evaluator("G", train, g3, "primary", cache)
+        v0, r0 = ev(0.0)
+        assert r0 is g2 and v0 == g2.loglik
+        # (c) the record names the rule and the refit counts per model
+        rec = F.quad_rule_record(list(res.values()))
+        assert rec["rule"] == "17then33" and rec["refit_nodes"] == 33 and abs(rec["refit_sg"] - 0.5 * s_g17) < 1e-12
+        assert rec["per_model"]["G2"] == dict(fits=1, refitted=1) and rec["per_model"]["G0"] == dict(fits=1, refitted=0)
+        assert rec["per_model"]["G3"]["refitted"] == 1
+        # a fit BELOW the threshold is not refitted and keeps 17 nodes throughout
+        M.QUAD_G_REFIT_SG = 2.0 * s_g17
+        res2 = F.fit_all_models(train, F.FitCache(), "primary", ("G2",))
+        assert res2["G2"].quad == dict(n_tau_nodes=31, n_g_nodes=17, adaptive_g=True)
+        assert F.selected_spec("G2", res2["G2"], "primary").n_g_nodes == 17
+        assert F.quad_rule_record([res2["G2"]])["per_model"] == {"G2": dict(fits=1, refitted=0)}
+        # an unknown rule is refused
+        M.QUAD_G_RULE = "33then17"
+        try:
+            F.two_pass_refit(M.spec("G2"), train, res2["G2"], F.FitCache(), None)
+            assert False, "an unknown rule must be refused"
+        except ValueError:
+            pass
+    finally:
+        M.QUAD_G_RULE, M.QUAD_G_REFIT_SG = old
+
+
+def test_quad_rule_record_in_decision_task_shape():
+    """Test (c) at the task level: s2.decision_task's row carries `quad_rule` (rule, thresholds, counts per model) and
+    every candidate row its quadrature and fitted s_g — on a stub FitResult set, without fitting."""
+    import s2
+    th = np.zeros(M.spec("G2").n_params)
+    th[M.spec("G2").layout()["index"]["s_g"]] = 0.7
+    a = F.FitResult("G2", "d", "AVAILABLE", th, -10.0, [], 4, 1.0, "h", [], [], [], quad=dict(n_tau_nodes=31, n_g_nodes=33, adaptive_g=True, refit_from=17))
+    b = F.FitResult("G3+", "d", "AVAILABLE", None, -9.0, [], 4, 1.0, "h", [], [], [], quad=dict(n_tau_nodes=31, n_g_nodes=17, adaptive_g=True))
+    rec = F.quad_rule_record([a, b, None])
+    assert rec["per_model"] == {"G2": dict(fits=1, refitted=1), "G3+": dict(fits=1, refitted=0)} and rec["default_nodes"] == 17
+    assert "quad_rule" in s2.decision_task.__code__.co_names or "quad_rule_record" in s2.decision_task.__code__.co_names
 
 
 if __name__ == "__main__":

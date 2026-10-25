@@ -242,6 +242,24 @@ reading does not move; Codex finding 6 is closed with no start added. PENDING: `
 (33 scale nodes, 61 τ nodes, the 7-node prior rule against the archived default) and `s2.py profiles` (2- vs 4-start
 constrained optima on 100 datasets per family; the profile machinery now has finite lifts, so this validation is
 meaningful for the first time) — both running on the AWS closure fleet.
+Two-pass scale quadrature (declared 25 Oct, for the Codex S3 re-review; DESIGN §4): the node check `g33` on W2 set 0
+FAILED on the checks host (00:42Z: max |ΔΔ₃| 4.98e-4 against the tolerance 8.83e-5; m0, m7, m14, m15 over it; the
+primary stayed NEGATIVE), and blanket 33 nodes costs about 1.9× per likelihood evaluation. The declared refinement,
+`models.QUAD_G_RULE = "17then33"` (every fit at 17 nodes, then one warm EM chain at 33 nodes for each fitted scale-free
+model with s_g > 0.6, the refit replacing it downstream; default `"17"` leaves the fitter as it was), was checked on
+the Mac against that run's 33-node Δ₃ (`s2.py checks --kind twopass`, `results/s2/checks/twopass_g_W2_set0.json`, code
+86eccfb3e15e, 8 workers beside another job): FAILED — max |Δ₃(two-pass) − Δ₃(33)| 3.70e-3, four participants over the
+tolerance (m12 +1.8e-4, m14 +6.2e-4, m15 −3.7e-3, m18 −5.1e-4), 193/400 candidate fits refitted (G2 53, G3+ 47, B2
+49, B3+ 44 of 100 each; fitted s_g median 0.59, max 0.91), training log-likelihoods moved by +0.002 to +0.11 nat,
+primary NEGATIVE under 17, 33 and two-pass; cost 1.5% on the fit seconds within the run (12,635 task-seconds against
+the archived 12,524 at 17 nodes). The two-pass rule is not validated. What the check also shows: m14 and m18 have no
+fit above 0.6 (their two-pass Δ₃ equals the Mac's archived 17-node Δ₃ exactly), and the checks host's own 17-node Δ₃
+(`delta3_ref`, code 6d447ad94463, AMD) differs from the Mac's archived 17-node Δ₃ (code a45a07d92b82) by up to 4.1e-3
+at m15 and above the tolerance on m0, m7, m12, m14, m18 — on m0 and m7 the host's 33-node run moved by exactly the
+amount that brings it back onto the Mac's 17-node value — so the 24 Oct FAIL and this one carry a fitter and host
+difference as well as the quadrature. Codex traced the m15 swing to the fitter: a near-optimal B warm chain ends
+NOT_CONVERGED after 12 iterations and is discarded (`reviews/2026-10-25_latency_quadrature_fix_codex_review.md`,
+findings 1, 4, 11). A separate repair job owns the next step; the declared 0.4 retry was not run.
 
 ## 9. Cost (`results/bench/bench_20261024T171350Z.md`, `results/bench/recost_rev7_20261024T171350Z.md`)
 Rev 6: 165 s per participant-dataset (bench_20261024T044019Z: 1.69 s per decision-batch start; S4 1,536 core-h base).

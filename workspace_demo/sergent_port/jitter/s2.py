@@ -102,8 +102,12 @@ def _start_rows(r: F.FitResult):
 
 
 def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, span_name: str = "primary",
-                  quad: dict | None = None) -> dict:
+                  quad: dict | None = None, g_rule: tuple | None = None) -> dict:
+    """`g_rule` = (models.QUAD_G_RULE, models.QUAD_G_REFIT_SG) to apply in THIS process (a loky worker imports models
+    afresh, so the two-pass check passes the rule explicitly as well as through the environment); None = as imported."""
     os.environ.setdefault("NPROC", "1")
+    if g_rule is not None:
+        M.QUAD_G_RULE, M.QUAD_G_REFIT_SG = str(g_rule[0]), float(g_rule[1])
     t0 = _time.time()
     p = make_synthetic(setting, r, m, base_subject, bases)
     sp_ = D.span(span_name)
@@ -111,21 +115,26 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
     sums = {"G3": [], "B3": []}
     folds = []
     xs = {}
+    fits_seen = []
     for fold in range(5):
         train, test, _, _ = D.fold_datasets(p, sp_, fold)
         res = F.fit_all_models(train, cache, span_name, ("G3", "B3"), quad)
         row = dict(fold=fold, n_train=train.n, n_test=test.n, shrinkage=train.wh.shrinkage, fits={})
         for name in DECISION_SPECS:
             fr = res[name]
+            fits_seen.append(fr)
+            sp_n = F.selected_spec(name, fr, span_name, quad)
             row["fits"][name] = dict(status=fr.status, loglik=fr.loglik, n_converged=fr.n_converged,
                                      bounds_hit=fr.bounds_hit, clipped=fr.clipped, notes=fr.notes,
-                                     starts=_start_rows(fr), seconds=fr.seconds)
+                                     starts=_start_rows(fr), seconds=fr.seconds, quad=fr.quad,
+                                     s_g=(float(M.unpack(sp_n, fr.theta).s_g) if (fr.available and sp_n.scale_free) else None))
             for i, s in enumerate(fr.starts):
                 xs[f"f{fold}_{name}_s{i}"] = np.asarray(s.x, dtype=np.float32)
         for sel in ("G3", "B3"):
             fr = res[sel]
+            fits_seen.append(fr)
             row["fits"][sel] = dict(status=fr.status, loglik=fr.loglik, selection=fr.selection, flags=fr.flags,
-                                    candidates=fr.candidates)
+                                    candidates=fr.candidates, quad=fr.quad)
             if fr.available:
                 sp = F.selected_spec(sel, fr, span_name, quad)
                 ll = F.score_heldout(sp, fr, test)
@@ -141,7 +150,7 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
     scores = {k: (float(np.nansum(v) / n) if not np.any(np.isnan(v)) else float("nan")) for k, v in sums.items()}
     return dict(setting=setting, r=r, m=m, base=base_subject, data_id=p.data_id, n_trials=p.n, n_scored=n,
                 scores=scores, fold_sums=sums, folds=folds, seconds=_time.time() - t0, code_hash=M.code_hash(),
-                quad=quad or {}, _xs=xs)
+                quad=quad or {}, quad_rule=F.quad_rule_record(fits_seen), _xs=xs)
 
 
 PARALLEL_BACKEND = "loky"          # tests switch to "threading" so that a monkeypatched task is seen by the workers
@@ -400,6 +409,105 @@ def node_check(setting: str, r: int, quad: dict, label: str, workers: int) -> di
         json.dump(out, f, indent=1)
     print(f"[s2 checks] {label} {setting} set {r}: max |ΔΔ₃| {worst:.2e} vs tolerance {0.1 * half:.2e} -> "
           f"{'PASS' if out['passed'] else 'FAIL'}; primary {ref['primary']} -> {out['primary_new']}; {out['seconds']:.0f} s", flush=True)
+    return out
+
+
+AWS_CHECK_DIR = os.path.join(S2_DIR + "_aws", "checks")      # the closure fleet's check files, pulled from S3
+
+
+def twopass_check(setting: str, r: int, workers: int, refit_sg: float = M.QUAD_G_REFIT_SG, ref_path: str | None = None,
+                  label: str | None = None) -> dict:
+    """The two-pass scale quadrature (models.QUAD_G_RULE "17then33" at threshold `refit_sg`; DESIGN §4, declared 25 Oct
+    2026 for the Codex S3 re-review) against the blanket 33-node reference of the §4 node check: replicate set r of
+    `setting` is refitted under the two-pass rule and every participant's Δ₃ = S_B3 − S_G3 is compared with `delta3_new`
+    of the reference file (nodes_g33_<setting>_set<r>.json from the checks host, pulled to results/s2_aws/checks/). PASS
+    if max |Δ₃(two-pass) − Δ₃(33)| < the tolerance recorded there (one tenth of the set's Δ₃ interval half-width).
+    Also recorded: the refit counts per model and the fraction of the eligible candidate fits refitted, the fitted s_g
+    of every candidate, the task seconds against the archived 17-node seconds of the same set on this machine, the
+    within-run multiplier (all fit seconds / their 17-node seconds, independent of the machine's load), and the set
+    primaries under 17, 33 and the two-pass rule. The rule reaches the loky workers explicitly (decision_task's
+    `g_rule`) and through the environment (JITTER_QUAD_G_RULE / JITTER_QUAD_G_REFIT_SG, read by models.py at import)."""
+    from joblib import Parallel, delayed
+    ref_path = os.path.join(AWS_CHECK_DIR, f"nodes_g33_{setting}_set{r}.json") if ref_path is None else ref_path
+    with open(ref_path) as f:
+        ref = json.load(f)
+    with open(os.path.join(DEC_DIR, setting, f"set_{r}.json")) as f:
+        arch = json.load(f)
+    rule = ("17then33", float(refit_sg))
+    os.environ["JITTER_QUAD_G_RULE"], os.environ["JITTER_QUAD_G_REFIT_SG"] = rule[0], f"{rule[1]:g}"
+    M.QUAD_G_RULE, M.QUAD_G_REFIT_SG = rule
+    label = (f"sg{refit_sg:g}" if label is None else label)
+    bases = load_bases()
+    members = arch["members"]
+    t0 = _time.time()
+    rows = Parallel(n_jobs=workers, backend="loky")(
+        delayed(decision_task)(setting, r, m, s, bases, "primary", None, rule) for m, s in enumerate(members))
+    rows = sorted(rows, key=lambda row: row["m"])
+    d17 = {f"m{m}": arch["delta3"][f"m{m}"] for m in range(len(members))}
+    d33 = {f"m{m}": ref["delta3_new"][f"m{m}"] for m in range(len(members))}
+    d_tp = {f"m{row['m']}": row["scores"]["B3"] - row["scores"]["G3"] for row in rows}
+    both = [k for k in d33 if np.isfinite(d33[k]) and np.isfinite(d_tp[k])]
+    diffs = {k: d_tp[k] - d33[k] for k in both}
+    worst = max(abs(v) for v in diffs.values()) if diffs else float("nan")
+    tol = float(ref["tolerance"])
+    # refits: per model over the 20 × 5 candidate fits, and the within-run cost split of every fit
+    per_model, s_g, refit_rows = {}, {}, {}
+    secs_all = secs_17 = 0.0
+    for row in rows:
+        k = f"m{row['m']}"
+        s_g[k], refit_rows[k] = {}, {}
+        for fold in row["folds"]:
+            for name in DECISION_SPECS:
+                fr = fold["fits"][name]
+                c = per_model.setdefault(name, dict(fits=0, refitted=0))
+                c["fits"] += 1
+                q = fr.get("quad") or {}
+                refit = q.get("refit_from") is not None
+                c["refitted"] += int(refit)
+                s_g[k][f"f{fold['fold']}_{name}"] = fr.get("s_g")
+                if refit:
+                    refit_rows[k][f"f{fold['fold']}_{name}"] = dict(s_g=q.get("refit_s_g"), loglik_before=q.get("loglik_before"),
+                                                                   loglik=fr["loglik"], seconds_before=q.get("seconds_before"),
+                                                                   seconds=fr["seconds"])
+                secs_all += fr["seconds"]
+                secs_17 += q.get("seconds_before", fr["seconds"]) if refit else fr["seconds"]
+    eligible = sum(c["fits"] for c in per_model.values())
+    refitted = sum(c["refitted"] for c in per_model.values())
+    task_tp = float(sum(row["seconds"] for row in rows))
+    task_17 = float(sum(p["seconds"] for p in arch["participants"]))
+    out = dict(setting=setting, r=r, label=label, rule=dict(rule=rule[0], refit_sg=rule[1], refit_nodes=M.QUAD_G_REFIT_NODES),
+               reference=os.path.relpath(ref_path, HERE), reference_label=ref.get("label"), tolerance=tol,
+               half_width=ref.get("half_width"), n_compared=len(both), max_abs_diff_vs_33=worst, passed=bool(worst < tol),
+               diffs_vs_33=diffs, diffs_vs_17={k: d_tp[k] - d17[k] for k in both},
+               delta3_twopass=d_tp, delta3_33=d33, delta3_17=d17,
+               primary_17=arch["primary"], primary_33=ref.get("primary_new"),
+               primary_twopass=X.set_primary({f"m{row['m']}": row["scores"] for row in rows}),
+               refits=dict(per_model=per_model, eligible_fits=eligible, refitted_fits=refitted,
+                           fraction=(refitted / eligible if eligible else None),
+                           participants_with_refit=sorted(k for k, v in refit_rows.items() if v), detail=refit_rows),
+               fitted_s_g=s_g,
+               cost=dict(fit_seconds_all=secs_all, fit_seconds_17_within_run=secs_17,
+                         within_run_multiplier=(secs_all / secs_17 if secs_17 else None),
+                         task_seconds_twopass=task_tp, task_seconds_17_archived=task_17,
+                         task_multiplier_vs_archive=(task_tp / task_17 if task_17 else None),
+                         workers_twopass=workers, workers_17=arch.get("workers"),
+                         mean_task_seconds_twopass=task_tp / len(rows), mean_task_seconds_17=task_17 / len(arch["participants"]),
+                         note="both on the Mac; the archived 17-node set ran alone at 12 workers, the two-pass run at "
+                              f"{workers} workers beside another job's battery — the within-run multiplier is the load-free figure"),
+               seconds=_time.time() - t0, code_hash=M.code_hash(), code_hash_17=arch.get("code_hash"),
+               utc=_time.strftime("%Y%m%dT%H%M%SZ", _time.gmtime()), participants=rows)
+    for row in out["participants"]:
+        row.pop("_xs", None)
+    os.makedirs(CHECK_DIR, exist_ok=True)
+    path = os.path.join(CHECK_DIR, f"twopass_g_{setting}_set{r}.json" if abs(refit_sg - 0.6) < 1e-12
+                        else f"twopass_g_{label}_{setting}_set{r}.json")
+    with open(path, "w") as f:
+        json.dump(out, f, indent=1)
+    per_txt = ", ".join(f"{n} {c['refitted']}/{c['fits']}" for n, c in per_model.items())
+    print(f"[s2 checks] two-pass {rule} {setting} set {r}: max |Δ₃(two-pass) − Δ₃(33)| {worst:.2e} vs tolerance {tol:.2e} -> "
+          f"{'PASS' if out['passed'] else 'FAIL'}; refitted {refitted}/{eligible} candidate fits ({per_txt}); "
+          f"within-run multiplier {out['cost']['within_run_multiplier']:.3f}; task seconds {task_tp:.0f} vs archived 17-node {task_17:.0f}; "
+          f"primary 17 {arch['primary']} / 33 {ref.get('primary_new')} / two-pass {out['primary_twopass']}; {out['seconds']:.0f} s -> {path}", flush=True)
     return out
 
 
@@ -677,10 +785,12 @@ def main():
     asm.add_argument("--setting", required=True, choices=list(SETTINGS))
     asm.add_argument("--set", type=int, required=True)
     c = sub.add_parser("checks")
-    c.add_argument("--kind", required=True, choices=["nodes", "ranks", "smallspread"])
+    c.add_argument("--kind", required=True, choices=["nodes", "ranks", "smallspread", "twopass"])
     c.add_argument("--setting", default="W2", choices=list(SETTINGS))
     c.add_argument("--set", type=int, default=0)
     c.add_argument("--workers", type=int, default=12)
+    c.add_argument("--sg", type=float, default=M.QUAD_G_REFIT_SG, help="twopass: the refit threshold on the fitted s_g (0.6 declared; 0.4 the declared retry)")
+    c.add_argument("--ref", default=None, help="twopass: the blanket-33 reference json (default results/s2_aws/checks/nodes_g33_<setting>_set<set>.json)")
     bsn = sub.add_parser("basins")
     bsn.add_argument("--workers", type=int, default=12)
     pr = sub.add_parser("profiles")
@@ -708,6 +818,8 @@ def main():
             node_check(a.setting, a.set, dict(n_g_nodes=33), "g33", a.workers)
             node_check(a.setting, a.set, dict(n_tau_nodes=61), "tau61", a.workers)
             node_check(a.setting, a.set, dict(n_g_nodes=7, adaptive_g=False), "prior7", a.workers)
+        elif a.kind == "twopass":
+            twopass_check(a.setting, a.set, a.workers, a.sg, a.ref)
         elif a.kind == "ranks":
             print(json.dumps(rank_checks(), indent=1))
         else:

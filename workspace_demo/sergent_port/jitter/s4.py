@@ -174,7 +174,8 @@ def make_synthetic(stage: str, setting: str, r: int, m: int, base: int, bases: d
 def _fit_summary(fr: F.FitResult, sp: M.ModelSpec | None) -> dict:
     d = dict(status=fr.status, loglik=fr.loglik, n_converged=fr.n_converged, n_starts=len(fr.starts),
              em_iterations=fr.em_iterations, selection=fr.selection, flags=fr.flags, candidates=fr.candidates,
-             notes=[n for n in fr.notes if "stopped" in n or "accepted" in n or "retried" in n], seconds=fr.seconds)
+             notes=[n for n in fr.notes if "stopped" in n or "accepted" in n or "retried" in n or "refit" in n],
+             seconds=fr.seconds, quad=fr.quad)
     if fr.available and sp is not None:
         P = M.unpack(sp, fr.theta)
         d.update(s_tau_ms=P.s_tau_ms, s_g=P.s_g, a=[float(v) for v in P.a[1:]])
@@ -194,11 +195,13 @@ def cv_task(stage: str, setting: str, r: int, m: int, base: int, bases: dict, mo
     cache = F.FitCache()
     sums = {k: [] for k in models}
     folds = []
+    fits_seen = []
     for fold in range(5):
         train, test, _, _ = D.fold_datasets(p, sp_, fold)
         res = F.fit_all_models(train, cache, "primary", models)
         row = dict(fold=fold, n_train=train.n, n_test=test.n, fits={})
         for name, fr in res.items():
+            fits_seen.append(fr)
             sp = F.selected_spec(name, fr, "primary") if fr.available else None
             row["fits"][name] = _fit_summary(fr, sp)
         for sel in models:
@@ -212,7 +215,7 @@ def cv_task(stage: str, setting: str, r: int, m: int, base: int, bases: dict, mo
     n = D.n_scored(p)
     scores = {k: (float(np.sum(v) / n) if not np.any(np.isnan(v)) else float("nan")) for k, v in sums.items()}
     rec = dict(stage=stage, setting=setting, r=r, m=m, base=base, data_id=p.data_id, n_trials=p.n, n_scored=n,
-               scores=scores, fold_sums=sums, folds=folds, code_hash=M.code_hash())
+               scores=scores, fold_sums=sums, folds=folds, code_hash=M.code_hash(), quad_rule=F.quad_rule_record(fits_seen))
     if inherited:
         t1 = _time.time()
         lme = S.inherited_fits(p.W53, p.levels, p.blocks)
@@ -243,7 +246,7 @@ def c0_task(family: str, config: int, i: int, bases: dict, out_path: str) -> dic
     rec = dict(family=family, config=config, i=i, data_id=p.data_id, q0=q0,
                reduced=_fit_summary(red, M.spec(family + "2")), positive=_fit_summary(pos, M.spec(family + "3+")),
                other_family={n: _fit_summary(res[n], M.spec(n)) for n in (other + "2", other + "3+")},
-               seconds=_time.time() - t0, code_hash=M.code_hash())
+               seconds=_time.time() - t0, code_hash=M.code_hash(), quad_rule=F.quad_rule_record(res.values()))
     _write(out_path, rec)
     return rec
 
@@ -266,6 +269,7 @@ def rec_task(setting_key: str, config: int, i: int, bases: dict, c0: dict, out_p
         cfg_g = S.recovery_setting(fam_g, s_tau, s_g_val)
         mode = "W"
     rows = {}
+    fits_seen = []
     for family, cfg in (("G", cfg_g), ("B", (S.with_nuisance(fam_b, 0.0, fam_b.s_g) if mode != "W" else S.recovery_setting(fam_b, truth["s_tau"], truth["s_g"])))):
         b = bases[config]
         seed = S.seed_for("validation", f"REC{family}|{setting_key}", config, i)
@@ -275,18 +279,20 @@ def rec_task(setting_key: str, config: int, i: int, bases: dict, c0: dict, out_p
         ds = D.full_dataset(p, D.span("primary"))
         cache = F.FitCache()
         res = F.fit_all_models(ds, cache, "primary", F.FULL_MODELS)
+        fits_seen += list(res.values())
         fits = {name: _fit_summary(fr, F.selected_spec(name, fr, "primary") if fr.available else None) for name, fr in res.items()}
         full = res[family + "3"]
         prof = None
         if full.available and c0.get(family) is not None:
-            ev, _ = F.profile_evaluator(family, ds, full, "primary", cache)
+            ev, plog = F.profile_evaluator(family, ds, full, "primary", cache)
             pr = X.hull_search(ev, full.loglik, c0[family])
             prof = pr.as_dict()
+            fits_seen += [v for s_ms, v in plog.items() if s_ms > 0.0]          # the s = 0 point is res[family + "2"], counted above
         rows[family] = dict(data_id=p.data_id, fits=fits, profile=prof,
                             s_tau_hat=fits[family + "3"].get("s_tau_ms"), s_g_hat=fits[family + "3"].get("s_g"),
                             selection=fits[family + "3"].get("selection"))
     rec = dict(setting=setting_key, config=config, i=i, truth=truth, families=rows, seconds=_time.time() - t0,
-               code_hash=M.code_hash())
+               code_hash=M.code_hash(), quad_rule=F.quad_rule_record(fits_seen))
     _write(out_path, rec)
     return rec
 

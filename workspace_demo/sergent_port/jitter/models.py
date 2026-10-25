@@ -76,6 +76,23 @@ N_G_NODES = 17                # adaptive Gauss–Hermite nodes in log g (checked
 #                               are flagged) — the mode-centred rule converges slowly when a wide scale prior meets a
 #                               likelihood of comparable precision. Fitted s_g on the real participants: 0.14–0.77.
 N_G_NODES_PRIOR = 7           # the design's prior-centred rule (kept for the node check)
+# The scale-quadrature RULE (declared 25 Oct 2026 for the Codex S3 re-review; implemented in fit.two_pass_refit, applied by
+# fit.fit_all_models and fit.profile_evaluator, so every caller inherits it):
+#   "17"        every scale-free fit at N_G_NODES adaptive nodes (today's behaviour; the default);
+#   "17then33"  every fit runs at 17 nodes as today; afterwards each fitted scale-free model whose fitted s_g EXCEEDS
+#               QUAD_G_REFIT_SG is refitted at QUAD_G_REFIT_NODES nodes by one EM chain warm-started from its 17-node
+#               optimum under its own Σ (the full start set is not repeated), and the refit replaces it everywhere
+#               downstream (selection, held-out scores at 33 nodes, archived starts). The threshold is read off the
+#               measured envelope above (8e-6 nat per trial-node for s_g ≤ 0.6 at 17 nodes; 2e-7 at 33), not off any
+#               development result. The §4 node check of 24 Oct (W2 set 0, blanket 33 against 17) FAILED on four
+#               participants whose fits sit above that spread; this rule is its declared refinement, judged by the
+#               S2 two-pass check (s2.py checks --kind twopass) before S3.
+# Both read the environment at import so that loky worker processes see the same rule as the parent (the check sets it;
+# an AWS user-data would export it). FitCache.key carries the rule; every result json records it with the refit counts.
+QUAD_G_RULE = os.environ.get("JITTER_QUAD_G_RULE", "17")
+QUAD_G_REFIT_SG = float(os.environ.get("JITTER_QUAD_G_REFIT_SG", "0.6"))
+QUAD_G_REFIT_NODES = 33
+QUAD_G_RULES = ("17", "17then33")
 NEWTON_STEPS = 4              # the blended start is within Newton's quadratic basin; 4 = 8 steps to 1e-12
 S_G_EPS = 1e-12               # s_g² floor inside the adaptive rule (s_g = 0 sits on the box)
 MODE_CLIP_SD = 12.0           # |û − μ_p| ≤ 12 s_g

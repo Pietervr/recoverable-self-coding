@@ -43,7 +43,7 @@ os.environ.setdefault("NPROC", "1")
 import hashlib  # noqa: E402
 import json  # noqa: E402
 import time as _time  # noqa: E402
-from dataclasses import asdict, dataclass, field  # noqa: E402
+from dataclasses import asdict, dataclass, field, replace  # noqa: E402
 
 import numpy as np  # noqa: E402
 from scipy.optimize import minimize, nnls  # noqa: E402
@@ -363,6 +363,9 @@ class FitResult:
     wh: object = None            # the model's own whitening (μ0, Σ) after the EM loop (S2 repair 1); None = the data's
     em_iterations: int = 0
     em_trace: list = field(default_factory=list)     # total log-likelihood after the multi-start fit and each EM step
+    quad: dict | None = None     # the quadrature that produced θ (n_tau_nodes, n_g_nodes, adaptive_g); a two-pass refit
+    #                              (models.QUAD_G_RULE "17then33") adds refit_from, refit_s_g, loglik_before, seconds_before.
+    #                              None = a record from before 25 Oct 2026: the caller's spec applies.
 
     @property
     def available(self) -> bool:
@@ -373,7 +376,7 @@ class FitResult:
                  theta=None if self.theta is None else [float(v) for v in self.theta],
                  loglik=float(self.loglik), n_converged=self.n_converged, seconds=self.seconds,
                  code_hash=self.code_hash, bounds_hit=self.bounds_hit, clipped=self.clipped, notes=self.notes,
-                 selection=self.selection, flags=self.flags, candidates=self.candidates,
+                 selection=self.selection, flags=self.flags, candidates=self.candidates, quad=self.quad,
                  em_iterations=self.em_iterations, em_trace=[float(v) for v in self.em_trace],
                  sigma_logdet=None if self.wh is None else float(self.wh.logdet),
                  wh=None if self.wh is None else dict(mu0=[float(v) for v in self.wh.mu0],
@@ -400,7 +403,12 @@ class FitResult:
         return FitResult(d["model"], d["ident"], d["status"], None if d["theta"] is None else np.asarray(d["theta"]),
                          d["loglik"], starts, d["n_converged"], d["seconds"], d["code_hash"], d["bounds_hit"],
                          d["clipped"], d["notes"], d.get("selection", ""), d.get("flags", []), d.get("candidates", {}),
-                         wh, d.get("em_iterations", 0), d.get("em_trace", []))
+                         wh, d.get("em_iterations", 0), d.get("em_trace", []), d.get("quad"))
+
+
+def _quad_of(sp: M.ModelSpec) -> dict:
+    """The quadrature record a FitResult carries for the spec that produced it."""
+    return dict(n_tau_nodes=int(sp.n_tau_nodes), n_g_nodes=int(sp.n_g_nodes), adaptive_g=bool(sp.adaptive_g))
 
 
 def _bounds_hit(sp: M.ModelSpec, theta: np.ndarray) -> list:
@@ -433,9 +441,9 @@ def fit_model(sp: M.ModelSpec, ds: D.Dataset, starts: list | None = None, info: 
         P = M.unpack(sp, best.x)
         clipped = [] if P.clipped is None else [int(v) for v in P.clipped]
         return FitResult(sp.name, ds.ident, "AVAILABLE", best.x, -best.f, results, len(conv), _time.time() - t0,
-                         M.code_hash(), _bounds_hit(sp, best.x), clipped, notes)
+                         M.code_hash(), _bounds_hit(sp, best.x), clipped, notes, quad=_quad_of(sp))
     return FitResult(sp.name, ds.ident, "UNAVAILABLE", None, -np.inf, results, 0, _time.time() - t0,
-                     M.code_hash(), [], [], notes + ["no CONVERGED start"])
+                     M.code_hash(), [], [], notes + ["no CONVERGED start"], quad=_quad_of(sp))
 
 
 # ----------------------------------------------------------------------------------------------
@@ -455,11 +463,12 @@ class FitCache:
             os.makedirs(directory, exist_ok=True)
 
     def key(self, ds: D.Dataset, sp: M.ModelSpec, recipe: str = "std") -> str:
-        """Cache identity: data identity, model, quadrature, start recipe, the EM mode of this cache and the code
-        hash — so that a persistent cache written under another construction or another code version can never
+        """Cache identity: data identity, model, quadrature, start recipe, the scale-quadrature RULE in force
+        (models.QUAD_G_RULE; a two-pass refit also carries its own recipe suffix), the EM mode of this cache and the
+        code hash — so that a persistent cache written under another construction, rule or code version can never
         answer for this one (Codex S3 review 24 Oct, finding 2)."""
         quad = f"t{sp.n_tau_nodes}g{sp.n_g_nodes}{'a' if sp.adaptive_g else 'p'}"
-        return f"{ds.ident}|{sp.name}|{quad}|{recipe}|{'em' if self.em else 'fixed'}|{M.code_hash()}"
+        return f"{ds.ident}|{sp.name}|{quad}|{recipe}|rule{M.QUAD_G_RULE}|{'em' if self.em else 'fixed'}|{M.code_hash()}"
 
     def _path(self, key: str) -> str:
         return os.path.join(self.dir, hashlib.sha256(key.encode()).hexdigest()[:24] + ".json")
@@ -514,14 +523,75 @@ def select(name: str, reduced: FitResult, positive: FitResult, sp_pos: M.ModelSp
             flags.append("positive_unavailable")
     return FitResult(name, src.ident, "AVAILABLE", src.theta, src.loglik, src.starts, src.n_converged,
                      reduced.seconds + positive.seconds, M.code_hash(), src.bounds_hit, src.clipped, src.notes,
-                     sel, flags, cands, src.wh, src.em_iterations, src.em_trace)
+                     sel, flags, cands, src.wh, src.em_iterations, src.em_trace, src.quad)
+
+
+def two_pass_refit(sp: M.ModelSpec, ds: D.Dataset, r: FitResult, cache: FitCache, info: StartInfo | None = None,
+                   recipe: str = "std") -> FitResult:
+    """The two-pass scale quadrature (DESIGN §4, declared 25 Oct 2026 for the Codex S3 re-review; the rule is
+    `models.QUAD_G_RULE`). Under "17then33" a fitted scale-free model whose fitted s_g EXCEEDS models.QUAD_G_REFIT_SG
+    is refitted at models.QUAD_G_REFIT_NODES adaptive nodes by ONE EM chain warm-started from its optimum under its own
+    Σ — the full start set is not repeated; the inner solve, the acceptance rule and the EM loop are those of em_fit —
+    and the refit replaces it everywhere downstream (it carries quad.n_g_nodes = 33, so selected_spec scores its
+    held-out trials at 33 nodes; its archive is the 17-node archive followed by the refit chain). Under "17" (the
+    default: today's behaviour) `r` is returned untouched. Models without a scale term, fits already at 33 or more
+    nodes, the prior-centred rule and UNAVAILABLE fits are never refitted; a refit that ends UNAVAILABLE leaves the
+    17-node result in place with a note. The refit is cached under the 33-node spec with the recipe suffix
+    "|refit<from>" so that a blanket 33-node fit and a two-pass refit can never answer for each other."""
+    if M.QUAD_G_RULE == "17":
+        return r
+    if M.QUAD_G_RULE not in M.QUAD_G_RULES:
+        raise ValueError(f"unknown models.QUAD_G_RULE {M.QUAD_G_RULE!r}; one of {M.QUAD_G_RULES}")
+    if not (sp.scale_free and sp.adaptive_g and r.available and sp.n_g_nodes < M.QUAD_G_REFIT_NODES):
+        return r
+    s_g = float(M.unpack(sp, r.theta).s_g)
+    if not s_g > M.QUAD_G_REFIT_SG:
+        return r
+    sp33 = replace(sp, n_g_nodes=M.QUAD_G_REFIT_NODES)
+    key = cache.key(ds, sp33, f"{recipe}|refit{sp.n_g_nodes}")
+    r33 = cache.get(key)
+    if r33 is not None:
+        return r33
+    label = f"refit_g{M.QUAD_G_REFIT_NODES}"
+    wh = r.wh if r.wh is not None else ds.wh
+    r33 = em_fit(sp33, ds, [], info, em=cache.em, warm=[(label, np.asarray(r.theta, dtype=np.float64), wh)])
+    if not r33.available:
+        r.notes = list(r.notes) + [f"two-pass refit at {M.QUAD_G_REFIT_NODES} scale nodes (s_g {s_g:.3f} > "
+                                   f"{M.QUAD_G_REFIT_SG:g}) ended UNAVAILABLE; the {sp.n_g_nodes}-node result stands"]
+        return r
+    r33.starts = list(r.starts) + list(r33.starts)
+    r33.notes = list(r.notes) + list(r33.notes) + [
+        f"two-pass refit at {M.QUAD_G_REFIT_NODES} scale nodes from the {sp.n_g_nodes}-node optimum (s_g {s_g:.3f} > "
+        f"{M.QUAD_G_REFIT_SG:g}): {r.loglik:.3f} -> {r33.loglik:.3f} nat"]
+    r33.quad = dict(_quad_of(sp33), refit_from=int(sp.n_g_nodes), refit_s_g=s_g, loglik_before=float(r.loglik),
+                    seconds_before=float(r.seconds))
+    r33.seconds = float(r.seconds) + float(r33.seconds)
+    cache.put(key, r33)
+    return r33
+
+
+def quad_rule_record(fits) -> dict:
+    """What the scale-quadrature rule did on these FitResults — every result json carries it (DESIGN §4): the rule in
+    force, its threshold and node counts, and per model name the fits seen and those refitted at QUAD_G_REFIT_NODES."""
+    per = {}
+    for r in fits:
+        if r is None:
+            continue
+        c = per.setdefault(r.model, dict(fits=0, refitted=0))
+        c["fits"] += 1
+        c["refitted"] += int((r.quad or {}).get("refit_from") is not None)
+    return dict(rule=M.QUAD_G_RULE, refit_sg=float(M.QUAD_G_REFIT_SG), refit_nodes=int(M.QUAD_G_REFIT_NODES),
+                default_nodes=int(M.N_G_NODES), per_model=per)
 
 
 def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str | None = None,
                    models: tuple = FULL_MODELS, quad: dict | None = None) -> dict:
     """The eight models of §4 on one dataset: {name: FitResult}, selected models built from their candidates;
     also returns the candidates under their spec names. Reduced fits are cached and never refitted. `quad`
-    overrides the node counts / rule (n_tau_nodes, n_g_nodes, adaptive_g) for the §4 node checks."""
+    overrides the node counts / rule (n_tau_nodes, n_g_nodes, adaptive_g) for the §4 node checks. After the whole
+    cross-family procedure the two-pass scale quadrature (two_pass_refit; models.QUAD_G_RULE, default "17" = no second
+    pass) refits the scale-free candidates whose fitted s_g exceeds the threshold and rebuilds the selected models from
+    the refitted candidates."""
     cache = FitCache() if cache is None else cache
     span_name = ds.span.name if span_name is None else span_name
     quad = {} if quad is None else quad
@@ -627,6 +697,21 @@ def fit_all_models(ds: D.Dataset, cache: FitCache | None = None, span_name: str 
                 if g_new is not out[g_name]:
                     out[g_name] = g_new
                     out[name] = nest_b(sp, out[name], g_new, info_s)
+    if M.QUAD_G_RULE != "17":
+        # the second pass of the two-pass scale quadrature: every scale-free candidate whose fitted s_g exceeds the
+        # threshold is refitted at QUAD_G_REFIT_NODES from its own optimum, then the selected models whose candidates
+        # changed are rebuilt (REDUCED/POSITIVE compared at the refitted log-likelihoods)
+        changed = set()
+        for name in [n for n in out if n in M.MODEL_NAMES]:
+            sp = M.spec(name, span_name, **quad)
+            if sp.scale_free:
+                r2 = two_pass_refit(sp, ds, out[name], cache, info_for(sp))
+                if r2 is not out[name]:
+                    out[name], changed = r2, changed | {name}
+        for name in [n for n in out if n in M.SELECTED_NAMES]:
+            red_name, pos_name = M.SELECTED_NAMES[name]
+            if changed & {red_name, pos_name} and red_name in out and pos_name in out:
+                out[name] = select(name, out[red_name], out[pos_name], selected_spec(pos_name, out[pos_name], span_name, quad))
     return out
 
 
@@ -707,7 +792,7 @@ def _em_loop(sp: M.ModelSpec, ds: D.Dataset, r: FitResult, cur: D.Dataset, info:
         P = M.unpack(sp, theta2)
         clipped = [] if P.clipped is None else [int(v) for v in P.clipped]
         r = FitResult(sp.name, ds.ident, "AVAILABLE", theta2, ll2, archive, n_conv, seconds, M.code_hash(),
-                      _bounds_hit(sp, theta2), clipped, notes, "", [], {}, wh, it, trace)
+                      _bounds_hit(sp, theta2), clipped, notes, "", [], {}, wh, it, trace, _quad_of(sp))
         cur = nxt
         if gain <= tol * max(1.0, abs(r.loglik)):
             break
@@ -773,7 +858,13 @@ def spec_of(result_name: str, span_name: str) -> M.ModelSpec:
 
 
 def selected_spec(name: str, r: FitResult, span_name: str, quad: dict | None = None) -> M.ModelSpec:
-    quad = {} if quad is None else quad
+    """Spec that evaluates a result's θ: selected names resolve to the candidate that was selected, and the quadrature
+    is the one the result RECORDS (`FitResult.quad`: a two-pass refit carries 33 scale nodes, so its held-out trials
+    are scored at 33 nodes), falling back to the caller's `quad` override for records without one."""
+    quad = {} if quad is None else dict(quad)
+    rq = getattr(r, "quad", None) if r is not None else None
+    if rq:
+        quad.update({k: rq[k] for k in ("n_tau_nodes", "n_g_nodes", "adaptive_g") if k in rq})
     if name in M.SELECTED_NAMES:
         red_name, pos_name = M.SELECTED_NAMES[name]
         return M.spec(red_name if r.selection == "REDUCED" else pos_name, span_name, **quad)
@@ -941,7 +1032,10 @@ def constrained_starts(sp_full: M.ModelSpec, sp_c: M.ModelSpec, unrestricted: Fi
 def profile_evaluator(family: str, ds: D.Dataset, unrestricted: FitResult, span_name: str, cache: FitCache,
                       info: StartInfo | None = None, n_starts: int = 2):
     """Callable s ↦ (ℓ_prof(s) or None if UNAVAILABLE, FitResult) for decide.hull_search. The s = 0 point is the
-    cached reduced fit (G2/B2)."""
+    cached reduced fit (G2/B2). Every constrained fit goes through the two-pass scale quadrature as well
+    (two_pass_refit; a no-op under the default rule), so that under "17then33" the profile's constrained fits obey the
+    same rule as the unrestricted fit they are compared with — the s = 0 point then resolves to the same refitted
+    reduced fit that fit_all_models produced."""
     sp_full = M.spec(family + "3+", span_name)
     sp_u = selected_spec(family + "3", unrestricted, span_name)
     info = start_info(sp_full, ds) if info is None else info
@@ -950,10 +1044,11 @@ def profile_evaluator(family: str, ds: D.Dataset, unrestricted: FitResult, span_
     def evaluate(s_ms: float):
         sp_c = sp_full.constrained(s_ms)
         if s_ms <= 0.0:
-            r = cache.fit(sp_c, ds, info)
+            r = two_pass_refit(sp_c, ds, cache.fit(sp_c, ds, info), cache, info)
         else:
             starts = constrained_starts(sp_full, sp_c, unrestricted, sp_u, info, n_starts)
             r = cache.fit(sp_c, ds, info, recipe=f"prof{n_starts}", starts=starts)
+            r = two_pass_refit(sp_c, ds, r, cache, info, recipe=f"prof{n_starts}")
         log[float(s_ms)] = r
         return (r.loglik if r.available else None), r
 
