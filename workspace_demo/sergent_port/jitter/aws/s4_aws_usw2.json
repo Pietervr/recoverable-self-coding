@@ -12,7 +12,7 @@
   "bucket": "xtenure-cself-pvr-usw2",
   "code_prefix": "code/t1_access/jitter_s4",
   "results_prefix": "results/t1_access/jitter_s4",
-  "spot_max_price": "2.20",
+  "spot_max_price": "2.60",
   "spot_price_estimate_usd_h": 1.6,
   "on_demand_usd_h": 4.93,
   "on_demand_fallback": false,
