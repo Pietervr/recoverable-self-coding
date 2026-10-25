@@ -1,8 +1,9 @@
 # Does the human two-state preference survive trial-level latency and scale variation?
 
 Design, revision 7 — 24 October 2026, session R052 Entropy SI. Status (25 Oct): S2 CLOSED on AWS + Mac repair 25 Oct;
-FOR THE CODEX S3 RE-REVIEW (the closure readings S2_REPORT 4.3-4.5, the repaired node checks S2_REPORT 8, the
-throughput fix §8). Rev 5 (RSC 0ddac98) received FAVOURABLE WITH CONDITIONS
+the Codex S3 re-review (`reviews/2026-10-25_s3_freeze_rereview_codex_review.md`) holds the FREEZE; its code blockers
+are closed at code hash ca6c7e5547d5 (§4, §5, §8), and the final-rule paired checks and the R = 25 development blocks
+under one immutable bundle on c7a.24xlarge are the evidence still owed before S3. Rev 5 (RSC 0ddac98) received FAVOURABLE WITH CONDITIONS
 (`reviews/2026-10-24_design_v5_codex_review.md`); rev 6 closed its four conditions and was the specification S1–S2
 implemented. Revs 1–4 (960e93b, 57c1280, 8d6c195, 78e348c) and their reviews are the record of how it got here.
 Rev 7 records what S2 found and changed (`S2_REPORT.md` is the evidence): the rev 6 fitter read 6 of 19 graded (W2)
