@@ -18,6 +18,9 @@ cp "$J"/DESIGN_jitter.md "$STAGE/sergent_port/jitter/"
 cp "$J"/results/s2/diagnosis/*.py "$STAGE/sergent_port/jitter/results/s2/diagnosis/"
 cp "$J"/aws/s2_closure.sh "$STAGE/sergent_port/jitter/aws/"
 cp "$J"/results/generators/*.npz "$J"/results/generators/bases_active.json "$STAGE/sergent_port/jitter/results/generators/"
+# the archived Mac record of W2 set 0: the final-rule node checks verify their 20 data identities against it (s2.repair_run)
+mkdir -p "$STAGE/sergent_port/jitter/results/s2/decision/W2"
+cp "$J"/results/s2/decision/W2/set_0.json "$STAGE/sergent_port/jitter/results/s2/decision/W2/"
 echo "$HASH" > "$STAGE/sergent_port/jitter/BUNDLE_RSC_HASH"
 tar -C "$STAGE" -czf "$OUT/jitter_bundle_$HASH.tar.gz" sergent_port
 shasum -a 256 "$OUT/jitter_bundle_$HASH.tar.gz" | tee "$OUT/jitter_bundle_$HASH.tar.gz.sha256"

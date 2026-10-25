@@ -310,6 +310,17 @@ in reduced (s_τ = 0) models. No information criterion is added to a cross-valid
   solve and left G at its starting-Σ optimum on 11 of 900 development folds (D4: one fold 388 nat below B with a
   +18.6 nat held-out excess); under rev 7 no development chain ended that way (35 ascent steps accepted, all
   improving; `S2_REPORT.md` §4.2). Every EM step is archived as a start of the fit.
+- Numerical failures and the final nesting guard (25 Oct, Codex S3 re-review finding 7; `fit.RESCUE_ROUNDS = 2`,
+  `fit.finalize_failure`, `fit.usable`). (a) A fit whose selected log-likelihood stands below a stationary end point
+  that the acceptance rule refused is restarted deterministically from that end point, under the whitening it was
+  reached on, with the standard options and the unchanged acceptance rule, followed by the EM loop, for at most two
+  rounds. An accepted rescue that beats the standing fit becomes the selection and the failure is resolved, with the
+  rounds and before/after log-likelihoods archived. (b) A failure that still stands, or a required rescue chain
+  (two-pass refit, re-seed, nest) that ends UNAVAILABLE, makes the fit UNAVAILABLE with reason `numerical_failure`. It
+  is counted by every availability denominator and gate like any other UNAVAILABLE fit, and its diagnostics stay in
+  the record. (c) At the end of every fit, each G/B candidate pair (G0/B0, G1+/B1+, G2/B2, G3+/B3+) and selected pair
+  (G1/B1, G3/B3) at matched quadrature with l(B) − l(G) < −1e-6·max(1, |l(G)|) receives one nest rescue. A deficit
+  that persists is recorded as a nesting failure and counted in every task record; it does not change availability.
 - Score: every out-of-fold trial's log marginal density summed once over the five folds, divided once by the total
   number of scored trials (block 21 excluded): S_{s,m}, nat per trial. The inherited fold-mean convention
   (`fit_models.py:254`) is reported for continuity only.
@@ -484,7 +495,8 @@ unchanged). No monotone finite-training advantage is guaranteed, so the search i
 ### 7.5 Recovery battery, profiles and the jitter flags
 Fixed roster: the 20 real participants' G3 and B3 generator configurations (not resampled). Recovery settings per
 family: (s_τ, s_g) ∈ {0, 20, 40, 80} ms × {0, fitted, 1.0} (12 each, 24); plus O1 and O2 at zero jitter, generated
-once and fitted by both families (2 shared): 26 settings. R = 25 independent datasets per configuration × setting;
+once and fitted by both families (2 shared; each (config, i) draws one dataset with a family-free seed, the eight
+models are fitted once and both families' profiles read it): 26 settings. R = 25 independent datasets per configuration × setting;
 all eight models fitted on FULL synthetic data (all blocks; the same fit size as the real reported estimates),
 PRIMARY span, 4 starts (§5).
 Confidence-bound convention for recovery rates (R2–R5): these pool replicates over a FIXED heterogeneous roster of
@@ -606,9 +618,17 @@ closure; 251 per host-hour as run over that batch of 100, start-up and tail incl
 c7a.24xlarge, no `XLA_FLAGS`, the pinned stack (numpy 2.5.3, scipy 1.18.1, jax/jaxlib 0.11.1, joblib 1.6.0, pandas
 3.0.5); ALL S4 AND S5 FITTING on c7a.24xlarge (the Mac may assemble the article; it fits nothing that enters a
 reported number, because transporting the calibrated procedure to another numerical platform has not been checked);
-a run record (`results/s4/run_config.json`: chunk, node counts, scale rule and threshold, profile starts, versions,
-host, code hash, generator asset hashes) is written at the first start and a resumed run or S5 with a different
-record refuses to start. Only the training objective is chunked; held-out densities and the EM posterior are not.
+a run record (`results/s4/run_config.json`: the trial chunk in force, node counts, scale rule, threshold and refit
+nodes, profile starts, rescue rounds, nesting tolerance, the numpy/scipy/jax/jaxlib/joblib/pandas/python versions,
+machine and CPU model, the fitter code hash and the sha256 of every generator asset) is written at the first start;
+every task record carries its fingerprint, a resumed run whose fingerprint or runner hash differs refuses, and S5
+fitting refuses unless its fingerprint equals the S4 record's (it writes `results/s5/run_config.json`). Only the
+training objective is chunked; held-out densities and the EM posterior are not. The executable defaults are the
+frozen S4 rule: `models.N_TAU_NODES = 61`, `N_G_NODES = 17` under `QUAD_G_RULE = "17then33"`, and `TRIAL_CHUNK` from
+`JITTER_TRIAL_CHUNK` (code default 0; the S4/S5 hosts export 64). Every spec and basis binds these module constants,
+the profile takes the unrestricted fit's recorded quadrature, and the S2 check runs override them only explicitly
+(`s2.REPAIR_RUNS`). The O5 marginal level mean stays on the 31-node grid the frozen generators were fitted on
+(`simulate.GENERATOR_TAU_NODES`).
 PROJECTION (not a completed run): S4 at 61 latency nodes (1.59× measured) about 65,000 decision-task-equivalents ≈ 200
 host-hours at 80% of the probe rate ≈ 10 h on 20 spot hosts (5 per region in eu-north-1, us-east-1, us-west-2,
 eu-west-1, inside the standing 512 Spot vCPU quota each) ≈ USD 200-300, before the two-pass refits, four-start profiles
