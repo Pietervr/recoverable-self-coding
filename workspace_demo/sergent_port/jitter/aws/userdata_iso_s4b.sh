@@ -99,6 +99,28 @@ sys.path.insert(0, os.getcwd())
 import s4  # noqa: E402
 
 
+UNIT_K, UNIT_SUB = 20, 3          # a unit u is sub-shard u % 3 of hash shard u // 3 of 20 (60 units)
+
+
+def select(kind: str, shard: str | None) -> list:
+    """The task list of this host. `shard` "i/K" = s4.pending(..., "i/K") as in s4.py. `shard` "units:A-B/60" (25 Oct
+    2026, more spot hosts than the 20 hash shards) = units A..B, unit u being the tasks of hash shard (u // 3)/20 whose
+    second hash sha256(path + "|sub") % 3 == u % 3: the 60 units partition the 20 shards exactly, so hosts holding disjoint
+    unit ranges never repeat each other's tasks and together cover the queue."""
+    import hashlib
+    if not shard or not shard.startswith("units:"):
+        return s4.pending(s4.s4b_tasks(kind), shard)
+    rng_, n = shard[len("units:"):].split("/")
+    lo, hi = (int(v) for v in rng_.split("-"))
+    assert int(n) == UNIT_K * UNIT_SUB and 0 <= lo <= hi < int(n), shard
+    out = []
+    for u in range(lo, hi + 1):
+        for t in s4.pending(s4.s4b_tasks(kind), f"{u // UNIT_SUB}/{UNIT_K}"):
+            if int(hashlib.sha256((t["path"] + "|sub").encode()).hexdigest()[:8], 16) % UNIT_SUB == u % UNIT_SUB:
+                out.append(t)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--workers", type=int, default=96)
@@ -109,7 +131,7 @@ def main():
     s4.ensure_run_record(f"S4b {a.kind}")
     bases = s4.load_bases()
     c0 = s4.load_c0(a.wait_h * 3600.0) if a.kind == "rec" else s4.load_s4a()["c0"]
-    todo = s4.pending(s4.s4b_tasks(a.kind), a.shard)
+    todo = select(a.kind, a.shard)
     label = f"S4b {a.kind} shard {a.shard or '1/1'} (isolated)"
     print(f"[s4] {label}: {len(todo)} tasks on {a.workers} workers, one process per task, start "
           f"{time.strftime('%H:%M:%SZ', time.gmtime())}", flush=True)
