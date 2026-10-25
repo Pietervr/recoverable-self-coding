@@ -319,6 +319,51 @@
    "region": "eu-north-1",
    "az": "eu-north-1b",
    "bundle": "jitter_bundle_571fcd9.tar.gz"
+  },
+  {
+   "instance_id": "i-0f17cfa2346b9c963",
+   "mode": "xprobe",
+   "shard": "xp-c7a",
+   "part": "base,nothunk,prof",
+   "kind": "all",
+   "workers": 1,
+   "market": "on-demand",
+   "launched_utc": "2026-10-25T05:59:49.433203+00:00",
+   "lifetime_h": 1.5,
+   "instance_type": "c7a.4xlarge",
+   "region": "eu-north-1",
+   "az": "eu-north-1b",
+   "bundle": "jitter_bundle_571fcd9.tar.gz"
+  },
+  {
+   "instance_id": "i-08485ebe6315c6c89",
+   "mode": "xprobe",
+   "shard": "xp-c7i",
+   "part": "base,nothunk",
+   "kind": "all",
+   "workers": 1,
+   "market": "on-demand",
+   "launched_utc": "2026-10-25T05:59:51.933373+00:00",
+   "lifetime_h": 1.5,
+   "instance_type": "c7i.4xlarge",
+   "region": "eu-north-1",
+   "az": "eu-north-1b",
+   "bundle": "jitter_bundle_571fcd9.tar.gz"
+  },
+  {
+   "instance_id": "i-0a9497f048b17bd1d",
+   "mode": "xprobe",
+   "shard": "xp-c8g",
+   "part": "base,prof",
+   "kind": "all",
+   "workers": 1,
+   "market": "on-demand",
+   "launched_utc": "2026-10-25T05:59:54.396808+00:00",
+   "lifetime_h": 1.5,
+   "instance_type": "c8g.4xlarge",
+   "region": "eu-north-1",
+   "az": "eu-north-1b",
+   "bundle": "jitter_bundle_571fcd9.tar.gz"
   }
  ]
 }
