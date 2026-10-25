@@ -42,7 +42,7 @@
   }
  ],
  "est_running_usd": 0.0,
- "closed_usd": 903.79,
+ "closed_usd": 905.79,
  "closed_log": [
   {
    "utc": "2026-10-24T19:15:33.279423+00:00",
@@ -158,6 +158,11 @@
    "utc": "2026-10-25T21:39:41.315602+00:00",
    "usd": 320.0,
    "note": "S4b spot to 21:18Z: cv 20 hosts 13:56-16:45 (~56 h incl. interruptions), cv 30 unit hosts 16:45-21:18 (~96 h), rec 20 hosts 16:33-19:37 (~60 h); ~212 host-h at ~USD 1.5/h mean spot (7 regions); estimate, reconcile with Cost Explorer. S4 total ~USD 707 (S4a 70 + rec on-demand 317 + spot 320) vs cap 1,300"
+  },
+  {
+   "utc": "2026-10-25T23:37:48.727085+00:00",
+   "usd": 2.0,
+   "note": "S5 one c7a.24xlarge spot eu-north-1 21:50-23:37Z (~1.8 h at ~USD 1.0/h)"
   }
  ],
  "launch_log": [
