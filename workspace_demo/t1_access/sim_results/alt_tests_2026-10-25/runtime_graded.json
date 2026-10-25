@@ -1,0 +1,31 @@
+{
+ "battery": "graded",
+ "csv": "workspace_demo/t1_access/sim_results/d4v12b/calibration_D4.csv",
+ "n_datasets": 12000,
+ "commit": "52267ec",
+ "code_hash": "b29215469af9",
+ "n_jobs": 12,
+ "seconds": 124.2,
+ "per_dataset_seconds": 0.01,
+ "levels": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  6,
+  8
+ ],
+ "test_levels": [
+  2,
+  3,
+  4
+ ],
+ "dip_alpha_declared": 0.016666666666666666,
+ "dip_alpha_all": 0.0071428571428571435,
+ "dbic_strong": 10.0,
+ "beta_cap": 300.0,
+ "gmm_n_init": 5,
+ "runtime": "python 3.12.14 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 scikit-learn 1.9.1 diptest 0.12.0 joblib 1.6.0 arm64",
+ "finished": "2026-10-24 18:30:48 PDT"
+}

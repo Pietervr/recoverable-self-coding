@@ -1,0 +1,52 @@
+{
+ "graded": {
+  "n_datasets": 12000,
+  "dip_calls": 0,
+  "dip_all7_calls": 0,
+  "bic10_calls": 5577,
+  "bic0_calls": 5804,
+  "bic10_all7_calls": 5597,
+  "saved_mixture_calls": 0,
+  "bic10_settings_with_calls": [
+   "Threshold effect, tau = 1",
+   "Threshold effect, tau = 2",
+   "Concept scale, omega = 0.5",
+   "Concept scale, omega = 1",
+   "Concept scale, omega = 2",
+   "Skew, alpha = 3"
+  ],
+  "dip_settings_with_calls": [],
+  "beta_median_min": 0.6793902710278521,
+  "beta_median_max": 1.670937527074936,
+  "beta_capped_total_share": 0.0015833333333333333
+ },
+ "mixture": {
+  "n_datasets": 600,
+  "dip_calls": 18,
+  "dip_all7_calls": 14,
+  "bic10_calls": 412,
+  "bic0_calls": 472,
+  "bic10_all7_calls": 412,
+  "saved_mixture_calls": 599,
+  "bic10_settings_with_calls": [
+   "M3, gain 0.003",
+   "M3, gain 0.01",
+   "M3, gain 0.03",
+   "M3H, gain 0.01",
+   "M3H, gain 0.03",
+   "M3V, gain 0.003",
+   "M3V, gain 0.01",
+   "M3V, gain 0.03",
+   "M3L, gain 0.003",
+   "M3L, gain 0.01",
+   "M3L, gain 0.03"
+  ],
+  "dip_settings_with_calls": [
+   "M3, gain 0.03",
+   "M3L, gain 0.03"
+  ],
+  "beta_median_min": 1.3564788014216511,
+  "beta_median_max": 1.6140401757981166,
+  "beta_capped_total_share": 0.0
+ }
+}

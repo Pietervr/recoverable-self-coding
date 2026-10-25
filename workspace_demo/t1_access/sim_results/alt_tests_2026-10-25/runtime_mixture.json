@@ -1,0 +1,31 @@
+{
+ "battery": "mixture",
+ "csv": "workspace_demo/t1_access/sim_results/sens600/power_D4.csv",
+ "n_datasets": 600,
+ "commit": "a9f66bb",
+ "code_hash": "625798e9e7f4",
+ "n_jobs": 12,
+ "seconds": 6.7,
+ "per_dataset_seconds": 0.011,
+ "levels": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  6,
+  8
+ ],
+ "test_levels": [
+  2,
+  3,
+  4
+ ],
+ "dip_alpha_declared": 0.016666666666666666,
+ "dip_alpha_all": 0.0071428571428571435,
+ "dbic_strong": 10.0,
+ "beta_cap": 300.0,
+ "gmm_n_init": 5,
+ "runtime": "python 3.12.14 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 scikit-learn 1.9.1 diptest 0.12.0 joblib 1.6.0 arm64",
+ "finished": "2026-10-24 18:30:56 PDT"
+}
