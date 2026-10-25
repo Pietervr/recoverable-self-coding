@@ -62,6 +62,43 @@ def load_s4_summary() -> dict:
     return summ
 
 
+def ensure_run_record(label: str) -> dict:
+    """S5 fits under the S4 numerical contract (Codex S3 re-review finding 6: S4 and S5 fitting on the same host type with the
+    same pins). results/s4/run_config.json must exist and this process's fingerprint — trial chunk, node counts, scale rule,
+    profile starts, rescue rounds, software versions, machine, CPU model, fitter code hash, generator assets — must equal it;
+    otherwise S5 refuses with every difference named. The S5 record is written beside the results (results/s5/run_config.json;
+    a resumed S5 is checked against it too). The runner hash may differ from S4's (it is recorded, not required)."""
+    s4_path = os.path.join(s4.S4_DIR, F.RUN_CONFIG_NAME)
+    if not os.path.exists(s4_path):
+        raise F.RunConfigMismatch(f"{label} refused: {s4_path} is missing — S5 runs only under the recorded S4 contract")
+    with open(s4_path) as f:
+        rec4 = json.load(f)
+    s4.load_bases()
+    cur = F.run_record(s4.GEN_DIR)
+    if cur["fingerprint"] != rec4.get("fingerprint"):
+        diffs = F.config_differences(rec4, cur) or [f"fingerprint: S4 {rec4.get('fingerprint')}, this process {cur['fingerprint']}"]
+        raise F.RunConfigMismatch(f"{label} refused: this process does not match the S4 run record {s4_path} "
+                                  f"(written {rec4.get('utc')} on {rec4.get('host')}):\n  - " + "\n  - ".join(diffs) +
+                                  "\nRun S5 on the S4 host type with the S4 bundle and environment (e.g. export JITTER_TRIAL_CHUNK=64).")
+    rec = F.ensure_run_record(S5_DIR, s4.GEN_DIR, label, check_runner=True)
+    rec = dict(rec, s4_fingerprint=rec4.get("fingerprint"), s4_runner_hash=rec4.get("runner_hash"))
+    print(f"[s5] run record matches S4 ({cur['fingerprint']}); runner hash {cur['runner_hash']} (S4 {rec4.get('runner_hash')})", flush=True)
+    return rec
+
+
+def _failures_from_json(fits_per_fold: list) -> dict:
+    nf, rescued, nest = [], [], []
+    for fold, fits in enumerate(fits_per_fold):
+        for name, d in fits.items():
+            if d.get("numerical_failure"):
+                nf.append(f"f{fold}_{name}")
+            if (d.get("rescue") or {}).get("resolved"):
+                rescued.append(f"f{fold}_{name}")
+            if (d.get("nesting") or {}).get("failure"):
+                nest.append(f"f{fold}_{name}<{d['nesting'].get('vs')}")
+    return dict(numerical_failures=nf, rescued=rescued, nesting_failures=nest)
+
+
 def load_c0() -> dict:
     with open(os.path.join(s4.S4_DIR, "s4a.json")) as f:
         return json.load(f)["c0"]
@@ -79,7 +116,7 @@ def cv_task(p: D.Participant, out_path: str) -> dict:
     rec = dict(participant=res.participant, subject=int(p.subject), session=p.session, tag=p.tag, span="primary",
                data_id=p.data_id, n_trials=int(p.n), n_scored=res.n_scored, scores=res.scores, fold_sums=res.fold_sums,
                fold_mean=res.fold_mean, available=res.available, fits=res.fits, seconds=_time.time() - t0,
-               code_hash=M.code_hash())
+               code_hash=M.code_hash(), run_fingerprint=s4.run_fingerprint(), **_failures_from_json(res.fits))
     s4._write(out_path, rec)
     return rec
 
@@ -91,19 +128,27 @@ def full_task(p: D.Participant, c0: dict, out_path: str) -> dict:
     t0 = _time.time()
     ds = D.full_dataset(p, D.span("primary"))
     cache = F.FitCache()
-    res = F.fit_all_models(ds, cache, "primary", F.FULL_MODELS)
-    fits = {name: s4._fit_summary(fr, F.selected_spec(name, fr, "primary") if fr.available else None) for name, fr in res.items()}
+    res = F.finalized(F.fit_all_models(ds, cache, "primary", F.FULL_MODELS))
+    fits = {name: s4._fit_summary(fr, F.selected_spec(name, fr, "primary") if F.usable(fr) else None) for name, fr in res.items()}
     fam = {}
+    fails = [s4.failure_record(res)]
     for family in ("G", "B"):
         full = res[family + "3"]
-        prof = None
-        if full.available and c0.get(family) is not None:
-            ev, _ = F.profile_evaluator(family, ds, full, "primary", cache)
+        prof, points = None, None
+        if F.usable(full) and c0.get(family) is not None:
+            ev, plog = F.profile_evaluator(family, ds, full, "primary", cache, n_starts=F.PROFILE_STARTS)
             prof = X.hull_search(ev, full.loglik, c0[family]).as_dict()
-        fam[family] = dict(profile=prof, s_tau_hat=fits[family + "3"].get("s_tau_ms"), s_g_hat=fits[family + "3"].get("s_g"),
-                           selection=fits[family + "3"].get("selection"), bounds_hit=(full.bounds_hit if full.available else None))
+            points = {f"{s_ms:g}": dict(status=v.status, loglik=(v.loglik if F.usable(v) else None),
+                                        numerical_failure=bool(v.numerical_failure), unavailable_reason=v.unavailable_reason,
+                                        rescued=bool((v.rescue or {}).get("resolved")), n_starts=len(v.starts), quad=v.quad)
+                      for s_ms, v in plog.items()}
+            fails.append(s4.failure_record({f"{s_ms:g}": v for s_ms, v in plog.items() if s_ms > 0.0}, f"prof{family}@"))
+        fam[family] = dict(profile=prof, profile_points=points, profile_starts=F.PROFILE_STARTS,
+                           s_tau_hat=fits[family + "3"].get("s_tau_ms"), s_g_hat=fits[family + "3"].get("s_g"),
+                           selection=fits[family + "3"].get("selection"), bounds_hit=(full.bounds_hit if F.usable(full) else None))
     rec = dict(subject=int(p.subject), session=p.session, tag=p.tag, span="primary", data_id=p.data_id, n_trials=int(p.n),
-               fits=fits, families=fam, c0=c0, seconds=_time.time() - t0, code_hash=M.code_hash())
+               fits=fits, families=fam, c0=c0, seconds=_time.time() - t0, code_hash=M.code_hash(),
+               run_fingerprint=s4.run_fingerprint(), **s4._merge_failures(fails))
     s4._write(out_path, rec)
     return rec
 
@@ -289,6 +334,7 @@ def main():
     summ = load_s4_summary()
     participants = None
     if a.cmd in ("cv", "full", "all"):
+        ensure_run_record(f"S5 {a.cmd}")
         participants = [D.load_participant(s) for s in SUBJECTS]
     if a.cmd in ("cv", "all"):
         run_cv(S5_DIR, participants, a.workers)

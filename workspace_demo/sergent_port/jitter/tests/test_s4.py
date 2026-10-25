@@ -239,6 +239,105 @@ def test_s4b_rec_runs_from_c0_json_and_cv_refuses_without_s4a():
         s4.S4_DIR, s4.run_queue, s4.load_bases = old
 
 
+def test_run_record_written_once_and_a_mismatched_resume_refuses():
+    """Codex S3 re-review finding 6: results/s4/run_config.json is written at the first start of S4 (the trial chunk in
+    force, node counts, scale rule and threshold, profile starts, software versions, machine, CPU model, code hash, the
+    sha256 of every generator asset) and its fingerprint is what every task record carries; a resumed S4 whose contract
+    differs — another trial chunk, another generator asset, other runners — refuses with every difference named."""
+    import fit as F
+    import models as M
+    old = (s4.S4_DIR, s4.GEN_DIR)
+    s4.S4_DIR = tempfile.mkdtemp()
+    gen = tempfile.mkdtemp()
+    for fn in ("S1_active_G3.npz", "bases_W53_active.npz"):
+        with open(os.path.join(gen, fn), "wb") as f:
+            f.write(fn.encode())
+    s4.GEN_DIR = gen
+    old_lb = s4.load_bases
+    s4.load_bases = lambda session="active": {}
+    try:
+        rec = s4.ensure_run_record("S4b test")
+        path = os.path.join(s4.S4_DIR, F.RUN_CONFIG_NAME)
+        with open(path) as f:
+            disk = json.load(f)
+        assert disk["fingerprint"] == rec["fingerprint"] == F.config_fingerprint(F.run_config(gen))
+        assert disk["n_tau_nodes"] == 61 and disk["quad_g_rule"] == "17then33" and disk["profile_starts"] == 4
+        assert disk["trial_chunk"] == M.TRIAL_CHUNK and set(disk["generators"]) == {"S1_active_G3.npz", "bases_W53_active.npz"}
+        assert {"numpy", "scipy", "jax", "jaxlib"} <= set(disk["versions"]) and "machine" in disk and "cpu_model" in disk
+        assert s4.ensure_run_record("S4b resume")["fingerprint"] == rec["fingerprint"]      # the same contract resumes
+        assert F.run_fingerprint(gen) == rec["fingerprint"]
+        # another trial chunk than the record (the hosts export 64; a resume without the export must refuse)
+        old_chunk = M.TRIAL_CHUNK
+        try:
+            M.TRIAL_CHUNK = 64 if old_chunk != 64 else 0
+            try:
+                s4.ensure_run_record("S4b resume")
+                assert False, "a resume under another trial chunk must refuse"
+            except SystemExit as e:
+                assert "refused" in str(e) and "trial_chunk" in str(e) and "JITTER_TRIAL_CHUNK" in str(e)
+        finally:
+            M.TRIAL_CHUNK = old_chunk
+        # a changed generator asset
+        with open(os.path.join(gen, "S1_active_G3.npz"), "wb") as f:
+            f.write(b"changed")
+        try:
+            s4.ensure_run_record("S4b resume")
+            assert False, "a resume with another generator asset must refuse"
+        except SystemExit as e:
+            assert "generator asset S1_active_G3.npz" in str(e)
+        with open(os.path.join(gen, "S1_active_G3.npz"), "wb") as f:
+            f.write(b"S1_active_G3.npz")
+        disk["runner_hash"] = "000000000000"
+        with open(path, "w") as f:
+            json.dump(disk, f)
+        try:
+            s4.ensure_run_record("S4b resume")
+            assert False, "other runners must refuse"
+        except SystemExit as e:
+            assert "runner_hash" in str(e)
+    finally:
+        s4.S4_DIR, s4.GEN_DIR = old
+        s4.load_bases = old_lb
+
+
+def test_s5_refuses_without_or_against_the_s4_record():
+    """S5 fits only under the S4 contract (Codex finding 6: S4 and S5 on the same host type and pins): it refuses when
+    results/s4/run_config.json is missing and when this process's fingerprint differs from it (here: another trial chunk);
+    with the matching record it writes results/s5/run_config.json and proceeds."""
+    import fit as F
+    import models as M
+    import s5
+    old = (s4.S4_DIR, s4.GEN_DIR, s5.S5_DIR, s4.load_bases)
+    s4.S4_DIR, s5.S5_DIR = tempfile.mkdtemp(), tempfile.mkdtemp()
+    gen = tempfile.mkdtemp()
+    with open(os.path.join(gen, "S1_active_G3.npz"), "wb") as f:
+        f.write(b"x")
+    s4.GEN_DIR = gen
+    s4.load_bases = lambda session="active": {}
+    try:
+        try:
+            s5.ensure_run_record("S5 cv")
+            assert False, "S5 must refuse without the S4 record"
+        except SystemExit as e:
+            assert "missing" in str(e)
+        s4.ensure_run_record("S4b")
+        old_chunk = M.TRIAL_CHUNK
+        try:
+            M.TRIAL_CHUNK = 64 if old_chunk != 64 else 0
+            try:
+                s5.ensure_run_record("S5 full")
+                assert False, "S5 must refuse under another trial chunk than S4's"
+            except SystemExit as e:
+                assert "S4 run record" in str(e) and "trial_chunk" in str(e)
+            assert not os.path.exists(os.path.join(s5.S5_DIR, F.RUN_CONFIG_NAME))
+        finally:
+            M.TRIAL_CHUNK = old_chunk
+        rec = s5.ensure_run_record("S5 cv")
+        assert rec["s4_fingerprint"] == rec["fingerprint"] and os.path.exists(os.path.join(s5.S5_DIR, F.RUN_CONFIG_NAME))
+    finally:
+        s4.S4_DIR, s4.GEN_DIR, s5.S5_DIR, s4.load_bases = old
+
+
 if __name__ == "__main__":
     import inspect
     import traceback

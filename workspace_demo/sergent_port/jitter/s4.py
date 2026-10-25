@@ -173,12 +173,54 @@ def make_synthetic(stage: str, setting: str, r: int, m: int, base: int, bases: d
 # ----------------------------------------------------------------------------------------------
 # tasks
 # ----------------------------------------------------------------------------------------------
+def run_fingerprint() -> str:
+    """This process's run-record fingerprint (fit.run_config over results/generators); every task record carries it."""
+    return F.run_fingerprint(GEN_DIR)
+
+
+def ensure_run_record(label: str) -> dict:
+    """results/s4/run_config.json at the first start; a resumed S4 whose numerical contract or runners differ refuses
+    (fit.RunConfigMismatch). The shared prefix is pulled first when S4_S3_RESULTS is set, so a second host compares
+    against the record the first one wrote. The bases asset is materialised before hashing the generator assets."""
+    s3_pull()
+    load_bases()
+    rec = F.ensure_run_record(S4_DIR, GEN_DIR, label)
+    print(f"[s4] run record {os.path.join(S4_DIR, F.RUN_CONFIG_NAME)}: fingerprint {rec['fingerprint']}, "
+          f"chunk {rec['trial_chunk']}, {rec['n_tau_nodes']} latency nodes, rule {rec['quad_g_rule']}, "
+          f"{rec['profile_starts']} profile starts, code {rec['code_hash']}", flush=True)
+    return rec
+
+
+def failure_record(res: dict, prefix: str = "") -> dict:
+    """Task-level counts of the failure policy over one fit_all_models dictionary (or profile points): the unresolved
+    numerical failures (UNAVAILABLE by policy (b)), the resolved rescues, the final guard's nesting failures."""
+    nf = [f"{prefix}{k}" for k, v in res.items() if v is not None and v.numerical_failure]
+    rescued = [f"{prefix}{k}" for k, v in res.items() if v is not None and (v.rescue or {}).get("resolved")]
+    nest = [f"{prefix}{x}" for x in F.nesting_failures(res)]
+    return dict(numerical_failures=nf, rescued=rescued, nesting_failures=nest)
+
+
+def _merge_failures(recs: list) -> dict:
+    out = dict(numerical_failures=[], rescued=[], nesting_failures=[])
+    for r in recs:
+        for k in out:
+            out[k] += list(r.get(k, []))
+    return out
+
+
 def _fit_summary(fr: F.FitResult, sp: M.ModelSpec | None) -> dict:
+    """The task-record form of one fit. It passes through finalize_failure first (policy (b)): an AVAILABLE result with a
+    standing numerical failure can never reach a record as a clean AVAILABLE (Codex S3 re-review finding 7); the
+    numerical-failure flag, the unavailable reason, the rescue, the polish and the nesting reading are carried."""
+    fr = F.finalize_failure(fr)
     d = dict(status=fr.status, loglik=fr.loglik, n_converged=fr.n_converged, n_starts=len(fr.starts),
              em_iterations=fr.em_iterations, selection=fr.selection, flags=fr.flags, candidates=fr.candidates,
-             notes=[n for n in fr.notes if "stopped" in n or "accepted" in n or "retried" in n or "refit" in n],
-             seconds=fr.seconds, quad=fr.quad)
-    if fr.available and sp is not None:
+             notes=[n for n in fr.notes if "stopped" in n or "accepted" in n or "retried" in n or "refit" in n
+                    or "rescue" in n or "NESTING" in n or "numerical" in n],
+             seconds=fr.seconds, quad=fr.quad, numerical_failure=bool(fr.numerical_failure),
+             unavailable_reason=fr.unavailable_reason, rescue=F._jsonable(fr.rescue), polish=F._jsonable(fr.polish),
+             nesting=F._jsonable(fr.nesting))
+    if F.usable(fr) and sp is not None:
         P = M.unpack(sp, fr.theta)
         d.update(s_tau_ms=P.s_tau_ms, s_g=P.s_g, a=[float(v) for v in P.a[1:]])
         if P.A is not None:
@@ -198,17 +240,19 @@ def cv_task(stage: str, setting: str, r: int, m: int, base: int, bases: dict, mo
     sums = {k: [] for k in models}
     folds = []
     fits_seen = []
+    fails = []
     for fold in range(5):
         train, test, _, _ = D.fold_datasets(p, sp_, fold)
-        res = F.fit_all_models(train, cache, "primary", models)
+        res = F.finalized(F.fit_all_models(train, cache, "primary", models))     # boundary guard (policy (b))
         row = dict(fold=fold, n_train=train.n, n_test=test.n, fits={})
         for name, fr in res.items():
             fits_seen.append(fr)
-            sp = F.selected_spec(name, fr, "primary") if fr.available else None
+            sp = F.selected_spec(name, fr, "primary") if F.usable(fr) else None
             row["fits"][name] = _fit_summary(fr, sp)
+        fails.append(failure_record(res, f"f{fold}_"))
         for sel in models:
             fr = res[sel]
-            if fr.available:
+            if F.usable(fr):
                 ll = F.score_heldout(F.selected_spec(sel, fr, "primary"), fr, test)
                 sums[sel].append(float(np.sum(ll)))
             else:
@@ -217,7 +261,8 @@ def cv_task(stage: str, setting: str, r: int, m: int, base: int, bases: dict, mo
     n = D.n_scored(p)
     scores = {k: (float(np.sum(v) / n) if not np.any(np.isnan(v)) else float("nan")) for k, v in sums.items()}
     rec = dict(stage=stage, setting=setting, r=r, m=m, base=base, data_id=p.data_id, n_trials=p.n, n_scored=n,
-               scores=scores, fold_sums=sums, folds=folds, code_hash=M.code_hash(), quad_rule=F.quad_rule_record(fits_seen))
+               scores=scores, fold_sums=sums, folds=folds, code_hash=M.code_hash(), quad_rule=F.quad_rule_record(fits_seen),
+               run_fingerprint=run_fingerprint(), **_merge_failures(fails))
     if inherited:
         t1 = _time.time()
         lme = S.inherited_fits(p.W53, p.levels, p.blocks)
@@ -241,14 +286,20 @@ def c0_task(family: str, config: int, i: int, bases: dict, out_path: str) -> dic
     # the same cross-family candidate/chain procedure as every other fit (G's B-basin re-seed, B's G-twin chains):
     # both families are fitted and the statistic reads this family's reduced and positive candidates (Codex S3 review
     # 24 Oct, finding 10 — a stand-alone family pair is not the declared fitter)
-    res = F.fit_all_models(ds, F.FitCache(), "primary", ("G3", "B3"))
+    res = F.finalized(F.fit_all_models(ds, F.FitCache(), "primary", ("G3", "B3")))
     red, pos = res[family + "2"], res[family + "3+"]
-    q0 = X.q0_statistic(red.loglik if red.available else None, pos.loglik if pos.available else None)
+    q0 = X.q0_statistic(red.loglik if F.usable(red) else None, pos.loglik if F.usable(pos) else None)
     other = "B" if family == "G" else "G"
+
+    def summ(name):
+        fr = res[name]
+        return _fit_summary(fr, F.selected_spec(name, fr, "primary") if F.usable(fr) else None)
+
     rec = dict(family=family, config=config, i=i, data_id=p.data_id, q0=q0,
-               reduced=_fit_summary(red, M.spec(family + "2")), positive=_fit_summary(pos, M.spec(family + "3+")),
-               other_family={n: _fit_summary(res[n], M.spec(n)) for n in (other + "2", other + "3+")},
-               seconds=_time.time() - t0, code_hash=M.code_hash(), quad_rule=F.quad_rule_record(res.values()))
+               reduced=summ(family + "2"), positive=summ(family + "3+"),
+               other_family={n: summ(n) for n in (other + "2", other + "3+")},
+               seconds=_time.time() - t0, code_hash=M.code_hash(), quad_rule=F.quad_rule_record(res.values()),
+               run_fingerprint=run_fingerprint(), **failure_record(res))
     _write(out_path, rec)
     return rec
 
@@ -272,29 +323,56 @@ def rec_task(setting_key: str, config: int, i: int, bases: dict, c0: dict, out_p
         mode = "W"
     rows = {}
     fits_seen = []
-    for family, cfg in (("G", cfg_g), ("B", (S.with_nuisance(fam_b, 0.0, fam_b.s_g) if mode != "W" else S.recovery_setting(fam_b, truth["s_tau"], truth["s_g"])))):
-        b = bases[config]
-        seed = S.seed_for("validation", f"REC{family}|{setting_key}", config, i)
-        # O1/O2 at zero jitter are generated once from the G configuration and fitted by both families (§7.5)
-        gen_cfg = cfg_g if mode != "W" else cfg
-        p = S.generate(gen_cfg, b["levels"], b["blocks"], seed, mode).participant(subject=config)
+    fails = []
+    b = bases[config]
+    shared = None
+    if mode != "W":
+        # O1/O2 at zero jitter (DESIGN §7.5): ONE dataset per (setting, config, i), generated from the G configuration with
+        # a seed that does not name the family, fitted ONCE (all eight models), and both families' profiles computed
+        # from that common dataset and cache (25 Oct 2026, Codex S3 re-review finding 11: the loop used to regenerate it
+        # per family under a family-specific seed, two different challenges where one shared one is declared)
+        seed = S.seed_for("validation", f"REC|{setting_key}", config, i)
+        p = S.generate(cfg_g, b["levels"], b["blocks"], seed, mode).participant(subject=config)
         ds = D.full_dataset(p, D.span("primary"))
         cache = F.FitCache()
-        res = F.fit_all_models(ds, cache, "primary", F.FULL_MODELS)
+        res = F.finalized(F.fit_all_models(ds, cache, "primary", F.FULL_MODELS))
         fits_seen += list(res.values())
-        fits = {name: _fit_summary(fr, F.selected_spec(name, fr, "primary") if fr.available else None) for name, fr in res.items()}
+        fails.append(failure_record(res))
+        shared = (p, ds, cache, res)
+    for family in ("G", "B"):
+        if shared is not None:
+            p, ds, cache, res = shared
+        else:
+            # the W recovery settings keep their per-family generation as declared: each family's own configuration
+            cfg = cfg_g if family == "G" else S.recovery_setting(fam_b, truth["s_tau"], truth["s_g"])
+            seed = S.seed_for("validation", f"REC{family}|{setting_key}", config, i)
+            p = S.generate(cfg, b["levels"], b["blocks"], seed, mode).participant(subject=config)
+            ds = D.full_dataset(p, D.span("primary"))
+            cache = F.FitCache()
+            res = F.finalized(F.fit_all_models(ds, cache, "primary", F.FULL_MODELS))
+            fits_seen += list(res.values())
+            fails.append(failure_record(res, f"{family}data_"))
+        fits = {name: _fit_summary(fr, F.selected_spec(name, fr, "primary") if F.usable(fr) else None) for name, fr in res.items()}
         full = res[family + "3"]
-        prof = None
-        if full.available and c0.get(family) is not None:
-            ev, plog = F.profile_evaluator(family, ds, full, "primary", cache)
+        prof, prof_points = None, None
+        if F.usable(full) and c0.get(family) is not None:
+            ev, plog = F.profile_evaluator(family, ds, full, "primary", cache, n_starts=F.PROFILE_STARTS)
             pr = X.hull_search(ev, full.loglik, c0[family])
             prof = pr.as_dict()
             fits_seen += [v for s_ms, v in plog.items() if s_ms > 0.0]          # the s = 0 point is res[family + "2"], counted above
-        rows[family] = dict(data_id=p.data_id, fits=fits, profile=prof,
+            prof_points = {f"{s_ms:g}": dict(status=v.status, loglik=(v.loglik if F.usable(v) else None),
+                                             numerical_failure=bool(v.numerical_failure), unavailable_reason=v.unavailable_reason,
+                                             rescue_rounds=int((v.rescue or {}).get("rounds", 0)),
+                                             rescued=bool((v.rescue or {}).get("resolved")), n_starts=len(v.starts),
+                                             quad=v.quad) for s_ms, v in plog.items()}
+            fails.append(failure_record({f"{s_ms:g}": v for s_ms, v in plog.items() if s_ms > 0.0}, f"prof{family}@"))
+        rows[family] = dict(data_id=p.data_id, fits=fits, profile=prof, profile_points=prof_points,
+                            profile_starts=F.PROFILE_STARTS, shared_dataset=shared is not None,
                             s_tau_hat=fits[family + "3"].get("s_tau_ms"), s_g_hat=fits[family + "3"].get("s_g"),
                             selection=fits[family + "3"].get("selection"))
     rec = dict(setting=setting_key, config=config, i=i, truth=truth, families=rows, seconds=_time.time() - t0,
-               code_hash=M.code_hash(), quad_rule=F.quad_rule_record(fits_seen))
+               code_hash=M.code_hash(), quad_rule=F.quad_rule_record(fits_seen), run_fingerprint=run_fingerprint(),
+               **_merge_failures(fails))
     _write(out_path, rec)
     return rec
 
@@ -450,6 +528,7 @@ def s4a_stage1_tasks() -> list:
 
 
 def s4a(workers: int, shard: str | None = None, wait_s: float = 0.0) -> dict:
+    ensure_run_record("S4a")
     bases = load_bases()
     out_path = os.path.join(S4_DIR, "s4a.json")
     stage = "calibration"
@@ -576,7 +655,9 @@ def s4b_tasks(kind: str = "all") -> list:
 def s4b(workers: int, shard: str | None, kind: str, defer: list | None = None, defer_reason: str = "",
         wait_s: float = 0.0) -> int:
     """`kind` rec takes c₀ from s4a.json, else c0.json, else the shared prefix polled for up to `wait_s` (load_c0); cv and
-    all need the finished s4a.json."""
+    all need the finished s4a.json. The run record is checked (or written) first: a resumed or added host whose numerical
+    contract differs from results/s4/run_config.json refuses before any task runs."""
+    ensure_run_record(f"S4b {kind}")
     bases = load_bases()
     if defer:
         print(f"[s4] deferral recorded: {record_deferral(defer, defer_reason)}", flush=True)
@@ -622,6 +703,7 @@ def evaluate() -> dict:
     stage = "validation"
     out = dict(s4a=dict(epsilon=a["epsilon"], c0=a["c0"], lam=a["lambda"]))
     outcomes, deltas, ub_fields, calls = {}, {}, [], {}
+    fingerprints = {}
     for setting, (R, fam, inherited) in MANIFEST.items():
         outs, means, lmes = [], [], []
         attempted = 0
@@ -630,6 +712,8 @@ def evaluate() -> dict:
             if s is None:
                 continue
             attempted += 1
+            for row in s["rows"]:
+                fingerprints[row.get("run_fingerprint")] = fingerprints.get(row.get("run_fingerprint"), 0) + 1
             sc = set_scores(s)
             prim = X.set_primary(sc)
             outs.append(prim)
@@ -675,6 +759,9 @@ def evaluate() -> dict:
                     if os.path.exists(pth):
                         with open(pth) as f:
                             rows.append(json.load(f))
+            for row in rows:
+                if fam == "G":
+                    fingerprints[row.get("run_fingerprint")] = fingerprints.get(row.get("run_fingerprint"), 0) + 1
             rec_counts[key] = len(rows)
             if not rows:
                 continue
@@ -726,6 +813,15 @@ def evaluate() -> dict:
     # are PROVISIONAL and license nothing; an unfinished required setting is PENDING, never silently absent
     man = manifest_status(a, {k: v["attempted"] for k, v in deltas.items()}, rec_counts, deferred_settings())
     out["manifest"] = man
+    # the run record (Codex S3 re-review finding 6): every task record carries the fingerprint of the numerical contract
+    # it ran under; more than one fingerprint (or a record without one) means a mixed bundle and is reported here
+    rc_path = os.path.join(S4_DIR, F.RUN_CONFIG_NAME)
+    rc = None
+    if os.path.exists(rc_path):
+        with open(rc_path) as f:
+            rc = json.load(f)
+    out["run_record"] = dict(recorded=(rc or {}).get("fingerprint"), task_fingerprints={str(k): v for k, v in fingerprints.items()},
+                             one_fingerprint=bool(len(fingerprints) == 1 and rc is not None and rc.get("fingerprint") in fingerprints))
     final = bool(man["complete"])
     for g in ("gate_b", "gate_c", "gate_e", "completion_v2"):
         out[g]["final"] = final
