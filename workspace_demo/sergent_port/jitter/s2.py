@@ -22,6 +22,7 @@ import os
 os.environ.setdefault("NPROC", "1")
 
 import argparse  # noqa: E402
+import hashlib  # noqa: E402
 import json  # noqa: E402
 import sys  # noqa: E402
 import time as _time  # noqa: E402
@@ -110,7 +111,11 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
     and θ/Σ (float64) to the start archive, so that a check's endpoints can be re-evaluated or transported exactly.
     `extra_warm` = {(fold, candidate name): [(label, θ, Σ)]} further warm EM chains for the candidates, started under
     the given Σ with the fold's training-catch μ0 (the 121-node recheck warm-started from the 61-node endpoints).
-    Every candidate row carries `numerical_failure` and the `polish` record; the row lists its failures."""
+    Every candidate row carries `numerical_failure` and the `polish` record; the row lists its failures. Since 25 Oct 2026
+    (the failure policy, fit.py module constants) every fit has left the fitter through finalize_failure: `numerical_failures`
+    lists the UNRESOLVED ones (UNAVAILABLE, reason numerical_failure), `rescued` the resolved rescues, `nesting_failures`
+    the final guard's persistent matched-quadrature deficits, and `nesting` per fold the raw l(B) − l(G) of every pair
+    with its material flag at 1e-6·max(1, |l(G)|). Each row carries the run-record fingerprint (fit.run_config)."""
     os.environ.setdefault("NPROC", "1")
     if g_rule is not None:
         M.QUAD_G_RULE, M.QUAD_G_REFIT_SG = str(g_rule[0]), float(g_rule[1])
@@ -122,7 +127,7 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
     folds = []
     xs = {}
     fits_seen = []
-    failures = []
+    failures, rescued, nest_fail = [], [], []
     polish = dict(calls=0, accepted=0, seconds=0.0)
     fit_seconds = 0.0
     for fold in range(5):
@@ -136,8 +141,8 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
                     warm[name] = [(lab, np.asarray(th, dtype=np.float64),
                                    D.whitening_from_sigma(train.wh.mu0, np.asarray(Sg, dtype=np.float64), 0.0, train.wh.n_catch))
                                   for lab, th, Sg in chains]
-        res = F.fit_all_models(train, cache, span_name, ("G3", "B3"), quad, extra_warm=warm or None)
-        row = dict(fold=fold, n_train=train.n, n_test=test.n, shrinkage=train.wh.shrinkage, fits={})
+        res = F.finalized(F.fit_all_models(train, cache, span_name, ("G3", "B3"), quad, extra_warm=warm or None))
+        row = dict(fold=fold, n_train=train.n, n_test=test.n, shrinkage=train.wh.shrinkage, fits={}, nesting=nesting_reading(res))
         for name in DECISION_SPECS:
             fr = res[name]
             fits_seen.append(fr)
@@ -145,28 +150,38 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
             row["fits"][name] = dict(status=fr.status, loglik=fr.loglik, n_converged=fr.n_converged,
                                      bounds_hit=fr.bounds_hit, clipped=fr.clipped, notes=fr.notes,
                                      starts=_start_rows(fr), seconds=fr.seconds, quad=fr.quad,
-                                     numerical_failure=bool(fr.numerical_failure), polish=dict(fr.polish),
+                                     numerical_failure=bool(fr.numerical_failure), polish=F._jsonable(fr.polish),
+                                     unavailable_reason=fr.unavailable_reason, rescue=F._jsonable(fr.rescue),
+                                     nesting=F._jsonable(fr.nesting),
                                      em_iterations=fr.em_iterations, em_trace=fr.em_trace,
-                                     s_g=(float(M.unpack(sp_n, fr.theta).s_g) if (fr.available and sp_n.scale_free) else None),
-                                     s_tau_ms=(float(M.unpack(sp_n, fr.theta).s_tau_ms) if fr.available else None))
+                                     s_g=(float(M.unpack(sp_n, fr.theta).s_g) if (F.usable(fr) and sp_n.scale_free) else None),
+                                     s_tau_ms=(float(M.unpack(sp_n, fr.theta).s_tau_ms) if F.usable(fr) else None))
             if fr.numerical_failure:
                 failures.append(f"f{fold}_{name}")
+            if (fr.rescue or {}).get("resolved"):
+                rescued.append(f"f{fold}_{name}")
+            if (fr.nesting or {}).get("failure"):
+                nest_fail.append(f"f{fold}_{name}<{fr.nesting.get('vs')}")
             for k in ("calls", "accepted", "seconds"):
                 polish[k] += (fr.polish or {}).get(k, 0)
             fit_seconds += fr.seconds
             for i, s in enumerate(fr.starts):
                 xs[f"f{fold}_{name}_s{i}"] = np.asarray(s.x, dtype=np.float32)
-            if archive and fr.available:
+            if archive and F.usable(fr):
                 row["fits"][name]["theta"] = [float(v) for v in fr.theta]
                 xs[f"f{fold}_{name}_theta64"] = np.asarray(fr.theta, dtype=np.float64)
                 if fr.wh is not None:
                     xs[f"f{fold}_{name}_sigma64"] = np.asarray(fr.wh.Sigma, dtype=np.float64)
+                    xs[f"f{fold}_{name}_mu064"] = np.asarray(fr.wh.mu0, dtype=np.float64)
         for sel in ("G3", "B3"):
             fr = res[sel]
             fits_seen.append(fr)
             row["fits"][sel] = dict(status=fr.status, loglik=fr.loglik, selection=fr.selection, flags=fr.flags,
-                                    candidates=fr.candidates, quad=fr.quad, numerical_failure=bool(fr.numerical_failure))
-            if fr.available:
+                                    candidates=fr.candidates, quad=fr.quad, numerical_failure=bool(fr.numerical_failure),
+                                    unavailable_reason=fr.unavailable_reason, nesting=F._jsonable(fr.nesting))
+            if (fr.nesting or {}).get("failure"):
+                nest_fail.append(f"f{fold}_{sel}<{fr.nesting.get('vs')}")
+            if F.usable(fr):
                 sp = F.selected_spec(sel, fr, span_name, quad)
                 ll = F.score_heldout(sp, fr, test)
                 sums[sel].append(float(np.sum(ll)))
@@ -179,6 +194,7 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
                     xs[f"f{fold}_{sel}_theta64"] = np.asarray(fr.theta, dtype=np.float64)
                     if fr.wh is not None:
                         xs[f"f{fold}_{sel}_sigma64"] = np.asarray(fr.wh.Sigma, dtype=np.float64)
+                        xs[f"f{fold}_{sel}_mu064"] = np.asarray(fr.wh.mu0, dtype=np.float64)
             else:
                 sums[sel].append(float("nan"))
         folds.append(row)
@@ -187,18 +203,57 @@ def decision_task(setting: str, r: int, m: int, base_subject: int, bases: dict, 
     return dict(setting=setting, r=r, m=m, base=base_subject, data_id=p.data_id, n_trials=p.n, n_scored=n,
                 scores=scores, fold_sums=sums, folds=folds, seconds=_time.time() - t0, code_hash=M.code_hash(),
                 quad=quad or {}, quad_rule=F.quad_rule_record(fits_seen), numerical_failures=failures,
+                rescued=rescued, nesting_failures=nest_fail, run_fingerprint=F.run_fingerprint(GEN_DIR),
                 polish=polish, fit_seconds=fit_seconds, _xs=xs)
+
+
+NEST_PAIRS = (("G2", "B2"), ("G3+", "B3+"), ("G3", "B3"))
+
+
+def nesting_reading(res: dict) -> list:
+    """Raw nesting deficits of one fold (Codex S3 re-review finding 9): per pair l(B) − l(G), the two quadratures and the
+    material flag deficit < −NEST_TOL_REL·max(1, |l(G)|) at the same quadrature; pairs with an unusable member are listed
+    with deficit None."""
+    out = []
+    for g, b in NEST_PAIRS:
+        rg, rb = res.get(g), res.get(b)
+        if rg is None or rb is None:
+            continue
+        if not (F.usable(rg) and F.usable(rb)):
+            out.append(dict(pair=f"{b}-{g}", deficit=None, same_quad=None, material=False,
+                            note=f"{g} {rg.status}/{b} {rb.status}"))
+            continue
+        qg, qb = rg.quad or {}, rb.quad or {}
+        same = (qg.get("n_g_nodes"), qg.get("n_tau_nodes")) == (qb.get("n_g_nodes"), qb.get("n_tau_nodes"))
+        d = float(rb.loglik - rg.loglik)
+        out.append(dict(pair=f"{b}-{g}", deficit=d, same_quad=same, g_nodes=qg.get("n_g_nodes"), b_nodes=qb.get("n_g_nodes"),
+                        material=bool(same and d < -F.NEST_TOL_REL * max(1.0, abs(rg.loglik)))))
+    return out
 
 
 PARALLEL_BACKEND = "loky"          # tests switch to "threading" so that a monkeypatched task is seen by the workers
 
 
-def task_paths(setting: str, r: int, m: int) -> tuple:
+def _dirs(setting: str, out_dir: str | None = None) -> tuple:
+    """(json directory, archive directory) of one setting. The default is results/s2/decision/<setting> with its archive
+    at results/s2/archive/<setting>; an --out-dir D puts the set files at D/<setting> and the archive at
+    results/s2/archive/<basename(D)>/<setting> (kept out of git like the default archive)."""
+    if out_dir is None or os.path.abspath(out_dir) == os.path.abspath(DEC_DIR):
+        return os.path.join(DEC_DIR, setting), os.path.join(ARC_DIR, setting)
+    return os.path.join(out_dir, setting), os.path.join(ARC_DIR, os.path.basename(os.path.abspath(out_dir)), setting)
+
+
+def task_paths(setting: str, r: int, m: int, out_dir: str | None = None) -> tuple:
     """(json, npz) of one participant-dataset's own result files: the resume unit of the decision batch on an
-    interruptible host. The json lives under decision/<setting>/tasks (synced), the start archive under
-    archive/<setting>/tasks (not synced, not needed for any reading)."""
-    return (os.path.join(DEC_DIR, setting, "tasks", f"set_{r}_m{m}.json"),
-            os.path.join(ARC_DIR, setting, "tasks", f"set_{r}_m{m}.npz"))
+    interruptible host. The json lives under <setting>/tasks of the decision directory (synced), the start archive under
+    the archive's <setting>/tasks (not synced, not needed for any reading)."""
+    jd, ad = _dirs(setting, out_dir)
+    return os.path.join(jd, "tasks", f"set_{r}_m{m}.json"), os.path.join(ad, "tasks", f"set_{r}_m{m}.npz")
+
+
+def shard_of(setting: str, r: int, m: int, k: int) -> int:
+    """The deterministic disjoint hash shard of one participant-dataset (setting, r, m) among k hosts."""
+    return int(hashlib.sha256(f"{setting}|{r}|{m}".encode()).hexdigest()[:8], 16) % k
 
 
 def decision_task_to_file(setting: str, r: int, m: int, base_subject: int, bases: dict, span_name: str,
@@ -217,73 +272,136 @@ def decision_task_to_file(setting: str, r: int, m: int, base_subject: int, bases
     return json_path
 
 
-def run_decision(setting: str, R: int, workers: int, sets=None, span_name: str = "primary"):
-    """Every pending set's participant-datasets in ONE queue (R × 20 tasks), so that a 96-core host is full from the
-    first minute — the set-by-set form (one Parallel call per set of 20) kept 76 of 96 cores idle on the AWS closure
-    of 24 Oct 2026. Each task writes its own file first (the resume unit); the per-set records (set_<r>.json and the
-    archive npz, unchanged in form) are assembled from them after the queue and the task files are removed.
-    `wall_s` of a set is now the SUM of its tasks' seconds; `queue_wall_s` is the queue's wall."""
+def run_decision(setting: str, R: int, workers: int, sets=None, span_name: str = "primary", out_dir: str | None = None,
+                 shard: str | None = None):
+    """Every pending set's participant-datasets in ONE queue (R × 20 tasks per setting), so that a 96-core host is full
+    from the first minute — the set-by-set form (one Parallel call per set of 20) kept 76 of 96 cores idle on the AWS
+    closure of 24 Oct 2026. `setting` may name several settings ("W2,T1,O1"): their tasks share the queue. Each task
+    writes its own file first (the resume unit); the per-set records (set_<r>.json and the archive npz, unchanged in
+    form) are assembled from them after the queue. `wall_s` of a set is the SUM of its tasks' seconds; `queue_wall_s` is
+    the queue's wall.
+    `out_dir` (25 Oct 2026; default results/s2/decision) writes <out_dir>/<setting>/...; an explicit out_dir also gets the
+    run record <out_dir>/run_config.json at first start and a host whose numerical contract differs refuses
+    (fit.ensure_run_record). `shard` "i/K" runs only the participant-datasets with shard_of(setting, r, m, K) == i —
+    deterministic disjoint hash shards, so K hosts cover the block with no duplicate work; a sharded host keeps every task
+    file and assembles only the sets whose twenty task files it can see (the rest by `s2.py assemble --all` once the hosts'
+    files are gathered). Without a shard the task files of an assembled set are removed, as before."""
     from joblib import Parallel, delayed
+    settings = [s.strip() for s in setting.split(",")] if isinstance(setting, str) else list(setting)
+    for st in settings:
+        if st not in SETTINGS:
+            raise KeyError(st)
+    explicit = out_dir is not None and os.path.abspath(out_dir) != os.path.abspath(DEC_DIR)
+    if explicit:
+        rec = F.ensure_run_record(out_dir, GEN_DIR, f"s2 decision {','.join(settings)} -> {out_dir}")
+        print(f"[s2] run record {os.path.join(out_dir, F.RUN_CONFIG_NAME)}: fingerprint {rec['fingerprint']}, chunk "
+              f"{rec['trial_chunk']}, {rec['n_tau_nodes']} latency nodes, rule {rec['quad_g_rule']}", flush=True)
+    k = i = None
+    if shard:
+        i, k = (int(v) for v in shard.split("/"))
+        if not 0 <= i < k:
+            raise ValueError(f"shard {shard}: need 0 <= i < K")
     bases = load_bases()
-    out_dir = os.path.join(DEC_DIR, setting)
-    arc_dir = os.path.join(ARC_DIR, setting)
-    os.makedirs(out_dir, exist_ok=True)
-    os.makedirs(arc_dir, exist_ok=True)
     sets = list(range(R)) if sets is None else sets
-    todo = []
-    for r in sets:
-        if os.path.exists(os.path.join(out_dir, f"set_{r}.json")):
-            print(f"[s2] {setting} set {r}: exists, skipped", flush=True)
-        else:
-            todo.append(r)
-    # a second host on the same setting works the list from its far end (sets reversed by the CLI) and the members of
-    # each set in reverse too, so the two hosts meet in the middle with the least duplicated work
-    rev = len(todo) > 1 and todo[0] > todo[-1]
-    jobs = [(r, m, s) + task_paths(setting, r, m) for r in todo
-            for m, s in (reversed(list(enumerate(set_members(setting, r)))) if rev else enumerate(set_members(setting, r)))]
-    pending_jobs = [j for j in jobs if not os.path.exists(j[3])]
+    jobs, todo = [], []
+    for st in settings:
+        jd, ad = _dirs(st, out_dir)
+        os.makedirs(jd, exist_ok=True)
+        os.makedirs(ad, exist_ok=True)
+        st_todo = []
+        for r in sets:
+            if os.path.exists(os.path.join(jd, f"set_{r}.json")):
+                print(f"[s2] {st} set {r}: exists, skipped", flush=True)
+            else:
+                st_todo.append(r)
+        # a second unsharded host on the same setting works the list from its far end (sets reversed by the CLI) and
+        # the members of each set in reverse too, so the two hosts meet in the middle with the least duplicated work
+        rev = shard is None and len(st_todo) > 1 and st_todo[0] > st_todo[-1]
+        for r in st_todo:
+            members = list(enumerate(set_members(st, r)))
+            for m, s in (reversed(members) if rev else members):
+                if k is not None and shard_of(st, r, m, k) != i:
+                    continue
+                jobs.append((st, r, m, s) + task_paths(st, r, m, out_dir))
+        todo += [(st, r) for r in st_todo]
+    pending_jobs = [j for j in jobs if not os.path.exists(j[4])]
     t0 = _time.time()
-    print(f"[s2] {setting}: {len(todo)} sets, {len(pending_jobs)} of {len(jobs)} participant-datasets pending, "
-          f"{workers} workers, start {_time.strftime('%H:%M:%SZ', _time.gmtime())}", flush=True)
+    print(f"[s2] {','.join(settings)}: {len(todo)} sets, {len(pending_jobs)} of {len(jobs)} participant-datasets pending"
+          f"{f' in shard {shard}' if shard else ''}, {workers} workers, start {_time.strftime('%H:%M:%SZ', _time.gmtime())}",
+          flush=True)
     if pending_jobs:
         Parallel(n_jobs=workers, backend=PARALLEL_BACKEND)(
-            delayed(decision_task_to_file)(setting, r, m, s, bases, span_name, jp, npz) for r, m, s, jp, npz in pending_jobs)
+            delayed(decision_task_to_file)(st, r, m, s, bases, span_name, jp, npz) for st, r, m, s, jp, npz in pending_jobs)
     wall = _time.time() - t0
-    print(f"[s2] {setting}: queue done in {wall:.0f} s", flush=True)
-    for r in todo:
-        assemble_set(setting, r, workers, wall, remove_task_files=True)
+    print(f"[s2] {','.join(settings)}: queue done in {wall:.0f} s", flush=True)
+    for st, r in todo:
+        if shard is None:
+            assemble_set(st, r, workers, wall, remove_task_files=True, out_dir=out_dir)
+        elif all(os.path.exists(task_paths(st, r, m, out_dir)[0]) for m in range(20)):
+            assemble_set(st, r, workers, wall, remove_task_files=False, out_dir=out_dir)
 
 
-def assemble_set(setting: str, r: int, workers: int = 0, queue_wall_s: float = 0.0, remove_task_files: bool = True) -> dict:
+def _reference_set(setting: str, r: int):
+    """The archived development record of the same set (results/s2/decision, else results/s2_aws/decision) for the data
+    identity check of a re-run block; None when neither exists."""
+    for d in (os.path.join(DEC_DIR, setting), os.path.join(S2_DIR + "_aws", "decision", setting)):
+        p = os.path.join(d, f"set_{r}.json")
+        if os.path.exists(p):
+            return p
+    return None
+
+
+def assemble_set(setting: str, r: int, workers: int = 0, queue_wall_s: float = 0.0, remove_task_files: bool = True,
+                 out_dir: str | None = None) -> dict:
     """The per-set record (set_<r>.json + archive npz, the pre-queue form) from the 20 task files of set r. Another host
-    may assemble a set it did not compute (the checks instance assembles W2 set 0 for the node check as soon as the W2
-    host's first round has landed on S3; it keeps the task files)."""
-    out_dir = os.path.join(DEC_DIR, setting)
-    arc_dir = os.path.join(ARC_DIR, setting)
-    os.makedirs(out_dir, exist_ok=True)
-    os.makedirs(arc_dir, exist_ok=True)
+    may assemble a set it did not compute (it keeps the task files). Since 25 Oct 2026 the record also carries the set's
+    95% t interval of Δ₃, the unresolved numerical failures, the resolved rescues, the final guard's nesting failures,
+    the material nesting deficits, the run fingerprints of its tasks and — for a set written outside the default
+    directory — whether its data identities equal the archived development record of the same set."""
+    jd, ad = _dirs(setting, out_dir)
+    os.makedirs(jd, exist_ok=True)
+    os.makedirs(ad, exist_ok=True)
     members = set_members(setting, r)
     rows, xs, used = [], {}, []
     for m in range(len(members)):
-        jp, npz = task_paths(setting, r, m)
+        jp, npz = task_paths(setting, r, m, out_dir)
         with open(jp) as f:
             rows.append(json.load(f))
         used.append(jp)
         if os.path.exists(npz):                       # the archive is not synced: tolerate a lost npz after a resume
             with np.load(npz) as z:
-                for k in z.files:
-                    xs[f"m{m}_{k}"] = z[k]
+                for key in z.files:
+                    xs[f"m{m}_{key}"] = z[key]
             used.append(npz)
-    np.savez_compressed(os.path.join(arc_dir, f"set_{r}.npz"), **xs)
+    np.savez_compressed(os.path.join(ad, f"set_{r}.npz"), **xs)
     set_scores = {f"m{row['m']}": row["scores"] for row in rows}
     primary = X.set_primary(set_scores)
-    failures = [f"m{row['m']}:{k}" for row in rows for k in row.get("numerical_failures", [])]
-    rec = dict(setting=setting, r=r, members=members, primary=primary,
-               delta3={k: (v["B3"] - v["G3"]) for k, v in set_scores.items()},
+    failures = [f"m{row['m']}:{key}" for row in rows for key in row.get("numerical_failures", [])]
+    rescued = [f"m{row['m']}:{key}" for row in rows for key in row.get("rescued", [])]
+    nest_fail = [f"m{row['m']}:{key}" for row in rows for key in row.get("nesting_failures", [])]
+    material = [f"m{row['m']}:f{fold['fold']}:{n['pair']}" for row in rows for fold in row.get("folds", [])
+                for n in fold.get("nesting", []) if n.get("material")]
+    d3 = {k: (v["B3"] - v["G3"]) for k, v in set_scores.items()}
+    fin = [v for v in d3.values() if np.isfinite(v)]
+    iv = X.t_interval(fin) if len(fin) >= 2 else None
+    ref_check = None
+    if out_dir is not None and os.path.abspath(out_dir) != os.path.abspath(DEC_DIR):
+        rp = _reference_set(setting, r)
+        if rp is not None:
+            with open(rp) as f:
+                ref = json.load(f)
+            want = [p["data_id"] for p in sorted(ref["participants"], key=lambda p: p["m"])]
+            got = [row["data_id"] for row in sorted(rows, key=lambda row: row["m"])]
+            ref_check = dict(reference=os.path.relpath(rp, HERE), match=bool(want == got),
+                             mismatched=[m for m, (a, b) in enumerate(zip(want, got)) if a != b])
+    rec = dict(setting=setting, r=r, members=members, primary=primary, delta3=d3,
+               interval=None if iv is None else dict(mean=iv.mean, lo=iv.lo, hi=iv.hi, n=len(fin)),
                participants=rows, wall_s=float(sum(row["seconds"] for row in rows)), queue_wall_s=queue_wall_s,
                workers=workers, code_hash=M.code_hash(),
-               numerical_failure=bool(failures), numerical_failures=failures)
-    path = os.path.join(out_dir, f"set_{r}.json")
+               numerical_failure=bool(failures), numerical_failures=failures, rescued=rescued, nesting_failures=nest_fail,
+               material_nesting_deficits=material,
+               run_fingerprints=sorted({str(row.get("run_fingerprint")) for row in rows}), data_ids_vs_reference=ref_check)
+    path = os.path.join(jd, f"set_{r}.json")
     tmp = path + f".tmp.{os.getpid()}"
     with open(tmp, "w") as f:
         json.dump(rec, f)
@@ -291,10 +409,30 @@ def assemble_set(setting: str, r: int, workers: int = 0, queue_wall_s: float = 0
     if remove_task_files:
         for p in used:
             os.remove(p)
-    avail = sum(1 for v in set_scores.values() if np.isfinite(v["B3"] - v["G3"]))
-    print(f"[s2] {setting} set {r}: primary {primary}, {avail}/20 available, {rec['wall_s']:.0f} task-s "
-          f"(mean {rec['wall_s'] / len(rows):.0f} s per participant-dataset)", flush=True)
+    avail = sum(1 for v in d3.values() if np.isfinite(v))
+    print(f"[s2] {setting} set {r}: primary {primary}, {avail}/20 available, {len(failures)} unresolved numerical failures, "
+          f"{len(nest_fail)} nesting failures, {rec['wall_s']:.0f} task-s (mean {rec['wall_s'] / len(rows):.0f} s per "
+          f"participant-dataset)" + ("" if ref_check is None else f"; data ids vs {ref_check['reference']}: "
+                                     f"{'match' if ref_check['match'] else 'MISMATCH ' + str(ref_check['mismatched'])}"), flush=True)
     return rec
+
+
+def assemble_all(setting: str, R: int, out_dir: str | None = None) -> dict:
+    """The assemble step of a sharded block: every set r < R of every named setting whose twenty task files are present
+    is assembled (task files kept); the sets still incomplete are reported with their missing members."""
+    out = {}
+    for st in [s.strip() for s in setting.split(",")]:
+        done, missing = [], {}
+        for r in range(R):
+            miss = [m for m in range(20) if not os.path.exists(task_paths(st, r, m, out_dir)[0])]
+            if miss:
+                missing[r] = miss
+                continue
+            assemble_set(st, r, remove_task_files=False, out_dir=out_dir)
+            done.append(r)
+        out[st] = dict(assembled=done, incomplete=missing)
+        print(f"[s2] assemble {st}: {len(done)}/{R} sets assembled; incomplete {missing or 'none'}", flush=True)
+    return out
 
 
 # ----------------------------------------------------------------------------------------------
@@ -560,7 +698,14 @@ REPAIR_RUNS = {                   # label -> (quadrature override, scale rule (Q
     "C": (dict(n_tau_nodes=31, n_g_nodes=33), ("17", 0.6), None),
     "D": (dict(n_tau_nodes=31, n_g_nodes=17), ("17then33", 0.6), None),    # the final combined rule: 17 then 33 where s_g > 0.6
     "E": (dict(n_tau_nodes=121, n_g_nodes=17), ("17", 0.6), "B"),          # the fallback's recheck, warm-started from B
+    # the final-rule paired checks (25 Oct 2026, Codex S3 re-review findings 3/4): F is the frozen S4 rule, G and H its two
+    # refinements; each is a complete independent procedure (no warm source), runnable for one label on one host
+    "F": (dict(n_tau_nodes=61, n_g_nodes=17), ("17then33", 0.6), None),    # THE FINAL RULE: 61 latency nodes, 17then33
+    "G": (dict(n_tau_nodes=121, n_g_nodes=17), ("17then33", 0.6), None),   # 121 latency nodes under the same scale rule
+    "H": (dict(n_tau_nodes=61, n_g_nodes=33), ("17", 0.6), None),          # blanket 33 scale nodes at 61 latency nodes
 }
+FINAL_PAIRS = (("F", "G"), ("F", "H"))                                     # set-level criterion (set_compare)
+CROSSEVAL_GRIDS = {"G": dict(n_tau_nodes=121, n_g_nodes=None), "H": dict(n_tau_nodes=61, n_g_nodes=33)}   # None = as recorded
 REPAIR_COMPARISONS = (("A", "B"), ("A", "C"), ("D", "C"), ("B", "E"))      # (candidate, reference)
 
 
@@ -629,7 +774,9 @@ def repair_run(setting: str, r: int, label: str, workers: int) -> dict:
     warm = _warm_from_run(setting, r, warm_src) if warm_src else {}
     bases = load_bases()
     members = ref["members"]
+    run_rec = F.run_record(GEN_DIR)
     repair_status(setting, r, f"{label}: START quad {quad} rule {rule} warm_from {warm_src} workers {workers} code {M.code_hash()} "
+                              f"chunk {run_rec['trial_chunk']} fingerprint {run_rec['fingerprint']} host {run_rec['host']} "
                               f"(20/20 data identities verified against the archived record)")
     t0 = _time.time()
     rows = Parallel(n_jobs=workers, backend="loky")(
@@ -659,6 +806,9 @@ def repair_run(setting: str, r: int, label: str, workers: int) -> dict:
                primary=X.set_primary({f"m{row['m']}": row["scores"] for row in rows}),
                interval=None if iv is None else dict(mean=iv.mean, lo=iv.lo, hi=iv.hi), half_width=half,
                numerical_failure=bool(failures), numerical_failures=failures,
+               rescued=[f"m{row['m']}:{k}" for row in rows for k in row.get("rescued", [])],
+               nesting_failures=[f"m{row['m']}:{k}" for row in rows for k in row.get("nesting_failures", [])],
+               run_record=run_rec,
                polish=dict(pol, r_extra_work=(pol["seconds"] / (fit_s - pol["seconds"]) if fit_s > pol["seconds"] > 0 else 0.0)),
                cost=dict(fit_seconds=fit_s, task_seconds=task_s, mean_task_seconds=task_s / len(rows), queue_wall_seconds=wall),
                quad_rule=dict(F.quad_rule_record([]), per_model=_merge_counts([row["quad_rule"]["per_model"] for row in rows])),
@@ -842,9 +992,281 @@ def repair_summary_markdown(s: dict) -> str:
     return "\n".join(L) + "\n"
 
 
+# ----------------------------------------------------------------------------------------------
+# the final-rule checks (25 Oct 2026, Codex S3 re-review finding 3): the set-level criterion, the fixed-endpoint
+# cross-evaluation and the final summary
+# ----------------------------------------------------------------------------------------------
+ROSTER = tuple(f"m{m}" for m in range(20))
+
+
+def _run_interval(run: dict):
+    """(complete, Interval or None, values) of a run's Δ₃ over the full roster m0..m19 (95% t interval)."""
+    vals = [run.get("delta3", {}).get(k, float("nan")) for k in ROSTER]
+    vals = [float("nan") if v is None else float(v) for v in vals]
+    complete = all(np.isfinite(v) for v in vals)
+    return complete, (X.t_interval(vals) if complete else None), vals
+
+
+def material_nesting(run: dict) -> list:
+    """Every material matched-quadrature nesting failure of a run: per participant, fold and pair (G2/B2, G3+/B3+ and the
+    selected G3/B3) with both members AVAILABLE at the same quadrature and l(B) − l(G) < −NEST_TOL_REL·max(1, |l(G)|),
+    plus every pair the final guard itself recorded as a failure."""
+    out, seen = [], set()
+    for row in run.get("participants", []):
+        for fold in row.get("folds", []):
+            fits = fold.get("fits", {})
+            for g, b in NEST_PAIRS:
+                fg, fb = fits.get(g), fits.get(b)
+                if not fg or not fb or fg.get("status") != "AVAILABLE" or fb.get("status") != "AVAILABLE":
+                    continue
+                if fg.get("loglik") is None or fb.get("loglik") is None:
+                    continue
+                qg, qb = fg.get("quad") or {}, fb.get("quad") or {}
+                if (qg.get("n_g_nodes"), qg.get("n_tau_nodes")) != (qb.get("n_g_nodes"), qb.get("n_tau_nodes")):
+                    continue
+                d = float(fb["loglik"]) - float(fg["loglik"])
+                if d < -F.NEST_TOL_REL * max(1.0, abs(float(fg["loglik"]))):
+                    key = (row["m"], fold["fold"], f"{b}-{g}")
+                    seen.add(key)
+                    out.append(dict(m=row["m"], fold=fold["fold"], pair=f"{b}-{g}", deficit=d))
+            for name, fr in fits.items():
+                nest = fr.get("nesting") or {}
+                if nest.get("failure"):
+                    key = (row["m"], fold["fold"], f"{name}-{nest.get('vs')}")
+                    if key not in seen:
+                        seen.add(key)
+                        out.append(dict(m=row["m"], fold=fold["fold"], pair=f"{name}-{nest.get('vs')}", deficit=nest.get("deficit"),
+                                        recorded=True))
+    return out
+
+
+def set_compare(x: dict, y: dict) -> dict:
+    """Codex S3 re-review finding 3's set-level criterion, exactly: runs x and y PASS iff (1) identical complete rosters
+    (the same twenty members and data identities, every Δ₃ finite in both), (2) finite results (both group 95% t
+    intervals finite), (3) no unresolved numerical failure in either, (4) no material matched-quadrature nesting failure in
+    either, (5) the same primary sign, and (6) max(|μ_x − μ_y|, |L_x − L_y|, |U_x − U_y|) < T_set with
+    T_set = min(8.8322454e-5, 0.1·min(h_x, h_y)), h = (U − L)/2. Participant differences are reported as diagnostics only."""
+    cx, ivx, vx = _run_interval(x)
+    cy, ivy, vy = _run_interval(y)
+    roster = bool(cx and cy and x.get("members") == y.get("members") and x.get("data_ids") == y.get("data_ids")
+                  and len(vx) == len(vy) == 20)
+    finite = bool(ivx is not None and ivy is not None and all(np.isfinite([ivx.mean, ivx.lo, ivx.hi, ivy.mean, ivy.lo, ivy.hi])))
+    nf = dict(candidate=list(x.get("numerical_failures", [])), reference=list(y.get("numerical_failures", [])))
+    nest = dict(candidate=material_nesting(x), reference=material_nesting(y))
+    same_sign = x.get("primary") == y.get("primary")
+    vals = None
+    ineq = False
+    T = float("nan")
+    if finite:
+        hx, hy = 0.5 * (ivx.hi - ivx.lo), 0.5 * (ivy.hi - ivy.lo)
+        T = min(REPAIR_T_ABS, 0.1 * min(hx, hy))
+        dmu, dlo, dhi = abs(ivx.mean - ivy.mean), abs(ivx.lo - ivy.lo), abs(ivx.hi - ivy.hi)
+        dmax = max(dmu, dlo, dhi)
+        ineq = bool(dmax < T)
+        vals = dict(mu=(ivx.mean, ivy.mean), lo=(ivx.lo, ivy.lo), hi=(ivx.hi, ivy.hi), h=(hx, hy),
+                    d_mu=dmu, d_lo=dlo, d_hi=dhi, d_max=dmax)
+    criteria = dict(identical_complete_rosters=roster, finite_results=finite,
+                    no_unresolved_numerical_failure=not (nf["candidate"] or nf["reference"]),
+                    no_material_nesting_failure=not (nest["candidate"] or nest["reference"]),
+                    same_primary_sign=bool(same_sign), group_inequality=ineq)
+    diffs = {k: (a - b) if (np.isfinite(a) and np.isfinite(b)) else None for k, a, b in zip(ROSTER, vx, vy)}
+    fin = [abs(v) for v in diffs.values() if v is not None]
+    return dict(candidate=x.get("label"), reference=y.get("label"), quad_candidate=x.get("quad"), quad_reference=y.get("quad"),
+                rule_candidate=x.get("rule"), rule_reference=y.get("rule"), code_hash=(x.get("code_hash"), y.get("code_hash")),
+                same_code=x.get("code_hash") == y.get("code_hash"),
+                fingerprints=((x.get("run_record") or {}).get("fingerprint"), (y.get("run_record") or {}).get("fingerprint")),
+                primary=dict(candidate=x.get("primary"), reference=y.get("primary")),
+                T_set=T, T_cap=REPAIR_T_ABS, values=vals, criteria=criteria, passed=bool(all(criteria.values())),
+                numerical_failures=nf, nesting_failures=nest,
+                participant_diffs_diagnostic=diffs, participant_max_abs_diff_diagnostic=(max(fin) if fin else None))
+
+
+def _crosseval_participant(setting: str, r: int, m: int, base: int, row: dict, arrays: dict, grids: dict,
+                           fixed_rule: tuple) -> dict:
+    """One participant of the fixed-endpoint cross-evaluation: every fold's selected G3 and B3 at its archived θ, Σ and μ0
+    (μ0 from the archive when present, else the training fold's catch mean, which is what every fit carries), held-out
+    density summed on the test fold under the run's own recorded quadrature ("own", the reproduction check) and under
+    each grid; Δ₃ = (Σ_folds B3 − G3) / n_scored."""
+    os.environ.setdefault("NPROC", "1")
+    M.QUAD_G_RULE, M.QUAD_G_REFIT_SG = str(fixed_rule[0]), float(fixed_rule[1])
+    bases = load_bases()
+    p = make_synthetic(setting, r, m, base, bases)
+    out = dict(m=m, data_id=p.data_id, data_id_ok=(p.data_id == row["data_id"]), grids={}, missing=[])
+    sums = {g: {"G3": 0.0, "B3": 0.0} for g in ["own"] + list(grids)}
+    for fold in range(5):
+        train, test, _, _ = D.fold_datasets(p, D.span("primary"), fold)
+        frow = row["folds"][fold]
+        for sel in ("G3", "B3"):
+            fr = frow["fits"][sel]
+            kt, ks, km = f"f{fold}_{sel}_theta64", f"f{fold}_{sel}_sigma64", f"f{fold}_{sel}_mu064"
+            if fr.get("status") != "AVAILABLE" or kt not in arrays or ks not in arrays:
+                out["missing"].append(f"f{fold}_{sel}")
+                continue
+            theta, Sigma = np.asarray(arrays[kt], dtype=np.float64), np.asarray(arrays[ks], dtype=np.float64)
+            mu0 = np.asarray(arrays[km], dtype=np.float64) if km in arrays else train.wh.mu0
+            wh = D.whitening_from_sigma(mu0, Sigma, 0.0, train.wh.n_catch)
+            ds = D.rewhiten(test, wh, "/crosseval")
+            cand = M.SELECTED_NAMES[sel][0 if fr.get("selection") == "REDUCED" else 1]
+            q = dict(fr.get("quad") or {})
+            for g in ["own"] + list(grids):
+                qq = dict(n_tau_nodes=int(q.get("n_tau_nodes", M.N_TAU_NODES)), n_g_nodes=int(q.get("n_g_nodes", M.N_G_NODES)),
+                          adaptive_g=bool(q.get("adaptive_g", True)))
+                if g != "own":
+                    for kk, vv in grids[g].items():
+                        if vv is not None:
+                            qq[kk] = vv
+                sp = M.spec(cand, "primary", **qq)
+                sums[g][sel] += float(np.sum(M.Objective(sp, ds).trial_loglik(theta)))
+    n = D.n_scored(p)
+    for g, v in sums.items():
+        out["grids"][g] = None if out["missing"] else (v["B3"] - v["G3"]) / n
+    return out
+
+
+def crosseval(setting: str = "W2", r: int = 0, source: str = "F", workers: int = 12, grids: dict | None = None,
+              out_path: str | None = None) -> dict:
+    """Codex S3 re-review finding 3, the fixed-endpoint cross-evaluation: run `source`'s archived final endpoints (θ, Σ,
+    μ0 per fold and selected model) are re-evaluated at FIXED parameters — no refit — on each grid of CROSSEVAL_GRIDS
+    (G: 121 latency nodes with each fit's recorded 17/33 scale nodes, i.e. 121/17then33; H: 61 latency / 33 scale nodes)
+    and on the run's own recorded grid (which must reproduce the archived Δ₃: the reproduction check). PASS for a grid iff
+    every one of the twenty participants was evaluated and |Δ₃(grid) − Δ₃(own)| < T_set, with T_set = min(8.8322454e-5,
+    0.1·min(h_source, h_grid run)) when the grid's own run exists, else min(8.8322454e-5, 0.1·h_source) (recorded).
+    Written to results/s2/checks/repair_<setting>_set<r>_crosseval.json (source F) or ..._crosseval_<source>.json."""
+    from joblib import Parallel, delayed
+    grids = CROSSEVAL_GRIDS if grids is None else grids
+    jp, npz = repair_paths(setting, r, source)
+    with open(jp) as f:
+        run = json.load(f)
+    arrays = {}
+    with np.load(npz) as z:
+        for row in run["participants"]:
+            pre = f"m{row['m']}_"
+            arrays[row["m"]] = {k[len(pre):]: z[k] for k in z.files if k.startswith(pre) and
+                                (k.endswith("_theta64") or k.endswith("_sigma64") or k.endswith("_mu064"))
+                                and ("_G3_" in k or "_B3_" in k)}
+    rule = run.get("rule") or {}
+    fixed_rule = (rule.get("rule", "17"), float(rule.get("refit_sg", 0.6)))
+    t0 = _time.time()
+    rows = Parallel(n_jobs=min(workers, 20), backend=PARALLEL_BACKEND)(
+        delayed(_crosseval_participant)(setting, r, row["m"], row["base"], row, arrays[row["m"]], grids, fixed_rule)
+        for row in run["participants"])
+    rows = sorted(rows, key=lambda x: x["m"])
+    _, iv_src, _ = _run_interval(run)
+    h_src = 0.5 * (iv_src.hi - iv_src.lo) if iv_src is not None else float("nan")
+    archived = {f"m{row['m']}": run["delta3"].get(f"m{row['m']}") for row in run["participants"]}
+    repro = [abs(x["grids"]["own"] - archived[f"m{x['m']}"]) for x in rows
+             if x["grids"].get("own") is not None and archived.get(f"m{x['m']}") is not None and np.isfinite(archived[f"m{x['m']}"])]
+    repro_max = max(repro) if repro else float("nan")
+    reproduced = bool(len(repro) == 20 and repro_max < 1e-9)
+    per_grid = {}
+    for g in grids:
+        gp = repair_paths(setting, r, g)[0]
+        h_g, T_src = None, "source half-width only (the grid's own run is absent)"
+        if os.path.exists(gp):
+            with open(gp) as f:
+                _, iv_g, _ = _run_interval(json.load(f))
+            if iv_g is not None:
+                h_g = 0.5 * (iv_g.hi - iv_g.lo)
+                T_src = f"min of the source and run {g} half-widths"
+        T = min(REPAIR_T_ABS, 0.1 * (min(h_src, h_g) if h_g is not None else h_src))
+        changes = {f"m{x['m']}": (None if (x["grids"].get(g) is None or x["grids"].get("own") is None)
+                                  else x["grids"][g] - x["grids"]["own"]) for x in rows}
+        fin = [abs(v) for v in changes.values() if v is not None]
+        worst = max(fin) if fin else float("nan")
+        complete = len(fin) == 20 and all(x["data_id_ok"] for x in rows)
+        per_grid[g] = dict(grid=grids[g], T_set=T, T_basis=T_src, h_source=h_src, h_grid_run=h_g, n_evaluated=len(fin),
+                           complete=complete, max_abs_change=worst, over=[k for k, v in changes.items() if v is not None and abs(v) >= T],
+                           changes=changes, passed=bool(complete and reproduced and np.isfinite(worst) and worst < T))
+    out = dict(setting=setting, r=r, source=source, source_quad=run.get("quad"), source_rule=run.get("rule"),
+               source_code_hash=run.get("code_hash"), code_hash=M.code_hash(), utc=_time.strftime("%Y%m%dT%H%M%SZ", _time.gmtime()),
+               reproduction=dict(max_abs_vs_archived=repro_max, n=len(repro), passed=reproduced,
+                                 note="Δ₃ re-evaluated on the run's own recorded grid against the archived Δ₃ (must be < 1e-9)"),
+               grids=per_grid, passed=bool(all(v["passed"] for v in per_grid.values())), participants=rows,
+               seconds=_time.time() - t0)
+    if out_path is None:
+        out_path = os.path.join(CHECK_DIR, f"repair_{setting}_set{r}_crosseval{'' if source == 'F' else '_' + source}.json")
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, "w") as f:
+        json.dump(out, f, indent=1)
+    print(f"[s2 crosseval] {source} {setting} set {r}: reproduction max {repro_max:.2e} -> {'ok' if reproduced else 'FAILED'}; " +
+          "; ".join(f"{g}: max |change| {v['max_abs_change']:.3e} vs T_set {v['T_set']:.3e} -> {'PASS' if v['passed'] else 'FAIL'}"
+                    for g, v in per_grid.items()) + f" ({out['seconds']:.0f} s) -> {out_path}", flush=True)
+    return out
+
+
+def final_summary(setting: str = "W2", r: int = 0, out_stem: str | None = None) -> dict:
+    """F vs G and F vs H by set_compare and the cross-evaluation of F's endpoints, written to
+    results/s2/checks/repair_<setting>_set<r>_final_summary.{json,md}. The final rule PASSES only when both paired checks
+    and both fixed-endpoint grids pass; a missing run or cross-evaluation is reported as MISSING, never as a pass."""
+    runs = {}
+    for label in ("F", "G", "H"):
+        jp, _ = repair_paths(setting, r, label)
+        if os.path.exists(jp):
+            with open(jp) as f:
+                runs[label] = json.load(f)
+    comps = {f"{a}_vs_{b}": (set_compare(runs[a], runs[b]) if a in runs and b in runs else None) for a, b in FINAL_PAIRS}
+    xp = os.path.join(CHECK_DIR, f"repair_{setting}_set{r}_crosseval.json")
+    xe = None
+    if os.path.exists(xp):
+        with open(xp) as f:
+            xe = json.load(f)
+    missing = [k for k, v in comps.items() if v is None] + ([] if xe is not None else ["crosseval"])
+    verdict = bool(not missing and all(v["passed"] for v in comps.values()) and xe["passed"])
+    out = dict(setting=setting, r=r, utc=_time.strftime("%Y%m%dT%H%M%SZ", _time.gmtime()), runs_present=sorted(runs),
+               code_hashes=sorted({v.get("code_hash") for v in runs.values()}),
+               fingerprints=sorted({str((v.get("run_record") or {}).get("fingerprint")) for v in runs.values()}),
+               comparisons=comps, crosseval=None if xe is None else dict(passed=xe["passed"], reproduction=xe["reproduction"],
+                                                                        grids={g: {k: v[k] for k in ("T_set", "max_abs_change", "over", "passed", "complete")}
+                                                                               for g, v in xe["grids"].items()}),
+               missing=missing, passed=verdict,
+               verdict=("PASS: the final rule 61/17then33 meets the amended set-level criterion and the fixed-endpoint checks"
+                        if verdict else ("INCOMPLETE: missing " + ", ".join(missing) if missing else
+                                         "FAIL: the final rule does not meet the amended criterion (a failed check stays failed; "
+                                         "change the algorithm and repeat development before S4)")))
+    stem = out_stem or os.path.join(CHECK_DIR, f"repair_{setting}_set{r}_final_summary")
+    os.makedirs(os.path.dirname(stem), exist_ok=True)
+    with open(stem + ".json", "w") as f:
+        json.dump(out, f, indent=1)
+    with open(stem + ".md", "w") as f:
+        f.write(final_summary_markdown(out))
+    return out
+
+
+def final_summary_markdown(s: dict) -> str:
+    L = [f"# Final-rule checks — {s['setting']} set {s['r']} ({s['utc']})", "",
+         f"Runs present: {', '.join(s['runs_present']) or 'none'}; code hashes {', '.join(str(h) for h in s['code_hashes'])}; "
+         f"run fingerprints {', '.join(s['fingerprints'])}.", "",
+         "Criterion (Codex S3 re-review finding 3): identical complete rosters, finite results, no unresolved numerical failure, "
+         "no material matched-quadrature nesting failure, the same primary sign, and max(|Δμ|, |ΔL|, |ΔU|) < T_set = "
+         f"min({REPAIR_T_ABS:.7e}, 0.1·min(h_x, h_y)) on the group 95% t intervals; participant differences are diagnostics.", "",
+         "| comparison | PASS | rosters | finite | no num. failure | no nesting failure | same sign | max(Δμ, ΔL, ΔU) | T_set | participant max (diag.) |",
+         "|---|---|---|---|---|---|---|---|---|---|"]
+    for k, c in s["comparisons"].items():
+        if c is None:
+            L.append(f"| {k} | MISSING | | | | | | | | |")
+            continue
+        cr, v = c["criteria"], c["values"] or {}
+        L.append(f"| {k} | {'PASS' if c['passed'] else 'FAIL'} | {cr['identical_complete_rosters']} | {cr['finite_results']} | "
+                 f"{cr['no_unresolved_numerical_failure']} ({len(c['numerical_failures']['candidate'])}/{len(c['numerical_failures']['reference'])}) | "
+                 f"{cr['no_material_nesting_failure']} ({len(c['nesting_failures']['candidate'])}/{len(c['nesting_failures']['reference'])}) | "
+                 f"{cr['same_primary_sign']} ({c['primary']['candidate']}/{c['primary']['reference']}) | "
+                 f"{v.get('d_max', float('nan')):.4e} | {c['T_set']:.4e} | {c['participant_max_abs_diff_diagnostic']} |")
+    L.append("")
+    xe = s.get("crosseval")
+    if xe is None:
+        L.append("Fixed-endpoint cross-evaluation: MISSING (run `s2.py repair --label crosseval`).")
+    else:
+        L.append(f"Fixed-endpoint cross-evaluation of F's endpoints: reproduction max {xe['reproduction']['max_abs_vs_archived']:.2e} "
+                 f"({'ok' if xe['reproduction']['passed'] else 'FAILED'}); " +
+                 "; ".join(f"grid {g}: max |change| {v['max_abs_change']:.4e} vs T_set {v['T_set']:.4e} -> {'PASS' if v['passed'] else 'FAIL'}"
+                           + (f" (over: {', '.join(v['over'])})" if v['over'] else "") for g, v in xe["grids"].items()) + ".")
+    L += ["", f"VERDICT: {s['verdict']}."]
+    return "\n".join(L) + "\n"
+
+
 def rank_checks() -> dict:
     """Jacobian rank of the per-trial log-likelihood map at a generic point (local identifiability of the full
-    parameter vector) for every model, and the rank of the stacked 31-node window basis (§4)."""
+    parameter vector) for every model, and the rank of the stacked N_tau-node window basis (§4; 61 nodes by default since 25 Oct 2026)."""
     import jax
     import jax.numpy as jnp
     out = {}
@@ -902,7 +1324,8 @@ def small_spread_check() -> dict:
                 sp_c = sp_full.constrained(s)
                 starts = F.constrained_starts(sp_full, sp_c, res[fam + "3"], F.selected_spec(fam + "3", res[fam + "3"], "primary"), info, 2)
                 r = F.em_fit(sp_c, ds, starts=starts, info=info)
-                w0 = float(M.truncnorm_node_weights(M.tau_nodes_ms(), s)[15])
+                nodes = M.tau_nodes_ms(sp_c.n_tau_nodes)
+                w0 = float(M.truncnorm_node_weights(nodes, s)[int(np.argmin(np.abs(nodes)))])
                 prof[str(s)] = dict(ell_minus_reduced=(r.loglik - red.loglik) if r.available else None,
                                     node0_weight=w0, status=r.status)
             rows[fam] = dict(reduced_loglik=red.loglik, unrestricted=dict(selection=res[fam + "3"].selection,
@@ -1106,15 +1529,21 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("bases")
     d = sub.add_parser("decision")
-    d.add_argument("--setting", required=True, choices=list(SETTINGS))
+    d.add_argument("--setting", required=True, help="W2, T1, O1 or a comma list (one shared queue)")
     d.add_argument("--R", type=int, default=25)
     d.add_argument("--workers", type=int, default=12)
     d.add_argument("--sets", default=None, help="e.g. 0-4")
     d.add_argument("--reverse", action="store_true", help="work the set list from its far end (a second host on the same setting)")
+    d.add_argument("--out-dir", default=None, help="write <out-dir>/<setting>/... (default results/s2/decision); an explicit "
+                   "out-dir also carries the run record run_config.json and refuses a host whose contract differs")
+    d.add_argument("--shard", default=None, help="i/K: this host's deterministic hash shard of the (setting, r, m) tasks")
     sub.add_parser("summary")
     asm = sub.add_parser("assemble", help="set_<r>.json from the 20 task files of a set computed elsewhere (task files kept)")
-    asm.add_argument("--setting", required=True, choices=list(SETTINGS))
-    asm.add_argument("--set", type=int, required=True)
+    asm.add_argument("--setting", required=True, help="W2, T1, O1 or a comma list (with --all)")
+    asm.add_argument("--set", type=int, default=None)
+    asm.add_argument("--all", action="store_true", help="every complete set r < --R (the assemble step of a sharded block)")
+    asm.add_argument("--R", type=int, default=25)
+    asm.add_argument("--out-dir", default=None)
     c = sub.add_parser("checks")
     c.add_argument("--kind", required=True, choices=["nodes", "ranks", "smallspread", "twopass"])
     c.add_argument("--setting", default="W2", choices=list(SETTINGS))
@@ -1128,7 +1557,9 @@ def main():
     pr.add_argument("--n", type=int, default=100)
     pr.add_argument("--workers", type=int, default=12)
     rp = sub.add_parser("repair", help="the repaired same-data, same-code node checks (REPAIR_RUNS): one archived run, or the summary")
-    rp.add_argument("--label", required=True, choices=list(REPAIR_RUNS) + ["summary"])
+    rp.add_argument("--label", required=True, choices=list(REPAIR_RUNS) + ["summary", "crosseval", "final-summary"])
+    rp.add_argument("--source", default="F", help="crosseval: the run whose archived endpoints are re-evaluated (default F)")
+    rp.add_argument("--out", default=None, help="crosseval: output json (default results/s2/checks/...)")
     rp.add_argument("--setting", default="W2", choices=list(SETTINGS))
     rp.add_argument("--set", type=int, default=0)
     rp.add_argument("--workers", type=int, default=12)
@@ -1143,12 +1574,18 @@ def main():
             sets = list(range(int(lo), int(hi) + 1))
         if a.reverse:
             sets = sets[::-1]
-        run_decision(a.setting, a.R, a.workers, sets)
-        print(summary_markdown(summarize()))
+        run_decision(a.setting, a.R, a.workers, sets, out_dir=a.out_dir, shard=a.shard)
+        if a.out_dir is None and a.shard is None:
+            print(summary_markdown(summarize()))
     elif a.cmd == "summary":
         print(summary_markdown(summarize()))
     elif a.cmd == "assemble":
-        assemble_set(a.setting, a.set, remove_task_files=False)
+        if a.all:
+            assemble_all(a.setting, a.R, a.out_dir)
+        else:
+            if a.set is None:
+                raise SystemExit("assemble: --set r or --all")
+            assemble_set(a.setting, a.set, remove_task_files=False, out_dir=a.out_dir)
     elif a.cmd == "checks":
         if a.kind == "nodes":
             node_check(a.setting, a.set, dict(n_g_nodes=33), "g33", a.workers)
@@ -1168,6 +1605,10 @@ def main():
         if a.label == "summary":
             s = repair_summary(a.setting, a.set)
             print(repair_summary_markdown(s))
+        elif a.label == "crosseval":
+            crosseval(a.setting, a.set, a.source, a.workers, out_path=a.out)
+        elif a.label == "final-summary":
+            print(final_summary_markdown(final_summary(a.setting, a.set)))
         else:
             repair_run(a.setting, a.set, a.label, a.workers)
             print(repair_summary_markdown(repair_summary(a.setting, a.set)))

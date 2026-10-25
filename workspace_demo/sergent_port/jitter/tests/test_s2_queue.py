@@ -149,6 +149,146 @@ def test_repair_compare_needs_the_whole_roster_and_no_failures():
         s2.CHECK_DIR = old
 
 
+def test_sharded_block_is_disjoint_complete_and_assembles():
+    """The R = 25 development blocks on K hosts (25 Oct 2026, Codex findings 3/9): `--shard i/K` runs exactly the
+    participant-datasets with shard_of(setting, r, m, K) == i, so the K shards are disjoint and cover the block once; the
+    settings share one queue; an explicit --out-dir carries the run record (written at first start; a host whose contract
+    differs refuses); a sharded host keeps its task files and assembles only the sets it holds whole; `assemble --all`
+    then builds every complete set and reports the incomplete ones. decision_task is a fast fake; no fit runs."""
+    import fit as F
+    old = (s2.decision_task, s2.PARALLEL_BACKEND, s2.S2_DIR, s2.DEC_DIR, s2.ARC_DIR)
+    s2.decision_task = _fake_task
+    s2.PARALLEL_BACKEND = "threading"
+    tmp = _redirect()
+    out_dir = os.path.join(tmp, "decision_final")
+    try:
+        K = 3
+        seen = []
+        for i in range(K):
+            CALLS.clear()
+            s2.run_decision("W2,T1", 2, 4, out_dir=out_dir, shard=f"{i}/{K}")
+            assert all(s2.shard_of(st, r, m, K) == i for st, r, m in CALLS)
+            seen += list(CALLS)
+        assert len(seen) == len(set(seen)) == 2 * 2 * 20                       # disjoint and complete: 2 settings × 2 sets × 20
+        rc = os.path.join(out_dir, F.RUN_CONFIG_NAME)
+        assert os.path.exists(rc)
+        for st in ("W2", "T1"):
+            assert len(os.listdir(os.path.join(out_dir, st, "tasks"))) == 40     # every task file kept
+        # the archive goes to results/s2/archive/<basename(out_dir)>/<setting> (out of git)
+        assert os.path.isdir(os.path.join(s2.ARC_DIR, "decision_final", "W2", "tasks"))
+        os.remove(s2.task_paths("T1", 1, 7, out_dir)[0])                         # one lost task: set 1 of T1 incomplete
+        for st in ("W2", "T1"):
+            for r in range(2):
+                p = os.path.join(out_dir, st, f"set_{r}.json")
+                if os.path.exists(p):
+                    os.remove(p)
+        rep = s2.assemble_all("W2,T1", 2, out_dir)
+        assert rep["W2"]["assembled"] == [0, 1] and rep["T1"]["assembled"] == [0] and rep["T1"]["incomplete"] == {1: [7]}
+        with open(os.path.join(out_dir, "W2", "set_0.json")) as f:
+            rec = json.load(f)
+        assert rec["primary"] == "NEGATIVE" and len(rec["participants"]) == 20 and rec["interval"]["n"] == 20
+        assert rec["numerical_failures"] == [] and rec["nesting_failures"] == [] and "run_fingerprints" in rec
+        # a host with another numerical contract refuses to join the block
+        with open(rc) as f:
+            rec_cfg = json.load(f)
+        rec_cfg["trial_chunk"] = 0 if rec_cfg["trial_chunk"] else 64
+        rec_cfg["fingerprint"] = F.config_fingerprint(rec_cfg)
+        with open(rc, "w") as f:
+            json.dump(rec_cfg, f)
+        try:
+            s2.run_decision("W2", 2, 4, out_dir=out_dir, shard="0/3")
+            assert False, "a mismatched host must refuse"
+        except SystemExit as e:
+            assert "trial_chunk" in str(e) and "refused" in str(e)
+    finally:
+        s2.decision_task, s2.PARALLEL_BACKEND, s2.S2_DIR, s2.DEC_DIR, s2.ARC_DIR = old
+
+
+def _vary(extra=None):
+    """Participant spread for the set-level tests: Δ₃ varies over m (half-width about 2.0e-4, so T_set about 2.0e-5)."""
+    d = {m: 3e-4 * ((m % 5) - 2) for m in range(20)}
+    for k, v in (extra or {}).items():
+        d[k] = d.get(k, 0.0) + v
+    return d
+
+
+def test_set_compare_is_codex_finding_3_exactly():
+    """The amended set-level criterion (Codex S3 re-review finding 3): identical complete rosters, finite results, no
+    unresolved numerical failure, no material matched-quadrature nesting failure, the same primary sign, and
+    max(|Δμ|, |ΔL|, |ΔU|) < T_set = min(8.8322454e-5, 0.1·min(h_x, h_y)). A participant shift that leaves the group
+    interval within T_set PASSES (participant differences are diagnostics); a uniform shift of the mean beyond T_set
+    FAILS; a missing participant, a failure, a nesting failure (in either run) or a sign change each FAIL."""
+    A = _fake_run("F", dict(n_tau_nodes=61, n_g_nodes=17), delta_shift=_vary())
+    B = _fake_run("G", dict(n_tau_nodes=121, n_g_nodes=17), delta_shift=_vary())
+    c = s2.set_compare(A, B)
+    assert c["passed"] and all(c["criteria"].values()) and c["values"]["d_max"] == 0.0
+    h = 0.5 * (c["values"]["hi"][0] - c["values"]["lo"][0])
+    assert abs(c["T_set"] - min(s2.REPAIR_T_ABS, 0.1 * h)) < 1e-18
+    # one participant moved by 2e-5 (the interval moves by ~1e-6 + its width effect) — the group interval stays inside T_set
+    c = s2.set_compare(_fake_run("F", dict(n_tau_nodes=61), delta_shift=_vary({5: 2e-5})), B)
+    assert c["passed"] and c["participant_max_abs_diff_diagnostic"] > 1e-5
+    # every participant shifted: the mean moves by more than T_set
+    c = s2.set_compare(_fake_run("F", dict(n_tau_nodes=61), delta_shift=_vary({m: 1.5 * s2.REPAIR_T_ABS for m in range(20)})), B)
+    assert not c["passed"] and not c["criteria"]["group_inequality"] and c["criteria"]["identical_complete_rosters"]
+    c = s2.set_compare(A, _fake_run("G", dict(n_tau_nodes=121), nan_m=4, delta_shift=_vary()))
+    assert not c["passed"] and not c["criteria"]["identical_complete_rosters"]
+    c = s2.set_compare(_fake_run("F", dict(n_tau_nodes=61), failures=["m1:f0_B3+"], delta_shift=_vary()), B)
+    assert not c["passed"] and not c["criteria"]["no_unresolved_numerical_failure"] and c["criteria"]["group_inequality"]
+    c = s2.set_compare(A, _fake_run("G", dict(n_tau_nodes=121), nest_break=(3, 1, "B3+"), delta_shift=_vary()))
+    assert not c["passed"] and not c["criteria"]["no_material_nesting_failure"] and c["nesting_failures"]["reference"][0]["m"] == 3
+    other = _fake_run("G", dict(n_tau_nodes=121), delta_shift=_vary())
+    other["primary"] = "UNRESOLVED"
+    c = s2.set_compare(A, other)
+    assert not c["passed"] and not c["criteria"]["same_primary_sign"]
+    # a recorded final-guard failure counts as a nesting failure too
+    rec = _fake_run("F", dict(n_tau_nodes=61), delta_shift=_vary())
+    rec["participants"][2]["folds"][0]["fits"]["B3"]["nesting"] = dict(vs="G3", deficit=-0.3, failure=True)
+    assert len(s2.material_nesting(rec)) == 1 and not s2.set_compare(rec, B)["passed"]
+
+
+def test_final_summary_needs_both_pairs_and_the_crosseval():
+    old = s2.CHECK_DIR
+    s2.CHECK_DIR = tempfile.mkdtemp()
+    try:
+        for lab, q in (("F", dict(n_tau_nodes=61, n_g_nodes=17)), ("G", dict(n_tau_nodes=121, n_g_nodes=17))):
+            with open(s2.repair_paths("W2", 0, lab)[0], "w") as f:
+                json.dump(_fake_run(lab, q, delta_shift=_vary()), f)
+        s = s2.final_summary("W2", 0)
+        assert not s["passed"] and set(s["missing"]) == {"F_vs_H", "crosseval"} and s["verdict"].startswith("INCOMPLETE")
+        with open(s2.repair_paths("W2", 0, "H")[0], "w") as f:
+            json.dump(_fake_run("H", dict(n_tau_nodes=61, n_g_nodes=33), g_nodes=33, delta_shift=_vary()), f)
+        xe = dict(passed=True, reproduction=dict(max_abs_vs_archived=0.0, passed=True),
+                  grids={g: dict(T_set=6e-5, max_abs_change=1e-6, over=[], passed=True, complete=True) for g in ("G", "H")})
+        with open(os.path.join(s2.CHECK_DIR, "repair_W2_set0_crosseval.json"), "w") as f:
+            json.dump(xe, f)
+        s = s2.final_summary("W2", 0)
+        assert s["passed"] and s["verdict"].startswith("PASS") and os.path.exists(os.path.join(s2.CHECK_DIR, "repair_W2_set0_final_summary.md"))
+        assert "| F_vs_G | PASS |" in s2.final_summary_markdown(s)
+        xe["grids"]["H"].update(passed=False, over=["m3"])
+        xe["passed"] = False
+        with open(os.path.join(s2.CHECK_DIR, "repair_W2_set0_crosseval.json"), "w") as f:
+            json.dump(xe, f)
+        assert s2.final_summary("W2", 0)["verdict"].startswith("FAIL")
+    finally:
+        s2.CHECK_DIR = old
+
+
+def test_crosseval_reproduces_an_archived_run_at_fixed_parameters():
+    """The fixed-endpoint cross-evaluation on a real archived run (W2 set 0, run B: 61/17, archived with float64 θ and Σ):
+    re-evaluated at its own recorded grid, every participant's Δ₃ equals the archived one to < 1e-9 (the reproduction
+    check that makes the grid changes meaningful), and both grids are evaluated for all twenty participants. Skipped when
+    the archive is not on this machine. About 15 s at 8 workers."""
+    jp, npz = s2.repair_paths("W2", 0, "B")
+    if not (os.path.exists(jp) and os.path.exists(npz)):
+        print("     (skipped: no archived run B)")
+        return
+    out = os.path.join(tempfile.mkdtemp(), "xe.json")
+    xe = s2.crosseval("W2", 0, "B", 8, out_path=out)
+    assert xe["reproduction"]["passed"] and xe["reproduction"]["n"] == 20 and xe["reproduction"]["max_abs_vs_archived"] < 1e-9
+    assert all(v["n_evaluated"] == 20 and v["complete"] for v in xe["grids"].values())
+    assert set(xe["grids"]) == {"G", "H"} and os.path.exists(out)
+
+
 if __name__ == "__main__":
     import inspect
     import traceback
