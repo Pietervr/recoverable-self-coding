@@ -64,7 +64,10 @@ case "__MODE__" in
   s2closure) bash aws/s2_closure.sh __WORKERS__ __PART__ > "results/s2/run_closure___PART__.log" 2>&1 ;;
   s4a)       export S4_S3_RESULTS="s3://$BUCKET/$RES/results/s4"
              python s4.py s4a --workers __WORKERS__ --shard __SHARD__ --wait-h 20 > "results/s4/run_s4a___SHARD_TAG__.log" 2>&1 ;;
-  s4b)       python s4.py s4b --workers __WORKERS__ --shard __SHARD__ --kind __KIND__ > "results/s4/run_s4b___SHARD_TAG__.log" 2>&1 ;;
+  s4b)       export S4_S3_RESULTS="s3://$BUCKET/$RES/results/s4"
+             # --kind rec needs only c0 (results/s4/c0.json, written by the S4a hosts as soon as their stage 1 has landed and
+             # synced here within 5 min): a rec host launched beside the S4a hosts polls the prefix for it up to its lifetime
+             python s4.py s4b --workers __WORKERS__ --shard __SHARD__ --kind __KIND__ --wait-h $(( __LIFETIME_S__ / 3600 )) > "results/s4/run_s4b___SHARD_TAG__.log" 2>&1 ;;
 esac
 echo "[ud] run rc=$? $(date -u +%FT%TZ)"
 kill $SYNC_PID 2>/dev/null

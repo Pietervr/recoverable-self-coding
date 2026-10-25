@@ -9,8 +9,10 @@ loses at most one dataset and any number of instances can take disjoint shards o
     s4.py s4a --workers N            S4a on calibration seeds, synchronously: ε benchmark (50 sets, G0/B0), λ pilots
                                      (5 × 20 sets), ε, λ selection, certification (50 sets, ≤ 1 secant correction) for
                                      E1 (1.25 ε) and T3 (2 ε), c₀ batches (2 × 500 datasets); writes results/s4/s4a.json
-    s4.py s4b-queue                  list the S4b tasks (decision manifest + recovery) given results/s4/s4a.json
-    s4.py s4b --workers N [--shard i/K] [--kind cv|rec|all]   run the S4b tasks of this shard, skipping finished ones
+    s4.py s4b-queue [--kind cv|rec|all]   list the S4b tasks (decision manifest given results/s4/s4a.json; recovery needs no S4a file)
+    s4.py s4b --workers N [--shard i/K] [--kind cv|rec|all] [--wait-h H]   run the S4b tasks of this shard, skipping finished
+                                     ones; --kind rec needs only c₀ (results/s4/c0.json, written by s4a after stage 1) and
+                                     with S4_S3_RESULTS set waits up to H hours for it to land on the shared prefix
     s4.py evaluate                   set primaries, gates (b) (c) (e), V2, recovery flags R1–R5, rise -> results/s4/summary.{json,md}
 
 Seeds: simulate.seed_for(stage, setting, r, m, extra) with stage 'calibration' (S4a) or 'validation' (S4b); member
@@ -476,6 +478,12 @@ def s4a(workers: int, shard: str | None = None, wait_s: float = 0.0) -> dict:
         result[f"c0_{fam}"] = dict(value=val, **info)
         print(f"[s4a] c0 {fam}: {val} {info}", flush=True)
     result["c0"] = c0
+    # c₀ is all the recovery battery needs (§7.5): write it NOW, before the certification stages, so that a `s4b --kind rec`
+    # host launched beside the S4a hosts starts the moment stage 1 has landed (25 Oct 2026; the hosts sync results/s4 to
+    # the shared prefix every 5 min). s4a.json, written at the end, is unchanged.
+    _write(c0_path(), dict(c0=c0, c0_G=result["c0_G"], c0_B=result["c0_B"], code_hash=M.code_hash(),
+                           utc=_time.strftime("%Y%m%dT%H%M%SZ", _time.gmtime())))
+    print(f"[s4a] written {c0_path()} (the recovery battery may start)", flush=True)
     # 4. λ path for E1 (1.25 ε) and T3 (2 ε); the pilots are shared
     pilots = [(lam, reference_over_sets(stage, f"LAM@{lam:g}", R_PILOT, "B3", "G3")) for lam in PILOT_LAMBDAS]
     result["pilots"] = [dict(lam=lam, reference=iv.as_dict()) for lam, iv in pilots]
@@ -508,16 +516,52 @@ def load_s4a() -> dict:
         return json.load(f)
 
 
+C0_NAME = "c0.json"            # c₀ per family, written by s4a() as soon as stage 1 has landed (before certification)
+C0_POLL_S = 300.0              # a rec host's poll interval on the shared prefix while c0.json is not yet there
+
+
+def c0_path() -> str:
+    return os.path.join(S4_DIR, C0_NAME)
+
+
+def load_c0(wait_s: float = 0.0) -> dict:
+    """c₀ per family for the recovery battery (§7.5): from s4a.json when S4a has finished, else from c0.json (s4a stage 1),
+    else — with S4_S3_RESULTS set — the shared prefix is pulled (the barrier's s3_pull) every C0_POLL_S seconds for up to
+    `wait_s` seconds, a line printed each time, so that a `--kind rec` host launched beside the S4a hosts starts working
+    the moment their stage 1 lands. A c₀ still missing after that is an error, never a silent default."""
+    t0 = _time.time()
+    while True:
+        p_a = os.path.join(S4_DIR, "s4a.json")
+        if os.path.exists(p_a):
+            return load_s4a()["c0"]
+        if os.path.exists(c0_path()):
+            with open(c0_path()) as f:
+                return json.load(f)["c0"]
+        if os.environ.get("S4_S3_RESULTS"):
+            s3_pull()
+            if os.path.exists(p_a) or os.path.exists(c0_path()):
+                continue
+        if not os.environ.get("S4_S3_RESULTS") or _time.time() - t0 + C0_POLL_S > wait_s:
+            raise FileNotFoundError(f"no c0: neither {p_a} nor {c0_path()}" + (
+                f" after waiting {_time.time() - t0:.0f} s on {os.environ['S4_S3_RESULTS']}" if os.environ.get("S4_S3_RESULTS")
+                else " and S4_S3_RESULTS is not set (run s4a first, or launch beside the S4a hosts)"))
+        print(f"[s4] waiting for {C0_NAME} from the S4a hosts ({_time.strftime('%H:%M:%SZ', _time.gmtime())}, "
+              f"{(_time.time() - t0) / 60:.0f} min of {wait_s / 60:.0f})", flush=True)
+        _time.sleep(C0_POLL_S)
+
+
 # ----------------------------------------------------------------------------------------------
 # S4b: the manifest and the recovery battery (shardable)
 # ----------------------------------------------------------------------------------------------
 def s4b_tasks(kind: str = "all") -> list:
-    a = load_s4a()
-    lam = {k: (a["lambda"].get(k) or {}).get("lam") if (a["lambda"].get(k) or {}).get("status") == "CERTIFIED" else None
-           for k in ("E1", "T3")}
-    deferred = deferred_settings()
+    """The S4b task list. The decision manifest (cv) needs s4a.json (the certified λ of E1 and T3); the recovery battery
+    (rec) needs nothing from S4a but c₀ at run time, so its list is built without s4a.json (25 Oct 2026)."""
     tasks = []
     if kind in ("cv", "all"):
+        a = load_s4a()
+        lam = {k: (a["lambda"].get(k) or {}).get("lam") if (a["lambda"].get(k) or {}).get("status") == "CERTIFIED" else None
+               for k in ("E1", "T3")}
+        deferred = deferred_settings()
         for setting, (R, _fam, inherited) in MANIFEST.items():
             if setting in ("E1", "T3") and lam.get(setting) is None:
                 continue                                               # uninstantiated: reported as ABSENT (§7.3)
@@ -529,11 +573,14 @@ def s4b_tasks(kind: str = "all") -> list:
     return tasks
 
 
-def s4b(workers: int, shard: str | None, kind: str, defer: list | None = None, defer_reason: str = "") -> int:
+def s4b(workers: int, shard: str | None, kind: str, defer: list | None = None, defer_reason: str = "",
+        wait_s: float = 0.0) -> int:
+    """`kind` rec takes c₀ from s4a.json, else c0.json, else the shared prefix polled for up to `wait_s` (load_c0); cv and
+    all need the finished s4a.json."""
     bases = load_bases()
-    c0 = load_s4a()["c0"]
     if defer:
         print(f"[s4] deferral recorded: {record_deferral(defer, defer_reason)}", flush=True)
+    c0 = load_c0(wait_s) if kind == "rec" else load_s4a()["c0"]
     todo = pending(s4b_tasks(kind), shard)
     return run_queue(todo, workers, bases, c0, label=f"S4b {kind} shard {shard or '1/1'}")
 
@@ -742,6 +789,8 @@ def main():
     b4.add_argument("--kind", default="all", choices=["cv", "rec", "all"])
     b4.add_argument("--defer", default=None, help="T2 or T2,T3: invoke the §8 time-priority amendment (recorded before the batch)")
     b4.add_argument("--defer-reason", default="time-priority amendment, DESIGN rev 7 §8 (owner's submission window)")
+    b4.add_argument("--wait-h", type=float, default=0.0,
+                    help="--kind rec: how long to wait for results/s4/c0.json on the shared prefix (S4_S3_RESULTS) before giving up")
     sub.add_parser("evaluate")
     sm = sub.add_parser("smoke"); sm.add_argument("--workers", type=int, default=2)
     a = ap.parse_args()
@@ -755,7 +804,7 @@ def main():
         todo = pending(tasks)
         print(f"[s4] S4b {a.kind}: {len(tasks)} tasks, {len(todo)} pending; deferred {deferred_settings() or 'none'}")
     elif a.cmd == "s4b":
-        s4b(a.workers, a.shard, a.kind, a.defer.split(",") if a.defer else None, a.defer_reason)
+        s4b(a.workers, a.shard, a.kind, a.defer.split(",") if a.defer else None, a.defer_reason, a.wait_h * 3600.0)
     elif a.cmd == "evaluate":
         out = evaluate()
         print(summary_markdown(out))
