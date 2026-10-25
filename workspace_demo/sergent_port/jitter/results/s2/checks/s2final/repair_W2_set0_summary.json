@@ -1,0 +1,189 @@
+{
+ "setting": "W2",
+ "r": 0,
+ "utc": "20261025T103957Z",
+ "runs": {
+  "F": {
+   "code_hash": "ca6c7e5547d5",
+   "quad": {
+    "n_tau_nodes": 61,
+    "n_g_nodes": 17
+   },
+   "rule": "17then33",
+   "primary": "NEGATIVE",
+   "n_available": 20,
+   "half_width": 0.0006426447859573057,
+   "interval": {
+    "mean": -0.0014556907321541246,
+    "lo": -0.0020983355181114303,
+    "hi": -0.0008130459461968189
+   },
+   "numerical_failures": [],
+   "polish": {
+    "calls": 7,
+    "accepted": 6,
+    "seconds": 2.7452526092529297,
+    "r_extra_work": 0.00012751998719035915
+   },
+   "cost": {
+    "fit_seconds": 21530.763485193253,
+    "task_seconds": 30276.391520261765,
+    "mean_task_seconds": 1513.8195760130882,
+    "queue_wall_seconds": 2359.332751274109
+   },
+   "workers": 20,
+   "utc": "20261025T101804Z",
+   "refits": {
+    "G2": {
+     "fits": 100,
+     "refitted": 53
+    },
+    "G3+": {
+     "fits": 100,
+     "refitted": 47
+    },
+    "B2": {
+     "fits": 100,
+     "refitted": 49
+    },
+    "B3+": {
+     "fits": 100,
+     "refitted": 45
+    },
+    "G3": {
+     "fits": 100,
+     "refitted": 47
+    },
+    "B3": {
+     "fits": 100,
+     "refitted": 45
+    }
+   },
+   "nesting_failures": 0
+  },
+  "G": {
+   "code_hash": "ca6c7e5547d5",
+   "quad": {
+    "n_tau_nodes": 121,
+    "n_g_nodes": 17
+   },
+   "rule": "17then33",
+   "primary": "NEGATIVE",
+   "n_available": 20,
+   "half_width": 0.0006503984760259067,
+   "interval": {
+    "mean": -0.0014775031227610923,
+    "lo": -0.002127901598786999,
+    "hi": -0.0008271046467351855
+   },
+   "numerical_failures": [],
+   "polish": {
+    "calls": 5,
+    "accepted": 4,
+    "seconds": 1.8143258094787598,
+    "r_extra_work": 4.5911077726402464e-05
+   },
+   "cost": {
+    "fit_seconds": 39520.07221317291,
+    "task_seconds": 54709.66686964035,
+    "mean_task_seconds": 2735.4833434820175,
+    "queue_wall_seconds": 3672.1238362789154
+   },
+   "workers": 20,
+   "utc": "20261025T103956Z",
+   "refits": {
+    "G2": {
+     "fits": 100,
+     "refitted": 53
+    },
+    "G3+": {
+     "fits": 100,
+     "refitted": 47
+    },
+    "B2": {
+     "fits": 100,
+     "refitted": 49
+    },
+    "B3+": {
+     "fits": 100,
+     "refitted": 45
+    },
+    "G3": {
+     "fits": 100,
+     "refitted": 47
+    },
+    "B3": {
+     "fits": 100,
+     "refitted": 45
+    }
+   },
+   "nesting_failures": 0
+  },
+  "H": {
+   "code_hash": "ca6c7e5547d5",
+   "quad": {
+    "n_tau_nodes": 61,
+    "n_g_nodes": 33
+   },
+   "rule": "17",
+   "primary": "NEGATIVE",
+   "n_available": 20,
+   "half_width": 0.0006422489219492491,
+   "interval": {
+    "mean": -0.0014709315247849908,
+    "lo": -0.00211318044673424,
+    "hi": -0.0008286826028357416
+   },
+   "numerical_failures": [],
+   "polish": {
+    "calls": 11,
+    "accepted": 10,
+    "seconds": 7.199992656707764,
+    "r_extra_work": 0.0002348803458795163
+   },
+   "cost": {
+    "fit_seconds": 30661.074542045593,
+    "task_seconds": 39843.379012823105,
+    "mean_task_seconds": 1992.1689506411553,
+    "queue_wall_seconds": 3136.3438200950623
+   },
+   "workers": 20,
+   "utc": "20261025T103101Z",
+   "refits": {
+    "G2": {
+     "fits": 100,
+     "refitted": 0
+    },
+    "G3+": {
+     "fits": 100,
+     "refitted": 0
+    },
+    "B2": {
+     "fits": 100,
+     "refitted": 0
+    },
+    "B3+": {
+     "fits": 100,
+     "refitted": 0
+    },
+    "G3": {
+     "fits": 100,
+     "refitted": 0
+    },
+    "B3": {
+     "fits": 100,
+     "refitted": 0
+    }
+   },
+   "nesting_failures": 0
+  }
+ },
+ "one_code_hash": true,
+ "code_hashes": [
+  "ca6c7e5547d5"
+ ],
+ "comparisons": {},
+ "cost": {},
+ "latency_rule": null,
+ "verdicts": {}
+}

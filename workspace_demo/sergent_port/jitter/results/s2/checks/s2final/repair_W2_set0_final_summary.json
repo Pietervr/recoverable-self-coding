@@ -1,0 +1,245 @@
+{
+ "setting": "W2",
+ "r": 0,
+ "utc": "20261025T104007Z",
+ "runs_present": [
+  "F",
+  "G",
+  "H"
+ ],
+ "code_hashes": [
+  "ca6c7e5547d5"
+ ],
+ "fingerprints": [
+  "856f6cd4bddc5aab",
+  "a0d5773d33885ff9"
+ ],
+ "comparisons": {
+  "F_vs_G": {
+   "candidate": "F",
+   "reference": "G",
+   "quad_candidate": {
+    "n_tau_nodes": 61,
+    "n_g_nodes": 17
+   },
+   "quad_reference": {
+    "n_tau_nodes": 121,
+    "n_g_nodes": 17
+   },
+   "rule_candidate": {
+    "rule": "17then33",
+    "refit_sg": 0.6,
+    "refit_nodes": 33
+   },
+   "rule_reference": {
+    "rule": "17then33",
+    "refit_sg": 0.6,
+    "refit_nodes": 33
+   },
+   "code_hash": [
+    "ca6c7e5547d5",
+    "ca6c7e5547d5"
+   ],
+   "same_code": true,
+   "fingerprints": [
+    "a0d5773d33885ff9",
+    "a0d5773d33885ff9"
+   ],
+   "primary": {
+    "candidate": "NEGATIVE",
+    "reference": "NEGATIVE"
+   },
+   "T_set": 6.426447859573057e-05,
+   "T_cap": 8.8322454e-05,
+   "values": {
+    "mu": [
+     -0.0014556907321541246,
+     -0.0014775031227610923
+    ],
+    "lo": [
+     -0.0020983355181114303,
+     -0.002127901598786999
+    ],
+    "hi": [
+     -0.0008130459461968189,
+     -0.0008271046467351855
+    ],
+    "h": [
+     0.0006426447859573057,
+     0.0006503984760259067
+    ],
+    "d_mu": 2.1812390606967737e-05,
+    "d_lo": 2.9566080675568623e-05,
+    "d_hi": 1.4058700538366635e-05,
+    "d_max": 2.9566080675568623e-05
+   },
+   "criteria": {
+    "identical_complete_rosters": true,
+    "finite_results": true,
+    "no_unresolved_numerical_failure": true,
+    "no_material_nesting_failure": true,
+    "same_primary_sign": true,
+    "group_inequality": true
+   },
+   "passed": true,
+   "numerical_failures": {
+    "candidate": [],
+    "reference": []
+   },
+   "nesting_failures": {
+    "candidate": [],
+    "reference": []
+   },
+   "participant_diffs_diagnostic": {
+    "m0": 3.905494617484351e-06,
+    "m1": -7.652451685657979e-07,
+    "m2": -2.672329912911664e-08,
+    "m3": 7.207663572827983e-05,
+    "m4": 1.3928257114770304e-05,
+    "m5": 4.4132477228231437e-07,
+    "m6": -2.6249535309830208e-06,
+    "m7": -1.3023641010079245e-06,
+    "m8": -3.627194494626451e-05,
+    "m9": 0.000454260226213421,
+    "m10": 1.1106108996017383e-05,
+    "m11": 8.381730864925885e-08,
+    "m12": -5.186701092085855e-05,
+    "m13": 4.3995585295775186e-05,
+    "m14": -2.742679911449386e-05,
+    "m15": 4.829774624681704e-06,
+    "m16": 6.464985903065212e-06,
+    "m17": 7.2437639104805385e-06,
+    "m18": -6.09010231453766e-05,
+    "m19": -9.020981188712085e-07
+   },
+   "participant_max_abs_diff_diagnostic": 0.000454260226213421
+  },
+  "F_vs_H": {
+   "candidate": "F",
+   "reference": "H",
+   "quad_candidate": {
+    "n_tau_nodes": 61,
+    "n_g_nodes": 17
+   },
+   "quad_reference": {
+    "n_tau_nodes": 61,
+    "n_g_nodes": 33
+   },
+   "rule_candidate": {
+    "rule": "17then33",
+    "refit_sg": 0.6,
+    "refit_nodes": 33
+   },
+   "rule_reference": {
+    "rule": "17",
+    "refit_sg": 0.6,
+    "refit_nodes": 33
+   },
+   "code_hash": [
+    "ca6c7e5547d5",
+    "ca6c7e5547d5"
+   ],
+   "same_code": true,
+   "fingerprints": [
+    "a0d5773d33885ff9",
+    "856f6cd4bddc5aab"
+   ],
+   "primary": {
+    "candidate": "NEGATIVE",
+    "reference": "NEGATIVE"
+   },
+   "T_set": 6.422489219492491e-05,
+   "T_cap": 8.8322454e-05,
+   "values": {
+    "mu": [
+     -0.0014556907321541246,
+     -0.0014709315247849908
+    ],
+    "lo": [
+     -0.0020983355181114303,
+     -0.00211318044673424
+    ],
+    "hi": [
+     -0.0008130459461968189,
+     -0.0008286826028357416
+    ],
+    "h": [
+     0.0006426447859573057,
+     0.0006422489219492491
+    ],
+    "d_mu": 1.5240792630866239e-05,
+    "d_lo": 1.4844928622809693e-05,
+    "d_hi": 1.5636656638922677e-05,
+    "d_max": 1.5636656638922677e-05
+   },
+   "criteria": {
+    "identical_complete_rosters": true,
+    "finite_results": true,
+    "no_unresolved_numerical_failure": true,
+    "no_material_nesting_failure": true,
+    "same_primary_sign": true,
+    "group_inequality": true
+   },
+   "passed": true,
+   "numerical_failures": {
+    "candidate": [],
+    "reference": []
+   },
+   "nesting_failures": {
+    "candidate": [],
+    "reference": []
+   },
+   "participant_diffs_diagnostic": {
+    "m0": -9.800462098574769e-05,
+    "m1": -1.3179990070000258e-05,
+    "m2": -1.1208229231840505e-05,
+    "m3": 7.73191893088665e-06,
+    "m4": 5.514749973301036e-05,
+    "m5": 8.279176498149354e-06,
+    "m6": -4.4332888105458323e-05,
+    "m7": -4.063156698208559e-06,
+    "m8": 6.229638415788941e-06,
+    "m9": 9.004206344087606e-06,
+    "m10": -3.0426077337608604e-06,
+    "m11": 2.017969620382587e-05,
+    "m12": -6.0572398510316816e-05,
+    "m13": 3.789931516529066e-05,
+    "m14": 0.00028250017306419295,
+    "m15": 0.00011613876864302597,
+    "m16": 2.301111919322807e-05,
+    "m17": 7.492203611292325e-06,
+    "m18": -2.7260346746160735e-05,
+    "m19": -7.133625103961094e-06
+   },
+   "participant_max_abs_diff_diagnostic": 0.00028250017306419295
+  }
+ },
+ "crosseval": {
+  "passed": true,
+  "reproduction": {
+   "max_abs_vs_archived": 2.4771851236948805e-15,
+   "n": 20,
+   "passed": true,
+   "note": "\u0394\u2083 re-evaluated on the run's own recorded grid against the archived \u0394\u2083 (must be < 1e-9)"
+  },
+  "grids": {
+   "G": {
+    "T_set": 6.426447859573057e-05,
+    "max_abs_change": 2.7417375902055643e-05,
+    "over": [],
+    "passed": true,
+    "complete": true
+   },
+   "H": {
+    "T_set": 6.422489219492491e-05,
+    "max_abs_change": 6.389369537752702e-07,
+    "over": [],
+    "passed": true,
+    "complete": true
+   }
+  }
+ },
+ "missing": [],
+ "passed": true,
+ "verdict": "PASS: the final rule 61/17then33 meets the amended set-level criterion and the fixed-endpoint checks"
+}
