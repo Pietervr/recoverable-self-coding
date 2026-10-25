@@ -1,0 +1,34 @@
+{
+  "profile": "xtenure-read",
+  "region": "eu-west-2",
+  "s3_region": "us-west-2",
+  "ami": "ami-03f2fc82fd68c91ed",
+  "instance_type": "c7a.24xlarge",
+  "subnets": {
+    "eu-west-2d": "subnet-06c0606c0fcea6a80",
+    "eu-west-2a": "subnet-0cb00d7203772885b",
+    "eu-west-2b": "subnet-068f66662b6cda4c2",
+    "eu-west-2c": "subnet-0e84d7f07369ba406"
+  },
+  "subnet_order": [
+    "eu-west-2a",
+    "eu-west-2b",
+    "eu-west-2c",
+    "eu-west-2d"
+  ],
+  "security_group_id": "sg-0963d5ce73f89f546",
+  "iam_instance_profile": "xtenure-ec2-t1-worker",
+  "key_name": null,
+  "bucket": "xtenure-cself-pvr-usw2",
+  "code_prefix": "code/t1_access/jitter_s4",
+  "results_prefix": "results/t1_access/jitter_s4",
+  "spot_max_price": "2.60",
+  "spot_price_estimate_usd_h": 0.95,
+  "on_demand_usd_h": 5.6,
+  "on_demand_fallback": false,
+  "root_device": "/dev/xvda",
+  "root_gb": 30,
+  "tags_required": {
+    "project": "t1"
+  }
+}

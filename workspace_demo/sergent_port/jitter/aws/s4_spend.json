@@ -42,7 +42,7 @@
   }
  ],
  "est_running_usd": 0.0,
- "closed_usd": 196.79,
+ "closed_usd": 538.79,
  "closed_log": [
   {
    "utc": "2026-10-24T19:15:33.279423+00:00",
@@ -138,6 +138,16 @@
    "utc": "2026-10-25T11:06:23.124449+00:00",
    "usd": 30.0,
    "note": "s2final 25 Oct 09:31-10:52Z: checks host (eu-north-1, about 1.1 h incl. two refused starts) + 19 dev shards and three relaunches (9, 13 twice) about 17 host-h at USD 0.8-2.3/h spot; estimate from launch-to-done times, reconcile with Cost Explorer"
+  },
+  {
+   "utc": "2026-10-25T13:59:10.464752+00:00",
+   "usd": 70.0,
+   "note": "S4a 25 Oct 11:46-13:51Z: 20 c7a.24xlarge spot (4 regions) about 2.08 h each + 3 interrupted partial runs (shards 14, 10, 13, about 0.3 h each) = about 42.5 host-h at about USD 1.65/h mean spot; estimate, reconcile with Cost Explorer"
+  },
+  {
+   "utc": "2026-10-25T16:25:28.778982+00:00",
+   "usd": 272.0,
+   "note": "S4b rec on-demand to 16:33Z: first wave 0-4 (5 x ~1.2 h), 5-19 old template (15 x ~0.4 h), isolated 96-worker 0-19 (20 x ~0.7 h), 48-worker 0-14 (15 x ~1.5 h) = ~48.5 host-h x USD 5.6; rec 15-19 still on-demand; rec 0-14 moved to spot (us-east-2, eu-west-2, eu-central-1) 16:33Z"
   }
  ],
  "launch_log": [
