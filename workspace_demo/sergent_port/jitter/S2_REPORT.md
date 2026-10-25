@@ -170,9 +170,126 @@ moves set means by at most +0.0005 and produces no POSITIVE set; S4b measures it
 evaluated here: 0 of 10 POSITIVE has a one-sided 95% Clopper–Pearson upper bound of 25.9% on the false-call rate; the
 design's ceiling (≤ 1 in 100) is evaluated at R = 100 in S4b.
 
-### 4.3 T1 (two-state generators, POSITIVE = detection; power needs about 45/50) — PENDING
-### 4.4 O1 (time-stretch, graded; POSITIVE = false call) — PENDING
-### 4.5 Sets 10-24 of each — PENDING
+### The AWS closure at R = 25 (4.3-4.5)
+LABEL for 4.3-4.5, 5.1, 6, 7 and 9: under the pre-repair fitter, code 6d447ad94463, 24-25 Oct AWS closure; to be
+re-read after the warm-endpoint repair (Codex review of 25 Oct). Records: `results/s2_aws/decision/{W2,T1,O1}/set_<r>.json`
+and `summary.{json,md}`, assembled on the Mac on 25 Oct from the hosts' per-task files with the fleet's own bundle
+571fcd9 (checksum verified), so set and participant records both carry 6d447ad94463. Six c7a.24xlarge hosts at 48
+workers, two per setting working the 25 sets from both ends (§9). Every host stopped at its 8 h lifetime. T1 and O1
+are complete (500 of 500 participant-datasets). W2 is not: 497 of 500, so 22 sets are complete and sets 11, 12, 13
+each lack one participant (set 11 m8, set 12 m2, set 13 m1). They were not relaunched. Bounds are exact one-sided 95%
+Clopper–Pearson. Gates (b) and (c) are evaluated in S4b only, never here.
+
+### 4.3 T1 (two-state generators, POSITIVE = detection; power needs about 45/50)
+**25 POSITIVE, 0 NEGATIVE, 0 UNRESOLVED, 0 UNAVAILABLE** of 25. Δ₃ per participant +0.01404 (sd 0.01809) nat/trial; set
+means [+0.0105, +0.0208]; positive participants 13-19 of 20 per set. 0/500 participants UNAVAILABLE. Detection 25/25:
+the lower bound on the detection rate is 88.7%. S4b needs 45 of 50 sets (§7.3 gate (c), lower bound 80.1%).
+
+| set | primary | Δ₃ mean [95% t] nat/trial | positive | max |
+|---|---|---|---|---|
+| 0 | POSITIVE | +0.0106 [+0.0049, +0.0163] | 16/20 | +0.0477 |
+| 1 | POSITIVE | +0.0159 [+0.0045, +0.0272] | 17/20 | +0.0893 |
+| 2 | POSITIVE | +0.0171 [+0.0062, +0.0280] | 17/20 | +0.0851 |
+| 3 | POSITIVE | +0.0208 [+0.0076, +0.0339] | 15/20 | +0.0800 |
+| 4 | POSITIVE | +0.0170 [+0.0085, +0.0256] | 18/20 | +0.0630 |
+| 5 | POSITIVE | +0.0108 [+0.0034, +0.0182] | 15/20 | +0.0643 |
+| 6 | POSITIVE | +0.0143 [+0.0051, +0.0236] | 15/20 | +0.0573 |
+| 7 | POSITIVE | +0.0144 [+0.0074, +0.0213] | 17/20 | +0.0468 |
+| 8 | POSITIVE | +0.0122 [+0.0048, +0.0196] | 17/20 | +0.0515 |
+| 9 | POSITIVE | +0.0105 [+0.0033, +0.0177] | 14/20 | +0.0418 |
+| 10 | POSITIVE | +0.0148 [+0.0049, +0.0246] | 14/20 | +0.0662 |
+| 11 | POSITIVE | +0.0123 [+0.0060, +0.0185] | 18/20 | +0.0495 |
+| 12 | POSITIVE | +0.0111 [+0.0044, +0.0179] | 14/20 | +0.0474 |
+| 13 | POSITIVE | +0.0182 [+0.0064, +0.0299] | 13/20 | +0.0841 |
+| 14 | POSITIVE | +0.0125 [+0.0065, +0.0185] | 19/20 | +0.0443 |
+| 15 | POSITIVE | +0.0161 [+0.0086, +0.0237] | 18/20 | +0.0627 |
+| 16 | POSITIVE | +0.0159 [+0.0089, +0.0229] | 17/20 | +0.0559 |
+| 17 | POSITIVE | +0.0123 [+0.0050, +0.0195] | 16/20 | +0.0530 |
+| 18 | POSITIVE | +0.0112 [+0.0033, +0.0191] | 15/20 | +0.0549 |
+| 19 | POSITIVE | +0.0181 [+0.0099, +0.0262] | 18/20 | +0.0572 |
+| 20 | POSITIVE | +0.0110 [+0.0042, +0.0178] | 17/20 | +0.0551 |
+| 21 | POSITIVE | +0.0170 [+0.0075, +0.0264] | 16/20 | +0.0645 |
+| 22 | POSITIVE | +0.0111 [+0.0058, +0.0164] | 17/20 | +0.0418 |
+| 23 | POSITIVE | +0.0132 [+0.0037, +0.0226] | 17/20 | +0.0747 |
+| 24 | POSITIVE | +0.0128 [+0.0021, +0.0236] | 16/20 | +0.0756 |
+
+The Mac's T1 set 0 (`results/s2/decision/T1/set_0.json`, code ca25a7be9e9f) read POSITIVE +0.0105, 15/20; the AWS set 0
+reads POSITIVE +0.0106, 16/20.
+
+### 4.4 O1 (time-stretch, graded; POSITIVE = false call)
+**0 POSITIVE, 14 NEGATIVE, 11 UNRESOLVED, 0 UNAVAILABLE** of 25. Δ₃ per participant −0.00115 (sd 0.00219) nat/trial; set
+means [−0.0022, −0.0003]; largest single participant +0.0082 (set 1). 0/500 participants UNAVAILABLE. False calls
+(POSITIVE + UNAVAILABLE) 0/25: the upper bound on the false-call rate is 11.3%. S4b's ceiling is 1 in 100.
+
+| set | primary | Δ₃ mean [95% t] nat/trial | positive | max |
+|---|---|---|---|---|
+| 0 | UNRESOLVED | −0.0004 [−0.0008, +0.0000] | 9/20 | +0.0010 |
+| 1 | UNRESOLVED | −0.0006 [−0.0018, +0.0005] | 3/20 | +0.0082 |
+| 2 | UNRESOLVED | −0.0013 [−0.0027, +0.0001] | 5/20 | +0.0036 |
+| 3 | NEGATIVE | −0.0012 [−0.0020, −0.0003] | 4/20 | +0.0014 |
+| 4 | NEGATIVE | −0.0018 [−0.0027, −0.0009] | 3/20 | +0.0002 |
+| 5 | NEGATIVE | −0.0020 [−0.0034, −0.0006] | 5/20 | +0.0029 |
+| 6 | UNRESOLVED | −0.0010 [−0.0022, +0.0001] | 5/20 | +0.0062 |
+| 7 | NEGATIVE | −0.0008 [−0.0015, −0.0002] | 6/20 | +0.0014 |
+| 8 | UNRESOLVED | −0.0008 [−0.0017, +0.0001] | 6/20 | +0.0050 |
+| 9 | UNRESOLVED | −0.0010 [−0.0022, +0.0002] | 5/20 | +0.0064 |
+| 10 | UNRESOLVED | −0.0003 [−0.0014, +0.0009] | 7/20 | +0.0059 |
+| 11 | NEGATIVE | −0.0009 [−0.0015, −0.0002] | 4/20 | +0.0015 |
+| 12 | NEGATIVE | −0.0017 [−0.0025, −0.0009] | 2/20 | +0.0001 |
+| 13 | UNRESOLVED | −0.0004 [−0.0008, +0.0000] | 6/20 | +0.0017 |
+| 14 | UNRESOLVED | −0.0013 [−0.0028, +0.0002] | 7/20 | +0.0039 |
+| 15 | NEGATIVE | −0.0008 [−0.0015, −0.0002] | 5/20 | +0.0022 |
+| 16 | UNRESOLVED | −0.0006 [−0.0013, +0.0001] | 6/20 | +0.0033 |
+| 17 | NEGATIVE | −0.0017 [−0.0025, −0.0009] | 2/20 | +0.0001 |
+| 18 | NEGATIVE | −0.0014 [−0.0025, −0.0004] | 5/20 | +0.0026 |
+| 19 | NEGATIVE | −0.0018 [−0.0029, −0.0007] | 5/20 | +0.0010 |
+| 20 | NEGATIVE | −0.0014 [−0.0021, −0.0006] | 3/20 | +0.0000 |
+| 21 | NEGATIVE | −0.0017 [−0.0026, −0.0009] | 3/20 | +0.0001 |
+| 22 | NEGATIVE | −0.0022 [−0.0042, −0.0003] | 0/20 | −0.0000 |
+| 23 | UNRESOLVED | −0.0007 [−0.0017, +0.0003] | 5/20 | +0.0051 |
+| 24 | NEGATIVE | −0.0010 [−0.0016, −0.0004] | 3/20 | +0.0017 |
+
+### 4.5 W2 at R = 25 (22 complete sets), beside the R = 10 block of 4.2
+**0 POSITIVE, 17 NEGATIVE, 5 UNRESOLVED, 0 UNAVAILABLE** of 22 complete sets. Δ₃ per participant −0.00107 (sd 0.00227)
+nat/trial; set means [−0.0021, +0.0004]; 0/440 participants UNAVAILABLE. False calls 0/22: the upper bound on the
+false-call rate is 12.7% (4.2's 0/10 gave 25.9%). The last column is the Mac's 4.2 reading (code a45a07d92b82, 12
+workers). On sets 0-9 the two readings give the same primary in all ten sets.
+
+| set | primary | Δ₃ mean [95% t] nat/trial | positive | max | Mac, 4.2 |
+|---|---|---|---|---|---|
+| 0 | NEGATIVE | −0.0013 [−0.0021, −0.0004] | 5/20 | +0.0043 | NEGATIVE −0.0015, max +0.0001 |
+| 1 | NEGATIVE | −0.0012 [−0.0019, −0.0005] | 7/20 | +0.0007 | NEGATIVE −0.0012, max +0.0007 |
+| 2 | NEGATIVE | −0.0009 [−0.0016, −0.0003] | 5/20 | +0.0003 | NEGATIVE −0.0012, max +0.0003 |
+| 3 | NEGATIVE | −0.0018 [−0.0029, −0.0007] | 4/20 | +0.0003 | NEGATIVE −0.0016, max +0.0009 |
+| 4 | UNRESOLVED | −0.0005 [−0.0017, +0.0007] | 6/20 | +0.0046 | UNRESOLVED −0.0003, max +0.0046 |
+| 5 | NEGATIVE | −0.0018 [−0.0028, −0.0007] | 3/20 | +0.0020 | NEGATIVE −0.0012, max +0.0020 |
+| 6 | NEGATIVE | −0.0014 [−0.0019, −0.0009] | 2/20 | +0.0000 | NEGATIVE −0.0014, max +0.0000 |
+| 7 | NEGATIVE | −0.0009 [−0.0015, −0.0002] | 5/20 | +0.0029 | NEGATIVE −0.0009, max +0.0029 |
+| 8 | UNRESOLVED | −0.0013 [−0.0026, +0.0001] | 4/20 | +0.0058 | UNRESOLVED −0.0011, max +0.0060 |
+| 9 | NEGATIVE | −0.0010 [−0.0017, −0.0003] | 6/20 | +0.0012 | NEGATIVE −0.0012, max +0.0011 |
+| 10 | NEGATIVE | −0.0011 [−0.0022, −0.0000] | 3/20 | +0.0054 | (not run) |
+| 11 | incomplete (19/20) | | | | (not run) |
+| 12 | incomplete (19/20) | | | | (not run) |
+| 13 | incomplete (19/20) | | | | (not run) |
+| 14 | UNRESOLVED | −0.0007 [−0.0016, +0.0002] | 5/20 | +0.0013 | (not run) |
+| 15 | NEGATIVE | −0.0011 [−0.0019, −0.0003] | 5/20 | +0.0023 | (not run) |
+| 16 | NEGATIVE | −0.0007 [−0.0010, −0.0003] | 4/20 | +0.0002 | (not run) |
+| 17 | UNRESOLVED | +0.0004 [−0.0026, +0.0034] | 4/20 | +0.0270 | (not run) |
+| 18 | NEGATIVE | −0.0009 [−0.0016, −0.0003] | 4/20 | +0.0016 | (not run) |
+| 19 | UNRESOLVED | −0.0005 [−0.0013, +0.0002] | 5/20 | +0.0050 | (not run) |
+| 20 | NEGATIVE | −0.0010 [−0.0017, −0.0004] | 5/20 | +0.0010 | (not run) |
+| 21 | NEGATIVE | −0.0017 [−0.0029, −0.0005] | 4/20 | +0.0026 | (not run) |
+| 22 | NEGATIVE | −0.0009 [−0.0017, −0.0002] | 6/20 | +0.0026 | (not run) |
+| 23 | NEGATIVE | −0.0021 [−0.0031, −0.0011] | 3/20 | +0.0017 | (not run) |
+| 24 | NEGATIVE | −0.0012 [−0.0018, −0.0006] | 2/20 | +0.0007 | (not run) |
+
+The three incomplete sets, from their 19 task files (descriptive only; not set records, not counted above): set 11
+−0.0013 [−0.0022, −0.0003], 4/19 positive, max +0.0017; set 12 −0.0009 [−0.0018, +0.0000], 6/19, max +0.0011; set 13
+−0.0012 [−0.0021, −0.0002], 2/19, max +0.0005. None has a positive lower bound.
+Two single-fold excesses. Set 17 m9 (S2) is +0.0270, the largest W2 value in either block: its held-out B3 − G3 fold
+sums are [+0.01, +23.4, 0.00, −0.03, +0.01] nat, so all of it sits in fold 1; set 17 reads UNRESOLVED. Set 0 m15 (S4) is
++0.0043 on AWS against +0.0001 on the Mac: fold sums [+0.34, 0.00, 0.00, +3.09, +0.03] nat; fold 3 is also the largest
+training nesting violation of the closure (B3+ 11.5 nat below G3+, §6). This is the m15 swing of §8.
 
 ## 5. Latency recovery under the free Σ (`results/s2/diagnosis/recovery_check_em_oracle_scaled.txt`)
 
@@ -187,12 +304,72 @@ rev 7 item for Codex, with the Σ-structure options listed, not decided: (a) pro
 unrestricted fit's EM value; (b) a factor-structured Σ (diagonal + rank-k) with fewer free parameters; (c) Σ estimated
 by EM under the graded fit and SHARED by both families for the recovery estimand only.
 
+### 5.1 Rerun under the final fitter, with the oracle_sigma arm (25 Oct; `results/s2/diagnosis/recovery_check_final.json`)
+Label: under the pre-repair fitter; to be re-read after the warm-endpoint repair (Codex review of 25 Oct). The rerun ran
+on the Mac, not on the fleet: the AWS recovery stage crashed on a Mac-only `sys.path` (fixed in RSC e5f1fe1). 100 fits:
+S2, S4, S13, S20, S10 × em / oracle / oracle_sigma / scaled × 5 replicates; 02:54-03:29Z, 2,083 s on 8 workers beside
+the repair job; 142 s per fit median, 501 s max. `oracle_sigma` = the generator's Σ with the ESTIMATED training-catch
+μ0, so that Σ's contribution is isolated (Codex S3 review 24 Oct, finding 5). `oracle` = the generator's μ0 and Σ.
+`scaled` = the scaled catch covariance, fixed, no EM.
+Code: the workers started at 02:54Z, when the five hashed files matched HEAD 1d1c337 (hash 86eccfb3e15e); 62 of the 100
+rows carry that hash. `code_hash()` hashes the files on disk when it is called, and the repair job edited `fit.py`
+during the run, so the other 38 rows and the header (6f0d60ddef91) carry seven later hashes. Whether any worker
+re-imported the edited `fit.py` I can't determine from the record; loky normally keeps its workers for the whole call.
+Neither 86eccfb3e15e nor the fleet's 6d447ad94463 carries the warm-endpoint repair.
+Medians of the fitted G3 s_τ (ms) over 5 replicates:
+
+| subject | true s_τ / s_g | em | oracle | oracle_sigma | scaled | em, 24 Oct run (above) |
+|---|---|---|---|---|---|---|
+| S10 | 82.2 / 0.56 | 78.1 | 82.3 | 78.3 | 82.9 | 78 |
+| S13 | 54.4 / 0.62 | 53.2 | 50.7 | 53.4 | 59.8 | 53 |
+| S20 | 41.8 / 0.58 | 38.6 | 37.7 | 37.3 | 51.9 | 39 |
+| S2 | 67.3 / 0.67 | 59.3 | 72.5 | 62.1 | 69.1 | 59 |
+| S4 | 63.4 / 0.53 | 15.1 | 67.7 | 42.1 | 50.0 | 15 |
+
+Replicates. S2 em 72.0, 41.9, 46.9, 59.3, 150.0 (one 150 ms box hit; scaled also hits 150 once); oracle 56.5-117.5;
+oracle_sigma 42.0-101.6. S4 em 61.9, 0 (G3 REDUCED), 41.8, 12.1, 15.1 (24 Oct: 0, 12, 15, 42, 62); oracle 51.0-76.7;
+oracle_sigma 22.1-52.3; scaled 43.6-150 (one box hit). G3 s_g medians are within 0.05 of the truth in every cell except
+S4 scaled (0.45 against 0.53). B3's s_τ medians equal G3's to within 2 ms, and B3's A(5) median is 1.00 in every cell
+but S10 scaled (0.97): B3 collapses onto G3 on these graded data. EM steps median 5 (S20 3). Every G3 fit is POSITIVE
+except S4 em replicate 2 (REDUCED).
+The S4 collapse question of §10: the em collapse on S4 reproduces under the final fitter (median 15.1 ms against 15 on
+24 Oct; the five replicates within 0.3 ms of the 24 Oct values), so it was not the D4 under-finding. On S4 oracle_sigma
+reads 42.1 ms, between em (15.1) and oracle (67.7; truth 63.4). On the other four subjects oracle_sigma is within 3 ms
+of em. The Σ-structure options above stay listed, not decided.
+
 ## 6. Nesting and EM statistics
 Pre-D4 block: 0/900 training nesting violations (the warm chains hold l(B) ≥ l(G) by construction); EM chains ended on a
 NOT_CONVERGED inner solve 11× (G3+ 6, G2 4, B3+ 1) and on a small objective decrease 5× (G2 1, B2 2, B3+ 2). Final
 fitter, W2 0-9: 0/1000 violations; no chain ended on a NOT_CONVERGED solve; 35 ascent steps accepted; the re-seed from
 B improved G3+ on 31% of folds (by > 5 nat on 5%) — the G3+ start set alone still misses optima on about one fold in
-twenty by 5-46 nat, which the B-basin re-seed now recovers by construction (§4.2). T1 and O1: PENDING.
+twenty by 5-46 nat, which the B-basin re-seed now recovers by construction (§4.2).
+
+AWS closure (label of 4.3; scratchpad `count_em_stops_aws.py results/s2_aws <S>`). Folds = sets × 20 × 5.
+
+| | W2 (22 sets) | T1 (25) | O1 (25) |
+|---|---|---|---|
+| training nesting violations, l(B3+) < l(G3+) − 1e-6 | 11/2200 | 6/2500 | 16/2500 |
+| of them by more than 1 nat | 2 (11.5, 5.9) | 0 (worst 0.21) | 3 (5.8, 4.3, 3.0) |
+| EM chain ended on a NOT_CONVERGED inner solve | 0 | 0 | 0 |
+| EM chain ended on a small objective decrease | 4 (G2 1, B2 2, B3+ 1) | 1 (B3+) | 6 (G2 3, B2 2, B3+ 1) |
+| generalised-EM ascent steps accepted (G2 / G3+ / B2 / B3+) | 165 / 153 / 16 / 34 | 283 / 325 / 40 / 78 | 241 / 175 / 31 / 25 |
+| inner 4× retries | 0 | 0 | 0 |
+| EM steps of the selected G3/B3: median, p90, max | 5, 7, 8 | 6, 8, 8 | 5, 7, 8 |
+| re-seed from B improved G3+ (of folds) | 682 (> 5 nat 108; max 303.2) | 1202 (> 5 nat 149; max 400.2) | 1079 (> 5 nat 355; max 345.9) |
+| re-seed from B improved G2 | 550 (max 51.2) | 825 (max 418.1) | 550 (max 131.0) |
+| training gap B3+ − G3+ nat: median, p90, p99, max | 0.09, 1.72, 4.00, 11.4 | 10.12, 29.6, 56.7, 77.5 | 0.00, 1.75, 4.88, 15.6 |
+| folds with gap > 5 nat | 13 | 1933 | 23 |
+| G3 REDUCED while B3 POSITIVE | 6 | 125 | 12 |
+| selection G3 POSITIVE / REDUCED | 2123 / 77 | 2100 / 400 | 2185 / 315 |
+| selection B3 POSITIVE / REDUCED | 2115 / 85 | 2103 / 397 | 2141 / 359 |
+| `positive_at_floor` G3 / B3 | 66 / 67 | 102 / 93 | 271 / 276 |
+| fits UNAVAILABLE | 0 | 0 | 0 |
+
+The nesting violations are not zero, unlike the Mac's W2 0-9 (0/1000). Of the 33, 28 are below 0.6 nat (21 below 0.005). The large
+ones: W2 set 0 m15 (S4) fold 3, −11.5 nat, B3 REDUCED, held-out B3 − G3 +3.1 nat on that fold; W2 set 23 m13 (S16) fold
+2, −5.9 nat; O1 set 16 m8 (S4) fold 1, −5.8 nat; O1 set 8 m5 (S4) fold 1, −4.3 nat; O1 set 16 m12 (S4) fold 2, −3.0 nat.
+Four of the five are on base participant S4. The re-seed counts are improvement counts (a re-seed chain that does not
+improve leaves no trace).
 
 ## 7. Start-family usage (which start families were material)
 From the archived starts of the final W2 block (1000 fits per candidate; scratchpad `starts_usage.py decision W2`).
@@ -213,8 +390,33 @@ B2's collapse start wins 17%). For the positive-spread models the design starts 
 on 31% (G3+) and 41% (B3+) of fits, by up to about 1,000 nat; the SMEARED-kernel starts are the most frequent winners,
 the lifts win 7-8%, and the warm chains (twin and re-seed) supply the selected optimum in 30-43% of fits. Every family
 of R2 is material and the union recipe, with the warm and re-seed chains, is what rev 7 should FREEZE for S3 (§5:
-"starts found material are added to the frozen recipe at S3 for all models alike"). T1/O1: to be appended when their
-blocks land (the same script, `decision T1` / `decision O1`).
+"starts found material are added to the frozen recipe at S3 for all models alike").
+
+AWS closure (label of 4.3; scratchpad `starts_usage_aws.py results/s2_aws <S>`, the same counting as above): W2 at 2,200
+fits per candidate (22 sets), T1 and O1 at 2,500.
+
+| setting | candidate | selected optimum from chain | first-stage winner by family | beat design | gain over design (nat): p90 / max |
+|---|---|---|---|---|---|
+| W2 | G2 | main 1650, re-seed 550 | design 2200 | 0/2200 | 0.00 / 0.0 |
+| W2 | G3+ | main 1518, re-seed 682 | smeared 1353, design 694, lift 153 | 665/2200 | 2.97 / 987.9 |
+| W2 | B2 | main 1273, twin chain 927 | design 1819, collapse 381 | 205/2200 | 0.00 / 34.2 |
+| W2 | B3+ | main 1280, twin chain 920 | smeared 1223, design 649, collapse 203, lift 125 | 850/2200 | 9.34 / 652.5 |
+| T1 | G2 | main 1675, re-seed 825 | design 2500 | 0/2500 | 0.00 / 0.0 |
+| T1 | G3+ | main 1299, re-seed 1201 | smeared 1521, design 771, lift 208 | 871/2500 | 3.50 / 166.8 |
+| T1 | B2 | main 2352, twin chain 148 | design 2451, collapse 49 | 48/2500 | 0.00 / 25.2 |
+| T1 | B3+ | main 2281, twin chain 219 | smeared 1405, design 868, lift 215, collapse 12 | 894/2500 | 5.67 / 98.7 |
+| O1 | G2 | main 1950, re-seed 550 | design 2500 | 0/2500 | 0.00 / 0.0 |
+| O1 | G3+ | main 1421, re-seed 1079 | smeared 1636, design 736, lift 128 | 872/2500 | 6.74 / 1015.9 |
+| O1 | B2 | main 1389, twin chain 1111 | design 2008, collapse 492 | 279/2500 | 1.70 / 163.6 |
+| O1 | B3+ | main 1213, twin chain 1287 | smeared 1437, design 750, collapse 171, lift 142 | 1042/2500 | 10.69 / 69.1 |
+
+Start statuses (CONVERGED / NOT_CONVERGED): W2 G2 23,546 / 200, G3+ 38,744 / 405, B2 29,061 / 164, B3+ 44,400 / 403;
+T1 G2 32,113 / 330, G3+ 50,886 / 717, B2 34,253 / 175, B3+ 52,805 / 525; O1 G2 26,295 / 274, G3+ 45,559 / 451, B2
+32,942 / 245, B3+ 52,782 / 434. No fit UNAVAILABLE. The pattern of the Mac's W2 block holds in all three settings: G2's
+first-stage winner is always a design start; for G3+ and B3+ a non-design start beats the best design start on 30-42%
+of fits (T1 B3+ 36%, O1 B3+ 42%); the smeared starts are the most frequent first-stage winner; the re-seed chain gives
+G3+'s selected optimum on 31% (W2), 48% (T1) and 43% (O1) of fits. On T1 the twin chain gives B's optimum on 6% (B2)
+and 9% (B3+) of fits, against 42-52% on W2 and O1.
 
 ## 8. §4 checks, basins, profile-start validation
 Ranks (`s2.py checks --kind ranks`, `results/s2/checks/ranks.json`, 24 Oct under the final code): the stacked 31-node
@@ -326,7 +528,42 @@ USD 653 used; Unimog `rsc_t1_simulation_design.md` §12 row 24; S4a + S4b capped
   immediate retry).
 - The closure fleet: eight hosts (W2/T1/O1 forward and the profiles and checks hosts on eu-north-1b spot at 0.95/h;
   W2-rev/T1-rev/O1-rev on us-west-2a on-demand at 4.93/h), about USD 20/h from 21:08Z; closed spend USD 10.29 at
-  21:58Z. Wall time and total: appended with the closure.
+  21:58Z.
+
+**The closure's measured facts (label of 4.3: pre-repair fitter, code 6d447ad94463, 24-25 Oct AWS closure; to be re-read
+after the warm-endpoint repair).**
+- Decision hosts: W2 i-025acb9dd61ce172f, T1 i-0c18147043a6734d4, O1 i-00144a18c25323a08 (eu-north-1b spot, launched
+  20:53Z); W2-rev i-00e2c2a978971ca84, T1-rev i-0ed7c85c6f149118e, O1-rev i-0d1da001ef952333b (us-west-2a on-demand,
+  21:07Z). 48 workers each, 8 h lifetime. All six shut themselves down at the lifetime (04:53Z eu, 05:07Z us-west-2). No
+  host logged "queue done": each host's queue held every task of its setting not on its disk at start, and the upload-only
+  sync never told a host what its partner had finished. So after the two hosts met, they computed the same tasks twice.
+  S3 keeps only the last version, so the duplicate count can't be determined from the records.
+- Wall time per setting, from the 48-worker eu hosts' run start (20:54Z): T1 complete (500) by the 04:49Z poll, about
+  7.9 h; O1 complete by 04:54Z, about 8.0 h; W2 at 497 when the last host stopped at 05:07Z (8.2 h). 21 task files came
+  from the earlier 96-worker hosts of 19:15-20:53Z and the spot-interrupted W2-rev host 1.
+- Task seconds per host (each task attributed to the host whose S3 sync wrote its final version; median / p90 / max):
+
+| host | market | task files | median s | p90 s | max s | files per host-hour |
+|---|---|---|---|---|---|---|
+| W2 | eu-north-1b spot | 215 | 4,551 | 6,809 | 10,401 | 26.9 |
+| T1 | eu-north-1b spot | 213 | 4,823 | 7,190 | 11,652 | 26.7 |
+| O1 | eu-north-1b spot | 197 | 4,345 | 6,591 | 13,913 | 24.7 |
+| W2-rev | us-west-2a on-demand | 274 | 4,107 | 6,239 | 12,982 | 34.3 |
+| T1-rev | us-west-2a on-demand | 279 | 4,222 | 6,157 | 9,005 | 34.9 |
+| O1-rev | us-west-2a on-demand | 298 | 4,006 | 5,840 | 9,948 | 37.3 |
+
+  Per setting, all hosts: W2 median 4,247 s, p90 6,551, max 12,982 (497 files); T1 4,381 / 6,744 / 11,652; O1 4,119 /
+  6,289 / 13,913. Files per host-hour = files ÷ the 7.99 h from run start to the lifetime stop. These are lower bounds
+  on work done, because duplicates are not counted.
+- Rate as achieved: 1,476 distinct task files from 48 billed host-hours = 30.8 per host-hour (eu spot hosts 26.1, us-west-2
+  on-demand 35.5). The 60-70 per host-hour above was read off light and medium participants early in the run.
+  At the achieved rate the S4 arithmetic above (about 41,000 decision-task-equivalents) gives about 1,330 host-hours,
+  not 600-700. The S4 re-cost is not made here.
+- Spend (`aws/s4_spend.json`, hours × the configured rate: spot at the 0.95 estimate, on-demand 4.93; not Cost Explorer):
+  the six decision hosts 8.00 h each, USD 7.60 × 3 + 39.44 × 3 = USD 141.12, booked 25 Oct 05:12Z. Closed total for the
+  whole closure (every booked host since 18:27Z on 24 Oct, the checks, validators and profiles hosts included): **USD
+  163.84**. USD 0.096 per distinct decision task on the six hosts. Nothing tagged Job=jitter-s4 is running in either
+  region (status and describe-instances, 25 Oct 05:13Z).
 
 ## 10. Open for rev 7 and the Codex S3 review
 - §4: Σ by ML within each model (R1) and why; the "no model-independent direction of bias" sentence withdrawn; the
