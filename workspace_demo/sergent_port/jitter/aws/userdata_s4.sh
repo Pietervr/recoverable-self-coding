@@ -16,6 +16,9 @@ LOGKEY="s3://$BUCKET/$RES/logs/userdata___MODE_____TAG__.log"     # TAG = the pa
 ( sleep __LIFETIME_S__; echo "[ud] LIFETIME reached $(date -u +%FT%TZ)"; aws s3 cp /var/log/s4_userdata.log "$LOGKEY" || true; sync; shutdown -h now ) &
 shutdown -h +$(( __LIFETIME_S__ / 60 + 10 )) "jitter worker lifetime" >/dev/null 2>&1 || true
 export NPROC=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
+# the 64-trial chunked training objective (models.TRIAL_CHUNK; 25 Oct 2026: 13x the host rate at 96 workers, equal to the
+# one-block objective to rounding; S2_REPORT 9) - part of the S4 rule named in the Codex FREEZE line
+export JITTER_TRIAL_CHUNK=64
 # NO XLA_FLAGS (measured 24 Oct 2026 on the S2 closure hosts at 48 workers): with
 # "--xla_cpu_multi_thread_eigen=false --xla_cpu_parallel_codegen_split_count=1" medium participants took 2,846-3,335 s and
 # S11 2,064-2,116 s; without it 2,323-2,595 s and 1,293-1,602 s - the single-threaded compile costs about 30%. The real
