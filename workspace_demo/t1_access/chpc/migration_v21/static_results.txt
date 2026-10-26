@@ -1,0 +1,31 @@
+ok   bash -n preflight_v21.sh
+ok   bash -n archive_v20.sh
+ok   bash -n deploy_v21.sh
+ok   bash -n raise_cap_v21.sh
+ok   bash -n lengau.sh
+ok   bash -n remote_lib.sh
+ok   bash -n rollover_pilot_v21.sh
+ok   bash -n adopt_pilot21.sh
+ok   lengau_archive.py parses at the Python 3.6 grammar (Lengau side)
+ok   mac_archive.py parses at the Python 3.7 grammar
+ok   v21_package.py parses at the Python 3.7 grammar
+ok   package_qual_v21.py parses at the Python 3.7 grammar
+ok   static_check_v21.py parses at the Python 3.7 grammar
+ok   the composed Lengau script for rollover_pilot_v21.sh parses
+ok   the composed Lengau script for adopt_pilot21.sh parses
+ok   no @PLACEHOLDER@ left
+ok   v21_package.py pins candidate row19_screen_controls.json = 72a5d260
+ok   v21_package.py pins candidate v21_promotion_map.json = 41a7bc5e
+ok   v21_package.py pins candidate build_v21.py = 10fd311a
+ok   v21_package.py pins candidate promote_v21.py = 9d431206
+ok   v21_package.py pins candidate programme_gate.py = 041bc123
+ok   v21_package.py pins candidate row19_screen_admit.py = 1caf6933
+ok   mac_archive.py pins the builder bytes
+ok   remote_lib.sh and package_qual_v21.py carry the candidate controls sha256
+ok   deploy_v21.sh requires exactly 5 payload files
+ok   adopt_pilot21.sh uses max_job=200 and refuses the v20 qualification
+ok   raise_cap_v21.sh raises to LEDGER_CAP_V21 (181000) through the supported --raise-cap
+ok   no script calls qdel, qsub, a worker or AWS ([])
+ok   build_v21.py --check: the candidate is the deterministic build
+
+29 passed, 0 failed

@@ -1,0 +1,51 @@
+{
+ "schema": "row19-controls-promotion-map-1",
+ "version": 21,
+ "base": {
+  "controls_sha256": "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c",
+  "adoption_sha256": "1ef162deb000bdc8a423d2c74d606c5db481a92fa2484d8cef75944687232894"
+ },
+ "rule": "each row: copy `source` (exactly `sha256`) to `promoted`; the path must hold `previous_sha256` or already the new bytes. Order: the programme gate, the admission, then the controls LAST, then the version-21 adoption record. Unchanged v20 pins are not listed.",
+ "unchanged_v20_pins": [
+  "aws_ec2/qual_S_plan.json",
+  "chpc/row19_ec2_e2qual.py",
+  "chpc/row19_ec2_e2rules.py",
+  "chpc/row19_ec2_ingest.py",
+  "chpc/row19_ec2_qualify.py",
+  "chpc/row19_ec2_root.py",
+  "chpc/row19_ec2_shadow.py",
+  "chpc/row19_ec2_state.py",
+  "chpc/row19_nodefail_capture.py",
+  "chpc/row19_partition.py",
+  "chpc/row19_qual_S_manifest.json",
+  "chpc/row19_screen_designated.json",
+  "chpc/row19_screen_nodefail.py",
+  "chpc/row19_screen_release.py",
+  "chpc/row19_screen_resources.json",
+  "chpc/row19_screen_status.py",
+  "chpc/row19_screen_verify.py"
+ ],
+ "rows": [
+  {
+   "promoted": "chpc/programme_gate.py",
+   "source": "chpc/candidate_v21_heal/programme_gate.py",
+   "sha256": "041bc123530c92625bd2433e514a345bf6c18459b52a6d9c39d4c64eaa8453b0",
+   "previous_sha256": "10a5340246190f57b2588ddf77057525ffcad0152128682cd6381830c4a839a0",
+   "group": "pin"
+  },
+  {
+   "promoted": "chpc/row19_screen_admit.py",
+   "source": "chpc/candidate_v21_heal/row19_screen_admit.py",
+   "sha256": "1caf69331d27e1c880e62f6d4fe5a29b0e9455548542111fb5ce6b2ffbc45cf6",
+   "previous_sha256": "7c49bf86c6809941bc982393fb4ae095f7186e0c47665c426c27350a841b08af",
+   "group": "pin"
+  },
+  {
+   "promoted": "chpc/row19_screen_controls.json",
+   "source": "chpc/candidate_v21_heal/row19_screen_controls.json",
+   "sha256": "72a5d2606c387433715befcc097e723c18bf4ba124ca5558878d550ea10ee8fb",
+   "previous_sha256": "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c",
+   "group": "ctl"
+  }
+ ]
+}

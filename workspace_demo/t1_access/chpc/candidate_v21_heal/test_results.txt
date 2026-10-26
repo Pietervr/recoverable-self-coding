@@ -1,0 +1,71 @@
+# A. programme_gate REVISION 5: the route
+ok   A1 no declared route -> the funding block's one programme (every earlier version's behaviour)
+ok   A2 the v21 route resolves to CSCI1913 100,000 (other 6) then HEAL1922 100,000 (other 0.01)
+ok   A3 refused: the route's first programme disagrees with the funding block's allocation (one source per number)
+ok   A4 refused: a route that does not start with the manifest's programme
+ok   A5 refused: a programme listed twice
+ok   A6 refused: HEAL1922 allocation_core_h = inf
+ok   A6 refused: HEAL1922 allocation_core_h = 0.0
+ok   A6 refused: HEAL1922 allocation_core_h = True
+ok   A6 refused: HEAL1922 other_settled_core_h = -1.0
+ok   A7 refused: a malformed programme code
+ok   A8 refused: an empty route
+ok   A9 entry_programme: no field -> CSCI1913 by definition; HEAL1922 field -> HEAL1922
+ok   A10 entry_programme refuses a code outside the route, a non-string and None
+# B. per-programme accounting
+ok   B1 old entries (no field) are CSCI1913: 575.9 + 641.4 + 720 live + other 6; HEAL1922 0.01 (its other use only)
+ok   B2 committed_core_h (the first programme) equals REVISION 4's count on a ledger without the field
+ok   B3 the REAL local refit ledger copy (101 entries) counts exactly as v20: 62220.17 = 62220.17, HEAL1922 none
+ok   B4 a HEAL1922 entry is never counted against CSCI1913: CSCI1913 = 600 + 720 + 720 + 6
+ok   B5 a CSCI1913 entry (field or none) is never counted against HEAL1922: HEAL1922 = 720 + 650 + 0.01
+ok   B6 the per-campaign detail splits by programme
+ok   B7 committed_core_h / funding_problem keep the FIRST programme's meaning (the wrapper for bank/shard/slice charges CSCI1913)
+ok   B8 an entry naming a programme outside the route cannot be counted: refused
+ok   B9 a null programme field refuses (only ABSENT means CSCI1913)
+ok   B10 the programme field survives bind, runner start, runner end and settlement (row19_ledger unchanged)
+ok   B11 settlement credits the entry's OWN programme: HEAL1922 720 -> 600 settled; CSCI1913 unchanged at 720 + 6
+ok   B12 charge_programme refuses a bound entry and a second, different programme
+ok   B13 charge_programme is idempotent for the same programme on the fresh reservation
+# C. route_choice
+ok   C1 CSCI1913 is chosen while it fits (today: 80,856.2 committed + 720)
+ok   C2 the boundary: CSCI1913 committed + proposal = 100,000 exactly still goes to CSCI1913
+ok   C3 HEAL1922 is chosen when CSCI1913 committed + proposal > 100,000 (by 1 core-hour)
+ok   C4 refusal when neither fits (both within 100 core-h of their allocation); the reason names both programmes
+ok   C5 per-job inside one admission: 3 jobs with room for 1 on CSCI1913 -> CSCI1913, HEAL1922, HEAL1922
+ok   C6 refusal names the job that fits nowhere (job 3: one on each programme, then none)
+ok   C7 mixed live (10 CSCI1913 live + 3 HEAL1922 live): CSCI1913 is 100 core-h short of a job -> the next job goes to HEAL1922
+ok   C8 settlements below the reservation free CSCI1913 again: the next job goes back to CSCI1913 once it fits (HEAL HEAL HEAL HEAL CSCI)
+ok   C9 malformed proposals are refused
+ok   C11 today's numbers (CSCI1913 80,856.2 committed, the live 24 x 48 h = 1,152 core-h reservation): 16 jobs fit CSCI1913, jobs 17-20 go to HEAL1922 (16 + 4)
+ok   C10 an uncountable ledger refuses the route (never a guess)
+# D. the admission end to end (row19_screen_admit REVISION 21 main)
+ok   D1 CSCI1913 fits (79,000 committed): job 101 submitted, `#PBS -P CSCI1913`, the entry and the plan carry CSCI1913
+ok   D2 with 10 CSCI1913 jobs live and CSCI1913 500 core-h short of a job, job 111 is admitted at once on HEAL1922 (`#PBS -P HEAL1922`); the 10 CSCI1913 entries are untouched
+ok   D3 the HEAL1922 plan carries programme HEAL1922 and its token
+ok   D4 per-programme committed after D2: CSCI1913 99500 (unchanged by the HEAL1922 job), HEAL1922 720.01
+ok   D5 one admission of 3 jobs with room for one on CSCI1913: 112 CSCI1913, 113 and 114 HEAL1922, each script's -P matches
+ok   D6 neither programme fits: REFUSED by the screen gate, nothing reserved, no qsub
+ok   D7 the dry run reports the same refusal and reserves nothing
+ok   D8 the dry run prints the chosen programme (funding: #PBS -P HEAL1922) and reserves nothing
+ok   D9 a failed programme write HOLDS before the plan and qsub; the reservation stays reserved, unbound, WITHOUT a field (counted against CSCI1913, the conservative default)
+ok   D10 programme_problem: a script charging another project, two -P lines, an entry or plan without the code all refuse
+ok   D11 a plan without `programme` (every pre-v21 plan) still builds `#PBS -P CSCI1913` from the manifest
+ok   D12 the campaign cap counts every entry of either programme: at 81,000 with 80,640 spent a HEAL1922-bound job is refused by the cap
+# E. the programme lock still serialises every admission and settlement
+ok   E1 an admission waits for the held programme lock (4.0 s) and then admits
+ok   E2 the admission's planning, route, reservation, charge, plan and qsub all run inside ONE `with PG.programme_lock(...)`
+settled 771500.sched01: 576.00 core-h (shard rep 119)
+ok   E3 a settlement through the wrapper waits for the held lock (3.1 s), settles the HEAL1922 entry and logs both programmes (HEAL1922 2880 -> 2736; CSCI1913 unchanged)
+# F. controls v21
+ok   F1 the candidate controls and map are build_v21's deterministic bytes from the authenticated v20 base
+ok   F2 versions 1-20 and every top-level key equal the adopted v20 (programme block unchanged)
+ok   F3 exactly two pins change (programme_gate, admission), to this folder's bytes
+ok   F4 the v21 entry differs from v20 only in ['files', 'funding_route', 'reviewed', 'sub_envelopes', 'version']
+ok   F5 the sub-envelope refit+S: 81,000 -> 181,000, the same campaigns
+ok   F6 the route resolves against the REAL manifest funding + the controls programme block (CSCI1913 100,000 other 6 first)
+ok   F7 the manifest's pbs.project is CSCI1913 = the route's first programme (old plans' -P unchanged)
+ok   F8 Python 3.7 grammar (the Lengau t1py is 3.12; the rule of every earlier version)
+ok   F10 the REAL e3 activation proof (fb3304d3, made under v20) stays canonical under v21 ('') as under v20 ('')
+ok   F9 the live tree is untouched by this suite
+
+62 passed, 0 failed
