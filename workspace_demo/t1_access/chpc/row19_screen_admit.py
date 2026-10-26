@@ -240,6 +240,22 @@ gate, the reservation accounting and every receipt/qualification/review gate are
 schema-1/2 partition, lengau_scope returns the v19 set. The admission's partition line prints the close (schema 3 has no
 owned coordinates and no k/indices). The activation of e3 (row19_partition.py activate) holds every refit admission until it
 is written, exactly as the e1/e2 activations did.
+
+REVISION 21 CANDIDATE (controls version 21, the FUNDING ROUTE; owner ruling 26 Oct 2026 "once we are out of our own limit we go
+to HEAL1922" and "make sure that we can run jobs on HEAL1922 while we are running our own so that there is no holdup when we
+switch over"; NOT adopted; chpc/candidate_v21_heal/DESIGN_v21.md). FUNDING is checked per programme through programme_gate
+REVISION 5: each job of an admission is assigned, in order, to the FIRST programme of the latest controls version's
+`funding_route` (CSCI1913 100,000, then HEAL1922 100,000) whose own committed core-hours + the jobs this admission already gave
+it + this job's full reservation fit its allocation; the admission refuses only when a job fits no programme. The chosen code
+is written (a) into the job's ledger entry as `programme`, under the campaign ledger's own lock, right after the reservation and
+before the plan, the PBS script or qsub; (b) into the plan as `programme`; (c) into the PBS script's `#PBS -P` line, which is
+checked against the entry and the plan before qsub. An entry WITHOUT the field was charged to CSCI1913 by definition (every
+entry before v21; an interruption between the reservation and the field leaves an unsubmitted reservation counted against
+CSCI1913 - conservative, never an overrun). Settlement (row19_ledger, unchanged) keeps the field, so it credits the entry's own
+programme. CSCI1913 and HEAL1922 jobs run and settle side by side; there is no drain at the switch. The campaign cap, the refit+S
+sub-envelope (v21: 181,000 = 81,000 + HEAL1922's 100,000, with the ledger's two-phase --raise-cap 181000) and every other gate
+are unchanged and still count every entry of either programme; the programme lock still serialises every admission and
+settlement.
 """
 import os, sys, json, time, glob, fcntl, hashlib, argparse, subprocess
 
@@ -530,8 +546,46 @@ def ledger_for(man):
 
 
 def funding_problem(man, proposed_core_h):
-    """REVISION 2: the programme gate's strict count (call it inside programme_lock)."""
+    """REVISION 2: the programme gate's strict count (call it inside programme_lock). REVISION 21: the route's FIRST programme
+    only (kept for the record and the S route); the admission uses funding_assignment."""
     return PG.funding_problem(PG.programme_funding(man), proposed_core_h)
+
+
+def funding_assignment(man, per_job_core_h):
+    """REVISION 21: (programme per job, problem) by the latest controls version's funding route (call it inside programme_lock)."""
+    try:
+        funding = PG.programme_funding(man)
+    except (RuntimeError, OSError, ValueError, KeyError) as e:
+        return [], f"funding cannot be established: {e}"
+    return PG.route_choice(funding, list(per_job_core_h))
+
+
+def charge_programme(L, token, programme):
+    """REVISION 21: write the chosen programme into the NEW reservation's ledger entry under the ledger's own lock (the pinned
+    row19_ledger keeps unknown fields through bind, runner start, runner end and settlement). Refuses an entry that is not the
+    fresh, unbound reservation or that already names another programme."""
+    with L.locked() as st:
+        e = st["entries"].get(token)
+        if e is None:
+            raise RuntimeError(f"no reservation {token}")
+        if e.get("state") != "reserved" or e.get("job_id") is not None:
+            raise RuntimeError(f"reservation {token} is not a fresh unbound reservation ({e.get('state')}, {e.get('job_id')})")
+        if e.get("programme") not in (None, programme):
+            raise RuntimeError(f"reservation {token} already names programme {e.get('programme')}")
+        e["programme"] = programme
+    return programme
+
+
+def programme_problem(script, entry, plan, programme):
+    """REVISION 21: the PBS script charges exactly the programme the ledger entry and the plan carry."""
+    lines = [l for l in script.splitlines() if l.startswith("#PBS -P")]
+    if lines != [f"#PBS -P {programme}"]:
+        return f"the PBS script's project line(s) {lines} are not exactly `#PBS -P {programme}`"
+    if not isinstance(entry, dict) or entry.get("programme") != programme:
+        return f"the ledger entry does not carry programme {programme} ({(entry or {}).get('programme')!r})"
+    if not isinstance(plan, dict) or plan.get("programme") != programme:
+        return f"the plan does not carry programme {programme}"
+    return ""
 
 
 def _funding_problem_v1(man, proposed_core_h):
@@ -2273,7 +2327,7 @@ def rescue_route_problem(doc):
     return "the rescue route has no implementation in controls v16"
 
 
-def gate_problem(man, manifest_path, role, used, pilot, n_jobs, jobs, walltime_s, proposal_core_h=None):
+def gate_problem(man, manifest_path, role, used, pilot, n_jobs, jobs, walltime_s, proposal_core_h=None, per_job_core_h=None):
     root = man["storage"]["root"]
     if os.path.exists(os.path.join(root, "STOP")):
         return "a STOP file is present in the role's root"
@@ -2288,7 +2342,8 @@ def gate_problem(man, manifest_path, role, used, pilot, n_jobs, jobs, walltime_s
     if why:
         return why
     proposal = proposal_core_h if proposal_core_h is not None else len(jobs) * int(man["pbs"]["cores"]) * walltime_s / 3600.0
-    why = funding_problem(man, proposal) or campaign_cap_problem(man, proposal)
+    per_job = list(per_job_core_h) if per_job_core_h else [proposal]           # REVISION 21: the route, per job
+    why = funding_assignment(man, per_job)[1] or campaign_cap_problem(man, proposal)
     if why:
         return why
     if pilot:
@@ -2306,7 +2361,7 @@ def refit_pbs_script(man, plan, token, walltime_s, queue, toolchain, clone, mani
     root, cores = man["storage"]["root"], int(man["pbs"]["cores"])
     n = plan["job"]; reserve = int(float(man["pbs"]["deadline_reserve_s"]))
     end = f"$T/t1py chpc/row19_shard.py job-end --manifest {manifest_rel} --plan $PLAN --job-id $PBS_JOBID --reservation-token {token} --started-epoch $START"
-    L = ["#!/bin/bash", f"#PBS -N t1_screen_{n}", f"#PBS -P {man['pbs']['project']}", f"#PBS -q {queue}",
+    L = ["#!/bin/bash", f"#PBS -N t1_screen_{n}", f"#PBS -P {plan.get('programme') or man['pbs']['project']}", f"#PBS -q {queue}",
          f"#PBS -l select=1:ncpus={cores}:mpiprocs={cores}:mem={int(man['pbs']['mem_gb'])}gb:nodetype={man['pbs']['nodetype']}",
          f"#PBS -l walltime={hms(walltime_s)}", f"#PBS -o {toolchain}/jobs/row19_screen_refit_{n}.out", f"#PBS -e {toolchain}/jobs/row19_screen_refit_{n}.err",
          "#PBS -m ae", "#PBS -M pgwvanrooyen@sun.ac.za",
@@ -2331,7 +2386,7 @@ def orig_pbs_script(man, plan, token, walltime_s, queue, toolchain, clone, manif
     root, cores = man["storage"]["root"], int(man["pbs"]["cores"])
     n = plan["job"]; reserve = int(float(man["pbs"]["deadline_reserve_s"]))
     end = f"$T/t1py chpc/row19_screen_orig.py job-end --manifest {manifest_rel} --plan $PLAN --job-id $PBS_JOBID --reservation-token {token} --started-epoch $START"
-    L = ["#!/bin/bash", f"#PBS -N t1_sorig_{n}", f"#PBS -P {man['pbs']['project']}", f"#PBS -q {queue}",
+    L = ["#!/bin/bash", f"#PBS -N t1_sorig_{n}", f"#PBS -P {plan.get('programme') or man['pbs']['project']}", f"#PBS -q {queue}",
          f"#PBS -l select=1:ncpus={cores}:mpiprocs={cores}:mem={int(man['pbs']['mem_gb'])}gb:nodetype={man['pbs']['nodetype']}",
          f"#PBS -l walltime={hms(walltime_s)}", f"#PBS -o {toolchain}/jobs/row19_screen_orig_{n}.out", f"#PBS -e {toolchain}/jobs/row19_screen_orig_{n}.err",
          "#PBS -m ae", "#PBS -M pgwvanrooyen@sun.ac.za",
@@ -2495,7 +2550,8 @@ def main(argv=None):
             env, w = resolve_envelope(man, a.manifest, role, int(j["job"]))
             why = why or w; envs[j["job"]] = env
         proposal = sum(envelope_core_h(envs[j["job"]]) for j in jobs) if not why else None
-        why = why or gate_problem(man, a.manifest, role, used, a.pilot, n_jobs, jobs, walltime_s, proposal_core_h=proposal)
+        per_job = [envelope_core_h(envs[j["job"]]) for j in jobs] if not why else None
+        why = why or gate_problem(man, a.manifest, role, used, a.pilot, n_jobs, jobs, walltime_s, proposal_core_h=proposal, per_job_core_h=per_job)
         if not why and role == "refit":                                       # REVISION 16: the gate judged the SAME receipt
             p2, s2, _ = newest_receipt(man, role)
             if (p2, s2) != (rpath, rsha):
@@ -2503,9 +2559,18 @@ def main(argv=None):
         pins = pin_problems(man, clone)
         if pins and not why:
             why = f"the manifest's pins do not hold in the clone the jobs run from: {pins}"
+        progs = {}
+        if not why and jobs:                                                  # REVISION 21: the route, under the same lock
+            plist, w = funding_assignment(man, per_job)
+            why = why or w
+            progs = dict(zip([j["job"] for j in jobs], plist))
+            if not why and len(progs) != len(jobs):
+                why = "the funding route did not assign every planned job"
         print(f"planned {len(jobs)} job(s), {sum(len(s.get('indices', s.get('reps', []))) for j in jobs for s in j['slots'])} units; {left} not in this call")
         for j in jobs[:3]:
             print(f"  job {j['job']}: " + "; ".join(f"slot {s['slot']} " + (f"rep {s['rep']} {s['indices']}" if role == 'refit' else f"reps {s['reps']}") for s in j["slots"][:4]) + " ...")
+            if progs.get(j["job"]):
+                print(f"    funding: #PBS -P {progs[j['job']]} (route {' -> '.join(x['programme'] for x in PG.route_of(PG.programme_funding(man)))})")
             ev = envs.get(j["job"])
             if ev:
                 print(f"    envelope: {ev['queue']} {ev['cores']} cores x {ev['walltime_s']/3600:.0f} h ({envelope_core_h(ev):.0f} core-h), {ev['mem_gb']} GB, "
@@ -2522,9 +2587,15 @@ def main(argv=None):
             why = pbs_request_problem(build(man, j, "TOKEN", wj, qj, toolchain, clone, manifest_rel), env)
             if why:
                 print(f"{role} job {j['job']}: REFUSED before reserving: {why}"); return 2
+            prog = progs[j["job"]]
             token, t = L.reserve(ROLES[role], int(j["job"]), cores, wj, root, f"row19_screen_admit {role} {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}")
+            try:                                                              # REVISION 21: the entry names its programme first
+                charge_programme(L, token, prog)
+            except RuntimeError as e:
+                print(f"{role} job {j['job']}: HELD before the plan: the programme {prog} could not be written into reservation {token} ({e}); "
+                      f"it stays reserved and unbound (counted against {PG.route_of(PG.programme_funding(man))[0]['programme']}, the default)"); return 1
             pp = os.path.join(root, "plans", f"job_{j['job']}.json")
-            pdoc = dict(j, queue=qj, walltime_s=wj, token=token, created=time.time())
+            pdoc = dict(j, queue=qj, walltime_s=wj, token=token, created=time.time(), programme=prog)
             if env["source"] != "manifest":
                 pdoc["envelope"] = env
             if role == "refit":                                               # REVISION 16: the order and declaration it was planned under
@@ -2534,8 +2605,8 @@ def main(argv=None):
             entry = [e for e in _strict_load(os.path.join(man["storage"]["campaign"], "budget.json"))["entries"].values() if e.get("token") == token]
             why = envelope_problem(man, a.manifest, role, j["job"], _strict_load(pp), entry[0] if len(entry) == 1 else None)
             sp = os.path.join(toolchain, "jobs", f"row19_screen_{role}_{j['job']}.pbs")
-            script = build(man, j, token, wj, qj, toolchain, clone, manifest_rel)
-            why = why or pbs_request_problem(script, env)
+            script = build(man, pdoc, token, wj, qj, toolchain, clone, manifest_rel)
+            why = why or pbs_request_problem(script, env) or programme_problem(script, entry[0] if len(entry) == 1 else None, pdoc, prog)
             if why:
                 print(f"{role} job {j['job']}: HELD before qsub: {why}; reservation {token} stays reserved and unbound"); return 1
             open(sp, "w").write(script)
@@ -2543,7 +2614,7 @@ def main(argv=None):
             if r.returncode != 0:
                 print(f"{role} job {j['job']}: qsub failed ({r.stderr.strip()[:200]}); reservation {token} stays reserved and unbound"); return 1
             job_id = r.stdout.strip(); L.bind(token, job_id)
-            print(f"{role} job {j['job']}: reserved {token} ({cores} x {wj/3600:.0f} h = {envelope_core_h(env):.0f} core-h; spent {t['spent']:.0f}, live {t['live']:.0f} of {t['cap']:.0f}), submitted {job_id}")
+            print(f"{role} job {j['job']}: reserved {token} ({cores} x {wj/3600:.0f} h = {envelope_core_h(env):.0f} core-h; spent {t['spent']:.0f}, live {t['live']:.0f} of {t['cap']:.0f}), charged to {prog}, submitted {job_id}")
     return 0
 
 

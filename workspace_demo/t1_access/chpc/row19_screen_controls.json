@@ -698,6 +698,78 @@
     "admission": "chpc/row19_ec2_shadow.py",
     "rule": "isolated root and campaign, outside the canonical denominator; every attempt, retry, status, failure, settlement and STOP kept"
    }
+  },
+  {
+   "version": 21,
+   "commit": "candidate: see the commit that adds this entry",
+   "reviewed": "owner ruling 26 Oct 2026 (R052 chat: 'once we are out of our own limit we go to HEAL1922'; 'make sure that we can run jobs on HEAL1922 while we are running our own so that there is no holdup when we switch over'; 17 Oct 2026 'yes, we can charge this to those hours'): controls v21, the FUNDING ROUTE (chpc/candidate_v21_heal/DESIGN_v21.md): v21 = adopted v20 (4e64982b) with chpc/programme_gate.py (041bc123, REVISION 5: the ordered funding route and per-programme accounting; an entry without `programme` is CSCI1913 by definition) and chpc/row19_screen_admit.py (1caf6933, REVISION 21: each job goes to the first programme that fits; the code is written into the ledger entry, the plan and #PBS -P), funding_route CSCI1913 100,000 then HEAL1922 100,000, and the refit+S sub-envelope 81,000 -> 181,000 (the per-programme allocations bind; the ledger cap follows by the two-phase --raise-cap 181000). No change to fit code, estimand, seeds, folds, pass conditions, the crash rule, the rescue route, the envelope, the partition (e3), qualification_S, the top-level programme block or deployment; every other pin unchanged. No science byte moves: adopted by an operator record carrying the ADOPT literal (owner rule 20 Oct 2026).",
+   "files": {
+    "chpc/row19_screen_admit.py": "1caf69331d27e1c880e62f6d4fe5a29b0e9455548542111fb5ce6b2ffbc45cf6",
+    "chpc/row19_screen_verify.py": "d8d3c73ba916e211c3bc479e445547b2dab02e2faead78b87ff7f22d675ac3ec",
+    "chpc/row19_screen_status.py": "258d43293b15f1ae9457cd323f2a4a7b71af79e83695dff51601037991a7cb45",
+    "chpc/row19_screen_release.py": "7a67fd1fc3ca60d77c62ddcaea5d4e11a9ec87ac6b2b02f0bc75ab34a366507f",
+    "chpc/programme_gate.py": "041bc123530c92625bd2433e514a345bf6c18459b52a6d9c39d4c64eaa8453b0",
+    "chpc/row19_screen_resources.json": "f5352bc3ae7c5195e2081baa5685b4533fc8add0d5cfd5c48009e72610bebba0",
+    "chpc/row19_partition.py": "a762933779529a20d6f458dd7118105c855ea122353b1eaa168a8b033c6dc17e",
+    "chpc/row19_ec2_ingest.py": "744ee5c81aba5be7b5160c61ccf6f335d9005d954935865d89106aa54c8fe5cd",
+    "chpc/row19_ec2_state.py": "a9a32329b827b7b9d0bee27523271424c3d8e6026efd164d4b5fae975e1d487f",
+    "chpc/row19_ec2_qualify.py": "1d8eee78fc9427cd9e4cebe09deac37cf4284f0b8a86714dcc9d80cde63cbb29",
+    "chpc/row19_ec2_root.py": "ceba9b3285b6bc66fff32bdc79ebbb70f09e5701794e0fa9764b1f253c169005",
+    "chpc/row19_ec2_shadow.py": "ce4dc15c2a73df40c660f1d2db1344b9ae745c5609c4165b57b956995b12c632",
+    "chpc/row19_qual_S_manifest.json": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "aws_ec2/qual_S_plan.json": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9",
+    "chpc/row19_screen_designated.json": "a96eb59833ff794d3f9ce0ca09ada03d045a29cb9f8a676dad86f8aba85d5584",
+    "chpc/row19_ec2_e2rules.py": "a9ea1f61daa577b642739ae781cb179e9a2089d42d3c23fff277d7d4849a3bcc",
+    "chpc/row19_ec2_e2qual.py": "22251f0ffa8c338f9f3f545eccd27391a86da0bcd2aba343cca69735df5dd42c",
+    "chpc/row19_screen_nodefail.py": "f6afeb10c8ebdfb2547fe67f344b183262555a6474221ef077c341cd145e92df",
+    "chpc/row19_nodefail_capture.py": "84d52bdfc31725182f7bad53caf1bee88ecf01e1e474a7545b1c3971f655bc9c"
+   },
+   "partition": {
+    "path": "chpc/row19_partition_e3.json",
+    "sha256": "ca87fb1da163df10e720e5778542d2bcc5c78f30fc08b6a1cc61d671773f0e6a"
+   },
+   "sub_envelopes": [
+    {
+     "name": "refit+S",
+     "campaigns": [
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+      "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign"
+     ],
+     "cap_core_h": 181000.0,
+     "rule": "the screen refit campaign and the isolated S campaign share ONE envelope (settled + every live reservation, of EITHER programme); each admission of either checks it under the programme lock. Version 16 declared 81,000 core-h; version 21 (owner ruling 26 Oct 2026: once CSCI1913 is spent the refit goes to HEAL1922) declares 181,000 = 81,000 + HEAL1922's 100,000, so the envelope never binds before the per-programme allocations of funding_route do; the refit campaign ledger's own cap (81,000 until the v21 migration's two-phase --raise-cap 181000) is checked as well, so the smaller binds"
+    }
+   ],
+   "qualification_S": {
+    "root": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/root",
+    "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/qual_S/campaign",
+    "manifest_path": "chpc/row19_qual_S_manifest.json",
+    "manifest_sha256": "eabbda2aea74cd6885917b7b249109ead521ce516415c026c11a6d9e51400161",
+    "plan_path": "aws_ec2/qual_S_plan.json",
+    "plan_sha256": "11ca19d6f2f381ef7909d88ef6cf479819fab4ff79576575af2cc061fba277f9",
+    "jobs": [
+     1,
+     2
+    ],
+    "reserved_core_h_each": 1152.0,
+    "reserved_core_h": 2304.0,
+    "kind": "shard",
+    "admission": "chpc/row19_ec2_shadow.py",
+    "rule": "isolated root and campaign, outside the canonical denominator; every attempt, retry, status, failure, settlement and STOP kept"
+   },
+   "funding_route": [
+    {
+     "programme": "CSCI1913",
+     "allocation_core_h": 100000.0,
+     "other_settled_core_h": 6.0,
+     "note": "the screen manifest's programme (the CHPC allocation of the project, 100,000 CPU-h); its allocation and other use must equal the funding block the manifest and the top-level programme block resolve (programme_gate route_of). Every ledger entry without a `programme` field is charged here by definition"
+    },
+    {
+     "programme": "HEAL1922",
+     "allocation_core_h": 100000.0,
+     "other_settled_core_h": 0.01,
+     "note": "Gert van Zyl's CHPC programme (the owner is a member), 100,000 CPU-h to 5 April 2027; owner 17 Oct 2026 'yes, we can charge this to those hours' and 26 Oct 2026 'once we are out of our own limit we go to HEAL1922'. Other use 0.01 core-h declared for the route check of 26 Oct 2026 (test-queue job 7587231.sched01, 1 core, walltime 00:00:01; the held serial check 7587238.sched01 never ran). The expiry (5 April 2027) is not enforced by the gate"
+    }
+   ]
   }
  ],
  "deployment": {

@@ -34,8 +34,24 @@ git-tracked and unmodified, naming the controls file's exact SHA-256 and a git-t
 line `ADOPT row19-screen-controls sha256=<that sha> version=<latest version>`; the controls file must be tracked, unmodified and
 have exactly that SHA-256. Until then neither its programme block (lock, campaigns) nor its deployment or history is used: the
 wrapper and the screen controller refuse.
+
+REVISION 5 (controls v21, the FUNDING ROUTE; owner ruling 26 Oct 2026 "once we are out of our own limit we go to HEAL1922" and
+"make sure that we can run jobs on HEAL1922 while we are running our own so that there is no holdup when we switch over";
+chpc/candidate_v21_heal/DESIGN_v21.md). The latest controls version may declare `funding_route`: an ORDERED list of programmes
+{programme, allocation_core_h, other_settled_core_h, note}. The first entry must be the manifest's programme with the
+allocation and other use programme_funding() already resolves (one source for each number; a mismatch refuses). Without the
+key the route is that one programme (every earlier version). Accounting is PER PROGRAMME: a ledger entry's programme is its
+`programme` field; an entry WITHOUT the field was charged to the route's first programme (CSCI1913) BY DEFINITION - every
+entry written before v21 and every entry of the bank, shard, slice, originals and S controllers, which never write it; old
+entries are never rewritten. A `programme` that is not a string naming a route programme cannot be counted and refuses. A
+programme's committed = its own settled charges + its own non-settled reservations (worst case) + its own declared other use;
+a settlement credits the entry's own programme because the field stays on the entry. route_choice() assigns each proposed job,
+in order, to the FIRST programme whose committed + the jobs already assigned to it in this call + this job fits its allocation,
+and refuses when none fits - so CSCI1913 and HEAL1922 entries live side by side and the switch is per admission, never a
+drain. committed_core_h() and funding_problem() keep their meaning for the FIRST programme (the bank, shard, slice and S
+controllers write `#PBS -P CSCI1913` from their manifests, so the wrapper still admits them against CSCI1913 only).
 """
-import os, sys, json, math, time, fcntl, argparse, contextlib, subprocess
+import os, re, sys, json, math, time, fcntl, argparse, contextlib, subprocess
 
 STATES = ("reserved", "bound", "live", "settled")
 
@@ -65,8 +81,134 @@ def programme_lock(funding, timeout_s=600.0):
         fcntl.flock(fh.fileno(), fcntl.LOCK_UN); fh.close()
 
 
+def route_of(funding):
+    """REVISION 5: the validated ordered route [{programme, allocation_core_h, other_settled_core_h}, ...]; raises RuntimeError.
+    Without a declared route: the one programme of the funding block (unchanged behaviour)."""
+    if not (_num(funding.get("allocation_core_h")) and funding["allocation_core_h"] > 0):
+        raise RuntimeError("the allocation is not a finite positive number")
+    other = funding.get("other_settled_core_h")
+    if not (_num(other) and other >= 0):
+        raise RuntimeError("the declared other programme use is not finite and non-negative")
+    prog = funding.get("programme")
+    if not isinstance(prog, str) or not prog:
+        raise RuntimeError("the funding block names no programme")
+    first = dict(programme=prog, allocation_core_h=float(funding["allocation_core_h"]), other_settled_core_h=float(other))
+    r = funding.get("route")
+    if r is None:
+        return [first]
+    if not isinstance(r, list) or not r:
+        raise RuntimeError("the declared funding route is not a non-empty list")
+    out, seen = [], set()
+    for k, x in enumerate(r):
+        if not isinstance(x, dict) or not isinstance(x.get("programme"), str) or not re.match(r"^[A-Z0-9]{4,16}$", x["programme"]):
+            raise RuntimeError(f"funding route entry {k} names no programme code")
+        if x["programme"] in seen:
+            raise RuntimeError(f"the funding route lists {x['programme']} twice")
+        seen.add(x["programme"])
+        a, o = x.get("allocation_core_h"), x.get("other_settled_core_h")
+        if not (_num(a) and a > 0) or not (_num(o) and o >= 0):
+            raise RuntimeError(f"funding route entry {x['programme']}: the allocation or other use is not finite (positive / non-negative)")
+        out.append(dict(programme=x["programme"], allocation_core_h=float(a), other_settled_core_h=float(o)))
+    if out[0] != first:
+        raise RuntimeError(f"the funding route's first programme {out[0]} is not the funding block's {first}")
+    return out
+
+
+def entry_programme(e, route):
+    """The programme an entry was charged to: its `programme` field, or - with no field - the route's FIRST programme
+    (CSCI1913) by definition (REVISION 5: every pre-v21 entry and every entry of a controller that never writes the field)."""
+    if "programme" not in e:
+        return route[0]["programme"]
+    p = e["programme"]
+    if not isinstance(p, str) or p not in [x["programme"] for x in route]:
+        raise RuntimeError(f"the entry's programme {p!r} is not a programme of the funding route")
+    return p
+
+
+def committed_by_programme(funding):
+    """REVISION 5: ({programme: committed core-hours incl. its declared other use}, {campaign: {programme: core-hours}}); the
+    same strict read as committed_core_h; raises RuntimeError on anything that cannot be counted."""
+    route = route_of(funding)
+    tot = {x["programme"]: float(x["other_settled_core_h"]) for x in route}
+    camps = [c["path"] if isinstance(c, dict) else c for c in funding["campaigns"]]
+    if len(set(camps)) != len(camps):
+        raise RuntimeError("a campaign is listed twice")
+    absent_ok = {c["path"]: c.get("root") for c in funding["campaigns"] if isinstance(c, dict) and c.get("may_be_absent")}
+    detail = {}
+    for c in camps:
+        p = os.path.join(c, "budget.json")
+        if not os.path.exists(p):
+            root = absent_ok.get(c)
+            if root is None:
+                raise RuntimeError(f"the campaign ledger {p} is expected but missing")
+            plans = [f for f in os.listdir(os.path.join(root, "plans")) if f.startswith("job_")] if os.path.isdir(os.path.join(root, "plans")) else []
+            if plans:
+                raise RuntimeError(f"the campaign ledger {p} is missing although {root} holds plans {plans[:3]}")
+            detail[os.path.basename(c)] = {}; continue
+        try:
+            led = json.loads(open(p).read(), parse_constant=lambda x: (_ for _ in ()).throw(ValueError(f"non-finite {x}")))
+        except Exception as e:
+            raise RuntimeError(f"the ledger {p} is unreadable or holds a non-finite constant ({e})")
+        if not (_num(led.get("cap_core_h")) and led["cap_core_h"] > 0) or not isinstance(led.get("entries"), dict):
+            raise RuntimeError(f"the ledger {p} has no finite positive cap or no entries")
+        d = {}
+        for tok, e in led["entries"].items():
+            if not isinstance(e, dict) or e.get("state") not in STATES:
+                raise RuntimeError(f"{p}: entry {tok} has an undeclared state")
+            r = e.get("reserved_core_h")
+            if not (_num(r) and r >= 0):
+                raise RuntimeError(f"{p}: entry {tok} has no finite non-negative reservation")
+            try:
+                prog = entry_programme(e, route)
+            except RuntimeError as x:
+                raise RuntimeError(f"{p}: entry {tok}: {x}")
+            if e["state"] == "settled":
+                v = e.get("settled_core_h")
+                if not (_num(v) and v >= 0):
+                    raise RuntimeError(f"{p}: settled entry {tok} has no finite non-negative charge")
+                c_h = float(v)
+            else:
+                c_h = float(r)
+            d[prog] = d.get(prog, 0.0) + c_h; tot[prog] += c_h
+        detail[os.path.basename(c)] = d
+    return tot, detail
+
+
+def route_choice(funding, proposals):
+    """REVISION 5: (programmes, problem). Each proposed job (core-hours, in order) goes to the FIRST route programme whose
+    committed + what this call already assigned to it + this job fits its allocation; '' problem when every job fits one."""
+    if not isinstance(proposals, (list, tuple)) or not proposals or not all(_num(x) and x > 0 for x in proposals):
+        return [], "the proposal is not a non-empty list of finite positive numbers"
+    try:
+        route = route_of(funding); tot, _ = committed_by_programme(funding)
+    except RuntimeError as e:
+        return [], f"funding cannot be established: {e}"
+    out, add = [], {x["programme"]: 0.0 for x in route}
+    for k, prop in enumerate(proposals):
+        hit = None
+        for x in route:
+            pg = x["programme"]
+            if tot[pg] + add[pg] + float(prop) <= x["allocation_core_h"] + 1e-9:
+                hit = pg; break
+        if hit is None:
+            return [], ("funding: no programme of the route fits job %d of this admission (%.0f core-h): %s" % (
+                k + 1, prop, "; ".join("%s %.0f committed + %.0f this call of %.0f" % (x["programme"], tot[x["programme"]], add[x["programme"]],
+                                                                                     x["allocation_core_h"]) for x in route)))
+        out.append(hit); add[hit] += float(prop)
+    return out, ""
+
+
 def committed_core_h(funding):
-    """(committed core-hours, per-campaign detail); raises RuntimeError on anything that cannot be counted."""
+    """(committed core-hours, per-campaign detail) of the route's FIRST programme (REVISION 5: an entry charged to a later
+    programme of the route is not counted here); raises RuntimeError on anything that cannot be counted."""
+    route = route_of(funding)
+    tot, detail = committed_by_programme(funding)
+    first = route[0]["programme"]
+    return tot[first], {c: d.get(first, 0.0) for c, d in detail.items()}
+
+
+def _committed_core_h_r4(funding):
+    """REVISION 4's single-programme count, kept for the record (and as the equivalence oracle in the v21 tests); not called."""
     if not (_num(funding.get("allocation_core_h")) and funding["allocation_core_h"] > 0):
         raise RuntimeError("the allocation is not a finite positive number")
     other = funding.get("other_settled_core_h")
@@ -140,16 +282,21 @@ def main(argv=None):
     if a.cmd == "check":
         with programme_lock(funding):
             why = funding_problem(funding, a.proposal_core_h); total, detail = committed_core_h(funding)
-        print(f"committed {total:.1f} {detail}; proposal {a.proposal_core_h:.0f}: {why or 'fits'}"); return 0 if not why else 2
+            byp, _ = committed_by_programme(funding); progs, rwhy = route_choice(funding, [a.proposal_core_h])
+        print(f"committed {total:.1f} {detail}; proposal {a.proposal_core_h:.0f}: {why or 'fits'}")
+        print("route: " + "; ".join(f"{x['programme']} {byp[x['programme']]:.1f} of {x['allocation_core_h']:.0f}" for x in route_of(funding))
+              + f"; this proposal would go to {progs[0] if progs else 'NO programme (' + rwhy + ')'}")
+        return 0 if not why else 2
     cmd = a.rest[1:] if a.rest and a.rest[0] == "--" else a.rest
     if not cmd:
         print("say -- <controller command>"); return 2
     log = os.path.join(os.path.dirname(lock_path(funding)), "programme_admissions.jsonl")
     with programme_lock(funding):
-        before, _ = committed_core_h(funding)
+        before, _ = committed_core_h(funding); byp_before, _ = committed_by_programme(funding)
         if a.cmd == "settle":
-            rc = subprocess.run(cmd).returncode; after, _ = committed_core_h(funding)
-            _log(log, dict(kind="settle", cmd=cmd, committed_before=before, committed_after=after, rc=rc)); return rc
+            rc = subprocess.run(cmd).returncode; after, _ = committed_core_h(funding); byp_after, _ = committed_by_programme(funding)
+            _log(log, dict(kind="settle", cmd=cmd, committed_before=before, committed_after=after, rc=rc,
+                           by_programme_before=byp_before, by_programme_after=byp_after)); return rc
         if not (a.jobs > 0 and a.cores > 0 and a.walltime_h > 0):
             print("REFUSED: jobs, cores and walltime must be positive"); return 2
         proposal = float(a.jobs * a.cores * a.walltime_h)
@@ -236,6 +383,10 @@ def programme_funding(man):
     here = os.path.dirname(os.path.abspath(__file__))
     ctl = json.load(open(os.path.join(here, "row19_screen_controls.json")))
     f = dict(man["funding"]); f.update(ctl["programme"])
+    r = ctl["versions"][-1].get("funding_route")                    # REVISION 5: the ordered route of the LATEST version
+    if r is not None:
+        f["route"] = r
+    route_of(f)                                                     # validated here: a malformed route refuses every caller
     return f
 
 

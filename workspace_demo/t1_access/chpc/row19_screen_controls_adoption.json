@@ -1,21 +1,21 @@
 {
  "schema": "row19-screen-controls-adoption-1",
  "controls_path": "chpc/row19_screen_controls.json",
- "controls_sha256": "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c",
- "version": 20,
- "controls_commit": "a8cc1dd",
+ "controls_sha256": "72a5d2606c387433715befcc097e723c18bf4ba124ca5558878d550ea10ee8fb",
+ "version": 21,
+ "controls_commit": "93f615d",
  "review_record": {
-  "path": "reviews/2026-10-23_controls_v20_operator_record.md",
-  "sha256": "70297db9390ab1b2b7e67866a2f20b38d142c60117b6e3866c7ccd618e29ed9d",
-  "commit": "ec751a4",
-  "adopt_line": "ADOPT row19-screen-controls sha256=4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c version=20"
+  "path": "reviews/2026-10-26_controls_v21_operator_record.md",
+  "sha256": "fbd8e0c8a18a838d68caabaee35dfcae092c026ec7fe277a7eead44f5825a0b6",
+  "commit": "1738690",
+  "adopt_line": "ADOPT row19-screen-controls sha256=72a5d2606c387433715befcc097e723c18bf4ba124ca5558878d550ea10ee8fb version=21"
  },
  "by": "R052 Entropy SI (Claude), operator record under the owner's 20 Oct 2026 rule",
  "previous": {
-  "version": 19,
-  "controls_sha256": "111c3107636f2a621cdf24e4e4c86cdba1f735204237fd1ff1bfbc3a5a0315a5",
-  "adoption_sha256": "2b9f3c783e1f7ce53cbdafa4a84e66315874512d7afcde6b03783c343ba2939c",
-  "archived": "Lengau archive_screen/v19_before_v20, Mac chpc/results/archive/row19_screen_v19_before_v20/"
+  "version": 20,
+  "controls_sha256": "4e64982befebb3106019f99aa58bb012487f944c7ca59edb906c688e493adf6c",
+  "adoption_sha256": "1ef162deb000bdc8a423d2c74d606c5db481a92fa2484d8cef75944687232894",
+  "archived": "Lengau archive_screen/v20_before_v21, Mac chpc/results/archive/row19_screen_v20_before_v21/"
  },
- "scope": "controls v19 -> v20, the EC2 CLOSE (route A, owner decision 23 Oct 2026; chpc/candidate_v20_handback/DESIGN_v20.md): chpc/row19_partition.py (a7629337, REVISION 7: the closing schema 3) and chpc/row19_screen_admit.py (7c49bf86, REVISION 20: Lengau's scope gains the hand-back), the closing epoch e3 chpc/row19_partition_e3.json (ca87fb1d) pinned in place of e2 48cea639, and the Mac authority aws_ec2/prod_authority.py (e1381d68, REVISION 10: the terminal close); every other controller byte, the crash rule, the rescue route, sub_envelopes, the ledger cap and the funding unchanged. Lengau refit admission holds until the e3 activation; fresh v20 receipts and a regenerated pilot qualification with a NEW pilot literal precede any further refit admission"
+ "scope": "controls v20 -> v21, the FUNDING ROUTE (owner ruling 26 Oct 2026: CSCI1913 first, then HEAL1922, side by side; chpc/candidate_v21_heal/DESIGN_v21.md): chpc/programme_gate.py (041bc123, REVISION 5: the route and per-programme accounting) and chpc/row19_screen_admit.py (1caf6933, REVISION 21: each job to the first programme that fits; `programme` on the entry, the plan and #PBS -P), funding_route CSCI1913 100,000 then HEAL1922 100,000, refit+S sub-envelope 181,000; every other controller byte, the partition e3, the crash rule, the rescue route and the science unchanged. The ledger cap follows by the two-phase --raise-cap 181000; a regenerated pilot qualification with a NEW pilot literal precedes any further refit admission"
 }

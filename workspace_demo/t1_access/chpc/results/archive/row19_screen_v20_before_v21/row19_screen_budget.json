@@ -1,0 +1,16 @@
+{
+ "phases": [
+  {
+   "cap_core_h": 60000.0,
+   "note": "the initial admission envelope of the screen's refit campaign (owner 6 Oct 2026: stage 2 as designed; caps are raised, the allocation is the hard stop)",
+   "t": 1791322339.957824
+  },
+  {
+   "cap_core_h": 81000.0,
+   "note": "owner 17 Oct 2026: resized row-19 screen adopted (Codex design RSC 08ce9e3 s.3): refit+S sub-envelope 81,000 core-h; CSCI1913 100,000 stays the hard stop",
+   "t": 1792269379.5537837,
+   "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+   "pending": false
+  }
+ ]
+}
