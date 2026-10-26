@@ -11,6 +11,13 @@
    "t": 1792269379.5537837,
    "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
    "pending": false
+  },
+  {
+   "cap_core_h": 181000.0,
+   "note": "owner ruling 26 Oct 2026 (R052): once we are out of our own limit we go to HEAL1922; controls v21 funding route CSCI1913 100,000 then HEAL1922 100,000, refit+S sub-envelope 181,000 = 81,000 + HEAL1922 100,000 (chpc/candidate_v21_heal/DESIGN_v21.md s.4)",
+   "t": 1793045944.0715425,
+   "campaign": "/mnt/lustre/users/pvanrooyen/t1_toolchain/row19_screen_campaign",
+   "pending": false
   }
  ]
 }
