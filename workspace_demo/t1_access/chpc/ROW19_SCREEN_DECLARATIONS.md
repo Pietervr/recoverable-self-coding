@@ -289,3 +289,17 @@ the Unimog design doc row 19; the prefix release package; the controller/resourc
 operational migration on the migration_v13 pattern; a fresh budget check before the first admission.
 Until the new controller is active, NO further refit admissions under the old plan (from 17 Oct 2026); running jobs finish
 untouched and are settled as usual.
+
+## Funding amendment, 26 October 2026: CSCI1913 first, then HEAL1922 (controls v21, operational)
+
+Owner rulings in the R052 chat, 26 Oct 2026: "once we are out of our own limit we go to HEAL1922" and "make sure that we can run
+jobs on HEAL1922 while we are running our own so that there is no holdup when we switch over" (and 17 Oct 2026: "yes, we can
+charge this to those hours"). This supersedes, for the omega = 1 screen, the statements above that HEAL1922 is not used. Omega = 2
+stays deferred; whatever HEAL1922 hours this screen does not use stay available for it.
+
+Since controls v21 (adopted 26 Oct 2026 20:18:50Z, record reviews/2026-10-26_controls_v21_operator_record.md; design
+chpc/candidate_v21_heal/DESIGN_v21.md), each refit admission charges the FIRST programme of the route (CSCI1913 100,000, then
+HEAL1922 100,000) that still fits. Its full reservation counts against that programme alone. The job's ledger entry, its plan
+and its `#PBS -P` line carry the code. An entry without the field is CSCI1913. The refit ledger cap and the refit+S
+sub-envelope are 181,000 (= 81,000 + HEAL1922's 100,000), so the per-programme allocations bind. Science, the manifest and its
+pins are unchanged.
