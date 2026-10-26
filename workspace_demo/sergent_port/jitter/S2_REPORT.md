@@ -1,6 +1,6 @@
 # S2 report — development on development seeds (DESIGN_jitter.md rev 6 §0 stage S2)
 
-Session R052 Entropy SI, 24 October 2026. DRAFT: the readings under the final (D4-patched) fitter are PENDING while
+Session R052 Entropy SI, 24 October 2026 (outcome of S4 and S5: section 12). DRAFT header of 24 Oct: the readings under the final (D4-patched) fitter are PENDING while
 the chain runs (W2 sets 0-9 first, then T1, O1, then sets 10-24 of each, the summary and the benchmark re-cost).
 Everything here is a development reading on development seeds — nothing feeds a gate or flag (§0: only S4b batches do).
 What this report declares for DESIGN rev 7 and the Codex S3 freeze review: four defects found in S2 (D1-D4), their
@@ -700,3 +700,27 @@ about half the participant-datasets of each block carry each. numpy/scipy/jax/ja
 relaunched shard refused to resume on the other host's run record, which is how this surfaced; each development host now
 keeps its own record (`run_config_<shard>.json`). From RSC 27b9ef4 all four regions use the 20261021.0 release, so S4
 and S5 run under one fingerprint per rule.
+
+## 12. What came after: the S4 calibration and the S5 decision (outcome record, 25 Oct 2026)
+
+Not development evidence; recorded here so that the development report points to its outcome. Frozen bundle d001516,
+code 531f80ce7cc9, all fitting on c7a.24xlarge (the run record and harness notes are DESIGN 8 AS RUN).
+- S4 (`results/s4/summary.{json,md}`, RSC 4eaf23b; manifest complete): gate (b) FAILED - O5 12/100 POSITIVE (reference
+  Δ₃ +0.00252 [+0.00203, +0.00301]) and W4 4 UNAVAILABLE; W1-W3 and O1-O4 0/100, references -0.00124 to -0.00107;
+  gate (c) PASS (T1 49/50, lower 0.909); gate (e) PASS (E1 0/100 bounded, upper 0.030); V2 FAIL (T2 50/50
+  UNAVAILABLE); T3 absent (λ_T3 search failure, declared); recovery NOT ADEQUATE in both families (G R1 13/20, R4
+  coverage 0.848 / 0.802; B R1 11/20, R4 0.792 / 0.726); no W1→W3 or W1→W4 rise; inherited calls W1 1/100, O5 39/100,
+  T1 7/50.
+- S5 (`results/s5/decision.{json,md}`, RSC ae2c69a): NOT LICENSED (V1a: gates (b)/(c) not met; V2 not met) -> paper
+  branch C. Δ₃ +0.00457 [-0.00025, +0.00939] n 20 UNRESOLVED; Δ₀ +0.00421 [-0.00004, +0.00847]; Δ₂ +0.00608
+  [+0.00074, +0.01143] POSITIVE; D -0.00036 [-0.00396, +0.00324]; latency hull lower bound above 20 ms in 0 (G) and
+  1 (B) of 20 participants.
+- Reading of O5 (DESIGN 7.3; Codex paper review 26 Oct, finding 2): O5 resamples the recorded trial vectors within
+  each level and recentres them on G3's 31-node marginal level means, so the resampling law keeps each level's
+  centred empirical shape, whose generating family is unknown (state structure, non-Gaussian noise or other
+  variability). Its 12/100 (and the inherited 39/100) are therefore neither a known false-call rate nor evidence of
+  genuine two-state structure; they do not show that the recordings' residuals alone produce a two-state preference.
+  The inherited pair does not share a mean law (M2 shifted logistic, M3 two-logistic), so no shared-mean argument
+  applies to it.
+- The development readings of section 11.2 (W2 0/25, O1 0/25, T1 25/25 under the frozen rule) were consistent with the
+  S4 graded and two-state settings that share their generators (W2 0/100, O1 0/100, T1 49/50).

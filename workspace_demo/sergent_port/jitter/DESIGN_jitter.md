@@ -4,7 +4,8 @@ Design, revision 7 — 24 October 2026, session R052 Entropy SI. Status (25 Oct)
 (`reviews/2026-10-25_s3_freeze_final_codex_review.md`, FAVOURABLE): JITTER_TRIAL_CHUNK=64, 61 latency nodes, scale rule
 17then33, the amended participant failure rule (§5), four-start profiles, S4 and S5 on c7a.24xlarge (al2023
 2023.12.20261021.0, Python 3.12.14); five-module code hash 531f80ce7cc9. The evidence (S2_REPORT 11) is under bundle
-80c1e97 (code ca6c7e5547d5); the amendment acts at aggregation only and was read on the same records. Rev 5 (RSC 0ddac98) received FAVOURABLE WITH CONDITIONS
+80c1e97 (code ca6c7e5547d5); the amendment acts at aggregation only and was read on the same records. OUTCOME (25 Oct):
+S4 and S5 complete, NOT LICENSED in §9's terms (S2_REPORT 12; the run record is §8 AS RUN). Rev 5 (RSC 0ddac98) received FAVOURABLE WITH CONDITIONS
 (`reviews/2026-10-24_design_v5_codex_review.md`); rev 6 closed its four conditions and was the specification S1–S2
 implemented. Revs 1–4 (960e93b, 57c1280, 8d6c195, 78e348c) and their reviews are the record of how it got here.
 Rev 7 records what S2 found and changed (`S2_REPORT.md` is the evidence): the rev 6 fitter read 6 of 19 graded (W2)
@@ -699,6 +700,24 @@ costs are superseded by the measured rates.
   `results/s4/manifest_amendment.json`; `s4.py evaluate` then reports the deferred settings as DEFERRED (declared),
   never as silently absent. At the S4 launch of 24 Oct the amendment was NOT invoked: the full manifest runs.
 - Checkpoint per completed dataset for spot retries; one BLAS/XLA thread per worker; JIT with cached shapes.
+- AS RUN (operational record, 25 Oct 2026; nothing here changes the frozen science or the code hash 531f80ce7cc9).
+  S4a 11:46-13:51Z on 20 c7a.24xlarge spot hosts over four regions; S4b 13:56-21:18Z, 34,000 results, among them all
+  22,000 cv and 7,000 rec tasks; S5 21:50-23:37Z on one c7a.24xlarge spot (eu-north-1), run record equal to
+  S4's. (1) ISOLATED PER-TASK PROCESSES: the first S4b rec hosts died rc 1 after about an hour because host memory
+  rose about 7 GB / 5 min (the loky workers keep every compiled shape) to 142 of 184 GB. `aws/run_s4b_isolated.py`
+  (RSC d988e9b) runs the same `s4.pending` / `s4b_tasks` queue and the frozen `s4.run_task` in spawned processes with
+  max_tasks_per_child = 1; a failed task is logged and the queue continues (`aws/userdata_iso_s4b.sh`, kind-specific
+  log names). (2) UNIT SHARDING (RSC 56f7084): `--shard units:A-B/60` makes sub-shard u%3 of hash shard u//3 of 20;
+  the 60 units partition the cv queue exactly (22,000 tasks covered once, 661-791 per host for 30 hosts), so cv could
+  spread over the hosts the raised quotas allowed. (3) AMI PIN: every region on al2023 2023.12.20261021.0 (Python
+  3.12.14; RSC 27b9ef4), because a mixed release split the S2 final run records (S2_REPORT 11.3). (4) REGIONS AND
+  QUOTAS: eu-north-1, eu-west-1, us-east-1, us-west-2 from 24 Oct; us-east-2, eu-west-2, eu-central-1 added 25 Oct
+  (RSC 3b6ecde; spot quota 512 vCPU on the owner's request; the owner added them to IAM policy xtenure-t1-ec2); spot
+  max price 2.60 (RSC 3339521); us-west-2 cv relaunches moved to eu-west-2 / eu-central-1 at 19:25Z after repeated
+  reclaims; rec ran on-demand first (to 16:38Z) and then on spot. (5) SPEND (estimates from launch-to-done times,
+  `aws/s4_spend.json`; reconcile with Cost Explorer): S4 about USD 707 (S4a 70, rec on-demand 317, S4b spot 320), S5
+  about 2; the jitter study closed at USD 905.79 against the USD 1,300 S4 row cap and the USD 3,000 overall cap. The
+  outcome is in §9's terms NOT LICENSED (S2_REPORT 12, `results/s4/summary.md`, `results/s5/decision.md`).
 
 ## 9. What each outcome licenses in the paper
 
