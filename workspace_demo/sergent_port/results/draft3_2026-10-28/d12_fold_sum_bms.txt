@@ -1,10 +1,12 @@
-=== active: folds per (subject, window, model) min 5 max 5; fold-mean recomputed vs llh_active.csv max |diff| 8.00e-04 (file rounded to 3 decimals)
+=== active: folds per (subject, window, model) min 5 max 5; fold-mean recomputed vs llh_active.csv max |diff| 8.00e-04 (saved tables written to six significant figures)
 tie three-model fold-mean pxp3 vs bms_active.csv: max |diff| 4.96e-07; BOR 4.82e-07
 tie two-model fold-mean pxp3 vs bms_two_model_active.csv: max |diff| 4.98e-07; BOR 4.87e-07
   three-model, fold mean   first pxp3 > 0.95: 315; first run of three: 315; windows > 0.95: [315, 345, 375, 405, 435, 465, 495, 525, 555, 615]
   three-model, fold sum    first pxp3 > 0.95: 375; first run of three: 435; windows > 0.95: [375, 435, 465, 495, 525, 555]
   two-model, fold mean     first pxp3 > 0.95: None; first run of three: None; windows > 0.95: []
   two-model, fold sum      first pxp3 > 0.95: None; first run of three: None; windows > 0.95: []
+  three-model, fold mean  first run of three with M3 highest (any value): 315; Simes strict: [375, 435, 465, 495, 525]; BH: [345, 375, 435, 465, 495, 525]; first window after 555 ms with M2B highest: 675
+  three-model, fold sum   first run of three with M3 highest (any value): 315; Simes strict: []; BH: []; first window after 555 ms with M2B highest: 675
    t_ms  pxp3 mean  BOR mean  pxp3 sum   BOR sum  xp3 sum | 2m pxp3 mean 2m BOR mean 2m pxp3 sum 2m BOR sum 2m xp3 sum  M3>2B
     255      0.500    0.0171     0.569    0.0125    0.572 |        0.500       0.787       0.515      0.786      0.571     11
     285      0.227    0.0129     0.346    0.0115    0.346 |        0.440       0.781       0.466      0.779      0.346      9
@@ -21,13 +23,15 @@ tie two-model fold-mean pxp3 vs bms_two_model_active.csv: max |diff| 4.98e-07; B
     615      0.989   0.00873     0.905   0.00783    0.910 |        0.644       0.709       0.621      0.705      0.910     11
     645      0.935     0.016     0.630    0.0128    0.634 |        0.609       0.755       0.529      0.781      0.634     11
 
-=== passive: folds per (subject, window, model) min 5 max 5; fold-mean recomputed vs llh_passive.csv max |diff| 8.00e-04 (file rounded to 3 decimals)
+=== passive: folds per (subject, window, model) min 5 max 5; fold-mean recomputed vs llh_passive.csv max |diff| 8.00e-04 (saved tables written to six significant figures)
 tie three-model fold-mean pxp3 vs bms_passive.csv: max |diff| 4.89e-07; BOR 4.95e-07
 tie two-model fold-mean pxp3 vs bms_two_model_passive.csv: max |diff| 4.99e-07; BOR 4.94e-07
   three-model, fold mean   first pxp3 > 0.95: None; first run of three: None; windows > 0.95: []
   three-model, fold sum    first pxp3 > 0.95: None; first run of three: None; windows > 0.95: []
   two-model, fold mean     first pxp3 > 0.95: None; first run of three: None; windows > 0.95: []
   two-model, fold sum      first pxp3 > 0.95: None; first run of three: None; windows > 0.95: []
+  three-model, fold mean  first run of three with M3 highest (any value): 675; Simes strict: []; BH: []; first window after 555 ms with M2B highest: 585
+  three-model, fold sum   first run of three with M3 highest (any value): 765; Simes strict: []; BH: []; first window after 555 ms with M2B highest: 585
    t_ms  pxp3 mean  BOR mean  pxp3 sum   BOR sum  xp3 sum | 2m pxp3 mean 2m BOR mean 2m pxp3 sum 2m BOR sum 2m xp3 sum  M3>2B
     255      0.269    0.0795     0.326     0.131    0.325 |        0.454       0.784       0.471      0.782      0.367      9
     285      0.038    0.0363     0.463    0.0817    0.474 |        0.379       0.745       0.500      0.787      0.501     10

@@ -24,7 +24,7 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 RES = os.path.dirname(HERE)
 sys.path.insert(0, os.path.dirname(RES))
-from bms import spm_bms  # noqa: E402
+from bms import simes_threshold, spm_bms  # noqa: E402
 
 M3 = ["model0", "model2B", "model3"]
 KEY = [255, 285, 315, 345, 375, 405, 435, 465, 495, 525, 555, 585, 615, 645]
@@ -52,7 +52,7 @@ for session in ["active", "passive"]:
     chk = llh.merge(fmean, on=["subject", "window"], suffixes=("", "_re"))
     tie_llh = max(float(np.max(np.abs(chk[m] - chk[m + "_re"]))) for m in M3)
     say(f"=== {session}: folds per (subject, window, model) min {nfold.min()} max {nfold.max()}; "
-        f"fold-mean recomputed vs llh_{session}.csv max |diff| {tie_llh:.2e} (file rounded to 3 decimals)")
+        f"fold-mean recomputed vs llh_{session}.csv max |diff| {tie_llh:.2e} (saved tables written to six significant figures)")
     subjects = np.sort(llh.subject.unique())
     windows = np.sort(llh.window.unique())
     tms = llh.groupby("window").t_ms.first()
@@ -68,6 +68,7 @@ for session in ["active", "passive"]:
         r2s = spm_bms(ds[:, 1:])
         rows.append(dict(window=w, t_ms=float(tms[w]),
                          pxp3_mean=r3m["pxp"][2], xp3_mean=r3m["xp"][2], bor3_mean=r3m["bor"],
+                         pxp2B_mean=r3m["pxp"][1], pxp0_mean=r3m["pxp"][0],
                          pxp3_sum=r3s["pxp"][2], xp3_sum=r3s["xp"][2], bor3_sum=r3s["bor"],
                          pxp2B_sum=r3s["pxp"][1], pxp0_sum=r3s["pxp"][0],
                          two_pxp3_mean=r2m["pxp"][1], two_xp3_mean=r2m["xp"][1], two_bor_mean=r2m["bor"],
@@ -90,6 +91,20 @@ for session in ["active", "passive"]:
         first = int(t[m][0]) if m.any() else None
         say(f"  {lab:<24} first pxp3 > 0.95: {first}; first run of three: {first_run(t, m)}; "
             f"windows > 0.95: {t[m].astype(int).tolist()}")
+    # The paper's Table tab:human summaries for the three-model curve, on both scales: the first run of at least three
+    # consecutive windows in which M3 has the HIGHEST pxp at any value (RESULTS_sergent.md definition, not the > 0.95 run
+    # above), the Simes set (strict '<' of the authors' plotting code, and BH '<='), and the first window after the
+    # plateau at which the graded model is again highest.
+    for lab, sfx in [("fold mean", "mean"), ("fold sum", "sum")]:
+        p0, p2, p3 = (out[f"pxp{m}_{sfx}"].to_numpy() for m in ("0", "2B", "3"))
+        hi3 = (p3 > p2) & (p3 > p0)
+        hi2 = (p2 > p3) & (p2 > p0)
+        thr, bh = simes_threshold(1 - p3)
+        strict = (1 - p3 < thr) if not np.isnan(thr) else np.zeros(len(p3), dtype=bool)
+        back = [int(x) for x, h in zip(t, hi2) if h and x > 555]
+        say(f"  three-model, {lab:<10} first run of three with M3 highest (any value): {first_run(t, hi3)}; "
+            f"Simes strict: {t[strict].astype(int).tolist()}; BH: {t[bh].astype(int).tolist()}; "
+            f"first window after 555 ms with M2B highest: {back[0] if back else None}")
     say(f"  {'t_ms':>5} {'pxp3 mean':>10} {'BOR mean':>9} {'pxp3 sum':>9} {'BOR sum':>9} {'xp3 sum':>8} | "
         f"{'2m pxp3 mean':>12} {'2m BOR mean':>11} {'2m pxp3 sum':>11} {'2m BOR sum':>10} {'2m xp3 sum':>10} {'M3>2B':>6}")
     for tm in KEY:

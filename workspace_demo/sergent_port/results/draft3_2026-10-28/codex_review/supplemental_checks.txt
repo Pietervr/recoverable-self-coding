@@ -1,0 +1,18 @@
+D12 max absolute error estimate from gamma quadrature: 9.98165893626e-12
+active total scored counts S1..S20: [847, 868, 910, 811, 878, 899, 890, 872, 929, 930, 758, 919, 903, 934, 938, 950, 935, 955, 917, 935]
+active n_test per fold min=122 max=192
+passive total scored counts S1..S20: [893, 836, 897, 891, 847, 933, 909, 860, 838, 894, 1026, 1049, 1035, 1035, 1101, 1095, 1096, 1101, 999, 1088]
+passive n_test per fold min=132 max=224
+passive_max6 total scored counts S1..S20: [893, 836, 897, 891, 847, 933, 909, 860, 838, 894, 886, 902, 885, 891, 942, 937, 938, 942, 854, 931]
+passive_max6 n_test per fold min=132 max=192
+passive vs max6 S1..10 all score maxabs=0
+Read-only SHA256 manifest entries=27
+physical calibration_D4.csv:3894: generator=M2S grid={"omega": 1.0} rep=889 point=-5.739148551736587 SE=4.623225878923903
+physical calibration_D4.csv:6138: generator=M2S grid={"omega": 1.0} rep=913 point=-3.6941577904677674 SE=2.825608470524174
+physical calibration_D4.csv:8342: generator=M2S grid={"omega": 1.0} rep=462 point=-4.34655938195869 SE=3.438058082407627
+physical calibration_D4.csv:8477: generator=M2S grid={"omega": 2.0} rep=902 point=-276.1200308298717 SE=255.14388299543168
+physical calibration_D4.csv:10669: generator=M2S grid={"omega": 2.0} rep=294 point=-418.5422175470427 SE=393.58475267111857
+physical calibration_D4.csv:11710: generator=M2S grid={"omega": 2.0} rep=474 point=-401.34746271497545 SE=379.7750484707951
+PASS: calibration row references match physical line numbers
+PASS: all 27 input SHA256 values still unchanged after writing RECORD.md
+PASS: all 106 explicit alias/file/line references in RECORD.md exist and are in range

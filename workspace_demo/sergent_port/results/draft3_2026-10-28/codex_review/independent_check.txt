@@ -1,0 +1,66 @@
+ENV Python 3.14.6, numpy 2.5.3, pandas 3.0.5, scipy 1.18.1
+D6 independent recomputation
+  base (M2B): n=1000, SD=0.001530265639, median=0.001469226387, mean=0.001470538162, RMS=0.001477904, SD/median=1.04154516, SD/RMS=1.03542966, top10_MS=0.01637858
+  M2H, tau=0: n=1000, SD=0.001640288358, median=0.001464635573, mean=0.001469700089, RMS=0.001476865083, SD/median=1.11992935, SD/RMS=1.11065552, top10_MS=0.01597757
+  M2H, tau=0.5: n=1000, SD=0.004903091113, median=0.003524935256, mean=0.003554034329, RMS=0.003615716376, SD/median=1.39097338, SD/RMS=1.35604970, top10_MS=0.02752103
+  M2H, tau=1: n=1000, SD=0.002759855437, median=0.002459043758, mean=0.002507342445, RMS=0.00253611701, SD/median=1.12232872, SD/RMS=1.08822086, top10_MS=0.03511474
+  M2H, tau=2: n=1000, SD=0.008067949884, median=0.00721292176, mean=0.007152531538, RMS=0.007359795244, SD/median=1.11854116, SD/RMS=1.09621934, top10_MS=0.02594645
+  M2K, alpha=0: n=1000, SD=0.001666438284, median=0.001469997633, mean=0.001472905705, RMS=0.001479954237, SD/median=1.13363331, SD/RMS=1.12600663, top10_MS=0.01672635
+  M2K, alpha=1: n=1000, SD=0.002495308439, median=0.00201827975, mean=0.002025635686, RMS=0.002035858116, SD/median=1.23635410, SD/RMS=1.22567895, top10_MS=0.01590802
+  M2K, alpha=3: n=1000, SD=0.00372722597, median=0.003467036972, mean=0.003474645484, RMS=0.003493861712, SD/median=1.07504650, SD/RMS=1.06679264, top10_MS=0.01657802
+  M2S, omega=0: n=1000, SD=0.001598453004, median=0.001463690859, mean=0.001466965578, RMS=0.001473923252, SD/median=1.09207009, SD/RMS=1.08448863, top10_MS=0.01639101
+  M2S, omega=0.5: n=1000, SD=0.0579599667, median=0.03778957822, mean=0.04383889298, RMS=0.04985173029, SD/median=1.53375532, SD/RMS=1.16264704, top10_MS=0.15450370
+  M2S, omega=1: n=1000, SD=0.355494559, median=0.1072689236, mean=0.1853239121, RMS=0.3444045958, SD/median=3.31404984, SD/RMS=1.03220039, top10_MS=0.54225206
+    tail: max_MS_share=0.18019899, max_point_SS_share=0.18782853, top10_SE_rows_point_SS_share=0.55400423, effective_MS_contributors=17.98815, RMS_MCSE_delta=0.040255141
+    influence only (not replacement estimates): drop_top10_SE SD=0.23733308, RMS=0.23418795; delete_one_SD/RMS_range=[1.0247624,1.03444]; point_range=[-5.7391486,-0.43144097]
+    largest SE rows: calibration_D4.csv:3894 rep=889 point=-5.739148552 SE=4.623225879; calibration_D4.csv:8342 rep=462 point=-4.346559382 SE=3.438058082; calibration_D4.csv:6138 rep=913 point=-3.69415779 SE=2.825608471
+  M2S, omega=2: n=1000, SD=23.20973624, median=0.3249303343, mean=3.373222616, RMS=22.01115754, SD/median=71.42988446, SD/RMS=1.05445323, top10_MS=0.95212139
+    tail: max_MS_share=0.31973543, max_point_SS_share=0.31727164, top10_SE_rows_point_SS_share=0.94570336, effective_MS_contributors=4.53648, RMS_MCSE_delta=5.1580239
+    influence only (not replacement estimates): drop_top10_SE SD=5.1068714, RMS=4.840565; delete_one_SD/RMS_range=[1.0521205,1.0589367]; point_range=[-418.54222,-1.0626014]
+    largest SE rows: calibration_D4.csv:10669 rep=294 point=-418.5422175 SE=393.5847527; calibration_D4.csv:11710 rep=474 point=-401.3474627 SE=379.7750485; calibration_D4.csv:8477 rep=902 point=-276.1200308 SE=255.143883
+D6 PASS: all 12 RMS/median tables match; 12000 finite successful unique rows, 1000/setting
+D12 construction, same-seed ties, independent VB, exact gamma-integral xp
+  active: fits=15900, score_rows=1060, complete_unique_5_folds=True, finite=True, n_test_equal_across_models=True; mean_vs_llh_max=0.0008, sum_vs_5_saved_mean_max=0.004
+  active 315 mean: exact_xp=0.969397851, exact_pxp=0.962850763, BOR=0.0102931195, rounding_variant_pxp=0.962971838, delta=+0.000121074835
+  active 315 sum: exact_xp=0.903631453, exact_pxp=0.899548563, BOR=0.00715921967, rounding_variant_pxp=0.899390314, delta=-0.000158249113
+  active 345 mean: exact_xp=0.998872698, exact_pxp=0.994742752, BOR=0.00620541179, rounding_variant_pxp=0.994746400, delta=+3.6487039e-06
+  active 345 sum: exact_xp=0.949499944, exact_pxp=0.945843508, BOR=0.00593416859, rounding_variant_pxp=0.945671577, delta=-0.000171931236
+  active 375 mean: exact_xp=0.999310226, exact_pxp=0.996207143, BOR=0.00465944404, rounding_variant_pxp=0.996209905, delta=+2.76200395e-06
+  active 375 sum: exact_xp=0.992354064, exact_pxp=0.990781529, BOR=0.00238616986, rounding_variant_pxp=0.990729042, delta=-5.24870713e-05
+  active 405 mean: exact_xp=0.989511462, exact_pxp=0.983670281, BOR=0.0089018215, rounding_variant_pxp=0.983688521, delta=+1.82392373e-05
+  active 405 sum: exact_xp=0.646340714, exact_pxp=0.642698593, BOR=0.0116358948, rounding_variant_pxp=0.642884939, delta=+0.000186346178
+  active 435 mean: exact_xp=0.999973087, exact_pxp=0.998994658, BOR=0.00146770247, rounding_variant_pxp=0.998995495, delta=+8.37190295e-07
+  active 435 sum: exact_xp=0.998667358, exact_pxp=0.998191697, BOR=0.000714921763, rounding_variant_pxp=0.998182907, delta=-8.78930234e-06
+  active 465 mean: exact_xp=0.999942920, exact_pxp=0.998530309, BOR=0.00211909776, rounding_variant_pxp=0.998531289, delta=+9.80174093e-07
+  active 465 sum: exact_xp=0.991140918, exact_pxp=0.989823329, BOR=0.00200300111, rounding_variant_pxp=0.989796340, delta=-2.69888128e-05
+  active 495 mean: exact_xp=0.999951647, exact_pxp=0.998573213, BOR=0.00206780017, rounding_variant_pxp=0.998573978, delta=+7.64576989e-07
+  active 495 sum: exact_xp=0.995905660, exact_pxp=0.994576674, BOR=0.0020057971, rounding_variant_pxp=0.994570199, delta=-6.47533609e-06
+  active max absolute ties: draft_pxp=4.98369619e-07, draft_bor=4.97385342e-07, bms3_pxp=4.95578918e-07, bms3_bor=4.82455456e-07, bms2_pxp=4.98369619e-07, bms2_bor=4.87154638e-07, independent_alpha=9.32587341e-13, independent_bor=6.79739598e-11
+  passive: fits=15900, score_rows=1060, complete_unique_5_folds=True, finite=True, n_test_equal_across_models=True; mean_vs_llh_max=0.0008, sum_vs_5_saved_mean_max=0.004
+  passive max absolute ties: draft_pxp=4.98698538e-07, draft_bor=4.96006921e-07, bms3_pxp=4.88635178e-07, bms3_bor=4.95187009e-07, bms2_pxp=4.98596438e-07, bms2_bor=4.94422585e-07, independent_alpha=8.41993142e-13, independent_bor=1.01973374e-10
+  passive_max6: fits=15900, score_rows=1060, complete_unique_5_folds=True, finite=True, n_test_equal_across_models=True; mean_vs_llh_max=0.0008, sum_vs_5_saved_mean_max=0.004
+  exact active mean: >.95=[315, 345, 375, 405, 435, 465, 495, 525, 555, 615], first=315, first_run3=315
+  exact active sum: >.95=[375, 435, 465, 495, 525, 555], first=375, first_run3=435
+  exact passive mean: >.95=[], first=None, first_run3=None
+  exact passive sum: >.95=[], first=None, first_run3=None
+  saved_overlay published_pxp_model3 first>.95=315
+  saved_overlay port_pxp_model3 first>.95=315
+D12 Monte Carlo check: seeds 0..9, 1000000 independent gamma draws per seed/cell
+  315 mean: exact_pxp=0.962850763, xp_MCSE=0.000172237212, pxp_MCSE=0.000170464354, seed_mean=0.962922169, seed_SD=0.000174869378, seed_min=0.962591607, seed_max=0.963235906, threshold_distance_MCSE=75.39
+  315 sum: exact_pxp=0.899548563, xp_MCSE=0.000295096002, pxp_MCSE=0.000292983345, seed_mean=0.899672318, seed_SD=0.000270461382, seed_min=0.899319760, seed_max=0.900134883, threshold_distance_MCSE=172.20
+  345 mean: exact_pxp=0.994742752, xp_MCSE=3.35563956e-05, pxp_MCSE=3.33481644e-05, seed_mean=0.994747823, seed_SD=3.05942425e-05, seed_min=0.994713238, seed_max=0.994807649, threshold_distance_MCSE=1341.69
+  345 sum: exact_pxp=0.945843508, xp_MCSE=0.000218974428, pxp_MCSE=0.000217674996, seed_mean=0.945907680, seed_SD=0.000223056623, seed_min=0.945683519, seed_max=0.946419127, threshold_distance_MCSE=19.09
+  375 mean: exact_pxp=0.996207143, xp_MCSE=2.6254498e-05, pxp_MCSE=2.61321666e-05, seed_mean=0.996212792, seed_SD=1.88995344e-05, seed_min=0.996175068, seed_max=0.996236779, threshold_distance_MCSE=1768.21
+  375 sum: exact_pxp=0.990781529, xp_MCSE=8.71061151e-05, pxp_MCSE=8.68982651e-05, seed_mean=0.990767797, seed_SD=7.41314271e-05, seed_min=0.990657761, seed_max=0.990896190, threshold_distance_MCSE=469.30
+  405 mean: exact_pxp=0.983670281, xp_MCSE=0.000101875064, pxp_MCSE=0.000100968191, seed_mean=0.983701638, seed_SD=0.000103610139, seed_min=0.983504310, seed_max=0.983832364, threshold_distance_MCSE=333.47
+  405 sum: exact_pxp=0.642698593, xp_MCSE=0.000478105005, pxp_MCSE=0.000472541825, seed_mean=0.642792474, seed_SD=0.000527569229, seed_min=0.641889406, seed_max=0.643521195, threshold_distance_MCSE=650.32
+D1 independent participant pairing and normalization
+  active: total_scored_trials_per_subject_min=758, max=955, mean_per_fold=179.78, max_pertrial_saved_llh_minus_direct=7.97266515e-06; all 20x53 participant windows and matching model denominators verified
+  passive: total_scored_trials_per_subject_min=836, max=1101, mean_per_fold=194.23, max_pertrial_saved_llh_minus_direct=6.68896321e-06; all 20x53 participant windows and matching model denominators verified
+  passive_max6: total_scored_trials_per_subject_min=836, max=942, mean_per_fold=179.06, max_pertrial_saved_llh_minus_direct=6.68896321e-06; all 20x53 participant windows and matching model denominators verified
+  active-minus-passive 315: per_trial_mean=0.0008739874423, SD=0.00548786583, t19=0.712224166, count_positive=12; direct_from_fits_mean=0.000875458626, t19=0.713522722, count_positive=12
+  active-minus-passive 435-495 mean: per_trial_mean=0.00375464351, SD=0.003986844554, t19=4.21167066, count_positive=18; direct_from_fits_mean=0.003755171786, t19=4.21228121, count_positive=18
+  active-minus-passive_max6 315: per_trial_mean=0.001043193641, SD=0.005552432275, t19=0.84022705, count_positive=12; direct_from_fits_mean=0.001044682221, t19=0.84157559, count_positive=12
+  active-minus-passive_max6 435-495 mean: per_trial_mean=0.003700928676, SD=0.004177153853, t19=3.96228073, count_positive=18; direct_from_fits_mean=0.003701194176, t19=3.96319878, count_positive=18
+D1 PASS: all 20 saved summary rows reproduced; no missing subject/window, pseudoreplication, or model-dependent n_test
+READ_ONLY_PASS: all 27 explicit inputs unchanged by SHA256, including all 3 reviewed scripts and 7 outputs

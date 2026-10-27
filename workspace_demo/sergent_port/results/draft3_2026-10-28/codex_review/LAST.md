@@ -1,0 +1,7 @@
+Saved the full review, calculations, stdout, and proposed manuscript wording in [RECORD.md](/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/sergent_port/results/draft3_2026-10-28/codex_review/RECORD.md). All 27 checked inputs remain unchanged. The local commit was blocked by `.git/index.lock` permissions.
+
+D6 VERDICT: **SOUND WITH FIXES** — RMS ratios reproduce; report that the largest 1% contribute 54.2%/95.2% of mean square, and avoid claiming general calibration. [Evidence](/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/sergent_port/results/draft3_2026-10-28/codex_review/independent_check.txt:13)
+
+D12 VERDICT: **SOUND WITH FIXES** — the 375 ms crossing and 435 ms three-window run survive Monte Carlo checks; qualify the original 315 ms statement by score scale, retain the evidence/BOR caveats, and correct the precision label. [Evidence](/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/sergent_port/results/draft3_2026-10-28/codex_review/RECORD.md:68)
+
+D1 VERDICT: **SOUND WITH FIXES** — normalization and pairing reproduce; use **0.00375** nat per trial, explicitly acknowledge active-selected-window bias, retain descriptive status, and qualify max6’s combined decoder/trial-selection changes. [Evidence](/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/sergent_port/results/draft3_2026-10-28/codex_review/RECORD.md:141)
