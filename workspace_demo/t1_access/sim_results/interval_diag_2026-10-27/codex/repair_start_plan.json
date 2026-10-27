@@ -1,0 +1,10 @@
+{
+  "question": "Does cold-plus-64-narrow M2S materially change the new outer-only ensemble relative to eight cold starts?",
+  "design": "Twelve fresh development datasets: M2H tau=.5 and M2S omega=.5,1,2, three datasets each; 64 concepts, strata 27/22/15, D=4, layer41, all five outer training folds.",
+  "seed_rule": "271010 + 100*setting_index + replicate, replicate=0,1,2. Fold/member cold stream keyed by seed,fold,2; added stream is models.added_start_stream.",
+  "comparison": "Exactly same eight cold starts in both recipes; expanded fit appends the existing keyed 64 starts at jitter SD .25. Existing recovery rule retained.",
+  "decision": "Retain cold-only if maximum improved training loglik <.5 nat, maximum absolute heldout M2S score difference per trial <.001, maximum bounded-ensemble T change bound <.001, and no unresolved numerical flag. These are development acceptance thresholds for the newly restricted outer-only algorithm, not a global-optimum certificate or the old inner-selection policy qualification.",
+  "cost_cap": "7200 CPU seconds minus the completed repair_local.json CPU seconds minus 300 seconds for other checks, summed across four independent one-thread setting workers. Each worker checkpoints its own process CPU after each pair; stop before a new pair if the aggregate recorded CPU is within 480 seconds of the remaining cap, allowing for the other in-flight pairs. Partial does not pass. Dataset-worker parallelism is not model/subagent delegation.",
+  "estimate": "M2S took about 5-9 CPU seconds per eight-start fit in the initial local prototype; 60 pairs at about ten times that rate cost approximately 3000-5400 CPU seconds including repeated cold starts, with source timings in repair_local.json. The remaining combined CPU cap binds.",
+  "scope": "Only the new outer-only algorithm is tested; no production source or start-policy adoption."
+}

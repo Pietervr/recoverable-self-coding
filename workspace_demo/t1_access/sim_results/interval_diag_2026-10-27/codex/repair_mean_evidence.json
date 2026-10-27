@@ -1,0 +1,210 @@
+{
+  "artifact": {
+    "target": "mean",
+    "a": 0.005721906858629142,
+    "b": 0.005534715247810795,
+    "graded_critical": 0.0,
+    "cells": {
+      "M2B {}": {
+        "mu_lo": -0.019903349845480357,
+        "mu_hi": -0.015833087208091078,
+        "target_lower_rank": null,
+        "target_upper_rank": null,
+        "accept_lo": -0.020904375,
+        "accept_hi": -0.014632812499999998,
+        "lower_order": 698,
+        "upper_order": 698
+      },
+      "M2H {\"tau\": 0.0}": {
+        "mu_lo": -0.019977253156901742,
+        "mu_hi": -0.01590509550381254,
+        "target_lower_rank": null,
+        "target_upper_rank": null,
+        "accept_lo": -0.021260156250000002,
+        "accept_hi": -0.01467265625,
+        "lower_order": 698,
+        "upper_order": 698
+      },
+      "M2H {\"tau\": 0.5}": {
+        "mu_lo": -0.02257831310862914,
+        "mu_hi": -0.018519389123513714,
+        "target_lower_rank": null,
+        "target_upper_rank": null,
+        "accept_lo": -0.023577656250000002,
+        "accept_hi": -0.016856406249999997,
+        "lower_order": 698,
+        "upper_order": 698
+      },
+      "M2H {\"tau\": 1.0}": {
+        "mu_lo": -0.025113896143439507,
+        "mu_hi": -0.021068562785131924,
+        "target_lower_rank": null,
+        "target_upper_rank": null,
+        "accept_lo": -0.0261109375,
+        "accept_hi": -0.02010421875,
+        "lower_order": 698,
+        "upper_order": 698
+      },
+      "M2H {\"tau\": 2.0}": {
+        "mu_lo": -0.027881010242240965,
+        "mu_hi": -0.023877634400616177,
+        "target_lower_rank": null,
+        "target_upper_rank": null,
+        "accept_lo": -0.0283459375,
+        "accept_hi": -0.02271203125,
+        "lower_order": 698,
+        "upper_order": 698
+      },
+      "M2S {\"omega\": 0.0}": {
+        "mu_lo": -0.02000834668243666,
+        "mu_hi": -0.01593149349613477,
+        "target_lower_rank": null,
+        "target_upper_rank": null,
+        "accept_lo": -0.0214590625,
+        "accept_hi": -0.014804531249999999,
+        "lower_order": 698,
+        "upper_order": 698
+      },
+      "M2S {\"omega\": 0.5}": {
+        "mu_lo": -0.027711630680100675,
+        "mu_hi": -0.02365672690918504,
+        "target_lower_rank": null,
+        "target_upper_rank": null,
+        "accept_lo": -0.028411718750000002,
+        "accept_hi": -0.02211140625,
+        "lower_order": 698,
+        "upper_order": 698
+      },
+      "M2S {\"omega\": 1.0}": {
+        "mu_lo": -0.03,
+        "mu_hi": -0.02650837955376972,
+        "target_lower_rank": null,
+        "target_upper_rank": null,
+        "accept_lo": -0.03,
+        "accept_hi": -0.0244425,
+        "lower_order": 698,
+        "upper_order": 698
+      },
+      "M2S {\"omega\": 2.0}": {
+        "mu_lo": -0.03,
+        "mu_hi": -0.02756660974446614,
+        "target_lower_rank": null,
+        "target_upper_rank": null,
+        "accept_lo": -0.03,
+        "accept_hi": -0.027531406249999998,
+        "lower_order": 698,
+        "upper_order": 698
+      },
+      "M2K {\"alpha\": 0.0}": {
+        "mu_lo": -0.019979065694239368,
+        "mu_hi": -0.015887784752189205,
+        "target_lower_rank": null,
+        "target_upper_rank": null,
+        "accept_lo": -0.0214225,
+        "accept_hi": -0.014483437499999998,
+        "lower_order": 698,
+        "upper_order": 698
+      },
+      "M2K {\"alpha\": 1.0}": {
+        "mu_lo": -0.023918285861926947,
+        "mu_hi": -0.019850932441644476,
+        "target_lower_rank": null,
+        "target_upper_rank": null,
+        "accept_lo": -0.025023906250000002,
+        "accept_hi": -0.018527812499999997,
+        "lower_order": 698,
+        "upper_order": 698
+      },
+      "M2K {\"alpha\": 3.0}": {
+        "mu_lo": -0.03,
+        "mu_hi": -0.027287620029435043,
+        "target_lower_rank": null,
+        "target_upper_rank": null,
+        "accept_lo": -0.03,
+        "accept_hi": -0.02746328125,
+        "lower_order": 698,
+        "upper_order": 698
+      }
+    },
+    "cap": 0.03,
+    "calibration_counts": {
+      "M2B {}": 700,
+      "M2H {\"tau\": 0.0}": 700,
+      "M2H {\"tau\": 0.5}": 700,
+      "M2H {\"tau\": 1.0}": 700,
+      "M2H {\"tau\": 2.0}": 700,
+      "M2S {\"omega\": 0.0}": 700,
+      "M2S {\"omega\": 0.5}": 700,
+      "M2S {\"omega\": 1.0}": 700,
+      "M2S {\"omega\": 2.0}": 700,
+      "M2K {\"alpha\": 0.0}": 700,
+      "M2K {\"alpha\": 1.0}": 700,
+      "M2K {\"alpha\": 3.0}": 700
+    },
+    "interval_nominal_unconditional": 0.9504,
+    "calibration_good_probability": 0.99,
+    "interval_content_on_good_event": 0.96
+  },
+  "alternatives": [
+    {
+      "setting": "M3 {\"scale\": 0.5465000938917843}",
+      "n": 50,
+      "positive_calls": 41
+    },
+    {
+      "setting": "M3 {\"scale\": 0.7048470316951376}",
+      "n": 50,
+      "positive_calls": 50
+    },
+    {
+      "setting": "M3 {\"scale\": 0.9270429721093283}",
+      "n": 50,
+      "positive_calls": 50
+    },
+    {
+      "setting": "M3H {\"scale\": 0.3842234119293929, \"tau\": 0.5}",
+      "n": 50,
+      "positive_calls": 0
+    },
+    {
+      "setting": "M3H {\"scale\": 0.5359075609613234, \"tau\": 0.5}",
+      "n": 50,
+      "positive_calls": 39
+    },
+    {
+      "setting": "M3H {\"scale\": 0.7622480132379349, \"tau\": 0.5}",
+      "n": 50,
+      "positive_calls": 50
+    },
+    {
+      "setting": "M3V {\"scale\": 0.2864695573790989}",
+      "n": 50,
+      "positive_calls": 0
+    },
+    {
+      "setting": "M3V {\"scale\": 0.6267476817856267}",
+      "n": 50,
+      "positive_calls": 45
+    },
+    {
+      "setting": "M3V {\"scale\": 1.0425622720828758}",
+      "n": 50,
+      "positive_calls": 50
+    },
+    {
+      "setting": "M3L {\"pi0\": 0.05, \"scale\": 0.5573019945603709}",
+      "n": 50,
+      "positive_calls": 41
+    },
+    {
+      "setting": "M3L {\"pi0\": 0.05, \"scale\": 0.7187787541376713}",
+      "n": 50,
+      "positive_calls": 50
+    },
+    {
+      "setting": "M3L {\"pi0\": 0.05, \"scale\": 0.9640522639257728}",
+      "n": 50,
+      "positive_calls": 50
+    }
+  ]
+}

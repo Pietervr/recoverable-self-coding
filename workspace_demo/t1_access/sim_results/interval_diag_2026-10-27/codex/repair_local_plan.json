@@ -1,0 +1,11 @@
+{
+  "question": "Can an outer-fit-only ensemble and a symmetric M3S member remove the scale penalty at an affordable local cost?",
+  "decision": "Select a concrete reduced-cost point algorithm for fresh-seed simulation calibration; no confirmatory decision.",
+  "scope": "Scratch only, one CPU worker, NPROC=1 before JAX. No remote operations.",
+  "design": "64 concepts, three fixed strata 27/22/15 (provisional proportional allocation), D=4, layer=41, 5 outer folds; four graded and five mixture members; 8 cold starts, existing recovery; no inner selection.",
+  "datasets": ["M2H tau=.5 seed=271001", "M2S omega=1 seed=271002", "M3S omega=1 sep=2 seed=271003"],
+  "comparison": "Old four-member mixture ensemble versus five-member ensemble including M3S, same graded fits and outer folds.",
+  "cap": "7200 process CPU seconds total, including compilation and all three datasets. Stop before another fit when less than 240 CPU seconds remains; retain incomplete dataset as incomplete.",
+  "estimate_before_run": "Existing legacy point pipeline 900 CPU seconds with inner fits (PREREGISTRATION_T1_model.md:950); outer-only nine members expected 300-1200 CPU seconds per dataset, total 15-60 CPU minutes plus M3S compilation. Not a measured cluster rate.",
+  "source": "User round-2 explicitly authorizes local CPU work and restricts edits; this scratch declaration substitutes for an out-of-scope production ledger edit."
+}

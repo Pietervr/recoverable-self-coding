@@ -1,0 +1,305 @@
+{
+  "setting_index": 3,
+  "cap_cpu_seconds": 4855.970936,
+  "initial_cpu_seconds": 2044.029064,
+  "pairs": [
+    {
+      "generator": "M2S",
+      "kwargs": {
+        "omega": 2.0
+      },
+      "seed": 271310,
+      "fold": 0,
+      "n_test": 13,
+      "training_gap": 3.637978807091713e-12,
+      "cold_converged": true,
+      "expanded_converged": true,
+      "cold_recovery": 0,
+      "expanded_recovery": 0,
+      "max_abs_heldout_change_per_trial": 7.419078853910746e-08,
+      "ensemble_T_change_bound_contribution": 2.0869064294120373e-09,
+      "cold_cpu_wall_seconds": 12.32566213607788,
+      "expanded_cpu_wall_seconds": 110.56425309181213,
+      "cpu_seconds": 125.202634,
+      "cold_theta": [
+        2.9915010394772565,
+        1.499685832106401,
+        2.024564779633021,
+        0.16343497067138824,
+        0.7854755915086526,
+        0.9979417185186641,
+        0.5699928870500907
+      ],
+      "expanded_theta": [
+        2.9915010285197634,
+        1.4996858389556948,
+        2.0245647759506324,
+        0.1634348362268841,
+        0.7854749538321345,
+        0.997941712690951,
+        0.5699927651481006
+      ]
+    },
+    {
+      "generator": "M2S",
+      "kwargs": {
+        "omega": 2.0
+      },
+      "seed": 271310,
+      "fold": 1,
+      "n_test": 14,
+      "training_gap": 1.8189894035458565e-11,
+      "cold_converged": true,
+      "expanded_converged": true,
+      "cold_recovery": 0,
+      "expanded_recovery": 0,
+      "max_abs_heldout_change_per_trial": 1.4567658825269194e-08,
+      "ensemble_T_change_bound_contribution": 1.1013627647118335e-09,
+      "cold_cpu_wall_seconds": 14.19674801826477,
+      "expanded_cpu_wall_seconds": 101.3349118232727,
+      "cpu_seconds": 117.876351,
+      "cold_theta": [
+        2.9992586645357364,
+        1.500378479975235,
+        2.022203402916871,
+        0.13596666505037378,
+        0.6774772811338985,
+        0.9983855032187878,
+        0.6927278141249038
+      ],
+      "expanded_theta": [
+        2.999258674318009,
+        1.5003785018617,
+        2.0222033985625947,
+        -0.1359666490999123,
+        -0.6774774190052815,
+        0.9983855027843894,
+        0.6927274970600873
+      ]
+    },
+    {
+      "generator": "M2S",
+      "kwargs": {
+        "omega": 2.0
+      },
+      "seed": 271310,
+      "fold": 2,
+      "n_test": 13,
+      "training_gap": 1.7462298274040222e-10,
+      "cold_converged": true,
+      "expanded_converged": true,
+      "cold_recovery": 0,
+      "expanded_recovery": 0,
+      "max_abs_heldout_change_per_trial": 3.365460900438068e-08,
+      "ensemble_T_change_bound_contribution": 2.0126092681481477e-09,
+      "cold_cpu_wall_seconds": 16.813292026519775,
+      "expanded_cpu_wall_seconds": 127.40703916549683,
+      "cpu_seconds": 144.409918,
+      "cold_theta": [
+        2.9993454133801687,
+        1.5011425435609127,
+        2.022002744061739,
+        0.1102187305880629,
+        0.5299059528817506,
+        0.9983711071579627,
+        0.5957759811371999
+      ],
+      "expanded_theta": [
+        2.9993454112271487,
+        1.501142519716427,
+        2.022002735963237,
+        0.11021886421963606,
+        0.529906566847463,
+        0.9983710962875241,
+        0.5957747237607085
+      ]
+    },
+    {
+      "generator": "M2S",
+      "kwargs": {
+        "omega": 2.0
+      },
+      "seed": 271310,
+      "fold": 3,
+      "n_test": 12,
+      "training_gap": 3.5187986213713884e-07,
+      "cold_converged": true,
+      "expanded_converged": true,
+      "cold_recovery": 0,
+      "expanded_recovery": 0,
+      "max_abs_heldout_change_per_trial": 7.987072453577834e-07,
+      "ensemble_T_change_bound_contribution": 5.460596185178727e-08,
+      "cold_cpu_wall_seconds": 10.262200832366943,
+      "expanded_cpu_wall_seconds": 93.45287919044495,
+      "cpu_seconds": 106.06780600000002,
+      "cold_theta": [
+        2.9992650131029586,
+        1.500039904339586,
+        2.0224037998701587,
+        0.16625313405993672,
+        0.7881512583700674,
+        0.9985820506196431,
+        0.7252656411497381
+      ],
+      "expanded_theta": [
+        2.9992643048265153,
+        1.5000403539868634,
+        2.022403146746692,
+        0.166280045905925,
+        0.7882783600512695,
+        0.9985814711101428,
+        0.7252379583695124
+      ]
+    },
+    {
+      "generator": "M2S",
+      "kwargs": {
+        "omega": 2.0
+      },
+      "seed": 271310,
+      "fold": 4,
+      "n_test": 12,
+      "training_gap": 3.3979813451878726e-07,
+      "cold_converged": true,
+      "expanded_converged": true,
+      "cold_recovery": 0,
+      "expanded_recovery": 0,
+      "max_abs_heldout_change_per_trial": 8.481916153985345e-07,
+      "ensemble_T_change_bound_contribution": 7.29780422053609e-08,
+      "cold_cpu_wall_seconds": 10.278442859649658,
+      "expanded_cpu_wall_seconds": 88.59526300430298,
+      "cpu_seconds": 98.99278400000003,
+      "cold_theta": [
+        2.9988596503946487,
+        1.5005097075618863,
+        2.0223973797597723,
+        0.15485301339774032,
+        0.7518409360848551,
+        0.9984227725169957,
+        0.7239205155711432
+      ],
+      "expanded_theta": [
+        2.9988594804478494,
+        1.5005103806287818,
+        2.0223970873646,
+        0.15482032553886416,
+        0.751676031903936,
+        0.9984225846268936,
+        0.7239085526706446
+      ]
+    },
+    {
+      "generator": "M2S",
+      "kwargs": {
+        "omega": 2.0
+      },
+      "seed": 271311,
+      "fold": 0,
+      "n_test": 13,
+      "training_gap": 0.0,
+      "cold_converged": true,
+      "expanded_converged": true,
+      "cold_recovery": 0,
+      "expanded_recovery": 0,
+      "max_abs_heldout_change_per_trial": 0.0,
+      "ensemble_T_change_bound_contribution": 0.0,
+      "cold_cpu_wall_seconds": 7.241634130477905,
+      "expanded_cpu_wall_seconds": 68.28545498847961,
+      "cpu_seconds": 75.630672,
+      "cold_theta": [
+        2.999017679252825,
+        -1.4960364276845566,
+        -2.02425257717612,
+        0.16323219008365344,
+        0.7907380206166567,
+        1.0008531741030802,
+        0.7733054137432397
+      ],
+      "expanded_theta": [
+        2.999017679252825,
+        -1.4960364276845566,
+        -2.02425257717612,
+        0.16323219008365344,
+        0.7907380206166567,
+        1.0008531741030802,
+        0.7733054137432397
+      ]
+    },
+    {
+      "generator": "M2S",
+      "kwargs": {
+        "omega": 2.0
+      },
+      "seed": 271311,
+      "fold": 1,
+      "n_test": 14,
+      "training_gap": 1.7826096154749393e-10,
+      "cold_converged": true,
+      "expanded_converged": true,
+      "cold_recovery": 0,
+      "expanded_recovery": 0,
+      "max_abs_heldout_change_per_trial": 2.29356022005266e-07,
+      "ensemble_T_change_bound_contribution": 7.453019868344262e-09,
+      "cold_cpu_wall_seconds": 9.032442092895508,
+      "expanded_cpu_wall_seconds": 104.42253088951111,
+      "cpu_seconds": 113.50270899999998,
+      "cold_theta": [
+        2.9952793761948526,
+        -1.4916955750312917,
+        -2.0235846711239907,
+        0.20777970578976532,
+        1.0158764260098394,
+        0.9982741160763763,
+        0.6615327653910367
+      ],
+      "expanded_theta": [
+        2.9952793360914383,
+        -1.491695623897891,
+        -2.0235846764263763,
+        0.20777912987910935,
+        1.0158731646022299,
+        0.998274108015659,
+        0.6615308465111799
+      ]
+    },
+    {
+      "generator": "M2S",
+      "kwargs": {
+        "omega": 2.0
+      },
+      "seed": 271311,
+      "fold": 2,
+      "n_test": 13,
+      "training_gap": 33.63784306802154,
+      "cold_converged": true,
+      "expanded_converged": true,
+      "cold_recovery": 0,
+      "expanded_recovery": 0,
+      "max_abs_heldout_change_per_trial": 0.006768425411067369,
+      "ensemble_T_change_bound_contribution": 0.0009674024583617978,
+      "cold_cpu_wall_seconds": 6.023144006729126,
+      "expanded_cpu_wall_seconds": 70.42076086997986,
+      "cpu_seconds": 76.51148599999999,
+      "cold_theta": [
+        3.000354369051787,
+        -1.4973054586955852,
+        -2.023953356753577,
+        6.14379731695516,
+        30.108714023718992,
+        1.0011882908529335,
+        1.4308911485191336
+      ],
+      "expanded_theta": [
+        3.000353147516426,
+        -1.4973096590285626,
+        -2.0239542599981624,
+        0.17076832162722028,
+        0.838650683957358,
+        1.0011892752731535,
+        0.7712614307340787
+      ]
+    }
+  ],
+  "complete": false,
+  "cpu_seconds": 858.203821
+}

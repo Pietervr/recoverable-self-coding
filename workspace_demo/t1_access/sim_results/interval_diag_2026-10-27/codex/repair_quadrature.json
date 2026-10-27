@@ -1,0 +1,260 @@
+{
+  "n_points": 16385,
+  "prior_halfwidth_sd": 8,
+  "records": [
+    {
+      "generator": "M2H",
+      "seed": 271001,
+      "fold": 0,
+      "concept": 30,
+      "saved_logq": -203.63697584714316,
+      "dense_logq": -203.6369758470365,
+      "difference": 1.0666667549230624e-10
+    },
+    {
+      "generator": "M2H",
+      "seed": 271001,
+      "fold": 1,
+      "concept": 33,
+      "saved_logq": -197.87636911331995,
+      "dense_logq": -197.87636911125088,
+      "difference": 2.0690720248239813e-09
+    },
+    {
+      "generator": "M2H",
+      "seed": 271001,
+      "fold": 1,
+      "concept": 62,
+      "saved_logq": -227.36132954423758,
+      "dense_logq": -227.36132954216853,
+      "difference": 2.069043603114551e-09
+    },
+    {
+      "generator": "M2H",
+      "seed": 271001,
+      "fold": 2,
+      "concept": 32,
+      "saved_logq": -212.91487530286503,
+      "dense_logq": -212.91487530266176,
+      "difference": 2.0327206584624946e-10
+    },
+    {
+      "generator": "M2H",
+      "seed": 271001,
+      "fold": 3,
+      "concept": 35,
+      "saved_logq": -178.06489152858458,
+      "dense_logq": -178.06489152775183,
+      "difference": 8.327560863108374e-10
+    },
+    {
+      "generator": "M2H",
+      "seed": 271001,
+      "fold": 3,
+      "concept": 48,
+      "saved_logq": -211.27426242294072,
+      "dense_logq": -211.2742624228261,
+      "difference": 1.1462475413281936e-10
+    },
+    {
+      "generator": "M2H",
+      "seed": 271001,
+      "fold": 4,
+      "concept": 25,
+      "saved_logq": -217.19798297522107,
+      "dense_logq": -217.1979829737941,
+      "difference": 1.426968765372294e-09
+    },
+    {
+      "generator": "M2H",
+      "seed": 271001,
+      "fold": 4,
+      "concept": 34,
+      "saved_logq": -182.68986523671796,
+      "dense_logq": -182.68986523648644,
+      "difference": 2.3152324502007104e-10
+    },
+    {
+      "generator": "M2S",
+      "seed": 271002,
+      "fold": 0,
+      "concept": 17,
+      "saved_logq": -403.4141613212858,
+      "dense_logq": -403.4141614875127,
+      "difference": -1.662268687141477e-07
+    },
+    {
+      "generator": "M2S",
+      "seed": 271002,
+      "fold": 0,
+      "concept": 27,
+      "saved_logq": -382.3715024394545,
+      "dense_logq": -382.37150261196774,
+      "difference": -1.7251323924938333e-07
+    },
+    {
+      "generator": "M2S",
+      "seed": 271002,
+      "fold": 1,
+      "concept": 9,
+      "saved_logq": -460.98417931146133,
+      "dense_logq": -460.984179441493,
+      "difference": -1.3003165122427163e-07
+    },
+    {
+      "generator": "M2S",
+      "seed": 271002,
+      "fold": 1,
+      "concept": 33,
+      "saved_logq": -425.43544884381026,
+      "dense_logq": -425.4354489842422,
+      "difference": -1.404319505127205e-07
+    },
+    {
+      "generator": "M2S",
+      "seed": 271002,
+      "fold": 2,
+      "concept": 41,
+      "saved_logq": -550.8625316536687,
+      "dense_logq": -550.8625317647183,
+      "difference": -1.1104953046014998e-07
+    },
+    {
+      "generator": "M2S",
+      "seed": 271002,
+      "fold": 2,
+      "concept": 43,
+      "saved_logq": -106.8096824053601,
+      "dense_logq": -106.80968259518905,
+      "difference": -1.8982893834618153e-07
+    },
+    {
+      "generator": "M2S",
+      "seed": 271002,
+      "fold": 3,
+      "concept": 12,
+      "saved_logq": -466.7266108030596,
+      "dense_logq": -466.7266109579079,
+      "difference": -1.5484829418710433e-07
+    },
+    {
+      "generator": "M2S",
+      "seed": 271002,
+      "fold": 3,
+      "concept": 34,
+      "saved_logq": -111.90687110780593,
+      "dense_logq": -111.90687135237573,
+      "difference": -2.4456980440845655e-07
+    },
+    {
+      "generator": "M2S",
+      "seed": 271002,
+      "fold": 4,
+      "concept": 28,
+      "saved_logq": -505.10348295433977,
+      "dense_logq": -505.1034830864275,
+      "difference": -1.3208773452788591e-07
+    },
+    {
+      "generator": "M2S",
+      "seed": 271002,
+      "fold": 4,
+      "concept": 36,
+      "saved_logq": -325.980895808322,
+      "dense_logq": -325.9808959941753,
+      "difference": -1.8585330963105662e-07
+    },
+    {
+      "generator": "M3S",
+      "seed": 271003,
+      "fold": 0,
+      "concept": 29,
+      "saved_logq": -64.41530969882812,
+      "dense_logq": -64.41530996667346,
+      "difference": -2.6784533702084445e-07
+    },
+    {
+      "generator": "M3S",
+      "seed": 271003,
+      "fold": 0,
+      "concept": 58,
+      "saved_logq": -477.5370340878462,
+      "dense_logq": -477.5370341882975,
+      "difference": -1.0045130238722777e-07
+    },
+    {
+      "generator": "M3S",
+      "seed": 271003,
+      "fold": 1,
+      "concept": 38,
+      "saved_logq": -319.53182027931774,
+      "dense_logq": -319.5318203803984,
+      "difference": -1.0108067272085464e-07
+    },
+    {
+      "generator": "M3S",
+      "seed": 271003,
+      "fold": 1,
+      "concept": 48,
+      "saved_logq": -402.65031515865064,
+      "dense_logq": -402.6503152713619,
+      "difference": -1.1271123412370798e-07
+    },
+    {
+      "generator": "M3S",
+      "seed": 271003,
+      "fold": 2,
+      "concept": 27,
+      "saved_logq": -320.5127535240782,
+      "dense_logq": -320.51275363662455,
+      "difference": -1.1254633136559278e-07
+    },
+    {
+      "generator": "M3S",
+      "seed": 271003,
+      "fold": 2,
+      "concept": 33,
+      "saved_logq": -34.19619342444289,
+      "dense_logq": -34.19619374305255,
+      "difference": -3.1860965776786543e-07
+    },
+    {
+      "generator": "M3S",
+      "seed": 271003,
+      "fold": 3,
+      "concept": 19,
+      "saved_logq": -425.74726517940775,
+      "dense_logq": -425.74726529292604,
+      "difference": -1.1351829698469373e-07
+    },
+    {
+      "generator": "M3S",
+      "seed": 271003,
+      "fold": 3,
+      "concept": 42,
+      "saved_logq": -335.8288462979514,
+      "dense_logq": -335.82884639303586,
+      "difference": -9.508448783890344e-08
+    },
+    {
+      "generator": "M3S",
+      "seed": 271003,
+      "fold": 4,
+      "concept": 21,
+      "saved_logq": -420.6689047552656,
+      "dense_logq": -420.6689048653179,
+      "difference": -1.1005232636307483e-07
+    },
+    {
+      "generator": "M3S",
+      "seed": 271003,
+      "fold": 4,
+      "concept": 35,
+      "saved_logq": -198.82487174727788,
+      "dense_logq": -198.82487190001808,
+      "difference": -1.527401991552324e-07
+    }
+  ],
+  "max_absolute_joint_logq_error": 3.1860965776786543e-07,
+  "cpu_seconds": 0.833671
+}

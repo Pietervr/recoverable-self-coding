@@ -1,0 +1,506 @@
+{
+  "cpu_seconds": 2044.029064,
+  "wall_seconds": 2007.6222169590183,
+  "datasets": [
+    {
+      "generator": "M2H",
+      "complete": true,
+      "n_fits": 45,
+      "n_converged": 45,
+      "cpu_seconds": 595.9044,
+      "old_raw": -0.027161351920055782,
+      "new_raw": -0.028318425174050862,
+      "old_bounded": -0.022570748829957604,
+      "new_bounded": -0.02311459614116792
+    },
+    {
+      "generator": "M2S",
+      "complete": true,
+      "n_fits": 45,
+      "n_converged": 45,
+      "cpu_seconds": 804.688973,
+      "old_raw": -0.7002360554851574,
+      "new_raw": -0.05906337633914928,
+      "old_bounded": -0.02889004815707428,
+      "new_bounded": -0.02661946410633402
+    },
+    {
+      "generator": "M3S",
+      "complete": true,
+      "n_fits": 45,
+      "n_converged": 45,
+      "cpu_seconds": 643.3403700000001,
+      "old_raw": -0.14903410648397702,
+      "new_raw": 0.3315561256430617,
+      "old_bounded": -0.0178257530426789,
+      "new_bounded": 0.021862115685854812
+    }
+  ],
+  "runtime": {
+    "python": "3.12.14 (main, Aug 14 2026, 15:24:41) [Clang 22.1.3 ]",
+    "jax": "0.11.1",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1"
+  },
+  "paired_starts": {
+    "n_pairs": 49,
+    "max_training_gain": 33.63784306802154,
+    "max_abs_heldout_change_per_trial": 0.006768425411067369,
+    "max_complete_dataset_ensemble_T_change_bound": 1.3278488251942017e-07,
+    "max_observed_fold_sum_T_change_bound": 0.0009674099113816661,
+    "all_converged": true,
+    "cpu_seconds": 3633.559627,
+    "complete": false,
+    "development_accept_cold": false
+  },
+  "quadrature": {
+    "n_points": 16385,
+    "prior_halfwidth_sd": 8,
+    "records": [
+      {
+        "generator": "M2H",
+        "seed": 271001,
+        "fold": 0,
+        "concept": 30,
+        "saved_logq": -203.63697584714316,
+        "dense_logq": -203.6369758470365,
+        "difference": 1.0666667549230624e-10
+      },
+      {
+        "generator": "M2H",
+        "seed": 271001,
+        "fold": 1,
+        "concept": 33,
+        "saved_logq": -197.87636911331995,
+        "dense_logq": -197.87636911125088,
+        "difference": 2.0690720248239813e-09
+      },
+      {
+        "generator": "M2H",
+        "seed": 271001,
+        "fold": 1,
+        "concept": 62,
+        "saved_logq": -227.36132954423758,
+        "dense_logq": -227.36132954216853,
+        "difference": 2.069043603114551e-09
+      },
+      {
+        "generator": "M2H",
+        "seed": 271001,
+        "fold": 2,
+        "concept": 32,
+        "saved_logq": -212.91487530286503,
+        "dense_logq": -212.91487530266176,
+        "difference": 2.0327206584624946e-10
+      },
+      {
+        "generator": "M2H",
+        "seed": 271001,
+        "fold": 3,
+        "concept": 35,
+        "saved_logq": -178.06489152858458,
+        "dense_logq": -178.06489152775183,
+        "difference": 8.327560863108374e-10
+      },
+      {
+        "generator": "M2H",
+        "seed": 271001,
+        "fold": 3,
+        "concept": 48,
+        "saved_logq": -211.27426242294072,
+        "dense_logq": -211.2742624228261,
+        "difference": 1.1462475413281936e-10
+      },
+      {
+        "generator": "M2H",
+        "seed": 271001,
+        "fold": 4,
+        "concept": 25,
+        "saved_logq": -217.19798297522107,
+        "dense_logq": -217.1979829737941,
+        "difference": 1.426968765372294e-09
+      },
+      {
+        "generator": "M2H",
+        "seed": 271001,
+        "fold": 4,
+        "concept": 34,
+        "saved_logq": -182.68986523671796,
+        "dense_logq": -182.68986523648644,
+        "difference": 2.3152324502007104e-10
+      },
+      {
+        "generator": "M2S",
+        "seed": 271002,
+        "fold": 0,
+        "concept": 17,
+        "saved_logq": -403.4141613212858,
+        "dense_logq": -403.4141614875127,
+        "difference": -1.662268687141477e-07
+      },
+      {
+        "generator": "M2S",
+        "seed": 271002,
+        "fold": 0,
+        "concept": 27,
+        "saved_logq": -382.3715024394545,
+        "dense_logq": -382.37150261196774,
+        "difference": -1.7251323924938333e-07
+      },
+      {
+        "generator": "M2S",
+        "seed": 271002,
+        "fold": 1,
+        "concept": 9,
+        "saved_logq": -460.98417931146133,
+        "dense_logq": -460.984179441493,
+        "difference": -1.3003165122427163e-07
+      },
+      {
+        "generator": "M2S",
+        "seed": 271002,
+        "fold": 1,
+        "concept": 33,
+        "saved_logq": -425.43544884381026,
+        "dense_logq": -425.4354489842422,
+        "difference": -1.404319505127205e-07
+      },
+      {
+        "generator": "M2S",
+        "seed": 271002,
+        "fold": 2,
+        "concept": 41,
+        "saved_logq": -550.8625316536687,
+        "dense_logq": -550.8625317647183,
+        "difference": -1.1104953046014998e-07
+      },
+      {
+        "generator": "M2S",
+        "seed": 271002,
+        "fold": 2,
+        "concept": 43,
+        "saved_logq": -106.8096824053601,
+        "dense_logq": -106.80968259518905,
+        "difference": -1.8982893834618153e-07
+      },
+      {
+        "generator": "M2S",
+        "seed": 271002,
+        "fold": 3,
+        "concept": 12,
+        "saved_logq": -466.7266108030596,
+        "dense_logq": -466.7266109579079,
+        "difference": -1.5484829418710433e-07
+      },
+      {
+        "generator": "M2S",
+        "seed": 271002,
+        "fold": 3,
+        "concept": 34,
+        "saved_logq": -111.90687110780593,
+        "dense_logq": -111.90687135237573,
+        "difference": -2.4456980440845655e-07
+      },
+      {
+        "generator": "M2S",
+        "seed": 271002,
+        "fold": 4,
+        "concept": 28,
+        "saved_logq": -505.10348295433977,
+        "dense_logq": -505.1034830864275,
+        "difference": -1.3208773452788591e-07
+      },
+      {
+        "generator": "M2S",
+        "seed": 271002,
+        "fold": 4,
+        "concept": 36,
+        "saved_logq": -325.980895808322,
+        "dense_logq": -325.9808959941753,
+        "difference": -1.8585330963105662e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271003,
+        "fold": 0,
+        "concept": 29,
+        "saved_logq": -64.41530969882812,
+        "dense_logq": -64.41530996667346,
+        "difference": -2.6784533702084445e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271003,
+        "fold": 0,
+        "concept": 58,
+        "saved_logq": -477.5370340878462,
+        "dense_logq": -477.5370341882975,
+        "difference": -1.0045130238722777e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271003,
+        "fold": 1,
+        "concept": 38,
+        "saved_logq": -319.53182027931774,
+        "dense_logq": -319.5318203803984,
+        "difference": -1.0108067272085464e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271003,
+        "fold": 1,
+        "concept": 48,
+        "saved_logq": -402.65031515865064,
+        "dense_logq": -402.6503152713619,
+        "difference": -1.1271123412370798e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271003,
+        "fold": 2,
+        "concept": 27,
+        "saved_logq": -320.5127535240782,
+        "dense_logq": -320.51275363662455,
+        "difference": -1.1254633136559278e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271003,
+        "fold": 2,
+        "concept": 33,
+        "saved_logq": -34.19619342444289,
+        "dense_logq": -34.19619374305255,
+        "difference": -3.1860965776786543e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271003,
+        "fold": 3,
+        "concept": 19,
+        "saved_logq": -425.74726517940775,
+        "dense_logq": -425.74726529292604,
+        "difference": -1.1351829698469373e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271003,
+        "fold": 3,
+        "concept": 42,
+        "saved_logq": -335.8288462979514,
+        "dense_logq": -335.82884639303586,
+        "difference": -9.508448783890344e-08
+      },
+      {
+        "generator": "M3S",
+        "seed": 271003,
+        "fold": 4,
+        "concept": 21,
+        "saved_logq": -420.6689047552656,
+        "dense_logq": -420.6689048653179,
+        "difference": -1.1005232636307483e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271003,
+        "fold": 4,
+        "concept": 35,
+        "saved_logq": -198.82487174727788,
+        "dense_logq": -198.82487190001808,
+        "difference": -1.527401991552324e-07
+      }
+    ],
+    "max_absolute_joint_logq_error": 3.1860965776786543e-07,
+    "cpu_seconds": 0.833671
+  },
+  "selected_primary": {
+    "budget_cpu_seconds": 1072.4113089999996,
+    "cpu_seconds": 828.652077,
+    "wall_seconds": 805.7660985830007,
+    "prototype_sha256": "02c3d62c607e5e39910b9675bec0a0fc691c3b9280dd2e9031e486f16dadf4cc",
+    "datasets": [
+      {
+        "generator": "M2H",
+        "seed": 271004,
+        "complete": true,
+        "n_fits": 27,
+        "n_converged": 27,
+        "M2S_start_counts": [
+          72,
+          72,
+          72
+        ],
+        "cpu_seconds": 413.733234,
+        "old_raw": -0.021851462724848857,
+        "new_raw": -0.022914959648834103,
+        "old_bounded": -0.018616322324828023,
+        "new_bounded": -0.01935586090940546
+      },
+      {
+        "generator": "M3S",
+        "seed": 271005,
+        "complete": true,
+        "n_fits": 27,
+        "n_converged": 27,
+        "M2S_start_counts": [
+          72,
+          72,
+          72
+        ],
+        "cpu_seconds": 414.821018,
+        "old_raw": -0.24102271691106808,
+        "new_raw": 0.2274780953260306,
+        "old_bounded": -0.026374055099107035,
+        "new_bounded": 0.018076236453392937
+      }
+    ]
+  },
+  "combined_measured_local_cpu_seconds": 6506.240768,
+  "combined_cpu_with_interruption_and_check_allowance": 6956.240768,
+  "selected_primary_quadrature": {
+    "n_points": 16385,
+    "prior_halfwidth_sd": 8,
+    "records": [
+      {
+        "generator": "M2H",
+        "seed": 271004,
+        "fold": 0,
+        "concept": 26,
+        "saved_logq": -223.372755001967,
+        "dense_logq": -223.37275499989755,
+        "difference": 2.0694415070465766e-09
+      },
+      {
+        "generator": "M2H",
+        "seed": 271004,
+        "fold": 0,
+        "concept": 32,
+        "saved_logq": -204.91710553025422,
+        "dense_logq": -204.91710552818463,
+        "difference": 2.0695836155937286e-09
+      },
+      {
+        "generator": "M2H",
+        "seed": 271004,
+        "fold": 1,
+        "concept": 34,
+        "saved_logq": -195.11401308355715,
+        "dense_logq": -195.11401308346018,
+        "difference": 9.697487257653847e-11
+      },
+      {
+        "generator": "M2H",
+        "seed": 271004,
+        "fold": 1,
+        "concept": 51,
+        "saved_logq": -214.69011516692785,
+        "dense_logq": -214.69011516679652,
+        "difference": 1.3133671927789692e-10
+      },
+      {
+        "generator": "M2H",
+        "seed": 271004,
+        "fold": 2,
+        "concept": 29,
+        "saved_logq": -194.25162441589347,
+        "dense_logq": -194.25162441580417,
+        "difference": 8.930101103032939e-11
+      },
+      {
+        "generator": "M2H",
+        "seed": 271004,
+        "fold": 2,
+        "concept": 60,
+        "saved_logq": -230.63489096419676,
+        "dense_logq": -230.63489096193186,
+        "difference": 2.264897602799465e-09
+      },
+      {
+        "generator": "M3S",
+        "seed": 271005,
+        "fold": 0,
+        "concept": 32,
+        "saved_logq": -79.24978508599463,
+        "dense_logq": -79.24978542121912,
+        "difference": -3.352244846155372e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271005,
+        "fold": 0,
+        "concept": 47,
+        "saved_logq": -389.9469784019077,
+        "dense_logq": -389.94697851820877,
+        "difference": -1.1630106655502459e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271005,
+        "fold": 1,
+        "concept": 34,
+        "saved_logq": -337.27547870754705,
+        "dense_logq": -337.27547882035304,
+        "difference": -1.1280599210294895e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271005,
+        "fold": 1,
+        "concept": 63,
+        "saved_logq": -497.8922087358108,
+        "dense_logq": -497.89220885827234,
+        "difference": -1.2246152891748352e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271005,
+        "fold": 2,
+        "concept": 21,
+        "saved_logq": -440.60744273834734,
+        "dense_logq": -440.6074428660019,
+        "difference": -1.2765457313435036e-07
+      },
+      {
+        "generator": "M3S",
+        "seed": 271005,
+        "fold": 2,
+        "concept": 31,
+        "saved_logq": -320.19007878658465,
+        "dense_logq": -320.19007890145934,
+        "difference": -1.1487469464555033e-07
+      }
+    ],
+    "max_absolute_joint_logq_error": 3.352244846155372e-07,
+    "cpu_seconds": 0.43754299999999996
+  },
+  "git_heads": {
+    "/Users/pietervanrooyen/Recoverable-Self-Coding": "1cef7013ba92a588b0b301fa3ff45f638cc032de",
+    "/Users/pietervanrooyen/Unimog-Projects": "907df57e91756f54de1c7b12a53eb4cdd2420aa3"
+  },
+  "source_sha256": {
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/models.py": "28765f82b3e718c48521cf775add6220898752c662c4cdd1c3ffcdb113c4feef",
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/analyze.py": "97558aa9c4340f363431c67f2c2d28cd360f2f0998056af7e1702c9e9a021825",
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/simulate.py": "f588b9121be48ec553ab95e4dda5736941865498922468b5868c96758d0afe57",
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/PREREGISTRATION_T1_model.md": "f6f636835fd3364979519deedb9ef81e49513c8f883e2a55af44427faf104295",
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/sim_results/d4v12b/calibration_D4.csv": "7762f152aaeb00fb8f0b36e453c4c57fc04f0f1910bb265ed8a0d9d19211babb",
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/sim_results/sens600/power_D4.csv": "e4310e79d7d517ae4b0b1b0cebdeff4c6b3a7f37fe8b2f2e0341365cb182fcdc",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/si_submission.tex": "40674935678ed68216fc4969f8b57283d75559dc2d1e14f7067f11dc702b9255",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/si_supplementary.tex": "78aa33ef627941c7a8b608628ae53be536ef7897e876bd5c3d3ece8c3c4991e2",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/appendix.tex": "565a72715af3d16c309e935123f3feb6d83aebb20cde614582ea80bb54428e89",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/availability.tex": "49a410d8c3828a302ccf7990e5304a60188ab10c24e286c37b8ea18c41f48b22",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/background.tex": "ad132991b1574c58a2b1fae8a997433833b2a55b0ec4505c9301d3930a3f5091",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/discussion.tex": "dbd5900ef1ecbfc64f90c57f7d56cc3bea429d5f5fc2a811ff45fa52f5a59951",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/introduction.tex": "b4e9ac788e7dbe4f4259ba4fc24beba67fc184755567780f6d5d3c10f84c433f",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/jitter_discussion.tex": "7619b3660a9719e3b48be29a195ad174931de1d364450fcf133a7735da888443",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/jitter_methods.tex": "537f3cd6e86f65384fdfff0c0176bf0a5c3440b3f2069993a05a667bdda3b847",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/jitter_results.tex": "f435aabe35baf2bd0d342af2d733509afe9333dd20d3b6c1185f363fecb1753f",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/map.tex": "e9ed58be0d2ba6b606d00d06be7d32716502e831fcc85a35df67c4e9d368879b",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/methods.tex": "e4dc24164153507c96bf377e95442f1718c832fb5a80cd796d45b189d7fc51b5",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/results.tex": "08430b9ada04dd000f3d040c249a6aad5952aad4502ded103b40582816ca0e42",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/supplement_audit.tex": "df314bb26fa83bf6623a16eca65dd41b23eb5a17223d5643bd2f03e85dc47a09",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/theory.tex": "3569419f17bc19fe3f063a5474a0c02ca3bed533e22fe563195f51913a901aae",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/transfer.tex": "c4027d49a3c157822aa3459fa62b0f087f5ee85ec83cd0f6d7cb119fb76245eb"
+  },
+  "model_sources_unchanged_since_local_import": true,
+  "as_run_source_reconstructed_matches": true
+}

@@ -1,0 +1,41 @@
+{
+  "null_settings": 16,
+  "alternative_settings": 14,
+  "calibration_per_setting": 500,
+  "null_validation_per_setting": 400,
+  "alternative_validation_per_setting": 1000,
+  "total_points": 35400,
+  "validation_bounds": 52,
+  "one_sided_bound_alpha": 0.0007692307692307692,
+  "alternative_coverage_successes_min": 930,
+  "null_coverage_successes_min": 379,
+  "power_successes_min": 840,
+  "false_or_unavailable_max": 11,
+  "max_lengau_coreh_per_point": 2.2,
+  "base_coreh": 77880.0,
+  "development_and_benchmark_reserve_coreh": 6000,
+  "total_coreh": 99456.0,
+  "reserve_split_coreh": {
+    "boundary": 2700,
+    "gain_recertification": 2000,
+    "benchmark_and_fitter_checks": 1000,
+    "contingency": 300
+  },
+  "boundary_development_max_points": 1216,
+  "boundary_development_cost_at_ceiling": 2675.2000000000003,
+  "csc_available_user_brief": 7600,
+  "heal_available_user_brief": 100000,
+  "combined_available": 107600,
+  "original_one_refit_coreh": 23.6,
+  "original_same_points_coreh": 835440.0,
+  "current_screen_full_cost": 113280.0,
+  "bootstrap_200_per_point_coreh": 167088000.0,
+  "single_layer_to_35_layer_base_coreh": 2725800.0,
+  "mean_bound_log_factor": 10.085809109330082,
+  "median_reference_ranks": [
+    208,
+    293
+  ],
+  "upper_tolerance_rank_p0.98": 500,
+  "upper_tolerance_rank_p0.95": 492
+}

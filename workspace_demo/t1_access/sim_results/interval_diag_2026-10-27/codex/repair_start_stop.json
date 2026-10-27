@@ -1,0 +1,9 @@
+{
+  "reason": "Cold-only acceptance became impossible after the omega=2 pair at seed271311 fold2 exceeded both the training and heldout thresholds.",
+  "planned_pairs": 60,
+  "completed_pairs": 49,
+  "stop": "Interrupted remaining local setting workers for deterministic development futility; setting1 had already completed. Interrupted pairs are not treated as completed or as scientific unavailability.",
+  "selected_recipe": "M2S eight cold plus64 keyed narrow starts; other members eight cold, existing recovery; three outer folds in the newly selected point algorithm.",
+  "measurement": "Completed-pair CPU is in the four setting files. In-flight CPU is not a completed-pair measurement; a450 CPU-second allowance is reserved in repair_primary_plan.json.",
+  "scope": "Local scratch processes only. No Lane A process or remote run was contacted."
+}

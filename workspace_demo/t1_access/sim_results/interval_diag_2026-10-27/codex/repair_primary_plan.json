@@ -1,0 +1,8 @@
+{
+  "reason": "The paired M2S comparison found a 33.637843 training-nat improvement at omega=2, failing the frozen cold-only acceptance threshold. Stop further pairs for futility and use cold+64 narrow starts for M2S.",
+  "chosen_algorithm": "Three concept-disjoint outer folds, no inner selection; G4 versus X5 including M3S; 8 cold starts for other members, 8 cold plus 64 keyed narrow starts for M2S; cap .03 and median repeated-study target.",
+  "cost_repair": "Three folds instead of five reduce outer member fits from 45 to 27. Training sizes become 42/43 rather than 50-52 for the declared family profile, using the existing per-family offset. Both point cost and predictive performance must be requalified at these sizes.",
+  "datasets": ["M2H tau=.5 seed271004", "M3S omega1 sep2 seed271005"],
+  "cpu_cap": "7200 minus original prototype CPU minus completed paired-fold CPU minus 450 seconds reserved conservatively for interrupted in-flight fits and other checks. The new probe stops before another fit when less than 120 CPU seconds remain. It is one CPU process.",
+  "interpretation": "Development points and cost, no interval transferred from the old five-fold calibration. No global start-policy adoption, production edits, remote work or licensed scientific decision."
+}

@@ -1,0 +1,71 @@
+{
+  "median_reference_failure_per_setting": 0.00013900789185324676,
+  "tail_tolerance_failure_per_tail": 4.1023985145472214e-05,
+  "actual_union_bound_calibration_failure": 0.006631675864325736,
+  "declared_joint_calibration_validation_failure_budget": 0.05,
+  "min_null_development_point_reference_inclusion": 0.9966666666666667,
+  "min_null_development_entire_bracket_inclusion": 0.9933333333333333,
+  "middle_gain_positive_count": 199,
+  "checks_passed": true,
+  "selected_primary_local_summary": {
+    "budget_cpu_seconds": 1072.4113089999996,
+    "cpu_seconds": 828.652077,
+    "wall_seconds": 805.7660985830007,
+    "prototype_sha256": "02c3d62c607e5e39910b9675bec0a0fc691c3b9280dd2e9031e486f16dadf4cc",
+    "datasets": [
+      {
+        "generator": "M2H",
+        "seed": 271004,
+        "complete": true,
+        "n_fits": 27,
+        "n_converged": 27,
+        "M2S_start_counts": [
+          72,
+          72,
+          72
+        ],
+        "cpu_seconds": 413.733234,
+        "old_raw": -0.021851462724848857,
+        "new_raw": -0.022914959648834103,
+        "old_bounded": -0.018616322324828023,
+        "new_bounded": -0.01935586090940546
+      },
+      {
+        "generator": "M3S",
+        "seed": 271005,
+        "complete": true,
+        "n_fits": 27,
+        "n_converged": 27,
+        "M2S_start_counts": [
+          72,
+          72,
+          72
+        ],
+        "cpu_seconds": 414.821018,
+        "old_raw": -0.24102271691106808,
+        "new_raw": 0.2274780953260306,
+        "old_bounded": -0.026374055099107035,
+        "new_bounded": 0.018076236453392937
+      }
+    ]
+  },
+  "combined_cpu_with_interruption_and_check_allowance": 6956.240768,
+  "unresolved_record_placeholders": [],
+  "source_sha256": {
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/reviews/2026-10-27_method_repair_codex_record.md": "a175c49403cf54fdf8b38dc0bf99b23e505da0f4d3a709cb090c134324beb883",
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/sim_results/interval_diag_2026-10-27/codex/repair_procedure.py": "1983c655e9a83971a5e19c71334d72003d71ba779843a8db444a6df8099d15ca",
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/sim_results/interval_diag_2026-10-27/codex/repair_evidence.py": "2d17cffad8314aa3604ade45743dc1a0d344da0e97ebfad190dc4cc9a9f67082",
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/sim_results/interval_diag_2026-10-27/codex/repair_costs.py": "b090036dc967e40c328b64e89dec42fedcce628789ceb2adc0e5466a141d37b9"
+  },
+  "paired_start_status": {
+    "n_pairs": 49,
+    "max_training_gain": 33.63784306802154,
+    "max_abs_heldout_change_per_trial": 0.006768425411067369,
+    "max_complete_dataset_ensemble_T_change_bound": 1.3278488251942017e-07,
+    "max_observed_fold_sum_T_change_bound": 0.0009674099113816661,
+    "all_converged": true,
+    "cpu_seconds": 3633.559627,
+    "complete": false,
+    "development_accept_cold": false
+  }
+}
