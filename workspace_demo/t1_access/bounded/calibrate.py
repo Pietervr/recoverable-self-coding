@@ -42,6 +42,9 @@ from math import comb
 
 import numpy as np
 
+with open(__file__, "rb") as _fh:
+    LOADED_SOURCE_DIGEST = hashlib.sha256(_fh.read()).hexdigest()          # bound at this module's own import (B1)
+
 CAP = 0.03
 TARGET_ERROR = Fraction(5, 1000)          # total error across all median brackets
 TOLERANCE_ERROR = Fraction(5, 1000)       # total error across both tails of all tolerance limits
@@ -142,10 +145,27 @@ def lower_tolerance(x, p, delta) -> dict:
     return dict(value=float(x[n - k]), rank=n - k + 1, error_bound=float(err))
 
 
-def calibrate(banks: dict, graded, cap: float = CAP) -> dict:
+def eb_mean(x, delta) -> dict:
+    """Two-sided empirical-Bernstein bracket for the MEAN of a statistic bounded in [-CAP, CAP] (Maurer & Pontil 2009,
+    Theorem 4, each tail at delta/2), ported from sim_results/interval_diag_2026-10-27/codex/repair_procedure.py:eb_mean.
+    On [0, 1] the one-sided bound is sqrt(2 V ln(2/d) / n) + 7 ln(2/d) / (3 (n - 1)) with V the unbiased sample
+    variance; rescaled to the range R = 2 CAP it is sqrt(2 s^2 a / n) + 7 R a / (3 (n - 1)), a = ln(4 / delta) for the
+    two-sided bracket. Used by the boundary certificate (S3: the bounded-mean bracket at error 0.01 inside +-0.003).
+    Truncated to [-CAP, CAP]. Raises on an unavailable or out-of-range statistic, like the order-statistic helpers."""
+    x = _bank(x)
+    n = x.size
+    a = float(np.log(4.0 / float(_q(delta))))
+    half = float(np.sqrt(2.0 * np.var(x, ddof=1) * a / n) + 7.0 * (2.0 * CAP) * a / (3.0 * (n - 1)))
+    m = float(np.mean(x))
+    return dict(lo=max(-CAP, m - half), hi=min(CAP, m + half), mean=m, half_width=half, n=int(n), delta=str(_q(delta)))
+
+
+def calibrate(banks: dict, graded) -> dict:
     """The frozen interval artifact from complete calibration banks {setting: [T, ...]} and the graded setting names.
 
-    Raises ValueError if any bank holds an unavailable (None / non-finite) or out-of-range statistic."""
+    Raises ValueError if any bank holds an unavailable (None / non-finite) or out-of-range statistic. The cap is the
+    module constant CAP (no argument: Codex round 4, N2). This is the mathematical core only: the attempted-set,
+    identity and freeze contract is bounded.campaign.freeze_calibration."""
     graded = list(graded)
     J = len(banks)
     if J == 0 or not graded or not set(graded).issubset(banks):
@@ -167,7 +187,7 @@ def calibrate(banks: dict, graded, cap: float = CAP) -> dict:
                            median_ranks=[mb["lower_rank"], mb["upper_rank"]], median_error=mb["error_bound"],
                            tol_lo=lo["value"], tol_hi=up["value"], tol_lo_rank=lo["rank"], tol_hi_rank=up["rank"],
                            tol_error_per_tail=up["error_bound"], sample_median=float(np.median(x)))
-    art = dict(cap=float(cap), A=float(A), B=float(B), graded_critical=float(c_G), n_settings=J, graded=sorted(graded),
+    art = dict(cap=float(CAP), A=float(A), B=float(B), graded_critical=float(c_G), n_settings=J, graded=sorted(graded),
                allocation=dict(median_error_total=str(TARGET_ERROR), median_error_per_setting=str(d_med),
                                tolerance_error_total=str(TOLERANCE_ERROR), tolerance_error_per_tail_per_setting=str(d_tol),
                                tail_content=str(TAIL_CONTENT), central_content=str(CENTRAL_CONTENT)),

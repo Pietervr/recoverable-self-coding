@@ -38,6 +38,7 @@ from bounded import procedure as P  # noqa: E402
 from bounded import calibrate as CB  # noqa: E402
 from bounded import generators as GN  # noqa: E402
 from bounded import run_point as RP  # noqa: E402
+from bounded import campaign as CP  # noqa: E402
 import analyze as A  # noqa: E402
 import models as M  # noqa: E402
 import simulate as S  # noqa: E402
@@ -324,7 +325,8 @@ class TestDeterminism(unittest.TestCase):
     def test_seed_rule(self):
         a = GN.dataset_seed("calibration", "G03", 7)
         self.assertEqual(a, GN.dataset_seed("calibration", "G03", 7))
-        self.assertEqual(len({GN.dataset_seed(ns, "G03", 7) for ns in GN.NAMESPACES}), 3)
+        self.assertEqual(len({GN.dataset_seed(ns, "G03", 7) for ns in GN.NAMESPACES}), len(GN.NAMESPACES))
+        self.assertGreater(a, 2**64)                      # a 128-bit identity, not a 31-bit reduction (N4)
         self.assertNotEqual(GN.dataset_seed("calibration", "G03", 7), GN.dataset_seed("calibration", "G04", 7))
         self.assertNotEqual(GN.dataset_seed("calibration", "G03", 7), GN.dataset_seed("calibration", "G03", 8))
         for sid in ("G16", "A13", "G15"):
@@ -356,6 +358,359 @@ class TestDeterminism(unittest.TestCase):
                             capture_output=True, text=True)
         self.assertEqual(st.stdout.strip(), "")
 
+
+
+# ----------------------------------------------------------------------------------------------
+# Codex round 4: B1 provenance, B2 campaign boundary, N1, N2, N4, eb_mean, the M3S route guards
+# ----------------------------------------------------------------------------------------------
+_PROBE = r"""
+import sys, json, hashlib, os, shutil
+root, t1, step = sys.argv[1], sys.argv[2], sys.argv[3]
+sys.path[:0] = [root, t1]
+sys.dont_write_bytecode = True
+out = {}
+if step == "members":
+    from bounded import members as MB
+    orig = hashlib.sha256(open(os.path.join(root, "bounded", "members.py"), "rb").read()).hexdigest()
+    p = os.path.join(root, "bounded", "members.py")
+    src = open(p).read().replace("M3S_START_W = float(np.log(0.3))", "M3S_START_W = float(np.log(0.7))")
+    open(p, "w").write(src)
+    from bounded import run_point as RP
+    out = dict(executed_start=MB.M3S_START_W, reported=RP.identity()["bounded_sources"]["members.py"], original=orig,
+               edited=hashlib.sha256(open(p, "rb").read()).hexdigest())
+else:
+    from bounded import run_point as RP, generators as GN
+    h0, c0 = RP.config_hash(), GN.CATALOGUE.sha256
+    g0 = GN.setting("G13")["params"]["mu_low"]
+    p = os.path.join(root, "bounded", "catalogue.json")
+    cat = json.load(open(p))
+    for st in cat["settings"]:
+        if st["id"] == "G13":
+            st["params"]["mu_low"] = -0.2
+    open(p, "w").write(json.dumps(cat))
+    ds = GN.make(GN.setting("G13"), 5)
+    out = dict(h0=h0, h1=RP.config_hash(), c0=c0, c1=GN.CATALOGUE.sha256, g0=g0, g1=GN.setting("G13")["params"]["mu_low"],
+               used_base_mu_low=ds.meta["base"]["mu_low"])
+print(json.dumps(out))
+"""
+
+
+def _scratch_copy():
+    import shutil, tempfile
+    root = tempfile.mkdtemp(prefix="bounded_probe_")
+    shutil.copytree(_HERE, os.path.join(root, "bounded"), ignore=shutil.ignore_patterns("__pycache__", "dev"))
+    return root
+
+
+class TestProvenance(unittest.TestCase):
+    def _probe(self, step):
+        import subprocess, shutil
+        root = _scratch_copy()
+        try:
+            r = subprocess.run([sys.executable, "-c", _PROBE, root, T1, step], capture_output=True, text=True,
+                               env=dict(os.environ, NPROC="1"), timeout=600)
+            self.assertEqual(r.returncode, 0, r.stderr[-2000:])
+            return json.loads(r.stdout.strip().splitlines()[-1])
+        finally:
+            shutil.rmtree(root, ignore_errors=True)
+
+    def test_member_source_edit_after_import(self):
+        o = self._probe("members")
+        self.assertEqual(o["executed_start"], float(np.log(0.3)))      # the loaded code still runs
+        self.assertEqual(o["reported"], o["original"])                  # and is what the identity names
+        self.assertNotEqual(o["reported"], o["edited"])
+
+    def test_catalogue_edit_after_import(self):
+        o = self._probe("catalogue")
+        self.assertEqual((o["h0"], o["c0"], o["g0"]), (o["h1"], o["c1"], o["g1"]))
+        self.assertEqual(o["used_base_mu_low"], -0.1)                   # the frozen bytes generate the data
+
+    def test_identity_seals_live_numerics_and_no_override(self):
+        import inspect
+        h0 = RP.config_hash()
+        keep = M.TRAP_POINTS
+        try:
+            M.TRAP_POINTS = 128
+            self.assertNotEqual(RP.config_hash(), h0)
+        finally:
+            M.TRAP_POINTS = keep
+        self.assertEqual(RP.config_hash(), h0)
+        self.assertNotIn("cat", inspect.signature(RP.run).parameters)
+        ident = RP.identity()
+        self.assertEqual(ident["catalogue_sha256"], GN.CATALOGUE.sha256)
+        self.assertEqual(set(ident["bounded_sources"]), {"__init__.py", "members.py", "procedure.py", "calibrate.py",
+                                                         "generators.py", "campaign.py", "run_point.py"})
+        self.assertIn("runtime", ident["numerical"])
+        self.assertEqual(ident["numerical"]["models"]["TRAP_POINTS"], 96)
+
+
+class TestN1N2N4(unittest.TestCase):
+    def _stub(self, theta_bad=False, loglik=None, converged=True):
+        real = MB.fit_member
+
+        def fm(name, train, fold, seed, layer, j=None):
+            r = real(name, train, fold, seed, layer, j)
+            if name == "M3" and fold == 0:
+                if loglik is not None:
+                    r.loglik = loglik
+                r.converged = converged
+            return r
+        return fm
+
+    def test_nonfinite_loglik_is_unavailable(self):
+        ds = GN.make(GN.setting("G01"), 31)
+        out = P.point_pipeline(ds.y[:, 0], ds.k, ds.concept, ds.family, 31, members_G=("M2B",), members_X=("M3",),
+                               fit_member=self._stub(loglik=-np.inf))
+        self.assertTrue(out["unavailable"])
+        self.assertIn("non-finite training log-likelihood", out["reason"])
+
+    def test_finite_nonconverged_stays_available(self):
+        ds = GN.make(GN.setting("G01"), 31)
+        out = P.point_pipeline(ds.y[:, 0], ds.k, ds.concept, ds.family, 31, members_G=("M2B",), members_X=("M3",),
+                               fit_member=self._stub(converged=False))
+        self.assertFalse(out["unavailable"])
+        self.assertFalse([f for f in out["fits"] if f["member"] == "M3" and f["fold"] == 0][0]["converged"])
+
+    def test_calibrate_has_no_cap_argument(self):
+        import inspect
+        self.assertEqual(list(inspect.signature(CB.calibrate).parameters), ["banks", "graded"])
+        art = CB.calibrate({"g": np.linspace(-0.02, -0.01, 500)}, ["g"])
+        self.assertEqual(art["cap"], CB.CAP)
+
+    def test_plan_and_development_blocks_unique(self):
+        ids = [(ns, s, r) for ns in ("calibration", "validation") for (s, r) in GN.plan_identities(ns)]
+        self.assertEqual(len(ids), 35400)
+        cat = GN.load_catalogue()
+        ids += [("development", s["id"], 0) for s in cat["settings"]]                       # smoke block
+        ids += [("dev_benchmark", s["id"], r) for s in cat["settings"] for r in range(20)]
+        ids += [("dev_boundary_search", "G14", r) for r in range(216)]
+        ids += [("dev_boundary_certification", "G14", r) for r in range(1000)]
+        ids += [("dev_gain", s["id"], r) for s in cat["settings"] if s["kind"] == "alternative" for r in range(16)]
+        seeds = [GN.dataset_seed(*x) for x in ids]
+        self.assertEqual(len(set(seeds)), len(ids))
+        self.assertTrue(all(0 <= x < 2**128 for x in seeds))
+
+
+class TestEbMean(unittest.TestCase):
+    def test_known_value(self):
+        x = np.array([-0.01, 0.0, 0.01, 0.02])
+        a = np.log(4 / 0.01)
+        half = np.sqrt(2 * np.var(x, ddof=1) * a / 4) + 7 * 0.06 * a / 9
+        r = CB.eb_mean(x, Fraction(1, 100))
+        self.assertAlmostEqual(r["half_width"], half, places=15)
+        self.assertEqual((r["lo"], r["hi"]), (max(-0.03, 0.005 - half), min(0.03, 0.005 + half)))
+        with self.assertRaises(ValueError):
+            CB.eb_mean([0.0, None, 0.01], 0.01)
+
+    def test_coverage_by_simulation(self):
+        """Monte-Carlo sanity check (not a proof): the bracket misses the true mean of a clipped normal rarely."""
+        rng = np.random.default_rng(9)
+        truth = float(np.clip(np.random.default_rng(10).normal(0.004, 0.01, 2_000_000), -0.03, 0.03).mean())
+        miss = 0
+        for _ in range(500):
+            r = CB.eb_mean(np.clip(rng.normal(0.004, 0.01, 200), -0.03, 0.03), Fraction(1, 10))
+            miss += not (r["lo"] <= truth <= r["hi"])
+        self.assertLessEqual(miss, 50)
+
+
+class TestM3SGuards(unittest.TestCase):
+    def test_audited_paths_refuse_m3s(self):
+        th = GN.m3s_theta_from(2.0, 0.5, 2.0)
+        k = np.array(M.LEVELS, float)
+        for call in (lambda: M.components("M3S", th, k), lambda: M.sample("M3S", th, k),
+                     lambda: S.generator_theta("M3S"), lambda: S.make_dataset("M3S", th, seed=1),
+                     lambda: S.expected_gain("M3S", th, seed=1)):
+            with self.assertRaises(MB.M3SRouteError):
+                call()
+        np.testing.assert_array_equal(M.components("M3H", S.generator_theta("M3H", tau=0.5), k)["A"][0], 0.0)
+
+    def test_adapter_matches_m3h_core_and_truth_density(self):
+        th = GN.m3s_theta_from(2.0, 0.5359075609613234, 2.0)
+        k = np.tile(np.array(M.LEVELS, float), 3)
+        c = GN.m3s_components(th, k, v=0.7)
+        h = M.components("M3H", S.generator_theta("M3H", tau=1.0, sep=2.0, scale=0.5359075609613234), k, u=0.0)
+        np.testing.assert_allclose(c["A"], h["A"], atol=1e-15)
+        np.testing.assert_allclose(c["mu_high"], h["mu_high"], atol=1e-15)
+        np.testing.assert_allclose(c["sigma"], h["sigma_low"] * np.exp(0.7), rtol=1e-15)
+        self.assertTrue(np.all(c["A"][k == 0] == 0.0))
+        ds = GN.make(GN.setting("A14"), 3)
+        tr = _trials(ds)
+        np.testing.assert_array_equal(GN.m3s_truth_logq(th, tr), M.concept_scores("M3S", th, tr))
+        big = GN.make(GN.setting("A14"), 3, size=4)
+        self.assertEqual(big.n_concepts, 256)
+        self.assertEqual(tuple(np.bincount(big.family)), (108, 88, 60))
+
+
+# ---- synthetic attempted sets (no fitting) -------------------------------------------------
+def _expected():
+    return dict(config_hash=RP.config_hash(), identity_sha256=RP.identity_sha256(), runtime=RP.runtime())
+
+
+def _row(ns, sid, rep, T=-0.01, status="available", exp=None, art=None, **over):
+    exp = _expected() if exp is None else exp
+    r = dict(schema=RP.SCHEMA, setting=sid, replicate=rep, namespace=ns, dataset_seed=GN.dataset_seed(ns, sid, rep),
+             config_hash=exp["config_hash"], identity_sha256=exp["identity_sha256"], runtime=exp["runtime"],
+             design=dict(members_G=list(MB.MEMBERS_G), members_X=list(MB.MEMBERS_X), family_counts=list(P.FAMILY_COUNTS),
+                         layer=P.LAYER, n_outer=P.N_OUTER),
+             status=status, unavailable=status != "available",
+             point=dict(bounded=(T if status == "available" else None)),
+             calibration_artifact_sha256=(art["artifact_sha256"] if art else None))
+    if art is not None:
+        r["result"] = CB.apply(T if status == "available" else None, art, available=status == "available")
+    r.update(over)
+    r["deterministic_sha256"] = CP.deterministic_digest(r)
+    return r
+
+
+def _sealed_catalogue(tmp):
+    cat = GN.load_catalogue()
+
+    def receipt(name):
+        p = os.path.join(tmp, name)
+        with open(p, "w") as fh:
+            fh.write(name)
+        return dict(path=p, sha256=hashlib.sha256(name.encode()).hexdigest())
+    cat["freeze"] = dict(development_only=False, boundary_lambda_certificate=receipt("lam"),
+                         design_numerical_policy=receipt("policy"), benchmark_admission_receipt=receipt("bench"),
+                         gain_certificates={s["id"]: receipt(f"gain_{s['id']}") for s in cat["settings"] if s["kind"] == "alternative"})
+    for s in cat["settings"]:
+        if s["kind"] == "alternative":
+            s["gain_certified"] = True
+        if s["generator"] == "boundary":
+            s["params"]["lam"] = 0.7
+    return cat
+
+
+class TestCampaign(unittest.TestCase):
+    PLAN_C = [(s, r) for s in ("G01", "A02") for r in range(400)]
+
+    def _cal(self, rows=None):
+        rng = np.random.default_rng(2)
+        return rows if rows is not None else [_row("calibration", s, r, T=float(rng.uniform(-0.02, -0.01) if s == "G01" else rng.uniform(0.005, 0.02)))
+                                              for s, r in self.PLAN_C]
+
+    def test_gates_refuse_unsealed_and_premature_validation(self):
+        with self.assertRaises(CP.QualificationRefused):
+            RP.run("G01", 0, "calibration")                           # the committed catalogue is development-only
+        with self.assertRaises(CP.QualificationRefused):
+            RP.run("G01", 0, "validation")
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            cat = _sealed_catalogue(tmp)
+            CP.admit("calibration", cat)                              # sealed: calibration admitted
+            with self.assertRaises(CP.QualificationRefused):
+                CP.admit("validation", cat)                           # but no frozen artifact yet
+            with self.assertRaises(CP.QualificationRefused):
+                CP.admit("validation", cat, artifact=dict(frozen=False))
+            art = CP.freeze_calibration(self._cal(), _expected(), plan=self.PLAN_C, cat=cat)
+            CP.admit("validation", cat, artifact=art)
+            bad = dict(art, A=art["A"] * 2)                            # tampered artifact
+            with self.assertRaises(CP.QualificationRefused):
+                CP.admit("validation", cat, artifact=bad)
+            cat2 = json.loads(json.dumps(cat)); cat2["freeze"]["gain_certificates"].pop("A13")
+            self.assertTrue(any("A13" in p for p in CP.seal_problems(cat2)))
+            cat3 = json.loads(json.dumps(cat)); [s["params"].update(lam=None) for s in cat3["settings"] if s["id"] == "G14"]
+            self.assertTrue(any("lambda" in p for p in CP.seal_problems(cat3)))
+            with open(cat["freeze"]["design_numerical_policy"]["path"], "w") as fh:
+                fh.write("changed")                                  # a receipt that no longer verifies
+            self.assertTrue(any("design_numerical_policy" in p for p in CP.seal_problems(cat)))
+
+    def test_ingest_rejections(self):
+        rows = self._cal()
+        ok = CP.ingest(rows, "calibration", _expected(), plan=self.PLAN_C)
+        self.assertEqual(len(ok["manifest"]), 800)
+        cases = {
+            "omitted unavailable attempt": rows[:5] + rows[6:],
+            "repeated identity": rows + [rows[3]],
+            "extra identity": rows + [_row("calibration", "G01", 99)],
+            "wrong namespace": rows[:-1] + [_row("validation", *self.PLAN_C[-1])],
+            "wrong hash": rows[:-1] + [_row("calibration", *self.PLAN_C[-1], exp=dict(_expected(), config_hash="000000000000"))],
+            "wrong runtime": rows[:-1] + [_row("calibration", *self.PLAN_C[-1], exp=dict(_expected(), runtime={"python": "9.9"}))],
+            "substituted seed": rows[:-1] + [_row("calibration", *self.PLAN_C[-1], dataset_seed=1)],
+            "reduced members": rows[:-1] + [_row("calibration", *self.PLAN_C[-1], design=dict(rows[0]["design"], members_X=["M3"]))],
+            "tampered value": rows[:-1] + [dict(rows[-1], point=dict(bounded=0.0))],
+        }
+        for label, rs in cases.items():
+            with self.assertRaises(CP.IngestRejected, msg=label):
+                CP.ingest(rs, "calibration", _expected(), plan=self.PLAN_C)
+        # equal VALUES are legitimate ties
+        ties = [_row("calibration", s, r, T=-0.01 if s == "G01" else 0.01) for s, r in self.PLAN_C]
+        CP.ingest(ties, "calibration", _expected(), plan=self.PLAN_C)
+
+    def test_unavailable_attempt_holds_calibration(self):
+        rows = self._cal()
+        rows[7] = _row("calibration", *self.PLAN_C[7], status="unavailable")
+        with self.assertRaises(ValueError):
+            CP.freeze_calibration(rows, _expected(), plan=self.PLAN_C, cat=GN.load_catalogue())
+
+    def test_crashing_worker_is_recorded_and_holds(self):
+        import tempfile
+        real = P.point_pipeline
+        with tempfile.TemporaryDirectory() as tmp:
+            out = os.path.join(tmp, "G01_r0.json")
+            P.point_pipeline = lambda *a, **k: (_ for _ in ()).throw(RuntimeError("injected defect"))
+            try:
+                rec = RP.attempt("G01", 0, "development", out, members_G=("M2B",), members_X=("M3",))
+            finally:
+                P.point_pipeline = real
+            self.assertEqual(rec["status"], "crashed")
+            terms, atts = CP.load_records(tmp)
+            self.assertEqual((len(terms), len(atts)), (1, 1))
+            with self.assertRaises(CP.CampaignHold):
+                CP.ingest(terms, "development", _expected(), plan=[("G01", 0)], attempts=atts)
+            with self.assertRaises(CP.CampaignHold):                 # an attempt is never re-run or replaced
+                RP.attempt("G01", 0, "development", out)
+            # a worker killed before its terminal record: only the attempt file exists -> hold
+            os.remove(out)
+            terms, atts = CP.load_records(tmp)
+            with self.assertRaises(CP.CampaignHold):
+                CP.ingest(terms, "development", _expected(), plan=[("G01", 0)], attempts=atts)
+            # a known numerical failure is an UNAVAILABLE terminal row, not a crash
+            out2 = os.path.join(tmp, "G01_r1.json")
+            P.point_pipeline = lambda *a, **k: (_ for _ in ()).throw(FloatingPointError("overflow"))
+            try:
+                rec2 = RP.attempt("G01", 1, "development", out2, members_G=("M2B",), members_X=("M3",))
+            finally:
+                P.point_pipeline = real
+            self.assertEqual(rec2["status"], "unavailable")
+            self.assertTrue(os.path.exists(out2))
+
+    def test_validation_tally_futility_and_no_early_success(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            cat = _sealed_catalogue(tmp)
+            art = CP.freeze_calibration(self._cal(), _expected(), plan=self.PLAN_C, cat=cat)
+            plan_v = [("G01", r) for r in range(400)] + [("A02", r) for r in range(1000)]
+            cg, ca = art["cells"]["G01"], art["cells"]["A02"]
+            good_g, good_a = (cg["median_lo"] + cg["median_hi"]) / 2, (ca["median_lo"] + ca["median_hi"]) / 2
+            rows = [_row("validation", "G01", r, T=good_g, art=art) for r in range(100)]
+            rows += [_row("validation", "A02", r, T=good_a, art=art) for r in range(100)]
+            t = CP.validation_tally(rows, art, _expected(), plan=plan_v, cat=cat)
+            self.assertEqual(t["settings"]["G01"]["inclusion"]["status"], "pending")   # no early success
+            self.assertFalse(t["all_pass"])
+            # 12 unavailable graded attempts: positive-or-unavailable > 11/400 -> unattainable
+            rows += [_row("validation", "G01", r, status="unavailable", art=art) for r in range(100, 112)]
+            t = CP.validation_tally(rows, art, _expected(), plan=plan_v, cat=cat)
+            self.assertEqual(t["settings"]["G01"]["positive_or_unavailable"]["status"], "unattainable")
+            self.assertTrue(t["any_unattainable"])
+            # 161 power failures at a gate -> unattainable
+            rows += [_row("validation", "A02", r, T=-0.02, art=art) for r in range(100, 261)]
+            t = CP.validation_tally(rows, art, _expected(), plan=plan_v, cat=cat)
+            self.assertEqual(t["settings"]["A02"]["power"]["status"], "unattainable")
+            # a row not linked to the frozen artifact is rejected
+            other = dict(art, artifact_sha256="0" * 64)
+            with self.assertRaises(CP.IngestRejected):
+                CP.validation_tally(rows + [_row("validation", "A02", 999, T=good_a, art=other)], art, _expected(),
+                                    plan=plan_v, cat=cat)
+            # complete and clean -> pass
+            full = [_row("validation", "G01", r, T=good_g, art=art) for r in range(400)]
+            full += [_row("validation", "A02", r, T=good_a, art=art) for r in range(1000)]
+            t = CP.validation_tally(full, art, _expected(), plan=plan_v, cat=cat)
+            self.assertTrue(t["all_pass"], t["settings"])
+
+    def test_futility_limits(self):
+        self.assertEqual(CP.futility_limits(), dict(graded_inclusion=21, alternative_inclusion=70,
+                                                     graded_positive_or_unavailable=11, power=160))
 
 # ----------------------------------------------------------------------------------------------
 # slow tier: prototype reproduction and full-row determinism

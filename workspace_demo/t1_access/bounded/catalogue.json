@@ -1,5 +1,5 @@
 {
- "about": "R052 bounded-comparison qualification catalogue - DRAFT, not adopted (bounded/DESIGN_bounded_v1.md)",
+ "about": "R052 bounded-comparison qualification catalogue - DRAFT, DEVELOPMENT-ONLY, not adopted, not sealed (bounded/DESIGN_bounded_v1.md)",
  "counts": {
   "calibration": 500,
   "development_smoke": 1,
@@ -33,6 +33,21 @@
   ],
   "n_outer": 3,
   "trials_per_concept": 168
+ },
+ "development_namespaces": [
+  "development",
+  "dev_benchmark",
+  "dev_boundary_search",
+  "dev_boundary_certification",
+  "dev_gain"
+ ],
+ "freeze": {
+  "benchmark_admission_receipt": null,
+  "boundary_lambda_certificate": null,
+  "design_numerical_policy": null,
+  "development_only": true,
+  "gain_certificates": null,
+  "note": "every field must hold a sealed receipt (path + sha256) and development_only must be false before any calibration or validation identity can run (bounded.campaign.require_sealed)"
  },
  "gain_source": {
   "code_hash": "625798e9e7f4",
@@ -101,10 +116,14 @@
  },
  "namespaces": {
   "calibration": 271200,
+  "dev_benchmark": 271110,
+  "dev_boundary_certification": 271130,
+  "dev_boundary_search": 271120,
+  "dev_gain": 271140,
   "development": 271100,
   "validation": 271300
  },
- "seed_rule": "default_rng([namespace, sha256('setting:<id>')[:8], sha256('replicate:<r>')[:8]]).integers(2**31)",
+ "seed_rule": "int(sha256('bounded-seed-v2|<namespace>|' + sha256('setting:<id>') + '|' + sha256('replicate:<r>'))[:32 hex], 16): 128 bits",
  "settings": [
   {
    "attempts": {
@@ -117,7 +136,29 @@
    "kind": "graded",
    "note": "",
    "origin": "historical",
-   "params": {}
+   "params": {},
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M2B",
+    "theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0
+    ]
+   }
   },
   {
    "attempts": {
@@ -132,6 +173,29 @@
    "origin": "historical",
    "params": {
     "tau": 0.0
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M2H",
+    "theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0,
+     -18.420680743952367
+    ]
    }
   },
   {
@@ -147,6 +211,29 @@
    "origin": "historical",
    "params": {
     "tau": 0.5
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M2H",
+    "theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0,
+     -0.6931471805599453
+    ]
    }
   },
   {
@@ -162,6 +249,29 @@
    "origin": "historical",
    "params": {
     "tau": 1.0
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M2H",
+    "theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0,
+     0.0
+    ]
    }
   },
   {
@@ -177,6 +287,29 @@
    "origin": "historical",
    "params": {
     "tau": 2.0
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M2H",
+    "theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0,
+     0.6931471805599453
+    ]
    }
   },
   {
@@ -192,6 +325,29 @@
    "origin": "historical",
    "params": {
     "omega": 0.0
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M2S",
+    "theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0,
+     -18.420680743952367
+    ]
    }
   },
   {
@@ -207,6 +363,29 @@
    "origin": "historical",
    "params": {
     "omega": 0.5
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M2S",
+    "theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0,
+     -0.6931471805599453
+    ]
    }
   },
   {
@@ -222,6 +401,29 @@
    "origin": "historical",
    "params": {
     "omega": 1.0
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M2S",
+    "theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0,
+     0.0
+    ]
    }
   },
   {
@@ -237,6 +439,29 @@
    "origin": "historical",
    "params": {
     "omega": 2.0
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M2S",
+    "theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0,
+     0.6931471805599453
+    ]
    }
   },
   {
@@ -252,6 +477,30 @@
    "origin": "historical",
    "params": {
     "alpha": 0.0
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M2K",
+    "theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0,
+     0.0,
+     0.0
+    ]
    }
   },
   {
@@ -267,6 +516,30 @@
    "origin": "historical",
    "params": {
     "alpha": 1.0
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M2K",
+    "theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0,
+     1.0,
+     0.0
+    ]
    }
   },
   {
@@ -282,6 +555,30 @@
    "origin": "historical",
    "params": {
     "alpha": 3.0
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M2K",
+    "theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0,
+     3.0,
+     0.0
+    ]
    }
   },
   {
@@ -298,6 +595,28 @@
    "params": {
     "mu_low": -0.1,
     "mu_top": 0.1
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -0.1,
+     "mu_top": 0.1,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M2B",
+    "theta": [
+     3.0,
+     1.5,
+     0.20233488821266837,
+     0.15,
+     0.75,
+     0.1
+    ]
    }
   },
   {
@@ -315,6 +634,28 @@
     "development_placeholder_lam": 0.5,
     "lam": null,
     "log_sigma0": -0.2876820724517809
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "mean_member": "M2B",
+    "mean_theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0
+    ]
    }
   },
   {
@@ -331,6 +672,29 @@
    "params": {
     "df": 5,
     "tau": 0.5
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "mean_member": "M2H",
+    "theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0,
+     -0.6931471805599453
+    ]
    }
   },
   {
@@ -352,6 +716,28 @@
     "concept_log_scale": 1.0,
     "sigma_base": 0.6,
     "sigma_bump": 0.4
+   },
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "mean_member": "M2B",
+    "mean_theta": [
+     3.0,
+     1.5,
+     2.0233488821266836,
+     0.15,
+     0.75,
+     1.0
+    ]
    }
   },
   {
@@ -370,6 +756,29 @@
     "scale": 0.5465000938917843
    },
    "power_gate": false,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3",
+    "theta": [
+     3.0,
+     1.5,
+     -1.0,
+     -0.34419988732985884,
+     0.5465000938917843,
+     1.5,
+     0.6
+    ]
+   },
    "target_gain": 0.003
   },
   {
@@ -388,6 +797,29 @@
     "scale": 0.7048470316951376
    },
    "power_gate": true,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3",
+    "theta": [
+     3.0,
+     1.5,
+     -1.0,
+     -0.15418356196583483,
+     0.7048470316951376,
+     1.5,
+     0.6
+    ]
+   },
    "target_gain": 0.01
   },
   {
@@ -406,6 +838,29 @@
     "scale": 0.9270429721093283
    },
    "power_gate": false,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3",
+    "theta": [
+     3.0,
+     1.5,
+     -1.0,
+     0.11245156653119381,
+     0.9270429721093283,
+     1.5,
+     0.6
+    ]
+   },
    "target_gain": 0.03
   },
   {
@@ -425,6 +880,30 @@
     "tau": 0.5
    },
    "power_gate": false,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3H",
+    "theta": [
+     -1.0,
+     -0.7742095368821033,
+     -0.9565310936760578,
+     1.5,
+     1.5,
+     3.0,
+     -0.5108256237659907,
+     -0.6931471805599453
+    ]
+   },
    "target_gain": 0.003
   },
   {
@@ -444,6 +923,30 @@
     "tau": 0.5
    },
    "power_gate": true,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3H",
+    "theta": [
+     -1.0,
+     -0.4414720368835236,
+     -0.6237935936774782,
+     1.5,
+     1.5,
+     3.0,
+     -0.5108256237659907,
+     -0.6931471805599453
+    ]
+   },
    "target_gain": 0.01
   },
   {
@@ -463,6 +966,30 @@
     "tau": 0.5
    },
    "power_gate": false,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3H",
+    "theta": [
+     -1.0,
+     -0.08916174276738058,
+     -0.2714832995613351,
+     1.5,
+     1.5,
+     3.0,
+     -0.5108256237659907,
+     -0.6931471805599453
+    ]
+   },
    "target_gain": 0.03
   },
   {
@@ -481,6 +1008,30 @@
     "scale": 0.2864695573790989
    },
    "power_gate": false,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3V",
+    "theta": [
+     -1.0,
+     -1.0678014486455556,
+     -1.2501230054395103,
+     1.5,
+     1.5,
+     3.0,
+     -0.5108256237659907,
+     -0.10536051565782628
+    ]
+   },
    "target_gain": 0.003
   },
   {
@@ -499,6 +1050,30 @@
     "scale": 0.6267476817856267
    },
    "power_gate": true,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3V",
+    "theta": [
+     -1.0,
+     -0.2848896839430156,
+     -0.46721124073697023,
+     1.5,
+     1.5,
+     3.0,
+     -0.5108256237659907,
+     -0.10536051565782628
+    ]
+   },
    "target_gain": 0.01
   },
   {
@@ -517,6 +1092,30 @@
     "scale": 1.0425622720828758
    },
    "power_gate": false,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3V",
+    "theta": [
+     -1.0,
+     0.22400296311363524,
+     0.041681406319680675,
+     1.5,
+     1.5,
+     3.0,
+     -0.5108256237659907,
+     -0.10536051565782628
+    ]
+   },
    "target_gain": 0.03
   },
   {
@@ -536,6 +1135,30 @@
     "scale": 0.5573019945603709
    },
    "power_gate": false,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3L",
+    "theta": [
+     -1.0,
+     -0.4023264486483967,
+     -0.5846480054423513,
+     1.5,
+     1.5,
+     3.0,
+     -0.5108256237659907,
+     -2.9444389791664403
+    ]
+   },
    "target_gain": 0.003
   },
   {
@@ -555,6 +1178,30 @@
     "scale": 0.7187787541376713
    },
    "power_gate": true,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3L",
+    "theta": [
+     -1.0,
+     -0.1478801251200711,
+     -0.33020168191402566,
+     1.5,
+     1.5,
+     3.0,
+     -0.5108256237659907,
+     -2.9444389791664403
+    ]
+   },
    "target_gain": 0.01
   },
   {
@@ -574,6 +1221,30 @@
     "scale": 0.9640522639257728
    },
    "power_gate": false,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3L",
+    "theta": [
+     -1.0,
+     0.1457117866433814,
+     -0.03660977015057318,
+     1.5,
+     1.5,
+     3.0,
+     -0.5108256237659907,
+     -2.9444389791664403
+    ]
+   },
    "target_gain": 0.03
   },
   {
@@ -594,6 +1265,40 @@
     "sep": 2.0
    },
    "power_gate": true,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3S",
+    "params": [
+     "mu_low",
+     "d0",
+     "d1",
+     "kA",
+     "kh",
+     "x0",
+     "s",
+     "w"
+    ],
+    "theta": [
+     -1.0,
+     -0.4414720368835236,
+     -0.6237935936774782,
+     1.5,
+     1.5,
+     3.0,
+     -0.5108256237659907,
+     0.0
+    ]
+   },
    "target_gain": 0.01
   },
   {
@@ -614,6 +1319,40 @@
     "sep": 2.0
    },
    "power_gate": true,
+   "resolved": {
+    "base": {
+     "a": 0.15,
+     "b": 0.75,
+     "kappa": 1.5,
+     "mu_low": -1.0,
+     "mu_top": 1.0,
+     "sep1": 1.0,
+     "sigma": 0.6,
+     "sigma_high": 0.9,
+     "x0": 3.0
+    },
+    "member": "M3S",
+    "params": [
+     "mu_low",
+     "d0",
+     "d1",
+     "kA",
+     "kh",
+     "x0",
+     "s",
+     "w"
+    ],
+    "theta": [
+     -1.0,
+     -0.4414720368835236,
+     -0.6237935936774782,
+     1.5,
+     1.5,
+     3.0,
+     -0.5108256237659907,
+     0.6931471805599453
+    ]
+   },
    "target_gain": 0.01
   }
  ]

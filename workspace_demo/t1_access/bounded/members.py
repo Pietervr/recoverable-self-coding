@@ -21,14 +21,26 @@ existing keyed streams), key (models.SIZE_OUTER, fold, (seed, layer)); the exist
 
 Registration happens at import, in memory: models.MEMBERS gains 'M3S' and models.start_from_moments is wrapped so that
 models.starts_from_moments returns the M3S start. models.py on disk is not touched. Idempotent.
+
+Guards (Codex round 4, reserve-section trap): registering M3S does not teach models.components / models.sample /
+simulate.generator_theta / simulate.make_dataset / simulate.expected_gain about it - models.components would fall through
+to its M3L branch (catch occupancy sigmoid(w), unscaled sigma) and simulate a wrong truth silently. Those five entry
+points are wrapped in memory to REFUSE "M3S"; M3S data and its true density go only through the truth adapter in
+bounded.generators (m3s_sample_dataset, m3s_truth_logq).
 """
 from __future__ import annotations
 
 import numpy as np
 
+import hashlib
+
 from . import T1  # noqa: F401  (puts t1_access on sys.path)
 import models as M
+import simulate as S
 import jax.numpy as jnp
+
+with open(__file__, "rb") as _fh:
+    LOADED_SOURCE_DIGEST = hashlib.sha256(_fh.read()).hexdigest()          # bound at this module's own import (B1)
 
 M3S_PARAMS = ("mu_low", "d0", "d1", "kA", "kh", "x0", "s", "w")
 M3S_RE_INDEX = 7
@@ -61,7 +73,34 @@ def _register():
         M.start_from_moments = start_from_moments
 
 
+class M3SRouteError(ValueError):
+    """M3S sent through an audited path that does not implement it."""
+
+
+def _refuse(fn, label, pos=0, key="name"):
+    if getattr(fn, "_bounded_guard", False):
+        return fn
+
+    def guarded(*args, **kw):
+        name = args[pos] if len(args) > pos else kw.get(key)
+        if name == "M3S":
+            raise M3SRouteError(f"{label} does not implement M3S: use bounded.generators' M3S truth adapter")
+        return fn(*args, **kw)
+    guarded._bounded_guard = True
+    guarded._original = fn
+    return guarded
+
+
+def _install_guards():
+    M.components = _refuse(M.components, "models.components")
+    M.sample = _refuse(M.sample, "models.sample")
+    S.generator_theta = _refuse(S.generator_theta, "simulate.generator_theta")
+    S.make_dataset = _refuse(S.make_dataset, "simulate.make_dataset")
+    S.expected_gain = _refuse(S.expected_gain, "simulate.expected_gain")
+
+
 _register()
+_install_guards()
 
 MEMBERS_G = tuple(M.FAMILY_G)                     # M2B M2H M2S M2K
 MEMBERS_X = tuple(M.FAMILY_X) + ("M3S",)          # M3 M3H M3V M3L M3S

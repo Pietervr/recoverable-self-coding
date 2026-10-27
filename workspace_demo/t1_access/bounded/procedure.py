@@ -12,13 +12,15 @@ the members' JOINT concept densities are averaged with equal weights:
 
 and the unbounded mean U = sum_h W_h mean_{c in h} d_c is kept as a descriptive field only. A fit without a finite
 solution, a non-finite held-out score or a non-finite d_c makes the dataset UNAVAILABLE, with its reason; it is never
-dropped and never replaced. A converged-flag failure alone is the existing recovery rule's business (models.fit, S9)
+dropped and never replaced. A fit must also carry a finite training log-likelihood (Codex round 4, N1). A converged-flag
+failure alone is the existing recovery rule's business (models.fit, S9)
 and is recorded per fit, not an unavailability (as in analyze.layer_pipeline).
 
 Pure functions (`bounded_statistic`, `assemble`) carry the arithmetic so that it can be tested without fitting.
 """
 from __future__ import annotations
 
+import hashlib
 import time
 
 import numpy as np
@@ -27,6 +29,9 @@ from scipy.special import logsumexp
 from . import members as MB
 import analyze as A
 import models as M
+
+with open(__file__, "rb") as _fh:
+    LOADED_SOURCE_DIGEST = hashlib.sha256(_fh.read()).hexdigest()          # bound at this module's own import (B1)
 
 CAP = 0.03
 N_OUTER = 3
@@ -104,7 +109,7 @@ def point_pipeline(y, k, concept, family, seed: int, layer: int = LAYER, n_outer
         for j, m in enumerate(order):
             c0, w0 = time.process_time(), time.monotonic()
             fit = fit_member(m, tr, f, int(seed), int(layer), MB.ORDER.index(m) if m in MB.ORDER else j)
-            finite = bool(np.all(np.isfinite(fit.theta)))
+            finite = bool(np.all(np.isfinite(fit.theta))) and bool(np.isfinite(fit.loglik))
             sc = M.concept_scores(m, fit.theta, te) if finite else np.full(test_c.size, np.nan)
             logq[m][test_c] = sc
             rec = dict(fold=f, member=m, converged=bool(fit.converged), n_converged=int(fit.n_converged),
@@ -114,7 +119,8 @@ def point_pipeline(y, k, concept, family, seed: int, layer: int = LAYER, n_outer
                        nfev=int(fit.nfev), nit=int(fit.nit),
                        cpu_seconds=time.process_time() - c0, wall_seconds=time.monotonic() - w0)
             if not finite:
-                reasons.append(f"fold {f} {m}: no finite fit")
+                reasons.append(f"fold {f} {m}: no finite fit" if not np.all(np.isfinite(fit.theta))
+                               else f"fold {f} {m}: non-finite training log-likelihood")
             elif not np.all(np.isfinite(sc)):
                 reasons.append(f"fold {f} {m}: non-finite held-out score")
             fits.append(rec)
