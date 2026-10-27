@@ -6,6 +6,17 @@ recipe) and the interval-diagnosis record `reviews/2026-10-27_interval_diagnosis
 adopts or amends it; until then nothing here is a declaration that licenses spending, and no calibration or
 validation point has been generated. Paths are relative to `workspace_demo/t1_access/`.
 
+Revised 27 October 2026 after the Codex round-4 build review (`reviews/2026-10-27_bounded_build_codex_record.md`,
+RSC dce0576, verdict ADOPTABLE AFTER FIXES): B1 provenance, B2 the campaign boundary, B3 the freeze contract, N1–N6.
+
+**Two separate acts.** *Adopting this protocol* (the procedure, the catalogue's structure, the counts, thresholds,
+stopping rules, reserve and gates below) is the owner's decision and can be taken now. *Sealing the final calibration
+catalogue* is a later act that must wait for the loaded-host benchmark receipt, the certified boundary λ, all fourteen
+certified gain scales and the final role profile; only then can a calibration identity run (`bounded/campaign.py`
+refuses it before). **Every configuration hash in this document — `890f65ccba39` (RSC 049c3258, the smoke rows) and
+its successor `a00013fda711` (this revision) — is DEVELOPMENT-ONLY**; neither is, or can become, the frozen
+qualification identity.
+
 ## 1. The question, and the target that changed
 
 **The scientific question.** At one layer of the coherence readout, does a family of two-state (mixture) predictors
@@ -30,6 +41,10 @@ answers a narrower question that can be calibrated:
   complete-pipeline simulation of a frozen generator catalogue. Fitting variability enters through the distribution of
   `T` across simulated studies; there is no bootstrap inside an observed-data interval.
 
+This qualification targets the distribution of the scalar R1 coherence-readout statistic conditional on a fixed
+CAL-trained decoder, fixed families and the declared concept/packet sampling law. It does not average over decoder
+training or establish end-to-end readout recovery.
+
 A positive result would be *bounded predictive preference relative to a declared graded challenge set at one layer
 and one readout*. It establishes no state ontology, no access, and nothing outside the catalogue (§10).
 
@@ -45,18 +60,40 @@ are unchanged). M3S is registered into `models.MEMBERS` in memory at import of `
 | `bounded/procedure.py` | the S1 point pipeline: layer 41; three concept-disjoint stratified outer folds; no inner selection; every member fitted per outer training set; equal-weight joint-density ensembles; `d_c`, `z_c = clip(d_c, ±0.03)`, `T = Σ_h W_h mean_{c∈h} z_c` with `W_h = 27/64, 22/64, 15/64`; the unbounded mean as a descriptive field; any non-finite fit or score ⇒ UNAVAILABLE |
 | `bounded/calibrate.py` | median brackets, tolerance limits, `A`, `B`, `c_G`, the decision rule and the S3 pass counts, in exact rational binomial arithmetic |
 | `bounded/generators.py`, `bounded/catalogue.json` | the 30-setting catalogue, its datasets and the seed rule |
-| `bounded/run_point.py` | CLI: one (setting, replicate, namespace) → one JSON row with the configuration hash |
+| `bounded/run_point.py` | CLI: one (setting, replicate, namespace) → one durable attempt record and one terminal record (available / unavailable / crashed) with the identity and configuration hash |
+| `bounded/campaign.py` | the qualification boundary: seal gates, reserved attempted sets, row ingestion, calibration freeze with its input-row manifest, attempted-set validation tally with futility stopping |
 | `bounded/test_bounded.py` | the tests (§11) |
 
-**Configuration hash.** `run_point.config_hash()` is SHA-256 (12 hex) over the as-loaded bytes of
-`bounded/{__init__,members,procedure,calibrate,generators,run_point}.py` and `bounded/catalogue.json`, the
-loaded-source digests of `models.py`, `analyze.py`, `simulate.py`, and the start-recipe table. The value for the
-code committed at RSC `049c3258` is **`890f65ccba39`**, recorded in every row and in `bounded/dev/smoke.json`. File
-SHA-256 prefixes at that commit: `__init__.py` 4fd67e03a0e1d0fd, `members.py` 2e7e349cb18fda42, `procedure.py`
-6dc79c92dc6a7e33, `calibrate.py` b7ba547e64e4be07, `generators.py` 4ba1bc5ac9065926, `run_point.py` f5037bbaf3bebb78,
-`catalogue.json` 2ad1ca3252e5f254. Any edit to any of these files changes the hash; rows of two hashes are never pooled.
-Freezing for qualification means re-running this hash on the adopted files (λ and the certified gain scales enter
-`catalogue.json`, so the frozen hash will differ from the development one).
+**Identity and configuration hash (B1).** Every bounded module binds the SHA-256 of its own source at its own import
+(`LOADED_SOURCE_DIGEST`, the `models.py` pattern). The catalogue is read once, as bytes, at import of
+`generators.py`: those same bytes are digested and parsed, and every point of the process is generated from that
+frozen parse; there is no catalogue override in the production API. `run_point.identity()` assembles, at call time,
+the seven bounded module digests, the catalogue digest, `analyze.numerical_snapshot()` (the audited files' loaded
+digests, the **effective** model globals — `TRAP_POINTS` 96, `OUTER_POINTS` 32, the Newton/grid settings, jitter,
+L-BFGS-B options, start counts, the M3V floor — and the runtime: Python, JAX, NumPy, SciPy), the bounded procedure's
+effective constants (cap, folds, layer, strata, members, start recipe, seed rule, namespaces) and the machine/system.
+`config_hash` is the first 12 hex of the SHA-256 of that identity; every row carries both, and the identity in full.
+A disk edit after import changes neither what runs nor what is reported (two scratch-copy regressions in
+`test_bounded.py`); a changed live numerical global changes the hash; a different runtime is a different identity.
+The development identity of this revision is **`a00013fda711`** (`a00013fda711241bc2679600cc7a3200bbe3bd00f3f6c30bf65311331d439ca0`)
+on the M4 Max runtime (Python 3.12.14, JAX 0.11.1, NumPy 2.5.3, SciPy 1.18.1). The 30 smoke rows carry the earlier
+development hash `890f65ccba39` (RSC 049c3258, the import-time file-hash scheme and seed rule v1) and stay
+development evidence under it; rows of two identities are never pooled.
+
+**Freeze checklist — each item bound into the qualification/deployment manifest before the catalogue is sealed; any
+later change is a new qualification identity:**
+
+1. the realised role and concept–family manifest (§3), and the strata weights it implies;
+2. the conditional readout identity: the CAL-trained decoder that produces the scalar R1 statistic (the actual decoder
+   artifact may stay *pending* at this development-plan stage, but must be identified before the confirmatory
+   application);
+3. the packet law: concept × carrier × draw × level nesting, D = 4, six carriers, seven levels;
+4. the full effective numerical settings, including the 96/32 trapezoid points if retained (§11), and the start recipe;
+5. the unavailable rule (§5; non-finite fit, log-likelihood, held-out score or `d_c`; finite non-convergence after the
+   recovery chain stays available);
+6. the pinned numerical runtime and backend (the `numerical_snapshot` runtime, CPU backend, NPROC = 1);
+7. the receipts the gate checks (`campaign.seal_problems`): boundary-λ certificate, fourteen source-matched gain
+   certificates, the design/numerical policy, the benchmark admission receipt — each `{path, sha256}`.
 
 **Prototype continuity.** On the two selected development examples of the method-repair record (seeds 271004 and
 271005) the production pipeline reproduces the prototype fit by fit: bounded contrast −0.01935586 and +0.01807624
@@ -79,7 +116,8 @@ naming acceptance (PREREGISTRATION §15, 13 October 2026):
 This is a prospective allocation, not an accepted bank or role manifest. **If naming acceptance changes the CONF
 counts, the strata weights `W_h` change, the catalogue's design profile changes, and the calibration must be
 regenerated under the realised map** (the code refuses a family profile other than the declared one). The statistic's
-weights are the CONF counts over 64, fixed in advance, never estimated from data.
+weights are the CONF counts over 64, fixed in advance, never estimated from data. The realised role manifest is item 1
+of the freeze checklist (§2); it is bound into the sealed catalogue, not read from this table.
 
 ## 4. The catalogue (`bounded/catalogue.json`)
 
@@ -95,7 +133,7 @@ Design profile for every setting: 64 concepts in three strata 27/22/15, D = 4, s
 | G13 | graded | low-amplitude M2B | μ(0) = −0.1, μ(8) = +0.1 (tenfold smaller range) | new; declared value |
 | G14 | graded | boundary | μ(k) of M2B; log σ(k) = log 0.75 + λ sin²(πk/8) | new; **λ not frozen** (§8); the smoke run used the placeholder 0.5 |
 | G15 | graded | t5 graded | M2H mean, τ = 0.5; t(5) innovations at unit variance × \|aμ + b\| | new |
-| G16 | graded | nonlinear variance | μ(k) of M2B; σ(k) = 0.6 + 0.4 exp(−(k−3)²/2); concept log-scale SD 1; carrier effect SD 0.2 shared across concepts; background effect SD 0.2 per (concept, carrier, draw), shared across that draw's nested levels and weighted (8 − k)/8 | new; the 0.2 SDs are declared development stress values |
+| G16 | graded | nonlinear variance | μ(k) of M2B; σ(k) = 0.6 + 0.4 exp(−(k−3)²/2); concept log-scale SD 1; carrier effect SD 0.2 shared across concepts; background effect SD 0.2 per (concept, carrier, draw), shared across that draw's nested levels and weighted (8 − k)/8 | new; an **aggregate stress covariance law** (one draw effect, not eight clause effects) with declared development SDs; not a validation of every actual clause-reuse dependence |
 | A01–A03 | alternative | M3 | gains 0.003 / 0.01 / 0.03 | scale = starting value |
 | A04–A06 | alternative | M3H, τ = 0.5 | gains 0.003 / 0.01 / 0.03 | scale = starting value |
 | A07–A09 | alternative | M3V | gains 0.003 / 0.01 / 0.03 | scale = starting value |
@@ -106,12 +144,19 @@ Design profile for every setting: 64 concepts in three strata 27/22/15, D = 4, s
 The six **power gates** are A02, A05, A08, A11, A13, A14. The scale constants of A01–A12 come from
 `sim_results/gain_sens600/gain_calibration_D4.json` (hash recorded in the catalogue) and are **starting values only**:
 S3 requires all fourteen generating-density gains to be re-certified against the graded reference under the frozen
-implementation before qualification; a failed certification stops that setting's power qualification.
+implementation before qualification; a failed certification stops that setting's power qualification. Every
+setting's resolved generating vector and the base it inherits from `simulate.BASE` are materialised in the catalogue
+(`resolved`) and copied into every row.
 
-**Seeds.** Namespaces development 271100, calibration 271200, validation 271300. Dataset seed =
-`default_rng([namespace, H("setting:<id>"), H("replicate:<r>")]).integers(2³¹)` with H the first 32 bits of SHA-256 —
-the setting and replicate tags hashed separately. The fold and fit streams are keyed by the dataset seed. Existing
-development rows and the local seeds 271001–271005 and 271010–271312 are excluded from qualification.
+**Seeds (rule v2).** Dataset seed = the 128-bit integer from the first 32 hex of
+SHA-256(`bounded-seed-v2|<namespace>|SHA-256("setting:<id>")|SHA-256("replicate:<r>")`) — the setting and replicate
+tags hashed separately, nothing reduced to 31 bits (rule v1's 31-bit reduction made validation A04 r906 and A11 r373
+share a seed; the whole plan was re-enumerated under v2, not the two seeds patched). Namespaces: calibration 271200,
+validation 271300, and separate development blocks — smoke 271100, benchmark 271110, adaptive boundary search 271120,
+untouched boundary certification 271130, gain reference/check work 271140. The test enumerates the 35,400 qualification
+identities plus the declared development blocks: all seeds distinct. The fold and fit streams are keyed by the
+dataset seed. Existing development rows and the local seeds 271001–271005 and 271010–271312 are excluded from
+qualification.
 
 ## 5. Calibration
 
@@ -124,9 +169,21 @@ per tail (error 0.005/60 per tail per setting — at n = 500 these are the **sam
 On the calibration event (probability ≥ 0.99) every setting has inclusion ≥ 0.96, so unconditional inclusion ≥ 0.9504;
 every graded setting has a mixture-preference probability ≤ 0.02 on the event and ≤ 0.0298 unconditionally. These are
 order-statistic and union-bound results for independent, finite complete-pipeline statistics under an unchanged
-catalogue and algorithm (`bounded/calibrate.py` docstring). **An unavailable calibration attempt holds artifact
-construction**: it is logged, never filtered or replaced until 500 successes remain; a numerical repair is a new frozen
-algorithm with a new calibration.
+catalogue and algorithm (`bounded/calibrate.py` docstring). Calibration uses the fixed 500 attempted identities per setting. Any unavailable or missing attempt holds artifact construction. Attempts are never filtered, replaced, or extended to obtain 500 successes. A numerical repair requires a new frozen algorithm and new calibration.
+
+**The campaign boundary (B2, `bounded/campaign.py`).** (1) The attempted sets are reserved in advance
+(`campaign.reserved`): calibration r = 0…499 for all 30 settings, validation r = 0…399 / 0…999. `campaign.ingest`
+requires exactly one terminal record per reserved identity with the correct namespace and seed, the full member and
+design profile, a verifying deterministic digest, one identity (hash and identity digest) and the admitted runtime,
+and rejects missing, duplicate, substituted, extra or mixed-identity records; equal values are ties, duplicate
+identities are not. (2) `campaign.admit` refuses every calibration and validation point until the catalogue is sealed
+(§2 item 7) and refuses validation until the calibration artifact is frozen with its input-row manifest
+(`freeze_calibration`); every validation row carries that artifact's digest and ingestion checks the link. (3)
+`run_point.attempt` writes the attempt record durably before the point starts. A known numerical exception
+(FloatingPointError, LinAlgError) or non-finite result is an UNAVAILABLE terminal row; any other exception is a
+CRASHED record, and a crashed record or an attempt without a terminal record is a campaign HOLD (`CampaignHold`), with
+every record kept; an identity is never re-run or replaced. (4) Validation is tallied over the attempted set
+(`validation_tally`, below).
 
 **Decision rule.** Mixture preference iff the lower endpoint is > 0 **and** `T > c_G`. Negative bounded contrast iff the
 upper endpoint is < 0 (not proof that the generator is graded). Otherwise inconclusive. A failed fit or unavailable score
@@ -152,11 +209,18 @@ Inclusion counts only intervals that contain the **entire** calibration median b
 (`calibrate.includes_bracket`). Unavailability is an inclusion and power failure and counts against graded safety. The
 calibration and validation confidence events are reported separately even when their joint bound is quoted.
 
+**Attempted-set tally (`campaign.validation_tally`).** Counts run over the reserved attempted set, never over the
+available rows: an unavailable attempt is an inclusion failure, a graded positive-or-unavailable outcome and a power
+failure. A requirement becomes **unattainable** as soon as its failures exceed the limit — inclusion failures > 21/400
+(graded) or > 70/1,000 (alternative), graded positive-or-unavailable > 11/400, power failures > 160/1,000 — and
+**passes** only when every reserved attempt of its setting has a terminal record within the limit.
+
 ## 7. Stopping rules
 
 * **No early success.** Every setting runs to its declared count before it can pass.
 * **Stop when unattainable.** A setting (and the campaign, if it is a required setting) stops when its threshold can no
-  longer be met even if every remaining attempt succeeds.
+  longer be met even if every remaining attempt succeeds: > 21/400 or > 70/1,000 inclusion failures, > 11/400 graded
+  positive-or-unavailable, > 160/1,000 power failures (§6, implemented in `campaign.validation_tally`).
 * **Stop on a defect.** A code or identity defect stops everything immediately.
 * **Order.** The hardest graded settings (M2S ω = 2 and ω = 1, the boundary, M2H τ = 0.5 and τ = 2) and both M3S
   alternatives run first, so that an unattainable result is found before the easy settings are bought.
@@ -176,11 +240,24 @@ calibration and validation confidence events are reported separately even when t
 only if necessary), eight datasets per search point. After bracketing a sign change of the median contrast, at most
 eight bisection steps with twenty datasets each. Then a separate 1,000-dataset development reference slice at the
 candidate λ: the exact median bracket (error 0.01) must contain zero and lie inside [−0.001, +0.001], and the
-bounded-mean bracket (the empirical-Bernstein reference of `scratch:repair_procedure.py`, error 0.01) must lie inside
-[−0.003, +0.003]. λ is frozen only after this certification; calibration and validation use new seeds and cannot
+bounded-mean bracket (the empirical-Bernstein reference `bounded/calibrate.py:eb_mean`, ported from
+`sim_results/interval_diag_2026-10-27/codex/repair_procedure.py:eb_mean` and tested, error 0.01) must lie inside
+[−0.003, +0.003]. The search draws from the `dev_boundary_search` block (271120) and the certification from the
+untouched `dev_boundary_certification` block (271130); λ is frozen before any certification outcome is read. λ is frozen only after this certification; calibration and validation use new seeds and cannot
 retune it. A failed bracket search is not a tested boundary, and **no qualification starts without the boundary
 setting**. Maximum 1,216 datasets ≈ 2,675 core-hours at the admission ceiling. If a reserve slice cannot finish its
 prerequisite, stop before qualification and redesign within a newly priced plan.
+
+**Still to build before the reserve is spent (next stage, not in this revision):** the benchmark driver (declared
+concurrency, ordinary/scale/boundary cases, charged CPU including crashed and idle allocation, weighted by the
+campaign's actual counts — the smoke driver's launch estimate is not a charged-compute accounting system), the adaptive
+boundary driver, and the gain-certification adapter. **M3S trap:** registering M3S in `models.MEMBERS` does not teach
+`models.components`, `models.sample`, `simulate.generator_theta`, `simulate.make_dataset` or `simulate.expected_gain`
+about it (`models.components` would fall through to its M3L branch). Those five are now wrapped in memory to refuse
+"M3S"; M3S data and its true **joint marginal** concept density go only through the bounded truth adapter
+(`generators.m3s_sample_dataset`, `m3s_truth_logq`, never conditioned on the realised `v_c`), which also builds the larger
+reference banks (`size` > 1). Gain work draws from the `dev_gain` block (271140); a gain certificate's identity is
+distinct from the final catalogue's, which records the certificate's path and hash.
 
 ## 9. Admission and cost gate
 
@@ -215,19 +292,36 @@ their own declared qualification.
 message of the code commit and in §12; the material numbers:
 
 * M3S joint likelihood against an independent dense numpy integration (16,385 points over ±8ω, converged to 1e-13 at
-  65,537): max error 6.6e-7 nat per concept at ω = 1 generating parameters and ≤ 7.7e-7 at fitted parameters (M3S
-  fitted to M3S and to graded M2S data, held-out and training concepts). **At ω = 2 generating parameters the
-  error is 1.5e-6 nat per concept, above the 1e-6 target** (9e-9 per trial; it halves with each doubling of the
-  trapezoid points — 7.0e-7 at 192, 2.9e-7 at 384 — so it is the resolution of the frozen `models.TRAP_POINTS = 96`
-  rule, which this package does not change). The §7.4 audit's pass rule is 1e-3 nat per concept.
+  65,537): max error 6.6e-7 nat per concept at ω = 1 generating parameters, and ≤ 7.7e-7 in the fitted cases the quick
+  tests check (M3S fitted to ω = 1 M3S data and to ω = 1 graded M2S data, held-out and training concepts). **Recorded
+  deviation from the 1e-6 development target:** at ω = 2 generating parameters the error is 1.545e-6 nat per concept, and
+  Codex's check of all 64 held-out concepts at the saved cross-fitted M3S parameters of six smoke datasets found up to
+  1.933e-6 (G09) and 1.151e-6 (A14) — so high-ω cross-fits exceed 1e-6 too. That is 9e-9 to 1.2e-8 per trial; replacing
+  the M3S scores by their dense values moved T by at most 1.6e-9. The error halves with each doubling of the trapezoid
+  points (7.0e-7 at 192, 2.9e-7 at 384): it is the resolution of the frozen rule. **`TRAP_POINTS` = 96 / `OUTER_POINTS` =
+  32 are retained** with the §7.4 audit tolerances (1e-3 nat per concept); raising them would be a new identity with a
+  regenerated calibration, never a change under the old hash. The reserve's numerical checks must still cover
+  representative fits and extreme concepts; these checks establish no universal integration or optimiser bound.
 * Calibrate: known ranks (n = 10 → x₍₂₎, x₍₉₎; n = 59, p = 0.95 → the maximum; the design's 208/293 and 500), the
   artifact on constructed banks, every decision branch, unavailable banks held, and the S3 counts 379 / 930 / 840 / 11.
-* Unavailable handling at assembly, pipeline (an injected non-finite fit) and decision level.
+* Unavailable handling at assembly, pipeline (an injected non-finite fit, and an injected −∞ training log-likelihood,
+  N1) and decision level; a finite non-converged fit stays available.
+* Round-4 regressions: a member-source edit and a catalogue edit after import (scratch copies, subprocess) change
+  neither what runs nor what is reported; a live numerical-global change changes the hash; no catalogue override;
+  `calibrate` has no cap argument; 128-bit seeds unique over the 35,400 identities plus the development blocks;
+  `eb_mean` (known value, coverage sanity); the M3S guards and truth adapter; the campaign boundary — unsealed and
+  premature-validation refusals, tampered artifact, an omitted unavailable attempt, repeated / extra / substituted /
+  wrong-namespace / wrong-hash / wrong-runtime / reduced-member / tampered rows, ties accepted, an unavailable attempt
+  holding calibration, a crashing worker recorded and holding (and a killed one), a numerical exception as
+  unavailable, futility at 12/400 and 161/1,000 and no early success.
 * Determinism: the same (setting, replicate, namespace) gives byte-identical rows outside the timing fields
   (`timing`, per-fit `cpu_seconds` / `wall_seconds`). G03 replicate 0 gave the deterministic digest
-  `c19050d100f51712` twice inside the test and a third time in the smoke run's separate, concurrently loaded process.
-* Prototype continuity (slow tier): seeds 271004 and 271005 give T = −0.0193558609 and +0.0180762365, equal to the
-  prototype record with zero difference in every fit's log-likelihood, parameters and held-out scores.
+  `c19050d100f51712` twice inside the test and a third time in the smoke run's separate, concurrently loaded process
+  (identity `890f65ccba39`, seed rule v1); under `a00013fda711` (seed rule v2, new dataset) G03 r0 gives
+  T = −0.0213573912 with digest `2384f8fdd1b95c94` on both runs.
+* Prototype continuity (slow tier, rerun after round 4 under `a00013fda711`): seeds 271004 and 271005 give
+  T = −0.0193558609 and +0.0180762365, equal to the prototype record with zero difference in every fit's
+  log-likelihood, parameters and held-out scores.
 * Existing checks: `verify.py` ALL OK and the existing suites (`test_start_policy`, `test_interval_path`,
   `test_loaded_provenance`, `test_gain_gate`, `test_gain_gate_integration`, `test_gain_artefact`,
   `test_calibrate_gain`, `test_points_filter`, `test_refit_bootstrap`, `test_h3`, `test_pipeline_synthetic`) pass
@@ -237,7 +331,8 @@ message of the code commit and in §12; the material numbers:
 
 One replicate (r = 0) of every setting in the development namespace, one `python -m bounded.run_point` process per
 point (CPU includes import and JIT compilation), NPROC = 1, three concurrent single-thread workers on the Apple M4 Max,
-27 October 2026 09:27–10:50 PDT, configuration hash `890f65ccba39`. Budget 6 h; used **4.21 h** (15,151 s). All 30
+27 October 2026 09:27–10:50 PDT, configuration hash `890f65ccba39` (development-only; seed rule v1 and the superseded
+import-time file-hash identity — these rows are cost and mechanics evidence and are not re-run under `a00013fda711`). Budget 6 h; used **4.21 h** (15,151 s). All 30
 points available; 810 of 810 retained fits converged; no recovery chain was needed. G14 ran at the **placeholder**
 λ = 0.5. Single development points: a cost basis and a mechanics check, not calibration, error rates or power.
 
@@ -286,35 +381,35 @@ challenge exists to supply and why `c_G` is needed; the weakest M3V alternative 
 
 ## 13. Deviations from the method-repair record and open choices
 
-Deviations from, and interpretations of, S1/S3 made in this implementation — each for the owner to accept or change:
+Deviations from, and interpretations of, S1/S3 made in this implementation, with Codex's round-4 disposition:
 
-1. **Quadrature target at ω = 2.** The M3S integral misses the brief's 1e-6 nat-per-concept target at ω = 2 generating
-   parameters (1.5e-6). Meeting it needs a larger `models.TRAP_POINTS`, i.e. an edit to the audited numerical setting,
-   which is out of scope; the §7.4 audit rule (1e-3) is met by three orders of magnitude.
-2. **"Failed fit" = no finite solution.** UNAVAILABLE is triggered by a non-finite fit, held-out score or `d_c`. A
-   retained fit whose kept solution is flagged non-converged after the recovery chain is recorded, not made
-   unavailable — the existing §9 rule (`analyze.layer_pipeline`). S1 says "a failed fit … is unavailable" without
-   defining failure; if the owner wants non-convergence to count, it is a one-line change before freezing.
-3. **Determinism** is byte identity of the row outside the timing fields (CPU and wall clock cannot repeat);
-   `deterministic_sha256` carries it.
-4. **"Made exact"** is read as exact rational arithmetic for every binomial comparison (median ranks, tolerance ranks,
-   S3 pass counts); the order statistics are the floating-point statistics themselves. The prototype's docstring line
-   about critical values "at .95" was stale and is not carried (S1's 0.98 limit is reused, no extra budget).
-5. **M3S generator stream.** The prototype built its M3S dataset by overwriting an M3H draw with a second stream on the
-   same seed; the catalogue's M3S generator draws the concept scales, occupancy and noise from one stream. Same
-   distribution, different numbers; the prototype construction is kept in the tests for the continuity check.
-6. **M3S alternative scale.** S3 asks for M3S at "the middle gain"; no certified M3S scale exists, so the starting
-   value is M3H's 0.01-nat constant (0.5359). The prototype's development example used scale 1.
-7. **Declared values S3 leaves open:** low-amplitude M2B at a tenfold smaller range; the nonlinear-variance shape
-   σ(k) = 0.6 + 0.4 exp(−(k−3)²/2); carrier and background SDs 0.2, the background effect weighted by the share of
-   background slots (8 − k)/8. None comes from CAL; all are development stress values.
-8. **Boundary λ** is held as `null` in the catalogue; `run_point` refuses G14 without a development `--lam` and refuses
-   `--lam` outside the development namespace.
-9. **Configuration hash scope** excludes `test_bounded.py` and `dev/` (they never run inside a point); it includes the
-   start-recipe table.
-10. **Smoke concurrency.** Three single-thread workers ran at once; the method-repair benchmark used one. Per-point
-    CPU under that light load is the basis reported; it is not a Lengau rate.
+1. **Quadrature at ω = 2 — recorded deviation, accepted (N5).** The M3S integral misses the 1e-6 nat-per-concept
+   development target at ω = 2 generating parameters (1.545e-6) and at high-ω cross-fits (up to 1.933e-6 in Codex's
+   saved-fit check); effect on T ≤ 1.6e-9. `TRAP_POINTS` 96 / `OUTER_POINTS` 32 are retained under the §7.4 audit
+   tolerances (§11). A materially larger error would reopen the setting.
+2. **"Failed fit" — accepted (N1).** UNAVAILABLE is triggered by a non-finite fit, training log-likelihood (added in
+   round 4), held-out score or `d_c`. A finite, scorable solution flagged non-converged after the recovery chain stays
+   available, the existing §9 rule (`analyze.layer_pipeline`), and enters calibration and validation under exactly the
+   same rule. It is not evidence of a global optimum.
+3. **Determinism — accepted (N6).** Equality of the canonical row outside the timing fields, on the same frozen runtime;
+   not byte equality of clock fields and not a promise across Mac/Linux numerical environments.
+4. **"Made exact" — accepted (N2, N6).** Exact rational arithmetic for every binomial comparison; floating-point fitting
+   is not exact. `calibrate.calibrate` no longer takes a cap argument (the module's 0.03 only).
+5. **M3S generator stream — accepted (N6).** One stream: concept scales, then occupancy, then trial noise, through the
+   bounded truth adapter (§8). Same law as the prototype's construction, which the continuity test keeps.
+6. **M3S alternative scale — accepted only as a starting scale (N3).** M3H's 0.01-nat constant (0.5359) certifies no
+   gain for M3S at either ω; the "middle gain" labels and the six power gates need the new certificates.
+7. **Declared values S3 leaves open — accepted as prospective declarations (N3):** low-amplitude M2B at a tenfold
+   smaller range; σ(k) = 0.6 + 0.4 exp(−(k−3)²/2); carrier and background SDs 0.2 in an aggregate stress covariance law
+   (one draw effect weighted (8 − k)/8, not eight clause effects). None comes from CAL.
+8. **Boundary λ — accepted for a draft (N3).** `null` in the catalogue; `run_point` refuses G14 without a development
+   `--lam` and refuses `--lam` outside the development blocks; a number alone cannot unlock qualification — the sealed
+   receipts of §2 item 7 are required (`campaign.admit`).
+9. **Identity scope — accepted subject to B1 (N6).** Tests and `dev/` drivers are outside the point identity; the
+   development and certification drivers of the next stage carry their own source identities in their receipts.
+10. **Smoke concurrency — accepted as a CPU-cost observation (N6).** Three single-thread workers; not a Lengau rate.
+11. **Seed rule v2 (N4).** 128-bit dataset seeds and separate development blocks replace rule v1 (§4); the smoke rows
+    keep rule v1 under their own development hash.
 
-Open choices for the owner: adopt or amend items 2, 6 and 7; whether the ω = 2 quadrature level is acceptable or
-`TRAP_POINTS` should rise in a new snapshot (a new identity for everything); the role map once naming acceptance
-lands; the boundary search's launch under the development reserve.
+Open choices for the owner: adopt the protocol (§1, "two separate acts"); the role map once naming acceptance lands;
+launching the next-stage drivers (benchmark first, then boundary, then gain certification) under the reserve.
