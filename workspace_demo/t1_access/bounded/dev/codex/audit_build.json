@@ -1,0 +1,604 @@
+{
+  "config_hash": "890f65ccba39",
+  "excluded_seed_hits": {},
+  "generic_M3S_components_probe": {
+    "catch_occupancy": 0.6666666666666666,
+    "scale_at_u0": 0.6,
+    "scale_at_u1": 0.6
+  },
+  "incomplete_calibration_accepted": {
+    "guarantees": {
+      "calibration_event_probability": ">= 0.99",
+      "graded_positive_call_on_event": "<= 0.02",
+      "graded_positive_call_unconditional": "<= 0.0298",
+      "inclusion_on_event": ">= 0.96",
+      "inclusion_unconditional": ">= 0.9504"
+    },
+    "n_settings": 1,
+    "source_keys": [
+      "A",
+      "B",
+      "allocation",
+      "artifact_sha256",
+      "cap",
+      "cells",
+      "graded",
+      "graded_critical",
+      "guarantees",
+      "n_settings"
+    ]
+  },
+  "input_sha256": {
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/bounded/DESIGN_bounded_v1.md": "39651a6b48ea29eee40fc703ef4e7e920b45db15acf0e23601143e63e752eab3",
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/bounded/dev/smoke.json": "ebe8d6d66cea18bf863632c90a0854cc4bf8bbd9bf94814e9137e2d919c05190",
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/reviews/2026-10-27_interval_diagnosis_codex_record.md": "daa01209bb6fa830edc406f856d144c03faa77ccade32d81cba7cebe079eb524",
+    "/Users/pietervanrooyen/Recoverable-Self-Coding/workspace_demo/t1_access/reviews/2026-10-27_method_repair_codex_record.md": "a175c49403cf54fdf8b38dc0bf99b23e505da0f4d3a709cb090c134324beb883",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/methods.tex": "7f73b6eee815cebc62d086328c327bb6b6ea486e029263fb286fd027907d2b57",
+    "/Users/pietervanrooyen/Unimog-Projects/papers/adaptive_agency_special_issue/sections/results.tex": "79d07e27db11a11c0476c9095803baedfa7cac8d348f1212ead623f3364419e5"
+  },
+  "nonfinite_loglik_probe": {
+    "first_fit": {
+      "converged": false,
+      "cpu_seconds": 6.999999999979245e-06,
+      "fold": 0,
+      "loglik": null,
+      "member": "M2B",
+      "n_added": 0,
+      "n_converged": 0,
+      "n_starts": 8,
+      "nfev": 0,
+      "nit": 0,
+      "recovery": 2,
+      "theta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "wall_seconds": 7.875030860304832e-06
+    },
+    "unavailable": false
+  },
+  "numerical_exception_probe": {
+    "exception": "FloatingPointError",
+    "message": "injected numerical failure",
+    "unavailable_record": false
+  },
+  "qualification_gate_probe": {
+    "alternative_gain_certified": false,
+    "calibration_returned": true,
+    "catalogue_boundary_lambda": null,
+    "frozen_interval_artifact_required": false,
+    "validation_returned": true
+  },
+  "runtime": {
+    "jax": "0.11.1",
+    "machine": "arm64",
+    "numpy": "2.5.3",
+    "python": "3.12.14",
+    "scipy": "1.18.1",
+    "system": "Darwin"
+  },
+  "runtime_catalogue_hash_probe": {
+    "hash_after": "890f65ccba39",
+    "hash_before": "890f65ccba39",
+    "params_after": {
+      "mu_low": -0.2,
+      "mu_top": 0.1
+    },
+    "params_before": {
+      "mu_low": -0.1,
+      "mu_top": 0.1
+    }
+  },
+  "seed_collisions": {
+    "1815384217": [
+      [
+        "validation",
+        "A04",
+        906
+      ],
+      [
+        "validation",
+        "A11",
+        373
+      ]
+    ]
+  },
+  "seed_counts": {
+    "identities": 35430,
+    "unique": 35429
+  },
+  "smoke_checks": [
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A01",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A02",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A03",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A04",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A05",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A06",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A07",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A08",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A09",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A10",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A11",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A12",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A13",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "A14",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G01",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G02",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G03",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G04",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G05",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G06",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G07",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G08",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G09",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G10",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G11",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G12",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G13",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G14",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G15",
+      "sources_ok": true,
+      "starts_ok": true
+    },
+    {
+      "T_difference": 0.0,
+      "config_ok": true,
+      "digest_ok": true,
+      "file_hash_ok": true,
+      "fit_count": 27,
+      "fold_sizes": [
+        21,
+        22,
+        21
+      ],
+      "seed_ok": true,
+      "setting": "G16",
+      "sources_ok": true,
+      "starts_ok": true
+    }
+  ],
+  "smoke_cpu": {
+    "max": 809.409312,
+    "mean": 505.0286505666666,
+    "median": 479.456224,
+    "min": 417.494068,
+    "total": 15150.859517
+  },
+  "wrong_cap_accepted_by_constructor": 0.01
+}

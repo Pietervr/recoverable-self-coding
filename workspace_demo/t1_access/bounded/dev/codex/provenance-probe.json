@@ -1,0 +1,20 @@
+{
+  "actual_loaded_member_sha": "2e7e349cb18fda42745cb6e21c29d21f76470429f6b84085e9e57cf458f57f59",
+  "catalogue_disk_edit": {
+    "after": {
+      "mu_low": -0.2,
+      "mu_top": 0.1
+    },
+    "before": {
+      "mu_low": -0.1,
+      "mu_top": 0.1
+    },
+    "claimed_sha": "2ad1ca3252e5f2549235d34ff7d30c48af3ce74710f8522c6565d74b0769ea11",
+    "hash_after": "c7f3d36fe243",
+    "hash_before": "c7f3d36fe243",
+    "used_sha": "5a3413e2410e5da3c204cca74aaafc46cdbd777e1988a9d4d31d7456c94f8bde"
+  },
+  "claimed_member_sha": "b50aea534b2ce25360244d6313b5659310bd3b6c7e0371cd1d95da3b0598731c",
+  "loaded_start_w": -1.2039728043259361,
+  "member_file_sha": "b50aea534b2ce25360244d6313b5659310bd3b6c7e0371cd1d95da3b0598731c"
+}
