@@ -185,6 +185,20 @@ three-model comparison — the null model, which every subject rejects by ≈ 15
 three-way protected probabilities. This is reported as a sensitivity, not as a replacement of the
 three-model reproduction, which is the published design.
 
+**Score-scale sensitivity (28 Oct 2026, `results/draft3_2026-10-28/d12_fold_sum_bms.py`, Codex check in
+`codex_review/RECORD.md`).** The random-effects posterior depends on the absolute scale of the scores, and the
+authors' convention divides the total held-out log score by five. Rerun on the fold-SUMMED score (each scored trial
+counted once), the port's three-model pxp(bifurcation) is 0.900 / 0.946 / 0.991 / 0.643 at 315 / 345 / 375 / 405 ms
+(fold mean 0.963 / 0.995 / 0.996 / 0.984) and 0.998 / 0.990 / 0.995 at 435 / 465 / 495 ms. The first window above 0.95
+therefore moves from 315 to **375 ms**, and the first run of three windows above 0.95 from 315 to 435 ms; the run of
+three windows with bifurcation highest at any value still starts at 315 ms, and the return to unimodal is still 675 ms.
+The Simes set is **empty** on the summed scale (smallest 1 − pxp 0.0018 > 0.05/53). The shifts are far outside
+Monte-Carlo error (deterministic quadrature and ten seeds; MCSE ≤ 0.0003). The published curve is untouched: its
+likelihoods are not available to rescale, so "both first exceed 0.95 at 315 ms" holds under the fold-mean convention
+the two curves share. Three-model BOR at 315 and 435–495 ms is 0.0007–0.0103 on both scales (omnibus, driven by the
+null model's inferiority, so the three-model pxp is close to the unprotected xp); two-model BOR 0.18–0.75, and the
+two-model pxp never exceeds 0.95 on either scale.
+
 **Verdict: reproduced under the > 0.95 criterion at the same window (315 ms); the edges of the
 interval and the late-interval values differ.** The paper's "after 250 ms" is prose, not a
 threshold-crossing estimate; measured against the published curve, both first exceed 0.95 at 315 ms,
@@ -250,11 +264,15 @@ subjects only):
 for the mixture model — the specified unimodal comparator ranks highest at 225–645 ms without any
 window passing the across-window rule.** This is a statement about a winner among the two fitted
 families under this port's readout; it does not establish the physiological absence of state
-switching in passive listening. Before any mechanistic reading, two analyses are needed and were
-not done here: (i) model-recovery simulations — whether overlapping components, or a rarely occupied
-high state, produce the same ranking under this likelihood family — and (ii) a paired active–passive
-comparison of the mixture model's predictive advantage per subject. The passive session stays visible
-as a challenge condition for the Entropy study.
+switching in passive listening. Before any mechanistic reading, model-recovery simulations are needed and
+were not done here: whether overlapping components, or a rarely occupied high state, produce the same ranking
+under this likelihood family. A paired active–passive comparison of the mixture model's advantage per subject
+exists only as a post hoc description (28 Oct 2026, `results/draft3_2026-10-28/d1_paired_active_passive.py`):
+averaged over 435–495 ms, the advantage per scored trial was larger in the active session for 18 of 20 subjects
+(mean difference 0.00375 nat, descriptive paired t(19) = 4.21; max6 variant 0.00370, 3.96, 18 of 20). The windows
+were chosen from the active result, which favours a positive difference, and the sessions use separately trained
+decoders, so it is not a confirmatory session contrast. The passive session stays visible as a challenge
+condition for the Entropy study.
 
 ### C8. Optimiser sensitivity (README D2, D5) — a diagnostic, not a bound
 
@@ -299,10 +317,10 @@ directions. The passive ranking at 465–495 ms is likewise stable, the 435 ms w
 | C3 variance burst at threshold (−7/−9 dB) from ≈ 200 ms, gone by ≈ 750 ms, active | reproduced (onset one window earlier) |
 | C4 neural–behavioural variability correlation from 200–250 ms, d > 0.9 beyond 250 ms | partly; the 200–250 ms gap is on the neural-readout side (D9/decoder), not behavioural retention |
 | C5 bimodal single-trial distributions at threshold (example subject) | qualitatively consistent |
-| C6 group BMS, active, against the published Fig. 3E curve | reproduced under the > 0.95 criterion at the same window (315 ms); sustained-highest onset 285 (published) vs 315 (port); late-interval values differ (555: 0.85 vs 0.99; 615: 0.57 vs 0.99); both return to unimodal at 675 |
+| C6 group BMS, active, against the published Fig. 3E curve | reproduced under the > 0.95 criterion at the same window (315 ms), under the authors' fold-mean score convention; on the fold-summed score the port's first crossing is 375 ms and its Simes set empty (28 Oct); sustained-highest onset 285 (published) vs 315 (port); late-interval values differ (555: 0.85 vs 0.99; 615: 0.57 vs 0.99); both return to unimodal at 675 |
 | C7 passive: mean profiles non-linear | reproduced |
 | C7 passive: variance burst shifted to −7/−5 dB | a modest, readout- and correction-sensitive effect: n.s. with the port's diagonal readout; on the published profiles BH p = 0.030 (300–400 ms) but GG+BH p = 0.061 |
-| C7 passive: three-model comparison (not reported by the paper; additional analysis) | unimodal comparator ranks highest at 225–645 ms, no window passes the across-window rule; boundary-sensitive at 435 ms; no mechanistic reading without model-recovery simulations and a paired active–passive test |
+| C7 passive: three-model comparison (not reported by the paper; additional analysis) | unimodal comparator ranks highest at 225–645 ms, no window passes the across-window rule; boundary-sensitive at 435 ms; no mechanistic reading without model-recovery simulations; the paired active–passive comparison exists only as a post hoc description (18 of 20, 0.00375 nat per trial, windows chosen from the active result) |
 | C8 sensitivity of C6 to the solver and the evaluation cap | diagnostic: 315 ms onset and 435–495 ms plateau stable; the 255–285 and 555–645 ms edges are not |
 
 For the Entropy study this ordering is the reason the **active session is prioritised** as the human
@@ -317,8 +335,8 @@ passive session kept visible as a challenge condition.
 * **Model-recovery simulations** for the passive ranking: generate data from (a) two overlapping
   unimodal components and (b) a mixture with a rarely occupied high state, under the port's readout
   and sample sizes, and ask which family the pipeline selects.
-* **Paired active–passive comparison** of the mixture model's predictive advantage per subject
-  (the same 20 subjects took both sessions).
+* **Paired active–passive comparison** at windows declared before looking (the 28 Oct description used the
+  active-selected 435–495 ms plateau, which favours a positive difference) and with a readout common to both sessions.
 * **Confirmatory T1 design fixes** (README, inherited limitations): training-only initialisation,
   nested block-disjoint cross-validation for decoder and likelihood folds, and a converged optimiser
   (or multi-start) — deliberate departures from the specification, not made in this reproduction.
