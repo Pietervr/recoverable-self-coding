@@ -1,0 +1,620 @@
+{
+ "about": "R052 bounded-comparison qualification catalogue - DRAFT, not adopted (bounded/DESIGN_bounded_v1.md)",
+ "counts": {
+  "calibration": 500,
+  "development_smoke": 1,
+  "validation_alternative": 1000,
+  "validation_graded": 400
+ },
+ "design": {
+  "D": 4,
+  "cap": 0.03,
+  "carriers": 6,
+  "concepts": 64,
+  "family_counts": [
+   27,
+   22,
+   15
+  ],
+  "family_weights": [
+   "27/64",
+   "22/64",
+   "15/64"
+  ],
+  "layer": 41,
+  "levels": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   6,
+   8
+  ],
+  "n_outer": 3,
+  "trials_per_concept": 168
+ },
+ "gain_source": {
+  "code_hash": "625798e9e7f4",
+  "path": "sim_results/gain_sens600/gain_calibration_D4.json",
+  "role": "starting values only; every gain is re-certified under the frozen implementation (S3)",
+  "sha256": "c3e1aa48aa027b2e0807fd8c167611f3c1b82d342df40164b175cfe9922e733c"
+ },
+ "members": {
+  "G": [
+   "M2B",
+   "M2H",
+   "M2S",
+   "M2K"
+  ],
+  "X": [
+   "M3",
+   "M3H",
+   "M3V",
+   "M3L",
+   "M3S"
+  ],
+  "recipe": {
+   "M2B": {
+    "added": [],
+    "n_cold": 8
+   },
+   "M2H": {
+    "added": [],
+    "n_cold": 8
+   },
+   "M2K": {
+    "added": [],
+    "n_cold": 8
+   },
+   "M2S": {
+    "added": [
+     [
+      64,
+      0.25
+     ]
+    ],
+    "n_cold": 8
+   },
+   "M3": {
+    "added": [],
+    "n_cold": 8
+   },
+   "M3H": {
+    "added": [],
+    "n_cold": 8
+   },
+   "M3L": {
+    "added": [],
+    "n_cold": 8
+   },
+   "M3S": {
+    "added": [],
+    "n_cold": 8
+   },
+   "M3V": {
+    "added": [],
+    "n_cold": 8
+   }
+  },
+  "recovery": "models.fit S9 chain"
+ },
+ "namespaces": {
+  "calibration": 271200,
+  "development": 271100,
+  "validation": 271300
+ },
+ "seed_rule": "default_rng([namespace, sha256('setting:<id>')[:8], sha256('replicate:<r>')[:8]]).integers(2**31)",
+ "settings": [
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "simulate:M2B",
+   "id": "G01",
+   "kind": "graded",
+   "note": "",
+   "origin": "historical",
+   "params": {}
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "simulate:M2H",
+   "id": "G02",
+   "kind": "graded",
+   "note": "",
+   "origin": "historical",
+   "params": {
+    "tau": 0.0
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "simulate:M2H",
+   "id": "G03",
+   "kind": "graded",
+   "note": "",
+   "origin": "historical",
+   "params": {
+    "tau": 0.5
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "simulate:M2H",
+   "id": "G04",
+   "kind": "graded",
+   "note": "",
+   "origin": "historical",
+   "params": {
+    "tau": 1.0
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "simulate:M2H",
+   "id": "G05",
+   "kind": "graded",
+   "note": "",
+   "origin": "historical",
+   "params": {
+    "tau": 2.0
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "simulate:M2S",
+   "id": "G06",
+   "kind": "graded",
+   "note": "",
+   "origin": "historical",
+   "params": {
+    "omega": 0.0
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "simulate:M2S",
+   "id": "G07",
+   "kind": "graded",
+   "note": "",
+   "origin": "historical",
+   "params": {
+    "omega": 0.5
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "simulate:M2S",
+   "id": "G08",
+   "kind": "graded",
+   "note": "",
+   "origin": "historical",
+   "params": {
+    "omega": 1.0
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "simulate:M2S",
+   "id": "G09",
+   "kind": "graded",
+   "note": "",
+   "origin": "historical",
+   "params": {
+    "omega": 2.0
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "simulate:M2K",
+   "id": "G10",
+   "kind": "graded",
+   "note": "",
+   "origin": "historical",
+   "params": {
+    "alpha": 0.0
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "simulate:M2K",
+   "id": "G11",
+   "kind": "graded",
+   "note": "",
+   "origin": "historical",
+   "params": {
+    "alpha": 1.0
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "simulate:M2K",
+   "id": "G12",
+   "kind": "graded",
+   "note": "",
+   "origin": "historical",
+   "params": {
+    "alpha": 3.0
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "lowamp_M2B",
+   "id": "G13",
+   "kind": "graded",
+   "note": "low-amplitude M2B: the historical mu range [-1, +1] shrunk tenfold toward a common constant response",
+   "origin": "new",
+   "params": {
+    "mu_low": -0.1,
+    "mu_top": 0.1
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "boundary",
+   "id": "G14",
+   "kind": "graded",
+   "note": "lambda frozen only after the S3 development search and certification; null means NOT FROZEN",
+   "origin": "new",
+   "params": {
+    "development_placeholder_lam": 0.5,
+    "lam": null,
+    "log_sigma0": -0.2876820724517809
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "t5_M2H",
+   "id": "G15",
+   "kind": "graded",
+   "note": "t(5) innovations standardized to unit variance",
+   "origin": "new",
+   "params": {
+    "df": 5,
+    "tau": 0.5
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 400
+   },
+   "generator": "nlvar_carrier",
+   "id": "G16",
+   "kind": "graded",
+   "note": "carrier and background SDs are declared development stress values (S3: from CAL or a declared stress value)",
+   "origin": "new",
+   "params": {
+    "background_sd": 0.2,
+    "bump_centre": 3.0,
+    "bump_width": 1.0,
+    "carrier_sd": 0.2,
+    "concept_log_scale": 1.0,
+    "sigma_base": 0.6,
+    "sigma_bump": 0.4
+   }
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "simulate:M3",
+   "id": "A01",
+   "kind": "alternative",
+   "note": "scale = starting value",
+   "origin": "historical",
+   "params": {
+    "scale": 0.5465000938917843
+   },
+   "power_gate": false,
+   "target_gain": 0.003
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "simulate:M3",
+   "id": "A02",
+   "kind": "alternative",
+   "note": "scale = starting value",
+   "origin": "historical",
+   "params": {
+    "scale": 0.7048470316951376
+   },
+   "power_gate": true,
+   "target_gain": 0.01
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "simulate:M3",
+   "id": "A03",
+   "kind": "alternative",
+   "note": "scale = starting value",
+   "origin": "historical",
+   "params": {
+    "scale": 0.9270429721093283
+   },
+   "power_gate": false,
+   "target_gain": 0.03
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "simulate:M3H",
+   "id": "A04",
+   "kind": "alternative",
+   "note": "scale = starting value",
+   "origin": "historical",
+   "params": {
+    "scale": 0.3842234119293929,
+    "tau": 0.5
+   },
+   "power_gate": false,
+   "target_gain": 0.003
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "simulate:M3H",
+   "id": "A05",
+   "kind": "alternative",
+   "note": "scale = starting value",
+   "origin": "historical",
+   "params": {
+    "scale": 0.5359075609613234,
+    "tau": 0.5
+   },
+   "power_gate": true,
+   "target_gain": 0.01
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "simulate:M3H",
+   "id": "A06",
+   "kind": "alternative",
+   "note": "scale = starting value",
+   "origin": "historical",
+   "params": {
+    "scale": 0.7622480132379349,
+    "tau": 0.5
+   },
+   "power_gate": false,
+   "target_gain": 0.03
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "simulate:M3V",
+   "id": "A07",
+   "kind": "alternative",
+   "note": "scale = starting value",
+   "origin": "historical",
+   "params": {
+    "scale": 0.2864695573790989
+   },
+   "power_gate": false,
+   "target_gain": 0.003
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "simulate:M3V",
+   "id": "A08",
+   "kind": "alternative",
+   "note": "scale = starting value",
+   "origin": "historical",
+   "params": {
+    "scale": 0.6267476817856267
+   },
+   "power_gate": true,
+   "target_gain": 0.01
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "simulate:M3V",
+   "id": "A09",
+   "kind": "alternative",
+   "note": "scale = starting value",
+   "origin": "historical",
+   "params": {
+    "scale": 1.0425622720828758
+   },
+   "power_gate": false,
+   "target_gain": 0.03
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "simulate:M3L",
+   "id": "A10",
+   "kind": "alternative",
+   "note": "scale = starting value",
+   "origin": "historical",
+   "params": {
+    "pi0": 0.05,
+    "scale": 0.5573019945603709
+   },
+   "power_gate": false,
+   "target_gain": 0.003
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "simulate:M3L",
+   "id": "A11",
+   "kind": "alternative",
+   "note": "scale = starting value",
+   "origin": "historical",
+   "params": {
+    "pi0": 0.05,
+    "scale": 0.7187787541376713
+   },
+   "power_gate": true,
+   "target_gain": 0.01
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "simulate:M3L",
+   "id": "A12",
+   "kind": "alternative",
+   "note": "scale = starting value",
+   "origin": "historical",
+   "params": {
+    "pi0": 0.05,
+    "scale": 0.9640522639257728
+   },
+   "power_gate": false,
+   "target_gain": 0.03
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "M3S",
+   "id": "A13",
+   "kind": "alternative",
+   "note": "scale starting value = M3H's 0.01-nat constant; M3S gain not yet certified",
+   "origin": "new",
+   "params": {
+    "omega": 1.0,
+    "scale": 0.5359075609613234,
+    "sep": 2.0
+   },
+   "power_gate": true,
+   "target_gain": 0.01
+  },
+  {
+   "attempts": {
+    "calibration": 500,
+    "development_smoke": 1,
+    "validation": 1000
+   },
+   "gain_certified": false,
+   "generator": "M3S",
+   "id": "A14",
+   "kind": "alternative",
+   "note": "scale starting value = M3H's 0.01-nat constant; M3S gain not yet certified",
+   "origin": "new",
+   "params": {
+    "omega": 2.0,
+    "scale": 0.5359075609613234,
+    "sep": 2.0
+   },
+   "power_gate": true,
+   "target_gain": 0.01
+  }
+ ]
+}
