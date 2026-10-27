@@ -303,3 +303,16 @@ HEAL1922 100,000) that still fits. Its full reservation counts against that prog
 and its `#PBS -P` line carry the code. An entry without the field is CSCI1913. The refit ledger cap and the refit+S
 sub-envelope are 181,000 (= 81,000 + HEAL1922's 100,000), so the per-programme allocations bind. Science, the manifest and its
 pins are unchanged.
+
+## Owner decision, 27 October 2026: the omega = 1 screen is retired from further spending (no new admissions)
+
+Owner ruling in the R052 chat, 27 Oct 2026 ("Do 1, and 2."), on the two Codex records of that day
+(`reviews/2026-10-27_interval_diagnosis_codex_record.md` Q4, `reviews/2026-10-27_method_repair_codex_record.md` S4, RSC
+`1cef701` and `ad54805`): no further refit admission is made for this screen. The ten jobs already running (refit jobs 101-110,
+admitted 26 Oct) run to their end and are settled in the ledger as usual; nothing is cancelled. Completed records are preserved
+under their original identities and this screen's original declaration (60 fixed IDs, first 80 of 200 resamples). The retirement
+is a method and budget decision, not an observed coverage failure: no coverage has been computed, none is computed by this
+decision, and the screen's pre-declared failure-only analysis is neither run nor amended here. Any later authorized reading of the
+completed subset is a bounded development result and does not become the declared 60-dataset screen. The compute route of the
+funding amendment above (CSCI1913, then HEAL1922) is kept for the redesigned qualification of
+`reviews/2026-10-27_method_repair_codex_record.md` S3, which needs its own design freeze, benchmark and adoption record first.
