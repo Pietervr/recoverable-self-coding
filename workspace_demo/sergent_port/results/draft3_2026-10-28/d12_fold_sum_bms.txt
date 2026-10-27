@@ -1,0 +1,46 @@
+=== active: folds per (subject, window, model) min 5 max 5; fold-mean recomputed vs llh_active.csv max |diff| 8.00e-04 (file rounded to 3 decimals)
+tie three-model fold-mean pxp3 vs bms_active.csv: max |diff| 4.96e-07; BOR 4.82e-07
+tie two-model fold-mean pxp3 vs bms_two_model_active.csv: max |diff| 4.98e-07; BOR 4.87e-07
+  three-model, fold mean   first pxp3 > 0.95: 315; first run of three: 315; windows > 0.95: [315, 345, 375, 405, 435, 465, 495, 525, 555, 615]
+  three-model, fold sum    first pxp3 > 0.95: 375; first run of three: 435; windows > 0.95: [375, 435, 465, 495, 525, 555]
+  two-model, fold mean     first pxp3 > 0.95: None; first run of three: None; windows > 0.95: []
+  two-model, fold sum      first pxp3 > 0.95: None; first run of three: None; windows > 0.95: []
+   t_ms  pxp3 mean  BOR mean  pxp3 sum   BOR sum  xp3 sum | 2m pxp3 mean 2m BOR mean 2m pxp3 sum 2m BOR sum 2m xp3 sum  M3>2B
+    255      0.500    0.0171     0.569    0.0125    0.572 |        0.500       0.787       0.515      0.786      0.571     11
+    285      0.227    0.0129     0.346    0.0115    0.346 |        0.440       0.781       0.466      0.779      0.346      9
+    315      0.963    0.0103     0.899   0.00716    0.903 |        0.620       0.745       0.627      0.686      0.904     13
+    345      0.995   0.00621     0.946   0.00593    0.950 |        0.682       0.636       0.660      0.643      0.950     13
+    375      0.996   0.00466     0.991   0.00239    0.992 |        0.718       0.564       0.786      0.420      0.992     12
+    405      0.984    0.0089     0.643    0.0116    0.647 |        0.648       0.697       0.532      0.780      0.646      8
+    435      0.999   0.00147     0.998  0.000715    0.999 |        0.862       0.275       0.910      0.177      0.999     14
+    465      0.999   0.00212     0.990     0.002    0.991 |        0.816       0.369       0.806      0.378      0.991     14
+    495      0.999   0.00207     0.995   0.00201    0.996 |        0.811       0.379       0.808      0.378      0.996     12
+    525      0.996   0.00504     0.952   0.00568    0.955 |        0.701       0.597       0.667      0.633      0.955     13
+    555      0.991   0.00746     0.966   0.00484    0.969 |        0.658       0.681       0.690      0.595      0.969     14
+    585      0.855     0.013     0.774    0.0102    0.778 |        0.582       0.773       0.568      0.757      0.779     12
+    615      0.989   0.00873     0.905   0.00783    0.910 |        0.644       0.709       0.621      0.705      0.910     11
+    645      0.935     0.016     0.630    0.0128    0.634 |        0.609       0.755       0.529      0.781      0.634     11
+
+=== passive: folds per (subject, window, model) min 5 max 5; fold-mean recomputed vs llh_passive.csv max |diff| 8.00e-04 (file rounded to 3 decimals)
+tie three-model fold-mean pxp3 vs bms_passive.csv: max |diff| 4.89e-07; BOR 4.95e-07
+tie two-model fold-mean pxp3 vs bms_two_model_passive.csv: max |diff| 4.99e-07; BOR 4.94e-07
+  three-model, fold mean   first pxp3 > 0.95: None; first run of three: None; windows > 0.95: []
+  three-model, fold sum    first pxp3 > 0.95: None; first run of three: None; windows > 0.95: []
+  two-model, fold mean     first pxp3 > 0.95: None; first run of three: None; windows > 0.95: []
+  two-model, fold sum      first pxp3 > 0.95: None; first run of three: None; windows > 0.95: []
+   t_ms  pxp3 mean  BOR mean  pxp3 sum   BOR sum  xp3 sum | 2m pxp3 mean 2m BOR mean 2m pxp3 sum 2m BOR sum 2m xp3 sum  M3>2B
+    255      0.269    0.0795     0.326     0.131    0.325 |        0.454       0.784       0.471      0.782      0.367      9
+    285      0.038    0.0363     0.463    0.0817    0.474 |        0.379       0.745       0.500      0.787      0.501     10
+    315      0.329    0.0389     0.647    0.0878    0.677 |        0.464       0.785       0.539      0.777      0.677     12
+    345      0.021    0.0255     0.128      0.04    0.119 |        0.363       0.720       0.386      0.708      0.110      8
+    375      0.207    0.0315     0.156    0.0147    0.153 |        0.433       0.781       0.411      0.745      0.152      8
+    405      0.009    0.0161     0.023   0.00575    0.021 |        0.345       0.689       0.273      0.527      0.020      6
+    435      0.208    0.0341     0.049    0.0284    0.041 |        0.433       0.779       0.309      0.589      0.035      6
+    465      0.002   0.00687     0.002   0.00181    0.001 |        0.245       0.491       0.113      0.223      0.001      5
+    495      0.005    0.0129     0.008   0.00298    0.007 |        0.278       0.556       0.224      0.441      0.007      7
+    525      0.014    0.0346     0.044   0.00811    0.042 |        0.340       0.678       0.332      0.634      0.042      8
+    555      0.009    0.0275     0.001   0.00197    0.000 |        0.185       0.370       0.082      0.164      0.000      4
+    585      0.329     0.434     0.417     0.348    0.462 |        0.468       0.786       0.515      0.786      0.568     10
+    615      0.209     0.608     0.206     0.564    0.042 |        0.372       0.738       0.323      0.622      0.033      5
+    645      0.153      0.46     0.058     0.174    0.000 |        0.255       0.511       0.143      0.284      0.002      6
+
