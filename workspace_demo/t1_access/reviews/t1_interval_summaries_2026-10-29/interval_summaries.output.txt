@@ -1,0 +1,53 @@
+rows read: 12000 (failed rows skipped: 0)
+
+(a) Largest upper endpoint of the 95% concept-cluster interval, per setting and variant (nat per trial)
+setting                    n  max hi sel  max hi ens  max hi hist
+base (M2B)              1000     -0.0069     -0.0116      -0.0174
+M2H, tau=0              1000     -0.0071     -0.0116      -0.0178
+M2H, tau=0.5            1000     -0.0171     -0.0159      -0.0123
+M2H, tau=1              1000     -0.0253     -0.0198       0.0045
+M2H, tau=2              1000     -0.0274     -0.0254       0.0375
+M2K, alpha=0            1000     -0.0069     -0.0113      -0.0162
+M2K, alpha=1            1000     -0.0166     -0.0174      -0.0193
+M2K, alpha=3            1000     -0.0543     -0.0518      -0.0196
+M2S, omega=0            1000     -0.0067     -0.0120      -0.0175
+M2S, omega=0.5          1000     -0.0872     -0.0873       0.0301
+M2S, omega=1            1000     -0.3048     -0.3005       0.4483
+M2S, omega=2            1000     -0.8627     -0.7355     127.9039
+all 12 settings                  -0.0067     -0.0113     127.9039
+
+(b) The interval's position below zero in units of its own width (selection variant): per setting the median over datasets of
+    -hi/width (the upper end's distance below zero) and of -point/width (the point estimate's distance below zero)
+setting                    n  med -hi/w  med -pt/w  med width
+base (M2B)              1000       2.06       2.56    0.00574
+M2H, tau=0              1000       2.07       2.57    0.00573
+M2H, tau=0.5            1000       1.84       2.32    0.01376
+M2H, tau=1              1000       3.37       3.86    0.00962
+M2H, tau=2              1000       1.59       2.05    0.02791
+M2K, alpha=0            1000       2.08       2.58    0.00575
+M2K, alpha=1            1000       3.01       3.51    0.00790
+M2K, alpha=3            1000       4.81       5.30    0.01351
+M2S, omega=0            1000       2.08       2.58    0.00572
+M2S, omega=0.5          1000       1.16       1.63    0.14713
+M2S, omega=1            1000       1.40       1.86    0.41567
+M2S, omega=2            1000       1.20       1.63    1.24295
+range across settings: -hi/w 1.16 to 4.81; -pt/w 1.63 to 5.30
+
+(c) Claimed SE of the concept-cluster interval over the recomputed concept-level SE sd(Delta_c)/sqrt(n_c), per dataset;
+    per setting the median of the per-dataset ratio, and (for comparison) the ratio of the two medians
+setting                    n  med ratio     p05     p95  med/med
+base (M2B)              1000     0.9393   0.877   0.981   0.9355
+M2H, tau=0              1000     0.9384   0.875   0.981   0.9334
+M2H, tau=0.5            1000     0.9368   0.872   0.980   0.9319
+M2H, tau=1              1000     0.9408   0.880   0.982   0.9355
+M2H, tau=2              1000     0.9385   0.874   0.978   0.9357
+M2K, alpha=0            1000     0.9384   0.877   0.981   0.9342
+M2K, alpha=1            1000     0.9369   0.878   0.983   0.9321
+M2K, alpha=3            1000     0.9385   0.875   0.983   0.9319
+M2S, omega=0            1000     0.9387   0.874   0.982   0.9349
+M2S, omega=0.5          1000     0.9380   0.883   0.979   0.9298
+M2S, omega=1            1000     0.9357   0.887   0.975   0.9295
+M2S, omega=2            1000     0.9363   0.889   0.973   0.9296
+across settings: median of the per-setting medians 0.9384, range 0.9357 to 0.9408
+over all datasets pooled: median ratio 0.9379
+sqrt(7/8) = 0.9354
