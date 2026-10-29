@@ -1,0 +1,21 @@
+{
+ "n_sets": 1101,
+ "n_jobs": 12,
+ "seconds": 305.7,
+ "seconds_per_set": 0.278,
+ "regen_seconds_median": 0.3,
+ "tests_seconds_median": 3.04,
+ "test_levels": [
+  2,
+  3,
+  4
+ ],
+ "dip_alpha_declared": 0.016666666666666666,
+ "dip_alpha_all": 0.01,
+ "dbic_strong": 10.0,
+ "gmm_n_init": 5,
+ "burst_margin": 0.1,
+ "run_len": 3,
+ "runtime": "python 3.12.14 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 scikit-learn 1.9.1 diptest 0.12.0 joblib 1.6.0 arm64",
+ "finished": "2026-10-28 23:29:53 PDT"
+}

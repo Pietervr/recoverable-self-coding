@@ -1,0 +1,182 @@
+{
+ "restatement": {
+  "missing_sets": 0,
+  "members_equal_per_setting": {
+   "W1": 100,
+   "W2": 100,
+   "W3": 100,
+   "W4": 100,
+   "O1": 100,
+   "O2": 100,
+   "O3": 100,
+   "O4": 100,
+   "O5": 100,
+   "T1": 50,
+   "T2": 50,
+   "E1": 100
+  },
+  "inherited_calls_restated": {
+   "W1": 1,
+   "W2": 0,
+   "W3": 0,
+   "W4": 0,
+   "O1": 0,
+   "O2": 0,
+   "O3": 0,
+   "O4": 0,
+   "O5": 39,
+   "T1": 7
+  },
+  "inherited_calls_expected": {
+   "W1": 1,
+   "W2": 0,
+   "W3": 0,
+   "W4": 0,
+   "O1": 0,
+   "O2": 0,
+   "O3": 0,
+   "O4": 0,
+   "O5": 39,
+   "T1": 7
+  },
+  "primaries_restated_positive_unavailable": {
+   "W1": [
+    0,
+    0
+   ],
+   "W2": [
+    0,
+    0
+   ],
+   "W3": [
+    0,
+    0
+   ],
+   "W4": [
+    0,
+    4
+   ],
+   "O1": [
+    0,
+    0
+   ],
+   "O2": [
+    0,
+    0
+   ],
+   "O3": [
+    0,
+    0
+   ],
+   "O4": [
+    0,
+    0
+   ],
+   "O5": [
+    12,
+    0
+   ],
+   "T1": [
+    49,
+    0
+   ],
+   "T2": [
+    0,
+    50
+   ],
+   "E1": [
+    99,
+    0
+   ]
+  },
+  "primaries_expected": {
+   "W1": [
+    0,
+    0
+   ],
+   "W2": [
+    0,
+    0
+   ],
+   "W3": [
+    0,
+    0
+   ],
+   "W4": [
+    0,
+    4
+   ],
+   "O1": [
+    0,
+    0
+   ],
+   "O2": [
+    0,
+    0
+   ],
+   "O3": [
+    0,
+    0
+   ],
+   "O4": [
+    0,
+    0
+   ],
+   "O5": [
+    12,
+    0
+   ],
+   "T1": [
+    49,
+    0
+   ],
+   "T2": [
+    0,
+    50
+   ],
+   "E1": [
+    99,
+    0
+   ]
+  },
+  "E1_bounded_restated": 0,
+  "restatement_pass": true
+ },
+ "T1_regeneration": {
+  "sets": 50,
+  "calls_saved": 7,
+  "calls_regen": 7,
+  "sets_called_saved": [
+   16,
+   18,
+   33,
+   35,
+   36,
+   43,
+   48
+  ],
+  "sets_called_regen": [
+   16,
+   18,
+   33,
+   35,
+   36,
+   43,
+   48
+  ],
+  "disagreeing_sets": [],
+  "n_trials_equal_rows": 1000,
+  "data_id_matching_rows": 0,
+  "lme_max_abs_diff_over_rows": 0.36359211702318817,
+  "lme_max_abs_diff_median_over_sets": 0.09600579492168038,
+  "pxp_m3_max_abs_diff_over_sets": 0.037501072346869835,
+  "seconds_per_set_median": 473.4,
+  "pass": true
+ },
+ "n_jobs": 12,
+ "seconds_restatement": 207.2,
+ "seconds_T1_regeneration": 2193.4,
+ "runtime": "python 3.12.14 numpy 2.5.3 scipy 1.18.1 pandas 3.0.5 scikit-learn 1.9.1 diptest 0.12.0 joblib 1.6.0 arm64",
+ "finished": "2026-10-28 23:23:36 PDT",
+ "pass": true
+}
